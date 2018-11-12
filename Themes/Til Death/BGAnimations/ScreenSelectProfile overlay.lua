@@ -36,7 +36,7 @@ function GetLocalProfiles()
 				end,
 				ModifyAvatarCommand = function(self)
 					self:finishtweening()
-					self:Load(getAvatarPath(PLAYER_1))
+					self:Load(getAssetPathFromProfileID("avatar", profileID))
 					self:zoomto(30, 30)
 				end
 			}
@@ -231,12 +231,7 @@ t[#t + 1] =
 			end
 		end
 		if params.Name == "Back" then
-			if GAMESTATE:GetNumPlayersEnabled() == 0 then
-				SCREENMAN:GetTopScreen():Cancel()
-			else
-				MESSAGEMAN:Broadcast("BackButton")
-				SCREENMAN:GetTopScreen():SetProfileIndex(params.PlayerNumber, -2)
-			end
+			SCREENMAN:GetTopScreen():Cancel()
 		end
 	end,
 	PlayerJoinedMessageCommand = function(self, params)

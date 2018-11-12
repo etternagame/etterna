@@ -23,19 +23,19 @@ class RageDisplay_GLES2 : public RageDisplay
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
 	bool SupportsPerVertexMatrixScale() override;
-	unsigned CreateTexture(RagePixelFormat pixfmt,
+	virtual intptr_t CreateTexture(RagePixelFormat pixfmt,
 						   RageSurface* img,
 						   bool bGenerateMipMaps) override;
-	void UpdateTexture(unsigned iTexHandle,
+	void UpdateTexture(intptr_t iTexHandle,
 					   RageSurface* img,
 					   int xoffset,
 					   int yoffset,
 					   int width,
 					   int height) override;
-	void DeleteTexture(unsigned iTexHandle) override;
+	void DeleteTexture(intptr_t iTexHandle) override;
 	void ClearAllTextures() override;
 	int GetNumTextureUnits() override;
-	void SetTexture(TextureUnit tu, unsigned iTexture) override;
+	void SetTexture(TextureUnit tu, intptr_t iTexture) override;
 	void SetTextureMode(TextureUnit tu, TextureMode tm) override;
 	void SetTextureWrapping(TextureUnit tu, bool b) override;
 	int GetMaxTextureSize() const override;

@@ -133,10 +133,12 @@ RageSoundDriver_DSound_Software::~RageSoundDriver_DSound_Software()
 	/* Signal the mixing thread to quit. */
 	if (m_MixingThread.IsCreated()) {
 		m_bShutdownMixerThread = true;
-		LOG->Trace("Shutting down mixer thread ...");
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("Shutting down mixer thread ...");
 		LOG->Flush();
 		m_MixingThread.Wait();
-		LOG->Trace("Mixer thread shut down.");
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("Mixer thread shut down.");
 		LOG->Flush();
 	}
 

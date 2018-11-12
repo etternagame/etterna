@@ -121,7 +121,8 @@ vector<Actor*> g_vPreparedBackgrounds;
 void
 PushLoadedScreen(const LoadedScreen& ls)
 {
-	LOG->Trace("PushScreen: \"%s\"", ls.m_pScreen->GetName().c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("PushScreen: \"%s\"", ls.m_pScreen->GetName().c_str());
 	LOG->MapLog("ScreenManager::TopScreen",
 				"Top Screen: %s",
 				ls.m_pScreen->GetName().c_str());
@@ -265,7 +266,8 @@ ScreenManager::ScreenManager()
 
 ScreenManager::~ScreenManager()
 {
-	LOG->Trace("ScreenManager::~ScreenManager()");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("ScreenManager::~ScreenManager()");
 	LOG->UnmapLog("ScreenManager::TopScreen");
 
 	SAFE_DELETE(g_pSharedBGA);
@@ -287,7 +289,8 @@ ScreenManager::~ScreenManager()
 void
 ScreenManager::ThemeChanged()
 {
-	LOG->Trace("ScreenManager::ThemeChanged");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("ScreenManager::ThemeChanged");
 
 	// reload common sounds
 	m_soundStart.Load(THEME->GetPathS("Common", "start"));
@@ -479,7 +482,8 @@ ScreenManager::Update(float fDeltaTime)
 	 * Screen's first update.  Clamp the first update delta so that the
 	 * animations don't jump. */
 	if ((pScreen != nullptr) && m_bZeroNextUpdate) {
-		LOG->Trace("Zeroing this update.  Was %f", fDeltaTime);
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("Zeroing this update.  Was %f", fDeltaTime);
 		fDeltaTime = 0;
 		m_bZeroNextUpdate = false;
 	}
@@ -582,7 +586,8 @@ Screen*
 ScreenManager::MakeNewScreen(const RString& sScreenName)
 {
 	RageTimer t;
-	LOG->Trace("Loading screen: \"%s\"", sScreenName.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loading screen: \"%s\"", sScreenName.c_str());
 
 	RString sClassName = THEME->GetMetric(sScreenName, "Class");
 
@@ -601,10 +606,11 @@ ScreenManager::MakeNewScreen(const RString& sScreenName)
 	CreateScreenFn pfn = iter->second;
 	Screen* ret = pfn(sScreenName);
 
-	LOG->Trace("Loaded \"%s\" (\"%s\") in %f",
-			   sScreenName.c_str(),
-			   sClassName.c_str(),
-			   t.GetDeltaTime());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loaded \"%s\" (\"%s\") in %f",
+				   sScreenName.c_str(),
+				   sClassName.c_str(),
+				   t.GetDeltaTime());
 
 	return ret;
 }
@@ -646,7 +652,8 @@ ScreenManager::PrepareScreen(const RString& sScreenName)
 		// Create the new background before deleting the previous so that we
 		// keep any common textures loaded.
 		if (pNewBGA == NULL) {
-			LOG->Trace("Loading screen background \"%s\"", sNewBGA.c_str());
+			if (PREFSMAN->m_verbose_log > 1)
+				LOG->Trace("Loading screen background \"%s\"", sNewBGA.c_str());
 			Actor* pActor = ActorUtil::MakeActor(sNewBGA);
 			if (pActor != NULL) {
 				pActor->SetName(sNewBGA);

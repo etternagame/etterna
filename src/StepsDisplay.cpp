@@ -271,12 +271,18 @@ class LunaStepsDisplay : public Luna<StepsDisplay>
 		p->SetFromGameState(pn);
 		COMMON_RETURN_SELF;
 	}
+	static int GetIndex(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->mypos);
+		return 1;
+	}
 
 	LunaStepsDisplay()
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(SetFromSteps);
 		ADD_METHOD(SetFromGameState);
+		ADD_METHOD(GetIndex);
 	}
 };
 

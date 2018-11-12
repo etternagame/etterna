@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
@@ -436,13 +436,15 @@ GameSoundManager::~GameSoundManager()
 	LUA->UnsetGlobal("SOUND");
 
 	/* Signal the mixing thread to quit. */
-	LOG->Trace("Shutting down music start thread ...");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
-	LOG->Trace("Music start thread shut down.");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);
@@ -645,6 +647,20 @@ GameSoundManager::GetMusicPath() const
 	return g_Playing->m_Music->GetLoadedFilePath();
 }
 
+RageSound*
+GameSoundManager::GetRageSoundPlaying()
+{
+	LockMut(*g_Mutex);
+	return g_Playing->m_Music;
+}
+
+TimingData
+GameSoundManager::GetPlayingMusicTiming()
+{
+	LockMut(*g_Mutex);
+	return g_Playing->m_Timing;
+}
+
 void
 GameSoundManager::PlayMusic(const RString& sFile,
 							const TimingData* pTiming,
@@ -781,6 +797,16 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->DimMusic(fVolume, fDurationSeconds);
 		COMMON_RETURN_SELF;
 	}
+	static int SetVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolume");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		p->DimMusic(FArg(1), 0.01f);	// lazy hack to update volume without changing songs - mina
+	}
 	static int PlayOnce(T* p, lua_State* L)
 	{
 		RString sPath = SArg(1);
@@ -859,6 +885,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(PlayMusicPart);
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
+		ADD_METHOD(SetVolume);
 	}
 };
 

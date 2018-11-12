@@ -40,7 +40,8 @@ WheelBase::~WheelBase()
 void
 WheelBase::Load(const string& sType)
 {
-	LOG->Trace("WheelBase::Load('%s')", sType.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("WheelBase::Load('%s')", sType.c_str());
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;

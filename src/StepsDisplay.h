@@ -32,7 +32,7 @@ class StepsDisplay : public ActorFrame
 															Difficulty dc);
 	void SetFromSteps(const Steps* pSteps);
 	void Unset();
-
+	int mypos = 0;
 	// Lua
 	void PushSelf(lua_State* L) override;
 

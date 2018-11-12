@@ -62,9 +62,9 @@ InputHandler::ApplyKeyModifiers(wchar_t c)
 			case L'2':
 				c = L'@';
 				break;
-			case L'§':
+			/*case L'§':
 				c = L'±';
-				break;
+				break;*/    // what the fuck is this?
 			case L'3':
 				c = L'#';
 				break;

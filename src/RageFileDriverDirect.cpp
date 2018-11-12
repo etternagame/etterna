@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "RageFile.h"
 #include "RageFileDriverDirect.h"
 #include "RageFileDriverDirectHelpers.h"

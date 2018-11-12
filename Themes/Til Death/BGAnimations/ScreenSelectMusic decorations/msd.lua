@@ -3,9 +3,9 @@ local update = false
 local steps
 local song
 local frameX = 10
-local frameY = 45
-local frameWidth = capWideScale(320, 400)
-local frameHeight = 350
+local frameY = 40
+local frameWidth = SCREEN_WIDTH * 0.56
+local frameHeight = 368
 local fontScale = 0.4
 local distY = 15
 local offsetX = 10
@@ -16,10 +16,15 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
+local cd -- chord density graph
+
 --Actor Frame
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
+		cd = self:GetChild("ChordDensityGraph")
+		cd:playcommand("GraphUpdate")		-- force the first update before setting visible(false) (so it's not empty when switching to the tab) -mina
+		cd:xy(frameX + offsetX, frameY + 140):visible(false)
 		self:queuecommand("Set"):visible(false)
 	end,
 	OffCommand = function(self)
@@ -49,9 +54,15 @@ local t =
 			end
 
 			MESSAGEMAN:Broadcast("UpdateMSDInfo")
+			if song and steps then
+				cd:visible(true)
+			else
+				cd:visible(false)
+			end	
 			update = true
 		else
 			self:queuecommand("Off")
+			cd:visible(false)
 			update = false
 		end
 	end,
@@ -81,7 +92,7 @@ local function littlebits(i)
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
-					self:xy(frameX + 35, frameY + 120 + 22 * i):halign(0):valign(0):zoom(0.5):maxwidth(110 / 0.6)
+					self:xy(frameX + offsetX, frameY + 120 + 22 * i):halign(0):valign(0):zoom(0.5):maxwidth(160 / 0.6)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -182,7 +193,7 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - 100, frameY + offsetY + 65):visible(true):halign(0):zoom(0.4):maxwidth(
+			self:xy(frameX + offsetX, frameY + offsetY + 65):visible(true):halign(0):zoom(0.4):maxwidth(
 				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
 			)
 		end,
@@ -200,7 +211,7 @@ t[#t + 1] =
 	{
 		Name = "StepsAndMeter",
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - offsetX, frameY + offsetY + 50):zoom(0.5):halign(1)
+			self:xy(frameX + offsetX, frameY + offsetY + 50):zoom(0.5):halign(0)
 		end,
 		SetCommand = function(self)
 			steps = GAMESTATE:GetCurrentSteps(pn)
@@ -225,7 +236,7 @@ t[#t + 1] =
 	{
 		Name = "NPS",
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - 15, frameY + 60):zoom(0.4):halign(1)
+			self:xy(frameX + offsetX, frameY + 60):zoom(0.4):halign(0)
 		end,
 		SetCommand = function(self)
 			steps = GAMESTATE:GetCurrentSteps(pn)
@@ -275,5 +286,7 @@ t[#t + 1] =
 for i = 1, #ms.SkillSets do
 	t[#t + 1] = littlebits(i)
 end
+
+t[#t + 1] = LoadActor("../_chorddensitygraph.lua")
 
 return t

@@ -1,4 +1,4 @@
-﻿/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
+/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
@@ -9,7 +9,7 @@ class MsdFile;
 class Song;
 class Steps;
 class TimingData;
-class SSCLoader;
+struct SSCLoader;
 /**
  * @brief The various states while parsing a .ssc file.
  */

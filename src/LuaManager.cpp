@@ -1236,7 +1236,7 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 	LOG->Warn("%s", Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
-		  Error + "  Correct this and click Retry, or Cancel to break.";
+		  Error + "\nCorrect this and click Retry, click Abort to crash, or click Ignore to attempt to continue.";
 		return Dialog::AbortRetryIgnore(with_correct, ErrorType);
 	}
 	// Dialog::OK(Error, ErrorType);

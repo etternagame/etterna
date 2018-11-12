@@ -7,6 +7,14 @@ local score
 local song
 local steps
 local alreadybroadcasted
+local noteField = false
+local heyiwasusingthat = false
+local mcbootlarder
+local prevX = capWideScale(get43size(98), 98)
+local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
+local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+local prevY = 55
+local prevrevY = 208
 
 local update = false
 local t =
@@ -23,9 +31,19 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
+			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then	-- these can prolly be wrapped better too -mina
+				mcbootlarder:visible(true)
+				MESSAGEMAN:Broadcast("ChartPreviewOn")
+				heyiwasusingthat = false
+			end
 			self:queuecommand("On")
 			update = true
 		else
+			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
+				mcbootlarder:visible(false)
+				MESSAGEMAN:Broadcast("ChartPreviewOff")
+				heyiwasusingthat = true
+			end
 			self:queuecommand("Off")
 			update = false
 		end
@@ -79,6 +97,16 @@ t[#t + 1] =
 			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
+		end
+		if not GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
+			mcbootlarder:visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			heyiwasusingthat = true
+		end
+		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
+			mcbootlarder:visible(true)
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
+			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
 	end
@@ -152,6 +180,29 @@ local function GetDisplayScore()
 		score = GetBestScoreByFilter(0, false)
 	end
 	return score
+end
+
+local function toggleNoteField()
+	if song and not noteField then	-- first time setup
+		noteField = true
+		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
+		mcbootlarder:playcommand("SetupNoteField")
+		mcbootlarder:xy(prevX,prevY)
+		mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+		if usingreverse then
+			mcbootlarder:GetChild("NoteField"):y(prevY*1.5 + prevrevY)
+		end
+	return end
+
+	if song then 
+		if mcbootlarder:GetVisible() then
+			mcbootlarder:visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+		else
+			mcbootlarder:visible(true)
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
+		end
+	end
 end
 
 t[#t + 1] =
@@ -734,7 +785,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
-		end
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+				self:visible(true)
+		end,
 	}
 
 t[#t + 1] =
@@ -758,7 +815,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
-		end
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+				self:visible(true)
+		end,
 	}
 
 t[#t + 1] =
@@ -782,7 +845,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
-		end
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+				self:visible(true)
+		end,
 	}
 
 -- tags?
@@ -858,6 +927,27 @@ t[#t + 1] =
 		end
 	}
 
+	t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "ClearType",
+		InitCommand = function(self)
+			self:xy(frameX + 185, frameY + 35):zoom(0.6):halign(0)
+		end,
+		RefreshChartInfoMessageCommand = function(self)
+			if song and score then 
+				self:visible(true)
+				self:settext(getClearTypeFromScore(PLAYER_1, score, 0))
+				self:diffuse(getClearTypeFromScore(PLAYER_1, score, 2))
+			else
+				self:visible(false)
+			end
+		end,
+		CurrentRateChangedMessageCommand = function(self)
+			self:queuecommand("RefreshChartInfo")
+		end,
+	}
+
 --test actor
 t[#t + 1] =
 	LoadFont("Common Large") ..
@@ -880,4 +970,48 @@ t[#t + 1] =
 		end
 	}
 
+	local yesiwantnotefield = false
+--Chart Preview Button
+
+local function ihatestickinginputcallbackseverywhere(event)
+	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
+				if event.DeviceInput.button == "DeviceButton_space" then
+					toggleNoteField()
+				end
+			end
+	return false
+end
+
+t[#t + 1] = LoadFont("Common Normal") .. {
+	Name = "PreviewViewer",
+	BeginCommand = function(self)
+		mcbootlarder = self:GetParent():GetChild("ChartPreview")
+		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
+		self:xy(20, 235)
+		self:zoom(0.5)
+		self:halign(0)
+		self:settext("Toggle Preview")
+	end,
+	RefreshChartInfoMessageCommand = function(self)
+		if song then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) and (song or noteField) then
+			 toggleNoteField()
+		end
+	end,
+	CurrentStyleChangedMessageCommand=function(self)	-- need to regenerate the notefield when changing styles or crashman appears -mina
+		if noteField then
+			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
+			noteField = false
+			toggleNoteField()
+		end
+	end
+}
+
+	t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

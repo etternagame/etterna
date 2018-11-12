@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Texture garbage collection policies:
  *
  * Default: When DelayedDelete is off, delete unused textures immediately.
@@ -22,6 +22,7 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
+#include "PrefsManager.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
@@ -308,7 +309,8 @@ void
 RageTextureManager::GarbageCollect(GCType type)
 {
 	// Search for old textures with refcount==0 to unload
-	LOG->Trace("Performing texture garbage collection.");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Performing texture garbage collection.");
 
 	for (std::map<RageTextureID, RageTexture*>::iterator i =
 		   m_mapPathToTexture.begin();

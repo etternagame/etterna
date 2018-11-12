@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "DifficultyList.h"
 #include "Foreach.h"
@@ -190,13 +190,13 @@ StepsDisplayList::UpdatePositions()
 		if (i < first_start)
 			ItemPosition = -0.5f;
 		else if (i < first_end)
-			ItemPosition = (float)pos++;
+			ItemPosition = static_cast<float>(pos++);
 		else if (i < second_start)
 			ItemPosition = halfsize - 0.5f;
 		else if (i < second_end)
-			ItemPosition = (float)pos++;
+			ItemPosition = static_cast<float>(pos++);
 		else
-			ItemPosition = (float)total - 0.5f;
+			ItemPosition = static_cast<float>(total) - 0.5f;
 
 		Row& row = Rows[i];
 
@@ -228,7 +228,7 @@ StepsDisplayList::PositionItems()
 			m_Lines[m].m_Meter.RunCommands(MOVE_COMMAND.GetValue());
 			m_Lines[m].m_Meter.RunCommandsOnChildren(MOVE_COMMAND.GetValue());
 		}
-
+		m_Lines[m].m_Meter.mypos = m;
 		m_Lines[m].m_Meter.SetY(row.m_fY);
 	}
 
@@ -386,8 +386,15 @@ class LunaStepsDisplayList : public Luna<StepsDisplayList>
 		p->SetFromGameState();
 		COMMON_RETURN_SELF;
 	}
+	static int GetCurrentIndex(T* p, lua_State* L){
+		lua_pushnumber(L, p->GetCurrentRowIndex(PLAYER_1));
+		return 1;
+	}
 
-	LunaStepsDisplayList() { ADD_METHOD(setfromgamestate); }
+	LunaStepsDisplayList() {
+		ADD_METHOD(setfromgamestate);
+		ADD_METHOD(GetCurrentIndex);
+	}
 };
 
 LUA_REGISTER_DERIVED_CLASS(StepsDisplayList, ActorFrame)

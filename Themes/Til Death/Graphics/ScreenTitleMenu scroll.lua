@@ -8,7 +8,7 @@ return Def.ActorFrame {
 				self:xy(280, -78):halign(0):valign(0)
 			end,
 			GainFocusCommand = function(self)
-				self:zoom(0.57):diffuse(color("#59307f"))
+				self:zoom(0.57):diffuse(getMainColor('positive'))
 			end,
 			LoseFocusCommand = function(self)
 				self:zoom(0.55):diffuse(color("#b87cf0"))

@@ -16,6 +16,9 @@
 #include "ThemeMetric.h"
 #include "TimingData.h"
 #include "HighScore.h"
+#include "NoteData.h"
+#include "Player.h"
+#include "NoteField.h"
 
 enum SelectionState
 {
@@ -61,6 +64,21 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	int GetSelectionState();
 
+	// Generate and Display a "fake" NoteField ActorFrame on the Screen.
+	// It functions relatively normally, according to the currently playing music.
+	// It automatically deletes any other pre-existing Preview NoteField.
+	void GeneratePreviewNoteField();
+	// Manually delete a Preview NoteField.
+	// Note: This is triggered by a DeletePreviewNoteField Message.
+	void DeletePreviewNoteField();
+
+	void SetPreviewNoteFieldMusicPosition(float);
+	void PausePreviewNoteFieldMusic();
+
+	NoteData m_PreviewNoteData;
+	NoteField* m_pPreviewNoteField;
+
+	void ChangeSteps(PlayerNumber pn, int dir); 
 	// Lua
 	void PushSelf(lua_State* L) override;
 
@@ -69,7 +87,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton(PlayerNumber pn, bool bBeingPressed);
 
-	void ChangeSteps(PlayerNumber pn, int dir);
 	void AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns);
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();

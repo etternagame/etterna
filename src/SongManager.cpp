@@ -341,8 +341,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	LoadEnabledSongsFromPref();
 	SONGINDEX->delay_save_cache = false;
 
-	LOG->Trace(
-	  "Found %d songs in %.6f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace(
+		  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();
@@ -356,13 +357,16 @@ Chart::FromKey(const string& ck)
 
 	if (song != nullptr) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-		lastpack = song->m_sGroupName;
-		lastsong = song->GetDisplayMainTitle();
-		lastdiff = steps->GetDifficulty();
-		loaded = true;
-		songptr = song;
-		stepsptr = steps;
-		return;
+		if (steps !=
+			nullptr) { // happens when you edit a file for playtesting -mina
+			lastpack = song->m_sGroupName;
+			lastsong = song->GetDisplayMainTitle();
+			lastdiff = steps->GetDifficulty();
+			loaded = true;
+			songptr = song;
+			stepsptr = steps;
+			return;
+		}
 	}
 	loaded = false;
 }
@@ -396,8 +400,8 @@ Chart::LoadFromNode(const XNode* node)
 	node->GetAttrValue("Key", s);
 	key = s;
 
-	// check if this chart is loaded and overwrite any last-seen values with
-	// updated ones
+	// check if this chart is loaded and overwrite any last-seen values
+	// with updated ones
 	key = SONGMAN->ReconcileBustedKeys(key);
 	FromKey(key);
 }
@@ -536,12 +540,14 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 {
 	playlists.erase(pl);
 
-	// stuff gets weird if all playlists have been deleted and a chart is added
+	// stuff gets weird if all playlists have been deleted and a chart
+	// is added
 	// - mina
 	if (playlists.size() > 0)
 		activeplaylist = playlists.begin()->first;
 
-	// clear out the entry for the music wheel as well or it'll crash -mina
+	// clear out the entry for the music wheel as well or it'll crash
+	// -mina
 	groupderps.erase(pl);
 }
 
@@ -554,7 +560,8 @@ SongManager::MakePlaylistFromFavorites(set<string>& favs,
 	for (auto& n : favs)
 		pl.AddChart(n);
 
-	// kinda messy but, trim unloaded charts from the favorites playlist -mina
+	// kinda messy but, trim unloaded charts from the favorites playlist
+	// -mina
 	for (size_t i = 0; i < pl.chartlist.size(); ++i)
 		if (!pl.chartlist[i].loaded)
 			pl.DeleteChart(i);
@@ -602,8 +609,8 @@ SongManager::AddKeyedPointers(Song* new_song)
 	groupderps[new_song->m_sGroupName].emplace_back(new_song);
 }
 
-// Get a steps pointer given a chartkey, the assumption here is we want _a_
-// matching steps, not the original steps - mina
+// Get a steps pointer given a chartkey, the assumption here is we want
+// _a_ matching steps, not the original steps - mina
 Steps*
 SongManager::GetStepsByChartkey(RString ck)
 {
@@ -622,8 +629,10 @@ SongManager::GetSongByChartkey(RString ck)
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
   "SongManager",
-  "The folder \"%s\" appears to be a song folder.  All song folders must "
-  "reside in a group folder.  For example, \"Songs/Originals/My Song\".");
+  "The folder \"%s\" appears to be a song folder.  All song folders "
+  "must "
+  "reside in a group folder.  For example, \"Songs/Originals/My "
+  "Song\".");
 void
 SongManager::SanityCheckGroupDir(const RString& sDir) const
 {
@@ -680,28 +689,33 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 	/* Other group graphics are a bit trickier, and usually don't exist.
 	 * A themer has a few options, namely checking the aspect ratio and
 	 * operating on it. -aj
-	 * TODO: Once the files are implemented in Song, bring the extensions
-	 * from there into here. -aj */
+	 * TODO: Once the files are implemented in Song, bring the
+	 * extensions from there into here. -aj */
 	// Group background
 
 	// vector<RString> arrayGroupBackgrounds;
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.png", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.jpg", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.jpeg", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.bmp", arrayGroupBanners );
+	// GetDirListing( sDir+sGroupDirName+"/*-bg.png", arrayGroupBanners
+	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.jpg",
+	// arrayGroupBanners ); GetDirListing(
+	// sDir+sGroupDirName+"/*-bg.jpeg", arrayGroupBanners );
+	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners
+	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.bmp",
+	// arrayGroupBanners );
 	/*
 		RString sBackgroundPath;
 		if( !arrayGroupBackgrounds.empty() )
-			sBackgroundPath = sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0];
-		else
+			sBackgroundPath =
+	   sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0]; else
 		{
 			// Look for a group background in the parent folder
-			GetDirListing( sDir+sGroupDirName+"-bg.png", arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg", arrayGroupBackgrounds );
-			GetDirListing( sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif", arrayGroupBackgrounds );
-			GetDirListing( sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
+			GetDirListing( sDir+sGroupDirName+"-bg.png",
+	   arrayGroupBackgrounds
+	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg",
+	   arrayGroupBackgrounds ); GetDirListing(
+	   sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
+	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif",
+	   arrayGroupBackgrounds ); GetDirListing(
+	   sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
 	   ); if( !arrayGroupBackgrounds.empty() ) sBackgroundPath =
 	   sDir+arrayGroupBackgrounds[0];
 		}
@@ -825,7 +839,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			ld->SetProgress(progress);
 	};
 	vector<pair<RString*, vector<RString>*>> workload;
-	for (int i = 0; i < arrayGroupDirs.size(); i++) {
+	for (int i = 0; i < (int)arrayGroupDirs.size(); i++) {
 		workload.emplace_back(
 		  make_pair(&arrayGroupDirs[i], &arrayGroupSongDirs[i]));
 	}
@@ -846,8 +860,8 @@ SongManager::PreloadSongImages()
 	if (PREFSMAN->m_ImageCache != IMGCACHE_FULL)
 		return;
 
-	/* Load textures before unloading old ones, so we don't reload textures
-	 * that we don't need to. */
+	/* Load textures before unloading old ones, so we don't reload
+	 * textures that we don't need to. */
 	RageTexturePreloader preload;
 
 	const vector<Song*>& songs = GetAllSongs();
@@ -893,9 +907,10 @@ SongManager::FreeSongs()
 void
 SongManager::UnlistSong(Song* song)
 {
-	// cannot immediately free song data, as it is needed temporarily for smooth
-	// audio transitions, etc. Instead, remove it from the m_pSongs list and
-	// store it in a special place where it can safely be deleted later.
+	// cannot immediately free song data, as it is needed temporarily
+	// for smooth audio transitions, etc. Instead, remove it from the
+	// m_pSongs list and store it in a special place where it can safely
+	// be deleted later.
 	m_pDeletedSongs.emplace_back(song);
 
 	// remove all occurences of the song in each of our song vectors
@@ -966,7 +981,8 @@ SongManager::GetSongGroupBannerPath(const RString& sSongGroup) const
 	return RString();
 }
 /*
-RString SongManager::GetSongGroupBackgroundPath( RString sSongGroup ) const
+RString SongManager::GetSongGroupBackgroundPath( RString sSongGroup )
+const
 {
 	for( unsigned i = 0; i < m_sSongGroupNames.size(); ++i )
 	{
@@ -1034,17 +1050,22 @@ SongManager::GetSongColor(const Song* pSong) const
 		return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
 	} else // TODO: Have a better fallback plan with colors?
 	{
-		/* XXX: Previously, this matched all notes, which set a song to "extra"
-		 * if it had any 10-foot steps at all, even edits or doubles.
+		/* XXX: Previously, this matched all notes, which set a song to
+		 * "extra" if it had any 10-foot steps at all, even edits or
+		 * doubles.
 		 *
-		 * For now, only look at notes for the current note type. This means
-		 * that if a song has 10-foot steps on Doubles, it'll only show up red
-		 * in Doubles. That's not too bad, I think. This will also change it
-		 * in the song scroll, which is a little odd but harmless.
+		 * For now, only look at notes for the current note type. This
+		 * means that if a song has 10-foot steps on Doubles, it'll only
+		 * show up red in Doubles. That's not too bad, I think. This
+		 * will also change it in the song scroll, which is a little odd
+		 * but harmless.
 		 *
-		 * XXX: Ack. This means this function can only be called when we have
-		 * a style set up, which is too restrictive. How to handle this? */
-		// const StepsType st = GAMESTATE->GetCurrentStyle()->m_StepsType;
+		 * XXX: Ack. This means this function can only be called when we
+		 * have
+		 * a style set up, which is too restrictive. How to handle this?
+		 */
+		// const StepsType st =
+		// GAMESTATE->GetCurrentStyle()->m_StepsType;
 		const vector<Steps*>& vpSteps = pSong->GetAllSteps();
 		for (unsigned i = 0; i < vpSteps.size(); i++) {
 			const Steps* pSteps = vpSteps[i];
@@ -1091,6 +1112,20 @@ SongManager::GetSongs(const RString& sGroupName) const
 	if (iter != m_mapSongGroupIndex.end())
 		return iter->second;
 	return vEmpty;
+}
+void
+SongManager::ForceReloadSongGroup(const RString& sGroupName) const
+{
+	auto songs = GetSongs(sGroupName);
+	for (auto s : songs) {
+		auto stepses = s->GetAllSteps();
+		vector<string> oldChartkeys;
+		for (auto steps : stepses)
+			oldChartkeys.emplace_back(steps->GetChartKey());
+
+		s->ReloadFromSongDir();
+		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
+	}
 }
 
 void
@@ -1164,8 +1199,8 @@ SongManager::ShortenGroupName(const RString& sLongGroupName)
 	return title.Title;
 }
 
-/* Called periodically to wipe out cached NoteData. This is called when we
- * change screens. */
+/* Called periodically to wipe out cached NoteData. This is called when
+ * we change screens. */
 void
 SongManager::Cleanup()
 {
@@ -1181,10 +1216,11 @@ SongManager::Cleanup()
 	}
 }
 
-/* Flush all Song*, Steps* and Course* caches. This is when a Song or its Steps
- * are removed or changed. This doesn't touch GAMESTATE and StageStats
- * pointers. Currently, the only time Steps are altered independently of the
- * Courses and Songs is in Edit Mode, which updates the other pointers it needs.
+/* Flush all Song*, Steps* and Course* caches. This is when a Song or
+ * its Steps are removed or changed. This doesn't touch GAMESTATE and
+ * StageStats pointers. Currently, the only time Steps are altered
+ * independently of the Courses and Songs is in Edit Mode, which updates
+ * the other pointers it needs.
  */
 void
 SongManager::Invalidate(const Song* pStaleSong)
@@ -1203,8 +1239,8 @@ SongManager::SaveEnabledSongsToPref()
 {
 	vector<RString> vsDisabledSongs;
 
-	// Intentionally drop disabled song entries for songs that aren't currently
-	// loaded.
+	// Intentionally drop disabled song entries for songs that aren't
+	// currently loaded.
 
 	const vector<Song*>& apSongs = SONGMAN->GetAllSongs();
 	FOREACH_CONST(Song*, apSongs, s)
@@ -1290,8 +1326,8 @@ SongManager::GetExtraStageInfo(bool bExtra2,
 	RString sGroup = GAMESTATE->m_sPreferredSongGroup;
 	if (sGroup == GROUP_ALL) {
 		if (GAMESTATE->m_pCurSong == NULL) {
-			// This normally shouldn't happen, but it's helpful to permit it for
-			// testing.
+			// This normally shouldn't happen, but it's helpful to
+			// permit it for testing.
 			LuaHelpers::ReportScriptErrorFmt("GetExtraStageInfo() called in "
 											 "GROUP_ALL, but "
 											 "GAMESTATE->m_pCurSong == NULL");
@@ -1311,11 +1347,11 @@ SongManager::GetExtraStageInfo(bool bExtra2,
 						: ""));
 
 	// Choose a hard song for the extra stage
-	Song* pExtra1Song =
-	  NULL; // the absolute hardest Song and Steps.  Use this for extra stage 1.
+	Song* pExtra1Song = NULL; // the absolute hardest Song and Steps.
+							  // Use this for extra stage 1.
 	Steps* pExtra1Notes = NULL;
-	Song* pExtra2Song =
-	  NULL; // a medium-hard Song and Steps.  Use this for extra stage 2.
+	Song* pExtra2Song = NULL; // a medium-hard Song and Steps.  Use this
+							  // for extra stage 2.
 	Steps* pExtra2Notes = NULL;
 
 	const vector<Song*>& apSongs = GetSongs(sGroup);
@@ -1331,19 +1367,22 @@ SongManager::GetExtraStageInfo(bool bExtra2,
 
 			if (pExtra1Notes == NULL ||
 				CompareNotesPointersForExtra(
-				  pExtra1Notes, pSteps)) // pSteps is harder than pHardestNotes
+				  pExtra1Notes,
+				  pSteps)) // pSteps is harder than pHardestNotes
 			{
 				pExtra1Song = pSong;
 				pExtra1Notes = pSteps;
 			}
 
-			// for extra 2, we don't want to choose the hardest notes possible.
-			// So, we'll disgard Steps with meter > 8 (assuming dance)
+			// for extra 2, we don't want to choose the hardest notes
+			// possible. So, we'll disgard Steps with meter > 8
+			// (assuming dance)
 			if (bExtra2 && pSteps->GetMeter() > EXTRA_STAGE2_DIFFICULTY_MAX)
 				continue; // skip
 			if (pExtra2Notes == NULL ||
 				CompareNotesPointersForExtra(
-				  pExtra2Notes, pSteps)) // pSteps is harder than pHardestNotes
+				  pExtra2Notes,
+				  pSteps)) // pSteps is harder than pHardestNotes
 			{
 				pExtra2Song = pSong;
 				pExtra2Notes = pSteps;
@@ -1356,10 +1395,10 @@ SongManager::GetExtraStageInfo(bool bExtra2,
 		pExtra2Notes = pExtra1Notes;
 	}
 
-	// If there are any notes at all that match this StepsType, everything
-	// should be filled out. Also, it's guaranteed that there is at least one
-	// Steps that matches the StepsType because the player had to play something
-	// before reaching the extra stage!
+	// If there are any notes at all that match this StepsType,
+	// everything should be filled out. Also, it's guaranteed that there
+	// is at least one Steps that matches the StepsType because the
+	// player had to play something before reaching the extra stage!
 	ASSERT(pExtra2Song && pExtra1Song && pExtra2Notes && pExtra1Notes);
 
 	pSongOut = (bExtra2 ? pExtra2Song : pExtra1Song);
@@ -1407,13 +1446,14 @@ SongManager::GetSongFromDir(RString dir) const
  * My Other Song Folder\Group\SongName    or
  * c:\Corny J-pop\Group\SongName
  *
- * Most course group names are "Group\SongName", so we want to match against the
- * last two elements. Let's also support "SongName" alone, since the group is
- * only important when it's potentially ambiguous.
+ * Most course group names are "Group\SongName", so we want to match
+ * against the last two elements. Let's also support "SongName" alone,
+ * since the group is only important when it's potentially ambiguous.
  *
- * Let's *not* support "Songs\Group\SongName" in course files. That's probably
- * a common error, but that would result in course files floating around that
- * only work for people who put songs in "Songs"; we don't want that. */
+ * Let's *not* support "Songs\Group\SongName" in course files. That's
+ * probably a common error, but that would result in course files
+ * floating around that only work for people who put songs in "Songs";
+ * we don't want that. */
 
 Song*
 SongManager::FindSong(RString sPath) const
@@ -1486,8 +1526,9 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 				TrimLeft(section.sName);
 				TrimRight(section.sName);
 			} else {
-				/* if the line ends in slash-star, check if the section exists,
-				 * and if it does, add all the songs in that group to the list.
+				/* if the line ends in slash-star, check if the section
+				 * exists, and if it does, add all the songs in that
+				 * group to the list.
 				 */
 				if (EndsWith(sLine, "/*")) {
 					RString group =

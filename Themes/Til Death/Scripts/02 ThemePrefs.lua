@@ -93,7 +93,7 @@ function JudgmentText()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Hide"), "Show"},
+		Choices = {THEME:GetString("OptionNames", "Hide"), THEME:GetString("OptionNames", "Show")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).JudgmentText
 			if pref then
@@ -121,7 +121,7 @@ function DisplayPercent()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).DisplayPercent
 			if pref then
@@ -149,7 +149,7 @@ function TargetTracker()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).TargetTracker
 			if pref then
@@ -220,7 +220,7 @@ function TargetTrackerMode()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {"Set Percent", "Personal Best"},
+		Choices = {THEME:GetString("OptionNames", "SetPercent"), THEME:GetString("OptionNames", "PersonalBest")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).TargetTrackerMode
 			list[pref + 1] = true
@@ -248,7 +248,7 @@ function JudgeCounter()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).JudgeCounter
 			if pref then
@@ -276,7 +276,7 @@ function PlayerInfo()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).PlayerInfo
 			if pref then
@@ -304,7 +304,7 @@ function CustomizeGameplay()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay
 			if pref then
@@ -330,7 +330,7 @@ function CustomEvalWindows()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomEvaluationWindowTimings
 			if pref then
@@ -358,7 +358,7 @@ function ErrorBar()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On", "EWMA"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On"), THEME:GetString("OptionNames", "EWMA")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBar
 			list[pref + 1] = true
@@ -388,7 +388,7 @@ function LeaderBoard()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).leaderboardEnabled
 			if pref then
@@ -416,7 +416,7 @@ function FullProgressBar()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).FullProgressBar
 			if pref then
@@ -444,7 +444,7 @@ function MiniProgressBar()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).MiniProgressBar
 			if pref then
@@ -472,7 +472,11 @@ function LaneCover()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), "Sudden", "Hidden"},
+		Choices = {
+			THEME:GetString("OptionNames", "Off"),
+			THEME:GetString("OptionNames", "Sudden"), 
+			THEME:GetString("OptionNames", "Hidden")
+		},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).LaneCover
 			list[pref + 1] = true
@@ -502,7 +506,7 @@ function NPSDisplay()
 		SelectType = "SelectMultiple",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = {"NPS Display", "NPS Graph"},
+		Choices = {THEME:GetString("OptionNames", "NPSDisplay"), THEME:GetString("OptionNames", "NPSGraph")},
 		LoadSelections = function(self, list, pn)
 			local npsDisplay = playerConfig:get_data(pn_to_profile_slot(pn)).NPSDisplay
 			local npsGraph = playerConfig:get_data(pn_to_profile_slot(pn)).NPSGraph
@@ -531,7 +535,11 @@ function BackgroundType()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Default", "Static Background", "Random Background"},
+		Choices = {
+			THEME:GetString("OptionNames", "Default"),
+			THEME:GetString("OptionNames", "StaticBG"), 
+			THEME:GetString("OptionNames", "RandomBG")
+		},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).BackgroundType
 			list[pref] = true
@@ -605,7 +613,11 @@ function TipType()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "Tips", "Random Phrases"},
+		Choices = {
+			THEME:GetString("OptionNames", "Off"),
+			THEME:GetString("OptionNames", "Tips"),
+			THEME:GetString("OptionNames", "RandomPhrases")
+		},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.TipType
 			if pref == 1 then
@@ -641,7 +653,7 @@ function SongBGEnabled()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.SongBGEnabled
 			if pref then
@@ -673,7 +685,7 @@ function SongBGMouseEnabled()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.SongBGMouseEnabled
 			if pref then
@@ -705,7 +717,11 @@ function EvalBGType()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Song Background", "Clear+Grade Background", "Grade Background only"},
+		Choices = {
+			THEME:GetString("OptionNames", "SongBackground"),
+			THEME:GetString("OptionNames", "ClearGradeBackground"),
+			THEME:GetString("OptionNames", "GradeBackground")
+		},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().eval.SongBGType
 			if pref == 1 then
@@ -741,7 +757,7 @@ function Particles()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.Particles
 			if pref then
@@ -773,7 +789,7 @@ function RateSort()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.RateSort
 			if pref then
@@ -805,7 +821,7 @@ function HelpMenu()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.HelpMenu
 			if pref then
@@ -837,7 +853,7 @@ function MeasureLines()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Off", "On"},
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = themeConfig:get_data().global.MeasureLines
 			if pref then
@@ -871,7 +887,7 @@ function ProgressBar()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = true,
-		Choices = {"Bottom", "Top"},
+		Choices = {THEME:GetString("OptionNames", "Bottom"), THEME:GetString("OptionNames", "Top")},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos
 			if pref then

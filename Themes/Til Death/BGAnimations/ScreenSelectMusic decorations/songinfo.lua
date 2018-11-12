@@ -22,7 +22,13 @@ local t =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
-	end
+	end,
+	ChartPreviewOnMessageCommand = function(self)
+		self:visible(false)
+	end,
+	ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
+	end,
 }
 
 t[#t + 1] =

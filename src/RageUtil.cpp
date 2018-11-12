@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"

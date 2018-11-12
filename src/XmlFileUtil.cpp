@@ -665,7 +665,7 @@ void
 XNodeLuaValue::SetValue(unsigned v)
 {
 	Lua* L = LUA->Get();
-	LuaHelpers::Push(L, (float)v);
+	LuaHelpers::Push(L, static_cast<float>(v));
 	SetValueFromStack(L);
 	LUA->Release(L);
 }

@@ -174,7 +174,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					std::ifstream INFILE(path,
 										 std::ios::in | std::ifstream::binary);
 					INFILE.seekg(0, ios::end);
-					newVector.resize(INFILE.tellg() / sizeof(NoteInfo));
+					newVector.resize(u_int(INFILE.tellg() / sizeof(NoteInfo)));
 					INFILE.seekg(0, ios::beg);
 					INFILE.read((char*)&newVector[0],
 								newVector.capacity() * sizeof(NoteData));

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
@@ -471,7 +471,7 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 
 		int iWidth, iX, iY;
 		GetWidthXY(pn, iChoiceWithFocus, iWidth, iX, iY);
-		ul.SetX((float)iX);
+		ul.SetX(static_cast<float>(iX));
 		// only set alpha, in case a theme tries to color underlines. -aj
 		ul.SetDiffuseAlpha(fAlpha);
 

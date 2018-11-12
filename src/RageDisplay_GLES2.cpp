@@ -565,7 +565,7 @@ RageDisplay_GLES2::SupportsPerVertexMatrixScale()
 	return true;
 }
 
-unsigned
+intptr_t
 RageDisplay_GLES2::CreateTexture(RagePixelFormat pixfmt,
 								 RageSurface* img,
 								 bool bGenerateMipMaps)
@@ -575,7 +575,7 @@ RageDisplay_GLES2::CreateTexture(RagePixelFormat pixfmt,
 }
 
 void
-RageDisplay_GLES2::UpdateTexture(unsigned iTexHandle,
+RageDisplay_GLES2::UpdateTexture(intptr_t iTexHandle,
 								 RageSurface* img,
 								 int xoffset,
 								 int yoffset,
@@ -586,7 +586,7 @@ RageDisplay_GLES2::UpdateTexture(unsigned iTexHandle,
 }
 
 void
-RageDisplay_GLES2::DeleteTexture(unsigned iTexHandle)
+RageDisplay_GLES2::DeleteTexture(intptr_t iTexHandle)
 {
 	// TODO
 }
@@ -618,7 +618,7 @@ SetTextureUnit(TextureUnit tu)
 }
 
 void
-RageDisplay_GLES2::SetTexture(TextureUnit tu, unsigned iTexture)
+RageDisplay_GLES2::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
 	if (!SetTextureUnit(tu))
 		return;

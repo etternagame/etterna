@@ -130,7 +130,7 @@ class RageSound : public RageSoundBase
 	bool IsLoaded() const;
 	void DeleteSelfWhenFinishedPlaying();
 
-	void StartPlaying();
+	void StartPlaying(float fGiven = 0, bool forcedTime = false);
 	void StopPlaying();
 
 	RString GetError() const { return m_sError; }
@@ -156,6 +156,7 @@ class RageSound : public RageSoundBase
 	const RageSoundParams& GetParams() const { return m_Param; }
 	bool SetProperty(const RString& sProperty, float fValue);
 	void SetStopModeFromString(const RString& sStopMode);
+	void SetPositionSeconds(float fGiven);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);

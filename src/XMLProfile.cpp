@@ -140,11 +140,13 @@ XMLProfile::LoadStatsFromDir(RString dir, bool require_signature)
 		LOG->Trace("Done.");
 	}
 
-	LOG->Trace("Loading %s", fn.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loading %s", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
-	LOG->Trace("Done.");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Done.");
 
 	return LoadStatsXmlFromNode(&xml);
 }
@@ -183,11 +185,13 @@ XMLProfile::LoadEttFromDir(RString dir)
 		pFile.reset(pInflate);
 	}
 
-	LOG->Trace("Loading %s", fn.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loading %s", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
-	LOG->Trace("Done.");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Done.");
 
 	return LoadEttXmlFromNode(&xml);
 }
@@ -616,6 +620,11 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
+
+	ASSERT_M(profile->m_LastDifficulty >= 0,
+			 ssprintf("congrats you just confirmed the cause of a rare "
+					  "non-repdroducible bug. pd: %i",
+					  GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty()));
 	if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));

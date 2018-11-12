@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "JsonUtil.h"
@@ -34,7 +34,7 @@ Serialize(const TimingData& td, Json::Value& root)
 static void
 Serialize(const LyricSegment& o, Json::Value& root)
 {
-	root["StartTime"] = (float)o.m_fStartTime;
+	root["StartTime"] = static_cast<float>(o.m_fStartTime);
 	root["Lyric"] = o.m_sLyric;
 	root["Color"] = o.m_Color.ToString();
 }

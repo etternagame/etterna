@@ -243,7 +243,7 @@ ScreenNetSelectBase::Scroll(unsigned int movescroll)
 {
 	if (NSMAN->IsETTP())
 		return;
-	if (scroll + movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
+	if ((int)(scroll + movescroll) <= m_textChatOutput.lines - SHOW_CHAT_LINES)
 		scroll += movescroll;
 	m_textChatOutput.ResetText();
 	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);

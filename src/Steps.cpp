@@ -687,6 +687,60 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
+vector<int>
+Steps::GetNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner)
+{
+	vector<int> doot(static_cast<int>(etaner.back()));
+	int notecounter = 0;
+	int lastinterval = 0;
+	int curinterval = 0;
+
+	for (size_t i = 0; i < nerv.size(); ++i) {
+		curinterval = static_cast<int>(etaner[i]);
+		if (curinterval > lastinterval) {
+			doot[lastinterval] = notecounter;
+			notecounter = 0;
+			lastinterval = static_cast<int>(curinterval);
+		}
+
+		for (int t = 0; t < nd.GetNumTracks(); ++t) {
+			const TapNote& tn = nd.GetTapNote(t, nerv[i]);
+			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
+				++notecounter;
+			}
+		}
+	}
+	return doot;
+}
+
+vector<int>
+Steps::GetCNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner, int chordsize)
+{
+	vector<int> doot(static_cast<int>(etaner.back()));
+	int chordnotecounter = 0;	// number of NOTES inside chords of this size, so 5 jumps = 10 notes, 3 hands = 9 notes, etc
+	int lastinterval = 0;
+	int curinterval = 0;
+
+	for (size_t i = 0; i < nerv.size(); ++i) {
+		curinterval = static_cast<int>(etaner[i]);
+		if (curinterval > lastinterval) {
+			doot[lastinterval] = chordnotecounter;
+			chordnotecounter = 0;
+			lastinterval = static_cast<int>(curinterval);
+		}
+		int notesinchord = 0;
+		for (int t = 0; t < nd.GetNumTracks(); ++t) {
+			const TapNote& tn = nd.GetTapNote(t, nerv[i]);
+			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
+				++notesinchord;
+			}
+		}
+		if (notesinchord == chordsize)
+			chordnotecounter += notesinchord;
+	}
+	return doot;
+}
+
 // lua start
 #include "LuaBinding.h"
 /** @brief Allow Lua to have access to the Steps. */
@@ -846,6 +900,30 @@ class LunaSteps : public Luna<Steps>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetCDGraphVectors(T* p, lua_State* L)
+	{
+		auto nd = p->GetNoteData();
+		if (nd.IsEmpty())
+			return 0;
+		const vector<int>& nerv = nd.BuildAndGetNerv();
+		const vector<float>& etaner =
+		  p->GetTimingData()->BuildAndGetEtaner(nerv); 
+
+		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv, etaner), L) produced tables full of 0 values for ???? reason -mina
+		vector<int> scroot = p->GetNPSVector(nd, nerv, etaner);
+		lua_newtable(L);
+		LuaHelpers::CreateTableFromArray(scroot, L);
+		lua_rawseti(L, -2, 1);
+
+		for (int i = 1; i < nd.GetNumTracks(); ++i) {
+			scroot = p->GetCNPSVector(nd, nerv, etaner, i + 1);	// sort of confusing: the luatable pos/chordsize are i + 1 
+			LuaHelpers::CreateTableFromArray(scroot, L);		// but we're iterating over tracks which are 0 indexed 
+			lua_rawseti(L, -2, i + 1);				// so jumps are position 2 and 2 notes each when i = 1 -mina
+		}
+		nd.UnsetNerv();
+		p->GetTimingData()->UnsetEtaner();
+		return 1;
+	}
 
 	LunaSteps()
 	{
@@ -875,6 +953,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(PredictMeter);
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
+		ADD_METHOD(GetCDGraphVectors);
 	}
 };
 

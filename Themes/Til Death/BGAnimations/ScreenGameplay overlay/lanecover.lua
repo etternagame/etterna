@@ -7,12 +7,11 @@ local cover
 local laneColor = color("#333333")
 
 local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
-local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 
 local isCentered = ((cols >= 6) or PREFSMAN:GetPreference("Center1Player")) and GAMESTATE:GetNumPlayersEnabled() == 1
 -- load from prefs later
-local width = 64 * cols * playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
+local width = 64 * cols * MovableValues.NotefieldWidth
 local padding = 8
 local styleType = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
@@ -26,7 +25,7 @@ end
 local heightP1 = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight
 
 local P1X =
-	SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
+	SCREEN_CENTER_X + MovableValues.NotefieldX
 
 if not isCentered then
 	P1X = THEME:GetMetric("ScreenGameplay", string.format("PlayerP1%sX", styleType))
@@ -102,13 +101,7 @@ end
 
 local function input(event)
 	if getAutoplay() ~= 0 and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-		if event.DeviceInput.button == "DeviceButton_r" then
-			rPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_t" then
-			tPressed = not (event.type == "InputEventType_Release")
-		end
-		if rPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				cover:addx(-3)
 			end
@@ -116,13 +109,13 @@ local function input(event)
 				cover:addx(3)
 			end
 		end
-		if tPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
-				width = 64 * cols * playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth - 0.01
+				width = 64 * cols * MovableValues.NotefieldWidth - 0.01
 				cover:playcommand("Update")
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
-				width = 64 * cols * playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth + 0.01
+				width = 64 * cols * MovableValues.NotefieldWidth + 0.01
 				cover:playcommand("Update")
 			end
 		end
@@ -136,7 +129,7 @@ local t =
 		moveDownP1 = false
 		moveUpP1 = false
 		local doot = heightP1
-		if params.PlayerNumber == PLAYER_1 then
+		if params.PlayerNumber == PLAYER_1 and allowedCustomization then
 			if params.Name == "LaneUp" then
 				moveUpP1 = true
 			elseif params.Name == "LaneDown" then
@@ -182,7 +175,7 @@ if enabledP1 then
 			end
 		end,
 		UpdateCommand = function(self)
-			P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
+			P1X = SCREEN_CENTER_X + MovableValues.NotefieldX
 			if isReverseP1 then
 				self:xy(P1X, SCREEN_TOP):zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1):valign(0):diffuse(
 					laneColor
@@ -254,7 +247,7 @@ local function Update(self)
 	end
 	self:SetUpdateRate(5)
 	if enabledP1 then
-		P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
+		P1X = SCREEN_CENTER_X + MovableValues.NotefieldX
 
 		if moveDownP1 then
 			if isReverseP1 then
@@ -300,8 +293,10 @@ local function Update(self)
 		end
 	end
 end
-t.InitCommand = function(self)
-	self:SetUpdateFunction(Update)
+if allowedCustomization then
+	t.InitCommand = function(self)
+		self:SetUpdateFunction(Update)
+	end
 end
 
 return t

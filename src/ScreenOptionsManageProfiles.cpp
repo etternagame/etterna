@@ -454,7 +454,7 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 		ScreenMiniMenu::MiniMenu(&g_TempMenu,
 								 SM_BackFromContextMenu,
 								 SM_BackFromContextMenu,
-								 (float)iX,
+								 static_cast<float>(iX),
 								 SCREEN_CENTER_Y);
 	}
 }
