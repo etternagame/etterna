@@ -174,7 +174,7 @@ function scoreEntry(i)
 	addLabel(
 		"wife",
 		function(self, hs)
-			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
+			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(GetGradeFromPercent(hs:GetWifeScore())))
 		end,
 		1.8 * WIDTH
 	)
