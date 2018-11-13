@@ -4,7 +4,7 @@ local prevZoom = 0.65
 local musicratio = 1
 
 -- hurrrrr nps quadzapalooza -mina
-local wodth = 300
+local wodth = capWideScale(280, 300)
 local hidth = 40
 local yeet
 local cd
