@@ -29,7 +29,7 @@ t[#t + 1] =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:finishtweening()
-		if getTabIndex() < 3 then
+		if getTabIndex() < 3 and GAMESTATE:GetCurrentSong() then
 			self:playcommand("On")
 		else
 			self:playcommand("Off")
