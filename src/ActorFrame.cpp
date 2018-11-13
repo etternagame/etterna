@@ -499,12 +499,8 @@ ActorFrame::UpdateInternal(float fDeltaTime)
 	Actor::UpdateInternal(fDeltaTime);
 
 	// update all sub-Actors
-	for (vector<Actor*>::iterator it = m_SubActors.begin();
-		 it != m_SubActors.end();
-		 it++) {
-		Actor* pActor = *it;
-		pActor->Update(fDeltaTime);
-	}
+	for (auto* a : m_SubActors)
+		a->Update(fDeltaTime);
 
 	if (unlikely(!m_UpdateFunction.IsNil())) {
 		Lua* L = LUA->Get();
