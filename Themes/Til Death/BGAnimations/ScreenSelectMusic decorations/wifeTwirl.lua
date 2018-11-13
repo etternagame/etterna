@@ -583,6 +583,12 @@ t[#t + 1] =
 	end,
 	RefreshChartInfoMessageCommand = function(self)
 		self:queuecommand("Set")
+	end,
+	ChartPreviewOnMessageCommand=function(self)
+		self:addx(capWideScale(34,0))
+	end,
+	ChartPreviewOffMessageCommand=function(self)
+		self:addx(capWideScale(-34,0))
 	end
 }
 

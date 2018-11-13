@@ -50,6 +50,12 @@ t[#t + 1] =
 			DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
 		end
 	end,
+	ChartPreviewOnMessageCommand=function(self)
+		self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
+	end,
+	ChartPreviewOffMessageCommand=function(self)
+		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
+	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
