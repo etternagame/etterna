@@ -1,7 +1,6 @@
 local cdg
 
 -- hurrrrr nps quadzapalooza -mina
-local imcrazy = 500
 local wodth = capWideScale(280, 300)
 local hidth = 40
 local txtoff = 10
@@ -49,7 +48,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
-		local numberOfColumns = math.min(imcrazy,#npsVector)
+		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns
 		
 		-- set height scale of graph relative to the max nps
@@ -66,13 +65,11 @@ local function updateGraphMultiVertex(parent, realgraph)
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
 		for density = 1,4 do
-			for column = 1,imcrazy do
-				if column <= numberOfColumns then
+			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
 						local barColor = getColorForDensity(density)
 						makeABar(verts, column * columnWidth, yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
 					end
-				end
 			end
 		end
 		
