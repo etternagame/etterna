@@ -217,7 +217,7 @@ MakeNoteResource(const RString& sButton,
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
 
 	map<NoteSkinAndPath, NoteResource*>::iterator it =
-	  g_NoteResource[Color].find(nsap);
+	  g_NoteResource["4th"].find(nsap);	// i cant figure out how color changes what actors are loaded... -mina
 	if (it == g_NoteResource[Color].end()) {
 		auto* pRes = new NoteResource(nsap);
 
@@ -734,14 +734,9 @@ NoteDisplay::Update(float fDeltaTime)
 {
 	/* This function is static: it's called once per game loop, not once per
 	 * NoteDisplay.  Update each cached item exactly once. */
-	map<RString, map<NoteSkinAndPath, NoteResource*>>::iterator it2;
-	map<NoteSkinAndPath, NoteResource*>::iterator it;
-	for (it2 = g_NoteResource.begin(); it2 != g_NoteResource.end(); it2++) {
-		for (it = it2->second.begin(); it != it2->second.end(); it++) {
-			NoteResource* pRes = it->second;
-			pRes->m_pActor->Update(fDeltaTime);
-		}
-	}
+	for (auto& c : g_NoteResource)
+		for (auto& a : c.second)
+			a.second->m_pActor->Update(fDeltaTime);
 }
 
 void

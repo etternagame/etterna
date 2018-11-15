@@ -1,6 +1,6 @@
+local cdg
 
 -- hurrrrr nps quadzapalooza -mina
-local imcrazy = 500
 local wodth = capWideScale(280, 300)
 local hidth = 40
 local txtoff = 10
@@ -16,46 +16,65 @@ local function textmover(self)
 	end
 end
 
-local function updateGraph(self)
-	local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
-	if steps then
-		local groot = steps:GetCDGraphVectors()
-		if groot == nil then 
-			for j=1,4 do 
-				for i=1,imcrazy do
-					self:GetChild(i..j):visible(false)
-				end
-			end
-			return 
-		end
+local function makeABar(vertices, x, y, barWidth, barHeight, prettycolor)
+	vertices[#vertices + 1] = {{x,y-barHeight,0},prettycolor}
+	vertices[#vertices + 1] = {{x-barWidth,y-barHeight,0},prettycolor}
+	vertices[#vertices + 1] = {{x-barWidth,y,0},prettycolor}
+	vertices[#vertices + 1] = {{x,y,0},prettycolor}
+end
 
-		local moot = groot[1]
-		local thingers = math.min(imcrazy,#moot)
-		local wid = wodth/thingers
+local function getColorForDensity(density)
+	if density == 1 then
+		return color(".75,.75,.75") -- nps color
+	elseif density == 2 then
+		return color(".5,.5,.5") -- jumps color
+	elseif density == 3 then
+		return color(".25,.25,.25") -- hands color
+	else
+		return color(".1,.1,.1") -- quads color
+	end
+end
+
+local function updateGraphMultiVertex(parent, realgraph)
+	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	if steps then
+		local graphVectors = steps:GetCDGraphVectors()
+		if graphVectors == nil then
+			-- reset everything if theres nothing to show
+			realgraph:SetVertices({})
+			realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
+			realgraph:visible(false)
+			return
+		end
+		
+		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		local numberOfColumns = #npsVector
+		local columnWidth = wodth/numberOfColumns
+		
+		-- set height scale of graph relative to the max nps
 		local hodth = 0
-		for i=1,#moot do 
-			if moot[i] * 2 > hodth then
-				hodth = moot[i] * 2
+		for i=1,#npsVector do
+			if npsVector[i] * 2 > hodth then
+				hodth = npsVector[i] * 2
 			end
 		end
 		
-		self:GetChild("npsline"):y(-hidth * 0.7)
-		self:GetChild("npstext"):settext(hodth/2 * 0.7 .. "nps"):y(-hidth * 0.9)
+		parent:GetChild("npsline"):y(-hidth * 0.7)
+		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. "nps"):y(-hidth * 0.9)
 		hodth = hidth/hodth
-		for j=1,4 do 
-			for i=1,imcrazy do
-				if i <= thingers then
-					if groot[j][i] > 0 then
-						self:GetChild(i..j):x(i * wid):zoomto(wid,groot[j][i]*2*hodth)
-						self:GetChild(i..j):visible(true)
-					else
-						self:GetChild(i..j):visible(false)
+		local verts = {} -- reset the vertices for the graph
+		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
+		for density = 1,4 do
+			for column = 1,numberOfColumns do
+					if graphVectors[density][column] > 0 then
+						local barColor = getColorForDensity(density)
+						makeABar(verts, column * columnWidth, yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
 					end
-				else
-					self:GetChild(i..j):visible(false)
-				end
 			end
 		end
+		
+		realgraph:SetVertices(verts)
+		realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
 	end
 end
 
@@ -63,14 +82,10 @@ local t = Def.ActorFrame {
     Name = "ChordDensityGraph",
     InitCommand=function(self)
 		self:SetUpdateFunction(textmover)
+		cdg = self
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		self:queuecommand("GraphUpdate")
-	end,
-	GraphUpdateCommand = function(self)
-		if self:GetVisible() then
-			updateGraph(self)
-		end
 	end,
 	Def.Quad {
         Name = "cdbg",
@@ -80,22 +95,15 @@ local t = Def.ActorFrame {
     }
 }
 
-local function makeaquad(i,n, col)
-	local o = Def.Quad {
-		Name = i..n,
-		InitCommand = function(self)
-			self:zoomto(20, 0):valign(1):diffuse(color(col)):halign(1)
-		end,
+t[#t+1] =
+	Def.ActorMultiVertex {
+		Name = "CDGraphDrawer",
+		GraphUpdateCommand = function(self)
+			if self:GetVisible() then
+				updateGraphMultiVertex(cdg, self)
+			end
+		end
 	}
-	return o
-end
-
-for i=1,imcrazy do
-    t[#t + 1] = makeaquad(i,1, ".75,.75,.75")   -- nps
-    t[#t + 1] = makeaquad(i,2, ".5,.5,.5")      -- jumps
-    t[#t + 1] = makeaquad(i,3, ".25,.25,.25")   -- hands
-    t[#t + 1] = makeaquad(i,4, ".1,.1,.1")      -- quads
-end
 
 -- down here for draw order
 t[#t + 1] = Def.Quad {

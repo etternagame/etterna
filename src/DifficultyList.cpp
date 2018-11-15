@@ -320,7 +320,6 @@ StepsDisplayList::TweenOnScreen()
 	for (int m = 0; m < MAX_METERS; ++m)
 		ON_COMMAND(m_Lines[m].m_Meter);
 
-	this->SetHibernate(0.5f);
 	m_bShown = true;
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
 		Line& l = m_Lines[m];

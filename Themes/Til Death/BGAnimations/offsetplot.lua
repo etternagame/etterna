@@ -32,6 +32,7 @@ local handspecific = false
 local left = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
+	if finalSecond == 0 then return 0 end
 	return x / finalSecond * plotWidth - plotWidth / 2
 end
 

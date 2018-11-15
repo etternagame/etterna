@@ -29,7 +29,7 @@ t[#t + 1] =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:finishtweening()
-		if getTabIndex() < 3 then
+		if getTabIndex() < 3 and GAMESTATE:GetCurrentSong() then
 			self:playcommand("On")
 		else
 			self:playcommand("Off")
@@ -49,6 +49,12 @@ t[#t + 1] =
 			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
 			DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
 		end
+	end,
+	ChartPreviewOnMessageCommand=function(self)
+		self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
+	end,
+	ChartPreviewOffMessageCommand=function(self)
+		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
 	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",

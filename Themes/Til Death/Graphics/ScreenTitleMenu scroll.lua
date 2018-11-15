@@ -11,7 +11,7 @@ return Def.ActorFrame {
 				self:zoom(0.57):diffuse(getMainColor('positive'))
 			end,
 			LoseFocusCommand = function(self)
-				self:zoom(0.55):diffuse(color("#b87cf0"))
+				self:zoom(0.55):diffuse(getTitleColor('Line_Left'))
 			end
 		}
 }

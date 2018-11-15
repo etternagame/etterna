@@ -621,11 +621,12 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
 
-	ASSERT_M(profile->m_LastDifficulty >= 0,
-			 ssprintf("congrats you just confirmed the cause of a rare "
-					  "non-repdroducible bug. pd: %i",
-					  GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty()));
-	if (profile->m_LastDifficulty < Difficulty_Invalid)
+	if (profile->m_LastDifficulty < 0)	// force set difficulty to current steps if this is somehow -1 for ??? reasons -mina
+		pGeneralDataNode->AppendChild(
+		  "LastDifficulty",
+		  DifficultyToString(
+			GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty()));
+	else if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
 	if (profile->m_LastStepsType != StepsType_Invalid)
