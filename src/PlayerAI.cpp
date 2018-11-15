@@ -254,23 +254,26 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 void
 PlayerAI::RemoveTapFromVectors(int row, int col)
 {
-	if (m_ReplayTapMap.count(row) != 0)
-	{
-		for (int i = 0; i < (int)m_ReplayTapMap[row].size(); i++)
-		{
+	// if the row is in the replay data
+	if (m_ReplayTapMap.count(row) != 0) {
+		for (int i = 0; i < (int)m_ReplayTapMap[row].size(); i++) {
+			// if the column is in the row data
 			auto& trr = m_ReplayTapMap[row][i];
-			if (trr.track == col)
-			{
+			if (trr.track == col) {
+				// delete
 				m_ReplayTapMap[row].erase(m_ReplayTapMap[row].begin() + i);
 				if (m_ReplayTapMap[row].empty())
 					m_ReplayTapMap.erase(row);
 			}
 		}
 	}
+	// if the row is in the replay data
 	if (m_ReplayExactTapMap.count(row) != 0) {
 		for (int i = 0; i < (int)m_ReplayExactTapMap[row].size(); i++) {
+			// if the column is in the row data
 			auto& trr = m_ReplayExactTapMap[row][i];
 			if (trr.track == col) {
+				// delete
 				m_ReplayExactTapMap[row].erase(m_ReplayExactTapMap[row].begin() + i);
 				if (m_ReplayExactTapMap[row].empty())
 					m_ReplayExactTapMap.erase(row);
@@ -283,6 +286,7 @@ int
 PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 {
 	int output = -1;
+
 	if (m_ReplayTapMap.count(row) != 0)
 	{
 		for (TapReplayResult& trr : m_ReplayTapMap[row])
@@ -314,56 +318,13 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 	return false;
 }
 
-int
-PlayerAI::DetermineNextTapColumn(int noteRow, int searchRowDistance, TimingData* timing)
-{
-	// Cannot determine columns without column data.
-	if (pScoreData->GetReplayType() == 1)
-		return -1;
-
-	float centralTime = timing->WhereUAtBro(noteRow);
-	float currentTime = 0.f;
-	int earliestColumn = -1;
-	float earliestColumnTime = 99999999.f;
-
-	// For every row behind and in the future within a certain limit (in the replay data)
-	for (int i = noteRow - searchRowDistance; i != -1 && i < noteRow + searchRowDistance;
-		 i = GetNextRowNoOffsets(i))
-	{
-		if (m_ReplayTapMap.count(i) != 0)
-		{
-			currentTime = timing->WhereUAtBro(i);
-			for (auto& trr : m_ReplayTapMap[i])
-			{
-				float tmpTime = currentTime + trr.offset;
-				if (tmpTime < earliestColumnTime)
-				{
-					earliestColumn = trr.track;
-					earliestColumnTime = tmpTime;
-				}
-			}
-		}
-
-
-	}
-	if (fabsf(centralTime - earliestColumnTime) < 1.f) {
-		return earliestColumn;
-	}
-	return -1;
-	
-	//return earliestColumn;
-}
-
 bool
 PlayerAI::TapExistsAtThisRow(int noteRow)
 {
 	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2)
-	{
+	if (pScoreData->GetReplayType() == 2) {
 		return m_ReplayExactTapMap.count(noteRow) != 0;
-	}
-	else
-	{
+	} else {
 		return m_ReplayTapMap.count(noteRow) != 0;
 	}
 
@@ -373,12 +334,9 @@ bool
 PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 {
 	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2)
-	{
+	if (pScoreData->GetReplayType() == 2) {
 		return m_ReplayExactTapMap.lower_bound(0)->first <= noteRow;
-	}
-	else
-	{
+	} else {
 		return m_ReplayTapMap.lower_bound(0)->first <= noteRow;
 	}
 }
@@ -389,19 +347,15 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 	vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2)
-	{
+	if (pScoreData->GetReplayType() == 2) {
 		auto rowIt = m_ReplayExactTapMap.lower_bound(0);
 		int row = rowIt->first;
-		for (; row <= noteRow && row != -1;)
-		{
+		for (; row <= noteRow && row != -1;) {
 			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
-	}
-	else
-	{
+	} else {
 		auto rowIt = m_ReplayTapMap.lower_bound(0);
 		int row = rowIt->first;
 		for (; row <= noteRow && row != -1;) {
@@ -419,22 +373,15 @@ PlayerAI::GetTapsToTapForRow(int noteRow)
 	vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2)
-	{
-		if (m_ReplayExactTapMap.count(noteRow) != 0)
-		{
-			for (auto& trr : m_ReplayExactTapMap[noteRow])
-			{
+	if (pScoreData->GetReplayType() == 2) {
+		if (m_ReplayExactTapMap.count(noteRow) != 0) {
+			for (auto& trr : m_ReplayExactTapMap[noteRow]) {
 				output.push_back(trr);
 			}
 		}
-	}
-	else
-	{
-		if (m_ReplayTapMap.count(noteRow) != 0)
-		{
-			for (auto& trr : m_ReplayTapMap[noteRow])
-			{
+	} else {
+		if (m_ReplayTapMap.count(noteRow) != 0) {
+			for (auto& trr : m_ReplayTapMap[noteRow]) {
 				output.push_back(trr);
 			}
 		}
@@ -451,9 +398,7 @@ PlayerAI::GetReplayType()
 int
 PlayerAI::GetNextRowNoOffsets(int currentRow)
 {
-	if (pScoreData->GetReplayType() == 2)
-	{
-
+	if (pScoreData->GetReplayType() == 2) {
 		auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayExactTapMap.end()) {
@@ -461,17 +406,12 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		} else {
 			return thing->first;
 		}
-	}
-	else
-	{
+	} else {
 		auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
 
-		if (thing == m_ReplayTapMap.end())
-		{
+		if (thing == m_ReplayTapMap.end()) {
 			return -1;
-		}
-		else
-		{
+		} else {
 			return thing->first;
 		}
 	}
