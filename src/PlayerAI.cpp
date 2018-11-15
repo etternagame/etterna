@@ -50,6 +50,7 @@ struct TapScoreDistribution
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
+TimingData* PlayerAI::pReplayTiming = nullptr;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
@@ -158,7 +159,6 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
-	m_ReplayExactTapMap.clear();
 
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
@@ -219,6 +219,8 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 	// We can't be accurate without it.
 	if (pScoreData->GetReplayType() != 2)
 		return;
+
+	pReplayTiming = timing;
 
 	// For every row in the replay data...
 	for (auto& row : m_ReplayTapMap)

@@ -14,8 +14,10 @@ class PlayerAI
 {
   public:
 	// Pointer to real high score data for a replay
-
 	static HighScore* pScoreData;
+
+	// Pointer to real timing data for a replay
+	static TimingData* pReplayTiming;
 
 	// Pulled from pScoreData on initialization
 
