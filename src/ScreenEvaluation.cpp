@@ -763,30 +763,48 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			CodeDetector::EnteredCode(input.GameI.controller,
 									  CODE_SAVE_SCREENSHOT2)) {
 			PlayerNumber pn = input.pn;
-			if (!m_bSavedScreenshot[pn] && // only allow one screenshot
-				PROFILEMAN->IsPersistentProfile(pn)) {
-				Profile* pProfile = PROFILEMAN->GetProfile(pn);
-				RString sDir =
-				  PROFILEMAN->GetProfileDir((ProfileSlot)pn) + "Screenshots/";
-				RString sFileName =
-				  StepMania::SaveScreenshot(sDir, true, true, "", "");
+			bool bHoldingShift =
+				(INPUTFILTER->IsBeingPressed(
+					DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+				INPUTFILTER->IsBeingPressed(
+					DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
+			RString sDir;
+			RString sFileName;
+			// To save a screenshot to your own profile you must hold shift
+			// and press the button it saves compressed so you don't end up
+			// with an inflated profile size
+			// Otherwise, you can tap away at the screenshot button without holding shift.
+			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn))
+			{
+				if (!m_bSavedScreenshot[pn])
+				{
+					Profile* pProfile = PROFILEMAN->GetProfile(pn);
+					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
+									"Screenshots/";
+					sFileName =
+					  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+					if (!sFileName.empty()) {
+						RString sPath = sDir + sFileName;
 
-				if (!sFileName.empty()) {
-					RString sPath = sDir + sFileName;
-
-					const HighScore& hs =
-					  m_pStageStats->m_player[pn].m_HighScore;
-					Screenshot screenshot;
-					screenshot.sFileName = sFileName;
-					screenshot.sMD5 =
-					  BinaryToHex(CRYPTMAN->GetMD5ForFile(sPath));
-					screenshot.highScore = hs;
-					pProfile->AddScreenshot(screenshot);
+						const HighScore& hs =
+						  m_pStageStats->m_player[pn].m_HighScore;
+						Screenshot screenshot;
+						screenshot.sFileName = sFileName;
+						screenshot.sMD5 =
+						  BinaryToHex(CRYPTMAN->GetMD5ForFile(sPath));
+						screenshot.highScore = hs;
+						pProfile->AddScreenshot(screenshot);
+					}
+					m_bSavedScreenshot[pn] = true;
 				}
-
-				m_bSavedScreenshot[pn] = true;
-				return true; // handled
 			}
+			else
+			{
+				sDir = "Screenshots/";
+				sFileName =
+				  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+			}
+			return true; // handled
 		}
 	}
 
