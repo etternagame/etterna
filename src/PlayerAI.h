@@ -25,6 +25,11 @@ class PlayerAI
 	// A map with indices for each row of the chart, pointing to nothing or hold
 	// drop results.
 	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
+	// A map with indices for each row of the chart, pointing to nothing or a
+	// Normal Result. However, note that the rows within are actually calculated
+	// so that they are adjusted for offsets relative to the actual replay data/notedata.
+	// This map is only useful for charts with column data.
+	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
@@ -35,6 +40,27 @@ class PlayerAI
 	  const PlayerState* pPlayerState,
 	  float fNoteOffset);
 	static bool DetermineIfHoldDropped(int noteRow, int col);
+	// Returns the column that needs to be tapped.
+	// Returns -1 if no column needs to be tapped.
+	static int DetermineNextTapColumn(int noteRow, int searchRowDistance, TimingData* timing);
+	// Literally get the next row in the replay data. Disregard offset calculations.
+	static int GetNextRowNoOffsets(int currentRow);
+	// Reset and populate the ReplayExactTapMap.
+	// This is meant to be run once Gameplay begins.
+	static void SetUpExactTapMap(TimingData* timing);
+	// Check the Tap Replay Data to see if a tap is on this row
+	static bool TapExistsAtThisRow(int noteRow);
+	static bool TapExistsAtOrBeforeThisRow(int noteRow);
+	// Build a list of columns/tracks to tap based on the given noterow.
+	static vector<TapReplayResult> GetTapsToTapForRow(int noteRow);
+	static int GetReplayType();
+	// Build a list of columns/tracks that happened at or before the given noterow.
+	// (if we lag and somehow skip rows)
+	static vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
+	// Given a column and row, retrieve the adjusted row.
+	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
+	// Remove a given Tap from the fallback and Full replay data vectors
+	static void RemoveTapFromVectors(int row, int col);
 };
 
 #endif

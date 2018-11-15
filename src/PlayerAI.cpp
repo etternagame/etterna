@@ -52,6 +52,7 @@ static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 HighScore* PlayerAI::pScoreData = nullptr;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 
 void
 PlayerAI::InitFromDisk()
@@ -157,6 +158,8 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
+	m_ReplayExactTapMap.clear();
+
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
 	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
