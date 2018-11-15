@@ -937,54 +937,6 @@ Player::Update(float fDeltaTime)
 	// Fake steps in Replay mode, but only if we have column data.
 	if (m_pPlayerState->m_PlayerController == PC_REPLAY &&
 		PlayerAI::pScoreData->GetReplayType() == 2) {
-
-		// Giant copy paste from Step() that simply determines how far to search
-		// in the past or future.
-		/*int searchDistance;
-		static const float StepSearchDistance = GetMaxStepDistanceSeconds();
-		int skipstart = nerv[10];
-		if (iSongRow < skipstart ||
-			iSongRow > static_cast<int>(nerv.size()) - 10) {
-			searchDistance =
-			  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-					m_pPlayerState->m_Position.m_fMusicSeconds +
-					StepSearchDistance)) -
-					iSongRow,
-				  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-							   m_pPlayerState->m_Position.m_fMusicSeconds -
-							   StepSearchDistance))) +
-			  ROWS_PER_BEAT;
-		} else {
-			if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
-				nervpos += 1;
-			size_t SearchIndexBehind = nervpos;
-			size_t SearchIndexAhead = nervpos;
-			float SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
-			while (SearchIndexBehind > 1 &&
-				   SearchBeginTime -
-					   m_Timing->WhereUAtBro(nerv[SearchIndexBehind - 1]) <
-					 StepSearchDistance)
-				SearchIndexBehind -= 1;
-			while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() &&
-				   m_Timing->WhereUAtBro(nerv[SearchIndexAhead + 1]) -
-					   SearchBeginTime <
-					 StepSearchDistance)
-				SearchIndexAhead += 1;
-			int MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
-			int MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
-			if (nervpos > 0)
-				searchDistance =
-				  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
-		}
-
-
-
-		int toTap = PlayerAI::DetermineNextTapColumn(iSongRow, searchDistance,
-		m_Timing); if (toTap != -1)
-		{
-			Step(toTap, iSongRow, now, false, false);
-		}
-		*/
 		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
 			vector<TapReplayResult> trrVector =
 			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
