@@ -177,6 +177,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
+		trr.offsetAdjustedRow = replayOffsetVector[i];
 		if (pScoreData->GetReplayType() ==
 			2) // 2 means that this is a Full Replay
 		{
