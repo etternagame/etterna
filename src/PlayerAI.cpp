@@ -155,10 +155,15 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void
 PlayerAI::SetScoreData(HighScore* pHighScore)
 {
-	pHighScore->LoadReplayData();
+	bool successful = pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
+
+	if (!successful)
+	{
+		return;
+	}
 
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
