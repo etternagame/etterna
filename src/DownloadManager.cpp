@@ -2574,7 +2574,7 @@ class LunaDownload : public Luna<Download>
 	static int Stop(T* p, lua_State* L)
 	{
 		p->p_RFWrapper.stop = true;
-		return 1;
+		return 0;
 	}
 	LunaDownload()
 	{
