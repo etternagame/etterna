@@ -164,10 +164,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RString m_sLoopMusicPath;
 	RString m_sFallbackCDTitlePath;
 
-	FadingBanner m_Banner;
-	Sprite m_sprCDTitleFront, m_sprCDTitleBack;
-	AutoActor m_sprHighScoreFrame[NUM_PLAYERS];
-	BitmapText m_textHighScore[NUM_PLAYERS];
 	MusicWheel m_MusicWheel;
 	OptionsList m_OptionsList[NUM_PLAYERS];
 
