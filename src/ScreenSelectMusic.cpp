@@ -1571,7 +1571,7 @@ ScreenSelectMusic::AfterMusicChange()
 	g_sCDTitlePath = "";
 	g_sBannerPath = "";
 	g_bWantFallbackCdTitle = false;
-	bool bWantBanner = true;
+	bool bWantBanner = true &&m_Banner.GetVisible();
 
 	static SortOrder s_lastSortOrder = SortOrder_Invalid;
 	if (GAMESTATE->m_SortOrder != s_lastSortOrder) {
