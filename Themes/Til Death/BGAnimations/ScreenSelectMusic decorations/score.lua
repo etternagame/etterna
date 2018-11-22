@@ -84,20 +84,26 @@ local function highlightIfOver(self)
 		self:diffusealpha(1)
 	end
 end
-
+local moped
 -- Only works if ... it should work
 -- You know, if we can see the place where the scores should be.
 local function updateLeaderBoardForCurrentChart()
 	local top = SCREENMAN:GetTopScreen()
 	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
-		local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
-		DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		if steps then 
+			DLMAN:RequestChartLeaderBoardFromOnline(steps:GetChartKey())
+			moped:queuecommand("ChartLeaderboardUpdate")
+		else
+			moped:queuecommand("Bort")
+		end
 	end
 end
 
 local ret =
 	Def.ActorFrame {
 	BeginCommand = function(self)
+		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
 		self:GetChild("LocalScores"):xy(frameX, frameY):visible(false)
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY):visible(false)
@@ -143,9 +149,6 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	UpdateChartMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
 	CollapseCommand = function(self)
 		collapsed = true
 		resetTabIndex()
@@ -173,7 +176,7 @@ local ret =
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) and DLMAN:GetCurrentRateFilter() then
-			MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
+			moped:queuecommand("ChartLeaderboardUpdate")
 		end
 	end
 }
@@ -702,7 +705,6 @@ function nestedTabButton(i)
 					if isOver(self) then
 						nestedTab = i
 						MESSAGEMAN:Broadcast("NestedTabChanged")
-						MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
 							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(true)
@@ -711,9 +713,6 @@ function nestedTabButton(i)
 							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(false)
 						end
 					end
-				end,
-				NestedTabChangedMessageCommand = function(self)
-					self:queuecommand("Set")
 				end
 			}
 	}

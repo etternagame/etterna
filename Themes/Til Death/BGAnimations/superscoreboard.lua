@@ -103,12 +103,13 @@ local o =
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
-	OnCommand = function(self)
-		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-		self:queuecommand("ChartLeaderboardUpdate")
-	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
 		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+		ind = 0
+		self:playcommand("Update")
+	end,
+	BortCommand = function(self)
+		scoretable = {}
 		ind = 0
 		self:playcommand("Update")
 	end,
