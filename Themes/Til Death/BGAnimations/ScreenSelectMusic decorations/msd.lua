@@ -53,7 +53,6 @@ local t =
 				end
 			end
 
-			MESSAGEMAN:Broadcast("UpdateMSDInfo")
 			if song and steps then
 				cd:visible(true)
 			else
@@ -69,7 +68,7 @@ local t =
 	CurrentRateChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	RefreshChartInfoMessageCommand = function(self)
+	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
 	TabChangedMessageCommand = function(self)
@@ -94,9 +93,6 @@ local function littlebits(i)
 				InitCommand = function(self)
 					self:xy(frameX + offsetX, frameY + 120 + 22 * i):halign(0):valign(0):zoom(0.5):maxwidth(160 / 0.6)
 				end,
-				BeginCommand = function(self)
-					self:queuecommand("Set")
-				end,
 				SetCommand = function(self)
 					--skillset name
 					if song and steps then
@@ -114,18 +110,12 @@ local function littlebits(i)
 					if steps and steps:GetTimingData():HasWarps() then
 						self:settext("")
 					end
-				end,
-				UpdateMSDInfoCommand = function(self)
-					self:queuecommand("Set")
 				end
 			},
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
 					self:xy(frameX + 225, frameY + 120 + 22 * i):halign(1):valign(0):zoom(0.5):maxwidth(110 / 0.6)
-				end,
-				BeginCommand = function(self)
-					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
 					if song and steps then
@@ -138,12 +128,6 @@ local function littlebits(i)
 					if steps and steps:GetTimingData():HasWarps() then
 						self:settext("")
 					end
-				end,
-				CurrentRateChangedMessageCommand = function(self)
-					self:queuecommand("Set")
-				end,
-				UpdateMSDInfoCommand = function(self)
-					self:queuecommand("Set")
 				end
 			}
 	}
@@ -160,8 +144,7 @@ t[#t + 1] =
 	end
 }
 t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
 				"MSD Breakdown (Wip)"
@@ -169,8 +152,7 @@ t[#t + 1] =
 		end
 	}
 t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + 35):zoom(0.6):halign(0):diffuse(getMainColor("positive")):maxwidth(
 				SCREEN_CENTER_X / 0.7
@@ -182,9 +164,6 @@ t[#t + 1] =
 			else
 				self:settext("")
 			end
-		end,
-		UpdateMSDInfoCommand = function(self)
-			self:queuecommand("Set")
 		end
 	}
 
@@ -199,16 +178,12 @@ t[#t + 1] =
 		end,
 		SetCommand = function(self)
 			self:settext(getCurRateDisplayString())
-		end,
-		CurrentRateChangedCommand = function(self)
-			self:queuecommand("set")
 		end
 	}
 
 --Difficulty
 t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "StepsAndMeter",
 		InitCommand = function(self)
 			self:xy(frameX + offsetX, frameY + offsetY + 50):zoom(0.5):halign(0)
@@ -224,16 +199,12 @@ t[#t + 1] =
 					self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
 				end
 			end
-		end,
-		ScoreUpdateMessageCommand = function(self)
-			self:queuecommand("Set")
 		end
 	}
 
 --NPS
 t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "NPS",
 		InitCommand = function(self)
 			self:xy(frameX + offsetX, frameY + 60):zoom(0.4):halign(0)
@@ -251,22 +222,12 @@ t[#t + 1] =
 			else
 				self:settext("0.00 Average NPS")
 			end
-		end,
-		CurrentSongChangedMessageCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		CurrentStepsP1ChangedMessageCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		CurrentStepsP2ChangedMessageCommand = function(self)
-			self:queuecommand("Set")
 		end
 	}
 
 --Negative BPMs label
 t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 45, frameY + 135):zoom(0.8):halign(0):diffuse(getMainColor("negative")):settext("Negative Bpms")
 		end,
@@ -276,9 +237,6 @@ t[#t + 1] =
 			else
 				self:settext("")
 			end
-		end,
-		UpdateMSDInfoCommand = function(self)
-			self:queuecommand("Set")
 		end
 	}
 
