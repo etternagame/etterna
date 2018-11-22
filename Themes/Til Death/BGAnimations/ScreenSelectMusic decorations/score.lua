@@ -172,6 +172,7 @@ local ret =
 		updateLeaderBoardForCurrentChart()
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
+		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
 	CurrentRateChangedMessageCommand = function(self)
@@ -658,9 +659,6 @@ t[#t+1] = Def.Quad {
 	Name = "ScrollBar",
 	InitCommand = function(self)
 		self:x(frameWidth):zoomto(4, 0):halign(1):valign(1):diffuse(getMainColor("highlight")):diffusealpha(0.75)
-	end,
-	ScoreUpdateMessageCommand = function(self)
-		self:queuecommand("Set")
 	end,
 	DisplayCommand = function(self)
 		self:finishtweening()
