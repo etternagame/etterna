@@ -1453,9 +1453,12 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong != nullptr)
 		GAMESTATE->m_pPreferredSong = pSong;
-	else
-		GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);	// set steps to null when moving out of packs
-								// so that currentstepsp1 gets broadcast when moving into packs -mina
+	else {
+		GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
+		if (m_pPreviewNoteField)
+			m_pPreviewNoteField->SetVisible(false);
+	}
+
 	GAMESTATE->SetPaused(false); // hacky can see this being problematic
 								 // if we forget about it -mina
 

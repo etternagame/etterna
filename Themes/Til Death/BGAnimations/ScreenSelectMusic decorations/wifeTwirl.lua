@@ -36,6 +36,7 @@ local t =
 		if getTabIndex() == 0 then
 			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then	-- these can prolly be wrapped better too -mina
 				mcbootlarder:visible(true)
+				mcbootlarder:GetChild("NoteField"):visible(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				heyiwasusingthat = false
 			end
@@ -44,11 +45,19 @@ local t =
 		else
 			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
 				mcbootlarder:visible(false)
+				mcbootlarder:GetChild("NoteField"):visible(false)
 				MESSAGEMAN:Broadcast("ChartPreviewOff")
 				heyiwasusingthat = true
 			end
 			self:queuecommand("Off")
 			update = false
+		end
+	end,
+	MilkyTartsCommand=function(self)	-- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
+		if noteField and mcbootlarder:GetVisible() then 
+			mcbootlarder:visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			heyiwasusingthat = true
 		end
 	end,
 	TabChangedMessageCommand = function(self)
@@ -622,13 +631,6 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		self:zoom(0.5)
 		self:halign(0)
 		self:settext("Toggle Preview")
-	end,
-	RefreshChartInfoMessageCommand = function(self)
-		if song then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) and (song or noteField) then
