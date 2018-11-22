@@ -56,6 +56,12 @@ local dltzoom = 0.5
 -- download queue/progress
 t[#t + 1] =
 	Def.ActorFrame {
+	PausingDownloadsMessageCommand=function(self)
+		self:visible(false)
+	end,
+	ResumingDownloadsMessageCommand=function(self)
+		self:visible(false)
+	end,
 	AllDownloadsCompletedMessageCommand = function(self)
 		self:visible(false)
 	end,

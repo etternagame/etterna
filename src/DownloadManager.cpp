@@ -428,6 +428,11 @@ void
 DownloadManager::UpdateDLSpeed(bool gameplay)
 {
 	this->gameplay = gameplay;
+	if (gameplay)
+		MESSAGEMAN->Broadcast("PausingDownloads");
+	else
+		MESSAGEMAN->Broadcast("ResumingDownloads");
+
 	UpdateDLSpeed();
 }
 
@@ -492,6 +497,8 @@ DownloadManager::Update(float fDeltaSeconds)
 {
 	if (!initialized)
 		init();
+	if (gameplay)
+		return;
 	UpdatePacks(fDeltaSeconds);
 	UpdateHTTP(fDeltaSeconds);
 	return;
