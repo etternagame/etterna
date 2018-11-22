@@ -13,7 +13,7 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-#define MAX_METERS ((NUM_Difficulty * NUM_StepsType) + MAX_EDITS_PER_SONG)
+#define MAX_METERS 12 // kinda restrictive but im also as lazy as sm5 devs -mina
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 

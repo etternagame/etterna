@@ -22,7 +22,7 @@ local setnewdisplayname = function(answer)
 end
 
 local function highlight(self)
-	self:queuecommand("Highlight")
+	self:GetChild("refreshbutton"):queuecommand("Highlight")
 end
 
 local function highlightIfOver(self)
@@ -242,8 +242,8 @@ t[#t + 1] =
 				self:settext(GAMESTATE:GetEtternaVersion())
 			end
 		},
-	LoadFont("Common Normal") ..
-		{
+	LoadFont("Common Normal") .. {
+		Name = "refreshbutton",
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH - 5, AvatarY + 20):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
 				

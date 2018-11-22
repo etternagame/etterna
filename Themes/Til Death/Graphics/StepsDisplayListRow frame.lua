@@ -1,5 +1,7 @@
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if self:GetParent():GetVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 local function highlightIfOver(self)

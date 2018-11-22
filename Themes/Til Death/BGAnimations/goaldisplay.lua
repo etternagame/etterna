@@ -40,7 +40,9 @@ local function input(event)
 end
 
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if cheese:GetVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 local function highlightIfOver(self)

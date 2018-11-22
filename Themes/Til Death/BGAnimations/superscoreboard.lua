@@ -70,8 +70,10 @@ local function isOver(element)
 end
 
 local function highlight(self)
-	self:queuecommand("Highlight")
-	self:queuecommand("WHAZZZAAAA")
+	if self:GetVisible() then
+		self:queuecommand("Highlight")
+		self:queuecommand("WHAZZZAAAA")
+	end
 end
 
 local function highlightIfOver(self)
@@ -405,9 +407,8 @@ local function makeScoreDisplay(i)
 					self:addy(-row2yoff)
 				end
 			},
-		LoadFont("Common normal") ..
-			{
-				--name
+		LoadFont("Common normal") .. {
+				Name = "Burt"..i,
 				InitCommand = function(self)
 					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
 					if collapsed then
@@ -432,9 +433,8 @@ local function makeScoreDisplay(i)
 					end
 				end
 			},
-		LoadFont("Common normal") ..
-			{
-				--judgments
+		LoadFont("Common normal") .. {
+				Name = "Ernie"..i,
 				InitCommand = function(self)
 					if not collapsed then
 						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)

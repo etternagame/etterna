@@ -73,7 +73,9 @@ end
 
 -- should maybe make some of these generic
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if self:GetVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 -- note: will use the local isover functionality
@@ -117,11 +119,14 @@ local ret =
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0) -- visible(false)
+		self:GetChild("LocalScores"):visible(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
-		if nestedTab == 1 then
+		if getTabIndex() == 2 and nestedTab == 1 then
 			self:GetChild("LocalScores"):visible(true)
+		else
+			self:GetChild("LocalScores"):visible(false)
 		end
 	end,
 	SetCommand = function(self)
