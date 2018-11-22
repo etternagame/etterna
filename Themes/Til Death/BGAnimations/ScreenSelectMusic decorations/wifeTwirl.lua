@@ -75,12 +75,10 @@ local t =
 
 -- Music Rate Display
 t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(18, SCREEN_BOTTOM - 225):visible(true):halign(0):zoom(0.8):maxwidth(
-				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
-			)
+				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
 		end,
 		MintyFreshCommand = function(self)
 			self:settext(getCurRateDisplayString())
