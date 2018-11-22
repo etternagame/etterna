@@ -476,43 +476,35 @@ t[#t + 1] =
 	end
 }
 
-t[#t + 1] =
-	Def.Banner {
-	InitCommand = function(self)
-		self:x(10):y(61):halign(0):valign(0):scaletoclipped(
-			capWideScale(get43size(384), 384),
-			capWideScale(get43size(120), 120)
-		)
-	end,
-	MortyFartsCommand = function(self)
-		if not INPUTFILTER:IsBeingPressed("tab") then	-- dont update when fast moving
-			if song then
-				self:LoadFromSong(song)
+t[#t + 1] =	
+	Def.Sprite {
+		Name = "Banner",
+		InitCommand = function(self)
+			self:x(10):y(61):halign(0):valign(0)
+		end,
+		MintyFreshCommand=function(self)
+			if INPUTFILTER:IsBeingPressed("tab") then
+				self:finishtweening():smooth(0.25):diffusealpha(0):sleep(0.2):queuecommand("ModifyBanner")
 			else
-				local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
-				self:LoadFromSongGroup(group)
+				self:finishtweening():queuecommand("ModifyBanner")
 			end
-			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120))	
+		end,
+		ModifyBannerCommand = function(self)
+			self:finishtweening()
+			if song then
+				self:LoadBackground(GAMESTATE:GetCurrentSong():GetBannerPath())
+			else 
+				local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
+				self:LoadBackground(SONGMAN:GetSongGroupBannerPath(group))
+			end
+			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
 		end
-	end,
-	PlayingSampleMusicMessageCommand=function(self)
-		if song then
-			self:LoadFromSong(song)
-		else
-			local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
-			self:LoadFromSongGroup(group)
-		end
-		self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120))	
-	end,
-	MilkyTartsCommand=function(self)
-		self:queuecommand("MortyFarts")	-- for pack banners
-	end,
-	ChartPreviewOnMessageCommand = function(self)
-		self:visible(false)
-	end,
-	ChartPreviewOffMessageCommand = function(self)
-		self:visible(true)
-	end
 }
 
 t[#t + 1] =
