@@ -40,6 +40,9 @@ local t = Def.ActorFrame {
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		self:GetChild("pausetext"):settext("")
+		if GAMESTATE:GetCurrentSong() then
+            musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		end
 	end,
 	MouseRightClickMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():PausePreviewNoteField()
@@ -55,11 +58,6 @@ local t = Def.ActorFrame {
 	end,
 	hELPidontDNOKNOWMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
-	end,
-	RefreshChartInfoMessageCommand = function(self)
-		if GAMESTATE:GetCurrentSong() then
-            musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
-		end
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
         self:visible(true)
