@@ -485,13 +485,24 @@ t[#t + 1] =
 		)
 	end,
 	MortyFartsCommand = function(self)
+		if not INPUTFILTER:IsBeingPressed("tab") then	-- dont update when fast moving
+			if song then
+				self:LoadFromSong(song)
+			else
+				local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
+				self:LoadFromSongGroup(group)
+			end
+			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120))	
+		end
+	end,
+	PlayingSampleMusicMessageCommand=function(self)
 		if song then
 			self:LoadFromSong(song)
 		else
 			local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
 			self:LoadFromSongGroup(group)
 		end
-		self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120))
+		self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120))	
 	end,
 	MilkyTartsCommand=function(self)
 		self:queuecommand("MortyFarts")	-- for pack banners
