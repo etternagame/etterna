@@ -19,6 +19,7 @@ if enabled then
 			end,
 			ModifySongBackgroundCommand = function(self)
 				self:finishtweening()
+				collectgarbage()
 				if GAMESTATE:GetCurrentSong() and GAMESTATE:GetCurrentSong():GetBackgroundPath() then
 					self:finishtweening()
 					self:visible(true)
