@@ -5,7 +5,7 @@ REGISTER_CLASS_TRAITS(LuaReference, new LuaReference(*pCopy))
 
 LuaReference::LuaReference()
 {
-	m_iReference = LUA_NOREF;
+	m_iReference = LUA_REFNIL;
 }
 
 LuaReference::~LuaReference()

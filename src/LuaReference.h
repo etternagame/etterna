@@ -19,7 +19,7 @@ class LuaReference
 
 	// Convenience constructor.
 	LuaReference(Lua* L)
-	  : m_iReference(LUA_NOREF)
+	  : m_iReference(LUA_REFNIL)
 	{
 		SetFromStack(L);
 	}

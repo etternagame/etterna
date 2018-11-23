@@ -9,7 +9,7 @@ local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numscores + 2) * packspaceY - packspaceY/3 -- account dumbly for header being moved up
+local height = (numscores + 2) * packspaceY - packspaceY / 3 -- account dumbly for header being moved up
 
 local adjx = 14
 local c0x = 10
@@ -106,7 +106,7 @@ local o =
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+		scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -183,7 +183,7 @@ local o =
 		offx = 5
 		width = SCREEN_WIDTH * 0.56
 		dwidth = width - offx * 2
-		height = (numscores + 2) * packspaceY - packspaceY/3
+		height = (numscores + 2) * packspaceY - packspaceY / 3
 
 		adjx = 14
 		c0x = 10
@@ -230,7 +230,9 @@ local o =
 	-- grabby thing
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(0.5):valign(1)
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(
+				0.5
+			):valign(1)
 		end,
 		WHAZZZAAAACommand = function(self)
 			if isOver(self) and collapsed then
@@ -407,8 +409,9 @@ local function makeScoreDisplay(i)
 					self:addy(-row2yoff)
 				end
 			},
-		LoadFont("Common normal") .. {
-				Name = "Burt"..i,
+		LoadFont("Common normal") ..
+			{
+				Name = "Burt" .. i,
 				InitCommand = function(self)
 					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
 					if collapsed then
@@ -433,8 +436,9 @@ local function makeScoreDisplay(i)
 					end
 				end
 			},
-		LoadFont("Common normal") .. {
-				Name = "Ernie"..i,
+		LoadFont("Common normal") ..
+			{
+				Name = "Ernie" .. i,
 				InitCommand = function(self)
 					if not collapsed then
 						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)

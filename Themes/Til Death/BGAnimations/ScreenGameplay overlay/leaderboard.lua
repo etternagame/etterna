@@ -27,17 +27,20 @@ local jdgs = {
 
 local function arbitraryLeaderboardSpacing(value)
 	for i, entry in ipairs(entryActors) do
-		entry.container:addy((i-1) * value)
+		entry.container:addy((i - 1) * value)
 	end
 	if allowedCustomization then
-		Movable.DeviceButton_s.Border:playcommand("ChangeHeight", {val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT})
+		Movable.DeviceButton_s.Border:playcommand(
+			"ChangeHeight",
+			{val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT}
+		)
 	end
 end
 
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
 end
-local onlineScores = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+local onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
 end

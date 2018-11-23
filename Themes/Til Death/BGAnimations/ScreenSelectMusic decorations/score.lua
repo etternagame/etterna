@@ -93,8 +93,12 @@ local function updateLeaderBoardForCurrentChart()
 	local top = SCREENMAN:GetTopScreen()
 	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
 		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-		if steps then 
-			DLMAN:RequestChartLeaderBoardFromOnline(steps:GetChartKey())
+		if steps then
+			DLMAN:RequestChartLeaderBoardFromOnline(
+				steps:GetChartKey(),
+				function(leaderboard)
+				end
+			)
 			moped:queuecommand("ChartLeaderboardUpdate")
 		else
 			moped:queuecommand("Bort")
@@ -108,12 +112,12 @@ local ret =
 		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
 		self:GetChild("LocalScores"):xy(frameX, frameY):visible(false)
-		self:GetChild("ScoreDisplay"):xy(frameX, frameY):visible(false)
+		moped:xy(frameX, frameY):visible(false)
 
 		if FILTERMAN:oopsimlazylol() then -- set saved position and auto collapse
 			nestedTab = 2
 			self:GetChild("LocalScores"):visible(false)
-			self:GetChild("ScoreDisplay"):xy(FILTERMAN:grabposx("Doot"), FILTERMAN:grabposy("Doot")):visible(true)
+			moped:xy(FILTERMAN:grabposx("Doot"), FILTERMAN:grabposy("Doot")):visible(true)
 			self:playcommand("Collapse")
 		end
 	end,
@@ -168,7 +172,8 @@ local ret =
 		MESSAGEMAN:Broadcast("TabChanged")
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
-		local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		local leaderboardEnabled =
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 		if not leaderboardEnabled then -- this is taken care of by default.lua instead.
 			updateLeaderBoardForCurrentChart()
 		end
@@ -283,9 +288,7 @@ local t =
 	Def.Quad {
 		Name = "FrameDisplay",
 		InitCommand = function(self)
-			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(
-				color("#333333CC")
-			)
+			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
 		end,
 		CollapseCommand = function(self)
 			self:visible(false)
@@ -300,45 +303,42 @@ local t =
 t[#t + 1] =
 	Def.Quad {
 	InitCommand = function(self)
-		self:zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(
-			0.5
-		)
+		self:zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
 	end
 }
 
-local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at once
-	InitCommand=function(self)
-		self:xy(offsetX, offsetY+headeroffY)
+local l =
+	Def.ActorFrame {
+	-- stuff inside the frame.. so we can move it all at once
+	InitCommand = function(self)
+		self:xy(offsetX, offsetY + headeroffY)
 	end,
 	LoadFont("Common Large") ..
-	{
-		Name = "Grades",
-		InitCommand = function(self)
-			self:y(20):zoom(0.6):halign(0):maxwidth(50 / 0.6):settext("")
-		end,
-		DisplayCommand = function(self)
-			self:settext(THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade())))
-			self:diffuse(getGradeColor(score:GetWifeGrade()))
-		end
-	},
-
--- Wife display
-	LoadFont("Common Normal") ..
-	{
-		Name = "Wife",
-		InitCommand = function(self)
-			self:xy(55, 15):zoom(0.6):halign(0):settext("")
-		end,
-		DisplayCommand = function(self)
-			if score:GetWifeScore() == 0 then
-				self:settextf("NA")
-			else
-				self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100):diffuse(byGrade(score:GetWifeGrade()))
+		{
+			Name = "Grades",
+			InitCommand = function(self)
+				self:y(20):zoom(0.6):halign(0):maxwidth(50 / 0.6):settext("")
+			end,
+			DisplayCommand = function(self)
+				self:settext(THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade())))
+				self:diffuse(getGradeColor(score:GetWifeGrade()))
 			end
-		end
-	},
-
-
+		},
+	-- Wife display
+	LoadFont("Common Normal") ..
+		{
+			Name = "Wife",
+			InitCommand = function(self)
+				self:xy(55, 15):zoom(0.6):halign(0):settext("")
+			end,
+			DisplayCommand = function(self)
+				if score:GetWifeScore() == 0 then
+					self:settextf("NA")
+				else
+					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100):diffuse(byGrade(score:GetWifeGrade()))
+				end
+			end
+		},
 	LoadFont("Common Normal") ..
 	{
 		Name = "Score",
@@ -350,11 +350,9 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 				self:settext("")
 			else
 				local overall = score:GetSkillsetSSR("Overall")
-				self:settextf("%.2f", overall):diffuse(byMSD(overall))
+				self:settextf("%.2f", overall):diffuse(byMSD(overall)) 
 			end
-		end
-	},
-
+		},
 	LoadFont("Common Normal") ..
 	{
 		Name = "Score",
@@ -382,92 +380,91 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 			self:settext(getClearTypeFromScore(pn, score, 0))
 			self:diffuse(getClearTypeFromScore(pn, score, 2))
 		end
-	},
-
+	},rtLeaderboard callbacks
 	LoadFont("Common Normal") ..
-	{
-		Name = "Combo",
-		InitCommand = function(self)
-			self:y(58):zoom(0.4):halign(0):settext("Max Combo:")
-		end,
-		DisplayCommand = function(self)
-			self:settextf("Max Combo: %d", score:GetMaxCombo())
-		end
-	},
-
-
-	LoadFont("Common Normal") ..
-	{
-		Name = "MissCount",
-		InitCommand = function(self)
-			self:y(73):zoom(0.4):halign(0):settext("Miss Count:")
-		end,
-		DisplayCommand = function(self)
-			local missCount = getScoreMissCount(score)
-			if missCount ~= nil then
-				self:settext("Miss Count: " .. missCount)
-			else
-				self:settext("Miss Count: -")
+		{
+			Name = "Combo",
+			InitCommand = function(self)
+				self:y(58):zoom(0.4):halign(0):settext("Max Combo:")
+			end,
+			DisplayCommand = function(self)
+				self:settextf("Max Combo: %d", score:GetMaxCombo())
 			end
-		end
-	},
-
+		},
 	LoadFont("Common Normal") ..
-	{
-		Name = "Date",
-		InitCommand = function(self)
-			self:y(88):zoom(0.4):halign(0):settext("Date Achieved:")
-		end,
-		DisplayCommand = function(self)
-			self:settext("Date Achieved: " .. getScoreDate(score))
-		end
-	},
-	LoadFont("Common Normal") ..
-	{
-		Name = "Mods",
-		InitCommand = function(self)
-			self:y(103):zoom(0.4):halign(0):settext("Mods:")
-		end,
-		DisplayCommand = function(self)
-			self:settext("Mods: " .. score:GetModifiers())
-		end
-	},
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(1):settext(
-				"No Scores Saved"
-			)
-		end,
-		DisplayCommand = function(self)
-			self:settextf("Rate %s - Showing %d/%d", rates[rateIndex], scoreIndex, #rtTable[rates[rateIndex]])
-		end
-	},
-	LoadFont("Common Normal") ..
-	{
-		Name = "ChordCohesion",
-		InitCommand = function(self)
-			self:y(frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(0):settext("Chord Cohesion:")
-		end,
-		DisplayCommand = function(self)
-			if score:GetChordCohesion() then
-				self:settext("Chord Cohesion: Yes")
-			else
-				self:settext("Chord Cohesion: No")
+		{
+			Name = "MissCount",
+			InitCommand = function(self)
+				self:y(73):zoom(0.4):halign(0):settext("Miss Count:")
+			end,
+			DisplayCommand = function(self)
+				local missCount = getScoreMissCount(score)
+				if missCount ~= nil then
+					self:settext("Miss Count: " .. missCount)
+				else
+					self:settext("Miss Count: -")
+				end
 			end
-		end
-	},
-	LoadFont("Common Normal") .. {
-		Name = "Judge",
-		InitCommand = function(self)
-			self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):settext("")
-		end,
-		DisplayCommand = function(self)
-			local j = table.find(ms.JudgeScalers , notShit.round(score:GetJudgeScale(), 2))
-			if not j then j = 4 end
-			self:settext("Judge "..j)
-		end
-	}
+		},
+	LoadFont("Common Normal") ..
+		{
+			Name = "Date",
+			InitCommand = function(self)
+				self:y(88):zoom(0.4):halign(0):settext("Date Achieved:")
+			end,
+			DisplayCommand = function(self)
+				self:settext("Date Achieved: " .. getScoreDate(score))
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			Name = "Mods",
+			InitCommand = function(self)
+				self:y(103):zoom(0.4):halign(0):settext("Mods:")
+			end,
+			DisplayCommand = function(self)
+				self:settext("Mods: " .. score:GetModifiers())
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(1):settext(
+					"No Scores Saved"
+				)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("Rate %s - Showing %d/%d", rates[rateIndex], scoreIndex, #rtTable[rates[rateIndex]])
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			Name = "ChordCohesion",
+			InitCommand = function(self)
+				self:y(frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(0):settext("Chord Cohesion:")
+			end,
+			DisplayCommand = function(self)
+				if score:GetChordCohesion() then
+					self:settext("Chord Cohesion: Yes")
+				else
+					self:settext("Chord Cohesion: No")
+				end
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			Name = "Judge",
+			InitCommand = function(self)
+				self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):settext("")
+			end,
+			DisplayCommand = function(self)
+				local j = table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))
+				if not j then
+					j = 4
+				end
+				self:settext("Judge " .. j)
+			end
+		}
 }
 
 local function makeText(index)
@@ -668,14 +665,15 @@ l[#l + 1] =
 			if nestedTab == 1 then
 				if getTabIndex() == 2 and isOver(self) then
 					DLMAN:SendReplayDataForOldScore(score:GetScoreKey())
-					ms.ok("Uploading Replay Data...")	--should have better feedback -mina
+					ms.ok("Uploading Replay Data...") --should have better feedback -mina
 				end
 			end
 		end
 	}
 t[#t + 1] = l
 
-t[#t+1] = Def.Quad {
+t[#t + 1] =
+	Def.Quad {
 	Name = "ScrollBar",
 	InitCommand = function(self)
 		self:x(frameWidth):zoomto(4, 0):halign(1):valign(1):diffuse(getMainColor("highlight")):diffusealpha(0.75)
@@ -688,13 +686,12 @@ t[#t+1] = Def.Quad {
 	end
 }
 
-
 ret[#ret + 1] = t
 
 function nestedTabButton(i)
 	return Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100,80)), frameY + offsetY - 2)
+			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100, 80)), frameY + offsetY - 2)
 			self:SetUpdateFunction(highlight)
 		end,
 		CollapseCommand = function(self)
@@ -736,7 +733,7 @@ function nestedTabButton(i)
 	}
 end
 
--- online score display 
+-- online score display
 ret[#ret + 1] = LoadActor("../superscoreboard")
 
 for i = 1, #nestedTabs do
