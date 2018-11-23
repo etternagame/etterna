@@ -244,7 +244,7 @@ class DownloadManager
 
 	string GetError() { return error; }
 	bool Error() { return error == ""; }
-	bool EncodeSpaces(string& str);
+	char * EncodeSpaces(CURL * curl, string& str);
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(string sk);

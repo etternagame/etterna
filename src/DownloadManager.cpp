@@ -27,34 +27,33 @@
 #include "PlayerStageStats.h"
 #include "Grade.h"
 #include "SongManager.h"	// i didn't want to do this but i also didn't want to figure how not to have to so... -mina
+
 using json = nlohmann::json;
+
 #ifdef _WIN32
 #include <intrin.h>
 #endif
+
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
-static Preference<unsigned int> maxDLPerSecond(
-  "maximumBytesDownloadedPerSecond",
-  0);
-static Preference<unsigned int> maxDLPerSecondGameplay(
-  "maximumBytesDownloadedPerSecondDuringGameplay",
-  1000000);
-static Preference<RString> packListURL(
-  "PackListURL",
-  "https://api.etternaonline.com/v2/packs");
-static Preference<RString> serverURL("BaseAPIURL",
-									 "https://api.etternaonline.com/v2");
-static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
-static Preference<unsigned int> downloadPacksToAdditionalSongs(
-  "downloadPacksToAdditionalSongs",
-  0);
+static const string API_URL = "https://api.etternaonline.com/v2";
+static const string PACK_LIST_URL = "https://api.etternaonline.com/v2/packs";
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY =
-  "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
+static const string CLIENT_DATA_KEY = "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
-size_t
-write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
+
+// Setup preference defaults
+static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
+static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 1000000);
+static Preference<RString> packListURL("PackListURL", PACK_LIST_URL);
+static Preference<RString> serverURL("BaseAPIURL", API_URL);
+static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
+static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
+
+
+
+size_t write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
 	size_t realsize = size * nmemb;
 	string tmp(static_cast<char*>(contents), realsize);
@@ -98,6 +97,7 @@ ComputerIdentity()
 #endif
 	return computerName + ":_:" + userName;
 }
+
 size_t
 ReadThisReadCallback(void* dest, size_t size, size_t nmemb, void* userp)
 {
@@ -192,6 +192,7 @@ progressfunc(void* clientp,
 	ptr->downloaded = dlnow;
 	return 0;
 }
+
 size_t
 write_data(void* dlBuffer, size_t size, size_t nmemb, void* pnf)
 {
@@ -219,6 +220,7 @@ checkProtocol(string& url)
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
 		url = string("http://").append(url);
 }
+
 inline CURL*
 initBasicCURLHandle()
 {
@@ -234,6 +236,7 @@ initBasicCURLHandle()
 	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	return curlHandle;
 }
+
 // Utility inline functions to deal with CURL
 inline CURL*
 initCURLHandle(bool withBearer)
@@ -247,6 +250,7 @@ initCURLHandle(bool withBearer)
 	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
 	return curlHandle;
 }
+
 inline bool
 addFileToForm(curl_httppost*& form,
 			  curl_httppost*& lastPtr,
@@ -273,25 +277,29 @@ addFileToForm(curl_httppost*& form,
 				 CURLFORM_END);
 	return true;
 }
+
 inline void
 SetCURLResultsString(CURL* curlHandle, string* str)
 {
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, str);
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 }
+
 inline void
 DownloadManager::SetCURLURL(CURL* curlHandle, string url)
 {
-	checkProtocol(url);
-	EncodeSpaces(url);
+	checkProtocol(url); 
+	url = EncodeSpaces(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
 }
+
 inline void
 DownloadManager::SetCURLPostToURL(CURL* curlHandle, string url)
 {
 	SetCURLURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 }
+
 void
 CURLFormPostField(CURL* curlHandle,
 				  curl_httppost*& form,
@@ -307,6 +315,10 @@ CURLFormPostField(CURL* curlHandle,
 				 value,
 				 CURLFORM_END);
 }
+
+// I would reduce these to one function
+// Maybe use a template
+
 inline void
 SetCURLFormPostField(CURL* curlHandle,
 					 curl_httppost*& form,
@@ -334,6 +346,7 @@ SetCURLFormPostField(CURL* curlHandle,
 {
 	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), value.c_str());
 }
+
 template<typename T>
 inline void
 SetCURLFormPostField(CURL* curlHandle,
@@ -345,6 +358,7 @@ SetCURLFormPostField(CURL* curlHandle,
 	CURLFormPostField(
 	  curlHandle, form, lastPtr, field.c_str(), to_string(value).c_str());
 }
+
 inline void
 EmptyTempDLFileDir()
 {
@@ -355,6 +369,7 @@ EmptyTempDLFileDir()
 			FILEMAN->Remove(file);
 	}
 }
+
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
@@ -431,21 +446,11 @@ DownloadManager::UpdateDLSpeed(bool gameplay)
 	UpdateDLSpeed();
 }
 
-bool
-DownloadManager::EncodeSpaces(string& str)
+char *
+DownloadManager::EncodeSpaces(CURL * curl, string& str)
 {
 
-	// Parse spaces (curl doesnt parse them properly)
-	bool foundSpaces = false;
-	size_t index = str.find(" ", 0);
-	while (index != string::npos) {
-
-		str.erase(index, 1);
-		str.insert(index, "%20");
-		index = str.find(" ", index);
-		foundSpaces = true;
-	}
-	return foundSpaces;
+	return curl_easy_escape(curl, str.c_str(), str.length());
 }
 
 void
@@ -474,11 +479,14 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 		return nullptr;
 	}
+
+	//Add checks inside this function for failed download 404 etc...
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
 										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	return dl;
 }
+
 void
 DownloadManager::init()
 {
@@ -487,6 +495,7 @@ DownloadManager::init()
 	RefreshRegisterPage();
 	initialized = true;
 }
+
 void
 DownloadManager::Update(float fDeltaSeconds)
 {
@@ -496,6 +505,7 @@ DownloadManager::Update(float fDeltaSeconds)
 	UpdateHTTP(fDeltaSeconds);
 	return;
 }
+
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
@@ -515,7 +525,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + to_string(mc);
+		error = "curl_multi_fdset() failed, code " + to_string(mc); // This is never logged?
 		return;
 	}
 	if (maxfd == -1) {
@@ -525,7 +535,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 	switch (rc) {
 		case -1:
-			error = "select error" + to_string(mc);
+			error = "select error" + to_string(mc); // Not logged
 			break;
 		case 0:  /* timeout */
 		default: /* action */
@@ -539,28 +549,39 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (size_t i = 0; i < HTTPRequests.size(); ++i) {
+			
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
+				
 				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
 					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
 					LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
 				} else if (msg->msg == CURLMSG_DONE) {
 					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
-				} else
+				} else {
 					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-				if (HTTPRequests[i]->handle != nullptr)
+				}
+
+				if (HTTPRequests[i]->handle != nullptr) {
 					curl_easy_cleanup(HTTPRequests[i]->handle);
+				}
+
 				HTTPRequests[i]->handle = nullptr;
-				if (HTTPRequests[i]->form != nullptr)
+				
+				if (HTTPRequests[i]->form != nullptr) {
 					curl_formfree(HTTPRequests[i]->form);
+				}
+
 				HTTPRequests[i]->form = nullptr;
 				delete HTTPRequests[i];
 				HTTPRequests.erase(HTTPRequests.begin() + i);
+				
 				break;
 			}
 		}
 	}
 	return;
 }
+
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
@@ -631,47 +652,64 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	int msgs_left;
 	bool installedPacks = false;
 	bool finishedADownload = false;
+
 	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
-		/* Find out which handle this message is about */
+		
+		// Find out which handle this message is about
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			if (msg->easy_handle == i->second->handle &&
 				msg->msg == CURLMSG_DONE &&
 				msg->data.result != CURLE_PARTIAL_FILE) {
+					
 				finishedADownload = true;
 				i->second->p_RFWrapper.file.Flush();
-				if (i->second->p_RFWrapper.file.IsOpen())
+
+				if (i->second->p_RFWrapper.file.IsOpen()) {
 					i->second->p_RFWrapper.file.Close();
+				}
+				
 				if (msg->msg == CURLMSG_DONE &&
-					i->second->progress.total <=
-					  i->second->progress.downloaded) {
+						i->second->progress.total <=
+						  i->second->progress.downloaded) {
+						
 					timeSinceLastDownload = 0;
 					i->second->Done(i->second);
+					
 					if (!gameplay) {
-						installedPacks = true;
-						i->second->Install();
-						finishedDownloads[i->second->m_Url] = i->second;
+							installedPacks = true;
+							i->second->Install();
+							finishedDownloads[i->second->m_Url] = i->second;
 					} else {
 						pendingInstallDownloads[i->second->m_Url] = i->second;
 					}
+
 				} else {
 					i->second->Failed();
 					finishedDownloads[i->second->m_Url] = i->second;
 				}
-				if (i->second->handle != nullptr)
+				
+				if (i->second->handle != nullptr) {
 					curl_easy_cleanup(i->second->handle);
+				}
+				
 				i->second->handle = nullptr;
-				if (i->second->p_Pack != nullptr)
+				
+				if (i->second->p_Pack != nullptr) {
 					i->second->p_Pack->downloading = false;
+				}
+				
 				downloads.erase(i);
 				break;
 			}
 		}
 	}
+
 	if (finishedADownload) {
 		UpdateDLSpeed();
 		if (downloads.empty())
 			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
 	}
+
 	if (installedPacks) {
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
@@ -681,14 +719,16 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
+
 	return;
 }
 
-string
+string 
 Download::MakeTempFileName(string s)
 {
 	return Basename(s);
 }
+
 bool
 DownloadManager::LoggedIn()
 {
@@ -707,7 +747,7 @@ DownloadManager::AddFavorite(string chartkey)
 }
 
 void
-DownloadManager::RemoveFavorite(string chartkey)
+DownloadManager::RemoveFavorite(string chartkey) // Login checks?
 {
 	auto it =
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
@@ -715,7 +755,7 @@ DownloadManager::RemoveFavorite(string chartkey)
 		DLMAN->favorites.erase(it);
 	string req = "user/" + DLMAN->sessionUser + "/favorites/" + chartkey;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
-
+		// Do something?
 	};
 	auto r = SendRequest(req, {}, done);
 	if (r)
@@ -763,9 +803,9 @@ DownloadManager::UpdateGoal(string chartkey,
 							DateTime timeAssigned,
 							DateTime timeAchieved)
 {
-	string doot = "0000:00:00 00:00:00";
+	string datetime = "0000:00:00 00:00:00";
 	if (achieved)
-		doot = timeAchieved.GetString();
+		datetime = timeAchieved.GetString();
 
 	string req = "user/" + DLMAN->sessionUser + "/goals/update";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
@@ -777,7 +817,7 @@ DownloadManager::UpdateGoal(string chartkey,
 		make_pair("wife", to_string(wife)),
 		make_pair("achieved", to_string(achieved)),
 		make_pair("timeAssigned", timeAssigned.GetString()),
-		make_pair("timeAchieved", doot)
+		make_pair("timeAchieved", datetime)
 	};
 	SendRequest(req, postParams, done, true, true);
 }
@@ -809,6 +849,7 @@ DownloadManager::ShouldUploadScores()
 	return LoggedIn() && automaticSync &&
 		   GamePreferences::m_AutoPlay == PC_HUMAN;
 }
+
 inline void
 SetCURLPOSTScore(CURL*& curlHandle,
 				 curl_httppost*& form,
@@ -818,7 +859,7 @@ SetCURLPOSTScore(CURL*& curlHandle,
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
 	hs->GenerateValidationKeys();
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->norms);
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->norms); //Should be an array, why call the same function over and over... just pass an array
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle,
@@ -889,6 +930,7 @@ SetCURLPOSTScore(CURL*& curlHandle,
 						 "wifeGrade",
 						 string(GradeToString(hs->GetWifeGrade()).c_str()));
 }
+
 void
 DownloadManager::UploadScore(HighScore* hs)
 {
@@ -910,7 +952,7 @@ DownloadManager::UploadScore(HighScore* hs)
 			bool delay = false;
 			for (auto error : errors) {
 				int status = error["status"];
-				if (status == 22) {
+				if (status == 22) {                                //STOP USING MAGIC NUMBERS YOU FUCKER
 					delay = true;
 					DLMAN->StartSession(DLMAN->sessionUser,
 										DLMAN->sessionPass,
@@ -935,8 +977,9 @@ DownloadManager::UploadScore(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
+
 void
-DownloadManager::UploadScoreWithReplayData(HighScore* hs)
+DownloadManager::UploadScoreWithReplayData(HighScore* hs) //Uh use the normal one, why repeat all this code??
 {
 	if (!LoggedIn())
 		return;
@@ -945,7 +988,9 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString;
+
+	// MOVE THIS OUT INTO ITS OWN FUNCTION
+	string replayString;  
 	vector<float> offsets = hs->GetOffsetVector();
 	vector<int> columns = hs->GetTrackVector();
 	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
@@ -1017,6 +1062,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
+
 void	// not tested exhaustively -mina
 DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 {
@@ -1112,6 +1158,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	HTTPRequests.push_back(req);
 	return;
 }
+
 void
 DownloadManager::EndSessionIfExists()
 {
@@ -1119,6 +1166,7 @@ DownloadManager::EndSessionIfExists()
 		return;
 	EndSession();
 }
+
 void
 DownloadManager::EndSession()
 {
@@ -1139,6 +1187,7 @@ split(const std::string& s, char delimiter)
 	}
 	return tokens;
 }
+
 // User rank
 void
 DownloadManager::RefreshUserRank()
@@ -1167,6 +1216,7 @@ DownloadManager::RefreshUserRank()
 	SendRequest("user/" + sessionUser + "/ranks", {}, done, true, false, true);
 	return;
 }
+
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
 									 Skillset ss,
@@ -1505,7 +1555,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 			}
 		} catch (exception e) {
 			// json failed
-		}
+		} // LOG IT
 
 		// float ProbablyUnderratedness =
 		// mythicalmathymathsProbablyUnderratedness(chartkey);  float coop =
@@ -1598,6 +1648,7 @@ DownloadManager::RefreshLastVersion()
 				false,
 				true);
 }
+
 void
 DownloadManager::RefreshRegisterPage()
 {
@@ -1623,6 +1674,7 @@ DownloadManager::RefreshRegisterPage()
 				false,
 				true);
 }
+
 void
 DownloadManager::RefreshTop25(Skillset ss)
 {
@@ -1906,7 +1958,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT(opened);
-	DLMAN->EncodeSpaces(m_Url);
+	m_Url = DLMAN->EncodeSpaces(handle, m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
