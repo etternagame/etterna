@@ -119,9 +119,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	ThemeMetric<bool> USE_PLAYER_SELECT_MENU;
 	ThemeMetric<RString> SELECT_MENU_NAME;
 	ThemeMetric<bool> SELECT_MENU_CHANGES_DIFFICULTY;
-	ThemeMetric<bool> TWO_PART_SELECTION;
-	ThemeMetric<bool> TWO_PART_CONFIRMS_ONLY;
-	ThemeMetric<float> TWO_PART_TIMER_SECONDS;
 	ThemeMetric<bool> WRAP_CHANGE_STEPS;
 	ThemeMetric<bool> CHANGE_STEPS_WITH_GAME_BUTTONS;
 	ThemeMetric<bool> CHANGE_GROUPS_WITH_GAME_BUTTONS;
@@ -132,18 +129,11 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	{
 		return m_SelectionState == SelectionState_SelectingSong;
 	}
-	bool CanChangeSteps() const
-	{
-		return TWO_PART_SELECTION
-				 ? m_SelectionState == SelectionState_SelectingSteps
-				 : m_SelectionState == SelectionState_SelectingSong;
-	}
 	SelectionState GetNextSelectionState() const
 	{
 		switch (m_SelectionState) {
 			case SelectionState_SelectingSong:
-				return TWO_PART_SELECTION ? SelectionState_SelectingSteps
-										  : SelectionState_Finalized;
+				return SelectionState_Finalized;
 			default:
 				return SelectionState_Finalized;
 		}

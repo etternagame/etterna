@@ -113,9 +113,6 @@ ScreenSelectMusic::Init()
 	SELECT_MENU_NAME.Load(m_sName, "SelectMenuScreenName");
 	OPTIONS_LIST_TIMEOUT.Load(m_sName, "OptionsListTimeout");
 	SELECT_MENU_CHANGES_DIFFICULTY.Load(m_sName, "SelectMenuChangesDifficulty");
-	TWO_PART_SELECTION.Load(m_sName, "TwoPartSelection");
-	TWO_PART_CONFIRMS_ONLY.Load(m_sName, "TwoPartConfirmsOnly");
-	TWO_PART_TIMER_SECONDS.Load(m_sName, "TwoPartTimerSeconds");
 	WRAP_CHANGE_STEPS.Load(m_sName, "WrapChangeSteps");
 	NULL_SCORE_STRING.Load(m_sName, "NullScoreString");
 	PLAY_SOUND_ON_ENTERING_OPTIONS_MENU.Load(m_sName,
@@ -808,75 +805,30 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		}
 	}
 
-	// two part confirms only means we can actually change songs here,
-	// so we need some hackery. -aj
-	if (TWO_PART_CONFIRMS_ONLY) {
-		if (m_SelectionState == SelectionState_SelectingSteps) {
+	if (m_SelectionState == SelectionState_SelectingSteps &&
+		input.type == IET_FIRST_PRESS && !m_bStepsChosen[input.pn]) {
+		if (input.MenuI == m_GameButtonNextSong ||
+			input.MenuI == m_GameButtonPreviousSong) {
 			if (input.MenuI == m_GameButtonPreviousSong) {
-				m_SelectionState = SelectionState_SelectingSong;
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
-				MESSAGEMAN->Broadcast("PreviousSong");
-				m_MusicWheel.ChangeMusicUnlessLocked(-1);
-			} else if (input.MenuI == m_GameButtonNextSong) {
-				m_SelectionState = SelectionState_SelectingSong;
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
-				MESSAGEMAN->Broadcast("NextSong");
-				m_MusicWheel.ChangeMusicUnlessLocked(+1);
-			}
-			// added an entry for difficulty change with gamebuttons
-			// -DaisuMaster
-			else if (input.MenuI == m_GameButtonPreviousDifficulty) {
-				m_SelectionState = SelectionState_SelectingSong;
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
 				ChangeSteps(input.pn, -1);
-			} else if (input.MenuI == m_GameButtonNextDifficulty) {
-				m_SelectionState = SelectionState_SelectingSong;
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
+			} else if (input.MenuI == m_GameButtonNextSong) {
 				ChangeSteps(input.pn, +1);
 			}
-			// added also for groupchanges
-			else if (input.MenuI == m_GameButtonPreviousGroup) {
-				RString sNewGroup = m_MusicWheel.JumpToPrevGroup();
-				m_MusicWheel.SelectSection(sNewGroup);
-				m_MusicWheel.SetOpenSection(sNewGroup);
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
-				MESSAGEMAN->Broadcast("PreviousGroup");
-				AfterMusicChange();
-			} else if (input.MenuI == m_GameButtonNextGroup) {
-				RString sNewGroup = m_MusicWheel.JumpToNextGroup();
-				m_MusicWheel.SelectSection(sNewGroup);
-				m_MusicWheel.SetOpenSection(sNewGroup);
-				MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
-				MESSAGEMAN->Broadcast("NextGroup");
-				AfterMusicChange();
-			}
-		}
-	} else {
-		if (m_SelectionState == SelectionState_SelectingSteps &&
-			input.type == IET_FIRST_PRESS && !m_bStepsChosen[input.pn]) {
-			if (input.MenuI == m_GameButtonNextSong ||
-				input.MenuI == m_GameButtonPreviousSong) {
-				if (input.MenuI == m_GameButtonPreviousSong) {
-					ChangeSteps(input.pn, -1);
-				} else if (input.MenuI == m_GameButtonNextSong) {
-					ChangeSteps(input.pn, +1);
-				}
-			} else if (
-			  input.MenuI == GAME_BUTTON_MENUUP ||
-			  input.MenuI ==
-				GAME_BUTTON_MENUDOWN) // && TWO_PART_DESELECTS_WITH_MENUUPDOWN
-			{
-				// XXX: should this be called "TwoPartCancelled"?
-				float fSeconds = m_MenuTimer->GetSeconds();
-				if (fSeconds > 10) {
-					Message msg("SongUnchosen");
-					msg.SetParam("Player", input.pn);
-					MESSAGEMAN->Broadcast(msg);
-					// unset all steps
-					FOREACH_ENUM(PlayerNumber, p)
-					m_bStepsChosen[p] = false;
-					m_SelectionState = SelectionState_SelectingSong;
-				}
+		} else if (input.MenuI == GAME_BUTTON_MENUUP ||
+				   input.MenuI ==
+					 GAME_BUTTON_MENUDOWN) // &&
+										   // TWO_PART_DESELECTS_WITH_MENUUPDOWN
+		{
+			// XXX: should this be called "TwoPartCancelled"?
+			float fSeconds = m_MenuTimer->GetSeconds();
+			if (fSeconds > 10) {
+				Message msg("SongUnchosen");
+				msg.SetParam("Player", input.pn);
+				MESSAGEMAN->Broadcast(msg);
+				// unset all steps
+				FOREACH_ENUM(PlayerNumber, p)
+				m_bStepsChosen[p] = false;
+				m_SelectionState = SelectionState_SelectingSong;
 			}
 		}
 	}
@@ -1161,8 +1113,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 			// a song was selected
 			if (m_MusicWheel.GetSelectedSong() != nullptr) {
-				if (TWO_PART_CONFIRMS_ONLY &&
-					SAMPLE_MUSIC_PREVIEW_MODE ==
+				if (SAMPLE_MUSIC_PREVIEW_MODE ==
 					  SampleMusicPreviewMode_StartToPreview) {
 					// start playing the preview music.
 					g_bSampleMusicWaiting = true;
@@ -1224,8 +1175,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 			bool bAllPlayersDoneSelectingSteps =
 			  bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
-			if (TWO_PART_CONFIRMS_ONLY)
-				bAllPlayersDoneSelectingSteps = true;
 
 			if (!bAllPlayersDoneSelectingSteps) {
 				m_bStepsChosen[pn] = true;
@@ -1242,8 +1191,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 	FOREACH_ENUM(PlayerNumber, p)
 	{
-		if (!TWO_PART_SELECTION ||
-			m_SelectionState == SelectionState_SelectingSteps) {
+		if (m_SelectionState == SelectionState_SelectingSteps) {
 			if (m_OptionsList[p].IsOpened())
 				m_OptionsList[p].Close();
 		}
@@ -1255,14 +1203,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 	MESSAGEMAN->Broadcast(msg);
 
 	m_soundStart.Play(true);
-
-	// If the MenuTimer has forced us to move on && TWO_PART_CONFIRMS_ONLY,
-	// set Selection State to finalized and move on.
-	if (TWO_PART_CONFIRMS_ONLY) {
-		if (m_MenuTimer->GetSeconds() < 1) {
-			m_SelectionState = SelectionState_Finalized;
-		}
-	}
 
 	if (m_SelectionState == SelectionState_Finalized) {
 #if !defined(WITHOUT_NETWORKING)
@@ -1319,13 +1259,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);
 		}
-	} else // !finalized.  Set the timer for selecting difficulty and mods.
-	{
-		float fSeconds = m_MenuTimer->GetSeconds();
-		if (fSeconds < 10) {
-			m_MenuTimer->SetSeconds(TWO_PART_TIMER_SECONDS); // was 13 -aj
-			m_MenuTimer->Start();
-		}
 	}
 	return false;
 }
@@ -1333,28 +1266,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 bool
 ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 {
-	// Handle unselect song (ffff)
-	// todo: this isn't right at all. -aj
-	/*
-	if( m_SelectionState == SelectionState_SelectingSteps &&
-	!m_bStepsChosen[input.pn] && input.MenuI == GAME_BUTTON_BACK &&
-	input.type == IET_FIRST_PRESS )
-	{
-	// if a player has chosen their steps already, don't unchoose song.
-	FOREACH_HumanPlayer( p )
-	if( m_bStepsChosen[p] ) return;
-
-	// and if we get here...
-	Message msg("SongUnchosen");
-	msg.SetParam( "Player", input.pn );
-	MESSAGEMAN->Broadcast( msg );
-	m_SelectionState = SelectionState_SelectingSong;
-	return true;
-	}
-	*/
-
 	m_BackgroundLoader.Abort();
-
 	Cancel(SM_GoToPrevScreen);
 	return true;
 }
@@ -1362,13 +1274,6 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 void
 ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 {
-	if (TWO_PART_CONFIRMS_ONLY &&
-		m_SelectionState == SelectionState_SelectingSteps) {
-		// if TWO_PART_CONFIRMS_ONLY, changing difficulties unsets the song. -aj
-		m_SelectionState = SelectionState_SelectingSong;
-		MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
-	}
-
 	PlayerNumber pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
