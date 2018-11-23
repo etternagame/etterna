@@ -11,7 +11,7 @@ local noteField = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
-local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
+local idkwhatimdoing = capWideScale(prevX-2, prevX/2+4)
 local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
