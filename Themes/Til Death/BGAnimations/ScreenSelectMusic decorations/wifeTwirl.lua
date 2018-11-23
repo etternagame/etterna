@@ -492,10 +492,17 @@ t[#t + 1] =
 		ModifyBannerCommand = function(self)
 			self:finishtweening()
 			if song then
-				self:LoadBackground(GAMESTATE:GetCurrentSong():GetBannerPath())
-			else 
-				local group = SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection()
-				self:LoadBackground(SONGMAN:GetSongGroupBannerPath(group))
+				local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
+				if not bnpath then
+					bnpath = THEME:GetPathG("Common", "fallback banner")
+				end
+				self:LoadBackground(bnpath)
+			else
+				local bnpath = SONGMAN:GetSongGroupBannerPath(SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection())
+				if not bnpath or bnpath == "" then
+					bnpath = THEME:GetPathG("Common", "fallback banner")
+				end
+				self:LoadBackground(bnpath)
 			end
 			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
 		end,
