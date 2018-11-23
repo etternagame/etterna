@@ -334,7 +334,7 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 	{
 		Name = "Score",
 		InitCommand = function(self)
-			self:xy(55, 33):zoom(0.6):halign(0):settext("")
+			self:xy(55, 30):zoom(0.6):halign(0):settext("")
 		end,
 		DisplayCommand = function(self)
 			if score:GetWifeScore() == 0 then
@@ -348,9 +348,24 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 
 	LoadFont("Common Normal") ..
 	{
+		Name = "Score",
+		InitCommand = function(self)
+			self:xy(55, 43):zoom(0.5):halign(0):settext("")
+		end,
+		DisplayCommand = function(self)
+			if score:GetWifeScore() == 0 then
+				self:settext("")
+			else
+				self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+			end
+		end
+	},
+
+	LoadFont("Common Normal") ..
+	{
 		Name = "ClearType",
 		InitCommand = function(self)
-			self:y(41):zoom(0.5):halign(0):halign(0):settext("No Play"):diffuse(
+			self:y(43):zoom(0.5):halign(0):settext("No Play"):diffuse(
 				color(colorConfig:get_data().clearType["NoPlay"])
 			)
 		end,
