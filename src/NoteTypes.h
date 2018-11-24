@@ -253,6 +253,7 @@ struct TapReplayResult
 	int track;		  // column
 	float offset;	 // 0
 	TapNoteType type; // typically mines, holds, rolls, etc
+	int offsetAdjustedRow; // row assigned later on for full replays
 };
 
 extern TapNote TAP_EMPTY;				   // '0'

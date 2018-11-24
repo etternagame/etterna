@@ -762,6 +762,11 @@ Player::Load()
 		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
 						  m_pPlayerStageStats->m_iCurMissCombo);
 
+	// If we are in a replay, attempt to load the real tapper stuff
+	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
+		PlayerAI::SetUpExactTapMap(m_Timing);
+	}
+
 	SAFE_DELETE(m_pIterNeedsTapJudging);
 	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
 	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
@@ -928,6 +933,18 @@ Player::Update(float fDeltaTime)
 	// be released during pause.
 	if (m_bPaused)
 		return;
+
+	// Fake steps in Replay mode, but only if we have column data.
+	if (m_pPlayerState->m_PlayerController == PC_REPLAY &&
+		PlayerAI::pScoreData->GetReplayType() == 2) {
+		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
+			vector<TapReplayResult> trrVector =
+			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
+			for (TapReplayResult trr : trrVector) {
+				Step(trr.track, trr.row, now, false, false);
+			}
+		}
+	}
 
 	// update pressed flag
 	const int iNumCols =
@@ -2216,9 +2233,10 @@ Player::Step(int col,
 		DEBUG_ASSERT(iter != m_NoteData.end(col));
 		pTN = &iter->second;
 
-		// We don't really have to care if we are releasing on a non-lift, right?
-		// This fixes a weird noteskin bug with tap explosions.
-		if (PREFSMAN->m_bFullTapExplosions && bRelease && pTN->type != TapNoteType_Lift)
+		// We don't really have to care if we are releasing on a non-lift,
+		// right? This fixes a weird noteskin bug with tap explosions.
+		if (PREFSMAN->m_bFullTapExplosions && bRelease &&
+			pTN->type != TapNoteType_Lift)
 			return;
 
 		switch (m_pPlayerState->m_PlayerController) {
@@ -2377,11 +2395,16 @@ Player::Step(int col,
 					score = TNS_None;
 					fNoteOffset = -1.f;
 				} else {
+					if (PlayerAI::GetReplayType() == 2) {
+						iRowOfOverlappingNoteOrRow = row;
+					}
 					fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(
-					  pTN, iRowOfOverlappingNoteOrRow, col);
+						  pTN, iRowOfOverlappingNoteOrRow, col);
 					if (fNoteOffset == -2.f) // we hit a mine
 					{
 						score = TNS_HitMine;
+						PlayerAI::RemoveTapFromVectors(
+						  iRowOfOverlappingNoteOrRow, col);
 					} else if (pTN->type == TapNoteType_Mine) // we are looking
 															  // at a mine but
 															  // missed it
@@ -2804,10 +2827,14 @@ Player::CrossedRows(int iLastRowCrossed,
 				tn.type != TapNoteType_AutoKeysound &&
 				tn.result.tns == TNS_None &&
 				this->m_Timing->IsJudgableAtRow(iRow)) {
-				Step(iTrack, iRow, now, false, false);
-				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
-					if (m_pPlayerStageStats)
-						m_pPlayerStageStats->m_bDisqualified = true;
+				if ((m_pPlayerState->m_PlayerController == PC_REPLAY &&
+					 PlayerAI::GetReplayType() != 2) ||
+					m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
+					Step(iTrack, iRow, now, false, false);
+					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
+						if (m_pPlayerStageStats)
+							m_pPlayerStageStats->m_bDisqualified = true;
+					}
 				}
 			}
 		}

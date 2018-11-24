@@ -359,6 +359,8 @@ NoteField::InitColumnRenderers()
 void
 NoteField::Update(float fDeltaTime)
 {
+	if (!this->GetVisible())
+		return;
 	if (m_bFirstUpdate) {
 		m_pCurDisplay->m_ReceptorArrowRow.PlayCommand("On");
 	}

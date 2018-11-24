@@ -50,8 +50,10 @@ struct TapScoreDistribution
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
+TimingData* PlayerAI::pReplayTiming = nullptr;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 
 void
 PlayerAI::InitFromDisk()
@@ -153,10 +155,16 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void
 PlayerAI::SetScoreData(HighScore* pHighScore)
 {
-	pHighScore->LoadReplayData();
+	bool successful = pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
+
+	if (!successful)
+	{
+		return;
+	}
+
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
 	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
@@ -169,11 +177,15 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
+		trr.offsetAdjustedRow = replayOffsetVector[i];
 		if (pScoreData->GetReplayType() ==
 			2) // 2 means that this is a Full Replay
 		{
 			trr.track = replayTrackVector[i];
 			trr.type = replayTapNoteTypeVector[i];
+
+
+
 		} else // Anything else (and we got this far without crashing) means
 			   // it's not a Full Replay
 		{
@@ -204,6 +216,96 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	}
 }
 
+void
+PlayerAI::SetUpExactTapMap(TimingData* timing)
+{
+	m_ReplayExactTapMap.clear();
+
+	// Don't continue if the replay doesn't have column data.
+	// We can't be accurate without it.
+	if (pScoreData->GetReplayType() != 2)
+		return;
+
+	pReplayTiming = timing;
+
+	// For every row in the replay data...
+	for (auto& row : m_ReplayTapMap)
+	{
+		// Get the current time and go over all taps on this row...
+		float rowTime = timing->WhereUAtBro(row.first);
+		for (TapReplayResult& trr : row.second)
+		{
+			// Find the time adjusted for offset
+			// Then the beat according to that time
+			// Then the noterow according to that beat
+			float tapTime = rowTime + trr.offset;
+			float tapBeat = timing->GetBeatFromElapsedTime(tapTime);
+			int tapRow = BeatToNoteRow(tapBeat);
+			trr.offsetAdjustedRow = tapRow;
+
+			// And put that into the exacttapmap :)
+			if (m_ReplayExactTapMap.count(tapRow) != 0)
+			{
+				m_ReplayExactTapMap[tapRow].push_back(trr);
+			}
+			else
+			{
+				vector<TapReplayResult> trrVector = { trr };
+				m_ReplayExactTapMap[tapRow] = trrVector;
+			}
+		}
+		
+	}
+
+}
+
+void
+PlayerAI::RemoveTapFromVectors(int row, int col)
+{
+	// if the row is in the replay data
+	if (m_ReplayTapMap.count(row) != 0) {
+		for (int i = 0; i < (int)m_ReplayTapMap[row].size(); i++) {
+			// if the column is in the row data
+			auto& trr = m_ReplayTapMap[row][i];
+			if (trr.track == col) {
+				// delete
+				m_ReplayTapMap[row].erase(m_ReplayTapMap[row].begin() + i);
+				if (m_ReplayTapMap[row].empty())
+					m_ReplayTapMap.erase(row);
+			}
+		}
+	}
+	// if the row is in the replay data
+	if (m_ReplayExactTapMap.count(row) != 0) {
+		for (int i = 0; i < (int)m_ReplayExactTapMap[row].size(); i++) {
+			// if the column is in the row data
+			auto& trr = m_ReplayExactTapMap[row][i];
+			if (trr.track == col) {
+				// delete
+				m_ReplayExactTapMap[row].erase(m_ReplayExactTapMap[row].begin() + i);
+				if (m_ReplayExactTapMap[row].empty())
+					m_ReplayExactTapMap.erase(row);
+			}
+		}
+	}
+}
+
+int
+PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
+{
+	int output = -1;
+
+	if (m_ReplayTapMap.count(row) != 0)
+	{
+		for (TapReplayResult& trr : m_ReplayTapMap[row])
+		{
+			if (trr.track == col)
+				output = trr.offsetAdjustedRow;
+		}
+	}
+	return output;
+}
+
 bool
 PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 {
@@ -213,7 +315,7 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 		// LOG->Trace("Hold row exists in the data");
 		// It is, so let's go over each column, assuming we may have dropped
 		// more than one hold at once.
-		for (auto hrr : m_ReplayHoldMap[noteRow]) {
+		for (auto& hrr : m_ReplayHoldMap[noteRow]) {
 			// We found the column we are looking for
 			if (hrr.track == col) {
 				// LOG->Trace("KILL IT NOW");
@@ -222,6 +324,105 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 		}
 	}
 	return false;
+}
+
+bool
+PlayerAI::TapExistsAtThisRow(int noteRow)
+{
+	// 2 is a replay with column data
+	if (pScoreData->GetReplayType() == 2) {
+		return m_ReplayExactTapMap.count(noteRow) != 0;
+	} else {
+		return m_ReplayTapMap.count(noteRow) != 0;
+	}
+
+}
+
+bool
+PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
+{
+	// 2 is a replay with column data
+	if (pScoreData->GetReplayType() == 2) {
+		return m_ReplayExactTapMap.lower_bound(0)->first <= noteRow;
+	} else {
+		return m_ReplayTapMap.lower_bound(0)->first <= noteRow;
+	}
+}
+
+vector<TapReplayResult>
+PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
+{
+	vector<TapReplayResult> output;
+
+	// 2 is a replay with column data
+	if (pScoreData->GetReplayType() == 2) {
+		auto rowIt = m_ReplayExactTapMap.lower_bound(0);
+		int row = rowIt->first;
+		for (; row <= noteRow && row != -1;) {
+			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
+			output.insert(output.end(), toMerge.begin(), toMerge.end());
+			row = GetNextRowNoOffsets(row);
+		}
+	} else {
+		auto rowIt = m_ReplayTapMap.lower_bound(0);
+		int row = rowIt->first;
+		for (; row <= noteRow && row != -1;) {
+			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
+			output.insert(output.end(), toMerge.begin(), toMerge.end());
+			row = GetNextRowNoOffsets(row);
+		}
+	}
+	return output;
+}
+
+vector<TapReplayResult>
+PlayerAI::GetTapsToTapForRow(int noteRow)
+{
+	vector<TapReplayResult> output;
+
+	// 2 is a replay with column data
+	if (pScoreData->GetReplayType() == 2) {
+		if (m_ReplayExactTapMap.count(noteRow) != 0) {
+			for (auto& trr : m_ReplayExactTapMap[noteRow]) {
+				output.push_back(trr);
+			}
+		}
+	} else {
+		if (m_ReplayTapMap.count(noteRow) != 0) {
+			for (auto& trr : m_ReplayTapMap[noteRow]) {
+				output.push_back(trr);
+			}
+		}
+	}
+	return output;
+}
+
+int
+PlayerAI::GetReplayType()
+{
+	return pScoreData->GetReplayType();
+}
+
+int
+PlayerAI::GetNextRowNoOffsets(int currentRow)
+{
+	if (pScoreData->GetReplayType() == 2) {
+		auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
+
+		if (thing == m_ReplayExactTapMap.end()) {
+			return -1;
+		} else {
+			return thing->first;
+		}
+	} else {
+		auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
+
+		if (thing == m_ReplayTapMap.end()) {
+			return -1;
+		} else {
+			return thing->first;
+		}
+	}
 }
 
 float
@@ -237,35 +438,38 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	// tap note type] Current v0.60 Replay Data format (H section): H [noterow]
 	// [track] [optional: tap note subtype]
 	// LOG->Trace("Note row %d", noteRow);
-	if (m_ReplayTapMap.count(noteRow) != 0) // is the current row recorded?
-	{
-		// This replay has no column data or is considered Basic. (Pre-v0.60
-		// Replays do this.)
-		if (pScoreData->GetReplayType() == 1) {
-			// mines are not preset in the old replay data, we just skip them
-			// this gets caught by Player after it finds that the offset wasnt
-			// -2.f (We check for an impossible offset of -2.f in Player to blow
-			// up a mine)
-			if (pTN->type == TapNoteType_Mine)
-				return -1.f;
 
-			float offset = m_ReplayTapMap[noteRow].back().offset;
+	// This replay has no column data or is considered Basic. (Pre-v0.60
+	// Replays do this.)
+	if (pScoreData->GetReplayType() == 1) {
+		// mines are not preset in the old replay data, we just skip them
+		// this gets caught by Player after it finds that the offset wasnt
+		// -2.f (We check for an impossible offset of -2.f in Player to blow
+		// up a mine)
+		if (pTN->type == TapNoteType_Mine)
+			return -1.f;
 
-			// this is done to be able to judge simultaneous taps differently
-			// due to CC Off this results in possibly incorrect precise per tap
-			// judges, but the correct judgement ends up being made overall.
-			m_ReplayTapMap[noteRow].pop_back();
-			if (m_ReplayTapMap[noteRow].empty()) {
-				m_ReplayTapMap.erase(noteRow);
-			}
+		float offset = m_ReplayTapMap[noteRow].back().offset;
 
-			return -offset;
-		} else {
+		// this is done to be able to judge simultaneous taps differently
+		// due to CC Off this results in possibly incorrect precise per tap
+		// judges, but the correct judgement ends up being made overall.
+		m_ReplayTapMap[noteRow].pop_back();
+		if (m_ReplayTapMap[noteRow].empty()) {
+			m_ReplayTapMap.erase(noteRow);
+		}
 
-			// This is only reached if we have column data.
-			for (auto trr :
-				 m_ReplayTapMap[noteRow]) // go over all elements in the row
+		return -offset;
+	} else {
+
+		// This is only reached if we have column data.
+		noteRow = GetAdjustedRowFromUnadjustedCoordinates(noteRow, col);
+		if (m_ReplayExactTapMap.count(noteRow) != 0)
+		{
+			for (int i = 0; i < (int)m_ReplayExactTapMap[noteRow]
+									.size(); i++) // go over all elements in the row
 			{
+				auto trr = m_ReplayExactTapMap[noteRow][i];
 				if (trr.track ==
 					col) // if the column expected is the actual note, use it
 				{
@@ -275,6 +479,10 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 						if (trr.type != TapNoteType_Lift)
 							continue;
 					}
+					m_ReplayExactTapMap[noteRow].erase(
+						m_ReplayExactTapMap[noteRow].begin() + i);
+					if (m_ReplayExactTapMap[noteRow].empty())
+						m_ReplayExactTapMap.erase(noteRow);
 					return -trr.offset;
 				}
 			}

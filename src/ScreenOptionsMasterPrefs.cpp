@@ -1017,8 +1017,6 @@ InitializeConfOptions()
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("FastNoteRendering", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowStats", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("ShowBanners", MovePref<bool>, "Off", "On"));
-
 	// Sound options
 	ADD(ConfOption("AttractSoundFrequency",
 				   MovePref<AttractSoundFrequency>,

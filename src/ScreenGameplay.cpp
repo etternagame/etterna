@@ -2849,6 +2849,7 @@ ScreenGameplay::ToggleReplayPause()
 		ReloadCurrentSong();
 		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
 		PlayerAI::SetScoreData(PlayerAI::pScoreData);
+		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)

@@ -73,7 +73,9 @@ end
 
 -- should maybe make some of these generic
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if self:GetVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 -- note: will use the local isover functionality
@@ -84,20 +86,26 @@ local function highlightIfOver(self)
 		self:diffusealpha(1)
 	end
 end
-
+local moped
 -- Only works if ... it should work
 -- You know, if we can see the place where the scores should be.
 local function updateLeaderBoardForCurrentChart()
 	local top = SCREENMAN:GetTopScreen()
 	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
-		local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
-		DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		if steps then 
+			DLMAN:RequestChartLeaderBoardFromOnline(steps:GetChartKey())
+			moped:queuecommand("ChartLeaderboardUpdate")
+		else
+			moped:queuecommand("Bort")
+		end
 	end
 end
 
 local ret =
 	Def.ActorFrame {
 	BeginCommand = function(self)
+		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
 		self:GetChild("LocalScores"):xy(frameX, frameY):visible(false)
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY):visible(false)
@@ -111,11 +119,14 @@ local ret =
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0) -- visible(false)
+		self:GetChild("LocalScores"):visible(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
-		if nestedTab == 1 then
+		if getTabIndex() == 2 and nestedTab == 1 then
 			self:GetChild("LocalScores"):visible(true)
+		else
+			self:GetChild("LocalScores"):visible(false)
 		end
 	end,
 	SetCommand = function(self)
@@ -143,9 +154,6 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	UpdateChartMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
 	CollapseCommand = function(self)
 		collapsed = true
 		resetTabIndex()
@@ -169,11 +177,12 @@ local ret =
 		updateLeaderBoardForCurrentChart()
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
+		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) and DLMAN:GetCurrentRateFilter() then
-			MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
+			moped:queuecommand("ChartLeaderboardUpdate")
 		end
 	end
 }
@@ -334,7 +343,7 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 	{
 		Name = "Score",
 		InitCommand = function(self)
-			self:xy(55, 33):zoom(0.6):halign(0):settext("")
+			self:xy(55, 30):zoom(0.6):halign(0):settext("")
 		end,
 		DisplayCommand = function(self)
 			if score:GetWifeScore() == 0 then
@@ -348,9 +357,24 @@ local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at o
 
 	LoadFont("Common Normal") ..
 	{
+		Name = "Score",
+		InitCommand = function(self)
+			self:xy(55, 43):zoom(0.5):halign(0):settext("")
+		end,
+		DisplayCommand = function(self)
+			if score:GetWifeScore() == 0 then
+				self:settext("")
+			else
+				self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+			end
+		end
+	},
+
+	LoadFont("Common Normal") ..
+	{
 		Name = "ClearType",
 		InitCommand = function(self)
-			self:y(41):zoom(0.5):halign(0):halign(0):settext("No Play"):diffuse(
+			self:y(43):zoom(0.5):halign(0):settext("No Play"):diffuse(
 				color(colorConfig:get_data().clearType["NoPlay"])
 			)
 		end,
@@ -656,9 +680,6 @@ t[#t+1] = Def.Quad {
 	InitCommand = function(self)
 		self:x(frameWidth):zoomto(4, 0):halign(1):valign(1):diffuse(getMainColor("highlight")):diffusealpha(0.75)
 	end,
-	ScoreUpdateMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
 	DisplayCommand = function(self)
 		self:finishtweening()
 		self:smooth(0.2)
@@ -702,7 +723,6 @@ function nestedTabButton(i)
 					if isOver(self) then
 						nestedTab = i
 						MESSAGEMAN:Broadcast("NestedTabChanged")
-						MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
 							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(true)
@@ -711,9 +731,6 @@ function nestedTabButton(i)
 							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(false)
 						end
 					end
-				end,
-				NestedTabChangedMessageCommand = function(self)
-					self:queuecommand("Set")
 				end
 			}
 	}
