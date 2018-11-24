@@ -9,7 +9,6 @@ local noteField = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
-local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
 local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
@@ -108,7 +107,7 @@ local function toggleNoteField()
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
 		mcbootlarder:xy(prevX,prevY)
-		mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+		mcbootlarder:GetChild("NoteField"):y(prevY*1.5)
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY*1.5 + prevrevY)
 		end

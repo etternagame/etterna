@@ -26,6 +26,7 @@ local function setUpPreviewNoteField()
 	yeet:zoom(prevZoom):draworder(90)
 	SCREENMAN:GetTopScreen():dootforkfive(memehamstermax)
 	yeet = memehamstermax:GetChild("NoteField")
+	yeet:x(wodth/2)
 	memehamstermax:SortByDrawOrder()
 	MESSAGEMAN:Broadcast("NoteFieldVisible") 
   end 
