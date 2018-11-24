@@ -225,7 +225,7 @@ local t =
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
-	SetCommand = function(self)
+	OnCommand = function(self)
 		if nestedTab == 1 and self:GetVisible() then
 			if GAMESTATE:GetCurrentSong() ~= nil then
 				rtTable = getRateTable()
