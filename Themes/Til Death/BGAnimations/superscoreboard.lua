@@ -106,9 +106,11 @@ local o =
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
-		ind = 0
-		self:playcommand("Update")
+		if GAMESTATE:GetCurrentSong() then
+			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+			ind = 0
+			self:playcommand("Update")
+		end
 	end,
 	BortCommand = function(self)
 		scoretable = {}
