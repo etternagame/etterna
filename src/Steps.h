@@ -142,7 +142,8 @@ class Steps
 	// self exaplanatory -mina
 	vector<int> GetNPSVector(NoteData& nd,
 							 vector<int> nerv,
-							 vector<float> etaner);
+							 vector<float> etaner,
+							 float rate);
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
@@ -150,7 +151,8 @@ class Steps
 	vector<int> GetCNPSVector(NoteData& nd,
 							  vector<int> nerv,
 							  vector<float> etaner,
-							  int chordsize);
+							  int chordsize,
+							  float rate);
 	float PredictMeter() const { return 1.f; }
 
 	unsigned GetHash() const;
