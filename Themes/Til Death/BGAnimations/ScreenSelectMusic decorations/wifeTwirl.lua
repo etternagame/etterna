@@ -9,7 +9,7 @@ local noteField = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
-local idkwhatimdoing = capWideScale(prevX-2, prevX/2+4)
+local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
 local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
@@ -84,9 +84,9 @@ local t =
 
 -- Music Rate Display
 t[#t + 1] =
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		InitCommand = function(self)
-			self:xy(18, SCREEN_BOTTOM - 225):visible(true):halign(0):zoom(0.8):maxwidth(
+			self:xy(18, SCREEN_BOTTOM - 225):visible(true):halign(0):zoom(0.4):maxwidth(
 				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
 		end,
 		MintyFreshCommand = function(self)
@@ -151,10 +151,10 @@ t[#t + 1] = Def.ActorFrame {
 		self:queuecommand("MintyFresh")	--steps stuff
 		self:queuecommand("MortyFarts") --songs stuff
 	end,
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		Name = "MSD",
 		InitCommand = function(self)
-			self:xy(frameX + 58, frameY - 62):halign(0.5):maxwidth(110 / 0.6)
+			self:xy(frameX + 58, frameY - 62):halign(0.5):zoom(0.6):maxwidth(110 / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song then
@@ -228,9 +228,9 @@ t[#t + 1] = Def.ActorFrame {
 	},
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + 55, frameY + 50):zoom(0.8):halign(0.5):maxwidth(125):valign(1)
+			self:xy(frameX + 55, frameY + 50):zoom(0.6):halign(0.5):maxwidth(125):valign(1)
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
@@ -341,11 +341,11 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		Name = "PlayableDuration",
 		InitCommand = function(self)
 			self:xy((capWideScale(get43size(384), 384)) + 62, SCREEN_BOTTOM - 85):visible(true):halign(1):zoom(
-				capWideScale(get43size(0.8), 0.8)
+				capWideScale(get43size(0.6), 0.6)
 			):maxwidth(capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
 		end,
 		MortyFartsCommand = function(self)
