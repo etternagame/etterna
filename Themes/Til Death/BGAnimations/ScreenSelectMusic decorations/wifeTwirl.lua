@@ -117,9 +117,11 @@ local function toggleNoteField()
 	if song then 
 		if mcbootlarder:GetVisible() then
 			mcbootlarder:visible(false)
+			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
 		else
 			mcbootlarder:visible(true)
+			mcbootlarder:GetChild("NoteField"):visible(true)
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
 	end
