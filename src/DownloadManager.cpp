@@ -1510,7 +1510,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 		transform(vec.begin(),
 				  vec.end(),
 				  back_inserter(leaderboardHS),
-				  [](auto s) { return &(s.hs); });
+				  [](OnlineScore s) { return &(s.hs); });
 
 		if (!ref.IsNil() && ref.IsSet()) {
 			Lua* L = LUA->Get();
@@ -2251,7 +2251,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			transform(leaderboardScores.begin(),
 					  leaderboardScores.end(),
 					  back_inserter(leaderboardHS),
-					  [](auto s) { return &(s.hs); });
+					  [](OnlineScore s) { return &(s.hs); });
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
