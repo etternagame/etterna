@@ -722,7 +722,7 @@ Steps::GetCNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner, int c
 	int curinterval = 0;
 
 	for (size_t i = 0; i < nerv.size(); ++i) {
-		curinterval = static_cast<int>(etaner[i]);
+		curinterval = static_cast<int>(etaner[i] / rate);
 		if (curinterval > lastinterval) {
 			doot[lastinterval] = chordnotecounter;
 			chordnotecounter = 0;
@@ -925,7 +925,11 @@ class LunaSteps : public Luna<Steps>
 		p->GetTimingData()->UnsetEtaner();
 		return 1;
 	}
-
+	static int GetNumColumns(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -955,6 +959,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetCDGraphVectors);
+		ADD_METHOD(GetNumColumns);
 	}
 };
 
