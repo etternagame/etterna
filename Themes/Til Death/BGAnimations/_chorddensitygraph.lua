@@ -43,7 +43,6 @@ local function updateGraphMultiVertex(parent, realgraph)
 			-- reset everything if theres nothing to show
 			realgraph:SetVertices({})
 			realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
-			realgraph:visible(false)
 			return
 		end
 		
