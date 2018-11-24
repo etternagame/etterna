@@ -23,22 +23,26 @@ local function makeABar(vertices, x, y, barWidth, barHeight, prettycolor)
 	vertices[#vertices + 1] = {{x,y,0},prettycolor}
 end
 
-local function getColorForDensity(density)
+local function getColorForDensity(density, ncol)
 	if density == 1 then
 		return color(".75,.75,.75") -- nps color
+	elseif density == ncol then
+		return color(".1,.1,.1")	-- biggest chord color
 	elseif density == 2 then
 		return color(".5,.5,.5") -- jumps color
 	elseif density == 3 then
 		return color(".25,.25,.25") -- hands color
-	else
-		return color(".1,.1,.1") -- quads color
+	--else
+		--local c =  lerp(density / (ncol +1 ), .1, .75) 	-- im sure we can programmatically handle n columns but im too lazy 
+		--return color(c..","..c..","..c..","..c)			-- to make this look nice atm -mina
 	end
 end
 
 local function updateGraphMultiVertex(parent, realgraph)
 	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 	if steps then
-		local graphVectors = steps:GetCDGraphVectors()
+		local ncol = steps:GetNumColumns()
+		local graphVectors = steps:GetCDGraphVectors(getCurRateValue())
 		if graphVectors == nil then
 			-- reset everything if theres nothing to show
 			realgraph:SetVertices({})
@@ -66,7 +70,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		for density = 1,4 do
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
-						local barColor = getColorForDensity(density)
+						local barColor = getColorForDensity(density, ncol)
 						makeABar(verts, column * columnWidth, yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
 					end
 			end
@@ -85,6 +89,11 @@ local t = Def.ActorFrame {
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		self:queuecommand("GraphUpdate")
+	end,
+	CurrentRateChangedMessageCommand = function(self)
+		if self:GetParent():GetVisible() then
+			self:queuecommand("GraphUpdate")
+		end
 	end,
 	Def.Quad {
         Name = "cdbg",
