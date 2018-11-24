@@ -501,12 +501,12 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
-	/*
+
 	if (ETTP.Connect(this, iPort, sAddress))
 		curProtocol = &ETTP;
 	else
-	*/
-	if (SMOP.Connect(this, iPort, sAddress))
+
+	  if (SMOP.Connect(this, iPort, sAddress))
 		curProtocol = &SMOP;
 	if (curProtocol == nullptr)
 		return;
@@ -785,12 +785,14 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					HighScore hs;
 					EndOfGame_PlayerData result;
 					hs.SetScoreKey(score.value("scorekey", ""));
-					hs.SetSSRNormPercent(static_cast<float>(score.value("ssr_norm", 0)));
+					hs.SetSSRNormPercent(
+					  static_cast<float>(score.value("ssr_norm", 0)));
 					hs.SetEtternaValid(score.value("valid", 0) != 0);
 					hs.SetModifiers(score.value("mods", ""));
 					FOREACH_ENUM(Skillset, ss)
-					hs.SetSkillsetSSR(
-					  ss, static_cast<float>(score.value(SkillsetToString(ss).c_str(), 0)));
+					hs.SetSkillsetSSR(ss,
+									  static_cast<float>(score.value(
+										SkillsetToString(ss).c_str(), 0)));
 					hs.SetSSRNormPercent(score.value("score", 0.0f));
 					hs.SetWifeScore(score.value("score", 0.0f));
 					result.tapScores[0] = score.value("marv", 0);
