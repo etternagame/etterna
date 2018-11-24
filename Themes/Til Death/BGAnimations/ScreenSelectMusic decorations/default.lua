@@ -90,4 +90,5 @@ t[#t + 1] =
 }
 
 t[#t + 1] = LoadActor("../_mousewheelscroll")
+collectgarbage()
 return t
