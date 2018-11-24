@@ -540,7 +540,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 			break;
 	}
 
-	// Check for finished downloads
+	// Check for finished http requests
 	CURLMsg* msg;
 	int msgs_left;
 	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
@@ -641,36 +641,46 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle &&
-				msg->msg == CURLMSG_DONE &&
-				msg->data.result != CURLE_PARTIAL_FILE) {
-				finishedADownload = true;
-				i->second->p_RFWrapper.file.Flush();
-				if (i->second->p_RFWrapper.file.IsOpen())
-					i->second->p_RFWrapper.file.Close();
-				if (msg->msg == CURLMSG_DONE &&
-					i->second->progress.total <=
-					  i->second->progress.downloaded) {
-					timeSinceLastDownload = 0;
-					i->second->Done(i->second);
-					if (!gameplay) {
-						installedPacks = true;
-						i->second->Install();
-						finishedDownloads[i->second->m_Url] = i->second;
+			if (msg->easy_handle == i->second->handle) {
+				if (msg->msg == CURLMSG_DONE) {
+					finishedADownload = true;
+					i->second->p_RFWrapper.file.Flush();
+					if (i->second->p_RFWrapper.file.IsOpen())
+						i->second->p_RFWrapper.file.Close();
+					if (msg->data.result != CURLE_PARTIAL_FILE &&
+						i->second->progress.total <=
+						  i->second->progress.downloaded) {
+						timeSinceLastDownload = 0;
+						i->second->Done(i->second);
+						if (!gameplay) {
+							installedPacks = true;
+							i->second->Install();
+							finishedDownloads[i->second->m_Url] = i->second;
+						} else {
+							pendingInstallDownloads[i->second->m_Url] =
+							  i->second;
+						}
 					} else {
-						pendingInstallDownloads[i->second->m_Url] = i->second;
+						i->second->Failed();
+						finishedDownloads[i->second->m_Url] = i->second;
 					}
-				} else {
+					if (i->second->handle != nullptr)
+						curl_easy_cleanup(i->second->handle);
+					i->second->handle = nullptr;
+					if (i->second->p_Pack != nullptr)
+						i->second->p_Pack->downloading = false;
+					downloads.erase(i);
+					break;
+				} else if (i->second->p_RFWrapper.stop) {
 					i->second->Failed();
 					finishedDownloads[i->second->m_Url] = i->second;
+					if (i->second->handle != nullptr)
+						curl_easy_cleanup(i->second->handle);
+					i->second->handle = nullptr;
+					if (i->second->p_Pack != nullptr)
+						i->second->p_Pack->downloading = false;
+					downloads.erase(i);
 				}
-				if (i->second->handle != nullptr)
-					curl_easy_cleanup(i->second->handle);
-				i->second->handle = nullptr;
-				if (i->second->p_Pack != nullptr)
-					i->second->p_Pack->downloading = false;
-				downloads.erase(i);
-				break;
 			}
 		}
 	}
