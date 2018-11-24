@@ -428,6 +428,11 @@ void
 DownloadManager::UpdateDLSpeed(bool gameplay)
 {
 	this->gameplay = gameplay;
+	if (gameplay)
+		MESSAGEMAN->Broadcast("PausingDownloads");
+	else
+		MESSAGEMAN->Broadcast("ResumingDownloads");
+
 	UpdateDLSpeed();
 }
 
@@ -492,6 +497,8 @@ DownloadManager::Update(float fDeltaSeconds)
 {
 	if (!initialized)
 		init();
+	if (gameplay)
+		return;
 	UpdatePacks(fDeltaSeconds);
 	UpdateHTTP(fDeltaSeconds);
 	return;
@@ -1444,7 +1451,8 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				FOREACH_ENUM(Skillset, ss)
 				tmp.SSRs[ss] = static_cast<float>(
 				  ssrs.value(SkillsetToString(ss).c_str(), 0.0));
-				try {
+
+				/*try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
 						LOG->Trace(tmp.modifiers.c_str());
@@ -1453,7 +1461,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 						  pair[0].get<float>(), pair[1].get<float>()));
 				} catch (exception e) {
 					// replaydata failed
-				}
+				} */
 
 				// eo still has some old profiles with various edge issues that
 				// unfortunately need to be handled here screen out old 11111

@@ -504,3 +504,73 @@ function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, ho
 	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
 	return p * 100.0
 end
+
+function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one, 
+	local rtTable = getRateTable()				-- if not it looks for what might plausibly be your best by going down each rate
+	if not rtTable then
+		return nil
+	end
+
+	local rates = tableKeys(rtTable)
+	local scores, score
+
+	if CurRate then
+		local tmp = getCurRateString()
+		if tmp == "1x" then
+			tmp = "1.0x"
+		end
+		if tmp == "2x" then
+			tmp = "2.0x"
+		end
+		rates = {tmp}
+		if not rtTable[rates[1]] then
+			return nil
+		end
+	end
+
+	table.sort(
+		rates,
+		function(a, b)
+			a = a:gsub("x", "")
+			b = b:gsub("x", "")
+			return a < b
+		end
+	)
+	for i = #rates, 1, -1 do
+		scores = rtTable[rates[i]]
+		local bestscore = 0
+		local index
+
+		for ii = 1, #scores do
+			score = scores[ii]
+			if score:ConvertDpToWife() > bestscore then
+				index = ii
+				bestscore = score:ConvertDpToWife()
+			end
+		end
+
+		if index and scores[index]:GetWifeScore() == 0 and GetPercentDP(scores[index]) > perc * 100 then
+			return scores[index]
+		end
+
+		if bestscore > perc then
+			return scores[index]
+		end
+	end
+end
+
+function GetDisplayScore()	-- wrapper for above that prioritizes current rate's pb > any rate 90% > any rate 50% > any score any rate
+	local score
+	score = GetDisplayScoreByFilter(0, true)
+
+	if not score then
+		score = GetDisplayScoreByFilter(0.9, false)
+	end
+	if not score then
+		score = GetDisplayScoreByFilter(0.5, false)
+	end
+	if not score then
+		score = GetDisplayScoreByFilter(0, false)
+	end
+	return score
+end

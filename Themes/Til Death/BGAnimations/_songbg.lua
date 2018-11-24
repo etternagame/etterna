@@ -9,7 +9,6 @@ local t = Def.ActorFrame {}
 
 if enabled then
 	t[#t + 1] =
-		Def.ActorFrame {
 		Def.Sprite {
 			CurrentSongChangedMessageCommand = function(self)
 				self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.2):queuecommand("ModifySongBackground")
@@ -19,6 +18,7 @@ if enabled then
 			end,
 			ModifySongBackgroundCommand = function(self)
 				self:finishtweening()
+				collectgarbage()
 				if GAMESTATE:GetCurrentSong() and GAMESTATE:GetCurrentSong():GetBackgroundPath() then
 					self:finishtweening()
 					self:visible(true)
@@ -44,7 +44,6 @@ if enabled then
 				self:visible(false)
 			end
 		}
-	}
 end
 
 t[#t + 1] =
