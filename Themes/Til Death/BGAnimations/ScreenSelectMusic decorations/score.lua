@@ -352,7 +352,8 @@ local l =
 				local overall = score:GetSkillsetSSR("Overall")
 				self:settextf("%.2f", overall):diffuse(byMSD(overall)) 
 			end
-		},
+		end
+	},
 	LoadFont("Common Normal") ..
 	{
 		Name = "Score",
@@ -380,7 +381,7 @@ local l =
 			self:settext(getClearTypeFromScore(pn, score, 0))
 			self:diffuse(getClearTypeFromScore(pn, score, 2))
 		end
-	},rtLeaderboard callbacks
+	},
 	LoadFont("Common Normal") ..
 		{
 			Name = "Combo",
