@@ -179,6 +179,7 @@ local ret =
 		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
+		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
