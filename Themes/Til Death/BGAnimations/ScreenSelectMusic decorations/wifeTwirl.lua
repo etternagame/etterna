@@ -31,6 +31,9 @@ local t =
 		if song ~= bong then
 			song = bong
 			self:queuecommand("MortyFarts")
+			if noteField and mcbootlarder:GetChild("NoteField"):GetVisible() and song then
+				song:Borp()
+			end
 		end
 		if getTabIndex() == 0 then
 			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then	-- these can prolly be wrapped better too -mina

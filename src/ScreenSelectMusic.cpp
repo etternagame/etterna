@@ -316,9 +316,9 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 	// heavy duty chart specific operations can be delayed when scrolling (chord
 	// density graph, possibly chart leaderboards, etc) -mina
 
-	// in theory the notedata load for chartpreviews could go here however a delay
-	// might make it weird when swapping between difficulties to compare sections
-	// for which you would want instantaneous action -mina
+	// in theory the notedata load for chartpreviews could go here however a
+	// delay might make it weird when swapping between difficulties to compare
+	// sections for which you would want instantaneous action -mina
 	if (delayedchartupdatewaiting) {
 		if (g_ScreenStartedLoadingAt
 			  .Ago() > // not sure if i need the "moving fast" check -mina
@@ -365,18 +365,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 								// the notefield is not visible when the
 								// previewmusic starts i.e. when the general tab
 								// is not active when a song is switched -mina
-			auto song = GAMESTATE->m_pCurSong;
-			if (song == nullptr)
-				return;
-
-			PlayParams.sFile = song->GetMusicPath();
-			PlayParams.fLengthSeconds =
-			  song->GetLastSecond() - m_fSampleStartSeconds + 2.f;
-			if (PlayParams.fLengthSeconds < 3.f) {	// if the songpreview is after the last note
-				PlayParams.fStartSecond = 5.f;	// chartpreview wont play, just set it near the start -mina
-				PlayParams.fLengthSeconds = song->GetLastSecond() + 2.f;
-			}
-			
+			return;
+			MESSAGEMAN->Broadcast("PlayingSampleMusic");
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
@@ -1003,7 +993,8 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 		}
 
 		m_iSelection[pn] = iSel;
-		Steps* pSteps = m_vpSteps.empty() ? nullptr : m_vpSteps[m_iSelection[pn]];
+		Steps* pSteps =
+		  m_vpSteps.empty() ? nullptr : m_vpSteps[m_iSelection[pn]];
 
 		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
 	}
@@ -1287,7 +1278,8 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 		CLAMP(m_iSelection[pn], 0, m_vpSteps.size() - 1);
 
 		Song* pSong = GAMESTATE->m_pCurSong;
-		Steps* pSteps = m_vpSteps.empty() ? nullptr : m_vpSteps[m_iSelection[pn]];
+		Steps* pSteps =
+		  m_vpSteps.empty() ? nullptr : m_vpSteps[m_iSelection[pn]];
 
 		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
 		if (pSteps != nullptr)
