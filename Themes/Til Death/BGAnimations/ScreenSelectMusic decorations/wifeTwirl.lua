@@ -12,6 +12,7 @@ local prevX = capWideScale(get43size(98), 98)
 local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
+local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 
 local update = false
 local t =
@@ -21,6 +22,11 @@ local t =
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+	end,
+	CurrentSongChanged = function()
+		if getTabIndex() ~= 0 then
+			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
+		end
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
@@ -40,7 +46,9 @@ local t =
 				mcbootlarder:visible(true)
 				mcbootlarder:GetChild("NoteField"):visible(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
-				song:Borp()
+				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
+					song:Borp()
+				end
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
