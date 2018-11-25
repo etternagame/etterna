@@ -104,7 +104,8 @@ StartMusic(MusicToPlay& ToPlay)
 {
 	LockMutex L(*g_Mutex);
 	if (g_Playing->m_Music->IsPlaying() &&
-		g_Playing->m_Music->GetLoadedFilePath().EqualsNoCase(ToPlay.m_sFile))
+		g_Playing->m_Music->GetLoadedFilePath().EqualsNoCase(ToPlay.m_sFile) &&
+		ToPlay.HasTiming)
 		return;
 
 	/* We're changing or stopping the music.  If we were dimming, reset. */

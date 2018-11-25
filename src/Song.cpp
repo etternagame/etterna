@@ -2052,15 +2052,27 @@ void
 Song::Borp()
 {
 	GameSoundManager::PlayMusicParams PlayParams;
-	PlayParams.sFile = m_sMusicFile;
-	PlayParams.pTiming = &this->m_SongTiming;
+	PlayParams.sFile = GetMusicPath();
+	PlayParams.pTiming = nullptr;
 	PlayParams.bForceLoop = true;
 	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	PlayParams.fLengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;
-	SOUND->PlayMusic(PlayParams);
+
+	GameSoundManager::PlayMusicParams FallbackMusic;
+	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.fFadeInLengthSeconds = 1.f;
+	FallbackMusic.bAlignBeat = true;
+
+	if (PlayParams.fLengthSeconds <
+		3.f) { // if the songpreview is after the last note
+		PlayParams.fStartSecond =
+		  5.f; // chartpreview wont play, just set it near the start -mina
+		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	}
+	SOUND->PlayMusic(PlayParams, FallbackMusic);
 }
 
 // lua start
