@@ -1603,36 +1603,13 @@ ScreenSelectMusic::GeneratePreviewNoteField()
 
 	GAMESTATE->m_bIsChartPreviewActive = true;
 
-	// Restart the music from the beginning for a full chart preview
-
-	// (Enabling this would restart the music at its current position, but would
-	// never go back to earlier sections)
-	/*
-	m_fSampleStartSeconds =
-	SOUND->GetRageSoundPlaying()->GetPositionSeconds();
-	*/
-	SOUND->StopMusic();
-	m_sSampleMusicToPlay = song->GetMusicPath();
-	m_fSampleStartSeconds = max(song->GetFirstSecond() - 4.f, -1.f);
-	m_fSampleLengthSeconds =
-	  song->GetLastSecond() - m_fSampleStartSeconds + 2.f;
-	if (m_fSampleLengthSeconds <
-		3.f) { // if the songpreview is after the last note
-		m_fSampleStartSeconds =
-		  5.f; // chartpreview wont play, just set it near the start -mina
-		m_fSampleLengthSeconds = song->GetLastSecond() + 2.f;
-	}
-	g_bSampleMusicWaiting = true;
-	CheckBackgroundRequests(true);
-
 	// Create and Render the NoteField afterwards
 	// It is done in this order so we don't see it before the music changes.
 	m_pPreviewNoteField = new NoteField;
 	m_pPreviewNoteField->SetName(
 	  "NoteField"); // Use this to get the ActorFrame from the Screen Children
 
-	m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState[PLAYER_1],
-							  100);
+	m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState[PLAYER_1], 100);
 	m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
 }
 
