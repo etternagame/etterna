@@ -88,7 +88,11 @@ local t = Def.ActorFrame {
 		self:SetUpdateFunction(textmover)
 		cdg = self
 	end,
+	CurrentSongChangedMessageCommand = function(self)
+		self:diffusealpha(0)
+	end,
 	DelayedChartUpdateMessageCommand = function(self)
+		self:diffusealpha(1)
 		self:queuecommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
@@ -108,7 +112,7 @@ t[#t+1] =
 	Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
-			if self:GetVisible() then
+			if self:GetParent():GetVisible() then
 				updateGraphMultiVertex(cdg, self)
 			end
 		end
