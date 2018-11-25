@@ -359,12 +359,8 @@ NoteField::InitColumnRenderers()
 void
 NoteField::Update(float fDeltaTime)
 {
-	if (!this->GetVisible())
+	if (!this->GetVisible() || !GAMESTATE->m_pCurSong)
 		return;
-	if (!GAMESTATE->m_pCurSong) {
-		this->DeleteAllChildren();
-		return;
-	}
 	
 	if (m_bFirstUpdate) {
 		m_pCurDisplay->m_ReceptorArrowRow.PlayCommand("On");
@@ -829,10 +825,8 @@ NoteField::CalcPixelsBeforeAndAfterTargets()
 void
 NoteField::DrawPrimitives()
 {
-	if (!GAMESTATE->m_pCurSong) {
-		this->DeleteAllChildren();
+	if (!this->GetVisible() || !GAMESTATE->m_pCurSong)
 		return;
-	}
 	
 	// LOG->Trace( "NoteField::DrawPrimitives()" );
 

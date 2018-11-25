@@ -1366,8 +1366,15 @@ ScreenSelectMusic::AfterMusicChange()
 		GAMESTATE->m_pPreferredSong = pSong;
 	else {
 		GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
-		if (m_pPreviewNoteField)
+		if (m_pPreviewNoteField) {
 			m_pPreviewNoteField->SetVisible(false);
+			// if previewnotefield is active and we are moving out of a pack
+			// into the pack list (that's what this block of code is for
+			// handling) manually call songmans cleanup function (compresses all
+			// steps); we could optimize by only compressing the pack but this
+			// is pretty fast anyway -mina
+			SONGMAN->Cleanup();
+		}
 	}
 
 	GAMESTATE->SetPaused(false); // hacky can see this being problematic
