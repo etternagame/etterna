@@ -43,6 +43,7 @@
 #include "PlayerOptions.h"
 #include "NoteData.h"
 #include "Player.h"
+#include "NoteDataUtil.h"
 
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
@@ -1820,9 +1821,16 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// construct the current stage stats and stuff to the best of our
 		// ability
 		StageStats ss;
+		RadarValues rv;
+		NoteData nd;
+		Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
+		steps->GetNoteData(nd);
+		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
+		PlayerAI::SetScoreData(score);
+
 		auto& pss = ss.m_player[0];
 		pss.m_HighScore = *score;
 		pss.CurWifeScore = score->GetWifeScore();
@@ -1831,9 +1839,18 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		pss.m_vOffsetVector = score->GetOffsetVector();
 		pss.m_vTapNoteTypeVector = score->GetTapNoteTypeVector();
 		pss.m_vTrackVector = score->GetTrackVector();
-		score->UnloadReplayData();
+		// score->UnloadReplayData();
 		pss.m_iSongsPassed = 1;
 		pss.m_iSongsPlayed = 1;
+		GAMESTATE->SetProcessedTimingData(
+		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
+		NoteDataUtil::CalculateRadarValues(nd, songlength, rv);
+		pss.m_radarPossible += rv;
+		RadarValues realRV;
+		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
+		score->SetRadarValues(realRV);
+		pss.m_radarActual += realRV;
+		GAMESTATE->SetProcessedTimingData(NULL);
 		pss.everusedautoplay = true;
 		for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
