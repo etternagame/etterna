@@ -355,23 +355,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.fFadeInLengthSeconds =
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
-
-		// update the chartpreview music when switching songs -mina
-		if (m_pPreviewNoteField != nullptr &&
-			m_pPreviewNoteField->GetVisible() &&
-			m_pPreviewNoteField->GetParent()
-			  ->GetVisible()) { // this kinda makes a lot of assumptions atm and
-								// stops the full preview music from playing if
-								// the notefield is not visible when the
-								// previewmusic starts i.e. when the general tab
-								// is not active when a song is switched -mina
-			return;
-			MESSAGEMAN->Broadcast("PlayingSampleMusic");
-		}
-
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
-		// DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 	}
 }
 
