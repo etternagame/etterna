@@ -92,7 +92,6 @@ local t = Def.ActorFrame {
 		self:diffusealpha(0)
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
-		self:diffusealpha(1)
 		self:queuecommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
@@ -114,6 +113,8 @@ t[#t+1] =
 		GraphUpdateCommand = function(self)
 			if self:GetParent():GetVisible() then
 				updateGraphMultiVertex(cdg, self)
+				self:GetParent():linear(0.3)
+				self:GetParent():diffusealpha(1)
 			end
 		end
 	}
