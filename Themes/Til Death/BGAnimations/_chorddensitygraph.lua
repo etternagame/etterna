@@ -68,7 +68,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
-		for density = 1,4 do
+		for density = 1,ncol do
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
 						local barColor = getColorForDensity(density, ncol)
