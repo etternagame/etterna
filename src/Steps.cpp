@@ -903,7 +903,7 @@ class LunaSteps : public Luna<Steps>
 	static int GetCDGraphVectors(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
-		CLAMP(rate, 1.f, 2.f);
+		CLAMP(rate, 1.f, 3.f);
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty())
 			return 0;
