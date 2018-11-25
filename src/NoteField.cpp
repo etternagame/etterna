@@ -361,6 +361,11 @@ NoteField::Update(float fDeltaTime)
 {
 	if (!this->GetVisible())
 		return;
+	if (!GAMESTATE->m_pCurSong) {
+		this->DeleteAllChildren();
+		return;
+	}
+	
 	if (m_bFirstUpdate) {
 		m_pCurDisplay->m_ReceptorArrowRow.PlayCommand("On");
 	}
@@ -824,6 +829,11 @@ NoteField::CalcPixelsBeforeAndAfterTargets()
 void
 NoteField::DrawPrimitives()
 {
+	if (!GAMESTATE->m_pCurSong) {
+		this->DeleteAllChildren();
+		return;
+	}
+	
 	// LOG->Trace( "NoteField::DrawPrimitives()" );
 
 	// This should be filled in on the first update.
