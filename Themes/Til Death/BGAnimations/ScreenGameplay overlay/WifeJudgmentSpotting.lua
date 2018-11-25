@@ -347,6 +347,11 @@ local cp =
 		end
 		self:zoom(MovableValues.DisplayPercentZoom):x(MovableValues.DisplayPercentX):y(MovableValues.DisplayPercentY)
 	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+		end
+	},
 	-- Displays your current percentage score
 	LoadFont("Common Large") .. {
 		Name = "DisplayPercent",
