@@ -174,19 +174,16 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
-	for (int i = 0; i < (int)replayNoteRowVector.size(); i++) {
+	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
-		trr.offsetAdjustedRow = replayOffsetVector[i];
+		trr.offsetAdjustedRow = static_cast<int>(replayOffsetVector[i]);
 		if (pScoreData->GetReplayType() ==
 			2) // 2 means that this is a Full Replay
 		{
 			trr.track = replayTrackVector[i];
 			trr.type = replayTapNoteTypeVector[i];
-
-
-
 		} else // Anything else (and we got this far without crashing) means
 			   // it's not a Full Replay
 		{
