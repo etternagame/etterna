@@ -42,7 +42,8 @@ local function updateGraphMultiVertex(parent, realgraph)
 	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 	if steps then
 		local ncol = steps:GetNumColumns()
-		local graphVectors = steps:GetCDGraphVectors(getCurRateValue())
+		local rate = math.max(1, getCurRateValue())
+		local graphVectors = steps:GetCDGraphVectors(rate)
 		if graphVectors == nil then
 			-- reset everything if theres nothing to show
 			realgraph:SetVertices({})
@@ -52,7 +53,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
 		local numberOfColumns = #npsVector
-		local columnWidth = wodth/numberOfColumns
+		local columnWidth = wodth/numberOfColumns * rate
 		
 		-- set height scale of graph relative to the max nps
 		local hodth = 0
