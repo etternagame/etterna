@@ -5,6 +5,7 @@
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
+#include "RadarValues.h"
 
 #define AI_PATH "Data/AI.ini"
 
@@ -490,6 +491,92 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	}
 
 	return -1.f; // data missing or invalid, give them a miss
+}
+
+void
+PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV)
+{
+	// We will do this thoroughly just in case someone decides to use the other
+	// categories we don't currently use
+	int tapsHit = 0;
+	int jumpsHit = 0;
+	int handsHit = 0;
+	int holdsHeld = possibleRV[RadarCategory_Holds];
+	int rollsHeld = possibleRV[RadarCategory_Rolls];
+	int liftsHit = 0;
+	int fakes = possibleRV[RadarCategory_Fakes];
+	int totalNotesHit = 0;
+	int minesMissed = possibleRV[RadarCategory_Mines];
+
+	// For every row recorded...
+	for (auto& row : m_ReplayTapMap)
+	{
+		int tapsOnThisRow = 0;
+		// For every tap on these rows...
+		for (TapReplayResult& trr : row.second)
+		{
+			if (trr.type == TapNoteType_Fake)
+			{
+				fakes--;
+				continue;
+			}
+			if (trr.type == TapNoteType_Mine)
+			{
+				minesMissed--;
+				continue;
+			}
+			if (trr.type == TapNoteType_Lift)
+			{
+				liftsHit++;
+				continue;
+			}
+			tapsOnThisRow++;
+			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead)
+			{
+				totalNotesHit++;
+				tapsHit++;
+				if (tapsOnThisRow == 2)
+				{
+					jumpsHit++;
+				}
+				else if (tapsOnThisRow >= 3)
+				{
+					handsHit++;
+				}
+				continue;
+			}
+		}
+	}
+
+	// For every hold recorded...
+	for (auto& row : m_ReplayHoldMap)
+	{
+		// For every hold on this row...
+		for (HoldReplayResult& hrr : row.second)
+		{
+			if (hrr.subType == TapNoteSubType_Hold)
+			{
+				holdsHeld--;
+				continue;
+			}
+			else if (hrr.subType == TapNoteSubType_Roll)
+			{
+				rollsHeld--;
+				continue;
+			}
+		}
+	}
+
+	// lol just set them
+	rv[RadarCategory_TapsAndHolds] = tapsHit;
+	rv[RadarCategory_Jumps] = jumpsHit;
+	rv[RadarCategory_Holds] = holdsHeld;
+	rv[RadarCategory_Mines] = minesMissed;
+	rv[RadarCategory_Hands] = handsHit;
+	rv[RadarCategory_Rolls] = rollsHeld;
+	rv[RadarCategory_Lifts] = liftsHit;
+	rv[RadarCategory_Fakes] = fakes;
+	rv[RadarCategory_Notes] = totalNotesHit;
 }
 
 /*
