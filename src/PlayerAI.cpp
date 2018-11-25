@@ -455,9 +455,12 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 		// this is done to be able to judge simultaneous taps differently
 		// due to CC Off this results in possibly incorrect precise per tap
 		// judges, but the correct judgement ends up being made overall.
-		m_ReplayTapMap[noteRow].pop_back();
-		if (m_ReplayTapMap[noteRow].empty()) {
-			m_ReplayTapMap.erase(noteRow);
+
+		if (!pScoreData->GetChordCohesion()) {
+			m_ReplayTapMap[noteRow].pop_back();
+			if (m_ReplayTapMap[noteRow].empty()) {
+				m_ReplayTapMap.erase(noteRow);
+			}
 		}
 
 		return -offset;
