@@ -23,7 +23,6 @@ local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		cd = self:GetChild("ChordDensityGraph")
-		cd:playcommand("GraphUpdate")		-- force the first update before setting visible(false) (so it's not empty when switching to the tab) -mina
 		cd:xy(frameX + offsetX, frameY + 140):visible(false)
 		self:queuecommand("Set"):visible(false)
 	end,
@@ -55,6 +54,7 @@ local t =
 
 			if song and steps then
 				cd:visible(true)
+				cd:queuecommand("GraphUpdate")
 			else
 				cd:visible(false)
 			end	
