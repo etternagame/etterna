@@ -623,7 +623,7 @@ t[#t + 1] =
 
 --Chart Preview Button
 local yesiwantnotefield = false
-
+local oldstyle
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 				if event.DeviceInput.button == "DeviceButton_space" then
@@ -649,11 +649,12 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		end
 	end,
 	CurrentStyleChangedMessageCommand=function(self)	-- need to regenerate the notefield when changing styles or crashman appears -mina
-		if noteField then
+		if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
 			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 			noteField = false
 			toggleNoteField()
 		end
+		oldstyle = GAMESTATE:GetCurrentStyle()
 	end
 }
 
