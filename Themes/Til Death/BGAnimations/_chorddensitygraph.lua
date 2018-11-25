@@ -72,7 +72,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
 						local barColor = getColorForDensity(density, ncol)
-						makeABar(verts, column * columnWidth, yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+						makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
 					end
 			end
 		end
