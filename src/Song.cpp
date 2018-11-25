@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
 #include "RageLog.h"
@@ -34,6 +34,7 @@
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
+#include "GameSoundManager.h"
 
 #include "GameState.h"
 #include <cfloat>
@@ -2047,6 +2048,21 @@ Song::IsMarathon() const
 	return m_fMusicLengthSeconds >= g_fMarathonVerSongSeconds;
 }
 
+void
+Song::Borp()
+{
+	GameSoundManager::PlayMusicParams PlayParams;
+	PlayParams.sFile = m_sMusicFile;
+	PlayParams.pTiming = &this->m_SongTiming;
+	PlayParams.bForceLoop = true;
+	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
+	PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	PlayParams.fFadeOutLengthSeconds = 1.f;
+	PlayParams.bAlignBeat = true;
+	PlayParams.bApplyMusicRate = true;
+	SOUND->PlayMusic(PlayParams);
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -2468,13 +2484,17 @@ class LunaSong : public Luna<Song>
 		p->ReloadFromSongDir();
 		COMMON_RETURN_SELF;
 	}
-
 	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
-
+	static int Borp(T* p, lua_State* L)
+	{
+		p->Borp();
+		return 0;
+	}
+	
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2543,6 +2563,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
+		ADD_METHOD(Borp);
 	}
 };
 

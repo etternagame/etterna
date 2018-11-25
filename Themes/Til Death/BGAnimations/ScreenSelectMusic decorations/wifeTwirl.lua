@@ -114,6 +114,7 @@ local function toggleNoteField()
 	return end
 
 	if song then 
+		song:Borp()
 		if mcbootlarder:GetVisible() then
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)

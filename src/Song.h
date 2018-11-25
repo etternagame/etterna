@@ -1,4 +1,4 @@
-﻿#ifndef SONG_H
+#ifndef SONG_H
 #define SONG_H
 
 #include "Difficulty.h"
@@ -437,6 +437,9 @@ class Song
 	float GetStepsSeconds() const;
 	bool IsLong() const;
 	bool IsMarathon() const;
+
+	// plays music for chart preview and is available to lua -mina
+	void Borp();
 
 	bool SongCompleteForStyle(const Style* st) const;
 	bool HasStepsType(StepsType st) const;
