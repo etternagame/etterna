@@ -1,5 +1,12 @@
 local t = Def.ActorFrame {}
 if NSMAN:IsETTP() then
+	t[#t + 1] =
+		Def.ActorFrame {
+		LeftClickMessageCommand = function()
+			SCREENMAN:SystemMessage("asdasdasd")
+			MESSAGEMAN:Broadcast("MouseLeftClick")
+		end
+	}
 	t[#t + 1] = LoadActor("../ScreenSelectMusic decorations/default")
 	return t
 end
@@ -96,18 +103,19 @@ g[#g + 1] = LoadActor("radaronline")
 
 g[#g + 1] =
 	Def.ActorFrame {
+	Name = "StepsDisplay",
 	InitCommand = function(self)
-		self:xy(capWideScale(get43size(384), 384) + 26, 70, halign, 0):valign(0):zoom(math.min(1, SCREEN_WIDTH / 854))
+		self:xy(stepsdisplayx, 70):valign(0)
 	end,
 	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(capWideScale(get43size(384), 384) + 26 - 500, 70) -- visible(false()
+		self:visible(false)
 	end,
 	OnCommand = function(self)
-		self:bouncebegin(0.2):xy(capWideScale(get43size(384), 384) + 26, 70)
+		self:visible(true)
 	end,
 	TabChangedMessageCommand = function(self)
 		self:finishtweening()
-		if getTabIndex() == 0 then
+		if getTabIndex() < 3 and GAMESTATE:GetCurrentSong() then
 			self:playcommand("On")
 		else
 			self:playcommand("Off")
@@ -115,152 +123,55 @@ g[#g + 1] =
 	end,
 	CurrentSongChangedMessageCommand = function(self)
 		local song = GAMESTATE:GetCurrentSong()
-		if song then
-			self:finishtweening()
-			self:playcommand("TweenOn")
-		elseif not song and self:GetZoomX() == 1 then
-			self:finishtweening()
-			self:playcommand("TweenOff")
+		if song and getTabIndex() < 3 then
+			self:playcommand("On")
+		elseif not song then
+			self:playcommand("Off")
 		end
+	end,
+	PlayingSampleMusicMessageCommand = function(self)
+		local leaderboardEnabled =
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		if leaderboardEnabled then
+			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+			DLMAN:RequestChartLeaderBoardFromOnline(
+				chartkey,
+				function(leaderboard)
+				end
+			)
+		end
+	end,
+	ChartPreviewOnMessageCommand = function(self)
+		self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
+	end,
+	ChartPreviewOffMessageCommand = function(self)
+		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
 	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
 			InitCommand = function(self)
-				self:x(55):player(PLAYER_1)
-			end,
-			PlayerJoinedMessageCommand = function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true)
-					self:zoom(0):bounceend(1):zoom(1)
-				end
-			end,
-			PlayerUnjoinedMessageCommand = function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true)
-					self:bouncebegin(1):zoom(0)
-				end
+				self:player(PLAYER_1)
 			end,
 			Def.Quad {
 				InitCommand = function(self)
-					self:zoomto(6, 22):halign(1):valign(0.5)
+					self:x(54):zoomto(6, 20):halign(1):valign(0.5)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					if GAMESTATE:GetNumPlayersEnabled() >= 2 then
-						self:zoomy(11)
-						self:valign(1)
-					else
-						self:zoomy(22)
-						self:valign(0.5)
-					end
-				end,
-				PlayerJoinedMessageCommand = function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand = function(self)
-					self:playcommand("Set")
+					self:zoomy(20)
 				end
-			},
-			LoadFont("Common Normal") ..
-				{
-					InitCommand = function(self)
-						self:x(-1):halign(1):valign(0.5):zoom(0.3):diffuse(color("#000000"))
-					end,
-					BeginCommand = function(self)
-						self:queuecommand("Set")
-					end,
-					SetCommand = function(self)
-						self:settext("1")
-						if GAMESTATE:GetNumPlayersEnabled() >= 2 then
-							self:y(-6)
-						else
-							self:y(0)
-						end
-					end,
-					PlayerJoinedMessageCommand = function(self)
-						self:playcommand("Set")
-					end,
-					PlayerUnjoinedMessageCommand = function(self)
-						self:playcommand("Set")
-					end
-				}
+			}
 		},
-		CursorP2 = Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(55):player(PLAYER_2)
-			end,
-			PlayerJoinedMessageCommand = function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true)
-					self:zoom(0):bounceend(1):zoom(1)
-				end
-			end,
-			PlayerUnjoinedMessageCommand = function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true)
-					self:bouncebegin(1):zoom(0)
-				end
-			end,
-			Def.Quad {
-				InitCommand = function(self)
-					self:zoomto(6, 22):halign(1):valign(0.5)
-				end,
-				BeginCommand = function(self)
-					self:queuecommand("Set")
-				end,
-				SetCommand = function(self)
-					if GAMESTATE:GetNumPlayersEnabled() >= 2 then
-						self:zoomy(11)
-						self:valign(0)
-					else
-						self:zoomy(22)
-						self:valign(0.5)
-					end
-				end,
-				PlayerJoinedMessageCommand = function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand = function(self)
-					self:playcommand("Set")
-				end
-			},
-			LoadFont("Common Normal") ..
-				{
-					InitCommand = function(self)
-						self:x(-1):halign(1):valign(0.5):zoom(0.3):diffuse(color("#000000"))
-					end,
-					BeginCommand = function(self)
-						self:queuecommand("Set")
-					end,
-					SetCommand = function(self)
-						self:settext("2")
-						if GAMESTATE:GetNumPlayersEnabled() >= 2 then
-							self:y(6)
-						else
-							self:y(0)
-						end
-					end,
-					PlayerJoinedMessageCommand = function(self)
-						self:playcommand("Set")
-					end,
-					PlayerUnjoinedMessageCommand = function(self)
-						self:playcommand("Set")
-					end
-				}
-		},
+		CursorP2 = Def.ActorFrame {},
 		CursorP1Frame = Def.Actor {
 			ChangeCommand = function(self)
 				self:stoptweening():decelerate(0.05)
 			end
 		},
-		CursorP2Frame = Def.Actor {
-			ChangeCommand = function(self)
-				self:stoptweening():decelerate(0.05)
-			end
-		}
+		CursorP2Frame = Def.Actor {}
 	}
 }
 t[#t + 1] = g
