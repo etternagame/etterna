@@ -63,6 +63,8 @@ class PlayerAI
 	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
 	// Remove a given Tap from the fallback and Full replay data vectors
 	static void RemoveTapFromVectors(int row, int col);
+	// Go through the replay data to fill out the radar values for the eval screen
+	static void CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV);
 };
 
 #endif

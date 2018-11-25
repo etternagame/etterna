@@ -2232,6 +2232,19 @@ ScreenGameplay::SaveStats()
 		pss.m_radarActual += rv;
 		GAMESTATE->SetProcessedTimingData(NULL);
 	}
+	if (GamePreferences::m_AutoPlay.Get() == PC_REPLAY) {
+		// We need to replace the newly created replay data with the actual old
+		// data Because to keep consistently lazy practices, we can just hack
+		// things together instead of fixing the real issue -poco
+		// (doing this fixes a lot of issues in the eval screen)
+		PlayerStageStats* pss = m_vPlayerInfo[PLAYER_1].GetPlayerStageStats();
+		HighScore* hs = PlayerAI::pScoreData;
+		pss->m_vHoldReplayData = hs->GetHoldReplayDataVector();
+		pss->m_vNoteRowVector = hs->GetNoteRowVector();
+		pss->m_vOffsetVector = hs->GetOffsetVector();
+		pss->m_vTapNoteTypeVector = hs->GetTapNoteTypeVector();
+		pss->m_vTrackVector = hs->GetTrackVector();
+	}
 }
 
 void
