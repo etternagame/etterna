@@ -1,0 +1,108 @@
+--- Actor container/composite
+-- @classmod ActorFrame
+
+
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:playcommandonchildren() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:playcommandonleaves() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:runcommandsonleaves() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:RunCommandsOnChildren() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:propagate() end // deprecated
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:fov() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetUpdateRate() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:GetUpdateRate() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetFOV() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:vanishpoint() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:GetChild() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:GetChildren() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:GetNumChildren() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetDrawByZPosition() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetDrawFunction() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:GetDrawFunction() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetUpdateFunction() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SortByDrawOrder() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetAmbientLightColor() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetDiffuseLightColor() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetSpecularLightColor() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:SetLightDirection() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:AddChild() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:AddChildFromPath() end
+		
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:RemoveChild() end
+
+--- 
+-- @treturn ActorFrame self
+function ActorFrame:RemoveAllChildren() end
