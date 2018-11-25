@@ -135,15 +135,6 @@ local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
 
--- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
---[[
-local function froot(loop)
-	if loop.DeviceInput.button == "DeviceButton_`" then
-		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
-	end
-end
-]]
-
 local function arbitraryErrorBarValue(value)
 	errorBarFrameWidth = capWideScale(get43size(value), value)
 	wscale = errorBarFrameWidth / 180
@@ -173,9 +164,6 @@ local t =
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
-		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
-			SCREENMAN:GetTopScreen():AddInputCallback(froot)
-		end]]
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
@@ -360,7 +348,7 @@ local cp =
 		end,
 		OnCommand = function(self)
 			if allowedCustomization then
-				self:settextf("%05.2f%%", -10000)
+				self:settextf("%05.2f%%", -10000) 
 				setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
 				setBorderToText(self:GetParent():GetChild("Border"), self)
 			end
