@@ -115,6 +115,7 @@ local function toggleNoteField()
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY*1.5 + prevrevY)
 		end
+		song:Borp()	-- catches a dumb bug that isn't worth explaining -mina
 	return end
 
 	if song then 
