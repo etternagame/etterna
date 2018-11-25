@@ -370,7 +370,12 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 
 			PlayParams.sFile = song->GetMusicPath();
 			PlayParams.fLengthSeconds =
-			  song->GetLastSecond() - m_fSampleStartSeconds;
+			  song->GetLastSecond() - m_fSampleStartSeconds + 2.f;
+			if (PlayParams.fLengthSeconds < 3.f) {	// if the songpreview is after the last note
+				PlayParams.fStartSecond = 5.f;	// chartpreview wont play, just set it near the start -mina
+				PlayParams.fLengthSeconds = song->GetLastSecond() + 2.f;
+			}
+			
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
@@ -1601,7 +1606,14 @@ ScreenSelectMusic::GeneratePreviewNoteField()
 	SOUND->StopMusic();
 	m_sSampleMusicToPlay = song->GetMusicPath();
 	m_fSampleStartSeconds = max(song->GetFirstSecond() - 4.f, -1.f);
-	m_fSampleLengthSeconds = song->GetLastSecond();
+	m_fSampleLengthSeconds =
+	  song->GetLastSecond() - m_fSampleStartSeconds + 2.f;
+	if (m_fSampleLengthSeconds <
+		3.f) { // if the songpreview is after the last note
+		m_fSampleStartSeconds =
+		  5.f; // chartpreview wont play, just set it near the start -mina
+		m_fSampleLengthSeconds = song->GetLastSecond() + 2.f;
+	}
 	g_bSampleMusicWaiting = true;
 	CheckBackgroundRequests(true);
 
