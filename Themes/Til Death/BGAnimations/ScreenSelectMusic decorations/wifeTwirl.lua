@@ -37,6 +37,7 @@ local t =
 				mcbootlarder:visible(true)
 				mcbootlarder:GetChild("NoteField"):visible(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
+				song:Borp()
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
