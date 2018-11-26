@@ -43,32 +43,6 @@ local function input(event)
 	return false
 end
 
-local function isOver(element)
-	if element:GetParent():GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetVisible() == false then
-		return false
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
-
-	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
-
-	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
-end
-
 local function highlight(self)
 	if self:GetVisible() then
 		self:queuecommand("Highlight")
