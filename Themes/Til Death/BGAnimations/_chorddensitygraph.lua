@@ -99,6 +99,9 @@ local t = Def.ActorFrame {
 			self:queuecommand("GraphUpdate")
 		end
 	end,
+	ChartPreviewOnMessageCommand = function(self)
+		self:queuecommand("GraphUpdate")
+	end,
 	Def.Quad {
         Name = "cdbg",
         InitCommand = function(self)
