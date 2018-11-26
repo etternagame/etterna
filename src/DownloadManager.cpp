@@ -1388,6 +1388,74 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
+DownloadManager::RequestReplayData(string scoreid,
+								   int userid,
+								   string username,
+								   string chartkey,
+								   LuaReference callback)
+{
+	auto done = [scoreid, callback, userid, username, chartkey](
+				  HTTPRequest& req, CURLMsg*) {
+		try {
+			vector<pair<float, float>> replayData;
+			auto j = json::parse(req.result);
+			if (j.find("errors") != j.end())
+				throw exception();
+			auto replay = j.find("data");
+			if (replay->size() > 1)
+				for (auto note : *replay) {
+					float timestamp = note[0];
+					int offset = note[1]; // *1000.0f
+					int column = note[2];
+					int type = note[3];
+					replayData.emplace_back(
+					  make_pair(note[0].get<float>(), note[1].get<float>()));
+				}
+			auto& lbd = DLMAN->chartLeaderboards[chartkey];
+			auto it =
+			  find_if(lbd.begin(), lbd.end(), [userid, username](auto& a) {
+				  return a.userid == userid && a.username == username;
+			  });
+			if (it != lbd.end()) {
+				vector<float> offsets;
+				std::transform(
+				  replayData.begin(),
+				  replayData.end(),
+				  back_inserter(offsets),
+				  [](pair<float, float>& pair) { return pair.first; });
+				it->hs.SetOffsetVector(offsets);
+			}
+			auto L = LUA->Get();
+			callback.PushSelf(L);
+			RString Error =
+			  "Error running RequestChartLeaderBoard Finish Function: ";
+			lua_newtable(L);
+			for (unsigned i = 0; i < replayData.size(); ++i) {
+				auto& pair = replayData[i];
+				lua_newtable(L);
+				lua_pushnumber(L, pair.first);
+				lua_rawseti(L, -1, 1);
+				lua_pushnumber(L, pair.second);
+				lua_rawseti(L, -1, 2);
+				lua_rawseti(L, -2, i + 1);
+			}
+			it->hs.PushSelf(L);
+			LuaHelpers::RunScriptOnStack(
+			  L, Error, 2, 0, true); // 2 args, 0 results
+			LUA->Release(L);
+		} catch (exception e) {
+			LOG->Trace(
+			  (string("Replay data request failed for") + scoreid + e.what())
+				.c_str());
+		}
+	};
+	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
+				vector<pair<string, string>>(),
+				done,
+				true);
+}
+
+void
 DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
@@ -1405,7 +1473,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				OnlineScore tmp;
 				// tmp.songId = score.value("songId", 0);
 				auto user = *(score.find("user"));
-				tmp.songId = score.value("songId", 0);
+				tmp.songId = score.value("songId", "");
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
@@ -1440,17 +1508,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				FOREACH_ENUM(Skillset, ss)
 				tmp.SSRs[ss] = static_cast<float>(
 				  ssrs.value(SkillsetToString(ss).c_str(), 0.0));
-
-				/*try {
-					auto replay = score["replay"];
-					if (replay.size() > 1)
-						LOG->Trace(tmp.modifiers.c_str());
-					for (auto pair : replay)
-						tmp.replayData.emplace_back(make_pair(
-						  pair[0].get<float>(), pair[1].get<float>()));
-				} catch (exception e) {
-					// replaydata failed
-				} */
+				tmp.hasReplay = score["hasReplay"];
 
 				// eo still has some old profiles with various edge issues that
 				// unfortunately need to be handled here screen out old 11111
@@ -1505,12 +1563,6 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 		}
 
 		Message msg("ChartLeaderboardUpdate");
-		vector<HighScore*> leaderboardHS;
-		// This is like a functional map
-		transform(vec.begin(),
-				  vec.end(),
-				  back_inserter(leaderboardHS),
-				  [](OnlineScore s) { return &(s.hs); });
 
 		if (!ref.IsNil() && ref.IsSet()) {
 			Lua* L = LUA->Get();
@@ -1518,7 +1570,12 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 			if (!lua_isnil(L, -1)) {
 				RString Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+				lua_newtable(L);
+				for (unsigned i = 0; i < vec.size(); ++i) {
+					auto& s = vec[i];
+					s.Push(L);
+					lua_rawseti(L, -2, i + 1);
+				}
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 1, 0, true); // 1 args, 0 results
 			}
@@ -2231,6 +2288,21 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		return 1;
 	}
 
+	static int RequestOnlineScoreReplayData(T* p, lua_State* L)
+	{
+		OnlineHighScore* hs =
+		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
+		int userid = hs->userid;
+		string username = hs->GetDisplayName();
+		string scoreid = hs->scoreid;
+		string ck = hs->GetChartKey();
+		LuaReference f;
+		if (lua_isfunction(L, -2))
+			f = GetFuncArg(2, L);
+		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
+		return 0;
+	}
+
 	// This requests the leaderboard from online. This may cause lag.
 	// Use this sparingly.
 	// This will NOT request a leaderboard if it already exists for the
@@ -2246,18 +2318,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			ref.SetFromStack(L);
 		}
 		if (leaderboardScores.size() != 0) {
-			vector<HighScore*> leaderboardHS;
-			// This is like a functional map
-			transform(leaderboardScores.begin(),
-					  leaderboardScores.end(),
-					  back_inserter(leaderboardHS),
-					  [](OnlineScore s) { return &(s.hs); });
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
 					RString Error =
 					  "Error running RequestChartLeaderBoard Finish Function: ";
-					LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+					lua_newtable(L);
+					for (unsigned i = 0; i < leaderboardScores.size(); ++i) {
+						auto& s = leaderboardScores[i];
+						s.Push(L);
+						lua_rawseti(L, -2, i + 1);
+					}
 					LuaHelpers::RunScriptOnStack(
 					  L, Error, 1, 0, true); // 1 args, 0 results
 				}
@@ -2348,6 +2419,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
+		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
 		// This does not actually request the leaderboard from online.
 		// It gets the already retrieved data from DLMAN

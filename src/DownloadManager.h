@@ -133,6 +133,12 @@ class OnlineTopScore
 	Difficulty difficulty;
 	string steps;
 };
+struct OnlineHighScore : HighScore
+{
+  public:
+	int userid;
+	string scoreid;
+};
 class OnlineScore
 {
   public:
@@ -148,7 +154,7 @@ class OnlineScore
 	int marvelous{ 0 };
 	int minehits{ 0 };
 	int held{ 0 };
-	int songId{ 0 };
+	string songId;
 	int letgo{ 0 };
 	bool valid{ false };
 	bool nocc{ false };
@@ -159,10 +165,13 @@ class OnlineScore
 	string avatar;
 	int userid;
 	DateTime datetime;
+	bool hasReplay{ false };
 	vector<pair<float, float>> replayData;
 	string countryCode;
-	HighScore hs;
+	OnlineHighScore hs;
+	void Push(lua_State* L) { hs.PushSelf(L); }
 };
+
 class DownloadManager
 {
   public:
@@ -276,6 +285,11 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
+	void RequestReplayData(string scorekey,
+						   int userid,
+						   string username,
+						   string chartkey,
+						   LuaReference callback = LuaReference());
 	void RequestChartLeaderBoard(string chartkey,
 								 LuaReference ref = LuaReference());
 	void RefreshUserData();
