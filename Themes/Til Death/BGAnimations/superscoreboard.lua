@@ -92,6 +92,9 @@ local o =
 		self:playcommand("Update")
 	end,
 	UpdateCommand = function(self)
+		if not scoretable then
+			scoretable = {}
+		end
 		if ind == #scoretable then
 			ind = ind - numscores
 		elseif ind > #scoretable - (#scoretable % numscores) then
