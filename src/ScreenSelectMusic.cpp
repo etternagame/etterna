@@ -355,7 +355,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.fFadeInLengthSeconds =
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
-		SOUND->PlayMusic(PlayParams, FallbackMusic);
+		SOUND->PlayMusic(PlayParams);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 	}
 }
