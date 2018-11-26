@@ -64,6 +64,8 @@ class LuaReference
 	/* Return the referenced type, or LUA_TNONE if not set. */
 	int GetLuaType() const;
 
+	int GetIdentifier() { return m_iReference; }
+
 	std::string Serialize() const;
 
 	template<typename T>

@@ -1696,9 +1696,9 @@ Actor::SetTimeout(function<void()> f, float ms)
 }
 
 void
-Actor::SetInterval(function<void()> f, float ms, int id)
+Actor::SetInterval(function<void()> f, float ms, function<void()> fRemove)
 {
-	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
+	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, fRemove));
 	return;
 }
 

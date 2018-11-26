@@ -1236,7 +1236,8 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 	LOG->Warn("%s", Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
-		  Error + "\nCorrect this and click Retry, click Abort to crash, or click Ignore to attempt to continue.";
+		  Error + "\nCorrect this and click Retry, click Abort to crash, or "
+				  "click Ignore to attempt to continue.";
 		return Dialog::AbortRetryIgnore(with_correct, ErrorType);
 	}
 	// Dialog::OK(Error, ErrorType);
@@ -1485,6 +1486,17 @@ LuaHelpers::PushValueFunc(lua_State* L, int iArgs)
 	lua_pushinteger(L, iArgs);
 	lua_insert(L, iTop);
 	lua_pushcclosure(L, lua_pushvalues, iArgs + 1);
+}
+
+LuaReference
+GetFuncArg(int n, lua_State* L)
+{
+	LuaReference ref;
+	lua_pushvalue(L, n);
+	ref.SetFromStack(L);
+	if (!lua_isfunction(L, n))
+		luaL_typerror(L, n, lua_typename(L, LUA_TFUNCTION));
+	return ref;
 }
 
 #include "ProductInfo.h"

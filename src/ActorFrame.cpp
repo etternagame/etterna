@@ -503,18 +503,24 @@ ActorFrame::UpdateInternal(float fDeltaTime)
 		a->Update(fDeltaTime);
 
 	if (unlikely(!m_UpdateFunction.IsNil())) {
-		Lua* L = LUA->Get();
-		m_UpdateFunction.PushSelf(L);
-		if (lua_isnil(L, -1)) {
+		secsSinceLuaUpdateFWasRun += fDeltaTime;
+		if (secsSinceLuaUpdateFWasRun >= m_fUpdateFInterval) {
+			secsSinceLuaUpdateFWasRun = 0;
+			Lua* L = LUA->Get();
+			m_UpdateFunction.PushSelf(L);
+			if (lua_isnil(L, -1)) {
+				LUA->Release(L);
+				LuaHelpers::ReportScriptErrorFmt(
+				  "Error compiling UpdateFunction");
+				return;
+			}
+			this->PushSelf(L);
+			lua_pushnumber(L, fDeltaTime);
+			RString Error = "Error running UpdateFunction: ";
+			LuaHelpers::RunScriptOnStack(
+			  L, Error, 2, 0, true); // 1 args, 0 results
 			LUA->Release(L);
-			LuaHelpers::ReportScriptErrorFmt("Error compiling UpdateFunction");
-			return;
 		}
-		this->PushSelf(L);
-		lua_pushnumber(L, fDeltaTime);
-		RString Error = "Error running UpdateFunction: ";
-		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
-		LUA->Release(L);
 	}
 }
 
@@ -663,6 +669,18 @@ class LunaActorFrame : public Luna<ActorFrame>
 	static int fov(T* p, lua_State* L)
 	{
 		p->SetFOV(FArg(1));
+		COMMON_RETURN_SELF;
+	}
+	static int SetUpdateFunctionInterval(T* p, lua_State* L)
+	{
+		float seconds = FArg(1);
+		if (seconds <= 0) {
+			luaL_error(L,
+					   "ActorFrame:SetUpdateRate(%f) Update interval must be "
+					   "greater than 0.",
+					   seconds);
+		}
+		p->SetUpdateFunctionInterval(seconds);
 		COMMON_RETURN_SELF;
 	}
 	static int SetUpdateRate(T* p, lua_State* L)
@@ -839,6 +857,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 		ADD_METHOD(SetDrawFunction);
 		ADD_METHOD(GetDrawFunction);
 		ADD_METHOD(SetUpdateFunction);
+		ADD_METHOD(SetUpdateFunctionInterval);
 		ADD_METHOD(SortByDrawOrder);
 		// ADD_METHOD( CustomLighting );
 		ADD_METHOD(SetAmbientLightColor);

@@ -7,6 +7,8 @@
 #include "RageTypes.h"
 #include "RageUtil_AutoPtr.h"
 #include <map>
+#include <list>
+#include <tuple>
 class XNode;
 struct lua_State;
 class LuaClass;
@@ -263,8 +265,9 @@ class Actor : public MessageSubscriber
 	Actor* GetFakeParentOrParent(); // fake parent > parent -mina
 	float GetTrueX();	// recursive with parent (for mouseovers) -mina
 	float GetTrueY();	// same
-	float GetTrueZoom();	// same
-	bool IsVisible();	// same but for gating updates on things that may not explicitly set visible = false -mina
+	float GetTrueZoom(); // same
+	bool IsVisible();	// same but for gating updates on things that may not
+						 // explicitly set visible = false -mina
 
 	/**
 	 * @brief Calls multiple functions for drawing the Actors.
@@ -634,7 +637,7 @@ class Actor : public MessageSubscriber
 	virtual float GetHorizAlign() { return m_fHorizAlign; }
 	virtual float GetVertAlign() { return m_fVertAlign; }
 
-		// effects
+	// effects
 #if defined(SSC_FUTURES)
 	void StopEffects();
 	Effect GetEffect(int i) const { return m_Effects[i]; }
@@ -745,6 +748,12 @@ class Actor : public MessageSubscriber
 	// Lua
 	virtual void PushSelf(lua_State* L);
 	virtual void PushContext(lua_State* L);
+
+	vector<pair<function<void(void)>, float>> delayedFunctions;
+	void SetTimeout(function<void()> f, float ms);
+	std::list<tuple<function<void(void)>, float, float, int>>
+	  delayedPeriodicFunctions; // This is a list to allow safe iterators
+	void SetInterval(function<void()> f, float ms, int fRemove);
 
 	// Named commands
 	void AddCommand(const RString& sCmdName,
