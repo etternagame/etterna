@@ -2075,6 +2075,27 @@ Song::Borp()
 	SOUND->PlayMusic(PlayParams, FallbackMusic);
 }
 
+void
+Song::Norf()
+{
+	GameSoundManager::PlayMusicParams PlayParams;
+	PlayParams.sFile = GetMusicPath();
+	PlayParams.pTiming = nullptr;
+	PlayParams.bForceLoop = true;
+	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
+	PlayParams.fLengthSeconds = m_fMusicSampleLengthSeconds;
+	PlayParams.fFadeOutLengthSeconds = 1.f;
+	PlayParams.bAlignBeat = true;
+	PlayParams.bApplyMusicRate = true;
+
+	GameSoundManager::PlayMusicParams FallbackMusic;
+	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.fFadeInLengthSeconds = 1.f;
+	FallbackMusic.bAlignBeat = true;
+
+	SOUND->PlayMusic(PlayParams, FallbackMusic);
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -2506,7 +2527,11 @@ class LunaSong : public Luna<Song>
 		p->Borp();
 		return 0;
 	}
-	
+	static int Norf(T* p, lua_State* L)
+	{
+		p->Norf();
+		return 0;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2576,6 +2601,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
 		ADD_METHOD(Borp);
+		ADD_METHOD(Norf);
 	}
 };
 
