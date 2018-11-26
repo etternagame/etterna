@@ -196,7 +196,7 @@ local function makePackDisplay(i)
 					highlightIfOver(self)
 				end,
 				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and self:GetParent():GetParent():GetVisible() then -- probably should have the isOver function do a recursive parent check?
+					if isOver(self) then -- now contains recursive visibility checks -mina
 						local urlstringyo = "https://etternaonline.com/pack/" .. packinfo:GetID() -- not correct value for site id
 						GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 					end

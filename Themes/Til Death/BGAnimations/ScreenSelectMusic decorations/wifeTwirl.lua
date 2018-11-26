@@ -37,7 +37,7 @@ local t =
 		if song ~= bong then
 			song = bong
 			self:queuecommand("MortyFarts")
-			if noteField and mcbootlarder:GetChild("NoteField"):GetVisible() and song then
+			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
 				song:Borp()
 			end
 		end
@@ -54,7 +54,7 @@ local t =
 			self:queuecommand("On")
 			update = true
 		else
-			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
+			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:IsVisible() then 
 				mcbootlarder:visible(false)
 				mcbootlarder:GetChild("NoteField"):visible(false)
 				MESSAGEMAN:Broadcast("ChartPreviewOff")
@@ -65,7 +65,7 @@ local t =
 		end
 	end,
 	MilkyTartsCommand=function(self)	-- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
-		if noteField and mcbootlarder:GetVisible() then 
+		if noteField and mcbootlarder:IsVisible() then 
 			mcbootlarder:visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			heyiwasusingthat = true
@@ -127,7 +127,7 @@ local function toggleNoteField()
 	return end
 
 	if song then 
-		if mcbootlarder:GetVisible() then
+		if mcbootlarder:IsVisible() then
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")

@@ -1,5 +1,5 @@
 local function highlight(self)
-	if self:GetParent():GetVisible() then
+	if self:IsVisible() then
 		self:queuecommand("Highlight")
 	end
 end

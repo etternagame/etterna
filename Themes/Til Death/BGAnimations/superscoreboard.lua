@@ -28,7 +28,7 @@ local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+	if isOver(cheese:GetChild("FrameDisplay")) then	-- visibility checks are built into isover now -mina
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -44,7 +44,7 @@ local function input(event)
 end
 
 local function highlight(self)
-	if self:GetVisible() then
+	if self:IsVisible() then
 		self:queuecommand("Highlight")
 		self:queuecommand("WHAZZZAAAA")
 	end
