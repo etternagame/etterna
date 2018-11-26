@@ -180,8 +180,7 @@ local t =
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
 			Movable.DeviceButton_t.condition = true
-			lifebar:AddChild(self:GetChild("Border"))
-			-- self:RemoveChild("Border") ayy lmao
+			self:GetChild("LifeP1"):GetChild("Border"):SetFakeParent(lifebar)
 			Movable.DeviceButton_j.element = lifebar
 			Movable.DeviceButton_j.condition = true
 			Movable.DeviceButton_k.element = lifebar
@@ -209,9 +208,11 @@ local t =
 	end
 }
 
--- lifebar border, this is really ghetto i dont like it
-t[#t + 1] = MovableBorder(200, 5, 1, -35, 0)
-
+-- lifebard
+t[#t + 1] = Def.ActorFrame{
+	Name = "LifeP1",
+	MovableBorder(200, 5, 1, -35, 0)
+}
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 																	**LaneCover**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
