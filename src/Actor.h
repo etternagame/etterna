@@ -260,6 +260,7 @@ class Actor : public MessageSubscriber
 	bool PartiallyOpaque();
 	bool IsOver(float mx, float my);
 
+	Actor* GetFakeParentOrParent(); // fake parent > parent -mina
 	float GetTrueX();	// recursive with parent (for mouseovers) -mina
 	float GetTrueY();	// same
 	float GetTrueZoom();	// same
