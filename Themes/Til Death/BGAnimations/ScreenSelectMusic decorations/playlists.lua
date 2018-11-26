@@ -110,7 +110,7 @@ local function BroadcastIfActive(msg)
 end
 
 local function ButtonActive(self, scale)
-	return isOverScaled(self, scale) and update
+	return isOver(self) and update
 end
 
 local r =
@@ -409,19 +409,6 @@ local b2 =
 	end
 }
 
---Add chart button
--- b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,245;settext,"Add Chart")}
--- b2[#b2+1] = Def.Quad{
--- InitCommand=function(self)
--- 	self:x(245):diffusealpha(buttondiffuse):zoomto(80,20)
--- end,
--- MouseLeftClickMessageCommand=function(self)
--- if ButtonActive(self) and singleplaylistactive then
--- pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
--- end
--- end
--- }
--- Play As Course button
 b2[#b2 + 1] =
 	LoadFont("Common Large") ..
 	{
@@ -721,21 +708,6 @@ local b =
 		self:visible(true)
 	end
 }
-
--- zzzz button positioning is lame... use shortcut key for now whynot
--- New Playlist
--- b[#b+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"New Playlist")}
--- b[#b+1] = Def.Quad{
--- InitCommand=function(self)
--- 	self:diffusealpha(buttondiffuse):zoomto(110,20)
--- end,
--- MouseLeftClickMessageCommand=function(self)
--- if ButtonActive(self,0.3) and allplaylistsactive then
--- SONGMAN:NewPlaylist()
--- MESSAGEMAN:Broadcast("DisplayAll")
--- end
--- end
--- }
 
 playlists[#playlists + 1] = b
 

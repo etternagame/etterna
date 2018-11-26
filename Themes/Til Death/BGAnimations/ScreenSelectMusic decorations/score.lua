@@ -45,35 +45,9 @@ else
 	defaultRateText = "All"
 end
 
-local function isOver(element)
-	if element:GetParent():GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetVisible() == false then
-		return false
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
-
-	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
-
-	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
-end
-
 -- should maybe make some of these generic
 local function highlight(self)
-	if self:GetVisible() then
+	if self:IsVisible() then
 		self:queuecommand("Highlight")
 	end
 end
@@ -223,7 +197,7 @@ local ret =
 local cheese
 -- eats only inputs that would scroll to a new score
 local function input(event)
-	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+	if isOver(cheese:GetChild("FrameDisplay")) then
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			if nestedTab == 1 and rtTable and rtTable[rates[rateIndex]] ~= nil then
@@ -254,7 +228,7 @@ local t =
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	OnCommand = function(self)
-		if nestedTab == 1 and self:GetVisible() then
+		if nestedTab == 1 and self:IsVisible() then
 			if GAMESTATE:GetCurrentSong() ~= nil then
 				rtTable = getRateTable()
 				if rtTable ~= nil then

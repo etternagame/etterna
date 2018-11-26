@@ -95,7 +95,7 @@ local t = Def.ActorFrame {
 		self:queuecommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
-		if self:GetParent():GetVisible() then
+		if self:IsVisible() then
 			self:queuecommand("GraphUpdate")
 		end
 	end,
@@ -111,7 +111,7 @@ t[#t+1] =
 	Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
-			if self:GetParent():GetVisible() then
+			if self:IsVisible() then
 				updateGraphMultiVertex(cdg, self)
 				self:GetParent():linear(0.3)
 				self:GetParent():diffusealpha(1)
