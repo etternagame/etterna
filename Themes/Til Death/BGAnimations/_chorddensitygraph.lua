@@ -23,33 +23,37 @@ local function makeABar(vertices, x, y, barWidth, barHeight, prettycolor)
 	vertices[#vertices + 1] = {{x,y,0},prettycolor}
 end
 
-local function getColorForDensity(density)
+local function getColorForDensity(density, ncol)
 	if density == 1 then
 		return color(".75,.75,.75") -- nps color
+	elseif density == ncol then
+		return color(".1,.1,.1")	-- biggest chord color
 	elseif density == 2 then
 		return color(".5,.5,.5") -- jumps color
 	elseif density == 3 then
 		return color(".25,.25,.25") -- hands color
-	else
-		return color(".1,.1,.1") -- quads color
+	--else
+		--local c =  lerp(density / (ncol +1 ), .1, .75) 	-- im sure we can programmatically handle n columns but im too lazy 
+		--return color(c..","..c..","..c..","..c)			-- to make this look nice atm -mina
 	end
 end
 
 local function updateGraphMultiVertex(parent, realgraph)
 	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 	if steps then
-		local graphVectors = steps:GetCDGraphVectors()
+		local ncol = steps:GetNumColumns()
+		local rate = math.max(1, getCurRateValue())
+		local graphVectors = steps:GetCDGraphVectors(rate)
 		if graphVectors == nil then
 			-- reset everything if theres nothing to show
 			realgraph:SetVertices({})
 			realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
-			realgraph:visible(false)
 			return
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
 		local numberOfColumns = #npsVector
-		local columnWidth = wodth/numberOfColumns
+		local columnWidth = wodth/numberOfColumns * rate
 		
 		-- set height scale of graph relative to the max nps
 		local hodth = 0
@@ -64,11 +68,11 @@ local function updateGraphMultiVertex(parent, realgraph)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
-		for density = 1,4 do
+		for density = 1,ncol do
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
-						local barColor = getColorForDensity(density)
-						makeABar(verts, column * columnWidth, yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+						local barColor = getColorForDensity(density, ncol)
+						makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
 					end
 			end
 		end
@@ -84,8 +88,16 @@ local t = Def.ActorFrame {
 		self:SetUpdateFunction(textmover)
 		cdg = self
 	end,
+	CurrentSongChangedMessageCommand = function(self)
+		self:diffusealpha(0)
+	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		self:queuecommand("GraphUpdate")
+	end,
+	CurrentRateChangedMessageCommand = function(self)
+		if self:IsVisible() then
+			self:queuecommand("GraphUpdate")
+		end
 	end,
 	Def.Quad {
         Name = "cdbg",
@@ -99,8 +111,10 @@ t[#t+1] =
 	Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
-			if self:GetVisible() then
+			if self:IsVisible() then
 				updateGraphMultiVertex(cdg, self)
+				self:GetParent():linear(0.3)
+				self:GetParent():diffusealpha(1)
 			end
 		end
 	}

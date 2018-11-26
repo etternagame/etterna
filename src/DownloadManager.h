@@ -148,6 +148,7 @@ class OnlineScore
 	int marvelous{ 0 };
 	int minehits{ 0 };
 	int held{ 0 };
+	int songId{ 0 };
 	int letgo{ 0 };
 	bool valid{ false };
 	bool nocc{ false };
@@ -275,8 +276,8 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
-	void RequestChartLeaderBoard(string chartkey, LuaReference ref);
-	void RequestChartLeaderBoard(string chartkey);
+	void RequestChartLeaderBoard(string chartkey,
+								 LuaReference ref = LuaReference());
 	void RefreshUserData();
 	string countryCode;
 	void RefreshUserRank();

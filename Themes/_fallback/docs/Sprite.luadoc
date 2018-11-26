@@ -1,0 +1,112 @@
+--- Sprite
+-- @classmod Sprite
+
+
+		
+--- 
+-- @treturn Sprite self
+function Sprite:Load() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:LoadBanner() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:LoadBackground() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:LoadFromCached() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:customtexturerect() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetCustomImageRect() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetCustomPosCoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:StopUsingCustomPosCoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:texcoordvelocity() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:get_use_effect_clock_for_texcoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:set_use_effect_clock_for_texcoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:scaletoclipped() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:CropTo() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:stretchtexcoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:addimagecoords() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:setstate() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:GetState() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetStateProperties() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:GetAnimationLengthSeconds() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetSecondsIntoAnimation() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetTexture() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:GetTexture() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetEffectMode() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:GetNumStates() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:SetAllStateDelays() end
+		
+--- 
+-- @treturn Sprite self
+function Sprite:GetDecodeMovie() end
+
+--- 
+-- @treturn Sprite self
+function Sprite:SetDecodeMovie() end

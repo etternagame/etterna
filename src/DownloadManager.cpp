@@ -26,7 +26,7 @@
 #include <FilterManager.h>
 #include "PlayerStageStats.h"
 #include "Grade.h"
-#include "SongManager.h"	// i didn't want to do this but i also didn't want to figure how not to have to so... -mina
+#include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina
 using json = nlohmann::json;
 #ifdef _WIN32
 #include <intrin.h>
@@ -428,6 +428,11 @@ void
 DownloadManager::UpdateDLSpeed(bool gameplay)
 {
 	this->gameplay = gameplay;
+	if (gameplay)
+		MESSAGEMAN->Broadcast("PausingDownloads");
+	else
+		MESSAGEMAN->Broadcast("ResumingDownloads");
+
 	UpdateDLSpeed();
 }
 
@@ -492,6 +497,8 @@ DownloadManager::Update(float fDeltaSeconds)
 {
 	if (!initialized)
 		init();
+	if (gameplay)
+		return;
 	UpdatePacks(fDeltaSeconds);
 	UpdateHTTP(fDeltaSeconds);
 	return;
@@ -533,7 +540,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 			break;
 	}
 
-	// Check for finished downloads
+	// Check for finished http requests
 	CURLMsg* msg;
 	int msgs_left;
 	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
@@ -634,36 +641,46 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle &&
-				msg->msg == CURLMSG_DONE &&
-				msg->data.result != CURLE_PARTIAL_FILE) {
-				finishedADownload = true;
-				i->second->p_RFWrapper.file.Flush();
-				if (i->second->p_RFWrapper.file.IsOpen())
-					i->second->p_RFWrapper.file.Close();
-				if (msg->msg == CURLMSG_DONE &&
-					i->second->progress.total <=
-					  i->second->progress.downloaded) {
-					timeSinceLastDownload = 0;
-					i->second->Done(i->second);
-					if (!gameplay) {
-						installedPacks = true;
-						i->second->Install();
-						finishedDownloads[i->second->m_Url] = i->second;
+			if (msg->easy_handle == i->second->handle) {
+				if (msg->msg == CURLMSG_DONE) {
+					finishedADownload = true;
+					i->second->p_RFWrapper.file.Flush();
+					if (i->second->p_RFWrapper.file.IsOpen())
+						i->second->p_RFWrapper.file.Close();
+					if (msg->data.result != CURLE_PARTIAL_FILE &&
+						i->second->progress.total <=
+						  i->second->progress.downloaded) {
+						timeSinceLastDownload = 0;
+						i->second->Done(i->second);
+						if (!gameplay) {
+							installedPacks = true;
+							i->second->Install();
+							finishedDownloads[i->second->m_Url] = i->second;
+						} else {
+							pendingInstallDownloads[i->second->m_Url] =
+							  i->second;
+						}
 					} else {
-						pendingInstallDownloads[i->second->m_Url] = i->second;
+						i->second->Failed();
+						finishedDownloads[i->second->m_Url] = i->second;
 					}
-				} else {
+					if (i->second->handle != nullptr)
+						curl_easy_cleanup(i->second->handle);
+					i->second->handle = nullptr;
+					if (i->second->p_Pack != nullptr)
+						i->second->p_Pack->downloading = false;
+					downloads.erase(i);
+					break;
+				} else if (i->second->p_RFWrapper.stop) {
 					i->second->Failed();
 					finishedDownloads[i->second->m_Url] = i->second;
+					if (i->second->handle != nullptr)
+						curl_easy_cleanup(i->second->handle);
+					i->second->handle = nullptr;
+					if (i->second->p_Pack != nullptr)
+						i->second->p_Pack->downloading = false;
+					downloads.erase(i);
 				}
-				if (i->second->handle != nullptr)
-					curl_easy_cleanup(i->second->handle);
-				i->second->handle = nullptr;
-				if (i->second->p_Pack != nullptr)
-					i->second->p_Pack->downloading = false;
-				downloads.erase(i);
-				break;
 			}
 		}
 	}
@@ -1017,11 +1034,11 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
-void	// not tested exhaustively -mina
+void // not tested exhaustively -mina
 DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 {
 	if (!LoggedIn())
-		 return;
+		return;
 
 	auto doot = SCOREMAN->GetScoresByKey();
 	auto hs = doot[sk];
@@ -1082,7 +1099,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 						  DLMAN->sessionPass,
 						  [hs](bool logged) {
 							  if (logged) {
-								  DLMAN->UploadScoreWithReplayDataFromDisk(hs->GetScoreKey());
+								  DLMAN->UploadScoreWithReplayDataFromDisk(
+									hs->GetScoreKey());
 							  }
 						  });
 					} else if (status == 404 || status == 405 ||
@@ -1372,29 +1390,10 @@ DownloadManager::RefreshCountryCodes()
 void
 DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 {
-	RequestChartLeaderBoard(chartkey);
-	if (unlikely(!ref.IsNil())) {
-		Lua* L = LUA->Get();
-		ref.PushSelf(L);
-		if (lua_isnil(L, -1)) {
-			LUA->Release(L);
-			LuaHelpers::ReportScriptErrorFmt("Error compiling RequestChartLeaderBoard Finish Function");
-			return;
-		}
-		RString Error = "Error running RequestChartLeaderBoard Finish Function: ";
-		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
-		LUA->Release(L);
-	}
-}
-
-void
-DownloadManager::RequestChartLeaderBoard(string chartkey)
-{
-	auto done = [chartkey](HTTPRequest& req, CURLMsg*) {
+	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 		// unordered_set<string> userswithscores;
-		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
@@ -1403,13 +1402,10 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
 
-				// i don't really want to do this very iteration but oh well
-				// -mina
-				msg.SetParam("songid",
-							 RString(score.value("songId", "").c_str()));
-
 				OnlineScore tmp;
+				// tmp.songId = score.value("songId", 0);
 				auto user = *(score.find("user"));
+				tmp.songId = score.value("songId", 0);
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
@@ -1444,7 +1440,8 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				FOREACH_ENUM(Skillset, ss)
 				tmp.SSRs[ss] = static_cast<float>(
 				  ssrs.value(SkillsetToString(ss).c_str(), 0.0));
-				try {
+
+				/*try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
 						LOG->Trace(tmp.modifiers.c_str());
@@ -1453,7 +1450,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 						  pair[0].get<float>(), pair[1].get<float>()));
 				} catch (exception e) {
 					// replaydata failed
-				}
+				} */
 
 				// eo still has some old profiles with various edge issues that
 				// unfortunately need to be handled here screen out old 11111
@@ -1507,13 +1504,33 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 			// json failed
 		}
 
+		Message msg("ChartLeaderboardUpdate");
+		vector<HighScore*> leaderboardHS;
+		// This is like a functional map
+		transform(vec.begin(),
+				  vec.end(),
+				  back_inserter(leaderboardHS),
+				  [](OnlineScore s) { return &(s.hs); });
+
+		if (!ref.IsNil() && ref.IsSet()) {
+			Lua* L = LUA->Get();
+			ref.PushSelf(L);
+			if (!lua_isnil(L, -1)) {
+				RString Error =
+				  "Error running RequestChartLeaderBoard Finish Function: ";
+				LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+				LuaHelpers::RunScriptOnStack(
+				  L, Error, 1, 0, true); // 1 args, 0 results
+			}
+			LUA->Release(L);
+		}
 		// float ProbablyUnderratedness =
 		// mythicalmathymathsProbablyUnderratedness(chartkey);  float coop =
 		// overratedness(chartkey);
 		// Renaming these 2 requires renaming them in lua wherever theyre used
 		// msg.SetParam("mmm", ProbablyUnderratedness);
 		// msg.SetParam("ixmixblixb", 2);
-		MESSAGEMAN->Broadcast(msg); // see start of function
+		MESSAGEMAN->Broadcast(msg);
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
 				vector<pair<string, string>>(),
@@ -2221,23 +2238,38 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	// this will not update a leaderboard to a new state.
 	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
 	{
-		if (!lua_isfunction(L, 2)) {
-			LuaReference ref;
+		string chart = SArg(1);
+		LuaReference ref;
+		auto& leaderboardScores = DLMAN->chartLeaderboards[chart];
+		if (lua_isfunction(L, 2)) {
 			lua_pushvalue(L, 2);
 			ref.SetFromStack(L);
-			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0) {
-				DLMAN->RequestChartLeaderBoard(SArg(1), ref);
-			}
-		} else {
-			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
-				DLMAN->RequestChartLeaderBoard(SArg(1));
 		}
-		return 1;
+		if (leaderboardScores.size() != 0) {
+			vector<HighScore*> leaderboardHS;
+			// This is like a functional map
+			transform(leaderboardScores.begin(),
+					  leaderboardScores.end(),
+					  back_inserter(leaderboardHS),
+					  [](OnlineScore s) { return &(s.hs); });
+			if (!ref.IsNil()) {
+				ref.PushSelf(L);
+				if (!lua_isnil(L, -1)) {
+					RString Error =
+					  "Error running RequestChartLeaderBoard Finish Function: ";
+					LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+					LuaHelpers::RunScriptOnStack(
+					  L, Error, 1, 0, true); // 1 args, 0 results
+				}
+			}
+			return 0;
+		}
+		DLMAN->RequestChartLeaderBoard(chart, ref);
+
+		return 0;
 	}
 
-	// This does not actually request the leaderboard from online.
-	// It gets the already retrieved data from DLMAN
-	static int RequestChartLeaderBoard(T* p, lua_State* L)
+	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		vector<HighScore*> filteredLeaderboardScores;
 		unordered_set<string> userswithscores;
@@ -2250,12 +2282,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;
-			if (lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
-				  lround(currentrate * 10000.f) &&
-				p->currentrateonly)
+			if (p->currentrateonly &&
+				lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
+				  lround(currentrate * 10000.f))
 				continue;
-			if (userswithscores.count(leaderboardHighScore.GetName()) == 1 &&
-				p->topscoresonly)
+			if (p->topscoresonly &&
+				userswithscores.count(leaderboardHighScore.GetName()) == 1)
 				continue;
 			if (country != "" && country != "Global" &&
 				leaderboardHighScore.countryCode != country)
@@ -2316,7 +2348,11 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
-		ADD_METHOD(RequestChartLeaderBoard);
+		ADD_METHOD(GetChartLeaderBoard);
+		// This does not actually request the leaderboard from online.
+		// It gets the already retrieved data from DLMAN
+		// Why does this alias exist?
+		AddMethod("GetChartLeaderboard", GetChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
@@ -2574,7 +2610,7 @@ class LunaDownload : public Luna<Download>
 	static int Stop(T* p, lua_State* L)
 	{
 		p->p_RFWrapper.stop = true;
-		return 1;
+		return 0;
 	}
 	LunaDownload()
 	{

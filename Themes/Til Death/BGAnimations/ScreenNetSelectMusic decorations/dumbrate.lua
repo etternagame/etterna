@@ -84,9 +84,6 @@ local t =
 	CurrentRateChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	RefreshChartInfoMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,

@@ -38,14 +38,7 @@ end
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueX(element)
-	if element == nil then
-		return 0
-	end
-	if element:GetParent() == nil then
-		return element:GetX() or 0
-	else
-		return element:GetX() + getTrueX(element:GetParent())
-	end
+	element:GetTrueX()
 end
 
 --- Get the actor's real Y (Not relative to the parent like self:GetY()) by recursively grabbing the parents' position
@@ -53,62 +46,15 @@ end
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueY(element)
-	if element == nil then
-		return 0
-	end
-	if element:GetParent() == nil then
-		return element:GetY() or 0
-	else
-		return element:GetY() + getTrueY(element:GetParent())
-	end
+	element:GetTrueY()
 end
 
 --- Checks whether the mouse is over an actor
 -- @tparam actor element the actor
 -- @treturn bool true if the mouse is over the actor
 function isOver(element)
-	--[[
-	if element:GetVisible() == false then
-		return false
-	end;
-	--]]
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
-
 	local mouse = getMousePosition()
-
-	local withinX = (mouse.x >= (x - (hAlign * w))) and (mouse.x <= ((x + w) - (hAlign * w)))
-	local withinY = (mouse.y >= (y - (vAlign * h))) and (mouse.y <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
-end
-
---- For when its just wrong and you need to control the scale yourself
--- @tparam actor element the actor
--- @number scale Multiplier
--- @treturn bool true if the mouse is over the actor
-function isOverScaled(element, scale)
-	if not scale then
-		scale = 1
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth() * scale
-	local h = element:GetZoomedHeight() * scale
-
-	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
-
-	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
+	return element:IsOver(mouse.x, mouse.y)
 end
 
 --- returns true if the table contains the key.

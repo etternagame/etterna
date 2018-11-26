@@ -1,0 +1,705 @@
+--- Basic Actor class
+-- @classmod Actor
+
+
+--- Get the name of this specific actor instance
+-- Usually set as Def.Actor{Name = "string"}
+-- @treturn Actor self
+function Actor:name() end
+		
+--- Inserts a linear tween of seconds time and then a 0 seconds empty tween
+-- to force the future tweens to happen after seconds seconds elapse
+-- @number seconds
+-- @treturn Actor self
+function Actor:sleep(seconds) end
+		
+--- Inserts a linear tween of seconds time
+-- @number seconds
+-- @treturn Actor self
+function Actor:linear(seconds) end
+		
+--- Inserts an accelerate tween of seconds time
+-- @number seconds
+-- @treturn Actor self
+function Actor:accelerate(seconds) end
+		
+--- Inserts a decelerate tween of seconds time
+-- @number seconds
+-- @treturn Actor self
+function Actor:decelerate(seconds) end
+		
+--- Inserts a spring tween of seconds time
+-- @number seconds
+-- @treturn Actor self
+function Actor:spring(seconds) end
+		
+--- Inserts a tween of tweenType with seconds duration
+-- @number seconds
+-- @treturn Actor self
+function Actor:tween(seconds, tweenType) end
+		
+--- Immediately cancels/stops all tweens left for this actor
+-- @treturn Actor self
+function Actor:stoptweening() end
+		
+--- Immediately finish all tweens left for this actor
+-- This reaches the final state of the tweens in succession
+-- @treturn Actor self
+function Actor:finishtweening() end
+		
+--- 
+-- @number factor the ratio for the new tween speedup (Or slowdown)
+-- @treturn Actor self
+function Actor:hurrytweening(factor) end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetTweenTimeLeft() end
+		
+--- Set this actors horizontal position
+-- 0 is the left edge of the screen
+-- @number x The new horizontal position to set
+-- @treturn Actor self
+function Actor:x(x) end
+		
+--- Set this actors vertical position
+-- 0 is the top edge of the screen
+-- @number y The new vertical position to set
+-- @treturn Actor self
+function Actor:y(y) end
+		
+--- Set this actors normal position
+-- @number z The new position to set
+-- @treturn Actor self
+function Actor:z(z) end
+		
+--- Set this actors x and y position easily in one method
+-- Just for convenience
+-- @number x The new horizontal position to set
+-- @number y The new vertical position to set
+-- @treturn Actor self
+function Actor:xy(x, y) end
+		
+--- 
+-- @treturn Actor self
+function Actor:addx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoom() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomto() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomtowidth() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zoomtoheight() end
+		
+--- 
+-- @treturn Actor self
+function Actor:setsize() end
+		
+--- 
+-- @treturn Actor self
+function Actor:SetWidth() end
+		
+--- 
+-- @treturn Actor self
+function Actor:SetHeight() end
+		
+--- 
+-- @treturn Actor self
+function Actor:basealpha() end
+		
+--- 
+-- @treturn Actor self
+function Actor:basezoom() end
+		
+--- 
+-- @treturn Actor self
+function Actor:basezoomx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:basezoomy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:basezoomz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:stretchto() end
+		
+--- 
+-- @treturn Actor self
+function Actor:cropleft() end
+		
+--- 
+-- @treturn Actor self
+function Actor:croptop() end
+		
+--- 
+-- @treturn Actor self
+function Actor:cropright() end
+		
+--- 
+-- @treturn Actor self
+function Actor:cropbottom() end
+		
+--- 
+-- @treturn Actor self
+function Actor:fadeleft() end
+		
+--- 
+-- @treturn Actor self
+function Actor:fadetop() end
+		
+--- 
+-- @treturn Actor self
+function Actor:faderight() end
+		
+--- 
+-- @treturn Actor self
+function Actor:fadebottom() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuse() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseupperleft() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseupperright() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuselowerleft() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuselowerright() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseleftedge() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuserightedge() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffusetopedge() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffusebottomedge() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffusealpha() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffusecolor() end
+		
+--- 
+-- @treturn Actor self
+function Actor:glow() end
+		
+--- 
+-- @treturn Actor self
+function Actor:aux() end
+		
+--- 
+-- @treturn Actor self
+function Actor:getaux() end
+		
+--- 
+-- @treturn Actor self
+function Actor:rotationx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:rotationy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:rotationz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addrotationx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addrotationy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addrotationz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:getrotation() end
+		
+--- 
+-- @treturn Actor self
+function Actor:baserotationx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:baserotationy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:baserotationz() end
+		
+--- 
+-- @treturn Actor self
+function Actor:skewx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:skewy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:heading() end
+		
+--- 
+-- @treturn Actor self
+function Actor:pitch() end
+		
+--- 
+-- @treturn Actor self
+function Actor:roll() end
+		
+--- 
+-- @treturn Actor self
+function Actor:shadowlength() end
+		
+--- 
+-- @treturn Actor self
+function Actor:shadowlengthx() end
+		
+--- 
+-- @treturn Actor self
+function Actor:shadowlengthy() end
+		
+--- 
+-- @treturn Actor self
+function Actor:shadowcolor() end
+		
+--- 
+-- @treturn Actor self
+function Actor:horizalign() end
+		
+--- 
+-- @treturn Actor self
+function Actor:vertalign() end
+		
+--- 
+-- @treturn Actor self
+function Actor:halign() end
+		
+--- 
+-- @treturn Actor self
+function Actor:valign() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseblink() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseshift() end
+		
+--- 
+-- @treturn Actor self
+function Actor:diffuseramp() end
+		
+--- 
+-- @treturn Actor self
+function Actor:glowblink() end
+		
+--- 
+-- @treturn Actor self
+function Actor:glowshift() end
+		
+--- 
+-- @treturn Actor self
+function Actor:glowramp() end
+		
+--- 
+-- @treturn Actor self
+function Actor:rainbow() end
+		
+--- 
+-- @treturn Actor self
+function Actor:wag() end
+		
+--- 
+-- @treturn Actor self
+function Actor:bounce() end
+		
+--- 
+-- @treturn Actor self
+function Actor:bob() end
+		
+--- 
+-- @treturn Actor self
+function Actor:pulse() end
+		
+--- 
+-- @treturn Actor self
+function Actor:spin() end
+		
+--- 
+-- @treturn Actor self
+function Actor:vibrate() end
+		
+--- 
+-- @treturn Actor self
+function Actor:stopeffect() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectcolor1() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectcolor2() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectperiod() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effecttiming() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effect_hold_at_full() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectoffset() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectclock() end
+		
+--- 
+-- @treturn Actor self
+function Actor:effectmagnitude() end
+		
+--- 
+-- @treturn Actor self
+function Actor:geteffectmagnitude() end
+		ADD_GET_SET_METHODS(tween_uses_effect_delta);
+		
+--- 
+-- @treturn Actor self
+function Actor:scaletocover() end
+		
+--- 
+-- @treturn Actor self
+function Actor:scaletofit() end
+		
+--- 
+-- @treturn Actor self
+function Actor:animate() end
+		
+--- 
+-- @treturn Actor self
+function Actor:play() end
+		
+--- 
+-- @treturn Actor self
+function Actor:pause() end
+		
+--- 
+-- @treturn Actor self
+function Actor:setstate() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetNumStates() end
+		
+--- 
+-- @treturn Actor self
+function Actor:texturetranslate() end
+		
+--- 
+-- @treturn Actor self
+function Actor:texturewrapping() end
+		
+--- 
+-- @treturn Actor self
+function Actor:SetTextureFiltering() end
+		
+--- 
+-- @treturn Actor self
+function Actor:blend() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zbuffer() end
+		
+--- 
+-- @treturn Actor self
+function Actor:ztest() end
+		
+--- 
+-- @treturn Actor self
+function Actor:ztestmode() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zwrite() end
+		
+--- 
+-- @treturn Actor self
+function Actor:zbias() end
+		
+--- 
+-- @treturn Actor self
+function Actor:clearzbuffer() end
+		
+--- 
+-- @treturn Actor self
+function Actor:backfacecull() end
+		
+--- 
+-- @treturn Actor self
+function Actor:cullmode() end
+		
+--- 
+-- @treturn Actor self
+function Actor:visible() end
+		
+--- 
+-- @treturn Actor self
+function Actor:hibernate() end
+		
+--- 
+-- @treturn Actor self
+function Actor:draworder() end
+		
+--- 
+-- @treturn Actor self
+function Actor:playcommand() end
+		
+--- 
+-- @treturn Actor self
+function Actor:queuecommand() end
+		
+--- 
+-- @treturn Actor self
+function Actor:queuemessage() end
+		
+--- 
+-- @treturn Actor self
+function Actor:addcommand() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetCommand() end
+		
+--- 
+-- @treturn Actor self
+function Actor:RunCommandsRecursively() end
+
+--- Get X position (horizontal)
+-- 0 is leftmost
+-- @treturn number the horizontal x position. 
+function Actor:GetX() end
+		
+
+--- Get Y position (vertical)
+-- 0 is topmost
+-- @treturn number the vertical y position. 
+function Actor:GetY() end
+		
+
+--- Get Z position
+-- @treturn number the z position. 
+function Actor:GetZ() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetDestX() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetDestY() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetDestZ() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetWidth() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetHeight() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoomedWidth() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoomedHeight() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoom() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoomX() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoomY() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetZoomZ() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetRotationX() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetRotationY() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetRotationZ() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetBaseZoomX() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetBaseZoomY() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetBaseZoomZ() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetSecsIntoEffect() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetEffectDelta() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetDiffuse() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetDiffuseAlpha() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetGlow() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetVisible() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetHAlign() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetVAlign() end
+
+		
+--- 
+-- @treturn Actor self
+function Actor:GetName() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetParent() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetFakeParent() end
+		
+--- 
+-- @treturn Actor self
+function Actor:SetFakeParent() end
+		
+--- 
+-- @treturn Actor self
+function Actor:AddWrapperState() end
+		
+--- 
+-- @treturn Actor self
+function Actor:RemoveWrapperState() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetNumWrapperStates() end
+		
+--- 
+-- @treturn Actor self
+function Actor:GetWrapperState() end
+
+		
+--- 
+-- @treturn Actor self
+function Actor:Draw() end
+
+		
+--- 
+-- @treturn Actor self
+function Actor:SaveXY() end
+
+--- 
+-- @treturn Actor self
+function Actor:LoadXY() end

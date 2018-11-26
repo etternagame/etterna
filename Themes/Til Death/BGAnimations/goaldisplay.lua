@@ -24,7 +24,7 @@ local cheese
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+	if isOver(cheese:GetChild("FrameDisplay")) then
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -40,7 +40,9 @@ local function input(event)
 end
 
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if cheese:IsVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 local function highlightIfOver(self)

@@ -1,5 +1,7 @@
 local function highlight(self)
-	self:queuecommand("Highlight")
+	if self:IsVisible() then
+		self:queuecommand("Highlight")
+	end
 end
 
 local function highlightIfOver(self)

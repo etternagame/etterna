@@ -5,6 +5,7 @@
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
+#include "RadarValues.h"
 
 #define AI_PATH "Data/AI.ini"
 
@@ -155,10 +156,15 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void
 PlayerAI::SetScoreData(HighScore* pHighScore)
 {
-	pHighScore->LoadReplayData();
+	bool successful = pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
+
+	if (!successful)
+	{
+		return;
+	}
 
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
@@ -168,18 +174,16 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
-	for (int i = 0; i < (int)replayNoteRowVector.size(); i++) {
+	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
+		trr.offsetAdjustedRow = static_cast<int>(replayOffsetVector[i]);
 		if (pScoreData->GetReplayType() ==
 			2) // 2 means that this is a Full Replay
 		{
 			trr.track = replayTrackVector[i];
 			trr.type = replayTapNoteTypeVector[i];
-
-
-
 		} else // Anything else (and we got this far without crashing) means
 			   // it's not a Full Replay
 		{
@@ -448,9 +452,12 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 		// this is done to be able to judge simultaneous taps differently
 		// due to CC Off this results in possibly incorrect precise per tap
 		// judges, but the correct judgement ends up being made overall.
-		m_ReplayTapMap[noteRow].pop_back();
-		if (m_ReplayTapMap[noteRow].empty()) {
-			m_ReplayTapMap.erase(noteRow);
+
+		if (!pScoreData->GetChordCohesion()) {
+			m_ReplayTapMap[noteRow].pop_back();
+			if (m_ReplayTapMap[noteRow].empty()) {
+				m_ReplayTapMap.erase(noteRow);
+			}
 		}
 
 		return -offset;
@@ -484,6 +491,92 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	}
 
 	return -1.f; // data missing or invalid, give them a miss
+}
+
+void
+PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV)
+{
+	// We will do this thoroughly just in case someone decides to use the other
+	// categories we don't currently use
+	int tapsHit = 0;
+	int jumpsHit = 0;
+	int handsHit = 0;
+	int holdsHeld = possibleRV[RadarCategory_Holds];
+	int rollsHeld = possibleRV[RadarCategory_Rolls];
+	int liftsHit = 0;
+	int fakes = possibleRV[RadarCategory_Fakes];
+	int totalNotesHit = 0;
+	int minesMissed = possibleRV[RadarCategory_Mines];
+
+	// For every row recorded...
+	for (auto& row : m_ReplayTapMap)
+	{
+		int tapsOnThisRow = 0;
+		// For every tap on these rows...
+		for (TapReplayResult& trr : row.second)
+		{
+			if (trr.type == TapNoteType_Fake)
+			{
+				fakes--;
+				continue;
+			}
+			if (trr.type == TapNoteType_Mine)
+			{
+				minesMissed--;
+				continue;
+			}
+			if (trr.type == TapNoteType_Lift)
+			{
+				liftsHit++;
+				continue;
+			}
+			tapsOnThisRow++;
+			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead)
+			{
+				totalNotesHit++;
+				tapsHit++;
+				if (tapsOnThisRow == 2)
+				{
+					jumpsHit++;
+				}
+				else if (tapsOnThisRow >= 3)
+				{
+					handsHit++;
+				}
+				continue;
+			}
+		}
+	}
+
+	// For every hold recorded...
+	for (auto& row : m_ReplayHoldMap)
+	{
+		// For every hold on this row...
+		for (HoldReplayResult& hrr : row.second)
+		{
+			if (hrr.subType == TapNoteSubType_Hold)
+			{
+				holdsHeld--;
+				continue;
+			}
+			else if (hrr.subType == TapNoteSubType_Roll)
+			{
+				rollsHeld--;
+				continue;
+			}
+		}
+	}
+
+	// lol just set them
+	rv[RadarCategory_TapsAndHolds] = tapsHit;
+	rv[RadarCategory_Jumps] = jumpsHit;
+	rv[RadarCategory_Holds] = holdsHeld;
+	rv[RadarCategory_Mines] = minesMissed;
+	rv[RadarCategory_Hands] = handsHit;
+	rv[RadarCategory_Rolls] = rollsHeld;
+	rv[RadarCategory_Lifts] = liftsHit;
+	rv[RadarCategory_Fakes] = fakes;
+	rv[RadarCategory_Notes] = totalNotesHit;
 }
 
 /*

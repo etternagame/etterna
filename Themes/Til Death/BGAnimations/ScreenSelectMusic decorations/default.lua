@@ -44,16 +44,21 @@ t[#t + 1] =
 		end
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
-		local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if leaderboardEnabled then
+		local leaderboardEnabled =
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then
 			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
-			DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+			DLMAN:RequestChartLeaderBoardFromOnline(
+				chartkey,
+				function(leaderboard)
+				end
+			)
 		end
 	end,
-	ChartPreviewOnMessageCommand=function(self)
+	ChartPreviewOnMessageCommand = function(self)
 		self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
 	end,
-	ChartPreviewOffMessageCommand=function(self)
+	ChartPreviewOffMessageCommand = function(self)
 		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
 	end,
 	Def.StepsDisplayList {
@@ -74,17 +79,16 @@ t[#t + 1] =
 				end
 			}
 		},
-		CursorP2 = Def.ActorFrame {
-		},
+		CursorP2 = Def.ActorFrame {},
 		CursorP1Frame = Def.Actor {
 			ChangeCommand = function(self)
 				self:stoptweening():decelerate(0.05)
 			end
 		},
-		CursorP2Frame = Def.Actor {
-		},
+		CursorP2Frame = Def.Actor {}
 	}
 }
 
 t[#t + 1] = LoadActor("../_mousewheelscroll")
+collectgarbage()
 return t

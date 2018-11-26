@@ -1,0 +1,74 @@
+--- Font actor
+-- @classmod BitmapText
+
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:wrapwidthpixels() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:maxwidth() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:maxheight() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:max_dimension_use_zoom() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:vertspacing() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:settext() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:rainbowscroll() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:jitter() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:distort() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:undistort() end
+		ADD_GET_SET_METHODS(mult_attrs_with_diffuse);
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:GetText() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:AddAttribute() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:ClearAttributes() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:strokecolor() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:getstrokecolor() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:uppercase() end
+		
+--- 
+-- @treturn BitmapText self
+function BitmapText:textglowmode() end
+		// ADD_METHOD( LoadFromFont );
+// ADD_METHOD( LoadFromTextureAndChars );

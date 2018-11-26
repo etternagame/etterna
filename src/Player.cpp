@@ -2829,9 +2829,9 @@ Player::CrossedRows(int iLastRowCrossed,
 				this->m_Timing->IsJudgableAtRow(iRow)) {
 				if ((m_pPlayerState->m_PlayerController == PC_REPLAY &&
 					 PlayerAI::GetReplayType() != 2) ||
-					m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
+					m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
 					Step(iTrack, iRow, now, false, false);
-					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
+					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
 						if (m_pPlayerStageStats)
 							m_pPlayerStageStats->m_bDisqualified = true;
 					}

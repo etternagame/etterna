@@ -892,6 +892,7 @@ HighScore::LoadReplayDataFull()
 	SetOffsetVector(vOffsetVector);
 	SetTrackVector(vTrackVector);
 	SetTapNoteTypeVector(vTapNoteTypeVector);
+	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
 	LOG->Trace("Loaded replay data at %s", path.c_str());

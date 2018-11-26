@@ -67,7 +67,7 @@ after_build:
 notifications:
 - provider: Email
   to:
-  - etternadevs@gmail.com
+  - etternadev@gmail.com
   on_build_success: false
   on_build_failure: true
   on_build_status_changed: true

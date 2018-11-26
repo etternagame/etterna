@@ -1037,9 +1037,12 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State* L)
 	{
-		vector<float> doot = p->m_vOffsetVector;
-		for (size_t i = 0; i < doot.size(); ++i)
-			doot[i] = doot[i] * 1000;
+		auto& offs = p->m_vOffsetVector;
+		auto& type = p->m_vTapNoteTypeVector;
+		vector<float> doot;
+		for (size_t i = 0; i < offs.size(); ++i)
+			if (type[i] != TapNoteType_Mine)
+				doot.emplace_back(offs[i] * 1000);
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;
 	}

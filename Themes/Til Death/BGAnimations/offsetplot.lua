@@ -32,7 +32,9 @@ local handspecific = false
 local left = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
-	if finalSecond == 0 then return 0 end
+	if finalSecond == 0 then
+		return 0
+	end
 	return x / finalSecond * plotWidth - plotWidth / 2
 end
 
@@ -46,16 +48,15 @@ local o =
 		self:xy(plotX, plotY)
 
 		-- being explicit about the logic since atm these are the only 2 cases we handle
-		if SCREENMAN:GetTopScreen():GetName() == "ScreenEvaluationNormal" then -- default case, all data is in pss and no disk load is required
+		local name = SCREENMAN:GetTopScreen():GetName()
+		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
 			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
 			pss:UnloadReplayData() -- force unload replaydata in memory after loading it (not sure if i should allow this but i don't trust deconstructors) -mina
-		end
-
-		if SCREENMAN:GetTopScreen():GetName() == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
+		elseif name == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
 			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
 			textzoom = 0.5

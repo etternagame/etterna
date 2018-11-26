@@ -250,34 +250,36 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	static float lastDLProgressUpdate = 0;
-	lastDLProgressUpdate += fDeltaTime;
-	if (DLMAN->downloads.empty() || lastDLProgressUpdate < 0.5)
-		return;
-	lastDLProgressUpdate = 0;
-	Message msg("DLProgressAndQueueUpdate");
+	if (!DLMAN->gameplay) {
+		static float lastDLProgressUpdate = 0;
+		lastDLProgressUpdate += fDeltaTime;
+		if (DLMAN->downloads.empty() || lastDLProgressUpdate < 0.5)
+			return;
+		lastDLProgressUpdate = 0;
+		Message msg("DLProgressAndQueueUpdate");
 
-	vector<RString> dls;
-	for (auto& dl : DLMAN->downloads) {
-		dls.push_back(dl.second->Status());
-	}
-	msg.SetParam("dlsize", static_cast<int>(DLMAN->downloads.size()));
-	msg.SetParam("dlprogress", join("\n", dls));
-
-	if (!DLMAN->DownloadQueue.empty()) {
-		vector<RString> cue;
-		for (auto& q : DLMAN->DownloadQueue) {
-			cue.push_back(q.first->name);
+		vector<RString> dls;
+		for (auto& dl : DLMAN->downloads) {
+			dls.push_back(dl.second->Status());
 		}
-		msg.SetParam("queuesize",
-					 static_cast<int>(DLMAN->DownloadQueue.size()));
-		msg.SetParam("queuedpacks", join("\n", cue));
-	} else {
-		msg.SetParam("queuesize", 0);
-		msg.SetParam("queuedpacks", RString(""));
-	}
-	MESSAGEMAN->Broadcast(msg);
+		msg.SetParam("dlsize", static_cast<int>(DLMAN->downloads.size()));
+		msg.SetParam("dlprogress", join("\n", dls));
 
+		if (!DLMAN->DownloadQueue.empty()) {
+			vector<RString> cue;
+			for (auto& q : DLMAN->DownloadQueue) {
+				cue.push_back(q.first->name);
+			}
+			msg.SetParam("queuesize",
+						 static_cast<int>(DLMAN->DownloadQueue.size()));
+			msg.SetParam("queuedpacks", join("\n", cue));
+		} else {
+			msg.SetParam("queuesize", 0);
+			msg.SetParam("queuedpacks", RString(""));
+		}
+		MESSAGEMAN->Broadcast(msg);
+	}
+	
 #endif
 }
 

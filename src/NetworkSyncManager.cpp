@@ -65,6 +65,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
+	{ "chartrequest", ettps_chartrequest }
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -501,12 +502,12 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
-	/*
+
 	if (ETTP.Connect(this, iPort, sAddress))
 		curProtocol = &ETTP;
 	else
-	*/
-	if (SMOP.Connect(this, iPort, sAddress))
+
+	  if (SMOP.Connect(this, iPort, sAddress))
 		curProtocol = &SMOP;
 	if (curProtocol == nullptr)
 		return;
@@ -785,12 +786,14 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					HighScore hs;
 					EndOfGame_PlayerData result;
 					hs.SetScoreKey(score.value("scorekey", ""));
-					hs.SetSSRNormPercent(static_cast<float>(score.value("ssr_norm", 0)));
+					hs.SetSSRNormPercent(
+					  static_cast<float>(score.value("ssr_norm", 0)));
 					hs.SetEtternaValid(score.value("valid", 0) != 0);
 					hs.SetModifiers(score.value("mods", ""));
 					FOREACH_ENUM(Skillset, ss)
-					hs.SetSkillsetSSR(
-					  ss, static_cast<float>(score.value(SkillsetToString(ss).c_str(), 0)));
+					hs.SetSkillsetSSR(ss,
+									  static_cast<float>(score.value(
+										SkillsetToString(ss).c_str(), 0)));
 					hs.SetSSRNormPercent(score.value("score", 0.0f));
 					hs.SetWifeScore(score.value("score", 0.0f));
 					result.tapScores[0] = score.value("marv", 0);
@@ -912,6 +915,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  "ScreenNetRoom", "MusicSelectScreen");
 						SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 					}
+				} break;
+				case ettps_chartrequest: {
+					n->requests.emplace_back(ChartRequest(*payload));
 				} break;
 				case ettps_enterroomresponse: {
 					bool entered = (*payload)["entered"];
@@ -2480,6 +2486,18 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 }
 #endif
 
+void
+ChartRequest::PushSelf(lua_State* L)
+{
+	lua_createtable(L, 0, 3);
+	lua_pushstring(L, chartkey.c_str());
+	lua_setfield(L, -2, "chartkey");
+	lua_pushstring(L, user.c_str());
+	lua_setfield(L, -2, "user");
+	lua_pushnumber(L, rate / 1000); // should this be in [0,1] or [0, 1000] ????
+	lua_setfield(L, -2, "rate");
+}
+
 static bool
 ConnectToServer(const RString& t)
 {
@@ -2523,6 +2541,18 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	static int IsETTP(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->IsETTP());
+		return 1;
+	}
+	static int GetChartRequests(T* p, lua_State* L)
+	{
+		auto& reqs = p->requests;
+		lua_newtable(L);
+		int i = 1;
+		for (auto& req : reqs) {
+			req.PushSelf(L);
+			lua_rawseti(L, -2, 0);
+			i++;
+		}
 		return 1;
 	}
 	static int GetChatMsg(T* p, lua_State* L)

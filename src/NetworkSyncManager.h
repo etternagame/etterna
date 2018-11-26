@@ -96,6 +96,7 @@ enum ETTServerMessageTypes
 	ettps_newroom,
 	ettps_updateroom,
 	ettps_roomuserlist,
+	ettps_chartrequest,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -130,6 +131,21 @@ struct NetServerInfo
 {
 	RString Name;
 	RString Address;
+};
+
+class ChartRequest
+{
+  public:
+	ChartRequest(json& j)
+	  : chartkey(j["chartkey"].get<string>())
+	  , user(j["requester"].get<string>())
+	  , rate(j["rate"])
+	{
+	}
+	const string chartkey;
+	const string user; // User that requested this chart
+	const int rate;	// rate * 1000
+	void PushSelf(lua_State* L);
 };
 
 class EzSockets;
@@ -457,6 +473,7 @@ class NetworkSyncManager
 	void Login(RString user, RString pass);
 	void Logout();
 	vector<RoomData> m_Rooms;
+	vector<ChartRequest> requests;
 
 #if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);

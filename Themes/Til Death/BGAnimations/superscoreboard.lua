@@ -9,7 +9,7 @@ local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numscores + 2) * packspaceY - packspaceY/3 -- account dumbly for header being moved up
+local height = (numscores + 2) * packspaceY - packspaceY / 3 -- account dumbly for header being moved up
 
 local adjx = 14
 local c0x = 10
@@ -28,7 +28,7 @@ local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+	if isOver(cheese:GetChild("FrameDisplay")) then	-- visibility checks are built into isover now -mina
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -43,35 +43,11 @@ local function input(event)
 	return false
 end
 
-local function isOver(element)
-	if element:GetParent():GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetVisible() == false then
-		return false
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
-
-	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
-
-	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
-end
-
 local function highlight(self)
-	self:queuecommand("Highlight")
-	self:queuecommand("WHAZZZAAAA")
+	if self:IsVisible() then
+		self:queuecommand("Highlight")
+		self:queuecommand("WHAZZZAAAA")
+	end
 end
 
 local function highlightIfOver(self)
@@ -103,16 +79,22 @@ local o =
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
-	OnCommand = function(self)
-		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-		self:queuecommand("ChartLeaderboardUpdate")
-	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+		if GAMESTATE:GetCurrentSong() then
+			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+			ind = 0
+			self:playcommand("Update")
+		end
+	end,
+	BortCommand = function(self)
+		scoretable = {}
 		ind = 0
 		self:playcommand("Update")
 	end,
 	UpdateCommand = function(self)
+		if not scoretable then
+			scoretable = {}
+		end
 		if ind == #scoretable then
 			ind = ind - numscores
 		elseif ind > #scoretable - (#scoretable % numscores) then
@@ -180,7 +162,7 @@ local o =
 		offx = 5
 		width = SCREEN_WIDTH * 0.56
 		dwidth = width - offx * 2
-		height = (numscores + 2) * packspaceY - packspaceY/3
+		height = (numscores + 2) * packspaceY - packspaceY / 3
 
 		adjx = 14
 		c0x = 10
@@ -227,7 +209,9 @@ local o =
 	-- grabby thing
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(0.5):valign(1)
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(
+				0.5
+			):valign(1)
 		end,
 		WHAZZZAAAACommand = function(self)
 			if isOver(self) and collapsed then
@@ -406,7 +390,7 @@ local function makeScoreDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
-				--name
+				Name = "Burt" .. i,
 				InitCommand = function(self)
 					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
 					if collapsed then
@@ -433,7 +417,7 @@ local function makeScoreDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
-				--judgments
+				Name = "Ernie" .. i,
 				InitCommand = function(self)
 					if not collapsed then
 						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)

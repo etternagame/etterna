@@ -2,6 +2,7 @@
 #include "GameState.h"
 #include "ScreenManager.h"
 #include "ScreenProfileSave.h"
+#include "DownloadManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenProfileSave);
 
@@ -20,6 +21,7 @@ ScreenProfileSave::Input(const InputEventPlus& input)
 void
 ScreenProfileSave::Continue()
 {
+	DLMAN->chartLeaderboards.clear(); // clear cached leaderboard scores when saving after gameplay -mina
 	GAMESTATE->SavePlayerProfiles();
 	SCREENMAN->ZeroNextUpdate();
 

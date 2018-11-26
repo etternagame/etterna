@@ -104,7 +104,8 @@ StartMusic(MusicToPlay& ToPlay)
 {
 	LockMutex L(*g_Mutex);
 	if (g_Playing->m_Music->IsPlaying() &&
-		g_Playing->m_Music->GetLoadedFilePath().EqualsNoCase(ToPlay.m_sFile))
+		g_Playing->m_Music->GetLoadedFilePath().EqualsNoCase(ToPlay.m_sFile) &&
+		ToPlay.HasTiming)
 		return;
 
 	/* We're changing or stopping the music.  If we were dimming, reset. */
@@ -806,6 +807,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		pRet->Set(fVol);
 		SOUNDMAN->SetMixVolume();
 		p->DimMusic(FArg(1), 0.01f);	// lazy hack to update volume without changing songs - mina
+		return 0;
 	}
 	static int PlayOnce(T* p, lua_State* L)
 	{

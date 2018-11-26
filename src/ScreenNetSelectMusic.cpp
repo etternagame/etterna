@@ -99,7 +99,7 @@ ScreenNetSelectMusic::Init()
 	NSMAN->OnMusicSelect();
 
 	m_bInitialSelect = false;
-	m_bAllowInput = false;
+	m_bAllowInput = NSMAN->IsETTP();
 
 	SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS.Load(
 	  m_sName, "SampleMusicFallbackFadeInSeconds");
