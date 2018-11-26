@@ -170,6 +170,7 @@ class OnlineScore
 	string countryCode;
 	OnlineHighScore hs;
 	void Push(lua_State* L) { hs.PushSelf(L); }
+	bool HasReplayData() { return hasReplay; }
 };
 
 class DownloadManager

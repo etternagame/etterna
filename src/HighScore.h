@@ -159,7 +159,7 @@ struct HighScore
 	bool LoadReplayData();
 	bool LoadReplayDataBasic();
 	bool LoadReplayDataFull();
-	bool HasReplayData();
+	virtual bool HasReplayData();
 	void UnloadReplayData();
 	void ResetSkillsets();
 

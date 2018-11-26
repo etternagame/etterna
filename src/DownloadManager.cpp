@@ -1401,8 +1401,8 @@ DownloadManager::RequestReplayData(string scoreid,
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
 				throw exception();
-			auto replay = j.find("data");
-			if (replay->size() > 1)
+			auto replay = j.find("data")->find("attributes")->find("replay");
+			if (!replay->is_null() && replay->size() > 1)
 				for (auto note : *replay) {
 					float timestamp = note[0];
 					int offset = note[1]; // *1000.0f
@@ -1434,9 +1434,9 @@ DownloadManager::RequestReplayData(string scoreid,
 				auto& pair = replayData[i];
 				lua_newtable(L);
 				lua_pushnumber(L, pair.first);
-				lua_rawseti(L, -1, 1);
+				lua_rawseti(L, -2, 1);
 				lua_pushnumber(L, pair.second);
-				lua_rawseti(L, -1, 2);
+				lua_rawseti(L, -2, 2);
 				lua_rawseti(L, -2, i + 1);
 			}
 			it->hs.PushSelf(L);
@@ -1536,6 +1536,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
+				hs.SetChartKey(chartkey);
 
 				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
 				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
@@ -2297,7 +2298,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		string scoreid = hs->scoreid;
 		string ck = hs->GetChartKey();
 		LuaReference f;
-		if (lua_isfunction(L, -2))
+		if (lua_isfunction(L, 2))
 			f = GetFuncArg(2, L);
 		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
 		return 0;

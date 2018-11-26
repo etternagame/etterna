@@ -1755,7 +1755,7 @@ class LunaActor : public Luna<Actor>
 		int r = IArg(1);
 		auto& l = p->delayedPeriodicFunctions;
 		auto it = find_if(
-		  l.begin(), l.end(), [r](auto& x) { return std::get<3>() == r; });
+		  l.begin(), l.end(), [r](auto& x) { return std::get<3>(x) == r; });
 		if (it != l.end()) {
 			luaL_unref(L, LUA_REGISTRYINDEX, r);
 			l.erase(it);

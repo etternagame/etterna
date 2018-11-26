@@ -28,7 +28,7 @@ local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if isOver(cheese:GetChild("FrameDisplay")) then	-- visibility checks are built into isover now -mina
+	if isOver(cheese:GetChild("FrameDisplay")) then -- visibility checks are built into isover now -mina
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -334,13 +334,28 @@ local function makeScoreDisplay(i)
 				self:x(offx):zoomto(dwidth, pdh):halign(0)
 			end,
 			DisplayCommand = function(self)
-				self:diffuse(color("#111111CC"))
+				if hs:HasReplayData() then
+					self:diffuse(color("#555555CC"))
+				else
+					self:diffuse(color("#111111CC"))
+				end
 			end,
 			HighlightCommand = function(self)
 				if isOver(self) and collapsed then
 					self:diffusealpha(1)
 				else
 					self:diffusealpha(0.6)
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) and hs then
+					DLMAN:RequestOnlineScoreReplayData(
+						hs,
+						function()
+							SCREENMAN:SystemMessage("wabadub")
+							SCREENMAN:GetTopScreen():PlayReplay(hs)
+						end
+					)
 				end
 			end
 		},
