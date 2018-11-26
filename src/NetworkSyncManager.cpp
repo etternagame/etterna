@@ -65,6 +65,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
+	{ "chartrequest", ettps_chartrequest }
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -914,6 +915,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  "ScreenNetRoom", "MusicSelectScreen");
 						SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 					}
+				} break;
+				case ettps_chartrequest: {
+					n->requests.emplace_back(ChartRequest(*payload));
 				} break;
 				case ettps_enterroomresponse: {
 					bool entered = (*payload)["entered"];
@@ -2482,6 +2486,18 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 }
 #endif
 
+void
+ChartRequest::PushSelf(lua_State* L)
+{
+	lua_createtable(L, 0, 3);
+	lua_pushstring(L, chartkey.c_str());
+	lua_setfield(L, -2, "chartkey");
+	lua_pushstring(L, user.c_str());
+	lua_setfield(L, -2, "user");
+	lua_pushnumber(L, rate / 1000); // should this be in [0,1] or [0, 1000] ????
+	lua_setfield(L, -2, "rate");
+}
+
 static bool
 ConnectToServer(const RString& t)
 {
@@ -2525,6 +2541,18 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	static int IsETTP(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->IsETTP());
+		return 1;
+	}
+	static int GetChartRequests(T* p, lua_State* L)
+	{
+		auto& reqs = p->requests;
+		lua_newtable(L);
+		int i = 1;
+		for (auto& req : reqs) {
+			req.PushSelf(L);
+			lua_rawseti(L, -2, 0);
+			i++;
+		}
 		return 1;
 	}
 	static int GetChatMsg(T* p, lua_State* L)
