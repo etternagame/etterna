@@ -46,7 +46,7 @@ t[#t + 1] =
 	PlayingSampleMusicMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if leaderboardEnabled then
+		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then
 			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
 			DLMAN:RequestChartLeaderBoardFromOnline(
 				chartkey,
