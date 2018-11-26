@@ -258,6 +258,13 @@ class Actor : public MessageSubscriber
 
 	// PartiallyOpaque broken out of Draw for reuse and clarity.
 	bool PartiallyOpaque();
+	bool IsOver(float mx, float my);
+
+	float GetTrueX();	// recursive with parent (for mouseovers) -mina
+	float GetTrueY();	// same
+	float GetTrueZoom();	// same
+	bool IsVisible();	// same but for gating updates on things that may not explicitly set visible = false -mina
+
 	/**
 	 * @brief Calls multiple functions for drawing the Actors.
 	 *

@@ -299,6 +299,65 @@ Actor::PartiallyOpaque()
 		   m_pTempState->glow.a > 0;
 }
 
+bool
+Actor::IsOver(float mx, float my)
+{
+	if (!IsVisible())
+		return false;
+
+	auto x = GetTrueX();
+	auto y = GetTrueY();
+	auto hal = GetHorizAlign();
+	auto val = GetVertAlign();
+	auto wi = GetZoomedWidth() * GetParent()->GetTrueZoom();
+	auto hi = GetZoomedHeight() * GetParent()->GetTrueZoom();
+	auto lr = x - (hal * wi);
+	auto rr = x + wi - (hal * wi);
+	auto ur = y - (val * hi);
+	auto br = ((y + hi) - (val * hi));
+	bool withinX = mx >= lr && mx <= rr;
+	bool withinY = my >= ur && my <= br;
+	return withinX && withinY;
+}
+float
+Actor::GetTrueX()
+{
+	if (!this)
+		return 0.f;
+	if (!m_pParent)
+		return GetX();
+	return GetX() * GetParent()->GetTrueZoom() +
+		   GetParent()->GetTrueX();
+}
+
+float
+Actor::GetTrueY()
+{
+	if (!this)
+		return 0.f;
+	if (!m_pParent)
+		return GetY();
+	return GetY() * GetParent()->GetTrueZoom() +
+		   GetParent()->GetTrueY();
+}
+float
+Actor::GetTrueZoom()
+{
+	if (!this)
+		return 1.f;
+	if (!m_pParent)
+		return GetZoom();
+	return GetZoom() * GetParent()->GetTrueZoom();
+}
+bool
+Actor::IsVisible()
+{
+	if (!this)
+		return false;
+	if (!m_pParent)
+		return GetVisible();
+	return GetVisible() && GetParent()->IsVisible();
+}
 void
 Actor::Draw()
 {
@@ -2599,11 +2658,19 @@ class LunaActor : public Luna<Actor>
 	static int LoadXY(T* p, lua_State* L)
 	{
 		auto doot = FILTERMAN->loadpos(p->GetName());
-		p->SetX(doot.first);
-		p->SetY(doot.second);
+		p->SetX(static_cast<float>(doot.first));
+		p->SetY(static_cast<float>(doot.second));
 		COMMON_RETURN_SELF;
 	}
-
+	static int IsOver(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->IsOver(FArg(1), FArg(2)));
+		return 1;
+	}
+	DEFINE_METHOD(GetTrueX, GetTrueX());
+	DEFINE_METHOD(GetTrueY, GetTrueY());
+	DEFINE_METHOD(GetTrueZoom, GetTrueZoom());
+	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
 	{
 		ADD_METHOD(name);
@@ -2777,9 +2844,15 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(GetWrapperState);
 
 		ADD_METHOD(Draw);
-
+		
 		ADD_METHOD(SaveXY);
 		ADD_METHOD(LoadXY);
+
+		ADD_METHOD(GetTrueX);
+		ADD_METHOD(GetTrueY);
+		ADD_METHOD(GetTrueZoom);
+		ADD_METHOD(IsVisible);
+		ADD_METHOD(IsOver);
 	}
 };
 
