@@ -658,10 +658,14 @@ StageStats::FinalizeScores(bool bSummary)
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
 				  PlayerAI::pScoreData;
+				SCOREMAN->tempscoreforonlinereplayviewing->SetRadarValues(
+				  hs.GetRadarValues());
 				SCOREMAN->camefromreplay = true;
 			} else {	// dont do this if the replay was from online or bad stuff happens -mina
 				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
 				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+				SCOREMAN->GetMostRecentScore()->SetRadarValues(
+				  hs.GetRadarValues());
 			}
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
