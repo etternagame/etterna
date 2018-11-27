@@ -545,17 +545,7 @@ Section "Main Section" SecMain
 	; documentation
 	CreateDirectory "$INSTDIR\Docs"
 	SetOutPath "$INSTDIR\Docs"
-	File "Docs\Licenses.txt"
-	File "Docs\credits.txt"
-	File "Docs\Changelog_sm-ssc.txt"
-	File "Docs\Changelog_sm5.txt"
-	File "Docs\Changelog_SSCformat.txt"
-	File "Docs\CommandLineArgs.txt"
-	File "Docs\CourseFormat.txt"
-	File "Docs\Userdocs\sm5_beginner.txt"
-	File /r /x CVS /x .svn "Docs\license-ext"
-	File /r /x CVS /x .svn "Docs\Luadoc"
-	File /r /x CVS /x .svn "Docs\Themerdocs"
+	File "LICENCE"
 
 	; Create Start Menu icons
 	SetShellVarContext current  # 	'all' doesn't work on Win9x
@@ -842,6 +832,7 @@ Section "Uninstall"
 	Delete "$INSTDIR\Docs\CourseFormat.txt"
 	Delete "$INSTDIR\Docs\credits.txt"
 	Delete "$INSTDIR\Docs\Licenses.txt"
+	Delete "$INSTDIR\Docs\LICENSE"
 	Delete "$INSTDIR\Docs\sm5_beginner.txt"
 	RMDir "$INSTDIR\Docs"
 
