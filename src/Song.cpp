@@ -379,7 +379,7 @@ Song::FinalizeLoading()
 	// save group name
 	vector<RString> sDirectoryParts;
 	split(m_sSongDir, "/", sDirectoryParts, false);
-	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	// ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
 	m_sGroupName =
 	  sDirectoryParts[sDirectoryParts.size() - 3]; // second from last item
 	ASSERT(m_sGroupName != "");

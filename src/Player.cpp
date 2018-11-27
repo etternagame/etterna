@@ -3523,7 +3523,7 @@ Player::RenderAllNotesIgnoreScores()
 			// Find the tapnote we are on
 			TapNote* pTN = NULL;
 			NoteData::iterator iter = m_NoteData.FindTapNote(track, row);
-			DEBUG_ASSERT(iter != m_NoteData.end(col));
+			DEBUG_ASSERT(iter != m_NoteData.end(track));
 			pTN = &iter->second;
 
 			// Reset the score so it can be visible
