@@ -154,8 +154,8 @@ class ActorFrame : public Actor
 	LuaReference m_UpdateFunction;
 	LuaReference m_DrawFunction;
 
-	int m_fUpdateFInterval{ 0 };
-	float secsSinceLuaUpdateFWasRun{ 0.016f };
+	float m_fUpdateFInterval{ 0.016f };
+	float secsSinceLuaUpdateFWasRun{ 0.0f };
 	// state effects
 	float m_fUpdateRate;
 	float m_fFOV; // -1 = no change
