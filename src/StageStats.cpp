@@ -655,6 +655,7 @@ StageStats::FinalizeScores(bool bSummary)
 		if (PlayerAI::pScoreData) {
 			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
 			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+			SCOREMAN->GetMostRecentScore()->SetRadarValues(hs.GetRadarValues());
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;
