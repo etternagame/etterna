@@ -546,6 +546,9 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Docs"
 	SetOutPath "$INSTDIR\Docs"
 	File "LICENCE"
+	File "Docs\legacy\Licenses.txt"
+	File "Docs\legacy\credits.txt"
+	File /r /x CVS /x .svn "Docs\legacy\license-ext"
 
 	; Create Start Menu icons
 	SetShellVarContext current  # 	'all' doesn't work on Win9x
