@@ -52,7 +52,7 @@ RageSoundDriver::Create(const RString& drivers)
 
 		const RString sError = pRet->Init();
 		if (sError.empty()) {
-			if(PREFSMAN->m_verbose_log > 1)
+			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Info("Sound driver: %s", Driver->c_str());
 			return pRet;
 		}

@@ -528,19 +528,18 @@ struct VideoCardDefaults
 					  2048,
 					  false // broken, causes black screen
 					  ),
-	VideoCardDefaults(
-	  "Savage",
-	  "d3d",
-	  // OpenGL is unusable on my Savage IV with even the latest drivers.
-	  // It draws 30 frames of gibberish then crashes. This happens even with
-	  // simple NeHe demos. -Chris
-	  640,
-	  480,
-	  16,
-	  16,
-	  16,
-	  2048,
-	  false),
+	VideoCardDefaults("Savage",
+					  "d3d",
+					  // OpenGL is unusable on my Savage IV with even the latest
+					  // drivers. It draws 30 frames of gibberish then crashes.
+					  // This happens even with simple NeHe demos. -Chris
+					  640,
+					  480,
+					  16,
+					  16,
+					  16,
+					  2048,
+					  false),
 	VideoCardDefaults(
 	  "XPERT@PLAY|IIC|RAGE PRO|RAGE LT PRO", // Rage Pro chip, Rage IIC chip
 	  "d3d",
@@ -1504,12 +1503,12 @@ HandleGlobalInputs(const InputEventPlus& input)
 									 &input.InputList) ||
 		 INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
 									 &input.InputList))) {
-	// alt-enter
-	/* In OS X, this is a menu item and will be handled as such. This will
-	 * happen first and then the lower priority GUI thread will happen second,
-	 * causing the window to toggle twice. Another solution would be to put
-	 * a timer in ArchHooks::SetToggleWindowed() and just not set the bool
-	 * it if it's been less than, say, half a second. */
+		// alt-enter
+		/* In OS X, this is a menu item and will be handled as such. This will
+		 * happen first and then the lower priority GUI thread will happen
+		 * second, causing the window to toggle twice. Another solution would be
+		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
+		 * bool it if it's been less than, say, half a second. */
 #if !defined(MACOSX)
 		ArchHooks::SetToggleWindowed();
 #endif

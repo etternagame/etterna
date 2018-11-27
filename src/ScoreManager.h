@@ -185,7 +185,10 @@ class ScoreManager
 		std::swap(score, AllScores.back());
 	}
 	const vector<HighScore*>& GetAllScores() { return AllScores; }
-	const unordered_map<string, HighScore*>& GetScoresByKey(){return ScoresByKey;}
+	const unordered_map<string, HighScore*>& GetScoresByKey()
+	{
+		return ScoresByKey;
+	}
 	const vector<HighScore*>& GetAllProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	{

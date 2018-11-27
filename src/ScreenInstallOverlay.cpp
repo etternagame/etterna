@@ -192,7 +192,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 #if !defined(WITHOUT_NETWORKING)
 			DLMAN->DownloadAndInstallPack(s);
 #else
-		// TODO: Figure out a meaningful log message.
+			// TODO: Figure out a meaningful log message.
 #endif
 		} else if (IsPackageFile(s)) {
 			InstallSmzipOsArg(s);
@@ -279,7 +279,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		}
 		MESSAGEMAN->Broadcast(msg);
 	}
-	
+
 #endif
 }
 

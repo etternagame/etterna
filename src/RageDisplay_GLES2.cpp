@@ -231,8 +231,8 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 	/* Pretty-print the extension string: */
 	LOG->Info("OGL Extensions:");
 	{
-	// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
-	// this will be useful in the future.
+		// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
+		// this will be useful in the future.
 #if 0
 		vector<string> extensions;
 		const char *ext = 0;

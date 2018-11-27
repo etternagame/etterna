@@ -42,7 +42,8 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 
 	// float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
 	fPositionSeconds += SOUNDMAN->GetPlayLatency() +
-		static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS) + 0.250f;
+						static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS) +
+						0.250f;
 	const TimingData& timing =
 	  *GAMESTATE->m_pCurSteps[ps->m_PlayerNumber]->GetTimingData();
 	const float fSongBeat =
@@ -72,7 +73,8 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 			RageSoundParams p;
 			p.m_StartTime =
 			  position.m_LastBeatUpdate +
-			  (fSecondsUntil - static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS));
+			  (fSecondsUntil -
+			   static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS));
 			m_soundAssistClap.Play(false, &p);
 		}
 	}
@@ -116,7 +118,8 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 			RageSoundParams p;
 			p.m_StartTime =
 			  position.m_LastBeatUpdate +
-			  (fSecondsUntil - static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS));
+			  (fSecondsUntil -
+			   static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS));
 			if (bIsMeasure)
 				m_soundAssistMetronomeMeasure.Play(false, &p);
 			else

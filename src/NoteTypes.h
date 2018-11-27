@@ -250,9 +250,9 @@ struct HoldReplayResult
 struct TapReplayResult
 {
 	int row;
-	int track;		  // column
-	float offset;	 // 0
-	TapNoteType type; // typically mines, holds, rolls, etc
+	int track;			   // column
+	float offset;		   // 0
+	TapNoteType type;	  // typically mines, holds, rolls, etc
 	int offsetAdjustedRow; // row assigned later on for full replays
 };
 

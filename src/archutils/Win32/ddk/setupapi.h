@@ -3479,7 +3479,8 @@ SetupRemoveFileLogEntryW(IN HSPFILELOG FileLogHandle,
 //
 // Items retrievable from SetupQueryFileLog()
 //
-typedef enum {
+typedef enum
+{
 	SetupFileLogSourceFilename,
 	SetupFileLogChecksum,
 	SetupFileLogDiskTagfile,

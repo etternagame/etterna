@@ -3231,7 +3231,7 @@ Player::SetJudgment(int iRow,
 					float fTapNoteOffset)
 {
 	if (tns < 0 || tns > NUM_TapNoteScore)
-		tns = TNS_Miss;	// dont know why or how this crashes -mina
+		tns = TNS_Miss; // dont know why or how this crashes -mina
 	if (tns == TNS_Miss)
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);

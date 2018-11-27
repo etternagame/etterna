@@ -361,7 +361,7 @@ NoteField::Update(float fDeltaTime)
 {
 	if (!this->GetVisible() || !GAMESTATE->m_pCurSong)
 		return;
-	
+
 	if (m_bFirstUpdate) {
 		m_pCurDisplay->m_ReceptorArrowRow.PlayCommand("On");
 	}
@@ -827,7 +827,7 @@ NoteField::DrawPrimitives()
 {
 	if (!this->GetVisible() || !GAMESTATE->m_pCurSong)
 		return;
-	
+
 	// LOG->Trace( "NoteField::DrawPrimitives()" );
 
 	// This should be filled in on the first update.
@@ -1131,8 +1131,8 @@ NoteField::FadeToFail()
 						 // don't fade all over again if this is called twice
 }
 
-	// A few functions and macros to take care of processing the callback
-	// return values, since the code would be identical in all of them. -Kyz
+// A few functions and macros to take care of processing the callback
+// return values, since the code would be identical in all of them. -Kyz
 
 #define OPEN_CALLBACK_BLOCK(member_name)                                       \
 	if (!from_lua && !(member_name).IsNil()) {                                 \

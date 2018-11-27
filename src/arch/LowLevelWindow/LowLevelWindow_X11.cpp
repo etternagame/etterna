@@ -358,7 +358,7 @@ LowLevelWindow_X11::SwapBuffers()
 	glXSwapBuffers(Dpy, Win);
 
 	if (true) {
-	// Disable the screensaver.
+		// Disable the screensaver.
 #if defined(HAVE_LIBXTST)
 		// This causes flicker.
 		// XForceScreenSaver( Dpy, ScreenSaverReset );

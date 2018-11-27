@@ -103,7 +103,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_iTotalHands = gDataQuery.getColumn(21);
 	loadingProfile->m_iTotalLifts = gDataQuery.getColumn(22);
 	loadingProfile->m_fPlayerRating =
-		static_cast<float>(static_cast<double>(gDataQuery.getColumn(23)));
+	  static_cast<float>(static_cast<double>(gDataQuery.getColumn(23)));
 
 	SQLite::Statement modifierQuery(*db, "SELECT * FROM defaultmodifiers");
 	while (modifierQuery.executeStep()) {
@@ -115,7 +115,8 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	SQLite::Statement skillsetsQuery(*db, "SELECT * FROM playerskillsets");
 	while (skillsetsQuery.executeStep()) {
 		int skillsetNum = skillsetsQuery.getColumn(1);
-		float skillsetValue = static_cast<float>(static_cast<double>(skillsetsQuery.getColumn(2)));
+		float skillsetValue =
+		  static_cast<float>(static_cast<double>(skillsetsQuery.getColumn(2)));
 		loadingProfile->m_fPlayerSkillsets[skillsetNum] = skillsetValue;
 	}
 
@@ -327,15 +328,19 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		HighScore& hs = scores[key].ScoresByRate[rate].scores[ScoreKey];
 		hs.SetSSRCalcVersion(query.getColumn(6));
 		hs.SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
-		hs.SetWifeScore(static_cast<float>(static_cast<double>(query.getColumn(8))));
-		hs.SetSSRNormPercent(static_cast<float>(static_cast<double>(query.getColumn(9))));
+		hs.SetWifeScore(
+		  static_cast<float>(static_cast<double>(query.getColumn(8))));
+		hs.SetSSRNormPercent(
+		  static_cast<float>(static_cast<double>(query.getColumn(9))));
 		hs.SetMusicRate(scores[key].KeyToRate(rate));
-		hs.SetJudgeScale(static_cast<float>(static_cast<double>(query.getColumn(10))));
+		hs.SetJudgeScale(
+		  static_cast<float>(static_cast<double>(query.getColumn(10))));
 		hs.SetChordCohesion(static_cast<int>(query.getColumn(11)) != 0);
 		hs.SetEtternaValid(static_cast<int>(query.getColumn(12)) != 0);
 		hs.SetChartKey(key);
 		hs.SetScoreKey(ScoreKey);
-		hs.SetSurviveSeconds(static_cast<float>(static_cast<double>(query.getColumn(13))));
+		hs.SetSurviveSeconds(
+		  static_cast<float>(static_cast<double>(query.getColumn(13))));
 		hs.SetMaxCombo(query.getColumn(14));
 		hs.SetModifiers(query.getColumn(15));
 		DateTime d;
@@ -356,7 +361,8 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		if (hs.GetWifeScore() > 0.f) {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss,
-							static_cast<float>(static_cast<double>(query.getColumn(index++))));
+							  static_cast<float>(
+								static_cast<double>(query.getColumn(index++))));
 		}
 		hs.SetValidationKey(ValidationKey_Brittle,
 							static_cast<const char*>(query.getColumn(index++)));
@@ -426,7 +432,8 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 		ScoreGoal sg;
 		sg.rate = static_cast<float>(static_cast<double>(query.getColumn(1)));
 		sg.priority = query.getColumn(2);
-		sg.percent = static_cast<float>(static_cast<double>(query.getColumn(3)));
+		sg.percent =
+		  static_cast<float>(static_cast<double>(query.getColumn(3)));
 		sg.timeassigned.FromString(
 		  static_cast<const char*>(query.getColumn(4)));
 		sg.timeachieved.FromString(
@@ -884,7 +891,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				insertScoresAtRate.bind(4,
 										ratePair->second.PBptr->GetScoreKey());
 				insertScoresAtRate.exec();
-				scoresAtRateID = (int)sqlite3_last_insert_rowid(db->getHandle());
+				scoresAtRateID =
+				  (int)sqlite3_last_insert_rowid(db->getHandle());
 			}
 			FOREACHUM(string, HighScore, ratePair->second.scores, i)
 			{
@@ -999,7 +1007,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 										insertOffset.exec();
 									}
 								}
-							} catch (std::exception) { // No replay data for this score }
+							} catch (std::exception) { // No replay data for
+													   // this score }
 								hs->UnloadReplayData();
 							}
 						}

@@ -13,13 +13,12 @@
 	do {                                                                       \
 	} while (glGetError() != GL_NO_ERROR)
 #define AssertNoGLError()                                                      \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		GLenum error = glGetError();                                           \
 		ASSERT_M(error == GL_NO_ERROR,                                         \
 				 RageDisplay_Legacy_Helpers::GLToString(error));               \
-	\
-}
+	}
 
 #if defined(DEBUG) || !defined(GL_GET_ERROR_IS_SLOW)
 #define DebugFlushGLErrors() FlushGLErrors()

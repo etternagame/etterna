@@ -92,8 +92,8 @@ Grade
 GetNextPossibleGrade(Grade g);
 /** @brief Loop through each possible Grade. */
 #define FOREACH_PossibleGrade(g)                                               \
-	\
-for(Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
+                                                                               \
+	for (Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
 
 #endif
 

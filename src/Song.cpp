@@ -2056,7 +2056,8 @@ Song::Borp()
 	PlayParams.pTiming = nullptr;
 	PlayParams.bForceLoop = true;
 	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	PlayParams.fLengthSeconds =
+	  GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;

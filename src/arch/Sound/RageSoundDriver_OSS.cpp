@@ -128,21 +128,21 @@ RageSoundDriver_OSS::CheckOSSVersion(int fd)
 	}
 #endif
 
-		/*
-		 * Find out if /dev/dsp is really ALSA emulating it.  ALSA's OSS
-		 * emulation has been buggy.  If we got here, we probably failed to init
-		 * ALSA.  The only case I've seen of this so far was not having access
-		 * to /dev/snd devices.
-		 */
-		/* Reliable but only too recently available:
-		if (ioctl(fd, OSS_ALSAEMULVER, &ver) == 0 && ver ) */
+	/*
+	 * Find out if /dev/dsp is really ALSA emulating it.  ALSA's OSS
+	 * emulation has been buggy.  If we got here, we probably failed to init
+	 * ALSA.  The only case I've seen of this so far was not having access
+	 * to /dev/snd devices.
+	 */
+	/* Reliable but only too recently available:
+	if (ioctl(fd, OSS_ALSAEMULVER, &ver) == 0 && ver ) */
 
-		/*
-		 * Ack.  We can't just check for /proc/asound, since a few systems have
-		 * ALSA loaded but actually use OSS.  ALSA returns a specific version;
-		 * check that, too.  It looks like that version is potentially a valid
-		 * OSS version, so check both.
-		 */
+	/*
+	 * Ack.  We can't just check for /proc/asound, since a few systems have
+	 * ALSA loaded but actually use OSS.  ALSA returns a specific version;
+	 * check that, too.  It looks like that version is potentially a valid
+	 * OSS version, so check both.
+	 */
 #ifndef FORCE_OSS
 #define ALSA_SNDRV_OSS_VERSION ((3 << 16) | (8 << 8) | (1 << 4) | (0))
 	if (version == ALSA_SNDRV_OSS_VERSION &&

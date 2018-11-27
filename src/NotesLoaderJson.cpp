@@ -172,9 +172,12 @@ Deserialize(Song& out, const Json::Value& root)
 	out.m_sLyricsFile = root["LyricsFile"].asString();
 	out.m_sCDTitleFile = root["CDTitle"].asString();
 	out.m_sMusicFile = root["Music"].asString();
-	out.m_SongTiming.m_fBeat0OffsetInSeconds = static_cast<float>(root["Offset"].asDouble());
-	out.m_fMusicSampleStartSeconds = static_cast<float>(root["SampleStart"].asDouble());
-	out.m_fMusicSampleLengthSeconds = static_cast<float>(root["SampleLength"].asDouble());
+	out.m_SongTiming.m_fBeat0OffsetInSeconds =
+	  static_cast<float>(root["Offset"].asDouble());
+	out.m_fMusicSampleStartSeconds =
+	  static_cast<float>(root["SampleStart"].asDouble());
+	out.m_fMusicSampleLengthSeconds =
+	  static_cast<float>(root["SampleLength"].asDouble());
 	RString sSelectable = root["Selectable"].asString();
 	if (sSelectable.EqualsNoCase("YES"))
 		out.m_SelectionDisplay = out.SHOW_ALWAYS;
@@ -184,7 +187,8 @@ Deserialize(Song& out, const Json::Value& root)
 	out.m_sSongFileName = root["SongFileName"].asString();
 	out.m_bHasMusic = root["HasMusic"].asBool();
 	out.m_bHasBanner = root["HasBanner"].asBool();
-	out.m_fMusicLengthSeconds = static_cast<float>(root["MusicLengthSeconds"].asDouble());
+	out.m_fMusicLengthSeconds =
+	  static_cast<float>(root["MusicLengthSeconds"].asDouble());
 
 	RString sDisplayBPMType = root["DisplayBpmType"].asString();
 	if (sDisplayBPMType == "*")
@@ -193,8 +197,10 @@ Deserialize(Song& out, const Json::Value& root)
 		out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
 
 	if (out.m_DisplayBPMType == DISPLAY_BPM_SPECIFIED) {
-		out.m_fSpecifiedBPMMin = static_cast<float>(root["SpecifiedBpmMin"].asDouble());
-		out.m_fSpecifiedBPMMax = static_cast<float>(root["SpecifiedBpmMax"].asDouble());
+		out.m_fSpecifiedBPMMin =
+		  static_cast<float>(root["SpecifiedBpmMin"].asDouble());
+		out.m_fSpecifiedBPMMax =
+		  static_cast<float>(root["SpecifiedBpmMax"].asDouble());
 	}
 
 	Deserialize(out.m_SongTiming, root["TimingData"]);

@@ -582,9 +582,11 @@ BMSChart::Load(const RString& chartPath)
 				RString value = data.substr(2 * i, 2);
 				if (value != "00") {
 					value.MakeLower();
-					BMSObject o = {
-						channel, measure, static_cast<float>(i) / count, flag, value
-					};
+					BMSObject o = { channel,
+									measure,
+									static_cast<float>(i) / count,
+									flag,
+									value };
 					objects.push_back(o);
 				}
 			}

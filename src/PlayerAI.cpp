@@ -161,8 +161,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 
-	if (!successful)
-	{
+	if (!successful) {
 		return;
 	}
 
@@ -227,12 +226,10 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 	pReplayTiming = timing;
 
 	// For every row in the replay data...
-	for (auto& row : m_ReplayTapMap)
-	{
+	for (auto& row : m_ReplayTapMap) {
 		// Get the current time and go over all taps on this row...
 		float rowTime = timing->WhereUAtBro(row.first);
-		for (TapReplayResult& trr : row.second)
-		{
+		for (TapReplayResult& trr : row.second) {
 			// Find the time adjusted for offset
 			// Then the beat according to that time
 			// Then the noterow according to that beat
@@ -242,19 +239,14 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			trr.offsetAdjustedRow = tapRow;
 
 			// And put that into the exacttapmap :)
-			if (m_ReplayExactTapMap.count(tapRow) != 0)
-			{
+			if (m_ReplayExactTapMap.count(tapRow) != 0) {
 				m_ReplayExactTapMap[tapRow].push_back(trr);
-			}
-			else
-			{
+			} else {
 				vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
 		}
-		
 	}
-
 }
 
 void
@@ -280,7 +272,8 @@ PlayerAI::RemoveTapFromVectors(int row, int col)
 			auto& trr = m_ReplayExactTapMap[row][i];
 			if (trr.track == col) {
 				// delete
-				m_ReplayExactTapMap[row].erase(m_ReplayExactTapMap[row].begin() + i);
+				m_ReplayExactTapMap[row].erase(
+				  m_ReplayExactTapMap[row].begin() + i);
 				if (m_ReplayExactTapMap[row].empty())
 					m_ReplayExactTapMap.erase(row);
 			}
@@ -293,10 +286,8 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 {
 	int output = -1;
 
-	if (m_ReplayTapMap.count(row) != 0)
-	{
-		for (TapReplayResult& trr : m_ReplayTapMap[row])
-		{
+	if (m_ReplayTapMap.count(row) != 0) {
+		for (TapReplayResult& trr : m_ReplayTapMap[row]) {
 			if (trr.track == col)
 				output = trr.offsetAdjustedRow;
 		}
@@ -333,7 +324,6 @@ PlayerAI::TapExistsAtThisRow(int noteRow)
 	} else {
 		return m_ReplayTapMap.count(noteRow) != 0;
 	}
-
 }
 
 bool
@@ -465,10 +455,9 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 		// This is only reached if we have column data.
 		noteRow = GetAdjustedRowFromUnadjustedCoordinates(noteRow, col);
-		if (m_ReplayExactTapMap.count(noteRow) != 0)
-		{
-			for (int i = 0; i < (int)m_ReplayExactTapMap[noteRow]
-									.size(); i++) // go over all elements in the row
+		if (m_ReplayExactTapMap.count(noteRow) != 0) {
+			for (int i = 0; i < (int)m_ReplayExactTapMap[noteRow].size();
+				 i++) // go over all elements in the row
 			{
 				auto trr = m_ReplayExactTapMap[noteRow][i];
 				if (trr.track ==
@@ -481,7 +470,7 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 							continue;
 					}
 					m_ReplayExactTapMap[noteRow].erase(
-						m_ReplayExactTapMap[noteRow].begin() + i);
+					  m_ReplayExactTapMap[noteRow].begin() + i);
 					if (m_ReplayExactTapMap[noteRow].empty())
 						m_ReplayExactTapMap.erase(noteRow);
 					return -trr.offset;
@@ -494,7 +483,8 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 }
 
 void
-PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV)
+PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
+										RadarValues& possibleRV)
 {
 	// We will do this thoroughly just in case someone decides to use the other
 	// categories we don't currently use
@@ -509,40 +499,34 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV
 	int minesMissed = possibleRV[RadarCategory_Mines];
 
 	// For every row recorded...
-	for (auto& row : m_ReplayTapMap)
-	{
+	for (auto& row : m_ReplayTapMap) {
 		int tapsOnThisRow = 0;
 		// For every tap on these rows...
-		for (TapReplayResult& trr : row.second)
-		{
-			if (trr.type == TapNoteType_Fake)
-			{
+		for (TapReplayResult& trr : row.second) {
+			if (trr.type == TapNoteType_Fake) {
 				fakes--;
 				continue;
 			}
-			if (trr.type == TapNoteType_Mine)
-			{
+			if (trr.type == TapNoteType_Mine) {
 				minesMissed--;
 				continue;
 			}
-			if (trr.type == TapNoteType_Lift)
-			{
+			if (trr.type == TapNoteType_Lift) {
 				liftsHit++;
 				continue;
 			}
 			tapsOnThisRow++;
-			// We handle Empties as well because that's what old replays are loaded as.
-			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead || trr.type == TapNoteType_Empty)
-			{
+			// We handle Empties as well because that's what old replays are
+			// loaded as.
+			if (trr.type == TapNoteType_Tap ||
+				trr.type == TapNoteType_HoldHead ||
+				trr.type == TapNoteType_Empty) {
 				totalNotesHit++;
 				tapsHit++;
-				if (tapsOnThisRow == 2)
-				{
+				if (tapsOnThisRow == 2) {
 					// This is technically incorrect.
 					jumpsHit++;
-				}
-				else if (tapsOnThisRow >= 3)
-				{
+				} else if (tapsOnThisRow >= 3) {
 					handsHit++;
 				}
 				continue;
@@ -551,18 +535,13 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV
 	}
 
 	// For every hold recorded...
-	for (auto& row : m_ReplayHoldMap)
-	{
+	for (auto& row : m_ReplayHoldMap) {
 		// For every hold on this row...
-		for (HoldReplayResult& hrr : row.second)
-		{
-			if (hrr.subType == TapNoteSubType_Hold)
-			{
+		for (HoldReplayResult& hrr : row.second) {
+			if (hrr.subType == TapNoteSubType_Hold) {
 				holdsHeld--;
 				continue;
-			}
-			else if (hrr.subType == TapNoteSubType_Roll)
-			{
+			} else if (hrr.subType == TapNoteSubType_Roll) {
 				rollsHeld--;
 				continue;
 			}

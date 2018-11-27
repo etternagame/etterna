@@ -209,149 +209,134 @@ class LuaClass : public LuaTable
 	return 1;
 
 #define GET_SET_BOOL_METHOD(method_name, bool_name)                            \
-	\
-static int get_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		lua_pushboolean(L, p->bool_name);                                      \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		p->bool_name = lua_toboolean(L, 1) != 0;                               \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GETTER_SETTER_BOOL_METHOD(bool_name)                                   \
-	\
-static int get_##bool_name(T* p, lua_State* L)                                 \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##bool_name(T* p, lua_State* L)                             \
+                                                                               \
+	{                                                                          \
 		lua_pushboolean(L, p->get_##bool_name());                              \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##bool_name(T* p, lua_State* L)                                 \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##bool_name(T* p, lua_State* L)                             \
+                                                                               \
+	{                                                                          \
 		p->set_##bool_name(lua_toboolean(L, 1) != 0);                          \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GET_SET_FLOAT_METHOD(method_name, float_name)                          \
-	\
-static int get_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		lua_pushnumber(L, p->float_name);                                      \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		p->float_name = FArg(1);                                               \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GET_SET_INT_METHOD(method_name, int_name)                              \
-	\
-static int get_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		lua_pushinteger(L, p->int_name);                                       \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		p->int_name = IArg(1);                                                 \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GETTER_SETTER_FLOAT_METHOD(float_name)                                 \
-	\
-static int get_##float_name(T* p, lua_State* L)                                \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##float_name(T* p, lua_State* L)                            \
+                                                                               \
+	{                                                                          \
 		lua_pushnumber(L, p->get_##float_name());                              \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##float_name(T* p, lua_State* L)                                \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##float_name(T* p, lua_State* L)                            \
+                                                                               \
+	{                                                                          \
 		p->set_##float_name(FArg(1));                                          \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GET_SET_ENUM_METHOD(method_name, enum_name, val_name)                  \
-	\
-static int get_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		Enum::Push(L, p->val_name);                                            \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##method_name(T* p, lua_State* L)                               \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##method_name(T* p, lua_State* L)                           \
+                                                                               \
+	{                                                                          \
 		p->val_name = Enum::Check<enum_name>(L, 1);                            \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define GETTER_SETTER_ENUM_METHOD(enum_name, val_name)                         \
-	\
-static int get_##val_name(T* p, lua_State* L)                                  \
-	\
-{                                                                         \
+                                                                               \
+	static int get_##val_name(T* p, lua_State* L)                              \
+                                                                               \
+	{                                                                          \
 		Enum::Push(L, p->get_##val_name());                                    \
 		return 1;                                                              \
-	\
-}                                                                         \
-	\
-static int set_##val_name(T* p, lua_State* L)                                  \
-	\
-{                                                                         \
+	}                                                                          \
+                                                                               \
+	static int set_##val_name(T* p, lua_State* L)                              \
+                                                                               \
+	{                                                                          \
 		p->set_##val_name(Enum::Check<enum_name>(L, 1));                       \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 
 #define ADD_METHOD(method_name) AddMethod(#method_name, method_name)
 #define ADD_GET_SET_METHODS(method_name)                                       \
 	ADD_METHOD(get_##method_name);                                             \
 	ADD_METHOD(set_##method_name);
 #define LUA_SET_MEMBER(member, arg_conv)                                       \
-	\
-static int set_##member(T* p, lua_State* L)                                    \
-	\
-{                                                                         \
+                                                                               \
+	static int set_##member(T* p, lua_State* L)                                \
+                                                                               \
+	{                                                                          \
 		p->m_##member = arg_conv(1);                                           \
 		COMMON_RETURN_SELF;                                                    \
-	\
-}
+	}
 #define GET_SET_MEMBER(member, arg_conv)                                       \
-	\
-DEFINE_METHOD(get_##member, m_##member);                                       \
-	\
-LUA_SET_MEMBER(member, arg_conv);
+                                                                               \
+	DEFINE_METHOD(get_##member, m_##member);                                   \
+                                                                               \
+	LUA_SET_MEMBER(member, arg_conv);
 
 #define LUA_REGISTER_NAMESPACE(T)                                              \
 	static void Register##T(lua_State* L)                                      \
@@ -362,7 +347,7 @@ LUA_SET_MEMBER(member, arg_conv);
 	REGISTER_WITH_LUA_FUNCTION(Register##T)
 #define LIST_METHOD(method_name)                                               \
 	{                                                                          \
-		#method_name, method_name                                              \
+#method_name, method_name                                              \
 	}
 
 // Explicitly separates the stack into args and return values.

@@ -385,12 +385,14 @@ class LunaStepsDisplayList : public Luna<StepsDisplayList>
 		p->SetFromGameState();
 		COMMON_RETURN_SELF;
 	}
-	static int GetCurrentIndex(T* p, lua_State* L){
+	static int GetCurrentIndex(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, p->GetCurrentRowIndex(PLAYER_1));
 		return 1;
 	}
 
-	LunaStepsDisplayList() {
+	LunaStepsDisplayList()
+	{
 		ADD_METHOD(setfromgamestate);
 		ADD_METHOD(GetCurrentIndex);
 	}

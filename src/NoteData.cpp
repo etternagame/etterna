@@ -1506,7 +1506,7 @@ NoteData::_all_tracks_iterator<ND, iter, TN>::~_all_tracks_iterator()
 
 template<typename ND, typename iter, typename TN>
 NoteData::_all_tracks_iterator<ND, iter, TN>&
-  NoteData::_all_tracks_iterator<ND, iter, TN>::operator++() // preincrement
+NoteData::_all_tracks_iterator<ND, iter, TN>::operator++() // preincrement
 {
 	m_PrevCurrentRows[m_iTrack] = Row();
 	if (m_bReverse) {
@@ -1523,7 +1523,7 @@ NoteData::_all_tracks_iterator<ND, iter, TN>&
 
 template<typename ND, typename iter, typename TN>
 NoteData::_all_tracks_iterator<ND, iter, TN>
-  NoteData::_all_tracks_iterator<ND, iter, TN>::operator++(int) // postincrement
+NoteData::_all_tracks_iterator<ND, iter, TN>::operator++(int) // postincrement
 {
 	_all_tracks_iterator<ND, iter, TN> ret(*this);
 	operator++();

@@ -1814,7 +1814,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		steps->GetNoteData(nd);
 		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
-		SCOREMAN->camefromreplay = false; // disallow viewing online score eval screens -mina
+		SCOREMAN->camefromreplay =
+		  false; // disallow viewing online score eval screens -mina
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
 		PlayerAI::SetScoreData(score);

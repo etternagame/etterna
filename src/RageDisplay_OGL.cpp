@@ -241,8 +241,7 @@ TurnOffHardwareVBO()
 
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-	{
+	if (PREFSMAN->m_verbose_log > 1) {
 		LOG->Trace("RageDisplay_Legacy::RageDisplay_Legacy()");
 		LOG->MapLog("renderer", "Current renderer: OpenGL");
 	}
@@ -300,7 +299,7 @@ CompileShader(GLenum ShaderType, RString sFile, vector<RString> asDefines)
 		}
 	}
 
-	if(PREFSMAN->m_verbose_log > 1)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Compiling shader %s", sFile.c_str());
 	GLhandleARB hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
@@ -487,7 +486,7 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "be disabled.");
 RString
 RageDisplay_Legacy::Init(const VideoModeParams& p,
-	bool bAllowUnacceleratedRenderer)
+						 bool bAllowUnacceleratedRenderer)
 {
 	g_pWind = LowLevelWindow::Create();
 
@@ -498,8 +497,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log > 1)
-	{
+	if (PREFSMAN->m_verbose_log > 1) {
 		LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
 		LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
 		LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
@@ -510,7 +508,8 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		/* Pretty-print the extension string: */
 		LOG->Info("OGL Extensions:");
 		{
-			const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
+			const char* szExtensionString =
+			  (const char*)glGetString(GL_EXTENSIONS);
 			vector<RString> asExtensions;
 			split(szExtensionString, " ", asExtensions);
 			sort(asExtensions.begin(), asExtensions.end());
@@ -523,7 +522,8 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					split(asExtensions[i], "_", asBits);
 					RString sThisType;
 					if (asBits.size() > 2)
-						sThisType = join("_", asBits.begin(), asBits.begin() + 2);
+						sThisType =
+						  join("_", asBits.begin(), asBits.begin() + 2);
 					if (i > iNextToPrint && sThisType != sType)
 						break;
 					sType = sThisType;
@@ -540,13 +540,14 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				while (iNextToPrint <= iLastToPrint) {
 					vector<RString> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
-					RString sShortExt = join("_", asBits.begin() + 2, asBits.end());
+					RString sShortExt =
+					  join("_", asBits.begin() + 2, asBits.end());
 					sList += sShortExt;
 					if (iNextToPrint < iLastToPrint)
 						sList += ", ";
 					if (iNextToPrint == iLastToPrint ||
 						sList.size() + asExtensions[iNextToPrint + 1].size() >
-						120) {
+						  120) {
 						LOG->Info("%s", sList.c_str());
 						sList = "    ";
 					}
@@ -611,15 +612,14 @@ CheckPalettedTextures()
 
 		FlushGLErrors();
 #define GL_CHECK_ERROR(f)                                                      \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		GLenum glError = glGetError();                                         \
 		if (glError != GL_NO_ERROR) {                                          \
 			sError = ssprintf(f " failed (%s)", GLToString(glError).c_str());  \
 			break;                                                             \
 		}                                                                      \
-	\
-}
+	}
 
 		glTexImage2D(GL_PROXY_TEXTURE_2D,
 					 0,
@@ -2313,7 +2313,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		ASSERT(iRealFormat == GL_RGBA8);
 	}
 
-	if(PREFSMAN->m_verbose_log > 1)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
 		  "%s (format %s, %ix%i, format %s, type %s, pixfmt %i, imgpixfmt %i)",
 		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",

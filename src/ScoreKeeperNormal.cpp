@@ -187,16 +187,16 @@ ScoreKeeperNormal::OnNextSong(int iSongInCourseIndex,
 static int
 GetScore(int p, int Z, int64_t S, int n)
 {
-/* There's a problem with the scoring system described below. Z/S is truncated
- * to an int. However, in some cases we can end up with very small base scores.
- * Each song in a 50-song nonstop course will be worth 2mil, which is a base of
- * 200k; Z/S will end up being zero.
- *
- * If we rearrange the equation to (p*Z*n) / S, this problem goes away.
- * (To do that, we need to either use 64-bit ints or rearrange it a little
- * more and use floats, since p*Z*n won't fit a 32-bit int.)  However, this
- * changes the scoring rules slightly.
- */
+	/* There's a problem with the scoring system described below. Z/S is
+	 * truncated to an int. However, in some cases we can end up with very small
+	 * base scores. Each song in a 50-song nonstop course will be worth 2mil,
+	 * which is a base of 200k; Z/S will end up being zero.
+	 *
+	 * If we rearrange the equation to (p*Z*n) / S, this problem goes away.
+	 * (To do that, we need to either use 64-bit ints or rearrange it a little
+	 * more and use floats, since p*Z*n won't fit a 32-bit int.)  However, this
+	 * changes the scoring rules slightly.
+	 */
 
 #if 0
 	// This is the actual method described below.

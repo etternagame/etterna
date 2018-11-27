@@ -185,17 +185,17 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 		}
 	}
 
-		/*
-		 * The frame is out of the range of data we've actually sent.
-		 * Return the closest position.
-		 *
-		 * There are three cases when this happens:
-		 * 1. Before the first CommitPlayingPosition call.
-		 * 2. After GetDataToPlay returns EOF and the sound has flushed, but
-		 * before SoundStopped has been called.
-		 * 3. Underflow; we'll be given a larger frame number than we know
-		 * about.
-		 */
+	/*
+	 * The frame is out of the range of data we've actually sent.
+	 * Return the closest position.
+	 *
+	 * There are three cases when this happens:
+	 * 1. Before the first CommitPlayingPosition call.
+	 * 2. After GetDataToPlay returns EOF and the sound has flushed, but
+	 * before SoundStopped has been called.
+	 * 3. Underflow; we'll be given a larger frame number than we know
+	 * about.
+	 */
 #if defined(WIN32)
 #define I64F "%I64i"
 #elif defined(__x86_64__)

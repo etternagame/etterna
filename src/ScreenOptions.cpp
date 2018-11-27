@@ -470,7 +470,8 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 	GetWidthXY(pn, iRow, iChoiceWithFocus, iWidth, iX, iY);
 
 	OptionsCursor& cursor = m_Cursor[pn];
-	if (cursor.GetDestX() != static_cast<float>(iX) || cursor.GetDestY() != static_cast<float>(iY) ||
+	if (cursor.GetDestX() != static_cast<float>(iX) ||
+		cursor.GetDestY() != static_cast<float>(iY) ||
 		cursor.GetBarWidth() != iWidth) {
 		cursor.StopTweening();
 		cursor.BeginTweening(CURSOR_TWEEN_SECONDS);

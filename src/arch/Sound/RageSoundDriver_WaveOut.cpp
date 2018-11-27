@@ -159,7 +159,7 @@ RageSoundDriver_WaveOut::Init()
 		m_aBuffers[b].dwFlags |= WHDR_DONE;
 	}
 
-	if(PREFSMAN->m_verbose_log > 1)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Info("WaveOut software mixing at %i hz", m_iSampleRate);
 
 	/* We have a very large writeahead; make sure we have a large enough decode

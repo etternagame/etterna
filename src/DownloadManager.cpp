@@ -1416,7 +1416,8 @@ DownloadManager::RequestReplayData(string scoreid,
 					timestamps.emplace_back(note[0].get<float>());
 					offsets.emplace_back(note[1].get<float>() / 1000.f);
 					tracks.emplace_back(note[2].get<int>());
-					types.emplace_back(static_cast<TapNoteType>(note[3].get<int>()));
+					types.emplace_back(
+					  static_cast<TapNoteType>(note[3].get<int>()));
 				}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
 			auto it =
@@ -1433,7 +1434,7 @@ DownloadManager::RequestReplayData(string scoreid,
 			callback.PushSelf(L);
 			RString Error =
 			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L);	// dunno whats going on here -mina
+			lua_newtable(L); // dunno whats going on here -mina
 			for (unsigned i = 0; i < replayData.size(); ++i) {
 				auto& pair = replayData[i];
 				lua_newtable(L);

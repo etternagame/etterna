@@ -470,14 +470,13 @@ ReadString(RageFileBasic& f, int iSize, RString& sError)
 }
 
 #define FATAL_ERROR(s)                                                         \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		if (sError.size() == 0)                                                \
 			sError = (s);                                                      \
 		SetError(sError);                                                      \
 		return OPEN_FATAL_ERROR;                                               \
-	\
-}
+	}
 
 RageSoundReader_FileReader::OpenResult
 RageSoundReader_WAV::Open(RageFileBasic* pFile)

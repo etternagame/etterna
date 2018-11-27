@@ -3012,7 +3012,8 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int SetReplayPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
-		if (GAMESTATE->GetPaused() && GamePreferences::m_AutoPlay == PC_REPLAY) {
+		if (GAMESTATE->GetPaused() &&
+			GamePreferences::m_AutoPlay == PC_REPLAY) {
 			p->SetSongPosition(newpos);
 		}
 		/*
