@@ -1562,9 +1562,11 @@ ScreenGameplay::Update(float fDeltaTime)
 			}
 
 			if (bAllFailed) {
-				m_pSoundMusic->StopPlaying();
-				SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
-				m_LyricDisplay.Stop();
+				if (!GamePreferences::m_AutoPlay == PC_REPLAY) {
+					m_pSoundMusic->StopPlaying();
+					SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
+					m_LyricDisplay.Stop();
+				}
 			}
 
 			// Update living players' alive time

@@ -52,6 +52,7 @@ struct HighScoreImpl
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<HoldReplayResult> vHoldReplayDataVector;
+	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;		   // maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;		   // stage award [SM5 alpha 1a+]
@@ -1104,6 +1105,11 @@ HighScore::GetCopyOfHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
+vector<float>
+HighScore::GetCopyOfSetOnlineReplayTimestampVector() const
+{
+	return m_Impl->vOnlineReplayTimestampVector;
+}
 const vector<float>&
 HighScore::GetOffsetVector() const
 {
@@ -1331,6 +1337,11 @@ void
 HighScore::SetHoldReplayDataVector(const vector<HoldReplayResult>& v)
 {
 	m_Impl->vHoldReplayDataVector = v;
+}
+void
+HighScore::SetOnlineReplayTimestampVector(const vector<float>& v)
+{
+	m_Impl->vOnlineReplayTimestampVector = v;
 }
 void
 HighScore::SetScoreKey(const string& sk)

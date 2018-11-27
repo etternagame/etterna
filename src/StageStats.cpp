@@ -607,6 +607,7 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool bSummary)
 {
+	SCOREMAN->camefromreplay = false;	// if we're viewing an online replay this gets set to true -mina
 	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
 		FOREACH_PlayerNumber(pn)
 		{
@@ -653,8 +654,15 @@ StageStats::FinalizeScores(bool bSummary)
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData) {
-			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
-			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
+				   .empty()) {
+				SCOREMAN->tempscoreforonlinereplayviewing =
+				  PlayerAI::pScoreData;
+				SCOREMAN->camefromreplay = true;
+			} else {	// dont do this if the replay was from online or bad stuff happens -mina
+				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+			}
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;

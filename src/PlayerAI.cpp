@@ -202,7 +202,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
-	for (int i = 0; i < (int)replayHoldVector.size(); i++) {
+	for (size_t i = 0; i < replayHoldVector.size(); i++) {
 		// Create or append to the vector
 		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0) {
 			m_ReplayHoldMap[replayHoldVector[i].row].push_back(

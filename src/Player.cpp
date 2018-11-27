@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
@@ -2399,7 +2399,7 @@ Player::Step(int col,
 						iRowOfOverlappingNoteOrRow = row;
 					}
 					fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(
-						  pTN, iRowOfOverlappingNoteOrRow, col);
+					  pTN, iRowOfOverlappingNoteOrRow, col);
 					if (fNoteOffset == -2.f) // we hit a mine
 					{
 						score = TNS_HitMine;
@@ -2829,9 +2829,11 @@ Player::CrossedRows(int iLastRowCrossed,
 				this->m_Timing->IsJudgableAtRow(iRow)) {
 				if ((m_pPlayerState->m_PlayerController == PC_REPLAY &&
 					 PlayerAI::GetReplayType() != 2) ||
-					m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
+					m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+					m_pPlayerState->m_PlayerController == PC_CPU) {
 					Step(iTrack, iRow, now, false, false);
-					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_CPU) {
+					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+						m_pPlayerState->m_PlayerController == PC_CPU) {
 						if (m_pPlayerStageStats)
 							m_pPlayerStageStats->m_bDisqualified = true;
 					}
@@ -3228,6 +3230,8 @@ Player::SetJudgment(int iRow,
 					TapNoteScore tns,
 					float fTapNoteOffset)
 {
+	if (tns < 0 || tns > NUM_TapNoteScore)
+		tns = TNS_Miss;	// dont know why or how this crashes -mina
 	if (tns == TNS_Miss)
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);

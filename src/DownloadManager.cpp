@@ -1398,18 +1398,25 @@ DownloadManager::RequestReplayData(string scoreid,
 				  HTTPRequest& req, CURLMsg*) {
 		try {
 			vector<pair<float, float>> replayData;
+
+			vector<float> timestamps;
+			vector<float> offsets;
+			vector<int> tracks;
+			vector<TapNoteType> types;
+
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
 				throw exception();
 			auto replay = j.find("data")->find("attributes")->find("replay");
 			if (!replay->is_null() && replay->size() > 1)
-				for (auto note : *replay) {
-					float timestamp = note[0];
-					int offset = note[1]; // *1000.0f
-					int column = note[2];
-					int type = note[3];
+				for (auto& note : *replay) {
 					replayData.emplace_back(
 					  make_pair(note[0].get<float>(), note[1].get<float>()));
+
+					timestamps.emplace_back(note[0].get<float>());
+					offsets.emplace_back(note[1].get<float>() / 1000.f);
+					tracks.emplace_back(note[2].get<int>());
+					types.emplace_back(static_cast<TapNoteType>(note[3].get<int>()));
 				}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
 			auto it =
@@ -1417,19 +1424,16 @@ DownloadManager::RequestReplayData(string scoreid,
 				  return a.userid == userid && a.username == username;
 			  });
 			if (it != lbd.end()) {
-				vector<float> offsets;
-				std::transform(
-				  replayData.begin(),
-				  replayData.end(),
-				  back_inserter(offsets),
-				  [](pair<float, float>& pair) { return pair.first; });
+				it->hs.SetOnlineReplayTimestampVector(timestamps);
 				it->hs.SetOffsetVector(offsets);
+				it->hs.SetTrackVector(tracks);
+				it->hs.SetTapNoteTypeVector(types);
 			}
 			auto L = LUA->Get();
 			callback.PushSelf(L);
 			RString Error =
 			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L);
+			lua_newtable(L);	// dunno whats going on here -mina
 			for (unsigned i = 0; i < replayData.size(); ++i) {
 				auto& pair = replayData[i];
 				lua_newtable(L);

@@ -173,7 +173,12 @@ class ScoreManager
 	vector<string> GetSortedKeys();
 
 	void PushSelf(lua_State* L);
-	HighScore* GetMostRecentScore() { return AllScores.back(); }
+	HighScore* GetMostRecentScore()
+	{
+		if (camefromreplay)
+			return tempscoreforonlinereplayviewing;
+		return AllScores.back();
+	}
 	void PutScoreAtTheTop(string scorekey)
 	{
 		auto score = ScoresByKey[scorekey];
@@ -204,6 +209,9 @@ class ScoreManager
 
 	void PurgeProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+
+	bool camefromreplay = false;
+	HighScore* tempscoreforonlinereplayviewing;
 
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>
