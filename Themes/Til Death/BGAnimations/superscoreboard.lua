@@ -352,7 +352,6 @@ local function makeScoreDisplay(i)
 					DLMAN:RequestOnlineScoreReplayData(
 						hs,
 						function()
-							SCREENMAN:SystemMessage("wabadub")
 							SCREENMAN:GetTopScreen():PlayReplay(hs)
 						end
 					)

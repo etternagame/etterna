@@ -852,7 +852,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		last->PushSelf(L);
 		return 1;
 	}
-
+	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
 		ADD_METHOD(GetScoresByKey);
@@ -860,6 +860,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(ValidateAllScores);
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetMostRecentScore);
+		ADD_METHOD(GetTempReplayScore);
 	}
 };
 

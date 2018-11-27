@@ -1040,9 +1040,16 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		auto& offs = p->m_vOffsetVector;
 		auto& type = p->m_vTapNoteTypeVector;
 		vector<float> doot;
-		for (size_t i = 0; i < offs.size(); ++i)
-			if (type[i] != TapNoteType_Mine)
+		// type would not be empty in Full Replays (> v0.60)
+		if (!type.empty()) {
+			for (size_t i = 0; i < offs.size(); ++i)
+				if (type[i] != TapNoteType_Mine)
+					doot.emplace_back(offs[i] * 1000);
+		} else {
+			// But type is empty if the replay is old :(
+			for (size_t i = 0; i < offs.size(); ++i)
 				doot.emplace_back(offs[i] * 1000);
+		}
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;
 	}

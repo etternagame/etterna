@@ -110,6 +110,9 @@ function scoreBoard(pn, position)
 	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
+	if not score then 
+		score = SCOREMAN:GetTempReplayScore()
+	end
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
 	local smallest, largest
@@ -530,6 +533,10 @@ end
 
 t[#t + 1] = LoadActor("offsetplot")
 
+local score = SCOREMAN:GetMostRecentScore()
+if not score then 
+	score = SCOREMAN:GetTempReplayScore()
+end
 -- Discord thingies
 local largeImageTooltip =
 	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
@@ -544,7 +551,7 @@ local state =
 	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(pssP1:GetWifeScore() * 10000) / 100) ..
-				" " .. THEME:GetString("Grade", ToEnumShortString(SCOREMAN:GetMostRecentScore():GetWifeGrade()))
+				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
 GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
 
 return t

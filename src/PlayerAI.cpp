@@ -202,7 +202,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
-	for (int i = 0; i < (int)replayHoldVector.size(); i++) {
+	for (size_t i = 0; i < replayHoldVector.size(); i++) {
 		// Create or append to the vector
 		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0) {
 			m_ReplayHoldMap[replayHoldVector[i].row].push_back(
@@ -531,12 +531,14 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV
 				continue;
 			}
 			tapsOnThisRow++;
-			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead)
+			// We handle Empties as well because that's what old replays are loaded as.
+			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead || trr.type == TapNoteType_Empty)
 			{
 				totalNotesHit++;
 				tapsHit++;
 				if (tapsOnThisRow == 2)
 				{
+					// This is technically incorrect.
 					jumpsHit++;
 				}
 				else if (tapsOnThisRow >= 3)
