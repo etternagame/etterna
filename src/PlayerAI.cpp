@@ -531,12 +531,14 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv, RadarValues& possibleRV
 				continue;
 			}
 			tapsOnThisRow++;
-			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead)
+			// We handle Empties as well because that's what old replays are loaded as.
+			if (trr.type == TapNoteType_Tap || trr.type == TapNoteType_HoldHead || trr.type == TapNoteType_Empty)
 			{
 				totalNotesHit++;
 				tapsHit++;
 				if (tapsOnThisRow == 2)
 				{
+					// This is technically incorrect.
 					jumpsHit++;
 				}
 				else if (tapsOnThisRow >= 3)
