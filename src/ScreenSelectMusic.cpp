@@ -1704,11 +1704,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
-
+		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
 		if (!timestamps.empty()) {
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
-
+			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
 			vector<int> ihatemylife;
 			auto nd = GAMESTATE->m_pCurSteps[PLAYER_1]->GetNoteData();
 			auto nerv = nd.BuildAndGetNerv();
@@ -1720,8 +1720,39 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 				for (auto r : nerv)
 					ihatemylife.emplace_back(r);
 			}
+			auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =  td->BuildAndGetEtaner(nerv);
+			vector<int> REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE;
+			for (auto t : timestamps) {
+				auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
+				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
+				auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
+				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[0] - (timestamps[0] * hs->GetMusicRate());
+				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE +=
+				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE; 
+				auto
+				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
+					BeatToNoteRow(
+					  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
+				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.emplace_back(
+				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
+			}
+			int
+			  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
+				nerv[0] - REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[0];
+							for (auto& REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE :
+				 REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE)
+				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE +=
+				 REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE;
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			hs->SetNoteRowVector(ihatemylife);
+			hs->SetNoteRowVector(REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
+
+			for (size_t i = 0; i < ihatemylife.size(); ++i)
+			{
+				//LOG->Warn("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE%i, %i",
+				//		  ihatemylife[i],
+				//		  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[i]);
+			}
 		}
 
 		PlayerAI::SetScoreData(hs);

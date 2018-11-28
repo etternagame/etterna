@@ -1,4 +1,4 @@
-﻿#ifndef PLAYER_H
+#ifndef PLAYER_H
 #define PLAYER_H
 
 #include "ActorFrame.h"
@@ -161,6 +161,12 @@ class Player : public ActorFrame
 	int totalwifescore;
 
   protected:
+	void StepReplay(int col,
+					int row,
+					const std::chrono::steady_clock::time_point& tm,
+					bool bHeld,
+					bool bRelease,
+					float padStickSeconds = 0.0f);
 	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
 	void UpdateJudgedRows(float fDeltaTime);
 	void FlashGhostRow(int iRow);
