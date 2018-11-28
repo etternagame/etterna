@@ -1,0 +1,51 @@
+--- ActorFrameTexture (Inherits ActorFrame)
+-- @classmod ActorFrameTexture
+
+--[[--
+ 		Creates the ActorFrameTexture.
+	  @return void
+--]]
+function ActorFrameTexture:Create()
+end
+
+--[[--
+ 		Enables/disables the Alpha Buffer.
+	  @return void
+--]]
+function ActorFrameTexture:EnableAlphaBuffer(bool, bEnable)
+end
+
+--[[--
+ 		Enables/disables the Depth Buffer.
+	  @return void
+--]]
+function ActorFrameTexture:EnableDepthBuffer(bool, bEnable)
+end
+
+--[[--
+ 		Enables/disables
+	  @return void
+--]]
+function ActorFrameTexture:EnableFloat(bool, bEnable)
+end
+
+--[[--
+ 		Enables/disables the Preserve Texture option.
+	  @return void
+--]]
+function ActorFrameTexture:EnablePreserveTexture(bool, bEnable)
+end
+
+--[[--
+ 		Returns the texture.
+	  @return RageTexture
+--]]
+function ActorFrameTexture:GetTexture()
+end
+
+--[[--
+ 		Sets the Texture's name to <code>sName</code>.
+  @return void
+--]]
+function ActorFrameTexture:SetTextureName(string, sName)
+end

@@ -1,0 +1,101 @@
+--- ScreenManager singleton
+-- @classmod ScreenManager
+
+--[[--
+ 		Adds a screen at the top of the screen stack. (<code>sMessage</code> is an optional ScreenMessage posted once the new screen is finished.)
+	  @return void
+--]]
+function ScreenManager:AddNewScreenToTop(string, sScreenName, string, sMessage)
+end
+
+--[[--
+ 		Gets the screen at the top of the screen stack.
+	  @return Screen
+--]]
+function ScreenManager:GetTopScreen()
+end
+
+--[[--
+ 		Returns whether the input for the player has been redirected away from the normal screen input function.  Input that has been redirected is only sent to lua input callbacks.
+	  @return bool
+--]]
+function ScreenManager:get_input_redirected(PlayerNumber, pn)
+end
+
+--[[--
+ 		Plays the invalid sound.
+	  @return 
+--]]
+function ScreenManager:PlayInvalidSound()
+end
+
+--[[--
+ 		Plays the start sound.
+	  @return 
+--]]
+function ScreenManager:PlayStartSound()
+end
+
+--[[--
+ 		Plays the coin sound.
+	  @return 
+--]]
+function ScreenManager:PlayCoinSound()
+end
+
+--[[--
+ 		Plays the cancel sound.
+	  @return 
+--]]
+function ScreenManager:PlayCancelSound()
+end
+
+--[[--
+ 		Plays the screenshot sound.
+	  @return 
+--]]
+function ScreenManager:PlayScreenshotSound()
+end
+
+--[[--
+ 		Reloads any loaded overlay screens.
+	  @return void
+--]]
+function ScreenManager:ReloadOverlayScreens()
+end
+
+--[[--
+ 		Returns <code>true</code> if screen class <code>s</code> exists.
+	  @return bool
+--]]
+function ScreenManager:ScreenClassExists(string, s)
+end
+
+--[[--
+ 		Returns <code>true</code> if screen <code>s</code> is prepared.
+	  @return bool
+--]]
+function ScreenManager:ScreenIsPrepped(string, s)
+end
+
+--[[--
+ 		Sets the next screen to <code>s</code>.
+	  @return void
+--]]
+function ScreenManager:SetNewScreen(string, s)
+end
+
+--[[--
+ 		Sets whether the input for the player has been redirected away from the normal screen input function.  Input that has been redirected is only sent to lua input callbacks.<br />
+		This can be useful when putting a custom menu on a screen, and you want to disable the built in actors while the menu is open.  Then you handle input through an input callback until the player closes the menu.
+	  @return bool
+--]]
+function ScreenManager:set_input_redirected(PlayerNumber, pn, bool, redir)
+end
+
+--[[--
+ 		Broadcasts a system message.
+	  @return void
+--]]
+function ScreenManager:SystemMessage(string, s)
+end
