@@ -5,14 +5,7 @@ local getAvgDiffPropName = "GetAvgDifficulty"
 local getNamePropName = "GetName"
 
 function PackList:GetPackTable()
-    SCREENMAN:SystemMessage(tostring(#(self.packs)))
     return self.packs
-end
-local foldr = function(func, val, tbl)
-    for i, v in pairs(tbl) do
-        val = func(val, v)
-    end
-    return val
 end
 function PackList:GetTotalSumByProp(propName)
     return foldr(
@@ -58,15 +51,6 @@ function PackList:SortByDiff()
 end
 function PackList:SortBySize()
     return self:SortByProp(getSizePropName)
-end
-local function filter(func, tbl)
-    local newtbl = {}
-    for i, v in pairs(tbl) do
-        if func(v) then
-            newtbl[i] = v
-        end
-    end
-    return newtbl
 end
 function PackList:FilterAndSearch(name, avgMin, avgMax, sizeMin, sizeMax)
     self.packs =
