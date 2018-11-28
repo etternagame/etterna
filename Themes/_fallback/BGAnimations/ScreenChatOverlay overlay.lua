@@ -1,8 +1,8 @@
 local lastx, lasty = 0, 0
 local width, height = SCREEN_WIDTH, SCREEN_HEIGHT * 0.035
-local maxlines = 6
-local lineNumber = 6
-local inputLineNumber = 2
+local maxlines = 5
+local lineNumber = 5
+local inputLineNumber = 1
 local tabHeight = 1
 local maxTabs = 10
 local x, y = 0, SCREEN_HEIGHT - height * (lineNumber + inputLineNumber + tabHeight)
@@ -12,14 +12,14 @@ local scale = 0.4
 local minimised = false
 local typing = false
 local typingText = ""
-local transparency = 0.5
+local transparency = 0.667
 local curmsgh = 0
 local closeTabSize = 10
 local Colors = {
-	background = color("#7777FF"),
+	background = color("#333333"),
 	input = color("#888888"),
-	activeInput = color("#BBBBFF"),
-	output = color("#888888"),
+	activeInput = color("#9977BB"),
+	output = color("#545454"),
 	bar = color("#666666"),
 	tab = color("#555555"),
 	activeTab = color("#999999")
@@ -239,7 +239,7 @@ for i = 0, maxTabs - 1 do
 					self:maxwidth(tabWidth)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
-					self:xy(x + tabWidth * i, y + height * (1 + (tabHeight / 4)))
+					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
 				end,
 				UpdateChatOverlayMessageCommand = function(self)
 					if not tabs[i + 1] then
@@ -427,13 +427,21 @@ function input(event)
 			update = true
 		end	
 	end
+	
+	
+	-- right click over the chat to minimize
+	if  event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress" and isOver(bg) then
+		minimised = not minimised
+		MESSAGEMAN:Broadcast("Minimise")
+		return true
+	end
 
 	if update then
 		MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	end
 
 	-- always eat mouse inputs if its within the broader chatbox
-	if  event.DeviceInput.button == "DeviceButton_left mouse button"and isOver(bg) then
+	if  event.DeviceInput.button == "DeviceButton_left mouse button" and isOver(bg) then
 		return true
 	end
 
