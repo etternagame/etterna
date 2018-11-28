@@ -2061,6 +2061,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		DLMAN->pl.PushSelf(L);
 		return 1;
 	}
+	static int GetAllPacks(T* p, lua_State* L)
+	{
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
 	{
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
@@ -2410,6 +2420,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetPacklist);
+		ADD_METHOD(GetAllPacks);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
 		ADD_METHOD(GetToken);

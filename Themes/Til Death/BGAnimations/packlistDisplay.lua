@@ -41,7 +41,7 @@ local o =
 	end,
 	BeginCommand = function(self)
 		self:SetUpdateFunction(highlight)
-		packlist = DLMAN:GetPacklist()
+		packlist = PackList:new()
 		packlist:SetFromAll()
 		self:queuecommand("PackTableRefresh")
 	end,
@@ -71,9 +71,11 @@ local o =
 		ind = ind - numpacks
 		self:queuecommand("Update")
 	end,
-	Def.Quad {InitCommand = function(self)
+	Def.Quad {
+		InitCommand = function(self)
 			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(color("#888888"))
-		end},
+		end
+	},
 	-- headers
 	Def.Quad {
 		InitCommand = function(self)
