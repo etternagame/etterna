@@ -44,6 +44,9 @@ if GAMESTATE:IsPlayerEnabled(player) then
 	origTable = getScoresByKey(player)
 	score = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetHighScore()
 	rtTable = getRateTable(origTable)
+	if rtTable == nil then
+		return
+	end
 	hsTable = rtTable[getRate(score)] or {score}
 	scoreIndex = getHighScoreIndex(hsTable, score)
 end
