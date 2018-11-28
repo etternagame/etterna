@@ -5,18 +5,23 @@ local function selectprofile(self)
 	end
 end
 local function genericHighlight(self, highlight, base, clickaction)
+	local highlight = highlight or 0.6
+	local base = base or 1
 	self:SetUpdateFunction(function(self)
-		self:RunCommandsOnChildren(
-			function(self)
-				if isOver(self) then
-					self:diffusealpha(highlight)
-				else
-					self:diffusealpha(base)
+		if self:IsVisible() then
+			self:RunCommandsOnChildren(
+				function(self)
+					if isOver(self) then
+						self:diffusealpha(highlight)
+					else
+						self:diffusealpha(base)
+					end
 				end
+				)
 			end
-			)
-	end)
-	self:SetUpdateRate(0.5)
+		end
+	)
+	self:SetUpdateFunctionInterval(0.025)
 	if clickaction then
 		self:RunCommandsOnChildren(
 			function(self) 
