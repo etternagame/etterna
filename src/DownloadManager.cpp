@@ -1568,8 +1568,6 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 			// json failed
 		}
 
-		Message msg("ChartLeaderboardUpdate");
-
 		if (!ref.IsNil() && ref.IsSet()) {
 			Lua* L = LUA->Get();
 			ref.PushSelf(L);
@@ -1587,13 +1585,6 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 			}
 			LUA->Release(L);
 		}
-		// float ProbablyUnderratedness =
-		// mythicalmathymathsProbablyUnderratedness(chartkey);  float coop =
-		// overratedness(chartkey);
-		// Renaming these 2 requires renaming them in lua wherever theyre used
-		// msg.SetParam("mmm", ProbablyUnderratedness);
-		// msg.SetParam("ixmixblixb", 2);
-		MESSAGEMAN->Broadcast(msg);
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
 				vector<pair<string, string>>(),
