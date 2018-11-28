@@ -344,17 +344,17 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
-		auto rowIt = m_ReplayExactTapMap.lower_bound(0);
+		auto rowIt = m_ReplayExactTapMap.lower_bound(-100);
 		int row = rowIt->first;
-		for (; row <= noteRow && row != -1;) {
+		for (; row <= noteRow && row != -100;) {
 			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
 	} else {
-		auto rowIt = m_ReplayTapMap.lower_bound(0);
+		auto rowIt = m_ReplayTapMap.lower_bound(-100);
 		int row = rowIt->first;
-		for (; row <= noteRow && row != -1;) {
+		for (; row <= noteRow && row != -100;) {
 			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
@@ -398,7 +398,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayExactTapMap.end()) {
-			return -1;
+			return -100;
 		} else {
 			return thing->first;
 		}
@@ -406,7 +406,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayTapMap.end()) {
-			return -1;
+			return -100;
 		} else {
 			return thing->first;
 		}
