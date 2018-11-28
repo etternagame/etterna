@@ -3,7 +3,6 @@ if NSMAN:IsETTP() then
 	t[#t + 1] =
 		Def.ActorFrame {
 		LeftClickMessageCommand = function()
-			SCREENMAN:SystemMessage("asdasdasd")
 			MESSAGEMAN:Broadcast("MouseLeftClick")
 		end
 	}
