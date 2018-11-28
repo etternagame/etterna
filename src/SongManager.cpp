@@ -2002,7 +2002,6 @@ class LunaChart : public Luna<Chart>
 	{
 		p->rate += FArg(1);
 		CLAMP(p->rate, 0.7f, 3.f);
-		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
