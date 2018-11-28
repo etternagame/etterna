@@ -1739,6 +1739,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			//hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
+
+			// Since we keep misses on EO as 180ms, we need to convert them back.
+			auto offsets = hs->GetCopyOfOffsetVector();
+			for (auto& offset : offsets) {
+				if (fabs(offset) >= .18f)
+					offset = -1.1f; // This is a miss to the replay reader.
+			}
+			hs->SetOffsetVector(offsets);
 		}
 
 		PlayerAI::SetScoreData(hs);
