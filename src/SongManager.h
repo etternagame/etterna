@@ -1,4 +1,4 @@
-#ifndef SONGMANAGER_H
+﻿#ifndef SONGMANAGER_H
 #define SONGMANAGER_H
 
 class LoadingWindow;
@@ -171,7 +171,7 @@ class SongManager
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
 	void LoadDWISongDir(const RString& sDir);
-	void SanityCheckGroupDir(const RString& sDir) const;
+	bool IsSongDir(const RString& sDir);
 	bool AddGroup(const RString& sDir, const RString& sGroupDirName);
 
 	void AddSongToList(Song* new_song);

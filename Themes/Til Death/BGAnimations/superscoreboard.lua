@@ -75,20 +75,23 @@ local o =
 	InitCommand = function(self)
 		cheese = self
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
+		self:playcommand("Update")
 	end,
-	ChartLeaderboardUpdateMessageCommand = function(self)
+	GetFilteredLeaderboardCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
 			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
 			ind = 0
 			self:playcommand("Update")
 		end
 	end,
-	BortCommand = function(self)
-		scoretable = {}
+	SetFromLeaderboardCommand = function(self, lb)
+		scoretable = lb
 		ind = 0
+		self:playcommand("GetFilteredLeaderboard")	-- we can move all the filter stuff to lua so we're not being dumb hurr hur -mina
 		self:playcommand("Update")
 	end,
 	UpdateCommand = function(self)
@@ -236,19 +239,21 @@ local o =
 			Name = "RequestStatus",
 			InitCommand = function(self)
 				if collapsed then
-					self:xy(dwidth - 75, headeroff + 15):zoom(tzoom):halign(1)
+					self:xy(c1x, headeroff + 15):zoom(tzoom):halign(0)
 				else
-					self:xy(dwidth / 3, headeroff + 25):zoom(tzoom):halign(1)
+					self:xy(c1x, headeroff + 25):zoom(tzoom):halign(0)
 				end
 			end,
 			UpdateCommand = function(self)
 				local numberofscores = #scoretable
 				local online = DLMAN:IsLoggedIn()
-				if not online and #scoretable == 0 then
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
 					self:settext("Login to view scores")
 				else
 					if #scoretable == 0 then
-						self:settext("Retrieving scores...")
+						self:settext("Online scores not tracked...")
 					else
 						self:settext("")
 					end
@@ -275,7 +280,7 @@ local o =
 				if isOver(self) then
 					DLMAN:ToggleRateFilter()
 					ind = 0
-					self:GetParent():queuecommand("ChartLeaderboardUpdate")
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
 			end
 		},
@@ -303,7 +308,7 @@ local o =
 				if isOver(self) then
 					DLMAN:ToggleTopScoresOnlyFilter()
 					ind = 0
-					self:GetParent():queuecommand("ChartLeaderboardUpdate")
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
 			end
 		}
@@ -320,11 +325,11 @@ local function makeScoreDisplay(i)
 				self:visible(false)
 			end
 		end,
-		UpdateCommand = function(self)
+		UpdateCommand = function(self)		
 			hs = scoretable[(i + ind)]
 			if hs and i <= numscores then
-				self:queuecommand("Display")
 				self:visible(true)
+				self:playcommand("Display")
 			else
 				self:visible(false)
 			end
@@ -334,27 +339,13 @@ local function makeScoreDisplay(i)
 				self:x(offx):zoomto(dwidth, pdh):halign(0)
 			end,
 			DisplayCommand = function(self)
-				if hs:HasReplayData() then
-					self:diffuse(color("#555555CC"))
-				else
-					self:diffuse(color("#111111CC"))
-				end
+				self:diffuse(color("#111111CC"))
 			end,
 			HighlightCommand = function(self)
-				if isOver(self) and collapsed then
-					self:diffusealpha(1)
+				if isOver(self) then
+					self:diffusealpha(0.8)
 				else
 					self:diffusealpha(0.6)
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and hs then
-					DLMAN:RequestOnlineScoreReplayData(
-						hs,
-						function()
-							SCREENMAN:GetTopScreen():PlayReplay(hs)
-						end
-					)
 				end
 			end
 		},
@@ -463,6 +454,45 @@ local function makeScoreDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
+				Name = "Replay" .. i,
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(capWideScale(c3x + 52, c3x) ):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff):diffuse(getMainColor("enabled"))
+					end
+				end,
+				DisplayCommand = function(self)
+					DLMAN:RequestOnlineScoreReplayData(hs, 
+						function(replay) 
+							if #replay > 0 then
+								self:settext("Watch")
+							else
+								self:settext("")
+							end	
+						end
+					)
+				end,
+				HighlightCommand = function(self)
+					highlightIfOver(self)
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) and hs then
+						DLMAN:RequestOnlineScoreReplayData(
+							hs,
+							function()
+								SCREENMAN:GetTopScreen():PlayReplay(hs)
+							end
+						)
+					end
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true):addy(-row2yoff)
+				end
+			},
+		LoadFont("Common normal") ..
+			{
 				--percent
 				InitCommand = function(self)
 					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
@@ -483,7 +513,11 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					self:settext(hs:GetDate())
+					if IsUsingWideScreen() then
+						self:settext(hs:GetDate())
+					else
+						self:settext(hs:GetDate():sub(1, 10))
+					end
 				end,
 				CollapseCommand = function(self)
 					self:visible(false)
