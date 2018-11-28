@@ -496,6 +496,7 @@ t[#t + 1] =
 		Name = "Banner",
 		InitCommand = function(self)
 			self:x(10):y(61):halign(0):valign(0)
+			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
 		end,
 		MintyFreshCommand=function(self)
 			if INPUTFILTER:IsBeingPressed("tab") then
