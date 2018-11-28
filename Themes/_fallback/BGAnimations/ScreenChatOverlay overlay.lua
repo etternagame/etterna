@@ -65,7 +65,7 @@ local i = 0
 chat.InitCommand = function(self)
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 end
-chat.ScreenChangedMessageCommand = function(self)
+chat.AddMPChatInputMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
@@ -98,19 +98,23 @@ chat.MultiplayerDisconnectionMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", false)
 end
 
+local chatbg
 chat[#chat + 1] =
 	Def.Quad {
 	Name = "Background",
 	InitCommand = function(self)
+		chatbg = self
 		self:diffuse(Colors.background)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height * (lineNumber + inputLineNumber + tabHeight) + y)
 	end
 }
+local minbar
 chat[#chat + 1] =
 	Def.Quad {
 	Name = "Bar",
 	InitCommand = function(self)
+		minbar = self
 		self:diffuse(Colors.bar)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height + y)
@@ -271,10 +275,12 @@ for i = 0, maxTabs - 1 do
 	}
 end
 
+local inbg
 chatWindow[#chatWindow + 1] =
 	Def.Quad {
 	Name = "ChatBox",
 	InitCommand = function(self)
+		inbg = self
 		self:diffuse(Colors.input)
 		self:diffusealpha(transparency)
 	end,
@@ -330,15 +336,11 @@ function input(event)
 		end
 		typing = false
 		local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
-		if mx >= x and mx <= x + width and my >= moveY + y and my <= moveY + y + height then
+		if isOver(minbar) then
 			minimised = not minimised
 			MESSAGEMAN:Broadcast("Minimise")
 			update = true
-		elseif
-			mx >= x and mx <= width + x and my >= height * (lineNumber + tabHeight) + y + moveY + 4 and
-				my <= height * (lineNumber + inputLineNumber + tabHeight) + y + moveY and
-				not minimised
-		 then
+		elseif isOver(inbg) and not minimised then
 			typing = true
 			update = true
 		elseif mx >= x and mx <= x + width and my >= y + moveY and my <= y + height + moveY then
@@ -410,6 +412,10 @@ function input(event)
 		MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	end
 
+	-- always eat mouse inputs if its within the broader chatbox
+	if  event.DeviceInput.button == "DeviceButton_left mouse button"and isOver(chatbg) then
+		return true
+	end
 	return update or typing
 end
 
