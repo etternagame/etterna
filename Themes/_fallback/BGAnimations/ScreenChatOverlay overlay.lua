@@ -1,7 +1,7 @@
 local lastx, lasty = 0, 0
 local width, height = SCREEN_WIDTH, SCREEN_HEIGHT * 0.035
-local lineNumber = 8
-local inputLineNumber = 3
+local lineNumber = 6
+local inputLineNumber = 2
 local tabHeight = 1
 local maxTabs = 10
 local x, y = 0, SCREEN_HEIGHT - height * (lineNumber + inputLineNumber + tabHeight)
