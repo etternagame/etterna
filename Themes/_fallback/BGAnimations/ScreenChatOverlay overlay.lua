@@ -415,16 +415,16 @@ function input(event)
 		if isOver(chatbg) then
 			if lineNumber < #messages then
 				lineNumber = lineNumber + 1
-				update = true
 			end
+			update = true
 		end
 	end
 	if event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 		if isOver(chatbg) then
 			if lineNumber > maxlines then
 				lineNumber = lineNumber - 1
-				update = true
 			end
+			update = true
 		end	
 	end
 
