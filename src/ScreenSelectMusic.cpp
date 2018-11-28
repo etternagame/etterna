@@ -1709,9 +1709,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
-			vector<int> ihatemylife;
+			// vector<int> ihatemylife;
 			auto nd = GAMESTATE->m_pCurSteps[PLAYER_1]->GetNoteData();
 			auto nerv = nd.BuildAndGetNerv();
+			/* functionally dead code, may be removed -poco
 			if (!hs->GetChordCohesion()) {
 				for (auto r : nerv)
 					for (int i = 0; i < nd.GetNumTapNotesInRow(r); ++i)
@@ -1720,39 +1721,24 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 				for (auto r : nerv)
 					ihatemylife.emplace_back(r);
 			}
-			auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =  td->BuildAndGetEtaner(nerv);
-			vector<int> REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE;
+			*/
+			auto sdifs = td->BuildAndGetEtaner(nerv);
+			vector<int> noterows;
 			for (auto t : timestamps) {
-				auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
+				auto timestamptobeat =
 				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
-				auto REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
-				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[0] - (timestamps[0] * hs->GetMusicRate());
-				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE +=
-				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE; 
-				auto
-				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
-					BeatToNoteRow(
-					  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
-				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.emplace_back(
-				  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
+				auto somenumberscaledbyoffsets =
+				  sdifs[0] - (timestamps[0] * hs->GetMusicRate());
+				timestamptobeat += somenumberscaledbyoffsets;
+				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
+				noterows.emplace_back(noterowfrombeat);
 			}
-			int
-			  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE =
-				nerv[0] - REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[0];
-							for (auto& REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE :
-				 REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE)
-				REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE +=
-				 REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE;
+			int noterowoffsetter = nerv[0] - noterows[0];
+			for (auto& noterowwithoffset : noterows)
+				noterowwithoffset += noterowoffsetter;
 			GAMESTATE->SetProcessedTimingData(nullptr);
-			hs->SetNoteRowVector(ihatemylife);
-			hs->SetNoteRowVector(REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE);
-
-			for (size_t i = 0; i < ihatemylife.size(); ++i)
-			{
-				//LOG->Warn("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE%i, %i",
-				//		  ihatemylife[i],
-				//		  REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE[i]);
-			}
+			//hs->SetNoteRowVector(ihatemylife);
+			hs->SetNoteRowVector(noterows);
 		}
 
 		PlayerAI::SetScoreData(hs);
