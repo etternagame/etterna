@@ -1,5 +1,6 @@
 local lastx, lasty = 0, 0
 local width, height = SCREEN_WIDTH, SCREEN_HEIGHT * 0.035
+local maxlines = 6
 local lineNumber = 6
 local inputLineNumber = 2
 local tabHeight = 1
@@ -98,12 +99,12 @@ chat.MultiplayerDisconnectionMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", false)
 end
 
-local chatbg
+local bg
 chat[#chat + 1] =
 	Def.Quad {
 	Name = "Background",
 	InitCommand = function(self)
-		chatbg = self
+		bg = self
 		self:diffuse(Colors.background)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height * (lineNumber + inputLineNumber + tabHeight) + y)
@@ -170,16 +171,17 @@ local chatWindow =
 		end
 	end
 }
-
+local chatbg
 chatWindow[#chatWindow + 1] =
 	Def.Quad {
 	Name = "ChatWindow",
 	InitCommand = function(self)
+		chatbg = self
 		self:diffuse(Colors.output)
 		self:diffusealpha(transparency)
 	end,
 	UpdateChatOverlayMessageCommand = function(self)
-		self:stretchto(x, height * (1 + tabHeight) + y, width + x, height * (lineNumber + tabHeight) + y)
+		self:stretchto(x, height * (1 + tabHeight) + y, width + x, height * (maxlines + tabHeight) + y)
 		curmsgh = 0
 		MESSAGEMAN:Broadcast("UpdateChatOverlayMsgs")
 	end
@@ -195,17 +197,17 @@ chatWindow[#chatWindow + 1] =
 			self:zoom(scale)
 			self:SetMaxLines(lineNumber, 1)
 			self:wrapwidthpixels((width - 8) / scale)
+			self:xy(x + 4, y + height * (lineNumber + tabHeight) - 4)
 		end,
 		UpdateChatOverlayMsgsMessageCommand = function(self)
 			local t = ""
-			for i = lineNumber - 1, 0, -1 do
+			for i = lineNumber - 1, lineNumber - maxlines, -1 do
 				if messages[#messages - i] then
 					t = t .. messages[#messages - i] .. "\n"
 				end
 			end
 			self:settext(t)
-			self:SetMaxLines(lineNumber, 1)
-			self:xy(x + 4, y + height * (lineNumber + tabHeight) - 4)
+			
 		end
 	}
 
@@ -285,7 +287,7 @@ chatWindow[#chatWindow + 1] =
 		self:diffusealpha(transparency)
 	end,
 	UpdateChatOverlayMessageCommand = function(self)
-		self:stretchto(x, height * (lineNumber + 1) + y + 4, width + x, height * (lineNumber + 1 + inputLineNumber) + y)
+		self:stretchto(x, height * (maxlines + 1) + y + 4, width + x, height * (maxlines + 1 + inputLineNumber) + y)
 		self:diffuse(typing and Colors.activeInput or Colors.input):diffusealpha(transparency)
 	end
 }
@@ -344,7 +346,7 @@ function input(event)
 			typing = true
 			update = true
 		elseif mx >= x and mx <= x + width and my >= y + moveY and my <= y + height + moveY then
-			mousex, mousey = mx, my
+			mousex, mousey = mx, my	-- no clue what this block of code is for
 			lastx, lasty = x, y
 			update = true
 		elseif not minimised then
@@ -408,14 +410,33 @@ function input(event)
 			update = true
 		end
 	end
+
+	if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+		if isOver(chatbg) then
+			if lineNumber < #messages then
+				lineNumber = lineNumber + 1
+				update = true
+			end
+		end
+	end
+	if event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+		if isOver(chatbg) then
+			if lineNumber > maxlines then
+				lineNumber = lineNumber - 1
+				update = true
+			end
+		end	
+	end
+
 	if update then
 		MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	end
 
 	-- always eat mouse inputs if its within the broader chatbox
-	if  event.DeviceInput.button == "DeviceButton_left mouse button"and isOver(chatbg) then
+	if  event.DeviceInput.button == "DeviceButton_left mouse button"and isOver(bg) then
 		return true
 	end
+
 	return update or typing
 end
 
