@@ -1888,7 +1888,7 @@ DownloadManager::UploadScores()
 			toUpload.pop_front();
 			auto& hs = (*it);
 			DLMAN->UploadScoreWithReplayDataFromDisk(
-			  hs->GetChartKey(), [hs, toUpload, lambda]() {
+			  hs->GetScoreKey(), [hs, toUpload, lambda]() {
 				  hs->AddUploadedServer(serverURL.Get());
 				  lambda();
 			  });
