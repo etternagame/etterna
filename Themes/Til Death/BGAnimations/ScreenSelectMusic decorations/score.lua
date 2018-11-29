@@ -71,7 +71,7 @@ local function updateLeaderBoardForCurrentChart()
 			DLMAN:RequestChartLeaderBoardFromOnline(
 				steps:GetChartKey(),
 				function(leaderboard)
-					moped:playcommand("SetFromLeaderboard", leaderboard)
+					moped:queuecommand("SetFromLeaderboard", leaderboard)
 				end
 			)
 		else
