@@ -431,9 +431,11 @@ function input(event)
 	
 	
 	-- right click over the chat to minimize
-	if  event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress" and isOver(bg) then
-		minimised = not minimised
-		MESSAGEMAN:Broadcast("Minimise")
+	if  event.DeviceInput.button == "DeviceButton_right mouse button" and isOver(bg) then
+		if event.type == "InputEventType_FirstPress" then
+			minimised = not minimised
+			MESSAGEMAN:Broadcast("Minimise")
+		end
 		return true
 	end
 
