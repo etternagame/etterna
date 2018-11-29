@@ -1051,11 +1051,6 @@ ScreenGameplay::LoadNextSong()
 			pi->GetPlayerStageStats()->m_bFailed) // already failed
 			pi->ShowOniGameOver();
 
-		if (pi->GetPlayerState()->m_PlayerOptions.GetStage().m_LifeType ==
-			  LifeType_Bar &&
-			pi->m_pLifeMeter)
-			pi->m_pLifeMeter->UpdateNonstopLifebar();
-
 		if (pi->m_pStepsDisplay)
 			pi->m_pStepsDisplay->SetFromSteps(pSteps);
 
