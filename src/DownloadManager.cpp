@@ -1426,8 +1426,8 @@ DownloadManager::RequestReplayData(string scoreid,
 					  static_cast<TapNoteType>(note[3].get<int>()));
 				}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
-			auto it =
-			  find_if(lbd.begin(), lbd.end(), [userid, username](auto& a) {
+			auto it = find_if(
+			  lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
 				  return a.userid == userid && a.username == username;
 			  });
 			if (it != lbd.end()) {
