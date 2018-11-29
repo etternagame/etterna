@@ -59,7 +59,7 @@ function PackList:FilterAndSearch(name, avgMin, avgMax, sizeMin, sizeMax)
             local d = x[getAvgDiffPropName](x)
             local n = x[getNamePropName](x)
             local s = x[getSizePropName](x)
-            local valid = string.lower(n):sub(1, #name) == string.lower(name)
+            local valid = string.find(string.lower(n), string.lower(name))
             if d > 0 then
                 if avgMin > 0 then
                     valid = valid and d > avgMin
