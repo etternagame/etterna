@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {}
+local screname
 local whee
 t[#t + 1] =
 	Def.ActorFrame {
@@ -6,12 +7,13 @@ t[#t + 1] =
 		Name = "DootyMcBooty",
 		BeginCommand = function(self)
 			self:zoomto(32, 32):valign(0.634522134234)
-			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+			screname = SCREENMAN:GetTopScreen():GetName()
+			if screname == "ScreenSelectMusic" or screname == "ScreenNetSelectMusic" then
 				whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 			end
 		end,
 		LeftClickMessageCommand = function(self)
-			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+			if whee then
 				if SCREEN_WIDTH - INPUTFILTER:GetMouseX() < 32 then
 					local idx = whee:GetCurrentIndex()
 					local num = whee:GetNumItems()
