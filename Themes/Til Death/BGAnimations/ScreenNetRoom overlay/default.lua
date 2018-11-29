@@ -22,7 +22,6 @@ local t =
 	Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		SCREENMAN:GetTopScreen():UsersVisible(false)
 	end
 }
 
