@@ -782,6 +782,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					break;
 				case ettps_selectchart: {
+					n->gameplayLeaderboard.clear();
 					auto ch = (*payload).at("chart");
 					FindJsonChart(n, ch);
 					json j;
@@ -795,6 +796,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					Send(j);
 				} break;
 				case ettps_startchart: {
+					n->gameplayLeaderboard.clear();
 					n->m_EvalPlayerData.clear();
 					auto ch = (*payload).at("chart");
 					FindJsonChart(n, ch);
@@ -821,9 +823,17 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
 				} break;
-				case ettps_gameplayleaderboard:
-
-					break;
+				case ettps_gameplayleaderboard: {
+					auto& scores = (*payload)["scores"];
+					for (json::iterator it = scores.begin(); it != scores.end();
+						 ++it) {
+						float wife = (*it)["wife"];
+						string user = (*it)["user"].get<string>();
+						n->gameplayLeaderboard[user].wife = wife;
+					}
+					Message msg("GameplayUpdate");
+					MESSAGEMAN->Broadcast(msg);
+				} break;
 				case ettps_createroomresponse: {
 					bool created = (*payload)["created"];
 					inRoom = created;
@@ -1026,6 +1036,18 @@ ETTProtocol::SendChat(const RString& message, string tab, int type)
 	payload["msgtype"] = type;
 	chatMsg["id"] = msgId++;
 	Send(chatMsg);
+}
+void
+ETTProtocol::SendGameplayUpdate(float wife)
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_gameplayupdate];
+	auto& payload = j["payload"];
+	payload["wife"] = wife;
+	j["id"] = msgId++;
+	Send(j);
 }
 void
 ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
@@ -1289,6 +1311,13 @@ NetworkSyncManager::SendChat(const RString& message, string tab, int type)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendChat(message, tab, type);
+}
+
+void
+NetworkSyncManager::SendGameplayUpdate(float wife)
+{
+	if (curProtocol != nullptr)
+		curProtocol->SendGameplayUpdate(wife);
 }
 
 int
@@ -1654,6 +1683,18 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #endif
 
 void
+NetworkSyncManager::PushGameplayLeaderboard(lua_State* L)
+{
+	lua_newtable(L);
+	for (auto& pair : gameplayLeaderboard) {
+		lua_newtable(L);
+		lua_pushnumber(L, pair.second.wife);
+		lua_setfield(L, -2, "wife");
+		lua_setfield(L, -2, pair.first.c_str());
+	}
+	return;
+}
+void
 ChartRequest::PushSelf(lua_State* L)
 {
 	lua_createtable(L, 0, 3);
@@ -1710,6 +1751,12 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		lua_pushboolean(L, p->IsETTP());
 		return 1;
 	}
+	static int GetGameplayLeaderboard(T* p, lua_State* L)
+	{
+		auto& lbd = NSMAN->gameplayLeaderboard;
+		NSMAN->PushGameplayLeaderboard(L);
+		return 1;
+	}
 	static int GetChartRequests(T* p, lua_State* L)
 	{
 		auto& reqs = p->requests;
@@ -1762,6 +1809,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	}
 	LunaNetworkSyncManager()
 	{
+		ADD_METHOD(GetGameplayLeaderboard);
 		ADD_METHOD(GetChatMsg);
 		ADD_METHOD(SendChatMsg);
 		ADD_METHOD(Login);

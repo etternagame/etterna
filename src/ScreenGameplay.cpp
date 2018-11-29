@@ -1360,6 +1360,15 @@ ScreenGameplay::BeginScreen()
 	} else {
 		StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
 	}
+	if (GAMESTATE->m_bPlayingMulti) {
+		this->SetInterval(
+		  [this]() {
+			  NSMAN->SendGameplayUpdate(
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore);
+		  },
+		  1,
+		  -1);
+	}
 }
 
 bool

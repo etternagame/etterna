@@ -150,6 +150,11 @@ class ChartRequest
 
 class EzSockets;
 class StepManiaLanServer;
+class GameplayScore
+{
+  public:
+	float wife;
+};
 
 class PacketFunctions
 {
@@ -226,6 +231,7 @@ class NetProtocol
 	virtual void OffOptions(){};
 	virtual void OnEval(){};
 	virtual void OffEval(){};
+	virtual void SendGameplayUpdate(float wife){};
 };
 
 class ETTProtocol : public NetProtocol
@@ -264,6 +270,7 @@ class ETTProtocol : public NetProtocol
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
+	void SendGameplayUpdate(float wife) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
 	void Send(json msg);
@@ -368,6 +375,8 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
+	void SendGameplayUpdate(float wife);
+
 	// Used for chatting
 	void SendChat(const RString& message,
 				  string tab = "",
@@ -382,6 +391,8 @@ class NetworkSyncManager
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
+	map<string, GameplayScore> gameplayLeaderboard;
+	void PushGameplayLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;
 	int rate;
