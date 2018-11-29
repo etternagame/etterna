@@ -76,7 +76,6 @@ chat.ScreenChangedMessageCommand = function(self)
 	currentScreen = s:GetName()
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
-	SCREENMAN:SystemMessage(currentScreen .. tostring(isGameplay))
 	if isGameplay then
 		self:visible(false)
 		show = false
