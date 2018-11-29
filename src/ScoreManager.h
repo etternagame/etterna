@@ -173,14 +173,22 @@ class ScoreManager
 	vector<string> GetSortedKeys();
 
 	void PushSelf(lua_State* L);
-	HighScore* GetMostRecentScore() { return AllScores.back(); }
+	HighScore* GetMostRecentScore()
+	{
+		if (camefromreplay)
+			return tempscoreforonlinereplayviewing;
+		return AllScores.back();
+	}
 	void PutScoreAtTheTop(string scorekey)
 	{
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());
 	}
 	const vector<HighScore*>& GetAllScores() { return AllScores; }
-	const unordered_map<string, HighScore*>& GetScoresByKey(){return ScoresByKey;}
+	const unordered_map<string, HighScore*>& GetScoresByKey()
+	{
+		return ScoresByKey;
+	}
 	const vector<HighScore*>& GetAllProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	{
@@ -204,6 +212,9 @@ class ScoreManager
 
 	void PurgeProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+
+	bool camefromreplay = false;
+	HighScore* tempscoreforonlinereplayviewing;
 
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>

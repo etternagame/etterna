@@ -11,15 +11,14 @@
 static void
 LogVideoDriverInfo(VideoDriverInfo info)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-	{
+	if (PREFSMAN->m_verbose_log > 1) {
 		LOG->Info("Video driver: %s [%s]",
-			info.sDescription.c_str(),
-			info.sProvider.c_str());
+				  info.sDescription.c_str(),
+				  info.sProvider.c_str());
 		LOG->Info("              %s, %s [%s]",
-			info.sVersion.c_str(),
-			info.sDate.c_str(),
-			info.sDeviceID.c_str());
+				  info.sVersion.c_str(),
+				  info.sDate.c_str(),
+				  info.sDeviceID.c_str());
 	}
 }
 
@@ -50,7 +49,8 @@ GetDisplayDriverDebugInfo()
 		if (!GetVideoDriverInfo(i, info))
 			break;
 
-		if (sPrimaryDeviceName == "") // failed to get primary display name (NT4)
+		if (sPrimaryDeviceName ==
+			"") // failed to get primary display name (NT4)
 		{
 			LogVideoDriverInfo(info);
 			LoggedSomething = true;
@@ -294,16 +294,16 @@ GetSoundDriverDebugInfo()
 			LOG->Info(wo_ssprintf(ret, "waveOutGetDevCaps(%i) failed", i));
 			continue;
 		}
-		if(PREFSMAN->m_verbose_log > 1)
-			LOG->Info("Sound device %i: %s, %i.%i, MID %i, PID %i %s",
-					  i,
-					  caps.szPname,
-					  HIBYTE(caps.vDriverVersion),
-					  LOBYTE(caps.vDriverVersion),
-					  caps.wMid,
-					  caps.wPid,
-					  caps.dwSupport & WAVECAPS_SAMPLEACCURATE ? ""
-															   : "(INACCURATE)");
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Info(
+			  "Sound device %i: %s, %i.%i, MID %i, PID %i %s",
+			  i,
+			  caps.szPname,
+			  HIBYTE(caps.vDriverVersion),
+			  LOBYTE(caps.vDriverVersion),
+			  caps.wMid,
+			  caps.wPid,
+			  caps.dwSupport & WAVECAPS_SAMPLEACCURATE ? "" : "(INACCURATE)");
 	}
 }
 

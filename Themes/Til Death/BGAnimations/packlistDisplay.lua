@@ -31,7 +31,7 @@ local function highlightIfOver(self)
 	end
 end
 
-local packlist
+packlist = {}
 local packtable
 local o =
 	Def.ActorFrame {
@@ -41,8 +41,7 @@ local o =
 	end,
 	BeginCommand = function(self)
 		self:SetUpdateFunction(highlight)
-		packlist = DLMAN:GetPacklist()
-		packlist:SetFromAll()
+		packlist = PackList:new()
 		self:queuecommand("PackTableRefresh")
 	end,
 	PackTableRefreshCommand = function(self)
@@ -71,9 +70,11 @@ local o =
 		ind = ind - numpacks
 		self:queuecommand("Update")
 	end,
-	Def.Quad {InitCommand = function(self)
+	Def.Quad {
+		InitCommand = function(self)
 			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(color("#888888"))
-		end},
+		end
+	},
 	-- headers
 	Def.Quad {
 		InitCommand = function(self)

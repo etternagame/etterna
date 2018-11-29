@@ -966,6 +966,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	vector<float> offsets = hs->GetOffsetVector();
 	vector<int> columns = hs->GetTrackVector();
 	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+	vector<int> rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		vector<float>& timestamps = hs->timeStamps;
@@ -974,7 +975,8 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
 			replayString += to_string(columns[i]) + ",";
-			replayString += to_string(types[i]);
+			replayString += to_string(types[i]) + ",";
+			replayString += to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
@@ -1035,7 +1037,8 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	return;
 }
 void // not tested exhaustively -mina
-DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
+DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
+												   function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
@@ -1054,6 +1057,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	vector<float> offsets = hs->GetOffsetVector();
 	vector<int> columns = hs->GetTrackVector();
 	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+	auto& rows = hs->GetNoteRowVector();
 
 	if (offsets.size() > 0) {
 		replayString = "[";
@@ -1064,10 +1068,11 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]);
 			if (hs->GetReplayType() == 2) {
-				replayString += to_string(columns[i]) + ",";
-				replayString += to_string(types[i]);
+				replayString += "," + to_string(columns[i]) + ",";
+				replayString += to_string(types[i]) + ",";
+				replayString += to_string(rows[i]);
 			}
 			replayString += "],";
 		}
@@ -1081,7 +1086,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs](HTTPRequest& req, CURLMsg*) {
+	auto done = [this, hs, callback](HTTPRequest& req, CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		json j;
@@ -1123,6 +1128,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 			}
 		} catch (exception e) {
 		}
+		callback();
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -1388,6 +1394,79 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
+DownloadManager::RequestReplayData(string scoreid,
+								   int userid,
+								   string username,
+								   string chartkey,
+								   LuaReference callback)
+{
+	auto done = [scoreid, callback, userid, username, chartkey](
+				  HTTPRequest& req, CURLMsg*) {
+		try {
+			vector<pair<float, float>> replayData;
+
+			vector<float> timestamps;
+			vector<float> offsets;
+			vector<int> tracks;
+			vector<TapNoteType> types;
+
+			auto j = json::parse(req.result);
+			if (j.find("errors") != j.end())
+				throw exception();
+			auto replay = j.find("data")->find("attributes")->find("replay");
+			if (!replay->is_null() && replay->size() > 1)
+				for (auto& note : *replay) {
+					replayData.emplace_back(
+					  make_pair(note[0].get<float>(), note[1].get<float>()));
+
+					timestamps.emplace_back(note[0].get<float>());
+					offsets.emplace_back(note[1].get<float>() / 1000.f);
+					tracks.emplace_back(note[2].get<int>());
+					types.emplace_back(
+					  static_cast<TapNoteType>(note[3].get<int>()));
+				}
+			auto& lbd = DLMAN->chartLeaderboards[chartkey];
+			auto it =
+			  find_if(lbd.begin(), lbd.end(), [userid, username](auto& a) {
+				  return a.userid == userid && a.username == username;
+			  });
+			if (it != lbd.end()) {
+				it->hs.SetOnlineReplayTimestampVector(timestamps);
+				it->hs.SetOffsetVector(offsets);
+				it->hs.SetTrackVector(tracks);
+				it->hs.SetTapNoteTypeVector(types);
+			}
+			auto L = LUA->Get();
+			callback.PushSelf(L);
+			RString Error =
+			  "Error running RequestChartLeaderBoard Finish Function: ";
+			lua_newtable(L); // dunno whats going on here -mina
+			for (unsigned i = 0; i < replayData.size(); ++i) {
+				auto& pair = replayData[i];
+				lua_newtable(L);
+				lua_pushnumber(L, pair.first);
+				lua_rawseti(L, -2, 1);
+				lua_pushnumber(L, pair.second);
+				lua_rawseti(L, -2, 2);
+				lua_rawseti(L, -2, i + 1);
+			}
+			it->hs.PushSelf(L);
+			LuaHelpers::RunScriptOnStack(
+			  L, Error, 2, 0, true); // 2 args, 0 results
+			LUA->Release(L);
+		} catch (exception e) {
+			LOG->Trace(
+			  (string("Replay data request failed for") + scoreid + e.what())
+				.c_str());
+		}
+	};
+	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
+				vector<pair<string, string>>(),
+				done,
+				true);
+}
+
+void
 DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
@@ -1405,7 +1484,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				OnlineScore tmp;
 				// tmp.songId = score.value("songId", 0);
 				auto user = *(score.find("user"));
-				tmp.songId = score.value("songId", 0);
+				tmp.songId = score.value("songId", "");
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
@@ -1440,17 +1519,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				FOREACH_ENUM(Skillset, ss)
 				tmp.SSRs[ss] = static_cast<float>(
 				  ssrs.value(SkillsetToString(ss).c_str(), 0.0));
-
-				/*try {
-					auto replay = score["replay"];
-					if (replay.size() > 1)
-						LOG->Trace(tmp.modifiers.c_str());
-					for (auto pair : replay)
-						tmp.replayData.emplace_back(make_pair(
-						  pair[0].get<float>(), pair[1].get<float>()));
-				} catch (exception e) {
-					// replaydata failed
-				} */
+				tmp.hasReplay = score["hasReplay"];
 
 				// eo still has some old profiles with various edge issues that
 				// unfortunately need to be handled here screen out old 11111
@@ -1478,6 +1547,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
+				hs.SetChartKey(chartkey);
 
 				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
 				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
@@ -1504,33 +1574,23 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 			// json failed
 		}
 
-		Message msg("ChartLeaderboardUpdate");
-		vector<HighScore*> leaderboardHS;
-		// This is like a functional map
-		transform(vec.begin(),
-				  vec.end(),
-				  back_inserter(leaderboardHS),
-				  [](OnlineScore s) { return &(s.hs); });
-
 		if (!ref.IsNil() && ref.IsSet()) {
 			Lua* L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				RString Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+				lua_newtable(L);
+				for (unsigned i = 0; i < vec.size(); ++i) {
+					auto& s = vec[i];
+					s.Push(L);
+					lua_rawseti(L, -2, i + 1);
+				}
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 1, 0, true); // 1 args, 0 results
 			}
 			LUA->Release(L);
 		}
-		// float ProbablyUnderratedness =
-		// mythicalmathymathsProbablyUnderratedness(chartkey);  float coop =
-		// overratedness(chartkey);
-		// Renaming these 2 requires renaming them in lua wherever theyre used
-		// msg.SetParam("mmm", ProbablyUnderratedness);
-		// msg.SetParam("ixmixblixb", 2);
-		MESSAGEMAN->Broadcast(msg);
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
 				vector<pair<string, string>>(),
@@ -1811,14 +1871,30 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 	auto scores = SCOREMAN->GetAllPBPtrs();
+	deque<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
-			if (!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				UploadScore(scorePtr);
-				scorePtr->AddUploadedServer(serverURL.Get());
+			auto ts = scorePtr->GetTopScore();
+			if ((ts == 1 || ts == 2) &&
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				toUpload.emplace_back(scorePtr);
 			}
 		}
 	}
+	function<void()> lambda;
+	lambda = [toUpload, lambda]() mutable {
+		auto& it = toUpload.begin();
+		if (it != toUpload.end()) {
+			toUpload.pop_front();
+			auto& hs = (*it);
+			DLMAN->UploadScoreWithReplayDataFromDisk(
+			  hs->GetChartKey(), [hs, toUpload, lambda]() {
+				  hs->AddUploadedServer(serverURL.Get());
+				  lambda();
+			  });
+		}
+	};
+	lambda();
 	return true;
 }
 
@@ -1993,9 +2069,14 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushstring(L, DLMAN->countryCode.c_str());
 		return 1;
 	}
-	static int GetPacklist(T* p, lua_State* L)
+	static int GetAllPacks(T* p, lua_State* L)
 	{
-		DLMAN->pl.PushSelf(L);
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
 		return 1;
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
@@ -2231,6 +2312,21 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		return 1;
 	}
 
+	static int RequestOnlineScoreReplayData(T* p, lua_State* L)
+	{
+		OnlineHighScore* hs =
+		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
+		int userid = hs->userid;
+		string username = hs->GetDisplayName();
+		string scoreid = hs->scoreid;
+		string ck = hs->GetChartKey();
+		LuaReference f;
+		if (lua_isfunction(L, 2))
+			f = GetFuncArg(2, L);
+		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
+		return 0;
+	}
+
 	// This requests the leaderboard from online. This may cause lag.
 	// Use this sparingly.
 	// This will NOT request a leaderboard if it already exists for the
@@ -2246,18 +2342,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			ref.SetFromStack(L);
 		}
 		if (leaderboardScores.size() != 0) {
-			vector<HighScore*> leaderboardHS;
-			// This is like a functional map
-			transform(leaderboardScores.begin(),
-					  leaderboardScores.end(),
-					  back_inserter(leaderboardHS),
-					  [](OnlineScore s) { return &(s.hs); });
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
 					RString Error =
 					  "Error running RequestChartLeaderBoard Finish Function: ";
-					LuaHelpers::CreateTableFromArray(leaderboardHS, L);
+					lua_newtable(L);
+					for (unsigned i = 0; i < leaderboardScores.size(); ++i) {
+						auto& s = leaderboardScores[i];
+						s.Push(L);
+						lua_rawseti(L, -2, i + 1);
+					}
 					LuaHelpers::RunScriptOnStack(
 					  L, Error, 1, 0, true); // 1 args, 0 results
 				}
@@ -2332,7 +2427,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
-		ADD_METHOD(GetPacklist);
+		ADD_METHOD(GetAllPacks);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
 		ADD_METHOD(GetToken);
@@ -2348,6 +2443,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
+		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
 		// This does not actually request the leaderboard from online.
 		// It gets the already retrieved data from DLMAN
@@ -2362,156 +2458,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager)
-
-class LunaPacklist : public Luna<Packlist>
-{
-  public:
-	static int GetPackTable(T* p, lua_State* L)
-	{
-		LuaHelpers::CreateTableFromArray(p->packs, L);
-		return 1;
-	}
-	static int SetFromCoreBundle(T* p, lua_State* L)
-	{
-		p->packs.clear();
-		p->packs = DLMAN->GetCoreBundle(SArg(1));
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	static int FilterAndSearch(T* p, lua_State* L)
-	{
-		if (lua_gettop(L) < 5) {
-			return luaL_error(L,
-							  "GetFilteredAndSearchedPackList expects exactly "
-							  "5 arguments(packname, lower diff, upper diff, "
-							  "lower size, upper size)");
-		}
-		string name = SArg(1);
-		double avgLower = max(luaL_checknumber(L, 2), 0.0);
-		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
-		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
-		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
-
-		p->packs.clear();
-		auto& packs = DLMAN->downloadablePacks;
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			if (packs[i].avgDifficulty >= avgLower &&
-				findStringIC(packs[i].name, name) &&
-				(avgUpper <= 0 || packs[i].avgDifficulty < avgUpper) &&
-				packs[i].size >= sizeLower &&
-				(sizeUpper <= 0 || packs[i].size < sizeUpper))
-				p->packs.push_back(&packs[i]);
-		}
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	static int GetTotalSize(T* p, lua_State* L)
-	{
-		size_t totalsize = 0;
-		for (auto n : p->packs)
-			totalsize += n->size;
-		lua_pushnumber(L, totalsize / 1024 / 1024);
-		return 1;
-	}
-	static int GetAvgDiff(T* p, lua_State* L)
-	{
-		float avgpackdiff = 0.f;
-		for (auto n : p->packs)
-			avgpackdiff += n->avgDifficulty;
-		if (!p->packs.empty())
-			avgpackdiff /= p->packs.size();
-		lua_pushnumber(L, avgpackdiff);
-		return 1;
-	}
-	// i guess these should be internal functions and lua just calls them huh
-	// -mina
-	static int SortByName(T* p, lua_State* L)
-	{
-		if (p->sortmode == 1)
-			if (p->asc) {
-				auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-					return Rage::make_lower(a->name) >
-						   Rage::make_lower(b->name);
-				}; // custom operators?
-				sort(p->packs.begin(), p->packs.end(), comp);
-				p->asc = false;
-				return 0;
-			}
-		auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-			return Rage::make_lower(a->name) < Rage::make_lower(b->name);
-		};
-		sort(p->packs.begin(), p->packs.end(), comp);
-		p->sortmode = 1;
-		p->asc = true;
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	static int SortByDiff(T* p, lua_State* L)
-	{
-		auto& packs = p->packs;
-		if (p->sortmode == 2)
-			if (p->asc) {
-				auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-					return (a->avgDifficulty < b->avgDifficulty);
-				};
-				sort(packs.begin(), packs.end(), comp);
-				p->asc = false;
-				return 0;
-			}
-		auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-			return (a->avgDifficulty > b->avgDifficulty);
-		};
-		sort(packs.begin(), packs.end(), comp);
-		p->sortmode = 2;
-		p->asc = true;
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	static int SortBySize(T* p, lua_State* L)
-	{
-		auto& packs = p->packs;
-		if (p->sortmode == 3)
-			if (p->asc) {
-				auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-					return (a->size < b->size);
-				};
-				sort(packs.begin(), packs.end(), comp);
-				p->asc = false;
-				return 0;
-			}
-		auto comp = [](DownloadablePack* a, DownloadablePack* b) {
-			return (a->size > b->size);
-		};
-		sort(packs.begin(), packs.end(), comp);
-		p->sortmode = 3;
-		p->asc = true;
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	static int SetFromAll(T* p, lua_State* L)
-	{
-		auto& packs = DLMAN->downloadablePacks;
-		p->packs.clear();
-		for (auto& n : packs)
-			p->packs.emplace_back(&n);
-		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 0;
-	}
-	LunaPacklist()
-	{
-		ADD_METHOD(GetPackTable);
-		ADD_METHOD(GetTotalSize);
-		ADD_METHOD(GetAvgDiff);
-		ADD_METHOD(SetFromCoreBundle);
-		ADD_METHOD(SortByName);
-		ADD_METHOD(SortByDiff);
-		ADD_METHOD(SortBySize);
-		ADD_METHOD(FilterAndSearch);
-		ADD_METHOD(SetFromAll);
-	}
-};
-
-LUA_REGISTER_CLASS(Packlist)
 
 class LunaDownloadablePack : public Luna<DownloadablePack>
 {

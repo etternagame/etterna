@@ -23,7 +23,13 @@ local t =
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
-	CurrentSongChanged = function()
+	CurrentSongChangedMessageCommand = function()
+		-- This will disable mirror when switching songs if OneShotMirror is enabled or if permamirror is flagged on the chart (it is enabled if so in screengameplayunderlay/default)
+		if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).OneShotMirror or profile:IsCurrentChartPermamirror() then
+			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
+			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
+			playeroptions:Mirror(false)
+		end
 		if getTabIndex() ~= 0 then
 			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
 		end
@@ -48,6 +54,7 @@ local t =
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 					song:Borp()
+					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				end
 				heyiwasusingthat = false
 			end
@@ -134,7 +141,10 @@ local function toggleNoteField()
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
-			song:Borp()
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
+				song:Borp()
+			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
 	end
@@ -496,6 +506,7 @@ t[#t + 1] =
 		Name = "Banner",
 		InitCommand = function(self)
 			self:x(10):y(61):halign(0):valign(0)
+			self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
 		end,
 		MintyFreshCommand=function(self)
 			if INPUTFILTER:IsBeingPressed("tab") then

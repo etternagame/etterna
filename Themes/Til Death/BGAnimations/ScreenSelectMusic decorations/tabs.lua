@@ -9,7 +9,8 @@ local function input(event)
 		if numericinputactive == false then
 			if
 				not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or
-					(SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic"))
+					(SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic" and
+					 SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic"))
 			 then
 				if event.DeviceInput.button == "DeviceButton_0" then
 					setTabIndex(9)
@@ -31,6 +32,7 @@ end
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
+		MESSAGEMAN:Broadcast("AddMPChatInput")
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		resetTabIndex()
 	end,

@@ -26,7 +26,6 @@
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
-AutoScreenMessage(SM_SMOnlinePack);
 
 REGISTER_SCREEN_CLASS(ScreenNetSelectBase);
 

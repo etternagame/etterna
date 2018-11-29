@@ -435,8 +435,7 @@ ScreenEvaluation::Init()
 				  m_sprPossibleBar[p][r].GetUnzoomedWidth() * actual *
 				  fDivider);
 
-				float value = 100.f *
-							  m_sprActualBar[p][r].GetUnzoomedWidth() /
+				float value = 100.f * m_sprActualBar[p][r].GetUnzoomedWidth() /
 							  m_sprPossibleBar[p][r].GetUnzoomedWidth();
 				LOG->Trace("Radar bar %d of 5 - %f percent", r, value);
 
@@ -763,26 +762,24 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			CodeDetector::EnteredCode(input.GameI.controller,
 									  CODE_SAVE_SCREENSHOT2)) {
 			PlayerNumber pn = input.pn;
-			bool bHoldingShift =
-				(INPUTFILTER->IsBeingPressed(
-					DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
-				INPUTFILTER->IsBeingPressed(
-					DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
+			bool bHoldingShift = (INPUTFILTER->IsBeingPressed(
+									DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+								  INPUTFILTER->IsBeingPressed(
+									DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
 			RString sDir;
 			RString sFileName;
 			// To save a screenshot to your own profile you must hold shift
 			// and press the button it saves compressed so you don't end up
 			// with an inflated profile size
-			// Otherwise, you can tap away at the screenshot button without holding shift.
-			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn))
-			{
-				if (!m_bSavedScreenshot[pn])
-				{
+			// Otherwise, you can tap away at the screenshot button without
+			// holding shift.
+			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn)) {
+				if (!m_bSavedScreenshot[pn]) {
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
-									"Screenshots/";
-					sFileName =
-					  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+						   "Screenshots/";
+					sFileName = StepMania::SaveScreenshot(
+					  sDir, bHoldingShift, true, "", "");
 					if (!sFileName.empty()) {
 						RString sPath = sDir + sFileName;
 
@@ -797,9 +794,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					}
 					m_bSavedScreenshot[pn] = true;
 				}
-			}
-			else
-			{
+			} else {
 				sDir = "Screenshots/";
 				sFileName =
 				  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
@@ -863,9 +858,15 @@ ScreenEvaluation::HandleMenuStart()
 		GAMEMAN->m_bResetModifiers = false;
 		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().ResetModsToStringVector(oldturns);
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetSong()
+			  .ResetModsToStringVector(oldturns);
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetCurrent()
+			  .ResetModsToStringVector(oldturns);
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetPreferred()
+			  .ResetModsToStringVector(oldturns);
 			GAMEMAN->m_bResetTurns = false;
 			GAMEMAN->m_vTurnsToReset.clear();
 		}

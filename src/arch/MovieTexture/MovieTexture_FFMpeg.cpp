@@ -295,8 +295,8 @@ MovieDecoder_FFMpeg::DecodePacket(float fTargetTime)
 		}
 
 		if (m_Frame->pkt_dts != AV_NOPTS_VALUE) {
-			m_fTimestamp =
-				static_cast<float>(m_Frame->pkt_dts * av_q2d(m_pStream->time_base));
+			m_fTimestamp = static_cast<float>(m_Frame->pkt_dts *
+											  av_q2d(m_pStream->time_base));
 		} else {
 			/* If the timestamp is zero, this frame is to be played at the
 			 * time of the last frame plus the length of the last frame. */

@@ -32,8 +32,8 @@ RageMovieTexture::GetFourCC(const RString& fn, RString& handler, RString& type)
 		return true;
 	}
 
-		// Not very pretty but should do all the same error checking without
-		// iostream
+	// Not very pretty but should do all the same error checking without
+	// iostream
 #define HANDLE_ERROR(x)                                                        \
 	{                                                                          \
 		LOG->Warn("Error reading %s: %s", fn.c_str(), x);                      \

@@ -21,7 +21,7 @@
 #include "Song.h"
 #include "GamePreferences.h"
 
-#ifndef  _WIN32
+#ifndef _WIN32
 #include <cpuid.h>
 #endif
 
@@ -236,7 +236,7 @@ uint16_t
 getCpuHash()
 {
 	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
-	__get_cpuid(0, &cpuinfo[0], &cpuinfo[1], &cpuinfo[2], &cpuinfo[3]);	
+	__get_cpuid(0, &cpuinfo[0], &cpuinfo[1], &cpuinfo[2], &cpuinfo[3]);
 	uint16_t hash = 0;
 	uint32_t* ptr = (&cpuinfo[0]);
 	for (uint32_t i = 0; i < 4; i++)
@@ -607,6 +607,8 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool bSummary)
 {
+	SCOREMAN->camefromreplay =
+	  false; // if we're viewing an online replay this gets set to true -mina
 	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
 		FOREACH_PlayerNumber(pn)
 		{
@@ -653,8 +655,20 @@ StageStats::FinalizeScores(bool bSummary)
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData) {
-			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
-			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
+				   .empty()) {
+				SCOREMAN->tempscoreforonlinereplayviewing =
+				  PlayerAI::pScoreData;
+				SCOREMAN->tempscoreforonlinereplayviewing->SetRadarValues(
+				  hs.GetRadarValues());
+				SCOREMAN->camefromreplay = true;
+			} else { // dont do this if the replay was from online or bad stuff
+					 // happens -mina
+				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+				SCOREMAN->GetMostRecentScore()->SetRadarValues(
+				  hs.GetRadarValues());
+			}
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;

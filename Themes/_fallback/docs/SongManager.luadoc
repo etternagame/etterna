@@ -1,0 +1,275 @@
+--- SongManager singleton
+-- @classmod SongManager
+
+--[[--
+ 		Returns <code>true</code> if the specified course group exists.
+	  @return bool
+--]]
+function SongManager:DoesCourseGroupExist(string, sGroup)
+end
+
+--[[--
+ 		Returns <code>true</code> if the specified song group exists.
+	  @return bool
+--]]
+function SongManager:DoesSongGroupExist(string, sGroup)
+end
+
+--[[--
+ 		Returns a Course if one matching <code>sCourse</code> is found.
+	  @return Course
+--]]
+function SongManager:FindCourse(string, sCourse)
+end
+
+--[[--
+ 		Returns a Song if one matching <code>sSong</code> is found.
+	  @return Song
+--]]
+function SongManager:FindSong(string, sSong)
+end
+
+--[[--
+ 		Returns an array of all the installed courses.
+	  @return {Course}
+--]]
+function SongManager:GetAllCourses(bool, bIncludeAutogen)
+end
+
+--[[--
+ 		Returns an array of all the installed songs.
+	  @return {Song}
+--]]
+function SongManager:GetAllSongs()
+end
+
+--[[--
+ 		Returns the course color of Course <code>c</code>.
+	  @return color
+--]]
+function SongManager:GetCourseColor(Course, c)
+end
+
+--[[--
+ 		Returns the path to the specified course group's banner.
+	  @return string
+--]]
+function SongManager:GetCourseGroupBannerPath(string, sGroup)
+end
+
+--[[--
+ 		Returns a table containing all of the course group names.
+	  @return {string}
+--]]
+function SongManager:GetCourseGroupNames()
+end
+
+--[[--
+ 		Returns a table with all of the courses in the specified group.
+	  @return {Course}
+--]]
+function SongManager:GetCoursesInGroup(string, sGroup, bool, bIncludeAutogen)
+end
+
+--[[--
+ 		Returns the extra stage info (Song, Steps) for the specified Style <code>s</code>. (If <code>bExtra2</code> is true, it will use the second Extra Stage data instead of the first. Again, Lua.xsd sucks)
+	  @return various
+--]]
+function SongManager:GetExtraStageInfo(bool, bExtra2, Style, s)
+end
+
+--[[--
+ 		Returns the number of courses loaded via Additional folders.
+	  @return int
+--]]
+function SongManager:GetNumAdditionalCourses()
+end
+
+--[[--
+ 		Returns the number of songs loaded via Additional folders.
+	  @return int
+--]]
+function SongManager:GetNumAdditionalSongs()
+end
+
+--[[--
+ 		Returns the number of course groups.
+	  @return int
+--]]
+function SongManager:GetNumCourseGroups()
+end
+
+--[[--
+ 		Returns the number of courses.
+	  @return int
+--]]
+function SongManager:GetNumCourses()
+end
+
+--[[--
+ 		Returns the number of selectable and unlocked songs.
+	  @return int
+--]]
+function SongManager:GetNumSelectableAndUnlockedSongs()
+end
+
+--[[--
+ 		Returns the number of song groups.
+	  @return int
+--]]
+function SongManager:GetNumSongGroups()
+end
+
+--[[--
+ 		Returns the number of songs.
+	  @return int
+--]]
+function SongManager:GetNumSongs()
+end
+
+--[[--
+ 		Returns the number of locked songs, regardless of reason for locking.
+	  @return int
+--]]
+function SongManager:GetNumLockedSongs()
+end
+
+--[[--
+ 		Returns the number of unlocked songs.
+	  @return int
+--]]
+function SongManager:GetNumUnlockedSongs()
+end
+
+--[[--
+ 		Returns a table of popular courses for the specified CourseType.
+	  @return {Course}
+--]]
+function SongManager:GetPopularCourses(CourseType, ct)
+end
+
+--[[--
+ 		Returns a table of popular songs.
+	  @return {Song}
+--]]
+function SongManager:GetPopularSongs()
+end
+
+--[[--
+ 		Returns a table of courses as they'd appear in preferred sort.
+	  @return {Course}
+--]]
+function SongManager:GetPreferredSortCourses(CourseType, ct, bool, bIncludeAutogen)
+end
+
+--[[--
+ 		Returns a table of songs as they'd appear in preferred sort.
+	  @return {Song}
+--]]
+function SongManager:GetPreferredSortSongs()
+end
+
+--[[--
+ 		Returns a random course.
+	  @return Course
+--]]
+function SongManager:GetRandomCourse()
+end
+
+--[[--
+ 		Returns a random song.
+	  @return Song
+--]]
+function SongManager:GetRandomSong()
+end
+
+--[[--
+ 		Returns the song color of Song <code>s</code>.
+	  @return color
+--]]
+function SongManager:GetSongColor(Song, s)
+end
+
+--[[--
+ 		Returns a Song given a set of Steps <code>st</code>.
+	  @return Song
+--]]
+function SongManager:GetSongFromSteps(Steps, st)
+end
+
+--[[--
+ 		Returns the path to the specified song group's banner.
+	  @return string
+--]]
+function SongManager:GetSongGroupBannerPath(string, sGroup)
+end
+
+--[[--
+ 		Returns the song group color of <code>sGroupName</code>.
+	  @return color
+--]]
+function SongManager:GetSongGroupColor(string, sGroupName)
+end
+
+--[[--
+ 		Returns a table containing all of the song group names.
+	  @return {string}
+--]]
+function SongManager:GetSongGroupNames()
+end
+
+--[[--
+ 		Returns the rank (popularity) of Song <code>s</code>.
+	  @return int
+--]]
+function SongManager:GetSongRank(Song, s)
+end
+
+--[[--
+ 		Returns a table containing all of the songs in group <code>sGroupName</code>.
+	  @return {Song}
+--]]
+function SongManager:GetSongsInGroup(string, sGroupName)
+end
+
+--[[--
+ 		Returns the shortened group name (based on entries in Translations.xml).
+	  @return string
+--]]
+function SongManager:ShortenGroupName(string, sGroupName)
+end
+
+--[[--
+ 		Loads preferred courses from <code>{theme}/Other/SongManager sListName.txt</code>.
+	  @return void
+--]]
+function SongManager:SetPreferredCourses(string, sListName)
+end
+
+--[[--
+ 		Loads preferred songs from <code>{theme}/Other/SongManager sListName.txt</code>.
+	  @return void
+--]]
+function SongManager:SetPreferredSongs(string, sListName)
+end
+
+--[[--
+ 		Returns the preferred sort section name for the specified Song.
+	  @return string
+--]]
+function SongManager:SongToPreferredSortSectionName(Song, s)
+end
+
+--[[--
+ 		Returns <code>true</code> if the specified course was loaded from AdditionalCourses.
+	  @return bool
+--]]
+function SongManager:WasLoadedFromAdditionalCourses(Course, c)
+end
+
+--[[--
+ 		Returns <code>true</code> if the specified song was loaded from AdditionalSongs.
+  @return bool
+--]]
+function SongManager:WasLoadedFromAdditionalSongs(Song, s)
+end

@@ -396,7 +396,8 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 						i++;
 					}
 
-					const int iIndex = BeatToNoteRow(static_cast<float>(fCurrentBeat));
+					const int iIndex =
+					  BeatToNoteRow(static_cast<float>(fCurrentBeat));
 					i--;
 					do {
 						c = sStepData[i++];

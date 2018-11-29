@@ -1,0 +1,149 @@
+--- DownloadManager singleton
+-- @classmod DownloadManager
+
+--[[--
+ 		Returns the packlist (Which is requested at startup automatically).
+	  @return PackList
+--]]
+function DownloadManager:GetPacklist()
+end
+
+--[[--
+ 		Returns an indexed table of the currently downloading downloadable packs.
+	  @return {DownloadablePack}
+--]]
+function DownloadManager:GetDownloadingPacks()
+end
+
+--[[--
+ 		Returns the currently logged in user's username (Or an empty string if not logged in)
+	  @return string
+--]]
+function DownloadManager:GetUsername()
+end
+
+--[[--
+ 		Returns the currently logged in user's online rank for the provided skillset
+	  @return PackList
+--]]
+function DownloadManager:GetSkillsetRank(string)
+end
+
+--[[--
+ 		Returns the currently logged in user's online MSD rating for the provided skillset
+	  @return PackList
+--]]
+function DownloadManager:GetSkillsetRating()
+end
+
+--[[--
+ 		Returns an indexed table with all the currently downloading download tables.
+	  @return {Download}
+--]]
+function DownloadManager:GetDownloads()
+end
+
+--[[--
+ 		Returns a boolean that indicates if the player is currently logged in to the API server
+	  @return bool
+--]]
+function DownloadManager:IsLoggedIn()
+end
+
+--[[--
+ 		Begins an asynchronous attempt to login with the provided username (First parameter) and password (Second one)
+	  @return void
+--]]
+function DownloadManager:Login(string, string)
+end
+
+--[[--
+ 		Begins an asynchronous attempt to login with the provided auth Token
+	  @return void
+--]]
+function DownloadManager:LoginWithToken(string)
+end
+
+--[[--
+ 		Ends the current session (If it exists)
+	  @return void
+--]]
+function DownloadManager:Logout()
+end
+
+--[[--
+ 		Returns the string for the latest version (According to the API server)
+	  @return string
+--]]
+function DownloadManager:GetLastVersion()
+end
+
+--[[--
+ 		Returns the Nth (First parameter) top online score for the given skillset (Second param)
+		The lua tables for Online Profile Scores are defined here: https://github.com/etternagame/etterna/blob/develop/src/DownloadManager.cpp#L1645-L1659
+		TODO: Properly document online profile cores
+	  @return OnlineProfileScore
+--]]
+function DownloadManager:GetTopSkillsetScore(float, string)
+end
+
+--[[--
+ 		Returns the amount of leaderboard scores for the given chart
+	  @return float
+--]]
+function DownloadManager:GetTopChartScoreCount(string)
+end
+
+--[[--
+ 		Returns the Nth (Second parameter) top online score for the given skillset (First param)
+		The lua tables for Online Chart Leaderboard Scores are defined here: https://github.com/etternagame/etterna/blob/develop/src/DownloadManager.cpp#L1686-L1727
+		TODO: Properly document online chart leaderboard scores
+	  @return ChartLeaderboardScore
+--]]
+function DownloadManager:GetTopChartScore(string, float)
+end
+
+--[[--
+ 		Returns the packs in the core bundle in an indexed table.
+		Additionally, the table has key TotalSize and AveragePackDifficulty 
+		with the appropiate values in it for ease of use.
+	  @return {DownloadablePack}
+--]]
+function DownloadManager:GetCoreBundle(string)
+end
+
+--[[--
+ 		Queues all the packs in the bundle named after the first parameter for download.
+	  @return void
+--]]
+function DownloadManager:DownloadCoreBundle(string)
+end
+
+--[[--
+ 			Returns the current Authenthication Token used for the server API.
+			It is recommended that themes store this to automatically relogin and not the username/password for security reasons.
+	  @return string
+--]]
+function DownloadManager:GetToken()
+end
+
+--[[--
+ 		Recieves a chartkey, and returns the online leaderboard for that chart.
+	  @return {HighScore}
+--]]
+function DownloadManager:RequestChartLeaderBoard(string)
+end
+
+--[[--
+ 		RetuSets rate filtering to the boolean passed for the chart leaderboards
+	  @return void
+--]]
+function DownloadManager:ToggleRateFilter(bool)
+end
+
+--[[--
+ 		Returns true if rate filtering is enabled for the chart leaderboards
+	  @return bool
+--]]
+function DownloadManager:GetCurrentRateFilter()
+end

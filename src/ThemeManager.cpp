@@ -388,8 +388,7 @@ ThemeManager::LoadThemeMetrics(const RString& sThemeName_,
 		g_pLoadedThemeData->iniMetrics.SetValue(sBits[0], sBits[1], sBits[2]);
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-	{
+	if (PREFSMAN->m_verbose_log > 1) {
 		LOG->MapLog("theme", "Theme: %s", m_sCurThemeName.c_str());
 		LOG->MapLog("language", "Language: %s", m_sCurLanguage.c_str());
 	}
@@ -1499,8 +1498,8 @@ class LunaThemeManager : public Luna<ThemeManager>
 		lua_pushstring(L, pi.sMatchingElement);
 		return 3;
 	}
-		// GENERAL_GET_PATH uses lua_toboolean instead of BArg because that
-		// makes it optional. -Kyz
+	// GENERAL_GET_PATH uses lua_toboolean instead of BArg because that
+	// makes it optional. -Kyz
 #define GENERAL_GET_PATH(get_path_name)                                        \
 	static int get_path_name(T* p, lua_State* L)                               \
 	{                                                                          \

@@ -144,8 +144,9 @@ class ProfileManager
 													   // of a signature
 													   // failure)
 	bool m_bLastLoadWasFromLastGood
-	  [NUM_PLAYERS]; // if true, then m_bLastLoadWasTamperedOrCorrupt is also
-					 // true
+	  [NUM_PLAYERS]; // if true, then
+					 // m_bLastLoadWasTamperedOrCorrupt
+					 // is also true
 	mutable bool m_bNeedToBackUpLastLoad[NUM_PLAYERS]; // if true, back up
 													   // profile on next save
 	bool m_bNewProfile[NUM_PLAYERS];

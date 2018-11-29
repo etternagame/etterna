@@ -379,7 +379,7 @@ Song::FinalizeLoading()
 	// save group name
 	vector<RString> sDirectoryParts;
 	split(m_sSongDir, "/", sDirectoryParts, false);
-	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	// ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
 	m_sGroupName =
 	  sDirectoryParts[sDirectoryParts.size() - 3]; // second from last item
 	ASSERT(m_sGroupName != "");
@@ -2056,7 +2056,8 @@ Song::Borp()
 	PlayParams.pTiming = nullptr;
 	PlayParams.bForceLoop = true;
 	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	PlayParams.fLengthSeconds =
+	  GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;

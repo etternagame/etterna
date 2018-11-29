@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.63.0.0"
+	VIProductVersion "0.64.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -545,17 +545,10 @@ Section "Main Section" SecMain
 	; documentation
 	CreateDirectory "$INSTDIR\Docs"
 	SetOutPath "$INSTDIR\Docs"
-	File "Docs\Licenses.txt"
-	File "Docs\credits.txt"
-	File "Docs\Changelog_sm-ssc.txt"
-	File "Docs\Changelog_sm5.txt"
-	File "Docs\Changelog_SSCformat.txt"
-	File "Docs\CommandLineArgs.txt"
-	File "Docs\CourseFormat.txt"
-	File "Docs\Userdocs\sm5_beginner.txt"
-	File /r /x CVS /x .svn "Docs\license-ext"
-	File /r /x CVS /x .svn "Docs\Luadoc"
-	File /r /x CVS /x .svn "Docs\Themerdocs"
+	File "LICENCE"
+	File "Docs\legacy\Licenses.txt"
+	File "Docs\legacy\credits.txt"
+	File /r /x CVS /x .svn "Docs\legacy\license-ext"
 
 	; Create Start Menu icons
 	SetShellVarContext current  # 	'all' doesn't work on Win9x
@@ -842,6 +835,7 @@ Section "Uninstall"
 	Delete "$INSTDIR\Docs\CourseFormat.txt"
 	Delete "$INSTDIR\Docs\credits.txt"
 	Delete "$INSTDIR\Docs\Licenses.txt"
+	Delete "$INSTDIR\Docs\LICENSE"
 	Delete "$INSTDIR\Docs\sm5_beginner.txt"
 	RMDir "$INSTDIR\Docs"
 

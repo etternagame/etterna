@@ -146,6 +146,8 @@ class BitmapText : public Actor
 	// Commands
 	void PushSelf(lua_State* L) override;
 
+	vector<RageSpriteVertex> m_aVertices;
+
   protected:
 	Font* m_pFont;
 	bool m_bUppercase;
@@ -162,8 +164,6 @@ class BitmapText : public Actor
 	bool m_mult_attrs_with_diffuse;
 	float m_fDistortion;
 	int m_iVertSpacing;
-
-	vector<RageSpriteVertex> m_aVertices;
 
 	vector<FontPageTextures*> m_vpFontPageTextures;
 	map<size_t, Attribute> m_mAttributes;

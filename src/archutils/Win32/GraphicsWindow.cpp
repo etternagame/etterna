@@ -82,7 +82,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					sStr += (sStr.size() ? ", " : "") + *it;
 
 				if (PREFSMAN != NULL && PREFSMAN->m_verbose_log > 1)
-					LOG->MapLog("LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
+					LOG->MapLog(
+					  "LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
 			}
 
 			if (!g_bD3D && !g_CurrentParams.windowed &&

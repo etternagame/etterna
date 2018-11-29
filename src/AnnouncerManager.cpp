@@ -138,8 +138,8 @@ AnnouncerManager::GetPathTo(const RString& sAnnouncerName,
 			return AnnouncerPath + aliases[i][1] + "/";
 	}
 
-		/* No announcer directory matched.  In debug, create the directory by
-		 * its preferred name. */
+	/* No announcer directory matched.  In debug, create the directory by
+	 * its preferred name. */
 #ifdef DEBUG
 	LOG->Trace("The announcer in '%s' is missing the folder '%s'.",
 			   AnnouncerPath.c_str(),

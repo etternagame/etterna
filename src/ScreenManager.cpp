@@ -919,13 +919,12 @@ ScreenManager::ZeroNextUpdate()
 
 /** @brief Offer a quick way to play any critical sound. */
 #define PLAY_CRITICAL(snd)                                                     \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		RageSoundParams p;                                                     \
 		p.m_bIsCriticalSound = true;                                           \
 		(snd).Play(false, &p);                                                 \
-	\
-}
+	}
 
 /* Always play these sounds, even if we're in a silent attract loop. */
 void

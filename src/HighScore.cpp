@@ -52,6 +52,7 @@ struct HighScoreImpl
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<HoldReplayResult> vHoldReplayDataVector;
+	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;		   // maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;		   // stage award [SM5 alpha 1a+]
@@ -319,7 +320,7 @@ HighScoreImpl::CreateNode() const
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (!uploaded.empty()) {
-		XNode* pServerNode = pNode->AppendChild("Servers");
+		XNode* pServerNode = pNode->AppendChild("Servs");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
 	}
@@ -394,7 +395,7 @@ HighScoreImpl::CreateEttNode() const
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
-		XNode* pServerNode = pNode->AppendChild("Servers");
+		XNode* pServerNode = pNode->AppendChild("Servs");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
 	}
@@ -1104,6 +1105,11 @@ HighScore::GetCopyOfHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
+vector<float>
+HighScore::GetCopyOfSetOnlineReplayTimestampVector() const
+{
+	return m_Impl->vOnlineReplayTimestampVector;
+}
 const vector<float>&
 HighScore::GetOffsetVector() const
 {
@@ -1331,6 +1337,11 @@ void
 HighScore::SetHoldReplayDataVector(const vector<HoldReplayResult>& v)
 {
 	m_Impl->vHoldReplayDataVector = v;
+}
+void
+HighScore::SetOnlineReplayTimestampVector(const vector<float>& v)
+{
+	m_Impl->vOnlineReplayTimestampVector = v;
 }
 void
 HighScore::SetScoreKey(const string& sk)

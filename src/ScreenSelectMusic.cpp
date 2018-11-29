@@ -80,6 +80,7 @@ REGISTER_SCREEN_CLASS(ScreenSelectMusic);
 void
 ScreenSelectMusic::Init()
 {
+	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -1096,7 +1097,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 			// a song was selected
 			if (m_MusicWheel.GetSelectedSong() != nullptr) {
 				if (SAMPLE_MUSIC_PREVIEW_MODE ==
-					  SampleMusicPreviewMode_StartToPreview) {
+					SampleMusicPreviewMode_StartToPreview) {
 					// start playing the preview music.
 					g_bSampleMusicWaiting = true;
 					CheckBackgroundRequests(true);
@@ -1698,6 +1699,58 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	{
 		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
+
+		// we get timestamps not noterows when getting online replays from the
+		// site, since order is deterministic we'll just auto set the noterows
+		// from the existing, if the score was cc off then we need to fill in
+		// extra rows for each tap in the chord -mina
+		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
+		if (!timestamps.empty()) {
+			GAMESTATE->SetProcessedTimingData(
+			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
+			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
+			// vector<int> ihatemylife;
+			auto nd = GAMESTATE->m_pCurSteps[PLAYER_1]->GetNoteData();
+			auto nerv = nd.BuildAndGetNerv();
+			/* functionally dead code, may be removed -poco
+			if (!hs->GetChordCohesion()) {
+				for (auto r : nerv)
+					for (int i = 0; i < nd.GetNumTapNotesInRow(r); ++i)
+						ihatemylife.emplace_back(r);
+			} else {
+				for (auto r : nerv)
+					ihatemylife.emplace_back(r);
+			}
+			*/
+			auto sdifs = td->BuildAndGetEtaner(nerv);
+			vector<int> noterows;
+			for (auto t : timestamps) {
+				auto timestamptobeat =
+				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
+				auto somenumberscaledbyoffsets =
+				  sdifs[0] - (timestamps[0] * hs->GetMusicRate());
+				timestamptobeat += somenumberscaledbyoffsets;
+				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
+				noterows.emplace_back(noterowfrombeat);
+			}
+			int noterowoffsetter = nerv[0] - noterows[0];
+			for (auto& noterowwithoffset : noterows)
+				noterowwithoffset += noterowoffsetter;
+			GAMESTATE->SetProcessedTimingData(nullptr);
+			// hs->SetNoteRowVector(ihatemylife);
+			hs->SetNoteRowVector(noterows);
+
+			// Since we keep misses on EO as 180ms, we need to convert them
+			// back.
+			auto offsets = hs->GetCopyOfOffsetVector();
+			for (auto& offset : offsets) {
+				if (fabs(offset) >= .18f)
+					offset = -1.1f; // This is a miss to the replay reader.
+			}
+			hs->SetOffsetVector(offsets);
+		}
+
 		PlayerAI::SetScoreData(hs);
 
 		// prepare old mods to return to
@@ -1788,6 +1841,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		steps->GetNoteData(nd);
 		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
+		SCOREMAN->camefromreplay =
+		  false; // disallow viewing online score eval screens -mina
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
 		PlayerAI::SetScoreData(score);
@@ -1811,7 +1866,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
 		score->SetRadarValues(realRV);
 		pss.m_radarActual += realRV;
-		GAMESTATE->SetProcessedTimingData(NULL);
+		GAMESTATE->SetProcessedTimingData(nullptr);
 		pss.everusedautoplay = true;
 		for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);

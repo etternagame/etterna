@@ -360,25 +360,23 @@ using IPos = unsigned int;  // A Pos is an index in the character window. Pos is
 
 // Output a 16 bit value to the bit stream, lower (oldest) byte first
 #define PUTSHORT(state, w)                                                     \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		if ((state).bs.out_offset >= (state).bs.out_size - 1)                  \
 			(state).flush_outbuf(                                              \
 			  (state).param, (state).bs.out_buf, &(state).bs.out_offset);      \
 		(state).bs.out_buf[(state).bs.out_offset++] = (char)((w)&0xff);        \
 		(state).bs.out_buf[(state).bs.out_offset++] = (char)((ush)(w) >> 8);   \
-	\
-}
+	}
 
 #define PUTBYTE(state, b)                                                      \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		if ((state).bs.out_offset >= (state).bs.out_size)                      \
 			(state).flush_outbuf(                                              \
 			  (state).param, (state).bs.out_buf, &(state).bs.out_offset);      \
 		(state).bs.out_buf[(state).bs.out_offset++] = (char)(b);               \
-	\
-}
+	}
 
 using lutime_t = int; // define it ourselves since we don't include time.h
 

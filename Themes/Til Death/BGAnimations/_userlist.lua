@@ -1,4 +1,4 @@
-local usersZoom = 0.35
+local usersZoom = 0.45
 local usersWidth = 50
 local usersWidthSmall = 25
 local usersWidthZoom = 50 * (1 / usersZoom)

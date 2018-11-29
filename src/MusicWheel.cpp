@@ -1002,7 +1002,8 @@ MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme)
 		m_WheelItemDatasStatus[so] = VALID;
 
 		if (PREFSMAN->m_verbose_log > 0)
-			LOG->Trace("MusicWheel sorting took: %f", timer.GetTimeSinceStart());
+			LOG->Trace("MusicWheel sorting took: %f",
+					   timer.GetTimeSinceStart());
 	}
 }
 

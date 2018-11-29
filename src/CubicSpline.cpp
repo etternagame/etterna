@@ -456,11 +456,11 @@ CubicSpline::p_and_tfrac_from_t(float t,
 		return 0.0f;                                                           \
 	}
 #define DECLARE_P_AND_TFRAC                                                    \
-	\
-size_t p = 0;                                                                  \
+                                                                               \
+	size_t p = 0;                                                              \
 	float tfrac = 0.0f;                                                        \
-	\
-p_and_tfrac_from_t(t, loop, p, tfrac);
+                                                                               \
+	p_and_tfrac_from_t(t, loop, p, tfrac);
 
 float
 CubicSpline::evaluate(float t, bool loop) const
@@ -678,17 +678,16 @@ CubicSplineN::solve()
 }
 
 #define CSN_EVAL_SOMETHING(something)                                          \
-	\
-void CubicSplineN::something(float t, vector<float>& v) const                  \
-	\
-{                                                                         \
+                                                                               \
+	void CubicSplineN::something(float t, vector<float>& v) const              \
+                                                                               \
+	{                                                                          \
 		for (spline_cont_t::const_iterator spline = m_splines.begin();         \
 			 spline != m_splines.end();                                        \
 			 ++spline) {                                                       \
 			v.push_back(spline->something(t, m_loop));                         \
 		}                                                                      \
-	\
-}
+	}
 
 CSN_EVAL_SOMETHING(evaluate);
 CSN_EVAL_SOMETHING(evaluate_derivative);
@@ -698,16 +697,15 @@ CSN_EVAL_SOMETHING(evaluate_third_derivative);
 #undef CSN_EVAL_SOMETHING
 
 #define CSN_EVAL_RV_SOMETHING(something)                                       \
-	\
-void CubicSplineN::something(float t, RageVector3& v) const                    \
-	\
-{                                                                         \
+                                                                               \
+	void CubicSplineN::something(float t, RageVector3& v) const                \
+                                                                               \
+	{                                                                          \
 		ASSERT(m_splines.size() == 3);                                         \
 		v.x = m_splines[0].something(t, m_loop);                               \
 		v.y = m_splines[1].something(t, m_loop);                               \
 		v.z = m_splines[2].something(t, m_loop);                               \
-	\
-}
+	}
 
 CSN_EVAL_RV_SOMETHING(evaluate);
 CSN_EVAL_RV_SOMETHING(evaluate_derivative);
@@ -818,21 +816,15 @@ CubicSplineN::dimension() const
 // m_dirty is set before the member so that the set_dirty that is created
 // can actually be used to set the dirty flag. -Kyz
 #define SET_GET_MEM(member, name)                                              \
-	\
-void CubicSplineN::set_##name(bool b)                                          \
-	\
-{                                                                         \
+                                                                               \
+	void CubicSplineN::set_##name(bool b)                                      \
+                                                                               \
+	{                                                                          \
 		m_dirty = true;                                                        \
 		(member) = b;                                                          \
-	\
-}                                                                         \
-	\
-bool CubicSplineN::get_##name() const                                          \
-	\
-{                                                                         \
-		return member;                                                         \
-	\
-}
+	}                                                                          \
+                                                                               \
+	bool CubicSplineN::get_##name() const { return member; }
 
 SET_GET_MEM(m_loop, loop);
 SET_GET_MEM(m_polygonal, polygonal);

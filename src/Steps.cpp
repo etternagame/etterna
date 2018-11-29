@@ -688,7 +688,10 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 }
 
 vector<int>
-Steps::GetNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner, float rate)
+Steps::GetNPSVector(NoteData& nd,
+					vector<int> nerv,
+					vector<float> etaner,
+					float rate)
 {
 	vector<int> doot(static_cast<int>(etaner.back()));
 	int notecounter = 0;
@@ -714,10 +717,15 @@ Steps::GetNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner, float 
 }
 
 vector<int>
-Steps::GetCNPSVector(NoteData& nd, vector<int> nerv, vector<float> etaner, int chordsize, float rate)
+Steps::GetCNPSVector(NoteData& nd,
+					 vector<int> nerv,
+					 vector<float> etaner,
+					 int chordsize,
+					 float rate)
 {
 	vector<int> doot(static_cast<int>(etaner.back()));
-	int chordnotecounter = 0;	// number of NOTES inside chords of this size, so 5 jumps = 10 notes, 3 hands = 9 notes, etc
+	int chordnotecounter = 0; // number of NOTES inside chords of this size, so
+							  // 5 jumps = 10 notes, 3 hands = 9 notes, etc
 	int lastinterval = 0;
 	int curinterval = 0;
 
@@ -911,16 +919,27 @@ class LunaSteps : public Luna<Steps>
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
 
-		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv, etaner), L) produced tables full of 0 values for ???? reason -mina
+		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
+		// etaner), L) produced tables full of 0 values for ???? reason -mina
 		vector<int> scroot = p->GetNPSVector(nd, nerv, etaner, rate);
 		lua_newtable(L);
 		LuaHelpers::CreateTableFromArray(scroot, L);
 		lua_rawseti(L, -2, 1);
 
 		for (int i = 1; i < nd.GetNumTracks(); ++i) {
-			scroot = p->GetCNPSVector(nd, nerv, etaner, i + 1, rate);// sort of confusing: the luatable pos/chordsize are i + 1 
-			LuaHelpers::CreateTableFromArray(scroot, L);		// but we're iterating over tracks which are 0 indexed 
-			lua_rawseti(L, -2, i + 1);				// so jumps are position 2 and 2 notes each when i = 1 -mina
+			scroot = p->GetCNPSVector(
+			  nd,
+			  nerv,
+			  etaner,
+			  i + 1,
+			  rate); // sort of confusing: the luatable pos/chordsize are i + 1
+			LuaHelpers::CreateTableFromArray(
+			  scroot, L); // but we're iterating over tracks which are 0 indexed
+			lua_rawseti(
+			  L,
+			  -2,
+			  i +
+				1); // so jumps are position 2 and 2 notes each when i = 1 -mina
 		}
 		nd.UnsetNerv();
 		p->GetTimingData()->UnsetEtaner();

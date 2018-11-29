@@ -182,7 +182,8 @@ class LunaFilterManager : public Luna<FilterManager>
 		lua_pushnumber(L, p->watte[SArg(1)].second);
 		return 1;
 	}
-	static int savepos(T* p, lua_State* L) {
+	static int savepos(T* p, lua_State* L)
+	{
 		p->watte[SArg(1)].first = IArg(2);
 		p->watte[SArg(1)].second = IArg(3);
 		return 0;

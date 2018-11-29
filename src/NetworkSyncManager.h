@@ -227,66 +227,6 @@ class NetProtocol
 	virtual void OnEval(){};
 	virtual void OffEval(){};
 };
-class SMOProtocol : public NetProtocol
-{ // Built on raw tcp
-	EzSockets* NetPlayerClient;
-	EzSockets* BroadcastReception;
-	PacketFunctions m_packet;
-	int m_iSalt;
-	bool TryConnect(unsigned short port, RString address);
-	void SendSMOnline();
-
-  public:
-	PacketFunctions SMOnlinePacket;
-	SMOProtocol();
-	~SMOProtocol();
-	bool Connect(NetworkSyncManager* n,
-				 unsigned short port,
-				 RString address) override; // Connect and say hello
-	void close() override;
-	void Update(NetworkSyncManager* n, float fDeltaTime) override;
-	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
-	void CreateNewRoom(RString name, RString desc, RString password) override;
-	void EnterRoom(RString name, RString password) override;
-	void RequestRoomInfo(RString name) override;
-	void ReportPlayerOptions();
-	void SendChat(const RString& message, string tab, int type) override;
-	void ReportNSSOnOff(int i) override;
-	void ReportScore(NetworkSyncManager* n,
-					 int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset,
-					 int numNotes) override;
-	void ReportScore(NetworkSyncManager* n,
-					 int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset) override;
-	void ReportSongOver(NetworkSyncManager* n) override;
-	void ReportStyle(NetworkSyncManager* n) override;
-	void StartRequest(NetworkSyncManager* n, short position) override;
-	void ProcessInput(NetworkSyncManager* n);
-	void Login(RString user, RString pass) override;
-	void OnMusicSelect() override;
-	void OffMusicSelect() override;
-	void OnRoomSelect() override;
-	void OffRoomSelect() override;
-	void OnOptions() override;
-	void OffOptions() override;
-	void OnEval() override;
-	void OffEval() override;
-
-	static void DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									 ScreenNetSelectMusic* s);
-	static void DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									 ScreenNetRoom* s);
-	static int DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									ScreenSMOnlineLogin* s,
-									RString& response);
-};
 
 class ETTProtocol : public NetProtocol
 { // Websockets using uwebsockets sending json
@@ -355,7 +295,6 @@ class NetworkSyncManager
   public:
 	NetworkSyncManager(LoadingWindow* ld = NULL);
 	~NetworkSyncManager();
-	SMOProtocol SMOP;
 	ETTProtocol ETTP;
 	NetProtocol* curProtocol{ nullptr };
 	// If "useSMserver" then send score to server

@@ -8,12 +8,12 @@
 #include "DifficultyIcon.h"
 #include "ModIconRow.h"
 #include "MusicWheel.h"
-#include "ScreenNetSelectBase.h"
+#include "ScreenSelectMusic.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
 #include "StepsDisplay.h"
 
-class ScreenNetSelectMusic : public ScreenNetSelectBase
+class ScreenNetSelectMusic : public ScreenSelectMusic
 {
   public:
 	void Init() override;
@@ -37,15 +37,12 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 	bool MenuLeft(const InputEventPlus& input) override;
 	bool MenuRight(const InputEventPlus& input) override;
 	bool MenuUp(const InputEventPlus& input) override;
-	bool MenuDown(const InputEventPlus& input) override;
 	bool LeftAndRightPressed(PlayerNumber pn);
 
 	void Update(float fDeltaTime) override;
 
 	Song* m_pSongAwaitingDeletionConfirmation;
 	void OnConfirmSongDeletion();
-
-	void MusicChanged();
 
 	void TweenOffScreen() override;
 
@@ -62,13 +59,6 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 	ThemeMetric<bool> ALIGN_MUSIC_BEATS;
 
   private:
-	MusicWheel m_MusicWheel;
-
-	StepsDisplay m_StepsDisplays[NUM_PLAYERS];
-	Difficulty m_DC[NUM_PLAYERS];
-
-	void UpdateDifficulties(PlayerNumber pn);
-
 	RageSound m_soundChangeOpt;
 	RageSound m_soundChangeSel;
 

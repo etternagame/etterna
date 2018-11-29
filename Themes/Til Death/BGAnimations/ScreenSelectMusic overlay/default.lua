@@ -1,14 +1,4 @@
 local function input(event)
-	local top = SCREENMAN:GetTopScreen()
-	if event.DeviceInput.button == "DeviceButton_left mouse button" then
-		if event.type == "InputEventType_Release" then
-			if not SCREENMAN:get_input_redirected(PLAYER_1) then
-				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar" .. PLAYER_1):GetChild("Image")) then
-					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
-				end
-			end
-		end
-	end
 	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseLeftClick")
 	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
@@ -22,9 +12,6 @@ local t =
 	BeginCommand = function(self)
 		local s = SCREENMAN:GetTopScreen()
 		s:AddInputCallback(input)
-		if s:GetName() == "ScreenNetSelectMusic" then
-			s:UsersVisible(false)
-		end
 	end
 }
 

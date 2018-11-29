@@ -35,8 +35,8 @@ bool
 DIDevice::Open()
 {
 	m_sName = ConvertACPToUTF8(JoystickInst.tszProductName);
-    
-	if(PREFSMAN->m_verbose_log > 1)
+
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Opening device '%s'", m_sName.c_str());
 	buffered = true;
 

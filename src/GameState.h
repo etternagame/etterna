@@ -102,6 +102,7 @@ class GameState
 	BroadcastOnChange<PlayMode>
 	  m_PlayMode; // many screens display different info depending on this value
 
+	bool m_bPlayingMulti = false;
 	bool m_bMultiplayer;
 	int m_iNumMultiplayerNoteFields;
 	bool DifficultiesLocked() const;
@@ -224,7 +225,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.63.0"; }
+	RString GetEtternaVersion() { return "0.64.0"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -365,7 +366,7 @@ class GameState
 	Profile* GetEditLocalProfile();
 
 	bool m_bDopefish;
-	
+
 	bool m_bIsChartPreviewActive;
 
 	// Discord Rich Presence

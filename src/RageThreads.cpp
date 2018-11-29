@@ -485,22 +485,22 @@ Checkpoints::GetLogs(char* pBuf, int iSize, const char* delim)
 	}
 }
 
-	/*
-	 * "Safe" mutexes: locking the same mutex more than once from the same
-	 * thread is refcounted and does not deadlock.
-	 *
-	 * Only actually lock the mutex once; when we do so, remember which thread
-	 * locked it. Then, when we lock in the future, only increment a counter,
-	 * with no locks.
-	 *
-	 * We must be holding the real mutex to write to LockedBy and LockCnt.
-	 * However, we can look at LockedBy to see if it's us that owns it (in which
-	 * case, we already hold the mutex).
-	 *
-	 * In Windows, this helps smooth out performance: for some reason, Windows
-	 * likes to yank the scheduler away from a thread that locks a mutex that it
-	 * already owns.
-	 */
+/*
+ * "Safe" mutexes: locking the same mutex more than once from the same
+ * thread is refcounted and does not deadlock.
+ *
+ * Only actually lock the mutex once; when we do so, remember which thread
+ * locked it. Then, when we lock in the future, only increment a counter,
+ * with no locks.
+ *
+ * We must be holding the real mutex to write to LockedBy and LockCnt.
+ * However, we can look at LockedBy to see if it's us that owns it (in which
+ * case, we already hold the mutex).
+ *
+ * In Windows, this helps smooth out performance: for some reason, Windows
+ * likes to yank the scheduler away from a thread that locks a mutex that it
+ * already owns.
+ */
 
 #if 0
 static const int MAX_MUTEXES = 256;

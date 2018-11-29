@@ -71,11 +71,11 @@ local function updateLeaderBoardForCurrentChart()
 			DLMAN:RequestChartLeaderBoardFromOnline(
 				steps:GetChartKey(),
 				function(leaderboard)
+					moped:playcommand("SetFromLeaderboard", leaderboard)
 				end
 			)
-			moped:queuecommand("ChartLeaderboardUpdate")
 		else
-			moped:queuecommand("Bort")
+			moped:queuecommand("SetFromLeaderboard", {})
 		end
 	end
 end
@@ -129,6 +129,10 @@ local ret =
 		end
 	end,
 	TabChangedMessageCommand = function(self)
+		self:queuecommand("Set")
+		updateLeaderBoardForCurrentChart()
+	end,
+	ChangeStepsMessageCommand = function(self)
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
@@ -189,7 +193,7 @@ local ret =
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) and DLMAN:GetCurrentRateFilter() then
-			moped:queuecommand("ChartLeaderboardUpdate")
+			moped:queuecommand("GetFilteredLeaderboard")
 		end
 	end
 }

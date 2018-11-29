@@ -1,0 +1,306 @@
+--- ActorMultiVertex (Inherits `Actor`)
+-- @classmod ActorMultiVertex
+
+--[[--
+ 		The list of quad states is used to determine which animation state is used for each quad.  The offset is added to the AMV's current state, and the resulting state is used.
+	  @return 
+--]]
+function ActorMultiVertex:AddQuadState(offset)
+end
+
+--[[--
+ 		Adds an animation state to the ActorMultiVertex.  The state_data table must be like this:<br />
+		{{left, top, right, bottom}, delay}<br />
+		left, top, right, and bottom are pixel coordinates, starting at 0.  If delay is 0 or negative, the state will last forever.
+	  @return 
+--]]
+function ActorMultiVertex:AddState(table, state_data)
+end
+
+--[[--
+ 		Forces the AMV to update the texture coordinates on all its quads, even if the current state has not changed.
+	  @return 
+--]]
+function ActorMultiVertex:ForceStateUpdate()
+end
+
+--[[--
+ 		Returns whether the AMV uses the animation state.
+	  @return bool
+--]]
+function ActorMultiVertex:GetUseAnimationState()
+end
+
+--[[--
+ 		Sets whether the AMV uses the animation state.<br />
+		This works best when using DrawMode_Quads.<br />
+		AMV's can have animated textures like sprites.  Each state tells the AMV what part of the texture to use, and how long the state lasts.<br />
+		Use AddState to add a state onto the end, or SetStateProperties to set all the states at once, or SetState to set a single state.<br />
+		Each quad has its own offset that is added to the current state.  Use AddQuadState to add to the list of quad states, or SetQuadState to set an existing quad state.
+    @tparam boolean use
+	  @return void
+--]]
+function ActorMultiVertex:SetUseAnimationState(use)
+end
+
+--[[--
+ 		Returns the number of states the AMV has.
+	  @return int
+--]]
+function ActorMultiVertex:GetNumStates()
+end
+
+--[[--
+ 		Returns the number of quad states in the destination tween state for the AMV.
+	  @return int
+--]]
+function ActorMultiVertex:GetNumQuadStates()
+end
+
+--[[--
+ 		Returns the id of the current state.
+	  @return int
+--]]
+function ActorMultiVertex:GetState()
+end
+
+--[[--
+ 		Gets whether the AMV should call the decode function for its texture during updates.
+	  @return bool
+--]]
+function ActorMultiVertex:GetDecodeMovie()
+end
+
+--[[--
+ 		Sets whether the AMV should call the decode function for its texture during updates.
+	  @return 
+--]]
+function ActorMultiVertex:SetDecodeMovie(bool, decode)
+end
+
+--[[--
+         Sets vertex number <code>index</code> with the properties provided. The tables of properties are each optional and can be provided in any order.
+         @tparam number index
+         @tparam table { table pos, table color, table textcoords }
+	  @return void
+--]]
+function ActorMultiVertex:SetVertex(index, table)
+end
+
+--[[--
+ 		Sets multiple vertices at once. The elements of <code>vertices</code> should themselves be tables, of the form provided to <Link class='ActorMultiVertex' function='SetVertex'>SetVertex</Link>. If <code>vertices</code> is the first argument it will start from vertex 1. If an integer is provided before <code>vertices</code> it will start from that vertex. It will add vertices as necessary.
+        Example: self:SetVertices( { { { x1, y1, z1 } , { r1,g1,b1,a1 } , { tcx1,tcy1 } }; { { x2, y2, z2 } , { r2,g2,b2,a2 } , { tcx2,tcy2 } } } )
+	  @return void
+--]]
+function ActorMultiVertex:SetVertices(first, vertices)
+end
+
+--[[--
+ 		Sets all the drawn verts of the ActorMultiVertex by evaluating the splines.<br />
+		("all the drawn verts" means all the verts between FirstToDraw and NumToDraw, the verts that are set to draw in the current tween state.)<br />
+		The parts of the ActorMultiVertex are evenly spaced along the spline in terms of t value.<br />
+		The exact behavior depends on the draw mode.<br />
+		DrawMode_Quads uses all 4 splines, one for each corner.<br />
+		DrawMode_QuadStrip and DrawMode_Strip use 2 splines, one for each edge of the strip.<br />
+		DrawMode_Fan uses one spline, for the edge verts of the fan.  The first vert is not touched because it is the center.<br />
+		DrawMode_Triangles uses 3 splines, one for each corner.<br />
+		DrawMode_SymmetricQuadStrip uses 3 splines, one on each edge and one in the center.<br />
+		DrawMode_LineStrip uses 1 spline.<br />
+	  @return 
+--]]
+function ActorMultiVertex:SetVertsFromSplines()
+end
+
+--[[--
+ 		Returns the requested spline.  Spline indices range from 1 to 4.<br />
+		ActorMultiVertex splines are not inside the tween state, and will not change the verts until you call SetVertsFromSplines.
+	  @return CubicSplineN
+--]]
+function ActorMultiVertex:GetSpline(i)
+end
+
+--[[--
+ 		Sets the number of vertices.
+	  @return void
+--]]
+function ActorMultiVertex:SetNumVertices(num)
+end
+
+--[[--
+ 		Returns the number of vertices
+	  @return void
+--]]
+function ActorMultiVertex:GetNumVertices(void)
+end
+
+--[[--
+ 		Sets the draw state variables to the values in the table.<br />
+		Mode must be a <Link class='ENUM' function='DrawMode'>DrawMode</Link>.<br />
+		First is the index of the first vertex to draw.<br />
+		Num is the number of vertices to draw.  -1 for Num means draw all verts after First.<br />
+		Any value not in the table defaults to the already set value.<br />
+		Examples:<br />
+		-- Sets all three parts of the draw state.<br />
+		self:SetDrawState{Mode="DrawMode_Quads", First= 1, Num= -1}<br />
+		-- Set only the draw mode.  First and Num remain unchanged from previous.<br />
+		self:SetDrawState{Mode="DrawMode_Quads"}<br />
+		-- Set the first and number to draw.  Draw mode remains unchanged.<br />
+        self:SetDrawState{First= 3, Num= 4}<br />
+        @tparam table table { Mode= mode, First= first, Num= num }
+	  @return void
+--]]
+function ActorMultiVertex:SetDrawState(table)
+end
+
+--[[--
+ 		Sets the current state.
+	  @return void
+--]]
+function ActorMultiVertex:SetState(int)
+end
+
+--[[--
+ 		Returns the offset of the requested quad state.
+	  @return int
+--]]
+function ActorMultiVertex:GetQuadState(void)
+end
+
+--[[--
+ 		Sets the offset of the requested quad state.
+	  @return void
+--]]
+function ActorMultiVertex:SetQuadState(id, offset)
+end
+
+--[[--
+ 		Returns a table containing the data for the requested state.
+	  @return table
+--]]
+function ActorMultiVertex:GetStateData(id)
+end
+
+--[[--
+ 		Sets the requested state to the data in state_data.  Similar to AddState, but SetStateData only works on states that have already been added.
+	  @return void
+--]]
+function ActorMultiVertex:SetStateData(id, table)
+end
+
+--[[--
+ 		Each element of the table must be a state_data and is used to construct one state.  The table as a whole is the entire list of all states for the AMV.
+      @tparam table table {state_data, ...}
+         @return void
+--]]
+function ActorMultiVertex:SetStateProperties(table)
+end
+
+--[[--
+ 		Removes the requested state from the state list.
+--]]
+function ActorMultiVertex:RemoveState(id)
+end
+
+--[[--
+ 		Removes the requested quad state from the quad state list.
+	  @return table
+--]]
+function ActorMultiVertex:RemoveQuadState(id)
+end
+
+--[[--
+ 		Sets the delay for every state to delay. (seconds)
+--]]
+function ActorMultiVertex:SetAllStateDelays(delay)
+end
+
+--[[--
+ 		Sets how far into its animation the AMV is.
+	  @return table
+--]]
+function ActorMultiVertex:SetSecondsIntoAnimation(seconds)
+end
+
+--[[--
+ 		Get the <Link class='ENUM' function='DrawMode'>DrawMode</Link> of the destination tween state.
+	  @return DrawMode
+--]]
+function ActorMultiVertex:GetDestDrawMode(void)
+end
+
+--[[--
+ 		Get the FirstToDraw of the destination tween state.
+	  @return int
+--]]
+function ActorMultiVertex:GetDestFirstToDraw(void)
+end
+
+--[[--
+ 		Get the NumToDraw of the destination tween state.
+	  @return int
+--]]
+function ActorMultiVertex:GetDestNumToDraw(void)
+end
+
+--[[--
+ 		Get the <Link class='ENUM' function='DrawMode'>DrawMode</Link> of the current tween state.
+	  @return DrawMode
+--]]
+function ActorMultiVertex:GetCurrDrawMode(void)
+end
+
+--[[--
+ 		Get the FirstToDraw of the current tween state.
+	  @return int
+--]]
+function ActorMultiVertex:GetCurrFirstToDraw(void)
+end
+
+--[[--
+ 		Get the NumToDraw of the current tween state.
+	  @return int
+--]]
+function ActorMultiVertex:GetCurrNumToDraw(void)
+end
+
+--[[--
+ 		Returns the ActorMultiVertex's texture.
+	  @return RageTexture
+--]]
+function ActorMultiVertex:GetTexture()
+end
+
+--[[--
+ 		Sets the <Link class='ENUM' function='EffectMode'>EffectMode</Link> of the ActorMultiVertex.
+	  @return void
+--]]
+function ActorMultiVertex:SetEffectMode(EffectMode, em)
+end
+
+--[[--
+ 		Sets the <Link class='ENUM' function='TextureMode'>TextureMode</Link> of the ActorMultiVertex.
+	  @return void
+--]]
+function ActorMultiVertex:SetTextureMode(TextureMode, tm)
+end
+
+--[[--
+ 		Sets the width of the line for DrawMode_LineStrip.
+	  @return void
+--]]
+function ActorMultiVertex:SetLineWidth(float, width)
+end
+
+--[[--
+ 		Sets the texture to <code>texture</code>
+	  @return void
+--]]
+function ActorMultiVertex:SetTexture(RageTexture, texture)
+end
+
+--[[--
+ 		Sets the texture at from the file path <code>path</code>.
+  @return void
+--]]
+function ActorMultiVertex:LoadTexture(string, path)
+end

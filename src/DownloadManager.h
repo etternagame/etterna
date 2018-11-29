@@ -89,18 +89,6 @@ class DownloadablePack
 	void PushSelf(lua_State* L);
 };
 
-class Packlist
-{
-  public:
-	int sortmode =
-	  1; // 1=name 2=diff 3=size, init to name because that's the default- mina
-	bool asc = true; // default sort
-
-	vector<DownloadablePack*> packs;
-	// Lua
-	void PushSelf(lua_State* L);
-};
-
 class HTTPRequest
 {
   public:
@@ -133,6 +121,12 @@ class OnlineTopScore
 	Difficulty difficulty;
 	string steps;
 };
+struct OnlineHighScore : HighScore
+{
+  public:
+	int userid;
+	string scoreid;
+};
 class OnlineScore
 {
   public:
@@ -148,7 +142,7 @@ class OnlineScore
 	int marvelous{ 0 };
 	int minehits{ 0 };
 	int held{ 0 };
-	int songId{ 0 };
+	string songId;
 	int letgo{ 0 };
 	bool valid{ false };
 	bool nocc{ false };
@@ -159,10 +153,14 @@ class OnlineScore
 	string avatar;
 	int userid;
 	DateTime datetime;
+	bool hasReplay{ false };
 	vector<pair<float, float>> replayData;
 	string countryCode;
-	HighScore hs;
+	OnlineHighScore hs;
+	void Push(lua_State* L) { hs.PushSelf(L); }
+	bool HasReplayData() { return hasReplay; }
 };
+
 class DownloadManager
 {
   public:
@@ -248,7 +246,9 @@ class DownloadManager
 	bool EncodeSpaces(string& str);
 
 	void UploadScoreWithReplayData(HighScore* hs);
-	void UploadScoreWithReplayDataFromDisk(string sk);
+	void UploadScoreWithReplayDataFromDisk(
+	  string sk,
+	  function<void()> callback = function<void()>());
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();
@@ -276,6 +276,11 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
+	void RequestReplayData(string scorekey,
+						   int userid,
+						   string username,
+						   string chartkey,
+						   LuaReference callback = LuaReference());
 	void RequestChartLeaderBoard(string chartkey,
 								 LuaReference ref = LuaReference());
 	void RefreshUserData();
@@ -298,7 +303,6 @@ class DownloadManager
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
-	Packlist pl;
 
 	// Lua
 	void PushSelf(lua_State* L);

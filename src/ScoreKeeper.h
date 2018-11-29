@@ -31,7 +31,7 @@ class ScoreKeeper
 
 	/* If true, doubles count as 2+ in stat counts; if false, doubles count as
 	 * only one. */ /* (not yet) */
-					//	bool Stats_DoublesCount;
+	//	bool Stats_DoublesCount;
 
   public:
 	ScoreKeeper(PlayerState* pPlayerState, PlayerStageStats* pPlayerStageStats);

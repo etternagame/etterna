@@ -135,7 +135,7 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 	if (bInvalidFormat)
 		LOG->Warn("Invalid format: %s", str.c_str());
 	else if (PREFSMAN->m_verbose_log > 1)
-			LOG->Info("%s", str.c_str());
+		LOG->Info("%s", str.c_str());
 }
 
 /* This function does not reset the video mode if it fails, because we might be
