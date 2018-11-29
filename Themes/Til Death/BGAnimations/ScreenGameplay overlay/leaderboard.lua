@@ -274,8 +274,6 @@ t.OnCommand = function(self, params)
 	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
 	self:zoomtowidth(MovableValues.LeaderboardWidth)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
-end
-t.InitCommand = function(self, params)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
 			label:visible(not (not scoreboard[i]:GetDisplayName()))
