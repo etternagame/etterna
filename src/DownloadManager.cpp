@@ -1866,37 +1866,38 @@ DownloadManager::StartSession(string user,
 	HTTPRequests.push_back(req);
 }
 
+void uploadSequentially(deque<HighScore*> toUpload)
+{
+    auto it = toUpload.begin();
+    if (it != toUpload.end()) {
+        toUpload.pop_front();
+        auto& hs = (*it);
+        DLMAN->UploadScoreWithReplayDataFromDisk(
+            hs->GetScoreKey(), [hs, toUpload]() {
+            hs->AddUploadedServer(serverURL.Get());
+            uploadSequentially(toUpload);
+        });
+    }
+    return;
+}
 bool
 DownloadManager::UploadScores()
 {
-	if (!LoggedIn())
-		return false;
-	auto scores = SCOREMAN->GetAllPBPtrs();
-	deque<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
-			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				toUpload.emplace_back(scorePtr);
-			}
-		}
-	}
-	function<void()> lambda;
-	lambda = [toUpload, lambda]() mutable {
-		auto it = toUpload.begin();
-		if (it != toUpload.end()) {
-			toUpload.pop_front();
-			auto& hs = (*it);
-			DLMAN->UploadScoreWithReplayDataFromDisk(
-			  hs->GetScoreKey(), [hs, toUpload, lambda]() {
-				  hs->AddUploadedServer(serverURL.Get());
-				  lambda();
-			  });
-		}
-	};
-	lambda();
-	return true;
+    if (!LoggedIn())
+        return false;
+    auto scores = SCOREMAN->GetAllPBPtrs();
+    deque<HighScore*> toUpload;
+    for (auto& vec : scores) {
+        for (auto& scorePtr : vec) {
+            auto ts = scorePtr->GetTopScore();
+            if ((ts == 1 || ts == 2) &&
+                !scorePtr->IsUploadedToServer(serverURL.Get())) {
+                toUpload.emplace_back(scorePtr);
+            }
+        }
+    }
+    uploadSequentially(toUpload);
+    return true;
 }
 
 int
