@@ -65,6 +65,7 @@ end
 local i = 0
 chat.InitCommand = function(self)
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+	self:visible(false);
 end
 chat.AddMPChatInputMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
