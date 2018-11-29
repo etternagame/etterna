@@ -18,9 +18,9 @@ local function scrollInput(event)
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" then
 			moving = true
 			if pressingtab == true and not whee:IsSettled() then
-				whee:Move(2)
+				whee:Move(-2)
 			else
-				whee:Move(1)
+				whee:Move(-1)
 			end
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
 			moving = true
