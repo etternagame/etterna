@@ -102,6 +102,7 @@ class GameState
 	BroadcastOnChange<PlayMode>
 	  m_PlayMode; // many screens display different info depending on this value
 
+	bool m_bPlayingMulti = false;
 	bool m_bMultiplayer;
 	int m_iNumMultiplayerNoteFields;
 	bool DifficultiesLocked() const;
