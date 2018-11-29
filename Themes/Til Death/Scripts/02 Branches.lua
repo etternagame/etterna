@@ -136,8 +136,8 @@ Branch = {
 			if not IsSMOnlineLoggedIn(PLAYER_1) then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetRoom"	-- cant do this, we need to select a local profile even 	
-			end							-- if logged into smo -mina
+				return "ScreenNetSelectProfile" --return "ScreenNetRoom" 	-- cant do this, we need to select a local profile even 	
+			end																-- if logged into smo -mina
 		else
 			return "ScreenNetworkOptions"
 		end
