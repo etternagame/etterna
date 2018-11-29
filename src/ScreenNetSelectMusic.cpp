@@ -35,7 +35,6 @@ AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_FriendsUpdate);
 AutoScreenMessage(SM_NoSongs);
 AutoScreenMessage(SM_ChangeSong);
-AutoScreenMessage(SM_SMOnlinePack);
 AutoScreenMessage(SM_SetWheelSong);
 AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
@@ -55,7 +54,7 @@ void
 ScreenNetSelectMusic::Init()
 {
 	ScreenSelectMusic::Init();
-
+	GAMESTATE->m_bPlayingMulti = true;
 	SAMPLE_MUSIC_PREVIEW_MODE.Load(m_sName, "SampleMusicPreviewMode");
 	MUSIC_WHEEL_TYPE.Load(m_sName, "MusicWheelType");
 	PLAYER_OPTIONS_SCREEN.Load(m_sName, "PlayerOptionsScreen");
@@ -433,9 +432,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			m_MusicWheel.Move(1);
 			m_MusicWheel.Select();
 		}
-	} else if (SM == SM_SMOnlinePack) {
-		SMOProtocol::DealWithSMOnlinePack(
-		  static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this);
 	} else if (SM == SM_ConfirmDeleteSong) {
 		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
 			OnConfirmSongDeletion();

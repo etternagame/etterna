@@ -11,7 +11,6 @@
 #include "ThemeManager.h"
 #include "WheelItemBase.h"
 
-AutoScreenMessage(SM_SMOnlinePack);
 AutoScreenMessage(SM_BackFromRoomName);
 AutoScreenMessage(SM_BackFromRoomDesc);
 AutoScreenMessage(SM_BackFromRoomPass);
@@ -90,9 +89,6 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			NSMAN->EnterRoom(m_sLastPickedRoom, ScreenTextEntry::s_sLastAnswer);
 		}
-	} else if (SM == SM_SMOnlinePack) {
-		SMOProtocol::DealWithSMOnlinePack(
-		  static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this);
 	} else if (SM == ETTP_RoomsChange) {
 		UpdateRoomsList();
 	} else if (SM == SM_BackFromRoomName) {

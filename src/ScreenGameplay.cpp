@@ -301,7 +301,6 @@ ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
-	m_bForceNoNetwork = !GAMESTATE->m_bInNetGameplay;
 	m_delaying_ready_announce = false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
 #if !defined(WITHOUT_NETWORKING)
@@ -575,7 +574,7 @@ ScreenGameplay::Init()
 	// we need to wait, so that there is no Dead On Start issues.
 	// if you wait too long at the second checkpoint, you will
 	// appear dead when you begin your game.
-	if (!m_bForceNoNetwork)
+	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->StartRequest(0);
 
 	// Add individual life meter
@@ -618,7 +617,7 @@ ScreenGameplay::Init()
 
 #if !defined(WITHOUT_NETWORKING)
 	// Only used in SMLAN/SMOnline:
-	if (!m_bForceNoNetwork && NSMAN->useSMserver &&
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver &&
 		GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType !=
 		  StyleType_OnePlayerTwoSides) {
 		m_bShowScoreboard = PREFSMAN->m_bEnableScoreboard.Get();
@@ -892,7 +891,7 @@ ScreenGameplay::~ScreenGameplay()
 
 	m_GameplayAssist.StopPlaying();
 
-	if (!m_bForceNoNetwork)
+	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->ReportSongOver();
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(false);
@@ -1338,7 +1337,7 @@ ScreenGameplay::BeginScreen()
 	SOUND->PlayOnceFromAnnouncer("gameplay intro"); // crowd cheer
 
 	// Get the transitions rolling
-	if (!m_bForceNoNetwork && NSMAN->useSMserver) {
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
 		// If we're using networking, we must not have any delay. If we do,
 		// this can cause inconsistency on different computers and
 		// different themes.
@@ -1785,7 +1784,7 @@ ScreenGameplay::Update(float fDeltaTime)
 	PlayTicks();
 	SendCrossedMessages();
 
-	if (!m_bForceNoNetwork && NSMAN->useSMserver) {
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
 		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi) if (pi->m_pLifeMeter)
 		  NSMAN->m_playerLife = int(pi->m_pLifeMeter->GetLife() * 10000);
 

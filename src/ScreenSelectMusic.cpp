@@ -80,6 +80,7 @@ REGISTER_SCREEN_CLASS(ScreenSelectMusic);
 void
 ScreenSelectMusic::Init()
 {
+	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -1737,10 +1738,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			for (auto& noterowwithoffset : noterows)
 				noterowwithoffset += noterowoffsetter;
 			GAMESTATE->SetProcessedTimingData(nullptr);
-			//hs->SetNoteRowVector(ihatemylife);
+			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
 
-			// Since we keep misses on EO as 180ms, we need to convert them back.
+			// Since we keep misses on EO as 180ms, we need to convert them
+			// back.
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
 				if (fabs(offset) >= .18f)
