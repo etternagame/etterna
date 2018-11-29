@@ -65,23 +65,37 @@ end
 local i = 0
 chat.InitCommand = function(self)
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	self:visible(false);
+	self:visible(false)
 end
-chat.AddMPChatInputMessageCommand = function(self)
+local isGameplay
+chat.ScreenChangedMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
 	end
 	currentScreen = s:GetName()
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	if (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay") then
+	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
+	SCREENMAN:SystemMessage(currentScreen .. tostring(isGameplay))
+	if isGameplay then
 		self:visible(false)
 		show = false
 		typing = false
+		s:setInterval(
+			function()
+				self:visible(false)
+			end,
+			0.01
+		)
 	else
 		self:visible(online)
 		show = true
-		s:AddInputCallback(input)
+		s:setInterval(
+			function()
+				s:AddInputCallback(input)
+			end,
+			0.01
+		)
 	end
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
@@ -208,7 +222,6 @@ chatWindow[#chatWindow + 1] =
 				end
 			end
 			self:settext(t)
-			
 		end
 	}
 
@@ -329,8 +342,8 @@ function overTab(mx, my)
 	return nil, nil
 end
 function input(event)
-	if (not show or not online) then
-		return
+	if (not show or not online) or isGameplay then
+		return false
 	end
 	local update = false
 	if event.DeviceInput.button == "DeviceButton_left mouse button" then
@@ -347,7 +360,7 @@ function input(event)
 			typing = true
 			update = true
 		elseif mx >= x and mx <= x + width and my >= y + moveY and my <= y + height + moveY then
-			mousex, mousey = mx, my	-- no clue what this block of code is for
+			mousex, mousey = mx, my -- no clue what this block of code is for
 			lastx, lasty = x, y
 			update = true
 		elseif not minimised then
@@ -426,12 +439,11 @@ function input(event)
 				lineNumber = lineNumber - 1
 			end
 			update = true
-		end	
+		end
 	end
-	
-	
+
 	-- right click over the chat to minimize
-	if  event.DeviceInput.button == "DeviceButton_right mouse button" and isOver(bg) then
+	if event.DeviceInput.button == "DeviceButton_right mouse button" and isOver(bg) then
 		if event.type == "InputEventType_FirstPress" then
 			minimised = not minimised
 			MESSAGEMAN:Broadcast("Minimise")
@@ -444,11 +456,12 @@ function input(event)
 	end
 
 	-- always eat mouse inputs if its within the broader chatbox
-	if  event.DeviceInput.button == "DeviceButton_left mouse button" and isOver(bg) then
+	if event.DeviceInput.button == "DeviceButton_left mouse button" and isOver(bg) then
 		return true
 	end
 
-	return update or typing
+	returnInput = update or typing
+	return returnInput
 end
 
 return chat
