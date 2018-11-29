@@ -84,17 +84,11 @@ chat.ScreenChangedMessageCommand = function(self)
 			function()
 				self:visible(false)
 			end,
-			0.01
+			0.025
 		)
 	else
 		self:visible(online)
 		show = true
-		s:setInterval(
-			function()
-				s:AddInputCallback(MPinput)
-			end,
-			0.01
-		)
 	end
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
