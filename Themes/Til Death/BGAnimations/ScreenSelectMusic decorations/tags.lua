@@ -66,15 +66,10 @@ end
 
 local t =
 	Def.ActorFrame {
+	Name = "Tongo",
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
 		self:queuecommand("Set"):visible(false)
-	end,
-	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
-	end,
-	OnCommand = function(self)
-		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
@@ -88,14 +83,13 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 9 then
-			self:queuecommand("On")
 			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			onTab = true
 			MESSAGEMAN:Broadcast("RefreshTags")
 		else
-			self:queuecommand("Off")
+			self:visible(false)
 			onTab = false
 		end
 	end,
