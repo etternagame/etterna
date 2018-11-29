@@ -461,15 +461,11 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					DLMAN:RequestOnlineScoreReplayData(hs, 
-						function(replay) 
-							if #replay > 0 then
-								self:settext("Watch")
-							else
-								self:settext("")
-							end	
-						end
-					)
+					if DLMAN:Fart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), ind + i) then
+						self:settext("Watch")
+					else
+						self:settext("")
+					end	
 				end,
 				HighlightCommand = function(self)
 					highlightIfOver(self)
