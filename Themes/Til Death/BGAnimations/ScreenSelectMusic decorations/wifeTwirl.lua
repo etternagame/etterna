@@ -54,6 +54,7 @@ local t =
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 					song:Borp()
+					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				end
 				heyiwasusingthat = false
 			end
@@ -140,7 +141,10 @@ local function toggleNoteField()
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
-			song:Borp()
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
+				song:Borp()
+			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
 	end
