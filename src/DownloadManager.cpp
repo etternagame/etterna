@@ -966,6 +966,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	vector<float> offsets = hs->GetOffsetVector();
 	vector<int> columns = hs->GetTrackVector();
 	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+	vector<int> rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		vector<float>& timestamps = hs->timeStamps;
@@ -974,7 +975,8 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
 			replayString += to_string(columns[i]) + ",";
-			replayString += to_string(types[i]);
+			replayString += to_string(types[i]) + ",";
+			replayString += to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
@@ -1035,7 +1037,8 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	return;
 }
 void // not tested exhaustively -mina
-DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
+DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
+												   function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
@@ -1054,6 +1057,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	vector<float> offsets = hs->GetOffsetVector();
 	vector<int> columns = hs->GetTrackVector();
 	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+	auto& rows = hs->GetNoteRowVector();
 
 	if (offsets.size() > 0) {
 		replayString = "[";
@@ -1067,7 +1071,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 			replayString += to_string(1000.f * offsets[i]);
 			if (hs->GetReplayType() == 2) {
 				replayString += "," + to_string(columns[i]) + ",";
-				replayString += to_string(types[i]);
+				replayString += to_string(types[i]) + ",";
+				replayString += to_string(rows[i]);
 			}
 			replayString += "],";
 		}
@@ -1081,7 +1086,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs](HTTPRequest& req, CURLMsg*) {
+	auto done = [this, hs, callback](HTTPRequest& req, CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		json j;
@@ -1123,6 +1128,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 			}
 		} catch (exception e) {
 		}
+		callback();
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -1865,14 +1871,30 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 	auto scores = SCOREMAN->GetAllPBPtrs();
+	deque<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
-			if (!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				UploadScore(scorePtr);
-				scorePtr->AddUploadedServer(serverURL.Get());
+			auto ts = scorePtr->GetTopScore();
+			if ((ts == 1 || ts == 2) &&
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				toUpload.emplace_back(scorePtr);
 			}
 		}
 	}
+	function<void()> lambda;
+	lambda = [toUpload, lambda]() mutable {
+		auto& it = toUpload.begin();
+		if (it != toUpload.end()) {
+			toUpload.pop_front();
+			auto& hs = (*it);
+			DLMAN->UploadScoreWithReplayDataFromDisk(
+			  hs->GetChartKey(), [hs, toUpload, lambda]() {
+				  hs->AddUploadedServer(serverURL.Get());
+				  lambda();
+			  });
+		}
+	};
+	lambda();
 	return true;
 }
 
