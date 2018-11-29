@@ -1128,7 +1128,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 			}
 		} catch (exception e) {
 		}
-		callback();
+		if (callback)
+			callback();
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
