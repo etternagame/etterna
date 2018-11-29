@@ -162,7 +162,6 @@ SongManager::DifferentialReloadDir(string dir)
 	GetDirListing(dir + "*", folders, true);
 	StripCvsAndSvn(folders);
 	StripMacResourceForks(folders);
-	SortRStringArray(folders);
 
 	vector<Group> groups;
 	Group unknownGroup("Unknown Group");
@@ -179,7 +178,6 @@ SongManager::DifferentialReloadDir(string dir)
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
 			StripCvsAndSvn(songdirs);
 			StripMacResourceForks(songdirs);
-			SortRStringArray(songdirs);
 			Group group(folder);
 			for (auto& song : songdirs) {
 				group.songs.emplace_back(SongDir(song));
@@ -285,6 +283,10 @@ split(vector<T>& v, size_t elementsPerThread)
 void
 SongManager::FinalizeSong(Song* pNewSong, const RString& dir)
 {
+	// never load stray songs from the cache -mina
+	if (pNewSong->m_sGroupName == "Songs" ||
+		pNewSong->m_sGroupName == "AdditionalSongs")
+		return;
 	SONGMAN->AddSongToList(pNewSong);
 	SONGMAN->AddKeyedPointers(pNewSong);
 	SONGMAN->m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
@@ -765,7 +767,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 	GetDirListing(sDir + "*", songFolders, true);
 	StripCvsAndSvn(songFolders);
 	StripMacResourceForks(songFolders);
-	SortRStringArray(songFolders);
 	int songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
@@ -777,6 +778,10 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 	int foldersChecked = 0;
 	int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
+		// inefficiency here when loading from cache, the check to see if we've
+		// already loaded a song is 40 lines down and run after issongdir,
+		// ideally we wouldnt need to run issongdir on anything we already know
+		// is a group or anything we already know is a song -mina
 		if (IsSongDir(sDir + folder)) {
 			auto s = SongDir(sDir + folder);
 			unknownGroup.songs.emplace_back(s);
@@ -786,7 +791,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			GetDirListing(sDir + folder + "/*", songPaths, true, true);
 			StripCvsAndSvn(songPaths);
 			StripMacResourceForks(songPaths);
-			SortRStringArray(songPaths);
 			for (auto& song : songPaths) {
 				group.songs.emplace_back(SongDir(song));
 			}
@@ -830,7 +834,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			SongPointerVector& index_entry =
 			  SONGMAN->m_mapSongGroupIndex[sGroupName];
 			RString group_base_name = sGroupName;
-			for (auto sSongDirName : arraySongDirs) {
+			for (auto& sSongDirName : arraySongDirs) {
 				RString hur = sSongDirName.path + "/";
 				hur.MakeLower();
 				if (SONGMAN->m_SongsByDir.count(hur))
