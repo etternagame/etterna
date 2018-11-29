@@ -1492,58 +1492,6 @@ TimeNumberP2OffCommand=sleep,0.0;accelerate,0.3;addx,SCREEN_WIDTH/2
 Fallback="ScreenEvaluationOni"
 NextScreen=GetEvaluationNextScreen()
 
-[ScreenEvaluationRave]
-Fallback="ScreenEvaluation"
-NextScreen=GetEvaluationNextScreen()
-ShowGradeArea=true
-ShowPointsArea=false
-ShowBonusArea=false
-ShowDetailArea=false
-ShowSurvivedArea=false
-ShowWinArea=true
-ShowScoreArea=true
-ShowTimeArea=false
-FailedSoundTime=0
-PassedSoundTime=0
-ShowStageDisplay=true
-ShowStageFrame=true
-StageDisplayX=SCREEN_CENTER_X+0
-StageDisplayY=SCREEN_CENTER_Y-168
-StageDisplayOnCommand=addy,SCREEN_HEIGHT;sleep,0.0;decelerate,0.3;addy,-SCREEN_HEIGHT
-StageDisplayOffCommand=sleep,0.8;accelerate,0.3;addy,SCREEN_HEIGHT
-DifficultyIconP1X=SCREEN_CENTER_X-106
-DifficultyIconP1Y=SCREEN_CENTER_Y-160
-DifficultyIconP1OnCommand=addy,SCREEN_HEIGHT;sleep,0.0;decelerate,0.3;addy,-SCREEN_HEIGHT
-DifficultyIconP1OffCommand=sleep,0.8;accelerate,0.3;addy,SCREEN_HEIGHT
-DifficultyIconP2X=SCREEN_CENTER_X+106
-DifficultyIconP2Y=SCREEN_CENTER_Y-160
-DifficultyIconP2OnCommand=addy,SCREEN_HEIGHT;sleep,0.0;decelerate,0.3;addy,-SCREEN_HEIGHT
-DifficultyIconP2OffCommand=sleep,0.8;accelerate,0.3;addy,SCREEN_HEIGHT
-StepsDisplayP1X=SCREEN_CENTER_X-106
-StepsDisplayP1Y=SCREEN_CENTER_Y-160
-StepsDisplayP1OnCommand=addy,SCREEN_HEIGHT;sleep,0.0;decelerate,0.3;addy,-SCREEN_HEIGHT
-StepsDisplayP1OffCommand=sleep,0.8;accelerate,0.3;addy,SCREEN_HEIGHT
-StepsDisplayP2X=SCREEN_CENTER_X+106
-StepsDisplayP2Y=SCREEN_CENTER_Y-160
-StepsDisplayP2OnCommand=addy,SCREEN_HEIGHT;sleep,0.0;decelerate,0.3;addy,-SCREEN_HEIGHT
-StepsDisplayP2OffCommand=sleep,0.8;accelerate,0.3;addy,SCREEN_HEIGHT
-WinFrameP1X=SCREEN_CENTER_X-224
-WinFrameP1Y=SCREEN_CENTER_Y+16
-WinFrameP1OnCommand=diffusealpha,0;linear,0.7;diffusealpha,1
-WinFrameP1OffCommand=linear,0.7;diffusealpha,0
-WinFrameP2X=SCREEN_CENTER_X+224
-WinFrameP2Y=SCREEN_CENTER_Y+16
-WinFrameP2OnCommand=diffusealpha,0;linear,0.7;diffusealpha,1
-WinFrameP2OffCommand=linear,0.7;diffusealpha,0
-WinP1X=SCREEN_CENTER_X-224
-WinP1Y=SCREEN_CENTER_Y+16
-WinP1OnCommand=diffusealpha,0;linear,0.7;diffusealpha,1
-WinP1OffCommand=linear,0.7;diffusealpha,0
-WinP2X=SCREEN_CENTER_X+224
-WinP2Y=SCREEN_CENTER_Y+16
-WinP2OnCommand=diffusealpha,0;linear,0.7;diffusealpha,1
-WinP2OffCommand=linear,0.7;diffusealpha,0
-
 [MultiplayerEvalScoreRow]
 NumberOnCommandFunction=
 
@@ -2650,9 +2598,6 @@ PercentP8Y=0
 PercentP8OnCommand=shadowlength,0;diffuse,PlayerColor(PLAYER_2)
 PercentP8OffCommand=
 
-[ScoreKeeperRave]
-AttackDurationSeconds=10
-
 [ScreenSelectMaster]
 Fallback="ScreenSelect"
 Class="ScreenSelectMaster"
@@ -3382,20 +3327,6 @@ Line15="list,ScoreDisplay"
 Line16="list,Steps"
 Line17="list,Characters"
 
-[ScreenRaveOptions]
-Fallback="ScreenOptions"
-Class="ScreenOptionsMaster"
-PrevScreen="ScreenSelectMusic"
-NextScreen="ScreenStage"
-TimerSeconds=30
-ShowStyleIcon=false
-LineNames="1,2,3,4,5"
-Line1="list,Speed"
-Line2="list,Scroll"
-Line3="list,NoteSkins"
-Line4="list,Persp"
-Line5="list,Steps"
-
 [ScreenSongOptions]
 Class="ScreenSongOptions"
 Fallback="ScreenOptions"
@@ -3742,12 +3673,6 @@ TipOnCommand=shadowlength,0;diffuseblink
 
 [CombinedLifeMeterTug]
 MeterWidth=550
-
-[ScoreDisplayRave]
-MeterP1OnCommand=rotationz,-90
-MeterP2OnCommand=rotationz,-90
-LevelP1OnCommand=addy,-140
-LevelP2OnCommand=addy,-140
 
 [ScoreDisplayLifeTime]
 FrameOnCommand=

@@ -931,7 +931,6 @@ GameState::ResetStageStatistics()
 	STATSMAN->m_CurStageStats = StageStats();
 
 	m_fOpponentHealthPercent = 1;
-	m_fTugLifePercentP1 = 0.5f;
 	FOREACH_PlayerNumber(p)
 	{
 		m_pPlayerState[p]->m_HealthState = HealthState_Alive;

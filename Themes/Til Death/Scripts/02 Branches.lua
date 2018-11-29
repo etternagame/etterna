@@ -165,7 +165,6 @@ Branch = {
 		local pm = GAMESTATE:GetPlayMode()
 		local restricted = {
 			"PlayMode_Oni",
-			"PlayMode_Rave"
 			--"PlayMode_Battle" -- ??
 		}
 		local optionsScreen = "ScreenPlayerOptions"

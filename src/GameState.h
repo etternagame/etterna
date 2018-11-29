@@ -268,9 +268,6 @@ class GameState
 	// used in PLAY_MODE_BATTLE
 	float m_fOpponentHealthPercent;
 
-	// used in PLAY_MODE_RAVE
-	float m_fTugLifePercentP1;
-
 	PlayerNumber GetBestPlayer() const;
 	StageResult GetStageResult(PlayerNumber pn) const;
 

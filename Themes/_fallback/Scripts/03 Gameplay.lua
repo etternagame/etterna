@@ -173,10 +173,6 @@ end
 -- ScoreKeeperClass:
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
-	-- rave scorekeeper
-	if GAMESTATE:GetPlayMode() == "PlayMode_Rave" then
-		return "ScoreKeeperRave"
-	end
 	if GAMESTATE:GetCurrentStyle() then
 		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
 		if styleType == "StyleType_TwoPlayersSharedSides" then

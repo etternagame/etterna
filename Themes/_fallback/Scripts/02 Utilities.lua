@@ -212,7 +212,7 @@ function Center1Player()
 	-- always center in OnePlayerTwoSides ( Doubles ) or TwoPlayersSharedSides ( Couples )
 	if styleType == "StyleType_OnePlayerTwoSides" or styleType == "StyleType_TwoPlayersSharedSides" then
 		-- only Center1P if Pref enabled and OnePlayerOneSide.
-		-- (implicitly excludes Rave, Battle, Versus, Routine)
+		-- (implicitly excludes Battle, Versus, Routine)
 		return true
 	elseif PREFSMAN:GetPreference("Center1Player") then
 		return styleType == "StyleType_OnePlayerOneSide"

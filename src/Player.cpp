@@ -248,9 +248,6 @@ ThemeMetric<float> ATTACK_RUN_TIME_MINE("Player", "AttackRunTimeMine");
  * If set to 0 or less, assume the song takes over. */
 ThemeMetric<float> M_MOD_HIGH_CAP("Player", "MModHighCap");
 
-/** @brief Will battle modes have their steps mirrored or kept the same? */
-ThemeMetric<bool> BATTLE_RAVE_MIRROR("Player", "BattleRaveMirror");
-
 float
 Player::GetWindowSeconds(TimingWindow tw)
 {

@@ -1,4 +1,4 @@
-﻿#ifndef Character_H
+#ifndef Character_H
 #define Character_H
 
 #include "LuaReference.h"
@@ -54,12 +54,6 @@ class Character
 
   public:
 	apActorCommands m_cmdInit;
-
-	/**
-	 * @brief Is this character playable in the Rave mode?
-	 *
-	 * All of the variables listed below here will be filled in if true. */
-	bool m_bUsableInRave{ false };
 
 	RageTexturePreloader m_Preload;
 	int m_iPreloadRefcount{ 0 };

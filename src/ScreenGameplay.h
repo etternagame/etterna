@@ -112,7 +112,7 @@ class PlayerInfo
 	ScoreDisplay* m_pSecondaryScoreDisplay;
 	/** @brief The primary ScoreKeeper for keeping track of the score. */
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	/** @brief The secondary ScoreKeeper. Only used in PLAY_MODE_RAVE. */
+	/** @brief The secondary ScoreKeeper. Formerly used in PLAY_MODE_RAVE. */
 	ScoreKeeper* m_pSecondaryScoreKeeper;
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText* m_ptextPlayerOptions;

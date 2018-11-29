@@ -54,7 +54,6 @@
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS                                   \
 	THEME->GetMetricB(m_sName, "ShowLifeMeterForDisabledPlayers")
-#define SHOW_SCORE_IN_RAVE THEME->GetMetricB(m_sName, "ShowScoreInRave")
 #define SONG_POSITION_METER_WIDTH                                              \
 	THEME->GetMetricF(m_sName, "SongPositionMeterWidth")
 
@@ -646,8 +645,7 @@ ScreenGameplay::Init()
 			pi->m_pPrimaryScoreDisplay->SetName(
 			  ssprintf("Score%s", pi->GetName().c_str()));
 			LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_pPrimaryScoreDisplay);
-			if (SHOW_SCORE_IN_RAVE) /* XXX: ugly */
-				this->AddChild(pi->m_pPrimaryScoreDisplay);
+			this->AddChild(pi->m_pPrimaryScoreDisplay);
 		}
 
 		// secondary score display
