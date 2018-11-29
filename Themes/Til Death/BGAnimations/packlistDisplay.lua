@@ -31,7 +31,7 @@ local function highlightIfOver(self)
 	end
 end
 
-local packlist
+packlist = {}
 local packtable
 local o =
 	Def.ActorFrame {
@@ -42,7 +42,6 @@ local o =
 	BeginCommand = function(self)
 		self:SetUpdateFunction(highlight)
 		packlist = PackList:new()
-		packlist:SetFromAll()
 		self:queuecommand("PackTableRefresh")
 	end,
 	PackTableRefreshCommand = function(self)

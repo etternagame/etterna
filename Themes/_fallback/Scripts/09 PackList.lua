@@ -53,20 +53,39 @@ function PackList:SortBySize()
     return self:SortByProp(getSizePropName)
 end
 function PackList:FilterAndSearch(name, avgMin, avgMax, sizeMin, sizeMax)
-    self.packs =
+    self.packs = 
         filter(
         function(x)
-            local d = x[getAvgDiffPropName]:x()
-            local n = x[getNamePropName]:x()
-            local s = x[getSizePropName]:x()
-            return n == name and ((d > avgMin and d < avgMax) or d <= 0) and ((s > sizeMin and d < sizeMax) or s <= 0)
+            local d = x[getAvgDiffPropName](x)
+            local n = x[getNamePropName](x)
+            local s = x[getSizePropName](x)
+            local valid = string.lower(n):sub(1, #name) == string.lower(name)
+            if d > 0 then
+                if avgMin > 0 then
+                    valid = valid and d > avgMin
+                end
+                if avgMax > 0 then
+                    valid = valid and d < avgMax
+                end
+            end
+            if s > 0 then
+                if sizeMin > 0 then
+                    valid = valid and s > sizeMin
+                end
+                if sizeMax > 0 then
+                    valid = valid and s < sizeMax
+                end
+            end
+            return valid
         end,
-        self.packs
+        self.allPacks
     )
     return self
 end
 function PackList:SetFromAll()
-    self.packs = DLMAN:GetAllPacks()
+    local allPacks = DLMAN:GetAllPacks()
+    self.allPacks = allPacks
+    self.packs = DeepCopy(allPacks)
     return self
 end
 function PackList:new()
