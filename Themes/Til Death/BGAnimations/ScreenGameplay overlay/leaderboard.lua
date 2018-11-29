@@ -1,5 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+local leaderboardEnabled =
+	NSMAN:IsETTP() or (playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
 
 local entryActors = {}
 local t =
@@ -40,7 +41,36 @@ end
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
 end
-local onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+local multiScores = {}
+function scoreUsingMultiScore(idx)
+	return {
+		GetDisplayName = function()
+			return multiScores[idx] and multiScores[idx].user or nil
+		end,
+		GetWifeGrade = function()
+			return 0
+		end,
+		GetWifeScore = function()
+			return multiScores[idx] and multiScores[idx].wife or -500
+		end,
+		GetSkillsetSSR = function()
+			return -1
+		end,
+		GetJudgmentString = function()
+			return ""
+		end
+	}
+end
+local onlineScores = {}
+local isMulti = NSMAN:IsETTP()
+if isMulti then
+	multiScores = NSMAN:GetGameplayLeaderboard()
+	for i = 1, 5 do
+		onlineScores[i] = scoreUsingMultiScore(i)
+	end
+else
+	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+end
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
 end
@@ -89,6 +119,7 @@ for i = 1, NUM_ENTRIES do
 		done = true
 	end
 end
+table.sort(scoreboard, sortFunction)
 
 for i = 1, NUM_ENTRIES do
 	entryActors[i] = {}
@@ -142,6 +173,7 @@ function scoreEntry(i)
 				scale = 0.4,
 				x = (x - WIDTH / 2) * 0.4,
 				y = 10 + y,
+				text = "",
 				color = getLeaderboardColor("text")
 			}
 		)
@@ -169,7 +201,11 @@ function scoreEntry(i)
 	addLabel(
 		"name",
 		function(self, hs)
-			self:settext(hs:GetDisplayName())
+			local n = hs:GetDisplayName()
+			self:settext(n or "")
+			if entryActor then
+				entryActor:visible(not (not n))
+			end
 		end,
 		WIDTH / 1.3
 	)
@@ -207,6 +243,9 @@ t.JudgmentMessageCommand = function(self, params)
 	-- params.WifePercent is our current calculated wife percent.
 	local old = curScore.curWifeScore
 	curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
+	if isMulti then
+		multiScores = NSMAN:GetGameplayLeaderboard()
+	end
 	if old ~= curScore.curWifeScore then
 		table.sort(scoreboard, sortFunction)
 		for i, entry in ipairs(entryActors) do
@@ -235,6 +274,13 @@ t.OnCommand = function(self, params)
 	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
 	self:zoomtowidth(MovableValues.LeaderboardWidth)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
+end
+t.InitCommand = function(self, params)
+	for i, entry in ipairs(entryActors) do
+		for name, label in pairs(entry) do
+			label:visible(not (not scoreboard[i]:GetDisplayName()))
+		end
+	end
 end
 
 return t
