@@ -1883,7 +1883,7 @@ DownloadManager::UploadScores()
 	}
 	function<void()> lambda;
 	lambda = [toUpload, lambda]() mutable {
-		auto& it = toUpload.begin();
+		auto it = toUpload.begin();
 		if (it != toUpload.end()) {
 			toUpload.pop_front();
 			auto& hs = (*it);
