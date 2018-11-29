@@ -470,6 +470,8 @@ WheelBase::RebuildWheelItems(int iDist)
 	}
 
 	for (int i = iFirst; i <= iLast; i++) {
+		if (i > items.size())
+			break;
 		int iIndex = iFirstVisibleIndex + i;
 		wrap(iIndex, data.size());
 
