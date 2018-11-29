@@ -194,8 +194,7 @@ function IsFreePlay()
 end
 
 function IsCourse()
-	local pm = GAMESTATE:GetPlayMode()
-	return pm == "PlayMode_Oni"
+	return false
 end
 
 function ArgsIfPlayerJoinedOrNil(arg1, arg2)

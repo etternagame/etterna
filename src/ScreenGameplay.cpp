@@ -30,7 +30,6 @@
 #include "RageLog.h"
 #include "RageSoundReader.h"
 #include "RageTimer.h"
-#include "ScoreDisplayOni.h"
 #include "ScoreDisplayPercentage.h"
 #include "ScoreKeeperNormal.h"
 #include "ScreenDimensions.h"
@@ -107,7 +106,6 @@ PlayerInfo::PlayerInfo()
   , m_NoteData()
   , m_pPlayer(NULL)
   , m_pStepsDisplay(NULL)
-  , m_sprOniGameOver()
 {
 }
 
@@ -184,12 +182,6 @@ PlayerInfo::~PlayerInfo()
 	SAFE_DELETE(m_ptextPlayerOptions);
 	SAFE_DELETE(m_pPlayer);
 	SAFE_DELETE(m_pStepsDisplay);
-}
-
-void
-PlayerInfo::ShowOniGameOver()
-{
-	m_sprOniGameOver->PlayCommand("Die");
 }
 
 PlayerState*
@@ -552,17 +544,6 @@ ScreenGameplay::Init()
 		// ActorUtil::LoadAllCommands(pi->m_pPlayer, m_sName);
 		this->AddChild(pi->m_pPlayer);
 		pi->m_pPlayer->PlayCommand("On");
-	}
-
-	FOREACH_EnabledPlayerInfoNotDummy(m_vPlayerInfo, pi)
-	{
-		if (pi->m_pPlayer->HasVisibleParts()) {
-			pi->m_sprOniGameOver.Load(THEME->GetPathG(m_sName, "oni gameover"));
-			pi->m_sprOniGameOver->SetName(
-			  ssprintf("OniGameOver%s", pi->GetName().c_str()));
-			LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_sprOniGameOver);
-			this->AddChild(pi->m_sprOniGameOver);
-		}
 	}
 
 	m_NextSong.Load(THEME->GetPathB(m_sName, "next course song"));
@@ -1042,14 +1023,6 @@ ScreenGameplay::LoadNextSong()
 		if (pi->m_ptextPlayerOptions)
 			pi->m_ptextPlayerOptions->SetText(
 			  pi->GetPlayerState()->m_PlayerOptions.GetCurrent().GetString());
-
-		// reset oni game over graphic
-		SET_XY_AND_ON_COMMAND(pi->m_sprOniGameOver);
-
-		if (pi->GetPlayerState()->m_PlayerOptions.GetStage().m_LifeType ==
-			  LifeType_Battery &&
-			pi->GetPlayerStageStats()->m_bFailed) // already failed
-			pi->ShowOniGameOver();
 
 		if (pi->m_pStepsDisplay)
 			pi->m_pStepsDisplay->SetFromSteps(pSteps);
@@ -1831,7 +1804,6 @@ void
 ScreenGameplay::FailFadeRemovePlayer(PlayerInfo* pi)
 {
 	SOUND->PlayOnceFromDir(THEME->GetPathS(m_sName, "oni die"));
-	pi->ShowOniGameOver();
 	int tracks = pi->m_NoteData.GetNumTracks();
 	pi->m_NoteData.Init();				 // remove all notes and scoring
 	pi->m_NoteData.SetNumTracks(tracks); // reset the number of tracks.

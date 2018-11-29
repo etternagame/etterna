@@ -83,7 +83,6 @@ static const char* aliases[][2] = {
 	{ "ScreenSelectDifficulty comment medium",
 	  "select difficulty comment medium" },
 	{ "ScreenSelectDifficulty comment hard", "select difficulty comment hard" },
-	{ "ScreenSelectDifficulty comment oni", "select difficulty comment oni" },
 	{ "ScreenSelectDifficulty intro", "select difficulty intro" },
 
 	/* ScreenSelectStyle compatibility: */

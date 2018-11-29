@@ -42,9 +42,6 @@ class PlayerInfo
 			  int iAddToDifficulty);
 	void LoadDummyP1(int iDummyIndex, int iAddToDifficulty);
 
-	/** @brief The player has lost all of their lives: show the special game
-	 * over. */
-	void ShowOniGameOver();
 	/**
 	 * @brief Retrieve the player's state and stage stats index.
 	 * @return the player's state and stage stats index.
@@ -124,8 +121,6 @@ class PlayerInfo
 	Player* m_pPlayer;
 
 	StepsDisplay* m_pStepsDisplay;
-
-	AutoActor m_sprOniGameOver;
 };
 
 /** @brief The music plays, the notes scroll, and the Player is pressing

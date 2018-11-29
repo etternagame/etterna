@@ -170,7 +170,6 @@ Branch = {
 	PlayerOptions = function()
 		local pm = GAMESTATE:GetPlayMode()
 		local restricted = {
-			PlayMode_Oni = true,
 			--"PlayMode_Battle" -- ??
 		}
 		local optionsScreen = "ScreenPlayerOptions"

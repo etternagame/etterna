@@ -474,7 +474,7 @@ ScoreDisplayAliveTime.cpp ScoreDisplayAliveTime.h \
 ScoreDisplayBattle.cpp ScoreDisplayBattle.h \
 ScoreDisplayCalories.cpp ScoreDisplayCalories.h \
 ScoreDisplayLifeTime.cpp ScoreDisplayLifeTime.h \
-ScoreDisplayNormal.cpp ScoreDisplayNormal.h ScoreDisplayOni.cpp ScoreDisplayOni.h \
+ScoreDisplayNormal.cpp ScoreDisplayNormal.h \
 ScoreDisplayPercentage.cpp ScoreDisplayPercentage.h ScoreDisplayRave.cpp ScoreDisplayRave.h \
 SongPosition.cpp SongPosition.h
 

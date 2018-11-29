@@ -66,7 +66,6 @@ list(APPEND SMDATA_ACTOR_GAMEPLAY_SRC
   "ScoreDisplayAliveTime.cpp"
   "ScoreDisplayLifeTime.cpp"
   "ScoreDisplayNormal.cpp"
-  "ScoreDisplayOni.cpp"
   "ScoreDisplayPercentage.cpp"
 )
 
@@ -93,7 +92,6 @@ list(APPEND SMDATA_ACTOR_GAMEPLAY_HPP
   "ScoreDisplayAliveTime.h"
   "ScoreDisplayLifeTime.h"
   "ScoreDisplayNormal.h"
-  "ScoreDisplayOni.h"
   "ScoreDisplayPercentage.h"
 )
 source_group("Actors\\\\Gameplay" FILES ${SMDATA_ACTOR_GAMEPLAY_SRC} ${SMDATA_ACTOR_GAMEPLAY_HPP})

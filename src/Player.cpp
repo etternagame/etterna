@@ -629,11 +629,6 @@ Player::Load()
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-	bool bOniDead =
-	  m_pPlayerState->m_PlayerOptions.GetStage().m_LifeType ==
-		LifeType_Battery &&
-	  (m_pPlayerStageStats == NULL || m_pPlayerStageStats->m_bFailed);
-
 	/* The editor reuses Players ... so we really need to make sure everything
 	 * is reset and not tweening.  Perhaps ActorFrame should recurse to
 	 * subactors; then we could just this->StopTweening()? -glenn */
@@ -716,7 +711,7 @@ Player::Load()
 	float fNoteFieldMiddle =
 	  (GRAY_ARROWS_Y_STANDARD + GRAY_ARROWS_Y_REVERSE) / 2;
 
-	if ((m_pNoteField != nullptr) && !bOniDead) {
+	if (m_pNoteField != nullptr) {
 		m_pNoteField->SetY(fNoteFieldMiddle);
 		m_pNoteField->Load(&m_NoteData,
 						   iDrawDistanceAfterTargetsPixels,
@@ -821,7 +816,7 @@ Player::Update(float fDeltaTime)
 
 	// LOG->Trace( "Player::Update(%f)", fDeltaTime );
 
-	if (GAMESTATE->m_pCurSong == NULL || IsOniDead())
+	if (GAMESTATE->m_pCurSong == NULL)
 		return;
 
 	ActorFrame::Update(fDeltaTime);
@@ -1528,7 +1523,7 @@ Player::DrawPrimitives()
 		pn != GAMESTATE->GetMasterPlayerNumber())
 		return;
 
-	bool draw_notefield = (m_pNoteField != nullptr) && !IsOniDead();
+	bool draw_notefield = (m_pNoteField != nullptr);
 
 	const PlayerOptions& curr_options =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent();
@@ -1877,15 +1872,6 @@ Player::GetClosestNonEmptyRow(int iNoteRow,
 	return iNextRow;
 }
 
-bool
-Player::IsOniDead() const
-{
-	// If we're playing on oni and we've died, do nothing.
-	return m_pPlayerState->m_PlayerOptions.GetStage().m_LifeType ==
-			 LifeType_Battery &&
-		   m_pPlayerStageStats && m_pPlayerStageStats->m_bFailed;
-}
-
 void
 Player::DoTapScoreNone()
 {
@@ -2015,9 +2001,6 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
-	if (IsOniDead())
-		return;
-
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
@@ -2542,9 +2525,6 @@ Player::StepReplay(int col,
 				   bool bRelease,
 				   float padStickSeconds)
 {
-	if (IsOniDead())
-		return;
-
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
