@@ -662,6 +662,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "PreviewViewer",
 	BeginCommand = function(self)
 		mcbootlarder = self:GetParent():GetChild("ChartPreview")
+		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
 		self:xy(20, 235)
 		self:zoom(0.5)

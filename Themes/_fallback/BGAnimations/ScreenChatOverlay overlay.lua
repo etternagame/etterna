@@ -91,7 +91,7 @@ chat.ScreenChangedMessageCommand = function(self)
 		show = true
 		s:setInterval(
 			function()
-				s:AddInputCallback(input)
+				s:AddInputCallback(MPinput)
 			end,
 			0.01
 		)
@@ -340,7 +340,7 @@ function overTab(mx, my)
 	end
 	return nil, nil
 end
-function input(event)
+function MPinput(event)
 	if (not show or not online) or isGameplay then
 		return false
 	end
