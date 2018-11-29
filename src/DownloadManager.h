@@ -89,18 +89,6 @@ class DownloadablePack
 	void PushSelf(lua_State* L);
 };
 
-class Packlist
-{
-  public:
-	int sortmode =
-	  1; // 1=name 2=diff 3=size, init to name because that's the default- mina
-	bool asc = true; // default sort
-
-	vector<DownloadablePack*> packs;
-	// Lua
-	void PushSelf(lua_State* L);
-};
-
 class HTTPRequest
 {
   public:
@@ -313,7 +301,6 @@ class DownloadManager
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
-	Packlist pl;
 
 	// Lua
 	void PushSelf(lua_State* L);
