@@ -195,7 +195,7 @@ end
 
 function IsCourse()
 	local pm = GAMESTATE:GetPlayMode()
-	return pm == "PlayMode_Nonstop" or "PlayMode_Oni" or "PlayMode_Endless"
+	return pm == "PlayMode_Nonstop" or "PlayMode_Oni"
 end
 
 function ArgsIfPlayerJoinedOrNil(arg1, arg2)

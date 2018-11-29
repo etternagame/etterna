@@ -239,14 +239,13 @@ IdleTimeoutSeconds=0
 TimerSeconds=30
 UpdateOnMessage=""
 PrevScreen="ScreenTitleMenu"
-ChoiceNames="1,2,3,4,5"
+ChoiceNames="1,2,3,4"
 # The "name" here affects the announcer, eg. "ScreenSelectStyle comment single".
 #Choice1="playmode,regular;name,Normal;text,Normal;screen,ScreenSelectMusic"
 Choice1="playmode,regular;name,Normal;text,Normal;screen,"..ScreenSelectMusicBranch()
 Choice2="playmode,nonstop;name,Nonstop;text,Nonstop;screen,ScreenSelectMusic"
 Choice3="playmode,oni;name,Challenge;text,Challenge;screen,ScreenSelectMusic"
 Choice4="playmode,oni;name,Survival;text,Survival;screen,ScreenSelectMusic"
-Choice5="playmode,endless;name,Endless;text,Endless;screen,ScreenSelectMusic"
 ShowIcon=true
 PerChoiceIconElement=false
 ShowScroller=false
@@ -482,10 +481,6 @@ ScoreP1OnCommand=visible,false
 ScoreP2OnCommand=visible,false
 ScoreFrameP1OnCommand=visible,false
 ScoreFrameP2OnCommand=visible,false
-
-[ScreenSelectCourseEndless]
-Fallback="ScreenSelectCourse"
-DefaultSort="Endless"
 
 [ScreenSMOnlineLogin]
 Class="ScreenSMOnlineLogin"
@@ -1487,10 +1482,6 @@ TimeNumberP2X=SCREEN_CENTER_X+160
 TimeNumberP2Y=SCREEN_CENTER_Y+140
 TimeNumberP2OnCommand=addx,SCREEN_WIDTH/2;sleep,0.8;decelerate,0.3;addx,-SCREEN_WIDTH/2
 TimeNumberP2OffCommand=sleep,0.0;accelerate,0.3;addx,SCREEN_WIDTH/2
-
-[ScreenEvaluationEndless]
-Fallback="ScreenEvaluationOni"
-NextScreen=GetEvaluationNextScreen()
 
 [MultiplayerEvalScoreRow]
 NumberOnCommandFunction=
