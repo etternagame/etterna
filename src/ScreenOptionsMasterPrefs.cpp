@@ -872,7 +872,7 @@ InitializeConfOptions()
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
 	// W1 is Fantastic Timing
 	ADD(ConfOption(
-	  "AllowW1", MovePref<AllowW1>, "Never", "Courses Only", "Always"));
+	  "AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
