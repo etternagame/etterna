@@ -12,13 +12,15 @@ t[#t + 1] =
 				whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 			end
 		end,
-		LeftClickMessageCommand = function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if whee then
-				if SCREEN_WIDTH - INPUTFILTER:GetMouseX() < 32 then
+				local mx = SCREEN_WIDTH - INPUTFILTER:GetMouseX()
+				if mx < 32 and mx > 0 then
 					local idx = whee:GetCurrentIndex()
 					local num = whee:GetNumItems()
 					local dum = (INPUTFILTER:GetMouseY() - 45) / (SCREEN_HEIGHT - 103)
 					whee:Move(notShit.round(num * dum) - idx)
+					whee:Move(0)
 				end
 			end
 		end
