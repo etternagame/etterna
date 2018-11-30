@@ -258,6 +258,16 @@ local o =
 						self:settext("")
 					end
 				end
+			end,
+			CurrentSongChangedMessageCommand = function(self)
+				local online = DLMAN:IsLoggedIn()
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					self:settext("Retrieving scores...")
+				end
 			end
 		},
 	LoadFont("Common normal") ..
@@ -324,6 +334,9 @@ local function makeScoreDisplay(i)
 			if i > numscores then
 				self:visible(false)
 			end
+		end,
+		CurrentSongChangedMessageCommand = function(self)
+			self:visible(false)
 		end,
 		UpdateCommand = function(self)		
 			hs = scoretable[(i + ind)]
