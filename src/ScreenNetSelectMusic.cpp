@@ -584,6 +584,11 @@ ScreenNetSelectMusic::MenuDown(const InputEventPlus& input)
 bool
 ScreenNetSelectMusic::MenuStart(const InputEventPlus& input)
 {
+	// dont allow ctrl + enter to select songs... technically if there's enough
+	// lag for some reason we can hit here from a ctrl+enter input but ctrl may
+	// be released by now, though this is unlikely to happen -mina
+	if (INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)))
+		return false;
 	return SelectCurrent();
 }
 bool
