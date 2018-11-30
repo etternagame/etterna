@@ -226,6 +226,16 @@ ScoresForChart::SetTopScores()
 			eligiblescores.emplace_back(hs);
 	}
 
+	if (eligiblescores.size() < 2) {
+		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
+		{
+			auto& hs = i->second.PBptr;
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+				hs->GetEtternaValid() && hs->GetGrade() != Grade_Failed)
+				eligiblescores.emplace_back(hs);
+		}
+	}
+	
 	if (eligiblescores.empty())
 		return;
 
