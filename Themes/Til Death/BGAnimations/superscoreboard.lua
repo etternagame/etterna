@@ -68,7 +68,7 @@ end
 local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
 
-local scoretable
+local scoretable = {}
 local o =
 	Def.ActorFrame {
 	Name = "ScoreDisplay",
