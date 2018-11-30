@@ -1909,7 +1909,8 @@ DownloadManager::UploadScores()
 			auto ts = scorePtr->GetTopScore();
 			if ((ts == 1 || ts == 2) &&
 				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				toUpload.emplace_back(scorePtr);
+				if (scorePtr->HasReplayData())
+					toUpload.emplace_back(scorePtr);
 			}
 		}
 	}
