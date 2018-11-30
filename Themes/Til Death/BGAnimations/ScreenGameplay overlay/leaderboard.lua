@@ -1,7 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local leaderboardEnabled =
-	NSMAN:IsETTP() or (playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
-
+	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or (playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
 local entryActors = {}
 local t =
 	Widg.Container {
@@ -62,7 +61,7 @@ function scoreUsingMultiScore(idx)
 	}
 end
 local onlineScores = {}
-local isMulti = NSMAN:IsETTP()
+local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation"
 if isMulti then
 	multiScores = NSMAN:GetGameplayLeaderboard()
 	for i = 1, 5 do
