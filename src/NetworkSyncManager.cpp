@@ -850,6 +850,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_chartrequest: {
 					n->requests.emplace_back(ChartRequest(*payload));
+					Message msg("ChartRequest");
+					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_enterroomresponse: {
 					bool entered = (*payload)["entered"];
@@ -1810,6 +1812,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	LunaNetworkSyncManager()
 	{
 		ADD_METHOD(GetGameplayLeaderboard);
+		ADD_METHOD(GetChartRequests);
 		ADD_METHOD(GetChatMsg);
 		ADD_METHOD(SendChatMsg);
 		ADD_METHOD(Login);
@@ -1820,6 +1823,33 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 };
 
 LUA_REGISTER_CLASS(NetworkSyncManager)
+
+class LunaChartRequest : public Luna<ChartRequest>
+{
+  public:
+	static int GetChartkey(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->chartkey.c_str());
+		return 1;
+	}
+	static int GetUser(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->user.c_str());
+		return 1;
+	}
+	static int GetRate(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->rate/1000);
+		return 1;
+	}
+	LunaChartRequest()
+	{
+		ADD_METHOD(GetChartkey);
+		ADD_METHOD(GetUser);
+		ADD_METHOD(GetRate);
+	}
+};
+
 // lua end
 /*
  * (c) 2003-2004 Charles Lohr, Joshua Allen
