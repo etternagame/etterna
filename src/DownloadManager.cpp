@@ -873,6 +873,8 @@ SetCURLPOSTScore(CURL*& curlHandle,
 	  curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->musics);
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	if (chart == nullptr)
+		return;
 	SetCURLFormPostField(curlHandle,
 						 form,
 						 lastPtr,
@@ -1062,6 +1064,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		if (steps == nullptr)
+			return;
 		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
 			hs->GetNoteRowVector(), hs->GetMusicRate());
