@@ -1,4 +1,4 @@
-﻿#ifndef SONGMANAGER_H
+#ifndef SONGMANAGER_H
 #define SONGMANAGER_H
 
 class LoadingWindow;
@@ -72,7 +72,10 @@ class SongManager
 	// mina
 	Steps* GetStepsByChartkey(RString ck);
 	Song* GetSongByChartkey(RString ck);
-	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
+	bool IsChartLoaded(RString ck)
+	{
+		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
+	}
 
 	void ResetGroupColors();
 
