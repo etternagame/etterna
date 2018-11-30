@@ -134,6 +134,17 @@ chat[#chat + 1] =
 		self:diffuse(Colors.bar)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height + y)
+	end,
+	ChatMessageCommand = function(self)
+		if minimised then
+			self:linear(0.25)
+			self:diffuse(Colors.activeInput)
+		end
+	end,
+	MinimiseMessageCommand = function(self)
+		if not minimised then
+			self:diffuse(Colors.bar)
+		end
 	end
 }
 chat[#chat + 1] =
