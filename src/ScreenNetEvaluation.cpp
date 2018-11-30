@@ -169,15 +169,8 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 				? NSMAN->m_PlayerNames[NSMAN->m_EvalPlayerData[i].name]
 				: NSMAN->m_EvalPlayerData[i].nameStr);
 
-			// Yes, hardcoded (I'd like to leave it that way) -CNLohr (in
-			// reference to Grade_Tier03) Themes can read this differently. The
-			// correct solution depends...
-			// TODO: make this a server-side variable. -aj
-			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-					Grade_NoData
-				  ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-				  : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade <
-					  Grade_Tier03)
+			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade() <
+				Grade_Tier03)
 				m_textUsers[i].PlayCommand("Tier02OrBetter");
 
 			ON_COMMAND(m_textUsers[i]);
@@ -250,10 +243,7 @@ ScreenNetEvaluation::UpdateStats()
 				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
 	msg.SetParam("Score", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score);
 	msg.SetParam("Grade",
-				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-					 Grade_NoData
-				   ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-				   : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade);
+				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade());
 	msg.SetParam("PlayerOptions",
 				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions);
 	if (pSteps)
