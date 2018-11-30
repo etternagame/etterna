@@ -474,11 +474,13 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					if DLMAN:Fart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), ind + i) then
-						self:settext("Watch")
-					else
-						self:settext("")
-					end	
+					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+						if DLMAN:Fart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), ind + i) then
+							self:settext("Watch")
+						else
+							self:settext("")
+						end
+					end
 				end,
 				HighlightCommand = function(self)
 					highlightIfOver(self)
