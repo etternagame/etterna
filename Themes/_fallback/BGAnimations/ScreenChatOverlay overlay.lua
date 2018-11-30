@@ -30,7 +30,7 @@ chats[1] = {}
 chats[2] = {}
 chats[0][""] = {}
 local tabs = {{0, ""}}
---chats[tabname][tabtype]
+--chats[tabName][tabType]
 --tabtype: 0=lobby, 1=room, 2=pm
 local messages = chats[0][""]
 local currentTabName = ""
@@ -89,6 +89,13 @@ chat.ScreenChangedMessageCommand = function(self)
 	else
 		self:visible(online)
 		show = true
+	end
+	if currentScreen == "ScreenNetSelectMusic" then
+		for i=1, #tabs do
+			if tabs[i][2] == NSMAN:GetCurrentRoomName() then
+				changeTab(tabs[i][2], tabs[i][1])
+			end
+		end
 	end
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
