@@ -1853,7 +1853,7 @@ class LunaChartRequest : public Luna<ChartRequest>
 	}
 };
 
-LUA_REGISTER_CLASS(ChartRequest)
+//LUA_REGISTER_CLASS(ChartRequest)	// breaks compile, no clue why -mina
 
 // lua end
 /*
