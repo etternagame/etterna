@@ -123,9 +123,6 @@ class OnlineTopScore
 };
 struct OnlineHighScore : HighScore
 {
-  public:
-	int userid;
-	string scoreid;
 };
 class OnlineScore
 {
