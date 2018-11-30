@@ -1850,6 +1850,8 @@ class LunaChartRequest : public Luna<ChartRequest>
 	}
 };
 
+LUA_REGISTER_CLASS(ChartRequest)
+
 // lua end
 /*
  * (c) 2003-2004 Charles Lohr, Joshua Allen
