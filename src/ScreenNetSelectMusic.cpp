@@ -97,6 +97,13 @@ ScreenNetSelectMusic::DifferentialReload()
 bool
 ScreenNetSelectMusic::Input(const InputEventPlus& input)
 {
+	// if (input.pn == PLAYER_2)	could use this to throw out all p2 inputs
+	// -mina
+	//	return false;
+
+	if (input.DeviceI.button == KEY_KP_ENTER)
+		return false;
+
 	if (!m_bAllowInput || IsTransitioning())
 		return ScreenWithMenuElements::Input(input);
 
