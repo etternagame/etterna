@@ -31,7 +31,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_ping, "ping" },
 	{ ettpc_sendchat, "chat" },
 	{ ettpc_sendscore, "score" },
-	{ ettpc_mpleaderboardupdate, "mpleaderboardupdate" },
+	{ ettpc_mpleaderboardupdate, "gameplayupdate" },
 	{ ettpc_createroom, "createroom" },
 	{ ettpc_enterroom, "enterroom" },
 	{ ettpc_selectchart, "selectchart" },
@@ -210,7 +210,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
-AutoScreenMessage(SM_ChangeSong);
 AutoScreenMessage(SM_GotEval);
 AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
@@ -609,8 +608,6 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 					n->steps = steps;
 					break;
 				}
-				if (n->song != nullptr)
-					break;
 			}
 		}
 	} else {
@@ -1047,7 +1044,7 @@ ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 	if (ws == nullptr)
 		return;
 	json j;
-	j["type"] = "leaderboard";
+	j["type"] = ettClientMessageMap[ettpc_mpleaderboardupdate];
 	auto& payload = j["payload"];
 	payload["wife"] = wife;
 	payload["jdgstr"] = jdgstr;
@@ -1695,20 +1692,13 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 		lua_newtable(L);
 		lua_pushnumber(L, pair.second.wife);
 		lua_setfield(L, -2, "wife");
+		lua_pushstring(L, pair.second.jdgstr.c_str());
+		lua_setfield(L, -2, "jdgstr");
+		lua_pushstring(L, pair.first.c_str());
+		lua_setfield(L, -2, "user");
 		lua_setfield(L, -2, pair.first.c_str());
 	}
 	return;
-}
-void
-ChartRequest::PushSelf(lua_State* L)
-{
-	lua_createtable(L, 0, 3);
-	lua_pushstring(L, chartkey.c_str());
-	lua_setfield(L, -2, "chartkey");
-	lua_pushstring(L, user.c_str());
-	lua_setfield(L, -2, "user");
-	lua_pushnumber(L, rate / 1000); // should this be in [0,1] or [0, 1000] ????
-	lua_setfield(L, -2, "rate");
 }
 
 static bool
@@ -1842,7 +1832,7 @@ class LunaChartRequest : public Luna<ChartRequest>
 	}
 	static int GetRate(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->rate/1000);
+		lua_pushnumber(L, p->rate / 1000);
 		return 1;
 	}
 	LunaChartRequest()
@@ -1853,7 +1843,7 @@ class LunaChartRequest : public Luna<ChartRequest>
 	}
 };
 
-//LUA_REGISTER_CLASS(ChartRequest)	// breaks compile, no clue why -mina
+LUA_REGISTER_CLASS(ChartRequest)
 
 // lua end
 /*

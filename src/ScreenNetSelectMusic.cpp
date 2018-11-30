@@ -34,7 +34,6 @@
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_FriendsUpdate);
 AutoScreenMessage(SM_NoSongs);
-AutoScreenMessage(SM_ChangeSong);
 AutoScreenMessage(SM_SetWheelSong);
 AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
@@ -263,123 +262,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		m_MusicWheel.Move(0);
 	} else if (SM == SM_NoSongs) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NoSongsScreen"));
-	} else if (SM == SM_ChangeSong) {
-		// First check to see if this song is already selected. This is so that
-		// if you have multiple copies of the "same" song you can chose which
-		// copy to play.
-		Song* CurSong = m_MusicWheel.GetSelectedSong();
-
-		if (CurSong != NULL)
-			if ((!CurSong->GetTranslitArtist().CompareNoCase(
-				  NSMAN->m_sArtist)) &&
-				(!CurSong->GetTranslitMainTitle().CompareNoCase(
-				  NSMAN->m_sMainTitle)) &&
-				(!CurSong->GetTranslitSubTitle().CompareNoCase(
-				  NSMAN->m_sSubTitle))) {
-				switch (NSMAN->m_iSelectMode) {
-					case 0:
-					case 1:
-						NSMAN->m_iSelectMode = 0;
-						NSMAN->SelectUserSong();
-						break;
-					case 2: // Proper starting of song
-					case 3: // Blind starting of song
-						StartSelectedSong();
-						goto done;
-				}
-			} else {
-				FOREACH_ENUM(Skillset, i)
-				{
-					FILTERMAN->SSFilterLowerBounds[i] = 0;
-					FILTERMAN->SSFilterUpperBounds[i] = 0;
-				}
-				m_MusicWheel.ReloadSongList(false, "");
-			}
-		else {
-			FOREACH_ENUM(Skillset, i)
-			{
-				FILTERMAN->SSFilterLowerBounds[i] = 0;
-				FILTERMAN->SSFilterUpperBounds[i] = 0;
-			}
-			m_MusicWheel.ReloadSongList(false, "");
-		}
-
-		vector<Song*> AllSongs = SONGMAN->GetAllSongs();
-		unsigned i;
-
-		bool found = false;
-		if (NSMAN->GetServerVersion() >= 129) {
-			// Dont earch by filehash if none was sent
-			if (!NSMAN->m_sFileHash.empty())
-				for (i = 0; i < AllSongs.size(); i++) {
-					m_cSong = AllSongs[i];
-					if (NSMAN->m_sArtist == m_cSong->GetTranslitArtist() &&
-						NSMAN->m_sMainTitle ==
-						  m_cSong->GetTranslitMainTitle() &&
-						NSMAN->m_sSubTitle == m_cSong->GetTranslitSubTitle() &&
-						NSMAN->m_sFileHash == m_cSong->GetFileHash()) {
-						found = true;
-						break;
-					}
-				}
-		}
-		// If we couldnt find it using file hash search for it without using it,
-		// if using SMSERVER < 129 it will go here
-		if (!found)
-			for (i = 0; i < AllSongs.size(); i++) {
-				m_cSong = AllSongs[i];
-				if (NSMAN->m_sArtist == m_cSong->GetTranslitArtist() &&
-					NSMAN->m_sMainTitle == m_cSong->GetTranslitMainTitle() &&
-					NSMAN->m_sSubTitle == m_cSong->GetTranslitSubTitle()) {
-					break;
-				}
-			}
-
-		bool haveSong = i != AllSongs.size();
-
-		switch (NSMAN->m_iSelectMode) {
-			case 3:
-				StartSelectedSong();
-				break;
-			case 2: // We need to do cmd 1 as well here
-				if (haveSong) {
-					if (!m_MusicWheel.SelectSong(m_cSong)) {
-						m_MusicWheel.ChangeSort(SORT_GROUP);
-						m_MusicWheel.FinishTweening();
-						SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong,
-														  0.710f);
-					}
-					m_MusicWheel.Select();
-					m_MusicWheel.Move(-1);
-					m_MusicWheel.Move(1);
-					StartSelectedSong();
-					m_MusicWheel.Select();
-				}
-				break;
-			case 1: // Scroll to song as well
-				if (haveSong) {
-					if (!m_MusicWheel.SelectSong(m_cSong)) {
-						// m_MusicWheel.ChangeSort( SORT_GROUP );
-						// m_MusicWheel.FinishTweening();
-						// SCREENMAN->PostMessageToTopScreen( SM_SetWheelSong,
-						// 0.710f );
-						m_MusicWheel.ChangeSort(SORT_GROUP);
-						m_MusicWheel.SetOpenSection("");
-					}
-					m_MusicWheel.SelectSong(m_cSong);
-					m_MusicWheel.Select();
-					m_MusicWheel.Move(-1);
-					m_MusicWheel.Move(1);
-					m_MusicWheel.Select();
-				}
-				// don't break here
-			case 0: // See if client has song
-				if (haveSong)
-					NSMAN->m_iSelectMode = 0;
-				else
-					NSMAN->m_iSelectMode = 1;
-				NSMAN->SelectUserSong();
-		}
 	} else if (SM == SM_SetWheelSong) // After we've done the sort on wheel,
 									  // select song.
 	{
@@ -404,6 +286,13 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == ETTP_StartChart) {
 		if (NSMAN->song != nullptr) {
+			GAMESTATE->m_pCurSong.Set(NSMAN->song);
+			if (NSMAN->steps != nullptr) {
+				m_vpSteps[m_iSelection[PLAYER_1]] = NSMAN->steps;
+				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
+				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+				  NSMAN->steps->GetDifficulty());
+			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
@@ -423,6 +312,13 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == ETTP_SelectChart) {
 		if (NSMAN->song != nullptr) {
+			GAMESTATE->m_pCurSong.Set(NSMAN->song);
+			if (NSMAN->steps != nullptr) {
+				m_vpSteps[m_iSelection[PLAYER_1]] = NSMAN->steps;
+				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
+				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+				  NSMAN->steps->GetDifficulty());
+			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
@@ -609,6 +505,9 @@ ScreenNetSelectMusic::SelectCurrent()
 		return false;
 
 	GAMESTATE->m_pCurSong.Set(pSong);
+	Steps* pSteps = m_vpSteps[m_iSelection[PLAYER_1]];
+	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+	GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(pSteps->GetDifficulty());
 
 	if (NSMAN->useSMserver) {
 		NSMAN->m_sArtist = pSong->GetTranslitArtist();
@@ -647,7 +546,7 @@ ScreenNetSelectMusic::StartSelectedSong()
 	{
 		StepsType st = GAMESTATE->GetCurrentStyle(pn)
 						 ->m_StepsType; // StepsType_dance_single;
-		Steps* pSteps = m_vpSteps[pn];
+		Steps* pSteps = m_vpSteps[m_iSelection[PLAYER_1]];
 		GAMESTATE->m_PreferredDifficulty[pn].Set(pSteps->GetDifficulty());
 		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
 	}

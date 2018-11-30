@@ -1,6 +1,7 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local leaderboardEnabled =
-	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or (playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
+	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
+	(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
 local entryActors = {}
 local t =
 	Widg.Container {
@@ -47,13 +48,13 @@ local function scoreUsingMultiScore(idx)
 			return multiScores[idx] and multiScores[idx].user or nil
 		end,
 		GetWifeGrade = function()
-			return 0
+			return multiScores[idx] and GetGradeFromPercent(multiScores[idx].wife) or 0
 		end,
 		GetWifeScore = function()
 			return multiScores[idx] and multiScores[idx].wife or -500
 		end,
 		GetSkillsetSSR = function()
-			return -1
+			return 0
 		end,
 		GetJudgmentString = function()
 			return multiScores[idx] and multiScores[idx].jdgstr or ""
