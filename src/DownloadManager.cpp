@@ -2433,8 +2433,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int Fart(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, DLMAN->chartLeaderboards[SArg(1)][IArg(2) - 1].hasReplay);
+		RString ck = SArg(1);
+		size_t idx = IArg(2) - 1;
+		if (idx < DLMAN->chartLeaderboards[ck].size())
+			lua_pushboolean(L, DLMAN->chartLeaderboards[ck][idx].hasReplay);
+		else
+			lua_pushboolean(L, false);
 		return 1;
 	}
 	LunaDownloadManager()
