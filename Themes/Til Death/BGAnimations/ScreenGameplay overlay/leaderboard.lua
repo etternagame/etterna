@@ -243,7 +243,7 @@ t.JudgmentMessageCommand = function(self, params)
 	local old = curScore.curWifeScore
 	curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
 	if isMulti then
-		multiScores = NSMAN:GetMPLeaderboard()
+		scoreboard = NSMAN:GetMPLeaderboard()
 	end
 	if old ~= curScore.curWifeScore then
 		table.sort(scoreboard, sortFunction)

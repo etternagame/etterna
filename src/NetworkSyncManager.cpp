@@ -56,7 +56,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "chat", ettps_recievechat },
 	{ "login", ettps_loginresponse },
 	{ "score", ettps_recievescore },
-	{ "leaderboard", ettps_gameplayleaderboard },
+	{ "leaderboard", ettps_mpleaderboardupdate },
 	{ "createroom", ettps_createroomresponse },
 	{ "enterroom", ettps_enterroomresponse },
 	{ "selectchart", ettps_selectchart },
@@ -823,7 +823,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
 				} break;
-				case ettps_gameplayleaderboard: {
+				case ettps_mpleaderboardupdate: {
 					auto& scores = (*payload)["scores"];
 					for (json::iterator it = scores.begin(); it != scores.end();
 						 ++it) {
@@ -1047,7 +1047,7 @@ ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 	if (ws == nullptr)
 		return;
 	json j;
-	j["type"] = ettClientMessageMap[ettpc_mpleaderboardupdate];
+	j["type"] = "leaderboard";
 	auto& payload = j["payload"];
 	payload["wife"] = wife;
 	payload["jdgstr"] = jdgstr;

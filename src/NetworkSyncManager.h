@@ -87,7 +87,7 @@ enum ETTServerMessageTypes
 	ettps_loginresponse,
 	ettps_roomlist,
 	ettps_recievescore,
-	ettps_gameplayleaderboard,
+	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
 	ettps_selectchart,
