@@ -1068,12 +1068,13 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]);
+			replayString += to_string(1000.f * offsets[i]) + ",";
 			if (hs->GetReplayType() == 2) {
-				replayString += "," + to_string(columns[i]) + ",";
+				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
-				replayString += to_string(rows[i]);
+	
 			}
+			replayString += to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
