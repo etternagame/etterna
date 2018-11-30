@@ -1410,6 +1410,7 @@ DownloadManager::RequestReplayData(string scoreid,
 			vector<float> timestamps;
 			vector<float> offsets;
 			vector<int> tracks;
+			vector<int> rows;
 			vector<TapNoteType> types;
 
 			auto j = json::parse(req.result);
@@ -1423,11 +1424,16 @@ DownloadManager::RequestReplayData(string scoreid,
 
 					timestamps.emplace_back(note[0].get<float>());
 					offsets.emplace_back(note[1].get<float>() / 1000.f);
-
-					if (note.size() > 2) {
+					if (note.size() == 3) {	// pre-0.6 with noterows
+						rows.emplace_back(note[2].get<int>());
+					}
+					if (note.size() > 3) {	// 0.6 without noterows
 						tracks.emplace_back(note[2].get<int>());
 						types.emplace_back(
 						  static_cast<TapNoteType>(note[3].get<int>()));
+					}
+					if (note.size() == 5) { // 0.6 with noterows
+						rows.emplace_back(note[4].get<int>());
 					}
 				}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
@@ -1440,6 +1446,7 @@ DownloadManager::RequestReplayData(string scoreid,
 				it->hs.SetOffsetVector(offsets);
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
+				it->hs.SetNoteRowVector(rows);
 
 				if (tracks.empty())
 					it->hs.SetReplayType(1);

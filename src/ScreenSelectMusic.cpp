@@ -1705,8 +1705,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto noterows = hs->GetNoteRowVector();
 		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
-		if (!timestamps.empty()) {
+		if (!timestamps.empty() &&
+			noterows.empty()) { // if we have noterows from newer uploads, just
+								// use them -mina
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
@@ -1740,9 +1743,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
+		}
 
-			// Since we keep misses on EO as 180ms, we need to convert them
-			// back.
+		// Since we keep misses on EO as 180ms, we need to convert them
+		// back.
+		if (!timestamps.empty()) {
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
 				if (fabs(offset) >= .18f)
