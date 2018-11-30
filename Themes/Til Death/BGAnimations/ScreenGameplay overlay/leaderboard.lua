@@ -41,7 +41,7 @@ if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
 end
 local multiScores = {}
-function scoreUsingMultiScore(idx)
+local function scoreUsingMultiScore(idx)
 	return {
 		GetDisplayName = function()
 			return multiScores[idx] and multiScores[idx].user or nil
@@ -56,14 +56,14 @@ function scoreUsingMultiScore(idx)
 			return -1
 		end,
 		GetJudgmentString = function()
-			return ""
+			return multiScores[idx] and multiScores[idx].jdgstr or ""
 		end
 	}
 end
 local onlineScores = {}
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation"
 if isMulti then
-	multiScores = NSMAN:GetGameplayLeaderboard()
+	multiScores = NSMAN:GetMPLeaderboard()
 	for i = 1, 5 do
 		onlineScores[i] = scoreUsingMultiScore(i)
 	end
@@ -243,7 +243,7 @@ t.JudgmentMessageCommand = function(self, params)
 	local old = curScore.curWifeScore
 	curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
 	if isMulti then
-		multiScores = NSMAN:GetGameplayLeaderboard()
+		multiScores = NSMAN:GetMPLeaderboard()
 	end
 	if old ~= curScore.curWifeScore then
 		table.sort(scoreboard, sortFunction)
