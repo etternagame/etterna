@@ -298,6 +298,14 @@ NoteField::ensure_note_displays_have_skin()
 	sNoteSkinLower.MakeLower();
 	map<RString, NoteDisplayCols*>::iterator it =
 	  m_NoteDisplays.find(sNoteSkinLower);
+
+	if (it == m_NoteDisplays.end() && GAMESTATE->m_bIsChartPreviewActive) {
+		m_NoteDisplays.clear(); // this may leak some RString memory
+		m_NoteDisplays.insert(
+		  pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+		it = m_NoteDisplays.find(sNoteSkinLower);
+	}
+
 	ASSERT_M(it != m_NoteDisplays.end(),
 			 ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
 					  sNoteSkinLower.c_str()));
