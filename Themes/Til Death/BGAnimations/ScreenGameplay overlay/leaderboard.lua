@@ -1,6 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local leaderboardEnabled =
-	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
+	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
 	(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
 local entryActors = {}
 local t =
