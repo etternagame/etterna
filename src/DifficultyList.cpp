@@ -13,7 +13,10 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-#define MAX_METERS 12 // kinda restrictive but im also as lazy as sm5 devs -mina
+// reasonable limit to chart amount. if someone consistently crashes when
+// scrolling on a chart that has 25 diffs, THIS IS WHY
+// (this is a hardcoded value to optimize stepstype hover or something) -poco
+#define MAX_METERS 24
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 
