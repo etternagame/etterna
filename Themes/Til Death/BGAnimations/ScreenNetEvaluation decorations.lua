@@ -230,7 +230,7 @@ function scoreBoard(pn, position)
 				local minesHit =
 					pss:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
 				if enabledCustomWindows then
-					if params.Name == "PrevJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" then
 						judge = judge < 2 and #customWindows or judge - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 						self:settextf(
@@ -238,7 +238,7 @@ function scoreBoard(pn, position)
 							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
 							customWindow.name
 						)
-					elseif params.Name == "NextJudge" then
+					elseif params.Name == "LULLTHISWASNEXTJUDGE" then
 						judge = judge == #customWindows and 1 or judge + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 						self:settextf(
@@ -247,14 +247,14 @@ function scoreBoard(pn, position)
 							customWindow.name
 						)
 					end
-				elseif params.Name == "PrevJudge" and judge > 1 then
+				elseif params.Name == "LULLTHISWASPREVJUDGE" and judge > 1 then
 					judge = judge - 1
 					self:settextf(
 						"%05.2f%% (%s)",
 						getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps),
 						"Wife J" .. judge
 					)
-				elseif params.Name == "NextJudge" and judge < 9 then
+				elseif params.Name == "LULLTHISWASNEXTJUDGE" and judge < 9 then
 					judge = judge + 1
 					if judge == 9 then
 						self:settextf(
@@ -318,7 +318,7 @@ function scoreBoard(pn, position)
 				self:zoomx(frameWidth * rescoreJudges[k] / (#devianceTable))
 			end,
 			CodeMessageCommand = function(self, params)
-				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+				if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 					if enabledCustomWindows then
 						self:finishtweening():decelerate(2):zoomx(
 							frameWidth * getRescoredCustomJudge(dvt, customWindow.judgeWindows, k) / totalTaps
@@ -346,7 +346,7 @@ function scoreBoard(pn, position)
 					self:settext(getJudgeStrings(v))
 				end,
 				CodeMessageCommand = function(self, params)
-					if enabledCustomWindows and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+					if enabledCustomWindows and (params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE") then
 						self:settext(getCustomJudgeString(customWindow.judgeNames, k))
 					end
 					if params.Name == "ResetJudge" then
@@ -370,7 +370,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 						if enabledCustomWindows then
 							self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
 						else
@@ -398,7 +398,7 @@ function scoreBoard(pn, position)
 					self:settextf("(%03.2f%%)", pss:GetPercentageOfTaps(v) * 100)
 				end,
 				CodeMessageCommand = function(self, params)
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 						local rescoredJudge
 						if enabledCustomWindows then
 							rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
