@@ -62,7 +62,7 @@ local function scoreUsingMultiScore(idx)
 	}
 end
 local onlineScores = {}
-local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation"
+local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
 if isMulti then
 	multiScores = NSMAN:GetMPLeaderboard()
 	for i = 1, 5 do
