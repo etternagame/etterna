@@ -743,6 +743,40 @@ t[#t + 1] =
 			oldstyle = GAMESTATE:GetCurrentStyle()
 		end
 	}
+	
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "PlayerOptionsButton",
+		BeginCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+			self:xy(20, 218)
+			self:zoom(0.5)
+			self:halign(0)
+			self:settext("Player Options")
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				SCREENMAN:GetTopScreen():OpenOptions()
+			end
+		end
+	}
+
+--[[ -- This is the Widget Button alternative of the above implementation.
+t[#t + 1] =
+	Widg.Button {
+	text = "Options",
+	width = 50,
+	height = 25,
+	border = false,
+	bgColor = BoostColor(getMainColor("frames"), 7.5),
+	highlight = {color = BoostColor(getMainColor("frames"), 10)},
+	x = SCREEN_WIDTH / 2,
+	y = 5,
+	onClick = function(self)
+		SCREENMAN:GetTopScreen():OpenOptions()
+	end
+}]]
 
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

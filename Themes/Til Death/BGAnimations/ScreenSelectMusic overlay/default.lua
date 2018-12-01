@@ -44,19 +44,4 @@ GAMESTATE:UpdateDiscordMenu(
 		": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
 )
 
-t[#t + 1] =
-	Widg.Button {
-	text = "Options",
-	width = 50,
-	height = 25,
-	border = false,
-	bgColor = BoostColor(getMainColor("frames"), 7.5),
-	highlight = {color = BoostColor(getMainColor("frames"), 10)},
-	x = SCREEN_WIDTH / 2,
-	y = 5,
-	onClick = function(self)
-		SCREENMAN:GetTopScreen():OpenOptions()
-	end
-}
-
 return t
