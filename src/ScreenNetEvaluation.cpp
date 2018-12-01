@@ -299,7 +299,7 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 		lua_pushnumber(L, p->m_iCurrentPlayer + 1);
 		return 1;
 	}
-	static int SelectPlayer(T* p, lua_State* L)
+	static int SetCurrentPlayer(T* p, lua_State* L)
 	{
 		p->m_iCurrentPlayer = IArg(1) - 1;
 		p->UpdateStats();
@@ -311,7 +311,7 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 		ADD_METHOD(GetHighScore);
 		ADD_METHOD(GetOptions);
 		ADD_METHOD(GetCurrentPlayer);
-		ADD_METHOD(SelectPlayer);
+		ADD_METHOD(SetCurrentPlayer);
 	}
 };
 
