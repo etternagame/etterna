@@ -18,6 +18,7 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, capWideScale(135, 150)):zoom(0.4):maxwidth(400 / 0.4)
 		end,
 		BeginCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			self:queuecommand("Set")
 		end,
 		SetCommand = function(self)
