@@ -115,6 +115,7 @@ local o =
 			score = s
 			dvt = score:GetOffsetVector()
 			nrt = score:GetNoteRowVector()
+			ctt = score:GetTrackVector()
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 			end

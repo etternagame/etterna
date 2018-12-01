@@ -750,8 +750,10 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						json& replay = score["replay"];
 						json& jOffsets = replay["offsets"];
 						json& jNoterows = replay["noterows"];
+						json& jTracks = replay["tracks"];
 						vector<float> offsets;
 						vector<int> noterows;
+						vector<int> tracks;
 						for (json::iterator offsetIt = jOffsets.begin();
 							 offsetIt != jOffsets.end();
 							 ++offsetIt)
@@ -760,8 +762,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							 noterowIt != jNoterows.end();
 							 ++noterowIt)
 							noterows.emplace_back(noterowIt->get<int>());
+						for (json::iterator trackIt = jTracks.begin();
+							 trackIt != jTracks.end();
+							 ++trackIt)
+							noterows.emplace_back(trackIt->get<int>());
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
+						hs.SetTrackVector(tracks);
 					} catch (exception e) {
 					} // No replay data for this score, its still valid
 					result.nameStr = (*payload)["name"].get<string>();
@@ -1238,16 +1245,20 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["topscore"] = hs->GetTopScore();
 	payload["uuid"] = hs->GetMachineGuid();
 	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
-	auto offsets = pss.GetOffsetVector();
-	auto noterows = pss.GetNoteRowVector();
+	auto& offsets = pss.GetOffsetVector();
+	auto& noterows = pss.GetNoteRowVector();
+	auto& tracks = pss.GetTrackVector();
 	if (offsets.size() > 0) {
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
 		payload["replay"]["offsets"] = json::array();
+		payload["replay"]["tracks"] = json::array();
 		for (size_t i = 0; i < noterows.size(); i++)
 			payload["replay"]["noterows"].push_back(noterows[i]);
 		for (size_t i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
+		for (size_t i = 0; i < offsets.size(); i++)
+			payload["replay"]["tracks"].push_back(tracks[i]);
 	}
 	Send(j);
 }
