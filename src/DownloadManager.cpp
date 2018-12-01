@@ -1142,6 +1142,106 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	HTTPRequests.push_back(req);
 	return;
 }
+void // for online replay viewing accuracy -mina
+DownloadManager::UpdateOnlineScoreReplayData(string& sk,
+												   function<void()> callback)
+{
+	if (!LoggedIn())
+		return;
+
+	auto hs = SCOREMAN->GetScoresByKey().at(sk);
+	CURL* curlHandle = initCURLHandle(true);
+	string url = serverURL.Get() + "/updatereplaydata";
+	curl_httppost* form = nullptr;
+	curl_httppost* lastPtr = nullptr;
+	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
+	string replayString;
+	vector<float> offsets = hs->GetOffsetVector();
+	vector<int> columns = hs->GetTrackVector();
+	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+	auto& rows = hs->GetNoteRowVector();
+
+	if (!offsets.empty()) {
+		replayString = "[";
+		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		if (steps == nullptr)
+			return;
+		vector<float> timestamps =
+		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
+			rows, hs->GetMusicRate());
+		for (size_t i = 0; i < offsets.size(); i++) {
+			replayString += "[";
+			replayString += to_string(timestamps[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]) + ",";
+			if (hs->GetReplayType() == 2) {
+				replayString += to_string(columns[i]) + ",";
+				replayString += to_string(types[i]) + ",";
+			}
+			replayString += to_string(rows[i]);
+			replayString += "],";
+		}
+		replayString =
+		  replayString.substr(0, replayString.size() - 1); // remove ","
+		replayString += "]";
+		hs->UnloadReplayData();
+	} else
+		replayString = "";
+	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "replay_data", replayString);
+	SetCURLPostToURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	auto done = [this, hs, callback](HTTPRequest& req, CURLMsg*) {
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+		json j;
+		try {
+			j = json::parse(req.result);
+			bool delay = false;
+			try {
+				auto errors = j["errors"];
+				for (auto error : errors) {
+					int status = error["status"];
+					if (status == 22) {
+						delay = true;
+						DLMAN->StartSession(
+						  DLMAN->sessionUser,
+						  DLMAN->sessionPass,
+						  [hs](bool logged) {
+							  if (logged) {
+								  DLMAN->UploadScoreWithReplayDataFromDisk(
+									hs->GetScoreKey());
+							  }
+						  });
+					} else if (status == 404 || status == 405 ||
+							   status == 406) {
+						hs->AddUploadedServer(serverURL.Get());
+					}
+				}
+			} catch (exception e) {
+			}
+			if (!delay && j["data"]["type"] == "ssrResults") {
+				auto diffs = j["data"]["attributes"]["diff"];
+				FOREACH_ENUM(Skillset, ss)
+				if (ss != Skill_Overall)
+					(DLMAN->sessionRatings)[ss] +=
+					  diffs.value(SkillsetToString(ss), 0.0);
+				(DLMAN->sessionRatings)[Skill_Overall] +=
+				  diffs.value("Rating", 0.0);
+				hs->AddUploadedServer(serverURL.Get());
+				HTTPRunning = response_code;
+			}
+		} catch (exception e) {
+		}
+		if (callback)
+			callback();
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done);
+	SetCURLResultsString(curlHandle, &(req->result));
+	curl_multi_add_handle(mHTTPHandle, req->handle);
+	HTTPRequests.push_back(req);
+	return;
+}
 void
 DownloadManager::EndSessionIfExists()
 {
@@ -1888,22 +1988,22 @@ DownloadManager::StartSession(string user,
 }
 
 void
-uploadSequentially(deque<HighScore*> toUpload)
+UpdateReplayDataSequentially(deque<HighScore*> toUpload)
 {
 	auto it = toUpload.begin();
 	if (it != toUpload.end()) {
 		toUpload.pop_front();
 		auto& hs = (*it);
-		DLMAN->UploadScoreWithReplayDataFromDisk(
+		DLMAN->UpdateOnlineScoreReplayData(
 		  hs->GetScoreKey(), [hs, toUpload]() {
 			  hs->AddUploadedServer(serverURL.Get());
-			  uploadSequentially(toUpload);
+			  UpdateReplayDataSequentially(toUpload);
 		  });
 	}
 	return;
 }
 bool
-DownloadManager::UploadScores()
+DownloadManager::UpdateOnlineScoreReplayData()
 {
 	if (!LoggedIn())
 		return false;
@@ -1919,10 +2019,44 @@ DownloadManager::UploadScores()
 			}
 		}
 	}
+	UpdateReplayDataSequentially(toUpload);
+	return true;
+}
+void
+uploadSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UploadScoreWithReplayDataFromDisk(
+		  hs->GetScoreKey(), [hs, toUpload]() {
+			  hs->AddUploadedServer(serverURL.Get());
+			  uploadSequentially(toUpload);
+		  });
+	}
+	return;
+}
+bool
+DownloadManager::UploadScores()		// keeping in case we want to use this later -mina
+{
+	if (!LoggedIn())
+		return false;
+	auto scores = SCOREMAN->GetAllPBPtrs();
+	deque<HighScore*> toUpload;
+	for (auto& vec : scores) {
+		for (auto& scorePtr : vec) {
+			auto ts = scorePtr->GetTopScore();
+			if ((ts == 1 || ts == 2) &&
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				if (scorePtr->HasReplayData())	// we should remove this check maybe -mina
+					toUpload.emplace_back(scorePtr);
+			}
+		}
+	}
 	uploadSequentially(toUpload);
 	return true;
 }
-
 int
 DownloadManager::GetSkillsetRank(Skillset ss)
 {

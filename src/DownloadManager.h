@@ -226,6 +226,7 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
+	bool UpdateOnlineScoreReplayData();	// attempts updates existing replaydata
 						 // server (Async, 1 request per score)
 	void RefreshPackList(string url);
 
@@ -249,6 +250,7 @@ class DownloadManager
 	void UploadScoreWithReplayDataFromDisk(
 	  string sk,
 	  function<void()> callback = function<void()>());
+	void UpdateOnlineScoreReplayData(string& sk, function<void()> callback);
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();
