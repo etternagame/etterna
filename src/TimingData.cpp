@@ -1440,7 +1440,7 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 }
 
 vector<float>
-TimingData::ConvertReplayNoteRowsToTimestamps(vector<int>& nrv, float rate)
+TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv, float rate)
 {
 	vector<float> o;
 	for (auto nr : nrv)
