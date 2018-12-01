@@ -1150,12 +1150,13 @@ DownloadManager::UpdateOnlineScoreReplayData(string& sk,
 
 	auto hs = SCOREMAN->GetScoresByKey().at(sk);
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/updatereplaydata/" + sk;
+	string url = serverURL.Get() + "/updatereplaydata/";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
 	string toSend = "[";
+	hs->LoadReplayData();
 	auto& rows = hs->GetNoteRowVector();
 	for (auto& row : rows) {
 		toSend += to_string(row) + ",";
@@ -1889,8 +1890,11 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	DLMAN->RefreshTop25(ss);
-	if (DLMAN->ShouldUploadScores())
+	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
+		DLMAN->UpdateOnlineScoreReplayData();
+	}
+	DLMAN->UpdateOnlineScoreReplayData();
 	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
 		DLMAN->RequestChartLeaderBoard(
 		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
@@ -1980,8 +1984,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
-			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+			if ((ts == 1 || ts == 2) ){
 				if (scorePtr->HasReplayData())
 					toUpload.emplace_back(scorePtr);
 			}
