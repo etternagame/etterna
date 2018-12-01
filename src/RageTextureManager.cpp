@@ -31,6 +31,7 @@
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
+#include "ScoreManager.h"
 
 #include <map>
 
@@ -351,6 +352,10 @@ RageTextureManager::GarbageCollect(GCType type)
 		if (bDeleteThis)
 			DeleteTexture(t);
 	}
+
+	// this may actually the best place for this -mina
+	LOG->Trace("Unloading replaydata.");
+	SCOREMAN->UnloadAllReplayData();
 }
 
 void
