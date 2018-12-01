@@ -741,6 +741,14 @@ t[#t + 1] =
 				toggleNoteField()
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			ready:Disable()
+			forceStart:Disable()
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			ready:Enable()
+			forceStart:Enable()
 		end
 	}
 	
