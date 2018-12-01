@@ -1245,9 +1245,9 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["topscore"] = hs->GetTopScore();
 	payload["uuid"] = hs->GetMachineGuid();
 	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
-	auto& offsets = pss.GetOffsetVector();
-	auto& noterows = pss.GetNoteRowVector();
-	auto& tracks = pss.GetTrackVector();
+	const auto& offsets = pss.GetOffsetVector();
+	const auto& noterows = pss.GetNoteRowVector();
+	const auto& tracks = pss.GetTrackVector();
 	if (offsets.size() > 0) {
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
