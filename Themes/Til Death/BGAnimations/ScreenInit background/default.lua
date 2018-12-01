@@ -98,6 +98,8 @@ local minanyms = {
 	"MinaTallerThanBrandon",
 	"confers monetary value to words",
 	"notcool",
+	"mina restepped as a pad file",
+	"sapient typo conglomerate",
 }
 
 math.random()
