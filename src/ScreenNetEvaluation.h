@@ -19,21 +19,9 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	int m_iCurrentPlayer;
 	void UpdateStats();
   protected:
-	bool MenuLeft(const InputEventPlus& input) override;
-	bool MenuUp(const InputEventPlus& input) override;
-	bool MenuRight(const InputEventPlus& input) override;
-	bool MenuDown(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
 	void TweenOffScreen() override;
   private:
-	// todo: Make this an AutoActor -aj
-	Quad m_rectUsersBG;
-
-	// todo: Make this a StepsDisplay -aj
-	DifficultyIcon m_DifficultyIcon[NUM_PLAYERS];
-	// StepsDisplay m_StepsDisplays[NUM_PLAYERS];
-
-	vector<BitmapText> m_textUsers;
 	int m_iActivePlayers;
 
 	PlayerNumber m_pActivePlayer;

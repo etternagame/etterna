@@ -40,45 +40,6 @@ ScreenNetEvaluation::Init()
 }
 
 bool
-ScreenNetEvaluation::MenuLeft(const InputEventPlus& input)
-{
-	return MenuUp(input);
-}
-
-bool
-ScreenNetEvaluation::MenuUp(const InputEventPlus& input)
-{
-	if (m_iActivePlayers == 0 || !m_bHasStats)
-		return false;
-
-	COMMAND(m_textUsers[m_iCurrentPlayer], "DeSel");
-	m_iCurrentPlayer =
-	  (m_iCurrentPlayer + m_iActivePlayers - 1) % m_iActivePlayers;
-	COMMAND(m_textUsers[m_iCurrentPlayer], "Sel");
-	UpdateStats();
-	return true;
-}
-
-bool
-ScreenNetEvaluation::MenuRight(const InputEventPlus& input)
-{
-	return MenuDown(input);
-}
-
-bool
-ScreenNetEvaluation::MenuDown(const InputEventPlus& input)
-{
-	if (m_iActivePlayers == 0 || !m_bHasStats)
-		return false;
-
-	COMMAND(m_textUsers[m_iCurrentPlayer], "DeSel");
-	m_iCurrentPlayer = (m_iCurrentPlayer + 1) % m_iActivePlayers;
-	COMMAND(m_textUsers[m_iCurrentPlayer], "Sel");
-	UpdateStats();
-	return true;
-}
-
-bool
 ScreenNetEvaluation::Input(const InputEventPlus& input)
 {
 	// throw out "enter" inputs so players don't accidentally close the screen
@@ -116,19 +77,8 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 				NSMAN->m_EvalPlayerData[i].name < 0)
 				break;
 
-			if (size_t(i) >= m_textUsers.size())
-				break;
-
-			m_textUsers[i].SetText(
-			  NSMAN->m_EvalPlayerData[i].nameStr.empty()
-				? NSMAN->m_PlayerNames[NSMAN->m_EvalPlayerData[i].name]
-				: NSMAN->m_EvalPlayerData[i].nameStr);
-
 			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade() <
 				Grade_Tier03)
-				m_textUsers[i].PlayCommand("Tier02OrBetter");
-
-			ON_COMMAND(m_textUsers[i]);
 			LOG->Trace("SMNETCheckpoint%d", i);
 		}
 		return; // No need to let ScreenEvaluation get a hold of this.
@@ -142,9 +92,6 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 void
 ScreenNetEvaluation::TweenOffScreen()
 {
-	for (int i = 0; i < m_iActivePlayers; ++i)
-		OFF_COMMAND(m_textUsers[i]);
-	OFF_COMMAND(m_rectUsersBG);
 	ScreenEvaluation::TweenOffScreen();
 }
 
@@ -165,13 +112,6 @@ ScreenNetEvaluation::UpdateStats()
 	if (THEME->GetMetricB(m_sName, "ShowScoreArea"))
 		m_textScore[m_pActivePlayer].SetTargetNumber(
 		  static_cast<float>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score));
-
-	// Values greater than 6 will cause a crash
-	if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty < 6) {
-		m_DifficultyIcon[m_pActivePlayer].SetPlayer(m_pActivePlayer);
-		m_DifficultyIcon[m_pActivePlayer].SetFromDifficulty(
-		  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
-	}
 
 	for (int j = 0; j < NETNUMTAPSCORES; ++j) {
 		// The name will be blank if ScreenEvaluation determined the line
