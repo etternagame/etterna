@@ -41,6 +41,7 @@ enum ScreenType
 	game_menu,   /**< The menu screens, where options can be set before playing.
 				  */
 	gameplay,	/**< The gameplay screen, where the actual game takes place. */
+	evaluation,
 	system_menu, /**< The system/operator menu, where special options are set.
 				  */
 	NUM_ScreenType, /**< The number of screen types. */

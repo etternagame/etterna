@@ -19,6 +19,7 @@ static const char* ScreenTypeNames[] = {
 	"Attract",
 	"GameMenu",
 	"Gameplay",
+	"Evaluation",
 	"SystemMenu",
 };
 XToString(ScreenType);
