@@ -515,7 +515,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				return true;
 			}
 		} else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() &&
-				   input.type == IET_FIRST_PRESS) {
+				   input.type == IET_FIRST_PRESS &&
+				   GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr) {
 			Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->AddGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
