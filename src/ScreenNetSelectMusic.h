@@ -36,7 +36,6 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuLeft(const InputEventPlus& input) override;
 	bool MenuRight(const InputEventPlus& input) override;
-	bool MenuUp(const InputEventPlus& input) override;
 	bool LeftAndRightPressed(PlayerNumber pn);
 
 	void Update(float fDeltaTime) override;

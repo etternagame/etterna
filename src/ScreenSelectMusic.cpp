@@ -573,7 +573,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// Check for "Press START again for options" button press
 	if (m_SelectionState == SelectionState_Finalized &&
 		input.MenuI == GAME_BUTTON_START && input.type != IET_RELEASE &&
-		OPTIONS_MENU_AVAILABLE.GetValue()) {
+		OPTIONS_MENU_AVAILABLE.GetValue() && !GAMESTATE->m_bPlayingMulti) {
 		if (m_bGoToOptions)
 			return false; // got it already
 		if (!m_bAllowOptionsMenu)
