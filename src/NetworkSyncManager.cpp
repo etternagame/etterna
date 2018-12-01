@@ -1176,7 +1176,11 @@ NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 void
 ETTProtocol::Send(json msg)
 {
-	Send(msg.dump().c_str());
+	try {
+		Send(msg.dump().c_str());
+	} catch (exception e) {
+		SCREENMAN->SystemMessage("Error: Chart contains invalid utf8");
+	}
 }
 void
 ETTProtocol::Send(const char* msg)
