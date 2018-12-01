@@ -86,6 +86,8 @@ enum ETTServerMessageTypes
 	ettps_recievechat,
 	ettps_loginresponse,
 	ettps_roomlist,
+	ettps_lobbyuserlist,
+	ettps_lobbyuserlistupdate,
 	ettps_recievescore,
 	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
@@ -375,6 +377,8 @@ class NetworkSyncManager
 	bool ChangedScoreboard(int Column); // Returns true if scoreboard changed
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
+
+	vector<string> lobbyuserlist;
 
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 

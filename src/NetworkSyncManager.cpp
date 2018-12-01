@@ -52,6 +52,8 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
 	{ "roomlist", ettps_roomlist },
+	{ "lobbyuserlist", ettps_lobbyuserlist },
+	{ "lobbyuserlistupdate", ettps_lobbyuserlistupdate },
 	{ "ping", ettps_ping },
 	{ "chat", ettps_recievechat },
 	{ "login", ettps_loginresponse },
@@ -926,6 +928,26 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  e.what());
 					}
 					break;
+				case ettps_lobbyuserlist: {
+					NSMAN->lobbyuserlist.clear();
+					auto users = payload->at("users");
+					for (auto& user : users) {
+						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
+					}
+				} break;
+				case ettps_lobbyuserlistupdate: {
+					auto newUsers = payload->at("on");
+					for (auto& user : newUsers) {
+						auto& vec = NSMAN->lobbyuserlist;
+						vec.erase(std::remove(
+									vec.begin(), vec.end(), user.get<string>()),
+								  vec.end());
+					}
+					auto removedUsers = payload->at("off");
+					for (auto& user : removedUsers) {
+						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
+					}
+				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
 					n->m_Rooms.clear();
@@ -1856,9 +1878,21 @@ class LunaChartRequest : public Luna<ChartRequest>
 		lua_pushnumber(L, p->rate / 1000);
 		return 1;
 	}
+	static int GetLobbyUserList(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		int i = 1;
+		for (auto& user : NSMAN->lobbyuserlist) {
+			lua_pushstring(L, user.c_str());
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
 	LunaChartRequest()
 	{
 		ADD_METHOD(GetChartkey);
+		ADD_METHOD(GetLobbyUserList);
 		ADD_METHOD(GetUser);
 		ADD_METHOD(GetRate);
 	}
