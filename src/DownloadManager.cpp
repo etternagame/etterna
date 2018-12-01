@@ -713,7 +713,7 @@ DownloadManager::LoggedIn()
 }
 
 void
-DownloadManager::AddFavorite(string chartkey)
+DownloadManager::AddFavorite(const string& chartkey)
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.emplace_back(chartkey);
@@ -724,7 +724,7 @@ DownloadManager::AddFavorite(string chartkey)
 }
 
 void
-DownloadManager::RemoveFavorite(string chartkey)
+DownloadManager::RemoveFavorite(const string& chartkey)
 {
 	auto it =
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
@@ -741,7 +741,7 @@ DownloadManager::RemoveFavorite(string chartkey)
 
 // we could pass scoregoal objects instead..? -mina
 void
-DownloadManager::RemoveGoal(string chartkey, float wife, float rate)
+DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
 	string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
 				 to_string(wife) + "/" + to_string(rate);
@@ -754,10 +754,10 @@ DownloadManager::RemoveGoal(string chartkey, float wife, float rate)
 }
 
 void
-DownloadManager::AddGoal(string chartkey,
+DownloadManager::AddGoal(const string& chartkey,
 						 float wife,
 						 float rate,
-						 DateTime timeAssigned)
+						 DateTime& timeAssigned)
 {
 	string req = "user/" + DLMAN->sessionUser + "/goals";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
@@ -773,12 +773,12 @@ DownloadManager::AddGoal(string chartkey,
 }
 
 void
-DownloadManager::UpdateGoal(string chartkey,
+DownloadManager::UpdateGoal(const string& chartkey,
 							float wife,
 							float rate,
 							bool achieved,
-							DateTime timeAssigned,
-							DateTime timeAchieved)
+							DateTime& timeAssigned,
+							DateTime& timeAchieved)
 {
 	string doot = "0000:00:00 00:00:00";
 	if (achieved)
@@ -965,10 +965,10 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
-	vector<float> offsets = hs->GetOffsetVector();
-	vector<int> columns = hs->GetTrackVector();
-	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
-	vector<int> rows = hs->GetNoteRowVector();
+	const auto& offsets = hs->GetOffsetVector();
+	const auto& columns = hs->GetTrackVector();
+	const auto& types = hs->GetTapNoteTypeVector();
+	const auto& rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		vector<float>& timestamps = hs->timeStamps;
@@ -1039,16 +1039,16 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	return;
 }
 void // not tested exhaustively -mina
-DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
+DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 												   function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
 
-	auto doot = SCOREMAN->GetScoresByKey();
-	auto hs = doot[sk];
+	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
 	if (!hs->LoadReplayData())
-		return;
+		if (callback)
+			callback();
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
@@ -1056,11 +1056,10 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
-	vector<float> offsets = hs->GetOffsetVector();
-	vector<int> columns = hs->GetTrackVector();
-	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
-	auto& rows = hs->GetNoteRowVector();
-
+	const auto& offsets = hs->GetOffsetVector();
+	const auto& columns = hs->GetTrackVector();
+	const auto& types = hs->GetTapNoteTypeVector();
+	const auto& rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1142,15 +1141,15 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	return;
 }
 void // for online replay viewing accuracy -mina
-DownloadManager::UpdateOnlineScoreReplayData(string& sk,
+DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 											 function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
 
-	auto hs = SCOREMAN->GetScoresByKey().at(sk);
+	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/updatereplaydata";
+	string url = serverURL.Get() + "/updateReplayData";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLFormPostField(
@@ -1158,9 +1157,8 @@ DownloadManager::UpdateOnlineScoreReplayData(string& sk,
 	string toSend = "[";
 	hs->LoadReplayData();
 	auto& rows = hs->GetNoteRowVector();
-	for (auto& row : rows) {
+	for (auto& row : rows)
 		toSend += to_string(row) + ",";
-	}
 	toSend = toSend.substr(0, toSend.size() - 1); // remove ,
 	toSend += "]";
 	SetCURLFormPostField(curlHandle, form, lastPtr, "replay", toSend);
@@ -1187,7 +1185,7 @@ DownloadManager::UpdateOnlineScoreReplayData(string& sk,
 							  DLMAN->sessionPass,
 							  [hs](bool logged) {
 								  if (logged) {
-									  DLMAN->UploadScoreWithReplayDataFromDisk(
+									  DLMAN->UpdateOnlineScoreReplayData(
 										hs->GetScoreKey());
 								  }
 							  });
@@ -1376,73 +1374,6 @@ DownloadManager::SendRequestToURL(
 	}
 	return req;
 }
-
-float
-mythicalmathymathsProbablyUnderratedness(string chartkey)
-{
-	auto& onlineScores = DLMAN->chartLeaderboards[chartkey];
-
-	float dsum = 0.f;
-	int num = 4;
-	for (auto& s : onlineScores) {
-		float adjRating = s.playerRating - 1.f;
-		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f &&
-			abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
-			if (s.playerRating > s.SSRs[Skill_Overall]) {
-				float diff = adjRating - s.SSRs[Skill_Overall];
-				dsum += diff;
-			} else {
-				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
-				dsum -= mcdoot * mcdoot;
-			}
-			++num;
-		}
-	}
-	return dsum / num;
-}
-
-float
-overratedness(string chartkey)
-{
-	auto& onlineScores = DLMAN->chartLeaderboards[chartkey];
-	vector<float> values;
-	float offset = 5.f;
-	float dsum = 0.f;
-	int num = onlineScores.size();
-	if (num == 0)
-		return 0.0f;
-
-	for (auto& s : onlineScores) {
-		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
-			float adjrating = s.playerRating * 1.026f;
-			float value = static_cast<float>(
-			  (2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
-			if (s.SSRs[Skill_Overall] - s.playerRating > 40)
-				value = 100.f;
-			if (value < 0)
-				value = 0.f;
-			values.emplace_back(value);
-			dsum += value;
-		}
-	}
-
-	float zeeaverage = dsum / num;
-
-	float overratedness = (dsum - offset) / num;
-
-	overratedness /= zeeaverage;
-	overratedness -= 1.5f;
-
-	float multiplier = 1.f - overratedness;
-	float mcdootMin = 1.f;
-	if (multiplier < mcdootMin - 0.2f)
-		multiplier = mcdootMin - 0.2f;
-
-	float nerfE = (4.f * mcdootMin + multiplier) / 5.f;
-	nerfE = min(1.f, nerfE);
-	return overratedness;
-}
-
 void
 DownloadManager::RefreshCountryCodes()
 {
@@ -1471,11 +1402,11 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
-DownloadManager::RequestReplayData(string scoreid,
+DownloadManager::RequestReplayData(const string& scoreid,
 								   int userid,
-								   string username,
-								   string chartkey,
-								   LuaReference callback)
+								   const string& username,
+								   const string& chartkey,
+								   LuaReference& callback)
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
@@ -1559,7 +1490,7 @@ DownloadManager::RequestReplayData(string scoreid,
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
+DownloadManager::RequestChartLeaderBoard(const string& chartkey, LuaReference& ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
@@ -1723,14 +1654,14 @@ DownloadManager::RefreshCoreBundles()
 }
 
 vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(string whichoneyo)
+DownloadManager::GetCoreBundle(const string& whichoneyo)
 {
 	return bundles.count(whichoneyo) ? bundles[whichoneyo]
 									 : vector<DownloadablePack*>();
 }
 
 void
-DownloadManager::DownloadCoreBundle(string whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1894,7 +1825,6 @@ DownloadManager::OnLogin()
 		DLMAN->UploadScores();
 		DLMAN->UpdateOnlineScoreReplayData();
 	}
-	DLMAN->UpdateOnlineScoreReplayData();
 	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
 		DLMAN->RequestChartLeaderBoard(
 		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
@@ -1969,6 +1899,7 @@ UpdateReplayDataSequentially(deque<HighScore*> toUpload)
 		toUpload.pop_front();
 		auto& hs = (*it);
 		DLMAN->UpdateOnlineScoreReplayData(hs->GetScoreKey(), [hs, toUpload]() {
+			hs->AddUploadedServer("nru");
 			UpdateReplayDataSequentially(toUpload);
 		});
 	}
@@ -1979,17 +1910,20 @@ DownloadManager::UpdateOnlineScoreReplayData()
 {
 	if (!LoggedIn())
 		return false;
-	auto scores = SCOREMAN->GetAllPBPtrs();
+	// we dont care if the chart is loaded for this function, only that there is
+	// a score that is already uploaded and already has replaydata, and that the
+	// source data is on disk to update it -mina
+	auto& scores = SCOREMAN->GetAllScores();
 	deque<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
+		for (auto& scorePtr : scores) {
+			auto ts = scorePtr->GetTopScore();	// still need to do this?
 			if ((ts == 1 || ts == 2) ){
-				if (scorePtr->HasReplayData())
+				if (scorePtr->HasReplayData() &&
+					scorePtr->IsUploadedToServer(serverURL.Get()) &&
+					  !scorePtr->IsUploadedToServer("nru"))
 					toUpload.emplace_back(scorePtr);
 			}
 		}
-	}
 	UpdateReplayDataSequentially(toUpload);
 	return true;
 }
@@ -2009,8 +1943,7 @@ uploadSequentially(deque<HighScore*> toUpload)
 	return;
 }
 bool
-DownloadManager::UploadScores() // keeping in case we want to use this later
-								// -mina
+DownloadManager::UploadScores()
 {
 	if (!LoggedIn())
 		return false;
@@ -2046,7 +1979,7 @@ DownloadManager::GetSkillsetRating(Skillset ss)
 	return static_cast<float>(sessionRatings[ss]);
 }
 void
-DownloadManager::RefreshPackList(string url)
+DownloadManager::RefreshPackList(const string& url)
 {
 	if (url == "")
 		return;

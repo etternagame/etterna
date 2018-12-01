@@ -201,22 +201,22 @@ class DownloadManager
 	map<Skillset, vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
 
-	void AddFavorite(string chartkey);
-	void RemoveFavorite(string chartkey);
+	void AddFavorite(const string& chartkey);
+	void RemoveFavorite(const string& chartkey);
 	void RefreshFavourites();
 	vector<string> favorites;
 
-	void AddGoal(string chartkey,
+	void AddGoal(const string& chartkey,
 				 float wife,
 				 float rate,
-				 DateTime timeAssigned);
-	void UpdateGoal(string chartkey,
+				 DateTime& timeAssigned);
+	void UpdateGoal(const string& chartkey,
 					float wife,
 					float rate,
 					bool achieved,
-					DateTime timeAssigned,
-					DateTime timeAchieved);
-	void RemoveGoal(string chartkey, float wife, float rate);
+					DateTime& timeAssigned,
+					DateTime& timeAchieved);
+	void RemoveGoal(const string& chartkey, float wife, float rate);
 
 	void EndSessionIfExists(); // Calls EndSession if logged in
 	void EndSession();		   // Sends session destroy request
@@ -228,7 +228,7 @@ class DownloadManager
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
 	bool UpdateOnlineScoreReplayData();	// attempts updates existing replaydata
 						 // server (Async, 1 request per score)
-	void RefreshPackList(string url);
+	void RefreshPackList(const string& url);
 
 	void init();
 	Download* DownloadAndInstallPack(const string& url, string filename = "");
@@ -248,9 +248,11 @@ class DownloadManager
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
-	  string sk,
+	  const string& sk,
 	  function<void()> callback = function<void()>());
-	void UpdateOnlineScoreReplayData(string& sk, function<void()> callback);
+	void UpdateOnlineScoreReplayData(
+	  const string& sk,
+	  function<void()> callback = function<void()>());
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();
@@ -278,21 +280,21 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
-	void RequestReplayData(string scorekey,
+	void RequestReplayData(const string& scorekey,
 						   int userid,
-						   string username,
-						   string chartkey,
-						   LuaReference callback = LuaReference());
-	void RequestChartLeaderBoard(string chartkey,
-								 LuaReference ref = LuaReference());
+						   const string& username,
+						   const string& chartkey,
+						   LuaReference& callback = LuaReference());
+	void RequestChartLeaderBoard(const string& chartkey,
+								 LuaReference& ref = LuaReference());
 	void RefreshUserData();
 	string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(string whichoneyo, bool mirror = false);
+	void DownloadCoreBundle(const string& whichoneyo, bool mirror = false);
 	map<string, vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
-	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
+	vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
 									   Skillset ss,
 									   bool& result);
