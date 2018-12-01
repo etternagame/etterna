@@ -768,6 +768,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					n->m_EvalPlayerData.emplace_back(result);
 					n->m_ActivePlayers = n->m_EvalPlayerData.size();
 					SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
+					MESSAGEMAN->Broadcast("NewMultiScore");
 					break;
 				}
 				case ettps_ping:
@@ -1804,8 +1805,26 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		p->Login(user, pass);
 		return 1;
 	}
+	static int GetEvalScores(T* p, lua_State* L)
+	{
+		int i = 1;
+		lua_newtable(L);
+		for (auto& evalData : NSMAN->m_EvalPlayerData) {
+			lua_newtable(L);
+			lua_pushstring(L, evalData.nameStr.c_str());
+			lua_setfield(L, -2, "user");
+			evalData.hs.PushSelf(L);
+			lua_setfield(L, -2, "highscore");
+			lua_pushstring(L, evalData.playerOptions.c_str());
+			lua_setfield(L, -2, "options");
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
 	LunaNetworkSyncManager()
 	{
+		ADD_METHOD(GetEvalScores);
 		ADD_METHOD(GetMPLeaderboard);
 		ADD_METHOD(GetChartRequests);
 		ADD_METHOD(GetChatMsg);
