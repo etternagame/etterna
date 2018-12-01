@@ -2445,16 +2445,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
 		return 0;
 	}
-	static int Fart(T* p, lua_State* L)
-	{
-		RString ck = SArg(1);
-		size_t idx = IArg(2) - 1;
-		if (idx < DLMAN->chartLeaderboards[ck].size())
-			lua_pushboolean(L, DLMAN->chartLeaderboards[ck][idx].hasReplay);
-		else
-			lua_pushboolean(L, false);
-		return 1;
-	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetCountryCodes);
@@ -2488,7 +2478,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
-		ADD_METHOD(Fart);
 		ADD_METHOD(Logout);
 	}
 };

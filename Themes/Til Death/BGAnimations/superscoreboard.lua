@@ -475,7 +475,7 @@ local function makeScoreDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
-						if DLMAN:Fart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), ind + i) then
+						if hs:HasReplayData() then
 							self:settext("Watch")
 						else
 							self:settext("")
