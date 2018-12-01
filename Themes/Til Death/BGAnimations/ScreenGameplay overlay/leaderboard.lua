@@ -49,13 +49,13 @@ local function scoreUsingMultiScore(idx)
 			return multiScores[idx] and multiScores[idx].user or nil
 		end,
 		GetWifeGrade = function()
-			return multiScores[idx] and GetGradeFromPercent(multiScores[idx].wife) or 0
+			return multiScores[idx] and GetGradeFromPercent(multiScores[idx].wife) or "Grade_Tier01"
 		end,
 		GetWifeScore = function()
-			return multiScores[idx] and multiScores[idx].wife or -500
+			return multiScores[idx] and multiScores[idx].wife or -5000000
 		end,
 		GetSkillsetSSR = function()
-			return 0
+			return -1
 		end,
 		GetJudgmentString = function()
 			return multiScores[idx] and multiScores[idx].jdgstr or ""
@@ -63,7 +63,7 @@ local function scoreUsingMultiScore(idx)
 	}
 end
 local onlineScores = {}
-local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
+local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
 if isMulti then
 	multiScores = NSMAN:GetMPLeaderboard()
 	for i = 1, 5 do
@@ -216,9 +216,19 @@ function scoreEntry(i)
 	addLabel(
 		"wife",
 		function(self, hs)
-			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(GetGradeFromPercent(hs:GetWifeScore())))
+			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
 		end,
 		1.8 * WIDTH
+	)
+	addLabel(
+		"grade",
+		function(self, hs)
+			self:settext(getGradeStrings(hs:GetWifeGrade()))
+			self:diffuse(byGrade(hs:GetWifeGrade()))
+			self:halign(0.5)
+		end,
+		2 * WIDTH,
+		ENTRY_HEIGHT / 2
 	)
 	addLabel(
 		"judges",
