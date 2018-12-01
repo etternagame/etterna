@@ -1379,7 +1379,7 @@ ScreenGameplay::BeginScreen()
 				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore / this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore, doot);
 			  		
 		  },
-		  1,
+		  0.25f,
 		  -1);
 	}
 }
