@@ -1150,7 +1150,7 @@ DownloadManager::UpdateOnlineScoreReplayData(string& sk,
 
 	auto hs = SCOREMAN->GetScoresByKey().at(sk);
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/updatereplaydata/";
+	string url = serverURL.Get() + "/updatereplaydata";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLFormPostField(
