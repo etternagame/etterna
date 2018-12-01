@@ -1206,7 +1206,7 @@ DownloadManager::UpdateOnlineScoreReplayData(string& sk,
 		if (callback)
 			callback();
 	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done, fail);
+	HTTPRequest* req = new HTTPRequest(curlHandle, done, form, fail);
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
