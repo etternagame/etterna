@@ -36,62 +36,7 @@ ScreenNetEvaluation::Init()
 	m_bHasStats = false;
 	m_iCurrentPlayer = 0;
 
-	FOREACH_EnabledPlayer(pn) { m_pActivePlayer = pn; }
-
-	m_iShowSide = (m_pActivePlayer == PLAYER_1) ? 2 : 1;
-
-	m_rectUsersBG.SetWidth(USERSBG_WIDTH);
-	m_rectUsersBG.SetHeight(USERSBG_HEIGHT);
-	m_rectUsersBG.RunCommands(USERSBG_COMMAND);
-	// XXX: The name should be set with m_iShowSide and then
-	// LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND should be used. -aj
-	m_rectUsersBG.SetName("UsersBG");
-
-	m_rectUsersBG.SetXY(THEME->GetMetricF("ScreenNetEvaluation",
-										  ssprintf("UsersBG%dX", m_iShowSide)),
-						THEME->GetMetricF("ScreenNetEvaluation",
-										  ssprintf("UsersBG%dY", m_iShowSide)));
-	LOAD_ALL_COMMANDS_AND_ON_COMMAND(m_rectUsersBG);
-
-	this->AddChild(&m_rectUsersBG);
-
-	RedoUserTexts();
-
 	NSMAN->OnEval();
-}
-
-void
-ScreenNetEvaluation::RedoUserTexts()
-{
-	m_iActivePlayers = NSMAN->m_ActivePlayers;
-
-	// If unnecessary, just don't do this function.
-	if (m_iActivePlayers == (int)m_textUsers.size())
-		return;
-
-	for (unsigned int i = 0; i < m_textUsers.size(); ++i)
-		this->RemoveChild(&m_textUsers[i]);
-
-	float cx = THEME->GetMetricF("ScreenNetEvaluation",
-								 ssprintf("User%dX", m_iShowSide));
-	float cy = THEME->GetMetricF("ScreenNetEvaluation",
-								 ssprintf("User%dY", m_iShowSide));
-
-	m_iCurrentPlayer = 0;
-	m_textUsers.clear();
-	m_textUsers.resize(m_iActivePlayers);
-
-	for (int i = 0; i < m_iActivePlayers; ++i) {
-		m_textUsers[i].LoadFromFont(THEME->GetPathF(m_sName, "names"));
-		m_textUsers[i].SetName(ssprintf("User"));
-		m_textUsers[i].SetShadowLength(1);
-		m_textUsers[i].SetXY(cx, cy);
-
-		this->AddChild(&m_textUsers[i]);
-		ActorUtil::LoadAllCommands(m_textUsers[i], m_sName);
-		cx += USERDX;
-		cy += USERDY;
-	}
 }
 
 bool
@@ -153,8 +98,6 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 		LOG->Trace("[SMNETDebug] num active players: %d (local), %d (NSMAN)",
 				   m_iActivePlayers,
 				   NSMAN->m_ActivePlayers);
-
-		RedoUserTexts();
 
 		LOG->Trace("SMNETCheckpoint");
 		for (int i = 0; i < m_iActivePlayers; ++i) {

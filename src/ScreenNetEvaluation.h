@@ -39,10 +39,6 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	PlayerNumber m_pActivePlayer;
 
 	bool m_bHasStats;
-
-	int m_iShowSide;
-
-	void RedoUserTexts();
 };
 
 /*
