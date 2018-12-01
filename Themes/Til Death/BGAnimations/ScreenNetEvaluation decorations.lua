@@ -100,6 +100,7 @@ local judges = {
 	"TapNoteScore_Miss"
 }
 
+
 local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 
 local frameX = 20
@@ -111,13 +112,10 @@ function scoreBoard(pn, position)
 	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
-	if not score then 
-		score = SCOREMAN:GetTempReplayScore()
-	end
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
-	local smallest, largest
 	local devianceTable
+	local tracks
 
 	local t =
 		Def.ActorFrame {
@@ -131,7 +129,9 @@ function scoreBoard(pn, position)
 			if s then
 				score = s
 				devianceTable = score:GetOffsetVector()
-				smallest, largest = wifeRange(devianceTable)
+				totalTaps = #devianceTable
+				dvt = devianceTable
+				tracks = score:GetTrackVector()
 				MESSAGEMAN:Broadcast("ScoreChanged")
 			end
 		end
@@ -315,7 +315,7 @@ function scoreBoard(pn, position)
 			end,
 			ScoreChangedMessageCommand = function(self)
 				local rescoreJudges = score:RescoreJudges(judge)
-				self:zoomx(frameWidth * rescoreJudges[k] / (#(score:GetOffsetVector())))
+				self:zoomx(frameWidth * rescoreJudges[k] / (#devianceTable))
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -472,52 +472,81 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	-- stats stuff
-	local devianceTable = pss:GetOffsetVector()
-	t[#t + 1] =
-		Def.Quad {
-		InitCommand = function(self)
-			self:xy(frameWidth + 25, frameY + 230):zoomto(frameWidth / 2 + 10, 60):halign(1):valign(0):diffuse(
-				color("#333333CC")
-			)
+		-- stats stuff
+		tracks = pss:GetTrackVector()
+		devianceTable = pss:GetOffsetVector()
+		
+		-- basic per-hand stats to be expanded on later
+		local tst = ms.JudgeScalers
+		local tso = tst[judge]
+		if enabledCustomWindows then
+			tso = 1
 		end
-	}
-	smallest, largest = wifeRange(devianceTable)
-	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
-	local mcscoot = {
-		function()
-			return wifeMean(devianceTable)
-		end,
-		function()
-			return wifeAbsMean(devianceTable)
-		end,
-		function()
-			return wifeSd(devianceTable)
-		end,
-		function()
-			return smallest
-		end,
-		function()
-			return largest
-		end
-	}
 
-	for i = 1, #doot do
-		t[#t + 1] =
-			LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(doot[i])
+		local function cbs(dvt, x)
+			local cbs = 0
+			for i = 1, #dvt do
+				if math.abs(dvt[i]) > tso * 90 then
+					if tracks[i + x] == 0 or tracks[i + x] == 1 then
+						cbs = cbs + 1
+					end
 				end
-			}
+			end
+			return cbs
+		end
+		
 		t[#t + 1] =
-			LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i]())
-				end
-			}
-	end
+			Def.Quad {
+			InitCommand = function(self)
+				self:xy(frameWidth + 25, frameY + 230):zoomto(frameWidth / 2 + 10, 60):halign(1):valign(0):diffuse(
+					color("#333333CC")
+				)
+			end
+		}
+		local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
+		local mcscoot = { 
+			function() 
+				return wifeMean(devianceTable) 
+			end, 
+			function() 
+				return wifeAbsMean(devianceTable) 
+			end, 
+			function() 
+				return wifeSd(devianceTable) 
+			end, 
+			function() 
+				return cbs(devianceTable, 0)
+			end, 
+			function() 
+				return cbs(devianceTable, 2)
+			end 
+		} 
+		for i = 1, #doot do
+			t[#t + 1] =
+				LoadFont("Common Normal") ..
+				{
+					InitCommand = function(self)
+						self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(doot[i])
+					end,
+					ScoreChangedMessageCommand = function(self)
+						self:queuecommand("Init")
+					end
+				}
+			t[#t + 1] =
+				LoadFont("Common Normal") ..
+				{
+					InitCommand = function(self)
+						if i < 4 then
+							self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i]())
+						else
+							self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settext(mcscoot[i]())
+						end						
+					end,
+					ScoreChangedMessageCommand = function(self)
+						self:queuecommand("Init")
+					end
+				}
+		end
 
 	return t
 end
