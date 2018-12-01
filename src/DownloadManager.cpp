@@ -1068,7 +1068,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 			return;
 		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
-			hs->GetNoteRowVector(), hs->GetMusicRate());
+			rows, hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
