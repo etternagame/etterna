@@ -959,9 +959,10 @@ Actor::UpdateInternal(float delta_time)
 		}
 	}
 	// Doing this in place did weird things
-	std::remove_if(delayedFunctions.begin(),
-				   delayedFunctions.end(),
-				   [](auto& x) { return x.second <= 0; });
+	std::remove_if(
+	  delayedFunctions.begin(),
+	  delayedFunctions.end(),
+	  [](pair<function<void()>, float>& x) { return x.second <= 0; });
 	for (auto it = this->delayedPeriodicFunctions.begin();
 		 it != this->delayedPeriodicFunctions.end();
 		 ++it) {
@@ -1754,8 +1755,11 @@ class LunaActor : public Luna<Actor>
 	{
 		int r = IArg(1);
 		auto& l = p->delayedPeriodicFunctions;
-		auto it = find_if(
-		  l.begin(), l.end(), [r](auto& x) { return std::get<3>(x) == r; });
+		auto it = find_if(l.begin(),
+						  l.end(),
+						  [r](tuple<function<void()>, float, float, int>& x) {
+							  return std::get<3>(x) == r;
+						  });
 		if (it != l.end()) {
 			luaL_unref(L, LUA_REGISTRYINDEX, r);
 			l.erase(it);

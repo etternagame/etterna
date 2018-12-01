@@ -873,6 +873,8 @@ SetCURLPOSTScore(CURL*& curlHandle,
 	  curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->musics);
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	if (chart == nullptr)
+		return;
 	SetCURLFormPostField(curlHandle,
 						 form,
 						 lastPtr,
@@ -1062,18 +1064,21 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		if (steps == nullptr)
+			return;
 		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
 			hs->GetNoteRowVector(), hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]);
+			replayString += to_string(1000.f * offsets[i]) + ",";
 			if (hs->GetReplayType() == 2) {
-				replayString += "," + to_string(columns[i]) + ",";
+				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
-				replayString += to_string(rows[i]);
+	
 			}
+			replayString += to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
@@ -1128,7 +1133,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 			}
 		} catch (exception e) {
 		}
-		callback();
+		if (callback)
+			callback();
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -1408,6 +1414,7 @@ DownloadManager::RequestReplayData(string scoreid,
 			vector<float> timestamps;
 			vector<float> offsets;
 			vector<int> tracks;
+			vector<int> rows;
 			vector<TapNoteType> types;
 
 			auto j = json::parse(req.result);
@@ -1421,13 +1428,21 @@ DownloadManager::RequestReplayData(string scoreid,
 
 					timestamps.emplace_back(note[0].get<float>());
 					offsets.emplace_back(note[1].get<float>() / 1000.f);
-					tracks.emplace_back(note[2].get<int>());
-					types.emplace_back(
-					  static_cast<TapNoteType>(note[3].get<int>()));
+					if (note.size() == 3) {	// pre-0.6 with noterows
+						rows.emplace_back(note[2].get<int>());
+					}
+					if (note.size() > 3) {	// 0.6 without noterows
+						tracks.emplace_back(note[2].get<int>());
+						types.emplace_back(
+						  static_cast<TapNoteType>(note[3].get<int>()));
+					}
+					if (note.size() == 5) { // 0.6 with noterows
+						rows.emplace_back(note[4].get<int>());
+					}
 				}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
-			auto it =
-			  find_if(lbd.begin(), lbd.end(), [userid, username](auto& a) {
+			auto it = find_if(
+			  lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
 				  return a.userid == userid && a.username == username;
 			  });
 			if (it != lbd.end()) {
@@ -1435,6 +1450,12 @@ DownloadManager::RequestReplayData(string scoreid,
 				it->hs.SetOffsetVector(offsets);
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
+				it->hs.SetNoteRowVector(rows);
+
+				if (tracks.empty())
+					it->hs.SetReplayType(1);
+				else
+					it->hs.SetReplayType(2);
 			}
 			auto L = LUA->Get();
 			callback.PushSelf(L);
@@ -1567,6 +1588,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				hs.scoreid = tmp.scoreid;
 				hs.avatar = tmp.avatar;
 				hs.countryCode = tmp.countryCode;
+				hs.hasReplay = tmp.hasReplay;
 
 				vec.emplace_back(tmp);
 			}
@@ -1865,6 +1887,21 @@ DownloadManager::StartSession(string user,
 	HTTPRequests.push_back(req);
 }
 
+void
+uploadSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UploadScoreWithReplayDataFromDisk(
+		  hs->GetScoreKey(), [hs, toUpload]() {
+			  hs->AddUploadedServer(serverURL.Get());
+			  uploadSequentially(toUpload);
+		  });
+	}
+	return;
+}
 bool
 DownloadManager::UploadScores()
 {
@@ -1877,24 +1914,12 @@ DownloadManager::UploadScores()
 			auto ts = scorePtr->GetTopScore();
 			if ((ts == 1 || ts == 2) &&
 				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				toUpload.emplace_back(scorePtr);
+				if (scorePtr->HasReplayData())
+					toUpload.emplace_back(scorePtr);
 			}
 		}
 	}
-	function<void()> lambda;
-	lambda = [toUpload, lambda]() mutable {
-		auto& it = toUpload.begin();
-		if (it != toUpload.end()) {
-			toUpload.pop_front();
-			auto& hs = (*it);
-			DLMAN->UploadScoreWithReplayDataFromDisk(
-			  hs->GetChartKey(), [hs, toUpload, lambda]() {
-				  hs->AddUploadedServer(serverURL.Get());
-				  lambda();
-			  });
-		}
-	};
-	lambda();
+	uploadSequentially(toUpload);
 	return true;
 }
 
@@ -2418,9 +2443,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
-		return 1;
+		return 0;
 	}
-
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetCountryCodes);

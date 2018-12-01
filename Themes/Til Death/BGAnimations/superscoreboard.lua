@@ -68,7 +68,7 @@ end
 local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
 
-local scoretable
+local scoretable = {}
 local o =
 	Def.ActorFrame {
 	Name = "ScoreDisplay",
@@ -258,6 +258,16 @@ local o =
 						self:settext("")
 					end
 				end
+			end,
+			CurrentSongChangedMessageCommand = function(self)
+				local online = DLMAN:IsLoggedIn()
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					self:settext("Retrieving scores...")
+				end
 			end
 		},
 	LoadFont("Common normal") ..
@@ -324,6 +334,9 @@ local function makeScoreDisplay(i)
 			if i > numscores then
 				self:visible(false)
 			end
+		end,
+		CurrentSongChangedMessageCommand = function(self)
+			self:visible(false)
 		end,
 		UpdateCommand = function(self)		
 			hs = scoretable[(i + ind)]
@@ -461,15 +474,13 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					DLMAN:RequestOnlineScoreReplayData(hs, 
-						function(replay) 
-							if #replay > 0 then
-								self:settext("Watch")
-							else
-								self:settext("")
-							end	
+					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+						if hs:HasReplayData() then
+							self:settext("Watch")
+						else
+							self:settext("")
 						end
-					)
+					end
 				end,
 				HighlightCommand = function(self)
 					highlightIfOver(self)

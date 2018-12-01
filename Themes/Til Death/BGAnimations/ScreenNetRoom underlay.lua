@@ -8,7 +8,7 @@ t[#t + 1] =
 		)
 	end,
 	BeginCommand= function(self)
-		MESSAGEMAN:Broadcast("AddMPChatInput")
+		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 	end
 }
 

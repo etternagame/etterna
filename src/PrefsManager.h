@@ -21,7 +21,6 @@ enum MusicWheelUsesSections
 enum AllowW1
 {
 	ALLOW_W1_NEVER,		   /**< The W1 timing is not used. */
-	ALLOW_W1_COURSES_ONLY, /**< The W1 timing is used for courses only. */
 	ALLOW_W1_EVERYWHERE,   /**< The W1 timing is used for all modes. */
 	NUM_AllowW1,
 	AllowW1_Invalid

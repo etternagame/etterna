@@ -1360,6 +1360,28 @@ ScreenGameplay::BeginScreen()
 	} else {
 		StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
 	}
+	if (GAMESTATE->m_bPlayingMulti) {
+		this->SetInterval(
+		  [this]() {
+			  auto& ptns = this->GetPlayerInfo(PLAYER_1)->GetPlayerStageStats()->m_iTapNoteScores;
+			  
+			  RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+									  ptns[TNS_W1],
+									  ptns[TNS_W2],
+									  ptns[TNS_W3],
+									  ptns[TNS_W4],
+									  ptns[TNS_W5],
+									  ptns[TNS_Miss],
+									  this->GetPlayerInfo(PLAYER_1)
+										->GetPlayerStageStats()
+										->m_iCurCombo);
+			  NSMAN->SendMPLeaderboardUpdate(
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore, doot);
+			  		
+		  },
+		  1,
+		  -1);
+	}
 }
 
 bool

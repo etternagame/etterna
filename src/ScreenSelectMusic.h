@@ -50,6 +50,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	void StartPlayingMusic() override {}
 
+	virtual void OpenOptions();
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
@@ -100,6 +101,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 
+	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY_INIT;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY;
 	ThemeMetric<bool> SAMPLE_MUSIC_LOOPS;

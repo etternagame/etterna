@@ -107,6 +107,7 @@ ScreenSelectMusic::Init()
 	ROULETTE_TIMER_SECONDS.Load(m_sName, "RouletteTimerSeconds");
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 	CODES.Load(m_sName, "Codes");
+	PLAYER_OPTIONS_SCREEN.Load(m_sName, "PlayerOptionsScreen");
 	MUSIC_WHEEL_TYPE.Load(m_sName, "MusicWheelType");
 	SELECT_MENU_AVAILABLE.Load(m_sName, "SelectMenuAvailable");
 	MODE_MENU_AVAILABLE.Load(m_sName, "ModeMenuAvailable");
@@ -377,6 +378,12 @@ ScreenSelectMusic::Update(float fDeltaTime)
 }
 
 void
+ScreenSelectMusic::OpenOptions()
+{
+	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
+								 SM_BackFromPlayerOptions);
+}
+void
 ScreenSelectMusic::DifferentialReload()
 {
 	SONGMAN->DifferentialReload();
@@ -573,7 +580,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// Check for "Press START again for options" button press
 	if (m_SelectionState == SelectionState_Finalized &&
 		input.MenuI == GAME_BUTTON_START && input.type != IET_RELEASE &&
-		OPTIONS_MENU_AVAILABLE.GetValue()) {
+		OPTIONS_MENU_AVAILABLE.GetValue() && !GAMESTATE->m_bPlayingMulti) {
 		if (m_bGoToOptions)
 			return false; // got it already
 		if (!m_bAllowOptionsMenu)
@@ -1705,8 +1712,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto noterows = hs->GetNoteRowVector();
 		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
-		if (!timestamps.empty()) {
+		if (!timestamps.empty() &&
+			noterows.empty()) { // if we have noterows from newer uploads, just
+								// use them -mina
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
@@ -1740,9 +1750,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
+		}
 
-			// Since we keep misses on EO as 180ms, we need to convert them
-			// back.
+		// Since we keep misses on EO as 180ms, we need to convert them
+		// back.
+		if (!timestamps.empty()) {
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
 				if (fabs(offset) >= .18f)
@@ -1976,8 +1988,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->ChangeSteps(PLAYER_1, IArg(1));
 		return 0;
 	}
+	static int OpenOptions(T* p, lua_State* L)
+	{
+		p->OpenOptions();
+		return 0;
+	}
 	LunaScreenSelectMusic()
 	{
+		ADD_METHOD(OpenOptions);
 		ADD_METHOD(GetGoToOptions);
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(OpenOptionsList);

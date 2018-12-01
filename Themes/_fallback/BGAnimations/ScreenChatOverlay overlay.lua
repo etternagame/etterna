@@ -2,7 +2,7 @@ local lastx, lasty = 0, 0
 local width, height = SCREEN_WIDTH, SCREEN_HEIGHT * 0.035
 local maxlines = 5
 local lineNumber = 5
-local inputLineNumber = 1
+local inputLineNumber = 2
 local tabHeight = 1
 local maxTabs = 10
 local x, y = 0, SCREEN_HEIGHT - height * (lineNumber + inputLineNumber + tabHeight)
@@ -30,7 +30,7 @@ chats[1] = {}
 chats[2] = {}
 chats[0][""] = {}
 local tabs = {{0, ""}}
---chats[tabname][tabtype]
+--chats[tabName][tabType]
 --tabtype: 0=lobby, 1=room, 2=pm
 local messages = chats[0][""]
 local currentTabName = ""
@@ -58,30 +58,44 @@ local show = true
 local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 
 chat.MinimiseMessageCommand = function(self)
-	self:linear(0.5)
+	self:linear(0.25)
 	moveY = minimised and height * (lineNumber + inputLineNumber + tabHeight - 1) or 0
 	self:y(moveY)
 end
 local i = 0
 chat.InitCommand = function(self)
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	self:visible(false);
+	self:visible(false)
 end
-chat.AddMPChatInputMessageCommand = function(self)
+local isGameplay
+chat.ScreenChangedMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
 	end
 	currentScreen = s:GetName()
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	if (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay") then
+	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
+	if isGameplay then
 		self:visible(false)
 		show = false
 		typing = false
+		s:setInterval(
+			function()
+				self:visible(false)
+			end,
+			0.025
+		)
 	else
 		self:visible(online)
 		show = true
-		s:AddInputCallback(input)
+	end
+	if currentScreen == "ScreenNetSelectMusic" then
+		for i = 1, #tabs do
+			if tabs[i] and tabs[i][2] == NSMAN:GetCurrentRoomName() then
+				changeTab(tabs[i][2], tabs[i][1])
+			end
+		end
 	end
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
@@ -120,6 +134,17 @@ chat[#chat + 1] =
 		self:diffuse(Colors.bar)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height + y)
+	end,
+	ChatMessageCommand = function(self)
+		if minimised then
+			self:linear(0.25)
+			self:diffuse(Colors.activeInput)
+		end
+	end,
+	MinimiseMessageCommand = function(self)
+		if not minimised then
+			self:diffuse(Colors.bar)
+		end
 	end
 }
 chat[#chat + 1] =
@@ -208,7 +233,6 @@ chatWindow[#chatWindow + 1] =
 				end
 			end
 			self:settext(t)
-			
 		end
 	}
 
@@ -328,9 +352,10 @@ function overTab(mx, my)
 	end
 	return nil, nil
 end
-function input(event)
-	if (not show or not online) then
-		return
+
+function MPinput(event)
+	if (not show or not online) or isGameplay then
+		return false
 	end
 	local update = false
 	if event.DeviceInput.button == "DeviceButton_left mouse button" then
@@ -339,7 +364,7 @@ function input(event)
 		end
 		typing = false
 		local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
-		if isOver(minbar) then
+		if isOver(minbar) then --hard mouse toggle -mina
 			minimised = not minimised
 			MESSAGEMAN:Broadcast("Minimise")
 			update = true
@@ -347,7 +372,7 @@ function input(event)
 			typing = true
 			update = true
 		elseif mx >= x and mx <= x + width and my >= y + moveY and my <= y + height + moveY then
-			mousex, mousey = mx, my	-- no clue what this block of code is for
+			mousex, mousey = mx, my -- no clue what this block of code is for
 			lastx, lasty = x, y
 			update = true
 		elseif not minimised then
@@ -381,12 +406,37 @@ function input(event)
 		end
 	end
 
+	-- hard kb toggle
+	if event.type == "InputEventType_Release" and event.DeviceInput.button == "DeviceButton_insert" then
+		minimised = not minimised
+		MESSAGEMAN:Broadcast("Minimise")
+		update = true
+		if not minimize then
+			typing = true
+			typingText = ""
+		end
+	end
+
+	if not typing and event.type == "InputEventType_Release" then -- keys for auto turning on chat if not already on -mina
+		if event.DeviceInput.button == "DeviceButton_/" then
+			typing = true
+			update = true
+			if minimised then
+				minimised = not minimised
+				MESSAGEMAN:Broadcast("Minimise")
+			end
+			typingText = "/"
+		end
+	end
+
 	if typing then
 		if event.type == "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_enter" then
 				if typingText:len() > 0 then
 					NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
 					typingText = ""
+				elseif typingText == "" then
+					typing = false -- pressing enter when text is empty to deactive chat is expected behavior -mina
 				end
 				update = true
 			end
@@ -396,6 +446,9 @@ function input(event)
 			update = true
 		elseif event.DeviceInput.button == "DeviceButton_space" then
 			typingText = typingText .. " "
+			update = true
+		elseif event.DeviceInput.button == "DeviceButton_delete" then -- reset msg with delete (since there's no cursor)
+			typingText = ""
 			update = true
 		elseif
 			(INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")) and
@@ -426,27 +479,41 @@ function input(event)
 				lineNumber = lineNumber - 1
 			end
 			update = true
-		end	
+		end
 	end
-	
-	
+
 	-- right click over the chat to minimize
-	if  event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress" and isOver(bg) then
-		minimised = not minimised
-		MESSAGEMAN:Broadcast("Minimise")
+	if event.DeviceInput.button == "DeviceButton_right mouse button" and isOver(bg) then
+		if event.type == "InputEventType_FirstPress" then
+			minimised = not minimised
+			MESSAGEMAN:Broadcast("Minimise")
+		end
 		return true
 	end
 
+	-- kb activate chat input if not minimized (has to go after the above enter block)
+	if event.type == "InputEventType_Release" and INPUTFILTER:IsBeingPressed("left ctrl") then
+		if event.DeviceInput.button == "DeviceButton_enter" and not minimised then
+			typing = true
+			update = true
+		end
+	end
+
 	if update then
+		if minimised then -- minimise will be set in the above blocks, disable input and clear text -mina
+			typing = false
+			typingText = ""
+		end
 		MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	end
 
 	-- always eat mouse inputs if its within the broader chatbox
-	if  event.DeviceInput.button == "DeviceButton_left mouse button" and isOver(bg) then
+	if event.DeviceInput.button == "DeviceButton_left mouse button" and isOver(bg) then
 		return true
 	end
 
-	return update or typing
+	returnInput = update or typing
+	return returnInput
 end
 
 return chat

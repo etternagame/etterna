@@ -37,14 +37,7 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 
-struct SongDir
-{
-	RString path;
-	SongDir(RString path)
-	  : path(path)
-	{
-	}
-};
+typedef RString SongDir;
 struct Group
 {
 	RString name;
@@ -206,13 +199,13 @@ SongManager::DifferentialReloadDir(string dir)
 		RString group_base_name = Basename(group.name);
 		for (auto& songDir : songDirs) {
 			// skip any dir we've already loaded -mina
-			RString hur = songDir.path + "/";
+			RString hur = songDir + "/";
 			hur.MakeLower();
 			if (m_SongsByDir.count(hur))
 				continue;
 
 			Song* pNewSong = new Song;
-			if (!pNewSong->LoadFromSongDir(songDir.path)) {
+			if (!pNewSong->LoadFromSongDir(songDir)) {
 				delete pNewSong;
 				continue;
 			}
@@ -644,7 +637,7 @@ SongManager::GetStepsByChartkey(RString ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
-	return NULL;
+	return nullptr;
 }
 
 Song*
@@ -652,7 +645,7 @@ SongManager::GetSongByChartkey(RString ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
-	return NULL;
+	return nullptr;
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
@@ -771,33 +764,23 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
-		ld->SetText("Checking song folders");
+		ld->SetText("Checking song folders...");
 	}
 	vector<Group> groups;
 	auto unknownGroup = Group(RString("Unknown Group"));
 	int foldersChecked = 0;
 	int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
-		// inefficiency here when loading from cache, the check to see if we've
-		// already loaded a song is 40 lines down and run after issongdir,
-		// ideally we wouldnt need to run issongdir on anything we already know
-		// is a group or anything we already know is a song -mina
-		if (IsSongDir(sDir + folder)) {
-			auto s = SongDir(sDir + folder);
-			unknownGroup.songs.emplace_back(s);
+		auto burp = sDir + folder;
+		if (IsSongDir(burp)) {
+			unknownGroup.songs.emplace_back(burp);
 		} else {
-			vector<RString> songPaths;
 			auto group = Group(folder);
-			GetDirListing(sDir + folder + "/*", songPaths, true, true);
-			StripCvsAndSvn(songPaths);
-			StripMacResourceForks(songPaths);
-			for (auto& song : songPaths) {
-				group.songs.emplace_back(SongDir(song));
-			}
+			GetDirListing(sDir + folder + "/*", group.songs, true, true);
+			StripCvsAndSvn(group.songs);
+			StripMacResourceForks(group.songs);
 			songCount += group.songs.size();
 			groups.emplace_back(group);
-			if (ld != nullptr && foldersChecked % onePercent == 0)
-				ld->SetProgress(++foldersChecked);
 		}
 	}
 	if (!unknownGroup.songs.empty())
@@ -835,12 +818,12 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			  SONGMAN->m_mapSongGroupIndex[sGroupName];
 			RString group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
-				RString hur = sSongDirName.path + "/";
+				RString hur = sSongDirName + "/";
 				hur.MakeLower();
 				if (SONGMAN->m_SongsByDir.count(hur))
 					continue;
 				Song* pNewSong = new Song;
-				if (!pNewSong->LoadFromSongDir(sSongDirName.path)) {
+				if (!pNewSong->LoadFromSongDir(sSongDirName)) {
 					delete pNewSong;
 					continue;
 				}

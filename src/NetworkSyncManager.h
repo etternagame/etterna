@@ -1,4 +1,4 @@
-﻿#ifndef NetworkSyncManager_H
+#ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
 #include "Difficulty.h"
@@ -87,7 +87,7 @@ enum ETTServerMessageTypes
 	ettps_loginresponse,
 	ettps_roomlist,
 	ettps_recievescore,
-	ettps_gameplayleaderboard,
+	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
 	ettps_selectchart,
@@ -105,7 +105,7 @@ enum ETTClientMessageTypes
 	ettpc_ping,
 	ettpc_sendchat,
 	ettpc_sendscore,
-	ettpc_gameplayupdate,
+	ettpc_mpleaderboardupdate,
 	ettpc_createroom,
 	ettpc_enterroom,
 	ettpc_leaveroom,
@@ -150,6 +150,12 @@ class ChartRequest
 
 class EzSockets;
 class StepManiaLanServer;
+class GameplayScore
+{
+  public:
+	float wife;
+	RString jdgstr;
+};
 
 class PacketFunctions
 {
@@ -226,6 +232,7 @@ class NetProtocol
 	virtual void OffOptions(){};
 	virtual void OnEval(){};
 	virtual void OffEval(){};
+	virtual void SendMPLeaderboardUpdate(float wife, RString& jdgstr){};
 };
 
 class ETTProtocol : public NetProtocol
@@ -264,6 +271,7 @@ class ETTProtocol : public NetProtocol
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
 	void Send(json msg);
@@ -368,6 +376,8 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
+
 	// Used for chatting
 	void SendChat(const RString& message,
 				  string tab = "",
@@ -382,6 +392,8 @@ class NetworkSyncManager
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
+	map<string, GameplayScore> mpleaderboard;
+	void PushMPLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;
 	int rate;

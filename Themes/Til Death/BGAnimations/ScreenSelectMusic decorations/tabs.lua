@@ -32,7 +32,7 @@ end
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
-		MESSAGEMAN:Broadcast("AddMPChatInput")
+		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		resetTabIndex()
 	end,

@@ -447,7 +447,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	const XNode* pUploadedServers = pNode->GetChild("Servers");
+	const XNode* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
 		FOREACH_CONST_Child(pUploadedServers, p)
 		{

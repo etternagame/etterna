@@ -65,17 +65,19 @@ local moped
 -- You know, if we can see the place where the scores should be.
 local function updateLeaderBoardForCurrentChart()
 	local top = SCREENMAN:GetTopScreen()
-	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
-		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-		if steps then
-			DLMAN:RequestChartLeaderBoardFromOnline(
-				steps:GetChartKey(),
-				function(leaderboard)
-					moped:playcommand("SetFromLeaderboard", leaderboard)
-				end
-			)
-		else
-			moped:queuecommand("SetFromLeaderboard", {})
+	if top:GetName() == "ScreenSelectMusic" or top:GetName() == "ScreenNetSelectMusic" then
+		if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+			local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			if steps then
+				DLMAN:RequestChartLeaderBoardFromOnline(
+					steps:GetChartKey(),
+					function(leaderboard)
+						moped:playcommand("SetFromLeaderboard", leaderboard)
+					end
+				)
+			else
+				moped:playcommand("SetFromLeaderboard", {})
+			end
 		end
 	end
 end

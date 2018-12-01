@@ -66,7 +66,8 @@ do
 	end
 end
 
-local menu_items = {
+local menu_items = {}
+--[[
 	{
 		name = "weight",
 		get = "GetWeightPounds",
@@ -113,7 +114,7 @@ if #char_list > 0 then
 		item_type = "list",
 		list = char_list
 	}
-end
+end]]
 menu_items[#menu_items + 1] = {name = "exit", item_type = "exit"}
 
 local menu_cursor
@@ -171,7 +172,7 @@ end
 
 local function exit_screen()
 	local profile_id = GAMESTATE:GetEditLocalProfileID()
-	PROFILEMAN:SaveLocalProfile(profile_id)
+	--PROFILEMAN:SaveLocalProfile(profile_id)
 	SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
 	SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 end

@@ -32,7 +32,6 @@ LuaXType(MusicWheelUsesSections);
 
 static const char* AllowW1Names[] = {
 	"Never",
-	"CoursesOnly",
 	"Everywhere",
 };
 XToString(AllowW1);

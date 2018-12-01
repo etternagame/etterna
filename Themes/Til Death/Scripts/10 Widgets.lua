@@ -96,6 +96,9 @@ Widg.Label = function(params)
 			initText = text
 		end
 	end
+	label.GetText = function(label, text)
+		return label.actor and label.actor:GetText() or initText
+	end
 	return label
 end
 
@@ -335,7 +338,9 @@ Widg.Button = function(params)
 	button =
 		Widg.Container {
 		onInit = function(self)
-			params.onInit(self)
+			if params.onInit then
+				params.onInit(self)
+			end
 			if params.highlight then
 				self:SetUpdateFunction(highlight)
 			end
@@ -440,15 +445,22 @@ Widg.Button = function(params)
 	}
 
 	button.settext = function(button, text)
-		button.label:settext(text)
+		return (button.label):settext(text)
+	end
+	button.GetText = function(button)
+		return (button.label):GetText()
+	end
+	button.diffuse = function(button, color)
+		params.bgColor = color
+		return (button.bg.actor):diffuse(color)
 	end
 	button.Enable = function(button)
 		button.enabled = true
-		(button.actor):visible(button.enabled)
+		return (button.actor):visible(button.enabled)
 	end
 	button.Disable = function(button)
 		button.enabled = false
-		(button.actor):visible(button.enabled)
+		return (button.actor):visible(button.enabled)
 	end
 
 	button:add(button.bg)
