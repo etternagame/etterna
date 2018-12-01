@@ -747,8 +747,10 @@ t[#t + 1] =
 			forceStart:Disable()
 		end,
 		ChartPreviewOffMessageCommand = function(self)
-			ready:Enable()
-			forceStart:Enable()
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+				ready:Enable()
+				forceStart:Enable()
+			end
 		end
 	}
 	
