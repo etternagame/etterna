@@ -250,13 +250,6 @@ ScreenNetSelectMusic::OnConfirmSongDeletion()
 	m_pSongAwaitingDeletionConfirmation = NULL;
 }
 
-bool
-ScreenNetSelectMusic::LeftAndRightPressed(const PlayerNumber pn)
-{
-	return INPUTMAPPER->IsBeingPressed(GAME_BUTTON_LEFT, pn) &&
-		   INPUTMAPPER->IsBeingPressed(GAME_BUTTON_RIGHT, pn);
-}
-
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {
 	if (PREFSMAN->m_verbose_log > 1)
@@ -268,10 +261,7 @@ ScreenNetSelectMusic::MenuLeft(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
 
-	if (LeftAndRightPressed(pn))
-		m_MusicWheel.ChangeSort(SORT_MODE_MENU);
-	else
-		m_MusicWheel.Move(-1);
+	m_MusicWheel.Move(-1);
 	return true;
 }
 
@@ -280,10 +270,7 @@ ScreenNetSelectMusic::MenuRight(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
 
-	if (LeftAndRightPressed(pn))
-		m_MusicWheel.ChangeSort(SORT_MODE_MENU);
-	else
-		m_MusicWheel.Move(+1);
+	m_MusicWheel.Move(+1);
 	return true;
 }
 
