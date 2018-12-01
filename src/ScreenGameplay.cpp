@@ -1376,7 +1376,7 @@ ScreenGameplay::BeginScreen()
 										->GetPlayerStageStats()
 										->m_iCurCombo);
 			  NSMAN->SendMPLeaderboardUpdate(
-				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore, doot);
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore / this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore, doot);
 			  		
 		  },
 		  1,

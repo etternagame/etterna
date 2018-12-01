@@ -1688,6 +1688,7 @@ void
 NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 {
 	lua_newtable(L);
+	int i = 1;
 	for (auto& pair : mpleaderboard) {
 		lua_newtable(L);
 		lua_pushnumber(L, pair.second.wife);
@@ -1696,7 +1697,8 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 		lua_setfield(L, -2, "jdgstr");
 		lua_pushstring(L, pair.first.c_str());
 		lua_setfield(L, -2, "user");
-		lua_setfield(L, -2, pair.first.c_str());
+		lua_rawseti(L, -2, i);
+		i++;
 	}
 	return;
 }
