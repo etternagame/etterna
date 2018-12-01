@@ -101,31 +101,6 @@ ScreenNetEvaluation::UpdateStats()
 	if (m_iCurrentPlayer >= (int)NSMAN->m_EvalPlayerData.size())
 		return;
 
-	// Only run these commands if the theme has these things shown; not every
-	// theme has them, so don't assume. -aj
-	if (THEME->GetMetricB(m_sName, "ShowGradeArea"))
-		m_Grades[m_pActivePlayer].SetGrade(static_cast<Grade>(
-		  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-			  Grade_NoData
-			? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-			: NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade));
-	if (THEME->GetMetricB(m_sName, "ShowScoreArea"))
-		m_textScore[m_pActivePlayer].SetTargetNumber(
-		  static_cast<float>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score));
-
-	for (int j = 0; j < NETNUMTAPSCORES; ++j) {
-		// The name will be blank if ScreenEvaluation determined the line
-		// should not be shown.
-		if (!m_textJudgmentLineNumber[j][m_pActivePlayer].GetName().empty()) {
-			m_textJudgmentLineNumber[j][m_pActivePlayer].SetTargetNumber(
-			  static_cast<float>(
-				NSMAN->m_EvalPlayerData[m_iCurrentPlayer].tapScores[j]));
-		}
-	}
-
-	m_textPlayerOptions[m_pActivePlayer].SetText(
-	  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions);
-
 	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
 	Difficulty dc = NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty;
 	Steps* pSteps = SongUtil::GetOneSteps(GAMESTATE->m_pCurSong, st, dc);
