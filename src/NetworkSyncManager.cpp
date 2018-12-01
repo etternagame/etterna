@@ -954,6 +954,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					for (auto& user : removedUsers) {
 						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
 					}
+					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
@@ -999,7 +1000,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);	
 				} break;
 			}
 		} catch (exception e) {
@@ -1859,6 +1860,17 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		}
 		return 1;
 	}
+	static int GetLobbyUserList(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		int i = 1;
+		for (auto& user : NSMAN->lobbyuserlist) {
+			lua_pushstring(L, user.c_str());
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
 	LunaNetworkSyncManager()
 	{
 		ADD_METHOD(GetEvalScores);
@@ -1870,6 +1882,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		ADD_METHOD(Logout);
 		ADD_METHOD(IsETTP);
 		ADD_METHOD(GetCurrentRoomName);
+		ADD_METHOD(GetLobbyUserList);
 	}
 };
 
@@ -1893,21 +1906,10 @@ class LunaChartRequest : public Luna<ChartRequest>
 		lua_pushnumber(L, p->rate / 1000);
 		return 1;
 	}
-	static int GetLobbyUserList(T* p, lua_State* L)
-	{
-		lua_newtable(L);
-		int i = 1;
-		for (auto& user : NSMAN->lobbyuserlist) {
-			lua_pushstring(L, user.c_str());
-			lua_rawseti(L, -2, i);
-			i++;
-		}
-		return 1;
-	}
+
 	LunaChartRequest()
 	{
 		ADD_METHOD(GetChartkey);
-		ADD_METHOD(GetLobbyUserList);
 		ADD_METHOD(GetUser);
 		ADD_METHOD(GetRate);
 	}
