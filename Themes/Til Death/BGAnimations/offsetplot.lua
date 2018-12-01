@@ -55,7 +55,6 @@ local o =
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
-			pss:UnloadReplayData() -- force unload replaydata in memory after loading it (not sure if i should allow this but i don't trust deconstructors) -mina
 		elseif name == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
 			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)

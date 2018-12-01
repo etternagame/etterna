@@ -1788,7 +1788,6 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 	}
 
 	float o = p / pmax;
-	UnloadReplayData();
 	return o;
 }
 
@@ -2043,8 +2042,6 @@ class LunaHighScore : public Luna<HighScore>
 			for (size_t i = 0; i < v.size(); ++i)
 				v[i] = v[i] * 1000;
 			LuaHelpers::CreateTableFromArray(v, L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2055,11 +2052,7 @@ class LunaHighScore : public Luna<HighScore>
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
-				v = &(p->GetNoteRowVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2073,8 +2066,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTrackVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2088,8 +2079,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTapNoteTypeVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
