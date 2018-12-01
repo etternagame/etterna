@@ -107,6 +107,7 @@ ScreenSelectMusic::Init()
 	ROULETTE_TIMER_SECONDS.Load(m_sName, "RouletteTimerSeconds");
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 	CODES.Load(m_sName, "Codes");
+	PLAYER_OPTIONS_SCREEN.Load(m_sName, "PlayerOptionsScreen");
 	MUSIC_WHEEL_TYPE.Load(m_sName, "MusicWheelType");
 	SELECT_MENU_AVAILABLE.Load(m_sName, "SelectMenuAvailable");
 	MODE_MENU_AVAILABLE.Load(m_sName, "ModeMenuAvailable");
@@ -376,6 +377,12 @@ ScreenSelectMusic::Update(float fDeltaTime)
 	CheckBackgroundRequests(false);
 }
 
+void
+ScreenSelectMusic::OpenOptions()
+{
+	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
+								 SM_BackFromPlayerOptions);
+}
 void
 ScreenSelectMusic::DifferentialReload()
 {
@@ -1981,8 +1988,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->ChangeSteps(PLAYER_1, IArg(1));
 		return 0;
 	}
+	static int OpenOptions(T* p, lua_State* L)
+	{
+		p->OpenOptions();
+		return 0;
+	}
 	LunaScreenSelectMusic()
 	{
+		ADD_METHOD(OpenOptions);
 		ADD_METHOD(GetGoToOptions);
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(OpenOptionsList);

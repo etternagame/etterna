@@ -27,6 +27,8 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	void StartSelectedSong();
 	bool SelectCurrent();
 
+	void OpenOptions() override;
+
 	MusicWheel* GetMusicWheel();
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -51,7 +53,6 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	RString m_sRandomMusicPath;
 
 	ThemeMetric<RString> MUSIC_WHEEL_TYPE;
-	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
 
 	ThemeMetric<float> SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 	ThemeMetric<float> SAMPLE_MUSIC_FADE_OUT_SECONDS;

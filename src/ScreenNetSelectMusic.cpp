@@ -56,7 +56,6 @@ ScreenNetSelectMusic::Init()
 	GAMESTATE->m_bPlayingMulti = true;
 	SAMPLE_MUSIC_PREVIEW_MODE.Load(m_sName, "SampleMusicPreviewMode");
 	MUSIC_WHEEL_TYPE.Load(m_sName, "MusicWheelType");
-	PLAYER_OPTIONS_SCREEN.Load(m_sName, "PlayerOptionsScreen");
 
 	// todo: handle me theme-side -aj
 	FOREACH_EnabledPlayer(p)
@@ -405,6 +404,15 @@ ScreenNetSelectMusic::MenuRight(const InputEventPlus& input)
 	else
 		m_MusicWheel.Move(+1);
 	return true;
+}
+
+void
+ScreenNetSelectMusic::OpenOptions()
+{
+	NSMAN->OnOptions();
+	GAMESTATE->m_EditMode = EditMode_Full;
+	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
+								 SM_BackFromPlayerOptions);
 }
 
 bool
