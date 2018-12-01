@@ -301,7 +301,7 @@ CURLFormPostField(CURL* curlHandle,
 {
 	curl_formadd(&form,
 				 &lastPtr,
-				 CURLFORM_COPYNAME,
+				 CURLFORM_COPYNAME, 
 				 field,
 				 CURLFORM_COPYCONTENTS,
 				 value,
@@ -1954,8 +1954,7 @@ DownloadManager::UploadScores()
 			auto ts = scorePtr->GetTopScore();
 			if ((ts == 1 || ts == 2) &&
 				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				if (scorePtr->HasReplayData()) // we should remove this check
-											   // maybe -mina
+				if (scorePtr->HasReplayData())
 					toUpload.emplace_back(scorePtr);
 			}
 		}
