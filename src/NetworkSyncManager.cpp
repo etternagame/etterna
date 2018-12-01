@@ -1257,7 +1257,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 			payload["replay"]["noterows"].push_back(noterows[i]);
 		for (size_t i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
-		for (size_t i = 0; i < offsets.size(); i++)
+		for (size_t i = 0; i < tracks.size(); i++)
 			payload["replay"]["tracks"].push_back(tracks[i]);
 	}
 	Send(j);
