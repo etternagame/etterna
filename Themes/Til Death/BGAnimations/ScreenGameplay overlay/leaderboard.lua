@@ -113,10 +113,12 @@ for i = 1, NUM_ENTRIES - 1 do
 	scoreboard[i] = onlineScores[i]
 end
 local done = false
-for i = 1, NUM_ENTRIES do
-	if not done and not scoreboard[i] then
-		scoreboard[i] = curScore
-		done = true
+if not isMulti then
+	for i = 1, NUM_ENTRIES do
+		if not done and not scoreboard[i] then
+			scoreboard[i] = curScore
+			done = true
+		end
 	end
 end
 table.sort(scoreboard, sortFunction)
@@ -276,7 +278,9 @@ t.OnCommand = function(self, params)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
-			label:visible(not (not scoreboard[i]:GetDisplayName()))
+			if scoreboard[i] ~= nil then
+				label:visible(not (not scoreboard[i]:GetDisplayName()))
+			end
 		end
 	end
 end
