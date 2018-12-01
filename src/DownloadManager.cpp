@@ -1588,6 +1588,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
 				hs.scoreid = tmp.scoreid;
 				hs.avatar = tmp.avatar;
 				hs.countryCode = tmp.countryCode;
+				hs.hasReplay = tmp.hasReplay;
 
 				vec.emplace_back(tmp);
 			}

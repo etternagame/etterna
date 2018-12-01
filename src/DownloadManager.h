@@ -123,6 +123,9 @@ class OnlineTopScore
 };
 struct OnlineHighScore : HighScore
 {
+  public:
+	bool hasReplay;
+	bool HasReplayData() override { return hasReplay; }
 };
 class OnlineScore
 {
