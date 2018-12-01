@@ -227,7 +227,14 @@ local function scoreitem(pn, i)
 					self:xy(framex + 10, framey + 20 + (i * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				UpdateNetScoreCommand = function(self)
-					self:settext(multiscores[i].highscore:GetJudgmentString())
+					self:settextf("%d / %d / %d / %d / %d / %d",
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W1"),
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W2"),
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W3"),
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W4"),
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W5"),
+                        multiscores[i].highscore:GetTapNoteScore("TapNoteScore_Miss")
+                    )
 				end
 			},
 		LoadFont("Common normal") ..
