@@ -8,6 +8,7 @@
 #include "Style.h"
 #include "ThemeManager.h"
 #include "NetworkSyncManager.h"
+#include "InputEventPlus.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 
@@ -130,6 +131,17 @@ ScreenNetEvaluation::MenuDown(const InputEventPlus& input)
 	COMMAND(m_textUsers[m_iCurrentPlayer], "Sel");
 	UpdateStats();
 	return true;
+}
+
+bool
+ScreenNetEvaluation::Input(const InputEventPlus& input)
+{
+	// throw out "enter" inputs so players don't accidentally close the screen
+	// while talking about scores, force them to esc to the next screen -mina
+	if (input.DeviceI.button == KEY_ENTER)
+		return false;
+
+	return Screen::Input(input);
 }
 
 void
@@ -282,11 +294,24 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 			lua_pushnil(L);
 		return 1;
 	}
+	static int GetCurrentPlayer(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->m_iCurrentPlayer + 1);
+		return 1;
+	}
+	static int SelectPlayer(T* p, lua_State* L)
+	{
+		p->m_iCurrentPlayer = IArg(1) - 1;
+		p->UpdateStats();
+		return 0;
+	}
 	LunaScreenNetEvaluation()
 	{
 		ADD_METHOD(GetNumActivePlayers);
 		ADD_METHOD(GetHighScore);
 		ADD_METHOD(GetOptions);
+		ADD_METHOD(GetCurrentPlayer);
+		ADD_METHOD(SelectPlayer);
 	}
 };
 

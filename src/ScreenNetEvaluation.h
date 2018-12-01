@@ -12,12 +12,12 @@ class ScreenNetEvaluation : public ScreenEvaluation
 
 	// sm-ssc:
 	int GetNumActivePlayers() { return m_iActivePlayers; }
-
+	bool Input(const InputEventPlus& input) override;
 	// Lua
 	void PushSelf(lua_State* L) override;
 
 	int m_iCurrentPlayer;
-
+	void UpdateStats();
   protected:
 	bool MenuLeft(const InputEventPlus& input) override;
 	bool MenuUp(const InputEventPlus& input) override;
@@ -25,9 +25,6 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	bool MenuDown(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
 	void TweenOffScreen() override;
-
-	void UpdateStats();
-
   private:
 	// todo: Make this an AutoActor -aj
 	Quad m_rectUsersBG;
