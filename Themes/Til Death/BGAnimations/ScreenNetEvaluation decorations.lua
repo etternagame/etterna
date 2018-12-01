@@ -8,7 +8,7 @@ local customWindows = timingWindowConfig:get_data().customWindows
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
 if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
-	t[#t + 1] = LoadActor("ScreenEvaluation decorations/scoreboard")
+	t[#t + 1] = LoadActor("MPscoreboard")
 end
 
 t[#t + 1] =
