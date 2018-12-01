@@ -91,8 +91,8 @@ chat.ScreenChangedMessageCommand = function(self)
 		show = true
 	end
 	if currentScreen == "ScreenNetSelectMusic" then
-		for i=1, #tabs do
-			if tabs[i][2] == NSMAN:GetCurrentRoomName() then
+		for i = 1, #tabs do
+			if tabs[i] and tabs[i][2] == NSMAN:GetCurrentRoomName() then
 				changeTab(tabs[i][2], tabs[i][1])
 			end
 		end
@@ -353,7 +353,6 @@ function overTab(mx, my)
 	return nil, nil
 end
 
-
 function MPinput(event)
 	if (not show or not online) or isGameplay then
 		return false
@@ -365,7 +364,7 @@ function MPinput(event)
 		end
 		typing = false
 		local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
-		if isOver(minbar) then	--hard mouse toggle -mina
+		if isOver(minbar) then --hard mouse toggle -mina
 			minimised = not minimised
 			MESSAGEMAN:Broadcast("Minimise")
 			update = true
@@ -408,7 +407,7 @@ function MPinput(event)
 	end
 
 	-- hard kb toggle
-	if event.type == "InputEventType_Release" and event.DeviceInput.button == "DeviceButton_insert" then	
+	if event.type == "InputEventType_Release" and event.DeviceInput.button == "DeviceButton_insert" then
 		minimised = not minimised
 		MESSAGEMAN:Broadcast("Minimise")
 		update = true
@@ -418,7 +417,7 @@ function MPinput(event)
 		end
 	end
 
-	if not typing and event.type == "InputEventType_Release" then	-- keys for auto turning on chat if not already on -mina
+	if not typing and event.type == "InputEventType_Release" then -- keys for auto turning on chat if not already on -mina
 		if event.DeviceInput.button == "DeviceButton_/" then
 			typing = true
 			update = true
@@ -437,7 +436,7 @@ function MPinput(event)
 					NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
 					typingText = ""
 				elseif typingText == "" then
-					typing = false		-- pressing enter when text is empty to deactive chat is expected behavior -mina
+					typing = false -- pressing enter when text is empty to deactive chat is expected behavior -mina
 				end
 				update = true
 			end
@@ -448,7 +447,7 @@ function MPinput(event)
 		elseif event.DeviceInput.button == "DeviceButton_space" then
 			typingText = typingText .. " "
 			update = true
-		elseif event.DeviceInput.button == "DeviceButton_delete" then	-- reset msg with delete (since there's no cursor)
+		elseif event.DeviceInput.button == "DeviceButton_delete" then -- reset msg with delete (since there's no cursor)
 			typingText = ""
 			update = true
 		elseif
@@ -501,7 +500,7 @@ function MPinput(event)
 	end
 
 	if update then
-		if minimised then	-- minimise will be set in the above blocks, disable input and clear text -mina
+		if minimised then -- minimise will be set in the above blocks, disable input and clear text -mina
 			typing = false
 			typingText = ""
 		end
