@@ -23,7 +23,8 @@ local jdgs = {
 	"TapNoteScore_W2",
 	"TapNoteScore_W3",
 	"TapNoteScore_W4",
-	"TapNoteScore_W5"
+	"TapNoteScore_W5",
+	"TapNoteScore_Miss"
 }
 
 local function arbitraryLeaderboardSpacing(value)
