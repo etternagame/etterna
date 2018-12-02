@@ -944,13 +944,17 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_lobbyuserlistupdate: {
 					auto& vec = NSMAN->lobbyuserlist;
-					auto newUsers = payload->at("on");
-					for (auto& user : newUsers) {
-						NSMAN->lobbyuserlist.insert(user.get<string>());
+					if (payload->find("on") != payload->end()) {
+						auto newUsers = payload->at("on");
+						for (auto& user : newUsers) {
+							NSMAN->lobbyuserlist.insert(user.get<string>());
+						}
 					}
-					auto removedUsers = payload->at("off");
-					for (auto& user : removedUsers) {
-						NSMAN->lobbyuserlist.erase(user.get<string>());
+					if (payload->find("off") != payload->end()) {
+						auto removedUsers = payload->at("off");
+						for (auto& user : removedUsers) {
+							NSMAN->lobbyuserlist.erase(user.get<string>());
+						}
 					}
 					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 				} break;
