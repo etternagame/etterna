@@ -959,10 +959,26 @@ Actor::UpdateInternal(float delta_time)
 		}
 	}
 	// Doing this in place did weird things
-	delayedFunctions.erase(std::remove_if(
-	  delayedFunctions.begin(),
-	  delayedFunctions.end(),
-	  [](pair<function<void()>, float>& x) { return x.second <= 0; }), delayedFunctions.end());
+	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
+										  delayedFunctions.end(),
+										  [](pair<function<void()>, float>& x) {
+											  return x.second <= 0;
+										  }),
+						   delayedFunctions.end());
+	auto L = LUA->Get();
+	for (auto id : delayedPeriodicFunctionIdsToDelete) {
+		luaL_unref(L, LUA_REGISTRYINDEX, id);
+		auto& vec = this->delayedPeriodicFunctions;
+		vec.erase(
+		  std::remove_if(vec.begin(),
+						 vec.end(),
+						 [id](tuple<function<void()>, float, float, int>& x) {
+							 return std::get<3>(x) == id;
+						 }),
+		  vec.end());
+	}
+	LUA->Release(L);
+	delayedPeriodicFunctionIdsToDelete.clear();
 	for (auto it = this->delayedPeriodicFunctions.begin();
 		 it != this->delayedPeriodicFunctions.end();
 		 ++it) {
@@ -1754,15 +1770,14 @@ class LunaActor : public Luna<Actor>
 	static int clearInterval(T* p, lua_State* L)
 	{
 		int r = IArg(1);
-		auto& l = p->delayedPeriodicFunctions;
-		auto it = find_if(l.begin(),
-						  l.end(),
+		auto& vec = p->delayedPeriodicFunctions;
+		auto it = find_if(vec.begin(),
+						  vec.end(),
 						  [r](tuple<function<void()>, float, float, int>& x) {
 							  return std::get<3>(x) == r;
 						  });
-		if (it != l.end()) {
-			luaL_unref(L, LUA_REGISTRYINDEX, r);
-			l.erase(it);
+		if (it != vec.end()) {
+			p->delayedPeriodicFunctionIdsToDelete.emplace_back(r);
 		} else {
 			LuaHelpers::ReportScriptError(
 			  "Interval function not found (When triying to clearInterval() )");
