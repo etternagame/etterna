@@ -378,7 +378,7 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
-	vector<string> lobbyuserlist;
+	set<string> lobbyuserlist;
 
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 

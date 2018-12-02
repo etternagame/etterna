@@ -939,20 +939,18 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					NSMAN->lobbyuserlist.clear();
 					auto users = payload->at("users");
 					for (auto& user : users) {
-						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
+						NSMAN->lobbyuserlist.insert(user.get<string>());
 					}
 				} break;
 				case ettps_lobbyuserlistupdate: {
 					auto& vec = NSMAN->lobbyuserlist;
 					auto newUsers = payload->at("on");
 					for (auto& user : newUsers) {
-						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
+						NSMAN->lobbyuserlist.insert(user.get<string>());
 					}
 					auto removedUsers = payload->at("off");
 					for (auto& user : removedUsers) {
-						vec.erase(std::remove(
-									vec.begin(), vec.end(), user.get<string>()),
-								  vec.end());
+						NSMAN->lobbyuserlist.erase(user.get<string>());
 					}
 					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 				} break;
