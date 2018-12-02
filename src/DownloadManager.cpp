@@ -32,6 +32,7 @@ using json = nlohmann::json;
 #include <intrin.h>
 #endif
 shared_ptr<DownloadManager> DLMAN = nullptr;
+const LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(
   "maximumBytesDownloadedPerSecond",
