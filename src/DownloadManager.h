@@ -161,6 +161,8 @@ class OnlineScore
 	bool HasReplayData() { return hasReplay; }
 };
 
+LuaReference EMPTY_REFERENCE;
+
 class DownloadManager
 {
   public:
@@ -284,9 +286,9 @@ class DownloadManager
 						   int userid,
 						   const string& username,
 						   const string& chartkey,
-						   LuaReference& callback = LuaReference());
+						   LuaReference& callback = EMPTY_REFERENCE);
 	void RequestChartLeaderBoard(const string& chartkey,
-								 LuaReference& ref = LuaReference());
+								 LuaReference& ref = EMPTY_REFERENCE);
 	void RefreshUserData();
 	string countryCode;
 	void RefreshUserRank();
