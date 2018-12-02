@@ -68,15 +68,27 @@ chat.InitCommand = function(self)
 	self:visible(false)
 end
 local isGameplay
+local isInSinglePlayer
 chat.ScreenChangedMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
 	end
+	local oldScreen = currentScreen
 	currentScreen = s:GetName()
+	
+	-- prevent the chat from showing in singleplayer because it can be annoying
+	if oldScreen ~= currentScreen and (currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or currentScreen == "ScreenOptionsService") then
+		isInSinglePlayer = true
+	end
+	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
+		isInSinglePlayer = false
+	end
+	
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
-	if isGameplay then
+
+	if isGameplay or isInSinglePlayer then
 		self:visible(false)
 		show = false
 		typing = false
@@ -87,7 +99,7 @@ chat.ScreenChangedMessageCommand = function(self)
 			0.025
 		)
 	else
-		self:visible(online)
+		self:visible(online and not isInSinglePlayer)
 		show = true
 	end
 	if currentScreen == "ScreenNetSelectMusic" then
