@@ -2784,6 +2784,7 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(name);
 		ADD_METHOD(setInterval);
 		ADD_METHOD(setTimeout);
+		ADD_METHOD(clearInterval);
 		ADD_METHOD(name);
 		ADD_METHOD(sleep);
 		ADD_METHOD(linear);
