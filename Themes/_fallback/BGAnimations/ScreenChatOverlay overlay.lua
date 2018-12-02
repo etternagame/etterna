@@ -273,7 +273,7 @@ for i = 0, maxTabs - 1 do
 			{
 				InitCommand = function(self)
 					self:halign(0):valign(0)
-					self:maxwidth(tabWidth)
+					self:maxwidth(tabWidth*2)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
 					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
