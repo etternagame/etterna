@@ -8,6 +8,7 @@ local usersX = SCREEN_WIDTH / 4
 local usersY = SCREEN_TOP + 15
 local usersHeight = 10
 
+local lobbos
 local top = SCREENMAN:GetTopScreen()
 local qty = 0
 local posit = getMainColor("positive")
@@ -23,6 +24,7 @@ local r =
 	end,
 	SetCommand = function(self)
 		top = SCREENMAN:GetTopScreen()
+		lobbos = NSMAN:GetLobbyUserList()
 	end,
 	UsersUpdateMessageCommand = function(self)
 		self:queuecommand("Set")
@@ -60,19 +62,15 @@ local function userLabel(i)
 			end,
 			SetCommand = function(self)
 				local num = self:GetName() + 0
-				lobbos = NSMAN:GetLobbyUserList()
-				qty = #lobbos
-				if num <= qty then
-					local str = ""
-					str = str .. top:GetUser(num)
-					self:settext(str)
-					if top:GetUserState(num) == 2 or top:GetUserState(num) == 1 then
-						self:diffuse(posit)
-					elseif top:GetUserState(num) == 4 then
-						self:diffuse(negat)
-					else
-						self:diffuse(enable)
-					end
+				if num <= #lobbos then
+					self:settext(lobbos[num])
+					-- if top:GetUserState(num) == 2 or top:GetUserState(num) == 1 then
+					-- 	self:diffuse(posit)
+					-- elseif top:GetUserState(num) == 4 then
+					-- 	self:diffuse(negat)
+					-- else
+					-- 	self:diffuse(enable)
+					-- end
 				else
 					self:settext("")
 				end
