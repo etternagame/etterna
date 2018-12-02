@@ -158,10 +158,10 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 										  NULL);
 			} else {
 				sLoginQuestion = "Enter username";
-				ScreenTextEntry::Password(SM_UsernameDone,
+				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										  NSMAN->loginResponse + "\n\n" +
 											sLoginQuestion,
-										  NULL);
+										  "", 255);
 			}
 		}
 	} else if (SM == SM_GoToNextScreen) {
@@ -197,10 +197,10 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 				  SM_PasswordDone, sLoginQuestion, NULL);
 			} else {
 				sLoginQuestion = "Enter username";
-				ScreenTextEntry::Password(SM_UsernameDone,
+				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										  NSMAN->loginResponse + "\n\n" +
 											sLoginQuestion,
-										  NULL);
+										  "", 255);
 			}
 		}
 		return;
