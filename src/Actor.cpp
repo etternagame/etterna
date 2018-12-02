@@ -965,28 +965,30 @@ Actor::UpdateInternal(float delta_time)
 											  return x.second <= 0;
 										  }),
 						   delayedFunctions.end());
-	auto L = LUA->Get();
-	for (auto id : delayedPeriodicFunctionIdsToDelete) {
-		luaL_unref(L, LUA_REGISTRYINDEX, id);
-		auto& vec = this->delayedPeriodicFunctions;
-		vec.erase(
-		  std::remove_if(vec.begin(),
-						 vec.end(),
-						 [id](tuple<function<void()>, float, float, int>& x) {
-							 return std::get<3>(x) == id;
-						 }),
-		  vec.end());
-	}
-	LUA->Release(L);
-	delayedPeriodicFunctionIdsToDelete.clear();
-	for (auto it = this->delayedPeriodicFunctions.begin();
-		 it != this->delayedPeriodicFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		std::get<1>(delayedF) -= delta_time;
-		if (std::get<1>(delayedF) <= 0) {
-			std::get<0>(delayedF)();
-			std::get<1>(delayedF) = std::get<2>(delayedF);
+	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
+		auto* L = LUA->Get();
+		for (auto id : delayedPeriodicFunctionIdsToDelete) {
+			luaL_unref(L, LUA_REGISTRYINDEX, id);
+			auto& vec = this->delayedPeriodicFunctions;
+			vec.erase(std::remove_if(
+						vec.begin(),
+						vec.end(),
+						[id](tuple<function<void()>, float, float, int>& x) {
+							return std::get<3>(x) == id;
+						}),
+					  vec.end());
+		}
+		LUA->Release(L);
+		delayedPeriodicFunctionIdsToDelete.clear();
+		for (auto it = this->delayedPeriodicFunctions.begin();
+			 it != this->delayedPeriodicFunctions.end();
+			 ++it) {
+			auto& delayedF = *it;
+			std::get<1>(delayedF) -= delta_time;
+			if (std::get<1>(delayedF) <= 0) {
+				std::get<0>(delayedF)();
+				std::get<1>(delayedF) = std::get<2>(delayedF);
+			}
 		}
 	}
 }
