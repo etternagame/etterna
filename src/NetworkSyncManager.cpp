@@ -943,16 +943,16 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 				} break;
 				case ettps_lobbyuserlistupdate: {
+					auto& vec = NSMAN->lobbyuserlist;
 					auto newUsers = payload->at("on");
 					for (auto& user : newUsers) {
-						auto& vec = NSMAN->lobbyuserlist;
-						vec.erase(std::remove(
-									vec.begin(), vec.end(), user.get<string>()),
-								  vec.end());
+						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
 					}
 					auto removedUsers = payload->at("off");
 					for (auto& user : removedUsers) {
-						NSMAN->lobbyuserlist.emplace_back(user.get<string>());
+						vec.erase(std::remove(
+									vec.begin(), vec.end(), user.get<string>()),
+								  vec.end());
 					}
 					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 				} break;
@@ -1000,7 +1000,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);	
+					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 				} break;
 			}
 		} catch (exception e) {
