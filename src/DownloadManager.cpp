@@ -1459,24 +1459,27 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				else
 					it->hs.SetReplayType(2);
 			}
-			auto L = LUA->Get();
-			callback.PushSelf(L);
-			RString Error =
-			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L); // dunno whats going on here -mina
-			for (unsigned i = 0; i < replayData.size(); ++i) {
-				auto& pair = replayData[i];
-				lua_newtable(L);
-				lua_pushnumber(L, pair.first);
-				lua_rawseti(L, -2, 1);
-				lua_pushnumber(L, pair.second);
-				lua_rawseti(L, -2, 2);
-				lua_rawseti(L, -2, i + 1);
+			
+			if (!callback.IsNil() && callback.IsSet()) {
+				auto L = LUA->Get();
+				callback.PushSelf(L);
+				RString Error =
+				  "Error running RequestChartLeaderBoard Finish Function: ";
+				lua_newtable(L); // dunno whats going on here -mina
+				for (unsigned i = 0; i < replayData.size(); ++i) {
+					auto& pair = replayData[i];
+					lua_newtable(L);
+					lua_pushnumber(L, pair.first);
+					lua_rawseti(L, -2, 1);
+					lua_pushnumber(L, pair.second);
+					lua_rawseti(L, -2, 2);
+					lua_rawseti(L, -2, i + 1);
+				}
+				it->hs.PushSelf(L);
+				LuaHelpers::RunScriptOnStack(
+				  L, Error, 2, 0, true); // 2 args, 0 results
+				LUA->Release(L);
 			}
-			it->hs.PushSelf(L);
-			LuaHelpers::RunScriptOnStack(
-			  L, Error, 2, 0, true); // 2 args, 0 results
-			LUA->Release(L);
 		} catch (exception e) {
 			LOG->Trace(
 			  (string("Replay data request failed for") + scoreid + e.what())
