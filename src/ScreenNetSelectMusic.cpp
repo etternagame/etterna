@@ -220,7 +220,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 	}
 
-done:
 	// Must be at end, as so it is last resort for SMOnline packets.
 	// If it doesn't know what to do, then it'll just remove them.
 	ScreenSelectMusic::HandleScreenMessage(SM);
@@ -311,7 +310,7 @@ ScreenNetSelectMusic::SelectCurrent()
 
 	if (pSong == NULL)
 		return false;
-	if (m_vpSteps.size() <= m_iSelection[PLAYER_1])
+	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection[PLAYER_1])
 		return false;
 	GAMESTATE->m_pCurSong.Set(pSong);
 	Steps* pSteps = m_vpSteps[m_iSelection[PLAYER_1]];

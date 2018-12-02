@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "Font.h"
@@ -1438,7 +1438,7 @@ class LunaBitmapText : public Luna<BitmapText>
 	static int getGlyphRect(T* p, lua_State* L)
 	{
 		int idx = (IArg(1) - 1) * 4; // lua idx start at 1 and 4 verts per glyph
-		if (idx < 0 || idx >= p->m_aVertices.size()) {
+		if (idx < 0 || idx >= static_cast<int>(p->m_aVertices.size())) {
 			lua_pushnil(L);
 			return 1;
 		}
