@@ -959,10 +959,10 @@ Actor::UpdateInternal(float delta_time)
 		}
 	}
 	// Doing this in place did weird things
-	std::remove_if(
+	delayedFunctions.erase(std::remove_if(
 	  delayedFunctions.begin(),
 	  delayedFunctions.end(),
-	  [](pair<function<void()>, float>& x) { return x.second <= 0; });
+	  [](pair<function<void()>, float>& x) { return x.second <= 0; }), delayedFunctions.end());
 	for (auto it = this->delayedPeriodicFunctions.begin();
 		 it != this->delayedPeriodicFunctions.end();
 		 ++it) {
