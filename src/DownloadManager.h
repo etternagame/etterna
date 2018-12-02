@@ -161,11 +161,10 @@ class OnlineScore
 	bool HasReplayData() { return hasReplay; }
 };
 
-LuaReference EMPTY_REFERENCE;
-
 class DownloadManager
 {
   public:
+	static LuaReference EMPTY_REFERENCE = LuaReference();
 	DownloadManager();
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
