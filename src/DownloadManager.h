@@ -164,7 +164,7 @@ class OnlineScore
 class DownloadManager
 {
   public:
-	static constexpr LuaReference EMPTY_REFERENCE = LuaReference();
+	static const LuaReference EMPTY_REFERENCE = LuaReference();
 	DownloadManager();
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
