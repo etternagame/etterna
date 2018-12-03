@@ -311,7 +311,7 @@ RageTextureManager::GarbageCollect(GCType type)
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Performing texture garbage collection.");
 
-	for (auto ID : m_mapPathToTexture) {
+	for (auto& ID : m_mapPathToTexture) {
 		RageTexture* t = ID.second;
 
 		if (t->m_iRefCount)
