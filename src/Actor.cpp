@@ -980,15 +980,12 @@ Actor::UpdateInternal(float delta_time)
 		}
 		LUA->Release(L);
 		delayedPeriodicFunctionIdsToDelete.clear();
-		for (auto it = this->delayedPeriodicFunctions.begin();
-			 it != this->delayedPeriodicFunctions.end();
-			 ++it) {
-			auto& delayedF = *it;
-			std::get<1>(delayedF) -= delta_time;
-			if (std::get<1>(delayedF) <= 0) {
-				std::get<0>(delayedF)();
-				std::get<1>(delayedF) = std::get<2>(delayedF);
-			}
+	}
+	for (auto& delayedF : delayedPeriodicFunctions) {
+		std::get<1>(delayedF) -= delta_time;
+		if (std::get<1>(delayedF) <= 0) {
+			std::get<0>(delayedF)();
+			std::get<1>(delayedF) = std::get<2>(delayedF);
 		}
 	}
 }
