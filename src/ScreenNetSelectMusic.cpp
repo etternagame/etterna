@@ -162,7 +162,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == ETTP_StartChart) {
 		if (NSMAN->song != nullptr) {
-			MESSAGEMAN->Broadcast("MultiSongPicked");
 			GAMESTATE->m_pCurSong.Set(NSMAN->song);
 			if (NSMAN->steps != nullptr) {
 				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
@@ -188,7 +187,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == ETTP_SelectChart) {
 		if (NSMAN->song != nullptr) {
-			MESSAGEMAN->Broadcast("MultiSongPicked");
 			GAMESTATE->m_pCurSong.Set(NSMAN->song);
 			if (NSMAN->steps != nullptr) {
 				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);

@@ -72,12 +72,6 @@ local t =
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	MultiSongPickedMessageCommand = function(self)
-		lastsearchstring = ""
-		searchstring = ""
-		MESSAGEMAN:Broadcast("UpdateString")
-		whee:SongSearch(lastsearchstring)
-	end,
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
