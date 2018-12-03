@@ -96,6 +96,40 @@ ScreenNetSelectMusic::Input(const InputEventPlus& input)
 }
 
 void
+SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
+{
+	auto ptrMusicWheel = s->GetMusicWheel();
+	auto& m_MusicWheel = *ptrMusicWheel;
+	if (NSMAN->song != nullptr) {
+		GAMESTATE->m_pCurSong.Set(NSMAN->song);
+		if (NSMAN->steps != nullptr) {
+			GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
+			GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+			  NSMAN->steps->GetDifficulty());
+		}
+		if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+			m_MusicWheel.ChangeSort(SORT_GROUP);
+			m_MusicWheel.FinishTweening();
+			m_MusicWheel.ReloadSongList(false, "");
+			SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+			m_MusicWheel.SelectSong(NSMAN->song);
+		}
+		if (NSMAN->rate > 0) {
+			GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
+			  NSMAN->rate / 1000.f;
+			MESSAGEMAN->Broadcast("RateChanged");
+		}
+		m_MusicWheel.Select();
+		m_MusicWheel.Move(-1);
+		m_MusicWheel.Move(1);
+		m_MusicWheel.Move(0);
+		if (start) {
+			s->StartSelectedSong();
+			m_MusicWheel.Select();
+		}
+	}
+}
+void
 ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToNextScreen) {
@@ -110,6 +144,7 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
+				m_MusicWheel.ReloadSongList(false, "");
 				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
 				m_MusicWheel.SelectSong(NSMAN->song);
 			}
@@ -121,7 +156,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
-			m_MusicWheel.Move(0);
 		}
 	} else if (SM == SM_UsersUpdate) {
 		MESSAGEMAN->Broadcast("UsersUpdate");
@@ -161,54 +195,9 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			this->AfterMusicChange();
 		}
 	} else if (SM == ETTP_StartChart) {
-		if (NSMAN->song != nullptr) {
-			GAMESTATE->m_pCurSong.Set(NSMAN->song);
-			if (NSMAN->steps != nullptr) {
-				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
-				  NSMAN->steps->GetDifficulty());
-			}
-			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
-				m_MusicWheel.ChangeSort(SORT_GROUP);
-				m_MusicWheel.FinishTweening();
-				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
-				m_MusicWheel.SelectSong(NSMAN->song);
-			}
-			if (NSMAN->rate > 0) {
-				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
-				  NSMAN->rate / 1000.f;
-				MESSAGEMAN->Broadcast("RateChanged");
-			}
-			m_MusicWheel.Select();
-			m_MusicWheel.Move(-1);
-			m_MusicWheel.Move(1);
-			StartSelectedSong();
-			m_MusicWheel.Select();
-		}
+		SelectSongUsingNSMAN(this, true);
 	} else if (SM == ETTP_SelectChart) {
-		if (NSMAN->song != nullptr) {
-			GAMESTATE->m_pCurSong.Set(NSMAN->song);
-			if (NSMAN->steps != nullptr) {
-				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
-				  NSMAN->steps->GetDifficulty());
-			}
-			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
-				m_MusicWheel.ChangeSort(SORT_GROUP);
-				m_MusicWheel.FinishTweening();
-				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
-				m_MusicWheel.SelectSong(NSMAN->song);
-			}
-			if (NSMAN->rate > 0) {
-				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
-				  NSMAN->rate / 1000.f;
-				MESSAGEMAN->Broadcast("RateChanged");
-			}
-			m_MusicWheel.Select();
-			m_MusicWheel.Move(-1);
-			m_MusicWheel.Move(1);
-			m_MusicWheel.Select();
-		}
+		SelectSongUsingNSMAN(this, false);
 	} else if (SM == SM_ConfirmDeleteSong) {
 		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
 			OnConfirmSongDeletion();
