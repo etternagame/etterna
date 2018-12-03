@@ -542,7 +542,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			MESSAGEMAN->Broadcast("DisplayAll");
 			return true;
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
-				   input.type == IET_FIRST_PRESS) {
+				   input.type == IET_FIRST_PRESS &&
+				   GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr) {
 			if (SONGMAN->GetPlaylists().empty())
 				return true;
 
