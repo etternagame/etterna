@@ -749,13 +749,6 @@ class Actor : public MessageSubscriber
 	virtual void PushSelf(lua_State* L);
 	virtual void PushContext(lua_State* L);
 
-	vector<pair<function<void(void)>, float>> delayedFunctions;
-	void SetTimeout(function<void()> f, float ms);
-	std::list<tuple<function<void(void)>, float, float, int>>
-	  delayedPeriodicFunctions; // This is a list to allow safe iterators
-	vector<int> delayedPeriodicFunctionIdsToDelete;
-	void SetInterval(function<void()> f, float ms, int fRemove);
-
 	// Named commands
 	void AddCommand(const RString& sCmdName,
 					apActorCommands apac,
