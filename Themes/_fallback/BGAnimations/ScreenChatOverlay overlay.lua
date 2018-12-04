@@ -355,16 +355,13 @@ end
 function shiftTab(fromIndex, toIndex)
 	-- tabs[index of tab][parameter table....]
 	-- 					[1 is type, 2 is tab contents?]
-	--			type 0 cant be deleted
 	tabs[toIndex] = tabs[fromIndex]
 	tabs[fromIndex] = nil
 end
 
 function shiftAllTabs(emptyIndex)
 	for i = emptyIndex + 1, maxTabs - 1 do
-		--if not (tabs[i][1] == 0 and tabs[i][2] == "") then -- dont delete the lobby tab
 		shiftTab(i, i-1)
-		--end
 	end
 end
 
@@ -412,7 +409,7 @@ function MPinput(event)
 					update = true
 				end
 			else
-				if event.type == "InputEventType_Release" then -- only change tabs on release (to stop repeatedly closing tabs or changing to a tab we close) -poco
+				if event.type == "InputEventType_FirstPress" then -- only change tabs on press (to stop repeatedly closing tabs or changing to a tab we close) -poco
 					if not closeTab then
 						changeTab(tabs[tabButton][2], tabs[tabButton][1])
 					else
