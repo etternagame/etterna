@@ -351,6 +351,23 @@ chat[#chat + 1] = chatWindow
 chat.UpdateChatOverlayMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", typing)
 end
+
+function shiftTab(fromIndex, toIndex)
+	-- tabs[index of tab][parameter table....]
+	-- 					[1 is type, 2 is tab contents?]
+	--			type 0 cant be deleted
+	tabs[toIndex] = tabs[fromIndex]
+	tabs[fromIndex] = nil
+end
+
+function shiftAllTabs(emptyIndex)
+	for i = emptyIndex + 1, maxTabs - 1 do
+		--if not (tabs[i][1] == 0 and tabs[i][2] == "") then -- dont delete the lobby tab
+		shiftTab(i, i-1)
+		--end
+	end
+end
+
 function overTab(mx, my)
 	for i = 0, maxTabs - 1 do
 		if tabs[i + 1] then
@@ -395,25 +412,28 @@ function MPinput(event)
 					update = true
 				end
 			else
-				if not closeTab then
-					changeTab(tabs[tabButton][2], tabs[tabButton][1])
-				else
-					local tabT = tabs[tabButton][1]
-					local tabN = tabs[tabButton][2]
-					if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
-						return false
-					end
-					tabs[tabButton] = nil
-					if chats[tabT][tabN] == messages then
-						for i = #tabs, 1, -1 do
-							if tabs[i] then
-								changeTab(tabs[i][2], tabs[i][1])
+				if event.type == "InputEventType_Release" then -- only change tabs on release (to stop repeatedly closing tabs or changing to a tab we close) -poco
+					if not closeTab then
+						changeTab(tabs[tabButton][2], tabs[tabButton][1])
+					else
+						local tabT = tabs[tabButton][1]
+						local tabN = tabs[tabButton][2]
+						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
+							return false
+						end
+						tabs[tabButton] = nil
+						if chats[tabT][tabN] == messages then
+							for i = #tabs, 1, -1 do
+								if tabs[i] then
+									changeTab(tabs[i][2], tabs[i][1])
+								end
 							end
 						end
+						chats[tabT][tabN] = nil
+						shiftAllTabs(tabButton)
 					end
-					chats[tabT][tabN] = nil
+					update = true
 				end
-				update = true
 			end
 		end
 	end
