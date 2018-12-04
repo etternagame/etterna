@@ -831,17 +831,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_mpleaderboardupdate: {
-					auto& scores = (*payload)["scores"];
-					for (json::iterator it = scores.begin(); it != scores.end();
-						 ++it) {
-						float wife = (*it)["wife"];
-						RString jdgstr = (*it)["jdgstr"];
-						string user = (*it)["user"].get<string>();
-						n->mpleaderboard[user].wife = wife;
-						n->mpleaderboard[user].jdgstr = jdgstr;
+					if (PREFSMAN->m_bEnableScoreboard) {
+						auto& scores = (*payload)["scores"];
+						for (json::iterator it = scores.begin();
+							 it != scores.end();
+							 ++it) {
+							float wife = (*it)["wife"];
+							RString jdgstr = (*it)["jdgstr"];
+							string user = (*it)["user"].get<string>();
+							n->mpleaderboard[user].wife = wife;
+							n->mpleaderboard[user].jdgstr = jdgstr;
+						}
+						Message msg("MPLeaderboardUpdate");
+						MESSAGEMAN->Broadcast(msg);
 					}
-					Message msg("MPLeaderboardUpdate");
-					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_createroomresponse: {
 					bool created = (*payload)["created"];
