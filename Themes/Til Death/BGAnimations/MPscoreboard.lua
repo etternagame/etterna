@@ -1,6 +1,6 @@
 
 
-local lines = 6 -- number of scores to display
+local lines = 10 -- number of scores to display
 local framex = SCREEN_WIDTH - capWideScale(get43size(230), 230)
 local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
@@ -59,6 +59,9 @@ local function Update(self)
     end
 end
 
+local sortFunction = function(first, second)
+	return first["highscore"]:GetWifeScore() > second["highscore"]:GetWifeScore()
+end
 
 local t =
 	Def.ActorFrame {
@@ -69,12 +72,14 @@ local t =
     BeginCommand = function(self)
         SCREENMAN:GetTopScreen():AddInputCallback(input)
         multiscores = NSMAN:GetEvalScores()
+		table.sort(multiscores, sortFunction)
         for i=1, math.min(#multiscores) do
             self:GetChild(i):queuecommand("UpdateNetScore")
         end
     end,
     NewMultiScoreMessageCommand = function(self)
         multiscores = NSMAN:GetEvalScores()
+		table.sort(multiscores, sortFunction)
         for i=1, math.min(#multiscores) do
             self:GetChild(i):queuecommand("UpdateNetScore")
         end
@@ -94,7 +99,7 @@ local function scoreitem(pn, i)
 		--The main quad
 		Def.Quad {
 			InitCommand = function(self)
-				self:xy(framex, framey + (i * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
+				self:xy(framex, framey + ((i-1) * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
 					color("#333333")
 				):diffusealpha(1):diffuserightedge(color("#33333333"))
 			end
@@ -102,7 +107,7 @@ local function scoreitem(pn, i)
 		--Highlight quad for the current score
 		Def.Quad {
 			InitCommand = function(self)
-				self:xy(framex, framey + (i * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
+				self:xy(framex, framey + ((i-1) * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
 					color("#ffffff")
 				):diffusealpha(0.3):diffuserightedge(color("#33333300"))
             end,
@@ -117,7 +122,7 @@ local function scoreitem(pn, i)
 		Def.Quad {
 			Name = "mouseOver",
 			UpdateNetScoreCommand = function(self)
-				self:xy(framex, framey + (i * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
+				self:xy(framex, framey + ((i-1) * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
 					getMainColor("highlight")
 				):diffusealpha(0)
 			end
@@ -125,7 +130,7 @@ local function scoreitem(pn, i)
 		--ClearType lamps
 		Def.Quad {
 			UpdateNetScoreCommand = function(self)
-				self:xy(framex, framey + (i * spacing) - 4):zoomto(8, 30):halign(0):valign(0):diffuse(
+				self:xy(framex, framey + ((i-1) * spacing) - 4):zoomto(8, 30):halign(0):valign(0):diffuse(
 					getClearTypeFromScore(pn, hs, 2)
 				)
 			end
@@ -134,7 +139,7 @@ local function scoreitem(pn, i)
 		LoadFont("Common normal") ..
 			{
 				InitCommand = function(self)
-					self:xy(framex - 8, framey + 12 + (i * spacing)):zoom(0.35)
+					self:xy(framex - 8, framey + 12 + ((i-1) * spacing)):zoom(0.35)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settext(i)
@@ -152,7 +157,7 @@ local function scoreitem(pn, i)
 			{
 				Name = "wife",
 				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (i * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+					self:xy(framex + 10, framey + 11 + ((i-1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settextf("%05.2f%% (%s)", notShit.floor(multiscores[i].highscore:GetWifeScore() * 10000) / 100, "Wife")
@@ -162,7 +167,7 @@ local function scoreitem(pn, i)
         {
             Name = "user",
             InitCommand = function(self)
-                self:xy(framex + 10, framey + 1 + (i * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+                self:xy(framex + 10, framey + 1 + ((i-1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
             end,
             UpdateNetScoreCommand = function(self)
                 self:settextf(multiscores[i].user)
@@ -175,7 +180,7 @@ local function scoreitem(pn, i)
 			{
 				Name = "option",
 				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (i * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+					self:xy(framex + 10, framey + 11 + ((i-1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settext(multiscores[i].highscore:GetModifiers())
@@ -186,7 +191,7 @@ local function scoreitem(pn, i)
 			{
                 Name = "grade",
 				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (i * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + ((i-1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
 						(frameWidth - 15) / 0.35
 					)
 				end,
@@ -199,7 +204,7 @@ local function scoreitem(pn, i)
 			{
                 Name = "clear",
 				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (i * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + ((i-1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
 						(frameWidth - 15) / 0.35
 					)
 				end,
@@ -212,7 +217,7 @@ local function scoreitem(pn, i)
 			{
                 Name = "combo",
 				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + (i * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + ((i-1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
 						(frameWidth - 15) / 0.35
 					)
 				end,
@@ -224,7 +229,7 @@ local function scoreitem(pn, i)
 			{
 				Name = "judge",
 				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (i * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+					self:xy(framex + 10, framey + 20 + ((i-1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settextf("%d / %d / %d / %d / %d / %d",
@@ -241,7 +246,7 @@ local function scoreitem(pn, i)
 			{
 				Name = "date",
 				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (i * spacing)):zoom(0.35):halign(0)
+					self:xy(framex + 10, framey + 20 + ((i-1) * spacing)):zoom(0.35):halign(0)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settext(multiscores[i].highscore:GetDate())
