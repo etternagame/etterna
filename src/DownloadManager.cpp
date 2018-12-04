@@ -1213,6 +1213,77 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 	return;
 }
 void
+UpdateReplayDataSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UpdateOnlineScoreReplayData(hs->GetScoreKey(), [hs, toUpload]() {
+			hs->AddUploadedServer("nru");
+			UpdateReplayDataSequentially(toUpload);
+		});
+	}
+	return;
+}
+bool
+DownloadManager::UpdateOnlineScoreReplayData()
+{
+	if (!LoggedIn())
+		return false;
+	// we dont care if the chart is loaded for this function, only that there is
+	// a score that is already uploaded and already has replaydata, and that the
+	// source data is on disk to update it -mina
+	auto& scores = SCOREMAN->GetAllScores();
+	deque<HighScore*> toUpload;
+	for (auto& scorePtr : scores) {
+		auto ts = scorePtr->GetTopScore(); // still need to do this?
+		if ((ts == 1 || ts == 2)) {
+			if (scorePtr->HasReplayData() &&
+				scorePtr->IsUploadedToServer(serverURL.Get()) &&
+				!scorePtr->IsUploadedToServer("nru"))
+				toUpload.emplace_back(scorePtr);
+		}
+	}
+	UpdateReplayDataSequentially(toUpload);
+	return true;
+}
+void
+uploadSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UploadScoreWithReplayDataFromDisk(
+		  hs->GetScoreKey(), [hs, toUpload]() {
+			  hs->AddUploadedServer(serverURL.Get());
+			  uploadSequentially(toUpload);
+		  });
+	}
+	return;
+}
+bool
+DownloadManager::UploadScores()
+{
+	if (!LoggedIn())
+		return false;
+	auto scores = SCOREMAN->GetAllPBPtrs();
+	deque<HighScore*> toUpload;
+	for (auto& vec : scores) {
+		for (auto& scorePtr : vec) {
+			auto ts = scorePtr->GetTopScore();
+			if ((ts == 1 || ts == 2) &&
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				if (scorePtr->HasReplayData())
+					toUpload.emplace_back(scorePtr);
+			}
+		}
+	}
+	uploadSequentially(toUpload);
+	return true;
+}
+void
 DownloadManager::EndSessionIfExists()
 {
 	if (!LoggedIn())
@@ -1893,78 +1964,6 @@ DownloadManager::StartSession(string user,
 		mHTTPHandle = curl_multi_init();
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-}
-
-void
-UpdateReplayDataSequentially(deque<HighScore*> toUpload)
-{
-	auto it = toUpload.begin();
-	if (it != toUpload.end()) {
-		toUpload.pop_front();
-		auto& hs = (*it);
-		DLMAN->UpdateOnlineScoreReplayData(hs->GetScoreKey(), [hs, toUpload]() {
-			hs->AddUploadedServer("nru");
-			UpdateReplayDataSequentially(toUpload);
-		});
-	}
-	return;
-}
-bool
-DownloadManager::UpdateOnlineScoreReplayData()
-{
-	if (!LoggedIn())
-		return false;
-	// we dont care if the chart is loaded for this function, only that there is
-	// a score that is already uploaded and already has replaydata, and that the
-	// source data is on disk to update it -mina
-	auto& scores = SCOREMAN->GetAllScores();
-	deque<HighScore*> toUpload;
-		for (auto& scorePtr : scores) {
-			auto ts = scorePtr->GetTopScore();	// still need to do this?
-			if ((ts == 1 || ts == 2) ){
-				if (scorePtr->HasReplayData() &&
-					scorePtr->IsUploadedToServer(serverURL.Get()) &&
-					  !scorePtr->IsUploadedToServer("nru"))
-					toUpload.emplace_back(scorePtr);
-			}
-		}
-	UpdateReplayDataSequentially(toUpload);
-	return true;
-}
-void
-uploadSequentially(deque<HighScore*> toUpload)
-{
-	auto it = toUpload.begin();
-	if (it != toUpload.end()) {
-		toUpload.pop_front();
-		auto& hs = (*it);
-		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs->GetScoreKey(), [hs, toUpload]() {
-			  hs->AddUploadedServer(serverURL.Get());
-			  uploadSequentially(toUpload);
-		  });
-	}
-	return;
-}
-bool
-DownloadManager::UploadScores()
-{
-	if (!LoggedIn())
-		return false;
-	auto scores = SCOREMAN->GetAllPBPtrs();
-	deque<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
-			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				if (scorePtr->HasReplayData())
-					toUpload.emplace_back(scorePtr);
-			}
-		}
-	}
-	uploadSequentially(toUpload);
-	return true;
 }
 int
 DownloadManager::GetSkillsetRank(Skillset ss)
