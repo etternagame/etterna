@@ -163,6 +163,24 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 		p->UpdateStats();
 		return 0;
 	}
+	static int SetCurrentPlayerByName(T* p, lua_State* L)
+	{
+		int theNumber = 0;
+		RString given = SArg(1);
+		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++)
+		{
+			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
+			RString name = pd.nameStr;
+			name.MakeLower();
+			if (name == given)
+			{
+				p->m_iCurrentPlayer = (int)i;
+				p->UpdateStats();
+				break;
+			}
+		}
+		return 0;
+	}
 	LunaScreenNetEvaluation()
 	{
 		ADD_METHOD(GetNumActivePlayers);
@@ -170,6 +188,7 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 		ADD_METHOD(GetOptions);
 		ADD_METHOD(GetCurrentPlayer);
 		ADD_METHOD(SetCurrentPlayer);
+		ADD_METHOD(SetCurrentPlayerByName);
 	}
 };
 

@@ -13,7 +13,7 @@ local function input(event)
 		if event.type == "InputEventType_Release" then
 			for i = 1, #multiscores do
                 if isOver(scoreBoard:GetChild(i):GetChild("mouseOver")) then
-                    SCREENMAN:GetTopScreen():SetCurrentPlayer(i)
+                    SCREENMAN:GetTopScreen():SetCurrentPlayerByName(multiscores[i].user)
 					scoreBoard:GetChild(i):GetChild("grade"):visible(
 						not scoreBoard:GetChild(i):GetChild("grade"):GetVisible()
                     )
