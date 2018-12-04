@@ -424,7 +424,6 @@ function MPinput(event)
 		MESSAGEMAN:Broadcast("Minimise")
 		update = true
 		if not minimize then
-			typing = true
 			typingText = ""
 		end
 	end
