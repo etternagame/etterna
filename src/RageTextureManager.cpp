@@ -311,8 +311,14 @@ RageTextureManager::GarbageCollect(GCType type)
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Performing texture garbage collection.");
 
-	for (auto& ID : m_mapPathToTexture) {
-		RageTexture* t = ID.second;
+	for (std::map<RageTextureID, RageTexture*>::iterator i =
+		   m_mapPathToTexture.begin();
+		 i != m_mapPathToTexture.end();) {
+		std::map<RageTextureID, RageTexture*>::iterator j = i;
+		i++;
+
+		RString sPath = j->first.filename;
+		RageTexture* t = j->second;
 
 		if (t->m_iRefCount)
 			continue; /* Can't unload textures that are still referenced. */
