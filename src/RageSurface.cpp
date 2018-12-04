@@ -1,7 +1,7 @@
 #include "global.h"
 #include "RageSurface.h"
 #include "RageUtil.h"
-#include "../../extern/stb-master/stb_image.h"
+#include "stb_image.h"
 #include <climits>
 
 int32_t

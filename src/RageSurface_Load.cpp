@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "RageFile.h"
 #include "RageLog.h"
@@ -7,9 +7,49 @@
 #include "RageSurface_Load_GIF.h"
 #include "RageSurface_Load_JPEG.h"
 #include "RageSurface_Load_PNG.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "PrefsManager.h"
 #include "RageUtil.h"
+#include "RageSurface.h"
 #include <set>
 
+RageSurfaceUtils::OpenResult
+RageSurface_stb_Load(const RString& sPath,
+					 RageSurface*& ret,
+					 bool bHeaderOnly,
+					 RString& error)
+{
+	RageFile f;
+	if (!f.Open(sPath)) {
+		error = f.GetError();
+		return RageSurfaceUtils::OPEN_FATAL_ERROR;
+	}
+
+	int x, y, n;
+	auto* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	if (bHeaderOnly) {
+		ret = CreateSurfaceFrom(x, y, 32, 0, 0, 0, 0, nullptr, x * 4);
+	} else {
+		ret =
+		  CreateSurfaceFrom(x,
+							y,
+							32,
+							Swap32BE(0xFF000000),
+							Swap32BE(0x00FF0000),
+							Swap32BE(0x0000FF00),
+							Swap32BE(0x000000FF),
+							doot,
+							x * 4);
+	}
+
+	if (ret == nullptr) {
+		stbi_image_free(doot);
+		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX
+	}
+	ret->stb_loadpoint = true;
+	return RageSurfaceUtils::OPEN_OK;
+}
 static RageSurface*
 TryOpenFile(RString sPath,
 			bool bHeaderOnly,
@@ -19,7 +59,10 @@ TryOpenFile(RString sPath,
 {
 	RageSurface* ret = nullptr;
 	RageSurfaceUtils::OpenResult result;
-	if (!format.CompareNoCase("png"))
+
+	if (PREFSMAN->UseStbImageLibrary)
+		result = RageSurface_stb_Load(sPath, ret, bHeaderOnly, error);
+	else if (!format.CompareNoCase("png"))
 		result = RageSurface_Load_PNG(sPath, ret, bHeaderOnly, error);
 	else if (!format.CompareNoCase("gif"))
 		result = RageSurface_Load_GIF(sPath, ret, bHeaderOnly, error);
@@ -126,6 +169,7 @@ RageSurfaceUtils::LoadFile(const RString& sPath,
 
 	return nullptr;
 }
+
 
 /*
  * (c) 2004 Glenn Maynard
