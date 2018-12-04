@@ -117,7 +117,13 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		if (NSMAN->rate > 0) {
 			GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 			  NSMAN->rate / 1000.f;
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
+			  NSMAN->rate / 1000.f;
+			GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
+			  NSMAN->rate / 1000.f;
 			MESSAGEMAN->Broadcast("RateChanged");
+			MESSAGEMAN->Broadcast("CurrentRateChanged");
+
 		}
 		m_MusicWheel.Select();
 		m_MusicWheel.Move(-1);
@@ -151,7 +157,12 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			if (NSMAN->rate > 0) {
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 				  NSMAN->rate / 1000.f;
+				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
+				  NSMAN->rate / 1000.f;
+				GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
+				  NSMAN->rate / 1000.f;
 				MESSAGEMAN->Broadcast("RateChanged");
+				MESSAGEMAN->Broadcast("CurrentRateChanged");
 			}
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
