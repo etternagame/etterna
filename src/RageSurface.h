@@ -1,4 +1,4 @@
-﻿/* RageSurface - holds a simple 2d graphic surface */
+/* RageSurface - holds a simple 2d graphic surface */
 
 #ifndef RAGE_SURFACE_H
 #define RAGE_SURFACE_H
@@ -84,9 +84,9 @@ struct RageSurfaceFormat
 struct RageSurface
 {
 	RageSurfaceFormat fmt;
-
 	uint8_t* pixels;
 	bool pixels_owned;
+	bool stb_loadpoint;
 	int32_t w, h, pitch;
 	int32_t flags;
 

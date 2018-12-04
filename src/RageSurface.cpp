@@ -1,7 +1,7 @@
-﻿#include "global.h"
+#include "global.h"
 #include "RageSurface.h"
 #include "RageUtil.h"
-
+#include "../../extern/stb-master/stb_image.h"
 #include <climits>
 
 int32_t
@@ -135,8 +135,9 @@ RageSurfaceFormat::Equivalent(const RageSurfaceFormat& rhs) const
 
 RageSurface::RageSurface()
 {
-	pixels = NULL;
+	pixels = nullptr;
 	pixels_owned = true;
+	stb_loadpoint = false;
 }
 
 RageSurface::RageSurface(const RageSurface& cpy)
@@ -153,10 +154,11 @@ RageSurface::RageSurface(const RageSurface& cpy)
 		pixels = NULL;
 }
 
-RageSurface::~RageSurface()
-{
-	if (pixels_owned)
-		delete[] pixels;
+RageSurface::~RageSurface(){
+	
+	if (pixels_owned) delete[] pixels;
+	if (stb_loadpoint)
+		stbi_image_free(pixels);
 }
 
 static int
