@@ -1229,7 +1229,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		 * requests come through, the music will still start. */
 		m_BackgroundLoader.Abort();
 		CheckBackgroundRequests(true);
-
+		m_MusicWheel.Lock();
 		if (OPTIONS_MENU_AVAILABLE) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
