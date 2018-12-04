@@ -143,7 +143,7 @@ PrefsManager::PrefsManager()
   , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
   , m_HighResolutionTextures("HighResolutionTextures",
 							 HighResolutionTextures_Auto)
-  , m_iMaxTextureResolution("MaxTextureResolution", 2048)
+  , m_iMaxTextureResolution("MaxTextureResolution", 1024)
   , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
   , m_bAllowMultitexture("AllowMultitexture", true)
   , m_bAllowedLag("AllowedLag", 0.001f)
