@@ -344,10 +344,6 @@ RageTextureManager::GarbageCollect(GCType type)
 		if (bDeleteThis)
 			DeleteTexture(t);
 	}
-
-	// this may actually the best place for this -mina
-	LOG->Trace("Unloading replaydata.");
-	SCOREMAN->UnloadAllReplayData();
 }
 
 void

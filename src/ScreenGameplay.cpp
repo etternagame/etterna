@@ -50,6 +50,7 @@
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
 #include "DownloadManager.h"
+#include "ScoreManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS                                   \
@@ -306,6 +307,10 @@ ScreenGameplay::ScreenGameplay()
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(true);
 #endif
+	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+		LOG->Trace("Unloading replaydata.");
+		SCOREMAN->UnloadAllReplayData();
+	}
 }
 
 void
