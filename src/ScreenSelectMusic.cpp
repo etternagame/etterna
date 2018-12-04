@@ -1822,6 +1822,20 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 		GAMEMAN->m_bResetTurns = true;
 		GAMEMAN->m_vTurnsToReset = oldTurns;
+		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
+										->m_PlayerOptions.GetSong()
+										.m_FailType;
+
+		// REALLY BAD way to set fail off for a replay
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = FailType_Off;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",
@@ -1900,6 +1914,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
+		
+		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
+										->m_PlayerOptions.GetSong()
+										.m_FailType;
 
 		// go
 		LOG->Trace("Viewing evaluation screen for score key %s",

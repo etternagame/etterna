@@ -1770,6 +1770,19 @@ ScreenGameplay::Update(float fDeltaTime)
 							  oldRate;
 							GAMESTATE->m_SongOptions.GetPreferred()
 							  .m_fMusicRate = oldRate;
+							FailType failreset = GAMEMAN->m_iPreviousFail;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetSong()
+							  .m_FailType =
+							  failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetCurrent()
+							  .m_FailType =
+							  failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetPreferred()
+							  .m_FailType =
+							  failreset;
 							GAMEMAN->m_bResetModifiers = false;
 							GAMEMAN->m_sModsToReset = "";
 							MESSAGEMAN->Broadcast("RateChanged");
@@ -2119,6 +2132,19 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						  oldRate;
 						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 						  oldRate;
+						FailType failreset = GAMEMAN->m_iPreviousFail;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetSong()
+						  .m_FailType =
+						  failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetCurrent()
+						  .m_FailType =
+						  failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetPreferred()
+						  .m_FailType =
+						  failreset;
 						GAMEMAN->m_bResetModifiers = false;
 						GAMEMAN->m_sModsToReset = "";
 						MESSAGEMAN->Broadcast("RateChanged");

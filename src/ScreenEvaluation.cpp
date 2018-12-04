@@ -852,10 +852,21 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
 		*/
+		FailType failreset = GAMEMAN->m_iPreviousFail;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = failreset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = failreset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = failreset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
+		
 		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState[PLAYER_1]
