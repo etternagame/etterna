@@ -418,35 +418,6 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	{
 		g_TempMenu.rows.clear();
 
-#define ADD_ACTION(i)                                                          \
-	g_TempMenu.rows.push_back(MenuRowDef(i,                                    \
-										 ProfileActionToLocalizedString(i),    \
-										 true,                                 \
-										 EditMode_Home,                        \
-										 false,                                \
-										 false,                                \
-										 0,                                    \
-										 ""));
-
-		ADD_ACTION(ProfileAction_SetDefaultP1);
-		ADD_ACTION(ProfileAction_SetDefaultP2);
-		if (PROFILEMAN->FixedProfiles()) {
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Clear);
-		} else {
-			ADD_ACTION(ProfileAction_Edit);
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Delete);
-			ADD_ACTION(ProfileAction_MergeToMachine);
-			ADD_ACTION(ProfileAction_MergeToMachineSkipTotal);
-			ADD_ACTION(ProfileAction_MergeToP1);
-			ADD_ACTION(ProfileAction_MergeToP2);
-			ADD_ACTION(ProfileAction_ChangeToGuest);
-			ADD_ACTION(ProfileAction_ChangeToNormal);
-			ADD_ACTION(ProfileAction_ChangeToTest);
-			ADD_ACTION(ProfileAction_MoveUp);
-			ADD_ACTION(ProfileAction_MoveDown);
-		}
 
 		int iWidth, iX, iY;
 		this->GetWidthXY(PLAYER_1, iCurRow, 0, iWidth, iX, iY);

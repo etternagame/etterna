@@ -281,8 +281,7 @@ GameState::Reset()
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
-	m_PlayMode.Set(PlayMode_Invalid);
-	m_EditMode = EditMode_Invalid;
+	m_PlayMode.Set( PlayMode_Invalid );
 	m_iCurrentStageIndex = 0;
 
 	m_bGameplayLeadIn.Set(false);
@@ -348,19 +347,17 @@ GameState::JoinPlayer(PlayerNumber pn)
 	if (GetNumSidesJoined() == 1)
 		BeginGame();
 
-	// Set the current style to something appropriate for the new number of
-	// joined players. beat gametype's versus styles use a different stepstype
-	// from its single styles, so when GameCommand tries to join both players
-	// for a versus style, it hits the assert when joining the first player.  So
-	// if the first player is being joined and the current styletype is for two
-	// players, assume that the second player will be joined immediately
-	// afterwards and don't try to change the style. -Kyz
-	const Style* cur_style = GetCurrentStyle(PLAYER_INVALID);
-	if (cur_style != NULL &&
-		!(pn == PLAYER_1 &&
-		  (cur_style->m_StyleType == StyleType_TwoPlayersTwoSides ||
-		   cur_style->m_StyleType == StyleType_TwoPlayersSharedSides))) {
-		const Style* pStyle;
+	// Set the current style to something appropriate for the new number of joined players.
+	// beat gametype's versus styles use a different stepstype from its single
+	// styles, so when GameCommand tries to join both players for a versus
+	// style, it hits the assert when joining the first player.  So if the first
+	// player is being joined and the current styletype is for two players,
+	// assume that the second player will be joined immediately afterwards and
+	// don't try to change the style. -Kyz
+	const Style* cur_style= GetCurrentStyle(PLAYER_INVALID);
+	if(cur_style != NULL && !(pn == PLAYER_1))
+	{
+		const Style *pStyle;
 		// Only use one player for StyleType_OnePlayerTwoSides and StepsTypes
 		// that can only be played by one player (e.g. dance-solo,
 		// dance-threepanel, popn-nine). -aj
@@ -813,36 +810,7 @@ GameState::SetCompatibleStylesForPlayers()
 	}
 }
 
-void
-GameState::ForceSharedSidesMatch()
-{
-	PlayerNumber pn_with_shared = PLAYER_INVALID;
-	const Style* shared_style = NULL;
-	FOREACH_EnabledPlayer(pn)
-	{
-		const Style* style = GetCurrentStyle(pn);
-		ASSERT_M(style != NULL, "Style being null should not be possible.");
-		if (style->m_StyleType == StyleType_TwoPlayersSharedSides) {
-			pn_with_shared = pn;
-			shared_style = style;
-		}
-	}
-	if (pn_with_shared != PLAYER_INVALID) {
-		ASSERT_M(GetNumPlayersEnabled() == 2,
-				 "2 players must be enabled for shared sides.");
-		PlayerNumber other_pn = OPPOSITE_PLAYER[pn_with_shared];
-		const Style* other_style = GetCurrentStyle(other_pn);
-		ASSERT_M(other_style != NULL,
-				 "Other player's style being null should not be possible.");
-		if (other_style->m_StyleType != StyleType_TwoPlayersSharedSides) {
-			SetCurrentStyle(shared_style, other_pn);
-			m_pCurSteps[other_pn].Set(m_pCurSteps[pn_with_shared]);
-		}
-	}
-}
-
-void
-GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
+void GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 {
 	Steps* steps_to_match = m_pCurSteps[main].Get();
 	if (steps_to_match == NULL) {
@@ -866,11 +834,8 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 										  num_players,
 										  pn_steps->m_StepsType)
 				->m_StyleType;
-			if (styletype_to_match == StyleType_TwoPlayersSharedSides ||
-				pn_styletype == StyleType_TwoPlayersSharedSides) {
-				match_failed = true;
-			}
-			if (music_to_match != pn_steps->GetMusicFile()) {
+			if (music_to_match != pn_steps->GetMusicFile())
+			{
 				match_failed = true;
 			}
 		}
@@ -1169,10 +1134,8 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 			return m_bSideIsJoined[pn];
 		} else {
 			StyleType type = GetCurrentStyle(pn)->m_StyleType;
-			switch (type) {
-				case StyleType_TwoPlayersTwoSides:
-				case StyleType_TwoPlayersSharedSides:
-					return true;
+			switch( type )
+			{
 				case StyleType_OnePlayerOneSide:
 				case StyleType_OnePlayerTwoSides:
 					return pn == this->GetMasterPlayerNumber();
@@ -1188,15 +1151,13 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 	}
 
 	StyleType type = GetCurrentStyle(pn)->m_StyleType;
-	switch (type) {
-		case StyleType_TwoPlayersTwoSides:
-		case StyleType_TwoPlayersSharedSides:
-			return true;
-		case StyleType_OnePlayerOneSide:
-		case StyleType_OnePlayerTwoSides:
-			return pn == this->GetMasterPlayerNumber();
-		default:
-			FAIL_M(ssprintf("Invalid style type: %i", type));
+	switch( type )
+	{
+	case StyleType_OnePlayerOneSide:
+	case StyleType_OnePlayerTwoSides:
+		return pn == this->GetMasterPlayerNumber();
+	default:
+		FAIL_M(ssprintf("Invalid style type: %i", type));
 	}
 }
 
@@ -2263,12 +2224,7 @@ class LunaGameState : public Luna<GameState>
 			 st == StyleType_OnePlayerTwoSides)) {
 			luaL_error(
 			  L, "Too many sides joined for style %s", pStyle->m_szName);
-		} else if (p->GetNumSidesJoined() == 1 &&
-				   (st == StyleType_TwoPlayersTwoSides ||
-					st == StyleType_TwoPlayersSharedSides)) {
-			luaL_error(
-			  L, "Too few sides joined for style %s", pStyle->m_szName);
-		}
+		} 
 
 		if (!AreStyleAndPlayModeCompatible(p, L, pStyle, p->m_PlayMode)) {
 			COMMON_RETURN_SELF;

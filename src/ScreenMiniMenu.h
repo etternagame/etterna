@@ -1,4 +1,4 @@
-﻿/* ScreenMiniMenu - Displays a simple menu over the top of another screen. */
+/* ScreenMiniMenu - Displays a simple menu over the top of another screen. */
 
 #ifndef SCREEN_MINI_MENU_H
 #define SCREEN_MINI_MENU_H
@@ -14,7 +14,7 @@ struct MenuRowDef
 	RString sName;
 	bool bEnabled{ false };
 	MenuRowUpdateEnabled pfnEnabled{}; // if ! NULL, used instead of bEnabled
-	EditMode emShowIn{};
+
 	int iDefaultChoice{ 0 };
 	vector<RString> choices;
 	bool bThemeTitle{ false };
@@ -26,7 +26,7 @@ struct MenuRowDef
 	MenuRowDef(int r,
 			   const RString& n,
 			   MenuRowUpdateEnabled pe,
-			   EditMode s,
+
 			   bool bTT,
 			   bool bTI,
 			   int d,
@@ -60,7 +60,7 @@ struct MenuRowDef
 	  , sName(n)
 	  , bEnabled(true)
 	  , pfnEnabled(pe)
-	  , emShowIn(s)
+
 	  , iDefaultChoice(d)
 	  , choices()
 	  , bThemeTitle(bTT)
@@ -103,7 +103,7 @@ struct MenuRowDef
 	MenuRowDef(int r,
 			   const RString& n,
 			   bool e,
-			   EditMode s,
+
 			   bool bTT,
 			   bool bTI,
 			   int d,
@@ -112,7 +112,7 @@ struct MenuRowDef
 	  , sName(n)
 	  , bEnabled(e)
 	  , pfnEnabled(NULL)
-	  , emShowIn(s)
+
 	  , iDefaultChoice(d)
 	  , choices()
 	  , bThemeTitle(bTT)
@@ -128,7 +128,7 @@ struct MenuRowDef
 	MenuRowDef(int r,
 			   const RString& n,
 			   bool e,
-			   EditMode s,
+
 			   bool bTT,
 			   bool bTI,
 			   int d,
@@ -162,7 +162,7 @@ struct MenuRowDef
 	  , sName(n)
 	  , bEnabled(e)
 	  , pfnEnabled(NULL)
-	  , emShowIn(s)
+
 	  , iDefaultChoice(d)
 	  , choices()
 	  , bThemeTitle(bTT)
@@ -205,7 +205,7 @@ struct MenuRowDef
 	MenuRowDef(int r,
 			   const RString& n,
 			   bool e,
-			   EditMode s,
+
 			   bool bTT,
 			   bool bTI,
 			   int d,
@@ -215,7 +215,7 @@ struct MenuRowDef
 	  , sName(n)
 	  , bEnabled(e)
 	  , pfnEnabled(NULL)
-	  , emShowIn(s)
+
 	  , iDefaultChoice(d)
 	  , choices()
 	  , bThemeTitle(bTT)

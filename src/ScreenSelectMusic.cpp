@@ -1177,7 +1177,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 #if !defined(WITHOUT_NETWORKING)
 		DLMAN->UpdateDLSpeed(true);
 #endif
-		m_MenuTimer->Stop();
 
 		if (GAMESTATE->m_bIsChartPreviewActive) {
 			MESSAGEMAN->Broadcast("hELPidontDNOKNOW");
@@ -1199,7 +1198,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 		// Now that Steps have been chosen, set a Style that can play them.
 		GAMESTATE->SetCompatibleStylesForPlayers();
-		GAMESTATE->ForceSharedSidesMatch();
 
 		/* If we're currently waiting on song assets, abort all except the music
 		 * and start the music, so if we make a choice quickly before background
@@ -1321,9 +1319,6 @@ ScreenSelectMusic::SwitchToPreferredDifficulty()
 void
 ScreenSelectMusic::AfterMusicChange()
 {
-	if (!m_MusicWheel.IsRouletting())
-		m_MenuTimer->Stall();
-
 	Song* pSong = m_MusicWheel.GetSelectedSong();
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong != nullptr)

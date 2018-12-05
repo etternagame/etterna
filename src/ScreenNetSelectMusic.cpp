@@ -39,6 +39,7 @@ AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_BackFromPlayerOptions);
+AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
 AutoScreenMessage(ETTP_Disconnect);
@@ -122,7 +123,6 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 			  NSMAN->rate / 1000.f;
 			MESSAGEMAN->Broadcast("RateChanged");
 			MESSAGEMAN->Broadcast("CurrentRateChanged");
-
 		}
 		m_MusicWheel.Select();
 		m_MusicWheel.Move(-1);
@@ -196,8 +196,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		m_MusicWheel.Select();
 		m_bAllowInput = true;
 	} else if (SM == SM_BackFromPlayerOptions) {
-		GAMESTATE->m_EditMode = EditMode_Invalid;
-		// XXX HACK: This will cause ScreenSelectOptions to go back here.
 		NSMAN->OffOptions();
 	} else if (SM == SM_SongChanged) {
 		if (m_MusicWheel.GetNumItems() > 0) {
@@ -208,13 +206,40 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		SelectSongUsingNSMAN(this, true);
 	} else if (SM == ETTP_SelectChart) {
 		SelectSongUsingNSMAN(this, false);
-	} 
+	} else if (SM == SM_ConfirmDeleteSong) {
+		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
+			OnConfirmSongDeletion();
+		} else {
+			// need to resume the song preview that was automatically paused
+			m_MusicWheel.ChangeMusic(0);
+		}
+	}
 
 	// Must be at end, as so it is last resort for SMOnline packets.
 	// If it doesn't know what to do, then it'll just remove them.
 	ScreenSelectMusic::HandleScreenMessage(SM);
 }
 
+void
+ScreenNetSelectMusic::OnConfirmSongDeletion()
+{
+	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
+	if (!deletedSong) {
+		LOG->Warn("Attempted to delete a null song "
+				  "(ScreenSelectMusic::OnConfirmSongDeletion)");
+		return;
+	}
+
+	RString deleteDir = deletedSong->GetSongDir();
+	// flush the deleted song from any caches
+	SONGMAN->UnlistSong(deletedSong);
+	// refresh the song list
+	m_MusicWheel.ReloadSongList(false, "");
+	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
+	// delete the song directory from disk
+	FILEMAN->DeleteRecursive(deleteDir);
+	m_pSongAwaitingDeletionConfirmation = NULL;
+}
 
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {
@@ -244,7 +269,6 @@ void
 ScreenNetSelectMusic::OpenOptions()
 {
 	NSMAN->OnOptions();
-	GAMESTATE->m_EditMode = EditMode_Full;
 	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
 								 SM_BackFromPlayerOptions);
 }

@@ -518,9 +518,7 @@ ScreenGameplay::Init()
 			left_marge = margins[pi->m_pn][0];
 			right_marge = margins[pi->m_pn][1];
 			field_space = screen_space - left_marge - right_marge;
-			if (Center1Player() ||
-				style->m_StyleType == StyleType_TwoPlayersSharedSides ||
-				(style_width > field_space &&
+			if (Center1Player() || (style_width > field_space &&
 				 GAMESTATE->GetNumPlayersEnabled() == 1 &&
 				 (bool)ALLOW_CENTER_1_PLAYER))
 				CENTER_PLAYER_BLOCK
@@ -689,9 +687,7 @@ ScreenGameplay::Center1Player() const
 	 * StyleType for ONE_PLAYER_ONE_CREDIT_AND_ONE_COMPUTER,
 	 * but for now just ignore Center1Player when it's Battle or Rave
 	 * Mode. This doesn't begin to address two-player solo (6 arrows) */
-	return g_bCenter1Player && (bool)ALLOW_CENTER_1_PLAYER &&
-		   GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType ==
-			 StyleType_OnePlayerOneSide;
+	return g_bCenter1Player && (bool)ALLOW_CENTER_1_PLAYER ;
 }
 
 // fill in m_apSongsQueue, m_vpStepsQueue, m_asModifiersQueue

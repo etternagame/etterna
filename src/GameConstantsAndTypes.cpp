@@ -368,18 +368,12 @@ DisplayBpms::IsSecret() const
 
 static const char* StyleTypeNames[] = {
 	"OnePlayerOneSide",
-	"TwoPlayersTwoSides",
 	"OnePlayerTwoSides",
-	"TwoPlayersSharedSides",
 };
 XToString(StyleType);
 StringToX(StyleType);
 LuaXType(StyleType);
 
-static const char* EditModeNames[] = { "Practice", "Home", "Full" };
-XToString(EditMode);
-StringToX(EditMode);
-LuaXType(EditMode);
 
 static const char* SampleMusicPreviewModeNames[] = { "Normal",
 													 "StartToPreview",
