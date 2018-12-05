@@ -100,6 +100,7 @@ local minanyms = {
 	"notcool",
 	"mina restepped as a pad file",
 	"sapient typo conglomerate",
+	"Real Stepmania Client",
 }
 
 math.random()
