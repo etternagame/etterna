@@ -1139,11 +1139,6 @@ ScreenGameplay::PlayAnnouncer(const RString& type,
 							  float fSeconds,
 							  float* fDeltaSeconds)
 {
-	if (GAMESTATE->m_fOpponentHealthPercent == 0)
-		return; // Shut the announcer up
-
-
-
 	/* Don't play before the first beat, or after we're finished. */
 	if (m_DancingState != STATE_DANCING)
 		return;
@@ -1506,25 +1501,6 @@ ScreenGameplay::Update(float fDeltaTime)
 						state = AS2D_FEVER;
 
 					pCharacter->Change2DAnimState(pi->m_pn, state);
-				}
-			}
-
-			// Check for enemy death in enemy battle
-			static float fLastSeenEnemyHealth = 1;
-			if (fLastSeenEnemyHealth != GAMESTATE->m_fOpponentHealthPercent) {
-				fLastSeenEnemyHealth = GAMESTATE->m_fOpponentHealthPercent;
-
-				if (GAMESTATE->m_fOpponentHealthPercent == 0) {
-					// HACK:  Load incorrect directory on purpose for now.
-					PlayAnnouncer("gameplay battle damage level3", 0);
-
-					FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
-					{
-						if (!GAMESTATE->IsCpuPlayer(pi->m_pn))
-							continue;
-
-						FailFadeRemovePlayer(&*pi);
-					}
 				}
 			}
 

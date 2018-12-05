@@ -517,17 +517,16 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetChartKey(chartKey);
 	hs.SetGrade(pss.GetGrade());
 	hs.SetMachineGuid(getSystemUniqueId());
-	hs.SetScore(pss.m_iScore);
-	hs.SetPercentDP(pss.GetPercentDancePoints());
-	hs.SetWifeScore(pss.GetWifeScore());
-	hs.SetWifePoints(pss.GetCurWifeScore());
-	hs.SetMusicRate(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	hs.SetJudgeScale(pss.GetTimingScale());
-	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
-	hs.SetAliveSeconds(pss.m_fAliveSeconds);
-	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
-	hs.SetStageAward(pss.m_StageAward);
-	hs.SetPeakComboAward(pss.m_PeakComboAward);
+	hs.SetScore( pss.m_iScore );
+	hs.SetPercentDP( pss.GetPercentDancePoints() );
+	hs.SetWifeScore( pss.GetWifeScore());
+	hs.SetWifePoints( pss.GetCurWifeScore());
+	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	hs.SetJudgeScale( pss.GetTimingScale());
+	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
+	hs.SetAliveSeconds( pss.m_fAliveSeconds );
+	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
+	hs.SetStageAward( pss.m_StageAward );
 
 	vector<RString> asModifiers;
 	{

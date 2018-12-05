@@ -311,23 +311,7 @@ LuaFunction(StageAwardToLocalizedString,
 			StageAwardToLocalizedString(Enum::Check<StageAward>(L, 1)));
 LuaXType(StageAward);
 
-// Numbers are intentionally not at the front of these strings so that the
-// strings can be used as XML entity names.
-// Numbers are intentionally not at the back so that "1000" and "10000" don't
-// conflict when searching for theme elements.
-static const char* PeakComboAwardNames[] = {
-	"1000", "2000", "3000", "4000", "5000",
-	"6000", "7000", "8000", "9000", "10000",
-};
-XToString(PeakComboAward);
-XToLocalizedString(PeakComboAward);
-StringToX(PeakComboAward);
-LuaFunction(PeakComboAwardToLocalizedString,
-			PeakComboAwardToLocalizedString(Enum::Check<PeakComboAward>(L, 1)));
-LuaXType(PeakComboAward);
-
-void
-DisplayBpms::Add(float f)
+void DisplayBpms::Add( float f )
 {
 	vfBpms.push_back(f);
 }

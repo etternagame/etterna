@@ -482,31 +482,6 @@ StageAward
 StringToStageAward(const RString& pma);
 LuaDeclareType(StageAward);
 
-/** @brief The various peak combo awards should such a combo be attained during
- * play. */
-enum PeakComboAward
-{
-	PeakComboAward_1000,
-	PeakComboAward_2000,
-	PeakComboAward_3000,
-	PeakComboAward_4000,
-	PeakComboAward_5000,
-	PeakComboAward_6000,
-	PeakComboAward_7000,
-	PeakComboAward_8000,
-	PeakComboAward_9000,
-	PeakComboAward_10000,
-	NUM_PeakComboAward,
-	PeakComboAward_Invalid,
-};
-const RString&
-PeakComboAwardToString(PeakComboAward pma);
-const RString&
-PeakComboAwardToLocalizedString(PeakComboAward pma);
-PeakComboAward
-StringToPeakComboAward(const RString& pma);
-LuaDeclareType(PeakComboAward);
-
 /** @brief The list of BPMs to display */
 struct DisplayBpms
 {

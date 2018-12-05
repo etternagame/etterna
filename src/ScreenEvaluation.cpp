@@ -190,10 +190,7 @@ ScreenEvaluation::Init()
 			ss.m_player[p].m_iScore = random_up_to(900 * 1000 * 1000);
 			ss.m_player[p].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
 			ss.m_player[p].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
-			ss.m_player[p].m_PeakComboAward =
-			  (PeakComboAward)(random_up_to(NUM_PeakComboAward));
-			ss.m_player[p].m_StageAward =
-			  (StageAward)(random_up_to(NUM_StageAward));
+			ss.m_player[p].m_StageAward = (StageAward)(random_up_to(NUM_StageAward));
 
 			FOREACH_ENUM(RadarCategory, rc)
 			{

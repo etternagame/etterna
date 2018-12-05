@@ -262,12 +262,6 @@ class GameState
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
 
-	// used in PLAY_MODE_BATTLE
-	float m_fOpponentHealthPercent;
-
-	// used in PLAY_MODE_RAVE
-	float m_fTugLifePercentP1;
-
 	PlayerNumber GetBestPlayer() const;
 	StageResult GetStageResult(PlayerNumber pn) const;
 
@@ -328,7 +322,6 @@ class GameState
 	// Award stuff
 	// lowest priority in front, highest priority at the back.
 	deque<StageAward> m_vLastStageAwards[NUM_PLAYERS];
-	deque<PeakComboAward> m_vLastPeakComboAwards[NUM_PLAYERS];
 
 
 	// PlayerState
