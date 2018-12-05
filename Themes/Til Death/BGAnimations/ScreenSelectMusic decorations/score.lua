@@ -72,7 +72,7 @@ local function updateLeaderBoardForCurrentChart()
 				DLMAN:RequestChartLeaderBoardFromOnline(
 					steps:GetChartKey(),
 					function(leaderboard)
-						moped:playcommand("SetFromLeaderboard", leaderboard)
+						moped:queuecommand("SetFromLeaderboard", leaderboard)
 					end
 				)
 			else
@@ -154,8 +154,25 @@ local ret =
 	PlayingSampleMusicMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if not leaderboardEnabled then -- this is taken care of by default.lua instead.
-			updateLeaderBoardForCurrentChart()
+		if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+			if SCREENMAN:GetTopScreen():GetMusicWheel():IsSettled() then
+				if leaderboardEnabled then
+				DLMAN:RequestChartLeaderBoardFromOnline(
+					chartkey,
+					function(leaderboard)
+						moped:playcommand("SetFromLeaderboard", leaderboard)
+					end
+				)	-- this is also intentionally super bad so we actually do something about it -mina
+				elseif (SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic") and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+					DLMAN:RequestChartLeaderBoardFromOnline(
+					chartkey,
+					function(leaderboard)
+						moped:playcommand("SetFromLeaderboard", leaderboard)
+					end
+				)
+				end
+			end
 		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
