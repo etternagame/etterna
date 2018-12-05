@@ -2,7 +2,6 @@
 #define SCREEN_GAMEPLAY_H
 
 #include "AutoKeysounds.h"
-#include "BeginnerHelper.h"
 #include "BitmapText.h"
 #include "GameplayAssist.h"
 #include "InputEventPlus.h"
@@ -304,7 +303,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	GameplayAssist m_GameplayAssist;
 	RageSound* m_pSoundMusic;
 
-	BeginnerHelper m_BeginnerHelper;
 
 	vector<PlayerInfo>
 	  m_vPlayerInfo; // filled by SGameplay derivatives in FillPlayerInfo

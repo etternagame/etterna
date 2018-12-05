@@ -1,4 +1,4 @@
-﻿/** @brief GameManager - Manages Games and Styles. */
+/** @brief GameManager - Manages Games and Styles. */
 
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
@@ -63,6 +63,7 @@ class GameManager
 	float m_fPreviousRate;
 	RString m_sModsToReset;
 	vector<RString> m_vTurnsToReset;
+	FailType m_iPreviousFail;
 
 	// Lua
 	void PushSelf(lua_State* L);

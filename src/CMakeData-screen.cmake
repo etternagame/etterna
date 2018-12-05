@@ -1,15 +1,12 @@
 list(APPEND SMDATA_SCREEN_GAMEPLAY_SRC
   "ScreenGameplay.cpp"
-  "ScreenGameplayLesson.cpp"
   "ScreenGameplayNormal.cpp"
-  "ScreenGameplayShared.cpp"
   "ScreenGameplaySyncMachine.cpp"
 )
 
 list(APPEND SMDATA_SCREEN_GAMEPLAY_HPP
   "ScreenGameplay.h"
   "ScreenGameplayNormal.h"
-  "ScreenGameplayShared.h"
   "ScreenGameplaySyncMachine.h"
 )
 
@@ -38,14 +35,10 @@ source_group("Screens\\\\Options" FILES ${SMDATA_SCREEN_OPTION_SRC} ${SMDATA_SCR
 
 list(APPEND SMDATA_SCREEN_REST_SRC
   "Screen.cpp"
-  "ScreenAttract.cpp"
-  "ScreenContinue.cpp"
   "ScreenDebugOverlay.cpp"
   "ScreenEvaluation.cpp"
   "ScreenExit.cpp"
-  "ScreenHowToPlay.cpp"
   "ScreenInstallOverlay.cpp"
-  "ScreenInstructions.cpp"
   "ScreenMapControllers.cpp"
   "ScreenMessage.cpp"
   "ScreenMiniMenu.cpp"
@@ -54,9 +47,6 @@ list(APPEND SMDATA_SCREEN_REST_SRC
   "ScreenProfileLoad.cpp"
   "ScreenProfileSave.cpp"
   "ScreenPrompt.cpp"
-  "ScreenRanking.cpp"
-  "ScreenReloadSongs.cpp"
-  "ScreenSandbox.cpp"
   "ScreenSaveSync.cpp"
   "ScreenSelect.cpp"
   "ScreenSelectLanguage.cpp"
@@ -64,7 +54,6 @@ list(APPEND SMDATA_SCREEN_REST_SRC
   "ScreenSelectMusic.cpp"
   "ScreenSelectProfile.cpp"
   "ScreenServiceAction.cpp"
-  "ScreenSetTime.cpp"
   "ScreenSongOptions.cpp"
   "ScreenSplash.cpp"
   "ScreenStatsOverlay.cpp"
@@ -78,14 +67,10 @@ list(APPEND SMDATA_SCREEN_REST_SRC
 )
 list(APPEND SMDATA_SCREEN_REST_HPP
   "Screen.h"
-  "ScreenAttract.h"
-  "ScreenContinue.h"
   "ScreenDebugOverlay.h"
   "ScreenEvaluation.h"
   "ScreenExit.h"
-  "ScreenHowToPlay.h"
   "ScreenInstallOverlay.h"
-  "ScreenInstructions.h"
   "ScreenMapControllers.h"
   "ScreenMessage.h"
   "ScreenMiniMenu.h"
@@ -94,9 +79,6 @@ list(APPEND SMDATA_SCREEN_REST_HPP
   "ScreenProfileLoad.h"
   "ScreenProfileSave.h"
   "ScreenPrompt.h"
-  "ScreenRanking.h"
-  "ScreenReloadSongs.h"
-  "ScreenSandbox.h"
   "ScreenSaveSync.h"
   "ScreenSelect.h"
   "ScreenSelectLanguage.h"
@@ -104,7 +86,6 @@ list(APPEND SMDATA_SCREEN_REST_HPP
   "ScreenSelectMusic.h"
   "ScreenSelectProfile.h"
   "ScreenServiceAction.h"
-  "ScreenSetTime.h"
   "ScreenSongOptions.h"
   "ScreenSplash.h"
   "ScreenStatsOverlay.h"

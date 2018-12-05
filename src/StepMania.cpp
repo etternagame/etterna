@@ -11,7 +11,6 @@
 #include "RageMath.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
-#include "MemoryCardManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "ActorUtil.h"
@@ -285,29 +284,28 @@ ShutdownGame()
 	SAFE_DELETE(NSMAN);
 	/* Delete INPUTMAN before the other INPUTFILTER handlers, or an input
 	 * driver may try to send a message to INPUTFILTER after we delete it. */
-	SAFE_DELETE(INPUTMAN);
-	SAFE_DELETE(INPUTQUEUE);
-	SAFE_DELETE(INPUTMAPPER);
-	SAFE_DELETE(INPUTFILTER);
-	SAFE_DELETE(MODELMAN);
-	SAFE_DELETE(PROFILEMAN); // PROFILEMAN needs the songs still loaded
-	SAFE_DELETE(CHARMAN);
-	SAFE_DELETE(CRYPTMAN);
-	SAFE_DELETE(MEMCARDMAN);
-	SAFE_DELETE(SONGMAN);
-	SAFE_DELETE(IMAGECACHE);
-	SAFE_DELETE(SONGINDEX);
-	SAFE_DELETE(SOUND); // uses GAMESTATE, PREFSMAN
-	SAFE_DELETE(PREFSMAN);
-	SAFE_DELETE(GAMESTATE);
-	SAFE_DELETE(GAMEMAN);
-	SAFE_DELETE(NOTESKIN);
-	SAFE_DELETE(THEME);
-	SAFE_DELETE(ANNOUNCER);
-	SAFE_DELETE(SOUNDMAN);
-	SAFE_DELETE(FONT);
-	SAFE_DELETE(TEXTUREMAN);
-	SAFE_DELETE(DISPLAY);
+	SAFE_DELETE( INPUTMAN );
+	SAFE_DELETE( INPUTQUEUE );
+	SAFE_DELETE( INPUTMAPPER );
+	SAFE_DELETE( INPUTFILTER );
+	SAFE_DELETE( MODELMAN );
+	SAFE_DELETE( PROFILEMAN ); // PROFILEMAN needs the songs still loaded
+	SAFE_DELETE( CHARMAN );
+	SAFE_DELETE( CRYPTMAN );
+	SAFE_DELETE( SONGMAN );
+	SAFE_DELETE( IMAGECACHE );
+	SAFE_DELETE( SONGINDEX );
+	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
+	SAFE_DELETE( PREFSMAN );
+	SAFE_DELETE( GAMESTATE );
+	SAFE_DELETE( GAMEMAN );
+	SAFE_DELETE( NOTESKIN );
+	SAFE_DELETE( THEME );
+	SAFE_DELETE( ANNOUNCER );
+	SAFE_DELETE( SOUNDMAN );
+	SAFE_DELETE( FONT );
+	SAFE_DELETE( TEXTUREMAN );
+	SAFE_DELETE( DISPLAY );
 	Dialog::Shutdown();
 	SAFE_DELETE(LOG);
 	DLMAN.reset();
@@ -1219,8 +1217,7 @@ sm_main(int argc, char* argv[])
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
 		CRYPTMAN->GenerateGlobalKeys();
-	MEMCARDMAN = new MemoryCardManager;
-	CHARMAN = new CharacterManager;
+	CHARMAN		= new CharacterManager;
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN

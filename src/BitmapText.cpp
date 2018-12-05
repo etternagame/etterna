@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "Font.h"
@@ -798,18 +798,20 @@ BitmapText::DrawPrimitives()
 			size_t i = 0;
 			map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
 			while (i < m_aVertices.size()) {
+				RageColor what = m_pTempState->diffuse[0];
+				RageColor is = m_pTempState->diffuse[2];
+				RageColor wrong = m_pTempState->diffuse[3];
+				RageColor withyoupeople = m_pTempState->diffuse[1];
+
 				// Set the colors up to the next attribute.
 				size_t iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
 														  : iter->first * 4;
 				iEnd = min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = m_pTempState->diffuse[0]; // top left
-					m_aVertices[i + 1].c =
-					  m_pTempState->diffuse[2]; // bottom left
-					m_aVertices[i + 2].c =
-					  m_pTempState->diffuse[3]; // bottom right
-					m_aVertices[i + 3].c =
-					  m_pTempState->diffuse[1]; // top right
+					m_aVertices[i + 0].c = what; // top left
+					m_aVertices[i + 1].c = is; // bottom left
+					m_aVertices[i + 2].c = wrong; // bottom right
+					m_aVertices[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())
 					break;
@@ -1438,7 +1440,7 @@ class LunaBitmapText : public Luna<BitmapText>
 	static int getGlyphRect(T* p, lua_State* L)
 	{
 		int idx = (IArg(1) - 1) * 4; // lua idx start at 1 and 4 verts per glyph
-		if (idx < 0 || idx >= p->m_aVertices.size()) {
+		if (idx < 0 || idx >= static_cast<int>(p->m_aVertices.size())) {
 			lua_pushnil(L);
 			return 1;
 		}

@@ -121,9 +121,7 @@ GameState::GameState()
 
 	m_pCurGame.Set(NULL);
 	m_timeGameStarted.SetZero();
-	m_bDemonstrationOrJukebox = false;
 
-	m_iNumTimesThroughAttract = -1; // initial screen will bump this up to 0
 	m_iStageSeed = m_iGameSeed = 0;
 
 	m_PlayMode.Set(
@@ -283,10 +281,7 @@ GameState::Reset()
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
-	m_PlayMode.Set(PlayMode_Invalid);
-	m_EditMode = EditMode_Invalid;
-	m_bDemonstrationOrJukebox = false;
-	m_bJukeboxUsesModifiers = false;
+	m_PlayMode.Set( PlayMode_Invalid );
 	m_iCurrentStageIndex = 0;
 
 	m_bGameplayLeadIn.Set(false);
@@ -352,19 +347,17 @@ GameState::JoinPlayer(PlayerNumber pn)
 	if (GetNumSidesJoined() == 1)
 		BeginGame();
 
-	// Set the current style to something appropriate for the new number of
-	// joined players. beat gametype's versus styles use a different stepstype
-	// from its single styles, so when GameCommand tries to join both players
-	// for a versus style, it hits the assert when joining the first player.  So
-	// if the first player is being joined and the current styletype is for two
-	// players, assume that the second player will be joined immediately
-	// afterwards and don't try to change the style. -Kyz
-	const Style* cur_style = GetCurrentStyle(PLAYER_INVALID);
-	if (cur_style != NULL &&
-		!(pn == PLAYER_1 &&
-		  (cur_style->m_StyleType == StyleType_TwoPlayersTwoSides ||
-		   cur_style->m_StyleType == StyleType_TwoPlayersSharedSides))) {
-		const Style* pStyle;
+	// Set the current style to something appropriate for the new number of joined players.
+	// beat gametype's versus styles use a different stepstype from its single
+	// styles, so when GameCommand tries to join both players for a versus
+	// style, it hits the assert when joining the first player.  So if the first
+	// player is being joined and the current styletype is for two players,
+	// assume that the second player will be joined immediately afterwards and
+	// don't try to change the style. -Kyz
+	const Style* cur_style= GetCurrentStyle(PLAYER_INVALID);
+	if(cur_style != NULL && !(pn == PLAYER_1))
+	{
+		const Style *pStyle;
 		// Only use one player for StyleType_OnePlayerTwoSides and StepsTypes
 		// that can only be played by one player (e.g. dance-solo,
 		// dance-threepanel, popn-nine). -aj
@@ -494,10 +487,6 @@ GameState::BeginGame()
 	m_timeGameStarted.Touch();
 
 	m_vpsNamesThatWereFilled.clear();
-
-	// Play attract on the ending screen, then on the ranking screen
-	// even if attract sounds are set to off.
-	m_iNumTimesThroughAttract = -1;
 }
 
 void
@@ -599,8 +588,6 @@ GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
 void
 GameState::BeginStage()
 {
-	if (m_bDemonstrationOrJukebox)
-		return;
 
 	// This should only be called once per stage.
 	if (m_iNumStagesOfThisSong != 0)
@@ -656,10 +643,10 @@ GameState::CancelStage()
 void
 GameState::CommitStageStats()
 {
-	if (m_bDemonstrationOrJukebox)
-		return;
+
 
 	STATSMAN->CommitStatsToProfiles(&STATSMAN->m_CurStageStats);
+
 
 	// Update TotalPlaySeconds.
 	int iPlaySeconds =
@@ -733,8 +720,6 @@ void
 GameState::SaveCurrentSettingsToProfile(PlayerNumber pn)
 {
 	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-	if (m_bDemonstrationOrJukebox)
 		return;
 
 	Profile* pProfile = PROFILEMAN->GetProfile(pn);
@@ -825,36 +810,7 @@ GameState::SetCompatibleStylesForPlayers()
 	}
 }
 
-void
-GameState::ForceSharedSidesMatch()
-{
-	PlayerNumber pn_with_shared = PLAYER_INVALID;
-	const Style* shared_style = NULL;
-	FOREACH_EnabledPlayer(pn)
-	{
-		const Style* style = GetCurrentStyle(pn);
-		ASSERT_M(style != NULL, "Style being null should not be possible.");
-		if (style->m_StyleType == StyleType_TwoPlayersSharedSides) {
-			pn_with_shared = pn;
-			shared_style = style;
-		}
-	}
-	if (pn_with_shared != PLAYER_INVALID) {
-		ASSERT_M(GetNumPlayersEnabled() == 2,
-				 "2 players must be enabled for shared sides.");
-		PlayerNumber other_pn = OPPOSITE_PLAYER[pn_with_shared];
-		const Style* other_style = GetCurrentStyle(other_pn);
-		ASSERT_M(other_style != NULL,
-				 "Other player's style being null should not be possible.");
-		if (other_style->m_StyleType != StyleType_TwoPlayersSharedSides) {
-			SetCurrentStyle(shared_style, other_pn);
-			m_pCurSteps[other_pn].Set(m_pCurSteps[pn_with_shared]);
-		}
-	}
-}
-
-void
-GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
+void GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 {
 	Steps* steps_to_match = m_pCurSteps[main].Get();
 	if (steps_to_match == NULL) {
@@ -878,11 +834,8 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 										  num_players,
 										  pn_steps->m_StepsType)
 				->m_StyleType;
-			if (styletype_to_match == StyleType_TwoPlayersSharedSides ||
-				pn_styletype == StyleType_TwoPlayersSharedSides) {
-				match_failed = true;
-			}
-			if (music_to_match != pn_steps->GetMusicFile()) {
+			if (music_to_match != pn_steps->GetMusicFile())
+			{
 				match_failed = true;
 			}
 		}
@@ -929,9 +882,7 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-
-	m_fOpponentHealthPercent = 1;
-	FOREACH_PlayerNumber(p)
+	FOREACH_PlayerNumber( p )
 	{
 		m_pPlayerState[p]->m_HealthState = HealthState_Alive;
 	}
@@ -939,7 +890,6 @@ GameState::ResetStageStatistics()
 	FOREACH_PlayerNumber(p)
 	{
 		m_vLastStageAwards[p].clear();
-		m_vLastPeakComboAwards[p].clear();
 	}
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
@@ -1183,10 +1133,8 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 			return m_bSideIsJoined[pn];
 		} else {
 			StyleType type = GetCurrentStyle(pn)->m_StyleType;
-			switch (type) {
-				case StyleType_TwoPlayersTwoSides:
-				case StyleType_TwoPlayersSharedSides:
-					return true;
+			switch( type )
+			{
 				case StyleType_OnePlayerOneSide:
 				case StyleType_OnePlayerTwoSides:
 					return pn == this->GetMasterPlayerNumber();
@@ -1202,15 +1150,13 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 	}
 
 	StyleType type = GetCurrentStyle(pn)->m_StyleType;
-	switch (type) {
-		case StyleType_TwoPlayersTwoSides:
-		case StyleType_TwoPlayersSharedSides:
-			return true;
-		case StyleType_OnePlayerOneSide:
-		case StyleType_OnePlayerTwoSides:
-			return pn == this->GetMasterPlayerNumber();
-		default:
-			FAIL_M(ssprintf("Invalid style type: %i", type));
+	switch( type )
+	{
+	case StyleType_OnePlayerOneSide:
+	case StyleType_OnePlayerTwoSides:
+		return pn == this->GetMasterPlayerNumber();
+	default:
+		FAIL_M(ssprintf("Invalid style type: %i", type));
 	}
 }
 
@@ -1570,33 +1516,6 @@ GameState::OneIsHot() const
 	return false;
 }
 
-bool
-GameState::IsTimeToPlayAttractSounds() const
-{
-	// m_iNumTimesThroughAttract will be -1 from the first attract screen after
-	// the end of a game until the next time FIRST_ATTRACT_SCREEN is reached.
-	// Play attract sounds for this sort span of time regardless of
-	// m_AttractSoundFrequency because it's awkward to have the machine go
-	// silent immediately after the end of a game.
-	if (m_iNumTimesThroughAttract == -1)
-		return true;
-
-	if (PREFSMAN->m_AttractSoundFrequency == ASF_NEVER)
-		return false;
-
-	// play attract sounds once every m_iAttractSoundFrequency times through
-	if ((m_iNumTimesThroughAttract % PREFSMAN->m_AttractSoundFrequency) == 0)
-		return true;
-
-	return false;
-}
-
-void
-GameState::VisitAttractScreen(const RString sScreenName)
-{
-	if (sScreenName == CommonMetrics::FIRST_ATTRACT_SCREEN.GetValue())
-		m_iNumTimesThroughAttract++;
-}
 
 int
 GameState::GetNumCols(int pn)
@@ -1981,7 +1900,6 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPreferredDifficulty,
 				  m_PreferredDifficulty[Enum::Check<PlayerNumber>(L, 1)])
 	DEFINE_METHOD(AnyPlayerHasRankingFeats, AnyPlayerHasRankingFeats())
-	DEFINE_METHOD(IsDemonstration, m_bDemonstrationOrJukebox)
 	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
@@ -2165,23 +2083,20 @@ class LunaGameState : public Luna<GameState>
 		lua_pushnumber(L, 1);
 		return 1;
 	}
+
 	static int GetGameSeed(T* p, lua_State* L)
 	{
 		LuaHelpers::Push(L, p->m_iGameSeed);
 		return 1;
 	}
-	static int GetStageSeed(T* p, lua_State* L)
+	static int JoinInput( T* p, lua_State *L )
 	{
 		LuaHelpers::Push(L, p->m_iStageSeed);
 		return 1;
 	}
 	static int SaveLocalData(T* p, lua_State* L) { COMMON_RETURN_SELF; }
 
-	static int SetJukeboxUsesModifiers(T* p, lua_State* L)
-	{
-		p->m_bJukeboxUsesModifiers = BArg(1);
-		COMMON_RETURN_SELF;
-	}
+
 	static int Reset(T* p, lua_State* L)
 	{
 		p->Reset();
@@ -2197,11 +2112,7 @@ class LunaGameState : public Luna<GameState>
 		p->UnjoinPlayer(Enum::Check<PlayerNumber>(L, 1));
 		COMMON_RETURN_SELF;
 	}
-	static int JoinInput(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->JoinInput(Enum::Check<PlayerNumber>(L, 1)));
-		return 1;
-	}
+
 	static int GetSongPercent(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetSongPercent(FArg(1)));
@@ -2312,12 +2223,7 @@ class LunaGameState : public Luna<GameState>
 			 st == StyleType_OnePlayerTwoSides)) {
 			luaL_error(
 			  L, "Too many sides joined for style %s", pStyle->m_szName);
-		} else if (p->GetNumSidesJoined() == 1 &&
-				   (st == StyleType_TwoPlayersTwoSides ||
-					st == StyleType_TwoPlayersSharedSides)) {
-			luaL_error(
-			  L, "Too few sides joined for style %s", pStyle->m_szName);
-		}
+		} 
 
 		if (!AreStyleAndPlayModeCompatible(p, L, pStyle, p->m_PlayMode)) {
 			COMMON_RETURN_SELF;
@@ -2395,7 +2301,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
 		ADD_METHOD(AnyPlayerHasRankingFeats);
-		ADD_METHOD(IsDemonstration);
 		ADD_METHOD(GetPlayMode);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetCurrentStageIndex);
@@ -2434,9 +2339,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetNumStagesForCurrentSongAndStepsOrCourse);
 		ADD_METHOD(GetNumStagesLeft);
 		ADD_METHOD(GetGameSeed);
-		ADD_METHOD(GetStageSeed);
 		ADD_METHOD(SaveLocalData);
-		ADD_METHOD(SetJukeboxUsesModifiers);
 		ADD_METHOD(Reset);
 		ADD_METHOD(JoinPlayer);
 		ADD_METHOD(UnjoinPlayer);

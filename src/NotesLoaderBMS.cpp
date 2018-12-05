@@ -1010,8 +1010,7 @@ BMSChartReader::DetermineStepsType()
 					else
 						return StepsType_beat_single7;
 			}
-		case 2: // couple/battle
-			return StepsType_dance_couple;
+		case 2: 
 		case 3: // double
 			switch (nonEmptyTracksCount) {
 				case 8:
@@ -1135,7 +1134,6 @@ BMSChartReader::ReadNoteData()
 			}
 			break;
 		case StepsType_dance_double:
-		case StepsType_dance_couple:
 			transform[0] = BMS_RAW_P1_KEY1;
 			transform[1] = BMS_RAW_P1_KEY3;
 			transform[2] = BMS_RAW_P1_KEY5;
@@ -1639,8 +1637,6 @@ BMSSongLoader::AddToSong()
 			case StepsType_beat_single7:
 			case StepsType_beat_double5:
 			case StepsType_beat_double7:
-			case StepsType_beat_versus5:
-			case StepsType_beat_versus7:
 				out->m_sBackgroundFile = main.info.stageFile;
 				break;
 			default:

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
@@ -12,9 +12,10 @@
 #include "RageUtil.h"
 #include "StepMania.h"
 #include "arch/Dialog/Dialog.h"
+#include "PrefsManager.h"
 
 static void
-GetResolutionFromFileName(RString sPath, int& iWidth, int& iHeight)
+GetResolutionFromFileName(RString& sPath, int& iWidth, int& iHeight)
 {
 	/* Match:
 	 *  Foo (res 512x128).png
@@ -76,7 +77,7 @@ RageBitmapTexture::Create()
 
 	/* Load the image into a RageSurface. */
 	RString error;
-	RageSurface* pImg = NULL;
+	RageSurface* pImg = nullptr;
 	if (actualID.filename == TEXTUREMAN->GetScreenTextureID().filename) {
 		pImg = TEXTUREMAN->GetScreenSurface();
 	} else {
@@ -84,14 +85,14 @@ RageBitmapTexture::Create()
 	}
 
 	/* Tolerate corrupt/unknown images. */
-	if (pImg == NULL) {
+	if (pImg == nullptr) {
 		RString warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
 								   actualID.filename.c_str(),
 								   error.c_str());
 		LOG->Warn("%s", warning.c_str());
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
-		ASSERT(pImg != NULL);
+		ASSERT(pImg != nullptr);
 	}
 
 	if (actualID.bHotPinkColorKey)
@@ -316,7 +317,7 @@ RageBitmapTexture::Create()
 			bRunCheck = false;
 		}
 
-		if (bRunCheck) {
+		if (bRunCheck && PREFSMAN->m_verbose_log > 1) {
 			float fFrameWidth = this->GetSourceWidth() /
 								static_cast<float>(this->GetFramesWide());
 			float fFrameHeight = this->GetSourceHeight() /

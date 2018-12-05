@@ -54,14 +54,12 @@ struct HighScoreImpl
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
-	unsigned int iMaxCombo;		   // maximum combo obtained [SM5 alpha 1a+]
-	StageAward stageAward;		   // stage award [SM5 alpha 1a+]
-	PeakComboAward peakComboAward; // peak combo award [SM5 alpha 1a+]
-	string sModifiers;
-	DateTime dateTime;   // return value of time() for when the highscore object
-						 // was created (immediately after achieved)
-	string sPlayerGuid;  // who made this high score
-	string sMachineGuid; // where this high score was made
+	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
+	StageAward stageAward;	// stage award [SM5 alpha 1a+]
+	string	sModifiers;
+	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
+	string sPlayerGuid;	// who made this high score
+	string sMachineGuid;	// where this high score was made
 	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
@@ -107,31 +105,28 @@ struct HighScoreImpl
 bool
 HighScoreImpl::operator==(const HighScoreImpl& other) const
 {
-#define COMPARE(x)                                                             \
-	if ((x) != other.x)                                                        \
-		return false;
-	COMPARE(sName);
-	COMPARE(grade);
-	COMPARE(iScore);
-	COMPARE(iMaxCombo);
-	COMPARE(stageAward);
-	COMPARE(peakComboAward);
-	COMPARE(fPercentDP);
-	COMPARE(fSurviveSeconds);
-	COMPARE(sModifiers);
-	COMPARE(dateTime);
-	COMPARE(sPlayerGuid);
-	COMPARE(sMachineGuid);
-	COMPARE(iProductID);
-	FOREACH_ENUM(TapNoteScore, tns)
-	COMPARE(iTapNoteScores[tns]);
-	FOREACH_ENUM(HoldNoteScore, hns)
-	COMPARE(iHoldNoteScores[hns]);
-	FOREACH_ENUM(Skillset, ss)
-	COMPARE(fSkillsetSSRs[ss]);
-	COMPARE(radarValues);
-	COMPARE(fLifeRemainingSeconds);
-	COMPARE(bDisqualified);
+#define COMPARE(x)	if( (x)!=other.x )	return false;
+	COMPARE( sName );
+	COMPARE( grade );
+	COMPARE( iScore );
+	COMPARE( iMaxCombo );
+	COMPARE( stageAward );
+	COMPARE( fPercentDP );
+	COMPARE( fSurviveSeconds );
+	COMPARE( sModifiers );
+	COMPARE( dateTime );
+	COMPARE( sPlayerGuid );
+	COMPARE( sMachineGuid );
+	COMPARE( iProductID );
+	FOREACH_ENUM( TapNoteScore, tns )
+		COMPARE( iTapNoteScores[tns] );
+	FOREACH_ENUM( HoldNoteScore, hns )
+		COMPARE( iHoldNoteScores[hns] );
+	FOREACH_ENUM( Skillset, ss)
+		COMPARE(fSkillsetSSRs[ss]);
+	COMPARE( radarValues );
+	COMPARE( fLifeRemainingSeconds );
+	COMPARE( bDisqualified );
 #undef COMPARE
 
 	return true;
@@ -284,7 +279,6 @@ HighScoreImpl::HighScoreImpl()
 	fSurviveSeconds = 0.f;
 	iMaxCombo = 0;
 	stageAward = StageAward_Invalid;
-	peakComboAward = PeakComboAward_Invalid;
 	sModifiers = "";
 	dateTime.Init();
 	sPlayerGuid = "";
@@ -332,8 +326,7 @@ HighScoreImpl::CreateNode() const
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("StageAward", StageAwardToString(stageAward));
-	pNode->AppendChild("PeakComboAward",
-					   PeakComboAwardToString(peakComboAward));
+
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("PlayerGuid", sPlayerGuid);
@@ -521,22 +514,20 @@ HighScoreImpl::LoadFromNode(const XNode* pNode)
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
-	pNode->GetChildValue("Score", iScore);
-	pNode->GetChildValue("PercentDP", fPercentDP);
-	pNode->GetChildValue("WifeScore", fWifeScore);
-	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
-	pNode->GetChildValue("Rate", fMusicRate);
-	pNode->GetChildValue("JudgeScale", fJudgeScale);
-	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
-	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
-	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("StageAward", s);
-	stageAward = StringToStageAward(s);
-	pNode->GetChildValue("PeakComboAward", s);
-	peakComboAward = StringToPeakComboAward(s);
-	pNode->GetChildValue("Modifiers", s);
-	sModifiers = s;
+	pNode->GetChildValue("Score",				iScore);
+	pNode->GetChildValue("PercentDP",			fPercentDP);
+	pNode->GetChildValue("WifeScore",			fWifeScore);
+	pNode->GetChildValue("SSRNormPercent",		fSSRNormPercent);
+	pNode->GetChildValue("Rate",				fMusicRate);
+	pNode->GetChildValue("JudgeScale",			fJudgeScale);
+	pNode->GetChildValue("NoChordCohesion",		bNoChordCohesion);
+	pNode->GetChildValue("EtternaValid",		bEtternaValid);
+	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
+	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
+	pNode->GetChildValue("SurviveSeconds",		fSurviveSeconds);
+	pNode->GetChildValue("MaxCombo",			iMaxCombo);
+	pNode->GetChildValue("StageAward", s);		stageAward = StringToStageAward(s);
+	pNode->GetChildValue("Modifiers", s); sModifiers = s;
 	if (fMusicRate == 0.f) {
 		size_t ew = sModifiers.find("xMusic");
 		size_t dew = string::npos;
@@ -1029,11 +1020,7 @@ HighScore::GetStageAward() const
 {
 	return m_Impl->stageAward;
 }
-PeakComboAward
-HighScore::GetPeakComboAward() const
-{
-	return m_Impl->peakComboAward;
-}
+
 float
 HighScore::GetPercentDP() const
 {
@@ -1256,11 +1243,7 @@ HighScore::SetStageAward(StageAward a)
 {
 	m_Impl->stageAward = a;
 }
-void
-HighScore::SetPeakComboAward(PeakComboAward a)
-{
-	m_Impl->peakComboAward = a;
-}
+
 void
 HighScore::SetPercentDP(float f)
 {
@@ -1788,7 +1771,6 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 	}
 
 	float o = p / pmax;
-	UnloadReplayData();
 	return o;
 }
 
@@ -2043,8 +2025,6 @@ class LunaHighScore : public Luna<HighScore>
 			for (size_t i = 0; i < v.size(); ++i)
 				v[i] = v[i] * 1000;
 			LuaHelpers::CreateTableFromArray(v, L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2055,11 +2035,7 @@ class LunaHighScore : public Luna<HighScore>
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
-				v = &(p->GetNoteRowVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2073,8 +2049,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTrackVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2088,8 +2062,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTapNoteTypeVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2128,7 +2100,6 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD(ConvertDpToWife, ConvertDpToWife())
 	DEFINE_METHOD(GetStageAward, GetStageAward())
-	DEFINE_METHOD(GetPeakComboAward, GetPeakComboAward())
 	DEFINE_METHOD(GetChordCohesion, GetChordCohesion())
 	DEFINE_METHOD(GetEtternaValid, GetEtternaValid())
 	DEFINE_METHOD(HasReplayData, HasReplayData())
@@ -2162,7 +2133,6 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetWifeGrade);
 		ADD_METHOD(GetMaxCombo);
 		ADD_METHOD(GetStageAward);
-		ADD_METHOD(GetPeakComboAward);
 		ADD_METHOD(ToggleEtternaValidation);
 		ADD_METHOD(GetEtternaValid);
 		ADD_METHOD(HasReplayData);

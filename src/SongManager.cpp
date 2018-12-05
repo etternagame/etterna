@@ -637,7 +637,7 @@ SongManager::GetStepsByChartkey(RString ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
-	return NULL;
+	return nullptr;
 }
 
 Song*
@@ -645,7 +645,7 @@ SongManager::GetSongByChartkey(RString ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
-	return NULL;
+	return nullptr;
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(

@@ -31,7 +31,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_ping, "ping" },
 	{ ettpc_sendchat, "chat" },
 	{ ettpc_sendscore, "score" },
-	{ ettpc_gameplayupdate, "gameplayupdate" },
+	{ ettpc_mpleaderboardupdate, "gameplayupdate" },
 	{ ettpc_createroom, "createroom" },
 	{ ettpc_enterroom, "enterroom" },
 	{ ettpc_selectchart, "selectchart" },
@@ -52,11 +52,13 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
 	{ "roomlist", ettps_roomlist },
+	{ "lobbyuserlist", ettps_lobbyuserlist },
+	{ "lobbyuserlistupdate", ettps_lobbyuserlistupdate },
 	{ "ping", ettps_ping },
 	{ "chat", ettps_recievechat },
 	{ "login", ettps_loginresponse },
 	{ "score", ettps_recievescore },
-	{ "leaderboard", ettps_gameplayleaderboard },
+	{ "leaderboard", ettps_mpleaderboardupdate },
 	{ "createroom", ettps_createroomresponse },
 	{ "enterroom", ettps_enterroomresponse },
 	{ "selectchart", ettps_selectchart },
@@ -210,7 +212,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
-AutoScreenMessage(SM_ChangeSong);
 AutoScreenMessage(SM_GotEval);
 AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
@@ -609,8 +610,6 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 					n->steps = steps;
 					break;
 				}
-				if (n->song != nullptr)
-					break;
 			}
 		}
 	} else {
@@ -751,8 +750,10 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						json& replay = score["replay"];
 						json& jOffsets = replay["offsets"];
 						json& jNoterows = replay["noterows"];
+						json& jTracks = replay["tracks"];
 						vector<float> offsets;
 						vector<int> noterows;
+						vector<int> tracks;
 						for (json::iterator offsetIt = jOffsets.begin();
 							 offsetIt != jOffsets.end();
 							 ++offsetIt)
@@ -761,8 +762,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							 noterowIt != jNoterows.end();
 							 ++noterowIt)
 							noterows.emplace_back(noterowIt->get<int>());
+						for (json::iterator trackIt = jTracks.begin();
+							 trackIt != jTracks.end();
+							 ++trackIt)
+							noterows.emplace_back(trackIt->get<int>());
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
+						hs.SetTrackVector(tracks);
 					} catch (exception e) {
 					} // No replay data for this score, its still valid
 					result.nameStr = (*payload)["name"].get<string>();
@@ -771,6 +777,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					n->m_EvalPlayerData.emplace_back(result);
 					n->m_ActivePlayers = n->m_EvalPlayerData.size();
 					SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
+					MESSAGEMAN->Broadcast("NewMultiScore");
 					break;
 				}
 				case ettps_ping:
@@ -782,7 +789,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					break;
 				case ettps_selectchart: {
-					n->gameplayLeaderboard.clear();
+					n->mpleaderboard.clear();
 					auto ch = (*payload).at("chart");
 					FindJsonChart(n, ch);
 					json j;
@@ -796,7 +803,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					Send(j);
 				} break;
 				case ettps_startchart: {
-					n->gameplayLeaderboard.clear();
+					n->mpleaderboard.clear();
 					n->m_EvalPlayerData.clear();
 					auto ch = (*payload).at("chart");
 					FindJsonChart(n, ch);
@@ -823,16 +830,21 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
 				} break;
-				case ettps_gameplayleaderboard: {
-					auto& scores = (*payload)["scores"];
-					for (json::iterator it = scores.begin(); it != scores.end();
-						 ++it) {
-						float wife = (*it)["wife"];
-						string user = (*it)["user"].get<string>();
-						n->gameplayLeaderboard[user].wife = wife;
+				case ettps_mpleaderboardupdate: {
+					if (PREFSMAN->m_bEnableScoreboard) {
+						auto& scores = (*payload)["scores"];
+						for (json::iterator it = scores.begin();
+							 it != scores.end();
+							 ++it) {
+							float wife = (*it)["wife"];
+							RString jdgstr = (*it)["jdgstr"];
+							string user = (*it)["user"].get<string>();
+							n->mpleaderboard[user].wife = wife;
+							n->mpleaderboard[user].jdgstr = jdgstr;
+						}
+						Message msg("MPLeaderboardUpdate");
+						MESSAGEMAN->Broadcast(msg);
 					}
-					Message msg("GameplayUpdate");
-					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_createroomresponse: {
 					bool created = (*payload)["created"];
@@ -850,6 +862,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_chartrequest: {
 					n->requests.emplace_back(ChartRequest(*payload));
+					Message msg("ChartRequest");
+					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_enterroomresponse: {
 					bool entered = (*payload)["entered"];
@@ -924,6 +938,29 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  e.what());
 					}
 					break;
+				case ettps_lobbyuserlist: {
+					NSMAN->lobbyuserlist.clear();
+					auto users = payload->at("users");
+					for (auto& user : users) {
+						NSMAN->lobbyuserlist.insert(user.get<string>());
+					}
+				} break;
+				case ettps_lobbyuserlistupdate: {
+					auto& vec = NSMAN->lobbyuserlist;
+					if (payload->find("on") != payload->end()) {
+						auto newUsers = payload->at("on");
+						for (auto& user : newUsers) {
+							NSMAN->lobbyuserlist.insert(user.get<string>());
+						}
+					}
+					if (payload->find("off") != payload->end()) {
+						auto removedUsers = payload->at("off");
+						for (auto& user : removedUsers) {
+							NSMAN->lobbyuserlist.erase(user.get<string>());
+						}
+					}
+					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
 					n->m_Rooms.clear();
@@ -1038,14 +1075,15 @@ ETTProtocol::SendChat(const RString& message, string tab, int type)
 	Send(chatMsg);
 }
 void
-ETTProtocol::SendGameplayUpdate(float wife)
+ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 {
 	if (ws == nullptr)
 		return;
 	json j;
-	j["type"] = ettClientMessageMap[ettpc_gameplayupdate];
+	j["type"] = ettClientMessageMap[ettpc_mpleaderboardupdate];
 	auto& payload = j["payload"];
 	payload["wife"] = wife;
+	payload["jdgstr"] = jdgstr;
 	j["id"] = msgId++;
 	Send(j);
 }
@@ -1151,7 +1189,11 @@ NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 void
 ETTProtocol::Send(json msg)
 {
-	Send(msg.dump().c_str());
+	try {
+		Send(msg.dump().c_str());
+	} catch (exception e) {
+		SCREENMAN->SystemMessage("Error: Chart contains invalid utf8");
+	}
 }
 void
 ETTProtocol::Send(const char* msg)
@@ -1209,16 +1251,20 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["topscore"] = hs->GetTopScore();
 	payload["uuid"] = hs->GetMachineGuid();
 	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
-	auto offsets = pss.GetOffsetVector();
-	auto noterows = pss.GetNoteRowVector();
+	const auto& offsets = pss.GetOffsetVector();
+	const auto& noterows = pss.GetNoteRowVector();
+	const auto& tracks = pss.GetTrackVector();
 	if (offsets.size() > 0) {
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
 		payload["replay"]["offsets"] = json::array();
+		payload["replay"]["tracks"] = json::array();
 		for (size_t i = 0; i < noterows.size(); i++)
 			payload["replay"]["noterows"].push_back(noterows[i]);
 		for (size_t i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
+		for (size_t i = 0; i < tracks.size(); i++)
+			payload["replay"]["tracks"].push_back(tracks[i]);
 	}
 	Send(j);
 }
@@ -1263,6 +1309,7 @@ NetworkSyncManager::StartRequest(short position)
 	if (curProtocol != nullptr)
 		curProtocol->StartRequest(this, position);
 }
+
 
 void
 NetworkSyncManager::DisplayStartupStatus()
@@ -1314,10 +1361,10 @@ NetworkSyncManager::SendChat(const RString& message, string tab, int type)
 }
 
 void
-NetworkSyncManager::SendGameplayUpdate(float wife)
+NetworkSyncManager::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 {
 	if (curProtocol != nullptr)
-		curProtocol->SendGameplayUpdate(wife);
+		curProtocol->SendMPLeaderboardUpdate(wife, jdgstr);
 }
 
 int
@@ -1683,27 +1730,22 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #endif
 
 void
-NetworkSyncManager::PushGameplayLeaderboard(lua_State* L)
+NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 {
 	lua_newtable(L);
-	for (auto& pair : gameplayLeaderboard) {
+	int i = 1;
+	for (auto& pair : mpleaderboard) {
 		lua_newtable(L);
 		lua_pushnumber(L, pair.second.wife);
 		lua_setfield(L, -2, "wife");
-		lua_setfield(L, -2, pair.first.c_str());
+		lua_pushstring(L, pair.second.jdgstr.c_str());
+		lua_setfield(L, -2, "jdgstr");
+		lua_pushstring(L, pair.first.c_str());
+		lua_setfield(L, -2, "user");
+		lua_rawseti(L, -2, i);
+		i++;
 	}
 	return;
-}
-void
-ChartRequest::PushSelf(lua_State* L)
-{
-	lua_createtable(L, 0, 3);
-	lua_pushstring(L, chartkey.c_str());
-	lua_setfield(L, -2, "chartkey");
-	lua_pushstring(L, user.c_str());
-	lua_setfield(L, -2, "user");
-	lua_pushnumber(L, rate / 1000); // should this be in [0,1] or [0, 1000] ????
-	lua_setfield(L, -2, "rate");
 }
 
 static bool
@@ -1751,10 +1793,10 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		lua_pushboolean(L, p->IsETTP());
 		return 1;
 	}
-	static int GetGameplayLeaderboard(T* p, lua_State* L)
+	static int GetMPLeaderboard(T* p, lua_State* L)
 	{
-		auto& lbd = NSMAN->gameplayLeaderboard;
-		NSMAN->PushGameplayLeaderboard(L);
+		auto& lbd = NSMAN->mpleaderboard;
+		NSMAN->PushMPLeaderboard(L);
 		return 1;
 	}
 	static int GetChartRequests(T* p, lua_State* L)
@@ -1807,19 +1849,80 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		p->Login(user, pass);
 		return 1;
 	}
+	static int GetEvalScores(T* p, lua_State* L)
+	{
+		int i = 1;
+		lua_newtable(L);
+		for (auto& evalData : NSMAN->m_EvalPlayerData) {
+			lua_newtable(L);
+			lua_pushstring(L, evalData.nameStr.c_str());
+			lua_setfield(L, -2, "user");
+			evalData.hs.PushSelf(L);
+			lua_setfield(L, -2, "highscore");
+			lua_pushstring(L, evalData.playerOptions.c_str());
+			lua_setfield(L, -2, "options");
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
+	static int GetLobbyUserList(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		int i = 1;
+		for (auto& user : NSMAN->lobbyuserlist) {
+			lua_pushstring(L, user.c_str());
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
 	LunaNetworkSyncManager()
 	{
-		ADD_METHOD(GetGameplayLeaderboard);
+		ADD_METHOD(GetEvalScores);
+		ADD_METHOD(GetMPLeaderboard);
+		ADD_METHOD(GetChartRequests);
 		ADD_METHOD(GetChatMsg);
 		ADD_METHOD(SendChatMsg);
 		ADD_METHOD(Login);
 		ADD_METHOD(Logout);
 		ADD_METHOD(IsETTP);
 		ADD_METHOD(GetCurrentRoomName);
+		ADD_METHOD(GetLobbyUserList);
 	}
 };
 
 LUA_REGISTER_CLASS(NetworkSyncManager)
+
+class LunaChartRequest : public Luna<ChartRequest>
+{
+  public:
+	static int GetChartkey(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->chartkey.c_str());
+		return 1;
+	}
+	static int GetUser(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->user.c_str());
+		return 1;
+	}
+	static int GetRate(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->rate / 1000);
+		return 1;
+	}
+
+	LunaChartRequest()
+	{
+		ADD_METHOD(GetChartkey);
+		ADD_METHOD(GetUser);
+		ADD_METHOD(GetRate);
+	}
+};
+
+LUA_REGISTER_CLASS(ChartRequest)
+
 // lua end
 /*
  * (c) 2003-2004 Charles Lohr, Joshua Allen

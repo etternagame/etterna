@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "NoteData.h"
@@ -215,11 +215,10 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 				if (*p == '[') {
 					p++;
 					int iKeysoundIndex = 0;
-					if (1 == sscanf(p, "%d]", &iKeysoundIndex)) // not fatal if
-																// this fails
-																// due to
-																// malformed
-																// data
+					if (1 == sscanf(p,
+									"%d]",
+									&iKeysoundIndex)) // not fatal if this fails
+													  // due to malformed data
 						tn.iKeysoundIndex = iKeysoundIndex;
 
 					// skip past the ']'
@@ -583,7 +582,6 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
 	vector<NoteData> parts;
-	parts.push_back(in);
 	float fLastBeat = -1.0f;
 
 	FOREACH(NoteData, parts, nd)
@@ -683,7 +681,6 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
 	vector<NoteData> parts;
-	parts.push_back(in);
 	float fLastBeat = -1.f;
 
 	FOREACH(NoteData, parts, nd)
@@ -1380,8 +1377,6 @@ GetTrackMapping(StepsType st,
 			switch (st) {
 				case StepsType_dance_single:
 				case StepsType_dance_double:
-				case StepsType_dance_couple:
-				case StepsType_dance_routine:
 					iTakeFromTrack[0] = 2;
 					iTakeFromTrack[1] = 0;
 					iTakeFromTrack[2] = 3;
@@ -1400,7 +1395,6 @@ GetTrackMapping(StepsType st,
 					iTakeFromTrack[5] = 2;
 					break;
 				case StepsType_pump_single:
-				case StepsType_pump_couple:
 					iTakeFromTrack[0] = 1;
 					iTakeFromTrack[1] = 3;
 					iTakeFromTrack[2] = 2;
@@ -1452,8 +1446,7 @@ GetTrackMapping(StepsType st,
 			// mirror.
 			bool needsBackwards = true;
 			switch (st) {
-				case StepsType_pump_single:
-				case StepsType_pump_couple: {
+				case StepsType_pump_single: {
 					iTakeFromTrack[0] = 3;
 					iTakeFromTrack[1] = 4;
 					iTakeFromTrack[2] = 2;
@@ -1466,8 +1459,7 @@ GetTrackMapping(StepsType st,
 					iTakeFromTrack[9] = 6;
 					break;
 				}
-				case StepsType_pump_double:
-				case StepsType_pump_routine: {
+				case StepsType_pump_double: {
 					iTakeFromTrack[0] = 8;
 					iTakeFromTrack[1] = 9;
 					iTakeFromTrack[2] = 7;
@@ -1573,11 +1565,10 @@ GetTrackMapping(StepsType st,
 				}
 				iShuffleSeed++;
 			} while (
-			  !memcmp(iOrig, iTakeFromTrack, sizeof(iOrig))); // shuffle again
-															  // if shuffle
-															  // managed to
-															  // shuffle them in
-															  // the same order
+			  !memcmp(iOrig,
+					  iTakeFromTrack,
+					  sizeof(iOrig))); // shuffle again if shuffle managed to
+									   // shuffle them in the same order
 		} break;
 		case NoteDataUtil::soft_shuffle: {
 			// XXX: this is still pretty much a stub.
@@ -1626,8 +1617,6 @@ GetTrackMapping(StepsType st,
 							}
 							break;
 						case StepsType_dance_double:
-						case StepsType_dance_couple:
-						case StepsType_dance_routine:
 							if (iRandChoice == 1) {
 								// left and right
 								iTakeFromTrack[0] = 3;
@@ -1653,7 +1642,6 @@ GetTrackMapping(StepsType st,
 							iTakeFromTrack[5] = 2;
 							break;
 						case StepsType_pump_single:
-						case StepsType_pump_couple:
 							iTakeFromTrack[0] = 3;
 							iTakeFromTrack[1] = 4;
 							iTakeFromTrack[2] = 2;
@@ -1702,7 +1690,6 @@ GetTrackMapping(StepsType st,
 		case NoteDataUtil::stomp:
 			switch (st) {
 				case StepsType_dance_single:
-				case StepsType_dance_couple:
 					iTakeFromTrack[0] = 3;
 					iTakeFromTrack[1] = 2;
 					iTakeFromTrack[2] = 1;
@@ -1713,7 +1700,6 @@ GetTrackMapping(StepsType st,
 					iTakeFromTrack[7] = 4;
 					break;
 				case StepsType_dance_double:
-				case StepsType_dance_routine:
 					iTakeFromTrack[0] = 1;
 					iTakeFromTrack[1] = 0;
 					iTakeFromTrack[2] = 3;
@@ -1731,8 +1717,6 @@ GetTrackMapping(StepsType st,
 			switch (st) {
 				case StepsType_dance_single:
 				case StepsType_dance_double:
-				case StepsType_dance_couple:
-				case StepsType_dance_routine:
 					iTakeFromTrack[0] = 0;
 					iTakeFromTrack[1] = 2;
 					iTakeFromTrack[2] = 1;
@@ -1744,8 +1728,6 @@ GetTrackMapping(StepsType st,
 					break;
 				case StepsType_pump_single:
 				case StepsType_pump_double:
-				case StepsType_pump_couple:
-				case StepsType_pump_routine:
 					iTakeFromTrack[0] = 1;
 					iTakeFromTrack[1] = 0;
 					iTakeFromTrack[2] = 2;

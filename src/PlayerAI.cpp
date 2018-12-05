@@ -434,7 +434,7 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 		// this gets caught by Player after it finds that the offset wasnt
 		// -2.f (We check for an impossible offset of -2.f in Player to blow
 		// up a mine)
-		if (pTN->type == TapNoteType_Mine)
+		if (pTN->type == TapNoteType_Mine || m_ReplayTapMap.count(noteRow) == 0)
 			return -1.f;
 
 		float offset = m_ReplayTapMap[noteRow].back().offset;

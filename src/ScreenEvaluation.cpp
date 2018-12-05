@@ -49,16 +49,13 @@ XToString(DetailLine);
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
 
 // metrics that are specific to classes derived from ScreenEvaluation
-#define SHOW_BANNER_AREA THEME->GetMetricB(m_sName, "ShowBannerArea")
-#define SHOW_GRADE_AREA THEME->GetMetricB(m_sName, "ShowGradeArea")
-#define SHOW_POINTS_AREA THEME->GetMetricB(m_sName, "ShowPointsArea")
-#define SHOW_BONUS_AREA THEME->GetMetricB(m_sName, "ShowBonusArea")
-#define SHOW_SURVIVED_AREA THEME->GetMetricB(m_sName, "ShowSurvivedArea")
-#define SHOW_WIN_AREA THEME->GetMetricB(m_sName, "ShowWinArea")
-#define SHOW_SHARED_JUDGMENT_LINE_LABELS                                       \
-	THEME->GetMetricB(m_sName, "ShowSharedJudgmentLineLabels")
-#define SHOW_JUDGMENT_LINE(l)                                                  \
-	THEME->GetMetricB(m_sName, "ShowJudgmentLine" + JudgmentLineToString(l))
+#define SHOW_BANNER_AREA			THEME->GetMetricB(m_sName,"ShowBannerArea")
+#define SHOW_POINTS_AREA			THEME->GetMetricB(m_sName,"ShowPointsArea")
+#define SHOW_BONUS_AREA				THEME->GetMetricB(m_sName,"ShowBonusArea")
+#define SHOW_SURVIVED_AREA			THEME->GetMetricB(m_sName,"ShowSurvivedArea")
+#define SHOW_WIN_AREA				THEME->GetMetricB(m_sName,"ShowWinArea")
+#define SHOW_SHARED_JUDGMENT_LINE_LABELS	THEME->GetMetricB(m_sName,"ShowSharedJudgmentLineLabels")
+#define SHOW_JUDGMENT_LINE( l )			THEME->GetMetricB(m_sName,"ShowJudgmentLine"+JudgmentLineToString(l))
 
 #define SHOW_DETAIL_AREA THEME->GetMetricB(m_sName, "ShowDetailArea")
 #define SHOW_SCORE_AREA THEME->GetMetricB(m_sName, "ShowScoreArea")
@@ -193,10 +190,7 @@ ScreenEvaluation::Init()
 			ss.m_player[p].m_iScore = random_up_to(900 * 1000 * 1000);
 			ss.m_player[p].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
 			ss.m_player[p].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
-			ss.m_player[p].m_PeakComboAward =
-			  (PeakComboAward)(random_up_to(NUM_PeakComboAward));
-			ss.m_player[p].m_StageAward =
-			  (StageAward)(random_up_to(NUM_StageAward));
+			ss.m_player[p].m_StageAward = (StageAward)(random_up_to(NUM_StageAward));
 
 			FOREACH_ENUM(RadarCategory, rc)
 			{
@@ -343,27 +337,6 @@ ScreenEvaluation::Init()
 			m_sprDisqualified[p]->SetVisible(
 			  m_pStageStats->m_player[p].m_bDisqualified);
 			this->AddChild(m_sprDisqualified[p]);
-		}
-	}
-
-	// init grade area
-	if (SHOW_GRADE_AREA) {
-		FOREACH_EnabledPlayer(p)
-		{
-			m_sprGradeFrame[p].Load(
-			  THEME->GetPathG(m_sName, ssprintf("GradeFrame p%d", p + 1)));
-			m_sprGradeFrame[p]->SetName(ssprintf("GradeFrameP%d", p + 1));
-			ActorUtil::LoadAllCommands(*m_sprGradeFrame[p], m_sName);
-			SET_XY(m_sprGradeFrame[p]);
-			this->AddChild(m_sprGradeFrame[p]);
-
-			// TODO: Re-add scrolling grade functionality
-			m_Grades[p].Load("GradeDisplayEval");
-			m_Grades[p].SetGrade(grade[p]);
-			m_Grades[p].SetName(ssprintf("GradeP%d", p + 1));
-			ActorUtil::LoadAllCommands(m_Grades[p], m_sName);
-			SET_XY(m_Grades[p]);
-			this->AddChild(&m_Grades[p]);
 		}
 	}
 
@@ -852,10 +825,21 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
 		*/
+		FailType failreset = GAMEMAN->m_iPreviousFail;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = failreset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = failreset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = failreset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
+		
 		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState[PLAYER_1]

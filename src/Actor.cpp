@@ -949,30 +949,6 @@ Actor::UpdateInternal(float delta_time)
 		delta_time = m_fEffectDelta;
 	}
 	this->UpdateTweening(delta_time);
-
-	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		delayedF.second -= delta_time;
-		if (delayedF.second <= 0) {
-			delayedF.first();
-		}
-	}
-	// Doing this in place did weird things
-	std::remove_if(
-	  delayedFunctions.begin(),
-	  delayedFunctions.end(),
-	  [](pair<function<void()>, float>& x) { return x.second <= 0; });
-	for (auto it = this->delayedPeriodicFunctions.begin();
-		 it != this->delayedPeriodicFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		std::get<1>(delayedF) -= delta_time;
-		if (std::get<1>(delayedF) <= 0) {
-			std::get<0>(delayedF)();
-			std::get<1>(delayedF) = std::get<2>(delayedF);
-		}
-	}
 }
 
 RString
@@ -1689,20 +1665,6 @@ Actor::TweenInfo::operator=(const TweenInfo& rhs)
 	return *this;
 }
 
-void
-Actor::SetTimeout(function<void()> f, float ms)
-{
-	delayedFunctions.emplace_back(make_pair(f, ms));
-	return;
-}
-
-void
-Actor::SetInterval(function<void()> f, float ms, int id)
-{
-	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
-	return;
-}
-
 // lua start
 #include "LuaBinding.h"
 
@@ -1714,60 +1676,6 @@ class LunaActor : public Luna<Actor>
 	{
 		p->SetName(SArg(1));
 		COMMON_RETURN_SELF;
-	}
-	static int setTimeout(T* p, lua_State* L)
-	{
-		auto f = GetFuncArg(1, L);
-		std::function<void()> execF = [f]() {
-			Lua* L = LUA->Get();
-			f.PushSelf(L);
-			if (!lua_isnil(L, -1)) {
-				RString Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
-			}
-			LUA->Release(L);
-		};
-		p->SetTimeout(execF, FArg(2));
-		COMMON_RETURN_SELF;
-	}
-	static int setInterval(T* p, lua_State* L)
-	{
-		lua_pushvalue(L, 1);
-		auto f = luaL_ref(L, LUA_REGISTRYINDEX);
-		std::function<void()> execF = [f]() {
-			Lua* L = LUA->Get();
-			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
-			if (!lua_isnil(L, -1)) {
-				RString Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
-			}
-			LUA->Release(L);
-		};
-		p->SetInterval(execF, FArg(2), f);
-		lua_pushnumber(L, f);
-		return 1;
-	}
-	static int clearInterval(T* p, lua_State* L)
-	{
-		int r = IArg(1);
-		auto& l = p->delayedPeriodicFunctions;
-		auto it = find_if(l.begin(),
-						  l.end(),
-						  [r](tuple<function<void()>, float, float, int>& x) {
-							  return std::get<3>(x) == r;
-						  });
-		if (it != l.end()) {
-			luaL_unref(L, LUA_REGISTRYINDEX, r);
-			l.erase(it);
-		} else {
-			LuaHelpers::ReportScriptError(
-			  "Interval function not found (When triying to clearInterval() )");
-		}
-		return 0;
 	}
 	static int sleep(T* p, lua_State* L)
 	{
@@ -2781,9 +2689,6 @@ class LunaActor : public Luna<Actor>
 	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
 	{
-		ADD_METHOD(name);
-		ADD_METHOD(setInterval);
-		ADD_METHOD(setTimeout);
 		ADD_METHOD(name);
 		ADD_METHOD(sleep);
 		ADD_METHOD(linear);

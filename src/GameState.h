@@ -72,7 +72,6 @@ class GameState
 
 	bool CanSafelyEnterGameplay(RString& reason);
 	void SetCompatibleStylesForPlayers();
-	void ForceSharedSidesMatch();
 	void ForceOtherPlayersToCompatibleSteps(PlayerNumber main);
 
 	void Update(float fDelta);
@@ -176,25 +175,18 @@ class GameState
 	 * @return true if we do, or false otherwise. */
 	bool ShowW1() const;
 
-	BroadcastOnChange<RString>
-	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
-	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
-									  // song options screen
-	BroadcastOnChange<StepsType> m_PreferredStepsType;
-	BroadcastOnChange1D<Difficulty, NUM_PLAYERS> m_PreferredDifficulty;
-	BroadcastOnChange<SortOrder> m_SortOrder; // set by MusicWheel
-	SortOrder m_PreferredSortOrder;			  // used by MusicWheel
-	EditMode m_EditMode;
-	bool IsEditing() const { return m_EditMode != EditMode_Invalid; }
-	/**
-	 * @brief Are we in the demonstration or jukebox mode?
-	 *
-	 * ScreenGameplay often does special things when this is set to true. */
-	bool m_bDemonstrationOrJukebox;
-	bool m_bJukeboxUsesModifiers;
+	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
+	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
+	BroadcastOnChange<StepsType>				m_PreferredStepsType;
+	BroadcastOnChange1D<Difficulty,NUM_PLAYERS>		m_PreferredDifficulty;
+	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
+	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
+
 	int m_iNumStagesOfThisSong;
 	// Used by GameplayScreen to know if it needs to call NSMAN
 	bool m_bInNetGameplay = false;
+
+
 	/**
 	 * @brief Increase this every stage while not resetting on a continue.
 	 *
@@ -264,10 +256,6 @@ class GameState
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
-
-	// used in PLAY_MODE_BATTLE
-	float m_fOpponentHealthPercent;
-
 	PlayerNumber GetBestPlayer() const;
 	StageResult GetStageResult(PlayerNumber pn) const;
 
@@ -328,13 +316,7 @@ class GameState
 	// Award stuff
 	// lowest priority in front, highest priority at the back.
 	deque<StageAward> m_vLastStageAwards[NUM_PLAYERS];
-	deque<PeakComboAward> m_vLastPeakComboAwards[NUM_PLAYERS];
 
-	// Attract stuff
-	int m_iNumTimesThroughAttract; // negative means play regardless of
-								   // m_iAttractSoundFrequency setting
-	bool IsTimeToPlayAttractSounds() const;
-	void VisitAttractScreen(const RString sScreenName);
 
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */

@@ -49,6 +49,7 @@
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
 #include "DownloadManager.h"
+#include "ScoreManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS                                   \
@@ -297,6 +298,10 @@ ScreenGameplay::ScreenGameplay()
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(true);
 #endif
+	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+		LOG->Trace("Unloading replaydata.");
+		SCOREMAN->UnloadAllReplayData();
+	}
 }
 
 void
@@ -378,9 +383,6 @@ ScreenGameplay::Init()
 		player++;
 	}
 
-	if (!GAMESTATE->m_bDemonstrationOrJukebox) {
-		// fill in difficulty of CPU players with that of the first human player
-		// this should not need to worry about step content.
 		FOREACH_PotentialCpuPlayer(p)
 		{
 			PlayerNumber human_pn = GAMESTATE->GetFirstHumanPlayer();
@@ -393,7 +395,7 @@ ScreenGameplay::Init()
 
 		FOREACH_EnabledPlayer(p)
 		  ASSERT(GAMESTATE->m_pCurSteps[p].Get() != NULL);
-	}
+
 
 	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
 	FOREACH_PlayerNumber(pn)
@@ -433,19 +435,6 @@ ScreenGameplay::Init()
 		  1); // on top of the overlay, but under transitions
 		ActorUtil::LoadAllCommands(*m_pSongForeground, m_sName);
 		this->AddChild(m_pSongForeground);
-	}
-
-	if (PREFSMAN->m_bShowBeginnerHelper) {
-		m_BeginnerHelper.SetDrawOrder(DRAW_ORDER_BEFORE_EVERYTHING);
-		m_BeginnerHelper.SetXY(SCREEN_CENTER_X, SCREEN_CENTER_Y);
-		this->AddChild(&m_BeginnerHelper);
-	}
-
-	if (!GAMESTATE
-		   ->m_bDemonstrationOrJukebox) // only load if we're going to use it
-	{
-		m_Toasty.Load(THEME->GetPathB(m_sName, "toasty"));
-		this->AddChild(&m_Toasty);
 	}
 
 	// Use the margin function to calculate where the notefields should be and
@@ -520,9 +509,7 @@ ScreenGameplay::Init()
 			left_marge = margins[pi->m_pn][0];
 			right_marge = margins[pi->m_pn][1];
 			field_space = screen_space - left_marge - right_marge;
-			if (Center1Player() ||
-				style->m_StyleType == StyleType_TwoPlayersSharedSides ||
-				(style_width > field_space &&
+			if (Center1Player() || (style_width > field_space &&
 				 GAMESTATE->GetNumPlayersEnabled() == 1 &&
 				 (bool)ALLOW_CENTER_1_PLAYER))
 				CENTER_PLAYER_BLOCK
@@ -575,18 +562,6 @@ ScreenGameplay::Init()
 				LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_pLifeMeter);
 				this->AddChild(pi->m_pLifeMeter);
 
-				// HACK: When SHOW_LIFE_METER_FOR_DISABLED_PLAYERS is enabled,
-				// we don't want to have any life in the disabled player's life
-				// meter. I think this only happens with LifeMeterBars, but I'm
-				// not 100% sure of that. -freem
-				if (!GAMESTATE->IsPlayerEnabled(pi->m_pn) &&
-					SHOW_LIFE_METER_FOR_DISABLED_PLAYERS) {
-					if (pi->GetPlayerState()
-						  ->m_PlayerOptions.GetStage()
-						  .m_LifeType == LifeType_Bar)
-						static_cast<LifeMeterBar*>(pi->m_pLifeMeter)
-						  ->ChangeLife(-1.0f);
-				}
 			}
 			break;
 		default:
@@ -594,97 +569,6 @@ ScreenGameplay::Init()
 	}
 
 	m_bShowScoreboard = false;
-
-#if !defined(WITHOUT_NETWORKING)
-	// Only used in SMLAN/SMOnline:
-	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver &&
-		GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType !=
-		  StyleType_OnePlayerTwoSides) {
-		m_bShowScoreboard = PREFSMAN->m_bEnableScoreboard.Get();
-		PlayerNumber pn = GAMESTATE->GetFirstDisabledPlayer();
-		if (pn != PLAYER_INVALID && m_bShowScoreboard) {
-			FOREACH_NSScoreBoardColumn(col)
-			{
-				m_Scoreboard[col].LoadFromFont(
-				  THEME->GetPathF(m_sName, "scoreboard"));
-				m_Scoreboard[col].SetShadowLength(0);
-				m_Scoreboard[col].SetName(
-				  ssprintf("ScoreboardC%iP%i", col + 1, pn + 1));
-				LOAD_ALL_COMMANDS_AND_SET_XY(m_Scoreboard[col]);
-				m_Scoreboard[col].SetText(NSMAN->m_Scoreboard[col]);
-				m_Scoreboard[col].SetVertAlign(align_top);
-				this->AddChild(&m_Scoreboard[col]);
-			}
-		}
-	}
-#endif
-
-	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
-	{
-		// primary score display
-		if (pi->m_pPrimaryScoreDisplay) {
-			pi->m_pPrimaryScoreDisplay->SetName(
-			  ssprintf("Score%s", pi->GetName().c_str()));
-			LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_pPrimaryScoreDisplay);
-			this->AddChild(pi->m_pPrimaryScoreDisplay);
-		}
-
-		// secondary score display
-		if (pi->m_pSecondaryScoreDisplay) {
-			pi->m_pSecondaryScoreDisplay->SetName(
-			  ssprintf("SecondaryScore%s", pi->GetName().c_str()));
-			LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_pSecondaryScoreDisplay);
-			this->AddChild(pi->m_pSecondaryScoreDisplay);
-		}
-	}
-
-	// Add stage / SongNumber
-
-	FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
-	{
-		// Theme already contains all of this... so we don't need it? -mina
-		/*
-		ASSERT( pi->m_ptextStepsDescription == NULL );
-		pi->m_ptextStepsDescription = new BitmapText;
-		pi->m_ptextStepsDescription->LoadFromFont(
-		THEME->GetPathF(m_sName,"StepsDescription") );
-		pi->m_ptextStepsDescription->SetName(
-		ssprintf("StepsDescription%s",pi->GetName().c_str()) );
-		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextStepsDescription );
-		this->AddChild( pi->m_ptextStepsDescription );
-
-		// Player/Song options
-		ASSERT( pi->m_ptextPlayerOptions == NULL );
-		pi->m_ptextPlayerOptions = new BitmapText;
-		pi->m_ptextPlayerOptions->LoadFromFont( THEME->GetPathF(m_sName,"player
-		options") ); pi->m_ptextPlayerOptions->SetName(
-		ssprintf("PlayerOptions%s",pi->GetName().c_str()) );
-		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextPlayerOptions );
-		this->AddChild( pi->m_ptextPlayerOptions );
-
-		// Difficulty icon and meter
-		ASSERT( pi->m_pStepsDisplay == NULL );
-		pi->m_pStepsDisplay = new StepsDisplay;
-		pi->m_pStepsDisplay->Load("StepsDisplayGameplay", pi->GetPlayerState()
-		); pi->m_pStepsDisplay->SetName(
-		ssprintf("StepsDisplay%s",pi->GetName().c_str()) ); PlayerNumber pn =
-		pi->GetStepsAndTrailIndex(); if( pn != PlayerNumber_Invalid )
-			pi->m_pStepsDisplay->PlayCommand( "Set" + pi->GetName() );
-		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pStepsDisplay );
-		this->AddChild( pi->m_pStepsDisplay );
-		*/
-		/*
-				switch( GAMESTATE->m_PlayMode )
-				{
-				case PLAY_MODE_BATTLE:
-					pi->m_pInventory = new Inventory;
-					pi->m_pInventory->Load( p );
-					this->AddChild( pi->m_pInventory );
-					break;
-				}
-		*/
-	}
-
 	m_textSongOptions.LoadFromFont(THEME->GetPathF(m_sName, "song options"));
 	m_textSongOptions.SetShadowLength(0);
 	m_textSongOptions.SetName("SongOptions");
@@ -699,9 +583,7 @@ ScreenGameplay::Init()
 		this->AddChild(&m_LyricDisplay);
 	}
 
-	if (!GAMESTATE
-		   ->m_bDemonstrationOrJukebox) // only load if we're going to use it
-	{
+
 		m_Ready.Load(THEME->GetPathB(m_sName, "ready"));
 		this->AddChild(&m_Ready);
 
@@ -722,7 +604,6 @@ ScreenGameplay::Init()
 		this->AddChild(&m_textDebug);
 
 		m_GameplayAssist.Init();
-	}
 
 	if (m_pSongBackground != nullptr)
 		m_pSongBackground->Init();
@@ -784,9 +665,7 @@ ScreenGameplay::Center1Player() const
 	 * StyleType for ONE_PLAYER_ONE_CREDIT_AND_ONE_COMPUTER,
 	 * but for now just ignore Center1Player when it's Battle or Rave
 	 * Mode. This doesn't begin to address two-player solo (6 arrows) */
-	return g_bCenter1Player && (bool)ALLOW_CENTER_1_PLAYER &&
-		   GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType ==
-			 StyleType_OnePlayerOneSide;
+	return g_bCenter1Player && (bool)ALLOW_CENTER_1_PLAYER ;
 }
 
 // fill in m_apSongsQueue, m_vpStepsQueue, m_asModifiersQueue
@@ -1013,13 +892,6 @@ ScreenGameplay::LoadNextSong()
 		if (pi->m_ptextStepsDescription)
 			pi->m_ptextStepsDescription->SetText(pSteps->GetDescription());
 
-		/* Increment the play count even if the player fails.  (It's still
-		 * popular, even if the people playing it aren't good at it.) */
-		if (!GAMESTATE->m_bDemonstrationOrJukebox) {
-			if (pi->m_pn != PLAYER_INVALID)
-				PROFILEMAN->IncrementStepsPlayCount(pSong, pSteps, pi->m_pn);
-		}
-
 		if (pi->m_ptextPlayerOptions)
 			pi->m_ptextPlayerOptions->SetText(
 			  pi->GetPlayerState()->m_PlayerOptions.GetCurrent().GetString());
@@ -1043,10 +915,7 @@ ScreenGameplay::LoadNextSong()
 
 		// Don't mess with the PlayerController of the Dummy player
 		if (!pi->m_bIsDummy) {
-			if (GAMESTATE->m_bDemonstrationOrJukebox) {
-				pi->GetPlayerState()->m_PlayerController = PC_CPU;
-				pi->GetPlayerState()->m_iCpuSkill = 5;
-			} else if (GAMESTATE->IsCpuPlayer(pi->GetStepsAndTrailIndex())) {
+ if (GAMESTATE->IsCpuPlayer(pi->GetStepsAndTrailIndex())) {
 				pi->GetPlayerState()->m_PlayerController = PC_CPU;
 				int iMeter = pSteps->GetMeter();
 				int iNewSkill =
@@ -1102,47 +971,22 @@ ScreenGameplay::LoadNextSong()
 
 	// Set up song-specific graphics.
 
-	// Check to see if any players are in beginner mode.
-	// Note: steps can be different if turn modifiers are used.
-	if (PREFSMAN->m_bShowBeginnerHelper) {
-		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
-		{
-			PlayerNumber pn = pi->GetStepsAndTrailIndex();
-			if (GAMESTATE->IsHumanPlayer(pn) &&
-				GAMESTATE->m_pCurSteps[pn]->GetDifficulty() ==
-				  Difficulty_Beginner)
-				m_BeginnerHelper.AddPlayer(pn, pi->m_pPlayer->GetNoteData());
-		}
-	}
-
 	if (m_pSongBackground != nullptr)
 		m_pSongBackground->Unload();
 
 	if (m_pSongForeground != nullptr)
 		m_pSongForeground->Unload();
 
-	if (!PREFSMAN->m_bShowBeginnerHelper || !m_BeginnerHelper.Init(2)) {
-		m_BeginnerHelper.SetVisible(false);
 
-		// BeginnerHelper disabled, or failed to load.
-		if (m_pSongBackground)
-			m_pSongBackground->LoadFromSong(GAMESTATE->m_pCurSong);
+	// BeginnerHelper disabled, or failed to load.
+	if (m_pSongBackground)
+		m_pSongBackground->LoadFromSong(GAMESTATE->m_pCurSong);
 
-		if (!GAMESTATE->m_bDemonstrationOrJukebox) {
-			/* This will fade from a preset brightness to the actual brightness
-			 * (based on prefs and "cover"). The preset brightness may be 0 (to
-			 * fade from black), or it might be 1, if the stage screen has the
-			 * song BG and we're coming from it (like Pump). This used to be
-			 * done in SM_PlayReady, but that means it's impossible to snap to
-			 * the new brightness immediately. */
-			if (m_pSongBackground != nullptr) {
-				m_pSongBackground->SetBrightness(INITIAL_BACKGROUND_BRIGHTNESS);
-				m_pSongBackground->FadeToActualBrightness();
-			}
-		}
-	} else {
-		m_BeginnerHelper.SetVisible(true);
+	if (m_pSongBackground != nullptr) {
+		m_pSongBackground->SetBrightness(INITIAL_BACKGROUND_BRIGHTNESS);
+		m_pSongBackground->FadeToActualBrightness();
 	}
+
 
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
@@ -1256,13 +1100,6 @@ ScreenGameplay::PlayAnnouncer(const RString& type,
 							  float fSeconds,
 							  float* fDeltaSeconds)
 {
-	if (GAMESTATE->m_fOpponentHealthPercent == 0)
-		return; // Shut the announcer up
-
-	/* Don't play in demonstration. */
-	if (GAMESTATE->m_bDemonstrationOrJukebox)
-		return;
-
 	/* Don't play before the first beat, or after we're finished. */
 	if (m_DancingState != STATE_DANCING)
 		return;
@@ -1329,10 +1166,26 @@ ScreenGameplay::BeginScreen()
 	if (GAMESTATE->m_bPlayingMulti) {
 		this->SetInterval(
 		  [this]() {
-			  NSMAN->SendGameplayUpdate(
-				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore);
+			  auto& ptns = this->GetPlayerInfo(PLAYER_1)
+							 ->GetPlayerStageStats()
+							 ->m_iTapNoteScores;
+
+			  RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+									  ptns[TNS_W1],
+									  ptns[TNS_W2],
+									  ptns[TNS_W3],
+									  ptns[TNS_W4],
+									  ptns[TNS_W5],
+									  ptns[TNS_Miss],
+									  this->GetPlayerInfo(PLAYER_1)
+										->GetPlayerStageStats()
+										->m_iCurCombo);
+			  NSMAN->SendMPLeaderboardUpdate(
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore /
+				  this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore,
+				doot);
 		  },
-		  1,
+		  0.25f,
 		  -1);
 	}
 }
@@ -1612,25 +1465,6 @@ ScreenGameplay::Update(float fDeltaTime)
 				}
 			}
 
-			// Check for enemy death in enemy battle
-			static float fLastSeenEnemyHealth = 1;
-			if (fLastSeenEnemyHealth != GAMESTATE->m_fOpponentHealthPercent) {
-				fLastSeenEnemyHealth = GAMESTATE->m_fOpponentHealthPercent;
-
-				if (GAMESTATE->m_fOpponentHealthPercent == 0) {
-					// HACK:  Load incorrect directory on purpose for now.
-					PlayAnnouncer("gameplay battle damage level3", 0);
-
-					FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
-					{
-						if (!GAMESTATE->IsCpuPlayer(pi->m_pn))
-							continue;
-
-						FailFadeRemovePlayer(&*pi);
-					}
-				}
-			}
-
 			// update give up
 			bool bGiveUpTimerFired = false;
 			bGiveUpTimerFired =
@@ -1718,6 +1552,16 @@ ScreenGameplay::Update(float fDeltaTime)
 							  oldRate;
 							GAMESTATE->m_SongOptions.GetPreferred()
 							  .m_fMusicRate = oldRate;
+							FailType failreset = GAMEMAN->m_iPreviousFail;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetSong()
+							  .m_FailType = failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetCurrent()
+							  .m_FailType = failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetPreferred()
+							  .m_FailType = failreset;
 							GAMEMAN->m_bResetModifiers = false;
 							GAMEMAN->m_sModsToReset = "";
 							MESSAGEMAN->Broadcast("RateChanged");
@@ -2066,6 +1910,16 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						  oldRate;
 						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 						  oldRate;
+						FailType failreset = GAMEMAN->m_iPreviousFail;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetSong()
+						  .m_FailType = failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetCurrent()
+						  .m_FailType = failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetPreferred()
+						  .m_FailType = failreset;
 						GAMEMAN->m_bResetModifiers = false;
 						GAMEMAN->m_sModsToReset = "";
 						MESSAGEMAN->Broadcast("RateChanged");

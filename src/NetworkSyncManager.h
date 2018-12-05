@@ -1,4 +1,4 @@
-﻿#ifndef NetworkSyncManager_H
+#ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
 #include "Difficulty.h"
@@ -86,8 +86,10 @@ enum ETTServerMessageTypes
 	ettps_recievechat,
 	ettps_loginresponse,
 	ettps_roomlist,
+	ettps_lobbyuserlist,
+	ettps_lobbyuserlistupdate,
 	ettps_recievescore,
-	ettps_gameplayleaderboard,
+	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
 	ettps_selectchart,
@@ -105,7 +107,7 @@ enum ETTClientMessageTypes
 	ettpc_ping,
 	ettpc_sendchat,
 	ettpc_sendscore,
-	ettpc_gameplayupdate,
+	ettpc_mpleaderboardupdate,
 	ettpc_createroom,
 	ettpc_enterroom,
 	ettpc_leaveroom,
@@ -154,6 +156,7 @@ class GameplayScore
 {
   public:
 	float wife;
+	RString jdgstr;
 };
 
 class PacketFunctions
@@ -231,7 +234,7 @@ class NetProtocol
 	virtual void OffOptions(){};
 	virtual void OnEval(){};
 	virtual void OffEval(){};
-	virtual void SendGameplayUpdate(float wife){};
+	virtual void SendMPLeaderboardUpdate(float wife, RString& jdgstr){};
 };
 
 class ETTProtocol : public NetProtocol
@@ -270,7 +273,7 @@ class ETTProtocol : public NetProtocol
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
-	void SendGameplayUpdate(float wife) override;
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
 	void Send(json msg);
@@ -375,7 +378,9 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
-	void SendGameplayUpdate(float wife);
+	set<string> lobbyuserlist;
+
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 
 	// Used for chatting
 	void SendChat(const RString& message,
@@ -391,8 +396,8 @@ class NetworkSyncManager
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
-	map<string, GameplayScore> gameplayLeaderboard;
-	void PushGameplayLeaderboard(lua_State* L);
+	map<string, GameplayScore> mpleaderboard;
+	void PushMPLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;
 	int rate;

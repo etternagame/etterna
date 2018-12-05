@@ -68,7 +68,7 @@ end
 local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
 
-local scoretable
+local scoretable = {}
 local o =
 	Def.ActorFrame {
 	Name = "ScoreDisplay",
@@ -91,7 +91,7 @@ local o =
 	SetFromLeaderboardCommand = function(self, lb)
 		scoretable = lb
 		ind = 0
-		self:playcommand("GetFilteredLeaderboard")	-- we can move all the filter stuff to lua so we're not being dumb hurr hur -mina
+		self:playcommand("GetFilteredLeaderboard") -- we can move all the filter stuff to lua so we're not being dumb hurr hur -mina
 		self:playcommand("Update")
 	end,
 	UpdateCommand = function(self)
@@ -258,6 +258,16 @@ local o =
 						self:settext("")
 					end
 				end
+			end,
+			CurrentSongChangedMessageCommand = function(self)
+				local online = DLMAN:IsLoggedIn()
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					self:settext("Retrieving scores...")
+				end
 			end
 		},
 	LoadFont("Common normal") ..
@@ -325,7 +335,10 @@ local function makeScoreDisplay(i)
 				self:visible(false)
 			end
 		end,
-		UpdateCommand = function(self)		
+		CurrentSongChangedMessageCommand = function(self)
+			self:visible(false)
+		end,
+		UpdateCommand = function(self)
 			hs = scoretable[(i + ind)]
 			if hs and i <= numscores then
 				self:visible(true)
@@ -457,15 +470,24 @@ local function makeScoreDisplay(i)
 				Name = "Replay" .. i,
 				InitCommand = function(self)
 					if not collapsed then
-						self:x(capWideScale(c3x + 52, c3x) ):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff):diffuse(getMainColor("enabled"))
+						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(
+							row2yoff
+						):diffuse(getMainColor("enabled"))
+					end
+				end,
+				BeginCommand = function(self)
+					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+						self:x(-10):zoom(0.0000001):maxwidth(1)
 					end
 				end,
 				DisplayCommand = function(self)
-					if DLMAN:Fart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), ind + i) then
-						self:settext("Watch")
-					else
-						self:settext("")
-					end	
+					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+						if hs:HasReplayData() then
+							self:settext("Watch")
+						else
+							self:settext("")
+						end
+					end
 				end,
 				HighlightCommand = function(self)
 					highlightIfOver(self)

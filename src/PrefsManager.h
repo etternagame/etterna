@@ -188,28 +188,25 @@ class PrefsManager
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
-	Preference<Maybe> m_ShowSongOptions;
-	Preference<float> m_fMinPercentToSaveScores;
-	Preference<bool> m_bDisqualification;
-	Preference<ShowDancingCharacters> m_ShowDancingCharacters;
-	Preference<float> m_fGlobalOffsetSeconds;
-	Preference<bool> m_bShowBeginnerHelper;
-	Preference<RString> m_sLanguage;
-	Preference<int> m_iCenterImageTranslateX;
-	Preference<int> m_iCenterImageTranslateY;
-	Preference<int> m_fCenterImageAddWidth;
-	Preference<int> m_fCenterImageAddHeight;
-	Preference<AttractSoundFrequency> m_AttractSoundFrequency;
-	Preference<bool> m_DisableUploadDir;
+
+	Preference<Maybe>	m_ShowSongOptions;
+	Preference<float>	m_fMinPercentToSaveScores;
+	Preference<bool>	m_bDisqualification;
+	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
+	Preference<float>	m_fGlobalOffsetSeconds;
+	Preference<RString>	m_sLanguage;
+	Preference<int>	m_iCenterImageTranslateX;
+	Preference<int>	m_iCenterImageTranslateY;
+	Preference<int>	m_fCenterImageAddWidth;
+	Preference<int>	m_fCenterImageAddHeight;
 	Preference<bool> m_bCelShadeModels;
 	Preference<bool> m_bPreferredSortUsesGroups;
+	Preference<bool> UseStbImageLibrary;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
 	Preference<float> m_fPadStickSeconds;
 
-	// Lead in time before recording starts in edit mode.
-	Preference<float> m_EditRecordModeLeadIn;
 
 	// Useful for non 4:3 displays and resolutions < 640x480 where texels don't
 	// map directly to pixels.
@@ -243,14 +240,7 @@ class PrefsManager
 	Preference<bool> m_bThreadedMovieDecode;
 	Preference<RString> m_sTestInitialScreen;
 	Preference<bool> m_MuteActions;
-	Preference<bool> m_bAllowSongDeletion; // Allow the user to remove songs
-										   // from their collection through UI /
-										   // keyboard shortcut
 	Preference<int> ThreadsToUse;
-
-	/** @brief Enable some quirky behavior used by some older versions of
-	 * StepMania. */
-	Preference<bool> m_bQuirksMode;
 
 	// Debug:
 	Preference<bool> m_bLogToDisk;
@@ -269,16 +259,6 @@ class PrefsManager
 	Preference<bool>
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
 
-	// Check for Updates code
-	Preference<bool> m_bUpdateCheckEnable;
-	// TODO - Aldo_MX: Use PREFSMAN->m_iUpdateCheckIntervalSeconds &
-	// PREFSMAN->m_iUpdateCheckLastCheckedSecond
-	// Preference<int>				m_iUpdateCheckIntervalSeconds;
-	// Preference<int>				m_iUpdateCheckLastCheckedSecond;
-
-	// TODO - Aldo_MX: Write helpers in LuaManager.cpp to treat unsigned
-	// int/long like LUA Numbers
-	// Preference<unsigned long>	m_uUpdateCheckLastCheckedBuild;
 
 #endif
 

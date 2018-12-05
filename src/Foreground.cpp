@@ -50,8 +50,6 @@ Foreground::LoadFromSong(const Song* pSong)
 			td->InvalidateSequentialAssmption();
 
 			bga.m_bga = ActorUtil::MakeActor(sLuaFile, this);
-		} else if (PREFSMAN->m_bQuirksMode && DoesFileExist(sXmlFile)) {
-			bga.m_bga = ActorUtil::MakeActor(sXmlFile, this);
 		} else {
 			bga.m_bga =
 			  ActorUtil::MakeActor(pSong->GetSongDir() + sBGName, this);

@@ -64,7 +64,6 @@ AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_SortOrderChanging);
 AutoScreenMessage(SM_SortOrderChanged);
 AutoScreenMessage(SM_BackFromPlayerOptions);
-AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
 static bool g_bSampleMusicWaiting = false;
@@ -107,6 +106,7 @@ ScreenSelectMusic::Init()
 	ROULETTE_TIMER_SECONDS.Load(m_sName, "RouletteTimerSeconds");
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 	CODES.Load(m_sName, "Codes");
+	PLAYER_OPTIONS_SCREEN.Load(m_sName, "PlayerOptionsScreen");
 	MUSIC_WHEEL_TYPE.Load(m_sName, "MusicWheelType");
 	SELECT_MENU_AVAILABLE.Load(m_sName, "SelectMenuAvailable");
 	MODE_MENU_AVAILABLE.Load(m_sName, "ModeMenuAvailable");
@@ -377,6 +377,12 @@ ScreenSelectMusic::Update(float fDeltaTime)
 }
 
 void
+ScreenSelectMusic::OpenOptions()
+{
+	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
+								 SM_BackFromPlayerOptions);
+}
+void
 ScreenSelectMusic::DifferentialReload()
 {
 	SONGMAN->DifferentialReload();
@@ -508,7 +514,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				return true;
 			}
 		} else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() &&
-				   input.type == IET_FIRST_PRESS) {
+				   input.type == IET_FIRST_PRESS &&
+				   GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr) {
 			Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->AddGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
@@ -534,7 +541,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			MESSAGEMAN->Broadcast("DisplayAll");
 			return true;
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
-				   input.type == IET_FIRST_PRESS) {
+				   input.type == IET_FIRST_PRESS &&
+				   GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr) {
 			if (SONGMAN->GetPlaylists().empty())
 				return true;
 
@@ -546,21 +554,6 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
 					   SONGMAN->activeplaylist.c_str()));
 			return true;
-		} else if (input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl &&
-				   input.DeviceI.button == KEY_BACK &&
-				   input.type == IET_FIRST_PRESS && m_MusicWheel.IsSettled()) {
-			// Keyboard shortcut to delete a song from disk (ctrl + backspace)
-			Song* songToDelete = m_MusicWheel.GetSelectedSong();
-			if (songToDelete && PREFSMAN->m_bAllowSongDeletion.Get()) {
-				m_pSongAwaitingDeletionConfirmation = songToDelete;
-				ScreenPrompt::Prompt(
-				  SM_ConfirmDeleteSong,
-				  ssprintf(PERMANENTLY_DELETE.GetValue(),
-						   songToDelete->m_sMainTitle.c_str(),
-						   songToDelete->GetSongDir().c_str()),
-				  PROMPT_YES_NO);
-				return true;
-			}
 		}
 	}
 
@@ -573,7 +566,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// Check for "Press START again for options" button press
 	if (m_SelectionState == SelectionState_Finalized &&
 		input.MenuI == GAME_BUTTON_START && input.type != IET_RELEASE &&
-		OPTIONS_MENU_AVAILABLE.GetValue()) {
+		OPTIONS_MENU_AVAILABLE.GetValue() && !GAMESTATE->m_bPlayingMulti) {
 		if (m_bGoToOptions)
 			return false; // got it already
 		if (!m_bAllowOptionsMenu)
@@ -1036,14 +1029,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
-	} else if (SM == SM_ConfirmDeleteSong) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			OnConfirmSongDeletion();
-		} else {
-			// need to resume the song preview that was automatically paused
-			m_MusicWheel.ChangeMusic(0);
-		}
-	}
+	} 
 
 	if (SM == SM_BackFromNamePlaylist) {
 		Playlist pl;
@@ -1191,7 +1177,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 #if !defined(WITHOUT_NETWORKING)
 		DLMAN->UpdateDLSpeed(true);
 #endif
-		m_MenuTimer->Stop();
 
 		if (GAMESTATE->m_bIsChartPreviewActive) {
 			MESSAGEMAN->Broadcast("hELPidontDNOKNOW");
@@ -1213,14 +1198,13 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 		// Now that Steps have been chosen, set a Style that can play them.
 		GAMESTATE->SetCompatibleStylesForPlayers();
-		GAMESTATE->ForceSharedSidesMatch();
 
 		/* If we're currently waiting on song assets, abort all except the music
 		 * and start the music, so if we make a choice quickly before background
 		 * requests come through, the music will still start. */
 		m_BackgroundLoader.Abort();
 		CheckBackgroundRequests(true);
-
+		m_MusicWheel.Lock();
 		if (OPTIONS_MENU_AVAILABLE) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
@@ -1335,9 +1319,6 @@ ScreenSelectMusic::SwitchToPreferredDifficulty()
 void
 ScreenSelectMusic::AfterMusicChange()
 {
-	if (!m_MusicWheel.IsRouletting())
-		m_MenuTimer->Stall();
-
 	Song* pSong = m_MusicWheel.GetSelectedSong();
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong != nullptr)
@@ -1516,34 +1497,6 @@ ScreenSelectMusic::OpenOptionsList(PlayerNumber pn)
 	}
 }
 
-void
-ScreenSelectMusic::OnConfirmSongDeletion()
-{
-	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
-	if (deletedSong == nullptr) {
-		LOG->Warn("Attempted to delete a null song "
-				  "(ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	// ensure Stepmania is configured to allow song deletion
-	if (!PREFSMAN->m_bAllowSongDeletion.Get()) {
-		LOG->Warn("Attemped to delete a song but AllowSongDeletion was set to "
-				  "false (ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-
-	RString deleteDir = deletedSong->GetSongDir();
-	// flush the deleted song from any caches
-	SONGMAN->UnlistSong(deletedSong);
-	// refresh the song list
-	m_MusicWheel.ReloadSongList(false, "");
-	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
-	// delete the song directory from disk
-	FILEMAN->DeleteRecursive(deleteDir);
-
-	m_pSongAwaitingDeletionConfirmation = nullptr;
-}
-
 bool
 ScreenSelectMusic::can_open_options_list(PlayerNumber pn)
 {
@@ -1705,8 +1658,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto noterows = hs->GetNoteRowVector();
 		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
-		if (!timestamps.empty()) {
+		if (!timestamps.empty() &&
+			noterows.empty()) { // if we have noterows from newer uploads, just
+								// use them -mina
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData();
@@ -1740,9 +1696,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
+		}
 
-			// Since we keep misses on EO as 180ms, we need to convert them
-			// back.
+		// Since we keep misses on EO as 180ms, we need to convert them
+		// back.
+		if (!timestamps.empty()) {
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
 				if (fabs(offset) >= .18f)
@@ -1808,6 +1766,20 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 		GAMEMAN->m_bResetTurns = true;
 		GAMEMAN->m_vTurnsToReset = oldTurns;
+		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
+										->m_PlayerOptions.GetSong()
+										.m_FailType;
+
+		// REALLY BAD way to set fail off for a replay
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = FailType_Off;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",
@@ -1886,6 +1858,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
+		
+		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
+										->m_PlayerOptions.GetSong()
+										.m_FailType;
 
 		// go
 		LOG->Trace("Viewing evaluation screen for score key %s",
@@ -1976,8 +1952,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->ChangeSteps(PLAYER_1, IArg(1));
 		return 0;
 	}
+	static int OpenOptions(T* p, lua_State* L)
+	{
+		p->OpenOptions();
+		return 0;
+	}
 	LunaScreenSelectMusic()
 	{
+		ADD_METHOD(OpenOptions);
 		ADD_METHOD(GetGoToOptions);
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(OpenOptionsList);

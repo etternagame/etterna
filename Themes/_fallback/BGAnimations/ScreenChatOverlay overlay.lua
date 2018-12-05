@@ -30,7 +30,7 @@ chats[1] = {}
 chats[2] = {}
 chats[0][""] = {}
 local tabs = {{0, ""}}
---chats[tabname][tabtype]
+--chats[tabName][tabType]
 --tabtype: 0=lobby, 1=room, 2=pm
 local messages = chats[0][""]
 local currentTabName = ""
@@ -58,7 +58,7 @@ local show = true
 local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 
 chat.MinimiseMessageCommand = function(self)
-	self:linear(0.5)
+	self:linear(0.25)
 	moveY = minimised and height * (lineNumber + inputLineNumber + tabHeight - 1) or 0
 	self:y(moveY)
 end
@@ -68,15 +68,27 @@ chat.InitCommand = function(self)
 	self:visible(false)
 end
 local isGameplay
+local isInSinglePlayer
 chat.ScreenChangedMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
 	end
+	local oldScreen = currentScreen
 	currentScreen = s:GetName()
+	
+	-- prevent the chat from showing in singleplayer because it can be annoying
+	if oldScreen ~= currentScreen and (currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or currentScreen == "ScreenOptionsService") then
+		isInSinglePlayer = true
+	end
+	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
+		isInSinglePlayer = false
+	end
+	
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
-	if isGameplay then
+
+	if isGameplay or isInSinglePlayer then
 		self:visible(false)
 		show = false
 		typing = false
@@ -87,8 +99,15 @@ chat.ScreenChangedMessageCommand = function(self)
 			0.025
 		)
 	else
-		self:visible(online)
+		self:visible(online and not isInSinglePlayer)
 		show = true
+	end
+	if currentScreen == "ScreenNetSelectMusic" then
+		for i = 1, #tabs do
+			if tabs[i] and tabs[i][2] == NSMAN:GetCurrentRoomName() then
+				changeTab(tabs[i][2], tabs[i][1])
+			end
+		end
 	end
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
@@ -127,6 +146,17 @@ chat[#chat + 1] =
 		self:diffuse(Colors.bar)
 		self:diffusealpha(transparency)
 		self:stretchto(x, y, width + x, height + y)
+	end,
+	ChatMessageCommand = function(self)
+		if minimised then
+			self:linear(0.25)
+			self:diffuse(Colors.activeInput)
+		end
+	end,
+	MinimiseMessageCommand = function(self)
+		if not minimised then
+			self:diffuse(Colors.bar)
+		end
 	end
 }
 chat[#chat + 1] =
@@ -243,7 +273,7 @@ for i = 0, maxTabs - 1 do
 			{
 				InitCommand = function(self)
 					self:halign(0):valign(0)
-					self:maxwidth(tabWidth)
+					self:maxwidth(tabWidth*2)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
 					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
@@ -321,6 +351,20 @@ chat[#chat + 1] = chatWindow
 chat.UpdateChatOverlayMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", typing)
 end
+
+function shiftTab(fromIndex, toIndex)
+	-- tabs[index of tab][parameter table....]
+	-- 					[1 is type, 2 is tab contents?]
+	tabs[toIndex] = tabs[fromIndex]
+	tabs[fromIndex] = nil
+end
+
+function shiftAllTabs(emptyIndex)
+	for i = emptyIndex + 1, maxTabs - 1 do
+		shiftTab(i, i-1)
+	end
+end
+
 function overTab(mx, my)
 	for i = 0, maxTabs - 1 do
 		if tabs[i + 1] then
@@ -334,6 +378,7 @@ function overTab(mx, my)
 	end
 	return nil, nil
 end
+
 function MPinput(event)
 	if (not show or not online) or isGameplay then
 		return false
@@ -345,7 +390,7 @@ function MPinput(event)
 		end
 		typing = false
 		local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
-		if isOver(minbar) then
+		if isOver(minbar) then --hard mouse toggle -mina
 			minimised = not minimised
 			MESSAGEMAN:Broadcast("Minimise")
 			update = true
@@ -364,26 +409,51 @@ function MPinput(event)
 					update = true
 				end
 			else
-				if not closeTab then
-					changeTab(tabs[tabButton][2], tabs[tabButton][1])
-				else
-					local tabT = tabs[tabButton][1]
-					local tabN = tabs[tabButton][2]
-					if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
-						return false
-					end
-					tabs[tabButton] = nil
-					if chats[tabT][tabN] == messages then
-						for i = #tabs, 1, -1 do
-							if tabs[i] then
-								changeTab(tabs[i][2], tabs[i][1])
+				if event.type == "InputEventType_FirstPress" then -- only change tabs on press (to stop repeatedly closing tabs or changing to a tab we close) -poco
+					if not closeTab then
+						changeTab(tabs[tabButton][2], tabs[tabButton][1])
+					else
+						local tabT = tabs[tabButton][1]
+						local tabN = tabs[tabButton][2]
+						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
+							return false
+						end
+						tabs[tabButton] = nil
+						if chats[tabT][tabN] == messages then
+							for i = #tabs, 1, -1 do
+								if tabs[i] then
+									changeTab(tabs[i][2], tabs[i][1])
+								end
 							end
 						end
+						chats[tabT][tabN] = nil
+						shiftAllTabs(tabButton)
 					end
-					chats[tabT][tabN] = nil
+					update = true
 				end
-				update = true
 			end
+		end
+	end
+
+	-- hard kb toggle
+	if event.type == "InputEventType_Release" and event.DeviceInput.button == "DeviceButton_insert" then
+		minimised = not minimised
+		MESSAGEMAN:Broadcast("Minimise")
+		update = true
+		if not minimize then
+			typingText = ""
+		end
+	end
+
+	if not typing and event.type == "InputEventType_Release" then -- keys for auto turning on chat if not already on -mina
+		if event.DeviceInput.button == "DeviceButton_/" then
+			typing = true
+			update = true
+			if minimised then
+				minimised = not minimised
+				MESSAGEMAN:Broadcast("Minimise")
+			end
+			typingText = "/"
 		end
 	end
 
@@ -393,6 +463,8 @@ function MPinput(event)
 				if typingText:len() > 0 then
 					NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
 					typingText = ""
+				elseif typingText == "" then
+					typing = false -- pressing enter when text is empty to deactive chat is expected behavior -mina
 				end
 				update = true
 			end
@@ -402,6 +474,9 @@ function MPinput(event)
 			update = true
 		elseif event.DeviceInput.button == "DeviceButton_space" then
 			typingText = typingText .. " "
+			update = true
+		elseif event.DeviceInput.button == "DeviceButton_delete" then -- reset msg with delete (since there's no cursor)
+			typingText = ""
 			update = true
 		elseif
 			(INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")) and
@@ -444,7 +519,19 @@ function MPinput(event)
 		return true
 	end
 
+	-- kb activate chat input if not minimized (has to go after the above enter block)
+	if event.type == "InputEventType_Release" and INPUTFILTER:IsBeingPressed("left ctrl") then
+		if event.DeviceInput.button == "DeviceButton_enter" and not minimised then
+			typing = true
+			update = true
+		end
+	end
+
 	if update then
+		if minimised then -- minimise will be set in the above blocks, disable input and clear text -mina
+			typing = false
+			typingText = ""
+		end
 		MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	end
 

@@ -147,6 +147,9 @@ end
 
 local t =
 	Def.ActorFrame {
+	InitCommand = function(self)
+		self:zoom(0.85)
+	end,
 	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)

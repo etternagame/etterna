@@ -278,9 +278,7 @@ GetTypeFromMode(const RString& mode)
 		return StepsType_dance_single;
 	if (mode == "DOUBLE")
 		return StepsType_dance_double;
-	if (mode == "COUPLE")
-		return StepsType_dance_couple;
-	else if (mode == "SOLO")
+	else if( mode == "SOLO" )
 		return StepsType_dance_solo;
 	ASSERT_M(0, "Unrecognized DWI notes format " + mode + "!");
 	return StepsType_Invalid; // just in case.
@@ -299,7 +297,6 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 			g_mapDanceNoteToNoteDataColumn[DANCE_NOTE_PAD1_RIGHT] = 3;
 			break;
 		case StepsType_dance_double:
-		case StepsType_dance_couple:
 			g_mapDanceNoteToNoteDataColumn[DANCE_NOTE_PAD1_LEFT] = 0;
 			g_mapDanceNoteToNoteDataColumn[DANCE_NOTE_PAD1_DOWN] = 1;
 			g_mapDanceNoteToNoteDataColumn[DANCE_NOTE_PAD1_UP] = 2;
@@ -685,7 +682,7 @@ DWILoader::LoadFromDir(const RString& sPath_,
 		else if (sValueName.EqualsNoCase("BPM")) {
 			const float fBPM = StringToFloat(sParams[1]);
 
-			if (unlikely(fBPM <= 0.0f && !PREFSMAN->m_bQuirksMode)) {
+			if (unlikely(fBPM <= 0.0f)) {
 				LOG->UserLog("Song file",
 							 sPath,
 							 "has an invalid BPM change at beat %f, BPM %f.",

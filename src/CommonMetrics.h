@@ -1,4 +1,4 @@
-﻿#ifndef COMMON_METRICS_H
+#ifndef COMMON_METRICS_H
 #define COMMON_METRICS_H
 
 #include "Difficulty.h"
@@ -41,8 +41,6 @@ class ThemeMetricStepsTypesToShow : public ThemeMetric<RString>
  *
  * These metrics are used throughout the metrics file. */
 namespace CommonMetrics {
-/** @brief The first screen in the attract loop. */
-extern ThemeMetric<RString> FIRST_ATTRACT_SCREEN;
 /** @brief The screen that appears when pressing the operator button. */
 extern ThemeMetric<RString> OPERATOR_MENU_SCREEN;
 /** @brief The default modifiers to apply. */
@@ -67,6 +65,8 @@ extern ThemeMetric<bool> AUTO_SET_STYLE;
 extern ThemeMetric<int> PERCENT_SCORE_DECIMAL_PLACES;
 
 extern ThemeMetric<RString> IMAGES_TO_CACHE;
+
+
 
 RString
 LocalizeOptionItem(const RString& s, bool bOptional);

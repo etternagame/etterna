@@ -49,5 +49,6 @@ t[#t + 1] = LoadActor("../_mousewheelscroll")
 t[#t + 1] = LoadActor("currenttime")
 t[#t + 1] = LoadActor("../_halppls")
 t[#t + 1] = LoadActor("../_userlist")
+t[#t + 1] = LoadActor("../_lobbyuserlist")
 
 return t

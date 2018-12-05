@@ -703,10 +703,8 @@ Player::Load()
 	// Generate some cache data structure.
 	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
 
-	int iDrawDistanceAfterTargetsPixels =
-	  GAMESTATE->IsEditing() ? -100 : DRAW_DISTANCE_AFTER_TARGET_PIXELS;
-	int iDrawDistanceBeforeTargetsPixels =
-	  GAMESTATE->IsEditing() ? 400 : DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	int iDrawDistanceAfterTargetsPixels = DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+	int iDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 
 	float fNoteFieldMiddle =
 	  (GRAY_ARROWS_Y_STANDARD + GRAY_ARROWS_Y_REVERSE) / 2;
@@ -955,10 +953,11 @@ Player::Update(float fDeltaTime)
 		bool bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
 
 		// TODO: Make this work for non-human-controlled players
-		if (bIsHoldingButton && !GAMESTATE->m_bDemonstrationOrJukebox &&
-			m_pPlayerState->m_PlayerController == PC_HUMAN)
+
+		if (bIsHoldingButton && m_pPlayerState->m_PlayerController == PC_HUMAN)
 			if (m_pNoteField != nullptr)
 				m_pNoteField->SetPressed(col);
+
 	}
 
 	// handle Autoplay for rolls
@@ -3385,8 +3384,7 @@ Player::HandleTapRowScore(unsigned row)
 	bNoCheating = false;
 #endif
 
-	if (GAMESTATE->m_bDemonstrationOrJukebox)
-		bNoCheating = false;
+
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return;
@@ -3557,8 +3555,7 @@ Player::HandleHoldScore(const TapNote& tn)
 	bNoCheating = false;
 #endif
 
-	if (GAMESTATE->m_bDemonstrationOrJukebox)
-		bNoCheating = false;
+
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return;

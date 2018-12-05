@@ -50,11 +50,12 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	void StartPlayingMusic() override {}
 
+	virtual void OpenOptions();
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
 	void OpenOptionsList(PlayerNumber pn);
-	void OnConfirmSongDeletion();
+
 
 	bool can_open_options_list(PlayerNumber pn);
 
@@ -100,6 +101,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 
+	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY_INIT;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY;
 	ThemeMetric<bool> SAMPLE_MUSIC_LOOPS;
@@ -176,8 +178,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	BackgroundLoader m_BackgroundLoader;
 	RageTexturePreloader m_TexturePreload;
-
-	Song* m_pSongAwaitingDeletionConfirmation;
 };
 
 #endif
