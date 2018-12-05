@@ -165,14 +165,15 @@ RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
 		int target_width = lround(src->w * xscale);
 		int target_height = lround(src->h * yscale);
 
-		RageSurface* dst = CreateSurface(target_width,
-										 target_height,
-										 32,
-										 src->fmt.Rmask,
-										 src->fmt.Gmask,
-										 src->fmt.Bmask,
-										 src->fmt.Amask);
-		if (0) // cwashy,-mina
+		RageSurface* dst = nullptr;
+		if (PREFSMAN->UseStbImageLibrary) {
+			dst = CreateSurface(dstwidth,
+								dstheight,
+								32,
+								src->fmt.Rmask,
+								src->fmt.Gmask,
+								src->fmt.Bmask,
+								src->fmt.Amask);
 			stbir_resize_uint8(src->pixels,
 							   src->w,
 							   src->h,
@@ -182,9 +183,18 @@ RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
 							   dstheight,
 							   0,
 							   4);
-
-		else
-			ZoomSurface(src, dst);
+			delete src;
+			src = dst;
+			return;
+		}
+		dst = CreateSurface(target_width,
+										 target_height,
+										 32,
+										 src->fmt.Rmask,
+										 src->fmt.Gmask,
+										 src->fmt.Bmask,
+										 src->fmt.Amask);
+		ZoomSurface(src, dst);
 		delete src;
 		src = dst;
 	}
