@@ -55,7 +55,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
 	void OpenOptionsList(PlayerNumber pn);
-	void OnConfirmSongDeletion();
+
 
 	bool can_open_options_list(PlayerNumber pn);
 
@@ -178,8 +178,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	BackgroundLoader m_BackgroundLoader;
 	RageTexturePreloader m_TexturePreload;
-
-	Song* m_pSongAwaitingDeletionConfirmation;
 };
 
 #endif

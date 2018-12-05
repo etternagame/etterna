@@ -685,7 +685,7 @@ DWILoader::LoadFromDir(const RString& sPath_,
 		else if (sValueName.EqualsNoCase("BPM")) {
 			const float fBPM = StringToFloat(sParams[1]);
 
-			if (unlikely(fBPM <= 0.0f && !PREFSMAN->m_bQuirksMode)) {
+			if (unlikely(fBPM <= 0.0f)) {
 				LOG->UserLog("Song file",
 							 sPath,
 							 "has an invalid BPM change at beat %f, BPM %f.",

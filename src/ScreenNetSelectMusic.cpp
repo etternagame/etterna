@@ -39,7 +39,6 @@ AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_BackFromPlayerOptions);
-AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
 AutoScreenMessage(ETTP_Disconnect);
@@ -209,45 +208,13 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		SelectSongUsingNSMAN(this, true);
 	} else if (SM == ETTP_SelectChart) {
 		SelectSongUsingNSMAN(this, false);
-	} else if (SM == SM_ConfirmDeleteSong) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			OnConfirmSongDeletion();
-		} else {
-			// need to resume the song preview that was automatically paused
-			m_MusicWheel.ChangeMusic(0);
-		}
-	}
+	} 
 
 	// Must be at end, as so it is last resort for SMOnline packets.
 	// If it doesn't know what to do, then it'll just remove them.
 	ScreenSelectMusic::HandleScreenMessage(SM);
 }
 
-void
-ScreenNetSelectMusic::OnConfirmSongDeletion()
-{
-	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
-	if (!deletedSong) {
-		LOG->Warn("Attempted to delete a null song "
-				  "(ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	// ensure Stepmania is configured to allow song deletion
-	if (!PREFSMAN->m_bAllowSongDeletion.Get()) {
-		LOG->Warn("Attemped to delete a song but AllowSongDeletion was set to "
-				  "false (ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	RString deleteDir = deletedSong->GetSongDir();
-	// flush the deleted song from any caches
-	SONGMAN->UnlistSong(deletedSong);
-	// refresh the song list
-	m_MusicWheel.ReloadSongList(false, "");
-	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
-	// delete the song directory from disk
-	FILEMAN->DeleteRecursive(deleteDir);
-	m_pSongAwaitingDeletionConfirmation = NULL;
-}
 
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {

@@ -904,11 +904,6 @@ DifficultyP2ReverseY=SCREEN_CENTER_Y-170
 DifficultyP2ReverseOnCommand=addx,200;sleep,0.5;linear,1;addx,-200
 DifficultyP2ReverseOffCommand=linear,1;addx,200
 
-[ScreenGameplayShared]
-Class="ScreenGameplayShared"
-Fallback="ScreenGameplay"
-PlayerType="PlayerShared"
-
 [ScreenEvaluation]
 Fallback="ScreenWithMenuElements"
 Class="ScreenEvaluation"
@@ -4268,9 +4263,6 @@ ProfileHighScoreLabelOnCommand=visible,false;
 ProfileHighScoreLabelOffCommand=
 ProfileHighScoreNumLevels=0
 
-[ScreenSandbox]
-Class="ScreenSandbox"
-Fallback="Screen"
 
 [PlayerSyncMachine]
 Fallback="Player"
@@ -4396,9 +4388,6 @@ ApproachSeconds=1
 [GraphDisplay]
 BodyWidth=140
 BodyHeight=38
-
-[ComboGraph]
-BodyWidth=140
 
 [CustomScoring]
 ComboAboveThresholdAddsToScoreBonus=0

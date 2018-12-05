@@ -603,10 +603,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// handle combo logic
 #ifndef DEBUG
 	if ((GamePreferences::m_AutoPlay != PC_HUMAN ||
-		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0) &&
-		!GAMESTATE->m_bDemonstrationOrJukebox &&
-		GamePreferences::m_AutoPlay !=
-		  PC_REPLAY) // cheaters always prosper >:D -aj comment edit
+		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0))
 	{
 		m_cur_toasty_combo = 0;
 		return;
@@ -616,8 +613,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// Toasty combo
 	if (scoreOfLastTap >= m_toasty_min_tns) {
 		m_cur_toasty_combo += iNumTapsInRow;
-		if (m_cur_toasty_combo > m_next_toasty_at &&
-			!GAMESTATE->m_bDemonstrationOrJukebox) {
+		if (m_cur_toasty_combo > m_next_toasty_at) {
 			++m_cur_toasty_level;
 			// Broadcast the message before posting the screen message so that
 			// the transition layer can catch the message to know the level and

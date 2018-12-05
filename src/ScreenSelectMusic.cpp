@@ -64,7 +64,6 @@ AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_SortOrderChanging);
 AutoScreenMessage(SM_SortOrderChanged);
 AutoScreenMessage(SM_BackFromPlayerOptions);
-AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
 static bool g_bSampleMusicWaiting = false;
@@ -555,21 +554,6 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
 					   SONGMAN->activeplaylist.c_str()));
 			return true;
-		} else if (input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl &&
-				   input.DeviceI.button == KEY_BACK &&
-				   input.type == IET_FIRST_PRESS && m_MusicWheel.IsSettled()) {
-			// Keyboard shortcut to delete a song from disk (ctrl + backspace)
-			Song* songToDelete = m_MusicWheel.GetSelectedSong();
-			if (songToDelete && PREFSMAN->m_bAllowSongDeletion.Get()) {
-				m_pSongAwaitingDeletionConfirmation = songToDelete;
-				ScreenPrompt::Prompt(
-				  SM_ConfirmDeleteSong,
-				  ssprintf(PERMANENTLY_DELETE.GetValue(),
-						   songToDelete->m_sMainTitle.c_str(),
-						   songToDelete->GetSongDir().c_str()),
-				  PROMPT_YES_NO);
-				return true;
-			}
 		}
 	}
 
@@ -1045,14 +1029,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
-	} else if (SM == SM_ConfirmDeleteSong) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			OnConfirmSongDeletion();
-		} else {
-			// need to resume the song preview that was automatically paused
-			m_MusicWheel.ChangeMusic(0);
-		}
-	}
+	} 
 
 	if (SM == SM_BackFromNamePlaylist) {
 		Playlist pl;
@@ -1523,34 +1500,6 @@ ScreenSelectMusic::OpenOptionsList(PlayerNumber pn)
 		m_MusicWheel.Move(0);
 		m_OptionsList[pn].Open();
 	}
-}
-
-void
-ScreenSelectMusic::OnConfirmSongDeletion()
-{
-	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
-	if (deletedSong == nullptr) {
-		LOG->Warn("Attempted to delete a null song "
-				  "(ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	// ensure Stepmania is configured to allow song deletion
-	if (!PREFSMAN->m_bAllowSongDeletion.Get()) {
-		LOG->Warn("Attemped to delete a song but AllowSongDeletion was set to "
-				  "false (ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-
-	RString deleteDir = deletedSong->GetSongDir();
-	// flush the deleted song from any caches
-	SONGMAN->UnlistSong(deletedSong);
-	// refresh the song list
-	m_MusicWheel.ReloadSongList(false, "");
-	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
-	// delete the song directory from disk
-	FILEMAN->DeleteRecursive(deleteDir);
-
-	m_pSongAwaitingDeletionConfirmation = nullptr;
 }
 
 bool

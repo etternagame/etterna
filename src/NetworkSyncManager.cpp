@@ -1310,6 +1310,7 @@ NetworkSyncManager::StartRequest(short position)
 		curProtocol->StartRequest(this, position);
 }
 
+
 void
 NetworkSyncManager::DisplayStartupStatus()
 {

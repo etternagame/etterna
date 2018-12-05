@@ -4,7 +4,6 @@
 #include "ActorUtil.h"
 #include "Banner.h"
 #include "BitmapText.h"
-#include "GradeDisplay.h"
 #include "PercentageDisplay.h"
 #include "RageSound.h"
 #include "RollingNumbers.h"
@@ -75,10 +74,6 @@ class ScreenEvaluation : public ScreenWithMenuElements
 	AutoActor m_sprDisqualified[NUM_PLAYERS];
 	Banner m_SmallBanner[MAX_SONGS_TO_SHOW];
 	AutoActor m_sprSmallBannerFrame[MAX_SONGS_TO_SHOW];
-
-	// grade area
-	AutoActor m_sprGradeFrame[NUM_PLAYERS];
-	GradeDisplay m_Grades[NUM_PLAYERS];
 
 	// points area
 	PercentageDisplay m_Percent[NUM_PLAYERS];

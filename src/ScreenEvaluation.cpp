@@ -49,16 +49,13 @@ XToString(DetailLine);
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
 
 // metrics that are specific to classes derived from ScreenEvaluation
-#define SHOW_BANNER_AREA THEME->GetMetricB(m_sName, "ShowBannerArea")
-#define SHOW_GRADE_AREA THEME->GetMetricB(m_sName, "ShowGradeArea")
-#define SHOW_POINTS_AREA THEME->GetMetricB(m_sName, "ShowPointsArea")
-#define SHOW_BONUS_AREA THEME->GetMetricB(m_sName, "ShowBonusArea")
-#define SHOW_SURVIVED_AREA THEME->GetMetricB(m_sName, "ShowSurvivedArea")
-#define SHOW_WIN_AREA THEME->GetMetricB(m_sName, "ShowWinArea")
-#define SHOW_SHARED_JUDGMENT_LINE_LABELS                                       \
-	THEME->GetMetricB(m_sName, "ShowSharedJudgmentLineLabels")
-#define SHOW_JUDGMENT_LINE(l)                                                  \
-	THEME->GetMetricB(m_sName, "ShowJudgmentLine" + JudgmentLineToString(l))
+#define SHOW_BANNER_AREA			THEME->GetMetricB(m_sName,"ShowBannerArea")
+#define SHOW_POINTS_AREA			THEME->GetMetricB(m_sName,"ShowPointsArea")
+#define SHOW_BONUS_AREA				THEME->GetMetricB(m_sName,"ShowBonusArea")
+#define SHOW_SURVIVED_AREA			THEME->GetMetricB(m_sName,"ShowSurvivedArea")
+#define SHOW_WIN_AREA				THEME->GetMetricB(m_sName,"ShowWinArea")
+#define SHOW_SHARED_JUDGMENT_LINE_LABELS	THEME->GetMetricB(m_sName,"ShowSharedJudgmentLineLabels")
+#define SHOW_JUDGMENT_LINE( l )			THEME->GetMetricB(m_sName,"ShowJudgmentLine"+JudgmentLineToString(l))
 
 #define SHOW_DETAIL_AREA THEME->GetMetricB(m_sName, "ShowDetailArea")
 #define SHOW_SCORE_AREA THEME->GetMetricB(m_sName, "ShowScoreArea")
@@ -343,27 +340,6 @@ ScreenEvaluation::Init()
 			m_sprDisqualified[p]->SetVisible(
 			  m_pStageStats->m_player[p].m_bDisqualified);
 			this->AddChild(m_sprDisqualified[p]);
-		}
-	}
-
-	// init grade area
-	if (SHOW_GRADE_AREA) {
-		FOREACH_EnabledPlayer(p)
-		{
-			m_sprGradeFrame[p].Load(
-			  THEME->GetPathG(m_sName, ssprintf("GradeFrame p%d", p + 1)));
-			m_sprGradeFrame[p]->SetName(ssprintf("GradeFrameP%d", p + 1));
-			ActorUtil::LoadAllCommands(*m_sprGradeFrame[p], m_sName);
-			SET_XY(m_sprGradeFrame[p]);
-			this->AddChild(m_sprGradeFrame[p]);
-
-			// TODO: Re-add scrolling grade functionality
-			m_Grades[p].Load("GradeDisplayEval");
-			m_Grades[p].SetGrade(grade[p]);
-			m_Grades[p].SetName(ssprintf("GradeP%d", p + 1));
-			ActorUtil::LoadAllCommands(m_Grades[p], m_sName);
-			SET_XY(m_Grades[p]);
-			this->AddChild(&m_Grades[p]);
 		}
 	}
 
