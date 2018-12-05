@@ -112,6 +112,7 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 {
 	// set metadata values
 	auto& metadata = parsedData["Metadata"];
+	out.m_sSongFileName = metadata["Title"];
 	out.m_sMainTitle = metadata["Title"];
 	out.m_sSubTitle = metadata["Version"];
 	out.m_sArtist = metadata["Artist"];

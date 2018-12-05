@@ -1,8 +1,11 @@
-﻿#include "global.h"
+#include "global.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil.h"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize.h"
+#include "PrefsManager.h"
 #include <vector>
 
 using namespace std;
@@ -162,18 +165,37 @@ RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
 		int target_width = lround(src->w * xscale);
 		int target_height = lround(src->h * yscale);
 
-		RageSurface* dst = CreateSurface(target_width,
+		RageSurface* dst = nullptr;
+		if (PREFSMAN->UseStbImageLibrary) {
+			dst = CreateSurface(dstwidth,
+								dstheight,
+								32,
+								src->fmt.Rmask,
+								src->fmt.Gmask,
+								src->fmt.Bmask,
+								src->fmt.Amask);
+			stbir_resize_uint8(src->pixels,
+							   src->w,
+							   src->h,
+							   0,
+							   dst->pixels,
+							   dstwidth,
+							   dstheight,
+							   0,
+							   4);
+			delete src;
+			src = dst;
+			return;
+		}
+		dst = CreateSurface(target_width,
 										 target_height,
 										 32,
 										 src->fmt.Rmask,
 										 src->fmt.Gmask,
 										 src->fmt.Bmask,
 										 src->fmt.Amask);
-
 		ZoomSurface(src, dst);
-
 		delete src;
-
 		src = dst;
 	}
 }

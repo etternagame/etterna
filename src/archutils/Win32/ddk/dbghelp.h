@@ -330,7 +330,8 @@ typedef struct _MODLOAD_DATA
 // StackWalking API
 //
 
-typedef enum {
+typedef enum
+{
 	AddrMode1616,
 	AddrMode1632,
 	AddrModeReal,
@@ -717,7 +718,8 @@ typedef BOOL(CALLBACK* PSYMBOL_REGISTERED_CALLBACK)(HANDLE hProcess,
 //
 // symbol type enumeration
 //
-typedef enum {
+typedef enum
+{
 	SymNone = 0,
 	SymCoff,
 	SymCv,
@@ -1412,7 +1414,8 @@ SymEnumSymbolsForAddr(IN HANDLE hProcess,
 					  IN PSYM_ENUMERATESYMBOLS_CALLBACK EnumSymbolsCallback,
 					  IN PVOID UserContext);
 
-typedef enum _IMAGEHLP_SYMBOL_TYPE_INFO {
+typedef enum _IMAGEHLP_SYMBOL_TYPE_INFO
+{
 	TI_GET_SYMTAG,
 	TI_GET_SYMNAME,
 	TI_GET_LENGTH,
@@ -1691,7 +1694,8 @@ typedef struct _MINIDUMP_STRING
 // the system and is reserved for program-specific information.
 //
 
-typedef enum _MINIDUMP_STREAM_TYPE {
+typedef enum _MINIDUMP_STREAM_TYPE
+{
 
 	UnusedStream = 0,
 	ReservedStream0 = 1,
@@ -2116,7 +2120,8 @@ typedef struct _MINIDUMP_USER_STREAM_INFORMATION
 // Callback support.
 //
 
-typedef enum _MINIDUMP_CALLBACK_TYPE {
+typedef enum _MINIDUMP_CALLBACK_TYPE
+{
 	ModuleCallback,
 	ThreadCallback,
 	ThreadExCallback,
@@ -2151,7 +2156,8 @@ typedef struct _MINIDUMP_INCLUDE_THREAD_CALLBACK
 	ULONG ThreadId;
 } MINIDUMP_INCLUDE_THREAD_CALLBACK, *PMINIDUMP_INCLUDE_THREAD_CALLBACK;
 
-typedef enum _THREAD_WRITE_FLAGS {
+typedef enum _THREAD_WRITE_FLAGS
+{
 	ThreadWriteThread = 0x0001,
 	ThreadWriteStack = 0x0002,
 	ThreadWriteContext = 0x0004,
@@ -2179,7 +2185,8 @@ typedef struct _MINIDUMP_INCLUDE_MODULE_CALLBACK
 	ULONG64 BaseOfImage;
 } MINIDUMP_INCLUDE_MODULE_CALLBACK, *PMINIDUMP_INCLUDE_MODULE_CALLBACK;
 
-typedef enum _MODULE_WRITE_FLAGS {
+typedef enum _MODULE_WRITE_FLAGS
+{
 	ModuleWriteModule = 0x0001,
 	ModuleWriteDataSeg = 0x0002,
 	ModuleWriteMiscRecord = 0x0004,
@@ -2258,7 +2265,8 @@ typedef struct _MINIDUMP_CALLBACK_OUTPUT
 // of memory to be included in the dump.
 //
 
-typedef enum _MINIDUMP_TYPE {
+typedef enum _MINIDUMP_TYPE
+{
 	MiniDumpNormal = 0x0000,
 	MiniDumpWithDataSegs = 0x0001,
 	MiniDumpWithFullMemory = 0x0002,

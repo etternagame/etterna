@@ -9,7 +9,7 @@ local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numscores + 2) * packspaceY - packspaceY/3 -- account dumbly for header being moved up
+local height = (numscores + 2) * packspaceY - packspaceY / 3 -- account dumbly for header being moved up
 
 local adjx = 14
 local c0x = 10
@@ -28,7 +28,7 @@ local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+	if isOver(cheese:GetChild("FrameDisplay")) then -- visibility checks are built into isover now -mina
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -43,34 +43,8 @@ local function input(event)
 	return false
 end
 
-local function isOver(element)
-	if element:GetParent():GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetVisible() == false then
-		return false
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
-
-	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
-
-	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
-
-	return (withinX and withinY)
-end
-
 local function highlight(self)
-	if self:GetVisible() then
+	if self:IsVisible() then
 		self:queuecommand("Highlight")
 		self:queuecommand("WHAZZZAAAA")
 	end
@@ -94,28 +68,36 @@ end
 local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
 
-local scoretable
+local scoretable = {}
 local o =
 	Def.ActorFrame {
 	Name = "ScoreDisplay",
 	InitCommand = function(self)
 		cheese = self
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-	end,
-	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
-		ind = 0
 		self:playcommand("Update")
 	end,
-	BortCommand = function(self)
-		scoretable = {}
+	GetFilteredLeaderboardCommand = function(self)
+		if GAMESTATE:GetCurrentSong() then
+			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+			ind = 0
+			self:playcommand("Update")
+		end
+	end,
+	SetFromLeaderboardCommand = function(self, lb)
+		scoretable = lb
 		ind = 0
+		self:playcommand("GetFilteredLeaderboard") -- we can move all the filter stuff to lua so we're not being dumb hurr hur -mina
 		self:playcommand("Update")
 	end,
 	UpdateCommand = function(self)
+		if not scoretable then
+			scoretable = {}
+		end
 		if ind == #scoretable then
 			ind = ind - numscores
 		elseif ind > #scoretable - (#scoretable % numscores) then
@@ -183,7 +165,7 @@ local o =
 		offx = 5
 		width = SCREEN_WIDTH * 0.56
 		dwidth = width - offx * 2
-		height = (numscores + 2) * packspaceY - packspaceY/3
+		height = (numscores + 2) * packspaceY - packspaceY / 3
 
 		adjx = 14
 		c0x = 10
@@ -230,7 +212,9 @@ local o =
 	-- grabby thing
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(0.5):valign(1)
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(
+				0.5
+			):valign(1)
 		end,
 		WHAZZZAAAACommand = function(self)
 			if isOver(self) and collapsed then
@@ -255,22 +239,34 @@ local o =
 			Name = "RequestStatus",
 			InitCommand = function(self)
 				if collapsed then
-					self:xy(dwidth - 75, headeroff + 15):zoom(tzoom):halign(1)
+					self:xy(c1x, headeroff + 15):zoom(tzoom):halign(0)
 				else
-					self:xy(dwidth / 3, headeroff + 25):zoom(tzoom):halign(1)
+					self:xy(c1x, headeroff + 25):zoom(tzoom):halign(0)
 				end
 			end,
 			UpdateCommand = function(self)
 				local numberofscores = #scoretable
 				local online = DLMAN:IsLoggedIn()
-				if not online and #scoretable == 0 then
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
 					self:settext("Login to view scores")
 				else
 					if #scoretable == 0 then
-						self:settext("Retrieving scores...")
+						self:settext("Online scores not tracked...")
 					else
 						self:settext("")
 					end
+				end
+			end,
+			CurrentSongChangedMessageCommand = function(self)
+				local online = DLMAN:IsLoggedIn()
+				if not GAMESTATE:GetCurrentSong() then
+					self:settext("")
+				elseif not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					self:settext("Retrieving scores...")
 				end
 			end
 		},
@@ -294,7 +290,7 @@ local o =
 				if isOver(self) then
 					DLMAN:ToggleRateFilter()
 					ind = 0
-					self:GetParent():queuecommand("ChartLeaderboardUpdate")
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
 			end
 		},
@@ -322,7 +318,7 @@ local o =
 				if isOver(self) then
 					DLMAN:ToggleTopScoresOnlyFilter()
 					ind = 0
-					self:GetParent():queuecommand("ChartLeaderboardUpdate")
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
 			end
 		}
@@ -339,11 +335,14 @@ local function makeScoreDisplay(i)
 				self:visible(false)
 			end
 		end,
+		CurrentSongChangedMessageCommand = function(self)
+			self:visible(false)
+		end,
 		UpdateCommand = function(self)
 			hs = scoretable[(i + ind)]
 			if hs and i <= numscores then
-				self:queuecommand("Display")
 				self:visible(true)
+				self:playcommand("Display")
 			else
 				self:visible(false)
 			end
@@ -356,8 +355,8 @@ local function makeScoreDisplay(i)
 				self:diffuse(color("#111111CC"))
 			end,
 			HighlightCommand = function(self)
-				if isOver(self) and collapsed then
-					self:diffusealpha(1)
+				if isOver(self) then
+					self:diffusealpha(0.8)
 				else
 					self:diffusealpha(0.6)
 				end
@@ -407,8 +406,9 @@ local function makeScoreDisplay(i)
 					self:addy(-row2yoff)
 				end
 			},
-		LoadFont("Common normal") .. {
-				Name = "Burt"..i,
+		LoadFont("Common normal") ..
+			{
+				Name = "Burt" .. i,
 				InitCommand = function(self)
 					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
 					if collapsed then
@@ -433,8 +433,9 @@ local function makeScoreDisplay(i)
 					end
 				end
 			},
-		LoadFont("Common normal") .. {
-				Name = "Ernie"..i,
+		LoadFont("Common normal") ..
+			{
+				Name = "Ernie" .. i,
 				InitCommand = function(self)
 					if not collapsed then
 						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)
@@ -466,6 +467,50 @@ local function makeScoreDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
+				Name = "Replay" .. i,
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(
+							row2yoff
+						):diffuse(getMainColor("enabled"))
+					end
+				end,
+				BeginCommand = function(self)
+					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+						self:x(-10):zoom(0.0000001):maxwidth(1)
+					end
+				end,
+				DisplayCommand = function(self)
+					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+						if hs:HasReplayData() then
+							self:settext("Watch")
+						else
+							self:settext("")
+						end
+					end
+				end,
+				HighlightCommand = function(self)
+					highlightIfOver(self)
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) and hs then
+						DLMAN:RequestOnlineScoreReplayData(
+							hs,
+							function()
+								SCREENMAN:GetTopScreen():PlayReplay(hs)
+							end
+						)
+					end
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true):addy(-row2yoff)
+				end
+			},
+		LoadFont("Common normal") ..
+			{
 				--percent
 				InitCommand = function(self)
 					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
@@ -486,7 +531,11 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					self:settext(hs:GetDate())
+					if IsUsingWideScreen() then
+						self:settext(hs:GetDate())
+					else
+						self:settext(hs:GetDate():sub(1, 10))
+					end
 				end,
 				CollapseCommand = function(self)
 					self:visible(false)

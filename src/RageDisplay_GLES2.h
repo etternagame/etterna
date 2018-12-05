@@ -24,8 +24,8 @@ class RageDisplay_GLES2 : public RageDisplay
 							   bool realtime = false) override;
 	bool SupportsPerVertexMatrixScale() override;
 	virtual intptr_t CreateTexture(RagePixelFormat pixfmt,
-						   RageSurface* img,
-						   bool bGenerateMipMaps) override;
+								   RageSurface* img,
+								   bool bGenerateMipMaps) override;
 	void UpdateTexture(intptr_t iTexHandle,
 					   RageSurface* img,
 					   int xoffset,

@@ -21,7 +21,6 @@ enum MusicWheelUsesSections
 enum AllowW1
 {
 	ALLOW_W1_NEVER,		   /**< The W1 timing is not used. */
-	ALLOW_W1_COURSES_ONLY, /**< The W1 timing is used for courses only. */
 	ALLOW_W1_EVERYWHERE,   /**< The W1 timing is used for all modes. */
 	NUM_AllowW1,
 	AllowW1_Invalid
@@ -204,6 +203,7 @@ class PrefsManager
 	Preference<bool> m_DisableUploadDir;
 	Preference<bool> m_bCelShadeModels;
 	Preference<bool> m_bPreferredSortUsesGroups;
+	Preference<bool> UseStbImageLibrary;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
@@ -263,7 +263,8 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 
-	Preference<int> m_verbose_log; // levels 0, 1, and 2 where higher numbers means more logging
+	Preference<int> m_verbose_log; // levels 0, 1, and 2 where higher numbers
+								   // means more logging
 
 #if !defined(WITHOUT_NETWORKING)
 	Preference<bool>

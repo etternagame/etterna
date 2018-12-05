@@ -1,0 +1,74 @@
+// sm-ssc step chart/msd5 hacky file format doc.
+// based off of .sm, which was based off of DWI's modified MSD format.
+#VERSION:;
+#TITLE:;
+#SUBTITLE:;
+#ARTIST:;
+#TITLETRANSLIT:;
+#SUBTITLETRANSLIT:;
+#ARTISTTRANSLIT:;
+#GENRE:;
+#CREDIT:;
+#BANNER:;
+#BACKGROUND:;
+#LYRICSPATH:;
+#CDTITLE:;
+#MUSIC:;
+#INSTRUMENTTRACK:;
+#MUSICLENGTH:;
+#OFFSET:;
+#BPMS:;
+#STOPS:;
+#DELAYS:;
+#LABELS:;
+#TIMESIGNATURES:;
+#SAMPLESTART:;
+#SAMPLELENGTH:;
+#DISPLAYBPM:[xxx][xxx:xxx]|[*];
+#SELECTABLE:;
+#LASTSECONDHINT:;
+#BGCHANGES:;
+#FGCHANGES:;
+#KEYSOUNDS:;
+#ATTACKS:;
+
+// stored in cache
+#FIRSTSECOND:;			// calculated
+#LASTSECOND:;			// calculated
+#SONGFILENAME:;
+#MUSICBYTES:;			// ignored by loader
+#HASMUSIC:;
+#HASBANNER:;
+
+// begin
+#NOTEDATA:; // marks a new note data section
+// information from #NOTES moved here
+#CHARTNAME:;
+#STEPSTYPE:;
+#DESCRIPTION:;
+#CHARTSTYLE:;
+#DIFFICULTY:;
+#METER:;
+#RADARVALUES:;
+#CREDIT:;
+
+// steps-based timingdata
+#OFFSET:;
+#BPMS:;
+#STOPS:;
+#DELAYS:;
+#TIMESIGNATURES:;
+#TICKCOUNTS:;
+#COMBOS:;
+#SPEEDS:;
+#SCROLLS:;
+#FAKES:;
+#LABELS:;
+#ATTACKS:;
+#DISPLAYBPM:;
+
+// only in cache files
+#STEPFILENAME:;
+
+// actual step data (not in cache files)
+#NOTES:;

@@ -72,7 +72,10 @@ class SongManager
 	// mina
 	Steps* GetStepsByChartkey(RString ck);
 	Song* GetSongByChartkey(RString ck);
-	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
+	bool IsChartLoaded(RString ck)
+	{
+		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
+	}
 
 	void ResetGroupColors();
 
@@ -171,7 +174,7 @@ class SongManager
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
 	void LoadDWISongDir(const RString& sDir);
-	void SanityCheckGroupDir(const RString& sDir) const;
+	bool IsSongDir(const RString& sDir);
 	bool AddGroup(const RString& sDir, const RString& sGroupDirName);
 
 	void AddSongToList(Song* new_song);

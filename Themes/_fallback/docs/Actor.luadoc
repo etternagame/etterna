@@ -1,0 +1,1385 @@
+--- Basic Actor class
+-- @classmod Actor
+
+--[[--
+ 		This adds a wrapper state around the Actor, which is like wrapping the Actor in an ActorFrame, except that you can use it on any actor, and add or remove wrapper states in response to things that happen while the screen is being used. (wrapping an Actor in an ActorFrame normally requires setting it up before the screen starts)<br />
+		The ActorFrame that is returned is the wrapper state, for convenience.<br />
+		An Actor can have any number of wrapper states.  Use GetWrapperState to access wrapper states for the actor.
+	  @return ActorFrame
+--]]
+function Actor:AddWrapperState()
+end
+
+--[[--
+ 		Returns the number of wrapper states the actor has.
+	  @return ActorFrame
+--]]
+function Actor:GetNumWrapperStates()
+end
+
+--[[--
+ 		Returns the wrapper state at index i.  Think of wrapper states with a higher index as being "further out".  Actor is inside Wrapper 1, Wrapper 1 is inside Wrapper 2, Wrapper 2 is inside Wrapper 3, and so on.
+	  @return ActorFrame
+--]]
+function Actor:GetWrapperState(i)
+end
+
+--[[--
+ 		Removes the wrapper state at index i.
+	  @return 
+--]]
+function Actor:RemoveWrapperState(int, i)
+end
+
+--[[--
+ 		Returns the Actor's parent, or <code>nil</code> if it doesn't have one.
+	  @return Actor
+--]]
+function Actor:GetParent()
+end
+
+--[[--
+ 		Returns the Actor's fake parent, or <code>nil</code> if it doesn't have one.
+	  @return Actor
+--]]
+function Actor:GetFakeParent()
+end
+
+--[[--
+ 		Sets the Actor's fake parent to p, or clears it if p is nil.
+	  @return 
+--]]
+function Actor:SetFakeParent(Actor, p)
+end
+
+--[[--
+ 		Returns the Actor's visibility.
+	  @return bool
+--]]
+function Actor:GetVisible()
+end
+
+--[[--
+ 		Returns the Actor's x position.
+	  @return float
+--]]
+function Actor:GetX()
+end
+
+--[[--
+ 		Returns the Actor's y position.
+	  @return float
+--]]
+function Actor:GetY()
+end
+
+--[[--
+ 		Returns the Actor's z position.
+	  @return float
+--]]
+function Actor:GetZ()
+end
+
+--[[--
+ 		Returns what the Actor's x position will be when it reaches its destination tween state.
+	  @return float
+--]]
+function Actor:GetDestX()
+end
+
+--[[--
+ 		Returns what the Actor's y position will be when it reaches its destination tween state.
+	  @return float
+--]]
+function Actor:GetDestY()
+end
+
+--[[--
+ 		Returns what the Actor's z position will be when it reaches its destination tween state.
+	  @return float
+--]]
+function Actor:GetDestZ()
+end
+
+--[[--
+ 		Returns the Actor's zoom.
+	  @return float
+--]]
+function Actor:GetZoom()
+end
+
+--[[--
+ 		Returns the Actor's X zoom.
+	  @return float
+--]]
+function Actor:GetZoomX()
+end
+
+--[[--
+ 		Returns the Actor's Y zoom.
+	  @return float
+--]]
+function Actor:GetZoomY()
+end
+
+--[[--
+ 		Returns the Actor's Z zoom.
+	  @return float
+--]]
+function Actor:GetZoomZ()
+end
+
+--[[--
+ 		Sets Texture Filtering for an Actor to <code>b</code>.
+	  @return void
+--]]
+function Actor:SetTextureFiltering(bool, b)
+end
+
+--[[--
+ 		Plays the commands that follow at an accelerated rate (<code>fRate</code> * <code>fRate</code>), where <code>fRate</code> is in seconds.
+	  @return void
+--]]
+function Actor:accelerate(float, fRate)
+end
+
+--[[--
+ 		Adds a command to the Actor.
+	  @return void
+--]]
+function Actor:addcommand(string, sName, ActorCommand, cmd)
+end
+
+--[[--
+ 		Adds <code>rot</code> to the Actor's current x rotation.
+	  @return void
+--]]
+function Actor:addrotationx(float, rot)
+end
+
+--[[--
+ 		Adds <code>rot</code> to the Actor's current y rotation.
+	  @return void
+--]]
+function Actor:addrotationy(float, rot)
+end
+
+--[[--
+ 		Adds <code>rot</code> to the Actor's current z rotation.
+	  @return void
+--]]
+function Actor:addrotationz(float, rot)
+end
+
+--[[--
+ 		Adds <code>xPos</code> to the Actor's current x position.
+	  @return void
+--]]
+function Actor:addx(float, xPos)
+end
+
+--[[--
+ 		Adds <code>yPos</code> to the Actor's current y position.
+	  @return void
+--]]
+function Actor:addy(float, yPos)
+end
+
+--[[--
+ 		Adds <code>zPos</code> to the Actor's current z position.
+	  @return void
+--]]
+function Actor:addz(float, zPos)
+end
+
+--[[--
+ 		 Sets the alignment of an Actor, where <code>h</code> and <code>v</code> are in the range 0..1.
+	  @return void
+--]]
+function Actor:align(h, v)
+end
+
+--[[--
+ 		Sets whether or not the Actor should animate.
+	  @return void
+--]]
+function Actor:animate(bool, b)
+end
+
+--[[--
+ 		Sets the Actor's aux value. (This can be a solution for coupling data with an Actor.)
+	  @return void
+--]]
+function Actor:aux(float, fAux)
+end
+
+--[[--
+ 		If <code>true</code>, cull the Actor's back faces. See also: <Link class='Actor' function='cullmode' />.
+	  @return void
+--]]
+function Actor:backfacecull(bool, b)
+end
+
+--[[--
+ 		Sets the Actor's base alpha to <code>fAlpha</code>, where <code>fAlpha</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:basealpha(float, fAlpha)
+end
+
+--[[--
+ 		Sets the Actor's base X rotation to <code>rot</code>.
+	  @return void
+--]]
+function Actor:baserotationx(float, rot)
+end
+
+--[[--
+ 		Sets the Actor's base Y rotation to <code>rot</code>.
+	  @return void
+--]]
+function Actor:baserotationy(float, rot)
+end
+
+--[[--
+ 		Sets the Actor's base Z rotation to <code>rot</code>.
+	  @return void
+--]]
+function Actor:baserotationz(float, rot)
+end
+
+--[[--
+ 		Sets the Actor's base zoom to <code>zoom</code>.
+	  @return void
+--]]
+function Actor:basezoom(float, zoom)
+end
+
+--[[--
+ 		Sets the Actor's base X zoom to <code>zoom</code>.
+	  @return void
+--]]
+function Actor:basezoomx(float, zoom)
+end
+
+--[[--
+ 		Sets the Actor's base Y zoom to <code>zoom</code>.
+	  @return void
+--]]
+function Actor:basezoomy(float, zoom)
+end
+
+--[[--
+ 		Sets the Actor's base Z zoom to <code>zoom</code>.
+	  @return void
+--]]
+function Actor:basezoomz(float, zoom)
+end
+
+--[[--
+ 		Sets the Actor to use the specified blend mode.
+	  @return void
+--]]
+function Actor:blend(BlendMode, mode)
+end
+
+--[[--
+ 		Makes the Actor bob up and down. Can use <Link function='effectmagnitude' /> to define different bobbing behavior.
+	  @return void
+--]]
+function Actor:bob()
+end
+
+--[[--
+ 		Makes the Actor bounce, similar to bob but with one point acting as the ground. Can use <Link function='effectmagnitude' /> to define different bouncing behavior (with effectmagnitude values relating to x, y, and z movement).
+	  @return void
+--]]
+function Actor:bounce()
+end
+
+--[[--
+	--]]
+function Actor:bounce(time)
+end
+
+--[[--
+	--]]
+function Actor:bouncebegin(time)
+end
+
+--[[--
+	--]]
+function Actor:bounceend(time)
+end
+
+--[[--
+	Centers an Actor on the screen. (equivalent to <code>x,SCREEN_CENTER_X;y,SCREEN_CENTER_Y</code>)
+	--]]
+function Actor:Center(time)
+end
+
+--[[--
+	Centers an Actor on the X axis. (equivalent to <code>x,SCREEN_CENTER_X</code>)
+	--]]
+function Actor:CenterX(time)
+end
+
+--[[--
+	 Centers an Actor on the y axis. (equivalent to <code>y,SCREEN_CENTER_Y</code>)
+	--]]
+function Actor:CenterY(time)
+end
+
+--[[--
+ 		Determines if the z-buffer should be cleared or not.
+	  @return void
+--]]
+function Actor:clearzbuffer(bool, bClear)
+end
+
+--[[--
+		 Combines multiple interpolators for complex tweens. <code>tweens</code>
+		can either be a string like <code>"linear,0.25,accelerate,0.75"</code> or
+		a table with tween information <code>{ {Type="linear", Percent=0.25, Bezier=nil}, {Type="accelerate", Percent=0.75, Bezier=nil} }</code>
+		 @tparam number length
+		 @tparam string tweens
+	  @return void
+--]]
+function Actor:compound(length, tweens)
+end
+
+--[[--
+ 		Crops <code>percent</code> of the Actor from the bottom, where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:cropbottom(float, percent)
+end
+
+--[[--
+ 		Crops <code>percent</code> of the Actor from the left, where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:cropleft(float, percent)
+end
+
+--[[--
+ 		Crops <code>percent</code> of the Actor from the right, where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:cropright(float, percent)
+end
+
+--[[--
+ 		Crops <code>percent</code> of the Actor from the top, where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:croptop(float, percent)
+end
+
+--[[--
+ 		Sets the Actor's cull mode to <code>mode</code>.
+	  @return void
+--]]
+function Actor:cullmode(CullMode, mode)
+end
+
+--[[--
+ 		Plays the commands that follow at an decelerated rate (1 - (1-<code>fRate</code>) * (1-<code>fRate</code>)), where <code>fRate</code> is in seconds.
+	  @return void
+--]]
+function Actor:decelerate(float, fRate)
+end
+
+--[[--
+ 		Set the Actor's diffuse color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuse(color, c)
+end
+
+--[[--
+ 		Sets the Actor's alpha level to <code>fAlpha</code>, where <code>fAlpha</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:diffusealpha(float, fAlpha)
+end
+
+--[[--
+ 		Makes the Actor switch between two colors immediately.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:diffuseblink()
+end
+
+--[[--
+ 		Sets the Actor's bottom edge color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffusebottomedge()
+end
+
+--[[--
+ 		Set the Actor's diffuse color to <code>c</code>, ignoring any alpha value in <code>c</code>.
+	  @return void
+--]]
+function Actor:diffusecolor(color, c)
+end
+
+--[[--
+ 		Sets the Actor's left edge color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuseleftedge(color, c)
+end
+
+--[[--
+ 		Sets the Actor's lower left corner color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuselowerleft(color, c)
+end
+
+--[[--
+ 		Sets the Actor's lower right corner color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuselowerright(color, c)
+end
+
+--[[--
+ 		Makes the Actor switch between two colors, jumping back to the first after reaching the second.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:diffuseramp()
+end
+
+--[[--
+ 		Sets the Actor's right edge color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuserightedge(color, c)
+end
+
+--[[--
+ 		Makes the Actor shift between two colors smoothly.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:diffuseshift()
+end
+
+--[[--
+ 		Sets the Actor's top edge color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffusetopedge(color, c)
+end
+
+--[[--
+ 		Sets the Actor's upper left corner color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuseupperleft(color, c)
+end
+
+--[[--
+ 		Sets the Actor's upper right corner color to <code>c</code>.
+	  @return void
+--]]
+function Actor:diffuseupperright(color, c)
+end
+
+--[[--
+ 		Tells the Actor to draw itself.
+	  @return void
+--]]
+function Actor:Draw()
+end
+
+--[[--
+ 		Sets the Actor's draworder to <code>iOrder</code>, where larger values display first.
+	  @return void
+--]]
+function Actor:draworder(int, iOrder)
+end
+
+--[[--
+ 		Set the Actor's effect clock to <code>s</code>.
+	  @return void
+--]]
+function Actor:drop(time)
+end
+
+--[[--
+ 		Set the Actor's effect clock to <code>s</code>.
+	  @return void
+--]]
+function Actor:ease(time, ease)
+end
+
+--[[--
+ 		Set the Actor's effect clock to <code>s</code>.
+	  @return void
+--]]
+function Actor:effectclock(string, s)
+end
+
+--[[--
+ 		Sets the first effect color to <code>c</code>.
+	  @return void
+--]]
+function Actor:effectcolor1(color, c)
+end
+
+--[[--
+ 		Sets the second effect color to <code>c</code>.
+	  @return void
+--]]
+function Actor:effectcolor2(color, c)
+end
+
+--[[--
+ 		Set the Actor's effect magnitude in each direction to the given values.
+	  @return void
+--]]
+function Actor:effectmagnitude(float, fX, float, fY, float, fZ)
+end
+
+--[[--
+ 		Set the Actor's effect offset to <code>fTime</code>.  The offset is added to the time into the effect before calculating percent_through_effect.
+	  @return void
+--]]
+function Actor:effectoffset(float, fTime)
+end
+
+--[[--
+ 		Set the Actor's effect period to <code>fTime</code>.
+	  @return void
+--]]
+function Actor:effectperiod(float, fTime)
+end
+
+--[[--
+ 		Set the Actor's effect timing.<br />
+		hold_at_zero is before hold_at_full in the argument list for compatibility.  A future version will probably swap them because it makes more sense to have hold_at_full come before hold_at_zero.<br />
+		All effect timings must be greater than or equal to zero, at least one of them must be greater than zero.<br />
+		The effect timing controls how long it takes an effect to cycle and how long it spends in each phase.<br />
+		Depending on the effect clock, the actor's time into effect is updated every frame.  That time is then translated into a percent_through_effect using the parameters to this function.<br />
+		<br />
+		ramp_to_half is the amount of time for percent_through_effect to reach 0.5.<br />
+		hold_at_half is the amount of time percent_through_effect will stay at 0.5.<br />
+		ramp_to_full is the amount of time percent_through_effect will take to go from 0.5 to 1.0.<br />
+		hold_at_full is the amount of time percent_through_effect will stay at 1.0.<br />
+		After reaching the end of hold_at_full, percent_through_effect stays at 0 until hold_at_zero is over.<br />
+		<br />
+		The different effects use percent_through_effect in different ways.  Some use it to calculate percent_between_colors with this sine wave:  sin((percent_through_effect + 0.25f) * 2 * PI ) / 2 + 0.5f<br />
+		Some effects check the internal bool blink_on.  blink_on is true if percent_through_effect is greater than 0.5 and false if percent_through_effect is less than or equal to 0.5.<br />
+		Check the effect functions for individual explanations:  diffuseblink, diffuseshift, glowblink, glowshift, glowramp, rainbow, wag, bounce, bob, pulse, spin, vibrate.
+	  @return void
+--]]
+function Actor:effecttiming(
+	float,
+	ramp_to_half,
+	float,
+	hold_at_half,
+	float,
+	ramp_to_full,
+	float,
+	hold_at_zero,
+	float,
+	hold_at_full)
+end
+
+--[[--
+ 		Set the hold_at_full part of the effect timing while leaving the others unchanged.
+	  @return void
+--]]
+function Actor:effect_hold_at_full(float, hold_at_full)
+end
+
+--[[--
+ 		Fades <code>percent</code> of the Actor from the bottom where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:fadebottom(float, percent)
+end
+
+--[[--
+ 		Fades <code>percent</code> of the Actor from the left where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:fadeleft(float, percent)
+end
+
+--[[--
+ 		Fades <code>percent</code> of the Actor from the right where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:faderight(float, percent)
+end
+
+--[[--
+ 		Fades <code>percent</code> of the Actor from the top where <code>percent</code> is in the range 0..1.
+	  @return void
+--]]
+function Actor:fadetop(float, percent)
+end
+
+--[[--
+ 		Finishes up an Actor's tween immediately.
+	  @return void
+--]]
+function Actor:finishtweening()
+end
+
+--[[--
+ 		Stretches an Actor to fill the entire screen.
+	  @return void
+--]]
+function Actor:FullScreen()
+end
+
+--[[--
+ 		Returns the Actor's aux value.
+	  @return float
+--]]
+function Actor:getaux()
+end
+
+--[[--
+ 		Returns the Actor's base X zoom value.
+	  @return float
+--]]
+function Actor:GetBaseZoomX()
+end
+
+--[[--
+ 		Returns the Actor's base Y zoom value.
+	  @return float
+--]]
+function Actor:GetBaseZoomY()
+end
+
+--[[--
+ 		Returns the Actor's base Z zoom value.
+	  @return float
+--]]
+function Actor:GetBaseZoomZ()
+end
+
+--[[--
+ 		Returns <code>true</code> if the Actor has a command named <code>sCmdName</code>.
+	  @return bool
+--]]
+function Actor:GetCommand(string, sCmdName)
+end
+
+--[[--
+ 		Returns the Actor's current diffuse color.
+	  @return color
+--]]
+function Actor:GetDiffuse()
+end
+
+--[[--
+ 		Returns the Actor's current diffusealpha.
+	  @return float
+--]]
+function Actor:GetDiffuseAlpha()
+end
+
+--[[--
+ 		Returns the Actor's current effect delta.
+	  @return float
+--]]
+function Actor:GetEffectDelta()
+end
+
+--[[--
+ 		Returns the Actor's current effect magnitude as three floats (not one; I hate Lua.xsd).
+	  @return float
+--]]
+function Actor:geteffectmagnitude()
+end
+
+--[[--
+ 		Returns the Actor's current glow color.
+	  @return color
+--]]
+function Actor:GetGlow()
+end
+
+--[[--
+ 		Returns the Actor's horizontal alignment as a number in the range 0..1.
+	  @return float
+--]]
+function Actor:GetHAlign()
+end
+
+--[[--
+ 		Returns the Actor's name.
+	  @return string
+--]]
+function Actor:GetName()
+end
+
+--[[--
+ 		Returns the number of states the Actor has.
+	  @return int
+--]]
+function Actor:GetNumStates()
+end
+
+--[[--
+ 		Returns the Actor's current height.
+	  @return float
+--]]
+function Actor:GetHeight()
+end
+
+--[[--
+ 		Returns the Actor's current X rotation.
+	  @return float
+--]]
+function Actor:GetRotationX()
+end
+
+--[[--
+ 		Returns the Actor's current Y rotation.
+	  @return float
+--]]
+function Actor:GetRotationY()
+end
+
+--[[--
+ 		Returns the Actor's current Z rotation.
+	  @return float
+--]]
+function Actor:GetRotationZ()
+end
+
+--[[--
+ 		Returns the number of seconds into the currently running effect (e.g. diffuseshift, bob).
+	  @return float
+--]]
+function Actor:GetSecsIntoEffect()
+end
+
+--[[--
+ 		Returns how much time is remaining for the current tween.
+	  @return float
+--]]
+function Actor:GetTweenTimeLeft()
+end
+
+--[[--
+ 		Returns the Actor's vertical alignment as a number in the range 0..1.
+	  @return float
+--]]
+function Actor:GetVAlign()
+end
+
+--[[--
+ 		Returns the Actor's current width.
+	  @return float
+--]]
+function Actor:GetWidth()
+end
+
+--[[--
+ 		Returns the zoomed height of an Actor.
+	  @return float
+--]]
+function Actor:GetZoomedHeight()
+end
+
+--[[--
+ 		Returns the zoomed width of an Actor.
+	  @return float
+--]]
+function Actor:GetZoomedWidth()
+end
+
+--[[--
+ 		Returns true if this actor is currently set to use the effect delta for tweening.
+	  @return bool
+--]]
+function Actor:get_tween_uses_effect_delta()
+end
+
+--[[--
+ 		Sets the Actor's glow color.
+	  @return void
+--]]
+function Actor:glow(color, c)
+end
+
+--[[--
+ 		Makes the Actor glow between two colors immediately.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:glowblink()
+end
+
+--[[--
+ 		Makes the Actor glow between two colors smoothly, jumping back to the first at the end.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:glowramp()
+end
+
+--[[--
+ 		Makes the Actor glow between two colors smoothly.  See Themerdocs/effect_colors.txt for an example.
+	  @return void
+--]]
+function Actor:glowshift()
+end
+
+--[[--
+ 		Set the fractional horizontal alignment of the Actor according to <code>fAlign</code> which should be a float in the range 0..1. An alignment of 0 is left aligned while an alignment of 1 is right aligned. See <Link function='horizalign' /> for the common case.
+	  @return void
+--]]
+function Actor:halign(float, fAlign)
+end
+
+--[[--
+ 		Sets the heading of this Actor to <code>fHeading</code>.
+	  @return void
+--]]
+function Actor:heading(float, fHeading)
+end
+
+--[[--
+ 		Hides the Actor for the specified amount of time.
+	  @return void
+--]]
+function Actor:hibernate(float, fTime)
+end
+
+--[[--
+ 		Compatibility alias for the hidden command, which was removed in sm-ssc. Use <Link function='visible' /> instead.
+		 @tparam boolean b
+	  @return void
+--]]
+function Actor:hidden(b)
+end
+
+--[[--
+		 Compatibility alias for the hidden command, which was removed in sm-ssc. Use `visible` instead.
+		 @tparam boolean b
+	  @return void
+--]]
+function Actor:hide_if(b)
+end
+
+--[[--
+ 		Set the horizontal alignment of the Actor according to <code>align</code>. See <Link function='halign' /> for fractional alignment.
+	  @return void
+--]]
+function Actor:horizalign(HorizAlign, align)
+end
+
+--[[--
+ 		Hurries up an Actor's tweening by <code>factor</code>.
+	  @return void
+--]]
+function Actor:hurrytweening(float, factor)
+end
+
+--[[--
+ 		Plays the commands that follow at a normal rate, where <code>fRate</code> is in seconds.
+	  @return void
+--]]
+function Actor:linear(float, fRate)
+end
+
+--[[--
+		 Plays the lyric command for the specified <code>side</code> (<code>"Back"</code> or <code>"Front"</code>).
+		 @tparam string side
+	  @return void
+--]]
+function Actor:linear(side)
+end
+
+--[[--
+ 		Sets the Actor's name to <code>sName</code>.
+	  @return void
+--]]
+function Actor:name(string, sName)
+end
+
+--[[--
+ 		Stops the Actor's movement. (Usually used for Sprites or Models.)
+	  @return void
+--]]
+function Actor:pause()
+end
+
+--[[--
+ 		Sets the pitch of this Actor to <code>fPitch</code>.
+	  @return void
+--]]
+function Actor:pitch(float, fPitch)
+end
+
+--[[--
+ 		Starts the Actor's movement. (Usually used for Sprites or Models.)
+	  @return void
+--]]
+function Actor:play()
+end
+
+--[[--
+ 		Plays a command named <code>sCommandName</code>.  <code>params</code> is passed to the command as an argument if it is a table.
+	  @return void
+--]]
+function Actor:playcommand(string, sCommandName, table, params)
+end
+
+--[[--
+ 		Sets the visibility of the Actor based on <code>p</code> being a human player.
+	  @return void
+--]]
+function Actor:playcommand(playerNumber)
+end
+
+--[[--
+ 		Makes the Actor grow and shrink. Can use <Link function='effectmagnitude' /> to define different pulsing behavior.
+	  @return void
+--]]
+function Actor:pulse()
+end
+
+--[[--
+ 		Queues a command named <code>sCommandName</code> to be played.
+	  @return void
+--]]
+function Actor:queuecommand(string, sCommandName)
+end
+
+--[[--
+ 		Basically creates a command named <code>!sMessageName</code> (Note the ! at the beginning. The source code says this: "Hack: use "!" as a marker to broadcast a command, instead of playing a command, so we don't have to add yet another element to every tween state for this rarely-used command.")
+	  @return void
+--]]
+function Actor:queuemessage(string, sMessageName)
+end
+
+--[[--
+ 		Makes the Actor change colors continually using colors of the rainbow.  Each channel follows a cosine wave, red starts at 0, green starts at 2pi/3, and blue starts at 4pi/3.
+	  @return void
+--]]
+function Actor:rainbow()
+end
+
+--[[--
+ 		Sets the roll of this Actor to <code>fRoll</code>.
+	  @return void
+--]]
+function Actor:roll(float, fRoll)
+end
+
+--[[--
+ 		Set the Actor's rotation on the X axis to <code>fAlign</code>.
+	  @return void
+--]]
+function Actor:rotationx(float, fRotation)
+end
+
+--[[--
+ 		Set the Actor's rotation on the Y axis to <code>fAlign</code>.
+	  @return void
+--]]
+function Actor:rotationy(float, fRotation)
+end
+
+--[[--
+ 		Set the Actor's rotation on the Z axis to <code>fAlign</code>.
+	  @return void
+--]]
+function Actor:rotationz(float, fRotation)
+end
+
+--[[--
+ 		Set the Actor's rotation on the Z axis to <code>fAlign</code>.
+	  @return void
+--]]
+function Actor:rotationz(float, fRotation)
+end
+
+--[[--
+ 		Set the Actor's rotation on the Z axis to <code>fAlign</code>.
+	  @return void
+--]]
+function Actor:rotationz(float, fRotation)
+end
+
+--[[--
+ 		 An alternative version of `scale_or_crop_background`
+	  @return void
+--]]
+function Actor:scale_or_crop_alternative(float, fRotation)
+end
+
+--[[--
+ 		
+	  @return void
+--]]
+function Actor:scale_or_crop_background(float, fRotation)
+end
+
+--[[--
+ 		Scales the Actor to cover a rectangle defined by the four float arguments.
+	  @return void
+--]]
+function Actor:scaletocover(float, fLeft, float, fTop, float, fRight, float, fBottom)
+end
+
+--[[--
+ 		Scales the Actor to fit inside a rectangle defined by the four float arguments.
+	  @return void
+--]]
+function Actor:scaletofit(float, fLeft, float, fTop, float, fRight, float, fBottom)
+end
+
+--[[--
+ 		Sets the height of the Actor.
+	  @return void
+--]]
+function Actor:SetHeight(float, height)
+end
+
+--[[--
+ 		Sets the size of the Actor.
+	  @return void
+--]]
+function Actor:setsize(width, height)
+end
+
+--[[--
+ 		 Alias for setsize.
+	  @return void
+--]]
+function Actor:SetSize(width, height)
+end
+
+--[[--
+ 		Sets a multi-framed Actor's state to <code>iNewState</code>.
+	  @return void
+--]]
+function Actor:setstate(int, iNewState)
+end
+
+--[[--
+ 		Sets the width of the Actor.
+	  @return void
+--]]
+function Actor:SetWidth(float, width)
+end
+
+--[[--
+ 		Use this to make the actor use the effect clock to tween instead of using the global frame delta.
+	  @return 
+--]]
+function Actor:set_tween_uses_effect_delta(bool)
+end
+
+--[[--
+ 		Sets the shadow's color to <code>c</code>.
+	  @return void
+--]]
+function Actor:shadowcolor(color, c)
+end
+
+--[[--
+ 		Sets the Actor's shadow length to <code>fLength</code>.
+	  @return void
+--]]
+function Actor:shadowlength(float, fLength)
+end
+
+--[[--
+ 		Sets the Actor's horizontal shadow length to <code>fLength</code>.
+	  @return void
+--]]
+function Actor:shadowlengthx(float, fLength)
+end
+
+--[[--
+ 		Sets the Actor's vertical shadow length to <code>fLength</code>.
+	  @return void
+--]]
+function Actor:shadowlengthy(float, fLength)
+end
+
+--[[--
+ 		Skews the Actor on the x axis by <code>fAmount</code>.
+	  @return void
+--]]
+function Actor:skewx(float, fAmount)
+end
+
+--[[--
+ 		Skews the Actor on the y axis by <code>fAmount</code>.
+	  @return void
+--]]
+function Actor:skewy(float, fAmount)
+end
+
+--[[--
+ 		Waits <code>fSeconds</code> before executing the next command.
+	  @return void
+--]]
+function Actor:sleep(float, fSeconds)
+end
+
+--[[--
+ 		
+	  @return void
+--]]
+function Actor:smooth(time)
+end
+
+--[[--
+ 		Tells the Actor to spin. Can use <Link function='effectmagnitude' /> to define different spinning behavior.
+	  @return void
+--]]
+function Actor:spin()
+end
+
+--[[--
+ 		Stops any effect the Actor has.
+	  @return void
+--]]
+function Actor:stopeffect()
+end
+
+--[[--
+ 		Stops any tweening.
+	  @return void
+--]]
+function Actor:stoptweening()
+end
+
+--[[--
+ 		Stretches the Actor to a rectangle of a specific size.
+	  @return void
+--]]
+function Actor:stretchto(float, x1, float, y1, float, x2, float, y2)
+end
+
+--[[--
+ 		Translates the texture of the actor by x and y.
+	  @return void
+--]]
+function Actor:texturetranslate(float, x, float, y)
+end
+
+--[[--
+ 		Determines if the Actor should use texture wrapping or not.
+	  @return void
+--]]
+function Actor:texturewrapping(bool, bWrap)
+end
+
+--[[--
+ 		Uses type to determine the tween to use.  The type must be one of the TweenType enum values.  If the type is note TweenType_Bezier, the params table is ignored.  If the type is TweenType_Bezier, then the params table must have 4 or 8 numbers.  4 numbers in the params creates a 1 dimensional bezier curve, 8 numbers creates a 2 dimensional bezier curve.<br />
+		It's usually more convenient to use Actor:linear, Actor:accelerate, and so on, rather than using Actor:tween directly.
+	 @return void
+--]]
+function Actor:tween(time, tweentype, params)
+end
+
+--[[--
+ 		Set the fractional vertical alignment of the Actor according to <code>fAlign</code> which should be a float in the range 0..1. An alignment of 0 is top aligned while an alignment of 1 is bottom aligned. See <Link function="vertalign" /> for the common case.
+	  @return void
+--]]
+function Actor:valign(float, fAlign)
+end
+
+--[[--
+ 		Set the vertical alignment of the Actor according to <code>align</code>. See <Link function="valign" /> for fractional alignment.
+	  @return void
+--]]
+function Actor:vertalign(VertAlign, align)
+end
+
+--[[--
+ 		Makes the Actor vibrate violently. Can use <Link function='effectmagnitude' /> to define different vibration behavior.
+	  @return void
+--]]
+function Actor:vibrate()
+end
+
+--[[--
+ 		Sets an Actor's visibility to b.
+	  @return void
+--]]
+function Actor:visible(bool, b)
+end
+
+--[[--
+ 		Makes the Actor wag. Use <Link function='effectmagnitude' /> to define different wag behavior.
+	  @return void
+--]]
+function Actor:wag()
+end
+
+--[[--
+ 		Set the x position of the Actor to <code>xPos</code>.
+	  @return void
+--]]
+function Actor:x(float, xPos)
+end
+
+--[[--
+ 		Set the y position of the Actor to <code>yPos</code>.
+	  @return void
+--]]
+function Actor:y(float, yPos)
+end
+
+--[[--
+ 		Set the z position of the Actor to <code>zPos</code>.
+	  @return void
+--]]
+function Actor:z(float, zPos)
+end
+
+--[[--
+ 		Sets the z bias to <code>fBias</code>.
+	  @return void
+--]]
+function Actor:zbias(float, fBias)
+end
+
+--[[--
+ 		Enables/disables z-buffer depending on <code>bUse</code>.
+	  @return void
+--]]
+function Actor:zbuffer(bool, bUse)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> scale.
+	  @return void
+--]]
+function Actor:zoom(float, zoom)
+end
+
+--[[--
+ 		Zooms the Actor on both the X and Y axis using <code>zoomX</code> and <code>zoomY</code>.
+	  @return void
+--]]
+function Actor:zoomto(float, zoomX, float, zoomY)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> height. See also: <Link function='zoomy' />.
+	  @return void
+--]]
+function Actor:zoomtoheight(float, zoom)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> width. See also: <Link function='zoomx' />.
+	  @return void
+--]]
+function Actor:zoomtowidth(float, zoom)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> scale on the X axis.
+	  @return void
+--]]
+function Actor:zoomx(float, zoom)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> scale on the Y axis.
+	  @return void
+--]]
+function Actor:zoomy(float, zoom)
+end
+
+--[[--
+ 		Zooms the Actor to <code>zoom</code> scale on the Z axis.
+	  @return void
+--]]
+function Actor:zoomz(float, zoom)
+end
+
+--[[--
+ 		Sets the z testing mode to write on pass if <code>true</code>, turns it off if <code>false</code>
+	  @return void
+--]]
+function Actor:ztest(bool, bTest)
+end
+
+--[[--
+ 		Sets the z testing mode to <code>testMode</code>.
+	  @return void
+--]]
+function Actor:ztestmode(ZTestMode, testMode)
+end
+
+--[[--
+ 		Sets z writing to <code>true</code> or <code>false</code> based on <code>bWrite</code>.
+	  @return void
+--]]
+function Actor:zwrite(bool, bWrite)
+end
+
+--[[--
+ 		Plays the commands that follow using a bezier curve to determine the rate.  The curve must have 4 or 8 elements.  This is a convenience wrapper around calling Actor:tween with TweenType_Bezier.
+  @return void
+--]]
+function Actor:bezier(time, curve)
+end
+
+--[[--
+ 		Stretches an Actor to cover the screen. (equivalent to <code>stretchto,0,0,SCREEN_WIDTH,SCREEN_HEIGHT</code>)
+  @return void
+--]]
+function Actor:FullScreen()
+end
+
+--[[--
+ 		 Sets and Actor as a mask destination.
+  @return void
+--]]
+function Actor:MaskDest()
+end
+
+--[[--
+ 		 Sets an Actor as a mask source. (Also clears zbuffer; other mask sources need to not clear the zbuffer)
+  @return void
+--]]
+function Actor:MaskSource()
+end
+
+--[[--
+ 		 Make graphics their true size at any resolution.
+  @return void
+--]]
+function Actor:Real(f)
+end
+
+--[[--
+ 		 Scale things back up after they have already been scaled down.
+  @return void
+--]]
+function Actor:RealInverse(f)
+end
+
+--[[--
+ 		  A customized version of pulse that is more appealing for on-beat effects.
+  @return void
+--]]
+function Actor:thump(fEffectPeriod)
+end
+
+--[[--
+ 		Sets the x and y location of the Actor in one command.
+  @return void
+--]]
+function Actor:xy(float, actorX, float, actorY)
+end

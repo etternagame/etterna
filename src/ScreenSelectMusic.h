@@ -50,6 +50,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	void StartPlayingMusic() override {}
 
+	virtual void OpenOptions();
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
@@ -65,8 +66,8 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	int GetSelectionState();
 
 	// Generate and Display a "fake" NoteField ActorFrame on the Screen.
-	// It functions relatively normally, according to the currently playing music.
-	// It automatically deletes any other pre-existing Preview NoteField.
+	// It functions relatively normally, according to the currently playing
+	// music. It automatically deletes any other pre-existing Preview NoteField.
 	void GeneratePreviewNoteField();
 	// Manually delete a Preview NoteField.
 	// Note: This is triggered by a DeletePreviewNoteField Message.
@@ -78,7 +79,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	NoteData m_PreviewNoteData;
 	NoteField* m_pPreviewNoteField;
 
-	void ChangeSteps(PlayerNumber pn, int dir); 
+	void ChangeSteps(PlayerNumber pn, int dir);
 	// Lua
 	void PushSelf(lua_State* L) override;
 
@@ -100,6 +101,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 
+	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY_INIT;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY;
 	ThemeMetric<bool> SAMPLE_MUSIC_LOOPS;

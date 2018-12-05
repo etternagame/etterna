@@ -8,14 +8,15 @@
 #include "DifficultyIcon.h"
 #include "ModIconRow.h"
 #include "MusicWheel.h"
-#include "ScreenNetSelectBase.h"
+#include "ScreenSelectMusic.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
 #include "StepsDisplay.h"
 
-class ScreenNetSelectMusic : public ScreenNetSelectBase
+class ScreenNetSelectMusic : public ScreenSelectMusic
 {
   public:
+	~ScreenNetSelectMusic() override;
 	void Init() override;
 	void BeginScreen() override;
 
@@ -27,6 +28,8 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 	void StartSelectedSong();
 	bool SelectCurrent();
 
+	void OpenOptions() override;
+
 	MusicWheel* GetMusicWheel();
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -36,46 +39,17 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuLeft(const InputEventPlus& input) override;
 	bool MenuRight(const InputEventPlus& input) override;
-	bool MenuUp(const InputEventPlus& input) override;
-	bool MenuDown(const InputEventPlus& input) override;
-	bool LeftAndRightPressed(PlayerNumber pn);
 
 	void Update(float fDeltaTime) override;
 
 	Song* m_pSongAwaitingDeletionConfirmation;
 	void OnConfirmSongDeletion();
 
-	void MusicChanged();
-
 	void TweenOffScreen() override;
 
-	ThemeMetric<SampleMusicPreviewMode> SAMPLE_MUSIC_PREVIEW_MODE;
-	RString m_sSectionMusicPath;
-	RString m_sRouletteMusicPath;
-	RString m_sRandomMusicPath;
-
-	ThemeMetric<RString> MUSIC_WHEEL_TYPE;
-	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
-
-	ThemeMetric<float> SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
-	ThemeMetric<float> SAMPLE_MUSIC_FADE_OUT_SECONDS;
-	ThemeMetric<bool> ALIGN_MUSIC_BEATS;
-
   private:
-	MusicWheel m_MusicWheel;
-
-	StepsDisplay m_StepsDisplays[NUM_PLAYERS];
-	Difficulty m_DC[NUM_PLAYERS];
-
-	void UpdateDifficulties(PlayerNumber pn);
-
 	RageSound m_soundChangeOpt;
 	RageSound m_soundChangeSel;
-
-	// todo: do this theme-side instead. -aj
-	ModIconRow m_ModIconRow[NUM_PLAYERS];
-
-	Song* m_cSong;
 
 	bool m_bInitialSelect;
 	bool m_bAllowInput;

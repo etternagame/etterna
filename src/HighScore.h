@@ -62,6 +62,7 @@ struct HighScore
 	vector<int> GetCopyOfTrackVector() const;
 	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
 	vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
+	vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	int GetReplayType() const;
@@ -115,6 +116,7 @@ struct HighScore
 	void SetTrackVector(const vector<int>& v);
 	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
 	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
+	void SetOnlineReplayTimestampVector(const vector<float>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds(float f);
@@ -159,7 +161,7 @@ struct HighScore
 	bool LoadReplayData();
 	bool LoadReplayDataBasic();
 	bool LoadReplayDataFull();
-	bool HasReplayData();
+	virtual bool HasReplayData();
 	void UnloadReplayData();
 	void ResetSkillsets();
 

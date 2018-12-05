@@ -52,6 +52,7 @@ struct HighScoreImpl
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<HoldReplayResult> vHoldReplayDataVector;
+	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;		   // maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;		   // stage award [SM5 alpha 1a+]
@@ -319,7 +320,7 @@ HighScoreImpl::CreateNode() const
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (!uploaded.empty()) {
-		XNode* pServerNode = pNode->AppendChild("Servers");
+		XNode* pServerNode = pNode->AppendChild("Servs");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
 	}
@@ -394,7 +395,7 @@ HighScoreImpl::CreateEttNode() const
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
-		XNode* pServerNode = pNode->AppendChild("Servers");
+		XNode* pServerNode = pNode->AppendChild("Servs");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
 	}
@@ -446,7 +447,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	const XNode* pUploadedServers = pNode->GetChild("Servers");
+	const XNode* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
 		FOREACH_CONST_Child(pUploadedServers, p)
 		{
@@ -892,6 +893,7 @@ HighScore::LoadReplayDataFull()
 	SetOffsetVector(vOffsetVector);
 	SetTrackVector(vTrackVector);
 	SetTapNoteTypeVector(vTapNoteTypeVector);
+	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
 	LOG->Trace("Loaded replay data at %s", path.c_str());
@@ -1102,6 +1104,11 @@ vector<HoldReplayResult>
 HighScore::GetCopyOfHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
+}
+vector<float>
+HighScore::GetCopyOfSetOnlineReplayTimestampVector() const
+{
+	return m_Impl->vOnlineReplayTimestampVector;
 }
 const vector<float>&
 HighScore::GetOffsetVector() const
@@ -1330,6 +1337,11 @@ void
 HighScore::SetHoldReplayDataVector(const vector<HoldReplayResult>& v)
 {
 	m_Impl->vHoldReplayDataVector = v;
+}
+void
+HighScore::SetOnlineReplayTimestampVector(const vector<float>& v)
+{
+	m_Impl->vOnlineReplayTimestampVector = v;
 }
 void
 HighScore::SetScoreKey(const string& sk)
@@ -1776,7 +1788,6 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 	}
 
 	float o = p / pmax;
-	UnloadReplayData();
 	return o;
 }
 
@@ -2031,8 +2042,6 @@ class LunaHighScore : public Luna<HighScore>
 			for (size_t i = 0; i < v.size(); ++i)
 				v[i] = v[i] * 1000;
 			LuaHelpers::CreateTableFromArray(v, L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2043,11 +2052,7 @@ class LunaHighScore : public Luna<HighScore>
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
-				v = &(p->GetNoteRowVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2061,8 +2066,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTrackVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2076,8 +2079,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTapNoteTypeVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;

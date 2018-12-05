@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "Font.h"
@@ -1435,6 +1435,23 @@ ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 class LunaBitmapText : public Luna<BitmapText>
 {
   public:
+	static int getGlyphRect(T* p, lua_State* L)
+	{
+		int idx = (IArg(1) - 1) * 4; // lua idx start at 1 and 4 verts per glyph
+		if (idx < 0 || idx >= static_cast<int>(p->m_aVertices.size())) {
+			lua_pushnil(L);
+			return 1;
+		}
+		for (int i = 0; i < 4; i++) {
+			lua_newtable(L);
+			auto& v = p->m_aVertices[idx + i].p;
+			lua_pushnumber(L, v.x);
+			lua_rawseti(L, -2, 1);
+			lua_pushnumber(L, v.y);
+			lua_rawseti(L, -2, 2);
+		}
+		return 4;
+	}
 	static int wrapwidthpixels(T* p, lua_State* L)
 	{
 		p->SetWrapWidthPixels(IArg(1));
@@ -1541,6 +1558,7 @@ class LunaBitmapText : public Luna<BitmapText>
 
 	LunaBitmapText()
 	{
+		ADD_METHOD(getGlyphRect);
 		ADD_METHOD(wrapwidthpixels);
 		ADD_METHOD(maxwidth);
 		ADD_METHOD(maxheight);

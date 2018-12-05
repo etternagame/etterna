@@ -147,12 +147,14 @@ end
 
 local t =
 	Def.ActorFrame {
+	InitCommand = function(self)
+		self:zoom(0.85)
+	end,
 	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
 		self:finishtweening()
 		if NSMAN:IsETTP() then
-			ms.ok("Song search activated")
 			self:visible(true)
 			active = true
 			whee:Move(0)
@@ -166,7 +168,6 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
-			ms.ok("Song search activated")
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
 			active = true

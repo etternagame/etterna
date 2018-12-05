@@ -49,7 +49,7 @@ local hhh = SCREEN_HEIGHT * 0.8
 local rtzoom = 0.6
 
 local function dooting(self)
-	if self:GetVisible() then
+	if self:IsVisible() then
 		self:GetChild("BGQframe"):queuecommand("dooting")
 	end
 end

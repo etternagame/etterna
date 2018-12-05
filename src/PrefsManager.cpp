@@ -32,7 +32,6 @@ LuaXType(MusicWheelUsesSections);
 
 static const char* AllowW1Names[] = {
 	"Never",
-	"CoursesOnly",
 	"Everywhere",
 };
 XToString(AllowW1);
@@ -144,7 +143,7 @@ PrefsManager::PrefsManager()
   , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
   , m_HighResolutionTextures("HighResolutionTextures",
 							 HighResolutionTextures_Auto)
-  , m_iMaxTextureResolution("MaxTextureResolution", 2048)
+  , m_iMaxTextureResolution("MaxTextureResolution", 1024)
   , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
   , m_bAllowMultitexture("AllowMultitexture", true)
   , m_bAllowedLag("AllowedLag", 0.001f)
@@ -205,6 +204,7 @@ PrefsManager::PrefsManager()
   , m_bCelShadeModels("CelShadeModels", false)
   , // Work-In-Progress.. disable by default.
   m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
+  , UseStbImageLibrary("UseStbImageLibrary", false)
   , m_fPadStickSeconds("PadStickSeconds", 0)
   , m_EditRecordModeLeadIn("EditRecordModeLeadIn", 1.0f)
   , m_bForceMipMaps("ForceMipMaps", false)
@@ -234,8 +234,7 @@ PrefsManager::PrefsManager()
 
   /* Debug: */
   m_bLogToDisk("LogToDisk", true)
-  ,
-  m_verbose_log("VerboseLogging", 1)
+  , m_verbose_log("VerboseLogging", 1)
   ,
 #if defined(DEBUG)
   m_bForceLogFlush("ForceLogFlush", true)

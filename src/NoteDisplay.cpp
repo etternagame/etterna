@@ -217,7 +217,8 @@ MakeNoteResource(const RString& sButton,
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
 
 	map<NoteSkinAndPath, NoteResource*>::iterator it =
-	  g_NoteResource["4th"].find(nsap);	// i cant figure out how color changes what actors are loaded... -mina
+	  g_NoteResource["4th"].find(nsap); // i cant figure out how color changes
+										// what actors are loaded... -mina
 	if (it == g_NoteResource[Color].end()) {
 		auto* pRes = new NoteResource(nsap);
 

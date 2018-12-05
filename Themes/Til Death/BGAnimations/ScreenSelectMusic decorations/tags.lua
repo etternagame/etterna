@@ -66,15 +66,10 @@ end
 
 local t =
 	Def.ActorFrame {
+	Name = "Tongo",
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
-		self:queuecommand("Set"):visible(false)
-	end,
-	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
-	end,
-	OnCommand = function(self)
-		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+		self:queuecommand("BORPBORPNORFNORFc"):visible(false)
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
@@ -85,28 +80,26 @@ local t =
 			MESSAGEMAN:Broadcast("RefreshTags")
 		end
 	end,
-	SetCommand = function(self)
-		self:finishtweening()
+	BORPBORPNORFNORFcCommand = function(self)
 		if getTabIndex() == 9 then
-			self:queuecommand("On")
 			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			onTab = true
 			MESSAGEMAN:Broadcast("RefreshTags")
 		else
-			self:queuecommand("Off")
+			self:visible(false)
 			onTab = false
 		end
 	end,
 	TabChangedMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:queuecommand("BORPBORPNORFNORFc")
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:queuecommand("BORPBORPNORFNORFc")
 	end,
 	CurrentSongChangedMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:queuecommand("BORPBORPNORFNORFc")
 	end
 }
 
@@ -317,7 +310,7 @@ local function funcButton(i)
 			InitCommand = function(self)
 				self:zoomto((frameWidth / 3 - 10), 30):halign(0.5):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.35)
 			end,
-			SetCommand = function(self)
+			BORPBORPNORFNORFcCommand = function(self)
 				if tagFunction == i then
 					self:diffusealpha(1)
 				else
@@ -331,7 +324,7 @@ local function funcButton(i)
 				end
 			end,
 			UpdateTagsMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:queuecommand("BORPBORPNORFNORFc")
 			end
 		},
 		LoadFont("Common Large") ..
@@ -353,18 +346,18 @@ r[#r + 1] =
 	InitCommand = function(self)
 		self:xy(frameX + 10, frameY + capWideScale(80, 80) + 225)
 	end,
-	SetCommand = function(self)
+	BORPBORPNORFNORFcCommand = function(self)
 		self:visible(tagFunction == 1)
 	end,
 	UpdateTagsMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:queuecommand("BORPBORPNORFNORFc")
 	end,
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:halign(0):zoom(fontScale)
 			end,
-			SetCommand = function(self)
+			BORPBORPNORFNORFcCommand = function(self)
 				self:settext("Add new tag:")
 			end
 		},
@@ -382,7 +375,7 @@ r[#r + 1] =
 				MESSAGEMAN:Broadcast("NumericInputActive")
 			end
 		end,
-		SetCommand = function(self)
+		BORPBORPNORFNORFcCommand = function(self)
 			if hasFocus then
 				self:diffuse(color("#999999"))
 			else
@@ -390,7 +383,7 @@ r[#r + 1] =
 			end
 		end,
 		UpdateTagsMessageCommand = function(self)
-			self:queuecommand("Set")
+			self:queuecommand("BORPBORPNORFNORFc")
 		end
 	},
 	LoadFont("Common Large") ..
@@ -398,7 +391,7 @@ r[#r + 1] =
 			InitCommand = function(self)
 				self:addx(133):addy(1):halign(0):maxwidth(600):zoom(fontScale - 0.05)
 			end,
-			SetCommand = function(self)
+			BORPBORPNORFNORFcCommand = function(self)
 				self:settext(curInput)
 				if curInput ~= "" or hasFocus then
 					self:diffuse(color("#FFFFFF"))
@@ -407,7 +400,7 @@ r[#r + 1] =
 				end
 			end,
 			UpdateTagsMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:queuecommand("BORPBORPNORFNORFc")
 			end
 		}
 }
@@ -418,22 +411,22 @@ r[#r + 1] =
 	InitCommand = function(self)
 		self:xy(frameX + 10, frameY + capWideScale(80, 80) + 225)
 	end,
-	SetCommand = function(self)
+	BORPBORPNORFNORFcCommand = function(self)
 		self:visible(tagFunction == 2)
 	end,
 	UpdateTagsMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:queuecommand("BORPBORPNORFNORFc")
 	end,
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:zoom(fontScale):halign(0)
 			end,
-			SetCommand = function(self)
+			BORPBORPNORFNORFcCommand = function(self)
 				self:settext("Mode: " .. (filterMode and "AND" or "OR"))
 			end,
 			UpdateTagsMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:queuecommand("BORPBORPNORFNORFc")
 			end
 		},
 	Def.Quad {
@@ -495,7 +488,7 @@ r[#r + 1] =
 			InitCommand = function(self)
 				self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor("positive"))
 			end,
-			SetCommand = function(self)
+			BORPBORPNORFNORFcCommand = function(self)
 				self:settextf(
 					"Showing %i-%i of %i",
 					math.min(((currenttagpage - 1) * tagsperpage) + 1, #displayindex),
@@ -504,7 +497,7 @@ r[#r + 1] =
 				)
 			end,
 			UpdateTagsMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:queuecommand("BORPBORPNORFNORFc")
 			end
 		}
 }

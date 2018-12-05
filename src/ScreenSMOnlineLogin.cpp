@@ -17,7 +17,6 @@
 
 REGISTER_SCREEN_CLASS(ScreenSMOnlineLogin);
 
-AutoScreenMessage(SM_SMOnlinePack);
 AutoScreenMessage(SM_PasswordDone);
 AutoScreenMessage(SM_UsernameDone);
 AutoScreenMessage(SM_NoProfilesDefined);
@@ -159,45 +158,11 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 										  NULL);
 			} else {
 				sLoginQuestion = "Enter username";
-				ScreenTextEntry::Password(SM_UsernameDone,
+				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										  NSMAN->loginResponse + "\n\n" +
 											sLoginQuestion,
-										  NULL);
+										  "", 255);
 			}
-		}
-	} else if (SM == SM_SMOnlinePack) {
-		LOG->Trace("[ScreenSMOnlineLogin::HandleScreenMessage] SMOnlinePack");
-		if (!GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>(m_iPlayer))) {
-			LuaHelpers::ReportScriptErrorFmt("Invalid player number: %i",
-											 m_iPlayer);
-			return;
-		}
-		// This can cause problems in certain situations -aj
-		sLoginQuestion =
-		  YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" +
-		  GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
-		  ENTER_YOUR_PASSWORD.GetValue();
-		RString Response;
-		switch (SMOProtocol::DealWithSMOnlinePack(
-		  static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket,
-		  this,
-		  Response)) {
-			case 0:
-				SCREENMAN->SetNewScreen(
-				  THEME->GetMetric(m_sName, "NextScreen"));
-				m_iPlayer = 0;
-				break;
-			case 1:
-				ScreenTextEntry::Password(
-				  SM_PasswordDone, sLoginQuestion, NULL);
-				break;
-			case 2:
-				m_iPlayer = 0;
-				break;
-			case 3:
-				ScreenTextEntry::Password(
-				  SM_PasswordDone, Response + "\n\n" + sLoginQuestion, NULL);
-				break;
 		}
 	} else if (SM == SM_GoToNextScreen) {
 		LOG->Trace("[ScreenSMOnlineLogin::HandleScreenMessage] GoToNextScreen");
@@ -232,10 +197,10 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 				  SM_PasswordDone, sLoginQuestion, NULL);
 			} else {
 				sLoginQuestion = "Enter username";
-				ScreenTextEntry::Password(SM_UsernameDone,
+				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										  NSMAN->loginResponse + "\n\n" +
 											sLoginQuestion,
-										  NULL);
+										  "", 255);
 			}
 		}
 		return;

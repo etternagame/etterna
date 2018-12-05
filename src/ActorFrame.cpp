@@ -503,18 +503,24 @@ ActorFrame::UpdateInternal(float fDeltaTime)
 		a->Update(fDeltaTime);
 
 	if (unlikely(!m_UpdateFunction.IsNil())) {
-		Lua* L = LUA->Get();
-		m_UpdateFunction.PushSelf(L);
-		if (lua_isnil(L, -1)) {
+		secsSinceLuaUpdateFWasRun += fDeltaTime;
+		if (secsSinceLuaUpdateFWasRun >= m_fUpdateFInterval) {
+			secsSinceLuaUpdateFWasRun = 0;
+			Lua* L = LUA->Get();
+			m_UpdateFunction.PushSelf(L);
+			if (lua_isnil(L, -1)) {
+				LUA->Release(L);
+				LuaHelpers::ReportScriptErrorFmt(
+				  "Error compiling UpdateFunction");
+				return;
+			}
+			this->PushSelf(L);
+			lua_pushnumber(L, fDeltaTime);
+			RString Error = "Error running UpdateFunction: ";
+			LuaHelpers::RunScriptOnStack(
+			  L, Error, 2, 0, true); // 1 args, 0 results
 			LUA->Release(L);
-			LuaHelpers::ReportScriptErrorFmt("Error compiling UpdateFunction");
-			return;
 		}
-		this->PushSelf(L);
-		lua_pushnumber(L, fDeltaTime);
-		RString Error = "Error running UpdateFunction: ";
-		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
-		LUA->Release(L);
 	}
 }
 
@@ -665,6 +671,18 @@ class LunaActorFrame : public Luna<ActorFrame>
 		p->SetFOV(FArg(1));
 		COMMON_RETURN_SELF;
 	}
+	static int SetUpdateFunctionInterval(T* p, lua_State* L)
+	{
+		float seconds = FArg(1);
+		if (seconds <= 0) {
+			luaL_error(L,
+					   "ActorFrame:SetUpdateRate(%f) Update interval must be "
+					   "greater than 0.",
+					   seconds);
+		}
+		p->SetUpdateFunctionInterval(seconds);
+		COMMON_RETURN_SELF;
+	}
 	static int SetUpdateRate(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
@@ -792,19 +810,6 @@ class LunaActorFrame : public Luna<ActorFrame>
 		p->SetLightDirection(vTmp);
 		COMMON_RETURN_SELF;
 	}
-
-	static int AddChild(T* p, lua_State* L)
-	{
-		if (lua_isnoneornil(L, 1)) {
-			lua_pushboolean(L, 0);
-			return 1;
-		} 
-		Actor* pActor = Luna<Actor>::check(L, 1);
-		p->AddChild(pActor);
-		lua_pushboolean(L, 1);
-		return 1;
-	}
-
 	static int AddChildFromPath(T* p, lua_State* L)
 	{
 		// this one is tricky, we need to get an Actor from Lua.
@@ -852,13 +857,13 @@ class LunaActorFrame : public Luna<ActorFrame>
 		ADD_METHOD(SetDrawFunction);
 		ADD_METHOD(GetDrawFunction);
 		ADD_METHOD(SetUpdateFunction);
+		ADD_METHOD(SetUpdateFunctionInterval);
 		ADD_METHOD(SortByDrawOrder);
 		// ADD_METHOD( CustomLighting );
 		ADD_METHOD(SetAmbientLightColor);
 		ADD_METHOD(SetDiffuseLightColor);
 		ADD_METHOD(SetSpecularLightColor);
 		ADD_METHOD(SetLightDirection);
-		ADD_METHOD(AddChild);
 		ADD_METHOD(AddChildFromPath);
 		ADD_METHOD(RemoveChild);
 		ADD_METHOD(RemoveAllChildren);

@@ -223,14 +223,14 @@ ActorMultiVertex::DrawPrimitives()
 		m_pTempState->diffuse[0].a > 0) {
 
 		for (size_t i = 0; i < TS.vertices.size(); i++) {
-		// RageVColor uses a uint8_t for each channel.  0-255.
-		// RageColor uses a float. 0-1.
-		// So each channel of the RageVColor needs to be converted to a float,
-		// multiplied by the channel from the RageColor, then the result
-		// converted to uint8_t.  If implicit conversion is allowed to happen,
-		// sometimes the compiler decides to turn the RageColor into a uint8_t,
-		// which makes any value other than 1 into 0.  Thus, the explicit
-		// conversions.  -Kyz
+			// RageVColor uses a uint8_t for each channel.  0-255.
+			// RageColor uses a float. 0-1.
+			// So each channel of the RageVColor needs to be converted to a
+			// float, multiplied by the channel from the RageColor, then the
+			// result converted to uint8_t.  If implicit conversion is allowed
+			// to happen, sometimes the compiler decides to turn the RageColor
+			// into a uint8_t, which makes any value other than 1 into 0.  Thus,
+			// the explicit conversions.  -Kyz
 #define MULT_COLOR_ELEMENTS(color_a, color_b)                                  \
 	color_a = static_cast<uint8_t>(static_cast<float>(color_a) * (color_b));
 			// RageVColor * RageColor
@@ -967,8 +967,8 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
-			// State looks like this:
-			// {{left, top, right, bottom}, delay}
+		// State looks like this:
+		// {{left, top, right, bottom}, delay}
 #define DATA_ERROR(i)                                                          \
 	if (!lua_istable(L, i)) {                                                  \
 		luaL_error(L,                                                          \

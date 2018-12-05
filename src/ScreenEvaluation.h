@@ -54,7 +54,7 @@ class ScreenEvaluation : public ScreenWithMenuElements
 	void Init() override;
 	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
-
+	ScreenType GetScreenType() const override { return evaluation; }
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuStart(const InputEventPlus& input) override;
 	void PushSelf(lua_State* L) override;

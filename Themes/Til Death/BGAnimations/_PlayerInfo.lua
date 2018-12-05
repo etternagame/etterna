@@ -74,6 +74,12 @@ t[#t + 1] =
 			self:finishtweening()
 			self:Load(getAvatarPath(PLAYER_1))
 			self:zoomto(50, 50)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+				local top = SCREENMAN:GetTopScreen()
+				SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
+			end
 		end
 	},
 	LoadFont("Common Normal") ..

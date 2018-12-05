@@ -50,6 +50,7 @@
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
 #include "DownloadManager.h"
+#include "ScoreManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS                                   \
@@ -301,12 +302,15 @@ ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
-	m_bForceNoNetwork = !GAMESTATE->m_bInNetGameplay;
 	m_delaying_ready_announce = false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(true);
 #endif
+	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+		LOG->Trace("Unloading replaydata.");
+		SCOREMAN->UnloadAllReplayData();
+	}
 }
 
 void
@@ -575,7 +579,7 @@ ScreenGameplay::Init()
 	// we need to wait, so that there is no Dead On Start issues.
 	// if you wait too long at the second checkpoint, you will
 	// appear dead when you begin your game.
-	if (!m_bForceNoNetwork)
+	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->StartRequest(0);
 
 	// Add individual life meter
@@ -618,7 +622,7 @@ ScreenGameplay::Init()
 
 #if !defined(WITHOUT_NETWORKING)
 	// Only used in SMLAN/SMOnline:
-	if (!m_bForceNoNetwork && NSMAN->useSMserver &&
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver &&
 		GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType !=
 		  StyleType_OnePlayerTwoSides) {
 		m_bShowScoreboard = PREFSMAN->m_bEnableScoreboard.Get();
@@ -892,7 +896,7 @@ ScreenGameplay::~ScreenGameplay()
 
 	m_GameplayAssist.StopPlaying();
 
-	if (!m_bForceNoNetwork)
+	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->ReportSongOver();
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(false);
@@ -1338,7 +1342,7 @@ ScreenGameplay::BeginScreen()
 	SOUND->PlayOnceFromAnnouncer("gameplay intro"); // crowd cheer
 
 	// Get the transitions rolling
-	if (!m_bForceNoNetwork && NSMAN->useSMserver) {
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
 		// If we're using networking, we must not have any delay. If we do,
 		// this can cause inconsistency on different computers and
 		// different themes.
@@ -1360,6 +1364,28 @@ ScreenGameplay::BeginScreen()
 		UpdateSongPosition(0);
 	} else {
 		StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
+	}
+	if (GAMESTATE->m_bPlayingMulti) {
+		this->SetInterval(
+		  [this]() {
+			  auto& ptns = this->GetPlayerInfo(PLAYER_1)->GetPlayerStageStats()->m_iTapNoteScores;
+			  
+			  RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+									  ptns[TNS_W1],
+									  ptns[TNS_W2],
+									  ptns[TNS_W3],
+									  ptns[TNS_W4],
+									  ptns[TNS_W5],
+									  ptns[TNS_Miss],
+									  this->GetPlayerInfo(PLAYER_1)
+										->GetPlayerStageStats()
+										->m_iCurCombo);
+			  NSMAN->SendMPLeaderboardUpdate(
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore / this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore, doot);
+			  		
+		  },
+		  0.25f,
+		  -1);
 	}
 }
 
@@ -1744,6 +1770,19 @@ ScreenGameplay::Update(float fDeltaTime)
 							  oldRate;
 							GAMESTATE->m_SongOptions.GetPreferred()
 							  .m_fMusicRate = oldRate;
+							FailType failreset = GAMEMAN->m_iPreviousFail;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetSong()
+							  .m_FailType =
+							  failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetCurrent()
+							  .m_FailType =
+							  failreset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetPreferred()
+							  .m_FailType =
+							  failreset;
 							GAMEMAN->m_bResetModifiers = false;
 							GAMEMAN->m_sModsToReset = "";
 							MESSAGEMAN->Broadcast("RateChanged");
@@ -1785,7 +1824,7 @@ ScreenGameplay::Update(float fDeltaTime)
 	PlayTicks();
 	SendCrossedMessages();
 
-	if (!m_bForceNoNetwork && NSMAN->useSMserver) {
+	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
 		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi) if (pi->m_pLifeMeter)
 		  NSMAN->m_playerLife = int(pi->m_pLifeMeter->GetLife() * 10000);
 
@@ -2093,6 +2132,19 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						  oldRate;
 						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 						  oldRate;
+						FailType failreset = GAMEMAN->m_iPreviousFail;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetSong()
+						  .m_FailType =
+						  failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetCurrent()
+						  .m_FailType =
+						  failreset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]
+						  ->m_PlayerOptions.GetPreferred()
+						  .m_FailType =
+						  failreset;
 						GAMEMAN->m_bResetModifiers = false;
 						GAMEMAN->m_sModsToReset = "";
 						MESSAGEMAN->Broadcast("RateChanged");
@@ -2231,6 +2283,19 @@ ScreenGameplay::SaveStats()
 		NoteDataWithScoring::GetActualRadarValues(nd, pss, fMusicLen, rv);
 		pss.m_radarActual += rv;
 		GAMESTATE->SetProcessedTimingData(NULL);
+	}
+	if (GamePreferences::m_AutoPlay.Get() == PC_REPLAY) {
+		// We need to replace the newly created replay data with the actual old
+		// data Because to keep consistently lazy practices, we can just hack
+		// things together instead of fixing the real issue -poco
+		// (doing this fixes a lot of issues in the eval screen)
+		PlayerStageStats* pss = m_vPlayerInfo[PLAYER_1].GetPlayerStageStats();
+		HighScore* hs = PlayerAI::pScoreData;
+		pss->m_vHoldReplayData = hs->GetHoldReplayDataVector();
+		pss->m_vNoteRowVector = hs->GetNoteRowVector();
+		pss->m_vOffsetVector = hs->GetOffsetVector();
+		pss->m_vTapNoteTypeVector = hs->GetTapNoteTypeVector();
+		pss->m_vTrackVector = hs->GetTrackVector();
 	}
 }
 
@@ -2997,7 +3062,8 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int SetReplayPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
-		if (GAMESTATE->GetPaused() && GamePreferences::m_AutoPlay == PC_REPLAY) {
+		if (GAMESTATE->GetPaused() &&
+			GamePreferences::m_AutoPlay == PC_REPLAY) {
 			p->SetSongPosition(newpos);
 		}
 		/*

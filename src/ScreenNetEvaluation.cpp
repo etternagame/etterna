@@ -8,6 +8,7 @@
 #include "Style.h"
 #include "ThemeManager.h"
 #include "NetworkSyncManager.h"
+#include "InputEventPlus.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 
@@ -35,101 +36,18 @@ ScreenNetEvaluation::Init()
 	m_bHasStats = false;
 	m_iCurrentPlayer = 0;
 
-	FOREACH_EnabledPlayer(pn) { m_pActivePlayer = pn; }
-
-	m_iShowSide = (m_pActivePlayer == PLAYER_1) ? 2 : 1;
-
-	m_rectUsersBG.SetWidth(USERSBG_WIDTH);
-	m_rectUsersBG.SetHeight(USERSBG_HEIGHT);
-	m_rectUsersBG.RunCommands(USERSBG_COMMAND);
-	// XXX: The name should be set with m_iShowSide and then
-	// LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND should be used. -aj
-	m_rectUsersBG.SetName("UsersBG");
-
-	m_rectUsersBG.SetXY(THEME->GetMetricF("ScreenNetEvaluation",
-										  ssprintf("UsersBG%dX", m_iShowSide)),
-						THEME->GetMetricF("ScreenNetEvaluation",
-										  ssprintf("UsersBG%dY", m_iShowSide)));
-	LOAD_ALL_COMMANDS_AND_ON_COMMAND(m_rectUsersBG);
-
-	this->AddChild(&m_rectUsersBG);
-
-	RedoUserTexts();
-
 	NSMAN->OnEval();
 }
 
-void
-ScreenNetEvaluation::RedoUserTexts()
-{
-	m_iActivePlayers = NSMAN->m_ActivePlayers;
-
-	// If unnecessary, just don't do this function.
-	if (m_iActivePlayers == (int)m_textUsers.size())
-		return;
-
-	for (unsigned int i = 0; i < m_textUsers.size(); ++i)
-		this->RemoveChild(&m_textUsers[i]);
-
-	float cx = THEME->GetMetricF("ScreenNetEvaluation",
-								 ssprintf("User%dX", m_iShowSide));
-	float cy = THEME->GetMetricF("ScreenNetEvaluation",
-								 ssprintf("User%dY", m_iShowSide));
-
-	m_iCurrentPlayer = 0;
-	m_textUsers.clear();
-	m_textUsers.resize(m_iActivePlayers);
-
-	for (int i = 0; i < m_iActivePlayers; ++i) {
-		m_textUsers[i].LoadFromFont(THEME->GetPathF(m_sName, "names"));
-		m_textUsers[i].SetName(ssprintf("User"));
-		m_textUsers[i].SetShadowLength(1);
-		m_textUsers[i].SetXY(cx, cy);
-
-		this->AddChild(&m_textUsers[i]);
-		ActorUtil::LoadAllCommands(m_textUsers[i], m_sName);
-		cx += USERDX;
-		cy += USERDY;
-	}
-}
-
 bool
-ScreenNetEvaluation::MenuLeft(const InputEventPlus& input)
+ScreenNetEvaluation::Input(const InputEventPlus& input)
 {
-	return MenuUp(input);
-}
-
-bool
-ScreenNetEvaluation::MenuUp(const InputEventPlus& input)
-{
-	if (m_iActivePlayers == 0 || !m_bHasStats)
+	// throw out "enter" inputs so players don't accidentally close the screen
+	// while talking about scores, force them to esc to the next screen -mina
+	if (input.DeviceI.button == KEY_ENTER)
 		return false;
 
-	COMMAND(m_textUsers[m_iCurrentPlayer], "DeSel");
-	m_iCurrentPlayer =
-	  (m_iCurrentPlayer + m_iActivePlayers - 1) % m_iActivePlayers;
-	COMMAND(m_textUsers[m_iCurrentPlayer], "Sel");
-	UpdateStats();
-	return true;
-}
-
-bool
-ScreenNetEvaluation::MenuRight(const InputEventPlus& input)
-{
-	return MenuDown(input);
-}
-
-bool
-ScreenNetEvaluation::MenuDown(const InputEventPlus& input)
-{
-	if (m_iActivePlayers == 0 || !m_bHasStats)
-		return false;
-
-	COMMAND(m_textUsers[m_iCurrentPlayer], "DeSel");
-	m_iCurrentPlayer = (m_iCurrentPlayer + 1) % m_iActivePlayers;
-	COMMAND(m_textUsers[m_iCurrentPlayer], "Sel");
-	UpdateStats();
-	return true;
+	return Screen::Input(input);
 }
 
 void
@@ -141,8 +59,6 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 		LOG->Trace("[SMNETDebug] num active players: %d (local), %d (NSMAN)",
 				   m_iActivePlayers,
 				   NSMAN->m_ActivePlayers);
-
-		RedoUserTexts();
 
 		LOG->Trace("SMNETCheckpoint");
 		for (int i = 0; i < m_iActivePlayers; ++i) {
@@ -161,26 +77,8 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 				NSMAN->m_EvalPlayerData[i].name < 0)
 				break;
 
-			if (size_t(i) >= m_textUsers.size())
-				break;
-
-			m_textUsers[i].SetText(
-			  NSMAN->m_EvalPlayerData[i].nameStr.empty()
-				? NSMAN->m_PlayerNames[NSMAN->m_EvalPlayerData[i].name]
-				: NSMAN->m_EvalPlayerData[i].nameStr);
-
-			// Yes, hardcoded (I'd like to leave it that way) -CNLohr (in
-			// reference to Grade_Tier03) Themes can read this differently. The
-			// correct solution depends...
-			// TODO: make this a server-side variable. -aj
-			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-					Grade_NoData
-				  ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-				  : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade <
-					  Grade_Tier03)
-				m_textUsers[i].PlayCommand("Tier02OrBetter");
-
-			ON_COMMAND(m_textUsers[i]);
+			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade() <
+				Grade_Tier03)
 			LOG->Trace("SMNETCheckpoint%d", i);
 		}
 		return; // No need to let ScreenEvaluation get a hold of this.
@@ -194,9 +92,6 @@ ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 void
 ScreenNetEvaluation::TweenOffScreen()
 {
-	for (int i = 0; i < m_iActivePlayers; ++i)
-		OFF_COMMAND(m_textUsers[i]);
-	OFF_COMMAND(m_rectUsersBG);
 	ScreenEvaluation::TweenOffScreen();
 }
 
@@ -205,38 +100,6 @@ ScreenNetEvaluation::UpdateStats()
 {
 	if (m_iCurrentPlayer >= (int)NSMAN->m_EvalPlayerData.size())
 		return;
-
-	// Only run these commands if the theme has these things shown; not every
-	// theme has them, so don't assume. -aj
-	if (THEME->GetMetricB(m_sName, "ShowGradeArea"))
-		m_Grades[m_pActivePlayer].SetGrade(static_cast<Grade>(
-		  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-			  Grade_NoData
-			? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-			: NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade));
-	if (THEME->GetMetricB(m_sName, "ShowScoreArea"))
-		m_textScore[m_pActivePlayer].SetTargetNumber(
-		  static_cast<float>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score));
-
-	// Values greater than 6 will cause a crash
-	if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty < 6) {
-		m_DifficultyIcon[m_pActivePlayer].SetPlayer(m_pActivePlayer);
-		m_DifficultyIcon[m_pActivePlayer].SetFromDifficulty(
-		  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
-	}
-
-	for (int j = 0; j < NETNUMTAPSCORES; ++j) {
-		// The name will be blank if ScreenEvaluation determined the line
-		// should not be shown.
-		if (!m_textJudgmentLineNumber[j][m_pActivePlayer].GetName().empty()) {
-			m_textJudgmentLineNumber[j][m_pActivePlayer].SetTargetNumber(
-			  static_cast<float>(
-				NSMAN->m_EvalPlayerData[m_iCurrentPlayer].tapScores[j]));
-		}
-	}
-
-	m_textPlayerOptions[m_pActivePlayer].SetText(
-	  NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions);
 
 	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
 	Difficulty dc = NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty;
@@ -250,10 +113,7 @@ ScreenNetEvaluation::UpdateStats()
 				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
 	msg.SetParam("Score", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score);
 	msg.SetParam("Grade",
-				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() !=
-					 Grade_NoData
-				   ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade()
-				   : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade);
+				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade());
 	msg.SetParam("PlayerOptions",
 				 NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions);
 	if (pSteps)
@@ -292,11 +152,43 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 			lua_pushnil(L);
 		return 1;
 	}
+	static int GetCurrentPlayer(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->m_iCurrentPlayer + 1);
+		return 1;
+	}
+	static int SetCurrentPlayer(T* p, lua_State* L)
+	{
+		p->m_iCurrentPlayer = IArg(1) - 1;
+		p->UpdateStats();
+		return 0;
+	}
+	static int SetCurrentPlayerByName(T* p, lua_State* L)
+	{
+		int theNumber = 0;
+		RString given = SArg(1);
+		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++)
+		{
+			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
+			RString name = pd.nameStr;
+			name.MakeLower();
+			if (name == given)
+			{
+				p->m_iCurrentPlayer = (int)i;
+				p->UpdateStats();
+				break;
+			}
+		}
+		return 0;
+	}
 	LunaScreenNetEvaluation()
 	{
 		ADD_METHOD(GetNumActivePlayers);
 		ADD_METHOD(GetHighScore);
 		ADD_METHOD(GetOptions);
+		ADD_METHOD(GetCurrentPlayer);
+		ADD_METHOD(SetCurrentPlayer);
+		ADD_METHOD(SetCurrentPlayerByName);
 	}
 };
 

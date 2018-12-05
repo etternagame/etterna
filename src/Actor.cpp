@@ -14,7 +14,10 @@
 #include "ThemeManager.h"
 #include "XmlFile.h"
 #include <typeinfo>
+#include <list>
+#include <tuple>
 #include "FilterManager.h"
+#include "LuaReference.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -299,6 +302,78 @@ Actor::PartiallyOpaque()
 		   m_pTempState->glow.a > 0;
 }
 
+bool
+Actor::IsOver(float mx, float my)
+{
+	if (!IsVisible())
+		return false;
+
+	auto x = GetTrueX();
+	auto y = GetTrueY();
+	auto hal = GetHorizAlign();
+	auto val = GetVertAlign();
+	auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoom();
+	auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoom();
+	auto lr = x - (hal * wi);
+	auto rr = x + wi - (hal * wi);
+	auto ur = y - (val * hi);
+	auto br = ((y + hi) - (val * hi));
+	bool withinX = mx >= lr && mx <= rr;
+	bool withinY = my >= ur && my <= br;
+	return withinX && withinY;
+}
+Actor*
+Actor::GetFakeParentOrParent()
+{
+	if (!this)
+		return nullptr;
+	if (m_FakeParent)
+		return m_FakeParent;
+	if (m_pParent)
+		return m_pParent;
+	return nullptr;
+}
+float
+Actor::GetTrueX()
+{
+	if (!this)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetX();
+	return GetX() * mfp->GetTrueZoom() + mfp->GetTrueX();
+}
+
+float
+Actor::GetTrueY()
+{
+	if (!this)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetY();
+	return GetY() * mfp->GetTrueZoom() + mfp->GetTrueY();
+}
+float
+Actor::GetTrueZoom()
+{
+	if (!this)
+		return 1.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZoom();
+	return GetZoom() * mfp->GetTrueZoom();
+}
+bool
+Actor::IsVisible()
+{
+	if (!this)
+		return false;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetVisible();
+	return GetVisible() && mfp->IsVisible();
+}
 void
 Actor::Draw()
 {
@@ -2599,11 +2674,19 @@ class LunaActor : public Luna<Actor>
 	static int LoadXY(T* p, lua_State* L)
 	{
 		auto doot = FILTERMAN->loadpos(p->GetName());
-		p->SetX(doot.first);
-		p->SetY(doot.second);
+		p->SetX(static_cast<float>(doot.first));
+		p->SetY(static_cast<float>(doot.second));
 		COMMON_RETURN_SELF;
 	}
-
+	static int IsOver(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->IsOver(FArg(1), FArg(2)));
+		return 1;
+	}
+	DEFINE_METHOD(GetTrueX, GetTrueX());
+	DEFINE_METHOD(GetTrueY, GetTrueY());
+	DEFINE_METHOD(GetTrueZoom, GetTrueZoom());
+	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
 	{
 		ADD_METHOD(name);
@@ -2780,6 +2863,12 @@ class LunaActor : public Luna<Actor>
 
 		ADD_METHOD(SaveXY);
 		ADD_METHOD(LoadXY);
+
+		ADD_METHOD(GetTrueX);
+		ADD_METHOD(GetTrueY);
+		ADD_METHOD(GetTrueZoom);
+		ADD_METHOD(IsVisible);
+		ADD_METHOD(IsOver);
 	}
 };
 

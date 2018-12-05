@@ -381,8 +381,9 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 			SONGMAN->GetPreferredSortSongs(apAllSongs);
 			break;
 		case SORT_POPULARITY:
-			apAllSongs = SONGMAN->GetPopularSongs();
-			break;
+			// todo: make this work -poco
+			//apAllSongs = SONGMAN->GetPopularSongs();
+			//break;
 		case SORT_GROUP:
 			// if we're not using sections with a preferred song group, and
 			// there is a group to load, only load those songs. -aj
@@ -1002,7 +1003,8 @@ MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme)
 		m_WheelItemDatasStatus[so] = VALID;
 
 		if (PREFSMAN->m_verbose_log > 0)
-			LOG->Trace("MusicWheel sorting took: %f", timer.GetTimeSinceStart());
+			LOG->Trace("MusicWheel sorting took: %f",
+					   timer.GetTimeSinceStart());
 	}
 }
 

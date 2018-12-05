@@ -29,8 +29,8 @@ class PlayerAI
 	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result. However, note that the rows within are actually calculated
-	// so that they are adjusted for offsets relative to the actual replay data/notedata.
-	// This map is only useful for charts with column data.
+	// so that they are adjusted for offsets relative to the actual replay
+	// data/notedata. This map is only useful for charts with column data.
 	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	static void InitFromDisk();
@@ -44,8 +44,11 @@ class PlayerAI
 	static bool DetermineIfHoldDropped(int noteRow, int col);
 	// Returns the column that needs to be tapped.
 	// Returns -1 if no column needs to be tapped.
-	static int DetermineNextTapColumn(int noteRow, int searchRowDistance, TimingData* timing);
-	// Literally get the next row in the replay data. Disregard offset calculations.
+	static int DetermineNextTapColumn(int noteRow,
+									  int searchRowDistance,
+									  TimingData* timing);
+	// Literally get the next row in the replay data. Disregard offset
+	// calculations.
 	static int GetNextRowNoOffsets(int currentRow);
 	// Reset and populate the ReplayExactTapMap.
 	// This is meant to be run once Gameplay begins.
@@ -56,13 +59,17 @@ class PlayerAI
 	// Build a list of columns/tracks to tap based on the given noterow.
 	static vector<TapReplayResult> GetTapsToTapForRow(int noteRow);
 	static int GetReplayType();
-	// Build a list of columns/tracks that happened at or before the given noterow.
-	// (if we lag and somehow skip rows)
+	// Build a list of columns/tracks that happened at or before the given
+	// noterow. (if we lag and somehow skip rows)
 	static vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
 	// Given a column and row, retrieve the adjusted row.
 	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
 	// Remove a given Tap from the fallback and Full replay data vectors
 	static void RemoveTapFromVectors(int row, int col);
+	// Go through the replay data to fill out the radar values for the eval
+	// screen
+	static void CalculateRadarValuesForReplay(RadarValues& rv,
+											  RadarValues& possibleRV);
 };
 
 #endif

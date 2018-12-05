@@ -34,7 +34,8 @@ Environment:
 #define HIDP_LINK_COLLECTION_ROOT ((USHORT)-1)
 #define HIDP_LINK_COLLECTION_UNSPECIFIED ((USHORT)0)
 
-typedef enum _HIDP_REPORT_TYPE {
+typedef enum _HIDP_REPORT_TYPE
+{
 	HidP_Input,
 	HidP_Output,
 	HidP_Feature
@@ -1584,7 +1585,8 @@ NTSTATUS __stdcall HidP_UsageAndPageListDifference(
 //
 // Produce Make or Break Codes
 //
-typedef enum _HIDP_KEYBOARD_DIRECTION {
+typedef enum _HIDP_KEYBOARD_DIRECTION
+{
 	HidP_Keyboard_Break,
 	HidP_Keyboard_Make
 } HIDP_KEYBOARD_DIRECTION;

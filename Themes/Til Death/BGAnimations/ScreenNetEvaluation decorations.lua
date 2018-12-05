@@ -8,7 +8,7 @@ local customWindows = timingWindowConfig:get_data().customWindows
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
 if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
-	t[#t + 1] = LoadActor("ScreenEvaluation decorations/scoreboard")
+	t[#t + 1] = LoadActor("MPscoreboard")
 end
 
 t[#t + 1] =
@@ -18,6 +18,7 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, capWideScale(135, 150)):zoom(0.4):maxwidth(400 / 0.4)
 		end,
 		BeginCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			self:queuecommand("Set")
 		end,
 		SetCommand = function(self)
@@ -99,6 +100,7 @@ local judges = {
 	"TapNoteScore_Miss"
 }
 
+
 local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 
 local frameX = 20
@@ -112,8 +114,8 @@ function scoreBoard(pn, position)
 	local score = SCOREMAN:GetMostRecentScore()
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
-	local smallest, largest
 	local devianceTable
+	local tracks
 
 	local t =
 		Def.ActorFrame {
@@ -127,7 +129,9 @@ function scoreBoard(pn, position)
 			if s then
 				score = s
 				devianceTable = score:GetOffsetVector()
-				smallest, largest = wifeRange(devianceTable)
+				totalTaps = #devianceTable
+				dvt = devianceTable
+				tracks = score:GetTrackVector()
 				MESSAGEMAN:Broadcast("ScoreChanged")
 			end
 		end
@@ -226,7 +230,7 @@ function scoreBoard(pn, position)
 				local minesHit =
 					pss:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
 				if enabledCustomWindows then
-					if params.Name == "PrevJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" then
 						judge = judge < 2 and #customWindows or judge - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 						self:settextf(
@@ -234,7 +238,7 @@ function scoreBoard(pn, position)
 							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
 							customWindow.name
 						)
-					elseif params.Name == "NextJudge" then
+					elseif params.Name == "LULLTHISWASNEXTJUDGE" then
 						judge = judge == #customWindows and 1 or judge + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 						self:settextf(
@@ -243,14 +247,14 @@ function scoreBoard(pn, position)
 							customWindow.name
 						)
 					end
-				elseif params.Name == "PrevJudge" and judge > 1 then
+				elseif params.Name == "LULLTHISWASPREVJUDGE" and judge > 1 then
 					judge = judge - 1
 					self:settextf(
 						"%05.2f%% (%s)",
 						getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps),
 						"Wife J" .. judge
 					)
-				elseif params.Name == "NextJudge" and judge < 9 then
+				elseif params.Name == "LULLTHISWASNEXTJUDGE" and judge < 9 then
 					judge = judge + 1
 					if judge == 9 then
 						self:settextf(
@@ -311,10 +315,10 @@ function scoreBoard(pn, position)
 			end,
 			ScoreChangedMessageCommand = function(self)
 				local rescoreJudges = score:RescoreJudges(judge)
-				self:zoomx(frameWidth * rescoreJudges[k] / (#(score:GetOffsetVector())))
+				self:zoomx(frameWidth * rescoreJudges[k] / (#devianceTable))
 			end,
 			CodeMessageCommand = function(self, params)
-				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+				if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 					if enabledCustomWindows then
 						self:finishtweening():decelerate(2):zoomx(
 							frameWidth * getRescoredCustomJudge(dvt, customWindow.judgeWindows, k) / totalTaps
@@ -342,7 +346,7 @@ function scoreBoard(pn, position)
 					self:settext(getJudgeStrings(v))
 				end,
 				CodeMessageCommand = function(self, params)
-					if enabledCustomWindows and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+					if enabledCustomWindows and (params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE") then
 						self:settext(getCustomJudgeString(customWindow.judgeNames, k))
 					end
 					if params.Name == "ResetJudge" then
@@ -366,7 +370,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 						if enabledCustomWindows then
 							self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
 						else
@@ -394,7 +398,7 @@ function scoreBoard(pn, position)
 					self:settextf("(%03.2f%%)", pss:GetPercentageOfTaps(v) * 100)
 				end,
 				CodeMessageCommand = function(self, params)
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					if params.Name == "LULLTHISWASPREVJUDGE" or params.Name == "LULLTHISWASNEXTJUDGE" then
 						local rescoredJudge
 						if enabledCustomWindows then
 							rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
@@ -468,52 +472,81 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	-- stats stuff
-	local devianceTable = pss:GetOffsetVector()
-	t[#t + 1] =
-		Def.Quad {
-		InitCommand = function(self)
-			self:xy(frameWidth + 25, frameY + 230):zoomto(frameWidth / 2 + 10, 60):halign(1):valign(0):diffuse(
-				color("#333333CC")
-			)
+		-- stats stuff
+		tracks = pss:GetTrackVector()
+		devianceTable = pss:GetOffsetVector()
+		
+		-- basic per-hand stats to be expanded on later
+		local tst = ms.JudgeScalers
+		local tso = tst[judge]
+		if enabledCustomWindows then
+			tso = 1
 		end
-	}
-	smallest, largest = wifeRange(devianceTable)
-	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
-	local mcscoot = {
-		function()
-			return wifeMean(devianceTable)
-		end,
-		function()
-			return wifeAbsMean(devianceTable)
-		end,
-		function()
-			return wifeSd(devianceTable)
-		end,
-		function()
-			return smallest
-		end,
-		function()
-			return largest
-		end
-	}
 
-	for i = 1, #doot do
-		t[#t + 1] =
-			LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(doot[i])
+		local function cbs(dvt, x)
+			local cbs = 0
+			for i = 1, #dvt do
+				if math.abs(dvt[i]) > tso * 90 then
+					if tracks[i + x] == 0 or tracks[i + x] == 1 then
+						cbs = cbs + 1
+					end
 				end
-			}
+			end
+			return cbs
+		end
+		
 		t[#t + 1] =
-			LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i]())
-				end
-			}
-	end
+			Def.Quad {
+			InitCommand = function(self)
+				self:xy(frameWidth + 25, frameY + 230):zoomto(frameWidth / 2 + 10, 60):halign(1):valign(0):diffuse(
+					color("#333333CC")
+				)
+			end
+		}
+		local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
+		local mcscoot = { 
+			function() 
+				return wifeMean(devianceTable) 
+			end, 
+			function() 
+				return wifeAbsMean(devianceTable) 
+			end, 
+			function() 
+				return wifeSd(devianceTable) 
+			end, 
+			function() 
+				return cbs(devianceTable, 0)
+			end, 
+			function() 
+				return cbs(devianceTable, 2)
+			end 
+		} 
+		for i = 1, #doot do
+			t[#t + 1] =
+				LoadFont("Common Normal") ..
+				{
+					InitCommand = function(self)
+						self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(doot[i])
+					end,
+					ScoreChangedMessageCommand = function(self)
+						self:queuecommand("Init")
+					end
+				}
+			t[#t + 1] =
+				LoadFont("Common Normal") ..
+				{
+					InitCommand = function(self)
+						if i < 4 then
+							self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i]())
+						else
+							self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settext(mcscoot[i]())
+						end						
+					end,
+					ScoreChangedMessageCommand = function(self)
+						self:queuecommand("Init")
+					end
+				}
+		end
 
 	return t
 end
@@ -530,6 +563,10 @@ end
 
 t[#t + 1] = LoadActor("offsetplot")
 
+local score = SCOREMAN:GetMostRecentScore()
+if not score then 
+	score = SCOREMAN:GetTempReplayScore()
+end
 -- Discord thingies
 local largeImageTooltip =
 	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
@@ -544,7 +581,7 @@ local state =
 	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(pssP1:GetWifeScore() * 10000) / 100) ..
-				" " .. THEME:GetString("Grade", ToEnumShortString(SCOREMAN:GetMostRecentScore():GetWifeGrade()))
+				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
 GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
 
 return t

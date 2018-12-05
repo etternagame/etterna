@@ -13,7 +13,10 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-#define MAX_METERS 12 // kinda restrictive but im also as lazy as sm5 devs -mina
+// reasonable limit to chart amount. if someone consistently crashes when
+// scrolling on a chart that has 25 diffs, THIS IS WHY
+// (this is a hardcoded value to optimize stepstype hover or something) -poco
+#define MAX_METERS 24
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 
@@ -385,12 +388,14 @@ class LunaStepsDisplayList : public Luna<StepsDisplayList>
 		p->SetFromGameState();
 		COMMON_RETURN_SELF;
 	}
-	static int GetCurrentIndex(T* p, lua_State* L){
+	static int GetCurrentIndex(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, p->GetCurrentRowIndex(PLAYER_1));
 		return 1;
 	}
 
-	LunaStepsDisplayList() {
+	LunaStepsDisplayList()
+	{
 		ADD_METHOD(setfromgamestate);
 		ADD_METHOD(GetCurrentIndex);
 	}

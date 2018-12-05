@@ -404,8 +404,7 @@ PlayerOptions::ResetModsToStringVector(vector<RString> mods)
 {
 	RString error;
 	ResetToggleableMods();
-	for (RString mod : mods)
-	{
+	for (RString mod : mods) {
 		FromOneModString(mod, error);
 	}
 }

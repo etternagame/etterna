@@ -226,6 +226,17 @@ ScoresForChart::SetTopScores()
 			eligiblescores.emplace_back(hs);
 	}
 
+	// if there aren't 2 noccpbs in top scores we might as well use old cc scores -mina
+	if (eligiblescores.size() < 2) {
+		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
+		{
+			auto& hs = i->second.PBptr;
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+				hs->GetEtternaValid() && hs->GetGrade() != Grade_Failed)
+				eligiblescores.emplace_back(hs);
+		}
+	}
+	
 	if (eligiblescores.empty())
 		return;
 
@@ -852,7 +863,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		last->PushSelf(L);
 		return 1;
 	}
-
+	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
 		ADD_METHOD(GetScoresByKey);
@@ -860,6 +871,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(ValidateAllScores);
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetMostRecentScore);
+		ADD_METHOD(GetTempReplayScore);
 	}
 };
 

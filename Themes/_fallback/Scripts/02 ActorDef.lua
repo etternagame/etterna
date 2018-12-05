@@ -87,6 +87,9 @@ setmetatable(
 )
 
 --- Resolve a path (Returns resolved path string)
+-- @string path
+-- @number level integer, call stack level for error()
+-- @boolean optional is this path required or optional
 function ResolveRelativePath(path, level, optional)
 	if path:sub(1, 1) ~= "/" then
 		-- "Working directory":
@@ -101,6 +104,8 @@ function ResolveRelativePath(path, level, optional)
 end
 
 --- Load an actor template.
+-- @string path
+-- @number level integer, call stack level for error()
 function LoadActorFunc(path, level)
 	level = level or 1
 
@@ -166,6 +171,7 @@ function LoadActorFunc(path, level)
 end
 
 --- Load and create an actor template.
+-- @string path
 function LoadActor(path, ...)
 	local t = LoadActorFunc(path, 2)
 	assert(t)
@@ -174,6 +180,8 @@ end
 
 --- Same as LoadActor but sets everything in params as
 -- "Thread Variables" accessed via Var("name")
+-- @string path path to file without extension
+-- @table params doing Var(key) in the file in path will index this table
 function LoadActorWithParams(path, params, ...)
 	local t = LoadActorFunc(path, 2)
 	assert(t)
@@ -218,7 +226,7 @@ function LoadColorFont(a, b)
 	}
 end
 
---- Returns an ActorFrame with the numeric table t as children
+--- Returns an ActorFrame with the numeric table/array t as children
 function WrapInActorFrame(t)
 	return Def.ActorFrame {children = t}
 end
@@ -256,6 +264,7 @@ function ShowStandardDecoration(MetricsName)
 	return THEME:GetMetric(Var "LoadingScreen", "Show" .. MetricsName)
 end
 
+-- @table NullActor
 --blank actor because these come in handy from time to time
 NullActor = {Class = "Actor", _Source = "(null actor)"}
 

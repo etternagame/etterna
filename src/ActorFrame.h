@@ -99,6 +99,12 @@ class ActorFrame : public Actor
 	void FinishTweening() override;
 	void HurryTweening(float factor) override;
 
+	void SetUpdateFunctionInterval(float ms)
+	{
+		if (ms > 0.0f) {
+			m_fUpdateFInterval = ms;
+		}
+	}
 	void SetUpdateRate(float rate) override
 	{
 		if (rate > 0.0f) {
@@ -148,6 +154,8 @@ class ActorFrame : public Actor
 	LuaReference m_UpdateFunction;
 	LuaReference m_DrawFunction;
 
+	float m_fUpdateFInterval{ 0.016f };
+	float secsSinceLuaUpdateFWasRun{ 0.0f };
 	// state effects
 	float m_fUpdateRate;
 	float m_fFOV; // -1 = no change

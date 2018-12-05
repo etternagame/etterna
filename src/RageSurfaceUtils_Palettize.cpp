@@ -495,21 +495,21 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 	return acolormap;
 }
 
-	/*
-	 * libpam3.c - pam (portable alpha map) utility library part 3
-	 *
-	 * Colormap routines.
-	 *
-	 * Copyright (C) 1989, 1991 by Jef Poskanzer.
-	 * Copyright (C) 1997 by Greg Roelofs.
-	 *
-	 * Permission to use, copy, modify, and distribute this software and its
-	 * documentation for any purpose and without fee is hereby granted, provided
-	 * that the above copyright notice appear in all copies and that both that
-	 * copyright notice and this permission notice appear in supporting
-	 * documentation.  This software is provided "as is" without express or
-	 * implied warranty.
-	 */
+/*
+ * libpam3.c - pam (portable alpha map) utility library part 3
+ *
+ * Colormap routines.
+ *
+ * Copyright (C) 1989, 1991 by Jef Poskanzer.
+ * Copyright (C) 1997 by Greg Roelofs.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose and without fee is hereby granted, provided
+ * that the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation.  This software is provided "as is" without express or
+ * implied warranty.
+ */
 
 #define pam_hashapixel(p)                                                      \
 	(((unsigned)PAM_GETR(p) * 33023 + (unsigned)PAM_GETG(p) * 30013 +          \

@@ -22,7 +22,6 @@ local t =
 	Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		SCREENMAN:GetTopScreen():UsersVisible(false)
 	end
 }
 
@@ -50,5 +49,6 @@ t[#t + 1] = LoadActor("../_mousewheelscroll")
 t[#t + 1] = LoadActor("currenttime")
 t[#t + 1] = LoadActor("../_halppls")
 t[#t + 1] = LoadActor("../_userlist")
+t[#t + 1] = LoadActor("../_lobbyuserlist")
 
 return t

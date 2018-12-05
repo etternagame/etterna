@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
 #include "RageLog.h"
@@ -34,6 +34,7 @@
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
+#include "GameSoundManager.h"
 
 #include "GameState.h"
 #include <cfloat>
@@ -378,7 +379,7 @@ Song::FinalizeLoading()
 	// save group name
 	vector<RString> sDirectoryParts;
 	split(m_sSongDir, "/", sDirectoryParts, false);
-	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	// ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
 	m_sGroupName =
 	  sDirectoryParts[sDirectoryParts.size() - 3]; // second from last item
 	ASSERT(m_sGroupName != "");
@@ -2047,6 +2048,55 @@ Song::IsMarathon() const
 	return m_fMusicLengthSeconds >= g_fMarathonVerSongSeconds;
 }
 
+void
+Song::Borp()
+{
+	GameSoundManager::PlayMusicParams PlayParams;
+	PlayParams.sFile = GetMusicPath();
+	PlayParams.pTiming = nullptr;
+	PlayParams.bForceLoop = true;
+	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
+	PlayParams.fLengthSeconds =
+	  GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	PlayParams.fFadeOutLengthSeconds = 1.f;
+	PlayParams.bAlignBeat = true;
+	PlayParams.bApplyMusicRate = true;
+
+	GameSoundManager::PlayMusicParams FallbackMusic;
+	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.fFadeInLengthSeconds = 1.f;
+	FallbackMusic.bAlignBeat = true;
+
+	if (PlayParams.fLengthSeconds <
+		3.f) { // if the songpreview is after the last note
+		PlayParams.fStartSecond =
+		  5.f; // chartpreview wont play, just set it near the start -mina
+		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	}
+	SOUND->PlayMusic(PlayParams, FallbackMusic);
+}
+
+void
+Song::Norf()
+{
+	GameSoundManager::PlayMusicParams PlayParams;
+	PlayParams.sFile = GetMusicPath();
+	PlayParams.pTiming = nullptr;
+	PlayParams.bForceLoop = true;
+	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
+	PlayParams.fLengthSeconds = m_fMusicSampleLengthSeconds;
+	PlayParams.fFadeOutLengthSeconds = 1.f;
+	PlayParams.bAlignBeat = true;
+	PlayParams.bApplyMusicRate = true;
+
+	GameSoundManager::PlayMusicParams FallbackMusic;
+	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.fFadeInLengthSeconds = 1.f;
+	FallbackMusic.bAlignBeat = true;
+
+	SOUND->PlayMusic(PlayParams, FallbackMusic);
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -2468,13 +2518,21 @@ class LunaSong : public Luna<Song>
 		p->ReloadFromSongDir();
 		COMMON_RETURN_SELF;
 	}
-
 	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
-
+	static int Borp(T* p, lua_State* L)
+	{
+		p->Borp();
+		return 0;
+	}
+	static int Norf(T* p, lua_State* L)
+	{
+		p->Norf();
+		return 0;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2543,6 +2601,8 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
+		ADD_METHOD(Borp);
+		ADD_METHOD(Norf);
 	}
 };
 

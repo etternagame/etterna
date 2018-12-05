@@ -10,9 +10,10 @@ local yeet
 local cd
 
 local function UpdatePreviewPos(self)
-	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
+	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or 
+	noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
-        self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
+		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
 	end
 end
@@ -26,6 +27,7 @@ local function setUpPreviewNoteField()
 	yeet:zoom(prevZoom):draworder(90)
 	SCREENMAN:GetTopScreen():dootforkfive(memehamstermax)
 	yeet = memehamstermax:GetChild("NoteField")
+	yeet:x(wodth/2)
 	memehamstermax:SortByDrawOrder()
 	MESSAGEMAN:Broadcast("NoteFieldVisible") 
   end 
@@ -64,7 +66,6 @@ local t = Def.ActorFrame {
 		cd:visible(true):y(20)				-- need to control this manually -mina
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
-		self:queuecommand("PlayingSampleMusic") 
 	end,
 	Def.Quad {
 		Name = "BG",
@@ -92,8 +93,13 @@ local t = Def.ActorFrame {
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
 				self:GetParent():GetChild("Seek"):visible(true)
+				self:GetParent():GetChild("Seektext"):visible(true)
 				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
+				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
 			else
+				self:GetParent():GetChild("Seektext"):visible(false)
 				self:GetParent():GetChild("Seek"):visible(false)
 			end
 		end
@@ -109,6 +115,13 @@ local t = Def.ActorFrame {
 t[#t + 1] = LoadActor("_chorddensitygraph.lua")
 
 -- more draw order shenanigans
+t[#t + 1] = LoadFont("Common Normal") .. {
+	Name = "Seektext",
+	InitCommand = function(self)
+		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+	end
+}
+
 t[#t + 1] = Def.Quad {
 	Name = "Seek",
 	InitCommand = function(self)

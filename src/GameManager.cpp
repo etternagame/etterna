@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
@@ -3227,6 +3227,7 @@ GameManager::GameManager()
 	m_fPreviousRate = 1.f;
 	m_sModsToReset;
 	m_vTurnsToReset;
+	m_iPreviousFail;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();

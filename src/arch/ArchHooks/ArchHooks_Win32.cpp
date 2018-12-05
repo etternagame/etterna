@@ -265,8 +265,8 @@ ArchHooks_Win32::GetClipboard()
 		return "";
 	}
 
-		// And finally, we have a char (or wchar_t) array of the clipboard
-		// contents, pointed to by sToPaste. (Hopefully.)
+	// And finally, we have a char (or wchar_t) array of the clipboard
+	// contents, pointed to by sToPaste. (Hopefully.)
 
 #ifdef UNICODE
 	ret = WStringToRString(wstring() + *lpstr);

@@ -547,8 +547,8 @@ class CStdStr : public std::basic_string<CT>
 
 	MYTYPE& assign(const CT* pC, MYSIZE nChars)
 	{
-	// Q172398 only fix -- erase before assigning, but not if we're
-	// assigning from our own buffer
+		// Q172398 only fix -- erase before assigning, but not if we're
+		// assigning from our own buffer
 
 #if defined(_MSC_VER) && (_MSC_VER < 1200)
 		if (!this->empty() &&
@@ -618,7 +618,7 @@ class CStdStr : public std::basic_string<CT>
 		return *this;
 	}
 
-		// addition operators -- global friend functions.
+	// addition operators -- global friend functions.
 
 #if defined(_MSC_VER) && _MSC_VER < 1300 /* VC6, not VC7 */
 /* work around another stupid vc6 bug */

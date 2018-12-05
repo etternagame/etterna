@@ -621,7 +621,9 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
 
-	if (profile->m_LastDifficulty < 0)	// force set difficulty to current steps if this is somehow -1 for ??? reasons -mina
+	if (profile->m_LastDifficulty <
+		0) // force set difficulty to current steps if this is somehow -1 for
+		   // ??? reasons -mina
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
 		  DifficultyToString(

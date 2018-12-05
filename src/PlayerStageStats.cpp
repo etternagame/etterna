@@ -319,7 +319,8 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	// TRICKY: printf will round, but we want to truncate. Otherwise, we may
 	// display a percent score that's too high and doesn't match up with the
 	// calculated grade.
-	float fTruncInterval = powf(0.1f, static_cast<float>(iPercentTotalDigits) - 1);
+	float fTruncInterval =
+	  powf(0.1f, static_cast<float>(iPercentTotalDigits) - 1);
 
 	// TRICKY: ftruncf is rounding 1.0000000 to 0.99990004. Give a little boost
 	// to fPercentDancePoints to correct for this.
@@ -1037,9 +1038,19 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State* L)
 	{
-		vector<float> doot = p->m_vOffsetVector;
-		for (size_t i = 0; i < doot.size(); ++i)
-			doot[i] = doot[i] * 1000;
+		auto& offs = p->m_vOffsetVector;
+		auto& type = p->m_vTapNoteTypeVector;
+		vector<float> doot;
+		// type would not be empty in Full Replays (> v0.60)
+		if (!type.empty()) {
+			for (size_t i = 0; i < offs.size(); ++i)
+				if (type[i] != TapNoteType_Mine)
+					doot.emplace_back(offs[i] * 1000);
+		} else {
+			// But type is empty if the replay is old :(
+			for (size_t i = 0; i < offs.size(); ++i)
+				doot.emplace_back(offs[i] * 1000);
+		}
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;
 	}

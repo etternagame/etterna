@@ -40,17 +40,13 @@ OPTION_ORDER_NAME(size_t dir)
 REGISTER_SCREEN_CLASS(ScreenSelectMaster);
 
 #define GetActiveElementPlayerNumbers(vpns)                                    \
-	\
-if(SHARED_SELECTION)                                                           \
-	{                                                                          \
+                                                                               \
+	if (SHARED_SELECTION) {                                                    \
 		(vpns).push_back(PLAYER_1);                                            \
-	\
-}                                                                         \
-	else                                                                       \
-	{                                                                          \
+                                                                               \
+	} else {                                                                   \
 		FOREACH_HumanPlayer(p)(vpns).push_back(p);                             \
-	\
-}
+	}
 
 ScreenSelectMaster::ScreenSelectMaster()
 {
@@ -1017,7 +1013,8 @@ ScreenSelectMaster::TweenOnScreen()
 				m_vsprScroll[*p][c]->FinishTweening();
 			}
 
-			m_Scroller[*p].SetCurrentAndDestinationItem(static_cast<float>(m_iChoice[*p]));
+			m_Scroller[*p].SetCurrentAndDestinationItem(
+			  static_cast<float>(m_iChoice[*p]));
 		}
 	}
 

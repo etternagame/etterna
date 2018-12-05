@@ -17,13 +17,12 @@ enum
 
 /* When returning error, the first error encountered takes priority. */
 #define FATAL_ERROR(s)                                                         \
-	\
-{                                                                         \
+                                                                               \
+	{                                                                          \
 		if (sError.size() == 0)                                                \
 			sError = (s);                                                      \
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;                             \
-	\
-}
+	}
 
 static RageSurfaceUtils::OpenResult
 LoadBMP(RageFile& f, RageSurface*& img, RString& sError)

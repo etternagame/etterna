@@ -135,15 +135,6 @@ local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
 
--- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
---[[
-local function froot(loop)
-	if loop.DeviceInput.button == "DeviceButton_`" then
-		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
-	end
-end
-]]
-
 local function arbitraryErrorBarValue(value)
 	errorBarFrameWidth = capWideScale(get43size(value), value)
 	wscale = errorBarFrameWidth / 180
@@ -173,9 +164,6 @@ local t =
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
-		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
-			SCREENMAN:GetTopScreen():AddInputCallback(froot)
-		end]]
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
@@ -192,8 +180,7 @@ local t =
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
 			Movable.DeviceButton_t.condition = true
-			lifebar:AddChild(self:GetChild("Border"))
-			-- self:RemoveChild("Border") ayy lmao
+			self:GetChild("LifeP1"):GetChild("Border"):SetFakeParent(lifebar)
 			Movable.DeviceButton_j.element = lifebar
 			Movable.DeviceButton_j.condition = true
 			Movable.DeviceButton_k.element = lifebar
@@ -221,9 +208,11 @@ local t =
 	end
 }
 
--- lifebar border, this is really ghetto i dont like it
-t[#t + 1] = MovableBorder(200, 5, 1, -35, 0)
-
+-- lifebard
+t[#t + 1] = Def.ActorFrame{
+	Name = "LifeP1",
+	MovableBorder(200, 5, 1, -35, 0)
+}
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 																	**LaneCover**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -347,6 +336,11 @@ local cp =
 		end
 		self:zoom(MovableValues.DisplayPercentZoom):x(MovableValues.DisplayPercentX):y(MovableValues.DisplayPercentY)
 	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+		end
+	},
 	-- Displays your current percentage score
 	LoadFont("Common Large") .. {
 		Name = "DisplayPercent",
@@ -355,7 +349,7 @@ local cp =
 		end,
 		OnCommand = function(self)
 			if allowedCustomization then
-				self:settextf("%05.2f%%", -10000)
+				self:settextf("%05.2f%%", -10000) 
 				setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
 				setBorderToText(self:GetParent():GetChild("Border"), self)
 			end

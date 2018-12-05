@@ -1,4 +1,4 @@
-﻿#ifndef NetworkSyncManager_H
+#ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
 #include "Difficulty.h"
@@ -86,8 +86,10 @@ enum ETTServerMessageTypes
 	ettps_recievechat,
 	ettps_loginresponse,
 	ettps_roomlist,
+	ettps_lobbyuserlist,
+	ettps_lobbyuserlistupdate,
 	ettps_recievescore,
-	ettps_gameplayleaderboard,
+	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
 	ettps_selectchart,
@@ -96,6 +98,7 @@ enum ETTServerMessageTypes
 	ettps_newroom,
 	ettps_updateroom,
 	ettps_roomuserlist,
+	ettps_chartrequest,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -104,7 +107,7 @@ enum ETTClientMessageTypes
 	ettpc_ping,
 	ettpc_sendchat,
 	ettpc_sendscore,
-	ettpc_gameplayupdate,
+	ettpc_mpleaderboardupdate,
 	ettpc_createroom,
 	ettpc_enterroom,
 	ettpc_leaveroom,
@@ -132,8 +135,29 @@ struct NetServerInfo
 	RString Address;
 };
 
+class ChartRequest
+{
+  public:
+	ChartRequest(json& j)
+	  : chartkey(j["chartkey"].get<string>())
+	  , user(j["requester"].get<string>())
+	  , rate(j["rate"])
+	{
+	}
+	const string chartkey;
+	const string user; // User that requested this chart
+	const int rate;	// rate * 1000
+	void PushSelf(lua_State* L);
+};
+
 class EzSockets;
 class StepManiaLanServer;
+class GameplayScore
+{
+  public:
+	float wife;
+	RString jdgstr;
+};
 
 class PacketFunctions
 {
@@ -210,66 +234,7 @@ class NetProtocol
 	virtual void OffOptions(){};
 	virtual void OnEval(){};
 	virtual void OffEval(){};
-};
-class SMOProtocol : public NetProtocol
-{ // Built on raw tcp
-	EzSockets* NetPlayerClient;
-	EzSockets* BroadcastReception;
-	PacketFunctions m_packet;
-	int m_iSalt;
-	bool TryConnect(unsigned short port, RString address);
-	void SendSMOnline();
-
-  public:
-	PacketFunctions SMOnlinePacket;
-	SMOProtocol();
-	~SMOProtocol();
-	bool Connect(NetworkSyncManager* n,
-				 unsigned short port,
-				 RString address) override; // Connect and say hello
-	void close() override;
-	void Update(NetworkSyncManager* n, float fDeltaTime) override;
-	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
-	void CreateNewRoom(RString name, RString desc, RString password) override;
-	void EnterRoom(RString name, RString password) override;
-	void RequestRoomInfo(RString name) override;
-	void ReportPlayerOptions();
-	void SendChat(const RString& message, string tab, int type) override;
-	void ReportNSSOnOff(int i) override;
-	void ReportScore(NetworkSyncManager* n,
-					 int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset,
-					 int numNotes) override;
-	void ReportScore(NetworkSyncManager* n,
-					 int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset) override;
-	void ReportSongOver(NetworkSyncManager* n) override;
-	void ReportStyle(NetworkSyncManager* n) override;
-	void StartRequest(NetworkSyncManager* n, short position) override;
-	void ProcessInput(NetworkSyncManager* n);
-	void Login(RString user, RString pass) override;
-	void OnMusicSelect() override;
-	void OffMusicSelect() override;
-	void OnRoomSelect() override;
-	void OffRoomSelect() override;
-	void OnOptions() override;
-	void OffOptions() override;
-	void OnEval() override;
-	void OffEval() override;
-
-	static void DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									 ScreenNetSelectMusic* s);
-	static void DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									 ScreenNetRoom* s);
-	static int DealWithSMOnlinePack(PacketFunctions& SMOnlinePacket,
-									ScreenSMOnlineLogin* s,
-									RString& response);
+	virtual void SendMPLeaderboardUpdate(float wife, RString& jdgstr){};
 };
 
 class ETTProtocol : public NetProtocol
@@ -308,6 +273,7 @@ class ETTProtocol : public NetProtocol
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
 	void Send(json msg);
@@ -339,7 +305,6 @@ class NetworkSyncManager
   public:
 	NetworkSyncManager(LoadingWindow* ld = NULL);
 	~NetworkSyncManager();
-	SMOProtocol SMOP;
 	ETTProtocol ETTP;
 	NetProtocol* curProtocol{ nullptr };
 	// If "useSMserver" then send score to server
@@ -413,6 +378,10 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
+	set<string> lobbyuserlist;
+
+	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
+
 	// Used for chatting
 	void SendChat(const RString& message,
 				  string tab = "",
@@ -427,6 +396,8 @@ class NetworkSyncManager
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
+	map<string, GameplayScore> mpleaderboard;
+	void PushMPLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;
 	int rate;
@@ -457,6 +428,7 @@ class NetworkSyncManager
 	void Login(RString user, RString pass);
 	void Logout();
 	vector<RoomData> m_Rooms;
+	vector<ChartRequest> requests;
 
 #if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);

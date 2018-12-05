@@ -96,7 +96,7 @@ ChangeAppPri()
 	}
 #endif
 
-		// If this is a debug build, don't. It makes the VC debugger sluggish.
+	// If this is a debug build, don't. It makes the VC debugger sluggish.
 #if defined(WIN32) && defined(DEBUG)
 	return false;
 #else

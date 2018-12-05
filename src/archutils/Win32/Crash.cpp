@@ -553,7 +553,7 @@ CrashHandler::do_backtrace(const void** buf,
 		pStackBase = (char*)pTib->StackBase;
 	}
 
-		// Walk up the stack.
+	// Walk up the stack.
 #if _WIN64
 	const char* lpAddr = (const char*)pContext->Rip;
 	const void* data = (void*)pContext->Rip;

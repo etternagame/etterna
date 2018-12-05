@@ -12,12 +12,6 @@ return Def.BPMDisplay {
 		end
 	end,
 	CurrentSongChangedMessageCommand = function(self)
-		self:playcommand("Set")
-	end,
-	CurrentSongChangedMessageCommand = function(self)
-		self:playcommand("Set")
-	end,
-	CurrentCourseChangedMessageCommand = function(self)
-		self:playcommand("Set")
+		self:queuecommand("Set")
 	end
 }

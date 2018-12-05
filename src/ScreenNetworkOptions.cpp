@@ -171,7 +171,7 @@ ScreenNetworkOptions::ExportOptions(int /* iRow */,
 void
 ScreenNetworkOptions::UpdateConnectStatus()
 {
-	SCREENMAN->SetNewScreen(m_sName);
+	SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
 }
 #endif
 

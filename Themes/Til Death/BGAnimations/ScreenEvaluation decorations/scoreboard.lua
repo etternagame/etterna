@@ -44,6 +44,9 @@ if GAMESTATE:IsPlayerEnabled(player) then
 	origTable = getScoresByKey(player)
 	score = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetHighScore()
 	rtTable = getRateTable(origTable)
+	if rtTable == nil then
+		return
+	end
 	hsTable = rtTable[getRate(score)] or {score}
 	scoreIndex = getHighScoreIndex(hsTable, score)
 end
@@ -121,12 +124,9 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 		Def.Quad {
 			Name = "mouseOver",
 			InitCommand = function(self)
-				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
+				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
 					getMainColor("highlight")
-				):diffusealpha(0.05)
-			end,
-			BeginCommand = function(self)
-				self:visible(false)
+				):diffusealpha(0)
 			end
 		},
 		--ClearType lamps
@@ -302,9 +302,9 @@ local function Update(self)
 	end
 	for i = 0, drawindex - 1 do
 		if isOver(self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver")) then
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):visible(true)
+			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0.2)
 		else
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):visible(false)
+			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(true)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(true)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(false)

@@ -68,7 +68,7 @@ local packgap = 4
 local packspacing = packh + packgap
 local offx = 10
 local offy = 40
-local packlist
+local packtable
 local ind = 0
 
 local o =
@@ -76,7 +76,7 @@ local o =
 	InitCommand = function(self)
 		self:xy(offx + width / 2, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx - (offx + width / 2), offy * 2 + 14):visible(false) --- uuuu messy... basically cancel out the x coord of the parent
-		packlist = DLMAN:GetPacklist()
+		packlist = PackList:new()
 		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
@@ -126,7 +126,7 @@ local o =
 				self:xy(width / 2 + offx, offy * 2):zoom(tzoom + 0.1):halign(0):maxwidth(width / 2 / tzoom)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settextf("Average Difficulty: %0.2f", packlist:GetAvgDiff()):diffuse(byMSD(packlist:GetAvgDiff()))
+				self:settextf("Average Difficulty: %0.2f", packtable.AveragePackDifficulty):diffuse(byMSD(packtable.AveragePackDifficulty))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -136,7 +136,7 @@ local o =
 				self:xy(width * 2 + width / 2 - 150, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settextf("Total Size: %i(MB)", packlist:GetTotalSize()):diffuse(byFileSize(packlist:GetTotalSize()))
+				self:settextf("Total Size: %i(MB)", packtable.TotalSize):diffuse(byFileSize(packtable.TotalSize))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -212,6 +212,7 @@ local function makedoots(i)
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
 					packlist:SetFromCoreBundle(minidoots[i]:lower())
+					packtable = packlist:GetPackTable()
 					self:GetParent():GetParent():queuecommand("PackTableRefresh") -- perhaps it would be best if the packlist broadcast instead - mina
 					self:GetParent():GetParent():visible(true):GetChild("PacklistDisplay"):visible(true)
 					ind = i

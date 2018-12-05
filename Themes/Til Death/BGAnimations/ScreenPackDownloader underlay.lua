@@ -3,7 +3,6 @@ local filters = {"", "0", "0", "0", "0", "0", "0"}
 
 local curInput = ""
 local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
-local packlist
 
 local function getFilter(index)
 	return filters[index]
@@ -165,7 +164,6 @@ local o =
 	InitCommand = function(self)
 		self:xy(0, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx, offy * 2 + 14)
-		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)

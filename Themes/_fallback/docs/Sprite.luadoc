@@ -1,0 +1,242 @@
+--- Sprite
+-- @classmod Sprite
+
+--[[-- 		Returns the length of the animation in seconds.
+	  @return float
+--]]
+function Sprite:GetAnimationLengthSeconds()
+end
+
+--[[-- 		Gets whether the Sprite should call the decode function for its texture during updates.
+	  @return bool
+--]]
+function Sprite:GetDecodeMovie()
+end
+
+--[[-- 		Return the number of states this Sprite has.
+	  @return int
+--]]
+function Sprite:GetNumStates()
+end
+
+--[[-- 		Returns the Sprite's current state (frame number in a multi-frame sprite).
+	  @return int
+--]]
+function Sprite:GetState()
+end
+
+--[[-- 		Returns the Sprite's texture.
+	  @return RageTexture
+--]]
+function Sprite:GetTexture()
+end
+
+--[[-- 		 Returns a Frames table consisting of iNumFrames frames lasting for a total of fSeconds seconds. This function is not a member function and should be used as Frames = Sprite.LinearFrames( 5, 2.6 ).
+	  @return Frames
+--]]
+function Sprite:LinearFrames()
+end
+
+--[[-- 		If <code>sPath</code> is <code>nil</code>, then unload the texture. Otherwise, load the texture at path <code>sPath</code>.
+	  @return void
+--]]
+function Sprite:Load(string, sPath)
+end
+
+--[[-- 		Load the song background texture at <code>sPath</code>.
+	  @return void
+--]]
+function Sprite:LoadBackground(string, sPath)
+end
+
+--[[-- 		Load the song banner texture at <code>sPath</code>.
+	  @return void
+--]]
+function Sprite:LoadBanner(string, sPath)
+end
+
+--[[-- 		Loads the image of type <code>sType</code> from the cache based on <code>sPath</code>.
+		Internal types: "Banner", "Background", "CDTitle", "Jacket", "CDImage" and "Disc".
+	  @return void
+--]]
+function Sprite:LoadFromCached(string, sType, string, sPath)
+end
+
+--[[-- 		Loads the background from the current Song or the first Trail entry.
+	  @return void
+--]]
+function Sprite:LoadFromCurrentSongBackground()
+end
+
+--[[-- 		 Load the texture for `Song` background.
+         @tparam Song song
+	  @return void
+--]]
+function Sprite:LoadFromSongBackground(song)
+end
+
+--[[--         Load the texture for `Song` banner.
+         @tparam Song song
+	  @return void
+--]]
+function Sprite:LoadFromSongBanner(song)
+end
+
+--[[-- 		Sets the custom image rectangle. (Works in image pixel space.)
+	  @return void
+--]]
+function Sprite:SetCustomImageRect(float, fLeft, float, fTop, float, fRight, float, fBottom)
+end
+
+--[[-- 		Sets custom offsets for the corners of the Sprite.  Coordinates are paired,
+		corner order is upper left, lower left, lower right, upper right.
+	  @return void
+--]]
+function Sprite:SetCustomPosCoords(
+    float,
+    ulx,
+    float,
+    uly,
+    float,
+    llx,
+    float,
+    lly,
+    float,
+    lrx,
+    float,
+    lry,
+    float,
+    urx,
+    float,
+    ury)
+end
+
+--[[-- 		Turns off the custom pos coords for the sprite.
+	  @return void
+--]]
+function Sprite:StopUsingCustomPosCoords()
+end
+
+--[[-- 		Sets whether the Sprite should call the decode function for its texture during updates.
+	  @return 
+--]]
+function Sprite:SetDecodeMovie(bool, decode)
+end
+
+--[[-- 		Set the <Link class='ENUM' function='EffectMode' /> to <code>mode</code>.
+	  @return void
+--]]
+function Sprite:SetEffectMode(EffectMode, mode)
+end
+
+--[[-- 		Sets the number of seconds into the animation to <code>fSeconds</code>.
+	  @return void
+--]]
+function Sprite:SetSecondsIntoAnimation(float, fSeconds)
+end
+
+--[[--		Sets the properties of the states of the sprite.  The properties table is identical to the "Frames" table that can be put in the sprite when calling Def.Sprite.<br />
+		Example:<br />
+		{{Frame= 0, Delay= .016, {0, 0}, {.25, .25}},<br />
+		{Frame= 1, Delay= .016, {0, 0}, {.25, .25}},<br />
+		{Frame= 2, Delay= .016, {0, 0}, {.25, .25}},<br />
+		{Frame= 3, Delay= .016, {0, 0}, {.25, .25}},<br />
+		}<br />
+		Frame is optional, defaulting to 0.<br />
+		Delay is optional, defaulting to 0.<br />
+		The two tables are optional upper left and lower right corners of the fraction of the frame to use.  The example makes the sprite only use the upper left corner of each frame.<br />
+		Simpler example:<br />
+		{{Frame= 0, Delay= .016}, {Frame= 1, Delay= .016}, {Frame= 2, Delay= .016}, {Frame= 3, Delay= .016}}<br />
+		This example makes the sprite use the whole of each frame.
+	  @return void
+--]]
+function Sprite:SetStateProperties(table)
+end
+
+--[[-- 		Set the texture to <code>texture</code>.
+	  @return void
+--]]
+function Sprite:SetTexture(RageTexture, texture)
+end
+
+--[[-- 		<!-- XXX: how does this work? -->
+	  @return void
+--]]
+function Sprite:addimagecoords(float, fX, float, fY)
+end
+
+--[[-- 		Allows the themer to set a custom texture rectangle that effects the way the texture is drawn.
+	  @return void
+--]]
+function Sprite:customtexturerect(float, fLeft, float, fTop, float, fRight, float, fBottom)
+end
+
+--[[-- 		Returns true if the sprite is using the effect clock for texcoordvelocity.
+	  @return bool
+--]]
+function Sprite:get_use_effect_clock_for_texcoords()
+end
+
+--[[-- 		Call loop on the `RageTexture`
+	  @return bool
+--]]
+function Sprite:loop(bLoop)
+end
+
+--[[-- 		Call position on the `RageTexture`
+	  @return bool
+--]]
+function Sprite:position(fPos)
+end
+
+--[[-- 		Call rate on the `RageTexture`
+	  @return bool
+--]]
+function Sprite:rate(fRate)
+end
+
+--[[-- 		Scale the Sprite to width <code>fWidth</code> and height <code>fHeight</code> clipping if the dimensions do not match.
+	  @return void
+--]]
+function Sprite:scaletoclipped(float, fWidth, float, fHeight)
+end
+
+--[[-- 		Set the Sprite's state to <code>iNewState</code>.
+	  @return void
+--]]
+function Sprite:setstate(iNewState)
+end
+
+--[[-- 		If <code>use</code> is true, then the sprite will use the effect clock for texcoordvelocity.
+	  @return 
+--]]
+function Sprite:set_use_effect_clock_for_texcoords(bool, use)
+end
+
+--[[-- 		<!-- XXX: What does this do? -->
+	  @return void
+--]]
+function Sprite:stretchtexcoords(float, fX, float, fY)
+end
+
+--[[-- 		Set the texture coordinate velocity which controls how the Sprite changes as it animates.  A velocity of 1 makes the texture scroll all the way once per second.
+	  @return void
+--]]
+function Sprite:texcoordvelocity(float, fVelX, float, fVelY)
+end
+
+--[[-- 		Crops the Sprite to <code>fWidth</code>x<code>fHeight</code>.
+	  @return void
+--]]
+function Sprite:CropTo(float, fWidth, float, fHeight)
+end
+
+--- Alias for CropTo
+function Sprite:cropto(float, fWidth, float, fHeight)
+end
+
+--[[-- 		Sets all the state delays to <code>fRate</code>. Useful for Sprites that need to change by BPM (e.g. Tran from DDR 5th Mix, the cube from DS EuroMix 2).
+  @return void
+--]]
+function Sprite:SetAllStateDelays(float, fRate)
+end

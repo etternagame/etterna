@@ -4,51 +4,41 @@ local pressingtab = false
 local top
 
 local function scrollInput(event)
-	if top:GetSelectionState() == 2 then
-		return
+	if top:GetName() == "ScreenSelectmusic" then
+		if top:GetSelectionState() == 2 then
+			return
+		end	
 	elseif event.DeviceInput.button == "DeviceButton_tab" then
 		if event.type == "InputEventType_FirstPress" then
 			pressingtab = true
 		elseif event.type == "InputEventType_Release" then
 			pressingtab = false
 		end
-	elseif
-		event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" and
-			top:GetSelectionState() ~= 2
-	 then
-		moving = true
-		if pressingtab == true then
-			whee:Move(-2)
-		elseif whee:IsSettled() then
-			whee:Move(-1)
-		else
-			whee:Move(-1)
-		end
-	elseif
-		event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" and
-			top:GetSelectionState() ~= 2
-	 then
-		moving = true
-		if pressingtab == true then
-			whee:Move(2)
-		elseif whee:IsSettled() then
-			whee:Move(1)
-		else
-			whee:Move(1)
+	elseif event.type == "InputEventType_FirstPress" then
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+			moving = true
+			if pressingtab == true and not whee:IsSettled() then
+				whee:Move(-2)
+			else
+				whee:Move(-1)
+			end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+			moving = true
+			if pressingtab == true and not whee:IsSettled() then
+				whee:Move(2)
+			else
+				whee:Move(1)
+			end
 		end
 	elseif moving == true then
 		whee:Move(0)
 		moving = false
 	end
 
-	if top:GetSelectionState() == 2 then
-		return
-	end
-
 	local mouseX = INPUTFILTER:GetMouseX()
 	local mouseY = INPUTFILTER:GetMouseY()
-
-	if mouseX > capWideScale(370, 500) and mouseX < SCREEN_WIDTH then
+	
+	if mouseX > capWideScale(370, 500) and mouseX < SCREEN_WIDTH - 32 then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress" then
 			local n = 0
 			local m = 1

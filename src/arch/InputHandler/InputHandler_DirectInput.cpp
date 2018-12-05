@@ -27,11 +27,12 @@ EnumDevicesCallback(const DIDEVICEINSTANCE* pdidInstance, void* pContext)
 	DIDevice device;
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Info("DInput: Enumerating device - Type: 0x%08X Instance Name: \"%s\" "
-				  "Product Name: \"%s\"",
-				  pdidInstance->dwDevType,
-				  pdidInstance->tszInstanceName,
-				  pdidInstance->tszProductName);
+		LOG->Info(
+		  "DInput: Enumerating device - Type: 0x%08X Instance Name: \"%s\" "
+		  "Product Name: \"%s\"",
+		  pdidInstance->dwDevType,
+		  pdidInstance->tszInstanceName,
+		  pdidInstance->tszProductName);
 
 	switch (GET_DIDEVICE_TYPE(pdidInstance->dwDevType)) {
 		case DI8DEVTYPE_JOYSTICK:

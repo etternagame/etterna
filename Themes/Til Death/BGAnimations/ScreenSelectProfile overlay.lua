@@ -1,4 +1,35 @@
---Commenting out the Player 2 stuff so if someone is attempting to use this theme for versus or 2P side, it's not going to work. Go use Prim's original spawnhack theme for that. -Misterkister
+local function selectprofile(self)
+	if isOver(self) then
+		SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, self:GetParent():GetName() + 1)
+		SCREENMAN:GetTopScreen():Finish()
+	end
+end
+local function genericHighlight(self, highlight, base, clickaction)
+	local highlight = highlight or 0.6
+	local base = base or 1
+	self:SetUpdateFunction(function(self)
+		if self:IsVisible() then
+			self:RunCommandsOnChildren(
+				function(self)
+					if isOver(self) then
+						self:diffusealpha(highlight)
+					else
+						self:diffusealpha(base)
+					end
+				end
+				)
+			end
+		end
+	)
+	self:SetUpdateFunctionInterval(0.025)
+	if clickaction then
+		self:RunCommandsOnChildren(
+			function(self) 
+				self:addcommand("LeftClickMessage", clickaction)
+			end
+		)
+	end
+end
 
 function GetLocalProfiles()
 	local t = {}
@@ -8,11 +39,15 @@ function GetLocalProfiles()
 		local profile = PROFILEMAN:GetLocalProfileFromIndex(p)
 		local ProfileCard =
 			Def.ActorFrame {
+				Name = p,
+				InitCommand = function(self) 
+					genericHighlight(self, 0.75, 1, selectprofile)
+				end,
 			LoadFont("Common Large") ..
 				{
 					Text = string.format("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating()),
 					InitCommand = function(self)
-						self:xy(34 / 2, -10):zoom(0.4):ztest(true, maxwidth, (200 - 34 - 4) / 0.4)
+						self:xy(34 / 2, -10):zoom(0.4):ztest(true, maxwidth, (200 - 34 - 4) / 0.4)	
 					end
 				},
 			LoadFont("Common Normal") ..

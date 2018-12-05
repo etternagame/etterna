@@ -201,7 +201,7 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 		if (!GetFileContents(sFile, sScript))
 			continue;
 
-		if(PREFSMAN->m_verbose_log > 1)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Load script \"%s\"", sFile.c_str());
 
 		Lua* L = LUA->Get();

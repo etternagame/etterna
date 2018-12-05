@@ -59,7 +59,8 @@ FindClosestEntry(T value, const U* mapping, unsigned cnt)
 
 	for (unsigned i = 0; i < cnt; ++i) {
 		const U val = mapping[i];
-		float dist = value < val ? static_cast<float>(val - value) : static_cast<float>(value - val);
+		float dist = value < val ? static_cast<float>(val - value)
+								 : static_cast<float>(value - val);
 		if (have_best && best_dist < dist)
 			continue;
 
@@ -871,7 +872,7 @@ InitializeConfOptions()
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
 	// W1 is Fantastic Timing
 	ADD(ConfOption(
-	  "AllowW1", MovePref<AllowW1>, "Never", "Courses Only", "Always"));
+	  "AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));

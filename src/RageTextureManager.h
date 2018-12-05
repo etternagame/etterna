@@ -1,4 +1,4 @@
-﻿/* RageTextureManager - Interface for loading textures. */
+/* RageTextureManager - Interface for loading textures. */
 
 #ifndef RAGE_TEXTURE_MANAGER_H
 #define RAGE_TEXTURE_MANAGER_H

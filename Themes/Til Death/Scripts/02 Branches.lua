@@ -13,6 +13,9 @@ function SMOnlineScreen()
 			return "ScreenSMOnlineLogin"
 		end
 	end
+	if not IsSMOnlineLoggedIn(pn) then
+		return "ScreenSMOnlineLogin"
+	end
 	return "ScreenNetRoom"
 end
 
@@ -133,8 +136,8 @@ Branch = {
 			if not IsSMOnlineLoggedIn(PLAYER_1) then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetRoom"
-			end
+				return "ScreenNetSelectProfile" --return "ScreenNetRoom" 	-- cant do this, we need to select a local profile even 	
+			end																-- if logged into smo -mina
 		else
 			return "ScreenNetworkOptions"
 		end
@@ -290,6 +293,9 @@ Branch = {
 	LeavePackDownloader = function()
 		if PROFILEMAN:GetProfile(1):GetDisplayName() == "" then	-- this is suuuuper hacky and will mess with people using "" as display names, but they're idiots anyway -mina
 			return "ScreenTitleMenu"
+		end
+		if IsSMOnlineLoggedIn(PLAYER_1) then
+			return "ScreenNetSelectMusic"
 		end
 		return "ScreenSelectMusic"
 	end
