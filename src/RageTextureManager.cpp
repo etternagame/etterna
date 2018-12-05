@@ -67,8 +67,7 @@ RageTextureManager::Update(float fDeltaTime)
 	static RageTimer garbageCollector;
 	if (garbageCollector.PeekDeltaTime() >= 30.0f) {
 		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) &&
-			SCREENMAN->GetTopScreen()->GetScreenType() != gameplay &&
-			SCREENMAN->GetTopScreen()->GetScreenType() != evaluation) {
+			SCREENMAN->GetTopScreen()->GetScreenType() != gameplay) {
 			DoDelayedDelete();
 			garbageCollector.Touch();
 		}
