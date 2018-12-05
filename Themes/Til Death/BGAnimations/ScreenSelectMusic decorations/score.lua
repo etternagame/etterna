@@ -228,6 +228,7 @@ local t =
 	InitCommand = function(self)
 		rtTable = nil
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.025)
 		cheese = self
 	end,
 	BeginCommand = function(self)
@@ -704,6 +705,7 @@ function nestedTabButton(i)
 		InitCommand = function(self)
 			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100, 80)), frameY + offsetY - 2)
 			self:SetUpdateFunction(highlight)
+			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CollapseCommand = function(self)
 			self:visible(false)
