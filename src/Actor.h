@@ -314,7 +314,6 @@ class Actor : public MessageSubscriber
 
 	// TODO: make Update non virtual and change all classes to override
 	// UpdateInternal instead.
-	bool IsFirstUpdate() const;
 	virtual void Update(
 	  float fDeltaTime); // this can short circuit UpdateInternal
 	virtual void UpdateInternal(float fDeltaTime); // override this
@@ -846,8 +845,6 @@ class Actor : public MessageSubscriber
 
 	/** @brief Temporary variables that are filled just before drawing */
 	TweenState* m_pTempState;
-
-	bool m_bFirstUpdate;
 
 	// Stuff for alignment
 	/** @brief The particular horizontal alignment.

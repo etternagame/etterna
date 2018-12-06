@@ -160,7 +160,6 @@ Actor::Actor()
 	InitState();
 	m_pParent = nullptr;
 	m_FakeParent = nullptr;
-	m_bFirstUpdate = true;
 	m_tween_uses_effect_delta = false;
 }
 
@@ -204,8 +203,6 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_start);
 	for (unsigned i = 0; i < cpy.m_Tweens.size(); ++i)
 		m_Tweens.push_back(new TweenStateAndInfo(*cpy.m_Tweens[i]));
-
-	CPY(m_bFirstUpdate);
 
 	CPY(m_fHorizAlign);
 	CPY(m_fVertAlign);
@@ -842,12 +839,6 @@ Actor::UpdateTweening(float fDeltaTime)
 	}
 }
 
-bool
-Actor::IsFirstUpdate() const
-{
-	return m_bFirstUpdate;
-}
-
 void
 Actor::Update(float fDeltaTime)
 {
@@ -864,9 +855,9 @@ Actor::Update(float fDeltaTime)
 		fDeltaTime = -m_fHibernateSecondsLeft;
 		m_fHibernateSecondsLeft = 0;
 	}
-	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		m_WrapperStates[i]->Update(fDeltaTime);
-	}
+	if (!m_WrapperStates.empty())
+		for (auto* w : m_WrapperStates)
+			w->Update(fDeltaTime);
 
 	this->UpdateInternal(fDeltaTime);
 }
@@ -883,9 +874,6 @@ generic_global_timer_update(float new_time,
 void
 Actor::UpdateInternal(float delta_time)
 {
-	if (m_bFirstUpdate)
-		m_bFirstUpdate = false;
-
 	switch (m_EffectClock) {
 		case CLOCK_TIMER:
 			m_fSecsIntoEffect += delta_time;

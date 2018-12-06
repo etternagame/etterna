@@ -35,6 +35,7 @@ ActorFrame::ActorFrame()
 	m_fVanishY = SCREEN_CENTER_Y;
 	m_bOverrideLighting = false;
 	m_bLighting = false;
+	m_bFirstUpdate = true;
 	m_ambientColor = RageColor(1, 1, 1, 1);
 	m_diffuseColor = RageColor(1, 1, 1, 1);
 	m_specularColor = RageColor(1, 1, 1, 1);
@@ -66,6 +67,7 @@ ActorFrame::ActorFrame(const ActorFrame& cpy)
 	CPY(m_diffuseColor);
 	CPY(m_specularColor);
 	CPY(m_lightDirection);
+	CPY(m_bFirstUpdate);
 #undef CPY
 
 	/* If m_bDeleteChildren, we own our children and it's up to us to copy
@@ -489,10 +491,18 @@ ActorFrame::RunCommandsOnLeaves(const LuaReference& cmds,
 		m_SubActors[i]->RunCommandsOnLeaves(cmds, pParamTable);
 }
 
+bool
+ActorFrame::IsFirstUpdate() const
+{
+	return m_bFirstUpdate;
+}
+
 void
 ActorFrame::UpdateInternal(float fDeltaTime)
 {
 	//	LOG->Trace( "ActorFrame::Update( %f )", fDeltaTime );
+	if (m_bFirstUpdate)
+		m_bFirstUpdate = false;
 
 	fDeltaTime *= m_fUpdateRate;
 
