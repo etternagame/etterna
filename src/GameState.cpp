@@ -1021,13 +1021,13 @@ GameState::GetCurrentStyle(PlayerNumber pn) const
 	if (GetCurrentGame() == NULL) {
 		return NULL;
 	}
-	if (!GetCurrentGame()->m_PlayersHaveSeparateStyles) {
-		return m_pCurStyle;
-	} else {
-		if (pn >= NUM_PLAYERS) {
-			return m_SeparatedStyles[PLAYER_1] == NULL
-					 ? m_SeparatedStyles[PLAYER_2]
-					 : m_SeparatedStyles[PLAYER_1];
+	else
+	{
+		if(pn >= NUM_PLAYERS)
+		{
+			/*return m_SeparatedStyles[PLAYER_1] == NULL ? m_SeparatedStyles[PLAYER_2]
+				: m_SeparatedStyles[PLAYER_1];*/
+			return m_SeparatedStyles[PLAYER_1];
 		}
 		return m_SeparatedStyles[pn];
 	}

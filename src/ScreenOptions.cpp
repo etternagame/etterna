@@ -602,12 +602,9 @@ ScreenOptions::PositionRows(bool bTween)
 
 	int first_start, first_end, second_start, second_end;
 
-	// Choices for each player. If only one player is active, it's the same for
-	// both.
-	int P1Choice = GAMESTATE->IsHumanPlayer(PLAYER_1) ? m_iCurrentRow[PLAYER_1]
-													  : m_iCurrentRow[PLAYER_2];
-	int P2Choice = GAMESTATE->IsHumanPlayer(PLAYER_2) ? m_iCurrentRow[PLAYER_2]
-													  : m_iCurrentRow[PLAYER_1];
+	// Choices for each player. If only one player is active, it's the same for both.
+	int P1Choice = m_iCurrentRow[PLAYER_1];
+	//int P2Choice = GAMESTATE->IsHumanPlayer(PLAYER_2)? m_iCurrentRow[PLAYER_2]: m_iCurrentRow[PLAYER_1];
 
 	vector<OptionRow*> Rows(m_pRows);
 	OptionRow* pSeparateExitRow = NULL;
@@ -619,27 +616,27 @@ ScreenOptions::PositionRows(bool bTween)
 		// Remove the exit row for purposes of positioning everything else.
 		if (P1Choice == (int)Rows.size() - 1)
 			--P1Choice;
-		if (P2Choice == (int)Rows.size() - 1)
+		/*if( P2Choice == (int) Rows.size()-1 )
 			--P2Choice;
-
+			*/
 		Rows.pop_back();
 	}
 
-	const bool BothPlayersActivated =
-	  GAMESTATE->IsHumanPlayer(PLAYER_1) && GAMESTATE->IsHumanPlayer(PLAYER_2);
-	if (m_InputMode == INPUTMODE_SHARE_CURSOR || !BothPlayersActivated) {
+	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
+	if( m_InputMode == INPUTMODE_SHARE_CURSOR || !BothPlayersActivated )
+	{
 		// Simply center the cursor.
 		first_start = max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
-		const int earliest = min(P1Choice, P2Choice);
-		first_start = max(earliest - halfsize / 2, 0);
+		const int earliest = P1Choice;
+		first_start = max( earliest - halfsize/2, 0 );
 		first_end = first_start + halfsize;
 
 		// Second half:
-		const int latest = max(P1Choice, P2Choice);
+		const int latest = P1Choice;
 
 		second_start = max(latest - halfsize / 2, 0);
 

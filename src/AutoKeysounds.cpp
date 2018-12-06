@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This class handles two things: auto-play preload, and runtime auto-play
  * sounds.
  *
@@ -187,68 +187,6 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	}
 
 	return;
-
-	// if( pSongReader->GetNumChannels() <= 2 )
-	//{
-	//	/* If we only have one track, return it as the shared track. */
-	//	pShared = pSongReader;
-	//	return;
-	//}
-
-	// TODO: Make this work for player 2, and for 2 players
-
-	/* The code below is used to split the main sound stream into per-player
-	 * sounds. The results of this method doesn't seem interesting enough to
-	 * bother supporting this. */
-
-	// RageSoundSplitter Splitter( pSongReader );
-
-	// RageSoundReader_Split *pMainSound = Splitter.CreateSound();
-	// pMainSound->AddSourceChannelToSound( 0, 0 );
-	// if( pSongReader->GetNumChannels() >= 2 ) // stereo
-	//	pMainSound->AddSourceChannelToSound( 1, 1 );
-	// pShared = pMainSound;
-
-	// RageSoundReader_Split *pLeadSound = Splitter.CreateSound();
-	// pLeadSound->AddSourceChannelToSound( 2, 0 );
-	// if( pSongReader->GetNumChannels() >= 4 ) // stereo
-	//	pLeadSound->AddSourceChannelToSound( 3, 1 );
-	// pPlayer1 = pLeadSound;
-
-	// if( pSongReader->GetNumChannels() >= 5 )
-	//{
-	//	if( bTwoPlayers )
-	//	{
-	//		RageSoundReader_Split *pSecondarySound = Splitter.CreateSound();
-	//		pSecondarySound->AddSourceChannelToSound( 4, 0 );
-	//		if( pSongReader->GetNumChannels() >= 6 )
-	//			pSecondarySound->AddSourceChannelToSound( 5, 1 ); // stereo
-	//		else
-	//			pSecondarySound->AddSourceChannelToSound( 4, 1 ); // mono
-	//		pPlayer2 = pSecondarySound;
-	//	}
-	//	else
-	//	{
-	//		/* We have a secondary track, but we only have one player.  Mix it
-	// into
-	//		 * the background track. */
-	//		pMainSound->AddSourceChannelToSound( 4, 0 );
-	//		if( pSongReader->GetNumChannels() >= 6 )
-	//			pMainSound->AddSourceChannelToSound( 5, 1 ); // stereo
-	//		else
-	//			pMainSound->AddSourceChannelToSound( 4, 1 ); // mono
-	//	}
-
-	//}
-	// else if( bTwoPlayers )
-	//{
-	//	/* We have two players, but only two tracks.  Use the same track for
-	// both
-	//	 * players. */
-	//	pPlayer2 = pPlayer1->Copy();
-	//	pPlayer1->SetProperty( "Balance", -1.0f );
-	//	pPlayer2->SetProperty( "Balance", +1.0f );
-	//}
 }
 
 void
@@ -304,10 +242,6 @@ AutoKeysounds::FinishLoading()
 		m_pPlayerSounds[1] = new RageSoundReader_Pan(m_pPlayerSounds[1]);
 		apSounds.push_back(m_pPlayerSounds[1]);
 	}
-
-	if (GAMESTATE->GetNumPlayersEnabled() == 1 &&
-		GAMESTATE->GetMasterPlayerNumber() == PLAYER_2)
-		swap(m_pPlayerSounds[PLAYER_1], m_pPlayerSounds[PLAYER_2]);
 
 	if (apSounds.size() > 1) {
 		auto* pMerge = new RageSoundReader_Merge;

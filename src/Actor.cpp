@@ -885,11 +885,6 @@ Actor::UpdateInternal(float delta_time)
 										m_fEffectDelta,
 										m_fSecsIntoEffect);
 			break;
-		case CLOCK_BGM_BEAT_PLAYER2:
-			generic_global_timer_update(g_vfCurrentBGMBeatPlayer[PLAYER_2],
-										m_fEffectDelta,
-										m_fSecsIntoEffect);
-			break;
 		case CLOCK_BGM_TIME:
 			generic_global_timer_update(
 			  g_fCurrentBGMTime, m_fEffectDelta, m_fSecsIntoEffect);

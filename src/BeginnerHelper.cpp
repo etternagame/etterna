@@ -248,11 +248,12 @@ BeginnerHelper::CanUse(PlayerNumber pn)
 			return false;
 
 	// This does not pass PLAYER_INVALID to GetCurrentStyle because that would
-	// only check the first non-NULL style.  Both styles need to be checked.
-	// -Kyz
-	if (pn == PLAYER_INVALID) {
-		return GAMESTATE->GetCurrentStyle(PLAYER_1)->m_bCanUseBeginnerHelper ||
-			   GAMESTATE->GetCurrentStyle(PLAYER_2)->m_bCanUseBeginnerHelper;
+	// only check the first non-NULL style.  Both styles need to be checked. -Kyz
+	if(pn == PLAYER_INVALID)
+	{
+		/*return GAMESTATE->GetCurrentStyle(PLAYER_1)->m_bCanUseBeginnerHelper ||
+			GAMESTATE->GetCurrentStyle(PLAYER_2)->m_bCanUseBeginnerHelper;*/
+		return GAMESTATE->GetCurrentStyle(PLAYER_1)->m_bCanUseBeginnerHelper;
 	}
 	return GAMESTATE->GetCurrentStyle(pn)->m_bCanUseBeginnerHelper;
 }

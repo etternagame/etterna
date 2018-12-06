@@ -319,50 +319,45 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
-					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
-					ScreenPrompt::Prompt(
-					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
-				} break;
-				case ProfileAction_MergeToMachine:
-					break;
-				case ProfileAction_MergeToMachineSkipTotal:
-					break;
-				case ProfileAction_MergeToP1:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-					break;
-				case ProfileAction_MergeToP2:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_2].Get());
-					break;
-				case ProfileAction_ChangeToGuest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToNormal:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToTest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_MoveUp:
-					PROFILEMAN->MoveProfilePriority(
-					  GetLocalProfileIndexWithFocus(), true);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_MoveDown:
-					PROFILEMAN->MoveProfilePriority(
-					  GetLocalProfileIndexWithFocus(), false);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
+					RString sMessage = ssprintf( CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str() );
+					ScreenPrompt::Prompt( SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO );
+				}
+				break;
+			case ProfileAction_MergeToMachine:
+				break;
+			case ProfileAction_MergeToMachineSkipTotal:
+				break;
+			case ProfileAction_MergeToP1:
+				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
+					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+				break;
+			/*case ProfileAction_MergeToP2:
+				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
+					ProfileManager::m_sDefaultLocalProfileID[PLAYER_2].Get());
+				break;*/
+			case ProfileAction_ChangeToGuest:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Guest);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_ChangeToNormal:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Normal);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_ChangeToTest:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Test);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_MoveUp:
+				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), true);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_MoveDown:
+				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), false);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
 			}
 		}
 	} else if (SM == SM_LoseFocus) {
