@@ -317,62 +317,14 @@ void
 GameState::JoinPlayer(PlayerNumber pn)
 {
 	pn = PLAYER_1;
-	// Make sure the join will be successful before doing it. -Kyz
-	{
-		int players_joined = 0;
-		for (bool i : m_bSideIsJoined) {
-			players_joined += i;
-		}
-		if (players_joined > 0) {
-			const Style* cur_style = GetCurrentStyle(PLAYER_INVALID);
-			if (cur_style) {
-				const Style* new_style = GAMEMAN->GetFirstCompatibleStyle(
-				  m_pCurGame, players_joined + 1, cur_style->m_StepsType);
-				if (new_style == NULL) {
-					return;
-				}
-			}
-		}
-	}
-
 	m_bSideIsJoined[pn] = true;
 
-	if (this->GetMasterPlayerNumber() == PLAYER_INVALID)
-		this->SetMasterPlayerNumber(pn);
-
-	// if first player to join, set start time
+	this->SetMasterPlayerNumber(pn);
 	if (GetNumSidesJoined() == 1)
 		BeginGame();
-
-	// Set the current style to something appropriate for the new number of joined players.
-	// beat gametype's versus styles use a different stepstype from its single
-	// styles, so when GameCommand tries to join both players for a versus
-	// style, it hits the assert when joining the first player.  So if the first
-	// player is being joined and the current styletype is for two players,
-	// assume that the second player will be joined immediately afterwards and
-	// don't try to change the style. -Kyz
-	const Style* cur_style= GetCurrentStyle(PLAYER_INVALID);
-	if(cur_style != NULL && !(pn == PLAYER_1))
-	{
-		const Style *pStyle;
-		// Only use one player for StyleType_OnePlayerTwoSides and StepsTypes
-		// that can only be played by one player (e.g. dance-solo,
-		// dance-threepanel, popn-nine). -aj
-		// XXX?: still shows joined player as "Insert Card". May not be an
-		// issue? -aj
-		if (cur_style->m_StyleType == StyleType_OnePlayerTwoSides ||
-			cur_style->m_StepsType == StepsType_dance_solo ||
-			cur_style->m_StepsType == StepsType_dance_threepanel ||
-			cur_style->m_StepsType == StepsType_popn_nine)
-			pStyle = GAMEMAN->GetFirstCompatibleStyle(
-			  m_pCurGame, 1, cur_style->m_StepsType);
-		else
-			pStyle = GAMEMAN->GetFirstCompatibleStyle(
-			  m_pCurGame, GetNumSidesJoined(), cur_style->m_StepsType);
-
-		// use SetCurrentStyle in case of StyleType_OnePlayerTwoSides
-		SetCurrentStyle(pStyle, pn);
-	}
+	const Style* style =
+	  GAMEMAN->GetFirstCompatibleStyle(m_pCurGame, 1, StepsType_dance_single);
+	SetCurrentStyle(style, pn);
 
 	Message msg(MessageIDToString(Message_PlayerJoined));
 	msg.SetParam("Player", pn);
@@ -1018,19 +970,9 @@ GameState::GetCurrentGame() const
 const Style*
 GameState::GetCurrentStyle(PlayerNumber pn) const
 {
-	if (GetCurrentGame() == NULL) {
-		return NULL;
-	}
-	else
-	{
-		if(pn >= NUM_PLAYERS)
-		{
-			/*return m_SeparatedStyles[PLAYER_1] == NULL ? m_SeparatedStyles[PLAYER_2]
-				: m_SeparatedStyles[PLAYER_1];*/
-			return m_SeparatedStyles[PLAYER_1];
-		}
-		return m_SeparatedStyles[pn];
-	}
+	if (GetCurrentGame() == nullptr)
+		return nullptr;
+	return m_pCurStyle;
 }
 
 void
@@ -1863,8 +1805,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetCurrentStyle(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1, true, true);
-		Style* pStyle = const_cast<Style*>(p->GetCurrentStyle(pn));
+		Style* pStyle = const_cast<Style*>(p->GetCurrentStyle(PLAYER_1));
 		LuaHelpers::Push(L, pStyle);
 		return 1;
 	}
@@ -2017,10 +1958,8 @@ class LunaGameState : public Luna<GameState>
 		if (!AreStyleAndPlayModeCompatible(p, L, pStyle, p->m_PlayMode)) {
 			COMMON_RETURN_SELF;
 		}
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 2, true, true);
 
-		p->SetCurrentStyle(pStyle, pn);
-
+		p->SetCurrentStyle(pStyle, PLAYER_1);
 		COMMON_RETURN_SELF;
 	}
 
