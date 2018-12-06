@@ -1402,11 +1402,6 @@ MusicWheel::SetOpenSection(const RString& group)
 				continue;
 		}
 
-		// Only show tutorial songs in arcade
-		if (GAMESTATE->m_PlayMode != PLAY_MODE_REGULAR && d.m_pSong &&
-			d.m_pSong->IsTutorial())
-			continue;
-
 		m_CurWheelItemData.emplace_back(&d);
 	}
 
@@ -1607,10 +1602,7 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 			wid[iSelection]->m_sText != sPreferredGroup)
 			continue;
 
-		// There's an off possibility that somebody might have only one song
-		// with only beginner steps.
-		if (i < 900 && pSong->IsTutorial())
-			continue;
+
 
 		FOREACH(Difficulty, vDifficultiesToRequire, d)
 		{

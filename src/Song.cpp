@@ -1489,45 +1489,6 @@ Song::GetFileHash()
 }
 
 bool
-Song::IsEasy(StepsType st) const
-{
-	/* Very fast songs and songs with wide tempo changes are hard for new
-	 * players, even if they have beginner steps. */
-	DisplayBpms bpms;
-	this->GetDisplayBpms(bpms);
-	if (bpms.GetMax() >= 250 || bpms.GetMax() - bpms.GetMin() >= 75)
-		return false;
-
-	/* The easy marker indicates which songs a beginner, having selected
-	 * "beginner", can play and actually get a very easy song: if there are
-	 * actual beginner steps, or if the light steps are 1- or 2-foot. */
-	const Steps* pBeginnerNotes =
-	  SongUtil::GetStepsByDifficulty(this, st, Difficulty_Beginner);
-	if (pBeginnerNotes != nullptr)
-		return true;
-
-	const Steps* pEasyNotes =
-	  SongUtil::GetStepsByDifficulty(this, st, Difficulty_Easy);
-	if ((pEasyNotes != nullptr) && pEasyNotes->GetMeter() == 1)
-		return true;
-
-	return false;
-}
-
-bool
-Song::IsTutorial() const
-{
-	// A Song is considered a Tutorial if it has only Beginner steps.
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		if ((*s)->GetDifficulty() != Difficulty_Beginner)
-			return false;
-	}
-
-	return true;
-}
-
-bool
 Song::HasEdits(StepsType st) const
 {
 	for (unsigned i = 0; i < m_vpSteps.size(); i++) {
@@ -1540,13 +1501,6 @@ Song::HasEdits(StepsType st) const
 
 	return false;
 }
-
-bool
-Song::ShowInDemonstrationAndRanking() const
-{
-	return !IsTutorial();
-}
-
 // Hack: see Song::TidyUpData comments.
 bool
 Song::HasMusic() const
@@ -2202,11 +2156,6 @@ class LunaSong : public Luna<Song>
 		lua_pushstring(L, p->GetSongFilePath());
 		return 1;
 	}
-	static int IsTutorial(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->IsTutorial());
-		return 1;
-	}
 	static int IsEnabled(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->GetEnabled());
@@ -2374,20 +2323,9 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, p->HasEdits(st));
 		return 1;
 	}
-	static int IsEasy(T* p, lua_State* L)
-	{
-		StepsType st = Enum::Check<StepsType>(L, 1);
-		lua_pushboolean(L, p->IsEasy(st));
-		return 1;
-	}
 	static int GetStepsSeconds(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetStepsSeconds());
-		return 1;
-	}
-	static int ShowInDemonstrationAndRanking(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->ShowInDemonstrationAndRanking());
 		return 1;
 	}
 	static int GetFirstSecond(T* p, lua_State* L)
@@ -2408,11 +2346,6 @@ class LunaSong : public Luna<Song>
 	static int GetLastBeat(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetLastBeat());
-		return 1;
-	}
-	static int HasAttacks(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int GetDisplayBpms(T* p, lua_State* L)
@@ -2491,7 +2424,6 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetCDTitlePath);
 		ADD_METHOD(GetLyricsPath);
 		ADD_METHOD(GetSongFilePath);
-		ADD_METHOD(IsTutorial);
 		ADD_METHOD(IsEnabled);
 		ADD_METHOD(GetGroupName);
 		ADD_METHOD(MusicLengthSeconds);
@@ -2516,20 +2448,17 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(HasLyrics);
 		ADD_METHOD(HasSignificantBPMChangesOrStops);
 		ADD_METHOD(HasEdits);
-		ADD_METHOD(IsEasy);
 		ADD_METHOD(IsFavorited);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(GetFirstBeat);
 		ADD_METHOD(GetFirstSecond);
 		ADD_METHOD(GetLastBeat);
 		ADD_METHOD(GetLastSecond);
-		ADD_METHOD(HasAttacks);
 		ADD_METHOD(GetDisplayBpms);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);
 		ADD_METHOD(IsDisplayBpmRandom);
 		ADD_METHOD(IsStepsUsingDifferentTiming);
-		ADD_METHOD(ShowInDemonstrationAndRanking);
 		ADD_METHOD(HasPreviewVid);
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);

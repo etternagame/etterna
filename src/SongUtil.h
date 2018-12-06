@@ -16,91 +16,6 @@ class XNode;
 void
 AppendOctal(int n, int digits, RString& out);
 
-/** @brief The criteria for dealing with songs. */
-class SongCriteria
-{
-  public:
-	/**
-	 * @brief What group name are we searching for for Songs?
-	 *
-	 * If an empty string, don't bother using this for searching. */
-	RString m_sGroupName;
-	bool m_bUseSongGenreAllowedList{ false };
-	vector<RString> m_vsSongGenreAllowedList;
-	enum Selectable
-	{
-		Selectable_Yes,
-		Selectable_No,
-		Selectable_DontCare
-	} m_Selectable{ Selectable_DontCare };
-	bool m_bUseSongAllowedList{ false };
-	vector<Song*> m_vpSongAllowedList;
-	/** @brief How many songs does this take max? Don't use this if it's -1. */
-	int m_iMaxStagesForSong{ -1 }; // don't filter if -1
-	// float m_fMinBPM;		// don't filter if -1
-	// float m_fMaxBPM;		// don't filter if -1
-	/** @brief Is this song used for tutorial purposes? */
-	enum Tutorial
-	{
-		Tutorial_Yes,	 /**< This song is used for tutorial purposes. */
-		Tutorial_No,	  /**< This song is not used for tutorial purposes. */
-		Tutorial_DontCare /**< This song can or cannot be used for tutorial
-							 purposes. */
-	} m_Tutorial{ Tutorial_DontCare };
-	/** @brief Is this song used for locking/unlocking purposes? */
-	enum Locked
-	{
-		Locked_Locked,   /**< This song is a locked song. */
-		Locked_Unlocked, /**< This song is an unlocked song. */
-		Locked_DontCare  /**< This song can or cannot be locked or unlocked. */
-	} m_Locked{ Locked_DontCare };
-
-	/** @brief Set up some initial song criteria. */
-	SongCriteria()
-	  : m_sGroupName("")
-	  , m_vsSongGenreAllowedList()
-	  , m_vpSongAllowedList()
-
-	{
-		// m_fMinBPM = -1;
-		// m_fMaxBPM = -1;
-	}
-
-	/**
-	 * @brief Determine if the song matches the current criteria.
-	 * @param p the song to compare against the criteria.
-	 * @return true of the song matches the criteria, false otherwise.
-	 */
-	bool Matches(const Song* p) const;
-	/**
-	 * @brief Determine if two sets of criteria are equivalent.
-	 * @param other the other criteria.
-	 * @return true if the two sets of criteria are equal, false otherwise.
-	 */
-	bool operator==(const SongCriteria& other) const
-	{
-/** @brief A quick way to match every part of the song criterium. */
-#define X(x) (x == other.x)
-		return X(m_sGroupName) && X(m_bUseSongGenreAllowedList) &&
-			   X(m_vsSongGenreAllowedList) && X(m_Selectable) &&
-			   X(m_bUseSongAllowedList) && X(m_vpSongAllowedList) &&
-			   X(m_iMaxStagesForSong) &&
-			   // X(m_fMinBPM) &&
-			   // X(m_fMaxBPM) &&
-			   X(m_Tutorial) && X(m_Locked);
-#undef X
-	}
-	/**
-	 * @brief Determine if two sets of criteria are not equivalent.
-	 * @param other the other criteria.
-	 * @return true if the two sets of criteria are not equal, false otherwise.
-	 */
-	bool operator!=(const SongCriteria& other) const
-	{
-		return !operator==(other);
-	}
-};
-
 /** @brief A set of song utilities to make working with songs easier. */
 namespace SongUtil {
 void
@@ -149,8 +64,10 @@ AdjustDuplicateSteps(Song* pSong); // part of TidyUpData
 void
 DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps);
 
+void
+MakeSortString(RString& s);
 RString
-MakeSortString(RString s);
+MakeSortString(const string& in);
 void
 SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut);
 void
@@ -226,18 +143,6 @@ ValidateCurrentStepsMusic(const RString& answer, RString& error);
 
 void
 GetAllSongGenres(vector<RString>& vsOut);
-/**
- * @brief Filter the selection of songs to only match certain criteria.
- * @param sc the intended song criteria.
- * @param in the starting batch of songs.
- * @param out the resulting batch.
- * @param doCareAboutGame a flag to see if we should only get playable steps. */
-void
-FilterSongs(const SongCriteria& sc,
-			const vector<Song*>& in,
-			vector<Song*>& out,
-			bool doCareAboutGame = false);
-
 void
 GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut);
 void

@@ -21,68 +21,6 @@
 ThemeMetric<int> SORT_BPM_DIVISION("MusicWheel", "SortBPMDivision");
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT("MusicWheel",
 											"ShowSectionsInBPMSort");
-
-bool
-SongCriteria::Matches(const Song* pSong) const
-{
-	if (!m_sGroupName.empty() && m_sGroupName != pSong->m_sGroupName)
-		return false;
-
-	if (m_bUseSongGenreAllowedList) {
-		if (find(m_vsSongGenreAllowedList.begin(),
-				 m_vsSongGenreAllowedList.end(),
-				 pSong->m_sGenre) == m_vsSongGenreAllowedList.end())
-			return false;
-	}
-
-	switch (m_Selectable) {
-		DEFAULT_FAIL(m_Selectable);
-		case Selectable_Yes:
-			break;
-		case Selectable_No:
-			break;
-		case Selectable_DontCare:
-			break;
-	}
-
-	if (m_bUseSongAllowedList) {
-		if (find(m_vpSongAllowedList.begin(),
-				 m_vpSongAllowedList.end(),
-				 pSong) == m_vpSongAllowedList.end())
-			return false;
-	}
-
-	if (m_iMaxStagesForSong != -1 &&
-		GAMESTATE->GetNumStagesMultiplierForSong(pSong) > m_iMaxStagesForSong)
-		return false;
-
-	switch (m_Tutorial) {
-		DEFAULT_FAIL(m_Tutorial);
-		case Tutorial_Yes:
-			if (!pSong->IsTutorial())
-				return false;
-			break;
-		case Tutorial_No:
-			if (pSong->IsTutorial())
-				return false;
-			break;
-		case Tutorial_DontCare:
-			break;
-	}
-
-	switch (m_Locked) {
-		DEFAULT_FAIL(m_Locked);
-		case Locked_Locked:
-			break;
-		case Locked_Unlocked:
-			break;
-		case Locked_DontCare:
-			break;
-	}
-
-	return true;
-}
-
 void
 SongUtil::GetSteps(const Song* pSong,
 				   vector<Steps*>& arrayAddTo,
@@ -381,19 +319,27 @@ CompareSongPointersBySortValueDescending(const Song* pSong1, const Song* pSong2)
 	return g_mapSongSortVal[pSong1] > g_mapSongSortVal[pSong2];
 }
 
-RString
-SongUtil::MakeSortString(RString s)
+void
+SongUtil::MakeSortString(RString& s)
 {
 	s.MakeUpper();
 
 	// Make sure that non-alphanumeric strings are placed at the very end.
-	if (s.size() > 0) {
-		if (s[0] == '.') // like the song ".59"
-			s.erase(s.begin());
+	if (s.size() > 0)
 		if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
 			s = char(126) + s;
-	}
+}
 
+RString
+SongUtil::MakeSortString(const string& in)
+{
+	RString s = in;
+	s.MakeUpper();
+
+	// Make sure that non-alphanumeric strings are placed at the very end.
+	if (s.size() > 0)
+		if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
+			s = char(126) + s;
 	return s;
 }
 
@@ -408,8 +354,8 @@ CompareSongPointersByTitle(const Song* pSong1, const Song* pSong2)
 		s2 = pSong2->GetTranslitSubTitle();
 	}
 
-	s1 = SongUtil::MakeSortString(s1);
-	s2 = SongUtil::MakeSortString(s2);
+	SongUtil::MakeSortString(s1);
+	SongUtil::MakeSortString(s2);
 
 	int ret = strcmp(s1, s2);
 	if (ret < 0)
@@ -548,7 +494,7 @@ SongUtil::SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut)
 {
 	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
 		g_mapSongSortVal[vpSongsInOut[i]] =
-		  MakeSortString(vpSongsInOut[i]->GetTranslitArtist());
+		  MakeSortString(RString(vpSongsInOut[i]->GetTranslitArtist()));
 	stable_sort(vpSongsInOut.begin(),
 				vpSongsInOut.end(),
 				CompareSongPointersBySortValueAscending);
@@ -697,7 +643,7 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 				default:
 					FAIL_M(ssprintf("Unexpected SortOrder: %i", so));
 			}
-			s = MakeSortString(s); // resulting string will be uppercase
+			MakeSortString(s); // resulting string will be uppercase
 
 			if (s.empty())
 				return RString();
@@ -777,7 +723,11 @@ SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
 		else if (val == sOther)
 			val = "2";
 		else
-			val = "1" + MakeSortString(val);
+		{
+			MakeSortString(val);
+			val = "1" + val;
+		}
+			
 
 		g_mapSongSortVal[vpSongsInOut[i]] = val;
 	}
@@ -1068,22 +1018,6 @@ SongUtil::GetAllSongGenres(vector<RString>& vsOut)
 	}
 
 	FOREACHS_CONST(RString, genres, s) { vsOut.push_back(*s); }
-}
-
-void
-SongUtil::FilterSongs(const SongCriteria& sc,
-					  const vector<Song*>& in,
-					  vector<Song*>& out,
-					  bool doCareAboutGame)
-{
-	out.reserve(in.size());
-	FOREACH_CONST(Song*, in, s)
-	{
-		if (sc.Matches(*s) && (!doCareAboutGame || IsSongPlayable(*s))) {
-
-			out.push_back(*s);
-		}
-	}
 }
 
 void

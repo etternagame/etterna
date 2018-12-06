@@ -317,8 +317,6 @@ StageStats::AssertValid(PlayerNumber pn) const
 {
 	ASSERT(m_vpPlayedSongs.size() != 0);
 	ASSERT(m_vpPossibleSongs.size() != 0);
-	if (m_vpPlayedSongs[0])
-		CHECKPOINT_M(m_vpPlayedSongs[0]->GetTranslitFullTitle());
 	ASSERT(m_player[pn].m_iStepsPlayed > 0);
 	ASSERT(m_player[pn].m_vpPossibleSteps.size() != 0);
 	ASSERT(m_player[pn].m_vpPossibleSteps[0] != NULL);
@@ -344,8 +342,6 @@ StageStats::AssertValid(MultiPlayer pn) const
 {
 	ASSERT(m_vpPlayedSongs.size() != 0);
 	ASSERT(m_vpPossibleSongs.size() != 0);
-	if (m_vpPlayedSongs[0])
-		CHECKPOINT_M(m_vpPlayedSongs[0]->GetTranslitFullTitle());
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps.size() != 0);
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL);
 	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));

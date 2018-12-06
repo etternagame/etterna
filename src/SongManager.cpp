@@ -1383,8 +1383,6 @@ SongManager::GetRandomSong()
 		i++;
 		wrap(i, m_pShuffledSongs.size());
 		Song* pSong = m_pShuffledSongs[i];
-		if (pSong->IsTutorial())
-			continue;
 		return pSong;
 	}
 

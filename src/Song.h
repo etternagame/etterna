@@ -312,22 +312,14 @@ class Song
 
 	bool HasMusic() const;
 	bool HasInstrumentTrack(InstrumentTrack it) const;
-	/**
-	 * @brief Does this song have a banner?
-	 * @return true if it does, false otherwise. */
 	bool HasBanner() const;
-	/**
-	 * @brief Does this song have a background image?
-	 * @return true if it does, false otherwise. */
 	bool HasBackground() const;
 	bool HasJacket() const;
 	bool HasCDImage() const;
 	bool HasDisc() const;
 	bool HasCDTitle() const;
-	// bool HasMovieBackground() const;
 	bool HasBGChanges() const;
 	bool HasLyrics() const;
-	bool HasAttacks() const;
 	bool HasPreviewVid() const;
 
 	bool Matches(const RString& sGroup, const RString& sSong) const;
@@ -390,12 +382,7 @@ class Song
 	 * This must be sorted before gameplay. */
 	vector<LyricSegment> m_LyricSegments;
 
-	/* [splittiming]
-		void AddBPMSegment( const BPMSegment &seg ) { m_Timing.AddBPMSegment(
-	   seg ); } void AddStopSegment( const StopSegment &seg ) {
-	   m_Timing.AddStopSegment( seg ); } void AddWarpSegment( const WarpSegment
-	   &seg ) { m_Timing.AddWarpSegment( seg ); }
-	*/
+
 	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
 	void AddForegroundChange(BackgroundChange seg);
 	void AddLyricSegment(LyricSegment seg);
@@ -404,47 +391,12 @@ class Song
 	const BackgroundChange& GetBackgroundAtBeat(BackgroundLayer iLayer,
 												float fBeat) const;
 
-	/* [splittiming]
-		float GetBPMAtBeat( float fBeat ) const { return m_Timing.GetBPMAtBeat(
-	   fBeat ); } void SetBPMAtBeat( float fBeat, float fBPM ) {
-	   m_Timing.SetBPMAtBeat( fBeat, fBPM ); } BPMSegment& GetBPMSegmentAtBeat(
-	   float fBeat ) { return m_Timing.GetBPMSegmentAtBeat( fBeat ); }
-	*/
 
 	Steps* CreateSteps();
 	void InitSteps(Steps* pSteps);
 
 	RString GetOrTryAtLeastToGetSimfileAuthor();
 
-	/* [splittiming]
-	float SongGetBeatFromElapsedTime( float fElapsedTime ) const
-	{
-		return m_SongTiming.GetBeatFromElapsedTime( fElapsedTime );
-	}
-	float StepsGetBeatFromElapsedTime( float fElapsedTime, const Steps &steps )
-	const
-	{
-		return steps.m_Timing.GetBeatFromElapsedTime( fElapsedTime );
-	}
-
-	float SongGetElapsedTimeFromBeat( float fBeat ) const
-	{
-		return m_SongTiming.GetElapsedTimeFromBeat( fBeat );
-	}
-	float StepsGetElapsedTimeFromBeat( float fBeat, const Steps &steps ) const
-	{
-		return steps.m_Timing.GetElapsedTimeFromBeat( fBeat );
-	}
-	*/
-
-	/* [splittiming]
-	float GetBeatFromElapsedTime( float fElapsedTime ) const
-	{
-		return m_Timing.GetBeatFromElapsedTime( fElapsedTime );
-	}
-	float GetElapsedTimeFromBeat( float fBeat ) const { return
-	m_Timing.GetElapsedTimeFromBeat( fBeat ); }
-	*/
 
 	bool HasSignificantBpmChangesOrStops() const;
 	float GetStepsSeconds() const;
@@ -466,8 +418,6 @@ class Song
 	{
 		return m_vpStepsByType[st];
 	}
-	bool IsEasy(StepsType st) const;
-	bool IsTutorial() const;
 	bool HasEdits(StepsType st) const;
 
 	bool IsFavorited() { return isfavorited; }
@@ -479,8 +429,6 @@ class Song
 
 	void SetEnabled(bool b) { m_bEnabled = b; }
 	bool GetEnabled() const { return m_bEnabled; }
-
-	bool ShowInDemonstrationAndRanking() const;
 
 	/**
 	 * @brief Add the chosen Steps to the Song.
