@@ -178,53 +178,7 @@ function LoadPlayerStuff(Player)
 end
 
 function UpdateInternal3(self, Player)
-	local pn = (Player == PLAYER_1) and 1
-	local frame = self:GetChild(string.format("P%uFrame", pn))
-	local scroller = frame:GetChild("Scroller")
-	local seltext = frame:GetChild("SelectedProfileText")
-	local joinframe = frame:GetChild("JoinFrame")
-	local smallframe = frame:GetChild("SmallFrame")
-	local bigframe = frame:GetChild("BigFrame")
-
-	if GAMESTATE:IsHumanPlayer(Player) then
-		frame:visible(true)
-		if MEMCARDMAN:GetCardState(Player) == "MemoryCardState_none" then
-			--using profile if any
-			joinframe:visible(false)
-			smallframe:visible(true)
-			bigframe:visible(true)
-			seltext:visible(true)
-			scroller:visible(true)
-			local ind = SCREENMAN:GetTopScreen():GetProfileIndex(Player)
-			if ind > 0 then
-				scroller:SetDestinationItem(ind - 1)
-				seltext:settext(PROFILEMAN:GetLocalProfileFromIndex(ind - 1):GetDisplayName())
-			else
-				if SCREENMAN:GetTopScreen():SetProfileIndex(Player, 1) then
-					scroller:SetDestinationItem(0)
-					self:queuecommand("UpdateInternal2")
-				else
-					joinframe:visible(true)
-					smallframe:visible(false)
-					bigframe:visible(false)
-					scroller:visible(false)
-					seltext:settext("No profile")
-				end
-			end
-		else
-			--using card
-			smallframe:visible(false)
-			scroller:visible(false)
-			seltext:settext("CARD")
-			SCREENMAN:GetTopScreen():SetProfileIndex(Player, 0)
-		end
-	else
-		joinframe:visible(true)
-		scroller:visible(false)
-		seltext:visible(false)
-		smallframe:visible(false)
-		bigframe:visible(false)
-	end
+	
 end
 
 local t = Def.ActorFrame {}
