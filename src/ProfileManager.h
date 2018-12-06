@@ -54,7 +54,6 @@ class ProfileManager
 	bool LoadFirstAvailableProfile(PlayerNumber pn, bool bLoadEdits = true);
 	bool LoadLocalProfileFromMachine(PlayerNumber pn);
 	bool SaveProfile(PlayerNumber pn) const;
-	bool ConvertProfile(PlayerNumber pn);
 	bool SaveLocalProfile(const RString& sProfileID);
 	void UnloadProfile(PlayerNumber pn);
 

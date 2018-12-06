@@ -161,8 +161,6 @@ struct HighScore
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	bool Is39import() const;
-
 	string GetDisplayName() const;
 
 	// Mina stuff - Mina
@@ -222,9 +220,6 @@ struct HighScoreList
 	void RemoveAllButOneOfEachName();
 
 	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
-
-	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* pNode);
 
 	vector<HighScore> vHighScores;
 	Grade HighGrade{ Grade_NoData };

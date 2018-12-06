@@ -24,7 +24,7 @@ class Character;
 struct Playlist;
 
 // Current file versions
-extern const RString STATS_XML;
+extern const RString ETT_XML;
 
 /**
  * @brief The filename where one can edit their personal profile data.
@@ -373,8 +373,6 @@ class Profile
 	bool SaveAllToDir(const RString& sDir, bool bSignData) const;
 
 	ProfileLoadResult LoadEditableDataFromDir(const RString& sDir);
-
-	void ImportScoresToEtterna();
 
 	void SaveTypeToDir(const RString& dir) const;
 	void SaveEditableDataToDir(const RString& sDir) const;

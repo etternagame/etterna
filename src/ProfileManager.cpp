@@ -255,30 +255,6 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 }
 
 bool
-ProfileManager::ConvertProfile(PlayerNumber pn)
-{
-	if (m_sProfileDir[pn].empty())
-		return false;
-
-	/*
-	 * If the profile we're writing was loaded from the primary (non-backup)
-	 * data, then we've validated it and know it's good.  Before writing our
-	 * new data, move the old, good data to the backup.  (Only do this once;
-	 * if we save the profile more than once, we haven't re-validated the
-	 * newly written data.)
-	 */
-	if (m_bNeedToBackUpLastLoad[pn]) {
-		m_bNeedToBackUpLastLoad[pn] = false;
-		RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
-		Profile::MoveBackupToDir(m_sProfileDir[pn], sBackupDir);
-	}
-
-	GetProfile(pn)->ImportScoresToEtterna();
-
-	return true;
-}
-
-bool
 ProfileManager::SaveLocalProfile(const RString& sProfileID)
 {
 	const Profile* pProfile = GetLocalProfile(sProfileID);
@@ -918,11 +894,6 @@ class LunaProfileManager : public Luna<ProfileManager>
 		lua_pushboolean(L, p->SaveProfile(PLAYER_1));
 		return 1;
 	}
-	static int ConvertProfile(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->ConvertProfile(PLAYER_1));
-		return 1;
-	}
 	static int SaveLocalProfile(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->SaveLocalProfile(SArg(1)));
@@ -968,7 +939,6 @@ class LunaProfileManager : public Luna<ProfileManager>
 		ADD_METHOD(GetPlayerName);
 		//
 		ADD_METHOD(SaveProfile);
-		ADD_METHOD(ConvertProfile);
 		ADD_METHOD(SaveLocalProfile);
 		ADD_METHOD(GetSongNumTimesPlayed);
 		ADD_METHOD(GetLocalProfileIDs);
