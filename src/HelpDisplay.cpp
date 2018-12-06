@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "HelpDisplay.h"
 #include "RageUtil.h"
@@ -43,14 +43,14 @@ HelpDisplay::SetTips(const vector<RString>& arrayTips,
 void
 HelpDisplay::Update(float fDeltaTime)
 {
-	float fHibernate = m_fHibernateSecondsLeft;
+
 
 	BitmapText::Update(fDeltaTime);
 
 	if (m_arrayTips.empty())
 		return;
 
-	m_fSecsUntilSwitch -= max(fDeltaTime - fHibernate, 0);
+	m_fSecsUntilSwitch -= max(fDeltaTime , 0);
 	if (m_fSecsUntilSwitch > 0)
 		return;
 

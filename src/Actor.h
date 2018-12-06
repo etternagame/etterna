@@ -713,7 +713,6 @@ class Actor : public MessageSubscriber
 	void SetShadowLengthY(float fLengthY) { m_fShadowLengthY = fLengthY; }
 	void SetShadowColor(const RageColor& c) { m_ShadowColor = c; }
 	// TODO: Implement hibernate as a tween type?
-	void SetHibernate(float fSecs) { m_fHibernateSecondsLeft = fSecs; }
 	void SetDrawOrder(int iOrder) { m_iDrawOrder = iOrder; }
 	int GetDrawOrder() const { return m_iDrawOrder; }
 
@@ -891,7 +890,6 @@ class Actor : public MessageSubscriber
 	// other properties
 	bool m_bVisible;
 	bool m_bIsAnimating;
-	float m_fHibernateSecondsLeft;
 	float m_fShadowLengthX;
 	float m_fShadowLengthY;
 	RageColor m_ShadowColor;

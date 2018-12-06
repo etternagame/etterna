@@ -117,7 +117,6 @@ Actor::InitState()
 	m_fShadowLengthY = 0;
 	m_ShadowColor = RageColor(0, 0, 0, 0.5f);
 	m_bIsAnimating = true;
-	m_fHibernateSecondsLeft = 0;
 	m_iDrawOrder = 0;
 
 	m_bTextureWrapping = false;
@@ -229,7 +228,6 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_vEffectMagnitude);
 
 	CPY(m_bVisible);
-	CPY(m_fHibernateSecondsLeft);
 	CPY(m_fShadowLengthX);
 	CPY(m_fShadowLengthY);
 	CPY(m_ShadowColor);
@@ -374,13 +372,12 @@ Actor::IsVisible()
 void
 Actor::Draw()
 {
-	if (!m_bVisible || m_fHibernateSecondsLeft > 0 || this->EarlyAbortDraw()) {
+	if (!m_bVisible || this->EarlyAbortDraw()) {
 		return; // early abort
 	}
 
 	if (m_FakeParent != nullptr) {
 		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->m_fHibernateSecondsLeft > 0 ||
 			m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
@@ -412,7 +409,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible || state->m_fHibernateSecondsLeft > 0 ||
+		if (!state->m_bVisible ||
 			state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
@@ -844,17 +841,6 @@ Actor::Update(float fDeltaTime)
 {
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
-
-	if (m_fHibernateSecondsLeft > 0) {
-		m_fHibernateSecondsLeft -= fDeltaTime;
-		if (m_fHibernateSecondsLeft > 0) {
-			return;
-		}
-
-		// Grab the leftover time.
-		fDeltaTime = -m_fHibernateSecondsLeft;
-		m_fHibernateSecondsLeft = 0;
-	}
 	if (!m_WrapperStates.empty())
 		for (auto* w : m_WrapperStates)
 			w->Update(fDeltaTime);
@@ -1402,9 +1388,6 @@ float
 Actor::GetTweenTimeLeft() const
 {
 	float tot = 0;
-
-	tot += m_fHibernateSecondsLeft;
-
 	for (unsigned i = 0; i < m_Tweens.size(); ++i)
 		tot += m_Tweens[i]->info.m_fTimeLeftInTween;
 
@@ -2375,11 +2358,6 @@ class LunaActor : public Luna<Actor>
 		p->SetVisible(BIArg(1));
 		COMMON_RETURN_SELF;
 	}
-	static int hibernate(T* p, lua_State* L)
-	{
-		p->SetHibernate(FArg(1));
-		COMMON_RETURN_SELF;
-	}
 	static int draworder(T* p, lua_State* L)
 	{
 		p->SetDrawOrder(IArg(1));
@@ -2800,7 +2778,6 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(backfacecull);
 		ADD_METHOD(cullmode);
 		ADD_METHOD(visible);
-		ADD_METHOD(hibernate);
 		ADD_METHOD(draworder);
 		ADD_METHOD(playcommand);
 		ADD_METHOD(queuecommand);

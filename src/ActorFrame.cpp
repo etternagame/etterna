@@ -563,11 +563,8 @@ PropagateActorFrameCommand(FinishTweening)
 {
 	float m = Actor::GetTweenTimeLeft();
 
-	for (unsigned i = 0; i < m_SubActors.size(); i++) {
-		const Actor* pActor = m_SubActors[i];
-		m = max(m, m_fHibernateSecondsLeft + pActor->GetTweenTimeLeft());
-	}
-
+	for (auto a : m_SubActors)
+		m = max(m, a->GetTweenTimeLeft());
 	return m;
 }
 

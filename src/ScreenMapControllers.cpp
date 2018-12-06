@@ -254,12 +254,6 @@ ScreenMapControllers::BeginScreen()
 	m_AutoDismissSanitySecs = 0.0f;
 	if (m_AutoDismissWarningSecs > 0.25) {
 		m_Warning->PlayCommand("TweenOn");
-	} else {
-		if (m_Warning->HasCommand("NeverShow")) {
-			m_Warning->PlayCommand("NeverShow");
-		} else {
-			m_Warning->SetHibernate(16777216.0f);
-		}
 	}
 }
 
