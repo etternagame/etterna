@@ -94,8 +94,6 @@ class Player : public ActorFrame
 	void Load();
 	void CrossedRows(int iLastRowCrossed,
 					 const std::chrono::steady_clock::time_point& now);
-	bool IsOniDead() const;
-
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *

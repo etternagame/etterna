@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
@@ -279,7 +279,6 @@ WriteGlobalTags(RageFile& f, const Song& out)
 		case Song::SHOW_ALWAYS:
 			f.Write("YES");
 			break;
-			// case Song::SHOW_NONSTOP:	f.Write( "NONSTOP" );	break;
 		case Song::SHOW_NEVER:
 			f.Write("NO");
 			break;

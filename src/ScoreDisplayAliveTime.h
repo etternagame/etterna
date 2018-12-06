@@ -7,7 +7,6 @@
 /**
  * @brief Display a constantly updating figure of time the player is alive.
  *
- * TODO: Merge this with ScoreDisplayOni
  */
 class ScoreDisplayAliveTime : public BitmapText
 {

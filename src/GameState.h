@@ -256,7 +256,6 @@ class GameState
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
-
 	PlayerNumber GetBestPlayer() const;
 	StageResult GetStageResult(PlayerNumber pn) const;
 

@@ -173,10 +173,6 @@ end
 -- ScoreKeeperClass:
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
-	-- rave scorekeeper
-	if GAMESTATE:GetPlayMode() == "PlayMode_Rave" then
-		return "ScoreKeeperRave"
-	end
 	if GAMESTATE:GetCurrentStyle() then
 		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
 		if styleType == "StyleType_TwoPlayersSharedSides" then
@@ -190,7 +186,7 @@ end
 -- [en]
 function ComboContinue()
 	local Continue = {
-		dance = GAMESTATE:GetPlayMode() == "PlayMode_Oni" and "TapNoteScore_W2" or "TapNoteScore_W3",
+		dance = "TapNoteScore_W3",
 		pump = "TapNoteScore_W3",
 		beat = "TapNoteScore_W3",
 		kb7 = "TapNoteScore_W3",
@@ -213,8 +209,6 @@ end
 function ComboPerRow()
 	sGame = CurGameName()
 	if sGame == "pump" then
-		return true
-	elseif GAMESTATE:GetPlayMode() == "PlayMode_Oni" then
 		return true
 	else
 		return false

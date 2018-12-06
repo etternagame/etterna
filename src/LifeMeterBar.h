@@ -1,4 +1,4 @@
-﻿#ifndef LIFEMETERBAR_H
+#ifndef LIFEMETERBAR_H
 #define LIFEMETERBAR_H
 
 #include "AutoActor.h"
@@ -30,7 +30,6 @@ class LifeMeterBar : public LifeMeter
 	bool IsFailing() const override;
 	float GetLife() const override { return m_fLifePercentage; }
 
-	void UpdateNonstopLifebar() override { return; }
 	void FillForHowToPlay(int NumT2s, int NumMisses);
 	// this function is solely for HowToPlay
 

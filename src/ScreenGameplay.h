@@ -41,9 +41,6 @@ class PlayerInfo
 			  int iAddToDifficulty);
 	void LoadDummyP1(int iDummyIndex, int iAddToDifficulty);
 
-	/** @brief The player has lost all of their lives: show the special game
-	 * over. */
-	void ShowOniGameOver();
 	/**
 	 * @brief Retrieve the player's state and stage stats index.
 	 * @return the player's state and stage stats index.
@@ -111,7 +108,7 @@ class PlayerInfo
 	ScoreDisplay* m_pSecondaryScoreDisplay;
 	/** @brief The primary ScoreKeeper for keeping track of the score. */
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	/** @brief The secondary ScoreKeeper. Only used in PLAY_MODE_RAVE. */
+	/** @brief The secondary ScoreKeeper. Formerly used in PLAY_MODE_RAVE. */
 	ScoreKeeper* m_pSecondaryScoreKeeper;
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText* m_ptextPlayerOptions;
@@ -123,8 +120,6 @@ class PlayerInfo
 	Player* m_pPlayer;
 
 	StepsDisplay* m_pStepsDisplay;
-
-	AutoActor m_sprOniGameOver;
 };
 
 /** @brief The music plays, the notes scroll, and the Player is pressing

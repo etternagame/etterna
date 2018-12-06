@@ -882,7 +882,6 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-
 	FOREACH_PlayerNumber( p )
 	{
 		m_pPlayerState[p]->m_HealthState = HealthState_Alive;
