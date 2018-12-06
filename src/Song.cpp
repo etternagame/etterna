@@ -585,13 +585,13 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	m_sInstrumentTrackPath[it] =
 	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
 	m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sJacketPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sCDPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sDiscPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+	m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
+	m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
+	m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
 	m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
-	m_sBackgroundPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sCDTitlePath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sPreviewVidPath = GetSongAssetPath(m_sBannerFile, m_sSongDir); 
+	m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+	m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
+	m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir); 
 
 	// CHECKPOINT_M("Looking for images...");
 
