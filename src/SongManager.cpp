@@ -293,7 +293,6 @@ std::mutex songLoadingSONGMANMutex;
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {
-	const int THREADS = 8;
 	RageTimer tm;
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
