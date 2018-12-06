@@ -73,7 +73,7 @@ class Song
 
   public:
 	void SetSongDir(const RString& sDir) { m_sSongDir = sDir; }
-	RString GetSongDir() { return m_sSongDir; }
+	const string& GetSongDir() { return m_sSongDir; }
 
 	/** @brief When should this song be displayed in the music wheel? */
 	enum SelectionDisplay
@@ -196,16 +196,16 @@ class Song
 
 	/* If PREFSMAN->m_bShowNative is off, these are the same as GetTranslit*
 	 * below. Otherwise, they return the main titles. */
-	RString GetDisplayMainTitle() const;
-	RString GetDisplaySubTitle() const;
-	RString GetDisplayArtist() const;
-	RString GetMainTitle() const;
+	const string& GetDisplayMainTitle() const;
+	const string& GetDisplaySubTitle() const;
+	const string& GetDisplayArtist() const;
+	const string& GetMainTitle() const;
 
 	/**
 	 * @brief Retrieve the transliterated title, or the main title if there is
 	 * no translit.
 	 * @return the proper title. */
-	RString GetTranslitMainTitle() const
+	const string& GetTranslitMainTitle() const
 	{
 		return m_sMainTitleTranslit.size() ? m_sMainTitleTranslit
 										   : m_sMainTitle;
@@ -217,7 +217,7 @@ class Song
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
 	 * there is no translit.
 	 * @return the proper subtitle. */
-	RString GetTranslitSubTitle() const
+	const string& GetTranslitSubTitle() const
 	{
 		return m_sSubTitleTranslit.size() ? m_sSubTitleTranslit : m_sSubTitle;
 	}
@@ -225,14 +225,16 @@ class Song
 	 * @brief Retrieve the transliterated artist, or the main artist if there is
 	 * no translit.
 	 * @return the proper artist. */
-	RString GetTranslitArtist() const
+	const string& GetTranslitArtist() const
 	{
 		return m_sArtistTranslit.size() ? m_sArtistTranslit : m_sArtist;
 	}
 
 	// "title subtitle"
-	RString GetDisplayFullTitle() const;
-	RString GetTranslitFullTitle() const;
+	string displayfulltitle;
+	string translitfulltitle;
+	const string& GetDisplayFullTitle() const{ return displayfulltitle;}
+	const string& GetTranslitFullTitle() const{ return translitfulltitle;}
 
 	/** @brief The version of the song/file. */
 	float m_fVersion;
@@ -262,26 +264,37 @@ class Song
 	RString m_sJacketFile; // typically square (e.g. 192x192, 256x256)
 	RString m_sCDFile;	 // square (e.g. 128x128 [DDR 1st-3rd])
 	RString m_sDiscFile;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
-	/** @brief The location of the lyrics file, if it exists. */
 	RString m_sLyricsFile;
 	RString m_sBackgroundFile;
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
+	string m_sMusicPath;
+	string m_PreviewPath;
+	string m_sInstrumentTrackPath[NUM_InstrumentTrack];
+	string m_sBannerPath;  // typically a 16:5 ratio graphic (e.g. 256x80)
+	string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
+	string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
+	string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
+	string m_sLyricsPath;
+	string m_sBackgroundPath;
+	string m_sCDTitlePath;
+	string m_sPreviewVidPath;
+
 	vector<RString> ImageDir;
 
 	static RString GetSongAssetPath(RString sPath, const RString& sSongPath);
-	RString GetMusicPath() const;
-	RString GetInstrumentTrackPath(InstrumentTrack it) const;
-	RString GetBannerPath() const;
-	RString GetJacketPath() const;
-	RString GetCDImagePath() const;
-	RString GetDiscPath() const;
-	RString GetLyricsPath() const;
-	RString GetBackgroundPath() const;
-	RString GetCDTitlePath() const;
-	RString GetPreviewVidPath() const;
-	RString GetPreviewMusicPath() const;
+	const string& GetMusicPath() const {return m_sMusicPath;}
+	const string& GetInstrumentTrackPath(InstrumentTrack it) const {return m_sInstrumentTrackPath[it];}
+	const string& GetBannerPath() const {return m_sBannerPath;}
+	const string& GetJacketPath() const { return m_sJacketPath; }
+	const string& GetCDImagePath() const { return m_sCDPath; }
+	const string& GetDiscPath() const { return m_sDiscPath; }
+	const string& GetLyricsPath() const { return m_sLyricsPath; }
+	const string& GetBackgroundPath() const { return m_sBackgroundPath; }
+	const string& GetCDTitlePath() const { return m_sCDTitlePath; }
+	const string& GetPreviewVidPath() const { return m_sPreviewVidPath; }
+	const string& GetPreviewMusicPath() const { return m_PreviewPath; }
 	float GetPreviewStartSeconds() const;
 	std::string GetCacheFile(std::string sPath);
 
