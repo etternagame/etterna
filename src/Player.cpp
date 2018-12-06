@@ -1515,11 +1515,8 @@ Player::DrawPrimitives()
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-	// May have both players in doubles (for battle play); only draw primary
-	// player.
-	if (GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-			->m_StyleType == StyleType_OnePlayerTwoSides &&
-		pn != GAMESTATE->GetMasterPlayerNumber())
+
+	if (pn !=PLAYER_1)
 		return;
 
 	bool draw_notefield = (m_pNoteField != nullptr);

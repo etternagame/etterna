@@ -1637,10 +1637,7 @@ ScreenGameplay::DrawPrimitives()
 		m_pSongBackground->Draw();
 		m_pSongBackground->m_disable_draw = true;
 	}
-	FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
-	{
-		pi->m_pPlayer->DrawNoteFieldBoard();
-	}
+	m_vPlayerInfo[0].m_pPlayer->DrawNoteFieldBoard();
 	ScreenWithMenuElements::DrawPrimitives();
 }
 
