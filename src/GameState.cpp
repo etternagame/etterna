@@ -1505,10 +1505,10 @@ class LunaGameState : public Luna<GameState>
 {
   public:
 	DEFINE_METHOD(IsPlayerEnabled,
-				  IsPlayerEnabled(Enum::Check<PlayerNumber>(L, 1)))
-	DEFINE_METHOD(IsHumanPlayer, IsHumanPlayer(Enum::Check<PlayerNumber>(L, 1)))
+				  IsPlayerEnabled(PLAYER_1))
+	DEFINE_METHOD(IsHumanPlayer, IsHumanPlayer(PLAYER_1))
 	DEFINE_METHOD(GetPlayerDisplayName,
-				  GetPlayerDisplayName(Enum::Check<PlayerNumber>(L, 1)))
+				  GetPlayerDisplayName(PLAYER_1))
 	DEFINE_METHOD(GetMasterPlayerNumber, GetMasterPlayerNumber())
 	DEFINE_METHOD(GetMultiplayer, m_bMultiplayer)
 	static int SetMultiplayer(T* p, lua_State* L)
@@ -1526,7 +1526,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetPlayerState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		p->m_pPlayerState[pn]->PushSelf(L);
 		return 1;
 	}
@@ -1595,7 +1595,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetCurrentSteps(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		Steps* pSteps = p->m_pCurSteps[pn];
 		if (pSteps) {
 			pSteps->PushSelf(L);
@@ -1606,7 +1606,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int SetCurrentSteps(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		if (lua_isnil(L, 2)) {
 			p->m_pCurSteps[pn].Set(NULL);
 		} else {
@@ -1647,18 +1647,18 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int SetPreferredDifficulty(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		Difficulty dc = Enum::Check<Difficulty>(L, 2);
 		p->m_PreferredDifficulty[pn].Set(dc);
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(GetPreferredDifficulty,
-				  m_PreferredDifficulty[Enum::Check<PlayerNumber>(L, 1)])
+				  m_PreferredDifficulty[PLAYER_1])
 	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
 	DEFINE_METHOD(PlayerIsUsingModifier,
-				  PlayerIsUsingModifier(Enum::Check<PlayerNumber>(L, 1),
+				  PlayerIsUsingModifier(PLAYER_1,
 										SArg(2)))
 	DEFINE_METHOD(GetLoadingCourseSongIndex, GetLoadingCourseSongIndex())
 	DEFINE_METHOD(GetEasiestStepsDifficulty, GetEasiestStepsDifficulty())
@@ -1673,7 +1673,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetLastGameplayDuration, m_DanceDuration)
 	DEFINE_METHOD(GetGameplayLeadIn, m_bGameplayLeadIn)
 	DEFINE_METHOD(IsSideJoined,
-				  m_bSideIsJoined[Enum::Check<PlayerNumber>(L, 1)])
+				  m_bSideIsJoined[PLAYER_1])
 	DEFINE_METHOD(PlayersCanJoin, PlayersCanJoin())
 	DEFINE_METHOD(GetNumSidesJoined, GetNumSidesJoined())
 	DEFINE_METHOD(GetSongOptionsString, m_SongOptions.GetCurrent().GetString())
@@ -1711,12 +1711,12 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int ApplyStageModifiers(T* p, lua_State* L)
 	{
-		p->ApplyStageModifiers(Enum::Check<PlayerNumber>(L, 1), SArg(2));
+		p->ApplyStageModifiers(PLAYER_1, SArg(2));
 		COMMON_RETURN_SELF;
 	}
 	static int ApplyPreferredModifiers(T* p, lua_State* L)
 	{
-		p->ApplyPreferredModifiers(Enum::Check<PlayerNumber>(L, 1), SArg(2));
+		p->ApplyPreferredModifiers(PLAYER_1, SArg(2));
 		COMMON_RETURN_SELF;
 	}
 	static int SetSongOptions(T* p, lua_State* L)
@@ -1840,12 +1840,12 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int JoinPlayer(T* p, lua_State* L)
 	{
-		p->JoinPlayer(Enum::Check<PlayerNumber>(L, 1));
+		p->JoinPlayer(PLAYER_1);
 		COMMON_RETURN_SELF;
 	}
 	static int UnjoinPlayer(T* p, lua_State* L)
 	{
-		p->UnjoinPlayer(Enum::Check<PlayerNumber>(L, 1));
+		p->UnjoinPlayer(PLAYER_1);
 		COMMON_RETURN_SELF;
 	}
 
@@ -1858,7 +1858,7 @@ class LunaGameState : public Luna<GameState>
 
 	static int GetCharacter(T* p, lua_State* L)
 	{
-		p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)]->PushSelf(L);
+		p->m_pCurCharacters[PLAYER_1]->PushSelf(L);
 		return 1;
 	}
 	static int SetCharacter(T* p, lua_State* L) { COMMON_RETURN_SELF; }
@@ -1869,7 +1869,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int AddStageToPlayer(T* p, lua_State* L)
 	{
-		p->AddStageToPlayer(Enum::Check<PlayerNumber>(L, 1));
+		p->AddStageToPlayer(PLAYER_1);
 		COMMON_RETURN_SELF;
 	}
 	static int InsertCoin(T* p, lua_State* L) { COMMON_RETURN_SELF; }
@@ -1878,13 +1878,13 @@ class LunaGameState : public Luna<GameState>
 	{
 		lua_pushboolean(
 		  L,
-		  p->CurrentOptionsDisqualifyPlayer(Enum::Check<PlayerNumber>(L, 1)));
+		  p->CurrentOptionsDisqualifyPlayer(PLAYER_1));
 		return 1;
 	}
 
 	static int ResetPlayerOptions(T* p, lua_State* L)
 	{
-		p->ResetPlayerOptions(Enum::Check<PlayerNumber>(L, 1));
+		p->ResetPlayerOptions(PLAYER_1);
 		COMMON_RETURN_SELF;
 	}
 

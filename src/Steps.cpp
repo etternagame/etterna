@@ -779,7 +779,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		PlayerNumber pn = PLAYER_1;
 		if (!lua_isnil(L, 1)) {
-			pn = Enum::Check<PlayerNumber>(L, 1);
+			pn = PLAYER_1;
 		}
 
 		RadarValues& rv = const_cast<RadarValues&>(p->GetRadarValues());

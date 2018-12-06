@@ -4,7 +4,6 @@
 #define SCREEN_SELECT_MUSIC_H
 
 #include "BitmapText.h"
-#include "FadingBanner.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h"
 #include "MusicWheel.h"

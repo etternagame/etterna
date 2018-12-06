@@ -2,9 +2,8 @@
 #define SCREEN_EVALUATION_H
 
 #include "ActorUtil.h"
-#include "Banner.h"
 #include "BitmapText.h"
-#include "PercentageDisplay.h"
+#include "PlayerStageStats.h"
 #include "RageSound.h"
 #include "RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
@@ -37,12 +36,9 @@ class ScreenEvaluation : public ScreenWithMenuElements
   protected:
 	void HandleMenuStart();
 
-
 	StageStats* m_pStageStats;
-	StageStats m_FinalEvalStageStats;
 
 	RageSound m_soundStart; // sound played if the player passes or fails
-
 
 	/** @brief Did a player save a screenshot of their score? */
 	bool m_bSavedScreenshot[NUM_PLAYERS];

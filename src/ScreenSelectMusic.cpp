@@ -1594,7 +1594,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	}
 	static int OpenOptionsList(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		if (p->can_open_options_list(pn)) {
 			p->OpenOptionsList(pn);
 		}
@@ -1602,13 +1602,13 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	}
 	static int CanOpenOptionsList(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushboolean(L, p->can_open_options_list(pn));
 		return 1;
 	}
 	static int SelectCurrent(T* p, lua_State* L)
 	{
-		p->SelectCurrent(Enum::Check<PlayerNumber>(L, 1));
+		p->SelectCurrent(PLAYER_1);
 		return 1;
 	}
 

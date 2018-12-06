@@ -1090,7 +1090,7 @@ class LunaScreenSelectMaster : public Luna<ScreenSelectMaster>
 	static int GetSelectionIndex(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, p->GetPlayerSelectionIndex(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->GetPlayerSelectionIndex(PLAYER_1));
 		return 1;
 	}
 	// should I even bother adding this? -aj

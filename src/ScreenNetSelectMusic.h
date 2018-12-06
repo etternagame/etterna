@@ -5,7 +5,6 @@
 
 #include "BPMDisplay.h"
 #include "Difficulty.h"
-#include "DifficultyIcon.h"
 #include "ModIconRow.h"
 #include "MusicWheel.h"
 #include "ScreenSelectMusic.h"

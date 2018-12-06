@@ -827,12 +827,12 @@ class LunaProfileManager : public Luna<ProfileManager>
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
 		lua_pushboolean(
-		  L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->IsPersistentProfile(PLAYER_1));
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		Profile* pP = p->GetProfile(pn);
 		pP->PushSelf(L);
 		return 1;
@@ -897,12 +897,12 @@ class LunaProfileManager : public Luna<ProfileManager>
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
 	{
 		lua_pushboolean(
-		  L, p->LastLoadWasTamperedOrCorrupt(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
 		return 1;
 	}
 	static int GetPlayerName(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushstring(L, p->GetPlayerName(pn));
 		return 1;
 	}
@@ -915,12 +915,12 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int SaveProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->SaveProfile(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushboolean(L, p->SaveProfile(PLAYER_1));
 		return 1;
 	}
 	static int ConvertProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->ConvertProfile(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushboolean(L, p->ConvertProfile(PLAYER_1));
 		return 1;
 	}
 	static int SaveLocalProfile(T* p, lua_State* L)

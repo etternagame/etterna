@@ -257,7 +257,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	}
 	static int GetFinalGrade(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 
 		if (!GAMESTATE->IsHumanPlayer(pn))
 			lua_pushnumber(L, Grade_NoData);

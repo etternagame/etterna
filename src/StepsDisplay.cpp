@@ -267,7 +267,7 @@ class LunaStepsDisplay : public Luna<StepsDisplay>
 	}
 	static int SetFromGameState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		p->SetFromGameState(pn);
 		COMMON_RETURN_SELF;
 	}

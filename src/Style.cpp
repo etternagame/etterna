@@ -168,7 +168,7 @@ class LunaStyle : public Luna<Style>
 	}
 	static int GetWidth(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushnumber(L, p->GetWidth(pn));
 		return 1;
 	}
@@ -176,7 +176,7 @@ class LunaStyle : public Luna<Style>
 
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		int iCol = IArg(2) - 1;
 		if (iCol < 0 || iCol >= p->m_iColsPerPlayer) {
 			LuaHelpers::ReportScriptErrorFmt(

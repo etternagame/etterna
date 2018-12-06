@@ -2752,7 +2752,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static int GetLifeMeter(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 
 		PlayerInfo* pi = p->GetPlayerInfo(pn);
 		if (pi == NULL)
@@ -2766,7 +2766,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static int GetPlayerInfo(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 
 		PlayerInfo* pi = p->GetPlayerInfo(pn);
 		if (pi == NULL)
@@ -2813,7 +2813,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static int GetTrueBPS(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		float bps = GAMESTATE->m_pPlayerState[pn]->m_Position.m_fCurBPS;
 		float true_bps = rate * bps;

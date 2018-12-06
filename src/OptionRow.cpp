@@ -993,7 +993,7 @@ class LunaOptionRow : public Luna<OptionRow>
 	static int GetChoiceInRowWithFocus(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, p->GetChoiceInRowWithFocus(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->GetChoiceInRowWithFocus(PLAYER_1));
 		return 1;
 	}
 	DEFINE_METHOD(GetLayoutType, GetHandler()->m_Def.m_layoutType)
@@ -1011,7 +1011,7 @@ class LunaOptionRow : public Luna<OptionRow>
 	DEFINE_METHOD(GetRowTitle, GetRowTitle())
 	static int HasFocus(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->GetRowHasFocus(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushboolean(L, p->GetRowHasFocus(PLAYER_1));
 		return 1;
 	}
 	static int OneChoiceForAllPlayers(T* p, lua_State* L)

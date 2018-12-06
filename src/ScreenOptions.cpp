@@ -1389,12 +1389,12 @@ class LunaScreenOptions : public Luna<ScreenOptions>
 	static int FocusedItemEndsScreen(T* p, lua_State* L)
 	{
 		lua_pushboolean(
-		  L, p->FocusedItemEndsScreen(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->FocusedItemEndsScreen(PLAYER_1));
 		return 1;
 	}
 	static int GetCurrentRowIndex(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->GetCurrentRow(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushnumber(L, p->GetCurrentRow(PLAYER_1));
 		return 1;
 	}
 	static int GetOptionRow(T* p, lua_State* L)

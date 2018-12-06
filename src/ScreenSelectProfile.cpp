@@ -223,7 +223,7 @@ class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
   public:
 	static int SetProfileIndex(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		int iProfileIndex = IArg(2);
 		bool bRet = p->SetProfileIndex(pn, iProfileIndex);
 		LuaHelpers::Push(L, bRet);
@@ -232,7 +232,7 @@ class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
 
 	static int GetProfileIndex(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		LuaHelpers::Push(L, p->GetProfileIndex(pn));
 		return 1;
 	}

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "PlayerNumber.h"
@@ -9,10 +9,10 @@ static const char* PlayerNumberNames[] = {
 XToString(PlayerNumber);
 XToLocalizedString(PlayerNumber);
 LuaFunction(PlayerNumberToString,
-			PlayerNumberToString(Enum::Check<PlayerNumber>(L, 1)));
+			PlayerNumberToString(PLAYER_1));
 LuaXType(PlayerNumber);
 LuaFunction(PlayerNumberToLocalizedString,
-			PlayerNumberToLocalizedString(Enum::Check<PlayerNumber>(L, 1)));
+			PlayerNumberToLocalizedString(PLAYER_1));
 
 static const char* MultiPlayerNames[] = {
 	"P1",  "P2",  "P3",  "P4",  "P5",  "P6",  "P7",  "P8",  "P9",  "P10", "P11",

@@ -73,7 +73,7 @@ namespace {
 int
 GetCreditsMessage(lua_State* L)
 {
-	PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+	PlayerNumber pn = PLAYER_1;
 	RString sText = GetCreditsMessage(pn);
 	LuaHelpers::Push(L, sText);
 	return 1;

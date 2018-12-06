@@ -725,7 +725,7 @@ class LunaStageStats : public Luna<StageStats>
   public:
 	static int GetPlayerStageStats(T* p, lua_State* L)
 	{
-		p->m_player[Enum::Check<PlayerNumber>(L, 1)].PushSelf(L);
+		p->m_player[PLAYER_1].PushSelf(L);
 		return 1;
 	}
 	static int GetMultiPlayerStageStats(T* p, lua_State* L)
@@ -776,7 +776,7 @@ class LunaStageStats : public Luna<StageStats>
 	static int PlayerHasHighScore(T* p, lua_State* L)
 	{
 		lua_pushboolean(L,
-						p->PlayerHasHighScore(Enum::Check<PlayerNumber>(L, 1)));
+						p->PlayerHasHighScore(PLAYER_1));
 		return 1;
 	}
 
