@@ -959,24 +959,6 @@ MusicWheel::BuildWheelItemDatas(
 			}
 		}
 	}
-
-	// init music status icons
-	for (unsigned i = 0; i < arrayWheelItemDatas.size(); i++) {
-		MusicWheelItemData& WID = *arrayWheelItemDatas[i];
-		if (WID.m_pSong != NULL) {
-			WID.m_Flags.bHasBeginnerOr1Meter =
-			  WID.m_pSong->IsEasy(
-				GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType) &&
-			  SHOW_EASY_FLAG;
-			WID.m_Flags.bEdits = false;
-			set<StepsType> vStepsType;
-			SongUtil::GetPlayableStepsTypes(WID.m_pSong, vStepsType);
-			FOREACHS(StepsType, vStepsType, st)
-			WID.m_Flags.bEdits |= WID.m_pSong->HasEdits(*st);
-			WID.m_Flags.iStagesForSong =
-			  GameState::GetNumStagesMultiplierForSong(WID.m_pSong);
-		}
-	}
 }
 
 vector<MusicWheelItemData*>&
@@ -1101,13 +1083,7 @@ MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 		--filteredSize;
 	}
 
-	/* Update the popularity.  This is affected by filtering. */
-	if (so == SORT_POPULARITY) {
-		for (unsigned i = 0; i < min(3u, aFilteredData.size()); i++) {
-			MusicWheelItemData& WID = *aFilteredData[i];
-			WID.m_Flags.iPlayersBestNumber = i + 1;
-		}
-	}
+	
 
 	// If we've filtered all items, insert a dummy.
 	if (aFilteredData.empty())

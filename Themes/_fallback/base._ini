@@ -583,14 +583,6 @@ TimerSeconds=
 PrevScreen=ScreenTitleBranch()
 NextScreen="ScreenStage"
 NoSongsScreen=ScreenTitleBranch()
-DifficultyIconP1OnCommand=visible,false
-DifficultyIconP1OffCommand=
-DifficultyIconP2OnCommand=visible,false
-DifficultyIconP2OffCommand=
-DifficultyIconP1X=SCREEN_CENTER_X+50
-DifficultyIconP1Y=SCREEN_BOTTOM-54
-DifficultyIconP2X=SCREEN_CENTER_X+80
-DifficultyIconP2Y=SCREEN_BOTTOM-50
 HelpText=ScreenString("HelpTextNetSelectMusic");
 
 [ScreenSplash]
@@ -1504,9 +1496,6 @@ SkipWidth=190
 SkipSpacingY=14
 
 [MusicWheelItem]
-WheelNotifyIconX=106
-WheelNotifyIconY=0
-WheelNotifyIconOnCommand=
 SongNameX=-30
 SongNameY=0
 SongNameOnCommand=
@@ -1537,8 +1526,7 @@ GradeP2X=110
 GradeP2Y=5
 GradesShowMachine=true
 
-[WheelNotifyIcon]
-ShowTraining=true
+
 
 [MusicWheel]
 FadeSeconds=1

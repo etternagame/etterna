@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
@@ -22,7 +22,6 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 									   int iSectionCount)
   : WheelItemBaseData(type, sSectionName, color)
   , m_pSong(pSong)
-  , m_Flags(WheelNotifyIcon::Flags())
   , m_iSectionCount(iSectionCount)
   , m_sLabel("")
   , m_pAction()
@@ -92,12 +91,6 @@ MusicWheelItem::MusicWheelItem(RString sType)
 	m_pTextSectionCount->PlayCommand("On");
 	this->AddChild(m_pTextSectionCount);
 
-	m_WheelNotifyIcon.SetName("WheelNotifyIcon");
-	ActorUtil::LoadAllCommands(m_WheelNotifyIcon, "MusicWheelItem");
-	ActorUtil::SetXY(m_WheelNotifyIcon, "MusicWheelItem");
-	m_WheelNotifyIcon.PlayCommand("On");
-	this->AddChild(&m_WheelNotifyIcon);
-
 	FOREACH_PlayerNumber(p)
 	{
 		m_pGradeDisplay[p].Load(THEME->GetPathG(sType, "grades"));
@@ -117,7 +110,6 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
   : WheelItemBase(cpy)
   , GRADES_SHOW_MACHINE(cpy.GRADES_SHOW_MACHINE)
   , m_TextBanner(cpy.m_TextBanner)
-  , m_WheelNotifyIcon(cpy.m_WheelNotifyIcon)
 {
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
@@ -149,7 +141,6 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 	m_pTextSectionCount = new BitmapText(*cpy.m_pTextSectionCount);
 	this->AddChild(m_pTextSectionCount);
 
-	this->AddChild(&m_WheelNotifyIcon);
 
 	FOREACH_PlayerNumber(p)
 	{
@@ -186,7 +177,6 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	if (m_pText[i])
 		m_pText[i]->SetVisible(false);
 	m_pTextSectionCount->SetVisible(false);
-	m_WheelNotifyIcon.SetVisible(false);
 	FOREACH_PlayerNumber(p) m_pGradeDisplay[p]->SetVisible(false);
 
 	// Fill these in below
@@ -204,8 +194,6 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			m_TextBanner.SetDiffuse(pWID->m_color);
 			m_TextBanner.SetVisible(true);
 
-			m_WheelNotifyIcon.SetFlags(pWID->m_Flags);
-			m_WheelNotifyIcon.SetVisible(true);
 			RefreshGrades();
 			break;
 		case WheelItemDataType_Section: {

@@ -95,7 +95,6 @@ list(APPEND SMDATA_ACTOR_MENU_SRC
   "TextBanner.cpp"
   "WheelBase.cpp"
   "WheelItemBase.cpp"
-  "WheelNotifyIcon.cpp"
 )
 list(APPEND SMDATA_ACTOR_MENU_HPP
   "BPMDisplay.h"
@@ -118,7 +117,6 @@ list(APPEND SMDATA_ACTOR_MENU_HPP
   "TextBanner.h"
   "WheelBase.h"
   "WheelItemBase.h"
-  "WheelNotifyIcon.h"
 )
 
 if(WITH_NETWORKING)

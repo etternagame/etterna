@@ -427,7 +427,6 @@ endif
 
 ActorsInGameplayAndMenus = \
 BGAnimation.cpp BGAnimation.h BGAnimationLayer.cpp BGAnimationLayer.h Banner.cpp Banner.h \
-DifficultyIcon.cpp DifficultyIcon.h \
 MeterDisplay.cpp MeterDisplay.h StreamDisplay.cpp StreamDisplay.h \
 Transition.cpp Transition.h
 
@@ -449,8 +448,7 @@ OptionRow.cpp OptionRow.h OptionsCursor.cpp OptionsCursor.h \
 PaneDisplay.cpp PaneDisplay.h ScrollBar.cpp ScrollBar.h \
 SnapDisplay.cpp SnapDisplay.h \
 TextBanner.cpp TextBanner.h WheelBase.cpp WheelBase.h WheelItemBase.cpp WheelItemBase.h \
-WheelNotifyIcon.cpp WheelNotifyIcon.h \
-WorkoutGraph.cpp WorkoutGraph.h
+
 
 if !WITHOUT_NETWORKING
  ActorsInMenus += RoomInfoDisplay.cpp RoomInfoDisplay.h

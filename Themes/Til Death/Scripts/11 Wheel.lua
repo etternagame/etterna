@@ -114,7 +114,6 @@ local function LegacyParams()
     "SectionCollapsed",
     "SectionCount",
     "Sort",
-    "WheelNotifyIcon",
     "Roulette",
     "SongName",
     "Portal",
