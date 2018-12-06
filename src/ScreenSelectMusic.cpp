@@ -168,8 +168,8 @@ ScreenSelectMusic::Init()
 	m_sLoopMusicPath = THEME->GetPathS(m_sName, "loop music");
 	m_sFallbackCDTitlePath = THEME->GetPathG(m_sName, "fallback cdtitle");
 
-	m_TexturePreload.Load(m_sFallbackCDTitlePath);
-
+	// surely we can devise a better way to handle loading cached images
+	/*
 	// load banners
 	if (PREFSMAN->m_ImageCache != IMGCACHE_OFF) {
 		m_TexturePreload.Load(
@@ -186,6 +186,7 @@ ScreenSelectMusic::Init()
 
 	// Load low-res banners and backgrounds if needed.
 	IMAGECACHE->Demand("Banner");
+	*/
 
 	// build the playlist groups here, songmanager's init from disk can't
 	// because profiles aren't loaded until after that's done -mina
@@ -1199,10 +1200,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		// Now that Steps have been chosen, set a Style that can play them.
 		GAMESTATE->SetCompatibleStylesForPlayers();
 
-		/* If we're currently waiting on song assets, abort all except the music
-		 * and start the music, so if we make a choice quickly before background
-		 * requests come through, the music will still start. */
-		m_BackgroundLoader.Abort();
+
 		CheckBackgroundRequests(true);
 		m_MusicWheel.Lock();
 		if (OPTIONS_MENU_AVAILABLE) {
@@ -1233,7 +1231,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 bool
 ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 {
-	m_BackgroundLoader.Abort();
 	Cancel(SM_GoToPrevScreen);
 	return true;
 }
@@ -1462,10 +1459,6 @@ ScreenSelectMusic::AfterMusicChange()
 		default:
 			FAIL_M(ssprintf("Invalid WheelItemDataType: %i", wtype));
 	}
-
-	// Cancel any previous, incomplete requests for song assets,
-	// since we need new ones.
-	m_BackgroundLoader.Abort();
 
 	// Don't stop music if it's already playing the right file.
 	g_bSampleMusicWaiting = false;

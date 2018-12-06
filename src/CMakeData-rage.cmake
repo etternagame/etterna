@@ -2,7 +2,6 @@
 
 list(APPEND SMDATA_RAGE_UTILS_SRC
   "RageUtil.cpp"
-  "RageUtil_BackgroundLoader.cpp"
   "RageUtil_CachedObject.cpp"
   "RageUtil_CharConversions.cpp"
   "RageUtil_FileDB.cpp"
@@ -12,7 +11,6 @@ list(APPEND SMDATA_RAGE_UTILS_SRC
 list(APPEND SMDATA_RAGE_UTILS_HPP
   "RageUtil.h"
   "RageUtil_AutoPtr.h" # TODO: Remove the need for this and replace with c++11 smart pointers
-  "RageUtil_BackgroundLoader.h"
   "RageUtil_CachedObject.h"
   "RageUtil_CharConversions.h"
   "RageUtil_CircularBuffer.h"
@@ -70,7 +68,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "RageTexture.cpp"
   "RageTextureID.cpp"
   "RageTextureManager.cpp"
-  "RageTexturePreloader.cpp"
   "RageTextureRenderTarget.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
@@ -93,7 +90,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "RageTexture.h"
   "RageTextureID.h"
   "RageTextureManager.h"
-  "RageTexturePreloader.h"
   "RageTextureRenderTarget.h"
 )
 

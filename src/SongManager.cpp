@@ -872,28 +872,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 }
 
 void
-SongManager::PreloadSongImages()
-{
-	if (PREFSMAN->m_ImageCache != IMGCACHE_FULL)
-		return;
-
-	/* Load textures before unloading old ones, so we don't reload
-	 * textures that we don't need to. */
-	RageTexturePreloader preload;
-
-	const vector<Song*>& songs = GetAllSongs();
-	for (unsigned i = 0; i < songs.size(); ++i) {
-		if (!songs[i]->HasBanner())
-			continue;
-
-		const RageTextureID ID =
-		  Sprite::SongBannerTexture(songs[i]->GetBannerPath());
-		preload.Load(ID);
-	}
-	preload.Swap(m_TexturePreload);
-}
-
-void
 SongManager::FreeSongs()
 {
 	m_sSongGroupNames.clear();

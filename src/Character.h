@@ -1,8 +1,7 @@
-﻿#ifndef Character_H
+#ifndef Character_H
 #define Character_H
 
 #include "LuaReference.h"
-#include "RageTexturePreloader.h"
 struct lua_State;
 using Lua = lua_State;
 
@@ -60,8 +59,6 @@ class Character
 	 *
 	 * All of the variables listed below here will be filled in if true. */
 	bool m_bUsableInRave{ false };
-
-	RageTexturePreloader m_Preload;
 	int m_iPreloadRefcount{ 0 };
 };
 

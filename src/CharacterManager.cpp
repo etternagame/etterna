@@ -98,15 +98,15 @@ CharacterManager::GetDefaultCharacter()
 void
 CharacterManager::DemandGraphics()
 {
-	FOREACH(Character*, m_pCharacters, c)
-	(*c)->DemandGraphics();
+	//FOREACH(Character*, m_pCharacters, c)
+	//(*c)->DemandGraphics();
 }
 
 void
 CharacterManager::UndemandGraphics()
 {
-	FOREACH(Character*, m_pCharacters, c)
-	(*c)->UndemandGraphics();
+	//FOREACH(Character*, m_pCharacters, c)
+	//(*c)->UndemandGraphics();
 }
 
 Character*

@@ -14,7 +14,6 @@ struct GoalsForChart;
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
 #include "ImageCache.h"
-#include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
 #include "SongOptions.h"
@@ -50,7 +49,6 @@ class SongManager
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
-	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(set<string>& favs);
@@ -215,8 +213,6 @@ class SongManager
 	};
 	typedef vector<Song*> SongPointerVector;
 	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
-
-	RageTexturePreloader m_TexturePreload;
 
 	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
