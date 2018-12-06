@@ -16,8 +16,6 @@
 #include "CryptManager.h"
 #include "RageFileManager.h"
 
-ThemeMetric<string> EMPTY_NAME("HighScore", "EmptyName");
-
 const string BASIC_REPLAY_DIR =
   "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
 const string FULL_REPLAY_DIR =
@@ -1268,10 +1266,7 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 string
 HighScore::GetDisplayName() const
 {
-	if (GetName().empty())
-		return EMPTY_NAME;
-	else
-		return GetName();
+	return GetName();
 }
 
 /* begin HighScoreList */
