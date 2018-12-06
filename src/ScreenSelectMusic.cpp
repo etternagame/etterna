@@ -166,25 +166,6 @@ ScreenSelectMusic::Init()
 	m_sLoopMusicPath = THEME->GetPathS(m_sName, "loop music");
 	m_sFallbackCDTitlePath = THEME->GetPathG(m_sName, "fallback cdtitle");
 
-	// surely we can devise a better way to handle loading cached images
-	/*
-	// load banners
-	if (PREFSMAN->m_ImageCache != IMGCACHE_OFF) {
-		m_TexturePreload.Load(
-		  Banner::SongBannerTexture(THEME->GetPathG("Banner", "all music")));
-		m_TexturePreload.Load(Banner::SongBannerTexture(
-		  THEME->GetPathG("Common", "fallback banner")));
-		m_TexturePreload.Load(
-		  Banner::SongBannerTexture(THEME->GetPathG("Banner", "roulette")));
-		m_TexturePreload.Load(
-		  Banner::SongBannerTexture(THEME->GetPathG("Banner", "random")));
-		m_TexturePreload.Load(
-		  Banner::SongBannerTexture(THEME->GetPathG("Banner", "mode")));
-	}
-
-	// Load low-res banners and backgrounds if needed.
-	IMAGECACHE->Demand("Banner");
-	*/
 
 	// build the playlist groups here, songmanager's init from disk can't
 	// because profiles aren't loaded until after that's done -mina

@@ -581,6 +581,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 
 	m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
 	m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+	if (m_PreviewPath.empty())
+		m_PreviewPath = m_sMusicPath;
 	FOREACH_ENUM(InstrumentTrack, it)
 	m_sInstrumentTrackPath[it] =
 	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
