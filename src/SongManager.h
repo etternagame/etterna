@@ -37,7 +37,6 @@ class SongManager
 
 	void InitSongsFromDisk(LoadingWindow* ld);
 	void FreeSongs();
-	void UnlistSong(Song* song);
 	void Cleanup();
 
 	void Invalidate(const Song* pStaleSong);
@@ -190,10 +189,6 @@ class SongManager
 	unordered_map<string, Steps*> StepsByKey;
 
 	set<RString> m_GroupsToNeverCache;
-	/** @brief Hold pointers to all the songs that have been deleted from disk
-	 * but must at least be kept temporarily alive for smooth audio transitions.
-	 */
-	vector<Song*> m_pDeletedSongs;
 	/** @brief The most popular songs ranked by number of plays. */
 	vector<Song*> m_pPopularSongs;
 	// vector<Song*>		m_pRecentSongs;	// songs recently played on the

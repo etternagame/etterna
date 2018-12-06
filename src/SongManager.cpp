@@ -905,11 +905,6 @@ SongManager::FreeSongs()
 	m_pSongs.clear();
 	m_SongsByDir.clear();
 
-	// also free the songs that have been deleted from disk
-	for (unsigned i = 0; i < m_pDeletedSongs.size(); ++i)
-		SAFE_DELETE(m_pDeletedSongs[i]);
-	m_pDeletedSongs.clear();
-
 	m_mapSongGroupIndex.clear();
 	m_sSongGroupBannerPaths.clear();
 
@@ -919,30 +914,6 @@ SongManager::FreeSongs()
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();
-}
-
-void
-SongManager::UnlistSong(Song* song)
-{
-	// cannot immediately free song data, as it is needed temporarily
-	// for smooth audio transitions, etc. Instead, remove it from the
-	// m_pSongs list and store it in a special place where it can safely
-	// be deleted later.
-	m_pDeletedSongs.emplace_back(song);
-
-	// remove all occurences of the song in each of our song vectors
-	vector<Song*>* songVectors[3] = { &m_pSongs,
-									  &m_pPopularSongs,
-									  &m_pShuffledSongs };
-	for (int songVecIdx = 0; songVecIdx < 3; ++songVecIdx) {
-		vector<Song*>& v = *songVectors[songVecIdx];
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (v[i] == song) {
-				v.erase(v.begin() + i);
-				--i;
-			}
-		}
-	}
 }
 
 bool
