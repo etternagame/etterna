@@ -15,20 +15,16 @@ source_group("Screens\\\\Gameplay" FILES ${SMDATA_SCREEN_GAMEPLAY_SRC} ${SMDATA_
 list(APPEND SMDATA_SCREEN_OPTION_SRC
   "ScreenOptions.cpp"
   "ScreenOptionsEditProfile.cpp"
-  "ScreenOptionsExportPackage.cpp"
   "ScreenOptionsManageProfiles.cpp"
   "ScreenOptionsMaster.cpp"
   "ScreenOptionsMasterPrefs.cpp"
-  "ScreenOptionsToggleSongs.cpp"
 )
 list(APPEND SMDATA_SCREEN_OPTION_HPP
   "ScreenOptions.h"
   "ScreenOptionsEditProfile.h"
-  "ScreenOptionsExportPackage.h"
   "ScreenOptionsManageProfiles.h"
   "ScreenOptionsMaster.h"
   "ScreenOptionsMasterPrefs.h"
-  "ScreenOptionsToggleSongs.h"
 )
 
 source_group("Screens\\\\Options" FILES ${SMDATA_SCREEN_OPTION_SRC} ${SMDATA_SCREEN_OPTION_HPP})
@@ -42,7 +38,6 @@ list(APPEND SMDATA_SCREEN_REST_SRC
   "ScreenMapControllers.cpp"
   "ScreenMessage.cpp"
   "ScreenMiniMenu.cpp"
-  "ScreenPackages.cpp"
   "ScreenPlayerOptions.cpp"
   "ScreenProfileLoad.cpp"
   "ScreenProfileSave.cpp"
@@ -74,7 +69,6 @@ list(APPEND SMDATA_SCREEN_REST_HPP
   "ScreenMapControllers.h"
   "ScreenMessage.h"
   "ScreenMiniMenu.h"
-  "ScreenPackages.h"
   "ScreenPlayerOptions.h"
   "ScreenProfileLoad.h"
   "ScreenProfileSave.h"

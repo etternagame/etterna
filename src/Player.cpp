@@ -24,7 +24,6 @@
 #include "RageDisplay.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "ScoreDisplay.h"
 #include "ScoreKeeperNormal.h"
 #include "ScoreManager.h"
 #include "ScreenDimensions.h"
@@ -269,8 +268,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_fNoteFieldHeight = 0;
 
 	m_pLifeMeter = NULL;
-	m_pScoreDisplay = NULL;
-	m_pSecondaryScoreDisplay = NULL;
 	m_pPrimaryScoreKeeper = NULL;
 	m_pSecondaryScoreKeeper = NULL;
 	m_pIterNeedsTapJudging = NULL;
@@ -314,8 +311,6 @@ Player::Init(const RString& sType,
 			 PlayerState* pPlayerState,
 			 PlayerStageStats* pPlayerStageStats,
 			 LifeMeter* pLM,
-			 ScoreDisplay* pScoreDisplay,
-			 ScoreDisplay* pSecondaryScoreDisplay,
 			 ScoreKeeper* pPrimaryScoreKeeper,
 			 ScoreKeeper* pSecondaryScoreKeeper)
 {
@@ -396,8 +391,6 @@ Player::Init(const RString& sType,
 	m_pPlayerState = pPlayerState;
 	m_pPlayerStageStats = pPlayerStageStats;
 	m_pLifeMeter = pLM;
-	m_pScoreDisplay = pScoreDisplay;
-	m_pSecondaryScoreDisplay = pSecondaryScoreDisplay;
 	m_pPrimaryScoreKeeper = pPrimaryScoreKeeper;
 	m_pSecondaryScoreKeeper = pSecondaryScoreKeeper;
 
@@ -3345,12 +3338,6 @@ Player::UpdateJudgedRows(float fDeltaTime)
 				setSounds.insert(&m_soundMine);
 
 			ChangeLife(tn.result.tns);
-
-			if (m_pScoreDisplay)
-				m_pScoreDisplay->OnJudgment(tn.result.tns);
-			if (m_pSecondaryScoreDisplay)
-				m_pSecondaryScoreDisplay->OnJudgment(tn.result.tns);
-
 			// Make sure hit mines affect the dance points.
 			if (m_pPrimaryScoreKeeper)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
@@ -3463,17 +3450,6 @@ Player::HandleTapRowScore(unsigned row)
 		m_pPlayerStageStats->UpdateComboList(
 		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
 
-	if (m_pScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pScoreDisplay->OnJudgment(scoreOfLastTap);
-	}
-	if (m_pSecondaryScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pSecondaryScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pSecondaryScoreDisplay->OnJudgment(scoreOfLastTap);
-	}
-
 	ChangeLife(scoreOfLastTap);
 }
 
@@ -3561,18 +3537,6 @@ Player::HandleHoldScore(const TapNote& tn)
 		m_pPrimaryScoreKeeper->HandleHoldScore(tn);
 	if (m_pSecondaryScoreKeeper != nullptr)
 		m_pSecondaryScoreKeeper->HandleHoldScore(tn);
-
-	if (m_pScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pScoreDisplay->OnJudgment(holdScore, tapScore);
-	}
-	if (m_pSecondaryScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pSecondaryScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pSecondaryScoreDisplay->OnJudgment(holdScore, tapScore);
-	}
-
 	ChangeLife(holdScore, tapScore);
 }
 

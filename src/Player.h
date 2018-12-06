@@ -8,7 +8,6 @@
 #include "NoteData.h"
 #include <chrono>
 
-class ScoreDisplay;
 class LifeMeter;
 class ScoreKeeper;
 class RageTimer;
@@ -87,8 +86,6 @@ class Player : public ActorFrame
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
 			  LifeMeter* pLM,
-			  ScoreDisplay* pScoreDisplay,
-			  ScoreDisplay* pSecondaryScoreDisplay,
 			  ScoreKeeper* pPrimaryScoreKeeper,
 			  ScoreKeeper* pSecondaryScoreKeeper);
 	void Load();
@@ -252,8 +249,6 @@ class Player : public ActorFrame
 
 	TapNoteScore m_LastTapNoteScore;
 	LifeMeter* m_pLifeMeter;
-	ScoreDisplay* m_pScoreDisplay;
-	ScoreDisplay* m_pSecondaryScoreDisplay;
 	ScoreKeeper* m_pPrimaryScoreKeeper;
 	ScoreKeeper* m_pSecondaryScoreKeeper;
 

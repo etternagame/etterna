@@ -50,8 +50,6 @@ static const char* SelectionStateNames[] = { "SelectingSong",
 											 "Finalized" };
 XToString(SelectionState);
 
-/** @brief The maximum number of digits for the ScoreDisplay. */
-const int NUM_SCORE_DIGITS = 9;
 
 #define SHOW_OPTIONS_MESSAGE_SECONDS                                           \
 	THEME->GetMetricF(m_sName, "ShowOptionsMessageSeconds")

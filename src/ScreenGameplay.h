@@ -19,7 +19,6 @@
 class LyricsLoader;
 class Player;
 class LifeMeter;
-class ScoreDisplay;
 class StepsDisplay;
 class ScoreKeeper;
 class Background;
@@ -101,11 +100,6 @@ class PlayerInfo
 	LifeMeter* m_pLifeMeter;
 	/** @brief The description of the current Steps. */
 	BitmapText* m_ptextStepsDescription;
-
-	/** @brief The display for the primary ScoreKeeper. */
-	ScoreDisplay* m_pPrimaryScoreDisplay;
-	/** @brief The display for the secondary ScoreKeeper. */
-	ScoreDisplay* m_pSecondaryScoreDisplay;
 	/** @brief The primary ScoreKeeper for keeping track of the score. */
 	ScoreKeeper* m_pPrimaryScoreKeeper;
 	/** @brief The secondary ScoreKeeper. Formerly used in PLAY_MODE_RAVE. */

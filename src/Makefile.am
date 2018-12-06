@@ -86,14 +86,11 @@ ScreenOptions.cpp ScreenOptions.h \
 ScreenOptionsCourseOverview.cpp ScreenOptionsCourseOverview.h \
 ScreenOptionsEditCourse.cpp ScreenOptionsEditCourse.h \
 ScreenOptionsEditProfile.cpp ScreenOptionsEditProfile.h \
-ScreenOptionsExportPackage.cpp ScreenOptionsExportPackage.h \
 ScreenOptionsManageCourses.cpp ScreenOptionsManageCourses.h \
 ScreenOptionsManageEditSteps.cpp ScreenOptionsManageEditSteps.h \
 ScreenOptionsManageProfiles.cpp ScreenOptionsManageProfiles.h \
 ScreenOptionsMaster.cpp ScreenOptionsMaster.h \
 ScreenOptionsMasterPrefs.cpp ScreenOptionsMasterPrefs.h \
-ScreenOptionsToggleSongs.cpp ScreenOptionsToggleSongs.h \
-ScreenPackages.cpp ScreenPackages.h \
 ScreenNetworkOptions.h ScreenNetworkOptions.cpp \
 ScreenPlayerOptions.cpp ScreenPlayerOptions.h \
 ScreenProfileLoad.cpp ScreenProfileLoad.h \
@@ -445,7 +442,6 @@ ModIcon.cpp ModIcon.h ModIconRow.cpp ModIconRow.h \
 MusicWheel.cpp MusicWheel.h \
 MusicWheelItem.cpp MusicWheelItem.h \
 OptionRow.cpp OptionRow.h OptionsCursor.cpp OptionsCursor.h \
-PaneDisplay.cpp PaneDisplay.h ScrollBar.cpp ScrollBar.h \
 SnapDisplay.cpp SnapDisplay.h \
 TextBanner.cpp TextBanner.h WheelBase.cpp WheelBase.h WheelItemBase.cpp WheelItemBase.h \
 
@@ -548,7 +544,6 @@ RageTextureID.cpp RageTextureID.h RageTextureManager.cpp RageTextureManager.h Ra
 RageTimer.cpp RageTimer.h RageTypes.cpp RageTypes.h RageUtil.cpp RageUtil.h \
 RageUtil_CachedObject.cpp RageUtil_CachedObject.h \
 RageUtil_CharConversions.cpp RageUtil_CharConversions.h \
-RageUtil_BackgroundLoader.cpp RageUtil_BackgroundLoader.h RageUtil_FileDB.cpp RageUtil_FileDB.h RageUtil_CircularBuffer.h \
 RageUtil_AutoPtr.h \
 RageUtil_WorkerThread.cpp RageUtil_WorkerThread.h
 
@@ -560,7 +555,6 @@ ActorScroller.cpp ActorScroller.h ActorUtil.cpp ActorUtil.h \
 ActorSound.cpp ActorSound.h \
 AutoActor.cpp AutoActor.h \
 BitmapText.cpp BitmapText.h Model.cpp Model.h \
-DynamicActorScroller.cpp DynamicActorScroller.h \
 ModelManager.cpp ModelManager.h ModelTypes.cpp ModelTypes.h \
 Quad.cpp Quad.h \
 RollingNumbers.cpp RollingNumbers.h Sprite.cpp Sprite.h

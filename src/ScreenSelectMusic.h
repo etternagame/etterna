@@ -8,7 +8,6 @@
 #include "GameInput.h"
 #include "MusicWheel.h"
 #include "OptionsList.h"
-#include "RageUtil_BackgroundLoader.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
 #include "ThemeMetric.h"

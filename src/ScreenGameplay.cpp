@@ -30,7 +30,6 @@
 #include "RageLog.h"
 #include "RageSoundReader.h"
 #include "RageTimer.h"
-#include "ScoreDisplayPercentage.h"
 #include "ScoreKeeperNormal.h"
 #include "ScreenDimensions.h"
 #include "ScreenGameplay.h"
@@ -99,8 +98,6 @@ PlayerInfo::PlayerInfo()
   , m_vpStepsQueue()
   , m_pLifeMeter(NULL)
   , m_ptextStepsDescription(NULL)
-  , m_pPrimaryScoreDisplay(NULL)
-  , m_pSecondaryScoreDisplay(NULL)
   , m_pPrimaryScoreKeeper(NULL)
   , m_pSecondaryScoreKeeper(NULL)
   , m_ptextPlayerOptions(NULL)
@@ -136,13 +133,6 @@ PlayerInfo::Load(PlayerNumber pn,
 
 	PlayerState* const pPlayerState = GetPlayerState();
 	PlayerStageStats* const pPlayerStageStats = GetPlayerStageStats();
-
-	if (m_pPrimaryScoreDisplay != nullptr)
-		m_pPrimaryScoreDisplay->Init(pPlayerState, pPlayerStageStats);
-
-	if (m_pSecondaryScoreDisplay != nullptr)
-		m_pSecondaryScoreDisplay->Init(pPlayerState, pPlayerStageStats);
-
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper(
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
@@ -176,8 +166,6 @@ PlayerInfo::~PlayerInfo()
 {
 	SAFE_DELETE(m_pLifeMeter);
 	SAFE_DELETE(m_ptextStepsDescription);
-	SAFE_DELETE(m_pPrimaryScoreDisplay);
-	SAFE_DELETE(m_pSecondaryScoreDisplay);
 	SAFE_DELETE(m_pPrimaryScoreKeeper);
 	SAFE_DELETE(m_pSecondaryScoreKeeper);
 	SAFE_DELETE(m_ptextPlayerOptions);
@@ -534,8 +522,6 @@ ScreenGameplay::Init()
 							pi->GetPlayerState(),
 							pi->GetPlayerStageStats(),
 							pi->m_pLifeMeter,
-							pi->m_pPrimaryScoreDisplay,
-							pi->m_pSecondaryScoreDisplay,
 							pi->m_pPrimaryScoreKeeper,
 							pi->m_pSecondaryScoreKeeper);
 	}
@@ -911,10 +897,6 @@ ScreenGameplay::LoadNextSong()
 			// give a little life back between stages
 			if (pi->m_pLifeMeter)
 				pi->m_pLifeMeter->OnLoadSong();
-			if (pi->m_pPrimaryScoreDisplay)
-				pi->m_pPrimaryScoreDisplay->OnLoadSong();
-			if (pi->m_pSecondaryScoreDisplay)
-				pi->m_pSecondaryScoreDisplay->OnLoadSong();
 		}
 	}
 

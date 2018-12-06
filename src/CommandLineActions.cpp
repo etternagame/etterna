@@ -1,7 +1,6 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CommandLineActions.h"
 #include "DateTime.h"
-#include "FileDownload.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "LuaManager.h"
