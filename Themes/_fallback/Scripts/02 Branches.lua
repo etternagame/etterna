@@ -198,9 +198,6 @@ Branch = {
 	AfterNetGameplay = function()
 		return "ScreenNetEvaluation"
 	end,
-	AfterHeartEntry = function()
-		return Branch.EvaluationScreen()
-	end,
 	AfterEvaluation = function()
 		local allFailed = STATSMAN:GetCurStageStats():AllFailed()
 		local song = GAMESTATE:GetCurrentSong()
