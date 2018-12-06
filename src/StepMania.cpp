@@ -1245,8 +1245,6 @@ sm_main(int argc, char* argv[])
 	StoreActualGraphicOptions();
 	LOG->Info("%s", GetActualGraphicOptionsString().c_str());
 
-	SONGMAN->PreloadSongImages();
-
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
 	INPUTMAN = new RageInput;

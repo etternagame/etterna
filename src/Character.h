@@ -2,7 +2,6 @@
 #define Character_H
 
 #include "LuaReference.h"
-#include "RageTexturePreloader.h"
 struct lua_State;
 using Lua = lua_State;
 
@@ -54,8 +53,6 @@ class Character
 
   public:
 	apActorCommands m_cmdInit;
-
-	RageTexturePreloader m_Preload;
 	int m_iPreloadRefcount{ 0 };
 };
 

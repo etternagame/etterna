@@ -14,7 +14,6 @@ struct GoalsForChart;
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
 #include "ImageCache.h"
-#include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
 #include "SongOptions.h"
@@ -37,7 +36,6 @@ class SongManager
 
 	void InitSongsFromDisk(LoadingWindow* ld);
 	void FreeSongs();
-	void UnlistSong(Song* song);
 	void Cleanup();
 
 	void Invalidate(const Song* pStaleSong);
@@ -51,7 +49,6 @@ class SongManager
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
-	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(set<string>& favs);
@@ -190,10 +187,6 @@ class SongManager
 	unordered_map<string, Steps*> StepsByKey;
 
 	set<RString> m_GroupsToNeverCache;
-	/** @brief Hold pointers to all the songs that have been deleted from disk
-	 * but must at least be kept temporarily alive for smooth audio transitions.
-	 */
-	vector<Song*> m_pDeletedSongs;
 	/** @brief The most popular songs ranked by number of plays. */
 	vector<Song*> m_pPopularSongs;
 	// vector<Song*>		m_pRecentSongs;	// songs recently played on the
@@ -220,8 +213,6 @@ class SongManager
 	};
 	typedef vector<Song*> SongPointerVector;
 	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
-
-	RageTexturePreloader m_TexturePreload;
 
 	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;

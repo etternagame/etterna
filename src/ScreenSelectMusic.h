@@ -9,7 +9,6 @@
 #include "GameInput.h"
 #include "MusicWheel.h"
 #include "OptionsList.h"
-#include "RageTexturePreloader.h"
 #include "RageUtil_BackgroundLoader.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
@@ -175,9 +174,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RageSound m_soundDifficultyHarder;
 	RageSound m_soundOptionsChange;
 	RageSound m_soundLocked;
-
-	BackgroundLoader m_BackgroundLoader;
-	RageTexturePreloader m_TexturePreload;
 };
 
 #endif

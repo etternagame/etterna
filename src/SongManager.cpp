@@ -872,28 +872,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 }
 
 void
-SongManager::PreloadSongImages()
-{
-	if (PREFSMAN->m_ImageCache != IMGCACHE_FULL)
-		return;
-
-	/* Load textures before unloading old ones, so we don't reload
-	 * textures that we don't need to. */
-	RageTexturePreloader preload;
-
-	const vector<Song*>& songs = GetAllSongs();
-	for (unsigned i = 0; i < songs.size(); ++i) {
-		if (!songs[i]->HasBanner())
-			continue;
-
-		const RageTextureID ID =
-		  Sprite::SongBannerTexture(songs[i]->GetBannerPath());
-		preload.Load(ID);
-	}
-	preload.Swap(m_TexturePreload);
-}
-
-void
 SongManager::FreeSongs()
 {
 	m_sSongGroupNames.clear();
@@ -905,11 +883,6 @@ SongManager::FreeSongs()
 	m_pSongs.clear();
 	m_SongsByDir.clear();
 
-	// also free the songs that have been deleted from disk
-	for (unsigned i = 0; i < m_pDeletedSongs.size(); ++i)
-		SAFE_DELETE(m_pDeletedSongs[i]);
-	m_pDeletedSongs.clear();
-
 	m_mapSongGroupIndex.clear();
 	m_sSongGroupBannerPaths.clear();
 
@@ -919,30 +892,6 @@ SongManager::FreeSongs()
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();
-}
-
-void
-SongManager::UnlistSong(Song* song)
-{
-	// cannot immediately free song data, as it is needed temporarily
-	// for smooth audio transitions, etc. Instead, remove it from the
-	// m_pSongs list and store it in a special place where it can safely
-	// be deleted later.
-	m_pDeletedSongs.emplace_back(song);
-
-	// remove all occurences of the song in each of our song vectors
-	vector<Song*>* songVectors[3] = { &m_pSongs,
-									  &m_pPopularSongs,
-									  &m_pShuffledSongs };
-	for (int songVecIdx = 0; songVecIdx < 3; ++songVecIdx) {
-		vector<Song*>& v = *songVectors[songVecIdx];
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (v[i] == song) {
-				v.erase(v.begin() + i);
-				--i;
-			}
-		}
-	}
 }
 
 bool
