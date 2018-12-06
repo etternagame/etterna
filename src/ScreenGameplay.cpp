@@ -437,94 +437,12 @@ ScreenGameplay::Init()
 		this->AddChild(m_pSongForeground);
 	}
 
-	// Use the margin function to calculate where the notefields should be and
-	// what size to zoom them to.  This way, themes get margins to put cut-ins
-	// in, and the engine can have players on different styles without the
-	// notefields overlapping. -Kyz
-	LuaReference margarine;
-	float margins[NUM_PLAYERS][2];
-	FOREACH_PlayerNumber(pn)
-	{
-		margins[pn][0] = 40;
-		margins[pn][1] = 40;
-	}
-	THEME->GetMetric(m_sName, "MarginFunction", margarine);
-	if (margarine.GetLuaType() != LUA_TFUNCTION) {
-		LuaHelpers::ReportScriptErrorFmt(
-		  "MarginFunction metric for %s must be a function.", m_sName.c_str());
-	} else {
-		Lua* L = LUA->Get();
-		margarine.PushSelf(L);
-		lua_createtable(L, 0, 0);
-		int next_player_slot = 1;
-		FOREACH_EnabledPlayer(pn)
-		{
-			Enum::Push(L, pn);
-			lua_rawseti(L, -2, next_player_slot);
-			++next_player_slot;
-		}
-		Enum::Push(L, GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType);
-		RString err= "Error running MarginFunction:  ";
-		if(LuaHelpers::RunScriptOnStack(L, err, 2, 3, true))
-		{
-			RString marge= "Margin value must be a number.";
-			margins[PLAYER_1][0]= static_cast<float>(SafeFArg(L, -3, marge, 40));
-			float center= static_cast<float>(SafeFArg(L, -2, marge, 80));
-			margins[PLAYER_1][1]= center / 2.0f;
-			//margins[PLAYER_2][0]= center / 2.0f;
-			//margins[PLAYER_2][1]= static_cast<float>(SafeFArg(L, -1, marge, 40));
-		}
-		lua_settop(L, 0);
-		LUA->Release(L);
-	}
-
-	float left_edge[NUM_PLAYERS] = { 0.0f };
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
 		RString sName = ssprintf("Player%s", pi->GetName().c_str());
 		pi->m_pPlayer->SetName(sName);
-
-		Style const* style = GAMESTATE->GetCurrentStyle(pi->m_pn);
-		float style_width = style->GetWidth(pi->m_pn);
-		float edge = left_edge[pi->m_pn];
-		float screen_space;
-		float field_space;
-		float left_marge;
-		float right_marge;
-#define CENTER_PLAYER_BLOCK                                                    \
-	{                                                                          \
-		edge = 0.0f;                                                           \
-		screen_space = SCREEN_WIDTH;                                           \
-		left_marge = margins[PLAYER_1][0];                                     \
-		right_marge = margins[PLAYER_1][1];                                    \
-		field_space = screen_space - left_marge - right_marge;                 \
-	}
-		// If pi->m_pn is set, then the player will be visible.  If not, then
-		// it's not visible and don't bother setting its position.
-		if (GAMESTATE->m_bMultiplayer && !pi->m_bIsDummy)
-			CENTER_PLAYER_BLOCK
-		else {
-			screen_space = SCREEN_WIDTH / 2.0f;
-			left_marge = margins[pi->m_pn][0];
-			right_marge = margins[pi->m_pn][1];
-			field_space = screen_space - left_marge - right_marge;
-			if (Center1Player() || (style_width > field_space &&
-				 GAMESTATE->GetNumPlayersEnabled() == 1 &&
-				 (bool)ALLOW_CENTER_1_PLAYER))
-				CENTER_PLAYER_BLOCK
-		}
-#undef CENTER_PLAYER_BLOCK
-		float player_x = edge + left_marge + (field_space / 2.0f);
-		float field_zoom = field_space / style_width;
-		/*
-		LuaHelpers::ReportScriptErrorFmt("Positioning player %d at %.0f:  "
-			"screen_space %.0f, left_edge %.0f, field_space %.0f, left_marge
-		%.0f," " right_marge %.0f, style_width %.0f, field_zoom %.2f.",
-			pi->m_pn+1, player_x, screen_space, left_edge[pi->m_pn],
-		field_space, left_marge, right_marge, style_width, field_zoom);
-		*/
-		pi->GetPlayerState()->m_NotefieldZoom = min(1.0f, field_zoom);
-
+		float player_x = SCREEN_CENTER_X;
+		pi->GetPlayerState()->m_NotefieldZoom = 1.f;
 		pi->m_pPlayer->SetX(player_x);
 		pi->m_pPlayer->RunCommands(PLAYER_INIT_COMMAND);
 		// ActorUtil::LoadAllCommands(pi->m_pPlayer, m_sName);
