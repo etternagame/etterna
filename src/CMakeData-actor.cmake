@@ -2,9 +2,7 @@ list(APPEND SMDATA_ACTOR_BASE_SRC
   "Actor.cpp"
   "ActorFrame.cpp"
   "ActorFrameTexture.cpp"
-  "ActorMultiTexture.cpp"
   "ActorMultiVertex.cpp"
-  "ActorProxy.cpp"
   "ActorScroller.cpp"
   "ActorSound.cpp"
   "ActorUtil.cpp"
@@ -23,9 +21,7 @@ list(APPEND SMDATA_ACTOR_BASE_HPP
   "Actor.h"
   "ActorFrame.h"
   "ActorFrameTexture.h"
-  "ActorMultiTexture.h"
   "ActorMultiVertex.h"
-  "ActorProxy.h"
   "ActorScroller.h"
   "ActorSound.h"
   "ActorUtil.h"
@@ -55,12 +51,9 @@ list(APPEND SMDATA_ACTOR_GAMEPLAY_SRC
   "LyricDisplay.cpp"
   "NoteDisplay.cpp"
   "NoteField.cpp"
-  "PercentageDisplay.cpp"
   "Player.cpp"
   "ReceptorArrow.cpp"
   "ReceptorArrowRow.cpp"
-  "ScoreDisplay.cpp"
-  "ScoreDisplayPercentage.cpp"
 )
 
 list(APPEND SMDATA_ACTOR_GAMEPLAY_HPP
@@ -75,12 +68,9 @@ list(APPEND SMDATA_ACTOR_GAMEPLAY_HPP
   "LyricDisplay.h"
   "NoteDisplay.h"
   "NoteField.h"
-  "PercentageDisplay.h"
   "Player.h"
   "ReceptorArrow.h"
   "ReceptorArrowRow.h"
-  "ScoreDisplay.h"
-  "ScoreDisplayPercentage.h"
 )
 source_group("Actors\\\\Gameplay" FILES ${SMDATA_ACTOR_GAMEPLAY_SRC} ${SMDATA_ACTOR_GAMEPLAY_HPP})
 
@@ -90,7 +80,6 @@ list(APPEND SMDATA_ACTOR_MENU_SRC
   "ControllerStateDisplay.cpp"
   "DifficultyList.cpp"
   "DualScrollBar.cpp"
-  "FadingBanner.cpp"
   "GraphDisplay.cpp"
   "HelpDisplay.cpp"
   "MenuTimer.cpp"
@@ -114,7 +103,6 @@ list(APPEND SMDATA_ACTOR_MENU_HPP
   "ControllerStateDisplay.h"
   "DifficultyList.h"
   "DualScrollBar.h"
-  "FadingBanner.h"
   "GraphDisplay.h"
   "HelpDisplay.h"
   "MenuTimer.h"
@@ -145,10 +133,8 @@ endif()
 source_group("Actors\\\\Menus" FILES ${SMDATA_ACTOR_MENU_SRC} ${SMDATA_ACTOR_MENU_HPP})
 
 list(APPEND SMDATA_ACTOR_GAMEPLAY_MENU_SRC
-  "Banner.cpp"
   "BGAnimation.cpp"
   "BGAnimationLayer.cpp"
-  "DifficultyIcon.cpp"
   "MeterDisplay.cpp"
   "StepsDisplay.cpp"
   "StreamDisplay.cpp"
@@ -156,10 +142,8 @@ list(APPEND SMDATA_ACTOR_GAMEPLAY_MENU_SRC
 )
 
 list(APPEND SMDATA_ACTOR_GAMEPLAY_MENU_HPP
-  "Banner.h"
   "BGAnimation.h"
   "BGAnimationLayer.h"
-  "DifficultyIcon.h"
   "MeterDisplay.h"
   "StepsDisplay.h"
   "StreamDisplay.h"

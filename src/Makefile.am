@@ -465,15 +465,7 @@ LifeMeter.cpp LifeMeter.h \
 LifeMeterBar.cpp LifeMeterBar.h \
 LifeMeterBattery.cpp LifeMeterBattery.h LifeMeterTime.cpp LifeMeterTime.h \
 LyricDisplay.cpp LyricDisplay.h NoteDisplay.cpp NoteDisplay.h NoteField.cpp NoteField.h \
-PercentageDisplay.cpp PercentageDisplay.h Player.cpp Player.h \
 ReceptorArrow.cpp ReceptorArrow.h ReceptorArrowRow.cpp ReceptorArrowRow.h \
-ScoreDisplay.cpp ScoreDisplay.h \
-ScoreDisplayAliveTime.cpp ScoreDisplayAliveTime.h \
-ScoreDisplayBattle.cpp ScoreDisplayBattle.h \
-ScoreDisplayCalories.cpp ScoreDisplayCalories.h \
-ScoreDisplayLifeTime.cpp ScoreDisplayLifeTime.h \
-ScoreDisplayNormal.cpp ScoreDisplayNormal.h \
-ScoreDisplayPercentage.cpp ScoreDisplayPercentage.h ScoreDisplayRave.cpp ScoreDisplayRave.h \
 SongPosition.cpp SongPosition.h
 
 Rage =
@@ -565,9 +557,7 @@ RageUtil_WorkerThread.cpp RageUtil_WorkerThread.h
 Actors = \
 Actor.cpp Actor.h ActorFrame.cpp ActorFrame.h \
 ActorFrameTexture.cpp ActorFrameTexture.h \
-ActorMultiTexture.cpp ActorMultiTexture.h \
 ActorMultiVertex.cpp ActorMultiVertex.h \
-ActorProxy.cpp ActorProxy.h \
 ActorScroller.cpp ActorScroller.h ActorUtil.cpp ActorUtil.h \
 ActorSound.cpp ActorSound.h \
 AutoActor.cpp AutoActor.h \
