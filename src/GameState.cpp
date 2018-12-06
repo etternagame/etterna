@@ -142,9 +142,6 @@ GameState::GameState()
 	}
 
 	m_Environment = new LuaTable;
-
-	m_bDopefish = false;
-
 	m_bIsChartPreviewActive = false;
 
 	sExpandedSectionName = "";
@@ -485,8 +482,6 @@ void
 GameState::BeginGame()
 {
 	m_timeGameStarted.Touch();
-
-	m_vpsNamesThatWereFilled.clear();
 }
 
 void
@@ -887,11 +882,6 @@ GameState::ResetStageStatistics()
 		m_pPlayerState[p]->m_HealthState = HealthState_Alive;
 	}
 
-	FOREACH_PlayerNumber(p)
-	{
-		m_vLastStageAwards[p].clear();
-	}
-
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
 	m_iStageSeed = g_RandomNumberGenerator();
@@ -1195,35 +1185,6 @@ GameState::AnyPlayersAreCpu() const
 	return false;
 }
 
-PlayerNumber
-GameState::GetBestPlayer() const
-{
-	FOREACH_PlayerNumber(pn) if (GetStageResult(pn) == RESULT_WIN) return pn;
-	return PLAYER_INVALID; // draw
-}
-
-StageResult
-GameState::GetStageResult(PlayerNumber pn) const
-{
-	StageResult win = RESULT_WIN;
-	FOREACH_PlayerNumber(p)
-	{
-		if (p == pn)
-			continue;
-
-		// If anyone did just as well, at best it's a draw.
-		if (STATSMAN->m_CurStageStats.m_player[p].m_iActualDancePoints ==
-			STATSMAN->m_CurStageStats.m_player[pn].m_iActualDancePoints)
-			win = RESULT_DRAW;
-
-		// If anyone did better, we lost.
-		if (STATSMAN->m_CurStageStats.m_player[p].m_iActualDancePoints >
-			STATSMAN->m_CurStageStats.m_player[pn].m_iActualDancePoints)
-			return RESULT_LOSE;
-	}
-	return win;
-}
-
 void
 GameState::GetDefaultPlayerOptions(PlayerOptions& po)
 {
@@ -1350,154 +1311,6 @@ GameState::ShowW1() const
 		default:
 			FAIL_M(ssprintf("Invalid AllowW1 preference: %i", pref));
 	}
-}
-
-static ThemeMetric<bool> PROFILE_RECORD_FEATS("GameState",
-											  "ProfileRecordFeats");
-static ThemeMetric<bool> CATEGORY_RECORD_FEATS("GameState",
-											   "CategoryRecordFeats");
-void
-GameState::GetRankingFeats(PlayerNumber pn,
-						   vector<RankingFeat>& asFeatsOut) const
-{
-	if (!IsHumanPlayer(pn))
-		return;
-
-	Profile* pProf = PROFILEMAN->GetProfile(pn);
-
-	// Check for feats even if the PlayMode is rave or battle because the player
-	// may have made high scores then switched modes.
-	PlayMode mode = m_PlayMode.Get();
-	char const* modeStr = PlayModeToString(mode).c_str();
-
-	CHECKPOINT_M(ssprintf("Getting the feats for %s", modeStr));
-	switch (mode) {
-		case PLAY_MODE_REGULAR: {
-			StepsType st = GetCurrentStyle(pn)->m_StepsType;
-
-			// Find unique Song and Steps combinations that were played.
-			// We must keep only the unique combination or else we'll
-			// double-count high score markers.
-			vector<SongAndSteps> vSongAndSteps;
-
-			for (unsigned i = 0; i < STATSMAN->m_vPlayedStageStats.size();
-				 i++) {
-				CHECKPOINT_M(ssprintf(
-				  "%u/%i", i, (int)STATSMAN->m_vPlayedStageStats.size()));
-				SongAndSteps sas;
-				ASSERT(
-				  !STATSMAN->m_vPlayedStageStats[i].m_vpPlayedSongs.empty());
-				sas.pSong = STATSMAN->m_vPlayedStageStats[i].m_vpPlayedSongs[0];
-				ASSERT(sas.pSong != NULL);
-				if (STATSMAN->m_vPlayedStageStats[i]
-					  .m_player[pn]
-					  .m_vpPossibleSteps.empty())
-					continue;
-				sas.pSteps = STATSMAN->m_vPlayedStageStats[i]
-							   .m_player[pn]
-							   .m_vpPossibleSteps[0];
-				ASSERT(sas.pSteps != NULL);
-				vSongAndSteps.push_back(sas);
-			}
-			CHECKPOINT_M(ssprintf("All songs/steps from %s gathered", modeStr));
-
-			sort(vSongAndSteps.begin(), vSongAndSteps.end());
-
-			vector<SongAndSteps>::iterator toDelete =
-			  unique(vSongAndSteps.begin(), vSongAndSteps.end());
-			vSongAndSteps.erase(toDelete, vSongAndSteps.end());
-
-			CHECKPOINT_M("About to find records from the gathered.");
-			for (unsigned i = 0; i < vSongAndSteps.size(); i++) {
-				Song* pSong = vSongAndSteps[i].pSong;
-				Steps* pSteps = vSongAndSteps[i].pSteps;
-
-				// Find Personal Records
-				if (pProf && PROFILE_RECORD_FEATS) {
-					HighScoreList& hsl =
-					  pProf->GetStepsHighScoreList(pSong, pSteps);
-					for (unsigned j = 0; j < hsl.vHighScores.size(); j++) {
-						HighScore& hs = hsl.vHighScores[j];
-
-						if (hs.GetName() != RANKING_TO_FILL_IN_MARKER[pn])
-							continue;
-
-						RankingFeat feat;
-						feat.pSong = pSong;
-						feat.pSteps = pSteps;
-						feat.Type = RankingFeat::SONG;
-						feat.Feat = ssprintf(
-						  "PR #%d in %s %s",
-						  j + 1,
-						  pSong->GetTranslitMainTitle().c_str(),
-						  DifficultyToString(pSteps->GetDifficulty()).c_str());
-						// feat.pStringToFill = hs.GetNameMutable();
-						feat.grade = hs.GetGrade();
-						feat.fPercentDP = hs.GetPercentDP();
-						feat.iScore = hs.GetScore();
-
-						// XXX: temporary hack
-						// Why is this here? -aj
-						if (pSong->HasBackground())
-							feat.Banner = pSong->GetBackgroundPath();
-						//					if( pSong->HasBanner() )
-						//						feat.Banner =
-						// pSong->GetBannerPath();
-
-						asFeatsOut.push_back(feat);
-					}
-				}
-			}
-
-			CHECKPOINT_M("Getting the final evaluation stage stats.");
-			StageStats stats;
-			STATSMAN->GetFinalEvalStageStats(stats);
-
-			// Find Personal Category Records
-			FOREACH_ENUM(RankingCategory, rc)
-			{
-				if (!CATEGORY_RECORD_FEATS)
-					continue;
-
-				if (pProf && PROFILE_RECORD_FEATS) {
-					HighScoreList& hsl =
-					  pProf->GetCategoryHighScoreList(st, rc);
-					for (unsigned j = 0; j < hsl.vHighScores.size(); j++) {
-						HighScore& hs = hsl.vHighScores[j];
-						if (hs.GetName() != RANKING_TO_FILL_IN_MARKER[pn])
-							continue;
-
-						RankingFeat feat;
-						feat.Type = RankingFeat::CATEGORY;
-						feat.Feat = ssprintf("PR #%d in Type %c (%d)",
-											 j + 1,
-											 'A' + rc,
-											 stats.GetAverageMeter(pn));
-						// feat.pStringToFill = hs.GetNameMutable();
-						feat.grade = Grade_NoData;
-						feat.iScore = hs.GetScore();
-						feat.fPercentDP = hs.GetPercentDP();
-						asFeatsOut.push_back(feat);
-					}
-				}
-			}
-		} break;
-		default:
-			FAIL_M(ssprintf("Invalid play mode: %i", int(m_PlayMode)));
-	}
-}
-
-bool
-GameState::AnyPlayerHasRankingFeats() const
-{
-	vector<RankingFeat> vFeats;
-	FOREACH_PlayerNumber(p)
-	{
-		GetRankingFeats(p, vFeats);
-		if (!vFeats.empty())
-			return true;
-	}
-	return false;
 }
 
 bool
@@ -1899,7 +1712,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	DEFINE_METHOD(GetPreferredDifficulty,
 				  m_PreferredDifficulty[Enum::Check<PlayerNumber>(L, 1)])
-	DEFINE_METHOD(AnyPlayerHasRankingFeats, AnyPlayerHasRankingFeats())
 	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
@@ -1974,23 +1786,6 @@ class LunaGameState : public Luna<GameState>
 		so.FromString(SArg(2));
 		p->m_SongOptions.Assign(m, so);
 		COMMON_RETURN_SELF;
-	}
-	static int GetStageResult(T* p, lua_State* L)
-	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
-		LuaHelpers::Push(L, p->GetStageResult(pn));
-		return 1;
-	}
-	static int IsWinner(T* p, lua_State* L)
-	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
-		lua_pushboolean(L, p->GetStageResult(pn) == RESULT_WIN);
-		return 1;
-	}
-	static int IsDraw(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->GetStageResult(PLAYER_1) == RESULT_DRAW);
-		return 1;
 	}
 	static int GetCurrentGame(T* p, lua_State* L)
 	{
@@ -2158,12 +1953,6 @@ class LunaGameState : public Luna<GameState>
 		COMMON_RETURN_SELF;
 	}
 
-	static int Dopefish(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->m_bDopefish);
-		return 1;
-	}
-
 	static int LoadProfiles(T* p, lua_State* L)
 	{
 		bool LoadEdits = true;
@@ -2300,7 +2089,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(Env);
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
-		ADD_METHOD(AnyPlayerHasRankingFeats);
 		ADD_METHOD(GetPlayMode);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetCurrentStageIndex);
@@ -2324,9 +2112,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(ApplyPreferredModifiers);
 		ADD_METHOD(ApplyStageModifiers);
 		ADD_METHOD(SetSongOptions);
-		ADD_METHOD(GetStageResult);
-		ADD_METHOD(IsWinner);
-		ADD_METHOD(IsDraw);
 		ADD_METHOD(GetCurrentGame);
 		ADD_METHOD(GetEditLocalProfileID);
 		ADD_METHOD(GetEditLocalProfile);
@@ -2355,13 +2140,11 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(CurrentOptionsDisqualifyPlayer);
 		ADD_METHOD(ResetPlayerOptions);
 		ADD_METHOD(RefreshNoteSkinData);
-		ADD_METHOD(Dopefish);
 		ADD_METHOD(LoadProfiles);
 		ADD_METHOD(SaveProfiles);
 		ADD_METHOD(HaveProfileToLoad);
 		ADD_METHOD(HaveProfileToSave);
 		ADD_METHOD(SetFailTypeExplicitlySet);
-		ADD_METHOD(StoreRankingName);
 		ADD_METHOD(SetCurrentStyle);
 		ADD_METHOD(SetCurrentPlayMode);
 		ADD_METHOD(IsCourseMode);

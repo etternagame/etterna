@@ -526,7 +526,6 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
 	hs.SetAliveSeconds( pss.m_fAliveSeconds );
 	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
-	hs.SetStageAward( pss.m_StageAward );
 
 	vector<RString> asModifiers;
 	{

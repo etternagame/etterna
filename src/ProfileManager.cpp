@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "GameConstantsAndTypes.h"
@@ -737,30 +737,6 @@ ProfileManager::IncrementStepsPlayCount(const Song* pSong,
 {
 	if (IsPersistentProfile(pn))
 		GetProfile(pn)->IncrementStepsPlayCount(pSong, pSteps);
-}
-
-// Category stats
-void
-ProfileManager::AddCategoryScore(StepsType st,
-								 RankingCategory rc,
-								 PlayerNumber pn,
-								 const HighScore& hs_,
-								 int& iPersonalIndexOut,
-								 int& iMachineIndexOut)
-{
-	HighScore hs = hs_;
-	hs.SetName(RANKING_TO_FILL_IN_MARKER[pn]);
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->AddCategoryHighScore(st, rc, hs, iPersonalIndexOut);
-}
-
-void
-ProfileManager::IncrementCategoryPlayCount(StepsType st,
-										   RankingCategory rc,
-										   PlayerNumber pn)
-{
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->IncrementCategoryPlayCount(st, rc);
 }
 
 bool

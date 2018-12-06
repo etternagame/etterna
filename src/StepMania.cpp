@@ -1173,9 +1173,6 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-	if (GetCommandlineArgument("dopefish"))
-		GAMESTATE->m_bDopefish = true;
-
 	{
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */

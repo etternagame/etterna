@@ -55,7 +55,6 @@ struct HighScoreImpl
 	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
-	StageAward stageAward;	// stage award [SM5 alpha 1a+]
 	string	sModifiers;
 	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
 	string sPlayerGuid;	// who made this high score
@@ -110,7 +109,6 @@ HighScoreImpl::operator==(const HighScoreImpl& other) const
 	COMPARE( grade );
 	COMPARE( iScore );
 	COMPARE( iMaxCombo );
-	COMPARE( stageAward );
 	COMPARE( fPercentDP );
 	COMPARE( fSurviveSeconds );
 	COMPARE( sModifiers );
@@ -278,7 +276,6 @@ HighScoreImpl::HighScoreImpl()
 	vRescoreJudgeVector.clear();
 	fSurviveSeconds = 0.f;
 	iMaxCombo = 0;
-	stageAward = StageAward_Invalid;
 	sModifiers = "";
 	dateTime.Init();
 	sPlayerGuid = "";
@@ -325,7 +322,6 @@ HighScoreImpl::CreateNode() const
 
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
-	pNode->AppendChild("StageAward", StageAwardToString(stageAward));
 
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
@@ -526,7 +522,6 @@ HighScoreImpl::LoadFromNode(const XNode* pNode)
 	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
 	pNode->GetChildValue("SurviveSeconds",		fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo",			iMaxCombo);
-	pNode->GetChildValue("StageAward", s);		stageAward = StringToStageAward(s);
 	pNode->GetChildValue("Modifiers", s); sModifiers = s;
 	if (fMusicRate == 0.f) {
 		size_t ew = sModifiers.find("xMusic");
@@ -1015,11 +1010,6 @@ HighScore::GetMaxCombo() const
 {
 	return m_Impl->iMaxCombo;
 }
-StageAward
-HighScore::GetStageAward() const
-{
-	return m_Impl->stageAward;
-}
 
 float
 HighScore::GetPercentDP() const
@@ -1237,11 +1227,6 @@ void
 HighScore::SetMaxCombo(unsigned int i)
 {
 	m_Impl->iMaxCombo = i;
-}
-void
-HighScore::SetStageAward(StageAward a)
-{
-	m_Impl->stageAward = a;
 }
 
 void
@@ -2099,7 +2084,6 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetGrade, GetGrade())
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD(ConvertDpToWife, ConvertDpToWife())
-	DEFINE_METHOD(GetStageAward, GetStageAward())
 	DEFINE_METHOD(GetChordCohesion, GetChordCohesion())
 	DEFINE_METHOD(GetEtternaValid, GetEtternaValid())
 	DEFINE_METHOD(HasReplayData, HasReplayData())
@@ -2132,7 +2116,6 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetGrade);
 		ADD_METHOD(GetWifeGrade);
 		ADD_METHOD(GetMaxCombo);
-		ADD_METHOD(GetStageAward);
 		ADD_METHOD(ToggleEtternaValidation);
 		ADD_METHOD(GetEtternaValid);
 		ADD_METHOD(HasReplayData);

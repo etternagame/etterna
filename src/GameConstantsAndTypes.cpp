@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -75,29 +75,6 @@ LuaFunction(PlayModeToLocalizedString,
 			PlayModeToLocalizedString(Enum::Check<PlayMode>(L, 1)));
 LuaXType(PlayMode);
 
-RankingCategory
-AverageMeterToRankingCategory(int iAverageMeter)
-{
-	if (iAverageMeter <= 3)
-		return RANKING_A;
-	else if (iAverageMeter <= 6)
-		return RANKING_B;
-	else if (iAverageMeter <= 9)
-		return RANKING_C;
-	else
-		return RANKING_D;
-}
-
-static const char* RankingCategoryNames[] = {
-	"a",
-	"b",
-	"c",
-	"d",
-};
-XToString(RankingCategory);
-StringToX(RankingCategory);
-LuaXType(RankingCategory);
-
 static const char* PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",
@@ -118,13 +95,7 @@ static const char* HealthStateNames[] = {
 XToString(HealthState);
 LuaXType(HealthState);
 
-static const char* StageResultNames[] = {
-	"Win",
-	"Lose",
-	"Draw",
-};
-XToString(StageResult);
-LuaXType(StageResult);
+
 
 static const char* SortOrderNames[] = {
 	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
@@ -304,12 +275,6 @@ static const char* StageAwardNames[] = {
 	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
 	"90PercentW3",   "100PercentW3",
 };
-XToString(StageAward);
-XToLocalizedString(StageAward);
-StringToX(StageAward);
-LuaFunction(StageAwardToLocalizedString,
-			StageAwardToLocalizedString(Enum::Check<StageAward>(L, 1)));
-LuaXType(StageAward);
 
 void DisplayBpms::Add( float f )
 {

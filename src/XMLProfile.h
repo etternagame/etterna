@@ -41,7 +41,6 @@ class XMLProfile
 	void LoadPlaylistsFromNode(const XNode* pNode);
 	void LoadGeneralDataFromNode(const XNode* pNode);
 	void LoadSongScoresFromNode(const XNode* pNode);
-	void LoadCategoryScoresFromNode(const XNode* pNode);
 	void LoadScreenshotDataFromNode(const XNode* pNode);
 
 	XNode* SaveEttGeneralDataCreateNode(const Profile* profile) const;
@@ -58,7 +57,6 @@ class XMLProfile
 	XNode* SaveGeneralDataCreateNode(const Profile* profile) const;
 	XNode* SaveSongScoresCreateNode(const Profile* profile) const;
 
-	XNode* SaveCategoryScoresCreateNode(const Profile* profile) const;
 	XNode* SaveScreenshotDataCreateNode(const Profile* profile) const;
 
 	XNode* SaveCoinDataCreateNode(const Profile* profile) const;

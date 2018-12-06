@@ -2101,10 +2101,6 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 		FOREACH_HumanPlayer(p) GAMESTATE->m_iPlayerStageTokens[p] = 0;
 	}
 
-	FOREACH_HumanPlayer(pn) STATSMAN->m_CurStageStats.m_player[pn].CalcAwards(
-	  pn,
-	  STATSMAN->m_CurStageStats.m_bGaveUp,
-	  STATSMAN->m_CurStageStats.m_bUsedAutoplay);
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 	if (GamePreferences::m_AutoPlay == PC_HUMAN)
 		GAMESTATE->CommitStageStats();

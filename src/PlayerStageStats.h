@@ -1,4 +1,4 @@
-﻿#ifndef PlayerStageStats_H
+#ifndef PlayerStageStats_H
 #define PlayerStageStats_H
 
 #include "Grade.h"
@@ -211,10 +211,6 @@ class PlayerStageStats
 		return m_fAliveSeconds + m_fLifeRemainingSeconds;
 	}
 
-	// Final results:
-	void CalcAwards(PlayerNumber p, bool bGaveUp, bool bUsedAutoplay);
-	StageAward m_StageAward;
-
 	int m_iPersonalHighScoreIndex;
 	int m_iMachineHighScoreIndex;
 	bool m_bDisqualified;
@@ -222,8 +218,6 @@ class PlayerStageStats
 
 	void UnloadReplayData(); // i don't really trust the deconstructors here,
 							 // also prefer flexibility in this -mina
-
-	RankingCategory m_rc;
 	HighScore m_HighScore;
 
 	// Lua

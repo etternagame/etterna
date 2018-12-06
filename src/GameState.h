@@ -257,7 +257,6 @@ class GameState
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
 	PlayerNumber GetBestPlayer() const;
-	StageResult GetStageResult(PlayerNumber pn) const;
 
 	/** @brief Call this function when it's time to play a new stage. */
 	void ResetStageStatistics();
@@ -288,36 +287,6 @@ class GameState
 	Character* m_pCurCharacters[NUM_PLAYERS];
 
 	int GetNumSidesJoined() const;
-
-	// Ranking Stuff
-	struct RankingFeat
-	{
-		enum
-		{
-			SONG,
-			CATEGORY
-		} Type;
-		Song* pSong;   // valid if Type == SONG
-		Steps* pSteps; // valid if Type == SONG
-		Grade grade;
-		int iScore;
-		float fPercentDP;
-		RString Banner;
-		RString Feat;
-		RString* pStringToFill;
-	};
-
-	void GetRankingFeats(PlayerNumber pn, vector<RankingFeat>& vFeatsOut) const;
-	bool AnyPlayerHasRankingFeats() const;
-	void StoreRankingName(PlayerNumber pn,
-						  RString name);	   // Called by name entry screens
-	vector<RString*> m_vpsNamesThatWereFilled; // filled on StoreRankingName,
-
-	// Award stuff
-	// lowest priority in front, highest priority at the back.
-	deque<StageAward> m_vLastStageAwards[NUM_PLAYERS];
-
-
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */
 	PlayerState* m_pPlayerState[NUM_PLAYERS];
@@ -343,9 +312,6 @@ class GameState
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
-
-	bool m_bDopefish;
-
 	bool m_bIsChartPreviewActive;
 
 	// Discord Rich Presence

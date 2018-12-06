@@ -190,7 +190,6 @@ ScreenEvaluation::Init()
 			ss.m_player[p].m_iScore = random_up_to(900 * 1000 * 1000);
 			ss.m_player[p].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
 			ss.m_player[p].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
-			ss.m_player[p].m_StageAward = (StageAward)(random_up_to(NUM_StageAward));
 
 			FOREACH_ENUM(RadarCategory, rc)
 			{
@@ -463,15 +462,6 @@ ScreenEvaluation::Init()
 			SET_XY(m_sprWinFrame[p]);
 			this->AddChild(m_sprWinFrame[p]);
 
-			m_sprWin[p].Load(
-			  THEME->GetPathG(m_sName, ssprintf("win p%d 1x3", p + 1)));
-			m_sprWin[p].StopAnimating();
-			int iFrame = GAMESTATE->GetStageResult(p);
-			m_sprWin[p].SetState(iFrame);
-			m_sprWin[p].SetName(ssprintf("WinP%d", p + 1));
-			ActorUtil::LoadAllCommands(m_sprWin[p], m_sName);
-			SET_XY(m_sprWin[p]);
-			this->AddChild(&m_sprWin[p]);
 		}
 	}
 

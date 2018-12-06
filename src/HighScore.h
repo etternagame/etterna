@@ -72,7 +72,6 @@ struct HighScore
 	float GetSurviveSeconds() const;
 	float GetSurvivalSeconds() const;
 	unsigned int GetMaxCombo() const;
-	StageAward GetStageAward() const;
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
@@ -120,7 +119,6 @@ struct HighScore
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
-	void SetStageAward( StageAward a );
 	void SetModifiers( const string &s );
 	void SetDateTime( DateTime d );
 	void SetPlayerGuid( const string &s );

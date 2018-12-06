@@ -1115,89 +1115,6 @@ XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 	return pNode;
 }
 
-void
-XMLProfile::LoadCategoryScoresFromNode(const XNode* pCategoryScores)
-{
-	CHECKPOINT_M("Loading the node that contains category scores.");
-
-	ASSERT(pCategoryScores->GetName() == "CategoryScores");
-
-	FOREACH_CONST_Child(pCategoryScores, pStepsType)
-	{
-		if (pStepsType->GetName() != "StepsType")
-			continue;
-
-		RString str;
-		if (!pStepsType->GetAttrValue("Type", str))
-			WARN_AND_CONTINUE;
-		StepsType st = GAMEMAN->StringToStepsType(str);
-		if (st == StepsType_Invalid)
-			WARN_AND_CONTINUE_M(str);
-
-		FOREACH_CONST_Child(pStepsType, pRadarCategory)
-		{
-			if (pRadarCategory->GetName() != "RankingCategory")
-				continue;
-
-			if (!pRadarCategory->GetAttrValue("Type", str))
-				WARN_AND_CONTINUE;
-			RankingCategory rc = StringToRankingCategory(str);
-			if (rc == RankingCategory_Invalid)
-				WARN_AND_CONTINUE_M(str);
-
-			const XNode* pHighScoreListNode =
-			  pRadarCategory->GetChild("HighScoreList");
-			if (pHighScoreListNode == NULL)
-				WARN_AND_CONTINUE;
-
-			HighScoreList& hsl =
-			  loadingProfile->GetCategoryHighScoreList(st, rc);
-			hsl.LoadFromNode(pHighScoreListNode);
-		}
-	}
-}
-
-XNode*
-XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
-{
-	CHECKPOINT_M("Getting the node that saves category scores.");
-
-	ASSERT(profile != NULL);
-
-	XNode* pNode = new XNode("CategoryScores");
-
-	FOREACH_ENUM(StepsType, st)
-	{
-		// skip steps types that have never been played
-		if (profile->GetCategoryNumTimesPlayed(st) == 0)
-			continue;
-
-		XNode* pStepsTypeNode = pNode->AppendChild("StepsType");
-		pStepsTypeNode->AppendAttr("Type",
-								   GAMEMAN->GetStepsTypeInfo(st).szName);
-
-		FOREACH_ENUM(RankingCategory, rc)
-		{
-			// skip steps types/categories that have never been played
-			if (profile->GetCategoryHighScoreList(st, rc).GetNumTimesPlayed() ==
-				0)
-				continue;
-
-			XNode* pRankingCategoryNode =
-			  pStepsTypeNode->AppendChild("RankingCategory");
-			pRankingCategoryNode->AppendAttr("Type",
-											 RankingCategoryToString(rc));
-
-			const HighScoreList& hsl = profile->GetCategoryHighScoreList(
-			  (StepsType)st, (RankingCategory)rc);
-
-			pRankingCategoryNode->AppendChild(hsl.CreateNode());
-		}
-	}
-
-	return pNode;
-}
-
 ProfileLoadResult
 XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 {
@@ -1258,7 +1175,6 @@ XMLProfile::LoadStatsXmlFromNode(const XNode* xml, bool bIgnoreEditable)
 
 	LOAD_NODE(GeneralData);
 	LOAD_NODE(SongScores);
-	LOAD_NODE(CategoryScores);
 	LOAD_NODE(ScreenshotData);
 
 	if (bIgnoreEditable) {
@@ -1318,7 +1234,6 @@ XMLProfile::SaveStatsXmlCreateNode(const Profile* profile) const
 
 	xml->AppendChild(SaveGeneralDataCreateNode(profile));
 	xml->AppendChild(SaveSongScoresCreateNode(profile));
-	xml->AppendChild(SaveCategoryScoresCreateNode(profile));
 	xml->AppendChild(SaveScreenshotDataCreateNode(profile));
 
 	return xml;

@@ -171,13 +171,6 @@ Profile::InitSongScores()
 	m_SongHighScores.clear();
 }
 
-void
-Profile::InitCategoryScores()
-{
-	FOREACH_ENUM(StepsType, st)
-	FOREACH_ENUM(RankingCategory, rc)
-	m_CategoryHighScores[st][rc].Init();
-}
 
 void
 Profile::InitScreenshotData()
@@ -780,52 +773,12 @@ Profile::swap(Profile& other)
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
 	SWAP_STR_MEMBER(m_SongHighScores);
-	for (int st = 0; st < NUM_StepsType; ++st) {
-		SWAP_ARRAY(m_CategoryHighScores[st], NUM_RankingCategory);
-	}
 	SWAP_STR_MEMBER(m_vScreenshots);
 #undef SWAP_STR_MEMBER
 #undef SWAP_GENERAL
 #undef SWAP_ARRAY
 }
 
-// Category high scores
-void
-Profile::AddCategoryHighScore(StepsType st,
-							  RankingCategory rc,
-							  HighScore hs,
-							  int& iIndexOut)
-{
-	m_CategoryHighScores[st][rc].AddHighScore(hs, iIndexOut, false);
-}
-
-const HighScoreList&
-Profile::GetCategoryHighScoreList(StepsType st, RankingCategory rc) const
-{
-	return ((Profile*)this)->m_CategoryHighScores[st][rc];
-}
-
-HighScoreList&
-Profile::GetCategoryHighScoreList(StepsType st, RankingCategory rc)
-{
-	return m_CategoryHighScores[st][rc];
-}
-
-int
-Profile::GetCategoryNumTimesPlayed(StepsType st) const
-{
-	int iNumTimesPlayed = 0;
-	FOREACH_ENUM(RankingCategory, rc)
-	iNumTimesPlayed += m_CategoryHighScores[st][rc].GetNumTimesPlayed();
-	return iNumTimesPlayed;
-}
-
-void
-Profile::IncrementCategoryPlayCount(StepsType st, RankingCategory rc)
-{
-	DateTime now = DateTime::GetNowDate();
-	m_CategoryHighScores[st][rc].IncrementPlayCount(now);
-}
 
 void
 Profile::LoadCustomFunction(const RString& sDir)
@@ -1632,14 +1585,7 @@ class LunaProfile : public Luna<Profile>
 		COMMON_RETURN_SELF;
 	}
 
-	static int GetCategoryHighScoreList(T* p, lua_State* L)
-	{
-		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
-		RankingCategory pRankCat = Enum::Check<RankingCategory>(L, 2);
-		HighScoreList& hsl = p->GetCategoryHighScoreList(pStepsType, pRankCat);
-		hsl.PushSelf(L);
-		return 1;
-	}
+
 
 	static int GetHighScoreListIfExists(T* p, lua_State* L)
 	{
@@ -2082,7 +2028,6 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(GetAllUsedHighScoreNames);
 		ADD_METHOD(GetHighScoreListIfExists);
 		ADD_METHOD(GetHighScoreList);
-		ADD_METHOD(GetCategoryHighScoreList);
 		ADD_METHOD(GetCharacter);
 		ADD_METHOD(SetCharacter);
 		ADD_METHOD(GetTotalNumSongsPlayed);

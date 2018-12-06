@@ -1,4 +1,4 @@
-﻿#ifndef ProfileManager_H
+#ifndef ProfileManager_H
 #define ProfileManager_H
 
 #include "Difficulty.h"
@@ -112,18 +112,6 @@ class ProfileManager
 	void IncrementStepsPlayCount(const Song* pSong,
 								 const Steps* pSteps,
 								 PlayerNumber pn);
-
-	// Category stats
-	void AddCategoryScore(StepsType st,
-						  RankingCategory rc,
-						  PlayerNumber pn,
-						  const HighScore& hs,
-						  int& iPersonalIndexOut,
-						  int& iMachineIndexOut);
-	void IncrementCategoryPlayCount(StepsType st,
-									RankingCategory rc,
-									PlayerNumber pn);
-
 	// Lua
 	void PushSelf(lua_State* L);
 

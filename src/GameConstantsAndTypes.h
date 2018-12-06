@@ -1,4 +1,4 @@
-﻿/* GameConstantsAndTypes - Things used in many places that don't change often.
+/* GameConstantsAndTypes - Things used in many places that don't change often.
  */
 
 #ifndef GAME_CONSTANTS_AND_TYPES_H
@@ -373,32 +373,12 @@ const RString&
 ProfileSlotToString(ProfileSlot ps);
 LuaDeclareType(ProfileSlot);
 
-/** @brief The different ranking categories based on difficulty meter average.
- */
-enum RankingCategory
-{
-	RANKING_A, /**< 1-3 meter per song avg. */
-	RANKING_B, /**< 4-6 meter per song avg. */
-	RANKING_C, /**< 7-9 meter per song avg. */
-	RANKING_D, /**< 10+ meter per song avg, not counting extra stages. */
-	NUM_RankingCategory, /**< The number of ranking categories. */
-	RankingCategory_Invalid
-};
-const RString&
-RankingCategoryToString(RankingCategory rc);
-RankingCategory
-StringToRankingCategory(const RString& rc);
-LuaDeclareType(RankingCategory);
-
 extern const vector<RString> RANKING_TO_FILL_IN_MARKER;
 inline bool
 IsRankingToFillIn(const RString& sName)
 {
 	return !sName.empty() && sName[0] == '#';
 }
-
-RankingCategory
-AverageMeterToRankingCategory(int iAverageMeter);
 
 // Group stuff
 extern const RString GROUP_ALL;
@@ -428,46 +408,6 @@ enum HealthState
 	HealthState_Invalid
 };
 LuaDeclareType(HealthState);
-
-/** @brief The different stage results during battle. */
-enum StageResult
-{
-	RESULT_WIN,  /**< The player has won the battle. */
-	RESULT_LOSE, /**< The player has lost the battle. */
-	RESULT_DRAW, /**< The player has tied with the competitor. */
-	NUM_StageResult,
-	StageResult_Invalid
-};
-LuaDeclareType(StageResult);
-
-/** @brief The various stage awards that can be given based on excellent play.
- */
-enum StageAward
-{
-	StageAward_FullComboW3, /**< A full great combo (or equivalent) was earned.
-							 */
-	StageAward_SingleDigitW3, /**< A single digit great combo (or equivalent)
-								 was earned. */
-	StageAward_OneW3,		  /**< Only one great (or equivalent) was earned. */
-	StageAward_FullComboW2,   /**< A full excellent combo (or equivalent) was
-								 earned. */
-	StageAward_SingleDigitW2, /**< A single digit excellent combo (or
-								 equivalent) was earned. */
-	StageAward_OneW2, /**< Only one excellent (or equivalent) was earned. */
-	StageAward_FullComboW1, /**< All fantastics (or equivalent) were earned. */
-	StageAward_80PercentW3,
-	StageAward_90PercentW3,
-	StageAward_100PercentW3,
-	NUM_StageAward,
-	StageAward_Invalid,
-};
-const RString&
-StageAwardToString(StageAward pma);
-const RString&
-StageAwardToLocalizedString(StageAward pma);
-StageAward
-StringToStageAward(const RString& pma);
-LuaDeclareType(StageAward);
 
 /** @brief The list of BPMs to display */
 struct DisplayBpms

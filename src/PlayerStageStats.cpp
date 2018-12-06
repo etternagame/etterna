@@ -91,12 +91,9 @@ PlayerStageStats::InternalInit()
 
 	m_fFirstSecond = FLT_MAX;
 	m_fLastSecond = 0;
-
-	m_StageAward = StageAward_Invalid;
 	m_iPersonalHighScoreIndex = -1;
 	m_iMachineHighScoreIndex = -1;
 	m_bDisqualified = false;
-	m_rc = RankingCategory_Invalid;
 	m_HighScore = HighScore();
 }
 
@@ -854,57 +851,6 @@ PlayerStageStats::GetPercentageOfTaps(TapNoteScore tns) const
 	return m_iTapNoteScores[tns] / static_cast<float>(iTotalTaps);
 }
 
-void
-PlayerStageStats::CalcAwards(PlayerNumber p, bool bGaveUp, bool bUsedAutoplay)
-{
-	//LOG->Trace( "hand out awards" );
-	if( bGaveUp || bUsedAutoplay )
-		return;
-
-	deque<StageAward>& vPdas = GAMESTATE->m_vLastStageAwards[p];
-
-	// LOG->Trace( "per difficulty awards" );
-
-	// per-difficulty awards
-	// don't give per-difficutly awards if using easy mods
-	if (!IsDisqualified()) {
-		if (FullComboOfScore(TNS_W3))
-			vPdas.push_back(StageAward_FullComboW3);
-		if (SingleDigitsOfScore(TNS_W3))
-			vPdas.push_back(StageAward_SingleDigitW3);
-		if (FullComboOfScore(TNS_W2))
-			vPdas.push_back(StageAward_FullComboW2);
-		if (SingleDigitsOfScore(TNS_W2))
-			vPdas.push_back(StageAward_SingleDigitW2);
-		if (FullComboOfScore(TNS_W1))
-			vPdas.push_back(StageAward_FullComboW1);
-
-		if (OneOfScore(TNS_W3))
-			vPdas.push_back(StageAward_OneW3);
-		if (OneOfScore(TNS_W2))
-			vPdas.push_back(StageAward_OneW2);
-
-		float fPercentW3s = GetPercentageOfTaps(TNS_W3);
-		if (fPercentW3s >= 0.8f)
-			vPdas.push_back(StageAward_80PercentW3);
-		if (fPercentW3s >= 0.9f)
-			vPdas.push_back(StageAward_90PercentW3);
-		if (fPercentW3s >= 1.f)
-			vPdas.push_back(StageAward_100PercentW3);
-	}
-
-	// Max one PDA per stage
-	if (!vPdas.empty())
-		vPdas.erase(vPdas.begin(), vPdas.end() - 1);
-
-	if (!vPdas.empty())
-		m_StageAward = vPdas.back();
-	else
-		m_StageAward = StageAward_Invalid;
-
-	//LOG->Trace( "done with per difficulty awards" );
-}
-
 bool
 PlayerStageStats::IsDisqualified() const
 {
@@ -966,7 +912,6 @@ public:
 	DEFINE_METHOD( GetLessonScoreNeeded,		GetLessonScoreNeeded() )
 	DEFINE_METHOD( GetPersonalHighScoreIndex,	m_iPersonalHighScoreIndex )
 	DEFINE_METHOD( GetMachineHighScoreIndex,	m_iMachineHighScoreIndex )
-	DEFINE_METHOD( GetStageAward,				m_StageAward )
 	DEFINE_METHOD( IsDisqualified,				IsDisqualified() )
 	DEFINE_METHOD( GetAliveSeconds,				m_fAliveSeconds )
 	DEFINE_METHOD( GetTotalTaps,				GetTotalTaps() )
@@ -1198,7 +1143,6 @@ public:
 		ADD_METHOD( GetLessonScoreNeeded );
 		ADD_METHOD( GetPersonalHighScoreIndex );
 		ADD_METHOD( GetMachineHighScoreIndex );
-		ADD_METHOD( GetStageAward );
 		ADD_METHOD( IsDisqualified );
 		ADD_METHOD( GetPlayedSteps );
 		ADD_METHOD( GetPossibleSteps );
