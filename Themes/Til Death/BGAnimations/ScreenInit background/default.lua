@@ -119,6 +119,9 @@ t[#t + 1] =
 	InitCommand = function(self)
 		self:Center()
 	end,
+	LeftClickMessageCommand = function(self)
+		SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
+	end,
 	LoadActor("woop") ..
 		{
 			OnCommand = function(self)
