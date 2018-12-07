@@ -1,2 +1,2 @@
 --die
-return {}
+return Def.ActorFrame { }

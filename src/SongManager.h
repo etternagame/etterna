@@ -67,9 +67,9 @@ class SongManager
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
 	// mina
-	Steps* GetStepsByChartkey(RString ck);
-	Song* GetSongByChartkey(RString ck);
-	bool IsChartLoaded(RString ck)
+	Steps* GetStepsByChartkey(const string& ck);
+	Song* GetSongByChartkey(const string& ck);
+	bool IsChartLoaded(const string& ck)
 	{
 		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
 	}

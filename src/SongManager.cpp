@@ -618,7 +618,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 {
 	const vector<Steps*> steps = new_song->GetAllSteps();
 	for (size_t i = 0; i < steps.size(); ++i) {
-		const RString& ck = steps[i]->GetChartKey();
+		const string& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
 			StepsByKey.emplace(ck, steps[i]);
 			if (!SongsByKey.count(ck)) {
@@ -633,7 +633,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
 Steps*
-SongManager::GetStepsByChartkey(RString ck)
+SongManager::GetStepsByChartkey(const string& ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
@@ -641,7 +641,7 @@ SongManager::GetStepsByChartkey(RString ck)
 }
 
 Song*
-SongManager::GetSongByChartkey(RString ck)
+SongManager::GetSongByChartkey(const string& ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
