@@ -339,7 +339,8 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	auto& scores = AllProfileScores[profileID];
+	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+
 	if (ld != nullptr) {
 		ld->SetProgress(0);
 		ld_timer.Touch();
@@ -714,6 +715,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
+		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() && SONGMAN->IsChartLoaded(ck))
+			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }
 
