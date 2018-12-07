@@ -1066,8 +1066,13 @@ ColorBitmapText::SetText(const RString& _sText,
 				cChange.l = iGlyphsSoFar;
 				if (iGlyphsSoFar == 0)
 					m_vColors[0] = cChange;
-				else
-					m_vColors.push_back(cChange);
+				else {
+					auto& back = m_vColors.back();
+					if (back.l == cChange.l)
+						back.c = cChange.c;
+					else
+						m_vColors.push_back(cChange);
+				}
 				i += 8;
 				continue;
 			}
