@@ -5,6 +5,7 @@
 
 static const char* PlayerNumberNames[] = {
 	"P1",
+	"P2"
 };
 XToString(PlayerNumber);
 XToLocalizedString(PlayerNumber);
