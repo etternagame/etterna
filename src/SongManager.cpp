@@ -423,7 +423,6 @@ Chart::LoadFromNode(const XNode* node)
 
 	// check if this chart is loaded and overwrite any last-seen values
 	// with updated ones
-	key = SONGMAN->ReconcileBustedKeys(key);
 	FromKey(key);
 }
 
@@ -599,17 +598,6 @@ SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 	auto stepses = reloadedSong->GetAllSteps();
 	for (auto steps : stepses)
 		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
-}
-
-string
-SongManager::ReconcileBustedKeys(const string& ck)
-{
-	if (StepsByKey.count(ck))
-		return ck;
-
-	if (keyconversionmap.count(ck))
-		return keyconversionmap[ck];
-	return ck;
 }
 
 // Only store 1 steps/song pointer per key -Mina

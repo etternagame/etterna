@@ -226,9 +226,7 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the favorites node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->FavoritedCharts.emplace(
-	  SONGMAN->ReconcileBustedKeys(ck->GetName()));
-
+	FOREACH_CONST_Child(pNode, ck) loadingProfile->FavoritedCharts.emplace(ck->GetName());
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
 	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
 									   loadingProfile->allplaylists);
@@ -239,9 +237,7 @@ XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the permamirror node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->PermaMirrorCharts.emplace(
-	  SONGMAN->ReconcileBustedKeys(ck->GetName()));
-
+	FOREACH_CONST_Child(pNode, ck) loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
 	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
@@ -269,7 +265,6 @@ XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 	FOREACH_CONST_Child(pNode, chgoals)
 	{
 		chgoals->GetAttrValue("Key", ck);
-		ck = SONGMAN->ReconcileBustedKeys(ck);
 		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
 
 		// this should load using the chart system but ensure keys are set

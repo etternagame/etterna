@@ -150,10 +150,8 @@ class SongManager
 
 	string activeplaylist = "";
 	string playlistcourse = "";
-	string ReconcileBustedKeys(const string& ck);
 	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 										   vector<string> oldChartkeys);
-	map<string, string> keyconversionmap;
 	void MakeSongGroupsFromPlaylists(
 	  map<string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck,

@@ -756,8 +756,7 @@ ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
 		// ASSERT(p->GetName() == "Chart");
 		RString tmp;
 		p->GetAttrValue("Key", tmp);
-		string doot = SONGMAN->ReconcileBustedKeys(tmp);
-		const string ck = doot;
+		const string ck = tmp;
 		pscores[profileID][ck].LoadFromNode(p, ck, profileID);
 	}
 }
