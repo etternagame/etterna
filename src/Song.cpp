@@ -578,23 +578,6 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	FixupPath(m_sLyricsFile, m_sSongDir);
 	FixupPath(m_sBackgroundFile, m_sSongDir);
 	FixupPath(m_sCDTitleFile, m_sSongDir);
-
-	m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-	m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
-	if (m_PreviewPath.empty())
-		m_PreviewPath = m_sMusicPath;
-	FOREACH_ENUM(InstrumentTrack, it)
-	m_sInstrumentTrackPath[it] =
-	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
-	m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
-	m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
-	m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
-	m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
-	m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
-	m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
-	m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir); 
-
 	// CHECKPOINT_M("Looking for images...");
 
 	m_SongTiming.TidyUpData(false);
@@ -629,26 +612,13 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			m_sArtist = "Unknown artist";
 		}
 		TranslateTitles();
-		string scoot = m_sMainTitle;
-		string mcgoot = m_sSubTitle;
 
-		if (!mcgoot.empty())
-			scoot += " " + mcgoot;
-		displayfulltitle = scoot;
-
-		string doot = m_sMainTitleTranslit;
-		string loot = m_sSubTitleTranslit;
-
-		if (!loot.empty())
-			doot += " " + loot;
-		translitfulltitle = doot;
-
-		// Set the has flags before tidying so that tidying can check them
-		// instead of using the has functions that hit the disk. -Kyz These will
-		// be written to cache, for Song::LoadFromSongDir to use later.
-		m_bHasMusic = HasMusic();
-		m_bHasBanner = HasBanner();
-		m_bHasBackground = HasBackground();
+		m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
+		m_bHasMusic = IsAFile(GetMusicPath());
+		m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+		m_bHasBanner = IsAFile(GetBannerPath());
+		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+		m_bHasBackground = IsAFile(GetBackgroundPath());
 		for (std::string Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
@@ -714,6 +684,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 						   music_list[0].c_str());
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
+				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
 				if (music_list.size() > 1 &&
 					!m_sMusicFile.Left(5).CompareNoCase("intro")) {
 					m_sMusicFile = music_list[1];
@@ -1035,6 +1006,37 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 					0, movie_list[0], "", 1.f, SBE_StretchNoLoop));
 			}
 		}
+
+		m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
+		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+		if (m_PreviewPath.empty())
+			m_PreviewPath = m_sMusicPath;
+		FOREACH_ENUM(InstrumentTrack, it)
+		m_sInstrumentTrackPath[it] =
+		  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
+		m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+		m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
+		m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
+		m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
+		m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
+		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+		m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
+		m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir); 
+
+		string scoot = m_sMainTitle;
+		string mcgoot = m_sSubTitle;
+
+		if (!mcgoot.empty())
+			scoot += " " + mcgoot;
+		displayfulltitle = scoot;
+
+		string doot = m_sMainTitleTranslit;
+		string loot = m_sSubTitleTranslit;
+
+		if (!loot.empty())
+			doot += " " + loot;
+		translitfulltitle = doot;
+
 		// Don't allow multiple Steps of the same StepsType and Difficulty
 		// (except for edits). We should be able to use difficulty names as
 		// unique identifiers for steps. */
