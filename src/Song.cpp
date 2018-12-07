@@ -1007,36 +1007,6 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			}
 		}
 
-		m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
-		if (m_PreviewPath.empty())
-			m_PreviewPath = m_sMusicPath;
-		FOREACH_ENUM(InstrumentTrack, it)
-		m_sInstrumentTrackPath[it] =
-		  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
-		m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-		m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
-		m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
-		m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
-		m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
-		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
-		m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
-		m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir); 
-
-		string scoot = m_sMainTitle;
-		string mcgoot = m_sSubTitle;
-
-		if (!mcgoot.empty())
-			scoot += " " + mcgoot;
-		displayfulltitle = scoot;
-
-		string doot = m_sMainTitleTranslit;
-		string loot = m_sSubTitleTranslit;
-
-		if (!loot.empty())
-			doot += " " + loot;
-		translitfulltitle = doot;
-
 		// Don't allow multiple Steps of the same StepsType and Difficulty
 		// (except for edits). We should be able to use difficulty names as
 		// unique identifiers for steps. */
@@ -1056,6 +1026,36 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 #undef CLEAR_NOT_HAS
 	}
 
+	// need generate these independent of caching cuz im dum
+	m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
+	m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+	if (m_PreviewPath.empty())
+		m_PreviewPath = m_sMusicPath;
+	FOREACH_ENUM(InstrumentTrack, it)
+	m_sInstrumentTrackPath[it] =
+	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
+	m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+	m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
+	m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir); 
+	m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
+	m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
+	m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+	m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
+	m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
+
+	string scoot = m_sMainTitle;
+	string mcgoot = m_sSubTitle;
+
+	if (!mcgoot.empty())
+		scoot += " " + mcgoot;
+	displayfulltitle = scoot;
+
+	string doot = m_sMainTitleTranslit;
+	string loot = m_sSubTitleTranslit;
+
+	if (!loot.empty())
+		doot += " " + loot;
+	translitfulltitle = doot;
 	/* Generate these before we autogen notes, so the new notes can inherit
 	 * their source's values. */
 	ReCalculateRadarValuesAndLastSecond(from_cache, true);
