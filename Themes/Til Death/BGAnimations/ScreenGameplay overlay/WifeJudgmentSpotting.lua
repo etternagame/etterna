@@ -23,6 +23,9 @@ local jdgT = {
 
 local dvCur
 local jdgCur  -- Note: only for judgments with OFFSETS, might reorganize a bit later
+local tDiff
+local wifey
+local judgect
 local positive = getMainColor("positive")
 local highlight = getMainColor("highlight")
 local negative = getMainColor("negative")
@@ -200,10 +203,13 @@ local t =
 		end
 	end,
 	JudgmentMessageCommand = function(self, msg)
+		tDiff = msg.WifeDifferential
+		wifey = Floor(msg.WifePercent * 100) / 100
+		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
 			jdgCur = msg.Judgment
-			Broadcast(MESSAGEMAN, "SpottedOffset")
+			queuecommand(self, "SpottedOffset")
 		end
 	end
 }
@@ -267,8 +273,7 @@ if targetTrackerMode == 0 then
 				end
 				self:settextf("")
 			end,
-			JudgmentMessageCommand = function(self, msg)
-				local tDiff = msg.WifeDifferential
+			SpottedOffsetCommand = function(self)
 				if tDiff >= 0 then
 					diffuse(self, positive)
 				else
@@ -291,7 +296,6 @@ else
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
-				local tDiff = msg.WifePBDifferential
 				if tDiff then
 					local pbtarget = msg.WifePBGoal
 					if tDiff >= 0 then
@@ -301,7 +305,6 @@ else
 					end
 					self:settextf("%5.2f (%5.2f%%)", tDiff, pbtarget * 100)
 				else
-					tDiff = msg.WifeDifferential
 					if tDiff >= 0 then
 						diffuse(self, positive)
 					else
@@ -355,8 +358,8 @@ local cp =
 			end
 			self:settextf("%05.2f%%", 0)
 		end,
-		JudgmentMessageCommand = function(self, msg)
-			self:settextf("%05.2f%%", Floor(msg.WifePercent * 100) / 100)
+		SpottedOffsetCommand = function(self)
+			self:settextf("%05.2f%%", wifey)
 		end
 	},
 	MovableBorder(100, 13, 1, 0, 0)
@@ -398,9 +401,9 @@ local j =
 			jdgCounts[jdgT[i]] = self:GetChild(jdgT[i])
 		end
 	end,
-	JudgmentMessageCommand = function(self, msg)
-		if jdgCounts[msg.Judgment] then
-			settext(jdgCounts[msg.Judgment], msg.Val)
+	SpottedOffsetCommand = function(self)
+		if jdgCur then
+			settext(jdgCounts[jdgCur], jdgct)
 		end
 	end,
 	Def.Quad {	-- bg
@@ -505,35 +508,16 @@ local e =
 			lastAvg = 0
 		end
 	end,
-	SpottedOffsetMessageCommand = function(self)
+	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
 			currentbar = ((currentbar) % barcount) + 1
-			playcommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
+			queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
 		end
 	end,
 	DootCommand = function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
 	end,
-	Def.Quad {
-		Name = "WeightedBar",
-		InitCommand = function(self)
-			if enabledErrorBar == 2 then
-				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(1):diffuse(
-					getMainColor("enabled")
-				)
-			else
-				self:visible(false)
-			end
-		end,
-		SpottedOffsetMessageCommand = function(self)
-			if enabledErrorBar == 2 then
-				avg = alpha * dvCur + (1 - alpha) * lastAvg
-				lastAvg = avg
-				self:x(MovableValues.ErrorBarX + avg * wscale)
-			end
-		end
-	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
@@ -574,6 +558,27 @@ if enabledErrorBar == 1 then
 	for i = 1, barcount do
 		e[#e + 1] = smeltErrorBar(i)
 	end
+end
+
+
+if enabledErrorBar == 2 then
+	e[#e + 1] = Def.Quad {
+		Name = "WeightedBar",
+		InitCommand = function(self)
+			if enabledErrorBar == 2 then
+				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(1):diffuse(
+					getMainColor("enabled")
+				)
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetCommand = function(self)
+			avg = alpha * dvCur + (1 - alpha) * lastAvg
+			lastAvg = avg
+			self:x(MovableValues.ErrorBarX + avg * wscale)
+		end
+	}
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
