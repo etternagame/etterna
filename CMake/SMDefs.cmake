@@ -1,6 +1,6 @@
 # Set up version numbers according to the new scheme.
 set(SM_VERSION_MAJOR 0)
-set(SM_VERSION_MINOR 64)
+set(SM_VERSION_MINOR 65)
 set(SM_VERSION_PATCH 0)
 set(SM_VERSION_TRADITIONAL "${SM_VERSION_MAJOR}.${SM_VERSION_MINOR}.${SM_VERSION_PATCH}")
 
