@@ -25,6 +25,8 @@ RageSurface_stb_Load(const RString& sPath,
 	auto* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
 	if (bHeaderOnly) {
 		ret = CreateSurfaceFrom(x, y, 32, 0, 0, 0, 0, nullptr, x * 4);
+		stbi_image_free(doot);
+		return RageSurfaceUtils::OPEN_OK;
 	} else {
 		ret =
 		  CreateSurfaceFrom(x,
