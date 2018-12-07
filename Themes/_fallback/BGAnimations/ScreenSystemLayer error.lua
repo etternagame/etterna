@@ -1,1 +1,2 @@
 --die
+return {}
