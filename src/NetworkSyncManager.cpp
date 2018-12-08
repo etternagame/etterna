@@ -1196,10 +1196,6 @@ ETTProtocol::Send(const char* msg)
 {
 	if (ws != nullptr)
 		ws->send(msg);
-	if (logPackets) {
-		LOG->Trace("Outgoing ETTP:");
-		LOG->Trace(msg);
-	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
