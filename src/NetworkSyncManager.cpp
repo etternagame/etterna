@@ -507,10 +507,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-			if (logPackets) {
-				LOG->Trace("Incoming ETTP:");
-				LOG->Trace(json.dump(4).c_str());
-			}
 		} catch (exception e) {
 			LOG->Trace(
 			  "Error while processing ettprotocol json: %s (message: %s)",
@@ -651,7 +647,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh->poll();
 	if (this->ws == nullptr) {
-		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
+		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
