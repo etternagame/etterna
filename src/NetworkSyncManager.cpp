@@ -1202,12 +1202,7 @@ ETTProtocol::Send(const char* msg)
 		ws->send(msg);
 	if (logPackets) {
 		LOG->Trace("Outgoing ETTP:");
-		try {
-			auto j = nlohmann::json::parse(msg);
-			LOG->Trace(j.dump(4).c_str());
-		} catch (exception e) {
-			LOG->Trace(msg);
-		}
+		LOG->Trace(msg);
 	}
 }
 void
