@@ -52,6 +52,10 @@ static LocalizedString PERMANENTLY_DELETE("ScreenSelectMusic",
 void
 ScreenNetSelectMusic::Init()
 {
+	if (NSMAN->song != nullptr)
+		GAMESTATE->m_pCurSong.Set(NSMAN->song);
+	if (NSMAN->steps != nullptr)
+		GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
 	ScreenSelectMusic::Init();
 	GAMESTATE->m_bPlayingMulti = true;
 	// Load SFX and music
