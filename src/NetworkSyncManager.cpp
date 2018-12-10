@@ -1372,54 +1372,33 @@ NetworkSyncManager::SelectUserSong()
 void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	if (ws == nullptr || song == nullptr)
+	auto curSteps =  GAMESTATE->m_pCurSteps[PLAYER_1];
+	if (ws == nullptr || song == nullptr ||
+		curSteps == nullptr ||
+		GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr))
 		return;
+	json j;
 	if (song == n->song) {
-		if (GAMESTATE->m_pCurSong == nullptr ||
-			GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr ||
-			GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
-			return;
-		json startChart;
-		startChart["type"] = ettClientMessageMap[ettpc_startchart];
-		auto& payload = startChart["payload"];
-		payload["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
-		payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
-		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
-		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		startChart["id"] = msgId++;
-		Send(startChart);
+		j["type"] = ettClientMessageMap[ettpc_startchart];
 	} else {
-		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
-			return;
-		json selectChart;
-		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
-		auto& payload = selectChart["payload"];
-		payload["title"] = n->m_sMainTitle.c_str();
-		payload["subtitle"] = n->m_sSubTitle.c_str();
-		payload["artist"] = n->m_sArtist.c_str();
-		payload["filehash"] = song->GetFileHash().c_str();
-		payload["chartkey"] =
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey().c_str();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		selectChart["id"] = msgId++;
-		Send(selectChart);
+		j["type"] = ettClientMessageMap[ettpc_selectchart];
 	}
+	auto& payload = j["payload"];
+	payload["title"] = song->m_sMainTitle;
+	payload["subtitle"] = song->m_sSubTitle;
+	payload["artist"] = song->m_sArtist;
+	payload["filehash"] = song->GetFileHash().c_str();
+	payload["pack"] = song->GetGroupName();
+	payload["chartkey"] = curSteps->GetChartKey().c_str();
+	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
+	payload["meter"] = curSteps->GetMeter();
+	payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+		->m_PlayerOptions.GetCurrent()
+		.GetString();
+	payload["rate"] = static_cast<int>(
+		(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	j["id"] = msgId++;
+	Send(j);
 }
 
 void
