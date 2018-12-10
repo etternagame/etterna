@@ -88,13 +88,17 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 		} else if (isContent) {
 			if ((currentByte == '[' && lastByte == '\n') ||
 				i == (int)fileContents.length() - 1) {
-				contentsOut.back().emplace_back(content);
+				if (!content.empty()) // we don't want empty values on our
+									  // content vectors
+					contentsOut.back().emplace_back(content);
 				content = "";
 				isContent = false;
 				tag = "";
 				isTag = true;
 			} else if (currentByte == '\n') {
-				contentsOut.back().emplace_back(content);
+				if (!content.empty()) // we don't want empty values on our
+									  // content vectors
+					contentsOut.back().emplace_back(content);
 				content = "";
 			} else {
 				content = content + currentByte;
@@ -198,7 +202,7 @@ OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
 						 map<string, map<string, string>> parsedData)
 {
-	if (stoi(parsedData["General"]["Mode"]) != 3) // if the mode isn't mania
+	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
 		return false;
 	}
