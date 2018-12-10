@@ -1898,7 +1898,7 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-		DLMAN->UpdateOnlineScoreReplayData();
+		//DLMAN->UpdateOnlineScoreReplayData();
 	}
 	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
 		DLMAN->RequestChartLeaderBoard(

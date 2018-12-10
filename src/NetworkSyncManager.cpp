@@ -506,10 +506,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-			if (logPackets) {
-				LOG->Trace("Incoming ETTP:");
-				LOG->Trace(json.dump(4).c_str());
-			}
 		} catch (exception e) {
 			LOG->Trace(
 			  "Error while processing ettprotocol json: %s (message: %s)",
@@ -650,7 +646,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh->poll();
 	if (this->ws == nullptr) {
-		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
+		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -1198,15 +1194,6 @@ ETTProtocol::Send(const char* msg)
 {
 	if (ws != nullptr)
 		ws->send(msg);
-	if (logPackets) {
-		LOG->Trace("Outgoing ETTP:");
-		try {
-			auto j = nlohmann::json::parse(msg);
-			LOG->Trace(j.dump(4).c_str());
-		} catch (exception e) {
-			LOG->Trace(msg);
-		}
-	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
