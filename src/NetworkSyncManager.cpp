@@ -222,7 +222,6 @@ AutoScreenMessage(ETTP_IncomingChat);
 AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
-AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
@@ -776,7 +775,6 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					result.playerOptions = payload->value("options", "");
 					n->m_EvalPlayerData.emplace_back(result);
 					n->m_ActivePlayers = n->m_EvalPlayerData.size();
-					SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
 					MESSAGEMAN->Broadcast("NewMultiScore");
 					break;
 				}
