@@ -693,7 +693,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					if (ws != nullptr) {
 						json hello;
 						hello["type"] = ettClientMessageMap[ettpc_hello];
-						hello["payload"]["version"] = ETTPCVERSION;
+						auto& payload = hello["payload"];
+						payload["version"] = ETTPCVERSION;
+						payload["client"] = GAMESTATE->GetEtternaVersion();
+						payload["packs"] = json::array();
+						auto& packs = GetSongGroupNames();
+						for(auto& pack : packs)
+							payload["packs"].push_back(pack);
 						Send(hello);
 					}
 					break;
