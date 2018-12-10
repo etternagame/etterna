@@ -42,7 +42,7 @@ enum DisplayScoreboard
 
 AutoScreenMessage(SM_DoneConnecting);
 
-Preference<RString> g_sLastServer("LastConnectedServer", "");
+Preference<RString> g_sLastServer("LastConnectedServer", "multi.etternaonline.com");
 
 REGISTER_SCREEN_CLASS(ScreenNetworkOptions);
 
