@@ -697,9 +697,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						payload["version"] = ETTPCVERSION;
 						payload["client"] = GAMESTATE->GetEtternaVersion();
 						payload["packs"] = json::array();
-						auto& packs = GetSongGroupNames();
+						auto& packs = SONGMAN->GetSongGroupNames();
 						for(auto& pack : packs)
-							payload["packs"].push_back(pack);
+							payload["packs"].push_back(pack.c_str());
 						Send(hello);
 					}
 					break;
