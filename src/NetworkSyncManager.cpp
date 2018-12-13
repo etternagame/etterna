@@ -1388,7 +1388,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 	payload["subtitle"] = song->m_sSubTitle;
 	payload["artist"] = song->m_sArtist;
 	payload["filehash"] = song->GetFileHash().c_str();
-	payload["pack"] = song->GetGroupName();
+	payload["pack"] = song->m_sGroupName.c_str();
 	payload["chartkey"] = curSteps->GetChartKey().c_str();
 	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
 	payload["meter"] = curSteps->GetMeter();
