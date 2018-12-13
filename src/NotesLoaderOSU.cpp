@@ -135,7 +135,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
 	vector<pair<int, float>> tp;
 
-	for (auto it = std::next(parsedData["TimingPoints"].begin());
+	for (auto it = parsedData["TimingPoints"].begin();
 		 it != parsedData["TimingPoints"].end();
 		 ++it) {
 		auto line = it->first;
