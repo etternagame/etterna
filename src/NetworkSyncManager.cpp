@@ -1375,7 +1375,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 	auto curSteps =  GAMESTATE->m_pCurSteps[PLAYER_1];
 	if (ws == nullptr || song == nullptr ||
 		curSteps == nullptr ||
-		GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr))
+		GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
 		return;
 	json j;
 	if (song == n->song) {
