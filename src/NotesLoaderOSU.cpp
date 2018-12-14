@@ -276,10 +276,11 @@ OsuLoader::LoadNoteDataFromParsedData(
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
 
-	auto it = parsedData["HitObjects"].begin();
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
-	while (++it != parsedData["HitObjects"].end()) {
+	for (auto it = parsedData["HitObjects"].begin();
+		 it != parsedData["HitObjects"].end();
+		 ++it) {
 		auto line = it->first;
 		auto values = split(line, ",");
 		int type = stoi(values[3]);
