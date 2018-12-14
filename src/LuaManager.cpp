@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Command.h"
 #include "LuaManager.h"
 #include "LuaReference.h"

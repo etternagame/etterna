@@ -23,10 +23,7 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	void TweenOffScreen() override;
   private:
 	int m_iActivePlayers;
-
 	PlayerNumber m_pActivePlayer;
-
-	bool m_bHasStats;
 };
 
 /*

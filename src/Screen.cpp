@@ -8,6 +8,7 @@
 #include "ScreenManager.h"
 #include "RageInput.h"
 #include "ThemeManager.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")
@@ -43,6 +44,7 @@ Screen::Init()
 	HANDLE_BACK_BUTTON.Load(m_sName, "HandleBackButton");
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
+	HOOKS->sShowCursor(true);
 
 	m_Codes.Load(m_sName);
 

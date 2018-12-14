@@ -30,10 +30,6 @@ For those that do not wish to compile the game on their own and use a binary rig
 - macOS users need to have macOS 10.6.8 or higher to run Etterna.
 - Linux users should receive all they need from the package manager of their choice.
 
-### From Source
-
-https://etternagame.github.io/wiki/Building-Etterna.html
-
 ## Resources
 
 - [Website](https://etternaonline.com/)
