@@ -213,7 +213,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
-AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
 
 AutoScreenMessage(ETTP_Disconnect);
@@ -264,6 +263,12 @@ NetworkSyncManager::OnMusicSelect()
 	if (curProtocol != nullptr)
 		curProtocol->OnMusicSelect();
 }
+void
+ETTProtocol::OnMusicSelect()
+{
+	state = 0;
+}
+
 void
 NetworkSyncManager::OffMusicSelect()
 {
@@ -959,7 +964,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							NSMAN->lobbyuserlist.erase(user.get<string>());
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
@@ -1005,7 +1010,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 			}
 		} catch (exception e) {

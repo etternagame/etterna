@@ -548,6 +548,7 @@ else() # Unix / Linux
 endif()
 
 target_link_libraries("${SM_EXE_NAME}" ${SMDATA_LINK_LIB})
+target_link_libraries("${SM_EXE_NAME}" fftw3f)
 
 list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -555,6 +556,7 @@ list(APPEND SM_INCLUDE_DIRS
 )
 
 list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/LuaJIT-2.1.0-beta3/src")
+list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/fftw-3.3.8/api")
 
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS

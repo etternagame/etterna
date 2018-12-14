@@ -566,7 +566,7 @@ class LunaScreen : public Luna<Screen>
 				RString Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
+				  L, Error, 0, 0, true); // 0 args, 0 results
 			}
 			LUA->Release(L);
 		};

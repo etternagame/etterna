@@ -37,7 +37,6 @@ AutoScreenMessage(SM_NoSongs);
 AutoScreenMessage(SM_SetWheelSong);
 AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
-AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_BackFromPlayerOptions);
 AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(ETTP_SelectChart);
@@ -123,7 +122,6 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 			  NSMAN->rate / 1000.f;
 			MESSAGEMAN->Broadcast("RateChanged");
 			MESSAGEMAN->Broadcast("CurrentRateChanged");
-
 		}
 		m_MusicWheel.Select();
 		m_MusicWheel.Move(-1);
@@ -168,8 +166,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
 		}
-	} else if (SM == SM_UsersUpdate) {
-		MESSAGEMAN->Broadcast("UsersUpdate");
 	} else if (SM == SM_FriendsUpdate) {
 		MESSAGEMAN->Broadcast("FriendsUpdate");
 	} else if (SM == SM_GoToPrevScreen) {
@@ -186,8 +182,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		SOUND->StopMusic();
 		TweenOffScreen();
 		Cancel(SM_GoToDisconnectScreen);
-	} else if (SM == SM_UsersUpdate) {
-		m_MusicWheel.Move(0);
 	} else if (SM == SM_NoSongs) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NoSongsScreen"));
 	} else if (SM == SM_RefreshWheelLocation) {

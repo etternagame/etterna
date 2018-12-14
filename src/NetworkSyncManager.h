@@ -269,6 +269,7 @@ class ETTProtocol : public NetProtocol
 	void LeaveRoom(NetworkSyncManager* n) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void OnMusicSelect() override;
 	void OnOptions() override;
 	void OffOptions() override;
 	void OnEval() override;
