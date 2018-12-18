@@ -101,6 +101,18 @@ local minanyms = {
 	"mina restepped as a pad file",
 	"sapient typo conglomerate",
 	"Real Stepmania Client",
+	"Paraplebsis",
+	"Qlwpdrt ~!- V~!@#B",
+	"HypophoraticProcatalepsis",
+	"WobblyChickenRepeat",
+	"RoundTableTigerSwan",
+	"SkeleTotemWalkRedux",
+	"TinkleTotemJamboree",
+	"LerpNurbs",
+	"HerpingDerper",
+	"MinaHatesYouYesYou",
+	"ImaginaryStepmaniaClient",
+	"ExtraLunarTangoFoxtrot",
 }
 
 math.random()
