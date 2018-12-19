@@ -70,9 +70,6 @@ MusicWheel::Load(const string& sType)
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
 	SONG_REAL_EXTRA_COLOR.Load(sType, "SongRealExtraColor");
 	SORT_MENU_COLOR.Load(sType, "SortMenuColor");
-	SHOW_ROULETTE.Load(sType, "ShowRoulette");
-	SHOW_RANDOM.Load(sType, "ShowRandom");
-	SHOW_PORTAL.Load(sType, "ShowPortal");
 	RANDOM_PICKS_LOCKED_SONGS.Load(sType, "RandomPicksLockedSongs");
 	MOST_PLAYED_SONGS_TO_SHOW.Load(sType, "MostPlayedSongsToShow");
 	RECENT_SONGS_TO_SHOW.Load(sType, "RecentSongsToShow");

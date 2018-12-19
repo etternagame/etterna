@@ -55,8 +55,6 @@ const RString EDIT_STEPS_SUBDIR = "Edits/";
 // const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR = "Rivals/";
 
-ThemeMetric<bool> SHOW_COIN_DATA("Profile", "ShowCoinData");
-;
 #define GUID_SIZE_BYTES 8
 
 #define MAX_EDITABLE_INI_SIZE_BYTES (2 * 1024) // 2KB

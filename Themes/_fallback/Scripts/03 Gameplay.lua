@@ -258,27 +258,6 @@ function TwoPartSelection()
 	return GAMESTATE:GetCurrentGame():GetName() == "pump" and true or false
 end
 
-local RoutineSkins = {
-	dance = {P1 = "midi-routine-p1", P2 = "midi-routine-p2"},
-	kb7 = {P1 = "default", P2 = "retrobar"},
-	-------------------------------------------------------------
-	default = {P1 = "default", P2 = "default"}
-}
-
-function RoutineSkinP1()
-	if RoutineSkins[CurGameName()] then
-		return RoutineSkins[CurGameName()].P1
-	end
-	return RoutineSkins["default"].P1
-end
-
-function RoutineSkinP2()
-	if RoutineSkins[CurGameName()] then
-		return RoutineSkins[CurGameName()].P2
-	end
-	return RoutineSkins["default"].P2
-end
-
 -- todo: use tables for some of these -aj
 function HoldTiming()
 	return IsGame("pump") and 0 or PREFSMAN:GetPreference("TimingWindowSecondsHold")

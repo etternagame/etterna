@@ -46,8 +46,6 @@ class MusicWheelItem : public WheelItemBase
 	void RefreshGrades();
 
   private:
-	ThemeMetric<bool> GRADES_SHOW_MACHINE;
-
 	AutoActor m_sprColorPart[NUM_MusicWheelItemType];
 	AutoActor m_sprNormalPart[NUM_MusicWheelItemType];
 	AutoActor m_sprOverPart[NUM_MusicWheelItemType];

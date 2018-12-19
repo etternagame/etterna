@@ -40,8 +40,6 @@
 #include "HoldJudgment.h"
 #include "GamePreferences.h"
 
-RString
-ATTACK_DISPLAY_X_NAME(size_t p, size_t both_sides);
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						RString& sNameOut,
@@ -96,14 +94,6 @@ class JudgedRows
 		m_vRows.assign(m_vRows.size(), false);
 	}
 };
-
-RString
-ATTACK_DISPLAY_X_NAME(size_t p, size_t both_sides)
-{
-	return "AttackDisplayXOffset" +
-		   (both_sides ? RString("BothSides")
-					   : ssprintf("OneSideP%d", static_cast<int>(p + 1)));
-}
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -320,6 +310,7 @@ Player::Init(const RString& sType,
 	HOLD_JUDGMENT_Y_STANDARD.Load(sType, "HoldJudgmentYStandard");
 	HOLD_JUDGMENT_Y_REVERSE.Load(sType, "HoldJudgmentYReverse");
 	BRIGHT_GHOST_COMBO_THRESHOLD.Load(sType, "BrightGhostComboThreshold");
+
 	TAP_JUDGMENTS_UNDER_FIELD.Load(sType, "TapJudgmentsUnderField");
 	HOLD_JUDGMENTS_UNDER_FIELD.Load(sType, "HoldJudgmentsUnderField");
 	COMBO_UNDER_FIELD.Load(sType, "ComboUnderField");

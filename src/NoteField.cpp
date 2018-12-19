@@ -564,44 +564,6 @@ NoteField::DrawAreaHighlight(int iStartBeat, int iEndBeat)
 	m_rectAreaHighlight.Draw();
 }
 
-// todo: add DrawWarpAreaBG? -aj
-
-static ThemeMetric<RageColor> BPM_COLOR("NoteField", "BPMColor");
-static ThemeMetric<RageColor> STOP_COLOR("NoteField", "StopColor");
-static ThemeMetric<RageColor> DELAY_COLOR("NoteField", "DelayColor");
-static ThemeMetric<RageColor> WARP_COLOR("NoteField", "WarpColor");
-static ThemeMetric<RageColor> TIME_SIG_COLOR("NoteField", "TimeSignatureColor");
-static ThemeMetric<RageColor> TICKCOUNT_COLOR("NoteField", "TickcountColor");
-static ThemeMetric<RageColor> COMBO_COLOR("NoteField", "ComboColor");
-static ThemeMetric<RageColor> LABEL_COLOR("NoteField", "LabelColor");
-static ThemeMetric<RageColor> SPEED_COLOR("NoteField", "SpeedColor");
-static ThemeMetric<RageColor> SCROLL_COLOR("NoteField", "ScrollColor");
-static ThemeMetric<RageColor> FAKE_COLOR("NoteField", "FakeColor");
-static ThemeMetric<bool> BPM_IS_LEFT_SIDE("NoteField", "BPMIsLeftSide");
-static ThemeMetric<bool> STOP_IS_LEFT_SIDE("NoteField", "StopIsLeftSide");
-static ThemeMetric<bool> DELAY_IS_LEFT_SIDE("NoteField", "DelayIsLeftSide");
-static ThemeMetric<bool> WARP_IS_LEFT_SIDE("NoteField", "WarpIsLeftSide");
-static ThemeMetric<bool> TIME_SIG_IS_LEFT_SIDE("NoteField",
-											   "TimeSignatureIsLeftSide");
-static ThemeMetric<bool> TICKCOUNT_IS_LEFT_SIDE("NoteField",
-												"TickcountIsLeftSide");
-static ThemeMetric<bool> COMBO_IS_LEFT_SIDE("NoteField", "ComboIsLeftSide");
-static ThemeMetric<bool> LABEL_IS_LEFT_SIDE("NoteField", "LabelIsLeftSide");
-static ThemeMetric<bool> SPEED_IS_LEFT_SIDE("NoteField", "SpeedIsLeftSide");
-static ThemeMetric<bool> SCROLL_IS_LEFT_SIDE("NoteField", "ScrollIsLeftSide");
-static ThemeMetric<bool> FAKE_IS_LEFT_SIDE("NoteField", "FakeIsLeftSide");
-static ThemeMetric<float> BPM_OFFSETX("NoteField", "BPMOffsetX");
-static ThemeMetric<float> STOP_OFFSETX("NoteField", "StopOffsetX");
-static ThemeMetric<float> DELAY_OFFSETX("NoteField", "DelayOffsetX");
-static ThemeMetric<float> WARP_OFFSETX("NoteField", "WarpOffsetX");
-static ThemeMetric<float> TIME_SIG_OFFSETX("NoteField", "TimeSignatureOffsetX");
-static ThemeMetric<float> TICKCOUNT_OFFSETX("NoteField", "TickcountOffsetX");
-static ThemeMetric<float> COMBO_OFFSETX("NoteField", "ComboOffsetX");
-static ThemeMetric<float> LABEL_OFFSETX("NoteField", "LabelOffsetX");
-static ThemeMetric<float> SPEED_OFFSETX("NoteField", "SpeedOffsetX");
-static ThemeMetric<float> SCROLL_OFFSETX("NoteField", "ScrollOffsetX");
-static ThemeMetric<float> FAKE_OFFSETX("NoteField", "FakeOffsetX");
-
 void
 NoteField::set_text_measure_number_for_draw(const float beat,
 											const float side_sign,

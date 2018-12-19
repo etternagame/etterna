@@ -193,9 +193,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/** @brief The miss combo a player needs to fail out of a song. */
 	ThemeMetric<int> FAIL_ON_MISS_COMBO;
 	ThemeMetric<bool> ALLOW_CENTER_1_PLAYER;
-	ThemeMetric<bool> UNPAUSE_WITH_START;
 	ThemeMetric<RString> SONG_NUMBER_FORMAT;
-	ThemeMetric<bool> SURVIVAL_MOD_OVERRIDE;
 
 	void SetupSong(int iSongIndex);
 	void ReloadCurrentSong();
@@ -279,12 +277,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	Transition m_Failed;
 	/** @brief The transition to use when one player earns an easter egg. */
 	Transition m_Toasty;
-
-	/**
-	 * @brief How much time has the player survived in the extra stage?
-	 *
-	 * TODO: Move this into a BGA. */
-	BitmapText m_textSurviveTime;
 
 	AutoKeysounds m_AutoKeysounds;
 

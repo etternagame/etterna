@@ -31,8 +31,6 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 MusicWheelItem::MusicWheelItem(RString sType)
   : WheelItemBase(sType)
 {
-	GRADES_SHOW_MACHINE.Load(sType, "GradesShowMachine");
-
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
 		m_sprColorPart[i].Load(
@@ -108,7 +106,6 @@ MusicWheelItem::MusicWheelItem(RString sType)
 
 MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
   : WheelItemBase(cpy)
-  , GRADES_SHOW_MACHINE(cpy.GRADES_SHOW_MACHINE)
   , m_TextBanner(cpy.m_TextBanner)
 {
 	FOREACH_ENUM(MusicWheelItemType, i)

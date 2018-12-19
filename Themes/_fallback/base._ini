@@ -38,7 +38,6 @@ GroupedScreens=
 CodeNames=""
 CancelCancelCommand=
 ShowCoinsAndCredits=true
-LightsMode="LightsMode_MenuStartAndDirections"
 
 [ModeSwitcher]
 PrevModeX=-200
@@ -80,7 +79,6 @@ UpdateOnMessage=""
 Class="ScreenTitleMenu"
 Fallback="ScreenSelectMasterBlank"
 PrevScreen=THEME:GetMetric("Common","FirstAttractScreen");
-LightsMode="LightsMode_Joining"
 ScreenOnCommand=lockinput,0
 CoinModeChangeScreen=ScreenTitleBranch()
 SharedSelection=true
@@ -589,7 +587,6 @@ Fallback="ScreenSplash"
 PrepareScreen=GetGameplayScreen()
 NextScreen=GetGameplayScreen()
 PrevScreen=SongSelectionScreen()
-LightsMode="LightsMode_Stage"
 TimerSeconds=3
 
 [ScreenGameplay]
@@ -597,7 +594,6 @@ Class="ScreenGameplayNormal"
 Fallback="ScreenWithMenuElementsBlank"
 PrevScreen=SongSelectionScreen()
 NextScreen=GetGameplayNextScreen()
-LightsMode="LightsMode_Gameplay"
 TimerSeconds=-1
 UseAlternativeInput=false
 PlayerType="Player"
@@ -631,10 +627,6 @@ LifeP2X=SCREEN_CENTER_X+184
 LifeP2Y=SCREEN_CENTER_Y-212
 LifeP2OnCommand=rotationy,180;addy,-100;linear,0.5;addy,100
 LifeP2OffCommand=linear,1;addy,-100
-CombinedLifeX=SCREEN_CENTER_X+0
-CombinedLifeY=SCREEN_CENTER_Y-212
-CombinedLifeOnCommand=addy,-100;linear,0.5;addy,100
-CombinedLifeOffCommand=linear,0.5;addy,-100
 ShowStageDisplay=not GAMESTATE:IsCourseMode()
 ShowStageFrame=true
 StageDisplayX=SCREEN_CENTER_X+0
@@ -736,17 +728,6 @@ LyricDisplaySetReverseCommand=x,SCREEN_CENTER_X+0;y,SCREEN_CENTER_Y-140
 LyricDisplaySetOneReverseCommand=x,SCREEN_CENTER_X+0;y,SCREEN_CENTER_Y-205
 LyricDisplayDefaultColor=color("0,1,0,1")
 
-ActiveAttackListP1X=
-ActiveAttackListP1Y=
-ActiveAttackListP1OnCommand=visible,false
-ActiveAttackListP1OffCommand=
-ActiveAttackListP2X=
-ActiveAttackListP2Y=
-ActiveAttackListP2OnCommand=visible,false
-ActiveAttackListP2OffCommand=
-SurviveTimeX=SCREEN_CENTER_X+0
-SurviveTimeY=SCREEN_CENTER_Y+100
-SurviveTimeOnCommand=sleep,0.3;linear,0.3;diffusealpha,1;sleep,3.5;linear,0.5;diffusealpha,0
 DebugX=SCREEN_CENTER_X
 DebugY=SCREEN_CENTER_Y
 DebugOnCommand=wrapwidthpixels,SCREEN_WIDTH-50;strokecolor,color("#000000");
@@ -785,7 +766,6 @@ ModIconRowP2OnCommand=player,"PlayerNumber_P2";addx,200;linear,0.5;addx,-200
 ModIconRowP2OffCommand=linear,0.5;addx,200
 
 StopCourseEarly=false
-ShowEvaluationOnFail=true
 
 [ScreenGameplayExtra]
 Fallback="ScreenGameplay"
@@ -861,7 +841,6 @@ DifficultyP2ReverseOffCommand=linear,1;addx,200
 [ScreenEvaluation]
 Fallback="ScreenWithMenuElements"
 Class="ScreenEvaluation"
-LightsMode="LightsMode_MenuStartOnly"
 HelpText=ScreenString("HelpTextEvaluation")
 Summary=false
 CheckpointsWithJudgments=false
@@ -1516,12 +1495,10 @@ GradeP1X=106
 GradeP1Y=-5
 GradeP2X=110
 GradeP2Y=5
-GradesShowMachine=true
 
 
 
 [MusicWheel]
-FadeSeconds=1
 SwitchSeconds=0.10
 RandomPicksLockedSongs=true
 RouletteSwitchSeconds=0.05
@@ -1567,9 +1544,6 @@ SectionColor7=color("1.0,0.3,0.3,1")	-- light red
 SongRealExtraColor=color("0.9,0.9,0,1")		-- yellow
 SortMenuColor=color("1,1,0,1")
 SortOrders={ "SortOrder_Preferred", "SortOrder_Group", "SortOrder_Title", "SortOrder_BPM", "SortOrder_Popularity", "SortOrder_Artist", "SortOrder_Genre" }
-ShowRoulette=true
-ShowRandom=false
-ShowPortal=false
 MostPlayedSongsToShow=30
 ModeMenuChoiceNames="Preferred,Group,Title,Bpm,Popularity,TopGrades,Artist,EasyMeter,MediumMeter,HardMeter,Genre,Length"
 ChoicePreferred="sort,Preferred"
@@ -2074,7 +2048,7 @@ RainbowColor6=color("0.2,0.8,0.4,1")	-- green
 RainbowColor7=color("1.0,0.8,0.2,1")	-- orange
 
 [SongManager]
-NumSongGroupColors=7
+NumSongGroupColors=1
 SongGroupColor1=color("#ffba00")
 SongGroupColor2=color("#ffec00")
 SongGroupColor3=color("#00ff00")
@@ -2083,13 +2057,10 @@ SongGroupColor5=color("#4896ff")
 SongGroupColor6=color("#b87fff")
 SongGroupColor7=color("#ff7fc7")
 NumCourseGroupColors=1
-UseUnlockColor=false
-UnlockColor=color("1,0.5,0,1")
 CourseGroupColor1=color("1,1,1,1")
 ExtraColor=color("#ff0000")	-- red
 ExtraColorMeter=10
 UsePreferredSortColor=false
-MoveUnlocksToBottomOfPreferredSort=false
 Loading songs...=
 Loading courses...=
 Reloading...=
@@ -2103,7 +2074,7 @@ BottomEdge=SCREEN_BOTTOM
 BrightnessOverlayFadeCommand=
 ClampOutputPercent=0
 ShowDancingCharacters=true
-DontUseStaticBackground=false
+UseStaticBackground=true
 
 [Judgment]
 JudgmentW1Command=shadowlength,0;diffusealpha,1;zoom,1.3;linear,0.05;zoom,1;sleep,0.8;linear,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;glowblink;effectperiod,0.05;effectcolor1,1,1,1,0;effectcolor2,1,1,1,0.8
@@ -2132,18 +2103,9 @@ PulseCommand=%function(self,param) self:stoptweening(); self:zoom(1.2*param.Zoom
 [Player]
 ReceptorArrowsYStandard=-144
 ReceptorArrowsYReverse=144
-ReceptorNoSinkScoreCutoff=4
 JudgmentTransformCommand=%JudgmentTransformCommand
 JudgmentOnCommand=
 ComboTransformCommand=%ComboTransformCommand
-AttackDisplayXOffsetOneSideP1=0
-AttackDisplayXOffsetOneSideP2=0
-AttackDisplayXOffsetBothSides=0
-AttackDisplayY=-70
-AttackDisplayYReverse=70
-HoldJudgmentYStandard=-90
-HoldJudgmentYReverse=90
-BrightGhostComboThreshold=100
 DrawDistanceBeforeTargetsPixels=400
 DrawDistanceAfterTargetsPixels=-60
 TapJudgmentsUnderField=false
@@ -2157,12 +2119,6 @@ CheckpointsUseTimeSignatures=false
 InitialHoldLife=1
 RollBodyIncrementsCombo=true
 CheckpointsTapsSeparateJudgment=true
-
-[PlayerShared]
-Fallback="Player"
-ComboXOffsetOneSideP1=-120
-ComboXOffsetOneSideP2=120
-JudgmentTransformCommand=%JudgmentTransformSharedCommand
 
 [ProTimingDisplay]
 W1Command=shadowlength,4;diffuse,1,1,0,1;zoom,2.6;linear,0.05;zoom,2;sleep,0.8;linear,0;diffusealpha,0;glowblink;effectperiod,0.05;effectcolor1,1,1,1,0;effectcolor2,1,1,1,0.8
@@ -2599,7 +2555,6 @@ Fallback="ScreenWithMenuElementsBlank"
 BackGoesToStartScreen=true
 PrevScreen=
 AttractVolume=true
-LightsMode="LightsMode_Attract"
 
 [ScreenWithMenuElementsBlank]
 Fallback="ScreenWithMenuElements"
@@ -2931,7 +2886,6 @@ Fallback="ScreenGameplay"
 Class="ScreenDemonstration"
 SecondsToShow=30
 NextScreen="ScreenHighScores"
-LightsMode="LightsMode_Demonstration"
 DifficultiesToShow="easy,medium"
 StartScreen=ScreenTitleBranch()
 PlayMusic=false
@@ -2947,7 +2901,6 @@ Class="ScreenJukebox"
 Fallback="ScreenGameplay"
 NextScreen="ScreenJukebox"
 StartScreen=ScreenTitleBranch()
-LightsMode="LightsMode_Demonstration"
 AllowAdvancedModifiers=true
 
 [ScreenNameEntry]
@@ -3026,7 +2979,6 @@ CursorOnCommand=visible,false
 OptionRowNormalMetricsGroup="OptionRowSimple"
 OptionRowExitMetricsGroup="OptionRowSimpleExit"
 SeparateExitRowY=SCREEN_CENTER_Y+142
-LightsMode="LightsMode_MenuStartAndDirections"
 TimerOnCommand=visible,false
 ShowStyleIcon=false
 TimerSeconds=-1
@@ -3068,7 +3020,6 @@ PersistScreens="ScreenOptionsService,ScreenAppearanceOptions,ScreenMapController
 
 [ScreenOptionsServiceChild]
 Fallback="ScreenOptionsMaster"
-LightsMode="LightsMode_MenuStartAndDirections"
 NavigationMode="normal"
 InputMode="together"
 TimerOnCommand=visible,false
@@ -3487,9 +3438,6 @@ BannerResetFadeCommand=diffusealpha,1
 TipShowTime=3.5
 TipOnCommand=shadowlength,0;diffuseblink
 
-[CombinedLifeMeterTug]
-MeterWidth=550
-
 [ScoreDisplayLifeTime]
 FrameOnCommand=
 TimeRemainingOnCommand=
@@ -3591,10 +3539,6 @@ Line14="list,Rate"
 Line15="list,AutoAdjust"
 Line16="conf,EditorShowBGChangesPlay"
 OutCancelCommand=
-
-[RadarValues]
-WriteComplexValues=true
-WriteSimpleValues=true
 
 [RadarCategory]
 TapsAndHolds=true
@@ -3760,19 +3704,11 @@ Answer3Of3OnCommand=maxwidth,100
 Answer3Of3OffCommand=
 
 [GameState]
-UseNameBlacklist=false
 DefaultSort="Group"
 DefaultSong=""
 AreStagePlayerModsForced=AreStagePlayerModsForced
 AreStageSongModsForced=AreStageSongModsForced
-GradeTierForExtra1="Grade_Tier03"
-AllowExtra2=true
-GradeTierForExtra2="Grade_Tier03"
 AllowLateJoin=false
-ProfileRecordFeats=true
-CategoryRecordFeats=true
-MinDifficultyForExtra="Difficulty_Hard"
-LockExtraStageSelection=true
 
 [ScreenOptionsManage]
 Fallback="ScreenOptionsSimple"
@@ -3790,55 +3726,10 @@ Fallback="ScreenOptionsManage"
 CreateNewScreen="ScreenEditMenu"
 EditMode="EditMode_Full"
 PrevScreen="ScreenSelectEditMode"
-NextScreen="ScreenOptionsEditCourse"
+NextScreen="ScreenOptionsEditMode"
 PrepareScreens="ScreenMiniMenuContext"
 GroupedScreens="ScreenMiniMenuContext"
 PersistScreens="ScreenMiniMenuContext"
-
-[ScreenOptionsManageCourses]
-Class="ScreenOptionsManageCourses"
-Fallback="ScreenOptionsManage"
-PrevScreen=ScreenTitleBranch()
-NextScreen="ScreenOptionsEditCourse"
-GroupedScreens="ScreenOptionsManageCourses,ScreenTextEntry,ScreenPrompt,ScreenOptionsEditCourseMods"
-PersistScreens="ScreenOptionsManageCourses,ScreenTextEntry,ScreenPrompt"
-PrepareScreens="ScreenTextEntry,ScreenPrompt"
-CreateNewScreen="ScreenOptionsEditCourse"
-EditMode=Full
-
-[ScreenOptionsEditCourse]
-Class="ScreenOptionsEditCourse"
-Fallback="ScreenOptionsSimple"
-PrevScreen="ScreenOptionsCourseOverview"
-NextScreen="ScreenOptionsCourseOverview"
-OptionRowNormalMetricsGroup="OptionRowEditCourse"
-LineHighlightOnCommand=x,-100
-
-[OptionRowEditCourse]
-Fallback="OptionRowSimple"
-TitleX=SCREEN_CENTER_X-250
-ItemsLongRowSharedX=SCREEN_CENTER_X-100
-
-[ScreenOptionsCourseOverview]
-Class="ScreenOptionsCourseOverview"
-Fallback="ScreenOptionsSimple"
-PrevScreen="ScreenOptionsManageCourses"
-NextScreen="ScreenOptionsManageCourses"
-PlayScreen="ScreenJoinMultiplayer"
-EditScreen="ScreenOptionsEditCourse"
-OptionRowNormalMetricsGroup="OptionRowCourseOverview"
-
-[OptionRowCourseOverview]
-Fallback="OptionRowSimple"
-TitleX=SCREEN_CENTER_X-250
-ItemsLongRowSharedX=SCREEN_CENTER_X-100
-
-[ScreenEditCourseMods]
-Class="ScreenEdit"
-Fallback="ScreenEdit"
-EditMode="EditMode_CourseMods"
-NextScreen="ScreenOptionsEditCourseEntry"
-PrevScreen="ScreenOptionsEditCourseEntry"
 
 [ScreenOptionsManageProfiles]
 Class="ScreenOptionsManageProfiles"
@@ -3873,10 +3764,6 @@ TimerSeconds=-1
 [PlayerSyncMachine]
 Fallback="Player"
 ComboOnCommand=visible,false
-
-[Profile]
-ShowCoinData=true
-UnlockAuthString=
 
 [NoteField]
 ShowBoard=false

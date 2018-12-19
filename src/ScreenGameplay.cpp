@@ -316,9 +316,6 @@ ScreenGameplay::Init()
 	GIVING_UP_GOES_TO_PREV_SCREEN.Load(m_sName, "GivingUpGoesToPrevScreen");
 	FAIL_ON_MISS_COMBO.Load(m_sName, "FailOnMissCombo");
 	ALLOW_CENTER_1_PLAYER.Load(m_sName, "AllowCenter1Player");
-	// configurable:
-	UNPAUSE_WITH_START.Load(m_sName, "UnpauseWithStart");
-	SURVIVAL_MOD_OVERRIDE.Load(m_sName, "SurvivalModOverride");
 
 	if (UseSongBackgroundAndForeground()) {
 		m_pSongBackground = new Background;

@@ -63,7 +63,6 @@ struct GameStateImpl
 static GameStateImpl* g_pImpl = NULL;
 
 ThemeMetric<bool> ALLOW_LATE_JOIN("GameState", "AllowLateJoin");
-ThemeMetric<bool> USE_NAME_BLACKLIST("GameState", "UseNameBlacklist");
 
 ThemeMetric<RString> DEFAULT_SORT("GameState", "DefaultSort");
 SortOrder
@@ -79,17 +78,6 @@ GameState::GetDefaultSong() const
 	sid.FromString(DEFAULT_SONG);
 	return sid.ToSong();
 }
-
-static const ThemeMetric<bool> EDIT_ALLOWED_FOR_EXTRA("GameState",
-													  "EditAllowedForExtra");
-static const ThemeMetric<Difficulty> MIN_DIFFICULTY_FOR_EXTRA(
-  "GameState",
-  "MinDifficultyForExtra");
-static const ThemeMetric<Grade> GRADE_TIER_FOR_EXTRA_1("GameState",
-													   "GradeTierForExtra1");
-static const ThemeMetric<bool> ALLOW_EXTRA_2("GameState", "AllowExtra2");
-static const ThemeMetric<Grade> GRADE_TIER_FOR_EXTRA_2("GameState",
-													   "GradeTierForExtra2");
 
 static ThemeMetric<bool> ARE_STAGE_PLAYER_MODS_FORCED(
   "GameState",
