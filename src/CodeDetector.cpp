@@ -26,7 +26,6 @@ const char* CodeNames[] = {
 	"Right",
 	"Shuffle",
 	"SuperShuffle",
-	"NextTransform",
 	"NextScrollSpeed",
 	"PreviousScrollSpeed",
 	"Reverse",
@@ -257,9 +256,6 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 					break;
 				case CODE_SUPER_SHUFFLE:
 					po.ToggleOneTurn(PlayerOptions::TURN_SUPER_SHUFFLE);
-					break;
-				case CODE_NEXT_TRANSFORM:
-					po.NextTransform();
 					break;
 				case CODE_NEXT_SCROLL_SPEED:
 					INCREMENT_SCROLL_SPEED(po.m_fScrollSpeed);

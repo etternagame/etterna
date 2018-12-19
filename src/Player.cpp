@@ -228,8 +228,6 @@ ThemeMetric<float> PERCENT_UNTIL_COLOR_COMBO("Player",
 /** @brief How much combo must be earned before the announcer says "Combo
  * Stopped"? */
 ThemeMetric<int> COMBO_STOPPED_AT("Player", "ComboStoppedAt");
-ThemeMetric<float> ATTACK_RUN_TIME_RANDOM("Player", "AttackRunTimeRandom");
-ThemeMetric<float> ATTACK_RUN_TIME_MINE("Player", "AttackRunTimeMine");
 
 /**
  * @brief What is our highest cap for mMods?
