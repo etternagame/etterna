@@ -84,7 +84,6 @@ ScreenMessage.cpp ScreenMessage.h ScreenMiniMenu.cpp ScreenMiniMenu.h \
 ScreenNameEntry.cpp ScreenNameEntry.h ScreenNameEntryTraditional.cpp ScreenNameEntryTraditional.h \
 ScreenOptions.cpp ScreenOptions.h \
 ScreenOptionsCourseOverview.cpp ScreenOptionsCourseOverview.h \
-ScreenOptionsEditCourse.cpp ScreenOptionsEditCourse.h \
 ScreenOptionsEditProfile.cpp ScreenOptionsEditProfile.h \
 ScreenOptionsManageCourses.cpp ScreenOptionsManageCourses.h \
 ScreenOptionsManageEditSteps.cpp ScreenOptionsManageEditSteps.h \
@@ -428,7 +427,7 @@ MeterDisplay.cpp MeterDisplay.h StreamDisplay.cpp StreamDisplay.h \
 Transition.cpp Transition.h
 
 ActorsInMenus = \
-ActiveAttackList.cpp ActiveAttackList.h BPMDisplay.cpp BPMDisplay.h ComboGraph.cpp ComboGraph.h \
+BPMDisplay.cpp BPMDisplay.h ComboGraph.cpp ComboGraph.h \
 CourseContentsList.cpp CourseContentsList.h \
 StepsDisplay.cpp StepsDisplay.h \
 DifficultyList.cpp DifficultyList.h \
@@ -451,8 +450,8 @@ if !WITHOUT_NETWORKING
 endif
 
 ActorsInGameplay = \
-ArrowEffects.cpp ArrowEffects.h AttackDisplay.cpp AttackDisplay.h \
-Background.cpp Background.h BeginnerHelper.cpp BeginnerHelper.h CombinedLifeMeter.h CombinedLifeMeterTug.cpp CombinedLifeMeterTug.h \
+ArrowEffects.cpp ArrowEffects.h \
+Background.cpp Background.h BeginnerHelper.cpp BeginnerHelper.h \
 DancingCharacters.cpp DancingCharacters.h Foreground.cpp Foreground.h \
 GhostArrowRow.cpp GhostArrowRow.h HoldJudgment.cpp HoldJudgment.h \
 LifeMeter.cpp LifeMeter.h \
