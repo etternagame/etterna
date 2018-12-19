@@ -141,9 +141,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 		def.m_sExplanationName = "Select Profile";
 
 		PlayerNumber pn = PLAYER_INVALID;
-		FOREACH_PlayerNumber(
-		  p) if (*s == ProfileManager::m_sDefaultLocalProfileID[p].Get()) pn =
-		  p;
+		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get()) pn = PLAYER_1;
 		if (pn != PLAYER_INVALID)
 			def.m_vsChoices.push_back(PlayerNumberToLocalizedString(pn));
 		OptionRowHandlers.push_back(pHand);
@@ -283,10 +281,9 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 							   ScreenMiniMenu::s_iLastRowCode));
 				case ProfileAction_SetDefaultP1:
 				case ProfileAction_SetDefaultP2: {
-					FOREACH_PlayerNumber(
-					  p) if (ProfileManager::m_sDefaultLocalProfileID[p]
+					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
 							   .Get() == GetLocalProfileIDWithFocus())
-					  ProfileManager::m_sDefaultLocalProfileID[p]
+					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
 						.Set("");
 
 					auto pn =

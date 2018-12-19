@@ -12,21 +12,15 @@ DualScrollBar::DualScrollBar()
 void
 DualScrollBar::Load(const RString& sType)
 {
-	FOREACH_PlayerNumber(pn)
-	{
-		m_sprScrollThumbUnderHalf[pn].Load(
-		  THEME->GetPathG(sType, ssprintf("thumb p%i", pn + 1)));
-		m_sprScrollThumbUnderHalf[pn]->SetName(ssprintf("ThumbP%i", pn + 1));
-		this->AddChild(m_sprScrollThumbUnderHalf[pn]);
-	}
+	m_sprScrollThumbUnderHalf[PLAYER_1].Load(
+		THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
+	m_sprScrollThumbUnderHalf[PLAYER_1]->SetName(ssprintf("ThumbP%i", PLAYER_1 + 1));
+	this->AddChild(m_sprScrollThumbUnderHalf[PLAYER_1]);
 
-	FOREACH_PlayerNumber(pn)
-	{
-		m_sprScrollThumbOverHalf[pn].Load(
-		  THEME->GetPathG(sType, ssprintf("thumb p%i", pn + 1)));
-		m_sprScrollThumbOverHalf[pn]->SetName(ssprintf("ThumbP%i", pn + 1));
-		this->AddChild(m_sprScrollThumbOverHalf[pn]);
-	}
+	m_sprScrollThumbOverHalf[PLAYER_1].Load(
+		THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
+	m_sprScrollThumbOverHalf[PLAYER_1]->SetName(ssprintf("ThumbP%i", PLAYER_1 + 1));
+	this->AddChild(m_sprScrollThumbOverHalf[PLAYER_1]);
 
 	m_sprScrollThumbUnderHalf[0]->SetCropLeft(.5f);
 	m_sprScrollThumbUnderHalf[1]->SetCropRight(.5f);
@@ -34,7 +28,7 @@ DualScrollBar::Load(const RString& sType)
 	m_sprScrollThumbOverHalf[0]->SetCropRight(.5f);
 	m_sprScrollThumbOverHalf[1]->SetCropLeft(.5f);
 
-	FOREACH_PlayerNumber(pn) SetPercentage(pn, 0);
+	SetPercentage(PLAYER_1, 0);
 
 	FinishTweening();
 }

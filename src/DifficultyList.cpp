@@ -23,12 +23,8 @@ REGISTER_ACTOR_CLASS(StepsDisplayList);
 StepsDisplayList::StepsDisplayList()
 {
 	m_bShown = true;
-
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + pn));
-		SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + pn));
-	}
+	SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1));
+	SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -51,36 +47,33 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	m_Lines.resize(MAX_METERS);
 	m_CurSong = NULL;
 
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", pn + 1));
-		if (pChild == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "%s: StepsDisplayList: missing the node \"CursorP%d\"",
-			  ActorUtil::GetWhere(pNode).c_str(),
-			  pn + 1);
-		} else {
-			m_Cursors[pn].LoadActorFromNode(pChild, this);
-		}
+	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
+	if (pChild == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"%s: StepsDisplayList: missing the node \"CursorP%d\"",
+			ActorUtil::GetWhere(pNode).c_str(),
+			PLAYER_1 + 1);
+	} else {
+		m_Cursors[PLAYER_1].LoadActorFromNode(pChild, this);
+	}
 
-		/* Hack: we need to tween cursors both up to down (cursor motion) and
-		 * visible to invisible (fading).  Cursor motion needs to stoptweening,
-		 * so multiple motions don't queue and look unresponsive.  However, that
-		 * stoptweening interrupts fading, resulting in the cursor remaining
-		 * invisible or partially invisible.  So, do them in separate tweening
-		 * stacks.  This means the Cursor command can't change diffuse colors; I
-		 * think we do need a diffuse color stack ... */
-		pChild = pNode->GetChild(ssprintf("CursorP%iFrame", pn + 1));
-		if (pChild == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
-			  ActorUtil::GetWhere(pNode).c_str(),
-			  pn + 1);
-		} else {
-			m_CursorFrames[pn].LoadFromNode(pChild);
-			m_CursorFrames[pn].AddChild(m_Cursors[pn]);
-			this->AddChild(&m_CursorFrames[pn]);
-		}
+	/* Hack: we need to tween cursors both up to down (cursor motion) and
+		* visible to invisible (fading).  Cursor motion needs to stoptweening,
+		* so multiple motions don't queue and look unresponsive.  However, that
+		* stoptweening interrupts fading, resulting in the cursor remaining
+		* invisible or partially invisible.  So, do them in separate tweening
+		* stacks.  This means the Cursor command can't change diffuse colors; I
+		* think we do need a diffuse color stack ... */
+	pChild = pNode->GetChild(ssprintf("CursorP%iFrame", PLAYER_1 + 1));
+	if (pChild == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
+			ActorUtil::GetWhere(pNode).c_str(),
+			PLAYER_1 + 1);
+	} else {
+		m_CursorFrames[PLAYER_1].LoadFromNode(pChild);
+		m_CursorFrames[PLAYER_1].AddChild(m_Cursors[PLAYER_1]);
+		this->AddChild(&m_CursorFrames[PLAYER_1]);
 	}
 
 	for (unsigned m = 0; m < m_Lines.size(); ++m) {
@@ -359,12 +352,9 @@ StepsDisplayList::Hide()
 void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		if (msg.GetName() ==
-			MessageIDToString((MessageID)(Message_CurrentStepsP1Changed + pn)))
-			SetFromGameState();
-	}
+	if (msg.GetName() ==
+		MessageIDToString((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1)))
+		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);
 }

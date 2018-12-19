@@ -17,8 +17,7 @@ static vector<RString>
 GenerateRankingToFillInMarker()
 {
 	vector<RString> vRankings;
-	FOREACH_ENUM(PlayerNumber, pn)
-	vRankings.push_back(ssprintf("#P%d#", pn + 1));
+	vRankings.push_back(ssprintf("#P%d#", PLAYER_1 + 1));
 	return vRankings;
 }
 extern const vector<RString> RANKING_TO_FILL_IN_MARKER(

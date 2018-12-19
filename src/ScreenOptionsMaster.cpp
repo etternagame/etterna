@@ -37,7 +37,7 @@ ScreenOptionsMaster::Init()
 	}
 
 	if (FORCE_ALL_PLAYERS) {
-		FOREACH_PlayerNumber(pn) GAMESTATE->JoinPlayer(pn);
+		GAMESTATE->JoinPlayer(PLAYER_1);
 	}
 
 	if (NAVIGATION_MODE == "toggle")

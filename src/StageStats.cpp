@@ -302,7 +302,7 @@ StageStats::StageStats()
 	m_fGameplaySeconds = 0;
 	m_fStepsSeconds = 0;
 	m_fMusicRate = 1;
-	FOREACH_PlayerNumber(pn) { m_player[pn].Init(pn); }
+	m_player[PLAYER_1].Init(PLAYER_1);
 	FOREACH_MultiPlayer(pn) { m_multiPlayer[pn].Init(pn); }
 }
 
@@ -604,11 +604,8 @@ StageStats::FinalizeScores(bool bSummary)
 	SCOREMAN->camefromreplay =
 	  false; // if we're viewing an online replay this gets set to true -mina
 	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
-		FOREACH_PlayerNumber(pn)
-		{
-			m_player[pn].m_iPersonalHighScoreIndex = 0;
-			m_player[pn].m_iMachineHighScoreIndex = 0;
-		}
+		m_player[PLAYER_1].m_iPersonalHighScoreIndex = 0;
+		m_player[PLAYER_1].m_iMachineHighScoreIndex = 0;
 	}
 
 	// don't save scores if the player chose not to

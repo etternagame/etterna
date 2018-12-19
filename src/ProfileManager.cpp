@@ -101,14 +101,10 @@ ProfileManager::~ProfileManager()
 void
 ProfileManager::Init(LoadingWindow* ld)
 {
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_bLastLoadWasTamperedOrCorrupt[p] = false;
-		m_bLastLoadWasFromLastGood[p] = false;
-		m_bNeedToBackUpLastLoad[p] = false;
-		m_bNewProfile[p] = false;
-	}
+	m_bLastLoadWasTamperedOrCorrupt[PLAYER_1] = false;
+	m_bLastLoadWasFromLastGood[PLAYER_1] = false;
+	m_bNeedToBackUpLastLoad[PLAYER_1] = false;
+	m_bNewProfile[PLAYER_1] = false;
 
 	RefreshLocalProfilesFromDisk(ld);
 

@@ -20,17 +20,13 @@ void
 ScreenPlayerOptions::Init()
 {
 	ScreenOptionsMaster::Init();
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_sprDisqualify[p].Load(THEME->GetPathG(m_sName, "disqualify"));
-		m_sprDisqualify[p]->SetName(ssprintf("DisqualifyP%i", p + 1));
-		LOAD_ALL_COMMANDS_AND_SET_XY(m_sprDisqualify[p]);
-		m_sprDisqualify[p]->SetVisible(
-		  false); // unhide later if handicapping options are discovered
-		m_sprDisqualify[p]->SetDrawOrder(2);
-		m_frameContainer.AddChild(m_sprDisqualify[p]);
-	}
+	m_sprDisqualify[PLAYER_1].Load(THEME->GetPathG(m_sName, "disqualify"));
+	m_sprDisqualify[PLAYER_1]->SetName(ssprintf("DisqualifyP%i", PLAYER_1 + 1));
+	LOAD_ALL_COMMANDS_AND_SET_XY(m_sprDisqualify[PLAYER_1]);
+	m_sprDisqualify[PLAYER_1]->SetVisible(
+		false); // unhide later if handicapping options are discovered
+	m_sprDisqualify[PLAYER_1]->SetDrawOrder(2);
+	m_frameContainer.AddChild(m_sprDisqualify[PLAYER_1]);
 
 	m_bAskOptionsMessage = PREFSMAN->m_ShowSongOptions == Maybe_ASK;
 
@@ -39,14 +35,13 @@ ScreenPlayerOptions::Init()
 
 	SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("player options intro"));
 
-	FOREACH_PlayerNumber(p) m_bRowCausesDisqualified[p].resize(m_pRows.size(),
-															   false);
+	m_bRowCausesDisqualified[PLAYER_1].resize(m_pRows.size(), false);
 }
 
 void
 ScreenPlayerOptions::BeginScreen()
 {
-	FOREACH_PlayerNumber(p) ON_COMMAND(m_sprDisqualify[p]);
+	ON_COMMAND(m_sprDisqualify[PLAYER_1]);
 
 	ScreenOptionsMaster::BeginScreen();
 

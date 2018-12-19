@@ -105,7 +105,7 @@ GameState::GameState()
 	g_pImpl = new GameStateImpl;
 
 	m_pCurStyle.Set(NULL);
-	FOREACH_PlayerNumber(rpn) { m_SeparatedStyles[rpn] = NULL; }
+	m_SeparatedStyles[PLAYER_1] = NULL;
 
 	m_pCurGame.Set(NULL);
 	m_timeGameStarted.SetZero();
@@ -114,14 +114,10 @@ GameState::GameState()
 
 	m_PlayMode.Set(
 	  PlayMode_Invalid); // used by IsPlayerEnabled before the first screen
-	FOREACH_PlayerNumber(p) m_bSideIsJoined[p] =
-	  false; // used by GetNumSidesJoined before the first screen
+	m_bSideIsJoined[PLAYER_1] = false; // used by GetNumSidesJoined before the first screen
 
-	FOREACH_PlayerNumber(p)
-	{
-		m_pPlayerState[p] = new PlayerState;
-		m_pPlayerState[p]->SetPlayerNumber(p);
-	}
+	m_pPlayerState[PLAYER_1] = new PlayerState;
+	m_pPlayerState[PLAYER_1]->SetPlayerNumber(PLAYER_1);
 	FOREACH_MultiPlayer(p)
 	{
 		m_pMultiPlayerState[p] = new PlayerState;
@@ -153,7 +149,7 @@ GameState::~GameState()
 	// Unregister with Lua.
 	LUA->UnsetGlobal("GAMESTATE");
 
-	FOREACH_PlayerNumber(p) SAFE_DELETE(m_pPlayerState[p]);
+	SAFE_DELETE(m_pPlayerState[PLAYER_1]);
 	FOREACH_MultiPlayer(p) SAFE_DELETE(m_pMultiPlayerState[p]);
 
 	SAFE_DELETE(m_Environment);
@@ -250,7 +246,7 @@ GameState::Reset()
 	this->SetMasterPlayerNumber(
 	  PLAYER_INVALID); // must initialize for UnjoinPlayer
 
-	FOREACH_PlayerNumber(pn) UnjoinPlayer(pn);
+	UnjoinPlayer(PLAYER_1);
 
 	ASSERT(THEME != NULL);
 
@@ -392,11 +388,8 @@ bool
 GameState::JoinPlayers()
 {
 	bool bJoined = false;
-	FOREACH_PlayerNumber(pn)
-	{
-		if (JoinInputInternal(pn))
-			bJoined = true;
-	}
+	if (JoinInputInternal(PLAYER_1))
+		bJoined = true;
 	return bJoined;
 }
 
@@ -532,12 +525,9 @@ GameState::BeginStage()
 	AdjustSync::ResetOriginalSyncData();
 
 	if (!ARE_STAGE_PLAYER_MODS_FORCED) {
-		FOREACH_PlayerNumber(p)
-		{
-			ModsGroup<PlayerOptions>& po = m_pPlayerState[p]->m_PlayerOptions;
-			po.Assign(ModsLevel_Stage,
-					  m_pPlayerState[p]->m_PlayerOptions.GetPreferred());
-		}
+		ModsGroup<PlayerOptions>& po = m_pPlayerState[PLAYER_1]->m_PlayerOptions;
+		po.Assign(ModsLevel_Stage,
+					m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred());
 	}
 	if (!ARE_STAGE_SONG_MODS_FORCED)
 		m_SongOptions.Assign(ModsLevel_Stage, m_SongOptions.GetPreferred());
@@ -785,7 +775,7 @@ GameState::Update(float fDelta)
 {
 	m_SongOptions.Update(fDelta);
 
-	FOREACH_PlayerNumber(p) m_pPlayerState[p]->Update(fDelta);
+	m_pPlayerState[PLAYER_1]->Update(fDelta);
 }
 
 void
@@ -809,7 +799,7 @@ GameState::ResetMusicStatistics()
 
 	Actor::SetBGMTime(0, 0, 0, 0);
 
-	FOREACH_PlayerNumber(p) { m_pPlayerState[p]->m_Position.Reset(); }
+	m_pPlayerState[PLAYER_1]->m_Position.Reset();
 }
 
 void
@@ -817,10 +807,7 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-	FOREACH_PlayerNumber( p )
-	{
-		m_pPlayerState[p]->m_HealthState = HealthState_Alive;
-	}
+	m_pPlayerState[PLAYER_1]->m_HealthState = HealthState_Alive;
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
@@ -890,8 +877,8 @@ int
 GameState::GetNumSidesJoined() const
 {
 	int iNumSidesJoined = 0;
-	FOREACH_PlayerNumber(p) if (m_bSideIsJoined[p])
-	  iNumSidesJoined++; // left side, and right side
+	if (m_bSideIsJoined[PLAYER_1])
+		iNumSidesJoined++; // left side, and right side
 	return iNumSidesJoined;
 }
 
@@ -970,7 +957,7 @@ GameState::SetCurrentStyle(const Style* style, PlayerNumber pn)
 		m_pCurStyle.Set(style);
 	} else {
 		if (pn == PLAYER_INVALID) {
-			FOREACH_PlayerNumber(rpn) { m_SeparatedStyles[rpn] = style; }
+			m_SeparatedStyles[PLAYER_1] = style;
 		} else {
 			m_SeparatedStyles[pn] = style;
 		}
@@ -1098,7 +1085,8 @@ GameState::GetFirstHumanPlayer() const
 PlayerNumber
 GameState::GetFirstDisabledPlayer() const
 {
-	FOREACH_PlayerNumber(pn) if (!IsPlayerEnabled(pn)) return pn;
+	if (!IsPlayerEnabled(PLAYER_1))
+		return PLAYER_1;
 	return PLAYER_INVALID;
 }
 
@@ -1282,7 +1270,7 @@ GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 	m_PreferredDifficulty[pn].Set(dc);
 	m_PreferredStepsType.Set(st);
 	if (DifficultiesLocked())
-		FOREACH_PlayerNumber(p) if (p != pn) m_PreferredDifficulty[p].Set(
+		if (PLAYER_1 != pn) m_PreferredDifficulty[PLAYER_1].Set(
 		  m_PreferredDifficulty[pn]);
 
 	return true;

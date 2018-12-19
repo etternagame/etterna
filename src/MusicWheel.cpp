@@ -1121,9 +1121,8 @@ MusicWheel::UpdateSwitch()
 			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
 				  GAMESTATE->m_SortOrder, st, dc)) {
 				ASSERT(dc != Difficulty_Invalid);
-				FOREACH_PlayerNumber(p) if (GAMESTATE->IsPlayerEnabled(p))
-				  GAMESTATE->m_PreferredDifficulty[p]
-					.Set(dc);
+				if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
+				  GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(dc);
 			}
 
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);

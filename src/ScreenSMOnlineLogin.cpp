@@ -41,7 +41,7 @@ ScreenSMOnlineLogin::Init()
 	pHand->m_Def.m_bAllowThemeItems = false;
 	pHand->m_Def.m_vEnabledForPlayers.clear();
 
-	FOREACH_PlayerNumber(pn) pHand->m_Def.m_vEnabledForPlayers.insert(pn);
+	pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 
 	PROFILEMAN->GetLocalProfileDisplayNames(pHand->m_Def.m_vsChoices);
 	pHand->m_Def.m_vsChoices.emplace_back("Type Username");
@@ -66,16 +66,13 @@ ScreenSMOnlineLogin::ImportOptions(int iRow, const vector<PlayerNumber>& vpns)
 			vector<RString> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			FOREACH_PlayerNumber(pn)
-			{
-				vector<RString>::iterator iter =
-				  find(vsProfiles.begin(),
-					   vsProfiles.end(),
-					   ProfileManager::m_sDefaultLocalProfileID[pn].Get());
-				if (iter != vsProfiles.end())
-					m_pRows[0]->SetOneSelection((PlayerNumber)pn,
-												iter - vsProfiles.begin());
-			}
+			vector<RString>::iterator iter =
+				find(vsProfiles.begin(),
+					vsProfiles.end(),
+					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+			if (iter != vsProfiles.end())
+				m_pRows[0]->SetOneSelection((PlayerNumber)PLAYER_1,
+											iter - vsProfiles.begin());
 		} break;
 	}
 }

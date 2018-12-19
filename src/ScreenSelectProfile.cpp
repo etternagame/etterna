@@ -10,11 +10,8 @@ REGISTER_SCREEN_CLASS(ScreenSelectProfile);
 void
 ScreenSelectProfile::Init()
 {
-	FOREACH_PlayerNumber(p)
-	{
-		// no selection initially
-		m_iSelectedProfiles[p] = -1;
-	}
+	// no selection initially
+	m_iSelectedProfiles[PLAYER_1] = -1;
 	m_TrackingRepeatingInput = GameButton_Invalid;
 	ScreenWithMenuElements::Init();
 }
@@ -159,24 +156,21 @@ ScreenSelectProfile::Finish()
 	int iUsedLocalProfiles = 0;
 	int iUnselectedProfiles = 0;
 
-	FOREACH_PlayerNumber(p)
-	{
-		// not all players has made their choices
-		if (GAMESTATE->IsHumanPlayer(p) && (m_iSelectedProfiles[p] == -1))
-			iUnselectedProfiles++;
+	// not all players has made their choices
+	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && (m_iSelectedProfiles[PLAYER_1] == -1))
+		iUnselectedProfiles++;
 
-		// card not ready
-		if (m_iSelectedProfiles[p] == 0)
-			return false;
+	// card not ready
+	if (m_iSelectedProfiles[PLAYER_1] == 0)
+		return false;
 
-		// profile index too big
-		if (m_iSelectedProfiles[p] > PROFILEMAN->GetNumLocalProfiles())
-			return false;
+	// profile index too big
+	if (m_iSelectedProfiles[PLAYER_1] > PROFILEMAN->GetNumLocalProfiles())
+		return false;
 
-		// inc used profile count
-		if (m_iSelectedProfiles[p] > 0)
-			iUsedLocalProfiles++;
-	}
+	// inc used profile count
+	if (m_iSelectedProfiles[PLAYER_1] > 0)
+		iUsedLocalProfiles++;
 
 	// this allows to continue if there is less local profiles than number of
 	// human players
@@ -185,17 +179,13 @@ ScreenSelectProfile::Finish()
 		return false;
 
 	// all ok - load profiles and go to next screen
-	FOREACH_PlayerNumber(p)
-	{
-		PROFILEMAN->UnloadProfile(p);
+	PROFILEMAN->UnloadProfile(PLAYER_1);
 
-		if (m_iSelectedProfiles[p] > 0) {
-			PROFILEMAN->m_sDefaultLocalProfileID[p].Set(
-			  PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles[p] -
-													 1));
-			PROFILEMAN->LoadLocalProfileFromMachine(p);
-			GAMESTATE->LoadCurrentSettingsFromProfile(p);
-		}
+	if (m_iSelectedProfiles[PLAYER_1] > 0) {
+		PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(
+			PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles[PLAYER_1] - 1));
+		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
 	}
 	StartTransitioningScreen(SM_GoToNextScreen);
 	return true;

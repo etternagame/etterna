@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "Foreach.h"
 #include "GameCommand.h"
@@ -425,7 +425,7 @@ GameCommand::ApplyToAllPlayers() const
 {
 	vector<PlayerNumber> vpns;
 
-	FOREACH_PlayerNumber(pn) vpns.push_back(pn);
+	vpns.push_back(PLAYER_1);
 
 	Apply(vpns);
 }
@@ -564,13 +564,10 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 
 	if (m_bApplyDefaultOptions) {
 		// applying options affects only the current stage
-		FOREACH_PlayerNumber(p)
-		{
-			PlayerOptions po;
-			GAMESTATE->GetDefaultPlayerOptions(po);
-			GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.Assign(
-			  ModsLevel_Stage, po);
-		}
+		PlayerOptions po;
+		GAMESTATE->GetDefaultPlayerOptions(po);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign(
+			ModsLevel_Stage, po);
 
 		SongOptions so;
 		GAMESTATE->GetDefaultSongOptions(so);

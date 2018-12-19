@@ -89,14 +89,11 @@ MusicWheelItem::MusicWheelItem(RString sType)
 	m_pTextSectionCount->PlayCommand("On");
 	this->AddChild(m_pTextSectionCount);
 
-	FOREACH_PlayerNumber(p)
-	{
-		m_pGradeDisplay[p].Load(THEME->GetPathG(sType, "grades"));
-		m_pGradeDisplay[p]->SetName(
-		  ssprintf("GradeP%d", static_cast<int>(p + 1)));
-		this->AddChild(m_pGradeDisplay[p]);
-		LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay[p]);
-	}
+	m_pGradeDisplay[PLAYER_1].Load(THEME->GetPathG(sType, "grades"));
+	m_pGradeDisplay[PLAYER_1]->SetName(
+		ssprintf("GradeP%d", static_cast<int>(PLAYER_1 + 1)));
+	this->AddChild(m_pGradeDisplay[PLAYER_1]);
+	LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay[PLAYER_1]);
 
 	this->SubscribeToMessage(Message_CurrentStepsP1Changed);
 	this->SubscribeToMessage(Message_CurrentStepsP2Changed);
@@ -138,12 +135,9 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 	m_pTextSectionCount = new BitmapText(*cpy.m_pTextSectionCount);
 	this->AddChild(m_pTextSectionCount);
 
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_pGradeDisplay[p] = cpy.m_pGradeDisplay[p];
-		this->AddChild(m_pGradeDisplay[p]);
-	}
+	m_pGradeDisplay[PLAYER_1] = cpy.m_pGradeDisplay[PLAYER_1];
+	this->AddChild(m_pGradeDisplay[PLAYER_1]);
+	
 }
 
 MusicWheelItem::~MusicWheelItem()
@@ -174,7 +168,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	if (m_pText[i])
 		m_pText[i]->SetVisible(false);
 	m_pTextSectionCount->SetVisible(false);
-	FOREACH_PlayerNumber(p) m_pGradeDisplay[p]->SetVisible(false);
+	m_pGradeDisplay[PLAYER_1]->SetVisible(false);
 
 	// Fill these in below
 	RString sDisplayName, sTranslitName;

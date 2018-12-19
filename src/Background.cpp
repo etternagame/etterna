@@ -938,8 +938,7 @@ bool
 BackgroundImpl::IsDangerAllVisible()
 {
 	// The players are never in danger in FAIL_OFF.
-	FOREACH_PlayerNumber(
-	  p) if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState[p]) ==
+	if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState[PLAYER_1]) ==
 			 FailType_Off) return false;
 	if (!g_bShowDanger)
 		return false;
@@ -1027,7 +1026,7 @@ BrightnessOverlay::Set(float fBrightness)
 {
 	RageColor c = GetBrightnessColor(fBrightness);
 
-	FOREACH_PlayerNumber(pn) m_quadBGBrightness[pn].SetDiffuse(c);
+	m_quadBGBrightness[PLAYER_1].SetDiffuse(c);
 	m_quadBGBrightnessFade.SetDiffuse(c);
 }
 

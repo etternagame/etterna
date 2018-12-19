@@ -9,12 +9,8 @@ FilterManager::FilterManager()
 	// filter stuff - mina
 	ZERO(SSFilterLowerBounds);
 	ZERO(SSFilterUpperBounds);
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_pPlayerState[p] = new PlayerState;
-		m_pPlayerState[p]->SetPlayerNumber(p);
-	}
+	m_pPlayerState[PLAYER_1] = new PlayerState;
+	m_pPlayerState[PLAYER_1]->SetPlayerNumber(PLAYER_1);
 
 	// Register with Lua.
 	{
@@ -28,7 +24,7 @@ FilterManager::FilterManager()
 
 FilterManager::~FilterManager()
 {
-	FOREACH_PlayerNumber(p) SAFE_DELETE(m_pPlayerState[p]);
+	SAFE_DELETE(m_pPlayerState[PLAYER_1]);
 
 	// Unregister with Lua.
 	LUA->UnsetGlobal("FILTERMAN");

@@ -111,7 +111,7 @@ ScreenMiniMenu::AfterChangeValueOrRow(PlayerNumber pn)
 	ScreenOptions::AfterChangeValueOrRow(pn);
 
 	vector<PlayerNumber> vpns;
-	FOREACH_PlayerNumber(p) vpns.push_back(p);
+	vpns.push_back(PLAYER_1);
 	for (unsigned i = 0; i < m_pRows.size(); i++)
 		ExportOptions(i, vpns);
 

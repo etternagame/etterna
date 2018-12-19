@@ -78,36 +78,32 @@ ScreenEvaluation::Init()
 		ss.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.push_back(GAMESTATE->m_pCurSong);
 		GAMESTATE->m_iCurrentStageIndex = 0;
-		FOREACH_ENUM(PlayerNumber, p)
-		GAMESTATE->m_iPlayerStageTokens[p] = 1;
+		GAMESTATE->m_iPlayerStageTokens[PLAYER_1] = 1;
 
-		FOREACH_PlayerNumber(p)
-		{
-			ss.m_player[p].m_pStyle = GAMESTATE->GetCurrentStyle(p);
-			if (RandomInt(2))
-				PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState[p]->m_PlayerOptions,
-								  ModsLevel_Stage,
-								  m_bTransforms,
-								  PlayerOptions::TRANSFORM_ECHO,
-								  true); // show "disqualified"
-			SO_GROUP_ASSIGN(
-			  GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
+		ss.m_player[PLAYER_1].m_pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
+		if (RandomInt(2))
+			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+								ModsLevel_Stage,
+								m_bTransforms,
+								PlayerOptions::TRANSFORM_ECHO,
+								true); // show "disqualified"
+		SO_GROUP_ASSIGN(
+			GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
 
-			GAMESTATE->JoinPlayer(p);
-			GAMESTATE->m_pCurSteps[p].Set(
-			  GAMESTATE->m_pCurSong->GetAllSteps()[0]);
-			ss.m_player[p].m_vpPossibleSteps.push_back(
-			  GAMESTATE->m_pCurSteps[PLAYER_1]);
-			ss.m_player[p].m_iStepsPlayed = 1;
+		GAMESTATE->JoinPlayer(PLAYER_1);
+		GAMESTATE->m_pCurSteps[PLAYER_1].Set(
+			GAMESTATE->m_pCurSong->GetAllSteps()[0]);
+		ss.m_player[PLAYER_1].m_vpPossibleSteps.push_back(
+			GAMESTATE->m_pCurSteps[PLAYER_1]);
+		ss.m_player[PLAYER_1].m_iStepsPlayed = 1;
 
-			PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[p]->m_PlayerOptions,
-							ModsLevel_Stage,
-							m_fScrollSpeed,
-							2.0f);
-			PO_GROUP_CALL(GAMESTATE->m_pPlayerState[p]->m_PlayerOptions,
-						  ModsLevel_Stage,
-						  ChooseRandomModifiers);
-		}
+		PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+						ModsLevel_Stage,
+						m_fScrollSpeed,
+						2.0f);
+		PO_GROUP_CALL(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+						ModsLevel_Stage,
+						ChooseRandomModifiers);
 
 		for( float f = 0; f < 100.0f; f += 1.0f )
 		{
@@ -115,68 +111,64 @@ ScreenEvaluation::Init()
 			ss.m_player[PLAYER_1].SetLifeRecordAt( fP1, f );
 			//ss.m_player[PLAYER_2].SetLifeRecordAt( 1-fP1, f );
 		}
+		float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
+		ss.m_player[PLAYER_1].m_iActualDancePoints = RandomInt(3);
+		ss.m_player[PLAYER_1].m_iPossibleDancePoints = 2;
+		if (RandomInt(2))
+			ss.m_player[PLAYER_1].m_iCurCombo = RandomInt(15000);
+		else
+			ss.m_player[PLAYER_1].m_iCurCombo = 0;
+		ss.m_player[PLAYER_1].UpdateComboList(0, true);
 
-		FOREACH_PlayerNumber(p)
+		ss.m_player[PLAYER_1].m_iCurCombo += 50;
+		ss.m_player[PLAYER_1].UpdateComboList(0.10f * fSeconds, false);
+
+		ss.m_player[PLAYER_1].m_iCurCombo = 0;
+		ss.m_player[PLAYER_1].UpdateComboList(0.15f * fSeconds, false);
+		ss.m_player[PLAYER_1].m_iCurCombo = 1;
+		ss.m_player[PLAYER_1].UpdateComboList(0.25f * fSeconds, false);
+		ss.m_player[PLAYER_1].m_iCurCombo = 50;
+		ss.m_player[PLAYER_1].UpdateComboList(0.35f * fSeconds, false);
+		ss.m_player[PLAYER_1].m_iCurCombo = 0;
+		ss.m_player[PLAYER_1].UpdateComboList(0.45f * fSeconds, false);
+		ss.m_player[PLAYER_1].m_iCurCombo = 1;
+		ss.m_player[PLAYER_1].UpdateComboList(0.50f * fSeconds, false);
+		ss.m_player[PLAYER_1].m_iCurCombo = 100;
+		ss.m_player[PLAYER_1].UpdateComboList(1.00f * fSeconds, false);
+		if (RandomInt(5) == 0) {
+			ss.m_player[PLAYER_1].m_bFailed = true;
+		}
+		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W1] = RandomInt(3);
+		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W2] = RandomInt(3);
+		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W3] = RandomInt(3);
+		ss.m_player[PLAYER_1].m_iPossibleGradePoints =
+			4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
+		ss.m_player[PLAYER_1].m_fLifeRemainingSeconds = randomf(90, 580);
+		ss.m_player[PLAYER_1].m_iScore = random_up_to(900 * 1000 * 1000);
+		ss.m_player[PLAYER_1].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
+		ss.m_player[PLAYER_1].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
+
+		FOREACH_ENUM(RadarCategory, rc)
 		{
-			float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
-			ss.m_player[p].m_iActualDancePoints = RandomInt(3);
-			ss.m_player[p].m_iPossibleDancePoints = 2;
-			if (RandomInt(2))
-				ss.m_player[p].m_iCurCombo = RandomInt(15000);
-			else
-				ss.m_player[p].m_iCurCombo = 0;
-			ss.m_player[p].UpdateComboList(0, true);
-
-			ss.m_player[p].m_iCurCombo += 50;
-			ss.m_player[p].UpdateComboList(0.10f * fSeconds, false);
-
-			ss.m_player[p].m_iCurCombo = 0;
-			ss.m_player[p].UpdateComboList(0.15f * fSeconds, false);
-			ss.m_player[p].m_iCurCombo = 1;
-			ss.m_player[p].UpdateComboList(0.25f * fSeconds, false);
-			ss.m_player[p].m_iCurCombo = 50;
-			ss.m_player[p].UpdateComboList(0.35f * fSeconds, false);
-			ss.m_player[p].m_iCurCombo = 0;
-			ss.m_player[p].UpdateComboList(0.45f * fSeconds, false);
-			ss.m_player[p].m_iCurCombo = 1;
-			ss.m_player[p].UpdateComboList(0.50f * fSeconds, false);
-			ss.m_player[p].m_iCurCombo = 100;
-			ss.m_player[p].UpdateComboList(1.00f * fSeconds, false);
-			if (RandomInt(5) == 0) {
-				ss.m_player[p].m_bFailed = true;
+			switch (rc) {
+				case RadarCategory_TapsAndHolds:
+				case RadarCategory_Jumps:
+				case RadarCategory_Holds:
+				case RadarCategory_Mines:
+				case RadarCategory_Hands:
+				case RadarCategory_Rolls:
+				case RadarCategory_Lifts:
+				case RadarCategory_Fakes:
+					ss.m_player[PLAYER_1].m_radarPossible[rc] =
+						1 + (random_up_to(200));
+					ss.m_player[PLAYER_1].m_radarActual[rc] = random_up_to(
+						static_cast<int>(ss.m_player[PLAYER_1].m_radarPossible[rc]));
+					break;
+				default:
+					break;
 			}
-			ss.m_player[p].m_iTapNoteScores[TNS_W1] = RandomInt(3);
-			ss.m_player[p].m_iTapNoteScores[TNS_W2] = RandomInt(3);
-			ss.m_player[p].m_iTapNoteScores[TNS_W3] = RandomInt(3);
-			ss.m_player[p].m_iPossibleGradePoints =
-			  4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
-			ss.m_player[p].m_fLifeRemainingSeconds = randomf(90, 580);
-			ss.m_player[p].m_iScore = random_up_to(900 * 1000 * 1000);
-			ss.m_player[p].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
-			ss.m_player[p].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
 
-			FOREACH_ENUM(RadarCategory, rc)
-			{
-				switch (rc) {
-					case RadarCategory_TapsAndHolds:
-					case RadarCategory_Jumps:
-					case RadarCategory_Holds:
-					case RadarCategory_Mines:
-					case RadarCategory_Hands:
-					case RadarCategory_Rolls:
-					case RadarCategory_Lifts:
-					case RadarCategory_Fakes:
-						ss.m_player[p].m_radarPossible[rc] =
-						  1 + (random_up_to(200));
-						ss.m_player[p].m_radarActual[rc] = random_up_to(
-						  static_cast<int>(ss.m_player[p].m_radarPossible[rc]));
-						break;
-					default:
-						break;
-				}
-
-				; // filled in by ScreenGameplay on start of notes
-			}
+			; // filled in by ScreenGameplay on start of notes
 		}
 	}
 
@@ -207,7 +199,7 @@ ScreenEvaluation::Init()
 	// Calculate grades
 	Grade grade[NUM_PLAYERS];
 
-	FOREACH_PlayerNumber(p) { grade[p] = Grade_Failed; }
+	grade[PLAYER_1] = Grade_Failed;
 
 	// load sounds
 	m_soundStart.Load(THEME->GetPathS(m_sName, "start"));
@@ -218,31 +210,27 @@ ScreenEvaluation::Init()
 	bool bOneHasFullW2Combo = false;
 	bool bOneHasFullW3Combo = false;
 	bool bOneHasFullW4Combo = false;
-
-	FOREACH_PlayerNumber(p)
-	{
-		if (GAMESTATE->IsPlayerEnabled(p)) {
-			if ((m_pStageStats->m_player[p].m_iMachineHighScoreIndex == 0 ||
-				 m_pStageStats->m_player[p].m_iPersonalHighScoreIndex == 0)) {
-				bOneHasNewTopRecord = true;
-			}
-
-			if (m_pStageStats->m_player[p].FullComboOfScore(TNS_W4))
-				bOneHasFullW4Combo = true;
-
-			if (m_pStageStats->m_player[p].FullComboOfScore(TNS_W3))
-				bOneHasFullW3Combo = true;
-
-			if (m_pStageStats->m_player[p].FullComboOfScore(TNS_W2))
-				bOneHasFullW2Combo = true;
-
-			if (m_pStageStats->m_player[p].FullComboOfScore(TNS_W1))
-				bOneHasFullW1Combo = true;
+	if (GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
+		if ((m_pStageStats->m_player[PLAYER_1].m_iMachineHighScoreIndex == 0 ||
+				m_pStageStats->m_player[PLAYER_1].m_iPersonalHighScoreIndex == 0)) {
+			bOneHasNewTopRecord = true;
 		}
+
+		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W4))
+			bOneHasFullW4Combo = true;
+
+		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W3))
+			bOneHasFullW3Combo = true;
+
+		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W2))
+			bOneHasFullW2Combo = true;
+
+		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W1))
+			bOneHasFullW1Combo = true;
 	}
 
 	Grade best_grade = Grade_NoData;
-	FOREACH_PlayerNumber(p) best_grade = min(best_grade, grade[p]);
+	best_grade = min(best_grade, grade[PLAYER_1]);
 
 	if (bOneHasNewTopRecord &&
 		ANNOUNCER->HasSoundsFor("evaluation new record")) {

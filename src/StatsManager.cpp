@@ -184,7 +184,7 @@ StatsManager::UnjoinPlayer(PlayerNumber pn)
 	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
 		StageStats& ss = m_vPlayedStageStats[i];
 		bool bIsActive = false;
-		FOREACH_PlayerNumber(p) if (ss.m_player[p].m_bJoined) bIsActive = true;
+		if (ss.m_player[PLAYER_1].m_bJoined) bIsActive = true;
 		FOREACH_MultiPlayer(mp) if (ss.m_multiPlayer[mp].m_bJoined) bIsActive =
 		  true;
 		if (bIsActive)
@@ -199,12 +199,9 @@ void
 StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 {
 	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
-		FOREACH_PlayerNumber(pn)
-		{
-			const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player[pn];
-			apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
-							  pss.m_vpPossibleSteps.end());
-		}
+		const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player[PLAYER_1];
+		apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
+							pss.m_vpPossibleSteps.end());
 
 		FOREACH_MultiPlayer(mp)
 		{

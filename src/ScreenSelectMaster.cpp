@@ -343,24 +343,21 @@ ScreenSelectMaster::BeginScreen()
 		}
 	}
 
-	FOREACH_PlayerNumber(p)
-	{
-		m_iChoice[p] = (iDefaultChoice != -1) ? iDefaultChoice : 0;
-		CLAMP(m_iChoice[p], 0, (int)m_aGameCommands.size() - 1);
-		m_bChosen[p] = false;
-		m_bDoubleChoice[p] = false;
-	}
+	m_iChoice[PLAYER_1] = (iDefaultChoice != -1) ? iDefaultChoice : 0;
+	CLAMP(m_iChoice[PLAYER_1], 0, (int)m_aGameCommands.size() - 1);
+	m_bChosen[PLAYER_1] = false;
+	m_bDoubleChoice[PLAYER_1] = false;
+
 	if (!SHARED_SELECTION) {
-		FOREACH_ENUM(PlayerNumber, pn)
+		if (GAMESTATE->IsHumanPlayer(PLAYER_1))
+		{} else
 		{
-			if (GAMESTATE->IsHumanPlayer(pn))
-				continue;
-			if (SHOW_CURSOR) {
-				if (m_sprCursor[pn])
-					m_sprCursor[pn]->SetVisible(false);
-			}
-			if (SHOW_SCROLLER)
-				m_Scroller[pn].SetVisible(false);
+		if (SHOW_CURSOR) {
+			if (m_sprCursor[PLAYER_1])
+				m_sprCursor[PLAYER_1]->SetVisible(false);
+		}
+		if (SHOW_SCROLLER)
+			m_Scroller[PLAYER_1].SetVisible(false);
 		}
 	}
 
@@ -440,7 +437,7 @@ ScreenSelectMaster::UpdateSelectableChoices()
 	GetActiveElementPlayerNumbers(vpns);
 	int first_playable = -1;
 	bool on_unplayable[NUM_PLAYERS];
-	FOREACH_PlayerNumber(pn) { on_unplayable[pn] = false; }
+	on_unplayable[PLAYER_1] = false;
 
 	for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
 		RString command = "Enabled";
@@ -648,14 +645,11 @@ ScreenSelectMaster::ChangePage(int iNewChoice)
 	Page newPage = GetPage(iNewChoice);
 
 	// If anyone has already chosen, don't allow changing of pages
-	FOREACH_PlayerNumber(p)
-	{
-		if (GAMESTATE->IsHumanPlayer(p) && m_bChosen[p])
-			return false;
-	}
+	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && m_bChosen[PLAYER_1])
+		return false;
 
 	// change both players
-	FOREACH_PlayerNumber(p) m_iChoice[p] = iNewChoice;
+	m_iChoice[PLAYER_1] = iNewChoice;
 
 	const RString sIconAndExplanationCommand =
 	  ssprintf("SwitchToPage%d", newPage + 1);
@@ -721,8 +715,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 	if (SHARED_SELECTION || page != PAGE_1) {
 		/* Set the new m_iChoice even for disabled players, since a player might
 		 * join on a SHARED_SELECTION after the cursor has been moved. */
-		FOREACH_ENUM(PlayerNumber, p)
-		vpns.push_back(p);
+		vpns.push_back(PLAYER_1);
 	} else {
 		vpns.push_back(pn);
 	}
@@ -857,7 +850,7 @@ ScreenSelectMaster::DoMenuStart(PlayerNumber pn)
 		return 0;
 
 	bool bAnyChosen = false;
-	FOREACH_PlayerNumber(p) bAnyChosen |= m_bChosen[p];
+	bAnyChosen |= m_bChosen[PLAYER_1];
 
 	m_bChosen[pn] = true;
 

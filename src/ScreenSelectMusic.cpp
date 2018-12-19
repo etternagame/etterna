@@ -146,12 +146,8 @@ ScreenSelectMusic::Init()
 		  INPUTMAPPER->GetInputScheme()->ButtonNameToIndex(
 			THEME->GetMetric(m_sName, "NextGroupButton"));
 	}
-
-	FOREACH_ENUM(PlayerNumber, p)
-	{
-		m_bSelectIsDown[p] = false; // used by UpdateSelectButton
-		m_bAcceptSelectRelease[p] = false;
-	}
+	m_bSelectIsDown[PLAYER_1] = false; // used by UpdateSelectButton
+	m_bAcceptSelectRelease[PLAYER_1] = false;
 
 	ScreenWithMenuElements::Init();
 
@@ -177,14 +173,11 @@ ScreenSelectMusic::Init()
 	this->AddChild(&m_MusicWheel);
 
 	if (USE_OPTIONS_LIST) {
-		FOREACH_PlayerNumber(p)
-		{
-			m_OptionsList[p].SetName("OptionsList" + PlayerNumberToString(p));
-			m_OptionsList[p].Load("OptionsList", p);
-			m_OptionsList[p].SetDrawOrder(100);
-			ActorUtil::LoadAllCommands(m_OptionsList[p], m_sName);
-			this->AddChild(&m_OptionsList[p]);
-		}
+		m_OptionsList[PLAYER_1].SetName("OptionsList" + PlayerNumberToString(PLAYER_1));
+		m_OptionsList[PLAYER_1].Load("OptionsList", PLAYER_1);
+		m_OptionsList[PLAYER_1].SetDrawOrder(100);
+		ActorUtil::LoadAllCommands(m_OptionsList[PLAYER_1], m_sName);
+		this->AddChild(&m_OptionsList[PLAYER_1]);
 		/*m_OptionsList[PLAYER_1].Link(&m_OptionsList[PLAYER_2]);
 		m_OptionsList[PLAYER_2].Link(&m_OptionsList[PLAYER_1]);
 		*/
@@ -256,7 +249,7 @@ ScreenSelectMusic::BeginScreen()
 	ZERO(m_iSelection);
 
 	if (USE_OPTIONS_LIST)
-		FOREACH_PlayerNumber(pn) m_OptionsList[pn].Reset();
+		m_OptionsList[PLAYER_1].Reset();
 
 	AfterMusicChange();
 
@@ -782,8 +775,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				msg.SetParam("Player", input.pn);
 				MESSAGEMAN->Broadcast(msg);
 				// unset all steps
-				FOREACH_ENUM(PlayerNumber, p)
-				m_bStepsChosen[p] = false;
+				m_bStepsChosen[PLAYER_1] = false;
 				m_SelectionState = SelectionState_SelectingSong;
 			}
 		}
@@ -930,8 +922,7 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 		// That way, after music change will clamp to the nearest in the
 		// StepsDisplayList.
 		GAMESTATE->m_pCurSteps[master_pn].SetWithoutBroadcast(NULL);
-		FOREACH_ENUM(PlayerNumber, p)
-		GAMESTATE->m_pCurSteps[p].SetWithoutBroadcast(NULL);
+		GAMESTATE->m_pCurSteps[PLAYER_1].SetWithoutBroadcast(NULL);
 
 		/* If a course is selected, it may no longer be playable.
 		 * Let MusicWheel know about the late join. */
@@ -1138,15 +1129,11 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 			}
 		} break;
 	}
-
-	FOREACH_ENUM(PlayerNumber, p)
-	{
-		if (m_SelectionState == SelectionState_SelectingSteps) {
-			if (m_OptionsList[p].IsOpened())
-				m_OptionsList[p].Close();
-		}
-		UpdateSelectButton(p, false);
+	if (m_SelectionState == SelectionState_SelectingSteps) {
+		if (m_OptionsList[PLAYER_1].IsOpened())
+			m_OptionsList[PLAYER_1].Close();
 	}
+	UpdateSelectButton(PLAYER_1, false);
 
 	m_SelectionState = GetNextSelectionState();
 	Message msg("Start" + SelectionStateToString(m_SelectionState));
@@ -1338,7 +1325,7 @@ ScreenSelectMusic::AfterMusicChange()
 		case WheelItemDataType_Roulette:
 		case WheelItemDataType_Random:
 		case WheelItemDataType_Custom:
-			FOREACH_PlayerNumber(p) m_iSelection[p] = -1;
+			m_iSelection[PLAYER_1] = -1;
 			if (SAMPLE_MUSIC_PREVIEW_MODE == SampleMusicPreviewMode_LastSong) {
 				// HACK: Make random music work in LastSong mode. -aj
 				if (m_sSampleMusicToPlay == m_sRandomMusicPath) {

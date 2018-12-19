@@ -1621,8 +1621,8 @@ class LunaHighScore : public Luna<HighScore>
 	static int IsFillInMarker(T* p, lua_State* L)
 	{
 		bool bIsFillInMarker = false;
-		FOREACH_PlayerNumber(pn) bIsFillInMarker |=
-		  p->GetName() == RANKING_TO_FILL_IN_MARKER[pn];
+		bIsFillInMarker |=
+		  p->GetName() == RANKING_TO_FILL_IN_MARKER[PLAYER_1];
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}
