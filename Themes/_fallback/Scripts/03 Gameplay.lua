@@ -394,27 +394,12 @@ local CodeDetectorCodes = {
 		dance = "",
 		pump = "UpLeft,DownLeft,UpRight,DownRight,UpLeft,DownLeft,UpRight,DownRight,DownRight" -- drop
 	},
-	HoldNotes = {
-		default = "",
-		dance = ""
-	},
 	Mines = {
-		default = ""
-	},
-	Dark = {
 		default = ""
 	},
 	Hidden = {
 		default = "",
 		pump = "UpLeft,UpRight,DownLeft,DownRight,Center" -- vanish
-	},
-	RandomVanish = {
-		default = ""
-	},
-	-- boost (accel), brake (decel), stealth (nonstep)
-	--- next/prev modifiers
-	NextTransform = {
-		default = ""
 	},
 	NextScrollSpeed = {
 		default = "",
@@ -425,21 +410,6 @@ local CodeDetectorCodes = {
 		default = "",
 		dance = "",
 		pump = "UpRight,UpLeft,UpRight,UpLeft,Center"
-	},
-	NextAccel = {
-		default = "",
-		dance = ""
-	},
-	NextEffect = {
-		default = "",
-		dance = ""
-	},
-	NextAppearance = {
-		default = "",
-		dance = ""
-	},
-	NextTurn = {
-		default = ""
 	},
 	-- cancel all in player options
 	CancelAllPlayerOptions = {
