@@ -205,6 +205,7 @@ PrefsManager::PrefsManager()
   , // Work-In-Progress.. disable by default.
   m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
   , UseStbImageLibrary("UseStbImageLibrary", false)
+  , EnablePitchRates("EnablePitchRates", true)
   , m_fPadStickSeconds("PadStickSeconds", 0)
   , m_EditRecordModeLeadIn("EditRecordModeLeadIn", 1.0f)
   , m_bForceMipMaps("ForceMipMaps", false)

@@ -743,6 +743,7 @@ InitializeConfOptions()
 	ADD(ConfOption("Announcer", Announcer, AnnouncerChoices));
 	ADD(ConfOption("DefaultNoteSkin", DefaultNoteSkin, DefaultNoteSkinChoices));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
+	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("ShowCaution", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
