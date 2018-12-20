@@ -4,8 +4,7 @@
 #include "PlayerNumber.h"
 
 static const char* PlayerNumberNames[] = {
-	"P1",
-	"P2"
+	"P1"
 };
 XToString(PlayerNumber);
 XToLocalizedString(PlayerNumber);

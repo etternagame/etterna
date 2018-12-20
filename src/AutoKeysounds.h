@@ -30,8 +30,7 @@ class AutoKeysounds
 	void LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain);
 	static void LoadTracks(const Song* pSong,
 						   RageSoundReader*& pGlobal,
-						   RageSoundReader*& pPlayer1,
-						   RageSoundReader*& pPlayer2);
+						   RageSoundReader*& pPlayer1);
 
 	NoteData m_ndAutoKeysoundsOnly[NUM_PLAYERS];
 	vector<RageSound> m_vKeysounds;

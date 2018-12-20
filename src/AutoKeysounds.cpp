@@ -113,15 +113,13 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 void
 AutoKeysounds::LoadTracks(const Song* pSong,
 						  RageSoundReader*& pShared,
-						  RageSoundReader*& pPlayer1,
-						  RageSoundReader*& pPlayer2)
+						  RageSoundReader*& pPlayer1)
 {
 	// If we have two players, prefer a three-track sound; otherwise prefer a
 	// two-track sound.
 	// bool bTwoPlayers = GAMESTATE->GetNumPlayersEnabled() == 2;
 
 	pPlayer1 = nullptr;
-	pPlayer2 = nullptr;
 	pShared = nullptr;
 
 	vector<RString> vsMusicFile;
@@ -197,7 +195,7 @@ AutoKeysounds::FinishLoading()
 	Song* pSong = GAMESTATE->m_pCurSong;
 
 	vector<RageSoundReader*> apSounds;
-	LoadTracks(pSong, m_pSharedSound, m_pPlayerSounds[0], m_pPlayerSounds[1]);
+	LoadTracks(pSong, m_pSharedSound, m_pPlayerSounds[0]);
 
 	// Load autoplay sounds, if any.
 	{
@@ -232,15 +230,6 @@ AutoKeysounds::FinishLoading()
 		  new RageSoundReader_PostBuffering(m_pPlayerSounds[0]);
 		m_pPlayerSounds[0] = new RageSoundReader_Pan(m_pPlayerSounds[0]);
 		apSounds.push_back(m_pPlayerSounds[0]);
-	}
-
-	if (m_pPlayerSounds[1] != nullptr) {
-		m_pPlayerSounds[1] =
-		  new RageSoundReader_PitchChange(m_pPlayerSounds[1]);
-		m_pPlayerSounds[1] =
-		  new RageSoundReader_PostBuffering(m_pPlayerSounds[1]);
-		m_pPlayerSounds[1] = new RageSoundReader_Pan(m_pPlayerSounds[1]);
-		apSounds.push_back(m_pPlayerSounds[1]);
 	}
 
 	if (apSounds.size() > 1) {

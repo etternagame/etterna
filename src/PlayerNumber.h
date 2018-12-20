@@ -1,4 +1,4 @@
-﻿/* PlayerNumber - A simple type representing a player. */
+/* PlayerNumber - A simple type representing a player. */
 
 #ifndef PlayerNumber_H
 #define PlayerNumber_H
@@ -9,8 +9,7 @@
 enum PlayerNumber
 {
 	PLAYER_1 = 0,
-	PLAYER_2,
-	NUM_PlayerNumber,	// leave this at the end
+	NUM_PlayerNumber, // leave this at the end
 	PlayerNumber_Invalid
 };
 const PlayerNumber NUM_PLAYERS = NUM_PlayerNumber;
@@ -23,7 +22,7 @@ LuaDeclareType(PlayerNumber);
 /** @brief A foreach loop to handle the different players. */
 #define FOREACH_PlayerNumber(pn) FOREACH_ENUM(PlayerNumber, pn)
 
-const PlayerNumber	OPPOSITE_PLAYER[NUM_PLAYERS] = { PLAYER_1 };
+const PlayerNumber OPPOSITE_PLAYER[NUM_PLAYERS] = { PLAYER_1 };
 
 enum MultiPlayer
 {
