@@ -121,7 +121,6 @@ StepsDisplayList::UpdatePositions()
 
 	// Choices for each player. If only one player is active, it's the same for both.
 	int P1Choice = iCurrentRow[PLAYER_1];
-	//int P2Choice = GAMESTATE->IsHumanPlayer(PLAYER_2)? iCurrentRow[PLAYER_2]: GAMESTATE->IsHumanPlayer(PLAYER_1)? iCurrentRow[PLAYER_1]: 0;
 
 	vector<Row>& Rows = m_Rows;
 

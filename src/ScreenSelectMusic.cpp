@@ -178,9 +178,6 @@ ScreenSelectMusic::Init()
 		m_OptionsList[PLAYER_1].SetDrawOrder(100);
 		ActorUtil::LoadAllCommands(m_OptionsList[PLAYER_1], m_sName);
 		this->AddChild(&m_OptionsList[PLAYER_1]);
-		/*m_OptionsList[PLAYER_1].Link(&m_OptionsList[PLAYER_2]);
-		m_OptionsList[PLAYER_2].Link(&m_OptionsList[PLAYER_1]);
-		*/
 	}
 
 	RageSoundLoadParams SoundParams;

@@ -60,7 +60,6 @@ ScreenEvaluation::Init()
 	// (i.e. StageStats not already filled)
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		PROFILEMAN->LoadFirstAvailableProfile(PLAYER_1);
-		//PROFILEMAN->LoadFirstAvailableProfile(PLAYER_2);
 
 		STATSMAN->m_vPlayedStageStats.clear();
 		STATSMAN->m_vPlayedStageStats.push_back(StageStats());
@@ -109,7 +108,6 @@ ScreenEvaluation::Init()
 		{
 			float fP1 = fmodf(f/100*4+.3f,1);
 			ss.m_player[PLAYER_1].SetLifeRecordAt( fP1, f );
-			//ss.m_player[PLAYER_2].SetLifeRecordAt( 1-fP1, f );
 		}
 		float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
 		ss.m_player[PLAYER_1].m_iActualDancePoints = RandomInt(3);

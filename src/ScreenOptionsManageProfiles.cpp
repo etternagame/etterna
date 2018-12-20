@@ -328,10 +328,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
 					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
 				break;
-			/*case ProfileAction_MergeToP2:
-				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
-					ProfileManager::m_sDefaultLocalProfileID[PLAYER_2].Get());
-				break;*/
 			case ProfileAction_ChangeToGuest:
 				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
 					ProfileType_Guest);

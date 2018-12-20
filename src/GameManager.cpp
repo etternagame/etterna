@@ -157,13 +157,7 @@ static const Style g_Style_Dance_Single =
 			{ TRACK_2,	-DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+DANCE_COL_SPACING*1.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_2,	-DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_3,	+DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_4,	+DANCE_COL_SPACING*1.5f, NULL },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -195,17 +189,7 @@ static const Style g_Style_Dance_Double =
 			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-DANCE_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -236,15 +220,7 @@ static const Style g_Style_Dance_Solo = {
 			{ TRACK_4,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+DANCE_COL_SPACING*2.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_2,	-DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_3,	-DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_4,	+DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_6,	+DANCE_COL_SPACING*2.5f, NULL },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
@@ -271,12 +247,7 @@ static const Style g_Style_Dance_ThreePanel =
 			{ TRACK_1,	-DANCE_COL_SPACING*1.0f, NULL },
 			{ TRACK_2,	+DANCE_COL_SPACING*0.0f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*1.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-DANCE_COL_SPACING*1.0f, NULL },
-			{ TRACK_2,	+DANCE_COL_SPACING*0.0f, NULL },
-			{ TRACK_3,	+DANCE_COL_SPACING*1.0f, NULL },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		// 4 3 5
@@ -375,14 +346,7 @@ static const Style g_Style_Pump_Single = {
 			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-PUMP_COL_SPACING*2.0f, NULL },
-			{ TRACK_2,	-PUMP_COL_SPACING*1.0f, NULL },
-			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
-			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -413,15 +377,7 @@ static const Style g_Style_Pump_HalfDouble =
 			{ TRACK_4,	+PUMP_COL_SPACING*0.5f+4, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*1.5f+4, NULL },
 			{ TRACK_6,	+PUMP_COL_SPACING*2.5f+4, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-PUMP_COL_SPACING*2.5f-4, NULL },
-			{ TRACK_2,	-PUMP_COL_SPACING*1.5f-4, NULL },
-			{ TRACK_3,	-PUMP_COL_SPACING*0.5f-4, NULL },
-			{ TRACK_4,	+PUMP_COL_SPACING*0.5f+4, NULL },
-			{ TRACK_5,	+PUMP_COL_SPACING*1.5f+4, NULL },
-			{ TRACK_6,	+PUMP_COL_SPACING*2.5f+4, NULL },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ Style::NO_MAPPING, 1, 0, Style::NO_MAPPING, 2, Style::END_MAPPING },
@@ -456,19 +412,7 @@ static const Style g_Style_Pump_Double =
 			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-PUMP_COL_SPACING*4.5f-4, NULL },
-			{ TRACK_2,	-PUMP_COL_SPACING*3.5f-4, NULL },
-			{ TRACK_3,	-PUMP_COL_SPACING*2.5f-4, NULL },
-			{ TRACK_4,	-PUMP_COL_SPACING*1.5f-4, NULL },
-			{ TRACK_5,	-PUMP_COL_SPACING*0.5f-4, NULL },
-			{ TRACK_6,	+PUMP_COL_SPACING*0.5f+4, NULL },
-			{ TRACK_7,	+PUMP_COL_SPACING*1.5f+4, NULL },
-			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
-			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
-			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -555,16 +499,7 @@ static const Style g_Style_KB7_Single = {
             		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
             		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
             		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,    -KB7_COL_SPACING*3.0f, NULL },
-            		{ TRACK_2,    -KB7_COL_SPACING*2.0f, NULL },
-            		{ TRACK_3,    -KB7_COL_SPACING*1.0f, NULL },
-            		{ TRACK_4,    +KB7_COL_SPACING*0.0f, NULL },
-            		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
-            		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
-            		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -649,14 +584,7 @@ static const Style g_Style_Ez2_Single = {
 			{ TRACK_3,	+EZ2_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+EZ2_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+EZ2_COL_SPACING*2.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-EZ2_COL_SPACING*2.0f, NULL },
-			{ TRACK_2,	-EZ2_COL_SPACING*1.0f, NULL },
-			{ TRACK_3,	+EZ2_COL_SPACING*0.0f, NULL },
-			{ TRACK_4,	+EZ2_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+EZ2_COL_SPACING*2.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -695,16 +623,7 @@ static const Style g_Style_Ez2_Real =
 			{ TRACK_5,	+EZ2_REAL_COL_SPACING*0.9f, NULL }, 
 			{ TRACK_6,	+EZ2_REAL_COL_SPACING*1.6f, NULL },
 			{ TRACK_7,	+EZ2_REAL_COL_SPACING*2.3f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-EZ2_REAL_COL_SPACING*2.3f, NULL },
-			{ TRACK_2,	-EZ2_REAL_COL_SPACING*1.6f, NULL },
-			{ TRACK_3,	-EZ2_REAL_COL_SPACING*0.9f, NULL }, 
-			{ TRACK_4,	+EZ2_REAL_COL_SPACING*0.0f, NULL },
-			{ TRACK_5,	+EZ2_REAL_COL_SPACING*0.9f, NULL }, 
-			{ TRACK_6,	+EZ2_REAL_COL_SPACING*1.6f, NULL },
-			{ TRACK_7,	+EZ2_REAL_COL_SPACING*2.3f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -748,19 +667,7 @@ static const Style g_Style_Ez2_Double =
 			{ TRACK_8,	+EZ2_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+EZ2_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+EZ2_COL_SPACING*4.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-EZ2_COL_SPACING*4.5f, NULL },
-			{ TRACK_2,	-EZ2_COL_SPACING*3.5f, NULL },
-			{ TRACK_3,	-EZ2_COL_SPACING*2.5f, NULL },
-			{ TRACK_4,	-EZ2_COL_SPACING*1.5f, NULL },
-			{ TRACK_5,	-EZ2_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+EZ2_COL_SPACING*0.5f, NULL },
-			{ TRACK_7,	+EZ2_COL_SPACING*1.5f, NULL },
-			{ TRACK_8,	+EZ2_COL_SPACING*2.5f, NULL },
-			{ TRACK_9,	+EZ2_COL_SPACING*3.5f, NULL },
-			{ TRACK_10,	+EZ2_COL_SPACING*4.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -861,14 +768,7 @@ static const Style g_Style_Para_Single = {
 			{ TRACK_3,	+PARA_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PARA_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PARA_COL_SPACING*2.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-PARA_COL_SPACING*2.0f, NULL },
-			{ TRACK_2,	-PARA_COL_SPACING*1.0f, NULL },
-			{ TRACK_3,	+PARA_COL_SPACING*0.0f, NULL },
-			{ TRACK_4,	+PARA_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+PARA_COL_SPACING*2.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -952,17 +852,7 @@ static const Style g_Style_DS3DDX_Single = {
 			{ TRACK_6,	+DS3DDX_COL_SPACING*1.0f, NULL },
 			{ TRACK_7,	+DS3DDX_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+DS3DDX_COL_SPACING*3.0f , NULL},
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-DS3DDX_COL_SPACING*3.0f, NULL },
-			{ TRACK_2,	-DS3DDX_COL_SPACING*2.0f, NULL },
-			{ TRACK_3,	-DS3DDX_COL_SPACING*1.0f, NULL },
-			{ TRACK_4,	-DS3DDX_COL_SPACING*0.0f, NULL },
-			{ TRACK_5,	+DS3DDX_COL_SPACING*0.0f, NULL },
-			{ TRACK_6,	+DS3DDX_COL_SPACING*1.0f, NULL },
-			{ TRACK_7,	+DS3DDX_COL_SPACING*2.0f, NULL },
-			{ TRACK_8,	+DS3DDX_COL_SPACING*3.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1049,15 +939,7 @@ static const Style g_Style_Beat_Single5 =
 			{ TRACK_4,	+BEAT_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+BEAT_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, "scratch" },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-BEAT_COL_SPACING*2.5f, NULL },
-			{ TRACK_2,	-BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_3,	-BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_4,	+BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, "scratch" },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, Style::NO_MAPPING, Style::NO_MAPPING, 5, 5, Style::END_MAPPING },
@@ -1094,21 +976,7 @@ static const Style g_Style_Beat_Double5 =
 			{ TRACK_10,	+BEAT_COL_SPACING*3.5f, NULL },
 			{ TRACK_11,	+BEAT_COL_SPACING*4.5f, NULL },
 			{ TRACK_12,	+BEAT_COL_SPACING*6.0f, "scratch" },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-BEAT_COL_SPACING*6.0f, NULL },
-			{ TRACK_2,	-BEAT_COL_SPACING*5.0f, NULL },
-			{ TRACK_3,	-BEAT_COL_SPACING*4.0f, NULL },
-			{ TRACK_4,	-BEAT_COL_SPACING*3.0f, NULL },
-			{ TRACK_5,	-BEAT_COL_SPACING*2.0f, NULL },
-			{ TRACK_6,	-BEAT_COL_SPACING*1.5f, "scratch" },
-			{ TRACK_7,	+BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_8,	+BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_9,	+BEAT_COL_SPACING*2.5f, NULL },
-			{ TRACK_10,	+BEAT_COL_SPACING*3.5f, NULL },
-			{ TRACK_11,	+BEAT_COL_SPACING*4.5f, NULL },
-			{ TRACK_12,	+BEAT_COL_SPACING*6.0f, "scratch" },
-		},*/
+		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, Style::NO_MAPPING, Style::NO_MAPPING, 5, 5, Style::END_MAPPING },
@@ -1141,17 +1009,7 @@ static const Style g_Style_Beat_Single7 =
 			{ TRACK_5,	+BEAT_COL_SPACING*2.0f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, NULL },
 			{ TRACK_7,	+BEAT_COL_SPACING*4.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_8,	+BEAT_COL_SPACING*4.0f, "scratch" },
-			{ TRACK_1,	-BEAT_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-BEAT_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+BEAT_COL_SPACING*2.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1193,25 +1051,7 @@ static const Style g_Style_Beat_Double7 =
 			{ TRACK_14,	+BEAT_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+BEAT_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+BEAT_COL_SPACING*8.0f, "scratch" },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_8,	-BEAT_COL_SPACING*8.0f, "scratch" },
-			{ TRACK_1,	-BEAT_COL_SPACING*6.5f, NULL },
-			{ TRACK_2,	-BEAT_COL_SPACING*5.5f, NULL },
-			{ TRACK_3,	-BEAT_COL_SPACING*4.5f, NULL },
-			{ TRACK_4,	-BEAT_COL_SPACING*3.5f, NULL },
-			{ TRACK_5,	-BEAT_COL_SPACING*2.5f, NULL },
-			{ TRACK_6,	-BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	-BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_9,	+BEAT_COL_SPACING*0.5f, NULL },
-			{ TRACK_10,	+BEAT_COL_SPACING*1.5f, NULL },
-			{ TRACK_11,	+BEAT_COL_SPACING*2.5f, NULL },
-			{ TRACK_12,	+BEAT_COL_SPACING*3.5f, NULL },
-			{ TRACK_13,	+BEAT_COL_SPACING*4.5f, NULL },
-			{ TRACK_14,	+BEAT_COL_SPACING*5.5f, NULL },
-			{ TRACK_15,	+BEAT_COL_SPACING*6.5f, NULL },
-			{ TRACK_16,	+BEAT_COL_SPACING*8.0f, "scratch" },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1305,13 +1145,7 @@ static const Style g_Style_Maniax_Single = {
 			{ TRACK_2,	-MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+MANIAX_COL_SPACING*1.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-MANIAX_COL_SPACING*1.5f, NULL },
-			{ TRACK_2,	-MANIAX_COL_SPACING*0.5f, NULL },
-			{ TRACK_3,	+MANIAX_COL_SPACING*0.5f, NULL },
-			{ TRACK_4,	+MANIAX_COL_SPACING*1.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1345,17 +1179,7 @@ static const Style g_Style_Maniax_Double =
 			{ TRACK_6,	+MANIAX_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+MANIAX_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+MANIAX_COL_SPACING*3.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-MANIAX_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-MANIAX_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-MANIAX_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-MANIAX_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+MANIAX_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+MANIAX_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+MANIAX_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+MANIAX_COL_SPACING*3.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1441,13 +1265,7 @@ static const Style g_Style_Techno_Single4 =
 			{ TRACK_2,	-TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_3,	+TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_4,	+TECHNO_COL_SPACING*1.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1478,14 +1296,7 @@ static const Style g_Style_Techno_Single5 =
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+TECHNO_COL_SPACING*2.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*2.0f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*1.0f, NULL },
-			{ TRACK_3,	+TECHNO_COL_SPACING*0.0f, NULL },
-			{ TRACK_4,	+TECHNO_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+TECHNO_COL_SPACING*2.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1537,17 +1348,7 @@ static const Style g_Style_Techno_Single8 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1581,17 +1382,7 @@ static const Style g_Style_Techno_Double4 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1627,19 +1418,7 @@ static const Style g_Style_Techno_Double5 = {
 			{ TRACK_8,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+TECHNO_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+TECHNO_COL_SPACING*4.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*4.5f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_3,	-TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_4,	-TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_5,	-TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_7,	+TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_8,	+TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_9,	+TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_10,	+TECHNO_COL_SPACING*4.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1698,25 +1477,7 @@ static const Style g_Style_Techno_Double8 = {
 			{ TRACK_14,	+TECHNO_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+TECHNO_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+TECHNO_COL_SPACING*7.5f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-TECHNO_COL_SPACING*7.5f, NULL },
-			{ TRACK_2,	-TECHNO_COL_SPACING*6.5f, NULL },
-			{ TRACK_3,	-TECHNO_COL_SPACING*5.5f, NULL },
-			{ TRACK_4,	-TECHNO_COL_SPACING*4.5f, NULL },
-			{ TRACK_5,	-TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_6,	-TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_7,	-TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_8,	-TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_9,	+TECHNO_COL_SPACING*0.5f, NULL },
-			{ TRACK_10,	+TECHNO_COL_SPACING*1.5f, NULL },
-			{ TRACK_11,	+TECHNO_COL_SPACING*2.5f, NULL },
-			{ TRACK_12,	+TECHNO_COL_SPACING*3.5f, NULL },
-			{ TRACK_13,	+TECHNO_COL_SPACING*4.5f, NULL },
-			{ TRACK_14,	+TECHNO_COL_SPACING*5.5f, NULL },
-			{ TRACK_15,	+TECHNO_COL_SPACING*6.5f, NULL },
-			{ TRACK_16,	+TECHNO_COL_SPACING*7.5f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1827,14 +1588,7 @@ static const Style g_Style_Popn_Five = {
 			{ TRACK_3,	+POPN5_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+POPN5_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+POPN5_COL_SPACING*2.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-POPN5_COL_SPACING*2.0f, NULL },
-			{ TRACK_2,	-POPN5_COL_SPACING*1.0f, NULL },
-			{ TRACK_3,	+POPN5_COL_SPACING*0.0f, NULL },
-			{ TRACK_4,	+POPN5_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+POPN5_COL_SPACING*2.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -1883,18 +1637,7 @@ static const Style g_Style_Popn_Nine = {
 			{ TRACK_7,	+POPN9_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+POPN9_COL_SPACING*3.0f, NULL },
 			{ TRACK_9,	+POPN9_COL_SPACING*4.0f, NULL },
-		},/*
-		{	// PLAYER_2
-			{ TRACK_1,	-POPN9_COL_SPACING*4.0f, NULL },
-			{ TRACK_2,	-POPN9_COL_SPACING*3.0f, NULL },
-			{ TRACK_3,	-POPN9_COL_SPACING*2.0f, NULL },
-			{ TRACK_4,	-POPN9_COL_SPACING*1.0f, NULL },
-			{ TRACK_5,	+POPN9_COL_SPACING*0.0f, NULL },
-			{ TRACK_6,	+POPN9_COL_SPACING*1.0f, NULL },
-			{ TRACK_7,	+POPN9_COL_SPACING*2.0f, NULL },
-			{ TRACK_8,	+POPN9_COL_SPACING*3.0f, NULL },
-			{ TRACK_9,	+POPN9_COL_SPACING*4.0f, NULL },
-		},*/
+		},
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]

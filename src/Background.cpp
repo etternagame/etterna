@@ -1007,16 +1007,11 @@ BrightnessOverlay::SetActualBrightness()
 
 	if (!GAMESTATE->IsHumanPlayer(PLAYER_1))
 		fLeftBrightness = fRightBrightness;
-	/*
-	if( !GAMESTATE->IsHumanPlayer(PLAYER_2) )
-		fRightBrightness = fLeftBrightness;
-	*/
 
 	RageColor LeftColor = GetBrightnessColor(fLeftBrightness);
 	RageColor RightColor = GetBrightnessColor(fRightBrightness);
 
 	m_quadBGBrightness[PLAYER_1].SetDiffuse( LeftColor );
-	//m_quadBGBrightness[PLAYER_2].SetDiffuse( RightColor );
 	m_quadBGBrightnessFade.SetDiffuseLeftEdge( LeftColor );
 	m_quadBGBrightnessFade.SetDiffuseRightEdge( RightColor );
 }
