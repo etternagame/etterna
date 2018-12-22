@@ -1783,8 +1783,8 @@ class LunaProfile : public Luna<Profile>
 	{
 		bool o = false;
 
-		if (GAMESTATE->m_pCurSteps[PLAYER_1]) {
-			const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+		if (GAMESTATE->m_pCurSteps) {
+			const string& ck = GAMESTATE->m_pCurSteps->GetChartKey();
 
 			if (p->PermaMirrorCharts.count(ck))
 				o = true;

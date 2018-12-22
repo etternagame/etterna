@@ -89,13 +89,9 @@ ScreenOptionsMaster::ExportOptions(int r, const vector<PlayerNumber>& vpns)
 	CHECKPOINT_M(ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())));
 
 	OptionRow& row = *m_pRows[r];
-	bool bRowHasFocus[NUM_PLAYERS];
-	ZERO(bRowHasFocus);
-	FOREACH_CONST(PlayerNumber, vpns, p)
-	{
-		int iCurRow = m_iCurrentRow[*p];
-		bRowHasFocus[*p] = iCurRow == r;
-	}
+	bool bRowHasFocus = false;
+	int iCurRow = m_iCurrentRow;
+	bRowHasFocus = iCurRow == r;
 	m_iChangeMask |= row.ExportOptions(vpns, bRowHasFocus);
 }
 

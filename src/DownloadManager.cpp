@@ -1900,9 +1900,9 @@ DownloadManager::OnLogin()
 		DLMAN->UploadScores();
 		DLMAN->UpdateOnlineScoreReplayData();
 	}
-	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+		  GAMESTATE->m_pCurSteps->GetChartKey());
 	MESSAGEMAN->Broadcast("Login");
 	DLMAN->loggingIn = false;
 }

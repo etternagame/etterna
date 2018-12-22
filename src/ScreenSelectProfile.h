@@ -22,11 +22,11 @@ class ScreenSelectProfile : public ScreenWithMenuElements
 	// Lua
 	void PushSelf(lua_State* L) override;
 	bool SetProfileIndex(PlayerNumber pn, int iProfileIndex);
-	int GetProfileIndex(PlayerNumber pn) { return m_iSelectedProfiles[pn]; }
+	int GetProfileIndex(PlayerNumber pn) { return m_iSelectedProfiles; }
 	bool Finish();
 
   protected:
-	int m_iSelectedProfiles[NUM_PLAYERS];
+	int m_iSelectedProfiles;
 };
 
 #endif

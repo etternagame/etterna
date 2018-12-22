@@ -41,7 +41,7 @@ class ScreenEvaluation : public ScreenWithMenuElements
 	RageSound m_soundStart; // sound played if the player passes or fails
 
 	/** @brief Did a player save a screenshot of their score? */
-	bool m_bSavedScreenshot[NUM_PLAYERS];
+	bool m_bSavedScreenshot;
 };
 
 #endif

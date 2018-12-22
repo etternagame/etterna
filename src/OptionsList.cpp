@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
@@ -522,13 +522,13 @@ OptionsList::TweenOnCurrentRow(bool bForward)
 void
 OptionsList::ImportRow(const RString& sRow)
 {
-	vector<bool> aSelections[NUM_PLAYERS];
+	vector<bool> aSelections;
 	vector<PlayerNumber> vpns;
 	vpns.push_back(m_pn);
 	OptionRowHandler* pHandler = m_Rows[sRow];
-	aSelections[m_pn].resize(pHandler->m_Def.m_vsChoices.size());
+	aSelections.resize(pHandler->m_Def.m_vsChoices.size());
 	pHandler->ImportOption(NULL, vpns, aSelections);
-	m_bSelections[sRow] = aSelections[m_pn];
+	m_bSelections[sRow] = aSelections;
 
 	if (m_setTopMenus.find(sRow) != m_setTopMenus.end())
 		fill(m_bSelections[sRow].begin(), m_bSelections[sRow].end(), false);
@@ -540,8 +540,8 @@ OptionsList::ExportRow(const RString& sRow)
 	if (m_setTopMenus.find(sRow) != m_setTopMenus.end())
 		return;
 
-	vector<bool> aSelections[NUM_PLAYERS];
-	aSelections[m_pn] = m_bSelections[sRow];
+	vector<bool> aSelections;
+	aSelections = m_bSelections[sRow];
 
 	vector<PlayerNumber> vpns;
 	vpns.push_back(m_pn);
@@ -683,7 +683,7 @@ OptionsList::Start()
 		pHandler->GetIconTextAndGameCommand(
 		  m_iMenuStackSelection, sIconText, gc);
 		if (gc.m_sName == RESET_ROW) {
-			GAMESTATE->m_pPlayerState[m_pn]->ResetToDefaultPlayerOptions(
+			GAMESTATE->m_pPlayerState->ResetToDefaultPlayerOptions(
 			  ModsLevel_Preferred);
 			GAMESTATE->ResetToDefaultSongOptions(ModsLevel_Preferred);
 

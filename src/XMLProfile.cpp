@@ -312,7 +312,7 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
 		  DifficultyToString(
-			GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty()));
+			GAMESTATE->m_pCurSteps->GetDifficulty()));
 	else if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));

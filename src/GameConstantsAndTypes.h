@@ -373,7 +373,7 @@ const RString&
 ProfileSlotToString(ProfileSlot ps);
 LuaDeclareType(ProfileSlot);
 
-extern const vector<RString> RANKING_TO_FILL_IN_MARKER;
+extern const RString RANKING_TO_FILL_IN_MARKER;
 inline bool
 IsRankingToFillIn(const RString& sName)
 {

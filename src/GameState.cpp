@@ -114,10 +114,10 @@ GameState::GameState()
 
 	m_PlayMode.Set(
 	  PlayMode_Invalid); // used by IsPlayerEnabled before the first screen
-	m_bSideIsJoined[PLAYER_1] = false; // used by GetNumSidesJoined before the first screen
+	m_bSideIsJoined = false; // used by GetNumSidesJoined before the first screen
 
-	m_pPlayerState[PLAYER_1] = new PlayerState;
-	m_pPlayerState[PLAYER_1]->SetPlayerNumber(PLAYER_1);
+	m_pPlayerState = new PlayerState;
+	m_pPlayerState->SetPlayerNumber(PLAYER_1);
 	FOREACH_MultiPlayer(p)
 	{
 		m_pMultiPlayerState[p] = new PlayerState;
@@ -149,7 +149,7 @@ GameState::~GameState()
 	// Unregister with Lua.
 	LUA->UnsetGlobal("GAMESTATE");
 
-	SAFE_DELETE(m_pPlayerState[PLAYER_1]);
+	SAFE_DELETE(m_pPlayerState);
 	FOREACH_MultiPlayer(p) SAFE_DELETE(m_pMultiPlayerState[p]);
 
 	SAFE_DELETE(m_Environment);
@@ -224,10 +224,10 @@ void
 GameState::ResetPlayer(PlayerNumber pn)
 {
 	m_PreferredStepsType.Set(StepsType_Invalid);
-	m_PreferredDifficulty[pn].Set(Difficulty_Invalid);
-	m_iPlayerStageTokens[pn] = 0;
-	m_pCurSteps[pn].Set(NULL);
-	m_pPlayerState[pn]->Reset();
+	m_PreferredDifficulty.Set(Difficulty_Invalid);
+	m_iPlayerStageTokens = 0;
+	m_pCurSteps.Set(NULL);
+	m_pPlayerState->Reset();
 	PROFILEMAN->UnloadProfile(pn);
 	ResetPlayerOptions(pn);
 }
@@ -237,7 +237,7 @@ GameState::ResetPlayerOptions(PlayerNumber pn)
 {
 	PlayerOptions po;
 	GetDefaultPlayerOptions(po);
-	m_pPlayerState[pn]->m_PlayerOptions.Assign(ModsLevel_Preferred, po);
+	m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Preferred, po);
 }
 
 void
@@ -301,7 +301,7 @@ void
 GameState::JoinPlayer(PlayerNumber pn)
 {
 	pn = PLAYER_1;
-	m_bSideIsJoined[pn] = true;
+	m_bSideIsJoined = true;
 
 	this->SetMasterPlayerNumber(pn);
 	if (GetNumSidesJoined() == 1)
@@ -321,8 +321,8 @@ GameState::UnjoinPlayer(PlayerNumber pn)
 	/* Unjoin STATSMAN first, so steps used by this player are released
 	 * and can be released by PROFILEMAN. */
 	STATSMAN->UnjoinPlayer(pn);
-	m_bSideIsJoined[pn] = false;
-	m_iPlayerStageTokens[pn] = 0;
+	m_bSideIsJoined = false;
+	m_iPlayerStageTokens = 0;
 
 	ResetPlayer(pn);
 
@@ -364,7 +364,7 @@ JoinInputInternal(PlayerNumber pn)
 		return false;
 
 	// If this side is already in, don't re-join.
-	if (GAMESTATE->m_bSideIsJoined[pn])
+	if (GAMESTATE->m_bSideIsJoined)
 		return false;
 
 	GAMESTATE->JoinPlayer(pn);
@@ -455,7 +455,7 @@ GameState::SavePlayerProfile(PlayerNumber pn)
 	// AutoplayCPU should not save scores. -aj
 	// xxx: this MAY cause issues with Multiplayer. However, without a working
 	// Multiplayer build, we'll never know. -aj
-	if (m_pPlayerState[pn]->m_PlayerController != PC_HUMAN)
+	if (m_pPlayerState->m_PlayerController != PC_HUMAN)
 		return;
 
 	PROFILEMAN->SaveProfile(pn);
@@ -525,9 +525,9 @@ GameState::BeginStage()
 	AdjustSync::ResetOriginalSyncData();
 
 	if (!ARE_STAGE_PLAYER_MODS_FORCED) {
-		ModsGroup<PlayerOptions>& po = m_pPlayerState[PLAYER_1]->m_PlayerOptions;
+		ModsGroup<PlayerOptions>& po = m_pPlayerState->m_PlayerOptions;
 		po.Assign(ModsLevel_Stage,
-					m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred());
+					m_pPlayerState->m_PlayerOptions.GetPreferred());
 	}
 	if (!ARE_STAGE_SONG_MODS_FORCED)
 		m_SongOptions.Assign(ModsLevel_Stage, m_SongOptions.GetPreferred());
@@ -541,18 +541,18 @@ GameState::BeginStage()
 		// only do this check with human players, assume CPU players (Rave)
 		// always have tokens. -aj (this could probably be moved below, even.)
 		if (!IsEventMode() && !IsCpuPlayer(p)) {
-			if (m_iPlayerStageTokens[p] < m_iNumStagesOfThisSong) {
+			if (m_iPlayerStageTokens < m_iNumStagesOfThisSong) {
 				LuaHelpers::ReportScriptErrorFmt(
 				  "Player %d only has %d stage tokens, but needs %d.",
 				  p,
-				  m_iPlayerStageTokens[p],
+				  m_iPlayerStageTokens,
 				  m_iNumStagesOfThisSong);
 			}
 		}
-		m_iPlayerStageTokens[p] -= m_iNumStagesOfThisSong;
+		m_iPlayerStageTokens -= m_iNumStagesOfThisSong;
 	}
 	FOREACH_HumanPlayer(pn) if (CurrentOptionsDisqualifyPlayer(pn))
-	  STATSMAN->m_CurStageStats.m_player[pn]
+	  STATSMAN->m_CurStageStats.m_player
 		.m_bDisqualified = true;
 	m_sStageGUID = CryptManager::GenerateRandomUUID();
 }
@@ -560,7 +560,7 @@ GameState::BeginStage()
 void
 GameState::CancelStage()
 {
-	FOREACH_EnabledPlayer(p) m_iPlayerStageTokens[p] += m_iNumStagesOfThisSong;
+	m_iPlayerStageTokens += m_iNumStagesOfThisSong;
 	m_iNumStagesOfThisSong = 0;
 	ResetStageStatistics();
 }
@@ -600,7 +600,7 @@ GameState::FinishStage()
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(p);
 		pProfile->m_iCurrentCombo =
-		  STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo;
+		  STATSMAN->m_CurStageStats.m_player.m_iCurCombo;
 	}
 }
 
@@ -620,7 +620,7 @@ GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 		 * set it off. However, don't reset modifiers that aren't saved by the
 		 * profile, so we don't ignore unsaved modifiers when a profile is in
 		 * use. */
-		PO_GROUP_CALL(m_pPlayerState[pn]->m_PlayerOptions,
+		PO_GROUP_CALL(m_pPlayerState->m_PlayerOptions,
 					  ModsLevel_Preferred,
 					  ResetSavedPrefs);
 		ApplyPreferredModifiers(pn, sModifiers);
@@ -631,7 +631,7 @@ GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 		pProfile->m_SortOrder != SortOrder_Invalid)
 		m_PreferredSortOrder = pProfile->m_SortOrder;
 	if (pProfile->m_LastDifficulty != Difficulty_Invalid)
-		m_PreferredDifficulty[pn].Set(pProfile->m_LastDifficulty);
+		m_PreferredDifficulty.Set(pProfile->m_LastDifficulty);
 	// Only set the PreferredStepsType if it wasn't already set by a GameCommand
 	// (or by an earlier profile)
 	if (m_PreferredStepsType == StepsType_Invalid &&
@@ -651,11 +651,11 @@ GameState::SaveCurrentSettingsToProfile(PlayerNumber pn)
 
 	pProfile->SetDefaultModifiers(
 	  m_pCurGame,
-	  m_pPlayerState[pn]->m_PlayerOptions.GetPreferred().GetSavedPrefsString());
+	  m_pPlayerState->m_PlayerOptions.GetPreferred().GetSavedPrefsString());
 	if (IsSongSort(m_PreferredSortOrder))
 		pProfile->m_SortOrder = m_PreferredSortOrder;
-	if (m_PreferredDifficulty[pn] != Difficulty_Invalid)
-		pProfile->m_LastDifficulty = m_PreferredDifficulty[pn];
+	if (m_PreferredDifficulty != Difficulty_Invalid)
+		pProfile->m_LastDifficulty = m_PreferredDifficulty;
 	if (m_PreferredStepsType != StepsType_Invalid)
 		pProfile->m_LastStepsType = m_PreferredStepsType;
 	if (m_pPreferredSong)
@@ -679,7 +679,7 @@ GameState::CanSafelyEnterGameplay(RString& reason)
 			return false;
 		}
 
-		Steps const* steps = m_pCurSteps[pn];
+		Steps const* steps = m_pCurSteps;
 		if (steps == NULL) {
 			reason = ssprintf("Steps for player %d is NULL.", pn + 1);
 			return false;
@@ -721,8 +721,8 @@ GameState::SetCompatibleStylesForPlayers()
 		FOREACH_EnabledPlayer(pn)
 		{
 			StepsType st = StepsType_Invalid;
-			if (m_pCurSteps[pn] != NULL) {
-				st = m_pCurSteps[pn]->m_StepsType;
+			if (m_pCurSteps != NULL) {
+				st = m_pCurSteps->m_StepsType;
 			} else {
 				vector<StepsType> vst;
 				GAMEMAN->GetStepsTypesForGame(m_pCurGame, vst);
@@ -737,7 +737,7 @@ GameState::SetCompatibleStylesForPlayers()
 
 void GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 {
-	Steps* steps_to_match = m_pCurSteps[main].Get();
+	Steps* steps_to_match = m_pCurSteps.Get();
 	if (steps_to_match == NULL) {
 		return;
 	}
@@ -750,7 +750,7 @@ void GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 	RString music_to_match = steps_to_match->GetMusicFile();
 	FOREACH_EnabledPlayer(pn)
 	{
-		Steps* pn_steps = m_pCurSteps[pn].Get();
+		Steps* pn_steps = m_pCurSteps.Get();
 		bool match_failed = pn_steps == NULL;
 		if (steps_to_match != pn_steps && pn_steps != NULL) {
 			StyleType pn_styletype =
@@ -765,7 +765,7 @@ void GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 			}
 		}
 		if (match_failed) {
-			m_pCurSteps[pn].Set(steps_to_match);
+			m_pCurSteps.Set(steps_to_match);
 		}
 	}
 }
@@ -775,7 +775,7 @@ GameState::Update(float fDelta)
 {
 	m_SongOptions.Update(fDelta);
 
-	m_pPlayerState[PLAYER_1]->Update(fDelta);
+	m_pPlayerState->Update(fDelta);
 }
 
 void
@@ -799,7 +799,7 @@ GameState::ResetMusicStatistics()
 
 	Actor::SetBGMTime(0, 0, 0, 0);
 
-	m_pPlayerState[PLAYER_1]->m_Position.Reset();
+	m_pPlayerState->m_Position.Reset();
 }
 
 void
@@ -807,7 +807,7 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-	m_pPlayerState[PLAYER_1]->m_HealthState = HealthState_Alive;
+	m_pPlayerState->m_HealthState = HealthState_Alive;
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
@@ -843,13 +843,13 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 
 	FOREACH_EnabledPlayer(pn)
 	{
-		if (m_pCurSteps[pn]) {
-			m_pPlayerState[pn]->m_Position.UpdateSongPosition(
-			  fPositionSeconds, *m_pCurSteps[pn]->GetTimingData(), timestamp);
+		if (m_pCurSteps) {
+			m_pPlayerState->m_Position.UpdateSongPosition(
+			  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
 			Actor::SetPlayerBGMBeat(
 			  pn,
-			  m_pPlayerState[pn]->m_Position.m_fSongBeatVisible,
-			  m_pPlayerState[pn]->m_Position.m_fSongBeatNoOffset);
+			  m_pPlayerState->m_Position.m_fSongBeatVisible,
+			  m_pPlayerState->m_Position.m_fSongBeatNoOffset);
 		}
 	}
 	Actor::SetBGMTime(GAMESTATE->m_Position.m_fMusicSecondsVisible,
@@ -877,7 +877,7 @@ int
 GameState::GetNumSidesJoined() const
 {
 	int iNumSidesJoined = 0;
-	if (m_bSideIsJoined[PLAYER_1])
+	if (m_bSideIsJoined)
 		iNumSidesJoined++; // left side, and right side
 	return iNumSidesJoined;
 }
@@ -895,7 +895,7 @@ GameState::GetCourseSongIndex() const
 		FAIL_M("At least one MultiPlayer must be joined.");
 
 	} else {
-		return STATSMAN->m_CurStageStats.m_player[this->GetMasterPlayerNumber()]
+		return STATSMAN->m_CurStageStats.m_player
 				 .m_iSongsPlayed -
 			   1;
 	}
@@ -1037,7 +1037,7 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 	if (GetCurrentGame()->m_PlayersHaveSeparateStyles) {
 		if (GetCurrentStyle(pn) == NULL) // no style chosen
 		{
-			return m_bSideIsJoined[pn];
+			return m_bSideIsJoined;
 		} else {
 			StyleType type = GetCurrentStyle(pn)->m_StyleType;
 			switch( type )
@@ -1052,7 +1052,7 @@ GameState::IsHumanPlayer(PlayerNumber pn) const
 	}
 	if (GetCurrentStyle(pn) == NULL) // no style chosen
 	{
-		return m_bSideIsJoined[pn]; // only allow input from sides that have
+		return m_bSideIsJoined; // only allow input from sides that have
 									// already joined
 	}
 
@@ -1132,7 +1132,7 @@ GameState::ResetToDefaultSongOptions(ModsLevel l)
 void
 GameState::ApplyPreferredModifiers(PlayerNumber pn, const RString& sModifiers)
 {
-	m_pPlayerState[pn]->m_PlayerOptions.FromString(ModsLevel_Preferred,
+	m_pPlayerState->m_PlayerOptions.FromString(ModsLevel_Preferred,
 												   sModifiers);
 	m_SongOptions.FromString(ModsLevel_Preferred, sModifiers);
 }
@@ -1140,7 +1140,7 @@ GameState::ApplyPreferredModifiers(PlayerNumber pn, const RString& sModifiers)
 void
 GameState::ApplyStageModifiers(PlayerNumber pn, const RString& sModifiers)
 {
-	m_pPlayerState[pn]->m_PlayerOptions.FromString(ModsLevel_Stage, sModifiers);
+	m_pPlayerState->m_PlayerOptions.FromString(ModsLevel_Stage, sModifiers);
 	m_SongOptions.FromString(ModsLevel_Stage, sModifiers);
 }
 
@@ -1154,11 +1154,11 @@ GameState::CurrentOptionsDisqualifyPlayer(PlayerNumber pn)
 		return false;
 
 	const PlayerOptions& po =
-	  m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 	// Check the stored player options for disqualify.  Don't disqualify because
 	// of mods that were forced.
-	return po.IsEasierForSongAndSteps(m_pCurSong, m_pCurSteps[pn], pn);
+	return po.IsEasierForSongAndSteps(m_pCurSong, m_pCurSteps, pn);
 }
 
 /* reset noteskins (?)
@@ -1173,7 +1173,7 @@ GameState::GetAllUsedNoteSkins(vector<RString>& out) const
 	FOREACH_EnabledPlayer(pn)
 	{
 		out.push_back(
-		  m_pPlayerState[pn]->m_PlayerOptions.GetCurrent().m_sNoteSkin);
+		  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin);
 	}
 
 	// Remove duplicates.
@@ -1185,7 +1185,7 @@ void
 GameState::AddStageToPlayer(PlayerNumber pn)
 {
 	// Add one stage more to player (bonus) -cerbo
-	++m_iPlayerStageTokens[pn];
+	++m_iPlayerStageTokens;
 }
 
 bool
@@ -1234,16 +1234,14 @@ GameState::ShowW1() const
 bool
 GameState::AllAreInDangerOrWorse() const
 {
-	FOREACH_EnabledPlayer(p) if (m_pPlayerState[p]->m_HealthState <
-								 HealthState_Danger) return false;
+	if (m_pPlayerState->m_HealthState < HealthState_Danger) return false;
 	return true;
 }
 
 bool
 GameState::OneIsHot() const
 {
-	FOREACH_EnabledPlayer(p) if (m_pPlayerState[p]->m_HealthState ==
-								 HealthState_Hot) return true;
+	if (m_pPlayerState->m_HealthState == HealthState_Hot) return true;
 	return false;
 }
 
@@ -1251,7 +1249,7 @@ GameState::OneIsHot() const
 int
 GameState::GetNumCols(int pn)
 {
-	return m_pPlayerState[pn]->GetNumCols();
+	return m_pPlayerState->GetNumCols();
 }
 
 bool
@@ -1267,11 +1265,11 @@ GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 												 Difficulty dc,
 												 StepsType st)
 {
-	m_PreferredDifficulty[pn].Set(dc);
+	m_PreferredDifficulty.Set(dc);
 	m_PreferredStepsType.Set(st);
 	if (DifficultiesLocked())
-		if (PLAYER_1 != pn) m_PreferredDifficulty[PLAYER_1].Set(
-		  m_PreferredDifficulty[pn]);
+		if (PLAYER_1 != pn) m_PreferredDifficulty.Set(
+		  m_PreferredDifficulty);
 
 	return true;
 }
@@ -1295,7 +1293,7 @@ GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 			break; // found
 		}
 	}
-	m_PreferredDifficulty[pn].Set(d);
+	m_PreferredDifficulty.Set(d);
 	return true;
 }
 
@@ -1312,7 +1310,7 @@ GameState::GetClosestShownDifficulty(PlayerNumber pn) const
 	int iClosestDist = -1;
 	FOREACH_CONST(Difficulty, v, dc)
 	{
-		int iDist = m_PreferredDifficulty[pn] - *dc;
+		int iDist = m_PreferredDifficulty - *dc;
 		if (iDist < 0)
 			continue;
 		if (iClosestDist != -1 && iDist > iClosestDist)
@@ -1328,16 +1326,14 @@ Difficulty
 GameState::GetEasiestStepsDifficulty() const
 {
 	Difficulty dc = Difficulty_Invalid;
-	FOREACH_HumanPlayer(p)
-	{
-		if (m_pCurSteps[p] == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "GetEasiestStepsDifficulty called but p%i hasn't chosen notes",
-			  p + 1);
-			continue;
-		}
-		dc = min(dc, m_pCurSteps[p]->GetDifficulty());
+
+	if (m_pCurSteps == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"GetEasiestStepsDifficulty called but p%i hasn't chosen notes",
+			PLAYER_1 + 1);
 	}
+
+	dc = min(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 
@@ -1345,16 +1341,12 @@ Difficulty
 GameState::GetHardestStepsDifficulty() const
 {
 	Difficulty dc = Difficulty_Beginner;
-	FOREACH_HumanPlayer(p)
-	{
-		if (m_pCurSteps[p] == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "GetHardestStepsDifficulty called but p%i hasn't chosen notes",
-			  p + 1);
-			continue;
-		}
-		dc = max(dc, m_pCurSteps[p]->GetDifficulty());
+	if (m_pCurSteps == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"GetHardestStepsDifficulty called but p%i hasn't chosen notes",
+			PLAYER_1 + 1);
 	}
+	dc = max(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 
@@ -1373,12 +1365,12 @@ GameState::IsEventMode() const
 bool
 GameState::PlayerIsUsingModifier(PlayerNumber pn, const RString& sModifier)
 {
-	PlayerOptions po = m_pPlayerState[pn]->m_PlayerOptions.GetCurrent();
+	PlayerOptions po = m_pPlayerState->m_PlayerOptions.GetCurrent();
 	SongOptions so = m_SongOptions.GetCurrent();
 	po.FromString(sModifier);
 	so.FromString(sModifier);
 
-	return po == m_pPlayerState[pn]->m_PlayerOptions.GetCurrent() &&
+	return po == m_pPlayerState->m_PlayerOptions.GetCurrent() &&
 		   so == m_SongOptions.GetCurrent();
 }
 
@@ -1503,7 +1495,7 @@ class LunaGameState : public Luna<GameState>
 	static int GetPlayerState(T* p, lua_State* L)
 	{
 		PlayerNumber pn = PLAYER_1;
-		p->m_pPlayerState[pn]->PushSelf(L);
+		p->m_pPlayerState->PushSelf(L);
 		return 1;
 	}
 	static int GetMultiPlayerState(T* p, lua_State* L)
@@ -1572,7 +1564,7 @@ class LunaGameState : public Luna<GameState>
 	static int GetCurrentSteps(T* p, lua_State* L)
 	{
 		PlayerNumber pn = PLAYER_1;
-		Steps* pSteps = p->m_pCurSteps[pn];
+		Steps* pSteps = p->m_pCurSteps;
 		if (pSteps) {
 			pSteps->PushSelf(L);
 		} else {
@@ -1584,11 +1576,11 @@ class LunaGameState : public Luna<GameState>
 	{
 		PlayerNumber pn = PLAYER_1;
 		if (lua_isnil(L, 2)) {
-			p->m_pCurSteps[pn].Set(NULL);
+			p->m_pCurSteps.Set(NULL);
 		} else {
 			Steps* pS = Luna<Steps>::check(L, 2);
 			SetCompatibleStyleOrError(p, L, pS->m_StepsType, pn);
-			p->m_pCurSteps[pn].Set(pS);
+			p->m_pCurSteps.Set(pS);
 			p->ForceOtherPlayersToCompatibleSteps(pn);
 		}
 		COMMON_RETURN_SELF;
@@ -1623,13 +1615,12 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int SetPreferredDifficulty(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
 		Difficulty dc = Enum::Check<Difficulty>(L, 2);
-		p->m_PreferredDifficulty[pn].Set(dc);
+		p->m_PreferredDifficulty.Set(dc);
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(GetPreferredDifficulty,
-				  m_PreferredDifficulty[PLAYER_1])
+				  m_PreferredDifficulty)
 	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
@@ -1649,7 +1640,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetLastGameplayDuration, m_DanceDuration)
 	DEFINE_METHOD(GetGameplayLeadIn, m_bGameplayLeadIn)
 	DEFINE_METHOD(IsSideJoined,
-				  m_bSideIsJoined[PLAYER_1])
+				  m_bSideIsJoined)
 	DEFINE_METHOD(PlayersCanJoin, PlayersCanJoin())
 	DEFINE_METHOD(GetNumSidesJoined, GetNumSidesJoined())
 	DEFINE_METHOD(GetSongOptionsString, m_SongOptions.GetCurrent().GetString())
@@ -1731,7 +1722,7 @@ class LunaGameState : public Luna<GameState>
 		vector<const Steps*> vpStepsToShow;
 		FOREACH_HumanPlayer(p)
 		{
-			const Steps* pSteps = GAMESTATE->m_pCurSteps[p];
+			const Steps* pSteps = GAMESTATE->m_pCurSteps;
 			if (pSteps == NULL)
 				return 0;
 			bool bAlreadyAdded =
@@ -1834,7 +1825,7 @@ class LunaGameState : public Luna<GameState>
 
 	static int GetCharacter(T* p, lua_State* L)
 	{
-		p->m_pCurCharacters[PLAYER_1]->PushSelf(L);
+		p->m_pCurCharacters->PushSelf(L);
 		return 1;
 	}
 	static int SetCharacter(T* p, lua_State* L) { COMMON_RETURN_SELF; }

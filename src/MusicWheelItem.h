@@ -53,7 +53,7 @@ class MusicWheelItem : public WheelItemBase
 	TextBanner m_TextBanner; // used by Type_Song instead of m_pText
 	BitmapText* m_pText[NUM_MusicWheelItemType];
 	BitmapText* m_pTextSectionCount;
-	AutoActor m_pGradeDisplay[NUM_PLAYERS];
+	AutoActor m_pGradeDisplay;
 };
 
 struct MusicWheelItemData : public WheelItemBaseData

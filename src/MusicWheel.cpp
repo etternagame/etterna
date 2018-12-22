@@ -379,8 +379,8 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 			break;
 		case SORT_POPULARITY:
 			// todo: make this work -poco
-			//apAllSongs = SONGMAN->GetPopularSongs();
-			//break;
+			// apAllSongs = SONGMAN->GetPopularSongs();
+			// break;
 		case SORT_GROUP:
 			// if we're not using sections with a preferred song group, and
 			// there is a group to load, only load those songs. -aj
@@ -601,7 +601,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 				if (lb > 0.f || ub > 0.f) { // if either bound is active,
 											// continue to evaluation
 					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
+					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
 					do {
 						currate = currate - 0.1f;
 						if (FILTERMAN->HighestSkillsetsOnly)
@@ -655,7 +655,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 				if (lb > 0.f || ub > 0.f) {
 					bool localaddsong;
 					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
+					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
 					bool toiletpaper = false;
 					do {
 						localaddsong = true;
@@ -1080,8 +1080,6 @@ MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 		--filteredSize;
 	}
 
-	
-
 	// If we've filtered all items, insert a dummy.
 	if (aFilteredData.empty())
 		aFilteredData.emplace_back(new MusicWheelItemData(
@@ -1122,7 +1120,7 @@ MusicWheel::UpdateSwitch()
 				  GAMESTATE->m_SortOrder, st, dc)) {
 				ASSERT(dc != Difficulty_Invalid);
 				if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
-				  GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(dc);
+					GAMESTATE->m_PreferredDifficulty.Set(dc);
 			}
 
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
@@ -1532,20 +1530,21 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	// probe to find a song that has the preferred
 	// difficulties of each player
 	vector<Difficulty> vDifficultiesToRequire;
-	FOREACH_HumanPlayer(p)
-	{
-		if (GAMESTATE->m_PreferredDifficulty[p] == Difficulty_Invalid)
-			continue; // skip
 
-		// TRICKY: Don't require that edits be present if perferred
-		// difficulty is Difficulty_Edit.  Otherwise, players could use this
-		// to set up a 100% chance of getting a particular locked song by
-		// having a single edit for a locked song.
-		if (GAMESTATE->m_PreferredDifficulty[p] == Difficulty_Edit)
-			continue; // skip
+	if (GAMESTATE->m_PreferredDifficulty == Difficulty_Invalid) {
+	// skip
+	}
 
-		vDifficultiesToRequire.emplace_back(
-		  GAMESTATE->m_PreferredDifficulty[p]);
+	// TRICKY: Don't require that edits be present if perferred
+	// difficulty is Difficulty_Edit.  Otherwise, players could use this
+	// to set up a 100% chance of getting a particular locked song by
+	// having a single edit for a locked song.
+	else if (GAMESTATE->m_PreferredDifficulty == Difficulty_Edit) {
+		// skip
+	}
+	else {
+
+	vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
 	}
 
 	RString sPreferredGroup = m_sExpandedSectionName;
@@ -1573,8 +1572,6 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 		if (!sPreferredGroup.empty() &&
 			wid[iSelection]->m_sText != sPreferredGroup)
 			continue;
-
-
 
 		FOREACH(Difficulty, vDifficultiesToRequire, d)
 		{

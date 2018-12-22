@@ -20,13 +20,13 @@ void
 ScreenPlayerOptions::Init()
 {
 	ScreenOptionsMaster::Init();
-	m_sprDisqualify[PLAYER_1].Load(THEME->GetPathG(m_sName, "disqualify"));
-	m_sprDisqualify[PLAYER_1]->SetName(ssprintf("DisqualifyP%i", PLAYER_1 + 1));
-	LOAD_ALL_COMMANDS_AND_SET_XY(m_sprDisqualify[PLAYER_1]);
-	m_sprDisqualify[PLAYER_1]->SetVisible(
+	m_sprDisqualify.Load(THEME->GetPathG(m_sName, "disqualify"));
+	m_sprDisqualify->SetName(ssprintf("DisqualifyP%i", PLAYER_1 + 1));
+	LOAD_ALL_COMMANDS_AND_SET_XY(m_sprDisqualify);
+	m_sprDisqualify->SetVisible(
 		false); // unhide later if handicapping options are discovered
-	m_sprDisqualify[PLAYER_1]->SetDrawOrder(2);
-	m_frameContainer.AddChild(m_sprDisqualify[PLAYER_1]);
+	m_sprDisqualify->SetDrawOrder(2);
+	m_frameContainer.AddChild(m_sprDisqualify);
 
 	m_bAskOptionsMessage = PREFSMAN->m_ShowSongOptions == Maybe_ASK;
 
@@ -35,7 +35,7 @@ ScreenPlayerOptions::Init()
 
 	SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("player options intro"));
 
-	m_bRowCausesDisqualified[PLAYER_1].resize(m_pRows.size(), false);
+	m_bRowCausesDisqualified.resize(m_pRows.size(), false);
 }
 
 void
@@ -72,7 +72,7 @@ ScreenPlayerOptions::Input(const InputEventPlus& input)
 		CodeDetector::EnteredCode(input.GameI.controller,
 								  CODE_CANCEL_ALL_PLAYER_OPTIONS)) {
 		// apply the game default mods, but not the Profile saved mods
-		GAMESTATE->m_pPlayerState[pn]->ResetToDefaultPlayerOptions(
+		GAMESTATE->m_pPlayerState->ResetToDefaultPlayerOptions(
 		  ModsLevel_Preferred);
 
 		MESSAGEMAN->Broadcast(ssprintf("CancelAllP%i", pn + 1));
@@ -93,7 +93,7 @@ ScreenPlayerOptions::Input(const InputEventPlus& input)
 
 	// UGLY: Update m_Disqualified whenever Start is pressed
 	if (GAMESTATE->IsHumanPlayer(pn) && input.MenuI == GAME_BUTTON_START) {
-		int row = m_iCurrentRow[pn];
+		int row = m_iCurrentRow;
 		UpdateDisqualified(row, pn);
 	}
 	return bHandled;
@@ -121,32 +121,32 @@ ScreenPlayerOptions::UpdateDisqualified(int row, PlayerNumber pn)
 
 	// save original player options
 	PlayerOptions poOrig =
-	  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 	// Find out if the current row when exported causes disqualification.
 	// Exporting the row will fill GAMESTATE->m_PlayerOptions.
-	PO_GROUP_CALL(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions,
+	PO_GROUP_CALL(GAMESTATE->m_pPlayerState->m_PlayerOptions,
 				  ModsLevel_Preferred,
 				  Init);
 	vector<PlayerNumber> v;
 	v.push_back(pn);
 	ExportOptions(row, v);
 	bool bRowCausesDisqualified = GAMESTATE->CurrentOptionsDisqualifyPlayer(pn);
-	m_bRowCausesDisqualified[pn][row] = bRowCausesDisqualified;
+	m_bRowCausesDisqualified[row] = bRowCausesDisqualified;
 
 	// Update disqualified graphic
 	bool bDisqualified = false;
-	FOREACH_CONST(bool, m_bRowCausesDisqualified[pn], b)
+	FOREACH_CONST(bool, m_bRowCausesDisqualified, b)
 	{
 		if (*b) {
 			bDisqualified = true;
 			break;
 		}
 	}
-	m_sprDisqualify[pn]->SetVisible(bDisqualified);
+	m_sprDisqualify->SetVisible(bDisqualified);
 
 	// restore previous player options in case the user escapes back after this
-	GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.Assign(ModsLevel_Preferred,
+	GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Preferred,
 														  poOrig);
 }
 

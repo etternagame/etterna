@@ -64,7 +64,7 @@ class Style
 	};
 
 	/** @brief Map each players' colun to a track in the NoteData. */
-	ColumnInfo m_ColumnInfo[NUM_PLAYERS][MAX_COLS_PER_PLAYER];
+	ColumnInfo m_ColumnInfo[MAX_COLS_PER_PLAYER];
 
 	/* This maps from game inputs to columns. More than one button may map to a
 	 * single column. */

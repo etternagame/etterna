@@ -96,7 +96,7 @@ class GameState
 	/** @brief Determine which side is joined.
 	 *
 	 * The left side is player 1, and the right side is player 2. */
-	bool m_bSideIsJoined[NUM_PLAYERS]; // left side, right side
+	bool m_bSideIsJoined; // left side, right side
 	MultiPlayerStatus m_MultiPlayerStatus[NUM_MultiPlayer];
 	BroadcastOnChange<PlayMode>
 	  m_PlayMode; // many screens display different info depending on this value
@@ -178,7 +178,7 @@ class GameState
 	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
 	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
 	BroadcastOnChange<StepsType>				m_PreferredStepsType;
-	BroadcastOnChange1D<Difficulty,NUM_PLAYERS>		m_PreferredDifficulty;
+	BroadcastOnChange<Difficulty>		m_PreferredDifficulty;
 	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
 	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
 
@@ -196,7 +196,7 @@ class GameState
 	 * @brief The number of stages available for the players.
 	 *
 	 * This resets whenever a player joins or continues. */
-	int m_iPlayerStageTokens[NUM_PLAYERS];
+	int m_iPlayerStageTokens;
 	// This is necessary so that IsFinalStageForEveryHumanPlayer knows to
 	// adjust for the current song cost.
 	bool m_AdjustTokensBySongCostForFinalStageCheck;
@@ -229,7 +229,7 @@ class GameState
 	BroadcastOnChangePtr<Song> m_pCurSong;
 	// The last Song that the user manually changed to.
 	Song* m_pPreferredSong;
-	BroadcastOnChangePtr1D<Steps, NUM_PLAYERS> m_pCurSteps;
+	BroadcastOnChangePtr<Steps> m_pCurSteps;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -284,12 +284,12 @@ class GameState
 	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
 
 	// character stuff
-	Character* m_pCurCharacters[NUM_PLAYERS];
+	Character* m_pCurCharacters;
 
 	int GetNumSidesJoined() const;
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */
-	PlayerState* m_pPlayerState[NUM_PLAYERS];
+	PlayerState* m_pPlayerState;
 	PlayerState* m_pMultiPlayerState[NUM_MultiPlayer];
 
 	int GetNumCols(int pn);

@@ -54,7 +54,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 			ActorUtil::GetWhere(pNode).c_str(),
 			PLAYER_1 + 1);
 	} else {
-		m_Cursors[PLAYER_1].LoadActorFromNode(pChild, this);
+		m_Cursors.LoadActorFromNode(pChild, this);
 	}
 
 	/* Hack: we need to tween cursors both up to down (cursor motion) and
@@ -71,9 +71,9 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 			ActorUtil::GetWhere(pNode).c_str(),
 			PLAYER_1 + 1);
 	} else {
-		m_CursorFrames[PLAYER_1].LoadFromNode(pChild);
-		m_CursorFrames[PLAYER_1].AddChild(m_Cursors[PLAYER_1]);
-		this->AddChild(&m_CursorFrames[PLAYER_1]);
+		m_CursorFrames.LoadFromNode(pChild);
+		m_CursorFrames.AddChild(m_Cursors);
+		this->AddChild(&m_CursorFrames);
 	}
 
 	for (unsigned m = 0; m < m_Lines.size(); ++m) {
@@ -95,11 +95,11 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 	for (unsigned i = 0; i < m_Rows.size(); i++) {
 		const Row& row = m_Rows[i];
 
-		if (GAMESTATE->m_pCurSteps[pn] == NULL) {
+		if (GAMESTATE->m_pCurSteps == NULL) {
 			if (row.m_dc == ClosestDifficulty)
 				return i;
 		} else {
-			if (GAMESTATE->m_pCurSteps[pn].Get() == row.m_Steps)
+			if (GAMESTATE->m_pCurSteps.Get() == row.m_Steps)
 				return i;
 		}
 	}
@@ -111,8 +111,7 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 void
 StepsDisplayList::UpdatePositions()
 {
-	int iCurrentRow[NUM_PLAYERS];
-	FOREACH_HumanPlayer(p) iCurrentRow[p] = GetCurrentRowIndex(p);
+	int iCurrentRow= GetCurrentRowIndex(PLAYER_1);
 
 	const int total = NUM_SHOWN_ITEMS;
 	const int halfsize = total / 2;
@@ -120,7 +119,7 @@ StepsDisplayList::UpdatePositions()
 	int first_start, first_end, second_start, second_end;
 
 	// Choices for each player. If only one player is active, it's the same for both.
-	int P1Choice = iCurrentRow[PLAYER_1];
+	int P1Choice = iCurrentRow;
 
 	vector<Row>& Rows = m_Rows;
 
@@ -230,17 +229,14 @@ StepsDisplayList::PositionItems()
 		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
-	FOREACH_HumanPlayer(pn)
-	{
-		int iCurrentRow = GetCurrentRowIndex(pn);
+	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
-		float fY = 0;
-		if (iCurrentRow < (int)m_Rows.size())
-			fY = m_Rows[iCurrentRow].m_fY;
+	float fY = 0;
+	if (iCurrentRow < (int)m_Rows.size())
+		fY = m_Rows[iCurrentRow].m_fY;
 
-		m_CursorFrames[pn].PlayCommand("Change");
-		m_CursorFrames[pn].SetY(fY);
-	}
+	m_CursorFrames.PlayCommand("Change");
+	m_CursorFrames.SetY(fY);
 }
 
 void
@@ -303,7 +299,7 @@ StepsDisplayList::HideRows()
 void
 StepsDisplayList::TweenOnScreen()
 {
-	FOREACH_HumanPlayer(pn) ON_COMMAND(m_Cursors[pn]);
+	ON_COMMAND(m_Cursors);
 
 	for (int m = 0; m < MAX_METERS; ++m)
 		ON_COMMAND(m_Lines[m].m_Meter);
@@ -318,7 +314,7 @@ StepsDisplayList::TweenOnScreen()
 	HideRows();
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "TweenOn");
+	COMMAND(m_Cursors, "TweenOn");
 }
 
 void
@@ -336,7 +332,7 @@ StepsDisplayList::Show()
 	HideRows();
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "Show");
+	COMMAND(m_Cursors, "Show");
 }
 
 void
@@ -345,7 +341,7 @@ StepsDisplayList::Hide()
 	m_bShown = false;
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "Hide");
+	COMMAND(m_Cursors, "Hide");
 }
 
 void

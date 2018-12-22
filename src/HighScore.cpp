@@ -1622,7 +1622,7 @@ class LunaHighScore : public Luna<HighScore>
 	{
 		bool bIsFillInMarker = false;
 		bIsFillInMarker |=
-		  p->GetName() == RANKING_TO_FILL_IN_MARKER[PLAYER_1];
+		  p->GetName() == RANKING_TO_FILL_IN_MARKER;
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}

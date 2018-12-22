@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "CommonMetrics.h"
@@ -264,12 +264,12 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			vector<bool>& vbSelOut = vbSelectedOut[p];
+			vector<bool>& vbSelOut = vbSelectedOut;
 
 			bool bUseFallbackOption = true;
 
@@ -326,12 +326,12 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			const vector<bool>& vbSel = vbSelected[p];
+			const vector<bool>& vbSel = vbSelected;
 
 			m_Default.Apply(p);
 			for (unsigned i = 0; i < vbSel.size(); i++) {
@@ -525,14 +525,14 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		CHECK_BLANK_ARG;
 
 		if (sParam == "EditSteps") {
-			m_ppStepsToFill = &GAMESTATE->m_pCurSteps[0];
-			m_pDifficultyToFill = &GAMESTATE->m_PreferredDifficulty[0];
+			m_ppStepsToFill = &GAMESTATE->m_pCurSteps;
+			m_pDifficultyToFill = &GAMESTATE->m_PreferredDifficulty;
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditStepsTypeChanged));
 		} else if (sParam == "EditSourceSteps") {
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditSourceStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps[0].Get() != NULL)
+			if (GAMESTATE->m_pCurSteps.Get() != NULL)
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
 		} else {
 			ROW_INVALID_IF(
@@ -595,12 +595,12 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			vector<bool>& vbSelOut = vbSelectedOut[p];
+			vector<bool>& vbSelOut = vbSelectedOut;
 
 			ASSERT(m_vSteps.size() == vbSelOut.size());
 
@@ -618,7 +618,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 				FOREACH_CONST(Difficulty, m_vDifficulties, d)
 				{
 					unsigned i = d - m_vDifficulties.begin();
-					if (*d == GAMESTATE->m_PreferredDifficulty[p]) {
+					if (*d == GAMESTATE->m_PreferredDifficulty) {
 						vbSelOut[i] = true;
 						matched = true;
 						vector<PlayerNumber> v;
@@ -635,12 +635,12 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		}
 	}
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			const vector<bool>& vbSel = vbSelected[p];
+			const vector<bool>& vbSel = vbSelected;
 
 			int index = OptionRowHandlerUtil::GetOneSelection(vbSel);
 			Difficulty dc = m_vDifficulties[index];
@@ -1097,7 +1097,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 	void ImportOption(OptionRow* pRow,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 		if (!m_TableIsSane) {
 			return;
@@ -1109,7 +1109,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			vector<bool>& vbSelOut = vbSelectedOut[p];
+			vector<bool>& vbSelOut = vbSelectedOut;
 
 			/* Evaluate the LoadSelections(self,array,pn) function, where
 			 * array is a table representing vbSelectedOut. */
@@ -1156,7 +1156,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 	}
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
 		if (!m_TableIsSane) {
 			return 0;
@@ -1168,7 +1168,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			const vector<bool>& vbSel = vbSelected[p];
+			const vector<bool>& vbSel = vbSelected;
 
 			/* Evaluate SaveSelections(self,array,pn) function, where array is
 			 * a table representing vbSelectedOut. */
@@ -1293,26 +1293,26 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	}
 	void ImportOption(OptionRow*,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			vector<bool>& vbSelOut = vbSelectedOut[p];
+			vector<bool>& vbSelOut = vbSelectedOut;
 
 			int iSelection = m_pOpt->Get();
 			OptionRowHandlerUtil::SelectExactlyOne(iSelection, vbSelOut);
 		}
 	}
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
 		bool bChanged = false;
 
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			const vector<bool>& vbSel = vbSelected[p];
+			const vector<bool>& vbSel = vbSelected;
 
 			int iSel = OptionRowHandlerUtil::GetOneSelection(vbSel);
 
@@ -1361,7 +1361,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 			  MessageIDToString(Message_CurrentStepsP1Changed));
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps[0].Get() != NULL)
+			if (GAMESTATE->m_pCurSteps.Get() != NULL)
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
 		} else {
 			ROW_INVALID_IF(
@@ -1391,15 +1391,15 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 	void ImportOption(OptionRow* pRow,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			vector<bool>& vbSelOut = vbSelectedOut[p];
+			vector<bool>& vbSelOut = vbSelectedOut;
 
-			if (GAMESTATE->m_pCurSteps[0]) {
-				StepsType st = GAMESTATE->m_pCurSteps[0]->m_StepsType;
+			if (GAMESTATE->m_pCurSteps) {
+				StepsType st = GAMESTATE->m_pCurSteps->m_StepsType;
 				vector<StepsType>::const_iterator iter = find(
 				  m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
 				if (iter != m_vStepsTypesToShow.end()) {
@@ -1412,12 +1412,12 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		}
 	}
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			PlayerNumber p = *pn;
-			const vector<bool>& vbSel = vbSelected[p];
+			const vector<bool>& vbSel = vbSelected;
 
 			int index = OptionRowHandlerUtil::GetOneSelection(vbSel);
 			m_pstToFill->Set(m_vStepsTypesToShow[index]);
@@ -1458,13 +1458,13 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const vector<PlayerNumber>& vpns,
-					  vector<bool> vbSelectedOut[NUM_PLAYERS]) const override
+					  vector<bool> vbSelectedOut) const override
 	{
 	}
 	int ExportOption(const vector<PlayerNumber>& vpns,
-					 const vector<bool> vbSelected[NUM_PLAYERS]) const override
+					 const vector<bool> vbSelected) const override
 	{
-		if( vbSelected[PLAYER_1][0] )
+		if( vbSelected[0] )
 			m_gc.ApplyToAllPlayers();
 		return 0;
 	}
