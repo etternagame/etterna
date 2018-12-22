@@ -13,8 +13,8 @@ class ScreenOptionsManageProfiles : public ScreenOptions
 	void HandleScreenMessage(ScreenMessage SM) override;
 
   protected:
-	void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
-	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 
 	void AfterChangeRow(PlayerNumber pn) override;
 	void ProcessMenuStart(const InputEventPlus& input) override;

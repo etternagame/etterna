@@ -64,8 +64,8 @@ class OptionRow : public ActorFrame
 
 	void SetModIcon(PlayerNumber pn, const RString& sText, GameCommand& gc);
 
-	void ImportOptions(const vector<PlayerNumber>& vpns);
-	int ExportOptions(const vector<PlayerNumber>& vpns,
+	void ImportOptions(const PlayerNumber& vpns);
+	int ExportOptions(const PlayerNumber& vpns,
 					  bool bRowHasFocus);
 
 	enum RowType

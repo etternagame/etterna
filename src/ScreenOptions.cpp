@@ -255,15 +255,13 @@ void
 ScreenOptions::RestartOptions()
 {
 	m_exprRowPositionTransformFunction.ClearCache();
-	vector<PlayerNumber> vpns;
-	FOREACH_HumanPlayer(p) vpns.push_back(p);
 
 	for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
 	{
 		OptionRow* pRow = m_pRows[r];
 		pRow->Reload();
 
-		this->ImportOptions(r, vpns);
+		this->ImportOptions(r, PLAYER_1);
 
 		// HACK: Process disabled players, too, to hide inactive underlines.
 		pRow->AfterImportOptions(PLAYER_1);
@@ -565,13 +563,11 @@ ScreenOptions::HandleScreenMessage(const ScreenMessage SM)
 
 		StartTransitioningScreen(SM_ExportOptions);
 	} else if (SM == SM_ExportOptions) {
-		vector<PlayerNumber> vpns;
-		FOREACH_HumanPlayer(p) vpns.push_back(p);
 		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
 		{
 			if (m_pRows[r]->GetRowType() == OptionRow::RowType_Exit)
 				continue;
-			this->ExportOptions(r, vpns);
+			this->ExportOptions(r, PLAYER_1);
 		}
 
 		this->HandleScreenMessage(SM_GoToNextScreen);
@@ -834,9 +830,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 		/* In NAV_THREE_KEY_MENU mode, if a row doesn't set a screen, it does
 		 * something.  Apply it now, and don't go to the next screen. */
 		if (!FocusedItemEndsScreen(input.pn)) {
-			vector<PlayerNumber> vpns;
-			vpns.push_back(input.pn);
-			ExportOptions(iCurRow, vpns);
+			ExportOptions(iCurRow, input.pn);
 			return;
 		}
 	}
@@ -1139,9 +1133,7 @@ ScreenOptions::ChangeValueInRowRelative(int iRow,
 		m_SoundChangeCol.Play(true);
 
 	if (row.GetRowDef().m_bExportOnChange) {
-		vector<PlayerNumber> vpns;
-		FOREACH_HumanPlayer(p) vpns.push_back(p);
-		ExportOptions(iRow, vpns);
+		ExportOptions(iRow, PLAYER_1);
 	}
 
 	this->AfterChangeValueInRow(iRow, pn);

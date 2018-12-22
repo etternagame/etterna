@@ -523,11 +523,9 @@ void
 OptionsList::ImportRow(const RString& sRow)
 {
 	vector<bool> aSelections;
-	vector<PlayerNumber> vpns;
-	vpns.push_back(m_pn);
 	OptionRowHandler* pHandler = m_Rows[sRow];
 	aSelections.resize(pHandler->m_Def.m_vsChoices.size());
-	pHandler->ImportOption(NULL, vpns, aSelections);
+	pHandler->ImportOption(NULL, m_pn, aSelections);
 	m_bSelections[sRow] = aSelections;
 
 	if (m_setTopMenus.find(sRow) != m_setTopMenus.end())
@@ -543,10 +541,7 @@ OptionsList::ExportRow(const RString& sRow)
 	vector<bool> aSelections;
 	aSelections = m_bSelections[sRow];
 
-	vector<PlayerNumber> vpns;
-	vpns.push_back(m_pn);
-
-	m_Rows[sRow]->ExportOption(vpns, aSelections);
+	m_Rows[sRow]->ExportOption(m_pn, aSelections);
 }
 
 void

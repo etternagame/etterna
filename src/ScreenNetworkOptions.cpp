@@ -159,12 +159,12 @@ ScreenNetworkOptions::MenuStart(const InputEventPlus& input)
 
 void
 ScreenNetworkOptions::ImportOptions(int /* iRow */,
-									const vector<PlayerNumber>& /* vpns */)
+									const PlayerNumber& /* vpns */)
 {
 }
 void
 ScreenNetworkOptions::ExportOptions(int /* iRow */,
-									const vector<PlayerNumber>& /* vpns */)
+									const PlayerNumber& /* vpns */)
 {
 }
 

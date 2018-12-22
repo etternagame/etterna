@@ -1,4 +1,4 @@
-﻿#ifndef SCREEN_NETWORK_OPTIONS_H
+#ifndef SCREEN_NETWORK_OPTIONS_H
 #define SCREEN_NETWORK_OPTIONS_H
 
 #include "ScreenOptions.h"
@@ -13,8 +13,8 @@ class ScreenNetworkOptions : public ScreenOptions
 	bool MenuStart(const InputEventPlus& input) override;
 
   private:
-	void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
-	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 	// vector<NetServerInfo> AllServers;
 
 	void UpdateConnectStatus();

@@ -421,14 +421,14 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 void
 ScreenOptionsManageProfiles::ImportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 
 void
 ScreenOptionsManageProfiles::ExportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 

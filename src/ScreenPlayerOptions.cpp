@@ -41,7 +41,7 @@ ScreenPlayerOptions::Init()
 void
 ScreenPlayerOptions::BeginScreen()
 {
-	ON_COMMAND(m_sprDisqualify[PLAYER_1]);
+	ON_COMMAND(m_sprDisqualify);
 
 	ScreenOptionsMaster::BeginScreen();
 
@@ -78,10 +78,8 @@ ScreenPlayerOptions::Input(const InputEventPlus& input)
 		MESSAGEMAN->Broadcast(ssprintf("CancelAllP%i", pn + 1));
 
 		for (unsigned r = 0; r < m_pRows.size(); r++) {
-			vector<PlayerNumber> v;
-			v.push_back(pn);
 			int iOldFocus = m_pRows[r]->GetChoiceInRowWithFocus(pn);
-			this->ImportOptions(r, v);
+			this->ImportOptions(r, pn);
 			m_pRows[r]->AfterImportOptions(pn);
 			this->UpdateDisqualified(r, pn);
 			m_pRows[r]->SetChoiceInRowWithFocus(pn, iOldFocus);
@@ -128,9 +126,8 @@ ScreenPlayerOptions::UpdateDisqualified(int row, PlayerNumber pn)
 	PO_GROUP_CALL(GAMESTATE->m_pPlayerState->m_PlayerOptions,
 				  ModsLevel_Preferred,
 				  Init);
-	vector<PlayerNumber> v;
-	v.push_back(pn);
-	ExportOptions(row, v);
+
+	ExportOptions(row, pn);
 	bool bRowCausesDisqualified = GAMESTATE->CurrentOptionsDisqualifyPlayer(pn);
 	m_bRowCausesDisqualified[row] = bRowCausesDisqualified;
 
@@ -146,8 +143,7 @@ ScreenPlayerOptions::UpdateDisqualified(int row, PlayerNumber pn)
 	m_sprDisqualify->SetVisible(bDisqualified);
 
 	// restore previous player options in case the user escapes back after this
-	GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Preferred,
-														  poOrig);
+	GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Preferred, poOrig);
 }
 
 // lua start

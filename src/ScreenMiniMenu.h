@@ -337,8 +337,8 @@ class ScreenMiniMenu : public ScreenOptions
 
   protected:
 	void AfterChangeValueOrRow(PlayerNumber pn) override;
-	void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
-	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 
 	bool FocusedItemEndsScreen(PlayerNumber pn) const override;
 

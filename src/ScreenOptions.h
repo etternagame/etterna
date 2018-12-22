@@ -54,8 +54,8 @@ class ScreenOptions : public ScreenWithMenuElements
 	friend class LunaScreenOptions;
 
   protected:
-	virtual void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) = 0;
-	virtual void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) = 0;
+	virtual void ImportOptions(int iRow, const PlayerNumber& vpns) = 0;
+	virtual void ExportOptions(int iRow, const PlayerNumber& vpns) = 0;
 
 	void RestartOptions();
 	void GetWidthXY(PlayerNumber pn,
