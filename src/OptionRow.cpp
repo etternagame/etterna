@@ -43,7 +43,7 @@ OptionRow::OptionRow(const OptionRowType* pSource)
 	m_pHand = NULL;
 
 	m_textTitle = NULL;
-	m_ModIcons = false;
+	m_ModIcons = NULL;
 
 	Clear();
 	this->AddChild(&m_Frame);
@@ -806,9 +806,7 @@ OptionRow::NotifyHandlerOfSelection(PlayerNumber pn, int choice)
 	  pn, choice - static_cast<int>(m_bFirstItemGoesDown));
 	if (changed) {
 		ChoicesChanged(m_RowType, false);
-		vector<PlayerNumber> vpns;
-		FOREACH_HumanPlayer(p) vpns.push_back(p);
-		ImportOptions(vpns);
+		ImportOptions(PLAYER_1);
 		PositionUnderlines(PLAYER_1);
 		UpdateEnabledDisabled();
 	}
@@ -848,9 +846,7 @@ OptionRow::Reload()
 		case OptionRowHandler::RELOAD_CHANGED_ALL: {
 			ChoicesChanged(m_RowType);
 
-			vector<PlayerNumber> vpns;
-			FOREACH_HumanPlayer(p) vpns.push_back(p);
-			ImportOptions(vpns);
+			ImportOptions(PLAYER_1);
 			FOREACH_HumanPlayer(p) AfterImportOptions(p);
 			// fall through
 		}
@@ -897,71 +893,53 @@ OptionRow::HandleMessage(const Message& msg)
 		(vbSelected).insert((vbSelected).begin(), false);
 
 void
-OptionRow::ImportOptions(const vector<PlayerNumber>& vpns)
+OptionRow::ImportOptions(const PlayerNumber& vpns)
 {
 	ASSERT(m_pHand->m_Def.m_vsChoices.size() > 0);
 
-	FOREACH_CONST(PlayerNumber, vpns, iter)
-	{
-		PlayerNumber p = *iter;
+	PlayerNumber p = PLAYER_1;
 
-		FOREACH(bool, m_vbSelected, b)
-		*b = false;
+	FOREACH(bool, m_vbSelected, b)
+	*b = false;
 
-		ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
-		ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
-	}
+	ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
+	ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
 
 	m_pHand->ImportOption(this, vpns, m_vbSelected);
 
-	FOREACH_CONST(PlayerNumber, vpns, iter)
-	{
-		PlayerNumber p = *iter;
-
-		INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
-		VerifySelected(
-		  m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
-	}
+	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
+	VerifySelected(
+		m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
 }
 
 int
-OptionRow::ExportOptions(const vector<PlayerNumber>& vpns,
+OptionRow::ExportOptions(const PlayerNumber& vpns,
 						 bool bRowHasFocus)
 {
 	ASSERT(m_pHand->m_Def.m_vsChoices.size() > 0);
 
 	int iChangeMask = 0;
 
-	FOREACH_CONST(PlayerNumber, vpns, iter)
-	{
-		PlayerNumber p = *iter;
-		bool bFocus = bRowHasFocus;
+	PlayerNumber p = PLAYER_1;
+	bool bFocus = bRowHasFocus;
 
-		VerifySelected(
-		  m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
-		ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
-		ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
+	VerifySelected(
+		m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
+	ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
+	ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
 
-		// SELECT_NONE rows get exported if they have focus when the user
-		// presses Start.
-		int iChoice = GetChoiceInRowWithFocus(p);
-		if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
-			m_vbSelected[iChoice] = true;
-	}
+	// SELECT_NONE rows get exported if they have focus when the user
+	// presses Start.
+	int iChoice = GetChoiceInRowWithFocus(p);
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+		m_vbSelected[iChoice] = true;
 
 	iChangeMask |= m_pHand->ExportOption(vpns, m_vbSelected);
 
-	FOREACH_CONST(PlayerNumber, vpns, iter)
-	{
-		PlayerNumber p = *iter;
-		bool bFocus = bRowHasFocus;
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+		m_vbSelected[iChoice] = false;
 
-		int iChoice = GetChoiceInRowWithFocus(p);
-		if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
-			m_vbSelected[iChoice] = false;
-
-		INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
-	}
+	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
 
 	return iChangeMask;
 }
