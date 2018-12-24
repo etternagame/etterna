@@ -624,15 +624,16 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 				 n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
 				(n->m_sFileHash.empty() ||
 				 n->m_sFileHash == m_cSong->GetFileHash())) {
-				for (auto& steps : m_cSong->GetAllSteps()) {
-					if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
-						(n->difficulty == Difficulty_Invalid ||
-						 n->difficulty == steps->GetDifficulty())) {
-						n->song = m_cSong;
-						n->steps = steps;
-						break;
+				if (n->meter> 0 || n->difficulty != Difficulty_Invalid)
+					for (auto& steps : m_cSong->GetAllSteps()) {
+						if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+							(n->difficulty == Difficulty_Invalid ||
+							 n->difficulty == steps->GetDifficulty())) {
+							n->song = m_cSong;
+							n->steps = steps;
+							break;
+						}
 					}
-				}
 				if (n->song != nullptr)
 					break;
 				n->song = m_cSong;
