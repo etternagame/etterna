@@ -232,7 +232,8 @@ ScoresForChart::SetTopScores()
 		{
 			auto& hs = i->second.PBptr;
 			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
-				hs->GetEtternaValid() && hs->GetGrade() != Grade_Failed)
+				hs->GetEtternaValid() && hs->GetChordCohesion() != 0 &&
+				hs->GetGrade() != Grade_Failed)
 				eligiblescores.emplace_back(hs);
 		}
 	}
