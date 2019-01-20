@@ -59,6 +59,9 @@ class SongManager
 	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
+	Vector<RString> GetSongGroupBannerPaths() {
+		return 	m_sSongGroupBannerPaths;
+	}
 	// RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
 	void GetSongGroupNames(vector<RString>& AddTo) const;
 	const vector<RString>& GetSongGroupNames() const;
