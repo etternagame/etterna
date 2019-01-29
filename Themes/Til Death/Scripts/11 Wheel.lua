@@ -153,7 +153,7 @@ Wheel.defaultParams = {
         return SONGMAN:GetAllSongs()
     end,
     count = 20,
-    itemBuilder = function()
+    frameBuilder = function()
         return LoadFont("Common Normal") .. {}
     end,
     frameUpdater = function(frame, item) -- Update an frame created with frameBuilder with an item
