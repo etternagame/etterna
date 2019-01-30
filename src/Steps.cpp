@@ -908,6 +908,39 @@ class LunaSteps : public Luna<Steps>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetNonEmptyNoteData(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		auto& nd = p->GetNoteData();
+		auto loot = nd.BuildAndGetNerv();
+
+		LuaHelpers::CreateTableFromArray(
+		  loot, L); // row (we need timestamps technically)
+		lua_rawseti(L, -2, 1);
+
+		for (int i = 0; i < nd.GetNumTracks(); ++i) { // tap or not
+			vector<int> doot;
+			for (auto r : loot) {
+				auto tn = nd.GetTapNote(i, r);
+				if (tn.type == TapNoteType_Empty)
+					doot.push_back(0);
+				else if (tn.type == TapNoteType_Tap)
+					doot.push_back(1);
+			}
+			LuaHelpers::CreateTableFromArray(doot, L);
+			lua_rawseti(L, -2, i + 2);
+		}
+
+		vector<int> doot;
+		for (auto r : loot) {
+			doot.push_back(static_cast<int>(GetNoteType(r)) + 1); // note denom
+			LuaHelpers::CreateTableFromArray(doot, L);
+			lua_rawseti(L, -2, 6);
+		}
+
+		nd.UnsetNerv();
+		return 1;
+	}
 	static int GetCDGraphVectors(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
@@ -980,6 +1013,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
+		ADD_METHOD(GetNonEmptyNoteData);
 	}
 };
 
