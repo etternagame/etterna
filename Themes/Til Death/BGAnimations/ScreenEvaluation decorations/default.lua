@@ -117,6 +117,7 @@ local frameWidth = SCREEN_CENTER_X - 120
 function scoreBoard(pn, position)
 	local customWindow
 	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+	local judge2 = judge
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
 	if not score then 
@@ -213,9 +214,30 @@ function scoreBoard(pn, position)
 		}
 
 	-- Wife percent
-	t[#t + 1] =
+	t[#t + 1] = Def.ActorFrame {
+		InitCommand = function(self)
+			self:SetUpdateFunction(function(self)
+				self:queuecommand("PercentMouseover")
+			end)
+		end,
+		Def.Quad {
+			InitCommand = function(self)
+				self:xy(frameX + 5, frameY + 9):zoomto(capWideScale(320,360)/2.2,20):halign(0):valign(0)
+				self:diffusealpha(0)
+			end,
+			PercentMouseoverCommand = function(self)
+				if isOver(self) and self:IsVisible() then
+					self:GetParent():GetChild("NormalText"):visible(false)
+					self:GetParent():GetChild("LongerText"):visible(true)
+				else
+					self:GetParent():GetChild("NormalText"):visible(true)
+					self:GetParent():GetChild("LongerText"):visible(false)
+				end
+			end
+		},
 		LoadFont("Common Large") ..
 		{
+			Name = "NormalText",
 			InitCommand = function(self)
 				self:xy(frameX + 5, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 360))
 			end,
@@ -282,7 +304,78 @@ function scoreBoard(pn, position)
 					self:playcommand("Set")
 				end
 			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "LongerText",
+			InitCommand = function(self)
+				self:xy(frameX + 5, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 360))
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				self:diffuse(getGradeColor(score:GetWifeGrade()))
+				self:settextf("%05.4f%% (%s)", notShit.floor(score:GetWifeScore() * 1000000) / 10000, "Wife")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			CodeMessageCommand = function(self, params)
+				local totalHolds =
+					pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+				local holdsHit =
+					score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+				local minesHit =
+					pss:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+				if enabledCustomWindows then
+					if params.Name == "PrevJudge" then
+						judge2 = judge2 < 2 and #customWindows or judge2 - 1
+						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						self:settextf(
+							"%05.4f%% (%s)",
+							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							customWindow.name
+						)
+					elseif params.Name == "NextJudge" then
+						judge2 = judge2 == #customWindows and 1 or judge2 + 1
+						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						self:settextf(
+							"%05.4f%% (%s)",
+							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							customWindow.name
+						)
+					end
+				elseif params.Name == "PrevJudge" and judge2 > 1 then
+					judge2 = judge2 - 1
+					self:settextf(
+						"%05.4f%% (%s)",
+						getRescoredWifeJudge(dvt, judge2, totalHolds - holdsHit, minesHit, totalTaps),
+						"Wife J" .. judge2
+					)
+				elseif params.Name == "NextJudge" and judge2 < 9 then
+					judge2 = judge2 + 1
+					if judge2 == 9 then
+						self:settextf(
+							"%05.4f%% (%s)",
+							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							"Wife Justice"
+						)
+					else
+						self:settextf(
+							"%05.4f%% (%s)",
+							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							"Wife J" .. judge2
+						)
+					end
+				end
+				if params.Name == "ResetJudge" then
+					judge2 = enabledCustomWindows and 0 or GetTimingDifficulty()
+					self:playcommand("Set")
+				end
+			end
 		}
+	}
 
 	t[#t + 1] =
 		LoadFont("Common Normal") ..
