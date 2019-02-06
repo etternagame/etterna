@@ -2885,6 +2885,14 @@ ScreenGameplay::SetSongPosition(float newPositionSeconds)
 	UpdateSongPosition(0);
 }
 
+
+void
+ScreenGameplay::pmdoot(float newPositionSeconds)
+{
+	m_pSoundMusic->SetPositionSeconds(newPositionSeconds);
+	m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
+}
+
 const float
 ScreenGameplay::GetSongPosition()
 {
@@ -3126,6 +3134,13 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		return 0;
 	}
 
+	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	{
+		float given = FArg(1);
+		p->pmdoot(given);
+		return 0;
+	}
+
 	LunaScreenGameplay()
 	{
 		ADD_METHOD(Center1Player);
@@ -3142,6 +3157,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		ADD_METHOD(ToggleReplayPause);
 		ADD_METHOD(SetReplayBookmark);
 		ADD_METHOD(JumpToReplayBookmark);
+		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
 	}
 };
 

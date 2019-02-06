@@ -829,4 +829,109 @@ t[#t + 1] = LoadActor("npscalc")
 	ditto
 ]]
 
+
+
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+															  **Practice Mode**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	stuff
+]]
+
+local prevZoom = 0.65
+local musicratio = 1
+
+-- hurrrrr nps quadzapalooza -mina
+local wodth = capWideScale(280, 300)
+local hidth = 40
+local cd
+
+local function duminput(event)
+	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
+		MESSAGEMAN:Broadcast("MouseLeftClick")
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
+		MESSAGEMAN:Broadcast("MouseRightClick")
+	end
+	return false
+end
+
+local function UpdatePreviewPos(self)
+		local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
+		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
+		self:queuecommand("Highlight")
+end
+
+local pm = Def.ActorFrame {
+	Name = "ChartPreview",
+	InitCommand=function(self)
+		self:xy(25,100)
+        self:SetUpdateFunction(UpdatePreviewPos)
+		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000):y(20)
+	end,
+	BeginCommand=function(self)
+		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
+		cd:GetChild("cdbg"):diffusealpha(0)
+		self:SortByDrawOrder()
+		self:queuecommand("GraphUpdate")
+	end,
+	Def.Quad {
+		Name = "BG",
+		InitCommand = function(self)
+			self:xy(wodth/2, SCREEN_HEIGHT/2) 
+			self:diffuse(color("0.05,0.05,0.05,1"))
+		end
+	},
+	Def.Quad {
+		Name = "PosBG",
+		InitCommand = function(self)
+			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
+		end,
+		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+			if isOver(self) then
+				self:GetParent():GetChild("Seek"):visible(true)
+				self:GetParent():GetChild("Seektext"):visible(true)
+				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
+				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
+			else
+				self:GetParent():GetChild("Seektext"):visible(false)
+				self:GetParent():GetChild("Seek"):visible(false)
+			end
+		end
+	},
+	Def.Quad {
+		Name = "Pos",
+		InitCommand = function(self)
+			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
+		end
+	}
+}
+
+pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua")
+
+-- more draw order shenanigans
+pm[#pm + 1] = LoadFont("Common Normal") .. {
+	Name = "Seektext",
+	InitCommand = function(self)
+		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+	end
+}
+
+pm[#pm + 1] = Def.Quad {
+	Name = "Seek",
+	InitCommand = function(self)
+		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) then
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+		end
+	end
+}
+if allowedCustomization then
+	t[#t + 1] = pm
+end
+
 return t
