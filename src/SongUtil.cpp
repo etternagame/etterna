@@ -390,6 +390,10 @@ SongUtil::MakeSortString(RString s)
 	if (s.size() > 0) {
 		if (s[0] == '.') // like the song ".59"
 			s.erase(s.begin());
+
+		if (s[0] == '#')
+			return s;
+
 		if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
 			s = char(126) + s;
 	}
