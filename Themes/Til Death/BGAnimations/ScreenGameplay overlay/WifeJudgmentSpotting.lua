@@ -966,7 +966,7 @@ pm[#pm + 1] = Def.Quad {
 	end
 }
 
-if practiceMode then
+if practiceMode and not isReplay then
 	t[#t + 1] = pm
 end
 
