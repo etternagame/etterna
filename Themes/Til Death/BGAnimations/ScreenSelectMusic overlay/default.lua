@@ -44,4 +44,12 @@ GAMESTATE:UpdateDiscordMenu(
 		": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
 )
 
+local vis = audioVisualizer:new {
+	x = 160,
+	y = 30,
+	color = getMainColor('positive'),
+}
+t[#t+1] = vis
+SOUND:SetPlayBackCallback(vis.playbackFunction)
+
 return t

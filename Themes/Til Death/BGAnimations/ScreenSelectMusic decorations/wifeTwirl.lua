@@ -791,11 +791,4 @@ t[#t + 1] =
 }]]
 
 t[#t + 1] = LoadActor("../_chartpreview.lua")
-local vis = audioVisualizer:new {
-	x = SCREEN_RIGHT*1/3,
-	y = SCREEN_BOTTOM*3/11,
-	color = getMainColor('positive')
-}
-t[#t+1] = vis
-SOUND:SetPlayBackCallback(vis.playbackFunction)
 return t

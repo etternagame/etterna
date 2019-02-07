@@ -130,7 +130,7 @@ function audioVisualizer:new(params)
 
 		local function addToBin(magnitude, freq)
 			for i = 2, #freqIntervals do
-				if freq > freqIntervals[i - 1] and freq <= freqIntervals[i] then
+				if freq/2 > freqIntervals[i - 1] and freq/2 <= freqIntervals[i] then
 					values[i - 1] = values[i - 1] + magnitude
 					return
 				end
