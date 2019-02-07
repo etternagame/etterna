@@ -365,8 +365,8 @@ RageSound::GetDataToPlay(float* pBuffer,
 				lua_pushnumber(L, r * r + im * im);
 				lua_rawseti(L, -2, i + 1);
 			}
-
-			LuaHelpers::RunScriptOnStack(L, error, 1, 0); // 1 arg, 0 returns
+			PushSelf(L);
+			LuaHelpers::RunScriptOnStack(L, error, 2, 0); // 2 arg, 0 returns
 			LUA->Release(L);
 			recentPCMSamples.clear();
 			fftwf_free(out);
@@ -736,8 +736,8 @@ void
 RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
 {
 	soundPlayCallback = f;
-	recentPCMSamplesBufferSize = max(bufSize, 1024);
-	recentPCMSamples.reserve(p->recentPCMSamplesBufferSize + 2);
+	recentPCMSamplesBufferSize = max(bufSize, 1024u);
+	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 }
 
 
