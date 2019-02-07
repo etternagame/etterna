@@ -732,6 +732,16 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 	}
 }
 
+void
+RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
+{
+	soundPlayCallback = f;
+	recentPCMSamplesBufferSize = max(bufSize, 1024);
+	recentPCMSamples.reserve(p->recentPCMSamplesBufferSize + 2);
+}
+
+
+
 // lua start
 #include "LuaBinding.h"
 
@@ -806,10 +816,10 @@ class LunaRageSound : public Luna<RageSound>
 
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
-		p->soundPlayCallback = GetFuncArg(1, L);
 		if (lua_isnumber(L, 2))
-			p->recentPCMSamplesBufferSize = max(IArg(2), 512);
-		p->recentPCMSamples.reserve(p->recentPCMSamplesBufferSize + 2);
+			p->SetPlayBackCallback(GetFuncArg(1, L), IArg(2));
+		else
+			p->SetPlayBackCallback(GetFuncArg(1, L));
 		COMMON_RETURN_SELF;
 	}
 
