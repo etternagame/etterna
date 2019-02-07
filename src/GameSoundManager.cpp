@@ -286,7 +286,7 @@ GameSoundManager::DoPlayOnce(RString sPath)
 }
 
 static void
-DoPlayOnceFromDir(RString sPath)
+GameSoundManager::DoPlayOnceFromDir(RString sPath)
 {
 	if (sPath == "")
 		return;
@@ -309,7 +309,7 @@ DoPlayOnceFromDir(RString sPath)
 }
 
 static bool
-SoundWaiting()
+GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
 		   !g_SoundsToPlayOnceFromAnnouncer.empty() || !g_MusicsToPlay.empty();
@@ -388,9 +388,10 @@ GameSoundManager::Flush()
 int
 MusicThread_start(void* p)
 {
+	auto soundman = (GameSoundManager*)p;
 	while (!g_Shutdown) {
 		g_Mutex->Lock();
-		while (!SoundWaiting() && !g_Shutdown && !g_bFlushing)
+		while (!soundman->SoundWaiting() && !g_Shutdown && !g_bFlushing)
 			g_Mutex->Wait();
 		g_Mutex->Unlock();
 
@@ -401,7 +402,7 @@ MusicThread_start(void* p)
 		 * to make SOUND calls. */
 		bool bFlushing = g_bFlushing;
 
-		StartQueuedSounds();
+		soundman->StartQueuedSounds();
 
 		if (bFlushing) {
 			g_Mutex->Lock();
