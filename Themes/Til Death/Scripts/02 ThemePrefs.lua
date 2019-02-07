@@ -297,32 +297,6 @@ function PlayerInfo()
 	return t
 end
 
-function PracticeMode()
-	local t = {
-		Name = "PracticeMode",
-		LayoutType = "ShowAllInRow",
-		SelectType = "SelectOne",
-		OneChoiceForAllPlayers = false,
-		ExportOnChange = true,
-		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
-		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).PracticeMode
-			if pref then
-				list[2] = true
-			else
-				list[1] = true
-			end
-		end,
-		SaveSelections = function(self, list, pn)
-			playerConfig:get_data(pn_to_profile_slot(pn)).PracticeMode = list[2]
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
-		end
-	}
-	setmetatable(t, t)
-	return t
-end
-
 function CustomizeGameplay()
 	local t = {
 		Name = "CustomizeGameplay",

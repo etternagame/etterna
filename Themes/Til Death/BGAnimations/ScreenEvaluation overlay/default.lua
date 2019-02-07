@@ -18,14 +18,6 @@ local frameHeight = 20
 local frameX = SCREEN_WIDTH - 5
 local frameY = 15
 
--- bad way to do this
-local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
-local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
-local isPractice = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PracticeMode
-if isPractice then
-	playeroptions:FailSetting("FailType_Immediate")
-end
-
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{

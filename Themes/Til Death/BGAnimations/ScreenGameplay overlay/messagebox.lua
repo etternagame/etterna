@@ -1,4 +1,5 @@
 local settext = BitmapText.settext
+local isPractice = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
 
 local function highlight(self)
 	self:queuecommand("Highlight")
@@ -72,7 +73,7 @@ return Def.ActorFrame {
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 				table.insert(text, "/: Lane Cover Height")
 			end
-			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PracticeMode ~= 0 then
+			if isPractice then
 				table.insert(text, "z: Density Graph Position")
 			end
 			self:settext(table.concat(text, "\n"))

@@ -95,6 +95,21 @@ ScreenSelectMusic::Init()
 	if (GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController == PC_REPLAY)
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_HUMAN;
 
+	// Remove failOff if we enter SSM with Practice Mode on so if the player turns it back off when entering a song, we don't have to worry about it
+	if (GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_bPractice) {
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = FailType_Immediate;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = FailType_Immediate;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = FailType_Immediate;
+	}
+
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
 	SAMPLE_MUSIC_DELAY.Load(m_sName, "SampleMusicDelay");
@@ -1823,8 +1838,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMEMAN->m_bResetTurns = true;
 		GAMEMAN->m_vTurnsToReset = oldTurns;
 		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
-										->m_PlayerOptions.GetSong()
-										.m_FailType;
+									 ->m_PlayerOptions.GetSong()
+									 .m_FailType;
 
 		// REALLY BAD way to set fail off for a replay
 		GAMESTATE->m_pPlayerState[PLAYER_1]
@@ -1914,10 +1929,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
-		
+
 		GAMEMAN->m_iPreviousFail = GAMESTATE->m_pPlayerState[PLAYER_1]
-										->m_PlayerOptions.GetSong()
-										.m_FailType;
+									 ->m_PlayerOptions.GetSong()
+									 .m_FailType;
 
 		// go
 		LOG->Trace("Viewing evaluation screen for score key %s",
