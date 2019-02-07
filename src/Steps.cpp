@@ -911,7 +911,7 @@ class LunaSteps : public Luna<Steps>
 	static int GetNonEmptyNoteData(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		auto& nd = p->GetNoteData();
+		auto nd = p->GetNoteData();
 		auto loot = nd.BuildAndGetNerv();
 
 		LuaHelpers::CreateTableFromArray(
