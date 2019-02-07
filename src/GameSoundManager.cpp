@@ -893,8 +893,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	{
 		p->soundPlayCallback = GetFuncArg(1, L);
 		if (lua_isnumber(L, 2))
-			p->recentPCMSamplesBufferSize = max(IArg(2), 512);
-		p->recentPCMSamplesBufferSize.reserve(p->recentPCMSamplesBufferSize + 2);
+			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), u512);
 		COMMON_RETURN_SELF;
 	}
 	static int ClearPlayBackCallback(T* p, lua_State* L)
