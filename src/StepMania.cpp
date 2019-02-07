@@ -1502,7 +1502,8 @@ HandleGlobalInputs(const InputEventPlus& input)
 		(INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RALT),
 									 &input.InputList) ||
 		 INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
-									 &input.InputList))) {
+									 &input.InputList)) &&
+		!(SCREENMAN->GetTopScreen()->GetScreenType() == gameplay)) {
 		// alt-enter
 		/* In OS X, this is a menu item and will be handled as such. This will
 		 * happen first and then the lower priority GUI thread will happen
