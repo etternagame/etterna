@@ -2,6 +2,7 @@
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+local practiceMode = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
 local jcKeys = tableKeys(colorConfig:get_data().judgment)
 local jcT = {} -- A "T" following a variable name will designate an object of type table.
 
@@ -828,5 +829,145 @@ t[#t + 1] = LoadActor("npscalc")
 
 	ditto
 ]]
+
+
+
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+															  **Practice Mode**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	stuff
+]]
+
+local prevZoom = 0.65
+local musicratio = 1
+
+-- hurrrrr nps quadzapalooza -mina
+local wodth = capWideScale(280, 300)
+local hidth = 40
+local cd
+local bookmarkPosition
+
+local function duminput(event)
+	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
+		MESSAGEMAN:Broadcast("MouseLeftClick")
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
+		MESSAGEMAN:Broadcast("MouseRightClick")
+	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
+		if bookmarkPosition ~= nil then
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	bookmarkPosition  )
+		end
+	end
+	return false
+end
+
+local function UpdatePreviewPos(self)
+		local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
+		self:GetChild("Pos"):zoomto(math.min(math.max(0, pos), wodth), hidth)
+		self:queuecommand("Highlight")
+end
+
+local pm = Def.ActorFrame {
+	Name = "ChartPreview",
+	InitCommand=function(self)
+		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
+        self:SetUpdateFunction(UpdatePreviewPos)
+		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000):y(20)
+		if (allowedCustomization) then
+			Movable.DeviceButton_z.element = self
+			Movable.DeviceButton_z.condition = practiceMode
+			--Movable.DeviceButton_z.Border = self:GetChild("Border")
+			--Movable.DeviceButton_x.element = self
+			--Movable.DeviceButton_x.condition = practiceMode
+			--Movable.DeviceButton_x.Border = self:GetChild("Border")
+		end
+		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
+	end,
+	BeginCommand=function(self)
+		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
+		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
+		cd:GetChild("cdbg"):diffusealpha(0)
+		self:SortByDrawOrder()
+		self:queuecommand("GraphUpdate")
+	end,
+	Def.Quad {
+		Name = "BG",
+		InitCommand = function(self)
+			self:x(wodth/2) 
+			self:diffuse(color("0.05,0.05,0.05,1"))
+		end
+	},
+	Def.Quad {
+		Name = "PosBG",
+		InitCommand = function(self)
+			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
+		end,
+		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+			if isOver(self) then
+				self:GetParent():GetChild("Seek"):visible(true)
+				self:GetParent():GetChild("Seektext"):visible(true)
+				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
+				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
+			else
+				self:GetParent():GetChild("Seektext"):visible(false)
+				self:GetParent():GetChild("Seek"):visible(false)
+			end
+		end
+	},
+	Def.Quad {
+		Name = "Pos",
+		InitCommand = function(self)
+			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
+		end
+	},
+	--MovableBorder(wodth+3, hidth+3, 1, (wodth)/2, 0)
+}
+
+pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {
+}
+
+-- more draw order shenanigans
+pm[#pm + 1] = LoadFont("Common Normal") .. {
+	Name = "Seektext",
+	InitCommand = function(self)
+		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+	end
+}
+
+pm[#pm + 1] = Def.Quad {
+	Name = "Seek",
+	InitCommand = function(self)
+		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) then
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+		end
+	end,
+	MouseRightClickMessageCommand = function(self)
+		if isOver(self) then
+			bookmarkPosition = self:GetX() * musicratio
+			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
+		end
+	end
+}
+
+pm[#pm + 1] = Def.Quad {
+	Name = "BookmarkPos",
+	InitCommand = function(self)
+		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
+		self:visible(false)
+	end,
+	SetCommand = function(self)
+		self:visible(true)
+		self:x(bookmarkPosition / musicratio)
+	end
+}
+
+if practiceMode and not isReplay then
+	t[#t + 1] = pm
+end
 
 return t

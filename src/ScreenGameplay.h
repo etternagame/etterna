@@ -170,6 +170,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	float SetRate(float newRate);
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newPositionSeconds);
+	void pmdoot(float newPositionSeconds);
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
 	// Toggle pause. Don't use this outside of replays.

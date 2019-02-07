@@ -374,6 +374,19 @@ ScreenGameplay::Init()
 	GAMESTATE->SetPaused(false);
 	m_fReplayBookmarkSeconds = 0.f;
 
+	// Force FailOff in Practice Mode
+	if (GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().m_bPractice) {
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .m_FailType = FailType_Off;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetPreferred()
+		  .m_FailType = FailType_Off;
+	}
+
 	int player = 1;
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
@@ -1368,8 +1381,10 @@ ScreenGameplay::BeginScreen()
 	if (GAMESTATE->m_bPlayingMulti) {
 		this->SetInterval(
 		  [this]() {
-			  auto& ptns = this->GetPlayerInfo(PLAYER_1)->GetPlayerStageStats()->m_iTapNoteScores;
-			  
+			  auto& ptns = this->GetPlayerInfo(PLAYER_1)
+							 ->GetPlayerStageStats()
+							 ->m_iTapNoteScores;
+
 			  RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
 									  ptns[TNS_W1],
 									  ptns[TNS_W2],
@@ -1381,8 +1396,9 @@ ScreenGameplay::BeginScreen()
 										->GetPlayerStageStats()
 										->m_iCurCombo);
 			  NSMAN->SendMPLeaderboardUpdate(
-				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore / this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore, doot);
-			  		
+				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore /
+				  this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore,
+				doot);
 		  },
 		  0.25f,
 		  -1);
@@ -1773,16 +1789,13 @@ ScreenGameplay::Update(float fDeltaTime)
 							FailType failreset = GAMEMAN->m_iPreviousFail;
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetSong()
-							  .m_FailType =
-							  failreset;
+							  .m_FailType = failreset;
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetCurrent()
-							  .m_FailType =
-							  failreset;
+							  .m_FailType = failreset;
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetPreferred()
-							  .m_FailType =
-							  failreset;
+							  .m_FailType = failreset;
 							GAMEMAN->m_bResetModifiers = false;
 							GAMEMAN->m_sModsToReset = "";
 							MESSAGEMAN->Broadcast("RateChanged");
@@ -2135,16 +2148,13 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						FailType failreset = GAMEMAN->m_iPreviousFail;
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetSong()
-						  .m_FailType =
-						  failreset;
+						  .m_FailType = failreset;
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetCurrent()
-						  .m_FailType =
-						  failreset;
+						  .m_FailType = failreset;
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetPreferred()
-						  .m_FailType =
-						  failreset;
+						  .m_FailType = failreset;
 						GAMEMAN->m_bResetModifiers = false;
 						GAMEMAN->m_sModsToReset = "";
 						MESSAGEMAN->Broadcast("RateChanged");
@@ -2331,8 +2341,11 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	  STATSMAN->m_CurStageStats.m_bGaveUp,
 	  STATSMAN->m_CurStageStats.m_bUsedAutoplay);
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
-	if (GamePreferences::m_AutoPlay == PC_HUMAN)
-		GAMESTATE->CommitStageStats();
+	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_bPractice)
+			GAMESTATE->CommitStageStats();
 	// save current stage stats
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);
 
@@ -2885,6 +2898,13 @@ ScreenGameplay::SetSongPosition(float newPositionSeconds)
 	UpdateSongPosition(0);
 }
 
+void
+ScreenGameplay::pmdoot(float newPositionSeconds)
+{
+	m_pSoundMusic->SetPositionSeconds(newPositionSeconds);
+	m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
+}
+
 const float
 ScreenGameplay::GetSongPosition()
 {
@@ -3126,6 +3146,13 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		return 0;
 	}
 
+	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	{
+		float given = FArg(1);
+		p->pmdoot(given);
+		return 0;
+	}
+
 	LunaScreenGameplay()
 	{
 		ADD_METHOD(Center1Player);
@@ -3142,6 +3169,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		ADD_METHOD(ToggleReplayPause);
 		ADD_METHOD(SetReplayBookmark);
 		ADD_METHOD(JumpToReplayBookmark);
+		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
 	}
 };
 

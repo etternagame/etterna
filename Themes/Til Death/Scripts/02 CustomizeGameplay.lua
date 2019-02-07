@@ -58,6 +58,10 @@ local function loadValuesTable()
 	MovableValues.LifeP1Rotation = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1Rotation
 	MovableValues.LifeP1Width = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Width
 	MovableValues.LifeP1Height = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Height
+	MovableValues.PracticeCDGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].PracticeCDGraphX
+	MovableValues.PracticeCDGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].PracticeCDGraphY
+	MovableValues.PracticeCDGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphHeight
+	MovableValues.PracticeCDGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphWidth
 
 	if IsUsingWideScreen() then
 		MovableValues.MiniProgressBarY = MovableValues.MiniProgressBarY + WIDESCREENWHY
@@ -717,6 +721,54 @@ Movable = {
 			inc = 1
 		},
 	},
+	DeviceButton_z = {
+		name = "PracticeCDGraph",
+		textHeader = "Chord Density Graph Position:",
+		properties = {"X","Y"},
+		element = {},
+		elementTree = "GameplayXYCoordinates",
+		propertyOffsets = nil,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -3
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 3
+		}
+	},
+	--[[DeviceButton_x = {
+		name = "PracticeCDGraph",
+		textHeader = "Chord Density Graph Size:",
+		properties = {"Width", "Height"},
+		element = {},
+		elementTree = "GameplaySizes",
+		propertyOffsets = nil,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 0.1
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -0.1
+		},
+		DeviceButton_left = {
+			property = "Width",
+			inc = -0.01
+		},
+		DeviceButton_right = {
+			property = "Width",
+			inc = 0.01
+		}
+	},]]
 }
 
 local function updatetext(button)

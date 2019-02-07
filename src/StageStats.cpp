@@ -618,7 +618,11 @@ StageStats::FinalizeScores(bool bSummary)
 	}
 
 	// don't save scores if the player chose not to
-	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore)
+	// also don't save if in practice mode
+	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore ||
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetCurrent()
+		  .m_bPractice)
 		return;
 
 	LOG->Trace("saving stats and high scores");

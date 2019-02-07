@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameState.h"
@@ -95,6 +95,7 @@ PlayerOptions::Init()
 	ZERO(m_bTurns);
 	ZERO(m_bTransforms);
 	m_bMuteOnError = false;
+	m_bPractice = false;
 	m_sNoteSkin = "";
 }
 
@@ -139,6 +140,7 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	for (int i = 0; i < NUM_TRANSFORMS; i++)
 		DO_COPY(m_bTransforms[i]);
 	DO_COPY(m_bMuteOnError);
+	DO_COPY(m_bPractice);
 	DO_COPY(m_FailType);
 	DO_COPY(m_MinTNSToHideNotes);
 	DO_COPY(m_sNoteSkin);
@@ -334,6 +336,8 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 		AddTo.push_back("NoStretch");
 	if (m_bMuteOnError)
 		AddTo.push_back("MuteOnError");
+	if (m_bPractice)
+		AddTo.push_back("PracticeMode");
 
 	switch (m_FailType) {
 		case FailType_Immediate:
@@ -740,6 +744,8 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_bMuteOnError = on;
 	else if (sBit == "random")
 		ChooseRandomModifiers();
+	else if (sBit == "practicemode")
+		m_bPractice = on;
 	// deprecated mods/left in for compatibility
 	else if (sBit == "converge")
 		SET_FLOAT(fScrolls[SCROLL_CENTERED])
@@ -988,6 +994,7 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	COMPARE(m_FailType);
 	COMPARE(m_MinTNSToHideNotes);
 	COMPARE(m_bMuteOnError);
+	COMPARE(m_bPractice);
 	COMPARE(m_fDark);
 	COMPARE(m_fBlind);
 	COMPARE(m_fCover);
@@ -1039,6 +1046,7 @@ PlayerOptions::operator=(PlayerOptions const& other)
 	CPY(m_FailType);
 	CPY(m_MinTNSToHideNotes);
 	CPY(m_bMuteOnError);
+	CPY(m_bPractice);
 	CPY_SPEED(fDark);
 	CPY_SPEED(fBlind);
 	CPY_SPEED(fCover);
@@ -1208,6 +1216,7 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_bTransforms[TRANSFORM_NOLIFTS]);
 	SAVE(m_bTransforms[TRANSFORM_NOFAKES]);
 	SAVE(m_bMuteOnError);
+	SAVE(m_bPractice);
 	SAVE(m_sNoteSkin);
 #undef SAVE
 	return po_prefs.GetString();
@@ -1369,6 +1378,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	BOOL_INTERFACE(NoQuads, Transforms[PlayerOptions::TRANSFORM_NOQUADS]);
 	BOOL_INTERFACE(NoStretch, Transforms[PlayerOptions::TRANSFORM_NOSTRETCH]);
 	BOOL_INTERFACE(MuteOnError, MuteOnError);
+	BOOL_INTERFACE(PracticeMode, Practice)
 	ENUM_INTERFACE(FailSetting, FailType, FailType);
 	ENUM_INTERFACE(MinTNSToHideNotes, MinTNSToHideNotes, TapNoteScore);
 
@@ -1596,6 +1606,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	DEFINE_METHOD(UsingReverse,
 				  m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1.0f);
+	DEFINE_METHOD(UsingPractice, m_bPractice == true);
 
 	static int GetReversePercentForColumn(T* p, lua_State* L)
 	{
@@ -1706,6 +1717,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(NoQuads);
 		ADD_METHOD(NoStretch);
 		ADD_METHOD(MuteOnError);
+		//ADD_METHOD(PracticeMode); -- To Restrict theme access to practice mode
+		ADD_METHOD(UsingPractice);
 
 		ADD_METHOD(NoteSkin);
 		ADD_METHOD(FailSetting);
