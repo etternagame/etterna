@@ -73,6 +73,8 @@ class GameSoundManager
 	void StartMusic(MusicToPlay& ToPlay);
 	void DoPlayOnce(RString sPath);
 	void StartQueuedSounds();
+	void DoPlayOnceFromDir(RString sPath);
+	bool SoundWaiting();
 		
 	LuaReference soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
