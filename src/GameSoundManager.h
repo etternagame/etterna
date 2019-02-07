@@ -69,6 +69,10 @@ class GameSoundManager
 	RageSound* GetRageSoundPlaying();
 	TimingData GetPlayingMusicTiming();
 	
+	void StartMusic(MusicToPlay& ToPlay);
+	void DoPlayOnce(RString sPath);
+	void StartQueuedSounds();
+		
 	LuaReference soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
 
