@@ -2,6 +2,7 @@
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+local practiceMode = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PracticeMode
 local jcKeys = tableKeys(colorConfig:get_data().judgment)
 local jcT = {} -- A "T" following a variable name will designate an object of type table.
 
@@ -857,19 +858,28 @@ end
 
 local function UpdatePreviewPos(self)
 		local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
-		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
+		self:GetChild("Pos"):zoomto(math.min(math.max(0, pos), wodth), hidth)
 		self:queuecommand("Highlight")
 end
 
 local pm = Def.ActorFrame {
 	Name = "ChartPreview",
 	InitCommand=function(self)
-		self:xy(25,100)
+		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
         self:SetUpdateFunction(UpdatePreviewPos)
 		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000):y(20)
+		if (allowedCustomization) then
+			Movable.DeviceButton_z.element = self
+			Movable.DeviceButton_z.condition = practiceMode
+			--Movable.DeviceButton_z.Border = self:GetChild("Border")
+			--Movable.DeviceButton_x.element = self
+			--Movable.DeviceButton_x.condition = practiceMode
+			--Movable.DeviceButton_x.Border = self:GetChild("Border")
+		end
+		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand=function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
 		cd:GetChild("cdbg"):diffusealpha(0)
 		self:SortByDrawOrder()
@@ -878,7 +888,7 @@ local pm = Def.ActorFrame {
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2) 
+			self:x(wodth/2) 
 			self:diffuse(color("0.05,0.05,0.05,1"))
 		end
 	},
@@ -906,10 +916,12 @@ local pm = Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
 		end
-	}
+	},
+	--MovableBorder(wodth+3, hidth+3, 1, (wodth)/2, 0)
 }
 
-pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua")
+pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {
+}
 
 -- more draw order shenanigans
 pm[#pm + 1] = LoadFont("Common Normal") .. {
@@ -930,7 +942,7 @@ pm[#pm + 1] = Def.Quad {
 		end
 	end
 }
-if allowedCustomization then
+if practiceMode then
 	t[#t + 1] = pm
 end
 

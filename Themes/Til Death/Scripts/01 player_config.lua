@@ -28,7 +28,9 @@ local defaultGameplayCoordinates = {
 	ReplayButtonsY = SCREEN_HEIGHT / 2 - 100,
 	LifeP1X = 178,
 	LifeP1Y = 10,
-	LifeP1Rotation = 0
+	LifeP1Rotation = 0,
+	PracticeCDGraphX = 10,
+	PracticeCDGraphY = 85
 }
 
 local defaultGameplaySizes = {
@@ -51,7 +53,9 @@ local defaultGameplaySizes = {
 	ReplayButtonsZoom = 1.0,
 	ReplayButtonsSpacing = 0.0,
 	LifeP1Width = 1.0,
-	LifeP1Height = 1.0
+	LifeP1Height = 1.0,
+	PracticeCDGraphWidth = 0.8,
+	PracticeCDGraphHeight = 1
 }
 
 local defaultConfig = {
