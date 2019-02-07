@@ -116,6 +116,8 @@ StartMusic(MusicToPlay& ToPlay)
 		 * the sound. Be sure to leave the rest of g_Playing in place. */
 		RageSound* pOldSound = g_Playing->m_Music;
 		g_Playing->m_Music = new RageSound;
+		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		L.Unlock();
 
 		delete pOldSound;
@@ -129,6 +131,8 @@ StartMusic(MusicToPlay& ToPlay)
 	{
 		g_Mutex->Unlock();
 		auto* pSound = new RageSound;
+		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+			pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
 		pSound->Load(ToPlay.m_sFile, false, &params);
@@ -274,6 +278,8 @@ DoPlayOnce(RString sPath)
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
+	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 	pSound->Load(sPath, false);
 
 	pSound->Play(false);
@@ -358,6 +364,8 @@ StartQueuedSounds()
 			g_Mutex->Lock();
 			RageSound* pOldSound = g_Playing->m_Music;
 			g_Playing->m_Music = new RageSound;
+			if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 			g_Mutex->Unlock();
 
 			delete pOldSound;
@@ -414,6 +422,8 @@ GameSoundManager::GameSoundManager()
 
 	g_Mutex = new RageEvent("GameSoundManager");
 	g_Playing = new MusicPlaying(new RageSound);
+	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize );
 
 	g_UpdatingTimer = true;
 
@@ -879,9 +889,24 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		lua_pushboolean(L, static_cast<int>(g_Playing->m_bTimingDelayed));
 		return 1;
 	}
+	static int SetPlayBackCallback(T* p, lua_State* L)
+	{
+		p->soundPlayCallback = GetFuncArg(1, L);
+		if (lua_isnumber(L, 2))
+			p->recentPCMSamplesBufferSize = max(IArg(2), 512);
+		p->recentPCMSamples.reserve(p->recentPCMSamplesBufferSize + 2);
+		COMMON_RETURN_SELF;
+	}
+	static int ClearPlayBackCallback(T* p, lua_State* L)
+	{
+		p->soundPlayCallback.Unset();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGameSoundManager()
 	{
+		ADD_METHOD(SetPlayBackCallback);
+		ADD_METHOD(ClearPlayBackCallback);
 		ADD_METHOD(DimMusic);
 		ADD_METHOD(PlayOnce);
 		ADD_METHOD(PlayAnnouncer);
