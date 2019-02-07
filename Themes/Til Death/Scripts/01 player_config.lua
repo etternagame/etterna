@@ -82,6 +82,7 @@ local defaultConfig = {
 	PasswordToken = "",
 	CustomizeGameplay = false,
 	CustomEvaluationWindowTimings = false,
+	PracticeMode = false,
 	GameplayXYCoordinates = {
 		["4K"] = DeepCopy(defaultGameplayCoordinates),
 		["5K"] = DeepCopy(defaultGameplayCoordinates),
