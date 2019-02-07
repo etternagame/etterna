@@ -99,8 +99,8 @@ struct MusicToPlay
 vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
 
-static void
-StartMusic(MusicToPlay& ToPlay)
+void
+GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 {
 	LockMutex L(*g_Mutex);
 	if (g_Playing->m_Music->IsPlaying() &&
@@ -116,6 +116,8 @@ StartMusic(MusicToPlay& ToPlay)
 		 * the sound. Be sure to leave the rest of g_Playing in place. */
 		RageSound* pOldSound = g_Playing->m_Music;
 		g_Playing->m_Music = new RageSound;
+		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		L.Unlock();
 
 		delete pOldSound;
@@ -129,6 +131,8 @@ StartMusic(MusicToPlay& ToPlay)
 	{
 		g_Mutex->Unlock();
 		auto* pSound = new RageSound;
+		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+			pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
 		pSound->Load(ToPlay.m_sFile, false, &params);
@@ -268,20 +272,21 @@ StartMusic(MusicToPlay& ToPlay)
 	delete g_Playing;
 	g_Playing = NewMusic;
 }
-
-static void
-DoPlayOnce(RString sPath)
+void
+GameSoundManager::DoPlayOnce(RString sPath)
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
+	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 	pSound->Load(sPath, false);
 
 	pSound->Play(false);
 	pSound->DeleteSelfWhenFinishedPlaying();
 }
 
-static void
-DoPlayOnceFromDir(RString sPath)
+void
+GameSoundManager::DoPlayOnceFromDir(RString sPath)
 {
 	if (sPath == "")
 		return;
@@ -303,15 +308,15 @@ DoPlayOnceFromDir(RString sPath)
 	DoPlayOnce(sPath + arraySoundFiles[index]);
 }
 
-static bool
-SoundWaiting()
+bool
+GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
 		   !g_SoundsToPlayOnceFromAnnouncer.empty() || !g_MusicsToPlay.empty();
 }
 
-static void
-StartQueuedSounds()
+void
+GameSoundManager::StartQueuedSounds()
 {
 	g_Mutex->Lock();
 	vector<RString> aSoundsToPlayOnce = g_SoundsToPlayOnce;
@@ -358,6 +363,8 @@ StartQueuedSounds()
 			g_Mutex->Lock();
 			RageSound* pOldSound = g_Playing->m_Music;
 			g_Playing->m_Music = new RageSound;
+			if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 			g_Mutex->Unlock();
 
 			delete pOldSound;
@@ -381,9 +388,10 @@ GameSoundManager::Flush()
 int
 MusicThread_start(void* p)
 {
+	auto soundman = (GameSoundManager*)p;
 	while (!g_Shutdown) {
 		g_Mutex->Lock();
-		while (!SoundWaiting() && !g_Shutdown && !g_bFlushing)
+		while (!soundman->SoundWaiting() && !g_Shutdown && !g_bFlushing)
 			g_Mutex->Wait();
 		g_Mutex->Unlock();
 
@@ -394,7 +402,7 @@ MusicThread_start(void* p)
 		 * to make SOUND calls. */
 		bool bFlushing = g_bFlushing;
 
-		StartQueuedSounds();
+		soundman->StartQueuedSounds();
 
 		if (bFlushing) {
 			g_Mutex->Lock();
@@ -414,6 +422,8 @@ GameSoundManager::GameSoundManager()
 
 	g_Mutex = new RageEvent("GameSoundManager");
 	g_Playing = new MusicPlaying(new RageSound);
+	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize );
 
 	g_UpdatingTimer = true;
 
@@ -879,9 +889,23 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		lua_pushboolean(L, static_cast<int>(g_Playing->m_bTimingDelayed));
 		return 1;
 	}
+	static int SetPlayBackCallback(T* p, lua_State* L)
+	{
+		p->soundPlayCallback = GetFuncArg(1, L);
+		if (lua_isnumber(L, 2))
+			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
+		COMMON_RETURN_SELF;
+	}
+	static int ClearPlayBackCallback(T* p, lua_State* L)
+	{
+		p->soundPlayCallback.Unset();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGameSoundManager()
 	{
+		ADD_METHOD(SetPlayBackCallback);
+		ADD_METHOD(ClearPlayBackCallback);
 		ADD_METHOD(DimMusic);
 		ADD_METHOD(PlayOnce);
 		ADD_METHOD(PlayAnnouncer);

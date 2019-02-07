@@ -162,6 +162,7 @@ class RageSound : public RageSoundBase
 	unsigned int recentPCMSamplesBufferSize = 1024;
 	LuaReference soundPlayCallback;
 	vector<float> recentPCMSamples;
+	void SetPlayBackCallback(LuaReference f, unsigned int bufSize = 1024);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);

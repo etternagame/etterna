@@ -359,14 +359,15 @@ RageSound::GetDataToPlay(float* pBuffer,
 			string error;
 			this->soundPlayCallback.PushSelf(L);
 			lua_newtable(L);
-			for (unsigned i = 0; i < nOut; ++i) {
+			for (int i = 0; i < nOut; ++i) {
 				auto r = out[i][0];
 				auto im = out[i][1];
 				lua_pushnumber(L, r * r + im * im);
 				lua_rawseti(L, -2, i + 1);
 			}
+			this->PushSelf(L);
 
-			LuaHelpers::RunScriptOnStack(L, error, 1, 0); // 1 arg, 0 returns
+			LuaHelpers::RunScriptOnStack(L, error, 2, 0, true); // 1 arg, 0 returns
 			LUA->Release(L);
 			recentPCMSamples.clear();
 			fftwf_free(out);
@@ -732,6 +733,16 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 	}
 }
 
+void
+RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
+{
+	soundPlayCallback = f;
+	recentPCMSamplesBufferSize = max(bufSize, 1024u);
+	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
+}
+
+
+
 // lua start
 #include "LuaBinding.h"
 
@@ -806,10 +817,10 @@ class LunaRageSound : public Luna<RageSound>
 
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
-		p->soundPlayCallback = GetFuncArg(1, L);
 		if (lua_isnumber(L, 2))
-			p->recentPCMSamplesBufferSize = max(IArg(2), 512);
-		p->recentPCMSamples.reserve(p->recentPCMSamplesBufferSize + 2);
+			p->SetPlayBackCallback(GetFuncArg(1, L), IArg(2));
+		else
+			p->SetPlayBackCallback(GetFuncArg(1, L));
 		COMMON_RETURN_SELF;
 	}
 
