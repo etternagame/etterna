@@ -99,8 +99,8 @@ struct MusicToPlay
 vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
 
-static void
-StartMusic(MusicToPlay& ToPlay)
+void
+GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 {
 	LockMutex L(*g_Mutex);
 	if (g_Playing->m_Music->IsPlaying() &&
@@ -272,9 +272,8 @@ StartMusic(MusicToPlay& ToPlay)
 	delete g_Playing;
 	g_Playing = NewMusic;
 }
-
-static void
-DoPlayOnce(RString sPath)
+void
+GameSoundManager::DoPlayOnce(RString sPath)
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
@@ -316,8 +315,8 @@ SoundWaiting()
 		   !g_SoundsToPlayOnceFromAnnouncer.empty() || !g_MusicsToPlay.empty();
 }
 
-static void
-StartQueuedSounds()
+void
+GameSoundManager::StartQueuedSounds()
 {
 	g_Mutex->Lock();
 	vector<RString> aSoundsToPlayOnce = g_SoundsToPlayOnce;
