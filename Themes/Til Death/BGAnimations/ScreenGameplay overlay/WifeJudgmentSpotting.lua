@@ -846,12 +846,17 @@ local musicratio = 1
 local wodth = capWideScale(280, 300)
 local hidth = 40
 local cd
+local bookmarkPosition
 
 local function duminput(event)
 	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseLeftClick")
 	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseRightClick")
+	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
+		if bookmarkPosition ~= nil then
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	bookmarkPosition  )
+		end
 	end
 	return false
 end
@@ -940,8 +945,27 @@ pm[#pm + 1] = Def.Quad {
 		if isOver(self) then
 			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
 		end
+	end,
+	MouseRightClickMessageCommand = function(self)
+		if isOver(self) then
+			bookmarkPosition = self:GetX() * musicratio
+			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
+		end
 	end
 }
+
+pm[#pm + 1] = Def.Quad {
+	Name = "BookmarkPos",
+	InitCommand = function(self)
+		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
+		self:visible(false)
+	end,
+	SetCommand = function(self)
+		self:visible(true)
+		self:x(bookmarkPosition / musicratio)
+	end
+}
+
 if practiceMode then
 	t[#t + 1] = pm
 end
