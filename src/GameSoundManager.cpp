@@ -285,7 +285,7 @@ GameSoundManager::DoPlayOnce(RString sPath)
 	pSound->DeleteSelfWhenFinishedPlaying();
 }
 
-static void
+void
 GameSoundManager::DoPlayOnceFromDir(RString sPath)
 {
 	if (sPath == "")
@@ -308,7 +308,7 @@ GameSoundManager::DoPlayOnceFromDir(RString sPath)
 	DoPlayOnce(sPath + arraySoundFiles[index]);
 }
 
-static bool
+bool
 GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
