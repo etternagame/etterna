@@ -359,14 +359,15 @@ RageSound::GetDataToPlay(float* pBuffer,
 			string error;
 			this->soundPlayCallback.PushSelf(L);
 			lua_newtable(L);
-			for (unsigned i = 0; i < nOut; ++i) {
+			for (int i = 0; i < nOut; ++i) {
 				auto r = out[i][0];
 				auto im = out[i][1];
 				lua_pushnumber(L, r * r + im * im);
 				lua_rawseti(L, -2, i + 1);
 			}
-			PushSelf(L);
-			LuaHelpers::RunScriptOnStack(L, error, 2, 0); // 2 arg, 0 returns
+			this->PushSelf(L);
+
+			LuaHelpers::RunScriptOnStack(L, error, 2, 0, true); // 1 arg, 0 returns
 			LUA->Release(L);
 			recentPCMSamples.clear();
 			fftwf_free(out);
