@@ -68,6 +68,9 @@ class GameSoundManager
 	static float GetPlayerBalance(PlayerNumber pn);
 	RageSound* GetRageSoundPlaying();
 	TimingData GetPlayingMusicTiming();
+	
+	LuaReference soundPlayCallback;
+	unsigned int recentPCMSamplesBufferSize = 1024;
 
 	// Lua
 	void PushSelf(lua_State* L);
