@@ -6,6 +6,7 @@
 class TimingData;
 class RageSound;
 struct lua_State;
+struct MusicToPlay;
 
 int
 MusicThread_start(void* p);
