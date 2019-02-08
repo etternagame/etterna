@@ -203,7 +203,6 @@ class PrefsManager
 	Preference<bool> m_DisableUploadDir;
 	Preference<bool> m_bCelShadeModels;
 	Preference<bool> m_bPreferredSortUsesGroups;
-	Preference<bool> UseStbImageLibrary;
 	Preference<bool> EnablePitchRates;
 
 	// Number of seconds it takes for a button on the controller to release

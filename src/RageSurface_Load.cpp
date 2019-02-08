@@ -59,22 +59,7 @@ TryOpenFile(RString sPath,
 {
 	RageSurface* ret = nullptr;
 	RageSurfaceUtils::OpenResult result;
-
-	if (PREFSMAN->UseStbImageLibrary)
-		result = RageSurface_stb_Load(sPath, ret, bHeaderOnly, error);
-	else if (!format.CompareNoCase("png"))
-		result = RageSurface_Load_PNG(sPath, ret, bHeaderOnly, error);
-	else if (!format.CompareNoCase("gif"))
-		result = RageSurface_Load_GIF(sPath, ret, bHeaderOnly, error);
-	else if (!format.CompareNoCase("jpg") || !format.CompareNoCase("jpeg"))
-		result = RageSurface_Load_JPEG(sPath, ret, bHeaderOnly, error);
-	else if (!format.CompareNoCase("bmp"))
-		result = RageSurface_Load_BMP(sPath, ret, bHeaderOnly, error);
-	else {
-		error = "Unsupported format";
-		bKeepTrying = true;
-		return nullptr;
-	}
+	result = RageSurface_stb_Load(sPath, ret, bHeaderOnly, error);
 
 	if (result == RageSurfaceUtils::OPEN_OK) {
 		ASSERT(ret != nullptr);
