@@ -351,14 +351,14 @@ ScreenGameplay::Init()
 	m_fReplayBookmarkSeconds = 0.f;
 
 	// Force FailOff in Practice Mode
-	if (GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().m_bPractice) {
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_FailType = FailType_Off;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetSong()
 		  .m_FailType = FailType_Off;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetPreferred()
 		  .m_FailType = FailType_Off;
 	}
@@ -2000,7 +2000,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_bPractice)
 			GAMESTATE->CommitStageStats();

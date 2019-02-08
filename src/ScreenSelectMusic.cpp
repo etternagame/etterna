@@ -93,16 +93,16 @@ ScreenSelectMusic::Init()
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_HUMAN;
 
 	// Remove failOff if we enter SSM with Practice Mode on so if the player turns it back off when entering a song, we don't have to worry about it
-	if (GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_bPractice) {
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetPreferred()
 		  .m_FailType = FailType_Immediate;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetSong()
 		  .m_FailType = FailType_Immediate;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_FailType = FailType_Immediate;
 	}
