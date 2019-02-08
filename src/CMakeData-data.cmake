@@ -89,13 +89,11 @@ source_group("Data Structures\\\\Notes Writers" FILES ${SM_DATA_NOTEWRITE_SRC} $
 list(APPEND SM_DATA_SCORE_SRC
   "ScoreKeeper.cpp"
   "ScoreKeeperNormal.cpp"
-  "ScoreKeeperShared.cpp"
 )
 
 list(APPEND SM_DATA_SCORE_HPP
   "ScoreKeeper.h"
   "ScoreKeeperNormal.h"
-  "ScoreKeeperShared.h"
 )
 
 source_group("Data Structures\\\\Score Keepers" FILES ${SM_DATA_SCORE_SRC} ${SM_DATA_SCORE_HPP})

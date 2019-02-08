@@ -192,21 +192,17 @@ PrefsManager::PrefsManager()
   , m_bDisqualification("Disqualification", false)
   , m_ShowDancingCharacters("ShowDancingCharacters", SDC_Off)
   , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
-  , m_bShowBeginnerHelper("ShowBeginnerHelper", false)
   , m_sLanguage("Language", "")
   , // ThemeManager will deal with this invalid language
   m_iCenterImageTranslateX("CenterImageTranslateX", 0)
   , m_iCenterImageTranslateY("CenterImageTranslateY", 0)
   , m_fCenterImageAddWidth("CenterImageAddWidth", 0)
   , m_fCenterImageAddHeight("CenterImageAddHeight", 0)
-  , m_AttractSoundFrequency("AttractSoundFrequency", ASF_EVERY_TIME)
-  , m_DisableUploadDir("DisableUploadDir", false)
   , m_bCelShadeModels("CelShadeModels", false)
   , // Work-In-Progress.. disable by default.
   m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
   , EnablePitchRates("EnablePitchRates", true)
   , m_fPadStickSeconds("PadStickSeconds", 0)
-  , m_EditRecordModeLeadIn("EditRecordModeLeadIn", 1.0f)
   , m_bForceMipMaps("ForceMipMaps", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
   , m_bAnisotropicFiltering("AnisotropicFiltering", false)
@@ -226,14 +222,8 @@ PrefsManager::PrefsManager()
   , m_bThreadedMovieDecode("ThreadedMovieDecode", true)
   , m_sTestInitialScreen("TestInitialScreen", "")
   , m_MuteActions("MuteActions", false)
-  , m_bAllowSongDeletion("AllowSongDeletion", false)
   , ThreadsToUse("ThreadsToUse", 0)
-
-  , m_bQuirksMode("QuirksMode", false)
-  ,
-
-  /* Debug: */
-  m_bLogToDisk("LogToDisk", true)
+  ,m_bLogToDisk("LogToDisk", true)
   , m_verbose_log("VerboseLogging", 1)
   ,
 #if defined(DEBUG)
@@ -253,19 +243,6 @@ PrefsManager::PrefsManager()
 
 #if !defined(WITHOUT_NETWORKING)
   , m_bEnableScoreboard("EnableScoreboard", true)
-  , m_bUpdateCheckEnable("UpdateCheckEnable", true)
-// TODO - Aldo_MX: Use PREFSMAN->m_iUpdateCheckIntervalSeconds &
-// PREFSMAN->m_iUpdateCheckLastCheckedSecond
-//,
-// m_iUpdateCheckIntervalSeconds	( "UpdateCheckIntervalSeconds",		86400 ),
-// // 24 hours  m_iUpdateCheckLastCheckedSecond	( "UpdateCheckLastCheckSecond",
-// 0 )
-// TODO - Aldo_MX: Write helpers in LuaManager.cpp to treat unsigned int/long
-// like LUA Numbers
-//,
-// m_uUpdateCheckLastCheckedBuild	( "UpdateCheckLastCheckedBuild",
-// version_num
-// )
 #endif
 
 {

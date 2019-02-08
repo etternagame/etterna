@@ -838,7 +838,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	}
 	static int GetPlayerBalance(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushnumber(L, p->GetPlayerBalance(pn));
 		return 1;
 	}

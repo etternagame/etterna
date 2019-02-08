@@ -232,28 +232,14 @@ LoadFromKSFFile(const RString& sPath,
 			out.m_StepsType = StepsType_pump_double;
 		else if (sFName.find("_1") != string::npos)
 			out.m_StepsType = StepsType_pump_single;
-		else if (sFName.find("_2") != string::npos)
-			out.m_StepsType = StepsType_pump_couple;
 	}
 
-	switch (out.m_StepsType) {
-		case StepsType_pump_single:
-			notedata.SetNumTracks(5);
-			break;
-		case StepsType_pump_couple:
-			notedata.SetNumTracks(10);
-			break;
-		case StepsType_pump_double:
-			notedata.SetNumTracks(10);
-			break;
-		case StepsType_pump_routine:
-			notedata.SetNumTracks(10);
-			break; // future files may have this?
-		case StepsType_pump_halfdouble:
-			notedata.SetNumTracks(6);
-			break;
-		default:
-			FAIL_M(ssprintf("%i", out.m_StepsType));
+	switch( out.m_StepsType )
+	{
+	case StepsType_pump_single: notedata.SetNumTracks( 5 ); break;
+	case StepsType_pump_double: notedata.SetNumTracks( 10 ); break;
+	case StepsType_pump_halfdouble: notedata.SetNumTracks( 6 ); break;
+	default: FAIL_M( ssprintf("%i", out.m_StepsType) );
 	}
 
 	int t = 0;

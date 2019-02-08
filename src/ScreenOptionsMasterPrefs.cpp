@@ -923,18 +923,6 @@ InitializeConfOptions()
 				   "|7",
 				   "|8",
 				   "Insanity"));
-	ADD(ConfOption("ProgressiveNonstopLifebar",
-				   MovePref<int>,
-				   "Off",
-				   "|1",
-				   "|2",
-				   "|3",
-				   "|4",
-				   "|5",
-				   "|6",
-				   "|7",
-				   "|8",
-				   "Insanity"));
 	ADD(ConfOption("DefaultFailType", DefaultFailType, DefaultFailChoices));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));
 	ADD(ConfOption("MinTNSToHideNotes",

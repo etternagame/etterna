@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LifeMeterBar.h"
@@ -24,10 +24,6 @@ LifeMeterBar::LifeMeterBar()
 	HOT_VALUE.Load("LifeMeterBar", "HotValue");
 	LIFE_MULTIPLIER.Load("LifeMeterBar", "LifeMultiplier");
 	MIN_STAY_ALIVE.Load("LifeMeterBar", "MinStayAlive");
-	FORCE_LIFE_DIFFICULTY_ON_EXTRA_STAGE.Load(
-	  "LifeMeterBar", "ForceLifeDifficultyOnExtraStage");
-	EXTRA_STAGE_LIFE_DIFFICULTY.Load("LifeMeterBar",
-									 "ExtraStageLifeDifficulty");
 	m_fLifePercentChange.Load(
 	  "LifeMeterBar", LIFE_PERCENT_CHANGE_NAME, NUM_ScoreEvent);
 	m_pPlayerState = NULL;

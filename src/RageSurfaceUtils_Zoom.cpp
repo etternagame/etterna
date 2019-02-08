@@ -5,8 +5,6 @@
 #include "RageUtil.h"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
-#include "PrefsManager.h"
-#include <vector>
 
 using namespace std;
 

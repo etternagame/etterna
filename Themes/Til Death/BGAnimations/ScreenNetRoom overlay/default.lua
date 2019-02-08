@@ -8,11 +8,6 @@ local function input(event)
 					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 				end
 			end
-			if GAMESTATE:IsPlayerEnabled(PLAYER_2) then
-				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar" .. PLAYER_2):GetChild("Image")) then
-					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
-				end
-			end
 		end
 	end
 	return false

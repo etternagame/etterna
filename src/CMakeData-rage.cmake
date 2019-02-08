@@ -2,7 +2,6 @@
 
 list(APPEND SMDATA_RAGE_UTILS_SRC
   "RageUtil.cpp"
-  "RageUtil_BackgroundLoader.cpp"
   "RageUtil_CachedObject.cpp"
   "RageUtil_CharConversions.cpp"
   "RageUtil_FileDB.cpp"
@@ -12,7 +11,6 @@ list(APPEND SMDATA_RAGE_UTILS_SRC
 list(APPEND SMDATA_RAGE_UTILS_HPP
   "RageUtil.h"
   "RageUtil_AutoPtr.h" # TODO: Remove the need for this and replace with c++11 smart pointers
-  "RageUtil_BackgroundLoader.h"
   "RageUtil_CachedObject.h"
   "RageUtil_CharConversions.h"
   "RageUtil_CircularBuffer.h"
@@ -59,10 +57,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "RageModelGeometry.cpp"
   "RageSurface.cpp"
   "RageSurface_Load.cpp"
-  "RageSurface_Load_BMP.cpp"
-  "RageSurface_Load_GIF.cpp"
-  "RageSurface_Load_JPEG.cpp"
-  "RageSurface_Load_PNG.cpp"
   "RageSurface_Load_XPM.cpp"
   "RageSurface_Save_BMP.cpp"
   "RageSurface_Save_JPEG.cpp"
@@ -74,7 +68,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "RageTexture.cpp"
   "RageTextureID.cpp"
   "RageTextureManager.cpp"
-  "RageTexturePreloader.cpp"
   "RageTextureRenderTarget.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
@@ -86,10 +79,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "RageModelGeometry.h"
   "RageSurface.h"
   "RageSurface_Load.h"
-  "RageSurface_Load_BMP.h"
-  "RageSurface_Load_GIF.h"
-  "RageSurface_Load_JPEG.h"
-  "RageSurface_Load_PNG.h"
   "RageSurface_Load_XPM.h"
   "RageSurface_Save_BMP.h"
   "RageSurface_Save_JPEG.h"
@@ -101,7 +90,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "RageTexture.h"
   "RageTextureID.h"
   "RageTextureManager.h"
-  "RageTexturePreloader.h"
   "RageTextureRenderTarget.h"
 )
 

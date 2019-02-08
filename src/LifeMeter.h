@@ -1,4 +1,4 @@
-﻿#ifndef LIFE_METER_H
+#ifndef LIFE_METER_H
 #define LIFE_METER_H
 
 #include "ActorFrame.h"
@@ -42,7 +42,6 @@ class LifeMeter : public ActorFrame
 	virtual bool IsHot() const = 0;
 	virtual bool IsFailing() const = 0;
 	virtual float GetLife() const { return 0; } // for cosmetic use only
-	virtual void UpdateNonstopLifebar() {}
 
 	static LifeMeter* MakeLifeMeter(LifeType t);
 

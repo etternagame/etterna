@@ -14,7 +14,6 @@ struct GoalsForChart;
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
 #include "ImageCache.h"
-#include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
 #include "SongOptions.h"
@@ -37,7 +36,6 @@ class SongManager
 
 	void InitSongsFromDisk(LoadingWindow* ld);
 	void FreeSongs();
-	void UnlistSong(Song* song);
 	void Cleanup();
 
 	void Invalidate(const Song* pStaleSong);
@@ -51,7 +49,6 @@ class SongManager
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
-	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(set<string>& favs);
@@ -73,9 +70,9 @@ class SongManager
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
 	// mina
-	Steps* GetStepsByChartkey(RString ck);
-	Song* GetSongByChartkey(RString ck);
-	bool IsChartLoaded(RString ck)
+	Steps* GetStepsByChartkey(const string& ck);
+	Song* GetSongByChartkey(const string& ck);
+	bool IsChartLoaded(const string& ck)
 	{
 		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
 	}
@@ -156,10 +153,8 @@ class SongManager
 
 	string activeplaylist = "";
 	string playlistcourse = "";
-	string ReconcileBustedKeys(const string& ck);
 	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 										   vector<string> oldChartkeys);
-	map<string, string> keyconversionmap;
 	void MakeSongGroupsFromPlaylists(
 	  map<string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck,
@@ -193,10 +188,6 @@ class SongManager
 	unordered_map<string, Steps*> StepsByKey;
 
 	set<RString> m_GroupsToNeverCache;
-	/** @brief Hold pointers to all the songs that have been deleted from disk
-	 * but must at least be kept temporarily alive for smooth audio transitions.
-	 */
-	vector<Song*> m_pDeletedSongs;
 	/** @brief The most popular songs ranked by number of plays. */
 	vector<Song*> m_pPopularSongs;
 	// vector<Song*>		m_pRecentSongs;	// songs recently played on the
@@ -223,8 +214,6 @@ class SongManager
 	};
 	typedef vector<Song*> SongPointerVector;
 	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
-
-	RageTexturePreloader m_TexturePreload;
 
 	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;

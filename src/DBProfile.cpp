@@ -409,7 +409,6 @@ DBProfile::LoadPermaMirrors(SQLite::Database* db)
 	  "JOIN chartkeys ON permamirrors.chartkeyid = chartkeys.id");
 	while (query.executeStep()) {
 		const char* key = query.getColumn(0);
-		// loadingProfile->PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(key));
 		loadingProfile->PermaMirrorCharts.emplace(key);
 	}
 	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);

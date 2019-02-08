@@ -98,28 +98,7 @@ BGAnimation::LoadFromAniDir(const RString& _sAniDir)
 	ASSERT_M(IsADirectory(sAniDir), sAniDir + " isn't a directory");
 
 	RString sPathToIni = sAniDir + "BGAnimation.ini";
-
-	if (DoesFileExist(sPathToIni)) {
-		if (PREFSMAN->m_bQuirksMode) {
-			// This is a 3.9-style BGAnimation (using .ini)
-			IniFile ini;
-			ini.ReadFile(sPathToIni);
-
-			AddLayersFromAniDir(sAniDir, &ini); // TODO: Check for circular load
-
-			XNode* pBGAnimation = ini.GetChild("BGAnimation");
-			XNode dummy("BGAnimation");
-			if (pBGAnimation == NULL)
-				pBGAnimation = &dummy;
-
-			LoadFromNode(pBGAnimation);
-		} else // We don't officially support .ini files anymore.
-		{
-			XNode dummy("BGAnimation");
-			XNode* pBG = &dummy;
-			LoadFromNode(pBG);
-		}
-	} else {
+	{
 		// This is an 3.0 and before-style BGAnimation (not using .ini)
 
 		// loading a directory of layers

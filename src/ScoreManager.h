@@ -215,7 +215,7 @@ class ScoreManager
 	void UnloadAllReplayData() { for (auto& s: AllScores) s->UnloadReplayData(); }
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
-
+	vector<HighScore*> scorestorecalc;
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>
 	  pscores; // Profile scores

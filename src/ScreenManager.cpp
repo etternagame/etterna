@@ -1041,13 +1041,13 @@ class LunaScreenManager : public Luna<ScreenManager>
 
 	static int get_input_redirected(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushboolean(L, p->get_input_redirected(pn));
 		return 1;
 	}
 	static int set_input_redirected(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		p->set_input_redirected(pn, BArg(2));
 		COMMON_RETURN_SELF;
 	}

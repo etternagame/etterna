@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "MsdFile.h"
@@ -987,8 +987,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			RString tmp = aBGChangeValues[7];
 			tmp.MakeLower();
 			if ((tmp.find(".ini") != string::npos ||
-				 tmp.find(".xml") != string::npos) &&
-				!PREFSMAN->m_bQuirksMode) {
+				 tmp.find(".xml") != string::npos) ) {
 				return false;
 			}
 			change.m_def.m_sFile2 = aBGChangeValues[7];
@@ -1029,8 +1028,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			RString tmp = aBGChangeValues[1];
 			tmp.MakeLower();
 			if ((tmp.find(".ini") != string::npos ||
-				 tmp.find(".xml") != string::npos) &&
-				!PREFSMAN->m_bQuirksMode) {
+				 tmp.find(".xml") != string::npos)) {
 				return false;
 			}
 			change.m_def.m_sFile1 = aBGChangeValues[1];

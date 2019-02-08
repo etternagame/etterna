@@ -54,8 +54,8 @@ class ScreenOptions : public ScreenWithMenuElements
 	friend class LunaScreenOptions;
 
   protected:
-	virtual void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) = 0;
-	virtual void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) = 0;
+	virtual void ImportOptions(int iRow, const PlayerNumber& vpns) = 0;
+	virtual void ExportOptions(int iRow, const PlayerNumber& vpns) = 0;
 
 	void RestartOptions();
 	void GetWidthXY(PlayerNumber pn,
@@ -110,7 +110,7 @@ class ScreenOptions : public ScreenWithMenuElements
 
 	int GetCurrentRow(PlayerNumber pn = PLAYER_1) const
 	{
-		return m_iCurrentRow[pn];
+		return m_iCurrentRow;
 	}
 	bool AllAreOnLastRow() const;
 	OptionRow* GetRow(int iRow) const { return m_pRows[iRow]; }
@@ -133,7 +133,7 @@ class ScreenOptions : public ScreenWithMenuElements
 	/** @brief Map menu lines to m_OptionRow entries. */
 	vector<OptionRow*> m_pRows;
 	/** @brief The current row each player is on. */
-	int m_iCurrentRow[NUM_PLAYERS];
+	int m_iCurrentRow;
 
 	OptionRowType m_OptionRowTypeNormal;
 	OptionRowType m_OptionRowTypeExit;
@@ -141,8 +141,8 @@ class ScreenOptions : public ScreenWithMenuElements
 	Navigation m_OptionsNavigation;
 	InputMode m_InputMode;
 
-	int m_iFocusX[NUM_PLAYERS];
-	bool m_bWasOnExit[NUM_PLAYERS];
+	int m_iFocusX;
+	bool m_bWasOnExit;
 
 	/** @brief True if at least one player pressed Start after selecting the
 	 * song.
@@ -150,16 +150,16 @@ class ScreenOptions : public ScreenWithMenuElements
 	 * TRICKY: People hold Start to get to PlayerOptions, then the repeat events
 	 * cause them to zip to the bottom. So, ignore Start repeat events until
 	 * we've seen one first pressed event. */
-	bool m_bGotAtLeastOneStartPressed[NUM_PLAYERS];
+	bool m_bGotAtLeastOneStartPressed;
 
 	// actors
 	ActorFrame m_frameContainer;
 	AutoActor m_sprPage;
 
-	OptionsCursor m_Cursor[NUM_PLAYERS];
-	AutoActor m_sprLineHighlight[NUM_PLAYERS];
+	OptionsCursor m_Cursor;
+	AutoActor m_sprLineHighlight;
 
-	BitmapText m_textExplanation[NUM_PLAYERS];
+	BitmapText m_textExplanation;
 	BitmapText m_textExplanationTogether;
 	DualScrollBar m_ScrollBar;
 	AutoActor m_sprMore;

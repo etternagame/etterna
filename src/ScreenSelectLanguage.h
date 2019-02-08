@@ -1,7 +1,6 @@
 #ifndef ScreenSelectLanguage_H
 #define ScreenSelectLanguage_H
 
-#include "FadingBanner.h"
 #include "ScreenSelectMaster.h"
 
 class ScreenSelectLanguage : public ScreenSelectMaster

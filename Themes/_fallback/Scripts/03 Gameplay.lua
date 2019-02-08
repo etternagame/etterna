@@ -173,10 +173,6 @@ end
 -- ScoreKeeperClass:
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
-	-- rave scorekeeper
-	if GAMESTATE:GetPlayMode() == "PlayMode_Rave" then
-		return "ScoreKeeperRave"
-	end
 	if GAMESTATE:GetCurrentStyle() then
 		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
 		if styleType == "StyleType_TwoPlayersSharedSides" then
@@ -190,7 +186,7 @@ end
 -- [en]
 function ComboContinue()
 	local Continue = {
-		dance = GAMESTATE:GetPlayMode() == "PlayMode_Oni" and "TapNoteScore_W2" or "TapNoteScore_W3",
+		dance = "TapNoteScore_W3",
 		pump = "TapNoteScore_W3",
 		beat = "TapNoteScore_W3",
 		kb7 = "TapNoteScore_W3",
@@ -213,8 +209,6 @@ end
 function ComboPerRow()
 	sGame = CurGameName()
 	if sGame == "pump" then
-		return true
-	elseif GAMESTATE:GetPlayMode() == "PlayMode_Oni" then
 		return true
 	else
 		return false
@@ -262,27 +256,6 @@ end
 
 function TwoPartSelection()
 	return GAMESTATE:GetCurrentGame():GetName() == "pump" and true or false
-end
-
-local RoutineSkins = {
-	dance = {P1 = "midi-routine-p1", P2 = "midi-routine-p2"},
-	kb7 = {P1 = "default", P2 = "retrobar"},
-	-------------------------------------------------------------
-	default = {P1 = "default", P2 = "default"}
-}
-
-function RoutineSkinP1()
-	if RoutineSkins[CurGameName()] then
-		return RoutineSkins[CurGameName()].P1
-	end
-	return RoutineSkins["default"].P1
-end
-
-function RoutineSkinP2()
-	if RoutineSkins[CurGameName()] then
-		return RoutineSkins[CurGameName()].P2
-	end
-	return RoutineSkins["default"].P2
 end
 
 -- todo: use tables for some of these -aj
@@ -400,27 +373,12 @@ local CodeDetectorCodes = {
 		dance = "",
 		pump = "UpLeft,DownLeft,UpRight,DownRight,UpLeft,DownLeft,UpRight,DownRight,DownRight" -- drop
 	},
-	HoldNotes = {
-		default = "",
-		dance = ""
-	},
 	Mines = {
-		default = ""
-	},
-	Dark = {
 		default = ""
 	},
 	Hidden = {
 		default = "",
 		pump = "UpLeft,UpRight,DownLeft,DownRight,Center" -- vanish
-	},
-	RandomVanish = {
-		default = ""
-	},
-	-- boost (accel), brake (decel), stealth (nonstep)
-	--- next/prev modifiers
-	NextTransform = {
-		default = ""
 	},
 	NextScrollSpeed = {
 		default = "",
@@ -431,21 +389,6 @@ local CodeDetectorCodes = {
 		default = "",
 		dance = "",
 		pump = "UpRight,UpLeft,UpRight,UpLeft,Center"
-	},
-	NextAccel = {
-		default = "",
-		dance = ""
-	},
-	NextEffect = {
-		default = "",
-		dance = ""
-	},
-	NextAppearance = {
-		default = "",
-		dance = ""
-	},
-	NextTurn = {
-		default = ""
 	},
 	-- cancel all in player options
 	CancelAllPlayerOptions = {

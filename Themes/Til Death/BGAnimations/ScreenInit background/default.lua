@@ -113,6 +113,7 @@ local minanyms = {
 	"MinaHatesYouYesYou",
 	"ImaginaryStepmaniaClient",
 	"ExtraLunarTangoFoxtrot",
+	"Morbid Papaya Matrix"
 }
 
 math.random()
@@ -130,6 +131,9 @@ t[#t + 1] =
 	Def.ActorFrame {
 	InitCommand = function(self)
 		self:Center()
+	end,
+	LeftClickMessageCommand = function(self)
+		SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
 	end,
 	LoadActor("woop") ..
 		{

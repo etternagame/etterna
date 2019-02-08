@@ -141,9 +141,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 		def.m_sExplanationName = "Select Profile";
 
 		PlayerNumber pn = PLAYER_INVALID;
-		FOREACH_PlayerNumber(
-		  p) if (*s == ProfileManager::m_sDefaultLocalProfileID[p].Get()) pn =
-		  p;
+		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get()) pn = PLAYER_1;
 		if (pn != PLAYER_INVALID)
 			def.m_vsChoices.push_back(PlayerNumberToLocalizedString(pn));
 		OptionRowHandlers.push_back(pHand);
@@ -189,7 +187,7 @@ void
 ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToNextScreen) {
-		int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+		int iCurRow = m_iCurrentRow;
 		OptionRow& row = *m_pRows[iCurRow];
 		if (row.GetRowType() == OptionRow::RowType_Exit) {
 			this->HandleScreenMessage(SM_GoToPrevScreen);
@@ -283,10 +281,9 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 							   ScreenMiniMenu::s_iLastRowCode));
 				case ProfileAction_SetDefaultP1:
 				case ProfileAction_SetDefaultP2: {
-					FOREACH_PlayerNumber(
-					  p) if (ProfileManager::m_sDefaultLocalProfileID[p]
+					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
 							   .Get() == GetLocalProfileIDWithFocus())
-					  ProfileManager::m_sDefaultLocalProfileID[p]
+					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
 						.Set("");
 
 					auto pn =
@@ -319,50 +316,41 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
-					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
-					ScreenPrompt::Prompt(
-					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
-				} break;
-				case ProfileAction_MergeToMachine:
-					break;
-				case ProfileAction_MergeToMachineSkipTotal:
-					break;
-				case ProfileAction_MergeToP1:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-					break;
-				case ProfileAction_MergeToP2:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_2].Get());
-					break;
-				case ProfileAction_ChangeToGuest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToNormal:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToTest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_MoveUp:
-					PROFILEMAN->MoveProfilePriority(
-					  GetLocalProfileIndexWithFocus(), true);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_MoveDown:
-					PROFILEMAN->MoveProfilePriority(
-					  GetLocalProfileIndexWithFocus(), false);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
+					RString sMessage = ssprintf( CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str() );
+					ScreenPrompt::Prompt( SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO );
+				}
+				break;
+			case ProfileAction_MergeToMachine:
+				break;
+			case ProfileAction_MergeToMachineSkipTotal:
+				break;
+			case ProfileAction_MergeToP1:
+				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
+					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+				break;
+			case ProfileAction_ChangeToGuest:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Guest);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_ChangeToNormal:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Normal);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_ChangeToTest:
+				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
+					ProfileType_Test);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_MoveUp:
+				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), true);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
+			case ProfileAction_MoveDown:
+				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), false);
+				SCREENMAN->SetNewScreen(this->m_sName); // reload
+				break;
 			}
 		}
 	} else if (SM == SM_LoseFocus) {
@@ -388,7 +376,7 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	if (IsTransitioning())
 		return;
 
-	int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+	int iCurRow = m_iCurrentRow;
 	OptionRow& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
@@ -418,35 +406,6 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	{
 		g_TempMenu.rows.clear();
 
-#define ADD_ACTION(i)                                                          \
-	g_TempMenu.rows.push_back(MenuRowDef(i,                                    \
-										 ProfileActionToLocalizedString(i),    \
-										 true,                                 \
-										 EditMode_Home,                        \
-										 false,                                \
-										 false,                                \
-										 0,                                    \
-										 ""));
-
-		ADD_ACTION(ProfileAction_SetDefaultP1);
-		ADD_ACTION(ProfileAction_SetDefaultP2);
-		if (PROFILEMAN->FixedProfiles()) {
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Clear);
-		} else {
-			ADD_ACTION(ProfileAction_Edit);
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Delete);
-			ADD_ACTION(ProfileAction_MergeToMachine);
-			ADD_ACTION(ProfileAction_MergeToMachineSkipTotal);
-			ADD_ACTION(ProfileAction_MergeToP1);
-			ADD_ACTION(ProfileAction_MergeToP2);
-			ADD_ACTION(ProfileAction_ChangeToGuest);
-			ADD_ACTION(ProfileAction_ChangeToNormal);
-			ADD_ACTION(ProfileAction_ChangeToTest);
-			ADD_ACTION(ProfileAction_MoveUp);
-			ADD_ACTION(ProfileAction_MoveDown);
-		}
 
 		int iWidth, iX, iY;
 		this->GetWidthXY(PLAYER_1, iCurRow, 0, iWidth, iX, iY);
@@ -462,21 +421,21 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 void
 ScreenOptionsManageProfiles::ImportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 
 void
 ScreenOptionsManageProfiles::ExportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 
 int
 ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 {
-	int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+	int iCurRow = m_iCurrentRow;
 	OptionRow& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"

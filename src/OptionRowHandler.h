@@ -1,4 +1,4 @@
-﻿#ifndef OptionRowHandler_H
+#ifndef OptionRowHandler_H
 #define OptionRowHandler_H
 
 #include "GameCommand.h"
@@ -90,7 +90,7 @@ struct OptionRowDefinition
 	  , m_vEnabledForPlayers()
 
 	{
-		FOREACH_PlayerNumber(pn) m_vEnabledForPlayers.insert(pn);
+		m_vEnabledForPlayers.insert(PLAYER_1);
 	}
 	void Init()
 	{
@@ -101,7 +101,7 @@ struct OptionRowDefinition
 		m_layoutType = LAYOUT_SHOW_ALL_IN_ROW;
 		m_vsChoices.clear();
 		m_vEnabledForPlayers.clear();
-		FOREACH_PlayerNumber(pn) m_vEnabledForPlayers.insert(pn);
+		m_vEnabledForPlayers.insert(PLAYER_1);
 		m_iDefault = -1;
 		m_bExportOnChange = false;
 		m_bAllowThemeItems = true;
@@ -139,7 +139,7 @@ struct OptionRowDefinition
 	  , m_vEnabledForPlayers()
 
 	{
-		FOREACH_PlayerNumber(pn) m_vEnabledForPlayers.insert(pn);
+		m_vEnabledForPlayers.insert(PLAYER_1);
 
 #define PUSH(c)                                                                \
 	if (c)                                                                     \
@@ -216,13 +216,13 @@ class OptionRowHandler
 
 	virtual int GetDefaultOption() const { return -1; }
 	virtual void ImportOption(OptionRow*,
-							  const vector<PlayerNumber>&,
-							  vector<bool> vbSelectedOut[NUM_PLAYERS]) const
+							  const PlayerNumber&,
+							  vector<bool>& vbSelectedOut) const
 	{
 	}
 	// Returns an OPT mask.
-	virtual int ExportOption(const vector<PlayerNumber>&,
-							 const vector<bool> vbSelected[NUM_PLAYERS]) const
+	virtual int ExportOption(const PlayerNumber&,
+							 const vector<bool>& vbSelected) const
 	{
 		return 0;
 	}

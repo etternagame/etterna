@@ -39,8 +39,8 @@ class StepsDisplayList : public ActorFrame
 	ThemeMetric<bool> CAPITALIZE_DIFFICULTY_NAMES;
 	ThemeMetric<apActorCommands> MOVE_COMMAND;
 
-	AutoActor m_Cursors[NUM_PLAYERS];
-	ActorFrame m_CursorFrames[NUM_PLAYERS]; // contains Cursor so that color can
+	AutoActor m_Cursors;
+	ActorFrame m_CursorFrames; // contains Cursor so that color can
 											// fade independent of other tweens
 
 	struct Line

@@ -1,4 +1,4 @@
-﻿/* OptionRow - One line in ScreenOptions. */
+/* OptionRow - One line in ScreenOptions. */
 
 #ifndef OptionRow_H
 #define OptionRow_H
@@ -28,7 +28,7 @@ class OptionRowType
 	RString m_sMetricsGroup;
 
 	BitmapText m_textItem;
-	OptionsCursor m_Underline[NUM_PLAYERS];
+	OptionsCursor m_Underline;
 	AutoActor m_sprFrame;
 	BitmapText m_textTitle;
 	ModIcon m_ModIcon;
@@ -64,9 +64,9 @@ class OptionRow : public ActorFrame
 
 	void SetModIcon(PlayerNumber pn, const RString& sText, GameCommand& gc);
 
-	void ImportOptions(const vector<PlayerNumber>& vpns);
-	int ExportOptions(const vector<PlayerNumber>& vpns,
-					  bool bRowHasFocus[NUM_PLAYERS]);
+	void ImportOptions(const PlayerNumber& vpns);
+	int ExportOptions(const PlayerNumber& vpns,
+					  bool bRowHasFocus);
 
 	enum RowType
 	{
@@ -83,7 +83,7 @@ class OptionRow : public ActorFrame
 	void PositionUnderlines(PlayerNumber pn);
 	void PositionIcons(PlayerNumber pn);
 	void UpdateText(PlayerNumber pn);
-	bool GetRowHasFocus(PlayerNumber pn) const { return m_bRowHasFocus[pn]; }
+	bool GetRowHasFocus(PlayerNumber pn) const { return m_bRowHasFocus; }
 	void SetRowHasFocus(PlayerNumber pn, bool bRowHasFocus);
 	void UpdateEnabledDisabled();
 
@@ -144,21 +144,21 @@ class OptionRow : public ActorFrame
 
 	vector<BitmapText*>
 	  m_textItems; // size depends on m_bRowIsLong and which players are joined
-	vector<OptionsCursor*> m_Underline[NUM_PLAYERS]; // size depends on
+	vector<OptionsCursor*> m_Underline; // size depends on
 													 // m_bRowIsLong and which
 													 // players are joined
 
 	Actor* m_sprFrame;
 	BitmapText* m_textTitle;
-	ModIcon* m_ModIcons[NUM_PLAYERS];
+	ModIcon* m_ModIcons;
 
 	bool m_bFirstItemGoesDown;
-	bool m_bRowHasFocus[NUM_PLAYERS];
+	bool m_bRowHasFocus;
 
-	int m_iChoiceInRowWithFocus[NUM_PLAYERS]; // this choice has input focus
+	int m_iChoiceInRowWithFocus; // this choice has input focus
 	// Only one will true at a time if m_pHand->m_Def.bMultiSelect
 	vector<bool>
-	  m_vbSelected[NUM_PLAYERS];	   // size = m_pHand->m_Def.choices.size()
+	  m_vbSelected;	   // size = m_pHand->m_Def.choices.size()
 	Actor::TweenState m_tsDestination; // this should approach m_tsDestination.
 
   public:

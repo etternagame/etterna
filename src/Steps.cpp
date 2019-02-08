@@ -423,53 +423,6 @@ Steps::CalcEtternaMetadata()
 	GetTimingData()->UnsetEtaner();
 }
 
-string
-Steps::GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores)
-{
-	RString o = "X"; // I was thinking of using "C" to indicate chart..
-					 // however.. X is cooler... - Mina
-	vector<int>& nerv = nd.GetNonEmptyRowVector();
-
-	unsigned int numThreads =
-	  min(std::thread::hardware_concurrency(), 1u + cores);
-	std::vector<RString> keyParts;
-	keyParts.reserve(numThreads);
-
-	size_t segmentSize = nerv.size() / numThreads;
-	std::vector<std::thread> threads;
-	threads.reserve(numThreads);
-
-	for (unsigned int curThread = 0; curThread < numThreads; curThread++) {
-		keyParts.push_back("");
-		size_t start = segmentSize * curThread;
-		size_t end = start + segmentSize;
-		if (curThread + 1 == numThreads)
-			end = nerv.size();
-
-		threads.push_back(std::thread(&Steps::FillStringWithBPMs,
-									  this,
-									  start,
-									  end,
-									  std::ref(nerv),
-									  std::ref(nd),
-									  td,
-									  std::ref(keyParts[curThread])));
-	}
-
-	for (auto& t : threads) {
-		if (t.joinable())
-			t.join();
-	}
-
-	// handle empty charts if they get to here -mina
-	if (*keyParts.data() == "")
-		return "";
-
-	o.append(BinaryToHex(CryptManager::GetSHA1ForString(*keyParts.data())));
-
-	return o;
-}
-
 RString
 Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 {
@@ -775,7 +728,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		PlayerNumber pn = PLAYER_1;
 		if (!lua_isnil(L, 1)) {
-			pn = Enum::Check<PlayerNumber>(L, 1);
+			pn = PLAYER_1;
 		}
 
 		RadarValues& rv = const_cast<RadarValues&>(p->GetRadarValues());

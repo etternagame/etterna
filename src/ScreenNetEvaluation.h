@@ -1,5 +1,4 @@
 #include "BitmapText.h"
-#include "DifficultyIcon.h"
 #include "Quad.h"
 #include "ScreenEvaluation.h"
 #include "ScreenMessage.h"

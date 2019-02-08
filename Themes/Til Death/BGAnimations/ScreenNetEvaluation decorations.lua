@@ -553,12 +553,8 @@ end
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
-	if ShowStandardDecoration("GraphDisplay") then
-		t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
-	end
-	if ShowStandardDecoration("ComboGraph") then
-		t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))
-	end
+	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
+	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))
 end
 
 t[#t + 1] = LoadActor("offsetplot")

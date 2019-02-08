@@ -128,7 +128,7 @@ struct PerPlayerData
 	float m_fBeatFactor;
 	float m_fExpandSeconds;
 };
-PerPlayerData g_EffectData[NUM_PLAYERS];
+PerPlayerData g_EffectData;
 } // namespace;
 
 void
@@ -140,17 +140,17 @@ ArrowEffects::Update()
 	FOREACH_EnabledPlayer(pn)
 	{
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(pn);
-		const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo[pn];
+		const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
 		const SongPosition& position =
 		  GAMESTATE->m_bIsUsingStepTiming
-			? GAMESTATE->m_pPlayerState[pn]->m_Position
+			? GAMESTATE->m_pPlayerState->m_Position
 			: GAMESTATE->m_Position;
-		const float field_zoom = GAMESTATE->m_pPlayerState[pn]->m_NotefieldZoom;
-		const float* effects = GAMESTATE->m_pPlayerState[pn]
+		const float field_zoom = GAMESTATE->m_pPlayerState->m_NotefieldZoom;
+		const float* effects = GAMESTATE->m_pPlayerState
 								 ->m_PlayerOptions.GetCurrent()
 								 .m_fEffects;
 
-		PerPlayerData& data = g_EffectData[pn];
+		PerPlayerData& data = g_EffectData;
 
 		if (!position.m_bFreeze || !position.m_bDelay) {
 			data.m_fExpandSeconds += fTime - fLastTime;
@@ -197,11 +197,7 @@ ArrowEffects::Update()
 		if (effects[PlayerOptions::EFFECT_INVERT] != 0) {
 			for (int iColNum = 0; iColNum < MAX_COLS_PER_PLAYER; ++iColNum) {
 				const int iNumCols = pStyle->m_iColsPerPlayer;
-				const int iNumSides =
-				  (pStyle->m_StyleType == StyleType_OnePlayerTwoSides ||
-				   pStyle->m_StyleType == StyleType_TwoPlayersSharedSides)
-					? 2
-					: 1;
+				const int iNumSides = 1;
 				const int iNumColsPerSide = iNumCols / iNumSides;
 				const int iSideIndex = iColNum / iNumColsPerSide;
 				const int iColOnSide = iColNum % iNumColsPerSide;
@@ -354,7 +350,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 
 	float fSongBeat = position.m_fSongBeatVisible;
 	PlayerNumber pn = pPlayerState->m_PlayerNumber;
-	Steps* pCurSteps = GAMESTATE->m_pCurSteps[pn];
+	Steps* pCurSteps = GAMESTATE->m_pCurSteps;
 
 	/* Usually, fTimeSpacing is 0 or 1, in which case we use entirely beat
 	 * spacing or entirely time spacing (respectively). Occasionally, we tween
@@ -459,7 +455,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 
 	if (fAccels[PlayerOptions::ACCEL_EXPAND] != 0) {
 		// TODO: Don't index by PlayerNumber.
-		PerPlayerData& data = g_EffectData[pPlayerState->m_PlayerNumber];
+		PerPlayerData& data = g_EffectData;
 
 		float fExpandMultiplier = SCALE(
 		  RageFastCos(data.m_fExpandSeconds * EXPAND_MULTIPLIER_FREQUENCY),
@@ -528,7 +524,7 @@ ArrowEffects::GetYPos(int iCol,
 	// Doing the math with a precalculated result of 0 should be faster than
 	// checking whether tipsy is on. -Kyz
 	// TODO: Don't index by PlayerNumber.
-	PerPlayerData& data = g_EffectData[curr_options->m_pn];
+	PerPlayerData& data = g_EffectData;
 	f += fEffects[PlayerOptions::EFFECT_TIPSY] * data.m_tipsy_result[iCol];
 
 	// In beware's DDR Extreme-focused fork of StepMania 3.9, this value is
@@ -549,7 +545,7 @@ ArrowEffects::GetYOffsetFromYPos(int iCol,
 	// Doing the math with a precalculated result of 0 should be faster than
 	// checking whether tipsy is on. -Kyz
 	// TODO: Don't index by PlayerNumber.
-	PerPlayerData& data = g_EffectData[curr_options->m_pn];
+	PerPlayerData& data = g_EffectData;
 	f +=
 	  fEffects[PlayerOptions::EFFECT_TIPSY] * data.m_tipsy_offset_result[iCol];
 
@@ -576,8 +572,8 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 
 	// TODO: Don't index by PlayerNumber.
 	const Style::ColumnInfo* pCols =
-	  pStyle->m_ColumnInfo[pPlayerState->m_PlayerNumber];
-	PerPlayerData& data = g_EffectData[pPlayerState->m_PlayerNumber];
+	  pStyle->m_ColumnInfo;
+	PerPlayerData& data = g_EffectData;
 
 	if (fEffects[PlayerOptions::EFFECT_TORNADO] != 0) {
 		const float fRealPixelOffset =
@@ -636,31 +632,10 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 		// any gametype now.
 		switch (pStyle->m_StyleType) {
 			case StyleType_OnePlayerTwoSides:
-			case StyleType_TwoPlayersSharedSides: // fall through?
-			{
-				// find the middle, and split based on iColNum
-				// it's unknown if this will work for routine.
-				const int iMiddleColumn =
-				  static_cast<int>(floor(pStyle->m_iColsPerPlayer / 2.0f));
-				if (iColNum > iMiddleColumn - 1)
-					fPixelOffsetFromCenter +=
-					  fEffects[PlayerOptions::EFFECT_XMODE] * -(fYOffset);
-				else
-					fPixelOffsetFromCenter +=
-					  fEffects[PlayerOptions::EFFECT_XMODE] * fYOffset;
-			} break;
+				break;
 			case StyleType_OnePlayerOneSide:
-			case StyleType_TwoPlayersTwoSides: // fall through
-			{
-				// the code was the same for both of these cases in StepNXA.
-				if (pPlayerState->m_PlayerNumber == PLAYER_2)
-					fPixelOffsetFromCenter +=
-					  fEffects[PlayerOptions::EFFECT_XMODE] * -(fYOffset);
-				else
-					fPixelOffsetFromCenter +=
-					  fEffects[PlayerOptions::EFFECT_XMODE] * fYOffset;
-			} break;
-				DEFAULT_FAIL(pStyle->m_StyleType);
+				break;
+			DEFAULT_FAIL(pStyle->m_StyleType);
 		}
 	}
 
@@ -921,9 +896,6 @@ ArrowEffects::GetGlow(int iCol,
 float
 ArrowEffects::GetBrightness(const PlayerState* pPlayerState, float fNoteBeat)
 {
-	if (GAMESTATE->IsEditing())
-		return 1;
-
 	float fSongBeat = pPlayerState->m_Position.m_fSongBeatVisible;
 	float fBeatsUntilStep = fNoteBeat - fSongBeat;
 

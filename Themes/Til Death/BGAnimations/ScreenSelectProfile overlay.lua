@@ -188,7 +188,6 @@ function UpdateInternal3(self, Player)
 
 	if GAMESTATE:IsHumanPlayer(Player) then
 		frame:visible(true)
-		if MEMCARDMAN:GetCardState(Player) == "MemoryCardState_none" then
 			--using profile if any
 			joinframe:visible(false)
 			smallframe:visible(true)
@@ -211,13 +210,6 @@ function UpdateInternal3(self, Player)
 					seltext:settext("No profile")
 				end
 			end
-		else
-			--using card
-			smallframe:visible(false)
-			scroller:visible(false)
-			seltext:settext("CARD")
-			SCREENMAN:GetTopScreen():SetProfileIndex(Player, 0)
-		end
 	else
 		joinframe:visible(true)
 		scroller:visible(false)

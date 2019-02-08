@@ -21,8 +21,8 @@ class DualScrollBar : public ActorFrame
 	float m_fBarHeight;
 	float m_fBarTime;
 
-	AutoActor m_sprScrollThumbOverHalf[NUM_PLAYERS];
-	AutoActor m_sprScrollThumbUnderHalf[NUM_PLAYERS];
+	AutoActor m_sprScrollThumbOverHalf;
+	AutoActor m_sprScrollThumbUnderHalf;
 };
 
 #endif

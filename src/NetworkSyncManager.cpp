@@ -1236,8 +1236,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["ng"] = hs->GetHoldNoteScore(HNS_Missed);
 	payload["chartkey"] = hs->GetChartKey();
 	payload["rate"] = hs->GetMusicRate();
-	if (GAMESTATE->m_pPlayerState[PLAYER_1] != nullptr)
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState != nullptr)
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1378,10 +1378,10 @@ NetworkSyncManager::SelectUserSong()
 void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	auto curSteps =  GAMESTATE->m_pCurSteps[PLAYER_1];
+	auto curSteps =  GAMESTATE->m_pCurSteps;
 	if (ws == nullptr || song == nullptr ||
 		curSteps == nullptr ||
-		GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
+		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 	json j;
 	if (song == n->song) {
@@ -1398,7 +1398,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 	payload["chartkey"] = curSteps->GetChartKey().c_str();
 	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
 	payload["meter"] = curSteps->GetMeter();
-	payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+	payload["options"] = GAMESTATE->m_pPlayerState
 		->m_PlayerOptions.GetCurrent()
 		.GetString();
 	payload["rate"] = static_cast<int>(

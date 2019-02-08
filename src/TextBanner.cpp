@@ -60,12 +60,12 @@ TextBanner::TextBanner(const TextBanner& cpy)
 }
 
 void
-TextBanner::SetFromString(const RString& sDisplayTitle,
-						  const RString& sTranslitTitle,
-						  const RString& sDisplaySubTitle,
-						  const RString& sTranslitSubTitle,
-						  const RString& sDisplayArtist,
-						  const RString& sTranslitArtist)
+TextBanner::SetFromString(const string& sDisplayTitle,
+						  const string& sTranslitTitle,
+						  const string& sDisplaySubTitle,
+						  const string& sTranslitSubTitle,
+						  const string& sDisplayArtist,
+						  const string& sTranslitArtist)
 {
 	ASSERT(m_bInitted);
 
@@ -110,28 +110,10 @@ class LunaTextBanner : public Luna<TextBanner>
 		p->SetFromSong(pSong);
 		COMMON_RETURN_SELF;
 	}
-	static int SetFromString(T* p, lua_State* L)
-	{
-		RString sDisplayTitle = SArg(1);
-		RString sTranslitTitle = SArg(2);
-		RString sDisplaySubTitle = SArg(3);
-		RString sTranslitSubTitle = SArg(4);
-		RString sDisplayArtist = SArg(5);
-		RString sTranslitArtist = SArg(6);
-		p->SetFromString(sDisplayTitle,
-						 sTranslitTitle,
-						 sDisplaySubTitle,
-						 sTranslitSubTitle,
-						 sDisplayArtist,
-						 sTranslitArtist);
-		COMMON_RETURN_SELF;
-	}
-
 	LunaTextBanner()
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(SetFromSong);
-		ADD_METHOD(SetFromString);
 	}
 };
 

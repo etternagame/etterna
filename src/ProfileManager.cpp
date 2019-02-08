@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "GameConstantsAndTypes.h"
@@ -101,14 +101,10 @@ ProfileManager::~ProfileManager()
 void
 ProfileManager::Init(LoadingWindow* ld)
 {
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_bLastLoadWasTamperedOrCorrupt[p] = false;
-		m_bLastLoadWasFromLastGood[p] = false;
-		m_bNeedToBackUpLastLoad[p] = false;
-		m_bNewProfile[p] = false;
-	}
+	m_bLastLoadWasTamperedOrCorrupt = false;
+	m_bLastLoadWasFromLastGood = false;
+	m_bNeedToBackUpLastLoad = false;
+	m_bNewProfile = false;
 
 	RefreshLocalProfilesFromDisk(ld);
 
@@ -136,7 +132,7 @@ ProfileManager::Init(LoadingWindow* ld)
 	}
 
 	if (!g_vLocalProfile.empty())
-		m_sProfileDir[PLAYER_1] = g_vLocalProfile[0].sDir;
+		m_sProfileDir = g_vLocalProfile[0].sDir;
 
 	dummy = new Profile;
 }
@@ -155,23 +151,23 @@ ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 	ASSERT(!sProfileDir.empty());
 	ASSERT(sProfileDir.Right(1) == "/");
 
-	m_sProfileDir[pn] = sProfileDir;
-	m_bLastLoadWasFromLastGood[pn] = false;
-	m_bNeedToBackUpLastLoad[pn] = false;
+	m_sProfileDir = sProfileDir;
+	m_bLastLoadWasFromLastGood = false;
+	m_bNeedToBackUpLastLoad = false;
 
 	// Try to load the original, non-backup data.
 	ProfileLoadResult lr = GetProfile(pn)->LoadAllFromDir(
-	  m_sProfileDir[pn], PREFSMAN->m_bSignProfileData, NULL);
+	  m_sProfileDir, PREFSMAN->m_bSignProfileData, NULL);
 
-	RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
+	RString sBackupDir = m_sProfileDir + LAST_GOOD_SUBDIR;
 
 	if (lr == ProfileLoadResult_Success) {
 		/* Next time the profile is written, move this good profile into
 		 * LastGood. */
-		m_bNeedToBackUpLastLoad[pn] = true;
+		m_bNeedToBackUpLastLoad = true;
 	}
 
-	m_bLastLoadWasTamperedOrCorrupt[pn] =
+	m_bLastLoadWasTamperedOrCorrupt =
 	  lr == ProfileLoadResult_FailedTampered;
 
 	//
@@ -180,7 +176,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 	if (lr == ProfileLoadResult_FailedTampered) {
 		lr = GetProfile(pn)->LoadAllFromDir(
 		  sBackupDir, PREFSMAN->m_bSignProfileData, NULL);
-		m_bLastLoadWasFromLastGood[pn] = lr == ProfileLoadResult_Success;
+		m_bLastLoadWasFromLastGood = lr == ProfileLoadResult_Success;
 
 		/* If the LastGood profile doesn't exist at all, and the actual profile
 		 * was failed_tampered, then the error should be failed_tampered and not
@@ -203,19 +199,19 @@ ProfileManager::LoadLocalProfileFromMachine(PlayerNumber pn)
 {
 	RString sProfileID = m_sDefaultLocalProfileID[pn];
 	if (sProfileID.empty()) {
-		m_sProfileDir[pn] = "";
+		m_sProfileDir = "";
 		return false;
 	}
 
-	m_sProfileDir[pn] = LocalProfileIDToDir(sProfileID);
-	m_bLastLoadWasFromLastGood[pn] = false;
+	m_sProfileDir = LocalProfileIDToDir(sProfileID);
+	m_bLastLoadWasFromLastGood = false;
 
 	if (GetLocalProfile(sProfileID) == NULL) {
-		m_sProfileDir[pn] = "";
+		m_sProfileDir = "";
 		return false;
 	}
 
-	GetProfile(pn)->LoadCustomFunction(m_sProfileDir[pn]);
+	GetProfile(pn)->LoadCustomFunction(m_sProfileDir);
 
 	return true;
 }
@@ -232,7 +228,7 @@ ProfileManager::LoadFirstAvailableProfile(PlayerNumber pn, bool bLoadEdits)
 bool
 ProfileManager::SaveProfile(PlayerNumber pn) const
 {
-	if (m_sProfileDir[pn].empty())
+	if (m_sProfileDir.empty())
 		return false;
 
 	/*
@@ -242,40 +238,16 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 	 * if we save the profile more than once, we haven't re-validated the
 	 * newly written data.)
 	 */
-	if (m_bNeedToBackUpLastLoad[pn]) {
-		m_bNeedToBackUpLastLoad[pn] = false;
-		RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
-		Profile::MoveBackupToDir(m_sProfileDir[pn], sBackupDir);
+	if (m_bNeedToBackUpLastLoad) {
+		m_bNeedToBackUpLastLoad = false;
+		RString sBackupDir = m_sProfileDir + LAST_GOOD_SUBDIR;
+		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir[pn],
+	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir,
 										  PREFSMAN->m_bSignProfileData);
 
 	return b;
-}
-
-bool
-ProfileManager::ConvertProfile(PlayerNumber pn)
-{
-	if (m_sProfileDir[pn].empty())
-		return false;
-
-	/*
-	 * If the profile we're writing was loaded from the primary (non-backup)
-	 * data, then we've validated it and know it's good.  Before writing our
-	 * new data, move the old, good data to the backup.  (Only do this once;
-	 * if we save the profile more than once, we haven't re-validated the
-	 * newly written data.)
-	 */
-	if (m_bNeedToBackUpLastLoad[pn]) {
-		m_bNeedToBackUpLastLoad[pn] = false;
-		RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
-		Profile::MoveBackupToDir(m_sProfileDir[pn], sBackupDir);
-	}
-
-	GetProfile(pn)->ImportScoresToEtterna();
-
-	return true;
 }
 
 bool
@@ -291,16 +263,16 @@ ProfileManager::SaveLocalProfile(const RString& sProfileID)
 void
 ProfileManager::UnloadProfile(PlayerNumber pn)
 {
-	if (m_sProfileDir[pn].empty()) {
+	if (m_sProfileDir.empty()) {
 		// Don't bother unloading a profile that wasn't loaded in the first
 		// place. Saves us an expensive and pointless trip through all the
 		// songs.
 		return;
 	}
-	m_sProfileDir[pn] = "";
-	m_bLastLoadWasTamperedOrCorrupt[pn] = false;
-	m_bLastLoadWasFromLastGood[pn] = false;
-	m_bNeedToBackUpLastLoad[pn] = false;
+	m_sProfileDir = "";
+	m_bLastLoadWasTamperedOrCorrupt = false;
+	m_bLastLoadWasFromLastGood = false;
+	m_bNeedToBackUpLastLoad = false;
 	SONGMAN->FreeAllLoadedFromProfile(static_cast<ProfileSlot>(pn));
 }
 
@@ -308,7 +280,7 @@ const Profile*
 ProfileManager::GetProfile(PlayerNumber pn) const
 {
 
-	RString sProfileID = LocalProfileDirToID(m_sProfileDir[PLAYER_1]);
+	RString sProfileID = LocalProfileDirToID(m_sProfileDir);
 	return GetLocalProfile(sProfileID);
 }
 
@@ -562,13 +534,13 @@ ProfileManager::DeleteLocalProfile(const RString& sProfileID)
 bool
 ProfileManager::LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const
 {
-	return !m_sProfileDir[pn].empty() && m_bLastLoadWasTamperedOrCorrupt[pn];
+	return !m_sProfileDir.empty() && m_bLastLoadWasTamperedOrCorrupt;
 }
 
 bool
 ProfileManager::LastLoadWasFromLastGood(PlayerNumber pn) const
 {
-	return !m_sProfileDir[pn].empty() && m_bLastLoadWasFromLastGood[pn];
+	return !m_sProfileDir.empty() && m_bLastLoadWasFromLastGood;
 }
 
 const RString&
@@ -577,7 +549,7 @@ ProfileManager::GetProfileDir(ProfileSlot slot) const
 	switch (slot) {
 		case ProfileSlot_Player1:
 		case ProfileSlot_Player2:
-			return m_sProfileDir[slot];
+			return m_sProfileDir;
 		default:
 			FAIL_M("Invalid profile slot chosen: unable to get the directory!");
 	}
@@ -720,7 +692,7 @@ ProfileManager::AddStepsScore(const Song* pSong,
 		else
 			hs.SetName("EVNT");
 	} else {
-		hs.SetName(RANKING_TO_FILL_IN_MARKER[pn]);
+		hs.SetName(RANKING_TO_FILL_IN_MARKER);
 	}
 
 	//
@@ -737,30 +709,6 @@ ProfileManager::IncrementStepsPlayCount(const Song* pSong,
 {
 	if (IsPersistentProfile(pn))
 		GetProfile(pn)->IncrementStepsPlayCount(pSong, pSteps);
-}
-
-// Category stats
-void
-ProfileManager::AddCategoryScore(StepsType st,
-								 RankingCategory rc,
-								 PlayerNumber pn,
-								 const HighScore& hs_,
-								 int& iPersonalIndexOut,
-								 int& iMachineIndexOut)
-{
-	HighScore hs = hs_;
-	hs.SetName(RANKING_TO_FILL_IN_MARKER[pn]);
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->AddCategoryHighScore(st, rc, hs, iPersonalIndexOut);
-}
-
-void
-ProfileManager::IncrementCategoryPlayCount(StepsType st,
-										   RankingCategory rc,
-										   PlayerNumber pn)
-{
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->IncrementCategoryPlayCount(st, rc);
 }
 
 bool
@@ -851,12 +799,12 @@ class LunaProfileManager : public Luna<ProfileManager>
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
 		lua_pushboolean(
-		  L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->IsPersistentProfile(PLAYER_1));
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		Profile* pP = p->GetProfile(pn);
 		pP->PushSelf(L);
 		return 1;
@@ -921,12 +869,12 @@ class LunaProfileManager : public Luna<ProfileManager>
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
 	{
 		lua_pushboolean(
-		  L, p->LastLoadWasTamperedOrCorrupt(Enum::Check<PlayerNumber>(L, 1)));
+		  L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
 		return 1;
 	}
 	static int GetPlayerName(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushstring(L, p->GetPlayerName(pn));
 		return 1;
 	}
@@ -939,12 +887,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int SaveProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->SaveProfile(Enum::Check<PlayerNumber>(L, 1)));
-		return 1;
-	}
-	static int ConvertProfile(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->ConvertProfile(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushboolean(L, p->SaveProfile(PLAYER_1));
 		return 1;
 	}
 	static int SaveLocalProfile(T* p, lua_State* L)
@@ -992,7 +935,6 @@ class LunaProfileManager : public Luna<ProfileManager>
 		ADD_METHOD(GetPlayerName);
 		//
 		ADD_METHOD(SaveProfile);
-		ADD_METHOD(ConvertProfile);
 		ADD_METHOD(SaveLocalProfile);
 		ADD_METHOD(GetSongNumTimesPlayed);
 		ADD_METHOD(GetLocalProfileIDs);

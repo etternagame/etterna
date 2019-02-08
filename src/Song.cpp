@@ -48,7 +48,7 @@
  * @brief The internal version of the cache for StepMania.
  *
  * Increment this value to invalidate the current cache. */
-const int FILE_CACHE_VERSION = 240;
+const int FILE_CACHE_VERSION = 241;
 
 /** @brief How long does a song sample last by default? */
 const float DEFAULT_MUSIC_SAMPLE_LENGTH = 25.f;
@@ -578,7 +578,6 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	FixupPath(m_sLyricsFile, m_sSongDir);
 	FixupPath(m_sBackgroundFile, m_sSongDir);
 	FixupPath(m_sCDTitleFile, m_sSongDir);
-
 	// CHECKPOINT_M("Looking for images...");
 
 	m_SongTiming.TidyUpData(false);
@@ -614,12 +613,12 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		}
 		TranslateTitles();
 
-		// Set the has flags before tidying so that tidying can check them
-		// instead of using the has functions that hit the disk. -Kyz These will
-		// be written to cache, for Song::LoadFromSongDir to use later.
-		m_bHasMusic = HasMusic();
-		m_bHasBanner = HasBanner();
-		m_bHasBackground = HasBackground();
+		m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
+		m_bHasMusic = IsAFile(GetMusicPath());
+		m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+		m_bHasBanner = IsAFile(GetBannerPath());
+		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+		m_bHasBackground = IsAFile(GetBackgroundPath());
 		for (std::string Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
@@ -685,6 +684,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 						   music_list[0].c_str());
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
+				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
 				if (music_list.size() > 1 &&
 					!m_sMusicFile.Left(5).CompareNoCase("intro")) {
 					m_sMusicFile = music_list[1];
@@ -1006,6 +1006,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 					0, movie_list[0], "", 1.f, SBE_StretchNoLoop));
 			}
 		}
+
 		// Don't allow multiple Steps of the same StepsType and Difficulty
 		// (except for edits). We should be able to use difficulty names as
 		// unique identifiers for steps. */
@@ -1025,6 +1026,36 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 #undef CLEAR_NOT_HAS
 	}
 
+	// need generate these independent of caching cuz im dum
+	m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
+	m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+	if (m_PreviewPath.empty())
+		m_PreviewPath = m_sMusicPath;
+	FOREACH_ENUM(InstrumentTrack, it)
+	m_sInstrumentTrackPath[it] =
+	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
+	m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
+	m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
+	m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir); 
+	m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
+	m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
+	m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
+	m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
+	m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
+
+	string scoot = m_sMainTitle;
+	string mcgoot = m_sSubTitle;
+
+	if (!mcgoot.empty())
+		scoot += " " + mcgoot;
+	displayfulltitle = scoot;
+
+	string doot = m_sMainTitleTranslit;
+	string loot = m_sSubTitleTranslit;
+
+	if (!loot.empty())
+		doot += " " + loot;
+	translitfulltitle = doot;
 	/* Generate these before we autogen notes, so the new notes can inherit
 	 * their source's values. */
 	ReCalculateRadarValuesAndLastSecond(from_cache, true);
@@ -1462,45 +1493,6 @@ Song::GetFileHash()
 }
 
 bool
-Song::IsEasy(StepsType st) const
-{
-	/* Very fast songs and songs with wide tempo changes are hard for new
-	 * players, even if they have beginner steps. */
-	DisplayBpms bpms;
-	this->GetDisplayBpms(bpms);
-	if (bpms.GetMax() >= 250 || bpms.GetMax() - bpms.GetMin() >= 75)
-		return false;
-
-	/* The easy marker indicates which songs a beginner, having selected
-	 * "beginner", can play and actually get a very easy song: if there are
-	 * actual beginner steps, or if the light steps are 1- or 2-foot. */
-	const Steps* pBeginnerNotes =
-	  SongUtil::GetStepsByDifficulty(this, st, Difficulty_Beginner);
-	if (pBeginnerNotes != nullptr)
-		return true;
-
-	const Steps* pEasyNotes =
-	  SongUtil::GetStepsByDifficulty(this, st, Difficulty_Easy);
-	if ((pEasyNotes != nullptr) && pEasyNotes->GetMeter() == 1)
-		return true;
-
-	return false;
-}
-
-bool
-Song::IsTutorial() const
-{
-	// A Song is considered a Tutorial if it has only Beginner steps.
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		if ((*s)->GetDifficulty() != Difficulty_Beginner)
-			return false;
-	}
-
-	return true;
-}
-
-bool
 Song::HasEdits(StepsType st) const
 {
 	for (unsigned i = 0; i < m_vpSteps.size(); i++) {
@@ -1513,13 +1505,6 @@ Song::HasEdits(StepsType st) const
 
 	return false;
 }
-
-bool
-Song::ShowInDemonstrationAndRanking() const
-{
-	return !IsTutorial();
-}
-
 // Hack: see Song::TidyUpData comments.
 bool
 Song::HasMusic() const
@@ -1528,33 +1513,32 @@ Song::HasMusic() const
 	if (m_vsKeysoundFile.size() != 0)
 		return true;
 
-	return m_sMusicFile != "" && IsAFile(GetMusicPath());
+	return m_sMusicFile != "" && GetMusicPath() != "";
 }
 bool
 Song::HasBanner() const
 {
-	return m_sBannerFile != "" && IsAFile(GetBannerPath());
+	return m_sBannerFile != "" && GetBannerPath() != "";
 }
 bool
 Song::HasInstrumentTrack(InstrumentTrack it) const
 {
-	return m_sInstrumentTrackFile[it] != "" &&
-		   IsAFile(GetInstrumentTrackPath(it));
+	return m_sInstrumentTrackFile[it] != "" && GetInstrumentTrackPath(it) != "";
 }
 bool
 Song::HasLyrics() const
 {
-	return m_sLyricsFile != "" && IsAFile(GetLyricsPath());
+	return m_sLyricsFile != "" && GetLyricsPath() != "";
 }
 bool
 Song::HasBackground() const
 {
-	return m_sBackgroundFile != "" && IsAFile(GetBackgroundPath());
+	return m_sBackgroundFile != "" && GetBackgroundPath() != "";
 }
 bool
 Song::HasCDTitle() const
 {
-	return m_sCDTitleFile != "" && IsAFile(GetCDTitlePath());
+	return m_sCDTitleFile != "" && GetCDTitlePath() != "";
 }
 bool
 Song::HasBGChanges() const
@@ -1569,22 +1553,22 @@ Song::HasBGChanges() const
 bool
 Song::HasJacket() const
 {
-	return m_sJacketFile != "" && IsAFile(GetJacketPath());
+	return m_sJacketFile != "" && GetJacketPath() != "";
 }
 bool
 Song::HasDisc() const
 {
-	return m_sDiscFile != "" && IsAFile(GetDiscPath());
+	return m_sDiscFile != "" && GetDiscPath() != "";
 }
 bool
 Song::HasCDImage() const
 {
-	return m_sCDFile != "" && IsAFile(GetCDImagePath());
+	return m_sCDFile != "" && GetCDImagePath() != "";
 }
 bool
 Song::HasPreviewVid() const
 {
-	return m_sPreviewVidFile != "" && IsAFile(GetPreviewVidPath());
+	return m_sPreviewVidFile != "" && GetPreviewVidPath() != "";
 }
 
 const vector<BackgroundChange>&
@@ -1685,77 +1669,6 @@ Song::GetSongAssetPath(RString sPath, const RString& sSongPath)
 	return sPath;
 }
 
-/* Note that supplying a path relative to the top-level directory is only for
- * compatibility with DWI. We prefer paths relative to the song directory. */
-RString
-Song::GetMusicPath() const
-{
-	return GetSongAssetPath(m_sMusicFile, m_sSongDir);
-}
-
-RString
-Song::GetInstrumentTrackPath(InstrumentTrack it) const
-{
-	return GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
-}
-
-RString
-Song::GetBannerPath() const
-{
-	return GetSongAssetPath(m_sBannerFile, m_sSongDir);
-}
-
-RString
-Song::GetLyricsPath() const
-{
-	return GetSongAssetPath(m_sLyricsFile, m_sSongDir);
-}
-
-RString
-Song::GetCDTitlePath() const
-{
-	return GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
-}
-
-RString
-Song::GetBackgroundPath() const
-{
-	return GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
-}
-
-RString
-Song::GetJacketPath() const
-{
-	return GetSongAssetPath(m_sJacketFile, m_sSongDir);
-}
-
-RString
-Song::GetDiscPath() const
-{
-	return GetSongAssetPath(m_sDiscFile, m_sSongDir);
-}
-
-RString
-Song::GetCDImagePath() const
-{
-	return GetSongAssetPath(m_sCDFile, m_sSongDir);
-}
-
-RString
-Song::GetPreviewVidPath() const
-{
-	return GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
-}
-
-RString
-Song::GetPreviewMusicPath() const
-{
-	if (m_PreviewFile.empty()) {
-		return GetMusicPath();
-	}
-	return GetSongAssetPath(m_PreviewFile, m_sSongDir);
-}
-
 float
 Song::GetPreviewStartSeconds() const
 {
@@ -1812,7 +1725,7 @@ Song::HasChartByHash(const string& hash)
 	return false;
 }
 
-RString
+const string&
 Song::GetDisplayMainTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1820,7 +1733,7 @@ Song::GetDisplayMainTitle() const
 	return m_sMainTitle;
 }
 
-RString
+const string&
 Song::GetDisplaySubTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1828,7 +1741,7 @@ Song::GetDisplaySubTitle() const
 	return m_sSubTitle;
 }
 
-RString
+const string&
 Song::GetDisplayArtist() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1836,32 +1749,10 @@ Song::GetDisplayArtist() const
 	return m_sArtist;
 }
 
-RString
+const string&
 Song::GetMainTitle() const
 {
 	return m_sMainTitle;
-}
-
-RString
-Song::GetDisplayFullTitle() const
-{
-	RString Title = GetDisplayMainTitle();
-	RString SubTitle = GetDisplaySubTitle();
-
-	if (!SubTitle.empty())
-		Title += " " + SubTitle;
-	return Title;
-}
-
-RString
-Song::GetTranslitFullTitle() const
-{
-	RString Title = GetTranslitMainTitle();
-	RString SubTitle = GetTranslitSubTitle();
-
-	if (!SubTitle.empty())
-		Title += " " + SubTitle;
-	return Title;
 }
 
 void
@@ -1918,7 +1809,7 @@ Song::Matches(const RString& sGroup, const RString& sSong) const
 	// match on song dir or title (ala DWI)
 	if (!sSong.CompareNoCase(sLastBit))
 		return true;
-	if (!sSong.CompareNoCase(this->GetTranslitFullTitle()))
+	if (!sSong.CompareNoCase(RString(this->GetTranslitFullTitle())))
 		return true;
 
 	return false;
@@ -2106,47 +1997,47 @@ class LunaSong : public Luna<Song>
   public:
 	static int GetDisplayFullTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDisplayFullTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayFullTitle());
 		return 1;
 	}
 	static int GetTranslitFullTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetTranslitFullTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitFullTitle());
 		return 1;
 	}
 	static int GetDisplayMainTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDisplayMainTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayMainTitle());
 		return 1;
 	}
 	static int GetMainTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetMainTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetMainTitle());
 		return 1;
 	}
 	static int GetTranslitMainTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetTranslitMainTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitMainTitle());
 		return 1;
 	}
 	static int GetDisplaySubTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDisplaySubTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetDisplaySubTitle());
 		return 1;
 	}
 	static int GetTranslitSubTitle(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetTranslitSubTitle());
+		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitSubTitle());
 		return 1;
 	}
 	static int GetDisplayArtist(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDisplayArtist());
+		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayArtist());
 		return 1;
 	}
 	static int GetTranslitArtist(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetTranslitArtist());
+		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitArtist());
 		return 1;
 	}
 	static int GetGenre(T* p, lua_State* L)
@@ -2174,7 +2065,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetSongDir(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetSongDir());
+		LuaHelpers::push_lua_escaped_string(L, p->GetSongDir());
 		return 1;
 	}
 	static int GetMusicPath(T* p, lua_State* L)
@@ -2267,11 +2158,6 @@ class LunaSong : public Luna<Song>
 	static int GetSongFilePath(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->GetSongFilePath());
-		return 1;
-	}
-	static int IsTutorial(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->IsTutorial());
 		return 1;
 	}
 	static int IsEnabled(T* p, lua_State* L)
@@ -2441,20 +2327,9 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, p->HasEdits(st));
 		return 1;
 	}
-	static int IsEasy(T* p, lua_State* L)
-	{
-		StepsType st = Enum::Check<StepsType>(L, 1);
-		lua_pushboolean(L, p->IsEasy(st));
-		return 1;
-	}
 	static int GetStepsSeconds(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetStepsSeconds());
-		return 1;
-	}
-	static int ShowInDemonstrationAndRanking(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->ShowInDemonstrationAndRanking());
 		return 1;
 	}
 	static int GetFirstSecond(T* p, lua_State* L)
@@ -2475,11 +2350,6 @@ class LunaSong : public Luna<Song>
 	static int GetLastBeat(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetLastBeat());
-		return 1;
-	}
-	static int HasAttacks(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int GetDisplayBpms(T* p, lua_State* L)
@@ -2558,7 +2428,6 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetCDTitlePath);
 		ADD_METHOD(GetLyricsPath);
 		ADD_METHOD(GetSongFilePath);
-		ADD_METHOD(IsTutorial);
 		ADD_METHOD(IsEnabled);
 		ADD_METHOD(GetGroupName);
 		ADD_METHOD(MusicLengthSeconds);
@@ -2583,20 +2452,17 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(HasLyrics);
 		ADD_METHOD(HasSignificantBPMChangesOrStops);
 		ADD_METHOD(HasEdits);
-		ADD_METHOD(IsEasy);
 		ADD_METHOD(IsFavorited);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(GetFirstBeat);
 		ADD_METHOD(GetFirstSecond);
 		ADD_METHOD(GetLastBeat);
 		ADD_METHOD(GetLastSecond);
-		ADD_METHOD(HasAttacks);
 		ADD_METHOD(GetDisplayBpms);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);
 		ADD_METHOD(IsDisplayBpmRandom);
 		ADD_METHOD(IsStepsUsingDifferentTiming);
-		ADD_METHOD(ShowInDemonstrationAndRanking);
 		ADD_METHOD(HasPreviewVid);
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);

@@ -357,7 +357,6 @@ Section "Main Section" SecMain
 	; common noteskin
 	SetOutPath "$INSTDIR\NoteSkins\common"
 	File /r /x CVS /x .svn "NoteSkins\common\common"
-	File /r /x CVS /x .svn "NoteSkins\common\_Editor"
 
 	; install dance noteskins
 	SetOutPath "$INSTDIR\NoteSkins\dance"

@@ -170,8 +170,6 @@ Branch = {
 	PlayerOptions = function()
 		local pm = GAMESTATE:GetPlayMode()
 		local restricted = {
-			PlayMode_Oni = true,
-			PlayMode_Rave = true
 			--"PlayMode_Battle" -- ??
 		}
 		local optionsScreen = "ScreenPlayerOptions"
@@ -195,43 +193,10 @@ Branch = {
 		return IsRoutine() and "ScreenGameplayShared" or "ScreenGameplay"
 	end,
 	AfterGameplay = function()
-		-- pick an evaluation screen based on settings.
-		if THEME:GetMetric("ScreenHeartEntry", "HeartEntryEnabled") then
-			local go_to_heart = false
-			for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
-				local profile = PROFILEMAN:GetProfile(pn)
-				if profile and profile:GetIgnoreStepCountCalories() then
-					go_to_heart = true
-				end
-			end
-			if go_to_heart then
-				return "ScreenHeartEntry"
-			end
-			return "ScreenEvaluationNormal"
-		else
-			return "ScreenEvaluationNormal"
-		end
+		return "ScreenEvaluationNormal"
 	end,
 	AfterNetGameplay = function()
-		-- pick an evaluation screen based on settings.
-		if THEME:GetMetric("ScreenHeartEntry", "HeartEntryEnabled") then
-			local go_to_heart = false
-			for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
-				local profile = PROFILEMAN:GetProfile(pn)
-				if profile and profile:GetIgnoreStepCountCalories() then
-					go_to_heart = true
-				end
-			end
-			if go_to_heart then
-				return "ScreenHeartEntry"
-			end
-			return "ScreenNetEvaluation"
-		else
-			return "ScreenNetEvaluation"
-		end
-	end,
-	AfterHeartEntry = function()
-		return Branch.EvaluationScreen()
+		return "ScreenNetEvaluation"
 	end,
 	AfterEvaluation = function()
 		local allFailed = STATSMAN:GetCurStageStats():AllFailed()

@@ -87,7 +87,7 @@ class ActorFrame : public Actor
 	void RunCommandsOnLeaves(
 	  const LuaReference& cmds,
 	  const LuaReference* pParamTable = nullptr) override; /* but not on self */
-
+	bool IsFirstUpdate() const;
 	void UpdateInternal(float fDeltaTime) override;
 	void BeginDraw() override;
 	void DrawPrimitives() override;
@@ -167,7 +167,7 @@ class ActorFrame : public Actor
 	 * If true, set lightning to m_bLightning. */
 	bool m_bOverrideLighting;
 	bool m_bLighting;
-
+	bool m_bFirstUpdate;
 	// lighting variables
 	RageColor m_ambientColor;
 	RageColor m_diffuseColor;

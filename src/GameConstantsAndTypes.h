@@ -1,4 +1,4 @@
-﻿/* GameConstantsAndTypes - Things used in many places that don't change often.
+/* GameConstantsAndTypes - Things used in many places that don't change often.
  */
 
 #ifndef GAME_CONSTANTS_AND_TYPES_H
@@ -18,13 +18,8 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
-/** @brief The maximum number of credits for coin mode. */
-const int MAX_NUM_CREDITS = 20;
-class Song;
-class Steps;
 
-enum Skillset
-{
+enum Skillset {
 	Skill_Overall,
 	Skill_Stream,
 	Skill_Jumpstream,
@@ -98,10 +93,8 @@ LuaDeclareType(RadarCategory);
 /** @brief The different game categories available to play. */
 enum StepsTypeCategory
 {
-	StepsTypeCategory_Single,  /**< One person plays on one side. */
-	StepsTypeCategory_Double,  /**< One person plays on both sides. */
-	StepsTypeCategory_Couple,  /**< Two players play on their own side. */
-	StepsTypeCategory_Routine, /**< Two players share both sides together. */
+	StepsTypeCategory_Single, /**< One person plays on one side. */
+	StepsTypeCategory_Double, /**< One person plays on both sides. */
 };
 
 /** @brief The different steps types for playing. */
@@ -109,15 +102,11 @@ enum StepsType
 {
 	StepsType_dance_single = 0,
 	StepsType_dance_double,
-	StepsType_dance_couple,
 	StepsType_dance_solo,
 	StepsType_dance_threepanel,
-	StepsType_dance_routine,
 	StepsType_pump_single,
 	StepsType_pump_halfdouble,
 	StepsType_pump_double,
-	StepsType_pump_couple,
-	StepsType_pump_routine,
 	StepsType_kb7_single,
 	StepsType_ez2_single,
 	StepsType_ez2_double,
@@ -125,10 +114,8 @@ enum StepsType
 	StepsType_para_single,
 	StepsType_ds3ddx_single,
 	StepsType_beat_single5,
-	StepsType_beat_versus5,
 	StepsType_beat_double5,
 	StepsType_beat_single7,
-	StepsType_beat_versus7,
 	StepsType_beat_double7,
 	StepsType_maniax_single,
 	StepsType_maniax_double,
@@ -386,32 +373,12 @@ const RString&
 ProfileSlotToString(ProfileSlot ps);
 LuaDeclareType(ProfileSlot);
 
-/** @brief The different ranking categories based on difficulty meter average.
- */
-enum RankingCategory
-{
-	RANKING_A, /**< 1-3 meter per song avg. */
-	RANKING_B, /**< 4-6 meter per song avg. */
-	RANKING_C, /**< 7-9 meter per song avg. */
-	RANKING_D, /**< 10+ meter per song avg, not counting extra stages. */
-	NUM_RankingCategory, /**< The number of ranking categories. */
-	RankingCategory_Invalid
-};
-const RString&
-RankingCategoryToString(RankingCategory rc);
-RankingCategory
-StringToRankingCategory(const RString& rc);
-LuaDeclareType(RankingCategory);
-
-extern const vector<RString> RANKING_TO_FILL_IN_MARKER;
+extern const RString RANKING_TO_FILL_IN_MARKER;
 inline bool
 IsRankingToFillIn(const RString& sName)
 {
 	return !sName.empty() && sName[0] == '#';
 }
-
-RankingCategory
-AverageMeterToRankingCategory(int iAverageMeter);
 
 // Group stuff
 extern const RString GROUP_ALL;
@@ -441,71 +408,6 @@ enum HealthState
 	HealthState_Invalid
 };
 LuaDeclareType(HealthState);
-
-/** @brief The different stage results during battle. */
-enum StageResult
-{
-	RESULT_WIN,  /**< The player has won the battle. */
-	RESULT_LOSE, /**< The player has lost the battle. */
-	RESULT_DRAW, /**< The player has tied with the competitor. */
-	NUM_StageResult,
-	StageResult_Invalid
-};
-LuaDeclareType(StageResult);
-
-/** @brief The various stage awards that can be given based on excellent play.
- */
-enum StageAward
-{
-	StageAward_FullComboW3, /**< A full great combo (or equivalent) was earned.
-							 */
-	StageAward_SingleDigitW3, /**< A single digit great combo (or equivalent)
-								 was earned. */
-	StageAward_OneW3,		  /**< Only one great (or equivalent) was earned. */
-	StageAward_FullComboW2,   /**< A full excellent combo (or equivalent) was
-								 earned. */
-	StageAward_SingleDigitW2, /**< A single digit excellent combo (or
-								 equivalent) was earned. */
-	StageAward_OneW2, /**< Only one excellent (or equivalent) was earned. */
-	StageAward_FullComboW1, /**< All fantastics (or equivalent) were earned. */
-	StageAward_80PercentW3,
-	StageAward_90PercentW3,
-	StageAward_100PercentW3,
-	NUM_StageAward,
-	StageAward_Invalid,
-};
-const RString&
-StageAwardToString(StageAward pma);
-const RString&
-StageAwardToLocalizedString(StageAward pma);
-StageAward
-StringToStageAward(const RString& pma);
-LuaDeclareType(StageAward);
-
-/** @brief The various peak combo awards should such a combo be attained during
- * play. */
-enum PeakComboAward
-{
-	PeakComboAward_1000,
-	PeakComboAward_2000,
-	PeakComboAward_3000,
-	PeakComboAward_4000,
-	PeakComboAward_5000,
-	PeakComboAward_6000,
-	PeakComboAward_7000,
-	PeakComboAward_8000,
-	PeakComboAward_9000,
-	PeakComboAward_10000,
-	NUM_PeakComboAward,
-	PeakComboAward_Invalid,
-};
-const RString&
-PeakComboAwardToString(PeakComboAward pma);
-const RString&
-PeakComboAwardToLocalizedString(PeakComboAward pma);
-PeakComboAward
-StringToPeakComboAward(const RString& pma);
-LuaDeclareType(PeakComboAward);
 
 /** @brief The list of BPMs to display */
 struct DisplayBpms
@@ -551,10 +453,8 @@ struct DisplayBpms
 /** @brief The various style types available. */
 enum StyleType
 {
-	StyleType_OnePlayerOneSide,		 /**< Single style */
-	StyleType_TwoPlayersTwoSides,	/**< Versus style */
-	StyleType_OnePlayerTwoSides,	 /**< Double style */
-	StyleType_TwoPlayersSharedSides, /**< Routine style */
+	StyleType_OnePlayerOneSide,		/**< Single style */
+	StyleType_OnePlayerTwoSides,		/**< Double style */
 	NUM_StyleType,
 	StyleType_Invalid
 };
@@ -563,21 +463,6 @@ StyleTypeToString(StyleType s);
 StyleType
 StringToStyleType(const RString& s);
 LuaDeclareType(StyleType);
-
-/** @brief The different types of Edit modes available. */
-enum EditMode
-{
-	EditMode_Practice,
-	EditMode_Home,
-	EditMode_Full,
-	NUM_EditMode,
-	EditMode_Invalid,
-};
-const RString&
-EditModeToString(EditMode em);
-EditMode
-StringToEditMode(const RString& s);
-LuaDeclareType(EditMode);
 
 /**
  * @brief The different types of sample music previews available.

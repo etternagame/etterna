@@ -4,13 +4,10 @@
 #define SCREEN_SELECT_MUSIC_H
 
 #include "BitmapText.h"
-#include "FadingBanner.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h"
 #include "MusicWheel.h"
 #include "OptionsList.h"
-#include "RageTexturePreloader.h"
-#include "RageUtil_BackgroundLoader.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
 #include "ThemeMetric.h"
@@ -55,7 +52,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
 	void OpenOptionsList(PlayerNumber pn);
-	void OnConfirmSongDeletion();
+
 
 	bool can_open_options_list(PlayerNumber pn);
 
@@ -96,7 +93,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool DetectCodes(const InputEventPlus& input);
 
 	vector<Steps*> m_vpSteps;
-	int m_iSelection[NUM_PLAYERS];
+	int m_iSelection;
 
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
@@ -157,29 +154,23 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RString m_sFallbackCDTitlePath;
 
 	MusicWheel m_MusicWheel;
-	OptionsList m_OptionsList[NUM_PLAYERS];
+	OptionsList m_OptionsList;
 
 	SelectionState m_SelectionState;
-	bool
-	  m_bStepsChosen[NUM_PLAYERS]; // only used in SelectionState_SelectingSteps
+	bool m_bStepsChosen; // only used in SelectionState_SelectingSteps
 	bool m_bGoToOptions;
 	RString m_sSampleMusicToPlay;
 	TimingData* m_pSampleMusicTimingData;
 	float m_fSampleStartSeconds, m_fSampleLengthSeconds;
 	bool m_bAllowOptionsMenu, m_bAllowOptionsMenuRepeat;
-	bool m_bSelectIsDown[NUM_PLAYERS];
-	bool m_bAcceptSelectRelease[NUM_PLAYERS];
+	bool m_bSelectIsDown;
+	bool m_bAcceptSelectRelease;
 
 	RageSound m_soundStart;
 	RageSound m_soundDifficultyEasier;
 	RageSound m_soundDifficultyHarder;
 	RageSound m_soundOptionsChange;
 	RageSound m_soundLocked;
-
-	BackgroundLoader m_BackgroundLoader;
-	RageTexturePreloader m_TexturePreload;
-
-	Song* m_pSongAwaitingDeletionConfirmation;
 };
 
 #endif

@@ -24,7 +24,6 @@
 #include "RageDisplay.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "ScoreDisplay.h"
 #include "ScoreKeeperNormal.h"
 #include "ScoreManager.h"
 #include "ScreenDimensions.h"
@@ -41,8 +40,6 @@
 #include "HoldJudgment.h"
 #include "GamePreferences.h"
 
-RString
-ATTACK_DISPLAY_X_NAME(size_t p, size_t both_sides);
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						RString& sNameOut,
@@ -97,14 +94,6 @@ class JudgedRows
 		m_vRows.assign(m_vRows.size(), false);
 	}
 };
-
-RString
-ATTACK_DISPLAY_X_NAME(size_t p, size_t both_sides)
-{
-	return "AttackDisplayXOffset" +
-		   (both_sides ? RString("BothSides")
-					   : ssprintf("OneSideP%d", static_cast<int>(p + 1)));
-}
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -239,17 +228,12 @@ ThemeMetric<float> PERCENT_UNTIL_COLOR_COMBO("Player",
 /** @brief How much combo must be earned before the announcer says "Combo
  * Stopped"? */
 ThemeMetric<int> COMBO_STOPPED_AT("Player", "ComboStoppedAt");
-ThemeMetric<float> ATTACK_RUN_TIME_RANDOM("Player", "AttackRunTimeRandom");
-ThemeMetric<float> ATTACK_RUN_TIME_MINE("Player", "AttackRunTimeMine");
 
 /**
  * @brief What is our highest cap for mMods?
  *
  * If set to 0 or less, assume the song takes over. */
 ThemeMetric<float> M_MOD_HIGH_CAP("Player", "MModHighCap");
-
-/** @brief Will battle modes have their steps mirrored or kept the same? */
-ThemeMetric<bool> BATTLE_RAVE_MIRROR("Player", "BattleRaveMirror");
 
 float
 Player::GetWindowSeconds(TimingWindow tw)
@@ -272,8 +256,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_fNoteFieldHeight = 0;
 
 	m_pLifeMeter = NULL;
-	m_pScoreDisplay = NULL;
-	m_pSecondaryScoreDisplay = NULL;
 	m_pPrimaryScoreKeeper = NULL;
 	m_pSecondaryScoreKeeper = NULL;
 	m_pIterNeedsTapJudging = NULL;
@@ -317,8 +299,6 @@ Player::Init(const RString& sType,
 			 PlayerState* pPlayerState,
 			 PlayerStageStats* pPlayerStageStats,
 			 LifeMeter* pLM,
-			 ScoreDisplay* pScoreDisplay,
-			 ScoreDisplay* pSecondaryScoreDisplay,
 			 ScoreKeeper* pPrimaryScoreKeeper,
 			 ScoreKeeper* pSecondaryScoreKeeper)
 {
@@ -328,6 +308,7 @@ Player::Init(const RString& sType,
 	HOLD_JUDGMENT_Y_STANDARD.Load(sType, "HoldJudgmentYStandard");
 	HOLD_JUDGMENT_Y_REVERSE.Load(sType, "HoldJudgmentYReverse");
 	BRIGHT_GHOST_COMBO_THRESHOLD.Load(sType, "BrightGhostComboThreshold");
+
 	TAP_JUDGMENTS_UNDER_FIELD.Load(sType, "TapJudgmentsUnderField");
 	HOLD_JUDGMENTS_UNDER_FIELD.Load(sType, "HoldJudgmentsUnderField");
 	COMBO_UNDER_FIELD.Load(sType, "ComboUnderField");
@@ -399,8 +380,6 @@ Player::Init(const RString& sType,
 	m_pPlayerState = pPlayerState;
 	m_pPlayerStageStats = pPlayerStageStats;
 	m_pLifeMeter = pLM;
-	m_pScoreDisplay = pScoreDisplay;
-	m_pSecondaryScoreDisplay = pSecondaryScoreDisplay;
 	m_pPrimaryScoreKeeper = pPrimaryScoreKeeper;
 	m_pSecondaryScoreKeeper = pSecondaryScoreKeeper;
 
@@ -632,11 +611,6 @@ Player::Load()
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-	bool bOniDead =
-	  m_pPlayerState->m_PlayerOptions.GetStage().m_LifeType ==
-		LifeType_Battery &&
-	  (m_pPlayerStageStats == NULL || m_pPlayerStageStats->m_bFailed);
-
 	/* The editor reuses Players ... so we really need to make sure everything
 	 * is reset and not tweening.  Perhaps ActorFrame should recurse to
 	 * subactors; then we could just this->StopTweening()? -glenn */
@@ -656,7 +630,7 @@ Player::Load()
 	//		m_pScore->Init( pn );
 
 	// Mina garbage - Mina
-	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
+	m_Timing = GAMESTATE->m_pCurSteps->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 	int lastRow = m_NoteData.GetLastRow();
 	m_Timing->BuildAndGetEtar(lastRow);
@@ -675,11 +649,11 @@ Player::Load()
 		m_pPlayerStageStats->filehadnegbpms = true;
 
 	// check before nomines transform
-	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
+	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
 		m_pPlayerStageStats->filegotmines = true;
 
-	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Holds] > 0 ||
-		GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Rolls] > 0)
+	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
+		GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
 		m_pPlayerStageStats->filegotholds = true;
 
 	// check for lua script load (technically this is redundant a little with
@@ -688,7 +662,7 @@ Player::Load()
 		m_pPlayerStageStats->luascriptwasloaded = true;
 
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
-	  GAMESTATE->m_pCurSteps[pn]->GetChartKey(),
+	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (pb != nullptr)
 		wifescorepersonalbest = pb->GetWifeScore();
@@ -711,15 +685,13 @@ Player::Load()
 	// Generate some cache data structure.
 	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
 
-	int iDrawDistanceAfterTargetsPixels =
-	  GAMESTATE->IsEditing() ? -100 : DRAW_DISTANCE_AFTER_TARGET_PIXELS;
-	int iDrawDistanceBeforeTargetsPixels =
-	  GAMESTATE->IsEditing() ? 400 : DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	int iDrawDistanceAfterTargetsPixels = DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+	int iDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 
 	float fNoteFieldMiddle =
 	  (GRAY_ARROWS_Y_STANDARD + GRAY_ARROWS_Y_REVERSE) / 2;
 
-	if ((m_pNoteField != nullptr) && !bOniDead) {
+	if (m_pNoteField != nullptr) {
 		m_pNoteField->SetY(fNoteFieldMiddle);
 		m_pNoteField->Load(&m_NoteData,
 						   iDrawDistanceAfterTargetsPixels,
@@ -824,7 +796,7 @@ Player::Update(float fDeltaTime)
 
 	// LOG->Trace( "Player::Update(%f)", fDeltaTime );
 
-	if (GAMESTATE->m_pCurSong == NULL || IsOniDead())
+	if (GAMESTATE->m_pCurSong == NULL)
 		return;
 
 	ActorFrame::Update(fDeltaTime);
@@ -963,10 +935,11 @@ Player::Update(float fDeltaTime)
 		bool bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
 
 		// TODO: Make this work for non-human-controlled players
-		if (bIsHoldingButton && !GAMESTATE->m_bDemonstrationOrJukebox &&
-			m_pPlayerState->m_PlayerController == PC_HUMAN)
+
+		if (bIsHoldingButton && m_pPlayerState->m_PlayerController == PC_HUMAN)
 			if (m_pNoteField != nullptr)
 				m_pNoteField->SetPressed(col);
+
 	}
 
 	// handle Autoplay for rolls
@@ -1524,14 +1497,11 @@ Player::DrawPrimitives()
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-	// May have both players in doubles (for battle play); only draw primary
-	// player.
-	if (GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-			->m_StyleType == StyleType_OnePlayerTwoSides &&
-		pn != GAMESTATE->GetMasterPlayerNumber())
+
+	if (pn !=PLAYER_1)
 		return;
 
-	bool draw_notefield = (m_pNoteField != nullptr) && !IsOniDead();
+	bool draw_notefield = (m_pNoteField != nullptr);
 
 	const PlayerOptions& curr_options =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent();
@@ -1880,15 +1850,6 @@ Player::GetClosestNonEmptyRow(int iNoteRow,
 	return iNextRow;
 }
 
-bool
-Player::IsOniDead() const
-{
-	// If we're playing on oni and we've died, do nothing.
-	return m_pPlayerState->m_PlayerOptions.GetStage().m_LifeType ==
-			 LifeType_Battery &&
-		   m_pPlayerStageStats && m_pPlayerStageStats->m_bFailed;
-}
-
 void
 Player::DoTapScoreNone()
 {
@@ -2018,9 +1979,6 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
-	if (IsOniDead())
-		return;
-
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
@@ -2039,7 +1997,7 @@ Player::Step(int col,
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 
-	if (GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber])
+	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
 
 	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
@@ -2545,9 +2503,6 @@ Player::StepReplay(int col,
 				   bool bRelease,
 				   float padStickSeconds)
 {
-	if (IsOniDead())
-		return;
-
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
@@ -2566,7 +2521,7 @@ Player::StepReplay(int col,
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 
-	if (GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber])
+	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
 
 	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
@@ -3372,12 +3327,6 @@ Player::UpdateJudgedRows(float fDeltaTime)
 				setSounds.insert(&m_soundMine);
 
 			ChangeLife(tn.result.tns);
-
-			if (m_pScoreDisplay)
-				m_pScoreDisplay->OnJudgment(tn.result.tns);
-			if (m_pSecondaryScoreDisplay)
-				m_pSecondaryScoreDisplay->OnJudgment(tn.result.tns);
-
 			// Make sure hit mines affect the dance points.
 			if (m_pPrimaryScoreKeeper)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
@@ -3408,8 +3357,7 @@ Player::HandleTapRowScore(unsigned row)
 	bNoCheating = false;
 #endif
 
-	if (GAMESTATE->m_bDemonstrationOrJukebox)
-		bNoCheating = false;
+
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return;
@@ -3491,17 +3439,6 @@ Player::HandleTapRowScore(unsigned row)
 		m_pPlayerStageStats->UpdateComboList(
 		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
 
-	if (m_pScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pScoreDisplay->OnJudgment(scoreOfLastTap);
-	}
-	if (m_pSecondaryScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pSecondaryScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pSecondaryScoreDisplay->OnJudgment(scoreOfLastTap);
-	}
-
 	ChangeLife(scoreOfLastTap);
 }
 
@@ -3580,8 +3517,7 @@ Player::HandleHoldScore(const TapNote& tn)
 	bNoCheating = false;
 #endif
 
-	if (GAMESTATE->m_bDemonstrationOrJukebox)
-		bNoCheating = false;
+
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return;
@@ -3590,18 +3526,6 @@ Player::HandleHoldScore(const TapNote& tn)
 		m_pPrimaryScoreKeeper->HandleHoldScore(tn);
 	if (m_pSecondaryScoreKeeper != nullptr)
 		m_pSecondaryScoreKeeper->HandleHoldScore(tn);
-
-	if (m_pScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pScoreDisplay->OnJudgment(holdScore, tapScore);
-	}
-	if (m_pSecondaryScoreDisplay != nullptr) {
-		if (m_pPlayerStageStats != nullptr)
-			m_pSecondaryScoreDisplay->SetScore(m_pPlayerStageStats->m_iScore);
-		m_pSecondaryScoreDisplay->OnJudgment(holdScore, tapScore);
-	}
-
 	ChangeLife(holdScore, tapScore);
 }
 

@@ -314,7 +314,6 @@ class Actor : public MessageSubscriber
 
 	// TODO: make Update non virtual and change all classes to override
 	// UpdateInternal instead.
-	bool IsFirstUpdate() const;
 	virtual void Update(
 	  float fDeltaTime); // this can short circuit UpdateInternal
 	virtual void UpdateInternal(float fDeltaTime); // override this
@@ -714,7 +713,6 @@ class Actor : public MessageSubscriber
 	void SetShadowLengthY(float fLengthY) { m_fShadowLengthY = fLengthY; }
 	void SetShadowColor(const RageColor& c) { m_ShadowColor = c; }
 	// TODO: Implement hibernate as a tween type?
-	void SetHibernate(float fSecs) { m_fHibernateSecondsLeft = fSecs; }
 	void SetDrawOrder(int iOrder) { m_iDrawOrder = iOrder; }
 	int GetDrawOrder() const { return m_iDrawOrder; }
 
@@ -847,8 +845,6 @@ class Actor : public MessageSubscriber
 	/** @brief Temporary variables that are filled just before drawing */
 	TweenState* m_pTempState;
 
-	bool m_bFirstUpdate;
-
 	// Stuff for alignment
 	/** @brief The particular horizontal alignment.
 	 *
@@ -894,7 +890,6 @@ class Actor : public MessageSubscriber
 	// other properties
 	bool m_bVisible;
 	bool m_bIsAnimating;
-	float m_fHibernateSecondsLeft;
 	float m_fShadowLengthX;
 	float m_fShadowLengthY;
 	RageColor m_ShadowColor;

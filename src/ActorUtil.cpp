@@ -303,16 +303,7 @@ ActorUtil::MakeActor(const RString& sPath_, Actor* pParentActor)
 			return pRet;
 		}
 		case FT_Xml: {
-			// Legacy actors; only supported in quirks mode
-			if (!PREFSMAN->m_bQuirksMode)
-				return new Actor;
-
-			XNode xml;
-			if (!XmlFileUtil::LoadFromFileShowErrors(xml, sPath))
-				return new Actor;
-			XmlFileUtil::CompileXNodeTree(&xml, sPath);
-			XmlFileUtil::AnnotateXNodeTree(&xml, sPath);
-			return LoadFromNode(&xml, pParentActor);
+			return new Actor;
 		}
 		case FT_Directory: {
 			if (sPath.Right(1) != "/")
@@ -337,34 +328,25 @@ ActorUtil::MakeActor(const RString& sPath_, Actor* pParentActor)
 			return ActorUtil::LoadFromNode(&xml, pParentActor);
 		}
 		case FT_Sprite: {
-			// Legacy actor; only supported in quirks mode
-			if (!PREFSMAN->m_bQuirksMode)
-				return new Actor;
+			return new Actor;
+			case FT_Model: {
+				XNode xml;
+				xml.AppendAttr("Class", "Model");
+				xml.AppendAttr("Meshes", sPath);
+				xml.AppendAttr("Materials", sPath);
+				xml.AppendAttr("Bones", sPath);
 
-			IniFile ini;
-			ini.ReadFile(sPath);
-			XmlFileUtil::AnnotateXNodeTree(&ini, sPath);
+				return ActorUtil::LoadFromNode(&xml, pParentActor);
+			}
+			default: {
+				LOG->Warn("File \"%s\" has unknown type, \"%s\".",
+						  sPath.c_str(),
+						  FileTypeToString(ft).c_str());
 
-			return ActorUtil::LoadFromNode(ini.GetChild("Sprite"),
-										   pParentActor);
-		}
-		case FT_Model: {
-			XNode xml;
-			xml.AppendAttr("Class", "Model");
-			xml.AppendAttr("Meshes", sPath);
-			xml.AppendAttr("Materials", sPath);
-			xml.AppendAttr("Bones", sPath);
-
-			return ActorUtil::LoadFromNode(&xml, pParentActor);
-		}
-		default: {
-			LOG->Warn("File \"%s\" has unknown type, \"%s\".",
-					  sPath.c_str(),
-					  FileTypeToString(ft).c_str());
-
-			XNode xml;
-			xml.AppendAttr("Class", "Actor");
-			return ActorUtil::LoadFromNode(&xml, pParentActor);
+				XNode xml;
+				xml.AppendAttr("Class", "Actor");
+				return ActorUtil::LoadFromNode(&xml, pParentActor);
+			}
 		}
 	}
 }

@@ -64,7 +64,7 @@ class Style
 	};
 
 	/** @brief Map each players' colun to a track in the NoteData. */
-	ColumnInfo m_ColumnInfo[NUM_PLAYERS][MAX_COLS_PER_PLAYER];
+	ColumnInfo m_ColumnInfo[MAX_COLS_PER_PLAYER];
 
 	/* This maps from game inputs to columns. More than one button may map to a
 	 * single column. */
@@ -82,15 +82,9 @@ class Style
 	// fixed zoom that is only applied to the columns, ScreenGameplay now
 	// calculates a zoom factor to apply to the notefield and puts it in the
 	// PlayerState. -Kyz
-	// bool		m_bNeedsZoomOutWith2Players;
-	/** @brief Can this style use the BeginnerHelper for assisting new people to
-	 * the game? */
-	bool m_bCanUseBeginnerHelper;
-	/**
-	 * @brief Should difficulty selection be locked when using this style?
-	 *
-	 * This is primarily for Couple and Routine styles. */
-	bool m_bLockDifficulties;
+	//bool		m_bNeedsZoomOutWith2Players;
+	/** @brief Can this style use the BeginnerHelper for assisting new people to the game? */
+	bool		m_bLockDifficulties;
 
 	void StyleInputToGameInput(int iCol,
 							   PlayerNumber pn,
