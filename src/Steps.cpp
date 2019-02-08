@@ -413,7 +413,8 @@ Steps::CalcEtternaMetadata()
 	// set first and last second for this steps object
 	if (!etaner.empty()) {
 		firstsecond = etaner.front();
-		lastsecond = etaner.back();
+		lastsecond =
+		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
 	}
 
 	m_pNoteData->UnsetNerv();
