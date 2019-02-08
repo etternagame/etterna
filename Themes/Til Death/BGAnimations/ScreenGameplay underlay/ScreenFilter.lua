@@ -139,8 +139,7 @@ local t =
 		if (allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
-	end,
-	laneHighlight()
+	end
 }
 
 if numPlayers == 1 then
@@ -180,6 +179,7 @@ if numPlayers == 1 then
 			self:zoomto(filterWidth * getNoteFieldScale(player) * noteFieldWidth, SCREEN_HEIGHT)
 		end
 	}
+	t[#t+1] = laneHighlight()
 else
 	-- two players... a bit more complex.
 	if styleType == "TwoPlayersSharedSides" then
