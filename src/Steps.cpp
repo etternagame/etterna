@@ -400,11 +400,6 @@ Steps::CalcEtternaMetadata()
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
-	// need to figure out a better place to put this as it is fairly slow
-	for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i)
-		SONGMAN->keyconversionmap.emplace(
-		  GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
-
 	// replace the old sm notedata string with the new ett notedata string
 	// compressed format for internal use
 	/*	Not yet though
