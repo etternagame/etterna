@@ -1,4 +1,4 @@
-﻿#ifndef PLAYER_OPTIONS_H
+#ifndef PLAYER_OPTIONS_H
 #define PLAYER_OPTIONS_H
 
 class Song;
@@ -250,6 +250,7 @@ class PlayerOptions
 	bool m_bTurns[NUM_TURNS];
 	bool m_bTransforms[NUM_TRANSFORMS];
 	bool m_bMuteOnError{ false };
+	bool m_bPractice{ false };
 	/** @brief The method for which a player can fail a song. */
 	FailType m_FailType{ FailType_Immediate };
 	TapNoteScore m_MinTNSToHideNotes;

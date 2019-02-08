@@ -1,4 +1,4 @@
-﻿#ifndef MUSIC_WHEEL_ITEM_H
+#ifndef MUSIC_WHEEL_ITEM_H
 #define MUSIC_WHEEL_ITEM_H
 
 #include "ActorFrame.h"
@@ -8,7 +8,6 @@
 #include "TextBanner.h"
 #include "ThemeMetric.h"
 #include "WheelItemBase.h"
-#include "WheelNotifyIcon.h"
 
 class Song;
 
@@ -47,8 +46,6 @@ class MusicWheelItem : public WheelItemBase
 	void RefreshGrades();
 
   private:
-	ThemeMetric<bool> GRADES_SHOW_MACHINE;
-
 	AutoActor m_sprColorPart[NUM_MusicWheelItemType];
 	AutoActor m_sprNormalPart[NUM_MusicWheelItemType];
 	AutoActor m_sprOverPart[NUM_MusicWheelItemType];
@@ -56,16 +53,13 @@ class MusicWheelItem : public WheelItemBase
 	TextBanner m_TextBanner; // used by Type_Song instead of m_pText
 	BitmapText* m_pText[NUM_MusicWheelItemType];
 	BitmapText* m_pTextSectionCount;
-
-	WheelNotifyIcon m_WheelNotifyIcon;
-	AutoActor m_pGradeDisplay[NUM_PLAYERS];
+	AutoActor m_pGradeDisplay;
 };
 
 struct MusicWheelItemData : public WheelItemBaseData
 {
 	MusicWheelItemData()
 	  : m_pSong(NULL)
-	  , m_Flags()
 	  , m_sLabel("")
 	  , m_pAction()
 	{
@@ -77,7 +71,6 @@ struct MusicWheelItemData : public WheelItemBaseData
 					   int iSectionCount);
 
 	Song* m_pSong;
-	WheelNotifyIcon::Flags m_Flags;
 
 	// for TYPE_SECTION
 	int m_iSectionCount{ 0 };

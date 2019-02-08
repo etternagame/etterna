@@ -123,12 +123,12 @@ StepsDisplay::Load(const RString& sMetricsGroup,
 void
 StepsDisplay::SetFromGameState(PlayerNumber pn)
 {
-	const Steps* pSteps = GAMESTATE->m_pCurSteps[pn];
+	const Steps* pSteps = GAMESTATE->m_pCurSteps;
 	if (pSteps != nullptr)
 		SetFromSteps(pSteps);
 	else
 		SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
-		  StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty[pn]);
+		  StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty);
 }
 
 void
@@ -267,7 +267,7 @@ class LunaStepsDisplay : public Luna<StepsDisplay>
 	}
 	static int SetFromGameState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		p->SetFromGameState(pn);
 		COMMON_RETURN_SELF;
 	}

@@ -450,7 +450,9 @@ r[#r + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 120):halign(0):zoom(0.6)
+			self:xy(20, 200)
+			self:zoom(0.7)
+			self:halign(0)
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then

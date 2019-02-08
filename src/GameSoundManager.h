@@ -6,6 +6,7 @@
 class TimingData;
 class RageSound;
 struct lua_State;
+struct MusicToPlay;
 
 int
 MusicThread_start(void* p);
@@ -68,6 +69,15 @@ class GameSoundManager
 	static float GetPlayerBalance(PlayerNumber pn);
 	RageSound* GetRageSoundPlaying();
 	TimingData GetPlayingMusicTiming();
+	
+	void StartMusic(MusicToPlay& ToPlay);
+	void DoPlayOnce(RString sPath);
+	void StartQueuedSounds();
+	void DoPlayOnceFromDir(RString sPath);
+	bool SoundWaiting();
+		
+	LuaReference soundPlayCallback;
+	unsigned int recentPCMSamplesBufferSize = 1024;
 
 	// Lua
 	void PushSelf(lua_State* L);

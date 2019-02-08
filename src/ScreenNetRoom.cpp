@@ -100,8 +100,8 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomDesc = ScreenTextEntry::s_sLastAnswer;
-			ScreenTextEntry::TextEntry(
-			  SM_BackFromRoomPass, ENTER_ROOM_PASSWORD, "", 255);
+			ScreenTextEntry::Password(
+			  SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
 		}
 	} else if (SM == SM_BackFromRoomPass) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
@@ -145,8 +145,8 @@ ScreenNetRoom::SelectCurrent()
 	if (rwd != nullptr) {
 		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword) {
 			m_sLastPickedRoom = rwd->m_sText;
-			ScreenTextEntry::TextEntry(
-			  SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD, "", 255);
+			ScreenTextEntry::Password(
+			  SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD);
 		} else {
 			NSMAN->EnterRoom(rwd->m_sText);
 		}

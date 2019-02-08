@@ -30,7 +30,6 @@ MemoryCardDisplay
 MeterDisplay
 Model
 ModIconRow
-PaneDisplay
 PercentageDisplay
 Quad
 RollingNumbers

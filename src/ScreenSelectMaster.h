@@ -110,20 +110,20 @@ class ScreenSelectMaster : public ScreenSelect
 	vector<AutoActor> m_vsprIcon;
 
 	// preview is per-player, per-choice piece
-	vector<AutoActor> m_vsprScroll[NUM_PLAYERS];
+	vector<AutoActor> m_vsprScroll;
 
-	ActorScroller m_Scroller[NUM_PLAYERS];
+	ActorScroller m_Scroller;
 
 	// cursor is the per-player, shared by all choices
-	AutoActor m_sprCursor[NUM_PLAYERS];
+	AutoActor m_sprCursor;
 
 	RageSound m_soundChange;
 	RandomSample m_soundDifficult;
 	RageSound m_soundStart;
 
-	int m_iChoice[NUM_PLAYERS];
-	bool m_bChosen[NUM_PLAYERS];
-	bool m_bDoubleChoice[NUM_PLAYERS];
+	int m_iChoice;
+	bool m_bChosen;
+	bool m_bDoubleChoice;
 	bool m_bDoubleChoiceNoSound;
 
 	GameButton m_TrackingRepeatingInput;

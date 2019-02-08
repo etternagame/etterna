@@ -64,7 +64,7 @@ class StageStats
 	// Total number of seconds between first beat and last beat for every song.
 	float GetTotalPossibleStepsSeconds() const;
 
-	PlayerStageStats m_player[NUM_PLAYERS];
+	PlayerStageStats m_player;
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
 	void FinalizeScores(bool bSummary);

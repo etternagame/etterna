@@ -18,7 +18,7 @@ class ArchHooks
 	/* This is called as soon as the loading window is shown, and we can
 	 * safely log. */
 	virtual void DumpDebugInfo() {}
-
+	virtual void sShowCursor(bool set) {}
 	/**
 	 * @brief Re-exec the game.
 	 *

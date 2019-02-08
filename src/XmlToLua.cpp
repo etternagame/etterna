@@ -256,7 +256,6 @@ init_parser_helpers()
 	chunks_to_replace["hidden(1)"] = "visible(false)";
 	chunks_to_replace["effectdelay"] = "effect_hold_at_full";
 	chunks_to_replace["IsPlayerEnabled(0)"] = "IsPlayerEnabled(PLAYER_1)";
-	chunks_to_replace["IsPlayerEnabled(1)"] = "IsPlayerEnabled(PLAYER_2)";
 }
 
 void

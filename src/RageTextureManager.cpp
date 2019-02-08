@@ -31,11 +31,12 @@
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
+#include "ScoreManager.h"
 
 #include <map>
 
 RageTextureManager* TEXTUREMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 namespace {
 map<RageTextureID, RageTexture*> m_mapPathToTexture;
@@ -72,9 +73,8 @@ RageTextureManager::Update(float fDeltaTime)
 		}
 	}
 
-	FOREACHM(RageTextureID, RageTexture*, m_textures_to_update, i)
-	{
-		RageTexture* pTexture = i->second;
+	for (auto& id : m_textures_to_update) {
+		RageTexture* pTexture = id.second;
 		pTexture->Update(fDeltaTime);
 	}
 }
@@ -106,9 +106,7 @@ RageTextureManager::RegisterTexture(RageTextureID ID, RageTexture* pTexture)
 
 	/* Make sure we don't already have a texture with this ID.  If we do, the
 	 * caller should have used it. */
-	std::map<RageTextureID, RageTexture*>::iterator p =
-	  m_mapPathToTexture.find(ID);
-	if (p != m_mapPathToTexture.end()) {
+	if (m_mapPathToTexture.count(ID) == 1) {
 		/* Oops, found the texture. */
 		RageException::Throw("Custom texture \"%s\" already registered!",
 							 ID.filename.c_str());
@@ -232,7 +230,7 @@ RageTextureManager::VolatileTexture(const RageTextureID& ID)
 void
 RageTextureManager::UnloadTexture(RageTexture* t)
 {
-	if (t == NULL)
+	if (t == nullptr)
 		return;
 
 	t->m_iRefCount--;
@@ -362,9 +360,8 @@ RageTextureManager::ReloadAll()
 	 * ton of cached data that we're not necessarily going to use. */
 	DoDelayedDelete();
 
-	FOREACHM(RageTextureID, RageTexture*, m_mapPathToTexture, i)
-	{
-		i->second->Reload();
+	for (auto ID : m_mapPathToTexture) {
+		ID.second->Reload();
 	}
 
 	EnableOddDimensionWarning();

@@ -52,6 +52,8 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
 	{ "roomlist", ettps_roomlist },
+	{ "lobbyuserlist", ettps_lobbyuserlist },
+	{ "lobbyuserlistupdate", ettps_lobbyuserlistupdate },
 	{ "ping", ettps_ping },
 	{ "chat", ettps_recievechat },
 	{ "login", ettps_loginresponse },
@@ -211,7 +213,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
-AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
 
 AutoScreenMessage(ETTP_Disconnect);
@@ -220,7 +221,6 @@ AutoScreenMessage(ETTP_IncomingChat);
 AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
-AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
@@ -262,6 +262,12 @@ NetworkSyncManager::OnMusicSelect()
 	if (curProtocol != nullptr)
 		curProtocol->OnMusicSelect();
 }
+void
+ETTProtocol::OnMusicSelect()
+{
+	state = 0;
+}
+
 void
 NetworkSyncManager::OffMusicSelect()
 {
@@ -505,10 +511,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-			if (logPackets) {
-				LOG->Trace("Incoming ETTP:");
-				LOG->Trace(json.dump(4).c_str());
-			}
 		} catch (exception e) {
 			LOG->Trace(
 			  "Error while processing ettprotocol json: %s (message: %s)",
@@ -622,15 +624,16 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 				 n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
 				(n->m_sFileHash.empty() ||
 				 n->m_sFileHash == m_cSong->GetFileHash())) {
-				for (auto& steps : m_cSong->GetAllSteps()) {
-					if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
-						(n->difficulty == Difficulty_Invalid ||
-						 n->difficulty == steps->GetDifficulty())) {
-						n->song = m_cSong;
-						n->steps = steps;
-						break;
+				if (n->meter> 0 || n->difficulty != Difficulty_Invalid)
+					for (auto& steps : m_cSong->GetAllSteps()) {
+						if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+							(n->difficulty == Difficulty_Invalid ||
+							 n->difficulty == steps->GetDifficulty())) {
+							n->song = m_cSong;
+							n->steps = steps;
+							break;
+						}
 					}
-				}
 				if (n->song != nullptr)
 					break;
 				n->song = m_cSong;
@@ -649,7 +652,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh->poll();
 	if (this->ws == nullptr) {
-		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
+		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -696,7 +699,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					if (ws != nullptr) {
 						json hello;
 						hello["type"] = ettClientMessageMap[ettpc_hello];
-						hello["payload"]["version"] = ETTPCVERSION;
+						auto& payload = hello["payload"];
+						payload["version"] = ETTPCVERSION;
+						payload["client"] = GAMESTATE->GetEtternaVersion();
+						payload["packs"] = json::array();
+						auto& packs = SONGMAN->GetSongGroupNames();
+						for(auto& pack : packs)
+							payload["packs"].push_back(pack.c_str());
 						Send(hello);
 					}
 					break;
@@ -748,8 +757,10 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						json& replay = score["replay"];
 						json& jOffsets = replay["offsets"];
 						json& jNoterows = replay["noterows"];
+						json& jTracks = replay["tracks"];
 						vector<float> offsets;
 						vector<int> noterows;
+						vector<int> tracks;
 						for (json::iterator offsetIt = jOffsets.begin();
 							 offsetIt != jOffsets.end();
 							 ++offsetIt)
@@ -758,8 +769,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							 noterowIt != jNoterows.end();
 							 ++noterowIt)
 							noterows.emplace_back(noterowIt->get<int>());
+						for (json::iterator trackIt = jTracks.begin();
+							 trackIt != jTracks.end();
+							 ++trackIt)
+							noterows.emplace_back(trackIt->get<int>());
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
+						hs.SetTrackVector(tracks);
 					} catch (exception e) {
 					} // No replay data for this score, its still valid
 					result.nameStr = (*payload)["name"].get<string>();
@@ -767,7 +783,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					result.playerOptions = payload->value("options", "");
 					n->m_EvalPlayerData.emplace_back(result);
 					n->m_ActivePlayers = n->m_EvalPlayerData.size();
-					SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
+					MESSAGEMAN->Broadcast("NewMultiScore");
 					break;
 				}
 				case ettps_ping:
@@ -821,17 +837,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_mpleaderboardupdate: {
-					auto& scores = (*payload)["scores"];
-					for (json::iterator it = scores.begin(); it != scores.end();
-						 ++it) {
-						float wife = (*it)["wife"];
-						RString jdgstr = (*it)["jdgstr"];
-						string user = (*it)["user"].get<string>();
-						n->mpleaderboard[user].wife = wife;
-						n->mpleaderboard[user].jdgstr = jdgstr;
+					if (PREFSMAN->m_bEnableScoreboard) {
+						auto& scores = (*payload)["scores"];
+						for (json::iterator it = scores.begin();
+							 it != scores.end();
+							 ++it) {
+							float wife = (*it)["wife"];
+							RString jdgstr = (*it)["jdgstr"];
+							string user = (*it)["user"].get<string>();
+							n->mpleaderboard[user].wife = wife;
+							n->mpleaderboard[user].jdgstr = jdgstr;
+						}
+						Message msg("MPLeaderboardUpdate");
+						MESSAGEMAN->Broadcast(msg);
 					}
-					Message msg("MPLeaderboardUpdate");
-					MESSAGEMAN->Broadcast(msg);
 				} break;
 				case ettps_createroomresponse: {
 					bool created = (*payload)["created"];
@@ -925,6 +944,29 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  e.what());
 					}
 					break;
+				case ettps_lobbyuserlist: {
+					NSMAN->lobbyuserlist.clear();
+					auto users = payload->at("users");
+					for (auto& user : users) {
+						NSMAN->lobbyuserlist.insert(user.get<string>());
+					}
+				} break;
+				case ettps_lobbyuserlistupdate: {
+					auto& vec = NSMAN->lobbyuserlist;
+					if (payload->find("on") != payload->end()) {
+						auto newUsers = payload->at("on");
+						for (auto& user : newUsers) {
+							NSMAN->lobbyuserlist.insert(user.get<string>());
+						}
+					}
+					if (payload->find("off") != payload->end()) {
+						auto removedUsers = payload->at("off");
+						for (auto& user : removedUsers) {
+							NSMAN->lobbyuserlist.erase(user.get<string>());
+						}
+					}
+					MESSAGEMAN->Broadcast("UsersUpdate");
+				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
 					n->m_Rooms.clear();
@@ -969,7 +1011,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 			}
 		} catch (exception e) {
@@ -1153,22 +1195,17 @@ NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 void
 ETTProtocol::Send(json msg)
 {
-	Send(msg.dump().c_str());
+	try {
+		Send(msg.dump().c_str());
+	} catch (exception e) {
+		SCREENMAN->SystemMessage("Error: Chart contains invalid utf8");
+	}
 }
 void
 ETTProtocol::Send(const char* msg)
 {
 	if (ws != nullptr)
 		ws->send(msg);
-	if (logPackets) {
-		LOG->Trace("Outgoing ETTP:");
-		try {
-			auto j = nlohmann::json::parse(msg);
-			LOG->Trace(j.dump(4).c_str());
-		} catch (exception e) {
-			LOG->Trace(msg);
-		}
-	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
@@ -1199,8 +1236,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["ng"] = hs->GetHoldNoteScore(HNS_Missed);
 	payload["chartkey"] = hs->GetChartKey();
 	payload["rate"] = hs->GetMusicRate();
-	if (GAMESTATE->m_pPlayerState[PLAYER_1] != nullptr)
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState != nullptr)
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1211,16 +1248,20 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["topscore"] = hs->GetTopScore();
 	payload["uuid"] = hs->GetMachineGuid();
 	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
-	auto offsets = pss.GetOffsetVector();
-	auto noterows = pss.GetNoteRowVector();
+	const auto& offsets = pss.GetOffsetVector();
+	const auto& noterows = pss.GetNoteRowVector();
+	const auto& tracks = pss.GetTrackVector();
 	if (offsets.size() > 0) {
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
 		payload["replay"]["offsets"] = json::array();
+		payload["replay"]["tracks"] = json::array();
 		for (size_t i = 0; i < noterows.size(); i++)
 			payload["replay"]["noterows"].push_back(noterows[i]);
 		for (size_t i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
+		for (size_t i = 0; i < tracks.size(); i++)
+			payload["replay"]["tracks"].push_back(tracks[i]);
 	}
 	Send(j);
 }
@@ -1337,54 +1378,33 @@ NetworkSyncManager::SelectUserSong()
 void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	if (ws == nullptr || song == nullptr)
+	auto curSteps =  GAMESTATE->m_pCurSteps;
+	if (ws == nullptr || song == nullptr ||
+		curSteps == nullptr ||
+		GAMESTATE->m_pPlayerState == nullptr)
 		return;
+	json j;
 	if (song == n->song) {
-		if (GAMESTATE->m_pCurSong == nullptr ||
-			GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr ||
-			GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
-			return;
-		json startChart;
-		startChart["type"] = ettClientMessageMap[ettpc_startchart];
-		auto& payload = startChart["payload"];
-		payload["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
-		payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
-		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
-		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		startChart["id"] = msgId++;
-		Send(startChart);
+		j["type"] = ettClientMessageMap[ettpc_startchart];
 	} else {
-		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
-			return;
-		json selectChart;
-		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
-		auto& payload = selectChart["payload"];
-		payload["title"] = n->m_sMainTitle.c_str();
-		payload["subtitle"] = n->m_sSubTitle.c_str();
-		payload["artist"] = n->m_sArtist.c_str();
-		payload["filehash"] = song->GetFileHash().c_str();
-		payload["chartkey"] =
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey().c_str();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		selectChart["id"] = msgId++;
-		Send(selectChart);
+		j["type"] = ettClientMessageMap[ettpc_selectchart];
 	}
+	auto& payload = j["payload"];
+	payload["title"] = song->m_sMainTitle;
+	payload["subtitle"] = song->m_sSubTitle;
+	payload["artist"] = song->m_sArtist;
+	payload["filehash"] = song->GetFileHash().c_str();
+	payload["pack"] = song->m_sGroupName.c_str();
+	payload["chartkey"] = curSteps->GetChartKey().c_str();
+	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
+	payload["meter"] = curSteps->GetMeter();
+	payload["options"] = GAMESTATE->m_pPlayerState
+		->m_PlayerOptions.GetCurrent()
+		.GetString();
+	payload["rate"] = static_cast<int>(
+		(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	j["id"] = msgId++;
+	Send(j);
 }
 
 void
@@ -1688,6 +1708,7 @@ void
 NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 {
 	lua_newtable(L);
+	int i = 1;
 	for (auto& pair : mpleaderboard) {
 		lua_newtable(L);
 		lua_pushnumber(L, pair.second.wife);
@@ -1696,7 +1717,8 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 		lua_setfield(L, -2, "jdgstr");
 		lua_pushstring(L, pair.first.c_str());
 		lua_setfield(L, -2, "user");
-		lua_setfield(L, -2, pair.first.c_str());
+		lua_rawseti(L, -2, i);
+		i++;
 	}
 	return;
 }
@@ -1802,8 +1824,37 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		p->Login(user, pass);
 		return 1;
 	}
+	static int GetEvalScores(T* p, lua_State* L)
+	{
+		int i = 1;
+		lua_newtable(L);
+		for (auto& evalData : NSMAN->m_EvalPlayerData) {
+			lua_newtable(L);
+			lua_pushstring(L, evalData.nameStr.c_str());
+			lua_setfield(L, -2, "user");
+			evalData.hs.PushSelf(L);
+			lua_setfield(L, -2, "highscore");
+			lua_pushstring(L, evalData.playerOptions.c_str());
+			lua_setfield(L, -2, "options");
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
+	static int GetLobbyUserList(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		int i = 1;
+		for (auto& user : NSMAN->lobbyuserlist) {
+			lua_pushstring(L, user.c_str());
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 1;
+	}
 	LunaNetworkSyncManager()
 	{
+		ADD_METHOD(GetEvalScores);
 		ADD_METHOD(GetMPLeaderboard);
 		ADD_METHOD(GetChartRequests);
 		ADD_METHOD(GetChatMsg);
@@ -1812,6 +1863,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		ADD_METHOD(Logout);
 		ADD_METHOD(IsETTP);
 		ADD_METHOD(GetCurrentRoomName);
+		ADD_METHOD(GetLobbyUserList);
 	}
 };
 
@@ -1835,6 +1887,7 @@ class LunaChartRequest : public Luna<ChartRequest>
 		lua_pushnumber(L, p->rate / 1000);
 		return 1;
 	}
+
 	LunaChartRequest()
 	{
 		ADD_METHOD(GetChartkey);

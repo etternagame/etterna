@@ -212,10 +212,10 @@ class ScoreManager
 
 	void PurgeProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-
+	void UnloadAllReplayData() { for (auto& s: AllScores) s->UnloadReplayData(); }
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
-
+	vector<HighScore*> scorestorecalc;
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>
 	  pscores; // Profile scores

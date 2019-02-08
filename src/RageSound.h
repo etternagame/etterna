@@ -6,6 +6,7 @@
 #include "RageSoundPosMap.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
+#include "LuaReference.h"
 
 class RageSoundReader;
 struct lua_State;
@@ -157,6 +158,11 @@ class RageSound : public RageSoundBase
 	bool SetProperty(const RString& sProperty, float fValue);
 	void SetStopModeFromString(const RString& sStopMode);
 	void SetPositionSeconds(float fGiven);
+
+	unsigned int recentPCMSamplesBufferSize = 1024;
+	LuaReference soundPlayCallback;
+	vector<float> recentPCMSamples;
+	void SetPlayBackCallback(LuaReference f, unsigned int bufSize = 1024);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);

@@ -1934,10 +1934,7 @@ NoteColumnRenderer::DrawPrimitives()
 		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func)                                       \
-	FOREACH_PlayerNumber(pn)                                                   \
-	{                                                                          \
-		DTS_INNER(pn, tap_set, draw_func, m_displays[pn]);                     \
-	}
+		DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
 	DRAW_TAP_SET(holds, DrawHoldsInRange);
 	DTS_INNER(
 	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);

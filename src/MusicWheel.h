@@ -94,9 +94,6 @@ class MusicWheel : public WheelBase
 	ThemeMetric<int> NUM_SECTION_COLORS;
 	ThemeMetric<RageColor> SONG_REAL_EXTRA_COLOR;
 	ThemeMetric<RageColor> SORT_MENU_COLOR;
-	ThemeMetric<bool> SHOW_ROULETTE;
-	ThemeMetric<bool> SHOW_RANDOM;
-	ThemeMetric<bool> SHOW_PORTAL;
 	ThemeMetric<bool> RANDOM_PICKS_LOCKED_SONGS;
 	ThemeMetric<int> MOST_PLAYED_SONGS_TO_SHOW;
 	ThemeMetric<int> RECENT_SONGS_TO_SHOW;

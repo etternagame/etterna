@@ -72,7 +72,7 @@ local function updateLeaderBoardForCurrentChart()
 				DLMAN:RequestChartLeaderBoardFromOnline(
 					steps:GetChartKey(),
 					function(leaderboard)
-						moped:playcommand("SetFromLeaderboard", leaderboard)
+						moped:queuecommand("SetFromLeaderboard", leaderboard)
 					end
 				)
 			else
@@ -154,8 +154,25 @@ local ret =
 	PlayingSampleMusicMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if not leaderboardEnabled then -- this is taken care of by default.lua instead.
-			updateLeaderBoardForCurrentChart()
+		if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+			if SCREENMAN:GetTopScreen():GetMusicWheel():IsSettled() then
+				if leaderboardEnabled then
+				DLMAN:RequestChartLeaderBoardFromOnline(
+					chartkey,
+					function(leaderboard)
+						moped:playcommand("SetFromLeaderboard", leaderboard)
+					end
+				)	-- this is also intentionally super bad so we actually do something about it -mina
+				elseif (SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic") and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+					DLMAN:RequestChartLeaderBoardFromOnline(
+					chartkey,
+					function(leaderboard)
+						moped:playcommand("SetFromLeaderboard", leaderboard)
+					end
+				)
+				end
+			end
 		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
@@ -166,31 +183,31 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	CodeMessageCommand = function(self, params)		-- this is intentionally bad to remind me to fix other things that are bad -mina
+	CodeMessageCommand = function(self, params) -- this is intentionally bad to remind me to fix other things that are bad -mina
 		if ((getTabIndex() == 2 and nestedTab == 2) and not collapsed) and DLMAN:GetCurrentRateFilter() then
 			local rate = getCurRateValue()
-				if params.Name == "PrevScore" and rate < 2.95 then
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
-					MESSAGEMAN:Broadcast("CurrentRateChanged")
-				elseif params.Name == "NextScore" and rate > 0.75 then
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
-					MESSAGEMAN:Broadcast("CurrentRateChanged")
-				end
-				if params.Name == "PrevRate" and rate < 3 then
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
-					MESSAGEMAN:Broadcast("CurrentRateChanged")
-				elseif params.Name == "NextRate" and rate > 0.7 then
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
-					GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
-					MESSAGEMAN:Broadcast("CurrentRateChanged")
-				end
+			if params.Name == "PrevScore" and rate < 2.95 then
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
+				MESSAGEMAN:Broadcast("CurrentRateChanged")
+			elseif params.Name == "NextScore" and rate > 0.75 then
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
+				MESSAGEMAN:Broadcast("CurrentRateChanged")
+			end
+			if params.Name == "PrevRate" and rate < 3 then
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
+				MESSAGEMAN:Broadcast("CurrentRateChanged")
+			elseif params.Name == "NextRate" and rate > 0.7 then
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
+				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
+				MESSAGEMAN:Broadcast("CurrentRateChanged")
+			end
 		end
 	end,
 	CurrentRateChangedMessageCommand = function(self)
@@ -228,6 +245,7 @@ local t =
 	InitCommand = function(self)
 		rtTable = nil
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.025)
 		cheese = self
 	end,
 	BeginCommand = function(self)
@@ -348,48 +366,45 @@ local l =
 			end
 		},
 	LoadFont("Common Normal") ..
-	{
-		Name = "Score",
-		InitCommand = function(self)
-			self:xy(55, 30):zoom(0.6):halign(0):settext("")
-		end,
-		DisplayCommand = function(self)
-			if score:GetWifeScore() == 0 then
-				self:settext("")
-			else
-				local overall = score:GetSkillsetSSR("Overall")
-				self:settextf("%.2f", overall):diffuse(byMSD(overall)) 
+		{
+			Name = "Score",
+			InitCommand = function(self)
+				self:xy(55, 30):zoom(0.6):halign(0):settext("")
+			end,
+			DisplayCommand = function(self)
+				if score:GetWifeScore() == 0 then
+					self:settext("")
+				else
+					local overall = score:GetSkillsetSSR("Overall")
+					self:settextf("%.2f", overall):diffuse(byMSD(overall))
+				end
 			end
-		end
-	},
+		},
 	LoadFont("Common Normal") ..
-	{
-		Name = "Score",
-		InitCommand = function(self)
-			self:xy(55, 43):zoom(0.5):halign(0):settext("")
-		end,
-		DisplayCommand = function(self)
-			if score:GetWifeScore() == 0 then
-				self:settext("")
-			else
-				self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+		{
+			Name = "Score",
+			InitCommand = function(self)
+				self:xy(55, 43):zoom(0.5):halign(0):settext("")
+			end,
+			DisplayCommand = function(self)
+				if score:GetWifeScore() == 0 then
+					self:settext("")
+				else
+					self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+				end
 			end
-		end
-	},
-
+		},
 	LoadFont("Common Normal") ..
-	{
-		Name = "ClearType",
-		InitCommand = function(self)
-			self:y(43):zoom(0.5):halign(0):settext("No Play"):diffuse(
-				color(colorConfig:get_data().clearType["NoPlay"])
-			)
-		end,
-		DisplayCommand = function(self)
-			self:settext(getClearTypeFromScore(pn, score, 0))
-			self:diffuse(getClearTypeFromScore(pn, score, 2))
-		end
-	},
+		{
+			Name = "ClearType",
+			InitCommand = function(self)
+				self:y(43):zoom(0.5):halign(0):settext("No Play"):diffuse(color(colorConfig:get_data().clearType["NoPlay"]))
+			end,
+			DisplayCommand = function(self)
+				self:settext(getClearTypeFromScore(pn, score, 0))
+				self:diffuse(getClearTypeFromScore(pn, score, 2))
+			end
+		},
 	LoadFont("Common Normal") ..
 		{
 			Name = "Combo",
@@ -609,6 +624,11 @@ l[#l + 1] =
 		InitCommand = function(self)
 			self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):settext("")
 		end,
+		BeginCommand = function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+				self:x(-10):zoom(0.0000001):maxwidth(1)
+			end
+		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
 				self:settext("View Replay")
@@ -702,6 +722,7 @@ function nestedTabButton(i)
 		InitCommand = function(self)
 			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100, 80)), frameY + offsetY - 2)
 			self:SetUpdateFunction(highlight)
+			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CollapseCommand = function(self)
 			self:visible(false)

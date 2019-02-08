@@ -24,8 +24,13 @@
 #include "RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
+#include "ScreenManager.h"
+#include "Screen.h"
 #include "RageSoundUtil.h"
+#include "LuaReference.h"
 #include "RageUtil.h"
+
+#include <iterator>
 
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"
@@ -35,6 +40,7 @@
 #include "RageSoundReader_Preload.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_ThreadedBuffer.h"
+#include "fftw3.h"
 
 #define samplerate() m_pSource->GetSampleRate()
 
@@ -330,7 +336,46 @@ RageSound::GetDataToPlay(float* pBuffer,
 	}
 	if (m_pSource->GetNumChannels() == 1)
 		RageSoundUtil::ConvertMonoToStereoInPlace(pBuffer, iFramesStored);
+	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet()) {
+		unsigned int currentSamples = recentPCMSamples.size();
+		unsigned int samplesToCopy =
+		  min(iFramesStored * m_pSource->GetNumChannels(),
+			  recentPCMSamplesBufferSize - currentSamples);
+		unsigned int samplesLeft =
+		  recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
+		auto until = pBuffer + samplesToCopy;
+		copy(pBuffer, until, back_inserter(recentPCMSamples));
+		if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
+			fftwf_complex* out;
 
+			auto n = recentPCMSamplesBufferSize;
+			auto nOut = static_cast<int>(n / 2 + 1);
+			out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * nOut);
+			auto plan = fftwf_plan_dft_r2c_1d(
+			  n, recentPCMSamples.data(), out, FFTW_ESTIMATE);
+			fftwf_execute(plan);
+			fftwf_destroy_plan(plan);
+			auto L = LUA->Get();
+			string error;
+			this->soundPlayCallback.PushSelf(L);
+			lua_newtable(L);
+			for (int i = 0; i < nOut; ++i) {
+				auto r = out[i][0];
+				auto im = out[i][1];
+				lua_pushnumber(L, r * r + im * im);
+				lua_rawseti(L, -2, i + 1);
+			}
+			this->PushSelf(L);
+
+			LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
+			if (error != "")	// hack for now because we're bad and didn't deal with clearing this -mina
+				soundPlayCallback.Unset();
+
+			LUA->Release(L);
+			recentPCMSamples.clear();
+			fftwf_free(out);
+		}
+	}
 	return iFramesStored;
 }
 
@@ -691,6 +736,16 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 	}
 }
 
+void
+RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
+{
+	soundPlayCallback = f;
+	recentPCMSamplesBufferSize = max(bufSize, 1024u);
+	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
+}
+
+
+
 // lua start
 #include "LuaBinding.h"
 
@@ -763,6 +818,28 @@ class LunaRageSound : public Luna<RageSound>
 		COMMON_RETURN_SELF;
 	}
 
+	static int SetPlayBackCallback(T* p, lua_State* L)
+	{
+		if (lua_isnumber(L, 2))
+			p->SetPlayBackCallback(GetFuncArg(1, L), IArg(2));
+		else
+			p->SetPlayBackCallback(GetFuncArg(1, L));
+		COMMON_RETURN_SELF;
+	}
+
+	static int ClearPlayBackCallback(T* p, lua_State* L)
+	{
+		p->soundPlayCallback.Unset();
+		COMMON_RETURN_SELF;
+	}
+
+	static int GetSampleRate(T* p, lua_State* L)
+	{
+		auto s = p->GetSoundReader();
+		lua_pushnumber(L, s != nullptr ? s->GetSampleRate() : 44100);
+		return 1;
+	}
+
 	/*
 	static int SetStopMode( T* p, lua_State *L )
 	{
@@ -773,6 +850,8 @@ class LunaRageSound : public Luna<RageSound>
 
 	LunaRageSound()
 	{
+		ADD_METHOD(GetSampleRate);
+		ADD_METHOD(SetPlayBackCallback);
 		ADD_METHOD(get_length);
 		ADD_METHOD(pitch);
 		ADD_METHOD(speed);

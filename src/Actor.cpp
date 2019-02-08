@@ -117,7 +117,6 @@ Actor::InitState()
 	m_fShadowLengthY = 0;
 	m_ShadowColor = RageColor(0, 0, 0, 0.5f);
 	m_bIsAnimating = true;
-	m_fHibernateSecondsLeft = 0;
 	m_iDrawOrder = 0;
 
 	m_bTextureWrapping = false;
@@ -160,7 +159,6 @@ Actor::Actor()
 	InitState();
 	m_pParent = nullptr;
 	m_FakeParent = nullptr;
-	m_bFirstUpdate = true;
 	m_tween_uses_effect_delta = false;
 }
 
@@ -205,8 +203,6 @@ Actor::Actor(const Actor& cpy)
 	for (unsigned i = 0; i < cpy.m_Tweens.size(); ++i)
 		m_Tweens.push_back(new TweenStateAndInfo(*cpy.m_Tweens[i]));
 
-	CPY(m_bFirstUpdate);
-
 	CPY(m_fHorizAlign);
 	CPY(m_fVertAlign);
 #if defined(SSC_FUTURES)
@@ -232,7 +228,6 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_vEffectMagnitude);
 
 	CPY(m_bVisible);
-	CPY(m_fHibernateSecondsLeft);
 	CPY(m_fShadowLengthX);
 	CPY(m_fShadowLengthY);
 	CPY(m_ShadowColor);
@@ -377,13 +372,12 @@ Actor::IsVisible()
 void
 Actor::Draw()
 {
-	if (!m_bVisible || m_fHibernateSecondsLeft > 0 || this->EarlyAbortDraw()) {
+	if (!m_bVisible || this->EarlyAbortDraw()) {
 		return; // early abort
 	}
 
 	if (m_FakeParent != nullptr) {
 		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->m_fHibernateSecondsLeft > 0 ||
 			m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
@@ -415,7 +409,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible || state->m_fHibernateSecondsLeft > 0 ||
+		if (!state->m_bVisible ||
 			state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
@@ -842,31 +836,14 @@ Actor::UpdateTweening(float fDeltaTime)
 	}
 }
 
-bool
-Actor::IsFirstUpdate() const
-{
-	return m_bFirstUpdate;
-}
-
 void
 Actor::Update(float fDeltaTime)
 {
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
-
-	if (m_fHibernateSecondsLeft > 0) {
-		m_fHibernateSecondsLeft -= fDeltaTime;
-		if (m_fHibernateSecondsLeft > 0) {
-			return;
-		}
-
-		// Grab the leftover time.
-		fDeltaTime = -m_fHibernateSecondsLeft;
-		m_fHibernateSecondsLeft = 0;
-	}
-	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		m_WrapperStates[i]->Update(fDeltaTime);
-	}
+	if (!m_WrapperStates.empty())
+		for (auto* w : m_WrapperStates)
+			w->Update(fDeltaTime);
 
 	this->UpdateInternal(fDeltaTime);
 }
@@ -883,9 +860,6 @@ generic_global_timer_update(float new_time,
 void
 Actor::UpdateInternal(float delta_time)
 {
-	if (m_bFirstUpdate)
-		m_bFirstUpdate = false;
-
 	switch (m_EffectClock) {
 		case CLOCK_TIMER:
 			m_fSecsIntoEffect += delta_time;
@@ -908,11 +882,6 @@ Actor::UpdateInternal(float delta_time)
 			break;
 		case CLOCK_BGM_BEAT_PLAYER1:
 			generic_global_timer_update(g_vfCurrentBGMBeatPlayer[PLAYER_1],
-										m_fEffectDelta,
-										m_fSecsIntoEffect);
-			break;
-		case CLOCK_BGM_BEAT_PLAYER2:
-			generic_global_timer_update(g_vfCurrentBGMBeatPlayer[PLAYER_2],
 										m_fEffectDelta,
 										m_fSecsIntoEffect);
 			break;
@@ -949,30 +918,6 @@ Actor::UpdateInternal(float delta_time)
 		delta_time = m_fEffectDelta;
 	}
 	this->UpdateTweening(delta_time);
-
-	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		delayedF.second -= delta_time;
-		if (delayedF.second <= 0) {
-			delayedF.first();
-		}
-	}
-	// Doing this in place did weird things
-	std::remove_if(
-	  delayedFunctions.begin(),
-	  delayedFunctions.end(),
-	  [](pair<function<void()>, float>& x) { return x.second <= 0; });
-	for (auto it = this->delayedPeriodicFunctions.begin();
-		 it != this->delayedPeriodicFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		std::get<1>(delayedF) -= delta_time;
-		if (std::get<1>(delayedF) <= 0) {
-			std::get<0>(delayedF)();
-			std::get<1>(delayedF) = std::get<2>(delayedF);
-		}
-	}
 }
 
 RString
@@ -1438,9 +1383,6 @@ float
 Actor::GetTweenTimeLeft() const
 {
 	float tot = 0;
-
-	tot += m_fHibernateSecondsLeft;
-
 	for (unsigned i = 0; i < m_Tweens.size(); ++i)
 		tot += m_Tweens[i]->info.m_fTimeLeftInTween;
 
@@ -1689,20 +1631,6 @@ Actor::TweenInfo::operator=(const TweenInfo& rhs)
 	return *this;
 }
 
-void
-Actor::SetTimeout(function<void()> f, float ms)
-{
-	delayedFunctions.emplace_back(make_pair(f, ms));
-	return;
-}
-
-void
-Actor::SetInterval(function<void()> f, float ms, int id)
-{
-	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
-	return;
-}
-
 // lua start
 #include "LuaBinding.h"
 
@@ -1714,60 +1642,6 @@ class LunaActor : public Luna<Actor>
 	{
 		p->SetName(SArg(1));
 		COMMON_RETURN_SELF;
-	}
-	static int setTimeout(T* p, lua_State* L)
-	{
-		auto f = GetFuncArg(1, L);
-		std::function<void()> execF = [f]() {
-			Lua* L = LUA->Get();
-			f.PushSelf(L);
-			if (!lua_isnil(L, -1)) {
-				RString Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
-			}
-			LUA->Release(L);
-		};
-		p->SetTimeout(execF, FArg(2));
-		COMMON_RETURN_SELF;
-	}
-	static int setInterval(T* p, lua_State* L)
-	{
-		lua_pushvalue(L, 1);
-		auto f = luaL_ref(L, LUA_REGISTRYINDEX);
-		std::function<void()> execF = [f]() {
-			Lua* L = LUA->Get();
-			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
-			if (!lua_isnil(L, -1)) {
-				RString Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
-				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
-			}
-			LUA->Release(L);
-		};
-		p->SetInterval(execF, FArg(2), f);
-		lua_pushnumber(L, f);
-		return 1;
-	}
-	static int clearInterval(T* p, lua_State* L)
-	{
-		int r = IArg(1);
-		auto& l = p->delayedPeriodicFunctions;
-		auto it = find_if(l.begin(),
-						  l.end(),
-						  [r](tuple<function<void()>, float, float, int>& x) {
-							  return std::get<3>(x) == r;
-						  });
-		if (it != l.end()) {
-			luaL_unref(L, LUA_REGISTRYINDEX, r);
-			l.erase(it);
-		} else {
-			LuaHelpers::ReportScriptError(
-			  "Interval function not found (When triying to clearInterval() )");
-		}
-		return 0;
 	}
 	static int sleep(T* p, lua_State* L)
 	{
@@ -2479,11 +2353,6 @@ class LunaActor : public Luna<Actor>
 		p->SetVisible(BIArg(1));
 		COMMON_RETURN_SELF;
 	}
-	static int hibernate(T* p, lua_State* L)
-	{
-		p->SetHibernate(FArg(1));
-		COMMON_RETURN_SELF;
-	}
 	static int draworder(T* p, lua_State* L)
 	{
 		p->SetDrawOrder(IArg(1));
@@ -2782,9 +2651,6 @@ class LunaActor : public Luna<Actor>
 	LunaActor()
 	{
 		ADD_METHOD(name);
-		ADD_METHOD(setInterval);
-		ADD_METHOD(setTimeout);
-		ADD_METHOD(name);
 		ADD_METHOD(sleep);
 		ADD_METHOD(linear);
 		ADD_METHOD(accelerate);
@@ -2907,7 +2773,6 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(backfacecull);
 		ADD_METHOD(cullmode);
 		ADD_METHOD(visible);
-		ADD_METHOD(hibernate);
 		ADD_METHOD(draworder);
 		ADD_METHOD(playcommand);
 		ADD_METHOD(queuecommand);

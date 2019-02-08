@@ -13,19 +13,18 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-#define MAX_METERS 12 // kinda restrictive but im also as lazy as sm5 devs -mina
+// reasonable limit to chart amount. if someone consistently crashes when
+// scrolling on a chart that has 25 diffs, THIS IS WHY
+// (this is a hardcoded value to optimize stepstype hover or something) -poco
+#define MAX_METERS 24
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 
 StepsDisplayList::StepsDisplayList()
 {
 	m_bShown = true;
-
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + pn));
-		SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + pn));
-	}
+	SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1));
+	SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -48,36 +47,33 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	m_Lines.resize(MAX_METERS);
 	m_CurSong = NULL;
 
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", pn + 1));
-		if (pChild == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "%s: StepsDisplayList: missing the node \"CursorP%d\"",
-			  ActorUtil::GetWhere(pNode).c_str(),
-			  pn + 1);
-		} else {
-			m_Cursors[pn].LoadActorFromNode(pChild, this);
-		}
+	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
+	if (pChild == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"%s: StepsDisplayList: missing the node \"CursorP%d\"",
+			ActorUtil::GetWhere(pNode).c_str(),
+			PLAYER_1 + 1);
+	} else {
+		m_Cursors.LoadActorFromNode(pChild, this);
+	}
 
-		/* Hack: we need to tween cursors both up to down (cursor motion) and
-		 * visible to invisible (fading).  Cursor motion needs to stoptweening,
-		 * so multiple motions don't queue and look unresponsive.  However, that
-		 * stoptweening interrupts fading, resulting in the cursor remaining
-		 * invisible or partially invisible.  So, do them in separate tweening
-		 * stacks.  This means the Cursor command can't change diffuse colors; I
-		 * think we do need a diffuse color stack ... */
-		pChild = pNode->GetChild(ssprintf("CursorP%iFrame", pn + 1));
-		if (pChild == NULL) {
-			LuaHelpers::ReportScriptErrorFmt(
-			  "%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
-			  ActorUtil::GetWhere(pNode).c_str(),
-			  pn + 1);
-		} else {
-			m_CursorFrames[pn].LoadFromNode(pChild);
-			m_CursorFrames[pn].AddChild(m_Cursors[pn]);
-			this->AddChild(&m_CursorFrames[pn]);
-		}
+	/* Hack: we need to tween cursors both up to down (cursor motion) and
+		* visible to invisible (fading).  Cursor motion needs to stoptweening,
+		* so multiple motions don't queue and look unresponsive.  However, that
+		* stoptweening interrupts fading, resulting in the cursor remaining
+		* invisible or partially invisible.  So, do them in separate tweening
+		* stacks.  This means the Cursor command can't change diffuse colors; I
+		* think we do need a diffuse color stack ... */
+	pChild = pNode->GetChild(ssprintf("CursorP%iFrame", PLAYER_1 + 1));
+	if (pChild == NULL) {
+		LuaHelpers::ReportScriptErrorFmt(
+			"%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
+			ActorUtil::GetWhere(pNode).c_str(),
+			PLAYER_1 + 1);
+	} else {
+		m_CursorFrames.LoadFromNode(pChild);
+		m_CursorFrames.AddChild(m_Cursors);
+		this->AddChild(&m_CursorFrames);
 	}
 
 	for (unsigned m = 0; m < m_Lines.size(); ++m) {
@@ -99,11 +95,11 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 	for (unsigned i = 0; i < m_Rows.size(); i++) {
 		const Row& row = m_Rows[i];
 
-		if (GAMESTATE->m_pCurSteps[pn] == NULL) {
+		if (GAMESTATE->m_pCurSteps == NULL) {
 			if (row.m_dc == ClosestDifficulty)
 				return i;
 		} else {
-			if (GAMESTATE->m_pCurSteps[pn].Get() == row.m_Steps)
+			if (GAMESTATE->m_pCurSteps.Get() == row.m_Steps)
 				return i;
 		}
 	}
@@ -115,42 +111,33 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 void
 StepsDisplayList::UpdatePositions()
 {
-	int iCurrentRow[NUM_PLAYERS];
-	FOREACH_HumanPlayer(p) iCurrentRow[p] = GetCurrentRowIndex(p);
+	int iCurrentRow= GetCurrentRowIndex(PLAYER_1);
 
 	const int total = NUM_SHOWN_ITEMS;
 	const int halfsize = total / 2;
 
 	int first_start, first_end, second_start, second_end;
 
-	// Choices for each player. If only one player is active, it's the same for
-	// both.
-	int P1Choice =
-	  GAMESTATE->IsHumanPlayer(PLAYER_1)
-		? iCurrentRow[PLAYER_1]
-		: GAMESTATE->IsHumanPlayer(PLAYER_2) ? iCurrentRow[PLAYER_2] : 0;
-	int P2Choice =
-	  GAMESTATE->IsHumanPlayer(PLAYER_2)
-		? iCurrentRow[PLAYER_2]
-		: GAMESTATE->IsHumanPlayer(PLAYER_1) ? iCurrentRow[PLAYER_1] : 0;
+	// Choices for each player. If only one player is active, it's the same for both.
+	int P1Choice = iCurrentRow;
 
 	vector<Row>& Rows = m_Rows;
 
-	const bool BothPlayersActivated =
-	  GAMESTATE->IsHumanPlayer(PLAYER_1) && GAMESTATE->IsHumanPlayer(PLAYER_2);
-	if (!BothPlayersActivated) {
+	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
+	if( !BothPlayersActivated )
+	{
 		// Simply center the cursor.
 		first_start = max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
-		const int earliest = min(P1Choice, P2Choice);
-		first_start = max(earliest - halfsize / 2, 0);
+		const int earliest = P1Choice;
+		first_start = max( earliest - halfsize/2, 0 );
 		first_end = first_start + halfsize;
 
 		// Second half:
-		const int latest = max(P1Choice, P2Choice);
+		const int latest = P1Choice;
 
 		second_start = max(latest - halfsize / 2, 0);
 
@@ -242,17 +229,14 @@ StepsDisplayList::PositionItems()
 		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
-	FOREACH_HumanPlayer(pn)
-	{
-		int iCurrentRow = GetCurrentRowIndex(pn);
+	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
-		float fY = 0;
-		if (iCurrentRow < (int)m_Rows.size())
-			fY = m_Rows[iCurrentRow].m_fY;
+	float fY = 0;
+	if (iCurrentRow < (int)m_Rows.size())
+		fY = m_Rows[iCurrentRow].m_fY;
 
-		m_CursorFrames[pn].PlayCommand("Change");
-		m_CursorFrames[pn].SetY(fY);
-	}
+	m_CursorFrames.PlayCommand("Change");
+	m_CursorFrames.SetY(fY);
 }
 
 void
@@ -315,7 +299,7 @@ StepsDisplayList::HideRows()
 void
 StepsDisplayList::TweenOnScreen()
 {
-	FOREACH_HumanPlayer(pn) ON_COMMAND(m_Cursors[pn]);
+	ON_COMMAND(m_Cursors);
 
 	for (int m = 0; m < MAX_METERS; ++m)
 		ON_COMMAND(m_Lines[m].m_Meter);
@@ -330,7 +314,7 @@ StepsDisplayList::TweenOnScreen()
 	HideRows();
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "TweenOn");
+	COMMAND(m_Cursors, "TweenOn");
 }
 
 void
@@ -348,7 +332,7 @@ StepsDisplayList::Show()
 	HideRows();
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "Show");
+	COMMAND(m_Cursors, "Show");
 }
 
 void
@@ -357,18 +341,15 @@ StepsDisplayList::Hide()
 	m_bShown = false;
 	PositionItems();
 
-	FOREACH_HumanPlayer(pn) COMMAND(m_Cursors[pn], "Hide");
+	COMMAND(m_Cursors, "Hide");
 }
 
 void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
-	FOREACH_ENUM(PlayerNumber, pn)
-	{
-		if (msg.GetName() ==
-			MessageIDToString((MessageID)(Message_CurrentStepsP1Changed + pn)))
-			SetFromGameState();
-	}
+	if (msg.GetName() ==
+		MessageIDToString((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1)))
+		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);
 }

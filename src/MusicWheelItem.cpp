@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
@@ -22,7 +22,6 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 									   int iSectionCount)
   : WheelItemBaseData(type, sSectionName, color)
   , m_pSong(pSong)
-  , m_Flags(WheelNotifyIcon::Flags())
   , m_iSectionCount(iSectionCount)
   , m_sLabel("")
   , m_pAction()
@@ -32,8 +31,6 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 MusicWheelItem::MusicWheelItem(RString sType)
   : WheelItemBase(sType)
 {
-	GRADES_SHOW_MACHINE.Load(sType, "GradesShowMachine");
-
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
 		m_sprColorPart[i].Load(
@@ -92,20 +89,11 @@ MusicWheelItem::MusicWheelItem(RString sType)
 	m_pTextSectionCount->PlayCommand("On");
 	this->AddChild(m_pTextSectionCount);
 
-	m_WheelNotifyIcon.SetName("WheelNotifyIcon");
-	ActorUtil::LoadAllCommands(m_WheelNotifyIcon, "MusicWheelItem");
-	ActorUtil::SetXY(m_WheelNotifyIcon, "MusicWheelItem");
-	m_WheelNotifyIcon.PlayCommand("On");
-	this->AddChild(&m_WheelNotifyIcon);
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_pGradeDisplay[p].Load(THEME->GetPathG(sType, "grades"));
-		m_pGradeDisplay[p]->SetName(
-		  ssprintf("GradeP%d", static_cast<int>(p + 1)));
-		this->AddChild(m_pGradeDisplay[p]);
-		LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay[p]);
-	}
+	m_pGradeDisplay.Load(THEME->GetPathG(sType, "grades"));
+	m_pGradeDisplay->SetName(
+		ssprintf("GradeP%d", static_cast<int>(PLAYER_1 + 1)));
+	this->AddChild(m_pGradeDisplay);
+	LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay);
 
 	this->SubscribeToMessage(Message_CurrentStepsP1Changed);
 	this->SubscribeToMessage(Message_CurrentStepsP2Changed);
@@ -115,9 +103,7 @@ MusicWheelItem::MusicWheelItem(RString sType)
 
 MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
   : WheelItemBase(cpy)
-  , GRADES_SHOW_MACHINE(cpy.GRADES_SHOW_MACHINE)
   , m_TextBanner(cpy.m_TextBanner)
-  , m_WheelNotifyIcon(cpy.m_WheelNotifyIcon)
 {
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
@@ -149,13 +135,9 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 	m_pTextSectionCount = new BitmapText(*cpy.m_pTextSectionCount);
 	this->AddChild(m_pTextSectionCount);
 
-	this->AddChild(&m_WheelNotifyIcon);
-
-	FOREACH_PlayerNumber(p)
-	{
-		m_pGradeDisplay[p] = cpy.m_pGradeDisplay[p];
-		this->AddChild(m_pGradeDisplay[p]);
-	}
+	m_pGradeDisplay = cpy.m_pGradeDisplay;
+	this->AddChild(m_pGradeDisplay);
+	
 }
 
 MusicWheelItem::~MusicWheelItem()
@@ -186,8 +168,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	if (m_pText[i])
 		m_pText[i]->SetVisible(false);
 	m_pTextSectionCount->SetVisible(false);
-	m_WheelNotifyIcon.SetVisible(false);
-	FOREACH_PlayerNumber(p) m_pGradeDisplay[p]->SetVisible(false);
+	m_pGradeDisplay->SetVisible(false);
 
 	// Fill these in below
 	RString sDisplayName, sTranslitName;
@@ -204,8 +185,6 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			m_TextBanner.SetDiffuse(pWID->m_color);
 			m_TextBanner.SetVisible(true);
 
-			m_WheelNotifyIcon.SetFlags(pWID->m_Flags);
-			m_WheelNotifyIcon.SetVisible(true);
 			RefreshGrades();
 			break;
 		case WheelItemDataType_Section: {
@@ -289,16 +268,16 @@ MusicWheelItem::RefreshGrades()
 		return; // LoadFromWheelItemData() hasn't been called yet.
 	FOREACH_HumanPlayer(p)
 	{
-		m_pGradeDisplay[p]->SetVisible(false);
+		m_pGradeDisplay->SetVisible(false);
 
 		if (pWID->m_pSong == NULL)
 			continue;
 
 		Difficulty dc;
-		if (GAMESTATE->m_pCurSteps[p])
-			dc = GAMESTATE->m_pCurSteps[p]->GetDifficulty();
+		if (GAMESTATE->m_pCurSteps)
+			dc = GAMESTATE->m_pCurSteps->GetDifficulty();
 		else
-			dc = GAMESTATE->m_PreferredDifficulty[p];
+			dc = GAMESTATE->m_PreferredDifficulty;
 
 		ProfileSlot ps;
 		if (PROFILEMAN->IsPersistentProfile(p))
@@ -307,12 +286,12 @@ MusicWheelItem::RefreshGrades()
 			continue;
 
 		StepsType st;
-		if (GAMESTATE->m_pCurSteps[p])
-			st = GAMESTATE->m_pCurSteps[p]->m_StepsType;
+		if (GAMESTATE->m_pCurSteps)
+			st = GAMESTATE->m_pCurSteps->m_StepsType;
 		else
 			st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
 
-		m_pGradeDisplay[p]->SetVisible(true);
+		m_pGradeDisplay->SetVisible(true);
 
 		HighScoreList* BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
@@ -367,7 +346,7 @@ MusicWheelItem::RefreshGrades()
 			msg.SetParam("Difficulty", DifficultyToString(dcBest));
 			msg.SetParam("NumTimesPlayed", 0);
 		}
-		m_pGradeDisplay[p]->HandleMessage(msg);
+		m_pGradeDisplay->HandleMessage(msg);
 	}
 }
 

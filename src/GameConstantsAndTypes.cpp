@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -13,16 +13,15 @@
 RString
 StepsTypeToString(StepsType st);
 
+// This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a vector of RStrings. -poco
 static vector<RString>
 GenerateRankingToFillInMarker()
 {
 	vector<RString> vRankings;
-	FOREACH_ENUM(PlayerNumber, pn)
-	vRankings.push_back(ssprintf("#P%d#", pn + 1));
+	vRankings.push_back(ssprintf("#P%d#", PLAYER_1 + 1));
 	return vRankings;
 }
-extern const vector<RString> RANKING_TO_FILL_IN_MARKER(
-  GenerateRankingToFillInMarker());
+extern const RString RANKING_TO_FILL_IN_MARKER("#P1#");
 
 extern const RString GROUP_ALL = "---Group All---";
 
@@ -75,29 +74,6 @@ LuaFunction(PlayModeToLocalizedString,
 			PlayModeToLocalizedString(Enum::Check<PlayMode>(L, 1)));
 LuaXType(PlayMode);
 
-RankingCategory
-AverageMeterToRankingCategory(int iAverageMeter)
-{
-	if (iAverageMeter <= 3)
-		return RANKING_A;
-	else if (iAverageMeter <= 6)
-		return RANKING_B;
-	else if (iAverageMeter <= 9)
-		return RANKING_C;
-	else
-		return RANKING_D;
-}
-
-static const char* RankingCategoryNames[] = {
-	"a",
-	"b",
-	"c",
-	"d",
-};
-XToString(RankingCategory);
-StringToX(RankingCategory);
-LuaXType(RankingCategory);
-
 static const char* PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",
@@ -118,13 +94,7 @@ static const char* HealthStateNames[] = {
 XToString(HealthState);
 LuaXType(HealthState);
 
-static const char* StageResultNames[] = {
-	"Win",
-	"Lose",
-	"Draw",
-};
-XToString(StageResult);
-LuaXType(StageResult);
+
 
 static const char* SortOrderNames[] = {
 	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
@@ -304,30 +274,8 @@ static const char* StageAwardNames[] = {
 	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
 	"90PercentW3",   "100PercentW3",
 };
-XToString(StageAward);
-XToLocalizedString(StageAward);
-StringToX(StageAward);
-LuaFunction(StageAwardToLocalizedString,
-			StageAwardToLocalizedString(Enum::Check<StageAward>(L, 1)));
-LuaXType(StageAward);
 
-// Numbers are intentionally not at the front of these strings so that the
-// strings can be used as XML entity names.
-// Numbers are intentionally not at the back so that "1000" and "10000" don't
-// conflict when searching for theme elements.
-static const char* PeakComboAwardNames[] = {
-	"1000", "2000", "3000", "4000", "5000",
-	"6000", "7000", "8000", "9000", "10000",
-};
-XToString(PeakComboAward);
-XToLocalizedString(PeakComboAward);
-StringToX(PeakComboAward);
-LuaFunction(PeakComboAwardToLocalizedString,
-			PeakComboAwardToLocalizedString(Enum::Check<PeakComboAward>(L, 1)));
-LuaXType(PeakComboAward);
-
-void
-DisplayBpms::Add(float f)
+void DisplayBpms::Add( float f )
 {
 	vfBpms.push_back(f);
 }
@@ -384,18 +332,12 @@ DisplayBpms::IsSecret() const
 
 static const char* StyleTypeNames[] = {
 	"OnePlayerOneSide",
-	"TwoPlayersTwoSides",
 	"OnePlayerTwoSides",
-	"TwoPlayersSharedSides",
 };
 XToString(StyleType);
 StringToX(StyleType);
 LuaXType(StyleType);
 
-static const char* EditModeNames[] = { "Practice", "Home", "Full" };
-XToString(EditMode);
-StringToX(EditMode);
-LuaXType(EditMode);
 
 static const char* SampleMusicPreviewModeNames[] = { "Normal",
 													 "StartToPreview",

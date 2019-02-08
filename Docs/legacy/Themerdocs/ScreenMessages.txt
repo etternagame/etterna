@@ -174,14 +174,6 @@ SM_BackFromDeleteConfirm
 SM_BackFromClearConfirm			
 SM_BackFromContextMenu			
 
-[ScreenOptionsManageWorkouts]
-
-[ScreenOptionsReviewWorkout]
-
-[ScreenPackages]
-
-[ScreenRanking]
-
 [ScreenSelectMaster]
 
 [ScreenSelectMusic]

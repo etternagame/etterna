@@ -652,7 +652,7 @@ class DebugLineAutoplay : public IDebugLine
 	{
 		ASSERT(GAMESTATE->GetMasterPlayerNumber() != PLAYER_INVALID);
 		PlayerController pc =
-		  GAMESTATE->m_pPlayerState[GAMESTATE->GetMasterPlayerNumber()]
+		  GAMESTATE->m_pPlayerState
 			->m_PlayerController;
 		bool bHoldingShift =
 		  INPUTFILTER->IsBeingPressed(
@@ -664,7 +664,7 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc == PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
 		if (GamePreferences::m_AutoPlay != PC_REPLAY)
 			GamePreferences::m_AutoPlay.Set(pc);
-		FOREACH_HumanPlayer(p) GAMESTATE->m_pPlayerState[p]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerController = GamePreferences::m_AutoPlay;
 		FOREACH_MultiPlayer(p) GAMESTATE->m_pMultiPlayerState[p]
 		  ->m_PlayerController = GamePreferences::m_AutoPlay;

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * The original MSD format is simply:
  *
  * #PARAM0:PARAM1:PARAM2:PARAM3;
@@ -68,6 +68,12 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 				FirstChar = false;
 				break;
 			}
+
+			// sm5 devs make code block to hand hold idiots who don't know how delimiters work
+			// in the process sm5 devs show they don't know how delimiters work
+			// time to handhold -mina
+			if (buf[i - 1] == ':')
+				FirstChar = false;
 
 			if (!FirstChar) {
 				/* We're not the first char on a line.  Treat it as if it were a

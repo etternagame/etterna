@@ -6,13 +6,10 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local enabled = {
 	NPSDisplay = {
 		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay,
-		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSDisplay
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay
 	},
 	NPSGraph = {
-		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph,
-		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSGraph
+		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph
 	}
 }
 

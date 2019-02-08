@@ -72,9 +72,7 @@ ScreenEvaluation.cpp ScreenEvaluation.h \
 ScreenExit.cpp ScreenExit.h ScreenNetEvaluation.cpp ScreenNetEvaluation.h \
 ScreenNetSelectMusic.cpp ScreenNetSelectMusic.h ScreenNetSelectBase.cpp ScreenNetSelectBase.h ScreenNetRoom.cpp ScreenNetRoom.h \
 ScreenGameplay.cpp ScreenGameplay.h \
-ScreenGameplayLesson.cpp ScreenGameplayLesson.h \
 ScreenGameplayNormal.cpp ScreenGameplayNormal.h \
-ScreenGameplayShared.cpp ScreenGameplayShared.h \
 ScreenGameplaySyncMachine.cpp ScreenGameplaySyncMachine.h \
 ScreenHighScores.cpp ScreenHighScores.h \
 ScreenHowToPlay.cpp ScreenHowToPlay.h \
@@ -86,16 +84,12 @@ ScreenMessage.cpp ScreenMessage.h ScreenMiniMenu.cpp ScreenMiniMenu.h \
 ScreenNameEntry.cpp ScreenNameEntry.h ScreenNameEntryTraditional.cpp ScreenNameEntryTraditional.h \
 ScreenOptions.cpp ScreenOptions.h \
 ScreenOptionsCourseOverview.cpp ScreenOptionsCourseOverview.h \
-ScreenOptionsEditCourse.cpp ScreenOptionsEditCourse.h \
 ScreenOptionsEditProfile.cpp ScreenOptionsEditProfile.h \
-ScreenOptionsExportPackage.cpp ScreenOptionsExportPackage.h \
 ScreenOptionsManageCourses.cpp ScreenOptionsManageCourses.h \
 ScreenOptionsManageEditSteps.cpp ScreenOptionsManageEditSteps.h \
 ScreenOptionsManageProfiles.cpp ScreenOptionsManageProfiles.h \
 ScreenOptionsMaster.cpp ScreenOptionsMaster.h \
 ScreenOptionsMasterPrefs.cpp ScreenOptionsMasterPrefs.h \
-ScreenOptionsToggleSongs.cpp ScreenOptionsToggleSongs.h \
-ScreenPackages.cpp ScreenPackages.h \
 ScreenNetworkOptions.h ScreenNetworkOptions.cpp \
 ScreenPlayerOptions.cpp ScreenPlayerOptions.h \
 ScreenProfileLoad.cpp ScreenProfileLoad.h \
@@ -429,12 +423,11 @@ endif
 
 ActorsInGameplayAndMenus = \
 BGAnimation.cpp BGAnimation.h BGAnimationLayer.cpp BGAnimationLayer.h Banner.cpp Banner.h \
-DifficultyIcon.cpp DifficultyIcon.h \
 MeterDisplay.cpp MeterDisplay.h StreamDisplay.cpp StreamDisplay.h \
 Transition.cpp Transition.h
 
 ActorsInMenus = \
-ActiveAttackList.cpp ActiveAttackList.h BPMDisplay.cpp BPMDisplay.h ComboGraph.cpp ComboGraph.h \
+BPMDisplay.cpp BPMDisplay.h ComboGraph.cpp ComboGraph.h \
 CourseContentsList.cpp CourseContentsList.h \
 StepsDisplay.cpp StepsDisplay.h \
 DifficultyList.cpp DifficultyList.h \
@@ -448,34 +441,24 @@ ModIcon.cpp ModIcon.h ModIconRow.cpp ModIconRow.h \
 MusicWheel.cpp MusicWheel.h \
 MusicWheelItem.cpp MusicWheelItem.h \
 OptionRow.cpp OptionRow.h OptionsCursor.cpp OptionsCursor.h \
-PaneDisplay.cpp PaneDisplay.h ScrollBar.cpp ScrollBar.h \
 SnapDisplay.cpp SnapDisplay.h \
 TextBanner.cpp TextBanner.h WheelBase.cpp WheelBase.h WheelItemBase.cpp WheelItemBase.h \
-WheelNotifyIcon.cpp WheelNotifyIcon.h \
-WorkoutGraph.cpp WorkoutGraph.h
+
 
 if !WITHOUT_NETWORKING
  ActorsInMenus += RoomInfoDisplay.cpp RoomInfoDisplay.h
 endif
 
 ActorsInGameplay = \
-ArrowEffects.cpp ArrowEffects.h AttackDisplay.cpp AttackDisplay.h \
-Background.cpp Background.h BeginnerHelper.cpp BeginnerHelper.h CombinedLifeMeter.h CombinedLifeMeterTug.cpp CombinedLifeMeterTug.h \
+ArrowEffects.cpp ArrowEffects.h \
+Background.cpp Background.h BeginnerHelper.cpp BeginnerHelper.h \
 DancingCharacters.cpp DancingCharacters.h Foreground.cpp Foreground.h \
 GhostArrowRow.cpp GhostArrowRow.h HoldJudgment.cpp HoldJudgment.h \
 LifeMeter.cpp LifeMeter.h \
 LifeMeterBar.cpp LifeMeterBar.h \
 LifeMeterBattery.cpp LifeMeterBattery.h LifeMeterTime.cpp LifeMeterTime.h \
 LyricDisplay.cpp LyricDisplay.h NoteDisplay.cpp NoteDisplay.h NoteField.cpp NoteField.h \
-PercentageDisplay.cpp PercentageDisplay.h Player.cpp Player.h \
 ReceptorArrow.cpp ReceptorArrow.h ReceptorArrowRow.cpp ReceptorArrowRow.h \
-ScoreDisplay.cpp ScoreDisplay.h \
-ScoreDisplayAliveTime.cpp ScoreDisplayAliveTime.h \
-ScoreDisplayBattle.cpp ScoreDisplayBattle.h \
-ScoreDisplayCalories.cpp ScoreDisplayCalories.h \
-ScoreDisplayLifeTime.cpp ScoreDisplayLifeTime.h \
-ScoreDisplayNormal.cpp ScoreDisplayNormal.h ScoreDisplayOni.cpp ScoreDisplayOni.h \
-ScoreDisplayPercentage.cpp ScoreDisplayPercentage.h ScoreDisplayRave.cpp ScoreDisplayRave.h \
 SongPosition.cpp SongPosition.h
 
 Rage =
@@ -560,21 +543,17 @@ RageTextureID.cpp RageTextureID.h RageTextureManager.cpp RageTextureManager.h Ra
 RageTimer.cpp RageTimer.h RageTypes.cpp RageTypes.h RageUtil.cpp RageUtil.h \
 RageUtil_CachedObject.cpp RageUtil_CachedObject.h \
 RageUtil_CharConversions.cpp RageUtil_CharConversions.h \
-RageUtil_BackgroundLoader.cpp RageUtil_BackgroundLoader.h RageUtil_FileDB.cpp RageUtil_FileDB.h RageUtil_CircularBuffer.h \
 RageUtil_AutoPtr.h \
 RageUtil_WorkerThread.cpp RageUtil_WorkerThread.h
 
 Actors = \
 Actor.cpp Actor.h ActorFrame.cpp ActorFrame.h \
 ActorFrameTexture.cpp ActorFrameTexture.h \
-ActorMultiTexture.cpp ActorMultiTexture.h \
 ActorMultiVertex.cpp ActorMultiVertex.h \
-ActorProxy.cpp ActorProxy.h \
 ActorScroller.cpp ActorScroller.h ActorUtil.cpp ActorUtil.h \
 ActorSound.cpp ActorSound.h \
 AutoActor.cpp AutoActor.h \
 BitmapText.cpp BitmapText.h Model.cpp Model.h \
-DynamicActorScroller.cpp DynamicActorScroller.h \
 ModelManager.cpp ModelManager.h ModelTypes.cpp ModelTypes.h \
 Quad.cpp Quad.h \
 RollingNumbers.cpp RollingNumbers.h Sprite.cpp Sprite.h

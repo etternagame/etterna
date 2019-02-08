@@ -11,7 +11,7 @@ class FilterManager
 	FilterManager();
 	~FilterManager();
 
-	PlayerState* m_pPlayerState[NUM_PLAYERS];
+	PlayerState* m_pPlayerState;
 
 	float SSFilterLowerBounds[NUM_Skillset + 1];
 	float SSFilterUpperBounds[NUM_Skillset + 1];

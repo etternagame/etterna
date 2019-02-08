@@ -1,6 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local leaderboardEnabled =
-	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
+	(NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
 	(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
 local entryActors = {}
 local t =
@@ -23,7 +23,8 @@ local jdgs = {
 	"TapNoteScore_W2",
 	"TapNoteScore_W3",
 	"TapNoteScore_W4",
-	"TapNoteScore_W5"
+	"TapNoteScore_W5",
+	"TapNoteScore_Miss"
 }
 
 local function arbitraryLeaderboardSpacing(value)
@@ -48,13 +49,13 @@ local function scoreUsingMultiScore(idx)
 			return multiScores[idx] and multiScores[idx].user or nil
 		end,
 		GetWifeGrade = function()
-			return multiScores[idx] and GetGradeFromPercent(multiScores[idx].wife) or 0
+			return multiScores[idx] and GetGradeFromPercent(multiScores[idx].wife) or "Grade_Tier01"
 		end,
 		GetWifeScore = function()
-			return multiScores[idx] and multiScores[idx].wife or -500
+			return multiScores[idx] and multiScores[idx].wife or -5000000
 		end,
 		GetSkillsetSSR = function()
-			return 0
+			return -1
 		end,
 		GetJudgmentString = function()
 			return multiScores[idx] and multiScores[idx].jdgstr or ""
@@ -62,7 +63,7 @@ local function scoreUsingMultiScore(idx)
 	}
 end
 local onlineScores = {}
-local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation"
+local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
 if isMulti then
 	multiScores = NSMAN:GetMPLeaderboard()
 	for i = 1, 5 do
@@ -113,10 +114,12 @@ for i = 1, NUM_ENTRIES - 1 do
 	scoreboard[i] = onlineScores[i]
 end
 local done = false
-for i = 1, NUM_ENTRIES do
-	if not done and not scoreboard[i] then
-		scoreboard[i] = curScore
-		done = true
+if not isMulti then
+	for i = 1, NUM_ENTRIES do
+		if not done and not scoreboard[i] then
+			scoreboard[i] = curScore
+			done = true
+		end
 	end
 end
 table.sort(scoreboard, sortFunction)
@@ -213,9 +216,19 @@ function scoreEntry(i)
 	addLabel(
 		"wife",
 		function(self, hs)
-			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(GetGradeFromPercent(hs:GetWifeScore())))
+			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
 		end,
 		1.8 * WIDTH
+	)
+	addLabel(
+		"grade",
+		function(self, hs)
+			self:settext(getGradeStrings(hs:GetWifeGrade()))
+			self:diffuse(byGrade(hs:GetWifeGrade()))
+			self:halign(0.5)
+		end,
+		2 * WIDTH,
+		ENTRY_HEIGHT / 2
 	)
 	addLabel(
 		"judges",
@@ -276,7 +289,9 @@ t.OnCommand = function(self, params)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
-			label:visible(not (not scoreboard[i]:GetDisplayName()))
+			if scoreboard[i] ~= nil then
+				label:visible(not (not scoreboard[i]:GetDisplayName()))
+			end
 		end
 	end
 end

@@ -8,7 +8,6 @@
 #include "RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "MenuTimer.h"
 #include "NetworkSyncManager.h"
 #include "PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"

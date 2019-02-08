@@ -32,6 +32,7 @@ using json = nlohmann::json;
 #include <intrin.h>
 #endif
 shared_ptr<DownloadManager> DLMAN = nullptr;
+LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(
   "maximumBytesDownloadedPerSecond",
@@ -301,7 +302,7 @@ CURLFormPostField(CURL* curlHandle,
 {
 	curl_formadd(&form,
 				 &lastPtr,
-				 CURLFORM_COPYNAME,
+				 CURLFORM_COPYNAME, 
 				 field,
 				 CURLFORM_COPYCONTENTS,
 				 value,
@@ -713,7 +714,7 @@ DownloadManager::LoggedIn()
 }
 
 void
-DownloadManager::AddFavorite(string chartkey)
+DownloadManager::AddFavorite(const string& chartkey)
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.emplace_back(chartkey);
@@ -724,7 +725,7 @@ DownloadManager::AddFavorite(string chartkey)
 }
 
 void
-DownloadManager::RemoveFavorite(string chartkey)
+DownloadManager::RemoveFavorite(const string& chartkey)
 {
 	auto it =
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
@@ -741,7 +742,7 @@ DownloadManager::RemoveFavorite(string chartkey)
 
 // we could pass scoregoal objects instead..? -mina
 void
-DownloadManager::RemoveGoal(string chartkey, float wife, float rate)
+DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
 	string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
 				 to_string(wife) + "/" + to_string(rate);
@@ -754,10 +755,10 @@ DownloadManager::RemoveGoal(string chartkey, float wife, float rate)
 }
 
 void
-DownloadManager::AddGoal(string chartkey,
+DownloadManager::AddGoal(const string& chartkey,
 						 float wife,
 						 float rate,
-						 DateTime timeAssigned)
+						 DateTime& timeAssigned)
 {
 	string req = "user/" + DLMAN->sessionUser + "/goals";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
@@ -773,12 +774,12 @@ DownloadManager::AddGoal(string chartkey,
 }
 
 void
-DownloadManager::UpdateGoal(string chartkey,
+DownloadManager::UpdateGoal(const string& chartkey,
 							float wife,
 							float rate,
 							bool achieved,
-							DateTime timeAssigned,
-							DateTime timeAchieved)
+							DateTime& timeAssigned,
+							DateTime& timeAchieved)
 {
 	string doot = "0000:00:00 00:00:00";
 	if (achieved)
@@ -965,10 +966,10 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
-	vector<float> offsets = hs->GetOffsetVector();
-	vector<int> columns = hs->GetTrackVector();
-	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
-	vector<int> rows = hs->GetNoteRowVector();
+	const auto& offsets = hs->GetOffsetVector();
+	const auto& columns = hs->GetTrackVector();
+	const auto& types = hs->GetTapNoteTypeVector();
+	const auto& rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		vector<float>& timestamps = hs->timeStamps;
@@ -1039,16 +1040,16 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	return;
 }
 void // not tested exhaustively -mina
-DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
+DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 												   function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
 
-	auto doot = SCOREMAN->GetScoresByKey();
-	auto hs = doot[sk];
+	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
 	if (!hs->LoadReplayData())
-		return;
+		if (callback)
+			callback();
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
@@ -1056,11 +1057,10 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
-	vector<float> offsets = hs->GetOffsetVector();
-	vector<int> columns = hs->GetTrackVector();
-	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
-	auto& rows = hs->GetNoteRowVector();
-
+	const auto& offsets = hs->GetOffsetVector();
+	const auto& columns = hs->GetTrackVector();
+	const auto& types = hs->GetTapNoteTypeVector();
+	const auto& rows = hs->GetNoteRowVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1068,7 +1068,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 			return;
 		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
-			hs->GetNoteRowVector(), hs->GetMusicRate());
+			rows, hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
@@ -1076,7 +1076,6 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 			if (hs->GetReplayType() == 2) {
 				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
-	
 			}
 			replayString += to_string(rows[i]);
 			replayString += "],";
@@ -1141,6 +1140,148 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk,
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 	return;
+}
+void // for online replay viewing accuracy -mina
+DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
+											 function<void()> callback)
+{
+	if (!LoggedIn())
+		return;
+
+	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
+	CURL* curlHandle = initCURLHandle(true);
+	string url = serverURL.Get() + "/updateReplayData";
+	curl_httppost* form = nullptr;
+	curl_httppost* lastPtr = nullptr;
+	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
+	string toSend = "[";
+	hs->LoadReplayData();
+	auto& rows = hs->GetNoteRowVector();
+	for (auto& row : rows)
+		toSend += to_string(row) + ",";
+	toSend = toSend.substr(0, toSend.size() - 1); // remove ,
+	toSend += "]";
+	SetCURLFormPostField(curlHandle, form, lastPtr, "replay", toSend);
+	SetCURLPostToURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	auto done = [this, hs, callback](HTTPRequest& req, CURLMsg*) {
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+		json j;
+		try {
+			j = json::parse(req.result);
+			bool delay = false;
+			if (j.find("errors") == j.end())
+				hs->AddUploadedServer(serverURL.Get());
+			else
+				try {
+					auto errors = j["errors"];
+					for (auto error : errors) {
+						int status = error["status"];
+						if (status == 22) {
+							delay = true;
+							DLMAN->StartSession(
+							  DLMAN->sessionUser,
+							  DLMAN->sessionPass,
+							  [hs](bool logged) {
+								  if (logged) {
+									  DLMAN->UpdateOnlineScoreReplayData(
+										hs->GetScoreKey());
+								  }
+							  });
+						} else if (status == 404 || status == 405 ||
+								   status == 406) {
+							hs->AddUploadedServer(serverURL.Get());
+						}
+					}
+				} catch (exception e) {
+				}
+		} catch (exception e) {
+		}
+		if (callback)
+			callback();
+	};
+	auto fail = [callback](HTTPRequest& req, CURLMsg*) {
+		if (callback)
+			callback();
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done, form, fail);
+	SetCURLResultsString(curlHandle, &(req->result));
+	curl_multi_add_handle(mHTTPHandle, req->handle);
+	HTTPRequests.push_back(req);
+	return;
+}
+void
+UpdateReplayDataSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UpdateOnlineScoreReplayData(hs->GetScoreKey(), [hs, toUpload]() {
+			hs->AddUploadedServer("nru");
+			UpdateReplayDataSequentially(toUpload);
+		});
+	}
+	return;
+}
+bool
+DownloadManager::UpdateOnlineScoreReplayData()
+{
+	if (!LoggedIn())
+		return false;
+	// we dont care if the chart is loaded for this function, only that there is
+	// a score that is already uploaded and already has replaydata, and that the
+	// source data is on disk to update it -mina
+	auto& scores = SCOREMAN->GetAllScores();
+	deque<HighScore*> toUpload;
+	for (auto& scorePtr : scores) {
+		auto ts = scorePtr->GetTopScore(); // still need to do this?
+		if ((ts == 1 || ts == 2)) {
+			if (scorePtr->HasReplayData() &&
+				scorePtr->IsUploadedToServer(serverURL.Get()) &&
+				!scorePtr->IsUploadedToServer("nru"))
+				toUpload.emplace_back(scorePtr);
+		}
+	}
+	UpdateReplayDataSequentially(toUpload);
+	return true;
+}
+void
+uploadSequentially(deque<HighScore*> toUpload)
+{
+	auto it = toUpload.begin();
+	if (it != toUpload.end()) {
+		toUpload.pop_front();
+		auto& hs = (*it);
+		DLMAN->UploadScoreWithReplayDataFromDisk(
+		  hs->GetScoreKey(), [hs, toUpload]() {
+			  hs->AddUploadedServer(serverURL.Get());
+			  uploadSequentially(toUpload);
+		  });
+	}
+	return;
+}
+bool
+DownloadManager::UploadScores()
+{
+	if (!LoggedIn())
+		return false;
+	auto scores = SCOREMAN->GetAllPBPtrs();
+	deque<HighScore*> toUpload;
+	for (auto& vec : scores) {
+		for (auto& scorePtr : vec) {
+			auto ts = scorePtr->GetTopScore();
+			if ((ts == 1 || ts == 2) &&
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				if (scorePtr->HasReplayData())
+					toUpload.emplace_back(scorePtr);
+			}
+		}
+	}
+	uploadSequentially(toUpload);
+	return true;
 }
 void
 DownloadManager::EndSessionIfExists()
@@ -1305,73 +1446,6 @@ DownloadManager::SendRequestToURL(
 	}
 	return req;
 }
-
-float
-mythicalmathymathsProbablyUnderratedness(string chartkey)
-{
-	auto& onlineScores = DLMAN->chartLeaderboards[chartkey];
-
-	float dsum = 0.f;
-	int num = 4;
-	for (auto& s : onlineScores) {
-		float adjRating = s.playerRating - 1.f;
-		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f &&
-			abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
-			if (s.playerRating > s.SSRs[Skill_Overall]) {
-				float diff = adjRating - s.SSRs[Skill_Overall];
-				dsum += diff;
-			} else {
-				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
-				dsum -= mcdoot * mcdoot;
-			}
-			++num;
-		}
-	}
-	return dsum / num;
-}
-
-float
-overratedness(string chartkey)
-{
-	auto& onlineScores = DLMAN->chartLeaderboards[chartkey];
-	vector<float> values;
-	float offset = 5.f;
-	float dsum = 0.f;
-	int num = onlineScores.size();
-	if (num == 0)
-		return 0.0f;
-
-	for (auto& s : onlineScores) {
-		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
-			float adjrating = s.playerRating * 1.026f;
-			float value = static_cast<float>(
-			  (2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
-			if (s.SSRs[Skill_Overall] - s.playerRating > 40)
-				value = 100.f;
-			if (value < 0)
-				value = 0.f;
-			values.emplace_back(value);
-			dsum += value;
-		}
-	}
-
-	float zeeaverage = dsum / num;
-
-	float overratedness = (dsum - offset) / num;
-
-	overratedness /= zeeaverage;
-	overratedness -= 1.5f;
-
-	float multiplier = 1.f - overratedness;
-	float mcdootMin = 1.f;
-	if (multiplier < mcdootMin - 0.2f)
-		multiplier = mcdootMin - 0.2f;
-
-	float nerfE = (4.f * mcdootMin + multiplier) / 5.f;
-	nerfE = min(1.f, nerfE);
-	return overratedness;
-}
-
 void
 DownloadManager::RefreshCountryCodes()
 {
@@ -1400,11 +1474,11 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
-DownloadManager::RequestReplayData(string scoreid,
+DownloadManager::RequestReplayData(const string& scoreid,
 								   int userid,
-								   string username,
-								   string chartkey,
-								   LuaReference callback)
+								   const string& username,
+								   const string& chartkey,
+								   LuaReference& callback)
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
@@ -1428,10 +1502,10 @@ DownloadManager::RequestReplayData(string scoreid,
 
 					timestamps.emplace_back(note[0].get<float>());
 					offsets.emplace_back(note[1].get<float>() / 1000.f);
-					if (note.size() == 3) {	// pre-0.6 with noterows
+					if (note.size() == 3) { // pre-0.6 with noterows
 						rows.emplace_back(note[2].get<int>());
 					}
-					if (note.size() > 3) {	// 0.6 without noterows
+					if (note.size() > 3) { // 0.6 without noterows
 						tracks.emplace_back(note[2].get<int>());
 						types.emplace_back(
 						  static_cast<TapNoteType>(note[3].get<int>()));
@@ -1457,24 +1531,27 @@ DownloadManager::RequestReplayData(string scoreid,
 				else
 					it->hs.SetReplayType(2);
 			}
-			auto L = LUA->Get();
-			callback.PushSelf(L);
-			RString Error =
-			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L); // dunno whats going on here -mina
-			for (unsigned i = 0; i < replayData.size(); ++i) {
-				auto& pair = replayData[i];
-				lua_newtable(L);
-				lua_pushnumber(L, pair.first);
-				lua_rawseti(L, -2, 1);
-				lua_pushnumber(L, pair.second);
-				lua_rawseti(L, -2, 2);
-				lua_rawseti(L, -2, i + 1);
+			
+			if (!callback.IsNil() && callback.IsSet()) {
+				auto L = LUA->Get();
+				callback.PushSelf(L);
+				RString Error =
+				  "Error running RequestChartLeaderBoard Finish Function: ";
+				lua_newtable(L); // dunno whats going on here -mina
+				for (unsigned i = 0; i < replayData.size(); ++i) {
+					auto& pair = replayData[i];
+					lua_newtable(L);
+					lua_pushnumber(L, pair.first);
+					lua_rawseti(L, -2, 1);
+					lua_pushnumber(L, pair.second);
+					lua_rawseti(L, -2, 2);
+					lua_rawseti(L, -2, i + 1);
+				}
+				it->hs.PushSelf(L);
+				LuaHelpers::RunScriptOnStack(
+				  L, Error, 2, 0, true); // 2 args, 0 results
+				LUA->Release(L);
 			}
-			it->hs.PushSelf(L);
-			LuaHelpers::RunScriptOnStack(
-			  L, Error, 2, 0, true); // 2 args, 0 results
-			LUA->Release(L);
 		} catch (exception e) {
 			LOG->Trace(
 			  (string("Replay data request failed for") + scoreid + e.what())
@@ -1488,7 +1565,7 @@ DownloadManager::RequestReplayData(string scoreid,
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
+DownloadManager::RequestChartLeaderBoard(const string& chartkey, LuaReference& ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
@@ -1652,14 +1729,14 @@ DownloadManager::RefreshCoreBundles()
 }
 
 vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(string whichoneyo)
+DownloadManager::GetCoreBundle(const string& whichoneyo)
 {
 	return bundles.count(whichoneyo) ? bundles[whichoneyo]
 									 : vector<DownloadablePack*>();
 }
 
 void
-DownloadManager::DownloadCoreBundle(string whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1819,11 +1896,13 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	DLMAN->RefreshTop25(ss);
-	if (DLMAN->ShouldUploadScores())
+	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+		//DLMAN->UpdateOnlineScoreReplayData();
+	}
+	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+		  GAMESTATE->m_pCurSteps->GetChartKey());
 	MESSAGEMAN->Broadcast("Login");
 	DLMAN->loggingIn = false;
 }
@@ -1886,43 +1965,6 @@ DownloadManager::StartSession(string user,
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 }
-
-void
-uploadSequentially(deque<HighScore*> toUpload)
-{
-	auto it = toUpload.begin();
-	if (it != toUpload.end()) {
-		toUpload.pop_front();
-		auto& hs = (*it);
-		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs->GetScoreKey(), [hs, toUpload]() {
-			  hs->AddUploadedServer(serverURL.Get());
-			  uploadSequentially(toUpload);
-		  });
-	}
-	return;
-}
-bool
-DownloadManager::UploadScores()
-{
-	if (!LoggedIn())
-		return false;
-	auto scores = SCOREMAN->GetAllPBPtrs();
-	deque<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
-			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				if (scorePtr->HasReplayData())
-					toUpload.emplace_back(scorePtr);
-			}
-		}
-	}
-	uploadSequentially(toUpload);
-	return true;
-}
-
 int
 DownloadManager::GetSkillsetRank(Skillset ss)
 {
@@ -1939,7 +1981,7 @@ DownloadManager::GetSkillsetRating(Skillset ss)
 	return static_cast<float>(sessionRatings[ss]);
 }
 void
-DownloadManager::RefreshPackList(string url)
+DownloadManager::RefreshPackList(const string& url)
 {
 	if (url == "")
 		return;

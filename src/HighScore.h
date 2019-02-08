@@ -72,8 +72,6 @@ struct HighScore
 	float GetSurviveSeconds() const;
 	float GetSurvivalSeconds() const;
 	unsigned int GetMaxCombo() const;
-	StageAward GetStageAward() const;
-	PeakComboAward GetPeakComboAward() const;
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
@@ -119,21 +117,19 @@ struct HighScore
 	void SetOnlineReplayTimestampVector(const vector<float>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
-	void SetAliveSeconds(float f);
-	void SetMaxCombo(unsigned int i);
-	void SetStageAward(StageAward a);
-	void SetPeakComboAward(PeakComboAward a);
-	void SetModifiers(const string& s);
-	void SetDateTime(DateTime d);
-	void SetPlayerGuid(const string& s);
-	void SetMachineGuid(const string& s);
-	void SetProductID(int i);
-	void SetTapNoteScore(TapNoteScore tns, int i);
-	void SetHoldNoteScore(HoldNoteScore tns, int i);
-	void SetRadarValues(const RadarValues& rv);
-	void SetLifeRemainingSeconds(float f);
-	void SetDisqualified(bool b);
-	void SetReplayType(int i);
+	void SetAliveSeconds( float f );
+	void SetMaxCombo( unsigned int i );
+	void SetModifiers( const string &s );
+	void SetDateTime( DateTime d );
+	void SetPlayerGuid( const string &s );
+	void SetMachineGuid( const string &s );
+	void SetProductID( int i );
+	void SetTapNoteScore( TapNoteScore tns, int i );
+	void SetHoldNoteScore( HoldNoteScore tns, int i );
+	void SetRadarValues( const RadarValues &rv );
+	void SetLifeRemainingSeconds( float f );
+	void SetDisqualified( bool b );
+	void SetReplayType( int i );
 
 	string* GetNameMutable();
 	const string* GetNameMutable() const
@@ -164,8 +160,6 @@ struct HighScore
 	virtual bool HasReplayData();
 	void UnloadReplayData();
 	void ResetSkillsets();
-
-	bool Is39import() const;
 
 	string GetDisplayName() const;
 
@@ -226,9 +220,6 @@ struct HighScoreList
 	void RemoveAllButOneOfEachName();
 
 	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
-
-	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* pNode);
 
 	vector<HighScore> vHighScores;
 	Grade HighGrade{ Grade_NoData };

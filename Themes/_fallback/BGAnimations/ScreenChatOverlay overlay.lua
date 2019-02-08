@@ -68,15 +68,27 @@ chat.InitCommand = function(self)
 	self:visible(false)
 end
 local isGameplay
+local isInSinglePlayer
 chat.ScreenChangedMessageCommand = function(self)
 	local s = SCREENMAN:GetTopScreen()
 	if not s then
 		return
 	end
+	local oldScreen = currentScreen
 	currentScreen = s:GetName()
+	
+	-- prevent the chat from showing in singleplayer because it can be annoying
+	if oldScreen ~= currentScreen and (currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or currentScreen == "ScreenOptionsService") then
+		isInSinglePlayer = true
+	end
+	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
+		isInSinglePlayer = false
+	end
+	
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
-	if isGameplay then
+
+	if isGameplay or isInSinglePlayer then
 		self:visible(false)
 		show = false
 		typing = false
@@ -87,7 +99,7 @@ chat.ScreenChangedMessageCommand = function(self)
 			0.025
 		)
 	else
-		self:visible(online)
+		self:visible(online and not isInSinglePlayer)
 		show = true
 	end
 	if currentScreen == "ScreenNetSelectMusic" then
@@ -261,7 +273,7 @@ for i = 0, maxTabs - 1 do
 			{
 				InitCommand = function(self)
 					self:halign(0):valign(0)
-					self:maxwidth(tabWidth)
+					self:maxwidth(tabWidth*2)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
 					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
@@ -339,6 +351,20 @@ chat[#chat + 1] = chatWindow
 chat.UpdateChatOverlayMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", typing)
 end
+
+function shiftTab(fromIndex, toIndex)
+	-- tabs[index of tab][parameter table....]
+	-- 					[1 is type, 2 is tab contents?]
+	tabs[toIndex] = tabs[fromIndex]
+	tabs[fromIndex] = nil
+end
+
+function shiftAllTabs(emptyIndex)
+	for i = emptyIndex + 1, maxTabs - 1 do
+		shiftTab(i, i-1)
+	end
+end
+
 function overTab(mx, my)
 	for i = 0, maxTabs - 1 do
 		if tabs[i + 1] then
@@ -383,25 +409,28 @@ function MPinput(event)
 					update = true
 				end
 			else
-				if not closeTab then
-					changeTab(tabs[tabButton][2], tabs[tabButton][1])
-				else
-					local tabT = tabs[tabButton][1]
-					local tabN = tabs[tabButton][2]
-					if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
-						return false
-					end
-					tabs[tabButton] = nil
-					if chats[tabT][tabN] == messages then
-						for i = #tabs, 1, -1 do
-							if tabs[i] then
-								changeTab(tabs[i][2], tabs[i][1])
+				if event.type == "InputEventType_FirstPress" then -- only change tabs on press (to stop repeatedly closing tabs or changing to a tab we close) -poco
+					if not closeTab then
+						changeTab(tabs[tabButton][2], tabs[tabButton][1])
+					else
+						local tabT = tabs[tabButton][1]
+						local tabN = tabs[tabButton][2]
+						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
+							return false
+						end
+						tabs[tabButton] = nil
+						if chats[tabT][tabN] == messages then
+							for i = #tabs, 1, -1 do
+								if tabs[i] then
+									changeTab(tabs[i][2], tabs[i][1])
+								end
 							end
 						end
+						chats[tabT][tabN] = nil
+						shiftAllTabs(tabButton)
 					end
-					chats[tabT][tabN] = nil
+					update = true
 				end
-				update = true
 			end
 		end
 	end
@@ -412,7 +441,6 @@ function MPinput(event)
 		MESSAGEMAN:Broadcast("Minimise")
 		update = true
 		if not minimize then
-			typing = true
 			typingText = ""
 		end
 	end

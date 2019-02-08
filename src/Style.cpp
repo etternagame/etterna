@@ -24,12 +24,11 @@
 bool
 Style::GetUsesCenteredArrows() const
 {
-	switch (m_StyleType) {
-		case StyleType_OnePlayerTwoSides:
-		case StyleType_TwoPlayersSharedSides:
-			return true;
-		default:
-			return false;
+	switch( m_StyleType )
+	{
+	case StyleType_OnePlayerTwoSides:
+	default:
+		return false;
 	}
 }
 
@@ -42,7 +41,7 @@ Style::GetTransformedNoteDataForStyle(PlayerNumber pn,
 
 	int iNewToOriginalTrack[MAX_COLS_PER_PLAYER];
 	for (int col = 0; col < m_iColsPerPlayer; col++) {
-		ColumnInfo colInfo = m_ColumnInfo[pn][col];
+		ColumnInfo colInfo = m_ColumnInfo[col];
 		iNewToOriginalTrack[col] = colInfo.track;
 	}
 
@@ -55,10 +54,9 @@ Style::StyleInputToGameInput(int iCol,
 							 PlayerNumber pn,
 							 vector<GameInput>& ret) const
 {
-	ASSERT_M(pn < NUM_PLAYERS && iCol < MAX_COLS_PER_PLAYER,
-			 ssprintf("P%i C%i", pn, iCol));
-	bool bUsingOneSide = m_StyleType != StyleType_OnePlayerTwoSides &&
-						 m_StyleType != StyleType_TwoPlayersSharedSides;
+	ASSERT_M( pn < NUM_PLAYERS  &&  iCol < MAX_COLS_PER_PLAYER,
+		ssprintf("P%i C%i", pn, iCol) );
+	bool bUsingOneSide = true;
 
 	FOREACH_ENUM(GameController, gc)
 	{
@@ -117,8 +115,8 @@ Style::GetMinAndMaxColX(PlayerNumber pn, float& fMixXOut, float& fMaxXOut) const
 	fMixXOut = FLT_MAX;
 	fMaxXOut = FLT_MIN;
 	for (int i = 0; i < m_iColsPerPlayer; i++) {
-		fMixXOut = min(fMixXOut, m_ColumnInfo[pn][i].fXOffset);
-		fMaxXOut = max(fMaxXOut, m_ColumnInfo[pn][i].fXOffset);
+		fMixXOut = min(fMixXOut, m_ColumnInfo[i].fXOffset);
+		fMaxXOut = max(fMaxXOut, m_ColumnInfo[i].fXOffset);
 	}
 }
 
@@ -136,7 +134,7 @@ Style::GetWidth(PlayerNumber pn) const
 RString
 Style::ColToButtonName(int iCol) const
 {
-	const char* pzColumnName = m_ColumnInfo[PLAYER_1][iCol].pzName;
+	const char* pzColumnName = m_ColumnInfo[iCol].pzName;
 	if (pzColumnName != NULL)
 		return pzColumnName;
 
@@ -170,7 +168,7 @@ class LunaStyle : public Luna<Style>
 	}
 	static int GetWidth(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		lua_pushnumber(L, p->GetWidth(pn));
 		return 1;
 	}
@@ -178,7 +176,7 @@ class LunaStyle : public Luna<Style>
 
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		int iCol = IArg(2) - 1;
 		if (iCol < 0 || iCol >= p->m_iColsPerPlayer) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -189,9 +187,9 @@ class LunaStyle : public Luna<Style>
 		}
 
 		LuaTable ret;
-		lua_pushnumber(L, p->m_ColumnInfo[pn][iCol].track + 1);
+		lua_pushnumber(L, p->m_ColumnInfo[iCol].track + 1);
 		ret.Set(L, "Track");
-		lua_pushnumber(L, p->m_ColumnInfo[pn][iCol].fXOffset);
+		lua_pushnumber(L, p->m_ColumnInfo[iCol].fXOffset);
 		ret.Set(L, "XOffset");
 		lua_pushstring(L, p->ColToButtonName(iCol));
 		ret.Set(L, "Name");

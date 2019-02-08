@@ -16,8 +16,6 @@
 #include "CryptManager.h"
 #include "RageFileManager.h"
 
-ThemeMetric<string> EMPTY_NAME("HighScore", "EmptyName");
-
 const string BASIC_REPLAY_DIR =
   "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
 const string FULL_REPLAY_DIR =
@@ -54,14 +52,11 @@ struct HighScoreImpl
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
-	unsigned int iMaxCombo;		   // maximum combo obtained [SM5 alpha 1a+]
-	StageAward stageAward;		   // stage award [SM5 alpha 1a+]
-	PeakComboAward peakComboAward; // peak combo award [SM5 alpha 1a+]
-	string sModifiers;
-	DateTime dateTime;   // return value of time() for when the highscore object
-						 // was created (immediately after achieved)
-	string sPlayerGuid;  // who made this high score
-	string sMachineGuid; // where this high score was made
+	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
+	string	sModifiers;
+	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
+	string sPlayerGuid;	// who made this high score
+	string sMachineGuid;	// where this high score was made
 	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
@@ -75,9 +70,8 @@ struct HighScoreImpl
 	int TopScore;
 
 	HighScoreImpl();
-	XNode* CreateNode() const;
+
 	XNode* CreateEttNode() const;
-	void LoadFromNode(const XNode* pNode);
 	void LoadFromEttNode(const XNode* pNode);
 	Grade GetWifeGrade() const;
 	void UnloadReplayData();
@@ -107,31 +101,27 @@ struct HighScoreImpl
 bool
 HighScoreImpl::operator==(const HighScoreImpl& other) const
 {
-#define COMPARE(x)                                                             \
-	if ((x) != other.x)                                                        \
-		return false;
-	COMPARE(sName);
-	COMPARE(grade);
-	COMPARE(iScore);
-	COMPARE(iMaxCombo);
-	COMPARE(stageAward);
-	COMPARE(peakComboAward);
-	COMPARE(fPercentDP);
-	COMPARE(fSurviveSeconds);
-	COMPARE(sModifiers);
-	COMPARE(dateTime);
-	COMPARE(sPlayerGuid);
-	COMPARE(sMachineGuid);
-	COMPARE(iProductID);
-	FOREACH_ENUM(TapNoteScore, tns)
-	COMPARE(iTapNoteScores[tns]);
-	FOREACH_ENUM(HoldNoteScore, hns)
-	COMPARE(iHoldNoteScores[hns]);
-	FOREACH_ENUM(Skillset, ss)
-	COMPARE(fSkillsetSSRs[ss]);
-	COMPARE(radarValues);
-	COMPARE(fLifeRemainingSeconds);
-	COMPARE(bDisqualified);
+#define COMPARE(x)	if( (x)!=other.x )	return false;
+	COMPARE( sName );
+	COMPARE( grade );
+	COMPARE( iScore );
+	COMPARE( iMaxCombo );
+	COMPARE( fPercentDP );
+	COMPARE( fSurviveSeconds );
+	COMPARE( sModifiers );
+	COMPARE( dateTime );
+	COMPARE( sPlayerGuid );
+	COMPARE( sMachineGuid );
+	COMPARE( iProductID );
+	FOREACH_ENUM( TapNoteScore, tns )
+		COMPARE( iTapNoteScores[tns] );
+	FOREACH_ENUM( HoldNoteScore, hns )
+		COMPARE( iHoldNoteScores[hns] );
+	FOREACH_ENUM( Skillset, ss)
+		COMPARE(fSkillsetSSRs[ss]);
+	COMPARE( radarValues );
+	COMPARE( fLifeRemainingSeconds );
+	COMPARE( bDisqualified );
 #undef COMPARE
 
 	return true;
@@ -283,8 +273,6 @@ HighScoreImpl::HighScoreImpl()
 	vRescoreJudgeVector.clear();
 	fSurviveSeconds = 0.f;
 	iMaxCombo = 0;
-	stageAward = StageAward_Invalid;
-	peakComboAward = PeakComboAward_Invalid;
 	sModifiers = "";
 	dateTime.Init();
 	sPlayerGuid = "";
@@ -298,71 +286,6 @@ HighScoreImpl::HighScoreImpl()
 	string ValidationKey = "";
 	TopScore = 0;
 	ReplayType = 2;
-}
-
-XNode*
-HighScoreImpl::CreateNode() const
-{
-	XNode* pNode = new XNode("HighScore");
-
-	// TRICKY:  Don't write "name to fill in" markers.
-	pNode->AppendChild("Name", IsRankingToFillIn(sName) ? RString("") : sName);
-	pNode->AppendChild("HistoricChartKey", ChartKey);
-	pNode->AppendChild("ScoreKey", ScoreKey);
-	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
-	pNode->AppendChild("Grade", GradeToString(grade));
-	pNode->AppendChild("Score", iScore);
-	pNode->AppendChild("PercentDP", fPercentDP);
-	pNode->AppendChild("WifeScore", fWifeScore);
-	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
-	pNode->AppendChild("Rate", fMusicRate);
-	pNode->AppendChild("JudgeScale", fJudgeScale);
-	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
-	pNode->AppendChild("EtternaValid", bEtternaValid);
-	if (!uploaded.empty()) {
-		XNode* pServerNode = pNode->AppendChild("Servs");
-		for (auto server : uploaded)
-			pServerNode->AppendChild("server", server);
-	}
-	if (vOffsetVector.size() > 1) {
-		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
-		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
-	}
-
-	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
-	pNode->AppendChild("MaxCombo", iMaxCombo);
-	pNode->AppendChild("StageAward", StageAwardToString(stageAward));
-	pNode->AppendChild("PeakComboAward",
-					   PeakComboAwardToString(peakComboAward));
-	pNode->AppendChild("Modifiers", sModifiers);
-	pNode->AppendChild("DateTime", dateTime.GetString());
-	pNode->AppendChild("PlayerGuid", sPlayerGuid);
-	pNode->AppendChild("MachineGuid", sMachineGuid);
-	pNode->AppendChild("ProductID", iProductID);
-
-	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
-	FOREACH_ENUM(TapNoteScore, tns)
-	if (tns != TNS_None) // HACK: don't save meaningless "none" count
-		pTapNoteScores->AppendChild(TapNoteScoreToString(tns),
-									iTapNoteScores[tns]);
-
-	XNode* pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
-	FOREACH_ENUM(HoldNoteScore, hns)
-	if (hns != HNS_None) // HACK: don't save meaningless "none" count
-		pHoldNoteScores->AppendChild(HoldNoteScoreToString(hns),
-									 iHoldNoteScores[hns]);
-
-	// dont bother writing skillset ssrs for non-applicable scores
-	if (fWifeScore > 0.f) {
-		XNode* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
-		FOREACH_ENUM(Skillset, ss)
-		pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
-	}
-
-	pNode->AppendChild(radarValues.CreateNode());
-	pNode->AppendChild("LifeRemainingSeconds", fLifeRemainingSeconds);
-	pNode->AppendChild("Disqualified", bDisqualified);
-	return pNode;
 }
 
 XNode*
@@ -504,156 +427,6 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
 	// Validate input.
-	grade = clamp(grade, Grade_Tier01, Grade_Failed);
-}
-
-void
-HighScoreImpl::LoadFromNode(const XNode* pNode)
-{
-	ASSERT(pNode->GetName() == "HighScore");
-
-	RString s;
-
-	pNode->GetChildValue("Name", s);
-	sName = s;
-	pNode->GetChildValue("HistoricChartKey", s);
-	ChartKey = s;
-	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	pNode->GetChildValue("Grade", s);
-	grade = StringToGrade(s);
-	pNode->GetChildValue("Score", iScore);
-	pNode->GetChildValue("PercentDP", fPercentDP);
-	pNode->GetChildValue("WifeScore", fWifeScore);
-	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
-	pNode->GetChildValue("Rate", fMusicRate);
-	pNode->GetChildValue("JudgeScale", fJudgeScale);
-	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
-	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
-	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("StageAward", s);
-	stageAward = StringToStageAward(s);
-	pNode->GetChildValue("PeakComboAward", s);
-	peakComboAward = StringToPeakComboAward(s);
-	pNode->GetChildValue("Modifiers", s);
-	sModifiers = s;
-	if (fMusicRate == 0.f) {
-		size_t ew = sModifiers.find("xMusic");
-		size_t dew = string::npos;
-		if (ew == string::npos)
-			fMusicRate = 1.f;
-		else {
-			dew = sModifiers.find_last_of('.', ew) - 1;
-			RString loot = sModifiers.substr(dew, ew - dew);
-			fMusicRate = StringToFloat(loot);
-		}
-	}
-	pNode->GetChildValue("DateTime", s);
-	dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", s);
-	ScoreKey = s;
-
-	if (fWifeScore > 0.f)
-		ScoreKey =
-		  "S" +
-		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
-	else
-		ScoreKey = "";
-
-	pNode->GetChildValue("PlayerGuid", s);
-	sPlayerGuid = s;
-	pNode->GetChildValue("MachineGuid", s);
-	sMachineGuid = s;
-	pNode->GetChildValue("ProductID", iProductID);
-
-	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
-	if (pTapNoteScores)
-		FOREACH_ENUM(TapNoteScore, tns)
-	pTapNoteScores->GetChildValue(TapNoteScoreToString(tns),
-								  iTapNoteScores[tns]);
-
-	const XNode* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
-	if (pHoldNoteScores)
-		FOREACH_ENUM(HoldNoteScore, hns)
-	pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns),
-								   iHoldNoteScores[hns]);
-
-	if (fWifeScore > 0.f) {
-		const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
-		if (pSkillsetSSRs)
-			FOREACH_ENUM(Skillset, ss)
-		pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
-	}
-
-	const XNode* pRadarValues = pNode->GetChild("RadarValues");
-	if (pRadarValues != nullptr)
-		radarValues.LoadFromNode(pRadarValues);
-	pNode->GetChildValue("LifeRemainingSeconds", fLifeRemainingSeconds);
-	pNode->GetChildValue("Disqualified", bDisqualified);
-
-	// 3.9 conversion stuff (wtf is this code??) -mina
-	if (pTapNoteScores != nullptr)
-		FOREACH_ENUM(TapNoteScore, tns)
-		{
-			pTapNoteScores->GetChildValue(TapNoteScoreToString(tns),
-										  iTapNoteScores[tns]);
-			if (tns == TNS_W1 && iTapNoteScores[tns] == 0) {
-				int old = iTapNoteScores[tns];
-				pTapNoteScores->GetChildValue("Marvelous", iTapNoteScores[tns]);
-
-				// only mark as import if loading the other tag changes the
-				// values
-				if (old != iTapNoteScores[tns])
-					is39import = true;
-			} else if (tns == TNS_W2 && iTapNoteScores[tns] == 0)
-				pTapNoteScores->GetChildValue("Perfect", iTapNoteScores[tns]);
-			else if (tns == TNS_W3 && iTapNoteScores[tns] == 0)
-				pTapNoteScores->GetChildValue("Great", iTapNoteScores[tns]);
-			else if (tns == TNS_W4 && iTapNoteScores[tns] == 0)
-				pTapNoteScores->GetChildValue("Good", iTapNoteScores[tns]);
-			else if (tns == TNS_W5 && iTapNoteScores[tns] == 0)
-				pTapNoteScores->GetChildValue("Boo", iTapNoteScores[tns]);
-		}
-
-	if (pHoldNoteScores != nullptr)
-		FOREACH_ENUM(HoldNoteScore, hns)
-		{
-			pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns),
-										   iHoldNoteScores[hns]);
-			if (hns == HNS_Held && iHoldNoteScores[hns] == 0)
-				pHoldNoteScores->GetChildValue("OK", iHoldNoteScores[hns]);
-			else if (hns == HNS_LetGo && iHoldNoteScores[hns] == 0)
-				pHoldNoteScores->GetChildValue("NG", iHoldNoteScores[hns]);
-		}
-
-	int basecmod = 0;
-
-	// 3.9 doesnt save rates lol....
-	if (is39import) {
-		if (basecmod > 0) {
-			string cmod = sModifiers.substr(0, sModifiers.find_first_of(","));
-			if (cmod.substr(0, 1) == "C") {
-				int playedcmod = StringToInt(cmod.substr(1, cmod.size()));
-				float estrate =
-				  static_cast<float>(basecmod) / static_cast<float>(playedcmod);
-				int herp = lround(estrate * 10);
-				estrate = static_cast<float>(herp) / 10.f;
-				fMusicRate = estrate;
-			}
-		}
-
-		// auto validate 3.95 imports for now
-		bEtternaValid = true;
-
-		// have to assume j4
-		fJudgeScale = 1.f;
-	}
-
-	if (ScoreKey == "")
-		ScoreKey =
-		  "S" +
-		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
-
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
@@ -988,12 +761,6 @@ HighScore::GenerateValidationKeys()
 	return key;
 }
 
-bool
-HighScore::Is39import() const
-{
-	return m_Impl->is39import;
-}
-
 string
 HighScore::GetName() const
 {
@@ -1024,16 +791,7 @@ HighScore::GetMaxCombo() const
 {
 	return m_Impl->iMaxCombo;
 }
-StageAward
-HighScore::GetStageAward() const
-{
-	return m_Impl->stageAward;
-}
-PeakComboAward
-HighScore::GetPeakComboAward() const
-{
-	return m_Impl->peakComboAward;
-}
+
 float
 HighScore::GetPercentDP() const
 {
@@ -1251,16 +1009,7 @@ HighScore::SetMaxCombo(unsigned int i)
 {
 	m_Impl->iMaxCombo = i;
 }
-void
-HighScore::SetStageAward(StageAward a)
-{
-	m_Impl->stageAward = a;
-}
-void
-HighScore::SetPeakComboAward(PeakComboAward a)
-{
-	m_Impl->peakComboAward = a;
-}
+
 void
 HighScore::SetPercentDP(float f)
 {
@@ -1492,46 +1241,9 @@ HighScore::operator!=(const HighScore& other) const
 }
 
 XNode*
-HighScore::CreateNode() const
-{
-	return m_Impl->CreateNode();
-}
-
-XNode*
 HighScore::CreateEttNode() const
 {
 	return m_Impl->CreateEttNode();
-}
-
-// Used for importing from stats.xml -mina
-void
-HighScore::LoadFromNode(const XNode* pNode)
-{
-	m_Impl->LoadFromNode(pNode);
-
-	/* Convert any old dp scores to wife. It is possible to diffrentiate
-	converted scores from non-converted via highscore members that did not exist
-	pre-etterna, such as timingscale or judgevalue, however is it better to make
-	an explicit flag or would that just be needlessly redundant? - mina */
-	if (m_Impl->fWifeScore == 0.f) {
-		m_Impl->fWifeScore = ConvertDpToWife();
-
-		// auto flag any converted files as invalid and let the player choose
-		// whether or not to validate them
-		m_Impl->bEtternaValid = false;
-	}
-
-	// If imported scores have no normpercent check for replays to calculate it
-	// or fallback to wifescore (assume j4) -mina
-	if (m_Impl->fSSRNormPercent == 0.f) {
-		if (m_Impl->grade != Grade_Failed)
-			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
-		else
-			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
-
-		m_Impl->vNoteRowVector.clear();
-		m_Impl->vOffsetVector.clear();
-	}
 }
 
 // Used to load from etterna.xml -mina
@@ -1554,10 +1266,7 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 string
 HighScore::GetDisplayName() const
 {
-	if (GetName().empty())
-		return EMPTY_NAME;
-	else
-		return GetName();
+	return GetName();
 }
 
 /* begin HighScoreList */
@@ -1606,55 +1315,6 @@ HighScoreList::GetTopScore() const
 	}
 }
 
-XNode*
-HighScoreList::CreateNode() const
-{
-	XNode* pNode = new XNode("HighScoreList");
-
-	pNode->AppendChild("NumTimesPlayed", iNumTimesPlayed);
-	pNode->AppendChild("LastPlayed", dtLastPlayed.GetString());
-	if (HighGrade != Grade_NoData)
-		pNode->AppendChild("HighGrade", GradeToString(HighGrade));
-
-	for (unsigned i = 0; i < vHighScores.size(); i++) {
-		const HighScore& hs = vHighScores[i];
-		pNode->AppendChild(hs.CreateNode());
-	}
-
-	return pNode;
-}
-
-void
-HighScoreList::LoadFromNode(const XNode* pHighScoreList)
-{
-	Init();
-
-	ASSERT(pHighScoreList->GetName() == "HighScoreList");
-	FOREACH_CONST_Child(pHighScoreList, p)
-	{
-		const RString& name = p->GetName();
-		if (name == "NumTimesPlayed") {
-			p->GetTextValue(iNumTimesPlayed);
-		} else if (name == "LastPlayed") {
-			RString s;
-			p->GetTextValue(s);
-			dtLastPlayed.FromString(s);
-		} else if (name == "HighGrade") {
-			RString s;
-			p->GetTextValue(s);
-			HighGrade = StringToGrade(s);
-		} else if (name == "HighScore") {
-			vHighScores.resize(vHighScores.size() + 1);
-			vHighScores.back().LoadFromNode(p);
-
-			// ignore all high scores that are 0
-			if (vHighScores.back().GetScore() == 0)
-				vHighScores.pop_back();
-			else
-				HighGrade = min(vHighScores.back().GetWifeGrade(), HighGrade);
-		}
-	}
-}
 
 void
 HighScoreList::RemoveAllButOneOfEachName()
@@ -1701,8 +1361,6 @@ Screenshot::CreateNode() const
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild("FileName", sFileName);
 	pNode->AppendChild("MD5", sMD5);
-	pNode->AppendChild(highScore.CreateNode());
-
 	return pNode;
 }
 
@@ -1714,8 +1372,6 @@ Screenshot::LoadFromNode(const XNode* pNode)
 	pNode->GetChildValue("FileName", sFileName);
 	pNode->GetChildValue("MD5", sMD5);
 	const XNode* pHighScore = pNode->GetChild("HighScore");
-	if (pHighScore)
-		highScore.LoadFromNode(pHighScore);
 }
 
 float
@@ -1788,7 +1444,6 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 	}
 
 	float o = p / pmax;
-	UnloadReplayData();
 	return o;
 }
 
@@ -1966,8 +1621,8 @@ class LunaHighScore : public Luna<HighScore>
 	static int IsFillInMarker(T* p, lua_State* L)
 	{
 		bool bIsFillInMarker = false;
-		FOREACH_PlayerNumber(pn) bIsFillInMarker |=
-		  p->GetName() == RANKING_TO_FILL_IN_MARKER[pn];
+		bIsFillInMarker |=
+		  p->GetName() == RANKING_TO_FILL_IN_MARKER;
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}
@@ -2043,8 +1698,6 @@ class LunaHighScore : public Luna<HighScore>
 			for (size_t i = 0; i < v.size(); ++i)
 				v[i] = v[i] * 1000;
 			LuaHelpers::CreateTableFromArray(v, L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2055,11 +1708,7 @@ class LunaHighScore : public Luna<HighScore>
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
-				v = &(p->GetNoteRowVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2073,8 +1722,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTrackVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2088,8 +1735,6 @@ class LunaHighScore : public Luna<HighScore>
 			if (!loaded)
 				v = &(p->GetTapNoteTypeVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
 		} else
 			lua_pushnil(L);
 		return 1;
@@ -2127,8 +1772,6 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetGrade, GetGrade())
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD(ConvertDpToWife, ConvertDpToWife())
-	DEFINE_METHOD(GetStageAward, GetStageAward())
-	DEFINE_METHOD(GetPeakComboAward, GetPeakComboAward())
 	DEFINE_METHOD(GetChordCohesion, GetChordCohesion())
 	DEFINE_METHOD(GetEtternaValid, GetEtternaValid())
 	DEFINE_METHOD(HasReplayData, HasReplayData())
@@ -2161,8 +1804,6 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetGrade);
 		ADD_METHOD(GetWifeGrade);
 		ADD_METHOD(GetMaxCombo);
-		ADD_METHOD(GetStageAward);
-		ADD_METHOD(GetPeakComboAward);
 		ADD_METHOD(ToggleEtternaValidation);
 		ADD_METHOD(GetEtternaValid);
 		ADD_METHOD(HasReplayData);

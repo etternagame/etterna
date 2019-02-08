@@ -2,7 +2,6 @@
 #define SCREEN_GAMEPLAY_H
 
 #include "AutoKeysounds.h"
-#include "BeginnerHelper.h"
 #include "BitmapText.h"
 #include "GameplayAssist.h"
 #include "InputEventPlus.h"
@@ -20,7 +19,6 @@
 class LyricsLoader;
 class Player;
 class LifeMeter;
-class ScoreDisplay;
 class StepsDisplay;
 class ScoreKeeper;
 class Background;
@@ -42,9 +40,6 @@ class PlayerInfo
 			  int iAddToDifficulty);
 	void LoadDummyP1(int iDummyIndex, int iAddToDifficulty);
 
-	/** @brief The player has lost all of their lives: show the special game
-	 * over. */
-	void ShowOniGameOver();
 	/**
 	 * @brief Retrieve the player's state and stage stats index.
 	 * @return the player's state and stage stats index.
@@ -105,14 +100,9 @@ class PlayerInfo
 	LifeMeter* m_pLifeMeter;
 	/** @brief The description of the current Steps. */
 	BitmapText* m_ptextStepsDescription;
-
-	/** @brief The display for the primary ScoreKeeper. */
-	ScoreDisplay* m_pPrimaryScoreDisplay;
-	/** @brief The display for the secondary ScoreKeeper. */
-	ScoreDisplay* m_pSecondaryScoreDisplay;
 	/** @brief The primary ScoreKeeper for keeping track of the score. */
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	/** @brief The secondary ScoreKeeper. Only used in PLAY_MODE_RAVE. */
+	/** @brief The secondary ScoreKeeper. Formerly used in PLAY_MODE_RAVE. */
 	ScoreKeeper* m_pSecondaryScoreKeeper;
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText* m_ptextPlayerOptions;
@@ -124,8 +114,6 @@ class PlayerInfo
 	Player* m_pPlayer;
 
 	StepsDisplay* m_pStepsDisplay;
-
-	AutoActor m_sprOniGameOver;
 };
 
 /** @brief The music plays, the notes scroll, and the Player is pressing
@@ -170,6 +158,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	float SetRate(float newRate);
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newPositionSeconds);
+	void pmdoot(float newPositionSeconds);
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
 	// Toggle pause. Don't use this outside of replays.
@@ -205,9 +194,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/** @brief The miss combo a player needs to fail out of a song. */
 	ThemeMetric<int> FAIL_ON_MISS_COMBO;
 	ThemeMetric<bool> ALLOW_CENTER_1_PLAYER;
-	ThemeMetric<bool> UNPAUSE_WITH_START;
 	ThemeMetric<RString> SONG_NUMBER_FORMAT;
-	ThemeMetric<bool> SURVIVAL_MOD_OVERRIDE;
 
 	void SetupSong(int iSongIndex);
 	void ReloadCurrentSong();
@@ -292,12 +279,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/** @brief The transition to use when one player earns an easter egg. */
 	Transition m_Toasty;
 
-	/**
-	 * @brief How much time has the player survived in the extra stage?
-	 *
-	 * TODO: Move this into a BGA. */
-	BitmapText m_textSurviveTime;
-
 	AutoKeysounds m_AutoKeysounds;
 
 	RageSound m_soundBattleTrickLevel1;
@@ -309,7 +290,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	GameplayAssist m_GameplayAssist;
 	RageSound* m_pSoundMusic;
 
-	BeginnerHelper m_BeginnerHelper;
 
 	vector<PlayerInfo>
 	  m_vPlayerInfo; // filled by SGameplay derivatives in FillPlayerInfo

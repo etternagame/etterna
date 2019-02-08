@@ -37,10 +37,11 @@ struct RegisterScreenClass
 /** @brief The different types of screens available. */
 enum ScreenType
 {
-	attract,	 /**< The attract/demo mode, inviting players to play. */
-	game_menu,   /**< The menu screens, where options can be set before playing.
-				  */
-	gameplay,	/**< The gameplay screen, where the actual game takes place. */
+	attract,   /**< The attract/demo mode, inviting players to play. */
+	game_menu, /**< The menu screens, where options can be set before playing.
+				*/
+	gameplay,  /**< The gameplay screen, where the actual game takes place. */
+	evaluation,
 	system_menu, /**< The system/operator menu, where special options are set.
 				  */
 	NUM_ScreenType, /**< The number of screen types. */
@@ -101,6 +102,13 @@ class Screen : public ActorFrame
 
 	// Lua
 	void PushSelf(lua_State* L) override;
+
+	vector<pair<function<void(void)>, float>> delayedFunctions;
+	void SetTimeout(function<void()> f, float ms);
+	std::list<tuple<function<void(void)>, float, float, int>>
+	  delayedPeriodicFunctions; // This is a list to allow safe iterators
+	vector<int> delayedPeriodicFunctionIdsToDelete;
+	void SetInterval(function<void()> f, float ms, int fRemove);
 
   protected:
 	/** @brief Holds the messages sent to a Screen. */

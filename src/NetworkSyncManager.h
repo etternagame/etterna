@@ -86,6 +86,8 @@ enum ETTServerMessageTypes
 	ettps_recievechat,
 	ettps_loginresponse,
 	ettps_roomlist,
+	ettps_lobbyuserlist,
+	ettps_lobbyuserlistupdate,
 	ettps_recievescore,
 	ettps_mpleaderboardupdate,
 	ettps_createroomresponse,
@@ -267,6 +269,7 @@ class ETTProtocol : public NetProtocol
 	void LeaveRoom(NetworkSyncManager* n) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void OnMusicSelect() override;
 	void OnOptions() override;
 	void OffOptions() override;
 	void OnEval() override;
@@ -375,6 +378,8 @@ class NetworkSyncManager
 	bool ChangedScoreboard(int Column); // Returns true if scoreboard changed
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
+
+	set<string> lobbyuserlist;
 
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 
