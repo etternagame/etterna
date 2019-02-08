@@ -76,6 +76,10 @@ local function laneHighlight()
 	local colWidth = width/cols
 	local border = 4
 	
+	if not enabled then
+		return r
+	end
+	
 	for i=1,cols do
 		r[#r+1] = Def.Quad{
 			InitCommand = function(self)
@@ -84,11 +88,6 @@ local function laneHighlight()
 				
 				local reverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
 				local receptor = reverse and THEME:GetMetric("Player", "ReceptorArrowsYStandard") or THEME:GetMetric("Player", "ReceptorArrowsYReverse")
-				
-				if i > cols or not enabled then
-					self:visible(false)
-					self:hibernate(math.huge)
-				end
 
 				self:diffusealpha(alpha)
 				local thewidth
@@ -103,11 +102,6 @@ local function laneHighlight()
 				self:visible(false)
 			end,
 			JudgmentMessageCommand=function(self,params)
-				if not enabled then
-					self:visible(false)
-					self:hibernate(math.huge)
-					return
-				end
 				local notes = params.Notes
 				local firstTrack = params.FirstTrack+1
 				if params.Player == pn and params.TapNoteScore then
