@@ -90,6 +90,24 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 	for (int i = 0; i < (int)args.argv.size(); i++) {
 		RString s = args.argv[i];
 		if (s == "notedataCache") {
+			auto outputPath = args.argv[i + 1];
+			auto packs = SONGMAN->GetSongGroupNames();
+			for(auto& pack : packs) {
+				auto path = SONGMAN->GetSongGroupBannerPath(pack);
+				if (path == "" || !FILEMAN->IsAFile(path))
+					continue;
+				RageFile f;
+				f.Open(path);
+				string p = f.GetPath();
+				f.Close();
+				std::ofstream dst(
+				  outputPath + pack + "_packbanner." +
+					GetExtension(path).c_str(),
+				  std::ios::binary);
+				std::ifstream src(p, std::ios::binary);
+				dst << src.rdbuf();
+				dst.close();
+			}
 			FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), iSong)
 			{
 				Song* pSong = (*iSong);
@@ -118,7 +136,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  args.argv[i + 1] + songkey + "_banner." +
+					  outputPath + songkey + "_banner." +
 						GetExtension(pSong->m_sBannerFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
@@ -131,7 +149,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  args.argv[i + 1] + songkey + "_cd." +
+					  outputPath + songkey + "_cd." +
 						GetExtension(pSong->m_sCDTitleFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
@@ -145,7 +163,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  args.argv[i + 1] + songkey + "_bg." +
+					  outputPath + songkey + "_bg." +
 						GetExtension(pSong->m_sBackgroundFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
@@ -165,7 +183,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					auto& serializednd = nd.SerializeNoteData(etaner);
 
 					string path =
-					  args.argv[i + 1] + steps->GetChartKey() + ".cache";
+					  outputPath + steps->GetChartKey() + ".cache";
 					ofstream FILE(path, ios::out | ofstream::binary);
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
