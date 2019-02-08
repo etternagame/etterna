@@ -110,10 +110,8 @@ ScreenMiniMenu::AfterChangeValueOrRow(PlayerNumber pn)
 {
 	ScreenOptions::AfterChangeValueOrRow(pn);
 
-	vector<PlayerNumber> vpns;
-	vpns.push_back(PLAYER_1);
 	for (unsigned i = 0; i < m_pRows.size(); i++)
-		ExportOptions(i, vpns);
+		ExportOptions(i, PLAYER_1);
 
 	// Changing one option can affect whether other options are available.
 	for (unsigned i = 0; i < m_pRows.size(); i++) {
@@ -130,7 +128,7 @@ ScreenMiniMenu::AfterChangeValueOrRow(PlayerNumber pn)
 }
 
 void
-ScreenMiniMenu::ImportOptions(int r, const vector<PlayerNumber>& vpns)
+ScreenMiniMenu::ImportOptions(int r, const PlayerNumber& vpns)
 {
 	OptionRow& optrow = *m_pRows[r];
 	const MenuRowDef& mr = m_vMenuRows[r];
@@ -139,7 +137,7 @@ ScreenMiniMenu::ImportOptions(int r, const vector<PlayerNumber>& vpns)
 }
 
 void
-ScreenMiniMenu::ExportOptions(int r, const vector<PlayerNumber>& vpns)
+ScreenMiniMenu::ExportOptions(int r, const PlayerNumber& vpns)
 {
 	if (r == GetCurrentRow())
 		s_iLastRowCode = m_vMenuRows[r].iRowCode;

@@ -630,7 +630,7 @@ Player::Load()
 	//		m_pScore->Init( pn );
 
 	// Mina garbage - Mina
-	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
+	m_Timing = GAMESTATE->m_pCurSteps->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 	int lastRow = m_NoteData.GetLastRow();
 	m_Timing->BuildAndGetEtar(lastRow);
@@ -649,11 +649,11 @@ Player::Load()
 		m_pPlayerStageStats->filehadnegbpms = true;
 
 	// check before nomines transform
-	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
+	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
 		m_pPlayerStageStats->filegotmines = true;
 
-	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Holds] > 0 ||
-		GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Rolls] > 0)
+	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
+		GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
 		m_pPlayerStageStats->filegotholds = true;
 
 	// check for lua script load (technically this is redundant a little with
@@ -662,7 +662,7 @@ Player::Load()
 		m_pPlayerStageStats->luascriptwasloaded = true;
 
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
-	  GAMESTATE->m_pCurSteps[pn]->GetChartKey(),
+	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (pb != nullptr)
 		wifescorepersonalbest = pb->GetWifeScore();
@@ -1997,7 +1997,7 @@ Player::Step(int col,
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 
-	if (GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber])
+	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
 
 	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
@@ -2521,7 +2521,7 @@ Player::StepReplay(int col,
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 
-	if (GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber])
+	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
 
 	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;

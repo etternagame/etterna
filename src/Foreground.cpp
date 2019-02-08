@@ -45,7 +45,7 @@ Foreground::LoadFromSong(const Song* pSong)
 		if (DoesFileExist(sLuaFile)) {
 			LOG->Warn("Mod map detected, invalidating sequential assumption.");
 			TimingData* td =
-			  GAMESTATE->m_pCurSteps[GAMESTATE->GetMasterPlayerNumber()]
+			  GAMESTATE->m_pCurSteps
 				->GetTimingData();
 			td->InvalidateSequentialAssmption();
 

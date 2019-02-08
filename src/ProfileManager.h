@@ -74,7 +74,7 @@ class ProfileManager
 
 	bool IsPersistentProfile(PlayerNumber pn) const
 	{
-		return !m_sProfileDir[pn].empty();
+		return !m_sProfileDir.empty();
 	}
 	bool IsPersistentProfile(ProfileSlot slot) const;
 
@@ -121,22 +121,21 @@ class ProfileManager
 
 	// Directory that contains the profile.  Either on local machine or
 	// on a memory card.
-	RString m_sProfileDir[NUM_PLAYERS];
+	RString m_sProfileDir;
 
 	RString m_stats_prefix;
 	Profile* dummy;
-	bool m_bLastLoadWasTamperedOrCorrupt[NUM_PLAYERS]; // true if Stats.xml was
+	bool m_bLastLoadWasTamperedOrCorrupt; // true if Stats.xml was
 													   // present, but failed to
 													   // load (probably because
 													   // of a signature
 													   // failure)
-	bool m_bLastLoadWasFromLastGood
-	  [NUM_PLAYERS]; // if true, then
+	bool m_bLastLoadWasFromLastGood; // if true, then
 					 // m_bLastLoadWasTamperedOrCorrupt
 					 // is also true
-	mutable bool m_bNeedToBackUpLastLoad[NUM_PLAYERS]; // if true, back up
+	mutable bool m_bNeedToBackUpLastLoad; // if true, back up
 													   // profile on next save
-	bool m_bNewProfile[NUM_PLAYERS];
+	bool m_bNewProfile;
 };
 
 extern ProfileManager*

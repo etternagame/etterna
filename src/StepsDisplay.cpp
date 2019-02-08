@@ -123,12 +123,12 @@ StepsDisplay::Load(const RString& sMetricsGroup,
 void
 StepsDisplay::SetFromGameState(PlayerNumber pn)
 {
-	const Steps* pSteps = GAMESTATE->m_pCurSteps[pn];
+	const Steps* pSteps = GAMESTATE->m_pCurSteps;
 	if (pSteps != nullptr)
 		SetFromSteps(pSteps);
 	else
 		SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
-		  StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty[pn]);
+		  StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty);
 }
 
 void

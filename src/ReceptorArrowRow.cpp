@@ -90,9 +90,9 @@ ReceptorArrowRow::Update(float fDeltaTime)
 			const Style* style =
 			  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
 			m_ReceptorArrow[c]->SetX(
-			  style->m_ColumnInfo[m_pPlayerState->m_PlayerNumber][c].fXOffset);
+			  style->m_ColumnInfo[c].fXOffset);
 			m_OverlayReceptorArrow[c]->SetX(
-			  style->m_ColumnInfo[m_pPlayerState->m_PlayerNumber][c].fXOffset);
+			  style->m_ColumnInfo[c].fXOffset);
 		}
 	}
 }

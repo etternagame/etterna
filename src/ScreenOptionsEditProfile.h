@@ -14,8 +14,8 @@ class ScreenOptionsEditProfile : public ScreenOptions
 
   protected:
   private:
-	void ImportOptions(int row, const vector<PlayerNumber>& vpns) override;
-	void ExportOptions(int row, const vector<PlayerNumber>& vpns) override;
+	void ImportOptions(int row, const PlayerNumber& vpns) override;
+	void ExportOptions(int row, const PlayerNumber& vpns) override;
 
 	virtual void GoToNextScreen();
 	virtual void GoToPrevScreen();

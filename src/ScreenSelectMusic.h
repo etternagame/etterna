@@ -93,7 +93,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool DetectCodes(const InputEventPlus& input);
 
 	vector<Steps*> m_vpSteps;
-	int m_iSelection[NUM_PLAYERS];
+	int m_iSelection;
 
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
@@ -154,18 +154,17 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RString m_sFallbackCDTitlePath;
 
 	MusicWheel m_MusicWheel;
-	OptionsList m_OptionsList[NUM_PLAYERS];
+	OptionsList m_OptionsList;
 
 	SelectionState m_SelectionState;
-	bool
-	  m_bStepsChosen[NUM_PLAYERS]; // only used in SelectionState_SelectingSteps
+	bool m_bStepsChosen; // only used in SelectionState_SelectingSteps
 	bool m_bGoToOptions;
 	RString m_sSampleMusicToPlay;
 	TimingData* m_pSampleMusicTimingData;
 	float m_fSampleStartSeconds, m_fSampleLengthSeconds;
 	bool m_bAllowOptionsMenu, m_bAllowOptionsMenuRepeat;
-	bool m_bSelectIsDown[NUM_PLAYERS];
-	bool m_bAcceptSelectRelease[NUM_PLAYERS];
+	bool m_bSelectIsDown;
+	bool m_bAcceptSelectRelease;
 
 	RageSound m_soundStart;
 	RageSound m_soundDifficultyEasier;

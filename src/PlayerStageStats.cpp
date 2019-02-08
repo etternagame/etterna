@@ -363,7 +363,7 @@ PlayerStageStats::GetMaxWifeScore() const
 vector<float>
 PlayerStageStats::CalcSSR(float ssrpercent) const
 {
-	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* steps = GAMESTATE->m_pCurSteps;
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	return MinaSDCalc(serializednd,
 					  steps->GetNoteData().GetNumTracks(),

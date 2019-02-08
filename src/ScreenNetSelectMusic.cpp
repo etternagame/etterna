@@ -98,8 +98,8 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 	if (NSMAN->song != nullptr) {
 		GAMESTATE->m_pCurSong.Set(NSMAN->song);
 		if (NSMAN->steps != nullptr) {
-			GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-			GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+			GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
+			GAMESTATE->m_PreferredDifficulty.Set(
 			  NSMAN->steps->GetDifficulty());
 		}
 		if (!m_MusicWheel.SelectSong(NSMAN->song)) {
@@ -137,8 +137,8 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		if (NSMAN->song != nullptr) {
 			GAMESTATE->m_pCurSong.Set(NSMAN->song);
 			if (NSMAN->steps != nullptr) {
-				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+				GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
+				GAMESTATE->m_PreferredDifficulty.Set(
 				  NSMAN->steps->GetDifficulty());
 			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
@@ -265,12 +265,12 @@ ScreenNetSelectMusic::SelectCurrent()
 
 	if (pSong == NULL)
 		return false;
-	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection[PLAYER_1])
+	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection)
 		return false;
 	GAMESTATE->m_pCurSong.Set(pSong);
-	Steps* pSteps = m_vpSteps[m_iSelection[PLAYER_1]];
-	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
-	GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(pSteps->GetDifficulty());
+	Steps* pSteps = m_vpSteps[m_iSelection];
+	GAMESTATE->m_pCurSteps.Set(pSteps);
+	GAMESTATE->m_PreferredDifficulty.Set(pSteps->GetDifficulty());
 
 	if (NSMAN->useSMserver) {
 		NSMAN->m_sArtist = pSong->GetTranslitArtist();

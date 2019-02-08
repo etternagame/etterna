@@ -141,7 +141,7 @@ ModIconRow::SetFromGameState()
 	PlayerNumber pn = m_pn;
 
 	RString sOptions =
-	  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetStage().GetString();
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().GetString();
 	vector<RString> vsOptions;
 	split(sOptions, ", ", vsOptions, true);
 

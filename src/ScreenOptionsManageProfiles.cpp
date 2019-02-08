@@ -187,7 +187,7 @@ void
 ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToNextScreen) {
-		int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+		int iCurRow = m_iCurrentRow;
 		OptionRow& row = *m_pRows[iCurRow];
 		if (row.GetRowType() == OptionRow::RowType_Exit) {
 			this->HandleScreenMessage(SM_GoToPrevScreen);
@@ -376,7 +376,7 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	if (IsTransitioning())
 		return;
 
-	int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+	int iCurRow = m_iCurrentRow;
 	OptionRow& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
@@ -421,21 +421,21 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 void
 ScreenOptionsManageProfiles::ImportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 
 void
 ScreenOptionsManageProfiles::ExportOptions(
   int /* iRow */,
-  const vector<PlayerNumber>& /* vpns */)
+  const PlayerNumber& /* vpns */)
 {
 }
 
 int
 ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 {
-	int iCurRow = m_iCurrentRow[GAMESTATE->GetMasterPlayerNumber()];
+	int iCurRow = m_iCurrentRow;
 	OptionRow& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"

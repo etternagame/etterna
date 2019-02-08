@@ -41,7 +41,7 @@ Style::GetTransformedNoteDataForStyle(PlayerNumber pn,
 
 	int iNewToOriginalTrack[MAX_COLS_PER_PLAYER];
 	for (int col = 0; col < m_iColsPerPlayer; col++) {
-		ColumnInfo colInfo = m_ColumnInfo[pn][col];
+		ColumnInfo colInfo = m_ColumnInfo[col];
 		iNewToOriginalTrack[col] = colInfo.track;
 	}
 
@@ -115,8 +115,8 @@ Style::GetMinAndMaxColX(PlayerNumber pn, float& fMixXOut, float& fMaxXOut) const
 	fMixXOut = FLT_MAX;
 	fMaxXOut = FLT_MIN;
 	for (int i = 0; i < m_iColsPerPlayer; i++) {
-		fMixXOut = min(fMixXOut, m_ColumnInfo[pn][i].fXOffset);
-		fMaxXOut = max(fMaxXOut, m_ColumnInfo[pn][i].fXOffset);
+		fMixXOut = min(fMixXOut, m_ColumnInfo[i].fXOffset);
+		fMaxXOut = max(fMaxXOut, m_ColumnInfo[i].fXOffset);
 	}
 }
 
@@ -134,7 +134,7 @@ Style::GetWidth(PlayerNumber pn) const
 RString
 Style::ColToButtonName(int iCol) const
 {
-	const char* pzColumnName = m_ColumnInfo[PLAYER_1][iCol].pzName;
+	const char* pzColumnName = m_ColumnInfo[iCol].pzName;
 	if (pzColumnName != NULL)
 		return pzColumnName;
 
@@ -187,9 +187,9 @@ class LunaStyle : public Luna<Style>
 		}
 
 		LuaTable ret;
-		lua_pushnumber(L, p->m_ColumnInfo[pn][iCol].track + 1);
+		lua_pushnumber(L, p->m_ColumnInfo[iCol].track + 1);
 		ret.Set(L, "Track");
-		lua_pushnumber(L, p->m_ColumnInfo[pn][iCol].fXOffset);
+		lua_pushnumber(L, p->m_ColumnInfo[iCol].fXOffset);
 		ret.Set(L, "XOffset");
 		lua_pushstring(L, p->ColToButtonName(iCol));
 		ret.Set(L, "Name");

@@ -75,27 +75,22 @@ ScreenOptionsMaster::Init()
 }
 
 void
-ScreenOptionsMaster::ImportOptions(int r, const vector<PlayerNumber>& vpns)
+ScreenOptionsMaster::ImportOptions(int r, const PlayerNumber& vpns)
 {
-	FOREACH_CONST(PlayerNumber, vpns, pn)
-	ASSERT(GAMESTATE->IsHumanPlayer(*pn));
+	ASSERT(GAMESTATE->IsHumanPlayer(vpns));
 	OptionRow& row = *m_pRows[r];
 	row.ImportOptions(vpns);
 }
 
 void
-ScreenOptionsMaster::ExportOptions(int r, const vector<PlayerNumber>& vpns)
+ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 {
 	CHECKPOINT_M(ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())));
 
 	OptionRow& row = *m_pRows[r];
-	bool bRowHasFocus[NUM_PLAYERS];
-	ZERO(bRowHasFocus);
-	FOREACH_CONST(PlayerNumber, vpns, p)
-	{
-		int iCurRow = m_iCurrentRow[*p];
-		bRowHasFocus[*p] = iCurRow == r;
-	}
+	bool bRowHasFocus = false;
+	int iCurRow = m_iCurrentRow;
+	bRowHasFocus = iCurRow == r;
 	m_iChangeMask |= row.ExportOptions(vpns, bRowHasFocus);
 }
 
@@ -108,10 +103,8 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage SM)
 
 		CHECKPOINT_M("Starting the export handling.");
 
-		vector<PlayerNumber> vpns;
-		FOREACH_OptionsPlayer(p) vpns.push_back(p);
 		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
-			ExportOptions(r, vpns);
+			ExportOptions(r, PLAYER_1);
 
 		if ((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0) {
 			THEME->UpdateLuaGlobals(); // This needs to be done before resetting

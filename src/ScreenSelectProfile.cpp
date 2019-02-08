@@ -11,7 +11,7 @@ void
 ScreenSelectProfile::Init()
 {
 	// no selection initially
-	m_iSelectedProfiles[PLAYER_1] = -1;
+	m_iSelectedProfiles = -1;
 	m_TrackingRepeatingInput = GameButton_Invalid;
 	ScreenWithMenuElements::Init();
 }
@@ -132,11 +132,11 @@ ScreenSelectProfile::SetProfileIndex(PlayerNumber pn, int iProfileIndex)
 	if (iProfileIndex == -2) {
 		// GAMESTATE->UnjoinPlayer takes care of unloading the profile.
 		GAMESTATE->UnjoinPlayer(pn);
-		m_iSelectedProfiles[pn] = -1;
+		m_iSelectedProfiles = -1;
 		return true;
 	}
 
-	m_iSelectedProfiles[pn] = iProfileIndex;
+	m_iSelectedProfiles = iProfileIndex;
 
 	return true;
 }
@@ -149,27 +149,27 @@ ScreenSelectProfile::Finish()
 
 	// if profile indexes are the same for both players
 	if (GAMESTATE->GetNumPlayersEnabled() == 2 &&
-		m_iSelectedProfiles[0] == m_iSelectedProfiles[1] &&
-		m_iSelectedProfiles[0] > 0)
+		m_iSelectedProfiles == m_iSelectedProfiles &&
+		m_iSelectedProfiles > 0)
 		return false;
 
 	int iUsedLocalProfiles = 0;
 	int iUnselectedProfiles = 0;
 
 	// not all players has made their choices
-	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && (m_iSelectedProfiles[PLAYER_1] == -1))
+	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && (m_iSelectedProfiles == -1))
 		iUnselectedProfiles++;
 
 	// card not ready
-	if (m_iSelectedProfiles[PLAYER_1] == 0)
+	if (m_iSelectedProfiles == 0)
 		return false;
 
 	// profile index too big
-	if (m_iSelectedProfiles[PLAYER_1] > PROFILEMAN->GetNumLocalProfiles())
+	if (m_iSelectedProfiles > PROFILEMAN->GetNumLocalProfiles())
 		return false;
 
 	// inc used profile count
-	if (m_iSelectedProfiles[PLAYER_1] > 0)
+	if (m_iSelectedProfiles > 0)
 		iUsedLocalProfiles++;
 
 	// this allows to continue if there is less local profiles than number of
@@ -181,9 +181,9 @@ ScreenSelectProfile::Finish()
 	// all ok - load profiles and go to next screen
 	PROFILEMAN->UnloadProfile(PLAYER_1);
 
-	if (m_iSelectedProfiles[PLAYER_1] > 0) {
+	if (m_iSelectedProfiles > 0) {
 		PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(
-			PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles[PLAYER_1] - 1));
+			PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles - 1));
 		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
 	}

@@ -37,7 +37,7 @@
 void
 AutoKeysounds::Load(PlayerNumber pn, const NoteData& ndAutoKeysoundsOnly)
 {
-	m_ndAutoKeysoundsOnly[pn] = ndAutoKeysoundsOnly;
+	m_ndAutoKeysoundsOnly = ndAutoKeysoundsOnly;
 }
 
 void
@@ -53,7 +53,7 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 	 * Add all current autoplay sounds in both players to the chain.
 	 */
 	int iNumTracks =
-	  m_ndAutoKeysoundsOnly[GAMESTATE->GetMasterPlayerNumber()].GetNumTracks();
+	  m_ndAutoKeysoundsOnly.GetNumTracks();
 	for (int t = 0; t < iNumTracks; t++) {
 		int iRow = -1;
 		for (;;) {
@@ -62,14 +62,14 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 			FOREACH_EnabledPlayer(pn)
 			{
 				// XXX Hack. Enabled players need not have their own note data.
-				if (t >= m_ndAutoKeysoundsOnly[pn].GetNumTracks())
+				if (t >= m_ndAutoKeysoundsOnly.GetNumTracks())
 					continue;
 				int iNextRowForPlayer = iRow;
 				/* XXX: If a BMS file only has one tap note per track,
 				 * this will prevent any keysounds from loading.
 				 * This leads to failure later on.
 				 * We need a better way to prevent this. */
-				if (m_ndAutoKeysoundsOnly[pn].GetNextTapNoteRowForTrack(
+				if (m_ndAutoKeysoundsOnly.GetNextTapNoteRowForTrack(
 					  t, iNextRowForPlayer))
 					iNextRow = min(iNextRow, iNextRowForPlayer);
 			}
@@ -78,21 +78,20 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 				break;
 			iRow = iNextRow;
 
-			TapNote tn[NUM_PLAYERS];
-			FOREACH_EnabledPlayer(pn) tn[pn] =
-			  m_ndAutoKeysoundsOnly[pn].GetTapNote(t, iRow);
+			TapNote tn;
+			tn = m_ndAutoKeysoundsOnly.GetTapNote(t, iRow);
 
 			FOREACH_EnabledPlayer(pn)
 			{
-				if (tn[pn] == TAP_EMPTY)
+				if (tn == TAP_EMPTY)
 					continue;
 
-				ASSERT(tn[pn].type == TapNoteType_AutoKeysound);
-				if (tn[pn].iKeysoundIndex >= 0) {
+				ASSERT(tn.type == TapNoteType_AutoKeysound);
+				if (tn.iKeysoundIndex >= 0) {
 					RString sKeysoundFilePath =
-					  sSongDir + pSong->m_vsKeysoundFile[tn[pn].iKeysoundIndex];
+					  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
 					float fSeconds =
-					  GAMESTATE->m_pCurSteps[pn]
+					  GAMESTATE->m_pCurSteps
 						->GetTimingData()
 						->WhereUAtBroNoOffset(NoteRowToBeat(iRow)) +
 					  SOUNDMAN->GetPlayLatency();
@@ -124,7 +123,7 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 
 	vector<RString> vsMusicFile;
 	const RString sMusicPath =
-	  GAMESTATE->m_pCurSteps[GAMESTATE->GetMasterPlayerNumber()]
+	  GAMESTATE->m_pCurSteps
 		->GetMusicPath();
 
 	if (!sMusicPath.empty())
@@ -195,7 +194,7 @@ AutoKeysounds::FinishLoading()
 	Song* pSong = GAMESTATE->m_pCurSong;
 
 	vector<RageSoundReader*> apSounds;
-	LoadTracks(pSong, m_pSharedSound, m_pPlayerSounds[0]);
+	LoadTracks(pSong, m_pSharedSound, m_pPlayerSounds);
 
 	// Load autoplay sounds, if any.
 	{
@@ -223,13 +222,13 @@ AutoKeysounds::FinishLoading()
 	m_pSharedSound = new RageSoundReader_Pan(m_pSharedSound);
 	apSounds.push_back(m_pSharedSound);
 
-	if (m_pPlayerSounds[0] != nullptr) {
-		m_pPlayerSounds[0] =
-		  new RageSoundReader_PitchChange(m_pPlayerSounds[0]);
-		m_pPlayerSounds[0] =
-		  new RageSoundReader_PostBuffering(m_pPlayerSounds[0]);
-		m_pPlayerSounds[0] = new RageSoundReader_Pan(m_pPlayerSounds[0]);
-		apSounds.push_back(m_pPlayerSounds[0]);
+	if (m_pPlayerSounds != nullptr) {
+		m_pPlayerSounds =
+		  new RageSoundReader_PitchChange(m_pPlayerSounds);
+		m_pPlayerSounds =
+		  new RageSoundReader_PostBuffering(m_pPlayerSounds);
+		m_pPlayerSounds = new RageSoundReader_Pan(m_pPlayerSounds);
+		apSounds.push_back(m_pPlayerSounds);
 	}
 
 	if (apSounds.size() > 1) {

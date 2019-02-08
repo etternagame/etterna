@@ -50,9 +50,9 @@ REGISTER_SCREEN_CLASS(ScreenSelectMaster);
 
 ScreenSelectMaster::ScreenSelectMaster()
 {
-	ZERO(m_iChoice);
-	ZERO(m_bChosen);
-	ZERO(m_bDoubleChoice);
+	m_iChoice = 0;
+	m_bChosen = false;
+	m_bDoubleChoice = false;
 }
 
 void
@@ -103,18 +103,17 @@ ScreenSelectMaster::Init()
 		FOREACH(PlayerNumber, vpns, p)
 		{
 			RString sElement = "Cursor" + PLAYER_APPEND_NO_SPACE(*p);
-			m_sprCursor[*p].Load(THEME->GetPathG(m_sName, sElement));
+			m_sprCursor.Load(THEME->GetPathG(m_sName, sElement));
 			sElement.Replace(" ", "");
-			m_sprCursor[*p]->SetName(sElement);
-			this->AddChild(m_sprCursor[*p]);
-			LOAD_ALL_COMMANDS(m_sprCursor[*p]);
+			m_sprCursor->SetName(sElement);
+			this->AddChild(m_sprCursor);
+			LOAD_ALL_COMMANDS(m_sprCursor);
 		}
 	}
 
 	// Resize vectors depending on how many choices there are
 	m_vsprIcon.resize(m_aGameCommands.size());
-	FOREACH(PlayerNumber, vpns, p)
-	m_vsprScroll[*p].resize(m_aGameCommands.size());
+	m_vsprScroll.resize(m_aGameCommands.size());
 
 	vector<RageVector3> positions;
 	bool positions_set_by_lua = false;
@@ -220,14 +219,14 @@ ScreenSelectMaster::Init()
 				if (!SHARED_SELECTION)
 					vs.push_back(PLAYER_APPEND_NO_SPACE(*p));
 				RString sElement = join(" ", vs);
-				m_vsprScroll[*p][c].Load(THEME->GetPathG(m_sName, sElement));
+				m_vsprScroll[c].Load(THEME->GetPathG(m_sName, sElement));
 				RString sName = "Scroll"
 								"Choice" +
 								mc.m_sName;
 				if (!SHARED_SELECTION)
 					sName += PLAYER_APPEND_NO_SPACE(*p);
-				m_vsprScroll[*p][c]->SetName(sName);
-				m_Scroller[*p].AddChild(m_vsprScroll[*p][c]);
+				m_vsprScroll[c]->SetName(sName);
+				m_Scroller.AddChild(m_vsprScroll[c]);
 			}
 		}
 	}
@@ -236,15 +235,15 @@ ScreenSelectMaster::Init()
 	if (SHOW_SCROLLER) {
 		FOREACH(PlayerNumber, vpns, p)
 		{
-			m_Scroller[*p].SetLoop(LOOP_SCROLLER);
-			m_Scroller[*p].SetNumItemsToDraw(SCROLLER_NUM_ITEMS_TO_DRAW);
-			m_Scroller[*p].Load2();
-			m_Scroller[*p].SetTransformFromReference(SCROLLER_TRANSFORM);
-			m_Scroller[*p].SetSecondsPerItem(SCROLLER_SECONDS_PER_ITEM);
-			m_Scroller[*p].SetNumSubdivisions(SCROLLER_SUBDIVISIONS);
-			m_Scroller[*p].SetName("Scroller" + PLAYER_APPEND_NO_SPACE(*p));
-			LOAD_ALL_COMMANDS_AND_SET_XY(m_Scroller[*p]);
-			this->AddChild(&m_Scroller[*p]);
+			m_Scroller.SetLoop(LOOP_SCROLLER);
+			m_Scroller.SetNumItemsToDraw(SCROLLER_NUM_ITEMS_TO_DRAW);
+			m_Scroller.Load2();
+			m_Scroller.SetTransformFromReference(SCROLLER_TRANSFORM);
+			m_Scroller.SetSecondsPerItem(SCROLLER_SECONDS_PER_ITEM);
+			m_Scroller.SetNumSubdivisions(SCROLLER_SUBDIVISIONS);
+			m_Scroller.SetName("Scroller" + PLAYER_APPEND_NO_SPACE(*p));
+			LOAD_ALL_COMMANDS_AND_SET_XY(m_Scroller);
+			this->AddChild(&m_Scroller);
 		}
 	}
 
@@ -343,21 +342,21 @@ ScreenSelectMaster::BeginScreen()
 		}
 	}
 
-	m_iChoice[PLAYER_1] = (iDefaultChoice != -1) ? iDefaultChoice : 0;
-	CLAMP(m_iChoice[PLAYER_1], 0, (int)m_aGameCommands.size() - 1);
-	m_bChosen[PLAYER_1] = false;
-	m_bDoubleChoice[PLAYER_1] = false;
+	m_iChoice = (iDefaultChoice != -1) ? iDefaultChoice : 0;
+	CLAMP(m_iChoice, 0, (int)m_aGameCommands.size() - 1);
+	m_bChosen = false;
+	m_bDoubleChoice = false;
 
 	if (!SHARED_SELECTION) {
 		if (GAMESTATE->IsHumanPlayer(PLAYER_1))
 		{} else
 		{
 		if (SHOW_CURSOR) {
-			if (m_sprCursor[PLAYER_1])
-				m_sprCursor[PLAYER_1]->SetVisible(false);
+			if (m_sprCursor)
+				m_sprCursor->SetVisible(false);
 		}
 		if (SHOW_SCROLLER)
-			m_Scroller[PLAYER_1].SetVisible(false);
+			m_Scroller.SetVisible(false);
 		}
 	}
 
@@ -379,7 +378,7 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 	GetActiveElementPlayerNumbers(vpns);
 
 	if (SM == SM_PlayPostSwitchPage) {
-		int iNewChoice = m_iChoice[GAMESTATE->GetMasterPlayerNumber()];
+		int iNewChoice = m_iChoice;
 		Page newPage = GetPage(iNewChoice);
 
 		Message msg("PostSwitchPage");
@@ -387,14 +386,14 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 
 		if (SHOW_CURSOR) {
 			FOREACH(PlayerNumber, vpns, p)
-			m_sprCursor[*p]->HandleMessage(msg);
+			m_sprCursor->HandleMessage(msg);
 		}
 
 		if (SHOW_SCROLLER) {
 			FOREACH(PlayerNumber, vpns, p)
 			{
-				int iChoice = m_iChoice[*p];
-				m_vsprScroll[*p][iChoice]->HandleMessage(msg);
+				int iChoice = m_iChoice;
+				m_vsprScroll[iChoice]->HandleMessage(msg);
 			}
 		}
 		MESSAGEMAN->Broadcast(msg);
@@ -405,7 +404,7 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 			FOREACH_HumanPlayer(p)
 			{
 				m_bDoubleChoiceNoSound = true;
-				m_bDoubleChoice[p] = true;
+				m_bDoubleChoice = true;
 				InputEventPlus iep;
 				iep.pn = p;
 				MenuStart(iep);
@@ -427,7 +426,7 @@ ScreenSelectMaster::HandleMessage(const Message& msg)
 int
 ScreenSelectMaster::GetSelectionIndex(PlayerNumber pn)
 {
-	return m_iChoice[pn];
+	return m_iChoice;
 }
 
 void
@@ -436,8 +435,8 @@ ScreenSelectMaster::UpdateSelectableChoices()
 	vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 	int first_playable = -1;
-	bool on_unplayable[NUM_PLAYERS];
-	on_unplayable[PLAYER_1] = false;
+	bool on_unplayable;
+	on_unplayable = false;
 
 	for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
 		RString command = "Enabled";
@@ -454,19 +453,19 @@ ScreenSelectMaster::UpdateSelectableChoices()
 
 		FOREACH(PlayerNumber, vpns, p)
 		{
-			if (disabled && m_iChoice[*p] == c) {
-				on_unplayable[*p] = true;
+			if (disabled && m_iChoice == c) {
+				on_unplayable = true;
 			}
-			if (m_vsprScroll[*p][c].IsLoaded()) {
-				m_vsprScroll[*p][c]->PlayCommand(command);
+			if (m_vsprScroll[c].IsLoaded()) {
+				m_vsprScroll[c]->PlayCommand(command);
 			}
 		}
 	}
 	FOREACH(PlayerNumber, vpns, pn)
 	{
-		if (on_unplayable[*pn] && first_playable != -1) {
+		if (on_unplayable && first_playable != -1) {
 			ChangeSelection(*pn,
-							first_playable < m_iChoice[*pn] ? MenuDir_Left
+							first_playable < m_iChoice ? MenuDir_Left
 															: MenuDir_Right,
 							first_playable);
 		}
@@ -478,7 +477,7 @@ ScreenSelectMaster::UpdateSelectableChoices()
 	FOREACH_HumanPlayer(p)
 	{
 		if (!m_aGameCommands.empty() &&
-			!m_aGameCommands[m_iChoice[p]].IsPlayable())
+			!m_aGameCommands[m_iChoice].IsPlayable())
 			Move(p, MenuDir_Auto);
 	}
 }
@@ -499,7 +498,7 @@ ScreenSelectMaster::Move(PlayerNumber pn, MenuDir dir)
 	if (!AnyOptionsArePlayable())
 		return false;
 
-	int iSwitchToIndex = m_iChoice[pn];
+	int iSwitchToIndex = m_iChoice;
 	set<int> seen;
 
 	do {
@@ -526,7 +525,7 @@ bool
 ScreenSelectMaster::MenuLeft(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if (m_fLockInputSecs > 0 || m_bChosen[pn])
+	if (m_fLockInputSecs > 0 || m_bChosen)
 		return false;
 	if (input.type == IET_RELEASE)
 		return false;
@@ -544,7 +543,7 @@ ScreenSelectMaster::MenuLeft(const InputEventPlus& input)
 
 		// if they use double select
 		if (DOUBLE_PRESS_TO_SELECT) {
-			m_bDoubleChoice[pn] = false; // player has cancelled their selection
+			m_bDoubleChoice = false; // player has cancelled their selection
 		}
 		return true;
 	}
@@ -555,7 +554,7 @@ bool
 ScreenSelectMaster::MenuRight(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if (m_fLockInputSecs > 0 || m_bChosen[pn])
+	if (m_fLockInputSecs > 0 || m_bChosen)
 		return false;
 	if (input.type == IET_RELEASE)
 		return false;
@@ -573,7 +572,7 @@ ScreenSelectMaster::MenuRight(const InputEventPlus& input)
 
 		// if they use double select
 		if (DOUBLE_PRESS_TO_SELECT) {
-			m_bDoubleChoice[pn] = false; // player has cancelled their selection
+			m_bDoubleChoice = false; // player has cancelled their selection
 		}
 		return true;
 	}
@@ -584,7 +583,7 @@ bool
 ScreenSelectMaster::MenuUp(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if (m_fLockInputSecs > 0 || m_bChosen[pn])
+	if (m_fLockInputSecs > 0 || m_bChosen)
 		return false;
 	if (input.type == IET_RELEASE)
 		return false;
@@ -602,7 +601,7 @@ ScreenSelectMaster::MenuUp(const InputEventPlus& input)
 
 		// if they use double select
 		if (DOUBLE_PRESS_TO_SELECT) {
-			m_bDoubleChoice[pn] = false; // player has cancelled their selection
+			m_bDoubleChoice = false; // player has cancelled their selection
 		}
 		return true;
 	}
@@ -613,7 +612,7 @@ bool
 ScreenSelectMaster::MenuDown(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if (m_fLockInputSecs > 0 || m_bChosen[pn])
+	if (m_fLockInputSecs > 0 || m_bChosen)
 		return false;
 	if (input.type == IET_RELEASE)
 		return false;
@@ -631,7 +630,7 @@ ScreenSelectMaster::MenuDown(const InputEventPlus& input)
 
 		// if they use double select
 		if (DOUBLE_PRESS_TO_SELECT) {
-			m_bDoubleChoice[pn] = false; // player has cancelled their selection
+			m_bDoubleChoice = false; // player has cancelled their selection
 		}
 		return true;
 	}
@@ -641,15 +640,15 @@ ScreenSelectMaster::MenuDown(const InputEventPlus& input)
 bool
 ScreenSelectMaster::ChangePage(int iNewChoice)
 {
-	Page oldPage = GetPage(m_iChoice[GAMESTATE->GetMasterPlayerNumber()]);
+	Page oldPage = GetPage(m_iChoice);
 	Page newPage = GetPage(iNewChoice);
 
 	// If anyone has already chosen, don't allow changing of pages
-	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && m_bChosen[PLAYER_1])
+	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && m_bChosen)
 		return false;
 
 	// change both players
-	m_iChoice[PLAYER_1] = iNewChoice;
+	m_iChoice = iNewChoice;
 
 	const RString sIconAndExplanationCommand =
 	  ssprintf("SwitchToPage%d", newPage + 1);
@@ -675,12 +674,12 @@ ScreenSelectMaster::ChangePage(int iNewChoice)
 	{
 		if (GAMESTATE->IsHumanPlayer(*p)) {
 			if (SHOW_CURSOR) {
-				m_sprCursor[*p]->HandleMessage(msg);
-				m_sprCursor[*p]->SetXY(GetCursorX(*p), GetCursorY(*p));
+				m_sprCursor->HandleMessage(msg);
+				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
 			}
 
 			if (SHOW_SCROLLER)
-				m_vsprScroll[*p][m_iChoice[*p]]->HandleMessage(msg);
+				m_vsprScroll[m_iChoice]->HandleMessage(msg);
 		}
 	}
 
@@ -703,11 +702,11 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 									MenuDir dir,
 									int iNewChoice)
 {
-	if (iNewChoice == m_iChoice[pn])
+	if (iNewChoice == m_iChoice)
 		return false; // already there
 
 	Page page = GetPage(iNewChoice);
-	if (GetPage(m_iChoice[pn]) != page) {
+	if (GetPage(m_iChoice) != page) {
 		return ChangePage(iNewChoice);
 	}
 
@@ -722,8 +721,8 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 
 	FOREACH(PlayerNumber, vpns, p)
 	{
-		const int iOldChoice = m_iChoice[*p];
-		m_iChoice[*p] = iNewChoice;
+		const int iOldChoice = m_iChoice;
+		m_iChoice = iNewChoice;
 
 		if (SHOW_ICON) {
 			/* XXX: If !SharedPreviewAndCursor, this is incorrect. (Nothing uses
@@ -735,14 +734,14 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 			{
 				if (p2 == *p)
 					continue;
-				bOldStillHasFocus |= m_iChoice[p2] == iOldChoice;
-				bNewAlreadyHadFocus |= m_iChoice[p2] == iNewChoice;
+				bOldStillHasFocus |= m_iChoice == iOldChoice;
+				bNewAlreadyHadFocus |= m_iChoice == iNewChoice;
 			}
 
 			if (DOUBLE_PRESS_TO_SELECT) {
 				// this player is currently on a single press, which they are
 				// cancelling
-				if (m_bDoubleChoice[pn]) {
+				if (m_bDoubleChoice) {
 					if (!bOldStillHasFocus)
 						m_vsprIcon[iOldChoice]->PlayCommand(
 						  "LostSelectedLoseFocus");
@@ -766,18 +765,18 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 
 		if (SHOW_CURSOR) {
 			if (GAMESTATE->IsHumanPlayer(*p)) {
-				m_sprCursor[*p]->PlayCommand("Change");
-				m_sprCursor[*p]->SetXY(GetCursorX(*p), GetCursorY(*p));
+				m_sprCursor->PlayCommand("Change");
+				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
 			}
 		}
 
 		if (SHOW_SCROLLER) {
 			ActorScroller& scroller =
-			  (SHARED_SELECTION || page != PAGE_1 ? m_Scroller[0]
-												  : m_Scroller[*p]);
+			  (SHARED_SELECTION || page != PAGE_1 ? m_Scroller
+												  : m_Scroller);
 			vector<AutoActor>& vScroll =
-			  (SHARED_SELECTION || page != PAGE_1 ? m_vsprScroll[0]
-												  : m_vsprScroll[*p]);
+			  (SHARED_SELECTION || page != PAGE_1 ? m_vsprScroll
+												  : m_vsprScroll);
 
 			if (WRAP_SCROLLER) {
 				// HACK: We can't tell from the option orders whether or not we
@@ -802,7 +801,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 			if (DOUBLE_PRESS_TO_SELECT) {
 				// this player is currently on a single press, which they are
 				// cancelling
-				if (m_bDoubleChoice[pn]) {
+				if (m_bDoubleChoice) {
 					vScroll[iOldChoice]->PlayCommand("LostSelectedLoseFocus");
 					vScroll[iNewChoice]->PlayCommand("LostSelectedGainFocus");
 				} else // the player hasn't made any selections yet
@@ -840,19 +839,19 @@ ScreenSelectMaster::Page
 ScreenSelectMaster::GetCurrentPage() const
 {
 	// Both players are guaranteed to be on the same page.
-	return GetPage(m_iChoice[GetSharedPlayer()]);
+	return GetPage(m_iChoice);
 }
 
 float
 ScreenSelectMaster::DoMenuStart(PlayerNumber pn)
 {
-	if (m_bChosen[pn])
+	if (m_bChosen)
 		return 0;
 
 	bool bAnyChosen = false;
-	bAnyChosen |= m_bChosen[PLAYER_1];
+	bAnyChosen |= m_bChosen;
 
-	m_bChosen[pn] = true;
+	m_bChosen = true;
 
 	this->PlayCommand("MadeChoice" + PlayerNumberToString(pn));
 
@@ -868,9 +867,9 @@ ScreenSelectMaster::DoMenuStart(PlayerNumber pn)
 		}
 	}
 	if (SHOW_CURSOR) {
-		if (m_sprCursor[pn] != NULL) {
-			m_sprCursor[pn]->PlayCommand("Choose");
-			fSecs = max(fSecs, m_sprCursor[pn]->GetTweenTimeLeft());
+		if (m_sprCursor != NULL) {
+			m_sprCursor->PlayCommand("Choose");
+			fSecs = max(fSecs, m_sprCursor->GetTweenTimeLeft());
 		}
 	}
 
@@ -890,10 +889,10 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		// Return if any player has chosen
 		FOREACH_EnabledPlayer(p)
 		{
-			if (m_bChosen[p])
+			if (m_bChosen)
 				return false;
 		}
-	} else if (m_bChosen[pn])
+	} else if (m_bChosen)
 		// Return if this player has already chosen
 		return false;
 
@@ -901,14 +900,14 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		return false;
 
 	// double press is enabled and the player hasn't made their first press
-	if (DOUBLE_PRESS_TO_SELECT && !m_bDoubleChoice[pn]) {
+	if (DOUBLE_PRESS_TO_SELECT && !m_bDoubleChoice) {
 		m_soundStart.PlayCopy(true);
-		m_bDoubleChoice[pn] = true;
+		m_bDoubleChoice = true;
 
 		if (SHOW_SCROLLER) {
 			vector<AutoActor>& vScroll =
-			  SHARED_SELECTION ? m_vsprScroll[0] : m_vsprScroll[pn];
-			vScroll[m_iChoice[pn]]->PlayCommand("InitialSelection");
+			  SHARED_SELECTION ? m_vsprScroll : m_vsprScroll;
+			vScroll[m_iChoice]->PlayCommand("InitialSelection");
 		}
 
 		return true;
@@ -919,7 +918,7 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 	// choices were all invalid or didn't load or similar. -Kyz
 	GameCommand* mc = &empty_mc;
 	if (!m_aGameCommands.empty()) {
-		mc = &(m_aGameCommands[m_iChoice[pn]]);
+		mc = &(m_aGameCommands[m_iChoice]);
 	}
 
 	/* If no options are playable, then we're just waiting for one to become
@@ -954,13 +953,13 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		// too.
 		FOREACH_EnabledPlayer(p)
 		{
-			ASSERT(!m_bChosen[p]);
+			ASSERT(!m_bChosen);
 			fSecs = max(fSecs, DoMenuStart(p));
 		}
 	} else {
 		fSecs = max(fSecs, DoMenuStart(pn));
 		// check to see if everyone has chosen
-		FOREACH_HumanPlayer(p) bAllDone &= m_bChosen[p];
+		FOREACH_HumanPlayer(p) bAllDone &= m_bChosen;
 	}
 
 	if (bAllDone) {
@@ -989,7 +988,7 @@ ScreenSelectMaster::TweenOnScreen()
 
 	if (SHOW_ICON) {
 		for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
-			m_vsprIcon[c]->PlayCommand((int(c) == m_iChoice[0]) ? "GainFocus"
+			m_vsprIcon[c]->PlayCommand((int(c) == m_iChoice) ? "GainFocus"
 																: "LoseFocus");
 			m_vsprIcon[c]->FinishTweening();
 		}
@@ -1001,13 +1000,13 @@ ScreenSelectMaster::TweenOnScreen()
 			// Play Gain/LoseFocus before playing the on command.
 			// Gain/Lose will often stop tweening, which ruins the OnCommand.
 			for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
-				m_vsprScroll[*p][c]->PlayCommand(
-				  int(c) == m_iChoice[*p] ? "GainFocus" : "LoseFocus");
-				m_vsprScroll[*p][c]->FinishTweening();
+				m_vsprScroll[c]->PlayCommand(
+				  int(c) == m_iChoice ? "GainFocus" : "LoseFocus");
+				m_vsprScroll[c]->FinishTweening();
 			}
 
-			m_Scroller[*p].SetCurrentAndDestinationItem(
-			  static_cast<float>(m_iChoice[*p]));
+			m_Scroller.SetCurrentAndDestinationItem(
+			  static_cast<float>(m_iChoice));
 		}
 	}
 
@@ -1017,7 +1016,7 @@ ScreenSelectMaster::TweenOnScreen()
 		FOREACH(PlayerNumber, vpns, p)
 		{
 			if (GAMESTATE->IsHumanPlayer(*p))
-				m_sprCursor[*p]->SetXY(GetCursorX(*p), GetCursorY(*p));
+				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
 		}
 	}
 
@@ -1039,7 +1038,7 @@ ScreenSelectMaster::TweenOffScreen()
 		bool bSelectedByEitherPlayer = false;
 		FOREACH(PlayerNumber, vpns, p)
 		{
-			if (m_iChoice[*p] == (int)c)
+			if (m_iChoice == (int)c)
 				bSelectedByEitherPlayer = true;
 		}
 
@@ -1049,7 +1048,7 @@ ScreenSelectMaster::TweenOffScreen()
 
 		if (SHOW_SCROLLER) {
 			FOREACH(PlayerNumber, vpns, p)
-			m_vsprScroll[*p][c]->PlayCommand(
+			m_vsprScroll[c]->PlayCommand(
 			  bSelectedByEitherPlayer ? "OffFocused" : "OffUnfocused");
 		}
 	}
@@ -1060,7 +1059,7 @@ ScreenSelectMaster::TweenOffScreen()
 float
 ScreenSelectMaster::GetCursorX(PlayerNumber pn)
 {
-	int iChoice = m_iChoice[pn];
+	int iChoice = m_iChoice;
 	AutoActor& spr = m_vsprIcon[iChoice];
 	return spr->GetDestX() + CURSOR_OFFSET_X_FROM_ICON.GetValue(pn);
 }
@@ -1068,7 +1067,7 @@ ScreenSelectMaster::GetCursorX(PlayerNumber pn)
 float
 ScreenSelectMaster::GetCursorY(PlayerNumber pn)
 {
-	int iChoice = m_iChoice[pn];
+	int iChoice = m_iChoice;
 	AutoActor& spr = m_vsprIcon[iChoice];
 	return spr->GetDestY() + CURSOR_OFFSET_Y_FROM_ICON.GetValue(pn);
 }

@@ -216,13 +216,13 @@ class OptionRowHandler
 
 	virtual int GetDefaultOption() const { return -1; }
 	virtual void ImportOption(OptionRow*,
-							  const vector<PlayerNumber>&,
-							  vector<bool> vbSelectedOut[NUM_PLAYERS]) const
+							  const PlayerNumber&,
+							  vector<bool>& vbSelectedOut) const
 	{
 	}
 	// Returns an OPT mask.
-	virtual int ExportOption(const vector<PlayerNumber>&,
-							 const vector<bool> vbSelected[NUM_PLAYERS]) const
+	virtual int ExportOption(const PlayerNumber&,
+							 const vector<bool>& vbSelected) const
 	{
 		return 0;
 	}

@@ -44,7 +44,7 @@ GetCreditsMessage(PlayerNumber pn)
 		SCREENMAN->GetTopScreen()->GetScreenType() == system_menu)
 		bShowCreditsMessage = true;
 	else
-		bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined[pn];
+		bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined;
 
 	if (!bShowCreditsMessage) {
 		const Profile* pProfile = PROFILEMAN->GetProfile(pn);

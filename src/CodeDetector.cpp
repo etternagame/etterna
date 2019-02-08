@@ -171,7 +171,7 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 	// opt = PlayerOptions
 	// setup
 	PlayerNumber pn = INPUTMAPPER->ControllerToPlayerNumber( controller );
-	PlayerOptions po = GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+	PlayerOptions po = GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 	/* what this code seems to be doing is:
 	 * 1) getting the Speed line from the theme
@@ -235,7 +235,7 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 		auto code = static_cast<Code>(c);
 
 		PlayerOptions po =
-		  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 		if (EnteredCode(controller, code)) {
 			switch (code) {
@@ -282,7 +282,7 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 					break;
 			}
 
-			GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.Assign(
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(
 			  ModsLevel_Preferred, po);
 
 			return true; // don't check any more

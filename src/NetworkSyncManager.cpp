@@ -1239,8 +1239,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["ng"] = hs->GetHoldNoteScore(HNS_Missed);
 	payload["chartkey"] = hs->GetChartKey();
 	payload["rate"] = hs->GetMusicRate();
-	if (GAMESTATE->m_pPlayerState[PLAYER_1] != nullptr)
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState != nullptr)
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1386,8 +1386,8 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		return;
 	if (song == n->song) {
 		if (GAMESTATE->m_pCurSong == nullptr ||
-			GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr ||
-			GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
+			GAMESTATE->m_pCurSteps == nullptr ||
+			GAMESTATE->m_pPlayerState == nullptr)
 			return;
 		json startChart;
 		startChart["type"] = ettClientMessageMap[ettpc_startchart];
@@ -1397,10 +1397,10 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
 		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
 		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty());
+		payload["meter"] = GAMESTATE->m_pCurSteps->GetMeter();
+		payload["chartkey"] = GAMESTATE->m_pCurSteps->GetChartKey();
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 		payload["rate"] = static_cast<int>(
@@ -1408,7 +1408,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		startChart["id"] = msgId++;
 		Send(startChart);
 	} else {
-		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
+		if (GAMESTATE->m_pCurSteps == nullptr)
 			return;
 		json selectChart;
 		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
@@ -1418,11 +1418,11 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["artist"] = n->m_sArtist.c_str();
 		payload["filehash"] = song->GetFileHash().c_str();
 		payload["chartkey"] =
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey().c_str();
+		  GAMESTATE->m_pCurSteps->GetChartKey().c_str();
 		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty());
+		payload["meter"] = GAMESTATE->m_pCurSteps->GetMeter();
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 		payload["rate"] = static_cast<int>(

@@ -81,9 +81,7 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 	// doesn't match the difficulty of m_pCurSteps.
 	if (m_pSteps == NULL && m_dc != Difficulty_Invalid) {
 		// Why is this checking for all players?
-		FOREACH_HumanPlayer(
-		  human) if (GAMESTATE->m_PreferredDifficulty[human] !=
-					 m_dc) return false;
+		if (GAMESTATE->m_PreferredDifficulty != m_dc) return false;
 	}
 
 	if (m_sAnnouncer != "" && m_sAnnouncer != ANNOUNCER->GetCurAnnouncerName())
@@ -91,24 +89,24 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 
 	if (m_sPreferredModifiers != "") {
 		PlayerOptions po =
-		  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 		SongOptions so = GAMESTATE->m_SongOptions.GetPreferred();
 		po.FromString(m_sPreferredModifiers);
 		so.FromString(m_sPreferredModifiers);
 
-		if (po != GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred())
+		if (po != GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred())
 			return false;
 		if (so != GAMESTATE->m_SongOptions.GetPreferred())
 			return false;
 	}
 	if (m_sStageModifiers != "") {
 		PlayerOptions po =
-		  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetStage();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage();
 		SongOptions so = GAMESTATE->m_SongOptions.GetStage();
 		po.FromString(m_sStageModifiers);
 		so.FromString(m_sStageModifiers);
 
-		if (po != GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetStage())
+		if (po != GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage())
 			return false;
 		if (so != GAMESTATE->m_SongOptions.GetStage())
 			return false;
@@ -116,10 +114,10 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 
 	if (m_pSong && GAMESTATE->m_pCurSong.Get() != m_pSong)
 		return false;
-	if (m_pSteps && GAMESTATE->m_pCurSteps[pn].Get() != m_pSteps)
+	if (m_pSteps && GAMESTATE->m_pCurSteps.Get() != m_pSteps)
 		return false;
 	if ((m_pCharacter != nullptr) &&
-		GAMESTATE->m_pCurCharacters[pn] != m_pCharacter)
+		GAMESTATE->m_pCurCharacters != m_pCharacter)
 		return false;
 	if (!m_sSongGroup.empty() &&
 		GAMESTATE->m_sPreferredSongGroup != m_sSongGroup)
@@ -482,7 +480,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 	}
 	if (m_dc != Difficulty_Invalid)
 		FOREACH_CONST(PlayerNumber, vpns, pn)
-	GAMESTATE->m_PreferredDifficulty[*pn].Set(m_dc);
+	GAMESTATE->m_PreferredDifficulty.Set(m_dc);
 	if (m_sAnnouncer != "")
 		ANNOUNCER->SwitchAnnouncer(m_sAnnouncer);
 	if (m_sPreferredModifiers != "")
@@ -511,11 +509,9 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		GAMESTATE->m_pPreferredSong = m_pSong;
 	}
 	if (m_pSteps)
-		FOREACH_CONST(PlayerNumber, vpns, pn)
-	GAMESTATE->m_pCurSteps[*pn].Set(m_pSteps);
+		GAMESTATE->m_pCurSteps.Set(m_pSteps);
 	if (m_pCharacter)
-		FOREACH_CONST(PlayerNumber, vpns, pn)
-	GAMESTATE->m_pCurCharacters[*pn] = m_pCharacter;
+		GAMESTATE->m_pCurCharacters = m_pCharacter;
 	for (map<RString, RString>::const_iterator i = m_SetEnv.begin();
 		 i != m_SetEnv.end();
 		 i++) {
@@ -566,7 +562,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		// applying options affects only the current stage
 		PlayerOptions po;
 		GAMESTATE->GetDefaultPlayerOptions(po);
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign(
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(
 			ModsLevel_Stage, po);
 
 		SongOptions so;

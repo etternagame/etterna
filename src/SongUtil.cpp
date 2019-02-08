@@ -854,7 +854,7 @@ bool
 SongUtil::ValidateCurrentEditStepsDescription(const RString& sAnswer,
 											  RString& sErrorOut)
 {
-	Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	Song* pSong = pSteps->m_pSong;
 
 	ASSERT(pSteps->IsAnEdit());
@@ -897,7 +897,7 @@ SongUtil::ValidateCurrentStepsDescription(const RString& sAnswer,
 
 	/* Don't allow duplicate edit names within the same StepsType; edit names
 	 * uniquely identify the edit. */
-	Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
 
 	// If unchanged:
 	if (pSteps->GetDescription() == sAnswer)
@@ -926,7 +926,7 @@ SongUtil::ValidateCurrentStepsChartName(const RString& answer, RString& error)
 
 	/* Don't allow duplicate title names within the same StepsType.
 	 * We need some way of identifying the unique charts. */
-	Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
 
 	if (pSteps->GetChartName() == answer)
 		return true;
@@ -949,7 +949,7 @@ SongUtil::ValidateCurrentStepsCredit(const RString& sAnswer, RString& sErrorOut)
 	if (sAnswer.empty())
 		return true;
 
-	Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	// If unchanged:
 	if (pSteps->GetCredit() == sAnswer)
 		return true;
@@ -995,7 +995,7 @@ SongUtil::ValidateCurrentStepsMusic(const RString& answer, RString& error)
 {
 	if (answer.empty())
 		return true;
-	Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	RString real_file = pSteps->GetMusicFile();
 	pSteps->SetMusicFile(answer);
 	RString path = pSteps->GetMusicPath();

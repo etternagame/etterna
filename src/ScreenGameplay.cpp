@@ -142,7 +142,7 @@ PlayerInfo::Load(PlayerNumber pn,
 
 	if (IsMultiPlayer()) {
 		pPlayerState->m_PlayerOptions =
-		  GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions;
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions;
 	}
 }
 
@@ -159,7 +159,7 @@ PlayerInfo::LoadDummyP1(int iDummyIndex, int iAddToDifficulty)
 	m_pPlayer = new Player(m_NoteData, true);
 
 	// PlayerOptions needs to be set now so that we load the correct NoteSkin.
-	m_PlayerStateDummy = *GAMESTATE->m_pPlayerState[PLAYER_1];
+	m_PlayerStateDummy = *GAMESTATE->m_pPlayerState;
 }
 
 PlayerInfo::~PlayerInfo()
@@ -181,7 +181,7 @@ PlayerInfo::GetPlayerState()
 	return IsMultiPlayer()
 			 ? GAMESTATE
 				 ->m_pMultiPlayerState[GetPlayerStateAndStageStatsIndex()]
-			 : GAMESTATE->m_pPlayerState[GetPlayerStateAndStageStatsIndex()];
+			 : GAMESTATE->m_pPlayerState;
 }
 
 PlayerStageStats*
@@ -192,7 +192,7 @@ PlayerInfo::GetPlayerStageStats()
 	if (m_bIsDummy || IsMultiPlayer())
 		return &m_PlayerStageStatsDummy;
 	return &STATSMAN->m_CurStageStats
-			  .m_player[GetPlayerStateAndStageStatsIndex()];
+			  .m_player;
 }
 
 bool
@@ -371,19 +371,18 @@ ScreenGameplay::Init()
 		FOREACH_PotentialCpuPlayer(p)
 		{
 			PlayerNumber human_pn = GAMESTATE->GetFirstHumanPlayer();
-			GAMESTATE->m_pCurSteps[p].Set(GAMESTATE->m_pCurSteps[human_pn]);
+			GAMESTATE->m_pCurSteps.Set(GAMESTATE->m_pCurSteps);
 			if (GAMESTATE->GetCurrentGame()->m_PlayersHaveSeparateStyles) {
 				GAMESTATE->SetCurrentStyle(GAMESTATE->GetCurrentStyle(human_pn),
 										   p);
 			}
 		}
 
-		FOREACH_EnabledPlayer(p)
-		  ASSERT(GAMESTATE->m_pCurSteps[p].Get() != NULL);
+		ASSERT(GAMESTATE->m_pCurSteps.Get() != NULL);
 
 
 	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
-	STATSMAN->m_CurStageStats.m_player[PLAYER_1].m_pStyle =
+	STATSMAN->m_CurStageStats.m_player.m_pStyle =
 		GAMESTATE->GetCurrentStyle(PLAYER_1);
 	FOREACH_MultiPlayer(pn)
 	{
@@ -572,7 +571,7 @@ ScreenGameplay::InitSongQueues()
 	m_apSongsQueue.push_back(GAMESTATE->m_pCurSong);
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
-		Steps* pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
+		Steps* pSteps = GAMESTATE->m_pCurSteps;
 		pi->m_vpStepsQueue.push_back(pSteps);
 	}
 
@@ -663,7 +662,7 @@ ScreenGameplay::SetupSong(int iSongIndex)
 		pi->GetPlayerState()->m_fLastDrawnBeat = -100;
 
 		Steps* pSteps = pi->m_vpStepsQueue[iSongIndex];
-		GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()].Set(pSteps);
+		GAMESTATE->m_pCurSteps.Set(pSteps);
 
 		NoteData originalNoteData;
 		pSteps->GetNoteData(originalNoteData);
@@ -782,10 +781,10 @@ ScreenGameplay::LoadNextSong()
 	Song* pSong = GAMESTATE->m_pCurSong;
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
-		Steps* pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
+		Steps* pSteps = GAMESTATE->m_pCurSteps;
 		++pi->GetPlayerStageStats()->m_iStepsPlayed;
 
-		ASSERT(GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()] != NULL);
+		ASSERT(GAMESTATE->m_pCurSteps != NULL);
 		if (pi->m_ptextStepsDescription)
 			pi->m_ptextStepsDescription->SetText(pSteps->GetDescription());
 
@@ -965,11 +964,9 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 
 	ASSERT(GAMESTATE->m_Position.m_fMusicSeconds >
 		   -4000); /* make sure the "fake timer" code doesn't trigger */
-	FOREACH_EnabledPlayer(pn)
-	{
-		if (GAMESTATE->m_pCurSteps[pn]) {
-			GAMESTATE->m_pCurSteps[pn]->GetTimingData()->PrepareLookup();
-		}
+
+	if (GAMESTATE->m_pCurSteps) {
+		GAMESTATE->m_pCurSteps->GetTimingData()->PrepareLookup();
 	}
 }
 
@@ -1405,35 +1402,35 @@ ScreenGameplay::Update(float fDeltaTime)
 							float oldRate = GAMEMAN->m_fPreviousRate;
 							const RString mods = GAMEMAN->m_sModsToReset;
 							/*
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetSong()
 							  .FromString("clearall");
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetCurrent()
 							  .FromString("clearall");
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetPreferred()
 							  .FromString("clearall");
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetSong()
 							  .FromString(mods);
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetCurrent()
 							  .FromString(mods);
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetPreferred()
 							  .FromString(mods);
 							*/
 							const vector<RString> oldturns =
 							  GAMEMAN->m_vTurnsToReset;
 							if (GAMEMAN->m_bResetTurns) {
-								GAMESTATE->m_pPlayerState[PLAYER_1]
+								GAMESTATE->m_pPlayerState
 								  ->m_PlayerOptions.GetSong()
 								  .ResetModsToStringVector(oldturns);
-								GAMESTATE->m_pPlayerState[PLAYER_1]
+								GAMESTATE->m_pPlayerState
 								  ->m_PlayerOptions.GetCurrent()
 								  .ResetModsToStringVector(oldturns);
-								GAMESTATE->m_pPlayerState[PLAYER_1]
+								GAMESTATE->m_pPlayerState
 								  ->m_PlayerOptions.GetPreferred()
 								  .ResetModsToStringVector(oldturns);
 								GAMEMAN->m_bResetTurns = false;
@@ -1446,13 +1443,13 @@ ScreenGameplay::Update(float fDeltaTime)
 							GAMESTATE->m_SongOptions.GetPreferred()
 							  .m_fMusicRate = oldRate;
 							FailType failreset = GAMEMAN->m_iPreviousFail;
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetSong()
 							  .m_FailType = failreset;
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetCurrent()
 							  .m_FailType = failreset;
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetPreferred()
 							  .m_FailType = failreset;
 							GAMEMAN->m_bResetModifiers = false;
@@ -1573,7 +1570,7 @@ ScreenGameplay::SendCrossedMessages()
 		PlayerNumber pn = PLAYER_INVALID;
 		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
 		{
-			if (GAMESTATE->m_pCurSteps[pi->m_pn]->GetDifficulty() ==
+			if (GAMESTATE->m_pCurSteps->GetDifficulty() ==
 				Difficulty_Beginner) {
 				pn = pi->m_pn;
 				break;
@@ -1760,35 +1757,35 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						float oldRate = GAMEMAN->m_fPreviousRate;
 						const RString mods = GAMEMAN->m_sModsToReset;
 						/*
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetSong()
 						  .FromString("clearall");
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetCurrent()
 						  .FromString("clearall");
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetPreferred()
 						  .FromString("clearall");
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetSong()
 						  .FromString(mods);
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetCurrent()
 						  .FromString(mods);
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetPreferred()
 						  .FromString(mods);
 						*/
 						const vector<RString> oldturns =
 						  GAMEMAN->m_vTurnsToReset;
 						if (GAMEMAN->m_bResetTurns) {
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetSong()
 							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetCurrent()
 							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState[PLAYER_1]
+							GAMESTATE->m_pPlayerState
 							  ->m_PlayerOptions.GetPreferred()
 							  .ResetModsToStringVector(oldturns);
 							GAMEMAN->m_bResetTurns = false;
@@ -1801,13 +1798,13 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 						  oldRate;
 						FailType failreset = GAMEMAN->m_iPreviousFail;
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetSong()
 						  .m_FailType = failreset;
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetCurrent()
 						  .m_FailType = failreset;
-						GAMESTATE->m_pPlayerState[PLAYER_1]
+						GAMESTATE->m_pPlayerState
 						  ->m_PlayerOptions.GetPreferred()
 						  .m_FailType = failreset;
 						GAMEMAN->m_bResetModifiers = false;
@@ -1883,7 +1880,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 			ResetGiveUpTimers(true);
 
 			if (GamePreferences::m_AutoPlay == PC_HUMAN &&
-				GAMESTATE->m_pPlayerState[input.pn]
+				GAMESTATE->m_pPlayerState
 					->m_PlayerOptions.GetCurrent()
 					.m_fPlayerAutoPlay == 0) {
 				PlayerInfo& pi = GetPlayerInfoForInput(input);
@@ -1942,7 +1939,7 @@ ScreenGameplay::SaveStats()
 		PlayerNumber pn = pi->m_pn;
 
 		GAMESTATE->SetProcessedTimingData(
-		  GAMESTATE->m_pCurSteps[pn]->GetTimingData());
+		  GAMESTATE->m_pCurSteps->GetTimingData());
 		NoteDataUtil::CalculateRadarValues(nd, fMusicLen, rv);
 		pss.m_radarPossible += rv;
 		NoteDataWithScoring::GetActualRadarValues(nd, pss, fMusicLen, rv);
@@ -1968,11 +1965,8 @@ void
 ScreenGameplay::SongFinished()
 {
 
-	FOREACH_EnabledPlayer(pn)
-	{
-		if (GAMESTATE->m_pCurSteps[pn]) {
-			GAMESTATE->m_pCurSteps[pn]->GetTimingData()->ReleaseLookup();
-		}
+	if (GAMESTATE->m_pCurSteps) {
+		GAMESTATE->m_pCurSteps->GetTimingData()->ReleaseLookup();
 	}
 	AdjustSync::HandleSongEnd();
 	SaveStats(); // Let subclasses save the stats.
@@ -1988,7 +1982,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	// If all players failed, kill.
 	if (STATSMAN->m_CurStageStats.AllFailed()) {
-		FOREACH_HumanPlayer(p) GAMESTATE->m_iPlayerStageTokens[p] = 0;
+		GAMESTATE->m_iPlayerStageTokens = 0;
 	}
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
@@ -2099,7 +2093,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 				  ratesqueue[0];
 
-				STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+				STATSMAN->m_CurStageStats.m_player.InternalInit();
 			}
 			playlistscorekeys.emplace_back(
 			  STATSMAN->m_CurStageStats.mostrecentscorekey);
@@ -2384,7 +2378,7 @@ ScreenGameplay::SaveReplay()
 
 			// steps information
 			StepsID stepsID;
-			stepsID.FromSteps(GAMESTATE->m_pCurSteps[pn]);
+			stepsID.FromSteps(GAMESTATE->m_pCurSteps);
 			XNode* pStepsInfoNode = stepsID.CreateNode();
 			// hashing = argh
 			// pStepsInfoNode->AppendChild("StepsHash",
@@ -2532,7 +2526,7 @@ ScreenGameplay::SetSongPosition(float newPositionSeconds)
 	} else {
 		// Restart the file to make sure nothing weird is going on
 		ReloadCurrentSong();
-		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+		STATSMAN->m_CurStageStats.m_player.InternalInit();
 	}
 
 	// Go
@@ -2573,7 +2567,7 @@ ScreenGameplay::ToggleReplayPause()
 		// Restart the stage, technically (This will cause a lot of lag if there
 		// are a lot of notes.)
 		ReloadCurrentSong();
-		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+		STATSMAN->m_CurStageStats.m_player.InternalInit();
 		PlayerAI::SetScoreData(PlayerAI::pScoreData);
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
@@ -2709,7 +2703,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		PlayerNumber pn = PLAYER_1;
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		float bps = GAMESTATE->m_pPlayerState[pn]->m_Position.m_fCurBPS;
+		float bps = GAMESTATE->m_pPlayerState->m_Position.m_fCurBPS;
 		float true_bps = rate * bps;
 		lua_pushnumber(L, true_bps);
 		return 1;

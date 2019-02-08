@@ -45,7 +45,7 @@ ScreenGameplaySyncMachine::Init()
 	ASSERT_M(vpSteps.size() > 0,
 			 "No playable steps for ScreenGameplaySyncMachine");
 	Steps* pSteps = vpSteps[0];
-	GAMESTATE->m_pCurSteps[GAMESTATE->GetFirstHumanPlayer()].Set(pSteps);
+	GAMESTATE->m_pCurSteps.Set(pSteps);
 
 	GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 
@@ -105,7 +105,7 @@ ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage SM)
 	ScreenGameplayNormal::HandleScreenMessage(SM);
 
 	if (SM == SM_GoToPrevScreen || SM == SM_GoToNextScreen) {
-		GAMESTATE->m_pCurSteps[PLAYER_1].Set(NULL);
+		GAMESTATE->m_pCurSteps.Set(NULL);
 		GAMESTATE->m_PlayMode.Set(PlayMode_Invalid);
 		GAMESTATE->SetCurrentStyle(NULL, PLAYER_INVALID);
 		GAMESTATE->m_pCurSong.Set(NULL);

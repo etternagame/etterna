@@ -77,11 +77,11 @@ ScreenEvaluation::Init()
 		ss.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.push_back(GAMESTATE->m_pCurSong);
 		GAMESTATE->m_iCurrentStageIndex = 0;
-		GAMESTATE->m_iPlayerStageTokens[PLAYER_1] = 1;
+		GAMESTATE->m_iPlayerStageTokens = 1;
 
-		ss.m_player[PLAYER_1].m_pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
+		ss.m_player.m_pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
 		if (RandomInt(2))
-			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
 								ModsLevel_Stage,
 								m_bTransforms,
 								PlayerOptions::TRANSFORM_ECHO,
@@ -90,61 +90,61 @@ ScreenEvaluation::Init()
 			GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
 
 		GAMESTATE->JoinPlayer(PLAYER_1);
-		GAMESTATE->m_pCurSteps[PLAYER_1].Set(
+		GAMESTATE->m_pCurSteps.Set(
 			GAMESTATE->m_pCurSong->GetAllSteps()[0]);
-		ss.m_player[PLAYER_1].m_vpPossibleSteps.push_back(
-			GAMESTATE->m_pCurSteps[PLAYER_1]);
-		ss.m_player[PLAYER_1].m_iStepsPlayed = 1;
+		ss.m_player.m_vpPossibleSteps.push_back(
+			GAMESTATE->m_pCurSteps);
+		ss.m_player.m_iStepsPlayed = 1;
 
-		PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+		PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState->m_PlayerOptions,
 						ModsLevel_Stage,
 						m_fScrollSpeed,
 						2.0f);
-		PO_GROUP_CALL(GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions,
+		PO_GROUP_CALL(GAMESTATE->m_pPlayerState->m_PlayerOptions,
 						ModsLevel_Stage,
 						ChooseRandomModifiers);
 
 		for( float f = 0; f < 100.0f; f += 1.0f )
 		{
 			float fP1 = fmodf(f/100*4+.3f,1);
-			ss.m_player[PLAYER_1].SetLifeRecordAt( fP1, f );
+			ss.m_player.SetLifeRecordAt( fP1, f );
 		}
 		float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
-		ss.m_player[PLAYER_1].m_iActualDancePoints = RandomInt(3);
-		ss.m_player[PLAYER_1].m_iPossibleDancePoints = 2;
+		ss.m_player.m_iActualDancePoints = RandomInt(3);
+		ss.m_player.m_iPossibleDancePoints = 2;
 		if (RandomInt(2))
-			ss.m_player[PLAYER_1].m_iCurCombo = RandomInt(15000);
+			ss.m_player.m_iCurCombo = RandomInt(15000);
 		else
-			ss.m_player[PLAYER_1].m_iCurCombo = 0;
-		ss.m_player[PLAYER_1].UpdateComboList(0, true);
+			ss.m_player.m_iCurCombo = 0;
+		ss.m_player.UpdateComboList(0, true);
 
-		ss.m_player[PLAYER_1].m_iCurCombo += 50;
-		ss.m_player[PLAYER_1].UpdateComboList(0.10f * fSeconds, false);
+		ss.m_player.m_iCurCombo += 50;
+		ss.m_player.UpdateComboList(0.10f * fSeconds, false);
 
-		ss.m_player[PLAYER_1].m_iCurCombo = 0;
-		ss.m_player[PLAYER_1].UpdateComboList(0.15f * fSeconds, false);
-		ss.m_player[PLAYER_1].m_iCurCombo = 1;
-		ss.m_player[PLAYER_1].UpdateComboList(0.25f * fSeconds, false);
-		ss.m_player[PLAYER_1].m_iCurCombo = 50;
-		ss.m_player[PLAYER_1].UpdateComboList(0.35f * fSeconds, false);
-		ss.m_player[PLAYER_1].m_iCurCombo = 0;
-		ss.m_player[PLAYER_1].UpdateComboList(0.45f * fSeconds, false);
-		ss.m_player[PLAYER_1].m_iCurCombo = 1;
-		ss.m_player[PLAYER_1].UpdateComboList(0.50f * fSeconds, false);
-		ss.m_player[PLAYER_1].m_iCurCombo = 100;
-		ss.m_player[PLAYER_1].UpdateComboList(1.00f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 0;
+		ss.m_player.UpdateComboList(0.15f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 1;
+		ss.m_player.UpdateComboList(0.25f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 50;
+		ss.m_player.UpdateComboList(0.35f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 0;
+		ss.m_player.UpdateComboList(0.45f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 1;
+		ss.m_player.UpdateComboList(0.50f * fSeconds, false);
+		ss.m_player.m_iCurCombo = 100;
+		ss.m_player.UpdateComboList(1.00f * fSeconds, false);
 		if (RandomInt(5) == 0) {
-			ss.m_player[PLAYER_1].m_bFailed = true;
+			ss.m_player.m_bFailed = true;
 		}
-		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W1] = RandomInt(3);
-		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W2] = RandomInt(3);
-		ss.m_player[PLAYER_1].m_iTapNoteScores[TNS_W3] = RandomInt(3);
-		ss.m_player[PLAYER_1].m_iPossibleGradePoints =
+		ss.m_player.m_iTapNoteScores[TNS_W1] = RandomInt(3);
+		ss.m_player.m_iTapNoteScores[TNS_W2] = RandomInt(3);
+		ss.m_player.m_iTapNoteScores[TNS_W3] = RandomInt(3);
+		ss.m_player.m_iPossibleGradePoints =
 			4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
-		ss.m_player[PLAYER_1].m_fLifeRemainingSeconds = randomf(90, 580);
-		ss.m_player[PLAYER_1].m_iScore = random_up_to(900 * 1000 * 1000);
-		ss.m_player[PLAYER_1].m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
-		ss.m_player[PLAYER_1].m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
+		ss.m_player.m_fLifeRemainingSeconds = randomf(90, 580);
+		ss.m_player.m_iScore = random_up_to(900 * 1000 * 1000);
+		ss.m_player.m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
+		ss.m_player.m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
 
 		FOREACH_ENUM(RadarCategory, rc)
 		{
@@ -157,10 +157,10 @@ ScreenEvaluation::Init()
 				case RadarCategory_Rolls:
 				case RadarCategory_Lifts:
 				case RadarCategory_Fakes:
-					ss.m_player[PLAYER_1].m_radarPossible[rc] =
+					ss.m_player.m_radarPossible[rc] =
 						1 + (random_up_to(200));
-					ss.m_player[PLAYER_1].m_radarActual[rc] = random_up_to(
-						static_cast<int>(ss.m_player[PLAYER_1].m_radarPossible[rc]));
+					ss.m_player.m_radarActual[rc] = random_up_to(
+						static_cast<int>(ss.m_player.m_radarPossible[rc]));
 					break;
 				default:
 					break;
@@ -179,14 +179,14 @@ ScreenEvaluation::Init()
 	}
 	m_pStageStats = &STATSMAN->m_vPlayedStageStats.back();
 
-	ZERO(m_bSavedScreenshot);
+	m_bSavedScreenshot = false;
 
 
 
 	// update persistent statistics
 	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		m_pStageStats->m_player[PLAYER_1].m_HighScore.SetRadarValues(
-		  m_pStageStats->m_player[PLAYER_1].m_radarActual);
+		m_pStageStats->m_player.m_HighScore.SetRadarValues(
+		  m_pStageStats->m_player.m_radarActual);
 	} else if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 		m_pStageStats->FinalizeScores(true);
 	}
@@ -195,9 +195,9 @@ ScreenEvaluation::Init()
 	ScreenWithMenuElements::Init();
 
 	// Calculate grades
-	Grade grade[NUM_PLAYERS];
+	Grade grade;
 
-	grade[PLAYER_1] = Grade_Failed;
+	grade = Grade_Failed;
 
 	// load sounds
 	m_soundStart.Load(THEME->GetPathS(m_sName, "start"));
@@ -209,26 +209,26 @@ ScreenEvaluation::Init()
 	bool bOneHasFullW3Combo = false;
 	bool bOneHasFullW4Combo = false;
 	if (GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
-		if ((m_pStageStats->m_player[PLAYER_1].m_iMachineHighScoreIndex == 0 ||
-				m_pStageStats->m_player[PLAYER_1].m_iPersonalHighScoreIndex == 0)) {
+		if ((m_pStageStats->m_player.m_iMachineHighScoreIndex == 0 ||
+				m_pStageStats->m_player.m_iPersonalHighScoreIndex == 0)) {
 			bOneHasNewTopRecord = true;
 		}
 
-		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W4))
+		if (m_pStageStats->m_player.FullComboOfScore(TNS_W4))
 			bOneHasFullW4Combo = true;
 
-		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W3))
+		if (m_pStageStats->m_player.FullComboOfScore(TNS_W3))
 			bOneHasFullW3Combo = true;
 
-		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W2))
+		if (m_pStageStats->m_player.FullComboOfScore(TNS_W2))
 			bOneHasFullW2Combo = true;
 
-		if (m_pStageStats->m_player[PLAYER_1].FullComboOfScore(TNS_W1))
+		if (m_pStageStats->m_player.FullComboOfScore(TNS_W1))
 			bOneHasFullW1Combo = true;
 	}
 
 	Grade best_grade = Grade_NoData;
-	best_grade = min(best_grade, grade[PLAYER_1]);
+	best_grade = min(best_grade, grade);
 
 	if (bOneHasNewTopRecord &&
 		ANNOUNCER->HasSoundsFor("evaluation new record")) {
@@ -277,7 +277,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			// Otherwise, you can tap away at the screenshot button without
 			// holding shift.
 			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn)) {
-				if (!m_bSavedScreenshot[pn]) {
+				if (!m_bSavedScreenshot) {
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
 						   "Screenshots/";
@@ -287,7 +287,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 						RString sPath = sDir + sFileName;
 
 						const HighScore& hs =
-						  m_pStageStats->m_player[pn].m_HighScore;
+						  m_pStageStats->m_player.m_HighScore;
 						Screenshot screenshot;
 						screenshot.sFileName = sFileName;
 						screenshot.sMD5 =
@@ -295,7 +295,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 						screenshot.highScore = hs;
 						pProfile->AddScreenshot(screenshot);
 					}
-					m_bSavedScreenshot[pn] = true;
+					m_bSavedScreenshot = true;
 				}
 			} else {
 				sDir = "Screenshots/";
@@ -341,28 +341,28 @@ void
 ScreenEvaluation::HandleMenuStart()
 {
 	StepsID stepsid;
-	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
+	stepsid.FromSteps(GAMESTATE->m_pCurSteps);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
 	if (GAMEMAN->m_bResetModifiers) {
 		float oldRate = GAMEMAN->m_fPreviousRate;
 		const RString mods = GAMEMAN->m_sModsToReset;
 		/* // Reset mods
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
-		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString("clearall");
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString("clearall");
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString("clearall");
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(mods);
 		*/
 		FailType failreset = GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetSong()
 		  .m_FailType = failreset;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_FailType = failreset;
-		GAMESTATE->m_pPlayerState[PLAYER_1]
+		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetPreferred()
 		  .m_FailType = failreset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
@@ -372,13 +372,13 @@ ScreenEvaluation::HandleMenuStart()
 		
 		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
-			GAMESTATE->m_pPlayerState[PLAYER_1]
+			GAMESTATE->m_pPlayerState
 			  ->m_PlayerOptions.GetSong()
 			  .ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState[PLAYER_1]
+			GAMESTATE->m_pPlayerState
 			  ->m_PlayerOptions.GetCurrent()
 			  .ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState[PLAYER_1]
+			GAMESTATE->m_pPlayerState
 			  ->m_PlayerOptions.GetPreferred()
 			  .ResetModsToStringVector(oldturns);
 			GAMEMAN->m_bResetTurns = false;

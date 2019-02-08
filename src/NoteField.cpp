@@ -181,7 +181,7 @@ NoteField::CacheAllUsedNoteSkins()
 
 	FOREACH_EnabledPlayer(pn)
 	{
-		RString sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+		RString sNoteSkinLower = GAMESTATE->m_pPlayerState
 								   ->m_PlayerOptions.GetCurrent()
 								   .m_sNoteSkin;
 		NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
@@ -282,14 +282,14 @@ NoteField::ensure_note_displays_have_skin()
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
 	FOREACH_EnabledPlayer(pn)
 	{
-		sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+		sNoteSkinLower = GAMESTATE->m_pPlayerState
 						   ->m_PlayerOptions.GetCurrent()
 						   .m_sNoteSkin;
 
 		// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
 		// needed.
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+			sNoteSkinLower = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetPreferred()
 							   .m_sNoteSkin;
 
