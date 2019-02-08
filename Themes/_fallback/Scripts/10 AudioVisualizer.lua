@@ -75,9 +75,6 @@ function audioVisualizer:new(params)
 					self:zoomtoheight(0)
 				end
 			)
-		end,
-		OffCommand=function(self)
-			SOUND:ClearPlayBackCallback()
 		end
     }
     -- Freq intervals for each bar

@@ -367,7 +367,10 @@ RageSound::GetDataToPlay(float* pBuffer,
 			}
 			this->PushSelf(L);
 
-			LuaHelpers::RunScriptOnStack(L, error, 2, 0, true); // 1 arg, 0 returns
+			LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
+			if (error != "")	// hack for now because we're bad and didn't deal with clearing this -mina
+				soundPlayCallback.Unset();
+
 			LUA->Release(L);
 			recentPCMSamples.clear();
 			fftwf_free(out);
