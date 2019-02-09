@@ -234,6 +234,8 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
+	vector<float> lastHoldHeadsSeconds;
+
 	bool m_bPaused;
 	bool m_bDelay;
 

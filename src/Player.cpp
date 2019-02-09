@@ -479,11 +479,16 @@ Player::Init(const RString& sType,
 	m_vpHoldJudgment.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
+	lastHoldHeadsSeconds.resize(
+	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+		->m_iColsPerPlayer);
 	for (int i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
-		 ++i)
+		 ++i) {
 		m_vpHoldJudgment[i] = NULL;
+		lastHoldHeadsSeconds[i] = 0;
+	}
 
 	if (HasVisibleParts()) {
 		for (int i = 0;
@@ -994,6 +999,8 @@ Player::Update(float fDeltaTime)
 			int iTrack = iter.Track();
 			int iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
+
+			lastHoldHeadsSeconds[iTrack] = max(lastHoldHeadsSeconds[iTrack],m_Timing->WhereUAtBro(NoteRowToBeat(iRow+ tn.iDuration)));
 
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
@@ -2146,6 +2153,8 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
+		// only valid if 
+		float fMusicSeconds;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
@@ -2163,7 +2172,7 @@ Player::Step(int col,
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 
 			// ... which means it happened at this point in the music:
-			const float fMusicSeconds =
+			fMusicSeconds =
 			  fCurrentMusicSeconds -
 			  fTimeSinceStep *
 				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2219,6 +2228,8 @@ Player::Step(int col,
 						}
 						// Fall through to default.
 					default:
+						if (pTN->type != TapNoteType_HoldHead && lastHoldHeadsSeconds[col] > fMusicSeconds)
+							break;
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
 								score = TNS_W1;
