@@ -995,6 +995,8 @@ Player::Update(float fDeltaTime)
 			int iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
+			lastHoldHeadSeconds = max(lastHoldHeadSeconds,m_Timing->WhereUAtBro(NoteRowToBeat(iRow+ tn.iDuration)));
+
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
 			 * a time and don't mix with holds. */
@@ -2146,6 +2148,8 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
+		// only valid if 
+		float fMusicSeconds;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
@@ -2163,7 +2167,7 @@ Player::Step(int col,
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 
 			// ... which means it happened at this point in the music:
-			const float fMusicSeconds =
+			fMusicSeconds =
 			  fCurrentMusicSeconds -
 			  fTimeSinceStep *
 				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2219,6 +2223,8 @@ Player::Step(int col,
 						}
 						// Fall through to default.
 					default:
+						if (lastHoldHeadSeconds - fMusicSeconds > 0.0f)
+							break;
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
 								score = TNS_W1;
