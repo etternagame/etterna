@@ -13,6 +13,7 @@ local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions(
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 
 local update = false
 local t =
@@ -32,6 +33,9 @@ local t =
 		end
 		if getTabIndex() ~= 0 then
 			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
+		end
+		if getTabIndex() == 0 and noteField and not mcbootlarder:GetChild("NoteField"):IsVisible() then
+			boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = true
 		end
 	end,
 	MintyFreshCommand = function(self)
@@ -148,6 +152,9 @@ local function toggleNoteField()
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 				song:Borp()
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
+				song:Borp()
+				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
