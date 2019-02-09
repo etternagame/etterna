@@ -1805,15 +1805,15 @@ class LunaProfile : public Luna<Profile>
 
 		auto& sgv = p->goalmap[ck].goals;
 		bool herp = false;
-		ScoreGoal& ez = sgv[0];
-		for (auto& n : sgv)
-			if (lround(n.rate * 10000.f) == lround(FArg(2) * 10000.f) &&
-				!n.achieved && n.percent <= ez.percent) {
-				ez = n;
+		int ez = 0;
+		for (int i = 0; i < sgv.size(); ++i)
+			if (lround(sgv[i].rate * 10000.f) == lround(FArg(2) * 10000.f) &&
+				!sgv[i].achieved && sgv[i].percent <= sgv[ez].percent) {
+				ez = i;
 				herp = true;
 			}
 		if (herp)
-			ez.PushSelf(L);
+			sgv[ez].PushSelf(L);
 		else
 			lua_pushnil(L);
 		return 1;
