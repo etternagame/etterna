@@ -44,12 +44,6 @@
 //-Nick12 Used for song file hashing
 #include <CryptManager.h>
 
-/**
- * @brief The internal version of the cache for StepMania.
- *
- * Increment this value to invalidate the current cache. */
-const int FILE_CACHE_VERSION = 241;
-
 /** @brief How long does a song sample last by default? */
 const float DEFAULT_MUSIC_SAMPLE_LENGTH = 25.f;
 
@@ -1997,47 +1991,47 @@ class LunaSong : public Luna<Song>
   public:
 	static int GetDisplayFullTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayFullTitle());
+		lua_pushstring(L, p->GetDisplayFullTitle().c_str());
 		return 1;
 	}
 	static int GetTranslitFullTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitFullTitle());
+		lua_pushstring(L, p->GetTranslitFullTitle().c_str());
 		return 1;
 	}
 	static int GetDisplayMainTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayMainTitle());
+		lua_pushstring(L, p->GetDisplayMainTitle().c_str());
 		return 1;
 	}
 	static int GetMainTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetMainTitle());
+		lua_pushstring(L, p->GetDisplayMainTitle().c_str());
 		return 1;
 	}
 	static int GetTranslitMainTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitMainTitle());
+		lua_pushstring(L, p->GetTranslitMainTitle().c_str());
 		return 1;
 	}
 	static int GetDisplaySubTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetDisplaySubTitle());
+		lua_pushstring(L, p->GetDisplaySubTitle().c_str());
 		return 1;
 	}
 	static int GetTranslitSubTitle(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitSubTitle());
+		lua_pushstring(L, p->GetTranslitSubTitle().c_str());
 		return 1;
 	}
 	static int GetDisplayArtist(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetDisplayArtist());
+		lua_pushstring(L, p->GetDisplayArtist().c_str());
 		return 1;
 	}
 	static int GetTranslitArtist(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetTranslitArtist());
+		lua_pushstring(L, p->GetTranslitArtist().c_str());
 		return 1;
 	}
 	static int GetGenre(T* p, lua_State* L)
@@ -2065,7 +2059,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetSongDir(T* p, lua_State* L)
 	{
-		LuaHelpers::push_lua_escaped_string(L, p->GetSongDir());
+		lua_pushstring(L, p->GetSongDir().c_str());
 		return 1;
 	}
 	static int GetMusicPath(T* p, lua_State* L)
