@@ -479,11 +479,16 @@ Player::Init(const RString& sType,
 	m_vpHoldJudgment.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
+	lastHoldHeadsSeconds.resize(
+	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+		->m_iColsPerPlayer);
 	for (int i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
-		 ++i)
+		 ++i) {
 		m_vpHoldJudgment[i] = NULL;
+		lastHoldHeadsSeconds[i] = 0;
+	}
 
 	if (HasVisibleParts()) {
 		for (int i = 0;
@@ -995,7 +1000,7 @@ Player::Update(float fDeltaTime)
 			int iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
-			lastHoldHeadSeconds = max(lastHoldHeadSeconds,m_Timing->WhereUAtBro(NoteRowToBeat(iRow+ tn.iDuration)));
+			lastHoldHeadsSeconds[iTrack] = max(lastHoldHeadsSeconds[iTrack],m_Timing->WhereUAtBro(NoteRowToBeat(iRow+ tn.iDuration)));
 
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
@@ -2223,7 +2228,7 @@ Player::Step(int col,
 						}
 						// Fall through to default.
 					default:
-						if (pTN->type != TapNoteType_HoldHead && lastHoldHeadSeconds - fMusicSeconds > 0.0f)
+						if (pTN->type != TapNoteType_HoldHead && lastHoldHeadsSeconds[col] > fMusicSeconds)
 							break;
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
