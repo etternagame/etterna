@@ -113,7 +113,14 @@ local minanyms = {
 	"MinaHatesYouYesYou",
 	"ImaginaryStepmaniaClient",
 	"ExtraLunarTangoFoxtrot",
-	"Morbid Papaya Matrix"
+	"Morbid Papaya Matrix",
+	"note pink",
+	"borp",
+	"stringofcharactersyouwillonlyseeifitsindexisselectedbytheprngfunctionusedtochoosefromthetableitshousedin",
+	"b&",
+	"oxford semicolon",
+	"more bugs added than fixed",
+	"mr.takesallthecreditdoesnoneofthework",
 }
 
 math.random()
