@@ -35,11 +35,11 @@ Using SOUND:
     t[#t+1] = vis
     SOUND:SetPlayBackCallback(vis.playbackFunction)
 --]]
-audioVisualizer.defaultIntervals = {0, 19.0, 30, 60, 125, 250, 375, 500, 1325, 2000, 3000, 4000, 5000, 6000, 9000}
+audioVisualizer.defaultIntervals = {0, 19.0, 35, 60, 125, 250, 375, 500, 1325, 2000, 3000, 4000, 5000, 6000, 9000}
 local defaultIntervals = audioVisualizer.defaultIntervals
-for i = 0, 67 do
- --   defaultIntervals[#defaultIntervals + 1] = i * i * 5
-end
+-- for i = 0, 67 do
+--   defaultIntervals[#defaultIntervals + 1] = i * i * 5
+-- end
 --defaultIntervals[#defaultIntervals + 1] = 99999
 --[[
     params = {

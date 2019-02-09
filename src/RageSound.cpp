@@ -362,7 +362,10 @@ RageSound::GetDataToPlay(float* pBuffer,
 			for (int i = 0; i < nOut; ++i) {
 				auto r = out[i][0];
 				auto im = out[i][1];
-				lua_pushnumber(L, r * r + im * im);
+				lua_pushnumber(L,
+							   (r * r + im * im) /
+								 (0.01f + SOUNDMAN->GetMixVolume()) /
+								 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
 				lua_rawseti(L, -2, i + 1);
 			}
 			this->PushSelf(L);
