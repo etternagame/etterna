@@ -1806,7 +1806,7 @@ class LunaProfile : public Luna<Profile>
 		auto& sgv = p->goalmap[ck].goals;
 		bool herp = false;
 		int ez = 0;
-		for (int i = 0; i < sgv.size(); ++i)
+		for (size_t i = 0; i < sgv.size(); ++i)
 			if (lround(sgv[i].rate * 10000.f) == lround(FArg(2) * 10000.f) &&
 				!sgv[i].achieved && sgv[i].percent <= sgv[ez].percent) {
 				ez = i;
