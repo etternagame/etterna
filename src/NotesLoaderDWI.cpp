@@ -280,7 +280,6 @@ GetTypeFromMode(const RString& mode)
 		return StepsType_dance_double;
 	else if( mode == "SOLO" )
 		return StepsType_dance_solo;
-	ASSERT_M(0, "Unrecognized DWI notes format " + mode + "!");
 	return StepsType_Invalid; // just in case.
 }
 
