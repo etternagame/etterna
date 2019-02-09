@@ -2223,7 +2223,7 @@ Player::Step(int col,
 						}
 						// Fall through to default.
 					default:
-						if (lastHoldHeadSeconds - fMusicSeconds > 0.0f)
+						if (pTN->type != TapNoteType_HoldHead && lastHoldHeadSeconds - fMusicSeconds > 0.0f)
 							break;
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
