@@ -862,6 +862,10 @@ local function duminput(event)
 		if bookmarkPosition ~= nil then
 			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	bookmarkPosition  )
 		end
+	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
+		SCREENMAN:GetTopScreen():AddToPracticeRate(0.05)
+	elseif event.button == "EffectDown" and event.type == "InputEventType_FirstPress" then
+		SCREENMAN:GetTopScreen():AddToPracticeRate(-0.05)
 	end
 	return false
 end
@@ -955,6 +959,10 @@ pm[#pm + 1] = Def.Quad {
 		if isOver(self) then
 			bookmarkPosition = self:GetX() * musicratio
 			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
+		else
+			if not (allowedCustomization) then
+				SCREENMAN:GetTopScreen():TogglePracticePause()
+			end
 		end
 	end
 }

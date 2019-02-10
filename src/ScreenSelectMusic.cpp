@@ -275,6 +275,8 @@ ScreenSelectMusic::BeginScreen()
 		DLMAN->RequestChartLeaderBoard(
 		  GAMESTATE->m_pCurSteps->GetChartKey());
 
+	GAMEMAN->m_bRestartedGameplay = false;
+
 	ScreenWithMenuElements::BeginScreen();
 }
 

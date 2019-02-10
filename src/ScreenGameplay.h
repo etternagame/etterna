@@ -158,13 +158,19 @@ class ScreenGameplay : public ScreenWithMenuElements
 	float SetRate(float newRate);
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newPositionSeconds);
-	void pmdoot(float newPositionSeconds);
+	// Set the playback rate in the middle of gameplay, in practice mode only
+	float AddToPracticeRate(float amountAdded);
+	// Move the current position of the song in the middle of gameplay, in practice mode only
+	void SetPracticeSongPosition(float newPositionSeconds);
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
 	// Toggle pause. Don't use this outside of replays.
 	// Please.
 	// I'm serious.
 	void ToggleReplayPause();
+	// Toggle pause. It's for practice mode.
+	// ignore the comment above
+	void TogglePracticePause();
 	float m_fReplayBookmarkSeconds;
 
   protected:
@@ -305,6 +311,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	// announcer sound needs to be delayed.  See HandleScreenMessage for more.
 	// -Kyz
 	bool m_delaying_ready_announce;
+
+	// True when the player hit RestartGameplay
+	bool m_bRestarted = false;
 };
 
 vector<PlayerInfo>::iterator

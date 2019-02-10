@@ -1737,6 +1737,7 @@ GameManager::GameManager()
 	m_sModsToReset;
 	m_vTurnsToReset;
 	m_iPreviousFail;
+	m_bRestartedGameplay;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
