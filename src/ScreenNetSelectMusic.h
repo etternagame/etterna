@@ -41,9 +41,6 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 
 	void Update(float fDeltaTime) override;
 
-	Song* m_pSongAwaitingDeletionConfirmation;
-	void OnConfirmSongDeletion();
-
 	void TweenOffScreen() override;
 
   private:

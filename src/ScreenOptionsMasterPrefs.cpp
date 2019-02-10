@@ -825,7 +825,6 @@ InitializeConfOptions()
 				   "Default to Off",
 				   "Default to Random",
 				   "Select"));
-	ADD(ConfOption("ShowBeginnerHelper", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption(
 	  "NumBackgrounds", NumBackgrounds, "|1", "|5", "|10", "|15", "|20"));
 
@@ -876,7 +875,6 @@ InitializeConfOptions()
 	  "AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
