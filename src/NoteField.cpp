@@ -191,7 +191,9 @@ NoteField::CacheAllUsedNoteSkins()
 		m_pDisplays[pn] = it->second;
 	}
 
-	InitColumnRenderers();
+	// I don't think this is needed?
+	// It's done in Load -- Nick12
+	//InitColumnRenderers();
 }
 
 void
@@ -276,9 +278,13 @@ NoteField::ensure_note_displays_have_skin()
 	sNoteSkinLower.MakeLower();
 	map<RString, NoteDisplayCols*>::iterator it =
 	  m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(),
-			 ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
-					  sNoteSkinLower.c_str()));
+	if (it == m_NoteDisplays.end()) {
+		CacheAllUsedNoteSkins();
+		it = m_NoteDisplays.find(sNoteSkinLower);
+		ASSERT_M(it != m_NoteDisplays.end(),
+			ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
+				sNoteSkinLower.c_str()));
+	}
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
 	FOREACH_EnabledPlayer(pn)
 	{

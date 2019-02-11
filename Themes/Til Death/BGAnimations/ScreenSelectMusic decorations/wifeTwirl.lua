@@ -748,6 +748,12 @@ t[#t + 1] =
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
 				toggleNoteField()
+				SCREENMAN:GetTopScreen():setTimeout(
+					function()
+						toggleNoteField()
+					end,
+					0.05
+				)
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
 		end,
@@ -762,7 +768,7 @@ t[#t + 1] =
 			end
 		end
 	}
-	
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -796,6 +802,5 @@ t[#t + 1] =
 		SCREENMAN:GetTopScreen():OpenOptions()
 	end
 }]]
-
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

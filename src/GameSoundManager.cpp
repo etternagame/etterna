@@ -513,6 +513,12 @@ GameSoundManager::Update(float fDeltaTime)
 			}
 		}
 
+		if (g_Playing->m_Music->pendingPlayBackCall) {
+			auto L = LUA->Get();
+			g_Playing->m_Music->ExecutePlayBackCallback(L);
+			LUA->Release(L);
+		}
+
 		bool bIsPlaying = g_Playing->m_Music->IsPlaying();
 		g_Mutex->Unlock();
 		if (!bIsPlaying && g_bWasPlayingOnLastUpdate &&
@@ -658,11 +664,11 @@ GameSoundManager::GetMusicPath() const
 	return g_Playing->m_Music->GetLoadedFilePath();
 }
 
-RageSound*
-GameSoundManager::GetRageSoundPlaying()
+void
+GameSoundManager::WithRageSoundPlaying(function<void(RageSound*)> f)
 {
 	LockMut(*g_Mutex);
-	return g_Playing->m_Music;
+	f(g_Playing->m_Music);
 }
 
 TimingData
