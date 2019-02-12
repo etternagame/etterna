@@ -27,6 +27,7 @@ local jdgCur  -- Note: only for judgments with OFFSETS, might reorganize a bit l
 local tDiff
 local wifey
 local judgect
+local pbtarget
 local positive = getMainColor("positive")
 local highlight = getMainColor("highlight")
 local negative = getMainColor("negative")
@@ -213,6 +214,9 @@ local t =
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
 		end
+		if msg.WifePBGoal ~= nil then
+			pbtarget = msg.WifePBGoal
+		end
 		jdgCur = msg.Judgment
 		if jdgCounts[jdgCur] ~= nil then
 			queuecommand(self, "SpottedOffset")
@@ -303,7 +307,6 @@ else
 			end,
 			SpottedOffsetCommand = function(self, msg)
 				if tDiff then
-					local pbtarget = msg.WifePBGoal
 					if tDiff >= 0 then
 						diffuse(self, color("#00ff00"))
 					else
