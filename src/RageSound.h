@@ -91,7 +91,7 @@ struct RageSoundLoadParams
 
 class RageSound : public RageSoundBase
 {
-  public:
+public:
 	RageSound();
 	~RageSound() override;
 	RageSound(const RageSound& cpy);
@@ -112,8 +112,8 @@ class RageSound : public RageSoundBase
 	 * is broken or missing.
 	 */
 	bool Load(const RString& sFile,
-			  bool bPrecache,
-			  const RageSoundLoadParams* pParams = nullptr);
+		bool bPrecache,
+		const RageSoundLoadParams* pParams = nullptr);
 
 	/* Using this version means the "don't care" about caching. Currently,
 	 * this always will not cache the sound; this may become a preference. */
@@ -138,7 +138,7 @@ class RageSound : public RageSoundBase
 
 	void Play(bool is_action, const RageSoundParams* params = nullptr);
 	void PlayCopy(bool is_action,
-				  const RageSoundParams* pParams = nullptr) const;
+		const RageSoundParams* pParams = nullptr) const;
 	void Stop();
 
 	/* Cleanly pause or unpause the sound. If the sound wasn't already playing,
@@ -147,7 +147,7 @@ class RageSound : public RageSoundBase
 
 	float GetLengthSeconds();
 	float GetPositionSeconds(bool* approximate = nullptr,
-							 RageTimer* Timestamp = nullptr) const;
+		RageTimer* Timestamp = nullptr) const;
 	RString GetLoadedFilePath() const override { return m_sFilePath; }
 	bool IsPlaying() const { return m_bPlaying; }
 
@@ -159,15 +159,13 @@ class RageSound : public RageSoundBase
 	void SetStopModeFromString(const RString& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	unsigned int recentPCMSamplesBufferSize = 1024;
-	LuaReference soundPlayCallback;
-	vector<float> recentPCMSamples;
 	void SetPlayBackCallback(LuaReference f, unsigned int bufSize = 1024);
+	atomic<bool> pendingPlayBackCall{ false };
+	void ExecutePlayBackCallback(Lua* L);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);
-
-  private:
+private:
 	mutable RageMutex m_Mutex;
 
 	RageSoundReader* m_pSource;
@@ -185,6 +183,14 @@ class RageSound : public RageSoundBase
 	/* Current position of the output sound, in frames. If < 0, nothing will
 	 * play until it becomes positive. */
 	int64_t m_iStreamFrame;
+
+	void* fftwBuffer{nullptr};
+	void RageSound::ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize);
+	std::atomic<bool> inPlayCallback{ false };
+	std::mutex recentSamplesMutex; // For all operations related to sound play callbacks
+	unsigned int recentPCMSamplesBufferSize{ 1024 };
+	LuaReference soundPlayCallback;
+	vector<float> recentPCMSamples;
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
 	 * (we're not playing); and we can't seek back to the current playing

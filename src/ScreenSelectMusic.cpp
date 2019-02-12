@@ -1521,7 +1521,7 @@ ScreenSelectMusic::DeletePreviewNoteField()
 		GAMESTATE->m_bIsChartPreviewActive = false;
 		auto song = GAMESTATE->m_pCurSong;
 		if (song && m_SelectionState != SelectionState_Finalized) {
-			SOUND->StopMusic();
+			//SOUND->StopMusic();
 			m_sSampleMusicToPlay = song->GetPreviewMusicPath();
 			m_fSampleStartSeconds = song->GetPreviewStartSeconds();
 			m_fSampleLengthSeconds = song->m_fMusicSampleLengthSeconds;
@@ -1535,10 +1535,11 @@ void
 ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
 {
 	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
-		RageSound* pMusic = SOUND->GetRageSoundPlaying();
-		pMusic->SetPositionSeconds(given);
-		if (GAMESTATE->GetPaused())
-			SOUND->GetRageSoundPlaying()->Pause(true);
+		SOUND->WithRageSoundPlaying([given](auto pMusic) {
+			pMusic->SetPositionSeconds(given);
+			if (GAMESTATE->GetPaused())
+				pMusic->Pause(true);
+		});
 	}
 }
 
@@ -1546,7 +1547,9 @@ void
 ScreenSelectMusic::PausePreviewNoteFieldMusic()
 {
 	bool paused = GAMESTATE->GetPaused();
-	SOUND->GetRageSoundPlaying()->Pause(!paused);
+	SOUND->WithRageSoundPlaying([paused](auto pMusic) {
+		pMusic->Pause(!paused);
+	});
 	GAMESTATE->SetPaused(!paused);
 }
 
