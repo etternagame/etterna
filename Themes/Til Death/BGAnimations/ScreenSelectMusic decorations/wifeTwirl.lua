@@ -747,7 +747,6 @@ t[#t + 1] =
 			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
-				toggleNoteField()
 				SCREENMAN:GetTopScreen():setTimeout(
 					function()
 						toggleNoteField()
