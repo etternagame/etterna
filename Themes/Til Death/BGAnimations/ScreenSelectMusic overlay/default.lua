@@ -44,10 +44,25 @@ GAMESTATE:UpdateDiscordMenu(
 		": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
 )
 
-local vis = audioVisualizer:new {
-	x = 120,
+local vis =
+	audioVisualizer:new {
+	x = 175,
 	y = 30,
-	color = getMainColor('positive'),
+	maxHeight = 30,
+	freqIntervals = audioVisualizer.multiplyIntervals(audioVisualizer.defaultIntervals, 5),
+	color = getMainColor("positive"),
+	onBarUpdate = function(self)
+		--[
+		self:diffusetopedge(getMainColor("frames"))
+		self:diffusebottomedge(getMainColor("positive"))
+		--]]
+		--[[
+		self:diffuselowerleft()
+		self:diffuseupperleft()
+		self:diffuselowerright()
+		self:diffuseupperright()
+		--]]
+	end
 }
-t[#t+1] = vis
+t[#t + 1] = vis
 return t

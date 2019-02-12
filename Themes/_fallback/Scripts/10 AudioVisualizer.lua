@@ -1,3 +1,4 @@
+local log = math.log
 local concat = function(...)
     local arg = {...}
     local t = {}
@@ -8,7 +9,20 @@ local concat = function(...)
     end
     return t
 end
-
+local function dump(o)
+    if type(o) == "table" then
+        local s = "{ "
+        for k, v in pairs(o) do
+            if type(k) ~= "number" then
+                k = '"' .. k .. '"'
+            end
+            s = s .. "[" .. k .. "] = " .. dump(v) .. ",\n"
+        end
+        return s .. "} "
+    else
+        return tostring(o)
+    end
+end
 audioVisualizer = {}
 --[[
 Note: This is relatively barebones, and not very customizable.
@@ -35,7 +49,20 @@ Using SOUND:
     t[#t+1] = vis
     SOUND:SetPlayBackCallback(vis.playbackFunction)
 --]]
-audioVisualizer.defaultIntervals = {0, 19.0, 35, 60, 125, 250, 375, 500, 1325, 2000, 3000, 4000, 5000, 6000, 9000}
+function audioVisualizer.multiplyIntervals(ints, n)
+    local t = {}
+    for i, v in ipairs(ints) do
+        local a = v
+        local b = ints[i + 1]
+        if b then
+            for j = 1, n do
+                t[#t + 1] = a + (b - a) * j / n
+            end
+        end
+    end
+    return t
+end
+audioVisualizer.defaultIntervals = {0, 19.0, 35, 60, 90, 140, 240, 400, 800, 1600, 2600, 3900, 5200}
 local defaultIntervals = audioVisualizer.defaultIntervals
 -- for i = 0, 67 do
 --   defaultIntervals[#defaultIntervals + 1] = i * i * 5
@@ -52,6 +79,8 @@ local defaultIntervals = audioVisualizer.defaultIntervals
         spacing = 1, -- Between bars
         barBuilder = quad, -- Function that takes params
         sampleCount = 4096, -- number of samples per update
+        onBarUpdate = nil, -- function(barActor, value) called whenever theyre updated
+            (value is in the [0,1] range)
         onInit = nil
     }
 ]]
@@ -67,15 +96,15 @@ function audioVisualizer:new(params)
     local frame =
         Def.ActorFrame {
         InitCommand = function(self)
-			self:xy(params.x or 0, params.y or 0)
-		end,
-		CurrentSongChangedMessageCommand=function(self)
-			self:RunCommandsOnChildren(
-				function(self)
-					self:zoomtoheight(0)
-				end
-			)
-		end
+            self:xy(params.x or 0, params.y or 0)
+        end,
+        CurrentSongChangedMessageCommand = function(self)
+            self:RunCommandsOnChildren(
+                function(self)
+                    self:zoomtoheight(0)
+                end
+            )
+        end
     }
     -- Freq intervals for each bar
     local freqIntervals
@@ -90,31 +119,38 @@ function audioVisualizer:new(params)
     end
     -- bar actor updater
     do
-        local prevVals = {}
-        local scale = 1000
-        local maxHeight = params.maxHeight or 120
         local minHeight = params.minHeight or 3
-		frame.updater = params.barUpdater or function(actor, value)
-			actor:zoomtoheight(value)
-		end
+        local maxHeight = (params.maxHeight or 120) - minHeight
+        if params.onBarUpdate then
+            frame.updater = params.barUpdater or function(actor, value)
+                    actor:zoomtoheight(minHeight + value * maxHeight)
+                    params.onBarUpdate(actor, value)
+                end
+        else
+            frame.updater = params.barUpdater or function(actor, value)
+                    actor:zoomtoheight(minHeight + value * maxHeight)
+                end
+        end
     end
     -- Bar actors
     frame.bars = {}
     -- ignore 0-firstFreq, so bars start from value 2, and we start from 3
     -- since we use 2 frequencies per bar (intervals)
+    params.width = params.width or 300
+    params.spacing = params.spacing or 1
     do
         local color = params.color or color("#FF00000")
-        for i = 3, #freqIntervals do
+        local intCount = #freqIntervals
+        local width = (params.width - intCount * params.spacing) / (#freqIntervals - 2)
+        local pos = width + params.spacing
+        for i = 3, intCount do
             frame[#frame + 1] =
                 (params.barBuilder or
                 function()
                     return Def.Quad {
                         InitCommand = function(self)
                             (frame.bars)[i - 2] = self
-                            local width = (params.width or 300) / (#freqIntervals - 2)
-                            self:valign(1):x((width + (params.spacing or 1)) * (i - 2)):diffuse(color):zoomtowidth(
-                                width
-                            )
+                            self:valign(1):x(pos * (i - 2)):diffuse(color):zoomtowidth(width)
                         end
                     }
                 end)(params)
@@ -122,37 +158,55 @@ function audioVisualizer:new(params)
     end
     local soundActor
     frame.sound = Def.Sound {}
-    -- Add magnitude to the appropiate bar's value (aka falls in the freq interval)
-	frame.playbackFunction = function(fft, ss)
-		-- reset values
+    local addToBin
+    do
         local values = frame.values
-		for i = 1, #values do
-            values[i] = 0
-		end
-
-		local function addToBin(magnitude, freq)
-			for i = 2, #freqIntervals do
-				if freq > freqIntervals[i - 1] and freq <= freqIntervals[i] then
-					values[i - 1] = values[i - 1] + magnitude
-					return
-				end
-			end
-		end
-
-		local samplingRate = ss:GetSampleRate()
-		local count = #fft
-		local m = count * 2 -- Amount of samples. N samples yield n/2+1 useful fft values
-		for i = 1, count do
-        	addToBin(math.sqrt(fft[i]), i * samplingRate / m)
-		end
-
-        local updater = frame.updater
-		local bars = frame.bars
-    	for i = 1, #bars do
-        	updater(bars[i], values[i + 1])
+        addToBin = function(magnitude, freq)
+            for i = 2, #freqIntervals do
+                if freq > freqIntervals[i - 1] and freq <= freqIntervals[i] then
+                    values[i - 1] = values[i - 1] + magnitude
+                    return
+                end
+            end
         end
     end
-    frame.sampleCount = params.sampleCount or 4096
+    -- Add magnitude to the appropiate bar's value (aka falls in the freq interval)
+    local screen
+    local values = frame.values
+    frame.playbackFunction = function(fft, ss)
+        -- cleanup
+        if screen ~= SCREENMAN:GetTopScreen() then
+            SOUND:ClearPlayBackCallback()
+            return
+        end
+        local samplingRate = ss:GetSampleRate()
+        local count = #fft
+
+        for i = 1, count do
+            -- samples = count*2
+            -- nyquist limit => freq=i * (samplingRate/2) / samples
+            addToBin(math.sqrt(fft[i]), i * samplingRate / (4 * count))
+        end
+
+        SCREENMAN:GetTopScreen():setTimeout(
+            function()
+                local updater = frame.updater
+                local bars = frame.bars
+                local max = math.max(100.0, unpack(values, 2))
+                for i = 1, #bars do
+                    -- turn into linear scale
+                    local x = math.min(values[i + 1] / max, 1)
+                    -- turn into log scale
+                    x = log(x + 1) / log(2)
+                    values[i + 1] = x
+                    updater(bars[i], x)
+                    values[i + 1] = 0
+                end
+            end,
+            (count / 2) / samplingRate
+        )
+    end
+    frame.sampleCount = params.sampleCount or 8192
     frame.sound.InitCommand = function(self)
         frame.sound.actor = self
         local rSound = self:get()
@@ -160,10 +214,11 @@ function audioVisualizer:new(params)
         if params.onInit then
             params.onInit(frame)
         end
-	end
-	frame.BeginCommand = function(self)
-		SOUND:SetPlayBackCallback(frame.playbackFunction)
-	end
+    end
+    frame.BeginCommand = function(self)
+        screen = SCREENMAN:GetTopScreen()
+        SOUND:SetPlayBackCallback(frame.playbackFunction, frame.sampleCount)
+    end
     frame[#frame + 1] = frame.sound
     return frame
 end

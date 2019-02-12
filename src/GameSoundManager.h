@@ -2,8 +2,10 @@
 #define RAGE_SOUNDS_H
 
 #include "PlayerNumber.h"
+#include "MessageManager.h"
 
 class TimingData;
+class Screen;
 class RageSound;
 struct lua_State;
 struct MusicToPlay;
@@ -12,7 +14,7 @@ int
 MusicThread_start(void* p);
 
 /** @brief High-level sound utilities. */
-class GameSoundManager
+class GameSoundManager : MessageSubscriber
 {
   public:
 	GameSoundManager();
@@ -78,6 +80,9 @@ class GameSoundManager
 		
 	LuaReference soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
+	Screen* callbackOwningScreen{ nullptr };
+
+	void HandleMessage(const Message& msg) override;
 
 	// Lua
 	void PushSelf(lua_State* L);

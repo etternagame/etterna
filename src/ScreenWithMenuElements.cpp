@@ -333,6 +333,14 @@ ScreenWithMenuElementsSimple::MenuBack(const InputEventPlus& input)
 	return true;
 }
 
+void
+ScreenWithMenuElements::UpdateTimedFunctions(float fDeltaTime)
+{
+	if (IsTransitioning())
+		return;
+	Screen::UpdateTimedFunctions(fDeltaTime);
+}
+
 // lua start
 #include "LuaBinding.h"
 /** @brief Allow Lua to have access to the ScreenWithMenuElements. */
