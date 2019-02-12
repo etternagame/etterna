@@ -209,9 +209,11 @@ local t =
 		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
-			jdgCur = msg.Judgment
-			queuecommand(self, "SpottedOffset")
+		else
+			dvCur = 1000
 		end
+		jdgCur = msg.Judgment
+		queuecommand(self, "SpottedOffset")
 	end
 }
 
