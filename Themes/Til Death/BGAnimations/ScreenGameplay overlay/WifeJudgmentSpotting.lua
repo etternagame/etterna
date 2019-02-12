@@ -515,7 +515,7 @@ local e =
 	end,
 	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
-			if jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" then
+			if jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
 				currentbar = ((currentbar) % barcount) + 1
 				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
 			end
@@ -581,7 +581,7 @@ if enabledErrorBar == 2 then
 			end
 		end,
 		SpottedOffsetCommand = function(self)
-			if jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur~= "TapNoteScore_Miss" then
+			if jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
 				self:x(MovableValues.ErrorBarX + avg * wscale)
