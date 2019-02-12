@@ -25,6 +25,11 @@ local function highlight(self)
 	self:GetChild("refreshbutton"):queuecommand("Highlight")
 end
 
+local function highlight2(self)
+	self:GetChild("refreshbutton"):queuecommand("Highlight")
+	self:GetChild("loginlogout"):queuecommand("Highlight")
+end
+
 local function highlightIfOver(self)
 	if isOver(self) then
 		self:diffusealpha(0.6)
@@ -109,8 +114,9 @@ t[#t + 1] =
 		},
 	LoadFont("Common Normal") ..
 		{
+			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 26):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -126,18 +132,59 @@ t[#t + 1] =
 				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settext("Click to login")
 				else
-					self:settextf("Not logged in")
+					self:settext("Not logged in")
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
-						"Logged in as %s (%5.2f: #%i) \n%s",
-						DLMAN:GetUsername(),
-						DLMAN:GetSkillsetRating("Overall"),
-						DLMAN:GetSkillsetRank(ms.SkillSets[1]),
+						"%s",
 						"Click to Logout"
 					)
+				else
+					self:settextf("")
+				end
+			end,
+			OnlineUpdateMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				if DLMAN:IsLoggedIn() then
+					self:queuecommand("Login")
+				else
+					self:queuecommand("LogOut")
+				end
+			end,
+			LogOutMessageCommand = function(self)
+				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
+					self:settextf("")
+					self:GetParent():SetUpdateFunction(highlight2)
+				else
+					self:settextf("")
+					self:GetParent():SetUpdateFunction(highlight)
+				end
+			end,
+			LoginMessageCommand = function(self) --this seems a little clunky -mina
+				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
+					self:settextf(
+						"Logged in as %s (%5.2f: #%i) \n",
+						DLMAN:GetUsername(),
+						DLMAN:GetSkillsetRating("Overall"),
+						DLMAN:GetSkillsetRank(ms.SkillSets[1])
+					)
+					self:GetParent():SetUpdateFunction(highlight2)
 				else
 					self:settextf(
 						"Logged in as %s (%5.2f: #%i)",
@@ -145,10 +192,14 @@ t[#t + 1] =
 						DLMAN:GetSkillsetRating("Overall"),
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
 					)
+					self:GetParent():SetUpdateFunction(highlight)
 				end
 			end,
 			OnlineUpdateMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
 			end
 		},
 	Def.Quad {
