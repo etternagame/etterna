@@ -249,6 +249,7 @@ class ETTProtocol : public NetProtocol
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
+	~ETTProtocol();
 	bool waitingForTimeout{ false };
 	clock_t timeoutStart;
 	double timeout;

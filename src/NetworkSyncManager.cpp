@@ -373,6 +373,14 @@ ETTProtocol::close()
 	uWSh = new uWS::Hub();
 }
 
+ETTProtocol::~ETTProtocol()
+{
+	if (uWSh != nullptr)
+	{
+		delete uWSh;
+	}
+}
+
 void
 NetworkSyncManager::CloseConnection()
 {
@@ -463,15 +471,18 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 					 unsigned short port,
 					 RString address)
 {
-	char host[128];
+	char *host = new char[address.size() + 1];
 	if (sscanf(address.c_str(), "ws://%[^:/]", host) > 0)
 		;
 	else if (sscanf(address.c_str(), "wss://%[^:/]", host) > 0)
 		;
 	else
-		strcpy(host, address.c_str());
-	if (!EzSockets::CanConnect(host, port))
+		strcpy(host, address.c_str()); 
+	bool canConnect = EzSockets::CanConnect(host, port);
+	delete[] host;
+	if (!canConnect) {
 		return false;
+	}
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;

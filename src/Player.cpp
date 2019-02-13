@@ -1881,7 +1881,7 @@ Player::DoTapScoreNone()
 	if (m_pLifeMeter != nullptr)
 		m_pLifeMeter->HandleTapScoreNone();
 
-	if (PENALIZE_TAP_SCORE_NONE) {
+	if (PENALIZE_TAP_SCORE_NONE && m_pPlayerState != nullptr) {
 		SetJudgment(BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat),
 					-1,
 					TAP_EMPTY,
