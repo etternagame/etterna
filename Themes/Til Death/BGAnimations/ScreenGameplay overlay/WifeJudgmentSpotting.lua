@@ -306,7 +306,7 @@ else
 				self:settextf("")
 			end,
 			SpottedOffsetCommand = function(self, msg)
-				if tDiff then
+				if pbtarget then
 					if tDiff >= 0 then
 						diffuse(self, color("#00ff00"))
 					else
