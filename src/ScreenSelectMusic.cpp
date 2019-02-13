@@ -271,7 +271,10 @@ ScreenSelectMusic::BeginScreen()
 		GAMESTATE->isplaylistcourse = false;
 		SONGMAN->playlistcourse = "";
 	}
-	if (GAMESTATE->m_pCurSteps != nullptr)
+
+	// Update the leaderboard for the file we may have just left
+	// If it was empty, just let the players request it themselves (to prevent a theme bug)
+	if (GAMESTATE->m_pCurSteps != nullptr && DLMAN->chartLeaderboards.count(GAMESTATE->m_pCurSteps->GetChartKey()) != 0)
 		DLMAN->RequestChartLeaderBoard(
 		  GAMESTATE->m_pCurSteps->GetChartKey());
 

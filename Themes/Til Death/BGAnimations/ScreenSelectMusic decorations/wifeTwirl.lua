@@ -14,6 +14,7 @@ local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local songChanged = false
 
 local update = false
 local t =
@@ -37,6 +38,7 @@ local t =
 		if getTabIndex() == 0 and noteField and not mcbootlarder:GetChild("NoteField"):IsVisible() then
 			boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = true
 		end
+		songChanged = true
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
@@ -137,7 +139,10 @@ local function toggleNoteField()
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
-		song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+		if songChanged then
+			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+			songChanged = false
+		end
 		return
 	end
 
@@ -747,7 +752,6 @@ t[#t + 1] =
 			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
-				toggleNoteField()
 				SCREENMAN:GetTopScreen():setTimeout(
 					function()
 						toggleNoteField()

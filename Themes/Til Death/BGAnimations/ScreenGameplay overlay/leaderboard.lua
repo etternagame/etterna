@@ -82,7 +82,7 @@ curScore = {
 		return DLMAN:GetUsername()
 	end,
 	GetWifeGrade = function()
-		return curScore.curGrade
+		return GetGradeFromPercent(curScore.curWifeScore)
 	end,
 	GetWifeScore = function()
 		return curScore.curWifeScore
