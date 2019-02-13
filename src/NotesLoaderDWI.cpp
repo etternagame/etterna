@@ -280,7 +280,6 @@ GetTypeFromMode(const RString& mode)
 		return StepsType_dance_double;
 	else if( mode == "SOLO" )
 		return StepsType_dance_solo;
-	ASSERT_M(0, "Unrecognized DWI notes format " + mode + "!");
 	return StepsType_Invalid; // just in case.
 }
 
@@ -511,6 +510,8 @@ LoadFromDWITokens(RString sMode,
 	CHECKPOINT_M("DWILoader::LoadFromDWITokens()");
 
 	out.m_StepsType = GetTypeFromMode(sMode);
+	if (out.m_StepsType == StepsType_Invalid)
+		return false;
 
 	// if the meter is empty, force it to 1.
 	if (sNumFeet.empty())

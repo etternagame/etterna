@@ -69,12 +69,17 @@ local function updateLeaderBoardForCurrentChart()
 		if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
 			local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			if steps then
-				DLMAN:RequestChartLeaderBoardFromOnline(
-					steps:GetChartKey(),
-					function(leaderboard)
-						moped:queuecommand("SetFromLeaderboard", leaderboard)
-					end
-				)
+				local leaderboardAttempt = DLMAN:GetChartLeaderboard(steps:GetChartKey())
+				if #leaderboardAttempt > 0 then
+					moped:playcommand("SetFromLeaderboard", leaderboardAttempt)
+				else
+					DLMAN:RequestChartLeaderBoardFromOnline(
+						steps:GetChartKey(),
+						function(leaderboard)
+							moped:queuecommand("SetFromLeaderboard", leaderboard)
+						end
+					)
+				end
 			else
 				moped:playcommand("SetFromLeaderboard", {})
 			end

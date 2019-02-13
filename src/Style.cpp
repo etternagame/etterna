@@ -60,8 +60,15 @@ Style::StyleInputToGameInput(int iCol,
 
 	FOREACH_ENUM(GameController, gc)
 	{
-		if (bUsingOneSide && gc != (int)pn)
-			continue;
+		// if (bUsingOneSide && gc != (int)pn)
+		//	continue;
+
+		// this treats player 2's game buttons as an extension of player 1's
+		// when determining if there are appropriately mapped buttons for the
+		// style, however since player 2 was removed internally this will
+		// cause anything mapped to gc2 ("p2") to be ignored and cause a crash.
+		// i dont really see how force crashing the game because buttons aren't
+		// mapped is a good idea in the first place but uhhh whatever -mina
 
 		int iButtonsPerController =
 		  INPUTMAPPER->GetInputScheme()->m_iButtonsPerController;

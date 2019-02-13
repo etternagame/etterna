@@ -67,7 +67,7 @@ class GameSoundManager
 	float GetFrameTimingAdjustment(float fDeltaTime);
 
 	static float GetPlayerBalance(PlayerNumber pn);
-	RageSound* GetRageSoundPlaying();
+	void WithRageSoundPlaying(function<void(RageSound*)> f);
 	TimingData GetPlayingMusicTiming();
 	
 	void StartMusic(MusicToPlay& ToPlay);

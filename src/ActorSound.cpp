@@ -13,6 +13,17 @@ ActorSound::Load(const RString& sPath)
 }
 
 void
+ActorSound::Update(float dt)
+{
+	Actor::Update(dt);
+	if (m_Sound.pendingPlayBackCall) {
+		auto L = LUA->Get();
+		m_Sound.ExecutePlayBackCallback(L);
+		LUA->Release(L);
+	}
+}
+
+void
 ActorSound::Play()
 {
 	m_Sound.Play(m_is_action);
