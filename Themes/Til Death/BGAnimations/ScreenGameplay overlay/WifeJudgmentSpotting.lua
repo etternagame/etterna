@@ -27,9 +27,13 @@ local jdgCur  -- Note: only for judgments with OFFSETS, might reorganize a bit l
 local tDiff
 local wifey
 local judgect
+local pbtarget
 local positive = getMainColor("positive")
 local highlight = getMainColor("highlight")
 local negative = getMainColor("negative")
+
+local jdgCounts = {} -- Child references for the judge counter
+
 
 -- We can also pull in some localized aliases for workhorse functions for a modest speed increase
 local Round = notShit.round
@@ -209,11 +213,14 @@ local t =
 		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
-		else
-			dvCur = 1000
+		end
+		if msg.WifePBGoal ~= nil then
+			pbtarget = msg.WifePBGoal
 		end
 		jdgCur = msg.Judgment
-		queuecommand(self, "SpottedOffset")
+		if jdgCounts[jdgCur] ~= nil then
+			queuecommand(self, "SpottedOffset")
+		end
 	end
 }
 
@@ -298,9 +305,8 @@ else
 				end
 				self:settextf("")
 			end,
-			JudgmentMessageCommand = function(self, msg)
-				if tDiff then
-					local pbtarget = msg.WifePBGoal
+			SpottedOffsetCommand = function(self, msg)
+				if pbtarget then
 					if tDiff >= 0 then
 						diffuse(self, color("#00ff00"))
 					else
@@ -387,7 +393,6 @@ local countFontSize = 0.35
 local gradeFontSize = 0.45
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
-local jdgCounts = {} -- Child references for the judge counter
 
 local j =
 	Def.ActorFrame {
@@ -405,7 +410,7 @@ local j =
 		end
 	end,
 	SpottedOffsetCommand = function(self)
-		if jdgCur then
+		if jdgCur and jdgCounts[jdgCur] ~= nil then
 			settext(jdgCounts[jdgCur], jdgct)
 		end
 	end,
@@ -513,8 +518,10 @@ local e =
 	end,
 	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
-			currentbar = ((currentbar) % barcount) + 1
-			queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
+			if jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
+				currentbar = ((currentbar) % barcount) + 1
+				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
+			end
 		end
 	end,
 	DootCommand = function(self)
@@ -577,9 +584,11 @@ if enabledErrorBar == 2 then
 			end
 		end,
 		SpottedOffsetCommand = function(self)
-			avg = alpha * dvCur + (1 - alpha) * lastAvg
-			lastAvg = avg
-			self:x(MovableValues.ErrorBarX + avg * wscale)
+			if jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(MovableValues.ErrorBarX + avg * wscale)
+			end
 		end
 	}
 end

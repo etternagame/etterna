@@ -185,7 +185,7 @@ private:
 	int64_t m_iStreamFrame;
 
 	void* fftwBuffer{nullptr};
-	void RageSound::ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize);
+	void ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
 	std::mutex recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };

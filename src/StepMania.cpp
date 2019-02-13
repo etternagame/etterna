@@ -990,7 +990,7 @@ WriteLogHeader()
 			  now.tm_hour,
 			  now.tm_min,
 			  now.tm_sec);
-	LOG->Info("\tVerbosity: " + PREFSMAN->m_verbose_log.ToString());
+	LOG->Info("\tVerbosity: %s", PREFSMAN->m_verbose_log.ToString().c_str());
 	LOG->Trace(" ");
 
 	if (g_argc > 1) {
