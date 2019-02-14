@@ -216,6 +216,7 @@ local t =
 		end
 		if msg.WifePBGoal ~= nil then
 			pbtarget = msg.WifePBGoal
+			tDiff = msg.WifePBDifferential
 		end
 		jdgCur = msg.Judgment
 		if jdgCounts[jdgCur] ~= nil then
