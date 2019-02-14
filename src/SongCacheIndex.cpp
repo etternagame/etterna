@@ -541,9 +541,18 @@ SongCacheIndex::DeleteDB()
 	if (db != nullptr)
 		delete db;
 	FILEMAN->Remove(CACHE_DB);
-	db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
+	try {
+		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
 							  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
 								SQLITE_OPEN_FULLMUTEX);
+	}
+	catch (std::exception& e) {
+		LOG->Trace("Error reading cache db: %s", e.what());
+		if (curTransaction != nullptr) {
+			delete curTransaction;
+			curTransaction = nullptr;
+		}
+	}
 	return;
 }
 void

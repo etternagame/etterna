@@ -275,8 +275,9 @@ EzSockets::connect(const std::string& host, unsigned short port)
 		return false;
 
 	SetSocketBlocking(sock, false);
-	::connect(sock, (struct sockaddr*)&addr, sizeof(addr));
-
+	int connected = ::connect(sock, (struct sockaddr*)&addr, sizeof(addr));
+	if (connected != 0)
+		return false;
 	fd_set readfds;
 	FD_ZERO(&readfds);
 	FD_SET(sock, &readfds);
