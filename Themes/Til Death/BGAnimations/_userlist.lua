@@ -7,6 +7,7 @@ local usersRowSize = 4
 local usersX = SCREEN_WIDTH / 4
 local usersY = SCREEN_TOP + 15
 local usersHeight = 10
+local showVisualizer = themeConfig:get_data().global.ShowVisualizer
 
 local top = SCREENMAN:GetTopScreen()
 local qty = 0
@@ -59,7 +60,7 @@ local function userLabel(i)
 				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				if top:GetName() == "ScreenNetSelectMusic" then
+				if top:GetName() == "ScreenNetSelectMusic" and showVisualizer then
 					y = usersY + 25
 					self:y(y)
 				end
