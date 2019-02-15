@@ -953,8 +953,7 @@ BackgroundImpl::IsDangerAllVisible()
 
 BrightnessOverlay::BrightnessOverlay()
 {
-	float fQuadWidth = (RIGHT_EDGE - LEFT_EDGE) / 2;
-	fQuadWidth -= g_fBackgroundCenterWidth / 2;
+	float fQuadWidth = (RIGHT_EDGE - LEFT_EDGE);
 
 	m_quadBGBrightness.StretchTo( RectF(LEFT_EDGE,TOP_EDGE,LEFT_EDGE+fQuadWidth,BOTTOM_EDGE) );
 	m_quadBGBrightnessFade.StretchTo( RectF(LEFT_EDGE+fQuadWidth,TOP_EDGE,RIGHT_EDGE-fQuadWidth,BOTTOM_EDGE) );
