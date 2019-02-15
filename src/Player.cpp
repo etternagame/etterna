@@ -487,7 +487,10 @@ Player::Init(const RString& sType,
 			   ->m_iColsPerPlayer;
 		 ++i) {
 		m_vpHoldJudgment[i] = NULL;
-		lastHoldHeadsSeconds[i] = 0;
+		// set this reasonably negative because if we don't, the first row of
+		// the song doesn't get judged
+		// and also it gets changed back to a realistic number after a hold is hit -poco
+		lastHoldHeadsSeconds[i] = -1000.f;
 	}
 
 	if (HasVisibleParts()) {
