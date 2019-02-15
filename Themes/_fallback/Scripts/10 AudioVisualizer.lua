@@ -101,7 +101,7 @@ function audioVisualizer:new(params)
         CurrentSongChangedMessageCommand = function(self)
             self:RunCommandsOnChildren(
                 function(self)
-                    self:zoomtoheight(0)
+                    self:finishtweening():smooth(0.3):zoomtoheight(0)
                 end
             )
         end
@@ -123,12 +123,12 @@ function audioVisualizer:new(params)
         local maxHeight = (params.maxHeight or 120) - minHeight
         if params.onBarUpdate then
             frame.updater = params.barUpdater or function(actor, value)
-                    actor:zoomtoheight(minHeight + value * maxHeight)
+                    actor:hurrytweening(0.15):smooth(0.22):zoomtoheight(minHeight + value * maxHeight)
                     params.onBarUpdate(actor, value)
                 end
         else
             frame.updater = params.barUpdater or function(actor, value)
-                    actor:zoomtoheight(minHeight + value * maxHeight)
+                    actor:hurrytweening(0.15):smooth(0.22):zoomtoheight(minHeight + value * maxHeight)
                 end
         end
     end
