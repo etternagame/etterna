@@ -61,7 +61,7 @@ local filterWidth = (arrowWidth * cols) + padding
 local judgeThreshold = Enum.Reverse(TapNoteScore)[ComboContinue()]
 local enabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CBHighlight
 
-local alpha = 0.8
+local alpha = 0.4
 
 
 local function laneHighlight()
