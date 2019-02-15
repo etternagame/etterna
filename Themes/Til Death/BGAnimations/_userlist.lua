@@ -59,6 +59,10 @@ local function userLabel(i)
 				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
+				if top:GetName() == "ScreenNetSelectMusic" then
+					y = usersY + 25
+					self:y(y)
+				end
 				local num = self:GetName() + 0
 				qty = top:GetUserQty()
 				if num <= qty then
