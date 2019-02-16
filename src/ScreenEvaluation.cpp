@@ -187,8 +187,6 @@ ScreenEvaluation::Init()
 	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
 		m_pStageStats->m_player.m_HighScore.SetRadarValues(
 		  m_pStageStats->m_player.m_radarActual);
-	} else if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		m_pStageStats->FinalizeScores(true);
 	}
 
 	// Run this here, so STATSMAN->m_CurStageStats is available to overlays.

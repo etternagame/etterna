@@ -787,7 +787,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						for (json::iterator trackIt = jTracks.begin();
 							 trackIt != jTracks.end();
 							 ++trackIt)
-							noterows.emplace_back(trackIt->get<int>());
+							tracks.emplace_back(trackIt->get<int>());
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
 						hs.SetTrackVector(tracks);
