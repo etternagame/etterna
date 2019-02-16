@@ -292,7 +292,7 @@ class DownloadManager
 	string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(const string& whichoneyo, bool mirror = false);
+	void DownloadCoreBundle(const string& whichoneyo, bool mirror = true);
 	map<string, vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);

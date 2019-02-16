@@ -1967,10 +1967,17 @@ class LunaGameState : public Luna<GameState>
 		lua_pushboolean(L, p->GetPaused());
 		return 1;
 	}
+	static int SetAutoplay(T* p, lua_State* L)
+	{
+		p->m_pPlayerState->m_PlayerController = BArg(1) ? PC_CPU : PC_HUMAN;
+		GamePreferences::m_AutoPlay.Set(p->m_pPlayerState->m_PlayerController);
+		return 0;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
+		ADD_METHOD(SetAutoplay);
 		ADD_METHOD(IsPlayerEnabled);
 		ADD_METHOD(IsHumanPlayer);
 		ADD_METHOD(GetPlayerDisplayName);

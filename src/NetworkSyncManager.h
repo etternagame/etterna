@@ -99,6 +99,7 @@ enum ETTServerMessageTypes
 	ettps_updateroom,
 	ettps_roomuserlist,
 	ettps_chartrequest,
+	ettps_roompacklist,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -359,6 +360,7 @@ class NetworkSyncManager
 	bool useSMserver;
 	bool isSMOnline;
 	bool loggedIn;
+	string loggedInUsername;
 	string loginResponse; // Failure reason
 
 	Chat chat; //[{Tabname, int}] = vector<line>
@@ -367,6 +369,8 @@ class NetworkSyncManager
 	int m_ActivePlayers;
 	vector<int> m_ActivePlayer;
 	vector<RString> m_PlayerNames;
+	vector<bool> m_PlayerReady;
+	vector<string> commonpacks;
 
 	// friendlist
 	vector<std::string> fl_PlayerNames;
@@ -430,7 +434,8 @@ class NetworkSyncManager
 	void Login(RString user, RString pass);
 	void Logout();
 	vector<RoomData> m_Rooms;
-	vector<ChartRequest> requests;
+	vector<ChartRequest*> requests;
+	vector<ChartRequest*> staleRequests;
 
 #if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);

@@ -60,6 +60,9 @@ class MusicWheel : public WheelBase
 	virtual void ReloadSongList(bool searching, RString findme);
 	void SetHashList(const vector<string>& newHashList);
 
+	// multiplayer common pack filtering
+	bool packlistFiltering{ false };
+
 	// Lua
 	void PushSelf(lua_State* L) override;
 

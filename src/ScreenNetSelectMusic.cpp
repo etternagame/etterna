@@ -377,6 +377,17 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetUserReady(T* p, lua_State* L)
+	{
+		if (lua_isnil(L, 1))
+			return 0;
+		auto& states = NSMAN->m_PlayerReady;
+		if (static_cast<size_t>(IArg(1)) <= states.size() && IArg(1) >= 1)
+			lua_pushboolean(L, states[IArg(1) - 1]);
+		else
+			lua_pushboolean(L, false);
+		return 1;
+	}
 	static int GetUserState(T* p, lua_State* L)
 	{
 		if (lua_isnil(L, 1))
@@ -396,6 +407,7 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 		ADD_METHOD(GetUser);
 		ADD_METHOD(GetUserQty);
 		ADD_METHOD(GetUserState);
+		ADD_METHOD(GetUserReady);
 	}
 };
 

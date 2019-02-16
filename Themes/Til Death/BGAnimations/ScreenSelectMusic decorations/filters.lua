@@ -282,6 +282,31 @@ local f =
 			FilterResultsMessageCommand = function(self, msg)
 				self:settext("Matches: " .. msg.Matches .. "/" .. msg.Total)
 			end
+		},
+	LoadFont("Common Large") ..
+		{
+			BeginCommand = function(self)
+				self:xy(frameX + frameWidth / 2, 175 + spacingY * 5):zoom(textzoom):halign(0):maxwidth(300)
+				self.packlistFiltering = false
+				self.enabled = SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic"
+				if not self.enabled then
+					self:visible(false)
+				end
+				self:queuecommand("Set")
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if self.enabled and isOver(self) and active then
+					self.packlistFiltering = not self.packlistFiltering
+					whee:SetPackListFiltering(self.packlistFiltering)
+					self:queuecommand("Set")
+				end
+			end,
+			SetCommand = function(self)
+				self:settext("Common Packs Only: " .. (self.packlistFiltering and "On" or "Off"))
+			end,
+			FilterModeChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
 		}
 }
 

@@ -147,6 +147,7 @@ RageSurface::RageSurface(const RageSurface& cpy)
 	pitch = cpy.pitch;
 	flags = cpy.flags;
 	pixels_owned = true;
+	stb_loadpoint = cpy.stb_loadpoint;
 	if (cpy.pixels) {
 		pixels = new uint8_t[pitch * h];
 		memcpy(pixels, cpy.pixels, pitch * h);
@@ -154,10 +155,12 @@ RageSurface::RageSurface(const RageSurface& cpy)
 		pixels = NULL;
 }
 
-RageSurface::~RageSurface(){
-	
-	if (pixels_owned) delete[] pixels;
-	if (stb_loadpoint)
+RageSurface::~RageSurface()
+{
+
+	if (pixels_owned)
+		delete[] pixels;
+	else if (stb_loadpoint)
 		stbi_image_free(pixels);
 }
 

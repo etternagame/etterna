@@ -14,6 +14,9 @@ local qty = 0
 local posit = getMainColor("positive")
 local negat = getMainColor("negative")
 local enable = getMainColor("enabled")
+local disabled = getMainColor("disabled")
+local highlight = getMainColor("highlight")
+
 local r =
 	Def.ActorFrame {
 	BeginCommand = function(self)
@@ -60,7 +63,10 @@ local function userLabel(i)
 				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				if top:GetName() == "ScreenNetSelectMusic" and showVisualizer then
+				if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
+					return
+				end
+				if showVisualizer then
 					y = usersY + 25
 					self:y(y)
 				end
@@ -70,12 +76,23 @@ local function userLabel(i)
 					local str = ""
 					str = str .. top:GetUser(num)
 					self:settext(str)
-					if top:GetUserState(num) == 2 or top:GetUserState(num) == 1 then
+					local state = top:GetUserState(num)
+					if state == 3 then
+						-- eval
 						self:diffuse(posit)
-					elseif top:GetUserState(num) == 4 then
-						self:diffuse(negat)
-					else
-						self:diffuse(enable)
+					elseif state == 2 then
+						-- playing
+						self:diffuse(disabled)
+					elseif state == 4 then
+						-- options
+						self:diffuse(highlight)
+					else -- 1 == can play
+						local ready = top:GetUserReady(num)
+						if ready then
+							self:diffuse(enable)
+						else
+							self:diffuse(negat)
+						end
 					end
 				else
 					self:settext("")

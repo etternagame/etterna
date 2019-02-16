@@ -61,9 +61,11 @@ local function userLabel(i)
 				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
+				if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetRoom" then
+					return
+				end
 				local num = self:GetName() + 0
 				if num <= #lobbos then
-					self:settext(lobbos[num])
 					-- if top:GetUserState(num) == 2 or top:GetUserState(num) == 1 then
 					-- 	self:diffuse(posit)
 					-- elseif top:GetUserState(num) == 4 then
@@ -71,6 +73,7 @@ local function userLabel(i)
 					-- else
 					-- 	self:diffuse(enable)
 					-- end
+					self:settext(lobbos[num])
 				else
 					self:settext("")
 				end

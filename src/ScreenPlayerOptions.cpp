@@ -78,7 +78,7 @@ ScreenPlayerOptions::Input(const InputEventPlus& input)
 		MESSAGEMAN->Broadcast(ssprintf("CancelAllP%i", pn + 1));
 
 		for (unsigned r = 0; r < m_pRows.size(); r++) {
-			int iOldFocus = m_pRows[r]->GetChoiceInRowWithFocus(pn);
+			int iOldFocus = m_pRows[r]->GetChoiceInRowWithFocus();
 			this->ImportOptions(r, pn);
 			m_pRows[r]->AfterImportOptions(pn);
 			this->UpdateDisqualified(r, pn);
