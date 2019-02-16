@@ -148,9 +148,7 @@ ScreenSelectProfile::Finish()
 		return false;
 
 	// if profile indexes are the same for both players
-	if (GAMESTATE->GetNumPlayersEnabled() == 2 &&
-		m_iSelectedProfiles == m_iSelectedProfiles &&
-		m_iSelectedProfiles > 0)
+	if (GAMESTATE->GetNumPlayersEnabled() == 2 && m_iSelectedProfiles > 0)
 		return false;
 
 	int iUsedLocalProfiles = 0;

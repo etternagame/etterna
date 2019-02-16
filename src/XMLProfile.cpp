@@ -82,25 +82,12 @@ XMLProfile::LoadEttFromDir(RString dir)
 	profiledir = dir;
 	loadingProfile->IsEtternaProfile = true;
 	RString fn = dir + ETT_XML;
-	bool compressed = false;
 
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == NULL) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
-	}
-
-	if (compressed) {
-		RString sError;
-		uint32_t iCRC32;
-		RageFileObjInflate* pInflate =
-		  GunzipFile(pFile.release(), sError, &iCRC32);
-		if (pInflate == NULL) {
-			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-		pFile.reset(pInflate);
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)

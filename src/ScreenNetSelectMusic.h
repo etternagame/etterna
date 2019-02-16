@@ -47,8 +47,8 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	RageSound m_soundChangeOpt;
 	RageSound m_soundChangeSel;
 
-	bool m_bInitialSelect;
-	bool m_bAllowInput;
+	bool m_bInitialSelect = false;
+	bool m_bAllowInput = false;
 };
 
 #endif

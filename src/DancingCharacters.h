@@ -50,7 +50,7 @@ class DancingCharacters : public ActorFrame
 	float m_fThisCameraStartBeat{ 0 };
 	float m_fThisCameraEndBeat{ 0 };
 
-	bool m_bHas2DElements;
+	bool m_bHas2DElements = false;
 
 	AutoActor m_bgIdle;
 	AutoActor m_bgMiss;

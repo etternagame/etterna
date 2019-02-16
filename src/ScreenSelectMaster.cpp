@@ -771,12 +771,8 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 		}
 
 		if (SHOW_SCROLLER) {
-			ActorScroller& scroller =
-			  (SHARED_SELECTION || page != PAGE_1 ? m_Scroller
-												  : m_Scroller);
-			vector<AutoActor>& vScroll =
-			  (SHARED_SELECTION || page != PAGE_1 ? m_vsprScroll
-												  : m_vsprScroll);
+			ActorScroller& scroller = m_Scroller;
+			vector<AutoActor>& vScroll = m_vsprScroll;
 
 			if (WRAP_SCROLLER) {
 				// HACK: We can't tell from the option orders whether or not we
@@ -905,8 +901,7 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		m_bDoubleChoice = true;
 
 		if (SHOW_SCROLLER) {
-			vector<AutoActor>& vScroll =
-			  SHARED_SELECTION ? m_vsprScroll : m_vsprScroll;
+			vector<AutoActor>& vScroll = m_vsprScroll;
 			vScroll[m_iChoice]->PlayCommand("InitialSelection");
 		}
 

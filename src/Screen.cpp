@@ -46,6 +46,9 @@ Screen::Init()
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
 	HOOKS->sShowCursor(true);
 
+	delayedFunctions.clear();
+	delayedPeriodicFunctionIdsToDelete.clear();
+
 	m_Codes.Load(m_sName);
 
 	SetFOV(0);
@@ -108,7 +111,7 @@ Screen::EndScreen()
 	m_bRunning = false;
 }
 
-inline void
+void
 Screen::UpdateTimedFunctions(float fDeltaTime)
 {
 	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();

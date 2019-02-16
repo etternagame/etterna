@@ -93,12 +93,12 @@ class OptionRow : public ActorFrame
 	void SetOneSharedSelection(int iChoice);
 	void SetOneSharedSelectionIfPresent(const RString& sChoice);
 
-	int GetChoiceInRowWithFocus(PlayerNumber pn) const;
+	int GetChoiceInRowWithFocus() const;
 	int GetChoiceInRowWithFocusShared() const;
 	void SetChoiceInRowWithFocus(PlayerNumber pn, int iChoice);
 	void ResetFocusFromSelection(PlayerNumber pn);
 
-	bool GetSelected(PlayerNumber pn, int iChoice) const;
+	bool GetSelected(int iChoice) const;
 	// SetSelected returns true if the choices changed because of setting.
 	bool SetSelected(PlayerNumber pn, int iChoice, bool b);
 

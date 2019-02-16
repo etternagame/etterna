@@ -362,8 +362,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = false;
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace(
-		  "Found %u songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+		LOG->Trace("Found %u songs in %f seconds.",
+				   (unsigned int)m_pSongs.size(),
+				   tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();
@@ -1366,14 +1367,15 @@ SongManager::GetRandomSong()
 
 	static int i = 0;
 
+	Song* pSong = nullptr;
+
 	for (int iThrowAway = 0; iThrowAway < 100; iThrowAway++) {
 		i++;
 		wrap(i, m_pShuffledSongs.size());
-		Song* pSong = m_pShuffledSongs[i];
-		return pSong;
+		pSong = m_pShuffledSongs[i];
 	}
 
-	return NULL;
+	return pSong;
 }
 
 Song*

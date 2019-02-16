@@ -1818,7 +1818,7 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 		lua_newtable(L);
 		int i = 1;
 		for (auto& req : reqs) {
-			req.PushSelf(L);
+			req->PushSelf(L);
 			lua_rawseti(L, -2, 0);
 			i++;
 		}
