@@ -76,15 +76,19 @@ chat.ScreenChangedMessageCommand = function(self)
 	end
 	local oldScreen = currentScreen
 	currentScreen = s:GetName()
-	
+
 	-- prevent the chat from showing in singleplayer because it can be annoying
-	if oldScreen ~= currentScreen and (currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or currentScreen == "ScreenOptionsService") then
+	if
+		oldScreen ~= currentScreen and
+			(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
+				currentScreen == "ScreenOptionsService")
+	 then
 		isInSinglePlayer = true
 	end
 	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
 		isInSinglePlayer = false
 	end
-	
+
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
 
@@ -203,7 +207,7 @@ local chatWindow =
 			tabs[#tabs + 1] = {params.type, params.tab}
 			newTab = true
 		end
-		msgs[#msgs + 1] = params.msg
+		msgs[#msgs + 1] = os.date("%X") .. params.msg
 		if msgs == messages or newTab then --if its the current tab
 			MESSAGEMAN:Broadcast("UpdateChatOverlay")
 		end
@@ -273,7 +277,7 @@ for i = 0, maxTabs - 1 do
 			{
 				InitCommand = function(self)
 					self:halign(0):valign(0)
-					self:maxwidth(tabWidth*2)
+					self:maxwidth(tabWidth * 2)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
 					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
@@ -361,7 +365,7 @@ end
 
 function shiftAllTabs(emptyIndex)
 	for i = emptyIndex + 1, maxTabs - 1 do
-		shiftTab(i, i-1)
+		shiftTab(i, i - 1)
 	end
 end
 

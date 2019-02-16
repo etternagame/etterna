@@ -67,7 +67,8 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
-	{ "chartrequest", ettps_chartrequest }
+	{ "chartrequest", ettps_chartrequest },
+	{ "packlist", ettps_roompacklist }
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -692,8 +693,11 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			}
 			switch (ettServerMessageMap[jType->get<string>()]) {
 				case ettps_loginresponse:
-					if (!(n->loggedIn = (*payload)["logged"]))
+					waitingForTimeout = false;
+					if (!(n->loggedIn = (*payload)["logged"])) {
 						n->loginResponse = (*payload)["msg"].get<string>();
+						n->loggedInUsername.clear();
+					}
 					else {
 						n->loginResponse = "";
 						n->loggedIn = true;
@@ -878,7 +882,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 				} break;
 				case ettps_chartrequest: {
-					n->requests.emplace_back(ChartRequest(*payload));
+					n->requests.emplace_back(new ChartRequest(*payload));
 					Message msg("ChartRequest");
 					MESSAGEMAN->Broadcast(msg);
 				} break;
@@ -994,10 +998,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						}
 					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 				} break;
+				case ettps_roompacklist: {
+					auto packlist = payload->at("commonpacks");
+					n->commonpacks.clear();
+					if (packlist.is_array()) {
+						for (auto&& pack : packlist) {
+							n->commonpacks.emplace_back(pack.get<string>());
+						}
+					}
+				} break;
 				case ettps_roomuserlist: {
 					n->m_ActivePlayer.clear();
 					n->m_PlayerNames.clear();
 					n->m_PlayerStatus.clear();
+					n->m_PlayerReady.clear();
 					auto j1 = payload->at("players");
 					if (j1.is_array()) {
 						int i = 0;
@@ -1009,6 +1023,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								stored++;
 								n->m_PlayerStatus.emplace_back(
 								  player["status"]);
+								n->m_PlayerReady.emplace_back(
+									player["ready"]);
 								stored++;
 								n->m_ActivePlayer.emplace_back(i++);
 							} catch (exception e) {
@@ -1171,6 +1187,7 @@ ETTProtocol::Login(RString user, RString pass)
 	json login;
 	login["type"] = ettClientMessageMap[ettpc_login];
 	auto& payload = login["payload"];
+	NSMAN->loggedInUsername = user.c_str();
 	payload["user"] = user.c_str();
 	payload["pass"] = pass.c_str();
 	login["id"] = msgId++;
@@ -1179,6 +1196,7 @@ ETTProtocol::Login(RString user, RString pass)
 	waitingForTimeout = true;
 	timeout = 5.0;
 	onTimeout = [](void) {
+		NSMAN->loggedInUsername.clear();
 		NSMAN->loginResponse = "Login timed out";
 		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 	};
@@ -1771,7 +1789,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 // lua start
 #include "LuaBinding.h"
 
-			class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
+class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {
   public:
 	static int IsETTP(T* p, lua_State* L)
@@ -1784,6 +1802,15 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		auto& lbd = NSMAN->mpleaderboard;
 		NSMAN->PushMPLeaderboard(L);
 		return 1;
+	}
+	static int RemoveChartRequest(T* p, lua_State* L)
+	{
+		auto& reqs = p->requests;
+		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
+		remove_if(reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) { return req == reqPtrToRemove; });
+		// Keep it in case lua keeps a reference to it
+		p->staleRequests.emplace_back(reqPtrToRemove);
+		return 0;
 	}
 	static int GetChartRequests(T* p, lua_State* L)
 	{
@@ -1852,6 +1879,11 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		}
 		return 1;
 	}
+	static int GetLoggedInUsername(T* p, lua_State* L)
+	{
+		lua_pushstring(L, NSMAN->loggedInUsername.c_str());
+		return 1;
+	}
 	static int GetLobbyUserList(T* p, lua_State* L)
 	{
 		lua_newtable(L);
@@ -1875,6 +1907,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		ADD_METHOD(IsETTP);
 		ADD_METHOD(GetCurrentRoomName);
 		ADD_METHOD(GetLobbyUserList);
+		ADD_METHOD(GetLoggedInUsername);
 	}
 };
 

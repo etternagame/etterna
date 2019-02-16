@@ -730,6 +730,23 @@ MusicWheel::BuildWheelItemDatas(
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
 
+		if (packlistFiltering && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
+			vector<Song*> tmp;
+			for (auto& song : arraySongs) {
+				auto& group = song->m_sGroupName;
+				for (auto& pack : NSMAN->commonpacks) {
+					// If song pack is in packlist
+					if (group == pack) {
+						// Add and continue with next song
+						tmp.emplace_back(song);
+						goto continueOuterLoop;
+					}
+				}
+			continueOuterLoop:;
+			}
+			arraySongs.swap(tmp);
+		}
+
 		if (searching)
 			FilterBySearch(arraySongs, findme);
 
@@ -1670,6 +1687,16 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		return 1;
 	}
 
+	static int SetPackListFiltering(T* p, lua_State* L)
+	{
+		bool old = p->packlistFiltering;
+		p->packlistFiltering = BArg(1);
+		if (old == p->packlistFiltering)
+			return 0;
+		p->ReloadSongList(false, "");
+		return 0;
+	}
+
 	LunaMusicWheel()
 	{
 		ADD_METHOD(ChangeSort);
@@ -1681,6 +1708,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
 		ADD_METHOD(FilterByStepKeys);
+		ADD_METHOD(SetPackListFiltering);
 	}
 };
 

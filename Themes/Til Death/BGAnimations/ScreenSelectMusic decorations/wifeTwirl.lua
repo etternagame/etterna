@@ -578,9 +578,10 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-function toggleButton(textEnabled, textDisabled, msg, x)
-	local enabled = false
-	return Widg.Button {
+function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
+	local button
+	button =
+		Widg.Button {
 		text = textDisabled,
 		width = 50,
 		height = 25,
@@ -589,26 +590,60 @@ function toggleButton(textEnabled, textDisabled, msg, x)
 		highlight = {color = getMainColor("highlight")},
 		x = 10 - 100 + capWideScale(get43size(384), 384) + x,
 		y = 61 + capWideScale(get43size(120), 120),
+		onInit = function(self)
+			button.turnedOn = false
+			button.updateToggleButton = function()
+				button:diffuse(color(button.turnedOn and enabledC or disabledC))
+				button:settext(button.turnedOn and textEnabled or textDisabled)
+			end
+		end,
 		onClick = function(self)
-			enabled = not enabled
-			local a = self.bg.actor
-			self:diffuse(color(enabled and enabledC or disabledC))
-			self:settext(enabled and textEnabled or textDisabled)
+			-- If we have an enabled function use that to know
+			-- the enabled state, otherwise toggle it
+			if enabledF then
+				button.turnedOn = enabledF()
+			else
+				button.turnedOn = (not button.turnedOn)
+			end
+			button.updateToggleButton()
 			NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
 		end
 	}
+	return button
 end
 local forceStart = toggleButton("Unforce Start", "Force Start", "/force", 0)
-local ready = toggleButton("Unready", "Ready", "/ready", 50)
+local readyButton
+do
+	-- do-end block to minimize the scope of 'f'
+	local areWeReadiedUp = function()
+		local top = SCREENMAN:GetTopScreen()
+		local qty = top:GetUserQty()
+		local loggedInUser = NSMAN:GetLoggedInUsername()
+		for i = 1, qty do
+			local user = top:GetUser(i)
+			if user == loggedInUser then
+				return top:GetUserReady(i)
+			end
+		end
+		-- ???? this should never happen
+		error "Could not find ourselves in the userlist"
+	end
+	readyButton = toggleButton("Unready", "Ready", "/ready", 50, areWeReadiedUp)
+	readyButton.UsersUpdateMessageCommand = function(self)
+		readyButton.turnedOn = areWeReadiedUp()
+		readyButton.updateToggleButton()
+	end
+end
+
 t[#t + 1] = forceStart
-t[#t + 1] = ready
+t[#t + 1] = readyButton
 
 t[#t + 1] =
 	Def.Quad {
 	-- Little hack to only show forceStart and ready in netselect
 	BeginCommand = function()
 		if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
-			ready:Disable()
+			readyButton:Disable()
 			forceStart:Disable()
 		end
 	end,
@@ -762,12 +797,12 @@ t[#t + 1] =
 			oldstyle = GAMESTATE:GetCurrentStyle()
 		end,
 		ChartPreviewOnMessageCommand = function(self)
-			ready:Disable()
+			readyButton:Disable()
 			forceStart:Disable()
 		end,
 		ChartPreviewOffMessageCommand = function(self)
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				ready:Enable()
+				readyButton:Enable()
 				forceStart:Enable()
 			end
 		end
