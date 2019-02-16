@@ -34,7 +34,6 @@ local negative = getMainColor("negative")
 
 local jdgCounts = {} -- Child references for the judge counter
 
-
 -- We can also pull in some localized aliases for workhorse functions for a modest speed increase
 local Round = notShit.round
 local Floor = notShit.floor
@@ -57,49 +56,49 @@ local Broadcast = MessageManager.Broadcast
 -- these dont really work as borders since they have to be destroyed/remade in order to scale width/height
 -- however we can use these to at least make centered snap lines for the screens -mina
 local function dot(height, x)
-	return Def.Quad{
-		InitCommand=function(self)
-			self:zoomto(dotwidth,height)
+	return Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(dotwidth, height)
 			self:addx(x)
 		end
 	}
 end
 
 local function dottedline(len, height, x, y, rot)
-		local t = Def.ActorFrame{
-			InitCommand=function(self)
-				self:xy(x,y):addrotationz(rot)
-				if x == 0 and y == 0 then
-					self:diffusealpha(0.65)
-				end
+	local t =
+		Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(x, y):addrotationz(rot)
+			if x == 0 and y == 0 then
+				self:diffusealpha(0.65)
 			end
-		}
-		local numdots = len/dotwidth
-		t[#t+1] = dot(height, 0)
-		for i=1,numdots/4 do 
-			t[#t+1] = dot(height, i * dotwidth * 2 - dotwidth/2)
 		end
-		for i=1,numdots/4 do 
-			t[#t+1] = dot(height, -i * dotwidth * 2 + dotwidth/2)
-		end
-		return t
+	}
+	local numdots = len / dotwidth
+	t[#t + 1] = dot(height, 0)
+	for i = 1, numdots / 4 do
+		t[#t + 1] = dot(height, i * dotwidth * 2 - dotwidth / 2)
+	end
+	for i = 1, numdots / 4 do
+		t[#t + 1] = dot(height, -i * dotwidth * 2 + dotwidth / 2)
+	end
+	return t
 end
 
 local function DottedBorder(width, height, bw, x, y)
 	return Def.ActorFrame {
 		Name = "Border",
-		InitCommand=function(self)
-			self:xy(x,y):visible(false):diffusealpha(0.35)
+		InitCommand = function(self)
+			self:xy(x, y):visible(false):diffusealpha(0.35)
 		end,
 		dottedline(width, bw, 0, 0, 0),
-		dottedline(width, bw, 0, height/2, 0),
-		dottedline(width, bw, 0, -height/2, 0),
+		dottedline(width, bw, 0, height / 2, 0),
+		dottedline(width, bw, 0, -height / 2, 0),
 		dottedline(height, bw, 0, 0, 90),
-		dottedline(height, bw, width/2, 0, 90),
-		dottedline(height, bw, -width/2, 0, 90),
+		dottedline(height, bw, width / 2, 0, 90),
+		dottedline(height, bw, -width / 2, 0, 90)
 	}
 end
-
 
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
@@ -158,6 +157,12 @@ local t =
 	Def.ActorFrame {
 	Name = "WifePerch",
 	OnCommand = function(self)
+		if allowedCustomization then
+			-- auto enable autoplay
+			GAMESTATE:SetAutoplay(true)
+		else
+			GAMESTATE:SetAutoplay(false)
+		end
 		-- Discord thingies
 		local largeImageTooltip =
 			GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
@@ -201,7 +206,7 @@ local t =
 		lifebar:zoomtoheight(MovableValues.LifeP1Height)
 		lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
 		lifebar:rotationz(MovableValues.LifeP1Rotation)
-		
+
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
@@ -226,7 +231,8 @@ local t =
 }
 
 -- lifebard
-t[#t + 1] = Def.ActorFrame{
+t[#t + 1] =
+	Def.ActorFrame {
 	Name = "LifeP1",
 	MovableBorder(200, 5, 1, -35, 0)
 }
@@ -256,7 +262,8 @@ GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target / 100)
 -- personal best tracker (although everything is efficient enough now it probably wouldn't matter)
 
 -- moved it for better manipulation
-local d = Def.ActorFrame {
+local d =
+	Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)
 		if (allowedCustomization) then
@@ -268,12 +275,13 @@ local d = Def.ActorFrame {
 		end
 		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY):zoom(MovableValues.TargetTrackerZoom)
 	end,
-	MovableBorder(100,13, 1, 0, 0)
+	MovableBorder(100, 13, 1, 0, 0)
 }
 
 if targetTrackerMode == 0 then
 	d[#d + 1] =
-		LoadFont("Common Normal") .. {
+		LoadFont("Common Normal") ..
+		{
 			Name = "PercentDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
@@ -295,7 +303,8 @@ if targetTrackerMode == 0 then
 		}
 else
 	d[#d + 1] =
-		LoadFont("Common Normal") .. {
+		LoadFont("Common Normal") ..
+		{
 			Name = "PBDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
@@ -355,23 +364,24 @@ local cp =
 		end
 	},
 	-- Displays your current percentage score
-	LoadFont("Common Large") .. {
-		Name = "DisplayPercent",
-		InitCommand = function(self)
-			self:zoom(0.3):halign(1):valign(0)
-		end,
-		OnCommand = function(self)
-			if allowedCustomization then
-				self:settextf("%05.2f%%", -10000) 
-				setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
-				setBorderToText(self:GetParent():GetChild("Border"), self)
+	LoadFont("Common Large") ..
+		{
+			Name = "DisplayPercent",
+			InitCommand = function(self)
+				self:zoom(0.3):halign(1):valign(0)
+			end,
+			OnCommand = function(self)
+				if allowedCustomization then
+					self:settextf("%05.2f%%", -10000)
+					setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
+					setBorderToText(self:GetParent():GetChild("Border"), self)
+				end
+				self:settextf("%05.2f%%", 0)
+			end,
+			SpottedOffsetCommand = function(self)
+				self:settextf("%05.2f%%", wifey)
 			end
-			self:settextf("%05.2f%%", 0)
-		end,
-		SpottedOffsetCommand = function(self)
-			self:settextf("%05.2f%%", wifey)
-		end
-	},
+		},
 	MovableBorder(100, 13, 1, 0, 0)
 }
 
@@ -388,12 +398,11 @@ end
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local spacing = 10 -- Spacing between the judgetypes
 local frameWidth = 60 -- Width of the Frame
-local frameHeight = ((#jdgT + 1) * spacing)  -- Height of the Frame
+local frameHeight = ((#jdgT + 1) * spacing) -- Height of the Frame
 local judgeFontSize = 0.40 -- Font sizes for different text elements
 local countFontSize = 0.35
 local gradeFontSize = 0.45
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-
 
 local j =
 	Def.ActorFrame {
@@ -415,18 +424,20 @@ local j =
 			settext(jdgCounts[jdgCur], jdgct)
 		end
 	end,
-	Def.Quad {	-- bg
-	InitCommand = function(self)
+	Def.Quad {
+		-- bg
+		InitCommand = function(self)
 			self:zoomto(frameWidth, frameHeight):diffuse(color("0,0,0,0.4"))
 		end
 	},
-	MovableBorder(frameWidth, frameHeight, 1, 0, 0) 
+	MovableBorder(frameWidth, frameHeight, 1, 0, 0)
 }
 
 local function makeJudgeText(judge, index) -- Makes text
-	return LoadFont("Common normal") .. {
+	return LoadFont("Common normal") ..
+		{
 			InitCommand = function(self)
-				self:xy(-frameWidth/2 + 5, -frameHeight/2 + (index * spacing)):zoom(judgeFontSize):halign(0)
+				self:xy(-frameWidth / 2 + 5, -frameHeight / 2 + (index * spacing)):zoom(judgeFontSize):halign(0)
 			end,
 			OnCommand = function(self)
 				settext(self, getShortJudgeStrings(judge))
@@ -436,10 +447,11 @@ local function makeJudgeText(judge, index) -- Makes text
 end
 
 local function makeJudgeCount(judge, index) -- Makes county things for taps....
-	return LoadFont("Common Normal") .. {
+	return LoadFont("Common Normal") ..
+		{
 			Name = judge,
 			InitCommand = function(self)
-				self:xy(frameWidth/2 - 5, -frameHeight/2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
+				self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
 			end
 		}
 end
@@ -479,7 +491,9 @@ function smeltErrorBar(index)
 	return Def.Quad {
 		Name = index,
 		InitCommand = function(self)
-			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(0)
+			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
+				0
+			)
 		end,
 		UpdateErrorBarCommand = function(self) -- probably a more efficient way to achieve this effect, should test stuff later
 			finishtweening(self) -- note: it really looks like shit without the fade out
@@ -519,7 +533,10 @@ local e =
 	end,
 	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
-			if jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
+			if
+				jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
+					jdgCur ~= "HoldNoteScore_Held"
+			 then
 				currentbar = ((currentbar) % barcount) + 1
 				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
 			end
@@ -532,7 +549,10 @@ local e =
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
-			self:diffuse(getMainColor("highlight")):xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(2, MovableValues.ErrorBarHeight)
+			self:diffuse(getMainColor("highlight")):xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(
+				2,
+				MovableValues.ErrorBarHeight
+			)
 		end
 	},
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
@@ -561,7 +581,13 @@ local e =
 				self:GetParent():queuecommand("Doot")
 			end
 		},
-		MovableBorder(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight, 1, MovableValues.ErrorBarX, MovableValues.ErrorBarY)
+	MovableBorder(
+		MovableValues.ErrorBarWidth,
+		MovableValues.ErrorBarHeight,
+		1,
+		MovableValues.ErrorBarX,
+		MovableValues.ErrorBarY
+	)
 }
 
 -- Initialize bars
@@ -571,21 +597,24 @@ if enabledErrorBar == 1 then
 	end
 end
 
-
 if enabledErrorBar == 2 then
-	e[#e + 1] = Def.Quad {
+	e[#e + 1] =
+		Def.Quad {
 		Name = "WeightedBar",
 		InitCommand = function(self)
 			if enabledErrorBar == 2 then
-				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(1):diffuse(
-					getMainColor("enabled")
-				)
+				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
+					1
+				):diffuse(getMainColor("enabled"))
 			else
 				self:visible(false)
 			end
 		end,
 		SpottedOffsetCommand = function(self)
-			if jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and jdgCur ~= "HoldNoteScore_Held" then
+			if
+				jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
+					jdgCur ~= "HoldNoteScore_Held"
+			 then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
 				self:x(MovableValues.ErrorBarX + avg * wscale)
@@ -639,34 +668,35 @@ local replaySlider =
 	nil
 local p =
 	Def.ActorFrame {
-		Name = "FullProgressBar",
+	Name = "FullProgressBar",
+	InitCommand = function(self)
+		self:xy(MovableValues.FullProgressBarX, MovableValues.FullProgressBarY)
+		self:zoomto(MovableValues.FullProgressBarWidth, MovableValues.FullProgressBarHeight)
+		if (allowedCustomization) then
+			Movable.DeviceButton_9.element = self
+			Movable.DeviceButton_0.element = self
+			Movable.DeviceButton_9.condition = enabledFullBar
+			Movable.DeviceButton_0.condition = enabledFullBar
+		end
+	end,
+	Def.Quad {
 		InitCommand = function(self)
-			self:xy(MovableValues.FullProgressBarX, MovableValues.FullProgressBarY)
-			self:zoomto(MovableValues.FullProgressBarWidth, MovableValues.FullProgressBarHeight)
-			if (allowedCustomization) then
-				Movable.DeviceButton_9.element = self
-				Movable.DeviceButton_0.element = self
-				Movable.DeviceButton_9.condition = enabledFullBar
-				Movable.DeviceButton_0.condition = enabledFullBar
-			end
+			self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
+		end
+	},
+	Def.SongMeterDisplay {
+		InitCommand = function(self)
+			self:SetUpdateRate(0.5)
 		end,
-		Def.Quad {
+		StreamWidth = width,
+		Stream = Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
+				self:zoomy(height):diffuse(getMainColor("highlight"))
 			end
-		},
-		Def.SongMeterDisplay {
-			InitCommand = function(self)
-				self:SetUpdateRate(0.5)
-			end,
-			StreamWidth = width,
-			Stream = Def.Quad {
-				InitCommand = function(self)
-					self:zoomy(height):diffuse(getMainColor("highlight"))
-				end
-			}
-		},
-		LoadFont("Common Normal") .. {
+		}
+	},
+	LoadFont("Common Normal") ..
+		{
 			-- title
 			InitCommand = function(self)
 				self:zoom(0.35):maxwidth(width * 2)
@@ -678,7 +708,8 @@ local p =
 				self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
 			end
 		},
-		LoadFont("Common Normal") .. {
+	LoadFont("Common Normal") ..
+		{
 			-- total time
 			InitCommand = function(self)
 				self:x(width / 2):zoom(0.35):maxwidth(width * 2):halign(1)
@@ -694,8 +725,8 @@ local p =
 				diffuse(self, byMusicLength(ttime))
 			end
 		},
-		MovableBorder(width, height, 1, 0, 0),
-		replaySlider
+	MovableBorder(width, height, 1, 0, 0),
+	replaySlider
 }
 
 if enabledFullBar then
@@ -846,16 +877,12 @@ t[#t + 1] = LoadActor("npscalc")
 
 	ditto
 ]]
-
-
-
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 															  **Practice Mode**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	stuff
 ]]
-
 local prevZoom = 0.65
 local musicratio = 1
 
@@ -872,7 +899,7 @@ local function duminput(event)
 		MESSAGEMAN:Broadcast("MouseRightClick")
 	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
 		if bookmarkPosition ~= nil then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	bookmarkPosition  )
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(bookmarkPosition)
 		end
 	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
 		SCREENMAN:GetTopScreen():AddToPracticeRate(0.05)
@@ -883,28 +910,29 @@ local function duminput(event)
 end
 
 local function UpdatePreviewPos(self)
-		local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
-		self:GetChild("Pos"):zoomto(math.min(math.max(0, pos), wodth), hidth)
-		self:queuecommand("Highlight")
+	local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
+	self:GetChild("Pos"):zoomto(math.min(math.max(0, pos), wodth), hidth)
+	self:queuecommand("Highlight")
 end
 
-local pm = Def.ActorFrame {
+local pm =
+	Def.ActorFrame {
 	Name = "ChartPreview",
-	InitCommand=function(self)
+	InitCommand = function(self)
 		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
-        self:SetUpdateFunction(UpdatePreviewPos)
+		self:SetUpdateFunction(UpdatePreviewPos)
 		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000):y(20)
 		if (allowedCustomization) then
 			Movable.DeviceButton_z.element = self
 			Movable.DeviceButton_z.condition = practiceMode
-			--Movable.DeviceButton_z.Border = self:GetChild("Border")
-			--Movable.DeviceButton_x.element = self
-			--Movable.DeviceButton_x.condition = practiceMode
-			--Movable.DeviceButton_x.Border = self:GetChild("Border")
+		--Movable.DeviceButton_z.Border = self:GetChild("Border")
+		--Movable.DeviceButton_x.element = self
+		--Movable.DeviceButton_x.condition = practiceMode
+		--Movable.DeviceButton_x.Border = self:GetChild("Border")
 		end
 		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
-	BeginCommand=function(self)
+	BeginCommand = function(self)
 		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
 		cd:GetChild("cdbg"):diffusealpha(0)
@@ -914,7 +942,7 @@ local pm = Def.ActorFrame {
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:x(wodth/2) 
+			self:x(wodth / 2)
 			self:diffuse(color("0.05,0.05,0.05,1"))
 		end
 	},
@@ -923,14 +951,17 @@ local pm = Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
 		end,
-		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+		HighlightCommand = function(self) -- use the bg for detection but move the seek pointer -mina
 			if isOver(self) then
 				self:GetParent():GetChild("Seek"):visible(true)
 				self:GetParent():GetChild("Seektext"):visible(true)
 				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4) -- todo: refactor this lmao -mina
 				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
-				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
+				self:GetParent():GetChild("Seektext"):settextf(
+					"%0.2f",
+					self:GetParent():GetChild("Seek"):GetX() * musicratio / getCurRateValue()
+				)
 			else
 				self:GetParent():GetChild("Seektext"):visible(false)
 				self:GetParent():GetChild("Seek"):visible(false)
@@ -942,29 +973,31 @@ local pm = Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
 		end
-	},
+	}
 	--MovableBorder(wodth+3, hidth+3, 1, (wodth)/2, 0)
 }
 
-pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {
-}
+pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {}
 
 -- more draw order shenanigans
-pm[#pm + 1] = LoadFont("Common Normal") .. {
-	Name = "Seektext",
-	InitCommand = function(self)
-		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
-	end
-}
+pm[#pm + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "Seektext",
+		InitCommand = function(self)
+			self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+		end
+	}
 
-pm[#pm + 1] = Def.Quad {
+pm[#pm + 1] =
+	Def.Quad {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(self:GetX() * musicratio)
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)
@@ -979,7 +1012,8 @@ pm[#pm + 1] = Def.Quad {
 	end
 }
 
-pm[#pm + 1] = Def.Quad {
+pm[#pm + 1] =
+	Def.Quad {
 	Name = "BookmarkPos",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
