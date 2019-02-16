@@ -436,7 +436,7 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 
 		int iChoiceWithFocus =
 		  (m_pHand->m_Def.m_layoutType == LAYOUT_SHOW_ONE_IN_ROW)
-			? GetChoiceInRowWithFocus(pn)
+			? GetChoiceInRowWithFocus()
 			: i;
 
 		float fAlpha = 1.0f;
@@ -563,16 +563,17 @@ OptionRow::UpdateEnabledDisabled()
 	for (unsigned j = 0; j < m_textItems.size(); j++) {
 		bool bThisItemHasFocusByAny = false;
 		if (m_bRowHasFocus) {
-			if ((int)j == GetChoiceInRowWithFocus(PLAYER_1)) {
+			if ((int)j == GetChoiceInRowWithFocus()) {
 				bThisItemHasFocusByAny = true;
 				break;
 			}
 		}
 
-		if (bThisItemHasFocusByAny)
-			m_textItems[j]->PlayCommand("GainFocus");
-		else
-			m_textItems[j]->PlayCommand("LoseFocus");
+		// Logically dead code
+		//if (bThisItemHasFocusByAny)
+		//	m_textItems[j]->PlayCommand("GainFocus");
+		//else
+		m_textItems[j]->PlayCommand("LoseFocus");
 	}
 
 	switch (m_pHand->m_Def.m_layoutType) {
@@ -722,10 +723,8 @@ OptionRow::SetOneSharedSelectionIfPresent(const RString& sChoice)
 }
 
 int
-OptionRow::GetChoiceInRowWithFocus(PlayerNumber pn) const
+OptionRow::GetChoiceInRowWithFocus() const
 {
-	if (m_pHand->m_Def.m_bOneChoiceForAllPlayers)
-		pn = PLAYER_1;
 	if (m_pHand->m_Def.m_vsChoices.empty())
 		return -1;
 	int iChoice = m_iChoiceInRowWithFocus;
@@ -735,7 +734,7 @@ OptionRow::GetChoiceInRowWithFocus(PlayerNumber pn) const
 int
 OptionRow::GetChoiceInRowWithFocusShared() const
 {
-	return GetChoiceInRowWithFocus(PLAYER_1);
+	return GetChoiceInRowWithFocus();
 }
 
 void
@@ -771,10 +770,8 @@ OptionRow::ResetFocusFromSelection(PlayerNumber pn)
 }
 
 bool
-OptionRow::GetSelected(PlayerNumber pn, int iChoice) const
+OptionRow::GetSelected(int iChoice) const
 {
-	if (m_pHand->m_Def.m_bOneChoiceForAllPlayers)
-		pn = PLAYER_1;
 	return m_vbSelected[iChoice];
 }
 
@@ -930,7 +927,7 @@ OptionRow::ExportOptions(const PlayerNumber& vpns,
 
 	// SELECT_NONE rows get exported if they have focus when the user
 	// presses Start.
-	int iChoice = GetChoiceInRowWithFocus(p);
+	int iChoice = GetChoiceInRowWithFocus();
 	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
 		m_vbSelected[iChoice] = true;
 
@@ -954,7 +951,7 @@ class LunaOptionRow : public Luna<OptionRow>
 	static int GetChoiceInRowWithFocus(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, p->GetChoiceInRowWithFocus(PLAYER_1));
+		  L, p->GetChoiceInRowWithFocus());
 		return 1;
 	}
 	DEFINE_METHOD(GetLayoutType, GetHandler()->m_Def.m_layoutType)

@@ -905,7 +905,6 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 	FOREACH_HumanPlayer(p)
 	{
 		if (pn == p || GAMESTATE->DifficultiesLocked()) {
-			m_iSelection = m_iSelection;
 			vpns.push_back(p);
 		}
 	}
@@ -1287,9 +1286,6 @@ ScreenSelectMusic::SwitchToPreferredDifficulty()
 		CLAMP(iSelection, 0, m_vpSteps.size() - 1);
 	}
 
-	if (GAMESTATE->DifficultiesLocked()) {
-		m_iSelection = m_iSelection;
-	}
 }
 
 void

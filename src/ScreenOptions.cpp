@@ -421,7 +421,7 @@ ScreenOptions::PositionCursor(PlayerNumber pn)
 			 ssprintf("%i < %i", iRow, (int)m_pRows.size()));
 	const OptionRow& row = *m_pRows[iRow];
 
-	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus(pn);
+	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus();
 	if (iChoiceWithFocus == -1)
 		return;
 
@@ -448,7 +448,7 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 			 ssprintf("%i < %i", iRow, (int)m_pRows.size()));
 
 	const OptionRow& row = *m_pRows[iRow];
-	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus(pn);
+	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus();
 
 	int iWidth, iX, iY;
 	GetWidthXY(pn, iRow, iChoiceWithFocus, iWidth, iX, iY);
@@ -867,7 +867,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 	}
 
 	if (row.GetFirstItemGoesDown()) {
-		int iChoiceInRow = row.GetChoiceInRowWithFocus(pn);
+		int iChoiceInRow = row.GetChoiceInRowWithFocus();
 		if (iChoiceInRow == 0) {
 			MenuDown(input);
 			return;
@@ -875,8 +875,8 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 	}
 
 	if (row.GetRowDef().m_selectType == SELECT_MULTIPLE) {
-		int iChoiceInRow = row.GetChoiceInRowWithFocus(pn);
-		bool bSelected = !row.GetSelected(pn, iChoiceInRow);
+		int iChoiceInRow = row.GetChoiceInRowWithFocus();
+		bool bSelected = !row.GetSelected(iChoiceInRow);
 		bool changed = row.SetSelected(pn, iChoiceInRow, bSelected);
 		if (changed) {
 			AfterChangeValueOrRow(pn);
@@ -901,7 +901,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 			// move to the first choice in the row
 			ChangeValueInRowRelative(m_iCurrentRow,
 									 pn,
-									 -row.GetChoiceInRowWithFocus(pn),
+									 -row.GetChoiceInRowWithFocus(),
 									 input.type != IET_FIRST_PRESS);
 		}
 	} else // data.selectType != SELECT_MULTIPLE
@@ -922,7 +922,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 
 			case NAV_TOGGLE_THREE_KEY:
 			case NAV_TOGGLE_FIVE_KEY: {
-				int iChoiceInRow = row.GetChoiceInRowWithFocus(pn);
+				int iChoiceInRow = row.GetChoiceInRowWithFocus();
 				if (row.GetRowDef().m_bOneChoiceForAllPlayers)
 					row.SetOneSharedSelection(iChoiceInRow);
 				else
@@ -932,7 +932,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 					ChangeValueInRowRelative(
 					  m_iCurrentRow,
 					  pn,
-					  -row.GetChoiceInRowWithFocus(pn),
+					  -row.GetChoiceInRowWithFocus(),
 					  input.type !=
 						IET_FIRST_PRESS); // move to the first choice
 				else
@@ -966,13 +966,13 @@ ScreenOptions::StoreFocus(PlayerNumber pn)
 	int iWidth, iY;
 	GetWidthXY(pn,
 			   m_iCurrentRow,
-			   row.GetChoiceInRowWithFocus(pn),
+			   row.GetChoiceInRowWithFocus(),
 			   iWidth,
 			   m_iFocusX,
 			   iY);
 	LOG->Trace("cur selection %ix%i @ %i",
 			   m_iCurrentRow,
-			   row.GetChoiceInRowWithFocus(pn),
+			   row.GetChoiceInRowWithFocus(),
 			   m_iFocusX);
 }
 
@@ -994,7 +994,7 @@ ScreenOptions::GetNextScreenForFocusedItem(PlayerNumber pn) const
 	ASSERT(iCurRow >= 0 && iCurRow < (int)m_pRows.size());
 	const OptionRow* pRow = m_pRows[iCurRow];
 
-	int iChoice = pRow->GetChoiceInRowWithFocus(pn);
+	int iChoice = pRow->GetChoiceInRowWithFocus();
 	if (pRow->GetFirstItemGoesDown())
 		iChoice--;
 
@@ -1029,7 +1029,7 @@ ScreenOptions::ChangeValueInRowAbsolute(int iRow,
 	const int iNumChoices = row.GetRowDef().m_vsChoices.size();
 	ASSERT(iNumChoices >= 0 && iChoiceIndex < iNumChoices);
 
-	int iCurrentChoiceWithFocus = row.GetChoiceInRowWithFocus(pn);
+	int iCurrentChoiceWithFocus = row.GetChoiceInRowWithFocus();
 	int iDelta = iChoiceIndex - iCurrentChoiceWithFocus;
 
 	Message msg("ChangeValue");
@@ -1078,7 +1078,7 @@ ScreenOptions::ChangeValueInRowRelative(int iRow,
 
 	bool bOneChanged = false;
 
-	int iCurrentChoiceWithFocus = row.GetChoiceInRowWithFocus(pn);
+	int iCurrentChoiceWithFocus = row.GetChoiceInRowWithFocus();
 	int iNewChoiceWithFocus = iCurrentChoiceWithFocus + iDelta;
 	if (!bRepeat && WRAP_VALUE_IN_ROW.GetValue())
 		wrap(iNewChoiceWithFocus, iNumChoices);

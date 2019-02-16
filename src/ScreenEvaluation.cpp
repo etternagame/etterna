@@ -194,11 +194,6 @@ ScreenEvaluation::Init()
 	// Run this here, so STATSMAN->m_CurStageStats is available to overlays.
 	ScreenWithMenuElements::Init();
 
-	// Calculate grades
-	Grade grade;
-
-	grade = Grade_Failed;
-
 	// load sounds
 	m_soundStart.Load(THEME->GetPathS(m_sName, "start"));
 
@@ -227,9 +222,6 @@ ScreenEvaluation::Init()
 			bOneHasFullW1Combo = true;
 	}
 
-	Grade best_grade = Grade_NoData;
-	best_grade = min(best_grade, grade);
-
 	if (bOneHasNewTopRecord &&
 		ANNOUNCER->HasSoundsFor("evaluation new record")) {
 		SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("evaluation new record"));
@@ -242,14 +234,6 @@ ScreenEvaluation::Init()
 		  bOneHasFullW1Combo ? "W1" : (bOneHasFullW2Combo ? "W2" : "W3");
 		SOUND->PlayOnceFromDir(
 		  ANNOUNCER->GetPathTo("evaluation full combo " + sComboType));
-	} 
-	switch (best_grade) {
-		case Grade_Tier01:
-		case Grade_Tier02:
-		case Grade_Tier03:
-			this->PostScreenMessage(SM_PlayCheer, CHEER_DELAY_SECONDS);
-		default:
-			break;
 	}
 }
 
