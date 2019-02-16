@@ -1218,6 +1218,16 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_bMuteOnError);
 	SAVE(m_bPractice);
 	SAVE(m_sNoteSkin);
+	SAVE(m_fAppearances[APPEARANCE_HIDDEN]);
+	SAVE(m_fAppearances[APPEARANCE_HIDDEN_OFFSET]);
+	SAVE(m_fAppearances[APPEARANCE_SUDDEN]);
+	SAVE(m_fAppearances[APPEARANCE_SUDDEN_OFFSET]);
+	SAVE(m_fAppearances[APPEARANCE_STEALTH]);
+	SAVE(m_fAppearances[APPEARANCE_BLINK]);
+	SAVE(m_fAppearances[APPEARANCE_RANDOMVANISH]);
+	SAVE(m_fDark);
+	SAVE(m_fBlind);
+	SAVE(m_fCover);
 #undef SAVE
 	return po_prefs.GetString();
 }
@@ -1251,6 +1261,17 @@ PlayerOptions::ResetPrefs(ResetPrefsType type)
 	CPY(m_bTransforms[TRANSFORM_NOSTRETCH]);
 	CPY(m_bTransforms[TRANSFORM_NOLIFTS]);
 	CPY(m_bTransforms[TRANSFORM_NOFAKES]);
+
+	CPY(m_fAppearances[APPEARANCE_HIDDEN]);
+	CPY(m_fAppearances[APPEARANCE_HIDDEN_OFFSET]);
+	CPY(m_fAppearances[APPEARANCE_SUDDEN]);
+	CPY(m_fAppearances[APPEARANCE_SUDDEN_OFFSET]);
+	CPY(m_fAppearances[APPEARANCE_STEALTH]);
+	CPY(m_fAppearances[APPEARANCE_BLINK]);
+	CPY(m_fAppearances[APPEARANCE_RANDOMVANISH]);
+	CPY(m_fDark);
+	CPY(m_fBlind);
+	CPY(m_fCover);
 	// Don't clear this.
 	// CPY( m_sNoteSkin );
 #undef CPY

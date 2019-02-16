@@ -487,7 +487,11 @@ Player::Init(const RString& sType,
 			   ->m_iColsPerPlayer;
 		 ++i) {
 		m_vpHoldJudgment[i] = NULL;
-		lastHoldHeadsSeconds[i] = 0;
+		// set this reasonably negative because if we don't, the first row of
+		// the song doesn't get judged
+		// and also it gets changed back to a realistic number after a hold is
+		// hit -poco
+		lastHoldHeadsSeconds[i] = -1000.f;
 	}
 
 	if (HasVisibleParts()) {
@@ -944,7 +948,6 @@ Player::Update(float fDeltaTime)
 		if (bIsHoldingButton && m_pPlayerState->m_PlayerController == PC_HUMAN)
 			if (m_pNoteField != nullptr)
 				m_pNoteField->SetPressed(col);
-
 	}
 
 	// handle Autoplay for rolls
@@ -1000,7 +1003,9 @@ Player::Update(float fDeltaTime)
 			int iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
-			lastHoldHeadsSeconds[iTrack] = max(lastHoldHeadsSeconds[iTrack],m_Timing->WhereUAtBro(NoteRowToBeat(iRow+ tn.iDuration)));
+			lastHoldHeadsSeconds[iTrack] =
+			  max(lastHoldHeadsSeconds[iTrack],
+				  m_Timing->WhereUAtBro(NoteRowToBeat(iRow + tn.iDuration)));
 
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
@@ -1504,8 +1509,7 @@ Player::DrawPrimitives()
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-
-	if (pn !=PLAYER_1)
+	if (pn != PLAYER_1)
 		return;
 
 	bool draw_notefield = (m_pNoteField != nullptr);
@@ -1881,7 +1885,7 @@ Player::DoTapScoreNone()
 	if (m_pLifeMeter != nullptr)
 		m_pLifeMeter->HandleTapScoreNone();
 
-	if (PENALIZE_TAP_SCORE_NONE) {
+	if (PENALIZE_TAP_SCORE_NONE && m_pPlayerState != nullptr) {
 		SetJudgment(BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat),
 					-1,
 					TAP_EMPTY,
@@ -2153,7 +2157,7 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
-		// only valid if 
+		// only valid if
 		float fMusicSeconds;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
@@ -2228,8 +2232,11 @@ Player::Step(int col,
 						}
 						// Fall through to default.
 					default:
-						if (pTN->type != TapNoteType_HoldHead && lastHoldHeadsSeconds[col] > fMusicSeconds)
-							break;
+						if (pTN->type != TapNoteType_HoldHead &&
+							lastHoldHeadsSeconds[col] > fMusicSeconds) {
+							if (fSecondsFromExact > GetWindowSeconds(TW_W4))
+								break;
+						}
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
 								score = TNS_W1;
@@ -2721,9 +2728,9 @@ Player::StepReplay(int col,
 		const float fSecondsFromExact = fabsf(fNoteOffset);
 
 		TapNote* pTN = nullptr;
-		NoteData::iterator iter =
-		  m_NoteData.FindTapNote(col, GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, true));
-		
+		NoteData::iterator iter = m_NoteData.FindTapNote(
+		  col, GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, true));
+
 		pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
@@ -3368,7 +3375,6 @@ Player::HandleTapRowScore(unsigned row)
 	bNoCheating = false;
 #endif
 
-
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return;
@@ -3527,7 +3533,6 @@ Player::HandleHoldScore(const TapNote& tn)
 #ifdef DEBUG
 	bNoCheating = false;
 #endif
-
 
 	// don't accumulate points if AutoPlay is on.
 	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)

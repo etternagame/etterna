@@ -363,7 +363,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
-		  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+		  "Found %u songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();

@@ -18,6 +18,7 @@ class ScreenWithMenuElements : public Screen
 
 	void HandleScreenMessage(ScreenMessage SM) override;
 	void Update(float fDeltaTime) override;
+	void UpdateTimedFunctions(float fDeltaTime) override;
 	void StartTransitioningScreen(ScreenMessage smSendWhenDone);
 	virtual void Cancel(ScreenMessage smSendWhenDone);
 	bool IsTransitioning();
