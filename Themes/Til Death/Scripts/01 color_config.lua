@@ -1,9 +1,9 @@
 local defaultConfig = {
 	title = {
-		BG_Left		= "#161515",
-		BG_Right	= "#222222",
-		Line_Left	= "#b87cf0",
-		Line_Right	= "#59307f"
+		BG_Left = "#161515",
+		BG_Right = "#222222",
+		Line_Left = "#b87cf0",
+		Line_Right = "#59307f"
 	},
 	main = {
 		highlight = "#614080",

@@ -73,7 +73,7 @@ class Screen : public ActorFrame
 	virtual void EndScreen();
 
 	void Update(float fDeltaTime) override;
-	inline void UpdateTimedFunctions(float fDeltaTime);
+	virtual void UpdateTimedFunctions(float fDeltaTime);
 	virtual bool Input(const InputEventPlus& input);
 	virtual void HandleScreenMessage(ScreenMessage SM);
 	void SetLockInputSecs(float f) { m_fLockInputSecs = f; }

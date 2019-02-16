@@ -14,6 +14,7 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "TimingData.h"
+#include "ScreenManager.h"
 #include "GameState.h"
 class SongOptions;
 
@@ -439,6 +440,7 @@ GameSoundManager::GameSoundManager()
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
+	SubscribeToMessage(Message_ScreenChanged);
 }
 
 GameSoundManager::~GameSoundManager()
@@ -801,6 +803,16 @@ GameSoundManager::GetPlayerBalance(PlayerNumber pn)
 	return 0;
 }
 
+void GameSoundManager::HandleMessage(const Message& msg)
+{
+	if (msg.GetName() == "ScreenChanged" && callbackOwningScreen != SCREENMAN->GetTopScreen()) {
+		soundPlayCallback = LuaReference();
+		g_Mutex->Lock();
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		g_Mutex->Unlock();
+	}
+}
+
 #include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameSoundManager. */
@@ -897,14 +909,22 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	}
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
+		p->callbackOwningScreen = SCREENMAN->GetTopScreen();
 		p->soundPlayCallback = GetFuncArg(1, L);
 		if (lua_isnumber(L, 2))
 			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
+		g_Mutex->Lock();
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
 	static int ClearPlayBackCallback(T* p, lua_State* L)
 	{
+		p->callbackOwningScreen = nullptr;
 		p->soundPlayCallback.Unset();
+		g_Mutex->Lock();
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
 
