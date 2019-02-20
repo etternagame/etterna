@@ -219,7 +219,7 @@ local t =
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
 		end
-		if msg.WifePBGoal ~= nil then
+		if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
 			pbtarget = msg.WifePBGoal
 			tDiff = msg.WifePBDifferential
 		end
