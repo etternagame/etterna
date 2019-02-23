@@ -881,7 +881,7 @@ local prevZoom = 0.65
 local musicratio = 1
 
 -- hurrrrr nps quadzapalooza -mina
-local wodth = capWideScale(280, 300)
+local wodth = capWideScale(get43size(250), 300)
 local hidth = 40
 local cd
 local bookmarkPosition
@@ -971,7 +971,8 @@ local pm =
 	--MovableBorder(wodth+3, hidth+3, 1, (wodth)/2, 0)
 }
 
-pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {}
+-- Load the CDGraph with a forced width parameter.
+pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width=wodth})
 
 -- more draw order shenanigans
 pm[#pm + 1] =
