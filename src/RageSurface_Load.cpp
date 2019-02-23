@@ -22,7 +22,11 @@ RageSurface_stb_Load(const RString& sPath,
 	}
 
 	int x, y, n;
-	auto* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	unsigned char* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	if (doot == nullptr)
+	{
+		return RageSurfaceUtils::OPEN_FATAL_ERROR;
+	}
 	if (bHeaderOnly) {
 		ret = CreateSurfaceFrom(x, y, 32, 0, 0, 0, 0, nullptr, x * 4);
 		stbi_image_free(doot);
