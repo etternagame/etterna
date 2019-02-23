@@ -428,13 +428,60 @@ ScreenGameplay::Init()
 	m_Toasty.Load(THEME->GetPathB(m_sName, "toasty"));
 	this->AddChild(&m_Toasty);
 
+	// Use the margin function to calculate where the notefields should be and
+	// what size to zoom them to.  This way, themes get margins to put cut-ins
+	// in, and the engine can have players on different styles without the
+	// notefields overlapping. -Kyz
+	LuaReference margarine;
+	float margins[2] = { 40, 40 };
+	THEME->GetMetric(m_sName, "MarginFunction", margarine);
+	if (margarine.GetLuaType() != LUA_TFUNCTION) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "MarginFunction metric for %s must be a function.", m_sName.c_str());
+	} else {
+		Lua* L = LUA->Get();
+		margarine.PushSelf(L);
+		lua_createtable(L, 0, 0);
+		int next_player_slot = 1;
+		Enum::Push(L, PLAYER_1);
+		lua_rawseti(L, -2, next_player_slot);
+		++next_player_slot;
+		Enum::Push(L, GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType);
+		RString err = "Error running MarginFunction:  ";
+		if (LuaHelpers::RunScriptOnStack(L, err, 2, 3, true)) {
+			RString marge = "Margin value must be a number.";
+			margins[0] = static_cast<float>(SafeFArg(L, -3, marge, 40));
+			float center = static_cast<float>(SafeFArg(L, -2, marge, 80));
+			margins[1] = center / 2.0f;
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+	}
+
+	float left_edge = 0.0f;
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
-		RString sName = ssprintf("Player%s", pi->GetName().c_str());
+		RString sName("PlayerP1");
 		pi->m_pPlayer->SetName(sName);
-		float player_x = SCREEN_CENTER_X;
-		pi->GetPlayerState()->m_NotefieldZoom = 1.f;
-		pi->m_pPlayer->SetX(player_x);
+		Style const* style = GAMESTATE->GetCurrentStyle(PLAYER_1);
+		float style_width = style->GetWidth(PLAYER_1);
+		float edge = left_edge;
+		float screen_space;
+		float field_space;
+		float left_marge;
+		float right_marge;
+		screen_space = SCREEN_WIDTH / 2.0f;
+		left_marge = margins[0];
+		right_marge = margins[1];
+		field_space = screen_space - left_marge - right_marge;
+		float player_x = edge + left_marge + (field_space / 2.0f);
+		float field_zoom = field_space / style_width;
+		pi->GetPlayerState()->m_NotefieldZoom = min(1.0f, field_zoom);
+
+		if (!Center1Player())
+			pi->m_pPlayer->SetX(player_x);
+		else
+			pi->m_pPlayer->SetX(SCREEN_CENTER_X);
 		pi->m_pPlayer->RunCommands(PLAYER_INIT_COMMAND);
 		// ActorUtil::LoadAllCommands(pi->m_pPlayer, m_sName);
 		this->AddChild(pi->m_pPlayer);
