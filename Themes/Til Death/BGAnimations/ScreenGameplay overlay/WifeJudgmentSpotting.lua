@@ -218,15 +218,15 @@ local t =
 		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
+		else
+			dvCur = nil
 		end
 		if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
 			pbtarget = msg.WifePBGoal
 			tDiff = msg.WifePBDifferential
 		end
 		jdgCur = msg.Judgment
-		if jdgCounts[jdgCur] ~= nil then
-			queuecommand(self, "SpottedOffset")
-		end
+		queuecommand(self, "SpottedOffset")
 	end
 }
 
@@ -533,10 +533,7 @@ local e =
 	end,
 	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
-			if
-				jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
-					jdgCur ~= "HoldNoteScore_Held"
-			 then
+			if dvCur ~= nil then
 				currentbar = ((currentbar) % barcount) + 1
 				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
 			end
@@ -611,10 +608,7 @@ if enabledErrorBar == 2 then
 			end
 		end,
 		SpottedOffsetCommand = function(self)
-			if
-				jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
-					jdgCur ~= "HoldNoteScore_Held"
-			 then
+			if dvCur ~= nil then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
 				self:x(MovableValues.ErrorBarX + avg * wscale)
