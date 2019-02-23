@@ -425,6 +425,9 @@ ScreenGameplay::Init()
 		this->AddChild(m_pSongForeground);
 	}
 
+	m_Toasty.Load(THEME->GetPathB(m_sName, "toasty"));
+	this->AddChild(&m_Toasty);
+
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
 		RString sName = ssprintf("Player%s", pi->GetName().c_str());
@@ -557,7 +560,8 @@ ScreenGameplay::Init()
 	m_gave_up = false;
 	m_skipped_song = false;
 
-	if (!GAMEMAN->m_bRestartedGameplay && GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
+	if (!GAMEMAN->m_bRestartedGameplay &&
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate =
 		  GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
