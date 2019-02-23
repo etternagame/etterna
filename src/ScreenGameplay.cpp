@@ -475,8 +475,7 @@ ScreenGameplay::Init()
 		right_marge = margins[1];
 		field_space = screen_space - left_marge - right_marge;
 		float player_x = edge + left_marge + (field_space / 2.0f);
-		float field_zoom = field_space / style_width;
-		pi->GetPlayerState()->m_NotefieldZoom = min(1.0f, field_zoom);
+		pi->GetPlayerState()->m_NotefieldZoom = 1.f;
 
 		if (!Center1Player())
 			pi->m_pPlayer->SetX(player_x);
