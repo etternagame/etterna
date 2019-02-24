@@ -1969,6 +1969,9 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int SetAutoplay(T* p, lua_State* L)
 	{
+		// Don't allow disabling replay controlller
+		if (PC_REPLAY == p->m_pPlayerState->m_PlayerController || PC_REPLAY == GamePreferences::m_AutoPlay)
+			return 0;
 		p->m_pPlayerState->m_PlayerController = BArg(1) ? PC_CPU : PC_HUMAN;
 		GamePreferences::m_AutoPlay.Set(p->m_pPlayerState->m_PlayerController);
 		return 0;
