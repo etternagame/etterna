@@ -793,10 +793,15 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		// For blank args to FindFirstFilenameContaining. -Kyz
 		vector<RString> empty_list;
 
-		bool has_jacket = HasJacket();
-		bool has_cdimage = HasCDImage();
-		bool has_disc = HasDisc();
-		bool has_cdtitle = HasCDTitle();
+		// uhh this should like... not be like... this... -mina
+		m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
+		bool has_jacket = IsAFile(m_sJacketPath);
+		m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
+		bool has_cdimage = IsAFile(m_sCDPath);
+		m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
+		bool has_disc = IsAFile(m_sDiscPath);
+		m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
+		bool has_cdtitle = IsAFile(m_sCDTitlePath);
 
 		// First, check the file name for hints.
 		if (!m_bHasBanner) {
