@@ -13,6 +13,8 @@ local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions(
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local songChanged = false
 
 local update = false
 local t =
@@ -33,6 +35,10 @@ local t =
 		if getTabIndex() ~= 0 then
 			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
 		end
+		if getTabIndex() == 0 and noteField and not mcbootlarder:GetChild("NoteField"):IsVisible() then
+			boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = true
+		end
+		songChanged = true
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
@@ -133,7 +139,10 @@ local function toggleNoteField()
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
-		song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+		if songChanged then
+			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+			songChanged = false
+		end
 		return
 	end
 
@@ -148,6 +157,9 @@ local function toggleNoteField()
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 				song:Borp()
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
+				song:Borp()
+				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
@@ -566,9 +578,10 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-function toggleButton(textEnabled, textDisabled, msg, x)
-	local enabled = false
-	return Widg.Button {
+function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
+	local button
+	button =
+		Widg.Button {
 		text = textDisabled,
 		width = 50,
 		height = 25,
@@ -577,26 +590,60 @@ function toggleButton(textEnabled, textDisabled, msg, x)
 		highlight = {color = getMainColor("highlight")},
 		x = 10 - 100 + capWideScale(get43size(384), 384) + x,
 		y = 61 + capWideScale(get43size(120), 120),
+		onInit = function(self)
+			button.turnedOn = false
+			button.updateToggleButton = function()
+				button:diffuse(color(button.turnedOn and enabledC or disabledC))
+				button:settext(button.turnedOn and textEnabled or textDisabled)
+			end
+		end,
 		onClick = function(self)
-			enabled = not enabled
-			local a = self.bg.actor
-			self:diffuse(color(enabled and enabledC or disabledC))
-			self:settext(enabled and textEnabled or textDisabled)
+			-- If we have an enabled function use that to know
+			-- the enabled state, otherwise toggle it
+			if enabledF then
+				button.turnedOn = enabledF()
+			else
+				button.turnedOn = (not button.turnedOn)
+			end
+			button.updateToggleButton()
 			NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
 		end
 	}
+	return button
 end
 local forceStart = toggleButton("Unforce Start", "Force Start", "/force", 0)
-local ready = toggleButton("Unready", "Ready", "/ready", 50)
+local readyButton
+do
+	-- do-end block to minimize the scope of 'f'
+	local areWeReadiedUp = function()
+		local top = SCREENMAN:GetTopScreen()
+		local qty = top:GetUserQty()
+		local loggedInUser = NSMAN:GetLoggedInUsername()
+		for i = 1, qty do
+			local user = top:GetUser(i)
+			if user == loggedInUser then
+				return top:GetUserReady(i)
+			end
+		end
+		-- ???? this should never happen
+		error "Could not find ourselves in the userlist"
+	end
+	readyButton = toggleButton("Unready", "Ready", "/ready", 50, areWeReadiedUp)
+	readyButton.UsersUpdateMessageCommand = function(self)
+		readyButton.turnedOn = areWeReadiedUp()
+		readyButton.updateToggleButton()
+	end
+end
+
 t[#t + 1] = forceStart
-t[#t + 1] = ready
+t[#t + 1] = readyButton
 
 t[#t + 1] =
 	Def.Quad {
 	-- Little hack to only show forceStart and ready in netselect
 	BeginCommand = function()
 		if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
-			ready:Disable()
+			readyButton:Disable()
 			forceStart:Disable()
 		end
 	end,
@@ -740,22 +787,27 @@ t[#t + 1] =
 			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
-				toggleNoteField()
+				SCREENMAN:GetTopScreen():setTimeout(
+					function()
+						toggleNoteField()
+					end,
+					0.05
+				)
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
 		end,
 		ChartPreviewOnMessageCommand = function(self)
-			ready:Disable()
+			readyButton:Disable()
 			forceStart:Disable()
 		end,
 		ChartPreviewOffMessageCommand = function(self)
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				ready:Enable()
+				readyButton:Enable()
 				forceStart:Enable()
 			end
 		end
 	}
-	
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -789,6 +841,5 @@ t[#t + 1] =
 		SCREENMAN:GetTopScreen():OpenOptions()
 	end
 }]]
-
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

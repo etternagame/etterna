@@ -17,6 +17,7 @@ class ActorSound : public Actor
 	void Play();
 	void Pause(bool bPause);
 	void Stop();
+	void Update(float) override;
 	void LoadFromNode(const XNode* pNode) override;
 	void PushSound(lua_State* L) { m_Sound.PushSelf(L); }
 

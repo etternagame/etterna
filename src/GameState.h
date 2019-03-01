@@ -72,7 +72,6 @@ class GameState
 
 	bool CanSafelyEnterGameplay(RString& reason);
 	void SetCompatibleStylesForPlayers();
-	void ForceSharedSidesMatch();
 	void ForceOtherPlayersToCompatibleSteps(PlayerNumber main);
 
 	void Update(float fDelta);
@@ -97,7 +96,7 @@ class GameState
 	/** @brief Determine which side is joined.
 	 *
 	 * The left side is player 1, and the right side is player 2. */
-	bool m_bSideIsJoined[NUM_PLAYERS]; // left side, right side
+	bool m_bSideIsJoined; // left side, right side
 	MultiPlayerStatus m_MultiPlayerStatus[NUM_MultiPlayer];
 	BroadcastOnChange<PlayMode>
 	  m_PlayMode; // many screens display different info depending on this value
@@ -176,25 +175,18 @@ class GameState
 	 * @return true if we do, or false otherwise. */
 	bool ShowW1() const;
 
-	BroadcastOnChange<RString>
-	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
-	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
-									  // song options screen
-	BroadcastOnChange<StepsType> m_PreferredStepsType;
-	BroadcastOnChange1D<Difficulty, NUM_PLAYERS> m_PreferredDifficulty;
-	BroadcastOnChange<SortOrder> m_SortOrder; // set by MusicWheel
-	SortOrder m_PreferredSortOrder;			  // used by MusicWheel
-	EditMode m_EditMode;
-	bool IsEditing() const { return m_EditMode != EditMode_Invalid; }
-	/**
-	 * @brief Are we in the demonstration or jukebox mode?
-	 *
-	 * ScreenGameplay often does special things when this is set to true. */
-	bool m_bDemonstrationOrJukebox;
-	bool m_bJukeboxUsesModifiers;
+
+	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
+	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
+	BroadcastOnChange<StepsType>				m_PreferredStepsType;
+	BroadcastOnChange<Difficulty>		m_PreferredDifficulty;
+	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
+	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
+
 	int m_iNumStagesOfThisSong;
 	// Used by GameplayScreen to know if it needs to call NSMAN
 	bool m_bInNetGameplay = false;
+
 	/**
 	 * @brief Increase this every stage while not resetting on a continue.
 	 *
@@ -204,7 +196,7 @@ class GameState
 	 * @brief The number of stages available for the players.
 	 *
 	 * This resets whenever a player joins or continues. */
-	int m_iPlayerStageTokens[NUM_PLAYERS];
+	int m_iPlayerStageTokens;
 	// This is necessary so that IsFinalStageForEveryHumanPlayer knows to
 	// adjust for the current song cost.
 	bool m_AdjustTokensBySongCostForFinalStageCheck;
@@ -225,7 +217,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.64.0"; }
+	RString GetEtternaVersion() { return "0.65.0"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -237,7 +229,7 @@ class GameState
 	BroadcastOnChangePtr<Song> m_pCurSong;
 	// The last Song that the user manually changed to.
 	Song* m_pPreferredSong;
-	BroadcastOnChangePtr1D<Steps, NUM_PLAYERS> m_pCurSteps;
+	BroadcastOnChangePtr<Steps> m_pCurSteps;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -264,15 +256,7 @@ class GameState
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
-
-	// used in PLAY_MODE_BATTLE
-	float m_fOpponentHealthPercent;
-
-	// used in PLAY_MODE_RAVE
-	float m_fTugLifePercentP1;
-
 	PlayerNumber GetBestPlayer() const;
-	StageResult GetStageResult(PlayerNumber pn) const;
 
 	/** @brief Call this function when it's time to play a new stage. */
 	void ResetStageStatistics();
@@ -300,48 +284,12 @@ class GameState
 	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
 
 	// character stuff
-	Character* m_pCurCharacters[NUM_PLAYERS];
+	Character* m_pCurCharacters;
 
 	int GetNumSidesJoined() const;
-
-	// Ranking Stuff
-	struct RankingFeat
-	{
-		enum
-		{
-			SONG,
-			CATEGORY
-		} Type;
-		Song* pSong;   // valid if Type == SONG
-		Steps* pSteps; // valid if Type == SONG
-		Grade grade;
-		int iScore;
-		float fPercentDP;
-		RString Banner;
-		RString Feat;
-		RString* pStringToFill;
-	};
-
-	void GetRankingFeats(PlayerNumber pn, vector<RankingFeat>& vFeatsOut) const;
-	bool AnyPlayerHasRankingFeats() const;
-	void StoreRankingName(PlayerNumber pn,
-						  RString name);	   // Called by name entry screens
-	vector<RString*> m_vpsNamesThatWereFilled; // filled on StoreRankingName,
-
-	// Award stuff
-	// lowest priority in front, highest priority at the back.
-	deque<StageAward> m_vLastStageAwards[NUM_PLAYERS];
-	deque<PeakComboAward> m_vLastPeakComboAwards[NUM_PLAYERS];
-
-	// Attract stuff
-	int m_iNumTimesThroughAttract; // negative means play regardless of
-								   // m_iAttractSoundFrequency setting
-	bool IsTimeToPlayAttractSounds() const;
-	void VisitAttractScreen(const RString sScreenName);
-
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */
-	PlayerState* m_pPlayerState[NUM_PLAYERS];
+	PlayerState* m_pPlayerState;
 	PlayerState* m_pMultiPlayerState[NUM_MultiPlayer];
 
 	int GetNumCols(int pn);
@@ -364,9 +312,6 @@ class GameState
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
-
-	bool m_bDopefish;
-
 	bool m_bIsChartPreviewActive;
 
 	// Discord Rich Presence

@@ -10,11 +10,8 @@ REGISTER_SCREEN_CLASS(ScreenSelectProfile);
 void
 ScreenSelectProfile::Init()
 {
-	FOREACH_PlayerNumber(p)
-	{
-		// no selection initially
-		m_iSelectedProfiles[p] = -1;
-	}
+	// no selection initially
+	m_iSelectedProfiles = -1;
 	m_TrackingRepeatingInput = GameButton_Invalid;
 	ScreenWithMenuElements::Init();
 }
@@ -135,11 +132,11 @@ ScreenSelectProfile::SetProfileIndex(PlayerNumber pn, int iProfileIndex)
 	if (iProfileIndex == -2) {
 		// GAMESTATE->UnjoinPlayer takes care of unloading the profile.
 		GAMESTATE->UnjoinPlayer(pn);
-		m_iSelectedProfiles[pn] = -1;
+		m_iSelectedProfiles = -1;
 		return true;
 	}
 
-	m_iSelectedProfiles[pn] = iProfileIndex;
+	m_iSelectedProfiles = iProfileIndex;
 
 	return true;
 }
@@ -151,32 +148,27 @@ ScreenSelectProfile::Finish()
 		return false;
 
 	// if profile indexes are the same for both players
-	if (GAMESTATE->GetNumPlayersEnabled() == 2 &&
-		m_iSelectedProfiles[0] == m_iSelectedProfiles[1] &&
-		m_iSelectedProfiles[0] > 0)
+	if (GAMESTATE->GetNumPlayersEnabled() == 2 && m_iSelectedProfiles > 0)
 		return false;
 
 	int iUsedLocalProfiles = 0;
 	int iUnselectedProfiles = 0;
 
-	FOREACH_PlayerNumber(p)
-	{
-		// not all players has made their choices
-		if (GAMESTATE->IsHumanPlayer(p) && (m_iSelectedProfiles[p] == -1))
-			iUnselectedProfiles++;
+	// not all players has made their choices
+	if (GAMESTATE->IsHumanPlayer(PLAYER_1) && (m_iSelectedProfiles == -1))
+		iUnselectedProfiles++;
 
-		// card not ready
-		if (m_iSelectedProfiles[p] == 0)
-			return false;
+	// card not ready
+	if (m_iSelectedProfiles == 0)
+		return false;
 
-		// profile index too big
-		if (m_iSelectedProfiles[p] > PROFILEMAN->GetNumLocalProfiles())
-			return false;
+	// profile index too big
+	if (m_iSelectedProfiles > PROFILEMAN->GetNumLocalProfiles())
+		return false;
 
-		// inc used profile count
-		if (m_iSelectedProfiles[p] > 0)
-			iUsedLocalProfiles++;
-	}
+	// inc used profile count
+	if (m_iSelectedProfiles > 0)
+		iUsedLocalProfiles++;
 
 	// this allows to continue if there is less local profiles than number of
 	// human players
@@ -185,17 +177,13 @@ ScreenSelectProfile::Finish()
 		return false;
 
 	// all ok - load profiles and go to next screen
-	FOREACH_PlayerNumber(p)
-	{
-		PROFILEMAN->UnloadProfile(p);
+	PROFILEMAN->UnloadProfile(PLAYER_1);
 
-		if (m_iSelectedProfiles[p] > 0) {
-			PROFILEMAN->m_sDefaultLocalProfileID[p].Set(
-			  PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles[p] -
-													 1));
-			PROFILEMAN->LoadLocalProfileFromMachine(p);
-			GAMESTATE->LoadCurrentSettingsFromProfile(p);
-		}
+	if (m_iSelectedProfiles > 0) {
+		PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(
+			PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles - 1));
+		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
 	}
 	StartTransitioningScreen(SM_GoToNextScreen);
 	return true;
@@ -223,7 +211,7 @@ class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
   public:
 	static int SetProfileIndex(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		int iProfileIndex = IArg(2);
 		bool bRet = p->SetProfileIndex(pn, iProfileIndex);
 		LuaHelpers::Push(L, bRet);
@@ -232,7 +220,7 @@ class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
 
 	static int GetProfileIndex(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 		LuaHelpers::Push(L, p->GetProfileIndex(pn));
 		return 1;
 	}

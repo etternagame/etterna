@@ -2,16 +2,19 @@
 #define RAGE_SOUNDS_H
 
 #include "PlayerNumber.h"
+#include "MessageManager.h"
 
 class TimingData;
+class Screen;
 class RageSound;
 struct lua_State;
+struct MusicToPlay;
 
 int
 MusicThread_start(void* p);
 
 /** @brief High-level sound utilities. */
-class GameSoundManager
+class GameSoundManager : MessageSubscriber
 {
   public:
 	GameSoundManager();
@@ -66,8 +69,20 @@ class GameSoundManager
 	float GetFrameTimingAdjustment(float fDeltaTime);
 
 	static float GetPlayerBalance(PlayerNumber pn);
-	RageSound* GetRageSoundPlaying();
+	void WithRageSoundPlaying(function<void(RageSound*)> f);
 	TimingData GetPlayingMusicTiming();
+	
+	void StartMusic(MusicToPlay& ToPlay);
+	void DoPlayOnce(RString sPath);
+	void StartQueuedSounds();
+	void DoPlayOnceFromDir(RString sPath);
+	bool SoundWaiting();
+		
+	LuaReference soundPlayCallback;
+	unsigned int recentPCMSamplesBufferSize = 1024;
+	Screen* callbackOwningScreen{ nullptr };
+
+	void HandleMessage(const Message& msg) override;
 
 	// Lua
 	void PushSelf(lua_State* L);

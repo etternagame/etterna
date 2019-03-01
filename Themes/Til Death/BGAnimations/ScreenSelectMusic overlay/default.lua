@@ -1,3 +1,5 @@
+local showVisualizer = themeConfig:get_data().global.ShowVisualizer
+
 local function input(event)
 	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseLeftClick")
@@ -26,6 +28,32 @@ t[#t + 1] =
 
 t[#t + 1] = LoadActor("../_frame")
 t[#t + 1] = LoadActor("../_PlayerInfo")
+
+if showVisualizer then
+	local vis =
+		audioVisualizer:new {
+		x = 175,
+		y = 30,
+		maxHeight = 30,
+		freqIntervals = audioVisualizer.multiplyIntervals(audioVisualizer.defaultIntervals, 5),
+		color = getMainColor("positive"),
+		onBarUpdate = function(self)
+			--[
+			self:diffusetopedge(getMainColor("frames"))
+			self:diffusebottomedge(getMainColor("positive"))
+			--]]
+			--[[
+			self:diffuselowerleft()
+			self:diffuseupperleft()
+			self:diffuselowerright()
+			self:diffuseupperright()
+			--]]
+		end
+	}
+	t[#t + 1] = vis
+end
+
+
 t[#t + 1] = LoadActor("currentsort")
 t[#t + 1] =
 	LoadFont("Common Large") ..

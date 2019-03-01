@@ -302,7 +302,7 @@ CURLFormPostField(CURL* curlHandle,
 {
 	curl_formadd(&form,
 				 &lastPtr,
-				 CURLFORM_COPYNAME, 
+				 CURLFORM_COPYNAME,
 				 field,
 				 CURLFORM_COPYCONTENTS,
 				 value,
@@ -1156,7 +1156,8 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
 	string toSend = "[";
-	hs->LoadReplayData();
+	if (!hs->LoadReplayData())
+		return;
 	auto& rows = hs->GetNoteRowVector();
 	for (auto& row : rows)
 		toSend += to_string(row) + ",";
@@ -1531,7 +1532,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				else
 					it->hs.SetReplayType(2);
 			}
-			
+
 			if (!callback.IsNil() && callback.IsSet()) {
 				auto L = LUA->Get();
 				callback.PushSelf(L);
@@ -1547,7 +1548,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 					lua_rawseti(L, -2, 2);
 					lua_rawseti(L, -2, i + 1);
 				}
-				it->hs.PushSelf(L);
+				if (it != lbd.end()) it->hs.PushSelf(L);
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 2, 0, true); // 2 args, 0 results
 				LUA->Release(L);
@@ -1565,7 +1566,8 @@ DownloadManager::RequestReplayData(const string& scoreid,
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(const string& chartkey, LuaReference& ref)
+DownloadManager::RequestChartLeaderBoard(const string& chartkey,
+										 LuaReference& ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
@@ -1898,11 +1900,10 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-		DLMAN->UpdateOnlineScoreReplayData();
+		// DLMAN->UpdateOnlineScoreReplayData();
 	}
-	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
-		DLMAN->RequestChartLeaderBoard(
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+	if (GAMESTATE->m_pCurSteps != nullptr)
+		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
 	MESSAGEMAN->Broadcast("Login");
 	DLMAN->loggingIn = false;
 }

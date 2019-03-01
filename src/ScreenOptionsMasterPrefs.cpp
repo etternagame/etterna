@@ -743,6 +743,7 @@ InitializeConfOptions()
 	ADD(ConfOption("Announcer", Announcer, AnnouncerChoices));
 	ADD(ConfOption("DefaultNoteSkin", DefaultNoteSkin, DefaultNoteSkinChoices));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
+	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("ShowCaution", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
@@ -824,7 +825,6 @@ InitializeConfOptions()
 				   "Default to Off",
 				   "Default to Random",
 				   "Select"));
-	ADD(ConfOption("ShowBeginnerHelper", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption(
 	  "NumBackgrounds", NumBackgrounds, "|1", "|5", "|10", "|15", "|20"));
 
@@ -875,7 +875,6 @@ InitializeConfOptions()
 	  "AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
@@ -911,18 +910,6 @@ InitializeConfOptions()
 				   "|7",
 				   "|8"));
 	ADD(ConfOption("ProgressiveStageLifebar",
-				   MovePref<int>,
-				   "Off",
-				   "|1",
-				   "|2",
-				   "|3",
-				   "|4",
-				   "|5",
-				   "|6",
-				   "|7",
-				   "|8",
-				   "Insanity"));
-	ADD(ConfOption("ProgressiveNonstopLifebar",
 				   MovePref<int>,
 				   "Off",
 				   "|1",

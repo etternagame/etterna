@@ -75,8 +75,8 @@ AccumPlayedStageStats(const vector<StageStats>& vss)
 	FOREACH_EnabledPlayer(p)
 	{
 		for (int r = 0; r < RadarCategory_TapsAndHolds; r++) {
-			ssreturn.m_player[p].m_radarPossible[r] /= uNumSongs;
-			ssreturn.m_player[p].m_radarActual[r] /= uNumSongs;
+			ssreturn.m_player.m_radarPossible[r] /= uNumSongs;
+			ssreturn.m_player.m_radarActual[r] /= uNumSongs;
 		}
 	}
 	FOREACH_EnabledMultiPlayer(p)
@@ -127,19 +127,19 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 	FOREACH_HumanPlayer(pn)
 	{
 		int iNumTapsAndHolds =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_TapsAndHolds];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_TapsAndHolds];
 		int iNumJumps =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Jumps];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Jumps];
 		int iNumHolds =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Holds];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Holds];
 		int iNumRolls =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Rolls];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Rolls];
 		int iNumMines =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Mines];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Mines];
 		int iNumHands =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Hands];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Hands];
 		int iNumLifts =
-		  (int)pSS->m_player[pn].m_radarActual[RadarCategory_Lifts];
+		  (int)pSS->m_player.m_radarActual[RadarCategory_Lifts];
 		PROFILEMAN->AddStepTotals(pn,
 								  iNumTapsAndHolds,
 								  iNumJumps,
@@ -179,12 +179,12 @@ StatsManager::UnjoinPlayer(PlayerNumber pn)
 	 * purge any m_vPlayedStageStats that no longer have any player data because
 	 * all of the players that were playing at the time have been unjoined. */
 	FOREACH(StageStats, m_vPlayedStageStats, ss)
-	ss->m_player[pn] = PlayerStageStats();
+	ss->m_player = PlayerStageStats();
 
 	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
 		StageStats& ss = m_vPlayedStageStats[i];
 		bool bIsActive = false;
-		FOREACH_PlayerNumber(p) if (ss.m_player[p].m_bJoined) bIsActive = true;
+		if (ss.m_player.m_bJoined) bIsActive = true;
 		FOREACH_MultiPlayer(mp) if (ss.m_multiPlayer[mp].m_bJoined) bIsActive =
 		  true;
 		if (bIsActive)
@@ -199,12 +199,9 @@ void
 StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 {
 	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
-		FOREACH_PlayerNumber(pn)
-		{
-			const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player[pn];
-			apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
-							  pss.m_vpPossibleSteps.end());
-		}
+		const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player;
+		apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
+							pss.m_vpPossibleSteps.end());
 
 		FOREACH_MultiPlayer(mp)
 		{
@@ -257,14 +254,14 @@ class LunaStatsManager : public Luna<StatsManager>
 	}
 	static int GetFinalGrade(T* p, lua_State* L)
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+		PlayerNumber pn = PLAYER_1;
 
 		if (!GAMESTATE->IsHumanPlayer(pn))
 			lua_pushnumber(L, Grade_NoData);
 		else {
 			StageStats stats;
 			p->GetFinalEvalStageStats(stats);
-			lua_pushnumber(L, stats.m_player[pn].GetGrade());
+			lua_pushnumber(L, stats.m_player.GetGrade());
 		}
 		return 1;
 	}
@@ -278,7 +275,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	{
 		Grade g = NUM_Grade;
 		FOREACH_EnabledPlayer(pn) g =
-		  min(g, STATSMAN->m_CurStageStats.m_player[pn].GetGrade());
+		  min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
@@ -287,7 +284,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	{
 		Grade g = Grade_Tier01;
 		FOREACH_EnabledPlayer(pn) g =
-		  max(g, STATSMAN->m_CurStageStats.m_player[pn].GetGrade());
+		  max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
@@ -303,7 +300,7 @@ class LunaStatsManager : public Luna<StatsManager>
 			bool bPlayerFailedOneStage = false;
 			FOREACH_CONST(StageStats, STATSMAN->m_vPlayedStageStats, ss)
 			{
-				if (ss->m_player[p].m_bFailed) {
+				if (ss->m_player.m_bFailed) {
 					bPlayerFailedOneStage = true;
 					break;
 				}
@@ -312,7 +309,7 @@ class LunaStatsManager : public Luna<StatsManager>
 			if (bPlayerFailedOneStage)
 				continue;
 
-			top_grade = min(top_grade, stats.m_player[p].GetGrade());
+			top_grade = min(top_grade, stats.m_player.GetGrade());
 		}
 
 		Enum::Push(L, top_grade);

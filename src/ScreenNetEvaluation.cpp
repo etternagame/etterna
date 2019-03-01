@@ -23,19 +23,13 @@ static const int NUM_SCORE_DIGITS = 9;
 #define MAX_COMBO_NUM_DIGITS                                                   \
 	THEME->GetMetricI("ScreenEvaluation", "MaxComboNumDigits")
 
-static AutoScreenMessage(SM_GotEval);
-AutoScreenMessage(ETTP_NewScore);
-
 REGISTER_SCREEN_CLASS(ScreenNetEvaluation);
 
 void
 ScreenNetEvaluation::Init()
 {
 	ScreenEvaluation::Init();
-
-	m_bHasStats = false;
 	m_iCurrentPlayer = 0;
-
 	NSMAN->OnEval();
 }
 
@@ -53,36 +47,6 @@ ScreenNetEvaluation::Input(const InputEventPlus& input)
 void
 ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
 {
-	if (SM == SM_GotEval || SM == ETTP_NewScore) {
-		m_bHasStats = true;
-
-		LOG->Trace("[SMNETDebug] num active players: %d (local), %d (NSMAN)",
-				   m_iActivePlayers,
-				   NSMAN->m_ActivePlayers);
-
-		LOG->Trace("SMNETCheckpoint");
-		for (int i = 0; i < m_iActivePlayers; ++i) {
-			// Strange occurences because of timing cause these things not to
-			// work right and will sometimes cause a crash. We should make SURE
-			// we won't crash!
-			if (size_t(i) >= NSMAN->m_EvalPlayerData.size())
-				break;
-
-			if (NSMAN->m_EvalPlayerData[i].nameStr.empty() &&
-				size_t(NSMAN->m_EvalPlayerData[i].name) >=
-				  NSMAN->m_PlayerNames.size())
-				break;
-
-			if (NSMAN->m_EvalPlayerData[i].nameStr.empty() &&
-				NSMAN->m_EvalPlayerData[i].name < 0)
-				break;
-
-			if (NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetWifeGrade() <
-				Grade_Tier03)
-			LOG->Trace("SMNETCheckpoint%d", i);
-		}
-		return; // No need to let ScreenEvaluation get a hold of this.
-	}
 	if (SM == SM_GoToNextScreen) {
 		NSMAN->OffEval();
 	}

@@ -41,15 +41,6 @@ static Preference<float> ihatethisprogram("NotefieldXRatio",
 												// place to put this offhand so
 												// this can be temporary - mina
 
-static RString
-RoutineNoteSkinName(size_t i)
-{
-	return ssprintf("RoutineNoteSkinP%i", static_cast<int>(i + 1));
-}
-static ThemeMetric1D<RString> ROUTINE_NOTESKIN("NoteField",
-											   RoutineNoteSkinName,
-											   NUM_PLAYERS);
-
 NoteField::NoteField()
 {
 	m_pNoteData = NULL;
@@ -147,16 +138,8 @@ NoteField::UncacheNoteSkin(const RString& sNoteSkin_)
 void
 NoteField::CacheAllUsedNoteSkins()
 {
-	// If we're in Routine mode, apply our per-player noteskins.
-	if (GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
-		  ->m_StyleType == StyleType_TwoPlayersSharedSides) {
-		FOREACH_EnabledPlayer(pn)
-		  GAMESTATE->ApplyStageModifiers(pn, ROUTINE_NOTESKIN.GetValue(pn));
-	}
-
-	/* Cache all note skins that we might need for the whole song, course or
-	 * battle play, so we don't have to load them later (such as between course
-	 * songs). */
+	/* Cache all note skins that we might need for the whole song, course or battle
+	 * play, so we don't have to load them later (such as between course songs). */
 	vector<RString> asSkinsLower;
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
@@ -198,7 +181,7 @@ NoteField::CacheAllUsedNoteSkins()
 
 	FOREACH_EnabledPlayer(pn)
 	{
-		RString sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+		RString sNoteSkinLower = GAMESTATE->m_pPlayerState
 								   ->m_PlayerOptions.GetCurrent()
 								   .m_sNoteSkin;
 		NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
@@ -208,7 +191,9 @@ NoteField::CacheAllUsedNoteSkins()
 		m_pDisplays[pn] = it->second;
 	}
 
-	InitColumnRenderers();
+	// I don't think this is needed?
+	// It's done in Load -- Nick12
+	//InitColumnRenderers();
 }
 
 void
@@ -263,13 +248,8 @@ NoteField::Load(const NoteData* pNoteData,
 					  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 						->m_iColsPerPlayer));
 
-	// If we're in routine mode, the noteskin is forcibly set to the routine
-	// noteskin metrics (which is bad in its own way).  The noteskin set in the
-	// options is ignored and probably already set anyway. -Kyz
-	if (GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
-		  ->m_StyleType != StyleType_TwoPlayersSharedSides) {
-		ensure_note_displays_have_skin();
-	}
+
+	ensure_note_displays_have_skin();
 	InitColumnRenderers();
 }
 
@@ -298,20 +278,24 @@ NoteField::ensure_note_displays_have_skin()
 	sNoteSkinLower.MakeLower();
 	map<RString, NoteDisplayCols*>::iterator it =
 	  m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(),
-			 ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
-					  sNoteSkinLower.c_str()));
+	if (it == m_NoteDisplays.end()) {
+		CacheAllUsedNoteSkins();
+		it = m_NoteDisplays.find(sNoteSkinLower);
+		ASSERT_M(it != m_NoteDisplays.end(),
+			ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
+				sNoteSkinLower.c_str()));
+	}
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
 	FOREACH_EnabledPlayer(pn)
 	{
-		sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+		sNoteSkinLower = GAMESTATE->m_pPlayerState
 						   ->m_PlayerOptions.GetCurrent()
 						   .m_sNoteSkin;
 
 		// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
 		// needed.
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]
+			sNoteSkinLower = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetPreferred()
 							   .m_sNoteSkin;
 
@@ -500,17 +484,6 @@ NoteField::DrawBeatBar(const float fBeat, BeatBarType type, int iMeasureIndex)
 			SCALE(iState + 1, 0.f, 4.f, 0.f, 1.f)));
 	m_sprBeatBars.SetZoomX(fWidth / m_sprBeatBars.GetUnzoomedWidth());
 	m_sprBeatBars.Draw();
-
-	if (GAMESTATE->IsEditing() && bIsMeasure) {
-		int iMeasureNoDisplay = iMeasureIndex;
-
-		m_textMeasureNumber.SetDiffuse(RageColor(1, 1, 1, 1));
-		m_textMeasureNumber.SetGlow(RageColor(1, 1, 1, 0));
-		m_textMeasureNumber.SetHorizAlign(align_right);
-		m_textMeasureNumber.SetText(ssprintf("%d", iMeasureNoDisplay));
-		m_textMeasureNumber.SetXY(-fWidth / 2, fYPos);
-		m_textMeasureNumber.Draw();
-	}
 }
 
 void
@@ -596,44 +569,6 @@ NoteField::DrawAreaHighlight(int iStartBeat, int iEndBeat)
 	m_rectAreaHighlight.SetDiffuse(AREA_HIGHLIGHT_COLOR);
 	m_rectAreaHighlight.Draw();
 }
-
-// todo: add DrawWarpAreaBG? -aj
-
-static ThemeMetric<RageColor> BPM_COLOR("NoteField", "BPMColor");
-static ThemeMetric<RageColor> STOP_COLOR("NoteField", "StopColor");
-static ThemeMetric<RageColor> DELAY_COLOR("NoteField", "DelayColor");
-static ThemeMetric<RageColor> WARP_COLOR("NoteField", "WarpColor");
-static ThemeMetric<RageColor> TIME_SIG_COLOR("NoteField", "TimeSignatureColor");
-static ThemeMetric<RageColor> TICKCOUNT_COLOR("NoteField", "TickcountColor");
-static ThemeMetric<RageColor> COMBO_COLOR("NoteField", "ComboColor");
-static ThemeMetric<RageColor> LABEL_COLOR("NoteField", "LabelColor");
-static ThemeMetric<RageColor> SPEED_COLOR("NoteField", "SpeedColor");
-static ThemeMetric<RageColor> SCROLL_COLOR("NoteField", "ScrollColor");
-static ThemeMetric<RageColor> FAKE_COLOR("NoteField", "FakeColor");
-static ThemeMetric<bool> BPM_IS_LEFT_SIDE("NoteField", "BPMIsLeftSide");
-static ThemeMetric<bool> STOP_IS_LEFT_SIDE("NoteField", "StopIsLeftSide");
-static ThemeMetric<bool> DELAY_IS_LEFT_SIDE("NoteField", "DelayIsLeftSide");
-static ThemeMetric<bool> WARP_IS_LEFT_SIDE("NoteField", "WarpIsLeftSide");
-static ThemeMetric<bool> TIME_SIG_IS_LEFT_SIDE("NoteField",
-											   "TimeSignatureIsLeftSide");
-static ThemeMetric<bool> TICKCOUNT_IS_LEFT_SIDE("NoteField",
-												"TickcountIsLeftSide");
-static ThemeMetric<bool> COMBO_IS_LEFT_SIDE("NoteField", "ComboIsLeftSide");
-static ThemeMetric<bool> LABEL_IS_LEFT_SIDE("NoteField", "LabelIsLeftSide");
-static ThemeMetric<bool> SPEED_IS_LEFT_SIDE("NoteField", "SpeedIsLeftSide");
-static ThemeMetric<bool> SCROLL_IS_LEFT_SIDE("NoteField", "ScrollIsLeftSide");
-static ThemeMetric<bool> FAKE_IS_LEFT_SIDE("NoteField", "FakeIsLeftSide");
-static ThemeMetric<float> BPM_OFFSETX("NoteField", "BPMOffsetX");
-static ThemeMetric<float> STOP_OFFSETX("NoteField", "StopOffsetX");
-static ThemeMetric<float> DELAY_OFFSETX("NoteField", "DelayOffsetX");
-static ThemeMetric<float> WARP_OFFSETX("NoteField", "WarpOffsetX");
-static ThemeMetric<float> TIME_SIG_OFFSETX("NoteField", "TimeSignatureOffsetX");
-static ThemeMetric<float> TICKCOUNT_OFFSETX("NoteField", "TickcountOffsetX");
-static ThemeMetric<float> COMBO_OFFSETX("NoteField", "ComboOffsetX");
-static ThemeMetric<float> LABEL_OFFSETX("NoteField", "LabelOffsetX");
-static ThemeMetric<float> SPEED_OFFSETX("NoteField", "SpeedOffsetX");
-static ThemeMetric<float> SCROLL_OFFSETX("NoteField", "ScrollOffsetX");
-static ThemeMetric<float> FAKE_OFFSETX("NoteField", "FakeOffsetX");
 
 void
 NoteField::set_text_measure_number_for_draw(const float beat,
@@ -888,8 +823,9 @@ NoteField::DrawPrimitives()
 
 	unsigned i = 0;
 	// Draw beat bars
-	if ((GAMESTATE->IsEditing() || SHOW_BEAT_BARS) && pTiming != NULL) {
-		const vector<TimingSegment*>& tSigs = *segs[SEGMENT_TIME_SIG];
+	if( SHOW_BEAT_BARS && pTiming != NULL )
+	{
+		const vector<TimingSegment *> &tSigs = *segs[SEGMENT_TIME_SIG];
 		int iMeasureIndex = 0;
 		for (i = 0; i < tSigs.size(); i++) {
 			const TimeSignatureSegment* ts = ToTimeSignature(tSigs[i]);
@@ -928,155 +864,9 @@ NoteField::DrawPrimitives()
 		}
 	}
 
-	if (GAMESTATE->IsEditing() && pTiming != NULL) {
-		ASSERT(GAMESTATE->m_pCurSong != NULL);
-
-		const RageColor text_glow = RageColor(
-		  1,
-		  1,
-		  1,
-		  RageFastCos(RageTimer::GetTimeSinceStartFast() * 2) / 2 + 0.5f);
-
-		float horiz_align = align_right;
-		float side_sign = 1.f;
-#define draw_all_segments(str_exp, name, caps_name)                            \
-	horiz_align = caps_name##_IS_LEFT_SIDE ? align_right : align_left;         \
-	side_sign = caps_name##_IS_LEFT_SIDE ? -1.f : 1.f;                         \
-	for (unsigned int i = 0; i < segs[SEGMENT_##caps_name]->size(); ++i) {     \
-		const name##Segment* seg = To##name((*segs[SEGMENT_##caps_name])[i]);  \
-		if (seg->GetRow() >= m_FieldRenderArgs.first_row &&                    \
-			seg->GetRow() <= m_FieldRenderArgs.last_row &&                     \
-			IS_ON_SCREEN(seg->GetBeat())) {                                    \
-			draw_timing_segment_text(str_exp,                                  \
-									 seg->GetBeat(),                           \
-									 side_sign,                                \
-									 caps_name##_OFFSETX,                      \
-									 horiz_align,                              \
-									 caps_name##_COLOR,                        \
-									 text_glow);                               \
-		}                                                                      \
-	}
-
-		draw_all_segments(FloatToString(seg->GetRatio()), Scroll, SCROLL);
-		draw_all_segments(FloatToString(seg->GetBPM()), BPM, BPM);
-		draw_all_segments(FloatToString(seg->GetPause()), Stop, STOP);
-		draw_all_segments(FloatToString(seg->GetPause()), Delay, DELAY);
-		draw_all_segments(FloatToString(seg->GetLength()), Warp, WARP);
-		draw_all_segments(ssprintf("%d\n--\n%d", seg->GetNum(), seg->GetDen()),
-						  TimeSignature,
-						  TIME_SIG);
-		draw_all_segments(
-		  ssprintf("%d", seg->GetTicks()), Tickcount, TICKCOUNT);
-		draw_all_segments(
-		  ssprintf("%d/%d", seg->GetCombo(), seg->GetMissCombo()),
-		  Combo,
-		  COMBO);
-		draw_all_segments(seg->GetLabel(), Label, LABEL);
-		draw_all_segments(ssprintf("%s\n%s\n%s",
-								   FloatToString(seg->GetRatio()).c_str(),
-								   (seg->GetUnit() == 1 ? "S" : "B"),
-								   FloatToString(seg->GetDelay()).c_str()),
-						  Speed,
-						  SPEED);
-		draw_all_segments(FloatToString(seg->GetLength()), Fake, FAKE);
-#undef draw_all_segments
-
-		if (!GAMESTATE->m_bIsUsingStepTiming) {
-			// BGChange text
-			EditMode mode = GAMESTATE->m_EditMode;
-			switch (mode) {
-				case EditMode_Home:
-				case EditMode_Practice:
-					break;
-				case EditMode_Full: {
-					vector<BackgroundChange>::iterator
-					  iter[NUM_BackgroundLayer];
-					FOREACH_BackgroundLayer(j) iter[j] =
-					  GAMESTATE->m_pCurSong->GetBackgroundChanges(j).begin();
-
-					for (;;) {
-						float fLowestBeat = FLT_MAX;
-						vector<BackgroundLayer> viLowestIndex;
-
-						FOREACH_BackgroundLayer(j)
-						{
-							if (iter[j] ==
-								GAMESTATE->m_pCurSong->GetBackgroundChanges(j)
-								  .end()) {
-								continue;
-							}
-							float fBeat = iter[j]->m_fStartBeat;
-							if (fBeat < fLowestBeat) {
-								fLowestBeat = fBeat;
-								viLowestIndex.clear();
-								viLowestIndex.push_back(j);
-							} else if (fBeat == fLowestBeat) {
-								viLowestIndex.push_back(j);
-							}
-						}
-
-						if (viLowestIndex.empty()) {
-							FOREACH_BackgroundLayer(j)
-							{
-								ASSERT(iter[j] == GAMESTATE->m_pCurSong
-													->GetBackgroundChanges(j)
-													.end());
-							}
-							break;
-						}
-
-						if (IS_ON_SCREEN(fLowestBeat)) {
-							vector<RString> vsBGChanges;
-							FOREACH_CONST(BackgroundLayer, viLowestIndex, bl)
-							{
-								ASSERT(iter[*bl] !=
-									   GAMESTATE->m_pCurSong
-										 ->GetBackgroundChanges(*bl)
-										 .end());
-								const BackgroundChange& change = *iter[*bl];
-								RString s = change.GetTextDescription();
-								if (*bl != 0) {
-									s = ssprintf("%d: ", *bl) + s;
-								}
-								vsBGChanges.push_back(s);
-							}
-							DrawBGChangeText(
-							  fLowestBeat, join("\n", vsBGChanges), text_glow);
-						}
-						FOREACH_CONST(BackgroundLayer, viLowestIndex, bl)
-						{
-							iter[*bl]++;
-						}
-					}
-				} break;
-				default:
-					FAIL_M(ssprintf("Invalid edit mode: %i", mode));
-			}
-		}
-
-		// Draw marker bars
-		if (m_iBeginMarker != -1 && m_iEndMarker != -1) {
-			int iBegin = m_iBeginMarker;
-			int iEnd = m_iEndMarker;
-			CLAMP(
-			  iBegin, m_FieldRenderArgs.first_row, m_FieldRenderArgs.last_row);
-			CLAMP(
-			  iEnd, m_FieldRenderArgs.first_row, m_FieldRenderArgs.last_row);
-			DrawAreaHighlight(iBegin, iEnd);
-		} else if (m_iBeginMarker != -1) {
-			if (m_iBeginMarker >= m_FieldRenderArgs.first_row &&
-				m_iBeginMarker <= m_FieldRenderArgs.last_row)
-				DrawMarkerBar(m_iBeginMarker);
-		} else if (m_iEndMarker != -1) {
-			if (m_iEndMarker >= m_FieldRenderArgs.first_row &&
-				m_iEndMarker <= m_FieldRenderArgs.last_row)
-				DrawMarkerBar(m_iEndMarker);
-		}
-	}
-
-	// Optimization is very important here because there are so many arrows to
-	// draw. Draw the arrows in order of column. This minimizes texture switches
-	// and lets us draw in big batches.
+	// Optimization is very important here because there are so many arrows to draw.
+	// Draw the arrows in order of column. This minimizes texture switches and
+	// lets us draw in big batches.
 
 	const Style* pStyle =
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);

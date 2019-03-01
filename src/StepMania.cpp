@@ -11,7 +11,6 @@
 #include "RageMath.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
-#include "MemoryCardManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "ActorUtil.h"
@@ -285,29 +284,28 @@ ShutdownGame()
 	SAFE_DELETE(NSMAN);
 	/* Delete INPUTMAN before the other INPUTFILTER handlers, or an input
 	 * driver may try to send a message to INPUTFILTER after we delete it. */
-	SAFE_DELETE(INPUTMAN);
-	SAFE_DELETE(INPUTQUEUE);
-	SAFE_DELETE(INPUTMAPPER);
-	SAFE_DELETE(INPUTFILTER);
-	SAFE_DELETE(MODELMAN);
-	SAFE_DELETE(PROFILEMAN); // PROFILEMAN needs the songs still loaded
-	SAFE_DELETE(CHARMAN);
-	SAFE_DELETE(CRYPTMAN);
-	SAFE_DELETE(MEMCARDMAN);
-	SAFE_DELETE(SONGMAN);
-	SAFE_DELETE(IMAGECACHE);
-	SAFE_DELETE(SONGINDEX);
-	SAFE_DELETE(SOUND); // uses GAMESTATE, PREFSMAN
-	SAFE_DELETE(PREFSMAN);
-	SAFE_DELETE(GAMESTATE);
-	SAFE_DELETE(GAMEMAN);
-	SAFE_DELETE(NOTESKIN);
-	SAFE_DELETE(THEME);
-	SAFE_DELETE(ANNOUNCER);
-	SAFE_DELETE(SOUNDMAN);
-	SAFE_DELETE(FONT);
-	SAFE_DELETE(TEXTUREMAN);
-	SAFE_DELETE(DISPLAY);
+	SAFE_DELETE( INPUTMAN );
+	SAFE_DELETE( INPUTQUEUE );
+	SAFE_DELETE( INPUTMAPPER );
+	SAFE_DELETE( INPUTFILTER );
+	SAFE_DELETE( MODELMAN );
+	SAFE_DELETE( PROFILEMAN ); // PROFILEMAN needs the songs still loaded
+	SAFE_DELETE( CHARMAN );
+	SAFE_DELETE( CRYPTMAN );
+	SAFE_DELETE( SONGMAN );
+	SAFE_DELETE( IMAGECACHE );
+	SAFE_DELETE( SONGINDEX );
+	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
+	SAFE_DELETE( PREFSMAN );
+	SAFE_DELETE( GAMESTATE );
+	SAFE_DELETE( GAMEMAN );
+	SAFE_DELETE( NOTESKIN );
+	SAFE_DELETE( THEME );
+	SAFE_DELETE( ANNOUNCER );
+	SAFE_DELETE( SOUNDMAN );
+	SAFE_DELETE( FONT );
+	SAFE_DELETE( TEXTUREMAN );
+	SAFE_DELETE( DISPLAY );
 	Dialog::Shutdown();
 	SAFE_DELETE(LOG);
 	DLMAN.reset();
@@ -992,7 +990,7 @@ WriteLogHeader()
 			  now.tm_hour,
 			  now.tm_min,
 			  now.tm_sec);
-	LOG->Info("\tVerbosity: " + PREFSMAN->m_verbose_log.ToString());
+	LOG->Info("\tVerbosity: %s", PREFSMAN->m_verbose_log.ToString().c_str());
 	LOG->Trace(" ");
 
 	if (g_argc > 1) {
@@ -1175,9 +1173,6 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-	if (GetCommandlineArgument("dopefish"))
-		GAMESTATE->m_bDopefish = true;
-
 	{
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
@@ -1219,8 +1214,7 @@ sm_main(int argc, char* argv[])
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
 		CRYPTMAN->GenerateGlobalKeys();
-	MEMCARDMAN = new MemoryCardManager;
-	CHARMAN = new CharacterManager;
+	CHARMAN		= new CharacterManager;
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
@@ -1247,8 +1241,6 @@ sm_main(int argc, char* argv[])
 
 	StoreActualGraphicOptions();
 	LOG->Info("%s", GetActualGraphicOptionsString().c_str());
-
-	SONGMAN->PreloadSongImages();
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
@@ -1502,7 +1494,8 @@ HandleGlobalInputs(const InputEventPlus& input)
 		(INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RALT),
 									 &input.InputList) ||
 		 INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
-									 &input.InputList))) {
+									 &input.InputList)) &&
+		!(SCREENMAN->GetTopScreen()->GetScreenType() == gameplay)) {
 		// alt-enter
 		/* In OS X, this is a menu item and will be handled as such. This will
 		 * happen first and then the lower priority GUI thread will happen
@@ -1615,12 +1608,6 @@ HandleInputEvents(float fDeltaTime)
 		if (HandleGlobalInputs(input))
 			continue; // skip
 
-		// check back in event mode
-		if (GAMESTATE->IsEventMode() &&
-			CodeDetector::EnteredCode(input.GameI.controller,
-									  CODE_BACK_IN_EVENT_MODE)) {
-			input.MenuI = GAME_BUTTON_BACK;
-		}
 
 		SCREENMAN->Input(input);
 	}

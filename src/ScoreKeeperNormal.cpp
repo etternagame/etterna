@@ -465,7 +465,7 @@ ScoreKeeperNormal::HandleTapNoteScoreInternal(const NoteData& nd,
 
 	// update judged row totals. Respect Combo segments here.
 	TimingData& td =
-	  *GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetTimingData();
+	  *GAMESTATE->m_pCurSteps->GetTimingData();
 	ComboSegment* cs = td.GetComboSegmentAtRow(row);
 	if (tns == TNS_CheckpointHit || tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iTapNoteScores[tns] += cs->GetCombo();
@@ -493,7 +493,7 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 	}
 	TimingData& td =
-	  *GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetTimingData();
+	  *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (iNumBreakCombo == 0) {
 		int multiplier =
 		  (iRow == -1 ? 1 : td.GetComboSegmentAtRow(iRow)->GetCombo());
@@ -516,7 +516,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 		iNumTapsInRow = min(iNumTapsInRow, 1);
 	}
 	TimingData& td =
-	  *GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetTimingData();
+	  *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 		int multiplier =
@@ -603,10 +603,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// handle combo logic
 #ifndef DEBUG
 	if ((GamePreferences::m_AutoPlay != PC_HUMAN ||
-		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0) &&
-		!GAMESTATE->m_bDemonstrationOrJukebox &&
-		GamePreferences::m_AutoPlay !=
-		  PC_REPLAY) // cheaters always prosper >:D -aj comment edit
+		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0))
 	{
 		m_cur_toasty_combo = 0;
 		return;
@@ -616,8 +613,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// Toasty combo
 	if (scoreOfLastTap >= m_toasty_min_tns) {
 		m_cur_toasty_combo += iNumTapsInRow;
-		if (m_cur_toasty_combo > m_next_toasty_at &&
-			!GAMESTATE->m_bDemonstrationOrJukebox) {
+		if (m_cur_toasty_combo > m_next_toasty_at) {
 			++m_cur_toasty_level;
 			// Broadcast the message before posting the screen message so that
 			// the transition layer can catch the message to know the level and

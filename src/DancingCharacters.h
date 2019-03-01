@@ -1,4 +1,4 @@
-﻿#ifndef DancingCharacters_H
+#ifndef DancingCharacters_H
 #define DancingCharacters_H
 
 #include "ActorFrame.h"
@@ -38,7 +38,7 @@ class DancingCharacters : public ActorFrame
 	void Change2DAnimState(PlayerNumber pn, int iState);
 
   protected:
-	Model* m_pCharacter[NUM_PLAYERS];
+	Model* m_pCharacter;
 
 	/** @brief How far away is the camera from the dancer? */
 	float m_CameraDistance{ 0 };
@@ -50,19 +50,19 @@ class DancingCharacters : public ActorFrame
 	float m_fThisCameraStartBeat{ 0 };
 	float m_fThisCameraEndBeat{ 0 };
 
-	bool m_bHas2DElements[NUM_PLAYERS];
+	bool m_bHas2DElements = false;
 
-	AutoActor m_bgIdle[NUM_PLAYERS];
-	AutoActor m_bgMiss[NUM_PLAYERS];
-	AutoActor m_bgGood[NUM_PLAYERS];
-	AutoActor m_bgGreat[NUM_PLAYERS];
-	AutoActor m_bgFever[NUM_PLAYERS];
-	AutoActor m_bgFail[NUM_PLAYERS];
-	AutoActor m_bgWin[NUM_PLAYERS];
-	AutoActor m_bgWinFever[NUM_PLAYERS];
-	RageTimer m_2DIdleTimer[NUM_PLAYERS];
+	AutoActor m_bgIdle;
+	AutoActor m_bgMiss;
+	AutoActor m_bgGood;
+	AutoActor m_bgGreat;
+	AutoActor m_bgFever;
+	AutoActor m_bgFail;
+	AutoActor m_bgWin;
+	AutoActor m_bgWinFever;
+	RageTimer m_2DIdleTimer;
 
-	int m_i2DAnimState[NUM_PLAYERS];
+	int m_i2DAnimState;
 };
 
 #endif

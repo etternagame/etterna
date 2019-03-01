@@ -8,6 +8,7 @@
 #include "ScreenManager.h"
 #include "RageInput.h"
 #include "ThemeManager.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")
@@ -43,6 +44,10 @@ Screen::Init()
 	HANDLE_BACK_BUTTON.Load(m_sName, "HandleBackButton");
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
+	HOOKS->sShowCursor(true);
+
+	delayedFunctions.clear();
+	delayedPeriodicFunctionIdsToDelete.clear();
 
 	m_Codes.Load(m_sName);
 
@@ -107,8 +112,54 @@ Screen::EndScreen()
 }
 
 void
+Screen::UpdateTimedFunctions(float fDeltaTime)
+{
+	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
+		++it) {
+		auto& delayedF = *it;
+		delayedF.second -= fDeltaTime;
+		if (delayedF.second <= 0) {
+			delayedF.first();
+		}
+	}
+	// Doing this in place did weird things
+	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
+		delayedFunctions.end(),
+		[](pair<function<void()>, float>& x) {
+		return x.second <= 0;
+	}),
+		delayedFunctions.end());
+	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
+		auto* L = LUA->Get();
+		for (auto id : delayedPeriodicFunctionIdsToDelete) {
+			luaL_unref(L, LUA_REGISTRYINDEX, id);
+			auto& vec = this->delayedPeriodicFunctions;
+			vec.erase(std::remove_if(
+				vec.begin(),
+				vec.end(),
+				[id](tuple<function<void()>, float, float, int>& x) {
+				return std::get<3>(x) == id;
+			}),
+				vec.end());
+		}
+		LUA->Release(L);
+		delayedPeriodicFunctionIdsToDelete.clear();
+	}
+	for (auto& delayedF : delayedPeriodicFunctions) {
+		std::get<1>(delayedF) -= fDeltaTime;
+		if (std::get<1>(delayedF) <= 0) {
+			std::get<0>(delayedF)();
+			std::get<1>(delayedF) = std::get<2>(delayedF);
+		}
+	}
+}
+
+void
 Screen::Update(float fDeltaTime)
 {
+	// Do this here so even with 0 time it runs on the next frame
+	UpdateTimedFunctions(fDeltaTime);
+
 	ActorFrame::Update(fDeltaTime);
 
 	m_fLockInputSecs = max(0, m_fLockInputSecs - fDeltaTime);
@@ -170,45 +221,6 @@ Screen::Update(float fDeltaTime)
 		// If the size changed, start over.
 		if (iSize != m_QueuedMessages.size())
 			i = 0;
-	}
-
-	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
-		delayedF.second -= fDeltaTime;
-		if (delayedF.second <= 0) {
-			delayedF.first();
-		}
-	}
-	// Doing this in place did weird things
-	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
-										  delayedFunctions.end(),
-										  [](pair<function<void()>, float>& x) {
-											  return x.second <= 0;
-										  }),
-						   delayedFunctions.end());
-	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
-		auto* L = LUA->Get();
-		for (auto id : delayedPeriodicFunctionIdsToDelete) {
-			luaL_unref(L, LUA_REGISTRYINDEX, id);
-			auto& vec = this->delayedPeriodicFunctions;
-			vec.erase(std::remove_if(
-						vec.begin(),
-						vec.end(),
-						[id](tuple<function<void()>, float, float, int>& x) {
-							return std::get<3>(x) == id;
-						}),
-					  vec.end());
-		}
-		LUA->Release(L);
-		delayedPeriodicFunctionIdsToDelete.clear();
-	}
-	for (auto& delayedF : delayedPeriodicFunctions) {
-		std::get<1>(delayedF) -= fDeltaTime;
-		if (std::get<1>(delayedF) <= 0) {
-			std::get<0>(delayedF)();
-			std::get<1>(delayedF) = std::get<2>(delayedF);
-		}
 	}
 }
 
@@ -566,7 +578,7 @@ class LunaScreen : public Luna<Screen>
 				RString Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				LuaHelpers::RunScriptOnStack(
-				  L, Error, 0, 0, true); // 1 args, 0 results
+				  L, Error, 0, 0, true); // 0 args, 0 results
 			}
 			LUA->Release(L);
 		};

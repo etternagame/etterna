@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CodeDetector.h"
 #include "Game.h"
 #include "GameState.h"
@@ -26,30 +26,17 @@ const char* CodeNames[] = {
 	"Right",
 	"Shuffle",
 	"SuperShuffle",
-	"NextTransform",
 	"NextScrollSpeed",
 	"PreviousScrollSpeed",
-	"NextAccel",
-	"NextEffect",
-	"NextAppearance",
-	"NextTurn",
 	"Reverse",
-	"HoldNotes",
 	"Mines",
-	"Dark",
 	"Hidden",
-	"RandomVanish",
 	"CancelAll",
-	"NextTheme",
-	"NextTheme2",
-	"NextAnnouncer",
-	"NextAnnouncer2",
 	"NextGroup",
 	"PrevGroup",
 	"SaveScreenshot1",
 	"SaveScreenshot2",
 	"CancelAllPlayerOptions",
-	"BackInEventMode",
 	"CloseCurrentFolder",
 };
 XToString(Code);
@@ -184,7 +171,7 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 	// opt = PlayerOptions
 	// setup
 	PlayerNumber pn = INPUTMAPPER->ControllerToPlayerNumber( controller );
-	PlayerOptions po = GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+	PlayerOptions po = GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 	/* what this code seems to be doing is:
 	 * 1) getting the Speed line from the theme
@@ -248,7 +235,7 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 		auto code = static_cast<Code>(c);
 
 		PlayerOptions po =
-		  GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 		if (EnteredCode(controller, code)) {
 			switch (code) {
@@ -270,42 +257,19 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 				case CODE_SUPER_SHUFFLE:
 					po.ToggleOneTurn(PlayerOptions::TURN_SUPER_SHUFFLE);
 					break;
-				case CODE_NEXT_TRANSFORM:
-					po.NextTransform();
-					break;
 				case CODE_NEXT_SCROLL_SPEED:
 					INCREMENT_SCROLL_SPEED(po.m_fScrollSpeed);
 					break;
 				case CODE_PREVIOUS_SCROLL_SPEED:
 					DECREMENT_SCROLL_SPEED(po.m_fScrollSpeed);
 					break;
-				case CODE_NEXT_ACCEL:
-					po.NextAccel();
-					break;
-				case CODE_NEXT_EFFECT:
-					po.NextEffect();
-					break;
-				case CODE_NEXT_APPEARANCE:
-					po.NextAppearance();
-					break;
-				case CODE_NEXT_TURN:
-					po.NextTurn();
-					break;
 				case CODE_REVERSE:
 					po.NextScroll();
-					break;
-				case CODE_HOLDS:
-					TOGGLE(po.m_bTransforms[PlayerOptions::TRANSFORM_NOHOLDS],
-						   true,
-						   false);
 					break;
 				case CODE_MINES:
 					TOGGLE(po.m_bTransforms[PlayerOptions::TRANSFORM_NOMINES],
 						   true,
 						   false);
-					break;
-				case CODE_DARK:
-					FLOAT_TOGGLE(po.m_fDark);
 					break;
 				case CODE_CANCEL_ALL:
 					GAMESTATE->GetDefaultPlayerOptions(po);
@@ -314,16 +278,11 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 					ZERO(po.m_fAppearances);
 					po.m_fAppearances[PlayerOptions::APPEARANCE_HIDDEN] = 1;
 					break;
-				case CODE_RANDOMVANISH:
-					ZERO(po.m_fAppearances);
-					po.m_fAppearances[PlayerOptions::APPEARANCE_RANDOMVANISH] =
-					  1;
-					break;
 				default:
 					break;
 			}
 
-			GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.Assign(
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(
 			  ModsLevel_Preferred, po);
 
 			return true; // don't check any more

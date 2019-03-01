@@ -9,7 +9,7 @@ class ScreenSongOptions : public ScreenOptionsMaster
 	void Init() override;
 
   private:
-	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 };
 
 #endif

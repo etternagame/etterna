@@ -37,7 +37,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 	 * sound early enough for it to come out on time; the actual precise timing
 	 * is handled by SetStartTime. */
 	SongPosition& position =
-	  GAMESTATE->m_pPlayerState[ps->m_PlayerNumber]->m_Position;
+	  GAMESTATE->m_pPlayerState->m_Position;
 	float fPositionSeconds = position.m_fMusicSeconds;
 
 	// float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
@@ -45,7 +45,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 						static_cast<float>(CommonMetrics::TICK_EARLY_SECONDS) +
 						0.250f;
 	const TimingData& timing =
-	  *GAMESTATE->m_pCurSteps[ps->m_PlayerNumber]->GetTimingData();
+	  *GAMESTATE->m_pCurSteps->GetTimingData();
 	const float fSongBeat =
 	  timing.GetBeatFromElapsedTimeNoOffset(fPositionSeconds);
 

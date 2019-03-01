@@ -1,21 +1,15 @@
 ﻿#include "global.h"
 #include "LifeMeter.h"
 #include "LifeMeterBar.h"
-#include "LifeMeterBattery.h"
-#include "LifeMeterTime.h"
 
 LifeMeter*
 LifeMeter::MakeLifeMeter(LifeType t)
 {
-	switch (t) {
-		case LifeType_Bar:
-			return new LifeMeterBar;
-		case LifeType_Battery:
-			return new LifeMeterBattery;
-		case LifeType_Time:
-			return new LifeMeterTime;
-		default:
-			FAIL_M(ssprintf("Unrecognized LifeMeter type: %i", t));
+	switch( t )
+	{
+	case LifeType_Bar:     return new LifeMeterBar;
+	default:
+		FAIL_M(ssprintf("Unrecognized LifeMeter type: %i", t));
 	}
 }
 

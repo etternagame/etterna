@@ -55,8 +55,6 @@ const RString EDIT_STEPS_SUBDIR = "Edits/";
 // const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR = "Rivals/";
 
-ThemeMetric<bool> SHOW_COIN_DATA("Profile", "ShowCoinData");
-;
 #define GUID_SIZE_BYTES 8
 
 #define MAX_EDITABLE_INI_SIZE_BYTES (2 * 1024) // 2KB
@@ -171,13 +169,6 @@ Profile::InitSongScores()
 	m_SongHighScores.clear();
 }
 
-void
-Profile::InitCategoryScores()
-{
-	FOREACH_ENUM(StepsType, st)
-	FOREACH_ENUM(RankingCategory, rc)
-	m_CategoryHighScores[st][rc].Init();
-}
 
 void
 Profile::InitScreenshotData()
@@ -780,52 +771,12 @@ Profile::swap(Profile& other)
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
 	SWAP_STR_MEMBER(m_SongHighScores);
-	for (int st = 0; st < NUM_StepsType; ++st) {
-		SWAP_ARRAY(m_CategoryHighScores[st], NUM_RankingCategory);
-	}
 	SWAP_STR_MEMBER(m_vScreenshots);
 #undef SWAP_STR_MEMBER
 #undef SWAP_GENERAL
 #undef SWAP_ARRAY
 }
 
-// Category high scores
-void
-Profile::AddCategoryHighScore(StepsType st,
-							  RankingCategory rc,
-							  HighScore hs,
-							  int& iIndexOut)
-{
-	m_CategoryHighScores[st][rc].AddHighScore(hs, iIndexOut, false);
-}
-
-const HighScoreList&
-Profile::GetCategoryHighScoreList(StepsType st, RankingCategory rc) const
-{
-	return ((Profile*)this)->m_CategoryHighScores[st][rc];
-}
-
-HighScoreList&
-Profile::GetCategoryHighScoreList(StepsType st, RankingCategory rc)
-{
-	return m_CategoryHighScores[st][rc];
-}
-
-int
-Profile::GetCategoryNumTimesPlayed(StepsType st) const
-{
-	int iNumTimesPlayed = 0;
-	FOREACH_ENUM(RankingCategory, rc)
-	iNumTimesPlayed += m_CategoryHighScores[st][rc].GetNumTimesPlayed();
-	return iNumTimesPlayed;
-}
-
-void
-Profile::IncrementCategoryPlayCount(StepsType st, RankingCategory rc)
-{
-	DateTime now = DateTime::GetNowDate();
-	m_CategoryHighScores[st][rc].IncrementPlayCount(now);
-}
 
 void
 Profile::LoadCustomFunction(const RString& sDir)
@@ -873,7 +824,7 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	int total_gameplay_seconds = m_iTotalGameplaySeconds;
 	LuaTable user_table = m_UserTable;
 	bool need_to_create_file = false;
-	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + STATS_XML)) {
+	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + ETT_XML)) {
 		LoadAllFromDir(dir, require_signature, NULL);
 	} else {
 		ClearStats();
@@ -915,15 +866,9 @@ Profile::LoadAllFromDir(const RString& sDir,
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
 	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
-	if (ret != ProfileLoadResult_Success) {
-		ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
+	if (ret != ProfileLoadResult_Success)
+		return ret;
 
-		if (ret != ProfileLoadResult_Success)
-			return ret;
-
-		IsEtternaProfile = true;
-		ImportScoresToEtterna();
-	}
 	// Not critical if this fails
 	LoadEditableDataFromDir(sDir);
 
@@ -963,12 +908,6 @@ Profile::LoadAllFromDir(const RString& sDir,
 	CalculateStatsFromScores(
 	  ld); // note to self: figure out how to tell if this is necessary
 	return ProfileLoadResult_Success;
-}
-
-ProfileLoadResult
-Profile::LoadStatsFromDir(RString dir, bool require_signature)
-{
-	return XMLProf.LoadStatsFromDir(dir, require_signature);
 }
 
 void
@@ -1160,182 +1099,6 @@ void
 Profile::RemoveFromPermaMirror(const string& ck)
 {
 	PermaMirrorCharts.erase(ck);
-}
-
-void
-Profile::ImportScoresToEtterna()
-{
-	// load stats.xml
-	if (IsEtternaProfile)
-		XMLProf.LoadStatsXmlForConversion();
-
-	int loaded = 0;
-	int notloaded = 0;
-	LOG->Trace("Beginning import of stats.xml scores");
-
-	const vector<Song*>& songs = SONGMAN->GetAllSongs();
-
-	string ck;
-	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		SongID id = i->first;
-		HighScoresForASong& hsfas = i->second;
-		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j)
-		{
-			StepsID sid = j->first;
-
-			if (sid.GetStepsType() != StepsType_dance_single)
-				continue;
-
-			if (!id.IsValid()) {
-				string sdir = id.ToString();
-				string sdir2;
-
-				if (sdir.substr(0, 15) == "AdditionalSongs") {
-					sdir2 = id.ToString().substr(10);
-				} else if (sdir.substr(0, 5) == "Songs") {
-					sdir2 = "Additional" + id.ToString();
-				}
-				Song* imean = new Song;
-				imean->SetSongDir(sdir2);
-				id = SongID();
-				id.FromSong(imean);
-				delete imean;
-			}
-
-			if (id.IsValid() && sid.IsValid()) {
-				vector<HighScore>& hsv = j->second.hsl.vHighScores;
-
-				Song* song = id.ToSong();
-				Steps* steps = sid.ToSteps(song, true);
-
-				if (!song) {
-					LOG->Trace("Unloaded song %s, skipping score import",
-							   id.ToString().c_str());
-					continue;
-				}
-
-				if (!steps) {
-					++notloaded;
-					LOG->Trace("Null steps for %s at %s, skipping score import",
-							   song->GetDisplayMainTitle().c_str(),
-							   song->m_sGroupName.c_str());
-					continue;
-				}
-
-				ck = steps->GetChartKey();
-				for (size_t i = 0; i < hsv.size(); ++i) {
-					HighScore hs = hsv[i];
-					// ignore historic key and just load from here since the
-					// hashing function was changed anyway
-					hs.SetChartKey(ck);
-					SCOREMAN->ImportScore(hs, m_sProfileID);
-					++loaded;
-				}
-				continue;
-			}
-
-			// if we still haven't correlated a score to a key, match by song
-			// title and number of notes score import is meant to be a qol and
-			// pre-existing scores need not undergo strict filtering -mina
-			LOG->Trace("Attempting to match score for %s by dir name",
-					   id.ToString().c_str());
-			if (!id.IsValid()) {
-				string unloaded = id.ToString();
-				unloaded = unloaded.substr(0, unloaded.size() - 1);
-				int jjq = unloaded.find_last_of("/");
-				unloaded = unloaded.substr(jjq + 1, unloaded.size() - jjq);
-
-				for (size_t i = 0; i < songs.size(); ++i) {
-					SongID matchid;
-					matchid.FromSong(songs[i]);
-
-					string matchstring = matchid.ToString();
-					matchstring = matchstring.substr(0, matchstring.size() - 1);
-					jjq = matchstring.find_last_of("/");
-					matchstring =
-					  matchstring.substr(jjq + 1, matchstring.size() - jjq);
-
-					if (unloaded == matchstring) {
-						id = matchid;
-						break;
-					}
-				}
-
-				Song* song = id.ToSong();
-
-				if (!song) {
-					continue;
-				}
-
-				vector<HighScore>& hsv = j->second.hsl.vHighScores;
-				string title = song->GetDisplayMainTitle();
-
-				for (size_t i = 0; i < hsv.size(); ++i) {
-					HighScore tmp = hsv[i];
-					for (size_t i = 0; i < songs.size(); ++i) {
-						if (songs[i]->GetDisplayMainTitle() == title) {
-							vector<Steps*> demsteps = songs[i]->GetAllSteps();
-							bool matched = false;
-							for (size_t j = 0; j < demsteps.size(); ++j) {
-								Steps* steps = demsteps[j];
-								int notes = steps->GetRadarValues()
-											  [RadarCategory_TapsAndHolds];
-								int snotes = 0;
-
-								snotes += tmp.GetTapNoteScore(TNS_Miss);
-								snotes += tmp.GetTapNoteScore(TNS_W1);
-								snotes += tmp.GetTapNoteScore(TNS_W2);
-								snotes += tmp.GetTapNoteScore(TNS_W3);
-								snotes += tmp.GetTapNoteScore(TNS_W4);
-								snotes += tmp.GetTapNoteScore(TNS_W5);
-
-								if (notes == snotes) {
-									LOG->Trace("Matched based on taps count");
-									matched = true;
-									break;
-								}
-
-								notes =
-								  steps->GetRadarValues()[RadarCategory_Notes];
-
-								if (notes == snotes) {
-									LOG->Trace("Matched based on notes count");
-									matched = true;
-									break;
-								}
-
-								if (matched) {
-									ck = steps->GetChartKey();
-									loaded++;
-									SCOREMAN->ImportScore(tmp, m_sProfileID);
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (!id.IsValid()) {
-				++notloaded;
-				LOG->Trace("Unloaded song %s, skipping score import",
-						   id.ToString().c_str());
-			}
-		}
-	}
-
-	if (IsEtternaProfile)
-		m_SongHighScores.clear();
-
-	LOG->Trace("Finished import of %i scores to etterna profile. %i scores "
-			   "were not imported.",
-			   loaded,
-			   notloaded);
-	SCREENMAN->SystemMessage("Finished import of %i scores. %i scores were not "
-							 "imported. See log for details.");
-	CalculateStatsFromScores();
-
-	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
 // more future goalman stuff (perhaps this should be standardized to "add" in
@@ -1632,14 +1395,7 @@ class LunaProfile : public Luna<Profile>
 		COMMON_RETURN_SELF;
 	}
 
-	static int GetCategoryHighScoreList(T* p, lua_State* L)
-	{
-		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
-		RankingCategory pRankCat = Enum::Check<RankingCategory>(L, 2);
-		HighScoreList& hsl = p->GetCategoryHighScoreList(pStepsType, pRankCat);
-		hsl.PushSelf(L);
-		return 1;
-	}
+
 
 	static int GetHighScoreListIfExists(T* p, lua_State* L)
 	{
@@ -2027,8 +1783,8 @@ class LunaProfile : public Luna<Profile>
 	{
 		bool o = false;
 
-		if (GAMESTATE->m_pCurSteps[PLAYER_1]) {
-			const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+		if (GAMESTATE->m_pCurSteps) {
+			const string& ck = GAMESTATE->m_pCurSteps->GetChartKey();
 
 			if (p->PermaMirrorCharts.count(ck))
 				o = true;
@@ -2049,15 +1805,15 @@ class LunaProfile : public Luna<Profile>
 
 		auto& sgv = p->goalmap[ck].goals;
 		bool herp = false;
-		ScoreGoal& ez = sgv[0];
-		for (auto& n : sgv)
-			if (lround(n.rate * 10000.f) == lround(FArg(2) * 10000.f) &&
-				!n.achieved && n.percent <= ez.percent) {
-				ez = n;
+		int ez = 0;
+		for (size_t i = 0; i < sgv.size(); ++i)
+			if (lround(sgv[i].rate * 10000.f) == lround(FArg(2) * 10000.f) &&
+				!sgv[i].achieved && sgv[i].percent <= sgv[ez].percent) {
+				ez = i;
 				herp = true;
 			}
 		if (herp)
-			ez.PushSelf(L);
+			sgv[ez].PushSelf(L);
 		else
 			lua_pushnil(L);
 		return 1;
@@ -2082,7 +1838,6 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(GetAllUsedHighScoreNames);
 		ADD_METHOD(GetHighScoreListIfExists);
 		ADD_METHOD(GetHighScoreList);
-		ADD_METHOD(GetCategoryHighScoreList);
 		ADD_METHOD(GetCharacter);
 		ADD_METHOD(SetCharacter);
 		ADD_METHOD(GetTotalNumSongsPlayed);

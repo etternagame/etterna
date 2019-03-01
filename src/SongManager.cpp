@@ -293,7 +293,6 @@ std::mutex songLoadingSONGMANMutex;
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {
-	const int THREADS = 8;
 	RageTimer tm;
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
@@ -363,8 +362,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = false;
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace(
-		  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+		LOG->Trace("Found %u songs in %f seconds.",
+				   (unsigned int)m_pSongs.size(),
+				   tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();
@@ -423,7 +423,6 @@ Chart::LoadFromNode(const XNode* node)
 
 	// check if this chart is loaded and overwrite any last-seen values
 	// with updated ones
-	key = SONGMAN->ReconcileBustedKeys(key);
 	FromKey(key);
 }
 
@@ -601,24 +600,13 @@ SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
 }
 
-string
-SongManager::ReconcileBustedKeys(const string& ck)
-{
-	if (StepsByKey.count(ck))
-		return ck;
-
-	if (keyconversionmap.count(ck))
-		return keyconversionmap[ck];
-	return ck;
-}
-
 // Only store 1 steps/song pointer per key -Mina
 void
 SongManager::AddKeyedPointers(Song* new_song)
 {
 	const vector<Steps*> steps = new_song->GetAllSteps();
 	for (size_t i = 0; i < steps.size(); ++i) {
-		const RString& ck = steps[i]->GetChartKey();
+		const string& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
 			StepsByKey.emplace(ck, steps[i]);
 			if (!SongsByKey.count(ck)) {
@@ -633,7 +621,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
 Steps*
-SongManager::GetStepsByChartkey(RString ck)
+SongManager::GetStepsByChartkey(const string& ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
@@ -641,7 +629,7 @@ SongManager::GetStepsByChartkey(RString ck)
 }
 
 Song*
-SongManager::GetSongByChartkey(RString ck)
+SongManager::GetSongByChartkey(const string& ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
@@ -872,28 +860,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 }
 
 void
-SongManager::PreloadSongImages()
-{
-	if (PREFSMAN->m_ImageCache != IMGCACHE_FULL)
-		return;
-
-	/* Load textures before unloading old ones, so we don't reload
-	 * textures that we don't need to. */
-	RageTexturePreloader preload;
-
-	const vector<Song*>& songs = GetAllSongs();
-	for (unsigned i = 0; i < songs.size(); ++i) {
-		if (!songs[i]->HasBanner())
-			continue;
-
-		const RageTextureID ID =
-		  Sprite::SongBannerTexture(songs[i]->GetBannerPath());
-		preload.Load(ID);
-	}
-	preload.Swap(m_TexturePreload);
-}
-
-void
 SongManager::FreeSongs()
 {
 	m_sSongGroupNames.clear();
@@ -905,11 +871,6 @@ SongManager::FreeSongs()
 	m_pSongs.clear();
 	m_SongsByDir.clear();
 
-	// also free the songs that have been deleted from disk
-	for (unsigned i = 0; i < m_pDeletedSongs.size(); ++i)
-		SAFE_DELETE(m_pDeletedSongs[i]);
-	m_pDeletedSongs.clear();
-
 	m_mapSongGroupIndex.clear();
 	m_sSongGroupBannerPaths.clear();
 
@@ -919,30 +880,6 @@ SongManager::FreeSongs()
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();
-}
-
-void
-SongManager::UnlistSong(Song* song)
-{
-	// cannot immediately free song data, as it is needed temporarily
-	// for smooth audio transitions, etc. Instead, remove it from the
-	// m_pSongs list and store it in a special place where it can safely
-	// be deleted later.
-	m_pDeletedSongs.emplace_back(song);
-
-	// remove all occurences of the song in each of our song vectors
-	vector<Song*>* songVectors[3] = { &m_pSongs,
-									  &m_pPopularSongs,
-									  &m_pShuffledSongs };
-	for (int songVecIdx = 0; songVecIdx < 3; ++songVecIdx) {
-		vector<Song*>& v = *songVectors[songVecIdx];
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (v[i] == song) {
-				v.erase(v.begin() + i);
-				--i;
-			}
-		}
-	}
 }
 
 bool
@@ -1430,16 +1367,15 @@ SongManager::GetRandomSong()
 
 	static int i = 0;
 
+	Song* pSong = nullptr;
+
 	for (int iThrowAway = 0; iThrowAway < 100; iThrowAway++) {
 		i++;
 		wrap(i, m_pShuffledSongs.size());
-		Song* pSong = m_pShuffledSongs[i];
-		if (pSong->IsTutorial())
-			continue;
-		return pSong;
+		pSong = m_pShuffledSongs[i];
 	}
 
-	return NULL;
+	return pSong;
 }
 
 Song*

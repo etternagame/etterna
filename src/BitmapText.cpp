@@ -798,18 +798,20 @@ BitmapText::DrawPrimitives()
 			size_t i = 0;
 			map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
 			while (i < m_aVertices.size()) {
+				RageColor what = m_pTempState->diffuse[0];
+				RageColor is = m_pTempState->diffuse[2];
+				RageColor wrong = m_pTempState->diffuse[3];
+				RageColor withyoupeople = m_pTempState->diffuse[1];
+
 				// Set the colors up to the next attribute.
 				size_t iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
 														  : iter->first * 4;
 				iEnd = min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = m_pTempState->diffuse[0]; // top left
-					m_aVertices[i + 1].c =
-					  m_pTempState->diffuse[2]; // bottom left
-					m_aVertices[i + 2].c =
-					  m_pTempState->diffuse[3]; // bottom right
-					m_aVertices[i + 3].c =
-					  m_pTempState->diffuse[1]; // top right
+					m_aVertices[i + 0].c = what; // top left
+					m_aVertices[i + 1].c = is; // bottom left
+					m_aVertices[i + 2].c = wrong; // bottom right
+					m_aVertices[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())
 					break;
@@ -1064,8 +1066,13 @@ ColorBitmapText::SetText(const RString& _sText,
 				cChange.l = iGlyphsSoFar;
 				if (iGlyphsSoFar == 0)
 					m_vColors[0] = cChange;
-				else
-					m_vColors.push_back(cChange);
+				else {
+					auto& back = m_vColors.back();
+					if (back.l == cChange.l)
+						back.c = cChange.c;
+					else
+						m_vColors.push_back(cChange);
+				}
 				i += 8;
 				continue;
 			}

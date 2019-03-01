@@ -398,24 +398,6 @@ function Actor:LyricCommand(side)
 	return self
 end
 
--- formerly in 02 HelpDisplay.lua, although nothing uses it:
-function HelpDisplay:setfromsongorcourse()
-	local Artists = {}
-	local AltArtists = {}
-
-	local Song = GAMESTATE:GetCurrentSong()
-	local Trail = GAMESTATE:GetCurrentTrail(GAMESTATE:GetMasterPlayerNumber())
-	if Song then
-		table.insert(Artists, Song:GetDisplayArtist())
-		table.insert(AltArtists, Song:GetTranslitArtist())
-	elseif Trail then
-		Artists, AltArtists = Trail:GetArtists()
-	end
-
-	self:settips(Artists, AltArtists)
-	return self
-end
-
 -- Play the sound on the given player's side. Must set SupportPan = true
 -- on load.
 function ActorSound:playforplayer(pn)

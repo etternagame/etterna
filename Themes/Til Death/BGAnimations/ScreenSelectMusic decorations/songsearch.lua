@@ -25,12 +25,12 @@ local function searchInput(event)
 			searchstring = ""
 		elseif event.DeviceInput.button == "DeviceButton_=" then
 			searchstring = searchstring .. "="
-		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
-			searchstring = searchstring .. HOOKS:GetClipboard()
 		else
+			local CtrlPressed = INPUTFILTER:IsControlPressed()
+			if event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
+				searchstring = searchstring .. HOOKS:GetClipboard()
+			elseif
 			--if not nil and (not a number or (ctrl pressed and not online))
-			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
-			if
 				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and
 					(not tonumber(event.char) or CtrlPressed)
 			 then

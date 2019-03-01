@@ -37,9 +37,7 @@ AutoScreenMessage(SM_NoSongs);
 AutoScreenMessage(SM_SetWheelSong);
 AutoScreenMessage(SM_RefreshWheelLocation);
 AutoScreenMessage(SM_SongChanged);
-AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_BackFromPlayerOptions);
-AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
 AutoScreenMessage(ETTP_Disconnect);
@@ -52,6 +50,10 @@ static LocalizedString PERMANENTLY_DELETE("ScreenSelectMusic",
 void
 ScreenNetSelectMusic::Init()
 {
+	if (NSMAN->song != nullptr)
+		GAMESTATE->m_pCurSong.Set(NSMAN->song);
+	if (NSMAN->steps != nullptr)
+		GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
 	ScreenSelectMusic::Init();
 	GAMESTATE->m_bPlayingMulti = true;
 	// Load SFX and music
@@ -74,10 +76,6 @@ ScreenNetSelectMusic::DifferentialReload()
 bool
 ScreenNetSelectMusic::Input(const InputEventPlus& input)
 {
-	// if (input.pn == PLAYER_2)	could use this to throw out all p2 inputs
-	// -mina
-	//	return false;
-
 	if (input.DeviceI.button == KEY_KP_ENTER)
 		return false;
 
@@ -103,8 +101,8 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 	if (NSMAN->song != nullptr) {
 		GAMESTATE->m_pCurSong.Set(NSMAN->song);
 		if (NSMAN->steps != nullptr) {
-			GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-			GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+			GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
+			GAMESTATE->m_PreferredDifficulty.Set(
 			  NSMAN->steps->GetDifficulty());
 		}
 		if (!m_MusicWheel.SelectSong(NSMAN->song)) {
@@ -123,7 +121,6 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 			  NSMAN->rate / 1000.f;
 			MESSAGEMAN->Broadcast("RateChanged");
 			MESSAGEMAN->Broadcast("CurrentRateChanged");
-
 		}
 		m_MusicWheel.Select();
 		m_MusicWheel.Move(-1);
@@ -143,8 +140,8 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		if (NSMAN->song != nullptr) {
 			GAMESTATE->m_pCurSong.Set(NSMAN->song);
 			if (NSMAN->steps != nullptr) {
-				GAMESTATE->m_pCurSteps[PLAYER_1].Set(NSMAN->steps);
-				GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(
+				GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
+				GAMESTATE->m_PreferredDifficulty.Set(
 				  NSMAN->steps->GetDifficulty());
 			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
@@ -168,8 +165,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
 		}
-	} else if (SM == SM_UsersUpdate) {
-		MESSAGEMAN->Broadcast("UsersUpdate");
 	} else if (SM == SM_FriendsUpdate) {
 		MESSAGEMAN->Broadcast("FriendsUpdate");
 	} else if (SM == SM_GoToPrevScreen) {
@@ -186,8 +181,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		SOUND->StopMusic();
 		TweenOffScreen();
 		Cancel(SM_GoToDisconnectScreen);
-	} else if (SM == SM_UsersUpdate) {
-		m_MusicWheel.Move(0);
 	} else if (SM == SM_NoSongs) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NoSongsScreen"));
 	} else if (SM == SM_RefreshWheelLocation) {
@@ -197,8 +190,6 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		m_MusicWheel.Select();
 		m_bAllowInput = true;
 	} else if (SM == SM_BackFromPlayerOptions) {
-		GAMESTATE->m_EditMode = EditMode_Invalid;
-		// XXX HACK: This will cause ScreenSelectOptions to go back here.
 		NSMAN->OffOptions();
 	} else if (SM == SM_SongChanged) {
 		if (m_MusicWheel.GetNumItems() > 0) {
@@ -209,46 +200,12 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		SelectSongUsingNSMAN(this, true);
 	} else if (SM == ETTP_SelectChart) {
 		SelectSongUsingNSMAN(this, false);
-	} else if (SM == SM_ConfirmDeleteSong) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			OnConfirmSongDeletion();
-		} else {
-			// need to resume the song preview that was automatically paused
-			m_MusicWheel.ChangeMusic(0);
-		}
 	}
 
 	// Must be at end, as so it is last resort for SMOnline packets.
 	// If it doesn't know what to do, then it'll just remove them.
 	ScreenSelectMusic::HandleScreenMessage(SM);
 }
-
-void
-ScreenNetSelectMusic::OnConfirmSongDeletion()
-{
-	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
-	if (!deletedSong) {
-		LOG->Warn("Attempted to delete a null song "
-				  "(ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	// ensure Stepmania is configured to allow song deletion
-	if (!PREFSMAN->m_bAllowSongDeletion.Get()) {
-		LOG->Warn("Attemped to delete a song but AllowSongDeletion was set to "
-				  "false (ScreenSelectMusic::OnConfirmSongDeletion)");
-		return;
-	}
-	RString deleteDir = deletedSong->GetSongDir();
-	// flush the deleted song from any caches
-	SONGMAN->UnlistSong(deletedSong);
-	// refresh the song list
-	m_MusicWheel.ReloadSongList(false, "");
-	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
-	// delete the song directory from disk
-	FILEMAN->DeleteRecursive(deleteDir);
-	m_pSongAwaitingDeletionConfirmation = NULL;
-}
-
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {
 	if (PREFSMAN->m_verbose_log > 1)
@@ -277,7 +234,6 @@ void
 ScreenNetSelectMusic::OpenOptions()
 {
 	NSMAN->OnOptions();
-	GAMESTATE->m_EditMode = EditMode_Full;
 	SCREENMAN->AddNewScreenToTop(PLAYER_OPTIONS_SCREEN,
 								 SM_BackFromPlayerOptions);
 }
@@ -308,12 +264,12 @@ ScreenNetSelectMusic::SelectCurrent()
 
 	if (pSong == NULL)
 		return false;
-	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection[PLAYER_1])
+	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection)
 		return false;
 	GAMESTATE->m_pCurSong.Set(pSong);
-	Steps* pSteps = m_vpSteps[m_iSelection[PLAYER_1]];
-	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
-	GAMESTATE->m_PreferredDifficulty[PLAYER_1].Set(pSteps->GetDifficulty());
+	Steps* pSteps = m_vpSteps[m_iSelection];
+	GAMESTATE->m_pCurSteps.Set(pSteps);
+	GAMESTATE->m_PreferredDifficulty.Set(pSteps->GetDifficulty());
 
 	if (NSMAN->useSMserver) {
 		NSMAN->m_sArtist = pSong->GetTranslitArtist();
@@ -421,6 +377,17 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetUserReady(T* p, lua_State* L)
+	{
+		if (lua_isnil(L, 1))
+			return 0;
+		auto& states = NSMAN->m_PlayerReady;
+		if (static_cast<size_t>(IArg(1)) <= states.size() && IArg(1) >= 1)
+			lua_pushboolean(L, states[IArg(1) - 1]);
+		else
+			lua_pushboolean(L, false);
+		return 1;
+	}
 	static int GetUserState(T* p, lua_State* L)
 	{
 		if (lua_isnil(L, 1))
@@ -440,6 +407,7 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 		ADD_METHOD(GetUser);
 		ADD_METHOD(GetUserQty);
 		ADD_METHOD(GetUserState);
+		ADD_METHOD(GetUserReady);
 	}
 };
 

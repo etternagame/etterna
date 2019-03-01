@@ -64,6 +64,7 @@ class GameManager
 	RString m_sModsToReset;
 	vector<RString> m_vTurnsToReset;
 	FailType m_iPreviousFail;
+	bool m_bRestartedGameplay;
 
 	// Lua
 	void PushSelf(lua_State* L);

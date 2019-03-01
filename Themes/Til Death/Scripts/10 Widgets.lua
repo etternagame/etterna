@@ -138,12 +138,15 @@ Widg.Rectangle = function(params)
 				self:diffuse(params.color):diffusealpha(params.alpha)
 			end or nil,
 		LeftClickMessageCommand = params.onClick and function(self)
-				if params.onClick and os.clock() - lastClick > params.clickPolling and isOver(self) then
+				if params.onClick and q:isOver() then
 					lastClick = os.clock()
 					params.onClick(self)
 				end
 			end or nil
 	}
+	q.isOver = function(self)
+		return os.clock() - lastClick > params.clickPolling and isOver(self.actor)
+	end
 	return q
 end
 

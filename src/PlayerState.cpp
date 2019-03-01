@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameState.h"
 #include "PlayerState.h"
 #include "RadarValues.h"
@@ -64,7 +64,7 @@ PlayerState::GetDisplayedPosition() const
 const TimingData&
 PlayerState::GetDisplayedTiming() const
 {
-	Steps* steps = GAMESTATE->m_pCurSteps[m_PlayerNumber];
+	Steps* steps = GAMESTATE->m_pCurSteps;
 	if (steps == NULL)
 		return GAMESTATE->m_pCurSong->m_SongTiming;
 	return *steps->GetTimingData();

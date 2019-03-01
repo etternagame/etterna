@@ -5,7 +5,6 @@
 
 #include "BPMDisplay.h"
 #include "Difficulty.h"
-#include "DifficultyIcon.h"
 #include "ModIconRow.h"
 #include "MusicWheel.h"
 #include "ScreenSelectMusic.h"
@@ -42,17 +41,14 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 
 	void Update(float fDeltaTime) override;
 
-	Song* m_pSongAwaitingDeletionConfirmation;
-	void OnConfirmSongDeletion();
-
 	void TweenOffScreen() override;
 
   private:
 	RageSound m_soundChangeOpt;
 	RageSound m_soundChangeSel;
 
-	bool m_bInitialSelect;
-	bool m_bAllowInput;
+	bool m_bInitialSelect = false;
+	bool m_bAllowInput = false;
 };
 
 #endif

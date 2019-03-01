@@ -67,7 +67,8 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
-	{ "chartrequest", ettps_chartrequest }
+	{ "chartrequest", ettps_chartrequest },
+	{ "packlist", ettps_roompacklist }
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -213,7 +214,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
-AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
 
 AutoScreenMessage(ETTP_Disconnect);
@@ -222,7 +222,6 @@ AutoScreenMessage(ETTP_IncomingChat);
 AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
-AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
@@ -264,6 +263,12 @@ NetworkSyncManager::OnMusicSelect()
 	if (curProtocol != nullptr)
 		curProtocol->OnMusicSelect();
 }
+void
+ETTProtocol::OnMusicSelect()
+{
+	state = 0;
+}
+
 void
 NetworkSyncManager::OffMusicSelect()
 {
@@ -369,6 +374,14 @@ ETTProtocol::close()
 	uWSh = new uWS::Hub();
 }
 
+ETTProtocol::~ETTProtocol()
+{
+	if (uWSh != nullptr)
+	{
+		delete uWSh;
+	}
+}
+
 void
 NetworkSyncManager::CloseConnection()
 {
@@ -459,15 +472,18 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 					 unsigned short port,
 					 RString address)
 {
-	char host[128];
+	char *host = new char[address.size() + 1];
 	if (sscanf(address.c_str(), "ws://%[^:/]", host) > 0)
 		;
 	else if (sscanf(address.c_str(), "wss://%[^:/]", host) > 0)
 		;
 	else
-		strcpy(host, address.c_str());
-	if (!EzSockets::CanConnect(host, port))
+		strcpy(host, address.c_str()); 
+	bool canConnect = EzSockets::CanConnect(host, port);
+	delete[] host;
+	if (!canConnect) {
 		return false;
+	}
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
@@ -507,10 +523,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-			if (logPackets) {
-				LOG->Trace("Incoming ETTP:");
-				LOG->Trace(json.dump(4).c_str());
-			}
 		} catch (exception e) {
 			LOG->Trace(
 			  "Error while processing ettprotocol json: %s (message: %s)",
@@ -624,15 +636,16 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 				 n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
 				(n->m_sFileHash.empty() ||
 				 n->m_sFileHash == m_cSong->GetFileHash())) {
-				for (auto& steps : m_cSong->GetAllSteps()) {
-					if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
-						(n->difficulty == Difficulty_Invalid ||
-						 n->difficulty == steps->GetDifficulty())) {
-						n->song = m_cSong;
-						n->steps = steps;
-						break;
+				if (n->meter> 0 || n->difficulty != Difficulty_Invalid)
+					for (auto& steps : m_cSong->GetAllSteps()) {
+						if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+							(n->difficulty == Difficulty_Invalid ||
+							 n->difficulty == steps->GetDifficulty())) {
+							n->song = m_cSong;
+							n->steps = steps;
+							break;
+						}
 					}
-				}
 				if (n->song != nullptr)
 					break;
 				n->song = m_cSong;
@@ -651,7 +664,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh->poll();
 	if (this->ws == nullptr) {
-		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
+		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -680,8 +693,11 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			}
 			switch (ettServerMessageMap[jType->get<string>()]) {
 				case ettps_loginresponse:
-					if (!(n->loggedIn = (*payload)["logged"]))
+					waitingForTimeout = false;
+					if (!(n->loggedIn = (*payload)["logged"])) {
 						n->loginResponse = (*payload)["msg"].get<string>();
+						n->loggedInUsername.clear();
+					}
 					else {
 						n->loginResponse = "";
 						n->loggedIn = true;
@@ -698,7 +714,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					if (ws != nullptr) {
 						json hello;
 						hello["type"] = ettClientMessageMap[ettpc_hello];
-						hello["payload"]["version"] = ETTPCVERSION;
+						auto& payload = hello["payload"];
+						payload["version"] = ETTPCVERSION;
+						payload["client"] = GAMESTATE->GetEtternaVersion();
+						payload["packs"] = json::array();
+						auto& packs = SONGMAN->GetSongGroupNames();
+						for(auto& pack : packs)
+							payload["packs"].push_back(pack.c_str());
 						Send(hello);
 					}
 					break;
@@ -765,7 +787,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						for (json::iterator trackIt = jTracks.begin();
 							 trackIt != jTracks.end();
 							 ++trackIt)
-							noterows.emplace_back(trackIt->get<int>());
+							tracks.emplace_back(trackIt->get<int>());
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
 						hs.SetTrackVector(tracks);
@@ -776,7 +798,6 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					result.playerOptions = payload->value("options", "");
 					n->m_EvalPlayerData.emplace_back(result);
 					n->m_ActivePlayers = n->m_EvalPlayerData.size();
-					SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
 					MESSAGEMAN->Broadcast("NewMultiScore");
 					break;
 				}
@@ -861,7 +882,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 				} break;
 				case ettps_chartrequest: {
-					n->requests.emplace_back(ChartRequest(*payload));
+					n->requests.emplace_back(new ChartRequest(*payload));
 					Message msg("ChartRequest");
 					MESSAGEMAN->Broadcast(msg);
 				} break;
@@ -959,7 +980,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							NSMAN->lobbyuserlist.erase(user.get<string>());
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 				case ettps_roomlist: {
 					RoomData tmp;
@@ -977,10 +998,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						}
 					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 				} break;
+				case ettps_roompacklist: {
+					auto packlist = payload->at("commonpacks");
+					n->commonpacks.clear();
+					if (packlist.is_array()) {
+						for (auto&& pack : packlist) {
+							n->commonpacks.emplace_back(pack.get<string>());
+						}
+					}
+				} break;
 				case ettps_roomuserlist: {
 					n->m_ActivePlayer.clear();
 					n->m_PlayerNames.clear();
 					n->m_PlayerStatus.clear();
+					n->m_PlayerReady.clear();
 					auto j1 = payload->at("players");
 					if (j1.is_array()) {
 						int i = 0;
@@ -992,6 +1023,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								stored++;
 								n->m_PlayerStatus.emplace_back(
 								  player["status"]);
+								n->m_PlayerReady.emplace_back(
+									player["ready"]);
 								stored++;
 								n->m_ActivePlayer.emplace_back(i++);
 							} catch (exception e) {
@@ -1005,7 +1038,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 			}
 		} catch (exception e) {
@@ -1154,6 +1187,7 @@ ETTProtocol::Login(RString user, RString pass)
 	json login;
 	login["type"] = ettClientMessageMap[ettpc_login];
 	auto& payload = login["payload"];
+	NSMAN->loggedInUsername = user.c_str();
 	payload["user"] = user.c_str();
 	payload["pass"] = pass.c_str();
 	login["id"] = msgId++;
@@ -1162,6 +1196,7 @@ ETTProtocol::Login(RString user, RString pass)
 	waitingForTimeout = true;
 	timeout = 5.0;
 	onTimeout = [](void) {
+		NSMAN->loggedInUsername.clear();
 		NSMAN->loginResponse = "Login timed out";
 		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 	};
@@ -1200,15 +1235,6 @@ ETTProtocol::Send(const char* msg)
 {
 	if (ws != nullptr)
 		ws->send(msg);
-	if (logPackets) {
-		LOG->Trace("Outgoing ETTP:");
-		try {
-			auto j = nlohmann::json::parse(msg);
-			LOG->Trace(j.dump(4).c_str());
-		} catch (exception e) {
-			LOG->Trace(msg);
-		}
-	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
@@ -1239,8 +1265,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["ng"] = hs->GetHoldNoteScore(HNS_Missed);
 	payload["chartkey"] = hs->GetChartKey();
 	payload["rate"] = hs->GetMusicRate();
-	if (GAMESTATE->m_pPlayerState[PLAYER_1] != nullptr)
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
+	if (GAMESTATE->m_pPlayerState != nullptr)
+		payload["options"] = GAMESTATE->m_pPlayerState
 							   ->m_PlayerOptions.GetCurrent()
 							   .GetString();
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -1381,54 +1407,33 @@ NetworkSyncManager::SelectUserSong()
 void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	if (ws == nullptr || song == nullptr)
+	auto curSteps =  GAMESTATE->m_pCurSteps;
+	if (ws == nullptr || song == nullptr ||
+		curSteps == nullptr ||
+		GAMESTATE->m_pPlayerState == nullptr)
 		return;
+	json j;
 	if (song == n->song) {
-		if (GAMESTATE->m_pCurSong == nullptr ||
-			GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr ||
-			GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
-			return;
-		json startChart;
-		startChart["type"] = ettClientMessageMap[ettpc_startchart];
-		auto& payload = startChart["payload"];
-		payload["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
-		payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
-		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
-		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		startChart["id"] = msgId++;
-		Send(startChart);
+		j["type"] = ettClientMessageMap[ettpc_startchart];
 	} else {
-		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
-			return;
-		json selectChart;
-		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
-		auto& payload = selectChart["payload"];
-		payload["title"] = n->m_sMainTitle.c_str();
-		payload["subtitle"] = n->m_sSubTitle.c_str();
-		payload["artist"] = n->m_sArtist.c_str();
-		payload["filehash"] = song->GetFileHash().c_str();
-		payload["chartkey"] =
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey().c_str();
-		payload["difficulty"] =
-		  DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
-		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
-		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
-		payload["rate"] = static_cast<int>(
-		  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-		selectChart["id"] = msgId++;
-		Send(selectChart);
+		j["type"] = ettClientMessageMap[ettpc_selectchart];
 	}
+	auto& payload = j["payload"];
+	payload["title"] = song->m_sMainTitle;
+	payload["subtitle"] = song->m_sSubTitle;
+	payload["artist"] = song->m_sArtist;
+	payload["filehash"] = song->GetFileHash().c_str();
+	payload["pack"] = song->m_sGroupName.c_str();
+	payload["chartkey"] = curSteps->GetChartKey().c_str();
+	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
+	payload["meter"] = curSteps->GetMeter();
+	payload["options"] = GAMESTATE->m_pPlayerState
+		->m_PlayerOptions.GetCurrent()
+		.GetString();
+	payload["rate"] = static_cast<int>(
+		(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	j["id"] = msgId++;
+	Send(j);
 }
 
 void
@@ -1784,7 +1789,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 // lua start
 #include "LuaBinding.h"
 
-			class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
+class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {
   public:
 	static int IsETTP(T* p, lua_State* L)
@@ -1798,13 +1803,22 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		NSMAN->PushMPLeaderboard(L);
 		return 1;
 	}
+	static int RemoveChartRequest(T* p, lua_State* L)
+	{
+		auto& reqs = p->requests;
+		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
+		remove_if(reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) { return req == reqPtrToRemove; });
+		// Keep it in case lua keeps a reference to it
+		p->staleRequests.emplace_back(reqPtrToRemove);
+		return 0;
+	}
 	static int GetChartRequests(T* p, lua_State* L)
 	{
 		auto& reqs = p->requests;
 		lua_newtable(L);
 		int i = 1;
 		for (auto& req : reqs) {
-			req.PushSelf(L);
+			req->PushSelf(L);
 			lua_rawseti(L, -2, 0);
 			i++;
 		}
@@ -1865,6 +1879,11 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		}
 		return 1;
 	}
+	static int GetLoggedInUsername(T* p, lua_State* L)
+	{
+		lua_pushstring(L, NSMAN->loggedInUsername.c_str());
+		return 1;
+	}
 	static int GetLobbyUserList(T* p, lua_State* L)
 	{
 		lua_newtable(L);
@@ -1888,6 +1907,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		ADD_METHOD(IsETTP);
 		ADD_METHOD(GetCurrentRoomName);
 		ADD_METHOD(GetLobbyUserList);
+		ADD_METHOD(GetLoggedInUsername);
 	}
 };
 

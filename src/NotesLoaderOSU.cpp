@@ -88,13 +88,17 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 		} else if (isContent) {
 			if ((currentByte == '[' && lastByte == '\n') ||
 				i == (int)fileContents.length() - 1) {
-				contentsOut.back().emplace_back(content);
+				if (!content.empty()) // we don't want empty values on our
+									  // content vectors
+					contentsOut.back().emplace_back(content);
 				content = "";
 				isContent = false;
 				tag = "";
 				isTag = true;
 			} else if (currentByte == '\n') {
-				contentsOut.back().emplace_back(content);
+				if (!content.empty()) // we don't want empty values on our
+									  // content vectors
+					contentsOut.back().emplace_back(content);
 				content = "";
 			} else {
 				content = content + currentByte;
@@ -131,7 +135,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
 	vector<pair<int, float>> tp;
 
-	for (auto it = std::next(parsedData["TimingPoints"].begin());
+	for (auto it = parsedData["TimingPoints"].begin();
 		 it != parsedData["TimingPoints"].end();
 		 ++it) {
 		auto line = it->first;
@@ -198,7 +202,7 @@ OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
 						 map<string, map<string, string>> parsedData)
 {
-	if (stoi(parsedData["General"]["Mode"]) != 3) // if the mode isn't mania
+	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
 		return false;
 	}
@@ -272,10 +276,11 @@ OsuLoader::LoadNoteDataFromParsedData(
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
 
-	auto it = parsedData["HitObjects"].begin();
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
-	while (++it != parsedData["HitObjects"].end()) {
+	for (auto it = parsedData["HitObjects"].begin();
+		 it != parsedData["HitObjects"].end();
+		 ++it) {
 		auto line = it->first;
 		auto values = split(line, ",");
 		int type = stoi(values[3]);

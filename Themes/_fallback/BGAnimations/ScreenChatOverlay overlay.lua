@@ -76,15 +76,19 @@ chat.ScreenChangedMessageCommand = function(self)
 	end
 	local oldScreen = currentScreen
 	currentScreen = s:GetName()
-	
+
 	-- prevent the chat from showing in singleplayer because it can be annoying
-	if oldScreen ~= currentScreen and (currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or currentScreen == "ScreenOptionsService") then
+	if
+		oldScreen ~= currentScreen and
+			(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
+				currentScreen == "ScreenOptionsService")
+	 then
 		isInSinglePlayer = true
 	end
 	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
 		isInSinglePlayer = false
 	end
-	
+
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
 
@@ -203,7 +207,7 @@ local chatWindow =
 			tabs[#tabs + 1] = {params.type, params.tab}
 			newTab = true
 		end
-		msgs[#msgs + 1] = params.msg
+		msgs[#msgs + 1] = os.date("%X") .. params.msg
 		if msgs == messages or newTab then --if its the current tab
 			MESSAGEMAN:Broadcast("UpdateChatOverlay")
 		end
@@ -273,7 +277,7 @@ for i = 0, maxTabs - 1 do
 			{
 				InitCommand = function(self)
 					self:halign(0):valign(0)
-					self:maxwidth(tabWidth*2)
+					self:maxwidth(tabWidth * 2)
 					self:zoom(scale)
 					self:diffuse(color("#000000"))
 					self:xy(x + tabWidth * i + 4, y + height * (1 + (tabHeight / 4)))
@@ -361,7 +365,7 @@ end
 
 function shiftAllTabs(emptyIndex)
 	for i = emptyIndex + 1, maxTabs - 1 do
-		shiftTab(i, i-1)
+		shiftTab(i, i - 1)
 	end
 end
 
@@ -545,3 +549,115 @@ function MPinput(event)
 end
 
 return chat
+--[[
+	Untested half done prototype stuff for chart request front end (Probably 
+		wanna put this in a special tab located at the rightmost possible position)
+	
+local chartRequestsConfig = {
+	numChartReqActors = 4,
+	padding = 10,
+	spacing = 10,
+	height = 1,
+	width = SCREEN_WIDTH
+}
+chartRequestsConfig.itemHeight =
+	(chartRequestsConfig.height - chartRequestsConfig.padding * 2) / chartRequestsConfig.numChartReqActors
+chartRequestsConfig.itemWidth = chartRequestsConfig.width - chartRequestsConfig.padding * 2
+function chartRequestActor(i)
+	local song
+	local steps
+	local req
+	req =
+		Def.ActorFrame {
+		y = (chartRequestsConfig.itemHeight + chartRequestsConfig.spacing) * (i - 1)
+	}
+	req.sprite = Widg.Sprite {}
+	req.rateFont = Widg.Label {}
+	req.songNameFont = Widg.Label {}
+	req.rect =
+		Widg.Rectangle {
+		width = chartRequestsConfig.itemWidth,
+		height = chartRequestsConfig.itemHeight - chartRequestsConfig.spacing,
+		onClick = function()
+			if song and steps then
+				local screen = SCREENMAN:GetTopScreen()
+				local sName = screen:GetName()
+				if sName == "ScreenSelectMusic" or sName == "ScreenNetSelectMusic" then
+					screen:GetMusicWheel():SelectSong(song)
+				end
+			end
+		end
+	}
+	req[#req + 1] = req.sprite
+	req[#req + 1] = req.rateFont
+	req[#req + 1] = req.songNameFont
+	req[#req + 1] = req.rect
+	req.updateWithRequest = function(req)
+		if not req then
+			song = nil
+			steps = nil
+			req.actor:visible(false)
+			return
+		end
+		req.actor:visible(true)
+
+		local ck = req:GetChartkey()
+		local requester = req:GetUser()
+		local rate = req:GetRate()
+
+		song = SONGMAN:GetSongByChartKey(ck)
+		steps = SONGMAN:GetStepsByChartKey(ck)
+
+		req.sprite.actor:fadeleft(1)
+		req.sprite.actor:Load(song:GetBannerPath())
+		req.sprite.actor:scaletocover(0, 0, chartRequestsConfig.itemWidth, chartRequestsConfig.itemHeight)
+		req.rateFont.actor:settext(tostring(rate))
+		req.songNameFont.actor:settext(song:GetMainTitle())
+	end
+	return req
+end
+local bg =
+	Widg.Rectangle {
+	width = chartRequestsConfig.width - chartRequestsConfig.padding * 2,
+	height = chartRequestsConfig.height - chartRequestActor.padding * 2
+}
+local t =
+	Def.Container {
+	x = chartRequestsConfig.padding,
+	y = chartRequestsConfig.padding,
+	content = {
+		bg
+	}
+}
+local reqWidgs = {}
+for i = 1, chartRequestsConfig.numChartReqActors do
+	reqWidgs[#reqWidgs + 1] = chartRequestActor(i)
+	t[#t + 1] = reqWidgs[#reqWidgs]
+end
+local offset = 0
+t.ChartRequestMessageCommand = function(self)
+	local reqs = NSMAN:GetChartRequests()
+	for i = 1, #reqWidgs do
+		local widg = reqWidgs[i]
+		widg.updateWithRequest(reqs[i + offsset])
+	end
+end
+t.BeginCommand = function(self)
+	SCREENMAN:GetTopScreen():AddInputCallback(
+		function(event)
+			if event.type ~= "InputEventType_FirstPress" or not bg:isOver() then
+				return false
+			end
+			if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+				offset = math.min(offset - 1, 0)
+				t.ChartRequestMessageCommand()
+			elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+				local reqs = NSMAN:GetChartRequests()
+				offset = math.min(offset + 1, #reqs)
+				t.ChartRequestMessageCommand()
+			end
+		end
+	)
+end
+
+]]

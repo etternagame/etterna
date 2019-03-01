@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.64.0.0"
+	VIProductVersion "0.65.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -357,7 +357,6 @@ Section "Main Section" SecMain
 	; common noteskin
 	SetOutPath "$INSTDIR\NoteSkins\common"
 	File /r /x CVS /x .svn "NoteSkins\common\common"
-	File /r /x CVS /x .svn "NoteSkins\common\_Editor"
 
 	; install dance noteskins
 	SetOutPath "$INSTDIR\NoteSkins\dance"

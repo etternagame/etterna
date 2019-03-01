@@ -41,7 +41,7 @@ ScreenSMOnlineLogin::Init()
 	pHand->m_Def.m_bAllowThemeItems = false;
 	pHand->m_Def.m_vEnabledForPlayers.clear();
 
-	FOREACH_PlayerNumber(pn) pHand->m_Def.m_vEnabledForPlayers.insert(pn);
+	pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 
 	PROFILEMAN->GetLocalProfileDisplayNames(pHand->m_Def.m_vsChoices);
 	pHand->m_Def.m_vsChoices.emplace_back("Type Username");
@@ -59,29 +59,26 @@ ScreenSMOnlineLogin::Init()
 }
 
 void
-ScreenSMOnlineLogin::ImportOptions(int iRow, const vector<PlayerNumber>& vpns)
+ScreenSMOnlineLogin::ImportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
 			vector<RString> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			FOREACH_PlayerNumber(pn)
-			{
-				vector<RString>::iterator iter =
-				  find(vsProfiles.begin(),
-					   vsProfiles.end(),
-					   ProfileManager::m_sDefaultLocalProfileID[pn].Get());
-				if (iter != vsProfiles.end())
-					m_pRows[0]->SetOneSelection((PlayerNumber)pn,
-												iter - vsProfiles.begin());
-			}
+			vector<RString>::iterator iter =
+				find(vsProfiles.begin(),
+					vsProfiles.end(),
+					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+			if (iter != vsProfiles.end())
+				m_pRows[0]->SetOneSelection((PlayerNumber)PLAYER_1,
+											iter - vsProfiles.begin());
 		} break;
 	}
 }
 
 void
-ScreenSMOnlineLogin::ExportOptions(int iRow, const vector<PlayerNumber>& vpns)
+ScreenSMOnlineLogin::ExportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
@@ -166,10 +163,8 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == SM_GoToNextScreen) {
 		LOG->Trace("[ScreenSMOnlineLogin::HandleScreenMessage] GoToNextScreen");
-		vector<PlayerNumber> v;
-		v.push_back(GAMESTATE->GetMasterPlayerNumber());
 		for (unsigned r = 0; r < m_pRows.size(); r++)
-			ExportOptions(r, v);
+			ExportOptions(r, GAMESTATE->GetMasterPlayerNumber());
 
 		PREFSMAN->SavePrefsToDisk();
 		FOREACH_EnabledPlayer(pn)

@@ -400,11 +400,6 @@ Steps::CalcEtternaMetadata()
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
-	// need to figure out a better place to put this as it is fairly slow
-	for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i)
-		SONGMAN->keyconversionmap.emplace(
-		  GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
-
 	// replace the old sm notedata string with the new ett notedata string
 	// compressed format for internal use
 	/*	Not yet though
@@ -418,60 +413,14 @@ Steps::CalcEtternaMetadata()
 	// set first and last second for this steps object
 	if (!etaner.empty()) {
 		firstsecond = etaner.front();
-		lastsecond = etaner.back();
+		lastsecond =
+		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
 	}
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	// m_pNoteData->UnsetSerializedNoteData2();
 	GetTimingData()->UnsetEtaner();
-}
-
-string
-Steps::GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores)
-{
-	RString o = "X"; // I was thinking of using "C" to indicate chart..
-					 // however.. X is cooler... - Mina
-	vector<int>& nerv = nd.GetNonEmptyRowVector();
-
-	unsigned int numThreads =
-	  min(std::thread::hardware_concurrency(), 1u + cores);
-	std::vector<RString> keyParts;
-	keyParts.reserve(numThreads);
-
-	size_t segmentSize = nerv.size() / numThreads;
-	std::vector<std::thread> threads;
-	threads.reserve(numThreads);
-
-	for (unsigned int curThread = 0; curThread < numThreads; curThread++) {
-		keyParts.push_back("");
-		size_t start = segmentSize * curThread;
-		size_t end = start + segmentSize;
-		if (curThread + 1 == numThreads)
-			end = nerv.size();
-
-		threads.push_back(std::thread(&Steps::FillStringWithBPMs,
-									  this,
-									  start,
-									  end,
-									  std::ref(nerv),
-									  std::ref(nd),
-									  td,
-									  std::ref(keyParts[curThread])));
-	}
-
-	for (auto& t : threads) {
-		if (t.joinable())
-			t.join();
-	}
-
-	// handle empty charts if they get to here -mina
-	if (*keyParts.data() == "")
-		return "";
-
-	o.append(BinaryToHex(CryptManager::GetSHA1ForString(*keyParts.data())));
-
-	return o;
 }
 
 RString
@@ -779,7 +728,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		PlayerNumber pn = PLAYER_1;
 		if (!lua_isnil(L, 1)) {
-			pn = Enum::Check<PlayerNumber>(L, 1);
+			pn = PLAYER_1;
 		}
 
 		RadarValues& rv = const_cast<RadarValues&>(p->GetRadarValues());
@@ -908,6 +857,39 @@ class LunaSteps : public Luna<Steps>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetNonEmptyNoteData(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		auto nd = p->GetNoteData();
+		auto loot = nd.BuildAndGetNerv();
+
+		LuaHelpers::CreateTableFromArray(
+		  loot, L); // row (we need timestamps technically)
+		lua_rawseti(L, -2, 1);
+
+		for (int i = 0; i < nd.GetNumTracks(); ++i) { // tap or not
+			vector<int> doot;
+			for (auto r : loot) {
+				auto tn = nd.GetTapNote(i, r);
+				if (tn.type == TapNoteType_Empty)
+					doot.push_back(0);
+				else if (tn.type == TapNoteType_Tap)
+					doot.push_back(1);
+			}
+			LuaHelpers::CreateTableFromArray(doot, L);
+			lua_rawseti(L, -2, i + 2);
+		}
+
+		vector<int> doot;
+		for (auto r : loot) {
+			doot.push_back(static_cast<int>(GetNoteType(r)) + 1); // note denom
+			LuaHelpers::CreateTableFromArray(doot, L);
+			lua_rawseti(L, -2, 6);
+		}
+
+		nd.UnsetNerv();
+		return 1;
+	}
 	static int GetCDGraphVectors(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
@@ -980,6 +962,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
+		ADD_METHOD(GetNonEmptyNoteData);
 	}
 };
 

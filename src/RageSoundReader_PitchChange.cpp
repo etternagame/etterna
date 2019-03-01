@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Implements properties:
  *   "Speed" - cause the sound to play faster or slower
  *   "Pitch" - raise or lower the pitch of the sound
@@ -9,12 +9,11 @@
  */
 
 #include "global.h"
-#include "Preference.h"
+#include "PrefsManager.h"
 #include "RageSoundReader_PitchChange.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_SpeedChange.h"
 
-Preference<bool> EnablePitchRates("EnablePitchRates", true);
 RageSoundReader_PitchChange::RageSoundReader_PitchChange(
   RageSoundReader* pSource)
   : RageSoundReader_Filter(nullptr)
@@ -94,7 +93,7 @@ RageSoundReader_PitchChange::SetProperty(const RString& sProperty, float fValue)
 		/* HACK: Put rate functions back together,
 		   this needs to be refactored. */
 		SetSpeedRatio(fValue);
-		if (EnablePitchRates.Get())
+		if (PREFSMAN->EnablePitchRates)
 			SetPitchRatio(fValue);
 		return true;
 	}

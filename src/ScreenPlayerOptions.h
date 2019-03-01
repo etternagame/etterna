@@ -19,7 +19,7 @@ class ScreenPlayerOptions : public ScreenOptionsMaster
 	void PushSelf(lua_State* L) override;
 
   private:
-	vector<bool> m_bRowCausesDisqualified[NUM_PLAYERS];
+	vector<bool> m_bRowCausesDisqualified;
 	void UpdateDisqualified(int row, PlayerNumber pn);
 
 	bool m_bAcceptedChoices;
@@ -27,7 +27,7 @@ class ScreenPlayerOptions : public ScreenOptionsMaster
 	bool m_bAskOptionsMessage;
 
 	// show if the current selections will disqualify a high score
-	AutoActor m_sprDisqualify[NUM_PLAYERS];
+	AutoActor m_sprDisqualify;
 };
 
 #endif

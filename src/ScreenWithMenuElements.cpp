@@ -242,7 +242,6 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 		float fSecondsUntilFinished = GetTweenTimeLeft();
 		float fSecondsUntilBeginOff =
 		  max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0);
-		m_Out.SetHibernate(fSecondsUntilBeginOff);
 	}
 }
 
@@ -332,6 +331,14 @@ ScreenWithMenuElementsSimple::MenuBack(const InputEventPlus& input)
 
 	Cancel(SM_GoToPrevScreen);
 	return true;
+}
+
+void
+ScreenWithMenuElements::UpdateTimedFunctions(float fDeltaTime)
+{
+	if (IsTransitioning())
+		return;
+	Screen::UpdateTimedFunctions(fDeltaTime);
 }
 
 // lua start

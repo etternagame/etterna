@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "RageFile.h"
@@ -458,11 +458,7 @@ RageFileManager::GetDirListing(const RString& sPath_,
 		}
 	}
 
-	UnreferenceAllDrivers(apDriverList);
-
-	// Remove files that start with ._ from the list because these are special
-	// OS X files that cause interference on other platforms. -Kyz
-	StripMacResourceForks(AddTo);
+	UnreferenceAllDrivers(apDriverList);	
 
 	if (iDriversThatReturnedFiles > 1) {
 		/* More than one driver returned files.  Remove duplicates
@@ -1275,6 +1271,7 @@ class LunaRageFileManager : public Luna<RageFileManager>
 		}
 		//( Path, addTo, OnlyDirs=false, ReturnPathToo=false );
 		p->GetDirListing(SArg(1), vDirs, bOnlyDirs, bReturnPathToo);
+		StripMacResourceForks(vDirs);
 		LuaHelpers::CreateTableFromArray(vDirs, L);
 		return 1;
 	}

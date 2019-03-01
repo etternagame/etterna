@@ -9,6 +9,4 @@ ScreenOptionsCourseOverview.cpp
 ScreenOptionsManageCourses.cpp
 ScreenOptionsManageEditSteps.cpp
 ScreenOptionsManageProfiles.cpp
-ScreenOptionsReviewWorkout.cpp
-ScreenPackages.cpp
 ScreenTestFonts.cpp

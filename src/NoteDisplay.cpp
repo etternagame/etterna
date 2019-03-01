@@ -216,8 +216,9 @@ MakeNoteResource(const RString& sButton,
 	NoteSkinAndPath nsap(
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
 
+	Color = "4th";
 	map<NoteSkinAndPath, NoteResource*>::iterator it =
-	  g_NoteResource["4th"].find(nsap); // i cant figure out how color changes
+	  g_NoteResource[Color].find(nsap); // i cant figure out how color changes
 										// what actors are loaded... -mina
 	if (it == g_NoteResource[Color].end()) {
 		auto* pRes = new NoteResource(nsap);
@@ -1934,10 +1935,7 @@ NoteColumnRenderer::DrawPrimitives()
 		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func)                                       \
-	FOREACH_PlayerNumber(pn)                                                   \
-	{                                                                          \
-		DTS_INNER(pn, tap_set, draw_func, m_displays[pn]);                     \
-	}
+		DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
 	DRAW_TAP_SET(holds, DrawHoldsInRange);
 	DTS_INNER(
 	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);

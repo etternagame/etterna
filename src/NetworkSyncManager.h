@@ -16,7 +16,7 @@ class ScreenNetSelectMusic;
 class ScreenSMOnlineLogin;
 class Song;
 const int NETPROTOCOLVERSION = 4;
-const int ETTPCVERSION = 1;
+const int ETTPCVERSION = 2;
 const int NETMAXBUFFERSIZE = 1020; // 1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES = 8;
 
@@ -99,6 +99,7 @@ enum ETTServerMessageTypes
 	ettps_updateroom,
 	ettps_roomuserlist,
 	ettps_chartrequest,
+	ettps_roompacklist,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -249,6 +250,7 @@ class ETTProtocol : public NetProtocol
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
+	~ETTProtocol();
 	bool waitingForTimeout{ false };
 	clock_t timeoutStart;
 	double timeout;
@@ -269,6 +271,7 @@ class ETTProtocol : public NetProtocol
 	void LeaveRoom(NetworkSyncManager* n) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void OnMusicSelect() override;
 	void OnOptions() override;
 	void OffOptions() override;
 	void OnEval() override;
@@ -357,6 +360,7 @@ class NetworkSyncManager
 	bool useSMserver;
 	bool isSMOnline;
 	bool loggedIn;
+	string loggedInUsername;
 	string loginResponse; // Failure reason
 
 	Chat chat; //[{Tabname, int}] = vector<line>
@@ -365,6 +369,8 @@ class NetworkSyncManager
 	int m_ActivePlayers;
 	vector<int> m_ActivePlayer;
 	vector<RString> m_PlayerNames;
+	vector<bool> m_PlayerReady;
+	vector<string> commonpacks;
 
 	// friendlist
 	vector<std::string> fl_PlayerNames;
@@ -428,7 +434,8 @@ class NetworkSyncManager
 	void Login(RString user, RString pass);
 	void Logout();
 	vector<RoomData> m_Rooms;
-	vector<ChartRequest> requests;
+	vector<ChartRequest*> requests;
+	vector<ChartRequest*> staleRequests;
 
 #if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);

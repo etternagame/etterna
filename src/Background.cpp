@@ -1,8 +1,7 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "Background.h"
 #include "BackgroundUtil.h"
-#include "BeginnerHelper.h"
 #include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
@@ -64,7 +63,7 @@ class BrightnessOverlay : public ActorFrame
 	void Set(float fBrightness);
 
   private:
-	Quad m_quadBGBrightness[NUM_PLAYERS];
+	Quad m_quadBGBrightness;
 	Quad m_quadBGBrightnessFade;
 };
 
@@ -229,20 +228,9 @@ BackgroundImpl::Init()
 		}
 	}
 
-	bool bOneOrMoreChars = false;
-	bool bShowingBeginnerHelper = false;
-	FOREACH_HumanPlayer(p)
-	{
-		bOneOrMoreChars = true;
-		// Disable dancing characters if Beginner Helper will be showing.
-		if (PREFSMAN->m_bShowBeginnerHelper && BeginnerHelper::CanUse(p) &&
-			GAMESTATE->m_pCurSteps[p] &&
-			GAMESTATE->m_pCurSteps[p]->GetDifficulty() == Difficulty_Beginner)
-			bShowingBeginnerHelper = true;
-	}
-
-	// if( bOneOrMoreChars && !bShowingBeginnerHelper && SHOW_DANCING_CHARACTERS
-	// )  m_pDancingCharacters = new DancingCharacters;
+	// bool bOneOrMoreChars = false;
+	// if (bOneOrMoreChars && SHOW_DANCING_CHARACTERS)
+		// m_pDancingCharacters = new DancingCharacters;
 
 	RageColor c = GetBrightnessColor(0);
 
@@ -950,8 +938,7 @@ bool
 BackgroundImpl::IsDangerAllVisible()
 {
 	// The players are never in danger in FAIL_OFF.
-	FOREACH_PlayerNumber(
-	  p) if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState[p]) ==
+	if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState) ==
 			 FailType_Off) return false;
 	if (!g_bShowDanger)
 		return false;
@@ -966,23 +953,14 @@ BackgroundImpl::IsDangerAllVisible()
 
 BrightnessOverlay::BrightnessOverlay()
 {
-	float fQuadWidth = (RIGHT_EDGE - LEFT_EDGE) / 2;
-	fQuadWidth -= g_fBackgroundCenterWidth / 2;
+	float fQuadWidth = (RIGHT_EDGE - LEFT_EDGE);
 
-	m_quadBGBrightness[0].StretchTo(
-	  RectF(LEFT_EDGE, TOP_EDGE, LEFT_EDGE + fQuadWidth, BOTTOM_EDGE));
-	m_quadBGBrightnessFade.StretchTo(RectF(
-	  LEFT_EDGE + fQuadWidth, TOP_EDGE, RIGHT_EDGE - fQuadWidth, BOTTOM_EDGE));
-	m_quadBGBrightness[1].StretchTo(
-	  RectF(RIGHT_EDGE - fQuadWidth, TOP_EDGE, RIGHT_EDGE, BOTTOM_EDGE));
-
-	m_quadBGBrightness[0].SetName("BrightnessOverlay");
-	ActorUtil::LoadAllCommands(m_quadBGBrightness[0], "Background");
-	this->AddChild(&m_quadBGBrightness[0]);
-
-	m_quadBGBrightness[1].SetName("BrightnessOverlay");
-	ActorUtil::LoadAllCommands(m_quadBGBrightness[1], "Background");
-	this->AddChild(&m_quadBGBrightness[1]);
+	m_quadBGBrightness.StretchTo( RectF(LEFT_EDGE,TOP_EDGE,LEFT_EDGE+fQuadWidth,BOTTOM_EDGE) );
+	m_quadBGBrightnessFade.StretchTo( RectF(LEFT_EDGE+fQuadWidth,TOP_EDGE,RIGHT_EDGE-fQuadWidth,BOTTOM_EDGE) );
+	
+	m_quadBGBrightness.SetName("BrightnessOverlay");
+	ActorUtil::LoadAllCommands(m_quadBGBrightness, "Background");
+	this->AddChild(&m_quadBGBrightness);
 
 	m_quadBGBrightnessFade.SetName("BrightnessOverlay");
 	ActorUtil::LoadAllCommands(m_quadBGBrightnessFade, "Background");
@@ -1004,12 +982,8 @@ BrightnessOverlay::Update(float fDeltaTime)
 void
 BrightnessOverlay::SetActualBrightness()
 {
-	float fLeftBrightness = 1 - GAMESTATE->m_pPlayerState[PLAYER_1]
-								  ->m_PlayerOptions.GetCurrent()
-								  .m_fCover;
-	float fRightBrightness = 1 - GAMESTATE->m_pPlayerState[PLAYER_2]
-								   ->m_PlayerOptions.GetCurrent()
-								   .m_fCover;
+	float fLeftBrightness = 1-GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
+	float fRightBrightness = 1-GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
 
 	float fBaseBGBrightness = g_fBGBrightness;
 
@@ -1027,16 +1001,13 @@ BrightnessOverlay::SetActualBrightness()
 
 	if (!GAMESTATE->IsHumanPlayer(PLAYER_1))
 		fLeftBrightness = fRightBrightness;
-	if (!GAMESTATE->IsHumanPlayer(PLAYER_2))
-		fRightBrightness = fLeftBrightness;
 
 	RageColor LeftColor = GetBrightnessColor(fLeftBrightness);
 	RageColor RightColor = GetBrightnessColor(fRightBrightness);
 
-	m_quadBGBrightness[PLAYER_1].SetDiffuse(LeftColor);
-	m_quadBGBrightness[PLAYER_2].SetDiffuse(RightColor);
-	m_quadBGBrightnessFade.SetDiffuseLeftEdge(LeftColor);
-	m_quadBGBrightnessFade.SetDiffuseRightEdge(RightColor);
+	m_quadBGBrightness.SetDiffuse( LeftColor );
+	m_quadBGBrightnessFade.SetDiffuseLeftEdge( LeftColor );
+	m_quadBGBrightnessFade.SetDiffuseRightEdge( RightColor );
 }
 
 void
@@ -1044,7 +1015,7 @@ BrightnessOverlay::Set(float fBrightness)
 {
 	RageColor c = GetBrightnessColor(fBrightness);
 
-	FOREACH_PlayerNumber(pn) m_quadBGBrightness[pn].SetDiffuse(c);
+	m_quadBGBrightness.SetDiffuse(c);
 	m_quadBGBrightnessFade.SetDiffuse(c);
 }
 

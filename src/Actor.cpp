@@ -117,7 +117,6 @@ Actor::InitState()
 	m_fShadowLengthY = 0;
 	m_ShadowColor = RageColor(0, 0, 0, 0.5f);
 	m_bIsAnimating = true;
-	m_fHibernateSecondsLeft = 0;
 	m_iDrawOrder = 0;
 
 	m_bTextureWrapping = false;
@@ -160,7 +159,6 @@ Actor::Actor()
 	InitState();
 	m_pParent = nullptr;
 	m_FakeParent = nullptr;
-	m_bFirstUpdate = true;
 	m_tween_uses_effect_delta = false;
 }
 
@@ -205,8 +203,6 @@ Actor::Actor(const Actor& cpy)
 	for (unsigned i = 0; i < cpy.m_Tweens.size(); ++i)
 		m_Tweens.push_back(new TweenStateAndInfo(*cpy.m_Tweens[i]));
 
-	CPY(m_bFirstUpdate);
-
 	CPY(m_fHorizAlign);
 	CPY(m_fVertAlign);
 #if defined(SSC_FUTURES)
@@ -232,7 +228,6 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_vEffectMagnitude);
 
 	CPY(m_bVisible);
-	CPY(m_fHibernateSecondsLeft);
 	CPY(m_fShadowLengthX);
 	CPY(m_fShadowLengthY);
 	CPY(m_ShadowColor);
@@ -377,13 +372,12 @@ Actor::IsVisible()
 void
 Actor::Draw()
 {
-	if (!m_bVisible || m_fHibernateSecondsLeft > 0 || this->EarlyAbortDraw()) {
+	if (!m_bVisible || this->EarlyAbortDraw()) {
 		return; // early abort
 	}
 
 	if (m_FakeParent != nullptr) {
 		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->m_fHibernateSecondsLeft > 0 ||
 			m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
@@ -415,7 +409,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible || state->m_fHibernateSecondsLeft > 0 ||
+		if (!state->m_bVisible ||
 			state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
@@ -842,31 +836,14 @@ Actor::UpdateTweening(float fDeltaTime)
 	}
 }
 
-bool
-Actor::IsFirstUpdate() const
-{
-	return m_bFirstUpdate;
-}
-
 void
 Actor::Update(float fDeltaTime)
 {
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
-
-	if (m_fHibernateSecondsLeft > 0) {
-		m_fHibernateSecondsLeft -= fDeltaTime;
-		if (m_fHibernateSecondsLeft > 0) {
-			return;
-		}
-
-		// Grab the leftover time.
-		fDeltaTime = -m_fHibernateSecondsLeft;
-		m_fHibernateSecondsLeft = 0;
-	}
-	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		m_WrapperStates[i]->Update(fDeltaTime);
-	}
+	if (!m_WrapperStates.empty())
+		for (auto* w : m_WrapperStates)
+			w->Update(fDeltaTime);
 
 	this->UpdateInternal(fDeltaTime);
 }
@@ -883,9 +860,6 @@ generic_global_timer_update(float new_time,
 void
 Actor::UpdateInternal(float delta_time)
 {
-	if (m_bFirstUpdate)
-		m_bFirstUpdate = false;
-
 	switch (m_EffectClock) {
 		case CLOCK_TIMER:
 			m_fSecsIntoEffect += delta_time;
@@ -908,11 +882,6 @@ Actor::UpdateInternal(float delta_time)
 			break;
 		case CLOCK_BGM_BEAT_PLAYER1:
 			generic_global_timer_update(g_vfCurrentBGMBeatPlayer[PLAYER_1],
-										m_fEffectDelta,
-										m_fSecsIntoEffect);
-			break;
-		case CLOCK_BGM_BEAT_PLAYER2:
-			generic_global_timer_update(g_vfCurrentBGMBeatPlayer[PLAYER_2],
 										m_fEffectDelta,
 										m_fSecsIntoEffect);
 			break;
@@ -1414,9 +1383,6 @@ float
 Actor::GetTweenTimeLeft() const
 {
 	float tot = 0;
-
-	tot += m_fHibernateSecondsLeft;
-
 	for (unsigned i = 0; i < m_Tweens.size(); ++i)
 		tot += m_Tweens[i]->info.m_fTimeLeftInTween;
 
@@ -2387,11 +2353,6 @@ class LunaActor : public Luna<Actor>
 		p->SetVisible(BIArg(1));
 		COMMON_RETURN_SELF;
 	}
-	static int hibernate(T* p, lua_State* L)
-	{
-		p->SetHibernate(FArg(1));
-		COMMON_RETURN_SELF;
-	}
 	static int draworder(T* p, lua_State* L)
 	{
 		p->SetDrawOrder(IArg(1));
@@ -2812,7 +2773,6 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(backfacecull);
 		ADD_METHOD(cullmode);
 		ADD_METHOD(visible);
-		ADD_METHOD(hibernate);
 		ADD_METHOD(draworder);
 		ADD_METHOD(playcommand);
 		ADD_METHOD(queuecommand);

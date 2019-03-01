@@ -8,7 +8,6 @@
 #include "NoteData.h"
 #include <chrono>
 
-class ScoreDisplay;
 class LifeMeter;
 class ScoreKeeper;
 class RageTimer;
@@ -87,15 +86,11 @@ class Player : public ActorFrame
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
 			  LifeMeter* pLM,
-			  ScoreDisplay* pScoreDisplay,
-			  ScoreDisplay* pSecondaryScoreDisplay,
 			  ScoreKeeper* pPrimaryScoreKeeper,
 			  ScoreKeeper* pSecondaryScoreKeeper);
 	void Load();
 	void CrossedRows(int iLastRowCrossed,
 					 const std::chrono::steady_clock::time_point& now);
-	bool IsOniDead() const;
-
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *
@@ -239,6 +234,8 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
+	vector<float> lastHoldHeadsSeconds;
+
 	bool m_bPaused;
 	bool m_bDelay;
 
@@ -254,8 +251,6 @@ class Player : public ActorFrame
 
 	TapNoteScore m_LastTapNoteScore;
 	LifeMeter* m_pLifeMeter;
-	ScoreDisplay* m_pScoreDisplay;
-	ScoreDisplay* m_pSecondaryScoreDisplay;
 	ScoreKeeper* m_pPrimaryScoreKeeper;
 	ScoreKeeper* m_pSecondaryScoreKeeper;
 

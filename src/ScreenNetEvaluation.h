@@ -1,5 +1,4 @@
 #include "BitmapText.h"
-#include "DifficultyIcon.h"
 #include "Quad.h"
 #include "ScreenEvaluation.h"
 #include "ScreenMessage.h"
@@ -23,10 +22,7 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	void TweenOffScreen() override;
   private:
 	int m_iActivePlayers;
-
 	PlayerNumber m_pActivePlayer;
-
-	bool m_bHasStats;
 };
 
 /*

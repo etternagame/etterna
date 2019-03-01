@@ -45,7 +45,7 @@
  * the directory hash) in order to find the cache file.
  */
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 236;
+const unsigned int CACHE_DB_VERSION = 237;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -541,9 +541,18 @@ SongCacheIndex::DeleteDB()
 	if (db != nullptr)
 		delete db;
 	FILEMAN->Remove(CACHE_DB);
-	db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
+	try {
+		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
 							  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
 								SQLITE_OPEN_FULLMUTEX);
+	}
+	catch (std::exception& e) {
+		LOG->Trace("Error reading cache db: %s", e.what());
+		if (curTransaction != nullptr) {
+			delete curTransaction;
+			curTransaction = nullptr;
+		}
+	}
 	return;
 }
 void

@@ -1,9 +1,9 @@
 local defaultConfig = {
 	title = {
-		BG_Left		= "#161515",
-		BG_Right	= "#222222",
-		Line_Left	= "#b87cf0",
-		Line_Right	= "#59307f"
+		BG_Left = "#161515",
+		BG_Right = "#222222",
+		Line_Left = "#b87cf0",
+		Line_Right = "#59307f"
 	},
 	main = {
 		highlight = "#614080",
@@ -27,7 +27,7 @@ local defaultConfig = {
 		SDG = "#448844",
 		FC = "#66cc66",
 		MF = "#cc6666",
-		SDCB = "#666666",
+		SDCB = "#33bbff",
 		Clear = "#33aaff",
 		Failed = "#e61e25",
 		Invalid = "#e61e25",

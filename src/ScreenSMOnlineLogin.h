@@ -13,8 +13,8 @@ class ScreenSMOnlineLogin : public ScreenOptions
 	void SendLogin(RString sPassword, RString user);
 
   private:
-	void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
-	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 	RString GetSelectedProfileID();
 	int m_iPlayer;
 	bool typeUsername{ false };

@@ -44,7 +44,7 @@ GetCreditsMessage(PlayerNumber pn)
 		SCREENMAN->GetTopScreen()->GetScreenType() == system_menu)
 		bShowCreditsMessage = true;
 	else
-		bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined[pn];
+		bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined;
 
 	if (!bShowCreditsMessage) {
 		const Profile* pProfile = PROFILEMAN->GetProfile(pn);
@@ -73,7 +73,7 @@ namespace {
 int
 GetCreditsMessage(lua_State* L)
 {
-	PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
+	PlayerNumber pn = PLAYER_1;
 	RString sText = GetCreditsMessage(pn);
 	LuaHelpers::Push(L, sText);
 	return 1;

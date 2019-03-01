@@ -123,6 +123,8 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
 		else
 			if misscount == 1 then
 				clearlevel = 8 -- missflag
+			elseif misscount < 10 and misscount > 0 then
+				clearlevel = 9
 			else
 				clearlevel = 10 -- Clear
 			end

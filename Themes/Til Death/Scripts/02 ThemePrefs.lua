@@ -297,6 +297,32 @@ function PlayerInfo()
 	return t
 end
 
+function CBHighlight()
+	local t = {
+		Name = "CBHighlight",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CBHighlight
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			playerConfig:get_data(pn_to_profile_slot(pn)).CBHighlight = list[2]
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function CustomizeGameplay()
 	local t = {
 		Name = "CustomizeGameplay",
@@ -873,6 +899,38 @@ function MeasureLines()
 			themeConfig:set_dirty()
 			themeConfig:save()
 			THEME:ReloadMetrics()
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
+function ShowVisualizer()
+	local t = {
+		Name = "ShowVisualizer",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = themeConfig:get_data().global.ShowVisualizer
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] then
+				value = false
+			else
+				value = true
+			end
+			themeConfig:get_data().global.ShowVisualizer = value
+			themeConfig:set_dirty()
+			themeConfig:save()
 		end
 	}
 	setmetatable(t, t)

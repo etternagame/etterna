@@ -70,9 +70,6 @@ MusicWheel::Load(const string& sType)
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
 	SONG_REAL_EXTRA_COLOR.Load(sType, "SongRealExtraColor");
 	SORT_MENU_COLOR.Load(sType, "SortMenuColor");
-	SHOW_ROULETTE.Load(sType, "ShowRoulette");
-	SHOW_RANDOM.Load(sType, "ShowRandom");
-	SHOW_PORTAL.Load(sType, "ShowPortal");
 	RANDOM_PICKS_LOCKED_SONGS.Load(sType, "RandomPicksLockedSongs");
 	MOST_PLAYED_SONGS_TO_SHOW.Load(sType, "MostPlayedSongsToShow");
 	RECENT_SONGS_TO_SHOW.Load(sType, "RecentSongsToShow");
@@ -382,8 +379,8 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 			break;
 		case SORT_POPULARITY:
 			// todo: make this work -poco
-			//apAllSongs = SONGMAN->GetPopularSongs();
-			//break;
+			// apAllSongs = SONGMAN->GetPopularSongs();
+			// break;
 		case SORT_GROUP:
 			// if we're not using sections with a preferred song group, and
 			// there is a group to load, only load those songs. -aj
@@ -604,7 +601,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 				if (lb > 0.f || ub > 0.f) { // if either bound is active,
 											// continue to evaluation
 					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
+					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
 					do {
 						currate = currate - 0.1f;
 						if (FILTERMAN->HighestSkillsetsOnly)
@@ -658,7 +655,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 				if (lb > 0.f || ub > 0.f) {
 					bool localaddsong;
 					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
+					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
 					bool toiletpaper = false;
 					do {
 						localaddsong = true;
@@ -732,6 +729,23 @@ MusicWheel::BuildWheelItemDatas(
 
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
+
+		if (packlistFiltering && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
+			vector<Song*> tmp;
+			for (auto& song : arraySongs) {
+				auto& group = song->m_sGroupName;
+				for (auto& pack : NSMAN->commonpacks) {
+					// If song pack is in packlist
+					if (group == pack) {
+						// Add and continue with next song
+						tmp.emplace_back(song);
+						goto continueOuterLoop;
+					}
+				}
+			continueOuterLoop:;
+			}
+			arraySongs.swap(tmp);
+		}
 
 		if (searching)
 			FilterBySearch(arraySongs, findme);
@@ -959,24 +973,6 @@ MusicWheel::BuildWheelItemDatas(
 			}
 		}
 	}
-
-	// init music status icons
-	for (unsigned i = 0; i < arrayWheelItemDatas.size(); i++) {
-		MusicWheelItemData& WID = *arrayWheelItemDatas[i];
-		if (WID.m_pSong != NULL) {
-			WID.m_Flags.bHasBeginnerOr1Meter =
-			  WID.m_pSong->IsEasy(
-				GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType) &&
-			  SHOW_EASY_FLAG;
-			WID.m_Flags.bEdits = false;
-			set<StepsType> vStepsType;
-			SongUtil::GetPlayableStepsTypes(WID.m_pSong, vStepsType);
-			FOREACHS(StepsType, vStepsType, st)
-			WID.m_Flags.bEdits |= WID.m_pSong->HasEdits(*st);
-			WID.m_Flags.iStagesForSong =
-			  GameState::GetNumStagesMultiplierForSong(WID.m_pSong);
-		}
-	}
 }
 
 vector<MusicWheelItemData*>&
@@ -1101,14 +1097,6 @@ MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 		--filteredSize;
 	}
 
-	/* Update the popularity.  This is affected by filtering. */
-	if (so == SORT_POPULARITY) {
-		for (unsigned i = 0; i < min(3u, aFilteredData.size()); i++) {
-			MusicWheelItemData& WID = *aFilteredData[i];
-			WID.m_Flags.iPlayersBestNumber = i + 1;
-		}
-	}
-
 	// If we've filtered all items, insert a dummy.
 	if (aFilteredData.empty())
 		aFilteredData.emplace_back(new MusicWheelItemData(
@@ -1148,9 +1136,8 @@ MusicWheel::UpdateSwitch()
 			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
 				  GAMESTATE->m_SortOrder, st, dc)) {
 				ASSERT(dc != Difficulty_Invalid);
-				FOREACH_PlayerNumber(p) if (GAMESTATE->IsPlayerEnabled(p))
-				  GAMESTATE->m_PreferredDifficulty[p]
-					.Set(dc);
+				if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
+					GAMESTATE->m_PreferredDifficulty.Set(dc);
 			}
 
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
@@ -1402,11 +1389,6 @@ MusicWheel::SetOpenSection(const RString& group)
 				continue;
 		}
 
-		// Only show tutorial songs in arcade
-		if (GAMESTATE->m_PlayMode != PLAY_MODE_REGULAR && d.m_pSong &&
-			d.m_pSong->IsTutorial())
-			continue;
-
 		m_CurWheelItemData.emplace_back(&d);
 	}
 
@@ -1565,20 +1547,21 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	// probe to find a song that has the preferred
 	// difficulties of each player
 	vector<Difficulty> vDifficultiesToRequire;
-	FOREACH_HumanPlayer(p)
-	{
-		if (GAMESTATE->m_PreferredDifficulty[p] == Difficulty_Invalid)
-			continue; // skip
 
-		// TRICKY: Don't require that edits be present if perferred
-		// difficulty is Difficulty_Edit.  Otherwise, players could use this
-		// to set up a 100% chance of getting a particular locked song by
-		// having a single edit for a locked song.
-		if (GAMESTATE->m_PreferredDifficulty[p] == Difficulty_Edit)
-			continue; // skip
+	if (GAMESTATE->m_PreferredDifficulty == Difficulty_Invalid) {
+	// skip
+	}
 
-		vDifficultiesToRequire.emplace_back(
-		  GAMESTATE->m_PreferredDifficulty[p]);
+	// TRICKY: Don't require that edits be present if perferred
+	// difficulty is Difficulty_Edit.  Otherwise, players could use this
+	// to set up a 100% chance of getting a particular locked song by
+	// having a single edit for a locked song.
+	else if (GAMESTATE->m_PreferredDifficulty == Difficulty_Edit) {
+		// skip
+	}
+	else {
+
+	vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
 	}
 
 	RString sPreferredGroup = m_sExpandedSectionName;
@@ -1605,11 +1588,6 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 
 		if (!sPreferredGroup.empty() &&
 			wid[iSelection]->m_sText != sPreferredGroup)
-			continue;
-
-		// There's an off possibility that somebody might have only one song
-		// with only beginner steps.
-		if (i < 900 && pSong->IsTutorial())
 			continue;
 
 		FOREACH(Difficulty, vDifficultiesToRequire, d)
@@ -1709,6 +1687,16 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		return 1;
 	}
 
+	static int SetPackListFiltering(T* p, lua_State* L)
+	{
+		bool old = p->packlistFiltering;
+		p->packlistFiltering = BArg(1);
+		if (old == p->packlistFiltering)
+			return 0;
+		p->ReloadSongList(false, "");
+		return 0;
+	}
+
 	LunaMusicWheel()
 	{
 		ADD_METHOD(ChangeSort);
@@ -1720,6 +1708,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
 		ADD_METHOD(FilterByStepKeys);
+		ADD_METHOD(SetPackListFiltering);
 	}
 };
 

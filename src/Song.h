@@ -73,7 +73,7 @@ class Song
 
   public:
 	void SetSongDir(const RString& sDir) { m_sSongDir = sDir; }
-	RString GetSongDir() { return m_sSongDir; }
+	const string& GetSongDir() { return m_sSongDir; }
 
 	/** @brief When should this song be displayed in the music wheel? */
 	enum SelectionDisplay
@@ -196,16 +196,16 @@ class Song
 
 	/* If PREFSMAN->m_bShowNative is off, these are the same as GetTranslit*
 	 * below. Otherwise, they return the main titles. */
-	RString GetDisplayMainTitle() const;
-	RString GetDisplaySubTitle() const;
-	RString GetDisplayArtist() const;
-	RString GetMainTitle() const;
+	const string& GetDisplayMainTitle() const;
+	const string& GetDisplaySubTitle() const;
+	const string& GetDisplayArtist() const;
+	const string& GetMainTitle() const;
 
 	/**
 	 * @brief Retrieve the transliterated title, or the main title if there is
 	 * no translit.
 	 * @return the proper title. */
-	RString GetTranslitMainTitle() const
+	const string& GetTranslitMainTitle() const
 	{
 		return m_sMainTitleTranslit.size() ? m_sMainTitleTranslit
 										   : m_sMainTitle;
@@ -217,7 +217,7 @@ class Song
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
 	 * there is no translit.
 	 * @return the proper subtitle. */
-	RString GetTranslitSubTitle() const
+	const string& GetTranslitSubTitle() const
 	{
 		return m_sSubTitleTranslit.size() ? m_sSubTitleTranslit : m_sSubTitle;
 	}
@@ -225,14 +225,16 @@ class Song
 	 * @brief Retrieve the transliterated artist, or the main artist if there is
 	 * no translit.
 	 * @return the proper artist. */
-	RString GetTranslitArtist() const
+	const string& GetTranslitArtist() const
 	{
 		return m_sArtistTranslit.size() ? m_sArtistTranslit : m_sArtist;
 	}
 
 	// "title subtitle"
-	RString GetDisplayFullTitle() const;
-	RString GetTranslitFullTitle() const;
+	string displayfulltitle;
+	string translitfulltitle;
+	const string& GetDisplayFullTitle() const{ return displayfulltitle;}
+	const string& GetTranslitFullTitle() const{ return translitfulltitle;}
 
 	/** @brief The version of the song/file. */
 	float m_fVersion;
@@ -262,26 +264,37 @@ class Song
 	RString m_sJacketFile; // typically square (e.g. 192x192, 256x256)
 	RString m_sCDFile;	 // square (e.g. 128x128 [DDR 1st-3rd])
 	RString m_sDiscFile;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
-	/** @brief The location of the lyrics file, if it exists. */
 	RString m_sLyricsFile;
 	RString m_sBackgroundFile;
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
+	string m_sMusicPath;
+	string m_PreviewPath;
+	string m_sInstrumentTrackPath[NUM_InstrumentTrack];
+	string m_sBannerPath;  // typically a 16:5 ratio graphic (e.g. 256x80)
+	string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
+	string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
+	string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
+	string m_sLyricsPath;
+	string m_sBackgroundPath;
+	string m_sCDTitlePath;
+	string m_sPreviewVidPath;
+
 	vector<RString> ImageDir;
 
 	static RString GetSongAssetPath(RString sPath, const RString& sSongPath);
-	RString GetMusicPath() const;
-	RString GetInstrumentTrackPath(InstrumentTrack it) const;
-	RString GetBannerPath() const;
-	RString GetJacketPath() const;
-	RString GetCDImagePath() const;
-	RString GetDiscPath() const;
-	RString GetLyricsPath() const;
-	RString GetBackgroundPath() const;
-	RString GetCDTitlePath() const;
-	RString GetPreviewVidPath() const;
-	RString GetPreviewMusicPath() const;
+	const string& GetMusicPath() const {return m_sMusicPath;}
+	const string& GetInstrumentTrackPath(InstrumentTrack it) const {return m_sInstrumentTrackPath[it];}
+	const string& GetBannerPath() const {return m_sBannerPath;}
+	const string& GetJacketPath() const { return m_sJacketPath; }
+	const string& GetCDImagePath() const { return m_sCDPath; }
+	const string& GetDiscPath() const { return m_sDiscPath; }
+	const string& GetLyricsPath() const { return m_sLyricsPath; }
+	const string& GetBackgroundPath() const { return m_sBackgroundPath; }
+	const string& GetCDTitlePath() const { return m_sCDTitlePath; }
+	const string& GetPreviewVidPath() const { return m_sPreviewVidPath; }
+	const string& GetPreviewMusicPath() const { return m_PreviewPath; }
 	float GetPreviewStartSeconds() const;
 	std::string GetCacheFile(std::string sPath);
 
@@ -299,22 +312,14 @@ class Song
 
 	bool HasMusic() const;
 	bool HasInstrumentTrack(InstrumentTrack it) const;
-	/**
-	 * @brief Does this song have a banner?
-	 * @return true if it does, false otherwise. */
 	bool HasBanner() const;
-	/**
-	 * @brief Does this song have a background image?
-	 * @return true if it does, false otherwise. */
 	bool HasBackground() const;
 	bool HasJacket() const;
 	bool HasCDImage() const;
 	bool HasDisc() const;
 	bool HasCDTitle() const;
-	// bool HasMovieBackground() const;
 	bool HasBGChanges() const;
 	bool HasLyrics() const;
-	bool HasAttacks() const;
 	bool HasPreviewVid() const;
 
 	bool Matches(const RString& sGroup, const RString& sSong) const;
@@ -377,12 +382,7 @@ class Song
 	 * This must be sorted before gameplay. */
 	vector<LyricSegment> m_LyricSegments;
 
-	/* [splittiming]
-		void AddBPMSegment( const BPMSegment &seg ) { m_Timing.AddBPMSegment(
-	   seg ); } void AddStopSegment( const StopSegment &seg ) {
-	   m_Timing.AddStopSegment( seg ); } void AddWarpSegment( const WarpSegment
-	   &seg ) { m_Timing.AddWarpSegment( seg ); }
-	*/
+
 	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
 	void AddForegroundChange(BackgroundChange seg);
 	void AddLyricSegment(LyricSegment seg);
@@ -391,47 +391,12 @@ class Song
 	const BackgroundChange& GetBackgroundAtBeat(BackgroundLayer iLayer,
 												float fBeat) const;
 
-	/* [splittiming]
-		float GetBPMAtBeat( float fBeat ) const { return m_Timing.GetBPMAtBeat(
-	   fBeat ); } void SetBPMAtBeat( float fBeat, float fBPM ) {
-	   m_Timing.SetBPMAtBeat( fBeat, fBPM ); } BPMSegment& GetBPMSegmentAtBeat(
-	   float fBeat ) { return m_Timing.GetBPMSegmentAtBeat( fBeat ); }
-	*/
 
 	Steps* CreateSteps();
 	void InitSteps(Steps* pSteps);
 
 	RString GetOrTryAtLeastToGetSimfileAuthor();
 
-	/* [splittiming]
-	float SongGetBeatFromElapsedTime( float fElapsedTime ) const
-	{
-		return m_SongTiming.GetBeatFromElapsedTime( fElapsedTime );
-	}
-	float StepsGetBeatFromElapsedTime( float fElapsedTime, const Steps &steps )
-	const
-	{
-		return steps.m_Timing.GetBeatFromElapsedTime( fElapsedTime );
-	}
-
-	float SongGetElapsedTimeFromBeat( float fBeat ) const
-	{
-		return m_SongTiming.GetElapsedTimeFromBeat( fBeat );
-	}
-	float StepsGetElapsedTimeFromBeat( float fBeat, const Steps &steps ) const
-	{
-		return steps.m_Timing.GetElapsedTimeFromBeat( fBeat );
-	}
-	*/
-
-	/* [splittiming]
-	float GetBeatFromElapsedTime( float fElapsedTime ) const
-	{
-		return m_Timing.GetBeatFromElapsedTime( fElapsedTime );
-	}
-	float GetElapsedTimeFromBeat( float fBeat ) const { return
-	m_Timing.GetElapsedTimeFromBeat( fBeat ); }
-	*/
 
 	bool HasSignificantBpmChangesOrStops() const;
 	float GetStepsSeconds() const;
@@ -453,8 +418,6 @@ class Song
 	{
 		return m_vpStepsByType[st];
 	}
-	bool IsEasy(StepsType st) const;
-	bool IsTutorial() const;
 	bool HasEdits(StepsType st) const;
 
 	bool IsFavorited() { return isfavorited; }
@@ -466,8 +429,6 @@ class Song
 
 	void SetEnabled(bool b) { m_bEnabled = b; }
 	bool GetEnabled() const { return m_bEnabled; }
-
-	bool ShowInDemonstrationAndRanking() const;
 
 	/**
 	 * @brief Add the chosen Steps to the Song.

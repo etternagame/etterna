@@ -85,15 +85,14 @@ ScreenMapControllers::Init()
 		m_Line.push_back(new ActorFrame);
 		FOREACH_ENUM(GameController, c)
 		{
-			BitmapText& text = m_textLabel[c];
-			text.LoadFromFont(THEME->GetPathF(m_sName, "title"));
-			auto pn = (PlayerNumber)c;
-			text.SetName("Label" + PlayerNumberToString(pn));
-			RString sText = ssprintf(PLAYER_SLOTS.GetValue(),
-									 PlayerNumberToLocalizedString(pn).c_str());
-			text.SetText(sText);
-			ActorUtil::LoadAllCommands(text, m_sName);
-			m_Line.back()->AddChild(&m_textLabel[c]);
+			BitmapText &text = m_textLabel[c];
+			text.LoadFromFont( THEME->GetPathF(m_sName,"title") );
+			auto pn = PLAYER_1;
+			text.SetName( "Label"+PlayerNumberToString(pn) );
+			RString sText = ssprintf(PLAYER_SLOTS.GetValue(), PlayerNumberToLocalizedString(pn).c_str());
+			text.SetText( sText );
+			ActorUtil::LoadAllCommands( text, m_sName );
+			m_Line.back()->AddChild( &m_textLabel[c] );
 		}
 		m_LineScroller.AddChild(m_Line.back());
 	}
@@ -254,12 +253,6 @@ ScreenMapControllers::BeginScreen()
 	m_AutoDismissSanitySecs = 0.0f;
 	if (m_AutoDismissWarningSecs > 0.25) {
 		m_Warning->PlayCommand("TweenOn");
-	} else {
-		if (m_Warning->HasCommand("NeverShow")) {
-			m_Warning->PlayCommand("NeverShow");
-		} else {
-			m_Warning->SetHibernate(16777216.0f);
-		}
 	}
 }
 
