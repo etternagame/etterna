@@ -283,6 +283,9 @@ t[#t + 1] =
 			BeginCommand = function(self)
 				self:queuecommand("Set")
 			end,
+			OptionsScreenClosedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
 			SetCommand = function(self)
 				self:settext("Judge: " .. GetTimingDifficulty())
 			end
