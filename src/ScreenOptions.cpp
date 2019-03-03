@@ -341,6 +341,7 @@ ScreenOptions::~ScreenOptions()
 	LOG->Trace("ScreenOptions::~ScreenOptions()");
 	for (unsigned i = 0; i < m_pRows.size(); i++)
 		SAFE_DELETE(m_pRows[i]);
+	MESSAGEMAN->Broadcast("OptionsScreenClosed");
 }
 
 RString
