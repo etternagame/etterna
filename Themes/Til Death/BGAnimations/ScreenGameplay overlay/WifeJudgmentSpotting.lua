@@ -563,7 +563,6 @@ local e =
 			end
 		end,
 		SpottedOffsetCommand = function(self)
-		ms.ok("asasd")
 			if enabledErrorBar == 2 and dvCur ~= nil then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
