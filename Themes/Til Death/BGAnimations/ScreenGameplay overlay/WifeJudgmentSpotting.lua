@@ -542,7 +542,35 @@ local e =
 	DootCommand = function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
+		
+		-- basically we need the ewma version to exist inside this actor frame
+		-- for customize gameplay stuff, however it seems silly to have it running
+		-- visibility/nil/type checks if we aren't using it, so we can just remove
+		-- it if we're outside customize gameplay and errorbar is set to normal -mina
+		if not allowedCustomization and enabledErrorBar == 1 then
+			self:RemoveChild("WeightedBar")
+		end
 	end,
+	Def.Quad {
+		Name = "WeightedBar",
+		InitCommand = function(self)
+			if enabledErrorBar == 2 then
+				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
+					1
+				):diffuse(getMainColor("enabled"))
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetCommand = function(self)
+		ms.ok("asasd")
+			if enabledErrorBar == 2 and dvCur ~= nil then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(MovableValues.ErrorBarX + avg * wscale)
+			end
+		end
+	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
@@ -592,29 +620,6 @@ if enabledErrorBar == 1 then
 	for i = 1, barcount do
 		e[#e + 1] = smeltErrorBar(i)
 	end
-end
-
-if enabledErrorBar == 2 then
-	e[#e + 1] =
-		Def.Quad {
-		Name = "WeightedBar",
-		InitCommand = function(self)
-			if enabledErrorBar == 2 then
-				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
-					1
-				):diffuse(getMainColor("enabled"))
-			else
-				self:visible(false)
-			end
-		end,
-		SpottedOffsetCommand = function(self)
-			if dvCur ~= nil then
-				avg = alpha * dvCur + (1 - alpha) * lastAvg
-				lastAvg = avg
-				self:x(MovableValues.ErrorBarX + avg * wscale)
-			end
-		end
-	}
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
