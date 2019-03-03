@@ -40,9 +40,12 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 	auto* cProcessed = new char[len];
 	int iProcessedLen = -1;
 	while (i < len) {
-		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/') {
+		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' && ReadingValue == false) {
 			/* Skip a comment entirely; don't copy the comment to the
-			 * value/parameter */
+			 * parameter */
+
+			// there is no legitimate reason to allow people to place comments inside value fields
+			// this is indescribably stupid -mina
 			do {
 				i++;
 			} while (i < len && buf[i] != '\n');
