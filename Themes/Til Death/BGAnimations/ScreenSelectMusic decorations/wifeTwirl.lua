@@ -813,7 +813,6 @@ t[#t + 1] =
 	{
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
-			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			self:xy(20, 218)
 			self:zoom(0.5)
 			self:halign(0)
