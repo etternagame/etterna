@@ -213,7 +213,7 @@ local t =
 		end
 	end,
 	DoneLoadingNextSongMessageCommand = function(self)
-		-- put notefield on doneloadingnextsong because playlist courses reset this for w.e reason -mina
+		-- put notefield y pos back on doneloadingnextsong because playlist courses reset this for w.e reason -mina
 		screen = SCREENMAN:GetTopScreen()
 
 		-- nil checks are needed because these don't exist when doneloadingnextsong is sent initially
