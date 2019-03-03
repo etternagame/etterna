@@ -212,6 +212,17 @@ local t =
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
 		end
 	end,
+	DoneLoadingNextSongMessageCommand = function(self)
+		-- put notefield on doneloadingnextsong because playlist courses reset this for w.e reason -mina
+		screen = SCREENMAN:GetTopScreen()
+
+		-- nil checks are needed because these don't exist when doneloadingnextsong is sent initially
+		-- which is convenient for us since addy -mina
+		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
+			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
+		end
+	end,
 	JudgmentMessageCommand = function(self, msg)
 		tDiff = msg.WifeDifferential
 		wifey = Floor(msg.WifePercent * 100) / 100
