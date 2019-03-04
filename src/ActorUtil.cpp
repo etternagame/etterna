@@ -8,7 +8,7 @@
 #include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil.h"m_bQuirksMode
 #include "Song.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
@@ -121,7 +121,6 @@ namespace {
 RString
 GetLegacyActorClass(XNode* pActor)
 {
-	DEBUG_ASSERT(PREFSMAN->m_bQuirksMode);
 	ASSERT(pActor);
 
 	// The non-legacy LoadFromNode has already checked the Class and
