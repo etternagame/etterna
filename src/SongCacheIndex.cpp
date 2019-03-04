@@ -343,7 +343,10 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 									 "?, ?, ?, ?, "
 									 "?, ?, ?, "
 									 "?, ?, ?, "
-									 "?, ?, ?, ?, ?, ?)");
+									 "?, ?, ?, ?, ?, ?, ");
+									 "?, ?, ?, ?, "
+									 "?, ?, ?, ?, "
+									 "?, ?)");
 		unsigned int index = 1;
 		insertSong.bind(index++, STEPFILE_VERSION_NUMBER);
 		insertSong.bind(index++, song.m_sMainTitle);
@@ -510,6 +513,18 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		insertSong.bind(index++, song.m_fMusicLengthSeconds);
 		insertSong.bind(index++, GetHashForDirectory(song.GetSongDir()));
 		insertSong.bind(index++, song.GetSongDir());
+		
+		insertSong.bind(index++, song.m_sMusicPath);
+		insertSong.bind(index++, song.m_PreviewPath);
+		insertSong.bind(index++, song.m_sBannerPath);
+		insertSong.bind(index++, song.m_sJacketPath);
+		insertSong.bind(index++, song.m_sCDPath);
+		insertSong.bind(index++, song.m_sDiscPath);
+		insertSong.bind(index++, song.m_sLyricsPath);
+		insertSong.bind(index++, song.m_sBackgroundPath);
+		insertSong.bind(index++, song.m_sCDTitlePath);
+		insertSong.bind(index++, song.m_sPreviewVidPath);
+		
 		insertSong.exec();
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
@@ -588,7 +603,10 @@ SongCacheIndex::CreateDBTables()
 			 "BGCHANGESLAYER1 TEXT, BGCHANGESLAYER2 TEXT, FGCHANGES TEXT, "
 			 "KEYSOUNDS TEXT, FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
 			 "SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, "
-			 "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT)");
+			 "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
+			 "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
+			 "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
+			 "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
 	db->exec("CREATE TABLE IF NOT EXISTS steps (id INTEGER PRIMARY KEY, "
 			 "CHARTNAME TEXT, STEPSTYPE TEXT, DESCRIPTION TEXT, CHARTSTYLE "
 			 "TEXT, DIFFICULTY INTEGER, "
@@ -1175,6 +1193,19 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 	song->m_SongTiming.m_sFile = dir; // songs still have their fallback timing.
 	song->m_fVersion = STEPFILE_VERSION_NUMBER;
+	
+		
+	song->m_sMusicPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_PreviewPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sBannerPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sJacketPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sCDPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sDiscPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sLyricsPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sBackgroundPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sCDTitlePath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sPreviewVidPath = static_cast<const char*>(query.getColumn(index++));
+	
 	SMLoader::TidyUpData(*song, true);
 
 	if (song->m_sMainTitle == "" ||
