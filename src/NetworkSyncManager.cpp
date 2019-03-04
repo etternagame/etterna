@@ -798,7 +798,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						payload["packs"] = json::array();
 						auto& packs = SONGMAN->GetSongGroupNames();
 						for(auto& pack : packs) {
-							auto utf8ValidPack = correct_non_utf_8(&pack);
+							string packStdStr = pack.c_str();
+							auto utf8ValidPack = correct_non_utf_8(&packStdStr);
 							payload["packs"].push_back(utf8ValidPack.c_str());
 						}
 						Send(hello);
