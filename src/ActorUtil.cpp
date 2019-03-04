@@ -8,7 +8,7 @@
 #include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
-#include "RageUtil.h"m_bQuirksMode
+#include "RageUtil.h"
 #include "Song.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
