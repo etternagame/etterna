@@ -793,6 +793,12 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		// For blank args to FindFirstFilenameContaining. -Kyz
 		vector<RString> empty_list;
 
+
+		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+		if (m_PreviewPath.empty())
+			m_PreviewPath = m_sMusicPath;
+		m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
+		m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
 		// uhh this should like... not be like... this... -mina
 		m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 		bool has_jacket = IsAFile(m_sJacketPath);
