@@ -574,13 +574,15 @@ function scoreBoard(pn, position)
 	if enabledCustomWindows then
 		tso = 1
 	end
-
+	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
 	for i = 1, #devianceTable do
-		if math.abs(devianceTable[i]) > tso * 90 then
-			if tracks[i] == 0 or tracks[i] == 1 then
-				cbl = cbl + 1
-			else
-				cbr = cbr + 1
+		if tracks[i] then	-- we dont load track data when reconstructing eval screen apparently so we have to nil check -mina
+			if math.abs(devianceTable[i]) > tso * 90 then
+				if tracks[i] <= math.floor(ncol/2) then	-- just assume middle col in 7k is right hand thumb for now -mina
+					cbl = cbl + 1
+				else
+					cbr = cbr + 1
+				end
 			end
 		end
 	end
