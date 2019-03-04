@@ -309,6 +309,13 @@ string correct_non_utf_8(string *str)
     return to;
 }
 
+string correct_non_utf_8(RString &str)
+{
+	string stdStr = str.c_str();
+	auto utf8ValidStr = correct_non_utf_8(&stdStr);
+	return utf8ValidStr;
+}
+	
 static LocalizedString INITIALIZING_CLIENT_NETWORK(
   "NetworkSyncManager",
   "Initializing Client Network...");
@@ -798,9 +805,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						payload["packs"] = json::array();
 						auto& packs = SONGMAN->GetSongGroupNames();
 						for(auto& pack : packs) {
-							string packStdStr = pack.c_str();
-							auto utf8ValidPack = correct_non_utf_8(&packStdStr);
-							payload["packs"].push_back(utf8ValidPack.c_str());
+							payload["packs"].push_back(correct_non_utf_8(pack).c_str());
 						}
 						Send(hello);
 					}
@@ -1500,11 +1505,11 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		j["type"] = ettClientMessageMap[ettpc_selectchart];
 	}
 	auto& payload = j["payload"];
-	payload["title"] = song->m_sMainTitle;
-	payload["subtitle"] = song->m_sSubTitle;
-	payload["artist"] = song->m_sArtist;
+	payload["title"] = correct_non_utf_8(song->m_sMainTitle).c_str();
+	payload["subtitle"] = correct_non_utf_8(song->m_sSubTitle).c_str();
+	payload["artist"] = correct_non_utf_8(song->m_sArtist).c_str();
 	payload["filehash"] = song->GetFileHash().c_str();
-	payload["pack"] = song->m_sGroupName.c_str();
+	payload["pack"] = correct_non_utf_8(song->m_sGroupName).c_str();
 	payload["chartkey"] = curSteps->GetChartKey().c_str();
 	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
 	payload["meter"] = curSteps->GetMeter();
