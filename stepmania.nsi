@@ -209,6 +209,8 @@ Section "Main Section" SecMain
 	SetOutPath "$INSTDIR"
 	AllowSkipFiles off
 	SetOverwrite on
+	
+	Call PreInstall
 
 !ifdef INSTALL_PROGRAM_LIBRARIES
 	WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -744,7 +746,12 @@ Function .onInit
 	WriteINIStr $PLUGINSDIR\custom.ini "Field 5" "Text" $PLUGINSDIR\image.bmp	
 !else
 
-	call PreInstall
+	; Part of what this call does is check for an already installed version
+	; within the $INSTDIR. We move this call to the install section to abort
+	; after allowing the user to change the directory to check.
+	; This is because we often want people to uninstall after every version change.
+	; A lot of people already installed in the default path, but this change allows any path.
+	;Call PreInstall
 !endif
 
 FunctionEnd
