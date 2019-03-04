@@ -295,7 +295,6 @@ Section "Main Section" SecMain
 
 	; remove old noteskins
 	RMDir /r "$INSTDIR\NoteSkins\common\default"
-	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByInf"
@@ -306,25 +305,6 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\dance\SubtractByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZeroDoubleRes"
-	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
-	; the "midi-*" noteskin series was formerly known as just "midi".
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi"
-	; we may also want to remove the new ones.
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note-3d"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-solo"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid-3d"
-	; old names
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-rhythm-p1"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-rhythm-p2"
-	; new names
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p1"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p2"
-	; retro, retrobar.
-	RMDir /r "$INSTDIR\NoteSkins\dance\retro"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar-splithand_whiteblue"
 	; pump
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd"
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd-routine-p1"
@@ -337,13 +317,10 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\pump\delta-routine-p2"
 	RMDir /r "$INSTDIR\NoteSkins\pump\frame5p"
 	RMDir /r "$INSTDIR\NoteSkins\pump\newextra"
-	RMDir /r "$INSTDIR\NoteSkins\pump\pad"
 	RMDir /r "$INSTDIR\NoteSkins\pump\rhythm"
 	RMDir /r "$INSTDIR\NoteSkins\pump\simple"
 	; kb7
 	RMDir /r "$INSTDIR\NoteSkins\kb7\default"
-	RMDir /r "$INSTDIR\NoteSkins\kb7\orbital"
-	; retrobar for kb7
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar"
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar-iidx"
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar-o2jam"
@@ -391,8 +368,6 @@ Section "Main Section" SecMain
 	; install kb7 noteskins
 	SetOutPath "$INSTDIR\NoteSkins\kb7"
 	File /r /x CVS /x .svn "NoteSkins\kb7\default"
-	;File /r /x CVS /x .svn "NoteSkins\kb7\orbital"
-	; retrobar
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar"
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar-iidx"
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar-o2jam"
