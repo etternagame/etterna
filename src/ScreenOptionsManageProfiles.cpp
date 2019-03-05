@@ -405,7 +405,26 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	} else // a profile
 	{
 		g_TempMenu.rows.clear();
+#define ADD_ACTION(i)                                                          \
+	g_TempMenu.rows.push_back(MenuRowDef(i,                                    \
+										 ProfileActionToLocalizedString(i),    \
+										 true,                                 \
+										 false,                                \
+										 false,                                \
+										 0,                                    \
+										 ""));
 
+		ADD_ACTION(ProfileAction_SetDefaultP1);
+		if (PROFILEMAN->FixedProfiles()) {
+			ADD_ACTION(ProfileAction_Rename);
+			ADD_ACTION(ProfileAction_Clear);
+		} else {
+			ADD_ACTION(ProfileAction_Edit);
+			ADD_ACTION(ProfileAction_Rename);
+			ADD_ACTION(ProfileAction_Delete);
+			ADD_ACTION(ProfileAction_MoveUp);
+			ADD_ACTION(ProfileAction_MoveDown);
+		}
 
 		int iWidth, iX, iY;
 		this->GetWidthXY(PLAYER_1, iCurRow, 0, iWidth, iX, iY);
