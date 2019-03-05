@@ -4,7 +4,7 @@
 #include "GameState.h"
 #include "NoteSkinManager.h"
 #include "PlayerOptions.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
 #include "Style.h"

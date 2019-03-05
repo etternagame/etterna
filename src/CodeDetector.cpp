@@ -6,7 +6,7 @@
 #include "InputQueue.h"
 #include "PlayerOptions.h"
 #include "PlayerState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 
 const char* CodeNames[] = {

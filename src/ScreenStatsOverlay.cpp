@@ -1,8 +1,8 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenStatsOverlay.h"
 

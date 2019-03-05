@@ -3,7 +3,7 @@
 
 #include "ActorScroller.h"
 #include "ActorUtil.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "RandomSample.h"
 #include "ScreenSelect.h"
 

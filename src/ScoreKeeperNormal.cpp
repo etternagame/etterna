@@ -10,7 +10,7 @@
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "ProfileManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScoreKeeperNormal.h"
 #include "ScreenManager.h"
 #include "Song.h"

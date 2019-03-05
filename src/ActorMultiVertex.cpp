@@ -7,10 +7,10 @@
 #include "LocalizedString.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
-#include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTextureManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
 const float min_state_delay = 0.0001f;

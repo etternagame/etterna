@@ -1,10 +1,10 @@
 #ifndef RAGE_SOUND_DRIVER
 #define RAGE_SOUND_DRIVER
 
-#include "RageThreads.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
-#include "RageUtil_CircularBuffer.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Utils/RageUtil_CircularBuffer.h"
 #include "arch/RageDriver.h"
 
 class RageSoundBase;

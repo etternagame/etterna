@@ -9,7 +9,7 @@
 #include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"

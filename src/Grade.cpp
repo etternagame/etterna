@@ -2,8 +2,8 @@
 #include "EnumHelper.h"
 #include "Grade.h"
 #include "LuaManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 
 LuaXType(Grade);

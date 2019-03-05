@@ -2,7 +2,7 @@
 #define RAGE_SOUND_DRIVER_AU_H
 
 #include "RageSoundDriver.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include <AudioUnit/AudioUnit.h>
 
 class RageSoundDriver_AU : public RageSoundDriver

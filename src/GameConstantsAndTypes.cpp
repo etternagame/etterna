@@ -7,7 +7,7 @@
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "PlayerNumber.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeMetric.h"
 
 RString

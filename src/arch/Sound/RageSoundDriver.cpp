@@ -1,9 +1,9 @@
 #include "global.h"
 #include "PrefsManager.h"
 #include "RageSoundDriver.h"
-#include "RageSoundManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Foreach.h"
 #include "arch/arch_default.h"
 

@@ -4,8 +4,8 @@
 #include "EnumHelper.h"
 #include "InputMapper.h"
 #include "LuaBinding.h"
-#include "RageInputDevice.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageInputDevice.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 
 static const char* ControllerStateButtonNames[] = {

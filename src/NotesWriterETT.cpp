@@ -7,9 +7,9 @@
 #include "NotesWriterETT.h"
 #include "Profile.h"
 #include "ProfileManager.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
 

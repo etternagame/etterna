@@ -1,8 +1,8 @@
 #include "global.h"
 #include "ActorFrameTexture.h"
 #include "ActorUtil.h"
-#include "RageTextureManager.h"
-#include "RageTextureRenderTarget.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
 
 REGISTER_ACTOR_CLASS_WITH_NAME(ActorFrameTextureAutoDeleteChildren,
 							   ActorFrameTexture);

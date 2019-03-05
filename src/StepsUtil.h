@@ -3,7 +3,7 @@
 
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
-#include "RageUtil_CachedObject.h"
+#include "RageUtil/Utils/RageUtil_CachedObject.h"
 
 class Steps;
 class Song;

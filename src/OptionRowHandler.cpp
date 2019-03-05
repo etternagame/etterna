@@ -9,8 +9,8 @@
 #include "LuaManager.h"
 #include "NoteSkinManager.h"
 #include "OptionRowHandler.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScreenManager.h"
 #include "ScreenMiniMenu.h" // for MenuRowDef
 #include "ScreenOptionsMasterPrefs.h"

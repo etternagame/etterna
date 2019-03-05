@@ -4,7 +4,7 @@
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenWithMenuElements.h"
 #include "ThemeManager.h"

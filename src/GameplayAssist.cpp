@@ -4,7 +4,7 @@
 #include "GameplayAssist.h"
 #include "NoteData.h"
 #include "PlayerState.h"
-#include "RageSoundManager.h"
+#include "RageUtil/Sound/RageSoundManager.h"
 #include "Song.h"
 #include "ThemeManager.h"
 #include "GameState.h"

@@ -4,7 +4,7 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "PlayerNumber.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageTimer.h"
 class Model;
 
 /** @brief The different animation states for the dancer. */

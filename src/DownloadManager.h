@@ -7,10 +7,10 @@
 
 #include "global.h"
 #include "CommandLineActions.h"
-#include "RageFile.h"
+#include "RageUtil/File/RageFile.h"
 #include "HighScore.h"
 #include "ScreenManager.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"
 #include "Difficulty.h"
 #include <deque>

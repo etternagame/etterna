@@ -6,9 +6,9 @@ http://en.wikipedia.org/wiki/INI_file
 */
 #include "global.h"
 #include "IniFile.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 IniFile::IniFile()
   : XNode("IniFile")

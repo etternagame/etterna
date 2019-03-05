@@ -16,8 +16,8 @@
 #include "GameState.h"
 #include "InputMapper.h"
 #include "NoteData.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
 #include <cfloat>
 

@@ -6,11 +6,11 @@
 #include "ModelManager.h"
 #include "ModelTypes.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageFile.h"
-#include "RageMath.h"
-#include "RageTextureManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageMath.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS(Model);

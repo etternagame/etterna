@@ -3,7 +3,7 @@
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "MusicWheelItem.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScoreManager.h"
 #include "Song.h"
 #include "Style.h"

@@ -1,9 +1,9 @@
 #include "global.h"
 #include "ArchHooks_Unix.h"
 #include "ProductInfo.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "LocalizedString.h"
 #include "SpecialFiles.h"
 #include "archutils/Unix/SignalHandler.h"
@@ -386,7 +386,7 @@ ArchHooks_Unix::GetClipboard()
 #endif
 }
 
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include <sys/stat.h>
 
 static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",

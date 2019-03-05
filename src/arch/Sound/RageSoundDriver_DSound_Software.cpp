@@ -2,9 +2,9 @@
 #include "RageSoundDriver_DSound_Software.h"
 #include "DSoundHelpers.h"
 
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageSoundManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Sound/RageSoundManager.h"
 #include "PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 

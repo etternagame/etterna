@@ -3,7 +3,7 @@
 
 #include "GameInput.h"
 #include "PlayerNumber.h"
-#include "RageInputDevice.h"
+#include "RageUtil/Misc/RageInputDevice.h"
 struct Game;
 
 const int NUM_GAME_TO_DEVICE_SLOTS =

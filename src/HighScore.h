@@ -5,7 +5,7 @@
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
 #include "NoteTypes.h"
-#include "RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class XNode;
 struct RadarValues;

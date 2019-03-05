@@ -6,8 +6,8 @@
 
 #include "Actor.h"
 #include "CubicSpline.h"
-#include "RageDisplay.h"
-#include "RageTextureID.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/RageTextureID.h"
 
 enum DrawMode
 {

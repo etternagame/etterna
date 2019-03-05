@@ -5,11 +5,11 @@
 #pragma comment(lib, "winmm.lib")
 #endif
 
-#include "RageTimer.h"
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageUtil.h"
-#include "RageSoundManager.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Sound/RageSoundManager.h"
 #include "PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 

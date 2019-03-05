@@ -4,7 +4,7 @@
 #include "JsonUtil.h"
 #include "NoteData.h"
 #include "NotesLoaderJson.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
 #include "TimingData.h"

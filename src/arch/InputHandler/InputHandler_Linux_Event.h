@@ -4,7 +4,7 @@
 #define INPUT_HANDLER_LINUX_EVENT_H
 
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 class InputHandler_Linux_Event : public InputHandler
 {

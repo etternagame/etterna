@@ -1,7 +1,7 @@
 #include "global.h"
 #include "Foreach.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SampleHistory.h"
 
 inline float

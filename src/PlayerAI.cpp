@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "RadarValues.h"
 
 #define AI_PATH "Data/AI.ini"

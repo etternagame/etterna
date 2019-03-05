@@ -3,7 +3,7 @@
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 
 InputQueue* INPUTQUEUE =
   NULL; // global and accessible from anywhere in our program

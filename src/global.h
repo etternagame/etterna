@@ -175,7 +175,7 @@ struct CompileAssertDecl
 /** @brief Use RStrings throughout the program. */
 using RString = StdString::CStdStringA;
 
-#include "RageException.h"
+#include "RageUtil/Misc/RageException.h"
 
 /* Define a few functions if necessary */
 #include <cmath>

@@ -5,9 +5,9 @@
 #include "GameState.h"
 #include "Model.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageMath.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageMath.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "StatsManager.h"
 

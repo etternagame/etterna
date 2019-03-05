@@ -5,7 +5,7 @@
 
 #include "Foreach.h"
 #include "LuaManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 #include <map>
 

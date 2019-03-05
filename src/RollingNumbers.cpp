@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "RollingNumbers.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "EnumHelper.h"
 #include "LuaManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 int
 CheckEnum(lua_State* L,

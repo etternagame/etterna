@@ -1,8 +1,8 @@
 #include "global.h"
 #include "ArchHooks.h"
 #include "LuaReference.h"
-#include "RageLog.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
 #include "PrefsManager.h"
 

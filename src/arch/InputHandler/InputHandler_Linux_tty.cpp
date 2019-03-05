@@ -5,9 +5,9 @@
 #include "InputHandler_Linux_tty.h"
 #include "InputHandler_Linux_tty_keys.h"
 
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageException.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageException.h"
 
 #include "archutils/Unix/SignalHandler.h"
 

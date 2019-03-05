@@ -5,9 +5,9 @@
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // For programming shortcuts.
 #include "NotesLoaderSSC.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFileManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"

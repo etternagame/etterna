@@ -1,7 +1,7 @@
 ﻿#ifndef GameplayAssist_H
 #define GameplayAssist_H
 
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 
 class PlayerState;
 class NoteData;

@@ -4,7 +4,7 @@
 #include "GameManager.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 ThemeMetric<RString> CommonMetrics::OPERATOR_MENU_SCREEN("Common",
 														 "OperatorMenuScreen");

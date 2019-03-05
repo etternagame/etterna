@@ -1,7 +1,7 @@
 #ifndef ARROWEFFECTS_H
 #define ARROWEFFECTS_H
 
-#include "RageTypes.h"
+#include "RageUtil/Misc/RageTypes.h"
 
 class PlayerState;
 class PlayerOptions;

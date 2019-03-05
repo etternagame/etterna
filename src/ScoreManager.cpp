@@ -5,14 +5,14 @@
 #include "MinaCalc.h"
 #include "NoteData.h"
 #include "NoteDataStructures.h"
-#include "RageLog.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "ScoreManager.h"
 #include "Song.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 ScoreManager* SCOREMAN = NULL;
 

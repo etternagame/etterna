@@ -9,7 +9,7 @@
 #include "PlayerOptions.h"
 #include "PlayerState.h"
 #include "ProfileManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "Song.h"

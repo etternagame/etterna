@@ -5,14 +5,14 @@
 // Rage global classes
 #include "GameSoundManager.h"
 #include "LocalizedString.h"
-#include "RageDisplay.h"
-#include "RageInput.h"
-#include "RageLog.h"
-#include "RageMath.h"
-#include "RageSoundManager.h"
-#include "RageTextureManager.h"
-#include "RageThreads.h"
-#include "RageTimer.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageInput.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageMath.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
@@ -27,8 +27,8 @@
 #include "CommonMetrics.h"
 #include "Game.h"
 #include "InputEventPlus.h"
-#include "RageSurface.h"
-#include "RageSurface_Load.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Screen.h"
 #include "ScreenDimensions.h"
 
@@ -54,14 +54,14 @@
 #include "DownloadManager.h"
 #endif
 #include "ScoreManager.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "ModelManager.h"
 #include "CryptManager.h"
 #include "GameLoop.h"
 #include "MessageManager.h"
 #include "ModelManager.h"
 #include "NetworkSyncManager.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "SpecialFiles.h"
 #include "StatsManager.h"
 #include "ver.h"
@@ -415,14 +415,14 @@ AdjustForChangedSystemCapabilities()
 #endif
 
 #if defined(SUPPORT_OPENGL)
-#include "RageDisplay_OGL.h"
+#include "RageUtil/Graphics/RageDisplay_OGL.h"
 #endif
 
 #if defined(SUPPORT_GLES2)
 #include "RageDisplay_GLES2.h"
 #endif
 
-#include "RageDisplay_Null.h"
+#include "RageUtil/Graphics/RageDisplay_Null.h"
 
 struct VideoCardDefaults
 {

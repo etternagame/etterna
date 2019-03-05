@@ -1,9 +1,9 @@
 ﻿#include "global.h"
 #include "GameLoop.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageSoundManager.h"
-#include "RageTextureManager.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 
@@ -15,7 +15,7 @@
 #include "InputFilter.h"
 #include "InputMapper.h"
 #include "NetworkSyncManager.h"
-#include "RageInput.h"
+#include "RageUtil/Misc/RageInput.h"
 #include "ScreenManager.h"
 #include "SongManager.h"
 #include "ThemeManager.h"

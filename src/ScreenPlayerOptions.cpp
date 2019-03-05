@@ -7,7 +7,7 @@
 #include "InputEventPlus.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "ScreenPlayerOptions.h"

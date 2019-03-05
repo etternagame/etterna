@@ -2,7 +2,7 @@
 #define INPUTHANDLER_DIRECTINPUT_H
 
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include <chrono>
 
 struct DIDevice;

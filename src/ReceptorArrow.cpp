@@ -2,7 +2,7 @@
 #include "GameState.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrow.h"
 #include "Style.h"
 

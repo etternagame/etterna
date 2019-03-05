@@ -1,5 +1,5 @@
 #include "global.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScrollBar.h"
 #include "ThemeManager.h"
 

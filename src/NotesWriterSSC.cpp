@@ -4,8 +4,8 @@
 #include "LocalizedString.h"
 #include "NoteTypes.h"
 #include "NotesWriterSSC.h"
-#include "RageFile.h"
-#include "RageLog.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "Song.h"
 #include "Steps.h"
 

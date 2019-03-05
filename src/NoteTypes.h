@@ -5,7 +5,7 @@
 
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 
 class XNode;
 

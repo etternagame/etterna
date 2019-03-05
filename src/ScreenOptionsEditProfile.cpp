@@ -6,7 +6,7 @@
 #include "OptionRowHandler.h"
 #include "Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScreenManager.h"
 #include "ScreenOptionsEditProfile.h"
 #include "ScreenPrompt.h"

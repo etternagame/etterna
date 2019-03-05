@@ -3,10 +3,10 @@
 #include "CryptManager.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
-#include "RageFile.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/File/RageFileManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include "libtomcrypt/src/headers/tomcrypt.h"
 

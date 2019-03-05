@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "HoldJudgment.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"

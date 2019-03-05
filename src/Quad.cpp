@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
 #include "Quad.h"
-#include "RageTextureManager.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 REGISTER_ACTOR_CLASS(Quad);
 

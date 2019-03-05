@@ -3,7 +3,7 @@
 
 #include "BitmapText.h"
 #include "InputEventPlus.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
 

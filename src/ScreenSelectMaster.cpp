@@ -7,7 +7,7 @@
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenSelectMaster.h"
 #include "ThemeManager.h"

@@ -4,9 +4,9 @@
 #if !defined(SMPACKAGE)
 #include "PrefsManager.h"
 #endif
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageThreads.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 #if !defined(SMPACKAGE)
 static Preference<RString> g_sIgnoredDialogs("IgnoredDialogs", "");

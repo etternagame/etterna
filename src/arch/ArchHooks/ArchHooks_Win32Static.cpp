@@ -1,9 +1,9 @@
 #include "global.h"
 #include "ArchHooks.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/SpecialDirs.h"
 #include "ProductInfo.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "SpecialFiles.h"
 
 // for timeGetTime

@@ -2,7 +2,7 @@
 #define SPRITE_H
 
 #include "Actor.h"
-#include "RageTextureID.h"
+#include "RageUtil/Graphics/RageTextureID.h"
 
 void
 TexCoordArrayFromRect(float fImageCoords[8], const RectF& rect);

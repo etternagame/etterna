@@ -4,7 +4,7 @@
 #include "GhostArrowRow.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
 
 void

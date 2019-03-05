@@ -6,7 +6,7 @@
 #include "NoteTypes.h"
 #include "NotesWriterSM.h"
 #include "ProfileManager.h"
-#include "RageFile.h"
+#include "RageUtil/File/RageFile.h"
 #include "Song.h"
 #include "Steps.h"
 #include "ThemeMetric.h"

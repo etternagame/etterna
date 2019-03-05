@@ -9,7 +9,7 @@
 #include "LyricDisplay.h"
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 #include "SoundEffectControl.h"
 #include "Sprite.h"

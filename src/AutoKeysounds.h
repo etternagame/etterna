@@ -3,7 +3,7 @@
 
 #include "NoteData.h"
 #include "PlayerNumber.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 
 class RageSoundReader;
 class RageSoundReader_Chain;

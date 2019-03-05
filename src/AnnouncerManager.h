@@ -1,7 +1,7 @@
 #ifndef ANNOUNCER_MANAGER_H
 #define ANNOUNCER_MANAGER_H
 
-#include "RageTypes.h"
+#include "RageUtil/Misc/RageTypes.h"
 /** @brief The commentators who say seemlingly random things during gameplay. */
 class AnnouncerManager
 {

@@ -2,7 +2,7 @@
 #define MODS_GROUP_H
 
 #include "EnumHelper.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "SongOptions.h"
 enum ModsLevel
 {

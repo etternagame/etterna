@@ -1,18 +1,18 @@
 
 #include "global.h"
 #include "Profile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ProfileManager.h"
 #include "NoteData.h"
 #include "DBProfile.h"
-#include "RageFile.h"
-#include "RageFileDriverDeflate.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/File/RageFileDriverDeflate.h"
 #include "GameState.h"
 #include "GameManager.h"
 #include "LuaManager.h"
 #include "NoteData.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 
 #include "ScoreManager.h"
 #include "CryptManager.h"
@@ -20,7 +20,7 @@
 #include "SongManager.h"
 #include "Steps.h"
 #include "sqlite3.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 

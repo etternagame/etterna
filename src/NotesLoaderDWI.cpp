@@ -6,9 +6,9 @@
 #include "NotesLoader.h"
 #include "NotesLoaderDWI.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageUtil_CharConversions.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
 

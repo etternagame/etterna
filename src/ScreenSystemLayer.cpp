@@ -5,7 +5,7 @@
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "ProfileManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "ScreenSystemLayer.h"

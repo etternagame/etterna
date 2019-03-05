@@ -1,8 +1,8 @@
 #include "global.h"
 #include "DebugInfoHunt.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "VideoDriverInfo.h"
 #include "RegistryAccess.h"
 #include <windows.h>

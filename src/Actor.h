@@ -4,8 +4,8 @@
 #include "EnumHelper.h"
 #include "LuaReference.h"
 #include "PlayerNumber.h"
-#include "RageTypes.h"
-#include "RageUtil_AutoPtr.h"
+#include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include <map>
 #include <list>
 #include <tuple>

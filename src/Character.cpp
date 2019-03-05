@@ -2,8 +2,8 @@
 #include "ActorUtil.h"
 #include "Character.h"
 #include "IniFile.h"
-#include "RageTextureID.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageTextureID.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 RString
 GetRandomFileInDir(const RString& sDir);

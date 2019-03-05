@@ -8,7 +8,7 @@
 
 static void* Handle = NULL;
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ALSA9Dynamic.h"
 
 /* foo_f dfoo = NULL */

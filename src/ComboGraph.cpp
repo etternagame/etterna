@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "ComboGraph.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "StageStats.h"
 
 const int MinComboSizeToShow = 5;

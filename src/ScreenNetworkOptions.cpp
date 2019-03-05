@@ -6,7 +6,7 @@
 #include "NetworkSyncManager.h"
 #include "OptionRowHandler.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenNetworkOptions.h"
 #include "ScreenPrompt.h"

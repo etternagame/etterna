@@ -6,9 +6,9 @@
 #include "LocalizedString.h"
 #include "MessageManager.h"
 #include "PrefsManager.h"
-#include "RageInput.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageInput.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SpecialFiles.h"
 #include "arch/Dialog/Dialog.h"
 

@@ -4,7 +4,7 @@
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "PlayerStageStats.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"

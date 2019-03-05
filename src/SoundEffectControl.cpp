@@ -3,8 +3,8 @@
 #include "InputMapper.h"
 #include "NoteData.h"
 #include "PlayerState.h"
-#include "RageSoundReader.h"
-#include "RageSoundReader.h"
+#include "RageUtil/Sound/RageSoundReader.h"
+#include "RageUtil/Sound/RageSoundReader.h"
 #include "SoundEffectControl.h"
 
 SoundEffectControl::SoundEffectControl()

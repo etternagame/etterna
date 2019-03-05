@@ -4,7 +4,7 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "ScreenMessage.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "NoteData.h"
 #include <chrono>
 

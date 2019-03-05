@@ -14,8 +14,8 @@
 
 #include "global.h"
 #include "MsdFile.h"
-#include "RageFile.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 void
 MsdFile::AddParam(const char* buf, int len)

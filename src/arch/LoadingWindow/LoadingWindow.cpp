@@ -1,7 +1,7 @@
 #include "global.h"
 #include "LoadingWindow.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "arch/arch_default.h"
 
 LoadingWindow*

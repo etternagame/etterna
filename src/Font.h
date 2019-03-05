@@ -3,8 +3,8 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include "RageTypes.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include <map>
 
 class FontPage;

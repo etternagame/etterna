@@ -6,7 +6,7 @@
 #include "LuaExpressionTransform.h"
 #include "OptionRow.h"
 #include "OptionsCursor.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
 

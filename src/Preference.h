@@ -6,7 +6,7 @@
 
 #include "EnumHelper.h"
 #include "LuaManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 class XNode;
 
 struct lua_State;

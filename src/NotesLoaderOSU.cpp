@@ -1,8 +1,8 @@
 #include "global.h"
 #include "NoteData.h"
 #include "NotesLoaderOSU.h"
-#include "RageFile.h"
-#include "RageUtil_CharConversions.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
 

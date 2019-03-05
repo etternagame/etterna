@@ -10,9 +10,9 @@
 #include "InputHandler_DirectInput.h"
 #include "InputHandler_DirectInputHelper.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
 

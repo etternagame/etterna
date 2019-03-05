@@ -5,8 +5,8 @@
 #include "Foreground.h"
 #include "GameState.h"
 #include "PrefsManager.h"
-#include "RageTextureManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "GameState.h"
 

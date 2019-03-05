@@ -4,12 +4,12 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "PrefsManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "LocalizedString.h"
-#include "RageDisplay_OGL_Helpers.h"
-#include "RageDisplay_OGL.h"
+#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/RageDisplay_OGL.h"
 
 #include <GL/glew.h>
 

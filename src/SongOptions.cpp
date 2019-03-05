@@ -1,7 +1,7 @@
 #include "global.h"
 #include "CommonMetrics.h"
 #include "GameState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
 
 static const char* AutosyncTypeNames[] = {

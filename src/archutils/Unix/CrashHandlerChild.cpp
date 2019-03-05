@@ -11,10 +11,10 @@
 #include "Backtrace.h"
 #include "BacktraceNames.h"
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
+#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
 #include "ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 

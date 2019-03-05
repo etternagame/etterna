@@ -3,7 +3,7 @@
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenContinue.h"
 #include "ScreenManager.h"
 

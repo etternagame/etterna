@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "CubicSpline.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include <list>
 using std::list;
 

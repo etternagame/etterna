@@ -1,7 +1,7 @@
 #include "global.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "ProductInfo.h"
 #include "InputFilter.h"
 #include <CoreFoundation/CoreFoundation.h>

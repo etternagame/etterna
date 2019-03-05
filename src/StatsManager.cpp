@@ -7,7 +7,7 @@
 #include "Profile.h"
 #include "Profile.h"
 #include "ProfileManager.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "ScoreManager.h"
 #include "StatsManager.h"
 #include "Steps.h"

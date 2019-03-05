@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 #include "ModelManager.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 ModelManager* MODELMAN =
   NULL; // global and accessible from anywhere in our program

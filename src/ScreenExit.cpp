@@ -1,9 +1,9 @@
 #include "global.h"
 #include "GameSoundManager.h"
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageSoundManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScreenExit.h"
 #include "arch/ArchHooks/ArchHooks.h"
 

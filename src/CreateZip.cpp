@@ -9,8 +9,8 @@ using TCHAR = char;
 #endif
 
 #include "CreateZip.h"
-#include "RageFile.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include <ctime>
 
 #define MAX_PATH 1024

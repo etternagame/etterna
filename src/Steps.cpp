@@ -25,8 +25,8 @@
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
 #include "NotesWriterETT.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include <algorithm>

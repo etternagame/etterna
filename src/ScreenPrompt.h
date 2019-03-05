@@ -4,7 +4,7 @@
 #define SCREEN_PROMPT_H
 
 #include "BitmapText.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 
 enum PromptType

@@ -2,7 +2,7 @@
 #define SCREEN_TEST_SOUND_H
 
 #include "BitmapText.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "Screen.h"
 
 /** @brief The number of sounds allowed for testing. */

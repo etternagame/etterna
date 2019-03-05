@@ -27,9 +27,9 @@
 #include "PrefsManager.h"
 #include "Profile.h" // for replay data stuff
 #include "ProfileManager.h"
-#include "RageLog.h"
-#include "RageSoundReader.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSoundReader.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "ScoreKeeperNormal.h"
 #include "ScreenDimensions.h"
 #include "ScreenGameplay.h"

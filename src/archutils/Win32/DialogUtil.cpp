@@ -1,6 +1,6 @@
 #include "global.h"
 #include "DialogUtil.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 

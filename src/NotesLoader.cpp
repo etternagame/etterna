@@ -6,7 +6,7 @@
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "NotesLoaderOSU.h"
 
 void

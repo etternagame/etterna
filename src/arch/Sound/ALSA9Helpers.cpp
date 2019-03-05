@@ -1,6 +1,6 @@
 #include "global.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ALSA9Helpers.h"
 #include "ALSA9Dynamic.h"
 #include "PrefsManager.h"

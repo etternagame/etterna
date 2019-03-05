@@ -2,12 +2,12 @@
 #include "Foreach.h"
 #include "IniFile.h"
 #include "ModelTypes.h"
-#include "RageDisplay.h"
-#include "RageFile.h"
-#include "RageMath.h"
-#include "RageTexture.h"
-#include "RageTextureManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageMath.h"
+#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #define MS_MAX_NAME 32
 

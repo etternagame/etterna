@@ -1,5 +1,5 @@
 #include "global.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "InputHandler_MacOSX_HID.h"
 #include "Foreach.h"
 #include "PrefsManager.h"

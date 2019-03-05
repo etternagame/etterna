@@ -3,9 +3,9 @@
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "MessageManager.h"
-#include "RageLog.h"
-#include "RageThreads.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <map>
 #include <set>

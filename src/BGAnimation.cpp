@@ -6,7 +6,7 @@
 #include "IniFile.h"
 #include "LuaManager.h"
 #include "PrefsManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 REGISTER_ACTOR_CLASS(BGAnimation);
 

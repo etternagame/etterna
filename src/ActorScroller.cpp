@@ -3,7 +3,7 @@
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "LuaBinding.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.

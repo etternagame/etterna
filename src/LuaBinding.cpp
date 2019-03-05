@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "LuaBinding.h"
 #include "LuaReference.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include "SubscriptionManager.h"
 static SubscriptionManager<LuaBinding> m_Subscribers;
@@ -296,7 +296,7 @@ LuaBinding::ApplyDerivedType(Lua* L, const std::string& sClassName, void* pSelf)
 	lua_setmetatable(L, iTable);
 }
 
-#include "RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 REGISTER_CLASS_TRAITS(LuaClass, new LuaClass(*pCopy))
 
 void*

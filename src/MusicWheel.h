@@ -5,7 +5,7 @@
 
 #include "GameConstantsAndTypes.h"
 #include "MusicWheelItem.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 

@@ -2,7 +2,7 @@
 #define THEMEMANAGER_H
 
 #include "LuaReference.h"
-#include "RageTypes.h"
+#include "RageUtil/Misc/RageTypes.h"
 #include <set>
 
 class IThemeMetric;

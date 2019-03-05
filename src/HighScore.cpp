@@ -7,14 +7,14 @@
 #include "PlayerNumber.h"
 #include "ProfileManager.h"
 #include "RadarValues.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "XmlFile.h"
 #include "NoteTypes.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 
 const string BASIC_REPLAY_DIR =
   "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina

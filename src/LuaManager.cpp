@@ -3,11 +3,11 @@
 #include "LuaManager.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageThreads.h"
-#include "RageTypes.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 #include "arch/Dialog/Dialog.h"
 #include "ver.h"
@@ -19,7 +19,7 @@
 #include <sstream> // conversion for lua functions.
 #include <unordered_set>
 
-#include "RageString.h"
+#include "RageUtil/Misc/RageString.h"
 
 #include "lua.hpp"
 

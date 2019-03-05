@@ -12,7 +12,7 @@
 #include <cstring>
 #include <cerrno>
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #if defined(MACOSX)
 #include "archutils/Darwin/Crash.h"

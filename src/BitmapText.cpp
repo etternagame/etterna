@@ -6,9 +6,9 @@
 #include "Foreach.h"
 #include "LuaBinding.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTimer.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
 

@@ -200,7 +200,7 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "PlayerState.h"
 #include "ProductInfo.h"
 #include "ProfileManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenMessage.h"
 #include "Song.h"

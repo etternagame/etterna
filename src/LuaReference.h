@@ -2,7 +2,7 @@
 #define LUA_REFERENCE_H
 
 #include "LuaManager.h"
-#include "RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 struct lua_State;
 using Lua = lua_State;

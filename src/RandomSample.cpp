@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
 
 RandomSample::RandomSample()

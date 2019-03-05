@@ -22,11 +22,11 @@
 #include "archutils/Win32/WindowsDialogBox.h"
 #include "archutils/Win32/SpecialDirs.h"
 #include "ProductInfo.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "LocalizedString.h"
-#include "RageFileDriverDeflate.h"
+#include "RageUtil/File/RageFileDriverDeflate.h"
 #include "ver.h"
 
 #if defined(_MSC_VER)

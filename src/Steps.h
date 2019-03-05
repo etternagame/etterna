@@ -6,8 +6,8 @@
 #include "Grade.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
-#include "RageUtil_AutoPtr.h"
-#include "RageUtil_CachedObject.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "TimingData.h"
 
 class Profile;

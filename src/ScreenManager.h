@@ -2,7 +2,7 @@
 #define SCREEN_MANAGER_H
 
 #include "PlayerNumber.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenMessage.h"
 
 class Actor;

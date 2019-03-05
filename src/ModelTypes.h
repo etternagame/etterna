@@ -4,7 +4,7 @@
 #ifndef MODEL_TYPES_H
 #define MODEL_TYPES_H
 
-#include "RageTypes.h"
+#include "RageUtil/Misc/RageTypes.h"
 
 struct msTriangle
 {

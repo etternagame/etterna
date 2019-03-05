@@ -1,12 +1,12 @@
 #include "global.h"
 #include "MovieTexture_Generic.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageSurface.h"
-#include "RageTextureManager.h"
-#include "RageTextureRenderTarget.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Sprite.h"
 
 #if defined(WIN32)

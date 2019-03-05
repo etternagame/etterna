@@ -2,7 +2,7 @@
 #define INPUT_HANDLER_WIN32_PUMP_H
 
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 class USBDevice;
 class InputHandler_Win32_Pump : public InputHandler

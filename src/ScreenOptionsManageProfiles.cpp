@@ -4,7 +4,7 @@
 #include "LocalizedString.h"
 #include "OptionRowHandler.h"
 #include "ProfileManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "ScreenMiniMenu.h"

@@ -8,7 +8,7 @@
 #include "NoteData.h"
 #include "PlayerStageStats.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScoreKeeperNormal.h"
 #include "Steps.h"
 #include "ThemeManager.h"

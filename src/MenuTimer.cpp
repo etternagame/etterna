@@ -3,7 +3,7 @@
 #include "Font.h"
 #include "GameSoundManager.h"
 #include "MenuTimer.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ScreenManager.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"

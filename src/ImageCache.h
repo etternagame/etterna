@@ -3,7 +3,7 @@
 
 #include "IniFile.h"
 
-#include "RageTexture.h"
+#include "RageUtil/Graphics/RageTexture.h"
 
 class LoadingWindow;
 /** @brief Maintains a cache of reduced-quality banners. */

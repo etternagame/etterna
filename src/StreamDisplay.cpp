@@ -1,7 +1,7 @@
 #include "global.h"
 #include "EnumHelper.h"
 #include "GameState.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "StreamDisplay.h"
 #include "ThemeManager.h"
 #include <cfloat>

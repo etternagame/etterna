@@ -5,7 +5,7 @@
 
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
-#include "RageUtil_CachedObject.h"
+#include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include <set>
 
 class Song;

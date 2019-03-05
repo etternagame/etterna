@@ -3,10 +3,10 @@
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "Screen.h"
 #include "ScreenManager.h"
-#include "RageInput.h"
+#include "RageUtil/Misc/RageInput.h"
 #include "ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 

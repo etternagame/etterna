@@ -2,7 +2,7 @@
 
 #if !defined(WITHOUT_NETWORKING)
 #include "GameState.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenNetEvaluation.h"
 #include "SongUtil.h"
 #include "Style.h"

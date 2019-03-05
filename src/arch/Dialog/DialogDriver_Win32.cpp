@@ -1,6 +1,6 @@
 #include "global.h"
 #include "DialogDriver_Win32.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #if !defined(SMPACKAGE)
 #include "LocalizedString.h"
 #endif

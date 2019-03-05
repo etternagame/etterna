@@ -3,7 +3,7 @@
 
 #include <vector>
 using std::vector;
-#include "RageTypes.h"
+#include "RageUtil/Misc/RageTypes.h"
 struct lua_State;
 
 struct CubicSpline

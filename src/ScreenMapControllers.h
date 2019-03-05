@@ -6,7 +6,7 @@
 #include "ActorScroller.h"
 #include "BitmapText.h"
 #include "InputMapper.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 
 class ScreenMapControllers : public ScreenWithMenuElements

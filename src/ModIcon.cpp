@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
 #include "ModIcon.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 
 ModIcon::ModIcon() = default;

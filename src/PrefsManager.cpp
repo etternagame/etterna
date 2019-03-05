@@ -4,9 +4,9 @@
 #include "LuaManager.h"
 #include "Preference.h"
 #include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SpecialFiles.h"
 
 #if !defined(WITHOUT_NETWORKING)

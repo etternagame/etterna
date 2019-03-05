@@ -1,8 +1,8 @@
 #include "global.h"
 #include "EnumHelper.h"
 #include "LuaManager.h"
-#include "RageMath.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageMath.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Tween.h"
 
 static const char* TweenTypeNames[] = { "Linear",

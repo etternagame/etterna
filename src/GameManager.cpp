@@ -6,8 +6,8 @@
 #include "GameLoop.h"  // for ChangeGame
 #include "GameManager.h"
 #include "NoteSkinManager.h"
-#include "RageInputDevice.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageInputDevice.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
 #include "ThemeManager.h"
 

@@ -3,7 +3,7 @@
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "PlayerState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrowRow.h"
 #include "Style.h"
 

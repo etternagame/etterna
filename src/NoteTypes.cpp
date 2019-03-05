@@ -2,7 +2,7 @@
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "NoteTypes.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
 TapNote TAP_EMPTY(TapNoteType_Empty,

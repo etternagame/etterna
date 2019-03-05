@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SubscriptionManager.h"
 
 static SubscriptionManager<LocalizedString> m_Subscribers;

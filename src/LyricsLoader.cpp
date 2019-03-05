@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 #include "LyricsLoader.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "ThemeManager.h"
 

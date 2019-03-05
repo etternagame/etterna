@@ -4,9 +4,9 @@
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "IniFile.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/File/RageFileManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include <set>
 

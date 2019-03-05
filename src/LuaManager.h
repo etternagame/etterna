@@ -11,7 +11,7 @@ class LuaReference;
 #include "lua.hpp"
 
 // For Dialog::Result
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "arch/Dialog/Dialog.h"
 
 class LuaManager

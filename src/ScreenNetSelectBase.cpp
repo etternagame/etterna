@@ -5,7 +5,7 @@
 #include "ActorUtil.h"
 #include "Font.h"
 #include "GameSoundManager.h"
-#include "RageInput.h"
+#include "RageUtil/Misc/RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "NetworkSyncManager.h"

@@ -4,7 +4,7 @@
 #include "CommonMetrics.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
 

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "GameInput.h"
 #include "InputMapper.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 
 static const char* GameControllerNames[] = {

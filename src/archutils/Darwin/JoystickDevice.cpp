@@ -1,6 +1,6 @@
 #include "global.h"
 #include "JoystickDevice.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "Foreach.h"
 
 using __gnu_cxx::hash_map;

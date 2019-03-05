@@ -5,7 +5,7 @@
 #include "GameState.h"
 #include "OptionRow.h"
 #include "OptionRowHandler.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Style.h"
 

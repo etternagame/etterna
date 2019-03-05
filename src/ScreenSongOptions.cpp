@@ -2,7 +2,7 @@
 #include "GameState.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenSongOptions.h"
 #include "ThemeManager.h"
 

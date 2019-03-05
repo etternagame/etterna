@@ -8,7 +8,7 @@
 #include "PrefsManager.h"
 #include "ProfileManager.h"
 #include "GameState.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "ScreenSMOnlineLogin.h"

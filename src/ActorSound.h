@@ -2,7 +2,7 @@
 #define ACTOR_SOUND_H
 
 #include "Actor.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 /** @brief RageSound Actor interface. */
 class ActorSound : public Actor
 {

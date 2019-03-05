@@ -3,7 +3,7 @@
 #include "LuaManager.h"
 #include "MessageManager.h"
 #include "Preference.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "SubscriptionManager.h"
 #include "XmlFile.h"
 

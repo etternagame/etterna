@@ -3,8 +3,8 @@
 #include "GameState.h"
 #include "NoteTypes.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ThemeManager.h"
 #include "TimingData.h"
 #include <cfloat>

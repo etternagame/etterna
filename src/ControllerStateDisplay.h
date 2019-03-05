@@ -7,7 +7,7 @@
 #include "AutoActor.h"
 #include "GameInput.h"
 #include "PlayerNumber.h"
-#include "RageInput.h"
+#include "RageUtil/Misc/RageInput.h"
 
 enum ControllerStateButton
 {

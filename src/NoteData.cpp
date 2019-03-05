@@ -8,8 +8,8 @@
 #include "Foreach.h"
 #include "GameState.h" // blame radar calculations.
 #include "NoteData.h"
-#include "RageUtil.h"
-#include "RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "XmlFile.h"
 
 REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))

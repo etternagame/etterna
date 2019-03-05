@@ -6,7 +6,7 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "RageSound.h"
+#include "RageUtil/Sound/RageSound.h"
 #include "ThemeMetric.h"
 
 RString

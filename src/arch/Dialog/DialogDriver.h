@@ -2,7 +2,7 @@
 #define DIALOG_BOX_DRIVER_H
 
 #include "Dialog.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 class DialogDriver
 {

@@ -14,8 +14,8 @@ struct GoalsForChart;
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
 #include "ImageCache.h"
-#include "RageTypes.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
 #include "ThemeMetric.h"
 

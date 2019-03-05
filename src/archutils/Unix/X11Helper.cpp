@@ -1,6 +1,6 @@
 #include "global.h"
 #include "X11Helper.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "ProductInfo.h"
 #include "Preference.h"
 #include "PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj

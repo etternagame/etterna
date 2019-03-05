@@ -3,9 +3,9 @@
 
 #include "Difficulty.h"
 #include "EnumHelper.h"
-#include "RageTypes.h"
-#include "RageUtil_AutoPtr.h"
-#include "RageUtil_CachedObject.h"
+#include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Utils/RageUtil_AutoPtr.h"
+#include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Steps.h"
 #include "TimingData.h"
 #include <set>
