@@ -1,8 +1,8 @@
-#include "BitmapText.h"
-#include "Quad.h"
+#include "Etterna/Actor/Base/BitmapText.h"
+#include "Etterna/Actor/Base/Quad.h"
 #include "Etterna/Screen/Others/ScreenEvaluation.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
-#include "StepsDisplay.h"
+#include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 
 class ScreenNetEvaluation : public ScreenEvaluation
 {

@@ -13,7 +13,7 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
@@ -55,11 +55,11 @@
 #endif
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "ModelManager.h"
+#include "Etterna/Actor/Base/ModelManager.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/MessageManager.h"
-#include "ModelManager.h"
+#include "Etterna/Actor/Base/ModelManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "SpecialFiles.h"

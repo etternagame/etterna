@@ -1,7 +1,7 @@
 #ifndef SCREEN_TEXT_ENTRY_H
 #define SCREEN_TEXT_ENTRY_H
 
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"

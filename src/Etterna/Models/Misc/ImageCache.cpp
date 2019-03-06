@@ -18,7 +18,7 @@
 #include "CommonMetrics.h"
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "SpecialFiles.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 
 //#include "Banner.h"
 

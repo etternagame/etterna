@@ -1,13 +1,13 @@
 #ifndef SCREEN_EVALUATION_H
 #define SCREEN_EVALUATION_H
 
-#include "ActorUtil.h"
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "RollingNumbers.h"
+#include "Etterna/Actor/Base/RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
 /**

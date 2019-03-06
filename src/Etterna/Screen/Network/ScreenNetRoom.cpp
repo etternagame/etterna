@@ -9,7 +9,7 @@
 #include "ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "WheelItemBase.h"
+#include "Etterna/Actor/Menus/WheelItemBase.h"
 
 AutoScreenMessage(SM_BackFromRoomName);
 AutoScreenMessage(SM_BackFromRoomDesc);

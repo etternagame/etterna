@@ -13,7 +13,7 @@
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
-#include "RoomInfoDisplay.h"
+#include "Etterna/Actor/Menus/RoomInfoDisplay.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 using json = nlohmann::json;

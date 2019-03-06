@@ -4,7 +4,7 @@
 #ifndef ScreenSystemLayer_H
 #define ScreenSystemLayer_H
 
-#include "AutoActor.h"
+#include "Etterna/Actor/Base/AutoActor.h"
 #include "Screen.h"
 
 class ScreenSystemLayer : public Screen

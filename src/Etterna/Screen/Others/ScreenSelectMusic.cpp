@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -10,7 +10,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/InputMapper.h"
-#include "MenuTimer.h"
+#include "Etterna/Actor/Menus/MenuTimer.h"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -30,7 +30,7 @@
 #include "ScreenPrompt.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
-#include "OptionsList.h"
+#include "Etterna/Actor/Menus/OptionsList.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageInput.h"
@@ -42,7 +42,7 @@
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/NoteData/NoteData.h"
-#include "Player.h"
+#include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
 static const char* SelectionStateNames[] = { "SelectingSong",

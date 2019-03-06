@@ -1,8 +1,8 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "Actor.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/Actor.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "RageUtil/Misc/RageInput.h"

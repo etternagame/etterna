@@ -3,14 +3,14 @@
 #ifndef SCREEN_NET_SELECT_MUSIC_H
 #define SCREEN_NET_SELECT_MUSIC_H
 
-#include "BPMDisplay.h"
+#include "Etterna/Actor/Menus/BPMDisplay.h"
 #include "Etterna/Models/Misc/Difficulty.h"
-#include "ModIconRow.h"
-#include "MusicWheel.h"
+#include "Etterna/Actor/Menus/ModIconRow.h"
+#include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "Sprite.h"
-#include "StepsDisplay.h"
+#include "Etterna/Actor/Base/Sprite.h"
+#include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 
 class ScreenNetSelectMusic : public ScreenSelectMusic
 {

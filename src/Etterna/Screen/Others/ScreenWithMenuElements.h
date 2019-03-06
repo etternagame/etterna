@@ -1,10 +1,10 @@
 #ifndef ScreenWithMenuElements_H
 #define ScreenWithMenuElements_H
 
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Screen.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
-#include "Transition.h"
+#include "Etterna/Actor/GameplayAndMenus/Transition.h"
 
 class MenuTimer;
 

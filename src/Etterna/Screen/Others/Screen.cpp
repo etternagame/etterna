@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/PrefsManager.h"

@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"

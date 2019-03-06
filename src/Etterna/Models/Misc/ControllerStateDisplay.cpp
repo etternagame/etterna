@@ -1,5 +1,5 @@
 ﻿#include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "ControllerStateDisplay.h"
 #include "EnumHelper.h"
 #include "Etterna/Singletons/InputMapper.h"

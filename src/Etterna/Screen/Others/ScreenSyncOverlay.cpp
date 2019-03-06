@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Singletons/GameState.h"

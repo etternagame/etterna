@@ -1,8 +1,8 @@
 #ifndef ScreenSelectMaster_H
 #define ScreenSelectMaster_H
 
-#include "ActorScroller.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorScroller.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/Misc/RandomSample.h"
 #include "ScreenSelect.h"

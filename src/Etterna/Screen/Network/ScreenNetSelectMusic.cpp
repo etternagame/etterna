@@ -1,7 +1,7 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
@@ -11,8 +11,8 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
-#include "MenuTimer.h"
-#include "MusicWheel.h"
+#include "Etterna/Actor/Menus/MenuTimer.h"
+#include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageInput.h"

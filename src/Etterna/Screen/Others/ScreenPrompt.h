@@ -3,7 +3,7 @@
 #ifndef SCREEN_PROMPT_H
 #define SCREEN_PROMPT_H
 
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 

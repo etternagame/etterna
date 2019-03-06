@@ -1,7 +1,7 @@
 #include "global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
-#include "Player.h"
+#include "Etterna/Actor/Gameplay/Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"

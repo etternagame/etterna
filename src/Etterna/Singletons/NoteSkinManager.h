@@ -1,7 +1,7 @@
 ﻿#ifndef NOTE_SKIN_MANAGER_H
 #define NOTE_SKIN_MANAGER_H
 
-#include "Actor.h"
+#include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Models/Misc/GameInput.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
 

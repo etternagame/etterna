@@ -1,7 +1,7 @@
 #ifndef SCREEN_TEST_SOUND_H
 #define SCREEN_TEST_SOUND_H
 
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Screen.h"
 

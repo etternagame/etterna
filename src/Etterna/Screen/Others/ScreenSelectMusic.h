@@ -3,19 +3,19 @@
 #ifndef SCREEN_SELECT_MUSIC_H
 #define SCREEN_SELECT_MUSIC_H
 
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GameInput.h"
-#include "MusicWheel.h"
-#include "OptionsList.h"
+#include "Etterna/Actor/Menus/MusicWheel.h"
+#include "Etterna/Actor/Menus/OptionsList.h"
 #include "ScreenWithMenuElements.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Models/NoteData/NoteData.h"
-#include "Player.h"
-#include "NoteField.h"
+#include "Etterna/Actor/Gameplay/Player.h"
+#include "Etterna/Actor/Gameplay/NoteField.h"
 
 enum SelectionState
 {

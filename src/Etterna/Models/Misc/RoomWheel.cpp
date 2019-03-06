@@ -1,5 +1,5 @@
 ﻿#include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageLog.h"

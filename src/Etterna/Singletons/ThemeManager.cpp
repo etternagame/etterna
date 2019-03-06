@@ -10,7 +10,7 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #if !defined(SMPACKAGE)
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
 #endif

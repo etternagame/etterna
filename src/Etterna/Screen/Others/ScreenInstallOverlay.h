@@ -1,7 +1,7 @@
 #ifndef ScreenInstallOverlay_H
 #define ScreenInstallOverlay_H
 
-#include "BitmapText.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Screen.h"
 

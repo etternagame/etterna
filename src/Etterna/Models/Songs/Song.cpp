@@ -11,7 +11,7 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/TitleSubstitution.h"
 #include "Etterna/Models/Misc/ImageCache.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
@@ -32,7 +32,7 @@
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterETT.h"
 #include "Etterna/Models/Misc/LyricsLoader.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 

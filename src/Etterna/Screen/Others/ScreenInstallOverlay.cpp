@@ -30,7 +30,7 @@ class Song;
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "StepMania.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"

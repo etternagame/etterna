@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/LocalizedString.h"

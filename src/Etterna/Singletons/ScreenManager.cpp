@@ -60,7 +60,7 @@
  */
 
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/FontManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameSoundManager.h"

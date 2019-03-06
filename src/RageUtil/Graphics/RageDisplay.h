@@ -3,7 +3,7 @@
 #ifndef RAGEDISPLAY_H
 #define RAGEDISPLAY_H
 
-#include "ModelTypes.h"
+#include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include <chrono>
 #include <set>

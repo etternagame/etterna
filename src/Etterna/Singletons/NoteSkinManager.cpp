@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ActorUtil.h"
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameInput.h"
@@ -12,7 +12,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "SpecialFiles.h"
 #include "ThemeManager.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/Dialog/Dialog.h"
 #include <map>

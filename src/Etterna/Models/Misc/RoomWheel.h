@@ -4,8 +4,8 @@
 #define ROOM_WHEEL_H
 
 #include "ThemeMetric.h"
-#include "WheelBase.h"
-#include "WheelItemBase.h"
+#include "Etterna/Actor/Menus/WheelBase.h"
+#include "Etterna/Actor/Menus/WheelItemBase.h"
 
 class RoomData
 {

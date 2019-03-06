@@ -7,7 +7,7 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Sprite.h"
+#include "Etterna/Actor/Base/Sprite.h"
 
 #if defined(WIN32)
 #include "archutils/Win32/ErrorStrings.h"
