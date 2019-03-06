@@ -5,7 +5,7 @@
 // XmlFile : XML Lite Parser Library
 // by Cho, Kyung Min: bro@shinbiro.com 2002-10-30
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"

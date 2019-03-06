@@ -1,6 +1,6 @@
 ﻿/* This is a partial XPM reader; we only use it for reading compiled-in icons
  * and loading splashes. */
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSurface.h"
 #include "RageSurface_Load_XPM.h"
 #include "RageUtil/Utils/RageUtil.h"

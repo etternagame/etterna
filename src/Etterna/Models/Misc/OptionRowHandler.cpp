@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Character.h"
 #include "Etterna/Singletons/CharacterManager.h"
 #include "CommonMetrics.h"

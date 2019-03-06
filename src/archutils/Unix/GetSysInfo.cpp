@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "GetSysInfo.h"
 
 #if defined(HAVE_SYS_UTSNAME_H)

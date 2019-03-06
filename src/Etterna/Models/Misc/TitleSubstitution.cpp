@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "TitleSubstitution.h"
 
 #include "Etterna/Models/Fonts/FontCharAliases.h"

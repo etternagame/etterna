@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSurface.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "stb_image.h"

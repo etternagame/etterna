@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_DShowHelper.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"

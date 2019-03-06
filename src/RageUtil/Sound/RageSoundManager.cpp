@@ -8,7 +8,7 @@
  *  - sound detaching ("play and delete when done playing")
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"

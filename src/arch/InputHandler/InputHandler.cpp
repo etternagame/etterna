@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler.h"

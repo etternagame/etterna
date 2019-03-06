@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "LowLevelWindow_X11.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageException.h"

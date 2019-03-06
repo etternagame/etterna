@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Actor/Gameplay/Player.h"

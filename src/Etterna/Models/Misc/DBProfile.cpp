@@ -1,5 +1,5 @@
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Profile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -9,7 +9,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "SongCacheIndex.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"

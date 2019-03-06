@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_X11.h"
 
 #include <array>

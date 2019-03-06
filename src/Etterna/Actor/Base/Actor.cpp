@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Actor.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"

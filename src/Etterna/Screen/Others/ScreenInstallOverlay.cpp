@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ScreenInstallOverlay.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -13,7 +13,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenInstallOverlay.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "json/value.h"
 class Song;
 #include "Etterna/Singletons/SongManager.h"
@@ -29,7 +29,7 @@ class Song;
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "StepMania.h"
+#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/NoteData/NoteData.h"

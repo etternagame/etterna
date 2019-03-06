@@ -11,7 +11,7 @@
  *
  * Data can be on disk (always compressed), compressed in memory, and
  * uncompressed in memory. */
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "MinaCalc.h"

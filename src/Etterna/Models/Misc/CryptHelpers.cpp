@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CryptHelpers.h"
 
 PRNGWrapper::PRNGWrapper(const struct ltc_prng_descriptor* pPRNGDescriptor)

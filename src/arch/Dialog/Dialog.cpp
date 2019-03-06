@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Dialog.h"
 #include "DialogDriver.h"
 #if !defined(SMPACKAGE)

@@ -41,7 +41,7 @@
  * which for most streaming files shouldn't be a problem.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFileDriverReadAhead.h"
 #include "RageFileManager_ReadAhead.h"
 #include "RageUtil/Utils/RageUtil.h"

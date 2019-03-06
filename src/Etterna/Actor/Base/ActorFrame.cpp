@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"

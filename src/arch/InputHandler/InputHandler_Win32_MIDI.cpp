@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler_Win32_MIDI.h"
 #include "RageUtil/Misc/RageLog.h"

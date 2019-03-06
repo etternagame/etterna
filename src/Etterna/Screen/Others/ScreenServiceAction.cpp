@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
@@ -10,7 +10,7 @@
 #include "ScreenServiceAction.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "StepMania.h"
+#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 static LocalizedString EDITS_CLEARED("ScreenServiceAction",

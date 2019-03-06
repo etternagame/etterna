@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/FileTypes/MsdFile.h"

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/MsdFile.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/NoteTypes.h"

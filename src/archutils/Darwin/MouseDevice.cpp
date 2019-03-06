@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MouseDevice.h"
 
 using __gnu_cxx::hash_map;

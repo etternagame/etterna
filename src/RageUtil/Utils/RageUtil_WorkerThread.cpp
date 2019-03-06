@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_WorkerThread.h"

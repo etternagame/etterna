@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ArchHooks.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageLog.h"

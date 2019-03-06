@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "PlayerNumber.h"

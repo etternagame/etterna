@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil_CachedObject.h"
 

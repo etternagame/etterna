@@ -9,7 +9,7 @@
  * That said, here are a few helpers for when they're unavoidable.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageLog.h"

@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScrollBar.h"
 #include "Etterna/Singletons/ThemeManager.h"

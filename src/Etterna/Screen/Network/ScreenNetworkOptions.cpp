@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameSoundManager.h"

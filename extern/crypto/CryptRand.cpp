@@ -2,7 +2,7 @@
  * cryptographic random number generator for PuTTY's ssh client
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CryptSHA.h"
 #include "CryptRand.h"
 

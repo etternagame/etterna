@@ -1,7 +1,7 @@
 #ifndef Profile_XML
 #define Profile_XML
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Etterna/FileTypes/XmlFile.h"

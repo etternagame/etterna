@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"

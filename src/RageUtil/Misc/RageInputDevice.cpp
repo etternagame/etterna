@@ -1,7 +1,7 @@
 ﻿/* Define all of the input devices we know about. This is the public interface
  * for describing input devices. */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageInputDevice.h"

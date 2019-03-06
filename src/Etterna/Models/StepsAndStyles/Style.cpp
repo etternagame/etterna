@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 /*
  * Styles define a set of columns for each player, and information about those

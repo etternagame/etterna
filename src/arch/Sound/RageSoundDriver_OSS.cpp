@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_OSS.h"
 
 #include "RageUtil/Misc/RageLog.h"

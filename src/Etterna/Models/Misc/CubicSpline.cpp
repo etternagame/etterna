@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "CubicSpline.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include <list>

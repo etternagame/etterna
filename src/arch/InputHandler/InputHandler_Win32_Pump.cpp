@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_Win32_Pump.h"
 
 #include "Etterna/Singletons/PrefsManager.h"

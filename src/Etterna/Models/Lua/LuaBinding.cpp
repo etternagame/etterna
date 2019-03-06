@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "LuaBinding.h"
 #include "LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"

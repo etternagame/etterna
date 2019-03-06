@@ -6,7 +6,7 @@
 |   UDP/NON-TCP Support by Adam Lowman.                             |
 \*******************************************************************/
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "ezsockets.h"
 #include "Etterna/Models/Misc/Preference.h"

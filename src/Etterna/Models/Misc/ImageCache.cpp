@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "ImageCache.h"
 #include "Foreach.h"
@@ -17,7 +17,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "CommonMetrics.h"
 #include "Etterna/Models/Songs/SongCacheIndex.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Actor/Base/Sprite.h"
 
 //#include "Banner.h"

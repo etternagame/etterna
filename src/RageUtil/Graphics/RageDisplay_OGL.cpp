@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageDisplay_OGL.h"
 #include "RageDisplay_OGL_Helpers.h"

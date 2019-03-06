@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "Font.h"
 #include "Etterna/FileTypes/IniFile.h"
 

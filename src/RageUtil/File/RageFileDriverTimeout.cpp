@@ -42,7 +42,7 @@
  * multiple threads simultaneously.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverTimeout.h"
 #include "RageUtil/Misc/RageLog.h"

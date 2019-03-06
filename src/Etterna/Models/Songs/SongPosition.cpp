@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "SongPosition.h"
 
 static Preference<float> g_fVisualDelaySeconds("VisualDelaySeconds", 0.0f);

@@ -4,7 +4,7 @@
 #if defined(HAVE_STDINT_H)
 #include <stdint.h>
 #endif
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 RString
 ThreadsVersion();

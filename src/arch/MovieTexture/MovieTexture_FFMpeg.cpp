@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_FFMpeg.h"
 
 #include "RageUtil/Graphics/RageDisplay.h"

@@ -5,7 +5,7 @@
  * a few extra sanity checks are made to check file modes.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileBasic.h"
 #include "RageFileDriver.h"

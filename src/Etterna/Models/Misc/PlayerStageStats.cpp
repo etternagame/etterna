@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"

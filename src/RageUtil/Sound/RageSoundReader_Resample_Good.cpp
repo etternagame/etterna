@@ -5,7 +5,7 @@
  * Each conversion ratio uses some memory, but the resulting table is
  * shared, so the memory overhead per stream is negligible.
  */
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageUtil/Misc/RageThreads.h"

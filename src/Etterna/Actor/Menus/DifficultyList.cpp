@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "DifficultyList.h"
 #include "Etterna/Models/Misc/Foreach.h"

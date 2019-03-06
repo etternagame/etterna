@@ -4,7 +4,7 @@ http://en.wikipedia.org/wiki/INI_file
  - semicolons start a comment line
  - backslash followed by a newline doesn't break the line
 */
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "IniFile.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"

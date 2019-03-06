@@ -19,7 +19,7 @@
  * Seeking past the end of the file will throw a warning and rewind.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSound.h"

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 #include "RageUtil/Misc/RageTimer.h"
 #if defined(HAVE_UNISTD_H)

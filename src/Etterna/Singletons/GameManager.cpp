@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GameInput.h" // for GameButton constants
-#include "GameLoop.h"  // for ChangeGame
+#include "Etterna/Globals/GameLoop.h"  // for ChangeGame
 #include "GameManager.h"
 #include "NoteSkinManager.h"
 #include "RageUtil/Misc/RageInputDevice.h"

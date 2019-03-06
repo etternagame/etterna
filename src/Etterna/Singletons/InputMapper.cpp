@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/InputFilter.h"
@@ -9,7 +9,7 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "arch/Dialog/Dialog.h"
 
 #define AUTOMAPPINGS_DIR "/Data/AutoMappings/"

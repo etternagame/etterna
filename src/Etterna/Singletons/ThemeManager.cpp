@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFile.h"
@@ -16,11 +16,11 @@
 #endif
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "GameLoop.h" // For ChangeTheme
+#include "Etterna/Globals/GameLoop.h" // For ChangeTheme
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "LuaManager.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include <deque>

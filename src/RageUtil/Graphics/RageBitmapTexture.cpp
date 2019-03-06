@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -10,7 +10,7 @@
 #include "RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "StepMania.h"
+#include "Etterna/Globals/StepMania.h"
 #include "arch/Dialog/Dialog.h"
 #include "Etterna/Singletons/PrefsManager.h"
 

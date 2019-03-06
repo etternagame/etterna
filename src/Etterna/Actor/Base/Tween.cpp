@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Misc/RageMath.h"

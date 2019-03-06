@@ -1,8 +1,8 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include <CoreFoundation/CoreFoundation.h>
 

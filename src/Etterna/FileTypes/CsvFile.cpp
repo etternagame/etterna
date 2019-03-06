@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CsvFile.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/File/RageFile.h"

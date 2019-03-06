@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "LuaReference.h"
 
 REGISTER_CLASS_TRAITS(LuaReference, new LuaReference(*pCopy))

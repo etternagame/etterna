@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ScreenGameplayNormal.h"
 #include "Etterna/Models/Misc/Difficulty.h"
 

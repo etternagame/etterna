@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageFileDriverSlice.h"
 
 RageFileDriverSlice::RageFileDriverSlice(RageFileBasic* pFile,

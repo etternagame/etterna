@@ -12,7 +12,7 @@
  * we'll recover.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MsdFile.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"

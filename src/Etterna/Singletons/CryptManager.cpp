@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
 #include "Etterna/Models/Lua/LuaBinding.h"

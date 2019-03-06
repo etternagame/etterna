@@ -1,7 +1,7 @@
 ﻿/* This reader simply precaches all of the data from another reader. This
  * reduces CPU usage for sounds that are played several times at once. */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageSoundReader_Preload.h"
 #include "RageSoundUtil.h"

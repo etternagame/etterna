@@ -32,7 +32,7 @@
  *   pStereo->AddSourceChannelToSound( 0, 1 );
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_ChannelSplit.h"

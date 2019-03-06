@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameInput.h"
 #include "Etterna/FileTypes/MsdFile.h"

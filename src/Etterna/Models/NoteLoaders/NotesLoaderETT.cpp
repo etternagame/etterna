@@ -1,2 +1,2 @@
 ﻿#include "NotesLoaderETT.h"
-#include "global.h"
+#include "Etterna/Globals/global.h"

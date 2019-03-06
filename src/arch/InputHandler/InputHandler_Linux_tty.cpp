@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 /* This handler is used for odd cases where we don't use SDL for input. */
 

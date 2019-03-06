@@ -1,7 +1,7 @@
 #ifndef Profile_DB
 #define Profile_DB
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "sqlite3.h"

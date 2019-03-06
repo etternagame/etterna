@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include "LoadingWindow_Win32.h"
@@ -17,7 +17,7 @@
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "RageUtil/Misc/RageLog.h"
 #include <wchar.h>
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"

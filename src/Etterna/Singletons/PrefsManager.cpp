@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
@@ -7,7 +7,7 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 
 #if !defined(WITHOUT_NETWORKING)
 #include "ver.h"

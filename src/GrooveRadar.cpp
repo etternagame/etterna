@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "GrooveRadar.h"
 #include "RageUtil/Graphics/RageDisplay.h"

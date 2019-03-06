@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 // DO NOT USE stdio.h!  printf() calls malloc()!
 //#include <stdio.h>
 
 #include <windows.h>
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "arch/Threads/Threads_Win32.h"
 #include "crash.h"
 #include "CrashHandlerInternal.h"

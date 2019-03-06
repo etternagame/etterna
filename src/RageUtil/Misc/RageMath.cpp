@@ -4,7 +4,7 @@
  * docs for details.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageMath.h"
 #include "RageTypes.h"
 #include <cfloat>

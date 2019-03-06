@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
@@ -9,7 +9,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenAttract.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "StepMania.h"
+#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #define START_SCREEN(sScreenName) THEME->GetMetric(sScreenName, "StartScreen")

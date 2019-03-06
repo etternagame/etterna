@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CodeDetector.h"
 #include "Game.h"
 #include "Etterna/Singletons/GameState.h"

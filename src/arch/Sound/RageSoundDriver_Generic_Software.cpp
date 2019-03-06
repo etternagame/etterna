@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver.h"
 
 #include "Etterna/Singletons/PrefsManager.h"

@@ -19,7 +19,7 @@
  * }
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"

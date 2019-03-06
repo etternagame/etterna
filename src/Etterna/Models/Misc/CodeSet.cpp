@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CodeSet.h"
 #include "InputEventPlus.h"
 #include "Etterna/Singletons/MessageManager.h"

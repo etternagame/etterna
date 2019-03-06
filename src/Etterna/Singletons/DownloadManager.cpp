@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "RageUtil/File/RageFileManager.h"
 #include "ScreenManager.h"
@@ -16,7 +16,7 @@
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "CommandLineActions.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "curl/curl.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"

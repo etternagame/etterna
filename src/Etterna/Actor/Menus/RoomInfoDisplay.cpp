@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/LocalizedString.h"

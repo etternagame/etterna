@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "JoystickDevice.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/Misc/Foreach.h"

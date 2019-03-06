@@ -4,7 +4,7 @@
  *  row/index - corresponds to subdivisions of beats
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h" // blame radar calculations.
 #include "NoteData.h"

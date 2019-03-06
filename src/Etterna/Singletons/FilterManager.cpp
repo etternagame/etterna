@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "FilterManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 

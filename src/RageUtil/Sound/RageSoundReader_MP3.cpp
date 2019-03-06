@@ -1,6 +1,6 @@
 /* MAD is available from: http://www.underbit.com/products/mad/ */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_MP3.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

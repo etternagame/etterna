@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_WaveOut.h"
 
 #if defined(_MSC_VER)

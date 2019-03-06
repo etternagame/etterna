@@ -1,7 +1,7 @@
 #ifndef RAGE_THREADS_H
 #define RAGE_THREADS_H
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include <mutex>
 #include <atomic>
 #include <thread>

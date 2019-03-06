@@ -1,8 +1,8 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "GameLoop.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
@@ -14,7 +14,7 @@
 #include "ScreenOptionsMaster.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "StepMania.h"
+#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #define LINE_NAMES THEME->GetMetric(m_sName, "LineNames")

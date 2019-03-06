@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_DSound_Software.h"
 #include "DSoundHelpers.h"
 

@@ -4,7 +4,7 @@
  *   http://csrc.nist.gov/cryptval/shs.html
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CryptSH512.h"
 
 #define BLKSIZE 128

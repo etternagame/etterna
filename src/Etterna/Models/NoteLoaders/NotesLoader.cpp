@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "NotesLoader.h"
 #include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"

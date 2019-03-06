@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #if defined(_MSC_VER)
 /* XXX register thread */

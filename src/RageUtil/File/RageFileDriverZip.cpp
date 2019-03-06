@@ -2,7 +2,7 @@
  * Ref: http://www.info-zip.org/pub/infozip/doc/appnote-981119-iz.zip
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverDeflate.h"
 #include "RageFileDriverSlice.h"

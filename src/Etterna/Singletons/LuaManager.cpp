@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Command.h"
 #include "LuaManager.h"
 #include "Etterna/Models/Lua/LuaReference.h"
@@ -1499,7 +1499,7 @@ GetFuncArg(int n, lua_State* L)
 	return ref;
 }
 
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
 LuaFunction(ProductVersion, (std::string)product_version);
 LuaFunction(ProductID, (std::string)PRODUCT_ID);

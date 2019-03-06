@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "Etterna/Models/Fonts/Font.h"

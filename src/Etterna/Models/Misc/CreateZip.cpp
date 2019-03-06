@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #if defined(_WINDOWS)
 #include <tchar.h>

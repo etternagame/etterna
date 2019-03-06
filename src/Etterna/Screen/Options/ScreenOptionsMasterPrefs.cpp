@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -15,8 +15,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Models/Songs/SongOptions.h"
-#include "SpecialFiles.h"
-#include "StepMania.h"
+#include "Etterna/Globals/SpecialFiles.h"
+#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 using namespace StringConversion;

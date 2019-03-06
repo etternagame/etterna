@@ -19,7 +19,7 @@
  * DEFAULT overrides.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/PrefsManager.h"

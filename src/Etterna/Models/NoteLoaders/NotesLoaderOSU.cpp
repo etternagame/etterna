@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "NotesLoaderOSU.h"
 #include "RageUtil/File/RageFile.h"

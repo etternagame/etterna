@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
 #include "Grade.h"
 #include "Etterna/Singletons/LuaManager.h"

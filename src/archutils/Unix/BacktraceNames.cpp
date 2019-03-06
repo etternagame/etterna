@@ -1,6 +1,6 @@
 /* for dladdr: */
 #define __USE_GNU
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "BacktraceNames.h"
 
 #include <cstdio>

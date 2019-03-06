@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "HIDDevice.h"
 #include "RageUtil/Utils/RageUtil.h"
 

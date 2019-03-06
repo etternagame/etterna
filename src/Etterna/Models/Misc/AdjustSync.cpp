@@ -33,7 +33,7 @@
  * steps made.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "AdjustSync.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"

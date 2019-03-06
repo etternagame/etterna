@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "InputHandler_MacOSX_HID.h"
 #include "Etterna/Models/Misc/Foreach.h"

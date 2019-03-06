@@ -1,5 +1,5 @@
 #define __USE_GNU
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include <cstdio>
 #include <cstring>
@@ -15,7 +15,7 @@
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
 #include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
 #if defined(MACOSX)

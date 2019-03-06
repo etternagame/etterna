@@ -1,5 +1,5 @@
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Profile.h"

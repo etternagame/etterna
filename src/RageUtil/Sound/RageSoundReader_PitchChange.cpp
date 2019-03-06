@@ -8,7 +8,7 @@
  * changer; this class just controls parameters on the other two real filters.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageSoundReader_PitchChange.h"
 #include "RageSoundReader_Resample_Good.h"

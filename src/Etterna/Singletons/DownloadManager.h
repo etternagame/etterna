@@ -5,7 +5,7 @@
 
 #if !defined(WITHOUT_NETWORKING)
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CommandLineActions.h"
 #include "RageUtil/File/RageFile.h"
 #include "Etterna/Models/Misc/HighScore.h"

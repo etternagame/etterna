@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"

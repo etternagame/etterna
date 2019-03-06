@@ -1,4 +1,4 @@
-﻿#include "global.h"
+﻿#include "Etterna/Globals/global.h"
 #include "RageString.h"
 #include "RageUnicode.h"
 #include <algorithm>
