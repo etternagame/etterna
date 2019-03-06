@@ -10,9 +10,9 @@
 #include <cerrno>
 #include <chrono>
 #include <nlohmann/json.hpp>
-#include "ScreenNetSelectMusic.h"
-#include "ScreenSMOnlineLogin.h"
-#include "ScreenNetRoom.h"
+#include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
+#include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
+#include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "RoomInfoDisplay.h"
 #include "Song.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -202,7 +202,7 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "Song.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Steps.h"

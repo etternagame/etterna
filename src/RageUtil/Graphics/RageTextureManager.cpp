@@ -28,7 +28,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Screen.h"
+#include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
 #include "Etterna/Singletons/ScoreManager.h"

@@ -4,7 +4,7 @@
 #ifndef ScreenContinue_H
 #define ScreenContinue_H
 
-#include "ScreenWithMenuElements.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 
 class ScreenContinue : public ScreenWithMenuElementsSimple
 {

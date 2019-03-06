@@ -3,7 +3,7 @@
 
 #include "PlayerNumber.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 
 class Actor;
 class Screen;

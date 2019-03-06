@@ -10,7 +10,7 @@
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "ScreenWithMenuElements.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 #include "SoundEffectControl.h"
 #include "Sprite.h"
 #include "ThemeMetric.h"

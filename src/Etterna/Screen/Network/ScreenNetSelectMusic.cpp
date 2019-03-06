@@ -29,7 +29,7 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_FriendsUpdate);

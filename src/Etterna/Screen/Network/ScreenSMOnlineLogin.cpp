@@ -10,9 +10,9 @@
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "ScreenSMOnlineLogin.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenSMOnlineLogin);

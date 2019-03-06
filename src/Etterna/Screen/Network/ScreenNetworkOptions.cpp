@@ -9,8 +9,8 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetworkOptions.h"
-#include "ScreenPrompt.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 static LocalizedString CLIENT_CONNECT("ScreenNetworkOptions", "Connect");

@@ -4,7 +4,7 @@
 #define SCORE_KEEPER_NORMAL_H
 
 #include "ScoreKeeper.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "ThemeMetric.h"
 class Steps;
 class Song;

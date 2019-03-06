@@ -9,7 +9,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenOptionsEditProfile.h"
-#include "ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
 
 enum EditProfileRow
 {

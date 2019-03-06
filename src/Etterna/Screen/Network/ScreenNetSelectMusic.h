@@ -1,29 +1,60 @@
-#ifndef SCREEN_NETWORK_OPTIONS_H
-#define SCREEN_NETWORK_OPTIONS_H
+/* ScreenNetSelectMusic - A method for Online/Net song selection */
 
-#include "ScreenOptions.h"
+#ifndef SCREEN_NET_SELECT_MUSIC_H
+#define SCREEN_NET_SELECT_MUSIC_H
 
-class ScreenNetworkOptions : public ScreenOptions
+#include "BPMDisplay.h"
+#include "Difficulty.h"
+#include "ModIconRow.h"
+#include "MusicWheel.h"
+#include "Etterna/Screen/Others/ScreenSelectMusic.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
+#include "Sprite.h"
+#include "StepsDisplay.h"
+
+class ScreenNetSelectMusic : public ScreenSelectMusic
 {
   public:
+	~ScreenNetSelectMusic() override;
 	void Init() override;
+	void BeginScreen() override;
 
+	void DifferentialReload();
+
+	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
 
+	void StartSelectedSong();
+	bool SelectCurrent();
+
+	void OpenOptions() override;
+
+	MusicWheel* GetMusicWheel();
+	// Lua
+	void PushSelf(lua_State* L) override;
+
+  protected:
 	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
+	bool MenuLeft(const InputEventPlus& input) override;
+	bool MenuRight(const InputEventPlus& input) override;
+
+	void Update(float fDeltaTime) override;
+
+	void TweenOffScreen() override;
 
   private:
-	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
-	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
-	// vector<NetServerInfo> AllServers;
+	RageSound m_soundChangeOpt;
+	RageSound m_soundChangeSel;
 
-	void UpdateConnectStatus();
+	bool m_bInitialSelect = false;
+	bool m_bAllowInput = false;
 };
 
 #endif
 
 /*
- * (c) 2004 Charles Lohr
+ * (c) 2004-2005 Charles Lohr
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

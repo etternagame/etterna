@@ -70,7 +70,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Screen.h"
+#include "Etterna/Screen/Others/Screen.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "Etterna/Singletons/SongManager.h"

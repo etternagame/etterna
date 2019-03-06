@@ -7,7 +7,7 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetRoom.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "WheelItemBase.h"
 

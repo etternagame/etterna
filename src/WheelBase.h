@@ -7,7 +7,7 @@
 #include "LuaExpressionTransform.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "ScrollBar.h"
 #include "ThemeMetric.h"
 #include "WheelItemBase.h"

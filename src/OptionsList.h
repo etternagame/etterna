@@ -5,7 +5,7 @@
 #include "CodeSet.h"
 #include "OptionRowHandler.h"
 #include "OptionsCursor.h"
-#include "ScreenWithMenuElements.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
 
 class OptionsList;

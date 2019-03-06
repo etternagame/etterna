@@ -1,64 +1,35 @@
-/* ScreenNetSelectBase - Base screen containing chat room & user list */
+#ifndef ScreenOptionsManageProfiles_H
+#define ScreenOptionsManageProfiles_H
 
-#ifndef SCREEN_NET_SELECT_BASE_H
-#define SCREEN_NET_SELECT_BASE_H
+#include "Etterna/Screen/Others/ScreenMiniMenu.h"
+#include "ScreenOptions.h"
 
-#include "BitmapText.h"
-#include "Quad.h"
-#include "ScreenWithMenuElements.h"
-#include "Sprite.h"
-
-class ScreenNetSelectBase : public ScreenWithMenuElements
+class ScreenOptionsManageProfiles : public ScreenOptions
 {
   public:
 	void Init() override;
+	void BeginScreen() override;
 
-	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
-	void TweenOffScreen() override;
 
-	void UpdateUsers();
-	void UpdateTextInput();
+  protected:
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 
-	bool usersVisible = true;
-	bool enableChatboxInput = true;
-	void SetChatboxVisible(bool visibility);
-	void SetUsersVisible(bool visibility);
-	vector<BitmapText>* ToUsers();
-	void Scroll(unsigned int movescroll);
-	RString GetPreviousMsg();
-	RString GetNextMsg();
-	void SetInputText(RString text);
-	void ShowPreviousMsg();
-	void ShowNextMsg();
-	unsigned int GetScroll() { return scroll; }
-	unsigned int GetLines() { return m_textChatOutput.lines; }
-	void PasteClipboard();
-	// Lua
-	void PushSelf(lua_State* L) override;
+	void AfterChangeRow(PlayerNumber pn) override;
+	void ProcessMenuStart(const InputEventPlus& input) override;
 
-  private:
-	// Chatting
-	ColorBitmapText m_textChatInput;
-	ColorBitmapText m_textChatOutput;
-	AutoActor m_sprChatInputBox;
-	AutoActor m_sprChatOutputBox;
-	RString m_sTextInput;
-	unsigned int m_sTextLastestInputsIndex;
-	vector<RString> m_sTextLastestInputs;
-	unsigned int scroll;
-	RString m_actualText;
+	int GetLocalProfileIndexWithFocus() const;
+	RString GetLocalProfileIDWithFocus() const;
 
-	vector<BitmapText> m_textUsers;
+	vector<RString> m_vsLocalProfileID;
 };
 
 #endif
 
 /*
- * (c) 2004 Charles Lohr
+ * (c) 2003-2004 Chris Danford
  * All rights reserved.
- *
- *     based off of ScreenEz2SelectMusic by "Frieza"
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the

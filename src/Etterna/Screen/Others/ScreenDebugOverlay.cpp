@@ -19,7 +19,7 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "ScreenDebugOverlay.h"
 #include "ScreenDimensions.h"
-#include "ScreenGameplay.h"
+#include "Etterna/Screen/Gameplay/ScreenGameplay.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSyncOverlay.h"
 #include "Song.h"

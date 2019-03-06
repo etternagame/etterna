@@ -1,34 +1,30 @@
-#ifndef ScreenOptionsManageProfiles_H
-#define ScreenOptionsManageProfiles_H
+#ifndef SCREENSMONLINELOGIN_H
+#define SCREENSMONLINELOGIN_H
 
-#include "ScreenMiniMenu.h"
-#include "ScreenOptions.h"
+#include "Etterna/Screen/Options/ScreenOptions.h"
 
-class ScreenOptionsManageProfiles : public ScreenOptions
+class ScreenSMOnlineLogin : public ScreenOptions
 {
   public:
 	void Init() override;
-	void BeginScreen() override;
-
 	void HandleScreenMessage(ScreenMessage SM) override;
+	bool MenuStart(const InputEventPlus& input) override;
+	void SendLogin(RString sPassword);
+	void SendLogin(RString sPassword, RString user);
 
-  protected:
+  private:
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
-
-	void AfterChangeRow(PlayerNumber pn) override;
-	void ProcessMenuStart(const InputEventPlus& input) override;
-
-	int GetLocalProfileIndexWithFocus() const;
-	RString GetLocalProfileIDWithFocus() const;
-
-	vector<RString> m_vsLocalProfileID;
+	RString GetSelectedProfileID();
+	int m_iPlayer;
+	bool typeUsername{ false };
+	string username;
 };
 
 #endif
 
 /*
- * (c) 2003-2004 Chris Danford
+ * (c) 2004 Charles Lohr
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

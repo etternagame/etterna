@@ -1,61 +1,64 @@
-/* ScreenNetSelectMusic - A method for Online/Net song selection */
+/* ScreenNetSelectBase - Base screen containing chat room & user list */
 
-#ifndef SCREEN_NET_SELECT_MUSIC_H
-#define SCREEN_NET_SELECT_MUSIC_H
+#ifndef SCREEN_NET_SELECT_BASE_H
+#define SCREEN_NET_SELECT_BASE_H
 
-#include "BPMDisplay.h"
-#include "Difficulty.h"
-#include "ModIconRow.h"
-#include "MusicWheel.h"
-#include "ScreenSelectMusic.h"
-#include "ScreenWithMenuElements.h"
+#include "BitmapText.h"
+#include "Quad.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "StepsDisplay.h"
 
-class ScreenNetSelectMusic : public ScreenSelectMusic
+class ScreenNetSelectBase : public ScreenWithMenuElements
 {
   public:
-	~ScreenNetSelectMusic() override;
 	void Init() override;
-	void BeginScreen() override;
-
-	void DifferentialReload();
 
 	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
+	void TweenOffScreen() override;
 
-	void StartSelectedSong();
-	bool SelectCurrent();
+	void UpdateUsers();
+	void UpdateTextInput();
 
-	void OpenOptions() override;
-
-	MusicWheel* GetMusicWheel();
+	bool usersVisible = true;
+	bool enableChatboxInput = true;
+	void SetChatboxVisible(bool visibility);
+	void SetUsersVisible(bool visibility);
+	vector<BitmapText>* ToUsers();
+	void Scroll(unsigned int movescroll);
+	RString GetPreviousMsg();
+	RString GetNextMsg();
+	void SetInputText(RString text);
+	void ShowPreviousMsg();
+	void ShowNextMsg();
+	unsigned int GetScroll() { return scroll; }
+	unsigned int GetLines() { return m_textChatOutput.lines; }
+	void PasteClipboard();
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-  protected:
-	bool MenuStart(const InputEventPlus& input) override;
-	bool MenuBack(const InputEventPlus& input) override;
-	bool MenuLeft(const InputEventPlus& input) override;
-	bool MenuRight(const InputEventPlus& input) override;
-
-	void Update(float fDeltaTime) override;
-
-	void TweenOffScreen() override;
-
   private:
-	RageSound m_soundChangeOpt;
-	RageSound m_soundChangeSel;
+	// Chatting
+	ColorBitmapText m_textChatInput;
+	ColorBitmapText m_textChatOutput;
+	AutoActor m_sprChatInputBox;
+	AutoActor m_sprChatOutputBox;
+	RString m_sTextInput;
+	unsigned int m_sTextLastestInputsIndex;
+	vector<RString> m_sTextLastestInputs;
+	unsigned int scroll;
+	RString m_actualText;
 
-	bool m_bInitialSelect = false;
-	bool m_bAllowInput = false;
+	vector<BitmapText> m_textUsers;
 };
 
 #endif
 
 /*
- * (c) 2004-2005 Charles Lohr
+ * (c) 2004 Charles Lohr
  * All rights reserved.
+ *
+ *     based off of ScreenEz2SelectMusic by "Frieza"
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the

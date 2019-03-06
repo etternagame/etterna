@@ -5,7 +5,7 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 
 class Transition : public ActorFrame
 {

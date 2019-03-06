@@ -1,7 +1,7 @@
 #include "BitmapText.h"
 #include "Quad.h"
-#include "ScreenEvaluation.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenEvaluation.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "StepsDisplay.h"
 
 class ScreenNetEvaluation : public ScreenEvaluation

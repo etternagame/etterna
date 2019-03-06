@@ -6,7 +6,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RoomWheel.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 
 static LocalizedString EMPTY_STRING("RoomWheel", "Empty");
 

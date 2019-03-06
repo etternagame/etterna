@@ -1,58 +1,29 @@
-/* ScreenNetSelectMusic - A method for Online/Net song selection */
+#ifndef SCREEN_NETWORK_OPTIONS_H
+#define SCREEN_NETWORK_OPTIONS_H
 
-#ifndef SCREEN_NET_ROOM_H
-#define SCREEN_NET_ROOM_H
+#include "Etterna/Screen/Options/ScreenOptions.h"
 
-#include "RoomInfoDisplay.h"
-#include "RoomWheel.h"
-#include "ScreenNetSelectBase.h"
-#include "ScreenWithMenuElements.h"
-#include <vector>
-
-class ScreenNetRoom : public ScreenNetSelectBase
+class ScreenNetworkOptions : public ScreenOptions
 {
   public:
 	void Init() override;
-	bool Input(const InputEventPlus& input) override;
+
 	void HandleScreenMessage(ScreenMessage SM) override;
-	RoomWheel* GetRoomWheel();
-	void SelectCurrent();
-	void InfoSetVisible(bool visibility);
 
-	void UpdateRoomsList();
-	vector<BitmapText> m_RoomList;
-	vector<RoomData>* m_Rooms;
-	int m_iRoomPlace;
-	RoomInfoDisplay m_roomInfo;
-
-	// Lua
-	void PushSelf(lua_State* L) override;
-
-  protected:
 	bool MenuStart(const InputEventPlus& input) override;
-	bool MenuBack(const InputEventPlus& input) override;
-
-	void TweenOffScreen() override;
 
   private:
-	bool MenuLeft(const InputEventPlus& input) override;
-	bool MenuRight(const InputEventPlus& input) override;
-	void CreateNewRoom(const RString& rName,
-					   const RString& rDesc,
-					   const RString& rPass);
+	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
+	// vector<NetServerInfo> AllServers;
 
-	RageSound m_soundChangeSel;
-
-	string m_sLastPickedRoom;
-
-	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
-
-	RoomWheel m_RoomWheel;
+	void UpdateConnectStatus();
 };
+
 #endif
 
 /*
- * (c) 2004 Charles Lohr, Joshua Allen
+ * (c) 2004 Charles Lohr
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

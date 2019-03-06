@@ -7,7 +7,7 @@
 #include "ProductInfo.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenInstallOverlay.h"
+#include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "LuaManager.h"

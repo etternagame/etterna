@@ -14,7 +14,7 @@
 #include "RageSurface_Save_PNG.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Screen.h"
+#include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <chrono>

@@ -11,7 +11,7 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "Song.h"
 #include "Style.h"
 #include "arch/ArchHooks/ArchHooks.h"

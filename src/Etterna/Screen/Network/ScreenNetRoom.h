@@ -1,21 +1,58 @@
-#ifndef SCREEN_SONG_OPTIONS_H
-#define SCREEN_SONG_OPTIONS_H
+/* ScreenNetSelectMusic - A method for Online/Net song selection */
 
-#include "ScreenOptionsMaster.h"
+#ifndef SCREEN_NET_ROOM_H
+#define SCREEN_NET_ROOM_H
 
-class ScreenSongOptions : public ScreenOptionsMaster
+#include "RoomInfoDisplay.h"
+#include "RoomWheel.h"
+#include "ScreenNetSelectBase.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
+#include <vector>
+
+class ScreenNetRoom : public ScreenNetSelectBase
 {
   public:
 	void Init() override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
+	RoomWheel* GetRoomWheel();
+	void SelectCurrent();
+	void InfoSetVisible(bool visibility);
+
+	void UpdateRoomsList();
+	vector<BitmapText> m_RoomList;
+	vector<RoomData>* m_Rooms;
+	int m_iRoomPlace;
+	RoomInfoDisplay m_roomInfo;
+
+	// Lua
+	void PushSelf(lua_State* L) override;
+
+  protected:
+	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
+
+	void TweenOffScreen() override;
 
   private:
-	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
-};
+	bool MenuLeft(const InputEventPlus& input) override;
+	bool MenuRight(const InputEventPlus& input) override;
+	void CreateNewRoom(const RString& rName,
+					   const RString& rDesc,
+					   const RString& rPass);
 
+	RageSound m_soundChangeSel;
+
+	string m_sLastPickedRoom;
+
+	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
+
+	RoomWheel m_RoomWheel;
+};
 #endif
 
 /*
- * (c) 2001-2004 Chris Danford
+ * (c) 2004 Charles Lohr, Joshua Allen
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

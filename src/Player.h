@@ -3,7 +3,7 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "ScreenMessage.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "NoteData.h"
 #include <chrono>

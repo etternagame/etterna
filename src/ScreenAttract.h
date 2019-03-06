@@ -4,7 +4,7 @@
 #ifndef ScreenAttract_H
 #define ScreenAttract_H
 
-#include "ScreenWithMenuElements.h"
+#include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 
 AutoScreenMessage(SM_GoToStartScreen);
 

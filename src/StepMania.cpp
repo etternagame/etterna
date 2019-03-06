@@ -29,7 +29,7 @@
 #include "InputEventPlus.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
-#include "Screen.h"
+#include "Etterna/Screen/Others/Screen.h"
 #include "ScreenDimensions.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)

@@ -34,7 +34,7 @@
 #include "ScreenDimensions.h"
 #include "ScreenGameplay.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenSaveSync.h"
+#include "Etterna/Screen/Others/ScreenSaveSync.h"
 #include "Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "SongUtil.h"

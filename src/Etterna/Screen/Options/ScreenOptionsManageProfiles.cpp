@@ -7,10 +7,10 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenMiniMenu.h"
+#include "Etterna/Screen/Others/ScreenMiniMenu.h"
 #include "ScreenOptionsManageProfiles.h"
-#include "ScreenPrompt.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 
 static LocalizedString NEW_PROFILE_DEFAULT_NAME("ScreenOptionsManageProfiles",
 												"NewProfileDefaultName");

@@ -12,8 +12,8 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "ScreenMiniMenu.h" // for MenuRowDef
-#include "ScreenOptionsMasterPrefs.h"
+#include "Etterna/Screen/Others/ScreenMiniMenu.h" // for MenuRowDef
+#include "Etterna/Screen/Options/ScreenOptionsMasterPrefs.h"
 #include "Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "SongUtil.h"

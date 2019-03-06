@@ -21,7 +21,7 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenTextEntry.h"
+#include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
 #include "SongManager.h"

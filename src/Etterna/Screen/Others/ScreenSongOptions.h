@@ -1,30 +1,21 @@
-#ifndef SCREENSMONLINELOGIN_H
-#define SCREENSMONLINELOGIN_H
+#ifndef SCREEN_SONG_OPTIONS_H
+#define SCREEN_SONG_OPTIONS_H
 
-#include "ScreenOptions.h"
+#include "Etterna/Screen/Options/ScreenOptionsMaster.h"
 
-class ScreenSMOnlineLogin : public ScreenOptions
+class ScreenSongOptions : public ScreenOptionsMaster
 {
   public:
 	void Init() override;
-	void HandleScreenMessage(ScreenMessage SM) override;
-	bool MenuStart(const InputEventPlus& input) override;
-	void SendLogin(RString sPassword);
-	void SendLogin(RString sPassword, RString user);
 
   private:
-	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
-	RString GetSelectedProfileID();
-	int m_iPlayer;
-	bool typeUsername{ false };
-	string username;
 };
 
 #endif
 
 /*
- * (c) 2004 Charles Lohr
+ * (c) 2001-2004 Chris Danford
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
