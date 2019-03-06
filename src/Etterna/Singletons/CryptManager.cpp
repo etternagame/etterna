@@ -8,7 +8,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include "libtomcrypt/src/headers/tomcrypt.h"
+#include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
   NULL; // global and accessible from anywhere in our program
