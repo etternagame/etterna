@@ -3,7 +3,7 @@
 #define COMBO_GRAPH_H
 
 #include "ActorFrame.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class StageStats;
 class PlayerStageStats;

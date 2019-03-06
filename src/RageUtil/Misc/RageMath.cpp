@@ -899,7 +899,7 @@ RageBezier2D::SetFromBezier(float fC1X,
 	m_Y.SetFromBezier(fC1Y, fC2Y, fC3Y, fC4Y);
 }
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 struct LunaRageQuadratic : Luna<RageQuadratic>
 {

@@ -1,5 +1,5 @@
 #include "global.h"
-#include "EnumHelper.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "StreamDisplay.h"

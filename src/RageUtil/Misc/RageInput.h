@@ -3,7 +3,7 @@
 #ifndef RAGEINPUT_H
 #define RAGEINPUT_H
 
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "RageInputDevice.h"
 
 struct lua_State;

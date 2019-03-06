@@ -1,8 +1,8 @@
 #include "global.h"
-#include "Foreach.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageInput.h"
 #include "RageLog.h"
@@ -190,7 +190,7 @@ RageInput::GetDisplayDevicesString() const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to RageInput. */
 class LunaRageInput : public Luna<RageInput>

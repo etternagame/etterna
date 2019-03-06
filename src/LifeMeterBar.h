@@ -3,7 +3,7 @@
 
 #include "AutoActor.h"
 #include "LifeMeter.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class StreamDisplay;
 

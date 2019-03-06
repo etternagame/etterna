@@ -1,10 +1,10 @@
 #include "global.h"
 
-#include "Character.h"
+#include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "OptionRowHandler.h"
-#include "Profile.h"
+#include "Etterna/Models/Misc/OptionRowHandler.h"
+#include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"

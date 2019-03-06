@@ -2,13 +2,13 @@
 #if !defined(WITHOUT_NETWORKING)
 #include "RageUtil/File/RageFileManager.h"
 #include "ScreenManager.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/File/RageFile.h"
 #include "DownloadManager.h"
 #include "GameState.h"
 #include "ScoreManager.h"
-#include "GamePreferences.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "ProfileManager.h"
@@ -18,14 +18,14 @@
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "SpecialFiles.h"
 #include "curl/curl.h"
-#include "Foreach.h"
-#include "Song.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "RageUtil/Misc/RageString.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <Etterna/Singletons/FilterManager.h>
-#include "PlayerStageStats.h"
-#include "Grade.h"
+#include "Etterna/Models/Misc/PlayerStageStats.h"
+#include "Etterna/Models/Misc/Grade.h"
 #include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina
 using json = nlohmann::json;
 #ifdef _WIN32
@@ -2120,7 +2120,7 @@ findStringIC(const std::string& strHaystack, const std::string& strNeedle)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "LuaManager.h"
 /** @brief Allow Lua to have access to the ProfileManager. */
 class LunaDownloadManager : public Luna<DownloadManager>

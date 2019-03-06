@@ -1,5 +1,5 @@
 #include "global.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenMessage.h"
 #include <map>

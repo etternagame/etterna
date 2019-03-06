@@ -3,12 +3,12 @@
 
 #include "ActorUtil.h"
 #include "BitmapText.h"
-#include "PlayerStageStats.h"
+#include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 /**
  * @brief How many songs are shown at the end?

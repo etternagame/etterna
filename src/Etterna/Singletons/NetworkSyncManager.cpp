@@ -1,12 +1,12 @@
 #include "global.h"
 #include "NetworkSyncManager.h"
-#include "Song.h"
-#include "HighScore.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include "uWS.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "LocalizedString.h"
-#include "JsonUtil.h"
-#include "Style.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/JsonUtil.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include <cerrno>
 #include <chrono>
 #include <nlohmann/json.hpp>
@@ -14,7 +14,7 @@
 #include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "RoomInfoDisplay.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 using json = nlohmann::json;
 
@@ -197,19 +197,19 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/MessageManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "ProductInfo.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Steps.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "HighScore.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
@@ -1787,7 +1787,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 		  LuaFunction(CloseConnection, CloseNetworkConnection())
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {

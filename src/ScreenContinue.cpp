@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "MenuTimer.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenContinue.h"

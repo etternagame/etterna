@@ -1,21 +1,21 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "ArrowEffects.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "GhostArrowRow.h"
-#include "LuaBinding.h"
-#include "NoteData.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "NoteDisplay.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
-#include "NoteTypes.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/NoteTypes.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "ReceptorArrowRow.h"
 #include "Sprite.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
@@ -2017,7 +2017,7 @@ NoteColumnRenderer::NCR_TweenState::MakeWeightedAverage(
 #undef WEIGHT_FOR_ME
 }
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 struct LunaNCSplineHandler : Luna<NCSplineHandler>
 {

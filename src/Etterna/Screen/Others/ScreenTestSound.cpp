@@ -1,5 +1,5 @@
 #include "global.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -1,8 +1,8 @@
 #ifndef ScoreManager_H
 #define ScoreManager_H
 
-#include "GameConstantsAndTypes.h"
-#include "Grade.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/Grade.h"
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "ProfileManager.h"

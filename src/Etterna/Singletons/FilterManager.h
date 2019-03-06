@@ -1,7 +1,7 @@
 #ifndef FilterManager_H
 #define FilterManager_H
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include <unordered_map>
 
 class PlayerState;

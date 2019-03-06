@@ -7,7 +7,7 @@ class Style;
 struct Game;
 struct lua_State;
 
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 
 /** @brief The collective information about a Steps' Type. */
 struct StepsTypeInfo

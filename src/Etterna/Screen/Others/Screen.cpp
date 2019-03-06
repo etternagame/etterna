@@ -1,6 +1,6 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -492,7 +492,7 @@ Screen::InternalRemoveCallback(callback_key_t key)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Screen. */
 class LunaScreen : public Luna<Screen>

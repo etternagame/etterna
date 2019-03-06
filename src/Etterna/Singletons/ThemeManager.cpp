@@ -1,5 +1,5 @@
 #include "global.h"
-#include "FontCharAliases.h"
+#include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -14,14 +14,14 @@
 #include "ProfileManager.h"
 #include "ScreenManager.h"
 #endif
-#include "EnumHelper.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "GameLoop.h" // For ChangeTheme
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "LuaManager.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "SpecialFiles.h"
-#include "SubscriptionManager.h"
+#include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include <deque>
 #include "PrefsManager.h"
@@ -58,7 +58,7 @@ class LoadedThemeData
 LoadedThemeData* g_pLoadedThemeData = NULL;
 
 // For self-registering metrics
-#include "SubscriptionManager.h"
+#include "Etterna/Models/Misc/SubscriptionManager.h"
 static SubscriptionManager<IThemeMetric> g_Subscribers;
 
 class LocalizedStringImplThemeMetric
@@ -1443,7 +1443,7 @@ ThemeManager::GetBlankGraphicPath()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ThemeManager. */
 class LunaThemeManager : public Luna<ThemeManager>

@@ -5,8 +5,8 @@
 #include "archutils/Unix/X11Helper.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX
 #include "RageUtil/Graphics/RageDisplay.h"  // VideoModeParams
-#include "DisplayResolutions.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 
 #include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 using namespace RageDisplay_Legacy_Helpers;

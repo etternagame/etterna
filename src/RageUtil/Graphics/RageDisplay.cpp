@@ -1,7 +1,7 @@
 #include "global.h"
-#include "DisplayResolutions.h"
-#include "LocalizedString.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
@@ -1275,7 +1275,7 @@ RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageDisplay. */
 class LunaRageDisplay : public Luna<RageDisplay>

@@ -1,12 +1,12 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Foreach.h"
-#include "GameCommand.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSelectMaster.h"
@@ -1068,7 +1068,7 @@ ScreenSelectMaster::GetCursorY(PlayerNumber pn)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenSelectMaster. */
 class LunaScreenSelectMaster : public Luna<ScreenSelectMaster>

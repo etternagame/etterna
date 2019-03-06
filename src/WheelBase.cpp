@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -9,11 +9,11 @@
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelBase.h"
 
 const int MAX_WHEEL_SOUND_SPEED = 15;
@@ -486,7 +486,7 @@ WheelBase::FirstVisibleIndex()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the WheelBase. */
 class LunaWheelBase : public Luna<WheelBase>

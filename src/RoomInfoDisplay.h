@@ -4,7 +4,7 @@
 #define ROOM_INFO_DISPLAY_H
 
 #include "ActorFrame.h"
-#include "RoomWheel.h"
+#include "Etterna/Models/Misc/RoomWheel.h"
 
 class RoomInfoDisplay : public ActorFrame
 {

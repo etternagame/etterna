@@ -3,13 +3,13 @@
 #if !defined(WITHOUT_NETWORKING)
 #include "ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "LocalizedString.h"
-#include "CodeDetector.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/FilterManager.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "MenuTimer.h"
 #include "MusicWheel.h"
@@ -17,15 +17,15 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetSelectMusic.h"
 #include "ScreenNetSelectBase.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "CodeDetector.h"
+#include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -339,7 +339,7 @@ ScreenNetSelectMusic::GetMusicWheel()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the PlayerState. */
 class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>

@@ -2,7 +2,7 @@
 #define BPM_DISPLAY_H
 
 #include "BitmapText.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 class Song;
 class Steps;
 struct DisplayBpms;

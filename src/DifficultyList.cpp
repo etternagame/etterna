@@ -1,13 +1,13 @@
 #include "global.h"
-#include "CommonMetrics.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "DifficultyList.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Song.h"
-#include "SongUtil.h"
-#include "Steps.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Songs/SongUtil.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "StepsDisplay.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 /** @brief Specifies the max number of charts available for a song.
@@ -355,7 +355,7 @@ StepsDisplayList::HandleMessage(const Message& msg)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the StepsDisplayList. */
 class LunaStepsDisplayList : public Luna<StepsDisplayList>

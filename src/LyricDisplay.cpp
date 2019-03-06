@@ -2,8 +2,8 @@
 #include "ActorUtil.h"
 #include "Etterna/Singletons/GameState.h"
 #include "LyricDisplay.h"
-#include "Song.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 static ThemeMetric<float> IN_LENGTH("LyricDisplay", "InLength");
 static ThemeMetric<float> OUT_LENGTH("LyricDisplay", "OutLength");

@@ -5,7 +5,7 @@
 #include "MeterDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_ACTOR_CLASS(MeterDisplay);
@@ -104,7 +104,7 @@ SongMeterDisplay::Update(float fDeltaTime)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaMeterDisplay : public Luna<MeterDisplay>
 {

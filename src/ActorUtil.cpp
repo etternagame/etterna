@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "EnumHelper.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -9,7 +9,7 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -591,7 +591,7 @@ ActorUtil::GetFileType(const RString& sPath)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 namespace {
 int

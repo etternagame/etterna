@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 
-#include "DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
 #include "RageUtil/Misc/RageLog.h"

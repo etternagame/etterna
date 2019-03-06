@@ -1,10 +1,10 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
-#include "Font.h"
+#include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/FontManager.h"
-#include "Foreach.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
@@ -1436,7 +1436,7 @@ ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 }
 
 // lua start
-#include "FontCharAliases.h"
+#include "Etterna/Models/Fonts/FontCharAliases.h"
 
 /** @brief Allow Lua to have access to the BitmapText. */
 class LunaBitmapText : public Luna<BitmapText>

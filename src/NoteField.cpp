@@ -1,21 +1,21 @@
 #include "global.h"
 #include "ArrowEffects.h"
-#include "BackgroundUtil.h"
-#include "CommonMetrics.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/BackgroundUtil.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
-#include "NoteData.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "NoteField.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenDimensions.h"
-#include "Song.h"
-#include "Style.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include <cfloat>
 
@@ -1045,7 +1045,7 @@ NoteField::HandleMessage(const Message& msg)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Notefield. */
 class LunaNoteField : public Luna<NoteField>

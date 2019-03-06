@@ -3,8 +3,8 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 
 class HoldJudgment : public ActorFrame
 {

@@ -3,9 +3,9 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "arch/arch_default.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 void
 InputHandler::UpdateTimer()

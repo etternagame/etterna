@@ -6,8 +6,8 @@
 // by Cho, Kyung Min: bro@shinbiro.com 2002-10-30
 
 #include "global.h"
-#include "DateTime.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/DateTime.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"

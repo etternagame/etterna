@@ -4,9 +4,9 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "GameCommand.h"
+#include "Etterna/Models/Misc/GameCommand.h"
 #include "TextBanner.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
 
 class Song;

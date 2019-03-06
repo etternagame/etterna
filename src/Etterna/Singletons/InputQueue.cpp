@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "Foreach.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
 #include "RageUtil/Misc/RageLog.h"

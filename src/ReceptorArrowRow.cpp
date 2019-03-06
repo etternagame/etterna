@@ -1,11 +1,11 @@
 #include "global.h"
 #include "ArrowEffects.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrowRow.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 
 map<int, map<int, bool>> NoteUpcoming;
 

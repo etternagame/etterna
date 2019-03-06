@@ -2,10 +2,10 @@
 #define SCREEN_TEXT_ENTRY_H
 
 #include "BitmapText.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 /** @brief The list of possible keyboard rows. */
 enum KeyboardRow

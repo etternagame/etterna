@@ -3,9 +3,9 @@
 #define DIFFICULTY_LIST_H
 
 #include "ActorFrame.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "StepsDisplay.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class Song;
 class Steps;

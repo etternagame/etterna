@@ -3,13 +3,13 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "GameConstantsAndTypes.h"
-#include "LuaExpressionTransform.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Lua/LuaExpressionTransform.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "ScrollBar.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
 
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))

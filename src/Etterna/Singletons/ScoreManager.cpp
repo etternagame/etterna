@@ -1,14 +1,14 @@
 #include "global.h"
-#include "Foreach.h"
-#include "GameConstantsAndTypes.h"
-#include "HighScore.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include "MinaCalc.h"
-#include "NoteData.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "ScoreManager.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
@@ -780,7 +780,7 @@ ScoreManager::GetScoresForChart(const string& ck, const string& profileID)
 	return NULL;
 }
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaScoresAtRate : public Luna<ScoresAtRate>
 {

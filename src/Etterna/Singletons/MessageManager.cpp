@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "EnumHelper.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "LuaManager.h"
 #include "MessageManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -311,7 +311,7 @@ MessageSubscriber::UnsubscribeAll()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the MessageManager. */
 class LunaMessageManager : public Luna<MessageManager>

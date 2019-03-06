@@ -4,7 +4,7 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 /** @brief Shows PlayerOptions and SongOptions in icon form. */
 class ModIcon : public ActorFrame
 {

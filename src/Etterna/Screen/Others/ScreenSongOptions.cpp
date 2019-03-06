@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Etterna/Singletons/GameState.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenSongOptions.h"

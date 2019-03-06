@@ -3,17 +3,17 @@
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "NoteData.h"
-#include "NotesLoaderSM.h"
-#include "NotesLoaderSSC.h"
+#include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
+#include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
-#include "TimingData.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
 #include "GameState.h"
 class SongOptions;
@@ -813,7 +813,7 @@ void GameSoundManager::HandleMessage(const Message& msg)
 	}
 }
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameSoundManager. */
 class LunaGameSoundManager : public Luna<GameSoundManager>

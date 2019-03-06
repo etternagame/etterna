@@ -1,17 +1,17 @@
 #include "global.h"
 #include "CryptManager.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "PrefsManager.h"
-#include "Profile.h"
-#include "Profile.h"
+#include "Etterna/Models/Misc/Profile.h"
+#include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "ScoreManager.h"
 #include "StatsManager.h"
-#include "Steps.h"
-#include "StyleUtil.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/StepsAndStyles/StyleUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 
@@ -214,7 +214,7 @@ StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the StatsManager. */
 class LunaStatsManager : public Luna<StatsManager>

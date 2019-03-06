@@ -1,6 +1,6 @@
 #include "global.h"
 #include "ArchHooks.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
@@ -120,8 +120,8 @@ ArchHooks::RegisterWithLua()
 }
 
 // lua start
-#include "LuaBinding.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 
 class LunaArchHooks : public Luna<ArchHooks>
 {

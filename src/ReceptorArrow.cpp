@@ -1,10 +1,10 @@
 #include "global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrow.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 
 ReceptorArrow::ReceptorArrow()
 {

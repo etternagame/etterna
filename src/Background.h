@@ -2,7 +2,7 @@
 #define BACKGROUND_H
 
 #include "ActorFrame.h"
-#include "BackgroundUtil.h"
+#include "Etterna/Models/Misc/BackgroundUtil.h"
 
 class DancingCharacters;
 class Song;

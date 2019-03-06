@@ -1,11 +1,11 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "ModIconRow.h"
-#include "PlayerOptions.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerOptions.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 int
@@ -174,7 +174,7 @@ ModIconRow::SetFromGameState()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ModIconRow. */
 class LunaModIconRow : public Luna<ModIconRow>

@@ -1,32 +1,32 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "CodeDetector.h"
-#include "CommonMetrics.h"
+#include "Etterna/Models/Misc/CodeDetector.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Grade.h"
-#include "InputEventPlus.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/Grade.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScoreKeeperNormal.h"
+#include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "ScreenEvaluation.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "StepMania.h"
-#include "Steps.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "GamePreferences.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
@@ -373,7 +373,7 @@ ScreenEvaluation::HandleMenuStart()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenEvaluation. */
 class LunaScreenEvaluation : public Luna<ScreenEvaluation>

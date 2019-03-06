@@ -1,25 +1,25 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "CommonMetrics.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/FilterManager.h"
-#include "Foreach.h"
-#include "GameCommand.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "MusicWheel.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageString.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "SongUtil.h"
-#include "Style.h"
+#include "Etterna/Models/Songs/SongUtil.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
@@ -1615,7 +1615,7 @@ MusicWheel::FinishChangingSorts()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaMusicWheel : public Luna<MusicWheel>
 {

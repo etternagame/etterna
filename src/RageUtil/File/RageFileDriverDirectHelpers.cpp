@@ -1,5 +1,5 @@
 ﻿#include "global.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil/Utils/RageUtil.h"
 

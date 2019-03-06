@@ -1,7 +1,7 @@
 #include "global.h"
-#include "Character.h"
+#include "Etterna/Models/Misc/Character.h"
 #include "CharacterManager.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
 
@@ -121,7 +121,7 @@ CharacterManager::GetCharacterFromID(const RString& sCharacterID)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the CharacterManager. */
 class LunaCharacterManager : public Luna<CharacterManager>

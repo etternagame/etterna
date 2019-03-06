@@ -2,8 +2,8 @@
 #define LIFE_METER_H
 
 #include "ActorFrame.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerOptions.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerOptions.h"
 
 class PlayerState;
 class PlayerStageStats;

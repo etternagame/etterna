@@ -1,7 +1,7 @@
 #include "global.h"
 #include "JoystickDevice.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using __gnu_cxx::hash_map;
 

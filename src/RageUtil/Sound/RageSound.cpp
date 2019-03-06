@@ -27,7 +27,7 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "RageSoundUtil.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <iterator>
@@ -776,7 +776,7 @@ RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
 
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageSound. */
 class LunaRageSound : public Luna<RageSound>

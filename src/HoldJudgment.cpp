@@ -1,10 +1,10 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "HoldJudgment.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_ACTOR_CLASS(HoldJudgment);
@@ -105,7 +105,7 @@ HoldJudgment::HandleMessage(const Message& msg)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the HoldJudgment. */
 class LunaHoldJudgment : public Luna<HoldJudgment>

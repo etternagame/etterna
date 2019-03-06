@@ -60,7 +60,7 @@ ActorSound::LoadFromNode(const XNode* pNode)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ActorSound. */
 class LunaActorSound : public Luna<ActorSound>

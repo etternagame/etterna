@@ -3,7 +3,7 @@
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
-#include "DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "RageDisplay.h"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen

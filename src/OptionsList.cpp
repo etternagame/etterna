@@ -1,10 +1,10 @@
 #include "global.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "OptionsList.h"
-#include "PlayerState.h"
-#include "SongUtil.h"
+#include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Models/Songs/SongUtil.h"
 
 #define LINE(sLineName)                                                        \
 	THEME->GetMetric(m_sName, ssprintf("Line%s", (sLineName).c_str()))

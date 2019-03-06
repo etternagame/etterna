@@ -11,7 +11,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include "DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplayResolutions.h"
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 

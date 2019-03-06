@@ -7,7 +7,7 @@
 #include "AutoActor.h"
 #include "BitmapText.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 RString
 WARNING_COMMAND_NAME(size_t i);

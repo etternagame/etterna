@@ -1,6 +1,6 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "TextBanner.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -93,7 +93,7 @@ TextBanner::SetFromSong(const Song* pSong)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the TextBanner. */
 class LunaTextBanner : public Luna<TextBanner>

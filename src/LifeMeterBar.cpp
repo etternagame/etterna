@@ -2,14 +2,14 @@
 #include "ActorUtil.h"
 #include "Etterna/Singletons/GameState.h"
 #include "LifeMeterBar.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Steps.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "StreamDisplay.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 static RString
 LIFE_PERCENT_CHANGE_NAME(size_t i)

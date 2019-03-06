@@ -2,7 +2,7 @@
 #define RollingNumbers_H
 
 #include "BitmapText.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 /** @brief Animates from one number to another by scrolling its digits. */
 class RollingNumbers : public BitmapText

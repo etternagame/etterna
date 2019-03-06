@@ -4,8 +4,8 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 struct WheelItemBaseData;
 /** @brief The different types of Wheel Items. */

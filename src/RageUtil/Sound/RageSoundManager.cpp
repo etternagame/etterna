@@ -9,9 +9,9 @@
  */
 
 #include "global.h"
-#include "Foreach.h"
-#include "LocalizedString.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSound.h"

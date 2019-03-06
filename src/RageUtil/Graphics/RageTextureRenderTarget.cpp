@@ -86,7 +86,7 @@ RageTextureRenderTarget::FinishRenderingTo()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageTextureRenderTarget. */
 class LunaRageTextureRenderTarget : public Luna<RageTextureRenderTarget>

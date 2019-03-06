@@ -1,5 +1,5 @@
 #include "global.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileDriverMemory.h"
@@ -553,7 +553,7 @@ XmlFileUtil::SaveToFile(const XNode* pNode,
 	return SaveToFile(pNode, f, sStylesheet, bWriteTabs);
 }
 
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 class XNodeLuaValue : public XNodeValue
 {
   public:

@@ -1,14 +1,14 @@
 #include "global.h"
-#include "Foreach.h"
-#include "Game.h"
-#include "GameConstantsAndTypes.h"
-#include "GameInput.h" // for GameButton constants
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/Game.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameInput.h" // for GameButton constants
 #include "GameLoop.h"  // for ChangeGame
 #include "GameManager.h"
 #include "NoteSkinManager.h"
 #include "RageUtil/Misc/RageInputDevice.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "ThemeManager.h"
 
 GameManager* GAMEMAN =
@@ -2004,7 +2004,7 @@ GameManager::GameAndStringToStyle(const Game* game, const RString& sStyle)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameManager. */
 class LunaGameManager : public Luna<GameManager>

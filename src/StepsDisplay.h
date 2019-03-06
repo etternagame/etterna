@@ -5,11 +5,11 @@
 #include "ActorUtil.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "Difficulty.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/Difficulty.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "Sprite.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class Steps;
 class PlayerState;

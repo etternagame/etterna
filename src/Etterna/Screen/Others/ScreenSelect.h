@@ -1,9 +1,9 @@
 #ifndef SCREEN_SELECT_H
 #define SCREEN_SELECT_H
 
-#include "GameCommand.h"
+#include "Etterna/Models/Misc/GameCommand.h"
 #include "ScreenWithMenuElements.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 /** @brief Base class for Style, Difficulty, and Mode selection screens. */
 class ScreenSelect : public ScreenWithMenuElements
 {

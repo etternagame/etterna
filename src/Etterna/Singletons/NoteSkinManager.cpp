@@ -1,8 +1,8 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "Game.h"
-#include "GameInput.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/Game.h"
+#include "Etterna/Models/Misc/GameInput.h"
 #include "GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "NoteSkinManager.h"
@@ -595,7 +595,7 @@ NoteSkinManager::GetPathFromDirAndFile(const RString& sDir,
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the NoteSkinManager. */
 class LunaNoteSkinManager : public Luna<NoteSkinManager>

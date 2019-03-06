@@ -1,12 +1,12 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
-#include "Font.h"
+#include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "MenuTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 RString WARNING_COMMAND_NAME( size_t i ) { return ssprintf("Warning%dCommand", static_cast<int>(i)); }
 
@@ -196,7 +196,7 @@ void MenuTimer::SetText( float fSeconds )
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the MenuTimer. */ 
 class LunaMenuTimer: public Luna<MenuTimer>

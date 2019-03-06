@@ -1,8 +1,8 @@
 ﻿#ifndef INPUT_MAPPER_H
 #define INPUT_MAPPER_H
 
-#include "GameInput.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/GameInput.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Misc/RageInputDevice.h"
 struct Game;
 

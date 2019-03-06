@@ -6,7 +6,7 @@
 #include "RageSoundPosMap.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 
 class RageSoundReader;
 struct lua_State;

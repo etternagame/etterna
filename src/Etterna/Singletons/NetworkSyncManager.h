@@ -1,11 +1,11 @@
 #ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
-#include "Difficulty.h"
-#include "HighScore.h"
+#include "Etterna/Models/Misc/Difficulty.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include <queue>
 #include "uWS.h"
-#include "JsonUtil.h"
+#include "Etterna/Models/Misc/JsonUtil.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "CryptHelpers.h"
+#include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -494,7 +494,7 @@ CryptManager::GenerateRandomUUID()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the CryptManager. */
 class LunaCryptManager : public Luna<CryptManager>

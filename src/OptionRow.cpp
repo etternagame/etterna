@@ -1,13 +1,13 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "CommonMetrics.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "OptionRow.h"
-#include "OptionRowHandler.h"
+#include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
-#include "Style.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 
 const RString NEXT_ROW_NAME = "NextRow";
 const RString EXIT_NAME = "Exit";
@@ -942,7 +942,7 @@ OptionRow::ExportOptions(const PlayerNumber& vpns,
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaOptionRow : public Luna<OptionRow>
 {

@@ -2,7 +2,7 @@
  * reduces CPU usage for sounds that are played several times at once. */
 
 #include "global.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "RageSoundReader_Preload.h"
 #include "RageSoundUtil.h"
 #include "RageUtil/Utils/RageUtil.h"

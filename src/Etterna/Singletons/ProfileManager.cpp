@@ -1,24 +1,24 @@
 #include "global.h"
-#include "Character.h"
+#include "Etterna/Models/Misc/Character.h"
 #include "CharacterManager.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "HighScore.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include "PrefsManager.h"
-#include "Profile.h"
+#include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "SongManager.h"
-#include "Steps.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
-#include "StepsUtil.h"
-#include "Style.h"
-#include "HighScore.h"
-#include "Character.h"
+#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/Misc/Character.h"
 #include "CharacterManager.h"
 #include "DownloadManager.h"
 
@@ -779,7 +779,7 @@ ProfileManager::SetStatsPrefix(RString const& prefix)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ProfileManager. */
 class LunaProfileManager : public Luna<ProfileManager>

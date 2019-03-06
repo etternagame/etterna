@@ -1,14 +1,14 @@
 #include "global.h"
-#include "Character.h"
+#include "Etterna/Models/Misc/Character.h"
 #include "DancingCharacters.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Model.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
 
 int

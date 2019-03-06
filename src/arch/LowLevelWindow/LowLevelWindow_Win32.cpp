@@ -7,7 +7,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
 

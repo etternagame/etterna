@@ -2,9 +2,9 @@
 
 #if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameSoundManager.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "OptionRowHandler.h"
+#include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"

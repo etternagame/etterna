@@ -1,5 +1,5 @@
 #include "global.h"
-#include "EnumHelper.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -2,7 +2,7 @@
 #define ScreenGameplaySyncMachine_H
 
 #include "ScreenGameplayNormal.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 /** @brief A gameplay screen used for syncing the machine's timing. */
 class ScreenGameplaySyncMachine : public ScreenGameplayNormal
 {

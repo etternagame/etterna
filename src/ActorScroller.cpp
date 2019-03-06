@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 #include "ActorScroller.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
@@ -333,7 +333,7 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ActorScroller. */
 class LunaActorScroller : public Luna<ActorScroller>

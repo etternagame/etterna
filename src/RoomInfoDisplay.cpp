@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "ActorUtil.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RoomInfoDisplay.h"
 

@@ -3,7 +3,7 @@
 #include "BitmapText.h"
 #include "ComboGraph.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "StageStats.h"
+#include "Etterna/Models/Misc/StageStats.h"
 
 const int MinComboSizeToShow = 5;
 
@@ -142,7 +142,7 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ComboGraph. */
 class LunaComboGraph : public Luna<ComboGraph>

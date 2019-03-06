@@ -3,7 +3,7 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 
 class PlayerState;
 /** @brief A gray arrow that "receives" the note arrows. */

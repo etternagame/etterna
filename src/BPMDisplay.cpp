@@ -1,12 +1,12 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
 #include "BPMDisplay.h"
-#include "CommonMetrics.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
-#include "Steps.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 
 #include <climits>
 
@@ -259,7 +259,7 @@ SongBPMDisplay::Update(float fDeltaTime)
 
 REGISTER_ACTOR_CLASS(SongBPMDisplay);
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 /** @brief Allow Lua to have access to the BPMDisplay. */
 class LunaBPMDisplay : public Luna<BPMDisplay>
 {

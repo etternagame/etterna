@@ -4,7 +4,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "ProductInfo.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SOUND_DRIVER_CLASS(JACK);
 

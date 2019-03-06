@@ -4,7 +4,7 @@
 #include "ActorScroller.h"
 #include "ActorUtil.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "RandomSample.h"
+#include "Etterna/Models/Misc/RandomSample.h"
 #include "ScreenSelect.h"
 
 enum MenuDir

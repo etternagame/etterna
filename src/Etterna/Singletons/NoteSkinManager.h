@@ -2,8 +2,8 @@
 #define NOTE_SKIN_MANAGER_H
 
 #include "Actor.h"
-#include "GameInput.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/GameInput.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 
 struct Game;
 struct NoteSkinData;

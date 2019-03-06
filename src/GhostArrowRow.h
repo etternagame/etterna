@@ -2,7 +2,7 @@
 #define GHOSTARROWROW_H
 
 #include "ActorFrame.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
 
 class PlayerState;

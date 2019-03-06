@@ -4,7 +4,7 @@
 
 // Rage global classes
 #include "Etterna/Singletons/GameSoundManager.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -22,15 +22,15 @@
 
 #include "ProductInfo.h"
 
-#include "CodeDetector.h"
+#include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
-#include "CommonMetrics.h"
-#include "Game.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Models/Misc/Game.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -47,8 +47,8 @@
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/InputQueue.h"
-#include "SongCacheIndex.h"
-#include "ImageCache.h"
+#include "Etterna/Models/Songs/SongCacheIndex.h"
+#include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Singletons/FilterManager.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/DownloadManager.h"

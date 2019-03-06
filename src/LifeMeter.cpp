@@ -14,7 +14,7 @@ LifeMeter::MakeLifeMeter(LifeType t)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the LifeMeter. */
 class LunaLifeMeter : public Luna<LifeMeter>

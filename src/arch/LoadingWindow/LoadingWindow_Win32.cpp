@@ -18,7 +18,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include <wchar.h>
 #include "ProductInfo.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
 #pragma comment(lib, "Dwmapi.lib")

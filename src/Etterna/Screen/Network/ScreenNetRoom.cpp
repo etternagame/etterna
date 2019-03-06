@@ -2,8 +2,8 @@
 
 #if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetRoom.h"
@@ -216,7 +216,7 @@ ScreenNetRoom::InfoSetVisible(bool visibility)
 #endif
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the PlayerState. */
 class LunaScreenNetRoom : public Luna<ScreenNetRoom>

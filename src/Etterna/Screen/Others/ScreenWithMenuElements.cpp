@@ -1,7 +1,7 @@
 #include "global.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "MenuTimer.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -342,7 +342,7 @@ ScreenWithMenuElements::UpdateTimedFunctions(float fDeltaTime)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 /** @brief Allow Lua to have access to the ScreenWithMenuElements. */
 class LunaScreenWithMenuElements : public Luna<ScreenWithMenuElements>
 {

@@ -1,16 +1,16 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/GameState.h"
-#include "LocalizedString.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSystemLayer.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 namespace {
 LocalizedString CREDITS_PRESS_START("ScreenSystemLayer", "CreditsPressStart");
@@ -67,7 +67,7 @@ GetCreditsMessage(PlayerNumber pn)
 };
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 namespace {
 int

@@ -1,19 +1,19 @@
 #ifndef SCREEN_GAMEPLAY_H
 #define SCREEN_GAMEPLAY_H
 
-#include "AutoKeysounds.h"
+#include "Etterna/Models/Misc/AutoKeysounds.h"
 #include "BitmapText.h"
-#include "GameplayAssist.h"
-#include "InputEventPlus.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/GameplayAssist.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "LyricDisplay.h"
-#include "PlayerStageStats.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerStageStats.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "SoundEffectControl.h"
+#include "Etterna/Models/Misc/SoundEffectControl.h"
 #include "Sprite.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Transition.h"
 
 class LyricsLoader;

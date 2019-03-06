@@ -1,6 +1,6 @@
 #include "global.h"
 #include "CsvFile.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

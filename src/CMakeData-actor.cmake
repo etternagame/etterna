@@ -75,7 +75,7 @@ source_group("Actors\\\\Gameplay" FILES ${SMDATA_ACTOR_GAMEPLAY_SRC} ${SMDATA_AC
 list(APPEND SMDATA_ACTOR_MENU_SRC
   "BPMDisplay.cpp"
   "ComboGraph.cpp"
-  "ControllerStateDisplay.cpp"
+  "Etterna/Models/Misc/ControllerStateDisplay.cpp"
   "DifficultyList.cpp"
   "DualScrollBar.cpp"
   "GraphDisplay.cpp"
@@ -95,7 +95,7 @@ list(APPEND SMDATA_ACTOR_MENU_SRC
 list(APPEND SMDATA_ACTOR_MENU_HPP
   "BPMDisplay.h"
   "ComboGraph.h"
-  "ControllerStateDisplay.h"
+  "Etterna/Models/Misc/ControllerStateDisplay.h"
   "DifficultyList.h"
   "DualScrollBar.h"
   "GraphDisplay.h"

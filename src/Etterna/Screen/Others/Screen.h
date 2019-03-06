@@ -2,13 +2,13 @@
 #define SCREEN_H
 
 #include "ActorFrame.h"
-#include "CodeSet.h"
-#include "EnumHelper.h"
+#include "Etterna/Models/Misc/CodeSet.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Singletons/InputQueue.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "ScreenMessage.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class InputEventPlus;
 class Screen;

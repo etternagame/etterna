@@ -5,7 +5,7 @@
 
 #include "ActorFrame.h"
 #include "ModIcon.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 class PlayerOptions;
 struct lua_State;
 

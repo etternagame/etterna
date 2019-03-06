@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Model.h"
 #include "ModelManager.h"
 #include "ModelTypes.h"
@@ -834,7 +834,7 @@ Model::MaterialsNeedNormals() const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Model. */
 class LunaModel : public Luna<Model>

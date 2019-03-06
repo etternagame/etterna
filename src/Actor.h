@@ -1,9 +1,9 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include "EnumHelper.h"
-#include "LuaReference.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
+#include "Etterna/Models/Lua/LuaReference.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include <map>

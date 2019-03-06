@@ -62,16 +62,16 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/FontManager.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameSoundManager.h"
-#include "InputEventPlus.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -962,7 +962,7 @@ ScreenManager::PlaySharedBackgroundOffCommand()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenManager. */
 class LunaScreenManager : public Luna<ScreenManager>

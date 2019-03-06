@@ -3,7 +3,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "LinuxInputManager.h"
-#include "GamePreferences.h" //needed for Axis Fix
+#include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

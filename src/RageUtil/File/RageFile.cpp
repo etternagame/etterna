@@ -346,7 +346,7 @@ FileReading::read_32_le(RageFileBasic& f, RString& sError)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageFile. */
 class LunaRageFile : public Luna<RageFile>

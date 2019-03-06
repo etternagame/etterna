@@ -4,11 +4,11 @@
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenNetEvaluation.h"
-#include "SongUtil.h"
-#include "Style.h"
+#include "Etterna/Models/Songs/SongUtil.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 
@@ -86,7 +86,7 @@ ScreenNetEvaluation::UpdateStats()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenNetEvaluation. */
 class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>

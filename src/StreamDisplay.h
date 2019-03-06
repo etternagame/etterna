@@ -3,10 +3,10 @@
 #define StreamDisplay_H
 
 #include "ActorFrame.h"
-#include "LuaExpressionTransform.h"
+#include "Etterna/Models/Lua/LuaExpressionTransform.h"
 #include "Quad.h"
 #include "Sprite.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 enum StreamType
 {

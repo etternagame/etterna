@@ -1,13 +1,13 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "GraphDisplay.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
-#include "StageStats.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
@@ -302,7 +302,7 @@ GraphDisplay::UpdateVerts()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GraphDisplay. */
 class LunaGraphDisplay : public Luna<GraphDisplay>

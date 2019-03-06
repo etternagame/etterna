@@ -1,5 +1,5 @@
 #include "global.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageFile.h"
 #include "RageFileDriver.h"
@@ -1234,7 +1234,7 @@ GetHashForDirectory(const RString& sDir)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageFileManager. */
 class LunaRageFileManager : public Luna<RageFileManager>

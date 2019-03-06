@@ -2,7 +2,7 @@
 #include "DialogDriver_Win32.h"
 #include "RageUtil/Utils/RageUtil.h"
 #if !defined(SMPACKAGE)
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #endif
 #include "Etterna/Singletons/ThemeManager.h"
 #include "ProductInfo.h"

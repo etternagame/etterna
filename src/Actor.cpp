@@ -2,11 +2,11 @@
 #include "Actor.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
-#include "GamePreferences.h"
-#include "LuaBinding.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
@@ -17,7 +17,7 @@
 #include <list>
 #include <tuple>
 #include "Etterna/Singletons/FilterManager.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -1632,7 +1632,7 @@ Actor::TweenInfo::operator=(const TweenInfo& rhs)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Actor. */
 class LunaActor : public Luna<Actor>

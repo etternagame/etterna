@@ -5,7 +5,7 @@
 #include "AutoActor.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "NoteData.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include <chrono>
 
 class LifeMeter;

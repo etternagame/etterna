@@ -8,11 +8,11 @@
 #include "global.h"
 #include "CommandLineActions.h"
 #include "RageUtil/File/RageFile.h"
-#include "HighScore.h"
+#include "Etterna/Models/Misc/HighScore.h"
 #include "ScreenManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"
-#include "Difficulty.h"
+#include "Etterna/Models/Misc/Difficulty.h"
 #include <deque>
 
 class DownloadablePack;

@@ -1,5 +1,5 @@
 #include "global.h"
-#include "Font.h"
+#include "Etterna/Models/Fonts/Font.h"
 #include "FontManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "DialogDriver.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 
 map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;

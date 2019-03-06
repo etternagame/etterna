@@ -3,15 +3,15 @@
 #include <cfloat>
 
 #include "ActorUtil.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/InputFilter.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Singletons/InputFilter.h"
-#include "ImageCache.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ImageCache.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Sprite.h"
 
 REGISTER_ACTOR_CLASS(Sprite);
@@ -1167,7 +1167,7 @@ Sprite::AddImageCoords(float fX, float fY)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Sprite. */
 class LunaSprite : public Luna<Sprite>

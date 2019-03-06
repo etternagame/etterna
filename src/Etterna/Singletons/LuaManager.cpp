@@ -1,7 +1,7 @@
 #include "global.h"
-#include "Command.h"
+#include "Etterna/Models/Misc/Command.h"
 #include "LuaManager.h"
-#include "LuaReference.h"
+#include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -1513,7 +1513,7 @@ LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
 LuaFunction(clamp, clamp(FArg(1), FArg(2), FArg(3)));
 
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 namespace {
 static int
 Trace(lua_State* L)

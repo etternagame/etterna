@@ -4,16 +4,16 @@
 #define SCREEN_SELECT_MUSIC_H
 
 #include "BitmapText.h"
-#include "GameConstantsAndTypes.h"
-#include "GameInput.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameInput.h"
 #include "MusicWheel.h"
 #include "OptionsList.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "ThemeMetric.h"
-#include "TimingData.h"
-#include "HighScore.h"
-#include "NoteData.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
+#include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "Player.h"
 #include "NoteField.h"
 

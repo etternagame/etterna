@@ -5,7 +5,7 @@
 #define ACTOR_MULTI_VERTEX_H
 
 #include "Actor.h"
-#include "CubicSpline.h"
+#include "Etterna/Models/Misc/CubicSpline.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTextureID.h"
 

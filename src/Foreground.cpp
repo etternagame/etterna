@@ -1,13 +1,13 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "BackgroundUtil.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/BackgroundUtil.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Foreground.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/GameState.h"
 
 Foreground::~Foreground()

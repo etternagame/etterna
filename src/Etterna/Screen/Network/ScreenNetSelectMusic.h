@@ -4,7 +4,7 @@
 #define SCREEN_NET_SELECT_MUSIC_H
 
 #include "BPMDisplay.h"
-#include "Difficulty.h"
+#include "Etterna/Models/Misc/Difficulty.h"
 #include "ModIconRow.h"
 #include "MusicWheel.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"

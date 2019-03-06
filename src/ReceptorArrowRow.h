@@ -2,7 +2,7 @@
 #define RECEPTOR_ARROW_ROW_H
 
 #include "ActorFrame.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
 #include "ReceptorArrow.h"
 

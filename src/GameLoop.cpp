@@ -137,7 +137,7 @@ GameLoop::ChangeGame(const RString& new_game, const RString& new_theme)
 	g_NewTheme = new_theme;
 }
 
-#include "Game.h"
+#include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "StepMania.h" // XXX
 namespace {

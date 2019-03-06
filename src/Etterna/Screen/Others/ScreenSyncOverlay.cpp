@@ -1,15 +1,15 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "AdjustSync.h"
-#include "GamePreferences.h"
+#include "Etterna/Models/Misc/AdjustSync.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSyncOverlay.h"
-#include "Song.h"
+#include "Etterna/Models/Songs/Song.h"
 
 static bool previousGameplayState;
 

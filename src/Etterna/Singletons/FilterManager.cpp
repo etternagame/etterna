@@ -1,6 +1,6 @@
 #include "global.h"
 #include "FilterManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 
 FilterManager* FILTERMAN = NULL;
 
@@ -88,7 +88,7 @@ FilterManager::loadpos(string name)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 class LunaFilterManager : public Luna<FilterManager>
 {

@@ -3,9 +3,9 @@
 
 #include "ActorMultiVertex.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "LocalizedString.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
@@ -679,7 +679,7 @@ ActorMultiVertex::AMV_TweenState::GetSafeNumToDraw(DrawMode dm, int num) const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ActorMultiVertex. */
 class LunaActorMultiVertex : public Luna<ActorMultiVertex>

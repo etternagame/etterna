@@ -97,7 +97,7 @@ RageTexture::GetTextureCoordRect(int iFrameNo) const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the RageTexture. */
 class LunaRageTexture : public Luna<RageTexture>

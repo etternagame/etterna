@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "BGAnimation.h"
 #include "BGAnimationLayer.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/PrefsManager.h"

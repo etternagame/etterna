@@ -1,13 +1,13 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "MusicWheelItem.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScoreManager.h"
-#include "Song.h"
-#include "Style.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 static const char* MusicWheelItemTypeNames[] = {
 	"Song", "SectionExpanded", "SectionCollapsed", "Roulette", "Sort",

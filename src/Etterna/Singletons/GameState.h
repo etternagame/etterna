@@ -1,12 +1,12 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 
-#include "Difficulty.h"
-#include "GameConstantsAndTypes.h"
-#include "Grade.h"
+#include "Etterna/Models/Misc/Difficulty.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/Grade.h"
 #include "MessageManager.h"
-#include "ModsGroup.h"
-#include "SongPosition.h"
+#include "Etterna/Models/Misc/ModsGroup.h"
+#include "Etterna/Models/Songs/SongPosition.h"
 #include "discord-rpc.h"
 
 #include <deque>

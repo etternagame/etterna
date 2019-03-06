@@ -1,16 +1,16 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "LuaBinding.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Steps.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "StepsDisplay.h"
-#include "Style.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
@@ -244,7 +244,7 @@ StepsDisplay::SetInternal(const SetParams& params)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the StepsDisplay. */
 class LunaStepsDisplay : public Luna<StepsDisplay>

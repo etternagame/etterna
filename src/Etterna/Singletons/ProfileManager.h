@@ -1,11 +1,11 @@
 #ifndef ProfileManager_H
 #define ProfileManager_H
 
-#include "Difficulty.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "Preference.h"
-#include "Profile.h"
+#include "Etterna/Models/Misc/Difficulty.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
+#include "Etterna/Models/Misc/Preference.h"
+#include "Etterna/Models/Misc/Profile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 class Song;

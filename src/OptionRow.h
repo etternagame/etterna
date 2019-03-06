@@ -8,7 +8,7 @@
 #include "BitmapText.h"
 #include "ModIcon.h"
 #include "OptionsCursor.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class OptionRowHandler;
 class GameCommand;

@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "ScreenStatsOverlay.h"
 
 REGISTER_SCREEN_CLASS(ScreenStatsOverlay);

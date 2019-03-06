@@ -2,7 +2,7 @@
 #define BGANIMATIONLAYER_H
 
 #include "ActorFrame.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 
 class XNode;
 

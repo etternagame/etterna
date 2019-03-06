@@ -9,15 +9,15 @@ class PlayerOptions;
 struct lua_State;
 struct GoalsForChart;
 
-#include "Difficulty.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "PlayerOptions.h"
-#include "ImageCache.h"
+#include "Etterna/Models/Misc/Difficulty.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
+#include "Etterna/Models/Misc/PlayerOptions.h"
+#include "Etterna/Models/Misc/ImageCache.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "SongOptions.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 #include <unordered_map>
 using std::string;

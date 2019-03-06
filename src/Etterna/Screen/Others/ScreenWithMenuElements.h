@@ -3,7 +3,7 @@
 
 #include "ActorUtil.h"
 #include "Screen.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Transition.h"
 
 class MenuTimer;

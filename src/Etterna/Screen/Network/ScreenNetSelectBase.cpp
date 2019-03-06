@@ -3,13 +3,13 @@
 #if !defined(WITHOUT_NETWORKING)
 #include "Actor.h"
 #include "ActorUtil.h"
-#include "Font.h"
+#include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "ScreenNetSelectBase.h"
 
@@ -317,7 +317,7 @@ ScreenNetSelectBase::ToUsers()
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the PlayerState. */
 class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>

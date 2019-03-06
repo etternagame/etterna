@@ -1,7 +1,7 @@
 #ifndef RAGE_SOUNDS_H
 #define RAGE_SOUNDS_H
 
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "MessageManager.h"
 
 class TimingData;

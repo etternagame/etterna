@@ -2,7 +2,7 @@
 #ifndef RAGE_INPUT_DEVICE_H
 #define RAGE_INPUT_DEVICE_H
 
-#include "EnumHelper.h"
+#include "Etterna/Models/Misc/EnumHelper.h"
 #include <chrono>
 
 const int NUM_JOYSTICKS = 32;

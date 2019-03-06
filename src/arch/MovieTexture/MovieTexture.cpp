@@ -5,8 +5,8 @@
 #include "MovieTexture_Null.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "LocalizedString.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "arch/arch_default.h"
 
 void

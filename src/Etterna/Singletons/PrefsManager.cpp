@@ -1,8 +1,8 @@
 #include "global.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -492,7 +492,7 @@ PrefsManager::GetPreferencesSection() const
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the PrefsManager. */
 class LunaPrefsManager : public Luna<PrefsManager>

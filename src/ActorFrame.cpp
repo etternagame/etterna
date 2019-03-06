@@ -1,11 +1,11 @@
 #include "global.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
-#include "Foreach.h"
-#include "LuaBinding.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
 
@@ -629,7 +629,7 @@ ActorFrame::SetDrawByZPosition(bool b)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ActorFrame. */
 class LunaActorFrame : public Luna<ActorFrame>

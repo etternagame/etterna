@@ -2,7 +2,7 @@
 #include "X11Helper.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ProductInfo.h"
-#include "Preference.h"
+#include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj
 
 #include <X11/extensions/dpms.h>

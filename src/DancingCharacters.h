@@ -3,7 +3,7 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Misc/RageTimer.h"
 class Model;
 

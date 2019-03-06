@@ -1,16 +1,16 @@
 #include "global.h"
 #include "ArrowEffects.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "NoteDisplay.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "ScreenDimensions.h"
-#include "Song.h"
-#include "Steps.h"
-#include "Style.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 static ThemeMetric<float> ARROW_SPACING("ArrowEffects", "ArrowSpacing");
 static ThemeMetric<bool> QUANTIZE_ARROW_Y("ArrowEffects",
@@ -1006,7 +1006,7 @@ ThemeMetric<float> GRAY_ARROWS_Y_STANDARD("Player", "ReceptorArrowsYStandard");
 ThemeMetric<float> GRAY_ARROWS_Y_REVERSE("Player", "ReceptorArrowsYReverse");
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 namespace {
 /* Update() need to be exposed to use ArrowEffects off ScreenGameplay. It is

@@ -2,10 +2,10 @@
 #define NOTE_DISPLAY_H
 
 #include "Actor.h"
-#include "CubicSpline.h"
-#include "GameInput.h"
-#include "NoteData.h"
-#include "PlayerNumber.h"
+#include "Etterna/Models/Misc/CubicSpline.h"
+#include "Etterna/Models/Misc/GameInput.h"
+#include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 
 class Sprite;
 class Model;

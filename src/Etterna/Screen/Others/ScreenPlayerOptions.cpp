@@ -1,14 +1,14 @@
 #include "global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "CodeDetector.h"
-#include "Foreach.h"
+#include "Etterna/Models/Misc/CodeDetector.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "InputEventPlus.h"
-#include "PlayerState.h"
+#include "Etterna/Models/Misc/InputEventPlus.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenDimensions.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPlayerOptions.h"
 #include "ScreenSongOptions.h"
@@ -147,7 +147,7 @@ ScreenPlayerOptions::UpdateDisqualified(int row, PlayerNumber pn)
 }
 
 // lua start
-#include "LuaBinding.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenPlayerOptions. */
 class LunaScreenPlayerOptions : public Luna<ScreenPlayerOptions>

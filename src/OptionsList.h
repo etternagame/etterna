@@ -2,11 +2,11 @@
 #define SCREEN_OPTIONS_LIST_H
 
 #include "BitmapText.h"
-#include "CodeSet.h"
-#include "OptionRowHandler.h"
+#include "Etterna/Models/Misc/CodeSet.h"
+#include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "OptionsCursor.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "ThemeMetric.h"
+#include "Etterna/Models/Misc/ThemeMetric.h"
 
 class OptionsList;
 class OptionListRow : public ActorFrame
