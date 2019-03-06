@@ -1,7 +1,7 @@
 #include "global.h"
 #include "Difficulty.h"
 #include "GameInput.h"
-#include "MsdFile.h"
+#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteData.h"
 #include "NotesLoader.h"
 #include "NotesLoaderDWI.h"

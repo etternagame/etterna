@@ -5,7 +5,7 @@
 #include "Preference.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "SubscriptionManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 static SubscriptionManager<IPreference> m_Subscribers;
 

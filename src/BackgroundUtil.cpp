@@ -3,7 +3,7 @@
 #include "Background.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

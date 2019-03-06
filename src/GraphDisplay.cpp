@@ -9,7 +9,7 @@
 #include "Song.h"
 #include "StageStats.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH
 // THEME->GetMetricI(m_sName,"TexturedBottomHalf")

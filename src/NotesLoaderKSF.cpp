@@ -1,5 +1,5 @@
 ﻿#include "global.h"
-#include "MsdFile.h"
+#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteData.h"
 #include "NoteTypes.h"
 #include "NotesLoaderKSF.h"

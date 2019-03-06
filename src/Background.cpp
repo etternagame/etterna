@@ -18,8 +18,8 @@
 #include "Etterna/Singletons/StatsManager.h"
 #include "Steps.h"
 #include "ThemeMetric.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 #include <cfloat>
 #include "Etterna/Singletons/GameState.h"
 

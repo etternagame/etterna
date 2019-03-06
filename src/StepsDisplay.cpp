@@ -12,7 +12,7 @@
 #include "StepsDisplay.h"
 #include "Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_ACTOR_CLASS(StepsDisplay);
 

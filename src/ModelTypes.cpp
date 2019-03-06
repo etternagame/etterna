@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "Foreach.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "ModelTypes.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/File/RageFile.h"

@@ -8,7 +8,7 @@
 #include "Steps.h"
 #include "StepsDisplay.h"
 #include "Style.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 /** @brief Specifies the max number of charts available for a song.
  *

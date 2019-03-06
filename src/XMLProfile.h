@@ -4,8 +4,8 @@
 #include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 class XNode;
 

@@ -4,7 +4,7 @@
 #include "Game.h"
 #include "GameInput.h"
 #include "GameState.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "NoteSkinManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -13,7 +13,7 @@
 #include "SpecialFiles.h"
 #include "ThemeManager.h"
 #include "Sprite.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/Dialog/Dialog.h"
 #include <map>
 

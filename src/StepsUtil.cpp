@@ -6,7 +6,7 @@
 #include "SongUtil.h"
 #include "Steps.h"
 #include "StepsUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 
 // Sorting stuff

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Foreach.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "InputMapper.h"
 #include "LocalizedString.h"

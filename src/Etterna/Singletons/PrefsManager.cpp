@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Foreach.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "Preference.h"
 #include "PrefsManager.h"

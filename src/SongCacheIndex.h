@@ -1,7 +1,7 @@
 #ifndef SONG_CACHE_INDEX_H
 #define SONG_CACHE_INDEX_H
 
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "TimingData.h"
 #include "Song.h"
 #include "Steps.h"

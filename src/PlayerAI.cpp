@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Etterna/Singletons/GameState.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"

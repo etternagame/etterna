@@ -14,7 +14,7 @@
 #include "SongManager.h"
 #include "Steps.h"
 #include "ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 #include "StepsUtil.h"
 #include "Style.h"
 #include "HighScore.h"

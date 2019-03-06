@@ -8,7 +8,7 @@
 #include "GameManager.h"
 #include "GameState.h"
 #include "LocalizedString.h"
-#include "MsdFile.h"
+#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteSkinManager.h"
 #include <algorithm>
 #include "NotesLoaderDWI.h"

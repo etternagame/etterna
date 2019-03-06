@@ -3,7 +3,7 @@
 #include "BGAnimation.h"
 #include "BGAnimationLayer.h"
 #include "Foreach.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"

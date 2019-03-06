@@ -8,7 +8,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
 #include "ver.h"
 

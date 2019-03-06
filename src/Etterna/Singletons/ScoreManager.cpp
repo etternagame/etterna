@@ -9,8 +9,8 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "ScoreManager.h"
 #include "Song.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
 

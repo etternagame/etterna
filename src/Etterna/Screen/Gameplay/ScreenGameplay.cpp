@@ -44,8 +44,8 @@
 #include "Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/ScoreManager.h"

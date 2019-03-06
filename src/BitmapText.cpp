@@ -10,7 +10,7 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_ACTOR_CLASS(BitmapText);
 REGISTER_ACTOR_CLASS(ColorBitmapText);

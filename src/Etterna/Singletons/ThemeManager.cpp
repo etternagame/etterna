@@ -1,6 +1,6 @@
 #include "global.h"
 #include "FontCharAliases.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -22,7 +22,7 @@
 #include "ScreenDimensions.h"
 #include "SpecialFiles.h"
 #include "SubscriptionManager.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 #include <deque>
 #include "PrefsManager.h"
 ThemeManager* THEME =

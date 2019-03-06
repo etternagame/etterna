@@ -1,7 +1,7 @@
 #include "global.h"
 #include "BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "MsdFile.h"
+#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h"
 #include "Etterna/Singletons/PrefsManager.h"

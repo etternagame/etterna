@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "MsdFile.h" // No JSON here.
+#include "Etterna/FileTypes/MsdFile.h" // No JSON here.
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // For programming shortcuts.
 #include "NotesLoaderSSC.h"

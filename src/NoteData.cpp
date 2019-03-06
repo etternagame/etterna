@@ -10,7 +10,7 @@
 #include "NoteData.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))
 

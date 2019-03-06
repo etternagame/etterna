@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Character.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/Graphics/RageTextureID.h"
 #include "RageUtil/Utils/RageUtil.h"
 

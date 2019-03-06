@@ -3,7 +3,7 @@
 #include "Song.h"
 #include "TextBanner.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 REGISTER_ACTOR_CLASS(TextBanner);
 

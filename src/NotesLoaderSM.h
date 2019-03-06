@@ -4,7 +4,7 @@
 #include "BackgroundUtil.h"
 #include "GameConstantsAndTypes.h"
 
-#include "MsdFile.h" // we require the struct from here.
+#include "Etterna/FileTypes/MsdFile.h" // we require the struct from here.
 
 class Song;
 class Steps;

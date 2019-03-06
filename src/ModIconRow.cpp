@@ -6,7 +6,7 @@
 #include "ModIconRow.h"
 #include "PlayerOptions.h"
 #include "PlayerState.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 int
 OptionToPreferredColumn(RString sOptionText);

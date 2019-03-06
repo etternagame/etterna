@@ -11,7 +11,7 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 const float min_state_delay = 0.0001f;
 

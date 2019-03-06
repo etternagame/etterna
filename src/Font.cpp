@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "Font.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 
 #include "FontCharAliases.h"
 #include "FontCharmaps.h"

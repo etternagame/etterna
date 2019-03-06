@@ -4,7 +4,7 @@
 #include "Foreach.h"
 #include "LuaBinding.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their

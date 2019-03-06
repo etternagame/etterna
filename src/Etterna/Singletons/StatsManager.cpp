@@ -12,8 +12,8 @@
 #include "StatsManager.h"
 #include "Steps.h"
 #include "StyleUtil.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 StatsManager* STATSMAN =
   NULL; // global object accessible from anywhere in the program

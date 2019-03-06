@@ -5,7 +5,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RollingNumbers.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 REGISTER_ACTOR_CLASS(RollingNumbers);
 
 RollingNumbers::RollingNumbers()

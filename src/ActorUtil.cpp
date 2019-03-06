@@ -3,7 +3,7 @@
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -11,8 +11,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 #include "arch/Dialog/Dialog.h"
 

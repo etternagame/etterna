@@ -6,7 +6,7 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenDimensions.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.

@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "NoteTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 TapNote TAP_EMPTY(TapNoteType_Empty,
 				  TapNoteSubType_Invalid,

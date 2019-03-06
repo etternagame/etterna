@@ -1,7 +1,7 @@
 #ifndef IMAGE_CACHE_H
 #define IMAGE_CACHE_H
 
-#include "IniFile.h"
+#include "Etterna/FileTypes/IniFile.h"
 
 #include "RageUtil/Graphics/RageTexture.h"
 

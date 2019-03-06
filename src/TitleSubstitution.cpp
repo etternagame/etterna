@@ -7,8 +7,8 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 static const RString TRANSLATIONS_PATH = "Data/Translations.xml";
 static const RString ERASE_MARKER = "-erase-";

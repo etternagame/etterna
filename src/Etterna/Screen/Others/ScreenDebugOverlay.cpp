@@ -26,7 +26,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "StepMania.h"
 #include "ThemeMetric.h"
-#include "XmlToLua.h"
+#include "Etterna/FileTypes/XmlToLua.h"
 
 static bool g_bIsDisplayed = false;
 static bool g_bIsSlow = false;

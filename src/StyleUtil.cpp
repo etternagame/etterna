@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Style.h"
 #include "StyleUtil.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 void
 StyleID::FromStyle(const Style* p)

@@ -15,7 +15,7 @@
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeMetric.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 #include "StepsUtil.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION("MusicWheel", "SortBPMDivision");

@@ -9,7 +9,7 @@
 #include "Song.h"
 #include "Sprite.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 
 const float PARTICLE_SPEED = 300;
 

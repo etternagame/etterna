@@ -8,7 +8,7 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "XmlFile.h"
+#include "Etterna/FileTypes/XmlFile.h"
 #include "NoteTypes.h"
 #include <algorithm>
 #include <fstream>
