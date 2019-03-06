@@ -11,7 +11,7 @@
 #include "CrashHandlerInternal.h"
 #include "RageUtil/Misc/RageLog.h"      // for RageLog::GetAdditionalLog and Flush
 #include "RageUtil/Misc/RageThreads.h"  // for GetCheckpointLogs
-#include "PrefsManager.h" // for g_bAutoRestart
+#include "Etterna/Singletons/PrefsManager.h" // for g_bAutoRestart
 #include "RestartProgram.h"
 
 // WARNING: This is called from crash-time conditions!  No malloc() or new!!!

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "DebugInfoHunt.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "VideoDriverInfo.h"

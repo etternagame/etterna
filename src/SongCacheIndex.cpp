@@ -5,7 +5,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
 #include "arch/LoadingWindow/LoadingWindow.h"

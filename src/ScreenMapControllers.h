@@ -5,7 +5,7 @@
 
 #include "ActorScroller.h"
 #include "BitmapText.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 

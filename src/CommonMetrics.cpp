@@ -1,9 +1,9 @@
 #include "global.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
-#include "GameManager.h"
-#include "GameState.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 ThemeMetric<RString> CommonMetrics::OPERATOR_MENU_SCREEN("Common",

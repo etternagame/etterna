@@ -1,5 +1,5 @@
 #include "global.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "Transition.h"
 
 Transition::Transition()

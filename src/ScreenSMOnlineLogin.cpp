@@ -1,19 +1,19 @@
 #include "global.h"
 #if !defined(WITHOUT_NETWORKING)
-#include "GameSoundManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "OptionRowHandler.h"
-#include "PrefsManager.h"
-#include "ProfileManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "ScreenSMOnlineLogin.h"
 #include "ScreenTextEntry.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenSMOnlineLogin);
 

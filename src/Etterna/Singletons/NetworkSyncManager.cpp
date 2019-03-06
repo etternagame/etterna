@@ -3,7 +3,7 @@
 #include "Song.h"
 #include "HighScore.h"
 #include "uWS.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "LocalizedString.h"
 #include "JsonUtil.h"
 #include "Style.h"
@@ -15,7 +15,7 @@
 #include "ScreenNetRoom.h"
 #include "RoomInfoDisplay.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 using json = nlohmann::json;
 
 NetworkSyncManager* NSMAN;
@@ -193,22 +193,22 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 	return 0;
 }
 #else
-#include "CryptManager.h"
-#include "GameManager.h"
-#include "GameState.h"
-#include "MessageManager.h"
+#include "Etterna/Singletons/CryptManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "PlayerState.h"
 #include "ProductInfo.h"
-#include "ProfileManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMessage.h"
 #include "Song.h"
-#include "StatsManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 #include "Steps.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "PlayerState.h"
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 #include "HighScore.h"
 #include "ezsockets.h"
 

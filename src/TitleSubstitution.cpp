@@ -3,7 +3,7 @@
 
 #include "FontCharAliases.h"
 #include "Foreach.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

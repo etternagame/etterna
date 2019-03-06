@@ -1,13 +1,13 @@
 #include "global.h"
-#include "GameSoundManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenWithMenuElements.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")

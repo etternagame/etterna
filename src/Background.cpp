@@ -4,10 +4,10 @@
 #include "BackgroundUtil.h"
 #include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "NoteTypes.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "Quad.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
@@ -15,13 +15,13 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenDimensions.h"
 #include "Song.h"
-#include "StatsManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 #include "Steps.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include <cfloat>
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 
 static ThemeMetric<float> LEFT_EDGE("Background", "LeftEdge");
 static ThemeMetric<float> TOP_EDGE("Background", "TopEdge");

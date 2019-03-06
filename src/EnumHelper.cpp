@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "EnumHelper.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 int

@@ -4,9 +4,9 @@
 #define THEME_METRIC_H
 
 #include "Foreach.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include <map>
 
 /** @brief The general interface for reading ThemeMetrics. */

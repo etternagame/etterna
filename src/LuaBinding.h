@@ -3,7 +3,7 @@
 #ifndef LuaBinding_H
 #define LuaBinding_H
 
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 class LuaReference;
 
 class LuaBinding

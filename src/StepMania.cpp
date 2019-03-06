@@ -3,7 +3,7 @@
 #include "StepMania.h"
 
 // Rage global classes
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 #include "LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
@@ -23,7 +23,7 @@
 #include "ProductInfo.h"
 
 #include "CodeDetector.h"
-#include "CommandLineActions.h"
+#include "Etterna/Singletons/CommandLineActions.h"
 #include "CommonMetrics.h"
 #include "Game.h"
 #include "InputEventPlus.h"
@@ -37,33 +37,33 @@
 #endif
 
 // StepMania global classes
-#include "AnnouncerManager.h"
-#include "CharacterManager.h"
-#include "FilterManager.h"
-#include "FontManager.h"
-#include "GameManager.h"
-#include "NoteSkinManager.h"
-#include "GameState.h"
-#include "InputFilter.h"
-#include "InputMapper.h"
-#include "InputQueue.h"
+#include "Etterna/Singletons/AnnouncerManager.h"
+#include "Etterna/Singletons/CharacterManager.h"
+#include "Etterna/Singletons/FilterManager.h"
+#include "Etterna/Singletons/FontManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/InputFilter.h"
+#include "Etterna/Singletons/InputMapper.h"
+#include "Etterna/Singletons/InputQueue.h"
 #include "SongCacheIndex.h"
 #include "ImageCache.h"
-#include "FilterManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 #if !defined(WITHOUT_NETWORKING)
-#include "DownloadManager.h"
+#include "Etterna/Singletons/DownloadManager.h"
 #endif
-#include "ScoreManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "ModelManager.h"
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 #include "GameLoop.h"
-#include "MessageManager.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "ModelManager.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "SpecialFiles.h"
-#include "StatsManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 #include "ver.h"
 
 #if defined(WIN32)
@@ -1618,7 +1618,7 @@ HandleInputEvents(float fDeltaTime)
 	}
 }
 
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 int
 LuaFunc_SaveScreenshot(lua_State* L);
 int

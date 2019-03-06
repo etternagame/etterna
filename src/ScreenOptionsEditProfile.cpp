@@ -1,13 +1,13 @@
 #include "global.h"
 
 #include "Character.h"
-#include "CharacterManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/CharacterManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "OptionRowHandler.h"
 #include "Profile.h"
-#include "ProfileManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenOptionsEditProfile.h"
 #include "ScreenPrompt.h"
 

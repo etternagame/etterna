@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Foreach.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundPosMap.h"
 #include "RageUtil/Misc/RageTimer.h"

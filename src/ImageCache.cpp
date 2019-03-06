@@ -2,7 +2,7 @@
 
 #include "ImageCache.h"
 #include "Foreach.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"

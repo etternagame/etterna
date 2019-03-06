@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "OptionRow.h"
 #include "OptionRowHandler.h"
 #include "RageUtil/Utils/RageUtil.h"

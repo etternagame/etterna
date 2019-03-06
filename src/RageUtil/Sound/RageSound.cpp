@@ -20,11 +20,11 @@
  */
 
 #include "global.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "Screen.h"
 #include "RageSoundUtil.h"
 #include "LuaReference.h"

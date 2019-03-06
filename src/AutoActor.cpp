@@ -2,7 +2,7 @@
 #include "Actor.h"
 #include "ActorUtil.h"
 #include "AutoActor.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 void
 AutoActor::Unload()

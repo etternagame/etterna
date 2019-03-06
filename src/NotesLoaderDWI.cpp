@@ -5,7 +5,7 @@
 #include "NoteData.h"
 #include "NotesLoader.h"
 #include "NotesLoaderDWI.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"

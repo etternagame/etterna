@@ -1,7 +1,7 @@
 #include "global.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "Preference.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "ThemeMetric.h"
 

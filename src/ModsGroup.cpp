@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "EnumHelper.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "ModsGroup.h"
 
 static const char* ModsLevelNames[] = {

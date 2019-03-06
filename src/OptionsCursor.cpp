@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "OptionsCursor.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 OptionsCursor::OptionsCursor()
 {

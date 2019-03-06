@@ -3,7 +3,7 @@
 #include "DialogDriver_MacOSX.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "ProductInfo.h"
-#include "InputFilter.h"
+#include "Etterna/Singletons/InputFilter.h"
 #include <CoreFoundation/CoreFoundation.h>
 
 REGISTER_DIALOG_DRIVER_CLASS(MacOSX);

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "NoteData.h"
 #include "NoteDataUtil.h"
 #include "PlayerOptions.h"

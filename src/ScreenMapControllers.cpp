@@ -1,14 +1,14 @@
 #include "global.h"
 #include "InputEventPlus.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "LocalizedString.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMapControllers.h"
 #include "ScreenPrompt.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 AutoScreenMessage(SM_DoSaveAndExit);
 #define BUTTONS_TO_MAP THEME->GetMetric(m_sName, "ButtonsToMap")

@@ -1,11 +1,11 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 #include "InputEventPlus.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 PromptAnswer ScreenPrompt::s_LastAnswer = ANSWER_YES;
 bool ScreenPrompt::s_bCancelledLast = false;

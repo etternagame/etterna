@@ -2,7 +2,7 @@
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"

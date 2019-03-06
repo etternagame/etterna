@@ -8,7 +8,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "StageStats.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH

@@ -1,16 +1,16 @@
 #include "global.h"
 #include "AdjustSync.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "GamePreferences.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "ScreenGameplaySyncMachine.h"
 #include "SongUtil.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplaySyncMachine);
 

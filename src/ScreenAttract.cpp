@@ -1,16 +1,16 @@
 #include "global.h"
-#include "GameSoundManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
-#include "InputMapper.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/InputMapper.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenAttract.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "StepMania.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 #define START_SCREEN(sScreenName) THEME->GetMetric(sScreenName, "StartScreen")
 

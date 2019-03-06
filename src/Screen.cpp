@@ -1,13 +1,13 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "InputEventPlus.h"
-#include "InputMapper.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/InputMapper.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Screen.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")

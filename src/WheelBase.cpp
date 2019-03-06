@@ -2,17 +2,17 @@
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
-#include "GameManager.h"
-#include "GameState.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h" // for sending SM_PlayMusicSample
+#include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
 #include "Style.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 

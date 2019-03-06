@@ -1,17 +1,17 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 #include "LocalizedString.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "OptionRowHandler.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetworkOptions.h"
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 static LocalizedString CLIENT_CONNECT("ScreenNetworkOptions", "Connect");
 static LocalizedString CLIENT_DISCONNECT("ScreenNetworkOptions", "Disconnect");

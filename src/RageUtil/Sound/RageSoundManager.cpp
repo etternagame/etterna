@@ -12,7 +12,7 @@
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "Preference.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"

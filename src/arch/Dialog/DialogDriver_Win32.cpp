@@ -4,7 +4,7 @@
 #if !defined(SMPACKAGE)
 #include "LocalizedString.h"
 #endif
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ProductInfo.h"
 
 #include "archutils/win32/AppInstance.h"

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "DSoundHelpers.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"

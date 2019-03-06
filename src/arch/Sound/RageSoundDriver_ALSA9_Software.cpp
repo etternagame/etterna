@@ -7,7 +7,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "ALSA9Dynamic.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 #include "archutils/Unix/GetSysInfo.h"
 

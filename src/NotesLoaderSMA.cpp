@@ -4,7 +4,7 @@
 #include "NotesLoaderSM.h" // may need this.
 #include "NotesLoaderSMA.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "Steps.h"
 
 void

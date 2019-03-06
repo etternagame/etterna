@@ -22,16 +22,16 @@
 #include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Screen.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
-#include "ScoreManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 
 #include <map>
 

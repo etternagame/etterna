@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "LuaExpressionTransform.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 LuaExpressionTransform::LuaExpressionTransform()

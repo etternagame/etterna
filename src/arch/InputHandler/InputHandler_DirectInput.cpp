@@ -6,10 +6,10 @@
 #include "archutils/Win32/RegistryAccess.h"
 #include "Foreach.h"
 #include "GamePreferences.h" //needed for Axis Fix
-#include "InputFilter.h"
+#include "Etterna/Singletons/InputFilter.h"
 #include "InputHandler_DirectInput.h"
 #include "InputHandler_DirectInputHelper.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"

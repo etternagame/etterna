@@ -2,14 +2,14 @@
 #include "Character.h"
 #include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "Model.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
-#include "StatsManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 
 int
 Neg1OrPos1();

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "LocalizedString.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "PlayerNumber.h"
 
 static const char* PlayerNumberNames[] = {

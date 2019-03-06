@@ -2,11 +2,11 @@
 #include "ActorUtil.h"
 #include "ControllerStateDisplay.h"
 #include "EnumHelper.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "LuaBinding.h"
 #include "RageUtil/Misc/RageInputDevice.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 static const char* ControllerStateButtonNames[] = {
 	"UpLeft", "UpRight", "Center", "DownLeft", "DownRight",

@@ -1,6 +1,6 @@
 #include "global.h"
 #include "FontCharAliases.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
@@ -16,7 +16,7 @@
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "SongUtil.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "StepsUtil.h"
 #include "Foreach.h"
 #include "BackgroundUtil.h"
@@ -34,15 +34,15 @@
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include <cfloat>
 #include <ctime>
 #include <set>
 
 //-Nick12 Used for song file hashing
-#include <CryptManager.h>
+#include <Etterna/Singletons/CryptManager.h>
 
 /** @brief How long does a song sample last by default? */
 const float DEFAULT_MUSIC_SAMPLE_LENGTH = 25.f;

@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LyricDisplay.h"
 #include "Song.h"
 #include "ThemeMetric.h"

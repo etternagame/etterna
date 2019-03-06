@@ -1,11 +1,11 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
 #include "Font.h"
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 #include "MenuTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
 
 RString WARNING_COMMAND_NAME( size_t i ) { return ssprintf("Warning%dCommand", static_cast<int>(i)); }

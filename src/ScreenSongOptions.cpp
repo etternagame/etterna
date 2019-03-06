@@ -1,10 +1,10 @@
 #include "global.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenSongOptions.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenSongOptions);
 

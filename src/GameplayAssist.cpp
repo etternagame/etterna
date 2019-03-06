@@ -1,13 +1,13 @@
 #include "global.h"
 #include "CommonMetrics.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "GameplayAssist.h"
 #include "NoteData.h"
 #include "PlayerState.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "Song.h"
-#include "ThemeManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/GameState.h"
 
 void
 GameplayAssist::Init()

@@ -1,17 +1,17 @@
 #include "global.h"
 #include "CommonMetrics.h"
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"
-#include "GameState.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "MinaCalc.h"
 #include "NoteData.h"
 #include "PlayerStageStats.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScoreKeeperNormal.h"
 #include "Steps.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 #define GRADE_PERCENT_TIER(i)                                                  \
 	THEME->GetMetricF(                                                         \

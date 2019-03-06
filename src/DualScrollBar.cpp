@@ -1,7 +1,7 @@
 #include "global.h"
 #include "DualScrollBar.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 DualScrollBar::DualScrollBar()
 {

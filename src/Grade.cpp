@@ -1,10 +1,10 @@
 ﻿#include "global.h"
 #include "EnumHelper.h"
 #include "Grade.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 LuaXType(Grade);
 

@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "BackgroundUtil.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "MsdFile.h" // No JSON here.
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // For programming shortcuts.
@@ -9,7 +9,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "Steps.h"
 
 // Everything from this line to the creation of parser_helper exists to

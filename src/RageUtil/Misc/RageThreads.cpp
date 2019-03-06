@@ -11,7 +11,7 @@
 
 #include "global.h"
 
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"

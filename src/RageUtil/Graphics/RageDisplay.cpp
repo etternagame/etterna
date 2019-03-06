@@ -2,7 +2,7 @@
 #include "DisplayResolutions.h"
 #include "LocalizedString.h"
 #include "Preference.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -15,7 +15,7 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Screen.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <chrono>
 #include <thread>

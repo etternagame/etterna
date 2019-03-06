@@ -1,24 +1,24 @@
 ﻿#include "global.h"
 #include "GameLoop.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 
-#include "GameSoundManager.h"
-#include "ThemeManager.h"
-#include "SongManager.h"
-#include "DownloadManager.h"
-#include "GameState.h"
-#include "InputFilter.h"
-#include "InputMapper.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/InputFilter.h"
+#include "Etterna/Singletons/InputMapper.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "ScreenManager.h"
-#include "SongManager.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
+#include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -138,7 +138,7 @@ GameLoop::ChangeGame(const RString& new_game, const RString& new_theme)
 }
 
 #include "Game.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "StepMania.h" // XXX
 namespace {
 void

@@ -13,7 +13,7 @@ struct lua_State;
 
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 enum LifeType
 {

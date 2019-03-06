@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "Song.h"
 #include "TextBanner.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS(TextBanner);

@@ -1,8 +1,8 @@
 #include "global.h"
 #include "AdjustSync.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSaveSync.h"
 #include "Song.h"
 

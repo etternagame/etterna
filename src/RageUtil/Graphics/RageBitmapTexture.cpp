@@ -12,7 +12,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "StepMania.h"
 #include "arch/Dialog/Dialog.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 static void
 GetResolutionFromFileName(RString& sPath, int& iWidth, int& iHeight)

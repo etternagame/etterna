@@ -1,17 +1,17 @@
 #include "global.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
 #include "NotesLoaderSSC.h"
 #include "PlayerState.h"
-#include "ProfileManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenServiceAction.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "StepMania.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 static LocalizedString EDITS_CLEARED("ScreenServiceAction",
 									 "%d edits cleared, %d errors.");

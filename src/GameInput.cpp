@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 #include "GameInput.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 static const char* GameControllerNames[] = {
 	"1",

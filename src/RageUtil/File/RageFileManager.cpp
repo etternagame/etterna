@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Foreach.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageFile.h"
 #include "RageFileDriver.h"
 #include "RageFileManager.h"

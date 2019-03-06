@@ -1,5 +1,5 @@
 #include "global.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "PlayerState.h"
 #include "RadarValues.h"
 #include "Song.h"

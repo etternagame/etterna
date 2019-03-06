@@ -150,7 +150,7 @@ RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 		   static_cast<float>(us) / TIMESTAMP_RESOLUTION;
 }
 
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStartFast())
 
   /*

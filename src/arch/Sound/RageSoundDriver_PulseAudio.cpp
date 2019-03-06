@@ -5,7 +5,7 @@
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include <pulse/error.h>
 #include <sys/time.h>
 #include <sys/resource.h>

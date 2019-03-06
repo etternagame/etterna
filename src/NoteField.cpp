@@ -3,10 +3,10 @@
 #include "BackgroundUtil.h"
 #include "CommonMetrics.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "NoteData.h"
 #include "NoteField.h"
-#include "NoteSkinManager.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
 #include "PlayerState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -16,7 +16,7 @@
 #include "ScreenDimensions.h"
 #include "Song.h"
 #include "Style.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include <cfloat>
 
 void

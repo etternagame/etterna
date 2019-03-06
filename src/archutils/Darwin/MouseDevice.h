@@ -2,7 +2,7 @@
 #define MOUSE_DEVICE_H
 
 #include "HIDDevice.h"
-#include "InputFilter.h"
+#include "Etterna/Singletons/InputFilter.h"
 
 struct Mouse
 {

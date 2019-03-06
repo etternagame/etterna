@@ -3,7 +3,7 @@
 #include "BPMDisplay.h"
 #include "CommonMetrics.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
 #include "Steps.h"

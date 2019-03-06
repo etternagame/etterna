@@ -61,9 +61,9 @@
 
 #include "global.h"
 #include "ActorUtil.h"
-#include "FontManager.h"
+#include "Etterna/Singletons/FontManager.h"
 #include "Foreach.h"
-#include "GameSoundManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 #include "InputEventPlus.h"
 #include "Preference.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -73,8 +73,8 @@
 #include "Screen.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
-#include "SongManager.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 ScreenManager* SCREENMAN =
   NULL; // global and accessible from anywhere in our program

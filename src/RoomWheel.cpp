@@ -1,11 +1,11 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
 #include "LocalizedString.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RoomWheel.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenTextEntry.h"
 
 static LocalizedString EMPTY_STRING("RoomWheel", "Empty");

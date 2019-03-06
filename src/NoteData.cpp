@@ -6,7 +6,7 @@
 
 #include "global.h"
 #include "Foreach.h"
-#include "GameState.h" // blame radar calculations.
+#include "Etterna/Singletons/GameState.h" // blame radar calculations.
 #include "NoteData.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"

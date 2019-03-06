@@ -2,7 +2,7 @@
 #include "Command.h"
 #include "LuaManager.h"
 #include "LuaReference.h"
-#include "MessageManager.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"

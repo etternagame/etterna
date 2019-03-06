@@ -6,7 +6,7 @@
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageMath.h"

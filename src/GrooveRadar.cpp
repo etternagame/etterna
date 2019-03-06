@@ -5,10 +5,10 @@
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Steps.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
 // I feel weird about this coupling, but it has to be done. -aj
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 
 REGISTER_ACTOR_CLASS(GrooveRadar);
 

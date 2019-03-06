@@ -2,7 +2,7 @@
 #include "RageSoundDriver_Null.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 REGISTER_SOUND_DRIVER_CLASS(Null);
 

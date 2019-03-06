@@ -5,18 +5,18 @@
 #include "GamePreferences.h"
 #include "LuaBinding.h"
 #include "LuaReference.h"
-#include "MessageManager.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "Preference.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 #include <typeinfo>
 #include <list>
 #include <tuple>
-#include "FilterManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 #include "LuaReference.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);

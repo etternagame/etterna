@@ -1,6 +1,6 @@
 #include "global.h"
-#include "GameState.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenProfileLoad.h"
 
 REGISTER_SCREEN_CLASS(ScreenProfileLoad);

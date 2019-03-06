@@ -2,18 +2,18 @@
 #include "ActorUtil.h"
 #include "GameCommand.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "LuaBinding.h"
 #include "OptionRowHandler.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenOptions.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 /*
  * These navigation types are provided:

@@ -1,15 +1,15 @@
 #include "global.h"
 #include "BackgroundUtil.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "MsdFile.h"
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "Steps.h"
 
 // Everything from this line to the creation of sm_parser_helper exists to

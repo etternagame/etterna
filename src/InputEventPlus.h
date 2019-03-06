@@ -2,7 +2,7 @@
 #define INPUT_EVENT_PLUS_H
 
 #include "GameInput.h"
-#include "InputFilter.h"
+#include "Etterna/Singletons/InputFilter.h"
 #include "PlayerNumber.h"
 /** @brief Holds a device input plus Game/Menu translations. */
 class InputEventPlus

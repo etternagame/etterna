@@ -2,14 +2,14 @@
 #include "ActorUtil.h"
 #include "BitmapText.h"
 #include "Font.h"
-#include "FontManager.h"
+#include "Etterna/Singletons/FontManager.h"
 #include "Foreach.h"
 #include "LuaBinding.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS(BitmapText);

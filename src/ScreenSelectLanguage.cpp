@@ -1,6 +1,6 @@
 #include "global.h"
 #include "InputEventPlus.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSelectLanguage.h"
 #include "arch/ArchHooks/ArchHooks.h"
 

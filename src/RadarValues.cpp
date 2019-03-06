@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "RadarValues.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 
 RadarValues::RadarValues()

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "NoteData.h"
 #include "NoteDataWithScoring.h"
 #include "PlayerStageStats.h"

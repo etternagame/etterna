@@ -1,6 +1,6 @@
 #include "global.h"
-#include "GameState.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "NoteData.h"
 #include "PlayerState.h"
 #include "RageUtil/Sound/RageSoundReader.h"

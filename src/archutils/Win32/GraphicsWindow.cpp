@@ -1,6 +1,6 @@
 #include "global.h"
 #include "GraphicsWindow.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ProductInfo.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,7 +12,7 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
-#include "CommandLineActions.h"
+#include "Etterna/Singletons/CommandLineActions.h"
 
 #include <set>
 

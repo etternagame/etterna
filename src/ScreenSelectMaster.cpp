@@ -1,16 +1,16 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "AnnouncerManager.h"
+#include "Etterna/Singletons/AnnouncerManager.h"
 #include "Foreach.h"
 #include "GameCommand.h"
-#include "GameManager.h"
-#include "GameSoundManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSelectMaster.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include <set>
 
 static const char* MenuDirNames[] = {

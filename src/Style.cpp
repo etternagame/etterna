@@ -13,8 +13,8 @@
  * because two players place from the same set of 4 tracks.
  */
 
-#include "GameState.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/InputMapper.h"
 #include "NoteData.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

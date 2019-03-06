@@ -36,12 +36,12 @@
 #include "global.h"
 #include "AdjustSync.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include "Steps.h"
 
 vector<TimingData> AdjustSync::s_vpTimingDataOriginal;

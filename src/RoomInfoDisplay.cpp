@@ -2,7 +2,7 @@
 #if !defined(WITHOUT_NETWORKING)
 #include "ActorUtil.h"
 #include "LocalizedString.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RoomInfoDisplay.h"
 
 AutoScreenMessage(SM_RoomInfoRetract);

@@ -1,15 +1,15 @@
 #include "global.h"
-#include "AnnouncerManager.h"
+#include "Etterna/Singletons/AnnouncerManager.h"
 #include "DisplayResolutions.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
-#include "GameManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
-#include "NoteSkinManager.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
 #include "PlayerOptions.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -17,7 +17,7 @@
 #include "SongOptions.h"
 #include "SpecialFiles.h"
 #include "StepMania.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 using namespace StringConversion;
 
@@ -472,7 +472,7 @@ LifeDifficulty(int& sel, bool ToSel, const ConfOption* pConfOption)
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
 }
 
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 static int
 GetTimingDifficulty()
 {

@@ -3,7 +3,7 @@
 #include "Foreach.h"
 #include "IniFile.h"
 #include "LuaBinding.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"

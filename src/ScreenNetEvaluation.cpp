@@ -1,13 +1,13 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenNetEvaluation.h"
 #include "SongUtil.h"
 #include "Style.h"
-#include "ThemeManager.h"
-#include "NetworkSyncManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "InputEventPlus.h"
 
 static const int NUM_SCORE_DIGITS = 9;

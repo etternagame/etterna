@@ -3,7 +3,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "MovieTexture_Null.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "LocalizedString.h"
 #include "Foreach.h"

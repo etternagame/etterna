@@ -2,7 +2,7 @@
 #include "ActorUtil.h"
 #include "ModIcon.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 ModIcon::ModIcon() = default;
 

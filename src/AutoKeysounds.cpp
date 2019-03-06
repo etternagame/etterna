@@ -21,7 +21,7 @@
 #include "global.h"
 #include "AutoKeysounds.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Sound/RageSoundReader_Chain.h"
 #include "RageUtil/Sound/RageSoundReader_ChannelSplit.h"

@@ -2,7 +2,7 @@
 #include "RageSoundDriver_JACK.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ProductInfo.h"
 #include "Foreach.h"
 

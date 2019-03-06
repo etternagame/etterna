@@ -1,5 +1,5 @@
 ﻿#include "global.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageTypes.h"
 
 void

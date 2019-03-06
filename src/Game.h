@@ -2,7 +2,7 @@
 #define GAMEDEF_H
 
 #include "GameConstantsAndTypes.h"
-#include "InputMapper.h"
+#include "Etterna/Singletons/InputMapper.h"
 
 struct lua_State;
 class Style;

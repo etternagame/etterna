@@ -3,7 +3,7 @@
 #include "GameConstantsAndTypes.h"
 #include "HoldJudgment.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"
 

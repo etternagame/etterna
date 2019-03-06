@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "Steps.h"
 #include "ThemeMetric.h"
 

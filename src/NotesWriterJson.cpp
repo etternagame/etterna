@@ -1,6 +1,6 @@
 #include "global.h"
 #include "BackgroundUtil.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "JsonUtil.h"
 #include "NoteData.h"
 #include "NotesWriterJson.h"

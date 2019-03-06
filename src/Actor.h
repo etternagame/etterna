@@ -12,7 +12,7 @@
 class XNode;
 struct lua_State;
 class LuaClass;
-#include "MessageManager.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "Tween.h"
 
 using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;

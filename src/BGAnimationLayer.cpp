@@ -2,13 +2,13 @@
 #include "ActorUtil.h"
 #include "AutoActor.h"
 #include "BGAnimationLayer.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "ScreenDimensions.h"
 #include "Song.h"
 #include "Sprite.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 
 const float PARTICLE_SPEED = 300;

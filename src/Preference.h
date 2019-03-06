@@ -5,7 +5,7 @@
 #define PREFERENCE_H
 
 #include "EnumHelper.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 class XNode;
 

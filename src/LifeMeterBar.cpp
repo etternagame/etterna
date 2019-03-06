@@ -1,14 +1,14 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "LifeMeterBar.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "Song.h"
-#include "StatsManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 #include "Steps.h"
 #include "StreamDisplay.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "ThemeMetric.h"
 
 static RString

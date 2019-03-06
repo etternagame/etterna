@@ -1,11 +1,11 @@
 #include "global.h"
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "picosha2.h"
 #include "PlayerNumber.h"
-#include "ProfileManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "XmlFile.h"
@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 #include "RageUtil/File/RageFileManager.h"
 
 const string BASIC_REPLAY_DIR =

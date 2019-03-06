@@ -1,10 +1,10 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameState.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RollingNumbers.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "XmlFile.h"
 REGISTER_ACTOR_CLASS(RollingNumbers);
 

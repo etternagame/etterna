@@ -6,7 +6,7 @@
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"

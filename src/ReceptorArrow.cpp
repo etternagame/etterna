@@ -1,6 +1,6 @@
 #include "global.h"
-#include "GameState.h"
-#include "NoteSkinManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
 #include "PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrow.h"

@@ -2,13 +2,13 @@
 #include "FontCharAliases.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "OptionRowHandler.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMiniMenu.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 void
 PrepareToLoadScreen(const RString& sScreenName);

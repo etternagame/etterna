@@ -1,8 +1,8 @@
 #include "global.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSplash.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenSplash);
 

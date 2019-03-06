@@ -1,11 +1,11 @@
 #include "global.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "NoteTypes.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "TimingData.h"
 #include <cfloat>
 

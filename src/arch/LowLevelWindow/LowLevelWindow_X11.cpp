@@ -3,7 +3,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
-#include "PrefsManager.h" // XXX
+#include "Etterna/Singletons/PrefsManager.h" // XXX
 #include "RageUtil/Graphics/RageDisplay.h"  // VideoModeParams
 #include "DisplayResolutions.h"
 #include "LocalizedString.h"

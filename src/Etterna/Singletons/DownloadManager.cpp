@@ -23,7 +23,7 @@
 #include "RageUtil/Misc/RageString.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
-#include <FilterManager.h>
+#include <Etterna/Singletons/FilterManager.h>
 #include "PlayerStageStats.h"
 #include "Grade.h"
 #include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina

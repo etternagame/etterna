@@ -1,11 +1,11 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenContinue.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenContinue);
 

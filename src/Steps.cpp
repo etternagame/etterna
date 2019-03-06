@@ -12,8 +12,8 @@
  * Data can be on disk (always compressed), compressed in memory, and
  * uncompressed in memory. */
 #include "global.h"
-#include "GameManager.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Singletons/GameState.h"
 #include "MinaCalc.h"
 #include "NoteData.h"
 #include "NoteDataUtil.h"
@@ -28,7 +28,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Song.h"
-#include "SongManager.h"
+#include "Etterna/Singletons/SongManager.h"
 #include <algorithm>
 #include <thread>
 
@@ -36,7 +36,7 @@
 #include "EnumHelper.h"
 
 // For hashing wife chart keys - Mina
-#include "CryptManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 
 static const char* DisplayBPMNames[] = {
 	"Actual",

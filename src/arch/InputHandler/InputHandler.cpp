@@ -1,5 +1,5 @@
 #include "global.h"
-#include "InputFilter.h"
+#include "Etterna/Singletons/InputFilter.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler.h"
 #include "RageUtil/Misc/RageLog.h"

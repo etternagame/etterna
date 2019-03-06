@@ -4,7 +4,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 #ifdef __APPLE__
 #include "../../archutils/Darwin/MouseDevice.h"

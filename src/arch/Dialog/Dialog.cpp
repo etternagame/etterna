@@ -2,7 +2,7 @@
 #include "Dialog.h"
 #include "DialogDriver.h"
 #if !defined(SMPACKAGE)
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #endif
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"

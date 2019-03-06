@@ -1,5 +1,5 @@
 #include "global.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageSoundDriver.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Misc/RageLog.h"

@@ -2,7 +2,7 @@
 #include "CommonMetrics.h"
 #include "DifficultyList.h"
 #include "Foreach.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "Song.h"
 #include "SongUtil.h"
 #include "Steps.h"

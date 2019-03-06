@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Game.h"
-#include "GameManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "Style.h"
 #include "StyleUtil.h"
 #include "XmlFile.h"

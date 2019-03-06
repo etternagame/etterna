@@ -1,6 +1,6 @@
 ﻿#include "global.h"
 #include "LocalizedString.h"
-#include "LuaManager.h"
+#include "Etterna/Singletons/LuaManager.h"
 #include "NoteTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"

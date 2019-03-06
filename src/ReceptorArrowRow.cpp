@@ -1,7 +1,7 @@
 #include "global.h"
 #include "ArrowEffects.h"
 #include "GameConstantsAndTypes.h"
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ReceptorArrowRow.h"

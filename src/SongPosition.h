@@ -2,7 +2,7 @@
 #define SONGPOSITION_H
 
 #include "GameConstantsAndTypes.h"
-#include "MessageManager.h"
+#include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "TimingData.h"
 // XXX: where does this come from? might need another include

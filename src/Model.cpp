@@ -5,7 +5,7 @@
 #include "Model.h"
 #include "ModelManager.h"
 #include "ModelTypes.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageMath.h"

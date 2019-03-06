@@ -1,14 +1,14 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "GameState.h"
+#include "Etterna/Singletons/GameState.h"
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
-#include "NetworkSyncManager.h"
-#include "ScreenManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetRoom.h"
 #include "ScreenTextEntry.h"
-#include "ThemeManager.h"
+#include "Etterna/Singletons/ThemeManager.h"
 #include "WheelItemBase.h"
 
 AutoScreenMessage(SM_BackFromRoomName);
