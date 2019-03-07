@@ -3,7 +3,7 @@
 
 #include "Grade.h"
 #include "HighScore.h"
-#include "NoteDataStructures.h"
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
 #include "NoteTypes.h"

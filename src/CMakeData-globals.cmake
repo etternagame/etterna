@@ -10,6 +10,7 @@ list(APPEND SMDATA_GLOBAL_FILES_HPP
   "generated/config.hpp"
   "Etterna/Globals/GameLoop.h"
   "Etterna/Globals/global.h"
+  "Etterna/Globals/OptionsBinding.h"
   "Etterna/Globals/ProductInfo.h" # TODO: Have this be auto-generated.
   "Etterna/Globals/SpecialFiles.h"
   "Etterna/Globals/StdString.h" # TODO: Remove the need for this file, transition to std::string.

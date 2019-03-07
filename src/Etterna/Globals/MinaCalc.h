@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "NoteDataStructures.h"
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
 
 using namespace std;

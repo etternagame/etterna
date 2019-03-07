@@ -235,7 +235,7 @@ SongOptions::operator==(const SongOptions& other) const
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
-#include "OptionsBinding.h"
+#include "Etterna/Globals/OptionsBinding.h"
 
 /** @brief Allow Lua to have access to SongOptions. */
 class LunaSongOptions : public Luna<SongOptions>

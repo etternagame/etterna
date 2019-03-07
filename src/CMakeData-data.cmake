@@ -34,6 +34,7 @@ list(APPEND SM_DATA_NOTEDATA_SRC
 
 list(APPEND SM_DATA_NOTEDATA_HPP
   "Etterna/Models/NoteData/NoteData.h"
+  "Etterna/Models/NoteData/NoteDataStructures.h"
   "Etterna/Models/NoteData/NoteDataUtil.h"
   "Etterna/Models/NoteData/NoteDataWithScoring.h"
 )

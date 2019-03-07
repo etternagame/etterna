@@ -1279,7 +1279,7 @@ PlayerOptions::ResetPrefs(ResetPrefsType type)
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
-#include "OptionsBinding.h"
+#include "Etterna/Globals/OptionsBinding.h"
 
 /** @brief Allow Lua to have access to PlayerOptions. */
 class LunaPlayerOptions : public Luna<PlayerOptions>
