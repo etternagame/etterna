@@ -309,7 +309,7 @@ string correct_non_utf_8(string *str)
     return to;
 }
 
-string correct_non_utf_8(RString &str)
+string correct_non_utf_8(const RString &str)
 {
 	string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
