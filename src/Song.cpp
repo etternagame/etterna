@@ -793,7 +793,6 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		// For blank args to FindFirstFilenameContaining. -Kyz
 		vector<RString> empty_list;
 
-
 		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
 		if (m_PreviewPath.empty())
 			m_PreviewPath = m_sMusicPath;
@@ -931,6 +930,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!m_bHasBackground && width >= 320 && height >= 240) {
 				m_sBackgroundFile = image_list[i];
 				m_bHasBackground = true;
+				m_sBackgroundPath =
+				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir).c_str();
 				continue;
 			}
 
@@ -938,6 +939,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 				height <= 240) {
 				m_sBannerFile = image_list[i];
 				m_bHasBanner = true;
+				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir).c_str();
 				continue;
 			}
 
@@ -947,6 +949,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!m_bHasBanner && width > 200 && float(width) / height > 2.0f) {
 				m_sBannerFile = image_list[i];
 				m_bHasBanner = true;
+				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
 				continue;
 			}
 
@@ -970,6 +973,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_cdtitle && width <= 100 && height <= 48) {
 				m_sCDTitleFile = image_list[i];
 				has_cdtitle = true;
+				m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
 				continue;
 			}
 
@@ -977,6 +981,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_jacket && width == height) {
 				m_sJacketFile = image_list[i];
 				has_jacket = true;
+				m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 				continue;
 			}
 
@@ -987,6 +992,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 					m_sDiscFile = image_list[i];
 					has_disc = true;
 				}
+				m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
 				continue;
 			}
 
@@ -995,6 +1001,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_cdimage && width == height) {
 				m_sCDFile = image_list[i];
 				has_cdimage = true;
+				m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
 				continue;
 			}
 		}
