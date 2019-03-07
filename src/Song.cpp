@@ -821,6 +821,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, " bn");
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
+			if (m_bHasBanner && !HasBanner())
+				m_sBannerPath = GetSongAssetPath(m_sBannerPath, m_sSongDir);
 		}
 
 		if (!m_bHasBackground) {
@@ -831,6 +833,9 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, "bg");
 			m_bHasBackground = FindFirstFilenameContaining(
 			  image_list, m_sBackgroundFile, empty_list, contains, ends_with);
+			if (m_bHasBackground && !HasBackground())
+				m_sBackgroundPath =
+				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		}
 
 		if (!has_jacket) {
@@ -842,6 +847,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			contains.push_back("albumart");
 			has_jacket = FindFirstFilenameContaining(
 			  image_list, m_sJacketFile, starts_with, contains, empty_list);
+			if (has_jacket && !HasJacket())
+				m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 		}
 
 		if (!has_cdimage) {
@@ -850,6 +857,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, "-cd");
 			has_cdimage = FindFirstFilenameContaining(
 			  image_list, m_sCDFile, empty_list, empty_list, ends_with);
+			if (has_cdimage && !HasCDImage())
+				m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
 		}
 
 		if (!has_disc) {
@@ -860,6 +869,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			ends_with.push_back(" title");
 			has_disc = FindFirstFilenameContaining(
 			  image_list, m_sDiscFile, empty_list, empty_list, ends_with);
+			if (has_disc && !HasDisc())
+				m_sDiscPath = GetSongAssetPath(m_sDiscPath, m_sSongDir);
 		}
 
 		if (!has_cdtitle) {
@@ -867,6 +878,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> contains(1, "cdtitle");
 			has_cdtitle = FindFirstFilenameContaining(
 			  image_list, m_sCDTitleFile, empty_list, contains, empty_list);
+			if (has_cdtitle && !HasCDTitle())
+				m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
 		}
 
 		if (!HasLyrics()) {
@@ -874,6 +887,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!lyric_list.empty()) {
 				m_sLyricsFile = lyric_list[0];
 			}
+			if (!m_sLyricsFile.empty())
+				m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
 		}
 
 		/* Now, For the images we still haven't found,
@@ -939,7 +954,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 				height <= 240) {
 				m_sBannerFile = image_list[i];
 				m_bHasBanner = true;
-				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir).c_str();
+				m_sBannerPath =
+				  GetSongAssetPath(m_sBannerFile, m_sSongDir).c_str();
 				continue;
 			}
 
