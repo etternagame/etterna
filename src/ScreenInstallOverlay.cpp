@@ -33,6 +33,7 @@ class Song;
 #include "ActorUtil.h"
 #include "Song.h"
 #include "NoteData.h"
+#include "NotesWriterSSC.h"
 #include "Steps.h"
 #include <algorithm>
 #include <iostream>
