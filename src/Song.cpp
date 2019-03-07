@@ -793,6 +793,11 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		// For blank args to FindFirstFilenameContaining. -Kyz
 		vector<RString> empty_list;
 
+		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
+		if (m_PreviewPath.empty())
+			m_PreviewPath = m_sMusicPath;
+		m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
+		m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
 		// uhh this should like... not be like... this... -mina
 		m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 		bool has_jacket = IsAFile(m_sJacketPath);
@@ -816,6 +821,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, " bn");
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
+			if (m_bHasBanner)
+				m_sBannerPath = GetSongAssetPath(m_sBannerPath, m_sSongDir);
 		}
 
 		if (!m_bHasBackground) {
@@ -826,6 +833,9 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, "bg");
 			m_bHasBackground = FindFirstFilenameContaining(
 			  image_list, m_sBackgroundFile, empty_list, contains, ends_with);
+			if (m_bHasBackground)
+				m_sBackgroundPath =
+				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		}
 
 		if (!has_jacket) {
@@ -837,6 +847,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			contains.push_back("albumart");
 			has_jacket = FindFirstFilenameContaining(
 			  image_list, m_sJacketFile, starts_with, contains, empty_list);
+			if (has_jacket)
+				m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 		}
 
 		if (!has_cdimage) {
@@ -845,6 +857,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> ends_with(1, "-cd");
 			has_cdimage = FindFirstFilenameContaining(
 			  image_list, m_sCDFile, empty_list, empty_list, ends_with);
+			if (has_cdimage)
+				m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
 		}
 
 		if (!has_disc) {
@@ -855,6 +869,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			ends_with.push_back(" title");
 			has_disc = FindFirstFilenameContaining(
 			  image_list, m_sDiscFile, empty_list, empty_list, ends_with);
+			if (has_disc)
+				m_sDiscPath = GetSongAssetPath(m_sDiscPath, m_sSongDir);
 		}
 
 		if (!has_cdtitle) {
@@ -862,6 +878,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> contains(1, "cdtitle");
 			has_cdtitle = FindFirstFilenameContaining(
 			  image_list, m_sCDTitleFile, empty_list, contains, empty_list);
+			if (has_cdtitle)
+				m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
 		}
 
 		if (!HasLyrics()) {
@@ -869,6 +887,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!lyric_list.empty()) {
 				m_sLyricsFile = lyric_list[0];
 			}
+			if (!m_sLyricsFile.empty())
+				m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
 		}
 
 		/* Now, For the images we still haven't found,
@@ -925,6 +945,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!m_bHasBackground && width >= 320 && height >= 240) {
 				m_sBackgroundFile = image_list[i];
 				m_bHasBackground = true;
+				m_sBackgroundPath =
+				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir).c_str();
 				continue;
 			}
 
@@ -932,6 +954,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 				height <= 240) {
 				m_sBannerFile = image_list[i];
 				m_bHasBanner = true;
+				m_sBannerPath =
+				  GetSongAssetPath(m_sBannerFile, m_sSongDir).c_str();
 				continue;
 			}
 
@@ -941,6 +965,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!m_bHasBanner && width > 200 && float(width) / height > 2.0f) {
 				m_sBannerFile = image_list[i];
 				m_bHasBanner = true;
+				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
 				continue;
 			}
 
@@ -964,6 +989,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_cdtitle && width <= 100 && height <= 48) {
 				m_sCDTitleFile = image_list[i];
 				has_cdtitle = true;
+				m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
 				continue;
 			}
 
@@ -971,6 +997,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_jacket && width == height) {
 				m_sJacketFile = image_list[i];
 				has_jacket = true;
+				m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 				continue;
 			}
 
@@ -981,6 +1008,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 					m_sDiscFile = image_list[i];
 					has_disc = true;
 				}
+				m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
 				continue;
 			}
 
@@ -989,6 +1017,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			if (!has_cdimage && width == height) {
 				m_sCDFile = image_list[i];
 				has_cdimage = true;
+				m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
 				continue;
 			}
 		}
@@ -1024,23 +1053,6 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		CLEAR_NOT_HAS(has_cdtitle, m_sCDTitleFile);
 #undef CLEAR_NOT_HAS
 	}
-
-	// need generate these independent of caching cuz im dum
-	m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-	m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
-	if (m_PreviewPath.empty())
-		m_PreviewPath = m_sMusicPath;
-	FOREACH_ENUM(InstrumentTrack, it)
-	m_sInstrumentTrackPath[it] =
-	  GetSongAssetPath(m_sInstrumentTrackFile[it], m_sSongDir);
-	m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
-	m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
-	m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir); 
-	m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
-	m_sLyricsPath = GetSongAssetPath(m_sLyricsFile, m_sSongDir);
-	m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
-	m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
-	m_sPreviewVidPath = GetSongAssetPath(m_sPreviewVidFile, m_sSongDir);
 
 	string scoot = m_sMainTitle;
 	string mcgoot = m_sSubTitle;
