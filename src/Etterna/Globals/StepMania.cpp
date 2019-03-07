@@ -410,7 +410,7 @@ AdjustForChangedSystemCapabilities()
 }
 
 #if defined(WIN32)
-#include "RageDisplay_D3D.h"
+#include "RageUtil/Graphics/RageDisplay_D3D.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 #endif
 
@@ -419,7 +419,7 @@ AdjustForChangedSystemCapabilities()
 #endif
 
 #if defined(SUPPORT_GLES2)
-#include "RageDisplay_GLES2.h"
+#include "RageUtil/Graphics/RageDisplay_GLES2.h"
 #endif
 
 #include "RageUtil/Graphics/RageDisplay_Null.h"
