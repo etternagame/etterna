@@ -130,6 +130,26 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				for (auto& st : vpStepsToSave)
 					songkey += st->GetChartKey();
 				songkey = BinaryToHex(CRYPTMAN->GetSHA1ForString(songkey));
+				// Save ssc/sm5 cache file
+				{
+					// Hideous hack: Save to a tmp file and then copy its contents to the file we want
+					// We use ofstream to save files here, im not sure if pathing is compatible
+					// And SSC write uses ragefile. So this way we dont have to mess with ssc writer
+					RString tmpOutPutPath = "Cache/tmp.ssc";
+					RString sscCacheFilePath = outputPath + songkey + "_ssccache.ssc";
+
+					NotesWriterSSC::Write(tmpOutPutPath, *pSong, vpStepsToSave, true);
+					
+					RageFile f;
+					f.Open(tmpOutPutPath);
+					string p = f.GetPath();
+					f.Close();
+					std::ofstream dst(sscCacheFilePath,
+					  std::ios::binary);
+					std::ifstream src(p, std::ios::binary);
+					dst << src.rdbuf();
+					dst.close();
+				}
 				if (pSong->HasBanner()) {
 					RageFile f;
 					f.Open(pSong->GetBannerPath());
