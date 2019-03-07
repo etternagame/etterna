@@ -3959,11 +3959,6 @@ Player::RenderAllNotesIgnoreScores()
 		}
 	}
 	// Draw the results
-	int iDrawDistanceAfterTargetsPixels = DRAW_DISTANCE_AFTER_TARGET_PIXELS;
-	int iDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
-	m_pNoteField->Load(&m_NoteData,
-					   iDrawDistanceAfterTargetsPixels,
-					   iDrawDistanceBeforeTargetsPixels);
 	m_pNoteField->DrawPrimitives();
 
 	// Now do some magic that makes holds and rolls function properly...
