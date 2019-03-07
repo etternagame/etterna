@@ -2808,7 +2808,8 @@ Player::StepReplay(int col,
 					float fWindowW4 = GetWindowSeconds(TW_W4);
 					float fWindowW5 = GetWindowSeconds(TW_W5);
 
-					// Removed a lot of logically dead code here since autoplay doesn't use it anyways -poco
+					// Removed a lot of logically dead code here since autoplay
+					// doesn't use it anyways -poco
 
 					// figure out overlap.
 					float fLowerBound = 0.0f;	// negative upper limit
@@ -3940,17 +3941,65 @@ Player::RenderAllNotesIgnoreScores()
 
 			// Reset the score so it can be visible
 			if (iter != m_NoteData.end(track)) {
-				if (iter->second.type == TapNoteType_Empty)
+				if (pTN->type == TapNoteType_Empty)
 					continue;
-				if (iter->second.type == TapNoteType_HoldHead)
-					iter->second.HoldResult.hns = HNS_None;
-				iter->second.result.bHidden = false;
-				iter->second.result.tns = TNS_None;
+				if (pTN->HoldResult.hns != HNS_None) {
+					pTN->HoldResult.hns = HNS_None;
+					pTN->HoldResult.fLife = 1;
+					pTN->HoldResult.iLastHeldRow = -1;
+					pTN->HoldResult.bHeld = false;
+					pTN->HoldResult.bActive = false;
+					pTN->HoldResult.fOverlappedTime = 0;
+				}
+				if (pTN->result.tns != TNS_None) {
+					pTN->result.bHidden = false;
+					pTN->result.tns = TNS_None;
+				}
 			}
 		}
 	}
 	// Draw the results
+	int iDrawDistanceAfterTargetsPixels = DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+	int iDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	m_pNoteField->Load(&m_NoteData,
+					   iDrawDistanceAfterTargetsPixels,
+					   iDrawDistanceBeforeTargetsPixels);
 	m_pNoteField->DrawPrimitives();
+
+	// Now do some magic that makes holds and rolls function properly...
+	// Tell every hold/roll that they haven't been touched yet:
+	m_iFirstUncrossedRow = -1;
+	m_pJudgedRows->Reset(-1);
+
+	for (int i = 0;
+		   i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+				 ->m_iColsPerPlayer;
+		   ++i)
+	{
+		lastHoldHeadsSeconds[i] = -1000.f;
+	}
+
+	// Might as well regenerate every single iterator for judging.
+	// They get set to the right stuff after the next update.
+	SAFE_DELETE(m_pIterNeedsTapJudging);
+	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterNeedsHoldJudging);
+	m_pIterNeedsHoldJudging = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUncrossedRows);
+	m_pIterUncrossedRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUnjudgedRows);
+	m_pIterUnjudgedRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUnjudgedMineRows);
+	m_pIterUnjudgedMineRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW));
 }
 
 // lua start
