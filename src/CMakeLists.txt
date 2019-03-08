@@ -329,7 +329,6 @@ list(APPEND SMDATA_LINK_LIB
   "tommath"
   "zlib"
   "jsoncpp"
-  "png"
   "glew"
   "luajit"
   "jpeg"
