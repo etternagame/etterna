@@ -896,7 +896,7 @@ local prevZoom = 0.65
 local musicratio = 1
 
 -- hurrrrr nps quadzapalooza -mina
-local wodth = capWideScale(get43size(250), 300)
+local wodth = capWideScale(get43size(240), 280)
 local hidth = 40
 local cd
 local bookmarkPosition
