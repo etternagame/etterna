@@ -1147,9 +1147,6 @@ GameState::ApplyStageModifiers(PlayerNumber pn, const RString& sModifiers)
 bool
 GameState::CurrentOptionsDisqualifyPlayer(PlayerNumber pn)
 {
-	if (!PREFSMAN->m_bDisqualification)
-		return false;
-
 	if (!IsHumanPlayer(pn))
 		return false;
 

@@ -854,8 +854,6 @@ PlayerStageStats::GetPercentageOfTaps(TapNoteScore tns) const
 bool
 PlayerStageStats::IsDisqualified() const
 {
-	if (!PREFSMAN->m_bDisqualification)
-		return false;
 	return m_bDisqualified;
 }
 
