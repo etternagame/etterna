@@ -2537,6 +2537,9 @@ ScreenGameplay::SetRate(float newRate)
 	// misc info update
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 	UpdateSongPosition(0);
+	MESSAGEMAN->Broadcast(
+	  "CurrentRateChanged"); // Tell the theme we changed the rate
+
 	return newRate;
 }
 
@@ -2667,7 +2670,8 @@ ScreenGameplay::AddToPracticeRate(float amountAdded)
 	float newRate = rate + amountAdded;
 
 	// Rates outside of this range may crash
-	if (newRate < 0.3f || newRate > 3.f)
+	// Use 0.25 because of floating point errors...
+	if (newRate <= 0.25f || newRate > 3.f)
 		return rate;
 
 	bool paused = GAMESTATE->GetPaused();
@@ -2702,6 +2706,9 @@ ScreenGameplay::AddToPracticeRate(float amountAdded)
 	if (paused)
 		m_pSoundMusic->Pause(true);
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
+
+	MESSAGEMAN->Broadcast(
+	  "CurrentRateChanged"); // Tell the theme we changed the rate
 	return newRate;
 }
 
