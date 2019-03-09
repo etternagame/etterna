@@ -1,3 +1,7 @@
+if IsSMOnlineLoggedIn() then
+	CloseConnection()
+end
+
 local function input(event) -- for update button
 	if event.type ~= "InputEventType_Release" then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
