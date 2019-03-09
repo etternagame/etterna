@@ -106,6 +106,13 @@ local defaultConfig = {
 		normal = "#FFFFFF", -- normal
 		long = "#ff9a00", --orange
 		marathon = "#da5757" -- red
+	},
+	combo = {
+		Marv_FullCombo = "#00aeef",
+		Perf_FullCombo = "#fff568",
+		FullCombo = "#a4ff00",
+		RegularCombo = "#ffffff",
+		ComboLabel = "#00aeef"
 	}
 }
 
@@ -145,6 +152,10 @@ end
 
 function getTitleColor(type)
 	return color(colorConfig:get_data().title[type])
+end
+
+function getComboColor(type)
+	return color(colorConfig:get_data().combo[type])
 end
 
 -- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
