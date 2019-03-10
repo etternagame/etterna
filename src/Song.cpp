@@ -1041,16 +1041,17 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		SongUtil::AdjustDuplicateSteps(this);
 
 		// Clear fields for files that turned out to not exist.
-#define CLEAR_NOT_HAS(has_name, field_name)                                    \
+#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                           \
 	if (!(has_name)) {                                                         \
 		(field_name) = "";                                                     \
+		(field_name2) = "";							\
 	}
-		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile);
-		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile);
-		CLEAR_NOT_HAS(has_jacket, m_sJacketFile);
-		CLEAR_NOT_HAS(has_cdimage, m_sCDFile);
-		CLEAR_NOT_HAS(has_disc, m_sDiscFile);
-		CLEAR_NOT_HAS(has_cdtitle, m_sCDTitleFile);
+		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile, m_sBannerPath);
+		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile, m_sBackgroundPath);
+		CLEAR_NOT_HAS(has_jacket, m_sJacketFile, m_sJacketPath);
+		CLEAR_NOT_HAS(has_cdimage, m_sCDFile, m_sCDPath);
+		CLEAR_NOT_HAS(has_disc, m_sDiscFile, m_sDiscPath);
+		CLEAR_NOT_HAS(has_cdtitle, m_sCDTitleFile, m_sCDTitlePath);
 #undef CLEAR_NOT_HAS
 	}
 
