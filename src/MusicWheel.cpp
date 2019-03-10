@@ -730,7 +730,7 @@ MusicWheel::BuildWheelItemDatas(
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
 
-		if (packlistFiltering && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
+		if (FILTERMAN->filteringCommonPacks && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
 			vector<Song*> tmp;
 			for (auto& song : arraySongs) {
 				auto& group = song->m_sGroupName;
@@ -1689,12 +1689,13 @@ class LunaMusicWheel : public Luna<MusicWheel>
 
 	static int SetPackListFiltering(T* p, lua_State* L)
 	{
-		bool old = p->packlistFiltering;
-		p->packlistFiltering = BArg(1);
-		if (old == p->packlistFiltering)
-			return 0;
+		bool old = FILTERMAN->filteringCommonPacks;
+		FILTERMAN->filteringCommonPacks = BArg(1);
+		lua_pushboolean(L, FILTERMAN->filteringCommonPacks);
+		if (old == FILTERMAN->filteringCommonPacks)
+			return 1;
 		p->ReloadSongList(false, "");
-		return 0;
+		return 1;
 	}
 
 	LunaMusicWheel()

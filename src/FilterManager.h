@@ -35,6 +35,10 @@ class FilterManager
 	bool galaxycollapsed = false;
 	unordered_map<string, pair<int, int>> watte;
 
+	// General boolean to see if we should be filtering common packs.
+	// It defaults to on just to help smooth the multiplayer experience. -poco
+	bool filteringCommonPacks = true;
+
 	// Lua
 	void PushSelf(lua_State* L);
 };

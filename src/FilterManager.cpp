@@ -184,6 +184,17 @@ class LunaFilterManager : public Luna<FilterManager>
 		p->watte[SArg(1)].second = IArg(3);
 		return 0;
 	}
+	static int GetFilteringCommonPacks(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->filteringCommonPacks);
+		return 1;
+	}
+	static int ToggleCommonPackFilter(T* p, lua_State* L)
+	{
+		p->filteringCommonPacks = !p->filteringCommonPacks;
+		lua_pushboolean(L, p->filteringCommonPacks);
+		return 1;
+	}
 
 	LunaFilterManager()
 	{
@@ -203,6 +214,8 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);
 		ADD_METHOD(grabposy);
+		ADD_METHOD(GetFilteringCommonPacks);
+		ADD_METHOD(ToggleCommonPackFilter);
 	}
 };
 
