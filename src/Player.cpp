@@ -1338,8 +1338,10 @@ Player::UpdateHoldNotes(int iSongRow,
 				// give positive life in Step(), not here.
 
 				// Decrease life
-				fLife -= fDeltaTime / GetWindowSeconds(TW_Roll);
-				fLife = max(fLife, 0); // clamp
+				// Also clamp the roll decay window to the accepted "Judge 7" value for it. -poco
+				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25f);
+				fLife =
+				  max(fLife, 0); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -3628,8 +3630,11 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 #endif
 		}
 
-		// hack for practice mode fps: dont send messages for missed mines in practice mode -poco
-		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice && tns == TNS_AvoidMine)
+		// hack for practice mode fps: dont send messages for missed mines in
+		// practice mode -poco
+		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+			  .m_bPractice &&
+			tns == TNS_AvoidMine)
 			return;
 
 		MESSAGEMAN->Broadcast(msg);
@@ -3652,7 +3657,9 @@ Player::SetJudgment(int iRow,
 	// skip misses older than a second in practice mode to prevent huge freezes
 	// when skipping in long songs -poco
 	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice &&
-		iRow < BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_Timing->WhereUAtBro(m_pPlayerState->m_Position.m_fSongBeat) - 1)))
+		iRow <
+		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+			m_Timing->WhereUAtBro(m_pPlayerState->m_Position.m_fSongBeat) - 1)))
 		return;
 
 	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr)
