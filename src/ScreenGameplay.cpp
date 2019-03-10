@@ -1089,30 +1089,14 @@ ScreenGameplay::BeginScreen()
 
 	SOUND->PlayOnceFromAnnouncer("gameplay intro"); // crowd cheer
 
-	// Get the transitions rolling
+	// Tell multi to do its thing -poco
 	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
-		// If we're using networking, we must not have any delay. If we do,
-		// this can cause inconsistency on different computers and
-		// different themes.
-
-		StartPlayingSong(0, 0);
-		m_pSoundMusic->Stop();
-
-		float startOffset = g_fNetStartOffset;
-
 		NSMAN->StartRequest(1);
-
-		RageSoundParams p;
-		p.m_fSpeed = 1.0f; // Force 1.0 playback speed
-		p.StopMode = RageSoundParams::M_CONTINUE;
-		p.m_StartSecond = startOffset;
-		m_pSoundMusic->SetProperty("AccurateSync", true);
-		m_pSoundMusic->Play(false, &p);
-
-		UpdateSongPosition(0);
-	} else {
-		StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
 	}
+
+	// Then go
+	StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
+
 	if (GAMESTATE->m_bPlayingMulti) {
 		this->SetInterval(
 		  [this]() {
