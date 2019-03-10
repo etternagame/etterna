@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.65.0.0"
+	VIProductVersion "0.65.1.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -209,6 +209,8 @@ Section "Main Section" SecMain
 	SetOutPath "$INSTDIR"
 	AllowSkipFiles off
 	SetOverwrite on
+	
+	Call PreInstall
 
 !ifdef INSTALL_PROGRAM_LIBRARIES
 	WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -295,7 +297,6 @@ Section "Main Section" SecMain
 
 	; remove old noteskins
 	RMDir /r "$INSTDIR\NoteSkins\common\default"
-	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByInf"
@@ -306,25 +307,6 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\dance\SubtractByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZeroDoubleRes"
-	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
-	; the "midi-*" noteskin series was formerly known as just "midi".
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi"
-	; we may also want to remove the new ones.
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note-3d"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-solo"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid-3d"
-	; old names
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-rhythm-p1"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-rhythm-p2"
-	; new names
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p1"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p2"
-	; retro, retrobar.
-	RMDir /r "$INSTDIR\NoteSkins\dance\retro"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar-splithand_whiteblue"
 	; pump
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd"
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd-routine-p1"
@@ -337,13 +319,10 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\pump\delta-routine-p2"
 	RMDir /r "$INSTDIR\NoteSkins\pump\frame5p"
 	RMDir /r "$INSTDIR\NoteSkins\pump\newextra"
-	RMDir /r "$INSTDIR\NoteSkins\pump\pad"
 	RMDir /r "$INSTDIR\NoteSkins\pump\rhythm"
 	RMDir /r "$INSTDIR\NoteSkins\pump\simple"
 	; kb7
 	RMDir /r "$INSTDIR\NoteSkins\kb7\default"
-	RMDir /r "$INSTDIR\NoteSkins\kb7\orbital"
-	; retrobar for kb7
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar"
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar-iidx"
 	RMDir /r "$INSTDIR\NoteSkins\kb7\retrobar-o2jam"
@@ -391,8 +370,6 @@ Section "Main Section" SecMain
 	; install kb7 noteskins
 	SetOutPath "$INSTDIR\NoteSkins\kb7"
 	File /r /x CVS /x .svn "NoteSkins\kb7\default"
-	;File /r /x CVS /x .svn "NoteSkins\kb7\orbital"
-	; retrobar
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar"
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar-iidx"
 	File /r /x CVS /x .svn "NoteSkins\kb7\retrobar-o2jam"
@@ -769,7 +746,12 @@ Function .onInit
 	WriteINIStr $PLUGINSDIR\custom.ini "Field 5" "Text" $PLUGINSDIR\image.bmp	
 !else
 
-	call PreInstall
+	; Part of what this call does is check for an already installed version
+	; within the $INSTDIR. We move this call to the install section to abort
+	; after allowing the user to change the directory to check.
+	; This is because we often want people to uninstall after every version change.
+	; A lot of people already installed in the default path, but this change allows any path.
+	;Call PreInstall
 !endif
 
 FunctionEnd

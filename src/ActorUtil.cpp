@@ -121,7 +121,6 @@ namespace {
 RString
 GetLegacyActorClass(XNode* pActor)
 {
-	DEBUG_ASSERT(PREFSMAN->m_bQuirksMode);
 	ASSERT(pActor);
 
 	// The non-legacy LoadFromNode has already checked the Class and

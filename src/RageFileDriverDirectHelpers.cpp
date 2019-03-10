@@ -227,7 +227,8 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
 		sPath.erase(sPath.size() - 1);
 
 	HANDLE hFind = DoFindFirstFile(root + sPath + "/*", &fd);
-	CHECKPOINT_M(root + sPath + "/*");
+	// This crashes on multithreaded startup occasionally. -poco
+	//CHECKPOINT_M(root + sPath + "/*");
 
 	if (hFind == INVALID_HANDLE_VALUE)
 		return;

@@ -182,35 +182,6 @@ WheelBase::Update(float fDeltaTime)
 	if (m_fTimeLeftInState <= 0) // time to go to a new state
 		UpdateSwitch();
 
-	if (m_WheelState == STATE_LOCKED) {
-		/* Do this in at most .1 sec chunks, so we don't get weird if we stop
-		 * for some reason (and so it behaves the same when being single
-		 * stepped). */
-		float fTime = fDeltaTime;
-		while (fTime > 0) {
-			float t = min(fTime, 0.1f);
-			fTime -= t;
-
-			m_fPositionOffsetFromSelection =
-			  clamp(m_fPositionOffsetFromSelection, -0.3f, +0.3f);
-
-			float fSpringForce =
-			  -m_fPositionOffsetFromSelection * LOCKED_INITIAL_VELOCITY;
-			m_fLockedWheelVelocity += fSpringForce;
-
-			float fDrag = -m_fLockedWheelVelocity * t * 4;
-			m_fLockedWheelVelocity += fDrag;
-
-			m_fPositionOffsetFromSelection += m_fLockedWheelVelocity * t;
-
-			if (fabsf(m_fPositionOffsetFromSelection) < 0.01f &&
-				fabsf(m_fLockedWheelVelocity) < 0.01f) {
-				m_fPositionOffsetFromSelection = 0;
-				m_fLockedWheelVelocity = 0;
-			}
-		}
-	}
-
 	if (IsMoving() != 0) {
 		// We're automatically moving. Move linearly, and don't clamp to the
 		// selection.

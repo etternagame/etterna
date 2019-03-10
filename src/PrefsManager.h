@@ -191,7 +191,6 @@ class PrefsManager
 
 	Preference<Maybe>	m_ShowSongOptions;
 	Preference<float>	m_fMinPercentToSaveScores;
-	Preference<bool>	m_bDisqualification;
 	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
 	Preference<float>	m_fGlobalOffsetSeconds;
 	Preference<RString>	m_sLanguage;

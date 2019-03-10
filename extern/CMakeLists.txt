@@ -20,5 +20,4 @@ include(CMakeProject-sqlitecpp.cmake)
 include(CMakeProject-modernjson.cmake)
 include(CMakeProject-tomcrypt.cmake)
 include(CMakeProject-tommath.cmake)
-include(CMakeProject-png.cmake)
 

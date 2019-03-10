@@ -80,18 +80,18 @@ deploy:
     image: Visual Studio 2017
     configuration: Release
 
-for:
-
+#for:
+#
 # override settings for `master` branch
--
-  branches:
-    only:
-      - master
-
-  image:
-    - Visual Studio 2013
-    - Visual Studio 2015
-    - Visual Studio 2017
-  configuration:
-    - Release
-    - RelWithDebInfo
+#-
+#  branches:
+#    only:
+#      - master
+#
+#  image:
+#    - Visual Studio 2013
+#    - Visual Studio 2015
+#    - Visual Studio 2017
+#  configuration:
+#    - Release
+#    - RelWithDebInfo

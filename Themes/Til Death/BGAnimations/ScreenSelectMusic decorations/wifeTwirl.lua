@@ -617,16 +617,18 @@ do
 	-- do-end block to minimize the scope of 'f'
 	local areWeReadiedUp = function()
 		local top = SCREENMAN:GetTopScreen()
-		local qty = top:GetUserQty()
-		local loggedInUser = NSMAN:GetLoggedInUsername()
-		for i = 1, qty do
-			local user = top:GetUser(i)
-			if user == loggedInUser then
-				return top:GetUserReady(i)
+		if top:GetName() == "ScreenNetSelectMusic" then
+			local qty = top:GetUserQty()
+			local loggedInUser = NSMAN:GetLoggedInUsername()
+			for i = 1, qty do
+				local user = top:GetUser(i)
+				if user == loggedInUser then
+					return top:GetUserReady(i)
+				end
 			end
+			-- ???? this should never happen
+			error "Could not find ourselves in the userlist"
 		end
-		-- ???? this should never happen
-		error "Could not find ourselves in the userlist"
 	end
 	readyButton = toggleButton("Unready", "Ready", "/ready", 50, areWeReadiedUp)
 	readyButton.UsersUpdateMessageCommand = function(self)
@@ -813,7 +815,6 @@ t[#t + 1] =
 	{
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
-			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			self:xy(20, 218)
 			self:zoom(0.5)
 			self:halign(0)
