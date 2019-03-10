@@ -822,7 +822,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
 			if (m_bHasBanner)
-				m_sBannerPath = GetSongAssetPath(m_sBannerPath, m_sSongDir);
+				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
 		}
 
 		if (!m_bHasBackground) {
