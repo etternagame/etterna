@@ -34,41 +34,21 @@ local r =
 }
 
 local function userLabel(i)
-	local x = 0
-	local y = 0
-	if i <= usersRowSize then
-		x = (usersX) + (i * usersWidth)
-		y = usersY + usersHeight
-	elseif i <= usersRowSize * 2 then
-		x = (usersX) + ((i - usersRowSize) * usersWidth)
-		y = usersY
-	elseif i <= usersRowSize * 3 then
-		x = (usersX) + ((i - usersRowSize * 2) * usersWidth) + usersWidthSmall
-		y = usersY + usersHeight
-	elseif i <= usersRowSize * 4 then
-		x = (usersX) + ((i - usersRowSize * 3) * usersWidth) + usersWidthSmall
-		y = usersY
-	elseif i <= usersRowSize * 5 then
-		x = (usersX) + (usersRowSize * usersWidth) + usersWidthSmall * (i - usersRowSize * 4)
-		y = usersY
-	else
-		x = (usersX) + (usersRowSize * usersWidth) + usersWidthSmall * (i - usersRowSize * 5)
-		y = usersY + usersHeight
-	end
+	local x = usersX + usersWidth * ((i-1) % usersRowSize)
+	local y = usersY + math.floor((i-1) / usersRowSize) * usersHeight
 	local aux =
 		LoadFont("Common Normal") ..
 		{
 			Name = i,
 			BeginCommand = function(self)
+				if showVisualizer then
+					y = y + 25
+				end
 				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
 					return
-				end
-				if showVisualizer then
-					y = usersY + 25
-					self:y(y)
 				end
 				local num = self:GetName() + 0
 				qty = top:GetUserQty()
