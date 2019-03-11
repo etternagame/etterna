@@ -47,6 +47,9 @@ local t =
 			end,
 			DoneLoadingNextSongMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			CurrentRateChangedMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	LoadFont("Common Normal") ..

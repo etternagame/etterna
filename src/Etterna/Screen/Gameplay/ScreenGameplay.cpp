@@ -1089,30 +1089,14 @@ ScreenGameplay::BeginScreen()
 
 	SOUND->PlayOnceFromAnnouncer("gameplay intro"); // crowd cheer
 
-	// Get the transitions rolling
+	// Tell multi to do its thing -poco
 	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
-		// If we're using networking, we must not have any delay. If we do,
-		// this can cause inconsistency on different computers and
-		// different themes.
-
-		StartPlayingSong(0, 0);
-		m_pSoundMusic->Stop();
-
-		float startOffset = g_fNetStartOffset;
-
 		NSMAN->StartRequest(1);
-
-		RageSoundParams p;
-		p.m_fSpeed = 1.0f; // Force 1.0 playback speed
-		p.StopMode = RageSoundParams::M_CONTINUE;
-		p.m_StartSecond = startOffset;
-		m_pSoundMusic->SetProperty("AccurateSync", true);
-		m_pSoundMusic->Play(false, &p);
-
-		UpdateSongPosition(0);
-	} else {
-		StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
 	}
+
+	// Then go
+	StartPlayingSong(MIN_SECONDS_TO_STEP, MIN_SECONDS_TO_MUSIC);
+
 	if (GAMESTATE->m_bPlayingMulti) {
 		this->SetInterval(
 		  [this]() {
@@ -2537,6 +2521,9 @@ ScreenGameplay::SetRate(float newRate)
 	// misc info update
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 	UpdateSongPosition(0);
+	MESSAGEMAN->Broadcast(
+	  "CurrentRateChanged"); // Tell the theme we changed the rate
+
 	return newRate;
 }
 
@@ -2667,7 +2654,8 @@ ScreenGameplay::AddToPracticeRate(float amountAdded)
 	float newRate = rate + amountAdded;
 
 	// Rates outside of this range may crash
-	if (newRate < 0.3f || newRate > 3.f)
+	// Use 0.25 because of floating point errors...
+	if (newRate <= 0.25f || newRate > 3.f)
 		return rate;
 
 	bool paused = GAMESTATE->GetPaused();
@@ -2702,6 +2690,9 @@ ScreenGameplay::AddToPracticeRate(float amountAdded)
 	if (paused)
 		m_pSoundMusic->Pause(true);
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
+
+	MESSAGEMAN->Broadcast(
+	  "CurrentRateChanged"); // Tell the theme we changed the rate
 	return newRate;
 }
 

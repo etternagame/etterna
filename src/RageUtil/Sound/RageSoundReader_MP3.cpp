@@ -594,7 +594,7 @@ int RageSoundReader_MP3::resync()
 RageSoundReader_MP3::RageSoundReader_MP3()
 {
 	mad = new madlib_t;
-	m_bAccurateSync = true;
+	m_bAccurateSync = false;
 
 	mad_stream_init(&mad->Stream);
 	mad_frame_init(&mad->Frame);

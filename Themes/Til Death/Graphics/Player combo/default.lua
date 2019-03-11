@@ -17,6 +17,11 @@ local function arbitraryComboZoom(value)
 end
 
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
+local labelColor = getComboColor("ComboLabel")
+local mfcNumbers = getComboColor("Marv_FullCombo")
+local pfcNumbers = getComboColor("Perf_FullCombo")
+local fcNumbers = getComboColor("FullCombo")
+local regNumbers = getComboColor("RegularCombo")
 
 local t =
 	Def.ActorFrame {
@@ -81,20 +86,23 @@ local t =
 
 		-- FullCombo Rewards
 		if param.FullComboW1 then
-			c.Number:diffuse(color("#00aeef"))
+			c.Number:diffuse(mfcNumbers)
 			c.Number:glowshift()
 		elseif param.FullComboW2 then
-			c.Number:diffuse(color("#fff568"))
+			c.Number:diffuse(pfcNumbers)
 			c.Number:glowshift()
 		elseif param.FullComboW3 then
-			c.Number:diffuse(color("#a4ff00"))
+			c.Number:diffuse(fcNumbers)
 			c.Number:stopeffect()
 		elseif param.Combo then
-			c.Number:diffuse(Color("White"))
+			c.Number:diffuse(regNumbers)
 			c.Number:stopeffect()
-			c.Label:diffuse(Color("Blue"))
+			c.Label:diffuse(labelColor)
 			c.Label:diffusebottomedge(color("0.75,0.75,0.75,1"))
 		else
+			-- I actually don't know what this is. 
+			-- It's probably for if you want to fade out the combo after a miss.
+			-- Oh well; Til death doesn't care.		-poco
 			c.Number:diffuse(color("#ff0000"))
 			c.Number:stopeffect()
 			c.Label:diffuse(Color("Red"))

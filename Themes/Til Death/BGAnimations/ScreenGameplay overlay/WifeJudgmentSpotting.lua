@@ -732,6 +732,12 @@ local p =
 				local ttime = GetPlayableTime()
 				settext(self, SecondsToMMSS(ttime))
 				diffuse(self, byMusicLength(ttime))
+			end,
+			--- ???? uhhh
+			CurrentRateChangedMessageCommand = function(self)
+				local ttime = GetPlayableTime()
+				settext(self, SecondsToMMSS(ttime))
+				diffuse(self, byMusicLength(ttime))
 			end
 		},
 	MovableBorder(width, height, 1, 0, 0),
@@ -802,8 +808,14 @@ t[#t + 1] =
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 10):zoom(0.35):settext(getCurRateDisplayString())
 		end,
-		DoneLoadingNextSongMessageCommand = function(self)
+		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())
+		end,
+		DoneLoadingNextSongMessageCommand = function(self)
+			self:playcommand("SetRate")
+		end,
+		CurrentRateChangedMessageCommand = function(self)
+			self:playcommand("SetRate")
 		end
 	}
 
@@ -821,7 +833,7 @@ local GetBPS = SongPosition.GetCurBPS
 local function UpdateBPM(self)
 	local bpm = GetBPS(a) * r
 	settext(BPM, Round(bpm, 2))
-end
+end	
 
 t[#t + 1] =
 	Def.ActorFrame {
@@ -843,6 +855,16 @@ t[#t + 1] =
 		},
 	DoneLoadingNextSongMessageCommand = function(self)
 		self:queuecommand("Init")
+	end,
+	-- basically a copy of the init
+	CurrentRateChangedMessageCommand = function(self)
+		r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
+		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
+			self:SetUpdateFunction(UpdateBPM)
+			self:SetUpdateRate(0.5)
+		else
+			BPM:settextf("%5.2f", GetBPS(a) * r)
+		end
 	end
 }
 
@@ -896,7 +918,7 @@ local prevZoom = 0.65
 local musicratio = 1
 
 -- hurrrrr nps quadzapalooza -mina
-local wodth = capWideScale(get43size(250), 300)
+local wodth = capWideScale(get43size(240), 280)
 local hidth = 40
 local cd
 local bookmarkPosition

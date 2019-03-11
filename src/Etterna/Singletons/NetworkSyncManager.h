@@ -16,7 +16,7 @@ class ScreenNetSelectMusic;
 class ScreenSMOnlineLogin;
 class Song;
 const int NETPROTOCOLVERSION = 4;
-const int ETTPCVERSION = 2;
+const int ETTPCVERSION = 3;
 const int NETMAXBUFFERSIZE = 1020; // 1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES = 8;
 
