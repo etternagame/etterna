@@ -58,7 +58,7 @@ if (HAVE_TIME_H AND HAVE_SYS_TIME_H)
   set (TIME_WITH_SYS_TIME TRUE)
 endif ()
 
-include (CheckPrototypeDefinition) 
+include (CheckPrototypeDefinition)
 check_prototype_definition (drand48 "double drand48 (void)" "0" stdlib.h HAVE_DECL_DRAND48)
 check_prototype_definition (srand48 "void srand48(long int seedval)" "0" stdlib.h HAVE_DECL_SRAND48)
 check_prototype_definition (cosl "long double cosl( long double arg )" "0" math.h HAVE_DECL_COSL)
@@ -253,7 +253,7 @@ set (fftw_threads_SOURCE ${fftw_par_SOURCE} threads/threads.c)
 set (fftw_omp_SOURCE ${fftw_par_SOURCE} threads/openmp.c)
 
 
-include_directories ("${SM_EXTERN_DIR}/fftw-3.3.8")
+include_directories (.)
 
 
 if (WITH_COMBINED_THREADS)
@@ -300,6 +300,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 add_library (${fftw3_lib} STATIC ${SOURCEFILES})
 target_include_directories (${fftw3_lib} INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(${fftw3_lib} INTERFACE api)
 if (MSVC)
   target_compile_definitions (${fftw3_lib} PRIVATE /bigobj)
 endif ()
