@@ -3,7 +3,7 @@
 #include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "CryptManager.h"
-#include "discord-rpc.h"
+#include "discord_rpc.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameCommand.h"

@@ -4,7 +4,7 @@
 #include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "sqlite3.h"
+#include <sqlite3.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 

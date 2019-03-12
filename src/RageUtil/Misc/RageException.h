@@ -1,9 +1,9 @@
 ﻿#ifndef RAGE_EXCEPTION_H
 #define RAGE_EXCEPTION_H
 
-#if defined(CMAKE_POWERED)
+//#if defined(CMAKE_POWERED)
 #include "config.hpp"
-#endif
+//#endif
 
 /**
  * @brief Namespace for throwing fatal errors.

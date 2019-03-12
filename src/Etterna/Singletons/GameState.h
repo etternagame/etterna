@@ -7,7 +7,7 @@
 #include "MessageManager.h"
 #include "Etterna/Models/Misc/ModsGroup.h"
 #include "Etterna/Models/Songs/SongPosition.h"
-#include "discord-rpc.h"
+#include "discord_rpc.h"
 
 #include <deque>
 
