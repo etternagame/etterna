@@ -1,4 +1,5 @@
 list(APPEND SMDATA_GLOBAL_FILES_SRC
+     "Main.cpp"
      "GameLoop.cpp"
      "global.cpp"
      "SpecialFiles.cpp"
@@ -14,8 +15,7 @@ list(APPEND SMDATA_GLOBAL_FILES_HPP
      "SpecialFiles.h"
      "StdString.h" # TODO: Remove the need for this file, transition to std::string.
      "StepMania.h" # TODO: Refactor into separate main project.
-     "picosha2.h"
-     )
+     "picosha2.h")
 source_group("Global Files" FILES ${SMDATA_GLOBAL_FILES_SRC} ${SMDATA_GLOBAL_FILES_HPP})
 
 # Add sources to Etterna executable
