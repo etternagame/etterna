@@ -4,3 +4,6 @@
 [submodule "extern/json"]
 	path = extern/json
 	url = https://github.com/etternagame/json.git
+[submodule "extern/discord-rpc"]
+    path = extern/discord-rpc
+    url = https://github.com/discordapp/discord-rpc.git
