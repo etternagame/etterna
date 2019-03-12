@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Backtrace.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

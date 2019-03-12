@@ -25,9 +25,9 @@ typedef char TCHAR, *PTCHAR;
 
 #include "baseclasses/streams.h"
 
-#include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageThreads.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 class MovieTexture_DShow : public RageMovieTexture
 {

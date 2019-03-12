@@ -1,5 +1,5 @@
-﻿#include "global.h"
-#include "StepMania.h"
+﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/StepMania.h"
 
 int
 main(int argc, char* argv[])

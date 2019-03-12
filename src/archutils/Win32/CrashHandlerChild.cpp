@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CrashHandlerInternal.h"
 #include "Crash.h"
 #include <errno.h>
@@ -21,12 +21,12 @@
 #include "archutils/Win32/CrashHandlerNetworking.h"
 #include "archutils/Win32/WindowsDialogBox.h"
 #include "archutils/Win32/SpecialDirs.h"
-#include "ProductInfo.h"
-#include "RageUtil.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
-#include "LocalizedString.h"
-#include "RageFileDriverDeflate.h"
+#include "Etterna/Globals/ProductInfo.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "RageUtil/File/RageFileDriverDeflate.h"
 #include "ver.h"
 
 #if defined(_MSC_VER)

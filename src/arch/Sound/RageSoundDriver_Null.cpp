@@ -1,8 +1,8 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_Null.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 REGISTER_SOUND_DRIVER_CLASS(Null);
 

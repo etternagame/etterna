@@ -1,8 +1,8 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Threads_Win32.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "archutils/Win32/ErrorStrings.h"
 
 const int MAX_THREADS = 128;

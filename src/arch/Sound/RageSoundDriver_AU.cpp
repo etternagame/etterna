@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_AU.h"
-#include "RageLog.h"
-#include "PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "archutils/Darwin/DarwinThreadHelpers.h"
 #include <CoreServices/CoreServices.h>
 #include <AudioToolbox/AudioServices.h>

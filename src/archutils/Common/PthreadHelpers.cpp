@@ -2,9 +2,9 @@
  */
 #include "PthreadHelpers.h"
 
-#include "global.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
 #if defined(UNIX)
 #include "archutils/Unix/RunningUnderValgrind.h"

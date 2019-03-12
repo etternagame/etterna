@@ -5,7 +5,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 class HIDDevice;
 

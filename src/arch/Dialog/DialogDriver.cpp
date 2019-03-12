@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "DialogDriver.h"
-#include "Foreach.h"
-#include "RageLog.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "RageUtil/Misc/RageLog.h"
 
 map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,

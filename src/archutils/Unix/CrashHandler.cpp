@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -13,8 +13,8 @@
 #endif
 #include <csignal>
 
-#include "RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */
+#include "RageUtil/Misc/RageThreads.h"
 #include "Backtrace.h"
 
 #include <sys/types.h>

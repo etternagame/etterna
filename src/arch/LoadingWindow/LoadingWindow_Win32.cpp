@@ -1,8 +1,8 @@
-#include "global.h"
-#include "RageUtil.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include "LoadingWindow_Win32.h"
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "archutils/win32/WindowsResources.h"
 #include "archutils/win32/WindowIcon.h"
 #include "archutils/win32/ErrorStrings.h"
@@ -12,15 +12,15 @@
 #include <tchar.h>
 #include "Dwmapi.h"
 #include "CommCtrl.h"
-#include "RageSurface_Load.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
-#include "RageLog.h"
+#include "RageUtil/Graphics/RageSurface_Load.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageSurfaceUtils.h"
+#include "RageUtil/Misc/RageLog.h"
 #include <wchar.h>
-#include "ProductInfo.h"
-#include "LocalizedString.h"
+#include "Etterna/Globals/ProductInfo.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 
-#include "RageSurfaceUtils_Zoom.h"
+#include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
 #pragma comment(lib, "Dwmapi.lib")
 
 static HBITMAP g_hBitmap = NULL;

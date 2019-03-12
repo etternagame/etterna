@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_DShowHelper.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 
 //-----------------------------------------------------------------------------

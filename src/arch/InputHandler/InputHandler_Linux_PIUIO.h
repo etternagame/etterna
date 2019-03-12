@@ -2,7 +2,7 @@
 #define INPUT_HANDLER_LINUX_PIUIO_H 1
 
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 
 class InputHandler_Linux_PIUIO : public InputHandler
 {

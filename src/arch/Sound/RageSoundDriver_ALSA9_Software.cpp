@@ -1,13 +1,13 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_ALSA9_Software.h"
 
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageSoundManager.h"
-#include "RageUtil.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageTimer.h"
 #include "ALSA9Dynamic.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 #include "archutils/Unix/GetSysInfo.h"
 
