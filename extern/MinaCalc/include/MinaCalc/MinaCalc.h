@@ -1,5 +1,4 @@
-﻿#pragma once
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
+﻿#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
 
 using namespace std;
@@ -12,7 +11,6 @@ using namespace std;
 // For Stepmania
 #ifndef MINACALC_API
 #define MINACALC_API
-#endif
 
 typedef vector<float> SDiffs;
 typedef vector<SDiffs> MinaSD;
@@ -197,3 +195,5 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 		   bool negbpms);
 MINACALC_API int
 GetCalcVersion();
+
+#endif
