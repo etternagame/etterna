@@ -279,27 +279,5 @@ inline long lrintf( float f )
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-/* Ensure we have an endianness defined. */
-#if !defined(ENDIAN_LITTLE) && !defined(ENDIAN_BIG)
-#error "Neither ENDIAN_LITTLE nor ENDIAN_BIG defined. Aborting."
-#endif
-
-/* Define standard endianness macros, if they're missing. */
-#if defined(HAVE_ENDIAN_H)
-#include <endian.h>
-#elif defined(HAVE_MACHINE_ENDIAN_H)
-#include <machine/endian.h>
-#else
-/** @brief The macro for little endian order. */
-#define LITTLE_ENDIAN 1234
-/** @brief The macro for big endian order. */
-#define BIG_ENDIAN 4321
-#if defined(ENDIAN_LITTLE)
-#define BYTE_ORDER LITTLE_ENDIAN
-#elif defined(ENDIAN_BIG)
-#define BYTE_ORDER BIG_ENDIAN
-#endif
-
-#endif
 
 #endif
