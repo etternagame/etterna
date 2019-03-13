@@ -13,6 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 ## CMake related variables
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules") # Tell cmake where to get "FindXXX.cmake" files
+set(CMAKE_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/extern")
 
 # DEPENDENCIES - Ensure all dependencies are available for the build process
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -98,7 +99,10 @@ elseif(LINUX) # LINUX ONLY
 
 
 	find_package(VideoAcceleration)
-	#find_package(FFMPEG)
+#	include(CMake/SetupFfmpeg.cmake)
+#	find_package(FFMPEG)
+
+	set(HAS_FFMPEG TRUE)
 	find_package(CURL REQUIRED)  # ALSO WITH MAC
 	find_package(OpenGL REQUIRED)
 	find_package(GLEW REQUIRED)
@@ -123,7 +127,8 @@ list(APPEND cdefs
      HAVE_X11
      HAS_MP3
      HAS_WAV
-     HAS_OGG)
+     HAS_OGG
+     HAS_FFMPEG)
 
 # MAIN BUILD TARGETS
 # Executable
@@ -156,6 +161,7 @@ target_link_libraries(Etterna tomcrypt)
 target_link_libraries(Etterna libtommath)
 target_link_libraries(Etterna fftw3f)
 target_link_libraries(Etterna MinaCalc)
+target_link_libraries(Etterna ffmpeg)
 
 target_link_libraries(Etterna ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna ${ICONV_LIBRARIES})
