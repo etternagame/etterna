@@ -536,7 +536,7 @@ else() # Unix / Linux
   endif()
 
   if(PCRE_FOUND)
-    list(APPEND SMDATA_LINK_LIB ${PCRE_LIBRARY})
+    list(APPEND SMDATA_LINK_LIB ${PCRE_LIBRARIES})
   endif()
 
   list(APPEND SMDATA_LINK_LIB
@@ -608,7 +608,7 @@ if(NOT APPLE)
       list(APPEND SM_INCLUDE_DIRS "${X11_INCLUDE_DIR}")
     endif()
     if (PCRE_FOUND)
-      list(APPEND SM_INCLUDE_DIRS "${PCRE_INCLUDE_DIR}")
+      list(APPEND SM_INCLUDE_DIRS "${PCRE_INCLURE_DIRS}")
     endif()
     if (DL_FOUND)
       list(APPEND SM_INCLUDE_DIRS "${DL_INCLUDE_DIR}")
