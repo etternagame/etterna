@@ -16,11 +16,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#if defined(CRASH_HANDLER)
 #include "archutils/Unix/CrashHandler.h"
 #ifdef __linux__
 #include <limits.h>
-#endif
 #endif
 
 #if defined(HAVE_FFMPEG)

@@ -205,7 +205,6 @@ ResumeThread(uint64_t ThreadID)
  * This call leaves the given thread suspended, so the returned context doesn't
  * become invalid. ResumeThread() can be used to resume a thread after this
  * call. */
-#if defined(CRASH_HANDLER)
 bool
 GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 {
@@ -258,7 +257,6 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 
 	return true;
 }
-#endif
 
 #elif defined(__unix__)
 #include <pthread.h>

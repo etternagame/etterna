@@ -106,27 +106,23 @@ else()
       "Unix/SpecialDirs.h"
       "Common/gcc_byte_swaps.h"
     )
-    if(X11_FOUND)
       list(APPEND SMDATA_OS_SRC
         "Unix/X11Helper.cpp"
       )
       list(APPEND SMDATA_OS_HPP
         "Unix/X11Helper.h"
       )
-    endif()
-    if(HAS_PTHREAD)
       list(APPEND SMDATA_OS_SRC
         "Common/PthreadHelpers.cpp"
       )
       list(APPEND SMDATA_OS_HPP
         "Common/PthreadHelpers.h"
       )
-    endif()
   endif()
   source_group("OS Specific" FILES ${SMDATA_OS_SRC} ${SMDATA_OS_HPP})
 endif()
 
-if(APPLE OR LINUX)
+if(APPLE OR UNIX)
   if (WITH_CRASH_HANDLER)
     list(APPEND SMDATA_OS_UNIX_CRASH_SRC
       "Unix/Backtrace.cpp"
@@ -153,3 +149,5 @@ if(APPLE OR LINUX)
     )
   endif()
 endif()
+
+target_sources(Etterna PUBLIC ${SMDATA_OS_SRC})

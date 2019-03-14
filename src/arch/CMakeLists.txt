@@ -20,22 +20,13 @@ if(WIN32)
   list(APPEND SMDATA_ARCH_THREADS_SRC
     "Threads/Threads_Win32.cpp"
   )
-elseif(APPLE)
+elseif(APPLE OR UNIX)
   list(APPEND SMDATA_ARCH_THREADS_HPP
     "Threads/Threads_Pthreads.h"
   )
   list(APPEND SMDATA_ARCH_THREADS_SRC
     "Threads/Threads_Pthreads.cpp"
   )
-else()
-  if(HAS_PTHREAD)
-    list(APPEND SMDATA_ARCH_THREADS_HPP
-      "Threads/Threads_Pthreads.h"
-    )
-    list(APPEND SMDATA_ARCH_THREADS_SRC
-      "Threads/Threads_Pthreads.cpp"
-    )
-  endif()
 endif()
 
 source_group("Arch Specific\\\\Threads" FILES ${SMDATA_ARCH_THREADS_SRC} ${SMDATA_ARCH_THREADS_HPP})
@@ -72,14 +63,12 @@ elseif(APPLE)
     "Sound/RageSoundDriver_AU.h"
   )
 else() # Unix
-  if (HAS_PULSE)
     list(APPEND SMDATA_ARCH_SOUND_SRC
       "Sound/RageSoundDriver_PulseAudio.cpp"
     )
     list(APPEND SMDATA_ARCH_SOUND_HPP
       "Sound/RageSoundDriver_PulseAudio.h"
     )
-  endif()
   if (HAS_ALSA)
     list(APPEND SMDATA_ARCH_SOUND_SRC
       "Sound/ALSA9Dynamic.cpp"
