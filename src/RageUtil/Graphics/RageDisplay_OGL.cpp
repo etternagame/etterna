@@ -198,6 +198,7 @@ struct GLPixFmtInfo_t
 static void
 FixLittleEndian()
 {
+#if defined(ENDIAN_LITTLE)
 	static bool bInitialized = false;
 	if (bInitialized)
 		return;
@@ -226,6 +227,7 @@ FixLittleEndian()
 			pf.masks[mask] = m;
 		}
 	}
+#endif
 }
 
 static void

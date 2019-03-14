@@ -1,6 +1,8 @@
 ﻿#include "global.h"
 
+#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #if defined(CRASH_HANDLER)

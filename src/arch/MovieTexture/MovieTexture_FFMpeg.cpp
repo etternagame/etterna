@@ -12,6 +12,7 @@
 static void
 FixLilEndian()
 {
+#if defined(ENDIAN_LITTLE)
 	static bool Initialized = false;
 	if (Initialized)
 		return;
@@ -38,6 +39,7 @@ FixLilEndian()
 			pf.masks[mask] = m;
 		}
 	}
+#endif
 }
 
 static int
