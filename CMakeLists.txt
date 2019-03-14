@@ -20,12 +20,24 @@ set(CMAKE_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/extern")
 # Executable
 add_executable(Etterna)
 
+## Library including
+### Universal Includes first
+find_package(Threads)
+
+if(WIN32)
+
+elseif(APPLE)
+
+elseif(UNIX)
+  find_package(Dl)
+endif()
+
 # Source
 add_subdirectory(extern)
 add_subdirectory(src/Etterna)
-#add_subdirectory(src/arch)
-#add_subdirectory(src/archutils)
-#add_subdirectory(src/RageUtil)
+add_subdirectory(src/arch)
+add_subdirectory(src/archutils)
+add_subdirectory(src/RageUtil)
 
 # Includes
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
@@ -45,3 +57,5 @@ target_link_libraries(Etterna libtommath)
 target_link_libraries(Etterna fftw3f)
 target_link_libraries(Etterna MinaCalc)
 #target_link_libraries(Etterna ffmpeg)
+
+target_link_libraries(Etterna ${DL_LIBRARIES})
