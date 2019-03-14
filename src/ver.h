@@ -1,11 +1,7 @@
 #ifndef STEPMANIA_VER_H
 #define STEPMANIA_VER_H
 
-#if !defined(CMAKE_POWERED) && (defined(_MSC_VER) || defined(__MACOSX__))
-#define product_version "5.0-UNKNOWN"
-#else
 extern char const* const product_version;
-#endif
 
 // XXX: These names are misnomers. This is actually the BUILD number, time and
 // date. NOTE: In GNU toolchain these are defined in ver.cpp. In MSVC these are
