@@ -51,7 +51,7 @@
 //			- Jim Cline
 //			- Jeff Kohn
 //			- Todd Heckel
-//			- Ullrich Poll�hne
+//			- Ullrich Pollähne
 //			- Joe Vitaterna
 //			- Joe Woodbury
 //			- Aaron (no last name)
