@@ -192,11 +192,6 @@ endif()
 # Dependencies go here.
 include(ExternalProject)
 
-if(NOT WITH_GPL_LIBS)
-  message("Disabling GPL exclusive libraries: no MP3 support.")
-  set(WITH_MP3 OFF)
-endif()
-
 if(WITH_WAV)
   # TODO: Identify which headers to check for ensuring this will always work.
   set(HAS_WAV TRUE)
