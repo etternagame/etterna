@@ -8,9 +8,7 @@
 #include <set>
 #include "RageSoundReader_WAV.h"
 
-#if defined(HAS_MP3)
 #include "RageSoundReader_MP3.h"
-#endif
 
 #if defined(HAS_OGG)
 #include "RageSoundReader_Vorbisfile.h"
@@ -27,13 +25,11 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 	if (!format.CompareNoCase("wav"))
 		Sample = new RageSoundReader_WAV;
 
-#if defined(HAS_MP3)
 	if (!format.CompareNoCase("mp3")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_MP3;
 	}
-#endif
 
 #if defined(HAS_OGG)
 	if (!format.CompareNoCase("oga") || !format.CompareNoCase("ogg")) {

@@ -332,13 +332,11 @@ list(APPEND SMDATA_LINK_LIB
 )
 include(../extern/CMakeProject-mmmagic.cmake)
 
-if (HAS_MP3)
-  list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
-  if (WIN32 OR MACOSX)
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
-  else()
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
-  endif()
+list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
+if (WIN32 OR MACOSX)
+list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
+else()
+list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
 endif()
 
 if (NOT SYSTEM_PCRE_FOUND)

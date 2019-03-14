@@ -129,9 +129,6 @@ typedef long ssize_t;
 /* Defined to 1 if the underlying system uses big endian. */
 #cmakedefine ENDIAN_BIG 1
 
-/* Defined to 1 if compiling with MP3 support. */
-#cmakedefine HAS_MP3 1
-
 /* Defined to 1 if compiling with OGG support. */
 #cmakedefine HAS_OGG 1
 

@@ -188,10 +188,8 @@ if (HAS_OGG)
   list(APPEND SMDATA_RAGE_SOUND_HPP "RageUtil/Sound/RageSoundReader_Vorbisfile.h")
 endif()
 
-if (HAS_MP3)
-  list(APPEND SMDATA_RAGE_SOUND_SRC "RageUtil/Sound/RageSoundReader_MP3.cpp")
-  list(APPEND SMDATA_RAGE_SOUND_HPP "RageUtil/Sound/RageSoundReader_MP3.h")
-endif()
+list(APPEND SMDATA_RAGE_SOUND_SRC "RageUtil/Sound/RageSoundReader_MP3.cpp")
+list(APPEND SMDATA_RAGE_SOUND_HPP "RageUtil/Sound/RageSoundReader_MP3.h")
 
 source_group("Rage\\\\Sound" FILES ${SMDATA_RAGE_SOUND_SRC} ${SMDATA_RAGE_SOUND_HPP})
 

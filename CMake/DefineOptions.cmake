@@ -12,9 +12,6 @@ option(WITH_SSE2 "Build with SSE2 Optimizations." ON)
 # Turn this on to set this to a specific release mode.
 option(WITH_FULL_RELEASE "Build as a proper, full release." OFF)
 
-# Turn this option off to disable using MP3 files with the game.
-option(WITH_MP3 "Build with MP3 Support." ON)
-
 # Turn this option off to disable using OGG files with the game.
 option(WITH_OGG "Build with OGG/Vorbis Support." ON)
 
