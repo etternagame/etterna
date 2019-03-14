@@ -12,7 +12,7 @@
 
 #include <string>
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <netinet/in.h>
@@ -124,7 +124,7 @@ class EzSockets
 
   private:
 	// Only necessary for Windows
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	WSADATA wsda;
 #endif
 

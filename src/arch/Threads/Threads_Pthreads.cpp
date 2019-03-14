@@ -5,11 +5,11 @@
 #include <sys/time.h>
 #include <errno.h>
 
-#if defined(UNIX)
+#ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 #include "archutils/Darwin/DarwinThreadHelpers.h"
 #else
 #include "archutils/Common/PthreadHelpers.h"
@@ -117,7 +117,7 @@ MutexImpl_Pthreads::~MutexImpl_Pthreads()
 static bool
 UseTimedlock()
 {
-#if defined(LINUX)
+#ifdef __linux__
 	// Valgrind crashes and burns on pthread_mutex_timedlock.
 	if (RunningUnderValgrind())
 		return false;
@@ -218,7 +218,7 @@ MakeMutex(RageMutex* pParent)
 
 /* Check if condattr_setclock is supported, and supports the clock that
  * RageTimer selected. */
-#if defined(UNIX)
+#ifdef __unix__
 #include <dlfcn.h>
 #include "arch/ArchHooks/ArchHooks_Unix.h"
 #endif // On MinGW clockid_t is defined in pthread.h
@@ -227,7 +227,7 @@ typedef int (*CONDATTR_SET_CLOCK)(pthread_condattr_t* attr, clockid_t clock_id);
 CONDATTR_SET_CLOCK g_CondattrSetclock = NULL;
 bool bInitialized = false;
 
-#if defined(UNIX)
+#ifdef __unix__
 clockid_t
 GetClock()
 {
@@ -278,7 +278,7 @@ InitMonotonic()
 		dlclose(pLib);
 	pLib = NULL;
 }
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 void
 InitMonotonic()
 {

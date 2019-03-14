@@ -20,7 +20,7 @@
 
 #if defined(CRASH_HANDLER)
 #include "archutils/Unix/CrashHandler.h"
-#if defined(LINUX)
+#ifdef __linux__
 #include <limits.h>
 #endif
 #endif
@@ -105,7 +105,7 @@ TestTLSThread(void* p)
 static void
 TestTLS()
 {
-#if defined(LINUX)
+#ifdef __linux__
 	/* TLS won't work on older threads libraries, and may crash. */
 	if (!UsingNPTL())
 		return;
@@ -394,7 +394,7 @@ static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",
 void
 ArchHooks::MountInitialFilesystems(const RString& sDirOfExecutable)
 {
-#if defined(UNIX)
+#ifdef __unix__
 	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
 	 * on. This is /rootfs, not /root, to avoid confusion with root's home
 	 * directory. */

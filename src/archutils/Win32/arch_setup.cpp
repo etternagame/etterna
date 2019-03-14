@@ -5,7 +5,7 @@
 #endif
 #include "CommandLine.h"
 
-#if defined(WINDOWS)
+#ifdef _WIN32
 int
 main(int argc, char* argv[]);
 int __stdcall WinMain(HINSTANCE /* hInstance */,

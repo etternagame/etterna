@@ -18,7 +18,7 @@
 #include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 #include "archutils/Darwin/Crash.h"
 #endif
 
@@ -181,7 +181,7 @@ child_process()
 	}
 
 	RString sCrashInfoPath = "/tmp";
-#if defined(MACOSX)
+#ifdef __APPLE__
 	sCrashInfoPath = CrashHandler::GetLogsDirectory();
 #else
 	const char* home = getenv("HOME");
@@ -265,7 +265,7 @@ child_process()
 	fprintf(CrashDump, "-- End of report\n");
 	fclose(CrashDump);
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 	CrashHandler::InformUserOfCrash(sCrashInfoPath);
 #else
 	/* stdout may have been inadvertently closed by the crash in the parent;

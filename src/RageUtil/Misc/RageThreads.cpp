@@ -25,9 +25,9 @@
 #include "arch/Threads/Threads.h"
 
 #if defined(CRASH_HANDLER)
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include "archutils/Win32/crash.h"
-#elif defined(LINUX) || defined(MACOSX)
+#elif defined(__linux__) || defined(__APPLE__)
 #include "archutils/Unix/CrashHandler.h"
 #endif
 #endif

@@ -15,7 +15,7 @@
 RString
 DoPathReplace(const RString& sPath);
 
-#if defined(WIN32)
+#ifdef _WIN32
 bool
 WinMoveFile(const RString& sOldPath, const RString& sNewPath);
 #endif

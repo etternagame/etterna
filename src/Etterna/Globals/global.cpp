@@ -4,27 +4,27 @@
 #include <unistd.h>
 #endif
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #if defined(CRASH_HANDLER)
 #define _WIN32_WINDOWS 0x0410 // include Win98 stuff
 #include "windows.h"
 #include "archutils/Win32/Crash.h"
 #endif
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 #include "archutils/Darwin/Crash.h"
 #include <stdlib.h>
 using CrashHandler::DebugBreak;
 using CrashHandler::IsDebuggerPresent;
 #endif
 
-#if defined(CRASH_HANDLER) && (defined(UNIX) || defined(MACOSX))
+#if defined(CRASH_HANDLER) && (defined(__unix__) || defined(__APPLE__))
 #include "archutils/Unix/CrashHandler.h"
 #endif
 
 void NORETURN
 sm_crash(const char* reason)
 {
-#if (defined(_WINDOWS) && defined(CRASH_HANDLER)) || defined(MACOSX) ||        \
+#if (defined(_WIN32) && defined(CRASH_HANDLER)) || defined(__APPLE__) ||        \
   defined(_XDBG)
 	/* If we're being debugged, throw a debug break so it'll suspend the
 	 * process. */
@@ -46,7 +46,7 @@ sm_crash(const char* reason)
 		;
 #endif
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	/* Do something after the above, so the call/return isn't optimized to a
 	 * jmp; that way, this function will appear in backtrace stack traces. */
 #if defined(_MSC_VER)

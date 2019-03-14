@@ -78,7 +78,7 @@ ChangeAppPri()
 		return false;
 
 		// if using NTPAD don't boost or else input is laggy
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	{
 		vector<InputDeviceInfo> vDevices;
 
@@ -97,7 +97,7 @@ ChangeAppPri()
 #endif
 
 	// If this is a debug build, don't. It makes the VC debugger sluggish.
-#if defined(WIN32) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
 	return false;
 #else
 	return true;

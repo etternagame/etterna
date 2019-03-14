@@ -6,7 +6,7 @@
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/GetFileInformation.h"
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <mmsystem.h>
 #endif
 #define DIRECTSOUND_VERSION 0x0700

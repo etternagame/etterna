@@ -51,7 +51,7 @@ safe_print(int fd, ...)
 	va_end(ap);
 }
 
-#if defined(LINUX)
+#ifdef __linux__
 static void
 GetExecutableName(char* buf, int bufsize)
 {
@@ -324,7 +324,7 @@ RunCrashHandler(const CrashData* crash)
 		close(fds[1]);
 
 		int status = 0;
-#if !defined(MACOSX)
+#if !defined(__APPLE__)
 		waitpid(childpid, &status, 0);
 #endif
 

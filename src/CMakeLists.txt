@@ -156,8 +156,6 @@ list(APPEND SM_WINDOWS_PROGRAM_DLLS
 )
 
 if(WIN32)
-  sm_add_compile_definition("${SM_EXE_NAME}" WINDOWS)
-  sm_add_compile_definition("${SM_EXE_NAME}" _WINDOWS) # TODO: Remove this potential duplicate.
   sm_add_compile_definition("${SM_EXE_NAME}" _CRT_SECURE_NO_WARNINGS)
   sm_add_compile_definition("${SM_EXE_NAME}" _WINSOCK_DEPRECATED_NO_WARNINGS)
   sm_add_compile_definition("${SM_EXE_NAME}" GLEW_STATIC)
@@ -304,10 +302,6 @@ else() # Linux
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_GTK)
   endif()
 
-  sm_add_compile_definition("${SM_EXE_NAME}" UNIX)
-  if("${CMAKE_SYSTEM}" MATCHES "Linux")
-    sm_add_compile_definition("${SM_EXE_NAME}" LINUX)
-  endif()
 endif()
 
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")

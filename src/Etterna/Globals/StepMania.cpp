@@ -64,7 +64,7 @@
 #include "Etterna/Singletons/StatsManager.h"
 #include "ver.h"
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include <windows.h>
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
 #endif
@@ -366,14 +366,14 @@ StepMania::GetSelectMusicScreen()
 	return SELECT_MUSIC_SCREEN.GetValue();
 }
 
-#if defined(WIN32)
+#ifdef _WIN32
 static Preference<int> g_iLastSeenMemory("LastSeenMemory", 0);
 #endif
 
 static void
 AdjustForChangedSystemCapabilities()
 {
-#if defined(WIN32)
+#ifdef _WIN32
 	// Has the amount of memory changed?
 	MEMORYSTATUS mem;
 	GlobalMemoryStatus(&mem);
@@ -407,7 +407,7 @@ AdjustForChangedSystemCapabilities()
 #endif
 }
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include "RageUtil/Graphics/RageDisplay_D3D.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 #endif
@@ -658,7 +658,7 @@ struct VideoCardDefaults
 static RString
 GetVideoDriverName()
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	return GetPrimaryVideoDriverName();
 #else
 	return "OpenGL";
@@ -1426,7 +1426,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		return true;
 	}
 
-#if !defined(MACOSX)
+#if !defined(__APPLE__)
 	if (input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_F4)) {
 		if (INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RALT),
 										&input.InputList) ||
@@ -1451,7 +1451,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 #endif
 
 	bool bDoScreenshot =
-#if defined(MACOSX)
+#ifdef __APPLE__
 	  // Notebooks don't have F13. Use cmd-F12 as well.
 	  input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_PRTSC) ||
 	  input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_F13) ||
@@ -1498,7 +1498,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * second, causing the window to toggle twice. Another solution would be
 		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
 		 * bool it if it's been less than, say, half a second. */
-#if !defined(MACOSX)
+#if !defined(__APPLE__)
 		ArchHooks::SetToggleWindowed();
 #endif
 		return true;

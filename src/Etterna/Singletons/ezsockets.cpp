@@ -76,7 +76,7 @@ EzSockets::EzSockets()
 	MAXCON = 5;
 	memset(&addr, 0, sizeof(addr)); // Clear the sockaddr_in structure
 
-#if defined(_WINDOWS) // Windows REQUIRES WinSock Startup
+#ifdef _WIN32 // Windows REQUIRES WinSock Startup
 	WSAStartup(MAKEWORD(1, 1), &wsda);
 #endif
 
@@ -131,7 +131,7 @@ EzSockets::create(int Protocol, int Type)
 	state = skDISCONNECTED;
 	sock = socket(AF_INET, Type, Protocol);
 	if (sock > SOCKET_NONE) {
-#if defined(WIN32)
+#ifdef _WIN32
 		int tv = timeoutMiliseconds;
 #else
 		struct timeval tv = timevalFromMs(timeoutMiliseconds);
@@ -166,7 +166,7 @@ EzSockets::listen()
 	return true;
 }
 
-#if defined(WIN32)
+#ifdef _WIN32
 typedef int socklen_t;
 #endif
 
@@ -207,7 +207,7 @@ EzSockets::close()
 	inBuffer = "";
 	outBuffer = "";
 
-#if defined(WIN32) // The close socket command is different in Windows
+#ifdef _WIN32 // The close socket command is different in Windows
 	::closesocket(sock);
 #else
 	::close(sock);
@@ -372,7 +372,7 @@ EzSockets::update()
 unsigned long
 EzSockets::LongFromAddrIn(const sockaddr_in& s)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	return ntohl(s.sin_addr.S_un.S_addr);
 #else
 	return ntohl(s.sin_addr.s_addr);
