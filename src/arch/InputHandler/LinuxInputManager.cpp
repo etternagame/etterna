@@ -8,11 +8,7 @@
 #include "Etterna/Models/Misc/Foreach.h"
 
 #include <string> // std::string::npos
-
-#if defined(HAVE_DIRENT_H)
 #include <dirent.h>
-#endif
-
 #include <errno.h>
 
 RString

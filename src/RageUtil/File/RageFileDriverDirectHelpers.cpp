@@ -7,11 +7,7 @@
 #include <sys/stat.h>
 
 #if !defined(_WIN32)
-
-#if defined(HAVE_DIRENT_H)
 #include <dirent.h>
-#endif
-
 #else
 #include <windows.h>
 #endif

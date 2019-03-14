@@ -2,9 +2,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/EmergencyShutdown.h"
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif
 #include <assert.h>
 
 /* We can define this symbol to catch failed assert() calls.  This is only used

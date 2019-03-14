@@ -32,12 +32,8 @@
 /* And vector: */
 #include <vector>
 
-#if defined(HAVE_STDINT_H) /* need to define int64_t if so */
 #include <stdint.h>
-#endif
-#if defined(HAVE_INTTYPES_H)
 #include <inttypes.h>
-#endif
 
 /* Branch optimizations: */
 #if defined(__GNUC__)

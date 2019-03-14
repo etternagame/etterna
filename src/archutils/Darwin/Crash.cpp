@@ -4,9 +4,7 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif
 #include <sys/sysctl.h>
 
 RString

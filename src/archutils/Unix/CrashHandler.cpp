@@ -3,14 +3,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif
 #include <cerrno>
 #include <limits.h>
-#if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
-#endif
 #include <csignal>
 
 #include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */

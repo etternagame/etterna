@@ -11,9 +11,7 @@
 #include "archutils/Common/PthreadHelpers.h"
 #include "archutils/Unix/EmergencyShutdown.h"
 #include "archutils/Unix/AssertionHandler.h"
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>

@@ -4,12 +4,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <string.h>
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif
-#if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
-#endif
 
 #include <errno.h>
 #include <sys/types.h>
