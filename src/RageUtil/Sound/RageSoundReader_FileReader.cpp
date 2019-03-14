@@ -6,9 +6,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <set>
-#if defined(HAS_WAV)
 #include "RageSoundReader_WAV.h"
-#endif
 
 #if defined(HAS_MP3)
 #include "RageSoundReader_MP3.h"
@@ -26,10 +24,8 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 {
 	RageSoundReader_FileReader* Sample = NULL;
 
-#if defined(HAS_WAV)
 	if (!format.CompareNoCase("wav"))
 		Sample = new RageSoundReader_WAV;
-#endif
 
 #if defined(HAS_MP3)
 	if (!format.CompareNoCase("mp3")) {

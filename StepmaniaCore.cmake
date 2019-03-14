@@ -192,11 +192,6 @@ endif()
 # Dependencies go here.
 include(ExternalProject)
 
-if(WITH_WAV)
-  # TODO: Identify which headers to check for ensuring this will always work.
-  set(HAS_WAV TRUE)
-endif()
-
 if(WITH_MP3)
   if(WIN32 OR MACOSX)
     set(HAS_MP3 TRUE)
