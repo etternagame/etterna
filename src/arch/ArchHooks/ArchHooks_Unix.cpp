@@ -217,7 +217,7 @@ ArchHooks_Unix::Init()
 
 	InstallExceptionHandler();
 
-#if defined(HAVE_TLS) && !defined(BSD)
+#if defined(HAVE_TLS)
 	TestTLS();
 #endif
 }

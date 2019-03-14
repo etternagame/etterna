@@ -16,10 +16,6 @@
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-#ifdef BSD
-#undef ALIGN
-#undef MACHINE
-#endif
 
 #include "archutils/Common/gcc_byte_swaps.h"
 #endif

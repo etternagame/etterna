@@ -29,12 +29,6 @@ else()
   set(MACOSX FALSE)
 endif()
 
-if (CMAKE_SYSTEM_NAME MATCHES "BSD")
-  set(BSD TRUE)
-else()
-  set(BSD FALSE)
-endif()
-
 macro(set_WIN10_FLAG)
     if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
         add_definitions(-DWIN10)

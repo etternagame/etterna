@@ -302,9 +302,6 @@ else() # Linux
   if (${HAS_FFMPEG})
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_FFMPEG)
   endif()
-  if (BSD)
-    sm_add_compile_definition("${SM_EXE_NAME}" BSD)
-  endif()
 
   if (GTK2_FOUND)
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_GTK)
