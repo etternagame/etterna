@@ -88,7 +88,6 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
@@ -442,11 +441,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		;
 	else
 		strcpy(host, address.c_str()); 
-	bool canConnect = EzSockets::CanConnect(host, port);
-	delete[] host;
-	if (!canConnect) {
-		return false;
-	}
+
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
