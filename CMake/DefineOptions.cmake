@@ -9,18 +9,8 @@ option(WITH_LTO "Build with Link Time Optimization (LTO)/Whole Program Optimizat
 # This option handles if we use SSE2 processing.
 option(WITH_SSE2 "Build with SSE2 Optimizations." ON)
 
-# This option may go away in the future: if it does, JPEG will always be required.
-option(WITH_JPEG "Build with JPEG Image Support." ON)
-
 # Turn this on to set this to a specific release mode.
 option(WITH_FULL_RELEASE "Build as a proper, full release." OFF)
-
-# Turn this on to compile tomcrypt with no assembly data. This is a portable mode.
-option(WITH_PORTABLE_TOMCRYPT "Build with assembly/free tomcrypt, making it portable." ON)
-
-# Turn this on to not use the ROLC assembly featurs of tomcrypt.
-# If WITH_PORTABLE_TOMCRYPT is ON, this will automatically have no effect.
-option(WITH_NO_ROLC_TOMCRYPT "Build without the ROLC assembly instructions for tomcrypt. (Ignored by Apple builds)" OFF)
 
 # Turn this option off to not use the GPL exclusive components.
 option(WITH_GPL_LIBS "Build with GPL libraries." ON)

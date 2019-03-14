@@ -428,11 +428,7 @@ elseif(LINUX)
     message(FATAL_ERROR "zlib support required.")
   endif()
 
-  find_package("JPEG")
-  if(NOT(${JPEG_FOUND}))
-    message(FATAL_ERROR "jpeg support required.")
-  endif()
-
+  find_package(JPEG REQUIRED)
   find_package(Dl)
 
   find_package(Xrandr)
