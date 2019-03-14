@@ -3,6 +3,7 @@ list(APPEND SMDATA_GLOBAL_FILES_SRC
      "global.cpp"
      "SpecialFiles.cpp"
      "StepMania.cpp" # TODO: Refactor into separate main project.
+     "Main.cpp"
      )
 
 list(APPEND SMDATA_GLOBAL_FILES_HPP
