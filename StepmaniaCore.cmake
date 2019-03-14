@@ -23,12 +23,6 @@ else()
     set(LINUX FALSE)
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    set(MACOSX TRUE)
-else()
-    set(MACOSX FALSE)
-endif()
-
 macro(set_win10_flag)
     if(WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION EQUAL 10.0))
         add_definitions(-DWIN10)
@@ -102,28 +96,16 @@ if(WIN32)
     find_package(DirectX REQUIRED)
     if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
         link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
-        find_library(LIB_CURL NAMES "libcurl"
-                     PATHS "${SM_EXTERN_DIR}/libcurl/64bit" NO_DEFAULT_PATH
-                     )
+        find_library(LIB_CURL NAMES "libcurl" PATHS "${SM_EXTERN_DIR}/libcurl/64bit" NO_DEFAULT_PATH)
         get_filename_component(LIB_CURL ${LIB_CURL} NAME)
-        find_library(LIB_UWS NAMES "uWS"
-                     PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
-                     )
-        find_library(LIB_UV NAMES "libuv"
-                     PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
-                     )
-        find_library(LIB_SSL NAMES "ssleay32"
-                     PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
-                     )
-        find_library(LIB_EAY NAMES "libeay32"
-                     PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
-                     )
+        find_library(LIB_UWS NAMES "uWS" PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH)
+        find_library(LIB_UV NAMES "libuv" PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH)
+        find_library(LIB_SSL NAMES "ssleay32" PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH)
+        find_library(LIB_EAY NAMES "libeay32" PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH)
         link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
     else()
         link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc_x86.lib)
-        find_library(LIB_CURL NAMES "libcurl_x86"
-                     PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
-                     )
+        find_library(LIB_CURL NAMES "libcurl_x86" PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH)
         get_filename_component(LIB_CURL ${LIB_CURL} NAME)
         link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/uWS.lib)
         link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/libeay32.lib)
@@ -134,84 +116,64 @@ if(WIN32)
     include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
     include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
     include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
-
-    #include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
-    #include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
-    #link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
-    #link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
+    
     if(MINGW AND WITH_FFMPEG)
         include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
         set(HAS_FFMPEG TRUE)
     else()
         # FFMPEG...it can be evil.
         if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
-            find_library(LIB_SWSCALE NAMES "swscale"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
-                         )
+            find_library(LIB_SWSCALE NAMES "swscale" PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH)
             get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
-
-            find_library(LIB_AVCODEC NAMES "avcodec"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVCODEC NAMES "avcodec" PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVCODEC ${LIB_AVCODEC} NAME)
-
-            find_library(LIB_AVFORMAT NAMES "avformat"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVFORMAT NAMES "avformat" PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVFORMAT ${LIB_AVFORMAT} NAME)
-
-            find_library(LIB_AVUTIL NAMES "avutil"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVUTIL NAMES "avutil" PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
         else()
-            find_library(LIB_SWSCALE NAMES "swscale"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-                         )
+            find_library(LIB_SWSCALE NAMES "swscale" PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH)
             get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
-
-            find_library(LIB_AVCODEC NAMES "avcodec"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVCODEC NAMES "avcodec" PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVCODEC ${LIB_AVCODEC} NAME)
-
-            find_library(LIB_AVFORMAT NAMES "avformat"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVFORMAT NAMES "avformat" PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVFORMAT ${LIB_AVFORMAT} NAME)
-
-            find_library(LIB_AVUTIL NAMES "avutil"
-                         PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-                         )
+            
+            find_library(LIB_AVUTIL NAMES "avutil" PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH)
             get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
         endif()
     endif()
 
 
-elseif(MACOSX)
+elseif(APPLE)
     find_package(BZip2 REQUIRED)
     if(WITH_FFMPEG)
         include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
         set(HAS_FFMPEG TRUE)
     endif()
-
+    
     set(CURL_LIBRARY "-lcurl")
     find_package(CURL REQUIRED)
     if(NOT CURL_FOUND)
         message(FATAL_ERROR "Could not find the CURL library")
     endif()
-
-
+    
+    
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
     link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
     include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
-
+    
     set(SYSTEM_PCRE_FOUND FALSE)
     set(WITH_CRASH_HANDLER TRUE)
-
+    
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
     set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
-
+    
     find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
     find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
     find_library(MAC_FRAME_AUDIOTOOLBOX AudioToolbox ${CMAKE_SYSTEM_FRAMEWORK_PATH})
@@ -225,7 +187,7 @@ elseif(MACOSX)
     find_library(MAC_FRAME_IOKIT IOKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
     find_library(MAC_FRAME_OPENGL OpenGL ${CMAKE_SYSTEM_FRAMEWORK_PATH})
     find_library(MAC_FRAME_QUICKTIME QuickTime ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-
+    
     mark_as_advanced(
         MAC_FRAME_ACCELERATE
         MAC_FRAME_APPKIT
@@ -243,12 +205,12 @@ elseif(MACOSX)
     )
 elseif(LINUX)
     find_package(Mad REQUIRED)
-
+    
     find_package(Ogg REQUIRED)
     find_package(Vorbis REQUIRED)
     find_package(VorbisFile REQUIRED)
     find_package(BZip2 REQUIRED)
-
+    
     #	if(WITH_GTK2)
     #    find_package("GTK2" 2.0)
     #    if (${GTK2_FOUND})
@@ -260,84 +222,84 @@ elseif(LINUX)
     #  else()
     #    set(HAS_GTK2 FALSE)
     #  endif()
-
+    
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
     link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
     include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
-
+    
     find_package(X11)
     if(${X11_FOUND})
         set(HAS_X11 TRUE)
     else()
         set(HAS_X11 FALSE)
     endif()
-
+    
     find_package(Pcre)
     set(SYSTEM_PCRE_FOUND ${PCRE_FOUND})
-
+    
     find_package("ZLIB")
     if(NOT (${ZLIB_FOUND}))
         message(FATAL_ERROR "zlib support required.")
     endif()
-
+    
     find_package(JPEG REQUIRED)
     find_package(Dl)
-
+    
     find_package(Xrandr)
     if(${XRANDR_FOUND})
         set(HAS_XRANDR TRUE)
     else()
         set(HAX_XRANDR FALSE)
     endif()
-
+    
     find_package(PulseAudio)
     if(PULSEAUDIO_FOUND)
         set(HAS_PULSE TRUE)
     else()
         set(HAS_PULSE FALSE)
     endif()
-
+    
     find_package(ALSA)
     if(ALSA_FOUND)
         set(HAS_ALSA TRUE)
     else()
         set(HAS_ALSA FALSE)
     endif()
-
+    
     find_package(JACK)
     if(JACK_FOUND)
         set(HAS_JACK TRUE)
     else()
         set(HAS_JACK FALSE)
     endif()
-
+    
     find_package(OSS)
     if(OSS_FOUND)
         set(HAS_OSS TRUE)
     else()
         set(HAS_OSS FALSE)
     endif()
-
+    
     if(NOT OSS_FOUND AND NOT JACK_FOUND AND NOT ALSA_FOUND AND NOT PULSE_FOUND)
         message(FATAL_ERROR "No sound libraries found. You will require at least one.")
     else()
         message(STATUS "-- At least one sound library was found. Do not worry if any were not found at this stage.")
     endif()
-
+    
     if(WITH_FFMPEG AND NOT YASM_FOUND AND NOT NASM_FOUND)
         message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg support.")
         set(WITH_FFMPEG OFF)
     endif()
-
+    
     find_package("Va")
-
+    
     if(WITH_FFMPEG)
         if(WITH_SYSTEM_FFMPEG)
             find_package("FFMPEG")
             if(NOT FFMPEG_FOUND)
                 message(FATAL_ERROR "System ffmpeg not found! Either install the libraries or remove the argument, then try again.")
             else()
-
+                
                 message(STATUS "-- Warning! Your version of ffmpeg may be too high! If you want to use the system ffmpeg, clear your cmake cache and do not include the system ffmpeg argument.")
                 set(HAS_FFMPEG TRUE)
             endif()
@@ -348,18 +310,18 @@ elseif(LINUX)
     else()
         set(HAS_FFMPEG FALSE)
     endif()
-
+    
     set(CURL_LIBRARY "-lcurl")
     find_package(CURL REQUIRED)
     if(NOT CURL_FOUND)
         message(FATAL_ERROR "Could not find the CURL library")
     endif()
-
+    
     find_package(OpenGL REQUIRED)
     if(NOT ${OPENGL_FOUND})
         message(FATAL_ERROR "OpenGL required to compile Etterna.")
     endif()
-
+    
     find_package(GLEW REQUIRED)
     if(NOT ${GLEW_FOUND})
         message(FATAL_ERROR "GLEW required to compile Etterna.")

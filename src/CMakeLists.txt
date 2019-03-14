@@ -321,7 +321,7 @@ list(APPEND SMDATA_LINK_LIB
 include(../extern/CMakeProject-mmmagic.cmake)
 
 list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
-if (WIN32 OR MACOSX)
+if (WIN32 OR APPLE)
 list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
 else()
 list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
