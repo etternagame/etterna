@@ -108,9 +108,6 @@ endif()
 sm_add_compile_definition("${SM_EXE_NAME}" CURL_STATICLIB)
 sm_add_compile_definition("${SM_EXE_NAME}" CMAKE_POWERED)
 
-if (NOT WITH_NETWORKING)
-  sm_add_compile_definition("${SM_EXE_NAME}" WITHOUT_NETWORKING)
-endif()
 
 # Compilation flags per project here.
 sm_add_compile_definition("${SM_EXE_NAME}" $<$<CONFIG:Debug>:DEBUG>)

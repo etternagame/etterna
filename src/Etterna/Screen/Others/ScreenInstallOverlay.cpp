@@ -39,10 +39,7 @@ class Song;
 #include <iterator>
 #include <vector>
 #include <fstream>
-
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/DownloadManager.h"
-#endif
 
 const RString TEMP_OS_MOUNT_POINT = "/@temp-os/";
 
@@ -206,12 +203,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 			}
 		}
 		if (IsHTTPProtocol(s)) {
-
-#if !defined(WITHOUT_NETWORKING)
 			DLMAN->DownloadAndInstallPack(s);
-#else
-			// TODO: Figure out a meaningful log message.
-#endif
 		} else if (IsPackageFile(s)) {
 			InstallSmzipOsArg(s);
 			reload = true;
@@ -267,7 +259,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		CommandLineActions::ToProcess.pop_back();
 		DoInstalls(args);
 	}
-#if !defined(WITHOUT_NETWORKING)
+
 	if (!DLMAN->gameplay) {
 		static float lastDLProgressUpdate = 0;
 		lastDLProgressUpdate += fDeltaTime;
@@ -297,8 +289,6 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		}
 		MESSAGEMAN->Broadcast(msg);
 	}
-
-#endif
 }
 
 /*

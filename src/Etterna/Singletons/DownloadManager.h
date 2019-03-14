@@ -3,8 +3,6 @@
 
 #define SM_DOWNMANAGER
 
-#if !defined(WITHOUT_NETWORKING)
-
 #include "Etterna/Globals/global.h"
 #include "CommandLineActions.h"
 #include "RageUtil/File/RageFile.h"
@@ -317,4 +315,3 @@ extern shared_ptr<DownloadManager> DLMAN;
 
 #endif
 
-#endif

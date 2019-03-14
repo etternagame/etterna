@@ -71,128 +71,6 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "packlist", ettps_roompacklist }
 };
 
-#if defined(WITHOUT_NETWORKING)
-NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
-{
-	useSMserver = false;
-	isSMOnline = false;
-}
-NetworkSyncManager::~NetworkSyncManager() {}
-void
-NetworkSyncManager::CloseConnection()
-{
-}
-void
-NetworkSyncManager::PostStartUp(const RString& ServerIP)
-{
-}
-bool
-NetworkSyncManager::Connect(const RString& addy, unsigned short port)
-{
-	return false;
-}
-RString
-NetworkSyncManager::GetServerName()
-{
-	return RString();
-}
-void
-NetworkSyncManager::ReportNSSOnOff(int i)
-{
-}
-void
-NetworkSyncManager::OnMusicSelect()
-{
-}
-void
-NetworkSyncManager::OffMusicSelect()
-{
-}
-void
-NetworkSyncManager::OnRoomSelect()
-{
-}
-void
-NetworkSyncManager::OffRoomSelect()
-{
-}
-void
-NetworkSyncManager::OnOptions()
-{
-}
-void
-NetworkSyncManager::OffOptions()
-{
-}
-void
-NetworkSyncManager::OnEval()
-{
-}
-void
-NetworkSyncManager::OffEval()
-{
-}
-void
-NetworkSyncManager::ReportScore(int playerID,
-								int step,
-								int score,
-								int combo,
-								float offset)
-{
-}
-void
-NetworkSyncManager::ReportSongOver()
-{
-}
-void
-NetworkSyncManager::ReportStyle()
-{
-}
-void
-NetworkSyncManager::StartRequest(short position)
-{
-}
-void
-NetworkSyncManager::DisplayStartupStatus()
-{
-}
-void
-NetworkSyncManager::Update(float fDeltaTime)
-{
-}
-bool
-NetworkSyncManager::ChangedScoreboard(int Column)
-{
-	return false;
-}
-void
-NetworkSyncManager::SendChat(const RString& message)
-{
-}
-void
-NetworkSyncManager::SelectUserSong()
-{
-}
-RString
-NetworkSyncManager::MD5Hex(const RString& sInput)
-{
-	return RString();
-}
-int
-NetworkSyncManager::GetSMOnlineSalt()
-{
-	return 0;
-}
-void
-NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
-{
-}
-unsigned long
-NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
-{
-	return 0;
-}
-#else
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
@@ -1849,8 +1727,6 @@ LuaFunction(ConnectToServer,
 			ConnectToServer((RString(SArg(1)).length() == 0)
 							  ? RString(g_sLastServer)
 							  : RString(SArg(1))))
-
-#endif
 
 static bool
 ReportStyle()

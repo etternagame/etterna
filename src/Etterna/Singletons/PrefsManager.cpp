@@ -8,10 +8,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-
-#if !defined(WITHOUT_NETWORKING)
 #include "ver.h"
-#endif
 
 // DEFAULTS_INI_PATH	= "Data/Defaults.ini";		// these can be overridden
 // PREFERENCES_INI_PATH	// overlay on Defaults.ini, contains the user's choices
@@ -239,10 +236,7 @@ PrefsManager::PrefsManager()
   , m_bShowLoadingWindow("ShowLoadingWindow", true)
   , m_bPseudoLocalize("PseudoLocalize", false)
   , m_show_theme_errors("ShowThemeErrors", false)
-
-#if !defined(WITHOUT_NETWORKING)
   , m_bEnableScoreboard("EnableScoreboard", true)
-#endif
 
 {
 	Init();

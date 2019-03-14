@@ -9,9 +9,6 @@
 #ifndef EZSOCKETS_H
 #define EZSOCKETS_H
 
-#if defined(WITHOUT_NETWORKING)
-#error do not include ezsockets.h when WITHOUT_NETWORKING
-#endif
 
 #include <string>
 

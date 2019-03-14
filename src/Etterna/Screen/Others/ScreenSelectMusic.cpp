@@ -1010,9 +1010,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 	{
 		this->PlayCommand("SortChange");
 	} else if (SM == SM_GainFocus) {
-#if !defined(WITHOUT_NETWORKING)
 		DLMAN->UpdateDLSpeed(false);
-#endif
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
@@ -1154,9 +1152,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 	m_soundStart.Play(true);
 
 	if (m_SelectionState == SelectionState_Finalized) {
-#if !defined(WITHOUT_NETWORKING)
 		DLMAN->UpdateDLSpeed(true);
-#endif
 
 		if (GAMESTATE->m_bIsChartPreviewActive) {
 			MESSAGEMAN->Broadcast("hELPidontDNOKNOW");

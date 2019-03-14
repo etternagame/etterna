@@ -50,9 +50,7 @@
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Singletons/FilterManager.h"
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/DownloadManager.h"
-#endif
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Actor/Base/ModelManager.h"
@@ -1225,9 +1223,7 @@ sm_main(int argc, char* argv[])
 
 	FILTERMAN = new FilterManager;
 
-#if !defined(WITHOUT_NETWORKING)
 	DLMAN = make_shared<DownloadManager>(DownloadManager());
-#endif
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */

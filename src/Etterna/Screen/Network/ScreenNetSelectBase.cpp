@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
@@ -456,7 +455,6 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectBase, ScreenWithMenuElements)
 // lua end
 
-#endif
 /*
  * (c) 2004 Charles Lohr
  * All rights reserved.

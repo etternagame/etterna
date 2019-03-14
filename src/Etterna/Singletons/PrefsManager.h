@@ -254,12 +254,8 @@ class PrefsManager
 	Preference<int> m_verbose_log; // levels 0, 1, and 2 where higher numbers
 								   // means more logging
 
-#if !defined(WITHOUT_NETWORKING)
 	Preference<bool>
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
-
-
-#endif
 
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const RString& sSection,

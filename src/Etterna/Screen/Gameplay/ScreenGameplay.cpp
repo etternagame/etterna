@@ -282,9 +282,7 @@ ScreenGameplay::ScreenGameplay()
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-#if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(true);
-#endif
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 		LOG->Trace("Unloading replaydata.");
 		SCOREMAN->UnloadAllReplayData();
@@ -709,9 +707,7 @@ ScreenGameplay::~ScreenGameplay()
 
 	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->ReportSongOver();
-#if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(false);
-#endif
 }
 
 void

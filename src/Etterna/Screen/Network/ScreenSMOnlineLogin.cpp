@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -234,8 +233,6 @@ ScreenSMOnlineLogin::SendLogin(RString sPassword, RString user)
 {
 	NSMAN->Login(user, sPassword);
 }
-
-#endif
 
 /*
  * (c) 2004-2005 Charles Lohr, Adam Lowman

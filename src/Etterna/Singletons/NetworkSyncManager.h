@@ -437,7 +437,6 @@ class NetworkSyncManager
 	vector<ChartRequest*> requests;
 	vector<ChartRequest*> staleRequests;
 
-#if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);
 	vector<NetServerInfo> m_vAllLANServers;
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
@@ -453,7 +452,6 @@ class NetworkSyncManager
 	int m_step;
 	int m_score;
 	int m_combo;
-#endif
 };
 
 extern NetworkSyncManager* NSMAN;
