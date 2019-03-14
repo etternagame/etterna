@@ -2,7 +2,7 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
