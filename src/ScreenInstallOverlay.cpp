@@ -84,6 +84,11 @@ IsPackageFile(const RString& arg)
 	return ext.EqualsNoCase("smzip") || ext.EqualsNoCase("zip");
 }
 
+void EnsureSlashEnding(RString& path) {
+	if (path.back() != '/' && path.back() != '\\')
+		path.append("/");
+}
+
 void
 DoInstalls(CommandLineActions::CommandLineArgs args)
 {
@@ -91,7 +96,20 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 	for (int i = 0; i < (int)args.argv.size(); i++) {
 		RString s = args.argv[i];
 		if (s == "notedataCache") {
-			auto outputPath = args.argv[i + 1];
+			// TODO: Create the directories if they dont exist
+			string packFolder = "packbanner/";
+			string cdtitleFolder = "cdtitle/";
+			string bgFolder = "bg/";
+			string bannerFolder = "banner/";
+
+			auto ndOutputPath = args.argv[i + 1]; // notedata
+			EnsureSlashEnding(ndOutputPath);
+			auto sscOutputPath = args.argv.size() > i + 2 ? args.argv[i + 2] : ndOutputPath+"ssc/";
+			auto imgsOutputPath = args.argv.size() > i + 3 ? args.argv[i + 3] : ndOutputPath+"imgs/";
+			EnsureSlashEnding(sscOutputPath);
+			EnsureSlashEnding(imgsOutputPath);
+
+			// Save pack banners
 			auto packs = SONGMAN->GetSongGroupNames();
 			for(auto& pack : packs) {
 				auto path = SONGMAN->GetSongGroupBannerPath(pack);
@@ -102,7 +120,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				string p = f.GetPath();
 				f.Close();
 				std::ofstream dst(
-				  outputPath + pack + "_packbanner." +
+					imgsOutputPath + packFolder + pack + "_packbanner." +
 					GetExtension(path).c_str(),
 				  std::ios::binary);
 				std::ifstream src(p, std::ios::binary);
@@ -113,6 +131,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 			{
 				Song* pSong = (*iSong);
 
+				// Fill steps to save
 				vector<Steps*> vpStepsToSave;
 				FOREACH_CONST(Steps*, pSong->m_vpSteps, s)
 				{
@@ -130,14 +149,16 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				string songkey;
 				for (auto& st : vpStepsToSave)
 					songkey += st->GetChartKey();
+
 				songkey = BinaryToHex(CRYPTMAN->GetSHA1ForString(songkey));
+
 				// Save ssc/sm5 cache file
 				{
 					// Hideous hack: Save to a tmp file and then copy its contents to the file we want
 					// We use ofstream to save files here, im not sure if pathing is compatible
 					// And SSC write uses ragefile. So this way we dont have to mess with ssc writer
 					RString tmpOutPutPath = "Cache/tmp.ssc";
-					RString sscCacheFilePath = outputPath + songkey + "_ssccache.ssc";
+					RString sscCacheFilePath = sscOutputPath + songkey + ".ssc";
 
 					NotesWriterSSC::Write(tmpOutPutPath, *pSong, vpStepsToSave, true);
 					
@@ -151,26 +172,28 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					dst << src.rdbuf();
 					dst.close();
 				}
+
 				if (pSong->HasBanner()) {
 					RageFile f;
 					f.Open(pSong->GetBannerPath());
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  outputPath + songkey + "_banner." +
+						imgsOutputPath + bannerFolder + songkey + "_banner." +
 						GetExtension(pSong->m_sBannerFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
 					dst << src.rdbuf();
 					dst.close();
 				}
+
 				if (pSong->HasCDTitle()) {
 					RageFile f;
 					f.Open(pSong->GetCDTitlePath());
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  outputPath + songkey + "_cd." +
+						imgsOutputPath +cdtitleFolder + songkey + "_cd." +
 						GetExtension(pSong->m_sCDTitleFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
@@ -184,13 +207,15 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
-					  outputPath + songkey + "_bg." +
+						imgsOutputPath + bgFolder + songkey + "_bg." +
 						GetExtension(pSong->m_sBackgroundFile).c_str(),
 					  std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
 					dst << src.rdbuf();
 					dst.close();
 				}
+
+				// Save notedata
 				FOREACH_CONST(Steps*, pSong->GetAllSteps(), iSteps)
 				{
 					Steps* steps = (*iSteps);
@@ -204,7 +229,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					auto& serializednd = nd.SerializeNoteData(etaner);
 
 					string path =
-					  outputPath + steps->GetChartKey() + ".cache";
+						ndOutputPath + steps->GetChartKey() + ".cache";
 					ofstream FILE(path, ios::out | ofstream::binary);
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
