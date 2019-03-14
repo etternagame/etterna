@@ -253,7 +253,7 @@ set (fftw_threads_SOURCE ${fftw_par_SOURCE} threads/threads.c)
 set (fftw_omp_SOURCE ${fftw_par_SOURCE} threads/openmp.c)
 
 
-include_directories ("${SM_EXTERN_DIR}/fftw-3.3.8")
+include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 
 if (WITH_COMBINED_THREADS)

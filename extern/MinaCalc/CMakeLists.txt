@@ -1,5 +1,7 @@
 project(MinaCalc)
 
+# null.cpp since all libs require source, but since this one doesn't have it,
+#   an empty cpp file will work.
 add_library(MinaCalc null.cpp)
 
 file(GLOB_RECURSE ALL_LIB_FILES lib/*.a lib/*.lib)
