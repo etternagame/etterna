@@ -22,7 +22,7 @@ add_executable(Etterna)
 target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/verstub.cpp
                
                )
-list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD CRASH_HANDLER
+list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD
      "BACKTRACE_METHOD_X86_LINUX"
      "BACKTRACE_METHOD_TEXT=\"x86 custom backtrace\""
      "BACKTRACE_LOOKUP_METHOD_TEXT=\"backtrace_symbols\""

@@ -123,7 +123,6 @@ else()
 endif()
 
 if(APPLE OR UNIX)
-  if (WITH_CRASH_HANDLER)
     list(APPEND SMDATA_OS_UNIX_CRASH_SRC
       "Unix/Backtrace.cpp"
       "Unix/BacktraceNames.cpp"
@@ -147,7 +146,6 @@ if(APPLE OR UNIX)
     list(APPEND SMDATA_OS_HPP
       ${SMDATA_OS_UNIX_CRASH_HPP}
     )
-  endif()
 endif()
 
 target_sources(Etterna PUBLIC ${SMDATA_OS_SRC})
