@@ -359,14 +359,12 @@ if (WIN32)
 	"${LIB_UV}"
   )
   
-  if (WITH_OGG)
     list(APPEND SMDATA_LINK_LIB
       "ogg"
       "vorbis"
       "vorbisfile"
     )
-  endif()
-  
+
   list(APPEND SMDATA_LINK_LIB
     "dbghelp.lib"
     "setupapi.lib"
@@ -475,13 +473,11 @@ else() # Unix / Linux
     list(APPEND SMDATA_LINK_LIB ${DL_LIBRARIES})
   endif()
 
-  if(HAS_OGG)
     list(APPEND SMDATA_LINK_LIB
       "${VORBISFILE_LIBRARY}"
       "${VORBIS_LIBRARY}"
       "${OGG_LIBRARY}"
     )
-  endif()
 
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
@@ -557,13 +553,11 @@ if(NOT APPLE)
     "${SM_EXTERN_DIR}/zlib"
   )
   if(MSVC)
-    if (WITH_OGG)
       list(APPEND SM_INCLUDE_DIRS
         "${SM_EXTERN_DIR}/newogg/include"
         "${SM_EXTERN_DIR}/newvorbis/lib"
         "${SM_EXTERN_DIR}/newvorbis/include"
       )
-    endif()
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/ffmpeg/include"
     )
@@ -571,11 +565,9 @@ if(NOT APPLE)
       "${SM_EXTERN_DIR}/libcurl/include"
     )
   else()
-    if(WITH_OGG)
       list(APPEND SM_INCLUDE_DIRS
         "${SM_EXTERN_DIR}/vorbis"
       )
-    endif()
     list(APPEND SM_INCLUDE_DIRS
       "${JPEG_INCLUDE_DIR}"
     )
@@ -610,12 +602,10 @@ else()
   list(APPEND SM_INCLUDE_DIRS
 	"${CURL_INCLUDE_DIR}"
   )
-  if(WITH_OGG)
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/newogg/include"
       "${SM_EXTERN_DIR}/newvorbis/include"
     )
-  endif()
   list(APPEND SM_INCLUDE_DIRS
     "archutils/Unix"
   )

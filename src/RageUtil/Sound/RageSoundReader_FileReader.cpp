@@ -10,9 +10,7 @@
 
 #include "RageSoundReader_MP3.h"
 
-#if defined(HAS_OGG)
 #include "RageSoundReader_Vorbisfile.h"
-#endif
 
 RageSoundReader_FileReader*
 RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
@@ -31,13 +29,11 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 		Sample = new RageSoundReader_MP3;
 	}
 
-#if defined(HAS_OGG)
 	if (!format.CompareNoCase("oga") || !format.CompareNoCase("ogg")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_Vorbisfile;
 	}
-#endif
 
 	if (!Sample)
 		return NULL;
