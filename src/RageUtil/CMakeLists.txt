@@ -30,7 +30,7 @@ list(APPEND SMDATA_RAGE_MISC_SRC
   "Misc/RageTypes.cpp"
   "Misc/RageThreads.cpp"
   "Misc/RageTimer.cpp"
-  "Misc/RageUnicode.h"
+  "Misc/RageUnicode.cpp"
 )
 
 list(APPEND SMDATA_RAGE_MISC_HPP
@@ -43,7 +43,7 @@ list(APPEND SMDATA_RAGE_MISC_HPP
   "Misc/RageTypes.h"
   "Misc/RageThreads.h"
   "Misc/RageTimer.h"
-  "Misc/RageUnicode.cpp"
+  "Misc/RageUnicode.h"
 )
 
 source_group("Rage\\\\Misc" FILES ${SMDATA_RAGE_MISC_SRC} ${SMDATA_RAGE_MISC_HPP})
