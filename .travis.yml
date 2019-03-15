@@ -35,7 +35,6 @@ matrix:
                                           - libxrandr-dev
                                           - libglew-dev
                                           - libuv-dev
-                                          - ninja-build
                 - env:
                           CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON
                           WITH_FFMPEG_JOBS=1
@@ -67,7 +66,6 @@ matrix:
                                           - libglew-dev
                                           - libuv-dev
                                           - clang-format-5.0
-                                          - ninja-build
                           coverity_scan:
                                   project:
                                           name: etternagame/etterna
@@ -82,7 +80,7 @@ before_script:
         - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include; fi
         - git submodule update --init
         - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cmake .. -G Ninja -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}; fi
+        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl;
           export LIBRARY_SEARCH_PATHS=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
           export LIBRARY_PATH=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
@@ -100,7 +98,7 @@ before_script:
           cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
 script:
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then ninja; fi
+        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 100 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
           mv ../*.app ../Etterna.app;
           xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
