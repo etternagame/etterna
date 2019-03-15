@@ -80,8 +80,8 @@ deploy:
     image: Visual Studio 2017
     configuration: Release
 
-for:
-
+#for:
+#
 # override settings for `master` branch
 #-
 #  branches:
