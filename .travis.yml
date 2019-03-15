@@ -100,7 +100,7 @@ before_script:
           cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
 script:
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
+        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then ninja; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 100 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
           mv ../*.app ../Etterna.app;
           xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
