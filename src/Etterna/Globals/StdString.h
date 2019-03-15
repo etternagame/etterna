@@ -500,7 +500,7 @@ class CStdStr : public std::basic_string<CT>
 		// <nChars> or the NULL terminator, whichever comes first.  Since we
 		// are about to call a less forgiving overload (in which <nChars>
 		// must be a valid length), we must adjust the length here to a safe
-		// value.  Thanks to Ullrich Pollähne for catching this bug
+		// value.  Thanks to Ullrich Poll�hne for catching this bug
 
 		nChars = min(nChars, str.length() - nStart);
 
@@ -528,7 +528,7 @@ class CStdStr : public std::basic_string<CT>
 		// <nChars> or the NULL terminator, whichever comes first.  Since we
 		// are about to call a less forgiving overload (in which <nChars>
 		// must be a valid length), we must adjust the length here to a safe
-		// value. Thanks to Ullrich Pollähne for catching this bug
+		// value. Thanks to Ullrich Poll�hne for catching this bug
 
 		nChars = min(nChars, str.length() - nStart);
 
