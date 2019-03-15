@@ -19,9 +19,7 @@ set(CMAKE_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/extern")
 # MAIN BUILD TARGETS
 # Executable
 add_executable(Etterna)
-target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/verstub.cpp
-               
-               )
+target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/verstub.cpp)
 list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD
      "BACKTRACE_METHOD_X86_LINUX"
      "BACKTRACE_METHOD_TEXT=\"x86 custom backtrace\""
@@ -32,6 +30,16 @@ list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
+# Source
+add_subdirectory(extern)
+add_subdirectory(src/Etterna)
+add_subdirectory(src/arch)
+add_subdirectory(src/archutils)
+add_subdirectory(src/RageUtil)
+
+# Includes
+target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
+target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # Add src/ to include search dirs
 
 ## Library including
 ### Universal Includes first
@@ -65,16 +73,9 @@ elseif(UNIX)
   
 endif()
 
-# Source
-add_subdirectory(extern)
-add_subdirectory(src/Etterna)
-add_subdirectory(src/arch)
-add_subdirectory(src/archutils)
-add_subdirectory(src/RageUtil)
 
-# Includes
-target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
-target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # Add src/ to include search dirs
+
+
 
 # Linking
 target_link_libraries(Etterna luajit) # Link lua to etterna
