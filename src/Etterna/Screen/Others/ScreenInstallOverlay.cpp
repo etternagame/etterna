@@ -19,7 +19,7 @@ class Song;
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "ScreenSelectMusic.h"
+#include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/CommandLineActions.h"
