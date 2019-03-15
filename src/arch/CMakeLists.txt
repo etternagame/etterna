@@ -162,14 +162,11 @@ elseif(APPLE)
     "LowLevelWindow/LowLevelWindow_MacOSX.h"
   )
 else(UNIX)
-  if (X11_FOUND)
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC
       "LowLevelWindow/LowLevelWindow_X11.cpp"
     )
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP
-      "LowLevelWindow/LowLevelWindow_X11.h"
-    )
-  endif()
+      "LowLevelWindow/LowLevelWindow_X11.h")
 endif(WIN32)
 
 source_group("Arch Specific\\\\Low Level Window" FILES ${SMDATA_ARCH_LOWLEVEL_SRC} ${SMDATA_ARCH_LOWLEVEL_HPP})
@@ -270,14 +267,12 @@ else() # Unix/Linux
     )
 
   endif()
-  if(X11_FOUND)
     list(APPEND SMDATA_ARCH_INPUT_SRC
       "InputHandler/InputHandler_X11.cpp"
     )
     list(APPEND SMDATA_ARCH_INPUT_HPP
       "InputHandler/InputHandler_X11.h"
     )
-  endif()
 endif()
 
 source_group("Arch Specific\\\\Input Handler" FILES ${SMDATA_ARCH_INPUT_SRC} ${SMDATA_ARCH_INPUT_HPP})
