@@ -1,6 +1,6 @@
-#include "global.h"
-#include "RageUtil.h"
-#include "RageException.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/EmergencyShutdown.h"
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

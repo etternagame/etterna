@@ -1,10 +1,10 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_JACK.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
-#include "ProductInfo.h"
-#include "Foreach.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Globals/ProductInfo.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SOUND_DRIVER_CLASS(JACK);
 

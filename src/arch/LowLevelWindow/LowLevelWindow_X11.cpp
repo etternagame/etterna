@@ -1,14 +1,14 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "LowLevelWindow_X11.h"
-#include "RageLog.h"
-#include "RageException.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
-#include "PrefsManager.h" // XXX
-#include "RageDisplay.h"  // VideoModeParams
-#include "DisplayResolutions.h"
-#include "LocalizedString.h"
+#include "Etterna/Singletons/PrefsManager.h" // XXX
+#include "RageUtil/Graphics/RageDisplay.h"  // VideoModeParams
+#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 
-#include "RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 using namespace RageDisplay_Legacy_Helpers;
 using namespace X11Helper;
 

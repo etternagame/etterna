@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MessageWindow.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "AppInstance.h"
 #include "archutils/Win32/ErrorStrings.h"
 

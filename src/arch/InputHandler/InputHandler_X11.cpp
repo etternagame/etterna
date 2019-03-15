@@ -1,12 +1,12 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_X11.h"
 
 #include <array>
 
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "InputFilter.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "Etterna/Singletons/InputFilter.h"
 #include "archutils/Unix/X11Helper.h"
 
 #include <X11/Xlib.h>

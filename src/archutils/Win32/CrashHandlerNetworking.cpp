@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CrashHandlerNetworking.h"
-#include "RageThreads.h"
-#include "RageLog.h"
-#include "RageThreads.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
-#include "Foreach.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 #if defined(WINDOWS)
 #include <windows.h>

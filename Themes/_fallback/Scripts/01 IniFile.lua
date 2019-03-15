@@ -46,7 +46,7 @@ IniFile = {}
 -- @string str
 -- @treturn string key ini key
 -- @treturn number|bool|string key ini value
-function IniFile.StrToKeyVals(str)
+function IniFile.StrToKeyVal(str)
 	local key, value = str:match("(.+)=(.*)")
 
 	-- key is always a string, but value may be num, bool, or nil.

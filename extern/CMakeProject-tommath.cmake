@@ -1,4 +1,4 @@
-set(TOMDIR "${SM_SRC_DIR}/libtommath")
+set(TOMDIR "libtommath")
 
 list(APPEND TOMMATH_SRC
   "${TOMDIR}/bn_error.c"
@@ -137,5 +137,5 @@ set_property(TARGET "tommath" PROPERTY FOLDER "External Libraries")
 
 disable_project_warnings("tommath")
 
-target_include_directories("tommath" PUBLIC ${TOMDIR})
+target_include_directories("tommath" PUBLIC "libtommath")
 

@@ -13,8 +13,8 @@
 #include <utility>
 #include <ext/hash_map>
 
-#include "RageLog.h"
-#include "RageInputDevice.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageInputDevice.h"
 
 /* A few helper functions. */
 

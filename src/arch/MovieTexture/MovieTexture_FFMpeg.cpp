@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_FFMpeg.h"
 
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageFile.h"
-#include "RageSurface.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Graphics/RageSurface.h"
 
 #include <cerrno>
 

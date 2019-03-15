@@ -16,7 +16,7 @@
  * completely distinct methods of getting input for the same device; we have no
  * method to allocate device numbers. We don't need this now; I'll write it
  * if it becomes needed.) */
-#include "RageInputDevice.h" // for InputDevice
+#include "RageUtil/Misc/RageInputDevice.h" // for InputDevice
 #include "arch/RageDriver.h"
 /** @brief A class designed to handle special input devices. */
 class InputHandler : public RageDriver

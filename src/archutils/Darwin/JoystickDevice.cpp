@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "JoystickDevice.h"
-#include "RageLog.h"
-#include "Foreach.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using __gnu_cxx::hash_map;
 

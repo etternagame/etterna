@@ -1,15 +1,15 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "LowLevelWindow_Win32.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
-#include "PrefsManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "LocalizedString.h"
-#include "RageDisplay_OGL_Helpers.h"
-#include "RageDisplay_OGL.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/RageDisplay_OGL.h"
 
 #include <GL/glew.h>
 

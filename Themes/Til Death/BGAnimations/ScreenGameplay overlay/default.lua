@@ -17,7 +17,7 @@ end
 if inCustomize then
 	t[#t + 1] = LoadActor("messagebox")
 end
-if inReplay or inCustomize then
+if inReplay or inCustomize or isPractice then
 	t[#t + 1] = LoadActor("../_cursor")
 end
 return t

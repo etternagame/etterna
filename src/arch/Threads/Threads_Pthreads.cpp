@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Threads_Pthreads.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include <sys/time.h>
 #include <errno.h>
 

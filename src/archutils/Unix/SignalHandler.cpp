@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "SignalHandler.h"
 #include "GetSysInfo.h"
 

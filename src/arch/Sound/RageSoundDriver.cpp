@@ -1,10 +1,10 @@
-#include "global.h"
-#include "PrefsManager.h"
+#include "Etterna/Globals/global.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageSoundDriver.h"
-#include "RageSoundManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "Foreach.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Models/Misc/Foreach.h"
 #include "arch/arch_default.h"
 
 DriverList RageSoundDriver::m_pDriverList;

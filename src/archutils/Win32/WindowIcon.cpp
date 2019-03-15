@@ -1,10 +1,10 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "archutils/Win32/WindowIcon.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
-#include "RageSurface_Load.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageSurfaceUtils.h"
+#include "RageUtil/Graphics/RageSurface_Load.h"
 #include "archutils/Win32/ErrorStrings.h"
 
 #include <wingdi.h>

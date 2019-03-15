@@ -1,6 +1,6 @@
 /* for dladdr: */
 #define __USE_GNU
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "BacktraceNames.h"
 
 #include <cstdio>
@@ -12,7 +12,7 @@
 #include <cstring>
 #include <cerrno>
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #if defined(MACOSX)
 #include "archutils/Darwin/Crash.h"

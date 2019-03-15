@@ -1,7 +1,7 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "VideoDriverInfo.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "RegistryAccess.h"
 #include <windows.h>
 

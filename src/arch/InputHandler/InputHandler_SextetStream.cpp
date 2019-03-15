@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_SextetStream.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageThreads.h"
-#include "RageUtil.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <cerrno>
 #include <cstdio>
