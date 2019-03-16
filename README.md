@@ -24,29 +24,18 @@ Etterna is an advanced cross-platform rhythm game focused on keyboard play.
 
 ### MacOS
 
-To install on Mac we currently require a few things to be installed.
+To install on Mac we currently require you to add an exception to GateKeeper to allow Etterna to run.
 
-First step is to run this in your terminal, this will install Homebrew.
-```bash
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-The next step is to install the required libssl version using the following commands.
-```bash
-brew update && brew upgrade;
-brew uninstall openssl;
-brew install --force openssl@1.1;
-sudo ln -s /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib /usr/local/lib/libcrypto.1.1.dylib;
-sudo ln -s /usr/local/opt/openssl@1.1/lib/libssl.1.1.dylib /usr/local/lib/libssl.1.1.dylib;
-```
-
-The final step is to whitelist the Etterna directory, we cannot afford code signing and Apple forces it for the file system access we need to load NoteSkins and Songs.
+Any code that isn't code signed, will be detected as "bad" and thus not be allowed to run, you can add an exception to this
+system for Etterna as follows.
 
 ```bash
 sudo xattr -r -d com.apple.quarantine ~/your/path/to/Etterna
 ```
 
 You path to Etterna is where ever you placed the folder inside of the DMG. If you copied it to your Desktop for example and renamed the folder, your path would be ``~/Desktop/Etterna``
+
+If you're curious why we aren't code signed, simply we are an open source project with no means of funding and certificates cost money - hopefully one day we can afford a certificate, or a system such as let's encrypt provides a means to do it for free. 
 
 ### From Packages
 
