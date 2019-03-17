@@ -88,7 +88,7 @@ before_script:
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install nasm; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install zlib; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo gem install xcpretty fi
+        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo gem install xcpretty; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
         #   export LIBRARY_SEARCH_PATHS=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
