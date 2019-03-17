@@ -5,75 +5,76 @@ sudo: required
 matrix:
         include:
                 - env:
-                          CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
+                          CXX_COMPILER=clang++ CC_COMPILER=clang BUILD_TYPE=Release WITH_FFMPEG=OFF
                           WITH_FFMPEG_JOBS=1
                   os: osx
-                - env:
-                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=OFF
-                          WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: &1
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - clang-5.0
-                                          - clang-format-5.0
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                - env:
-                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON
-                          WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: *1
-                - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-                  compiler: gcc
-                  addons:
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - gcc-5
-                                          - g++-5
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                                          - clang-format-5.0
-                          coverity_scan:
-                                  project:
-                                          name: etternagame/etterna
-                                          description: "Build submitted via Travis CI"
-                                  notification_email: etternadev@gmail.com
-                                  build_command_prepend: "cov-configure --comptype g++ --compiler g++-5 --template"
-                                  build_command: "make -j 4"
-                                  branch_pattern: coverity_scan
+                  osx_image: xcode10.1
+                # - env:
+                #           CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=OFF
+                #           WITH_FFMPEG_JOBS=1
+                #   compiler: clang
+                #   addons: &1
+                #           apt:
+                #                   sources:
+                #                           - ubuntu-toolchain-r-test
+                #                           - llvm-toolchain-precise
+                #                   packages:
+                #                           - nasm
+                #                           - libudev-dev
+                #                           - clang-5.0
+                #                           - clang-format-5.0
+                #                           - libmad0-dev
+                #                           - libgtk2.0-dev
+                #                           - binutils-dev
+                #                           - libasound-dev
+                #                           - libpulse-dev
+                #                           - libjack-dev
+                #                           - libc6-dev
+                #                           - libogg-dev
+                #                           - libvorbis-dev
+                #                           - libxtst-dev
+                #                           - libxrandr-dev
+                #                           - libglew-dev
+                #                           - libuv-dev
+                # - env:
+                #           CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON
+                #           WITH_FFMPEG_JOBS=1
+                #   compiler: clang
+                #   addons: *1
+                # - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+                #   compiler: gcc
+                #   addons:
+                #           apt:
+                #                   sources:
+                #                           - ubuntu-toolchain-r-test
+                #                           - llvm-toolchain-precise
+                #                   packages:
+                #                           - nasm
+                #                           - libudev-dev
+                #                           - gcc-5
+                #                           - g++-5
+                #                           - libmad0-dev
+                #                           - libgtk2.0-dev
+                #                           - binutils-dev
+                #                           - libasound-dev
+                #                           - libpulse-dev
+                #                           - libjack-dev
+                #                           - libc6-dev
+                #                           - libogg-dev
+                #                           - libvorbis-dev
+                #                           - libxtst-dev
+                #                           - libxrandr-dev
+                #                           - libglew-dev
+                #                           - libuv-dev
+                #                           - clang-format-5.0
+                #           coverity_scan:
+                #                   project:
+                #                           name: etternagame/etterna
+                #                           description: "Build submitted via Travis CI"
+                #                   notification_email: etternadev@gmail.com
+                #                   build_command_prepend: "cov-configure --comptype g++ --compiler g++-5 --template"
+                #                   build_command: "make -j 4"
+                #                   branch_pattern: coverity_scan
 
 before_script:
         - if [ "${CXX_COMPILER}" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
@@ -84,34 +85,33 @@ before_script:
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl;
           export LIBRARY_SEARCH_PATHS=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
           export LIBRARY_PATH=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
-          brew install --HEAD libuv --universal;
+          brew install --HEAD libuv;
           brew install yasm;
           brew install nasm;
-          brew uninstall libuv;
-          brew install libuv --universal;
           brew uninstall openssl;
-          brew install openssl --universal;
+          brew install openssl;
           brew uninstall zlib;
-          brew install zlib --universal;
+          brew install zlib;
           brew install grep --with-default-names;
-          brew install clang-format --universal;
+          brew install clang-format;
           cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
 script:
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 100 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
-          mv ../*.app ../Etterna.app;
-          xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cd .. && bash format-check.sh; fi
+        - xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
+        # - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
+        # - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 100 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
+        #   mv ../*.app ../Etterna.app;
+        #   xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
+        # - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cd .. && bash format-check.sh; fi
 
-before_install:
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
-          gem install dropbox-deployment; fi
+# before_install:
+#         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
+#           gem install dropbox-deployment; fi
 
-after_success:
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ${TRAVIS_BUILD_DIR};
-          ruby uploadDmg.rb; fi
+# after_success:
+#         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ${TRAVIS_BUILD_DIR};
+#           ruby uploadDmg.rb; fi
 
-env:
-        global:
-                secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
+# env:
+#         global:
+#                 secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
