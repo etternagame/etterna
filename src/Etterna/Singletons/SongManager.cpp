@@ -36,6 +36,7 @@
 #include "Etterna/Models/Misc/TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
+#include "NetworkSyncManager.h"
 
 typedef RString SongDir;
 struct Group
@@ -215,7 +216,10 @@ SongManager::DifferentialReloadDir(string dir)
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
-
+			
+			// Update nsman to keep us from getting disconnected
+			NSMAN->Update(0.0f);
+			
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
 						 "Loading:\n" + group.name + "\n" +
