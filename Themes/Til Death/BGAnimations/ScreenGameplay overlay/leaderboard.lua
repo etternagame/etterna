@@ -134,6 +134,7 @@ function scoreEntry(i)
 		x = 0,
 		y = (i - 1) * ENTRY_HEIGHT * 1.3,
 		onInit = function(self)
+			self = self.actor
 			entryActor = self
 			entryActors[i]["container"] = self
 			self.update = function(self, hs)
@@ -161,6 +162,7 @@ function scoreEntry(i)
 		labelContainer:add(
 			Widg.Label {
 				onInit = function(self)
+					self = self.actor
 					entryActors[i][name] = self
 					self.update = function(self, hs)
 						if hs then
