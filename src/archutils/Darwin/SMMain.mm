@@ -1,13 +1,13 @@
-#include "global.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "RageLog.h"
-#include "CommandLineActions.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "Etterna/Singletons/CommandLineActions.h"
 
 #import <Cocoa/Cocoa.h>
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
-#import "MouseDevice.h"
+#import "archutils/Darwin/MouseDevice.h"
 
 CGFloat scrolled;
 

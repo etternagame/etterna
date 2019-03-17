@@ -1,9 +1,9 @@
-#import "global.h"
-#import "LowLevelWindow_MacOSX.h"
-#import "DisplayResolutions.h"
-#import "RageUtil.h"
-#import "RageThreads.h"
-#import "RageDisplay_OGL_Helpers.h"
+#import "Etterna/Globals/global.h"
+#import "arch/LowLevelWindow/LowLevelWindow_MacOSX.h"
+#import "Etterna/Models/Misc/DisplayResolutions.h"
+#import "RageUtil/Utils/RageUtil.h"
+#import "RageUtil/Misc/RageThreads.h"
+#import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #import "arch/ArchHooks/ArchHooks.h"
 
 #import <Cocoa/Cocoa.h>

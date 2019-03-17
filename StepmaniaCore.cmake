@@ -53,7 +53,7 @@ include("${SM_CMAKE_DIR}/SMDefs.cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Enforce the highest C++ standard used in the code base
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
