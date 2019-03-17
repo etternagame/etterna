@@ -86,7 +86,7 @@ before_script:
 
         # OSX
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update > /dev/null; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl nasm zlib openssl clang-format; fi
+        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl nasm zlib clang-format; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD libuv; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo gem install xcpretty; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
