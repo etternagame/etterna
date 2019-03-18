@@ -954,6 +954,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
+		m_iTotalTapsAndHolds += hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
@@ -968,32 +969,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 void
 Profile::CalculateStatsFromScores()
 {
-	LOG->Trace("Calculating stats from scores");
-	const vector<HighScore*> all = SCOREMAN->GetAllProfileScores(m_sProfileID);
-	float TotalGameplaySeconds = 0.f;
-	m_iTotalTapsAndHolds = 0;
-	m_iTotalHolds = 0;
-	m_iTotalMines = 0;
-
-	for (size_t i = 0; i < all.size(); ++i) {
-		HighScore* hs = all[i];
-		TotalGameplaySeconds += hs->GetSurvivalSeconds();
-		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
-		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
-		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
-		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
-		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
-		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
-		m_iTotalTapsAndHolds += hs->GetHoldNoteScore(HNS_Held);
-	}
-
-	m_iNumTotalSongsPlayed = all.size();
-	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
-	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
-
-	SCOREMAN->RecalculateSSRs(NULL, m_sProfileID);
-	SCOREMAN->CalcPlayerRating(
-	  m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
+	CalculateStatsFromScores(nullptr);
 }
 
 bool
