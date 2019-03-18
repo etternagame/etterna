@@ -128,7 +128,7 @@ local function button(txt, click)
 		onClick = click,
 		y = x,
 		onInit = function(self)
-			buttons[#buttons+1] = self
+			buttons[#buttons+1] = self.actor
 		end
 	}
 end
