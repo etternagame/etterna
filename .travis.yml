@@ -82,13 +82,14 @@ before_script:
 
         # LINUX
         - if [ "${CXX_COMPILER}" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
-        # - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sh ${travis eng/ci_scripts/build.sh
+        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sh ${TRAVIS_BUILD_DIR}ci_scripts/build.sh; fi
         # - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include; fi
         - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}; fi
 
-        # OSX
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update > /dev/null; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl nasm zlib clang-format cmake; fi
+        # OSX  
+        # - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update > /dev/null; fi
+        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew upgrade openssl cmake; fi
+        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install nasm zlib clang-format; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD libuv; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo gem install xcpretty; fi
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
