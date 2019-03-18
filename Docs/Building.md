@@ -1,15 +1,14 @@
-## Building
+# Building
 
 It should be noted that building Etterna on your own from the lastest commit is more likely to behave strangely(Resulting in crashes, profile wipes, etc). Do it at your own risk. It is recommended to use the installers or source files provided with every release.
 
-1. <a href="#windows">Windows</a>
-1. <a href="#linux">Linux</a>
-1. <a href="#mac">Mac</a>
+1. [Windows](#Windows)
+2. [Linux](#Linux)
+3. [Mac](#Mac)
 
-<a name="windows" />
+---
 
 ## Windows
-
 ## Dependencies(Required libraries)
 
 You will need the following:
@@ -26,18 +25,21 @@ You will need the following:
 
 Run this command in a cmd from the folder where you want to download etterna:
 
-    git clone --depth=1 https://github.com/etternagame/etterna.git
+git clone --depth=1 https://github.com/etternagame/etterna.git
 
-Make sure you're in the right branch(default is master). Find out which is the latest one by asking someone. As of 7/17 this is "develop". To change your branch to that one open a cmd in a folder inside the repo you cloned(Inside /etterna) and do
-
-    git checkout develop
-    git submodule update --init
-
+Make sure you're in the right branch(default is master). Find out which is the latest one by asking someone. As of 7/17 this is "develop". To change your branch to that one open a cmd in a folder inside the repo you cloned(Inside /etterna) and do the following commands.
+```
+git checkout develop
+git submodule update --init
+```
 Change develop to the branch you want (master is usually the stable branch and develop the playground, unstable one). Remember to run git submodule.
 
-Run cmake(from cmd or cmakeGUI) configured for VS 2015 and open the project files generated(/Build/Etterna.sln). If not using cmakeGUI, the command should look like this(Run from a cmd in /Build/, you might have to change the Visual Studio version to the one you have):
+Run cmake (from cmd or cmakeGUI) configured for VS 2015 and open the project files generated(/Build/Etterna.sln). If not using cmakeGUI, the command should look like this(Run from a cmd in /Build/, you might have to change the Visual Studio version to the one you have). There are two possible commands to use, either to setup a 32-bit or 64-bit environment.
 
-    cmake .. -G "Visual Studio 14 2015" --build
+```bash
+cmake -G "Visual Studio 14 2015" ..         # 32-bit
+cmake -G "Visual Studio 14 2015 Win64" ..   # 64-bit
+```
 
 Note that an error like this:
 
@@ -55,19 +57,19 @@ NOTE 2: If you get an error like this:
 ![](http://vivide.re/863GDX4n.png)
 Try adding this to StepMania.cpp:
 
-```
+```cpp
 #include <Windows.h>
 #include <stdio.h>
 int (WINAPIV * __vsnprintf)(char *, size_t, const char*, va_list) = _vsnprintf;
 ```
 
-<a name="linux" />
+---
 
 ## Linux
 
 ### 1-a: Prepare dependencies(Debian Based systems)
 
-Open a terminal and:
+Run the following commands on your system depending on your distribution:
 
 #### Debian Based systems
 
@@ -83,11 +85,11 @@ dnf install http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(
 dnf install libXrandr-devel libXtst-devel libpng-devel libjpeg-devel zlib-devel libogg-devel libvorbis-devel yasm alsa-lib-devel pulseaudio-libs-devel bzip2-devel jack-audio-connection-kit-devel libva-devel pcre-devel gtk2-devel glew-devel libudev-devel
 ```
 
-#### 2: Clone the etterna git and compile etterna
+### 2: Clone the etterna git and compile etterna
 
 Open a terminal and:
 
-```
+```bash
 git clone --depth=1 https://github.com/etternagame/etterna.git
 cd etterna
 git submodule update --init
@@ -101,13 +103,13 @@ Also note you probably want to do "git checkout" to the branch you want. Ask aro
 
 If it doesn't work you can look at how travis does it(https://travis-ci.org/etternagame/etterna)
 
-#### 3: Making a Launcher
+### 3: Making a Launcher
 
 If you want to run etterna from a launch button like some desktop environments have, make a shell script like this and set the launch button to run the shell script. This assumes that the etterna folder is ~/etterna. If you don't know already, "~/" is shorthand for the home folder of the current user on Linux.
 
 Make a new emtpy text document and add the following:
 
-```
+```bash
 #!/bin/bash
 cd ~/etterna
 ./etterna
@@ -117,7 +119,7 @@ Save it as etternalauncher.sh or something similar
 
 right click it and make it executable in properties>permissions
 
-#### 4: Configuration
+### 4: Configuration
 
 Install songs in ~/.etterna/Songs/
 
@@ -129,7 +131,7 @@ Preferences are in ~/.etterna/Save/Preferences.ini
 
 Profiles are in ~/.etterna/Save/LocalProfiles/
 
-#### 5: Updating
+### 5: Updating
 
 When you want to update your copy of SM5:
 
@@ -142,54 +144,44 @@ git pull origin master
 
 Replacing master(twice) for the git branch you want to update to. Then build again(As instructed above).
 
-<a name="mac" />
+---
 
 ## Mac
-
-#### 1: Download
+### 1: Download
 
 First we download/clone the repository from github:
 
-```
+``` bash
 git clone https://github.com/etternagame/etterna.git
 cd etterna
 git submodule update --init
 ```
 
-#### 2: Libraries
+### 2: Libraries
 
-Next we install the necessary libs:
-
-```
-brew install openssl
-brew install --HEAD libuv --universal
-brew install yasm
-brew install nasm
-brew uninstall libuv
-brew install libuv --universal
-brew uninstall openssl
-brew install openssl --universal
-brew uninstall zlib
-brew install zlib --universal
+First, if you don't have [Homebrew](https://brew.sh/) you can install it with the following command
+```bash
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-#### 3: Final configuration
+```
+brew install openssl nasm zlib
+brew install --HEAD libuv
+```
+
+### 3: Final configuration
 
 We finish configuring the project:
 
 ```
 mkdir build && cd build
-export LIBRARY_SEARCH_PATHS=../Xcode/Libraries
-export LIBRARY_PATH=../Xcode/Libraries
-mv ../src/archutils/Darwin/Etterna.pch ../src/archutils/Darwin/StepMania.pch
 cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
-mv ../src/archutils/Darwin/StepMania.pch ../src/archutils/Darwin/Etterna.pch
 ```
 
-#### 4: Building
+### 4: Building
 
 Finally, we build the project:
 
-```
+```bash
 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf
 ```
