@@ -10,6 +10,5 @@ update_cmake (){
 }
 
 update_cmake
-
-echo "SUCCESS"
+echo "CMake Updated!"
 
