@@ -6,11 +6,11 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
-#if defined(UNIX)
+#ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif
 
-#if defined(LINUX)
+#ifdef __linux__
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -264,7 +264,7 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 }
 #endif
 
-#elif defined(UNIX)
+#elif defined(__unix__)
 #include <pthread.h>
 #include <signal.h>
 

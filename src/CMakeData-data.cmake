@@ -182,6 +182,7 @@ list(APPEND SM_DATA_REST_SRC
   "Etterna/Models/Misc/TimingData.cpp"
   "Etterna/Models/Misc/TimingSegments.cpp"
   "Etterna/Models/Misc/TitleSubstitution.cpp"
+  "Etterna/Models/Misc/RoomWheel.cpp"
 )
 
 list(APPEND SM_DATA_REST_HPP
@@ -239,16 +240,8 @@ list(APPEND SM_DATA_REST_HPP
   "Etterna/Models/Misc/TimingData.h"
   "Etterna/Models/Misc/TimingSegments.h"
   "Etterna/Models/Misc/TitleSubstitution.h"
+  "Etterna/Models/Misc/RoomWheel.h"
 )
-
-if(WITH_NETWORKING)
-  list(APPEND SM_DATA_REST_SRC
-    "Etterna/Models/Misc/RoomWheel.cpp"
-  )
-  list(APPEND SM_DATA_REST_HPP
-    "Etterna/Models/Misc/RoomWheel.h"
-  )
-endif()
 
 source_group("Data Structures\\\\Misc Objects" FILES ${SM_DATA_REST_SRC} ${SM_DATA_REST_HPP})
 

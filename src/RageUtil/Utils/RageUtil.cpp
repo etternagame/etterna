@@ -396,7 +396,7 @@ vssprintf(const char* szFormat, va_list argList)
 {
 	RString sStr;
 
-#if defined(WIN32)
+#ifdef _WIN32
 	char* pBuf = NULL;
 	int iChars = 1;
 	int iUsed = 0;
@@ -466,7 +466,7 @@ vssprintf(const char* szFormat, va_list argList)
  * %-3llu c d" to "a b %I64 %-3I64u c d". This assumes a well-formed format
  * string; invalid format strings should not crash, but the results are
  * undefined. */
-#if defined(WIN32)
+#ifdef _WIN32
 RString
 ConvertI64FormatString(const RString& sStr)
 {

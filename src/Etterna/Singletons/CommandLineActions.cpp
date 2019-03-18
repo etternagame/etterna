@@ -21,7 +21,7 @@
 #include "ver.h"
 
 // only used for Version()
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <windows.h>
 #include <conio.h>
 #endif
@@ -93,7 +93,7 @@ LuaInformation()
 static void
 Version()
 {
-#if defined(WIN32)
+#ifdef _WIN32
 	RString sProductID =
 	  ssprintf("%s", (string(PRODUCT_FAMILY) + product_version).c_str());
 	RString sVersion = ssprintf("build %s\nCompile Date: %s @ %s",

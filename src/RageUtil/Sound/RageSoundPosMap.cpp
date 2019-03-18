@@ -196,7 +196,7 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	 * 3. Underflow; we'll be given a larger frame number than we know
 	 * about.
 	 */
-#if defined(WIN32)
+#ifdef _WIN32
 #define I64F "%I64i"
 #elif defined(__x86_64__)
 #define I64F "%li"

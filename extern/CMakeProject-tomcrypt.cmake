@@ -265,15 +265,12 @@ list(APPEND TOMCRYPT_HPP
 
 source_group("headers" FILES ${TOMCRYPT_HPP})
 
-add_library("tomcrypt" STATIC ${TOMCRYPT_SRC} ${TOMCRYPT_HPP})
+add_library(tomcrypt STATIC ${TOMCRYPT_SRC})
+target_compile_definitions(tomcrypt PUBLIC LTC_NO_ASM)
+target_include_directories("tomcrypt" PUBLIC "${TOMDIR}/src/headers")
 
 set_property(TARGET "tomcrypt" PROPERTY FOLDER "External Libraries")
 
-if (WITH_PORTABLE_TOMCRYPT)
-  sm_add_compile_definition("tomcrypt" LTC_NO_ASM)
-elseif(WITH_NO_ROLC_TOMCRYPT AND NOT APPLE)
-  sm_add_compile_definition("tomcrypt" LTC_NO_ROLC)
-endif()
 
 if (APPLE)
   sm_add_compile_definition("tomcrypt" LTC_NO_ROLC)
@@ -286,4 +283,3 @@ endif()
 
 disable_project_warnings("tomcrypt")
 
-target_include_directories("tomcrypt" PUBLIC "${TOMDIR}/src/headers")

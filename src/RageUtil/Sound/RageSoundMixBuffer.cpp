@@ -2,7 +2,7 @@
 #include "RageSoundMixBuffer.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 #include "archutils/Darwin/VectorHelper.h"
 #ifdef USE_VEC
 static bool g_bVector = Vector::CheckForVector();

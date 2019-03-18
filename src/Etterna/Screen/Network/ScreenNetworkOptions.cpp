@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
@@ -173,7 +172,6 @@ ScreenNetworkOptions::UpdateConnectStatus()
 {
 	SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
 }
-#endif
 
 /*
  * (c) 2004 Charles Lohr, Josh Allen

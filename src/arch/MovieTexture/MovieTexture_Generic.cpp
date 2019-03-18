@@ -9,7 +9,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Actor/Base/Sprite.h"
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include "archutils/Win32/ErrorStrings.h"
 #include <windows.h>
 #endif

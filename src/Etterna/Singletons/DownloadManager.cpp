@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#if !defined(WITHOUT_NETWORKING)
 #include "RageUtil/File/RageFileManager.h"
 #include "ScreenManager.h"
 #include "Etterna/Models/Misc/Preference.h"
@@ -2636,4 +2635,3 @@ class LunaDownload : public Luna<Download>
 
 LUA_REGISTER_CLASS(Download)
 
-#endif

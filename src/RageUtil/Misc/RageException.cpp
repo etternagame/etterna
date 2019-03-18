@@ -6,9 +6,9 @@
 
 #include <cstdarg>
 
-#if defined(_WINDOWS) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
 #include <windows.h>
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 #include "archutils/Darwin/Crash.h"
 using CrashHandler::DebugBreak;
 using CrashHandler::IsDebuggerPresent;
@@ -47,7 +47,7 @@ RageException::Throw(const char* sFmt, ...)
 		fflush(stdout);
 	}
 
-#if (defined(WINDOWS) && defined(DEBUG)) || defined(_XDBG) || defined(MACOSX)
+#if (defined(_WIN32) && defined(DEBUG)) || defined(_XDBG) || defined(__APPLE__)
 	if (IsDebuggerPresent())
 		DebugBreak();
 #endif

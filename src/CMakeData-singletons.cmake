@@ -51,13 +51,4 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "Etterna/Singletons/DownloadManager.h"
 )
 
-if(WITH_NETWORKING)
-  list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
-    "Etterna/Singletons/ezsockets.cpp"
-  )
-  list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
-    "Etterna/Singletons/ezsockets.h"
-  )
-endif()
-
 source_group("Global Singletons" FILES ${SMDATA_GLOBAL_SINGLETON_SRC} ${SMDATA_GLOBAL_SINGLETON_HPP})

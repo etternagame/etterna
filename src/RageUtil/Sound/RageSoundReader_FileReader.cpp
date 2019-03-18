@@ -6,17 +6,11 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <set>
-#if defined(HAS_WAV)
 #include "RageSoundReader_WAV.h"
-#endif
 
-#if defined(HAS_MP3)
 #include "RageSoundReader_MP3.h"
-#endif
 
-#if defined(HAS_OGG)
 #include "RageSoundReader_Vorbisfile.h"
-#endif
 
 RageSoundReader_FileReader*
 RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
@@ -26,26 +20,20 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 {
 	RageSoundReader_FileReader* Sample = NULL;
 
-#if defined(HAS_WAV)
 	if (!format.CompareNoCase("wav"))
 		Sample = new RageSoundReader_WAV;
-#endif
 
-#if defined(HAS_MP3)
 	if (!format.CompareNoCase("mp3")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_MP3;
 	}
-#endif
 
-#if defined(HAS_OGG)
 	if (!format.CompareNoCase("oga") || !format.CompareNoCase("ogg")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_Vorbisfile;
 	}
-#endif
 
 	if (!Sample)
 		return NULL;

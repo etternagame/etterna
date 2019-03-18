@@ -91,6 +91,7 @@ list(APPEND SMDATA_ACTOR_MENU_SRC
   "Etterna/Actor/Menus/TextBanner.cpp"
   "Etterna/Actor/Menus/WheelBase.cpp"
   "Etterna/Actor/Menus/WheelItemBase.cpp"
+  "Etterna/Actor/Menus/RoomInfoDisplay.cpp"
 )
 list(APPEND SMDATA_ACTOR_MENU_HPP
   "Etterna/Actor/Menus/BPMDisplay.h"
@@ -111,16 +112,9 @@ list(APPEND SMDATA_ACTOR_MENU_HPP
   "Etterna/Actor/Menus/TextBanner.h"
   "Etterna/Actor/Menus/WheelBase.h"
   "Etterna/Actor/Menus/WheelItemBase.h"
+  "Etterna/Actor/Menus/RoomInfoDisplay.h"
 )
 
-if(WITH_NETWORKING)
-  list(APPEND SMDATA_ACTOR_MENU_SRC
-    "Etterna/Actor/Menus/RoomInfoDisplay.cpp"
-  )
-  list(APPEND SMDATA_ACTOR_MENU_HPP
-    "Etterna/Actor/Menus/RoomInfoDisplay.h"
-  )
-endif()
 
 source_group("Actors\\\\Menus" FILES ${SMDATA_ACTOR_MENU_SRC} ${SMDATA_ACTOR_MENU_HPP})
 

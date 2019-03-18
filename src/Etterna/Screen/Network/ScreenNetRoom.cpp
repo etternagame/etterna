@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -213,7 +212,6 @@ ScreenNetRoom::InfoSetVisible(bool visibility)
 	m_roomInfo.SetVisible(visibility);
 }
 
-#endif
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"

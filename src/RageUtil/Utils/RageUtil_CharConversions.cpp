@@ -3,7 +3,7 @@
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 
 #include "archutils/Win32/ErrorStrings.h"
 #include <windows.h>
@@ -119,7 +119,7 @@ AttemptJapaneseConversion(RString& sText)
 	return ConvertFromCharset(sText, "CP932");
 }
 
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
 
 static bool

@@ -101,6 +101,7 @@ list(APPEND SMDATA_SCREEN_NET_SRC
   "Etterna/Screen/Network/ScreenNetSelectBase.cpp"
   "Etterna/Screen/Network/ScreenNetSelectMusic.cpp"
   "Etterna/Screen/Network/ScreenNetworkOptions.cpp"
+  "Etterna/Screen/Network/ScreenSMOnlineLogin.cpp"
 )
 
 list(APPEND SMDATA_SCREEN_NET_HPP
@@ -109,16 +110,8 @@ list(APPEND SMDATA_SCREEN_NET_HPP
   "Etterna/Screen/Network/ScreenNetSelectBase.h"
   "Etterna/Screen/Network/ScreenNetSelectMusic.h"
   "Etterna/Screen/Network/ScreenNetworkOptions.h"
+  "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 )
-
-if (WITH_NETWORKING)
-  list(APPEND SMDATA_SCREEN_NET_SRC
-    "Etterna/Screen/Network/ScreenSMOnlineLogin.cpp"
-  )
-  list(APPEND SMDATA_SCREEN_NET_HPP
-    "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
-  )
-endif()
 
 source_group("Screens\\\\Network" FILES ${SMDATA_SCREEN_NET_SRC} ${SMDATA_SCREEN_NET_HPP})
 

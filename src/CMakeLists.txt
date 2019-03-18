@@ -3,9 +3,6 @@ file(MAKE_DIRECTORY "${SM_SRC_DIR}/generated")
 if(MSVC)
   # Add the mapconv program of the past to allow for debugging information.
   include("CMakeProject-mapconv.cmake")
-  if (WITH_IRC_POST_HOOK)
-    include("CMakeProject-irc.cmake")
-  endif()
   if (WITH_TEXTURE_GENERATOR OR WITH_FULL_RELEASE)
     include("CMakeProject-texture.cmake")
   endif()
@@ -100,17 +97,11 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
   RELWITHDEBINFO_OUTPUT_NAME "${SM_NAME_RELWITHDEBINFO}"
 )
 
-if (WITH_PORTABLE_TOMCRYPT)
-  sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ASM)
-elseif (WITH_NO_ROLC_TOMCRYPT OR APPLE)
-  sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ROLC)
-endif()
+sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ASM)
+
 sm_add_compile_definition("${SM_EXE_NAME}" CURL_STATICLIB)
 sm_add_compile_definition("${SM_EXE_NAME}" CMAKE_POWERED)
 
-if (NOT WITH_NETWORKING)
-  sm_add_compile_definition("${SM_EXE_NAME}" WITHOUT_NETWORKING)
-endif()
 
 # Compilation flags per project here.
 sm_add_compile_definition("${SM_EXE_NAME}" $<$<CONFIG:Debug>:DEBUG>)
@@ -165,8 +156,6 @@ list(APPEND SM_WINDOWS_PROGRAM_DLLS
 )
 
 if(WIN32)
-  sm_add_compile_definition("${SM_EXE_NAME}" WINDOWS)
-  sm_add_compile_definition("${SM_EXE_NAME}" _WINDOWS) # TODO: Remove this potential duplicate.
   sm_add_compile_definition("${SM_EXE_NAME}" _CRT_SECURE_NO_WARNINGS)
   sm_add_compile_definition("${SM_EXE_NAME}" _WINSOCK_DEPRECATED_NO_WARNINGS)
   sm_add_compile_definition("${SM_EXE_NAME}" GLEW_STATIC)
@@ -308,18 +297,11 @@ else() # Linux
   if (${HAS_FFMPEG})
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_FFMPEG)
   endif()
-  if (BSD)
-    sm_add_compile_definition("${SM_EXE_NAME}" BSD)
-  endif()
 
   if (GTK2_FOUND)
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_GTK)
   endif()
 
-  sm_add_compile_definition("${SM_EXE_NAME}" UNIX)
-  if("${CMAKE_SYSTEM}" MATCHES "Linux")
-    sm_add_compile_definition("${SM_EXE_NAME}" LINUX)
-  endif()
 endif()
 
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")
@@ -338,13 +320,11 @@ list(APPEND SMDATA_LINK_LIB
 )
 include(../extern/CMakeProject-mmmagic.cmake)
 
-if (HAS_MP3)
-  list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
-  if (WIN32 OR MACOSX)
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
-  else()
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
-  endif()
+list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
+if (WIN32 OR MACOSX)
+list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
+else()
+list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
 endif()
 
 if (NOT SYSTEM_PCRE_FOUND)
@@ -367,14 +347,12 @@ if (WIN32)
 	"${LIB_UV}"
   )
   
-  if (WITH_OGG)
     list(APPEND SMDATA_LINK_LIB
       "ogg"
       "vorbis"
       "vorbisfile"
     )
-  endif()
-  
+
   list(APPEND SMDATA_LINK_LIB
     "dbghelp.lib"
     "setupapi.lib"
@@ -483,13 +461,11 @@ else() # Unix / Linux
     list(APPEND SMDATA_LINK_LIB ${DL_LIBRARIES})
   endif()
 
-  if(HAS_OGG)
     list(APPEND SMDATA_LINK_LIB
       "${VORBISFILE_LIBRARY}"
       "${VORBIS_LIBRARY}"
       "${OGG_LIBRARY}"
     )
-  endif()
 
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
@@ -565,13 +541,11 @@ if(NOT APPLE)
     "${SM_EXTERN_DIR}/zlib"
   )
   if(MSVC)
-    if (WITH_OGG)
       list(APPEND SM_INCLUDE_DIRS
         "${SM_EXTERN_DIR}/newogg/include"
         "${SM_EXTERN_DIR}/newvorbis/lib"
         "${SM_EXTERN_DIR}/newvorbis/include"
       )
-    endif()
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/ffmpeg/include"
     )
@@ -579,11 +553,9 @@ if(NOT APPLE)
       "${SM_EXTERN_DIR}/libcurl/include"
     )
   else()
-    if(WITH_OGG)
       list(APPEND SM_INCLUDE_DIRS
         "${SM_EXTERN_DIR}/vorbis"
       )
-    endif()
     list(APPEND SM_INCLUDE_DIRS
       "${JPEG_INCLUDE_DIR}"
     )
@@ -618,12 +590,10 @@ else()
   list(APPEND SM_INCLUDE_DIRS
 	"${CURL_INCLUDE_DIR}"
   )
-  if(WITH_OGG)
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/newogg/include"
       "${SM_EXTERN_DIR}/newvorbis/include"
     )
-  endif()
   list(APPEND SM_INCLUDE_DIRS
     "archutils/Unix"
   )

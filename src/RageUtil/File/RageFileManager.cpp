@@ -12,9 +12,9 @@
 
 #include <cerrno>
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include <windows.h>
-#elif defined(UNIX) || defined(MACOSX)
+#elif defined(__unix__) || defined(__APPLE__)
 #include <paths.h>
 #endif
 
@@ -202,7 +202,7 @@ ExtractDirectory(RString sPath)
 static RString
 ReadlinkRecursive(RString sPath)
 {
-#if defined(UNIX) || defined(MACOSX)
+#if defined(__unix__) || defined(__APPLE__)
 	// unices support symbolic links; dereference them
 	RString dereferenced = sPath;
 	do {
@@ -229,7 +229,7 @@ GetDirOfExecutable(RString argv0)
 	// argv[0] can be wrong in most OS's; try to avoid using it.
 
 	RString sPath;
-#if defined(WIN32)
+#ifdef _WIN32
 	char szBuf[MAX_PATH];
 	GetModuleFileName(NULL, szBuf, sizeof(szBuf));
 	sPath = szBuf;
@@ -242,7 +242,7 @@ GetDirOfExecutable(RString argv0)
 	bool bIsAbsolutePath = false;
 	if (sPath.size() == 0 || sPath[0] == '/')
 		bIsAbsolutePath = true;
-#if defined(WIN32)
+#ifdef _WIN32
 	if (sPath.size() > 2 && sPath[1] == ':' && sPath[2] == '/')
 		bIsAbsolutePath = true;
 #endif
@@ -251,7 +251,7 @@ GetDirOfExecutable(RString argv0)
 	sPath = ExtractDirectory(sPath);
 
 	if (!bIsAbsolutePath) {
-#if defined(UNIX) || defined(MACOSX)
+#if defined(__unix__) || defined(__APPLE__)
 		if (sPath.empty()) {
 			// This is in our path so look for it.
 			const char* path = getenv("PATH");
@@ -293,11 +293,11 @@ ChangeToDirOfExecutable(const RString& argv0)
 	/* Set the CWD.  Any effects of this is platform-specific; most files are
 	 * read and written through RageFile.  See also
 	 * RageFileManager::RageFileManager. */
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	if (_chdir(RageFileManagerUtil::sDirOfExecutable + "/.."))
-#elif defined(UNIX)
+#elif defined(__unix__)
 	if (chdir(RageFileManagerUtil::sDirOfExecutable + "/"))
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 	/* If the basename is not MacOS, then we've likely been launched via the
 	 * command line through a symlink. Assume this is the case and change to the
 	 * dir of the symlink. */

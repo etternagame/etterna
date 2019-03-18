@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -414,7 +413,6 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectMusic, ScreenSelectMusic)
 // lua end
 
-#endif
 /*
  * (c) 2004-2005 Charles Lohr
  * All rights reserved.
