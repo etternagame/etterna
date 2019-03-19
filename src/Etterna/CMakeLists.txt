@@ -4,7 +4,7 @@
 
 
 ## Configuration file
-#include(CMakeListsLegacy.cmake)
+include(CMakeListsLegacy.cmake)
 
 # Process CMakeLists.txt in each
 add_subdirectory(Actor)
