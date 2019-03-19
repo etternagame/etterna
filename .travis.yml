@@ -16,13 +16,8 @@ matrix:
   include:
     - os: linux
       compiler: clang
-      install:
-        - sh ci_scripts/build.sh
-
     - os: linux
       compiler: gcc
-      install:
-        -
 
     - os: osx
       osx_image: xcode10.1
@@ -47,6 +42,7 @@ matrix:
 # The other os's have overridden the script tag
 script:
   - sh ci_scripts/build.sh
+  - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
   - cmake ..
   - make
 
