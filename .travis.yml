@@ -2,114 +2,76 @@ language: cpp
 dist: xenial
 sudo: required
 
+git:
+  depth: false
+
+env:
+  - PATH=/usr/local/bin:${PATH}
+
 matrix:
-        include:
-                # OSX
-                - env: CXX_COMPILER=clang++ CC_COMPILER=clang BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
-                  os: osx
-                  osx_image: xcode10.1
+  fast_finish: true
+  allow_failures:
+    - os: windows
 
-                # LINUX
-                - env: CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: &1
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - clang-5.0
-                                          - clang-format-5.0
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                - env: CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: *1
-                - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-                  compiler: gcc
-                  addons:
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - gcc-5
-                                          - g++-5
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                                          - clang-format-5.0
+  include:
+    - os: linux
+      compiler: clang
 
-                          coverity_scan:
-                                  project:
-                                          name: etternagame/etterna
-                                          description: "Build submitted via Travis CI"
-                                  notification_email: etternadev@gmail.com
-                                  build_command_prepend:
-                                          "cov-configure --comptype g++
-                                          --compiler g++-5 --template"
-                                  build_command: "make -j 4"
-                                  branch_pattern: coverity_scan
+    - os: linux
+      compiler: gcc
 
-before_script:
-        # ALL
-        - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+#    - os: osx
+#      osx_image: xcode10.1
 
-        # LINUX
-        - if [ "${CXX_COMPILER}" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sh ${TRAVIS_BUILD_DIR}ci_scripts/build.sh; fi
-        # - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}; fi
+    - os: windows
+      env: PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin:$PATH"
+      install:
+        - choco install -y cmake
+      script:
+        - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+        - cmake ..
+        - MSbuild.exe TravisTesting.sln -t:TravisTesting
 
-        # OSX  
-        # - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update > /dev/null; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew upgrade openssl cmake; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install nasm zlib clang-format; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD libuv; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo gem install xcpretty; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
+
+
+addons:
+  homebrew:
+    packages:
+      - openssl
+      - cmake
+    update: true
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+    packages:
+      - nasm
+      - libudev-dev
+      - gcc-5
+      - g++-5
+      - libmad0-dev
+      - libgtk2.0-dev
+      - binutils-dev
+      - libasound-dev
+      - libpulse-dev
+      - libjack-dev
+      - libc6-dev
+      - libogg-dev
+      - libvorbis-dev
+      - libxtst-dev
+      - libxrandr-dev
+      - libglew-dev
+      - libuv-dev
+      - clang-format-5.0
+    update: true
+
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh ci_scripts/build.sh; fi
 
 script:
-        # LINUX
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cd .. && bash format-check.sh; fi
-
-        # OSX
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo | xcpretty && exit ${PIPESTATUS[0]}; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then mv ../*.app ../Etterna.app; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
-
-before_install:
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
-          gem install dropbox-deployment; fi
-
-
-#
-#env:
-#        global:
-#                secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
+  - clang --version
+  - gcc --version
+  - cmake --version
+  - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+  - cmake ..
+  - make
