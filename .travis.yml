@@ -30,7 +30,7 @@ matrix:
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake ..
-        - MSbuild.exe TravisTesting.sln -t:TravisTesting
+        - MSbuild.exe Etterna.sln -t:Etterna /p:Configuration=Release
 
 
 

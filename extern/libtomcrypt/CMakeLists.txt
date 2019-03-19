@@ -268,6 +268,7 @@ add_library("tomcrypt" STATIC ${TOMCRYPT_SRC} ${TOMCRYPT_HPP})
 
 set_property(TARGET "tomcrypt" PROPERTY FOLDER "External Libraries")
 
+set_target_properties(tomcrypt PROPERTIES COMPILE_DEFINITIONS LTC_NO_ASM)
 #if (WITH_PORTABLE_TOMCRYPT)
 #  sm_add_compile_definition("tomcrypt" LTC_NO_ASM)
 #elseif(WITH_NO_ROLC_TOMCRYPT AND NOT APPLE)
