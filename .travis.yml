@@ -16,12 +16,23 @@ matrix:
   include:
     - os: linux
       compiler: clang
+      install:
+        - sh ci_scripts/build.sh
 
     - os: linux
       compiler: gcc
+      install:
+        -
 
-#    - os: osx
-#      osx_image: xcode10.1
+    - os: osx
+      osx_image: xcode10.1
+      install:
+        - sudo gem install xcpretty
+
+      script:
+        - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
+        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo | xcpretty
 
     - os: windows
       env: PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin:$PATH"
@@ -30,8 +41,14 @@ matrix:
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake ..
-        - MSbuild.exe Etterna.sln -t:Etterna /p:Configuration=Release
+        - MSbuild.exe Etterna.sln -t:Etterna
 
+# This will only run for the linux builds
+# The other os's have overridden the script tag
+script:
+  - sh ci_scripts/build.sh
+  - cmake ..
+  - make
 
 
 addons:
@@ -65,13 +82,3 @@ addons:
       - clang-format-5.0
     update: true
 
-install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh ci_scripts/build.sh; fi
-
-script:
-  - clang --version
-  - gcc --version
-  - cmake --version
-  - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-  - cmake ..
-  - make
