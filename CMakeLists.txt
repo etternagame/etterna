@@ -46,8 +46,12 @@ if(WIN32)
 elseif(APPLE)
   find_package(CURL)
   find_package(OpenGL)
+  find_package(BZip2 REQUIRED)
+  find_package(Iconv REQUIRED)
 
-  # include(CMake/Helpers/SetupFFMPEG.cmake)
+
+
+  include(CMake/Helpers/SetupFFMPEG.cmake)
   # include(CMake/SetupFfmpeg.cmake)
   # set_target_properties("${SM_EXE_NAME}" PROPERTIES MACOSX_BUNDLE TRUE)
   find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
@@ -101,6 +105,11 @@ elseif(APPLE)
 
   target_link_libraries(Etterna ${CURL_LIBRARIES})
   target_link_libraries(Etterna ${OPENGL_LIBRARIES})
+  target_link_libraries(Etterna ${BZIP2_LIBRARIES})
+  target_link_libraries(Etterna ${ICONV_LIBRARIES})
+
+  # target_link_libraries(Etterna ${SMDATA_LINK_LIB})
+  
 
 elseif(UNIX)
   include(${PROJECT_SOURCE_DIR}/CMake/Helpers/CMakeLinux.cmake)
