@@ -14,21 +14,24 @@ matrix:
     - os: windows
 
   include:
+
+    ##### Linux ##################
     - os: linux
       compiler: clang
     - os: linux
       compiler: gcc
 
+    ##### macOS ##################
     - os: osx
       osx_image: xcode10.1
       install:
         - sudo gem install xcpretty
-
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
-        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo | xcpretty
+        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration Release | xcpretty
 
+    ##### Windows ################
     - os: windows
       env: PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin:$PATH"
       install:
@@ -45,7 +48,6 @@ script:
   - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
   - cmake ..
   - make
-
 
 addons:
   homebrew:
