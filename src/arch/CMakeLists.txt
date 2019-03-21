@@ -114,12 +114,12 @@ list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP
 )
 
 if(APPLE)
-  list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC
-    "MovieTexture/MovieTexture_FFMpeg.cpp"
-  )
-  list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP
-    "MovieTexture/MovieTexture_FFMpeg.h"
-  )
+  # list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC
+  #   "MovieTexture/MovieTexture_FFMpeg.cpp"
+  # )
+  # list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP
+  #   "MovieTexture/MovieTexture_FFMpeg.h"
+  # )
 elseif(MSVC)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC
     "MovieTexture/MovieTexture_FFMpeg.cpp"

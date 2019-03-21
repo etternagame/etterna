@@ -2,9 +2,7 @@ list(APPEND SMDATA_GLOBAL_FILES_SRC
      "GameLoop.cpp"
      "global.cpp"
      "SpecialFiles.cpp"
-     "StepMania.cpp" # TODO: Refactor into separate main project.
-     "Main.cpp"
-     )
+     "StepMania.cpp") # TODO: Refactor into separate main project.
 
 list(APPEND SMDATA_GLOBAL_FILES_HPP
      "GameLoop.h"
@@ -14,8 +12,11 @@ list(APPEND SMDATA_GLOBAL_FILES_HPP
      "SpecialFiles.h"
      "StdString.h" # TODO: Remove the need for this file, transition to std::string.
      "StepMania.h" # TODO: Refactor into separate main project.
-     "picosha2.h"
-     )
+     "picosha2.h")
+
+if (NOT APPLE)
+     list(APPEND SMDATA_GLOBAL_FILES_SRC "Main.cpp")
+endif()
 
 source_group("Global Files" FILES ${SMDATA_GLOBAL_FILES_SRC} ${SMDATA_GLOBAL_FILES_HPP})
 
