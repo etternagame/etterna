@@ -1,7 +1,6 @@
 include(ExternalProject)
 
 set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg-2.1.3-src")
-set(FFMPEG_BUILD "${FFMPEG_ROOT}/build")
 
 list(APPEND FFMPEG_CONFIGURE
   "${FFMPEG_ROOT}/configure"
@@ -59,17 +58,19 @@ ExternalProject_Add(ffmpeg_dl
     INSTALL_COMMAND ""
     TEST_COMMAND "")
 
+externalproject_get_property(ffmpeg_dl BINARY_DIR)
+
 list(APPEND SMDATA_LINK_LIB
-"${FFMPEG_BUILD}/libavformat/libavformat.a"
-"${FFMPEG_BUILD}/libavcodec/libavcodec.a"
-"${FFMPEG_BUILD}/libswscale/libswscale.a"
-"${FFMPEG_BUILD}/libavutil/libavutil.a")
+"${BINARY_DIR}/libavformat/libavformat.a"
+"${BINARY_DIR}/libavcodec/libavcodec.a"
+"${BINARY_DIR}/libswscale/libswscale.a"
+"${BINARY_DIR}/libavutil/libavutil.a")
 
 add_library(ffmpeg STATIC "${PROJECT_SOURCE_DIR}/extern/ffmpeg/null.cpp")
 add_dependencies(ffmpeg ffmpeg_dl)
 target_link_libraries(ffmpeg ${SMDATA_LINK_LIB})
 
 target_include_directories(ffmpeg PUBLIC ${FFMPEG_ROOT})
-target_include_directories(ffmpeg PUBLIC ${PROJECT_BINARY_DIR}/ffmpeg-build)
+target_include_directories(ffmpeg PUBLIC ${BINARY_DIR})
 
 
