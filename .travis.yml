@@ -29,7 +29,7 @@ matrix:
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
-        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration Release
+        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration Release | xcpretty
 
     ##### Windows ################
     - os: windows
