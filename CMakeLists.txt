@@ -23,7 +23,7 @@ set(CMAKE_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/extern")
 # Executable
 add_executable(Etterna)
 target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/verstub.cpp)
-
+## TODO: Remove line below when building in source is no longer necessary
 set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 # Source
@@ -37,52 +37,33 @@ add_subdirectory(src/RageUtil)
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
 target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # Add src/ to include search dirs
 
+# TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
+#       CRASH_HANDLER is unnecessary as the game should have that as an option component
+#       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
 list(APPEND cdefs _XOPEN_SOURCE CRASH_HANDLER CPU_X86_64)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 
 ## Library including
+### TODO: Once all OS's are building, go through individual scripts and factor out the ones which are needed universally
 if(WIN32)
 
 elseif(APPLE)
-  find_package(CURL)
-  find_package(OpenGL)
-  find_package(BZip2 REQUIRED)
-  find_package(Iconv REQUIRED)
-
-
-
   include(CMake/Helpers/SetupFFMPEG.cmake)
-  # include(CMake/SetupFfmpeg.cmake)
-  # set_target_properties("${SM_EXE_NAME}" PROPERTIES MACOSX_BUNDLE TRUE)
-  find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_AUDIOTOOLBOX AudioToolbox)
-  find_library(MAC_FRAME_AUDIOUNIT AudioUnit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_CARBON Carbon ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_COCOA Cocoa ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_COREAUDIO CoreAudio ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_COREFOUNDATION CoreFoundation ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_CORESERVICES CoreServices ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_FOUNDATION Foundation ${CMAKE_SYSTEM_FRAMEWORK_PATH})
-  find_library(MAC_FRAME_IOKIT IOKit)
-  # find_library(MAC_FRAME_QUICKTIME QuickTime ${CMAKE_SYSTEM_FRAMEWORK_PATH})
 
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
   set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 
-  target_link_libraries(Etterna ${MAC_FRAME_ACCELERATE})
-  target_link_libraries(Etterna ${MAC_FRAME_APPKIT})
-  target_link_libraries(Etterna ${MAC_FRAME_AUDIOTOOLBOX})
+  # macOS Frameworks
+  find_library(MAC_FRAME_AUDIOUNIT AudioUnit)
+  find_library(MAC_FRAME_CARBON Carbon)
+  find_library(MAC_FRAME_COREAUDIO CoreAudio)
+  find_library(MAC_FRAME_IOKIT IOKit)
   target_link_libraries(Etterna ${MAC_FRAME_AUDIOUNIT})
   target_link_libraries(Etterna ${MAC_FRAME_CARBON})
-  target_link_libraries(Etterna ${MAC_FRAME_COCOA})
   target_link_libraries(Etterna ${MAC_FRAME_COREAUDIO})
-  target_link_libraries(Etterna ${MAC_FRAME_COREFOUNDATION})
-  target_link_libraries(Etterna ${MAC_FRAME_CORESERVICES})
-  target_link_libraries(Etterna ${MAC_FRAME_FOUNDATION})
   target_link_libraries(Etterna ${MAC_FRAME_IOKIT})
-  # target_link_libraries(Etterna ${MAC_FRAME_QUICKTIME})
 
+  # Extern Libraries
   target_link_libraries(Etterna luajit)
   target_link_libraries(Etterna discord-rpc)
   target_link_libraries(Etterna sqlite3)   # Link sqlite3 to etterna
@@ -94,22 +75,22 @@ elseif(APPLE)
   target_link_libraries(Etterna libtommath)
   target_link_libraries(Etterna fftw3f)
   target_link_libraries(Etterna MinaCalc)
-  # target_link_libraries(Etterna Threads::Threads)
   target_link_libraries(Etterna glfw)
-
   target_link_libraries(Etterna libmad)
   target_link_libraries(Etterna ogg)
   target_link_libraries(Etterna vorbis)
   target_link_libraries(Etterna pcre)
   target_link_libraries(Etterna ffmpeg)
 
+  # System Libraries
+  find_package(CURL)
+  find_package(OpenGL)
+  find_package(BZip2 REQUIRED)
+  find_package(Iconv REQUIRED)
   target_link_libraries(Etterna ${CURL_LIBRARIES})
   target_link_libraries(Etterna ${OPENGL_LIBRARIES})
   target_link_libraries(Etterna ${BZIP2_LIBRARIES})
   target_link_libraries(Etterna ${ICONV_LIBRARIES})
-
-  # target_link_libraries(Etterna ${SMDATA_LINK_LIB})
-  
 
 elseif(UNIX)
   include(${PROJECT_SOURCE_DIR}/CMake/Helpers/CMakeLinux.cmake)
