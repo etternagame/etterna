@@ -846,7 +846,9 @@ Dirname(const RString& dir);
 RString
 Capitalize(const RString& s);
 
+#if defined(HAVE_UNISTD_H)
 #include <unistd.h> /* correct place with correct definitions */
+#endif
 
 extern unsigned char g_UpperCase[256];
 extern unsigned char g_LowerCase[256];

@@ -1,6 +1,8 @@
 ﻿#include "global.h"
 
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h> 
+#endif
 
 #ifdef _WIN32
 #define _WIN32_WINDOWS 0x0410 // include Win98 stuff
