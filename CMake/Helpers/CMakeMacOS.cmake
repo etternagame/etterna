@@ -1,3 +1,9 @@
+# TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
+#       CRASH_HANDLER is unnecessary as the game should have that as an option component
+#       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
+list(APPEND cdefs _XOPEN_SOURCE CRASH_HANDLER CPU_X86_64)
+set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
+
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 

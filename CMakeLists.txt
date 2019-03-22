@@ -37,11 +37,6 @@ add_subdirectory(src/RageUtil)
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
 target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # Add src/ to include search dirs
 
-# TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
-#       CRASH_HANDLER is unnecessary as the game should have that as an option component
-#       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
-list(APPEND cdefs _XOPEN_SOURCE CRASH_HANDLER CPU_X86_64)
-set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 
 ## Library including
 ### TODO: Once all OS's are building, go through individual scripts and factor out the ones which are needed universally
