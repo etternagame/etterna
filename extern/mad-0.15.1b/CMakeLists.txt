@@ -13,4 +13,5 @@ list(APPEND SOURCES
 
 add_library(libmad ${SOURCES})
 target_include_directories(libmad PUBLIC .)
+set_target_properties(libmad PROPERTIES COMPILE_DEFINITIONS FPM_DEFAULT)
 # set_property(TARGET "mad" PROPERTY FOLDER "External Libraries")

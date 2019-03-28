@@ -58,6 +58,8 @@ if(WIN32)
   target_link_libraries(Etterna glfw)
   target_link_libraries(Etterna pcre)
   target_link_libraries(Etterna libmad)
+  target_link_libraries(Etterna ogg)
+  target_link_libraries(Etterna vorbis)
 
 elseif(APPLE)
   include(CMake/Helpers/SetupFFMPEG.cmake)
