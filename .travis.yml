@@ -44,7 +44,7 @@ matrix:
 # This will only run for the linux builds
 # The other os's have overridden the script tag
 script:
-  - sh ci_scripts/build.sh
+  - sh .ci/build.sh
   - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
   - cmake ..
   - make
