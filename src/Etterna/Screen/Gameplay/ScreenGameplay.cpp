@@ -2028,7 +2028,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
 		GAMESTATE->CommitStageStats();
 	// save current stage stats
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);

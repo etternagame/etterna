@@ -3,6 +3,39 @@
 
 /* Auto-generated config.h file powered by cmake. */
 
+/* Defined to 1 if <alloca.h> is found. */
+#cmakedefine HAVE_ALLOCA_H 1
+
+/* Defined to 1 if <dirent.h> is found. */
+#cmakedefine HAVE_DIRENT_H 1
+
+/* Defined to 1 if <inttypes.h> is found. */
+#cmakedefine HAVE_INTTYPES_H 1
+
+/* Defined to 1 if <stdint.h> is found. */
+#cmakedefine HAVE_STDINT_H 1
+
+/* Defined to 1 if <endian.h> is found. */
+#cmakedefine HAVE_ENDIAN_H 1
+
+/* Defined to 1 if <sys/endian.h> is found. */
+#cmakedefine HAVE_SYS_ENDIAN_H 1
+
+/* Defined to 1 if <machine/endian.h> is found. */
+#cmakedefine HAVE_MACHINE_ENDIAN_H 1
+
+/* Defined to 1 if <sys/param.h> is found. */
+#cmakedefine HAVE_SYS_PARAM_H 1
+
+/* Defined to 1 if <sys/utsname.h> is found. */
+#cmakedefine HAVE_SYS_UTSNAME_H 1
+
+/* Defined to 1 if <fcntl.h> is found. */
+#cmakedefine HAVE_FCNTL_H 1
+
+/* Defined to 1 if <unistd.h> is found. */
+#cmakedefine HAVE_UNISTD_H 1
+
 /* Defined to 1 if the underlying system provides the _mkdir function. */
 #cmakedefine HAVE__MKDIR 1
 

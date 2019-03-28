@@ -5,11 +5,16 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 
+#if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
+#endif
 #include <cerrno>
 
 #if !defined(_WIN32)
+
+#if defined(HAVE_DIRENT_H)
 #include <dirent.h>
+#endif
 
 #else
 #include "archutils/Win32/ErrorStrings.h"
