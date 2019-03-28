@@ -42,7 +42,17 @@ target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # A
 ## Library including
 ### TODO: Once all OS's are building, go through individual scripts and factor out the ones which are needed universally
 if(WIN32)
-
+  target_link_libraries(Etterna luajit) # Link lua to etterna
+  target_link_libraries(Etterna discord-rpc)
+  target_link_libraries(Etterna sqlite3)   # Link sqlite3 to etterna
+  target_link_libraries(Etterna SQLiteCpp) # Link SQLiteCpp to etterna
+  target_link_libraries(Etterna uWS)
+  target_link_libraries(Etterna jsoncpp) # TODO: Two JSON Libraries?
+  target_link_libraries(Etterna nlohmann_json)
+  target_link_libraries(Etterna tomcrypt)
+  target_link_libraries(Etterna libtommath)
+  target_link_libraries(Etterna fftw3f)
+  target_link_libraries(Etterna MinaCalc)
 elseif(APPLE)
   include(CMake/Helpers/SetupFFMPEG.cmake)
   include(CMake/Helpers/CMakeMacOS.cmake)
