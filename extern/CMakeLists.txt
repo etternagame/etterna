@@ -14,6 +14,7 @@ add_subdirectory(stb)
 add_subdirectory(libuv)
 add_subdirectory(zlib)
 add_subdirectory(uWebSocket)
+add_subdirectory(libcurl)
 
 if(APPLE)
     add_subdirectory(mad-0.15.1b)
