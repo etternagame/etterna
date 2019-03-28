@@ -131,6 +131,7 @@ if(MINGW)
 endif(MINGW)
 
 add_library(zlib ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+target_include_directories(zlib INTERFACE . ${PROJECT_BINARY_DIR})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 
 set_target_properties(zlib PROPERTIES SOVERSION 1)
