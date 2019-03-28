@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 
 #if defined(HAVE_UNISTD_H)
-#include <unistd.h> 
+#include <unistd.h>
 #endif
 
 #ifdef _WIN32
