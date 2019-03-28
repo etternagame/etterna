@@ -25,11 +25,12 @@ matrix:
     - os: osx
       osx_image: xcode10.1
       install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install -f openssl cmake nasm
         - sudo gem install xcpretty
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
-        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration Release | xcpretty
+        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -configuration Release | xcpretty
 
     ##### Windows ################
     - os: windows
@@ -50,12 +51,6 @@ script:
   - make
 
 addons:
-  homebrew:
-    packages:
-      - openssl
-      - cmake
-      - nasm
-    update: true
   apt:
     sources:
       - ubuntu-toolchain-r-test
