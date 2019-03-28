@@ -4,7 +4,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSurface_Load.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb/stb_image.h>
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageSurface.h"
 #include <set>

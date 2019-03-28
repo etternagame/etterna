@@ -35,6 +35,7 @@ target_link_libraries(Etterna ogg)
 target_link_libraries(Etterna vorbis)
 target_link_libraries(Etterna pcre)
 target_link_libraries(Etterna ffmpeg)
+target_link_libraries(Etterna stb)
 
 # System Libraries
 find_package(CURL)

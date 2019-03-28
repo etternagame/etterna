@@ -11,6 +11,7 @@ add_subdirectory(MinaCalc)
 add_subdirectory(zlib)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
+add_subdirectory(stb)
 
 if(APPLE)
     add_subdirectory(mad-0.15.1b)

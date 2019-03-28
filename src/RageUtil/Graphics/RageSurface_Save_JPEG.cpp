@@ -2,11 +2,9 @@
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Save_JPEG.h"
-
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"
-
-#include "stb_image_write.h"
+#include <stb/stb_image_write.h>
 
 
 bool RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)

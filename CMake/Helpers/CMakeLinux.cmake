@@ -42,6 +42,7 @@ target_link_libraries(Etterna fftw3f)
 target_link_libraries(Etterna MinaCalc)
 target_link_libraries(Etterna Threads::Threads)
 #target_link_libraries(Etterna ffmpeg)
+target_link_libraries(Etterna stb)
 
 target_link_libraries(Etterna ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna ${ICONV_LIBRARIES})
