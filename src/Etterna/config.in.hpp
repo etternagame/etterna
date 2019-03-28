@@ -24,7 +24,8 @@
 /* Defined to 1 if the underlying system provides the strcasecmp function. */
 #cmakedefine HAVE_STRCASECMP 1
 
-
+/* Defined to 1 if <unistd.h> is found. */
+#cmakedefine HAVE_UNISTD_H 1
 
 /* Defined to 1 if the underlying system provides the pthread_mutex_timedlock function. */
 #cmakedefine HAVE_PTHREAD_MUTEX_TIMEDLOCK 1

@@ -1,11 +1,11 @@
 # TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
 #       CRASH_HANDLER is unnecessary as the game should have that as an option component
 #       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
-list(APPEND cdefs _XOPEN_SOURCE CRASH_HANDLER CPU_X86_64)
+list(APPEND cdefs _XOPEN_SOURCE CPU_X86_64)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
-
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
-set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
+set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
+set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
 # macOS Frameworks
 find_library(MAC_FRAME_AUDIOUNIT AudioUnit)
