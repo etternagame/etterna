@@ -2,7 +2,7 @@ local filters = {"", "0", "0", "0", "0", "0", "0"}
 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
 
 local curInput = ""
-local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
+local inputting = 1 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
 
 local function getFilter(index)
 	return filters[index]
