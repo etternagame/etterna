@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Save_JPEG.h"
@@ -6,156 +6,35 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#undef FAR // fix for VC
-/** @brief A helper to get the jpeg lib. */
-namespace jpeg {
-extern "C" {
-#include "jpeglib.h"
-}
-} // namespace jpeg
+#include "stb_image_write.h"
 
-#define OUTPUT_BUFFER_SIZE 4096
-typedef struct
+
+bool RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
 {
-	struct jpeg::jpeg_destination_mgr pub;
+	f.Close();
 
-	RageFile* f;
-	uint8_t buffer[OUTPUT_BUFFER_SIZE];
-} my_destination_mgr;
+	RageSurface* res;
+	bool converted = RageSurfaceUtils::ConvertSurface(surface,
+												res,
+												surface->w,
+												surface->h,
+												24,
+												Swap24BE(0xFF0000),
+												Swap24BE(0x00FF00),
+												Swap24BE(0x0000FF),
+												0);
+	if (!converted)
+		res = surface;
 
-/*
- * Initialize source --- called by jpeg_read_header
- * before any data is actually read.
- */
-static void
-init_destination(jpeg::j_compress_ptr cinfo)
-{
-	/* nop */
-}
+	int quality = bHighQual ? 100 : 70;
 
-/* Empty the output buffer; called whenever buffer is full. */
-static jpeg::boolean
-empty_output_buffer(jpeg::j_compress_ptr cinfo)
-{
-	my_destination_mgr* dest = (my_destination_mgr*)cinfo->dest;
-	dest->f->Write(dest->buffer, OUTPUT_BUFFER_SIZE);
-	// XXX err
-	dest->pub.next_output_byte = dest->buffer;
-	dest->pub.free_in_buffer = OUTPUT_BUFFER_SIZE;
+	// returns 0 on failure
+	bool success = stbi_write_jpg(f.GetRealPath(), res->w, res->h, 3, res->pixels, quality);
 
-	return TRUE;
-}
+	if (converted)
+		delete res;
 
-/*
- * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.
- */
-static void
-term_destination(jpeg::j_compress_ptr cinfo)
-{
-	/* Write data remaining in the buffer */
-	my_destination_mgr* dest = (my_destination_mgr*)cinfo->dest;
-	dest->f->Write(dest->buffer, OUTPUT_BUFFER_SIZE - dest->pub.free_in_buffer);
-	// XXX err
-	dest->pub.next_output_byte = dest->buffer;
-	dest->pub.free_in_buffer = OUTPUT_BUFFER_SIZE;
-}
-
-/*
- * Prepare for output to a stdio stream.
- * The caller must have already opened the stream, and is responsible
- * for closing it after finishing decompression.
- */
-static void
-jpeg_RageFile_dest(jpeg::j_compress_ptr cinfo, RageFile& f)
-{
-	ASSERT(cinfo->dest == NULL);
-
-	cinfo->dest =
-	  (struct jpeg::jpeg_destination_mgr*)(*cinfo->mem->alloc_small)(
-		(jpeg::j_common_ptr)cinfo, JPOOL_PERMANENT, sizeof(my_destination_mgr));
-
-	my_destination_mgr* dest = (my_destination_mgr*)cinfo->dest;
-	dest->pub.init_destination = init_destination;
-	dest->pub.empty_output_buffer = empty_output_buffer;
-	dest->pub.term_destination = term_destination;
-	dest->pub.free_in_buffer =
-	  OUTPUT_BUFFER_SIZE; /* forces fill_input_buffer on first read */
-	dest->pub.next_output_byte = dest->buffer; /* until buffer loaded */
-
-	dest->f = &f;
-}
-
-/* Save a JPEG to a file.  cjpeg.c and example.c from jpeglib were helpful in
- * writing this. */
-bool
-RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
-{
-	RageSurface* dst_surface;
-	if (RageSurfaceUtils::ConvertSurface(surface,
-										 dst_surface,
-										 surface->w,
-										 surface->h,
-										 24,
-										 Swap24BE(0xFF0000),
-										 Swap24BE(0x00FF00),
-										 Swap24BE(0x0000FF),
-										 0))
-		surface = dst_surface;
-
-	struct jpeg::jpeg_compress_struct cinfo;
-
-	/* Set up the error handler. */
-	struct jpeg::jpeg_error_mgr jerr;
-	cinfo.err = jpeg::jpeg_std_error(&jerr);
-
-	/* Now we can initialize the JPEG compression object. */
-	jpeg::jpeg_CreateCompress(
-	  &cinfo,
-	  JPEG_LIB_VERSION,
-	  (size_t)sizeof(struct jpeg::jpeg_compress_struct));
-
-	cinfo.image_width = surface->w; /* image width and height, in pixels */
-	cinfo.image_height = surface->h;
-	cinfo.input_components = 3;			  /* # of color components per pixel */
-	cinfo.in_color_space = jpeg::JCS_RGB; /* colorspace of input image */
-
-	/* Set compression parameters.  You must set at least cinfo.in_color_space
-	 * before calling this.*/
-	jpeg::jpeg_set_defaults(&cinfo);
-
-	if (bHighQual)
-		jpeg::jpeg_set_quality(&cinfo, 150, TRUE);
-	else
-		jpeg::jpeg_set_quality(&cinfo, 70, TRUE);
-
-	jpeg_RageFile_dest(&cinfo, f);
-
-	/* Start the compressor. */
-	jpeg::jpeg_start_compress(&cinfo, TRUE);
-
-	/* Here we use the library's state variable cinfo.next_scanline as the
-	 * loop counter, so that we don't have to keep track ourselves.
-	 * To keep things simple, we pass one scanline per call; you can pass
-	 * more if you wish, though. */
-	const int row_stride =
-	  surface->pitch; /* JSAMPLEs per row in image_buffer */
-
-	while (cinfo.next_scanline < cinfo.image_height) {
-		/* jpeg_write_scanlines expects an array of pointers to scanlines.
-		 * Here the array is only one element long, but you could pass
-		 * more than one scanline at a time if that's more convenient. */
-		jpeg::JSAMPROW row_pointer =
-		  &((jpeg::JSAMPLE*)surface->pixels)[cinfo.next_scanline * row_stride];
-		jpeg::jpeg_write_scanlines(&cinfo, &row_pointer, 1);
-	}
-
-	/* Finish compression. */
-	jpeg::jpeg_finish_compress(&cinfo);
-	jpeg::jpeg_destroy_compress(&cinfo);
-
-	delete dst_surface;
-	return true;
+	return success;
 }
 
 /*
