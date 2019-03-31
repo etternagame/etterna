@@ -1,5 +1,5 @@
 # ROOT CMakeLists.txt
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.14.0)
 project(Etterna)
 
 # PROJECT WIDE SETUP
@@ -10,10 +10,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 ## Extern Library Variables
-set(SQLITECPP_RUN_CPPLINT OFF)
-set(SQLITECPP_RUN_CPPCHECK OFF)
-set(OPENSSL_USE_STATIC_LIBS ON)
-set(USE_STATIC_CRT ON)  # Tell discord to build statically
+set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
+set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
+set(USE_STATIC_CRT ON)  # Have discord-rpc link statically
+set(BUILD_TESTING OFF)  # Disable libuv testing
 
 ## Policies
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path

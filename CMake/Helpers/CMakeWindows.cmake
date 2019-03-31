@@ -7,7 +7,7 @@ set_target_properties(Etterna PROPERTIES
 
 # Build options
 set_target_properties(Etterna PROPERTIES COMPILE_FLAGS "/MP8 /GL /arch:SSE2 /MT")
-set_target_properties(Etterna PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /NODEFAULTLIB:\"LIBCMT\" /SAFESEH:NO /LTCG")
+set_target_properties(Etterna PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /NODEFAULTLIB:\"MSVCRT\" /NODEFAULTLIB:\"LIBCMT\" /LTCG")
 
 # The following libraries are set to be dynamically linked.
 # These compile flags switch them to be statically linked.
@@ -39,6 +39,7 @@ target_link_libraries(Etterna libmad)
 target_link_libraries(Etterna ogg)
 target_link_libraries(Etterna vorbis)
 target_link_libraries(Etterna ffmpeg)
+target_link_libraries(Etterna msvcrt.lib)
 
 find_package(DirectX REQUIRED)
 get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
