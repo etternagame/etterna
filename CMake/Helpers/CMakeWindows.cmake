@@ -46,5 +46,22 @@ get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
 target_link_directories(Etterna PUBLIC ${DIRECTX_LIBRARY_DIR})
 target_include_directories(Etterna PRIVATE ${DIRECTX_INCLUDE_DIR})
 
+# Copying DLL files to run directory
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # 64bit
+	set(ARCH 64bit)
+else()
+	set(ARCH 32bit)
+endif()
 
-# Copying DLL files
+list(APPEND WIN_DLLS
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avcodec-55.dll"
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avformat-55.dll"
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avutil-52.dll"
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll"
+	"${OPENSSL_ROOT_DIR}/libssl-1_1.dll"
+	"${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll")
+
+foreach(dll ${WIN_DLLS})
+	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
+	# message(STATUS ${dll})
+endforeach()
