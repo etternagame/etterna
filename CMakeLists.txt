@@ -9,6 +9,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+## Extern Library Variables
+set(SQLITECPP_RUN_CPPLINT OFF)
+set(SQLITECPP_RUN_CPPCHECK OFF)
+set(OPENSSL_USE_STATIC_LIBS ON)
+set(USE_STATIC_CRT ON)  # Tell discord to build statically
+
 ## Policies
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
 
@@ -26,7 +32,7 @@ target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/verstub.cpp)
 set_target_properties(Etterna PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}") 
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}")
 
 ### Source
 add_subdirectory(extern)
@@ -37,38 +43,15 @@ add_subdirectory(src/RageUtil)
 
 ### Includes
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated) # Add gen files include search dirs
-target_include_directories(Etterna PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src") # Add src/ to include search dirs
+target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src) # Add src/ to include search dirs
 
 ## Library including
 ### TODO: Once all OS's are building, go through individual scripts and factor out the ones which are needed universally
 if(WIN32)
-  target_link_libraries(Etterna luajit) # Link lua to etterna
-  target_link_libraries(Etterna discord-rpc)
-  target_link_libraries(Etterna sqlite3)   # Link sqlite3 to etterna
-  target_link_libraries(Etterna SQLiteCpp) # Link SQLiteCpp to etterna
-  target_link_libraries(Etterna uWS)
-  target_link_libraries(Etterna jsoncpp) # TODO: Two JSON Libraries?
-  target_link_libraries(Etterna nlohmann_json)
-  target_link_libraries(Etterna tomcrypt)
-  target_link_libraries(Etterna libtommath)
-  target_link_libraries(Etterna fftw3f)
-  target_link_libraries(Etterna MinaCalc)
-  target_link_libraries(Etterna curl)
-  target_link_libraries(Etterna stb)
-  target_link_libraries(Etterna glfw)
-  target_link_libraries(Etterna pcre)
-  target_link_libraries(Etterna libmad)
-  target_link_libraries(Etterna ogg)
-  target_link_libraries(Etterna vorbis)
-
+    include(CMake/Helpers/CMakeWindows.cmake)
 elseif(APPLE)
-  include(CMake/Helpers/SetupFFMPEG.cmake)
-  include(CMake/Helpers/CMakeMacOS.cmake)
+    include(CMake/Helpers/SetupFFMPEG.cmake)
+    include(CMake/Helpers/CMakeMacOS.cmake)
 elseif(UNIX)
-  include(${PROJECT_SOURCE_DIR}/CMake/Helpers/CMakeLinux.cmake)
+    include(${PROJECT_SOURCE_DIR}/CMake/Helpers/CMakeLinux.cmake)
 endif()
-
-
-
-
-
