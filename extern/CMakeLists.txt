@@ -19,11 +19,8 @@ add_subdirectory(libcurl)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
+add_subdirectory(ffmpeg)
 
-if(APPLE)
-elseif(UNIX)
-    add_subdirectory(ffmpeg)
-endif()
 
 
 #include(CMakeProject-glew.cmake)
