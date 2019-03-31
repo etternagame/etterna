@@ -15,10 +15,7 @@ RageSurfaceUtils::decodepixel(const uint8_t* p, int bpp)
 		case 2:
 			return *(uint16_t*)p;
 		case 3:
-			if (BYTE_ORDER == BIG_ENDIAN)
-				return p[0] << 16 | p[1] << 8 | p[2];
-			else
-				return p[0] | p[1] << 8 | p[2] << 16;
+			return p[0] | p[1] << 8 | p[2] << 16;
 
 		case 4:
 			return *(uint32_t*)p;
@@ -38,15 +35,9 @@ RageSurfaceUtils::encodepixel(uint8_t* p, int bpp, uint32_t pixel)
 			*(uint16_t*)p = uint16_t(pixel);
 			break;
 		case 3:
-			if (BYTE_ORDER == BIG_ENDIAN) {
-				p[0] = uint8_t((pixel >> 16) & 0xff);
-				p[1] = uint8_t((pixel >> 8) & 0xff);
-				p[2] = uint8_t(pixel & 0xff);
-			} else {
-				p[0] = uint8_t(pixel & 0xff);
-				p[1] = uint8_t((pixel >> 8) & 0xff);
-				p[2] = uint8_t((pixel >> 16) & 0xff);
-			}
+			p[0] = uint8_t(pixel & 0xff);
+			p[1] = uint8_t((pixel >> 8) & 0xff);
+			p[2] = uint8_t((pixel >> 16) & 0xff);
 			break;
 		case 4:
 			*(uint32_t*)p = pixel;
