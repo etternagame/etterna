@@ -12,16 +12,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
-set(USE_STATIC_CRT ON)  # Have discord-rpc link statically
-set(BUILD_TESTING OFF)  # Disable libuv testing
+set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)  # Have discord-rpc link statically
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)  # Disable libuv testing
 
 ## Policies
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
+cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set" and "option" to be compatible with each other
 
 ## CMake related variables
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)
-# set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules") # Tell cmake where to get "FindXXX.cmake" files
-set(CMAKE_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/extern")
+set(CMAKE_LIBRARY_PATH ${CMAKE_SOURCE_DIR}/extern)
 
 # Project Build Targets
 ## Etterna

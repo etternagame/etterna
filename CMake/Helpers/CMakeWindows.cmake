@@ -7,7 +7,7 @@ set_target_properties(Etterna PROPERTIES
 
 # Build options
 set_target_properties(Etterna PROPERTIES COMPILE_FLAGS "/MP8 /GL /arch:SSE2 /MT")
-set_target_properties(Etterna PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /NODEFAULTLIB:\"MSVCRT\" /NODEFAULTLIB:\"LIBCMT\" /LTCG")
+set_target_properties(Etterna PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /NODEFAULTLIB:\"LIBCMT\" /LTCG")
 
 # The following libraries are set to be dynamically linked.
 # These compile flags switch them to be statically linked.
