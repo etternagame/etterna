@@ -1,3 +1,0 @@
-[submodule "extern/json"]
-	path = extern/json
-	url = https://github.com/etternagame/json.git
