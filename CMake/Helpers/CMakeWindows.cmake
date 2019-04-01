@@ -61,6 +61,12 @@ list(APPEND WIN_DLLS
 	"${OPENSSL_ROOT_DIR}/libssl-1_1.dll"
 	"${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll")
 
+if(ARCH STREQUAL "32bit")
+	list(APPEND WIN_DLLS "${OPENSSL_ROOT_DIR}/libssl-1_1.dll" "${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll")
+else()
+	list(APPEND WIN_DLLS "${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll" "${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll")
+endif()
+
 foreach(dll ${WIN_DLLS})
 	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
 	# message(STATUS ${dll})
