@@ -1,3 +1,4 @@
+# Universally required
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
@@ -10,17 +11,18 @@ add_subdirectory(MinaCalc)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(stb)
-
 add_subdirectory(libuv)
 add_subdirectory(zlib)
 add_subdirectory(uWebSocket)
 add_subdirectory(libcurl)
-
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
-add_subdirectory(ffmpeg)
 
+# Only required on Windows
+if(MSVC)
+    add_subdirectory(ffmpeg)
+endif()
 
 
 #include(CMakeProject-glew.cmake)
