@@ -19,7 +19,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	set(ETTERNA_LINK_FLAGS "${ETTERNA_LINK_FLAGS} /NODEFAULTLIB:\"LIBCMT\"")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	# TODO: Fix Debug build configuration
-	# At the moment, to build with debug information, use RelWithDebInfo
+	# At the moment, to build with debug information, use RelWithDebInfo.
+	# This issue with this is with CMake not linking everything properly with the /MTd compile flag
+	# To build with the Debug C Runtime library, everything must be compiled with said CRT.
+	# To build with this build type, give all the target targets the correct link flags.
 endif()
 
 set_target_properties(Etterna PROPERTIES LINK_FLAGS ${ETTERNA_LINK_FLAGS})
