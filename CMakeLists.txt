@@ -4,6 +4,7 @@ project(Etterna)
 
 # PROJECT WIDE SETUP
 ## CMake and Compiler Setup
+set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -12,7 +13,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
-set(CURL_STATIC_CRT ON CACHE BOOL "" FORCE) # Have curl link statically
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)  # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)  # Disable libuv testing
 
