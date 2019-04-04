@@ -13,9 +13,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
-set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)  # Have discord-rpc link statically
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)  # Disable libuv testing
-set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)  # Disable discord clang-format
+set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)       # Disable discord clang-format
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
+set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
+
 
 ## Policies
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
