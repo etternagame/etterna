@@ -37,7 +37,7 @@ matrix:
       install:
         - choco install -y cmake openssl.light
         - powershell -Command "Invoke-WebRequest https://slproweb.com/download/Win32OpenSSL-1_1_1b.msi -O Win32OpenSSL-1_1_1b.msi"
-        - msiexec /I Win32OpenSSL-1_1_1b.msi /qn
+        - msiexec /I Win32OpenSSL-1_1_1b.msi /norestart /L*V!
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake -G "Visual Studio 15 2017" -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" ..
@@ -49,7 +49,7 @@ matrix:
       install:
         - choco install -y cmake openssl.light
         - powershell -Command "Invoke-WebRequest https://slproweb.com/download/Win64OpenSSL-1_1_1b.msi -O Win64OpenSSL-1_1_1b.msi"
-        - msiexec /I Win64OpenSSL-1_1_1b.msi /qn
+        - msiexec /I Win64OpenSSL-1_1_1b.msi /norestart /L*V!
 
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
