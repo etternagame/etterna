@@ -1,7 +1,25 @@
 # Building Etterna
 
-Interested in contributing to Etterna? This guide is the place to start!
-Once you have the necessary [dependencies](#Universal-Dependencies), you can begin coding on Linux, macOS, amd Windows. Typically, we work off of the `develop` branch, therefore all pull requests should be made towards `develop`.
+Interested in contributing to Etterna? This guide is the place to start! 
+
+## Table of Contents
+
+- [Getting Started](#Getting-Started)
+- [Universal Dependencies](#Universal-Dependencies)
+  - [Linux Dependencies](#Linux-Dependencies)
+  - [Windows Dependencies](#Windows-Dependencies)
+  - [macOS Dependencies](#macOS-Dependencies)
+- [Project Generation](#Project-Generation)
+- [Compiling](#Compiling)
+  - [Ninja](#Ninja)
+  - [Linux](#Linux)
+  - [macOS](#macOS)
+  - [Windows](#Windows)
+
+## Getting Started
+
+To begin, take a look at what [dependencies](#Universal-Dependencies)
+you're going to need to start compiling. Etterna is cross-platform on Linux, macOS, and Windows. Typically, we work off of the `develop` branch, therefore all pull requests should be made towards `develop`.
 
 ## Universal Dependencies
 
@@ -14,7 +32,7 @@ Once you have the necessary [dependencies](#Universal-Dependencies), you can beg
 
 ### Linux Dependencies
 
-While all dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
+While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
 - Debian: `apt install libcurl4-openssl-dev libxtst-dev libxrandr-dev libpulse-dev`
 - Fedora: `dnf install libXtst-devel libXrandr-devel pulseaudio-libs-devel`
@@ -61,8 +79,8 @@ cmake -G "Unix Makefiles" ..                                                    
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" -A Win32 ..  # 32bit Windows
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017" -A x64 ..    # 64bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" ..           # 32bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # 64bit Windows
 ```
 
 ## Compiling
@@ -109,5 +127,5 @@ If you prefer the command line, these commands should be what you are looking fo
 
 ```bash
 msbuild Etterna.sln /p:Platform="Win32" /p:Configuration="Release"  # Only for 32bit CMake generator
-msbuild Etterna.sln /p:Platform="x64" /p:Configuration="Release"  # Only for 64bit CMake generator
+msbuild Etterna.sln /p:Platform="x64"   /p:Configuration="Release"  # Only for 64bit CMake generator
 ```
