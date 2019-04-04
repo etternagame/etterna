@@ -39,7 +39,7 @@ We activley support the following CMake generators
 
 - macOS: `Ninja`, `Xcode`, `Unix Makefiles`
 - Linux: `Ninja`, `Unix Makefiles`
-- Windows: `Ninja`, `Visual Studio 15 2017`, `Visual Studio 16 2019`
+- Windows: `Visual Studio 15 2017`, `Visual Studio 16 2019`
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
@@ -56,7 +56,6 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                 
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" -A Win32 ..  # 32bit Windows
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017" -A x64 ..    # 64bit Windows
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Ninja" ..                           # 64bit Windows
 ```
 
 ## Compiling
@@ -70,7 +69,6 @@ To install ninja, use one of the following commands
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
 - macOS: `brew install ninja`
-- Windows: Download the latest binary from the ninja-build [releases](https://github.com/ninja-build/ninja/releases) page. Extract `ninja.exe` and place it whereever you find most convinient. [Add that directory to your path](https://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/), then restart the command prompt.
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
 
@@ -82,7 +80,7 @@ Run `make` or `ninja` corresponding to the CMake generator you used.
 
 #### Xcode Editor
 
-Open the `Etterna.xcodeproj` file generated within the build directory, select the Etterna target, and you are ready to get coding!
+Open the `Etterna.xcodeproj` file generated within the build directory, select the Etterna target, and you are ready to start coding.
 
 #### Xcode CLI
 
@@ -96,7 +94,7 @@ Due to the extreme verbosity of `xcodebuild`, we would recommend [xcpretty](http
 
 #### Visual Studio Editor
 
-Open the `Etterna.sln` file generated within the build directory, and you are ready to get coding!
+Open the `Etterna.sln` file generated within the build directory, and you are ready to start coding.
 
 #### Visual Studio CLI
 
