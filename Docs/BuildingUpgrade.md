@@ -54,6 +54,7 @@ cmake -G "Ninja" ..                                                             
 cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..			# macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" -A Win32 ..  # 32bit Windows
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017" -A x64 ..    # 64bit Windows
 ```
