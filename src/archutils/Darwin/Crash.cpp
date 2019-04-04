@@ -113,7 +113,8 @@ CrashHandler::IsDebuggerPresent()
 void
 CrashHandler::DebugBreak()
 {
-	DebugStr("\pDebugBreak()");
+	// TODO: Following command is depreciated.
+	// DebugStr("\pDebugBreak()");
 }
 
 /*
