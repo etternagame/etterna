@@ -66,11 +66,11 @@ list(APPEND SMDATA_LINK_LIB
 "${BINARY_DIR}/libswscale/libswscale.a"
 "${BINARY_DIR}/libavutil/libavutil.a")
 
-add_library(ffmpeg STATIC "${PROJECT_SOURCE_DIR}/extern/ffmpeg/null.cpp")
+add_library(ffmpeg INTERFACE)
 add_dependencies(ffmpeg ffmpeg_dl)
-target_link_libraries(ffmpeg ${SMDATA_LINK_LIB})
+target_link_libraries(ffmpeg INTERFACE ${SMDATA_LINK_LIB})
 
-target_include_directories(ffmpeg PUBLIC ${FFMPEG_ROOT})
-target_include_directories(ffmpeg PUBLIC ${BINARY_DIR})
+target_include_directories(ffmpeg INTERFACE ${FFMPEG_ROOT})
+target_include_directories(ffmpeg INTERFACE ${BINARY_DIR})
 
 
