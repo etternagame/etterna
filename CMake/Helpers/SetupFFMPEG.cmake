@@ -1,6 +1,7 @@
 include(ExternalProject)
 
-set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg-2.1.3-src")
+set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg-2.1.3-src")
+set(FFMPEG_BIN  "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg_dl-build")
 
 list(APPEND FFMPEG_CONFIGURE
   "${FFMPEG_ROOT}/configure"
@@ -31,46 +32,37 @@ if(APPLE)
     "--cc=clang -m64"
     "--enable-sse")
 endif()
-
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")
-
-if (WITH_CRYSTALHD_DISABLED)
-  list(APPEND FFMPEG_CONFIGURE "--disable-crystalhd")
-endif()
-
 list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-w")
 
-# list(APPEND SM_FFMPEG_MAKE $(MAKE))
-# if (WITH_FFMPEG_JOBS GREATER 0)
-#   list(APPEND SM_FFMPEG_MAKE "-j${WITH_FFMPEG_JOBS}")
-# endif()
+list(APPEND FFMPEG_BUILD_LIBS
+"${FFMPEG_BIN}/libavformat/libavformat.a"
+"${FFMPEG_BIN}/libavcodec/libavcodec.a"
+"${FFMPEG_BIN}/libswscale/libswscale.a"
+"${FFMPEG_BIN}/libavutil/libavutil.a")
+
 
 ExternalProject_Add(ffmpeg_dl
+    PREFIX ${PROJECT_BINARY_DIR}/ffmpeg_dl
     GIT_REPOSITORY "https://github.com/stepmania/ffmpeg.git"
     GIT_PROGRESS TRUE
     GIT_SHALLOW TRUE
     GIT_TAG "n2.1.3"
     
+    BUILD_BYPRODUCTS ${FFMPEG_BUILD_LIBS}
     SOURCE_DIR ${FFMPEG_ROOT}
+    BINARY_DIR ${FFMPEG_BIN}
     CONFIGURE_COMMAND "${FFMPEG_CONFIGURE}"
     BUILD_COMMAND make -j10
     UPDATE_COMMAND ""
     INSTALL_COMMAND ""
     TEST_COMMAND "")
 
-externalproject_get_property(ffmpeg_dl BINARY_DIR)
-
-list(APPEND SMDATA_LINK_LIB
-"${BINARY_DIR}/libavformat/libavformat.a"
-"${BINARY_DIR}/libavcodec/libavcodec.a"
-"${BINARY_DIR}/libswscale/libswscale.a"
-"${BINARY_DIR}/libavutil/libavutil.a")
-
 add_library(ffmpeg INTERFACE)
 add_dependencies(ffmpeg ffmpeg_dl)
-target_link_libraries(ffmpeg INTERFACE ${SMDATA_LINK_LIB})
+target_link_libraries(ffmpeg INTERFACE ${FFMPEG_BUILD_LIBS})
 
 target_include_directories(ffmpeg INTERFACE ${FFMPEG_ROOT})
-target_include_directories(ffmpeg INTERFACE ${BINARY_DIR})
+target_include_directories(ffmpeg INTERFACE ${FFMPEG_BIN})
 
 
