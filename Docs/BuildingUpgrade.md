@@ -39,7 +39,7 @@ We activley support the following CMake generators
 
 - macOS: `Ninja`, `Xcode`, `Unix Makefiles`
 - Linux: `Ninja`, `Unix Makefiles`
-- Windows: `Visual Studio 15 2017`, `Visual Studio 16 2019`
+- Windows: `Visual Studio 15 2017`
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
