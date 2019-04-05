@@ -1,3 +1,13 @@
+# Disable all warnings for this directory
+# Here are possible CMAKE_CXX_COMPILER_ID values: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if(CMAKE_CXX_COMPILER_ID MATCHES "(Clang)") # Clang / AppleClang
+    add_compile_options(-Wno-everything) 
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # GNU Compilers
+    add_compile_options(-w)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") # MSVC Compilers
+    add_compile_options(/w)
+endif()
+
 # Universally required
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
@@ -19,8 +29,7 @@ add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 
-# Only required on Windows
-if(MSVC)
+if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
 endif()
 
@@ -29,15 +38,10 @@ list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
     discord-rpc
     SQLiteCpp sqlite3
-    jsoncpp
-    uv uv_a
+    jsoncpp uv uv_a
     tomcrypt libtommath
-    fftw3f
-    glfw
-    pcre
-    zlib
-    uWS
-    libmad
+    fftw3f glfw pcre
+    zlib uWS libmad
     ogg vorbis)
 
-set_property(TARGET ${ET_EXT_TARGETS} PROPERTY FOLDER "External Libraries")
+set_property(TARGET ${ET_EXT_TARGETS} PROPERTY FOLDER "External Libraries") # Sort all extern libraries to a IDE folder/filter
