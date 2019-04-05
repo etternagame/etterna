@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.14.0)
 project(Etterna C CXX ASM)
 
 # PROJECT WIDE SETUP
+## CMake GUI Options
+
 ## CMake and Compiler Setup
 set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Version
 set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
@@ -53,7 +55,28 @@ target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated
 target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)          # Add src/ to include search dirs
 
 ## Library including
-### TODO: Once all OS's are building, go through individual scripts and factor out the ones which are needed universally
+find_package(Threads REQUIRED)
+target_link_libraries(Etterna Threads::Threads)
+
+target_link_libraries(Etterna luajit)
+target_link_libraries(Etterna discord-rpc)
+target_link_libraries(Etterna sqlite3)
+target_link_libraries(Etterna SQLiteCpp)
+target_link_libraries(Etterna uWS)
+target_link_libraries(Etterna jsoncpp)
+target_link_libraries(Etterna nlohmann_json)
+target_link_libraries(Etterna tomcrypt)
+target_link_libraries(Etterna libtommath)
+target_link_libraries(Etterna fftw3f)
+target_link_libraries(Etterna MinaCalc)
+target_link_libraries(Etterna glfw)
+target_link_libraries(Etterna ogg)
+target_link_libraries(Etterna vorbis)
+target_link_libraries(Etterna pcre)
+target_link_libraries(Etterna libmad)
+target_link_libraries(Etterna stb)
+
+
 if(WIN32)
     include(CMake/Helpers/CMakeWindows.cmake)
 elseif(APPLE)
