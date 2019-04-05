@@ -1,11 +1,12 @@
 # Disable all warnings for this directory
 # Here are possible CMAKE_CXX_COMPILER_ID values: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if(CMAKE_CXX_COMPILER_ID MATCHES "(Clang)") # Clang / AppleClang
-    add_compile_options(-Wno-everything) 
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # GNU Compilers
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL MSVC)
+    add_compile_options(/W0)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    set_directory_properties(PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_INHIBIT_ALL_WARNINGS YES)
+else() # All remaining compilers
     add_compile_options(-w)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") # MSVC Compilers
-    add_compile_options(/w)
 endif()
 
 # Universally required
