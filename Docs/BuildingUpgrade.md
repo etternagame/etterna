@@ -11,6 +11,8 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [Windows Dependencies](#Windows-Dependencies)
   - [macOS Dependencies](#macOS-Dependencies)
 - [Project Generation](#Project-Generation)
+  - [CLI Project Generation](#CLI-Project-Generation)
+  - [GUI Project Generation](#GUI-Project-Generation)
 - [Compiling](#Compiling)
   - [Ninja](#Ninja)
   - [Linux](#Linux)
@@ -62,7 +64,17 @@ macOS has no other unique dependencies.
 
 ## Project Generation
 
-First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. Make a folder called "build" within the root of the project.
+First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. 
+
+There are two stages apart of CMake projects.
+
+1. Configuration: CMake will run through all CMakeLists.txt and ensure all code processes.
+2. Generation: CMake will take information from generation, and create the project files based on what was selected through the generation option.
+
+### CLI Project Generation
+
+Both configuration and generation stages automatically happen one after the other on CMake.
+Start by creating a folder to hold all the output object files, usually called `build`, within the root of the project.
 
 ```bash
 mkdir build && cd build
@@ -89,7 +101,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - macOS: `/usr/local/opt/openssl` or otherwise depending on your setup (if you're using HomeBrew, MacPorts or installed in from source)
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 
-### Sample CMake Commands
+#### Sample CMake Commands
 
 ```bash
 cmake -G "Ninja" ..                                                                 # Linux Ninja
@@ -100,6 +112,20 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..        
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" ..           # 32bit Windows
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # 64bit Windows
 ```
+
+### GUI Project Generation
+
+![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
+
+In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
+
+**NOTE**: Setting `OPENSSL_ROOT_DIR` is unnecessary for linux users as CMake will find the location of OpenSSL on it's own.
+
+![CMake Add Cache Entry Window](images/cmake-gui-02.png "CMake Add Cache Entry Window")
+
+**Windows Users**: Remember to change the value to correspond to the correct 32bit or 64bit version of the OpenSSL library.
+
+Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure` then `Generate` and you are ready to start coding.
 
 ## Compiling
 
