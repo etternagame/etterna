@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Versio
 set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require minimum C++ version to compile
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})   # Where do we output
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
 ## Extern Library Variables
