@@ -1,4 +1,5 @@
 # Appveyor Behavior Config
+clone_depth: 1 # Only clone the head of the repo
 pull_requests:
   do_not_increment_build_number: true
 
@@ -7,10 +8,11 @@ image:
   - Visual Studio 2017
 
 platform:
-  - x86
+  - Win32
   - x64
 
 init:
+  - "echo System Architecture: %PLATFORM%"
   - choco upgrade cmake							            # Upgrade CMake
   - set path=C:\Program Files\CMake\bin;%path%	# Add it to the path
 
@@ -18,47 +20,35 @@ before_build:
   - mkdir build && cd build
   - cmake -G "%GENERATOR%" -DOPENSSL_ROOT_DIR="%OPENSSL_DIR%" ..
 
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\build
+  - msbuild Etterna.sln /p:Configuration=Release /p:Platform="%PLATFORM%"
 
+# Generate all possible combinations of the following environment variables
+# This will generate 4 builds, and do crosses that we don't want like a
+# 64bit generator and 32bit OpenSSL. The following section deletes extras.
 environment:
-  matrix: # Generate all possible combinations of the following environment variables
+  matrix:
     - GENERATOR: "Visual Studio 15 2017"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
     - GENERATOR: "Visual Studio 15 2017 Win64"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
 
+# Don't generate builds with this specific combination of environment variables
 matrix:
-  exclude: # Don't generate builds with this specific combination of environment variables
+  exclude:
     - platform: x64
       GENERATOR: "Visual Studio 15 2017"
-      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
-
-    - platform: x86
-      GENERATOR: "Visual Studio 15 2017 Win64"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
 
+    - platform: Win32
+      GENERATOR: "Visual Studio 15 2017 Win64"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
 
-# version: 0.60.0.{build}.{branch}
-
-# configuration:
-#   - Release
-# platform:
-#   - x64
-#   - Win32
-# environment:
-#   matrix:
-#   - archi: Win64
-#   - archi:
-# matrix:
-#   exclude:
-#     - platform: x64
-#       archi:
-#     - platform: Win32
-#       archi: Win64
-# clone_folder: C:\etterna
-
-# cache:
-#   - C:\ProgramData\chocolatey\bin -> appveyor.yml
-#   - C:\ProgramData\chocolatey\lib -> appveyor.yml
+# Cache Choclatey packages so they don't need to be downloaded every times.
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 # artifacts:
 # - path: Etterna *.exe
@@ -66,38 +56,9 @@ matrix:
 # install:
 # - cmd: choco install nsis.portable
 
-# init:
-# - set arch=
-# - if "%archi%"=="Win64" ( set arch= Win64)
-# - echo %arch%
-# - echo %APPVEYOR_BUILD_WORKER_IMAGE%
-# - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( set generator="Visual Studio 15 2017%arch%" )
-# - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" ( set generator="Visual Studio 14 2015%arch%" )
-# - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2013" ( set generator="Visual Studio 12 2013%arch%" )
-# - echo %generator%
-
-# before_build:
-# - cmd: git submodule update --init --recursive
-# - cmd: >-
-
-#     mkdir build && cd build
-
-#     "C:\Program Files (x86)\cmake\bin\cmake" .. -G %generator%
-
-#     del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-
-# build:
-#   project: C:\etterna\build\Etterna.sln
-#   verbosity: normal
-#   parallel: true
-
 # after_build:
-# - cmd: >-
-
-#     "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
-
-# - cmd: >-
-#     rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
+# - cmd: "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
+# - cmd: rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
 
 # notifications:
 # - provider: Email
@@ -114,19 +75,3 @@ matrix:
 #     branch: master
 #     image: Visual Studio 2017
 #     configuration: Release
-
-# #for:
-# #
-# # override settings for `master` branch
-# #-
-# #  branches:
-# #    only:
-# #      - master
-# #
-# #  image:
-# #    - Visual Studio 2013
-# #    - Visual Studio 2015
-# #    - Visual Studio 2017
-# #  configuration:
-# #    - Release
-# #    - RelWithDebInfo
