@@ -15,15 +15,6 @@
 /* Defined to 1 if <stdint.h> is found. */
 #cmakedefine HAVE_STDINT_H 1
 
-/* Defined to 1 if <endian.h> is found. */
-#cmakedefine HAVE_ENDIAN_H 1
-
-/* Defined to 1 if <sys/endian.h> is found. */
-#cmakedefine HAVE_SYS_ENDIAN_H 1
-
-/* Defined to 1 if <machine/endian.h> is found. */
-#cmakedefine HAVE_MACHINE_ENDIAN_H 1
-
 /* Defined to 1 if <sys/param.h> is found. */
 #cmakedefine HAVE_SYS_PARAM_H 1
 
