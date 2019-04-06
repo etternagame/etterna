@@ -1,21 +1,43 @@
+# Appveyor Behavior Config
+pull_requests:
+  do_not_increment_build_number: true
 
+# Appveyor Build Config
 image:
   - Visual Studio 2017
 
+platform:
+  - x86
+  - x64
+
 init:
-  - choco install openssl.light
-  - choco upgrade cmake
-  - set path=C:\Program Files\CMake\bin;%path%
-  - cmake --version
+  - choco upgrade cmake							            # Upgrade CMake
+  - set path=C:\Program Files\CMake\bin;%path%	# Add it to the path
 
 before_build:
   - mkdir build && cd build
-  - cmake -G "Visual Studio 15 2017" -DOPENSSL_ROOT_DIR="C:\\Program Files\\OpenSSL" ..
+  - cmake -G "%GENERATOR%" -DOPENSSL_ROOT_DIR="%OPENSSL_DIR%" ..
+
+
+environment:
+  matrix: # Generate all possible combinations of the following environment variables
+    - GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
+    - GENERATOR: "Visual Studio 15 2017 Win64"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
+
+matrix:
+  exclude: # Don't generate builds with this specific combination of environment variables
+    - platform: x64
+      GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
+
+    - platform: x86
+      GENERATOR: "Visual Studio 15 2017 Win64"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
+
 
 # version: 0.60.0.{build}.{branch}
-# pull_requests:
-#   do_not_increment_build_number: true
-
 
 # configuration:
 #   - Release
