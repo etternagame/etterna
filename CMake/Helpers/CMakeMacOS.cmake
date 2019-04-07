@@ -7,6 +7,11 @@ set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
 set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
 set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
+# TODO: See if there is a more concise way to do this.
+set(MACOSX_BUNDLE_ICON_FILE etterna.icns)
+set_property(SOURCE Installer/etterna.icns PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
+target_sources(Etterna PUBLIC Installer/etterna.icns)
+
 # macOS Frameworks
 find_library(MAC_FRAME_AUDIOUNIT AudioUnit)
 find_library(MAC_FRAME_CARBON Carbon)
