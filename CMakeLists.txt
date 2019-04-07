@@ -31,6 +31,25 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_SOURCE_DIR}/extern)                      # Tell C
 # Project Build Targets
 add_executable(Etterna)
 
+## CPack Setup
+## Anything listed here with the install command will be included with CPack installers
+## TODO: Figure if they *need* to go here, or if they can be organized to a separate location
+##       like the bottom of this file
+install(TARGETS Etterna                 DESTINATION Etterna)
+install(DIRECTORY Announcers            DESTINATION Etterna)
+install(DIRECTORY Assets                DESTINATION Etterna)
+install(DIRECTORY BackgroundEffects     DESTINATION Etterna)
+install(DIRECTORY BackgroundTransitions DESTINATION Etterna)
+install(DIRECTORY BGAnimations          DESTINATION Etterna)
+install(DIRECTORY Characters            DESTINATION Etterna)
+install(DIRECTORY Data                  DESTINATION Etterna)
+install(DIRECTORY Docs                  DESTINATION Etterna)
+install(DIRECTORY NoteSkins             DESTINATION Etterna)
+install(DIRECTORY Scripts               DESTINATION Etterna)
+install(DIRECTORY Songs                 DESTINATION Etterna)
+install(DIRECTORY Themes                DESTINATION Etterna)
+install(FILES portable.ini              DESTINATION Etterna)
+
 ## Source - Add source to the Etterna target
 add_subdirectory(extern)
 add_subdirectory(src/Etterna)

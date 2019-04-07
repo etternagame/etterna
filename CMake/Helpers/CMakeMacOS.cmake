@@ -29,3 +29,8 @@ target_link_libraries(Etterna ${CURL_LIBRARIES})
 target_link_libraries(Etterna ${OPENGL_LIBRARIES})
 target_link_libraries(Etterna ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna ${ICONV_LIBRARIES})
+
+# CPack Packaging
+set(CPACK_GENERATOR DragNDrop)
+set(CPACK_DMG_VOLUME_NAME Etterna)
+include(CPack)
