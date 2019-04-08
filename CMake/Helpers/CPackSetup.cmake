@@ -1,7 +1,7 @@
 ## CPack Setup
 set(CPACK_PACKAGE_VENDOR "Etterna Team")
 set(CMAKE_PACKAGE_DESCRIPTION "Advanced cross-platform rhythm game focused on keyboard play")
-set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/license_install.txt) # Only used on windows for NSIS
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/CPack/license_install.txt) # Only used on windows for NSIS
 set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be installed
 
 
@@ -37,7 +37,7 @@ if(WIN32)
 
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION "Etterna\\\\Program")
     install(DIRECTORY Program   COMPONENT Etterna DESTINATION Etterna)
-    install(FILES CMake/license_install.txt COMPONENT Etterna DESTINATION Etterna)
+    install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Etterna/Docs)
 
 ############################################################################################################
 ############## UNIX ONLY CMAKE #############################################################################
