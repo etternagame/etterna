@@ -9,13 +9,6 @@ else() # All remaining compilers
     add_compile_options(-w)
 endif()
 
-# Disable install from being used in subdirectories
-# The install command is used to decide what gets included in the distribution 
-# executable/tar.gz/DMG, do defining this macro stops externs from getting included.
-# The macro is only valid in this subdirectory and below
-macro(install) 
-endmacro()
-
 # Universally required
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)

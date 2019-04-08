@@ -63,18 +63,3 @@ endif()
 foreach(dll ${WIN_DLLS})
 	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
 endforeach()
-
-# CPack
-set(CPACK_GENERATOR "NSIS")
-SET(CPACK_NSIS_INSTALL_ROOT "C:\\\\Games") # Default install directory
-set(CPACK_NSIS_EXECUTABLES_DIRECTORY "Etterna\\\\Program")
-set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Etterna.exe")
-set(CPACK_NSIS_MUI_ICON ${PROJECT_SOURCE_DIR}/CMake/CPack/Windows/Install.ico)
-set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${PROJECT_SOURCE_DIR}/CMake/CPack/Windows/welcome-ett.bmp)
-set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-
-## Switch the strings below to use backslashes. NSIS requires it for those variables in particular. Copied from original script.
-string(REGEX REPLACE "/" "\\\\\\\\" CPACK_SM_NSIS_HEADER_BITMAP "${CPACK_SM_NSIS_HEADER_BITMAP}")
-string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
-
-include(CPack)

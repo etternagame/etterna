@@ -19,11 +19,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require mi
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
-## CPack Setup
-set(CPACK_PACKAGE_VENDOR "Etterna Team")
-set(CMAKE_PACKAGE_DESCRIPTION "Advanced cross-platform rhythm game focused on keyboard play")
-set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/license_install.txt) # Only used on windows for NSIS
-
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
@@ -32,38 +27,14 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
 
-
-
 ## CMake related variables
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 
 # Project Build Targets
 add_executable(Etterna)
 
-## CPack Setup
-## Anything listed here with the install command will be included with CPack installers
-if(UNIX) # This is necessary because the macOS/UNIX binaries are place in a different location than windows
-    install(TARGETS Etterna             DESTINATION Etterna)
-elseif(WIN32)
-    install(TARGETS Etterna             DESTINATION "Etterna/Program")
-    install(DIRECTORY Program               DESTINATION Etterna)
-endif()
-install(DIRECTORY Announcers            DESTINATION Etterna)
-install(DIRECTORY Assets                DESTINATION Etterna)
-install(DIRECTORY BackgroundEffects     DESTINATION Etterna)
-install(DIRECTORY BackgroundTransitions DESTINATION Etterna)
-install(DIRECTORY BGAnimations          DESTINATION Etterna)
-install(DIRECTORY Characters            DESTINATION Etterna)
-install(DIRECTORY Data                  DESTINATION Etterna)
-install(DIRECTORY NoteSkins             DESTINATION Etterna)
-install(DIRECTORY Scripts               DESTINATION Etterna)
-install(DIRECTORY Songs                 DESTINATION Etterna)
-install(DIRECTORY Themes                DESTINATION Etterna)
-install(FILES portable.ini              DESTINATION Etterna)
-install(FILES CMake/license_install.txt DESTINATION Etterna)
-
 ## Source - Add source to the Etterna target
-add_subdirectory(extern)
+add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL so those install components are not in out install compnenets
 add_subdirectory(src/Etterna)
 add_subdirectory(src/arch)
 add_subdirectory(src/archutils)
@@ -116,3 +87,6 @@ elseif(APPLE)
 elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
+
+include(CMake/Helpers/CPackSetup.cmake)
+include(CPack)
