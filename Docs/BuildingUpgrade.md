@@ -18,6 +18,7 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [Linux](#Linux)
   - [macOS](#macOS)
   - [Windows](#Windows)
+- [Distribution](#Distribution)
 
 ## Getting Started
 
@@ -173,3 +174,11 @@ If you prefer the command line, these commands should be what you are looking fo
 msbuild Etterna.sln /p:Platform="Win32" /p:Configuration="Release"  # Only for 32bit CMake generator
 msbuild Etterna.sln /p:Platform="x64"   /p:Configuration="Release"  # Only for 64bit CMake generator
 ```
+
+## Distribution
+
+We use CMake's CPack module to build distribution files. Currently, we create distribution binaries for Windows and macOS.
+
+**Windows only prerequisite**: Install the latest version of [Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)
+
+To build a distribution file for the operating system you are using, run `cpack` in the build directory after compiling.

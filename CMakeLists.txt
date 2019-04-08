@@ -1,9 +1,16 @@
 # ROOT CMakeLists.txt
 cmake_minimum_required(VERSION 3.14.0)
-project(Etterna C CXX ASM)
+
+## Policies
+cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
+cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set" and "option" to be compatible with each other
+cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
 
 # PROJECT WIDE SETUP
-## CMake GUI Options
+project(Etterna 
+        VERSION 0.65.1
+        HOMEPAGE_URL https://github.com/etternagame/etterna/
+        LANGUAGES C CXX ASM)
 
 ## CMake and Compiler Setup
 set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Version
@@ -11,6 +18,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler e
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require minimum C++ version to compile
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
+
+## CPack Setup
+set(CPACK_PACKAGE_VENDOR "Etterna Team")
+set(CMAKE_PACKAGE_DESCRIPTION "Advanced cross-platform rhythm game focused on keyboard play")
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/license_install.txt) # Only used on windows for NSIS
 
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
@@ -20,22 +32,22 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
 
-## Policies
-cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
-cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set" and "option" to be compatible with each other
+
 
 ## CMake related variables
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
-set(CMAKE_LIBRARY_PATH ${CMAKE_SOURCE_DIR}/extern)                      # Tell CMake what external library path is. (Possibly used incorrectly)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 
 # Project Build Targets
 add_executable(Etterna)
 
 ## CPack Setup
 ## Anything listed here with the install command will be included with CPack installers
-## TODO: Figure if they *need* to go here, or if they can be organized to a separate location
-##       like the bottom of this file
-install(TARGETS Etterna                 DESTINATION Etterna)
+if(UNIX) # This is necessary because the macOS/UNIX binaries are place in a different location than windows
+    install(TARGETS Etterna             DESTINATION Etterna)
+elseif(WIN32)
+    install(TARGETS Etterna             DESTINATION "Etterna/Program")
+    install(DIRECTORY Program               DESTINATION Etterna)
+endif()
 install(DIRECTORY Announcers            DESTINATION Etterna)
 install(DIRECTORY Assets                DESTINATION Etterna)
 install(DIRECTORY BackgroundEffects     DESTINATION Etterna)
@@ -43,12 +55,12 @@ install(DIRECTORY BackgroundTransitions DESTINATION Etterna)
 install(DIRECTORY BGAnimations          DESTINATION Etterna)
 install(DIRECTORY Characters            DESTINATION Etterna)
 install(DIRECTORY Data                  DESTINATION Etterna)
-install(DIRECTORY Docs                  DESTINATION Etterna)
 install(DIRECTORY NoteSkins             DESTINATION Etterna)
 install(DIRECTORY Scripts               DESTINATION Etterna)
 install(DIRECTORY Songs                 DESTINATION Etterna)
 install(DIRECTORY Themes                DESTINATION Etterna)
 install(FILES portable.ini              DESTINATION Etterna)
+install(FILES CMake/license_install.txt DESTINATION Etterna)
 
 ## Source - Add source to the Etterna target
 add_subdirectory(extern)
@@ -72,10 +84,11 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)   # Add gen files include search dirs
 target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)          # Add src/ to include search dirs
 
-## Library including
+## Library includes
 find_package(Threads REQUIRED)
 target_link_libraries(Etterna Threads::Threads)
 
+## Linking
 target_link_libraries(Etterna luajit)
 target_link_libraries(Etterna discord-rpc)
 target_link_libraries(Etterna sqlite3)
