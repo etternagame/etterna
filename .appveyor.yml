@@ -26,7 +26,7 @@ build_script:
 
 # Generate all possible combinations of the following environment variables
 # This will generate 4 builds, and do crosses that we don't want like a
-# 64bit generator and 32bit OpenSSL. The following section deletes extras.
+# 64bit generator and 32bit OpenSSL.
 environment:
   matrix:
     - GENERATOR: "Visual Studio 15 2017"
