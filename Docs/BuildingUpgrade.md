@@ -37,19 +37,19 @@ cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" .. 
 
 ## Universal Dependencies
 
-- [CMake](https://cmake.org/download/) (Minimum version 3.14.0) - It is recommended to get this package from the CMake website as many package managers do not have the latest version. Check yours before trying.
+- [CMake](https://cmake.org/download/) (Minimum version 3.14.0) - It is recommended to get this package from the CMake website as many package managers do not have the latest version. Check your package manager before trying.
 - [OpenSSL](https://www.openssl.org/) (Version 1.1.0)
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
   - macOS: `brew install openssl`
   - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_0j.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_0j.exe)
 
-### Linux Dependencies (⚠️INCOMPLETE⚠️)
+### Linux Dependencies
 
 While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
-- Debian: `apt install libcurl4-openssl-dev libxtst-dev libxrandr-dev libpulse-dev`
-- Fedora: `dnf install libXtst-devel libXrandr-devel pulseaudio-libs-devel`
+- Debian: `apt install libssl-dev libx11-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
+- Fedora: `dnf install libssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 
 ### Windows Dependencies
 
