@@ -33,8 +33,6 @@ if(WIN32)
     ## Switch the strings below to use backslashes. NSIS requires it for those variables in particular. Copied from original script.
     string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
 
-    set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS "!define MUI_HEADERIMAGE_BITMAP ${MUI_HEADERIMAGE_BITMAP}")
-
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION "Etterna\\\\Program")
     install(DIRECTORY Program   COMPONENT Etterna DESTINATION Etterna)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Etterna/Docs)
