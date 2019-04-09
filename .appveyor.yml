@@ -13,7 +13,7 @@ platform:
 
 init:
   - "echo System Architecture: %PLATFORM%"
-  - choco upgrade cmake							            # Upgrade CMake
+  - choco upgrade cmake	nsis                    # Upgrade CMake
   - set path=C:\Program Files\CMake\bin;%path%	# Add it to the path
 
 before_build:
@@ -23,6 +23,11 @@ before_build:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\build
   - msbuild Etterna.sln /p:Configuration=Release /p:Platform="%PLATFORM%"
+
+# CPack after build
+after_build:
+- cmd: cpack
+- cmd: ren "%APPVEYOR_BUILD_FOLDER%\build\*.exe" "*-%appveyor_build_version%.exe"
 
 # Generate all possible combinations of the following environment variables
 # This will generate 4 builds, and do crosses that we don't want like a
@@ -50,8 +55,9 @@ cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
-# artifacts:
-# - path: Etterna *.exe
+artifacts:
+- path: '*.exe'
+  name: EtternaDevBuild
 
 # install:
 # - cmd: choco install nsis.portable
