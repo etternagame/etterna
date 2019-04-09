@@ -1,10 +1,13 @@
 # ROOT CMakeLists.txt
 cmake_minimum_required(VERSION 3.14.0)
 
-## Policies
+# Policies
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
 cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set" and "option" to be compatible with each other
 cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
+
+# Options
+option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
 project(Etterna 
@@ -41,7 +44,7 @@ add_subdirectory(src/archutils)
 add_subdirectory(src/RageUtil)
 
 ## Setting Target Properties
-# TODO: Temp output directories. Switch to out-of-source
+### TODO: Temp output directories. Switch to out-of-source
 set_target_properties(Etterna PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
@@ -51,11 +54,11 @@ set_target_properties(Etterna PROPERTIES
 get_target_property(sources Etterna SOURCES)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
 
-### Includes
+## Includes
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)   # Add gen files include search dirs
 target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)          # Add src/ to include search dirs
 
-## Library includes
+## Package Includes
 find_package(Threads REQUIRED)
 target_link_libraries(Etterna Threads::Threads)
 
@@ -78,7 +81,7 @@ target_link_libraries(Etterna pcre)
 target_link_libraries(Etterna libmad)
 target_link_libraries(Etterna stb)
 
-
+# OS Specific Initialization
 if(WIN32)
     include(CMake/Helpers/CMakeWindows.cmake)
 elseif(APPLE)
@@ -88,5 +91,6 @@ elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
 
+# CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)
 include(CPack)
