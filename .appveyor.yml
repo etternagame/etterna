@@ -1,4 +1,5 @@
 # Appveyor Behavior Config
+version: '{build}'
 clone_depth: 1 # Only clone the head of the repo
 pull_requests:
   do_not_increment_build_number: true
@@ -27,7 +28,7 @@ build_script:
 # CPack after build
 after_build:
 - cmd: cpack
-- cmd: ren "%APPVEYOR_BUILD_FOLDER%\build\*.exe" "*-%appveyor_build_version%.exe"
+- cmd: ren "%APPVEYOR_BUILD_FOLDER%\build\*.exe" "*-%appveyor_build_version%-%PLATFORM%.exe"
 
 # Generate all possible combinations of the following environment variables
 # This will generate 4 builds, and do crosses that we don't want like a
@@ -56,7 +57,7 @@ cache:
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 artifacts:
-- path: '%APPVEYOR_BUILD_FOLDER%\build\*.exe'
+- path: 'build\*.exe'
   name: EtternaDevBuild
 
 # install:
