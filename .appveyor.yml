@@ -56,7 +56,7 @@ cache:
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 artifacts:
-- path: '*.exe'
+- path: '%APPVEYOR_BUILD_FOLDER%\build\*.exe'
   name: EtternaDevBuild
 
 # install:
