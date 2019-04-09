@@ -23,6 +23,10 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Tell xcodebuild to
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
+if(CMAKE_GENERATOR STREQUAL "Ninja")
+    set(CMAKE_CXX_FLAGS "-fcolor-diagnostics")              # Required flag to get color output from Ninja
+endif()
+
 ## Extern Library Variables
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
