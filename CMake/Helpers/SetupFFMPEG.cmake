@@ -33,7 +33,7 @@ if(APPLE)
     "--enable-sse")
 endif()
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")
-list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-w")
+list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-mmacosx-version-min=10.8 -w")
 
 list(APPEND FFMPEG_BUILD_LIBS
 "${FFMPEG_BIN}/libavformat/libavformat.a"
@@ -64,5 +64,3 @@ target_link_libraries(ffmpeg INTERFACE ${FFMPEG_BUILD_LIBS})
 
 target_include_directories(ffmpeg INTERFACE ${FFMPEG_ROOT})
 target_include_directories(ffmpeg INTERFACE ${FFMPEG_BIN})
-
-
