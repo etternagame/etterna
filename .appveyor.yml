@@ -51,7 +51,7 @@ matrix:
       GENERATOR: "Visual Studio 15 2017 Win64"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
 
-# Cache Choclatey packages so they don't need to be downloaded every times.
+# Cache Choclatey packages so they don't need to be downloaded every time.
 cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
@@ -59,26 +59,3 @@ cache:
 artifacts:
 - path: 'build\*.exe'
   name: EtternaDevBuild
-
-# install:
-# - cmd: choco install nsis.portable
-
-# after_build:
-# - cmd: "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
-# - cmd: rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
-
-# notifications:
-# - provider: Email
-#   to:
-#   - etternadev@gmail.com
-#   on_build_success: false
-#   on_build_failure: true
-#   on_build_status_changed: true
-
-# deploy:
-#   provider: Environment
-#   name: etterna
-#   on:
-#     branch: master
-#     image: Visual Studio 2017
-#     configuration: Release

@@ -1,11 +1,6 @@
 project(MinaCalc)
 
-# null.cpp since all libs require source, but since this one doesn't have it,
-#   an empty cpp file will work.
 add_library(MinaCalc INTERFACE)
-
-# file(GLOB_RECURSE ALL_LIB_FILES lib/*.a lib/*.lib)
-# target_link_libraries(MinaCalc INTERFACE ${ALL_LIB_FILES})
 target_include_directories(MinaCalc INTERFACE ${PROJECT_SOURCE_DIR}/include)
 
 if(MSVC AND "${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")

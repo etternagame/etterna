@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 update_cmake (){
-    # Update cmake
     CMAKE_DIR="${HOME}/cmake_binary"
     mkdir -p ${CMAKE_DIR} && cd ${CMAKE_DIR}
     curl -LO https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Linux-x86_64.sh
