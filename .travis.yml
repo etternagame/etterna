@@ -5,6 +5,10 @@ sudo: required
 git:
   depth: false
 
+# Path is modified here since we install CMake to the /usr/local/ prefix. Usually the system
+# would check the full path until it reached CMake, but Travis specifically adds their CMake
+# version to their path. We want our CMake to have priority, so we add it to the start of the 
+# search path. 
 env:
   - PATH=/usr/local/bin:${PATH}
 
