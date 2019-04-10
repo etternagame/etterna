@@ -9,7 +9,7 @@ set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
 # TODO: See if there is a more concise way to do this.
 set(MACOSX_BUNDLE_ICON_FILE etterna.icns)
-set_property(SOURCE Installer/etterna.icns PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
+set_property(SOURCE CMake/CPack/macOS/etterna.icns PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
 target_sources(Etterna PUBLIC CMake/CPack/macOS/etterna.icns)
 
 # macOS Frameworks
