@@ -9,10 +9,6 @@ env:
   - PATH=/usr/local/bin:${PATH}
 
 matrix:
-  fast_finish: true
-  allow_failures:
-    - os: windows
-
   include:
 
     ##### Linux ##################
@@ -30,31 +26,6 @@ matrix:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
         - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
         - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -configuration Release | xcpretty
-
-    ##### Windows Win32 ##########
-    - os: windows
-      env: PLATFORM="Win32" CONFIG="Release" PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin:$PATH"
-      install:
-        - choco install -y cmake openssl.light
-        - powershell -Command "Invoke-WebRequest https://slproweb.com/download/Win32OpenSSL-1_1_1b.msi -O Win32OpenSSL-1_1_1b.msi"
-        - msiexec /I Win32OpenSSL-1_1_1b.msi /norestart /L*V!
-      script:
-        - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - cmake -G "Visual Studio 15 2017" -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" ..
-        - MSbuild.exe Etterna.sln -t:Etterna /p:Platform=${PLATFORM} /p:Configuration=${CONFIG}
-
-    ##### Windows x64 ############
-    - os: windows
-      env: PLATFORM="x64" CONFIG="Release" PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin:$PATH"
-      install:
-        - choco install -y cmake openssl.light
-        - powershell -Command "Invoke-WebRequest https://slproweb.com/download/Win64OpenSSL-1_1_1b.msi -O Win64OpenSSL-1_1_1b.msi"
-        - msiexec /I Win64OpenSSL-1_1_1b.msi /norestart /L*V!
-
-      script:
-        - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - cmake -G "Visual Studio 15 2017 Win64" -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" ..
-        - MSbuild.exe Etterna.sln -t:Etterna /p:Platform=${PLATFORM} /p:Configuration=${CONFIG}
 
 # This will only run for the linux builds
 # The other os's have overridden the script tag
