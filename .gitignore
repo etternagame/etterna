@@ -1,124 +1,20 @@
-# Traditional Compilation File Stuff.
-*.o
-*.obj
-*.a
-
-# Doxygen documentation
-Utils/temp
-stepmania.chm
-# For people using vscode
-.vscode
-# CMake Files/Directories
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-CPackConfig.cmake
-CPackSourceConfig.cmake
-# The following are generated from CMake, and thus should be stopped.
-install_manifest.txt
-_CPack_Packages
-Build/**
-Debug/
-MinSizeRel/
-Release/
-RelWithDebInfo/
-Contents/
-Xcode/Info.StepMania.plist
-Xcode/plistHelper.hpp
-src/generated
-extern/mad-0.15.1b/config.h
-extern/libjpeg/jconfig.h
-extern/newogg/include/ogg/config_types.h
-Program/*.dll
-!Program/parallel_lights_io.dll
-!Program/dlls/*.dll
-
-# Text Editor Based Items
-*.log
-
-# Mac Programming Files
-*.pbxuser
-PBProject/build
-Xcode/build
-Xcode/*.xcodeproj/xcuserdata/
-*.xcodeproj/xcuserdata
-*.xcodeproj/project.xcworkspace
-*.xcscheme
-WorkspaceSettings.xcsettings
-UserInterfaceState.xcuserstate
-*.xccheckout
-contents.xcworkspacedata
-xcschememanagement.plist
-PBProject/Hardware.plist
-
-# Mac General Files
-*.app
-*.dmg
+# Common ignore files
 .DS_Store
+.vscode
+.vs
+Build/
 
-# Visual Studio 2015/2017 cache/options directory
-.vs/
-
-# Visual Studio
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.pdb
-*.ilk
-*.map
-*.res
-*.suo
-UpgradeLog*.htm
-
-# Windows General Files
+# Ignore executables (Linux, macOS, Windows)
+Etterna
+*.app
 *.exe
 
-# Linux General Files
-.dirstamp
-Makefile
-stepmania
-Makefile.in
-config.status
-_build/*
-aclocal.m4
-autoconf/*
-autom4te.cache/*
-configure
-src/Makefile.in
-src/Makefile
-src/config.h
-src/config.h.in
-src/stamp-h1
-GtkModule.so
-StepMania
-core
-
-# StepMania Specific
+# Etterna Related Ignore
 Cache/
-Save/**
-Songs/
 Logs/
-src/*.so
+Program/
+Save/
+Songs/
+
+# Misc Ignores
 crashinfo.txt
-
-# include calc .a file
-!extern/MinaCalc/MinaCalc.a
-!extern/MinaCalc/libMinaCalc.a
-
-# calc
-src/MinaCalc
-
-# Unknown File Types
-tests/*.err
-*.ncb
-*.tlog
-*.user
-*.vdi
-*.pch
-
-nsis_strings_temp\.inc
-BatchRecalc/*
-
-Xcode/Info\.Etterna\.plist
-
-extern/LuaJit*/lj_*def.h
