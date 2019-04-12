@@ -5,7 +5,7 @@
 Build/
 
 # Ignore executables (Linux, macOS, Windows)
-Etterna
+/Etterna
 *.app
 *.exe
 
