@@ -59,7 +59,7 @@ else()
       "Win32/VideoDriverInfo.cpp"
       "Win32/WindowIcon.cpp"
       "Win32/WindowsDialogBox.cpp"
-      # "Win32/WindowsResources.rc"
+      "Win32/WindowsResources.rc"
     )
 
     list(APPEND SMDATA_OS_HPP
