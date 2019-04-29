@@ -7,7 +7,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -34,7 +34,6 @@
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Models/Misc/Character.h"
-#include "Etterna/Globals/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include <algorithm>

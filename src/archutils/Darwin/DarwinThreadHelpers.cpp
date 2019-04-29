@@ -2,7 +2,9 @@
 #include <mach/thread_act.h>
 #include <mach/mach_init.h>
 #include <mach/mach_error.h>
-#include "Backtrace.h"
+#include "archutils/Unix/Backtrace.h"
+#include <Etterna/Globals/global.h>
+
 
 bool
 SuspendThread(uint64_t threadHandle)

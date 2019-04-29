@@ -1523,11 +1523,8 @@ GetFileContents(const std::string& sFile, vector<std::string>& asOut)
 	return true;
 }
 
-#ifndef USE_SYSTEM_PCRE
-#include "../../../extern/pcre/pcre.h"
-#else
-#include <pcre.h>
-#endif
+#include "pcre.h"
+
 void
 Regex::Compile()
 {

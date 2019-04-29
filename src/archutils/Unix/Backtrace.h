@@ -9,7 +9,7 @@ struct Frame;
 /* This contains the information necessary to backtrace a thread. */
 struct BacktraceContext
 {
-#if defined(CPU_X86) || defined(CPU_X86_64)
+#if defined(__i386__) || defined(__x86_64__)
 	const void *ip, *bp, *sp;
 #endif
 

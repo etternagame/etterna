@@ -18,11 +18,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#if defined(CRASH_HANDLER)
 #include "archutils/Unix/CrashHandler.h"
 #ifdef __linux__
 #include <limits.h>
-#endif
 #endif
 
 #if defined(HAVE_FFMPEG)
@@ -61,7 +59,6 @@ DoCleanShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 	return true;
 }
 
-#if defined(CRASH_HANDLER)
 static bool
 DoCrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc)
 {
@@ -72,7 +69,6 @@ DoCrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc)
 	CrashHandler::CrashSignalHandler(signal, si, uc);
 	return false;
 }
-#endif
 
 static bool
 EmergencyShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
@@ -82,10 +78,8 @@ EmergencyShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 
 	DoEmergencyShutdown();
 
-#if defined(CRASH_HANDLER)
 	/* If we ran the crash handler, then die. */
 	kill(getpid(), SIGKILL);
-#endif
 
 	/* We didn't run the crash handler.  Run the default handler, so we can dump
 	 * core. */
@@ -205,11 +199,9 @@ ArchHooks_Unix::Init()
 	/* First, handle non-fatal termination signals. */
 	SignalHandler::OnClose(DoCleanShutdown);
 
-#if defined(CRASH_HANDLER)
 	CrashHandler::CrashHandlerHandleArgs(g_argc, g_argv);
 	CrashHandler::InitializeCrashHandler();
 	SignalHandler::OnClose(DoCrashSignalHandler);
-#endif
 
 	/* Set up EmergencyShutdown, to try to shut down the window if we crash.
 	 * This might blow up, so be sure to do it after the crash handler. */
@@ -266,12 +258,10 @@ ArchHooks_Unix::DumpDebugInfo()
 	GetKernel(sys, vers);
 	LOG->Info("OS: %s ver %06i", sys.c_str(), vers);
 
-#if defined(CRASH_HANDLER)
 	LOG->Info("Crash backtrace component: %s", BACKTRACE_METHOD_TEXT);
 	LOG->Info("Crash lookup component: %s", BACKTRACE_LOOKUP_METHOD_TEXT);
 #if defined(BACKTRACE_DEMANGLE_METHOD_TEXT)
 	LOG->Info("Crash demangle component: %s", BACKTRACE_DEMANGLE_METHOD_TEXT);
-#endif
 #endif
 
 	LOG->Info("Runtime library: %s", LibcVersion().c_str());

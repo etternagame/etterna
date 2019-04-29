@@ -152,7 +152,6 @@ LowLevelWindow* g_pWind;
 void
 FixLittleEndian()
 {
-#if defined(ENDIAN_LITTLE)
 	static bool bInitialized = false;
 	if (bInitialized)
 		return;
@@ -181,7 +180,6 @@ FixLittleEndian()
 			pf.masks[mask] = m;
 		}
 	}
-#endif
 }
 namespace Caps {
 int iMaxTextureUnits = 1;
