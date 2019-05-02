@@ -1,7 +1,7 @@
 # Etterna
 
 <p align="center">
-    <img src="https://i.imgur.com/Jx2hE97.png">
+    <img src="https://svgur.com/i/Cmh.svg" width="250px">
 </p>
 
 <p align=center>
