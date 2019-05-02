@@ -9,7 +9,7 @@
 if(NOT WIN32)
   return()
 endif()
-if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
+if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64")
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set (DirectX_ARCHITECTURE x64)
 	else ()

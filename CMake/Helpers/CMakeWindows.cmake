@@ -40,7 +40,7 @@ target_link_directories(Etterna PUBLIC ${DIRECTX_LIBRARY_DIR})
 target_include_directories(Etterna PRIVATE ${DIRECTX_INCLUDE_DIR})
 
 # DLL - Copy to run directory
-if(CMAKE_SIZEOF_VOID_P EQUAL 8) # If 64bit
+if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64") # If 64bit
 	set(ARCH 64bit)
 else()
 	set(ARCH 32bit)
