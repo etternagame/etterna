@@ -1,7 +1,7 @@
 # Etterna
 
 <p align="center">
-    <img src="https://svgur.com/i/Cmh.svg" width="250px">
+    <img src="CMake/CPack/Windows/etterna_arrow.svg" width="250px">
 </p>
 
 <p align=center>
