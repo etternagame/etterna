@@ -8,8 +8,8 @@
     <a href="https://travis-ci.org/etternagame/etterna"><img src="https://img.shields.io/travis/etternagame/etterna.svg?label=travis"/></a>
     <a href="https://ci.appveyor.com/project/Nickito12/etterna"><img src="https://img.shields.io/appveyor/ci/Nickito12/etterna.svg?label=appveyor"/></a>
     <a href="https://scan.coverity.com/projects/etternagame-etterna"><img src="https://img.shields.io/coverity/scan/12978.svg"/></a>
-    <img src="https://img.shields.io/github/downloads/etternagame/etterna/total.svg?label=total%20downloads"/>
-    <img src="https://img.shields.io/github/downloads/etternagame/etterna/latest/total.svg?label=latest%20downloads"/>
+    <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/total.svg?label=total%20downloads"/></a>
+    <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/latest/total.svg?label=latest%20downloads"/></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?label=license"/></a>
 </p>
 
@@ -18,9 +18,10 @@
     <a href="https://discord.gg/ZqpUjsJ"><img src="https://img.shields.io/discord/261758887152058368.svg?color=7289DA&label=Etterna%20Dev%20Group&logo=Discord"/></a>
 </p>
 
+Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution). It started as a fork of [StepMania 5](https://github.com/stepmania/stepmania) (v5.0.12), with a focus on keyboard players. Over time, Etterna evolved into it's own game, with in-game multiplayer, the online scoreboard [Etterna Online](https://etternaonline.com/), and a community of over 4,000 players.
+
 ## Table of Contents
 
-- [About Etterna](#About-Etterna)
 - [Installing](#Installing)
   - [Windows and macOS](#Windows-and-macOS)
   - [Linux](#Linux)
@@ -30,40 +31,36 @@
 - [Contributing](#Contributing)
 - [License](#License)
 
-### About Etterna
+## Installing
 
-Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution). It started as a fork of [StepMania 5](https://github.com/stepmania/stepmania), with a focus on keyboard players. Over time, Etterna evolved into it's own game, with in-game multiplayer, the online scoreboard [Etterna Online](https://etternaonline.com/), and a community of over 4,000 players.
-
-### Installing
-
-#### Windows and macOS
+### Windows and macOS
 
 Head to the [Github Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, mount the DMG and copy the Etterna to a location of your choice. Run the executable, and you are ready to go.
 
-#### Linux
+### Linux
 
 Currently, the only supported way to play Etterna on a Linux based operating system is to install from source. Please follow the instructions in [Building](Docs/Building.md) to get started.
 
-### Building
+## Building
 
 All details related to building are in the [Building.md](Docs/Building.md) file. Since Etterna is cross-platform, you should be able to use any recent version of Windows, macOS, or Linux distribution.
 
-### Documentation
+## Documentation
 
 Etterna uses Doxygen and LuaDoc. Both still need a lot of work before being having decent coverage, though we still have them hosted at the following links.  
 
 - Latest CPP documentation: [https://etternagame.github.io/cpp-docs/](https://etternagame.github.io/cpp-docs/)
 - Latest Lua documentation: [https://etternagame.github.io/lua-docs/](https://etternagame.github.io/lua-docs/)
 
-### Bug Reporting
+## Bug Reporting
 
 We use Github's [issue tracker](https://github.com/etternagame/etterna/issues) for all faults found in the game. If you would like to report a bug, please click the `Issues` tab at the top of this page, and use the `Bug report` template.
 
-### Contributing
+## Contributing
 
 If you want to contribute to the Etterna client, please read [Building](Docs/Building.md) for instructions on how to get started. If you are more interested in helping with the in-game multiplayer, the nodejs server, along with it's documentation, is hosted [here](https://github.com/etternagame/NodeMultiEtt). You will still need the Etterna client built and running on your system.
 
-### License
+## License
 
 Etterna uses the MIT License, as is required since we are derivative of StepMania 5. See [LICENSE](LICENSE) for more details.
 
