@@ -11,7 +11,6 @@
     <img src="https://img.shields.io/github/downloads/etternagame/etterna/total.svg?label=total%20downloads"/>
     <img src="https://img.shields.io/github/downloads/etternagame/etterna/latest/total.svg?label=latest%20downloads"/>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?label=license"/></a>
-    <a href=""><img src=""/></a>
 </p>
 
 <p align="center">
