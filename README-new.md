@@ -1,7 +1,7 @@
 # Etterna
 
 <p align="center">
-    <img src="https://i.imgur.com/1b4ayIt.png">
+    <img src="https://i.imgur.com/Jx2hE97.png">
 </p>
 
 <p align=center>
@@ -37,6 +37,10 @@ Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](http
 
 Head to the [Github Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, mount the DMG and copy the Etterna to a location of your choice. Run the executable, and you are ready to go.
 
+### macOS
+
+macOS has protection software called Gatekeeper. It ensures only trusted applications (code-signed apps) can be run on your system. Since we are an open-source project, we don't have the means to code-sign Etterna. If you have any trouble when opening Etterna on your system, please try to control-click the app, choose Open from the menu, and in the dialog that appears, click Open. Enter your admin name and password when prompted, and it should allow you to run the game.
+
 ### Linux
 
 Currently, the only supported way to play Etterna on a Linux based operating system is to install from source. Please follow the instructions in [Building](Docs/Building.md) to get started.
@@ -49,7 +53,7 @@ All details related to building are in the [Building.md](Docs/Building.md) file.
 
 Etterna uses Doxygen and LuaDoc. Both still need a lot of work before being having decent coverage, though we still have them hosted at the following links.  
 
-- Latest CPP documentation: [https://etternagame.github.io/cpp-docs/](https://etternagame.github.io/cpp-docs/)
+- Latest C++ documentation: [https://etternagame.github.io/cpp-docs/](https://etternagame.github.io/cpp-docs/)
 - Latest Lua documentation: [https://etternagame.github.io/lua-docs/](https://etternagame.github.io/lua-docs/)
 
 ## Bug Reporting
