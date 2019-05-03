@@ -7,6 +7,7 @@ cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set"
 cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
 
 # Options
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CMake/Helpers/CompileOptions.cmake")
 option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP

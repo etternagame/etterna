@@ -9,7 +9,7 @@ set_target_properties(Etterna PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}/Program")
 
 # Universal Build Options
-set(ETTERNA_COMPILE_FLAGS "/MP8 /GL /arch:SSE2")
+set(ETTERNA_COMPILE_FLAGS "/MP8 /GL")
 set(ETTERNA_LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /LTCG")
 
 # Build type dependant compile flags
@@ -29,6 +29,7 @@ set_target_properties(Etterna PROPERTIES COMPILE_FLAGS ${ETTERNA_COMPILE_FLAGS})
 
 list(APPEND cdefs CURL_STATICLIB GLEW_STATIC)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
+target_compile_options(Etterna PRIVATE /W3)
 
 # Linking - Windows Only
 target_link_libraries(Etterna curl)
