@@ -1,7 +1,7 @@
-#include "global.h"
-#include "RageLog.h"
-#include "RageFileManager.h"
-#include "RageUtil.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/File/RageFileManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "LoadingWindow_Gtk.h"
 #include "LoadingWindow_GtkModule.h"
 

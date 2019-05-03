@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #if defined(_MSC_VER)
 /* XXX register thread */
@@ -16,11 +16,11 @@
 #include "MovieTexture_DShow.h"
 
 /* for TEXTUREMAN->GetTextureColorDepth() */
-#include "RageTextureManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageException.h"
-#include "RageSurface.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageException.h"
+#include "RageUtil/Graphics/RageSurface.h"
 #include "arch/Dialog/Dialog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 

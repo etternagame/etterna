@@ -2,9 +2,9 @@
  * RSA implementation for PuTTY.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "CryptRSA.h"
 #include "CryptSHA.h"
 #include "CryptSH512.h"

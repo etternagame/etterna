@@ -1,4 +1,4 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "GotoURL.h"
 #include <windows.h>
 #include <shellapi.h>

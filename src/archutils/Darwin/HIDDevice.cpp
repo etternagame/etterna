@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "HIDDevice.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 HIDDevice::HIDDevice()
   : m_Interface(NULL)

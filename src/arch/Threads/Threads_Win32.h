@@ -2,7 +2,7 @@
 #define THREADS_WIN32_H
 
 #include "Threads.h"
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <windef.h>

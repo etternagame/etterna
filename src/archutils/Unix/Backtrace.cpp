@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Backtrace.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
@@ -17,7 +17,7 @@
 #if defined(BACKTRACE_METHOD_X86_LINUX)
 #include "archutils/Common/PthreadHelpers.h"
 
-#if defined(LINUX) && !defined(ANDROID)
+#if defined(__linux__) && !defined(ANDROID)
 #include <limits.h>
 #endif
 
@@ -496,7 +496,7 @@ InitializeBacktrace()
 void
 GetSignalBacktraceContext(BacktraceContext* ctx, const ucontext_t* uc)
 {
-#if !defined(MACOSX)
+#if !defined(__APPLE__)
 	ctx->ip = (void*)uc->uc_mcontext->ss.eip;
 	ctx->bp = (void*)uc->uc_mcontext->ss.ebp;
 	ctx->sp = (void*)uc->uc_mcontext->ss.esp;

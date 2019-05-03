@@ -5,7 +5,7 @@ local lineNumber = 5
 local inputLineNumber = 2
 local tabHeight = 1
 local maxTabs = 10
-local x, y = 0, SCREEN_HEIGHT - height * (lineNumber + inputLineNumber + tabHeight)
+local x, y = 0, SCREEN_HEIGHT - height * (maxlines + inputLineNumber + tabHeight)
 local moveY = 0
 local mousex, mousey = -1, -1
 local scale = 0.4
@@ -59,7 +59,7 @@ local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP
 
 chat.MinimiseMessageCommand = function(self)
 	self:linear(0.25)
-	moveY = minimised and height * (lineNumber + inputLineNumber + tabHeight - 1) or 0
+	moveY = minimised and height * (maxlines + inputLineNumber + tabHeight - 1) or 0
 	self:y(moveY)
 end
 local i = 0
@@ -138,7 +138,7 @@ chat[#chat + 1] =
 		bg = self
 		self:diffuse(Colors.background)
 		self:diffusealpha(transparency)
-		self:stretchto(x, y, width + x, height * (lineNumber + inputLineNumber + tabHeight) + y)
+		self:stretchto(x, y, width + x, height * (maxlines + inputLineNumber + tabHeight) + y)
 	end
 }
 local minbar
@@ -237,9 +237,9 @@ chatWindow[#chatWindow + 1] =
 			self:halign(0):valign(1)
 			self:vertspacing(0)
 			self:zoom(scale)
-			self:SetMaxLines(lineNumber, 1)
+			self:SetMaxLines(maxlines, 1)
 			self:wrapwidthpixels((width - 8) / scale)
-			self:xy(x + 4, y + height * (lineNumber + tabHeight) - 4)
+			self:xy(x + 4, y + height * (maxlines + tabHeight) - 4)
 		end,
 		UpdateChatOverlayMsgsMessageCommand = function(self)
 			local t = ""
@@ -346,7 +346,7 @@ chatWindow[#chatWindow + 1] =
 		UpdateChatOverlayMessageCommand = function(self)
 			self:settext(typingText)
 			self:wrapwidthpixels((width - 8) / scale)
-			self:xy(x + 4, height * (lineNumber + 1) + y + 4 + 4)
+			self:xy(x + 4, height * (maxlines + 1) + y + 4 + 4)
 		end
 	}
 

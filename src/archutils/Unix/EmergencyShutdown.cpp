@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "EmergencyShutdown.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 typedef void (*Callback)();
 static Callback g_pEmergencyFunc[5];

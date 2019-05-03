@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "SpecialDirs.h"
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include <CoreServices/CoreServices.h>
 #include <IOKit/IOKitLib.h>
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 static void
 PathForFolderType(char dir[PATH_MAX], OSType folderType)

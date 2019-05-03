@@ -2,7 +2,7 @@
 #define RAGE_SOUND_WAVEOUT_H
 
 #include "RageSoundDriver.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include <windows.h>
 
 struct WinWdmStream;

@@ -1,13 +1,13 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver.h"
 
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageUtil.h"
-#include "RageSoundMixBuffer.h"
-#include "RageSoundReader.h"
-#include "RageSoundManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Sound/RageSoundMixBuffer.h"
+#include "RageUtil/Sound/RageSoundReader.h"
+#include "RageUtil/Sound/RageSoundManager.h"
 
 static const int channels = 2;
 

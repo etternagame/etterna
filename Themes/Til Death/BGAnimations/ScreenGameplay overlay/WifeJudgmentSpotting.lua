@@ -212,21 +212,32 @@ local t =
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
 		end
 	end,
+	DoneLoadingNextSongMessageCommand = function(self)
+		-- put notefield y pos back on doneloadingnextsong because playlist courses reset this for w.e reason -mina
+		screen = SCREENMAN:GetTopScreen()
+
+		-- nil checks are needed because these don't exist when doneloadingnextsong is sent initially
+		-- which is convenient for us since addy -mina
+		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
+			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
+		end
+	end,
 	JudgmentMessageCommand = function(self, msg)
 		tDiff = msg.WifeDifferential
 		wifey = Floor(msg.WifePercent * 100) / 100
 		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
+		else
+			dvCur = nil
 		end
-		if msg.WifePBGoal ~= nil then
+		if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
 			pbtarget = msg.WifePBGoal
 			tDiff = msg.WifePBDifferential
 		end
 		jdgCur = msg.Judgment
-		if jdgCounts[jdgCur] ~= nil then
-			queuecommand(self, "SpottedOffset")
-		end
+		queuecommand(self, "SpottedOffset")
 	end
 }
 
@@ -533,10 +544,7 @@ local e =
 	end,
 	SpottedOffsetCommand = function(self)
 		if enabledErrorBar == 1 then
-			if
-				jdgCounts[jdgCur] ~= nil and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
-					jdgCur ~= "HoldNoteScore_Held"
-			 then
+			if dvCur ~= nil then
 				currentbar = ((currentbar) % barcount) + 1
 				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
 			end
@@ -545,7 +553,34 @@ local e =
 	DootCommand = function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
+		
+		-- basically we need the ewma version to exist inside this actor frame
+		-- for customize gameplay stuff, however it seems silly to have it running
+		-- visibility/nil/type checks if we aren't using it, so we can just remove
+		-- it if we're outside customize gameplay and errorbar is set to normal -mina
+		if not allowedCustomization and enabledErrorBar == 1 then
+			self:RemoveChild("WeightedBar")
+		end
 	end,
+	Def.Quad {
+		Name = "WeightedBar",
+		InitCommand = function(self)
+			if enabledErrorBar == 2 then
+				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
+					1
+				):diffuse(getMainColor("enabled"))
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetCommand = function(self)
+			if enabledErrorBar == 2 and dvCur ~= nil then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(MovableValues.ErrorBarX + avg * wscale)
+			end
+		end
+	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
@@ -595,32 +630,6 @@ if enabledErrorBar == 1 then
 	for i = 1, barcount do
 		e[#e + 1] = smeltErrorBar(i)
 	end
-end
-
-if enabledErrorBar == 2 then
-	e[#e + 1] =
-		Def.Quad {
-		Name = "WeightedBar",
-		InitCommand = function(self)
-			if enabledErrorBar == 2 then
-				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(
-					1
-				):diffuse(getMainColor("enabled"))
-			else
-				self:visible(false)
-			end
-		end,
-		SpottedOffsetCommand = function(self)
-			if
-				jdgCounts[jdgCur] and jdgCur ~= "HoldNoteScore_LetGo" and jdgCur ~= "TapNoteScore_Miss" and
-					jdgCur ~= "HoldNoteScore_Held"
-			 then
-				avg = alpha * dvCur + (1 - alpha) * lastAvg
-				lastAvg = avg
-				self:x(MovableValues.ErrorBarX + avg * wscale)
-			end
-		end
-	}
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
@@ -723,6 +732,12 @@ local p =
 				local ttime = GetPlayableTime()
 				settext(self, SecondsToMMSS(ttime))
 				diffuse(self, byMusicLength(ttime))
+			end,
+			--- ???? uhhh
+			CurrentRateChangedMessageCommand = function(self)
+				local ttime = GetPlayableTime()
+				settext(self, SecondsToMMSS(ttime))
+				diffuse(self, byMusicLength(ttime))
 			end
 		},
 	MovableBorder(width, height, 1, 0, 0),
@@ -793,8 +808,14 @@ t[#t + 1] =
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 10):zoom(0.35):settext(getCurRateDisplayString())
 		end,
-		DoneLoadingNextSongMessageCommand = function(self)
+		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())
+		end,
+		DoneLoadingNextSongMessageCommand = function(self)
+			self:playcommand("SetRate")
+		end,
+		CurrentRateChangedMessageCommand = function(self)
+			self:playcommand("SetRate")
 		end
 	}
 
@@ -812,7 +833,7 @@ local GetBPS = SongPosition.GetCurBPS
 local function UpdateBPM(self)
 	local bpm = GetBPS(a) * r
 	settext(BPM, Round(bpm, 2))
-end
+end	
 
 t[#t + 1] =
 	Def.ActorFrame {
@@ -834,6 +855,16 @@ t[#t + 1] =
 		},
 	DoneLoadingNextSongMessageCommand = function(self)
 		self:queuecommand("Init")
+	end,
+	-- basically a copy of the init
+	CurrentRateChangedMessageCommand = function(self)
+		r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
+		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
+			self:SetUpdateFunction(UpdateBPM)
+			self:SetUpdateRate(0.5)
+		else
+			BPM:settextf("%5.2f", GetBPS(a) * r)
+		end
 	end
 }
 
@@ -887,7 +918,7 @@ local prevZoom = 0.65
 local musicratio = 1
 
 -- hurrrrr nps quadzapalooza -mina
-local wodth = capWideScale(280, 300)
+local wodth = capWideScale(get43size(240), 280)
 local hidth = 40
 local cd
 local bookmarkPosition
@@ -977,7 +1008,8 @@ local pm =
 	--MovableBorder(wodth+3, hidth+3, 1, (wodth)/2, 0)
 }
 
-pm[#pm + 1] = LoadActor("../_chorddensitygraph.lua") .. {}
+-- Load the CDGraph with a forced width parameter.
+pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width=wodth})
 
 -- more draw order shenanigans
 pm[#pm + 1] =

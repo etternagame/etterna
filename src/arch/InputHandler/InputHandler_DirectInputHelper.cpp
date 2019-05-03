@@ -1,15 +1,15 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_DirectInputHelper.h"
-#include "PrefsManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dinput8.lib")
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #pragma comment(lib, "dxguid.lib")
 #endif
 #endif

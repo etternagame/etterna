@@ -3,9 +3,9 @@
 #include "InputHandler_Linux_Event.h"
 #include "InputHandler_Linux_Joystick.h"
 
-#include "RageInput.h" // g_sInputDrivers
-#include "RageLog.h"
-#include "Foreach.h"
+#include "RageUtil/Misc/RageInput.h" // g_sInputDrivers
+#include "RageUtil/Misc/RageLog.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 #include <string> // std::string::npos
 

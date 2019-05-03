@@ -87,6 +87,14 @@ function ms.ok(m)
 	end
 end
 
+--[[
+	Print a thing to the error console (F3+F6+8 to enable, F3+F6+9 to make it persist)
+	str: anything that can be used with tostring()
+]]
+function ms.p(str)
+	MESSAGEMAN:Broadcast("ScriptError", {message = tostring(str)})
+end
+
 function ms.type(m)
 	SCREENMAN:SystemMessage(type(m))
 end

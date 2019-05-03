@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_WDMKS.h"
-#include "Foreach.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 
 #define _INC_MMREG

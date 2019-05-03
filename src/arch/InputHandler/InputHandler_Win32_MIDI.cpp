@@ -1,7 +1,7 @@
-#include "global.h"
-#include "RageUtil.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler_Win32_MIDI.h"
-#include "RageLog.h"
+#include "RageUtil/Misc/RageLog.h"
 
 #include <windows.h>
 #include <mmsystem.h>

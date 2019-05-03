@@ -1,7 +1,12 @@
 local cdg
 
+local optionalParam = Var("width")
+
 -- hurrrrr nps quadzapalooza -mina
 local wodth = capWideScale(280, 300)
+if optionalParam ~= nil then
+	wodth = optionalParam
+end
 local hidth = 40
 local txtoff = 10
 

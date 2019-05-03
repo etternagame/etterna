@@ -1,18 +1,18 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
-#include "Foreach.h"
-#include "GamePreferences.h" //needed for Axis Fix
-#include "InputFilter.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
+#include "Etterna/Singletons/InputFilter.h"
 #include "InputHandler_DirectInput.h"
 #include "InputHandler_DirectInputHelper.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
 

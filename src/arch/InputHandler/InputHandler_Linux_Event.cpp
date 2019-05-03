@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_Linux_Event.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "LinuxInputManager.h"
-#include "GamePreferences.h" //needed for Axis Fix
+#include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

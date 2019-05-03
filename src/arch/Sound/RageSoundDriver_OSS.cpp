@@ -1,10 +1,10 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundDriver_OSS.h"
 
-#include "RageLog.h"
-#include "RageSound.h"
-#include "RageSoundManager.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

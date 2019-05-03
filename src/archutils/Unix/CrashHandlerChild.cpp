@@ -1,5 +1,5 @@
 #define __USE_GNU
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include <cstdio>
 #include <cstring>
@@ -11,14 +11,14 @@
 #include "Backtrace.h"
 #include "BacktraceNames.h"
 
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
-#include "ProductInfo.h"
+#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
+#include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 #include "archutils/Darwin/Crash.h"
 #endif
 
@@ -181,7 +181,7 @@ child_process()
 	}
 
 	RString sCrashInfoPath = "/tmp";
-#if defined(MACOSX)
+#ifdef __APPLE__
 	sCrashInfoPath = CrashHandler::GetLogsDirectory();
 #else
 	const char* home = getenv("HOME");
@@ -265,7 +265,7 @@ child_process()
 	fprintf(CrashDump, "-- End of report\n");
 	fclose(CrashDump);
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 	CrashHandler::InformUserOfCrash(sCrashInfoPath);
 #else
 	/* stdout may have been inadvertently closed by the crash in the parent;

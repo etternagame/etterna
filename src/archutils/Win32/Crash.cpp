@@ -1,17 +1,17 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 // DO NOT USE stdio.h!  printf() calls malloc()!
 //#include <stdio.h>
 
 #include <windows.h>
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "arch/Threads/Threads_Win32.h"
 #include "crash.h"
 #include "CrashHandlerInternal.h"
-#include "RageLog.h"	  // for RageLog::GetAdditionalLog and Flush
-#include "RageThreads.h"  // for GetCheckpointLogs
-#include "PrefsManager.h" // for g_bAutoRestart
+#include "RageUtil/Misc/RageLog.h"      // for RageLog::GetAdditionalLog and Flush
+#include "RageUtil/Misc/RageThreads.h"  // for GetCheckpointLogs
+#include "Etterna/Singletons/PrefsManager.h" // for g_bAutoRestart
 #include "RestartProgram.h"
 
 // WARNING: This is called from crash-time conditions!  No malloc() or new!!!

@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ArchHooks_Unix.h"
-#include "ProductInfo.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "LocalizedString.h"
-#include "SpecialFiles.h"
+#include "Etterna/Globals/ProductInfo.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Globals/SpecialFiles.h"
 #include "archutils/Unix/SignalHandler.h"
 #include "archutils/Unix/GetSysInfo.h"
 #include "archutils/Common/PthreadHelpers.h"
@@ -18,11 +18,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#if defined(CRASH_HANDLER)
 #include "archutils/Unix/CrashHandler.h"
-#if defined(LINUX)
+#ifdef __linux__
 #include <limits.h>
-#endif
 #endif
 
 #if defined(HAVE_FFMPEG)
@@ -61,7 +59,6 @@ DoCleanShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 	return true;
 }
 
-#if defined(CRASH_HANDLER)
 static bool
 DoCrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc)
 {
@@ -72,7 +69,6 @@ DoCrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc)
 	CrashHandler::CrashSignalHandler(signal, si, uc);
 	return false;
 }
-#endif
 
 static bool
 EmergencyShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
@@ -82,10 +78,8 @@ EmergencyShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 
 	DoEmergencyShutdown();
 
-#if defined(CRASH_HANDLER)
 	/* If we ran the crash handler, then die. */
 	kill(getpid(), SIGKILL);
-#endif
 
 	/* We didn't run the crash handler.  Run the default handler, so we can dump
 	 * core. */
@@ -105,7 +99,7 @@ TestTLSThread(void* p)
 static void
 TestTLS()
 {
-#if defined(LINUX)
+#ifdef __linux__
 	/* TLS won't work on older threads libraries, and may crash. */
 	if (!UsingNPTL())
 		return;
@@ -205,11 +199,9 @@ ArchHooks_Unix::Init()
 	/* First, handle non-fatal termination signals. */
 	SignalHandler::OnClose(DoCleanShutdown);
 
-#if defined(CRASH_HANDLER)
 	CrashHandler::CrashHandlerHandleArgs(g_argc, g_argv);
 	CrashHandler::InitializeCrashHandler();
 	SignalHandler::OnClose(DoCrashSignalHandler);
-#endif
 
 	/* Set up EmergencyShutdown, to try to shut down the window if we crash.
 	 * This might blow up, so be sure to do it after the crash handler. */
@@ -217,7 +209,7 @@ ArchHooks_Unix::Init()
 
 	InstallExceptionHandler();
 
-#if defined(HAVE_TLS) && !defined(BSD)
+#if defined(HAVE_TLS)
 	TestTLS();
 #endif
 }
@@ -266,12 +258,10 @@ ArchHooks_Unix::DumpDebugInfo()
 	GetKernel(sys, vers);
 	LOG->Info("OS: %s ver %06i", sys.c_str(), vers);
 
-#if defined(CRASH_HANDLER)
 	LOG->Info("Crash backtrace component: %s", BACKTRACE_METHOD_TEXT);
 	LOG->Info("Crash lookup component: %s", BACKTRACE_LOOKUP_METHOD_TEXT);
 #if defined(BACKTRACE_DEMANGLE_METHOD_TEXT)
 	LOG->Info("Crash demangle component: %s", BACKTRACE_DEMANGLE_METHOD_TEXT);
-#endif
 #endif
 
 	LOG->Info("Runtime library: %s", LibcVersion().c_str());
@@ -386,7 +376,7 @@ ArchHooks_Unix::GetClipboard()
 #endif
 }
 
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include <sys/stat.h>
 
 static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",
@@ -394,7 +384,7 @@ static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",
 void
 ArchHooks::MountInitialFilesystems(const RString& sDirOfExecutable)
 {
-#if defined(UNIX)
+#ifdef __unix__
 	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
 	 * on. This is /rootfs, not /root, to avoid confusion with root's home
 	 * directory. */

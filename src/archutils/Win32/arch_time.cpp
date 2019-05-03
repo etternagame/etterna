@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "arch_setup.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include <time.h>
 #ifdef _WINDOWS
 #include <windows.h>

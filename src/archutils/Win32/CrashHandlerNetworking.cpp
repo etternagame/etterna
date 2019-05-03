@@ -1,13 +1,13 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CrashHandlerNetworking.h"
-#include "RageThreads.h"
-#include "RageLog.h"
-#include "RageThreads.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
-#include "Foreach.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
-#if defined(WINDOWS)
+#ifdef _WIN32
 #include <windows.h>
 #include <winsock2.h>
 #pragma comment(lib, "wsock32.lib")
@@ -175,7 +175,7 @@ NetworkStream_Win32::NetworkStream_Win32()
 	m_iPort = -1;
 	m_State = STATE_IDLE;
 	m_Socket = NULL;
-#if defined(WINDOWS)
+#ifdef _WIN32
 	m_hResolve = NULL;
 	m_hResolveHwnd = NULL;
 	m_hCompletionEvent = CreateEvent(NULL, true, false, NULL);

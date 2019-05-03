@@ -1,12 +1,12 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "DSoundHelpers.h"
-#include "PrefsManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/GetFileInformation.h"
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <mmsystem.h>
 #endif
 #define DIRECTSOUND_VERSION 0x0700

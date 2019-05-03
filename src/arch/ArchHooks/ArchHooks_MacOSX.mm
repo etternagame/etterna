@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "ArchHooks_MacOSX.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Unix/CrashHandler.h"
 #include "archutils/Unix/SignalHandler.h"
-#include "SpecialFiles.h"
-#include "ProductInfo.h"
+#include "Etterna/Globals/SpecialFiles.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include <CoreServices/CoreServices.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <sys/types.h>
@@ -295,7 +295,7 @@ int64_t ArchHooks::GetMicrosecondsSinceStart( bool bAccurate )
 	return int64_t( mach_absolute_time() * factor );
 }
 
-#include "RageFileManager.h"
+#include "RageUtil/File/RageFileManager.h"
 
 static void PathForFolderType( char dir[PATH_MAX], OSType folderType )
 {
