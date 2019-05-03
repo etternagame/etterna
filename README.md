@@ -62,7 +62,7 @@ We use Github's [issue tracker](https://github.com/etternagame/etterna/issues) f
 
 ## Contributing
 
-If you want to contribute to the Etterna client, please read [Building](Docs/Building.md) for instructions on how to get started. If you are more interested in helping with the in-game multiplayer, the nodejs server, along with its documentation, is hosted [here](https://github.com/etternagame/NodeMultiEtt). You will still need the Etterna client built and running on your system.
+If you want to contribute to the Etterna client, please read [Building](Docs/Building.md) for instructions on how to get started. We have a variety of different tasks which would help the development of this game as a whole, all of which we have listed at [Contributing.md](Docs/Contributing.md) of If you are more interested in helping with the in-game multiplayer, the nodejs server, along with its documentation, is hosted [here](https://github.com/etternagame/NodeMultiEtt). You will still need the Etterna client built and running on your system.
 
 ## License
 
