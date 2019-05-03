@@ -5,8 +5,8 @@
 </p>
 
 <p align=center>
-    <a href="https://travis-ci.org/etternagame/etterna"><img src="https://img.shields.io/travis/etternagame/etterna.svg?label=travis"/></a>
-    <a href="https://ci.appveyor.com/project/Nickito12/etterna"><img src="https://img.shields.io/appveyor/ci/Nickito12/etterna.svg?label=appveyor"/></a>
+    <a href="https://travis-ci.org/etternagame/etterna"><img src="https://img.shields.io/travis/etternagame/etterna/master.svg?label=travis"/></a>
+    <a href="https://ci.appveyor.com/project/Nickito12/etterna"><img src="https://img.shields.io/appveyor/ci/Nickito12/etterna/master.svg?label=appveyor"/></a>
     <a href="https://scan.coverity.com/projects/etternagame-etterna"><img src="https://img.shields.io/coverity/scan/12978.svg"/></a>
     <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/total.svg?label=total%20downloads"/></a>
     <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/latest/total.svg?label=latest%20downloads"/></a>
