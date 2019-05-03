@@ -74,7 +74,7 @@ There are two stages apart of CMake projects.
 
 ### CLI Project Generation
 
-Both configuration and generation stages automatically happen one after the other on CMake.
+Both configuration and generation stages automatically happen one after the other when using the CLI.
 Start by creating a folder to hold all the output object files, usually called `build`, within the root of the project.
 
 ```bash
@@ -83,18 +83,21 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
+To generate project files, run the CMake command below in the build directory with proper `GENERATOR`, `ARCHITECTURE` and `SSL_DIRECTORY` values:
 
-To generate project files, run the CMake command below in the build directory with proper `GENERATOR` and `DIRECTORY` values:
+- `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
+- `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator.
+- `SSL_DIRECTORY`: The root directory of your OpenSSL install. This is required on Windows as it doesn't come with developer libraries for OpenSSL installed, and my be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 
 ```bash
-cmake -G "GENERATOR" -DOPENSSL_ROOT_DIR="DIRECTORY" ..
+cmake -G "GENERATOR" -A "ARCHITECTURE" -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" ..
 ```
 
 We actively support the following CMake generators
 
 - macOS: `Ninja`, `Xcode`, `Unix Makefiles`
 - Linux: `Ninja`, `Unix Makefiles`
-- Windows: `Visual Studio 15 2017`
+- Windows: `Ninja`, `Visual Studio 15 2017`, `Visual Studio 16 2019` _(Technically, with how the CMake script is setup, any generated as far back as_ `Visual Studio 9 2008` _should work), but it has only tested it with the above three._
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
@@ -110,8 +113,8 @@ cmake -G "Unix Makefiles" ..                                                    
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" ..           # 32bit Windows
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # 64bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 16 2019" -A Win32 ..  # 32bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # 64bit Windows
 ```
 
 ### GUI Project Generation
