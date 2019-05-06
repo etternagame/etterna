@@ -53,7 +53,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ### Windows Dependencies
 
-- [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Currently only `Visual Studio 15 2017` is supported.
+- [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Any modern version of Visual Studio should be compatible _(The earliest version we theoretically support is `Visual Studio 9 2008`, though we have only tested on `Visual Studio 15 2017` and after)_
 - [DirectX Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109) (June 2010)
 - [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
 - [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
