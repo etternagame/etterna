@@ -97,6 +97,9 @@ elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
 
+# Static Analysis
+include(CMake/Helpers/StaticAnalysis.cmake)
+
 # CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)
 include(CPack)
