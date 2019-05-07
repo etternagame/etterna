@@ -18,6 +18,7 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [Linux](#Linux)
   - [macOS](#macOS)
   - [Windows](#Windows)
+- [Static Analysis](#Static-Analysis)
 - [Distribution](#Distribution)
 
 ## Getting Started
@@ -177,6 +178,20 @@ If you prefer the command line, these commands should be what you are looking fo
 msbuild Etterna.sln /p:Platform="Win32" /p:Configuration="Release"  # Only for 32bit CMake generator
 msbuild Etterna.sln /p:Platform="x64"   /p:Configuration="Release"  # Only for 64bit CMake generator
 ```
+
+## Static Analysis
+
+### cppcheck
+
+cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
+
+- macOS: `brew install cppcheck`
+- Debian: `apt install cppcheck`
+- Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
+
+When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
+
+To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
 
 ## Distribution
 
