@@ -1,187 +1,184 @@
-# Building
+# Building Etterna
 
-It should be noted that building Etterna on your own from the lastest commit is more likely to behave strangely(Resulting in crashes, profile wipes, etc). Do it at your own risk. It is recommended to use the installers or source files provided with every release.
+Interested in contributing to Etterna? This guide is the place to start!
 
-1. [Windows](#Windows)
-2. [Linux](#Linux)
-3. [Mac](#Mac)
+## Table of Contents
 
----
+- [Getting Started](#Getting-Started)
+- [Quick Start](#Quick-Start)
+- [Universal Dependencies](#Universal-Dependencies)
+  - [Linux Dependencies](#Linux-Dependencies)
+  - [Windows Dependencies](#Windows-Dependencies)
+  - [macOS Dependencies](#macOS-Dependencies)
+- [Project Generation](#Project-Generation)
+  - [CLI Project Generation](#CLI-Project-Generation)
+  - [GUI Project Generation](#GUI-Project-Generation)
+- [Compiling](#Compiling)
+  - [Ninja](#Ninja)
+  - [Linux](#Linux)
+  - [macOS](#macOS)
+  - [Windows](#Windows)
+- [Distribution](#Distribution)
 
-## Windows
-## Dependencies(Required libraries)
+## Getting Started
 
-You will need the following:
+To begin, take a look at what [dependencies](#Universal-Dependencies)
+you're going to need to start compiling. Etterna is cross-platform on Linux, macOS, and Windows. Typically, we work off of the `develop` branch, therefore all pull requests should be made towards `develop`.
 
-1. <a href="https://www.visualstudio.com/">Visual Studio</a>(preferably 2015) with c++ packages.
-1. <a href="http://www.cmake.org/">CMake</a> (You can CMake GUI if you're not comfortable with the command window)
-1. <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8109">DirectX End-User Runtimes (June 2010)</a>
-1. <a href="https://www.microsoft.com/en-us/download/details.aspx?id=6812">DirectX SDK</a>
-1. <a href="http://www.microsoft.com/en-us/download/details.aspx?id=48145">Microsoft Visual C++ x86 Redistributable for Visual Studio 2015</a>(If on a 64 bit system grab both x86 and x64)
-1. <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk">Windows 10 DK</a> Is probably needed if you're on Windows 10
-1. Having <a href="https://git-scm.com/downloads">Git</a> is also necessary (For submodules), unless someone sent you a zip of the repo with submodules
+## Quick Start
 
-## Downloading and building
-
-Run this command in a cmd from the folder where you want to download etterna:
-
-git clone --depth=1 https://github.com/etternagame/etterna.git
-
-Make sure you're in the right branch(default is master). Find out which is the latest one by asking someone. As of 7/17 this is "develop". To change your branch to that one open a cmd in a folder inside the repo you cloned(Inside /etterna) and do the following commands.
-```
-git checkout develop
-git submodule update --init
-```
-Change develop to the branch you want (master is usually the stable branch and develop the playground, unstable one). Remember to run git submodule.
-
-Run cmake (from cmd or cmakeGUI) configured for VS 2015 and open the project files generated(/Build/Etterna.sln). If not using cmakeGUI, the command should look like this(Run from a cmd in /Build/, you might have to change the Visual Studio version to the one you have). There are two possible commands to use, either to setup a 32-bit or 64-bit environment.
+Here are some commands for current developers and contributors to get started. More are listed at [Sample CMake Commands](#Sample-CMake-Commands).
 
 ```bash
-cmake -G "Visual Studio 14 2015" ..         # 32-bit
-cmake -G "Visual Studio 14 2015 Win64" ..   # 64-bit
+cmake -G "Unix Makefiles" ..                                                        # Linux
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # Windows
 ```
 
-Note that an error like this:
+## Universal Dependencies
 
-![](https://cdn.discordapp.com/attachments/326225923240230923/337716512758562817/unknown.png)
+- [CMake](https://cmake.org/download/) (Minimum version 3.14.0) - It is recommended to get this package from the CMake website as many package managers do not have the latest version. Check your package manager before trying.
+- [OpenSSL](https://www.openssl.org/) (Version 1.1.0)
+  - Debian: `apt install libssl-dev`
+  - Fedora: `dnf install openssl-devel`
+  - macOS: `brew install openssl`
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_0j.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_0j.exe)
 
-While compiling is completely normal.
+### Linux Dependencies
 
-In order to build an installer first compile and then run stepmania.nsi(Right click+ run NSIS script) to make the installer.
-To play without installing simply compile and open etterna/Program/Etterna.exe or run the Etterna project from VS.
+While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
-NOTE: You may need to make sure you're compiling as Release(Defaults to Debug)
-![](https://cdn.discordapp.com/attachments/326225923240230923/337715335480475650/unknown.png)
+- Debian: `apt install libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
+- Fedora: `dnf install libssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 
-NOTE 2: If you get an error like this:
-![](http://vivide.re/863GDX4n.png)
-Try adding this to StepMania.cpp:
+### Windows Dependencies
 
-```cpp
-#include <Windows.h>
-#include <stdio.h>
-int (WINAPIV * __vsnprintf)(char *, size_t, const char*, va_list) = _vsnprintf;
-```
+- [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Currently only `Visual Studio 15 2017` is supported.
+- [DirectX Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109) (June 2010)
+- [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
+- [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
+- [Windows 10 Development Kit](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
----
+### macOS Dependencies
 
-## Linux
+macOS has no other unique dependencies.
 
-### 1-a: Prepare dependencies(Debian Based systems)
+## Project Generation
 
-Run the following commands on your system depending on your distribution:
+First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. 
 
-#### Debian Based systems
+There are two stages apart of CMake projects.
 
-```
-sudo apt-get install build-essential git cmake
-sudo apt-get install libmad0 libmad0-dev libssl-dev libcurl4-openssl-dev mesa-common-dev libglu1-mesa-dev libglew1.5-dev libxtst-dev libxrandr-dev libpng12-dev libjpeg-dev zlib1g-dev libbz2-dev libogg-dev libvorbis-dev libc6-dev yasm libasound-dev libpulse-dev binutils-dev libgtk2.0-dev libudev-dev libva-dev
-```
+1. Configuration: CMake will run through all CMakeLists.txt and ensure all code processes.
+2. Generation: CMake will take information from generation, and create the project files based on what was selected through the generation option.
 
-#### Fedora Based systems
+### CLI Project Generation
 
-```
-dnf install http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-dnf install libXrandr-devel libXtst-devel libpng-devel libjpeg-devel zlib-devel libogg-devel libvorbis-devel yasm alsa-lib-devel pulseaudio-libs-devel bzip2-devel jack-audio-connection-kit-devel libva-devel pcre-devel gtk2-devel glew-devel libudev-devel
-```
-
-### 2: Clone the etterna git and compile etterna
-
-Open a terminal and:
+Both configuration and generation stages automatically happen one after the other on CMake.
+Start by creating a folder to hold all the output object files, usually called `build`, within the root of the project.
 
 ```bash
-git clone --depth=1 https://github.com/etternagame/etterna.git
-cd etterna
-git submodule update --init
-mkdir Build
-cd Build
-cmake .. -G 'Unix Makefiles'
-make
-```
-
-Also note you probably want to do "git checkout" to the branch you want. Ask around to find out which one it is(develop is the development branch as of 2/2018)
-
-If it doesn't work you can look at how travis does it(https://travis-ci.org/etternagame/etterna)
-
-### 3: Making a Launcher
-
-If you want to run etterna from a launch button like some desktop environments have, make a shell script like this and set the launch button to run the shell script. This assumes that the etterna folder is ~/etterna. If you don't know already, "~/" is shorthand for the home folder of the current user on Linux.
-
-Make a new emtpy text document and add the following:
-
-```bash
-#!/bin/bash
-cd ~/etterna
-./etterna
-```
-
-Save it as etternalauncher.sh or something similar
-
-right click it and make it executable in properties>permissions
-
-### 4: Configuration
-
-Install songs in ~/.etterna/Songs/
-
-Install themes in ~/.etterna/Themes/
-
-Install noteskins in ~/.etterna/NoteSkins/
-
-Preferences are in ~/.etterna/Save/Preferences.ini
-
-Profiles are in ~/.etterna/Save/LocalProfiles/
-
-### 5: Updating
-
-When you want to update your copy of SM5:
-
-cd into the etterna folder you cloned(usually ~/etterna), and run a git pull in terminal:
-
-```
-git checkout master
-git pull origin master
-```
-
-Replacing master(twice) for the git branch you want to update to. Then build again(As instructed above).
-
----
-
-## Mac
-### 1: Download
-
-First we download/clone the repository from github:
-
-``` bash
-git clone https://github.com/etternagame/etterna.git
-cd etterna
-git submodule update --init
-```
-
-### 2: Libraries
-
-First, if you don't have [Homebrew](https://brew.sh/) you can install it with the following command
-```bash
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-```
-brew install openssl nasm zlib
-brew install --HEAD libuv
-```
-
-### 3: Final configuration
-
-We finish configuring the project:
-
-```
 mkdir build && cd build
-cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
 ```
 
-### 4: Building
+Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
-Finally, we build the project:
+
+To generate project files, run the CMake command below in the build directory with proper `GENERATOR` and `DIRECTORY` values:
 
 ```bash
-xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf
+cmake -G "GENERATOR" -DOPENSSL_ROOT_DIR="DIRECTORY" ..
 ```
+
+We actively support the following CMake generators
+
+- macOS: `Ninja`, `Xcode`, `Unix Makefiles`
+- Linux: `Ninja`, `Unix Makefiles`
+- Windows: `Visual Studio 15 2017`
+
+For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
+
+- Windows: `C:/OpenSSL-Win32` or `C:/OpenSSL-Win64` if followed above install instructions for OpenSSL
+- macOS: `/usr/local/opt/openssl` or otherwise depending on your setup (if you're using HomeBrew, MacPorts or installed in from source)
+- Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
+
+#### Sample CMake Commands
+
+```bash
+cmake -G "Ninja" ..                                                                 # Linux Ninja
+cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" ..           # 32bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # 64bit Windows
+```
+
+### GUI Project Generation
+
+![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
+
+In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
+
+**NOTE**: Setting `OPENSSL_ROOT_DIR` is unnecessary for linux users as CMake will find the location of OpenSSL on it's own.
+
+![CMake Add Cache Entry Window](images/cmake-gui-02.png "CMake Add Cache Entry Window")
+
+**Windows Users**: Remember to change the value to correspond to the correct 32bit or 64bit version of the OpenSSL library.
+
+Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure` then `Generate` and you are ready to start coding.
+
+## Compiling
+
+### Ninja
+
+The ninja command used is exactly the same across all operating systems. It should be noted that Ninja can only build 64bit binaries ([unless you would like to compile Ninja yourself](https://github.com/ninja-build/ninja/issues/1339)).
+
+To install ninja, use one of the following commands
+
+- Debian: `apt install ninja-build`
+- Fedora: `dnf install ninja-build`
+- macOS: `brew install ninja`
+
+To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
+
+### Linux
+
+Run `make` or `ninja` corresponding to the CMake generator you used.
+
+### macOS
+
+#### Xcode Editor
+
+Open the `Etterna.xcodeproj` file generated within the build directory, select the Etterna target, and you are ready to start coding.
+
+#### Xcode CLI
+
+```bash
+xcodebuild -project Etterna.xcodeproj -configuration Release
+```
+
+Due to the extreme verbosity of `xcodebuild`, we recommend [xcpretty](https://github.com/xcpretty/xcpretty) to clean up the output.
+
+### Windows
+
+#### Visual Studio Editor
+
+Open the `Etterna.sln` file generated within the build directory, and you are ready to start coding.
+
+#### Visual Studio CLI
+
+If you prefer the command line, these commands should be what you are looking for. Make sure you run the proper visual studio command prompt.
+
+```bash
+msbuild Etterna.sln /p:Platform="Win32" /p:Configuration="Release"  # Only for 32bit CMake generator
+msbuild Etterna.sln /p:Platform="x64"   /p:Configuration="Release"  # Only for 64bit CMake generator
+```
+
+## Distribution
+
+We use CMake's CPack module to build distribution files. Currently, we create distribution binaries for Windows and macOS.
+
+**Windows only prerequisite**: Install the latest version of [Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)
+
+To build a distribution file for the operating system you are using, run `cpack` in the build directory after compiling.
