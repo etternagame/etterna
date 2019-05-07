@@ -1,5 +1,3 @@
-# Etterna
-
 <p align="center">
     <img src="Docs/images/etterna-logo-dark.svg" width=250px>
 </p>
