@@ -18,8 +18,11 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [Linux](#Linux)
   - [macOS](#macOS)
   - [Windows](#Windows)
-- [Static Analysis](#Static-Analysis)
 - [Distribution](#Distribution)
+- [Static Analysis](#Static-Analysis)
+  - [cppcheck](#cppcheck)
+- [Documentation](#Documentation)
+  - [C++](#C++-Docs)
 
 ## Getting Started
 
@@ -179,6 +182,14 @@ msbuild Etterna.sln /p:Platform="Win32" /p:Configuration="Release"  # Only for 3
 msbuild Etterna.sln /p:Platform="x64"   /p:Configuration="Release"  # Only for 64bit CMake generator
 ```
 
+## Distribution
+
+We use CMake's CPack module to build distribution files. Currently, we create distribution binaries for Windows and macOS.
+
+**Windows only prerequisite**: Install the latest version of [Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)
+
+To build a distribution file for the operating system you are using, run `cpack` in the build directory after compiling.
+
 ## Static Analysis
 
 ### cppcheck
@@ -193,10 +204,12 @@ When cppcheck is run, it will generate a file in the build directory called `cpp
 
 To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
 
-## Distribution
+## Documentation
 
-We use CMake's CPack module to build distribution files. Currently, we create distribution binaries for Windows and macOS.
+### C++ Docs
 
-**Windows only prerequisite**: Install the latest version of [Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)
+Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
 
-To build a distribution file for the operating system you are using, run `cpack` in the build directory after compiling.
+- macOS: `brew install doxygen`
+- Debian: `apt install doxygen`
+- Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
