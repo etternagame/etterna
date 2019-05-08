@@ -100,6 +100,9 @@ endif()
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
 
+# Documentation
+include(CMake/Helpers/SetupDoxygen.cmake)
+
 # CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)
 include(CPack)
