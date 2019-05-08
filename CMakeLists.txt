@@ -21,6 +21,7 @@ set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Versio
 set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require minimum C++ version to compile
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Tell xcodebuild to target an older osx platform
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile commands for clang-tidy
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 

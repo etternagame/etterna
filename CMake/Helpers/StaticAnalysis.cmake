@@ -1,7 +1,6 @@
 # cppcheck
 find_program(CPPCHECK_EXE "cppcheck")
-
-get_target_property(CPPCHECK_SOURCES Etterna SOURCES)
+get_target_property(SOURCES Etterna SOURCES)
 add_custom_target(cppcheck
 	COMMENT "Running cppcheck"
 	VERBATIM
@@ -12,4 +11,12 @@ add_custom_target(cppcheck
 	--std=c++14
 	--template=[{severity}][{id}][{file}:{line}]\ {message}\ {callstack}
 	--verbose
-	${CPPCHECK_SOURCES})
+	${SOURCES})
+
+# clang-tidy
+find_program(CLANG_TIDY "clang-tidy")
+add_custom_target(clang-tidy
+		COMMAND ${CLANG_TIDY}
+		-p ${PROJECT_BINARY_DIR}
+		-checks='*'
+ 		${SOURCES})
