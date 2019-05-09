@@ -8,7 +8,6 @@ Windows installer release. Due to merging, some features of this version and the
 ### Added
 - Allow ScoreManager to purge scores - [8da6004](../../commit/8da60041ea588dcda204bf65877c9c2d47a0242a)
 - Allow pasting from the clipboard in various places - [f0c1bc0](../../commit/f0c1bc0474bd035a25dfa753b8d8d444d9651725)
-- Add LibCURL properly for ingame downloads - [62c0e71](../../commit/62c0e718519e423790408d87faf8d57e4bf94b73)
 - Hilarious splash screen - [19ea4af](../../commit/19ea4af11c54b0498947b568e95132c1a435a35d)
 ### Changed
 - JackStamina shouldn't be ignored in Player Overall Calculation - [2201b59](../../commit/2201b5928f6f2b81288c9f42200efbb72deef6f4)
@@ -38,7 +37,7 @@ Windows installer release. This version was released as 2 separate installers, w
 ### Added
 - Discord Rich Presence is added to most screens - [b141923](../../commit/b141923975d882edeb900dd9e4071733621ac1f8)
 - Lua has access to OS for os.time - [d2686d2](../../commit/d2686d28b486c7c4f3eaa1d98e2cc287651fea32)
-- Ingame Pack Downloading through curl - [dfde109](../../commit/dfde1092912ce8e11032f537b8e32c00d66b59b9) [259b574](../../commit/259b574f1199ccdff5f388c77da0926107a895ef)
+- Experimental ingame Pack Downloading through curl - [dfde109](../../commit/dfde1092912ce8e11032f537b8e32c00d66b59b9) [259b574](../../commit/259b574f1199ccdff5f388c77da0926107a895ef)
 
 
 ## [0.56.2] - 2017-11-10 - Client Bugfixes & Previous Calculator Updates
