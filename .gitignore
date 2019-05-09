@@ -2,7 +2,8 @@
 .DS_Store
 .vscode
 .vs
-Build/
+.idea
+/[Bb]uild
 
 # Ignore executables (Linux, macOS, Windows)
 /Etterna
