@@ -15,5 +15,6 @@ indent_style = space
 [*.md]
 trim_trailing_whitespace = false
 
-[configure.ac]
-end_of_line = lf
+[{CMakeLists.txt, *.cmake}]
+indent_style = tab
+indent_size = 4
