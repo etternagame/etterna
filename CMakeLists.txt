@@ -11,7 +11,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CMake/Helpers/Comp
 option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
-project(Etterna 
+project(Etterna
         VERSION 0.65.1
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)

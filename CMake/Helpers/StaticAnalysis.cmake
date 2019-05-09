@@ -16,7 +16,7 @@ add_custom_target(cppcheck
 # clang-tidy
 find_program(CLANG_TIDY "clang-tidy")
 add_custom_target(clang-tidy
-		COMMAND ${CLANG_TIDY}
-		-p ${PROJECT_BINARY_DIR}
-		-checks='*'
- 		${SOURCES})
+	COMMAND ${CLANG_TIDY}
+	-p ${PROJECT_BINARY_DIR}
+	-checks='*'
+	${SOURCES})
