@@ -63,40 +63,31 @@ elseif(APPLE)
     "Sound/RageSoundDriver_AU.h"
   )
 else() # Unix
-    list(APPEND SMDATA_ARCH_SOUND_SRC
-      "Sound/RageSoundDriver_PulseAudio.cpp"
-    )
-    list(APPEND SMDATA_ARCH_SOUND_HPP
-      "Sound/RageSoundDriver_PulseAudio.h"
-    )
-  if (HAS_ALSA)
+  if(PULSEAUDIO_FOUND)
+    list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_PulseAudio.cpp")
+    list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_PulseAudio.h")
+  endif()
+  
+  if (ALSA_FOUND)
     list(APPEND SMDATA_ARCH_SOUND_SRC
       "Sound/ALSA9Dynamic.cpp"
       "Sound/ALSA9Helpers.cpp"
-      "Sound/RageSoundDriver_ALSA9_Software.cpp"
-    )
+      "Sound/RageSoundDriver_ALSA9_Software.cpp")
     list(APPEND SMDATA_ARCH_SOUND_HPP
       "Sound/ALSA9Dynamic.h"
       "Sound/ALSA9Functions.h"
       "Sound/ALSA9Helpers.h"
-      "Sound/RageSoundDriver_ALSA9_Software.h"
-    )
+      "Sound/RageSoundDriver_ALSA9_Software.h")
   endif()
-  if (HAS_JACK)
-    list(APPEND SMDATA_ARCH_SOUND_SRC
-      "Sound/RageSoundDriver_JACK.cpp"
-    )
-    list(APPEND SMDATA_ARCH_SOUND_HPP
-      "Sound/RageSoundDriver_JACK.h"
-    )
+  
+  if (JACK_FOUND)
+    list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_JACK.cpp")
+    list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_JACK.h")
   endif()
-  if (HAS_OSS)
-    list(APPEND SMDATA_ARCH_SOUND_SRC
-      "Sound/RageSoundDriver_OSS.cpp"
-    )
-    list(APPEND SMDATA_ARCH_SOUND_HPP
-      "Sound/RageSoundDriver_OSS.h"
-    )
+  
+  if (OSS_FOUND)
+    list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_OSS.cpp")
+    list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_OSS.h")
   endif()
 endif()
 
