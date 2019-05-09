@@ -269,4 +269,4 @@ list(APPEND SMDATA_ALL_DATA_HPP
   ${SM_DATA_REST_HPP}
 )
 
-target_sources(Etterna PUBLIC ${SMDATA_ALL_DATA_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_ALL_DATA_SRC} ${SMDATA_ALL_DATA_HPP})

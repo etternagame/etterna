@@ -20,4 +20,4 @@ endif()
 
 source_group("Global Files" FILES ${SMDATA_GLOBAL_FILES_SRC} ${SMDATA_GLOBAL_FILES_HPP})
 
-target_sources(Etterna PUBLIC ${SMDATA_GLOBAL_FILES_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_GLOBAL_FILES_SRC} ${SMDATA_GLOBAL_FILES_HPP})

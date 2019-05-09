@@ -148,4 +148,4 @@ if(APPLE OR UNIX)
     )
 endif()
 
-target_sources(Etterna PUBLIC ${SMDATA_OS_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_OS_SRC} ${SMDATA_OS_HPP})

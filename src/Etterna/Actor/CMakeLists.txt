@@ -96,7 +96,6 @@ list(APPEND SMDATA_ACTOR_MENU_SRC
 list(APPEND SMDATA_ACTOR_MENU_HPP
   "Menus/BPMDisplay.h"
   "Menus/ComboGraph.h"
-  "../Models/Misc/ControllerStateDisplay.h"
   "Menus/DifficultyList.h"
   "Menus/DualScrollBar.h"
   "Menus/GraphDisplay.h"
@@ -151,4 +150,4 @@ list(APPEND SMDATA_ALL_ACTORS_HPP
   ${SMDATA_ACTOR_GAMEPLAY_MENU_HPP}
 )
 
-target_sources(Etterna PUBLIC ${SMDATA_ALL_ACTORS_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_ALL_ACTORS_SRC} ${SMDATA_ALL_ACTORS_HPP})
