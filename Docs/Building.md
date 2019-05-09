@@ -36,7 +36,7 @@ Here are some commands for current developers and contributors to get started. M
 ```bash
 cmake -G "Unix Makefiles" ..                                                        # Linux
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # Windows
 ```
 
 ## Universal Dependencies
@@ -101,7 +101,7 @@ We actively support the following CMake generators
 
 - macOS: `Ninja`, `Xcode`, `Unix Makefiles`
 - Linux: `Ninja`, `Unix Makefiles`
-- Windows: `Ninja`, `Visual Studio 15 2017`, `Visual Studio 16 2019` _(Technically, with how the CMake script is setup, any generated as far back as_ `Visual Studio 9 2008` _should work), but it has only tested it with the above three._
+- Windows: `Ninja`, `Visual Studio 15 2017`, `Visual Studio 16 2019` _(Technically, with how the CMake script is setup, any generator as far back as_ `Visual Studio 9 2008` _should work), but it has only tested it with the above three._
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
@@ -110,7 +110,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 
 #### Sample CMake Commands
-
+p
 ```bash
 cmake -G "Ninja" ..                                                                 # Linux Ninja
 cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
@@ -213,3 +213,5 @@ Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. 
 - macOS: `brew install doxygen`
 - Debian: `apt install doxygen`
 - Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
+
+Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
