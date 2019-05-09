@@ -15,7 +15,7 @@ GENERATE_HTML          = YES
 HTML_OUTPUT            = html
 
 # DOT
-HAVE_DOT               = YES
+HAVE_DOT               = @DOXYGEN_HAVE_DOT@
 CLASS_DIAGRAMS         = YES
 DOT_NUM_THREADS        = 0
 
