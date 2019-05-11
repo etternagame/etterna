@@ -226,7 +226,7 @@ Windows and Mac installer release. Multiplayer is functional but private, so the
 - Cursor doesn't show up in fullscreen on some Screens - [ee97a5b](../../commit/ee97a5bf988ce4be62de368ce4cfbdb79915e891)
 - Lane Cover doesn't follow NoteField movement in CustomizeGameplay - [923d8af](../../commit/923d8af99ce8b86c4d60e8e55b443b66eef66983) [4739b0b](../../commit/4739b0b051082a70d7dc62ade1734f8c8de4528d) [43a66b8](../../commit/43a66b89560a8679a6f73406127d57b2fbd27026)
 - Pressing 0 in Song Search changes tabs instead - [0e9a354](../../commit/0e9a354405dbff67bf0c4c1b3384d9228fe5f16c)
-- Filter tab lags very badly when numbers are left in the input and scrolling is attmpted - [8507174](../../commit/8507174110022d0946c7d334939bb0ecfc80593e)
+- Filter tab lags very badly when numbers are left in the input and scrolling is attempted - [8507174](../../commit/8507174110022d0946c7d334939bb0ecfc80593e)
 - Clicking Start Game crashes. Fix this by ignoring the issue - [0e213f9](../../commit/0e213f9bf180b9e6b63182261341e09891782a11)
 
 
