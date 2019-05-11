@@ -102,7 +102,7 @@ endif()
 include(CMake/Helpers/StaticAnalysis.cmake)
 
 # Documentation
-include(CMake/Helpers/SetupDoxygen.cmake)
+include(CMake/Helpers/DocumentationTools.cmake)
 
 # CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)
