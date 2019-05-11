@@ -23,6 +23,7 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [cppcheck](#cppcheck)
 - [Documentation](#Documentation)
   - [C++](#C++-Docs)
+  - [LDoc](#LDoc)
 
 ## Getting Started
 
@@ -215,3 +216,7 @@ Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. 
 - Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 
 Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
+
+### LDoc
+
+Etterna uses [LDoc](https://github.com/stevedonovan/LDoc) to generate Lua documentation. We reccomend installing [LuaRocks](https://github.com/luarocks/luarocks), and then installing LDoc through LuaRocks. Similar to Doxygen, it will only create the `ldoc` target if it can find the `ldoc` command in your system path.
