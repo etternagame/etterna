@@ -111,7 +111,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 
 #### Sample CMake Commands
-p
+
 ```bash
 cmake -G "Ninja" ..                                                                 # Linux Ninja
 cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
