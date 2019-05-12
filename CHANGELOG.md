@@ -1154,8 +1154,8 @@ Windows installer release meant to be installed in its own clean directory.
 - Installer will install VS2015 C++ x86 redistros & portable.ini - [cc8add3](../../commit/cc8add3af0041be3bca33124b2975757fa8fe103) [5a5eec8](../../commit/5a5eec8681705e4d3ecc6b201190b31526fe0808)
 - Uninstaller will uninstall all proper files - [5abe56f](../../commit/5abe56f64b7d07328f23aae5f1e61bbdce535fe3)
 - Predictive Frame Limiter - [8fbd324](../../commit/8fbd32486587ae5bfaf7e9386a8ba5c81fb5d45f) [b27d673](../../commit/b27d673159969efbe94ea4a4540c0f5e42886b0c) [3d0f895](../../commit/3d0f8955f419d9dce968aff57d6d588a27e57201) [4a1dca9](../../commit/4a1dca90bd321c25367b2f2ed0957ccb0fe4774b) [edbb2df](../../commit/edbb2df59893a942cd9d76f6935c4e9edd03fda9) [a77e8b7](../../commit/a77e8b7af40aaf12f3f573d77e122ac0c96375dc)
-- Millisecond Scoring system (MSS & Wife) - [0e02141](../../commit/0e0214155a23570f23bd9a68332dd6f7d30aaf11) [0c1eaf3](../../commit/0c1eaf311c05fcf7e1498f691386df1a505c7aa8) [bc26e1d](../../commit/bc26e1dd2ccda6a317ff9696228676238fe2af7e) [92f3398](../../commit/92f33981e6449141bf07b88bdf5990e11a12ae6f) [e8964fc](../../commit/e8964fcb5753ba9734ed978e8950f4a7af31acb9)
-- Mina Standardized Difficulty (MSD) - [e8964fc](../../commit/e8964fcb5753ba9734ed978e8950f4a7af31acb9) [065aef4](../../commit/065aef43d98e8dcf3738028b3d533e756af159ed)
+- Millisecond Scoring system (MSS & Wife) - [0e02141](../../commit/0e0214155a23570f23bd9a68332dd6f7d30aaf11) [0c1eaf3](../../commit/0c1eaf311c05fcf7e1498f691386df1a505c7aa8) [bc26e1d](../../commit/bc26e1dd2ccda6a317ff9696228676238fe2af7e) [92f3398](../../commit/92f33981e6449141bf07b88bdf5990e11a12ae6f) [bd9ad63](../../commit/bd9ad635bbb65ba6b1b1568d103ec6bb0050f4b0)
+- Mina Standardized Difficulty (MSD) - [bd9ad63](../../commit/bd9ad635bbb65ba6b1b1568d103ec6bb0050f4b0) [065aef4](../../commit/065aef43d98e8dcf3738028b3d533e756af159ed)
 - Preference for Allowed Lag in milliseconds - [87a8085](../../commit/87a80858e21969ea52bcda603503cd29b3876a28)
 - SongFinished message for Fail Grades - [70a432f](../../commit/70a432f58be30ff2a02d786d6141dc8d038f5766)
 - Polling on X11 Input Thread - [e8964fc](../../commit/e8964fcb5753ba9734ed978e8950f4a7af31acb9)
@@ -1229,9 +1229,9 @@ Binary only release.
 ### Changed
 - For Windows, use D3DX instead of RageMath for some calculations - [2d4c053](../../commit/2d4c0538a683da87c0a09ac68304f953b04542fa)
 - FPS with Holds on screen improved by 37%
-  - Don't draw the Tap part of a hold within DrawHoldPart [3ba8bd5](../../commit/3ba8bd503a207e285880b199d30887d9b74ade01)
-  - Don't glow the Hold until it should glow [3ba8bd5](../../commit/3ba8bd503a207e285880b199d30887d9b74ade01)
-  - Don't draw the Hold body head if the head is past the tail [434eaa8](../../commit/434eaa846f5e8b43b139589132ec26a37d335cf0) 
+  - Don't draw the Tap part of a hold within DrawHoldPart - [3ba8bd5](../../commit/3ba8bd503a207e285880b199d30887d9b74ade01)
+  - Don't glow the Hold until it should glow - [3ba8bd5](../../commit/3ba8bd503a207e285880b199d30887d9b74ade01)
+  - Don't draw the Hold body head if the head is past the tail - [434eaa8](../../commit/434eaa846f5e8b43b139589132ec26a37d335cf0) 
 - Reduce the internally bloated nature of the LifeMeterBar & StreamDisplay (for FPS) - [6b05c2b](../../commit/6b05c2b89ee2bcbb6ec6fabce09a3e953a0c09e7) [a2129a3](../../commit/a2129a39e9747e2bcf5d2a8b5f5e0a2017693352) [bbd0be0](../../commit/bbd0be03edffc47e7a926bbe12f134c6e82ec535)
 - Replace nearly all lrintf calls with lround - [a559386](../../commit/a5593868c478a1b6c66b628f28805190818f8bb3)
 - Truncate instead of round in a critical "float to char" function - [2faa10b](../../commit/2faa10b023a66745fe23aa0a8aed96fd0341264a)
