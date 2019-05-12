@@ -1,6 +1,215 @@
 # Changelog
 All releases of Etterna are listed in this file as well as all of the major changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
+## [0.63.0] - 2018-11-23 - Performance Boost
+
+Windows x64 and Windows i386 installer release. Mac zip included.
+
+### Added
+- Replay Watching for ReplayData made from 0.60 forward hits Taps using offset values - [2003f69](../../commit/2003f6936e230d684511159046ca6dc9ae1b11d6) [f63ea82](../../commit/f63ea82f1aa6a6975ec8b57d1874396d0d8b750a) [a6563b0](../../commit/a6563b08049c208f3c79a0668964d8d67d37ae96) [5f18c63](../../commit/5f18c630b12b8dcad605bb5321316f9d74d753da) [9181723](../../commit/91817235e88287693c54147877a4824dd339cf49) [2efb3fa](../../commit/2efb3fac3d7369529d58722382c197b10278ec85) [ae000d7](../../commit/ae000d780f5979f7ea2abbf8b4e9d16cebe5f30e) [3736163](../../commit/373616359d38dcebb6d27efbffca3779aba6ab5a)
+- Main Skillset for a Score in the Scores tab - [1dab361](../../commit/1dab3619c56a5a925738562483d2d8873951bdeb)
+### Changed
+- Screenshots on the Evaluation Screen can be taken by pressing `Select` & don't save as low resolution in a weird folder - [508f50b](../../commit/508f50b56f9579e3543703ffa5d8fe9143ebaa41)
+- Banners don't load if the Banner isn't visible - [20cd6fb](../../commit/20cd6fb333ab358cffa93aeade8daba1982d7cc1)
+- Banners don't load if moving the MusicWheel fast - [92e5359](../../commit/92e53596f189ae7988b90d97368917a6148a409e)
+- Banner-specific updating logic in Lua is reworked to try to reduce memory leaks - [a189b74](../../commit/a189b74db87c1f6446b5904d5295856220189a90)
+- Move Lua functions to get Display Scores (PBs by rate) to Scripts - [5c9b126](../../commit/5c9b126645e7108073f53eab10399cf4dbf3c9c8)
+- Banners moved to the General tab Lua - [e0054b8](../../commit/e0054b8ed9a2f11d8e0e613dfbf1093b2dacd75e)
+- General tab Lua refactored for speed (this reaches all SelectMusic Lua) - [cce801a](../../commit/cce801a9981c0b40049d00064138623aca4737b6) [e0054b8](../../commit/e0054b8ed9a2f11d8e0e613dfbf1093b2dacd75e) [0bcf406](../../commit/0bcf406553347843b455e14d6db16f0c5b40e44d) [d793ad6](../../commit/d793ad6356f093c1404cc4727a690b22ebe4dca3) [92fb0e1](../../commit/92fb0e170da00820172034e4834e8f6556a946cd) [4ac9453](../../commit/4ac9453051d4953b707e6ff464ac4e8a9bd21ef4) [cfc8edc](../../commit/cfc8edc28b0e4cd9b8ec70410c5ecf02c791ca9e)
+- Refactor highlight updates for Actors in ScreenSelectMusic - [c37d492](../../commit/c37d492557c9c30255804c131106df633c455814) [0bcf406](../../commit/0bcf406553347843b455e14d6db16f0c5b40e44d)
+- Don't update DownloadManager in Gameplay - [01710d7](../../commit/01710d71bb7467b1bd4f158207aa5307ed8476da)
+- Restrict max number of difficulties in a Chart to 12 - [c37d492](../../commit/c37d492557c9c30255804c131106df633c455814)
+- Stop trying to store Online ReplayData directly from Chart Leaderboard Requests - [d4eda50](../../commit/d4eda50e337490de69b8687c03d2200dc874389e)
+- Clear cached Chart Leaderboard data after Gameplay - [fc3c4e7](../../commit/fc3c4e79e5020d004d3a8ae29ee458b161d328eb)
+- Garbage Collect from Lua (this should be called at least once somewhere) - [0bdd05f](../../commit/0bdd05fb7570b066bcc392e1b7acd61c9855e3e4)
+### Removed
+- Unused or unimportant internal ScreenSelectMusic Actors - [e01ab8a](../../commit/e01ab8af140fd654fd15bcd9f5c276588ab4e912)
+- 2 Part Selection, a 2 Player feature - [731289c](../../commit/731289cc5e01f1c18f7f6d5760fa9822b9a0b23b)
+### Fixed
+- Lua return value crashes - [b93f093](../../commit/b93f09380de951532f0ced05751f13c3a121c802) [fb5ca86](../../commit/fb5ca860f154b66a8e7f3292111d3e37939343b4)
+- Chart Leaderboards were being requested too much due to inherited Actor Commands - [2cdb5b5](../../commit/2cdb5b5de93286d06ae34b65917ffb5ac81b6a5d)
+- Chart Preview is placed badly in 4:3 - [1f54adf](../../commit/1f54adf992441c8023d8ff0cea1c0012485caab9)
+- Coverty Scan found some issues
+  - Null pointers - [cc09585](../../commit/cc0958578883cb5284a2770125563261200f0753) [a6f9269](../../commit/a6f92693269f9fe2ae29daf058af7af776687c51) [a269a3b](../../commit/a269a3bcba84cc4a3fb59e163bcbb594c244bb80)
+
+
+## [0.62.1] - 2018-11-14 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release.
+
+### Added
+### Changed
+- Optimize ActorFrames updating their children by changing an iterator loop to a range loop - [d116c02](../../commit/d116c02c92317431f36be7d12d9a5aeadea9b948)
+- Optimize NoteDisplays updating their resources by changing an iterator loop to a range loop - [df7c12b](../../commit/df7c12b57f5120c4504a27987dec0f5f3e94bdd8)
+- StepsList shouldn't be so slow - [bf5411f](../../commit/bf5411ffc1144a100ad4e37905850af4a5ac4b04)
+- Set one of the lines on the Title Screen to be color-configable - [8bfd6d3](../../commit/8bfd6d32d89c928e1e4cd9c9da77816b7aad3e98)
+- Optimize the Chord Density Graph by using ActorMultiVertex instead of a lot of little Quads - [dd02cfa](../../commit/dd02cfa48b57deecfe21c3b26eeb27686a961042) [5c0fed2](../../commit/5c0fed2e8c798c8f818632758daa1eec397831ae)
+- Try not to load a Noteskin Resource for every color - [08798a2](../../commit/08798a28d87e24ed98d362c292c8919ea8dbeeac)
+### Fixed
+- NoteField Y axis movement is still busted when switching between Reverse and Upscroll - [b0a3735](../../commit/b0a3735aedb4966f21af751c7ae5bbf56776941a)
+- Leaderboard Grades don't color correctly - [28d63b5](../../commit/28d63b500fda09bda64f620ff6ba63aba4617928)
+- StepsList appears if changing tabs while not on a Song - [546a1dd](../../commit/546a1dd7fcc1612aeab343bd0d290147f106a3f8)
+- Chord Density Graph is too large for 4:3 - [86eafd0](../../commit/86eafd0ff425690e9dc5785e47336d4b05e78cc9)
+- CDTitle & StepsList is in the way of Chart Preview in 4:3 - [f550b00](../../commit/f550b00f93b3b6df70aae10c9b9fe44320c8865d)
+- Mouse is not visible in Fullscreen in CustomizeGameplay & Replays - [6c1790e](../../commit/6c1790e1b0995f8fabcac8ac590de99c3930da6e)
+- Obscure Invalid Difficulty Enum Crash fixed by defaulting instead of crashing - [2c81ea0](../../commit/2c81ea0fa82819ab4a0aadaffffb32300c24d79f)
+- Division by 0 error in Offset Plots when the length of time is 0 - [56aaf5f](../../commit/56aaf5fd397b5a26000a2df4420b51e3b3a56eb3)
+
+
+
+## [0.62.0] - 2018-11-11 - Chart Preview
+
+Windows x64 & i386 installer release only.
+
+### Added
+- Chart Preview & Chord Density Graph - [677e13e](../../commit/677e13e398e725eca38538d66045681636882dd2) [802720c](../../commit/802720cba868b5c645261339d084a5c41016bd7b) [6a2affb](../../commit/6a2affb0d5e8c73f6b7a5bfd4413ed44a4c897fe) [f60c413](../../commit/f60c413e572fa48d6524ba733c44985c1da5fd77) [195efd5](../../commit/195efd576a9598f2fa045ba7927f2c871aacd7d9) [fcb659a](../../commit/fcb659a12d7d59df10f059624bc3d0d3c1da04c1) [611908b](../../commit/611908beb011ea3e517c0f1e845d95cef9368b69) [6f09311](../../commit/6f09311f0deb7dd5be17bb205fcd05df52f89672) [25e1da4](../../commit/25e1da4eceb2917c7593ad096a67b3e6658dc599) [b562ae8](../../commit/b562ae85e2c3ee504465c94fa0596df6038b890c) [9cece4f](../../commit/9cece4f04f8f4fac37d79c36353917ec36920644) [0ac88ee](../../commit/0ac88ee4dce8177e8dfb9f700549540229d99ba3) [0275096](../../commit/02750966213be55d9d6a4d13353794ec5d891961) [6915211](../../commit/6915211f843546a30dce8f9f5c4bddc2b4300557) [d3dd947](../../commit/d3dd9473407843346a800904ee7e067afba1af9c) [64c7f05](../../commit/64c7f052e7fc79688781b95c1e0bbacdd0ecad00) [14002c8](../../commit/14002c8ef11582c560ea617b7e6cfc005abede83) [6ca9123](../../commit/6ca91234ca80647a5251bffe01bd8a6855823f9f) [2c2b762](../../commit/2c2b762cbaa5fc5e1e9998c1f52c0789d4808c1d) [ed014c7](../../commit/ed014c7606e4e71a584db7334d33ea2c31791579) [08c6ba9](../../commit/08c6ba9a68adb539283378bd8051224da60e5884) [9ef02b1](../../commit/9ef02b1fbc0231c6233eaef99a6e509814f64874) [cd5827f](../../commit/cd5827fb929010c638d0ac3312f89ff09d49b184) [c8f675a](../../commit/c8f675a725ee77fec2db5b92ef8ff529eee8bdb3) [4d2d6da](../../commit/4d2d6da69ff1470682167124f391444187da2b85)
+- Right click to pause Music (this is a bug but it turned into a feature) - [c8f675a](../../commit/c8f675a725ee77fec2db5b92ef8ff529eee8bdb3)
+- Preference to reduce the verbosity of Log Trace outputs - [4ef582b](../../commit/4ef582bc40198c4cc279444d370752659569522b)
+- Hotkey for reloading Pack from Disk - [aa94450](../../commit/aa9445054cc2afc2a5fb76d64c47ce6af33b65dd)
+- Chinese Translation - [abfeeed](../../commit/abfeeeda22996a1e20882e5c58d3e83117a8a38a) [8f2804f](../../commit/8f2804f98cbba1ec0471efee3059cb86091e00ad) [4ec4b26](../../commit/4ec4b267898147003a28e8783e775b65d64f7bd1)
+- Language support for some Til Death Options - [4ec4b26](../../commit/4ec4b267898147003a28e8783e775b65d64f7bd1)
+- RageSounds can have a defined start point ignoring the 0 time - [9761618](../../commit/9761618904ce37d31fae20b1d68413fef63237ee)
+- Lua access to the currently playing music TimingData - [1ebb47f](../../commit/1ebb47f86486d56726d93f599a3c5eeb4969eb3a)
+- ClearType display on the General tab - [1446cba](../../commit/1446cba91f6c15b3bb4b99b6cd59716a302349e7) [b94bcb7](../../commit/b94bcb70fffcede5ba8109b2ed3116a2cf9153f0) [eeef67e](../../commit/eeef67ebe2b8f509fab6938fc7739f26770c583b)
+- Judge display on the Scores tab - [212995d](../../commit/212995defcdcd24f54fbcba70150fad4dbbd2084)
+- Lua access to Volume - [8c89d91](../../commit/8c89d91d444b3b499058515242ef06685681eb45)
+- Mouse support, Leaderboard, Replay buttons, bounding boxes added to CustomizeGameplay in a big rewrite - [5321555](../../commit/53215552a957b60aa9dc0c83451b246b8a5e4f1f) [83744a5](../../commit/83744a5dff8183f7247d64a4d7a9584db43d6a93) [ba32793](../../commit/ba32793195829aa321f04bef70fbc52c5b8f7108) [6d5cddd](../../commit/6d5cdddbafb6992792edaea3749d0fba8c5851d8) [5ee5026](../../commit/5ee50260bf26d0a8161d257c5ce1958ba05afade) [81aaec4](../../commit/81aaec47bff47676289d968be30bbabcd66f54b7) [302cc29](../../commit/302cc29d867e5aa5eabbcbb85f9f0a181d8e7e01) [bc3d7c6](../../commit/bc3d7c69956b439b435bf93e8ac24f1813367ff2) [0564664](../../commit/0564664411c5b298583c7daafe8297f76c5d5a5b)
+- Lifebar added to CustomizeGameplay - [7ba8f36](../../commit/7ba8f365826aa0b36b87b7b0f122163c184b8323)
+- Minanyms - [0e76024](../../commit/0e7602481eb63fad80b6f98cb7c6e7b6ec379aa7) [c0c6660](../../commit/c0c666033f116d41543ac606b94a6ad920ed6d6c) [8c0c084](../../commit/8c0c0840363c2d92cd152d9e197755578381af42)
+### Changed
+- Reduce the amount of times disk ReplayData is checked for just doing nothing on SelectMusic - [1004525](../../commit/1004525232c812b9d6aa55c11b3b6002984870ce) [abbacec](../../commit/abbacecbb62f73eeb2388201059bc78eb1a4af3a)
+- Reduce memory issues in ReplayData checking - [b2989a9](../../commit/b2989a920aafd8463a14d06590eb41dc1b828eb9)
+- Rewrote default Player Config Lua Scripts for clarity - [bc3d7c6](../../commit/bc3d7c69956b439b435bf93e8ac24f1813367ff2)
+- Changing Rate should update the Chart Leaderboards if set to CurrentRate appropriately - [16b7e75](../../commit/16b7e75e816f83d7bae4ea6a2e54d7d4f364ceb1)
+- Favorite Song count is replaced by a Refresh Songs button to trigger Differential Reload - [0a027fe](../../commit/0a027fe8c5d53b567495a4646f12907aec4178d0)
+- Setting the position of a RageSound is done by restarting the RageSound with a new start point - [86086cb](../../commit/86086cbe5d4550b3f3de9c72300be1a586eb0eae)
+- Color Config options for the Main Menu - [414705f](../../commit/414705f9ae677fd1653349bf10d5162f9dbf1784) [a9c4bf9](../../commit/a9c4bf9a58acce30ddf49d73aaf71115da54cee0)
+- The default buttons for Dance mode should be the arrow keys, not random other buttons - [d367cf2](../../commit/d367cf2dc775d9b1af3476df0e84b8867ab096f2)
+- The text in the Abort/Retry/Ignore dialog should match the buttons - [edd3676](../../commit/edd367654b1fbdbb180711ef7831fb34f362a35d)
+- StageAwards don't exist so don't use them to calculate ClearTypes - [9b8dbeb](../../commit/9b8dbeb12ce5e8636b8036b7339a836cdb929f0c)
+- StepsList moves up off screen instead of left - [7a53904](../../commit/7a53904a3ab8a28f68ab01893b05ed40a12f01dd)
+- Refactor a lot of Lua to remove Player 2 code & improve readability or speed - [0c1f72a](../../commit/0c1f72a5c34f04afd99fa45d70daebc6bf66e90f) [9daacf6](../../commit/9daacf6d89bbc16c70896480084abec8eafbed2d) [247c3a7](../../commit/247c3a7c641b53e49f68508497de843d55cc1bdd)
+### Removed
+- "Press Start To Join" on Profile Select - [eac7298](../../commit/eac729835aedcc7b52f2c34301cc2941aa56311e)
+- Default Player 2 back button - [76fd569](../../commit/76fd56974049f73f985ea7ce3f10bba2020919d2)
+### Fixed
+- Linux does not build due to unfinished changes from the previous version - [5f72a70](../../commit/5f72a70b1fd27f4ee16e56cea4c8df507ff40d61)
+- Mac does not build due to asm vs C compilation - [709b405](../../commit/709b405b1773a1915fb249e80d32653daad5ca97)
+- Crash when backing out of Profile Select - [4c234f3](../../commit/4c234f3792052684d0e48e3b649c4b39b30470db)
+- Crash when saving a score after making changes to a file - [60e28ca](../../commit/60e28cad6cb6a1eb693f02881f7c993fc5622f34)
+- Style does not get set when changing Difficulty in some rare situation - [5a003a1](../../commit/5a003a191795cf9e20ad7b4db873f64cdf224e23)
+- Avatars do not appear in Profile Select - [217509a](../../commit/217509a666d3aa098d094354c0012f66071317e9)
+- Game Update button is badly placed - [3e6d22e](../../commit/3e6d22eb47a4c921ec4c79ad741ce5859b316c62)
+- Backgrounds don't change when loading from Cache - [abe6986](../../commit/abe69864e32f2c864d220be627683cd72ae84eac)
+- StepsList display doesn't hide correctly when hovering packs - [7ffd402](../../commit/7ffd4023ac6595afec77eeee8156be9a90f29198)
+- Crash when saving a Score sometimes. Try to catch it, but we don't know how to fix it - [941884e](../../commit/941884e8636011d67b198c861663c2f9f48b88cf) [4475e60](../../commit/4475e6028c1ce70e995d34c8028a593e3b534dcd)
+- Permamirror breaks Replay Watching - [92e9868](../../commit/92e9868337f7d12d38b7b6060ed897cee0118ccb)
+### Note
+- Temporary (reverted) change: button remap lock/rewrite - [b6f0621](../../commit/b6f06215ed7837774e7b49c7234b6933ea9840ae) [0135f67](../../commit/0135f6793fe2a5a3e52cfdea1144f6983b71a818) [933f2c6](../../commit/933f2c64752f736dbde2aa8626bb591a266811b6) [8939993](../../commit/8939993d7a9b32f64b664f9685698cac88d2663a) [c3a6dcc](../../commit/c3a6dcc6f9dc2aa60ce6e843cac5fa0837e2a214) [c6b3bee](../../commit/c6b3bee52a24df430a60da1b6a88f573f61eba27) [f4d1d55](../../commit/f4d1d5533a9e3f991bcfe73216ce6a72c2bdf002) [3c0c05c](../../commit/3c0c05cdaf3413469a680212df758b0c95290b4e)
+
+
+## [0.61.1] - 2018-10-17 - 64bit D3D Crash Hotfix
+
+Windows x64 installer release only.
+
+### Fixed
+- CMake does not load the correct version of d3d9 - [396d856](../../commit/396d85601c6844b17dca5d0ccf91202397248a5c)
+- Saving a pointer as an unsigned integer in fails due to increased pointer size on 64 bit - [b984fe4](../../commit/b984fe493d9f7ac84a35af3e6f80f16607aceb09)
+
+## [0.61.0] - 2018-10-12 - Replay Watching, Multithread Song Load, and 64bit
+
+Windows x64, Windows i386, and Mac installer release.
+
+### Added
+- Replay Watching
+  - Initial work - [9f35751](../../commit/9f35751dcd5cbf4c6357490efb3c5326202c07d9) [61407da](../../commit/61407da73e6ce40250bf69f2eb1864b0da7b9172) [48b6296](../../commit/48b6296121c2d8ab43cbf4568d5d7667bdba3d5a)
+  - Non-Tap Support - [0af2f74](../../commit/0af2f74f951f4d9ab46df3c3fa3492d8ad2ab492) [51c00c8](../../commit/51c00c8132f41c1e2f463a2b99b2c3e470f3b64b)
+  - Support for ReplayData missing Track data (Chord Cohesion On Pre-0.60) - [63f753e](../../commit/63f753e293e768b42c569a0144835e44a8cbf8dc)
+  - Scrolling & Pausing - [0769a4e](../../commit/0769a4e1ccdfa95b895c27a3ccbbd3cfa9a1ef23) [ec6c99b](../../commit/ec6c99b916b63717ddc06de726ee9d5346f5be74)
+  - Buttons - [57fd70e](../../commit/57fd70e95826c55bebfd9c4d24848477d05c37f7) [51631df](../../commit/51631df490e6b7b29f2b10a4de1753b4ad11f180) [649b0f3](../../commit/649b0f33e893ccb02f18b53390744f579318bcd2) [46b75dd](../../commit/46b75dd20025258bf7144f211bb386071593d2d3) [384f5cb](../../commit/384f5cbe6f447ca26f575d3b67d793ef8c5ee1ad)
+  - Miscellaneous work - [2f5d2d4](../../commit/2f5d2d45662a9c62d62b844777e34ff87f062fa9) [4cb2157](../../commit/4cb21577a0056be6b58988f5b254687be6d97865) [b4debb0](../../commit/b4debb0b06b2b75cb8149d7209572f6dd9415d1b) [dbe67c7](../../commit/dbe67c763c391fc61009d27ac33e1b69f3a5764f) [0de270a](../../commit/0de270af1229bac3a0eabcbbb5a84893b8150c74) [24fbfff](../../commit/24fbfffd83b62a49543452c4c499c6fadedb565d) [9e21aea](../../commit/9e21aeab2725db4dd365223527c209a3cc87d620) [d6644c3](../../commit/d6644c3a87517de273b659b5a21280da8e6c4e92) [56a02aa](../../commit/56a02aac2ba7e314f155d3eaef7ebd5b33d43f1c) [a986503](../../commit/a986503df6f1c5554a6fc5d783677ef976c47df3) [8147077](../../commit/8147077affd86d4e85a756d6d7fe928a6e22a76a) [a37f3a2](../../commit/a37f3a2ad1f88e79557bf4f4bf0a8b4b0b6e81d6)
+- 64bit Windows Building - [1782624](../../commit/1782624bfa76e9b8ba7dc0915836a55f9fa0a414) [9ecfd48](../../commit/9ecfd485a14e65c2049d33a81087474f4c54fbe0) [1900c7c](../../commit/1900c7cf94e936a1df937b05dc0baf4acbe16984) [3f63f72](../../commit/3f63f725e1400c777e6492d99e5217671f6248ac)
+- Gameplay Leaderboard - [aa26758](../../commit/aa26758619959b822f4244fc21b395db1e77112b) [28bc91d](../../commit/28bc91df8a12967754a673478ab85eaa337ab8ba) [2f1e20c](../../commit/2f1e20c991f1451aded059e5051e147e7504c902) [f2d86da](../../commit/f2d86dae30440ead27cc0d0f281be32d6391766d) [7874fe6](../../commit/7874fe6b159de00473b7f52f0b6a8c76c9ee0675) [2469cb6](../../commit/2469cb627ee8ecf43a255b8a3bd4c5129802f827) [50342c1](../../commit/50342c1f274f32a0d2566e009a49ee40a7d74685) [76f56b4](../../commit/76f56b436e96c4bf9d3890cf142f96625a3b0009) [16c3e0f](../../commit/16c3e0f68b261a9ad595a0c5e498e7f10ea198ec) [928a80d](../../commit/928a80dabd26c605b60e39f45387abf5cb48a62a) [10f5d13](../../commit/10f5d13ccf6a31bfdaad21becdb79b52a4120656)
+- Eval Screen Viewing using ReplayData - [48b6296](../../commit/48b6296121c2d8ab43cbf4568d5d7667bdba3d5a) [3548df3](../../commit/3548df3e1204dc4f2cb8a61f86d46476985ab180) [1d1b166](../../commit/1d1b1660df5979a319bd8a2e88955c5e3f3e186e) [dbe67c7](../../commit/dbe67c763c391fc61009d27ac33e1b69f3a5764f) [0de270a](../../commit/0de270af1229bac3a0eabcbbb5a84893b8150c74) [e39eb85](../../commit/e39eb8573fce4433cfd95d62df35b4f5597e5fa9)
+- Google Drive Pack download compatibility - [a78c95f](../../commit/a78c95fde7b30a611157f634803fb9d0f50b3d59)
+- Pack Download Mirrors - [4a06d42](../../commit/4a06d42871026814cf6f2dd411339f89f5e7f3f8)
+- Multithread Game Startup (Song Loading) - [e4cfc38](../../commit/e4cfc380ed773f367f762685f78f5af031ad77eb) [fe3f644](../../commit/fe3f644a0972f1adb5a592ccc07f04f8cb36e560) [2c74750](../../commit/2c74750079cb0c0f78137546ebf488a6520fadc4) [c0c72bc](../../commit/c0c72bc2962683ed6bd928c618bcc9bfa1423888) [b8851a6](../../commit/b8851a6eb8de38582d1c5837df11f81fc10a0766)
+- Preference for Multithread Game Startup - [0738389](../../commit/073838956de1ce37ea7ced83a892d7750e0f9b35)
+- Osu (mania) NoteLoader - [3a0e149](../../commit/3a0e149a6c34fc09c1f5253826d520e0cf9a3753)
+- Top Score/All Score toggle in the Scores tab inspired by EtternaOnline - [da97cb6](../../commit/da97cb6ccb29c73f001c49ee18ce9ad195f959a6) [a301581](../../commit/a30158122d4dbb56698b8bfea23fac8c14d461ec) [936f32d](../../commit/936f32dc97f256aa0c2c9f94da4a88acaec92667) [7257aaa](../../commit/7257aaa4eb239c5babf4a51469d7657888ce9fc1) [909d284](../../commit/909d28467b83e645672a580aa4e1fed3ec69a74a)
+- Secret startup process Banners, Backgrounds & CDTitles - [8067cb8](../../commit/8067cb81a56e429f2503ffe3ae276af6d476c023) 
+- Additional Lua documentation - [fa1ca5a](../../commit/fa1ca5aef274daa68d71ba403b4ea25202419bbc) [3b48cbc](../../commit/3b48cbc75ce83579f140d1bd5377e0ceab2fe078)
+- Assets Folder for Avatars, Toasties & Judgments so far - [fa1ca5a](../../commit/fa1ca5aef274daa68d71ba403b4ea25202419bbc) [fd46634](../../commit/fd466344abad1e8efaa4ddde8179c3653a2343ce) [da3b610](../../commit/da3b610d3cef6e906e1a390c102f3df94c6e3ccc)
+- Unique saved states for each keymode (Style) in CustomizeGameplay - [dc3209e](../../commit/dc3209ee7c80314ee61a7e37d4c38e07683cae54) [f1f9291](../../commit/f1f92913b9f0e794a834947a6cf0727005ea6a0b) [570b5ec](../../commit/570b5eca590a3335f11cff8ce4418c9d4314e036) [560f8a4](../../commit/560f8a48b8e41eac79af2345b2d44c2a4b7724e1) [6d893f3](../../commit/6d893f30b40fc1e5797a9d60157516ea1486ae2b) [7061b0c](../../commit/7061b0c3ca3b937a6517dd2635c5c769da782e08) [d87cc54](../../commit/d87cc5427fa95a7bb390b40b726c553c3b5a1866)
+- Theme metrics.ini NoGlow option to disable the flash with Sudden & Hidden - [f1c7e64](../../commit/f1c7e6445e8479783b635c58bf3c41cd5f55cf0f)
+- Statically linked libuv - [590310e](../../commit/590310e8a1a0fbb74c8dc836fd4898cc484f943e)
+- Experimental Country Filtering for Chart Leaderboards - [c60c602](../../commit/c60c60240f8a299e9a40cfd25f302b686bbdef71) [70cceb1](../../commit/70cceb1f5042a97128c6e2735d32845d5f3390e1) [c03f8e5](../../commit/c03f8e5d6f70522c5282752859f308df4ada3915) [de14c0b](../../commit/de14c0bcad11ba745920413f4a7afd7b50e516c5) [efd503d](../../commit/efd503df5d641dac81d31e9b44e9c69c4828be08) [b2addd5](../../commit/b2addd54d79ffabbb6cc40c2b34d4ec421bdfbf5)
+- Pack Downloader Title Menu Button - [1eb7af5](../../commit/1eb7af5e7b760aadf3496ec894db7ebba1f567bb)
+- Lua scripts for "Widgets" which includes Buttons, Sliders & some essential in-betweens - [57fd70e](../../commit/57fd70e95826c55bebfd9c4d24848477d05c37f7) [aa26758](../../commit/aa26758619959b822f4244fc21b395db1e77112b) [51631df](../../commit/51631df490e6b7b29f2b10a4de1753b4ad11f180) [f59e608](../../commit/f59e6085afe2aeb621725d5b9c049faeec0f0ae3) [2f50d22](../../commit/2f50d22c23d07fe02238f63a575848294d4a2002)
+- Lua access to the "Real Theme Name" & "Real Theme Display Name" if defined - [b91c54f](../../commit/b91c54f2d76c4288355f79fce10d2f5268a4d3c6) [7ed1e16](../../commit/7ed1e160dc0a15e70c2186644b861755b032030a) [58c89e3](../../commit/58c89e31708abef6710b83d9aa5f98f8cd0ba930) [58c89e3](../../commit/58c89e31708abef6710b83d9aa5f98f8cd0ba930) [6bb3150](../../commit/6bb31507a72688df3970dedb275b9774e79211dd) 
+- Lua access to the Scorekey for local Scores - [e12bb98](../../commit/e12bb9886b5413f72a2d9cb6b5d2f52f1c133607)
+- Ability to upload old scores with old ReplayData for future use - [7acd837](../../commit/7acd8370b2e8ff6d46c4d1b46bd94344d4e25a30)
+- Preference to tie Noteskin Tap Explosions to Releases or not (actually a bugfix) - [85bacac](../../commit/85bacac48cff8bf8782414c17de07040ff4c4d49) [bfde9a7](../../commit/bfde9a7b52f6c35a5a51f6a501198609cc0b8ef2)
+- Pack Downloader has a cancel button - [7f0bb43](../../commit/7f0bb43debe4671f7be9566c4aed5b94918e4420)
+### Changed
+- Chart Leaderboards will only request from Online when they are missing internally - [b405f04](../../commit/b405f0468679a21984a3d7a78e5a94a541aa4e44) [239250d](../../commit/239250d5db6aa09ca8e598c937866626c925ec59) [23c5f15](../../commit/23c5f150dc69904e2a1df232fc12ed143e12bee2) [0fe45c5](../../commit/0fe45c5c97e05fa3a6132b9319df99e42d5c75e8)
+- Chart Leaderboards should force update when entering MusicSelect to update an existing list - [982b319](../../commit/982b319914217c7ddfc09d74ba797903fd76c43b)
+- Chart Leaderboards should force update if the Gameplay Leaderboard is on - [448c2b8](../../commit/448c2b8bd37ec387d497affbd2d5e0f7d9c9bc52)
+- The Scores tab should display whether or not the Leaderboard is being requested - [ae8e11f](../../commit/ae8e11ff23124bf339b07c986bb007b2cdecb1a3)
+- Guarantee ActorFrameTexture sizes don't round the wrong way when giving size parameters - [b7686d2](../../commit/b7686d2794108c056df4e5f255316b628bafa02f)
+- Improve a Lua method to render a TextureRenderTarget by setting the TextureFiltering to false - [b7686d2](../../commit/b7686d2794108c056df4e5f255316b628bafa02f)
+- CMake will default to Release if no build is specified - [1705fbb](../../commit/1705fbb43583373f6bbfff05ddc5214744e7d6ea)
+- Actors can now Save and Load coordinates - [01a195a](../../commit/01a195a2864300a037a55bd09090fcc237c1e8f0) [81a0836](../../commit/81a08362a786561a72b8ddf51d89969b8743c929)
+- FPS is not logged by default - [1b6ea1a](../../commit/1b6ea1aa93534334b23c5f07b23327971706e3f1)
+- Default osu related timing values in the Custom Judge Windows are changed to modern numbers - [e5cf4ed](../../commit/e5cf4ed836d6dd63b2b6a0d35e95d8b80c3b69bd)
+- Score invalidation by checking mods is more thorough by checking mods not normally available - [8f193a4](../../commit/8f193a4c1c6f0a3eaff7feb0918bdfbcd0eb6e49)
+- DownloadManager's useragent changed to get around the StepmaniaOnline curl block - [cdb1055](../../commit/cdb1055534959514768cce062a042d5813e5719a)
+- DownloadManager downloads are GET requests - [90b136f](../../commit/90b136f01dfea788ddfa3918642147502de0d865)
+- clang-format was run on the source - [3b8aff1](../../commit/3b8aff1c5506024ff27c4b27fe63cbfacda6318a) [454506a](../../commit/454506a6750439bbfc19c7d75a424a34eb9beb2a) [ac4244c](../../commit/ac4244cface672f0f033509b9a1427dcbedbbc26) [ef30777](../../commit/ef30777cd491d0c2ac256ac708241573ee2f1b23) [ce3a867](../../commit/ce3a867c5d83e802e4535d629410018561ec9eaa)
+- uWebSockets updated internally - [9d5e926](../../commit/9d5e92633886461dfba8cdefa2fdce72f9386e15)
+- New default Lift image - [180483b](../../commit/180483b000a01c2370a8c2bf7c5e95beb39365f7) [dc79d47](../../commit/dc79d473e098aed78b7f9b1e0247358ca470522d)
+- Rename the FastLoad & ImageCache Preferences to the previous names because people complained - [544a321](../../commit/544a3216bf6ac34bbabde3b8b26202370474bd6a) [218488f](../../commit/218488f49c5d867c870bdffe410e0db876c9d053)
+- Improve documentation for Contributing - [7a6e2f8](../../commit/7a6e2f8119817960147ac1e14d09101bb8695108)
+- Update Lua documentation XML - [7b179ca](../../commit/7b179ca6f21fe8eed0e2e0cf6239589626991c33) [afc1cd0](../../commit/afc1cd0968d6dedbc70091288ca33209a0d8c518)
+- Default Visual Studio Project is the Etterna project - [0cd39e4](../../commit/0cd39e4f0eef991696acc234672056758049bdaf)
+- A Message is Broadcasted every ScreenInstallOverlay Update iteration if all Downloads are done. Move this so it only happens once - [8bba406](../../commit/8bba40611f22697949fd974876fd67dee0428692)
+- Loading window doesn't need to update so often - [e644dee](../../commit/e644deeb8dcffd95dcbabfb56d3bfc76c3b820ec) [e6fdaee](../../commit/e6fdaee37bc162433966d02eb025c7365dd3de8d)
+- Numpad number input should be ignored for the tab shortcuts because some people bind those to arrows - [4ec28b7](../../commit/4ec28b75d84b2664e2e22394fcfcb8990380e0f8)
+- Uninstaller should uninstall old or dead theme files - [907ca82](../../commit/907ca82664343eb22461412f16c5f80e41a8f3a9)
+- The fallback settings Lua Scripts should work better with renamed themes - [054f387](../../commit/054f387ab69bf32a8787418b13d20d101316e311)
+- To facilitate some Replay work, PlayerOptions has had some very utility methods added - [a986503](../../commit/a986503df6f1c5554a6fc5d783677ef976c47df3) [8147077](../../commit/8147077affd86d4e85a756d6d7fe928a6e22a76a)
+- Don't automatically migrate all ReplayData on Profile load - [b333460](../../commit/b333460e86714cd20f6684d63e57e934f92902b9)
+- The map for Scorekeys to Scores should be public (screw OOP convention) - [91e6f5f](../../commit/91e6f5f06fc20d68d189afa0d4b968e242163b45)
+### Removed
+- The Manual Folder - [8411c5a](../../commit/8411c5a6b2c17464d3a67b023680922c83f56af8) [aab9d3d](../../commit/aab9d3dc116a184cd5797633e57ab9afe4fc82f2)
+- Carry-combo Preference - [667a1d1](../../commit/667a1d1e26c04b7adf3dbcfa97729a1270db18b4) [b29f756](../../commit/b29f756d0d6fd0b25d6f7824b977ca764fa876c7)
+### Fixed
+- Crash when loading old Profile due to leftover Replay code - [02d48b7](../../commit/02d48b76ff7bb616df9d92d94dd11d6d4a37c1a8) [e88a666](../../commit/e88a66644517eaab05826658c1c2d115cf07a238)
+- Crash when pressing Player 2 Start on SelectMusic - [9da774a](../../commit/9da774ab1d5421b517eeb74655c2716636368081)
+- Exiting a non dance-single Style file filters the whole MusicWheel to that Style - [c4731a0](../../commit/c4731a08cbbe558f694c78c83dd1699d752ed0cc)
+- NoteField movement on the Y axis is not symmetrical when switching between Upscroll & Reverse - [536845c](../../commit/536845c93997136dc762c381dec07a75e4eb6ca6) [6c31207](../../commit/6c312075894d0e60c2a686302d2d02af783dfb6d)
+- Some Screens indicate math.mod is missing from Lua (nil) - [48b6296](../../commit/48b6296121c2d8ab43cbf4568d5d7667bdba3d5a)
+- Crash when changing audio output device on Windows - [c444cbf](../../commit/c444cbfb01771f723489437d3260caaf3752db32)
+- Lua error on Profile Top Score list breaks coloring - [b1e7ddd](../../commit/b1e7ddd81c715469b878c7d0e575150955de25c6)
+- Lua error in Evaluation Screen breaks Custom Judge Windows - [b404c6e](../../commit/b404c6eb5214502a696c02998f60d8fea6cddf06)
+- Loading ReplayData from disk just crashes the game if Hold data is present - [26b99ce](../../commit/26b99ce8c463c81d8f805b4de8fcb40d025201dc)
+- Coverity Scan detected memory leaks - [900aaca](../../commit/900aacaae35f054c9dc993268e389ba0a0b6387f) [993933b](../../commit/993933b39d93e766ca95364106c3457c22ca80fe) [bad57e7](../../commit/bad57e75b0786a3119426368f0d9475110d76e4e)
+- Coverity Scan detected null pointers - [8f76c32](../../commit/8f76c329c49becda8eddc3d9e4ada6f48e08712e) [2bcca2e](../../commit/2bcca2e085351e6f5ace26dbeb32852578617610) [14d9d64](../../commit/14d9d643801c7359b83894dcf735c8f48b153a18)
+- Changing avatar causes the playing music to stop - [cd2a460](../../commit/cd2a46015c5bfd7aeec6301adcb508c13a4d52c4)
+- Opening the Offset Plot in the Scores tab causes the playing music to stop - [bd0fff5](../../commit/bd0fff5ba610000f6312d7cda960c0a51f280cb6)
+- Sync Change Overlay disappears once and never comes back when a sync button is pressed - [53f07fa](../../commit/53f07fa247e13057e7eb9ea658487b423922d9c0)
+- Crash on entering the Advanced Options - [fc0cf22](../../commit/fc0cf2213f26061fbc73526fd865dfeccb1f9219)
+- Gameplay stutters when logged in due to DownloadManager updating - [4ee14f8](../../commit/4ee14f8faff142e1d870ed2a85bc62d728f4fa48)
+- Bad Lua return types crash Mac/Linux/64bit - [0f3218e](../../commit/0f3218e48815d1fd910d777cf2eb979f0cd2d052) [25a9f28](../../commit/25a9f2818ed72d2feac5e86fb487da0778cb6445) [893cb47](../../commit/893cb479163d4d3195bf694c42433d95e919e17f)
+- Mac mouse appearance or movement may be inaccurate - [0e603b3](../../commit/0e603b3e9c2e627f98c82252dd60f005f153f22b)
+- The draw order for Favorites, Goals & Favorites is weird so the layering looks awkward when all 3 are active - [de9c98d](../../commit/de9c98d7ea908e14a3ec5ee470fa320c84702a02)
+- DWI files suddenly load no Notedata if changing offset - [ab4b04b](../../commit/ab4b04bf0b169937d25da1a65f5ea9b400712448)
+- Starting Gameplay on a file with no valid music path crashes. At least try to reload - [f43a7c2](../../commit/f43a7c2ce52cbdd387f9354e5841a92fc52bf39b)
+- Pack Downloads sometimes end up in the root folder somehow - [34effcc](../../commit/34effcc61ec92ab5d2000c2d15d65027221b5559)
+- The function used for making hashes on Linux (getCpuid) doesn't work - [09d88d6](../../commit/09d88d68fbe91131122ec7c88760a22c776b79d2) [4378f4c](../../commit/4378f4cca6bd737540a2ec16a21ec2ecb3eaa85d)
+- Space does not work on the Pack Download Screen - [5140c30](../../commit/5140c308220515e68ddc6731037a779787b5e70f)
+
+
 ## [0.60.0] - 2018-08-18 - Online Integration & LuaJIT
 
 Windows and Mac installer release. Multiplayer is functional but private, so the option is hidden in this release.
@@ -96,7 +305,7 @@ Windows and Mac installer release. Multiplayer is functional but private, so the
   - New Splash/Loading Screen - [5de14f1](../../commit/5de14f1f1f159b5b53ccf9c9a65de4f6dcf95989) [ce28703](../../commit/ce2870356b6dda5eb74f255bdd37713c6499e676) [0a2cebd](../../commit/0a2cebd27c1a2a4eb571fab6e5b40b53bb0c5c96) [9863e31](../../commit/9863e31364036c05811562b0bbebdec59aa82b20) [6591804](../../commit/65918044bafeadd024bdb9e2fea7bfac926d31e6) [83f37ac](../../commit/83f37ac8cd95aff8038884fcc4bcaf50f3b347f1) [5e9c7b4](../../commit/5e9c7b49afce36224e3b6a451f76cf48655fa737) [fff0d9c](../../commit/fff0d9ce2d1c90f83ebe0753972cc096769a2937)
   - Clickable Title Menu Items - [2a8a970](../../commit/2a8a970ba21445f0ccb083a93c8d042c1bcf4c33)
   - New Favorite & Permamirror Icons - [b76b019](../../commit/b76b0197e31d24e3058817dba22e635177959ace)
-- Service Switch is now bound to CTRL + OPERATOR due to fat fingers - [57ce8e5](../../commit/57ce8e5be3deb4124019c7d7d445a2dbaed8bde1)
+- Service Switch is now bound to `Ctrl` + `Operator` due to fat fingers - [57ce8e5](../../commit/57ce8e5be3deb4124019c7d7d445a2dbaed8bde1)
 - Repurpose SMZip code to open Downloaded Packs - [d2367b1](../../commit/d2367b1710a7887156d10ebf1637aeca37d3651f)
 - Support for clicking to change avatar - [b4cad27](../../commit/b4cad271f4226f7637bbbc289d70786f07ac53d1) [dd0fb66](../../commit/dd0fb666ce9f6393043b5b059efb72d70df5bd26)
 - Charts that are not 4k show the Difficulty number as the MSD - [7197a03](../../commit/7197a0341ccf04b0bc2fbe92883fa0c9dc27265c)
