@@ -230,13 +230,13 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 		return false;
 	}
 
-#if defined(CPU_X86_64) || defined(CPU_X86)
+#if defined(__x86_64__) || defined(__i386__)
 	user_regs_struct regs;
 	if (ptrace(PTRACE_GETREGS, pid_t(ThreadID), NULL, &regs) == -1)
 		return false;
 
 	ctx->pid = pid_t(ThreadID);
-#if defined(CPU_X86_64)
+#if defined(__x86_64__)
 	ctx->ip = (void*)regs.rip;
 	ctx->bp = (void*)regs.rbp;
 	ctx->sp = (void*)regs.rsp;
