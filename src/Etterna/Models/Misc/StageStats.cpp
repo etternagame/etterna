@@ -218,7 +218,7 @@ getMacHash(uint16_t& mac1, uint16_t& mac2)
 	}
 }
 
-#ifdef DARWIN
+#ifdef __APPLE__
 #include <mach-o/arch.h>
 uint16_t
 getCpuHash()
