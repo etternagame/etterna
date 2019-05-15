@@ -14,11 +14,11 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
-const RString XNode::TEXT_ATTRIBUTE = "__TEXT__";
+const std::string XNode::TEXT_ATTRIBUTE = "__TEXT__";
 
 XNode::XNode() = default;
 
-XNode::XNode(const RString& sName)
+XNode::XNode(const std::string& sName)
 {
 	m_sName = sName;
 }
@@ -48,7 +48,7 @@ XNode::Free()
 }
 
 void
-XNodeStringValue::GetValue(RString& out) const
+XNodeStringValue::GetValue(std::string& out) const
 {
 	out = m_sValue;
 }
@@ -70,7 +70,7 @@ XNodeStringValue::GetValue(bool& out) const
 void
 XNodeStringValue::GetValue(unsigned& out) const
 {
-	out = strtoul(m_sValue, NULL, 0);
+	out = strtoul(m_sValue.c_str(), NULL, 0);
 }
 void
 XNodeStringValue::PushValue(lua_State* L) const
@@ -79,7 +79,7 @@ XNodeStringValue::PushValue(lua_State* L) const
 }
 
 void
-XNodeStringValue::SetValue(const RString& v)
+XNodeStringValue::SetValue(const std::string& v)
 {
 	m_sValue = v;
 }
@@ -105,7 +105,7 @@ XNodeStringValue::SetValueFromStack(lua_State* L)
 }
 
 const XNodeValue*
-XNode::GetAttr(const RString& attrname) const
+XNode::GetAttr(const std::string& attrname) const
 {
 	XAttrs::const_iterator it = m_attrs.find(attrname);
 	if (it != m_attrs.end())
@@ -114,7 +114,7 @@ XNode::GetAttr(const RString& attrname) const
 }
 
 bool
-XNode::PushAttrValue(lua_State* L, const RString& sName) const
+XNode::PushAttrValue(lua_State* L, const std::string& sName) const
 {
 	const XNodeValue* pAttr = GetAttr(sName);
 	if (pAttr == NULL) {
@@ -126,7 +126,7 @@ XNode::PushAttrValue(lua_State* L, const RString& sName) const
 }
 
 XNodeValue*
-XNode::GetAttr(const RString& attrname)
+XNode::GetAttr(const std::string& attrname)
 {
 	XAttrs::iterator it = m_attrs.find(attrname);
 	if (it != m_attrs.end())
@@ -135,9 +135,9 @@ XNode::GetAttr(const RString& attrname)
 }
 
 XNode*
-XNode::GetChild(const RString& sName)
+XNode::GetChild(const std::string& sName)
 {
-	multimap<RString, XNode*>::iterator by_name =
+	multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
@@ -147,7 +147,7 @@ XNode::GetChild(const RString& sName)
 }
 
 bool
-XNode::PushChildValue(lua_State* L, const RString& sName) const
+XNode::PushChildValue(lua_State* L, const std::string& sName) const
 {
 	const XNode* pChild = GetChild(sName);
 	if (pChild == NULL) {
@@ -159,9 +159,9 @@ XNode::PushChildValue(lua_State* L, const RString& sName) const
 }
 
 const XNode*
-XNode::GetChild(const RString& sName) const
+XNode::GetChild(const std::string& sName) const
 {
-	multimap<RString, XNode*>::const_iterator by_name =
+	multimap<std::string, XNode*>::const_iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
@@ -197,7 +197,7 @@ XNode::RemoveChild(XNode* node, bool bDelete)
 void
 XNode::RemoveChildFromByName(XNode* node)
 {
-	multimap<RString, XNode*>::iterator by_name =
+	multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(node->m_sName);
 	if (by_name != m_children_by_name.end() &&
 		node->GetName() == by_name->second->GetName()) {
@@ -219,7 +219,7 @@ XNode::RenameChildInByName(XNode* node)
 
 // detach attribute
 bool
-XNode::RemoveAttr(const RString& sName)
+XNode::RemoveAttr(const std::string& sName)
 {
 	XAttrs::iterator it = m_attrs.find(sName);
 	if (it == m_attrs.end())
@@ -234,7 +234,7 @@ XNode::RemoveAttr(const RString& sName)
  * will be deleted. If bOverwrite is false and a node already exists with that
  * name, the new value will be deleted. */
 XNodeValue*
-XNode::AppendAttrFrom(const RString& sName, XNodeValue* pValue, bool bOverwrite)
+XNode::AppendAttrFrom(const std::string& sName, XNodeValue* pValue, bool bOverwrite)
 {
 	DEBUG_ASSERT(sName.size());
 	pair<XAttrs::iterator, bool> ret =
@@ -255,7 +255,7 @@ XNode::AppendAttrFrom(const RString& sName, XNodeValue* pValue, bool bOverwrite)
 };
 
 XNodeValue*
-XNode::AppendAttr(const RString& sName)
+XNode::AppendAttr(const std::string& sName)
 {
 	DEBUG_ASSERT(sName.size());
 	pair<XAttrs::iterator, bool> ret =
