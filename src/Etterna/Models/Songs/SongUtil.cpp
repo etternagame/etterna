@@ -1059,22 +1059,21 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 	}
 
 	set<StepsType> vStepsTypes;
-	FOREACH(const Style*, vpPossibleStyles, s)
-	vStepsTypes.insert((*s)->m_StepsType);
+	for(auto const s : vpPossibleStyles)
+	    vStepsTypes.insert(s->m_StepsType);
 
 	/* filter out hidden StepsTypes */
 	const vector<StepsType>& vstToShow =
 	  CommonMetrics::STEPS_TYPES_TO_SHOW.GetValue();
-	FOREACHS(StepsType, vStepsTypes, st)
-	{
+	for(auto st : vStepsTypes){
 		bool bShowThisStepsType =
-		  find(vstToShow.begin(), vstToShow.end(), *st) != vstToShow.end();
+		  find(vstToShow.begin(), vstToShow.end(), st) != vstToShow.end();
 
 		int iNumPlayers = GAMESTATE->GetNumPlayersEnabled();
 		iNumPlayers = max(iNumPlayers, 1);
 
 		if (bShowThisStepsType)
-			vOut.insert(*st);
+			vOut.insert(st);
 	}
 }
 
@@ -1084,8 +1083,8 @@ SongUtil::GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut)
 	set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
 
-	FOREACHS(StepsType, vStepsType, st)
-	SongUtil::GetSteps(pSong, vOut, *st);
+	for(auto st : vStepsType)
+	    SongUtil::GetSteps(pSong, vOut, st);
 
 	StepsUtil::SortNotesArrayByDifficulty(vOut);
 	StepsUtil::SortStepsByTypeAndDifficulty(vOut);

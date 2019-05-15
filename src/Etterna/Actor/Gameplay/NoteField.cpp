@@ -165,8 +165,8 @@ NoteField::CacheAllUsedNoteSkins()
 		if (unused)
 			setNoteSkinsToUnload.insert(d->first);
 	}
-	FOREACHS(RString, setNoteSkinsToUnload, s)
-	UncacheNoteSkin(*s);
+	for(auto s : setNoteSkinsToUnload)
+	    UncacheNoteSkin(s);
 
 	RString sCurrentNoteSkinLower =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;

@@ -1128,8 +1128,8 @@ class InvalidateObject
 static void
 InvalidateObjects()
 {
-	FOREACHS(InvalidateObject*, g_InvalidateList, it)
-	(*it)->Invalidate();
+	for(auto &it : g_InvalidateList)
+	    it->Invalidate();
 }
 
 class RageCompiledGeometryHWOGL

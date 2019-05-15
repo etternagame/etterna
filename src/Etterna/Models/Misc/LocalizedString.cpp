@@ -32,9 +32,8 @@ void
 LocalizedString::RegisterLocalizer(MakeLocalizer pFunc)
 {
 	g_pMakeLocalizedStringImpl = pFunc;
-	FOREACHS(LocalizedString*, *m_Subscribers.m_pSubscribers, l)
-	{
-		LocalizedString* pLoc = *l;
+	for(auto l : *m_Subscribers.m_pSubscribers){
+		LocalizedString* pLoc = l;
 		pLoc->CreateImpl();
 	}
 }

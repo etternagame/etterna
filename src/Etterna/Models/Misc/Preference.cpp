@@ -24,10 +24,9 @@ IPreference::~IPreference()
 IPreference*
 IPreference::GetPreferenceByName(const RString& sName)
 {
-	FOREACHS(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	{
-		if (!(*p)->GetName().CompareNoCase(sName))
-			return *p;
+	for(auto p : *m_Subscribers.m_pSubscribers){
+		if (!p->GetName().CompareNoCase(sName))
+			return p;
 	}
 
 	return NULL;

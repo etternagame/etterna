@@ -3348,11 +3348,10 @@ Player::UpdateJudgedRows(float fDeltaTime)
 			*m_pIterUnjudgedMineRows = iter;
 		}
 
-		FOREACHS(RageSound*, setSounds, s)
-		{
+		for(auto &s : setSounds){
 			// Only play one copy of each mine sound at a time per player.
-			(*s)->Stop();
-			(*s)->Play(false);
+			s->Stop();
+			s->Play(false);
 		}
 	}
 }

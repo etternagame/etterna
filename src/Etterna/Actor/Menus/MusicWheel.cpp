@@ -414,9 +414,8 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 				set<StepsType> vStepsType;
 				SongUtil::GetPlayableStepsTypes(pSong, vStepsType);
 
-				FOREACHS(StepsType, vStepsType, st)
-				{
-					if (pSong->HasStepsType(*st)) {
+				for(auto st : vStepsType){
+					if (pSong->HasStepsType(st)) {
 						arraySongs.emplace_back(pSong);
 						break;
 					}
