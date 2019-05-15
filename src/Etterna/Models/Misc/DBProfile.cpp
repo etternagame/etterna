@@ -857,11 +857,10 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 
 	unordered_map<string, ScoresForChart>& pScores =
 	  *SCOREMAN->GetProfileScores();
-	FOREACHUM(string, ScoresForChart, pScores, chartPair)
-	{
+	for(auto chartPair : pScores){
 		// First is ckey and two is ScoresForChart
-		Chart ch = ((chartPair->second).ch);
-		ch.FromKey(chartPair->first);
+		Chart ch = ((chartPair.second).ch);
+		ch.FromKey(chartPair.first);
 
 		int chartKeyID = FindOrCreateChartKey(db, ch.key);
 		int songID = FindOrCreateSong(db, ch.lastpack, ch.lastsong);
@@ -874,7 +873,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		int chartID = (int)sqlite3_last_insert_rowid(db->getHandle());
 
 		// Add scores per rate
-		FOREACHM(int, ScoresAtRate, chartPair->second.ScoresByRate, ratePair)
+		FOREACHM(int, ScoresAtRate, chartPair.second.ScoresByRate, ratePair)
 		{
 			// first is rate int and second is ScoresAtRate
 			int rate = ratePair->first;
@@ -892,14 +891,13 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				scoresAtRateID =
 				  (int)sqlite3_last_insert_rowid(db->getHandle());
 			}
-			FOREACHUM(string, HighScore, ratePair->second.scores, i)
-			{
+			for(auto i : ratePair->second.scores){
 				if (mode != WriteOnlyWebExport ||
-					i->second.GetScoreKey() ==
+					i.second.GetScoreKey() ==
 					  ratePair->second.PBptr->GetScoreKey()) {
 					// prune out sufficiently low scores
-					if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
-						HighScore* hs = &(i->second);
+					if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
+						HighScore* hs = &(i.second);
 						// Add scores
 						SQLite::Statement* insertScore;
 						int scorekeyID;

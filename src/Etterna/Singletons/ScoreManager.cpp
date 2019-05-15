@@ -68,8 +68,8 @@ ScoresAtRate::GetSortedKeys()
 {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
-	FOREACHUM(string, HighScore, scores, i)
-	tmp.emplace(i->second.GetWifeScore(), i->first);
+	for(auto i : scores)
+	    tmp.emplace(i.second.GetWifeScore(), i.first);
 	FOREACHM(float, string, tmp, j)
 	o.emplace_back(j->second);
 	return o;
@@ -274,11 +274,10 @@ vector<vector<HighScore*>>
 ScoreManager::GetAllPBPtrs(const string& profileID)
 {
 	vector<vector<HighScore*>> vec;
-	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
-	{
-		if (!SONGMAN->IsChartLoaded(i->first))
+	for(auto i : pscores[profileID]){
+		if (!SONGMAN->IsChartLoaded(i.first))
 			continue;
-		vec.emplace_back(i->second.GetAllPBPtrs());
+		vec.emplace_back(i.second.GetAllPBPtrs());
 	}
 	return vec;
 }
@@ -306,11 +305,10 @@ ScoreManager::GetChartPBUpTo(const string& ck,
 void
 ScoreManager::SetAllTopScores(const string& profileID)
 {
-	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
-	{
-		if (!SONGMAN->IsChartLoaded(i->first))
+    for(auto i : pscores[profileID]){
+		if (!SONGMAN->IsChartLoaded(i.first))
 			continue;
-		i->second.SetTopScores();
+		i.second.SetTopScores();
 	}
 }
 
@@ -563,11 +561,10 @@ void
 ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 {
 	TopSSRs.clear();
-	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
-	{
-		if (!SONGMAN->IsChartLoaded(i->first))
+    for(auto i : pscores[profileID]){
+		if (!SONGMAN->IsChartLoaded(i.first))
 			continue;
-		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
+		vector<HighScore*> pbs = i.second.GetAllPBPtrs();
 		FOREACH(HighScore*, pbs, hs) { TopSSRs.emplace_back(*hs); }
 	}
 

@@ -45,13 +45,6 @@
 		 (var) != (vect).end();                                                \
 		 ++(var))
 
-/** @brief General foreach loop iterating over an unordered map. */
-#define FOREACHUM(keyType, valType, vect, var)                                 \
-                                                                               \
-	for (unordered_map<keyType, valType>::iterator var = (vect).begin();       \
-		 (var) != (vect).end();                                                \
-		 ++(var))
-	    
 #endif
 
 /**
