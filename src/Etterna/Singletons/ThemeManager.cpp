@@ -825,11 +825,9 @@ ThemeManager::GetPathInfoToAndFallback(PathInfo& out,
 
 	int n = 100;
 	while (n--) {
-		FOREACHD_CONST(Theme, g_vThemes, iter)
-		{
+		for(auto iter : g_vThemes){
 			// search with requested name
-			if (GetPathInfoToRaw(
-				  out, iter->sThemeName, category, sMetricsGroup, sElement))
+			if (GetPathInfoToRaw(out, iter.sThemeName, category, sMetricsGroup, sElement))
 				return true;
 		}
 
