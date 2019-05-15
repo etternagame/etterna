@@ -615,10 +615,9 @@ ScoresAtRate::CreateNode(const int& rate) const
 	int saved = 0;
 
 	// prune out sufficiently low scores
-	FOREACHUM_CONST(string, HighScore, scores, i)
-	{
-		if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
-			o->AppendChild(i->second.CreateEttNode());
+	for(auto i : scores){
+		if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
+			o->AppendChild(i.second.CreateEttNode());
 			saved++;
 		}
 	}
@@ -668,9 +667,8 @@ XNode*
 ScoreManager::CreateNode(const string& profileID) const
 {
 	XNode* o = new XNode("PlayerScores");
-	FOREACHUM_CONST(string, ScoresForChart, pscores.find(profileID)->second, ch)
-	{
-		auto node = ch->second.CreateNode(ch->first);
+	for(auto ch : pscores.find(profileID)->second){
+		auto node = ch.second.CreateNode(ch.first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
 		else

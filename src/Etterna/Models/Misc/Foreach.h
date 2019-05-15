@@ -51,15 +51,7 @@
 	for (unordered_map<keyType, valType>::iterator var = (vect).begin();       \
 		 (var) != (vect).end();                                                \
 		 ++(var))
-
-/** @brief General foreach loop iterating over an unordered map. blah blah const
- * blah*/
-#define FOREACHUM_CONST(keyType, valType, vect, var)                           \
-                                                                               \
-	for (unordered_map<keyType, valType>::const_iterator var = (vect).begin(); \
-		 (var) != (vect).end();                                                \
-		 ++(var))
-
+	    
 #endif
 
 /**

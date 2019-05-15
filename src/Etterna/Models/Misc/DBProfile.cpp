@@ -672,9 +672,8 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 	  "(chartkeyid) REFERENCES chartkeys(id))");
 
 	if (!profile->goalmap.empty()) {
-		FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
-		{
-			const GoalsForChart& cg = i->second;
+		for(auto i : profile->goalmap){
+			const GoalsForChart& cg = i.second;
 			if (cg.goals.empty())
 				continue;
 			int chID = FindOrCreateChartKey(db, cg.goals[0].chartkey);

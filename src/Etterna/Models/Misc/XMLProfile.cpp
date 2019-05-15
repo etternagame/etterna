@@ -187,9 +187,8 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the scoregoals node.");
 
 	XNode* goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
-	{
-		const GoalsForChart& cg = i->second;
+	for(auto i : profile->goalmap){
+		const GoalsForChart& cg = i.second;
 		goals->AppendChild(cg.CreateNode());
 	}
 	return goals;
