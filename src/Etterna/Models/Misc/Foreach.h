@@ -23,14 +23,6 @@
 		 (var) != (vect).end();                                                \
 		 ++(var))
 
-/** @brief General foreach loop iterating over a list, using a constant
- * iterator. */
-#define FOREACHL_CONST(elemType, vect, var)                                    \
-                                                                               \
-	for (list<elemType>::const_iterator var = (vect).begin();                  \
-		 (var) != (vect).end();                                                \
-		 ++(var))
-
 /** @brief General foreach loop iterating over a map. */
 #define FOREACHM(keyType, valType, vect, var)                                  \
                                                                                \
