@@ -137,9 +137,8 @@ WriteGlobalTags(RageFile& f, Song& out)
 
 	f.Write("#STOPS:");
 	vector<RString> stopLines;
-	FOREACHM(float, float, allPauses, ap)
-	{
-		stopLines.push_back(ssprintf("%.6f=%.6f", ap->first, ap->second));
+	for(auto ap : allPauses){
+		stopLines.push_back(ssprintf("%.6f=%.6f", ap.first, ap.second));
 	}
 	f.PutLine(join(",\n", stopLines));
 

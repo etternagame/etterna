@@ -273,8 +273,8 @@ BackgroundImpl::Unload()
 void
 BackgroundImpl::Layer::Unload()
 {
-	FOREACHM(BackgroundDef, Actor*, m_BGAnimations, iter)
-	delete iter->second;
+	for(auto iter : m_BGAnimations)
+	    delete iter.second;
 	m_BGAnimations.clear();
 	m_aBGChanges.clear();
 

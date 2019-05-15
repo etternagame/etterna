@@ -157,13 +157,12 @@ NoteField::CacheAllUsedNoteSkins()
 	/* If we're changing note skins in the editor, we can have old note skins
 	 * lying around.  Remove them so they don't accumulate. */
 	set<RString> setNoteSkinsToUnload;
-	FOREACHM(RString, NoteDisplayCols*, m_NoteDisplays, d)
-	{
+	for(auto d : m_NoteDisplays){
 		bool unused =
-		  find(asSkinsLower.begin(), asSkinsLower.end(), d->first) ==
+		  find(asSkinsLower.begin(), asSkinsLower.end(), d.first) ==
 		  asSkinsLower.end();
 		if (unused)
-			setNoteSkinsToUnload.insert(d->first);
+			setNoteSkinsToUnload.insert(d.first);
 	}
 	for(auto s : setNoteSkinsToUnload)
 	    UncacheNoteSkin(s);

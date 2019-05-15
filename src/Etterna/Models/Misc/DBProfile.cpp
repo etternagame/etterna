@@ -873,10 +873,9 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		int chartID = (int)sqlite3_last_insert_rowid(db->getHandle());
 
 		// Add scores per rate
-		FOREACHM(int, ScoresAtRate, chartPair.second.ScoresByRate, ratePair)
-		{
+		for(auto ratePair : chartPair.second.ScoresByRate){
 			// first is rate int and second is ScoresAtRate
-			int rate = ratePair->first;
+			int rate = ratePair.first;
 			int scoresAtRateID;
 			if (mode != WriteOnlyWebExport) {
 				SQLite::Statement insertScoresAtRate(
@@ -884,17 +883,17 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				insertScoresAtRate.bind(1, chartID);
 				insertScoresAtRate.bind(2, rate);
 				insertScoresAtRate.bind(
-				  3, GradeToString(ratePair->second.bestGrade));
+				  3, GradeToString(ratePair.second.bestGrade));
 				insertScoresAtRate.bind(4,
-										ratePair->second.PBptr->GetScoreKey());
+										ratePair.second.PBptr->GetScoreKey());
 				insertScoresAtRate.exec();
 				scoresAtRateID =
 				  (int)sqlite3_last_insert_rowid(db->getHandle());
 			}
-			for(auto i : ratePair->second.scores){
+			for(auto i : ratePair.second.scores){
 				if (mode != WriteOnlyWebExport ||
 					i.second.GetScoreKey() ==
-					  ratePair->second.PBptr->GetScoreKey()) {
+					  ratePair.second.PBptr->GetScoreKey()) {
 					// prune out sufficiently low scores
 					if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
 						HighScore* hs = &(i.second);

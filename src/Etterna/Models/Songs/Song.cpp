@@ -1711,10 +1711,9 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
 		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
 		Skillset why = Skillset_Invalid;
 		int iA = 1;
-		FOREACHM(float, Skillset, sortedstuffs, poodle)
-		{
+		for(auto poodle : sortedstuffs){
 			if (iA == NUM_Skillset)
-				why = poodle->second;
+				why = poodle.second;
 			++iA;
 		}
 

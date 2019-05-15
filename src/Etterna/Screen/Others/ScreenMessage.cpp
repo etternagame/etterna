@@ -35,9 +35,9 @@ ScreenMessageHelpers::ToScreenMessage(const RString& sName)
 RString
 ScreenMessageHelpers::ScreenMessageToString(ScreenMessage SM)
 {
-	FOREACHM(RString, ScreenMessage, *m_pScreenMessages, it)
-	if (SM == it->second)
-		return (*it).first;
+	for(auto it : *m_pScreenMessages)
+        if (SM == it.second)
+            return it.first;
 
 	return RString();
 }

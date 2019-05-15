@@ -171,8 +171,8 @@ OptionsList::OptionsList()
 
 OptionsList::~OptionsList()
 {
-	FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-	delete hand->second;
+	for(auto hand : m_Rows)
+	    delete hand.second;
 }
 
 void
@@ -245,9 +245,8 @@ void
 OptionsList::Reset()
 {
 	/* Import options. */
-	FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-	{
-		RString sLineName = hand->first;
+    for(auto hand : m_Rows){
+		RString sLineName = hand.first;
 		ImportRow(sLineName);
 	}
 }
@@ -683,10 +682,9 @@ OptionsList::Start()
 			GAMESTATE->ResetToDefaultSongOptions(ModsLevel_Preferred);
 
 			/* Import options. */
-			FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-			{
-				ImportRow(hand->first);
-				SelectionsChanged(hand->first);
+            for(auto hand : m_Rows) {
+				ImportRow(hand.first);
+				SelectionsChanged(hand.first);
 			}
 
 			UpdateMenuFromSelections();

@@ -339,8 +339,7 @@ InputFilter::Update(float fDeltaTime)
 
 	vector<ButtonStateMap::iterator> ButtonsToErase;
 
-	FOREACHM(DeviceButtonPair, ButtonState, g_ButtonStates, b)
-	{
+	for(auto b = g_ButtonStates.begin(); b != g_ButtonStates.end(); ++b){
 		di.device = b->first.device;
 		di.button = b->first.button;
 		ButtonState& bs = b->second;

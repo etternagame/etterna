@@ -70,8 +70,8 @@ ScoresAtRate::GetSortedKeys()
 	vector<string> o;
 	for(auto i : scores)
 	    tmp.emplace(i.second.GetWifeScore(), i.first);
-	FOREACHM(float, string, tmp, j)
-	o.emplace_back(j->second);
+	for(auto j : tmp)
+	    o.emplace_back(j.second);
 	return o;
 }
 
@@ -150,9 +150,9 @@ HighScore*
 ScoresForChart::GetPBUpTo(float& rate)
 {
 	int key = RateToKey(rate);
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-	if (i->first <= key)
-		return i->second.PBptr;
+    for(auto i : ScoresByRate)
+        if (i.first <= key)
+            return i.second.PBptr;
 
 	return NULL;
 }
@@ -175,8 +175,8 @@ vector<float>
 ScoresForChart::GetPlayedRates()
 {
 	vector<float> o;
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-	o.emplace_back(KeyToRate(i->first));
+    for(auto i : ScoresByRate)
+	    o.emplace_back(KeyToRate(i.first));
 	return o;
 }
 
@@ -184,8 +184,8 @@ vector<int>
 ScoresForChart::GetPlayedRateKeys()
 {
 	vector<int> o;
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-	o.emplace_back(i->first);
+    for(auto i : ScoresByRate)
+	    o.emplace_back(i.first);
 	return o;
 }
 
@@ -217,9 +217,8 @@ void
 ScoresForChart::SetTopScores()
 {
 	vector<HighScore*> eligiblescores;
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-	{
-		auto& hs = i->second.noccPBptr;
+    for(auto i : ScoresByRate){
+		auto& hs = i.second.noccPBptr;
 		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
 			hs->GetEtternaValid() && hs->GetChordCohesion() == 0 &&
 			hs->GetGrade() != Grade_Failed)
@@ -228,9 +227,8 @@ ScoresForChart::SetTopScores()
 
 	// if there aren't 2 noccpbs in top scores we might as well use old cc scores -mina
 	if (eligiblescores.size() < 2) {
-		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-		{
-			auto& hs = i->second.PBptr;
+		for(auto i : ScoresByRate){
+			auto& hs = i.second.PBptr;
 			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
 				hs->GetEtternaValid() && hs->GetChordCohesion() != 0 &&
 				hs->GetGrade() != Grade_Failed)
@@ -265,8 +263,8 @@ vector<HighScore*>
 ScoresForChart::GetAllPBPtrs()
 {
 	vector<HighScore*> o;
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-	o.emplace_back(i->second.PBptr);
+	for(auto i : ScoresByRate)
+	    o.emplace_back(i.second.PBptr);
 	return o;
 }
 

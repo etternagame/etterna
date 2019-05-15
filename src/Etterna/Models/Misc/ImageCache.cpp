@@ -166,8 +166,8 @@ ImageCache::OutputStats() const
 void
 ImageCache::UnloadAllImages()
 {
-	FOREACHM(std::string, RageSurface*, g_ImagePathToImage, it)
-	delete it->second;
+	for(auto it : g_ImagePathToImage)
+	    delete it.second;
 
 	g_ImagePathToImage.clear();
 }

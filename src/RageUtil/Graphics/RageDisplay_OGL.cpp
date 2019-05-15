@@ -798,8 +798,8 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 		/* Delete all render targets.  They may have associated resources other
 		 * than the texture itself. */
-		FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
-		delete rt->second;
+		for(auto rt : g_mapRenderTargets)
+		    delete rt.second;
 		g_mapRenderTargets.clear();
 
 		/* Recreate all vertex buffers. */

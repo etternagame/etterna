@@ -841,14 +841,13 @@ class LunaSteps : public Luna<Steps>
 		Skillset o = Skillset_Invalid;
 		float rval = 0.f;
 		float highval = 0.f;
-		FOREACHM(float, Skillset, sortedskillsets, thingy)
-		{
+		for(auto thingy : sortedskillsets){
 			if (i == rank) {
-				rval = thingy->first;
-				o = thingy->second;
+				rval = thingy.first;
+				o = thingy.second;
 			}
 			if (i == 1)
-				highval = thingy->first;
+				highval = thingy.first;
 			--i;
 		}
 		if (rval > highval * 0.9f)

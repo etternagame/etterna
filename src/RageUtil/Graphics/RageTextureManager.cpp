@@ -48,12 +48,11 @@ RageTextureManager::RageTextureManager() {}
 
 RageTextureManager::~RageTextureManager()
 {
-	FOREACHM(RageTextureID, RageTexture*, m_mapPathToTexture, i)
-	{
-		RageTexture* pTexture = i->second;
+	for(auto i : m_mapPathToTexture){
+		RageTexture* pTexture = i.second;
 		if (pTexture->m_iRefCount)
 			LOG->Trace("TEXTUREMAN LEAK: '%s', RefCount = %d.",
-					   i->first.filename.c_str(),
+					   i.first.filename.c_str(),
 					   pTexture->m_iRefCount);
 		SAFE_DELETE(pTexture);
 	}
@@ -286,8 +285,7 @@ RageTextureManager::DeleteTexture(RageTexture* t)
 	}
 
 	FAIL_M("Tried to delete a texture that wasn't in the ids by pointer list.");
-	FOREACHM(RageTextureID, RageTexture*, m_mapPathToTexture, i)
-	{
+	for(auto i = m_mapPathToTexture.begin(); i != m_mapPathToTexture.end(); ++i){
 		if (i->second == t) {
 			m_mapPathToTexture.erase(i); // remove map entry
 			SAFE_DELETE(t);				 // free the texture
@@ -376,9 +374,8 @@ RageTextureManager::ReloadAll()
 void
 RageTextureManager::InvalidateTextures()
 {
-	FOREACHM(RageTextureID, RageTexture*, m_mapPathToTexture, i)
-	{
-		RageTexture* pTexture = i->second;
+    for(auto i : m_mapPathToTexture){
+		RageTexture* pTexture = i.second;
 		pTexture->Invalidate();
 	}
 }

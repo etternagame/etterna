@@ -1789,9 +1789,8 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		int idx = 1;
 		lua_newtable(L);
-		FOREACHM(string, Playlist, p->GetPlaylists(), pl)
-		{
-			pl->second.PushSelf(L);
+		for(auto pl : p->GetPlaylists()){
+			pl.second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;
 		}
