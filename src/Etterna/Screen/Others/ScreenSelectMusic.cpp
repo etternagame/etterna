@@ -1252,8 +1252,7 @@ ScreenSelectMusic::SwitchToPreferredDifficulty()
 		// StepsType.
 		int iCurDifference = -1;
 		int& iSelection = m_iSelection;
-		FOREACH_CONST(Steps*, m_vpSteps, s)
-		{
+		for(auto s = m_vpSteps.cbegin(); s != m_vpSteps.end(); ++s){
 			int i = s - m_vpSteps.begin();
 
 			// If the current steps are listed, use them.

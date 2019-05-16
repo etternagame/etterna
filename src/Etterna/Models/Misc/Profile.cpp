@@ -189,10 +189,9 @@ Profile::GetCharacter() const
 {
 	vector<Character*> vpCharacters;
 	CHARMAN->GetCharacters(vpCharacters);
-	FOREACH_CONST(Character*, vpCharacters, c)
-	{
-		if ((*c)->m_sCharacterID.CompareNoCase(m_sCharacterID) == 0)
-			return *c;
+	for(auto const c : vpCharacters){
+		if (c->m_sCharacterID.CompareNoCase(m_sCharacterID) == 0)
+			return c;
 	}
 	return CHARMAN->GetDefaultCharacter();
 }
@@ -218,17 +217,15 @@ Profile::GetTotalStepsWithTopGrade(StepsType st, Difficulty d, Grade g) const
 {
 	int iCount = 0;
 
-	FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), pSong)
-	{
-		FOREACH_CONST(Steps*, (*pSong)->GetAllSteps(), pSteps)
-		{
-			if ((*pSteps)->m_StepsType != st)
+	for(auto const pSong : SONGMAN->GetAllSongs()){
+		for(auto const pSteps : pSong->GetAllSteps()){
+			if (pSteps->m_StepsType != st)
 				continue; // skip
 
-			if ((*pSteps)->GetDifficulty() != d)
+			if (pSteps->GetDifficulty() != d)
 				continue; // skip
 
-			const HighScoreList& hsl = GetStepsHighScoreList(*pSong, *pSteps);
+			const HighScoreList& hsl = GetStepsHighScoreList(pSong, pSteps);
 			if (hsl.vHighScores.empty())
 				continue; // skip
 
@@ -481,11 +478,9 @@ Profile::HasPassedSteps(const Song* pSong, const Steps* pSteps) const
 bool
 Profile::HasPassedAnyStepsInSong(const Song* pSong) const
 {
-	FOREACH_CONST(Steps*, pSong->GetAllSteps(), steps)
-	{
-		if (HasPassedSteps(pSong, *steps))
+	for(auto const steps : pSong->GetAllSteps())
+		if (HasPassedSteps(pSong, steps))
 			return true;
-	}
 	return false;
 }
 

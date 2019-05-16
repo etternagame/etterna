@@ -133,9 +133,8 @@ ScreenPlayerOptions::UpdateDisqualified(int row, PlayerNumber pn)
 
 	// Update disqualified graphic
 	bool bDisqualified = false;
-	FOREACH_CONST(bool, m_bRowCausesDisqualified, b)
-	{
-		if (*b) {
+	for(auto const b : m_bRowCausesDisqualified){
+		if (b) {
 			bDisqualified = true;
 			break;
 		}

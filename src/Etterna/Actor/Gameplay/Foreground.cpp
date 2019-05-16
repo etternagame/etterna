@@ -34,9 +34,8 @@ Foreground::LoadFromSong(const Song* pSong)
 	TEXTUREMAN->SetDefaultTexturePolicy(RageTextureID::TEX_VOLATILE);
 
 	m_pSong = pSong;
-	FOREACH_CONST(BackgroundChange, pSong->GetForegroundChanges(), bgc)
-	{
-		const BackgroundChange& change = *bgc;
+	for(auto const bgc : pSong->GetForegroundChanges()){
+		const BackgroundChange& change = bgc;
 		RString sBGName = change.m_def.m_sFile1,
 				sLuaFile = pSong->GetSongDir() + sBGName + "/default.lua",
 				sXmlFile = pSong->GetSongDir() + sBGName + "/default.xml";

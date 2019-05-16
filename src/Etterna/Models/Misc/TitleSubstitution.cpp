@@ -94,9 +94,8 @@ TitleSubst::AddTrans(const TitleTrans& tr)
 void
 TitleSubst::Subst(TitleFields& tf)
 {
-	FOREACH_CONST(TitleTrans*, ttab, iter)
-	{
-		TitleTrans* tt = *iter;
+	for(auto const iter : ttab){
+		TitleTrans* tt = iter;
 
 		TitleFields to;
 		if (!tt->Matches(tf, to))

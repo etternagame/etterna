@@ -675,26 +675,25 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 			if (cg.goals.empty())
 				continue;
 			int chID = FindOrCreateChartKey(db, cg.goals[0].chartkey);
-			FOREACH_CONST(ScoreGoal, cg.goals, sg)
-			{
+			for(auto const sg : cg.goals){
 				SQLite::Statement insertScoreGoal(*db,
 												  "INSERT INTO scoregoals "
 												  "VALUES (NULL, ?, ?, ?, ?, "
 												  "?, ?, ?, ?)");
 				insertScoreGoal.bind(1, chID);
-				insertScoreGoal.bind(2, sg->rate);
-				insertScoreGoal.bind(3, sg->priority);
-				insertScoreGoal.bind(4, sg->percent);
-				insertScoreGoal.bind(5, sg->timeassigned.GetString());
-				if (sg->achieved) {
-					insertScoreGoal.bind(6, sg->timeachieved.GetString());
-					insertScoreGoal.bind(7, sg->scorekey);
+				insertScoreGoal.bind(2, sg.rate);
+				insertScoreGoal.bind(3, sg.priority);
+				insertScoreGoal.bind(4, sg.percent);
+				insertScoreGoal.bind(5, sg.timeassigned.GetString());
+				if (sg.achieved) {
+					insertScoreGoal.bind(6, sg.timeachieved.GetString());
+					insertScoreGoal.bind(7, sg.scorekey);
 				} else {
 					// bind null values
 					insertScoreGoal.bind(6);
 					insertScoreGoal.bind(7);
 				}
-				insertScoreGoal.bind(8, sg->comment);
+				insertScoreGoal.bind(8, sg.comment);
 				insertScoreGoal.exec();
 			}
 		}
@@ -738,32 +737,28 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 				// db->exec("INSERT INTO playlists VALUES (NULL, \"" +
 				// (pl.second).name + "\")");
 				int plID = (int)sqlite3_last_insert_rowid(db->getHandle());
-				FOREACH_CONST(Chart, (pl.second).chartlist, ch)
-				{
+				for(auto const ch : pl.second.chartlist){
 					int chartID = FindOrCreateChart(
-					  db, ch->key, ch->lastpack, ch->lastsong, ch->lastdiff);
+					  db, ch.key, ch.lastpack, ch.lastsong, ch.lastdiff);
 					SQLite::Statement insertChartPlaylist(
 					  *db, "INSERT INTO chartplaylists VALUES (NULL, ?, ?, ?)");
 					insertChartPlaylist.bind(1, chartID);
 					insertChartPlaylist.bind(2, plID);
-					insertChartPlaylist.bind(3, ch->rate);
+					insertChartPlaylist.bind(3, ch.rate);
 					insertChartPlaylist.exec();
 				}
 
-				FOREACH_CONST(vector<string>, (pl.second).courseruns, run)
-				{
-
+				for(auto const run : pl.second.courseruns){
 					SQLite::Statement insertCourseRun(
 					  *db, "INSERT INTO courseruns VALUES (NULL, ?)");
 					insertCourseRun.bind(1, plID);
 					insertCourseRun.exec();
 					int courseRunID =
 					  (int)sqlite3_last_insert_rowid(db->getHandle());
-					FOREACH_CONST(string, *run, scorekey)
-					{
+					for(auto const scorekey : run){
 						SQLite::Statement insertRun(
 						  *db, "INSERT INTO runs VALUES (NULL, ?, ?)");
-						insertRun.bind(1, *scorekey);
+						insertRun.bind(1, scorekey);
 						insertRun.bind(2, courseRunID);
 						insertRun.exec();
 					}

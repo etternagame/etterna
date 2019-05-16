@@ -142,14 +142,13 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		}
 
 		vector<string> vsPrettyFiles;
-		FOREACH_CONST(RString, vsRawFiles, s)
-		{
-			if (GetExtension(*s).EqualsNoCase("ctl"))
+		for(auto const s : vsRawFiles){
+			if (GetExtension(s).EqualsNoCase("ctl"))
 				continue;
 
-			vsFiles.push_back(*s);
+			vsFiles.push_back(s);
 
-			string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
+			string s2 = s.Right(s.length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
@@ -157,9 +156,8 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	string sResult = "Success installing " + sZipFile;
 	string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	FOREACH_CONST(string, vsFiles, sSrcFile)
-	{
-		string sDestFile = *sSrcFile;
+	for(auto const sSrcFile : vsFiles){
+		string sDestFile = sSrcFile;
 		sDestFile =
 		  RString(sDestFile.c_str())
 			.Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
@@ -167,7 +165,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		RString sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
-		if (!FileCopy(*sSrcFile, extractTo + sDestFile)) {
+		if (!FileCopy(sSrcFile, extractTo + sDestFile)) {
 			sResult = "Error extracting " + sDestFile;
 			break;
 		}

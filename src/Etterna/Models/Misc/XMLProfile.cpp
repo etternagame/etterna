@@ -175,8 +175,8 @@ GoalsForChart::CreateNode() const
 
 	if (!goals.empty()) {
 		cg->AppendAttr("Key", goals[0].chartkey);
-		FOREACH_CONST(ScoreGoal, goals, sg)
-		cg->AppendChild(sg->CreateNode());
+		for(auto const sg : goals)
+		    cg->AppendChild(sg.CreateNode());
 	}
 	return cg;
 }
@@ -519,10 +519,8 @@ XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 
 	XNode* pNode = new XNode("ScreenshotData");
 
-	FOREACH_CONST(Screenshot, profile->m_vScreenshots, ss)
-	{
-		pNode->AppendChild(ss->CreateNode());
-	}
+	for(auto const ss : profile->m_vScreenshots)
+		pNode->AppendChild(ss.CreateNode());
 
 	return pNode;
 }

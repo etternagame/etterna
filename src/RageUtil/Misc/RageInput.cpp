@@ -118,8 +118,8 @@ RageInput::AddHandler(InputHandler* pHandler)
 
 	vector<InputDeviceInfo> aDeviceInfo;
 	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
-	FOREACH_CONST(InputDeviceInfo, aDeviceInfo, idi)
-	g_mapDeviceToHandler[idi->id] = pHandler;
+	for(auto const idi : aDeviceInfo)
+	    g_mapDeviceToHandler[idi.id] = pHandler;
 }
 
 /** @brief Return the first InputDriver for the requested InputDevice. */
@@ -201,8 +201,8 @@ class LunaRageInput : public Luna<RageInput>
 		vector<InputDeviceInfo> vDevices;
 		p->GetDevicesAndDescriptions(vDevices);
 		vector<RString> vsDescriptions;
-		FOREACH_CONST(InputDeviceInfo, vDevices, idi)
-		vsDescriptions.push_back(idi->sDesc);
+		for(auto const idi : vDevices)
+		    vsDescriptions.push_back(idi.sDesc);
 		LuaHelpers::CreateTableFromArray(vsDescriptions, L);
 		return 1;
 	}

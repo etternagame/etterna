@@ -1452,8 +1452,8 @@ float
 HighScoreImpl::RescoreToWifeTS(float ts)
 {
 	float p = 0;
-	FOREACH_CONST(float, vOffsetVector, f)
-	p += wife2(*f, ts);
+	for(auto const f : vOffsetVector)
+	    p += wife2(f, ts);
 
 	p += (iHoldNoteScores[HNS_LetGo] + iHoldNoteScores[HNS_Missed]) * -6.f;
 	return p / static_cast<float>(vOffsetVector.size() * 2);
@@ -1473,10 +1473,10 @@ HighScore::RescoreToDPJudge(int x)
 	int boo = 0;
 	int miss = 0;
 	int m2 = 0;
-	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
-	{
+
+	for(auto const f : m_Impl->vOffsetVector){
 		m2 += 2;
-		float x = abs(*f * 1000.f);
+		float x = abs(f * 1000.f);
 		if (x <= ts * 22.5f)
 			++marv;
 		else if (x <= ts * 45.f)

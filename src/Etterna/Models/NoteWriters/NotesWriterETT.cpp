@@ -486,9 +486,8 @@ NotesWriterETT::Write(RString& sPath,
 	f.PutLine(ssprintf("// end cache tags"));
 
 	// Save specified Steps to this file
-	FOREACH_CONST(Steps*, vpStepsToSave, s)
-	{
-		Steps* pSteps = *s;
+	for(auto const s : vpStepsToSave){
+		Steps* pSteps = s;
 		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
 										   // invalid chartkey files(empty
 										   // steps) -Mina

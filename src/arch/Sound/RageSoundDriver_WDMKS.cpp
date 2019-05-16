@@ -886,8 +886,7 @@ WinWdmFilter::InstantiateRenderPin(
 	{
 		for (size_t j = 0; j < m_apPins.size(); ++j) {
 			WinWdmPin* pPin = m_apPins[j];
-			FOREACH_CONST(KSDATARANGE_AUDIO, pPin->m_dataRangesItem, range)
-			{
+			for(auto const range : pPin->m_dataRangesItem){
 				aSampleRates.push_back(range->MinimumSampleFrequency);
 				aSampleRates.push_back(range->MaximumSampleFrequency);
 			}
@@ -1543,8 +1542,7 @@ RageSoundDriver_WDMKS::Init()
 		for (size_t j = 0; j < pFilter->m_apPins.size(); ++j) {
 			WinWdmPin* pPin = pFilter->m_apPins[j];
 			LOG->Trace("  Pin %i", j);
-			FOREACH_CONST(KSDATARANGE_AUDIO, pPin->m_dataRangesItem, range)
-			{
+			for(auto const range : pPin->m_dataRagesItem){
 				RString sSubFormat;
 				if (!memcmp(&range->DataRange.SubFormat,
 							&KSDATAFORMAT_SUBTYPE_WILDCARD,

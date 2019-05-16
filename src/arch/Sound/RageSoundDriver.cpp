@@ -39,11 +39,10 @@ RageSoundDriver::Create(const RString& drivers)
 		}
 	}
 
-	FOREACH_CONST(RString, drivers_to_try, Driver)
-	{
-		RageDriver* pDriver = m_pDriverList.Create(*Driver);
+	for(auto const &Driver : drivers_to_try){
+		RageDriver* pDriver = m_pDriverList.Create(Driver);
 		if (pDriver == NULL) {
-			LOG->Trace("Unknown sound driver: %s", Driver->c_str());
+			LOG->Trace("Unknown sound driver: %s", Driver.c_str());
 			continue;
 		}
 
@@ -53,11 +52,11 @@ RageSoundDriver::Create(const RString& drivers)
 		const RString sError = pRet->Init();
 		if (sError.empty()) {
 			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Info("Sound driver: %s", Driver->c_str());
+				LOG->Info("Sound driver: %s", Driver.c_str());
 			return pRet;
 		}
 		LOG->Info(
-		  "Couldn't load driver %s: %s", Driver->c_str(), sError.c_str());
+		  "Couldn't load driver %s: %s", Driver.c_str(), sError.c_str());
 		SAFE_DELETE(pRet);
 	}
 	return NULL;

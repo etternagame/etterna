@@ -84,12 +84,11 @@ RString
 Commands::GetOriginalCommandString() const
 {
 	RString s;
-	FOREACH_CONST(Command, v, c)
-	{
+	for(auto const c : v){
 		if (s != "") {
 			s += ";";
 		}
-		s += c->GetOriginalCommandString();
+		s += c.GetOriginalCommandString();
 	}
 	return s;
 }

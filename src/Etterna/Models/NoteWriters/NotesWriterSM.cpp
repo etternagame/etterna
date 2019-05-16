@@ -123,11 +123,10 @@ WriteGlobalTags(RageFile& f, Song& out)
 		}
 	}
 	// Delays can't be negative: thus, no effect.
-	FOREACH_CONST(TimingSegment*, delays, ss)
-	{
-		float fBeat = NoteRowToBeat((*ss)->GetRow() - 1);
-		float fPause = ToDelay(*ss)->GetPause();
-		map<float, float>::iterator already_exists = allPauses.find(fBeat);
+	for(auto const ss : delays){
+		float fBeat = NoteRowToBeat(ss->GetRow() - 1);
+		float fPause = ToDelay(ss)->GetPause();
+		auto already_exists = allPauses.find(fBeat);
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fPause;
 		} else {
@@ -153,8 +152,8 @@ WriteGlobalTags(RageFile& f, Song& out)
 		else
 			f.Write(ssprintf("#BGCHANGES%d:", b + 1));
 
-		FOREACH_CONST(BackgroundChange, out.GetBackgroundChanges(b), bgc)
-		f.PutLine((*bgc).ToString() + ",");
+		for(auto const bgc : out.GetBackgroundChanges(b))
+		    f.PutLine(bgc.ToString() + ",");
 
 		/* If there's an animation plan at all, add a dummy "-nosongbg-" tag to
 		 * indicate that this file doesn't want a song BG entry added at the
@@ -169,10 +168,8 @@ WriteGlobalTags(RageFile& f, Song& out)
 
 	if (out.GetForegroundChanges().size()) {
 		f.Write("#FGCHANGES:");
-		FOREACH_CONST(BackgroundChange, out.GetForegroundChanges(), bgc)
-		{
-			f.PutLine((*bgc).ToString() + ",");
-		}
+		for(auto const bgc : out.GetForegroundChanges())
+			f.PutLine(bgc.ToString() + ",");
 		f.PutLine(";");
 	}
 
@@ -265,9 +262,8 @@ NotesWriterSM::Write(const RString& sPath,
 
 	WriteGlobalTags(f, out);
 
-	FOREACH_CONST(Steps*, vpStepsToSave, s)
-	{
-		const Steps* pSteps = *s;
+	for(auto const s : vpStepsToSave){
+		const Steps* pSteps = s;
 		RString sTag = GetSMNotesTag(out, *pSteps);
 		f.PutLine(sTag);
 	}

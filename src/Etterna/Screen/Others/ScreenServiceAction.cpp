@@ -47,11 +47,10 @@ CopyEdits(const RString& sFromProfileDir,
 
 		vector<RString> vsFiles;
 		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
-		FOREACH_CONST(RString, vsFiles, i)
-		{
-			if (DoesFileExist(sToDir + *i))
+		for(auto const i : vsFiles){
+			if (DoesFileExist(sToDir + i))
 				iNumOverwritten++;
-			bool bSuccess = FileCopy(sFromDir + *i, sToDir + *i);
+			bool bSuccess = FileCopy(sFromDir + i, sToDir + i);
 			if (bSuccess)
 				iNumSucceeded++;
 			else

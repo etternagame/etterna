@@ -14,7 +14,7 @@
 	for (vector<elemType>::const_iterator var = (vect).begin();                \
 		 (var) != (vect).end();                                                \
 		 ++(var))
-	    
+
 #endif
 
 /**

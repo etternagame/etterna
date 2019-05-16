@@ -210,14 +210,13 @@ LanguageChoices(vector<RString>& out)
 	THEME->GetLanguages(vs);
 	SortRStringArray(vs, true);
 
-	FOREACH_CONST(RString, vs, s)
-	{
-		const LanguageInfo* pLI = GetLanguageInfo(*s);
+	for(auto const s : vs){
+		const LanguageInfo* pLI = GetLanguageInfo(s);
 		if (pLI)
 			out.push_back(
 			  THEME->GetString("NativeLanguageNames", pLI->szEnglishName));
 		else
-			out.push_back(*s);
+			out.push_back(s);
 	}
 }
 

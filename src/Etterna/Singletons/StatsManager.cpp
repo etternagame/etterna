@@ -60,8 +60,8 @@ AccumPlayedStageStats(const vector<StageStats>& vss)
 		ssreturn.m_playMode = vss[0].m_playMode;
 	}
 
-	FOREACH_CONST(StageStats, vss, ss)
-	ssreturn.AddStats(*ss);
+	for(auto const ss : vss)
+	    ssreturn.AddStats(ss);
 
 	unsigned uNumSongs = ssreturn.m_vpPlayedSongs.size();
 
@@ -298,9 +298,8 @@ class LunaStatsManager : public Luna<StatsManager>
 		{
 			// If this player failed any stage, then their final grade is an F.
 			bool bPlayerFailedOneStage = false;
-			FOREACH_CONST(StageStats, STATSMAN->m_vPlayedStageStats, ss)
-			{
-				if (ss->m_player.m_bFailed) {
+			for(auto const ss : STATSMAN->m_vPlayedStageStats){
+				if (ss.m_player.m_bFailed) {
 					bPlayerFailedOneStage = true;
 					break;
 				}

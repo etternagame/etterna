@@ -786,8 +786,8 @@ int
 Model::GetNumStates() const
 {
 	int iMaxStates = 0;
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	iMaxStates = max(iMaxStates, m->diffuse.GetNumStates());
+    for(auto const m : m_Materials)
+        iMaxStates = max(iMaxStates, m.diffuse.GetNumStates());
 	return iMaxStates;
 }
 
@@ -805,10 +805,9 @@ void
 Model::RecalcAnimationLengthSeconds()
 {
 	m_animation_length_seconds = 0;
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	{
+    for(auto const m : m_Materials){
 		m_animation_length_seconds = max(
-		  m_animation_length_seconds, m->diffuse.GetAnimationLengthSeconds());
+		  m_animation_length_seconds, m.diffuse.GetAnimationLengthSeconds());
 	}
 }
 
@@ -825,11 +824,9 @@ Model::SetSecondsIntoAnimation(float fSeconds)
 bool
 Model::MaterialsNeedNormals() const
 {
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	{
-		if (m->NeedsNormals())
+	for(auto const m : m_Materials)
+		if (m.NeedsNormals())
 			return true;
-	}
 	return false;
 }
 

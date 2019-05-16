@@ -112,15 +112,13 @@ CsvFile::WriteFile(const RString& sPath) const
 bool
 CsvFile::WriteFile(RageFileBasic& f) const
 {
-	FOREACH_CONST(StringVector, m_vvs, line)
-	{
+	for(auto const &line : m_vvs){
 		RString sLine;
-		FOREACH_CONST(RString, *line, value)
-		{
+		for(auto value = line.cbegin(); value != line.end(); value++){
 			RString sVal = *value;
 			sVal.Replace("\"", "\"\""); // escape quotes to double-quotes
 			sLine += "\"" + sVal + "\"";
-			if (value != line->end() - 1)
+			if (value != line.end() - 1)
 				sLine += ",";
 		}
 		if (f.PutLine(sLine) == -1) {

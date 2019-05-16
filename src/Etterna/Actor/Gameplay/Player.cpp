@@ -3482,13 +3482,12 @@ Player::HandleHoldCheckpoint(int iRow,
 	if (iNumHoldsMissedThisRow == 0) {
 		// added for http://ssc.ajworld.net/sm-ssc/bugtracker/view.php?id=16 -aj
 		if (CHECKPOINTS_FLASH_ON_HOLD) {
-			FOREACH_CONST(int, viColsWithHold, i)
-			{
+			for(auto const i : viColsWithHold){
 				bool bBright = m_pPlayerStageStats &&
 							   m_pPlayerStageStats->m_iCurCombo >
 								 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
 				if (m_pNoteField)
-					m_pNoteField->DidHoldNote(*i, HNS_Held, bBright);
+					m_pNoteField->DidHoldNote(i, HNS_Held, bBright);
 			}
 		}
 	}

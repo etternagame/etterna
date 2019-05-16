@@ -513,9 +513,8 @@ NotesWriterSSC::Write(RString& sPath,
 	}
 
 	// Save specified Steps to this file
-	FOREACH_CONST(Steps*, vpStepsToSave, s)
-	{
-		const Steps* pSteps = *s;
+	for(auto const s : vpStepsToSave){
+		const Steps* pSteps = s;
 		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
 										   // invalid chartkey files(empty
 										   // steps) -Mina

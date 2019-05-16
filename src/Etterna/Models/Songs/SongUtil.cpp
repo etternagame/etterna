@@ -778,9 +778,8 @@ SongUtil::IsEditDescriptionUnique(const Song* pSong,
 								  const RString& sPreferredDescription,
 								  const Steps* pExclude)
 {
-	FOREACH_CONST(Steps*, pSong->GetAllSteps(), s)
-	{
-		Steps* pSteps = *s;
+	for(auto const s : pSong->GetAllSteps()){
+		Steps* pSteps = s;
 
 		if (pSteps->GetDifficulty() != Difficulty_Edit)
 			continue;
@@ -800,9 +799,8 @@ SongUtil::IsChartNameUnique(const Song* pSong,
 							const RString& name,
 							const Steps* pExclude)
 {
-	FOREACH_CONST(Steps*, pSong->GetAllSteps(), s)
-	{
-		Steps* pSteps = *s;
+	for(auto const s : pSong->GetAllSteps()){
+		Steps* pSteps = s;
 
 		if (pSteps->m_StepsType != st)
 			continue;
@@ -881,12 +879,11 @@ SongUtil::ValidateCurrentEditStepsDescription(const RString& sAnswer,
 	// Steps name must be unique for this song.
 	vector<Steps*> v;
 	GetSteps(pSong, v, StepsType_Invalid, Difficulty_Edit);
-	FOREACH_CONST(Steps*, v, s)
-	{
-		if (pSteps == *s)
+	for(auto const s : v){
+		if (pSteps == s)
 			continue; // don't compare name against ourself
 
-		if ((*s)->GetDescription() == sAnswer) {
+		if (s->GetDescription() == sAnswer) {
 			sErrorOut = EDIT_NAME_CONFLICTS;
 			return false;
 		}
@@ -1018,11 +1015,9 @@ void
 SongUtil::GetAllSongGenres(vector<RString>& vsOut)
 {
 	set<RString> genres;
-	FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), song)
-	{
-		if (!(*song)->m_sGenre.empty())
-			genres.insert((*song)->m_sGenre);
-	}
+	for(auto const song : SONGMAN->GetAllSongs())
+		if (!song->m_sGenre.empty())
+			genres.insert(song->m_sGenre);
 
 	for(auto const s : genres)
         vsOut.push_back(s);

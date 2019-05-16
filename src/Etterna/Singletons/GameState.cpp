@@ -1305,15 +1305,14 @@ GameState::GetClosestShownDifficulty(PlayerNumber pn) const
 
 	auto iClosest = static_cast<Difficulty>(0);
 	int iClosestDist = -1;
-	FOREACH_CONST(Difficulty, v, dc)
-	{
-		int iDist = m_PreferredDifficulty - *dc;
+	for(auto const dc : v){
+		int iDist = m_PreferredDifficulty - dc;
 		if (iDist < 0)
 			continue;
 		if (iClosestDist != -1 && iDist > iClosestDist)
 			continue;
 		iClosestDist = iDist;
-		iClosest = *dc;
+		iClosest = dc;
 	}
 
 	return iClosest;

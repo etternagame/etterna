@@ -1889,10 +1889,9 @@ GameManager::GetFirstCompatibleStyle(const Game* pGame,
 {
 	vector<const Style*> vpStyles;
 	GetCompatibleStyles(pGame, iNumPlayers, vpStyles);
-	FOREACH_CONST(const Style*, vpStyles, s)
-	{
-		if ((*s)->m_StepsType == st) {
-			return *s;
+	for(auto const s : vpStyles){
+		if (s->m_StepsType == st) {
+			return s;
 		}
 	}
 	return NULL;

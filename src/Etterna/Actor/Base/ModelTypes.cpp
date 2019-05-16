@@ -141,8 +141,8 @@ float
 AnimatedTexture::GetAnimationLengthSeconds() const
 {
 	float fTotalSeconds = 0;
-	FOREACH_CONST(AnimatedTextureState, vFrames, ats)
-	fTotalSeconds += ats->fDelaySecs;
+	for(auto const ats : vFrames)
+	    fTotalSeconds += ats.fDelaySecs;
 	return fTotalSeconds;
 }
 

@@ -1181,12 +1181,11 @@ DeleteRecursive(RageFileDriver* prfd, const RString& sDir)
 
 	vector<RString> vsFiles;
 	prfd->GetDirListing(sDir + "*", vsFiles, false, true);
-	FOREACH_CONST(RString, vsFiles, s)
-	{
-		if (IsADirectory(*s))
-			DeleteRecursive(*s + "/");
+	for(auto const s : vsFiles){
+		if (IsADirectory(s))
+			DeleteRecursive(s + "/");
 		else
-			FILEMAN->Remove(*s);
+			FILEMAN->Remove(s);
 	}
 
 	return FILEMAN->Remove(sDir);
@@ -1199,12 +1198,11 @@ DeleteRecursive(const RString& sDir)
 
 	vector<RString> vsFiles;
 	GetDirListing(sDir + "*", vsFiles, false, true);
-	FOREACH_CONST(RString, vsFiles, s)
-	{
-		if (IsADirectory(*s))
+	for(auto const s : vsFiles){
+		if (IsADirectory(s))
 			DeleteRecursive(*s + "/");
 		else
-			FILEMAN->Remove(*s);
+			FILEMAN->Remove(s);
 	}
 
 	return FILEMAN->Remove(sDir);

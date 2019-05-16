@@ -273,8 +273,7 @@ ScreenDebugOverlay::Init()
 	m_textHeader.SetText(DEBUG_MENU);
 	this->AddChild(&m_textHeader);
 
-	FOREACH_CONST(RString, m_asPages, s)
-	{
+    for(auto s = m_asPages.cbegin(); s != m_asPages.end(); s++){
 		int iPage = s - m_asPages.begin();
 
 		DeviceInput di;
@@ -294,8 +293,7 @@ ScreenDebugOverlay::Init()
 		this->AddChild(p);
 	}
 
-	FOREACH_CONST(IDebugLine*, *g_pvpSubscribers, p)
-	{
+	for(auto p = (*g_pvpSubscribers).cbegin(); p != (*g_pvpSubscribers).end(); p++){
 		{
 			BitmapText* bt = new BitmapText;
 			bt->SetName("ButtonText");
@@ -368,8 +366,7 @@ ScreenDebugOverlay::Update(float fDeltaTime)
 void
 ScreenDebugOverlay::UpdateText()
 {
-	FOREACH_CONST(RString, m_asPages, s)
-	{
+	for(auto s = m_asPages.cbegin(); s != m_asPages.end(); s++){
 		int iPage = s - m_asPages.begin();
 		m_vptextPages[iPage]->PlayCommand(
 		  (iPage == m_iCurrentPage) ? "GainFocus" : "LoseFocus");
@@ -377,8 +374,7 @@ ScreenDebugOverlay::UpdateText()
 
 	// todo: allow changing of various spacing/location things -aj
 	int iOffset = 0;
-	FOREACH_CONST(IDebugLine*, *g_pvpSubscribers, p)
-	{
+    for(auto p = (*g_pvpSubscribers).cbegin(); p != (*g_pvpSubscribers).end(); p++){
 		RString sPageName = (*p)->GetPageName();
 
 		int i = p - g_pvpSubscribers->begin();
@@ -480,8 +476,7 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 		return true;
 	}
 
-	FOREACH_CONST(IDebugLine*, *g_pvpSubscribers, p)
-	{
+    for(auto p = (*g_pvpSubscribers).cbegin(); p != (*g_pvpSubscribers).end(); p++){
 		RString sPageName = (*p)->GetPageName();
 
 		int i = p - g_pvpSubscribers->begin();

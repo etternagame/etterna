@@ -67,10 +67,10 @@ OptionRow::Clear()
 	m_textItems.clear();
 	m_Underline.clear();
 
-	if (m_pHand != NULL) {
-		FOREACH_CONST(RString, m_pHand->m_vsReloadRowMessages, m)
-		MESSAGEMAN->Unsubscribe(this, *m);
-	}
+	if (m_pHand != NULL)
+		for(auto const m : m_pHand->m_vsReloadRowMessages)
+		    MESSAGEMAN->Unsubscribe(this, m);
+
 	SAFE_DELETE(m_pHand);
 
 	m_bFirstItemGoesDown = false;
@@ -134,8 +134,8 @@ OptionRow::LoadNormal(OptionRowHandler* pHand, bool bFirstItemGoesDown)
 	m_pHand = pHand;
 	m_bFirstItemGoesDown = bFirstItemGoesDown;
 
-	FOREACH_CONST(RString, m_pHand->m_vsReloadRowMessages, m)
-	MESSAGEMAN->Subscribe(this, *m);
+	for(auto const m : m_pHand->m_vsReloadRowMessages)
+	    MESSAGEMAN->Subscribe(this, m);
 
 	ChoicesChanged(RowType_Normal);
 }
@@ -869,11 +869,9 @@ void
 OptionRow::HandleMessage(const Message& msg)
 {
 	bool bReload = false;
-	FOREACH_CONST(RString, m_pHand->m_vsReloadRowMessages, m)
-	{
-		if (*m == msg.GetName())
+	for(auto const m : m_pHand->m_vsReloadRowMessages)
+		if (m == msg.GetName())
 			bReload = true;
-	}
 	if (bReload)
 		Reload();
 

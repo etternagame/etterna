@@ -116,8 +116,7 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 {
 	m_pStyle = other.m_pStyle;
 	m_bJoined = other.m_bJoined;
-	FOREACH_CONST(Steps*, other.m_vpPossibleSteps, s)
-	m_vpPossibleSteps.push_back(*s);
+	for(auto const s : other.m_vpPossibleSteps) m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
@@ -458,10 +457,8 @@ PlayerStageStats::GetLessonScoreNeeded() const
 {
 	float fScore = 0;
 
-	FOREACH_CONST(Steps*, m_vpPossibleSteps, steps)
-	{
-		fScore += (*steps)->GetRadarValues()[RadarCategory_TapsAndHolds];
-	}
+	for(auto const steps : m_vpPossibleSteps)
+		fScore += steps->GetRadarValues()[RadarCategory_TapsAndHolds];
 
 	return lround(fScore * LESSON_PASS_THRESHOLD);
 }

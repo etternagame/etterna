@@ -985,14 +985,12 @@ InputHandler_DInput::DeviceButtonToChar(DeviceButton button,
 			return '\0';
 	}
 
-	FOREACH_CONST(DIDevice, Devices, d)
-	{
-		if (d->type != DIDevice::KEYBOARD)
+	for(auto const d : Devices){
+		if (d.type != DIDevice::KEYBOARD)
 			continue;
 
-		FOREACH_CONST(input_t, d->Inputs, i)
-		{
-			if (button != i->num)
+		for(auto const i : d.Inputs){
+			if (button != i.num)
 				continue;
 
 			unsigned char keys[256];

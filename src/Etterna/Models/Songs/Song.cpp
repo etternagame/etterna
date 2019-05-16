@@ -1224,9 +1224,8 @@ Song::GetStepsToSave(bool bSavingCache, string path)
 {
 
 	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		Steps* pSteps = *s;
+	for(auto const s : m_vpSteps){
+		Steps* pSteps = s;
 
 		// Only save steps that weren't loaded from a profile.
 		if (pSteps->WasLoadedFromProfile())
@@ -1236,10 +1235,10 @@ Song::GetStepsToSave(bool bSavingCache, string path)
 			pSteps->SetFilename(path);
 		vpStepsToSave.push_back(pSteps);
 	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
+
+	for(auto const s : m_UnknownStyleSteps)
+		vpStepsToSave.push_back(s);
+
 	return vpStepsToSave;
 }
 bool
@@ -1609,10 +1608,8 @@ vector<RString>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<RString> ret;
-	FOREACH_CONST(BackgroundChange, changes, bgc)
-	{
-		ret.push_back((*bgc).ToString());
-	}
+	for(auto const bgc : changes)
+		ret.push_back(bgc.ToString());
 	return ret;
 }
 
@@ -1905,12 +1902,9 @@ Song::IsStepsUsingDifferentTiming(Steps* pSteps) const
 bool
 Song::AnyChartUsesSplitTiming() const
 {
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		if (!(*s)->m_Timing.empty()) {
+	for(auto const s : m_vpSteps)
+		if (!s->m_Timing.empty())
 			return true;
-		}
-	}
 	return false;
 }
 

@@ -46,10 +46,9 @@ SMALoader::ProcessBeatsPerMeasure(TimingData& out, const RString& sParam)
 	vector<RString> vs1;
 	split(sParam, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
+	for(auto const s1 : vs1){
 		vector<RString> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
 			LOG->UserLog(
@@ -91,8 +90,7 @@ SMALoader::ProcessSpeeds(TimingData& out,
 	vector<RString> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
+	for(auto s1 = vs1.cbegin(); s1 != vs1.end(); s1++){
 		vector<RString> vs2;
 		vs2.clear(); // trying something.
 		RString loopTmp = *s1;

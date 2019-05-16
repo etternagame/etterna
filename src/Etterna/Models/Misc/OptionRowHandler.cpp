@@ -333,8 +333,8 @@ class OptionRowHandlerList : public OptionRowHandler
 			if (vbSel[i])
 				m_aListEntries[i].Apply(p);
 		}
-		FOREACH_CONST(RString, m_vsBroadcastOnExport, s)
-		MESSAGEMAN->Broadcast(*s);
+		for(auto const s : m_vsBroadcastOnExport)
+		    MESSAGEMAN->Broadcast(s);
 		return 0;
 	}
 
@@ -607,8 +607,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 			// look for matching difficulty
 			bool matched = false;
 			if (m_pDifficultyToFill) {
-				FOREACH_CONST(Difficulty, m_vDifficulties, d)
-				{
+				for(auto d = m_vDifficulties.cbegin(); d != m_vDifficulties.end(); d++){
 					unsigned i = d - m_vDifficulties.begin();
 					if (*d == GAMESTATE->m_PreferredDifficulty) {
 						vbSelOut[i] = true;
@@ -685,11 +684,10 @@ class OptionRowHandlerListStyles : public OptionRowHandlerList
 		vector<const Style*> vStyles;
 		GAMEMAN->GetStylesForGame(GAMESTATE->m_pCurGame, vStyles);
 		ASSERT(vStyles.size() != 0);
-		FOREACH_CONST(const Style*, vStyles, s)
-		{
-			m_Def.m_vsChoices.push_back(GAMEMAN->StyleToLocalizedString(*s));
+		for(auto const s : vStyles){
+			m_Def.m_vsChoices.push_back(GAMEMAN->StyleToLocalizedString(s));
 			GameCommand mc;
-			mc.m_pStyle = *s;
+			mc.m_pStyle = s;
 			m_aListEntries.push_back(mc);
 		}
 
@@ -718,11 +716,10 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 			m_aListEntries.push_back(mc);
 		}
 
-		FOREACH_CONST(RString, vSongGroups, g)
-		{
-			m_Def.m_vsChoices.push_back(*g);
+		for(auto const g : vSongGroups){
+			m_Def.m_vsChoices.push_back(g);
 			GameCommand mc;
-			mc.m_sSongGroup = *g;
+			mc.m_sSongGroup = g;
 			m_aListEntries.push_back(mc);
 		}
 		return true;
@@ -745,19 +742,17 @@ class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 			m_aListEntries.push_back(mc);
 		}
 
-		FOREACH_CONST(
-		  Difficulty, CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue(), d)
-		{
+		for(auto const d : CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue()){
 			// TODO: Is this the best thing we can do here?
 			StepsType st =
 			  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame)
 				->m_StepsType;
 			RString s =
-			  CustomDifficultyToLocalizedString(GetCustomDifficulty(st, *d));
+			  CustomDifficultyToLocalizedString(GetCustomDifficulty(st, d));
 
 			m_Def.m_vsChoices.push_back(s);
 			GameCommand mc;
-			mc.m_dc = *d;
+			mc.m_dc = d;
 			m_aListEntries.push_back(mc);
 		}
 		return true;
@@ -780,11 +775,10 @@ class OptionRowHandlerListSongsInCurrentSongGroup : public OptionRowHandlerList
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 		m_Def.m_bExportOnChange = true;
 
-		FOREACH_CONST(Song*, vpSongs, p)
-		{
-			m_Def.m_vsChoices.push_back((*p)->GetTranslitFullTitle());
+		for(auto const p : vpSongs){
+			m_Def.m_vsChoices.push_back(p->GetTranslitFullTitle());
 			GameCommand mc;
-			mc.m_pSong = *p;
+			mc.m_pSong = p;
 			m_aListEntries.push_back(mc);
 		}
 		return true;
@@ -1353,9 +1347,8 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		m_vStepsTypesToShow = CommonMetrics::STEPS_TYPES_TO_SHOW.GetValue();
 
 		m_Def.m_vsChoices.clear();
-		FOREACH_CONST(StepsType, m_vStepsTypesToShow, st)
-		{
-			RString s = GAMEMAN->GetStepsTypeInfo(*st).GetLocalizedString();
+		for(auto const st : m_vStepsTypesToShow){
+			RString s = GAMEMAN->GetStepsTypeInfo(st).GetLocalizedString();
 			m_Def.m_vsChoices.push_back(s);
 		}
 

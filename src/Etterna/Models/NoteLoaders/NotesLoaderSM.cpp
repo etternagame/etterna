@@ -408,10 +408,9 @@ SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
 {
 	vector<RString> vs1;
 	split(sParam, ",", vs1);
-	FOREACH_CONST(RString, vs1, s)
-	{
+	for(auto const s : vs1){
 		vector<RString> vs2;
-		split(*s, "=", vs2);
+		split(s, "=", vs2);
 		if (vs2.size() >= 2) {
 			InstrumentTrack it = StringToInstrumentTrack(vs2[0]);
 			if (it != InstrumentTrack_Invalid)
@@ -759,10 +758,9 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 	vector<RString> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
+	for(auto const s1 : vs1){
 		vector<RString> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 3) {
 			LOG->UserLog("Song file",
@@ -861,10 +859,9 @@ SMLoader::ProcessSpeeds(TimingData& out,
 	vector<RString> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
+	for(auto const s1 : vs1){
 		vector<RString> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2[0] == 0 && vs2.size() == 2) // First one always seems to have 2.
 		{

@@ -48,8 +48,10 @@ ScreenOptionsEditProfile::BeginScreen()
 		def.m_vsChoices.clear();
 		vector<Character*> vpCharacters;
 		CHARMAN->GetCharacters(vpCharacters);
-		FOREACH_CONST(Character*, vpCharacters, c)
-		def.m_vsChoices.push_back((*c)->GetDisplayName());
+
+		for(auto const c : vpCharacters)
+		    def.m_vsChoices.push_back(c->GetDisplayName());
+
 		if (def.m_vsChoices.empty())
 			def.m_vsChoices.push_back(RString());
 	}

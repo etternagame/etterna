@@ -123,25 +123,24 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				dst << src.rdbuf();
 				dst.close();
 			}
-			FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), iSong)
-			{
-				Song* pSong = (*iSong);
+
+			for(auto const iSong : SONGMAN->GetAllSongs()){
+				Song* pSong = iSong;
 
 				// Fill steps to save
 				vector<Steps*> vpStepsToSave;
-				FOREACH_CONST(Steps*, pSong->m_vpSteps, s)
-				{
-					Steps* pSteps = *s;
+				for(auto const s : pSong->m_vpSteps){
+					Steps* pSteps = s;
 
 					// Only save steps that weren't loaded from a profile.
 					if (pSteps->WasLoadedFromProfile())
 						continue;
 					vpStepsToSave.push_back(pSteps);
 				}
-				FOREACH_CONST(Steps*, pSong->m_UnknownStyleSteps, s)
-				{
-					vpStepsToSave.push_back(*s);
-				}
+
+				for(auto const s : pSong->m_UnknownStyleSteps)
+					vpStepsToSave.push_back(s);
+
 				string songkey;
 				for (auto& st : vpStepsToSave)
 					songkey += st->GetChartKey();
@@ -212,9 +211,8 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				}
 
 				// Save notedata
-				FOREACH_CONST(Steps*, pSong->GetAllSteps(), iSteps)
-				{
-					Steps* steps = (*iSteps);
+				for(auto const iSteps : pSong->GetAllSteps()){
+					Steps* steps = iSteps;
 					TimingData* td = steps->GetTimingData();
 					NoteData nd;
 					steps->GetNoteData(nd);

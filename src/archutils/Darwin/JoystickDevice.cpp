@@ -150,9 +150,8 @@ void
 JoystickDevice::Open()
 {
 	// Add elements to the queue for each Joystick
-	FOREACH_CONST(Joystick, m_vSticks, i)
-	{
-		const Joystick& js = *i;
+    for(auto const i : m_vSticks){
+		const Joystick& js = i;
 #define ADD(x)                                                                 \
 	if (js.x)                                                                  \
 	AddElementToQueue(js.x)
@@ -193,9 +192,8 @@ JoystickDevice::GetButtonPresses(
   int value,
   const std::chrono::time_point<std::chrono::steady_clock>& now) const
 {
-	FOREACH_CONST(Joystick, m_vSticks, i)
-	{
-		const Joystick& js = *i;
+    for(auto const i : m_vSticks){
+		const Joystick& js = i;
 
 		if (js.x_axis == cookie) {
 			float level = SCALE(value, js.x_min, js.x_max, -1.0f, 1.0f);
@@ -309,8 +307,7 @@ JoystickDevice::AssignIDs(InputDevice startID)
 {
 	if (!IsJoystick(startID))
 		return -1;
-	FOREACH(Joystick, m_vSticks, i)
-	{
+    for(auto i = m_vSticks.begin(); i != m_vSticks.end(); i++) {
 		if (!IsJoystick(startID)) {
 			m_vSticks.erase(i, m_vSticks.end());
 			break;
@@ -325,8 +322,8 @@ void
 JoystickDevice::GetDevicesAndDescriptions(
   vector<InputDeviceInfo>& vDevices) const
 {
-	FOREACH_CONST(Joystick, m_vSticks, i)
-	vDevices.push_back(InputDeviceInfo(i->id, GetDescription()));
+	for(auto const &i : m_vSticks)
+	    vDevices.push_back(InputDeviceInfo(i.id, GetDescription()));
 }
 
 /*

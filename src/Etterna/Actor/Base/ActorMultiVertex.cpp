@@ -402,7 +402,8 @@ float
 ActorMultiVertex::GetAnimationLengthSeconds() const
 {
 	float tot = 0.0f;
-	FOREACH_CONST(State, _states, s) { tot += s->delay; }
+	for(auto const s : _states)
+        tot += s.delay;
 	return tot;
 }
 

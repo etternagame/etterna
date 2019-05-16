@@ -83,11 +83,11 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 	vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
 
-	FOREACH_CONST(AutoMappingEntry, g_DefaultKeyMappings.m_vMaps, iter)
-	aMaps.push_back(*iter);
-	FOREACH_CONST(
-	  AutoMappingEntry, m_pInputScheme->m_pAutoMappings->m_vMaps, iter)
-	aMaps.push_back(*iter);
+	for(auto const iter : g_DefaultKeyMappings.m_vMaps)
+	    aMaps.push_back(iter);
+
+	for(auto const iter : m_pInputScheme->m_pAutoMappings->m_vMaps)
+	    aMaps.push_back(iter);
 
 	/* There may be duplicate GAME_BUTTON maps.  Process the list backwards,
 	 * so game-specific mappings override g_DefaultKeyMappings. */
@@ -691,10 +691,9 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 						  InputDevice id)
 {
 	map<GameInput, int> MappedButtons;
-	FOREACH_CONST(AutoMappingEntry, vMmaps, iter)
-	{
+	for(auto const iter : vMmaps){
 		GameController map_gc = gc;
-		if (iter->m_bSecondController) {
+		if (iter.m_bSecondController) {
 			map_gc = (GameController)(map_gc + 1);
 
 			/* If that pushed it over, then it's a second controller for a
@@ -705,8 +704,8 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 				continue;
 		}
 
-		DeviceInput di(id, iter->m_deviceButton);
-		GameInput gi(map_gc, iter->m_gb);
+		DeviceInput di(id, iter.m_deviceButton);
+		GameInput gi(map_gc, iter.m_gb);
 		int iSlot = MappedButtons[gi];
 		++MappedButtons[gi];
 		SetInputMap(di, gi, iSlot); // maps[k].iSlotIndex );
@@ -726,10 +725,9 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 		// hard-coded mappings
 		vector<RString> vs;
 		GetDirListing(AUTOMAPPINGS_DIR "*.ini", vs, false, true);
-		FOREACH_CONST(RString, vs, sFilePath)
-		{
+		for(auto const sFilePath : vs){
 			InputMappings km;
-			km.ReadMappings(m_pInputScheme, *sFilePath, true);
+			km.ReadMappings(m_pInputScheme, sFilePath, true);
 
 			AutoMappings mapping(
 			  m_pInputScheme->m_szName, km.m_sDeviceRegex, km.m_sDescription);
@@ -763,13 +761,11 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 
 	// apply auto mappings
 	int iNumJoysticksMapped = 0;
-	FOREACH_CONST(InputDeviceInfo, vDevices, device)
-	{
-		InputDevice id = device->id;
-		const RString& sDescription = device->sDesc;
-		FOREACH_CONST(AutoMappings, vAutoMappings, mapping)
-		{
-			Regex regex(mapping->m_sDriverRegex);
+	for(auto const device : vDevices){
+		InputDevice id = device.id;
+		const RString& sDescription = device.sDesc;
+		for(auto const mapping : vAutoMappings){
+			Regex regex(mapping.m_sDriverRegex);
 			if (!regex.Compare(sDescription))
 				continue; // driver names don't match
 
@@ -782,11 +778,11 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 			LOG->Info(
 			  "Applying default joystick mapping #%d for device '%s' (%s)",
 			  iNumJoysticksMapped + 1,
-			  mapping->m_sDriverRegex.c_str(),
-			  mapping->m_sControllerName.c_str());
+			  mapping.m_sDriverRegex.c_str(),
+			  mapping.m_sControllerName.c_str());
 
 			Unmap(id);
-			ApplyMapping(mapping->m_vMaps, gc, id);
+			ApplyMapping(mapping.m_vMaps, gc, id);
 
 			iNumJoysticksMapped++;
 		}

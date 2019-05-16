@@ -186,8 +186,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 
 	// Show song boundaries
 	float fSec = 0;
-	FOREACH_CONST(Song*, ss.m_vpPossibleSongs, song)
-	{
+	for(auto song = ss.m_vpPossibleSongs.cbegin(); song != ss.m_vpPossibleSongs.end(); ++song){
 		if (song == ss.m_vpPossibleSongs.end() - 1)
 			continue;
 		fSec += (*song)->GetStepsSeconds();

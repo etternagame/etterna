@@ -44,8 +44,8 @@ InputHandler_MacOSX_HID::QueueCallback(void* target,
 		// LOG->Trace( "Got event with cookie %p, value %d",
 		// event.elementCookie, int(event.value) );
 	}
-	FOREACH_CONST(DeviceInput, vPresses, i)
-	INPUTFILTER->ButtonPressed(*i);
+	for(auto const i : vPresses)
+	    INPUTFILTER->ButtonPressed(i);
 }
 
 static void
@@ -316,8 +316,8 @@ void
 InputHandler_MacOSX_HID::GetDevicesAndDescriptions(
   vector<InputDeviceInfo>& vDevices)
 {
-	FOREACH_CONST(HIDDevice*, m_vDevices, i)
-	(*i)->GetDevicesAndDescriptions(vDevices);
+	for(auto const i : m_vDevices)
+	    i->GetDevicesAndDescriptions(vDevices);
 }
 
 RString

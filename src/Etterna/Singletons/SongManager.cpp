@@ -453,15 +453,14 @@ Playlist::CreateNode() const
 	pl->AppendAttr("Name", name);
 
 	XNode* cl = new XNode("Chartlist");
-	FOREACH_CONST(Chart, chartlist, ch)
-	cl->AppendChild(ch->CreateNode(true));
+	for(auto const ch : chartlist)
+	    cl->AppendChild(ch.CreateNode(true));
 
 	XNode* cr = new XNode("CourseRuns");
-	FOREACH_CONST(vector<string>, courseruns, run)
-	{
+	for(auto const run : courseruns){
 		XNode* r = new XNode("Run");
-		FOREACH_CONST(string, *run, sk)
-		r->AppendChild(*sk);
+		for(auto const sk : run)
+		    r->AppendChild(sk);
 		cr->AppendChild(r);
 	}
 
@@ -891,36 +890,34 @@ SongManager::IsGroupNeverCached(const RString& group) const
 void
 SongManager::SetFavoritedStatus(set<string>& favs)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
+    for(auto song : m_pSongs){
 		bool fav = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (favs.count((*steps)->GetChartKey()))
-			fav = true;
-		(*song)->SetFavorited(fav);
+        for(auto const steps : song->GetAllSteps())
+            if (favs.count(steps->GetChartKey()))
+			    fav = true;
+		song->SetFavorited(fav);
 	}
 }
 
 void
 SongManager::SetPermaMirroredStatus(set<string>& pmir)
 {
-	FOREACH(Song*, m_pSongs, song)
-	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-	if (pmir.count((*steps)->GetChartKey()))
-		(*song)->SetPermaMirror(true);
+    for(auto song : m_pSongs)
+        for(auto const steps : song->GetAllSteps())
+	        if (pmir.count(steps->GetChartKey()))
+		        song->SetPermaMirror(true);
 }
 
 // hurr should probably redo both (all three) of these -mina
 void
 SongManager::SetHasGoal(unordered_map<string, GoalsForChart>& goalmap)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
+	for(auto song : m_pSongs){
 		bool hasGoal = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (goalmap.count((*steps)->GetChartKey()))
+		for(auto const steps : song->GetAllSteps())
+		if (goalmap.count(steps->GetChartKey()))
 			hasGoal = true;
-		(*song)->SetHasGoal(hasGoal);
+		song->SetHasGoal(hasGoal);
 	}
 }
 
@@ -989,11 +986,9 @@ SongManager::GetSongColor(const Song* pSong) const
 {
 	ASSERT(pSong != NULL);
 	if (USE_PREFERRED_SORT_COLOR) {
-		FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-		{
-			FOREACH_CONST(Song*, v->vpSongs, s)
-			{
-				if (*s == pSong) {
+		for(auto v = m_vPreferredSongSort.cbegin(); v != m_vPreferredSongSort.end(); v++){
+			for(auto const s : v->vpSongs){
+				if (s == pSong) {
 					int i = v - m_vPreferredSongSort.begin();
 					return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
 				}
@@ -1002,8 +997,7 @@ SongManager::GetSongColor(const Song* pSong) const
 
 		int i = m_vPreferredSongSort.size();
 		return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
-	} else // TODO: Have a better fallback plan with colors?
-	{
+	} else { // TODO: Have a better fallback plan with colors?
 		/* XXX: Previously, this matched all notes, which set a song to
 		 * "extra" if it had any 10-foot steps at all, even edits or
 		 * doubles.
@@ -1085,11 +1079,9 @@ SongManager::ForceReloadSongGroup(const RString& sGroupName) const
 void
 SongManager::GetFavoriteSongs(vector<Song*>& songs) const
 {
-	FOREACH_CONST(Song*, m_pSongs, song)
-	{
-		if ((*song)->IsFavorited())
-			songs.emplace_back((*song));
-	}
+    for(auto const song : m_pSongs)
+		if (song->IsFavorited())
+			songs.emplace_back(song);
 }
 
 void
@@ -1100,21 +1092,17 @@ SongManager::GetPreferredSortSongs(vector<Song*>& AddTo) const
 		return;
 	}
 
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	AddTo.insert(AddTo.end(), v->vpSongs.begin(), v->vpSongs.end());
+	for(auto const v : m_vPreferredSongSort)
+	    AddTo.insert(AddTo.end(), v.vpSongs.begin(), v.vpSongs.end());
 }
 
 RString
 SongManager::SongToPreferredSortSectionName(const Song* pSong) const
 {
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	{
-		FOREACH_CONST(Song*, v->vpSongs, s)
-		{
-			if (*s == pSong)
-				return v->sName;
-		}
-	}
+	for(auto const v : m_vPreferredSongSort)
+		for(auto const s : v.vpSongs)
+			if (s == pSong)
+				return v.sName;
 	return RString();
 }
 
@@ -1128,9 +1116,8 @@ int
 SongManager::GetNumAdditionalSongs() const
 {
 	int iNum = 0;
-	FOREACH_CONST(Song*, m_pSongs, i)
-	{
-		if (WasLoadedFromAdditionalSongs(*i))
+	for(auto const i : m_pSongs){
+		if (WasLoadedFromAdditionalSongs(i))
 			++iNum;
 	}
 	return iNum;
@@ -1197,9 +1184,8 @@ SongManager::SaveEnabledSongsToPref()
 	// currently loaded.
 
 	const vector<Song*>& apSongs = SONGMAN->GetAllSongs();
-	FOREACH_CONST(Song*, apSongs, s)
-	{
-		Song* pSong = (*s);
+	for(auto const s : apSongs){
+		Song* pSong = s;
 		SongID sid;
 		sid.FromSong(pSong);
 		if (!pSong->GetEnabled())
@@ -1214,10 +1200,9 @@ SongManager::LoadEnabledSongsFromPref()
 	vector<RString> asDisabledSongs;
 	split(g_sDisabledSongs, ";", asDisabledSongs, true);
 
-	FOREACH_CONST(RString, asDisabledSongs, s)
-	{
+	for(auto const s : asDisabledSongs){
 		SongID sid;
-		sid.FromString(*s);
+		sid.FromString(s);
 		Song* pSong = sid.ToSong();
 		if (pSong)
 			pSong->SetEnabled(false);
@@ -1229,10 +1214,8 @@ SongManager::GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
 									   ProfileSlot slot) const
 {
 	const vector<Song*>& vSongs = GetAllSongs();
-	FOREACH_CONST(Song*, vSongs, song)
-	{
-		(*song)->GetStepsLoadedFromProfile(slot, AddTo);
-	}
+	for(auto const song : vSongs)
+		song->GetStepsLoadedFromProfile(slot, AddTo);
 }
 
 void
@@ -1428,11 +1411,9 @@ SongManager::FindSong(RString sGroup, RString sSong) const
 {
 	// foreach song
 	const vector<Song*>& vSongs = GetSongs(sGroup.empty() ? GROUP_ALL : sGroup);
-	FOREACH_CONST(Song*, vSongs, s)
-	{
-		if ((*s)->Matches(sGroup, sSong))
-			return *s;
-	}
+    for(auto const s : vSongs)
+		if ((s)->Matches(sGroup, sSong))
+			return s;
 
 	return NULL;
 }
@@ -1489,10 +1470,8 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 					if (DoesSongGroupExist(group)) {
 						// add all songs in group
 						const vector<Song*>& vSongs = GetSongs(group);
-						FOREACH_CONST(Song*, vSongs, song)
-						{
-							section.vpSongs.emplace_back(*song);
-						}
+						for(auto const song : vSongs)
+							section.vpSongs.emplace_back(song);
 					}
 				}
 

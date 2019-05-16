@@ -461,27 +461,25 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 	vector<RString> asParts;
 	split(sBit, " ", asParts, true);
 
-	FOREACH_CONST(RString, asParts, s)
-	{
-		if (*s == "no") {
+	for(auto const s : asParts){
+		if (s == "no") {
 			level = 0;
-		} else if (isdigit((*s)[0]) || (*s)[0] == '-') {
+		} else if (isdigit((s)[0]) || (s)[0] == '-') {
 			/* If the last character is a *, they probably said "123*" when
 			 * they meant "*123". */
-			if (s->Right(1) == "*") {
+			if (s.Right(1) == "*") {
 				// XXX: We know what they want, is there any reason not to
 				// handle it? Yes. We should be strict in handling the format.
 				// -Chris
-				sErrorOut =
-				  ssprintf("Invalid player options \"%s\"; did you mean '*%d'?",
-						   s->c_str(),
-						   StringToInt(*s));
+				sErrorOut = ssprintf("Invalid player options \"%s\"; did you mean '*%d'?",
+						   s.c_str(),
+						   StringToInt(s));
 				return false;
 			} else {
-				level = StringToFloat(*s) / 100.0f;
+				level = StringToFloat(s) / 100.0f;
 			}
-		} else if (*s[0] == '*') {
-			sscanf(*s, "*%f", &speed);
+		} else if (s[0] == '*') {
+			sscanf(s, "*%f", &speed);
 			if (!isfinite(speed))
 				speed = 1.0f;
 		}
@@ -1152,9 +1150,8 @@ PlayerOptions::GetLocalizedMods(vector<RString>& AddTo) const
 {
 	vector<RString> vMods;
 	GetMods(vMods);
-	FOREACH_CONST(RString, vMods, s)
-	{
-		const RString& sOneMod = *s;
+	for(auto const s : vMods){
+		const RString& sOneMod = s;
 
 		ASSERT(!sOneMod.empty());
 

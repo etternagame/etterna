@@ -389,21 +389,19 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 	const NoteSkinData& data = iter->second;
 
 	RString sPath; // fill this in below
-	FOREACH_CONST(RString, data.vsDirSearchOrder, lIter)
-	{
+    for(auto const lIter : data.vsDirSearchOrder){
 		if (sButtonName.empty())
-			sPath = GetPathFromDirAndFile(*lIter, sElement);
+			sPath = GetPathFromDirAndFile(lIter, sElement);
 		else
-			sPath = GetPathFromDirAndFile(*lIter, sButtonName + " " + sElement);
+			sPath = GetPathFromDirAndFile(lIter, sButtonName + " " + sElement);
 		if (!sPath.empty())
 			break; // done searching
 	}
 
 	if (sPath.empty()) {
-		FOREACH_CONST(RString, data.vsDirSearchOrder, lIter)
-		{
+        for(auto const lIter : data.vsDirSearchOrder){
 			if (!sButtonName.empty())
-				sPath = GetPathFromDirAndFile(*lIter, "Fallback " + sElement);
+				sPath = GetPathFromDirAndFile(lIter, "Fallback " + sElement);
 			if (!sPath.empty())
 				break; // done searching
 		}
@@ -411,12 +409,11 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 
 	if (sPath.empty()) {
 		RString sPaths;
-		FOREACH_CONST(RString, data.vsDirSearchOrder, dir)
-		{
+        for(auto const dir : data.vsDirSearchOrder){
 			if (!sPaths.empty())
 				sPaths += ", ";
 
-			sPaths += *dir;
+			sPaths += dir;
 		}
 
 		RString message =
@@ -429,8 +426,8 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 		switch (
 		  LuaHelpers::ReportScriptError(message, "NOTESKIN_ERROR", true)) {
 			case Dialog::retry:
-				FOREACH_CONST(RString, data.vsDirSearchOrder, dir)
-				FILEMAN->FlushDirCache(*dir);
+				for(auto const dir : data.vsDirSearchOrder)
+				    FILEMAN->FlushDirCache(dir);
 				g_PathCache.clear();
 				return GetPath(sButtonName, sElement);
 			case Dialog::abort:
@@ -456,9 +453,8 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 		GetFileContents(sPath, sNewFileName, true);
 		RString sRealPath;
 
-		FOREACH_CONST(RString, data.vsDirSearchOrder, lIter)
-		{
-			sRealPath = GetPathFromDirAndFile(*lIter, sNewFileName);
+        for(auto const lIter : data.vsDirSearchOrder){
+			sRealPath = GetPathFromDirAndFile(lIter, sNewFileName);
 			if (!sRealPath.empty())
 				break; // done searching
 		}
@@ -474,8 +470,8 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 			switch (
 			  LuaHelpers::ReportScriptError(message, "NOTESKIN_ERROR", true)) {
 				case Dialog::retry:
-					FOREACH_CONST(RString, data.vsDirSearchOrder, dir)
-					FILEMAN->FlushDirCache(*dir);
+					for(auto const dir : data.vsDirSearchOrder)
+					    FILEMAN->FlushDirCache(dir);
 					g_PathCache.clear();
 					return GetPath(sButtonName, sElement);
 				case Dialog::abort:

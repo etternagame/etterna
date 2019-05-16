@@ -175,8 +175,8 @@ BackgroundUtil::GetBackgroundEffects(const RString& _sName,
 	  BACKGROUND_EFFECTS_DIR + sName + ".lua", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(GetFileNameWithoutExtension(*s));
+    for(auto const s : vsPathsOut)
+	    vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -198,8 +198,8 @@ BackgroundUtil::GetBackgroundTransitions(const RString& _sName,
 	  BACKGROUND_TRANSITIONS_DIR + sName + ".lua", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(GetFileNameWithoutExtension(*s));
+    for(auto const s : vsPathsOut)
+	    vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -218,8 +218,8 @@ BackgroundUtil::GetSongBGAnimations(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
+    for(auto const s : vsPathsOut)
+	    vsNamesOut.push_back(Basename(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -243,8 +243,8 @@ BackgroundUtil::GetSongMovies(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
+    for(auto const s : vsPathsOut)
+	    vsNamesOut.push_back(Basename(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -268,8 +268,8 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
+    for(auto const s : vsPathsOut)
+        vsNamesOut.push_back(Basename(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -321,8 +321,8 @@ BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 		GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(RString, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
+    for(auto const s : vsPathsOut)
+        vsNamesOut.push_back(Basename(s));
 
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);
 }
@@ -364,22 +364,20 @@ GetGlobalRandomMoviePaths(const Song* pSong,
 	}
 	vsDirsToTry.push_back(RANDOMMOVIES_DIR);
 
-	FOREACH_CONST(RString, vsDirsToTry, sDir)
-	{
-		GetDirListing(*sDir + "*.ogv", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.avi", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.mpg", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.mpeg", vsPathsOut, false, true);
+	for(auto const sDir : vsDirsToTry){
+		GetDirListing(sDir + "*.ogv", vsPathsOut, false, true);
+		GetDirListing(sDir + "*.avi", vsPathsOut, false, true);
+		GetDirListing(sDir + "*.mpg", vsPathsOut, false, true);
+		GetDirListing(sDir + "*.mpeg", vsPathsOut, false, true);
 
 		if (!ssFileNameWhitelist.empty()) {
 			vector<RString> vsMatches;
-			FOREACH_CONST(RString, vsPathsOut, s)
-			{
-				RString sBasename = Basename(*s);
+            for(auto const &s : vsPathsOut){
+				RString sBasename = Basename(s);
 				bool bFound = ssFileNameWhitelist.find(sBasename) !=
 							  ssFileNameWhitelist.end();
 				if (bFound)
-					vsMatches.push_back(*s);
+					vsMatches.push_back(s);
 			}
 			// If we found any that match the whitelist, use only them.
 			// If none match the whitelist, ignore the whitelist..
@@ -412,9 +410,8 @@ BackgroundUtil::GetGlobalRandomMovies(const Song* pSong,
 							  bTryInsideOfSongGroupAndGenreFirst,
 							  bTryInsideOfSongGroupFirst);
 
-	FOREACH_CONST(RString, vsPathsOut, s)
-	{
-		RString sName = s->Right(s->size() - RANDOMMOVIES_DIR.size() - 1);
+	for(auto const s : vsPathsOut){
+		RString sName = s.Right(s.size() - RANDOMMOVIES_DIR.size() - 1);
 		vsNamesOut.push_back(sName);
 	}
 	StripCvsAndSvn(vsPathsOut, vsNamesOut);

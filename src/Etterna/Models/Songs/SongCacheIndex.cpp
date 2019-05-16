@@ -528,9 +528,8 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		insertSong.exec();
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
-		FOREACH_CONST(Steps*, vpStepsToSave, s)
-		{
-			const Steps* pSteps = *s;
+		for(auto const s : vpStepsToSave){
+			const Steps* pSteps = s;
 			if (pSteps->GetChartKey() == "") { // Avoid writing cache tags for
 											   // invalid chartkey files(empty
 											   // steps) -Mina

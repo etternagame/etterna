@@ -55,13 +55,12 @@ ThemeMetricDifficultiesToShow::Read()
 		return;
 	}
 
-	FOREACH_CONST(RString, v, i)
-	{
-		Difficulty d = StringToDifficulty(*i);
+	for(auto const i : v){
+		Difficulty d = StringToDifficulty(i);
 		if (d == Difficulty_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Unknown difficulty \"%s\" in CourseDifficultiesToShow.",
-			  i->c_str());
+			  i.c_str());
 		} else {
 			m_v.push_back(d);
 		}
@@ -82,13 +81,12 @@ RemoveStepsTypes(vector<StepsType>& inout, RString sStepsTypesToRemove)
 		return; // Nothing to do!
 
 	// subtract StepsTypes
-	FOREACH_CONST(RString, v, i)
-	{
-		StepsType st = GAMEMAN->StringToStepsType(*i);
+	for(auto const i : v){
+		StepsType st = GAMEMAN->StringToStepsType(i);
 		if (st == StepsType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid StepsType value '%s' in '%s'",
-			  i->c_str(),
+			  i.c_str(),
 			  sStepsTypesToRemove.c_str());
 			continue;
 		}
