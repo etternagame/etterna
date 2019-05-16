@@ -35,23 +35,23 @@ IPreference::GetPreferenceByName(const RString& sName)
 void
 IPreference::LoadAllDefaults()
 {
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->LoadDefault();
+    for(auto const p : *m_Subscribers.m_pSubscribers)
+	    p->LoadDefault();
 }
 
 void
 IPreference::ReadAllPrefsFromNode(const XNode* pNode, bool bIsStatic)
 {
 	ASSERT(pNode != NULL);
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->ReadFrom(pNode, bIsStatic);
+    for(auto const p : *m_Subscribers.m_pSubscribers)
+	    p->ReadFrom(pNode, bIsStatic);
 }
 
 void
 IPreference::SavePrefsToNode(XNode* pNode)
 {
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->WriteTo(pNode);
+	for(auto const p : *m_Subscribers.m_pSubscribers)
+	    p->WriteTo(pNode);
 }
 
 void
@@ -59,8 +59,8 @@ IPreference::ReadAllDefaultsFromNode(const XNode* pNode)
 {
 	if (pNode == NULL)
 		return;
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->ReadDefaultFrom(pNode);
+    for(auto const p : *m_Subscribers.m_pSubscribers)
+	    p->ReadDefaultFrom(pNode);
 }
 
 void

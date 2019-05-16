@@ -14,15 +14,7 @@
 	for (vector<elemType>::const_iterator var = (vect).begin();                \
 		 (var) != (vect).end();                                                \
 		 ++(var))
-
-/** @brief General foreach loop iterating over a set, using a constant iterator.
- */
-#define FOREACHS_CONST(elemType, vect, var)                                    \
-                                                                               \
-	for (set<elemType>::const_iterator var = (vect).begin();                   \
-		 (var) != (vect).end();                                                \
-		 ++(var))
-
+	    
 #endif
 
 /**

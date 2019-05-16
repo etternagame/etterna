@@ -233,9 +233,8 @@ MessageManager::Broadcast(Message& msg) const
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
-	FOREACHS_CONST(IMessageSubscriber*, iter->second, p)
-	{
-		IMessageSubscriber* pSub = *p;
+	for(auto const &p : iter->second){
+		IMessageSubscriber* pSub = p;
 		pSub->HandleMessage(msg);
 	}
 }

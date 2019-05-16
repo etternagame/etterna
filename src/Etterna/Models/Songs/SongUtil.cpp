@@ -1024,7 +1024,8 @@ SongUtil::GetAllSongGenres(vector<RString>& vsOut)
 			genres.insert((*song)->m_sGenre);
 	}
 
-	FOREACHS_CONST(RString, genres, s) { vsOut.push_back(*s); }
+	for(auto const s : genres)
+        vsOut.push_back(s);
 }
 
 void

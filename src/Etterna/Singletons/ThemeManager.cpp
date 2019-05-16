@@ -497,19 +497,17 @@ void
 ThemeManager::ReloadSubscribers()
 {
 	// reload subscribers
-	if (g_Subscribers.m_pSubscribers) {
-		FOREACHS_CONST(IThemeMetric*, *g_Subscribers.m_pSubscribers, p)
-		(*p)->Read();
-	}
+	if (g_Subscribers.m_pSubscribers)
+		for(auto const p : *g_Subscribers.m_pSubscribers)
+		    p->Read();
 }
 
 void
 ThemeManager::ClearSubscribers()
 {
-	if (g_Subscribers.m_pSubscribers) {
-		FOREACHS_CONST(IThemeMetric*, *g_Subscribers.m_pSubscribers, p)
-		(*p)->Clear();
-	}
+    if (g_Subscribers.m_pSubscribers)
+        for(auto const p : *g_Subscribers.m_pSubscribers)
+            p->Clear();
 }
 
 void

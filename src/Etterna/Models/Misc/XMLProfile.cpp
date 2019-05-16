@@ -152,8 +152,8 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the favorites node.");
 
 	XNode* favs = new XNode("Favorites");
-	FOREACHS_CONST(string, profile->FavoritedCharts, it)
-	favs->AppendChild(*it);
+	for(auto const it : profile->FavoritedCharts)
+	    favs->AppendChild(it);
 	return favs;
 }
 
@@ -163,8 +163,8 @@ XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	XNode* pmir = new XNode("PermaMirror");
-	FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
-	pmir->AppendChild(*it);
+	for(auto const it : profile->PermaMirrorCharts)
+	    pmir->AppendChild(it);
 	return pmir;
 }
 

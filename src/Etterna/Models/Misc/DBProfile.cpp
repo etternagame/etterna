@@ -527,11 +527,10 @@ DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
 			 "INTEGER, CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) "
 			 "REFERENCES chartkeys(id))");
 	if (!profile->FavoritedCharts.empty()) {
-		FOREACHS_CONST(string, profile->FavoritedCharts, ck)
-		{
+		for(auto const ck : profile->FavoritedCharts){
 			SQLite::Statement insertFav(
 			  *db, "INSERT INTO favourites VALUES (NULL, ?)");
-			insertFav.bind(1, FindOrCreateChartKey(db, *ck));
+			insertFav.bind(1, FindOrCreateChartKey(db, ck));
 			insertFav.exec();
 		}
 	}
@@ -650,9 +649,8 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 			 "REFERENCES chartkeys(id))");
 
 	if (!profile->PermaMirrorCharts.empty()) {
-		FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
-		{
-			int chID = FindOrCreateChartKey(db, *it);
+		for(auto const it : profile->PermaMirrorCharts){
+			int chID = FindOrCreateChartKey(db, it);
 			db->exec("INSERT INTO permamirrors VALUES (NULL, " +
 					 to_string(chID) + ")");
 		}
