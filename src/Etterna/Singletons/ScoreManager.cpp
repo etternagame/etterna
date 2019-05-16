@@ -647,9 +647,8 @@ ScoresForChart::CreateNode(const string& ck) const
 					  // not exactly here) -mina
 	XNode* o = loot.CreateNode(false);
 
-	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
-	{
-		auto node = i->second.CreateNode(i->first);
+	for(auto const i : ScoresByRate){
+		auto node = i.second.CreateNode(i.first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
 		else

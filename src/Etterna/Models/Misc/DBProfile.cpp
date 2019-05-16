@@ -591,9 +591,9 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	db->exec("DROP TABLE IF EXISTS defaultmodifiers");
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "
 			 "name TEXT, value TEXT)");
-	FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-	db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it->first +
-			 "\", \"" + it->second + "\")");
+    for(auto const it : profile->m_sDefaultModifiers)
+        db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it.first +
+                     "\", \"" + it.second + "\")");
 
 	db->exec("DROP TABLE IF EXISTS playerskillsets");
 	db->exec("CREATE TABLE playerskillsets (id INTEGER PRIMARY KEY, "
@@ -731,17 +731,16 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 
 	auto& pls = profile->allplaylists;
 	if (!pls.empty()) {
-		FOREACHM_CONST(string, Playlist, pls, pl)
-		{
-			if (pl->first != "" && pl->first != "Favorites") {
+		for(auto const pl : pls){
+			if (pl.first != "" && pl.first != "Favorites") {
 				SQLite::Statement insertPlaylist(
 				  *db, "INSERT INTO playlists VALUES (NULL, ?)");
-				insertPlaylist.bind(1, (pl->second).name);
+				insertPlaylist.bind(1, (pl.second).name);
 				insertPlaylist.exec();
 				// db->exec("INSERT INTO playlists VALUES (NULL, \"" +
-				// (pl->second).name + "\")");
+				// (pl.second).name + "\")");
 				int plID = (int)sqlite3_last_insert_rowid(db->getHandle());
-				FOREACH_CONST(Chart, (pl->second).chartlist, ch)
+				FOREACH_CONST(Chart, (pl.second).chartlist, ch)
 				{
 					int chartID = FindOrCreateChart(
 					  db, ch->key, ch->lastpack, ch->lastsong, ch->lastdiff);
@@ -753,7 +752,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertChartPlaylist.exec();
 				}
 
-				FOREACH_CONST(vector<string>, (pl->second).courseruns, run)
+				FOREACH_CONST(vector<string>, (pl.second).courseruns, run)
 				{
 
 					SQLite::Statement insertCourseRun(

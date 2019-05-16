@@ -431,9 +431,9 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 
 	// just because you had failoff, doesn't mean you didn't fail.
-	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
-	if (fail->second == 0.f)
-		return false;
+	for(auto const fail : pss.m_fLifeRecord)
+        if (fail.second == 0.f)
+            return false;
 
 	// cut out stuff with under 200 notes to prevent super short vibro files
 	// from being dumb

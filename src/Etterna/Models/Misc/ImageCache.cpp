@@ -154,9 +154,8 @@ void
 ImageCache::OutputStats() const
 {
 	int iTotalSize = 0;
-	FOREACHM_CONST(std::string, RageSurface*, g_ImagePathToImage, it)
-	{
-		const RageSurface* pImage = it->second;
+	for(auto const it : g_ImagePathToImage){
+		const RageSurface* pImage = it.second;
 		const int iSize = pImage->pitch * pImage->h;
 		iTotalSize += iSize;
 	}

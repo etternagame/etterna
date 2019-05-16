@@ -201,9 +201,9 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = profile->allplaylists;
-	FOREACHM_CONST(string, Playlist, pls, i)
-	if (i->first != "" && i->first != "Favorites")
-		playlists->AppendChild(i->second.CreateNode());
+	for(auto const i : pls)
+        if (i.first != "" && i.first != "Favorites")
+            playlists->AppendChild(i.second.CreateNode());
 	return playlists;
 }
 
@@ -336,8 +336,8 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	{
 		XNode* pDefaultModifiers =
 		  pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-		pDefaultModifiers->AppendChild(it->first, it->second);
+		for(auto const &it : profile->m_sDefaultModifiers)
+		    pDefaultModifiers->AppendChild(it.first, it.second);
 	}
 
 	{

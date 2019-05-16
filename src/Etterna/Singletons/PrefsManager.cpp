@@ -458,15 +458,14 @@ PrefsManager::SavePrefsToIni(IniFile& ini)
 		pNode = ini.AppendChild("Options");
 	IPreference::SavePrefsToNode(pNode);
 
-	FOREACHM_CONST(RString, GamePrefs, m_mapGameNameToGamePrefs, iter)
-	{
-		RString sSection = "Game-" + RString(iter->first);
+	for(auto const iter : m_mapGameNameToGamePrefs){
+		RString sSection = "Game-" + RString(iter.first);
 
 		// todo: write more values here? -aj
-		ini.SetValue(sSection, "Announcer", iter->second.m_sAnnouncer);
-		ini.SetValue(sSection, "Theme", iter->second.m_sTheme);
+		ini.SetValue(sSection, "Announcer", iter.second.m_sAnnouncer);
+		ini.SetValue(sSection, "Theme", iter.second.m_sTheme);
 		ini.SetValue(
-		  sSection, "DefaultModifiers", iter->second.m_sDefaultModifiers);
+		  sSection, "DefaultModifiers", iter.second.m_sDefaultModifiers);
 	}
 }
 

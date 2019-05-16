@@ -404,10 +404,9 @@ RageTextureManager::DiagnosticOutput() const
 	LOG->Trace("%u textures loaded:", iCount);
 
 	int iTotal = 0;
-	FOREACHM_CONST(RageTextureID, RageTexture*, m_mapPathToTexture, i)
-	{
-		const RageTextureID& ID = i->first;
-		const RageTexture* pTex = i->second;
+	for(auto const &i : m_mapPathToTexture){
+		const RageTextureID& ID = i.first;
+		const RageTexture* pTex = i.second;
 
 		RString sDiags = DISPLAY->GetTextureDiagnostics(pTex->GetTexHandle());
 		RString sStr = ssprintf("%3ix%3i (%2i)",

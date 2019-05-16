@@ -240,9 +240,8 @@ InputFilter::ResetDevice(InputDevice device)
 	LockMut(*queuemutex);
 
 	const ButtonStateMap ButtonStates(g_ButtonStates);
-	FOREACHM_CONST(DeviceButtonPair, ButtonState, ButtonStates, b)
-	{
-		const DeviceButtonPair& db = b->first;
+	for(auto const &b : ButtonStates){
+		const DeviceButtonPair& db = b.first;
 		if (db.device == device)
 			ButtonPressed(DeviceInput(
 			  device, db.button, 0, std::chrono::steady_clock::now()));

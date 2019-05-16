@@ -419,8 +419,8 @@ void
 RageLog::UpdateMappedLog()
 {
 	RString str;
-	FOREACHM_CONST(RString, RString, LogMaps, i)
-	str += ssprintf("%s" NEWLINE, i->second.c_str());
+	for(auto const &i : LogMaps)
+	    str += ssprintf("%s" NEWLINE, i.second.c_str());
 
 	g_AdditionalLogSize = min(sizeof(g_AdditionalLogStr), str.size() + 1);
 	memcpy(g_AdditionalLogStr, str.c_str(), g_AdditionalLogSize);

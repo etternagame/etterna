@@ -83,10 +83,8 @@ int
 Profile::HighScoresForASong::GetNumTimesPlayed() const
 {
 	int iCount = 0;
-	FOREACHM_CONST(StepsID, HighScoresForASteps, m_StepsHighScores, i)
-	{
-		iCount += i->second.hsl.GetNumTimesPlayed();
-	}
+	for(auto const i : m_StepsHighScores)
+		iCount += i.second.hsl.GetNumTimesPlayed();
 	return iCount;
 }
 
@@ -277,9 +275,8 @@ Profile::GetSongsActual(StepsType st, Difficulty dc) const
 	float fTotalPercents = 0;
 
 	// add steps high scores
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		const SongID& id = i->first;
+	for(auto const &i : m_SongHighScores){
+		const SongID& id = i.first;
 		Song* pSong = id.ToSong();
 
 		CHECKPOINT_M(ssprintf("Profile::GetSongsActual: %p", pSong));
@@ -291,11 +288,10 @@ Profile::GetSongsActual(StepsType st, Difficulty dc) const
 
 		CHECKPOINT_M(ssprintf("Profile::GetSongsActual: song %s",
 							  pSong->GetSongDir().c_str()));
-		const HighScoresForASong& hsfas = i->second;
+		const HighScoresForASong& hsfas = i.second;
 
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j)
-		{
-			const StepsID& sid = j->first;
+		for(auto const &j : hsfas.m_StepsHighScores){
+			const StepsID& sid = j.first;
 			Steps* pSteps = sid.ToSteps(pSong, true);
 			CHECKPOINT_M(ssprintf(
 			  "Profile::GetSongsActual: song %p, steps %p", pSong, pSteps));
@@ -319,7 +315,7 @@ Profile::GetSongsActual(StepsType st, Difficulty dc) const
 			  ssprintf("Profile::GetSongsActual: difficulty %s is correct",
 					   DifficultyToString(dc).c_str()));
 
-			const HighScoresForASteps& h = j->second;
+			const HighScoresForASteps& h = j.second;
 			const HighScoreList& hsl = h.hsl;
 
 			fTotalPercents += hsl.GetTopScore().GetPercentDP();
@@ -351,9 +347,8 @@ Profile::GetSongNumTimesPlayed(const SongID& songID) const
 		return 0;
 
 	int iTotalNumTimesPlayed = 0;
-	FOREACHM_CONST(StepsID, HighScoresForASteps, hsSong->m_StepsHighScores, j)
-	{
-		const HighScoresForASteps& hsSteps = j->second;
+	for(auto const &j : hsSong->m_StepsHighScores){
+		const HighScoresForASteps& hsSteps = j.second;
 
 		iTotalNumTimesPlayed += hsSteps.hsl.GetNumTimesPlayed();
 	}
@@ -396,11 +391,10 @@ Profile::GetMostPopularSong() const
 {
 	int iMaxNumTimesPlayed = 0;
 	SongID id;
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		int iNumTimesPlayed = i->second.GetNumTimesPlayed();
-		if (i->first.ToSong() != NULL && iNumTimesPlayed > iMaxNumTimesPlayed) {
-			id = i->first;
+	for(auto const i : m_SongHighScores){
+		int iNumTimesPlayed = i.second.GetNumTimesPlayed();
+		if (i.first.ToSong() != NULL && iNumTimesPlayed > iMaxNumTimesPlayed) {
+			id = i.first;
 			iMaxNumTimesPlayed = iNumTimesPlayed;
 		}
 	}
@@ -460,10 +454,8 @@ Profile::GetSongLastPlayedDateTime(const Song* pSong) const
 	ASSERT(!iter->second.m_StepsHighScores.empty());
 
 	DateTime dtLatest; // starts out zeroed
-	FOREACHM_CONST(
-	  StepsID, HighScoresForASteps, iter->second.m_StepsHighScores, i)
-	{
-		const HighScoreList& hsl = i->second.hsl;
+	for(auto const i : iter->second.m_StepsHighScores){
+		const HighScoreList& hsl = i.second.hsl;
 		if (hsl.GetNumTimesPlayed() == 0)
 			continue;
 		if (dtLatest < hsl.GetLastPlayed())
@@ -555,14 +547,12 @@ Profile::GetGrades(const Song* pSong,
 
 	FOREACH_ENUM(Grade, g)
 	{
-		FOREACHM_CONST(
-		  StepsID, HighScoresForASteps, hsSong->m_StepsHighScores, it)
-		{
-			const StepsID& id = it->first;
+		for(auto const it : hsSong->m_StepsHighScores){
+			const StepsID& id = it.first;
 			if (!id.MatchesStepsType(st))
 				continue;
 
-			const HighScoresForASteps& hsSteps = it->second;
+			const HighScoresForASteps& hsSteps = it.second;
 			if (hsSteps.hsl.GetTopScore().GetGrade() == g)
 				iCounts[g]++;
 		}
