@@ -729,7 +729,7 @@ Windows installer release. Due to merging, some features of this version and the
 - Hilarious splash screen - [19ea4af](../../commit/19ea4af11c54b0498947b568e95132c1a435a35d)
 ### Changed
 - Discord connection properly closes when closing the game - [31e0210](../../commit/31e0210af83f913d841304219032d2d9ec4c70cf)
-- Don't care about input debouce for the mousewheel - [c5a97e3](../../commit/c5a97e3d2c209c0bbd12fd52e302992af669031d)
+- Don't care about input debounce for the mousewheel - [c5a97e3](../../commit/c5a97e3d2c209c0bbd12fd52e302992af669031d)
 - Don't let Lua mess with internal rescoring functions - [2fc75f9](../../commit/2fc75f90f990e66e162ae6d6c772ca2c4d913866)
 - Drop the lowest skillset when calculating Player Overall - [063f5e0](../../commit/063f5e0224fa4d97bb8d9027ccda6230fe3a6ce8)
 - Initialize MessageManager earlier in the creation process due to undefined behavior - [dc484e6](../../commit/dc484e68bc792821b00c913a0a427e63522f21c6)
@@ -1401,7 +1401,7 @@ Binary only release to replace Stepmania.exe.
 
 ## [0.01.0] - 2016-08-26 - Early Experimental Release
 
-Binary only release to replace Stepmania.exe.
+Binary only release to replace Stepmania.exe. Initial branch off of [Stepmania 5.0.12](../../tree/v5.0.12)
 
 ### Changed
 - Replace BeatToNoteRowNotRounded with BeatToNoteRow & typecast instead of round in BeatToNoteRow, because rounding is slow - [eed2f6e](../../commit/eed2f6e7c2ebb36af7b31b3d1cc4ba5992a88ba0) 
