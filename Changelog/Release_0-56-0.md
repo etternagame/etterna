@@ -6,7 +6,7 @@
 Windows, and Mac pre-release. The MSD Calculator is receiving heavy chiseling.
 
 ### Changed
-- The Calculator has been updated - [98f806b](../../commit/98f806ba514fd24d4dc58a6868de3b7a5fb567e0)
+- The Calculator has been updated - [98f806b](../../../commit/98f806ba514fd24d4dc58a6868de3b7a5fb567e0)
   - Chordjack files should be rated more JackSpeed instead of Handstream
   - Stream files should be less populated with fast Jumpstream & more populated with actual Stream.
   - Actual Stream got a buff, while files that aren't Stream but got rated Stream should be nerfed.
