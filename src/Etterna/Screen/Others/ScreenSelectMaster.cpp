@@ -100,9 +100,8 @@ ScreenSelectMaster::Init()
 
 	// init cursor
 	if (SHOW_CURSOR) {
-		FOREACH(PlayerNumber, vpns, p)
-		{
-			RString sElement = "Cursor" + PLAYER_APPEND_NO_SPACE(*p);
+		for(auto p : vpns) {
+			RString sElement = "Cursor" + PLAYER_APPEND_NO_SPACE(p);
 			m_sprCursor.Load(THEME->GetPathG(m_sName, sElement));
 			sElement.Replace(" ", "");
 			m_sprCursor->SetName(sElement);
@@ -210,21 +209,20 @@ ScreenSelectMaster::Init()
 
 		// init scroll
 		if (SHOW_SCROLLER) {
-			FOREACH(PlayerNumber, vpns, p)
-			{
+			for(auto p : vpns){
 				vector<RString> vs;
 				vs.push_back("Scroll");
 				if (PER_CHOICE_SCROLL_ELEMENT)
 					vs.push_back("Choice" + mc.m_sName);
 				if (!SHARED_SELECTION)
-					vs.push_back(PLAYER_APPEND_NO_SPACE(*p));
+					vs.push_back(PLAYER_APPEND_NO_SPACE(p));
 				RString sElement = join(" ", vs);
 				m_vsprScroll[c].Load(THEME->GetPathG(m_sName, sElement));
 				RString sName = "Scroll"
 								"Choice" +
 								mc.m_sName;
 				if (!SHARED_SELECTION)
-					sName += PLAYER_APPEND_NO_SPACE(*p);
+					sName += PLAYER_APPEND_NO_SPACE(p);
 				m_vsprScroll[c]->SetName(sName);
 				m_Scroller.AddChild(m_vsprScroll[c]);
 			}
@@ -233,15 +231,14 @@ ScreenSelectMaster::Init()
 
 	// init scroll
 	if (SHOW_SCROLLER) {
-		FOREACH(PlayerNumber, vpns, p)
-		{
+		for(auto p : vpns){
 			m_Scroller.SetLoop(LOOP_SCROLLER);
 			m_Scroller.SetNumItemsToDraw(SCROLLER_NUM_ITEMS_TO_DRAW);
 			m_Scroller.Load2();
 			m_Scroller.SetTransformFromReference(SCROLLER_TRANSFORM);
 			m_Scroller.SetSecondsPerItem(SCROLLER_SECONDS_PER_ITEM);
 			m_Scroller.SetNumSubdivisions(SCROLLER_SUBDIVISIONS);
-			m_Scroller.SetName("Scroller" + PLAYER_APPEND_NO_SPACE(*p));
+			m_Scroller.SetName("Scroller" + PLAYER_APPEND_NO_SPACE(p));
 			LOAD_ALL_COMMANDS_AND_SET_XY(m_Scroller);
 			this->AddChild(&m_Scroller);
 		}
@@ -385,13 +382,12 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 		msg.SetParam("NewPageIndex", (int)newPage);
 
 		if (SHOW_CURSOR) {
-			FOREACH(PlayerNumber, vpns, p)
-			m_sprCursor->HandleMessage(msg);
+			for(auto p : vpns)
+			    m_sprCursor->HandleMessage(msg);
 		}
 
 		if (SHOW_SCROLLER) {
-			FOREACH(PlayerNumber, vpns, p)
-			{
+			for(auto p : vpns) {
 				int iChoice = m_iChoice;
 				m_vsprScroll[iChoice]->HandleMessage(msg);
 			}
@@ -451,8 +447,7 @@ ScreenSelectMaster::UpdateSelectableChoices()
 			m_vsprIcon[c]->PlayCommand(command);
 		}
 
-		FOREACH(PlayerNumber, vpns, p)
-		{
+		for(auto p : vpns){
 			if (disabled && m_iChoice == c) {
 				on_unplayable = true;
 			}
@@ -461,10 +456,9 @@ ScreenSelectMaster::UpdateSelectableChoices()
 			}
 		}
 	}
-	FOREACH(PlayerNumber, vpns, pn)
-	{
+	for(auto pn : vpns){
 		if (on_unplayable && first_playable != -1) {
-			ChangeSelection(*pn,
+			ChangeSelection(pn,
 							first_playable < m_iChoice ? MenuDir_Left
 															: MenuDir_Right,
 							first_playable);
@@ -670,12 +664,11 @@ ScreenSelectMaster::ChangePage(int iNewChoice)
 	msg.SetParam("NewPageIndex", (int)newPage);
 	MESSAGEMAN->Broadcast(msg);
 
-	FOREACH(PlayerNumber, vpns, p)
-	{
-		if (GAMESTATE->IsHumanPlayer(*p)) {
+	for(auto p : vpns){
+		if (GAMESTATE->IsHumanPlayer(p)) {
 			if (SHOW_CURSOR) {
 				m_sprCursor->HandleMessage(msg);
-				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
+				m_sprCursor->SetXY(GetCursorX(p), GetCursorY(p));
 			}
 
 			if (SHOW_SCROLLER)
@@ -719,8 +712,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 		vpns.push_back(pn);
 	}
 
-	FOREACH(PlayerNumber, vpns, p)
-	{
+	for(auto p : vpns){
 		const int iOldChoice = m_iChoice;
 		m_iChoice = iNewChoice;
 
@@ -732,7 +724,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 			bool bNewAlreadyHadFocus = false;
 			FOREACH_HumanPlayer(p2)
 			{
-				if (p2 == *p)
+				if (p2 == p)
 					continue;
 				bOldStillHasFocus |= m_iChoice == iOldChoice;
 				bNewAlreadyHadFocus |= m_iChoice == iNewChoice;
@@ -764,9 +756,9 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 		}
 
 		if (SHOW_CURSOR) {
-			if (GAMESTATE->IsHumanPlayer(*p)) {
+			if (GAMESTATE->IsHumanPlayer(p)) {
 				m_sprCursor->PlayCommand("Change");
-				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
+				m_sprCursor->SetXY(GetCursorX(p), GetCursorY(p));
 			}
 		}
 
@@ -990,7 +982,7 @@ ScreenSelectMaster::TweenOnScreen()
 	}
 
 	if (SHOW_SCROLLER) {
-		FOREACH(PlayerNumber, vpns, p)
+		for(auto p : vpns)
 		{
 			// Play Gain/LoseFocus before playing the on command.
 			// Gain/Lose will often stop tweening, which ruins the OnCommand.
@@ -1008,10 +1000,10 @@ ScreenSelectMaster::TweenOnScreen()
 	// Need to SetXY of Cursor after Icons since it depends on the Icons'
 	// positions.
 	if (SHOW_CURSOR) {
-		FOREACH(PlayerNumber, vpns, p)
+		for(auto p : vpns)
 		{
-			if (GAMESTATE->IsHumanPlayer(*p))
-				m_sprCursor->SetXY(GetCursorX(*p), GetCursorY(*p));
+			if (GAMESTATE->IsHumanPlayer(p))
+				m_sprCursor->SetXY(GetCursorX(p), GetCursorY(p));
 		}
 	}
 
@@ -1031,8 +1023,7 @@ ScreenSelectMaster::TweenOffScreen()
 			continue; // skip
 
 		bool bSelectedByEitherPlayer = false;
-		FOREACH(PlayerNumber, vpns, p)
-		{
+		for(auto p : vpns){
 			if (m_iChoice == (int)c)
 				bSelectedByEitherPlayer = true;
 		}
@@ -1042,9 +1033,8 @@ ScreenSelectMaster::TweenOffScreen()
 			  bSelectedByEitherPlayer ? "OffFocused" : "OffUnfocused");
 
 		if (SHOW_SCROLLER) {
-			FOREACH(PlayerNumber, vpns, p)
-			m_vsprScroll[c]->PlayCommand(
-			  bSelectedByEitherPlayer ? "OffFocused" : "OffUnfocused");
+			for(auto p : vpns)
+			    m_vsprScroll[c]->PlayCommand(bSelectedByEitherPlayer ? "OffFocused" : "OffUnfocused");
 		}
 	}
 }

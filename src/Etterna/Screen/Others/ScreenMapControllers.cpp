@@ -800,10 +800,9 @@ ScreenMapControllers::SanityCheckWrapper()
 		return true;
 	}
 
-	FOREACH(RString, reasons_not_sane, reason)
-	{
-		*reason = THEME->GetString("ScreenMapControllers", *reason);
-	}
+	for(auto reason : reasons_not_sane)
+		reason = THEME->GetString("ScreenMapControllers", reason);
+
 	RString joined_reasons = join("\n", reasons_not_sane);
 	joined_reasons = THEME->GetString("ScreenMapControllers", "VitalButtons") +
 					 "\n" + joined_reasons;

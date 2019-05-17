@@ -517,8 +517,8 @@ Player::Init(const RString& sType,
 	m_vbFretIsDown.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
-	FOREACH(bool, m_vbFretIsDown, b)
-	*b = false;
+	for(auto b : m_vbFretIsDown)
+	    b = false;
 }
 /**
  * @brief Determine if a TapNote needs a tap note style judgment.
@@ -1094,11 +1094,10 @@ Player::UpdateHoldNotes(int iSongRow,
 	int iFirstTrackWithMaxEndRow = -1;
 
 	TapNoteSubType subType = TapNoteSubType_Invalid;
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		int iTrack = trtn->iTrack;
-		ASSERT(iStartRow == trtn->iRow);
-		TapNote& tn = *trtn->pTN;
+	for(auto trtn : vTN){
+		int iTrack = trtn.iTrack;
+		ASSERT(iStartRow == trtn.iRow);
+		TapNote& tn = *trtn.pTN;
 		int iEndRow = iStartRow + tn.iDuration;
 		if (subType == TapNoteSubType_Invalid)
 			subType = tn.subType;
@@ -1120,15 +1119,14 @@ Player::UpdateHoldNotes(int iSongRow,
 	// row - start row (in beats) =
 	// %f",NoteRowToBeat(iMaxEndRow)-NoteRowToBeat(iStartRow)) );
 
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		TapNote& tn = *trtn->pTN;
+	for(auto trtn : vTN){
+		TapNote& tn = *trtn.pTN;
 
 		// set hold flags so NoteField can do intelligent drawing
 		tn.HoldResult.bHeld = false;
 		tn.HoldResult.bActive = false;
 
-		int iRow = trtn->iRow;
+		int iRow = trtn.iRow;
 		// LOG->Trace( ssprintf("this row: %i",iRow) );
 
 		// If the song beat is in the range of this hold:
@@ -1154,9 +1152,8 @@ Player::UpdateHoldNotes(int iSongRow,
 	}
 
 	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		FOREACH(TrackRowTapNote, vTN, trtn)
-		{
-			TapNote& tn = *trtn->pTN;
+		for(auto trtn : vTN){
+			TapNote& tn = *trtn.pTN;
 
 			// check from now until the head of the hold to see if it should die
 			// possibly really bad, but we dont REALLY care that much about fps
@@ -1164,9 +1161,9 @@ Player::UpdateHoldNotes(int iSongRow,
 			bool holdDropped = false;
 			for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped;
 				 yeet++) {
-				if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack)) {
+				if (PlayerAI::DetermineIfHoldDropped(yeet, trtn.iTrack))
 					holdDropped = true;
-				}
+
 			}
 
 			if (holdDropped) // it should be dead
@@ -1194,9 +1191,8 @@ Player::UpdateHoldNotes(int iSongRow,
 
 	bool bSteppedOnHead = true;
 	bool bHeadJudged = true;
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		TapNote& tn = *trtn->pTN;
+	for(auto trtn : vTN){
+		TapNote& tn = *trtn.pTN;
 		TapNoteScore tns = tn.result.tns;
 		// LOG->Trace( ssprintf("[C++] tap note score:
 		// %s",StringConversion::ToString(tns).c_str()) );
@@ -1236,15 +1232,14 @@ Player::UpdateHoldNotes(int iSongRow,
 	}
 
 	bool bIsHoldingButton = true;
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
+	for(auto trtn : vTN){
 		/*if this hold is already done, pretend it's always being pressed.
 		fixes/masks the phantom hold issue. -FSX*/
 		// That interacts badly with !IMMEDIATE_HOLD_LET_GO,
 		// causing ALL holds to be judged HNS_Held whether they were or not.
 		if (!IMMEDIATE_HOLD_LET_GO ||
-			(iStartRow + trtn->pTN->iDuration) > iSongRow) {
-			int iTrack = trtn->iTrack;
+			(iStartRow + trtn.pTN->iDuration) > iSongRow) {
+			int iTrack = trtn.iTrack;
 
 			// TODO: Remove use of PlayerNumber.
 			PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
@@ -1275,14 +1270,13 @@ Player::UpdateHoldNotes(int iSongRow,
 		 * Update iLastHeldRow. Do this even if we're a little beyond the end
 		 * of the hold note, to make sure iLastHeldRow is clamped to iEndRow
 		 * if the hold note is held all the way. */
-		FOREACH(TrackRowTapNote, vTN, trtn)
-		{
-			TapNote& tn = *trtn->pTN;
+		for(auto trtn : vTN){
+			TapNote& tn = *trtn.pTN;
 			int iEndRow = iStartRow + tn.iDuration;
 
 			// LOG->Trace(ssprintf("trying for min between iSongRow (%i) and
 			// iEndRow (%i) (duration %i)",iSongRow,iEndRow,tn.iDuration));
-			trtn->pTN->HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+			trtn.pTN->HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
 		}
 	}
 
@@ -1290,9 +1284,8 @@ Player::UpdateHoldNotes(int iSongRow,
 	if (iStartRow <= iSongRow && iStartRow <= iMaxEndRow && bHeadJudged) {
 		switch (subType) {
 			case TapNoteSubType_Hold:
-				FOREACH(TrackRowTapNote, vTN, trtn)
-				{
-					TapNote& tn = *trtn->pTN;
+				for(auto trtn : vTN){
+					TapNote& tn = *trtn.pTN;
 
 					// set hold flag so NoteField can do intelligent drawing
 					tn.HoldResult.bHeld = bIsHoldingButton && bInitiatedNote;
@@ -1328,9 +1321,9 @@ Player::UpdateHoldNotes(int iSongRow,
 				}
 				break;
 			case TapNoteSubType_Roll:
-				FOREACH(TrackRowTapNote, vTN, trtn)
+				for(auto trtn : vTN)
 				{
-					TapNote& tn = *trtn->pTN;
+					TapNote& tn = *trtn.pTN;
 					tn.HoldResult.bHeld = true;
 					tn.HoldResult.bActive = bInitiatedNote;
 				}
@@ -1405,10 +1398,10 @@ Player::UpdateHoldNotes(int iSongRow,
 			// LOG->Trace("(hold checkpoints are allowed and enabled.)");
 			int iCheckpointsHit = 0;
 			int iCheckpointsMissed = 0;
-			FOREACH(TrackRowTapNote, vTN, v)
+			for(auto v : vTN)
 			{
-				iCheckpointsHit += v->pTN->HoldResult.iCheckpointsHit;
-				iCheckpointsMissed += v->pTN->HoldResult.iCheckpointsMissed;
+				iCheckpointsHit += v.pTN->HoldResult.iCheckpointsHit;
+				iCheckpointsMissed += v.pTN->HoldResult.iCheckpointsMissed;
 			}
 			bLetGoOfHoldNote = iCheckpointsMissed > 0 || iCheckpointsHit == 0;
 
@@ -1443,9 +1436,8 @@ Player::UpdateHoldNotes(int iSongRow,
 							   m_pPlayerStageStats->m_iCurCombo >
 								 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
 				if (m_pNoteField != nullptr) {
-					FOREACH(TrackRowTapNote, vTN, trtn)
-					{
-						int iTrack = trtn->iTrack;
+					for(auto trtn : vTN){
+						int iTrack = trtn.iTrack;
 						m_pNoteField->DidHoldNote(
 						  iTrack, HNS_Held, bBright); // bright ghost flash
 					}
@@ -1464,9 +1456,8 @@ Player::UpdateHoldNotes(int iSongRow,
 
 	float fLifeFraction = fLife / MAX_HOLD_LIFE;
 
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		TapNote& tn = *trtn->pTN;
+	for(auto trtn : vTN){
+		TapNote& tn = *trtn.pTN;
 		tn.HoldResult.fLife = fLife;
 		tn.HoldResult.hns = hns;
 		// Stop the playing keysound for the hold note.

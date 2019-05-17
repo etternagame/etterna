@@ -1444,9 +1444,8 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 		PreferredSortSection section;
 		map<Song*, float> mapSongToPri;
 
-		FOREACH(RString, asLines, s)
-		{
-			RString sLine = *s;
+		for(auto s : asLines){
+			RString sLine = s;
 
 			bool bSectionDivider = BeginsWith(sLine, "---");
 			if (bSectionDivider) {
@@ -1492,9 +1491,9 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 			if (m_vPreferredSongSort[i].vpSongs.empty())
 				m_vPreferredSongSort.erase(m_vPreferredSongSort.begin() + i);
 
-		FOREACH(PreferredSortSection, m_vPreferredSongSort, i)
-		FOREACH(Song*, i->vpSongs, j)
-		ASSERT(*j != NULL);
+		for(auto i : m_vPreferredSongSort)
+            for(auto j : i.vpSongs)
+                ASSERT(j != NULL);
 	}
 }
 
@@ -1524,23 +1523,19 @@ SongManager::FreeAllLoadedFromProfile(ProfileSlot slot)
 	set<Steps*> setInUse;
 	if (STATSMAN)
 		STATSMAN->GetStepsInUse(setInUse);
-	FOREACH(Song*, m_pSongs, s)
-	(*s)->FreeAllLoadedFromProfile(slot, &setInUse);
+	for(auto s : m_pSongs)
+	    s->FreeAllLoadedFromProfile(slot, &setInUse);
 }
 
 int
 SongManager::GetNumStepsLoadedFromProfile()
 {
 	int iCount = 0;
-	FOREACH(Song*, m_pSongs, s)
-	{
-		vector<Steps*> vpAllSteps = (*s)->GetAllSteps();
-
-		FOREACH(Steps*, vpAllSteps, ss)
-		{
-			if ((*ss)->GetLoadedFromProfileSlot() != ProfileSlot_Invalid)
+	for(auto s : m_pSongs){
+		vector<Steps*> vpAllSteps = s->GetAllSteps();
+		for(auto ss : vpAllSteps)
+			if (ss->GetLoadedFromProfileSlot() != ProfileSlot_Invalid)
 				iCount++;
-		}
 	}
 
 	return iCount;

@@ -176,9 +176,8 @@ GameChoices(vector<RString>& out)
 {
 	vector<const Game*> aGames;
 	GAMEMAN->GetEnabledGames(aGames);
-	FOREACH(const Game*, aGames, g)
-	{
-		RString sGameName = (*g)->m_szName;
+	for(auto g : aGames){
+		RString sGameName = g->m_szName;
 		out.push_back(sGameName);
 	}
 }
@@ -262,8 +261,8 @@ static void
 ThemeChoices(vector<RString>& out)
 {
 	THEME->GetSelectableThemeNames(out);
-	FOREACH(RString, out, s)
-	*s = THEME->GetThemeDisplayName(*s);
+	for(auto s : out)
+	    s = THEME->GetThemeDisplayName(s);
 }
 
 static DisplayResolutions display_resolution_list;

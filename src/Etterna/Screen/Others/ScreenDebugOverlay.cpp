@@ -114,13 +114,15 @@ ScreenDebugOverlay::~ScreenDebugOverlay()
 {
 	this->RemoveAllChildren();
 
-	FOREACH(BitmapText*, m_vptextPages, p)
-	SAFE_DELETE(*p);
-	FOREACH(BitmapText*, m_vptextButton, p)
-	SAFE_DELETE(*p);
+	for(auto p : m_vptextPages)
+	    SAFE_DELETE(p);
+
+	for(auto p : m_vptextButton)
+	    SAFE_DELETE(p);
 	m_vptextButton.clear();
-	FOREACH(BitmapText*, m_vptextFunction, p)
-	SAFE_DELETE(*p);
+
+	for(auto p : m_vptextFunction)
+	    SAFE_DELETE(p);
 	m_vptextFunction.clear();
 }
 
@@ -238,12 +240,11 @@ ScreenDebugOverlay::Init()
 
 	map<RString, int> iNextDebugButton;
 	int iNextGameplayButton = 0;
-	FOREACH(IDebugLine*, *g_pvpSubscribers, p)
-	{
-		RString sPageName = (*p)->GetPageName();
+	for(auto p : *g_pvpSubscribers){
+		RString sPageName = p->GetPageName();
 
 		DeviceInput di;
-		switch ((*p)->GetType()) {
+		switch (p->GetType()) {
 			case IDebugLine::all_screens:
 				di = g_Mappings.debugButton[iNextDebugButton[sPageName]++];
 				break;
@@ -251,7 +252,7 @@ ScreenDebugOverlay::Init()
 				di = g_Mappings.gameplayButton[iNextGameplayButton++];
 				break;
 		}
-		(*p)->m_Button = di;
+		p->m_Button = di;
 
 		if (find(m_asPages.begin(), m_asPages.end(), sPageName) ==
 			m_asPages.end())
@@ -938,18 +939,14 @@ FillProfileStats(Profile* pProfile)
 	int iCount = 20;
 
 	vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
-	FOREACH(Song*, vpAllSongs, pSong)
+	for(auto pSong : vpAllSongs)
 	{
-		vector<Steps*> vpAllSteps = (*pSong)->GetAllSteps();
-		FOREACH(Steps*, vpAllSteps, pSteps)
-		{
-			if (random_up_to(5)) {
-				pProfile->IncrementStepsPlayCount(*pSong, *pSteps);
-			}
+		vector<Steps*> vpAllSteps = pSong->GetAllSteps();
+		for(auto pSteps : vpAllSteps){
+				pProfile->IncrementStepsPlayCount(pSong, pSteps);
 			for (int i = 0; i < iCount; i++) {
 				int iIndex = 0;
-				pProfile->AddStepsHighScore(
-				  *pSong, *pSteps, MakeRandomHighScore(fPercentDP), iIndex);
+				pProfile->AddStepsHighScore(pSong, pSteps, MakeRandomHighScore(fPercentDP), iIndex);
 			}
 		}
 	}

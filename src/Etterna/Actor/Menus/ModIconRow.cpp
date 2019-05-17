@@ -22,7 +22,8 @@ ModIconRow::ModIconRow()
 
 ModIconRow::~ModIconRow()
 {
-	FOREACH(ModIcon*, m_vpModIcon, p) { SAFE_DELETE(*p); }
+	for(auto p : m_vpModIcon)
+	    SAFE_DELETE(p);
 	this->RemoveAllChildren();
 }
 

@@ -79,18 +79,14 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 	// OPTIMIZATION OPPORTUNITY: cache these metrics and cache the splitting
 	vector<RString> vsNames;
 	split(NAMES, ",", vsNames);
-	FOREACH(RString, vsNames, sName)
-	{
-		ThemeMetric<StepsType> STEPS_TYPE("CustomDifficulty",
-										  (*sName) + "StepsType");
+	for(auto sName : vsNames){
+		ThemeMetric<StepsType> STEPS_TYPE("CustomDifficulty", sName + "StepsType");
 		if (STEPS_TYPE == StepsType_Invalid || st == STEPS_TYPE) // match
 		{
-			ThemeMetric<Difficulty> DIFFICULTY("CustomDifficulty",
-											   (*sName) + "Difficulty");
+			ThemeMetric<Difficulty> DIFFICULTY("CustomDifficulty", sName + "Difficulty");
 			if (DIFFICULTY == Difficulty_Invalid || dc == DIFFICULTY) // match
 			{
-				ThemeMetric<RString> STRING("CustomDifficulty",
-											(*sName) + "String");
+				ThemeMetric<RString> STRING("CustomDifficulty", sName + "String");
 				return STRING.GetValue();
 			}
 		}

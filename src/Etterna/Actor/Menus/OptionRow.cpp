@@ -699,8 +699,8 @@ OptionRow::SetOneSelection(PlayerNumber pn, int iChoice)
 	vector<bool>& vb = m_vbSelected;
 	if (vb.empty())
 		return;
-	FOREACH(bool, vb, b)
-	*b = false;
+	for(auto b : vb)
+	    b = false;
 	vb[iChoice] = true;
 	NotifyHandlerOfSelection(pn, iChoice);
 }
@@ -894,8 +894,8 @@ OptionRow::ImportOptions(const PlayerNumber& vpns)
 
 	PlayerNumber p = PLAYER_1;
 
-	FOREACH(bool, m_vbSelected, b)
-	*b = false;
+	for(auto b : m_vbSelected)
+	    b = false;
 
 	ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
 	ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);

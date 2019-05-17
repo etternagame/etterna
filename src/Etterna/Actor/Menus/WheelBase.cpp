@@ -31,8 +31,8 @@ LuaXType(WheelState);
 
 WheelBase::~WheelBase()
 {
-	FOREACH(WheelItemBase*, m_WheelBaseItems, i)
-	SAFE_DELETE(*i);
+	for(auto i : m_WheelBaseItems)
+	    SAFE_DELETE(i);
 	m_WheelBaseItems.clear();
 	m_LastSelection = NULL;
 }

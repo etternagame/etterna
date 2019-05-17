@@ -138,11 +138,9 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	}
 
 	vector<RageSoundReader*> vpSounds;
-	FOREACH(RString, vsMusicFile, s)
-	{
+	for(auto s : vsMusicFile){
 		RString sError;
-		RageSoundReader* pSongReader =
-		  RageSoundReader_FileReader::OpenFile(*s, sError);
+		RageSoundReader* pSongReader = RageSoundReader_FileReader::OpenFile(s, sError);
 		vpSounds.push_back(pSongReader);
 	}
 
@@ -157,8 +155,8 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	} else if (!vpSounds.empty()) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, vpSounds, so)
-		pMerge->AddSound(*so);
+		for(auto so : vpSounds)
+		    pMerge->AddSound(so);
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 
 		RageSoundReader* pSongReader = pMerge;
@@ -234,8 +232,8 @@ AutoKeysounds::FinishLoading()
 	if (apSounds.size() > 1) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, apSounds, ps)
-		pMerge->AddSound(*ps);
+		for(auto ps : apSounds)
+		    pMerge->AddSound(ps);
 
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 

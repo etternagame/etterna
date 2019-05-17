@@ -70,8 +70,8 @@ ScreenWithMenuElements::Init()
 		  dynamic_cast<ActorFrame*>(static_cast<Actor*>(decorations));
 		if (pFrame != nullptr) {
 			m_vDecorations = pFrame->GetChildren();
-			FOREACH(Actor*, m_vDecorations, child)
-			this->AddChild(*child);
+			for(auto child : m_vDecorations)
+			    this->AddChild(child);
 			pFrame->RemoveAllChildren();
 		}
 	}
@@ -138,8 +138,8 @@ ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage SM)
 ScreenWithMenuElements::~ScreenWithMenuElements()
 {
 	SAFE_DELETE(m_MenuTimer);
-	FOREACH(Actor*, m_vDecorations, actor)
-	delete *actor;
+	for(auto actor : m_vDecorations)
+	    delete actor;
 }
 
 void

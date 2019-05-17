@@ -553,10 +553,9 @@ MusicWheel::FilterByStepKeys(vector<Song*>& inv)
 	vector<Song*> tmp;
 	std::function<bool(Song*)> check;
 	check = [this](Song* x) {
-		FOREACH(string, hashList, hash)
-		if (x->HasChartByHash(*hash)) {
-			return true;
-		}
+		for(auto hash : hashList)
+            if (x->HasChartByHash(hash))
+			    return true;
 		return false;
 	};
 	for (Song* x : inv) {
@@ -1589,9 +1588,8 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 			wid[iSelection]->m_sText != sPreferredGroup)
 			continue;
 
-		FOREACH(Difficulty, vDifficultiesToRequire, d)
-		{
-			if (!pSong->HasStepsTypeAndDifficulty(st, *d)) {
+		for(auto d : vDifficultiesToRequire){
+			if (!pSong->HasStepsTypeAndDifficulty(st, d)) {
 				isValid = false;
 				break;
 			}

@@ -1174,8 +1174,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 		if (queue.Free() < 3 || last_vert_set) {
 			/* The queue is full.  Render it. */
 			if (!bAllAreTransparent) {
-				FOREACH(Sprite*, vpSpr, spr)
-				{
+				for(auto spr = vpSpr.begin(); spr != vpSpr.end(); spr++){
 					RageTexture* pTexture = (*spr)->GetTexture();
 					DISPLAY->SetTexture(TextureUnit_1,
 										pTexture->GetTexHandle());

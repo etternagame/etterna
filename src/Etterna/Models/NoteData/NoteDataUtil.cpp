@@ -584,17 +584,15 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 	vector<NoteData> parts;
 	float fLastBeat = -1.0f;
 
-	FOREACH(NoteData, parts, nd)
-	{
-		InsertHoldTails(*nd);
-		fLastBeat = max(fLastBeat, nd->GetLastBeat());
+	for(auto nd : parts){
+		InsertHoldTails(nd);
+		fLastBeat = max(fLastBeat, nd.GetLastBeat());
 	}
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
 
 	sRet = "";
-	FOREACH(NoteData, parts, nd)
-	{
+    for(auto nd = parts.begin(); nd != parts.end(); nd++){
 		if (nd != parts.begin())
 			sRet.append("&\n");
 		for (int m = 0; m <= iLastMeasure; ++m) // foreach measure
@@ -683,10 +681,8 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 	vector<NoteData> parts;
 	float fLastBeat = -1.f;
 
-	FOREACH(NoteData, parts, nd)
-	{
-		fLastBeat = max(fLastBeat, nd->GetLastBeat());
-	}
+	for(auto nd : parts)
+		fLastBeat = max(fLastBeat, nd.GetLastBeat());
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
 
@@ -697,8 +693,7 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 		return;
 	}
 
-	FOREACH(NoteData, parts, nd)
-	{
+	for(auto nd = parts.begin(); nd != parts.end(); nd++){
 		if (nd != parts.begin())
 			sRet.append("&\n");
 		for (int m = 0; m <= iLastMeasure; ++m) {

@@ -1319,10 +1319,8 @@ HighScoreList::GetTopScore() const
 void
 HighScoreList::RemoveAllButOneOfEachName()
 {
-	FOREACH(HighScore, vHighScores, i)
-	{
-		for (vector<HighScore>::iterator j = i + 1; j != vHighScores.end();
-			 j++) {
+	for(auto i = vHighScores.begin(); i != vHighScores.end(); i++){
+		for (auto j = i + 1; j != vHighScores.end(); j++) {
 			if (i->GetName() == j->GetName()) {
 				j--;
 				vHighScores.erase(j + 1);

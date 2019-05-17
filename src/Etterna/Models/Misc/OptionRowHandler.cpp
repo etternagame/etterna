@@ -379,8 +379,7 @@ SortNoteSkins(vector<RString>& asSkinNames)
 	set<RString> setUnusedSkinNames(setSkinNames);
 	asSkinNames.clear();
 
-	FOREACH(RString, asSorted, sSkin)
-	{
+	for(auto sSkin = asSorted.begin(); sSkin != asSorted.end(); sSkin++){
 		if (setSkinNames.find(*sSkin) == setSkinNames.end())
 			continue;
 		asSkinNames.push_back(*sSkin);
@@ -1558,8 +1557,8 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 	pHand->m_Def.m_bAllowThemeTitle = mr.bThemeTitle;
 	pHand->m_Def.m_bAllowThemeItems = mr.bThemeItems;
 
-	FOREACH(RString, pHand->m_Def.m_vsChoices, c)
-	FontCharAliases::ReplaceMarkers(*c); // Allow special characters
+	for(auto c : pHand->m_Def.m_vsChoices)
+	    FontCharAliases::ReplaceMarkers(c); // Allow special characters
 
 	return pHand;
 }

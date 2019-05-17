@@ -563,7 +563,8 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 		if (!SONGMAN->IsChartLoaded(i.first))
 			continue;
 		vector<HighScore*> pbs = i.second.GetAllPBPtrs();
-		FOREACH(HighScore*, pbs, hs) { TopSSRs.emplace_back(*hs); }
+		for(auto hs : pbs)
+		    TopSSRs.emplace_back(hs);
 	}
 
 	auto ssrcomp = [&ss](HighScore* a, HighScore* b) {

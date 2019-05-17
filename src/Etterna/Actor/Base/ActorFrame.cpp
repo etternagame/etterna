@@ -84,8 +84,8 @@ ActorFrame::ActorFrame(const ActorFrame& cpy)
 void
 ActorFrame::InitState()
 {
-	FOREACH(Actor*, m_SubActors, a)
-	(*a)->InitState();
+	for (auto a : m_SubActors)
+	    a->InitState();
 	Actor::InitState();
 }
 
@@ -173,18 +173,18 @@ ActorFrame::RemoveChild(Actor* pActor)
 void
 ActorFrame::TransferChildren(ActorFrame* pTo)
 {
-	FOREACH(Actor*, m_SubActors, i)
-	pTo->AddChild(*i);
+	for (auto i : m_SubActors)
+	    pTo->AddChild(i);
 	RemoveAllChildren();
 }
 
 Actor*
 ActorFrame::GetChild(const RString& sName)
 {
-	FOREACH(Actor*, m_SubActors, a)
+	for (auto a : m_SubActors)
 	{
-		if ((*a)->GetName() == sName)
-			return *a;
+		if (a->GetName() == sName)
+			return a;
 	}
 	return nullptr;
 }
@@ -395,26 +395,26 @@ void
 ActorFrame::PushChildrenTable(lua_State* L)
 {
 	lua_newtable(L); // stack: all_actors
-	FOREACH(Actor*, m_SubActors, a)
+	for (auto a : m_SubActors)
 	{
-		LuaHelpers::Push(L, (*a)->GetName()); // stack: all_actors, name
+		LuaHelpers::Push(L, a->GetName()); // stack: all_actors, name
 		lua_gettable(L, -2);				  // stack: all_actors, entry
 		if (lua_isnil(L, -1)) {
 			lua_pop(L, 1);						  // stack: all_actors
-			LuaHelpers::Push(L, (*a)->GetName()); // stack: all_actors, name
-			(*a)->PushSelf(L); // stack: all_actors, name, actor
+			LuaHelpers::Push(L, a->GetName()); // stack: all_actors, name
+			a->PushSelf(L); // stack: all_actors, name, actor
 			lua_rawset(L, -3); // stack: all_actors
 		} else {
 			// Fun fact:  PushSelf pushes a table.
 			if (lua_objlen(L, -1) > 0) {
 				// stack: all_actors, table_entry
-				AddToChildTable(L, *a); // stack: all_actors, table_entry
+				AddToChildTable(L, a); // stack: all_actors, table_entry
 				lua_pop(L, 1);			// stack: all_actors
 			} else {
 				// stack: all_actors, old_entry
-				CreateChildTable(L, *a); // stack: all_actors, table_entry
+				CreateChildTable(L, a); // stack: all_actors, table_entry
 				LuaHelpers::Push(
-				  L, (*a)->GetName()); // stack: all_actors, table_entry, name
+				  L, a->GetName()); // stack: all_actors, table_entry, name
 				lua_insert(L, -2);	 // stack: all_actors, name, table_entry
 				lua_rawset(L, -3);	 // stack: all_actors
 			}
@@ -426,18 +426,17 @@ void
 ActorFrame::PushChildTable(lua_State* L, const RString& sName)
 {
 	int found = 0;
-	FOREACH(Actor*, m_SubActors, a)
-	{
-		if ((*a)->GetName() == sName) {
+	for (auto a : m_SubActors) {
+		if (a->GetName() == sName) {
 			switch (found) {
 				case 0:
-					(*a)->PushSelf(L);
+					a->PushSelf(L);
 					break;
 				case 1:
-					CreateChildTable(L, *a);
+					CreateChildTable(L, a);
 					break;
 				default:
-					AddToChildTable(L, *a);
+					AddToChildTable(L, a);
 					break;
 			}
 			++found;

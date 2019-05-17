@@ -164,8 +164,8 @@ GraphDisplay::GraphDisplay()
 
 GraphDisplay::~GraphDisplay()
 {
-	FOREACH(Actor*, m_vpSongBoundaries, p)
-	SAFE_DELETE(*p);
+	for(auto p : m_vpSongBoundaries)
+	    SAFE_DELETE(p);
 	m_vpSongBoundaries.clear();
 	SAFE_DELETE(m_pGraphLine);
 	SAFE_DELETE(m_pGraphBody);

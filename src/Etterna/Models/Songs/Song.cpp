@@ -91,10 +91,11 @@ Song::Song()
 
 Song::~Song()
 {
-	FOREACH(Steps*, m_vpSteps, s)
-	SAFE_DELETE(*s);
+	for(auto s : m_vpSteps)
+	    SAFE_DELETE(s);
 	m_vpSteps.clear();
-	FOREACH(Steps*, m_UnknownStyleSteps, s) { SAFE_DELETE(*s); }
+	for(auto s : m_UnknownStyleSteps)
+        SAFE_DELETE(s);
 	m_UnknownStyleSteps.clear();
 
 	// It's the responsibility of the owner of this Song to make sure
@@ -168,12 +169,13 @@ Song::SetSpecifiedLastSecond(const float f)
 void
 Song::Reset()
 {
-	FOREACH(Steps*, m_vpSteps, s)
-	SAFE_DELETE(*s);
+	for(auto s : m_vpSteps)
+	    SAFE_DELETE(s);
 	m_vpSteps.clear();
 	FOREACH_ENUM(StepsType, st)
 	m_vpStepsByType[st].clear();
-	FOREACH(Steps*, m_UnknownStyleSteps, s) { SAFE_DELETE(*s); }
+	for(auto s : m_UnknownStyleSteps)
+        SAFE_DELETE(s);
 	m_UnknownStyleSteps.clear();
 
 	Song empty;
@@ -187,8 +189,8 @@ void
 Song::AddBackgroundChange(BackgroundLayer iLayer, BackgroundChange seg)
 {
 	// Delete old background change at this start beat, if any.
-	FOREACH(BackgroundChange, GetBackgroundChanges(iLayer), bgc)
-	{
+	auto iter = GetBackgroundChanges(iLayer);
+	for(auto bgc = iter.begin(); bgc != iter.end(); bgc++){
 		if (bgc->m_fStartBeat == seg.m_fStartBeat) {
 			GetBackgroundChanges(iLayer).erase(bgc);
 			break;
@@ -378,13 +380,12 @@ Song::FinalizeLoading()
 	  sDirectoryParts[sDirectoryParts.size() - 3]; // second from last item
 	ASSERT(m_sGroupName != "");
 
-	FOREACH(Steps*, m_vpSteps, s)
-	{
-		/* Compress all Steps. During initial caching, this will remove cached
-		 * NoteData; during cached loads, this will just remove cached SMData.
-		 */
-		(*s)->Compress();
-	}
+    /* Compress all Steps. During initial caching, this will remove cached
+     * NoteData; during cached loads, this will just remove cached SMData.
+     */
+    for(auto s : m_vpSteps)
+        s->Compress();
+
 
 	// Load the cached Images, if it's not loaded already.
 	if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD) {
@@ -576,7 +577,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 
 	m_SongTiming.TidyUpData(false);
 
-	FOREACH(Steps*, m_vpSteps, s) { (*s)->m_Timing.TidyUpData(true); }
+	for(auto s : m_vpSteps)
+	    s->m_Timing.TidyUpData(true);
 
 	if (!from_cache) {
 		if (this->m_sArtist == "The Dancing Monkeys Project" &&
@@ -1303,8 +1305,8 @@ Song::SaveToSSCFile(const RString& sPath, bool bSavingCache, bool autosave)
 	}
 
 	// Mark these steps saved to disk.
-	FOREACH(Steps*, vpStepsToSave, s)
-	(*s)->SetSavedToDisk(true);
+	for(auto s : vpStepsToSave)
+	    s->SetSavedToDisk(true);
 
 	return true;
 }
@@ -1363,8 +1365,8 @@ Song::SaveToETTFile(const RString& sPath, bool bSavingCache, bool autosave)
 	}
 
 	// Mark these steps saved to disk.
-	FOREACH(Steps*, vpStepsToSave, s)
-	(*s)->SetSavedToDisk(true);
+	for(auto s : vpStepsToSave)
+	    s->SetSavedToDisk(true);
 
 	return true;
 }
@@ -1693,9 +1695,9 @@ Song::GetHighestOfSkillsetAllSteps(int x, float rate) const
 	CLAMP(rate, 0.7f, 2.f);
 	float o = 0.f;
 	vector<Steps*> vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	if ((*steps)->GetMSD(rate, x) > o)
-		o = (*steps)->GetMSD(rate, x);
+	for(auto steps : vsteps)
+        if (steps->GetMSD(rate, x) > o)
+            o = steps->GetMSD(rate, x);
 	return o;
 }
 
@@ -1703,9 +1705,8 @@ bool
 Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
 {
 	vector<Steps*> vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	{
-		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
+	for(auto steps : vsteps){
+		auto sortedstuffs = steps->SortSkillsetsAtRate(rate, true);
 		Skillset why = Skillset_Invalid;
 		int iA = 1;
 		for(auto poodle : sortedstuffs){
@@ -1725,11 +1726,9 @@ bool
 Song::HasChartByHash(const string& hash)
 {
 	vector<Steps*> vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	{
-		if ((*steps)->GetChartKey() == hash)
+	for(auto steps : vsteps)
+		if (steps->GetChartKey() == hash)
 			return true;
-	}
 	return false;
 }
 

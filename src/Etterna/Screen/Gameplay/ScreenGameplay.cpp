@@ -575,10 +575,9 @@ ScreenGameplay::Init()
 
 	// Fill StageStats
 	STATSMAN->m_CurStageStats.m_vpPossibleSongs = m_apSongsQueue;
-	FOREACH(PlayerInfo, m_vPlayerInfo, pi)
-	{
-		if (pi->GetPlayerStageStats())
-			pi->GetPlayerStageStats()->m_vpPossibleSteps = pi->m_vpStepsQueue;
+	for(auto &pi : m_vPlayerInfo){
+		if (pi.GetPlayerStageStats())
+			pi.GetPlayerStageStats()->m_vpPossibleSteps = pi.m_vpStepsQueue;
 	}
 
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
@@ -641,13 +640,12 @@ ScreenGameplay::InitSongQueues()
 		FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi) pi->m_vpStepsQueue.clear();
 
 		Playlist& pl = SONGMAN->GetPlaylists()[SONGMAN->playlistcourse];
-		FOREACH(Chart, pl.chartlist, ch)
-		{
-			m_apSongsQueue.emplace_back(ch->songptr);
+		for(auto &ch : pl.chartlist) {
+			m_apSongsQueue.emplace_back(ch.songptr);
 			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 			{
-				pi->m_vpStepsQueue.emplace_back(ch->stepsptr);
-				ratesqueue.emplace_back(ch->rate);
+				pi->m_vpStepsQueue.emplace_back(ch.stepsptr);
+				ratesqueue.emplace_back(ch.rate);
 			}
 		}
 	}
@@ -1908,12 +1906,9 @@ ScreenGameplay::Input(const InputEventPlus& input)
 	if (GAMESTATE->m_bMultiplayer) {
 		if (input.mp != MultiPlayer_Invalid &&
 			GAMESTATE->IsMultiPlayerEnabled(input.mp) && iCol != -1) {
-			FOREACH(PlayerInfo, m_vPlayerInfo, pi)
-			{
-				if (input.mp == pi->m_mp)
-					pi->m_pPlayer->Step(
-					  iCol, -1, input.DeviceI.ts, false, bRelease);
-			}
+			for(auto &pi : m_vPlayerInfo)
+				if (input.mp == pi.m_mp)
+					pi.m_pPlayer->Step(iCol, -1, input.DeviceI.ts, false, bRelease);
 			return true;
 		}
 	} else {

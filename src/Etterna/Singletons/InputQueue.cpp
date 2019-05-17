@@ -183,11 +183,10 @@ InputQueueCode::Load(RString sButtonsNames)
 
 	vector<RString> asPresses;
 	split(sButtonsNames, ",", asPresses, false);
-	FOREACH(RString, asPresses, sPress)
-	{
+	for(auto sPress : asPresses){
 		vector<RString> asButtonNames;
 
-		split(*sPress, "-", asButtonNames, false);
+		split(sPress, "-", asButtonNames, false);
 
 		if (asButtonNames.size() < 1) {
 			if (sButtonsNames != "")

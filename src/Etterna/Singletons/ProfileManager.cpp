@@ -336,8 +336,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 			categorized_profiles[derp.profile.m_Type].push_back(derp);
 		} else {
 			bool inserted = false;
-			FOREACH(DirAndProfile, category->second, curr)
-			{
+			for(auto curr = category->second.begin(); curr != category->second.end(); curr++){
 				if (curr->profile.m_ListPriority >
 					derp.profile.m_ListPriority) {
 					category->second.insert(curr, derp);
@@ -353,14 +352,13 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	add_category_to_global_list(categorized_profiles[ProfileType_Guest]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Normal]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Test]);
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
+	for(auto curr : g_vLocalProfile)
 	{
 		// curr->profile.EoBatchRecalc(curr->sDir, ld);
 	}
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
-	{
-		curr->profile.LoadAllFromDir(
-		  curr->sDir, PREFSMAN->m_bSignProfileData, ld);
+	for(auto curr : g_vLocalProfile){
+		curr.profile.LoadAllFromDir(
+		  curr.sDir, PREFSMAN->m_bSignProfileData, ld);
 	}
 }
 
@@ -444,8 +442,7 @@ InsertProfileIntoList(DirAndProfile& derp)
 {
 	bool inserted = false;
 	derp.profile.m_ListPriority = 0;
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
-	{
+	for(auto curr = g_vLocalProfile.begin(); curr != g_vLocalProfile.end(); curr++){
 		if (curr->profile.m_Type > derp.profile.m_Type) {
 			derp.profile.SaveTypeToDir(derp.sDir);
 			g_vLocalProfile.insert(curr, derp);
@@ -500,8 +497,7 @@ ProfileManager::DeleteLocalProfile(const RString& sProfileID)
 	// flush directory cache in an attempt to get this working
 	FILEMAN->FlushDirCache(sProfileDir);
 
-	FOREACH(DirAndProfile, g_vLocalProfile, i)
-	{
+	for(auto i = g_vLocalProfile.begin(); i != g_vLocalProfile.end(); i++){
 		if (i->sDir == sProfileDir) {
 			if (DeleteRecursive(sProfileDir)) {
 				g_vLocalProfile.erase(i);

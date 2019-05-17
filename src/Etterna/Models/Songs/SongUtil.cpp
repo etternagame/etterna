@@ -1107,12 +1107,9 @@ SongUtil::IsSongPlayable(Song* s)
 {
 	const vector<Steps*>& steps = s->GetAllSteps();
 	// I'm sure there is a foreach loop, but I don't
-	FOREACH(Steps*, const_cast<vector<Steps*>&>(steps), step)
-	{
-		if (IsStepsPlayable(s, *step)) {
+	for(auto step : const_cast<vector<Steps*>&>(steps))
+		if (IsStepsPlayable(s, step))
 			return true;
-		}
-	}
 
 	return false;
 }

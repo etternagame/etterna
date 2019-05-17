@@ -144,8 +144,7 @@ NoteField::CacheAllUsedNoteSkins()
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
-	FOREACH(RString, asSkinsLower, s)
-	{
+	for(auto s = asSkinsLower.begin(); s != asSkinsLower.end(); s++){
 		NOTESKIN->ValidateNoteSkinName(*s);
 		s->MakeLower();
 	}

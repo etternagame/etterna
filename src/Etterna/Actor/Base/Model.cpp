@@ -794,10 +794,9 @@ Model::GetNumStates() const
 void
 Model::SetState(int iNewState)
 {
-	FOREACH(msMaterial, m_Materials, m)
-	{
-		m->diffuse.SetState(iNewState);
-		m->alpha.SetState(iNewState);
+	for(auto m : m_Materials){
+		m.diffuse.SetState(iNewState);
+		m.alpha.SetState(iNewState);
 	}
 }
 
@@ -814,10 +813,9 @@ Model::RecalcAnimationLengthSeconds()
 void
 Model::SetSecondsIntoAnimation(float fSeconds)
 {
-	FOREACH(msMaterial, m_Materials, m)
-	{
-		m->diffuse.SetSecondsIntoAnimation(fSeconds);
-		m->alpha.SetSecondsIntoAnimation(fSeconds);
+	for(auto m : m_Materials){
+		m.diffuse.SetSecondsIntoAnimation(fSeconds);
+		m.alpha.SetSecondsIntoAnimation(fSeconds);
 	}
 }
 

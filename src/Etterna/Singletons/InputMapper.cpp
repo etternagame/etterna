@@ -93,13 +93,12 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 	 * so game-specific mappings override g_DefaultKeyMappings. */
 	std::reverse(aMaps.begin(), aMaps.end());
 
-	FOREACH(AutoMappingEntry, aMaps, m)
-	{
-		DeviceButton key = m->m_deviceButton;
+	for(auto m : aMaps){
+		DeviceButton key = m.m_deviceButton;
 		DeviceInput DeviceI(DEVICE_KEYBOARD, key);
-		GameInput GameI(m->m_bSecondController ? GameController_2
+		GameInput GameI(m.m_bSecondController ? GameController_2
 											   : GameController_1,
-						m->m_gb);
+						m.m_gb);
 		if (!IsMapped(DeviceI)) // if this key isn't already being used by
 								// another user-made mapping
 		{
@@ -840,16 +839,12 @@ InputMapper::CheckButtonAndAddToReason(GameButton menu,
 	GetInputScheme()->MenuButtonToGameInputs(menu, PLAYER_1, inputs);
 	if (!inputs.empty()) {
 		vector<DeviceInput> device_inputs;
-		FOREACH(GameInput, inputs, inp)
-		{
-			for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS; ++slot) {
-				device_inputs.push_back(
-				  m_mappings.m_GItoDI[inp->controller][inp->button][slot]);
-			}
-		}
-		FOREACH(DeviceInput, device_inputs, inp)
-		{
-			if (!inp->IsValid()) {
+		for(auto inp : inputs)
+			for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS; ++slot)
+				device_inputs.push_back(m_mappings.m_GItoDI[inp.controller][inp.button][slot]);
+
+		for(auto inp : device_inputs){
+			if (!inp.IsValid()) {
 				continue;
 			}
 			int use_count = 0;
@@ -860,7 +855,7 @@ InputMapper::CheckButtonAndAddToReason(GameButton menu,
 					for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS;
 						 ++slot) {
 						use_count +=
-						  ((*inp) == m_mappings.m_GItoDI[cont][gb][slot]);
+						  (inp == m_mappings.m_GItoDI[cont][gb][slot]);
 					}
 				}
 			}
@@ -1271,13 +1266,12 @@ InputScheme::MenuButtonToGameInputs(GameButton MenuI,
 
 	vector<GameButton> aGameButtons;
 	MenuButtonToGameButtons(MenuI, aGameButtons);
-	FOREACH(GameButton, aGameButtons, gb)
-	{
+	for(auto gb : aGameButtons){
 		if (pn == PLAYER_INVALID) {
-			GameIout.push_back(GameInput(GameController_1, *gb));
-			GameIout.push_back(GameInput(GameController_2, *gb));
+			GameIout.push_back(GameInput(GameController_1, gb));
+			GameIout.push_back(GameInput(GameController_2, gb));
 		} else {
-			GameIout.push_back(GameInput((GameController)pn, *gb));
+			GameIout.push_back(GameInput((GameController)pn, gb));
 		}
 	}
 }

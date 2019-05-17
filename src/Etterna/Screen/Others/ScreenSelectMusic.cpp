@@ -1600,9 +1600,9 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			return 1;
 
 		// dont allow playlists with an unloaded chart to be played as a course
-		FOREACH(Chart, pl.chartlist, ch)
-		if (!ch->loaded)
-			return 1;
+		for(auto ch : pl.chartlist)
+            if (!ch.loaded)
+                return 1;
 
 		SONGMAN->playlistcourse = name;
 		GAMESTATE->isplaylistcourse = true;

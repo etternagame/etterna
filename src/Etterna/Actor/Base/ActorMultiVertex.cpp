@@ -395,7 +395,8 @@ ActorMultiVertex::SetState(size_t i)
 void
 ActorMultiVertex::SetAllStateDelays(float delay)
 {
-	FOREACH(State, _states, s) { s->delay = delay; }
+	for (auto s : _states)
+	    s.delay = delay;
 }
 
 float

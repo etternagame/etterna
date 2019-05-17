@@ -118,11 +118,9 @@ struct MenuRowDef
 	  , bThemeTitle(bTT)
 	  , bThemeItems(bTI)
 	{
-		FOREACH(RString, options, str)
-		{
-			if (*str != "")
-				choices.push_back(*str);
-		}
+		for(auto str : options)
+			if (str != "")
+				choices.push_back(str);
 	}
 
 	MenuRowDef(int r,

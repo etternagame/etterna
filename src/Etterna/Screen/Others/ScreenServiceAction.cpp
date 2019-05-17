@@ -187,14 +187,13 @@ ScreenServiceAction::BeginScreen()
 	split(sActions, ",", vsActions);
 
 	vector<RString> vsResults;
-	FOREACH(RString, vsActions, s)
-	{
+	for(auto s : vsActions){
 		RString (*pfn)() = NULL;
 
-		if (*s == "ResetPreferences")
+		if (s == "ResetPreferences")
 			pfn = ResetPreferences;
 
-		ASSERT_M(pfn != NULL, *s);
+		ASSERT_M(pfn != NULL, s);
 
 		RString sResult = pfn();
 		vsResults.push_back(sResult);

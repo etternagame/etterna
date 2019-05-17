@@ -431,12 +431,11 @@ PlayerOptions::FromString(const RString& sMultipleMods)
 	vector<RString> vs;
 	split(sTemp, ",", vs, true);
 	RString sThrowAway;
-	FOREACH(RString, vs, s)
-	{
-		if (!FromOneModString(*s, sThrowAway)) {
+	for(auto s : vs){
+		if (!FromOneModString(s, sThrowAway)) {
 			LOG->Trace("Attempted to load a non-existing mod \'%s\' for the "
 					   "Player. Ignoring.",
-					   (*s).c_str());
+					   s.c_str());
 		}
 	}
 }

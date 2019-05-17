@@ -261,11 +261,10 @@ GetDirOfExecutable(RString argv0)
 
 			vector<RString> vPath;
 			split(path, ":", vPath);
-			FOREACH(RString, vPath, i)
-			{
-				if (access(*i + "/" + argv0, X_OK | R_OK))
+			for(auto i : vPath){
+				if (access(i + "/" + argv0, X_OK | R_OK))
 					continue;
-				sPath = ExtractDirectory(ReadlinkRecursive(*i + "/" + argv0));
+				sPath = ExtractDirectory(ReadlinkRecursive(i + "/" + argv0));
 				break;
 			}
 			if (sPath.empty())

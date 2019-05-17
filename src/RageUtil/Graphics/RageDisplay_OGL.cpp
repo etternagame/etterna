@@ -302,11 +302,10 @@ CompileShader(GLenum ShaderType, RString sFile, vector<RString> asDefines)
 	GLhandleARB hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
 	vector<GLint> aiLength;
-	FOREACH(RString, asDefines, s)
-	{
-		*s = ssprintf("#define %s\n", s->c_str());
-		apData.push_back(s->data());
-		aiLength.push_back(s->size());
+	for(auto s : asDefines){
+		s = ssprintf("#define %s\n", s.c_str());
+		apData.push_back(s.data());
+		aiLength.push_back(s.size());
 	}
 	apData.push_back("#line 1\n");
 	aiLength.push_back(8);
