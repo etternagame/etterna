@@ -308,7 +308,7 @@ Windows x64 and Windows i386 installer release. Mac zip included.
 ### Fixed
 - Chart Leaderboards were being requested too much due to inherited Actor Commands - [2cdb5b5](../../commit/2cdb5b5de93286d06ae34b65917ffb5ac81b6a5d)
 - Chart Preview was placed badly in 4:3 - [1f54adf](../../commit/1f54adf992441c8023d8ff0cea1c0012485caab9)
-- Covertiy Scan found some issues
+- Coverity Scan found some issues
   - Null pointers - [cc09585](../../commit/cc0958578883cb5284a2770125563261200f0753) [a6f9269](../../commit/a6f92693269f9fe2ae29daf058af7af776687c51) [a269a3b](../../commit/a269a3bcba84cc4a3fb59e163bcbb594c244bb80)
 - Lua return values crashed everything but 32bit Windows - [b93f093](../../commit/b93f09380de951532f0ced05751f13c3a121c802) [fb5ca86](../../commit/fb5ca860f154b66a8e7f3292111d3e37939343b4)
 
