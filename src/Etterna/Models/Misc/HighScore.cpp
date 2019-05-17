@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Etterna/Globals/picosha2.h"

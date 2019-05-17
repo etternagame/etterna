@@ -5,7 +5,6 @@
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Actor/Gameplay/DancingCharacters.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Actor/Gameplay/Foreground.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"

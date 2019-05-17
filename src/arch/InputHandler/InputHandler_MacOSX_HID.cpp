@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "InputHandler_MacOSX_HID.h"
-#include "Etterna/Models/Misc/Foreach.h"
+
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "archutils/Darwin/DarwinThreadHelpers.h"

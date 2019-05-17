@@ -2,7 +2,6 @@
 #include "TitleSubstitution.h"
 
 #include "Etterna/Models/Fonts/FontCharAliases.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"

@@ -4,7 +4,6 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
 #include "Etterna/Singletons/InputFilter.h"
 #include "InputHandler_DirectInput.h"

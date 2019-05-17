@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include <MinaCalc/MinaCalc.h>
 #include "PlayerState.h"

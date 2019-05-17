@@ -1,7 +1,6 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageDisplay.h"
 #include "RageDisplay_D3D.h"

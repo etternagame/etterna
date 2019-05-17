@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "Etterna/Models/Misc/Preference.h"

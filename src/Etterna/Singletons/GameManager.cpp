@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GameInput.h" // for GameButton constants

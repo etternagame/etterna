@@ -4,7 +4,6 @@
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "GameManager.h"
 #include "GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"

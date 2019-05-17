@@ -20,7 +20,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "AutoKeysounds.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Sound/RageSoundReader_Chain.h"

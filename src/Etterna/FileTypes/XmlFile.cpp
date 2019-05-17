@@ -7,7 +7,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"

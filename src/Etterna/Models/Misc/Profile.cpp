@@ -30,7 +30,6 @@
 #include "RageUtil/File/RageFileDriverDeflate.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Models/Misc/Character.h"

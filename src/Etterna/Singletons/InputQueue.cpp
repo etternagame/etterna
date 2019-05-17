@@ -1,5 +1,4 @@
 ﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
 #include "InputQueue.h"

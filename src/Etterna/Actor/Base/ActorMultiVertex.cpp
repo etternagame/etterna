@@ -3,7 +3,6 @@
 
 #include "ActorMultiVertex.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"

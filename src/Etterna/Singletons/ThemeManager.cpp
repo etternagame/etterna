@@ -15,7 +15,6 @@
 #include "ScreenManager.h"
 #endif
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Globals/GameLoop.h" // For ChangeTheme
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "LuaManager.h"

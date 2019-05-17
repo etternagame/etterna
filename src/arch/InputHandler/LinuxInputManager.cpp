@@ -5,7 +5,6 @@
 
 #include "RageUtil/Misc/RageInput.h" // g_sInputDrivers
 #include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/Foreach.h"
 
 #include <string> // std::string::npos
 

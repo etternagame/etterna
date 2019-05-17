@@ -17,7 +17,6 @@
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "curl/curl.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "RageUtil/Misc/RageString.h"
 #include <nlohmann/json.hpp>

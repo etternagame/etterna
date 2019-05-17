@@ -35,7 +35,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "AdjustSync.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"

@@ -4,7 +4,6 @@
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "arch/arch_default.h"
 
 DriverList RageSoundDriver::m_pDriverList;

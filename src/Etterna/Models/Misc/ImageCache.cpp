@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 
 #include "ImageCache.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"

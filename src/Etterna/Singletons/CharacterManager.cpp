@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Character.h"
 #include "CharacterManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
 

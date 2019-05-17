@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Foreach.h"
 #include "GameCommand.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"

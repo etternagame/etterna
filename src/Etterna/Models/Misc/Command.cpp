@@ -1,6 +1,5 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "Command.h"
-#include "Foreach.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 RString

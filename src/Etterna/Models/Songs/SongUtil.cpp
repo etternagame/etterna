@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"

@@ -1,5 +1,4 @@
 ﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_Merge.h"

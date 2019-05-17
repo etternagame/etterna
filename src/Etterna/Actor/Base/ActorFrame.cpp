@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"

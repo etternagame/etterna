@@ -5,7 +5,6 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 
 #ifdef _WIN32
 #include <windows.h>

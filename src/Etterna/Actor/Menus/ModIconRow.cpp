@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "ModIconRow.h"

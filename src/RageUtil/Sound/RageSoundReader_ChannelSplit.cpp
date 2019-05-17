@@ -33,7 +33,6 @@
  */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_ChannelSplit.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "CryptManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "PrefsManager.h"

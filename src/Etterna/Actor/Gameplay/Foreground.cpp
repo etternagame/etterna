@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Foreground.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"

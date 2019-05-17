@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_WDMKS.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"

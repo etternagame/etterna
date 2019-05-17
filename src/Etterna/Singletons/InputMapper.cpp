@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "InputMapper.h"

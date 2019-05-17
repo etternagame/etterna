@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "DifficultyList.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Songs/SongUtil.h"

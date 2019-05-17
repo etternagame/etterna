@@ -1,5 +1,4 @@
 ﻿#include "Etterna/Globals/global.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Preference.h"

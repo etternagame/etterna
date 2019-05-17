@@ -2,7 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
+
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"

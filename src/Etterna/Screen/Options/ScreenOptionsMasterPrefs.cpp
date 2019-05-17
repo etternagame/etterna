@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"

@@ -4,7 +4,6 @@
 #include "RageDisplay_OGL_Helpers.h"
 
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"

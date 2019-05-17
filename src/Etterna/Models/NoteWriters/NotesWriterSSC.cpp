@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesWriterSSC.h"

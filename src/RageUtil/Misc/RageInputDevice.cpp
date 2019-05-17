@@ -2,7 +2,6 @@
  * for describing input devices. */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageInputDevice.h"
 #include "RageUtil/Utils/RageUtil.h"

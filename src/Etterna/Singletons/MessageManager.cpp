@@ -1,6 +1,5 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "LuaManager.h"
 #include "MessageManager.h"
 #include "RageUtil/Misc/RageLog.h"

@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "OptionRow.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"

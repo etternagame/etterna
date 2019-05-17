@@ -3,7 +3,6 @@
 #include "BitmapText.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/FontManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"

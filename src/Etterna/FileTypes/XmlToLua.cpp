@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "IniFile.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
-#include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"

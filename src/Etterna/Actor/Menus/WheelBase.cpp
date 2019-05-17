@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"

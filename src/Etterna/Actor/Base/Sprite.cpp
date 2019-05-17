@@ -3,7 +3,6 @@
 #include <cfloat>
 
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"

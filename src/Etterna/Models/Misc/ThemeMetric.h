@@ -3,7 +3,6 @@
 #ifndef THEME_METRIC_H
 #define THEME_METRIC_H
 
-#include "Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
