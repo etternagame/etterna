@@ -1,20 +1,17 @@
-list(APPEND SMDATA_FILE_TYPES_SRC
-  "CsvFile.cpp"
-  "IniFile.cpp"
-  "MsdFile.cpp"
-  "XmlFile.cpp"
-  "XmlToLua.cpp"
-  "XmlFileUtil.cpp"
-)
-list(APPEND SMDATA_FILE_TYPES_HPP
-  "CsvFile.h"
-  "IniFile.h"
-  "MsdFile.h"
-  "XmlFile.h"
-  "XmlToLua.h"
-  "XmlFileUtil.h"
-)
+list(APPEND FILE_TYPES_SRC
+	"CsvFile.cpp"
+	"IniFile.cpp"
+	"MsdFile.cpp"
+	"XmlFile.cpp"
+	"XmlToLua.cpp"
+	"XmlFileUtil.cpp")
 
-source_group("File Types" FILES ${SMDATA_FILE_TYPES_SRC} ${SMDATA_FILE_TYPES_HPP})
+list(APPEND FILE_TYPES_HPP
+	"CsvFile.h"
+	"IniFile.h"
+	"MsdFile.h"
+	"XmlFile.h"
+	"XmlToLua.h"
+	"XmlFileUtil.h")
 
-target_sources(Etterna PUBLIC ${SMDATA_FILE_TYPES_SRC})
+target_sources(Etterna PUBLIC ${FILE_TYPES_SRC} ${FILE_TYPES_HPP})

@@ -19,7 +19,7 @@ init:
 
 before_build:
   - mkdir build && cd build
-  - cmake -G "%GENERATOR%" -DOPENSSL_ROOT_DIR="%OPENSSL_DIR%" ..
+  - cmake -DOPENSSL_ROOT_DIR="%OPENSSL_DIR%" -G "%GENERATOR%" -A "%PLATFORM%" ..
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\build
@@ -37,7 +37,7 @@ environment:
   matrix:
     - GENERATOR: "Visual Studio 15 2017"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
-    - GENERATOR: "Visual Studio 15 2017 Win64"
+    - GENERATOR: "Visual Studio 15 2017"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
 
 # Don't generate builds with this specific combination of environment variables
@@ -48,7 +48,7 @@ matrix:
       OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
 
     - platform: Win32
-      GENERATOR: "Visual Studio 15 2017 Win64"
+      GENERATOR: "Visual Studio 15 2017"
       OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
 
 # Cache Choclatey packages so they don't need to be downloaded every time.

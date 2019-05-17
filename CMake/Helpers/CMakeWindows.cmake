@@ -9,11 +9,11 @@ set_target_properties(Etterna PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}/Program")
 
 # Universal Build Options
-set(ETTERNA_COMPILE_FLAGS "/MP8 /GL /arch:SSE2")
+set(ETTERNA_COMPILE_FLAGS "/MP8 /GL")
 set(ETTERNA_LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /LTCG")
 
 # Build type dependant compile flags
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Release" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja")
 	set_target_properties(SQLiteCpp sqlite3 jsoncpp lua uWS discord-rpc PROPERTIES COMPILE_FLAGS "/MT") # The following libraries are set to be dynamically linked. These compile flags switch them to be statically linked.
 	set(ETTERNA_COMPILE_FLAGS "${ETTERNA_COMPILE_FLAGS} /MT")
 	set(ETTERNA_LINK_FLAGS "${ETTERNA_LINK_FLAGS} /NODEFAULTLIB:\"LIBCMT\"")
@@ -29,6 +29,7 @@ set_target_properties(Etterna PROPERTIES COMPILE_FLAGS ${ETTERNA_COMPILE_FLAGS})
 
 list(APPEND cdefs CURL_STATICLIB GLEW_STATIC)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
+target_compile_options(Etterna PRIVATE /W3)
 
 # Linking - Windows Only
 target_link_libraries(Etterna curl)
@@ -40,7 +41,7 @@ target_link_directories(Etterna PUBLIC ${DIRECTX_LIBRARY_DIR})
 target_include_directories(Etterna PRIVATE ${DIRECTX_INCLUDE_DIR})
 
 # DLL - Copy to run directory
-if(CMAKE_SIZEOF_VOID_P EQUAL 8) # If 64bit
+if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja") # If 64bit
 	set(ARCH 64bit)
 else()
 	set(ARCH 32bit)

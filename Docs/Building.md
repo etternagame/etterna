@@ -19,6 +19,11 @@ Interested in contributing to Etterna? This guide is the place to start!
   - [macOS](#macOS)
   - [Windows](#Windows)
 - [Distribution](#Distribution)
+- [Static Analysis](#Static-Analysis)
+  - [cppcheck](#cppcheck)
+- [Documentation](#Documentation)
+  - [C++](#C++-Docs)
+  - [LDoc](#LDoc)
 
 ## Getting Started
 
@@ -32,7 +37,7 @@ Here are some commands for current developers and contributors to get started. M
 ```bash
 cmake -G "Unix Makefiles" ..                                                        # Linux
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # Windows
 ```
 
 ## Universal Dependencies
@@ -53,7 +58,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ### Windows Dependencies
 
-- [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Currently only `Visual Studio 15 2017` is supported.
+- [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Any modern version of Visual Studio should be compatible _(The earliest version we theoretically support is `Visual Studio 9 2008`, though we have only tested on `Visual Studio 15 2017` and after)_
 - [DirectX Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109) (June 2010)
 - [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
 - [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
@@ -74,7 +79,7 @@ There are two stages apart of CMake projects.
 
 ### CLI Project Generation
 
-Both configuration and generation stages automatically happen one after the other on CMake.
+Both configuration and generation stages automatically happen one after the other when using the CLI.
 Start by creating a folder to hold all the output object files, usually called `build`, within the root of the project.
 
 ```bash
@@ -83,18 +88,21 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
+To generate project files, run the CMake command below in the build directory with proper `GENERATOR`, `ARCHITECTURE` and `SSL_DIRECTORY` values:
 
-To generate project files, run the CMake command below in the build directory with proper `GENERATOR` and `DIRECTORY` values:
+- `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
+- `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator.
+- `SSL_DIRECTORY`: The root directory of your OpenSSL install. This is required on Windows as it doesn't come with developer libraries for OpenSSL installed, and my be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 
 ```bash
-cmake -G "GENERATOR" -DOPENSSL_ROOT_DIR="DIRECTORY" ..
+cmake -G "GENERATOR" -A "ARCHITECTURE" -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" ..
 ```
 
 We actively support the following CMake generators
 
 - macOS: `Ninja`, `Xcode`, `Unix Makefiles`
 - Linux: `Ninja`, `Unix Makefiles`
-- Windows: `Visual Studio 15 2017`
+- Windows: `Ninja`, `Visual Studio 15 2017`, `Visual Studio 16 2019` _(Technically, with how the CMake script is setup, any generator as far back as_ `Visual Studio 9 2008` _should work), but it has only tested it with the above three._
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
@@ -110,8 +118,8 @@ cmake -G "Unix Makefiles" ..                                                    
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 15 2017" ..           # 32bit Windows
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 15 2017 Win64" ..     # 64bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 16 2019" -A Win32 ..  # 32bit Windows
+cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # 64bit Windows
 ```
 
 ### GUI Project Generation
@@ -182,3 +190,33 @@ We use CMake's CPack module to build distribution files. Currently, we create di
 **Windows only prerequisite**: Install the latest version of [Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)
 
 To build a distribution file for the operating system you are using, run `cpack` in the build directory after compiling.
+
+## Static Analysis
+
+### cppcheck
+
+cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
+
+- macOS: `brew install cppcheck`
+- Debian: `apt install cppcheck`
+- Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
+
+When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
+
+To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
+
+## Documentation
+
+### C++ Docs
+
+Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
+
+- macOS: `brew install doxygen`
+- Debian: `apt install doxygen`
+- Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
+
+Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
+
+### LDoc
+
+Etterna uses [LDoc](https://github.com/stevedonovan/LDoc) to generate Lua documentation. We reccomend installing [LuaRocks](https://github.com/luarocks/luarocks), and then installing LDoc through LuaRocks. Similar to Doxygen, it will only create the `ldoc` target if it can find the `ldoc` command in your system path.

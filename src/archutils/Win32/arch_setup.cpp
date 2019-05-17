@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "arch_setup.h"
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include <windows.h>
 #endif
 #include "CommandLine.h"

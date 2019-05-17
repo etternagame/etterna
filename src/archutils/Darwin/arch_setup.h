@@ -18,7 +18,6 @@ sm_main(int argc, char* argv[]);
 // CGFlushDrawable() performs a glFlush() and the docs say not to call glFlush()
 #define NO_GL_FLUSH
 
-#define CPU_X86
 #define BACKTRACE_METHOD_X86_DARWIN
 #define BACKTRACE_LOOKUP_METHOD_DLADDR
 
