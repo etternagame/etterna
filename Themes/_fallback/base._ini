@@ -12,7 +12,7 @@ DefaultCpuModifiers=""
 DefaultNoteSkinName="default"
 DifficultiesToShow="beginner,easy,medium,hard,challenge"
 CourseDifficultiesToShow="easy,medium,hard"
-StepsTypesToHide="dance-couple,dance-solo,pump-halfdouble,lights-cabinet"
+StepsTypesToHide="dance-solo,pump-halfdouble"
 ScreenWidth=640
 ScreenHeight=480
 OverlayScreens="ScreenSystemLayer,ScreenSyncOverlay,ScreenStatsOverlay,ScreenDebugOverlay"
@@ -64,9 +64,6 @@ UnlockNames=""
 # The song "ABC" can be unlocked via roulette; pick an arbitrary code
 # to use to store the unlock.
 # Unlock2Command=song,"ABC";code,"59183751";roulette
-
-[LightsManager]
-GameButtonsToShow=""
 
 [ScreenSelect]
 Fallback="ScreenWithMenuElements"
@@ -1992,17 +1989,6 @@ NextScreen="ScreenOptionsService"
 PrevScreen="ScreenOptionsService"
 HelpText=ScreenString("HelpTextTestInput")
 
-[ScreenTestLights]
-Class="ScreenTestLights"
-Fallback="ScreenOptionsServiceChild"
-NextScreen="ScreenOptionsService"
-PrevScreen="ScreenOptionsService"
-HelpText=ScreenString("HelpTextTestLights")
-TextX=SCREEN_CENTER_X-200
-TextY=SCREEN_CENTER_Y
-TextOnCommand=
-TextOffCommand=
-
 [ScreenTestSound]
 Class="ScreenTestSound"
 Fallback="ScreenOptionsServiceChild"
@@ -2729,7 +2715,7 @@ ScrollerItemTransformFunction=function(self,offset,itemIndex,numItems) self:y(46
 Fallback="ScreenAttract"
 Class="ScreenRanking"
 TimerSeconds=-1
-StepsTypesToHide="dance-couple,dance-solo,dance-routine,pump-halfdouble,pump-couple"
+StepsTypesToHide="dance-solo,pump-halfdouble"
 PageFadeSeconds=1.0
 CoursesToShow=GetCoursesToShowRanking()
 SecondsPerPage=5
