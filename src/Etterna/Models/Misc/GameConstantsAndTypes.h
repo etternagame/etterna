@@ -18,8 +18,8 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
-
-enum Skillset {
+enum Skillset
+{
 	Skill_Overall,
 	Skill_Stream,
 	Skill_Jumpstream,
@@ -111,7 +111,6 @@ enum StepsType
 	StepsType_ez2_single,
 	StepsType_ez2_double,
 	StepsType_ez2_real,
-	StepsType_para_single,
 	StepsType_ds3ddx_single,
 	StepsType_beat_single5,
 	StepsType_beat_double5,
@@ -119,12 +118,6 @@ enum StepsType
 	StepsType_beat_double7,
 	StepsType_maniax_single,
 	StepsType_maniax_double,
-	StepsType_techno_single4,
-	StepsType_techno_single5,
-	StepsType_techno_single8,
-	StepsType_techno_double4,
-	StepsType_techno_double5,
-	StepsType_techno_double8,
 	StepsType_popn_five,
 	StepsType_popn_nine,
 	NUM_StepsType, // leave this at the end
@@ -453,8 +446,8 @@ struct DisplayBpms
 /** @brief The various style types available. */
 enum StyleType
 {
-	StyleType_OnePlayerOneSide,		/**< Single style */
-	StyleType_OnePlayerTwoSides,		/**< Double style */
+	StyleType_OnePlayerOneSide,  /**< Single style */
+	StyleType_OnePlayerTwoSides, /**< Double style */
 	NUM_StyleType,
 	StyleType_Invalid
 };
