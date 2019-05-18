@@ -173,10 +173,9 @@ IdleTimeoutSeconds=0
 TimerSeconds=30
 UpdateOnMessage=""
 PrevScreen="ScreenTitleMenu"
-ChoiceNames="1,2,3"
+ChoiceNames="1,3"
 # The "name" here affects the announcer, eg. "ScreenSelectStyle comment single".
 Choice1="style,single;name,1Player;text,1 Player;screen,ScreenSelectPlayMode"
-Choice2="style,versus;name,2Players;text,2 Players;screen,ScreenSelectPlayMode"
 Choice3="style,double;name,Double;text,Double;screen,ScreenSelectPlayMode"
 ShowIcon=true
 PerChoiceIconElement=false
@@ -734,16 +733,8 @@ TickEarlySeconds=0.05
 ShowLifeMeterForDisabledPlayers=false
 PlayerP1OnCommand=
 PlayerP1OffCommand=
-PlayerP2OnCommand=
-PlayerP2OffCommand=
 PlayerP1OnePlayerOneSideX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP2OnePlayerOneSideX=math.floor(scale(0.75,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP1TwoPlayersTwoSidesX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP2TwoPlayersTwoSidesX=math.floor(scale(0.75,0,1,SCREEN_LEFT,SCREEN_RIGHT))
 PlayerP1OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP2OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP1TwoPlayersSharedSidesX=SCREEN_CENTER_X
-PlayerP2TwoPlayersSharedSidesX=SCREEN_CENTER_X
 LeftFrameX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))-160
 LeftFrameY=SCREEN_CENTER_Y
 LeftFrameOnCommand=addx,-200;linear,0.5;addx,200
@@ -2879,7 +2870,7 @@ MinSecondsToStep=0
 MinSecondsToMusic=0
 ShowCourseModifiersProbability=0
 AllowAdvancedModifiers=false
-AllowStyleTypes="TwoPlayersTwoSides"
+AllowStyleTypes=""
 
 [ScreenJukebox]
 ShowCourseModifiersProbability=0
@@ -2912,11 +2903,7 @@ ShowStyleIcon=false
 MaxRankingNameLength=4
 NextScreen="ScreenProfileSave"
 PlayerP1OnePlayerOneSideX=SCREEN_CENTER_X-160
-PlayerP2OnePlayerOneSideX=SCREEN_CENTER_X+160
-PlayerP1TwoPlayersTwoSidesX=SCREEN_CENTER_X-160
-PlayerP2TwoPlayersTwoSidesX=SCREEN_CENTER_X+160
 PlayerP1OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP2OnePlayerTwoSidesX=SCREEN_CENTER_X
 
 [EditCoursesMenu]
 Arrows1X=SCREEN_CENTER_X-130

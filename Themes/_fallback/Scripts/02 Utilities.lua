@@ -209,7 +209,7 @@ end
 function Center1Player()
 	local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
 	-- always center in OnePlayerTwoSides ( Doubles )
-	if styleType == "StyleType_OnePlayerTwoSides" or styleType == "StyleType_TwoPlayersSharedSides" then
+	if styleType == "StyleType_OnePlayerTwoSides" then
 		-- only Center1P if Pref enabled and OnePlayerOneSide.
 		return true
 	elseif PREFSMAN:GetPreference("Center1Player") then
@@ -220,10 +220,6 @@ function Center1Player()
 end
 
 function IsRoutine()
-	local style = GAMESTATE:GetCurrentStyle()
-	if style and style:GetStyleType() == "StyleType_TwoPlayersSharedSides" then
-		return true
-	end
 	return false
 end
 

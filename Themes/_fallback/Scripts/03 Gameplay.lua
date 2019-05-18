@@ -164,12 +164,6 @@ end
 -- ScoreKeeperClass:
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
-	if GAMESTATE:GetCurrentStyle() then
-		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
-		if styleType == "StyleType_TwoPlayersSharedSides" then
-			return "ScoreKeeperShared"
-		end
-	end
 	return "ScoreKeeperNormal"
 end
 
