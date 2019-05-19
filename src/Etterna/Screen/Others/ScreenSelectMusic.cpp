@@ -97,14 +97,14 @@ ScreenSelectMusic::Init()
 		  ->m_PlayerOptions.GetCurrent()
 		  .m_bPractice) {
 		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetPreferred()
-		  .m_FailType = FailType_Immediate;
+		  ->m_PlayerOptions.GetPreferred().m_FailType =
+		  GAMEMAN->m_iPreviousFail;
 		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetSong()
-		  .m_FailType = FailType_Immediate;
+		  .m_FailType = GAMEMAN->m_iPreviousFail;
 		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetCurrent()
-		  .m_FailType = FailType_Immediate;
+		  .m_FailType = GAMEMAN->m_iPreviousFail;
 	}
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
