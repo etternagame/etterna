@@ -2082,6 +2082,11 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
+		if(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+		  .m_bPractice)
+			return;	// don't auto leave gameplay when finishing notes during practice mode
+					// this prevents use of eval screen during practice which im pretty sure nobody cares about?
+
 		ResetGiveUpTimers(
 		  false); // don't allow giveup while the next song is loading
 
