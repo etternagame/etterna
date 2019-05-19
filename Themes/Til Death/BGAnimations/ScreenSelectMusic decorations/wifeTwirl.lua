@@ -821,7 +821,7 @@ t[#t + 1] =
 			self:settext("Player Options")
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+			if isOver(self) and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end
