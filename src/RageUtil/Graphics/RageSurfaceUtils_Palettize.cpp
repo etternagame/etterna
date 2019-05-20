@@ -490,7 +490,8 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 		  acolormap[bi].acolor, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a);
 #endif // REP_AVERAGE_PIXELS
 	}
-
+	
+	free(bv);
 	// All done.
 	return acolormap;
 }
