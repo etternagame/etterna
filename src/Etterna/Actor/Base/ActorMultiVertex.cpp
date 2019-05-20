@@ -1,5 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
-#include <cassert>
+﻿#include <cassert>
 
 #include "ActorMultiVertex.h"
 #include "ActorUtil.h"
@@ -394,7 +393,7 @@ ActorMultiVertex::SetState(size_t i)
 void
 ActorMultiVertex::SetAllStateDelays(float delay)
 {
-	for (auto s : _states)
+	for (auto &s : _states)
 	    s.delay = delay;
 }
 
@@ -402,7 +401,7 @@ float
 ActorMultiVertex::GetAnimationLengthSeconds() const
 {
 	float tot = 0.0f;
-	for(auto const s : _states)
+	for(auto const &s : _states)
         tot += s.delay;
 	return tot;
 }
