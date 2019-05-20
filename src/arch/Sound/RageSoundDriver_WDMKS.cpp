@@ -886,8 +886,8 @@ WinWdmFilter::InstantiateRenderPin(
 		for (size_t j = 0; j < m_apPins.size(); ++j) {
 			WinWdmPin* pPin = m_apPins[j];
 			for(auto const range : pPin->m_dataRangesItem){
-				aSampleRates.push_back(range->MinimumSampleFrequency);
-				aSampleRates.push_back(range->MaximumSampleFrequency);
+				aSampleRates.push_back(range.MinimumSampleFrequency);
+				aSampleRates.push_back(range.MaximumSampleFrequency);
 			}
 		}
 
@@ -912,24 +912,20 @@ WinWdmFilter::InstantiateRenderPin(
 	aTryPCM.push_back(false);
 	aTryPCM.push_back(true);
 
-	FOREACH(bool, aTryPCM, bTryPCM)
-	{
-		FOREACH(int, aSampleRates, iSampleRate)
-		{
-			FOREACH(int, aChannels, iChannels)
-			{
-				FOREACH(DeviceSampleFormat, SampleFormats, fmt)
-				{
-					PreferredOutputSampleFormat = *fmt;
-					iPreferredOutputChannels = *iChannels;
-					iPreferredSampleRate = *iSampleRate;
+	for(bool bTryPCM : aTryPCM) {
+		for(int iSampleRate : aSampleRates){
+			for(int iChannels : aChannels) {
+				for(auto fmt : SampleFormats){
+					PreferredOutputSampleFormat = fmt;
+					iPreferredOutputChannels = iChannels;
+					iPreferredSampleRate = iSampleRate;
 
 					WAVEFORMATEXTENSIBLE wfx;
 					FillWFEXT(&wfx,
 							  PreferredOutputSampleFormat,
 							  iPreferredSampleRate,
 							  iPreferredOutputChannels);
-					if (*bTryPCM) {
+					if (bTryPCM) {
 						/* Try WAVE_FORMAT_PCM instead of
 						 * WAVE_FORMAT_EXTENSIBLE. */
 						wfx.Format.wFormatTag = WAVE_FORMAT_PCM;
@@ -1538,31 +1534,33 @@ RageSoundDriver_WDMKS::Init()
 	for (size_t i = 0; i < apFilters.size(); ++i) {
 		const WinWdmFilter* pFilter = apFilters[i];
 		LOG->Trace("Device #%i: %s", i, pFilter->m_sFriendlyName.c_str());
+
 		for (size_t j = 0; j < pFilter->m_apPins.size(); ++j) {
 			WinWdmPin* pPin = pFilter->m_apPins[j];
 			LOG->Trace("  Pin %i", j);
-			for(auto const range : pPin->m_dataRagesItem){
+
+			for(auto const range : pPin->m_dataRangesItem){
 				RString sSubFormat;
-				if (!memcmp(&range->DataRange.SubFormat,
+				if (!memcmp(&range.DataRange.SubFormat,
 							&KSDATAFORMAT_SUBTYPE_WILDCARD,
 							sizeof(GUID)))
 					sSubFormat = "WILDCARD";
-				else if (!memcmp(&range->DataRange.SubFormat,
+				else if (!memcmp(&range.DataRange.SubFormat,
 								 &KSDATAFORMAT_SUBTYPE_PCM,
 								 sizeof(GUID)))
 					sSubFormat = "PCM";
-				else if (!memcmp(&range->DataRange.SubFormat,
+				else if (!memcmp(&range.DataRange.SubFormat,
 								 &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT,
 								 sizeof(GUID)))
 					sSubFormat = "FLOAT";
 
 				LOG->Trace(
 				  "     Range: %i channels, sample %i-%i, %i-%ihz (%s)",
-				  range->MaximumChannels,
-				  range->MinimumBitsPerSample,
-				  range->MaximumBitsPerSample,
-				  range->MinimumSampleFrequency,
-				  range->MaximumSampleFrequency,
+				  range.MaximumChannels,
+				  range.MinimumBitsPerSample,
+				  range.MaximumBitsPerSample,
+				  range.MinimumSampleFrequency,
+				  range.MaximumSampleFrequency,
 				  sSubFormat.c_str());
 			}
 		}

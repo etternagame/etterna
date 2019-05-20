@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -85,9 +85,8 @@ ChangeAppPri()
 		// This can get called before INPUTMAN is constructed.
 		if (INPUTMAN) {
 			INPUTMAN->GetDevicesAndDescriptions(vDevices);
-			FOREACH_CONST(InputDeviceInfo, vDevices, d)
-			{
-				if (d->sDesc.find("NTPAD") != string::npos) {
+			for(const InputDeviceInfo d : vDevices){
+				if (d.sDesc.find("NTPAD") != string::npos) {
 					LOG->Trace("Using NTPAD.  Don't boost priority.");
 					return false;
 				}

@@ -94,8 +94,7 @@ LinuxInputManager::InitDriver(InputHandler_Linux_Event* driver)
 {
 	m_EventDriver = driver;
 
-	FOREACH(RString, m_vsPendingEventDevices, dev)
-	{
+	for(auto const &dev : m_vsPendingEventDevices){
 		RString devFile = getDevice(*dev, "event");
 		ASSERT(devFile != "");
 
@@ -114,8 +113,7 @@ LinuxInputManager::InitDriver(InputHandler_Linux_Joystick* driver)
 {
 	m_JoystickDriver = driver;
 
-	FOREACH(RString, m_vsPendingJoystickDevices, dev)
-	{
+	for (auto const& dev : m_vsPendingJoystickDevices){
 		RString devFile = getDevice(*dev, "js");
 		ASSERT(devFile != "");
 

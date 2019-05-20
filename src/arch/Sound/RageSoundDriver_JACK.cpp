@@ -137,8 +137,7 @@ RageSoundDriver_JACK::ConnectPorts()
 		// jack_port_name to use their canonical name.  (I'm not sure
 		// if that second step is necessary, I've seen something about
 		// "aliases" in the docs.)
-		FOREACH(RString, portNames, portName)
-		{
+		for(auto portName : portNames){
 			jack_port_t* out = jack_port_by_name(client, *portName);
 			// Make sure the port is a sink.
 			if (!(jack_port_flags(out) & JackPortIsInput))

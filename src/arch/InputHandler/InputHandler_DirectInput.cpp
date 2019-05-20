@@ -997,7 +997,7 @@ InputHandler_DInput::DeviceButtonToChar(DeviceButton button,
 			if (bUseCurrentKeyModifiers)
 				GetKeyboardState(keys);
 			// todo: handle Caps Lock -freem
-			wchar_t c = ScancodeAndKeysToChar(i->ofs, keys);
+			wchar_t c = ScancodeAndKeysToChar(i.ofs, keys);
 			if (c)
 				return c;
 		}

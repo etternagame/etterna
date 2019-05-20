@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -391,8 +391,8 @@ SetD3DParams(bool& bNewDeviceOut)
 	g_pd3dDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 
 	// wipe old render targets
-	FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
-	delete rt->second;
+	for (auto rt : g_mapRenderTargets)
+		delete rt.second;
 	g_mapRenderTargets.clear();
 
 	// Palettes were lost by Reset(), so mark them unloaded.
