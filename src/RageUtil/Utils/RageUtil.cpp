@@ -386,7 +386,9 @@ ssprintf(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	return vssprintf(fmt, va);
+	auto s = vssprintf(fmt, va);
+	va_end(va);
+	return s;
 }
 
 #define FMT_BLOCK_SIZE 2048 // # of bytes to increment per try
