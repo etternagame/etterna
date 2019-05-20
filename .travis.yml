@@ -47,9 +47,9 @@ addons:
   coverity_scan:
     project:
       name: etternagame/etterna
-      description: "Build submitted via Travis CI"
+      description: "Advanced cross-platform rhythm game focused on keyboard play"
     notification_email: etternadev@gmail.com
-    build_command_prepend: "cov-configure --comptype g++ --compiler g++-5 --template"
+    build_command_prepend: "sh .ci/build.sh; mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build; cmake .."
     build_command: "make -j 4"
     branch_pattern: coverity_scan
   homebrew:
