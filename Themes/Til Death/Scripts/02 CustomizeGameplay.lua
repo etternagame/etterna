@@ -1,8 +1,6 @@
 local keymode
 local allowedCustomization
 local usingReverse
-local WIDESCREENWHY = -5
-local WIDESCREENWHX = -5
 
 MovableValues = {}
 
@@ -62,15 +60,6 @@ local function loadValuesTable()
 	MovableValues.PracticeCDGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].PracticeCDGraphY
 	MovableValues.PracticeCDGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphHeight
 	MovableValues.PracticeCDGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphWidth
-
-	if IsUsingWideScreen() then
-		MovableValues.MiniProgressBarY = MovableValues.MiniProgressBarY + WIDESCREENWHY
-		MovableValues.MiniProgressBarX = MovableValues.MiniProgressBarX - WIDESCREENWHX
-		MovableValues.TargetTrackerY = MovableValues.TargetTrackerY + WIDESCREENWHY
-		MovableValues.TargetTrackerX = MovableValues.TargetTrackerX - WIDESCREENWHX
-		MovableValues.JudgeY = MovableValues.JudgeY - 5
-		MovableValues.JudgeX = MovableValues.JudgeX + 5
-	end
 end
 
 function setMovableKeymode(key)

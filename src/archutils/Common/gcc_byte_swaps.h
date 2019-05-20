@@ -1,7 +1,7 @@
 #ifndef GCC_BYTE_SWAPS_H
 #define GCC_BYTE_SWAPS_H
 
-#if defined(CPU_X86)
+#if defined(__i386__)
 
 #if defined(HAVE_STDINT_H)
 #include <stdint.h>

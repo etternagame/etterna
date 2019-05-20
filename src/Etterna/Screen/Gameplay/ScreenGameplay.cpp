@@ -347,16 +347,6 @@ ScreenGameplay::Init()
 	GAMESTATE->SetPaused(false);
 	m_fReplayBookmarkSeconds = 0.f;
 
-	// Force FailOff in Practice Mode
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  FailType_Off;
-	}
-
 	int player = 1;
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 	{
@@ -603,6 +593,18 @@ ScreenGameplay::Init()
 	m_SkipSongTimer.SetZero();
 	m_gave_up = false;
 	m_skipped_song = false;
+
+	// Force FailOff in Practice Mode
+	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
+		GAMEMAN->m_iPreviousFail =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
+		  FailType_Off;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
+		  FailType_Off;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
+		  FailType_Off;
+	}
 
 	if (!GAMEMAN->m_bRestartedGameplay &&
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
@@ -2080,6 +2082,11 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
+		if(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+		  .m_bPractice)
+			return;	// don't auto leave gameplay when finishing notes during practice mode
+					// this prevents use of eval screen during practice which im pretty sure nobody cares about?
+
 		ResetGiveUpTimers(
 		  false); // don't allow giveup while the next song is loading
 

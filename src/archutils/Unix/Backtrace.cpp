@@ -394,7 +394,7 @@ do_backtrace(const void** buf, size_t size, const BacktraceContext* ctx)
 	buf[i] = NULL;
 }
 
-#if defined(CPU_X86)
+#if defined(__i386__)
 void
 GetSignalBacktraceContext(BacktraceContext* ctx, const ucontext_t* uc)
 {
@@ -403,7 +403,7 @@ GetSignalBacktraceContext(BacktraceContext* ctx, const ucontext_t* uc)
 	ctx->sp = (void*)uc->uc_mcontext.gregs[REG_ESP];
 	ctx->pid = GetCurrentThreadId();
 }
-#elif defined(CPU_X86_64)
+#elif defined(__x86_64__)
 void
 GetSignalBacktraceContext(BacktraceContext* ctx, const ucontext_t* uc)
 {

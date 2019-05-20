@@ -7,10 +7,11 @@ cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set"
 cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
 
 # Options
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CMake/Helpers/CompileOptions.cmake")
 option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
-project(Etterna 
+project(Etterna
         VERSION 0.65.1
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
@@ -20,6 +21,7 @@ set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Versio
 set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require minimum C++ version to compile
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Tell xcodebuild to target an older osx platform
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile commands for clang-tidy
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
@@ -54,6 +56,10 @@ set_target_properties(Etterna PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}")
+
+if(NOT APPLE)
+    set_target_properties(Etterna PROPERTIES LINK_WHAT_YOU_USE ON)
+endif()
 
 ### This single source_group line creates the full visual studio filter layout
 get_target_property(sources Etterna SOURCES)
@@ -95,6 +101,12 @@ elseif(APPLE)
 elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
+
+# Static Analysis
+include(CMake/Helpers/StaticAnalysis.cmake)
+
+# Documentation
+include(CMake/Helpers/DocumentationTools.cmake)
 
 # CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)

@@ -1,11 +1,11 @@
 # This should be modified and eventually removed with better methods for passing this info to the compiler
 list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD
-     "BACKTRACE_METHOD_X86_LINUX"
-     "BACKTRACE_METHOD_TEXT=\"x86 custom backtrace\""
-     "BACKTRACE_LOOKUP_METHOD_TEXT=\"backtrace_symbols\""
-     "BACKTRACE_LOOKUP_METHOD_DLADDR"
-     PACKAGE_NAME="Etterna"
-     PACKAGE_VERSION="EtteraVersion")
+	"BACKTRACE_METHOD_X86_LINUX"
+	"BACKTRACE_METHOD_TEXT=\"x86 custom backtrace\""
+	"BACKTRACE_LOOKUP_METHOD_TEXT=\"backtrace_symbols\""
+	"BACKTRACE_LOOKUP_METHOD_DLADDR"
+	PACKAGE_NAME="Etterna"
+	PACKAGE_VERSION="EtteraVersion")
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 
 # Find Libraries

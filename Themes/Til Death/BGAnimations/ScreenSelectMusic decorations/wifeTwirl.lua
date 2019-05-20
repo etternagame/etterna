@@ -821,7 +821,7 @@ t[#t + 1] =
 			self:settext("Player Options")
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+			if isOver(self) and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end
@@ -842,5 +842,26 @@ t[#t + 1] =
 		SCREENMAN:GetTopScreen():OpenOptions()
 	end
 }]]
+
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "MusicWheelSortButton",
+		BeginCommand = function(self)
+			self:xy(20, 201)
+			self:zoom(0.5)
+			self:halign(0)
+			self:settext("Open Sort Menu")
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				-- open SORT_MODE_MENU, hardcoded the enum value (8 as of this commit) because 
+				-- I can't figure out in 3 minutes how to name reference it and it's not worth
+				-- more time than that since we'll be swapping out the entire music wheel anyway
+				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(8)
+			end
+		end
+	}
+
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t
