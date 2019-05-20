@@ -10,7 +10,11 @@ git:
 # version to their path. We want our CMake to have priority, so we add it to the start of the 
 # search path. 
 env:
-  - PATH=/usr/local/bin:${PATH}
+  matrix:
+    - PATH=/usr/local/bin:${PATH}
+  # COVERITY_SCAN_TOKEN
+  global:
+    - secure: "dqRcKvhvVSV0+M9UuLTJvns4aFKHGdl7O2Bu5OkCt6hy2Fx6RErfNZKIhwoiIFSWbrLN5rbjiSrEttpGQR5lGBc3POxgW+578Ty7a8HUO5EMtXB5x4pFa8cWqkUe4xwX1tAZvHRZYpGutBwFDwLf2r6/RMZBV+FxwnjDOhpsFkIo7oIHo7qReeFoW5JkAYGOle+ZUyjjU/li/7svyO7dUmifQcdB3CQ8bMgF3Jyu8+HTzutsLep1rSN7vsw2X/NET+cvnqJ5fC//6B9stBcp80g5I3TMgx4w372VJ9Yn/Co/rqpkQ3toit+1KhJ39Wm3IaQiKctfeyvl1Wa8TDJqvmQxj/fsz+3Co+j0Afx0fW6IuF7i0aH0qJEH9sVohspyEdirlVc+QCaI2wBz06FaWZ9nIIy5fssRIzelf7MbjBHDD3iQU9TqeFZ+u4r30hUwRv1xrhpHg7f0zun0zQv29tfrroZTJQtBrCy8vscqIsP8GWPZeig/fW1Mn0vvCbI0Z7anmICYPjLWQDHjSVKexdWvmtux76PPIRlMB7FlQbQY5aar4olaSI8eFvLKV8/RUXICD36m+RNP1LXKhqJWmuvco88e+YUclvhYH+QAAqWN5f7qq4o0ujxeZvsQqYb9T5NEW+Wsap/g5RqX7S2D3XonNTGW3k14PEzdrpVVXfc="
 
 matrix:
   include:
@@ -40,6 +44,14 @@ script:
   - make
 
 addons:
+  coverity_scan:
+    project:
+      name: etternagame/etterna
+      description: "Advanced cross-platform rhythm game focused on keyboard play"
+    notification_email: etternadev@gmail.com
+    build_command_prepend: "sh .ci/build.sh; mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build; cmake .."
+    build_command: "make -j 4"
+    branch_pattern: coverity_scan
   homebrew:
     packages:
       - openssl
