@@ -1369,7 +1369,7 @@ StripCvsAndSvn(vector<RString>& vs)
 static bool
 MacResourceFork(const RString& s)
 {
-	return s.Left(2).EqualsNoCase("._");
+	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
 }
 
 void

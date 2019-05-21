@@ -459,6 +459,7 @@ RageFileManager::GetDirListing(const RString& sPath_,
 	}
 
 	UnreferenceAllDrivers(apDriverList);	
+	StripMacResourceForks(AddTo);
 
 	if (iDriversThatReturnedFiles > 1) {
 		/* More than one driver returned files.  Remove duplicates
