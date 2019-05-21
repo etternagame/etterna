@@ -34,8 +34,9 @@ OsuLoader::ParseFileString(string fileContents)
 	SeparateTagsAndContents(fileContents, sections, contents);
 
 	map<string, map<string, string>> parsedData;
-
-	if (sections.size() == 7) {
+	bool colurz = (sections.size() == 8 &&
+				   std::count(sections.begin(), sections.end(), "Colours"));
+	if (sections.size() == 7 || colurz) {
 		for (int i = 0; i < (int)sections.size(); ++i) {
 			for (auto& content : contents[i]) {
 				auto& str = content;
