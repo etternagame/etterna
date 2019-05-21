@@ -63,6 +63,7 @@ local function DlInput(event)
 			return true
 		elseif event.button == "Back" then
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			SCREENMAN:GetTopScreen():Cancel()
 			return true
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			curInput = curInput:sub(1, -2)
