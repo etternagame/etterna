@@ -78,7 +78,7 @@ class GameSoundManager : MessageSubscriber
 	void DoPlayOnceFromDir(RString sPath);
 	bool SoundWaiting();
 		
-	LuaReference soundPlayCallback;
+	std::shared_ptr<LuaReference> soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
 	Screen* callbackOwningScreen{ nullptr };
 

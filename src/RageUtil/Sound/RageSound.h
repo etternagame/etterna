@@ -159,7 +159,7 @@ public:
 	void SetStopModeFromString(const RString& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	void SetPlayBackCallback(LuaReference f, unsigned int bufSize = 1024);
+	void SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize = 1024);
 	atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
 
@@ -185,11 +185,11 @@ private:
 	int64_t m_iStreamFrame;
 
 	void* fftwBuffer{nullptr};
-	void ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize);
+	void ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
 	std::mutex recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
-	LuaReference soundPlayCallback;
+	shared_ptr<LuaReference> soundPlayCallback;
 	vector<float> recentPCMSamples;
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
