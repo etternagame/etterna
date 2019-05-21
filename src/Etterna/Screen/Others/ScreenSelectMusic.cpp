@@ -520,6 +520,17 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				   input.type == IET_FIRST_PRESS) {
 			DifferentialReload();
 			return true;
+		} else if (bHoldingCtrl && c == 'O' && m_MusicWheel.IsSettled() &&
+				   input.type == IET_FIRST_PRESS) {
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .m_bPractice = !GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+				.m_bPractice;
+			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+				  .m_bPractice)
+				SCREENMAN->SystemMessage("Practice Mode On");
+			else
+				SCREENMAN->SystemMessage("Practice Mode Off");
+			return true;
 		} else if (bHoldingCtrl && c == 'S' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			PROFILEMAN->SaveProfile(PLAYER_1);
