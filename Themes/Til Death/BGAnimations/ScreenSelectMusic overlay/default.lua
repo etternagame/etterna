@@ -9,9 +9,23 @@ local function input(event)
 	return false
 end
 
+local function highlight(self)
+	self:GetChild("rando"):queuecommand("Highlight")
+end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
+		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.025)
 		local s = SCREENMAN:GetTopScreen()
 		s:AddInputCallback(input)
 	end
@@ -58,8 +72,20 @@ t[#t + 1] = LoadActor("currentsort")
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
+		Name="rando",
 		InitCommand = function(self)
 			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Select Music:")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				math.randomseed(os.time())
+				local t = SONGMAN:GetAllSongs()
+				local random_song = t[math.random(#t)]
+				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
+			end
 		end
 	}
 
