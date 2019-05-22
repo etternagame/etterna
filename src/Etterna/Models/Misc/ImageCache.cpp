@@ -53,7 +53,7 @@ static Preference<bool> g_bPalettedImageCache("PalettedImageCache", false);
 
 ImageCache* IMAGECACHE; // global and accessible from anywhere in our program
 
-static map<std::string, RageSurface*> g_ImagePathToImage;
+static std::map<std::string, RageSurface*> g_ImagePathToImage;
 static int g_iDemandRefcount = 0;
 
 std::string

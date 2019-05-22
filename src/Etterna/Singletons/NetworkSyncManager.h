@@ -292,7 +292,7 @@ class ETTProtocol : public NetProtocol
 class Chat
 {
   public:
-	map<std::pair<string, int>, std::vector<string>> rawMap;
+	std::map<std::pair<string, int>, std::vector<string>> rawMap;
 
 	std::vector<string>& operator[](const std::pair<string, int>& p)
 	{
@@ -402,7 +402,7 @@ class NetworkSyncManager
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
-	map<string, GameplayScore> mpleaderboard;
+	std::map<string, GameplayScore> mpleaderboard;
 	void PushMPLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;

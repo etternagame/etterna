@@ -313,7 +313,7 @@ FilenameDB::GetFileSet(const RString& sDir_, bool bCreate)
 
 	for (;;) {
 		/* Look for the directory. */
-		map<RString, FileSet*>::iterator i = dirs.find(sLower);
+		std::map<RString, FileSet*>::iterator i = dirs.find(sLower);
 		if (!bCreate) {
 			if (i == dirs.end())
 				return NULL;
@@ -453,7 +453,7 @@ FilenameDB::AddFile(const RString& sPath_, int iSize, int iHash, void* pPriv)
  * has expired, not that the directory is necessarily gone; don't actually
  * delete the file from the parent. */
 void
-FilenameDB::DelFileSet(map<RString, FileSet*>::iterator dir)
+FilenameDB::DelFileSet(std::map<RString, FileSet*>::iterator dir)
 {
 	/* If this isn't locked, dir may not be valid. */
 	ASSERT(m_Mutex.IsLockedByThisThread());
@@ -464,7 +464,7 @@ FilenameDB::DelFileSet(map<RString, FileSet*>::iterator dir)
 	FileSet* fs = dir->second;
 
 	/* Remove any stale dirp pointers. */
-	for (map<RString, FileSet*>::iterator it = dirs.begin(); it != dirs.end();
+	for (std::map<RString, FileSet*>::iterator it = dirs.begin(); it != dirs.end();
 		 ++it) {
 		FileSet* Clean = it->second;
 		for (set<File>::iterator f = Clean->files.begin();
@@ -487,7 +487,7 @@ FilenameDB::DelFile(const RString& sPath)
 	RString lower = sPath;
 	lower.MakeLower();
 
-	map<RString, FileSet*>::iterator fsi = dirs.find(lower);
+	std::map<RString, FileSet*>::iterator fsi = dirs.find(lower);
 	DelFileSet(fsi);
 
 	/* Delete sPath from its parent. */

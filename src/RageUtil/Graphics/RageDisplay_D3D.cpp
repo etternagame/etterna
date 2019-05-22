@@ -57,7 +57,7 @@ IDirect3DSurface9* defaultDepthBuffer = 0;
 // of this application though.
 const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
 
-static map<intptr_t, RenderTarget*> g_mapRenderTargets;
+static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = NULL;
 
 static bool g_bInvertY = false;
@@ -65,13 +65,13 @@ static bool g_bInvertY = false;
 /* Direct3D doesn't associate a palette with textures. Instead, we load a
  * palette into a slot. We need to keep track of which texture's palette is
  * stored in what slot. */
-map<intptr_t, int> g_TexResourceToPaletteIndex;
+std::map<intptr_t, int> g_TexResourceToPaletteIndex;
 list<int> g_PaletteIndex;
 struct TexturePalette
 {
 	PALETTEENTRY p[256];
 };
-map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
+std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
 
 // Load the palette, if any, for the given texture into a palette slot, and make
 // it current.
@@ -91,7 +91,7 @@ SetPalette(unsigned TexResource)
 
 		// If any other texture is currently using this slot, mark that palette
 		// unloaded.
-		for (map<intptr_t, int>::iterator i =
+		for (std::map<intptr_t, int>::iterator i =
 			   g_TexResourceToPaletteIndex.begin();
 			 i != g_TexResourceToPaletteIndex.end();
 			 ++i) {
@@ -1832,7 +1832,7 @@ RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam& param,
 intptr_t
 RageDisplay_D3D::GetRenderTarget()
 {
-	for (map<intptr_t, RenderTarget*>::const_iterator it =
+	for (std::map<intptr_t, RenderTarget*>::const_iterator it =
 		   g_mapRenderTargets.begin();
 		 it != g_mapRenderTargets.end();
 		 ++it)

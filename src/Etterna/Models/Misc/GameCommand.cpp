@@ -512,7 +512,7 @@ GameCommand::ApplySelf(const std::vector<PlayerNumber>& vpns) const
 		GAMESTATE->m_pCurSteps.Set(m_pSteps);
 	if (m_pCharacter)
 		GAMESTATE->m_pCurCharacters = m_pCharacter;
-	for (map<RString, RString>::const_iterator i = m_SetEnv.begin();
+	for (std::map<RString, RString>::const_iterator i = m_SetEnv.begin();
 		 i != m_SetEnv.end();
 		 i++) {
 		Lua* L = LUA->Get();
@@ -523,7 +523,7 @@ GameCommand::ApplySelf(const std::vector<PlayerNumber>& vpns) const
 		lua_pop(L, 1);
 		LUA->Release(L);
 	}
-	for (map<RString, RString>::const_iterator setting = m_SetPref.begin();
+	for (std::map<RString, RString>::const_iterator setting = m_SetPref.begin();
 		 setting != m_SetPref.end();
 		 ++setting) {
 		IPreference* pref = IPreference::GetPreferenceByName(setting->first);

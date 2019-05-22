@@ -196,7 +196,7 @@ class Profile
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{ 0 };
 	// Profile Playlists
-	map<string, Playlist> allplaylists;
+	std::map<string, Playlist> allplaylists;
 
 	// Editable data
 	RString m_sDisplayName;
@@ -214,7 +214,7 @@ class Profile
 	static RString MakeGuid();
 	RString* GetGuid() { return &m_sGuid; }
 	RString m_sGuid;
-	map<RString, RString> m_sDefaultModifiers;
+	std::map<RString, RString> m_sDefaultModifiers;
 	SortOrder m_SortOrder{ SortOrder_Invalid };
 	Difficulty m_LastDifficulty{ Difficulty_Invalid };
 	StepsType m_LastStepsType{ StepsType_Invalid };
@@ -254,7 +254,7 @@ class Profile
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */
 	int m_iNumSongsPlayedByPlayMode[NUM_PlayMode];
-	map<StyleID, int> m_iNumSongsPlayedByStyle;
+	std::map<StyleID, int> m_iNumSongsPlayedByStyle;
 	int m_iNumSongsPlayedByDifficulty[NUM_Difficulty];
 	int m_iNumSongsPlayedByMeter[MAX_METER + 1];
 	/**

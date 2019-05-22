@@ -302,7 +302,7 @@ DeserializeStringToObjectMap(M& m, F fnToValue, const Json::Value& root)
 // Serialize a map that has a non-string key type
 template<typename K, typename V>
 static void
-DeserializeObjectToObjectMapAsArray(map<K, V>& m,
+DeserializeObjectToObjectMapAsArray(std::map<K, V>& m,
 									const RString& sKeyName,
 									const RString& sValueName,
 									const Json::Value& root)
@@ -324,7 +324,7 @@ DeserializeObjectToObjectMapAsArray(map<K, V>& m,
 
 template<typename K, typename V>
 static void
-DeserializeObjectToValueMapAsArray(map<K, V>& m,
+DeserializeObjectToValueMapAsArray(std::map<K, V>& m,
 								   const RString& sKeyName,
 								   const RString& sValueName,
 								   const Json::Value& root)

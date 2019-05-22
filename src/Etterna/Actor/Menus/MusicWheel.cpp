@@ -704,7 +704,7 @@ MusicWheel::BuildWheelItemDatas(
   RString findme)
 {
 
-	map<RString, Commands> commanDZ;
+	std::map<RString, Commands> commanDZ;
 	if (so == SORT_MODE_MENU) {
 		arrayWheelItemDatas.clear(); // clear out the previous wheel items
 		std::vector<RString> vsNames;
@@ -940,7 +940,7 @@ MusicWheel::BuildWheelItemDatas(
 
 			auto& groups = SONGMAN->groupderps;
 
-			map<string, string> shitterstrats;
+			std::map<string, string> shitterstrats;
 			for (auto& n : groups) {
 				shitterstrats[Rage::make_lower(n.first)] = n.first;
 				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);

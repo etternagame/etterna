@@ -23,15 +23,15 @@ class PlayerAI
 
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result
-	static map<int, std::vector<TapReplayResult>> m_ReplayTapMap;
+	static std::map<int, std::vector<TapReplayResult>> m_ReplayTapMap;
 	// A map with indices for each row of the chart, pointing to nothing or hold
 	// drop results.
-	static map<int, std::vector<HoldReplayResult>> m_ReplayHoldMap;
+	static std::map<int, std::vector<HoldReplayResult>> m_ReplayHoldMap;
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result. However, note that the rows within are actually calculated
 	// so that they are adjusted for offsets relative to the actual replay
 	// data/notedata. This map is only useful for charts with column data.
-	static map<int, std::vector<TapReplayResult>> m_ReplayExactTapMap;
+	static std::map<int, std::vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);

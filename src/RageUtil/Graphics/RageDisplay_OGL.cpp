@@ -62,7 +62,7 @@ static int g_iMaxTextureUnits = 0;
 /* If we support texture matrix scaling, a handle to the vertex program: */
 static GLhandleARB g_bTextureMatrixShader = 0;
 
-static map<intptr_t, RenderTarget*> g_mapRenderTargets;
+static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = NULL;
 
 static LowLevelWindow* g_pWind;
@@ -2695,7 +2695,7 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 intptr_t
 RageDisplay_Legacy::GetRenderTarget()
 {
-	for (map<intptr_t, RenderTarget*>::const_iterator it =
+	for (std::map<intptr_t, RenderTarget*>::const_iterator it =
 		   g_mapRenderTargets.begin();
 		 it != g_mapRenderTargets.end();
 		 ++it)

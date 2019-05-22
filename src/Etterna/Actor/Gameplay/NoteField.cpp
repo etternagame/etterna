@@ -91,7 +91,7 @@ NoteField::~NoteField()
 void
 NoteField::Unload()
 {
-	for (map<RString, NoteDisplayCols*>::iterator it = m_NoteDisplays.begin();
+	for (std::map<RString, NoteDisplayCols*>::iterator it = m_NoteDisplays.begin();
 		 it != m_NoteDisplays.end();
 		 ++it)
 		delete it->second;
@@ -173,7 +173,7 @@ NoteField::CacheAllUsedNoteSkins()
 	NOTESKIN->ValidateNoteSkinName(sCurrentNoteSkinLower);
 	sCurrentNoteSkinLower.MakeLower();
 
-	map<RString, NoteDisplayCols*>::iterator it =
+	std::map<RString, NoteDisplayCols*>::iterator it =
 	  m_NoteDisplays.find(sCurrentNoteSkinLower);
 	ASSERT_M(it != m_NoteDisplays.end(), sCurrentNoteSkinLower);
 	m_pCurDisplay = it->second;
@@ -276,7 +276,7 @@ NoteField::ensure_note_displays_have_skin()
 	}
 
 	sNoteSkinLower.MakeLower();
-	map<RString, NoteDisplayCols*>::iterator it =
+	std::map<RString, NoteDisplayCols*>::iterator it =
 	  m_NoteDisplays.find(sNoteSkinLower);
 	if (it == m_NoteDisplays.end()) {
 		CacheAllUsedNoteSkins();

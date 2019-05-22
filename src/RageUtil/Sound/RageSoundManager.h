@@ -51,7 +51,7 @@ class RageSoundManager
 	void fix_bogus_sound_driver_pref(RString const& valid_setting);
 
   private:
-	map<RString, RageSoundReader_Preload*> m_mapPreloadedSounds;
+	std::map<RString, RageSoundReader_Preload*> m_mapPreloadedSounds;
 
 	RageSoundDriver* m_pDriver;
 

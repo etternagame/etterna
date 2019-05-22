@@ -29,7 +29,7 @@ const RString GAME_BASE_NOTESKIN_NAME = "default";
 #define GLOBAL_BASE_DIR                                                        \
 	(SpecialFiles::NOTESKINS_DIR + GAME_COMMON_NOTESKIN_NAME + "/")
 
-static map<RString, RString> g_PathCache;
+static std::map<RString, RString> g_PathCache;
 
 struct NoteSkinData
 {
@@ -43,7 +43,7 @@ struct NoteSkinData
 };
 
 namespace {
-static map<RString, NoteSkinData> g_mapNameToData;
+static std::map<RString, NoteSkinData> g_mapNameToData;
 } // namespace;
 
 NoteSkinManager::NoteSkinManager()
@@ -99,7 +99,7 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 		// into a temp variable and move it, so if the load fails, then just
 		// delete it from the map. -Kyz
 		if (!LoadNoteSkinData(sName, g_mapNameToData[sName])) {
-			map<RString, NoteSkinData>::iterator entry =
+			std::map<RString, NoteSkinData>::iterator entry =
 			  g_mapNameToData.find(sName);
 			g_mapNameToData.erase(entry);
 		}
@@ -293,7 +293,7 @@ NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 {
 	if (pGame == m_pCurGame) {
 		// Faster:
-		for (map<RString, NoteSkinData>::const_iterator iter =
+		for (std::map<RString, NoteSkinData>::const_iterator iter =
 			   g_mapNameToData.begin();
 			 iter != g_mapNameToData.end();
 			 ++iter) {
@@ -318,7 +318,7 @@ NoteSkinManager::GetMetric(const RString& sButtonName, const RString& sValue)
 	}
 	RString sNoteSkinName = m_sCurrentNoteSkin;
 	sNoteSkinName.MakeLower();
-	map<RString, NoteSkinData>::const_iterator it =
+	std::map<RString, NoteSkinData>::const_iterator it =
 	  g_mapNameToData.find(sNoteSkinName);
 	ASSERT_M(it != g_mapNameToData.end(),
 			 sNoteSkinName); // this NoteSkin doesn't exist!
@@ -372,7 +372,7 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 {
 	const RString CacheString =
 	  m_sCurrentNoteSkin + "/" + sButtonName + "/" + sElement;
-	map<RString, RString>::iterator it = g_PathCache.find(CacheString);
+	std::map<RString, RString>::iterator it = g_PathCache.find(CacheString);
 	if (it != g_PathCache.end())
 		return it->second;
 
@@ -383,7 +383,7 @@ NoteSkinManager::GetPath(const RString& sButtonName, const RString& sElement)
 	}
 	RString sNoteSkinName = m_sCurrentNoteSkin;
 	sNoteSkinName.MakeLower();
-	map<RString, NoteSkinData>::const_iterator iter =
+	std::map<RString, NoteSkinData>::const_iterator iter =
 	  g_mapNameToData.find(sNoteSkinName);
 	ASSERT(iter != g_mapNameToData.end());
 	const NoteSkinData& data = iter->second;
@@ -501,7 +501,7 @@ NoteSkinManager::PushActorTemplate(Lua* L,
 								   bool bSpriteOnly,
 								   RString Color)
 {
-	map<RString, NoteSkinData>::const_iterator iter =
+	std::map<RString, NoteSkinData>::const_iterator iter =
 	  g_mapNameToData.find(m_sCurrentNoteSkin);
 	if (iter == g_mapNameToData.end()) {
 		LuaHelpers::ReportScriptError("No current noteskin set!",

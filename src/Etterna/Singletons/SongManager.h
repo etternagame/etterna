@@ -39,7 +39,7 @@ class SongManager
 	void Cleanup();
 
 	void Invalidate(const Song* pStaleSong);
-	static map<string, Playlist>& GetPlaylists();
+	static std::map<string, Playlist>& GetPlaylists();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
@@ -65,7 +65,7 @@ class SongManager
 	bool DoesSongGroupExist(const RString& sSongGroup) const;
 	RageColor GetSongGroupColor(
 	  const RString& sSongGroupName,
-	  map<string, Playlist>& playlists = GetPlaylists()) const;
+	  std::map<string, Playlist>& playlists = GetPlaylists()) const;
 	RageColor GetSongColor(const Song* pSong) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
@@ -156,14 +156,14 @@ class SongManager
 	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 										   std::vector<string> oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
-	  map<string, Playlist>& playlists = GetPlaylists());
+	  std::map<string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck,
-						map<string, Playlist>& playlists = GetPlaylists());
+						std::map<string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
 	  set<string>& favs,
-	  map<string, Playlist>& playlists = GetPlaylists());
+	  std::map<string, Playlist>& playlists = GetPlaylists());
 
-	map<string, std::vector<Song*>> groupderps;
+	std::map<string, std::vector<Song*>> groupderps;
 	std::vector<string> playlistGroups; // To delete from groupderps when rebuilding
 								   // playlist groups
 
@@ -178,7 +178,7 @@ class SongManager
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
 	std::vector<Song*> m_pSongs;
-	map<RString, Song*> m_SongsByDir;
+	std::map<RString, Song*> m_SongsByDir;
 
 	std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*> cache;
 
@@ -213,7 +213,7 @@ class SongManager
 		}
 	};
 	typedef std::vector<Song*> SongPointerVector;
-	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
+	std::map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
 
 	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;

@@ -420,7 +420,7 @@ PolyphaseFilter::NumInputsForOutputSamples(const State& State,
 namespace PolyphaseFilterCache {
 /* Cache filter data, and reuse it without copying.  All operations after
  * creation are const, so this doesn't cause thread-safety problems. */
-typedef map<std::pair<int, float>, PolyphaseFilter*> FilterMap;
+typedef std::map<std::pair<int, float>, PolyphaseFilter*> FilterMap;
 static RageMutex PolyphaseFiltersLock("PolyphaseFiltersLock");
 static FilterMap g_mapPolyphaseFilters;
 

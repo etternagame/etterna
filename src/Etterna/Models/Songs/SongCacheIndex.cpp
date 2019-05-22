@@ -692,7 +692,7 @@ SongCacheIndex::~SongCacheIndex()
 
 void
 SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
-							   map<RString, Song*>& hyperCache)
+							   std::map<RString, Song*>& hyperCache)
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {

@@ -57,7 +57,7 @@ class XNodeStringValue : public XNodeValue
 	void SetValueFromStack(lua_State* L) override;
 };
 
-typedef map<std::string, XNodeValue*> XAttrs;
+typedef std::map<std::string, XNodeValue*> XAttrs;
 class XNode;
 typedef std::vector<XNode*> XNodes;
 /** @brief Loop through each node. */

@@ -3,12 +3,12 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 
-map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
+std::map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,
 										   CreateDialogDriverFn pfn)
 {
 	if (g_pRegistrees == NULL)
-		g_pRegistrees = new map<istring, CreateDialogDriverFn>;
+		g_pRegistrees = new std::map<istring, CreateDialogDriverFn>;
 
 	ASSERT(g_pRegistrees->find(sName) == g_pRegistrees->end());
 	(*g_pRegistrees)[sName] = pfn;
@@ -27,7 +27,7 @@ DialogDriver::Create()
 
 	FOREACH_CONST(RString, asDriversToTry, Driver)
 	{
-		map<istring, CreateDialogDriverFn>::const_iterator iter =
+		std::map<istring, CreateDialogDriverFn>::const_iterator iter =
 		  RegisterDialogDriver::g_pRegistrees->find(istring(*Driver));
 
 		if (iter == RegisterDialogDriver::g_pRegistrees->end())

@@ -208,7 +208,7 @@ class Steps
 	void SetChartKey(const RString& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { stuffnthings = msd; }
 	MinaSD GetAllMSD() const { return stuffnthings; }
-	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
+	std::map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
 

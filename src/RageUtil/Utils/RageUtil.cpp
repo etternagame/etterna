@@ -1996,7 +1996,7 @@ WcharToUTF8(wchar_t c)
 
 // &a; -> a
 void
-ReplaceEntityText(RString& sText, const map<RString, RString>& m)
+ReplaceEntityText(RString& sText, const std::map<RString, RString>& m)
 {
 	RString sRet;
 
@@ -2030,7 +2030,7 @@ ReplaceEntityText(RString& sText, const map<RString, RString>& m)
 		RString sElement = sText.substr(iStart + 1, iEnd - iStart - 1);
 		sElement.MakeLower();
 
-		map<RString, RString>::const_iterator it = m.find(sElement);
+		std::map<RString, RString>::const_iterator it = m.find(sElement);
 		if (it == m.end()) {
 			sRet.append(sText, iStart, iEnd - iStart + 1);
 			iOffset = iEnd + 1;
@@ -2047,7 +2047,7 @@ ReplaceEntityText(RString& sText, const map<RString, RString>& m)
 
 // abcd -> &a; &b; &c; &d;
 void
-ReplaceEntityText(RString& sText, const map<char, RString>& m)
+ReplaceEntityText(RString& sText, const std::map<char, RString>& m)
 {
 	RString sFind;
 
@@ -2075,7 +2075,7 @@ ReplaceEntityText(RString& sText, const map<char, RString>& m)
 
 		char sElement = sText[iStart];
 
-		map<char, RString>::const_iterator it = m.find(sElement);
+		std::map<char, RString>::const_iterator it = m.find(sElement);
 		ASSERT(it != m.end());
 
 		const RString& sTo = it->second;
@@ -2090,7 +2090,7 @@ ReplaceEntityText(RString& sText, const map<char, RString>& m)
 
 // &a; -> a
 void
-ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
+ReplaceEntityText(std::string& sText, const std::map<std::string, std::string>& m)
 {
 	std::string sRet;
 
@@ -2124,7 +2124,7 @@ ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
 		std::string sElement = sText.substr(iStart + 1, iEnd - iStart - 1);
 		Rage::make_lower(sElement);
 
-		map<std::string, std::string>::const_iterator it = m.find(sElement);
+		std::map<std::string, std::string>::const_iterator it = m.find(sElement);
 		if (it == m.end()) {
 			sRet.append(sText, iStart, iEnd - iStart + 1);
 			iOffset = iEnd + 1;
@@ -2141,7 +2141,7 @@ ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
 
 // abcd -> &a; &b; &c; &d;
 void
-ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
+ReplaceEntityText(std::string& sText, const std::map<char, std::string>& m)
 {
 	std::string sFind;
 
@@ -2169,7 +2169,7 @@ ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
 
 		char sElement = sText[iStart];
 
-		map<char, std::string>::const_iterator it = m.find(sElement);
+		std::map<char, std::string>::const_iterator it = m.find(sElement);
 		ASSERT(it != m.end());
 
 		const std::string& sTo = it->second;

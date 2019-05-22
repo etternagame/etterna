@@ -178,7 +178,7 @@ class Screen : public ActorFrame
 	// void* is the key so that we can use lua_topointer to find the callback
 	// to remove when removing a callback.
 	using callback_key_t = const void*;
-	map<callback_key_t, LuaReference> m_InputCallbacks;
+	std::map<callback_key_t, LuaReference> m_InputCallbacks;
 	std::vector<callback_key_t> orderedcallbacks;
 	std::vector<callback_key_t> m_DelayedCallbackRemovals;
 	bool m_CallingInputCallbacks;

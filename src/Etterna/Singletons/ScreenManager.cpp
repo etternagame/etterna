@@ -83,7 +83,7 @@ static Preference<bool> g_bDelayedScreenLoad("DelayedScreenLoad", false);
 // static Preference<bool> g_bPruneFonts( "PruneFonts", true );
 
 // Screen registration
-static map<RString, CreateScreenFn>* g_pmapRegistrees = NULL;
+static std::map<RString, CreateScreenFn>* g_pmapRegistrees = NULL;
 
 /** @brief Utility functions for the ScreenManager. */
 namespace ScreenManagerUtil {
@@ -234,9 +234,9 @@ RegisterScreenClass::RegisterScreenClass(const RString& sClassName,
 										 CreateScreenFn pfn)
 {
 	if (g_pmapRegistrees == NULL)
-		g_pmapRegistrees = new map<RString, CreateScreenFn>;
+		g_pmapRegistrees = new std::map<RString, CreateScreenFn>;
 
-	map<RString, CreateScreenFn>::iterator iter =
+	std::map<RString, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	ASSERT_M(
 	  iter == g_pmapRegistrees->end(),
@@ -591,7 +591,7 @@ ScreenManager::MakeNewScreen(const RString& sScreenName)
 
 	RString sClassName = THEME->GetMetric(sScreenName, "Class");
 
-	map<RString, CreateScreenFn>::iterator iter =
+	std::map<RString, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	if (iter == g_pmapRegistrees->end()) {
 		LuaHelpers::ReportScriptErrorFmt(

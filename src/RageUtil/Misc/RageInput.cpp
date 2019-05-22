@@ -20,7 +20,7 @@ struct LoadedInputHandler
 	InputHandler* m_pDevice;
 };
 std::vector<LoadedInputHandler> m_InputHandlers;
-map<InputDevice, InputHandler*> g_mapDeviceToHandler;
+std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 } // namespace
 
 RageInput::RageInput()
@@ -126,7 +126,7 @@ RageInput::AddHandler(InputHandler* pHandler)
 InputHandler*
 RageInput::GetHandlerForDevice(const InputDevice id)
 {
-	map<InputDevice, InputHandler*>::iterator it =
+	std::map<InputDevice, InputHandler*>::iterator it =
 	  g_mapDeviceToHandler.find(id);
 	if (it == g_mapDeviceToHandler.end())
 		return NULL;

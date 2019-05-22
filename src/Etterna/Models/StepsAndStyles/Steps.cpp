@@ -369,11 +369,11 @@ Steps::GetMSD(float x, int i) const
 	return lerp(prop, stuffnthings[idx][i], stuffnthings[idx + 1][i]);
 }
 
-map<float, Skillset>
+std::map<float, Skillset>
 Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 {
 	int idx = static_cast<int>(x * 10) - 7;
-	map<float, Skillset> why;
+	std::map<float, Skillset> why;
 	SDiffs tmp = stuffnthings[idx];
 	FOREACH_ENUM(Skillset, ss)
 	if (ss != Skill_Overall || includeoverall)

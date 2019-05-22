@@ -123,7 +123,7 @@ RageSoundManager::Update()
 	g_SoundManMutex
 	  .Lock(); /* lock for access to m_mapPreloadedSounds, owned_sounds */
 	{
-		map<RString, RageSoundReader_Preload*>::iterator it, next;
+		std::map<RString, RageSoundReader_Preload*>::iterator it, next;
 		it = m_mapPreloadedSounds.begin();
 
 		while (it != m_mapPreloadedSounds.end()) {
@@ -173,7 +173,7 @@ RageSoundManager::GetLoadedSound(const RString& sPath_)
 
 	RString sPath(sPath_);
 	sPath.MakeLower();
-	map<RString, RageSoundReader_Preload*>::const_iterator it;
+	std::map<RString, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	if (it == m_mapPreloadedSounds.end())
 		return NULL;
@@ -194,7 +194,7 @@ RageSoundManager::AddLoadedSound(const RString& sPath_,
 	 * been used in GetLoadedSound. */
 	RString sPath(sPath_);
 	sPath.MakeLower();
-	map<RString, RageSoundReader_Preload*>::const_iterator it;
+	std::map<RString, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	ASSERT_M(it == m_mapPreloadedSounds.end(), sPath);
 

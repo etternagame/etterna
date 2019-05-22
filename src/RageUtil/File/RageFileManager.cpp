@@ -47,7 +47,7 @@ struct LoadedDriver
 };
 
 static std::vector<LoadedDriver*> g_pDrivers;
-static map<const RageFileBasic*, LoadedDriver*> g_mFileDriverMap;
+static std::map<const RageFileBasic*, LoadedDriver*> g_mFileDriverMap;
 
 static void
 ReferenceAllDrivers(std::vector<LoadedDriver*>& apDriverList)
@@ -958,7 +958,7 @@ RageFileManager::Open(const RString& sPath_, int mode, int& err)
 void
 RageFileManager::CacheFile(const RageFileBasic* fb, const RString& sPath_)
 {
-	map<const RageFileBasic*, LoadedDriver*>::iterator it =
+	std::map<const RageFileBasic*, LoadedDriver*>::iterator it =
 	  g_mFileDriverMap.find(fb);
 
 	ASSERT_M(it != g_mFileDriverMap.end(),

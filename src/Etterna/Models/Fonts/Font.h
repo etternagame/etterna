@@ -76,9 +76,9 @@ struct FontPageSettings
 	float m_fScaleAllWidthsBy{ 1 };
 	RString m_sTextureHints;
 
-	map<wchar_t, int> CharToGlyphNo;
+	std::map<wchar_t, int> CharToGlyphNo;
 	// If a value is missing, the width of the texture frame is used.
-	map<int, int> m_mapGlyphWidths;
+	std::map<int, int> m_mapGlyphWidths;
 
 	/** @brief The initial settings for the FontPage. */
 	FontPageSettings()
@@ -127,7 +127,7 @@ class FontPage
 	/** @brief All glyphs in this list will point to m_pTexture. */
 	std::vector<glyph> m_aGlyphs;
 
-	map<wchar_t, int> m_iCharToGlyphNo;
+	std::map<wchar_t, int> m_iCharToGlyphNo;
 
   private:
 	void SetExtraPixels(int iDrawExtraPixelsLeft, int DrawExtraPixelsRight);
@@ -194,7 +194,7 @@ class Font
 	FontPage* m_pDefault;
 
 	/** @brief Map from characters to glyphs. */
-	map<wchar_t, glyph*> m_iCharToGlyph;
+	std::map<wchar_t, glyph*> m_iCharToGlyph;
 	/** @brief Each glyph is part of one of the pages[]. */
 	glyph* m_iCharToGlyphCache[128];
 

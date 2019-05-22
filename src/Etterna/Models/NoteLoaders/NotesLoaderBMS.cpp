@@ -180,8 +180,8 @@ struct BMSMeasure
 };
 
 const int MaxBMSElements = 1296; // ZZ in b36
-typedef map<RString, RString> BMSHeaders;
-typedef map<int, BMSMeasure> BMSMeasures;
+typedef std::map<RString, RString> BMSHeaders;
+typedef std::map<int, BMSMeasure> BMSMeasures;
 typedef std::vector<BMSObject> BMSObjects;
 
 class BMSChart
@@ -196,7 +196,7 @@ class BMSChart
 	BMSObjects objects;
 	BMSHeaders headers;
 	BMSMeasures measures;
-	map<int, bool> referencedTracks;
+	std::map<int, bool> referencedTracks;
 
 	void TidyUpData();
 };
@@ -407,7 +407,7 @@ struct bmsCommandTree
 		evaluateNode(&root, headersOut, linesOut);
 	}
 
-	void doStatement(RString statement, map<int, bool>& referencedTracks)
+	void doStatement(RString statement, std::map<int, bool>& referencedTracks)
 	{
 		line++;
 
@@ -607,12 +607,12 @@ BMSChart::TidyUpData()
 class BMSSong
 {
 
-	map<RString, int> mapKeysoundToIndex;
+	std::map<RString, int> mapKeysoundToIndex;
 	Song* out;
 
 	bool backgroundsPrecached;
 	void PrecacheBackgrounds(const RString& dir);
-	map<RString, RString> mapBackground;
+	std::map<RString, RString> mapBackground;
 
   public:
 	explicit BMSSong(Song* song);
@@ -785,7 +785,7 @@ struct BMSChartInfo
 	RString musicFile;
 	RString previewFile;
 
-	map<int, RString> backgroundChanges;
+	std::map<int, RString> backgroundChanges;
 	float previewStart;
 	BMSChartInfo() { previewStart = 0; }
 };
@@ -807,11 +807,11 @@ class BMSChartReader
 	RString lnobj;
 
 	int nonEmptyTracksCount;
-	map<int, bool> nonEmptyTracks;
+	std::map<int, bool> nonEmptyTracks;
 
 	int GetKeysound(const BMSObject& obj);
 
-	map<RString, int> mapValueToKeysoundIndex;
+	std::map<RString, int> mapValueToKeysoundIndex;
 
   public:
 	BMSChartReader(BMSChart* chart, Steps* steps, BMSSong* song);
@@ -1038,7 +1038,7 @@ BMSChartReader::DetermineStepsType()
 int
 BMSChartReader::GetKeysound(const BMSObject& obj)
 {
-	map<RString, int>::iterator it = mapValueToKeysoundIndex.find(obj.value);
+	std::map<RString, int>::iterator it = mapValueToKeysoundIndex.find(obj.value);
 	if (it == mapValueToKeysoundIndex.end()) {
 		int index = -1;
 		BMSHeaders::iterator iu = in->headers.find("#wav" + obj.value);
@@ -1647,7 +1647,7 @@ BMSSongLoader::AddToSong()
 				break;
 		}
 
-		map<int, RString>::const_iterator it =
+		std::map<int, RString>::const_iterator it =
 		  main.info.backgroundChanges.begin();
 
 		for (; it != main.info.backgroundChanges.end(); it++) {

@@ -96,7 +96,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 	const std::vector<TimingSegment*>& delays =
 	  timing.GetTimingSegments(SEGMENT_DELAY);
 
-	map<float, float> allPauses;
+	std::map<float, float> allPauses;
 	const std::vector<TimingSegment*>& warps =
 	  timing.GetTimingSegments(SEGMENT_WARP);
 	unsigned wSize = warps.size();
@@ -114,7 +114,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 		const StopSegment* fs = ToStop(stops[i]);
 		// Handle warps on the same row by summing the values.  Not sure this
 		// plays out the same. -Kyz
-		map<float, float>::iterator already_exists =
+		std::map<float, float>::iterator already_exists =
 		  allPauses.find(fs->GetBeat());
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fs->GetPause();
@@ -127,7 +127,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 	{
 		float fBeat = NoteRowToBeat((*ss)->GetRow() - 1);
 		float fPause = ToDelay(*ss)->GetPause();
-		map<float, float>::iterator already_exists = allPauses.find(fBeat);
+		std::map<float, float>::iterator already_exists = allPauses.find(fBeat);
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fPause;
 		} else {

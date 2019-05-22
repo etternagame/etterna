@@ -414,7 +414,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 	/* Go through the steps, first setting their Song pointer to this song
 	 * (instead of the copy used above), and constructing a map to let us
 	 * easily find the new steps. */
-	map<StepsID, Steps*> mNewSteps;
+	std::map<StepsID, Steps*> mNewSteps;
 	for (std::vector<Steps*>::const_iterator it = m_vpSteps.begin();
 		 it != m_vpSteps.end();
 		 ++it) {
@@ -443,7 +443,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 		 ++itOld) {
 		StepsID id;
 		id.FromSteps(*itOld);
-		map<StepsID, Steps*>::iterator itNew = mNewSteps.find(id);
+		std::map<StepsID, Steps*>::iterator itNew = mNewSteps.find(id);
 		if (itNew == mNewSteps.end()) {
 			// This stepchart didn't exist in the file we reverted from
 			delete *itOld;
@@ -455,7 +455,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 		}
 	}
 	// The leftovers in the map are steps that didn't exist before we reverted
-	for (map<StepsID, Steps*>::const_iterator it = mNewSteps.begin();
+	for (std::map<StepsID, Steps*>::const_iterator it = mNewSteps.begin();
 		 it != mNewSteps.end();
 		 ++it) {
 		Steps* NewSteps = new Steps(this);
@@ -1417,7 +1417,7 @@ std::string
 Song::GetCacheFile(std::string sType)
 {
 	// We put the Predefined images into a map.
-	map<std::string, std::string> PreDefs;
+	std::map<std::string, std::string> PreDefs;
 	PreDefs["Banner"] = GetBannerPath();
 	PreDefs["Background"] = GetBackgroundPath();
 	PreDefs["CDTitle"] = GetCDTitlePath();
@@ -1444,7 +1444,7 @@ Song::GetCacheFile(std::string sType)
 	}
 
 	// Create a map that contains all the filenames to search for.
-	map<std::string, map<int, std::string>> PreSets;
+	std::map<std::string, std::map<int, std::string>> PreSets;
 	PreSets["Banner"][1] = "bn";
 	PreSets["Banner"][2] = "banner";
 	PreSets["Background"][1] = "bg";

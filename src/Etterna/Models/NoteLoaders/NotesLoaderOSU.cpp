@@ -25,7 +25,7 @@ split(string str, string token)
 	return result;
 }
 
-map<string, map<string, string>>
+std::map<string, std::map<string, string>>
 OsuLoader::ParseFileString(string fileContents)
 {
 	std::vector<string> sections;
@@ -33,7 +33,7 @@ OsuLoader::ParseFileString(string fileContents)
 
 	SeparateTagsAndContents(fileContents, sections, contents);
 
-	map<string, map<string, string>> parsedData;
+	std::map<string, std::map<string, string>> parsedData;
 
 	if (sections.size() == 7) {
 		for (int i = 0; i < (int)sections.size(); ++i) {
@@ -112,7 +112,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 }
 
 void
-OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
+OsuLoader::SetMetadata(std::map<string, std::map<string, string>> parsedData, Song& out)
 {
 	// set metadata values
 	auto& metadata = parsedData["Metadata"];
@@ -131,7 +131,7 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 }
 
 void
-OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
+OsuLoader::SetTimingData(std::map<string, std::map<string, string>> parsedData, Song& out)
 {
 	std::vector<std::pair<int, float>> tp;
 
@@ -200,7 +200,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 bool
 OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
-						 map<string, map<string, string>> parsedData)
+						 std::map<string, std::map<string, string>> parsedData)
 {
 	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
@@ -271,7 +271,7 @@ OsuLoader::MsToNoteRow(int ms, Song* song)
 void
 OsuLoader::LoadNoteDataFromParsedData(
   Steps* out,
-  map<string, map<string, string>> parsedData)
+  std::map<string, std::map<string, string>> parsedData)
 {
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
@@ -372,7 +372,7 @@ OsuLoader::LoadFromDir(const RString& sPath_, Song& out)
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
 	RageFile f;
-	map<string, map<string, string>> parsedData;
+	std::map<string, std::map<string, string>> parsedData;
 
 	for (auto& filename : aFileNames) {
 		auto p = sPath_ + filename;

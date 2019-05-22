@@ -631,7 +631,7 @@ NetworkPostData::~NetworkPostData()
 
 /** @brief Create a MIME multipart data block from the given set of fields. */
 void
-NetworkPostData::CreateMimeData(const map<RString, RString>& mapNameToData,
+NetworkPostData::CreateMimeData(const std::map<RString, RString>& mapNameToData,
 								RString& sOut,
 								RString& sMimeBoundaryOut)
 {
@@ -717,7 +717,7 @@ NetworkPostData::HttpThread()
 
 	// Parse the results.
 	int iStart = 0, iSize = -1;
-	map<RString, RString> mapHeaders;
+	std::map<RString, RString> mapHeaders;
 	while (1) {
 		split(sResult, "\n", iStart, iSize, false);
 		if (iStart == (int)sResult.size())

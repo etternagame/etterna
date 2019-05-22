@@ -1304,7 +1304,7 @@ split(const std::string& s, char delimiter)
 {
 	std::vector<std::string> tokens;
 	std::string token;
-	std::std::istringstream tokenStream(s);
+	std::istringstream tokenStream(s);
 	while (std::getline(tokenStream, token, delimiter)) {
 		tokens.push_back(token);
 	}
@@ -2179,7 +2179,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetDownloads(T* p, lua_State* L)
 	{
-		map<string, Download*>& dls = DLMAN->downloads;
+		std::map<string, Download*>& dls = DLMAN->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
 		for (auto it = dls.begin(); it != dls.end(); ++it) {

@@ -502,7 +502,7 @@ ScreenSelectMaster::Move(PlayerNumber pn, MenuDir dir)
 	set<int> seen;
 
 	do {
-		map<int, int>::const_iterator iter =
+		std::map<int, int>::const_iterator iter =
 		  m_mapCurrentChoiceToNextChoice[dir].find(iSwitchToIndex);
 		if (iter != m_mapCurrentChoiceToNextChoice[dir].end())
 			iSwitchToIndex = iter->second;

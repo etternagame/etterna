@@ -1556,7 +1556,7 @@ Actor::HasCommand(const std::string& sCmdName) const
 const apActorCommands*
 Actor::GetCommand(const std::string& sCommandName) const
 {
-	map<std::string, apActorCommands>::const_iterator it =
+	std::map<std::string, apActorCommands>::const_iterator it =
 	  m_mapNameToCommands.find(sCommandName);
 	if (it == m_mapNameToCommands.end())
 		return nullptr;

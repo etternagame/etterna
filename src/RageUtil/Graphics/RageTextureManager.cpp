@@ -39,9 +39,9 @@ RageTextureManager* TEXTUREMAN =
   nullptr; // global and accessible from anywhere in our program
 
 namespace {
-map<RageTextureID, RageTexture*> m_mapPathToTexture;
-map<RageTextureID, RageTexture*> m_textures_to_update;
-map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
+std::map<RageTextureID, RageTexture*> m_mapPathToTexture;
+std::map<RageTextureID, RageTexture*> m_textures_to_update;
+std::map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
 } // namespace;
 
 RageTextureManager::RageTextureManager() {}
@@ -267,16 +267,16 @@ RageTextureManager::DeleteTexture(RageTexture* t)
 	// LOG->Trace( "RageTextureManager: deleting '%s'.",
 	// t->GetID().filename.c_str() );
 
-	map<RageTexture*, RageTextureID>::iterator id_entry =
+	std::map<RageTexture*, RageTextureID>::iterator id_entry =
 	  m_texture_ids_by_pointer.find(t);
 	if (id_entry != m_texture_ids_by_pointer.end()) {
-		map<RageTextureID, RageTexture*>::iterator tex_entry =
+		std::map<RageTextureID, RageTexture*>::iterator tex_entry =
 		  m_mapPathToTexture.find(id_entry->second);
 		if (tex_entry != m_mapPathToTexture.end()) {
 			m_mapPathToTexture.erase(tex_entry);
 			SAFE_DELETE(t);
 		}
-		map<RageTextureID, RageTexture*>::iterator tex_update_entry =
+		std::map<RageTextureID, RageTexture*>::iterator tex_update_entry =
 		  m_textures_to_update.find(id_entry->second);
 		if (tex_update_entry != m_textures_to_update.end()) {
 			m_textures_to_update.erase(tex_update_entry);
@@ -291,7 +291,7 @@ RageTextureManager::DeleteTexture(RageTexture* t)
 		if (i->second == t) {
 			m_mapPathToTexture.erase(i); // remove map entry
 			SAFE_DELETE(t);				 // free the texture
-			map<RageTextureID, RageTexture*>::iterator tex_update_entry =
+			std::map<RageTextureID, RageTexture*>::iterator tex_update_entry =
 			  m_textures_to_update.find(i->first);
 			if (tex_update_entry != m_textures_to_update.end()) {
 				m_textures_to_update.erase(tex_update_entry);

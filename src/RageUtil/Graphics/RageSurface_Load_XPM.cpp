@@ -38,7 +38,7 @@ RageSurface_Load_XPM(char* const* xpm, RString& error)
 
 	std::vector<RageSurfaceColor> colors;
 
-	map<RString, int> name_to_color;
+	std::map<RString, int> name_to_color;
 	for (int i = 0; i < num_colors; ++i) {
 		CheckLine();
 
@@ -101,7 +101,7 @@ RageSurface_Load_XPM(char* const* xpm, RString& error)
 		int32_t* p32 = (int32_t*)p;
 		for (int x = 0; x < width; ++x) {
 			RString color_name = row.substr(x * color_length, color_length);
-			map<RString, int>::const_iterator it;
+			std::map<RString, int>::const_iterator it;
 			it = name_to_color.find(color_name);
 			if (it == name_to_color.end()) {
 				error = ssprintf(

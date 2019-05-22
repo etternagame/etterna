@@ -89,8 +89,8 @@ class OptionsList : public ActorFrame
 	bool m_bAcceptStartRelease;
 
 	std::vector<RString> m_asLoadedRows;
-	map<RString, OptionRowHandler*> m_Rows;
-	map<RString, std::vector<bool>> m_bSelections;
+	std::map<RString, OptionRowHandler*> m_Rows;
+	std::map<RString, std::vector<bool>> m_bSelections;
 	set<RString> m_setDirectRows;
 	set<RString> m_setTopMenus; // list of top-level menus, pointing to submenus
 

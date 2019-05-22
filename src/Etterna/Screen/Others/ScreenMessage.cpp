@@ -18,13 +18,13 @@ AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
 AutoScreenMessage(SM_GoToDisconnectScreen);
 
-static map<RString, ScreenMessage>* m_pScreenMessages;
+static std::map<RString, ScreenMessage>* m_pScreenMessages;
 
 ScreenMessage
 ScreenMessageHelpers::ToScreenMessage(const RString& sName)
 {
 	if (m_pScreenMessages == NULL)
-		m_pScreenMessages = new map<RString, ScreenMessage>;
+		m_pScreenMessages = new std::map<RString, ScreenMessage>;
 
 	if (m_pScreenMessages->find(sName) == m_pScreenMessages->end())
 		(*m_pScreenMessages)[sName] = (ScreenMessage)sName;

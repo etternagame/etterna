@@ -484,7 +484,7 @@ Screen::RemoveInputCallback(lua_State* L)
 void
 Screen::InternalRemoveCallback(callback_key_t key)
 {
-	map<callback_key_t, LuaReference>::iterator iter =
+	std::map<callback_key_t, LuaReference>::iterator iter =
 	  m_InputCallbacks.find(key);
 	if (iter != m_InputCallbacks.end()) {
 		m_InputCallbacks.erase(iter);

@@ -6,7 +6,7 @@
 #include <set>
 
 namespace {
-map<GLenum, RString> g_Strings;
+std::map<GLenum, RString> g_Strings;
 void
 InitStringMap()
 {

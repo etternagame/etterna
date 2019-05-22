@@ -321,7 +321,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	//   Meant for use when testing things, listed last.
 	// If the user renames a profile directory manually, that should not be a
 	// problem. -Kyz
-	map<ProfileType, std::vector<DirAndProfile>> categorized_profiles;
+	std::map<ProfileType, std::vector<DirAndProfile>> categorized_profiles;
 	// The type data for a profile is in its own file so that loading isn't
 	// slowed down by copying temporary profiles around to make sure the list
 	// is sorted.  The profiles are loaded at the end. -Kyz
@@ -331,7 +331,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		derp.sDir = *id + "/";
 		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
-		map<ProfileType, std::vector<DirAndProfile>>::iterator category =
+		std::map<ProfileType, std::vector<DirAndProfile>>::iterator category =
 		  categorized_profiles.find(derp.profile.m_Type);
 		if (category == categorized_profiles.end()) {
 			categorized_profiles[derp.profile.m_Type].push_back(derp);

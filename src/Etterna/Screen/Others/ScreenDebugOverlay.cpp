@@ -134,7 +134,7 @@ struct MapDebugToDI
 	DeviceInput toggleMute;
 	DeviceInput debugButton[MAX_DEBUG_LINES];
 	DeviceInput gameplayButton[MAX_DEBUG_LINES];
-	map<DeviceInput, int> pageButton;
+	std::map<DeviceInput, int> pageButton;
 	void Clear()
 	{
 		holdForDebug1.MakeInvalid();
@@ -169,9 +169,9 @@ GetDebugButtonName(const IDebugLine* pLine)
 
 template<typename U, typename V>
 static bool
-GetKeyFromMap(const map<U, V>& m, const V& val, U& key)
+GetKeyFromMap(const std::map<U, V>& m, const V& val, U& key)
 {
-	for (typename map<U, V>::const_iterator iter = m.begin(); iter != m.end();
+	for (typename std::map<U, V>::const_iterator iter = m.begin(); iter != m.end();
 		 ++iter) {
 		if (iter->second == val) {
 			key = iter->first;
@@ -236,7 +236,7 @@ ScreenDebugOverlay::Init()
 		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F8)] = 3;
 	}
 
-	map<RString, int> iNextDebugButton;
+	std::map<RString, int> iNextDebugButton;
 	int iNextGameplayButton = 0;
 	FOREACH(IDebugLine*, *g_pvpSubscribers, p)
 	{
@@ -431,9 +431,9 @@ ScreenDebugOverlay::UpdateText()
 
 template<typename U, typename V>
 static bool
-GetValueFromMap(const map<U, V>& m, const U& key, V& val)
+GetValueFromMap(const std::map<U, V>& m, const U& key, V& val)
 {
-	typename map<U, V>::const_iterator it = m.find(key);
+	typename std::map<U, V>::const_iterator it = m.find(key);
 	if (it == m.end())
 		return false;
 	val = it->second;

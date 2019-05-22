@@ -52,9 +52,9 @@ static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
-map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
-map<int, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
-map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
+std::map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+std::map<int, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+std::map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 
 void
 PlayerAI::InitFromDisk()

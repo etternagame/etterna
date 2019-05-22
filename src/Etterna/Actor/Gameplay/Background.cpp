@@ -101,7 +101,7 @@ class BackgroundImpl : public ActorFrame
 	bool m_bInitted;
 	DancingCharacters* m_pDancingCharacters;
 	const Song* m_pSong;
-	map<RString, BackgroundTransition> m_mapNameToTransition;
+	std::map<RString, BackgroundTransition> m_mapNameToTransition;
 	deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
 											   // from.  These may or may not be
 											   // loaded into m_BGAnimations.
@@ -133,9 +133,9 @@ class BackgroundImpl : public ActorFrame
 		  const Song* pSong,
 		  float fLastMusicSeconds,
 		  float fCurrentTime,
-		  const map<RString, BackgroundTransition>& mapNameToTransition);
+		  const std::map<RString, BackgroundTransition>& mapNameToTransition);
 
-		map<BackgroundDef, Actor*> m_BGAnimations;
+		std::map<BackgroundDef, Actor*> m_BGAnimations;
 		std::vector<BackgroundChange> m_aBGChanges;
 		int m_iCurBGChangeIndex;
 		Actor* m_pCurrentBGA;
@@ -453,7 +453,7 @@ BackgroundImpl::Layer::CreateRandomBGA(const Song* pSong,
 	if (!sEffect.empty())
 		bd.m_sEffect = sEffect;
 
-	map<BackgroundDef, Actor*>::const_iterator iter = m_BGAnimations.find(bd);
+	std::map<BackgroundDef, Actor*>::const_iterator iter = m_BGAnimations.find(bd);
 
 	// create the background if it's not already created
 	if (iter == m_BGAnimations.end()) {
@@ -762,7 +762,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
   const Song* pSong,
   float fLastMusicSeconds,
   float fCurrentTime,
-  const map<RString, BackgroundTransition>& mapNameToTransition)
+  const std::map<RString, BackgroundTransition>& mapNameToTransition)
 {
 	ASSERT(fCurrentTime != GameState::MUSIC_SECONDS_INVALID);
 
@@ -797,7 +797,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 
 		m_pFadingBGA = m_pCurrentBGA;
 
-		map<BackgroundDef, Actor*>::const_iterator iter =
+		std::map<BackgroundDef, Actor*>::const_iterator iter =
 		  m_BGAnimations.find(change.m_def);
 		if (iter == m_BGAnimations.end()) {
 			XNode* pNode = change.m_def.CreateNode();
@@ -820,7 +820,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 				m_pFadingBGA->PlayCommand("LoseFocus");
 
 				if (!change.m_sTransition.empty()) {
-					map<RString, BackgroundTransition>::const_iterator lIter =
+					std::map<RString, BackgroundTransition>::const_iterator lIter =
 					  mapNameToTransition.find(change.m_sTransition);
 					if (lIter == mapNameToTransition.end()) {
 						LuaHelpers::ReportScriptErrorFmt(

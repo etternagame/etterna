@@ -796,7 +796,7 @@ BitmapText::DrawPrimitives()
 			}
 		} else {
 			size_t i = 0;
-			map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
+			std::map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
 			while (i < m_aVertices.size()) {
 				RageColor what = m_pTempState->diffuse[0];
 				RageColor is = m_pTempState->diffuse[2];
@@ -882,7 +882,7 @@ BitmapText::DrawPrimitives()
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
 
 		size_t i = 0;
-		map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
+		std::map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
 		while (i < m_aVertices.size()) {
 			// Set the glow up to the next attribute.
 			size_t iEnd = iter == m_mAttributes.end() ? m_aVertices.size()

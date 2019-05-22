@@ -89,7 +89,7 @@ class ScreenSelectMaster : public ScreenSelect
 	ThemeMetric<int> SCROLLER_SUBDIVISIONS;
 	ThemeMetric<RString> DEFAULT_CHOICE;
 
-	map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
+	std::map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
 
 	int GetSelectionIndex(PlayerNumber pn) override;
 	void UpdateSelectableChoices() override;

@@ -58,14 +58,14 @@
 /** @brief General foreach loop iterating over a map. */
 #define FOREACHM(keyType, valType, vect, var)                                  \
                                                                                \
-	for (map<keyType, valType>::iterator var = (vect).begin();                 \
+	for (std::map<keyType, valType>::iterator var = (vect).begin();                 \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 /** @brief General foreach loop iterating over a map, using a constant iterator.
  */
 #define FOREACHM_CONST(keyType, valType, vect, var)                            \
                                                                                \
-	for (map<keyType, valType>::const_iterator var = (vect).begin();           \
+	for (std::map<keyType, valType>::const_iterator var = (vect).begin();           \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 

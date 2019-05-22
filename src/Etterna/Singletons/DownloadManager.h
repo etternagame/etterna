@@ -128,7 +128,7 @@ struct OnlineHighScore : HighScore
 class OnlineScore
 {
   public:
-	map<Skillset, float> SSRs;
+	std::map<Skillset, float> SSRs;
 	float rate{ 0.0f };
 	float wife{ 0.0f };
 	int maxcombo{ 0 };
@@ -165,12 +165,12 @@ class DownloadManager
 	static LuaReference EMPTY_REFERENCE;
 	DownloadManager();
 	~DownloadManager();
-	map<string, Download*> downloads; // Active downloads
+	std::map<string, Download*> downloads; // Active downloads
 	std::vector<HTTPRequest*>
 	  HTTPRequests; // Active HTTP requests (async, curlMulti)
 
-	map<string, Download*> finishedDownloads;
-	map<string, Download*> pendingInstallDownloads;
+	std::map<string, Download*> finishedDownloads;
+	std::map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
 	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret;
@@ -192,12 +192,12 @@ class DownloadManager
 	string registerPage{
 		""
 	}; // Register page from server (Or empty if non was obtained)
-	map<string, std::vector<OnlineScore>> chartLeaderboards;
+	std::map<string, std::vector<OnlineScore>> chartLeaderboards;
 	std::vector<string> countryCodes;
-	map<Skillset, int>
+	std::map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset
-	map<Skillset, double> sessionRatings;
-	map<Skillset, std::vector<OnlineTopScore>> topScores;
+	std::map<Skillset, double> sessionRatings;
+	std::map<Skillset, std::vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
 
 	void AddFavorite(const string& chartkey);
@@ -291,7 +291,7 @@ class DownloadManager
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
 	void DownloadCoreBundle(const string& whichoneyo, bool mirror = true);
-	map<string, std::vector<DownloadablePack*>> bundles;
+	std::map<string, std::vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	std::vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank,

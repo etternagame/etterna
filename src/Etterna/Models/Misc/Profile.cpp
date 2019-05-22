@@ -374,7 +374,7 @@ bool
 Profile::GetDefaultModifiers(const Game* pGameType,
 							 RString& sModifiersOut) const
 {
-	map<RString, RString>::const_iterator it;
+	std::map<RString, RString>::const_iterator it;
 	it = m_sDefaultModifiers.find(pGameType->m_szName);
 	if (it == m_sDefaultModifiers.end())
 		return false;
@@ -813,7 +813,7 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	ProfileType type = m_Type;
 	int priority = m_ListPriority;
 	RString guid = m_sGuid;
-	map<RString, RString> default_mods = m_sDefaultModifiers;
+	std::map<RString, RString> default_mods = m_sDefaultModifiers;
 	SortOrder sort_order = m_SortOrder;
 	Difficulty last_diff = m_LastDifficulty;
 	StepsType last_stepstype = m_LastStepsType;
@@ -1265,7 +1265,7 @@ Profile::AddScreenshot(const Screenshot& screenshot)
 const Profile::HighScoresForASong*
 Profile::GetHighScoresForASong(const SongID& songID) const
 {
-	map<SongID, HighScoresForASong>::const_iterator it;
+	std::map<SongID, HighScoresForASong>::const_iterator it;
 	it = m_SongHighScores.find(songID);
 	if (it == m_SongHighScores.end())
 		return NULL;

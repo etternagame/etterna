@@ -152,7 +152,7 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	const float fOtherLastSecond = other.m_fLastSecond + m_fLastSecond + 1.0f;
 	m_fLastSecond = fOtherLastSecond;
 
-	map<float, float>::const_iterator it;
+	std::map<float, float>::const_iterator it;
 	for (it = other.m_fLifeRecord.begin(); it != other.m_fLifeRecord.end();
 		 ++it) {
 		const float pos = it->first;
@@ -503,7 +503,7 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 	// entry.  Then the second call of the frame occurs and sets the life for
 	// the current time to a lower value.
 	// -Kyz
-	map<float, float>::iterator curr = m_fLifeRecord.find(fStepsSecond);
+	std::map<float, float>::iterator curr = m_fLifeRecord.find(fStepsSecond);
 	if (curr != m_fLifeRecord.end()) {
 		if (curr->second != fLife) {
 			// 2^-8
@@ -523,17 +523,17 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 	// we can eliminate record B without losing data. Only check the last three
 	// records in the map since we're only inserting at the end, and we know all
 	// earlier redundant records have already been removed.
-	map<float, float>::iterator C = m_fLifeRecord.end();
+	std::map<float, float>::iterator C = m_fLifeRecord.end();
 	--C;
 	if (C == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator B = C;
+	std::map<float, float>::iterator B = C;
 	--B;
 	if (B == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator A = B;
+	std::map<float, float>::iterator A = B;
 	--A;
 
 	if (A->second == B->second && B->second == C->second)
@@ -547,7 +547,7 @@ PlayerStageStats::GetLifeRecordAt(float fStepsSecond) const
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float, float>::const_iterator it =
+	std::map<float, float>::const_iterator it =
 	  m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
@@ -564,11 +564,11 @@ PlayerStageStats::GetLifeRecordLerpAt(float fStepsSecond) const
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float, float>::const_iterator later =
+	std::map<float, float>::const_iterator later =
 	  m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
-	map<float, float>::const_iterator earlier = later;
+	std::map<float, float>::const_iterator earlier = later;
 	if (earlier != m_fLifeRecord.begin())
 		--earlier;
 
@@ -604,7 +604,7 @@ PlayerStageStats::GetCurrentLife() const
 {
 	if (m_fLifeRecord.empty())
 		return 0;
-	map<float, float>::const_iterator iter = m_fLifeRecord.end();
+	std::map<float, float>::const_iterator iter = m_fLifeRecord.end();
 	--iter;
 	return iter->second;
 }
@@ -618,7 +618,7 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
 	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
-	map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
+	std::map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
 	if (curr != WifeRecord.end()) {
 		if (curr->second != Wife) {
 			// 2^-8
@@ -627,17 +627,17 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 	}
 	WifeRecord[fStepsSecond] = Wife;
 
-	map<float, float>::iterator C = WifeRecord.end();
+	std::map<float, float>::iterator C = WifeRecord.end();
 	--C;
 	if (C == WifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator B = C;
+	std::map<float, float>::iterator B = C;
 	--B;
 	if (B == WifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator A = B;
+	std::map<float, float>::iterator A = B;
 	--A;
 
 	if (A->second == B->second && B->second == C->second)
@@ -649,7 +649,7 @@ PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
 {
 	if (WifeRecord.empty())
 		return 0;
-	map<float, float>::const_iterator it = WifeRecord.upper_bound(fStepsSecond);
+	std::map<float, float>::const_iterator it = WifeRecord.upper_bound(fStepsSecond);
 	if (it != WifeRecord.begin())
 		--it;
 	return it->second;
@@ -661,9 +661,9 @@ PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
 	if (WifeRecord.empty())
 		return 0;
 
-	map<float, float>::const_iterator later =
+	std::map<float, float>::const_iterator later =
 	  WifeRecord.upper_bound(fStepsSecond);
-	map<float, float>::const_iterator earlier = later;
+	std::map<float, float>::const_iterator earlier = later;
 	if (earlier != WifeRecord.begin())
 		--earlier;
 

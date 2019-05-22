@@ -267,7 +267,7 @@ template<class T>
 class ThemeMetricMap : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	map<RString, ThemeMetricT> m_metric;
+	std::map<RString, ThemeMetricT> m_metric;
 
   public:
 	ThemeMetricMap(const RString& sGroup = "",
@@ -288,7 +288,7 @@ class ThemeMetricMap : public IThemeMetric
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		for (typename map<RString, ThemeMetric<T>>::iterator m =
+		for (typename std::map<RString, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)
@@ -296,7 +296,7 @@ class ThemeMetricMap : public IThemeMetric
 	}
 	void Clear() override
 	{
-		for (typename map<RString, ThemeMetric<T>>::iterator m =
+		for (typename std::map<RString, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)
@@ -306,7 +306,7 @@ class ThemeMetricMap : public IThemeMetric
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		typename map<RString, ThemeMetric<T>>::const_iterator iter =
+		typename std::map<RString, ThemeMetric<T>>::const_iterator iter =
 		  m_metric.find(s);
 		ASSERT(iter != m_metric.end());
 		return iter->second.GetValue();

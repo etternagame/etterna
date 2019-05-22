@@ -921,7 +921,7 @@ class Actor : public MessageSubscriber
 
   private:
 	// commands
-	map<std::string, apActorCommands> m_mapNameToCommands;
+	std::map<std::string, apActorCommands> m_mapNameToCommands;
 };
 
 #endif

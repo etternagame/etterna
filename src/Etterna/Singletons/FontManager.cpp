@@ -9,7 +9,7 @@ FontManager* FONT = NULL; // global and accessible from anywhere in our program
 
 // map from file name to a texture holder
 typedef std::pair<RString, RString> FontName;
-static map<FontName, Font*> g_mapPathToFont;
+static std::map<FontName, Font*> g_mapPathToFont;
 
 FontManager::FontManager() = default;
 
@@ -41,7 +41,7 @@ FontManager::LoadFont(const RString& sFontOrTextureFilePath, RString sChars)
 	CHECKPOINT_M(
 	  ssprintf("FontManager::LoadFont(%s).", sFontOrTextureFilePath.c_str()));
 	const FontName NewName(sFontOrTextureFilePath, sChars);
-	map<FontName, Font*>::iterator p = g_mapPathToFont.find(NewName);
+	std::map<FontName, Font*>::iterator p = g_mapPathToFont.find(NewName);
 	if (p != g_mapPathToFont.end()) {
 		pFont = p->second;
 		pFont->m_iRefCount++;

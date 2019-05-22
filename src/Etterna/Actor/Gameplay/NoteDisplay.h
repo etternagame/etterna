@@ -58,7 +58,7 @@ struct NoteColorActor
 	Actor* Get(RString);
 
   private:
-	map<RString, NoteResource*> g_p;
+	std::map<RString, NoteResource*> g_p;
 };
 
 struct NoteColorSprite
@@ -73,7 +73,7 @@ struct NoteColorSprite
 	Sprite* Get(RString);
 
   private:
-	map<RString, NoteResource*> g_p;
+	std::map<RString, NoteResource*> g_p;
 };
 /** @brief What types of holds are there? */
 enum HoldType

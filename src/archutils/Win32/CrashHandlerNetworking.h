@@ -31,7 +31,7 @@ class NetworkPostData
 	RString GetResult() const { return m_sResult; }
 
   private:
-	static void CreateMimeData(const map<RString, RString>& mapNameToData,
+	static void CreateMimeData(const std::map<RString, RString>& mapNameToData,
 							   RString& sOut,
 							   RString& sMimeBoundaryOut);
 	void SetProgress(float fProgress);
@@ -50,7 +50,7 @@ class NetworkPostData
 
 	// When the thread exists, it owns the rest of the data, regardless of
 	// m_Mutex.
-	map<RString, RString> m_Data;
+	std::map<RString, RString> m_Data;
 
 	bool m_bFinished;
 	RString m_sHost;

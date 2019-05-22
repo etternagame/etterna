@@ -511,7 +511,7 @@ Playlist::LoadFromNode(const XNode* node)
 }
 
 void
-SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
+SongManager::MakeSongGroupsFromPlaylists(std::map<string, Playlist>& playlists)
 {
 	if (!PlaylistsAreSongGroups)
 		return;
@@ -560,7 +560,7 @@ Playlist::GetKeys()
 }
 
 void
-SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
+SongManager::DeletePlaylist(const string& pl, std::map<string, Playlist>& playlists)
 {
 	playlists.erase(pl);
 
@@ -577,7 +577,7 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 
 void
 SongManager::MakePlaylistFromFavorites(set<string>& favs,
-									   map<string, Playlist>& playlists)
+									   std::map<string, Playlist>& playlists)
 {
 	Playlist pl;
 	pl.name = "Favorites";
@@ -974,7 +974,7 @@ SongManager::DoesSongGroupExist(const RString& sSongGroup) const
 
 RageColor
 SongManager::GetSongGroupColor(const RString& sSongGroup,
-							   map<string, Playlist>& playlists) const
+							   std::map<string, Playlist>& playlists) const
 {
 	for (unsigned i = 0; i < m_sSongGroupNames.size(); i++) {
 		if (m_sSongGroupNames[i] == sSongGroup || playlists.count(sSongGroup)) {
@@ -1065,7 +1065,7 @@ SongManager::GetSongs(const RString& sGroupName) const
 
 	if (sGroupName == GROUP_ALL)
 		return m_pSongs;
-	map<RString, SongPointerVector, Comp>::const_iterator iter =
+	std::map<RString, SongPointerVector, Comp>::const_iterator iter =
 	  m_mapSongGroupIndex.find(sGroupName);
 	if (iter != m_mapSongGroupIndex.end())
 		return iter->second;
@@ -1186,7 +1186,7 @@ SongManager::Invalidate(const Song* pStaleSong)
 	UpdateShuffled();
 }
 
-map<string, Playlist>&
+std::map<string, Playlist>&
 SongManager::GetPlaylists()
 {
 	return PROFILEMAN->GetProfile(PLAYER_1)->allplaylists;
@@ -1391,7 +1391,7 @@ SongManager::GetSongFromDir(RString dir) const
 
 	dir.Replace('\\', '/');
 	dir.MakeLower();
-	map<RString, Song*>::const_iterator entry = m_SongsByDir.find(dir);
+	std::map<RString, Song*>::const_iterator entry = m_SongsByDir.find(dir);
 	if (entry != m_SongsByDir.end()) {
 		return entry->second;
 	}
@@ -1465,7 +1465,7 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 			return;
 
 		PreferredSortSection section;
-		map<Song*, float> mapSongToPri;
+		std::map<Song*, float> mapSongToPri;
 
 		FOREACH(RString, asLines, s)
 		{

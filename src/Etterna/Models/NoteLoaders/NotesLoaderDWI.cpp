@@ -180,7 +180,7 @@ DWIcharToNoteCol(char c,
 				 int& col1Out,
 				 int& col2Out,
 				 const RString& sPath,
-				 map<int, int>& mapDanceNoteToColumn)
+				 std::map<int, int>& mapDanceNoteToColumn)
 {
 	int note1, note2;
 	DWIcharToNote(c, i, note1, note2, sPath);

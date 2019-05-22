@@ -166,7 +166,7 @@ class BitmapText : public Actor
 	int m_iVertSpacing;
 
 	std::vector<FontPageTextures*> m_vpFontPageTextures;
-	map<size_t, Attribute> m_mAttributes;
+	std::map<size_t, Attribute> m_mAttributes;
 	bool m_bHasGlowAttribute;
 
 	TextGlowMode m_TextGlowMode;
