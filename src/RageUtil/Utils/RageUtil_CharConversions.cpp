@@ -19,7 +19,7 @@ CodePageConvert(RString& sText, int iCodePage)
 		return false; /* error */
 	}
 
-	wstring sOut;
+	std::wstring sOut;
 	sOut.append(iSize, ' ');
 	/* Nonportable: */
 	iSize = MultiByteToWideChar(iCodePage,

@@ -115,11 +115,11 @@ class BitmapText : public Actor
 
 	void SetTextGlowMode(TextGlowMode tgm) { m_TextGlowMode = tgm; }
 
-	void GetLines(vector<wstring>& wTextLines) const
+	void GetLines(vector<std::wstring>& wTextLines) const
 	{
 		wTextLines = m_wTextLines;
 	}
-	const vector<wstring>& GetLines() const { return m_wTextLines; }
+	const vector<std::wstring>& GetLines() const { return m_wTextLines; }
 
 	RString GetText() const { return m_sText; }
 	// Return true if the string 's' will use an alternate string, if available.
@@ -152,7 +152,7 @@ class BitmapText : public Actor
 	Font* m_pFont;
 	bool m_bUppercase;
 	RString m_sText;
-	vector<wstring> m_wTextLines;
+	vector<std::wstring> m_wTextLines;
 	vector<int> m_iLineWidths; // in source pixels
 	int m_iWrapWidthPixels;	// -1 = no wrap
 	float m_fMaxWidth;		   // 0 = no max

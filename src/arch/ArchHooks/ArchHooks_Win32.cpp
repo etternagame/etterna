@@ -269,7 +269,7 @@ ArchHooks_Win32::GetClipboard()
 	// contents, pointed to by sToPaste. (Hopefully.)
 
 #ifdef UNICODE
-	ret = WStringToRString(wstring() + *lpstr);
+	ret = WStringToRString(std::wstring() + *lpstr);
 #else
 	ret = RString(lpstr);
 #endif

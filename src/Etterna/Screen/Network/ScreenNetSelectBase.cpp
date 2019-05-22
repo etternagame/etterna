@@ -137,7 +137,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 				wchar_t c;
 				c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
 				if (c >= L' ' && enableChatboxInput) {
-					m_sTextInput += WStringToRString(wstring() + c);
+					m_sTextInput += WStringToRString(std::wstring() + c);
 					UpdateTextInput();
 					return true;
 				}

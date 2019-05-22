@@ -837,9 +837,9 @@ split(const RString& sSource,
 }
 
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
-	  vector<wstring>& asAddIt,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
+	  vector<std::wstring>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -910,8 +910,8 @@ split(const RString& Source,
 }
 
 void
-split(const wstring& Source,
-	  const wstring& Delimitor,
+split(const std::wstring& Source,
+	  const std::wstring& Delimitor,
 	  int& begin,
 	  int& size,
 	  int len,
@@ -931,8 +931,8 @@ split(const RString& Source,
 }
 
 void
-split(const wstring& Source,
-	  const wstring& Delimitor,
+split(const std::wstring& Source,
+	  const std::wstring& Delimitor,
 	  int& begin,
 	  int& size,
 	  const bool bIgnoreEmpty)
@@ -1013,8 +1013,8 @@ GetFileNameWithoutExtension(const RString& sPath)
 void
 MakeValidFilename(RString& sName)
 {
-	wstring wsName = RStringToWstring(sName);
-	wstring wsInvalid = L"/\\:*?\"<>|";
+	std::wstring wsName = RStringToWstring(sName);
+	std::wstring wsInvalid = L"/\\:*?\"<>|";
 	for (unsigned i = 0; i < wsName.size(); ++i) {
 		wchar_t w = wsName[i];
 		if (w >= 32 && w < 126 && wsInvalid.find_first_of(w) == wsInvalid.npos)
@@ -1952,10 +1952,10 @@ FloatToString(const float& num)
 
 const wchar_t INVALID_CHAR = 0xFFFD; /* U+FFFD REPLACEMENT CHARACTER */
 
-wstring
+std::wstring
 RStringToWstring(const RString& s)
 {
-	wstring ret;
+	std::wstring ret;
 	ret.reserve(s.size());
 	for (unsigned start = 0; start < s.size();) {
 		char c = s[start];
@@ -1976,7 +1976,7 @@ RStringToWstring(const RString& s)
 }
 
 RString
-WStringToRString(const wstring& sStr)
+WStringToRString(const std::wstring& sStr)
 {
 	RString sRet;
 

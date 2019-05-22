@@ -307,7 +307,7 @@ BitmapText::BuildChars()
 	{
 		iY += m_pFont->GetHeight();
 
-		wstring sLine = m_wTextLines[i];
+		std::wstring sLine = m_wTextLines[i];
 		if (m_pFont->IsRightToLeft())
 			reverse(sLine.begin(), sLine.end());
 		const int iLineWidth = m_iLineWidths[i];
@@ -725,7 +725,7 @@ BitmapText::CropLineToWidth(size_t l, int width)
 {
 	if (l < m_wTextLines.size()) {
 		int used_width = width;
-		wstring& line = m_wTextLines[l];
+		std::wstring& line = m_wTextLines[l];
 		size_t fit = m_pFont->GetGlyphsThatFit(line, &used_width);
 		if (fit < line.size()) {
 			line.erase(line.begin() + fit, line.end());
@@ -956,7 +956,7 @@ BitmapText::AddAttribute(size_t iPos, const Attribute& attr)
 	int iLines = 0;
 	size_t iAdjustedPos = iPos;
 
-	FOREACH_CONST(wstring, m_wTextLines, line)
+	FOREACH_CONST(std::wstring, m_wTextLines, line)
 	{
 		size_t length = line->length();
 		if (length >= iAdjustedPos)
@@ -1083,7 +1083,7 @@ ColorBitmapText::SetText(const RString& _sText,
 		wchar_t curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
 		int iCharWidth =
-		  m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+		  m_pFont->GetLineWidthInSourcePixels(std::wstring() + curChar);
 
 		switch (curChar) {
 			case L' ':
@@ -1201,7 +1201,7 @@ ColorBitmapText::ResetText()
 		wchar_t curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
 		int iCharWidth =
-		  m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+		  m_pFont->GetLineWidthInSourcePixels(std::wstring() + curChar);
 
 		switch (curChar) {
 			case L' ':

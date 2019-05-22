@@ -590,10 +590,10 @@ operator>>(const RString& lhs, T& rhs)
 }
 
 RString
-WStringToRString(const wstring& sString);
+WStringToRString(const std::wstring& sString);
 RString
 WcharToUTF8(wchar_t c);
-wstring
+std::wstring
 RStringToWstring(const RString& sString);
 
 struct LanguageInfo
@@ -615,9 +615,9 @@ split(const RString& sSource,
 	  vector<RString>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
-	  vector<wstring>& asAddIt,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
+	  vector<std::wstring>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 
 /* In-place split. */
@@ -628,8 +628,8 @@ split(const RString& sSource,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
@@ -643,8 +643,8 @@ split(const RString& sSource,
 	  int iLen,
 	  bool bIgnoreEmpty); /* no default to avoid ambiguity */
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  int iLen,

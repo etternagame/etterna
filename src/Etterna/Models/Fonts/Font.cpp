@@ -251,7 +251,7 @@ FontPage::~FontPage()
 }
 
 int
-Font::GetLineWidthInSourcePixels(const wstring& szLine) const
+Font::GetLineWidthInSourcePixels(const std::wstring& szLine) const
 {
 	int iLineWidth = 0;
 
@@ -262,7 +262,7 @@ Font::GetLineWidthInSourcePixels(const wstring& szLine) const
 }
 
 int
-Font::GetLineHeightInSourcePixels(const wstring& szLine) const
+Font::GetLineHeightInSourcePixels(const std::wstring& szLine) const
 {
 	int iLineHeight = 0;
 
@@ -275,7 +275,7 @@ Font::GetLineHeightInSourcePixels(const wstring& szLine) const
 
 // width is a pointer so that we can return the used width through it.
 int
-Font::GetGlyphsThatFit(const wstring& line, int* width) const
+Font::GetGlyphsThatFit(const std::wstring& line, int* width) const
 {
 	if (*width == 0) {
 		*width = GetLineWidthInSourcePixels(line);
@@ -401,7 +401,7 @@ Font::GetGlyph(wchar_t c) const
 }
 
 bool
-Font::FontCompleteForString(const wstring& str) const
+Font::FontCompleteForString(const std::wstring& str) const
 {
 	map<wchar_t, glyph*>::const_iterator mapDefault =
 	  m_iCharToGlyph.find(FONT_DEFAULT_GLYPH);
@@ -666,7 +666,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				}
 
 				// Decode the string.
-				const wstring wdata(
+				const std::wstring wdata(
 				  RStringToWstring(pValue->GetValue<RString>()));
 
 				if (static_cast<int>(wdata.size()) > num_frames_wide) {

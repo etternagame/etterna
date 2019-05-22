@@ -1037,7 +1037,7 @@ Profile::LoadEditableDataFromDir(const RString& sDir)
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
-	wstring wstr = RStringToWstring(m_sDisplayName);
+	std::wstring wstr = RStringToWstring(m_sDisplayName);
 	if (wstr.size() > PROFILE_MAX_DISPLAY_NAME_LENGTH)
 		wstr = wstr.substr(0, PROFILE_MAX_DISPLAY_NAME_LENGTH);
 	m_sDisplayName = WStringToRString(wstr);

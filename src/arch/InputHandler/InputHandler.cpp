@@ -189,7 +189,7 @@ InputHandler::GetDeviceSpecificInputString(const DeviceInput& di)
 		wchar_t c = DeviceButtonToChar(di.button, false);
 		if (c && c != L' ') // Don't show "Key  " for space.
 			return InputDeviceToString(di.device) + " " +
-				   Capitalize(WStringToRString(wstring() + c));
+				   Capitalize(WStringToRString(std::wstring() + c));
 	}
 
 	RString s = DeviceButtonToString(di.button);
@@ -234,7 +234,7 @@ InputHandler::GetLocalizedInputString(const DeviceInput& di)
 		default:
 			wchar_t c = DeviceButtonToChar(di.button, false);
 			if (c && c != L' ') // Don't show "Key  " for space.
-				return Capitalize(WStringToRString(wstring() + c));
+				return Capitalize(WStringToRString(std::wstring() + c));
 
 			return DeviceButtonToString(di.button);
 	}

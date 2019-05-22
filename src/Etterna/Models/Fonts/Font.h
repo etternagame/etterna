@@ -145,11 +145,11 @@ class Font
 
 	const glyph& GetGlyph(wchar_t c) const;
 
-	int GetLineWidthInSourcePixels(const wstring& szLine) const;
-	int GetLineHeightInSourcePixels(const wstring& szLine) const;
-	int GetGlyphsThatFit(const wstring& line, int* width) const;
+	int GetLineWidthInSourcePixels(const std::wstring& szLine) const;
+	int GetLineHeightInSourcePixels(const std::wstring& szLine) const;
+	int GetGlyphsThatFit(const std::wstring& line, int* width) const;
 
-	bool FontCompleteForString(const wstring& str) const;
+	bool FontCompleteForString(const std::wstring& str) const;
 
 	/**
 	 * @brief Add a FontPage to this font.

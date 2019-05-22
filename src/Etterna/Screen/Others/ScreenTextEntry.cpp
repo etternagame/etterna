@@ -463,7 +463,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 			bHandled = true;
 		} else if (c >= L' ') {
 			// todo: handle caps lock -aj
-			auto str = WStringToRString(wstring() + c);
+			auto str = WStringToRString(std::wstring() + c);
 			TryAppendToAnswer(str);
 
 			TextEnteredDirectly();
@@ -478,7 +478,7 @@ void
 ScreenTextEntry::TryAppendToAnswer(const RString& s)
 {
 	{
-		wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+		std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 		if ((int)sNewAnswer.length() >
 			max(g_iMaxInputLength, iMaxInputLength)) {
 			SCREENMAN->PlayInvalidSound();
@@ -500,7 +500,7 @@ ScreenTextEntry::TryAppendToAnswer(const RString& s)
 		return;
 	}
 
-	wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+	std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 	m_sAnswer = sNewAnswer;
 	m_sndType.Play(true);
 	UpdateAnswerText();
