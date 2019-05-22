@@ -52,8 +52,6 @@
 #define llabs ::llabs
 #endif
 
-using namespace std;
-
 #ifdef ASSERT
 #undef ASSERT
 #endif
