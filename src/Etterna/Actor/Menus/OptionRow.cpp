@@ -501,7 +501,7 @@ OptionRow::UpdateText(PlayerNumber p)
 			RString sText = GetThemedItemText(iChoiceWithFocus);
 
 			// If player_no is 2 and there is no player 1:
-			int index = std::min(pn, m_textItems.size() - 1);
+			int index = std::min<int>(pn, m_textItems.size() - 1);
 
 			// TODO: Always have one textItem for each player
 
@@ -607,7 +607,7 @@ OptionRow::UpdateEnabledDisabled()
 				  m_pHand->m_Def.m_bOneChoiceForAllPlayers ? 0 : pn;
 
 				// If player_no is 2 and there is no player 1:
-				item_no = std::min(item_no, m_textItems.size() - 1);
+				item_no = std::min<int>(item_no, m_textItems.size() - 1);
 
 				BitmapText& bt = *m_textItems[item_no];
 

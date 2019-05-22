@@ -174,7 +174,7 @@ WheelBase::Update(float fDeltaTime)
 
 	if (m_Moving != 0) {
 		m_TimeBeforeMovingBegins -= fDeltaTime;
-		m_TimeBeforeMovingBegins = std::max(m_TimeBeforeMovingBegins, 0);
+		m_TimeBeforeMovingBegins = std::max<int>(m_TimeBeforeMovingBegins, 0);
 	}
 
 	// update wheel state

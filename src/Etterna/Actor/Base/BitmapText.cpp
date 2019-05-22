@@ -11,6 +11,7 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(BitmapText);
 REGISTER_ACTOR_CLASS(ColorBitmapText);
@@ -275,7 +276,7 @@ BitmapText::BuildChars()
 	{
 		m_iLineWidths.push_back(
 		  m_pFont->GetLineWidthInSourcePixels(m_wTextLines[l]));
-		m_size.x = max(m_size.x, m_iLineWidths.back());
+		m_size.x = std::max<int>(m_size.x, m_iLineWidths.back());
 	}
 
 	/* Ensure that the width is always even. This maintains pixel alignment;
@@ -688,7 +689,7 @@ BitmapText::UpdateBaseZoom()
 			dimension /= dimension_zoom_get();                                 \
 		}                                                                      \
 		if (dimension != 0) {                                                  \
-			const float zoom = std::min(1, (dimension_max) / dimension);            \
+			const float zoom = std::min<int>(1, (dimension_max) / dimension);            \
 			base_zoom_set(zoom);                                               \
 		}                                                                      \
 	}

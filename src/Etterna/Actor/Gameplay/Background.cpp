@@ -857,7 +857,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 	}
 
 	/* This is unaffected by the music rate. */
-	float fDeltaTimeNoMusicRate = std::max(fDeltaTime / fRate, 0);
+	float fDeltaTimeNoMusicRate = std::max<int>(fDeltaTime / fRate, 0);
 
 	if (m_pCurrentBGA != nullptr)
 		m_pCurrentBGA->Update(fDeltaTimeNoMusicRate);

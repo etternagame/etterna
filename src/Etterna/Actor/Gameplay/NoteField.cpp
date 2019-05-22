@@ -393,7 +393,7 @@ NoteField::Update(float fDeltaTime)
 
 	if (m_FieldRenderArgs.fail_fade >= 0)
 		m_FieldRenderArgs.fail_fade =
-		  std::min(m_FieldRenderArgs.fail_fade + fDeltaTime / FADE_FAIL_TIME, 1);
+		  std::min<int>(m_FieldRenderArgs.fail_fade + fDeltaTime / FADE_FAIL_TIME, 1);
 
 	// Update fade to failed
 	m_pCurDisplay->m_ReceptorArrowRow.SetFadeToFailPercent(

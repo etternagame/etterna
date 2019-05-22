@@ -7,6 +7,8 @@
 #include <random>
 #include <sstream>
 #include <vector>
+#include <algorithm>
+
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
@@ -35,49 +37,49 @@ class RageFileDriver;
 
 /* Common harmless mismatches.  All min(T,T) and max(T,T) cases are handled
  * by the generic template we get from <algorithm>. */
-inline float
-min(float a, int b)
-{
-	return a < b ? a : b;
-}
-inline float
-min(int a, float b)
-{
-	return a < b ? a : b;
-}
-inline float
-max(float a, int b)
-{
-	return a > b ? a : b;
-}
-inline float
-max(int a, float b)
-{
-	return a > b ? a : b;
-}
-inline unsigned long
-min(unsigned int a, unsigned long b)
-{
-	return a < b ? a : b;
-}
-inline unsigned long
-min(unsigned long a, unsigned int b)
-{
-	return a < b ? a : b;
-}
-inline unsigned long
-max(unsigned int a, unsigned long b)
-{
-	return a > b ? a : b;
-}
-inline unsigned long
-max(unsigned long a, unsigned int b)
-{
-	return a > b ? a : b;
-}
+//inline float
+//min(float a, int b)
+//{
+//	return a < b ? a : b;
+//}
+//inline float
+//min(int a, float b)
+//{
+//	return a < b ? a : b;
+//}
+//inline float
+//max(float a, int b)
+//{
+//	return a > b ? a : b;
+//}
+//inline float
+//max(int a, float b)
+//{
+//	return a > b ? a : b;
+//}
+//inline unsigned long
+//min(unsigned int a, unsigned long b)
+//{
+//	return a < b ? a : b;
+//}
+//inline unsigned long
+//min(unsigned long a, unsigned int b)
+//{
+//	return a < b ? a : b;
+//}
+//inline unsigned long
+//max(unsigned int a, unsigned long b)
+//{
+//	return a > b ? a : b;
+//}
+//inline unsigned long
+//max(unsigned long a, unsigned int b)
+//{
+//	return a > b ? a : b;
+//}
 
 /** @brief If outside the range from low to high, bring it within range. */
-#define clamp(val, low, high) (std::max((low), std::min((val), (high))))
+#define clamp(val, low, high) (std::max<int>((low), std::min<int>((val), (high))))
 
 /**
  * @brief Scales x so that l1 corresponds to l2 and h1 corresponds to h2.

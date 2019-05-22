@@ -430,7 +430,7 @@ Player::Init(const std::string& sType,
 		if (!bpms.IsSecret()) {
 			fMaxBPM = (M_MOD_HIGH_CAP > 0 ? bpms.GetMaxWithin(M_MOD_HIGH_CAP)
 										  : bpms.GetMax());
-			fMaxBPM = std::max(0, fMaxBPM);
+			fMaxBPM = std::max<int>(0, fMaxBPM);
 		}
 
 		// we can't rely on the displayed BPMs, so manually calculate.
@@ -1323,7 +1323,7 @@ Player::UpdateHoldNotes(int iSongRow,
 					// LOG->Trace("fLife before minus: %f",fLife);
 					fLife -= fDeltaTime / GetWindowSeconds(window);
 					// LOG->Trace("fLife before clamp: %f",fLife);
-					fLife = std::max(0, fLife);
+					fLife = std::max<int>(0, fLife);
 					// LOG->Trace("fLife after: %f",fLife);
 				}
 				break;
@@ -1341,7 +1341,7 @@ Player::UpdateHoldNotes(int iSongRow,
 				// Also clamp the roll decay window to the accepted "Judge 7" value for it. -poco
 				fLife -= fDeltaTime / std::max(GetWindowSeconds(TW_Roll), 0.25f);
 				fLife =
-				  std::max(fLife, 0); // clamp life
+				  std::max<float>(fLife, 0); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:

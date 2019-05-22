@@ -112,7 +112,7 @@ Foreground::Update(float fDeltaTime)
 		}
 
 		// This shouldn't go down, but be safe:
-		lDeltaTime = std::max(lDeltaTime, 0);
+		lDeltaTime = std::max<int>(lDeltaTime, 0);
 
 		bga.m_bga->Update(lDeltaTime / fRate);
 
