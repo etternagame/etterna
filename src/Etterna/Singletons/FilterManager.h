@@ -33,7 +33,7 @@ class FilterManager
 	int miniboarddockx = 0;
 	int miniboarddocky = 0;
 	bool galaxycollapsed = false;
-	unordered_map<std::string, std::pair<int, int>> watte;
+	std::unordered_map<std::string, std::pair<int, int>> watte;
 
 	// General boolean to see if we should be filtering common packs.
 	// It defaults to on just to help smooth the multiplayer experience. -poco

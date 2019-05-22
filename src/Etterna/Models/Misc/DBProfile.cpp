@@ -302,7 +302,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 	  "INNER JOIN chartkeys ON chartkeys.id=charts.chartkeyid "
 	  "ORDER BY chartkeys.id, charts.id, scoresatrates.id");
 
-	unordered_map<string, ScoresForChart>& scores =
+	std::unordered_map<string, ScoresForChart>& scores =
 	  *(SCOREMAN->GetProfileScores());
 
 	std::string curCK = "";
@@ -856,7 +856,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				 "scorekeys(id))");
 	}
 
-	unordered_map<string, ScoresForChart>& pScores =
+	std::unordered_map<string, ScoresForChart>& pScores =
 	  *SCOREMAN->GetProfileScores();
 	FOREACHUM(string, ScoresForChart, pScores, chartPair)
 	{

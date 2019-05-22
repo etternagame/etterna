@@ -53,7 +53,7 @@ class SongManager
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(std::set<string>& favs);
 	void SetPermaMirroredStatus(std::set<string>& pmir);
-	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
+	void SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
 	std::vector<RString> GetSongGroupBannerPaths() {
@@ -184,8 +184,8 @@ class SongManager
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
-	unordered_map<string, Song*> SongsByKey;
-	unordered_map<string, Steps*> StepsByKey;
+	std::unordered_map<string, Song*> SongsByKey;
+	std::unordered_map<string, Steps*> StepsByKey;
 
 	std::set<RString> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */

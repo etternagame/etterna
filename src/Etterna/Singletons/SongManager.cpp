@@ -916,7 +916,7 @@ SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 
 // hurr should probably redo both (all three) of these -mina
 void
-SongManager::SetHasGoal(unordered_map<string, GoalsForChart>& goalmap)
+SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{

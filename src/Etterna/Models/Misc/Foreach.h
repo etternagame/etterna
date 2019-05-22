@@ -87,7 +87,7 @@
 /** @brief General foreach loop iterating over an unordered map. */
 #define FOREACHUM(keyType, valType, vect, var)                                 \
                                                                                \
-	for (unordered_map<keyType, valType>::iterator var = (vect).begin();       \
+	for (std::unordered_map<keyType, valType>::iterator var = (vect).begin();       \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 
@@ -95,7 +95,7 @@
  * blah*/
 #define FOREACHUM_CONST(keyType, valType, vect, var)                           \
                                                                                \
-	for (unordered_map<keyType, valType>::const_iterator var = (vect).begin(); \
+	for (std::unordered_map<keyType, valType>::const_iterator var = (vect).begin(); \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 
