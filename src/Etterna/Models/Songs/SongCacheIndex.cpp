@@ -809,7 +809,7 @@ SongCacheIndex::LoadCache(
 		  data._threadsFinished++;
 		  data.setUpdated(true);
 	  };
-	std::vector<thread> threadpool;
+	std::vector<std::thread> threadpool;
 	std::vector<std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>> cacheParts;
 	for (int i = 0; i < threads; i++)
 		cacheParts.emplace_back(

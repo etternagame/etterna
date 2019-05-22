@@ -89,7 +89,7 @@ parallelExecution(std::vector<T> vec,
 		data._threadsFinished++;
 		data.setUpdated(true);
 	};
-	std::vector<thread> threadpool;
+	std::vector<std::thread> threadpool;
 	for (auto& workload : workloads)
 		threadpool.emplace_back(thread(threadCallback, workload));
 	while (data._threadsFinished < (int)workloads.size()) {
