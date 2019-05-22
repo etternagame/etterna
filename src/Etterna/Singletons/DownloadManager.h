@@ -34,10 +34,10 @@ class RageFileWrapper
 class Download
 {
   public:
-	function<void(Download*)> Done;
+	std::function<void(Download*)> Done;
 	Download(std::string url,
 			 std::string filename = "",
-			 function<void(Download*)> done = [](Download*) { return; });
+			 std::function<void(Download*)> done = [](Download*) { return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -91,10 +91,10 @@ class HTTPRequest
 {
   public:
 	HTTPRequest(CURL* h,
-				function<void(HTTPRequest&, CURLMsg*)> done =
+				std::function<void(HTTPRequest&, CURLMsg*)> done =
 				  [](HTTPRequest& req, CURLMsg*) { return; },
 				curl_httppost* postform = nullptr,
-				function<void(HTTPRequest&, CURLMsg*)> fail =
+				std::function<void(HTTPRequest&, CURLMsg*)> fail =
 				  [](HTTPRequest& req, CURLMsg*) { return; })
 	  : handle(h)
 	  , form(postform)
@@ -103,8 +103,8 @@ class HTTPRequest
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
-	function<void(HTTPRequest&, CURLMsg*)> Done;
-	function<void(HTTPRequest&, CURLMsg*)> Failed;
+	std::function<void(HTTPRequest&, CURLMsg*)> Done;
+	std::function<void(HTTPRequest&, CURLMsg*)> Failed;
 };
 class OnlineTopScore
 {
@@ -221,7 +221,7 @@ class DownloadManager
 	void EndSession();		   // Sends session destroy request
 	void StartSession(std::string user,
 					  std::string pass,
-					  function<void(bool loggedIn)>
+					  std::function<void(bool loggedIn)>
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
@@ -248,10 +248,10 @@ class DownloadManager
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
 	  const string& sk,
-	  function<void()> callback = function<void()>());
+	  std::function<void()> callback = std::function<void()>());
 	void UpdateOnlineScoreReplayData(
 	  const string& sk,
-	  function<void()> callback = function<void()>());
+	  std::function<void()> callback = std::function<void()>());
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();
@@ -262,14 +262,14 @@ class DownloadManager
 
 	HTTPRequest* SendRequest(std::string requestName,
 							 std::vector<std::pair<string, string>> params,
-							 function<void(HTTPRequest&, CURLMsg*)> done,
+							 std::function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin = true,
 							 bool post = false,
 							 bool async = true,
 							 bool withBearer = true);
 	HTTPRequest* SendRequestToURL(std::string url,
 								  std::vector<std::pair<string, string>> params,
-								  function<void(HTTPRequest&, CURLMsg*)> done,
+								  std::function<void(HTTPRequest&, CURLMsg*)> done,
 								  bool requireLogin,
 								  bool post,
 								  bool async,

@@ -125,7 +125,7 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 	// Doing this in place did weird things
 	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
 		delayedFunctions.end(),
-		[](std::pair<function<void()>, float>& x) {
+		[](std::pair<std::function<void()>, float>& x) {
 		return x.second <= 0;
 	}),
 		delayedFunctions.end());
@@ -137,7 +137,7 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 			vec.erase(std::remove_if(
 				vec.begin(),
 				vec.end(),
-				[id](tuple<function<void()>, float, float, int>& x) {
+				[id](tuple<std::function<void()>, float, float, int>& x) {
 				return std::get<3>(x) == id;
 			}),
 				vec.end());
@@ -449,14 +449,14 @@ Screen::PassInputToLua(const InputEventPlus& input)
 }
 
 void
-Screen::SetTimeout(function<void()> f, float ms)
+Screen::SetTimeout(std::function<void()> f, float ms)
 {
 	delayedFunctions.emplace_back(make_pair(f, ms));
 	return;
 }
 
 void
-Screen::SetInterval(function<void()> f, float ms, int id)
+Screen::SetInterval(std::function<void()> f, float ms, int id)
 {
 	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
 	return;
@@ -592,7 +592,7 @@ class LunaScreen : public Luna<Screen>
 		auto& vec = p->delayedPeriodicFunctions;
 		auto it = find_if(vec.begin(),
 						  vec.end(),
-						  [r](tuple<function<void()>, float, float, int>& x) {
+						  [r](tuple<std::function<void()>, float, float, int>& x) {
 							  return std::get<3>(x) == r;
 						  });
 		if (it != vec.end()) {

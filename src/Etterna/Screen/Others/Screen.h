@@ -104,12 +104,12 @@ class Screen : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	std::vector<std::pair<function<void(void)>, float>> delayedFunctions;
-	void SetTimeout(function<void()> f, float ms);
-	std::list<tuple<function<void(void)>, float, float, int>>
+	std::vector<std::pair<std::function<void(void)>, float>> delayedFunctions;
+	void SetTimeout(std::function<void()> f, float ms);
+	std::list<tuple<std::function<void(void)>, float, float, int>>
 	  delayedPeriodicFunctions; // This is a list to allow safe iterators
 	std::vector<int> delayedPeriodicFunctionIdsToDelete;
-	void SetInterval(function<void()> f, float ms, int fRemove);
+	void SetInterval(std::function<void()> f, float ms, int fRemove);
 
   protected:
 	/** @brief Holds the messages sent to a Screen. */

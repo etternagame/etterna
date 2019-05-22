@@ -72,8 +72,8 @@ splitWorkLoad(std::vector<T>& v, size_t elementsPerThread)
 template<typename T>
 void
 parallelExecution(std::vector<T> vec,
-				  function<void(int)> update,
-				  function<void(vectorRange<T>, ThreadData*)> exec,
+				  std::function<void(int)> update,
+				  std::function<void(vectorRange<T>, ThreadData*)> exec,
 				  void* stuff)
 {
 	const int THREADS = PREFSMAN->ThreadsToUse <= 0
@@ -103,8 +103,8 @@ parallelExecution(std::vector<T> vec,
 template<typename T>
 void
 parallelExecution(std::vector<T> vec,
-				  function<void(int)> update,
-				  function<void(vectorRange<T>, ThreadData)> exec)
+				  std::function<void(int)> update,
+				  std::function<void(vectorRange<T>, ThreadData)> exec)
 {
 	parallelExecution(vec, update, exec, nullptr);
 }

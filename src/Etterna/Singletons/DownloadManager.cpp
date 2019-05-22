@@ -1038,7 +1038,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 }
 void // not tested exhaustively -mina
 DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
-												   function<void()> callback)
+												   std::function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
@@ -1140,7 +1140,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 }
 void // for online replay viewing accuracy -mina
 DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
-											 function<void()> callback)
+											 std::function<void()> callback)
 {
 	if (!LoggedIn())
 		return;
@@ -1353,7 +1353,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 HTTPRequest*
 DownloadManager::SendRequest(std::string requestName,
 							 std::vector<std::pair<string, string>> params,
-							 function<void(HTTPRequest&, CURLMsg*)> done,
+							 std::function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin,
 							 bool post,
 							 bool async,
@@ -1372,7 +1372,7 @@ HTTPRequest*
 DownloadManager::SendRequestToURL(
   std::string url,
   std::vector<std::pair<string, string>> params,
-  function<void(HTTPRequest&, CURLMsg*)> afterDone,
+  std::function<void(HTTPRequest&, CURLMsg*)> afterDone,
   bool requireLogin,
   bool post,
   bool async,
@@ -1386,7 +1386,7 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
+	std::function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
 															  CURLMsg* msg) {
 		try {
 			json tmp = json::parse(req.result);
@@ -1908,7 +1908,7 @@ DownloadManager::OnLogin()
 void
 DownloadManager::StartSession(std::string user,
 							  std::string pass,
-							  function<void(bool loggedIn)> callback =
+							  std::function<void(bool loggedIn)> callback =
 								[](bool) { return; })
 {
 	std::string url = serverURL.Get() + "/login";
@@ -2055,7 +2055,7 @@ DownloadManager::RefreshPackList(const string& url)
 	return;
 }
 
-Download::Download(std::string url, std::string filename, function<void(Download*)> done)
+Download::Download(std::string url, std::string filename, std::function<void(Download*)> done)
 {
 	Done = done;
 	m_Url = url;

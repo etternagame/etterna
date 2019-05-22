@@ -390,7 +390,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 			  find(currentSteps.begin(), currentSteps.end(), ck));
 		}
 	};
-	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
+	std::function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
 				  ThreadData*)>
 	  callback =
 		[&stepsMutex, &currentSteps](

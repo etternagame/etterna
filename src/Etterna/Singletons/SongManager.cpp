@@ -311,7 +311,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	}
 	int onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 
-	function<void(
+	std::function<void(
 	  std::pair<vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>,
 				vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>>,
 	  ThreadData*)>

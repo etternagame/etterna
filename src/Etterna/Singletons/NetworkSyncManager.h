@@ -254,7 +254,7 @@ class ETTProtocol : public NetProtocol
 	bool waitingForTimeout{ false };
 	clock_t timeoutStart;
 	double timeout;
-	function<void(void)> onTimeout;
+	std::function<void(void)> onTimeout;
 	std::string roomName;
 	std::string roomDesc;
 	bool inRoom{ false };

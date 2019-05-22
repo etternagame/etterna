@@ -667,7 +667,7 @@ GameSoundManager::GetMusicPath() const
 }
 
 void
-GameSoundManager::WithRageSoundPlaying(function<void(RageSound*)> f)
+GameSoundManager::WithRageSoundPlaying(std::function<void(RageSound*)> f)
 {
 	LockMut(*g_Mutex);
 	f(g_Playing->m_Music);

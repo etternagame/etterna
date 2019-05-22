@@ -69,7 +69,7 @@ class GameSoundManager : MessageSubscriber
 	float GetFrameTimingAdjustment(float fDeltaTime);
 
 	static float GetPlayerBalance(PlayerNumber pn);
-	void WithRageSoundPlaying(function<void(RageSound*)> f);
+	void WithRageSoundPlaying(std::function<void(RageSound*)> f);
 	TimingData GetPlayingMusicTiming();
 	
 	void StartMusic(MusicToPlay& ToPlay);
