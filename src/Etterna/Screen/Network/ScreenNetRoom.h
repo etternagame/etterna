@@ -43,7 +43,7 @@ class ScreenNetRoom : public ScreenNetSelectBase
 
 	RageSound m_soundChangeSel;
 
-	string m_sLastPickedRoom;
+	std::string m_sLastPickedRoom;
 
 	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
 

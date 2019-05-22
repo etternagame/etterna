@@ -145,7 +145,7 @@ SongManager::DifferentialReload()
 
 // See LoadStepManiaSongDir for any comment clarification -mina
 int
-SongManager::DifferentialReloadDir(string dir)
+SongManager::DifferentialReloadDir(std::string dir)
 {
 	if (dir.back() != '/')
 		dir += "/";
@@ -461,7 +461,7 @@ Playlist::CreateNode() const
 	cl->AppendChild(ch->CreateNode(true));
 
 	XNode* cr = new XNode("CourseRuns");
-	FOREACH_CONST(std::vector<string>, courseruns, run)
+	FOREACH_CONST(std::vector<std::string>, courseruns, run)
 	{
 		XNode* r = new XNode("Run");
 		FOREACH_CONST(string, *run, sk)
@@ -502,7 +502,7 @@ Playlist::LoadFromNode(const XNode* node)
 		if (cr) {
 			FOREACH_CONST_Child(cr, run)
 			{
-				std::vector<string> tmp;
+				std::vector<std::string> tmp;
 				FOREACH_CONST_Child(run, sk) tmp.emplace_back(sk->GetName());
 				courseruns.emplace_back(tmp);
 			}
@@ -511,7 +511,7 @@ Playlist::LoadFromNode(const XNode* node)
 }
 
 void
-SongManager::MakeSongGroupsFromPlaylists(std::map<string, Playlist>& playlists)
+SongManager::MakeSongGroupsFromPlaylists(std::map<std::string, Playlist>& playlists)
 {
 	if (!PlaylistsAreSongGroups)
 		return;
@@ -550,17 +550,17 @@ Playlist::GetAverageRating()
 	return o / static_cast<float>(numloaded);
 }
 
-std::vector<string>
+std::vector<std::string>
 Playlist::GetKeys()
 {
-	std::vector<string> o;
+	std::vector<std::string> o;
 	for (size_t i = 0; i < chartlist.size(); ++i)
 		o.emplace_back(chartlist[i].key);
 	return o;
 }
 
 void
-SongManager::DeletePlaylist(const string& pl, std::map<string, Playlist>& playlists)
+SongManager::DeletePlaylist(const string& pl, std::map<std::string, Playlist>& playlists)
 {
 	playlists.erase(pl);
 
@@ -577,7 +577,7 @@ SongManager::DeletePlaylist(const string& pl, std::map<string, Playlist>& playli
 
 void
 SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
-									   std::map<string, Playlist>& playlists)
+									   std::map<std::string, Playlist>& playlists)
 {
 	Playlist pl;
 	pl.name = "Favorites";
@@ -595,7 +595,7 @@ SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
 
 void
 SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
-											   std::vector<string> oldChartkeys)
+											   std::vector<std::string> oldChartkeys)
 {
 	for (auto ck : oldChartkeys)
 		SONGMAN->StepsByKey.erase(ck);
@@ -974,7 +974,7 @@ SongManager::DoesSongGroupExist(const RString& sSongGroup) const
 
 RageColor
 SongManager::GetSongGroupColor(const RString& sSongGroup,
-							   std::map<string, Playlist>& playlists) const
+							   std::map<std::string, Playlist>& playlists) const
 {
 	for (unsigned i = 0; i < m_sSongGroupNames.size(); i++) {
 		if (m_sSongGroupNames[i] == sSongGroup || playlists.count(sSongGroup)) {
@@ -1077,7 +1077,7 @@ SongManager::ForceReloadSongGroup(const RString& sGroupName) const
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
-		std::vector<string> oldChartkeys;
+		std::vector<std::string> oldChartkeys;
 		for (auto steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1186,7 +1186,7 @@ SongManager::Invalidate(const Song* pStaleSong)
 	UpdateShuffled();
 }
 
-std::map<string, Playlist>&
+std::map<std::string, Playlist>&
 SongManager::GetPlaylists()
 {
 	return PROFILEMAN->GetProfile(PLAYER_1)->allplaylists;
@@ -1852,7 +1852,7 @@ class LunaPlaylist : public Luna<Playlist>
   public:
 	static int GetChartkeys(T* p, lua_State* L)
 	{
-		std::vector<string> keys = p->GetKeys();
+		std::vector<std::string> keys = p->GetKeys();
 		LuaHelpers::CreateTableFromArray(keys, L);
 		return 1;
 	}

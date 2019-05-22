@@ -43,7 +43,7 @@ FileSet::GetFilesMatching(const RString& sBeginning_,
 		/* Check end. */
 		if (end_pos < 0)
 			continue; /* can't end with it */
-		if (sPath.compare(end_pos, string::npos, sEnding))
+		if (sPath.compare(end_pos, std::string::npos, sEnding))
 			continue; /* doesn't end with it */
 
 		/* Check sContaining.  Do this last, since it's the slowest (substring

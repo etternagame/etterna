@@ -6,13 +6,13 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
-std::vector<string>
-split(string str, string token)
+std::vector<std::string>
+split(std::string str, std::string token)
 {
-	std::vector<string> result;
+	std::vector<std::string> result;
 	while (str.size()) {
 		int index = str.find(token);
-		if (index != string::npos) {
+		if (index != std::string::npos) {
 			result.push_back(str.substr(0, index));
 			str = str.substr(index + token.size());
 			if (str.size() == 0)
@@ -25,22 +25,22 @@ split(string str, string token)
 	return result;
 }
 
-std::map<string, std::map<string, string>>
-OsuLoader::ParseFileString(string fileContents)
+std::map<std::string, std::map<std::string, std::string>>
+OsuLoader::ParseFileString(std::string fileContents)
 {
-	std::vector<string> sections;
-	std::vector<std::vector<string>> contents;
+	std::vector<std::string> sections;
+	std::vector<std::vector<std::string>> contents;
 
 	SeparateTagsAndContents(fileContents, sections, contents);
 
-	std::map<string, std::map<string, string>> parsedData;
+	std::map<std::string, std::map<std::string, std::string>> parsedData;
 
 	if (sections.size() == 7) {
 		for (int i = 0; i < (int)sections.size(); ++i) {
 			for (auto& content : contents[i]) {
 				auto& str = content;
 				int pos = str.find_first_of(':');
-				string value = str.substr(pos + 1), tag = str.substr(0, pos);
+				std::string value = str.substr(pos + 1), tag = str.substr(0, pos);
 				parsedData[sections[i]][tag] = value;
 			}
 		}
@@ -49,16 +49,16 @@ OsuLoader::ParseFileString(string fileContents)
 }
 
 void
-OsuLoader::SeparateTagsAndContents(string fileContents,
-								   std::vector<string>& tagsOut,
-								   std::vector<std::vector<string>>& contentsOut)
+OsuLoader::SeparateTagsAndContents(std::string fileContents,
+								   std::vector<std::string>& tagsOut,
+								   std::vector<std::vector<std::string>>& contentsOut)
 {
 	char lastByte = '\0';
 	bool isComment = false;
 	bool isTag = false;
 	bool isContent = false;
-	string tag = "";
-	string content = "";
+	std::string tag = "";
+	std::string content = "";
 
 	int tagIndex = 0;
 
@@ -80,7 +80,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 				tagsOut.emplace_back(tag);
 				isTag = false;
 				content = "";
-				contentsOut.emplace_back(std::vector<string>());
+				contentsOut.emplace_back(std::vector<std::string>());
 				isContent = true;
 			} else {
 				tag = tag + currentByte;
@@ -112,7 +112,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 }
 
 void
-OsuLoader::SetMetadata(std::map<string, std::map<string, string>> parsedData, Song& out)
+OsuLoader::SetMetadata(std::map<std::string, std::map<std::string, std::string>> parsedData, Song& out)
 {
 	// set metadata values
 	auto& metadata = parsedData["Metadata"];
@@ -131,7 +131,7 @@ OsuLoader::SetMetadata(std::map<string, std::map<string, string>> parsedData, So
 }
 
 void
-OsuLoader::SetTimingData(std::map<string, std::map<string, string>> parsedData, Song& out)
+OsuLoader::SetTimingData(std::map<std::string, std::map<std::string, std::string>> parsedData, Song& out)
 {
 	std::vector<std::pair<int, float>> tp;
 
@@ -200,7 +200,7 @@ OsuLoader::SetTimingData(std::map<string, std::map<string, string>> parsedData, 
 bool
 OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
-						 std::map<string, std::map<string, string>> parsedData)
+						 std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
 	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
@@ -271,7 +271,7 @@ OsuLoader::MsToNoteRow(int ms, Song* song)
 void
 OsuLoader::LoadNoteDataFromParsedData(
   Steps* out,
-  std::map<string, std::map<string, string>> parsedData)
+  std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
@@ -354,7 +354,7 @@ OsuLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
-	string fileStr = fileRStr.c_str();
+	std::string fileStr = fileRStr.c_str();
 	auto parsedData = ParseFileString(fileStr.c_str());
 	LoadNoteDataFromParsedData(&out, parsedData);
 
@@ -372,7 +372,7 @@ OsuLoader::LoadFromDir(const RString& sPath_, Song& out)
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
 	RageFile f;
-	std::map<string, std::map<string, string>> parsedData;
+	std::map<std::string, std::map<std::string, std::string>> parsedData;
 
 	for (auto& filename : aFileNames) {
 		auto p = sPath_ + filename;

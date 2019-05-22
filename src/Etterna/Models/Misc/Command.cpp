@@ -56,7 +56,7 @@ SplitWithQuotes(const RString sSource,
 			if (sSource[pos] == '"' || sSource[pos] == '\'') {
 				/* We've found a quote.  Search for the close. */
 				pos = sSource.find(sSource[pos], pos + 1);
-				if (pos == string::npos)
+				if (pos == std::string::npos)
 					pos = sSource.size();
 				else
 					++pos;

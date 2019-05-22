@@ -232,7 +232,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
 		// this will be useful in the future.
 #if 0
-		std::vector<string> extensions;
+		std::vector<std::string> extensions;
 		const char *ext = 0;
 		for (int i = 0; (ext = (const char*)glGetStringi(GL_EXTENSIONS, i)); i++)
 		{
@@ -244,12 +244,12 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		while( next < extensions.size() )
 		{
 			size_t last = next;
-			string type;
+			std::string type;
 			for( size_t i = next; i<extensions.size(); ++i )
 			{
-				std::vector<string> segments;
+				std::vector<std::string> segments;
 				split(extensions[i], '_', segments);
-				string this_type;
+				std::string this_type;
 				if (segments.size() > 2)
 					this_type = join("_", segments.begin(), segments.begin()+2);
 				if (i > next && this_type != type)
@@ -265,12 +265,12 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 				continue;
 			}
 
-			string sList = ssprintf( "  %s: ", type.c_str() );
+			std::string sList = ssprintf( "  %s: ", type.c_str() );
 			while( next <= last )
 			{
-				std::vector<string> segments;
+				std::vector<std::string> segments;
 				split( extensions[next], '_', segments );
-				string ext_short = join( "_", segments.begin()+2, segments.end() );
+				std::string ext_short = join( "_", segments.begin()+2, segments.end() );
 				sList += ext_short;
 				if (next < last)
 					sList += ", ";

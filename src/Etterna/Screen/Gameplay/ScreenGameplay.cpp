@@ -2248,7 +2248,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 			}
 		}
 	} else if (ScreenMessageHelpers::ScreenMessageToString(SM).find("0Combo") !=
-			   string::npos) {
+			   std::string::npos) {
 		int iCombo;
 		RString sCropped =
 		  ScreenMessageHelpers::ScreenMessageToString(SM).substr(3);

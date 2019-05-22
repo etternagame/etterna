@@ -68,7 +68,7 @@ class StageStats
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
 	void FinalizeScores(bool bSummary);
-	string mostrecentscorekey;
+	std::string mostrecentscorekey;
 
 	/**
 	 * @brief Determine if the PlayerNumber has a high score.

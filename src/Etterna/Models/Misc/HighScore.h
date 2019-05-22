@@ -24,8 +24,8 @@ struct HighScore
 	/**
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
-	string GetName() const;
-	string GetChartKey() const;
+	std::string GetName() const;
+	std::string GetChartKey() const;
 	int GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
@@ -50,7 +50,7 @@ struct HighScore
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	bool IsUploadedToServer(string s) const;
+	bool IsUploadedToServer(std::string s) const;
 	std::vector<float> timeStamps;
 	const std::vector<float>& GetOffsetVector() const;
 	const std::vector<int>& GetNoteRowVector() const;
@@ -63,7 +63,7 @@ struct HighScore
 	std::vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
 	std::vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
 	std::vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
-	string GetScoreKey() const;
+	std::string GetScoreKey() const;
 	int GetTopScore() const;
 	int GetReplayType() const;
 	/**
@@ -75,11 +75,11 @@ struct HighScore
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
-	string GetModifiers() const;
+	std::string GetModifiers() const;
 	DateTime GetDateTime() const;
-	string GetPlayerGuid() const;
-	string GetMachineGuid() const;
-	string GetCountryCode() const;
+	std::string GetPlayerGuid() const;
+	std::string GetMachineGuid() const;
+	std::string GetCountryCode() const;
 	int GetProductID() const;
 	int GetTapNoteScore(TapNoteScore tns) const;
 	int GetHoldNoteScore(HoldNoteScore tns) const;
@@ -108,7 +108,7 @@ struct HighScore
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
-	void AddUploadedServer(string s);
+	void AddUploadedServer(std::string s);
 	void SetOffsetVector(const std::vector<float>& v);
 	void SetNoteRowVector(const std::vector<int>& v);
 	void SetTrackVector(const std::vector<int>& v);
@@ -119,10 +119,10 @@ struct HighScore
 	void SetRescoreJudgeVector(const std::vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
-	void SetModifiers( const string &s );
+	void SetModifiers( const std::string &s );
 	void SetDateTime( DateTime d );
-	void SetPlayerGuid( const string &s );
-	void SetMachineGuid( const string &s );
+	void SetPlayerGuid( const std::string &s );
+	void SetMachineGuid( const std::string &s );
 	void SetProductID( int i );
 	void SetTapNoteScore( TapNoteScore tns, int i );
 	void SetHoldNoteScore( HoldNoteScore tns, int i );
@@ -161,7 +161,7 @@ struct HighScore
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	string GetDisplayName() const;
+	std::string GetDisplayName() const;
 
 	// Mina stuff - Mina
 	float RescoreToWifeJudge(int x);
@@ -169,16 +169,16 @@ struct HighScore
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
-	void SetValidationKey(ValidationKey vk, string k);
+	void SetValidationKey(ValidationKey vk, std::string k);
 	void SetTopScore(int i);
-	string GenerateValidationKeys();
-	string GetValidationKey(ValidationKey vk) const;
+	std::string GenerateValidationKeys();
+	std::string GetValidationKey(ValidationKey vk) const;
 	std::vector<int> GetRescoreJudgeVector(int x);
 	// laazy
-	string scoreid;
+	std::string scoreid;
 	int userid = -1;
-	string avatar;
-	string countryCode;
+	std::string avatar;
+	std::string countryCode;
 
 	int norms = 0;
 	int musics = 0;

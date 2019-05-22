@@ -248,7 +248,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	 * The size can be greater than 1 if playing a course. */
 	std::vector<Song*> m_apSongsQueue;
 	std::vector<float> ratesqueue;
-	std::vector<string> playlistscorekeys;
+	std::vector<std::string> playlistscorekeys;
 
 	float m_fTimeSinceLastDancingComment; // this counter is only running while
 										  // STATE_DANCING

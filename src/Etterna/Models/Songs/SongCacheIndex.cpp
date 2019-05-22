@@ -44,7 +44,7 @@
  * only their path; we don't have to actually look in the directory (to find out
  * the directory hash) in order to find the cache file.
  */
-const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
+const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
 const unsigned int CACHE_DB_VERSION = 238;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
@@ -103,7 +103,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_BPM);
-		string bpms = "";
+		std::string bpms = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const BPMSegment* segment = ToBPM(seg);
@@ -118,7 +118,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_STOP);
-		string stops = "";
+		std::string stops = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const StopSegment* segment = ToStop(seg);
@@ -132,7 +132,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_DELAY);
-		string delays = "";
+		std::string delays = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const DelaySegment* segment = ToDelay(seg);
@@ -146,7 +146,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_WARP);
-		string warps = "";
+		std::string warps = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const WarpSegment* segment = ToWarp(seg);
@@ -160,7 +160,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_TIME_SIG);
-		string timesigs = "";
+		std::string timesigs = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TimeSignatureSegment* segment = ToTimeSignature(seg);
@@ -175,7 +175,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_TICKCOUNT);
-		string ticks = "";
+		std::string ticks = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TickcountSegment* segment = ToTickcount(seg);
@@ -189,7 +189,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_COMBO);
-		string combos = "";
+		std::string combos = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ComboSegment* segment = ToCombo(seg);
@@ -210,7 +210,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_SPEED);
-		string speeds = "";
+		std::string speeds = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const SpeedSegment* segment = ToSpeed(seg);
@@ -226,7 +226,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_SCROLL);
-		string scrolls = "";
+		std::string scrolls = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ScrollSegment* segment = ToScroll(seg);
@@ -240,7 +240,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	{
 		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_LABEL);
-		string labels = "";
+		std::string labels = "";
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const LabelSegment* segment = ToLabel(seg);
@@ -326,7 +326,7 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 }
 /*	Save a song to the cache db*/
 bool
-SongCacheIndex::CacheSong(Song& song, string dir)
+SongCacheIndex::CacheSong(Song& song, std::string dir)
 {
 	DeleteSongFromDBByDir(dir);
 	try {
@@ -463,7 +463,7 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		}; */
 		FOREACH_BackgroundLayer(b)
 		{
-			string bgchanges = "";
+			std::string bgchanges = "";
 			if (song.GetBackgroundChanges(b).empty()) {
 				insertSong.bind(index++);
 				continue; // skip
@@ -484,7 +484,7 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		}
 
 		if (song.GetForegroundChanges().size()) {
-			string fgchanges;
+			std::string fgchanges;
 			for (auto const& bgc : song.GetForegroundChanges()) {
 				fgchanges.append(bgc.ToString() + ",");
 			}
@@ -494,7 +494,7 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		}
 
 		if (!song.m_vsKeysoundFile.empty()) {
-			string keysounds = "";
+			std::string keysounds = "";
 			for (unsigned i = 0; i < song.m_vsKeysoundFile.size(); i++) {
 				keysounds.append(song.m_vsKeysoundFile[i]);
 				if (i != song.m_vsKeysoundFile.size() - 1) {
@@ -849,20 +849,20 @@ SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 void
 SongCacheIndex::DeleteSongFromDB(Song* songPtr)
 {
-	string cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" +
+	std::string cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" +
 				  to_string(GetHashForDirectory(songPtr->GetSongDir())) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDir(string dir)
+SongCacheIndex::DeleteSongFromDBByDir(std::string dir)
 {
-	string cond = "dir=\"" + dir + "\"";
+	std::string cond = "dir=\"" + dir + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
 SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 {
-	string cond = "hash=\"" + to_string(hash) + "\"";
+	std::string cond = "hash=\"" + to_string(hash) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 
@@ -1006,8 +1006,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->SetSpecifiedLastSecond(
 	  static_cast<float>(static_cast<double>(query.getColumn(index++))));
 
-	string animations = static_cast<const char*>(query.getColumn(index++));
-	string animationstwo = static_cast<const char*>(query.getColumn(index++));
+	std::string animations = static_cast<const char*>(query.getColumn(index++));
+	std::string animationstwo = static_cast<const char*>(query.getColumn(index++));
 
 	std::vector<RString> aFGChangeExpressions;
 	split(static_cast<const char*>(query.getColumn(index++)),
@@ -1035,7 +1035,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->m_fMusicLengthSeconds =
 	  static_cast<float>(static_cast<double>(query.getColumn(index++)));
 	int dirhash = query.getColumn(index++);
-	string dir = query.getColumn(index++);
+	std::string dir = query.getColumn(index++);
 	song->SetSongDir(dir);
 
 	loader.ProcessBGChanges(*song, "BGCHANGES1", dir, animations);
@@ -1054,7 +1054,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		RString chartName =
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 		pNewNotes->SetChartName(chartName);
-		string stepsType =
+		std::string stepsType =
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 		pNewNotes->m_StepsType = GAMEMAN->StringToStepsType(stepsType);
 		pNewNotes->m_StepsTypeStr = stepsType;
@@ -1070,7 +1070,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		MinaSD o;
 		stringstream msds;
 		msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
-		string msdsatrate;
+		std::string msdsatrate;
 		while (std::getline(msds, msdsatrate, ':'))
 			o.emplace_back(SSC::msdsplit(msdsatrate));
 		pNewNotes->SetAllMSD(o);
@@ -1079,7 +1079,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 		pNewNotes->SetMusicFile(
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
-		string radarValues =
+		std::string radarValues =
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 		std::vector<RString> values;
 		split(radarValues, ",", values, true);
@@ -1223,7 +1223,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 /*	Load a song from Cache DB
 	Returns true if it was loaded**/
 bool
-SongCacheIndex::LoadSongFromCache(Song* song, string dir)
+SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
 {
 	try {
 		SQLite::Statement query(

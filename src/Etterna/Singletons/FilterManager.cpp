@@ -75,14 +75,14 @@ FilterManager::AnyActiveFilter()
 // store x/y persistently by name
 
 void
-FilterManager::savepos(string name, int x, int y)
+FilterManager::savepos(std::string name, int x, int y)
 {
 	watte[name].first = x;
 	watte[name].second = y;
 }
 
 std::pair<int, int>
-FilterManager::loadpos(string name)
+FilterManager::loadpos(std::string name)
 {
 	return watte[name];
 }

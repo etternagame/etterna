@@ -58,7 +58,7 @@ class MusicWheel : public WheelBase
 	}
 
 	virtual void ReloadSongList(bool searching, RString findme);
-	void SetHashList(const std::vector<string>& newHashList);
+	void SetHashList(const std::vector<std::string>& newHashList);
 
 	// multiplayer common pack filtering
 	bool packlistFiltering{ false };
@@ -69,7 +69,7 @@ class MusicWheel : public WheelBase
   protected:
 	MusicWheelItem* MakeItem() override;
 
-	std::vector<string> hashList;
+	std::vector<std::string> hashList;
 	void GetSongList(std::vector<Song*>& arraySongs, SortOrder so);
 	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();

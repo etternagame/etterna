@@ -27,8 +27,8 @@ static HBITMAP g_hBitmap = NULL;
 
 RString text[3];
 const float FONT_HEIGHT = 12;
-const string FONT_FILE = "Data/Roboto-Light.ttf";
-const string FONT_NAME = "Roboto Light";
+const std::string FONT_FILE = "Data/Roboto-Light.ttf";
+const std::string FONT_NAME = "Roboto Light";
 const auto FONT_COLOR = RGB(240, 240, 240);
 const int FONT_Y = 98;
 const int FONT_X = 20;
@@ -176,7 +176,7 @@ LoadingWindow_Win32::SetSplash(const RageSurface* pSplash)
 LoadingWindow_Win32::LoadingWindow_Win32()
 {
 	w = this;
-	string szFontFile =
+	std::string szFontFile =
 	  RageFileManagerUtil::sDirOfExecutable.substr(
 		0, RageFileManagerUtil::sDirOfExecutable.length() - 7) +
 	  FONT_FILE;

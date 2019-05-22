@@ -839,8 +839,8 @@ Sprite::SetState(int iNewState)
 		(iNewState < 0 || iNewState >= (int)m_States.size())) {
 		// Don't warn about number of states in "_blank" or "_missing".
 		if (!m_pTexture ||
-			(m_pTexture->GetID().filename.find("_blank") == string::npos &&
-			 m_pTexture->GetID().filename.find("_missing") == string::npos)) {
+			(m_pTexture->GetID().filename.find("_blank") == std::string::npos &&
+			 m_pTexture->GetID().filename.find("_missing") == std::string::npos)) {
 			RString sError;
 			if (m_pTexture)
 				sError =

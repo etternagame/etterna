@@ -24,18 +24,18 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
-const string PROFILE_DB = "profile.db";
-const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
+const std::string PROFILE_DB = "profile.db";
+const std::string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(string dir, Profile* profile)
+DBProfile::LoadDBFromDir(std::string dir, Profile* profile)
 {
 	loadingProfile = profile;
 	return LoadDBFromDir(dir);
 }
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(string dir)
+DBProfile::LoadDBFromDir(std::string dir)
 {
 
 	SQLite::Database* db;
@@ -84,7 +84,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(
 	  static_cast<const char*>(gDataQuery.getColumn(7)));
 
-	string song = static_cast<const char*>(gDataQuery.getColumn(8));
+	std::string song = static_cast<const char*>(gDataQuery.getColumn(8));
 	if (song != "")
 		loadingProfile->m_lastSong.LoadFromString(song.c_str());
 	loadingProfile->m_iCurrentCombo = gDataQuery.getColumn(9);
@@ -238,9 +238,9 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	  "INNER JOIN playlists ON playlists.id = courseruns.playlistid "
 	  "ORDER BY runs.scorekey, courseruns.id, playlists.name");
 
-	string lastPlayListName = "";
+	std::string lastPlayListName = "";
 	int lastCourseRunID;
-	std::vector<string> tmpCourseRun;
+	std::vector<std::string> tmpCourseRun;
 
 	// Read one row
 	if (courseRunsQuery.executeStep()) {
@@ -305,10 +305,10 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 	unordered_map<string, ScoresForChart>& scores =
 	  *(SCOREMAN->GetProfileScores());
 
-	string curCK = "";
+	std::string curCK = "";
 
 	while (query.executeStep()) {
-		const string key = static_cast<const char*>(query.getColumn(0));
+		const std::string key = static_cast<const char*>(query.getColumn(0));
 		if (key != curCK) {
 			// Per Chart
 			curCK = key;
@@ -324,7 +324,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		int rate = query.getColumn(4);
 
 		// Per Score
-		string ScoreKey = query.getColumn(5);
+		std::string ScoreKey = query.getColumn(5);
 		HighScore& hs = scores[key].ScoresByRate[rate].scores[ScoreKey];
 		hs.SetSSRCalcVersion(query.getColumn(6));
 		hs.SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
@@ -424,7 +424,7 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 	  "scoregoals.comment FROM scoregoals INNER JOIN chartkeys ON "
 	  "scoregoals.chartkeyid = chartkeys.id ORDER BY chartkeys.chartkey ASC");
 
-	string ck;
+	std::string ck;
 	while (query.executeStep()) {
 		ck = static_cast<const char*>(query.getColumn(0));
 		// Load the scoregoal
@@ -445,11 +445,11 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 }
 
 ProfileLoadResult
-DBProfile::SaveDBToDir(string dir,
+DBProfile::SaveDBToDir(std::string dir,
 					   const Profile* profile,
 					   DBProfileMode mode) const
 {
-	string filename;
+	std::string filename;
 	switch (mode) {
 		case WriteOnlyWebExport:
 			filename = FILEMAN->ResolvePath(dir) + WRITE_ONLY_PROFILE_DB;
@@ -625,7 +625,7 @@ DBProfile::MoveBackupToDir(const string& sFromDir,
 						   const string& sToDir,
 						   DBProfileMode mode)
 {
-	string filename;
+	std::string filename;
 	switch (mode) {
 		case WriteOnlyWebExport:
 			filename = WRITE_ONLY_PROFILE_DB;
@@ -754,7 +754,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertChartPlaylist.exec();
 				}
 
-				FOREACH_CONST(std::vector<string>, (pl->second).courseruns, run)
+				FOREACH_CONST(std::vector<std::string>, (pl->second).courseruns, run)
 				{
 
 					SQLite::Statement insertCourseRun(
@@ -1018,7 +1018,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 	}
 }
 int
-DBProfile::GetChartKeyID(SQLite::Database* db, string key)
+DBProfile::GetChartKeyID(SQLite::Database* db, std::string key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM chartkeys WHERE chartkey=?");
 	query.bind(1, key);
@@ -1027,8 +1027,7 @@ DBProfile::GetChartKeyID(SQLite::Database* db, string key)
 	return query.getColumn(0);
 }
 
-string
-DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
+std::string DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
 {
 	SQLite::Statement query(*db, "SELECT * FROM chartkeys WHERE id=?");
 	query.bind(1, id);
@@ -1038,7 +1037,7 @@ DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
 }
 
 int
-DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateChartKey(SQLite::Database* db, std::string key)
 {
 	int exists = GetChartKeyID(db, key);
 	if (exists)
@@ -1048,7 +1047,7 @@ DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
 }
 
 int
-DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
+DBProfile::FindOrCreateSong(SQLite::Database* db, std::string pack, std::string song)
 {
 	SQLite::Statement query(
 	  *db, "SELECT songs.id FROM songs WHERE song=? AND pack =?");
@@ -1068,9 +1067,9 @@ DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
 
 int
 DBProfile::FindOrCreateChart(SQLite::Database* db,
-							 string chartkey,
-							 string pack,
-							 string song,
+							 std::string chartkey,
+							 std::string pack,
+							 std::string song,
 							 Difficulty diff)
 {
 	int chartKeyID = FindOrCreateChartKey(db, chartkey);
@@ -1099,7 +1098,7 @@ DBProfile::FindOrCreateChart(SQLite::Database* db,
 }
 
 int
-DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
+DBProfile::GetScoreKeyID(SQLite::Database* db, std::string key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM scorekeys WHERE scorekey=?");
 	query.bind(1, key);
@@ -1109,7 +1108,7 @@ DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
 }
 
 int
-DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateScoreKey(SQLite::Database* db, std::string key)
 {
 	int exists = GetScoreKeyID(db, key);
 	if (exists)
@@ -1121,9 +1120,9 @@ DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
 bool
 DBProfile::WriteReplayData(const HighScore* hs)
 {
-	string profiledir =
+	std::string profiledir =
 	  PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
-	string filename = profiledir + PROFILE_DB;
+	std::string filename = profiledir + PROFILE_DB;
 
 	SQLite::Database* db;
 	try {

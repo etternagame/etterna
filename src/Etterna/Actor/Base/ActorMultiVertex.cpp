@@ -567,7 +567,7 @@ ActorMultiVertex::Update(float fDelta)
 	}
 	UpdateAnimationState();
 	if (!skip_this_movie_update && _decode_movie) {
-		_Texture->DecodeSeconds(std::max(0, time_passed));
+		_Texture->DecodeSeconds(std::max(0.0f, time_passed));
 	}
 }
 

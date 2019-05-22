@@ -219,7 +219,7 @@ bool
 findme(std::string str, std::string findme)
 {
 	std::transform(begin(str), end(str), begin(str), ::tolower);
-	return str.find(findme) != string::npos;
+	return str.find(findme) != std::string::npos;
 }
 
 void

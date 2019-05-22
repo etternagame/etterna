@@ -29,7 +29,7 @@ class LoadingWindow_Win32 : public LoadingWindow
 	HICON m_hIcon;
 	HFONT f;
 	LOGFONT lf;
-	string progress;
+	std::string progress;
 	RString lastText;
 
 	HGDIOBJ bitMapBG;

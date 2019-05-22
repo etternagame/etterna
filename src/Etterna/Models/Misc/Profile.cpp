@@ -110,7 +110,7 @@ Profile::ClearStats()
 RString
 Profile::MakeGuid()
 {
-	string s;
+	std::string s;
 	s.reserve(GUID_SIZE_BYTES * 2);
 	unsigned char buf[GUID_SIZE_BYTES];
 	CryptManager::GetRandomBytes(buf, GUID_SIZE_BYTES);
@@ -1772,7 +1772,7 @@ class LunaProfile : public Luna<Profile>
 	// ok i should probably handle this better -mina
 	static int GetEasiestGoalForChartAndRate(T* p, lua_State* L)
 	{
-		string ck = SArg(1);
+		std::string ck = SArg(1);
 		if (!p->goalmap.count(ck)) {
 			lua_pushnil(L);
 			return 1;

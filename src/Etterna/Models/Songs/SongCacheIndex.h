@@ -36,7 +36,7 @@ class SongCacheIndex
 				   std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>& cache);
 	void DeleteSongFromDBByCondition(string& condition);
 	void DeleteSongFromDB(Song* songPtr);
-	void DeleteSongFromDBByDir(string dir);
+	void DeleteSongFromDBByDir(std::string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
 	static RString GetCacheFilePath(const RString& sGroup,
 									const RString& sPath);
@@ -45,8 +45,8 @@ class SongCacheIndex
 
 	int64_t InsertStepsTimingData(const TimingData& timing);
 	int64_t InsertSteps(const Steps* pSteps, int64_t songID);
-	bool LoadSongFromCache(Song* song, string dir);
-	bool CacheSong(Song& song, string dir);
+	bool LoadSongFromCache(Song* song, std::string dir);
+	bool CacheSong(Song& song, std::string dir);
 	void StartTransaction();
 	void FinishTransaction();
 };

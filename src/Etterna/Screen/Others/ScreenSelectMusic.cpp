@@ -436,7 +436,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
-				std::vector<string> oldChartkeys;
+				std::vector<std::string> oldChartkeys;
 				for (auto steps : stepses)
 					oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1593,7 +1593,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int StartPlaylistAsCourse(T* p, lua_State* L)
 	{
-		string name = SArg(1);
+		std::string name = SArg(1);
 		Playlist& pl = SONGMAN->GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course

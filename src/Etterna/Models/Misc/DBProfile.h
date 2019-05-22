@@ -20,10 +20,10 @@ enum DBProfileMode
 class DBProfile
 {
   public:
-	enum ProfileLoadResult LoadDBFromDir(string dir);
-	ProfileLoadResult LoadDBFromDir(string dir, Profile* profile);
+	enum ProfileLoadResult LoadDBFromDir(std::string dir);
+	ProfileLoadResult LoadDBFromDir(std::string dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(string sDir,
+	ProfileLoadResult SaveDBToDir(std::string sDir,
 								  const Profile* profile,
 								  DBProfileMode mode) const;
 
@@ -37,17 +37,17 @@ class DBProfile
 
   private:
 	Profile* loadingProfile{ nullptr };
-	static int GetChartKeyID(SQLite::Database* db, string key);
-	static string GetChartKeyByID(SQLite::Database* db, int id);
-	static int FindOrCreateChartKey(SQLite::Database* db, string key);
-	static int FindOrCreateSong(SQLite::Database* db, string pack, string song);
+	static int GetChartKeyID(SQLite::Database* db, std::string key);
+	static std::string GetChartKeyByID(SQLite::Database* db, int id);
+	static int FindOrCreateChartKey(SQLite::Database* db, std::string key);
+	static int FindOrCreateSong(SQLite::Database* db, std::string pack, std::string song);
 	static int FindOrCreateChart(SQLite::Database* db,
-								 string chartkey,
-								 string pack,
-								 string song,
+								 std::string chartkey,
+								 std::string pack,
+								 std::string song,
 								 Difficulty diff);
-	static int GetScoreKeyID(SQLite::Database* db, string key);
-	static int FindOrCreateScoreKey(SQLite::Database* db, string key);
+	static int GetScoreKeyID(SQLite::Database* db, std::string key);
+	static int FindOrCreateScoreKey(SQLite::Database* db, std::string key);
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);

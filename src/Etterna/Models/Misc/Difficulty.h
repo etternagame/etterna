@@ -39,7 +39,7 @@ StepsToCustomDifficulty(const Steps* pSteps);
 
 struct Chart
 {
-	string key;
+	std::string key;
 	RString lastsong;
 	RString lastpack;
 	Difficulty lastdiff = Difficulty_Invalid;
@@ -50,7 +50,7 @@ struct Chart
 	bool IsLoaded() { return loaded; }
 
 	bool loaded = false;
-	void FromKey(const string& ck);
+	void FromKey(const std::string& ck);
 	XNode* CreateNode(bool includerate) const;
 	void LoadFromNode(const XNode* node);
 	void PushSelf(lua_State* L);
@@ -61,17 +61,17 @@ struct Playlist
 	RString name;
 	std::vector<Chart> chartlist;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck);
+	void AddChart(const std::string& ck);
 	void SwapPosition();
 
 	void Create();
-	std::vector<std::vector<string>> courseruns;
+	std::vector<std::vector<std::string>> courseruns;
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
 	int GetNumCharts() { return chartlist.size(); }
-	std::vector<string> GetKeys();
-	string GetName() { return name; }
+	std::vector<std::string> GetKeys();
+	std::string GetName() { return name; }
 	float GetAverageRating();
 	void DeleteChart(int i);
 

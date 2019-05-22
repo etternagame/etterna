@@ -196,7 +196,7 @@ class Profile
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{ 0 };
 	// Profile Playlists
-	std::map<string, Playlist> allplaylists;
+	std::map<std::string, Playlist> allplaylists;
 
 	// Editable data
 	RString m_sDisplayName;
@@ -334,7 +334,7 @@ class Profile
 	bool HasPassedSteps(const Song* pSong, const Steps* pSteps) const;
 	bool HasPassedAnyStepsInSong(const Song* pSong) const;
 
-	void GetAllUsedHighScoreNames(std::std::set<RString>& names);
+	void GetAllUsedHighScoreNames(std::set<RString>& names);
 
 	void MergeScoresFromOtherProfile(Profile* other,
 									 bool skip_totals,

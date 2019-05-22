@@ -27,7 +27,7 @@ class RoomData
 		m_state = 0;
 		m_iFlags = 0;
 	}
-	std::vector<string> players;
+	std::vector<std::string> players;
 
   private:
 	std::string m_name;

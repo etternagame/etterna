@@ -81,8 +81,7 @@ getCpuHash()
 	return hash;
 }
 
-string
-getMachineName()
+std::string getMachineName()
 {
 	static char computerName[128];
 	DWORD size = 128;
@@ -246,8 +245,7 @@ getCpuHash()
 }
 #endif // !DARWIN
 
-string
-getMachineName()
+std::string getMachineName()
 {
 	static struct utsname u;
 
@@ -274,11 +272,10 @@ computeSystemUniqueId()
 	computed = true;
 	return id;
 }
-string
-getSystemUniqueId()
+std::string getSystemUniqueId()
 {
 	// get the name of the computer
-	string str = getMachineName();
+	std::string str = getMachineName();
 
 	uint16_t* id = computeSystemUniqueId();
 	for (uint32_t i = 0; i < 3; i++)
@@ -459,7 +456,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	// mods that modify notedata other than mirror (too lazy to figure out how
 	// to check for these in po)
-	string mods = ps.m_PlayerOptions.GetStage().GetString();
+	std::string mods = ps.m_PlayerOptions.GetStage().GetString();
 
 	// should take care of all 3 shuffle mods
 	if (mods.find("Shuffle") != mods.npos)

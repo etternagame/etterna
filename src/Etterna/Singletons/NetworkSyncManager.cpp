@@ -108,11 +108,11 @@ static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
 // Utility function (Since json needs to be valid utf8)
-string correct_non_utf_8(string *str)
+std::string correct_non_utf_8(std::string *str)
 {
     int i,f_size=str->size();
     unsigned char c,c2,c3,c4;
-    string to;
+    std::string to;
     to.reserve(f_size);
 
     for(i=0 ; i<f_size ; i++){
@@ -186,9 +186,9 @@ string correct_non_utf_8(string *str)
     return to;
 }
 
-string correct_non_utf_8(const RString &str)
+std::string correct_non_utf_8(const RString &str)
 {
-	string stdStr = str.c_str();
+	std::string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
 	return utf8ValidStr;
 }
@@ -469,7 +469,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 						   char* message,
 						   size_t length,
 						   uWS::OpCode opCode) {
-		string msg(message, length);
+		std::string msg(message, length);
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
@@ -527,7 +527,7 @@ RoomData
 jsonToRoom(json& room)
 {
 	RoomData tmp;
-	string s = room["name"].get<string>();
+	std::string s = room["name"].get<string>();
 	tmp.SetName(s);
 	s = room.value("desc", "");
 	tmp.SetDescription(s);
@@ -791,7 +791,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				case ettps_recievechat: {
 					// chat[tabname, tabtype] = msg
 					int type = (*payload)["msgtype"].get<int>();
-					string tab = (*payload)["tab"].get<string>();
+					std::string tab = (*payload)["tab"].get<string>();
 					n->chat[{ tab, type }].emplace_back(
 					  (*payload)["msg"].get<string>());
 					SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
@@ -810,7 +810,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							 ++it) {
 							float wife = (*it)["wife"];
 							RString jdgstr = (*it)["jdgstr"];
-							string user = (*it)["user"].get<string>();
+							std::string user = (*it)["user"].get<string>();
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
 						}
@@ -874,7 +874,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 				case ettps_deleteroom:
 					try {
-						string name = (*payload)["room"]["name"];
+						std::string name = (*payload)["room"]["name"];
 						n->m_Rooms.erase(
 						  std::remove_if(n->m_Rooms.begin(),
 										 n->m_Rooms.end(),
@@ -1045,7 +1045,7 @@ NetworkSyncManager::Login(RString user, RString pass)
 		curProtocol->Login(user, pass);
 }
 void
-ETTProtocol::SendChat(const RString& message, string tab, int type)
+ETTProtocol::SendChat(const RString& message, std::string tab, int type)
 {
 	if (ws == nullptr)
 		return;
@@ -1330,7 +1330,7 @@ NetworkSyncManager::ChangedScoreboard(int Column)
 }
 
 void
-NetworkSyncManager::SendChat(const RString& message, string tab, int type)
+NetworkSyncManager::SendChat(const RString& message, std::string tab, int type)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendChat(message, tab, type);
@@ -1657,7 +1657,7 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 	{
 		unsigned int l = IArg(1);
 		int tabType = IArg(2);
-		string tabName = SArg(3);
+		std::string tabName = SArg(3);
 		lua_pushstring(L, p->chat[{ tabName, tabType }][l].c_str());
 		return 1;
 	}
@@ -1673,9 +1673,9 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 	}
 	static int SendChatMsg(T* p, lua_State* L)
 	{
-		string msg = SArg(1);
+		std::string msg = SArg(1);
 		int tabType = IArg(2);
-		string tabName = SArg(3);
+		std::string tabName = SArg(3);
 		p->SendChat(msg, tabName, tabType);
 		return 1;
 	}

@@ -211,7 +211,7 @@ class Song
 										   : m_sMainTitle;
 	}
 
-	std::vector<Steps*> GetStepsToSave(bool bSavingCache = true, string path = "");
+	std::vector<Steps*> GetStepsToSave(bool bSavingCache = true, std::string path = "");
 
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
@@ -231,8 +231,8 @@ class Song
 	}
 
 	// "title subtitle"
-	string displayfulltitle;
-	string translitfulltitle;
+	std::string displayfulltitle;
+	std::string translitfulltitle;
 	const string& GetDisplayFullTitle() const{ return displayfulltitle;}
 	const string& GetTranslitFullTitle() const{ return translitfulltitle;}
 
@@ -269,17 +269,17 @@ class Song
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
-	string m_sMusicPath;
-	string m_PreviewPath;
-	string m_sInstrumentTrackPath[NUM_InstrumentTrack];
-	string m_sBannerPath;  // typically a 16:5 ratio graphic (e.g. 256x80)
-	string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
-	string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
-	string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
-	string m_sLyricsPath;
-	string m_sBackgroundPath;
-	string m_sCDTitlePath;
-	string m_sPreviewVidPath;
+	std::string m_sMusicPath;
+	std::string m_PreviewPath;
+	std::string m_sInstrumentTrackPath[NUM_InstrumentTrack];
+	std::string m_sBannerPath;  // typically a 16:5 ratio graphic (e.g. 256x80)
+	std::string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
+	std::string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
+	std::string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
+	std::string m_sLyricsPath;
+	std::string m_sBackgroundPath;
+	std::string m_sCDTitlePath;
+	std::string m_sPreviewVidPath;
 
 	std::vector<RString> ImageDir;
 

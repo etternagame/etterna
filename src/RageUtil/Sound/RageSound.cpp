@@ -369,7 +369,7 @@ RageSound::ExecutePlayBackCallback(Lua* L) {
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
 	fftwf_complex* out = static_cast<fftwf_complex*>(fftwBuffer);
-	string error;
+	std::string error;
 	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	soundPlayCallback.PushSelf(L);
 	lua_newtable(L);
@@ -726,7 +726,7 @@ RageSound::GetStopMode() const
 	if (m_Param.StopMode != RageSoundParams::M_AUTO)
 		return m_Param.StopMode;
 
-	if (m_sFilePath.find("loop") != string::npos)
+	if (m_sFilePath.find("loop") != std::string::npos)
 		return RageSoundParams::M_LOOP;
 
 	return RageSoundParams::M_STOP;
@@ -735,13 +735,13 @@ RageSound::GetStopMode() const
 void
 RageSound::SetStopModeFromString(const RString& sStopMode)
 {
-	if (sStopMode.find("stop") != string::npos) {
+	if (sStopMode.find("stop") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_STOP;
-	} else if (sStopMode.find("loop") != string::npos) {
+	} else if (sStopMode.find("loop") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_LOOP;
-	} else if (sStopMode.find("continue") != string::npos) {
+	} else if (sStopMode.find("continue") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_CONTINUE;
-	} else if (sStopMode.find("auto") != string::npos) {
+	} else if (sStopMode.find("auto") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_AUTO;
 	} else {
 		// error

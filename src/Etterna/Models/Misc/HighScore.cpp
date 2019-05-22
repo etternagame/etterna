@@ -16,22 +16,22 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "RageUtil/File/RageFileManager.h"
 
-const string BASIC_REPLAY_DIR =
+const std::string BASIC_REPLAY_DIR =
   "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
-const string FULL_REPLAY_DIR =
+const std::string FULL_REPLAY_DIR =
   "Save/ReplaysV2/"; // contains freeze drops and mine hits as well as tap
 					 // offsets; fully "rewatchable" -mina
 
 struct HighScoreImpl
 {
-	string sName; // name that shows in the machine's ranking screen
+	std::string sName; // name that shows in the machine's ranking screen
 
 	/* a half-misnomer now- since all scores are keyed by the chart key this
 	should never change/be different, but its historical correctness is still
 	correct, though it should prolly be renamed tbh -mina*/
-	string ChartKey;
+	std::string ChartKey;
 
-	string ScoreKey;
+	std::string ScoreKey;
 	int SSRCalcVersion;
 	Grade grade;
 	unsigned int iScore;
@@ -44,7 +44,7 @@ struct HighScoreImpl
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
-	std::vector<string> uploaded;
+	std::vector<std::string> uploaded;
 	std::vector<float> vOffsetVector;
 	std::vector<int> vNoteRowVector;
 	std::vector<int> vTrackVector;
@@ -53,20 +53,20 @@ struct HighScoreImpl
 	std::vector<float> vOnlineReplayTimestampVector;
 	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
-	string	sModifiers;
+	std::string sModifiers;
 	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
-	string sPlayerGuid;	// who made this high score
-	string sMachineGuid;	// where this high score was made
-	string countryCode;
+	std::string sPlayerGuid;	// who made this high score
+	std::string sMachineGuid;	// where this high score was made
+	std::string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
 	float fSkillsetSSRs[NUM_Skillset];
-	string ValidationKeys[NUM_ValidationKey];
+	std::string ValidationKeys[NUM_ValidationKey];
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
-	string ValidationKey;
+	std::string ValidationKey;
 	int TopScore;
 
 	HighScoreImpl();
@@ -283,7 +283,7 @@ HighScoreImpl::HighScoreImpl()
 	ZERO(fSkillsetSSRs);
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
-	string ValidationKey = "";
+	std::string ValidationKey = "";
 	TopScore = 0;
 	ReplayType = 2;
 }
@@ -434,12 +434,12 @@ bool
 HighScoreImpl::WriteReplayData()
 {
 	CHECKPOINT_M("Writing out replay data to disk.");
-	string append;
-	string profiledir;
+	std::string append;
+	std::string profiledir;
 	// These two lines should probably be somewhere else
 	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR))
 		FILEMAN->CreateDir(FULL_REPLAY_DIR);
-	string path = FULL_REPLAY_DIR + ScoreKey;
+	std::string path = FULL_REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	// check file
 
@@ -478,10 +478,10 @@ HighScoreImpl::WriteReplayData()
 bool
 HighScore::WriteInputData(const std::vector<float>& oop)
 {
-	string append;
-	string profiledir;
+	std::string append;
+	std::string profiledir;
 
-	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	std::string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	// check file
 
@@ -519,15 +519,15 @@ HighScore::LoadReplayDataBasic()
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
-	string profiledir;
+	std::string profiledir;
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
-	string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	std::string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
-	string line;
-	string buffer;
-	std::vector<string> tokens;
+	std::string line;
+	std::string buffer;
+	std::vector<std::string> tokens;
 	stringstream ss;
 	int noteRow;
 	float offset;
@@ -576,18 +576,18 @@ HighScore::LoadReplayDataFull()
 		return true;
 	}
 
-	string profiledir;
+	std::string profiledir;
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
 	std::vector<int> vTrackVector;
 	std::vector<TapNoteType> vTapNoteTypeVector;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	std::string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
-	string line;
-	string buffer;
-	std::vector<string> tokens;
+	std::string line;
+	std::string buffer;
+	std::vector<std::string> tokens;
 	int noteRow;
 	float offset;
 	int track;
@@ -709,8 +709,7 @@ HighScore::IsEmpty() const
 	return true;
 }
 
-string
-HighScore::GenerateValidationKeys()
+std::string HighScore::GenerateValidationKeys()
 {
 	std::string key = "";
 
@@ -761,13 +760,11 @@ HighScore::GenerateValidationKeys()
 	return key;
 }
 
-string
-HighScore::GetName() const
+std::string HighScore::GetName() const
 {
 	return m_Impl->sName;
 }
-string
-HighScore::GetChartKey() const
+std::string HighScore::GetChartKey() const
 {
 	return m_Impl->ChartKey;
 }
@@ -833,7 +830,7 @@ HighScore::GetEtternaValid() const
 	return m_Impl->bEtternaValid;
 }
 bool
-HighScore::IsUploadedToServer(string s) const
+HighScore::IsUploadedToServer(std::string s) const
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
 		   m_Impl->uploaded.end();
@@ -893,8 +890,7 @@ HighScore::GetHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-string
-HighScore::GetScoreKey() const
+std::string HighScore::GetScoreKey() const
 {
 	return m_Impl->ScoreKey;
 }
@@ -908,8 +904,7 @@ HighScore::GetSurvivalSeconds() const
 {
 	return GetSurviveSeconds() + GetLifeRemainingSeconds();
 }
-string
-HighScore::GetModifiers() const
+std::string HighScore::GetModifiers() const
 {
 	return m_Impl->sModifiers;
 }
@@ -918,18 +913,15 @@ HighScore::GetDateTime() const
 {
 	return m_Impl->dateTime;
 }
-string
-HighScore::GetPlayerGuid() const
+std::string HighScore::GetPlayerGuid() const
 {
 	return m_Impl->sPlayerGuid;
 }
-string
-HighScore::GetMachineGuid() const
+std::string HighScore::GetMachineGuid() const
 {
 	return m_Impl->sMachineGuid;
 }
-string
-HighScore::GetCountryCode() const
+std::string HighScore::GetCountryCode() const
 {
 	return m_Impl->countryCode;
 }
@@ -1056,7 +1048,7 @@ HighScore::SetEtternaValid(bool b)
 	m_Impl->bEtternaValid = b;
 }
 void
-HighScore::AddUploadedServer(string s)
+HighScore::AddUploadedServer(std::string s)
 {
 	if (find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) ==
 		m_Impl->uploaded.end())
@@ -1148,7 +1140,7 @@ HighScore::SetSkillsetSSR(Skillset ss, float ssr)
 	m_Impl->fSkillsetSSRs[ss] = ssr;
 }
 void
-HighScore::SetValidationKey(ValidationKey vk, string k)
+HighScore::SetValidationKey(ValidationKey vk, std::string k)
 {
 	m_Impl->ValidationKeys[vk] = k;
 }
@@ -1157,8 +1149,7 @@ HighScore::SetTopScore(int i)
 {
 	m_Impl->TopScore = i;
 }
-string
-HighScore::GetValidationKey(ValidationKey vk) const
+std::string HighScore::GetValidationKey(ValidationKey vk) const
 {
 	return m_Impl->ValidationKeys[vk];
 }
@@ -1263,8 +1254,7 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 	}
 }
 
-string
-HighScore::GetDisplayName() const
+std::string HighScore::GetDisplayName() const
 {
 	return GetName();
 }
@@ -1841,7 +1831,7 @@ class LunaHighScoreList : public Luna<HighScoreList>
 
 	static int GetHighestScoreOfName(T* p, lua_State* L)
 	{
-		string name = SArg(1);
+		std::string name = SArg(1);
 		for (size_t i = 0; i < p->vHighScores.size(); ++i) {
 			if (name == p->vHighScores[i].GetName()) {
 				p->vHighScores[i].PushSelf(L);
@@ -1854,7 +1844,7 @@ class LunaHighScoreList : public Luna<HighScoreList>
 
 	static int GetRankOfName(T* p, lua_State* L)
 	{
-		string name = SArg(1);
+		std::string name = SArg(1);
 		size_t rank = 0;
 		for (size_t i = 0; i < p->vHighScores.size(); ++i) {
 			if (name == p->vHighScores[i].GetName()) {

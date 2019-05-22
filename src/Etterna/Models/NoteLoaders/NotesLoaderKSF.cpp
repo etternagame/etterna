@@ -127,7 +127,7 @@ LoadFromKSFFile(const RString& sPath,
 		else if (sValueName == "PLAYER") {
 			RString sPlayer = sParams[1];
 			sPlayer.MakeLower();
-			if (sPlayer.find("double") != string::npos)
+			if (sPlayer.find("double") != std::string::npos)
 				bDoublesChart = true;
 		}
 		// This should always be last.
@@ -166,45 +166,45 @@ LoadFromKSFFile(const RString& sPath,
 
 		out.SetDescription(sFName);
 		// Check another before anything else... is this okay? -DaisuMaster
-		if (sFName.find("another") != string::npos) {
+		if (sFName.find("another") != std::string::npos) {
 			out.SetDifficulty(Difficulty_Edit);
 			if (out.GetMeter() == 0)
 				out.SetMeter(25);
-		} else if (sFName.find("wild") != string::npos ||
-				   sFName.find("wd") != string::npos ||
-				   sFName.find("crazy+") != string::npos ||
-				   sFName.find("cz+") != string::npos ||
-				   sFName.find("hardcore") != string::npos) {
+		} else if (sFName.find("wild") != std::string::npos ||
+				   sFName.find("wd") != std::string::npos ||
+				   sFName.find("crazy+") != std::string::npos ||
+				   sFName.find("cz+") != std::string::npos ||
+				   sFName.find("hardcore") != std::string::npos) {
 			out.SetDifficulty(Difficulty_Challenge);
 			if (out.GetMeter() == 0)
 				out.SetMeter(20);
-		} else if (sFName.find("crazy") != string::npos ||
-				   sFName.find("cz") != string::npos ||
-				   sFName.find("nightmare") != string::npos ||
-				   sFName.find("nm") != string::npos ||
-				   sFName.find("crazydouble") != string::npos) {
+		} else if (sFName.find("crazy") != std::string::npos ||
+				   sFName.find("cz") != std::string::npos ||
+				   sFName.find("nightmare") != std::string::npos ||
+				   sFName.find("nm") != std::string::npos ||
+				   sFName.find("crazydouble") != std::string::npos) {
 			out.SetDifficulty(Difficulty_Hard);
 			if (out.GetMeter() == 0)
 				out.SetMeter(14); // Set the meters to the Pump scale, not DDR.
-		} else if (sFName.find("hard") != string::npos ||
-				   sFName.find("hd") != string::npos ||
-				   sFName.find("freestyle") != string::npos ||
-				   sFName.find("fs") != string::npos ||
-				   sFName.find("double") != string::npos) {
+		} else if (sFName.find("hard") != std::string::npos ||
+				   sFName.find("hd") != std::string::npos ||
+				   sFName.find("freestyle") != std::string::npos ||
+				   sFName.find("fs") != std::string::npos ||
+				   sFName.find("double") != std::string::npos) {
 			out.SetDifficulty(Difficulty_Medium);
 			if (out.GetMeter() == 0)
 				out.SetMeter(8);
-		} else if (sFName.find("easy") != string::npos ||
-				   sFName.find("ez") != string::npos ||
-				   sFName.find("normal") != string::npos) {
+		} else if (sFName.find("easy") != std::string::npos ||
+				   sFName.find("ez") != std::string::npos ||
+				   sFName.find("normal") != std::string::npos) {
 			// I wonder if I should leave easy fall into the Beginner
 			// difficulty... -DaisuMaster
 			out.SetDifficulty(Difficulty_Easy);
 			if (out.GetMeter() == 0)
 				out.SetMeter(4);
-		} else if (sFName.find("beginner") != string::npos ||
-				   sFName.find("practice") != string::npos ||
-				   sFName.find("pr") != string::npos) {
+		} else if (sFName.find("beginner") != std::string::npos ||
+				   sFName.find("practice") != std::string::npos ||
+				   sFName.find("pr") != std::string::npos) {
 			out.SetDifficulty(Difficulty_Beginner);
 			if (out.GetMeter() == 0)
 				out.SetMeter(4);
@@ -217,20 +217,20 @@ LoadFromKSFFile(const RString& sPath,
 		out.m_StepsType = StepsType_pump_single;
 
 		// Check for "halfdouble" before "double".
-		if (sFName.find("halfdouble") != string::npos ||
-			sFName.find("half-double") != string::npos ||
-			sFName.find("h_double") != string::npos ||
-			sFName.find("hdb") != string::npos)
+		if (sFName.find("halfdouble") != std::string::npos ||
+			sFName.find("half-double") != std::string::npos ||
+			sFName.find("h_double") != std::string::npos ||
+			sFName.find("hdb") != std::string::npos)
 			out.m_StepsType = StepsType_pump_halfdouble;
 		// Handle bDoublesChart from above as well. -aj
-		else if (sFName.find("double") != string::npos ||
-				 sFName.find("nightmare") != string::npos ||
-				 sFName.find("freestyle") != string::npos ||
-				 sFName.find("db") != string::npos ||
-				 sFName.find("nm") != string::npos ||
-				 sFName.find("fs") != string::npos || bDoublesChart)
+		else if (sFName.find("double") != std::string::npos ||
+				 sFName.find("nightmare") != std::string::npos ||
+				 sFName.find("freestyle") != std::string::npos ||
+				 sFName.find("db") != std::string::npos ||
+				 sFName.find("nm") != std::string::npos ||
+				 sFName.find("fs") != std::string::npos || bDoublesChart)
 			out.m_StepsType = StepsType_pump_double;
-		else if (sFName.find("_1") != string::npos)
+		else if (sFName.find("_1") != std::string::npos)
 			out.m_StepsType = StepsType_pump_single;
 	}
 

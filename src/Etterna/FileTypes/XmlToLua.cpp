@@ -93,7 +93,7 @@ size_t
 after_slash_or_zero(RString const& s)
 {
 	size_t ret = s.rfind('/');
-	if (ret != string::npos) {
+	if (ret != std::string::npos) {
 		return ret + 1;
 	}
 	return 0;
@@ -106,7 +106,7 @@ add_extension_to_relative_path_from_found_file(RString const& relative_path,
 	size_t rel_last_slash = after_slash_or_zero(relative_path);
 	size_t found_last_slash = after_slash_or_zero(found_file);
 	return relative_path.Left(rel_last_slash) +
-		   found_file.substr(found_last_slash, string::npos);
+		   found_file.substr(found_last_slash, std::string::npos);
 }
 
 bool

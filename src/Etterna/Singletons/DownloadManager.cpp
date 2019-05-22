@@ -48,16 +48,16 @@ static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs(
   "downloadPacksToAdditionalSongs",
   0);
-static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY =
+static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const std::string CLIENT_DATA_KEY =
   "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
-static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
+static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t
 write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
 	size_t realsize = size * nmemb;
-	string tmp(static_cast<char*>(contents), realsize);
+	std::string tmp(static_cast<char*>(contents), realsize);
 	static_cast<string*>(userp)->append(tmp);
 	return realsize;
 }
@@ -68,11 +68,10 @@ class ReadThis
 	RageFile file;
 };
 
-string
-ComputerIdentity()
+std::string ComputerIdentity()
 {
-	string computerName = "";
-	string userName = "";
+	std::string computerName = "";
+	std::string userName = "";
 #ifdef _WIN32
 
 	int cpuinfo[4] = { 0, 0, 0, 0 };
@@ -122,7 +121,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	std::vector<RString> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
 
-	string doot = TEMP_ZIP_MOUNT_POINT;
+	std::string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {
 		doot += sZipFile.substr(sZipFile.find_last_of("/") +
 								1); // attempt to whitelist pack name, this
@@ -131,7 +130,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		doot = doot.substr(0, doot.length() - 4) + "/";
 	}
 
-	std::vector<string> vsFiles;
+	std::vector<std::string> vsFiles;
 	{
 		std::vector<RString> vsRawFiles;
 		GetDirListingRecursive(doot, "*", vsRawFiles);
@@ -141,7 +140,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 			return false;
 		}
 
-		std::vector<string> vsPrettyFiles;
+		std::vector<std::string> vsPrettyFiles;
 		FOREACH_CONST(RString, vsRawFiles, s)
 		{
 			if (GetExtension(*s).EqualsNoCase("ctl"))
@@ -149,17 +148,17 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 			vsFiles.push_back(*s);
 
-			string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
+			std::string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
 	}
-	string sResult = "Success installing " + sZipFile;
-	string extractTo =
+	std::string sResult = "Success installing " + sZipFile;
+	std::string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
 	FOREACH_CONST(string, vsFiles, sSrcFile)
 	{
-		string sDestFile = *sSrcFile;
+		std::string sDestFile = *sSrcFile;
 		sDestFile =
 		  RString(sDestFile.c_str())
 			.Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
@@ -250,9 +249,9 @@ initCURLHandle(bool withBearer)
 inline bool
 addFileToForm(curl_httppost*& form,
 			  curl_httppost*& lastPtr,
-			  string field,
-			  string fileName,
-			  string filePath,
+			  std::string field,
+			  std::string fileName,
+			  std::string filePath,
 			  RString& contents)
 {
 	RageFile rFile;
@@ -280,14 +279,14 @@ SetCURLResultsString(CURL* curlHandle, string* str)
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 }
 inline void
-DownloadManager::SetCURLURL(CURL* curlHandle, string url)
+DownloadManager::SetCURLURL(CURL* curlHandle, std::string url)
 {
 	checkProtocol(url);
 	EncodeSpaces(url);
 	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
 }
 inline void
-DownloadManager::SetCURLPostToURL(CURL* curlHandle, string url)
+DownloadManager::SetCURLPostToURL(CURL* curlHandle, std::string url)
 {
 	SetCURLURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
@@ -321,7 +320,7 @@ SetCURLFormPostField(CURL* curlHandle,
 					 curl_httppost*& form,
 					 curl_httppost*& lastPtr,
 					 const char* field,
-					 string value)
+					 std::string value)
 {
 	CURLFormPostField(curlHandle, form, lastPtr, field, value.c_str());
 }
@@ -329,8 +328,8 @@ inline void
 SetCURLFormPostField(CURL* curlHandle,
 					 curl_httppost*& form,
 					 curl_httppost*& lastPtr,
-					 string field,
-					 string value)
+					 std::string field,
+					 std::string value)
 {
 	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), value.c_str());
 }
@@ -339,7 +338,7 @@ inline void
 SetCURLFormPostField(CURL* curlHandle,
 					 curl_httppost*& form,
 					 curl_httppost*& lastPtr,
-					 string field,
+					 std::string field,
 					 T value)
 {
 	CURLFormPostField(
@@ -391,7 +390,7 @@ DownloadManager::~DownloadManager()
 }
 
 Download*
-DownloadManager::DownloadAndInstallPack(const string& url, string filename)
+DownloadManager::DownloadAndInstallPack(const string& url, std::string filename)
 {
 	Download* dl = new Download(url, filename);
 
@@ -443,7 +442,7 @@ DownloadManager::EncodeSpaces(string& str)
 	// Parse spaces (curl doesnt parse them properly)
 	bool foundSpaces = false;
 	size_t index = str.find(" ", 0);
-	while (index != string::npos) {
+	while (index != std::string::npos) {
 
 		str.erase(index, 1);
 		str.insert(index, "%20");
@@ -701,8 +700,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	return;
 }
 
-string
-Download::MakeTempFileName(string s)
+std::string Download::MakeTempFileName(std::string s)
 {
 	return Basename(s);
 }
@@ -715,7 +713,7 @@ DownloadManager::LoggedIn()
 void
 DownloadManager::AddFavorite(const string& chartkey)
 {
-	string req = "user/" + DLMAN->sessionUser + "/favorites";
+	std::string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.emplace_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
 		LOG->Warn((requ.result + req + DLMAN->sessionUser).c_str());
@@ -730,7 +728,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
 	if (it != DLMAN->favorites.end())
 		DLMAN->favorites.erase(it);
-	string req = "user/" + DLMAN->sessionUser + "/favorites/" + chartkey;
+	std::string req = "user/" + DLMAN->sessionUser + "/favorites/" + chartkey;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
@@ -743,7 +741,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 void
 DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
-	string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
+	std::string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
 				 to_string(wife) + "/" + to_string(rate);
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
@@ -759,7 +757,7 @@ DownloadManager::AddGoal(const string& chartkey,
 						 float rate,
 						 DateTime& timeAssigned)
 {
-	string req = "user/" + DLMAN->sessionUser + "/goals";
+	std::string req = "user/" + DLMAN->sessionUser + "/goals";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
@@ -780,11 +778,11 @@ DownloadManager::UpdateGoal(const string& chartkey,
 							DateTime& timeAssigned,
 							DateTime& timeAchieved)
 {
-	string doot = "0000:00:00 00:00:00";
+	std::string doot = "0000:00:00 00:00:00";
 	if (achieved)
 		doot = timeAchieved.GetString();
 
-	string req = "user/" + DLMAN->sessionUser + "/goals/update";
+	std::string req = "user/" + DLMAN->sessionUser + "/goals/update";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
@@ -802,7 +800,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 void
 DownloadManager::RefreshFavourites()
 {
-	string req = "user/" + DLMAN->sessionUser + "/favorites";
+	std::string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		json j;
 		bool parsed = true;
@@ -914,7 +912,7 @@ DownloadManager::UploadScore(HighScore* hs)
 	if (!LoggedIn())
 		return;
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
+	std::string url = serverURL.Get() + "/score";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
@@ -960,11 +958,11 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	if (!LoggedIn())
 		return;
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
+	std::string url = serverURL.Get() + "/score";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString;
+	std::string replayString;
 	const auto& offsets = hs->GetOffsetVector();
 	const auto& columns = hs->GetTrackVector();
 	const auto& types = hs->GetTapNoteTypeVector();
@@ -1051,11 +1049,11 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 			callback();
 
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
+	std::string url = serverURL.Get() + "/score";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString;
+	std::string replayString;
 	const auto& offsets = hs->GetOffsetVector();
 	const auto& columns = hs->GetTrackVector();
 	const auto& types = hs->GetTapNoteTypeVector();
@@ -1149,12 +1147,12 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 
 	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
 	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/updateReplayData";
+	std::string url = serverURL.Get() + "/updateReplayData";
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	string toSend = "[";
+	std::string toSend = "[";
 	if (!hs->LoadReplayData())
 		return;
 	auto& rows = hs->GetNoteRowVector();
@@ -1353,7 +1351,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 }
 
 HTTPRequest*
-DownloadManager::SendRequest(string requestName,
+DownloadManager::SendRequest(std::string requestName,
 							 std::vector<std::pair<string, string>> params,
 							 function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin,
@@ -1372,7 +1370,7 @@ DownloadManager::SendRequest(string requestName,
 
 HTTPRequest*
 DownloadManager::SendRequestToURL(
-  string url,
+  std::string url,
   std::vector<std::pair<string, string>> params,
   function<void(HTTPRequest&, CURLMsg*)> afterDone,
   bool requireLogin,
@@ -1806,7 +1804,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 	DLMAN->topScores[ss].clear();
 	if (!LoggedIn())
 		return;
-	string req = "user/" + DLMAN->sessionUser + "/top/";
+	std::string req = "user/" + DLMAN->sessionUser + "/top/";
 	CURL* curlHandle = initCURLHandle(true);
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
@@ -1908,12 +1906,12 @@ DownloadManager::OnLogin()
 }
 
 void
-DownloadManager::StartSession(string user,
-							  string pass,
+DownloadManager::StartSession(std::string user,
+							  std::string pass,
 							  function<void(bool loggedIn)> callback =
 								[](bool) { return; })
 {
-	string url = serverURL.Get() + "/login";
+	std::string url = serverURL.Get() + "/login";
 	if (loggingIn || user == "") {
 		return;
 	}
@@ -2057,7 +2055,7 @@ DownloadManager::RefreshPackList(const string& url)
 	return;
 }
 
-Download::Download(string url, string filename, function<void(Download*)> done)
+Download::Download(std::string url, std::string filename, function<void(Download*)> done)
 {
 	Done = done;
 	m_Url = url;
@@ -2179,7 +2177,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetDownloads(T* p, lua_State* L)
 	{
-		std::map<string, Download*>& dls = DLMAN->downloads;
+		std::map<std::string, Download*>& dls = DLMAN->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
 		for (auto it = dls.begin(); it != dls.end(); ++it) {
@@ -2196,15 +2194,15 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int Login(T* p, lua_State* L)
 	{
-		string user = SArg(1);
-		string pass = SArg(2);
+		std::string user = SArg(1);
+		std::string pass = SArg(2);
 		DLMAN->StartSession(user, pass);
 		return 0;
 	}
 	static int LoginWithToken(T* p, lua_State* L)
 	{
-		string user = SArg(1);
-		string token = SArg(2);
+		std::string user = SArg(1);
+		std::string token = SArg(2);
 		DLMAN->EndSessionIfExists();
 		DLMAN->authToken = token;
 		DLMAN->sessionUser = user;
@@ -2256,7 +2254,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)
 	{
-		string ck = SArg(1);
+		std::string ck = SArg(1);
 		if (DLMAN->chartLeaderboards.count(ck))
 			lua_pushnumber(L, DLMAN->chartLeaderboards[ck].size());
 		else
@@ -2265,7 +2263,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetTopChartScore(T* p, lua_State* L)
 	{
-		string chartkey = SArg(1);
+		std::string chartkey = SArg(1);
 		int rank = IArg(2);
 		int index = rank - 1;
 		if (index < 0 || !DLMAN->chartLeaderboards.count(chartkey) ||
@@ -2384,9 +2382,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		OnlineHighScore* hs =
 		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
 		int userid = hs->userid;
-		string username = hs->GetDisplayName();
-		string scoreid = hs->scoreid;
-		string ck = hs->GetChartKey();
+		std::string username = hs->GetDisplayName();
+		std::string scoreid = hs->scoreid;
+		std::string ck = hs->GetChartKey();
 		LuaReference f;
 		if (lua_isfunction(L, 2))
 			f = GetFuncArg(2, L);
@@ -2401,7 +2399,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	// this will not update a leaderboard to a new state.
 	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
 	{
-		string chart = SArg(1);
+		std::string chart = SArg(1);
 		LuaReference ref;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[chart];
 		if (lua_isfunction(L, 2)) {
@@ -2436,7 +2434,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		std::vector<HighScore*> filteredLeaderboardScores;
 		unordered_set<string> userswithscores;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
-		string country = "";
+		std::string country = "";
 		if (!lua_isnoneornil(L, 2)) {
 			country = SArg(2);
 		}

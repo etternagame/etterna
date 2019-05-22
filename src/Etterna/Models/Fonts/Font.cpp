@@ -39,7 +39,7 @@ FontPage::Load(const FontPageSettings& cfg)
 
 	RageTextureID ID2 = ID1;
 	// "arial 20 16x16 [main].png" => "arial 20 16x16 [main-stroke].png"
-	if (ID2.filename.find("]") != string::npos) {
+	if (ID2.filename.find("]") != std::string::npos) {
 		ID2.filename.Replace("]", "-stroke]");
 		if (IsAFile(ID2.filename)) {
 			m_FontPageTextures.m_pTextureStroke = TEXTUREMAN->LoadTexture(ID2);
@@ -466,11 +466,11 @@ RString
 Font::GetPageNameFromFileName(const RString& sFilename)
 {
 	size_t begin = sFilename.find_first_of('[');
-	if (begin == string::npos)
+	if (begin == std::string::npos)
 		return "main";
 
 	size_t end = sFilename.find_first_of(']', begin);
-	if (end == string::npos)
+	if (end == std::string::npos)
 		return "main";
 
 	begin++;
@@ -890,7 +890,7 @@ Font::Load(const RString& sIniPath, const RString& sChars)
 		RString sPagename = GetPageNameFromFileName(sTexturePath);
 
 		// Ignore stroke textures
-		if (sTexturePath.find("-stroke") != string::npos)
+		if (sTexturePath.find("-stroke") != std::string::npos)
 			continue;
 
 		// Create this down here so it doesn't leak if the continue gets

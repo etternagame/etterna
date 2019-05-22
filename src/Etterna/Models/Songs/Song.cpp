@@ -580,7 +580,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 
 	if (!from_cache) {
 		if (this->m_sArtist == "The Dancing Monkeys Project" &&
-			this->m_sMainTitle.find_first_of('-') != string::npos) {
+			this->m_sMainTitle.find_first_of('-') != std::string::npos) {
 			// Dancing Monkeys had a bug/feature where the artist was replaced.
 			// Restore it.
 			std::vector<RString> titleParts;
@@ -1055,15 +1055,15 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 #undef CLEAR_NOT_HAS
 	}
 
-	string scoot = m_sMainTitle;
-	string mcgoot = m_sSubTitle;
+	std::string scoot = m_sMainTitle;
+	std::string mcgoot = m_sSubTitle;
 
 	if (!mcgoot.empty())
 		scoot += " " + mcgoot;
 	displayfulltitle = scoot;
 
-	string doot = m_sMainTitleTranslit;
-	string loot = m_sSubTitleTranslit;
+	std::string doot = m_sMainTitleTranslit;
+	std::string loot = m_sSubTitleTranslit;
 
 	if (!loot.empty())
 		doot += " " + loot;
@@ -1220,7 +1220,7 @@ Song::SaveToSMFile()
 	return NotesWriterSM::Write(sPath, *this, vpStepsToSave);
 }
 std::vector<Steps*>
-Song::GetStepsToSave(bool bSavingCache, string path)
+Song::GetStepsToSave(bool bSavingCache, std::string path)
 {
 
 	std::vector<Steps*> vpStepsToSave;
@@ -1662,7 +1662,7 @@ Song::GetSongAssetPath(RString sPath, const RString& sSongPath)
 
 	/* If there's no path in the file, the file is in the same directory as the
 	 * song. (This is the preferred configuration.) */
-	if (sPath.find('/') == string::npos)
+	if (sPath.find('/') == std::string::npos)
 		return sRelPath;
 
 	// The song contains a path; treat it as relative to the top SM directory.

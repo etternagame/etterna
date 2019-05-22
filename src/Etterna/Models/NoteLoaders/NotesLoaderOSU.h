@@ -31,18 +31,18 @@ namespace OsuLoader {
 
 // these are not organised AT ALL
 
-std::map<string, std::map<string, string>>
-ParseFileString(string fileContents);
+std::map<std::string, std::map<std::string, std::string>>
+ParseFileString(std::string fileContents);
 
 void
-SeparateTagsAndContents(string fileContents,
-						std::vector<string>& tagsOut,
-						std::vector<std::vector<string>>& contentsOut);
+SeparateTagsAndContents(std::string fileContents,
+						std::vector<std::string>& tagsOut,
+						std::vector<std::vector<std::string>>& contentsOut);
 
 void
-SetMetadata(std::map<string, std::map<string, string>>, Song& out);
+SetMetadata(std::map<std::string, std::map<std::string, std::string>>, Song& out);
 void
-SetTimingData(std::map<string, std::map<string, string>>, Song& out);
+SetTimingData(std::map<std::string, std::map<std::string, std::string>>, Song& out);
 
 void
 GetApplicableFiles(const RString& sPath, std::vector<RString>& out);
@@ -52,7 +52,7 @@ LoadFromDir(const RString& sPath, Song& out);
 
 void
 LoadNoteDataFromParsedData(Steps* out,
-						   std::map<string, std::map<string, string>> parsedData);
+						   std::map<std::string, std::map<std::string, std::string>> parsedData);
 
 bool
 LoadNoteDataFromSimfile(const RString& path, Steps& out);
@@ -60,7 +60,7 @@ LoadNoteDataFromSimfile(const RString& path, Steps& out);
 bool
 LoadChartData(Song* song,
 			  Steps* chart,
-			  std::map<string, std::map<string, string>> parsedData);
+			  std::map<std::string, std::map<std::string, std::string>> parsedData);
 
 int
 MsToNoteRow(int ms, Song* song);

@@ -70,7 +70,7 @@ class EndOfGame_PlayerData
 {
   public:
 	int name;
-	string nameStr;
+	std::string nameStr;
 	int grade;
 	int score;
 	Difficulty difficulty;
@@ -145,8 +145,8 @@ class ChartRequest
 	  , rate(j["rate"])
 	{
 	}
-	const string chartkey;
-	const string user; // User that requested this chart
+	const std::string chartkey;
+	const std::string user; // User that requested this chart
 	const int rate;	// rate * 1000
 	void PushSelf(lua_State* L);
 };
@@ -202,7 +202,7 @@ class NetProtocol
 	virtual void EnterRoom(RString name, RString password) {}
 	virtual void LeaveRoom(NetworkSyncManager* n) {}
 	virtual void RequestRoomInfo(RString name) {}
-	virtual void SendChat(const RString& message, string tab, int type) {}
+	virtual void SendChat(const RString& message, std::string tab, int type) {}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n,
 							 int playerID,
@@ -244,7 +244,7 @@ class ETTProtocol : public NetProtocol
 	std::vector<json> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
-	string errorMsg;
+	std::string errorMsg;
 	uWS::WebSocket<uWS::CLIENT>* ws{ nullptr };
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
@@ -255,8 +255,8 @@ class ETTProtocol : public NetProtocol
 	clock_t timeoutStart;
 	double timeout;
 	function<void(void)> onTimeout;
-	string roomName;
-	string roomDesc;
+	std::string roomName;
+	std::string roomDesc;
 	bool inRoom{ false };
 	bool Connect(NetworkSyncManager* n,
 				 unsigned short port,
@@ -265,7 +265,7 @@ class ETTProtocol : public NetProtocol
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
 	void Login(RString user, RString pass) override;
 	void Logout() override;
-	void SendChat(const RString& message, string tab, int type) override;
+	void SendChat(const RString& message, std::string tab, int type) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
 	void LeaveRoom(NetworkSyncManager* n) override;
@@ -292,9 +292,9 @@ class ETTProtocol : public NetProtocol
 class Chat
 {
   public:
-	std::map<std::pair<string, int>, std::vector<string>> rawMap;
+	std::map<std::pair<string, int>, std::vector<std::string>> rawMap;
 
-	std::vector<string>& operator[](const std::pair<string, int>& p)
+	std::vector<std::string>& operator[](const std::pair<string, int>& p)
 	{
 		if (p.second == 0)
 			return rawMap.operator[](make_pair(string(""), 0));
@@ -360,8 +360,8 @@ class NetworkSyncManager
 	bool useSMserver;
 	bool isSMOnline;
 	bool loggedIn;
-	string loggedInUsername;
-	string loginResponse; // Failure reason
+	std::string loggedInUsername;
+	std::string loginResponse; // Failure reason
 
 	Chat chat; //[{Tabname, int}] = vector<line>
 
@@ -370,7 +370,7 @@ class NetworkSyncManager
 	std::vector<int> m_ActivePlayer;
 	std::vector<RString> m_PlayerNames;
 	std::vector<bool> m_PlayerReady;
-	std::vector<string> commonpacks;
+	std::vector<std::string> commonpacks;
 
 	// friendlist
 	std::vector<std::string> fl_PlayerNames;
@@ -390,7 +390,7 @@ class NetworkSyncManager
 
 	// Used for chatting
 	void SendChat(const RString& message,
-				  string tab = "",
+				  std::string tab = "",
 				  int type = 0); // 0=lobby (ettp only)
 	RString m_WaitingChat;
 
@@ -399,10 +399,10 @@ class NetworkSyncManager
 	RString m_sArtist;
 	RString m_sSubTitle;
 	RString m_sFileHash;
-	string chartkey;
+	std::string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
-	std::map<string, GameplayScore> mpleaderboard;
+	std::map<std::string, GameplayScore> mpleaderboard;
 	void PushMPLeaderboard(lua_State* L);
 	Difficulty difficulty;
 	int meter;

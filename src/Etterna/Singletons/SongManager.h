@@ -39,7 +39,7 @@ class SongManager
 	void Cleanup();
 
 	void Invalidate(const Song* pStaleSong);
-	static std::map<string, Playlist>& GetPlaylists();
+	static std::map<std::string, Playlist>& GetPlaylists();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
@@ -48,7 +48,7 @@ class SongManager
 
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	int DifferentialReload();
-	int DifferentialReloadDir(string dir);
+	int DifferentialReloadDir(std::string dir);
 
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(std::set<string>& favs);
@@ -65,7 +65,7 @@ class SongManager
 	bool DoesSongGroupExist(const RString& sSongGroup) const;
 	RageColor GetSongGroupColor(
 	  const RString& sSongGroupName,
-	  std::map<string, Playlist>& playlists = GetPlaylists()) const;
+	  std::map<std::string, Playlist>& playlists = GetPlaylists()) const;
 	RageColor GetSongColor(const Song* pSong) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
@@ -151,20 +151,20 @@ class SongManager
 	// Lua
 	void PushSelf(lua_State* L);
 
-	string activeplaylist = "";
-	string playlistcourse = "";
+	std::string activeplaylist = "";
+	std::string playlistcourse = "";
 	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
-										   std::vector<string> oldChartkeys);
+										   std::vector<std::string> oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
-	  std::map<string, Playlist>& playlists = GetPlaylists());
+	  std::map<std::string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck,
-						std::map<string, Playlist>& playlists = GetPlaylists());
+						std::map<std::string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
 	  std::set<string>& favs,
-	  std::map<string, Playlist>& playlists = GetPlaylists());
+	  std::map<std::string, Playlist>& playlists = GetPlaylists());
 
-	std::map<string, std::vector<Song*>> groupderps;
-	std::vector<string> playlistGroups; // To delete from groupderps when rebuilding
+	std::map<std::string, std::vector<Song*>> groupderps;
+	std::vector<std::string> playlistGroups; // To delete from groupderps when rebuilding
 								   // playlist groups
 
 	void FinalizeSong(Song* pNewSong, const RString& dir);

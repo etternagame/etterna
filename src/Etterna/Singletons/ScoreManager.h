@@ -28,7 +28,7 @@ struct ScoresAtRate
 
 	HighScore* AddScore(HighScore& hs);
 
-	std::vector<string> GetSortedKeys();
+	std::vector<std::string> GetSortedKeys();
 	void PushSelf(lua_State* L);
 
 	bool HandleNoCCPB(HighScore& hs);
@@ -62,8 +62,8 @@ struct ScoresForChart
 
 	std::vector<float> GetPlayedRates();
 	std::vector<int> GetPlayedRateKeys();
-	std::vector<string> GetPlayedRateDisplayStrings();
-	string RateKeyToDisplayString(float rate);
+	std::vector<std::string> GetPlayedRateDisplayStrings();
+	std::string RateKeyToDisplayString(float rate);
 	int RateToKey(float& rate) { return lround(rate * 10000.f); }
 	float KeyToRate(int key) { return static_cast<float>(key) / 10000.f; }
 
@@ -170,7 +170,7 @@ class ScoreManager
 	ScoresForChart* GetScoresForChart(
 	  const string& ck,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	std::vector<string> GetSortedKeys();
+	std::vector<std::string> GetSortedKeys();
 
 	void PushSelf(lua_State* L);
 	HighScore* GetMostRecentScore()
@@ -179,7 +179,7 @@ class ScoreManager
 			return tempscoreforonlinereplayviewing;
 		return AllScores.back();
 	}
-	void PutScoreAtTheTop(string scorekey)
+	void PutScoreAtTheTop(std::string scorekey)
 	{
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());

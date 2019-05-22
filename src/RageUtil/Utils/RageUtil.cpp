@@ -310,10 +310,10 @@ Commify(const RString& num, const RString& sep, const RString& dot)
 	size_t num_end = num.size();
 	size_t dot_pos = num.find(dot);
 	size_t dash_pos = num.find('-');
-	if (dot_pos != string::npos) {
+	if (dot_pos != std::string::npos) {
 		num_end = dot_pos;
 	}
-	if (dash_pos != string::npos) {
+	if (dash_pos != std::string::npos) {
 		num_start = dash_pos + 1;
 	}
 	size_t num_size = num_end - num_start;
@@ -1055,14 +1055,14 @@ FindFirstFilenameContaining(const std::vector<RString>& filenames,
 		for (size_t s = 0; s < ends_with.size(); ++s) {
 			if (lower_size >= ends_with[s].size()) {
 				size_t end_pos = lower_size - ends_with[s].size();
-				if (!lower.compare(end_pos, string::npos, ends_with[s])) {
+				if (!lower.compare(end_pos, std::string::npos, ends_with[s])) {
 					out = filenames[i];
 					return true;
 				}
 			}
 		}
 		for (size_t s = 0; s < contains.size(); ++s) {
-			if (lower.find(contains[s]) != string::npos) {
+			if (lower.find(contains[s]) != std::string::npos) {
 				out = filenames[i];
 				return true;
 			}

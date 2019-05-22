@@ -212,8 +212,8 @@ class Steps
 
 	void CalcEtternaMetadata();
 
-	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
-	std::vector<string> bustedkeys;
+	std::string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
+	std::vector<std::string> bustedkeys;
 	void MakeBustedKeys();
 
 	// you are all idiots for not just doing this in the first place -mina
@@ -277,7 +277,7 @@ class Steps
 	void GetDisplayBpms(DisplayBpms& addTo) const;
 
   private:
-	string ChartKey = "";
+	std::string ChartKey = "";
 	/* We can have one or both of these; if we have both, they're always
 	 * identical. Call Compress() to force us to only have
 	 * m_sNoteDataCompressed; otherwise, creation of these is transparent. */

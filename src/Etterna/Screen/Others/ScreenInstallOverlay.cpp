@@ -93,10 +93,10 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 		RString s = args.argv[i];
 		if (s == "notedataCache") {
 			// TODO: Create the directories if they dont exist
-			string packFolder = "packbanner/";
-			string cdtitleFolder = "cdtitle/";
-			string bgFolder = "bg/";
-			string bannerFolder = "banner/";
+			std::string packFolder = "packbanner/";
+			std::string cdtitleFolder = "cdtitle/";
+			std::string bgFolder = "bg/";
+			std::string bannerFolder = "banner/";
 
 			auto ndOutputPath = args.argv[i + 1]; // notedata
 			EnsureSlashEnding(ndOutputPath);
@@ -113,7 +113,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					continue;
 				RageFile f;
 				f.Open(path);
-				string p = f.GetPath();
+				std::string p = f.GetPath();
 				f.Close();
 				std::ofstream dst(
 					imgsOutputPath + packFolder + pack + "_packbanner." +
@@ -142,7 +142,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				{
 					vpStepsToSave.push_back(*s);
 				}
-				string songkey;
+				std::string songkey;
 				for (auto& st : vpStepsToSave)
 					songkey += st->GetChartKey();
 
@@ -160,7 +160,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					
 					RageFile f;
 					f.Open(tmpOutPutPath);
-					string p = f.GetPath();
+					std::string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(sscCacheFilePath,
 					  std::ios::binary);
@@ -172,7 +172,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasBanner()) {
 					RageFile f;
 					f.Open(pSong->GetBannerPath());
-					string p = f.GetPath();
+					std::string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 						imgsOutputPath + bannerFolder + songkey + "_banner." +
@@ -186,7 +186,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasCDTitle()) {
 					RageFile f;
 					f.Open(pSong->GetCDTitlePath());
-					string p = f.GetPath();
+					std::string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 						imgsOutputPath +cdtitleFolder + songkey + "_cd." +
@@ -200,7 +200,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasBackground()) {
 					RageFile f;
 					f.Open(pSong->GetBackgroundPath());
-					string p = f.GetPath();
+					std::string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 						imgsOutputPath + bgFolder + songkey + "_bg." +
@@ -224,7 +224,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					auto& etaner = td->BuildAndGetEtaner(nerv);
 					auto& serializednd = nd.SerializeNoteData(etaner);
 
-					string path =
+					std::string path =
 						ndOutputPath + steps->GetChartKey() + ".cache";
 					ofstream FILE(path, ios::out | ofstream::binary);
 					FILE.write((char*)&serializednd[0],

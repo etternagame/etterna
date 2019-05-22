@@ -717,7 +717,7 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 			sRet.append(to_string(nt));
 			for (int r = iMeasureStartRow; r <= iMeasureLastRow;
 				 r += iRowSpacing) {
-				string halp;
+				std::string halp;
 				for (int t = 0; t < nd->GetNumTracks(); ++t) {
 					const TapNote& tn = nd->GetTapNote(t, r);
 					if (tn.type == TapNoteType_Empty) {
@@ -788,42 +788,42 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 		size_t oop = 1;
 		for (;;) {
 			oop = sRet.find("??", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "~");
 		}
 		oop = 1;
 		for (;;) {
 			oop = sRet.find("~~", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "|");
 		}
 		oop = 1;
 		for (;;) {
 			oop = sRet.find("||", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "!");
 		}
 		oop = 1;
 		for (;;) {
 			oop = sRet.find("!!", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "-");
 		}
 		oop = 1;
 		for (;;) {
 			oop = sRet.find("--", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "`");
 		}
 		oop = 1;
 		for (;;) {
 			oop = sRet.find("``", oop - 1);
-			if (oop == string::npos)
+			if (oop == std::string::npos)
 				break;
 			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, ".");
 		}

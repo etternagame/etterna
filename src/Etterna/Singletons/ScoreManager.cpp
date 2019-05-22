@@ -63,11 +63,11 @@ ScoresAtRate::AddScore(HighScore& hs)
 	return &(scores.find(key)->second);
 }
 
-std::vector<string>
+std::vector<std::string>
 ScoresAtRate::GetSortedKeys()
 {
 	std::map<float, string, greater<float>> tmp;
-	std::vector<string> o;
+	std::vector<std::string> o;
 	FOREACHUM(string, HighScore, scores, i)
 	tmp.emplace(i->second.GetWifeScore(), i->first);
 	FOREACHM(float, string, tmp, j)
@@ -189,20 +189,19 @@ ScoresForChart::GetPlayedRateKeys()
 	return o;
 }
 
-std::vector<string>
+std::vector<std::string>
 ScoresForChart::GetPlayedRateDisplayStrings()
 {
 	std::vector<float> rates = GetPlayedRates();
-	std::vector<string> o;
+	std::vector<std::string> o;
 	for (size_t i = 0; i < rates.size(); ++i)
 		o.emplace_back(RateKeyToDisplayString(rates[i]));
 	return o;
 }
 
-string
-ScoresForChart::RateKeyToDisplayString(float rate)
+std::string ScoresForChart::RateKeyToDisplayString(float rate)
 {
-	string rs = ssprintf("%.2f", rate);
+	std::string rs = ssprintf("%.2f", rate);
 	int j = 1;
 	if (rs.find_last_not_of('0') == rs.find('.'))
 		j = 2;
@@ -352,14 +351,14 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
 	mutex stepsMutex;
-	std::vector<string> currentSteps;
+	std::vector<std::string> currentSteps;
 	class StepsLock
 	{
 	  public:
 		mutex& stepsMutex;
-		std::vector<string>& currentSteps;
+		std::vector<std::string>& currentSteps;
 		string& ck;
-		StepsLock(std::vector<string>& vec, mutex& mut, string& k)
+		StepsLock(std::vector<std::string>& vec, mutex& mut, string& k)
 		  : currentSteps(vec)
 		  , stepsMutex(mut)
 		  , ck(k)
@@ -413,7 +412,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				++scoreIndex;
 				if (hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
-				string ck = hs->GetChartKey();
+				std::string ck = hs->GetChartKey();
 				StepsLock lk(currentSteps, stepsMutex, ck);
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
@@ -626,7 +625,7 @@ ScoresAtRate::CreateNode(const int& rate) const
 	if (o->ChildrenEmpty())
 		return o;
 
-	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
+	std::string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which
 	// would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
@@ -687,7 +686,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 						   const float& rate,
 						   const string& profileID)
 {
-	string sk;
+	std::string sk;
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
@@ -726,7 +725,7 @@ ScoresForChart::LoadFromNode(const XNode* node,
 							 const string& ck,
 							 const string& profileID)
 {
-	string rs = "";
+	std::string rs = "";
 	int rate;
 
 	if (node->GetName() == "Chart")
@@ -755,9 +754,9 @@ ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
 	FOREACH_CONST_Child(node, p)
 	{
 		// ASSERT(p->GetName() == "Chart");
-		string tmp;
+		std::string tmp;
 		p->GetAttrValue("Key", tmp);
-		const string ck = tmp;
+		const std::string ck = tmp;
 		pscores[profileID][ck].LoadFromNode(p, ck, profileID);
 	}
 }
@@ -788,7 +787,7 @@ class LunaScoresAtRate : public Luna<ScoresAtRate>
 	static int GetScores(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		std::vector<string> keys = p->GetSortedKeys();
+		std::vector<std::string> keys = p->GetSortedKeys();
 		for (size_t i = 0; i < keys.size(); ++i) {
 			HighScore& wot = p->scores[keys[i]];
 			wot.PushSelf(L);
@@ -822,7 +821,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		if (scores != nullptr) {
 			lua_newtable(L);
 			std::vector<int> ratekeys = scores->GetPlayedRateKeys();
-			std::vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
+			std::vector<std::string> ratedisplay = scores->GetPlayedRateDisplayStrings();
 			for (size_t i = 0; i < ratekeys.size(); ++i) {
 				LuaHelpers::Push(L, ratedisplay[i]);
 				scores->GetScoresAtRate(ratekeys[i])->PushSelf(L);

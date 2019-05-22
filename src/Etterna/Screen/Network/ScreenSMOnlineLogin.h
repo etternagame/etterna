@@ -18,7 +18,7 @@ class ScreenSMOnlineLogin : public ScreenOptions
 	RString GetSelectedProfileID();
 	int m_iPlayer;
 	bool typeUsername{ false };
-	string username;
+	std::string username;
 };
 
 #endif

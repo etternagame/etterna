@@ -431,11 +431,11 @@ MusicWheel::GetSongList(std::vector<Song*>& arraySongs, SortOrder so)
 	}
 }
 bool
-contains(string container, string findme)
+contains(std::string container, std::string findme)
 {
 	std::transform(
 	  begin(container), end(container), begin(container), ::tolower);
-	return container.find(findme) != string::npos;
+	return container.find(findme) != std::string::npos;
 }
 void
 MusicWheel::FilterBySearch(std::vector<Song*>& inv, RString findme)
@@ -448,9 +448,9 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, RString findme)
 	size_t artist = findme.find("artist=");
 	size_t author = findme.find("author=");
 	size_t title = findme.find("title=");
-	string findartist = "";
-	string findauthor = "";
-	string findtitle = "";
+	std::string findartist = "";
+	std::string findauthor = "";
+	std::string findtitle = "";
 
 	if (artist != findme.npos || author != findme.npos ||
 		title != findme.npos) {
@@ -543,7 +543,7 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, RString findme)
 }
 
 void
-MusicWheel::SetHashList(const std::vector<string>& newHashList)
+MusicWheel::SetHashList(const std::vector<std::string>& newHashList)
 {
 	hashList = newHashList;
 }
@@ -574,7 +574,7 @@ MusicWheel::SearchGroupNames(RString& findme)
 {
 	const std::vector<RString>& grps = SONGMAN->GetSongGroupNames();
 	for (size_t i = 0; i < grps.size(); ++i) {
-		string lc = RString(grps[i]).MakeLower();
+		std::string lc = RString(grps[i]).MakeLower();
 		size_t droop = lc.find(findme);
 		if (droop != lc.npos) {
 			groupnamesearchmatch = grps[i];
@@ -940,7 +940,7 @@ MusicWheel::BuildWheelItemDatas(
 
 			auto& groups = SONGMAN->groupderps;
 
-			std::map<string, string> shitterstrats;
+			std::map<std::string, std::string> shitterstrats;
 			for (auto& n : groups) {
 				shitterstrats[Rage::make_lower(n.first)] = n.first;
 				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
@@ -1679,7 +1679,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
