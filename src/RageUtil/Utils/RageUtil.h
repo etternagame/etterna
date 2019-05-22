@@ -858,7 +858,7 @@ extern unsigned char g_UpperCase[256];
 extern unsigned char g_LowerCase[256];
 
 /* ASCII-only case insensitivity. */
-struct char_traits_char_nocase : public char_traits<char>
+struct char_traits_char_nocase : public std::char_traits<char>
 {
 	static bool eq(char c1, char c2)
 	{
