@@ -768,7 +768,7 @@ SongCacheIndex::LoadCache(
 	const int threads = std::thread::hardware_concurrency();
 	const int limit = count / threads;
 	ThreadData data;
-	atomic<bool> abort(false);
+	std::atomic<bool> abort(false);
 	auto threadCallback =
 	  [&data, fivePercent, &abort](
 		int limit,

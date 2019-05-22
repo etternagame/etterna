@@ -160,7 +160,7 @@ public:
 	void SetPositionSeconds(float fGiven);
 
 	void SetPlayBackCallback(LuaReference f, unsigned int bufSize = 1024);
-	atomic<bool> pendingPlayBackCall{ false };
+	std::atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
 
 	// Lua
