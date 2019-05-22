@@ -546,7 +546,7 @@ NoteSkinManager::LoadActor(const RString& sButton,
 		return Sprite::NewBlankSprite();
 	}
 
-	unique_ptr<XNode> pNode(XmlFileUtil::XNodeFromTable(L));
+	std::unique_ptr<XNode> pNode(XmlFileUtil::XNodeFromTable(L));
 	if (pNode.get() == NULL) {
 		LUA->Release(L);
 		// XNode will warn about the error

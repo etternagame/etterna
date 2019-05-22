@@ -292,7 +292,7 @@ ActorUtil::MakeActor(const RString& sPath_, Actor* pParentActor)
 	FileType ft = GetFileType(sPath);
 	switch (ft) {
 		case FT_Lua: {
-			unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
+			std::unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
 			if (pNode.get() == NULL) {
 				// XNode will warn about the error
 				return new Actor;

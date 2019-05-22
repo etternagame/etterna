@@ -87,15 +87,15 @@ const RString&
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 unique_ptr<RString>* pNameCache)
+			 std::unique_ptr<RString>* pNameCache)
 {
 	if (unlikely(pNameCache[0].get() == NULL)) {
 		for (int i = 0; i < iMax; ++i) {
-			unique_ptr<RString> ap(new RString(szNameArray[i]));
+			std::unique_ptr<RString> ap(new RString(szNameArray[i]));
 			pNameCache[i] = std::move(ap);
 		}
 
-		unique_ptr<RString> ap(new RString);
+		std::unique_ptr<RString> ap(new RString);
 		pNameCache[iMax + 1] = std::move(ap);
 	}
 

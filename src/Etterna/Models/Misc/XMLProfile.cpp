@@ -84,7 +84,7 @@ XMLProfile::LoadEttFromDir(RString dir)
 	RString fn = dir + ETT_XML;
 
 	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	std::unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == NULL) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
@@ -105,7 +105,7 @@ bool
 XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const
 {
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
-	unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
+	std::unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	sDir += PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
 	RString fn = sDir + ETT_XML;

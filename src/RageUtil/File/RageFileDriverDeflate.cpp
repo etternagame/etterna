@@ -295,7 +295,7 @@ RageFileObjDeflate::FlushInternal()
 RageFileObjInflate*
 GunzipFile(RageFileBasic* pFile_, RString& sError, uint32_t* iCRC32)
 {
-	unique_ptr<RageFileBasic> pFile(pFile_);
+	std::unique_ptr<RageFileBasic> pFile(pFile_);
 
 	sError = "";
 

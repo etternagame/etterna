@@ -78,7 +78,7 @@ const RString&
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 unique_ptr<RString>* pNameCache); // XToString helper
+			 std::unique_ptr<RString>* pNameCache); // XToString helper
 
 #define XToString(X)                                                           \
                                                                                \
@@ -89,7 +89,7 @@ EnumToString(int iVal,
 	const RString& X##ToString(X x)                                            \
                                                                                \
 	{                                                                          \
-		static unique_ptr<RString> as_##X##Name[NUM_##X + 2];                  \
+		static std::unique_ptr<RString> as_##X##Name[NUM_##X + 2];                  \
 		return EnumToString(x, NUM_##X, X##Names, as_##X##Name);               \
 	}                                                                          \
                                                                                \
@@ -108,10 +108,10 @@ EnumToString(int iVal,
 	const RString& X##ToLocalizedString(X x)                                   \
                                                                                \
 	{                                                                          \
-		static unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
+		static std::unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
 		if (g_##X##Name[0].get() == NULL) {                                    \
 			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
-				unique_ptr<LocalizedString> ap(                                \
+				std::unique_ptr<LocalizedString> ap(                                \
 				  new LocalizedString(#X, X##ToString((X)i)));                 \
 				g_##X##Name[i] = std::move(ap);                                \
 			}                                                                  \
