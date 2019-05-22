@@ -1211,7 +1211,7 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 	return;
 }
 void
-UpdateReplayDataSequentially(deque<HighScore*> toUpload)
+UpdateReplayDataSequentially(std::deque<HighScore*> toUpload)
 {
 	auto it = toUpload.begin();
 	if (it != toUpload.end()) {
@@ -1233,7 +1233,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 	// a score that is already uploaded and already has replaydata, and that the
 	// source data is on disk to update it -mina
 	auto& scores = SCOREMAN->GetAllScores();
-	deque<HighScore*> toUpload;
+	std::deque<HighScore*> toUpload;
 	for (auto& scorePtr : scores) {
 		auto ts = scorePtr->GetTopScore(); // still need to do this?
 		if ((ts == 1 || ts == 2)) {
@@ -1247,7 +1247,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 	return true;
 }
 void
-uploadSequentially(deque<HighScore*> toUpload)
+uploadSequentially(std::deque<HighScore*> toUpload)
 {
 	auto it = toUpload.begin();
 	if (it != toUpload.end()) {
@@ -1267,7 +1267,7 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 	auto scores = SCOREMAN->GetAllPBPtrs();
-	deque<HighScore*> toUpload;
+	std::deque<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();

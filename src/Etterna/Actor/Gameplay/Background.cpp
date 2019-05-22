@@ -102,7 +102,7 @@ class BackgroundImpl : public ActorFrame
 	DancingCharacters* m_pDancingCharacters;
 	const Song* m_pSong;
 	std::map<RString, BackgroundTransition> m_mapNameToTransition;
-	deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
+	std::deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
 											   // from.  These may or may not be
 											   // loaded into m_BGAnimations.
 
@@ -125,7 +125,7 @@ class BackgroundImpl : public ActorFrame
 		// m_BGAnimations. calls CreateBackground
 		BackgroundDef CreateRandomBGA(const Song* pSong,
 									  const RString& sEffect,
-									  deque<BackgroundDef>& RandomBGAnimations,
+									  std::deque<BackgroundDef>& RandomBGAnimations,
 									  Actor* pParent);
 
 		int FindBGSegmentForBeat(float fBeat) const;
@@ -430,7 +430,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 BackgroundDef
 BackgroundImpl::Layer::CreateRandomBGA(const Song* pSong,
 									   const RString& sEffect,
-									   deque<BackgroundDef>& RandomBGAnimations,
+									   std::deque<BackgroundDef>& RandomBGAnimations,
 									   Actor* pParent)
 {
 	if (g_RandomBackgroundMode == BGMODE_OFF)

@@ -18,14 +18,14 @@
 /** @brief General foreach loop iterating over a deque. */
 #define FOREACHD(elemType, vect, var)                                          \
                                                                                \
-	for (deque<elemType>::iterator var = (vect).begin();                       \
+	for (std::deque<elemType>::iterator var = (vect).begin();                       \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 /** @brief General foreach loop iterating over a deque, using a constant
  * iterator. */
 #define FOREACHD_CONST(elemType, vect, var)                                    \
                                                                                \
-	for (deque<elemType>::const_iterator var = (vect).begin();                 \
+	for (std::deque<elemType>::const_iterator var = (vect).begin();                 \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 

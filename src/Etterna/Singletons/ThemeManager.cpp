@@ -43,7 +43,7 @@ struct Theme
 	RString sThemeName;
 };
 // When looking for a metric or an element, search these from head to tail.
-static deque<Theme> g_vThemes;
+static std::deque<Theme> g_vThemes;
 class LoadedThemeData
 {
   public:
@@ -521,7 +521,7 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 	/* TODO: verify whether this final check is necessary. */
 	const RString sCurThemeName = m_sCurThemeName;
 	m_sRealCurThemeName = m_sCurThemeName;
-	deque<Theme>::const_iterator iter = g_vThemes.end();
+	std::deque<Theme>::const_iterator iter = g_vThemes.end();
 	do {
 		--iter;
 

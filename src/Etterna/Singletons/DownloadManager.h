@@ -302,7 +302,7 @@ class DownloadManager
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
-	deque<std::pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
+	std::deque<std::pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
