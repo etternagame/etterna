@@ -803,10 +803,10 @@ NoteData::IsPlayer1(const int track, const TapNote& tn) const
 	return track < (this->GetNumTracks() / 2);
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumTapNotesTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); t++) {
 		FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE(*this, t, r, iStartIndex, iEndIndex)
 		{
@@ -822,15 +822,15 @@ NoteData::GetNumTapNotesTwoPlayer(int iStartIndex, int iEndIndex) const
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumRowsWithSimultaneousTapsTwoPlayer(int minTaps,
 												  int startRow,
 												  int endRow) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(*this, r, startRow, endRow)
 	{
-		pair<int, int> found(0, 0);
+		std::pair<int, int> found(0, 0);
 		for (int t = 0; t < GetNumTracks(); t++) {
 			const TapNote& tn = GetTapNote(t, r);
 			if (this->IsTap(tn, r)) {
@@ -848,28 +848,28 @@ NoteData::GetNumRowsWithSimultaneousTapsTwoPlayer(int minTaps,
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumJumpsTwoPlayer(int iStartIndex, int iEndIndex) const
 {
 	return GetNumRowsWithSimultaneousTapsTwoPlayer(2, iStartIndex, iEndIndex);
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumHandsTwoPlayer(int iStartIndex, int iEndIndex) const
 {
 	return GetNumRowsWithSimultaneousTapsTwoPlayer(3, iStartIndex, iEndIndex);
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumQuadsTwoPlayer(int iStartIndex, int iEndIndex) const
 {
 	return GetNumRowsWithSimultaneousTapsTwoPlayer(4, iStartIndex, iEndIndex);
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumHoldNotesTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); ++t) {
 		NoteData::TrackMap::const_iterator lBegin, lEnd;
 		GetTapNoteRangeExclusive(t, iStartIndex, iEndIndex, lBegin, lEnd);
@@ -889,10 +889,10 @@ NoteData::GetNumHoldNotesTwoPlayer(int iStartIndex, int iEndIndex) const
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumMinesTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); t++) {
 		FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE(*this, t, r, iStartIndex, iEndIndex)
 		{
@@ -908,10 +908,10 @@ NoteData::GetNumMinesTwoPlayer(int iStartIndex, int iEndIndex) const
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumRollsTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); ++t) {
 		NoteData::TrackMap::const_iterator lBegin, lEnd;
 		GetTapNoteRangeExclusive(t, iStartIndex, iEndIndex, lBegin, lEnd);
@@ -931,10 +931,10 @@ NoteData::GetNumRollsTwoPlayer(int iStartIndex, int iEndIndex) const
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumLiftsTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); t++) {
 		FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE(*this, t, r, iStartIndex, iEndIndex)
 		{
@@ -950,10 +950,10 @@ NoteData::GetNumLiftsTwoPlayer(int iStartIndex, int iEndIndex) const
 	return num;
 }
 
-pair<int, int>
+std::pair<int, int>
 NoteData::GetNumFakesTwoPlayer(int iStartIndex, int iEndIndex) const
 {
-	pair<int, int> num(0, 0);
+	std::pair<int, int> num(0, 0);
 	for (int t = 0; t < GetNumTracks(); t++) {
 		FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE(*this, t, r, iStartIndex, iEndIndex)
 		{

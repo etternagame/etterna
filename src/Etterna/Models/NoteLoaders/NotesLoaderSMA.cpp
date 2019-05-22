@@ -167,7 +167,7 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 
 	Steps* pNewNotes = NULL;
 	int iRowsPerBeat = -1; // Start with an invalid value: needed for checking.
-	std::vector<pair<float, float>> vBPMChanges, vStops;
+	std::vector<std::pair<float, float>> vBPMChanges, vStops;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);

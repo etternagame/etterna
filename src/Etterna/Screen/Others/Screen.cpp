@@ -125,7 +125,7 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 	// Doing this in place did weird things
 	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
 		delayedFunctions.end(),
-		[](pair<function<void()>, float>& x) {
+		[](std::pair<function<void()>, float>& x) {
 		return x.second <= 0;
 	}),
 		delayedFunctions.end());

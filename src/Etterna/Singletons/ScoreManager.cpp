@@ -489,7 +489,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	  scores,
 	  onUpdate,
 	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+	  (void*)new std::pair<int, LoadingWindow*>(onePercent, ld));
 	return;
 }
 

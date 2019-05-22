@@ -1234,7 +1234,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 }
 
 bool
-CalcLeastSquares(const std::vector<pair<float, float>>& vCoordinates,
+CalcLeastSquares(const std::vector<std::pair<float, float>>& vCoordinates,
 				 float& fSlope,
 				 float& fIntercept,
 				 float& fError)
@@ -1264,7 +1264,7 @@ CalcLeastSquares(const std::vector<pair<float, float>>& vCoordinates,
 }
 
 void
-FilterHighErrorPoints(std::vector<pair<float, float>>& vCoordinates,
+FilterHighErrorPoints(std::vector<std::pair<float, float>>& vCoordinates,
 					  float fSlope,
 					  float fIntercept,
 					  float fCutoff)

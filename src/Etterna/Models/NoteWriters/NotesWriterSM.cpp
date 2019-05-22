@@ -119,7 +119,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fs->GetPause();
 		} else {
-			allPauses.insert(pair<float, float>(fs->GetBeat(), fs->GetPause()));
+			allPauses.insert(std::pair<float, float>(fs->GetBeat(), fs->GetPause()));
 		}
 	}
 	// Delays can't be negative: thus, no effect.
@@ -131,7 +131,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fPause;
 		} else {
-			allPauses.insert(pair<float, float>(fBeat, fPause));
+			allPauses.insert(std::pair<float, float>(fBeat, fPause));
 		}
 	}
 

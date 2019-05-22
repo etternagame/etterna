@@ -458,12 +458,12 @@ AppendOctal(int n, int digits, RString& out)
 }
 
 static bool
-CompDescending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+CompDescending(const std::pair<Song*, int>& a, const std::pair<Song*, int>& b)
 {
 	return a.second < b.second;
 }
 static bool
-CompAscending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+CompAscending(const std::pair<Song*, int>& a, const std::pair<Song*, int>& b)
 {
 	return a.second > b.second;
 }
@@ -474,7 +474,7 @@ SongUtil::SortSongPointerArrayByGrades(std::vector<Song*>& vpSongsInOut,
 {
 	/* Optimize by pre-writing a string to compare, since doing
 	 * GetNumNotesWithGrade inside the sort is too slow. */
-	typedef pair<Song*, int> val;
+	typedef std::pair<Song*, int> val;
 	std::vector<val> vals;
 	vals.reserve(vpSongsInOut.size());
 	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);

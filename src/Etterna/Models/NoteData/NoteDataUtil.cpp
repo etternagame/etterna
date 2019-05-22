@@ -75,7 +75,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 	 * string at all. */
 	int size = -1;
 	const int end = start + len;
-	std::vector<pair<const char*, const char*>> aMeasureLines;
+	std::vector<std::pair<const char*, const char*>> aMeasureLines;
 	for (unsigned m = 0; true; ++m) {
 		/* XXX Ignoring empty seems wrong for measures. It means that ",,," is
 		 * treated as
@@ -117,7 +117,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 				--endLine;
 			if (beginLine < endLine) // nonempty
 				aMeasureLines.emplace_back(
-				  pair<const char*, const char*>(beginLine, endLine));
+				  std::pair<const char*, const char*>(beginLine, endLine));
 		}
 
 		for (unsigned l = 0; l < aMeasureLines.size(); l++) {

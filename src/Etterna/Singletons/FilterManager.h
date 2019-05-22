@@ -26,14 +26,14 @@ class FilterManager
 	bool AnyActiveFilter();
 
 	void savepos(string name, int x, int y);
-	pair<int, int> loadpos(string name);
+	std::pair<int, int> loadpos(string name);
 
 	// not actually filter stuff! but this doesn't get enough love so i'm going
 	// to put it here until i make something for it -mina
 	int miniboarddockx = 0;
 	int miniboarddocky = 0;
 	bool galaxycollapsed = false;
-	unordered_map<string, pair<int, int>> watte;
+	unordered_map<string, std::pair<int, int>> watte;
 
 	// General boolean to see if we should be filtering common packs.
 	// It defaults to on just to help smooth the multiplayer experience. -poco

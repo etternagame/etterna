@@ -754,7 +754,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  std::vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
+  std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>& cache)
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
@@ -773,7 +773,7 @@ SongCacheIndex::LoadCache(
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		std::vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
+		std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>* cachePart) {
 		  int counter = 0, lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
@@ -787,7 +787,7 @@ SongCacheIndex::LoadCache(
 				  Song* s = new Song;
 				  auto songID = SONGINDEX->SongFromStatement(s, query);
 				  cachePart->emplace_back(
-					new pair<pair<RString, unsigned int>, Song*>(songID, s));
+					new std::pair<std::pair<RString, unsigned int>, Song*>(songID, s));
 				  // this is a song directory. Load a new song.
 				  counter++;
 				  if (counter % fivePercent == 0) {
@@ -810,10 +810,10 @@ SongCacheIndex::LoadCache(
 		  data.setUpdated(true);
 	  };
 	std::vector<thread> threadpool;
-	std::vector<std::vector<pair<pair<RString, unsigned int>, Song*>*>> cacheParts;
+	std::vector<std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>> cacheParts;
 	for (int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
-		  std::vector<pair<pair<RString, unsigned int>, Song*>*>());
+		  std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>());
 	for (int i = 0; i < threads; i++)
 		threadpool.emplace_back(
 		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
@@ -907,7 +907,7 @@ SongCacheIndex::FinishTransaction()
 	return;
 }
 
-inline pair<RString, int>
+inline std::pair<RString, int>
 SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 {
 	// SSC::StepsTagInfo reused_steps_info(&*song, &out, dir, true);

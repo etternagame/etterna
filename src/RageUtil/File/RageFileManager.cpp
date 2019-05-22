@@ -910,7 +910,7 @@ RageFileManager::ResolvePath(const RString& path)
 }
 
 static bool
-SortBySecond(const pair<int, int>& a, const pair<int, int>& b)
+SortBySecond(const std::pair<int, int>& a, const std::pair<int, int>& b)
 {
 	return a.second < b.second;
 }
@@ -1025,7 +1025,7 @@ RageFileManager::OpenForWriting(const RString& sPath, int mode, int& iError)
 	std::vector<LoadedDriver*> apDriverList;
 	ReferenceAllDrivers(apDriverList);
 
-	std::vector<pair<int, int>> Values;
+	std::vector<std::pair<int, int>> Values;
 	for (unsigned i = 0; i < apDriverList.size(); ++i) {
 		LoadedDriver& ld = *apDriverList[i];
 		const RString path = ld.GetPath(sPath);

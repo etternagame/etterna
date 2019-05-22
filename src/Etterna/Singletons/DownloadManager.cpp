@@ -763,7 +763,7 @@ DownloadManager::AddGoal(const string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	std::vector<pair<string, string>> postParams = {
+	std::vector<std::pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
@@ -788,7 +788,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	std::vector<pair<string, string>> postParams = {
+	std::vector<std::pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
@@ -1354,7 +1354,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 
 HTTPRequest*
 DownloadManager::SendRequest(string requestName,
-							 std::vector<pair<string, string>> params,
+							 std::vector<std::pair<string, string>> params,
 							 function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin,
 							 bool post,
@@ -1373,7 +1373,7 @@ DownloadManager::SendRequest(string requestName,
 HTTPRequest*
 DownloadManager::SendRequestToURL(
   string url,
-  std::vector<pair<string, string>> params,
+  std::vector<std::pair<string, string>> params,
   function<void(HTTPRequest&, CURLMsg*)> afterDone,
   bool requireLogin,
   bool post,
@@ -1470,7 +1470,7 @@ DownloadManager::RefreshCountryCodes()
 		}
 	};
 	SendRequest(
-	  "/misc/countrycodes", std::vector<pair<string, string>>(), done, true);
+	  "/misc/countrycodes", std::vector<std::pair<string, string>>(), done, true);
 }
 
 void
@@ -1483,7 +1483,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
 		try {
-			std::vector<pair<float, float>> replayData;
+			std::vector<std::pair<float, float>> replayData;
 
 			std::vector<float> timestamps;
 			std::vector<float> offsets;
@@ -1559,7 +1559,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 		}
 	};
 	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
-				std::vector<pair<string, string>>(),
+				std::vector<std::pair<string, string>>(),
 				done,
 				true);
 }
@@ -1693,7 +1693,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 		}
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
-				std::vector<pair<string, string>>(),
+				std::vector<std::pair<string, string>>(),
 				done,
 				true);
 }
@@ -1769,7 +1769,7 @@ DownloadManager::RefreshLastVersion()
 		}
 	};
 	SendRequest("client/version",
-				std::vector<pair<string, string>>(),
+				std::vector<std::pair<string, string>>(),
 				done,
 				false,
 				false,
@@ -1794,7 +1794,7 @@ DownloadManager::RefreshRegisterPage()
 		}
 	};
 	SendRequest("client/registration",
-				std::vector<pair<string, string>>(),
+				std::vector<std::pair<string, string>>(),
 				done,
 				false,
 				false,
@@ -2564,7 +2564,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		auto it = std::find_if(
 		  DLMAN->DownloadQueue.begin(),
 		  DLMAN->DownloadQueue.end(),
-		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
+		  [p](std::pair<DownloadablePack*, bool> pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}

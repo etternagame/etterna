@@ -49,7 +49,7 @@ float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;
 int AdjustSync::s_iAutosyncOffsetSample = 0;
 float AdjustSync::s_fAutosyncOffset[AdjustSync::OFFSET_SAMPLE_COUNT];
 float AdjustSync::s_fStandardDeviation = 0.0f;
-std::vector<pair<float, float>> AdjustSync::s_vAutosyncTempoData;
+std::vector<std::pair<float, float>> AdjustSync::s_vAutosyncTempoData;
 float AdjustSync::s_fAverageError = 0.0f;
 const float AdjustSync::ERROR_TOO_HIGH = 0.025f;
 int AdjustSync::s_iStepsFiltered = 0;

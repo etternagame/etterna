@@ -292,9 +292,9 @@ class ETTProtocol : public NetProtocol
 class Chat
 {
   public:
-	map<pair<string, int>, std::vector<string>> rawMap;
+	map<std::pair<string, int>, std::vector<string>> rawMap;
 
-	std::vector<string>& operator[](const pair<string, int>& p)
+	std::vector<string>& operator[](const std::pair<string, int>& p)
 	{
 		if (p.second == 0)
 			return rawMap.operator[](make_pair(string(""), 0));

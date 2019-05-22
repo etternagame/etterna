@@ -152,7 +152,7 @@ class OnlineScore
 	int userid;
 	DateTime datetime;
 	bool hasReplay{ false };
-	std::vector<pair<float, float>> replayData;
+	std::vector<std::pair<float, float>> replayData;
 	string countryCode;
 	OnlineHighScore hs;
 	void Push(lua_State* L) { hs.PushSelf(L); }
@@ -261,14 +261,14 @@ class DownloadManager
 	inline void SetCURLURL(CURL* curlHandle, string url);
 
 	HTTPRequest* SendRequest(string requestName,
-							 std::vector<pair<string, string>> params,
+							 std::vector<std::pair<string, string>> params,
 							 function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin = true,
 							 bool post = false,
 							 bool async = true,
 							 bool withBearer = true);
 	HTTPRequest* SendRequestToURL(string url,
-								  std::vector<pair<string, string>> params,
+								  std::vector<std::pair<string, string>> params,
 								  function<void(HTTPRequest&, CURLMsg*)> done,
 								  bool requireLogin,
 								  bool post,
@@ -302,7 +302,7 @@ class DownloadManager
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
-	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
+	deque<std::pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;

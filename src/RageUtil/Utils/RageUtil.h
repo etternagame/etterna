@@ -730,7 +730,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample = false);
  * Returns true on success, false on failure.
  */
 bool
-CalcLeastSquares(const std::vector<pair<float, float>>& vCoordinates,
+CalcLeastSquares(const std::vector<std::pair<float, float>>& vCoordinates,
 				 float& fSlope,
 				 float& fIntercept,
 				 float& fError);
@@ -740,7 +740,7 @@ CalcLeastSquares(const std::vector<pair<float, float>>& vCoordinates,
  * the line defined by fSlope and fIntercept.
  */
 void
-FilterHighErrorPoints(std::vector<pair<float, float>>& vCoordinates,
+FilterHighErrorPoints(std::vector<std::pair<float, float>>& vCoordinates,
 					  float fSlope,
 					  float fIntercept,
 					  float fCutoff);

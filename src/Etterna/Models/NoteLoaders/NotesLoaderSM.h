@@ -101,7 +101,7 @@ struct SMLoader
 	 * @param out the vector to put the data in.
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
-	void ParseBPMs(std::vector<pair<float, float>>& out,
+	void ParseBPMs(std::vector<std::pair<float, float>>& out,
 				   const RString& line,
 				   const int rowsPerBeat = -1);
 	/**
@@ -109,13 +109,13 @@ struct SMLoader
 	 * @param out the TimingData being modified.
 	 * @param vBPMChanges the vector of BPM Changes data. */
 	void ProcessBPMs(TimingData& out,
-					 const std::vector<pair<float, float>>& vBPMChanges);
+					 const std::vector<std::pair<float, float>>& vBPMChanges);
 	/**
 	 * @brief Parse Stops data from a string.
 	 * @param out the vector to put the data in.
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
-	void ParseStops(std::vector<pair<float, float>>& out,
+	void ParseStops(std::vector<std::pair<float, float>>& out,
 					const RString line,
 					const int rowsPerBeat = -1);
 	/**
@@ -123,15 +123,15 @@ struct SMLoader
 	 * @param out the TimingData being modified.
 	 * @param vStops the vector of Stops data. */
 	void ProcessStops(TimingData& out,
-					  const std::vector<pair<float, float>>& vStops);
+					  const std::vector<std::pair<float, float>>& vStops);
 	/**
 	 * @brief Process BPM and stop segments from the data.
 	 * @param out the TimingData being modified.
 	 * @param vBPMs the vector of BPM changes.
 	 * @param vStops the vector of stops. */
 	void ProcessBPMsAndStops(TimingData& out,
-							 std::vector<pair<float, float>>& vBPMs,
-							 std::vector<pair<float, float>>& vStops);
+							 std::vector<std::pair<float, float>>& vBPMs,
+							 std::vector<std::pair<float, float>>& vStops);
 	/**
 	 * @brief Process the Delay Segments from the string.
 	 * @param out the TimingData being modified.

@@ -180,7 +180,7 @@ class SongManager
 	std::vector<Song*> m_pSongs;
 	map<RString, Song*> m_SongsByDir;
 
-	std::vector<pair<pair<RString, unsigned int>, Song*>*> cache;
+	std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);

@@ -29,11 +29,11 @@ class SongCacheIndex
 	SQLite::Database* db{ nullptr };
 	SongCacheIndex();
 	~SongCacheIndex();
-	inline pair<RString, int> SongFromStatement(Song* song,
+	inline std::pair<RString, int> SongFromStatement(Song* song,
 												SQLite::Statement& query);
 	void LoadHyperCache(LoadingWindow* ld, map<RString, Song*>& hyperCache);
 	void LoadCache(LoadingWindow* ld,
-				   std::vector<pair<pair<RString, unsigned int>, Song*>*>& cache);
+				   std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>& cache);
 	void DeleteSongFromDBByCondition(string& condition);
 	void DeleteSongFromDB(Song* songPtr);
 	void DeleteSongFromDBByDir(string dir);

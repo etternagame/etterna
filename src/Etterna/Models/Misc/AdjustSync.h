@@ -49,7 +49,7 @@ class AdjustSync
 	// reject the recorded data for the Least Squares Regression.
 	static const float ERROR_TOO_HIGH;
 
-	static std::vector<pair<float, float>> s_vAutosyncTempoData;
+	static std::vector<std::pair<float, float>> s_vAutosyncTempoData;
 	static float s_fAverageError;
 	static int s_iStepsFiltered;
 };

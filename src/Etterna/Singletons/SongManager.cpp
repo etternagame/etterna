@@ -312,12 +312,12 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	int onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 
 	function<void(
-	  std::pair<vectorIt<pair<pair<RString, unsigned int>, Song*>*>,
-				vectorIt<pair<pair<RString, unsigned int>, Song*>*>>,
+	  std::pair<vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>,
+				vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>>,
 	  ThreadData*)>
 	  callback =
-		[](std::pair<vectorIt<pair<pair<RString, unsigned int>, Song*>*>,
-					 vectorIt<pair<pair<RString, unsigned int>, Song*>*>>
+		[](std::pair<vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>,
+					 vectorIt<std::pair<std::pair<RString, unsigned int>, Song*>*>>
 			 workload,
 		   ThreadData* data) {
 			auto pair =
@@ -355,11 +355,11 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 		if (ld)
 			ld->SetProgress(progress);
 	};
-	parallelExecution<pair<pair<RString, unsigned int>, Song*>*>(
+	parallelExecution<std::pair<std::pair<RString, unsigned int>, Song*>*>(
 	  cache,
 	  onUpdate,
 	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+	  (void*)new std::pair<int, LoadingWindow*>(onePercent, ld));
 	LoadStepManiaSongDir(SpecialFiles::SONGS_DIR, ld);
 	LoadStepManiaSongDir(ADDITIONAL_SONGS_DIR, ld);
 	LoadEnabledSongsFromPref();
@@ -856,7 +856,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		  workload,
 		  onUpdate,
 		  callback,
-		  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+		  (void*)new std::pair<int, LoadingWindow*>(onePercent, ld));
 
 	if (ld != nullptr) {
 		ld->SetIndeterminate(true);

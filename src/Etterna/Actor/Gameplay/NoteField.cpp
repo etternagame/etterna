@@ -272,7 +272,7 @@ NoteField::ensure_note_displays_have_skin()
 			sNoteSkinLower = "default";
 		}
 		m_NoteDisplays.insert(
-		  pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+		  std::pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
 	}
 
 	sNoteSkinLower.MakeLower();
@@ -303,7 +303,7 @@ NoteField::ensure_note_displays_have_skin()
 				sNoteSkinLower = "default";
 			}
 			m_NoteDisplays.insert(
-			  pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+			  std::pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
 		}
 
 		sNoteSkinLower.MakeLower();

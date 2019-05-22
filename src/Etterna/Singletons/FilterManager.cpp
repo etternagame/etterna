@@ -81,7 +81,7 @@ FilterManager::savepos(string name, int x, int y)
 	watte[name].second = y;
 }
 
-pair<int, int>
+std::pair<int, int>
 FilterManager::loadpos(string name)
 {
 	return watte[name];

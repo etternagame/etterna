@@ -237,7 +237,7 @@ XNodeValue*
 XNode::AppendAttrFrom(const std::string& sName, XNodeValue* pValue, bool bOverwrite)
 {
 	DEBUG_ASSERT(sName.size());
-	pair<XAttrs::iterator, bool> ret =
+	std::pair<XAttrs::iterator, bool> ret =
 	  m_attrs.insert(make_pair(sName, (XNodeValue*)NULL));
 	if (!ret.second) // already existed
 	{
@@ -258,7 +258,7 @@ XNodeValue*
 XNode::AppendAttr(const std::string& sName)
 {
 	DEBUG_ASSERT(sName.size());
-	pair<XAttrs::iterator, bool> ret =
+	std::pair<XAttrs::iterator, bool> ret =
 	  m_attrs.insert(make_pair(sName, (XNodeValue*)NULL));
 	if (ret.second)
 		ret.first->second = new XNodeStringValue;

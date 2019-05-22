@@ -133,7 +133,7 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 void
 OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
-	std::vector<pair<int, float>> tp;
+	std::vector<std::pair<int, float>> tp;
 
 	for (auto it = parsedData["TimingPoints"].begin();
 		 it != parsedData["TimingPoints"].end();
@@ -141,13 +141,13 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 		auto line = it->first;
 		auto values = split(line, ",");
 
-		tp.emplace_back(pair<int, float>(stoi(values[0]), stof(values[1])));
+		tp.emplace_back(std::pair<int, float>(stoi(values[0]), stof(values[1])));
 	}
-	sort(tp.begin(), tp.end(), [](pair<int, float> a, pair<int, float> b) {
+	sort(tp.begin(), tp.end(), [](std::pair<int, float> a, std::pair<int, float> b) {
 		return a.first < b.first;
 	});
 
-	std::vector<pair<int, float>> bpms;
+	std::vector<std::pair<int, float>> bpms;
 	float lastpositivebpm = 0;
 	int offset = 0;
 	int lastoffset = -9999;
@@ -163,11 +163,11 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 		}
 		if (offset == lastoffset) {
 			bpms[bpms.size() - 1] =
-			  pair<int, float>(offset, bpm); // this because of dumb stuff like
+			  std::pair<int, float>(offset, bpm); // this because of dumb stuff like
 											 // in 4k Luminal dan (not robust,
 											 // but works for most files)
 		} else {
-			bpms.emplace_back(pair<int, float>(offset, bpm));
+			bpms.emplace_back(std::pair<int, float>(offset, bpm));
 		}
 		lastoffset = offset;
 	}

@@ -104,7 +104,7 @@ class Screen : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	std::vector<pair<function<void(void)>, float>> delayedFunctions;
+	std::vector<std::pair<function<void(void)>, float>> delayedFunctions;
 	void SetTimeout(function<void()> f, float ms);
 	std::list<tuple<function<void(void)>, float, float, int>>
 	  delayedPeriodicFunctions; // This is a list to allow safe iterators
