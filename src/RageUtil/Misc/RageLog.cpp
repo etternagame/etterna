@@ -358,7 +358,7 @@ RageLog::AddToInfo(const RString& str)
 		const RString txt(NEWLINE "Staticlog limit reached" NEWLINE);
 
 		const unsigned pos =
-		  min(staticlog_size, sizeof(staticlog) - txt.size());
+		  std::min(staticlog_size, sizeof(staticlog) - txt.size());
 		memcpy(staticlog + pos, txt.data(), txt.size());
 		limit_reached = true;
 		return;
@@ -422,7 +422,7 @@ RageLog::UpdateMappedLog()
 	FOREACHM_CONST(RString, RString, LogMaps, i)
 	str += ssprintf("%s" NEWLINE, i->second.c_str());
 
-	g_AdditionalLogSize = min(sizeof(g_AdditionalLogStr), str.size() + 1);
+	g_AdditionalLogSize = std::min(sizeof(g_AdditionalLogStr), str.size() + 1);
 	memcpy(g_AdditionalLogStr, str.c_str(), g_AdditionalLogSize);
 	g_AdditionalLogStr[sizeof(g_AdditionalLogStr) - 1] = 0;
 }
@@ -430,7 +430,7 @@ RageLog::UpdateMappedLog()
 const char*
 RageLog::GetAdditionalLog()
 {
-	int size = min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
+	int size = std::min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
 	g_AdditionalLogStr[size] = 0;
 	return g_AdditionalLogStr;
 }

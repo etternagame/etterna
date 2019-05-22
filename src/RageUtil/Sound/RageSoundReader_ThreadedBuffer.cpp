@@ -296,7 +296,7 @@ RageSoundReader_ThreadedBuffer::FillBlock()
 		ASSERT((iBufSize % iSamplesPerFrame) == 0);
 		iGotFrames = m_pSource->RetriedRead(
 		  pBuf,
-		  min(g_iReadBlockSizeFrames, iBufSize / iSamplesPerFrame),
+		  std::min(g_iReadBlockSizeFrames, iBufSize / iSamplesPerFrame),
 		  &iNextSourceFrame,
 		  &fRate);
 	}
@@ -348,7 +348,7 @@ RageSoundReader_ThreadedBuffer::Read(float* pBuffer, int iFrames)
 	int iRet;
 	if (m_StreamPosition.front().iFramesBuffered) {
 		Mapping& pos = m_StreamPosition.front();
-		int iFramesToRead = min(iFrames, pos.iFramesBuffered);
+		int iFramesToRead = std::min(iFrames, pos.iFramesBuffered);
 		int iSamplesPerFrame = this->GetNumChannels();
 		m_DataBuffer.read(pBuffer, iFramesToRead * iSamplesPerFrame);
 		pos.iPositionOfFirstFrame += iFramesToRead;

@@ -398,7 +398,7 @@ MovieTexture_DShow::Create()
 	pCTR->SetRenderTarget(this);
 
 	/* Cap the max texture size to the hardware max. */
-	actualID.iMaxSize = min(actualID.iMaxSize, DISPLAY->GetMaxTextureSize());
+	actualID.iMaxSize = std::min(actualID.iMaxSize, DISPLAY->GetMaxTextureSize());
 
 	// The graph is built, now get the set the output video width and height.
 	// The source and image width will always be the same since we can't scale
@@ -407,8 +407,8 @@ MovieTexture_DShow::Create()
 	m_iSourceHeight = pCTR->GetVidHeight();
 
 	/* image size cannot exceed max size */
-	m_iImageWidth = min(m_iSourceWidth, actualID.iMaxSize);
-	m_iImageHeight = min(m_iSourceHeight, actualID.iMaxSize);
+	m_iImageWidth = std::min(m_iSourceWidth, actualID.iMaxSize);
+	m_iImageHeight = std::min(m_iSourceHeight, actualID.iMaxSize);
 
 	/* Texture dimensions need to be a power of two; jump to the next. */
 	m_iTextureWidth = power_of_two(m_iImageWidth);

@@ -160,7 +160,7 @@ RageSurfaceUtils::Palettize(RageSurface*& pImg, int iColors, bool bDither)
 			}
 			maxval = newmaxval;
 		}
-		newcolors = min(colors, iColors);
+		newcolors = std::min(colors, iColors);
 
 		// Apply median-cut to histogram, making the new acolormap.
 		acolormap =
@@ -384,16 +384,16 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 		for (int i = 1; i < clrs; ++i) {
 			int v;
 			v = achv[indx + i].acolor[0];
-			mins[0] = min(mins[0], v);
+			mins[0] = std::min(mins[0], v);
 			maxs[0] = std::max(maxs[0], v);
 			v = achv[indx + i].acolor[1];
-			mins[1] = min(mins[1], v);
+			mins[1] = std::min(mins[1], v);
 			maxs[1] = std::max(maxs[1], v);
 			v = achv[indx + i].acolor[2];
-			mins[2] = min(mins[2], v);
+			mins[2] = std::min(mins[2], v);
 			maxs[2] = std::max(maxs[2], v);
 			v = achv[indx + i].acolor[3];
-			mins[3] = min(mins[3], v);
+			mins[3] = std::min(mins[3], v);
 			maxs[3] = std::max(maxs[3], v);
 		}
 
@@ -479,13 +479,13 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 			lSum += achv[indx + i].value;
 		}
 		r = r / lSum;
-		r = min(r, (long)maxval);
+		r = std::min(r, (long)maxval);
 		g = g / lSum;
-		g = min(g, (long)maxval);
+		g = std::min(g, (long)maxval);
 		b = b / lSum;
-		b = min(b, (long)maxval);
+		b = std::min(b, (long)maxval);
 		a = a / lSum;
-		a = min(a, (long)maxval);
+		a = std::min(a, (long)maxval);
 		PAM_ASSIGN(
 		  acolormap[bi].acolor, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a);
 #endif // REP_AVERAGE_PIXELS

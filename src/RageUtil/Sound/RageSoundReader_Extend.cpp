@@ -64,14 +64,14 @@ RageSoundReader_Extend::GetData(float* pBuffer, int iFrames)
 	if (m_iLengthFrames != -1) {
 		int iFramesLeft = GetEndFrame() - m_iPositionFrames;
 		iFramesLeft = std::max(0, iFramesLeft);
-		iFramesToRead = min(iFramesToRead, iFramesLeft);
+		iFramesToRead = std::min(iFramesToRead, iFramesLeft);
 	}
 
 	if (iFrames && !iFramesToRead)
 		return RageSoundReader::END_OF_FILE;
 
 	if (m_iPositionFrames < 0) {
-		iFramesToRead = min(iFramesToRead, -m_iPositionFrames);
+		iFramesToRead = std::min(iFramesToRead, -m_iPositionFrames);
 		memset(
 		  pBuffer, 0, iFramesToRead * sizeof(float) * this->GetNumChannels());
 		return iFramesToRead;
@@ -97,7 +97,7 @@ RageSoundReader_Extend::Read(float* pBuffer, int iFrames)
 			iFramesRead = iFrames;
 			if (m_StopMode != M_CONTINUE)
 				iFramesRead =
-				  min(GetEndFrame() - m_iPositionFrames, iFramesRead);
+				  std::min(GetEndFrame() - m_iPositionFrames, iFramesRead);
 			memset(
 			  pBuffer, 0, iFramesRead * sizeof(float) * this->GetNumChannels());
 		}

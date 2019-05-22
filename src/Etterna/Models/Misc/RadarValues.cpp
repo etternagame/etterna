@@ -50,7 +50,7 @@ RadarValues::ToString(int iMaxValues) const
 {
 	if (iMaxValues == -1)
 		iMaxValues = NUM_RadarCategory;
-	iMaxValues = min(iMaxValues, static_cast<int>(NUM_RadarCategory));
+	iMaxValues = std::min(iMaxValues, static_cast<int>(NUM_RadarCategory));
 
 	std::vector<RString> asRadarValues;
 	for (int r = 0; r < iMaxValues; r++) {

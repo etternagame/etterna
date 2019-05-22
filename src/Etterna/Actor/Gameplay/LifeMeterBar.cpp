@@ -156,7 +156,7 @@ LifeMeterBar::ChangeLife(TapNoteScore score)
 		case DrainType_Normal:
 			break;
 		case DrainType_NoRecover:
-			fDeltaLife = min(fDeltaLife, 0);
+			fDeltaLife = std::min(fDeltaLife, 0);
 			break;
 		case DrainType_SuddenDeath:
 			if (score < MIN_STAY_ALIVE)

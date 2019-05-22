@@ -114,7 +114,7 @@ SlideDuplicateDifficulties(Song& p)
 				Steps* pSteps = vSteps[k];
 
 				Difficulty dc2 =
-				  min((Difficulty)(dc + 1), Difficulty_Challenge);
+				  std::min((Difficulty)(dc + 1), Difficulty_Challenge);
 				pSteps->SetDifficulty(dc2);
 			}
 		}

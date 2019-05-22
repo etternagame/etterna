@@ -965,7 +965,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 	std::vector<RString> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
-	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
+	aBGChangeValues.resize(std::min(static_cast<int>(aBGChangeValues.size()), 11));
 
 	switch (aBGChangeValues.size()) {
 		case 11:

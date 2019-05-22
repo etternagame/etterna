@@ -185,7 +185,7 @@ RageSoundReader_Split::Read(float* pBuf, int iFrames)
 	if (iFramesAvailable == 0 && iRet < 0)
 		return iRet;
 
-	iFramesAvailable = min(iFramesAvailable, iFramesWanted);
+	iFramesAvailable = std::min(iFramesAvailable, iFramesWanted);
 
 	{
 		RageSoundMixBuffer mix;
@@ -218,7 +218,7 @@ RageSoundSplitterImpl::ReadBuffer()
 	int iMaxFrameRequested = INT_MIN;
 	FOREACHS(RageSoundReader_Split*, m_apSounds, snd)
 	{
-		iMinFrameRequested = min(iMinFrameRequested, (*snd)->m_iPositionFrame);
+		iMinFrameRequested = std::min(iMinFrameRequested, (*snd)->m_iPositionFrame);
 		iMaxFrameRequested =
 		  std::max(iMaxFrameRequested,
 			  (*snd)->m_iPositionFrame + (*snd)->m_iRequestFrames);
@@ -226,7 +226,7 @@ RageSoundSplitterImpl::ReadBuffer()
 
 	if (iMinFrameRequested > m_iBufferPositionFrames) {
 		int iEraseFrames = iMinFrameRequested - m_iBufferPositionFrames;
-		iEraseFrames = min(iEraseFrames, (int)m_sBuffer.size());
+		iEraseFrames = std::min(iEraseFrames, (int)m_sBuffer.size());
 		m_sBuffer.erase(m_sBuffer.begin(),
 						m_sBuffer.begin() +
 						  iEraseFrames * m_pSource->GetNumChannels());

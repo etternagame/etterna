@@ -418,7 +418,7 @@ CrashHandler::ForceDeadlock(RString reason, uint64_t iID)
 			sizeof(crash.m_ThreadName[0]) - 1);
 
 	strncpy(
-	  crash.reason, reason, min(sizeof(crash.reason) - 1, reason.length()));
+	  crash.reason, reason, std::min(sizeof(crash.reason) - 1, reason.length()));
 	crash.reason[sizeof(crash.reason) - 1] = 0;
 
 	RunCrashHandler(&crash);

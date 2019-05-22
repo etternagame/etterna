@@ -257,7 +257,7 @@ DSoundBuf::Init(DSound& ds,
 				  bcaps.dwBufferBytes,
 				  m_iBufferSize);
 		m_iBufferSize = bcaps.dwBufferBytes;
-		m_iWriteAhead = min(m_iWriteAhead, m_iBufferSize);
+		m_iWriteAhead = std::min(m_iWriteAhead, m_iBufferSize);
 	}
 
 	if (!(bcaps.dwFlags & DSBCAPS_CTRLVOLUME))
@@ -531,7 +531,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 		m_iBufferBytesFilled = std::max(0, m_iBufferBytesFilled);
 
 		if (m_iExtraWriteahead) {
-			int used = min(m_iExtraWriteahead, bytes_played);
+			int used = std::min(m_iExtraWriteahead, bytes_played);
 			RString s = ssprintf("used %i of %i (%i..%i)",
 								 used,
 								 m_iExtraWriteahead,

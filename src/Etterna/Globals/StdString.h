@@ -502,7 +502,7 @@ class CStdStr : public std::basic_string<CT>
 		// must be a valid length), we must adjust the length here to a safe
 		// value.  Thanks to Ullrich Poll�hne for catching this bug
 
-		nChars = min(nChars, str.length() - nStart);
+		nChars = std::min(nChars, str.length() - nStart);
 
 		// Watch out for assignment to self
 
@@ -530,7 +530,7 @@ class CStdStr : public std::basic_string<CT>
 		// must be a valid length), we must adjust the length here to a safe
 		// value. Thanks to Ullrich Poll�hne for catching this bug
 
-		nChars = min(nChars, str.length() - nStart);
+		nChars = std::min(nChars, str.length() - nStart);
 
 		// Watch out for assignment to self
 

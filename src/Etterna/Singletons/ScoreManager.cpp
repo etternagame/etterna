@@ -46,7 +46,7 @@ HighScore*
 ScoresAtRate::AddScore(HighScore& hs)
 {
 	const string& key = hs.GetScoreKey();
-	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
 	if (!PBptr || PBptr->GetSSRNormPercent() < hs.GetSSRNormPercent())
@@ -160,7 +160,7 @@ ScoresForChart::GetPBUpTo(float& rate)
 HighScore*
 ScoresForChart::AddScore(HighScore& hs)
 {
-	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
 
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
@@ -708,7 +708,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		scores[sk].SetScoreKey(sk);
 		scores[sk].SetMusicRate(rate);
 
-		bestGrade = min(scores[sk].GetWifeGrade(), bestGrade);
+		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
 
 		// Very awkward, need to figure this out better so there isn't
 		// unnecessary redundancy between loading and adding
@@ -744,7 +744,7 @@ ScoresForChart::LoadFromNode(const XNode* node,
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate), profileID);
-		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
+		bestGrade = std::min(ScoresByRate[rate].bestGrade, bestGrade);
 	}
 }
 

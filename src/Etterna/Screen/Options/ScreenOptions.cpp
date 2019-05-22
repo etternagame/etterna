@@ -627,8 +627,8 @@ ScreenOptions::PositionRows(bool bTween)
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, (int)Rows.size());
-	second_end = min(second_end, (int)Rows.size());
+	first_end = std::min(first_end, (int)Rows.size());
+	second_end = std::min(second_end, (int)Rows.size());
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */
@@ -668,7 +668,7 @@ ScreenOptions::PositionRows(bool bTween)
 
 		Actor::TweenState tsDestination =
 		  m_exprRowPositionTransformFunction.GetTransformCached(
-			fPos, i, min((int)Rows.size(), (int)NUM_ROWS_SHOWN));
+			fPos, i, std::min((int)Rows.size(), (int)NUM_ROWS_SHOWN));
 
 		bool bHidden = i < first_start ||
 					   (i >= first_end && i < second_start) || i >= second_end;

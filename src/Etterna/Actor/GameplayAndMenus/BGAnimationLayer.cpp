@@ -298,7 +298,7 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			const auto iMaxArea =
 			  static_cast<int>(SCREEN_WIDTH * SCREEN_HEIGHT);
 			int iNumParticles = iMaxArea / iSpriteArea;
-			iNumParticles = min(iNumParticles, MAX_SPRITES);
+			iNumParticles = std::min(iNumParticles, MAX_SPRITES);
 
 			for (int i = 0; i < iNumParticles; i++) {
 				auto* pSprite = new Sprite;
@@ -371,10 +371,10 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			s.Load(ID);
 			m_iNumTilesWide =
 			  2 + static_cast<int>(SCREEN_WIDTH / s.GetUnzoomedWidth());
-			m_iNumTilesWide = min(m_iNumTilesWide, MAX_TILES_WIDE);
+			m_iNumTilesWide = std::min(m_iNumTilesWide, MAX_TILES_WIDE);
 			m_iNumTilesHigh =
 			  2 + static_cast<int>(SCREEN_HEIGHT / s.GetUnzoomedHeight());
-			m_iNumTilesHigh = min(m_iNumTilesHigh, MAX_TILES_HIGH);
+			m_iNumTilesHigh = std::min(m_iNumTilesHigh, MAX_TILES_HIGH);
 			m_fTilesStartX = s.GetUnzoomedWidth() / 2;
 			m_fTilesStartY = s.GetUnzoomedHeight() / 2;
 			m_fTilesSpacingX = s.GetUnzoomedWidth();

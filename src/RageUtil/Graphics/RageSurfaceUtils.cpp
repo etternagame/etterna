@@ -725,8 +725,8 @@ RageSurfaceUtils::Blit(const RageSurface* src,
 		width = src->w;
 	if (height == -1)
 		height = src->h;
-	width = min(src->w, dst->w);
-	height = min(src->h, dst->h);
+	width = std::min(src->w, dst->w);
+	height = std::min(src->h, dst->h);
 
 	/* Try each blit until we find one that works; run them in order of
 	 * efficiency, so we use the fastest blit possible. */
@@ -921,7 +921,7 @@ RageSurfaceUtils::PalettizeToGrayscale(const RageSurface* src_surf,
 									   int GrayBits,
 									   int AlphaBits)
 {
-	AlphaBits = min(AlphaBits, 8 - src_surf->fmt.Loss[3]);
+	AlphaBits = std::min(AlphaBits, 8 - src_surf->fmt.Loss[3]);
 
 	const int TotalBits = GrayBits + AlphaBits;
 	ASSERT(TotalBits <= 8);

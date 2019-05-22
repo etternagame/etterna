@@ -341,7 +341,7 @@ RageSound::GetDataToPlay(float* pBuffer,
 		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet()) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			unsigned int samplesToCopy =
-				min(iFramesStored * m_pSource->GetNumChannels(),
+				std::min(iFramesStored * m_pSource->GetNumChannels(),
 					recentPCMSamplesBufferSize - currentSamples);
 			unsigned int samplesLeft =
 				recentPCMSamplesBufferSize - currentSamples - samplesToCopy;

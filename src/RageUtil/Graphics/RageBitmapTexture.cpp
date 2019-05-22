@@ -145,7 +145,7 @@ RageBitmapTexture::Create()
 		actualID.iGrayscaleBits = -1;
 
 	/* Cap the max texture size to the hardware max. */
-	actualID.iMaxSize = min(actualID.iMaxSize, DISPLAY->GetMaxTextureSize());
+	actualID.iMaxSize = std::min(actualID.iMaxSize, DISPLAY->GetMaxTextureSize());
 
 	/* Save information about the source. */
 	m_iSourceWidth = pImg->w;
@@ -165,8 +165,8 @@ RageBitmapTexture::Create()
 	}
 
 	/* image size cannot exceed max size */
-	m_iImageWidth = min(m_iImageWidth, actualID.iMaxSize);
-	m_iImageHeight = min(m_iImageHeight, actualID.iMaxSize);
+	m_iImageWidth = std::min(m_iImageWidth, actualID.iMaxSize);
+	m_iImageHeight = std::min(m_iImageHeight, actualID.iMaxSize);
 
 	/* Texture dimensions need to be a power of two; jump to the next. */
 	m_iTextureWidth = power_of_two(m_iImageWidth);
@@ -219,7 +219,7 @@ RageBitmapTexture::Create()
 				int iSourceAlphaBits = 8 - pImg->fmt.Loss[3];
 
 				// Don't use more than we were hinted to.
-				iSourceAlphaBits = min(actualID.iAlphaBits, iSourceAlphaBits);
+				iSourceAlphaBits = std::min(actualID.iAlphaBits, iSourceAlphaBits);
 
 				switch (iSourceAlphaBits) {
 					case 0:

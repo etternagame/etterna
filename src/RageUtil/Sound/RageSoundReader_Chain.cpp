@@ -327,7 +327,7 @@ RageSoundReader_Chain::Read(float* pBuffer, int iFrames)
 		ASSERT_M(iOffsetFrame >= m_iCurrentFrame,
 				 ssprintf("%i %i", iOffsetFrame, m_iCurrentFrame));
 		int iFramesToRead = iOffsetFrame - m_iCurrentFrame;
-		iFrames = min(iFramesToRead, iFrames);
+		iFrames = std::min(iFramesToRead, iFrames);
 	}
 
 	if (m_apActiveSounds.size() == 1 &&
@@ -356,7 +356,7 @@ RageSoundReader_Chain::Read(float* pBuffer, int iFrames)
 	RageSoundMixBuffer mix;
 	/* Read iFrames from each sound. */
 	float Buffer[2048];
-	iFrames = min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
+	iFrames = std::min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
 	for (unsigned i = 0; i < m_apActiveSounds.size();) {
 		RageSoundReader* pSound = m_apActiveSounds[i]->pSound;
 		ASSERT(pSound->GetNumChannels() ==

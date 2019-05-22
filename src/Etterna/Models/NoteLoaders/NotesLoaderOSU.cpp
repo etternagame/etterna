@@ -236,7 +236,7 @@ OsuLoader::LoadChartData(Song* song,
 	chart->SetMeter(song->GetAllSteps().size());
 
 	chart->SetDifficulty(
-	  (Difficulty)(min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
+	  (Difficulty)(std::min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
 
 	chart->TidyUpData();
 
@@ -301,7 +301,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 	int firstTap = 0;
 	int lastTap = 0;
 	if (taps.size() > 0 && holds.size() > 0) {
-		firstTap = min(taps[0].ms, holds[0].msStart);
+		firstTap = std::min(taps[0].ms, holds[0].msStart);
 		lastTap = std::max(taps[taps.size()].ms, holds[holds.size()].msEnd);
 	} else if (taps.size() > 0) {
 		firstTap = taps[0].ms;

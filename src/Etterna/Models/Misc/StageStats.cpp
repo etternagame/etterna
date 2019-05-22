@@ -703,7 +703,7 @@ unsigned int
 StageStats::GetMinimumMissCombo() const
 {
 	unsigned int iMin = INT_MAX;
-	iMin = min(iMin, m_player.m_iCurMissCombo);
+	iMin = std::min(iMin, m_player.m_iCurMissCombo);
 	return iMin;
 }
 

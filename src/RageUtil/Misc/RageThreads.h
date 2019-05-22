@@ -78,7 +78,7 @@ parallelExecution(std::vector<T> vec,
 {
 	const int THREADS = PREFSMAN->ThreadsToUse <= 0
 						  ? std::thread::hardware_concurrency()
-						  : min((int)PREFSMAN->ThreadsToUse,
+						  : std::min((int)PREFSMAN->ThreadsToUse,
 								(int)std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));

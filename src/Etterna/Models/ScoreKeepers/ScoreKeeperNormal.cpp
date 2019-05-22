@@ -484,9 +484,9 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 {
 	// Regular combo
 	if (m_ComboIsPerRow) {
-		iNumHitContinueCombo = min(iNumHitContinueCombo, 1);
-		iNumHitMaintainCombo = min(iNumHitMaintainCombo, 1);
-		iNumBreakCombo = min(iNumBreakCombo, 1);
+		iNumHitContinueCombo = std::min(iNumHitContinueCombo, 1);
+		iNumHitMaintainCombo = std::min(iNumHitMaintainCombo, 1);
+		iNumBreakCombo = std::min(iNumBreakCombo, 1);
 	}
 
 	if (iNumHitContinueCombo > 0 || iNumHitMaintainCombo > 0) {
@@ -513,7 +513,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 										  int iRow)
 {
 	if (m_ComboIsPerRow) {
-		iNumTapsInRow = min(iNumTapsInRow, 1);
+		iNumTapsInRow = std::min(iNumTapsInRow, 1);
 	}
 	TimingData& td =
 	  *GAMESTATE->m_pCurSteps->GetTimingData();
@@ -582,9 +582,9 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	if (GAMESTATE->CountNotesSeparately()) {
 		// HandleTapRowScore gets called on every judgment,
 		// so we only want increment up by one each time.
-		int numHitInRow = min(iNumHitContinueCombo, 1);
-		int numMissInRow = min(iNumBreakCombo, 1);
-		iNumTapsInRow = min(iNumTapsInRow, 1);
+		int numHitInRow = std::min(iNumHitContinueCombo, 1);
+		int numMissInRow = std::min(iNumBreakCombo, 1);
+		iNumTapsInRow = std::min(iNumTapsInRow, 1);
 		HandleComboInternal(
 		  numHitInRow, iNumHitMaintainCombo, numMissInRow, iRow);
 	} else {

@@ -1129,7 +1129,7 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			n->CalculateRadarValues(m_fMusicLengthSeconds);
 
 			// calculate lastSecond
-			localFirst = min(localFirst, n->firstsecond);
+			localFirst = std::min(localFirst, n->firstsecond);
 			localLast = std::max(localLast, n->lastsecond);
 		}
 	}

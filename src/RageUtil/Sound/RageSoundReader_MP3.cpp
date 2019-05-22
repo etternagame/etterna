@@ -696,7 +696,7 @@ RageSoundReader_MP3::Read(float* buf, int iFrames)
 	while (iFrames > 0) {
 		if (mad->outleft > 0) {
 			int iFramesToCopy =
-			  min(iFrames, int(mad->outleft / GetNumChannels()));
+			  std::min(iFrames, int(mad->outleft / GetNumChannels()));
 			const int iSamplesToCopy = iFramesToCopy * GetNumChannels();
 			const int iBytesToCopy = iSamplesToCopy * sizeof(float);
 

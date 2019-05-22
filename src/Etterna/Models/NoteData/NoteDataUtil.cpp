@@ -2091,10 +2091,10 @@ NoteDataUtil::InsertIntelligentTaps(NoteData& inout,
 			iTrackOfNoteToAdd = iTrackOfNoteEarlier;
 		} else if (abs(iTrackOfNoteEarlier - iTrackOfNoteLater) >= 2) {
 			// try to choose a track between the earlier and later notes
-			iTrackOfNoteToAdd = min(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1;
-		} else if (min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1 >= 0) {
+			iTrackOfNoteToAdd = std::min(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1;
+		} else if (std::min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1 >= 0) {
 			// try to choose a track just to the left
-			iTrackOfNoteToAdd = min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1;
+			iTrackOfNoteToAdd = std::min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1;
 		} else if (std::max(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1 <
 				   inout.GetNumTracks()) {
 			// try to choose a track just to the right
@@ -2244,7 +2244,7 @@ NoteDataUtil::Echo(NoteData& inout, int iStartIndex, int iEndIndex)
 
 	/* Clamp iEndIndex to the last real tap note.  Otherwise, we'll keep adding
 	 * echos of our echos all the way up to MAX_TAP_ROW. */
-	iEndIndex = min(iEndIndex, inout.GetLastRow()) + 1;
+	iEndIndex = std::min(iEndIndex, inout.GetLastRow()) + 1;
 
 	// window is one beat wide and slides 1/2 a beat at a time
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
@@ -3199,7 +3199,7 @@ NoteDataUtil::GetNextEditorPosition(const NoteData& in, int& rowInOut)
 
 		bAnyHaveNextNote = true;
 		ASSERT(iEndRow < MAX_NOTE_ROW);
-		iClosestNextRow = min(iClosestNextRow, iEndRow);
+		iClosestNextRow = std::min(iClosestNextRow, iEndRow);
 	}
 
 	if (!bAnyHaveNextNote)

@@ -1194,9 +1194,9 @@ GameState::CountNotesSeparately()
 
 template<class T>
 void
-setmin(T& a, const T& b)
+setstd::min(T& a, const T& b)
 {
-	a = min(a, b);
+	a = std::min(a, b);
 }
 
 template<class T>
@@ -1330,7 +1330,7 @@ GameState::GetEasiestStepsDifficulty() const
 			PLAYER_1 + 1);
 	}
 
-	dc = min(dc, m_pCurSteps->GetDifficulty());
+	dc = std::min(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 

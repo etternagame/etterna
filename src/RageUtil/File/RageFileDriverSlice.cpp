@@ -43,7 +43,7 @@ RageFileDriverSlice::ReadInternal(void* buf, size_t bytes)
 	m_pFile->Seek(m_iFilePos + m_iOffset);
 
 	const int bytes_left = m_iFileSize - this->m_iFilePos;
-	const int got = m_pFile->Read(buf, min((int)bytes, bytes_left));
+	const int got = m_pFile->Read(buf, std::min((int)bytes, bytes_left));
 	if (got == -1) {
 		SetError(m_pFile->GetError());
 		return -1;
@@ -58,7 +58,7 @@ int
 RageFileDriverSlice::SeekInternal(int offset)
 {
 	ASSERT(offset >= 0);
-	offset = min(offset, m_iFileSize);
+	offset = std::min(offset, m_iFileSize);
 
 	int ret = m_pFile->Seek(m_iOffset + offset);
 	if (ret == -1) {

@@ -1257,8 +1257,8 @@ bool
 CompareNotesPointersForExtra(const Steps* n1, const Steps* n2)
 {
 	// Equate CHALLENGE to HARD.
-	Difficulty d1 = min(n1->GetDifficulty(), Difficulty_Hard);
-	Difficulty d2 = min(n2->GetDifficulty(), Difficulty_Hard);
+	Difficulty d1 = std::min(n1->GetDifficulty(), Difficulty_Hard);
+	Difficulty d2 = std::min(n2->GetDifficulty(), Difficulty_Hard);
 
 	if (d1 < d2)
 		return true;

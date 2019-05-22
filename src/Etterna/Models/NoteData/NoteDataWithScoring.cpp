@@ -166,7 +166,7 @@ NoteDataWithScoring::MinTapNoteScore(const NoteData& in,
 			tn.type == TapNoteType_AutoKeysound ||
 			(plnum != PlayerNumber_Invalid && tn.pn != plnum))
 			continue;
-		score = min(score, tn.result.tns);
+		score = std::min(score, tn.result.tns);
 	}
 
 	// LOG->Trace( ssprintf("OMG score is??

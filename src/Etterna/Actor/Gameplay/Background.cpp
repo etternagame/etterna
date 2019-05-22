@@ -483,7 +483,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 		  (i + 1 == tSigs.size()) ? iEndRow : tSigs[i + 1]->GetRow();
 
 		int time_signature_start = std::max(ts->GetRow(), iStartRow);
-		for (int j = time_signature_start; j < min(iEndRow, iSegmentEndRow);
+		for (int j = time_signature_start; j < std::min(iEndRow, iSegmentEndRow);
 			 j += static_cast<int>(RAND_BG_CHANGE_MEASURES *
 								   ts->GetNoteRowsPerMeasure())) {
 			// Don't fade. It causes frame rate dip, especially on slower
@@ -577,7 +577,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 		// Pick the same random items every time the song is played.
 		RandomGen rnd(GetHashForString(pSong->GetSongDir()));
 		std::shuffle(vsNames.begin(), vsNames.end(), rnd);
-		int iSize = min(static_cast<int>(g_iNumBackgrounds),
+		int iSize = std::min(static_cast<int>(g_iNumBackgrounds),
 						static_cast<int>(vsNames.size()));
 		vsNames.resize(iSize);
 

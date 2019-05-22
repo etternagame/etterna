@@ -688,7 +688,7 @@ BitmapText::UpdateBaseZoom()
 			dimension /= dimension_zoom_get();                                 \
 		}                                                                      \
 		if (dimension != 0) {                                                  \
-			const float zoom = min(1, (dimension_max) / dimension);            \
+			const float zoom = std::min(1, (dimension_max) / dimension);            \
 			base_zoom_set(zoom);                                               \
 		}                                                                      \
 	}
@@ -806,7 +806,7 @@ BitmapText::DrawPrimitives()
 				// Set the colors up to the next attribute.
 				size_t iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
 														  : iter->first * 4;
-				iEnd = min(iEnd, m_aVertices.size());
+				iEnd = std::min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
 					m_aVertices[i + 0].c = what; // top left
 					m_aVertices[i + 1].c = is; // bottom left
@@ -823,7 +823,7 @@ BitmapText::DrawPrimitives()
 													   : iter->first * 4;
 				else
 					iEnd = i + attr.length * 4;
-				iEnd = min(iEnd, m_aVertices.size());
+				iEnd = std::min(iEnd, m_aVertices.size());
 				std::vector<RageColor> temp_attr_diffuse(NUM_DIFFUSE_COLORS,
 													m_internalDiffuse);
 				for (size_t c = 0; c < NUM_DIFFUSE_COLORS; ++c) {
@@ -887,7 +887,7 @@ BitmapText::DrawPrimitives()
 			// Set the glow up to the next attribute.
 			size_t iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
 													  : iter->first * 4;
-			iEnd = min(iEnd, m_aVertices.size());
+			iEnd = std::min(iEnd, m_aVertices.size());
 			for (; i < iEnd; ++i)
 				m_aVertices[i].c = m_pTempState->glow;
 			if (iter == m_mAttributes.end())
@@ -900,7 +900,7 @@ BitmapText::DrawPrimitives()
 												   : iter->first * 4;
 			else
 				iEnd = i + attr.length * 4;
-			iEnd = min(iEnd, m_aVertices.size());
+			iEnd = std::min(iEnd, m_aVertices.size());
 			for (; i < iEnd; ++i) {
 				if (m_internalGlow.a > 0) {
 					m_aVertices[i].c = attr.glow * m_internalGlow;
@@ -1078,7 +1078,7 @@ ColorBitmapText::SetText(const RString& _sText,
 			}
 		}
 
-		int iCharLength = min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
+		int iCharLength = std::min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
 		RString curCharStr = m_sText.substr(i, iCharLength);
 		wchar_t curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
@@ -1196,7 +1196,7 @@ ColorBitmapText::ResetText()
 			}
 		}
 
-		int iCharLength = min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
+		int iCharLength = std::min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
 		RString curCharStr = m_sText.substr(i, iCharLength);
 		wchar_t curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
@@ -1272,7 +1272,7 @@ ColorBitmapText::SetMaxLines(int iNumLines,
 							 unsigned int& scroll)
 {
 	iNumLines = std::max(0, iNumLines);
-	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
+	iNumLines = std::min(static_cast<int>(m_wTextLines.size()), iNumLines);
 	if (iDirection == 0) {
 		// Crop all bottom lines
 		m_wTextLines.resize(iNumLines);
@@ -1392,7 +1392,7 @@ void
 ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 {
 	iNumLines = std::max(0, iNumLines);
-	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
+	iNumLines = std::min(static_cast<int>(m_wTextLines.size()), iNumLines);
 	if (iDirection == 0) {
 		// Crop all bottom lines
 		m_wTextLines.resize(iNumLines);

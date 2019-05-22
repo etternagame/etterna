@@ -231,7 +231,7 @@ do_split(S const& source,
 	if (size != -1) {
 		// Start points to the beginning of the last delimiter. Move it up.
 		start += size + delimitor.size();
-		start = min(start, len);
+		start = std::min(start, len);
 	}
 
 	size = 0;

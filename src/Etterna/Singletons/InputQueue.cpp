@@ -147,7 +147,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 			}
 			if (!bAllHeldButtonsOK)
 				continue;
-			iMinSearchIndexUsed = min(iMinSearchIndexUsed, iQueueSearchIndex);
+			iMinSearchIndexUsed = std::min(iMinSearchIndexUsed, iQueueSearchIndex);
 			if (b == static_cast<int>(Press.m_aButtonsToPress.size()) - 1)
 				bMatched = true;
 		}

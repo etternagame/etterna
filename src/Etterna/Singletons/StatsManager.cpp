@@ -275,7 +275,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	{
 		Grade g = NUM_Grade;
 		FOREACH_EnabledPlayer(pn) g =
-		  min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
+		  std::min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
@@ -309,7 +309,7 @@ class LunaStatsManager : public Luna<StatsManager>
 			if (bPlayerFailedOneStage)
 				continue;
 
-			top_grade = min(top_grade, stats.m_player.GetGrade());
+			top_grade = std::min(top_grade, stats.m_player.GetGrade());
 		}
 
 		Enum::Push(L, top_grade);

@@ -798,7 +798,7 @@ Actor::UpdateTweening(float fDeltaTime)
 
 		bool bBeginning = TI.m_fTimeLeftInTween == TI.m_fTweenTime;
 
-		float fSecsToSubtract = min(TI.m_fTimeLeftInTween, fDeltaTime);
+		float fSecsToSubtract = std::min(TI.m_fTimeLeftInTween, fDeltaTime);
 		TI.m_fTimeLeftInTween -= fSecsToSubtract;
 		fDeltaTime -= fSecsToSubtract;
 

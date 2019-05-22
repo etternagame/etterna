@@ -910,7 +910,7 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 		  fmod((y_start_pos - part_args.y_start_pos), unzoomed_frame_height) +
 		  part_args.y_start_pos;
 	}
-	float y_end_pos = min(part_args.y_bottom, part_args.y_end_pos);
+	float y_end_pos = std::min(part_args.y_bottom, part_args.y_end_pos);
 	const float color_scale = glow ? 1 : part_args.color_scale;
 
 	// top to bottom

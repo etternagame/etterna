@@ -839,7 +839,7 @@ Player::Update(float fDeltaTime)
 		float fTinyPercent = m_pPlayerState->m_PlayerOptions.GetCurrent()
 							   .m_fEffects[PlayerOptions::EFFECT_TINY];
 		float fJudgmentZoom =
-		  min(powf(0.5f, fMiniPercent + fTinyPercent), 1.0f);
+		  std::min(powf(0.5f, fMiniPercent + fTinyPercent), 1.0f);
 
 		// Update Y positions
 		{
@@ -1282,7 +1282,7 @@ Player::UpdateHoldNotes(int iSongRow,
 
 			// LOG->Trace(ssprintf("trying for min between iSongRow (%i) and
 			// iEndRow (%i) (duration %i)",iSongRow,iEndRow,tn.iDuration));
-			trtn->pTN->HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+			trtn->pTN->HoldResult.iLastHeldRow = std::min(iSongRow, iEndRow);
 		}
 	}
 
@@ -1486,7 +1486,7 @@ Player::UpdateHoldNotes(int iSongRow,
 								  ? 2.0f * fLifeFraction
 								  : 10.0f * fLifeFraction - 8.5f);
 				m_vKeysounds[tn.iKeysoundIndex].SetProperty(
-				  "Volume", std::max(0.0f, min(1.0f, factor)) * fVol);
+				  "Volume", std::max(0.0f, std::min(1.0f, factor)) * fVol);
 			}
 		}
 	}
@@ -2059,7 +2059,7 @@ Player::Step(int col,
 				 * clamped to iEndRow if the hold note is held all the way. */
 				// LOG->Trace("setting iLastHeldRow to min of iSongRow (%i) and
 				// iEndRow (%i)",iSongRow,iEndRow);
-				tn.HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+				tn.HoldResult.iLastHeldRow = std::min(iSongRow, iEndRow);
 			}
 
 			// If the song beat is in the range of this hold:
@@ -2590,7 +2590,7 @@ Player::StepReplay(int col,
 				 * clamped to iEndRow if the hold note is held all the way. */
 				// LOG->Trace("setting iLastHeldRow to min of iSongRow (%i) and
 				// iEndRow (%i)",iSongRow,iEndRow);
-				tn.HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+				tn.HoldResult.iLastHeldRow = std::min(iSongRow, iEndRow);
 			}
 
 			// If the song beat is in the range of this hold:

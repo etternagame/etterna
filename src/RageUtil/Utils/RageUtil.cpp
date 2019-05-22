@@ -244,7 +244,7 @@ SecondsToMMSSMsMs(float fSecs)
 	const auto iLeftoverDisplay =
 	  static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 100);
 	RString sReturn = ssprintf(
-	  "%02d:%02d.%02d", iMinsDisplay, iSecsDisplay, min(99, iLeftoverDisplay));
+	  "%02d:%02d.%02d", iMinsDisplay, iSecsDisplay, std::min(99, iLeftoverDisplay));
 	return sReturn;
 }
 
@@ -256,7 +256,7 @@ SecondsToMSSMsMs(float fSecs)
 	const auto iLeftoverDisplay =
 	  static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 100);
 	RString sReturn = ssprintf(
-	  "%01d:%02d.%02d", iMinsDisplay, iSecsDisplay, min(99, iLeftoverDisplay));
+	  "%01d:%02d.%02d", iMinsDisplay, iSecsDisplay, std::min(99, iLeftoverDisplay));
 	return sReturn;
 }
 
@@ -268,7 +268,7 @@ SecondsToMMSSMsMsMs(float fSecs)
 	const auto iLeftoverDisplay =
 	  static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 1000);
 	RString sReturn = ssprintf(
-	  "%02d:%02d.%03d", iMinsDisplay, iSecsDisplay, min(999, iLeftoverDisplay));
+	  "%02d:%02d.%03d", iMinsDisplay, iSecsDisplay, std::min(999, iLeftoverDisplay));
 	return sReturn;
 }
 
@@ -874,7 +874,7 @@ do_split(const S& Source,
 	if (size != -1) {
 		// Start points to the beginning of the last delimiter. Move it up.
 		begin += size + Delimitor.size();
-		begin = min(begin, len);
+		begin = std::min(begin, len);
 	}
 
 	size = 0;

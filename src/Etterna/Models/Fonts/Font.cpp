@@ -218,9 +218,9 @@ FontPage::SetExtraPixels(int iDrawExtraPixelsLeft, int iDrawExtraPixelsRight)
 		 * worry about alignment here; fCharWidth is always even (by
 		 * SetTextureCoords) and iFrameWidth are almost always even. */
 		float fExtraLeft =
-		  min(float(iDrawExtraPixelsLeft), (iFrameWidth - fCharWidth) / 2.0f);
+		  std::min(float(iDrawExtraPixelsLeft), (iFrameWidth - fCharWidth) / 2.0f);
 		float fExtraRight =
-		  min(float(iDrawExtraPixelsRight), (iFrameWidth - fCharWidth) / 2.0f);
+		  std::min(float(iDrawExtraPixelsRight), (iFrameWidth - fCharWidth) / 2.0f);
 
 		// Move left and expand right.
 		m_aGlyphs[i].m_TexRect.left -=

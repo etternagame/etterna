@@ -240,7 +240,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		  g_Playing->m_Timing.WhereUAtBroNoOffset(fCurBeatToStartOn);
 		const float fMaximumDistance = 2;
 		const float fDistance =
-		  min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
+		  std::min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
 			  fMaximumDistance);
 
 		when = GAMESTATE->m_Position.m_LastBeatUpdate + fDistance;
@@ -498,7 +498,7 @@ GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 		return 0;
 
 	/* Subtract the extra delay. */
-	return min(-fExtraDelay, 0);
+	return std::min(-fExtraDelay, 0);
 }
 
 void

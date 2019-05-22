@@ -147,8 +147,8 @@ StepsDisplayList::UpdatePositions()
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, (int)Rows.size());
-	second_end = min(second_end, (int)Rows.size());
+	first_end = std::min(first_end, (int)Rows.size());
+	second_end = std::min(second_end, (int)Rows.size());
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */

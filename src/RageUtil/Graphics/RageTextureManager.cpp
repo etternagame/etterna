@@ -84,7 +84,7 @@ RageTextureManager::AdjustTextureID(RageTextureID& ID) const
 {
 	if (ID.iColorDepth == -1)
 		ID.iColorDepth = m_Prefs.m_iTextureColorDepth;
-	ID.iMaxSize = min(ID.iMaxSize, m_Prefs.m_iMaxTextureResolution);
+	ID.iMaxSize = std::min(ID.iMaxSize, m_Prefs.m_iMaxTextureResolution);
 	if (m_Prefs.m_bMipMaps)
 		ID.bMipMaps = true;
 }
@@ -223,7 +223,7 @@ RageTextureManager::VolatileTexture(const RageTextureID& ID)
 {
 	RageTexture* pTexture = LoadTextureInternal(ID);
 	pTexture->GetPolicy() =
-	  min(pTexture->GetPolicy(), RageTextureID::TEX_VOLATILE);
+	  std::min(pTexture->GetPolicy(), RageTextureID::TEX_VOLATILE);
 	UnloadTexture(pTexture);
 }
 

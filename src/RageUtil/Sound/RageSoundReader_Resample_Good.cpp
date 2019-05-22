@@ -565,7 +565,7 @@ class RageSoundResampler_Polyphase
 
 		float fCutoffFrequency;
 		fCutoffFrequency = 1.0f / (2 * m_iUpFactor);
-		fCutoffFrequency = min(fCutoffFrequency, 1.0f / (2 * iDownFactor));
+		fCutoffFrequency = std::min(fCutoffFrequency, 1.0f / (2 * iDownFactor));
 		return fCutoffFrequency;
 	}
 

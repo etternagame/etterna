@@ -227,7 +227,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 			int iMaxSourceFramesToRead = aNextSourceFrames[i] - iMinPosition;
 			int iMaxStreamFramesToRead =
 			  lround(iMaxSourceFramesToRead / m_fCurrentStreamToSourceRatio);
-			iFrames = min(iFrames, iMaxStreamFramesToRead);
+			iFrames = std::min(iFrames, iMaxStreamFramesToRead);
 			//			LOG->Warn( "RageSoundReader_Merge: sound positions
 			// moving  at  different rates" );
 		}
@@ -247,7 +247,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 
 	RageSoundMixBuffer mix;
 	float Buffer[2048];
-	iFrames = min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
+	iFrames = std::min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
 
 	/* Read iFrames from each sound. */
 	for (unsigned i = 0; i < m_aSounds.size(); ++i) {

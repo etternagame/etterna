@@ -114,7 +114,7 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 		int MinBPM = INT_MAX;
 		int MaxBPM = INT_MIN;
 		for (unsigned i = 0; i < BPMS.size(); ++i) {
-			MinBPM = min(MinBPM, static_cast<int>(lround(BPMS[i])));
+			MinBPM = std::min(MinBPM, static_cast<int>(lround(BPMS[i])));
 			MaxBPM = std::max(MaxBPM, static_cast<int>(lround(BPMS[i])));
 		}
 		if (MinBPM == MaxBPM) {
@@ -133,7 +133,7 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 				m_BPMS.push_back(BPMS[i]); // hold
 		}
 
-		m_iCurrentBPM = min(1u, m_BPMS.size()); // start on the first hold
+		m_iCurrentBPM = std::min(1u, m_BPMS.size()); // start on the first hold
 		m_fBPMFrom = BPMS[0];
 		m_fBPMTo = BPMS[0];
 		m_fPercentInState = 1;

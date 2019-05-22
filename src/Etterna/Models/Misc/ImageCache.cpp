@@ -256,8 +256,8 @@ struct ImageTexture : public RageTexture
 		if (m_pImage->w > DISPLAY->GetMaxTextureSize() ||
 			m_pImage->h > DISPLAY->GetMaxTextureSize()) {
 			LOG->Warn("Converted %s at runtime", GetID().filename.c_str());
-			int iWidth = min(m_pImage->w, DISPLAY->GetMaxTextureSize());
-			int iHeight = min(m_pImage->h, DISPLAY->GetMaxTextureSize());
+			int iWidth = std::min(m_pImage->w, DISPLAY->GetMaxTextureSize());
+			int iHeight = std::min(m_pImage->h, DISPLAY->GetMaxTextureSize());
 			RageSurfaceUtils::Zoom(m_pImage, iWidth, iHeight);
 		}
 
@@ -446,8 +446,8 @@ ImageCache::CacheImageInternal(const std::string& sImageDir,
 	/* Don't resize the image to less than 32 pixels in either dimension or the
 	 * next power of two of the source (whichever is smaller); it's already very
 	 * low res. */
-	iWidth = std::max(iWidth, min(32, power_of_two(iSourceWidth)));
-	iHeight = std::max(iHeight, min(32, power_of_two(iSourceHeight)));
+	iWidth = std::max(iWidth, std::min(32, power_of_two(iSourceWidth)));
+	iHeight = std::max(iHeight, std::min(32, power_of_two(iSourceHeight)));
 
 	// RageSurfaceUtils::ApplyHotPinkColorKey( pImage );
 

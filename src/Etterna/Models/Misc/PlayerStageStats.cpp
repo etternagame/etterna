@@ -489,7 +489,7 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 	if (fStepsSecond < 0)
 		return;
 
-	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
+	m_fFirstSecond = std::min(fStepsSecond, m_fFirstSecond);
 	m_fLastSecond = std::max(fStepsSecond, m_fLastSecond);
 	// LOG->Trace( "fLastSecond = %f", m_fLastSecond );
 
@@ -616,7 +616,7 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 	if (fStepsSecond < 0)
 		return;
 
-	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
+	m_fFirstSecond = std::min(fStepsSecond, m_fFirstSecond);
 	m_fLastSecond = std::max(fStepsSecond, m_fLastSecond);
 	std::map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
 	if (curr != WifeRecord.end()) {
@@ -702,7 +702,7 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 		return;
 
 	if (!bRollover) {
-		m_fFirstSecond = min(fSecond, m_fFirstSecond);
+		m_fFirstSecond = std::min(fSecond, m_fFirstSecond);
 		m_fLastSecond = std::max(fSecond, m_fLastSecond);
 		// LOG->Trace( "fLastSecond = %f", fLastSecond );
 	}
@@ -928,7 +928,7 @@ public:
 	static int GetPlayedSteps(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for (int i = 0; i < min(static_cast<int>(p->m_iStepsPlayed),
+		for (int i = 0; i < std::min(static_cast<int>(p->m_iStepsPlayed),
 								static_cast<int>(p->m_vpPossibleSteps.size()));
 			 ++i) {
 			p->m_vpPossibleSteps[i]->PushSelf(L);

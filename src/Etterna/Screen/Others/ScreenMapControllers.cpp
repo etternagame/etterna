@@ -617,7 +617,7 @@ ScreenMapControllers::Refresh()
 	}
 
 	m_LineScroller.SetDestinationItem(
-	  static_cast<float>(min(m_CurButton, m_MaxDestItem)));
+	  static_cast<float>(std::min(m_CurButton, m_MaxDestItem)));
 }
 
 void

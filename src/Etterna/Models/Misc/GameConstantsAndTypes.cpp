@@ -287,7 +287,7 @@ DisplayBpms::GetMin() const
 	FOREACH_CONST(float, vfBpms, f)
 	{
 		if (*f != -1)
-			fMin = min(fMin, *f);
+			fMin = std::min(fMin, *f);
 	}
 	if (fMin == FLT_MAX)
 		return 0;
