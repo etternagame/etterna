@@ -142,7 +142,7 @@ struct SMLoader
 					   const int rowsPerBeat = -1);
 	static void ProcessDelays(TimingData& out,
 							  const RString& line,
-							  const string& songname,
+							  const std::string& songname,
 							  const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Time Signature Segments from the string.
@@ -154,7 +154,7 @@ struct SMLoader
 							   const int rowsPerBeat = -1);
 	static void ProcessTimeSignatures(TimingData& out,
 									  const RString& line,
-									  const string& songname,
+									  const std::string& songname,
 									  const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Tickcount Segments from the string.
@@ -166,7 +166,7 @@ struct SMLoader
 						   const int rowsPerBeat = -1);
 	static void ProcessTickcounts(TimingData& out,
 								  const RString& line,
-								  const string& songname,
+								  const std::string& songname,
 								  const int rowsPerBeat = -1);
 
 	/**
@@ -179,7 +179,7 @@ struct SMLoader
 							   const int rowsPerBeat = -1);
 	static void ProcessSpeeds(TimingData& out,
 							  const RString& line,
-							  const string& songname,
+							  const std::string& songname,
 							  const int rowsPerBeat = -1);
 
 	virtual void ProcessCombos(TimingData& /* out */,
@@ -198,7 +198,7 @@ struct SMLoader
 							  const int rowsPerBeat = -1);
 	static void ProcessFakes(TimingData& out,
 							 const RString& line,
-							 const string& songname,
+							 const std::string& songname,
 							 const int rowsPerBeat = -1);
 
 	virtual void ProcessBGChanges(Song& out,

@@ -38,7 +38,7 @@ MSDToString2(MinaSD x)
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
 		for (size_t ii = 0; ii < x[i].size(); ii++) {
-			o.append(to_string(x[i][ii]).substr(0, 5));
+			o.append(std::to_string(x[i][ii]).substr(0, 5));
 			if (ii != x[i].size() - 1)
 				o.append(",");
 		}

@@ -73,7 +73,7 @@ class Song
 
   public:
 	void SetSongDir(const RString& sDir) { m_sSongDir = sDir; }
-	const string& GetSongDir() { return m_sSongDir; }
+	const std::string& GetSongDir() { return m_sSongDir; }
 
 	/** @brief When should this song be displayed in the music wheel? */
 	enum SelectionDisplay
@@ -196,16 +196,16 @@ class Song
 
 	/* If PREFSMAN->m_bShowNative is off, these are the same as GetTranslit*
 	 * below. Otherwise, they return the main titles. */
-	const string& GetDisplayMainTitle() const;
-	const string& GetDisplaySubTitle() const;
-	const string& GetDisplayArtist() const;
-	const string& GetMainTitle() const;
+	const std::string& GetDisplayMainTitle() const;
+	const std::string& GetDisplaySubTitle() const;
+	const std::string& GetDisplayArtist() const;
+	const std::string& GetMainTitle() const;
 
 	/**
 	 * @brief Retrieve the transliterated title, or the main title if there is
 	 * no translit.
 	 * @return the proper title. */
-	const string& GetTranslitMainTitle() const
+	const std::string& GetTranslitMainTitle() const
 	{
 		return m_sMainTitleTranslit.size() ? m_sMainTitleTranslit
 										   : m_sMainTitle;
@@ -217,7 +217,7 @@ class Song
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
 	 * there is no translit.
 	 * @return the proper subtitle. */
-	const string& GetTranslitSubTitle() const
+	const std::string& GetTranslitSubTitle() const
 	{
 		return m_sSubTitleTranslit.size() ? m_sSubTitleTranslit : m_sSubTitle;
 	}
@@ -225,7 +225,7 @@ class Song
 	 * @brief Retrieve the transliterated artist, or the main artist if there is
 	 * no translit.
 	 * @return the proper artist. */
-	const string& GetTranslitArtist() const
+	const std::string& GetTranslitArtist() const
 	{
 		return m_sArtistTranslit.size() ? m_sArtistTranslit : m_sArtist;
 	}
@@ -233,8 +233,8 @@ class Song
 	// "title subtitle"
 	std::string displayfulltitle;
 	std::string translitfulltitle;
-	const string& GetDisplayFullTitle() const{ return displayfulltitle;}
-	const string& GetTranslitFullTitle() const{ return translitfulltitle;}
+	const std::string& GetDisplayFullTitle() const{ return displayfulltitle;}
+	const std::string& GetTranslitFullTitle() const{ return translitfulltitle;}
 
 	/** @brief The version of the song/file. */
 	float m_fVersion;
@@ -284,17 +284,17 @@ class Song
 	std::vector<RString> ImageDir;
 
 	static RString GetSongAssetPath(RString sPath, const RString& sSongPath);
-	const string& GetMusicPath() const {return m_sMusicPath;}
-	const string& GetInstrumentTrackPath(InstrumentTrack it) const {return m_sInstrumentTrackPath[it];}
-	const string& GetBannerPath() const {return m_sBannerPath;}
-	const string& GetJacketPath() const { return m_sJacketPath; }
-	const string& GetCDImagePath() const { return m_sCDPath; }
-	const string& GetDiscPath() const { return m_sDiscPath; }
-	const string& GetLyricsPath() const { return m_sLyricsPath; }
-	const string& GetBackgroundPath() const { return m_sBackgroundPath; }
-	const string& GetCDTitlePath() const { return m_sCDTitlePath; }
-	const string& GetPreviewVidPath() const { return m_sPreviewVidPath; }
-	const string& GetPreviewMusicPath() const { return m_PreviewPath; }
+	const std::string& GetMusicPath() const {return m_sMusicPath;}
+	const std::string& GetInstrumentTrackPath(InstrumentTrack it) const {return m_sInstrumentTrackPath[it];}
+	const std::string& GetBannerPath() const {return m_sBannerPath;}
+	const std::string& GetJacketPath() const { return m_sJacketPath; }
+	const std::string& GetCDImagePath() const { return m_sCDPath; }
+	const std::string& GetDiscPath() const { return m_sDiscPath; }
+	const std::string& GetLyricsPath() const { return m_sLyricsPath; }
+	const std::string& GetBackgroundPath() const { return m_sBackgroundPath; }
+	const std::string& GetCDTitlePath() const { return m_sCDTitlePath; }
+	const std::string& GetPreviewVidPath() const { return m_sPreviewVidPath; }
+	const std::string& GetPreviewMusicPath() const { return m_PreviewPath; }
 	float GetPreviewStartSeconds() const;
 	std::string GetCacheFile(std::string sPath);
 
@@ -305,7 +305,7 @@ class Song
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
-	bool HasChartByHash(const string& hash);
+	bool HasChartByHash(const std::string& hash);
 
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;

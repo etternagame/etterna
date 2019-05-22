@@ -279,7 +279,7 @@ std::string getSystemUniqueId()
 
 	uint16_t* id = computeSystemUniqueId();
 	for (uint32_t i = 0; i < 3; i++)
-		str = str + "." + to_string(id[i]);
+		str = str + "." + std::to_string(id[i]);
 	return str;
 }
 /* Arcade:	for the current stage (one song).

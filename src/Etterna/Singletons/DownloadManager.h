@@ -49,11 +49,11 @@ class Download
 	std::string Status()
 	{
 		return m_TempFileName + "\n" + speed + " KB/s\n" + "Downloaded " +
-			   to_string((progress.downloaded > 0 ? progress.downloaded
+			   std::to_string((progress.downloaded > 0 ? progress.downloaded
 												  : p_RFWrapper.bytes) /
 						 1024) +
 			   (progress.total > 0
-				  ? "/" + to_string(progress.total / 1024) + " (KB)"
+				  ? "/" + std::to_string(progress.total / 1024) + " (KB)"
 				  : "");
 	}
 	CURL* handle{ nullptr };
@@ -200,22 +200,22 @@ class DownloadManager
 	std::map<Skillset, std::vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
 
-	void AddFavorite(const string& chartkey);
-	void RemoveFavorite(const string& chartkey);
+	void AddFavorite(const std::string& chartkey);
+	void RemoveFavorite(const std::string& chartkey);
 	void RefreshFavourites();
 	std::vector<std::string> favorites;
 
-	void AddGoal(const string& chartkey,
+	void AddGoal(const std::string& chartkey,
 				 float wife,
 				 float rate,
 				 DateTime& timeAssigned);
-	void UpdateGoal(const string& chartkey,
+	void UpdateGoal(const std::string& chartkey,
 					float wife,
 					float rate,
 					bool achieved,
 					DateTime& timeAssigned,
 					DateTime& timeAchieved);
-	void RemoveGoal(const string& chartkey, float wife, float rate);
+	void RemoveGoal(const std::string& chartkey, float wife, float rate);
 
 	void EndSessionIfExists(); // Calls EndSession if logged in
 	void EndSession();		   // Sends session destroy request
@@ -227,16 +227,16 @@ class DownloadManager
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
 	bool UpdateOnlineScoreReplayData();	// attempts updates existing replaydata
 						 // server (Async, 1 request per score)
-	void RefreshPackList(const string& url);
+	void RefreshPackList(const std::string& url);
 
 	void init();
-	Download* DownloadAndInstallPack(const string& url, std::string filename = "");
+	Download* DownloadAndInstallPack(const std::string& url, std::string filename = "");
 	Download* DownloadAndInstallPack(DownloadablePack* pack,
 									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
 	void UpdateHTTP(float fDeltaSeconds);
-	bool InstallSmzip(const string& sZipFile);
+	bool InstallSmzip(const std::string& sZipFile);
 
 	void UpdateDLSpeed();
 	void UpdateDLSpeed(bool gameplay);
@@ -247,10 +247,10 @@ class DownloadManager
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
-	  const string& sk,
+	  const std::string& sk,
 	  std::function<void()> callback = std::function<void()>());
 	void UpdateOnlineScoreReplayData(
-	  const string& sk,
+	  const std::string& sk,
 	  std::function<void()> callback = std::function<void()>());
 	void UploadScore(HighScore* hs);
 
@@ -279,21 +279,21 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
-	void RequestReplayData(const string& scorekey,
+	void RequestReplayData(const std::string& scorekey,
 						   int userid,
-						   const string& username,
-						   const string& chartkey,
+						   const std::string& username,
+						   const std::string& chartkey,
 						   LuaReference& callback = EMPTY_REFERENCE);
-	void RequestChartLeaderBoard(const string& chartkey,
+	void RequestChartLeaderBoard(const std::string& chartkey,
 								 LuaReference& ref = EMPTY_REFERENCE);
 	void RefreshUserData();
 	std::string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(const string& whichoneyo, bool mirror = true);
+	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = true);
 	std::map<std::string, std::vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
-	std::vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);
+	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
 									   Skillset ss,
 									   bool& result);

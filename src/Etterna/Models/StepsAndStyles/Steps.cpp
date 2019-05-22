@@ -481,10 +481,10 @@ Steps::FillStringWithBPMs(size_t startRow,
 		int row = nerv[r];
 		for (int t = 0; t < nd.GetNumTracks(); ++t) {
 			const TapNote& tn = nd.GetTapNote(t, row);
-			inOut.append(to_string(tn.type));
+			inOut.append(std::to_string(tn.type));
 		}
 		bpm = td->GetBPMAtRow(row);
-		inOut.append(to_string(static_cast<int>(bpm + 0.374643f)));
+		inOut.append(std::to_string(static_cast<int>(bpm + 0.374643f)));
 	}
 }
 

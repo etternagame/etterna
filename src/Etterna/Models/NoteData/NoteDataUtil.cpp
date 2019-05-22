@@ -714,7 +714,7 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 			const int iMeasureStartRow = m * ROWS_PER_MEASURE;
 			const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
 
-			sRet.append(to_string(nt));
+			sRet.append(std::to_string(nt));
 			for (int r = iMeasureStartRow; r <= iMeasureLastRow;
 				 r += iRowSpacing) {
 				std::string halp;

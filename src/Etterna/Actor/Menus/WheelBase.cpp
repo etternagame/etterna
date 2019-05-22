@@ -38,7 +38,7 @@ WheelBase::~WheelBase()
 }
 
 void
-WheelBase::Load(const string& sType)
+WheelBase::Load(const std::string& sType)
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("WheelBase::Load('%s')", sType.c_str());

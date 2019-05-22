@@ -114,7 +114,7 @@ ReadThisSeekCallback(void* arg, curl_off_t offset, int origin)
 }
 
 bool
-DownloadManager::InstallSmzip(const string& sZipFile)
+DownloadManager::InstallSmzip(const std::string& sZipFile)
 {
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
@@ -342,7 +342,7 @@ SetCURLFormPostField(CURL* curlHandle,
 					 T value)
 {
 	CURLFormPostField(
-	  curlHandle, form, lastPtr, field.c_str(), to_string(value).c_str());
+	  curlHandle, form, lastPtr, field.c_str(), std::to_string(value).c_str());
 }
 inline void
 EmptyTempDLFileDir()
@@ -390,7 +390,7 @@ DownloadManager::~DownloadManager()
 }
 
 Download*
-DownloadManager::DownloadAndInstallPack(const string& url, std::string filename)
+DownloadManager::DownloadAndInstallPack(const std::string& url, std::string filename)
 {
 	Download* dl = new Download(url, filename);
 
@@ -457,7 +457,7 @@ Download::Update(float fDeltaSeconds)
 {
 	progress.time += fDeltaSeconds;
 	if (progress.time > 1.0) {
-		speed = to_string(progress.downloaded / 1024 - downloadedAtLastUpdate);
+		speed = std::to_string(progress.downloaded / 1024 - downloadedAtLastUpdate);
 		progress.time = 0;
 		downloadedAtLastUpdate = progress.downloaded / 1024;
 	}
@@ -521,7 +521,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + to_string(mc);
+		error = "curl_multi_fdset() failed, code " + std::to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -531,7 +531,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 	switch (rc) {
 		case -1:
-			error = "select error" + to_string(mc);
+			error = "select error" + std::to_string(mc);
 			break;
 		case 0:  /* timeout */
 		default: /* action */
@@ -612,7 +612,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + to_string(mc);
+		error = "curl_multi_fdset() failed, code " + std::to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -622,7 +622,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	switch (rc) {
 		case -1:
-			error = "select error" + to_string(mc);
+			error = "select error" + std::to_string(mc);
 			break;
 		case 0:  /* timeout */
 		default: /* action */
@@ -711,7 +711,7 @@ DownloadManager::LoggedIn()
 }
 
 void
-DownloadManager::AddFavorite(const string& chartkey)
+DownloadManager::AddFavorite(const std::string& chartkey)
 {
 	std::string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.emplace_back(chartkey);
@@ -722,7 +722,7 @@ DownloadManager::AddFavorite(const string& chartkey)
 }
 
 void
-DownloadManager::RemoveFavorite(const string& chartkey)
+DownloadManager::RemoveFavorite(const std::string& chartkey)
 {
 	auto it =
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
@@ -739,10 +739,10 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 
 // we could pass scoregoal objects instead..? -mina
 void
-DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
+DownloadManager::RemoveGoal(const std::string& chartkey, float wife, float rate)
 {
 	std::string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
-				 to_string(wife) + "/" + to_string(rate);
+				 std::to_string(wife) + "/" + std::to_string(rate);
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
@@ -752,7 +752,7 @@ DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 }
 
 void
-DownloadManager::AddGoal(const string& chartkey,
+DownloadManager::AddGoal(const std::string& chartkey,
 						 float wife,
 						 float rate,
 						 DateTime& timeAssigned)
@@ -763,15 +763,15 @@ DownloadManager::AddGoal(const string& chartkey,
 	};
 	std::vector<std::pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
-		make_pair("rate", to_string(rate)),
-		make_pair("wife", to_string(wife)),
+		make_pair("rate", std::to_string(rate)),
+		make_pair("wife", std::to_string(wife)),
 		make_pair("timeAssigned", timeAssigned.GetString())
 	};
 	SendRequest(req, postParams, done, true, true);
 }
 
 void
-DownloadManager::UpdateGoal(const string& chartkey,
+DownloadManager::UpdateGoal(const std::string& chartkey,
 							float wife,
 							float rate,
 							bool achieved,
@@ -788,9 +788,9 @@ DownloadManager::UpdateGoal(const string& chartkey,
 	};
 	std::vector<std::pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
-		make_pair("rate", to_string(rate)),
-		make_pair("wife", to_string(wife)),
-		make_pair("achieved", to_string(achieved)),
+		make_pair("rate", std::to_string(rate)),
+		make_pair("wife", std::to_string(wife)),
+		make_pair("achieved", std::to_string(achieved)),
 		make_pair("timeAssigned", timeAssigned.GetString()),
 		make_pair("timeAchieved", doot)
 	};
@@ -972,11 +972,11 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 		std::vector<float>& timestamps = hs->timeStamps;
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
-			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]) + ",";
-			replayString += to_string(columns[i]) + ",";
-			replayString += to_string(types[i]) + ",";
-			replayString += to_string(rows[i]);
+			replayString += std::to_string(timestamps[i]) + ",";
+			replayString += std::to_string(1000.f * offsets[i]) + ",";
+			replayString += std::to_string(columns[i]) + ",";
+			replayString += std::to_string(types[i]) + ",";
+			replayString += std::to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
@@ -1037,7 +1037,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	return;
 }
 void // not tested exhaustively -mina
-DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
+DownloadManager::UploadScoreWithReplayDataFromDisk(const std::string& sk,
 												   std::function<void()> callback)
 {
 	if (!LoggedIn())
@@ -1068,13 +1068,13 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 			rows, hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
-			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]) + ",";
+			replayString += std::to_string(timestamps[i]) + ",";
+			replayString += std::to_string(1000.f * offsets[i]) + ",";
 			if (hs->GetReplayType() == 2) {
-				replayString += to_string(columns[i]) + ",";
-				replayString += to_string(types[i]) + ",";
+				replayString += std::to_string(columns[i]) + ",";
+				replayString += std::to_string(types[i]) + ",";
 			}
-			replayString += to_string(rows[i]);
+			replayString += std::to_string(rows[i]);
 			replayString += "],";
 		}
 		replayString =
@@ -1139,7 +1139,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	return;
 }
 void // for online replay viewing accuracy -mina
-DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
+DownloadManager::UpdateOnlineScoreReplayData(const std::string& sk,
 											 std::function<void()> callback)
 {
 	if (!LoggedIn())
@@ -1157,7 +1157,7 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 		return;
 	auto& rows = hs->GetNoteRowVector();
 	for (auto& row : rows)
-		toSend += to_string(row) + ",";
+		toSend += std::to_string(row) + ",";
 	toSend = toSend.substr(0, toSend.size() - 1); // remove ,
 	toSend += "]";
 	SetCURLFormPostField(curlHandle, form, lastPtr, "replay", toSend);
@@ -1472,10 +1472,10 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
-DownloadManager::RequestReplayData(const string& scoreid,
+DownloadManager::RequestReplayData(const std::string& scoreid,
 								   int userid,
-								   const string& username,
-								   const string& chartkey,
+								   const std::string& username,
+								   const std::string& chartkey,
 								   LuaReference& callback)
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
@@ -1556,14 +1556,14 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				.c_str());
 		}
 	};
-	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
+	SendRequest("/replay/" + std::to_string(userid) + "/" + scoreid,
 				std::vector<std::pair<string, string>>(),
 				done,
 				true);
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(const string& chartkey,
+DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 										 LuaReference& ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
@@ -1728,14 +1728,14 @@ DownloadManager::RefreshCoreBundles()
 }
 
 std::vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(const string& whichoneyo)
+DownloadManager::GetCoreBundle(const std::string& whichoneyo)
 {
 	return bundles.count(whichoneyo) ? bundles[whichoneyo]
 									 : std::vector<DownloadablePack*>();
 }
 
 void
-DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1979,7 +1979,7 @@ DownloadManager::GetSkillsetRating(Skillset ss)
 	return static_cast<float>(sessionRatings[ss]);
 }
 void
-DownloadManager::RefreshPackList(const string& url)
+DownloadManager::RefreshPackList(const std::string& url)
 {
 	if (url == "")
 		return;

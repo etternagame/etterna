@@ -171,9 +171,9 @@ HighScoreImpl::OffsetsToString(std::vector<float> v) const
 	if (v.empty())
 		return o;
 
-	o = to_string(v[0]);
+	o = std::to_string(v[0]);
 	for (size_t i = 1; i < v.size(); i++)
-		o.append("," + to_string(v[i]));
+		o.append("," + std::to_string(v[i]));
 	return o;
 }
 
@@ -184,9 +184,9 @@ HighScoreImpl::NoteRowsToString(std::vector<int> v) const
 	if (v.empty())
 		return o;
 
-	o = to_string(v[0]);
+	o = std::to_string(v[0]);
 	for (size_t i = 1; i < v.size(); i++)
-		o.append("," + to_string(v[i]));
+		o.append("," + std::to_string(v[i]));
 	return o;
 }
 
@@ -453,19 +453,19 @@ HighScoreImpl::WriteReplayData()
 	unsigned int idx = vNoteRowVector.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(vNoteRowVector[i]) + " " +
-				 to_string(vOffsetVector[i]) + " " +
-				 to_string(vTrackVector[i]) +
+		append = std::to_string(vNoteRowVector[i]) + " " +
+				 std::to_string(vOffsetVector[i]) + " " +
+				 std::to_string(vTrackVector[i]) +
 				 (vTapNoteTypeVector[i] != TapNoteType_Tap
-					? " " + to_string(vTapNoteTypeVector[i])
+					? " " + std::to_string(vTapNoteTypeVector[i])
 					: "") +
 				 "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	for (auto& hold : vHoldReplayDataVector) {
 		append =
-		  "H " + to_string(hold.row) + " " + to_string(hold.track) +
-		  (hold.subType != TapNoteSubType_Hold ? " " + to_string(hold.subType)
+		  "H " + std::to_string(hold.row) + " " + std::to_string(hold.track) +
+		  (hold.subType != TapNoteSubType_Hold ? " " + std::to_string(hold.subType)
 											   : "") +
 		  "\n";
 		fileStream.write(append.c_str(), append.size());
@@ -495,7 +495,7 @@ HighScore::WriteInputData(const std::vector<float>& oop)
 	unsigned int idx = oop.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(oop[i]) + "\n";
+		append = std::to_string(oop[i]) + "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
@@ -721,7 +721,7 @@ std::string HighScore::GenerateValidationKeys()
 			continue;
 		}
 
-		key.append(to_string(GetTapNoteScore(tns)));
+		key.append(std::to_string(GetTapNoteScore(tns)));
 	}
 
 	FOREACH_ENUM(HoldNoteScore, hns)
@@ -730,7 +730,7 @@ std::string HighScore::GenerateValidationKeys()
 			continue;
 		}
 
-		key.append(to_string(GetHoldNoteScore(hns)));
+		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
 	norms = lround(GetSSRNormPercent() * 1000000.f);
@@ -741,11 +741,11 @@ std::string HighScore::GenerateValidationKeys()
 	key.append(GetChartKey());
 	key.append(GetModifiers());
 	key.append(GetMachineGuid());
-	key.append(to_string(norms));
-	key.append(to_string(musics));
-	key.append(to_string(judges));
-	key.append(to_string(static_cast<int>(!GetChordCohesion())));
-	key.append(to_string(static_cast<int>(GetEtternaValid())));
+	key.append(std::to_string(norms));
+	key.append(std::to_string(musics));
+	key.append(std::to_string(judges));
+	key.append(std::to_string(static_cast<int>(!GetChordCohesion())));
+	key.append(std::to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));
 
 	std::string hash_hex_str;
@@ -972,12 +972,12 @@ HighScore::GetReplayType() const
 }
 
 void
-HighScore::SetName(const string& sName)
+HighScore::SetName(const std::string& sName)
 {
 	m_Impl->sName = sName;
 }
 void
-HighScore::SetChartKey(const string& ck)
+HighScore::SetChartKey(const std::string& ck)
 {
 	m_Impl->ChartKey = ck;
 }
@@ -1085,7 +1085,7 @@ HighScore::SetOnlineReplayTimestampVector(const std::vector<float>& v)
 	m_Impl->vOnlineReplayTimestampVector = v;
 }
 void
-HighScore::SetScoreKey(const string& sk)
+HighScore::SetScoreKey(const std::string& sk)
 {
 	m_Impl->ScoreKey = sk;
 }
@@ -1100,7 +1100,7 @@ HighScore::SetAliveSeconds(float f)
 	m_Impl->fSurviveSeconds = f;
 }
 void
-HighScore::SetModifiers(const string& s)
+HighScore::SetModifiers(const std::string& s)
 {
 	m_Impl->sModifiers = s;
 }
@@ -1110,12 +1110,12 @@ HighScore::SetDateTime(DateTime d)
 	m_Impl->dateTime = d;
 }
 void
-HighScore::SetPlayerGuid(const string& s)
+HighScore::SetPlayerGuid(const std::string& s)
 {
 	m_Impl->sPlayerGuid = s;
 }
 void
-HighScore::SetMachineGuid(const string& s)
+HighScore::SetMachineGuid(const std::string& s)
 {
 	m_Impl->sMachineGuid = s;
 }

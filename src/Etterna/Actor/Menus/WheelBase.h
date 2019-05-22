@@ -37,7 +37,7 @@ class WheelBase : public ActorFrame
 {
   public:
 	~WheelBase() override;
-	virtual void Load(const string& sType);
+	virtual void Load(const std::string& sType);
 	void BeginScreen();
 
 	void Update(float fDeltaTime) override;

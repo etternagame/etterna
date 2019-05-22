@@ -54,7 +54,7 @@ struct FileCopyResult
 };
 
 void
-InstallSmzipOsArg(const string& sOsZipFile)
+InstallSmzipOsArg(const std::string& sOsZipFile)
 {
 	SCREENMAN->SystemMessage("Installing " + sOsZipFile);
 

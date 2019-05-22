@@ -479,7 +479,7 @@ DBProfile::SaveDBToDir(std::string dir,
 				 "skillset TEXT)");
 		FOREACH_ENUM(Skillset, ss)
 		db->exec("INSERT INTO skillsets VALUES (" +
-				 to_string(static_cast<int>(ss)) + ", \"" +
+				 std::to_string(static_cast<int>(ss)) + ", \"" +
 				 SkillsetToString(ss) + "\")");
 		if (mode == WriteOnlyWebExport)
 			SaveGeneralData(db, profile);
@@ -602,8 +602,8 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 			 "skillsets(skillsetnum))");
 
 	FOREACH_ENUM(Skillset, ss)
-	db->exec("INSERT INTO playerskillsets VALUES (NULL, " + to_string(ss) +
-			 ", " + to_string(profile->m_fPlayerSkillsets[ss]) + ")");
+	db->exec("INSERT INTO playerskillsets VALUES (NULL, " + std::to_string(ss) +
+			 ", " + std::to_string(profile->m_fPlayerSkillsets[ss]) + ")");
 
 	db->exec("DROP TABLE IF EXISTS usertable");
 	db->exec("CREATE TABLE usertable (id INTEGER PRIMARY KEY, "
@@ -621,8 +621,8 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::MoveBackupToDir(const string& sFromDir,
-						   const string& sToDir,
+DBProfile::MoveBackupToDir(const std::string& sFromDir,
+						   const std::string& sToDir,
 						   DBProfileMode mode)
 {
 	std::string filename;
@@ -654,7 +654,7 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 		{
 			int chID = FindOrCreateChartKey(db, *it);
 			db->exec("INSERT INTO permamirrors VALUES (NULL, " +
-					 to_string(chID) + ")");
+					 std::to_string(chID) + ")");
 		}
 	}
 }

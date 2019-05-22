@@ -67,7 +67,7 @@ DeleteDuplicateSteps(Song* pSong, std::vector<Steps*>& vSteps);
 void
 MakeSortString(RString& s);
 RString
-MakeSortString(const string& in);
+MakeSortString(const std::string& in);
 void
 SortSongPointerArrayByTitle(std::vector<Song*>& vpSongsInOut);
 void

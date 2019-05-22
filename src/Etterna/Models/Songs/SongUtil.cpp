@@ -338,7 +338,7 @@ SongUtil::MakeSortString(RString& s)
 }
 
 RString
-SongUtil::MakeSortString(const string& in)
+SongUtil::MakeSortString(const std::string& in)
 {
 	RString s = in;
 	s.MakeUpper();

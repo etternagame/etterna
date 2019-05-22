@@ -289,7 +289,7 @@ LoadingWindow_Win32::SetTextInternal()
 	else {
 		int percent =
 		  m_totalWork != 0 ? 100 * m_progress / m_totalWork : m_progress;
-		progress = " (" + to_string(percent) + "%)";
+		progress = " (" + std::to_string(percent) + "%)";
 	}
 	RString& sText = lastText;
 

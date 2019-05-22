@@ -45,7 +45,7 @@ ScoresAtRate::ScoresAtRate()
 HighScore*
 ScoresAtRate::AddScore(HighScore& hs)
 {
-	const string& key = hs.GetScoreKey();
+	const std::string& key = hs.GetScoreKey();
 	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
@@ -102,7 +102,7 @@ ScoreManager::PurgeScores()
 }
 
 void
-ScoreManager::PurgeProfileScores(const string& profileID)
+ScoreManager::PurgeProfileScores(const std::string& profileID)
 {
 	TopSSRs.clear();
 	TopSSRs.shrink_to_fit();
@@ -270,7 +270,7 @@ ScoresForChart::GetAllPBPtrs()
 }
 
 std::vector<std::vector<HighScore*>>
-ScoreManager::GetAllPBPtrs(const string& profileID)
+ScoreManager::GetAllPBPtrs(const std::string& profileID)
 {
 	std::vector<std::vector<HighScore*>> vec;
 	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
@@ -283,9 +283,9 @@ ScoreManager::GetAllPBPtrs(const string& profileID)
 }
 
 HighScore*
-ScoreManager::GetChartPBAt(const string& ck,
+ScoreManager::GetChartPBAt(const std::string& ck,
 						   float& rate,
-						   const string& profileID)
+						   const std::string& profileID)
 {
 	if (KeyHasScores(ck, profileID))
 		return pscores[profileID].at(ck).GetPBAt(rate);
@@ -293,9 +293,9 @@ ScoreManager::GetChartPBAt(const string& ck,
 }
 
 HighScore*
-ScoreManager::GetChartPBUpTo(const string& ck,
+ScoreManager::GetChartPBUpTo(const std::string& ck,
 							 float& rate,
-							 const string& profileID)
+							 const std::string& profileID)
 {
 	if (KeyHasScores(ck, profileID))
 		return pscores[profileID].at(ck).GetPBUpTo(rate);
@@ -303,7 +303,7 @@ ScoreManager::GetChartPBUpTo(const string& ck,
 }
 
 void
-ScoreManager::SetAllTopScores(const string& profileID)
+ScoreManager::SetAllTopScores(const std::string& profileID)
 {
 	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
 	{
@@ -336,7 +336,7 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs)
 
 static const float ld_update = 0.02f;
 void
-ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
+ScoreManager::RecalculateSSRs(LoadingWindow* ld, const std::string& profileID)
 {
 	RageTimer ld_timer;
 	std::vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
@@ -505,7 +505,7 @@ ScoreManager::EnableAllScores()
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
-							   const string& profileID)
+							   const std::string& profileID)
 {
 	SetAllTopScores(profileID);
 
@@ -559,7 +559,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 }
 
 void
-ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
+ScoreManager::SortTopSSRPtrs(Skillset ss, const std::string& profileID)
 {
 	TopSSRs.clear();
 	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
@@ -586,7 +586,7 @@ ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss)
 }
 
 void
-ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
+ScoreManager::ImportScore(const HighScore& hs_, const std::string& profileID)
 {
 	HighScore hs = hs_;
 
@@ -601,7 +601,7 @@ ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
 }
 
 void
-ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
+ScoreManager::RegisterScoreInProfile(HighScore* hs_, const std::string& profileID)
 {
 	AllProfileScores[profileID].emplace_back(hs_);
 }
@@ -645,7 +645,7 @@ ScoresAtRate::CreateNode(const int& rate) const
 }
 
 XNode*
-ScoresForChart::CreateNode(const string& ck) const
+ScoresForChart::CreateNode(const std::string& ck) const
 {
 	Chart loot = ch;
 	loot.FromKey(ck); // needs to be here (or somewhere along the line, maybe
@@ -664,7 +664,7 @@ ScoresForChart::CreateNode(const string& ck) const
 }
 
 XNode*
-ScoreManager::CreateNode(const string& profileID) const
+ScoreManager::CreateNode(const std::string& profileID) const
 {
 	XNode* o = new XNode("PlayerScores");
 	FOREACHUM_CONST(string, ScoresForChart, pscores.find(profileID)->second, ch)
@@ -682,9 +682,9 @@ ScoreManager::CreateNode(const string& profileID) const
 // Read scores from xml
 void
 ScoresAtRate::LoadFromNode(const XNode* node,
-						   const string& ck,
+						   const std::string& ck,
 						   const float& rate,
-						   const string& profileID)
+						   const std::string& profileID)
 {
 	std::string sk;
 	FOREACH_CONST_Child(node, p)
@@ -722,8 +722,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 
 void
 ScoresForChart::LoadFromNode(const XNode* node,
-							 const string& ck,
-							 const string& profileID)
+							 const std::string& ck,
+							 const std::string& profileID)
 {
 	std::string rs = "";
 	int rate;
@@ -749,7 +749,7 @@ ScoresForChart::LoadFromNode(const XNode* node,
 }
 
 void
-ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
+ScoreManager::LoadFromNode(const XNode* node, const std::string& profileID)
 {
 	FOREACH_CONST_Child(node, p)
 	{
@@ -771,7 +771,7 @@ ScoresForChart::GetScoresAtRate(const int& rate)
 }
 
 ScoresForChart*
-ScoreManager::GetScoresForChart(const string& ck, const string& profileID)
+ScoreManager::GetScoresForChart(const std::string& ck, const std::string& profileID)
 {
 	auto it = (pscores[profileID]).find(ck);
 	if (it != (pscores[profileID]).end())
@@ -815,7 +815,7 @@ class LunaScoreManager : public Luna<ScoreManager>
   public:
 	static int GetScoresByKey(T* p, lua_State* L)
 	{
-		const string& ck = SArg(1);
+		const std::string& ck = SArg(1);
 		ScoresForChart* scores = p->GetScoresForChart(ck);
 
 		if (scores != nullptr) {

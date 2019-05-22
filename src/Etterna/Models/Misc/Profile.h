@@ -267,16 +267,16 @@ class Profile
 
 	// if anymore of these are added they should be enum'd to reduce copy pasta
 	// -mina and also should be sets
-	void AddToFavorites(const string& ck) { FavoritedCharts.emplace(ck); }
-	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace(ck); }
-	void RemoveFromFavorites(const string& ck);
-	void RemoveFromPermaMirror(const string& ck);
+	void AddToFavorites(const std::string& ck) { FavoritedCharts.emplace(ck); }
+	void AddToPermaMirror(const std::string& ck) { PermaMirrorCharts.emplace(ck); }
+	void RemoveFromFavorites(const std::string& ck);
+	void RemoveFromPermaMirror(const std::string& ck);
 	std::set<string> FavoritedCharts;
 	std::set<string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
-	void AddGoal(const string& ck);
-	void RemoveGoal(const string& ck, DateTime assigned);
+	void AddGoal(const std::string& ck);
+	void RemoveGoal(const std::string& ck, DateTime assigned);
 	std::unordered_map<string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	std::vector<ScoreGoal*> goaltable;
@@ -285,9 +285,9 @@ class Profile
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
 
-	bool HasGoal(const string& ck) { return goalmap.count(ck) == 1; }
-	ScoreGoal& GetLowestGoalForRate(const string& ck, float rate);
-	void SetAnyAchievedGoals(const string& ck,
+	bool HasGoal(const std::string& ck) { return goalmap.count(ck) == 1; }
+	ScoreGoal& GetLowestGoalForRate(const std::string& ck, float rate);
+	void SetAnyAchievedGoals(const std::string& ck,
 							 float& rate,
 							 const HighScore& pscore);
 

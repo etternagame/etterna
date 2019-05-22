@@ -1065,13 +1065,13 @@ Profile::AddStepTotals(int iTotalTapsAndHolds,
 }
 
 void
-Profile::RemoveFromFavorites(const string& ck)
+Profile::RemoveFromFavorites(const std::string& ck)
 {
 	FavoritedCharts.erase(ck);
 }
 
 void
-Profile::RemoveFromPermaMirror(const string& ck)
+Profile::RemoveFromPermaMirror(const std::string& ck)
 {
 	PermaMirrorCharts.erase(ck);
 }
@@ -1079,7 +1079,7 @@ Profile::RemoveFromPermaMirror(const string& ck)
 // more future goalman stuff (perhaps this should be standardized to "add" in
 // order to match scoreman nomenclature) -mina
 void
-Profile::AddGoal(const string& ck)
+Profile::AddGoal(const std::string& ck)
 {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
@@ -1185,7 +1185,7 @@ ScoreGoal::UploadIfNotVacuous()
 
 // aaa too lazy to write comparators rn -mina
 ScoreGoal&
-Profile::GetLowestGoalForRate(const string& ck, float rate)
+Profile::GetLowestGoalForRate(const std::string& ck, float rate)
 {
 	auto& sgv = goalmap[ck].Get();
 	float lowest = 100.f;
@@ -1203,7 +1203,7 @@ Profile::GetLowestGoalForRate(const string& ck, float rate)
 }
 
 void
-Profile::SetAnyAchievedGoals(const string& ck,
+Profile::SetAnyAchievedGoals(const std::string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
@@ -1231,7 +1231,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 }
 
 void
-Profile::RemoveGoal(const string& ck, DateTime assigned)
+Profile::RemoveGoal(const std::string& ck, DateTime assigned)
 {
 	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
@@ -1759,7 +1759,7 @@ class LunaProfile : public Luna<Profile>
 		bool o = false;
 
 		if (GAMESTATE->m_pCurSteps) {
-			const string& ck = GAMESTATE->m_pCurSteps->GetChartKey();
+			const std::string& ck = GAMESTATE->m_pCurSteps->GetChartKey();
 
 			if (p->PermaMirrorCharts.count(ck))
 				o = true;

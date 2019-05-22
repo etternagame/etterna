@@ -709,7 +709,7 @@ SMLoader::ProcessDelays(TimingData& out,
 void
 SMLoader::ProcessDelays(TimingData& out,
 						const RString& line,
-						const string& songname,
+						const std::string& songname,
 						const int rowsPerBeat)
 {
 	std::vector<RString> arrayDelayExpressions;
@@ -753,7 +753,7 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 void
 SMLoader::ProcessTimeSignatures(TimingData& out,
 								const RString& line,
-								const string& songname,
+								const std::string& songname,
 								const int rowsPerBeat)
 {
 	std::vector<RString> vs1;
@@ -819,7 +819,7 @@ SMLoader::ProcessTickcounts(TimingData& out,
 void
 SMLoader::ProcessTickcounts(TimingData& out,
 							const RString& line,
-							const string& songname,
+							const std::string& songname,
 							const int rowsPerBeat)
 {
 	std::vector<RString> arrayTickcountExpressions;
@@ -855,7 +855,7 @@ SMLoader::ProcessSpeeds(TimingData& out,
 void
 SMLoader::ProcessSpeeds(TimingData& out,
 						const RString& line,
-						const string& songname,
+						const std::string& songname,
 						const int rowsPerBeat)
 {
 	std::vector<RString> vs1;
@@ -925,7 +925,7 @@ SMLoader::ProcessFakes(TimingData& out,
 void
 SMLoader::ProcessFakes(TimingData& out,
 					   const RString& line,
-					   const string& songname,
+					   const std::string& songname,
 					   const int rowsPerBeat)
 {
 	std::vector<RString> arrayFakeExpressions;

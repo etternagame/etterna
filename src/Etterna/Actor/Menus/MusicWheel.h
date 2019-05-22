@@ -20,7 +20,7 @@ class MusicWheel : public WheelBase
 
   public:
 	~MusicWheel() override;
-	void Load(const string& sType) override;
+	void Load(const std::string& sType) override;
 	void BeginScreen();
 
 	bool ChangeSort(

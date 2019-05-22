@@ -70,9 +70,9 @@ class SongManager
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
 	// mina
-	Steps* GetStepsByChartkey(const string& ck);
-	Song* GetSongByChartkey(const string& ck);
-	bool IsChartLoaded(const string& ck)
+	Steps* GetStepsByChartkey(const std::string& ck);
+	Song* GetSongByChartkey(const std::string& ck);
+	bool IsChartLoaded(const std::string& ck)
 	{
 		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
 	}
@@ -157,7 +157,7 @@ class SongManager
 										   std::vector<std::string> oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());
-	void DeletePlaylist(const string& ck,
+	void DeletePlaylist(const std::string& ck,
 						std::map<std::string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
 	  std::set<string>& favs,

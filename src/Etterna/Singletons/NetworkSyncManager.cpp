@@ -370,7 +370,7 @@ NetworkSyncManager::CloseConnection()
 	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
 bool
-startsWith(const string& haystack, const string& needle)
+startsWith(const std::string& haystack, const std::string& needle)
 {
 	return needle.length() <= haystack.length() &&
 		   equal(needle.begin(), needle.end(), haystack.begin());
@@ -493,7 +493,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	time_t start;
 	if (wss) {
 		uWSh->connect(
-		  ((prepend ? "wss://" + address : address) + ":" + to_string(port))
+		  ((prepend ? "wss://" + address : address) + ":" + std::to_string(port))
 			.c_str(),
 		  nullptr,
 		  {},
@@ -510,7 +510,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	if (ws && !n->isSMOnline) {
 		error = false;
 		uWSh->connect(
-		  ((prepend ? "ws://" + address : address) + ":" + to_string(port))
+		  ((prepend ? "ws://" + address : address) + ":" + std::to_string(port))
 			.c_str(),
 		  nullptr);
 		uWSh->poll();

@@ -1726,7 +1726,7 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
 }
 
 bool
-Song::HasChartByHash(const string& hash)
+Song::HasChartByHash(const std::string& hash)
 {
 	std::vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps)
@@ -1737,7 +1737,7 @@ Song::HasChartByHash(const string& hash)
 	return false;
 }
 
-const string&
+const std::string&
 Song::GetDisplayMainTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1745,7 +1745,7 @@ Song::GetDisplayMainTitle() const
 	return m_sMainTitle;
 }
 
-const string&
+const std::string&
 Song::GetDisplaySubTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1753,7 +1753,7 @@ Song::GetDisplaySubTitle() const
 	return m_sSubTitle;
 }
 
-const string&
+const std::string&
 Song::GetDisplayArtist() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1761,7 +1761,7 @@ Song::GetDisplayArtist() const
 	return m_sArtist;
 }
 
-const string&
+const std::string&
 Song::GetMainTitle() const
 {
 	return m_sMainTitle;

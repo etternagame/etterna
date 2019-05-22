@@ -45,7 +45,7 @@ NotesWriterSSC::MSDsAtRateToString(SDiffs x)
 {
 	RString o = "";
 	for (size_t ii = 0; ii < x.size(); ii++) {
-		o.append(to_string(x[ii]).substr(0, 5));
+		o.append(std::to_string(x[ii]).substr(0, 5));
 		if (ii != x.size() - 1)
 			o.append(",");
 	}

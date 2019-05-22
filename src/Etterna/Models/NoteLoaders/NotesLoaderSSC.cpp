@@ -692,7 +692,7 @@ ssc_parser_helper_t parser_helper;
 void
 SSCLoader::ProcessBPMs(TimingData& out,
 					   const RString& sParam,
-					   const string& songName)
+					   const std::string& songName)
 {
 	std::vector<RString> arrayBPMExpressions;
 	split(sParam, ",", arrayBPMExpressions);
@@ -726,7 +726,7 @@ SSCLoader::ProcessBPMs(TimingData& out,
 void
 SSCLoader::ProcessStops(TimingData& out,
 						const RString& sParam,
-						const string& songName)
+						const std::string& songName)
 {
 	std::vector<RString> arrayStopExpressions;
 	split(sParam, ",", arrayStopExpressions);
@@ -761,7 +761,7 @@ void
 SSCLoader::ProcessWarps(TimingData& out,
 						const RString& sParam,
 						const float fVersion,
-						const string& songName)
+						const std::string& songName)
 {
 	std::vector<RString> arrayWarpExpressions;
 	split(sParam, ",", arrayWarpExpressions);
@@ -798,7 +798,7 @@ SSCLoader::ProcessWarps(TimingData& out,
 void
 SSCLoader::ProcessLabels(TimingData& out,
 						 const RString& sParam,
-						 const string& songName)
+						 const std::string& songName)
 {
 	std::vector<RString> arrayLabelExpressions;
 	split(sParam, ",", arrayLabelExpressions);
@@ -840,7 +840,7 @@ SSCLoader::ProcessCombos(TimingData& out,
 void
 SSCLoader::ProcessCombos(TimingData& out,
 						 const RString& line,
-						 const string& songName,
+						 const std::string& songName,
 						 const int rowsPerBeat)
 {
 	std::vector<RString> arrayComboExpressions;
@@ -870,7 +870,7 @@ SSCLoader::ProcessCombos(TimingData& out,
 void
 SSCLoader::ProcessScrolls(TimingData& out,
 						  const RString sParam,
-						  const string& songName)
+						  const std::string& songName)
 {
 	std::vector<RString> vs1;
 	split(sParam, ",", vs1);

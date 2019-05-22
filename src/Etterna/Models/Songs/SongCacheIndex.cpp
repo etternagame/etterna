@@ -625,7 +625,7 @@ SongCacheIndex::CreateDBTables()
 			 "ON timingdatas(ID)");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_steps "
 			 "ON steps(SONGID)");
-	db->exec("INSERT INTO dbinfo VALUES (NULL, " + to_string(CACHE_DB_VERSION) +
+	db->exec("INSERT INTO dbinfo VALUES (NULL, " + std::to_string(CACHE_DB_VERSION) +
 			 ")");
 }
 /*	Returns weather or not the db had valid data*/
@@ -778,8 +778,8 @@ SongCacheIndex::LoadCache(
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
 									  "SELECT * FROM songs LIMIT " +
-										to_string(limit) + " OFFSET " +
-										to_string(offset));
+										std::to_string(limit) + " OFFSET " +
+										std::to_string(offset));
 			  while (query.executeStep()) {
 				  if (abort) {
 					  return;
@@ -850,7 +850,7 @@ void
 SongCacheIndex::DeleteSongFromDB(Song* songPtr)
 {
 	std::string cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" +
-				  to_string(GetHashForDirectory(songPtr->GetSongDir())) + "\"";
+				  std::to_string(GetHashForDirectory(songPtr->GetSongDir())) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
@@ -862,7 +862,7 @@ SongCacheIndex::DeleteSongFromDBByDir(std::string dir)
 void
 SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 {
-	std::string cond = "hash=\"" + to_string(hash) + "\"";
+	std::string cond = "hash=\"" + std::to_string(hash) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 
@@ -1044,7 +1044,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	Steps* pNewNotes = nullptr;
 
 	SQLite::Statement qSteps(
-	  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
+	  *db, "SELECT * FROM steps WHERE SONGID=" + std::to_string(songid));
 
 	while (qSteps.executeStep()) {
 		int stepsIndex = 0;
@@ -1097,7 +1097,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			int timingID = qSteps.getColumn(stepsIndex++);
 			int timingIndex = 1; // Skip the first value, the id
 			SQLite::Statement qTiming(
-			  *db, "SELECT * FROM timingdatas WHERE ID=" + to_string(timingID));
+			  *db, "SELECT * FROM timingdatas WHERE ID=" + std::to_string(timingID));
 			if (qTiming.executeStep()) {
 				TimingData stepsTiming =
 				  TimingData(song->m_SongTiming.m_fBeat0OffsetInSeconds);

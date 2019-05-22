@@ -27,8 +27,8 @@ class DBProfile
 								  const Profile* profile,
 								  DBProfileMode mode) const;
 
-	void MoveBackupToDir(const string& sFromDir,
-						 const string& sToDir,
+	void MoveBackupToDir(const std::string& sFromDir,
+						 const std::string& sToDir,
 						 DBProfileMode mode);
 
 	void SetLoadingProfile(Profile* p) { loadingProfile = p; }

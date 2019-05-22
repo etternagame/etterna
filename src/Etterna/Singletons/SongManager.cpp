@@ -375,7 +375,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 }
 
 void
-Chart::FromKey(const string& ck)
+Chart::FromKey(const std::string& ck)
 {
 	Song* song = SONGMAN->GetSongByChartkey(ck);
 	key = ck;
@@ -431,7 +431,7 @@ Chart::LoadFromNode(const XNode* node)
 }
 
 void
-Playlist::AddChart(const string& ck)
+Playlist::AddChart(const std::string& ck)
 {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	Chart ch;
@@ -560,7 +560,7 @@ Playlist::GetKeys()
 }
 
 void
-SongManager::DeletePlaylist(const string& pl, std::map<std::string, Playlist>& playlists)
+SongManager::DeletePlaylist(const std::string& pl, std::map<std::string, Playlist>& playlists)
 {
 	playlists.erase(pl);
 
@@ -610,7 +610,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 {
 	const std::vector<Steps*> steps = new_song->GetAllSteps();
 	for (size_t i = 0; i < steps.size(); ++i) {
-		const string& ck = steps[i]->GetChartKey();
+		const std::string& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
 			StepsByKey.emplace(ck, steps[i]);
 			if (!SongsByKey.count(ck)) {
@@ -625,7 +625,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
 Steps*
-SongManager::GetStepsByChartkey(const string& ck)
+SongManager::GetStepsByChartkey(const std::string& ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
@@ -633,7 +633,7 @@ SongManager::GetStepsByChartkey(const string& ck)
 }
 
 Song*
-SongManager::GetSongByChartkey(const string& ck)
+SongManager::GetSongByChartkey(const std::string& ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];

@@ -197,7 +197,7 @@ class Steps
 	/* Now for half the reason I'm bothering to do this... generate a chart key
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
-	const string& GetChartKey() const { return ChartKey; }
+	const std::string& GetChartKey() const { return ChartKey; }
 	std::vector<float> thestuffs = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs,
 							thestuffs, thestuffs, thestuffs, thestuffs,
