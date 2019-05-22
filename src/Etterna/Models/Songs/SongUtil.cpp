@@ -1017,7 +1017,7 @@ SongUtil::ValidateCurrentStepsMusic(const RString& answer, RString& error)
 void
 SongUtil::GetAllSongGenres(std::vector<RString>& vsOut)
 {
-	set<RString> genres;
+	std::set<RString> genres;
 	FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), song)
 	{
 		if (!(*song)->m_sGenre.empty())
@@ -1028,7 +1028,7 @@ SongUtil::GetAllSongGenres(std::vector<RString>& vsOut)
 }
 
 void
-SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
+SongUtil::GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut)
 {
 	std::vector<const Style*> vpPossibleStyles;
 	// If AutoSetStyle, or a Style hasn't been chosen, check StepsTypes for all
@@ -1058,7 +1058,7 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 		}
 	}
 
-	set<StepsType> vStepsTypes;
+	std::set<StepsType> vStepsTypes;
 	FOREACH(const Style*, vpPossibleStyles, s)
 	vStepsTypes.insert((*s)->m_StepsType);
 
@@ -1081,7 +1081,7 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 void
 SongUtil::GetPlayableSteps(const Song* pSong, std::vector<Steps*>& vOut)
 {
-	set<StepsType> vStepsType;
+	std::set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
 
 	FOREACHS(StepsType, vStepsType, st)
@@ -1094,7 +1094,7 @@ SongUtil::GetPlayableSteps(const Song* pSong, std::vector<Steps*>& vOut)
 bool
 SongUtil::IsStepsTypePlayable(Song* pSong, StepsType st)
 {
-	set<StepsType> vStepsType;
+	std::set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
 	return vStepsType.find(st) != vStepsType.end();
 }

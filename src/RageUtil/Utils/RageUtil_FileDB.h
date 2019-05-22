@@ -77,7 +77,7 @@ operator!=(File const& lhs, File const& rhs)
 /** @brief This represents a directory. */
 struct FileSet
 {
-	set<File> files;
+	std::set<File> files;
 	RageTimer age;
 
 	/*

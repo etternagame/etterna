@@ -370,13 +370,13 @@ class OptionRowHandlerList : public OptionRowHandler
 static void
 SortNoteSkins(std::vector<RString>& asSkinNames)
 {
-	set<RString> setSkinNames;
+	std::set<RString> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
 
 	std::vector<RString> asSorted;
 	split(NOTE_SKIN_SORT_ORDER, ",", asSorted);
 
-	set<RString> setUnusedSkinNames(setSkinNames);
+	std::set<RString> setUnusedSkinNames(setSkinNames);
 	asSkinNames.clear();
 
 	FOREACH(RString, asSorted, sSkin)

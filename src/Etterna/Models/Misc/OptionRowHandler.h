@@ -50,7 +50,7 @@ struct OptionRowDefinition
 	SelectType m_selectType{ SELECT_ONE };
 	LayoutType m_layoutType{ LAYOUT_SHOW_ALL_IN_ROW };
 	std::vector<RString> m_vsChoices;
-	set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
+	std::set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
 											// change focus to this row
 	int m_iDefault{ -1 };
 	bool m_bExportOnChange{ false };

@@ -98,8 +98,8 @@ class ScreenMapControllers : public ScreenWithMenuElements
 			return m_slot < rhs.m_slot;
 		}
 	};
-	set<SetListEntry> m_SetList;
-	set<SetListEntry>::iterator m_SetListCurrent;
+	std::set<SetListEntry> m_SetList;
+	std::set<SetListEntry>::iterator m_SetListCurrent;
 	bool m_InSetListMode;
 
 	using action_fun_t = void (ScreenMapControllers::*)();

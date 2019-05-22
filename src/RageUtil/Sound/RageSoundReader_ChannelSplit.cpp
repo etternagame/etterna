@@ -71,7 +71,7 @@ class RageSoundSplitterImpl
 
 	RageSoundReader* m_pSource;
 
-	set<RageSoundReader_Split*> m_apSounds;
+	std::set<RageSoundReader_Split*> m_apSounds;
 
 	/* m_sBuffer[0] corresponds to frame number m_iBufferPositionFrames. */
 	int m_iBufferPositionFrames;

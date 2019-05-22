@@ -32,7 +32,7 @@ NotesLoader::GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,
 bool
 NotesLoader::LoadFromDir(const RString& sPath,
 						 Song& out,
-						 set<RString>& BlacklistedImages,
+						 std::set<RString>& BlacklistedImages,
 						 bool load_autosave)
 {
 	std::vector<RString> list;

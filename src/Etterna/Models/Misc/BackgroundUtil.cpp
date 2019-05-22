@@ -277,7 +277,7 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 static void
 GetFilterToFileNames(const RString sBaseDir,
 					 const Song* pSong,
-					 set<RString>& vsPossibleFileNamesOut)
+					 std::set<RString>& vsPossibleFileNamesOut)
 {
 	vsPossibleFileNamesOut.clear();
 
@@ -353,7 +353,7 @@ GetGlobalRandomMoviePaths(const Song* pSong,
 	}
 
 	// Search for the most appropriate background
-	set<RString> ssFileNameWhitelist;
+	std::set<RString> ssFileNameWhitelist;
 	if (bTryInsideOfSongGroupAndGenreFirst && pSong && !pSong->m_sGenre.empty())
 		GetFilterToFileNames(RANDOMMOVIES_DIR, pSong, ssFileNameWhitelist);
 

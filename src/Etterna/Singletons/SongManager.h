@@ -51,8 +51,8 @@ class SongManager
 	int DifferentialReloadDir(string dir);
 
 	bool IsGroupNeverCached(const RString& group) const;
-	void SetFavoritedStatus(set<string>& favs);
-	void SetPermaMirroredStatus(set<string>& pmir);
+	void SetFavoritedStatus(std::set<string>& favs);
+	void SetPermaMirroredStatus(std::set<string>& pmir);
 	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
@@ -160,7 +160,7 @@ class SongManager
 	void DeletePlaylist(const string& ck,
 						std::map<string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
-	  set<string>& favs,
+	  std::set<string>& favs,
 	  std::map<string, Playlist>& playlists = GetPlaylists());
 
 	std::map<string, std::vector<Song*>> groupderps;
@@ -187,7 +187,7 @@ class SongManager
 	unordered_map<string, Song*> SongsByKey;
 	unordered_map<string, Steps*> StepsByKey;
 
-	set<RString> m_GroupsToNeverCache;
+	std::set<RString> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */
 	std::vector<Song*> m_pPopularSongs;
 	// vector<Song*>		m_pRecentSongs;	// songs recently played on the

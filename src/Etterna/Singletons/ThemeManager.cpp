@@ -1410,7 +1410,7 @@ ThemeManager::GetString(const RString& sMetricsGroup,
 void
 ThemeManager::GetMetricsThatBeginWith(const RString& sMetricsGroup_,
 									  const RString& sValueName,
-									  set<RString>& vsValueNamesOut)
+									  std::set<RString>& vsValueNamesOut)
 {
 	RString sMetricsGroup(sMetricsGroup_);
 	while (!sMetricsGroup.empty()) {

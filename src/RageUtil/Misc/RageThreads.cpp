@@ -566,7 +566,7 @@ void RageMutex::MarkLockedMutex()
 }
 
 /* XXX: How can g_FreeMutexIDs and g_MutexList be threadsafed? */
-static set<int> *g_FreeMutexIDs = NULL;
+static std::set<int> *g_FreeMutexIDs = NULL;
 #endif
 
 RageMutex::RageMutex(const RString& name)

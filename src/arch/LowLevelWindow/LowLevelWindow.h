@@ -4,7 +4,7 @@
 #include <set>
 
 class DisplayResolution;
-typedef set<DisplayResolution> DisplayResolutions;
+typedef std::set<DisplayResolution> DisplayResolutions;
 class VideoModeParams;
 class RenderTarget;
 struct RenderTargetParam;

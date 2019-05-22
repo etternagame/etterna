@@ -411,7 +411,7 @@ MusicWheel::GetSongList(std::vector<Song*>& arraySongs, SortOrder so)
 				// find one, then add the song.
 				// see Issue 147 for more information. -aj
 				// http://ssc.ajworld.net/sm-ssc/bugtracker/view.php?id=147
-				set<StepsType> vStepsType;
+				std::set<StepsType> vStepsType;
 				SongUtil::GetPlayableStepsTypes(pSong, vStepsType);
 
 				FOREACHS(StepsType, vStepsType, st)
@@ -934,7 +934,7 @@ MusicWheel::BuildWheelItemDatas(
 			RString sLastSection = "";
 			int iSectionColorIndex = 0;
 
-			set<Song*> hurp;
+			std::set<Song*> hurp;
 			for (auto& a : arraySongs)
 				hurp.emplace(a);
 

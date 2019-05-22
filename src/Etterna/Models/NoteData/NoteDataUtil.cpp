@@ -1237,7 +1237,7 @@ NoteDataUtil::RemoveSimultaneousNotes(NoteData& in,
 
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(in, r, iStartIndex, iEndIndex)
 	{
-		set<int> viTracksHeld;
+		std::set<int> viTracksHeld;
 		in.GetTracksHeldAtRow(r, viTracksHeld);
 
 		// remove the first tap note or the first hold note that starts on this
@@ -1797,7 +1797,7 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 					   r));
 
 			// Probe for a spot to swap with.
-			set<int> vTriedTracks;
+			std::set<int> vTriedTracks;
 			for (int i = 0; i < 4; i++) // probe max 4 times
 			{
 				int t2 = RandomInt(inout.GetNumTracks());
@@ -2272,7 +2272,7 @@ NoteDataUtil::Echo(NoteData& inout, int iStartIndex, int iEndIndex)
 
 		const int iRowEcho = r + rows_per_interval;
 		{
-			set<int> viTracks;
+			std::set<int> viTracks;
 			inout.GetTracksHeldAtRow(iRowEcho, viTracks);
 
 			// don't lay if holding 2 already
@@ -2337,7 +2337,7 @@ NoteDataUtil::ConvertTapsToHolds(NoteData& inout,
 						break;
 					}
 
-					set<int> tracksDown;
+					std::set<int> tracksDown;
 					inout.GetTracksHeldAtRow(r2, tracksDown);
 					inout.GetTapNonEmptyTracks(r2, tracksDown);
 					iTapsLeft -= tracksDown.size();

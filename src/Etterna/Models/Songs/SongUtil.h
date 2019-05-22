@@ -144,7 +144,7 @@ ValidateCurrentStepsMusic(const RString& answer, RString& error);
 void
 GetAllSongGenres(std::vector<RString>& vsOut);
 void
-GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut);
+GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut);
 void
 GetPlayableSteps(const Song* pSong, std::vector<Steps*>& vOut);
 bool

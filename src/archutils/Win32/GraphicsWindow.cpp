@@ -73,10 +73,10 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						   g_bHasFocus ? "has focus" : "doesn't have focus");
 			if (!g_bHasFocus) {
 				RString sName = GetNewWindow();
-				static set<RString> sLostFocusTo;
+				static std::set<RString> sLostFocusTo;
 				sLostFocusTo.insert(sName);
 				RString sStr;
-				for (set<RString>::const_iterator it = sLostFocusTo.begin();
+				for (std::set<RString>::const_iterator it = sLostFocusTo.begin();
 					 it != sLostFocusTo.end();
 					 ++it)
 					sStr += (sStr.size() ? ", " : "") + *it;

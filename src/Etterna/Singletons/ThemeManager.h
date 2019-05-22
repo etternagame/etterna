@@ -148,7 +148,7 @@ class ThemeManager
 
 	void GetMetricsThatBeginWith(const RString& sMetricsGroup,
 								 const RString& sValueName,
-								 set<RString>& vsValueNamesOut);
+								 std::set<RString>& vsValueNamesOut);
 
 	RString GetMetricsGroupFallback(const RString& sMetricsGroup);
 

@@ -271,8 +271,8 @@ class Profile
 	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace(ck); }
 	void RemoveFromFavorites(const string& ck);
 	void RemoveFromPermaMirror(const string& ck);
-	set<string> FavoritedCharts;
-	set<string> PermaMirrorCharts;
+	std::set<string> FavoritedCharts;
+	std::set<string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
 	void AddGoal(const string& ck);
@@ -334,7 +334,7 @@ class Profile
 	bool HasPassedSteps(const Song* pSong, const Steps* pSteps) const;
 	bool HasPassedAnyStepsInSong(const Song* pSong) const;
 
-	void GetAllUsedHighScoreNames(std::set<RString>& names);
+	void GetAllUsedHighScoreNames(std::std::set<RString>& names);
 
 	void MergeScoresFromOtherProfile(Profile* other,
 									 bool skip_totals,

@@ -438,7 +438,7 @@ class Song
 	void DeleteSteps(const Steps* pSteps, bool bReAutoGen = true);
 
 	void FreeAllLoadedFromProfile(ProfileSlot slot = ProfileSlot_Invalid,
-								  const set<Steps*>* setInUse = NULL);
+								  const std::set<Steps*>* setInUse = NULL);
 	bool WasLoadedFromProfile() const
 	{
 		return m_LoadedFromProfile != ProfileSlot_Invalid;

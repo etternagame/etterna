@@ -3289,7 +3289,7 @@ Player::UpdateJudgedRows(float fDeltaTime)
 	// handle mines.
 	{
 		bAllJudged = true;
-		set<RageSound*> setSounds;
+		std::set<RageSound*> setSounds;
 		NoteData::all_tracks_iterator iter = *m_pIterUnjudgedMineRows; // copy
 		int iLastSeenRow = -1;
 		for (; !iter.IsAtEnd() && iter.Row() <= iEndRow; ++iter) {

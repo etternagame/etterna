@@ -296,7 +296,7 @@ Song::GetSongFilePath() const
 
 /* Hack: This should be a parameter to TidyUpData, but I don't want to pull in
  * <set> into Song.h, which is heavily used. */
-static set<RString> BlacklistedImages;
+static std::set<RString> BlacklistedImages;
 
 /* If PREFSMAN->m_bFastLoad is true, always load from cache if possible.
  * Don't read the contents of sDir if we can avoid it. That means we can't call
@@ -1830,7 +1830,7 @@ Song::Matches(const RString& sGroup, const RString& sSong) const
 /* If apInUse is set, it contains a list of steps which are in use elsewhere,
  * and should not be deleted. */
 void
-Song::FreeAllLoadedFromProfile(ProfileSlot slot, const set<Steps*>* setInUse)
+Song::FreeAllLoadedFromProfile(ProfileSlot slot, const std::set<Steps*>* setInUse)
 {
 	/* DeleteSteps will remove and recreate autogen notes, which may reorder
 	 * m_vpSteps, so be careful not to skip over entries. */

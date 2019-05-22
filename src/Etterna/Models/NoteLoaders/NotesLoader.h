@@ -25,7 +25,7 @@ GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,
 bool
 LoadFromDir(const RString& sPath,
 			Song& out,
-			set<RString>& BlacklistedImages,
+			std::set<RString>& BlacklistedImages,
 			bool load_autosave = false);
 }
 

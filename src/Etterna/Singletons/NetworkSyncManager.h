@@ -384,7 +384,7 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
-	set<string> lobbyuserlist;
+	std::set<string> lobbyuserlist;
 
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 

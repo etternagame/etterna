@@ -96,7 +96,7 @@ GetButtonState(const DeviceInput& di)
 }
 
 DeviceInputList g_CurrentState;
-set<DeviceInput> g_DisableRepeat;
+std::set<DeviceInput> g_DisableRepeat;
 } // namespace
 
 /* Some input devices require debouncing. Do this on both press and release.

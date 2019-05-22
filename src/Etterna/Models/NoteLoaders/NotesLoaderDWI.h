@@ -25,7 +25,7 @@ GetApplicableFiles(const RString& sPath, std::vector<RString>& out);
  * @return its success or failure.
  */
 bool
-LoadFromDir(const RString& sPath, Song& out, set<RString>& BlacklistedImages);
+LoadFromDir(const RString& sPath, Song& out, std::set<RString>& BlacklistedImages);
 
 bool
 LoadNoteDataFromSimfile(const RString& path, Steps& out);

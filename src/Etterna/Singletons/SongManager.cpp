@@ -576,7 +576,7 @@ SongManager::DeletePlaylist(const string& pl, std::map<string, Playlist>& playli
 }
 
 void
-SongManager::MakePlaylistFromFavorites(set<string>& favs,
+SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
 									   std::map<string, Playlist>& playlists)
 {
 	Playlist pl;
@@ -893,7 +893,7 @@ SongManager::IsGroupNeverCached(const RString& group) const
 }
 
 void
-SongManager::SetFavoritedStatus(set<string>& favs)
+SongManager::SetFavoritedStatus(std::set<string>& favs)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{
@@ -906,7 +906,7 @@ SongManager::SetFavoritedStatus(set<string>& favs)
 }
 
 void
-SongManager::SetPermaMirroredStatus(set<string>& pmir)
+SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 {
 	FOREACH(Song*, m_pSongs, song)
 	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
@@ -1546,7 +1546,7 @@ SongManager::FreeAllLoadedFromProfile(ProfileSlot slot)
 	UpdateShuffled();
 
 	// Free profile steps.
-	set<Steps*> setInUse;
+	std::set<Steps*> setInUse;
 	if (STATSMAN)
 		STATSMAN->GetStepsInUse(setInUse);
 	FOREACH(Song*, m_pSongs, s)

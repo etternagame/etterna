@@ -9,7 +9,7 @@
 #include <set>
 
 class DisplayResolution;
-typedef set<DisplayResolution> DisplayResolutions;
+typedef std::set<DisplayResolution> DisplayResolutions;
 
 const int REFRESH_DEFAULT = 0;
 struct RageSurface;

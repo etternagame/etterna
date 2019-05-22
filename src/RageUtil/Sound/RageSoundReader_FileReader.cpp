@@ -121,7 +121,7 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 			*pPrebuffer = false;
 		}
 	}
-	set<RString> FileTypes;
+	std::set<RString> FileTypes;
 	std::vector<RString> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (std::vector<RString>::const_iterator curr = sound_exts.begin();
@@ -146,7 +146,7 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 		FileTypes.erase(format);
 	}
 
-	for (set<RString>::iterator it = FileTypes.begin();
+	for (std::set<RString>::iterator it = FileTypes.begin();
 		 bKeepTrying && it != FileTypes.end();
 		 ++it) {
 		RageSoundReader_FileReader* NewSample =
