@@ -903,8 +903,8 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
   public:
 	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
-		m_vVertex.resize(max(1u, GetTotalVertices()));
-		m_vTriangles.resize(max(1u, GetTotalTriangles()));
+		m_vVertex.resize(std::max(1u, GetTotalVertices()));
+		m_vTriangles.resize(std::max(1u, GetTotalTriangles()));
 	}
 	void Change(const std::vector<msMesh>& vMeshes) override
 	{
@@ -987,7 +987,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	// make a temporary index buffer
 	static std::vector<int> vIndices;
 	int iOldSize = vIndices.size();
-	int uNewSize = max(iOldSize, iNumIndices);
+	int uNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(uNewSize);
 	for (int i = iOldSize / 6; i < iNumQuads; i++) {
 		vIndices[i * 6 + 0] = i * 4 + 0;
@@ -1029,7 +1029,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static std::vector<int> vIndices;
 	int iOldSize = vIndices.size();
-	int iNewSize = max(iOldSize, iNumIndices);
+	int iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
 	for (int i = iOldSize / 6; i < iNumQuads; i++) {
 		vIndices[i * 6 + 0] = i * 2 + 0;
@@ -1069,7 +1069,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static std::vector<int> vIndices;
 	int iOldSize = vIndices.size();
-	int iNewSize = max(iOldSize, iNumIndices);
+	int iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
 	for (int i = iOldSize / 12; i < iNumPieces; i++) {
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }

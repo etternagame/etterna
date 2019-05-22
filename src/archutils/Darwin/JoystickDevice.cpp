@@ -201,49 +201,49 @@ JoystickDevice::GetButtonPresses(
 			float level = SCALE(value, js.x_min, js.x_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_LEFT, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_LEFT, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_RIGHT, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_RIGHT, std::max(level, 0.0f), now));
 			break;
 		} else if (js.y_axis == cookie) {
 			float level = SCALE(value, js.y_min, js.y_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_UP, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_DOWN, std::max(level, 0.0f), now));
 			break;
 		} else if (js.z_axis == cookie) {
 			float level = SCALE(value, js.z_min, js.z_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_Z_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_Z_UP, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_Z_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_Z_DOWN, std::max(level, 0.0f), now));
 			break;
 		} else if (js.x_rot == cookie) {
 			float level = SCALE(value, js.rx_min, js.rx_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_LEFT, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_LEFT, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_RIGHT, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_RIGHT, std::max(level, 0.0f), now));
 			break;
 		} else if (js.y_rot == cookie) {
 			float level = SCALE(value, js.ry_min, js.ry_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_UP, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_DOWN, std::max(level, 0.0f), now));
 			break;
 		} else if (js.z_rot == cookie) {
 			float level = SCALE(value, js.rz_min, js.rz_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_Z_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_Z_UP, std::max(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_Z_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_Z_DOWN, std::max(level, 0.0f), now));
 			break;
 		} else if (js.hat == cookie) {
 			float levelUp = 0.f, levelRight = 0.f, levelDown = 0.f,

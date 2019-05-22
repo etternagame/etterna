@@ -751,7 +751,7 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 void
 RageSound::ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize) {
 	soundPlayCallback = f;
-	recentPCMSamplesBufferSize = max(bufSize, 1024u);
+	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	if (fftwBuffer != nullptr)
 		fftwf_free(fftwBuffer);

@@ -176,8 +176,8 @@ RageBitmapTexture::Create()
 	 * hardware. */
 	if (m_iTextureWidth < 8 || m_iTextureHeight < 8) {
 		actualID.bStretch = true;
-		m_iTextureWidth = max(8, m_iTextureWidth);
-		m_iTextureHeight = max(8, m_iTextureHeight);
+		m_iTextureWidth = std::max(8, m_iTextureWidth);
+		m_iTextureHeight = std::max(8, m_iTextureHeight);
 	}
 
 	ASSERT_M(m_iTextureWidth <= actualID.iMaxSize,

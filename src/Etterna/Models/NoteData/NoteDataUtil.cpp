@@ -587,7 +587,7 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 	FOREACH(NoteData, parts, nd)
 	{
 		InsertHoldTails(*nd);
-		fLastBeat = max(fLastBeat, nd->GetLastBeat());
+		fLastBeat = std::max(fLastBeat, nd->GetLastBeat());
 	}
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
@@ -685,7 +685,7 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 
 	FOREACH(NoteData, parts, nd)
 	{
-		fLastBeat = max(fLastBeat, nd->GetLastBeat());
+		fLastBeat = std::max(fLastBeat, nd->GetLastBeat());
 	}
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
@@ -1024,7 +1024,7 @@ FindLongestOverlappingHoldNoteForAnyTrack(const NoteData& in, int iRow)
 	for (int t = 0; t < in.GetNumTracks(); t++) {
 		const TapNote& tn = in.GetTapNote(t, iRow);
 		if (tn.type == TapNoteType_HoldHead)
-			iMaxTailRow = max(iMaxTailRow, iRow + tn.iDuration);
+			iMaxTailRow = std::max(iMaxTailRow, iRow + tn.iDuration);
 	}
 
 	return iMaxTailRow;
@@ -1244,7 +1244,7 @@ NoteDataUtil::RemoveSimultaneousNotes(NoteData& in,
 		// row
 		int iTotalTracksPressed =
 		  in.GetNumTracksWithTapOrHoldHead(r) + viTracksHeld.size();
-		int iTracksToRemove = max(0, iTotalTracksPressed - iMaxSimultaneous);
+		int iTracksToRemove = std::max(0, iTotalTracksPressed - iMaxSimultaneous);
 		for (int t = 0; iTracksToRemove > 0 && t < in.GetNumTracks(); t++) {
 			const TapNote& tn = in.GetTapNote(t, r);
 			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
@@ -2095,10 +2095,10 @@ NoteDataUtil::InsertIntelligentTaps(NoteData& inout,
 		} else if (min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1 >= 0) {
 			// try to choose a track just to the left
 			iTrackOfNoteToAdd = min(iTrackOfNoteEarlier, iTrackOfNoteLater) - 1;
-		} else if (max(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1 <
+		} else if (std::max(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1 <
 				   inout.GetNumTracks()) {
 			// try to choose a track just to the right
-			iTrackOfNoteToAdd = max(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1;
+			iTrackOfNoteToAdd = std::max(iTrackOfNoteEarlier, iTrackOfNoteLater) + 1;
 		}
 
 		inout.SetTapNote(iTrackOfNoteToAdd, iRowToAdd, TAP_ADDITION_TAP);
@@ -3231,7 +3231,7 @@ NoteDataUtil::GetPrevEditorPosition(const NoteData& in, int& rowInOut)
 
 		bAnyHavePrevNote = true;
 		ASSERT(iEndRow < MAX_NOTE_ROW);
-		iClosestPrevRow = max(iClosestPrevRow, iEndRow);
+		iClosestPrevRow = std::max(iClosestPrevRow, iEndRow);
 	}
 
 	if (!bAnyHavePrevNote)

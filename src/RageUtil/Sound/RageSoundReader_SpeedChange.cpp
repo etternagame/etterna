@@ -200,7 +200,7 @@ RageSoundReader_SpeedChange::Step()
 		  m_iUncorrelatedPos + GetToleranceFrames() + GetWindowSizeFrames();
 		for (size_t i = 0; i < m_Channels.size(); ++i)
 			iMaxPositionNeeded =
-			  max(iMaxPositionNeeded,
+			  std::max(iMaxPositionNeeded,
 				  m_Channels[i].m_iCorrelatedPos + GetWindowSizeFrames());
 
 		int iGot = FillData(iMaxPositionNeeded);

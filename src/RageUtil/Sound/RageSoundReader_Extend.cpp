@@ -33,7 +33,7 @@ RageSoundReader_Extend::SetPosition(int iFrame)
 	m_bIgnoreFadeInFrames = false;
 
 	m_iPositionFrames = iFrame;
-	int iRet = m_pSource->SetPosition(max(iFrame, 0));
+	int iRet = m_pSource->SetPosition(std::max(iFrame, 0));
 	if (iRet < 0)
 		return iRet;
 
@@ -63,7 +63,7 @@ RageSoundReader_Extend::GetData(float* pBuffer, int iFrames)
 	int iFramesToRead = iFrames;
 	if (m_iLengthFrames != -1) {
 		int iFramesLeft = GetEndFrame() - m_iPositionFrames;
-		iFramesLeft = max(0, iFramesLeft);
+		iFramesLeft = std::max(0, iFramesLeft);
 		iFramesToRead = min(iFramesToRead, iFramesLeft);
 	}
 

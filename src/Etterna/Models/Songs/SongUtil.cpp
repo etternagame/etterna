@@ -1071,7 +1071,7 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut)
 		  find(vstToShow.begin(), vstToShow.end(), *st) != vstToShow.end();
 
 		int iNumPlayers = GAMESTATE->GetNumPlayersEnabled();
-		iNumPlayers = max(iNumPlayers, 1);
+		iNumPlayers = std::max(iNumPlayers, 1);
 
 		if (bShowThisStepsType)
 			vOut.insert(*st);

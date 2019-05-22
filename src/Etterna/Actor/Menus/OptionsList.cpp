@@ -48,7 +48,7 @@ OptionListRow::SetFromHandler(const OptionRowHandler* pHandler)
 	if (pHandler == NULL)
 		return;
 
-	int iNum = max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
+	int iNum = std::max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
 	m_Text.resize(iNum, m_Text[0]);
 	m_Underlines.resize(iNum, m_Underlines[0]);
 

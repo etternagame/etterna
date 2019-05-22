@@ -49,7 +49,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 	const float fSongBeat =
 	  timing.GetBeatFromElapsedTimeNoOffset(fPositionSeconds);
 
-	const int iSongRow = max(0, BeatToNoteRow(fSongBeat));
+	const int iSongRow = std::max(0, BeatToNoteRow(fSongBeat));
 	static int iRowLastCrossed = -1;
 	if (iSongRow < iRowLastCrossed)
 		iRowLastCrossed = iSongRow;

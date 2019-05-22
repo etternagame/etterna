@@ -352,7 +352,7 @@ struct WavReaderADPCM : public WavReader
 													  307, 230, 230, 230 };
 				iDelta[c] = int16_t(
 				  (iDelta[c] * aAdaptionTable[iErrorDeltaUnsigned]) / (1 << 8));
-				iDelta[c] = max((int16_t)16, iDelta[c]);
+				iDelta[c] = std::max((int16_t)16, iDelta[c]);
 
 				iSamp2[c] = iSamp1[c];
 				iSamp1[c] = iNewSample;
@@ -399,7 +399,7 @@ struct WavReaderADPCM : public WavReader
 		const int iBlockHeaderSize = 7 * m_WavData.m_iChannels;
 		if (iExtraBytes > iBlockHeaderSize) {
 			const int iExtraADPCMNibbles =
-			  max(0, iExtraBytes - iBlockHeaderSize) * 2;
+			  std::max(0, iExtraBytes - iBlockHeaderSize) * 2;
 			const int iExtraADPCMFrames =
 			  iExtraADPCMNibbles / m_WavData.m_iChannels;
 

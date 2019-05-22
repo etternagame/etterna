@@ -77,7 +77,7 @@ max(unsigned long a, unsigned int b)
 }
 
 /** @brief If outside the range from low to high, bring it within range. */
-#define clamp(val, low, high) (max((low), min((val), (high))))
+#define clamp(val, low, high) (std::max((low), min((val), (high))))
 
 /**
  * @brief Scales x so that l1 corresponds to l2 and h1 corresponds to h2.

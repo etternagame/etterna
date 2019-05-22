@@ -268,7 +268,7 @@ Font::GetLineHeightInSourcePixels(const std::wstring& szLine) const
 
 	// The height of a line is the height of its tallest used font page.
 	for (unsigned i = 0; i < szLine.size(); i++)
-		iLineHeight = max(iLineHeight, GetGlyph(szLine[i]).m_pPage->m_iHeight);
+		iLineHeight = std::max(iLineHeight, GetGlyph(szLine[i]).m_pPage->m_iHeight);
 
 	return iLineHeight;
 }

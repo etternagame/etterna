@@ -81,13 +81,13 @@ void MenuTimer::Update( float fDeltaTime )
 
 	// run down the stall time if any
 	if( m_fStallSeconds > 0 )
-		m_fStallSeconds = max( m_fStallSeconds - fDeltaTime, 0 );
+		m_fStallSeconds = std::max( m_fStallSeconds - fDeltaTime, 0 );
 	if( m_fStallSeconds > 0 )
 		return;
 
 	const float fOldSecondsLeft = m_fSecondsLeft;
 	m_fSecondsLeft -= fDeltaTime;
-	m_fSecondsLeft = max( 0, m_fSecondsLeft );
+	m_fSecondsLeft = std::max( 0, m_fSecondsLeft );
 	const float fNewSecondsLeft = m_fSecondsLeft;
 
 	SetText( fNewSecondsLeft );

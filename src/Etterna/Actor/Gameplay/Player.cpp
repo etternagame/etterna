@@ -57,7 +57,7 @@ class JudgedRows
 
 	void Resize(size_t iMin)
 	{
-		size_t iNewSize = max(2 * m_vRows.size(), iMin);
+		size_t iNewSize = std::max(2 * m_vRows.size(), iMin);
 		std::vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
 		vNewRows.reserve(iNewSize);
 		vNewRows.insert(
@@ -430,7 +430,7 @@ Player::Init(const std::string& sType,
 		if (!bpms.IsSecret()) {
 			fMaxBPM = (M_MOD_HIGH_CAP > 0 ? bpms.GetMaxWithin(M_MOD_HIGH_CAP)
 										  : bpms.GetMax());
-			fMaxBPM = max(0, fMaxBPM);
+			fMaxBPM = std::max(0, fMaxBPM);
 		}
 
 		// we can't rely on the displayed BPMs, so manually calculate.
@@ -1004,7 +1004,7 @@ Player::Update(float fDeltaTime)
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
 			lastHoldHeadsSeconds[iTrack] =
-			  max(lastHoldHeadsSeconds[iTrack],
+			  std::max(lastHoldHeadsSeconds[iTrack],
 				  m_Timing->WhereUAtBro(NoteRowToBeat(iRow + tn.iDuration)));
 
 			/* All holds must be of the same subType because fLife is handled
@@ -1323,7 +1323,7 @@ Player::UpdateHoldNotes(int iSongRow,
 					// LOG->Trace("fLife before minus: %f",fLife);
 					fLife -= fDeltaTime / GetWindowSeconds(window);
 					// LOG->Trace("fLife before clamp: %f",fLife);
-					fLife = max(0, fLife);
+					fLife = std::max(0, fLife);
 					// LOG->Trace("fLife after: %f",fLife);
 				}
 				break;
@@ -1339,9 +1339,9 @@ Player::UpdateHoldNotes(int iSongRow,
 
 				// Decrease life
 				// Also clamp the roll decay window to the accepted "Judge 7" value for it. -poco
-				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25f);
+				fLife -= fDeltaTime / std::max(GetWindowSeconds(TW_Roll), 0.25f);
 				fLife =
-				  max(fLife, 0); // clamp life
+				  std::max(fLife, 0); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -1486,7 +1486,7 @@ Player::UpdateHoldNotes(int iSongRow,
 								  ? 2.0f * fLifeFraction
 								  : 10.0f * fLifeFraction - 8.5f);
 				m_vKeysounds[tn.iKeysoundIndex].SetProperty(
-				  "Volume", max(0.0f, min(1.0f, factor)) * fVol);
+				  "Volume", std::max(0.0f, min(1.0f, factor)) * fVol);
 			}
 		}
 	}
@@ -1909,7 +1909,7 @@ Player::ScoreAllActiveHoldsLetGo()
 			// Since this is being called every frame, let's not check the whole
 			// array every time. Instead, only check 1 beat back.  Even 1 is
 			// overkill.
-			const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+			const int iStartCheckingAt = std::max(0, iSongRow - BeatToNoteRow(1));
 			NoteData::TrackMap::iterator begin, end;
 			m_NoteData.GetTapNoteRangeInclusive(
 			  iTrack, iStartCheckingAt, iSongRow + 1, begin, end);
@@ -2020,7 +2020,7 @@ Player::Step(int col,
 		// Let's not check the whole array every time.
 		// Instead, only check 1 beat back.  Even 1 is overkill.
 		// Just update the life here and let Update judge the roll.
-		const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+		const int iStartCheckingAt = std::max(0, iSongRow - BeatToNoteRow(1));
 		NoteData::TrackMap::iterator begin, end;
 		m_NoteData.GetTapNoteRangeInclusive(
 		  col, iStartCheckingAt, iSongRow + 1, begin, end);
@@ -2106,7 +2106,7 @@ Player::Step(int col,
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
-		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
 				m_pPlayerState->m_Position.m_fMusicSeconds +
 				StepSearchDistance)) -
 				iSongRow,
@@ -2145,7 +2145,7 @@ Player::Step(int col,
 
 		if (nervpos > 0)
 			iStepSearchRows =
-			  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+			  (std::max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
 	}
 
 	// calculate TapNoteScore
@@ -2252,7 +2252,7 @@ Player::Step(int col,
 									 GetWindowSeconds(TW_W4))
 								score = TNS_W4;
 							else if (fSecondsFromExact <=
-									 max(GetWindowSeconds(TW_W5), 0.18f))
+									 std::max(GetWindowSeconds(TW_W5), 0.18f))
 								score = TNS_W5;
 						}
 						break;
@@ -2551,7 +2551,7 @@ Player::StepReplay(int col,
 		// Let's not check the whole array every time.
 		// Instead, only check 1 beat back.  Even 1 is overkill.
 		// Just update the life here and let Update judge the roll.
-		const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+		const int iStartCheckingAt = std::max(0, iSongRow - BeatToNoteRow(1));
 		NoteData::TrackMap::iterator begin, end;
 		m_NoteData.GetTapNoteRangeInclusive(
 		  col, iStartCheckingAt, iSongRow + 1, begin, end);
@@ -2637,7 +2637,7 @@ Player::StepReplay(int col,
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
-		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
 				m_pPlayerState->m_Position.m_fMusicSeconds +
 				StepSearchDistance)) -
 				iSongRow,
@@ -2676,7 +2676,7 @@ Player::StepReplay(int col,
 
 		if (nervpos > 0)
 			iStepSearchRows =
-			  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+			  (std::max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
 	}
 
 	// calculate TapNoteScore
@@ -3435,7 +3435,7 @@ Player::HandleTapRowScore(unsigned row)
 	// new max combo
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->m_iMaxCombo =
-		  max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
+		  std::max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
 
 	/* Use the real current beat, not the beat we've been passed. That's because
 	 * we want to record the current life/combo to the current time; eg. if it's
@@ -3539,11 +3539,11 @@ float
 Player::GetMaxStepDistanceSeconds()
 {
 	float fMax = 0;
-	fMax = max(fMax, GetWindowSeconds(TW_W5));
-	fMax = max(fMax, GetWindowSeconds(TW_W4));
-	fMax = max(fMax, GetWindowSeconds(TW_W3));
-	fMax = max(fMax, GetWindowSeconds(TW_W2));
-	fMax = max(fMax, GetWindowSeconds(TW_W1));
+	fMax = std::max(fMax, GetWindowSeconds(TW_W5));
+	fMax = std::max(fMax, GetWindowSeconds(TW_W4));
+	fMax = std::max(fMax, GetWindowSeconds(TW_W3));
+	fMax = std::max(fMax, GetWindowSeconds(TW_W2));
+	fMax = std::max(fMax, GetWindowSeconds(TW_W1));
 	float f = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * fMax;
 	return f + m_fMaxInputLatencySeconds;
 }

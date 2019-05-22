@@ -352,10 +352,10 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 			msBone& Bone = Animation.Bones[i];
 			for (unsigned j = 0; j < Bone.PositionKeys.size(); ++j)
 				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.PositionKeys[j].fTime);
+				  std::max(Animation.nTotalFrames, (int)Bone.PositionKeys[j].fTime);
 			for (unsigned j = 0; j < Bone.RotationKeys.size(); ++j)
 				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.RotationKeys[j].fTime);
+				  std::max(Animation.nTotalFrames, (int)Bone.RotationKeys[j].fTime);
 		}
 	}
 

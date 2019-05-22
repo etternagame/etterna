@@ -404,7 +404,7 @@ ProfileManager::CreateLocalProfile(const RString& sName, RString& sProfileIDOut)
 			if (tmp == first_free_number) {
 				++first_free_number;
 			}
-			max_profile_number = max(tmp, max_profile_number);
+			max_profile_number = std::max(tmp, max_profile_number);
 		}
 	}
 
@@ -678,7 +678,7 @@ ProfileManager::AddStepsScore(const Song* pSong,
 							  int& iMachineIndexOut)
 {
 	HighScore hs = hs_;
-	hs.SetPercentDP(max(0, hs.GetPercentDP())); // bump up negative scores
+	hs.SetPercentDP(std::max(0, hs.GetPercentDP())); // bump up negative scores
 
 	iPersonalIndexOut = -1;
 	iMachineIndexOut = -1;

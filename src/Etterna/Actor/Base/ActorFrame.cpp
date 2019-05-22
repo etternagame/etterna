@@ -564,7 +564,7 @@ PropagateActorFrameCommand(FinishTweening)
 	float m = Actor::GetTweenTimeLeft();
 
 	for (auto a : m_SubActors)
-		m = max(m, a->GetTweenTimeLeft());
+		m = std::max(m, a->GetTweenTimeLeft());
 	return m;
 }
 

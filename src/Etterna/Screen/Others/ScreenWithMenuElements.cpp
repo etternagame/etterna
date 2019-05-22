@@ -241,7 +241,7 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 		// finished tweening.
 		float fSecondsUntilFinished = GetTweenTimeLeft();
 		float fSecondsUntilBeginOff =
-		  max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0);
+		  std::max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0);
 	}
 }
 

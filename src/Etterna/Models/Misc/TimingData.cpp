@@ -277,7 +277,7 @@ TimingData::ShiftRange(int start_row,
 		if (seg_type == shift_type || shift_type == TimingSegmentType_Invalid) {
 			std::vector<TimingSegment*>& segs = GetTimingSegments(seg_type);
 			int first_row = min(start_row, start_row + shift_amount);
-			int last_row = max(end_row, end_row + shift_amount);
+			int last_row = std::max(end_row, end_row + shift_amount);
 			int first_affected = GetSegmentIndexAtRow(seg_type, first_row);
 			size_t last_affected = GetSegmentIndexAtRow(seg_type, last_row);
 			if (first_affected == INVALID_INDEX) {
@@ -292,7 +292,7 @@ TimingData::ShiftRange(int start_row,
 				 ++i) {
 				int seg_row = segs[i]->GetRow();
 				if (seg_row > 0 && seg_row >= start_row && seg_row <= end_row) {
-					int dest_row = max(seg_row + shift_amount, 0);
+					int dest_row = std::max(seg_row + shift_amount, 0);
 					segs[i]->SetRow(dest_row);
 				}
 			}
@@ -367,7 +367,7 @@ TimingData::GetActualBPM(float& fMinBPMOut,
 
 	for (unsigned i = 0; i < bpms.size(); i++) {
 		const float fBPM = ToBPM(bpms[i])->GetBPM();
-		fMaxBPMOut = clamp(max(fBPM, fMaxBPMOut), 0, highest);
+		fMaxBPMOut = clamp(std::max(fBPM, fMaxBPMOut), 0, highest);
 		fMinBPMOut = min(fBPM, fMinBPMOut);
 	}
 }

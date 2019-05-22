@@ -284,7 +284,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	{
 		Grade g = Grade_Tier01;
 		FOREACH_EnabledPlayer(pn) g =
-		  max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
+		  std::max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}

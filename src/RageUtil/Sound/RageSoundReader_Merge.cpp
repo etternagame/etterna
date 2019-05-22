@@ -62,7 +62,7 @@ RageSoundReader_Merge::Finish(int iPreferredSampleRate)
 	 * channels. */
 	m_iChannels = 1;
 	FOREACH(RageSoundReader*, m_aSounds, it)
-	m_iChannels = max(m_iChannels, (*it)->GetNumChannels());
+	m_iChannels = std::max(m_iChannels, (*it)->GetNumChannels());
 
 	/*
 	 * We might get different sample rates from our sources.  If they're all the
@@ -315,7 +315,7 @@ RageSoundReader_Merge::GetLength() const
 {
 	int iLength = 0;
 	for (unsigned i = 0; i < m_aSounds.size(); ++i)
-		iLength = max(iLength, m_aSounds[i]->GetLength());
+		iLength = std::max(iLength, m_aSounds[i]->GetLength());
 	return iLength;
 }
 
@@ -324,7 +324,7 @@ RageSoundReader_Merge::GetLength_Fast() const
 {
 	int iLength = 0;
 	for (unsigned i = 0; i < m_aSounds.size(); ++i)
-		iLength = max(iLength, m_aSounds[i]->GetLength_Fast());
+		iLength = std::max(iLength, m_aSounds[i]->GetLength_Fast());
 	return iLength;
 }
 

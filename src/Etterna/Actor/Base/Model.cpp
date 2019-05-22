@@ -787,7 +787,7 @@ Model::GetNumStates() const
 {
 	int iMaxStates = 0;
 	FOREACH_CONST(msMaterial, m_Materials, m)
-	iMaxStates = max(iMaxStates, m->diffuse.GetNumStates());
+	iMaxStates = std::max(iMaxStates, m->diffuse.GetNumStates());
 	return iMaxStates;
 }
 
@@ -807,7 +807,7 @@ Model::RecalcAnimationLengthSeconds()
 	m_animation_length_seconds = 0;
 	FOREACH_CONST(msMaterial, m_Materials, m)
 	{
-		m_animation_length_seconds = max(
+		m_animation_length_seconds = std::max(
 		  m_animation_length_seconds, m->diffuse.GetAnimationLengthSeconds());
 	}
 }

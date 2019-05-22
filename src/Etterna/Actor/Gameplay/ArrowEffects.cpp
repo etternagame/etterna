@@ -187,7 +187,7 @@ ArrowEffects::Update()
 					  min(data.m_fMinTornadoX[iColNum],
 						  pCols[i].fXOffset * field_zoom);
 					data.m_fMaxTornadoX[iColNum] =
-					  max(data.m_fMaxTornadoX[iColNum],
+					  std::max(data.m_fMaxTornadoX[iColNum],
 						  pCols[i].fXOffset * field_zoom);
 				}
 			}

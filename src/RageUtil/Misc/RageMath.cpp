@@ -26,9 +26,9 @@ RageVec3AddToBounds(const RageVector3& p, RageVector3& mins, RageVector3& maxs)
 	mins.x = min(mins.x, p.x);
 	mins.y = min(mins.y, p.y);
 	mins.z = min(mins.z, p.z);
-	maxs.x = max(maxs.x, p.x);
-	maxs.y = max(maxs.y, p.y);
-	maxs.z = max(maxs.z, p.z);
+	maxs.x = std::max(maxs.x, p.x);
+	maxs.y = std::max(maxs.y, p.y);
+	maxs.z = std::max(maxs.z, p.z);
 }
 
 void

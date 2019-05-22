@@ -904,7 +904,7 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 	// If hold body, draw texture to the outside screen.(fix by A.C)
 	float y_start_pos = (part_type == hpt_body)
 						  ? part_args.y_top
-						  : max(part_args.y_top, part_args.y_start_pos);
+						  : std::max(part_args.y_top, part_args.y_start_pos);
 	if (part_args.y_top < part_args.y_start_pos - unzoomed_frame_height) {
 		y_start_pos =
 		  fmod((y_start_pos - part_args.y_start_pos), unzoomed_frame_height) +
@@ -1235,7 +1235,7 @@ NoteDisplay::DrawHoldBodyInternal(std::vector<Sprite*>& sprite_top,
 	part_args.y_top = y_tail;
 	part_args.y_bottom = tail_plus_bottom;
 	part_args.top_beat = bottom_beat;
-	part_args.y_start_pos = max(part_args.y_start_pos, y_head);
+	part_args.y_start_pos = std::max(part_args.y_start_pos, y_head);
 	part_args.wrapping = false;
 	DrawHoldPart(
 	  sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
@@ -1420,7 +1420,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	bool bReverse =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		column_args.column) > 0.5f;
-	float fStartBeat = NoteRowToBeat(max(tn.HoldResult.iLastHeldRow, iRow));
+	float fStartBeat = NoteRowToBeat(std::max(tn.HoldResult.iLastHeldRow, iRow));
 	float fThrowAway = 0;
 
 	// HACK: If life > 0, don't set YOffset to 0 so that it doesn't jiggle

@@ -431,7 +431,7 @@ Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 	RString k = "";
 	std::vector<int>& nerv = nd.GetNonEmptyRowVector();
 
-	unsigned int numThreads = max(std::thread::hardware_concurrency(), 1u);
+	unsigned int numThreads = std::max(std::thread::hardware_concurrency(), 1u);
 	std::vector<RString> keyParts;
 	keyParts.reserve(numThreads);
 

@@ -482,7 +482,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 		int iSegmentEndRow =
 		  (i + 1 == tSigs.size()) ? iEndRow : tSigs[i + 1]->GetRow();
 
-		int time_signature_start = max(ts->GetRow(), iStartRow);
+		int time_signature_start = std::max(ts->GetRow(), iStartRow);
 		for (int j = time_signature_start; j < min(iEndRow, iSegmentEndRow);
 			 j += static_cast<int>(RAND_BG_CHANGE_MEASURES *
 								   ts->GetNoteRowsPerMeasure())) {
@@ -857,7 +857,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 	}
 
 	/* This is unaffected by the music rate. */
-	float fDeltaTimeNoMusicRate = max(fDeltaTime / fRate, 0);
+	float fDeltaTimeNoMusicRate = std::max(fDeltaTime / fRate, 0);
 
 	if (m_pCurrentBGA != nullptr)
 		m_pCurrentBGA->Update(fDeltaTimeNoMusicRate);

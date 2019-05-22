@@ -1087,7 +1087,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 				bool bIsRepeat = false;
 				int i = 0;
 				if (GAMESTATE->IsEventMode())
-					i = max(0, int(STATSMAN->m_vPlayedStageStats.size()) - 5);
+					i = std::max(0, int(STATSMAN->m_vPlayedStageStats.size()) - 5);
 				for (; i < (int)STATSMAN->m_vPlayedStageStats.size(); ++i)
 					if (STATSMAN->m_vPlayedStageStats[i]
 						  .m_vpPlayedSongs.back() ==
@@ -1194,7 +1194,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 			StartTransitioningScreen(SM_None);
 			float fTime =
-			  max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
+			  std::max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
 			this->PostScreenMessage(SM_BeginFadingOut, fTime);
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);

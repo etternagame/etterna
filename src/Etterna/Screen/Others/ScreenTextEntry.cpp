@@ -399,7 +399,7 @@ ScreenTextEntry::UpdateAnswerText()
 		s = WStringToRString(m_sAnswer);
 
 	bool bAnswerFull =
-	  (int)s.length() >= max(g_iMaxInputLength, iMaxInputLength);
+	  (int)s.length() >= std::max(g_iMaxInputLength, iMaxInputLength);
 
 	if (!FormatAnswerForDisplayFunc.IsNil() &&
 		FormatAnswerForDisplayFunc.IsSet())
@@ -480,7 +480,7 @@ ScreenTextEntry::TryAppendToAnswer(const RString& s)
 	{
 		std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 		if ((int)sNewAnswer.length() >
-			max(g_iMaxInputLength, iMaxInputLength)) {
+			std::max(g_iMaxInputLength, iMaxInputLength)) {
 			SCREENMAN->PlayInvalidSound();
 			return;
 		}

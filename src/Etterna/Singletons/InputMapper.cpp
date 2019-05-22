@@ -1159,7 +1159,7 @@ InputMapper::GetSecsHeld(const GameInput& GameI, MultiPlayer mp) const
 		if (GameToDevice(GameI, i, DeviceI)) {
 			if (mp != MultiPlayer_Invalid)
 				DeviceI.device = MultiPlayerToInputDevice(mp);
-			fMaxSecsHeld = max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
+			fMaxSecsHeld = std::max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
 		}
 	}
 
@@ -1177,7 +1177,7 @@ InputMapper::GetSecsHeld(GameButton MenuI, PlayerNumber pn) const
 	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
-		fMaxSecsHeld = max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
+		fMaxSecsHeld = std::max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
 
 	return fMaxSecsHeld;
 }
@@ -1218,7 +1218,7 @@ InputMapper::GetLevel(const GameInput& GameI) const
 		DeviceInput DeviceI;
 
 		if (GameToDevice(GameI, i, DeviceI))
-			fLevel = max(fLevel, INPUTFILTER->GetLevel(DeviceI));
+			fLevel = std::max(fLevel, INPUTFILTER->GetLevel(DeviceI));
 	}
 	return fLevel;
 }
@@ -1234,7 +1234,7 @@ InputMapper::GetLevel(GameButton MenuI, PlayerNumber pn) const
 
 	float fLevel = 0;
 	for (size_t i = 0; i < GameI.size(); i++)
-		fLevel = max(fLevel, GetLevel(GameI[i]));
+		fLevel = std::max(fLevel, GetLevel(GameI[i]));
 
 	return fLevel;
 }

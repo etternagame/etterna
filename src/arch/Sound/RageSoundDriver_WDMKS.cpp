@@ -1185,7 +1185,7 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 	if (m_iFramesPerChunk == 0) {
 		m_iFramesPerChunk = 512 / m_iWriteAheadChunks;
 		m_iFramesPerChunk =
-		  max(m_iFramesPerChunk, iFrameSize); // iFrameSize may be 0
+		  std::max(m_iFramesPerChunk, iFrameSize); // iFrameSize may be 0
 	}
 
 	LOG->Info("KS: chunk size: %i; allocator framing: %i (%ims)",

@@ -148,7 +148,7 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 		return TNS_W3;
 	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W4))
 		return TNS_W4;
-	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
+	else if (fSecondsFromExact <= std::max(Player::GetWindowSeconds(TW_W5), 0.18f))
 		return TNS_W5;
 	return TNS_None;
 }

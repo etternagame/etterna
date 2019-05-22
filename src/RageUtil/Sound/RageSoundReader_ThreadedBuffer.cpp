@@ -219,7 +219,7 @@ RageSoundReader_ThreadedBuffer::BufferingThread()
 		int iFramesToFill = g_iReadBlockSizeFrames;
 		if (GetFilledFrames() < g_iMinFillFrames)
 			iFramesToFill =
-			  max(iFramesToFill, g_iMinFillFrames - GetFilledFrames());
+			  std::max(iFramesToFill, g_iMinFillFrames - GetFilledFrames());
 
 		int iRet = FillFrames(iFramesToFill);
 

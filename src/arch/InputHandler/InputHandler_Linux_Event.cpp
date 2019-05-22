@@ -371,7 +371,7 @@ InputHandler_Linux_Event::InputThread()
 				continue;
 
 			FD_SET(iFD, &fdset);
-			iMaxFD = max(iMaxFD, iFD);
+			iMaxFD = std::max(iMaxFD, iFD);
 		}
 
 		if (iMaxFD == -1)
@@ -464,9 +464,9 @@ InputHandler_Linux_Event::InputThread()
 											 // or if more than 0.5
 					} else {
 						ButtonPressed(DeviceInput(
-						  g_apEventDevices[i]->m_Dev, neg, max(-l, 0), now));
+						  g_apEventDevices[i]->m_Dev, neg, std::max(-l, 0), now));
 						ButtonPressed(DeviceInput(
-						  g_apEventDevices[i]->m_Dev, pos, max(+l, 0), now));
+						  g_apEventDevices[i]->m_Dev, pos, std::max(+l, 0), now));
 					}
 					break;
 				}

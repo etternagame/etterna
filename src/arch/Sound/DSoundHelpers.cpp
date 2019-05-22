@@ -198,7 +198,7 @@ DSoundBuf::Init(DSound& ds,
 	/* The size of the actual DSound buffer.  This can be large; we generally
 	 * won't fill it completely. */
 	m_iBufferSize = 1024 * 64;
-	m_iBufferSize = max(m_iBufferSize, m_iWriteAhead);
+	m_iBufferSize = std::max(m_iBufferSize, m_iWriteAhead);
 
 	WAVEFORMATEX waveformat;
 	memset(&waveformat, 0, sizeof(waveformat));
@@ -301,7 +301,7 @@ DSoundBuf::SetVolume(float fVolume)
 	/* Volume is a multiplier; SetVolume wants attenuation in hundredths of a
 	 * decibel. */
 	const int iNewVolume =
-	  max(static_cast<int>(1000 * iVolumeLog2), DSBVOLUME_MIN);
+	  std::max(static_cast<int>(1000 * iVolumeLog2), DSBVOLUME_MIN);
 
 	if (m_iVolume == iNewVolume)
 		return;
@@ -528,7 +528,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 		wrap(bytes_played, m_iBufferSize);
 
 		m_iBufferBytesFilled -= bytes_played;
-		m_iBufferBytesFilled = max(0, m_iBufferBytesFilled);
+		m_iBufferBytesFilled = std::max(0, m_iBufferBytesFilled);
 
 		if (m_iExtraWriteahead) {
 			int used = min(m_iExtraWriteahead, bytes_played);
@@ -649,7 +649,7 @@ DSoundBuf::GetPosition() const
 
 	/* Failsafe: never return a value smaller than we've already returned.
 	 * This can happen once in a while in underrun conditions. */
-	iRet = max(m_iLastPosition, iRet);
+	iRet = std::max(m_iLastPosition, iRet);
 	m_iLastPosition = iRet;
 
 	return iRet;

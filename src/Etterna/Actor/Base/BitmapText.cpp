@@ -275,7 +275,7 @@ BitmapText::BuildChars()
 	{
 		m_iLineWidths.push_back(
 		  m_pFont->GetLineWidthInSourcePixels(m_wTextLines[l]));
-		m_size.x = max(m_size.x, m_iLineWidths.back());
+		m_size.x = std::max(m_size.x, m_iLineWidths.back());
 	}
 
 	/* Ensure that the width is always even. This maintains pixel alignment;
@@ -1271,7 +1271,7 @@ ColorBitmapText::SetMaxLines(int iNumLines,
 							 int iDirection,
 							 unsigned int& scroll)
 {
-	iNumLines = max(0, iNumLines);
+	iNumLines = std::max(0, iNumLines);
 	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
 	if (iDirection == 0) {
 		// Crop all bottom lines
@@ -1391,7 +1391,7 @@ ColorBitmapText::DrawPrimitives()
 void
 ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 {
-	iNumLines = max(0, iNumLines);
+	iNumLines = std::max(0, iNumLines);
 	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
 	if (iDirection == 0) {
 		// Crop all bottom lines

@@ -153,7 +153,7 @@ OsuLoader::SetTimingData(std::map<string, std::map<string, string>> parsedData, 
 	int lastoffset = -9999;
 	for (auto x : tp) {
 		float bpm;
-		offset = max(0, x.first);
+		offset = std::max(0, x.first);
 		if (x.second > 0) {
 			bpm = 60000 / x.second;
 			lastpositivebpm = bpm;
@@ -302,7 +302,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 	int lastTap = 0;
 	if (taps.size() > 0 && holds.size() > 0) {
 		firstTap = min(taps[0].ms, holds[0].msStart);
-		lastTap = max(taps[taps.size()].ms, holds[holds.size()].msEnd);
+		lastTap = std::max(taps[taps.size()].ms, holds[holds.size()].msEnd);
 	} else if (taps.size() > 0) {
 		firstTap = taps[0].ms;
 		lastTap = taps[taps.size()].ms;

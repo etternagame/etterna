@@ -127,22 +127,22 @@ StepsDisplayList::UpdatePositions()
 	if( !BothPlayersActivated )
 	{
 		// Simply center the cursor.
-		first_start = max(P1Choice - halfsize, 0);
+		first_start = std::max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max( earliest - halfsize/2, 0 );
+		first_start = std::max( earliest - halfsize/2, 0 );
 		first_end = first_start + halfsize;
 
 		// Second half:
 		const int latest = P1Choice;
 
-		second_start = max(latest - halfsize / 2, 0);
+		second_start = std::max(latest - halfsize / 2, 0);
 
 		// Don't overlap.
-		second_start = max(second_start, first_end);
+		second_start = std::max(second_start, first_end);
 
 		second_end = second_start + halfsize;
 	}

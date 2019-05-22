@@ -548,7 +548,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
 				TopSSRs[i]->GetTopScore() != 0)
-				sum += max(
+				sum += std::max(
 				  0.0,
 				  2.f / erfc(0.1 * (TopSSRs[i]->GetSkillsetSSR(ss) - rating)) -
 					2);

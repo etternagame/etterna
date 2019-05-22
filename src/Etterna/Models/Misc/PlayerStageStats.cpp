@@ -274,19 +274,19 @@ PlayerStageStats::GetGrade() const
 		if (FullComboOfScore(TNS_W2))
 			return Grade_Tier02;
 
-		grade = max(grade, Grade_Tier03);
+		grade = std::max(grade, Grade_Tier03);
 	}
 
 	if (GRADE_TIER01_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W2))
 			return Grade_Tier01;
-		grade = max(grade, Grade_Tier02);
+		grade = std::max(grade, Grade_Tier02);
 	}
 
 	if (GRADE_TIER02_IS_FULL_COMBO) {
 		if (FullComboOfScore(g_MinScoreToMaintainCombo))
 			return Grade_Tier02;
-		grade = max(grade, Grade_Tier03);
+		grade = std::max(grade, Grade_Tier03);
 	}
 
 	return grade;
@@ -307,7 +307,7 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	float fPercent = iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
-	fPercent = max(0, fPercent);
+	fPercent = std::max(0, fPercent);
 
 	int iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
@@ -490,7 +490,7 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 		return;
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
-	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
+	m_fLastSecond = std::max(fStepsSecond, m_fLastSecond);
 	// LOG->Trace( "fLastSecond = %f", m_fLastSecond );
 
 	// fStepsSecond will usually be greater than any value already in the map,
@@ -617,7 +617,7 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 		return;
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
-	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
+	m_fLastSecond = std::max(fStepsSecond, m_fLastSecond);
 	std::map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
 	if (curr != WifeRecord.end()) {
 		if (curr->second != Wife) {
@@ -703,7 +703,7 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 
 	if (!bRollover) {
 		m_fFirstSecond = min(fSecond, m_fFirstSecond);
-		m_fLastSecond = max(fSecond, m_fLastSecond);
+		m_fLastSecond = std::max(fSecond, m_fLastSecond);
 		// LOG->Trace( "fLastSecond = %f", fLastSecond );
 	}
 

@@ -299,7 +299,7 @@ Alsa9Buf::GetNumFramesToFill()
 {
 	/* Make sure we can write ahead at least two chunks.  Otherwise, we'll only
 	 * fill one chunk ahead, and underrun. */
-	int ActualWriteahead = max(writeahead, chunksize * 2);
+	int ActualWriteahead = std::max(writeahead, chunksize * 2);
 
 	snd_pcm_sframes_t avail_frames = dsnd_pcm_avail_update(pcm);
 
@@ -333,7 +333,7 @@ Alsa9Buf::GetNumFramesToFill()
 
 	/* Number of frames that have data: */
 	const snd_pcm_sframes_t filled_frames =
-	  max(0l, total_frames - avail_frames);
+	  std::max(0l, total_frames - avail_frames);
 
 	/* Number of frames that don't have data, that are within the writeahead: */
 	snd_pcm_sframes_t unfilled_frames =

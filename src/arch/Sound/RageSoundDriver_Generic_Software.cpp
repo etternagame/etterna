@@ -505,7 +505,7 @@ RageSoundDriver::~RageSoundDriver()
 
 		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("Mixing %f ahead in %i Mix() calls",
-					  float(g_iTotalAhead) / max(g_iTotalAheadCount, 1),
+					  float(g_iTotalAhead) / std::max(g_iTotalAheadCount, 1),
 					  g_iTotalAheadCount);
 	}
 }
@@ -530,7 +530,7 @@ RageSoundDriver::ClampHardwareFrame(int64_t iHardwareFrame) const
 		return m_iMaxHardwareFrame;
 	}
 	m_iMaxHardwareFrame = iHardwareFrame =
-	  max(iHardwareFrame, m_iMaxHardwareFrame);
+	  std::max(iHardwareFrame, m_iMaxHardwareFrame);
 	return iHardwareFrame;
 }
 

@@ -397,7 +397,7 @@ NoteData::AddHoldNote(int iTrack, int iStartRow, int iEndRow, TapNote tn)
 		const TapNote& tnOther = it->second;
 		if (tnOther.type == TapNoteType_HoldHead) {
 			iStartRow = min(iStartRow, iOtherRow);
-			iEndRow = max(iEndRow, iOtherRow + tnOther.iDuration);
+			iEndRow = std::max(iEndRow, iOtherRow + tnOther.iDuration);
 		}
 	}
 
@@ -529,7 +529,7 @@ NoteData::GetLastRow() const
 		if (tn.type == TapNoteType_HoldHead)
 			iRow += tn.iDuration;
 
-		iOldestRowFoundSoFar = max(iOldestRowFoundSoFar, iRow);
+		iOldestRowFoundSoFar = std::max(iOldestRowFoundSoFar, iRow);
 	}
 
 	return iOldestRowFoundSoFar;
@@ -1320,7 +1320,7 @@ NoteData::GetPrevTapNoteRowForAllTracks(int& rowInOut) const
 		if (GetPrevTapNoteRowForTrack(t, iNewRowThisTrack)) {
 			bAnyHavePrevNote = true;
 			ASSERT(iNewRowThisTrack < MAX_NOTE_ROW);
-			iClosestPrevRow = max(iClosestPrevRow, iNewRowThisTrack);
+			iClosestPrevRow = std::max(iClosestPrevRow, iNewRowThisTrack);
 		}
 	}
 

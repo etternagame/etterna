@@ -385,16 +385,16 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 			int v;
 			v = achv[indx + i].acolor[0];
 			mins[0] = min(mins[0], v);
-			maxs[0] = max(maxs[0], v);
+			maxs[0] = std::max(maxs[0], v);
 			v = achv[indx + i].acolor[1];
 			mins[1] = min(mins[1], v);
-			maxs[1] = max(maxs[1], v);
+			maxs[1] = std::max(maxs[1], v);
 			v = achv[indx + i].acolor[2];
 			mins[2] = min(mins[2], v);
-			maxs[2] = max(maxs[2], v);
+			maxs[2] = std::max(maxs[2], v);
 			v = achv[indx + i].acolor[3];
 			mins[3] = min(mins[3], v);
-			maxs[3] = max(maxs[3], v);
+			maxs[3] = std::max(maxs[3], v);
 		}
 
 		// Find the largest dimension, and sort by that component.

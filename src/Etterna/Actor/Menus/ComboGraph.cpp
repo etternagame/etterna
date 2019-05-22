@@ -77,7 +77,7 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 	// Find the largest combo.
 	int iMaxComboSize = 0;
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i)
-		iMaxComboSize = max(iMaxComboSize, pss.m_ComboList[i].GetStageCnt());
+		iMaxComboSize = std::max(iMaxComboSize, pss.m_ComboList[i].GetStageCnt());
 
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i) {
 		const PlayerStageStats::Combo_t& combo = pss.m_ComboList[i];

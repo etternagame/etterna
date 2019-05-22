@@ -1028,11 +1028,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1u, GetTotalVertices()));
-		m_vTexture.resize(max(1u, GetTotalVertices()));
-		m_vNormal.resize(max(1u, GetTotalVertices()));
-		m_vTexMatrixScale.resize(max(1u, GetTotalVertices()));
-		m_vTriangles.resize(max(1u, GetTotalTriangles()));
+		m_vPosition.resize(std::max(1u, GetTotalVertices()));
+		m_vTexture.resize(std::max(1u, GetTotalVertices()));
+		m_vNormal.resize(std::max(1u, GetTotalVertices()));
+		m_vTexMatrixScale.resize(std::max(1u, GetTotalVertices()));
+		m_vTriangles.resize(std::max(1u, GetTotalTriangles()));
 	}
 	void Change(const std::vector<msMesh>& vMeshes) override
 	{
@@ -1491,7 +1491,7 @@ RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static std::vector<uint16_t> vIndices;
 	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize, (unsigned)iNumIndices);
+	unsigned uNewSize = std::max(uOldSize, (unsigned)iNumIndices);
 	vIndices.resize(uNewSize);
 	for (uint16_t i = (uint16_t)uOldSize / 12; i < (uint16_t)iNumPieces; i++) {
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }

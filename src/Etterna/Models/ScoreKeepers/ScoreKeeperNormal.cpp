@@ -728,7 +728,7 @@ ScoreKeeperNormal::GetPossibleDancePoints(NoteData* ndPre,
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return max(GetPossibleDancePoints(ndPre, td, fSongSeconds),
+	return std::max(GetPossibleDancePoints(ndPre, td, fSongSeconds),
 			   GetPossibleDancePoints(ndPost, td, fSongSeconds));
 }
 
@@ -767,7 +767,7 @@ ScoreKeeperNormal::GetPossibleGradePoints(NoteData* ndPre,
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return max(GetPossibleGradePoints(ndPre, td, fSongSeconds),
+	return std::max(GetPossibleGradePoints(ndPre, td, fSongSeconds),
 			   GetPossibleGradePoints(ndPost, td, fSongSeconds));
 }
 

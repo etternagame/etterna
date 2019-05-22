@@ -997,7 +997,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 	{
 		const float fFirstSecond = GAMESTATE->m_pCurSong->GetFirstSecond();
 		float fStartDelay = fMinTimeToNotes - fFirstSecond;
-		fStartDelay = max(fStartDelay, fMinTimeToMusic);
+		fStartDelay = std::max(fStartDelay, fMinTimeToMusic);
 		p.m_StartSecond = -fStartDelay * p.m_fSpeed;
 	}
 
@@ -1159,13 +1159,13 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 	/* Make sure we keep going long enough to register a miss for the last note,
 	 * and never start fading before the last note. */
 	fSecondsToStartFadingOutMusic =
-	  max(fSecondsToStartFadingOutMusic, fLastStepSeconds);
+	  std::max(fSecondsToStartFadingOutMusic, fLastStepSeconds);
 	fSecondsToStartTransitioningOut =
-	  max(fSecondsToStartTransitioningOut, fLastStepSeconds);
+	  std::max(fSecondsToStartTransitioningOut, fLastStepSeconds);
 
 	/* Make sure the fade finishes before the transition finishes. */
 	fSecondsToStartTransitioningOut =
-	  max(fSecondsToStartTransitioningOut,
+	  std::max(fSecondsToStartTransitioningOut,
 		  fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS -
 			fTransitionLength);
 }
@@ -1596,7 +1596,7 @@ ScreenGameplay::SendCrossedMessages()
 			fPositionSeconds);
 
 		int iRowNow = BeatToNoteRow(fSongBeat);
-		iRowNow = max(0, iRowNow);
+		iRowNow = std::max(0, iRowNow);
 
 		for (int r = iRowLastCrossed + 1; r <= iRowNow; r++) {
 			if (GetNoteType(r) == NOTE_TYPE_4TH)
@@ -1635,7 +1635,7 @@ ScreenGameplay::SendCrossedMessages()
 				fPositionSeconds);
 
 			int iRowNow = BeatToNoteRow(fSongBeat);
-			iRowNow = max(0, iRowNow);
+			iRowNow = std::max(0, iRowNow);
 			int& iRowLastCrossed = iRowLastCrossedAll[i];
 
 			FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(

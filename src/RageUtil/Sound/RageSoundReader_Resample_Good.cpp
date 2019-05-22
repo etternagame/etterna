@@ -74,7 +74,7 @@ ApplyKaiserWindow(float* pBuf, int iLen, float fBeta)
 	float p = (iLen - 1) / 2.0f;
 	for (int n = 0; n < iLen; ++n) {
 		float fN1 = fabsf((n - p) / p);
-		float fNum = fBeta * sqrtf(max(1 - fN1 * fN1, 0));
+		float fNum = fBeta * sqrtf(std::max(1 - fN1 * fN1, 0));
 		fNum = BesselI0(fNum);
 		float fVal = fNum / fDenom;
 		pBuf[n] *= fVal;
@@ -494,7 +494,7 @@ class RageSoundResampler_Polyphase
 		m_iUpFactor = iUpFactor;
 		m_pPolyphase = NULL;
 
-		int iFilterIncrement = max((iMaxDownFactor - iMinDownFactor) / 10, 1);
+		int iFilterIncrement = std::max((iMaxDownFactor - iMinDownFactor) / 10, 1);
 		for (int iDownFactor = iMinDownFactor; iDownFactor <= iMaxDownFactor;
 			 iDownFactor += iFilterIncrement) {
 			float fCutoffFrequency = GetCutoffFrequency(iDownFactor);

@@ -1307,7 +1307,7 @@ MusicWheel::Select() // return true if this selection ends the screen
 			return false;
 		case STATE_RANDOM_SPINNING:
 			m_fPositionOffsetFromSelection =
-			  max(m_fPositionOffsetFromSelection, 0.3f);
+			  std::max(m_fPositionOffsetFromSelection, 0.3f);
 			m_WheelState = STATE_LOCKED;
 			SCREENMAN->PlayStartSound();
 			m_fLockedWheelVelocity = 0;

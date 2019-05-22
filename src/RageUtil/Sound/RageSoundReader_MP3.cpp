@@ -299,7 +299,7 @@ RageSoundReader_MP3::handle_first_frame()
 		if (mad->xingtag.type == xing::INFO)
 			return false;
 
-		mad->header_bytes = max(mad->header_bytes, get_this_frame_byte(mad));
+		mad->header_bytes = std::max(mad->header_bytes, get_this_frame_byte(mad));
 
 		mad->has_xing = true;
 
@@ -557,7 +557,7 @@ int RageSoundReader_MP3::resync()
 
 	/* Seek backwards up to 4k. */
 	const int origpos = mad->inbuf_filepos;
-	const int seekpos = max( 0, origpos - 1024*4 );
+	const int seekpos = std::max( 0, origpos - 1024*4 );
 	seek_stream_to_byte( seekpos );
 
 	/* Agh.  This is annoying.  We want to decode enough so that the next frame
@@ -816,7 +816,7 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 
 	if (bytepos != -1) {
 		/* Seek backwards up to 4k. */
-		const int seekpos = max(0, bytepos - 1024 * 4);
+		const int seekpos = std::max(0, bytepos - 1024 * 4);
 		seek_stream_to_byte(seekpos);
 
 		do {

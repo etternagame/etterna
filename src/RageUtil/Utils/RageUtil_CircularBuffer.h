@@ -217,7 +217,7 @@ class CircBuf
 		if (buffer_size > sizes[0])
 			memcpy(p[1],
 				   buffer + from_first,
-				   max(buffer_size - sizes[0], 0u) * sizeof(T));
+				   std::max(buffer_size - sizes[0], 0u) * sizeof(T));
 
 		advance_write_pointer(buffer_size);
 
@@ -241,14 +241,14 @@ class CircBuf
 		if (buffer_size > sizes[0])
 			memcpy(buffer + from_first,
 				   p[1],
-				   max(buffer_size - sizes[0], 0u) * sizeof(T));
+				   std::max(buffer_size - sizes[0], 0u) * sizeof(T));
 
 		/* Set the data that we just read to 0xFF.  This way, if we're passing
 		 * pointesr through, we can tell if we accidentally get a stale pointer.
 		 */
 		memset(p[0], 0xFF, from_first * sizeof(T));
 		if (buffer_size > sizes[0])
-			memset(p[1], 0xFF, max(buffer_size - sizes[0], 0u) * sizeof(T));
+			memset(p[1], 0xFF, std::max(buffer_size - sizes[0], 0u) * sizeof(T));
 
 		advance_read_pointer(buffer_size);
 		return true;

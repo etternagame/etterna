@@ -411,9 +411,9 @@ InputHandler_DInput::UpdatePolled(
 							float l = SCALE(
 							  static_cast<int>(val), 0.0f, 100.0f, 0.0f, 1.0f);
 							ButtonPressed(
-							  DeviceInput(dev, neg, max(-l, 0), tm));
+							  DeviceInput(dev, neg, std::max(-l, 0), tm));
 							ButtonPressed(
-							  DeviceInput(dev, pos, max(+l, 0), tm));
+							  DeviceInput(dev, pos, std::max(+l, 0), tm));
 						}
 
 						break;
@@ -736,9 +736,9 @@ InputHandler_DInput::UpdateBuffered(
 							  DeviceInput(dev, down, (l == 0) || (l == 1), tm));
 
 						} else {
-							ButtonPressed(DeviceInput(dev, up, max(-l, 0), tm));
+							ButtonPressed(DeviceInput(dev, up, std::max(-l, 0), tm));
 							ButtonPressed(
-							  DeviceInput(dev, down, max(+l, 0), tm));
+							  DeviceInput(dev, down, std::max(+l, 0), tm));
 						}
 					}
 					break;

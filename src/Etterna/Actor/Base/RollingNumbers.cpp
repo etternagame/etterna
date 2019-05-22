@@ -80,13 +80,13 @@ RollingNumbers::DrawPrimitives()
 	// draw leading part
 	DrawPart(diffuse_temp,
 			 stroke_temp,
-			 max(0, original_crop_left),
-			 max(1 - f, original_crop_right));
+			 std::max(0, original_crop_left),
+			 std::max(1 - f, original_crop_right));
 	// draw regular color part
 	DrawPart(diffuse_orig,
 			 stroke_orig,
-			 max(f, original_crop_left),
-			 max(0, original_crop_right));
+			 std::max(f, original_crop_left),
+			 std::max(0, original_crop_right));
 
 	m_pTempState->crop.left = original_crop_left;
 	m_pTempState->crop.right = original_crop_right;

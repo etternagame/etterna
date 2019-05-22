@@ -362,9 +362,9 @@ RageSurfaceUtils::FindSurfaceTraits(const RageSurface* img)
 				alpha = (val & img->fmt.Amask);
 
 			if (alpha == 0)
-				alpha_type = max(alpha_type, NEEDS_BOOL_ALPHA);
+				alpha_type = std::max(alpha_type, NEEDS_BOOL_ALPHA);
 			else if (alpha != max_alpha)
-				alpha_type = max(alpha_type, NEEDS_FULL_ALPHA);
+				alpha_type = std::max(alpha_type, NEEDS_FULL_ALPHA);
 
 			row += img->fmt.BytesPerPixel;
 		}
@@ -608,7 +608,7 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 	}
 
 	// Use multiple threads to do in-place pixel conversion
-	unsigned int numThreads = max(std::thread::hardware_concurrency(), 2u);
+	unsigned int numThreads = std::max(std::thread::hardware_concurrency(), 2u);
 	size_t segmentSize = height / numThreads;
 	std::vector<std::thread> threads;
 	threads.reserve(numThreads);

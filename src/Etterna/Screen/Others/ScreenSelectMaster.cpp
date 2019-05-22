@@ -859,13 +859,13 @@ ScreenSelectMaster::DoMenuStart(PlayerNumber pn)
 		FOREACH_ENUM(Page, page)
 		{
 			m_sprMore[page]->PlayCommand("Off");
-			fSecs = max(fSecs, m_sprMore[page]->GetTweenTimeLeft());
+			fSecs = std::max(fSecs, m_sprMore[page]->GetTweenTimeLeft());
 		}
 	}
 	if (SHOW_CURSOR) {
 		if (m_sprCursor != NULL) {
 			m_sprCursor->PlayCommand("Choose");
-			fSecs = max(fSecs, m_sprCursor->GetTweenTimeLeft());
+			fSecs = std::max(fSecs, m_sprCursor->GetTweenTimeLeft());
 		}
 	}
 
@@ -949,10 +949,10 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		FOREACH_EnabledPlayer(p)
 		{
 			ASSERT(!m_bChosen);
-			fSecs = max(fSecs, DoMenuStart(p));
+			fSecs = std::max(fSecs, DoMenuStart(p));
 		}
 	} else {
-		fSecs = max(fSecs, DoMenuStart(pn));
+		fSecs = std::max(fSecs, DoMenuStart(pn));
 		// check to see if everyone has chosen
 		FOREACH_HumanPlayer(p) bAllDone &= m_bChosen;
 	}

@@ -137,7 +137,7 @@ InputHandler_Linux_Joystick::InputThread()
 				continue;
 
 			FD_SET(fds[i], &fdset);
-			max_fd = max(max_fd, fds[i]);
+			max_fd = std::max(max_fd, fds[i]);
 		}
 
 		if (max_fd == -1)
@@ -188,8 +188,8 @@ InputHandler_Linux_Joystick::InputThread()
 					DeviceButton neg = enum_add2(JOY_LEFT, 2 * event.number);
 					DeviceButton pos = enum_add2(JOY_RIGHT, 2 * event.number);
 					float l = SCALE(int(event.value), 0.0f, 32767, 0.0f, 1.0f);
-					ButtonPressed(DeviceInput(id, neg, max(-l, 0), now));
-					ButtonPressed(DeviceInput(id, pos, max(+l, 0), now));
+					ButtonPressed(DeviceInput(id, neg, std::max(-l, 0), now));
+					ButtonPressed(DeviceInput(id, pos, std::max(+l, 0), now));
 					break;
 				}
 

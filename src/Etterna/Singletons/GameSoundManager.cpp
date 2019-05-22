@@ -645,7 +645,7 @@ GameSoundManager::Update(float fDeltaTime)
 		float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 		int iRowNow = BeatToNoteRow(fSongBeat);
-		iRowNow = max(0, iRowNow);
+		iRowNow = std::max(0, iRowNow);
 
 		int iBeatNow = iRowNow / ROWS_PER_BEAT;
 
@@ -912,7 +912,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->callbackOwningScreen = SCREENMAN->GetTopScreen();
 		p->soundPlayCallback = GetFuncArg(1, L);
 		if (lua_isnumber(L, 2))
-			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
+			p->recentPCMSamplesBufferSize = std::max((unsigned int)IArg(2), 512u);
 		g_Mutex->Lock();
 		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
