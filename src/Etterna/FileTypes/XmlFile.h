@@ -89,7 +89,7 @@ class XNode
 {
   private:
 	XNodes m_childs; // child nodes
-	multimap<std::string, XNode*> m_children_by_name;
+	std::multimap<std::string, XNode*> m_children_by_name;
 
   public:
 	std::string m_sName;

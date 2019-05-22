@@ -137,7 +137,7 @@ XNode::GetAttr(const std::string& attrname)
 XNode*
 XNode::GetChild(const std::string& sName)
 {
-	multimap<std::string, XNode*>::iterator by_name =
+	std::multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
@@ -161,7 +161,7 @@ XNode::PushChildValue(lua_State* L, const std::string& sName) const
 const XNode*
 XNode::GetChild(const std::string& sName) const
 {
-	multimap<std::string, XNode*>::const_iterator by_name =
+	std::multimap<std::string, XNode*>::const_iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
@@ -197,7 +197,7 @@ XNode::RemoveChild(XNode* node, bool bDelete)
 void
 XNode::RemoveChildFromByName(XNode* node)
 {
-	multimap<std::string, XNode*>::iterator by_name =
+	std::multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(node->m_sName);
 	if (by_name != m_children_by_name.end() &&
 		node->GetName() == by_name->second->GetName()) {
