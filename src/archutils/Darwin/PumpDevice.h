@@ -21,12 +21,12 @@ class PumpDevice : public HIDDevice
 
   public:
 	void GetButtonPresses(
-	  vector<DeviceInput>& vPresses,
+	  std::vector<DeviceInput>& vPresses,
 	  IOHIDElementCookie cookie,
 	  int value,
 	  const std::chrono::time_point<std::chrono::steady_clock>& now) const;
 	int AssignIDs(InputDevice startID);
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevices) const;
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevices) const;
 };
 
 #endif

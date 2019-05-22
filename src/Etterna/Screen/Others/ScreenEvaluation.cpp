@@ -352,7 +352,7 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
 		
-		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
+		const std::vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState
 			  ->m_PlayerOptions.GetSong()

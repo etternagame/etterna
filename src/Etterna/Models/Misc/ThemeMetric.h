@@ -190,7 +190,7 @@ template<class T>
 class ThemeMetric1D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	vector<ThemeMetricT> m_metric;
+	std::vector<ThemeMetricT> m_metric;
 
   public:
 	ThemeMetric1D(const RString& sGroup, MetricName1D pfn, size_t N)
@@ -223,8 +223,8 @@ template<class T>
 class ThemeMetric2D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	typedef vector<ThemeMetricT> ThemeMetricTVector;
-	vector<ThemeMetricTVector> m_metric;
+	typedef std::vector<ThemeMetricT> ThemeMetricTVector;
+	std::vector<ThemeMetricTVector> m_metric;
 
   public:
 	ThemeMetric2D(const RString& sGroup = "",
@@ -272,13 +272,13 @@ class ThemeMetricMap : public IThemeMetric
   public:
 	ThemeMetricMap(const RString& sGroup = "",
 				   MetricNameMap pfn = nullptr,
-				   const vector<RString>& vsValueNames = vector<RString>())
+				   const std::vector<RString>& vsValueNames = std::vector<RString>())
 	{
 		Load(sGroup, pfn, vsValueNames);
 	}
 	void Load(const RString& sGroup,
 			  MetricNameMap pfn,
-			  const vector<RString>& vsValueNames)
+			  const std::vector<RString>& vsValueNames)
 	{
 		m_metric.clear();
 		FOREACH_CONST(RString, vsValueNames, s)

@@ -74,7 +74,7 @@ ValidateLocalProfileName(const RString& sAnswer, RString& sErrorOut)
 	if (pProfile != NULL && sAnswer == pProfile->m_sDisplayName)
 		return true; // unchanged
 
-	vector<RString> vsProfileNames;
+	std::vector<RString> vsProfileNames;
 	PROFILEMAN->GetLocalProfileDisplayNames(vsProfileNames);
 	bool bAlreadyAProfileWithThisName =
 	  find(vsProfileNames.begin(), vsProfileNames.end(), sAnswer) !=
@@ -103,7 +103,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 {
 	// FIXME
 	// int iIndex = 0;
-	vector<OptionRowHandler*> OptionRowHandlers;
+	std::vector<OptionRowHandler*> OptionRowHandlers;
 
 	if (SHOW_CREATE_NEW) {
 		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(ParseCommands(
@@ -160,7 +160,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	// select the last chosen profile
 	if (!sEditLocalProfileID.empty()) {
-		vector<RString>::const_iterator iter = find(m_vsLocalProfileID.begin(),
+		std::vector<RString>::const_iterator iter = find(m_vsLocalProfileID.begin(),
 													m_vsLocalProfileID.end(),
 													sEditLocalProfileID);
 		if (iter != m_vsLocalProfileID.end()) {
@@ -250,7 +250,7 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
 			// Select the profile nearest to the one that was just deleted.
 			int iIndex = -1;
-			vector<RString>::const_iterator iter =
+			std::vector<RString>::const_iterator iter =
 			  find(m_vsLocalProfileID.begin(),
 				   m_vsLocalProfileID.end(),
 				   GAMESTATE->m_sEditLocalProfileID.Get());
@@ -381,7 +381,7 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
 	{
-		vector<RString> vsUsedNames;
+		std::vector<RString> vsUsedNames;
 		PROFILEMAN->GetLocalProfileDisplayNames(vsUsedNames);
 
 		RString sPotentialName;

@@ -80,7 +80,7 @@ class Player : public ActorFrame
 	};
 	void UpdateHoldNotes(int iSongRow,
 						 float fDeltaTime,
-						 vector<TrackRowTapNote>& vTN);
+						 std::vector<TrackRowTapNote>& vTN);
 
 	void Init(const std::string& sType,
 			  PlayerState* pPlayerState,
@@ -148,7 +148,7 @@ class Player : public ActorFrame
 	bool m_inside_lua_set_life;
 
 	// Mina perma-temp stuff
-	vector<int> nerv;   // the non empty row vector where we are somehwere in
+	std::vector<int> nerv;   // the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
 	float maxwifescore = 0.f;
 	float curwifescore = 0.f;
@@ -170,7 +170,7 @@ class Player : public ActorFrame
 	void HandleHoldCheckpoint(int iRow,
 							  int iNumHoldsHeldThisRow,
 							  int iNumHoldsMissedThisRow,
-							  const vector<int>& viColsWithHold);
+							  const std::vector<int>& viColsWithHold);
 	void DrawTapJudgments();
 	void DrawHoldJudgments();
 	void SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo);
@@ -234,7 +234,7 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
-	vector<float> lastHoldHeadsSeconds;
+	std::vector<float> lastHoldHeadsSeconds;
 
 	bool m_bPaused;
 	bool m_bDelay;
@@ -242,7 +242,7 @@ class Player : public ActorFrame
 	NoteData& m_NoteData;
 	NoteField* m_pNoteField;
 
-	vector<HoldJudgment*> m_vpHoldJudgment;
+	std::vector<HoldJudgment*> m_vpHoldJudgment;
 
 	AutoActor m_sprJudgment;
 	AutoActor m_sprCombo;
@@ -266,9 +266,9 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	vector<bool> m_vbFretIsDown;
+	std::vector<bool> m_vbFretIsDown;
 
-	vector<RageSound> m_vKeysounds;
+	std::vector<RageSound> m_vKeysounds;
 
 	ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
 	ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;

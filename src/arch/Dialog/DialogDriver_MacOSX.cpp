@@ -44,7 +44,7 @@ ShowAlert(CFOptionFlags flags,
 
 	// Flush all input that's accumulated while the dialog box was up.
 	if (INPUTFILTER) {
-		vector<InputEvent> dummy;
+		std::vector<InputEvent> dummy;
 		INPUTFILTER->Reset();
 		INPUTFILTER->GetInputEvents(dummy);
 	}

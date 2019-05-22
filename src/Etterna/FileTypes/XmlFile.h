@@ -59,7 +59,7 @@ class XNodeStringValue : public XNodeValue
 
 typedef map<std::string, XNodeValue*> XAttrs;
 class XNode;
-typedef vector<XNode*> XNodes;
+typedef std::vector<XNode*> XNodes;
 /** @brief Loop through each node. */
 #define FOREACH_Attr(pNode, Var)                                               \
 	for (XAttrs::iterator Var = (pNode)->m_attrs.begin();                      \

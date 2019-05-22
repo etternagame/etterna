@@ -37,7 +37,7 @@ struct NoteSkinData
 	IniFile metrics;
 
 	// When looking for an element, search these dirs from head to tail.
-	vector<RString> vsDirSearchOrder;
+	std::vector<RString> vsDirSearchOrder;
 
 	LuaReference m_Loader;
 };
@@ -83,7 +83,7 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	RString sGlobalSkinFolder = SpecialFiles::NOTESKINS_DIR + "global" + "/";
 	RString sThemeSkinFolder =
 	  THEME->GetCurThemeDir() + "/NoteSkins/" + pGame->m_szName + "/";
-	vector<RString> asNoteSkinNames;
+	std::vector<RString> asNoteSkinNames;
 	GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, true);
@@ -189,7 +189,7 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 	}
 
 	LuaReference refScript;
-	for (vector<RString>::reverse_iterator dir =
+	for (std::vector<RString>::reverse_iterator dir =
 		   data_out.vsDirSearchOrder.rbegin();
 		 dir != data_out.vsDirSearchOrder.rend();
 		 ++dir) {
@@ -220,20 +220,20 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 }
 
 void
-NoteSkinManager::GetNoteSkinNames(vector<RString>& AddTo)
+NoteSkinManager::GetNoteSkinNames(std::vector<RString>& AddTo)
 {
 	GetNoteSkinNames(GAMESTATE->m_pCurGame, AddTo);
 }
 
 void
-NoteSkinManager::GetNoteSkinNames(const Game* pGame, vector<RString>& AddTo)
+NoteSkinManager::GetNoteSkinNames(const Game* pGame, std::vector<RString>& AddTo)
 {
 	GetAllNoteSkinNamesForGame(pGame, AddTo);
 }
 
 bool
 NoteSkinManager::NoteSkinNameInList(const RString& name,
-									const vector<RString>& name_list)
+									const std::vector<RString>& name_list)
 {
 	for (size_t i = 0; i < name_list.size(); ++i) {
 		if (0 == strcasecmp(name, name_list[i])) {
@@ -246,7 +246,7 @@ NoteSkinManager::NoteSkinNameInList(const RString& name,
 bool
 NoteSkinManager::DoesNoteSkinExist(const RString& sSkinName)
 {
-	vector<RString> asSkinNames;
+	std::vector<RString> asSkinNames;
 	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, asSkinNames);
 	return NoteSkinNameInList(sSkinName, asSkinNames);
 }
@@ -254,7 +254,7 @@ NoteSkinManager::DoesNoteSkinExist(const RString& sSkinName)
 bool
 NoteSkinManager::DoNoteSkinsExistForGame(const Game* pGame)
 {
-	vector<RString> asSkinNames;
+	std::vector<RString> asSkinNames;
 	GetAllNoteSkinNamesForGame(pGame, asSkinNames);
 	return !asSkinNames.empty();
 }
@@ -263,7 +263,7 @@ RString
 NoteSkinManager::GetDefaultNoteSkinName()
 {
 	RString name = THEME->GetMetric("Common", "DefaultNoteSkinName");
-	vector<RString> all_names;
+	std::vector<RString> all_names;
 	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, all_names);
 	if (all_names.empty()) {
 		return "";
@@ -289,7 +289,7 @@ NoteSkinManager::ValidateNoteSkinName(RString& name)
 
 void
 NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
-											vector<RString>& AddTo)
+											std::vector<RString>& AddTo)
 {
 	if (pGame == m_pCurGame) {
 		// Faster:
@@ -577,7 +577,7 @@ RString
 NoteSkinManager::GetPathFromDirAndFile(const RString& sDir,
 									   const RString& sFileName)
 {
-	vector<RString> matches; // fill this with the possible files
+	std::vector<RString> matches; // fill this with the possible files
 
 	GetDirListing(sDir + sFileName + "*", matches, false, true);
 
@@ -643,7 +643,7 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 #undef FOR_NOTESKIN
 	static int GetNoteSkinNames(T* p, lua_State* L)
 	{
-		vector<RString> vNoteskins;
+		std::vector<RString> vNoteskins;
 		p->GetNoteSkinNames(vNoteskins);
 		LuaHelpers::CreateTableFromArray(vNoteskins, L);
 		return 1;

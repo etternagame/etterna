@@ -49,9 +49,9 @@ unique_name(RString const& type)
 void
 convert_xmls_in_dir(RString const& dirname)
 {
-	vector<RString> listing;
+	std::vector<RString> listing;
 	FILEMAN->GetDirListing(dirname, listing, false, true);
-	for (vector<RString>::iterator curr_file = listing.begin();
+	for (std::vector<RString>::iterator curr_file = listing.begin();
 		 curr_file != listing.end();
 		 ++curr_file) {
 		switch (ActorUtil::GetFileType(*curr_file)) {
@@ -110,7 +110,7 @@ add_extension_to_relative_path_from_found_file(RString const& relative_path,
 }
 
 bool
-verify_arg_count(RString cmd, vector<RString>& args, size_t req)
+verify_arg_count(RString cmd, std::vector<RString>& args, size_t req)
 {
 	if (args.size() < req) {
 		LuaHelpers::ReportScriptError("Not enough args to " + cmd +
@@ -120,7 +120,7 @@ verify_arg_count(RString cmd, vector<RString>& args, size_t req)
 	return true;
 }
 
-typedef void (*arg_converter_t)(vector<RString>& args);
+typedef void (*arg_converter_t)(std::vector<RString>& args);
 
 map<RString, arg_converter_t> arg_converters;
 map<RString, size_t> tween_counters;
@@ -131,7 +131,7 @@ map<RString, RString> chunks_to_replace;
 	if (!verify_arg_count(args[0], args, count))                               \
 		return;
 void
-x_conv(vector<RString>& args)
+x_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	float pos;
@@ -140,7 +140,7 @@ x_conv(vector<RString>& args)
 	}
 }
 void
-y_conv(vector<RString>& args)
+y_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	float pos;
@@ -149,18 +149,18 @@ y_conv(vector<RString>& args)
 	}
 }
 void
-string_arg_conv(vector<RString>& args)
+string_arg_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	args[1] = "\"" + args[1] + "\"";
 }
 void
-lower_string_conv(vector<RString>& args)
+lower_string_conv(std::vector<RString>& args)
 {
 	args[0].MakeLower();
 }
 void
-hidden_conv(vector<RString>& args)
+hidden_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	args[0] = "visible";
@@ -171,7 +171,7 @@ hidden_conv(vector<RString>& args)
 	}
 }
 void
-diffuse_conv(vector<RString>& args)
+diffuse_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	RString retarg;
@@ -191,7 +191,7 @@ diffuse_conv(vector<RString>& args)
 const RString& BlendModeToString(BlendMode);
 const RString& CullModeToString(CullMode);
 void
-blend_conv(vector<RString>& args)
+blend_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	for (int i = 0; i < NUM_BlendMode; ++i) {
@@ -205,7 +205,7 @@ blend_conv(vector<RString>& args)
 	}
 }
 void
-cull_conv(vector<RString>& args)
+cull_conv(std::vector<RString>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	for (int i = 0; i < NUM_CullMode; ++i) {
@@ -291,8 +291,8 @@ struct actor_template_t
 	field_cont_t fields;
 	RString condition;
 	RString name;
-	vector<frame_t> frames;
-	vector<actor_template_t> children;
+	std::vector<frame_t> frames;
+	std::vector<actor_template_t> children;
 	RString x;
 	RString y;
 	void make_space_for_frame(int id);
@@ -334,18 +334,18 @@ actor_template_t::store_cmd(RString const& cmd_name, RString const& full_cmd)
 		fields[cmd_name] = cmd_text;
 		return;
 	}
-	vector<RString> cmds;
+	std::vector<RString> cmds;
 	split(full_cmd, ";", cmds, true);
 	size_t queue_size = 0;
 	// If someone has a simfile that uses a playcommand that pushes tween
 	// states onto the queue, queue size counting will have to be made much
 	// more complex to prevent that from causing an overflow.
-	for (vector<RString>::iterator cmd = cmds.begin(); cmd != cmds.end();
+	for (std::vector<RString>::iterator cmd = cmds.begin(); cmd != cmds.end();
 		 ++cmd) {
-		vector<RString> args;
+		std::vector<RString> args;
 		split(*cmd, ",", args, true);
 		if (!args.empty()) {
-			for (vector<RString>::iterator arg = args.begin();
+			for (std::vector<RString>::iterator arg = args.begin();
 				 arg != args.end();
 				 ++arg) {
 				size_t first_nonspace = 0;
@@ -380,11 +380,11 @@ actor_template_t::store_cmd(RString const& cmd_name, RString const& full_cmd)
 		size_t states_per = (queue_size / num_to_make) + 1;
 		size_t states_in_curr = 0;
 		RString this_name = cmd_name;
-		vector<RString> curr_cmd;
-		for (vector<RString>::iterator cmd = cmds.begin(); cmd != cmds.end();
+		std::vector<RString> curr_cmd;
+		for (std::vector<RString>::iterator cmd = cmds.begin(); cmd != cmds.end();
 			 ++cmd) {
 			curr_cmd.push_back(*cmd);
-			vector<RString> args;
+			std::vector<RString> args;
 			split(*cmd, ",", args, true);
 			if (!args.empty()) {
 				map<RString, size_t>::iterator counter =
@@ -560,11 +560,11 @@ actor_template_t::load_node(XNode const& node,
 				set_type("LoadActor");
 				store_field("File", attr->second, false);
 			} else {
-				vector<RString> files_in_dir;
+				std::vector<RString> files_in_dir;
 				FILEMAN->GetDirListing(sfname + "*", files_in_dir, false, true);
 				int handled_level = 0;
 				RString found_file = "";
-				for (vector<RString>::iterator file = files_in_dir.begin();
+				for (std::vector<RString>::iterator file = files_in_dir.begin();
 					 file != files_in_dir.end() && handled_level < 2;
 					 ++file) {
 					RString extension = GetExtension(*file);
@@ -681,7 +681,7 @@ actor_template_t::output_to_file(RageFile* file, RString const& indent)
 	if (!frames.empty()) {
 		file->Write(subindent + "Frames= {\n");
 		RString frameindent = subindent + "  ";
-		for (vector<frame_t>::iterator frame = frames.begin();
+		for (std::vector<frame_t>::iterator frame = frames.begin();
 			 frame != frames.end();
 			 ++frame) {
 			file->Write(frameindent + "{Frame= " + IntToString(frame->frame) +
@@ -701,7 +701,7 @@ actor_template_t::output_to_file(RageFile* file, RString const& indent)
 						",\n");
 		}
 	}
-	for (vector<actor_template_t>::iterator child = children.begin();
+	for (std::vector<actor_template_t>::iterator child = children.begin();
 		 child != children.end();
 		 ++child) {
 		child->output_to_file(file, subindent);
@@ -762,7 +762,7 @@ int
 LuaFunc_convert_xml_bgs(lua_State* L)
 {
 	RString dir = SArg(1);
-	vector<RString> xml_list;
+	std::vector<RString> xml_list;
 	convert_xmls_in_dir(dir + "/");
 	return 0;
 }

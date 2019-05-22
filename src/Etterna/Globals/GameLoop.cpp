@@ -80,7 +80,7 @@ ChangeAppPri()
 		// if using NTPAD don't boost or else input is laggy
 #ifdef _WIN32
 	{
-		vector<InputDeviceInfo> vDevices;
+		std::vector<InputDeviceInfo> vDevices;
 
 		// This can get called before INPUTMAN is constructed.
 		if (INPUTMAN) {

@@ -245,11 +245,11 @@ DriverList InputHandler::m_pDriverList;
 static LocalizedString INPUT_HANDLERS_EMPTY("Arch",
 											"Input Handlers cannot be empty.");
 void
-InputHandler::Create(const RString& drivers_, vector<InputHandler*>& Add)
+InputHandler::Create(const RString& drivers_, std::vector<InputHandler*>& Add)
 {
 	const RString drivers =
 	  drivers_.empty() ? RString(DEFAULT_INPUT_DRIVER_LIST) : drivers_;
-	vector<RString> DriversToTry;
+	std::vector<RString> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())

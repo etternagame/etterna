@@ -17,7 +17,7 @@ class RageFileDriver
 								int iMode,
 								int& iError) = 0;
 	virtual void GetDirListing(const RString& sPath,
-							   vector<RString>& asAddTo,
+							   std::vector<RString>& asAddTo,
 							   bool bOnlyDirs,
 							   bool bReturnPathToo);
 	virtual RageFileManager::FileType GetFileType(const RString& sPath);

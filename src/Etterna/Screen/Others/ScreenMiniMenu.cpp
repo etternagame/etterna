@@ -20,7 +20,7 @@ AutoScreenMessage(SM_GoToCancel);
 
 bool ScreenMiniMenu::s_bCancelled = false;
 int ScreenMiniMenu::s_iLastRowCode = -1;
-vector<int> ScreenMiniMenu::s_viLastAnswers;
+std::vector<int> ScreenMiniMenu::s_viLastAnswers;
 
 // Hooks for profiling
 void
@@ -95,7 +95,7 @@ ScreenMiniMenu::LoadMenu(const MenuDef* pDef)
 
 	s_viLastAnswers.resize(m_vMenuRows.size());
 	// Convert from m_vMenuRows to vector<OptionRowDefinition>
-	vector<OptionRowHandler*> vHands;
+	std::vector<OptionRowHandler*> vHands;
 	for (unsigned r = 0; r < m_vMenuRows.size(); r++) {
 		const MenuRowDef& mr = m_vMenuRows[r];
 		OptionRowHandler* pHand = OptionRowHandlerUtil::MakeSimple(mr);

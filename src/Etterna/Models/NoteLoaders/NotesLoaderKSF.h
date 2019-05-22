@@ -6,7 +6,7 @@ class Steps;
 /** @brief Reads a Song from a set of .KSF files. */
 namespace KSFLoader {
 void
-GetApplicableFiles(const RString& sPath, vector<RString>& out);
+GetApplicableFiles(const RString& sPath, std::vector<RString>& out);
 bool
 LoadFromDir(const RString& sDir, Song& out);
 bool

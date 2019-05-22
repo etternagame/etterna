@@ -25,7 +25,7 @@ CharacterManager::CharacterManager()
 		SAFE_DELETE(m_pCharacters[i]);
 	m_pCharacters.clear();
 
-	vector<RString> as;
+	std::vector<RString> as;
 	GetDirListing(CHARACTERS_DIR "*", as, true, true);
 	StripCvsAndSvn(as);
 	StripMacResourceForks(as);
@@ -64,7 +64,7 @@ CharacterManager::~CharacterManager()
 }
 
 void
-CharacterManager::GetCharacters(vector<Character*>& apCharactersOut)
+CharacterManager::GetCharacters(std::vector<Character*>& apCharactersOut)
 {
 	for (unsigned i = 0; i < m_pCharacters.size(); i++)
 		if (!m_pCharacters[i]->IsDefaultCharacter())
@@ -74,7 +74,7 @@ CharacterManager::GetCharacters(vector<Character*>& apCharactersOut)
 Character*
 CharacterManager::GetRandomCharacter()
 {
-	vector<Character*> apCharacters;
+	std::vector<Character*> apCharacters;
 	GetCharacters(apCharacters);
 	if (apCharacters.size())
 		return apCharacters[RandomInt(apCharacters.size())];
@@ -149,7 +149,7 @@ class LunaCharacterManager : public Luna<CharacterManager>
 	}
 	static int GetAllCharacters(T* p, lua_State* L)
 	{
-		vector<Character*> vChars;
+		std::vector<Character*> vChars;
 		p->GetCharacters(vChars);
 
 		LuaHelpers::CreateTableFromArray(vChars, L);
@@ -157,7 +157,7 @@ class LunaCharacterManager : public Luna<CharacterManager>
 	}
 	static int GetCharacterCount(T* p, lua_State* L)
 	{
-		vector<Character*> chars;
+		std::vector<Character*> chars;
 		p->GetCharacters(chars);
 		lua_pushnumber(L, chars.size());
 		return 1;

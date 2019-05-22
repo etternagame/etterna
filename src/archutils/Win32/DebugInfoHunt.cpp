@@ -100,13 +100,13 @@ GetDriveDebugInfo9x()
 	 *    DMACurrentlyUsed  0 or 1
 	 *    DeviceDesc        "GENERIC IDE  DISK TYPE01"
 	 */
-	vector<RString> Drives;
+	std::vector<RString> Drives;
 	if (!RegistryAccess::GetRegSubKeys("HKEY_LOCAL_MACHINE\\Enum\\ESDI",
 									   Drives))
 		return;
 
 	for (unsigned drive = 0; drive < Drives.size(); ++drive) {
-		vector<RString> IDs;
+		std::vector<RString> IDs;
 		if (!RegistryAccess::GetRegSubKeys(Drives[drive], IDs))
 			continue;
 
@@ -142,7 +142,7 @@ GetDriveDebugInfoNT()
 	 *		     Identifier  "WDC WD1200JB-75CRA0"
 	 *			 Type        "DiskPeripheral"
 	 */
-	vector<RString> Ports;
+	std::vector<RString> Ports;
 	if (!RegistryAccess::GetRegSubKeys(
 		  "HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\Scsi", Ports))
 		return;
@@ -154,18 +154,18 @@ GetDriveDebugInfoNT()
 		RString Driver;
 		RegistryAccess::GetRegValue(Ports[i], "Driver", Driver);
 
-		vector<RString> Busses;
+		std::vector<RString> Busses;
 		if (!RegistryAccess::GetRegSubKeys(Ports[i], Busses, "Scsi Bus .*"))
 			continue;
 
 		for (unsigned bus = 0; bus < Busses.size(); ++bus) {
-			vector<RString> TargetIDs;
+			std::vector<RString> TargetIDs;
 			if (!RegistryAccess::GetRegSubKeys(
 				  Busses[bus], TargetIDs, "Target Id .*"))
 				continue;
 
 			for (unsigned tid = 0; tid < TargetIDs.size(); ++tid) {
-				vector<RString> LUIDs;
+				std::vector<RString> LUIDs;
 				if (!RegistryAccess::GetRegSubKeys(
 					  TargetIDs[tid], LUIDs, "Logical Unit Id .*"))
 					continue;

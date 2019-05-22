@@ -59,7 +59,7 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 }
 
 static void
-AddPart(vector<RString>& AddTo, float level, RString name)
+AddPart(std::vector<RString>& AddTo, float level, RString name)
 {
 	if (level == 0)
 		return;
@@ -71,7 +71,7 @@ AddPart(vector<RString>& AddTo, float level, RString name)
 }
 
 void
-SongOptions::GetMods(vector<RString>& AddTo) const
+SongOptions::GetMods(std::vector<RString>& AddTo) const
 {
 	if (m_fMusicRate != 1) {
 		RString s = ssprintf("%2.2f", m_fMusicRate);
@@ -122,7 +122,7 @@ SongOptions::GetMods(vector<RString>& AddTo) const
 }
 
 void
-SongOptions::GetLocalizedMods(vector<RString>& v) const
+SongOptions::GetLocalizedMods(std::vector<RString>& v) const
 {
 	GetMods(v);
 	FOREACH(RString, v, s) { *s = CommonMetrics::LocalizeOptionItem(*s, true); }
@@ -131,7 +131,7 @@ SongOptions::GetLocalizedMods(vector<RString>& v) const
 RString
 SongOptions::GetString() const
 {
-	vector<RString> v;
+	std::vector<RString> v;
 	GetMods(v);
 	return join(", ", v);
 }
@@ -139,7 +139,7 @@ SongOptions::GetString() const
 RString
 SongOptions::GetLocalizedString() const
 {
-	vector<RString> v;
+	std::vector<RString> v;
 	GetLocalizedMods(v);
 	return join(", ", v);
 }
@@ -150,7 +150,7 @@ void
 SongOptions::FromString(const RString& sMultipleMods)
 {
 	RString sTemp = sMultipleMods;
-	vector<RString> vs;
+	std::vector<RString> vs;
 	split(sTemp, ",", vs, true);
 	RString sThrowAway;
 	FOREACH(RString, vs, s) { FromOneModString(*s, sThrowAway); }
@@ -164,7 +164,7 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 	Trim(sBit);
 
 	Regex mult("^([0-9]+(\\.[0-9]+)?)xmusic$");
-	vector<RString> matches;
+	std::vector<RString> matches;
 	if (mult.Compare(sBit, matches)) {
 		m_fMusicRate = StringToFloat(matches[0]);
 		MESSAGEMAN->Broadcast("RateChanged");
@@ -173,7 +173,7 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 
 	matches.clear();
 
-	vector<RString> asParts;
+	std::vector<RString> asParts;
 	split(sBit, " ", asParts, true);
 	bool on = true;
 	if (asParts.size() > 1) {

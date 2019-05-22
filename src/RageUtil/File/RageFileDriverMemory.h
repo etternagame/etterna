@@ -44,7 +44,7 @@ class RageFileDriverMem : public RageFileDriver
 
   private:
 	RageMutex m_Mutex;
-	vector<RageFileObjMemFile*> m_Files;
+	std::vector<RageFileObjMemFile*> m_Files;
 };
 
 #endif

@@ -409,7 +409,7 @@ InputHandler_X11::Update()
 
 void
 InputHandler_X11::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (Dpy && Win) {
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_KEYBOARD, "Keyboard"));

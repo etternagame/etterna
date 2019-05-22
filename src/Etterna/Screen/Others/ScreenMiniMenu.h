@@ -16,7 +16,7 @@ struct MenuRowDef
 	MenuRowUpdateEnabled pfnEnabled{}; // if ! NULL, used instead of bEnabled
 
 	int iDefaultChoice{ 0 };
-	vector<RString> choices;
+	std::vector<RString> choices;
 	bool bThemeTitle{ false };
 	bool bThemeItems{ false };
 
@@ -107,7 +107,7 @@ struct MenuRowDef
 			   bool bTT,
 			   bool bTI,
 			   int d,
-			   vector<RString>& options)
+			   std::vector<RString>& options)
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
@@ -249,7 +249,7 @@ struct MenuRowDef
 struct MenuDef
 {
 	RString sClassName;
-	vector<MenuRowDef> rows;
+	std::vector<MenuRowDef> rows;
 
 	MenuDef(RString c,
 			MenuRowDef r0 = MenuRowDef(),
@@ -347,7 +347,7 @@ class ScreenMiniMenu : public ScreenOptions
 	ScreenMessage m_SMSendOnOK;
 	ScreenMessage m_SMSendOnCancel;
 
-	vector<MenuRowDef> m_vMenuRows;
+	std::vector<MenuRowDef> m_vMenuRows;
 
   public:
 	ScreenMiniMenu()
@@ -359,7 +359,7 @@ class ScreenMiniMenu : public ScreenOptions
 
 	static bool s_bCancelled;
 	static int s_iLastRowCode;
-	static vector<int> s_viLastAnswers;
+	static std::vector<int> s_viLastAnswers;
 };
 
 #endif

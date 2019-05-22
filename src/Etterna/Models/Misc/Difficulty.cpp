@@ -77,7 +77,7 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 		return "Edit";
 	}
 	// OPTIMIZATION OPPORTUNITY: cache these metrics and cache the splitting
-	vector<RString> vsNames;
+	std::vector<RString> vsNames;
 	split(NAMES, ",", vsNames);
 	FOREACH(RString, vsNames, sName)
 	{

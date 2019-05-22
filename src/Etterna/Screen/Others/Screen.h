@@ -104,11 +104,11 @@ class Screen : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	vector<pair<function<void(void)>, float>> delayedFunctions;
+	std::vector<pair<function<void(void)>, float>> delayedFunctions;
 	void SetTimeout(function<void()> f, float ms);
 	std::list<tuple<function<void(void)>, float, float, int>>
 	  delayedPeriodicFunctions; // This is a list to allow safe iterators
-	vector<int> delayedPeriodicFunctionIdsToDelete;
+	std::vector<int> delayedPeriodicFunctionIdsToDelete;
 	void SetInterval(function<void()> f, float ms, int fRemove);
 
   protected:
@@ -121,7 +121,7 @@ class Screen : public ActorFrame
 		float fDelayRemaining;
 	};
 	/** @brief The list of messages that are sent to a Screen. */
-	vector<QueuedScreenMessage> m_QueuedMessages;
+	std::vector<QueuedScreenMessage> m_QueuedMessages;
 	static bool SortMessagesByDelayRemaining(const QueuedScreenMessage& m1,
 											 const QueuedScreenMessage& m2);
 
@@ -179,8 +179,8 @@ class Screen : public ActorFrame
 	// to remove when removing a callback.
 	using callback_key_t = const void*;
 	map<callback_key_t, LuaReference> m_InputCallbacks;
-	vector<callback_key_t> orderedcallbacks;
-	vector<callback_key_t> m_DelayedCallbackRemovals;
+	std::vector<callback_key_t> orderedcallbacks;
+	std::vector<callback_key_t> m_DelayedCallbackRemovals;
 	bool m_CallingInputCallbacks;
 	void InternalRemoveCallback(callback_key_t key);
 };

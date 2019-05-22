@@ -360,7 +360,7 @@ PlayerStageStats::GetMaxWifeScore() const
 {
 	return MaxWifeScore;
 }
-vector<float>
+std::vector<float>
 PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
@@ -378,27 +378,27 @@ PlayerStageStats::GetTimingScale() const
 {
 	return m_fTimingScale;
 }
-vector<float>
+std::vector<float>
 PlayerStageStats::GetOffsetVector() const
 {
 	return m_vOffsetVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetNoteRowVector() const
 {
 	return m_vNoteRowVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetTrackVector() const
 {
 	return m_vTrackVector;
 }
-vector<TapNoteType>
+std::vector<TapNoteType>
 PlayerStageStats::GetTapNoteTypeVector() const
 {
 	return m_vTapNoteTypeVector;
 }
-vector<HoldReplayResult>
+std::vector<HoldReplayResult>
 PlayerStageStats::GetHoldReplayDataVector() const
 {
 	return m_vHoldReplayData;
@@ -952,7 +952,7 @@ public:
 	{
 		auto& offs = p->m_vOffsetVector;
 		auto& type = p->m_vTapNoteTypeVector;
-		vector<float> doot;
+		std::vector<float> doot;
 		// type would not be empty in Full Replays (> v0.60)
 		if (!type.empty()) {
 			for (size_t i = 0; i < offs.size(); ++i)

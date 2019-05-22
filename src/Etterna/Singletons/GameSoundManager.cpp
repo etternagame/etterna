@@ -82,9 +82,9 @@ static MusicPlaying* g_Playing;
 
 static RageThread MusicThread;
 
-vector<RString> g_SoundsToPlayOnce;
-vector<RString> g_SoundsToPlayOnceFromDir;
-vector<RString> g_SoundsToPlayOnceFromAnnouncer;
+std::vector<RString> g_SoundsToPlayOnce;
+std::vector<RString> g_SoundsToPlayOnceFromDir;
+std::vector<RString> g_SoundsToPlayOnceFromAnnouncer;
 
 struct MusicToPlay
 {
@@ -97,7 +97,7 @@ struct MusicToPlay
 	bool bAlignBeat, bApplyMusicRate;
 	MusicToPlay() { HasTiming = false; }
 };
-vector<MusicToPlay> g_MusicsToPlay;
+std::vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
 
 void
@@ -296,7 +296,7 @@ GameSoundManager::DoPlayOnceFromDir(RString sPath)
 	if (sPath.Right(1) != "/")
 		sPath += "/";
 
-	vector<RString> arraySoundFiles;
+	std::vector<RString> arraySoundFiles;
 	GetDirListing(sPath + "*.mp3", arraySoundFiles);
 	GetDirListing(sPath + "*.wav", arraySoundFiles);
 	GetDirListing(sPath + "*.ogg", arraySoundFiles);
@@ -320,14 +320,14 @@ void
 GameSoundManager::StartQueuedSounds()
 {
 	g_Mutex->Lock();
-	vector<RString> aSoundsToPlayOnce = g_SoundsToPlayOnce;
+	std::vector<RString> aSoundsToPlayOnce = g_SoundsToPlayOnce;
 	g_SoundsToPlayOnce.clear();
-	vector<RString> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
+	std::vector<RString> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
 	g_SoundsToPlayOnceFromDir.clear();
-	vector<RString> aSoundsToPlayOnceFromAnnouncer =
+	std::vector<RString> aSoundsToPlayOnceFromAnnouncer =
 	  g_SoundsToPlayOnceFromAnnouncer;
 	g_SoundsToPlayOnceFromAnnouncer.clear();
-	vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
+	std::vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
 	g_MusicsToPlay.clear();
 	g_Mutex->Unlock();
 
@@ -950,7 +950,7 @@ LuaFunc_get_sound_driver_list(lua_State* L);
 int
 LuaFunc_get_sound_driver_list(lua_State* L)
 {
-	vector<RString> driver_names;
+	std::vector<RString> driver_names;
 	split(
 	  RageSoundDriver::GetDefaultSoundDriverList(), ",", driver_names, true);
 	lua_createtable(L, driver_names.size(), 0);

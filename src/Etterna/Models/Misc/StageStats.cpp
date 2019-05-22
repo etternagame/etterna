@@ -523,7 +523,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetAliveSeconds( pss.m_fAliveSeconds );
 	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
 
-	vector<RString> asModifiers;
+	std::vector<RString> asModifiers;
 	{
 		RString sPlayerOptions = ps.m_PlayerOptions.GetStage().GetString();
 		if (!sPlayerOptions.empty())
@@ -580,7 +580,7 @@ FillInHighScore(const PlayerStageStats& pss,
 			hs.SetSSRNormPercent(hs.RescoreToWifeJudge(4));
 
 		if (hs.GetEtternaValid()) {
-			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
+			std::vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, dakine[ss]);
 

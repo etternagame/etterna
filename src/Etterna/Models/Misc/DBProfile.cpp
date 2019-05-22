@@ -240,7 +240,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 
 	string lastPlayListName = "";
 	int lastCourseRunID;
-	vector<string> tmpCourseRun;
+	std::vector<string> tmpCourseRun;
 
 	// Read one row
 	if (courseRunsQuery.executeStep()) {
@@ -754,7 +754,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertChartPlaylist.exec();
 				}
 
-				FOREACH_CONST(vector<string>, (pl->second).courseruns, run)
+				FOREACH_CONST(std::vector<string>, (pl->second).courseruns, run)
 				{
 
 					SQLite::Statement insertCourseRun(

@@ -384,9 +384,9 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 void
 Steps::CalcEtternaMetadata()
 {
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
-	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
+	const std::vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const std::vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
+	const std::vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
 	stuffnthings = MinaSDCalc(cereal,
 							  m_pNoteData->GetNumTracks(),
@@ -429,7 +429,7 @@ Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 	RString o = "X"; // I was thinking of using "C" to indicate chart..
 					 // however.. X is cooler... - Mina
 	RString k = "";
-	vector<int>& nerv = nd.GetNonEmptyRowVector();
+	std::vector<int>& nerv = nd.GetNonEmptyRowVector();
 
 	unsigned int numThreads = max(std::thread::hardware_concurrency(), 1u);
 	std::vector<RString> keyParts;
@@ -471,7 +471,7 @@ Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 void
 Steps::FillStringWithBPMs(size_t startRow,
 						  size_t endRow,
-						  vector<int>& nerv,
+						  std::vector<int>& nerv,
 						  NoteData& nd,
 						  TimingData* td,
 						  RString& inOut)
@@ -636,13 +636,13 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
-vector<int>
+std::vector<int>
 Steps::GetNPSVector(NoteData& nd,
-					vector<int> nerv,
-					vector<float> etaner,
+					std::vector<int> nerv,
+					std::vector<float> etaner,
 					float rate)
 {
-	vector<int> doot(static_cast<int>(etaner.back()));
+	std::vector<int> doot(static_cast<int>(etaner.back()));
 	int notecounter = 0;
 	int lastinterval = 0;
 	int curinterval = 0;
@@ -665,14 +665,14 @@ Steps::GetNPSVector(NoteData& nd,
 	return doot;
 }
 
-vector<int>
+std::vector<int>
 Steps::GetCNPSVector(NoteData& nd,
-					 vector<int> nerv,
-					 vector<float> etaner,
+					 std::vector<int> nerv,
+					 std::vector<float> etaner,
 					 int chordsize,
 					 float rate)
 {
-	vector<int> doot(static_cast<int>(etaner.back()));
+	std::vector<int> doot(static_cast<int>(etaner.back()));
 	int chordnotecounter = 0; // number of NOTES inside chords of this size, so
 							  // 5 jumps = 10 notes, 3 hands = 9 notes, etc
 	int lastinterval = 0;
@@ -738,7 +738,7 @@ class LunaSteps : public Luna<Steps>
 	// Sigh -Mina
 	static int GetRelevantRadars(T* p, lua_State* L)
 	{
-		vector<int> relevants;
+		std::vector<int> relevants;
 		const RadarValues& rv = p->GetRadarValues();
 		relevants.emplace_back(rv[0]); // notes
 		relevants.emplace_back(rv[2]); // jumps
@@ -783,7 +783,7 @@ class LunaSteps : public Luna<Steps>
 		p->GetDisplayBpms(temp);
 		float fMin = temp.GetMin();
 		float fMax = temp.GetMax();
-		vector<float> fBPMs;
+		std::vector<float> fBPMs;
 		fBPMs.push_back(fMin);
 		fBPMs.push_back(fMax);
 		LuaHelpers::CreateTableFromArray(fBPMs, L);
@@ -868,7 +868,7 @@ class LunaSteps : public Luna<Steps>
 		lua_rawseti(L, -2, 1);
 
 		for (int i = 0; i < nd.GetNumTracks(); ++i) { // tap or not
-			vector<int> doot;
+			std::vector<int> doot;
 			for (auto r : loot) {
 				auto tn = nd.GetTapNote(i, r);
 				if (tn.type == TapNoteType_Empty)
@@ -880,7 +880,7 @@ class LunaSteps : public Luna<Steps>
 			lua_rawseti(L, -2, i + 2);
 		}
 
-		vector<int> doot;
+		std::vector<int> doot;
 		for (auto r : loot) {
 			doot.push_back(static_cast<int>(GetNoteType(r)) + 1); // note denom
 			LuaHelpers::CreateTableFromArray(doot, L);
@@ -897,13 +897,13 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty())
 			return 0;
-		const vector<int>& nerv = nd.BuildAndGetNerv();
-		const vector<float>& etaner =
+		const std::vector<int>& nerv = nd.BuildAndGetNerv();
+		const std::vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
 
 		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
 		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		vector<int> scroot = p->GetNPSVector(nd, nerv, etaner, rate);
+		std::vector<int> scroot = p->GetNPSVector(nd, nerv, etaner, rate);
 		lua_newtable(L);
 		LuaHelpers::CreateTableFromArray(scroot, L);
 		lua_rawseti(L, -2, 1);

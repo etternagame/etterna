@@ -47,7 +47,7 @@ class StepsDisplayList : public ActorFrame
 	{
 		StepsDisplay m_Meter;
 	};
-	vector<Line> m_Lines;
+	std::vector<Line> m_Lines;
 
 	const Song* m_CurSong;
 	bool m_bShown;
@@ -68,7 +68,7 @@ class StepsDisplayList : public ActorFrame
 		bool m_bHidden; // currently off screen
 	};
 
-	vector<Row> m_Rows;
+	std::vector<Row> m_Rows;
 };
 
 #endif

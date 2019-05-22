@@ -16,7 +16,7 @@ GetRegValue(const RString& sKey, const RString& sName, bool& val);
 
 bool
 GetRegSubKeys(const RString& sKey,
-			  vector<RString>& asList,
+			  std::vector<RString>& asList,
 			  const RString& sRegex = ".*",
 			  bool bReturnPathToo = true);
 

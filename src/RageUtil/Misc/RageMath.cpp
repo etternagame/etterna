@@ -57,7 +57,7 @@ RageVec3Normalize(RageVector3* pOut, const RageVector3* pV)
 }
 
 void
-VectorFloatNormalize(vector<float>& v)
+VectorFloatNormalize(std::vector<float>& v)
 {
 	ASSERT_M(v.size() == 3, "Can't normalize a non-3D vector.");
 	float scale = 1.0f / sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);

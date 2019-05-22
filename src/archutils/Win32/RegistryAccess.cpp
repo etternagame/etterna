@@ -138,7 +138,7 @@ RegistryAccess::GetRegValue(const RString& sKey,
 
 bool
 RegistryAccess::GetRegSubKeys(const RString& sKey,
-							  vector<RString>& lst,
+							  std::vector<RString>& lst,
 							  const RString& regex,
 							  bool bReturnPathToo)
 {

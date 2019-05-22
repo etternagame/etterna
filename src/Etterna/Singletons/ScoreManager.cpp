@@ -63,11 +63,11 @@ ScoresAtRate::AddScore(HighScore& hs)
 	return &(scores.find(key)->second);
 }
 
-vector<string>
+std::vector<string>
 ScoresAtRate::GetSortedKeys()
 {
 	map<float, string, greater<float>> tmp;
-	vector<string> o;
+	std::vector<string> o;
 	FOREACHUM(string, HighScore, scores, i)
 	tmp.emplace(i->second.GetWifeScore(), i->first);
 	FOREACHM(float, string, tmp, j)
@@ -171,29 +171,29 @@ ScoresForChart::AddScore(HighScore& hs)
 	return hsPtr;
 }
 
-vector<float>
+std::vector<float>
 ScoresForChart::GetPlayedRates()
 {
-	vector<float> o;
+	std::vector<float> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	o.emplace_back(KeyToRate(i->first));
 	return o;
 }
 
-vector<int>
+std::vector<int>
 ScoresForChart::GetPlayedRateKeys()
 {
-	vector<int> o;
+	std::vector<int> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	o.emplace_back(i->first);
 	return o;
 }
 
-vector<string>
+std::vector<string>
 ScoresForChart::GetPlayedRateDisplayStrings()
 {
-	vector<float> rates = GetPlayedRates();
-	vector<string> o;
+	std::vector<float> rates = GetPlayedRates();
+	std::vector<string> o;
 	for (size_t i = 0; i < rates.size(); ++i)
 		o.emplace_back(RateKeyToDisplayString(rates[i]));
 	return o;
@@ -216,7 +216,7 @@ ScoresForChart::RateKeyToDisplayString(float rate)
 void
 ScoresForChart::SetTopScores()
 {
-	vector<HighScore*> eligiblescores;
+	std::vector<HighScore*> eligiblescores;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	{
 		auto& hs = i->second.noccPBptr;
@@ -261,19 +261,19 @@ ScoresForChart::SetTopScores()
 	}
 }
 
-vector<HighScore*>
+std::vector<HighScore*>
 ScoresForChart::GetAllPBPtrs()
 {
-	vector<HighScore*> o;
+	std::vector<HighScore*> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	o.emplace_back(i->second.PBptr);
 	return o;
 }
 
-vector<vector<HighScore*>>
+std::vector<std::vector<HighScore*>>
 ScoreManager::GetAllPBPtrs(const string& profileID)
 {
-	vector<vector<HighScore*>> vec;
+	std::vector<std::vector<HighScore*>> vec;
 	FOREACHUM(string, ScoresForChart, pscores[profileID], i)
 	{
 		if (!SONGMAN->IsChartLoaded(i->first))
@@ -340,7 +340,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+	std::vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -352,14 +352,14 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
 	mutex stepsMutex;
-	vector<string> currentSteps;
+	std::vector<string> currentSteps;
 	class StepsLock
 	{
 	  public:
 		mutex& stepsMutex;
-		vector<string>& currentSteps;
+		std::vector<string>& currentSteps;
 		string& ck;
-		StepsLock(vector<string>& vec, mutex& mut, string& k)
+		StepsLock(std::vector<string>& vec, mutex& mut, string& k)
 		  : currentSteps(vec)
 		  , stepsMutex(mut)
 		  , ck(k)
@@ -510,7 +510,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 {
 	SetAllTopScores(profileID);
 
-	vector<float> skillz;
+	std::vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss)
 	{
 		// actually skip overall, and jack stamina for now
@@ -567,7 +567,7 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 	{
 		if (!SONGMAN->IsChartLoaded(i->first))
 			continue;
-		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
+		std::vector<HighScore*> pbs = i->second.GetAllPBPtrs();
 		FOREACH(HighScore*, pbs, hs) { TopSSRs.emplace_back(*hs); }
 	}
 
@@ -788,7 +788,7 @@ class LunaScoresAtRate : public Luna<ScoresAtRate>
 	static int GetScores(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		vector<string> keys = p->GetSortedKeys();
+		std::vector<string> keys = p->GetSortedKeys();
 		for (size_t i = 0; i < keys.size(); ++i) {
 			HighScore& wot = p->scores[keys[i]];
 			wot.PushSelf(L);
@@ -821,8 +821,8 @@ class LunaScoreManager : public Luna<ScoreManager>
 
 		if (scores != nullptr) {
 			lua_newtable(L);
-			vector<int> ratekeys = scores->GetPlayedRateKeys();
-			vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
+			std::vector<int> ratekeys = scores->GetPlayedRateKeys();
+			std::vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
 			for (size_t i = 0; i < ratekeys.size(); ++i) {
 				LuaHelpers::Push(L, ratedisplay[i]);
 				scores->GetScoresAtRate(ratekeys[i])->PushSelf(L);

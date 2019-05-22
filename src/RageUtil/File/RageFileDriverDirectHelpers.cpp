@@ -79,7 +79,7 @@ bool
 CreateDirectories(const RString& Path)
 {
 	// XXX: handle "//foo/bar" paths in Windows
-	vector<RString> parts;
+	std::vector<RString> parts;
 	RString curpath;
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
@@ -303,7 +303,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
 	 */
 	static const RString IGNORE_MARKER_BEGINNING = "ignore-";
 
-	vector<RString> vsFilesToRemove;
+	std::vector<RString> vsFilesToRemove;
 	for (set<File>::iterator iter =
 		   fs.files.lower_bound(IGNORE_MARKER_BEGINNING);
 		 iter != fs.files.end();

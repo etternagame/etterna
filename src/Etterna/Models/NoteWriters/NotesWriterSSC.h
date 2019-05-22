@@ -17,7 +17,7 @@ namespace NotesWriterSSC {
 bool
 Write(RString& sPath,
 	  const Song& out,
-	  const vector<Steps*>& vpStepsToSave,
+	  const std::vector<Steps*>& vpStepsToSave,
 	  bool bSavingCache);
 /**
  * @brief Get some contents about the edit file first.

@@ -519,7 +519,7 @@ void RageMutex::MarkLockedMutex()
 	ASSERT( ID < MAX_MUTEXES );
 
 	/* This is a queue of all mutexes that must be locked before ID, if at all. */
-	vector<const RageMutex *> before;
+	std::vector<const RageMutex *> before;
 
 	/* Iterate over all locked mutexes that are locked by this thread. */
 	for( unsigned i = 0; i < g_MutexList->size(); ++i )

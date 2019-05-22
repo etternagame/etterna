@@ -19,7 +19,7 @@
  * @param lines the list of lines to join.
  * @return the joined lines. */
 static RString
-JoinLineList(vector<RString>& lines)
+JoinLineList(std::vector<RString>& lines)
 {
 	for (unsigned i = 0; i < lines.size(); ++i)
 		TrimRight(lines[i]);
@@ -52,10 +52,10 @@ MSDToString2(MinaSD x)
 struct TimingTagWriter
 {
 
-	vector<RString>* m_pvsLines;
+	std::vector<RString>* m_pvsLines;
 	RString m_sNext;
 
-	TimingTagWriter(vector<RString>* pvsLines)
+	TimingTagWriter(std::vector<RString>* pvsLines)
 	  : m_pvsLines(pvsLines)
 	{
 	}
@@ -99,7 +99,7 @@ struct TimingTagWriter
 };
 
 static void
-GetTimingTags(vector<RString>& lines,
+GetTimingTags(std::vector<RString>& lines,
 			  const TimingData& timing,
 			  bool bIsSong = false)
 {
@@ -109,7 +109,7 @@ GetTimingTags(vector<RString>& lines,
 	// this here?
 #define WRITE_SEG_LOOP_OPEN(enum_type, seg_type, seg_name, to_func)            \
 	{                                                                          \
-		vector<TimingSegment*> const& segs =                                   \
+		std::vector<TimingSegment*> const& segs =                                   \
 		  timing.GetTimingSegments(enum_type);                                 \
 		if (!segs.empty()) {                                                   \
 			writer.Init(seg_name);                                             \
@@ -366,7 +366,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 }
 
 static void
-emplace_back_tag(vector<RString>& lines,
+emplace_back_tag(std::vector<RString>& lines,
 				 RString const& format,
 				 RString const& value)
 {
@@ -384,7 +384,7 @@ emplace_back_tag(vector<RString>& lines,
 static RString
 GetETTNoteData(const Song& song, Steps& in)
 {
-	vector<RString> lines;
+	std::vector<RString> lines;
 
 	lines.emplace_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -406,7 +406,7 @@ GetETTNoteData(const Song& song, Steps& in)
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
-	vector<RString> asRadarValues;
+	std::vector<RString> asRadarValues;
 	const RadarValues& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -457,7 +457,7 @@ GetETTNoteData(const Song& song, Steps& in)
 bool
 NotesWriterETT::Write(RString& sPath,
 					  const Song& out,
-					  const vector<Steps*>& vpStepsToSave)
+					  const std::vector<Steps*>& vpStepsToSave)
 {
 	int flags = RageFile::WRITE;
 

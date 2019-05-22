@@ -22,7 +22,7 @@ GhostArrowRow::Load(const PlayerState* pPlayerState, float fYReverseOffset)
 		const std::string& sButton =
 		  GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(c);
 
-		vector<GameInput> GameI;
+		std::vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(c, pn, GameI);
 		NOTESKIN->SetGameController(GameI[0].controller);
 
@@ -35,7 +35,7 @@ GhostArrowRow::Load(const PlayerState* pPlayerState, float fYReverseOffset)
 }
 
 void
-GhostArrowRow::SetColumnRenderers(vector<NoteColumnRenderer>& renderers)
+GhostArrowRow::SetColumnRenderers(std::vector<NoteColumnRenderer>& renderers)
 {
 	ASSERT_M(renderers.size() == m_Ghost.size(),
 			 "Notefield has different number of columns than ghost row.");

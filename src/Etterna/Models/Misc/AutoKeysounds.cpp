@@ -121,7 +121,7 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	pPlayer1 = nullptr;
 	pShared = nullptr;
 
-	vector<RString> vsMusicFile;
+	std::vector<RString> vsMusicFile;
 	const RString sMusicPath =
 	  GAMESTATE->m_pCurSteps
 		->GetMusicPath();
@@ -137,7 +137,7 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 			vsMusicFile.push_back(pSong->GetInstrumentTrackPath(it));
 	}
 
-	vector<RageSoundReader*> vpSounds;
+	std::vector<RageSoundReader*> vpSounds;
 	FOREACH(RString, vsMusicFile, s)
 	{
 		RString sError;
@@ -193,7 +193,7 @@ AutoKeysounds::FinishLoading()
 
 	Song* pSong = GAMESTATE->m_pCurSong;
 
-	vector<RageSoundReader*> apSounds;
+	std::vector<RageSoundReader*> apSounds;
 	LoadTracks(pSong, m_pSharedSound, m_pPlayerSounds);
 
 	// Load autoplay sounds, if any.

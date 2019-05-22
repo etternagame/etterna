@@ -206,9 +206,9 @@ PlayerInfo::IsEnabled()
 	FAIL_M("Invalid non-dummy player.");
 }
 
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v)
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerInfo(std::vector<PlayerInfo>::iterator iter,
+						 std::vector<PlayerInfo>& v)
 {
 	for (; iter != v.end(); ++iter) {
 		if (!iter->m_bPlayerEnabled)
@@ -218,9 +218,9 @@ GetNextEnabledPlayerInfo(vector<PlayerInfo>::iterator iter,
 	return iter;
 }
 
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfoNotDummy(vector<PlayerInfo>::iterator iter,
-								 vector<PlayerInfo>& v)
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerInfoNotDummy(std::vector<PlayerInfo>::iterator iter,
+								 std::vector<PlayerInfo>& v)
 {
 	for (; iter != v.end(); iter++) {
 		if (iter->m_bIsDummy)
@@ -232,9 +232,9 @@ GetNextEnabledPlayerInfoNotDummy(vector<PlayerInfo>::iterator iter,
 	return iter;
 }
 
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-							   vector<PlayerInfo>& v)
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerNumberInfo(std::vector<PlayerInfo>::iterator iter,
+							   std::vector<PlayerInfo>& v)
 {
 	for (; iter != v.end(); ++iter) {
 		if (iter->m_bIsDummy)
@@ -248,9 +248,9 @@ GetNextEnabledPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
 	return iter;
 }
 
-vector<PlayerInfo>::iterator
-GetNextPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-						vector<PlayerInfo>& v)
+std::vector<PlayerInfo>::iterator
+GetNextPlayerNumberInfo(std::vector<PlayerInfo>::iterator iter,
+						std::vector<PlayerInfo>& v)
 {
 	for (; iter != v.end(); ++iter) {
 		if (iter->m_bIsDummy)
@@ -262,9 +262,9 @@ GetNextPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
 	return iter;
 }
 
-vector<PlayerInfo>::iterator
-GetNextVisiblePlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v)
+std::vector<PlayerInfo>::iterator
+GetNextVisiblePlayerInfo(std::vector<PlayerInfo>::iterator iter,
+						 std::vector<PlayerInfo>& v)
 {
 	for (; iter != v.end(); ++iter) {
 		if (!iter->m_pPlayer->HasVisibleParts())
@@ -662,10 +662,10 @@ ScreenGameplay::InitSongQueues()
 			{
 				Steps* pOldSteps = pi->m_vpStepsQueue[i];
 
-				vector<Steps*> vpSteps;
+				std::vector<Steps*> vpSteps;
 				SongUtil::GetSteps(pSong, vpSteps, pOldSteps->m_StepsType);
 				StepsUtil::SortNotesArrayByDifficulty(vpSteps);
-				vector<Steps*>::iterator iter =
+				std::vector<Steps*>::iterator iter =
 				  find(vpSteps.begin(), vpSteps.end(), pOldSteps);
 				int iIndexBase = 0;
 				if (iter != vpSteps.end()) {
@@ -1465,7 +1465,7 @@ ScreenGameplay::Update(float fDeltaTime)
 							  ->m_PlayerOptions.GetPreferred()
 							  .FromString(mods);
 							*/
-							const vector<RString> oldturns =
+							const std::vector<RString> oldturns =
 							  GAMEMAN->m_vTurnsToReset;
 							if (GAMEMAN->m_bResetTurns) {
 								GAMESTATE->m_pPlayerState->m_PlayerOptions
@@ -1823,7 +1823,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						  ->m_PlayerOptions.GetPreferred()
 						  .FromString(mods);
 						*/
-						const vector<RString> oldturns =
+						const std::vector<RString> oldturns =
 						  GAMEMAN->m_vTurnsToReset;
 						if (GAMEMAN->m_bResetTurns) {
 							GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
@@ -2445,7 +2445,7 @@ ScreenGameplay::SaveReplay()
 			p->AppendChild(pi->m_pPlayer->GetNoteData().CreateNode());
 
 			// Find a file name for the replay
-			vector<RString> files;
+			std::vector<RString> files;
 			GetDirListing("Save/Replays/replay*", files, false, false);
 			sort(files.begin(), files.end());
 
@@ -2454,7 +2454,7 @@ ScreenGameplay::SaveReplay()
 
 			for (int i = files.size() - 1; i >= 0; --i) {
 				static Regex re("^replay([0-9]{5})\\....$");
-				vector<RString> matches;
+				std::vector<RString> matches;
 				if (!re.Compare(files[i], matches))
 					continue;
 

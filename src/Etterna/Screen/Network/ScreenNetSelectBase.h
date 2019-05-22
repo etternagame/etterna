@@ -24,7 +24,7 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	bool enableChatboxInput = true;
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
-	vector<BitmapText>* ToUsers();
+	std::vector<BitmapText>* ToUsers();
 	void Scroll(unsigned int movescroll);
 	RString GetPreviousMsg();
 	RString GetNextMsg();
@@ -45,11 +45,11 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	AutoActor m_sprChatOutputBox;
 	RString m_sTextInput;
 	unsigned int m_sTextLastestInputsIndex;
-	vector<RString> m_sTextLastestInputs;
+	std::vector<RString> m_sTextLastestInputs;
 	unsigned int scroll;
 	RString m_actualText;
 
-	vector<BitmapText> m_textUsers;
+	std::vector<BitmapText> m_textUsers;
 };
 
 #endif

@@ -52,9 +52,9 @@ static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
-map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 
 void
 PlayerAI::InitFromDisk()
@@ -194,7 +194,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
 			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
 		} else {
-			vector<TapReplayResult> trrVector = { trr };
+			std::vector<TapReplayResult> trrVector = { trr };
 			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
 		}
 	}
@@ -207,7 +207,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 			m_ReplayHoldMap[replayHoldVector[i].row].push_back(
 			  replayHoldVector[i]);
 		} else {
-			vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
+			std::vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
 			m_ReplayHoldMap[replayHoldVector[i].row] = hrrVector;
 		}
 	}
@@ -242,7 +242,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayExactTapMap.count(tapRow) != 0) {
 				m_ReplayExactTapMap[tapRow].push_back(trr);
 			} else {
-				vector<TapReplayResult> trrVector = { trr };
+				std::vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
 		}
@@ -337,17 +337,17 @@ PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 	}
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
 		auto rowIt = m_ReplayExactTapMap.lower_bound(-100);
 		int row = rowIt->first;
 		for (; row <= noteRow && row != -100;) {
-			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
+			std::vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
@@ -355,7 +355,7 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 		auto rowIt = m_ReplayTapMap.lower_bound(-100);
 		int row = rowIt->first;
 		for (; row <= noteRow && row != -100;) {
-			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
+			std::vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
@@ -363,10 +363,10 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 	return output;
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsToTapForRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {

@@ -237,7 +237,7 @@ class GameState
 	BroadcastOnChange<bool> m_bGameplayLeadIn;
 
 	// if re-adding noteskin changes in courses, add functions and such here -aj
-	void GetAllUsedNoteSkins(vector<RString>& out) const;
+	void GetAllUsedNoteSkins(std::vector<RString>& out) const;
 
 	static const float MUSIC_SECONDS_INVALID;
 

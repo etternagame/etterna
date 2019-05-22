@@ -42,7 +42,7 @@ typedef RString SongDir;
 struct Group
 {
 	RString name;
-	vector<SongDir> songs;
+	std::vector<SongDir> songs;
 	Group(RString name)
 	  : name(name)
 	{
@@ -109,9 +109,9 @@ SongManager::~SongManager()
 void
 SongManager::InitAll(LoadingWindow* ld)
 {
-	vector<RString> never_cache;
+	std::vector<RString> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
-	for (vector<RString>::iterator group = never_cache.begin();
+	for (std::vector<RString>::iterator group = never_cache.begin();
 		 group != never_cache.end();
 		 ++group) {
 		m_GroupsToNeverCache.insert(*group);
@@ -152,12 +152,12 @@ SongManager::DifferentialReloadDir(string dir)
 
 	int newsongs = 0;
 
-	vector<RString> folders;
+	std::vector<RString> folders;
 	GetDirListing(dir + "*", folders, true);
 	StripCvsAndSvn(folders);
 	StripMacResourceForks(folders);
 
-	vector<Group> groups;
+	std::vector<Group> groups;
 	Group unknownGroup("Unknown Group");
 	int groupIndex, songCount, songIndex;
 
@@ -168,7 +168,7 @@ SongManager::DifferentialReloadDir(string dir)
 			songCount++;
 			unknownGroup.songs.emplace_back(SongDir(folder));
 		} else {
-			vector<RString> songdirs;
+			std::vector<RString> songdirs;
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
 			StripCvsAndSvn(songdirs);
 			StripMacResourceForks(songdirs);
@@ -193,7 +193,7 @@ SongManager::DifferentialReloadDir(string dir)
 	songIndex = 0;
 
 	for (auto& group : groups) {
-		vector<SongDir>& songDirs = group.songs;
+		std::vector<SongDir>& songDirs = group.songs;
 		int loaded = 0;
 
 		SongPointerVector& index_entry = m_mapSongGroupIndex[group.name];
@@ -247,12 +247,12 @@ SongManager::DifferentialReloadDir(string dir)
 }
 
 template<typename T>
-using it = typename vector<T>::iterator;
+using it = typename std::vector<T>::iterator;
 template<typename T>
 using p = std::pair<it<T>, it<T>>;
 template<typename T>
 std::vector<p<T>>
-split(vector<T>& v, size_t elementsPerThread)
+split(std::vector<T>& v, size_t elementsPerThread)
 {
 	std::vector<p<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
@@ -461,7 +461,7 @@ Playlist::CreateNode() const
 	cl->AppendChild(ch->CreateNode(true));
 
 	XNode* cr = new XNode("CourseRuns");
-	FOREACH_CONST(vector<string>, courseruns, run)
+	FOREACH_CONST(std::vector<string>, courseruns, run)
 	{
 		XNode* r = new XNode("Run");
 		FOREACH_CONST(string, *run, sk)
@@ -502,7 +502,7 @@ Playlist::LoadFromNode(const XNode* node)
 		if (cr) {
 			FOREACH_CONST_Child(cr, run)
 			{
-				vector<string> tmp;
+				std::vector<string> tmp;
 				FOREACH_CONST_Child(run, sk) tmp.emplace_back(sk->GetName());
 				courseruns.emplace_back(tmp);
 			}
@@ -520,7 +520,7 @@ SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
 		groupderps.erase(plName);
 	playlistGroups.clear();
 	for (auto& p : playlists) {
-		vector<Song*> playlistgroup;
+		std::vector<Song*> playlistgroup;
 		for (auto& n : p.second.chartlist)
 			if (n.loaded)
 				playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
@@ -550,10 +550,10 @@ Playlist::GetAverageRating()
 	return o / static_cast<float>(numloaded);
 }
 
-vector<string>
+std::vector<string>
 Playlist::GetKeys()
 {
-	vector<string> o;
+	std::vector<string> o;
 	for (size_t i = 0; i < chartlist.size(); ++i)
 		o.emplace_back(chartlist[i].key);
 	return o;
@@ -595,7 +595,7 @@ SongManager::MakePlaylistFromFavorites(set<string>& favs,
 
 void
 SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
-											   vector<string> oldChartkeys)
+											   std::vector<string> oldChartkeys)
 {
 	for (auto ck : oldChartkeys)
 		SONGMAN->StepsByKey.erase(ck);
@@ -608,7 +608,7 @@ SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 void
 SongManager::AddKeyedPointers(Song* new_song)
 {
-	const vector<Steps*> steps = new_song->GetAllSteps();
+	const std::vector<Steps*> steps = new_song->GetAllSteps();
 	for (size_t i = 0; i < steps.size(); ++i) {
 		const string& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
@@ -650,9 +650,9 @@ bool
 SongManager::IsSongDir(const RString& sDir)
 {
 	// Check to see if they put a song directly inside the group folder.
-	vector<RString> arrayFiles;
+	std::vector<RString> arrayFiles;
 	GetDirListing(sDir + "/*", arrayFiles);
-	const vector<RString>& audio_exts =
+	const std::vector<RString>& audio_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
 		const RString ext = GetExtension(fname);
@@ -677,7 +677,7 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 		return false; // the group is already added
 
 	// Look for a group banner in this group folder
-	vector<RString> arrayGroupBanners;
+	std::vector<RString> arrayGroupBanners;
 
 	FILEMAN->GetDirListingWithMultipleExtensions(
 	  sDir + sGroupDirName + "/",
@@ -748,7 +748,7 @@ static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
 void
 SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 {
-	vector<RString> songFolders;
+	std::vector<RString> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
 	StripCvsAndSvn(songFolders);
 	StripMacResourceForks(songFolders);
@@ -758,7 +758,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		ld->SetTotalWork(songFolders.size());
 		ld->SetText("Checking song folders...");
 	}
-	vector<Group> groups;
+	std::vector<Group> groups;
 	auto unknownGroup = Group(RString("Unknown Group"));
 	int foldersChecked = 0;
 	int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
@@ -799,7 +799,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			auto pair = *it;
 			auto& sGroupName = it->name;
 			counter++;
-			vector<SongDir>& arraySongDirs = it->songs;
+			std::vector<SongDir>& arraySongDirs = it->songs;
 			if (counter % onePercent == 0) {
 				data->_progress += counter - lastUpdate;
 				lastUpdate = counter;
@@ -846,7 +846,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		if (ld != nullptr)
 			ld->SetProgress(progress);
 	};
-	vector<Group> workload;
+	std::vector<Group> workload;
 	for (auto& group : groups) {
 		workload.emplace_back(group);
 	}
@@ -952,13 +952,13 @@ const
 }
 */
 void
-SongManager::GetSongGroupNames(vector<RString>& AddTo) const
+SongManager::GetSongGroupNames(std::vector<RString>& AddTo) const
 {
 	AddTo.insert(
 	  AddTo.end(), m_sSongGroupNames.begin(), m_sSongGroupNames.end());
 }
 
-const vector<RString>&
+const std::vector<RString>&
 SongManager::GetSongGroupNames() const
 {
 	return m_sSongGroupNames;
@@ -1024,7 +1024,7 @@ SongManager::GetSongColor(const Song* pSong) const
 		 */
 		// const StepsType st =
 		// GAMESTATE->GetCurrentStyle()->m_StepsType;
-		const vector<Steps*>& vpSteps = pSong->GetAllSteps();
+		const std::vector<Steps*>& vpSteps = pSong->GetAllSteps();
 		for (unsigned i = 0; i < vpSteps.size(); i++) {
 			const Steps* pSteps = vpSteps[i];
 			switch (pSteps->GetDifficulty()) {
@@ -1058,10 +1058,10 @@ SongManager::ResetGroupColors()
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
 }
 
-const vector<Song*>&
+const std::vector<Song*>&
 SongManager::GetSongs(const RString& sGroupName) const
 {
-	static const vector<Song*> vEmpty;
+	static const std::vector<Song*> vEmpty;
 
 	if (sGroupName == GROUP_ALL)
 		return m_pSongs;
@@ -1077,7 +1077,7 @@ SongManager::ForceReloadSongGroup(const RString& sGroupName) const
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
-		vector<string> oldChartkeys;
+		std::vector<string> oldChartkeys;
 		for (auto steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1087,7 +1087,7 @@ SongManager::ForceReloadSongGroup(const RString& sGroupName) const
 }
 
 void
-SongManager::GetFavoriteSongs(vector<Song*>& songs) const
+SongManager::GetFavoriteSongs(std::vector<Song*>& songs) const
 {
 	FOREACH_CONST(Song*, m_pSongs, song)
 	{
@@ -1097,7 +1097,7 @@ SongManager::GetFavoriteSongs(vector<Song*>& songs) const
 }
 
 void
-SongManager::GetPreferredSortSongs(vector<Song*>& AddTo) const
+SongManager::GetPreferredSortSongs(std::vector<Song*>& AddTo) const
 {
 	if (m_vPreferredSongSort.empty()) {
 		AddTo.insert(AddTo.end(), m_pSongs.begin(), m_pSongs.end());
@@ -1165,7 +1165,7 @@ SongManager::Cleanup()
 	for (unsigned i = 0; i < m_pSongs.size(); i++) {
 		Song* pSong = m_pSongs[i];
 		if (pSong) {
-			const vector<Steps*>& vpSteps = pSong->GetAllSteps();
+			const std::vector<Steps*>& vpSteps = pSong->GetAllSteps();
 			for (unsigned n = 0; n < vpSteps.size(); n++) {
 				Steps* pSteps = vpSteps[n];
 				pSteps->Compress();
@@ -1195,12 +1195,12 @@ SongManager::GetPlaylists()
 void
 SongManager::SaveEnabledSongsToPref()
 {
-	vector<RString> vsDisabledSongs;
+	std::vector<RString> vsDisabledSongs;
 
 	// Intentionally drop disabled song entries for songs that aren't
 	// currently loaded.
 
-	const vector<Song*>& apSongs = SONGMAN->GetAllSongs();
+	const std::vector<Song*>& apSongs = SONGMAN->GetAllSongs();
 	FOREACH_CONST(Song*, apSongs, s)
 	{
 		Song* pSong = (*s);
@@ -1215,7 +1215,7 @@ SongManager::SaveEnabledSongsToPref()
 void
 SongManager::LoadEnabledSongsFromPref()
 {
-	vector<RString> asDisabledSongs;
+	std::vector<RString> asDisabledSongs;
 	split(g_sDisabledSongs, ";", asDisabledSongs, true);
 
 	FOREACH_CONST(RString, asDisabledSongs, s)
@@ -1229,10 +1229,10 @@ SongManager::LoadEnabledSongsFromPref()
 }
 
 void
-SongManager::GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
+SongManager::GetStepsLoadedFromProfile(std::vector<Steps*>& AddTo,
 									   ProfileSlot slot) const
 {
-	const vector<Song*>& vSongs = GetAllSongs();
+	const std::vector<Song*>& vSongs = GetAllSongs();
 	FOREACH_CONST(Song*, vSongs, song)
 	{
 		(*song)->GetStepsLoadedFromProfile(slot, AddTo);
@@ -1312,12 +1312,12 @@ SongManager::GetExtraStageInfo(bool bExtra2,
 							  // for extra stage 2.
 	Steps* pExtra2Notes = NULL;
 
-	const vector<Song*>& apSongs = GetSongs(sGroup);
+	const std::vector<Song*>& apSongs = GetSongs(sGroup);
 	for (unsigned s = 0; s < apSongs.size(); s++) // foreach song
 	{
 		Song* pSong = apSongs[s];
 
-		vector<Steps*> apSteps;
+		std::vector<Steps*> apSteps;
 		SongUtil::GetSteps(pSong, apSteps, sd->m_StepsType);
 		for (unsigned n = 0; n < apSteps.size(); n++) // foreach Steps
 		{
@@ -1416,7 +1416,7 @@ Song*
 SongManager::FindSong(RString sPath) const
 {
 	sPath.Replace('\\', '/');
-	vector<RString> bits;
+	std::vector<RString> bits;
 	split(sPath, "/", bits);
 
 	if (bits.size() == 1)
@@ -1431,7 +1431,7 @@ Song*
 SongManager::FindSong(RString sGroup, RString sSong) const
 {
 	// foreach song
-	const vector<Song*>& vSongs = GetSongs(sGroup.empty() ? GROUP_ALL : sGroup);
+	const std::vector<Song*>& vSongs = GetSongs(sGroup.empty() ? GROUP_ALL : sGroup);
 	FOREACH_CONST(Song*, vSongs, s)
 	{
 		if ((*s)->Matches(sGroup, sSong))
@@ -1458,7 +1458,7 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 	{
 		m_vPreferredSongSort.clear();
 
-		vector<RString> asLines;
+		std::vector<RString> asLines;
 		RString sFile = THEME->GetPathO("SongManager", sPreferredSongs);
 		GetFileContents(sFile, asLines);
 		if (asLines.empty())
@@ -1492,7 +1492,7 @@ SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
 					  sLine.Left(sLine.length() - RString("/*").length());
 					if (DoesSongGroupExist(group)) {
 						// add all songs in group
-						const vector<Song*>& vSongs = GetSongs(group);
+						const std::vector<Song*>& vSongs = GetSongs(group);
 						FOREACH_CONST(Song*, vSongs, song)
 						{
 							section.vpSongs.emplace_back(*song);
@@ -1559,7 +1559,7 @@ SongManager::GetNumStepsLoadedFromProfile()
 	int iCount = 0;
 	FOREACH(Song*, m_pSongs, s)
 	{
-		vector<Steps*> vpAllSteps = (*s)->GetAllSteps();
+		std::vector<Steps*> vpAllSteps = (*s)->GetAllSteps();
 
 		FOREACH(Steps*, vpAllSteps, ss)
 		{
@@ -1605,7 +1605,7 @@ class LunaSongManager : public Luna<SongManager>
 	}
 	static int GetAllSongs(T* p, lua_State* L)
 	{
-		const vector<Song*>& v = p->GetAllSongs();
+		const std::vector<Song*>& v = p->GetAllSongs();
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
@@ -1616,7 +1616,7 @@ class LunaSongManager : public Luna<SongManager>
 	}
 	static int GetPreferredSortSongs(T* p, lua_State* L)
 	{
-		vector<Song*> v;
+		std::vector<Song*> v;
 		p->GetPreferredSortSongs(v);
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
@@ -1707,7 +1707,7 @@ class LunaSongManager : public Luna<SongManager>
 
 	static int GetSongGroupNames(T* p, lua_State* L)
 	{
-		vector<RString> v;
+		std::vector<RString> v;
 		p->GetSongGroupNames(v);
 		LuaHelpers::CreateTableFromArray<RString>(v, L);
 		return 1;
@@ -1715,7 +1715,7 @@ class LunaSongManager : public Luna<SongManager>
 
 	static int GetSongsInGroup(T* p, lua_State* L)
 	{
-		vector<Song*> v = p->GetSongs(SArg(1));
+		std::vector<Song*> v = p->GetSongs(SArg(1));
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
@@ -1727,7 +1727,7 @@ class LunaSongManager : public Luna<SongManager>
 
 	static int GetPopularSongs(T* p, lua_State* L)
 	{
-		const vector<Song*>& v = p->GetPopularSongs();
+		const std::vector<Song*>& v = p->GetPopularSongs();
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
@@ -1852,7 +1852,7 @@ class LunaPlaylist : public Luna<Playlist>
   public:
 	static int GetChartkeys(T* p, lua_State* L)
 	{
-		vector<string> keys = p->GetKeys();
+		std::vector<string> keys = p->GetKeys();
 		LuaHelpers::CreateTableFromArray(keys, L);
 		return 1;
 	}

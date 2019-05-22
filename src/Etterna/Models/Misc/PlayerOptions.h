@@ -77,11 +77,11 @@ class PlayerOptions
 	};
 	void ResetPrefs(ResetPrefsType type);
 	void ResetSavedPrefs() { ResetPrefs(saved_prefs); };
-	void GetMods(vector<RString>& AddTo, bool bForceNoteSkin = false) const;
-	void GetTurnMods(vector<RString>& AddTo);
-	void ResetModsToStringVector(vector<RString> mods);
+	void GetMods(std::vector<RString>& AddTo, bool bForceNoteSkin = false) const;
+	void GetTurnMods(std::vector<RString>& AddTo);
+	void ResetModsToStringVector(std::vector<RString> mods);
 	void ResetToggleableMods();
-	void GetLocalizedMods(vector<RString>& AddTo) const;
+	void GetLocalizedMods(std::vector<RString>& AddTo) const;
 	void FromString(const RString& sMultipleMods);
 	bool FromOneModString(const RString& sOneMod,
 						  RString& sErrorDetailOut); // On error, return false

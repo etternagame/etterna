@@ -81,7 +81,7 @@ void
 ScreenSyncOverlay::UpdateText()
 {
 	// Update Status
-	vector<RString> vs;
+	std::vector<RString> vs;
 
 	PlayerController pc = GamePreferences::m_AutoPlay.Get();
 
@@ -252,9 +252,9 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 				BPMSegment* seg = sTiming.GetBPMSegmentAtBeat(
 				  GAMESTATE->m_Position.m_fSongBeat);
 				seg->SetBPS(seg->GetBPS() + fDelta);
-				const vector<Steps*>& vpSteps =
+				const std::vector<Steps*>& vpSteps =
 				  GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
+				FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
 				{
 					TimingData& pTiming = (*s)->m_Timing;
 					// Empty means it inherits song timing,
@@ -303,9 +303,9 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 					if (GAMESTATE->m_pCurSong != NULL) {
 						GAMESTATE->m_pCurSong->m_SongTiming
 						  .m_fBeat0OffsetInSeconds += fDelta;
-						const vector<Steps*>& vpSteps =
+						const std::vector<Steps*>& vpSteps =
 						  GAMESTATE->m_pCurSong->GetAllSteps();
-						FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
+						FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
 						{
 							// Empty means it inherits song timing,
 							// which has already been updated.

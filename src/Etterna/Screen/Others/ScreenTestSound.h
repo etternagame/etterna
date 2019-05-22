@@ -25,7 +25,7 @@ class ScreenTestSound : public Screen
 		BitmapText txt;
 	};
 	Sound s[nsounds];
-	vector<RageSound*> m_sSoundCopies[nsounds];
+	std::vector<RageSound*> m_sSoundCopies[nsounds];
 	BitmapText HEEEEEEEEELP;
 
 	int selected;

@@ -28,7 +28,7 @@ struct ScoresAtRate
 
 	HighScore* AddScore(HighScore& hs);
 
-	vector<string> GetSortedKeys();
+	std::vector<string> GetSortedKeys();
 	void PushSelf(lua_State* L);
 
 	bool HandleNoCCPB(HighScore& hs);
@@ -39,7 +39,7 @@ struct ScoresAtRate
 					  const float& rate,
 					  const string& profileID);
 
-	const vector<HighScore*> GetScores(const string) const;
+	const std::vector<HighScore*> GetScores(const string) const;
 	unordered_map<string, HighScore> scores;
 
   private:
@@ -56,13 +56,13 @@ struct ScoresForChart
 	HighScore* GetPBAt(float& rate);
 	HighScore* GetPBUpTo(float& rate);
 
-	vector<HighScore*> GetAllPBPtrs();
+	std::vector<HighScore*> GetAllPBPtrs();
 
 	HighScore* AddScore(HighScore& hs);
 
-	vector<float> GetPlayedRates();
-	vector<int> GetPlayedRateKeys();
-	vector<string> GetPlayedRateDisplayStrings();
+	std::vector<float> GetPlayedRates();
+	std::vector<int> GetPlayedRateKeys();
+	std::vector<string> GetPlayedRateDisplayStrings();
 	string RateKeyToDisplayString(float rate);
 	int RateToKey(float& rate) { return lround(rate * 10000.f); }
 	float KeyToRate(int key) { return static_cast<float>(key) / 10000.f; }
@@ -96,7 +96,7 @@ class ScoreManager
 	ScoreManager();
 	~ScoreManager();
 
-	vector<vector<HighScore*>> GetAllPBPtrs(
+	std::vector<std::vector<HighScore*>> GetAllPBPtrs(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	HighScore* GetChartPBAt(
 	  const string& ck,
@@ -170,7 +170,7 @@ class ScoreManager
 	ScoresForChart* GetScoresForChart(
 	  const string& ck,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	vector<string> GetSortedKeys();
+	std::vector<string> GetSortedKeys();
 
 	void PushSelf(lua_State* L);
 	HighScore* GetMostRecentScore()
@@ -184,12 +184,12 @@ class ScoreManager
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());
 	}
-	const vector<HighScore*>& GetAllScores() { return AllScores; }
+	const std::vector<HighScore*>& GetAllScores() { return AllScores; }
 	const unordered_map<string, HighScore*>& GetScoresByKey()
 	{
 		return ScoresByKey;
 	}
-	const vector<HighScore*>& GetAllProfileScores(
+	const std::vector<HighScore*>& GetAllProfileScores(
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	{
 		return AllProfileScores[profileID];
@@ -215,16 +215,16 @@ class ScoreManager
 	void UnloadAllReplayData() { for (auto& s: AllScores) s->UnloadReplayData(); }
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
-	vector<HighScore*> scorestorecalc;
+	std::vector<HighScore*> scorestorecalc;
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>
 	  pscores; // Profile scores
 
 	// Instead of storing pointers for each skillset just reshuffle the same set
 	// of pointers it's inexpensive and not called often
-	vector<HighScore*> TopSSRs;
-	vector<HighScore*> AllScores;
-	unordered_map<string, vector<HighScore*>> AllProfileScores;
+	std::vector<HighScore*> TopSSRs;
+	std::vector<HighScore*> AllScores;
+	unordered_map<string, std::vector<HighScore*>> AllProfileScores;
 
 	// pointers in a keyed index (by scorekey, in case it's not immediately
 	// obvious)

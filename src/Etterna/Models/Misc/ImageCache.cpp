@@ -187,7 +187,7 @@ EmptyDir(RString dir)
 {
 	ASSERT(dir[dir.size() - 1] == '/');
 
-	vector<RString> asCacheFileNames;
+	std::vector<RString> asCacheFileNames;
 	GetDirListing(dir, asCacheFileNames);
 	for (unsigned i = 0; i < asCacheFileNames.size(); i++) {
 		if (!IsADirectory(dir + asCacheFileNames[i]))
@@ -206,7 +206,7 @@ ImageCache::ReadFromDisk()
 		return;
 
 	LOG->Trace("Cache format is out of date.  Deleting all cache files.");
-	vector<RString> ImageDir;
+	std::vector<RString> ImageDir;
 	split(CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir);
 	for (std::string Image : ImageDir)
 		EmptyDir(SpecialFiles::CACHE_DIR + Image + "/");

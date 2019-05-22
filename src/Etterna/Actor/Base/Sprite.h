@@ -62,7 +62,7 @@ class Sprite : public Actor
 	}
 	virtual void RecalcAnimationLengthSeconds();
 	void SetSecondsIntoAnimation(float fSeconds) override;
-	void SetStateProperties(const vector<State>& new_states)
+	void SetStateProperties(const std::vector<State>& new_states)
 	{
 		m_States = new_states;
 		RecalcAnimationLengthSeconds();
@@ -115,7 +115,7 @@ class Sprite : public Actor
 
 	RageTexture* m_pTexture;
 
-	vector<State> m_States;
+	std::vector<State> m_States;
 	int m_iCurState;
 	/** @brief The number of seconds that have elapsed since we switched to this
 	 * frame. */

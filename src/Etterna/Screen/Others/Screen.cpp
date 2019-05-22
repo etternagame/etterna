@@ -62,7 +62,7 @@ Screen::Init()
 
 	PlayCommandNoRecurse(Message("Init"));
 
-	vector<RString> asList;
+	std::vector<RString> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (unsigned i = 0; i < asList.size(); ++i) {
 		LOG->Trace(
@@ -438,7 +438,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	LUA->Release(L);
 	m_CallingInputCallbacks = false;
 	if (!m_DelayedCallbackRemovals.empty()) {
-		for (vector<callback_key_t>::iterator key =
+		for (std::vector<callback_key_t>::iterator key =
 			   m_DelayedCallbackRemovals.begin();
 			 key != m_DelayedCallbackRemovals.end();
 			 ++key) {

@@ -67,7 +67,7 @@ class NoteField : public ActorFrame
 
 	// m_ColumnRenderers belongs in the protected section, but it's here in
 	// public so that the Lua API can access it. -Kyz
-	vector<NoteColumnRenderer> m_ColumnRenderers;
+	std::vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
 	void CacheNoteSkin(const RString& sNoteSkin, PlayerNumber pn);

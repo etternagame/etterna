@@ -59,18 +59,18 @@ struct Chart
 struct Playlist
 {
 	RString name;
-	vector<Chart> chartlist;
+	std::vector<Chart> chartlist;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
 	void AddChart(const string& ck);
 	void SwapPosition();
 
 	void Create();
-	vector<vector<string>> courseruns;
+	std::vector<std::vector<string>> courseruns;
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
 	int GetNumCharts() { return chartlist.size(); }
-	vector<string> GetKeys();
+	std::vector<string> GetKeys();
 	string GetName() { return name; }
 	float GetAverageRating();
 	void DeleteChart(int i);

@@ -51,18 +51,18 @@ struct HighScore
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
 	bool IsUploadedToServer(string s) const;
-	vector<float> timeStamps;
-	const vector<float>& GetOffsetVector() const;
-	const vector<int>& GetNoteRowVector() const;
-	const vector<int>& GetTrackVector() const;
-	const vector<TapNoteType>& GetTapNoteTypeVector() const;
-	const vector<HoldReplayResult>& GetHoldReplayDataVector() const;
-	vector<float> GetCopyOfOffsetVector() const;
-	vector<int> GetCopyOfNoteRowVector() const;
-	vector<int> GetCopyOfTrackVector() const;
-	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
-	vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
-	vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
+	std::vector<float> timeStamps;
+	const std::vector<float>& GetOffsetVector() const;
+	const std::vector<int>& GetNoteRowVector() const;
+	const std::vector<int>& GetTrackVector() const;
+	const std::vector<TapNoteType>& GetTapNoteTypeVector() const;
+	const std::vector<HoldReplayResult>& GetHoldReplayDataVector() const;
+	std::vector<float> GetCopyOfOffsetVector() const;
+	std::vector<int> GetCopyOfNoteRowVector() const;
+	std::vector<int> GetCopyOfTrackVector() const;
+	std::vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
+	std::vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
+	std::vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	int GetReplayType() const;
@@ -109,14 +109,14 @@ struct HighScore
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
 	void AddUploadedServer(string s);
-	void SetOffsetVector(const vector<float>& v);
-	void SetNoteRowVector(const vector<int>& v);
-	void SetTrackVector(const vector<int>& v);
-	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
-	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
-	void SetOnlineReplayTimestampVector(const vector<float>& v);
+	void SetOffsetVector(const std::vector<float>& v);
+	void SetNoteRowVector(const std::vector<int>& v);
+	void SetTrackVector(const std::vector<int>& v);
+	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v);
+	void SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v);
+	void SetOnlineReplayTimestampVector(const std::vector<float>& v);
 	void SetScoreKey(const string& ck);
-	void SetRescoreJudgeVector(const vector<int>& v);
+	void SetRescoreJudgeVector(const std::vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
 	void SetModifiers( const string &s );
@@ -153,7 +153,7 @@ struct HighScore
 	void LoadFromEttNode(const XNode* pNode);
 
 	bool WriteReplayData();
-	bool WriteInputData(const vector<float>& oop);
+	bool WriteInputData(const std::vector<float>& oop);
 	bool LoadReplayData();
 	bool LoadReplayDataBasic();
 	bool LoadReplayDataFull();
@@ -173,7 +173,7 @@ struct HighScore
 	void SetTopScore(int i);
 	string GenerateValidationKeys();
 	string GetValidationKey(ValidationKey vk) const;
-	vector<int> GetRescoreJudgeVector(int x);
+	std::vector<int> GetRescoreJudgeVector(int x);
 	// laazy
 	string scoreid;
 	int userid = -1;
@@ -221,7 +221,7 @@ struct HighScoreList
 
 	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
 
-	vector<HighScore> vHighScores;
+	std::vector<HighScore> vHighScores;
 	Grade HighGrade{ Grade_NoData };
 
 	// Lua

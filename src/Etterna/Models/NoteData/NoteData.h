@@ -92,20 +92,20 @@ class NoteData
 	class _all_tracks_iterator
 	{
 		ND* m_pNoteData;
-		vector<iter> m_vBeginIters;
+		std::vector<iter> m_vBeginIters;
 
 		/* There isn't a "past the beginning" iterator so this is hard to make a
 		 * true bidirectional iterator. Use the "past the end" iterator in place
 		 * of the "past the beginning" iterator when in reverse. */
-		vector<iter> m_vCurrentIters;
+		std::vector<iter> m_vCurrentIters;
 
-		vector<iter> m_vEndIters;
+		std::vector<iter> m_vEndIters;
 		int m_iTrack;
 		bool m_bReverse;
 
 		// These exist so that the iterator can be revalidated if the NoteData
 		// is transformed during this iterator's lifetime.
-		vector<int> m_PrevCurrentRows;
+		std::vector<int> m_PrevCurrentRows;
 		bool m_Inclusive;
 		int m_StartRow;
 		int m_EndRow;
@@ -153,7 +153,7 @@ class NoteData
 		}
 		// Use when transforming the NoteData.
 		void Revalidate(ND* notedata,
-						vector<int> const& added_or_removed_tracks,
+						std::vector<int> const& added_or_removed_tracks,
 						bool added);
 	};
 	typedef _all_tracks_iterator<NoteData, NoteData::iterator, TapNote>
@@ -172,7 +172,7 @@ class NoteData
   private:
 	// There's no point in inserting empty notes into the map.
 	// Any blank space in the map is defined to be empty.
-	vector<TrackMap> m_TapNotes;
+	std::vector<TrackMap> m_TapNotes;
 	int m_numTracksLCD;
 
 	void CalcNumTracksLCD();
@@ -228,9 +228,9 @@ class NoteData
 	void RemoveATIFromList(all_tracks_const_iterator* iter) const;
 
 	// Mina stuf
-	vector<int> NonEmptyRowVector;
-	vector<NoteInfo> SerializedNoteData;
-	vector<NoteInfo2> SerializedNoteData2;
+	std::vector<int> NonEmptyRowVector;
+	std::vector<NoteInfo> SerializedNoteData;
+	std::vector<NoteInfo2> SerializedNoteData2;
 
   public:
 	void Init();
@@ -239,20 +239,20 @@ class NoteData
 	void LogNonEmptyRows();
 	void UnsetNerv()
 	{
-		vector<int> tmp;
+		std::vector<int> tmp;
 		NonEmptyRowVector.swap(tmp);
 	}
 	void UnsetSerializedNoteData()
 	{
-		vector<NoteInfo> tmp;
+		std::vector<NoteInfo> tmp;
 		SerializedNoteData.swap(tmp);
 	}
 	void UnsetSerializedNoteData2()
 	{
-		vector<NoteInfo2> tmp;
+		std::vector<NoteInfo2> tmp;
 		SerializedNoteData2.swap(tmp);
 	}
-	const vector<int>& BuildAndGetNerv()
+	const std::vector<int>& BuildAndGetNerv()
 	{
 		LogNonEmptyRows();
 		return NonEmptyRowVector;
@@ -260,9 +260,9 @@ class NoteData
 	int WifeTotalScoreCalc(TimingData* td,
 						   int iStartIndex = 0,
 						   int iEndIndex = MAX_NOTE_ROW);
-	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
-	const vector<NoteInfo>& SerializeNoteData(const vector<float>& etaner);
-	vector<NoteInfo2>& SerializeNoteData2(const vector<float>& etaner);
+	std::vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
+	const std::vector<NoteInfo>& SerializeNoteData(const std::vector<float>& etaner);
+	std::vector<NoteInfo2>& SerializeNoteData2(const std::vector<float>& etaner);
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks(int iNewNumTracks);
@@ -363,7 +363,7 @@ class NoteData
 	}
 
 	// Call this after using any transform that changes the NoteData.
-	void RevalidateATIs(vector<int> const& added_or_removed_tracks, bool added);
+	void RevalidateATIs(std::vector<int> const& added_or_removed_tracks, bool added);
 	void TransferATIs(NoteData& to);
 
 	/* Return an iterator range include iStartRow to iEndRow.  Extend the range

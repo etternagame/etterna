@@ -65,7 +65,7 @@ struct Centering
 	int m_iTranslateX, m_iTranslateY, m_iAddWidth, m_iAddHeight;
 };
 
-static vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
+static std::vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
 
 RageDisplay* DISPLAY =
   NULL; // global and accessible from anywhere in our program
@@ -97,7 +97,7 @@ RString
 RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 {
 	RString err;
-	vector<RString> vs;
+	std::vector<RString> vs;
 
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
 		return RString();
@@ -264,7 +264,7 @@ RageDisplay::DrawPolyLines(const RageSpriteVertex v[],
 						   int iNumVerts,
 						   float LineWidth)
 {
-	vector<RageSpriteVertex> batchVerts;
+	std::vector<RageSpriteVertex> batchVerts;
 	batchVerts.reserve(iNumVerts * 4);
 
 	for (int i = 0; i < iNumVerts - 1; ++i) {
@@ -366,7 +366,7 @@ RageDisplay::IsD3DInternal()
 // Matrix stuff
 class MatrixStack
 {
-	vector<RageMatrix> stack;
+	std::vector<RageMatrix> stack;
 
   public:
 	MatrixStack()
@@ -1061,7 +1061,7 @@ RageDisplay::DrawTriangles(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay::DrawCompiledGeometry(const RageCompiledGeometry* p,
 								  int iMeshIndex,
-								  const vector<msMesh>& vMeshes)
+								  const std::vector<msMesh>& vMeshes)
 {
 	this->DrawCompiledGeometryInternal(p, iMeshIndex);
 
@@ -1234,7 +1234,7 @@ RageCompiledGeometry::~RageCompiledGeometry()
 }
 
 void
-RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
+RageCompiledGeometry::Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals)
 {
 	m_bNeedsNormals = bNeedsNormals;
 
@@ -1246,8 +1246,8 @@ RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
 	m_vMeshInfo.resize(vMeshes.size());
 	for (unsigned i = 0; i < vMeshes.size(); i++) {
 		const msMesh& mesh = vMeshes[i];
-		const vector<RageModelVertex>& Vertices = mesh.Vertices;
-		const vector<msTriangle>& Triangles = mesh.Triangles;
+		const std::vector<RageModelVertex>& Vertices = mesh.Vertices;
+		const std::vector<msTriangle>& Triangles = mesh.Triangles;
 
 		MeshInfo& meshInfo = m_vMeshInfo[i];
 		meshInfo.m_bNeedsTextureMatrixScale = false;

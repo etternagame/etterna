@@ -101,7 +101,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	unsigned int timingDataIndex = 1;
 	insertTimingData.bind(timingDataIndex++, timing.m_fBeat0OffsetInSeconds);
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_BPM);
 		string bpms = "";
 		if (!segs.empty()) {
@@ -116,7 +116,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, bpms);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_STOP);
 		string stops = "";
 		if (!segs.empty()) {
@@ -130,7 +130,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, stops);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_DELAY);
 		string delays = "";
 		if (!segs.empty()) {
@@ -144,7 +144,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, delays);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_WARP);
 		string warps = "";
 		if (!segs.empty()) {
@@ -158,7 +158,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, warps);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_TIME_SIG);
 		string timesigs = "";
 		if (!segs.empty()) {
@@ -173,7 +173,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, timesigs);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_TICKCOUNT);
 		string ticks = "";
 		if (!segs.empty()) {
@@ -187,7 +187,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, ticks);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_COMBO);
 		string combos = "";
 		if (!segs.empty()) {
@@ -208,7 +208,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, combos);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_SPEED);
 		string speeds = "";
 		if (!segs.empty()) {
@@ -224,7 +224,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, speeds);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_SCROLL);
 		string scrolls = "";
 		if (!segs.empty()) {
@@ -238,7 +238,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		insertTimingData.bind(timingDataIndex++, scrolls);
 	}
 	{
-		vector<TimingSegment*> const& segs =
+		std::vector<TimingSegment*> const& segs =
 		  timing.GetTimingSegments(SEGMENT_LABEL);
 		string labels = "";
 		if (!segs.empty()) {
@@ -266,7 +266,7 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 								  "?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, ?, ?)");
-	vector<RString> lines;
+	std::vector<RString> lines;
 	int stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
 	insertSteps.bind(stepsIndex++, pSteps->m_StepsTypeStr);
@@ -283,7 +283,7 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 
 	insertSteps.bind(stepsIndex++, pSteps->GetMusicFile()); // musicfile
 
-	vector<RString> asRadarValues;
+	std::vector<RString> asRadarValues;
 	const RadarValues& rv = pSteps->GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -527,7 +527,7 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 
 		insertSong.exec();
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
-		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
+		std::vector<Steps*> vpStepsToSave = song.GetStepsToSave();
 		FOREACH_CONST(Steps*, vpStepsToSave, s)
 		{
 			const Steps* pSteps = *s;
@@ -754,7 +754,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
+  std::vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
@@ -773,7 +773,7 @@ SongCacheIndex::LoadCache(
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
+		std::vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
 		  int counter = 0, lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
@@ -809,11 +809,11 @@ SongCacheIndex::LoadCache(
 		  data._threadsFinished++;
 		  data.setUpdated(true);
 	  };
-	vector<thread> threadpool;
-	vector<vector<pair<pair<RString, unsigned int>, Song*>*>> cacheParts;
+	std::vector<thread> threadpool;
+	std::vector<std::vector<pair<pair<RString, unsigned int>, Song*>*>> cacheParts;
 	for (int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
-		  vector<pair<pair<RString, unsigned int>, Song*>*>());
+		  std::vector<pair<pair<RString, unsigned int>, Song*>*>());
 	for (int i = 0; i < threads; i++)
 		threadpool.emplace_back(
 		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
@@ -1009,7 +1009,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	string animations = static_cast<const char*>(query.getColumn(index++));
 	string animationstwo = static_cast<const char*>(query.getColumn(index++));
 
-	vector<RString> aFGChangeExpressions;
+	std::vector<RString> aFGChangeExpressions;
 	split(static_cast<const char*>(query.getColumn(index++)),
 		  ",",
 		  aFGChangeExpressions);
@@ -1081,7 +1081,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 		string radarValues =
 		  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-		vector<RString> values;
+		std::vector<RString> values;
 		split(radarValues, ",", values, true);
 		RadarValues rv;
 		rv.Zero();

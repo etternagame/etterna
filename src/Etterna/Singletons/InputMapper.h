@@ -143,7 +143,7 @@ struct AutoMappings
 	RString m_sDriverRegex;	// reported by InputHandler
 	RString m_sControllerName; // the product name of the controller
 
-	vector<AutoMappingEntry> m_vMaps;
+	std::vector<AutoMappingEntry> m_vMaps;
 };
 
 class InputScheme
@@ -165,9 +165,9 @@ class InputScheme
 	GameButton GameButtonToMenuButton(GameButton gb) const;
 	void MenuButtonToGameInputs(GameButton MenuI,
 								PlayerNumber pn,
-								vector<GameInput>& GameIout) const;
+								std::vector<GameInput>& GameIout) const;
 	void MenuButtonToGameButtons(GameButton MenuI,
-								 vector<GameButton>& aGameButtons) const;
+								 std::vector<GameButton>& aGameButtons) const;
 	const GameButtonInfo* GetGameButtonInfo(GameButton gb) const;
 	const char* GetGameButtonName(GameButton gb) const;
 };
@@ -216,9 +216,9 @@ class InputMapper
 	void SaveMappingsToDisk();
 	void ResetMappingsToDefault();
 	void CheckButtonAndAddToReason(GameButton menu,
-								   vector<RString>& full_reason,
+								   std::vector<RString>& full_reason,
 								   RString const& sub_reason);
-	void SanityCheckMappings(vector<RString>& reason);
+	void SanityCheckMappings(std::vector<RString>& reason);
 
 	void ClearAllMappings();
 
@@ -244,7 +244,7 @@ class InputMapper
 	GameButton GameButtonToMenuButton(GameButton gb) const;
 	void MenuToGame(GameButton MenuI,
 					PlayerNumber pn,
-					vector<GameInput>& GameIout) const;
+					std::vector<GameInput>& GameIout) const;
 	PlayerNumber ControllerToPlayerNumber(GameController controller) const;
 
 	float GetSecsHeld(const GameInput& GameI,
@@ -255,7 +255,7 @@ class InputMapper
 						MultiPlayer mp = MultiPlayer_Invalid,
 						const DeviceInputList* pButtonState = NULL) const;
 	bool IsBeingPressed(GameButton MenuI, PlayerNumber pn) const;
-	bool IsBeingPressed(const vector<GameInput>& GameI,
+	bool IsBeingPressed(const std::vector<GameInput>& GameI,
 						MultiPlayer mp = MultiPlayer_Invalid,
 						const DeviceInputList* pButtonState = NULL) const;
 
@@ -272,7 +272,7 @@ class InputMapper
 	static MultiPlayer InputDeviceToMultiPlayer(InputDevice id);
 
 	void Unmap(InputDevice device);
-	void ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
+	void ApplyMapping(const std::vector<AutoMappingEntry>& vMmaps,
 					  GameController gc,
 					  InputDevice id);
 

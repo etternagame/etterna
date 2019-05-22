@@ -40,7 +40,7 @@ class ScreenOptions : public ScreenWithMenuElements
 	ScreenOptions();
 	void Init() override;
 	void BeginScreen() override;
-	void InitMenu(const vector<OptionRowHandler*>& vHands);
+	void InitMenu(const std::vector<OptionRowHandler*>& vHands);
 	~ScreenOptions() override;
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
@@ -131,7 +131,7 @@ class ScreenOptions : public ScreenWithMenuElements
 	void SetInputMode(InputMode im) { m_InputMode = im; }
 
 	/** @brief Map menu lines to m_OptionRow entries. */
-	vector<OptionRow*> m_pRows;
+	std::vector<OptionRow*> m_pRows;
 	/** @brief The current row each player is on. */
 	int m_iCurrentRow;
 

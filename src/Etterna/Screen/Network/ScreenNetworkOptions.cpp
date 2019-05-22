@@ -50,7 +50,7 @@ ScreenNetworkOptions::Init()
 {
 	ScreenOptions::Init();
 
-	vector<OptionRowHandler*> vHands;
+	std::vector<OptionRowHandler*> vHands;
 	{
 		OptionRowHandler* pHand = OptionRowHandlerUtil::MakeNull();
 		vHands.push_back(pHand);

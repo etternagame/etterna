@@ -19,7 +19,7 @@ struct LoadedInputHandler
 {
 	InputHandler* m_pDevice;
 };
-vector<LoadedInputHandler> m_InputHandlers;
+std::vector<LoadedInputHandler> m_InputHandlers;
 map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 } // namespace
 
@@ -63,7 +63,7 @@ RageInput::LoadDrivers()
 	g_mapDeviceToHandler.clear();
 
 	// Init optional devices.
-	vector<InputHandler*> apDevices;
+	std::vector<InputHandler*> apDevices;
 
 	InputHandler::Create(g_sInputDrivers, apDevices);
 	for (unsigned i = 0; i < apDevices.size(); ++i)
@@ -94,7 +94,7 @@ RageInput::DevicesChanged()
 }
 
 void
-RageInput::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut) const
+RageInput::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut) const
 {
 	for (unsigned i = 0; i < m_InputHandlers.size(); ++i)
 		m_InputHandlers[i].m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
@@ -116,7 +116,7 @@ RageInput::AddHandler(InputHandler* pHandler)
 	hand.m_pDevice = pHandler;
 	m_InputHandlers.push_back(hand);
 
-	vector<InputDeviceInfo> aDeviceInfo;
+	std::vector<InputDeviceInfo> aDeviceInfo;
 	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
 	FOREACH_CONST(InputDeviceInfo, aDeviceInfo, idi)
 	g_mapDeviceToHandler[idi->id] = pHandler;
@@ -176,10 +176,10 @@ RageInput::GetInputDeviceState(InputDevice id)
 RString
 RageInput::GetDisplayDevicesString() const
 {
-	vector<InputDeviceInfo> vDevices;
+	std::vector<InputDeviceInfo> vDevices;
 	GetDevicesAndDescriptions(vDevices);
 
-	vector<RString> vs;
+	std::vector<RString> vs;
 	for (unsigned i = 0; i < vDevices.size(); ++i) {
 		const RString& sDescription = vDevices[i].sDesc;
 		InputDevice id = vDevices[i].id;
@@ -198,9 +198,9 @@ class LunaRageInput : public Luna<RageInput>
   public:
 	static int GetDescriptions(T* p, lua_State* L)
 	{
-		vector<InputDeviceInfo> vDevices;
+		std::vector<InputDeviceInfo> vDevices;
 		p->GetDevicesAndDescriptions(vDevices);
-		vector<RString> vsDescriptions;
+		std::vector<RString> vsDescriptions;
 		FOREACH_CONST(InputDeviceInfo, vDevices, idi)
 		vsDescriptions.push_back(idi->sDesc);
 		LuaHelpers::CreateTableFromArray(vsDescriptions, L);

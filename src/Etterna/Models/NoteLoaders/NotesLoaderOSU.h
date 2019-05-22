@@ -36,8 +36,8 @@ ParseFileString(string fileContents);
 
 void
 SeparateTagsAndContents(string fileContents,
-						vector<string>& tagsOut,
-						vector<vector<string>>& contentsOut);
+						std::vector<string>& tagsOut,
+						std::vector<std::vector<string>>& contentsOut);
 
 void
 SetMetadata(map<string, map<string, string>>, Song& out);
@@ -45,7 +45,7 @@ void
 SetTimingData(map<string, map<string, string>>, Song& out);
 
 void
-GetApplicableFiles(const RString& sPath, vector<RString>& out);
+GetApplicableFiles(const RString& sPath, std::vector<RString>& out);
 
 bool
 LoadFromDir(const RString& sPath, Song& out);

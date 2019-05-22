@@ -14,7 +14,7 @@ PumpDevice::Open()
 
 void
 PumpDevice::GetButtonPresses(
-  vector<DeviceInput>& vPresses,
+  std::vector<DeviceInput>& vPresses,
   IOHIDElementCookie cookie,
   int value,
   const std::chrono::time_point<std::chrono::steady_clock>& now) const
@@ -65,7 +65,7 @@ PumpDevice::AssignIDs(InputDevice startID)
 }
 
 void
-PumpDevice::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevices) const
+PumpDevice::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevices) const
 {
 	vDevices.push_back(InputDeviceInfo(m_Id, "Pump USB"));
 }

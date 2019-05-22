@@ -308,7 +308,7 @@ InputFilter::ReportButtonChange(const DeviceInput& di, InputEventType t)
 }
 
 void
-InputFilter::MakeButtonStateList(vector<DeviceInput>& aInputOut) const
+InputFilter::MakeButtonStateList(std::vector<DeviceInput>& aInputOut) const
 {
 	aInputOut.clear();
 	aInputOut.reserve(g_ButtonStates.size());
@@ -337,7 +337,7 @@ InputFilter::Update(float fDeltaTime)
 
 	MakeButtonStateList(g_CurrentState);
 
-	vector<ButtonStateMap::iterator> ButtonsToErase;
+	std::vector<ButtonStateMap::iterator> ButtonsToErase;
 
 	FOREACHM(DeviceButtonPair, ButtonState, g_ButtonStates, b)
 	{
@@ -482,7 +482,7 @@ InputFilter::RepeatStopKey(const DeviceInput& di)
 }
 
 void
-InputFilter::GetInputEvents(vector<InputEvent>& array)
+InputFilter::GetInputEvents(std::vector<InputEvent>& array)
 {
 	array.clear();
 	LockMut(*queuemutex);
@@ -490,7 +490,7 @@ InputFilter::GetInputEvents(vector<InputEvent>& array)
 }
 
 void
-InputFilter::GetPressedButtons(vector<DeviceInput>& array) const
+InputFilter::GetPressedButtons(std::vector<DeviceInput>& array) const
 {
 	LockMut(*queuemutex);
 	array = g_CurrentState;

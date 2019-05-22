@@ -455,8 +455,8 @@ struct CompleteCrashData
 	RString m_sInfo;
 	RString m_sAdditionalLog;
 	RString m_sCrashedThread;
-	vector<RString> m_asRecent;
-	vector<RString> m_asCheckpoints;
+	std::vector<RString> m_asRecent;
+	std::vector<RString> m_asCheckpoints;
 };
 
 static void

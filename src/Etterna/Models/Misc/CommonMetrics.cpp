@@ -47,7 +47,7 @@ ThemeMetricDifficultiesToShow::Read()
 
 	m_v.clear();
 
-	vector<RString> v;
+	std::vector<RString> v;
 	split(ThemeMetric<RString>::GetValue(), ",", v);
 	if (v.empty()) {
 		LuaHelpers::ReportScriptError(
@@ -67,16 +67,16 @@ ThemeMetricDifficultiesToShow::Read()
 		}
 	}
 }
-const vector<Difficulty>&
+const std::vector<Difficulty>&
 ThemeMetricDifficultiesToShow::GetValue() const
 {
 	return m_v;
 }
 
 static void
-RemoveStepsTypes(vector<StepsType>& inout, RString sStepsTypesToRemove)
+RemoveStepsTypes(std::vector<StepsType>& inout, RString sStepsTypesToRemove)
 {
-	vector<RString> v;
+	std::vector<RString> v;
 	split(sStepsTypesToRemove, ",", v);
 	if (v.size() == 0)
 		return; // Nothing to do!
@@ -93,7 +93,7 @@ RemoveStepsTypes(vector<StepsType>& inout, RString sStepsTypesToRemove)
 			continue;
 		}
 
-		const vector<StepsType>::iterator iter =
+		const std::vector<StepsType>::iterator iter =
 		  find(inout.begin(), inout.end(), st);
 		if (iter != inout.end())
 			inout.erase(iter);
@@ -120,7 +120,7 @@ ThemeMetricStepsTypesToShow::Read()
 
 	RemoveStepsTypes(m_v, ThemeMetric<RString>::GetValue());
 }
-const vector<StepsType>&
+const std::vector<StepsType>&
 ThemeMetricStepsTypesToShow::GetValue() const
 {
 	return m_v;

@@ -23,7 +23,7 @@ struct SMSongTagInfo
 	Song* song;
 	const MsdFile::value_t* params;
 	const RString& path;
-	vector<pair<float, float>> BPMChanges, Stops;
+	std::vector<pair<float, float>> BPMChanges, Stops;
 	SMSongTagInfo(SMLoader* l, Song* s, const RString& p)
 	  : loader(l)
 	  , song(s)
@@ -204,7 +204,7 @@ SMSetBGChanges(SMSongTagInfo& info)
 void
 SMSetFGChanges(SMSongTagInfo& info)
 {
-	vector<RString> aFGChangeExpressions;
+	std::vector<RString> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
 	for (unsigned int b = 0; b < aFGChangeExpressions.size(); ++b) {
@@ -297,7 +297,7 @@ SMLoader::GetSongTitle() const
 bool
 SMLoader::LoadFromDir(const RString& sPath, Song& out, bool load_autosave)
 {
-	vector<RString> aFileNames;
+	std::vector<RString> aFileNames;
 	GetApplicableFiles(sPath, aFileNames, load_autosave);
 	return LoadFromSimfile(sPath + aFileNames[0], out);
 }
@@ -392,7 +392,7 @@ SMLoader::ProcessBGChanges(Song& out,
 					 "has a #BGCHANGES tag \"%s\" that is out of range.",
 					 sValueName.c_str());
 	} else {
-		vector<RString> aBGChangeExpressions;
+		std::vector<RString> aBGChangeExpressions;
 		split(sParam, ",", aBGChangeExpressions);
 
 		for (unsigned b = 0; b < aBGChangeExpressions.size(); b++) {
@@ -406,11 +406,11 @@ SMLoader::ProcessBGChanges(Song& out,
 void
 SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(sParam, ",", vs1);
 	FOREACH_CONST(RString, vs1, s)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		split(*s, "=", vs2);
 		if (vs2.size() >= 2) {
 			InstrumentTrack it = StringToInstrumentTrack(vs2[0]);
@@ -421,15 +421,15 @@ SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
 }
 
 void
-SMLoader::ParseBPMs(vector<pair<float, float>>& out,
+SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 					const RString& line,
 					const int rowsPerBeat)
 {
-	vector<RString> arrayBPMChangeExpressions;
+	std::vector<RString> arrayBPMChangeExpressions;
 	split(line, ",", arrayBPMChangeExpressions);
 
 	for (unsigned b = 0; b < arrayBPMChangeExpressions.size(); b++) {
-		vector<RString> arrayBPMChangeValues;
+		std::vector<RString> arrayBPMChangeValues;
 		split(arrayBPMChangeExpressions[b], "=", arrayBPMChangeValues);
 		if (arrayBPMChangeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -453,15 +453,15 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 }
 
 void
-SMLoader::ParseStops(vector<pair<float, float>>& out,
+SMLoader::ParseStops(std::vector<pair<float, float>>& out,
 					 const RString line,
 					 const int rowsPerBeat)
 {
-	vector<RString> arrayFreezeExpressions;
+	std::vector<RString> arrayFreezeExpressions;
 	split(line, ",", arrayFreezeExpressions);
 
 	for (unsigned f = 0; f < arrayFreezeExpressions.size(); f++) {
-		vector<RString> arrayFreezeValues;
+		std::vector<RString> arrayFreezeValues;
 		split(arrayFreezeExpressions[f], "=", arrayFreezeValues);
 		if (arrayFreezeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -500,11 +500,11 @@ compare_first(pair<float, float> a, pair<float, float> b)
 //     parameter, already sorted by beat.
 void
 SMLoader::ProcessBPMsAndStops(TimingData& out,
-							  vector<pair<float, float>>& vBPMs,
-							  vector<pair<float, float>>& vStops)
+							  std::vector<pair<float, float>>& vBPMs,
+							  std::vector<pair<float, float>>& vStops)
 {
-	vector<pair<float, float>>::const_iterator ibpm, ibpmend;
-	vector<pair<float, float>>::const_iterator istop, istopend;
+	std::vector<pair<float, float>>::const_iterator ibpm, ibpmend;
+	std::vector<pair<float, float>>::const_iterator istop, istopend;
 
 	// Current BPM (positive or negative)
 	float bpm = 0;
@@ -712,11 +712,11 @@ SMLoader::ProcessDelays(TimingData& out,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> arrayDelayExpressions;
+	std::vector<RString> arrayDelayExpressions;
 	split(line, ",", arrayDelayExpressions);
 
 	for (unsigned f = 0; f < arrayDelayExpressions.size(); f++) {
-		vector<RString> arrayDelayValues;
+		std::vector<RString> arrayDelayValues;
 		split(arrayDelayExpressions[f], "=", arrayDelayValues);
 		if (arrayDelayValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -756,12 +756,12 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 								const string& songname,
 								const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(line, ",", vs1);
 
 	FOREACH_CONST(RString, vs1, s1)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2.size() < 3) {
@@ -822,11 +822,11 @@ SMLoader::ProcessTickcounts(TimingData& out,
 							const string& songname,
 							const int rowsPerBeat)
 {
-	vector<RString> arrayTickcountExpressions;
+	std::vector<RString> arrayTickcountExpressions;
 	split(line, ",", arrayTickcountExpressions);
 
 	for (unsigned f = 0; f < arrayTickcountExpressions.size(); f++) {
-		vector<RString> arrayTickcountValues;
+		std::vector<RString> arrayTickcountValues;
 		split(arrayTickcountExpressions[f], "=", arrayTickcountValues);
 		if (arrayTickcountValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -858,12 +858,12 @@ SMLoader::ProcessSpeeds(TimingData& out,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(line, ",", vs1);
 
 	FOREACH_CONST(RString, vs1, s1)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2[0] == 0 && vs2.size() == 2) // First one always seems to have 2.
@@ -928,11 +928,11 @@ SMLoader::ProcessFakes(TimingData& out,
 					   const string& songname,
 					   const int rowsPerBeat)
 {
-	vector<RString> arrayFakeExpressions;
+	std::vector<RString> arrayFakeExpressions;
 	split(line, ",", arrayFakeExpressions);
 
 	for (unsigned b = 0; b < arrayFakeExpressions.size(); b++) {
-		vector<RString> arrayFakeValues;
+		std::vector<RString> arrayFakeValues;
 		split(arrayFakeExpressions[b], "=", arrayFakeValues);
 		if (arrayFakeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -962,7 +962,7 @@ bool
 SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 								  const RString& sBGChangeExpression)
 {
-	vector<RString> aBGChangeValues;
+	std::vector<RString> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
 	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
@@ -1337,7 +1337,7 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 
 void
 SMLoader::GetApplicableFiles(const RString& sPath,
-							 vector<RString>& out,
+							 std::vector<RString>& out,
 							 bool load_autosave)
 {
 	if (load_autosave) {
@@ -1360,7 +1360,7 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 	 * have to add an explicit song BG tag if they want it.  This is really a
 	 * formatting hack only; nothing outside of SMLoader ever sees "-nosongbg-".
 	 */
-	vector<BackgroundChange>& bg =
+	std::vector<BackgroundChange>& bg =
 	  song.GetBackgroundChanges(BACKGROUND_LAYER_1);
 	if (!bg.empty()) {
 		/* BGChanges have been sorted. On the odd chance that a BGChange exists

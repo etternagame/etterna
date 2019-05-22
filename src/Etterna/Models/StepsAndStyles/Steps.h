@@ -15,8 +15,8 @@ class NoteData;
 struct lua_State;
 class Song;
 
-typedef vector<float> SDiffs;
-typedef vector<SDiffs> MinaSD;
+typedef std::vector<float> SDiffs;
+typedef std::vector<SDiffs> MinaSD;
 using std::string;
 
 /**
@@ -140,17 +140,17 @@ class Steps
 	void SetCachedRadarValues(const RadarValues& v);
 
 	// self exaplanatory -mina
-	vector<int> GetNPSVector(NoteData& nd,
-							 vector<int> nerv,
-							 vector<float> etaner,
+	std::vector<int> GetNPSVector(NoteData& nd,
+							 std::vector<int> nerv,
+							 std::vector<float> etaner,
 							 float rate);
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
 	// (jumps won't count as hands, etc)
-	vector<int> GetCNPSVector(NoteData& nd,
-							  vector<int> nerv,
-							  vector<float> etaner,
+	std::vector<int> GetCNPSVector(NoteData& nd,
+							  std::vector<int> nerv,
+							  std::vector<float> etaner,
 							  int chordsize,
 							  float rate);
 	float PredictMeter() const { return 1.f; }
@@ -198,7 +198,7 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	const string& GetChartKey() const { return ChartKey; }
-	vector<float> thestuffs = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	std::vector<float> thestuffs = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs,
 							thestuffs, thestuffs, thestuffs, thestuffs,
 							thestuffs, thestuffs, thestuffs, thestuffs,
@@ -213,7 +213,7 @@ class Steps
 	void CalcEtternaMetadata();
 
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
-	vector<string> bustedkeys;
+	std::vector<string> bustedkeys;
 	void MakeBustedKeys();
 
 	// you are all idiots for not just doing this in the first place -mina
@@ -235,7 +235,7 @@ class Steps
 	/* Append all of the bpms in the given range to the input string */
 	void FillStringWithBPMs(size_t startRow,
 							size_t endRow,
-							vector<int>& nerv,
+							std::vector<int>& nerv,
 							NoteData& nd,
 							TimingData* td,
 							RString& inOut);

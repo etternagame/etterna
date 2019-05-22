@@ -23,7 +23,7 @@ class RageModelGeometry
 
 	int m_iRefCount;
 
-	vector<msMesh> m_Meshes;
+	std::vector<msMesh> m_Meshes;
 	RageCompiledGeometry*
 	  m_pCompiledGeometry; // video memory copy of geometry shared by all meshes
 

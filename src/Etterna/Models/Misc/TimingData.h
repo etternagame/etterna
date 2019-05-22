@@ -130,7 +130,7 @@ class TimingData
 		{
 		}
 	};
-	typedef vector<lookup_item_t> beat_start_lookup_t;
+	typedef std::vector<lookup_item_t> beat_start_lookup_t;
 	beat_start_lookup_t m_beat_start_lookup;
 	beat_start_lookup_t m_time_start_lookup;
 
@@ -569,8 +569,8 @@ class TimingData
 	{
 		FOREACH_ENUM(TimingSegmentType, tst)
 		{
-			const vector<TimingSegment*>& us = m_avpTimingSegments[tst];
-			const vector<TimingSegment*>& them = other.m_avpTimingSegments[tst];
+			const std::vector<TimingSegment*>& us = m_avpTimingSegments[tst];
+			const std::vector<TimingSegment*>& them = other.m_avpTimingSegments[tst];
 
 			// optimization: check vector sizes before contents
 			if (us.size() != them.size())
@@ -607,11 +607,11 @@ class TimingData
 
 	void SortSegments(TimingSegmentType tst);
 
-	const vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst) const
+	const std::vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst) const
 	{
 		return const_cast<TimingData*>(this)->GetTimingSegments(tst);
 	}
-	vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst)
+	std::vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst)
 	{
 		return m_avpTimingSegments[tst];
 	}
@@ -638,7 +638,7 @@ class TimingData
 	float m_fBeat0OffsetInSeconds;
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
-	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
+	std::vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
 
 	/*	Wow it's almost like this should have been done a decade ago.
 	Essentially what's happening here is the results of getelapsedtimeat(row)
@@ -650,15 +650,15 @@ class TimingData
 	If they don't then I suppose all of these checks aren't needed at all :/.
 	Not my responsibility to investigate, though. - Mina.*/
 
-	vector<float> ElapsedTimesAtAllRows;
-	vector<float> ElapsedTimesAtNonEmptyRows;
-	const vector<float>& BuildAndGetEtaner(const vector<int>& nerv);
-	const vector<float>& BuildAndGetEtar(int lastrow);
-	void SetElapsedTimesAtAllRows(vector<float>& etar)
+	std::vector<float> ElapsedTimesAtAllRows;
+	std::vector<float> ElapsedTimesAtNonEmptyRows;
+	const std::vector<float>& BuildAndGetEtaner(const std::vector<int>& nerv);
+	const std::vector<float>& BuildAndGetEtar(int lastrow);
+	void SetElapsedTimesAtAllRows(std::vector<float>& etar)
 	{
 		ElapsedTimesAtAllRows = etar;
 	}
-	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
+	std::vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
 	void UnsetElapsedTimesAtAllRows()
 	{
 		std::vector<float> emptyVector;
@@ -675,7 +675,7 @@ class TimingData
 	float WhereUAtBroNoOffset(float beat);
 	float WhereUAtBro(int row);
 
-	vector<float> ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
+	std::vector<float> ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 													float rate);
 
 	bool ValidSequentialAssumption = true;
@@ -689,8 +689,8 @@ class TimingData
 			return;
 		}
 
-		vector<TimingSegment*>& bpms = m_avpTimingSegments[SEGMENT_BPM];
-		vector<TimingSegment*>& stops = m_avpTimingSegments[SEGMENT_STOP];
+		std::vector<TimingSegment*>& bpms = m_avpTimingSegments[SEGMENT_BPM];
+		std::vector<TimingSegment*>& stops = m_avpTimingSegments[SEGMENT_STOP];
 
 		for (size_t i = 0, l = bpms.size(); i < l; ++i) {
 			BPMSegment* bpm = ToBPM(bpms[i]);
@@ -717,7 +717,7 @@ class TimingData
 	void AddSegment(const TimingSegment* seg);
 
 	// All of the following vectors must be sorted before gameplay.
-	vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
+	std::vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
 };
 
 #undef COMPARE

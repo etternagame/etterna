@@ -57,8 +57,8 @@ class ActorMultiVertex : public Actor
 		void SetDrawState(DrawMode dm, int first, int num);
 		int GetSafeNumToDraw(DrawMode dm, int num) const;
 
-		vector<RageSpriteVertex> vertices;
-		vector<size_t> quad_states;
+		std::vector<RageSpriteVertex> vertices;
+		std::vector<size_t> quad_states;
 
 		DrawMode _DrawMode{ DrawMode_Invalid };
 		int FirstToDraw{ 0 };
@@ -154,7 +154,7 @@ class ActorMultiVertex : public Actor
 		ASSERT(i < _states.size());
 		_states[i] = s;
 	}
-	void SetStateProperties(const vector<State>& new_states)
+	void SetStateProperties(const std::vector<State>& new_states)
 	{
 		_states = new_states;
 		SetState(0);
@@ -193,8 +193,8 @@ class ActorMultiVertex : public Actor
   private:
 	RageTexture* _Texture;
 
-	vector<RageSpriteVertex> _Vertices;
-	vector<AMV_TweenState> AMV_Tweens;
+	std::vector<RageSpriteVertex> _Vertices;
+	std::vector<AMV_TweenState> AMV_Tweens;
 	AMV_TweenState AMV_current;
 	AMV_TweenState AMV_start;
 
@@ -206,12 +206,12 @@ class ActorMultiVertex : public Actor
 
 	// Four splines for controlling vert positions, because quads drawmode
 	// requires four. -Kyz
-	vector<CubicSplineN> _splines;
+	std::vector<CubicSplineN> _splines;
 
 	bool _skip_next_update;
 	float _secs_into_state;
 	size_t _cur_state;
-	vector<State> _states;
+	std::vector<State> _states;
 };
 
 #endif // ACTOR_MULTI_VERTEX_H

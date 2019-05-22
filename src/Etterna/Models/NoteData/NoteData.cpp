@@ -20,7 +20,7 @@ NoteData::Init()
 	UnsetNerv();
 	UnsetSerializedNoteData();
 	UnsetSerializedNoteData2();
-	m_TapNotes = vector<TrackMap>(); // ensure that the memory is freed
+	m_TapNotes = std::vector<TrackMap>(); // ensure that the memory is freed
 }
 
 void
@@ -184,8 +184,8 @@ NoteData::WifeTotalScoreCalc(TimingData* td, int iStartIndex, int iEndIndex)
 	return taps * 2;
 }
 
-const vector<NoteInfo>&
-NoteData::SerializeNoteData(const vector<float>& etaner)
+const std::vector<NoteInfo>&
+NoteData::SerializeNoteData(const std::vector<float>& etaner)
 {
 	SerializedNoteData.reserve(NonEmptyRowVector.size());
 
@@ -213,8 +213,8 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 	return SerializedNoteData;
 }
 
-vector<NoteInfo2>&
-NoteData::SerializeNoteData2(const vector<float>& etaner)
+std::vector<NoteInfo2>&
+NoteData::SerializeNoteData2(const std::vector<float>& etaner)
 {
 	SerializedNoteData2.reserve(NonEmptyRowVector.size());
 
@@ -996,7 +996,7 @@ void
 NoteData::CalcNumTracksLCD()
 {
 	int numTracks = this->GetNumTracks();
-	vector<int> nums;
+	std::vector<int> nums;
 	int lcd = 1;
 
 	for (int i = 1; i < numTracks + 1; i++) {
@@ -1386,7 +1386,7 @@ NoteData::RemoveATIFromList(all_tracks_const_iterator* iter) const
 }
 
 void
-NoteData::RevalidateATIs(vector<int> const& added_or_removed_tracks, bool added)
+NoteData::RevalidateATIs(std::vector<int> const& added_or_removed_tracks, bool added)
 {
 	for (set<all_tracks_iterator*>::iterator cur = m_atis.begin();
 		 cur != m_atis.end();
@@ -1534,7 +1534,7 @@ template<typename ND, typename iter, typename TN>
 void
 NoteData::_all_tracks_iterator<ND, iter, TN>::Revalidate(
   ND* notedata,
-  vector<int> const& added_or_removed_tracks,
+  std::vector<int> const& added_or_removed_tracks,
   bool added)
 {
 	m_pNoteData = notedata;

@@ -15,8 +15,8 @@ class CsvFile
 	bool WriteFile(const RString& sPath) const;
 	bool WriteFile(RageFileBasic& sFile) const;
 
-	typedef vector<RString> StringVector;
-	vector<StringVector> m_vvs;
+	typedef std::vector<RString> StringVector;
+	std::vector<StringVector> m_vvs;
 
   private:
 	RString m_sPath;

@@ -43,7 +43,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 
 		utf8_remove_bom(line);
 
-		vector<RString> vs;
+		std::vector<RString> vs;
 
 		while (!line.empty()) {
 			if (line[0] == '\"') // quoted value

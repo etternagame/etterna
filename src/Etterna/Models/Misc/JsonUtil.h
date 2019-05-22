@@ -20,7 +20,7 @@ WriteFile(const Json::Value& root, const RString& sFile, bool bMinified);
 
 template<class T>
 static void
-SerializeVectorObjects(const vector<T>& v,
+SerializeVectorObjects(const std::vector<T>& v,
 					   void fn(const T&, Json::Value&),
 					   Json::Value& root)
 {
@@ -32,7 +32,7 @@ SerializeVectorObjects(const vector<T>& v,
 
 template<class T>
 static void
-SerializeVectorPointers(const vector<const T*>& v,
+SerializeVectorPointers(const std::vector<const T*>& v,
 						void fn(const T&, Json::Value&),
 						Json::Value& root)
 {
@@ -44,7 +44,7 @@ SerializeVectorPointers(const vector<const T*>& v,
 
 template<class T>
 static void
-SerializeVectorPointers(const vector<T*>& v,
+SerializeVectorPointers(const std::vector<T*>& v,
 						void fn(const T&, Json::Value&),
 						Json::Value& root)
 {
@@ -56,7 +56,7 @@ SerializeVectorPointers(const vector<T*>& v,
 
 template<class T>
 static void
-SerializeVectorPointers(const vector<const T*>& v,
+SerializeVectorPointers(const std::vector<const T*>& v,
 						void fn(const T*, Json::Value&),
 						Json::Value& root)
 {
@@ -160,7 +160,7 @@ SerializeObjectToValueMapAsArray(const V& v,
 
 template<class T>
 static void
-SerializeVectorValues(const vector<T>& v, Json::Value& root)
+SerializeVectorValues(const std::vector<T>& v, Json::Value& root)
 {
 	root = Json::Value(Json::arrayValue);
 	root.resize(v.size());
@@ -170,7 +170,7 @@ SerializeVectorValues(const vector<T>& v, Json::Value& root)
 
 template<class T>
 static void
-DeserializeVectorObjects(vector<T>& v,
+DeserializeVectorObjects(std::vector<T>& v,
 						 void fn(T&, const Json::Value&),
 						 const Json::Value& root)
 {
@@ -190,7 +190,7 @@ DeserializeArrayObjects(V& v, const Json::Value& root)
 
 template<class T>
 static void
-DeserializeVectorPointers(vector<T*>& v,
+DeserializeVectorPointers(std::vector<T*>& v,
 						  void fn(T&, const Json::Value&),
 						  const Json::Value& root)
 {
@@ -205,7 +205,7 @@ DeserializeVectorPointers(vector<T*>& v,
 
 template<class T>
 static void
-DeserializeVectorPointers(vector<T*>& v,
+DeserializeVectorPointers(std::vector<T*>& v,
 						  void fn(T*, const Json::Value&),
 						  const Json::Value& root)
 {
@@ -221,7 +221,7 @@ DeserializeVectorPointers(vector<T*>& v,
 /* For classes with one-parameter constructors, such as Steps */
 template<class T, class P>
 static void
-DeserializeVectorPointersParam(vector<T*>& v,
+DeserializeVectorPointersParam(std::vector<T*>& v,
 							   void fn(T&, const Json::Value&),
 							   const Json::Value& root,
 							   const P param)
@@ -237,7 +237,7 @@ DeserializeVectorPointersParam(vector<T*>& v,
 
 template<class T>
 static void
-DeserializeArrayValues(vector<T>& v, const Json::Value& root)
+DeserializeArrayValues(std::vector<T>& v, const Json::Value& root)
 {
 	v.clear();
 	for (unsigned i = 0; i < root.size(); i++) {
@@ -262,7 +262,7 @@ DeserializeArrayValuesIntoSet(S& s, const Json::Value& root)
 
 template<typename T>
 static void
-DeserializeArrayValuesIntoVector(vector<T>& v, const Json::Value& root)
+DeserializeArrayValuesIntoVector(std::vector<T>& v, const Json::Value& root)
 {
 	v.clear();
 	for (unsigned i = 0; i < root.size(); i++) {
@@ -343,7 +343,7 @@ DeserializeObjectToValueMapAsArray(map<K, V>& m,
 
 template<class T>
 static void
-DeserializeVectorValues(vector<T>& v, const Json::Value& root)
+DeserializeVectorValues(std::vector<T>& v, const Json::Value& root)
 {
 	v.resize(root.size());
 	for (unsigned i = 0; i < v.size(); i++)

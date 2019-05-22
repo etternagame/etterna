@@ -12,7 +12,7 @@ class SampleHistory
   private:
 	float GetSampleNum(float fSamplesAgo) const;
 
-	vector<float> m_afHistory;
+	std::vector<float> m_afHistory;
 	int m_iLastHistory;
 	int m_iHistorySamplesPerSecond;
 	float m_fHistorySeconds;

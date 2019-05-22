@@ -29,7 +29,7 @@ REGISTER_SCREEN_CLASS(ScreenOptionsMaster);
 void
 ScreenOptionsMaster::Init()
 {
-	vector<RString> asLineNames;
+	std::vector<RString> asLineNames;
 	split(LINE_NAMES, ",", asLineNames);
 	if (asLineNames.empty()) {
 		LuaHelpers::ReportScriptErrorFmt("\"%s:LineNames\" is empty.",
@@ -52,7 +52,7 @@ ScreenOptionsMaster::Init()
 	// Call this after enabling players, if any.
 	ScreenOptions::Init();
 
-	vector<OptionRowHandler*> OptionRowHandlers;
+	std::vector<OptionRowHandler*> OptionRowHandlers;
 	for (unsigned i = 0; i < asLineNames.size(); ++i) {
 		RString sLineName = asLineNames[i];
 		RString sRowCommands = LINE(sLineName);

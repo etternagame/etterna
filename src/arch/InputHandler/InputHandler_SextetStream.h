@@ -11,7 +11,7 @@ class InputHandler_SextetStream : public InputHandler
 	virtual ~InputHandler_SextetStream();
 	// virtual void Update();
 	virtual void GetDevicesAndDescriptions(
-	  vector<InputDeviceInfo>& vDevicesOut);
+	  std::vector<InputDeviceInfo>& vDevicesOut);
 
   public:
 	class Impl;

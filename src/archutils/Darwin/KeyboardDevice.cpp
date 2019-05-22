@@ -178,7 +178,7 @@ KeyboardDevice::Open()
 
 void
 KeyboardDevice::GetButtonPresses(
-  vector<DeviceInput>& vPresses,
+  std::vector<DeviceInput>& vPresses,
   IOHIDElementCookie cookie,
   int value,
   const std::chrono::time_point<std::chrono::steady_clock>& now) const
@@ -196,7 +196,7 @@ KeyboardDevice::GetButtonPresses(
 
 void
 KeyboardDevice::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevices) const
+  std::vector<InputDeviceInfo>& vDevices) const
 {
 	if (vDevices.size() && vDevices[0].id == DEVICE_KEYBOARD)
 		return;

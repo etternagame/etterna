@@ -64,14 +64,14 @@ static LocalizedString MUTE_ACTIONS_OFF("ScreenDebugOverlay",
 										"Mute actions off");
 
 class IDebugLine;
-static vector<IDebugLine*>* g_pvpSubscribers = NULL;
+static std::vector<IDebugLine*>* g_pvpSubscribers = NULL;
 class IDebugLine
 {
   public:
 	IDebugLine()
 	{
 		if (g_pvpSubscribers == NULL)
-			g_pvpSubscribers = new vector<IDebugLine*>;
+			g_pvpSubscribers = new std::vector<IDebugLine*>;
 		g_pvpSubscribers->push_back(this);
 	}
 	virtual ~IDebugLine() = default;
@@ -942,10 +942,10 @@ FillProfileStats(Profile* pProfile)
 
 	int iCount = 20;
 
-	vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
+	std::vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
 	FOREACH(Song*, vpAllSongs, pSong)
 	{
-		vector<Steps*> vpAllSteps = (*pSong)->GetAllSteps();
+		std::vector<Steps*> vpAllSteps = (*pSong)->GetAllSteps();
 		FOREACH(Steps*, vpAllSteps, pSteps)
 		{
 			if (random_up_to(5)) {

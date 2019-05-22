@@ -128,7 +128,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				Song* pSong = (*iSong);
 
 				// Fill steps to save
-				vector<Steps*> vpStepsToSave;
+				std::vector<Steps*> vpStepsToSave;
 				FOREACH_CONST(Steps*, pSong->m_vpSteps, s)
 				{
 					Steps* pSteps = *s;
@@ -230,7 +230,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
 					FILE.close();
-					vector<NoteInfo> newVector;
+					std::vector<NoteInfo> newVector;
 					std::ifstream INFILE(path,
 										 std::ios::in | std::ifstream::binary);
 					INFILE.seekg(0, ios::end);
@@ -313,7 +313,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		lastDLProgressUpdate = 0;
 		Message msg("DLProgressAndQueueUpdate");
 
-		vector<RString> dls;
+		std::vector<RString> dls;
 		for (auto& dl : DLMAN->downloads) {
 			dls.push_back(dl.second->Status());
 		}
@@ -321,7 +321,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		msg.SetParam("dlprogress", join("\n", dls));
 
 		if (!DLMAN->DownloadQueue.empty()) {
-			vector<RString> cue;
+			std::vector<RString> cue;
 			for (auto& q : DLMAN->DownloadQueue) {
 				cue.push_back(q.first->name);
 			}

@@ -46,7 +46,7 @@ LoadFromKSFFile(const RString& sPath,
 	int iTickCount = -1;
 	// used to adapt weird tickcounts
 	// float fScrollRatio = 1.0f; -- uncomment when ready to use.
-	vector<RString> vNoteRows;
+	std::vector<RString> vNoteRows;
 
 	// According to Aldo_MX, there is a default BPM and it's 60. -aj
 	bool bDoublesChart = false;
@@ -437,7 +437,7 @@ LoadTags(const RString& str, Song& out)
 	/* str is either a #TITLE or a directory component.  Fill in missing
 	 * information. str is either "title", "artist - title", or "artist - title
 	 * - difficulty". */
-	vector<RString> asBits;
+	std::vector<RString> asBits;
 	split(str, " - ", asBits, false);
 	// Ignore the difficulty, since we get that elsewhere.
 	if (asBits.size() == 3 &&
@@ -496,7 +496,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 
 	// changed up there in case of something is found inside the SONGFILE tag in
 	// the head ksf -DaisuMaster search for music with song in the file name
-	vector<RString> arrayPossibleMusic;
+	std::vector<RString> arrayPossibleMusic;
 	GetDirListing(out.GetSongDir() + RString("song.mp3"), arrayPossibleMusic);
 	GetDirListing(out.GetSongDir() + RString("song.oga"), arrayPossibleMusic);
 	GetDirListing(out.GetSongDir() + RString("song.ogg"), arrayPossibleMusic);
@@ -510,7 +510,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 		  BPMPos3 = -1, BPM3 = -1;
 	int iTickCount = -1;
 	bKIUCompliant = false;
-	vector<RString> vNoteRows;
+	std::vector<RString> vNoteRows;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		const MsdFile::value_t& sParams = msd.GetValue(i);
@@ -633,7 +633,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 
 	// Try to fill in missing bits of information from the pathname.
 	{
-		vector<RString> asBits;
+		std::vector<RString> asBits;
 		split(sPath, "/", asBits, true);
 
 		ASSERT(asBits.size() > 1);
@@ -644,7 +644,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 }
 
 void
-KSFLoader::GetApplicableFiles(const RString& sPath, vector<RString>& out)
+KSFLoader::GetApplicableFiles(const RString& sPath, std::vector<RString>& out)
 {
 	GetDirListing(sPath + RString("*.ksf"), out);
 }
@@ -670,7 +670,7 @@ KSFLoader::LoadFromDir(const RString& sDir, Song& out)
 {
 	LOG->Trace("KSFLoader::LoadFromDir(%s)", sDir.c_str());
 
-	vector<RString> arrayKSFFileNames;
+	std::vector<RString> arrayKSFFileNames;
 	GetDirListing(sDir + RString("*.ksf"), arrayKSFFileNames);
 
 	// We shouldn't have been called to begin with if there were no KSFs.

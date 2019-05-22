@@ -191,7 +191,7 @@ ConvertString(RString& str, const RString& encodings)
 	if (str.empty())
 		return true;
 
-	vector<RString> lst;
+	std::vector<RString> lst;
 	split(encodings, ",", lst);
 
 	for (unsigned i = 0; i < lst.size(); ++i) {

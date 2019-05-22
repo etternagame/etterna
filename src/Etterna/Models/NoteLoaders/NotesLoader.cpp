@@ -35,7 +35,7 @@ NotesLoader::LoadFromDir(const RString& sPath,
 						 set<RString>& BlacklistedImages,
 						 bool load_autosave)
 {
-	vector<RString> list;
+	std::vector<RString> list;
 
 	BlacklistedImages.clear();
 	SSCLoader loaderSSC;

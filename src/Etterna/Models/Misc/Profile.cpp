@@ -189,7 +189,7 @@ Profile::GetDisplayNameOrHighScoreName() const
 Character*
 Profile::GetCharacter() const
 {
-	vector<Character*> vpCharacters;
+	std::vector<Character*> vpCharacters;
 	CHARMAN->GetCharacters(vpCharacters);
 	FOREACH_CONST(Character*, vpCharacters, c)
 	{
@@ -248,11 +248,11 @@ Profile::GetSongsPossible(StepsType st, Difficulty dc) const
 	int iTotalSteps = 0;
 
 	// add steps high scores
-	const vector<Song*>& vSongs = SONGMAN->GetAllSongs();
+	const std::vector<Song*>& vSongs = SONGMAN->GetAllSongs();
 	for (unsigned i = 0; i < vSongs.size(); i++) {
 		Song* pSong = vSongs[i];
 
-		vector<Steps*> vSteps = pSong->GetAllSteps();
+		std::vector<Steps*> vSteps = pSong->GetAllSteps();
 		for (unsigned j = 0; j < vSteps.size(); j++) {
 			Steps* pSteps = vSteps[j];
 
@@ -586,7 +586,7 @@ Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
 			   main_entry->second.sub_member.begin();                          \
 			 sub_entry != main_entry->second.sub_member.end();                 \
 			 ++sub_entry) {                                                    \
-			for (vector<HighScore>::iterator high_score =                      \
+			for (std::vector<HighScore>::iterator high_score =                      \
 				   sub_entry->second.hsl.vHighScores.begin();                  \
 				 high_score != sub_entry->second.hsl.vHighScores.end();        \
 				 ++high_score) {                                               \
@@ -720,7 +720,7 @@ Profile::MergeScoresFromOtherProfile(Profile* other,
 	// duplicates are removed because they come from the user mistakenly
 	// merging a second time. -Kyz
 	std::sort(m_vScreenshots.begin(), m_vScreenshots.end());
-	vector<Screenshot>::iterator unique_end =
+	std::vector<Screenshot>::iterator unique_end =
 	  std::unique(m_vScreenshots.begin(), m_vScreenshots.end());
 	m_vScreenshots.erase(unique_end, m_vScreenshots.end());
 }
@@ -938,7 +938,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
 	if (PREFSMAN->m_verbose_log > 0)
 		LOG->Trace("Calculating stats from scores");
-	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
+	const std::vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
@@ -1289,7 +1289,7 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 {
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
-	vector<RString> files;
+	std::vector<RString> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
@@ -1297,7 +1297,7 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
-		vector<RString> matches;
+		std::vector<RString> matches;
 		if (!re.Compare(files[i], matches))
 			continue;
 
@@ -1719,7 +1719,7 @@ class LunaProfile : public Luna<Profile>
 			return 0;
 		}
 
-		vector<ScoreGoal*> doot;
+		std::vector<ScoreGoal*> doot;
 		if (p->filtermode == 1) {
 			for (auto& sg : p->goaltable)
 				if (sg->achieved)

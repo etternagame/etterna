@@ -103,7 +103,7 @@ OptionRowHandler::GetIconTextAndGameCommand(int iFirstSelection,
 
 void
 OptionRowHandlerUtil::SelectExactlyOne(int iSelection,
-									   vector<bool>& vbSelectedOut)
+									   std::vector<bool>& vbSelectedOut)
 {
 	ASSERT_M(iSelection >= 0 && iSelection < (int)vbSelectedOut.size(),
 			 ssprintf("%d/%u", iSelection, unsigned(vbSelectedOut.size())));
@@ -112,7 +112,7 @@ OptionRowHandlerUtil::SelectExactlyOne(int iSelection,
 }
 
 int
-OptionRowHandlerUtil::GetOneSelection(const vector<bool>& vbSelected)
+OptionRowHandlerUtil::GetOneSelection(const std::vector<bool>& vbSelected)
 {
 	int iRet = -1;
 	for (unsigned i = 0; i < vbSelected.size(); i++) {
@@ -145,10 +145,10 @@ static LocalizedString OFF("OptionRowHandler", "Off");
 class OptionRowHandlerList : public OptionRowHandler
 {
   public:
-	vector<GameCommand> m_aListEntries;
+	std::vector<GameCommand> m_aListEntries;
 	GameCommand m_Default;
 	bool m_bUseModNameForIcon;
-	vector<RString> m_vsBroadcastOnExport;
+	std::vector<RString> m_vsBroadcastOnExport;
 
 	OptionRowHandlerList() { Init(); }
 	void Init() override
@@ -264,10 +264,10 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		PlayerNumber p = vpns;
-		vector<bool>& vbSelOut = vbSelectedOut;
+		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		bool bUseFallbackOption = true;
 
@@ -323,10 +323,10 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		PlayerNumber p = vpns;
-		const vector<bool>& vbSel = vbSelected;
+		const std::vector<bool>& vbSel = vbSelected;
 
 		m_Default.Apply(p);
 		for (unsigned i = 0; i < vbSel.size(); i++) {
@@ -368,12 +368,12 @@ class OptionRowHandlerList : public OptionRowHandler
 };
 
 static void
-SortNoteSkins(vector<RString>& asSkinNames)
+SortNoteSkins(std::vector<RString>& asSkinNames)
 {
 	set<RString> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
 
-	vector<RString> asSorted;
+	std::vector<RString> asSorted;
 	split(NOTE_SKIN_SORT_ORDER, ",", asSorted);
 
 	set<RString> setUnusedSkinNames(setSkinNames);
@@ -400,7 +400,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 
-		vector<RString> arraySkinNames;
+		std::vector<RString> arraySkinNames;
 		NOTESKIN->GetNoteSkinNames(arraySkinNames);
 		SortNoteSkins(arraySkinNames);
 
@@ -442,7 +442,7 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		{
 			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
 
-			vector<Steps*> vpSteps;
+			std::vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			SongUtil::GetSteps(
 			  pSong,
@@ -498,8 +498,8 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	BroadcastOnChangePtr<Steps>* m_ppStepsToFill;
 	BroadcastOnChange<Difficulty>* m_pDifficultyToFill;
 	const BroadcastOnChange<StepsType>* m_pst;
-	vector<Steps*> m_vSteps;
-	vector<Difficulty> m_vDifficulties;
+	std::vector<Steps*> m_vSteps;
+	std::vector<Difficulty> m_vDifficulties;
 
 	OptionRowHandlerSteps() { Init(); }
 	void Init() override
@@ -589,15 +589,15 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		PlayerNumber p = vpns;
-		vector<bool>& vbSelOut = vbSelectedOut;
+		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		ASSERT(m_vSteps.size() == vbSelOut.size());
 
 		// look for matching steps
-		vector<Steps*>::const_iterator iter =
+		std::vector<Steps*>::const_iterator iter =
 			find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
 		if (iter != m_vSteps.end()) {
 			unsigned i = iter - m_vSteps.begin();
@@ -625,10 +625,10 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		}
 	}
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		PlayerNumber p = vpns;
-		const vector<bool>& vbSel = vbSelected;
+		const std::vector<bool>& vbSel = vbSelected;
 
 		int index = OptionRowHandlerUtil::GetOneSelection(vbSel);
 		Difficulty dc = m_vDifficulties[index];
@@ -658,7 +658,7 @@ class OptionRowHandlerListCharacters : public OptionRowHandlerList
 			m_aListEntries.push_back(mc);
 		}
 
-		vector<Character*> vpCharacters;
+		std::vector<Character*> vpCharacters;
 		CHARMAN->GetCharacters(vpCharacters);
 		for (unsigned i = 0; i < vpCharacters.size(); i++) {
 			Character* pCharacter = vpCharacters[i];
@@ -682,7 +682,7 @@ class OptionRowHandlerListStyles : public OptionRowHandlerList
 		m_Def.m_sName = "Style";
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 
-		vector<const Style*> vStyles;
+		std::vector<const Style*> vStyles;
 		GAMEMAN->GetStylesForGame(GAMESTATE->m_pCurGame, vStyles);
 		ASSERT(vStyles.size() != 0);
 		FOREACH_CONST(const Style*, vStyles, s)
@@ -707,7 +707,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 		m_Def.m_sName = "Group";
 		m_Default.m_sSongGroup = GROUP_ALL;
 
-		vector<RString> vSongGroups;
+		std::vector<RString> vSongGroups;
 		SONGMAN->GetSongGroupNames(vSongGroups);
 		ASSERT(vSongGroups.size() != 0);
 
@@ -769,7 +769,7 @@ class OptionRowHandlerListSongsInCurrentSongGroup : public OptionRowHandlerList
 {
 	bool LoadInternal(const Commands&) override
 	{
-		const vector<Song*>& vpSongs =
+		const std::vector<Song*>& vpSongs =
 		  SONGMAN->GetSongs(GAMESTATE->m_sPreferredSongGroup);
 
 		if (GAMESTATE->m_pCurSong == NULL)
@@ -1084,7 +1084,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		if (!m_TableIsSane) {
 			return;
@@ -1094,7 +1094,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		ASSERT(lua_gettop(L) == 0);
 
 		PlayerNumber p = vpns;
-		vector<bool>& vbSelOut = vbSelectedOut;
+		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		/* Evaluate the LoadSelections(self,array,pn) function, where
 			* array is a table representing vbSelectedOut. */
@@ -1140,7 +1140,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 	}
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		if (!m_TableIsSane) {
 			return 0;
@@ -1150,12 +1150,12 @@ class OptionRowHandlerLua : public OptionRowHandler
 		ASSERT(lua_gettop(L) == 0);
 
 		PlayerNumber p = vpns;
-		const vector<bool>& vbSel = vbSelected;
+		const std::vector<bool>& vbSel = vbSelected;
 
 		/* Evaluate SaveSelections(self,array,pn) function, where array is
 			* a table representing vbSelectedOut. */
 
-		vector<bool> vbSelectedCopy = vbSel;
+		std::vector<bool> vbSelectedCopy = vbSel;
 
 		// Create the vbSelectedOut table.
 		LuaHelpers::CreateTableFromArrayB(L, vbSelectedCopy);
@@ -1274,21 +1274,21 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	}
 	void ImportOption(OptionRow*,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		PlayerNumber p = vpns;
-		vector<bool>& vbSelOut = vbSelectedOut;
+		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		int iSelection = m_pOpt->Get();
 		OptionRowHandlerUtil::SelectExactlyOne(iSelection, vbSelOut);
 	}
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		bool bChanged = false;
 
 		PlayerNumber p = vpns;
-		const vector<bool>& vbSel = vbSelected;
+		const std::vector<bool>& vbSel = vbSelected;
 
 		int iSel = OptionRowHandlerUtil::GetOneSelection(vbSel);
 
@@ -1313,7 +1313,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 {
   public:
 	BroadcastOnChange<StepsType>* m_pstToFill;
-	vector<StepsType> m_vStepsTypesToShow;
+	std::vector<StepsType> m_vStepsTypesToShow;
 
 	OptionRowHandlerStepsType() { Init(); }
 	void Init() override
@@ -1366,14 +1366,14 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		PlayerNumber p = vpns;
-		vector<bool>& vbSelOut = vbSelectedOut;
+		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		if (GAMESTATE->m_pCurSteps) {
 			StepsType st = GAMESTATE->m_pCurSteps->m_StepsType;
-			vector<StepsType>::const_iterator iter = find(
+			std::vector<StepsType>::const_iterator iter = find(
 				m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
 			if (iter != m_vStepsTypesToShow.end()) {
 				unsigned i = iter - m_vStepsTypesToShow.begin();
@@ -1384,10 +1384,10 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		vbSelOut[0] = true;
 	}
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		PlayerNumber p = vpns;
-		const vector<bool>& vbSel = vbSelected;
+		const std::vector<bool>& vbSel = vbSelected;
 
 		int index = OptionRowHandlerUtil::GetOneSelection(vbSel);
 		m_pstToFill->Set(m_vStepsTypesToShow[index]);
@@ -1427,11 +1427,11 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 	}
 	int ExportOption(const PlayerNumber& vpns,
-					 const vector<bool>& vbSelected) const override
+					 const std::vector<bool>& vbSelected) const override
 	{
 		if( vbSelected[0] )
 			m_gc.ApplyToAllPlayers();

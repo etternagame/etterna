@@ -149,7 +149,7 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 }
 
 static void
-AddPart(vector<RString>& AddTo, float level, RString name)
+AddPart(std::vector<RString>& AddTo, float level, RString name)
 {
 	if (level == 0)
 		return;
@@ -163,13 +163,13 @@ AddPart(vector<RString>& AddTo, float level, RString name)
 RString
 PlayerOptions::GetString(bool bForceNoteSkin) const
 {
-	vector<RString> v;
+	std::vector<RString> v;
 	GetMods(v, bForceNoteSkin);
 	return join(", ", v);
 }
 
 void
-PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
+PlayerOptions::GetMods(std::vector<RString>& AddTo, bool bForceNoteSkin) const
 {
 	// RString sReturn;
 
@@ -382,7 +382,7 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 }
 
 void
-PlayerOptions::GetTurnMods(vector<RString>& AddTo)
+PlayerOptions::GetTurnMods(std::vector<RString>& AddTo)
 {
 	if (m_bTurns[TURN_MIRROR])
 		AddTo.push_back("Mirror");
@@ -404,7 +404,7 @@ PlayerOptions::GetTurnMods(vector<RString>& AddTo)
 // Do not use this for anything else.
 // It will not work.
 void
-PlayerOptions::ResetModsToStringVector(vector<RString> mods)
+PlayerOptions::ResetModsToStringVector(std::vector<RString> mods)
 {
 	RString error;
 	ResetToggleableMods();
@@ -428,7 +428,7 @@ void
 PlayerOptions::FromString(const RString& sMultipleMods)
 {
 	RString sTemp = sMultipleMods;
-	vector<RString> vs;
+	std::vector<RString> vs;
 	split(sTemp, ",", vs, true);
 	RString sThrowAway;
 	FOREACH(RString, vs, s)
@@ -458,7 +458,7 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 
 	float level = 1;
 	float speed = 1;
-	vector<RString> asParts;
+	std::vector<RString> asParts;
 	split(sBit, " ", asParts, true);
 
 	FOREACH_CONST(RString, asParts, s)
@@ -497,7 +497,7 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 	const bool on = (level > 0.5f);
 
 	static Regex mult("^([0-9]+(\\.[0-9]+)?)x$");
-	vector<RString> matches;
+	std::vector<RString> matches;
 	if (mult.Compare(sBit, matches)) {
 		StringConversion::FromString(matches[0], level);
 		SET_FLOAT(fScrollSpeed)
@@ -1148,9 +1148,9 @@ PlayerOptions::IsEasierForSongAndSteps(Song* pSong,
 }
 
 void
-PlayerOptions::GetLocalizedMods(vector<RString>& AddTo) const
+PlayerOptions::GetLocalizedMods(std::vector<RString>& AddTo) const
 {
-	vector<RString> vMods;
+	std::vector<RString> vMods;
 	GetMods(vMods);
 	FOREACH_CONST(RString, vMods, s)
 	{
@@ -1158,7 +1158,7 @@ PlayerOptions::GetLocalizedMods(vector<RString>& AddTo) const
 
 		ASSERT(!sOneMod.empty());
 
-		vector<RString> asTokens;
+		std::vector<RString> asTokens;
 		split(sOneMod, " ", asTokens);
 
 		if (asTokens.empty())

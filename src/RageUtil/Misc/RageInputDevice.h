@@ -490,7 +490,7 @@ operator>=(DeviceInput const& lhs, DeviceInput const& rhs)
 	return !operator<(lhs, rhs);
 }
 
-typedef vector<DeviceInput> DeviceInputList;
+typedef std::vector<DeviceInput> DeviceInputList;
 
 #endif
 /*

@@ -31,7 +31,7 @@ GetPrefsDefaultModifiers(PlayerOptions& po, SongOptions& so)
 static void
 SetPrefsDefaultModifiers(const PlayerOptions& po, const SongOptions& so)
 {
-	vector<RString> as;
+	std::vector<RString> as;
 #define remove_empty_back()                                                    \
 	if (as.back() == "") {                                                     \
 		as.pop_back();                                                         \
@@ -172,9 +172,9 @@ MoveNop(int& iSel, bool bToSel, const ConfOption* pConfOption)
 // TODO: Write GenerateValueList() function that can use ints and floats. -aj
 
 static void
-GameChoices(vector<RString>& out)
+GameChoices(std::vector<RString>& out)
 {
-	vector<const Game*> aGames;
+	std::vector<const Game*> aGames;
 	GAMEMAN->GetEnabledGames(aGames);
 	FOREACH(const Game*, aGames, g)
 	{
@@ -186,7 +186,7 @@ GameChoices(vector<RString>& out)
 static void
 GameSel(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<RString> choices;
+	std::vector<RString> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -197,16 +197,16 @@ GameSel(int& sel, bool ToSel, const ConfOption* pConfOption)
 			if (!strcasecmp(choices[i], sCurGameName))
 				sel = i;
 	} else {
-		vector<const Game*> aGames;
+		std::vector<const Game*> aGames;
 		GAMEMAN->GetEnabledGames(aGames);
 		PREFSMAN->SetCurrentGame(aGames[sel]->m_szName);
 	}
 }
 
 static void
-LanguageChoices(vector<RString>& out)
+LanguageChoices(std::vector<RString>& out)
 {
-	vector<RString> vs;
+	std::vector<RString> vs;
 	THEME->GetLanguages(vs);
 	SortRStringArray(vs, true);
 
@@ -224,7 +224,7 @@ LanguageChoices(vector<RString>& out)
 static void
 Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<RString> vs;
+	std::vector<RString> vs;
 	THEME->GetLanguages(vs);
 	SortRStringArray(vs, true);
 
@@ -260,7 +260,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-ThemeChoices(vector<RString>& out)
+ThemeChoices(std::vector<RString>& out)
 {
 	THEME->GetSelectableThemeNames(out);
 	FOREACH(RString, out, s)
@@ -277,7 +277,7 @@ cache_display_resolution_list()
 }
 
 static void
-DisplayResolutionChoices(vector<RString>& out)
+DisplayResolutionChoices(std::vector<RString>& out)
 {
 	cache_display_resolution_list();
 	FOREACHS_CONST(DisplayResolution, display_resolution_list, iter)
@@ -290,10 +290,10 @@ DisplayResolutionChoices(vector<RString>& out)
 static void
 RequestedTheme(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<RString> choices;
+	std::vector<RString> choices;
 	pConfOption->MakeOptionsList(choices);
 
-	vector<RString> vsThemeNames;
+	std::vector<RString> vsThemeNames;
 	THEME->GetSelectableThemeNames(vsThemeNames);
 
 	if (ToSel) {
@@ -310,7 +310,7 @@ RequestedTheme(int& sel, bool ToSel, const ConfOption* pConfOption)
 
 static LocalizedString OFF("ScreenOptionsMasterPrefs", "Off");
 static void
-AnnouncerChoices(vector<RString>& out)
+AnnouncerChoices(std::vector<RString>& out)
 {
 	ANNOUNCER->GetAnnouncerNames(out);
 	out.insert(out.begin(), OFF);
@@ -319,7 +319,7 @@ AnnouncerChoices(vector<RString>& out)
 static void
 Announcer(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<RString> choices;
+	std::vector<RString> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -335,7 +335,7 @@ Announcer(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-DefaultNoteSkinChoices(vector<RString>& out)
+DefaultNoteSkinChoices(std::vector<RString>& out)
 {
 	NOTESKIN->GetNoteSkinNames(out);
 }
@@ -343,7 +343,7 @@ DefaultNoteSkinChoices(vector<RString>& out)
 static void
 DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<RString> choices;
+	std::vector<RString> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -363,7 +363,7 @@ DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-DefaultFailChoices(vector<RString>& out)
+DefaultFailChoices(std::vector<RString>& out)
 {
 	out.push_back("Immediate");
 	out.push_back("ImmediateContinue");
@@ -558,7 +558,7 @@ operator-(res_t lhs, res_t const& rhs)
 static void
 DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	static vector<res_t> res_choices;
+	static std::vector<res_t> res_choices;
 
 	if (res_choices.empty()) {
 		cache_display_resolution_list();
@@ -709,7 +709,7 @@ EditClearPromptThreshold(int& sel, bool to_sel, const ConfOption* conf_option)
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
 
-static vector<ConfOption> g_ConfOptions;
+static std::vector<ConfOption> g_ConfOptions;
 static void
 InitializeConfOptions()
 {
@@ -1096,7 +1096,7 @@ ConfOption::UpdateAvailableOptions()
 }
 
 void
-ConfOption::MakeOptionsList(vector<RString>& out) const
+ConfOption::MakeOptionsList(std::vector<RString>& out) const
 {
 	out = names;
 }

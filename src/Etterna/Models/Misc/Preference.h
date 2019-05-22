@@ -133,7 +133,7 @@ class Preference1D
 {
   public:
 	using PreferenceT = Preference<T>;
-	vector<PreferenceT*> m_v;
+	std::vector<PreferenceT*> m_v;
 
 	Preference1D(void pfn(size_t i, RString& sNameOut, T& defaultValueOut),
 				 size_t N)

@@ -23,15 +23,15 @@ class PlayerAI
 
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result
-	static map<int, vector<TapReplayResult>> m_ReplayTapMap;
+	static map<int, std::vector<TapReplayResult>> m_ReplayTapMap;
 	// A map with indices for each row of the chart, pointing to nothing or hold
 	// drop results.
-	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
+	static map<int, std::vector<HoldReplayResult>> m_ReplayHoldMap;
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result. However, note that the rows within are actually calculated
 	// so that they are adjusted for offsets relative to the actual replay
 	// data/notedata. This map is only useful for charts with column data.
-	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
+	static map<int, std::vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
@@ -57,11 +57,11 @@ class PlayerAI
 	static bool TapExistsAtThisRow(int noteRow);
 	static bool TapExistsAtOrBeforeThisRow(int noteRow);
 	// Build a list of columns/tracks to tap based on the given noterow.
-	static vector<TapReplayResult> GetTapsToTapForRow(int noteRow);
+	static std::vector<TapReplayResult> GetTapsToTapForRow(int noteRow);
 	static int GetReplayType();
 	// Build a list of columns/tracks that happened at or before the given
 	// noterow. (if we lag and somehow skip rows)
-	static vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
+	static std::vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
 	// Given a column and row, retrieve the adjusted row.
 	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
 	// Remove a given Tap from the fallback and Full replay data vectors

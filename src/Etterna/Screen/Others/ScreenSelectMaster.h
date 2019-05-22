@@ -107,10 +107,10 @@ class ScreenSelectMaster : public ScreenSelect
 	AutoActor m_sprExplanation[NUM_Page];
 	AutoActor m_sprMore[NUM_Page];
 	// icon is the shared, per-choice piece
-	vector<AutoActor> m_vsprIcon;
+	std::vector<AutoActor> m_vsprIcon;
 
 	// preview is per-player, per-choice piece
-	vector<AutoActor> m_vsprScroll;
+	std::vector<AutoActor> m_vsprScroll;
 
 	ActorScroller m_Scroller;
 

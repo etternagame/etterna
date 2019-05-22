@@ -313,7 +313,7 @@ static float
 GetDisplayedBeat(const PlayerState* pPlayerState, float beat)
 {
 	// do a binary search here
-	const vector<CacheDisplayedBeat>& data = pPlayerState->m_CacheDisplayedBeat;
+	const std::vector<CacheDisplayedBeat>& data = pPlayerState->m_CacheDisplayedBeat;
 	int max = data.size() - 1;
 	int l = 0, r = max;
 	while (l <= r) {

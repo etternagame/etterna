@@ -190,7 +190,7 @@ private:
 	std::mutex recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	LuaReference soundPlayCallback;
-	vector<float> recentPCMSamples;
+	std::vector<float> recentPCMSamples;
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
 	 * (we're not playing); and we can't seek back to the current playing

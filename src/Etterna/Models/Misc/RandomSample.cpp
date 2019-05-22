@@ -41,7 +41,7 @@ RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
 	if (sDir.Right(1) != "/")
 		sDir += "/";
 
-	vector<RString> arraySoundFiles;
+	std::vector<RString> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
 	GetDirListing(sDir + "*.oga", arraySoundFiles);
 	GetDirListing(sDir + "*.ogg", arraySoundFiles);

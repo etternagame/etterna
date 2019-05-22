@@ -801,7 +801,7 @@ CreateDisplay()
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 
-	vector<RString> asRenderers;
+	std::vector<RString> asRenderers;
 	split(PREFSMAN->m_sVideoRenderers, ",", asRenderers, true);
 
 	if (asRenderers.empty())
@@ -940,7 +940,7 @@ StepMania::InitializeCurrentGame(const Game* g)
 static void
 MountTreeOfZips(const RString& dir)
 {
-	vector<RString> dirs;
+	std::vector<RString> dirs;
 	dirs.push_back(dir);
 
 	while (dirs.size()) {
@@ -950,7 +950,7 @@ MountTreeOfZips(const RString& dir)
 		if (!IsADirectory(path))
 			continue;
 
-		vector<RString> zips;
+		std::vector<RString> zips;
 		GetDirListing(path + "/*.zip", zips, false, true);
 		GetDirListing(path + "/*.smzip", zips, false, true);
 
@@ -1081,13 +1081,13 @@ sm_main(int argc, char* argv[])
 
 	// Set up alternative filesystem trees.
 	if (PREFSMAN->m_sAdditionalFolders.Get() != "") {
-		vector<RString> dirs;
+		std::vector<RString> dirs;
 		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/");
 	}
 	if (PREFSMAN->m_sAdditionalSongFolders.Get() != "") {
-		vector<RString> dirs;
+		std::vector<RString> dirs;
 		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
@@ -1520,7 +1520,7 @@ HandleInputEvents(float fDeltaTime)
 	if (SCREENMAN->GetTopScreen()->IsFirstUpdate())
 		return;
 
-	vector<InputEvent> ieArray;
+	std::vector<InputEvent> ieArray;
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.

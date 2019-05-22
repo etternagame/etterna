@@ -114,7 +114,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 		case WM_INITDIALOG: {
-			vector<RString> vs;
+			std::vector<RString> vs;
 			GetDirListing("Data/splash*.png", vs, false, true);
 			if (!vs.empty())
 				g_hBitmap = LoadWin32Surface(vs[0], hWnd);
@@ -293,7 +293,7 @@ LoadingWindow_Win32::SetTextInternal()
 	}
 	RString& sText = lastText;
 
-	vector<RString> asMessageLines;
+	std::vector<RString> asMessageLines;
 	split(sText, "\n", asMessageLines, false);
 	while (asMessageLines.size() < 3)
 		asMessageLines.push_back("");

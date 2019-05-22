@@ -20,7 +20,7 @@ ReceptorArrow::Load(const PlayerState* pPlayerState, int iColNo, std::string Typ
 	m_iColNo = iColNo;
 
 	const PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(iColNo, pn, GameI);
 	NOTESKIN->SetPlayerNumber(pn);
 	// FIXME?  Does this cause a problem when game inputs on different

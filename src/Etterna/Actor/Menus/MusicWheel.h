@@ -58,7 +58,7 @@ class MusicWheel : public WheelBase
 	}
 
 	virtual void ReloadSongList(bool searching, RString findme);
-	void SetHashList(const vector<string>& newHashList);
+	void SetHashList(const std::vector<string>& newHashList);
 
 	// multiplayer common pack filtering
 	bool packlistFiltering{ false };
@@ -69,21 +69,21 @@ class MusicWheel : public WheelBase
   protected:
 	MusicWheelItem* MakeItem() override;
 
-	vector<string> hashList;
-	void GetSongList(vector<Song*>& arraySongs, SortOrder so);
+	std::vector<string> hashList;
+	void GetSongList(std::vector<Song*>& arraySongs, SortOrder so);
 	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();
 
-	void FilterByStepKeys(vector<Song*>& inv);
-	void FilterBySearch(vector<Song*>& inv, RString findme);
+	void FilterByStepKeys(std::vector<Song*>& inv);
+	void FilterBySearch(std::vector<Song*>& inv, RString findme);
 	bool SearchGroupNames(RString& findme);
-	void FilterBySkillsets(vector<Song*>& inv);
+	void FilterBySkillsets(std::vector<Song*>& inv);
 	RString lastvalidsearch;
 	RString groupnamesearchmatch;
 
 	void UpdateSwitch() override;
 
-	vector<MusicWheelItemData*>& getWheelItemsData(SortOrder so);
+	std::vector<MusicWheelItemData*>& getWheelItemsData(SortOrder so);
 	void readyWheelItemsData(SortOrder so, bool searching, RString findme);
 
 	RString m_sLastModeMenuItem;
@@ -114,7 +114,7 @@ class MusicWheel : public WheelBase
 	ThemeMetric<RageColor> RANDOM_COLOR;
 	ThemeMetric<RageColor> PORTAL_COLOR;
 	ThemeMetric<RageColor> EMPTY_COLOR;
-	vector<int> m_viWheelPositions;
+	std::vector<int> m_viWheelPositions;
 	ThemeMetric<RString> CUSTOM_WHEEL_ITEM_NAMES;
 	ThemeMetricMap<RString> CUSTOM_CHOICES;
 	ThemeMetricMap<RageColor> CUSTOM_CHOICE_COLORS;
@@ -127,15 +127,15 @@ class MusicWheel : public WheelBase
 		NEEDREFILTER,
 		VALID
 	} m_WheelItemDatasStatus[NUM_SortOrder];
-	vector<MusicWheelItemData*> m__WheelItemDatas[NUM_SortOrder];
-	vector<MusicWheelItemData*> m__UnFilteredWheelItemDatas[NUM_SortOrder];
+	std::vector<MusicWheelItemData*> m__WheelItemDatas[NUM_SortOrder];
+	std::vector<MusicWheelItemData*> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas(vector<MusicWheelItemData*>& arrayWheelItems,
+	void BuildWheelItemDatas(std::vector<MusicWheelItemData*>& arrayWheelItems,
 							 SortOrder so,
 							 bool searching,
 							 RString findme);
-	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
-							  vector<MusicWheelItemData*>& aFilteredData,
+	void FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDatas,
+							  std::vector<MusicWheelItemData*>& aFilteredData,
 							  SortOrder so);
 	void SelectSongAfterSearch();
 	RString prevSongTitle;

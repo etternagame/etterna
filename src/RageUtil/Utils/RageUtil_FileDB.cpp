@@ -9,7 +9,7 @@ void
 FileSet::GetFilesMatching(const RString& sBeginning_,
 						  const RString& sContaining_,
 						  const RString& sEnding_,
-						  vector<RString>& asOut,
+						  std::vector<RString>& asOut,
 						  bool bOnlyDirs) const
 {
 	/* "files" is a case-insensitive mapping, by filename.  Use lower_bound to
@@ -62,7 +62,7 @@ FileSet::GetFilesMatching(const RString& sBeginning_,
 
 void
 FileSet::GetFilesEqualTo(const RString& sStr,
-						 vector<RString>& asOut,
+						 std::vector<RString>& asOut,
 						 bool bOnlyDirs) const
 {
 	set<File>::const_iterator i = files.find(File(sStr));
@@ -224,7 +224,7 @@ FilenameDB::GetFilesMatching(const RString& sDir,
 							 const RString& sBeginning,
 							 const RString& sContaining,
 							 const RString& sEnding,
-							 vector<RString>& asOut,
+							 std::vector<RString>& asOut,
 							 bool bOnlyDirs)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
@@ -237,7 +237,7 @@ FilenameDB::GetFilesMatching(const RString& sDir,
 void
 FilenameDB::GetFilesEqualTo(const RString& sDir,
 							const RString& sFile,
-							vector<RString>& asOut,
+							std::vector<RString>& asOut,
 							bool bOnlyDirs)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
@@ -250,7 +250,7 @@ FilenameDB::GetFilesEqualTo(const RString& sDir,
 void
 FilenameDB::GetFilesSimpleMatch(const RString& sDir,
 								const RString& sMask,
-								vector<RString>& asOut,
+								std::vector<RString>& asOut,
 								bool bOnlyDirs)
 {
 	/* Does this contain a wildcard? */
@@ -409,11 +409,11 @@ FilenameDB::AddFile(const RString& sPath_, int iSize, int iHash, void* pPriv)
 	if (sPath[0] != '/')
 		sPath = "/" + sPath;
 
-	vector<RString> asParts;
+	std::vector<RString> asParts;
 	split(sPath, "/", asParts, false);
 
-	vector<RString>::const_iterator begin = asParts.begin();
-	vector<RString>::const_iterator end = asParts.end();
+	std::vector<RString>::const_iterator begin = asParts.begin();
+	std::vector<RString>::const_iterator end = asParts.end();
 
 	bool IsDir = true;
 	if (sPath[sPath.size() - 1] != '/')
@@ -594,7 +594,7 @@ FilenameDB::GetFilePriv(const RString& path)
 
 void
 FilenameDB::GetDirListing(const RString& sPath_,
-						  vector<RString>& asAddTo,
+						  std::vector<RString>& asAddTo,
 						  bool bOnlyDirs,
 						  bool bReturnPathToo)
 {

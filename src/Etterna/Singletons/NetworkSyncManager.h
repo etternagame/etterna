@@ -241,7 +241,7 @@ class NetProtocol
 class ETTProtocol : public NetProtocol
 { // Websockets using uwebsockets sending json
 	uWS::Hub* uWSh = new uWS::Hub();
-	vector<json> newMessages;
+	std::vector<json> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	string errorMsg;
@@ -292,9 +292,9 @@ class ETTProtocol : public NetProtocol
 class Chat
 {
   public:
-	map<pair<string, int>, vector<string>> rawMap;
+	map<pair<string, int>, std::vector<string>> rawMap;
 
-	vector<string>& operator[](const pair<string, int>& p)
+	std::vector<string>& operator[](const pair<string, int>& p)
 	{
 		if (p.second == 0)
 			return rawMap.operator[](make_pair(string(""), 0));
@@ -365,19 +365,19 @@ class NetworkSyncManager
 
 	Chat chat; //[{Tabname, int}] = vector<line>
 
-	vector<int> m_PlayerStatus;
+	std::vector<int> m_PlayerStatus;
 	int m_ActivePlayers;
-	vector<int> m_ActivePlayer;
-	vector<RString> m_PlayerNames;
-	vector<bool> m_PlayerReady;
-	vector<string> commonpacks;
+	std::vector<int> m_ActivePlayer;
+	std::vector<RString> m_PlayerNames;
+	std::vector<bool> m_PlayerReady;
+	std::vector<string> commonpacks;
 
 	// friendlist
-	vector<std::string> fl_PlayerNames;
-	vector<int> fl_PlayerStates;
+	std::vector<std::string> fl_PlayerNames;
+	std::vector<int> fl_PlayerStates;
 
 	// Used for ScreenNetEvaluation
-	vector<EndOfGame_PlayerData> m_EvalPlayerData;
+	std::vector<EndOfGame_PlayerData> m_EvalPlayerData;
 
 	// Used together:
 	bool ChangedScoreboard(int Column); // Returns true if scoreboard changed
@@ -420,7 +420,7 @@ class NetworkSyncManager
 
 	RString MD5Hex(const RString& sInput);
 
-	void GetListOfLANServers(vector<NetServerInfo>& AllServers);
+	void GetListOfLANServers(std::vector<NetServerInfo>& AllServers);
 
 	// Aldo: Please move this method to a new class, I didn't want to create new
 	// files because I don't know how to properly update the files for each
@@ -433,12 +433,12 @@ class NetworkSyncManager
 
 	void Login(RString user, RString pass);
 	void Logout();
-	vector<RoomData> m_Rooms;
-	vector<ChartRequest*> requests;
-	vector<ChartRequest*> staleRequests;
+	std::vector<RoomData> m_Rooms;
+	std::vector<ChartRequest*> requests;
+	std::vector<ChartRequest*> staleRequests;
 
 	SMOStepType TranslateStepType(int score);
-	vector<NetServerInfo> m_vAllLANServers;
+	std::vector<NetServerInfo> m_vAllLANServers;
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
 
 	// Lua

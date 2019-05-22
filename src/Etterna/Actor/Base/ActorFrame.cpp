@@ -146,7 +146,7 @@ ActorFrame::AddChild(Actor* pActor)
 {
 #ifdef DEBUG
 	// check that this Actor isn't already added.
-	vector<Actor*>::iterator iter =
+	std::vector<Actor*>::iterator iter =
 	  find(m_SubActors.begin(), m_SubActors.end(), pActor);
 	if (iter != m_SubActors.end())
 		Dialog::OK(ssprintf("Actor \"%s\" adds child \"%s\" more than once",
@@ -164,7 +164,7 @@ ActorFrame::AddChild(Actor* pActor)
 void
 ActorFrame::RemoveChild(Actor* pActor)
 {
-	vector<Actor*>::iterator iter =
+	std::vector<Actor*>::iterator iter =
 	  find(m_SubActors.begin(), m_SubActors.end(), pActor);
 	if (iter != m_SubActors.end())
 		m_SubActors.erase(iter);
@@ -198,7 +198,7 @@ ActorFrame::RemoveAllChildren()
 void
 ActorFrame::MoveToTail(Actor* pActor)
 {
-	vector<Actor*>::iterator iter =
+	std::vector<Actor*>::iterator iter =
 	  find(m_SubActors.begin(), m_SubActors.end(), pActor);
 	if (iter == m_SubActors.end()) // didn't find
 		FAIL_M("Nonexistent actor");
@@ -210,7 +210,7 @@ ActorFrame::MoveToTail(Actor* pActor)
 void
 ActorFrame::MoveToHead(Actor* pActor)
 {
-	vector<Actor*>::iterator iter =
+	std::vector<Actor*>::iterator iter =
 	  find(m_SubActors.begin(), m_SubActors.end(), pActor);
 	if (iter == m_SubActors.end()) // didn't find
 		FAIL_M("Nonexistent actor");
@@ -280,7 +280,7 @@ ActorFrame::DrawPrimitives()
 	// draw all sub-ActorFrames while we're in the ActorFrame's local coordinate
 	// space
 	if (m_bDrawByZPosition) {
-		vector<Actor*> subs = m_SubActors;
+		std::vector<Actor*> subs = m_SubActors;
 		ActorUtil::SortByZPosition(subs);
 		for (unsigned i = 0; i < subs.size(); i++) {
 			subs[i]->SetInternalDiffuse(diffuse);
@@ -807,7 +807,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		vector<float> coords;
+		std::vector<float> coords;
 		LuaHelpers::ReadArrayFromTable(coords, L);
 		lua_pop(L, 1);
 		if (coords.size() != 3) {

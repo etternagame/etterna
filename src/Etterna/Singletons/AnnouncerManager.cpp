@@ -30,7 +30,7 @@ AnnouncerManager::~AnnouncerManager()
 }
 
 void
-AnnouncerManager::GetAnnouncerNames(vector<RString>& AddTo)
+AnnouncerManager::GetAnnouncerNames(std::vector<RString>& AddTo)
 {
 	GetDirListing(ANNOUNCERS_DIR + "*", AddTo, true);
 
@@ -49,7 +49,7 @@ AnnouncerManager::DoesAnnouncerExist(const RString& sAnnouncerName)
 	if (sAnnouncerName == "")
 		return true;
 
-	vector<RString> asAnnouncerNames;
+	std::vector<RString> asAnnouncerNames;
 	GetAnnouncerNames(asAnnouncerNames);
 	for (unsigned i = 0; i < asAnnouncerNames.size(); i++)
 		if (0 == strcasecmp(sAnnouncerName, asAnnouncerNames[i]))
@@ -163,7 +163,7 @@ AnnouncerManager::HasSoundsFor(const RString& sFolderName)
 void
 AnnouncerManager::NextAnnouncer()
 {
-	vector<RString> as;
+	std::vector<RString> as;
 	GetAnnouncerNames(as);
 	if (as.size() == 0)
 		return;
@@ -197,7 +197,7 @@ class LunaAnnouncerManager : public Luna<AnnouncerManager>
 	}
 	static int GetAnnouncerNames(T* p, lua_State* L)
 	{
-		vector<RString> vAnnouncers;
+		std::vector<RString> vAnnouncers;
 		p->GetAnnouncerNames(vAnnouncers);
 		LuaHelpers::CreateTableFromArray(vAnnouncers, L);
 		return 1;

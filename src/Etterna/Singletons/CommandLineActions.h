@@ -16,13 +16,13 @@ class CommandLineArgs
 {
   public:
 	/** @brief the arguments in question. */
-	vector<RString> argv;
+	std::vector<RString> argv;
 };
 /**
  * @brief A list of command line arguemnts to process while the game is running.
  * These args could have come from this process or passed to this process
  * from another process. */
-extern vector<CommandLineArgs> ToProcess;
+extern std::vector<CommandLineArgs> ToProcess;
 }
 
 #endif

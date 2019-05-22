@@ -81,7 +81,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 	}
 
 	f.Write("#BPMS:");
-	const vector<TimingSegment*>& bpms = timing.GetTimingSegments(SEGMENT_BPM);
+	const std::vector<TimingSegment*>& bpms = timing.GetTimingSegments(SEGMENT_BPM);
 	for (unsigned i = 0; i < bpms.size(); i++) {
 		const BPMSegment* bs = ToBPM(bpms[i]);
 
@@ -91,13 +91,13 @@ WriteGlobalTags(RageFile& f, Song& out)
 	}
 	f.PutLine(";");
 
-	const vector<TimingSegment*>& stops =
+	const std::vector<TimingSegment*>& stops =
 	  timing.GetTimingSegments(SEGMENT_STOP);
-	const vector<TimingSegment*>& delays =
+	const std::vector<TimingSegment*>& delays =
 	  timing.GetTimingSegments(SEGMENT_DELAY);
 
 	map<float, float> allPauses;
-	const vector<TimingSegment*>& warps =
+	const std::vector<TimingSegment*>& warps =
 	  timing.GetTimingSegments(SEGMENT_WARP);
 	unsigned wSize = warps.size();
 	if (wSize > 0) {
@@ -136,7 +136,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 	}
 
 	f.Write("#STOPS:");
-	vector<RString> stopLines;
+	std::vector<RString> stopLines;
 	FOREACHM(float, float, allPauses, ap)
 	{
 		stopLines.push_back(ssprintf("%.6f=%.6f", ap->first, ap->second));
@@ -192,7 +192,7 @@ WriteGlobalTags(RageFile& f, Song& out)
  * @param lines the list of lines to join.
  * @return the joined lines. */
 static RString
-JoinLineList(vector<RString>& lines)
+JoinLineList(std::vector<RString>& lines)
 {
 	for (unsigned i = 0; i < lines.size(); ++i)
 		TrimRight(lines[i]);
@@ -213,7 +213,7 @@ JoinLineList(vector<RString>& lines)
 static RString
 GetSMNotesTag(const Song& song, const Steps& in)
 {
-	vector<RString> lines;
+	std::vector<RString> lines;
 
 	lines.push_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -228,7 +228,7 @@ GetSMNotesTag(const Song& song, const Steps& in)
 	  ssprintf("     %s:", DifficultyToString(in.GetDifficulty()).c_str()));
 	lines.push_back(ssprintf("     %d:", in.GetMeter()));
 
-	vector<RString> asRadarValues;
+	std::vector<RString> asRadarValues;
 	int categories = 11;
 	const RadarValues& rv = in.GetRadarValues();
 	for (RadarCategory rc = (RadarCategory)0; rc < categories;
@@ -249,7 +249,7 @@ GetSMNotesTag(const Song& song, const Steps& in)
 bool
 NotesWriterSM::Write(const RString& sPath,
 					 Song& out,
-					 const vector<Steps*>& vpStepsToSave)
+					 const std::vector<Steps*>& vpStepsToSave)
 {
 	int flags = RageFile::WRITE;
 
@@ -287,7 +287,7 @@ NotesWriterSM::GetEditFileContents(const Song* pSong,
 	RString sDir = pSong->GetSongDir();
 
 	// "Songs/foo/bar"; strip off "Songs/".
-	vector<RString> asParts;
+	std::vector<RString> asParts;
 	split(sDir, "/", asParts);
 	if (asParts.size())
 		sDir = join("/", asParts.begin() + 1, asParts.end());

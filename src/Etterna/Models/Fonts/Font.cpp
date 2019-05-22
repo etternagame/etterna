@@ -75,7 +75,7 @@ FontPage::Load(const FontPageSettings& cfg)
 	}
 
 	// load character widths
-	vector<int> aiFrameWidths;
+	std::vector<int> aiFrameWidths;
 
 	int default_width =
 	  m_FontPageTextures.m_pTextureMain->GetSourceFrameWidth();
@@ -143,7 +143,7 @@ FontPage::Load(const FontPageSettings& cfg)
 }
 
 void
-FontPage::SetTextureCoords(const vector<int>& widths, int iAdvanceExtraPixels)
+FontPage::SetTextureCoords(const std::vector<int>& widths, int iAdvanceExtraPixels)
 {
 	for (int i = 0; i < m_FontPageTextures.m_pTextureMain->GetNumFrames();
 		 ++i) {
@@ -450,10 +450,10 @@ Font::SetDefaultGlyph(FontPage* pPage)
 // Given the INI for a font, find all of the texture pages for the font.
 void
 Font::GetFontPaths(const RString& sFontIniPath,
-				   vector<RString>& asTexturePathsOut)
+				   std::vector<RString>& asTexturePathsOut)
 {
 	RString sPrefix = SetExtension(sFontIniPath, "");
-	vector<RString> asFiles;
+	std::vector<RString> asFiles;
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (unsigned i = 0; i < asFiles.size(); ++i) {
@@ -587,7 +587,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				 * Map hiragana to 0-84:
 				 * range Unicode #3041-3094=0
 				 */
-				vector<RString> asMatches;
+				std::vector<RString> asMatches;
 				static Regex parse(
 				  "^RANGE ([A-Z0-9\\-]+)( ?#([0-9A-F]+)-([0-9A-F]+))?$");
 				bool match = parse.Compare(sName, asMatches);
@@ -773,7 +773,7 @@ FontPageSettings::MapRange(const RString& sMapping,
 	return RString();
 }
 
-static vector<RString> LoadStack;
+static std::vector<RString> LoadStack;
 
 /* A font set is a set of files, eg:
  *
@@ -824,7 +824,7 @@ Font::Load(const RString& sIniPath, const RString& sChars)
 	m_sChars = sChars;
 
 	// Get the filenames associated with this font.
-	vector<RString> asTexturePaths;
+	std::vector<RString> asTexturePaths;
 	GetFontPaths(sIniPath, asTexturePaths);
 
 	bool bCapitalsOnly = false;
@@ -842,7 +842,7 @@ Font::Load(const RString& sIniPath, const RString& sChars)
 	}
 
 	{
-		vector<RString> ImportList;
+		std::vector<RString> ImportList;
 
 		bool bIsTopLevelFont = LoadStack.size() == 1;
 

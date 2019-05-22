@@ -100,7 +100,7 @@ RoomWheelItem::Load(const std::string& sType)
 }
 
 void
-RoomWheel::BuildWheelItemsData(vector<WheelItemBaseData*>& arrayWheelItemDatas)
+RoomWheel::BuildWheelItemsData(std::vector<WheelItemBaseData*>& arrayWheelItemDatas)
 {
 	if (arrayWheelItemDatas.empty())
 		arrayWheelItemDatas.push_back(new RoomWheelItemData(
@@ -140,7 +140,7 @@ RoomWheel::RemoveItem(int index)
 	if (m_bEmpty || index >= (int)m_CurWheelItemData.size())
 		return;
 
-	vector<WheelItemBaseData*>::iterator i = m_CurWheelItemData.begin();
+	std::vector<WheelItemBaseData*>::iterator i = m_CurWheelItemData.begin();
 	i += index;
 
 	// If this item's data happened to be last selected, make it NULL.
@@ -335,7 +335,7 @@ RoomWheel::BuildFromRoomDatas()
 	RebuildWheelItems();
 }
 void
-RoomWheel::UpdateRoomsList(vector<RoomData>* roomsptr)
+RoomWheel::UpdateRoomsList(std::vector<RoomData>* roomsptr)
 {
 	allRooms = roomsptr;
 	BuildFromRoomDatas();

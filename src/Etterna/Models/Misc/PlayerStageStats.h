@@ -24,7 +24,7 @@ class PlayerStageStats
 	void Init(PlayerNumber pn);
 	void Init(MultiPlayer pn);
 
-	vector<NoteInfo> serializednd;
+	std::vector<NoteInfo> serializednd;
 
 	/**
 	 * @brief Add stats from one PlayerStageStats to another.
@@ -38,18 +38,18 @@ class PlayerStageStats
 	// Calculate the difficulty rating for a specific score obtained by a player
 	// - Mina
 	Grade GetWifeGrade();
-	vector<float> CalcSSR(float ssrpercent) const;
+	std::vector<float> CalcSSR(float ssrpercent) const;
 	void GenerateValidationKeys(HighScore& hs) const;
 	float GetPercentDancePoints() const;
 	float GetWifeScore() const;
 	float GetCurWifeScore() const;
 	float GetMaxWifeScore() const;
 	float GetTimingScale() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
-	vector<int> GetTrackVector() const;
-	vector<TapNoteType> GetTapNoteTypeVector() const;
-	vector<HoldReplayResult> GetHoldReplayDataVector() const;
+	std::vector<float> GetOffsetVector() const;
+	std::vector<int> GetNoteRowVector() const;
+	std::vector<int> GetTrackVector() const;
+	std::vector<TapNoteType> GetTapNoteTypeVector() const;
+	std::vector<HoldReplayResult> GetHoldReplayDataVector() const;
 	float GetCurMaxPercentDancePoints() const;
 
 	int GetLessonScoreActual() const;
@@ -63,7 +63,7 @@ class PlayerStageStats
 
 	bool m_bJoined;
 	bool m_bPlayerCanAchieveFullCombo;
-	vector<Steps*> m_vpPossibleSteps;
+	std::vector<Steps*> m_vpPossibleSteps;
 	int m_iStepsPlayed; // how many of m_vpPossibleStepshow many of
 						// m_vpPossibleSteps were played
 	/**
@@ -89,12 +89,12 @@ class PlayerStageStats
 	float CurWifeScore;
 	float MaxWifeScore;
 	float m_fTimingScale;
-	vector<HoldReplayResult> m_vHoldReplayData;
-	vector<float> m_vOffsetVector;
-	vector<int> m_vNoteRowVector;
-	vector<TapNoteType> m_vTapNoteTypeVector;
-	vector<int> m_vTrackVector;
-	vector<float> InputData;
+	std::vector<HoldReplayResult> m_vHoldReplayData;
+	std::vector<float> m_vOffsetVector;
+	std::vector<int> m_vNoteRowVector;
+	std::vector<TapNoteType> m_vTapNoteTypeVector;
+	std::vector<int> m_vTrackVector;
+	std::vector<float> InputData;
 	int m_iTapNoteScores[NUM_TapNoteScore];
 	int m_iHoldNoteScores[NUM_HoldNoteScore];
 	/** @brief The Player's current combo. */
@@ -191,7 +191,7 @@ class PlayerStageStats
 		Combo_t() = default;
 		bool IsZero() const { return m_fStartSecond < 0; }
 	};
-	vector<Combo_t> m_ComboList;
+	std::vector<Combo_t> m_ComboList;
 	float m_fFirstSecond;
 	float m_fLastSecond;
 

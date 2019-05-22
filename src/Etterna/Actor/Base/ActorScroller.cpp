@@ -286,7 +286,7 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 		iLastItemToDraw = clamp(iLastItemToDraw, 0, m_iNumItems);
 	}
 
-	vector<Actor*> subs;
+	std::vector<Actor*> subs;
 
 	{
 		// Shift m_SubActors so iFirstItemToDraw is at the beginning.

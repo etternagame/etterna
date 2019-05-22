@@ -44,12 +44,12 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
-vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
+std::vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
 float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;
 int AdjustSync::s_iAutosyncOffsetSample = 0;
 float AdjustSync::s_fAutosyncOffset[AdjustSync::OFFSET_SAMPLE_COUNT];
 float AdjustSync::s_fStandardDeviation = 0.0f;
-vector<pair<float, float>> AdjustSync::s_vAutosyncTempoData;
+std::vector<pair<float, float>> AdjustSync::s_vAutosyncTempoData;
 float AdjustSync::s_fAverageError = 0.0f;
 const float AdjustSync::ERROR_TOO_HIGH = 0.025f;
 int AdjustSync::s_iStepsFiltered = 0;
@@ -61,8 +61,8 @@ AdjustSync::ResetOriginalSyncData()
 
 	if (GAMESTATE->m_pCurSong) {
 		s_vpTimingDataOriginal.push_back(GAMESTATE->m_pCurSong->m_SongTiming);
-		const vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-		FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
+		const std::vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
+		FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
 		{
 			s_vpTimingDataOriginal.push_back((*s)->m_Timing);
 		}
@@ -88,7 +88,7 @@ AdjustSync::IsSyncDataChanged()
 	if (GAMESTATE->IsPlaylistCourse())
 		return false;
 
-	vector<RString> vs;
+	std::vector<RString> vs;
 	AdjustSync::GetSyncChangeTextGlobal(vs);
 	AdjustSync::GetSyncChangeTextSong(vs);
 	return !vs.empty();
@@ -126,8 +126,8 @@ AdjustSync::RevertSyncChanges()
 	GAMESTATE->m_pCurSong->m_SongTiming = s_vpTimingDataOriginal[0];
 
 	unsigned location = 1;
-	const vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-	FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
+	const std::vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
+	FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
 	{
 		(*s)->m_Timing = s_vpTimingDataOriginal[location];
 		location++;
@@ -203,9 +203,9 @@ AdjustSync::AutosyncOffset()
 			case AutosyncType_Song: {
 				GAMESTATE->m_pCurSong->m_SongTiming.m_fBeat0OffsetInSeconds +=
 				  mean;
-				const vector<Steps*>& vpSteps =
+				const std::vector<Steps*>& vpSteps =
 				  GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
+				FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
 				{
 					// Empty TimingData means it's inherited
 					// from the song and is already changed.
@@ -265,7 +265,7 @@ AdjustSync::AutosyncTempo()
 		const float fScaleBPM = 1.0f / (1.0f - fSlope);
 		TimingData& timing = GAMESTATE->m_pCurSong->m_SongTiming;
 
-		const vector<TimingSegment*>& bpms =
+		const std::vector<TimingSegment*>& bpms =
 		  timing.GetTimingSegments(SEGMENT_BPM);
 		for (unsigned i = 0; i < bpms.size(); i++) {
 			const BPMSegment* b = ToBPM(bpms[i]);
@@ -275,7 +275,7 @@ AdjustSync::AutosyncTempo()
 		/* We assume that the stops were measured as a number of beats.
 		 * Therefore, if we change the bpms, we need to make a similar
 		 * change to the stops. */
-		const vector<TimingSegment*>& stops =
+		const std::vector<TimingSegment*>& stops =
 		  timing.GetTimingSegments(SEGMENT_STOP);
 		for (unsigned i = 0; i < stops.size(); i++) {
 			const StopSegment* s = ToStop(stops[i]);
@@ -283,7 +283,7 @@ AdjustSync::AutosyncTempo()
 			  StopSegment(s->GetRow(), s->GetPause() * (1.0f - fSlope)));
 		}
 		// Do the same for delays.
-		const vector<TimingSegment*>& delays =
+		const std::vector<TimingSegment*>& delays =
 		  timing.GetTimingSegments(SEGMENT_DELAY);
 		for (unsigned i = 0; i < delays.size(); i++) {
 			const DelaySegment* s = ToDelay(delays[i]);
@@ -323,7 +323,7 @@ static LocalizedString ETC("AdjustSync", "Etc.");
 static LocalizedString TAPS_IGNORED("AdjustSync", "%d taps ignored.");
 
 void
-AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextGlobal(std::vector<RString>& vsAddTo)
 {
 	{
 		float fOld =
@@ -343,7 +343,7 @@ AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
 
 // XXX: needs cleanup still -- vyhd
 void
-AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextSong(std::vector<RString>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
 #define SEGMENTS_MISMATCH_MESSAGE(orig, test, segments_name)                   \
@@ -372,9 +372,9 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 			}
 		}
 
-		const vector<TimingSegment*>& bpmTest =
+		const std::vector<TimingSegment*>& bpmTest =
 		  testing.GetTimingSegments(SEGMENT_BPM);
-		const vector<TimingSegment*>& bpmOrig =
+		const std::vector<TimingSegment*>& bpmOrig =
 		  original.GetTimingSegments(SEGMENT_BPM);
 		SEGMENTS_MISMATCH_MESSAGE(bpmOrig, bpmTest, bpm);
 		for (size_t i = 0; i < bpmTest.size() && i < bpmOrig.size(); i++) {
@@ -397,9 +397,9 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 			vsAddTo.push_back(s);
 		}
 
-		const vector<TimingSegment*>& stopTest =
+		const std::vector<TimingSegment*>& stopTest =
 		  testing.GetTimingSegments(SEGMENT_STOP);
-		const vector<TimingSegment*>& stopOrig =
+		const std::vector<TimingSegment*>& stopOrig =
 		  original.GetTimingSegments(SEGMENT_STOP);
 
 		SEGMENTS_MISMATCH_MESSAGE(stopOrig, stopTest, stop);
@@ -421,9 +421,9 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 			vsAddTo.push_back(s);
 		}
 
-		const vector<TimingSegment*>& delyTest =
+		const std::vector<TimingSegment*>& delyTest =
 		  testing.GetTimingSegments(SEGMENT_DELAY);
-		const vector<TimingSegment*>& delyOrig =
+		const std::vector<TimingSegment*>& delyOrig =
 		  original.GetTimingSegments(SEGMENT_DELAY);
 
 		SEGMENTS_MISMATCH_MESSAGE(delyOrig, delyTest, delay);

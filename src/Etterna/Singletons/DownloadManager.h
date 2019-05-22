@@ -152,7 +152,7 @@ class OnlineScore
 	int userid;
 	DateTime datetime;
 	bool hasReplay{ false };
-	vector<pair<float, float>> replayData;
+	std::vector<pair<float, float>> replayData;
 	string countryCode;
 	OnlineHighScore hs;
 	void Push(lua_State* L) { hs.PushSelf(L); }
@@ -166,7 +166,7 @@ class DownloadManager
 	DownloadManager();
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
-	vector<HTTPRequest*>
+	std::vector<HTTPRequest*>
 	  HTTPRequests; // Active HTTP requests (async, curlMulti)
 
 	map<string, Download*> finishedDownloads;
@@ -182,7 +182,7 @@ class DownloadManager
 	bool gameplay{ false }; // Currently in gameplay
 	bool initialized{ false };
 	string error{ "" };
-	vector<DownloadablePack> downloadablePacks;
+	std::vector<DownloadablePack> downloadablePacks;
 	string authToken{ "" };   // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
@@ -192,18 +192,18 @@ class DownloadManager
 	string registerPage{
 		""
 	}; // Register page from server (Or empty if non was obtained)
-	map<string, vector<OnlineScore>> chartLeaderboards;
-	vector<string> countryCodes;
+	map<string, std::vector<OnlineScore>> chartLeaderboards;
+	std::vector<string> countryCodes;
 	map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset
 	map<Skillset, double> sessionRatings;
-	map<Skillset, vector<OnlineTopScore>> topScores;
+	map<Skillset, std::vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
 
 	void AddFavorite(const string& chartkey);
 	void RemoveFavorite(const string& chartkey);
 	void RefreshFavourites();
-	vector<string> favorites;
+	std::vector<string> favorites;
 
 	void AddGoal(const string& chartkey,
 				 float wife,
@@ -261,14 +261,14 @@ class DownloadManager
 	inline void SetCURLURL(CURL* curlHandle, string url);
 
 	HTTPRequest* SendRequest(string requestName,
-							 vector<pair<string, string>> params,
+							 std::vector<pair<string, string>> params,
 							 function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin = true,
 							 bool post = false,
 							 bool async = true,
 							 bool withBearer = true);
 	HTTPRequest* SendRequestToURL(string url,
-								  vector<pair<string, string>> params,
+								  std::vector<pair<string, string>> params,
 								  function<void(HTTPRequest&, CURLMsg*)> done,
 								  bool requireLogin,
 								  bool post,
@@ -291,9 +291,9 @@ class DownloadManager
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
 	void DownloadCoreBundle(const string& whichoneyo, bool mirror = true);
-	map<string, vector<DownloadablePack*>> bundles;
+	map<string, std::vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
-	vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);
+	std::vector<DownloadablePack*> GetCoreBundle(const string& whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
 									   Skillset ss,
 									   bool& result);

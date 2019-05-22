@@ -724,7 +724,7 @@ GameState::SetCompatibleStylesForPlayers()
 			if (m_pCurSteps != NULL) {
 				st = m_pCurSteps->m_StepsType;
 			} else {
-				vector<StepsType> vst;
+				std::vector<StepsType> vst;
 				GAMEMAN->GetStepsTypesForGame(m_pCurGame, vst);
 				st = vst[0];
 			}
@@ -1165,7 +1165,7 @@ GameState::CurrentOptionsDisqualifyPlayer(PlayerNumber pn)
  */
 
 void
-GameState::GetAllUsedNoteSkins(vector<RString>& out) const
+GameState::GetAllUsedNoteSkins(std::vector<RString>& out) const
 {
 	FOREACH_EnabledPlayer(pn)
 	{
@@ -1277,7 +1277,7 @@ GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 bool
 GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	Difficulty d = GetClosestShownDifficulty(pn);
@@ -1300,7 +1300,7 @@ GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 Difficulty
 GameState::GetClosestShownDifficulty(PlayerNumber pn) const
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	auto iClosest = static_cast<Difficulty>(0);
@@ -1716,7 +1716,7 @@ class LunaGameState : public Luna<GameState>
 			return 0;
 
 		// use a vector and not a set so that ordering is maintained
-		vector<const Steps*> vpStepsToShow;
+		std::vector<const Steps*> vpStepsToShow;
 		FOREACH_HumanPlayer(p)
 		{
 			const Steps* pSteps = GAMESTATE->m_pCurSteps;
@@ -1750,7 +1750,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPreferredSongGroup, m_sPreferredSongGroup.Get());
 	static int GetHumanPlayers(T* p, lua_State* L)
 	{
-		vector<PlayerNumber> vHP;
+		std::vector<PlayerNumber> vHP;
 		FOREACH_HumanPlayer(pn)
 		{
 			if (pn == PLAYER_1)
@@ -1762,7 +1762,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetEnabledPlayers(T*, lua_State* L)
 	{
-		vector<PlayerNumber> vEP;
+		std::vector<PlayerNumber> vEP;
 		FOREACH_EnabledPlayer(pn) vEP.push_back(pn);
 		LuaHelpers::CreateTableFromArray(vEP, L);
 		return 1;

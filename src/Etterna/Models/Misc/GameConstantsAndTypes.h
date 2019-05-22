@@ -447,7 +447,7 @@ struct DisplayBpms
 	/**
 	 * @brief The list of the BPMs for the song.
 	 */
-	vector<float> vfBpms;
+	std::vector<float> vfBpms;
 };
 
 /** @brief The various style types available. */

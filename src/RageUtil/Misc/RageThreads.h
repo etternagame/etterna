@@ -38,13 +38,13 @@ class ThreadData
 };
 
 template<class T>
-using vectorIt = typename vector<T>::iterator;
+using vectorIt = typename std::vector<T>::iterator;
 template<class T>
 using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
 
 template<typename T>
 std::vector<vectorRange<T>>
-splitWorkLoad(vector<T>& v, size_t elementsPerThread)
+splitWorkLoad(std::vector<T>& v, size_t elementsPerThread)
 {
 	std::vector<vectorRange<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
@@ -71,7 +71,7 @@ splitWorkLoad(vector<T>& v, size_t elementsPerThread)
 
 template<typename T>
 void
-parallelExecution(vector<T> vec,
+parallelExecution(std::vector<T> vec,
 				  function<void(int)> update,
 				  function<void(vectorRange<T>, ThreadData*)> exec,
 				  void* stuff)
@@ -89,7 +89,7 @@ parallelExecution(vector<T> vec,
 		data._threadsFinished++;
 		data.setUpdated(true);
 	};
-	vector<thread> threadpool;
+	std::vector<thread> threadpool;
 	for (auto& workload : workloads)
 		threadpool.emplace_back(thread(threadCallback, workload));
 	while (data._threadsFinished < (int)workloads.size()) {
@@ -102,7 +102,7 @@ parallelExecution(vector<T> vec,
 }
 template<typename T>
 void
-parallelExecution(vector<T> vec,
+parallelExecution(std::vector<T> vec,
 				  function<void(int)> update,
 				  function<void(vectorRange<T>, ThreadData)> exec)
 {

@@ -170,13 +170,13 @@ NotesWriterJson::WriteSong(const RString& sFile,
 		FOREACH_BackgroundLayer(bl)
 		{
 			Json::Value& root3 = root2[bl];
-			const vector<BackgroundChange>& vBgc = out.GetBackgroundChanges(bl);
+			const std::vector<BackgroundChange>& vBgc = out.GetBackgroundChanges(bl);
 			JsonUtil::SerializeVectorObjects(vBgc, Serialize, root3);
 		}
 	}
 
 	{
-		const vector<BackgroundChange>& vBgc = out.GetForegroundChanges();
+		const std::vector<BackgroundChange>& vBgc = out.GetForegroundChanges();
 		JsonUtil::SerializeVectorObjects(
 		  vBgc, Serialize, root["ForegroundChanges"]);
 	}
@@ -184,7 +184,7 @@ NotesWriterJson::WriteSong(const RString& sFile,
 	JsonUtil::SerializeArrayValues(out.m_vsKeysoundFile, root["KeySounds"]);
 
 	if (bWriteSteps) {
-		vector<const Steps*> vpSteps;
+		std::vector<const Steps*> vpSteps;
 		FOREACH_CONST(Steps*, out.GetAllSteps(), iter)
 		{
 			vpSteps.push_back(*iter);

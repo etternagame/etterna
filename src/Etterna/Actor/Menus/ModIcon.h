@@ -21,7 +21,7 @@ class ModIcon : public ActorFrame
 
 	ThemeMetric<int> CROP_TEXT_TO_WIDTH;
 	ThemeMetric<RString> STOP_WORDS;
-	vector<RString> m_vStopWords;
+	std::vector<RString> m_vStopWords;
 };
 
 #endif

@@ -139,8 +139,8 @@ RageModelGeometry::LoadMilkshapeAscii(const RString& _sPath, bool bNeedsNormals)
 
 			for (int i = 0; i < nNumMeshes; i++) {
 				msMesh& mesh = m_Meshes[i];
-				vector<RageModelVertex>& Vertices = mesh.Vertices;
-				vector<msTriangle>& Triangles = mesh.Triangles;
+				std::vector<RageModelVertex>& Vertices = mesh.Vertices;
+				std::vector<msTriangle>& Triangles = mesh.Triangles;
 
 				if (f.GetLine(sLine) <= 0)
 					THROW;
@@ -210,7 +210,7 @@ RageModelGeometry::LoadMilkshapeAscii(const RString& _sPath, bool bNeedsNormals)
 				if (sscanf(sLine, "%d", &nNumNormals) != 1)
 					THROW;
 
-				vector<RageVector3> Normals;
+				std::vector<RageVector3> Normals;
 				Normals.resize(nNumNormals);
 				for (int j = 0; j < nNumNormals; j++) {
 					if (f.GetLine(sLine) <= 0)

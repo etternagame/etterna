@@ -18,11 +18,11 @@ class KeyboardDevice : public HIDDevice
 
   public:
 	void GetButtonPresses(
-	  vector<DeviceInput>& vPresses,
+	  std::vector<DeviceInput>& vPresses,
 	  IOHIDElementCookie cookie,
 	  int value,
 	  const std::chrono::time_point<std::chrono::steady_clock>& now) const;
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevices) const;
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevices) const;
 
 	static bool DeviceButtonToMacVirtualKey(DeviceButton button,
 											UInt8& iMacVKOut);

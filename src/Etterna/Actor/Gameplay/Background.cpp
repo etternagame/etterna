@@ -95,7 +95,7 @@ class BackgroundImpl : public ActorFrame
 	DancingCharacters* GetDancingCharacters() { return m_pDancingCharacters; };
 
 	void GetLoadedBackgroundChanges(
-	  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
+	  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
 
   protected:
 	bool m_bInitted;
@@ -136,7 +136,7 @@ class BackgroundImpl : public ActorFrame
 		  const map<RString, BackgroundTransition>& mapNameToTransition);
 
 		map<BackgroundDef, Actor*> m_BGAnimations;
-		vector<BackgroundChange> m_aBGChanges;
+		std::vector<BackgroundChange> m_aBGChanges;
 		int m_iCurBGChangeIndex;
 		Actor* m_pCurrentBGA;
 		Actor* m_pFadingBGA;
@@ -205,7 +205,7 @@ BackgroundImpl::Init()
 	// load transitions
 	{
 		ASSERT(m_mapNameToTransition.empty());
-		vector<RString> vsPaths, vsNames;
+		std::vector<RString> vsPaths, vsNames;
 		BackgroundUtil::GetBackgroundTransitions("", vsPaths, vsNames);
 		for (unsigned i = 0; i < vsPaths.size(); i++) {
 			const RString& sPath = vsPaths[i];
@@ -291,13 +291,13 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	ASSERT(m_BGAnimations.find(bd) == m_BGAnimations.end());
 
 	// Resolve the background names
-	vector<RString> vsToResolve;
+	std::vector<RString> vsToResolve;
 	vsToResolve.push_back(bd.m_sFile1);
 	vsToResolve.push_back(bd.m_sFile2);
 
-	vector<RString> vsResolved;
+	std::vector<RString> vsResolved;
 	vsResolved.resize(vsToResolve.size());
-	vector<LuaThreadVariable*> vsResolvedRef;
+	std::vector<LuaThreadVariable*> vsResolvedRef;
 	vsResolvedRef.resize(vsToResolve.size());
 
 	for (unsigned i = 0; i < vsToResolve.size(); i++) {
@@ -315,7 +315,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		 * RandomMovies dir
 		 * BGAnimations dir.
 		 */
-		vector<RString> vsPaths, vsThrowAway;
+		std::vector<RString> vsPaths, vsThrowAway;
 
 		// Look for BGAnims in the song dir
 		if (sToResolve == SONG_BACKGROUND_FILE)
@@ -397,7 +397,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	// Resolve the effect file.
 	RString sEffectFile;
 	for (int i = 0; i < 2; i++) {
-		vector<RString> vsPaths, vsThrowAway;
+		std::vector<RString> vsPaths, vsThrowAway;
 		BackgroundUtil::GetBackgroundEffects(sEffect, vsPaths, vsThrowAway);
 		if (vsPaths.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -474,7 +474,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 	const TimingData& timing = m_pSong->m_SongTiming;
 
 	// change BG every time signature change or 4 measures
-	const vector<TimingSegment*>& tSigs =
+	const std::vector<TimingSegment*>& tSigs =
 	  timing.GetTimingSegments(SEGMENT_TIME_SIG);
 
 	for (unsigned i = 0; i < tSigs.size(); i++) {
@@ -505,7 +505,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 
 	if (RAND_BG_CHANGES_WHEN_BPM_CHANGES) {
 		// change BG every BPM change that is at the beginning of a measure
-		const vector<TimingSegment*>& bpms =
+		const std::vector<TimingSegment*>& bpms =
 		  timing.GetTimingSegments(SEGMENT_BPM);
 		for (unsigned i = 0; i < bpms.size(); i++) {
 			bool bAtBeginningOfMeasure = false;
@@ -555,7 +555,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
 	{
-		vector<RString> vsThrowAway, vsNames;
+		std::vector<RString> vsThrowAway, vsNames;
 		switch (g_RandomBackgroundMode) {
 			default:
 				ASSERT_M(0,
@@ -928,7 +928,7 @@ BackgroundImpl::DrawPrimitives()
 
 void
 BackgroundImpl::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	FOREACH_BackgroundLayer(i) * pBackgroundChangesOut[i] =
 	  m_Layer[i].m_aBGChanges;
@@ -1068,7 +1068,7 @@ Background::GetDancingCharacters()
 }
 void
 Background::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	m_pImpl->GetLoadedBackgroundChanges(pBackgroundChangesOut);
 }

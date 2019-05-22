@@ -804,7 +804,7 @@ class Actor : public MessageSubscriber
 	Actor* m_FakeParent;
 	// WrapperStates provides a way to wrap the actor inside ActorFrames,
 	// applicable to any actor, not just ones the theme creates.
-	vector<Actor*> m_WrapperStates;
+	std::vector<Actor*> m_WrapperStates;
 
 	/** @brief Some general information about the Tween. */
 	struct TweenInfo
@@ -840,7 +840,7 @@ class Actor : public MessageSubscriber
 		TweenState state;
 		TweenInfo info;
 	};
-	vector<TweenStateAndInfo*> m_Tweens;
+	std::vector<TweenStateAndInfo*> m_Tweens;
 
 	/** @brief Temporary variables that are filled just before drawing */
 	TweenState* m_pTempState;
@@ -857,7 +857,7 @@ class Actor : public MessageSubscriber
 
 	// Stuff for effects
 #if defined(SSC_FUTURES) // be able to stack effects
-	vector<Effect> m_Effects;
+	std::vector<Effect> m_Effects;
 #else // compatibility
 	Effect m_Effect;
 #endif
@@ -916,8 +916,8 @@ class Actor : public MessageSubscriber
 	// global state
 	static float g_fCurrentBGMTime, g_fCurrentBGMBeat;
 	static float g_fCurrentBGMTimeNoOffset, g_fCurrentBGMBeatNoOffset;
-	static vector<float> g_vfCurrentBGMBeatPlayer;
-	static vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
+	static std::vector<float> g_vfCurrentBGMBeatPlayer;
+	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
   private:
 	// commands

@@ -12,11 +12,11 @@ SMALoader::ProcessMultipliers(TimingData& out,
 							  const int iRowsPerBeat,
 							  const RString& sParam)
 {
-	vector<RString> arrayMultiplierExpressions;
+	std::vector<RString> arrayMultiplierExpressions;
 	split(sParam, ",", arrayMultiplierExpressions);
 
 	for (unsigned f = 0; f < arrayMultiplierExpressions.size(); f++) {
-		vector<RString> arrayMultiplierValues;
+		std::vector<RString> arrayMultiplierValues;
 		split(arrayMultiplierExpressions[f], "=", arrayMultiplierValues);
 		unsigned size = arrayMultiplierValues.size();
 		if (size < 2) {
@@ -43,12 +43,12 @@ SMALoader::ProcessMultipliers(TimingData& out,
 void
 SMALoader::ProcessBeatsPerMeasure(TimingData& out, const RString& sParam)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(sParam, ",", vs1);
 
 	FOREACH_CONST(RString, vs1, s1)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2.size() < 2) {
@@ -88,12 +88,12 @@ SMALoader::ProcessSpeeds(TimingData& out,
 						 const RString& line,
 						 const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(line, ",", vs1);
 
 	FOREACH_CONST(RString, vs1, s1)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		vs2.clear(); // trying something.
 		RString loopTmp = *s1;
 		Trim(loopTmp);
@@ -167,7 +167,7 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 
 	Steps* pNewNotes = NULL;
 	int iRowsPerBeat = -1; // Start with an invalid value: needed for checking.
-	vector<pair<float, float>> vBPMChanges, vStops;
+	std::vector<pair<float, float>> vBPMChanges, vStops;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
@@ -283,10 +283,10 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 			 * value doesn't seem to be editable in SMA. When it
 			 * becomes so, make adjustments to this code. */
 			if (iRowsPerBeat < 0) {
-				vector<RString> arrayBeatChangeExpressions;
+				std::vector<RString> arrayBeatChangeExpressions;
 				split(sParams[1], ",", arrayBeatChangeExpressions);
 
-				vector<RString> arrayBeatChangeValues;
+				std::vector<RString> arrayBeatChangeValues;
 				split(
 				  arrayBeatChangeExpressions[0], "=", arrayBeatChangeValues);
 				iRowsPerBeat = StringToInt(arrayBeatChangeValues[1]);
@@ -335,7 +335,7 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 		}
 
 		else if (sValueName == "FGCHANGES") {
-			vector<RString> aFGChangeExpressions;
+			std::vector<RString> aFGChangeExpressions;
 			split(sParams[1], ",", aFGChangeExpressions);
 
 			for (unsigned b = 0; b < aFGChangeExpressions.size(); b++) {

@@ -15,7 +15,7 @@ class OptionListRow : public ActorFrame
 	void Load(OptionsList* pOptions, const RString& sType);
 	void SetFromHandler(const OptionRowHandler* pHandler);
 	void SetTextFromHandler(const OptionRowHandler* pHandler);
-	void SetUnderlines(const vector<bool>& aSelections,
+	void SetUnderlines(const std::vector<bool>& aSelections,
 					   const OptionRowHandler* pHandler);
 
 	void PositionCursor(Actor* pCursor, int iSelection);
@@ -25,9 +25,9 @@ class OptionListRow : public ActorFrame
   private:
 	OptionsList* m_pOptions;
 
-	vector<BitmapText> m_Text;
+	std::vector<BitmapText> m_Text;
 	// underline for each ("self or child has selection")
-	vector<AutoActor> m_Underlines;
+	std::vector<AutoActor> m_Underlines;
 
 	bool m_bItemsInTwoRows;
 
@@ -88,9 +88,9 @@ class OptionsList : public ActorFrame
 	bool m_bStartIsDown;
 	bool m_bAcceptStartRelease;
 
-	vector<RString> m_asLoadedRows;
+	std::vector<RString> m_asLoadedRows;
 	map<RString, OptionRowHandler*> m_Rows;
-	map<RString, vector<bool>> m_bSelections;
+	map<RString, std::vector<bool>> m_bSelections;
 	set<RString> m_setDirectRows;
 	set<RString> m_setTopMenus; // list of top-level menus, pointing to submenus
 
@@ -99,7 +99,7 @@ class OptionsList : public ActorFrame
 	OptionListRow m_Row[2];
 	int m_iCurrentRow;
 
-	vector<RString> m_asMenuStack;
+	std::vector<RString> m_asMenuStack;
 	int m_iMenuStackSelection;
 };
 

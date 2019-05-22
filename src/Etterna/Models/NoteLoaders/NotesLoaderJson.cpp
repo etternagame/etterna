@@ -11,7 +11,7 @@
 #include "json/value.h"
 
 void
-NotesLoaderJson::GetApplicableFiles(const RString& sPath, vector<RString>& out)
+NotesLoaderJson::GetApplicableFiles(const RString& sPath, std::vector<RString>& out)
 {
 	GetDirListing(sPath + RString("*.json"), out);
 }
@@ -50,8 +50,8 @@ Deserialize(StopSegment& seg, const Json::Value& root)
 static void
 Deserialize(TimingData& td, const Json::Value& root)
 {
-	vector<BPMSegment*> vBPMs;
-	vector<StopSegment*> vStops;
+	std::vector<BPMSegment*> vBPMs;
+	std::vector<StopSegment*> vStops;
 	JsonUtil::DeserializeVectorPointers(
 	  vBPMs, Deserialize, root["BpmSegments"]);
 	JsonUtil::DeserializeVectorPointers(
@@ -212,13 +212,13 @@ Deserialize(Song& out, const Json::Value& root)
 		FOREACH_BackgroundLayer(bl)
 		{
 			const Json::Value& root3 = root2[bl];
-			vector<BackgroundChange>& vBgc = out.GetBackgroundChanges(bl);
+			std::vector<BackgroundChange>& vBgc = out.GetBackgroundChanges(bl);
 			JsonUtil::DeserializeVectorObjects(vBgc, Deserialize, root3);
 		}
 	}
 
 	{
-		vector<BackgroundChange>& vBgc = out.GetForegroundChanges();
+		std::vector<BackgroundChange>& vBgc = out.GetForegroundChanges();
 		JsonUtil::DeserializeVectorObjects(
 		  vBgc, Deserialize, root["ForegroundChanges"]);
 	}
@@ -227,7 +227,7 @@ Deserialize(Song& out, const Json::Value& root)
 											   root["KeySounds"]);
 
 	{
-		vector<Steps*> vpSteps;
+		std::vector<Steps*> vpSteps;
 		JsonUtil::DeserializeVectorPointersParam<Steps, Song*>(
 		  vpSteps, Deserialize, root["Charts"], &out);
 		FOREACH(Steps*, vpSteps, iter)

@@ -70,7 +70,7 @@ ScreenMapControllers::Init()
 		}
 	} else {
 		/* Map the specified buttons. */
-		vector<RString> asBits;
+		std::vector<RString> asBits;
 		split(sButtons, ",", asBits);
 		for (unsigned i = 0; i < asBits.size(); ++i) {
 			KeyToMap k;
@@ -794,7 +794,7 @@ ScreenMapControllers::ExitAction()
 bool
 ScreenMapControllers::SanityCheckWrapper()
 {
-	vector<RString> reasons_not_sane;
+	std::vector<RString> reasons_not_sane;
 	INPUTMAPPER->SanityCheckMappings(reasons_not_sane);
 	if (reasons_not_sane.empty()) {
 		return true;

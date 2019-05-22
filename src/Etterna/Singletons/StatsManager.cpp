@@ -52,7 +52,7 @@ StatsManager::Reset()
 }
 
 static StageStats
-AccumPlayedStageStats(const vector<StageStats>& vss)
+AccumPlayedStageStats(const std::vector<StageStats>& vss)
 {
 	StageStats ssreturn;
 
@@ -93,7 +93,7 @@ void
 StatsManager::GetFinalEvalStageStats(StageStats& statsOut) const
 {
 	statsOut.Init();
-	vector<StageStats> vssToCount;
+	std::vector<StageStats> vssToCount;
 	for (size_t i = 0; i < m_vPlayedStageStats.size(); ++i) {
 		vssToCount.push_back(m_vPlayedStageStats[i]);
 	}

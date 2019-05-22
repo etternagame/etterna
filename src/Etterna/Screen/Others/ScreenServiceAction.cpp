@@ -45,7 +45,7 @@ CopyEdits(const RString& sFromProfileDir,
 		RString sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
 		RString sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
 
-		vector<RString> vsFiles;
+		std::vector<RString> vsFiles;
 		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
 		FOREACH_CONST(RString, vsFiles, i)
 		{
@@ -89,7 +89,7 @@ CopyEdits(const RString& sFromProfileDir,
 			  iNumIgnored,
 			  iNumErrored);
 
-	vector<RString> vs;
+	std::vector<RString> vs;
 	vs.push_back(sDisplayDir);
 	vs.push_back(ssprintf(COPIED.GetValue(), iNumSucceeded) + ", " +
 				 ssprintf(OVERWRITTEN.GetValue(), iNumOverwritten));
@@ -109,13 +109,13 @@ SyncFiles(const RString& sFromDir,
 		  int& iNumOverwritten,
 		  int& iNumFailed)
 {
-	vector<RString> vsFilesSource;
+	std::vector<RString> vsFilesSource;
 	GetDirListing(sFromDir + sMask, vsFilesSource, false, false);
 
-	vector<RString> vsFilesDest;
+	std::vector<RString> vsFilesDest;
 	GetDirListing(sToDir + sMask, vsFilesDest, false, false);
 
-	vector<RString> vsToDelete;
+	std::vector<RString> vsToDelete;
 	GetAsNotInBs(vsFilesDest, vsFilesSource, vsToDelete);
 
 	for (unsigned i = 0; i < vsToDelete.size(); ++i) {
@@ -184,10 +184,10 @@ void
 ScreenServiceAction::BeginScreen()
 {
 	RString sActions = THEME->GetMetric(m_sName, "Actions");
-	vector<RString> vsActions;
+	std::vector<RString> vsActions;
 	split(sActions, ",", vsActions);
 
-	vector<RString> vsResults;
+	std::vector<RString> vsResults;
 	FOREACH(RString, vsActions, s)
 	{
 		RString (*pfn)() = NULL;

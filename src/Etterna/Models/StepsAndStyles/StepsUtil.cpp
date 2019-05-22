@@ -27,7 +27,7 @@ CompareStepsPointersBySortValueDescending(const Steps* pSteps1,
 }
 
 void
-StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
+StepsUtil::SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vStepsPointers,
 										   ProfileSlot slot,
 										   bool bDescending)
 {
@@ -38,18 +38,18 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 }
 
 void
-StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
+StepsUtil::SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vStepsPointers,
 										   const Profile* pProfile,
 										   bool bDecending)
 {
 	// ugly...
-	vector<Song*> vpSongs = SONGMAN->GetAllSongs();
-	vector<Steps*> vpAllSteps;
+	std::vector<Song*> vpSongs = SONGMAN->GetAllSongs();
+	std::vector<Steps*> vpAllSteps;
 	map<Steps*, Song*> mapStepsToSong;
 	{
 		for (unsigned i = 0; i < vpSongs.size(); i++) {
 			Song* pSong = vpSongs[i];
-			vector<Steps*> vpSteps = pSong->GetAllSteps();
+			std::vector<Steps*> vpSteps = pSong->GetAllSteps();
 			for (unsigned j = 0; j < vpSteps.size(); j++) {
 				Steps* pSteps = vpSteps[j];
 				vpAllSteps.push_back(pSteps);
@@ -100,7 +100,7 @@ StepsUtil::CompareNotesPointersByDifficulty(const Steps* pSteps1,
 }
 
 void
-StepsUtil::SortNotesArrayByDifficulty(vector<Steps*>& arraySteps)
+StepsUtil::SortNotesArrayByDifficulty(std::vector<Steps*>& arraySteps)
 {
 	/* Sort in reverse order of priority. Sort by description first, to get
 	 * a predictable order for songs with no radar values (edits). */
@@ -126,7 +126,7 @@ StepsUtil::CompareStepsPointersByTypeAndDifficulty(const Steps* pStep1,
 }
 
 void
-StepsUtil::SortStepsByTypeAndDifficulty(vector<Steps*>& arraySongPointers)
+StepsUtil::SortStepsByTypeAndDifficulty(std::vector<Steps*>& arraySongPointers)
 {
 	sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),
@@ -141,7 +141,7 @@ StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 }
 
 void
-StepsUtil::SortStepsByDescription(vector<Steps*>& arraySongPointers)
+StepsUtil::SortStepsByDescription(std::vector<Steps*>& arraySongPointers)
 {
 	sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),

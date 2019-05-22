@@ -202,7 +202,7 @@ SetBGChanges(SSC::SongTagInfo& info)
 void
 SetFGChanges(SSC::SongTagInfo& info)
 {
-	vector<RString> aFGChangeExpressions;
+	std::vector<RString> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
 	for (size_t b = 0; b < aFGChangeExpressions.size(); ++b) {
@@ -384,7 +384,7 @@ void
 SetRadarValues(SSC::StepsTagInfo& info)
 {
 	if (info.from_cache || info.for_load_edit) {
-		vector<RString> values;
+		std::vector<RString> values;
 		split((*info.params)[1], ",", values, true);
 		RadarValues rv;
 		rv.Zero();
@@ -545,10 +545,10 @@ SetChartKey(SSC::StepsTagInfo& info)
 	info.steps->SetChartKey((*info.params)[1]);
 }
 
-vector<float>
+std::vector<float>
 SSC::msdsplit(const RString& s)
 {
-	vector<float> o;
+	std::vector<float> o;
 	for (size_t i = 0; i < s.size(); i += 6)
 		o.emplace_back(StringToFloat(s.substr(i, 5)));
 	return o;
@@ -694,11 +694,11 @@ SSCLoader::ProcessBPMs(TimingData& out,
 					   const RString& sParam,
 					   const string& songName)
 {
-	vector<RString> arrayBPMExpressions;
+	std::vector<RString> arrayBPMExpressions;
 	split(sParam, ",", arrayBPMExpressions);
 
 	for (unsigned b = 0; b < arrayBPMExpressions.size(); b++) {
-		vector<RString> arrayBPMValues;
+		std::vector<RString> arrayBPMValues;
 		split(arrayBPMExpressions[b], "=", arrayBPMValues);
 		if (arrayBPMValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -728,11 +728,11 @@ SSCLoader::ProcessStops(TimingData& out,
 						const RString& sParam,
 						const string& songName)
 {
-	vector<RString> arrayStopExpressions;
+	std::vector<RString> arrayStopExpressions;
 	split(sParam, ",", arrayStopExpressions);
 
 	for (unsigned b = 0; b < arrayStopExpressions.size(); b++) {
-		vector<RString> arrayStopValues;
+		std::vector<RString> arrayStopValues;
 		split(arrayStopExpressions[b], "=", arrayStopValues);
 		if (arrayStopValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -763,11 +763,11 @@ SSCLoader::ProcessWarps(TimingData& out,
 						const float fVersion,
 						const string& songName)
 {
-	vector<RString> arrayWarpExpressions;
+	std::vector<RString> arrayWarpExpressions;
 	split(sParam, ",", arrayWarpExpressions);
 
 	for (unsigned b = 0; b < arrayWarpExpressions.size(); b++) {
-		vector<RString> arrayWarpValues;
+		std::vector<RString> arrayWarpValues;
 		split(arrayWarpExpressions[b], "=", arrayWarpValues);
 		if (arrayWarpValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -800,11 +800,11 @@ SSCLoader::ProcessLabels(TimingData& out,
 						 const RString& sParam,
 						 const string& songName)
 {
-	vector<RString> arrayLabelExpressions;
+	std::vector<RString> arrayLabelExpressions;
 	split(sParam, ",", arrayLabelExpressions);
 
 	for (unsigned b = 0; b < arrayLabelExpressions.size(); b++) {
-		vector<RString> arrayLabelValues;
+		std::vector<RString> arrayLabelValues;
 		split(arrayLabelExpressions[b], "=", arrayLabelValues);
 		if (arrayLabelValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -843,11 +843,11 @@ SSCLoader::ProcessCombos(TimingData& out,
 						 const string& songName,
 						 const int rowsPerBeat)
 {
-	vector<RString> arrayComboExpressions;
+	std::vector<RString> arrayComboExpressions;
 	split(line, ",", arrayComboExpressions);
 
 	for (unsigned f = 0; f < arrayComboExpressions.size(); f++) {
-		vector<RString> arrayComboValues;
+		std::vector<RString> arrayComboValues;
 		split(arrayComboExpressions[f], "=", arrayComboValues);
 		unsigned size = arrayComboValues.size();
 		if (size < 2) {
@@ -872,12 +872,12 @@ SSCLoader::ProcessScrolls(TimingData& out,
 						  const RString sParam,
 						  const string& songName)
 {
-	vector<RString> vs1;
+	std::vector<RString> vs1;
 	split(sParam, ",", vs1);
 
 	FOREACH_CONST(RString, vs1, s1)
 	{
-		vector<RString> vs2;
+		std::vector<RString> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2.size() < 2) {

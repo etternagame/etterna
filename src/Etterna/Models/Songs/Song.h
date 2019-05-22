@@ -211,7 +211,7 @@ class Song
 										   : m_sMainTitle;
 	}
 
-	vector<Steps*> GetStepsToSave(bool bSavingCache = true, string path = "");
+	std::vector<Steps*> GetStepsToSave(bool bSavingCache = true, string path = "");
 
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
@@ -281,7 +281,7 @@ class Song
 	string m_sCDTitlePath;
 	string m_sPreviewVidPath;
 
-	vector<RString> ImageDir;
+	std::vector<RString> ImageDir;
 
 	static RString GetSongAssetPath(RString sPath, const RString& sSongPath);
 	const string& GetMusicPath() const {return m_sMusicPath;}
@@ -338,7 +338,7 @@ class Song
 	void SetLastSecond(float f);
 	void SetSpecifiedLastSecond(float f);
 
-	typedef vector<BackgroundChange> VBackgroundChange;
+	typedef std::vector<BackgroundChange> VBackgroundChange;
 
   private:
 	/** @brief The first second that a note is hit. */
@@ -361,26 +361,26 @@ class Song
 	 * This must be sorted before gameplay. */
 	AutoPtrCopyOnWrite<VBackgroundChange> m_ForegroundChanges;
 
-	vector<RString> GetChangesToVectorString(
-	  const vector<BackgroundChange>& changes) const;
+	std::vector<RString> GetChangesToVectorString(
+	  const std::vector<BackgroundChange>& changes) const;
 
   public:
-	const vector<BackgroundChange>& GetBackgroundChanges(
+	const std::vector<BackgroundChange>& GetBackgroundChanges(
 	  BackgroundLayer bl) const;
-	vector<BackgroundChange>& GetBackgroundChanges(BackgroundLayer bl);
-	const vector<BackgroundChange>& GetForegroundChanges() const;
-	vector<BackgroundChange>& GetForegroundChanges();
+	std::vector<BackgroundChange>& GetBackgroundChanges(BackgroundLayer bl);
+	const std::vector<BackgroundChange>& GetForegroundChanges() const;
+	std::vector<BackgroundChange>& GetForegroundChanges();
 
-	vector<RString> GetBGChanges1ToVectorString() const;
-	vector<RString> GetBGChanges2ToVectorString() const;
-	vector<RString> GetFGChanges1ToVectorString() const;
+	std::vector<RString> GetBGChanges1ToVectorString() const;
+	std::vector<RString> GetBGChanges2ToVectorString() const;
+	std::vector<RString> GetFGChanges1ToVectorString() const;
 
-	vector<RString> GetInstrumentTracksToVectorString() const;
+	std::vector<RString> GetInstrumentTracksToVectorString() const;
 
 	/**
 	 * @brief The list of LyricSegments.
 	 * This must be sorted before gameplay. */
-	vector<LyricSegment> m_LyricSegments;
+	std::vector<LyricSegment> m_LyricSegments;
 
 
 	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
@@ -413,8 +413,8 @@ class Song
 	bool SongCompleteForStyle(const Style* st) const;
 	bool HasStepsType(StepsType st) const;
 	bool HasStepsTypeAndDifficulty(StepsType st, Difficulty dc) const;
-	const vector<Steps*>& GetAllSteps() const { return m_vpSteps; }
-	const vector<Steps*>& GetStepsByStepsType(StepsType st) const
+	const std::vector<Steps*>& GetAllSteps() const { return m_vpSteps; }
+	const std::vector<Steps*>& GetStepsByStepsType(StepsType st) const
 	{
 		return m_vpStepsByType[st];
 	}
@@ -444,7 +444,7 @@ class Song
 		return m_LoadedFromProfile != ProfileSlot_Invalid;
 	}
 	void GetStepsLoadedFromProfile(ProfileSlot slot,
-								   vector<Steps*>& vpStepsOut) const;
+								   std::vector<Steps*>& vpStepsOut) const;
 	int GetNumStepsLoadedFromProfile(ProfileSlot slot) const;
 	bool IsEditAlreadyLoaded(Steps* pSteps) const;
 
@@ -457,15 +457,15 @@ class Song
 	 * If you  change the index in here, you must change all NoteData too.
 	 * Any note that doesn't have a value in the range of this array
 	 * means "this note doesn't have a keysound". */
-	vector<RString> m_vsKeysoundFile;
+	std::vector<RString> m_vsKeysoundFile;
 
 	CachedObject<Song> m_CachedObject;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
-	vector<Steps*> m_vpSteps;
-	vector<Steps*> m_UnknownStyleSteps;
+	std::vector<Steps*> m_vpSteps;
+	std::vector<Steps*> m_UnknownStyleSteps;
 
   private:
 	bool isfavorited = false;
@@ -474,7 +474,7 @@ class Song
 	bool m_loaded_from_autosave;
 	/** @brief the Steps that belong to this Song. */
 	/** @brief the Steps of a particular StepsType that belong to this Song. */
-	vector<Steps*> m_vpStepsByType[NUM_StepsType];
+	std::vector<Steps*> m_vpStepsByType[NUM_StepsType];
 	/** @brief the Steps that are of unrecognized Styles. */
 };
 

@@ -140,7 +140,7 @@ NoteField::CacheAllUsedNoteSkins()
 {
 	/* Cache all note skins that we might need for the whole song, course or battle
 	 * play, so we don't have to load them later (such as between course songs). */
-	vector<RString> asSkinsLower;
+	std::vector<RString> asSkinsLower;
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
@@ -624,7 +624,7 @@ GetNumNotesFromBeginning(const PlayerState* pPlayerState, float beat)
 	// XXX: I realized that I have copied and pasted my binary search code 3
 	// times already.
 	//      how can we abstract this?
-	const vector<CacheNoteStat>& data = pPlayerState->m_CacheNoteStat;
+	const std::vector<CacheNoteStat>& data = pPlayerState->m_CacheNoteStat;
 	int max = data.size() - 1;
 	int l = 0, r = max;
 	while (l <= r) {
@@ -816,7 +816,7 @@ NoteField::DrawPrimitives()
 	}
 
 	const TimingData* pTiming = &m_pPlayerState->GetDisplayedTiming();
-	const vector<TimingSegment*>* segs[NUM_TimingSegmentType];
+	const std::vector<TimingSegment*>* segs[NUM_TimingSegmentType];
 
 	FOREACH_TimingSegmentType(tst) segs[tst] =
 	  &(pTiming->GetTimingSegments(tst));
@@ -825,7 +825,7 @@ NoteField::DrawPrimitives()
 	// Draw beat bars
 	if( SHOW_BEAT_BARS && pTiming != NULL )
 	{
-		const vector<TimingSegment *> &tSigs = *segs[SEGMENT_TIME_SIG];
+		const std::vector<TimingSegment *> &tSigs = *segs[SEGMENT_TIME_SIG];
 		int iMeasureIndex = 0;
 		for (i = 0; i < tSigs.size(); i++) {
 			const TimeSignatureSegment* ts = ToTimeSignature(tSigs[i]);

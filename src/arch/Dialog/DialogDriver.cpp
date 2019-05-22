@@ -20,7 +20,7 @@ DialogDriver*
 DialogDriver::Create()
 {
 	RString sDrivers = "win32,macosx,null";
-	vector<RString> asDriversToTry;
+	std::vector<RString> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(asDriversToTry.size() != 0);

@@ -16,10 +16,10 @@ class ThemeMetricDifficultiesToShow : public ThemeMetric<RString>
 	}
 	ThemeMetricDifficultiesToShow(const RString& sGroup, const RString& sName);
 	void Read();
-	const vector<Difficulty>& GetValue() const;
+	const std::vector<Difficulty>& GetValue() const;
 
   private:
-	vector<Difficulty> m_v;
+	std::vector<Difficulty> m_v;
 };
 class ThemeMetricStepsTypesToShow : public ThemeMetric<RString>
 {
@@ -30,10 +30,10 @@ class ThemeMetricStepsTypesToShow : public ThemeMetric<RString>
 	}
 	ThemeMetricStepsTypesToShow(const RString& sGroup, const RString& sName);
 	void Read();
-	const vector<StepsType>& GetValue() const;
+	const std::vector<StepsType>& GetValue() const;
 
   private:
-	vector<StepsType> m_v;
+	std::vector<StepsType> m_v;
 };
 
 /**

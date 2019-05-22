@@ -29,7 +29,7 @@ ScreenOptionsEditProfile::BeginScreen()
 {
 	m_Original = *GAMESTATE->GetEditLocalProfile();
 
-	vector<OptionRowHandler*> vHands;
+	std::vector<OptionRowHandler*> vHands;
 
 	Profile* pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
@@ -46,7 +46,7 @@ ScreenOptionsEditProfile::BeginScreen()
 		def.m_bExportOnChange = true;
 		def.m_sName = "Character";
 		def.m_vsChoices.clear();
-		vector<Character*> vpCharacters;
+		std::vector<Character*> vpCharacters;
 		CHARMAN->GetCharacters(vpCharacters);
 		FOREACH_CONST(Character*, vpCharacters, c)
 		def.m_vsChoices.push_back((*c)->GetDisplayName());

@@ -113,8 +113,8 @@ struct GoalsForChart
 {
   public:
 	void Add(ScoreGoal& sg) { goals.emplace_back(sg); }
-	vector<ScoreGoal>& Get() { return goals; }
-	vector<ScoreGoal> goals;
+	std::vector<ScoreGoal>& Get() { return goals; }
+	std::vector<ScoreGoal> goals;
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
@@ -279,7 +279,7 @@ class Profile
 	void RemoveGoal(const string& ck, DateTime assigned);
 	unordered_map<string, GoalsForChart> goalmap;
 	void FillGoalTable();
-	vector<ScoreGoal*> goaltable;
+	std::vector<ScoreGoal*> goaltable;
 	int sortmode = 1;   // 1=date 2=rate 3=name 4=priority 5=diff, init to name
 						// because that's the default- mina
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
@@ -342,7 +342,7 @@ class Profile
 									 RString const& to_dir);
 
 	// Screenshot Data
-	vector<Screenshot> m_vScreenshots;
+	std::vector<Screenshot> m_vScreenshots;
 	void AddScreenshot(const Screenshot& screenshot);
 	int GetNextScreenshotIndex() { return m_vScreenshots.size(); }
 

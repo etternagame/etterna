@@ -52,7 +52,7 @@ Style::GetTransformedNoteDataForStyle(PlayerNumber pn,
 void
 Style::StyleInputToGameInput(int iCol,
 							 PlayerNumber pn,
-							 vector<GameInput>& ret) const
+							 std::vector<GameInput>& ret) const
 {
 	ASSERT_M( pn < NUM_PLAYERS  &&  iCol < MAX_COLS_PER_PLAYER,
 		ssprintf("P%i C%i", pn, iCol) );
@@ -145,7 +145,7 @@ Style::ColToButtonName(int iCol) const
 	if (pzColumnName != NULL)
 		return pzColumnName;
 
-	vector<GameInput> GI;
+	std::vector<GameInput> GI;
 	StyleInputToGameInput(iCol, PLAYER_1, GI);
 	return INPUTMAPPER->GetInputScheme()->GetGameButtonName(GI[0].button);
 }

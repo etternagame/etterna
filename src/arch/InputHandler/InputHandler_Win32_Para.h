@@ -10,7 +10,7 @@ class InputHandler_Win32_Para : public InputHandler
 {
   public:
 	InputHandler_Win32_Para();
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut);
 };
 
 #endif

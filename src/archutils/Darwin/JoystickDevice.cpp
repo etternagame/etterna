@@ -188,7 +188,7 @@ JoystickDevice::InitDevice(int vid, int pid)
 
 void
 JoystickDevice::GetButtonPresses(
-  vector<DeviceInput>& vPresses,
+  std::vector<DeviceInput>& vPresses,
   IOHIDElementCookie cookie,
   int value,
   const std::chrono::time_point<std::chrono::steady_clock>& now) const
@@ -323,7 +323,7 @@ JoystickDevice::AssignIDs(InputDevice startID)
 
 void
 JoystickDevice::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevices) const
+  std::vector<InputDeviceInfo>& vDevices) const
 {
 	FOREACH_CONST(Joystick, m_vSticks, i)
 	vDevices.push_back(InputDeviceInfo(i->id, GetDescription()));

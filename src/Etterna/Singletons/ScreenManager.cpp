@@ -108,13 +108,13 @@ struct LoadedScreen
 
 Actor* g_pSharedBGA; // BGA object that's persistent between screens
 RString m_sPreviousTopScreen;
-vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
-vector<Screen*> g_OverlayScreens;
+std::vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
+std::vector<Screen*> g_OverlayScreens;
 set<RString> g_setGroupedScreens;
 set<RString> g_setPersistantScreens;
 
-vector<LoadedScreen> g_vPreparedScreens;
-vector<Actor*> g_vPreparedBackgrounds;
+std::vector<LoadedScreen> g_vPreparedScreens;
+std::vector<Actor*> g_vPreparedBackgrounds;
 
 // Add a screen to g_ScreenStack. This is the only function that adds to
 // g_ScreenStack.
@@ -200,7 +200,7 @@ AfterDeleteScreen()
  * Clear the prepared lists. The contents of apOut must be
  * freed by the caller. */
 void
-GrabPreparedActors(vector<Actor*>& apOut)
+GrabPreparedActors(std::vector<Actor*>& apOut)
 {
 	FOREACH(LoadedScreen, g_vPreparedScreens, s)
 	if (s->m_bDeleteWhenDone)
@@ -219,7 +219,7 @@ GrabPreparedActors(vector<Actor*>& apOut)
 void
 DeletePreparedScreens()
 {
-	vector<Actor*> apActorsToDelete;
+	std::vector<Actor*> apActorsToDelete;
 	GrabPreparedActors(apActorsToDelete);
 
 	BeforeDeleteScreen();
@@ -319,7 +319,7 @@ ScreenManager::ReloadOverlayScreens()
 
 	// reload overlay screens
 	RString sOverlays = THEME->GetMetric("Common", "OverlayScreens");
-	vector<RString> asOverlays;
+	std::vector<RString> asOverlays;
 	split(sOverlays, ",", asOverlays);
 	for (unsigned i = 0; i < asOverlays.size(); i++) {
 		Screen* pScreen = MakeNewScreen(asOverlays[i]);
@@ -765,7 +765,7 @@ ScreenManager::LoadDelayedScreen()
 	 * cleanup, so it doesn't get deleted by cleanup. */
 	bool bLoaded = ActivatePreparedScreenAndBackground(sScreenName);
 
-	vector<Actor*> apActorsToDelete;
+	std::vector<Actor*> apActorsToDelete;
 	if (g_setGroupedScreens.find(sScreenName) == g_setGroupedScreens.end()) {
 		/* It's time to delete all old prepared screens. Depending on
 		 * DelayedScreenLoad, we can either delete the screens before or after

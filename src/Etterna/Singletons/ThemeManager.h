@@ -34,15 +34,15 @@ class ThemeManager
 	ThemeManager();
 	~ThemeManager();
 
-	void GetThemeNames(vector<RString>& AddTo);
-	void GetSelectableThemeNames(vector<RString>& AddTo);
+	void GetThemeNames(std::vector<RString>& AddTo);
+	void GetSelectableThemeNames(std::vector<RString>& AddTo);
 	int GetNumSelectableThemes();
 	bool DoesThemeExist(const RString& sThemeName);
 	bool IsThemeSelectable(RString const& name);
 	bool IsThemeNameValid(RString const& name);
 	RString GetThemeDisplayName(const RString& sThemeName);
 	RString GetThemeAuthor(const RString& sThemeName);
-	void GetLanguages(vector<RString>& AddTo);
+	void GetLanguages(std::vector<RString>& AddTo);
 	bool DoesLanguageExist(const RString& sLanguage);
 	void SwitchThemeAndLanguage(const RString& sThemeName,
 								const RString& sLanguage,
@@ -62,7 +62,7 @@ class ThemeManager
 	void ReloadMetrics();
 	void ReloadSubscribers();
 	void ClearSubscribers();
-	void GetOptionNames(vector<RString>& AddTo);
+	void GetOptionNames(std::vector<RString>& AddTo);
 
 	static void EvaluateString(RString& sText);
 
@@ -144,7 +144,7 @@ class ThemeManager
 	{
 		valueOut = GetString(sMetricsGroup, sValueName);
 	}
-	void FilterFileLanguages(vector<RString>& asElementPaths);
+	void FilterFileLanguages(std::vector<RString>& asElementPaths);
 
 	void GetMetricsThatBeginWith(const RString& sMetricsGroup,
 								 const RString& sValueName,
@@ -187,10 +187,10 @@ class ThemeManager
 	RString GetElementDir(const RString& sThemeName);
 	static RString GetMetricsIniPath(const RString& sThemeName);
 	static void GetLanguagesForTheme(const RString& sThemeName,
-									 vector<RString>& asLanguagesOut);
+									 std::vector<RString>& asLanguagesOut);
 	static RString GetLanguageIniPath(const RString& sThemeName,
 									  const RString& sLanguage);
-	void GetOptionalLanguageIniPaths(vector<RString>& vsPathsOut,
+	void GetOptionalLanguageIniPaths(std::vector<RString>& vsPathsOut,
 									 const RString& sThemeName,
 									 const RString& sLanguage);
 	RString GetDefaultLanguage();

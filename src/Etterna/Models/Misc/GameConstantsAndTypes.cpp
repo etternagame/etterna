@@ -14,10 +14,10 @@ RString
 StepsTypeToString(StepsType st);
 
 // This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a vector of RStrings. -poco
-static vector<RString>
+static std::vector<RString>
 GenerateRankingToFillInMarker()
 {
-	vector<RString> vRankings;
+	std::vector<RString> vRankings;
 	vRankings.push_back(ssprintf("#P%d#", PLAYER_1 + 1));
 	return vRankings;
 }

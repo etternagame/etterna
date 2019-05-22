@@ -302,7 +302,7 @@ CryptManager::VerifyFileWithFile(const RString& sPath,
 	if (VerifyFileWithFile(sPath, sSignatureFile, PUBLIC_KEY_PATH))
 		return true;
 
-	vector<RString> asKeys;
+	std::vector<RString> asKeys;
 	GetDirListing(ALTERNATE_PUBLIC_KEY_DIR, asKeys, false, true);
 	for (unsigned i = 0; i < asKeys.size(); ++i) {
 		const RString& sKey = asKeys[i];

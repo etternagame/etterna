@@ -589,7 +589,7 @@ Model::PlayAnimation(const RString& sAniName, float fPlayRate)
 	// subtract out the bone's resting position
 	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
 		msMesh* pMesh = &m_pGeometry->m_Meshes[i];
-		vector<RageModelVertex>& Vertices = pMesh->Vertices;
+		std::vector<RageModelVertex>& Vertices = pMesh->Vertices;
 		for (unsigned j = 0; j < Vertices.size(); j++) {
 			// int iBoneIndex = (pMesh->m_iBoneIndex!=-1) ? pMesh->m_iBoneIndex
 			// : bone;
@@ -660,7 +660,7 @@ Model::AdvanceFrame(float fDeltaTime)
 void
 Model::SetBones(const msAnimation* pAnimation,
 				float fFrame,
-				vector<myBone_t>& vpBones)
+				std::vector<myBone_t>& vpBones)
 {
 	for (size_t i = 0; i < pAnimation->Bones.size(); ++i) {
 		const msBone* pBone = &pAnimation->Bones[i];
@@ -745,8 +745,8 @@ Model::UpdateTempGeometry()
 	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
 		const msMesh& origMesh = m_pGeometry->m_Meshes[i];
 		msMesh& tempMesh = m_vTempMeshes[i];
-		const vector<RageModelVertex>& origVertices = origMesh.Vertices;
-		vector<RageModelVertex>& tempVertices = tempMesh.Vertices;
+		const std::vector<RageModelVertex>& origVertices = origMesh.Vertices;
+		std::vector<RageModelVertex>& tempVertices = tempMesh.Vertices;
 		for (unsigned j = 0; j < origVertices.size(); j++) {
 			RageVector3& tempPos = tempVertices[j].p;
 			RageVector3& tempNormal = tempVertices[j].n;

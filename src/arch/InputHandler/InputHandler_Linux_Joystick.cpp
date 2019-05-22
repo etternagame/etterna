@@ -210,7 +210,7 @@ InputHandler_Linux_Joystick::InputThread()
 
 void
 InputHandler_Linux_Joystick::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	// HACK: If IH_Linux_Joystick is constructed before IH_Linux_Event, our
 	// thread won't be started as part of the constructor. This isn't called

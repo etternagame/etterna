@@ -173,7 +173,7 @@ ThemeManager::ThemeManager()
 	m_sCurThemeName = "";
 	m_bPseudoLocalize = false;
 
-	vector<RString> arrayThemeNames;
+	std::vector<RString> arrayThemeNames;
 	GetThemeNames(arrayThemeNames);
 }
 
@@ -187,7 +187,7 @@ ThemeManager::~ThemeManager()
 }
 
 void
-ThemeManager::GetThemeNames(vector<RString>& AddTo)
+ThemeManager::GetThemeNames(std::vector<RString>& AddTo)
 {
 	GetDirListing(SpecialFiles::THEMES_DIR + "*", AddTo, true);
 	StripCvsAndSvn(AddTo);
@@ -195,7 +195,7 @@ ThemeManager::GetThemeNames(vector<RString>& AddTo)
 }
 
 void
-ThemeManager::GetSelectableThemeNames(vector<RString>& AddTo)
+ThemeManager::GetSelectableThemeNames(std::vector<RString>& AddTo)
 {
 	GetThemeNames(AddTo);
 	for (int i = AddTo.size() - 1; i >= 0; i--) {
@@ -208,7 +208,7 @@ ThemeManager::GetSelectableThemeNames(vector<RString>& AddTo)
 int
 ThemeManager::GetNumSelectableThemes()
 {
-	vector<RString> vs;
+	std::vector<RString> vs;
 	GetSelectableThemeNames(vs);
 	return vs.size();
 }
@@ -216,7 +216,7 @@ ThemeManager::GetNumSelectableThemes()
 bool
 ThemeManager::DoesThemeExist(const RString& sThemeName)
 {
-	vector<RString> asThemeNames;
+	std::vector<RString> asThemeNames;
 	GetThemeNames(asThemeNames);
 	for (unsigned i = 0; i < asThemeNames.size(); i++) {
 		if (!sThemeName.CompareNoCase(asThemeNames[i]))
@@ -271,7 +271,7 @@ EqualsNoCase(const RString& s1, const RString& s2)
 	return s1.EqualsNoCase(s2);
 }
 void
-ThemeManager::GetLanguages(vector<RString>& AddTo)
+ThemeManager::GetLanguages(std::vector<RString>& AddTo)
 {
 	AddTo.clear();
 
@@ -280,7 +280,7 @@ ThemeManager::GetLanguages(vector<RString>& AddTo)
 
 	// remove dupes
 	sort(AddTo.begin(), AddTo.end());
-	vector<RString>::iterator it =
+	std::vector<RString>::iterator it =
 	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
 	AddTo.erase(it, AddTo.end());
 }
@@ -288,7 +288,7 @@ ThemeManager::GetLanguages(vector<RString>& AddTo)
 bool
 ThemeManager::DoesLanguageExist(const RString& sLanguage)
 {
-	vector<RString> asLanguages;
+	std::vector<RString> asLanguages;
 	GetLanguages(asLanguages);
 
 	for (unsigned i = 0; i < asLanguages.size(); i++)
@@ -330,7 +330,7 @@ ThemeManager::LoadThemeMetrics(const RString& sThemeName_,
 		// Load optional language inis (probably mounted by a package) first so
 		// that they can be overridden by the current theme.
 		{
-			vector<RString> vs;
+			std::vector<RString> vs;
 			GetOptionalLanguageIniPaths(vs, sThemeName, sLanguage);
 			FOREACH_CONST(RString, vs, s)
 			iniStrings.ReadFile(*s);
@@ -380,7 +380,7 @@ ThemeManager::LoadThemeMetrics(const RString& sThemeName_,
 		 * in "foo::bar=1+1=2", "baz" is always "1+1=2". Neither foo nor bar may
 		 * be empty, but baz may be. */
 		Regex re("^([^=]+)::([^=]+)=(.*)$");
-		vector<RString> sBits;
+		std::vector<RString> sBits;
 		if (!re.Compare(sMetric, sBits))
 			RageException::Throw("Invalid argument \"--metric=%s\".",
 								 sMetric.c_str());
@@ -430,7 +430,7 @@ ThemeManager::SwitchThemeAndLanguage(const RString& sThemeName_,
 					  to_try.c_str());
 			sThemeName = to_try;
 			if (!IsThemeSelectable(sThemeName)) {
-				vector<RString> theme_names;
+				std::vector<RString> theme_names;
 				GetSelectableThemeNames(theme_names);
 				ASSERT_M(!theme_names.empty(),
 						 "No themes found, unable to start stepmania.");
@@ -534,10 +534,10 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 		const RString& sScriptDir =
 		  bUseThemeDir ? GetThemeDirFromName(m_sCurThemeName) : "/";
 
-		vector<RString> asElementPaths;
+		std::vector<RString> asElementPaths;
 		// get files from directories
-		vector<RString> asElementChildPaths;
-		vector<RString> arrayScriptDirs;
+		std::vector<RString> asElementChildPaths;
+		std::vector<RString> arrayScriptDirs;
 		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
 		SortRStringArray(arrayScriptDirs);
 		StripCvsAndSvn(arrayScriptDirs);
@@ -628,11 +628,11 @@ struct CompareLanguageTag
  * the multiple-match dialog will cause it to default to the first entry, so
  * it'll still use a preferred language match if there were any. */
 void
-ThemeManager::FilterFileLanguages(vector<RString>& asPaths)
+ThemeManager::FilterFileLanguages(std::vector<RString>& asPaths)
 {
 	if (asPaths.size() <= 1)
 		return;
-	vector<RString>::iterator it = partition(
+	std::vector<RString>::iterator it = partition(
 	  asPaths.begin(), asPaths.end(), CompareLanguageTag(m_sCurLanguage));
 
 	int iDist = distance(asPaths.begin(), it);
@@ -665,7 +665,7 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	const RString sThemeDir = GetThemeDirFromName(sThemeName);
 	const RString& sCategory = ElementCategoryToString(category);
 
-	vector<RString> asElementPaths;
+	std::vector<RString> asElementPaths;
 
 	// If sFileName already has an extension, we're looking for a specific file
 	bool bLookingForSpecificFile = sElement.find_last_of('.') != sElement.npos;
@@ -680,7 +680,7 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	} else // look for all files starting with sFileName that have types we can
 		   // use
 	{
-		vector<RString> asPaths;
+		std::vector<RString> asPaths;
 		GetDirListing(
 		  sThemeDir + sCategory + "/" +
 			MetricsGroupAndElementToFileName(sMetricsGroup, sElement) + "*",
@@ -1245,7 +1245,7 @@ ThemeManager::EvaluateString(RString& sText)
 RString
 ThemeManager::GetNextTheme()
 {
-	vector<RString> as;
+	std::vector<RString> as;
 	GetThemeNames(as);
 	unsigned i;
 	for (i = 0; i < as.size(); i++)
@@ -1258,7 +1258,7 @@ ThemeManager::GetNextTheme()
 RString
 ThemeManager::GetNextSelectableTheme()
 {
-	vector<RString> as;
+	std::vector<RString> as;
 	GetSelectableThemeNames(as);
 	unsigned i;
 	for (i = 0; i < as.size(); i++)
@@ -1270,11 +1270,11 @@ ThemeManager::GetNextSelectableTheme()
 
 void
 ThemeManager::GetLanguagesForTheme(const RString& sThemeName,
-								   vector<RString>& asLanguagesOut)
+								   std::vector<RString>& asLanguagesOut)
 {
 	RString sLanguageDir =
 	  GetThemeDirFromName(sThemeName) + SpecialFiles::LANGUAGES_SUBDIR;
-	vector<RString> as;
+	std::vector<RString> as;
 	GetDirListing(sLanguageDir + "*.ini", as);
 
 	FOREACH_CONST(RString, as, s)
@@ -1304,7 +1304,7 @@ ThemeManager::GetLanguageIniPath(const RString& sThemeName,
 }
 
 void
-ThemeManager::GetOptionalLanguageIniPaths(vector<RString>& vsPathsOut,
+ThemeManager::GetOptionalLanguageIniPaths(std::vector<RString>& vsPathsOut,
 										  const RString& sThemeName,
 										  const RString& sLanguage)
 {
@@ -1317,7 +1317,7 @@ ThemeManager::GetOptionalLanguageIniPaths(vector<RString>& vsPathsOut,
 }
 
 void
-ThemeManager::GetOptionNames(vector<RString>& AddTo)
+ThemeManager::GetOptionNames(std::vector<RString>& AddTo)
 {
 	const XNode* cur = g_pLoadedThemeData->iniStrings.GetChild("OptionNames");
 	if (cur) {
@@ -1524,7 +1524,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 	{
 		// pushes a table of theme folders from GetSelectableThemeNames()
 		// lua_pushnumber(L, p->GetNumSelectableThemes() );
-		vector<RString> sThemes;
+		std::vector<RString> sThemes;
 		p->GetSelectableThemeNames(sThemes);
 		LuaHelpers::CreateTableFromArray<RString>(sThemes, L);
 		return 1;

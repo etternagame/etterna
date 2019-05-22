@@ -7,7 +7,7 @@ class Song;
 
 namespace NotesLoaderJson {
 void
-GetApplicableFiles(const RString& sPath, vector<RString>& out);
+GetApplicableFiles(const RString& sPath, std::vector<RString>& out);
 bool
 LoadFromDir(const RString& sPath, Song& out);
 bool

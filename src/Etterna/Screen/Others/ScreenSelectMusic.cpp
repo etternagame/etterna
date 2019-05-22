@@ -229,7 +229,7 @@ ScreenSelectMusic::BeginScreen()
 		LOG->Trace("The Style has not been set.  A theme must set the Style "
 				   "before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
-		vector<StepsType> vst;
+		std::vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const Style* pStyle = GAMEMAN->GetFirstCompatibleStyle(
 		  GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
@@ -436,7 +436,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
-				vector<string> oldChartkeys;
+				std::vector<string> oldChartkeys;
 				for (auto steps : stepses)
 					oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -901,7 +901,7 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 			return;
 	}
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	FOREACH_HumanPlayer(p)
 	{
 		if (pn == p || GAMESTATE->DifficultiesLocked()) {
@@ -1211,7 +1211,7 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 }
 
 void
-ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
+ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns)
 {
 	PlayerNumber pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
@@ -1308,7 +1308,7 @@ ScreenSelectMusic::AfterMusicChange()
 								 // if we forget about it -mina
 
 	m_vpSteps.clear();
-	vector<RString> m_Artists, m_AltArtists;
+	std::vector<RString> m_Artists, m_AltArtists;
 
 	if (SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_LastSong) {
 		m_sSampleMusicToPlay = "";
@@ -1446,7 +1446,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_StartedLoadingAt.Touch();
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	FOREACH_HumanPlayer(p) vpns.push_back(p);
 
 	AfterStepsOrTrailChange(vpns);
@@ -1647,7 +1647,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			}
 			*/
 			auto sdifs = td->BuildAndGetEtaner(nerv);
-			vector<int> noterows;
+			std::vector<int> noterows;
 			for (auto t : timestamps) {
 				auto timestamptobeat =
 				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
@@ -1706,7 +1706,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// Set mirror mode on if mirror was on in the replay
 		// Also get ready to reset the turn mods to what they were before
 		RString mods = hs->GetModifiers();
-		vector<RString> oldTurns;
+		std::vector<RString> oldTurns;
 		GAMESTATE->m_pPlayerState
 		  ->m_PlayerOptions.GetSong()
 		  .GetTurnMods(oldTurns);

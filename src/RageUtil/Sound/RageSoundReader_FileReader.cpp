@@ -122,9 +122,9 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 		}
 	}
 	set<RString> FileTypes;
-	vector<RString> const& sound_exts =
+	std::vector<RString> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
-	for (vector<RString>::const_iterator curr = sound_exts.begin();
+	for (std::vector<RString>::const_iterator curr = sound_exts.begin();
 		 curr != sound_exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);

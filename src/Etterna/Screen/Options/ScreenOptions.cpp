@@ -198,7 +198,7 @@ ScreenOptions::Init()
 }
 
 void
-ScreenOptions::InitMenu(const vector<OptionRowHandler*>& vHands)
+ScreenOptions::InitMenu(const std::vector<OptionRowHandler*>& vHands)
 {
 	LOG->Trace("ScreenOptions::InitMenu()");
 
@@ -588,7 +588,7 @@ ScreenOptions::PositionRows(bool bTween)
 	// Choices for the player.
 	int P1Choice = m_iCurrentRow;
 
-	vector<OptionRow*> Rows(m_pRows);
+	std::vector<OptionRow*> Rows(m_pRows);
 	OptionRow* pSeparateExitRow = NULL;
 
 	if ((bool)SEPARATE_EXIT_ROW && !Rows.empty() &&

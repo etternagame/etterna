@@ -92,10 +92,10 @@ struct FileSet
 	void GetFilesMatching(const RString& sBeginning,
 						  const RString& sContaining,
 						  const RString& sEnding,
-						  vector<RString>& asOut,
+						  std::vector<RString>& asOut,
 						  bool bOnlyDirs) const;
 	void GetFilesEqualTo(const RString& pat,
-						 vector<RString>& out,
+						 std::vector<RString>& out,
 						 bool bOnlyDirs) const;
 
 	RageFileManager::FileType GetFileType(const RString& sPath) const;
@@ -123,7 +123,7 @@ class FilenameDB
 	 * complicated, we'll need to use fnmatch or regex. */
 	void GetFilesSimpleMatch(const RString& sDir,
 							 const RString& sFile,
-							 vector<RString>& asOut,
+							 std::vector<RString>& asOut,
 							 bool bOnlyDirs);
 
 	/* Search for "path" case-insensitively and replace it with the correct
@@ -135,7 +135,7 @@ class FilenameDB
 	int GetFileSize(const RString& sPath);
 	int GetFileHash(const RString& sFilePath);
 	void GetDirListing(const RString& sPath,
-					   vector<RString>& asAddTo,
+					   std::vector<RString>& asAddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
@@ -158,13 +158,13 @@ class FilenameDB
 
 	void GetFilesEqualTo(const RString& sDir,
 						 const RString& sName,
-						 vector<RString>& asOut,
+						 std::vector<RString>& asOut,
 						 bool bOnlyDirs);
 	void GetFilesMatching(const RString& sDir,
 						  const RString& sBeginning,
 						  const RString& sContaining,
 						  const RString& sEnding,
-						  vector<RString>& asOut,
+						  std::vector<RString>& asOut,
 						  bool bOnlyDirs);
 	void DelFileSet(map<RString, FileSet*>::iterator dir);
 

@@ -95,7 +95,7 @@ RageSoundReader_Merge::Finish(int iPreferredSampleRate)
 	/* If we have more than two channels, then all sounds must have the same
 	 * number of channels. */
 	if (m_iChannels > 2) {
-		vector<RageSoundReader*> aSounds;
+		std::vector<RageSoundReader*> aSounds;
 		FOREACH(RageSoundReader*, m_aSounds, it)
 		{
 			if ((*it)->GetNumChannels() != m_iChannels) {
@@ -189,8 +189,8 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 	 * inconsistency happens may be a bug, such as sounds at different speeds.
 	 */
 
-	vector<int> aNextSourceFrames;
-	vector<float> aRatios;
+	std::vector<int> aNextSourceFrames;
+	std::vector<float> aRatios;
 	aNextSourceFrames.resize(m_aSounds.size());
 	aRatios.resize(m_aSounds.size());
 	for (unsigned i = 0; i < m_aSounds.size(); ++i) {

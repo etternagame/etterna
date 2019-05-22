@@ -75,7 +75,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 	 * string at all. */
 	int size = -1;
 	const int end = start + len;
-	vector<pair<const char*, const char*>> aMeasureLines;
+	std::vector<pair<const char*, const char*>> aMeasureLines;
 	for (unsigned m = 0; true; ++m) {
 		/* XXX Ignoring empty seems wrong for measures. It means that ",,," is
 		 * treated as
@@ -262,7 +262,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 			begin = next;
 		}
 	}
-	out.RevalidateATIs(vector<int>(), false);
+	out.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -518,7 +518,7 @@ NoteDataUtil::LoadFromETTNoteDataString(NoteData& out,
 		pos += nt + 2;
 		++m;
 	}
-	out.RevalidateATIs(vector<int>(), false);
+	out.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -581,7 +581,7 @@ void
 NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
-	vector<NoteData> parts;
+	std::vector<NoteData> parts;
 	float fLastBeat = -1.0f;
 
 	FOREACH(NoteData, parts, nd)
@@ -680,7 +680,7 @@ void
 NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
-	vector<NoteData> parts;
+	std::vector<NoteData> parts;
 	float fLastBeat = -1.f;
 
 	FOREACH(NoteData, parts, nd)
@@ -899,7 +899,7 @@ NoteDataUtil::LoadTransformedSlidingWindow(const NoteData& in,
 			out.SetTapNote(iNewTrack, r, tn);
 		}
 	}
-	out.RevalidateATIs(vector<int>(), false);
+	out.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1014,7 +1014,7 @@ NoteDataUtil::LoadOverlapped(const NoteData& in,
 			PlaceAutoKeysound(out, row, tnFrom);
 		}
 	}
-	out.RevalidateATIs(vector<int>(), false);
+	out.RevalidateATIs(std::vector<int>(), false);
 }
 
 int
@@ -1053,7 +1053,7 @@ struct crv_state
 	bool judgable{ false };
 	// hold_ends tracks where currently active holds will end, which is used
 	// to count the number of hands. -Kyz
-	vector<int> hold_ends;
+	std::vector<int> hold_ends;
 	// num_holds_on_curr_row saves us the work of tracking where holds started
 	// just to keep a jump of two holds from counting as a hand.
 	int num_holds_on_curr_row{ 0 };
@@ -1089,7 +1089,7 @@ NoteDataUtil::CalculateRadarValues(const NoteData& in,
 	// and track number of a tap note.  When the pair at the beginning is too
 	// old, it's deleted.  This provides a way to have a rolling window
 	// that scans for the peak step density. -Kyz
-	vector<recent_note> recent_notes;
+	std::vector<recent_note> recent_notes;
 	NoteData::all_tracks_const_iterator curr_note =
 	  in.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW);
 	TimingData* timing =
@@ -1188,7 +1188,7 @@ NoteDataUtil::RemoveHoldNotes(NoteData& in, int iStartIndex, int iEndIndex)
 			begin->second.type = TapNoteType_Tap;
 		}
 	}
-	in.RevalidateATIs(vector<int>(), false);
+	in.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1204,7 +1204,7 @@ NoteDataUtil::ChangeRollsToHolds(NoteData& in, int iStartIndex, int iEndIndex)
 			begin->second.subType = TapNoteSubType_Hold;
 		}
 	}
-	in.RevalidateATIs(vector<int>(), false);
+	in.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1220,7 +1220,7 @@ NoteDataUtil::ChangeHoldsToRolls(NoteData& in, int iStartIndex, int iEndIndex)
 			begin->second.subType = TapNoteSubType_Roll;
 		}
 	}
-	in.RevalidateATIs(vector<int>(), false);
+	in.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1253,7 +1253,7 @@ NoteDataUtil::RemoveSimultaneousNotes(NoteData& in,
 			}
 		}
 	}
-	in.RevalidateATIs(vector<int>(), false);
+	in.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1288,7 +1288,7 @@ NoteDataUtil::RemoveSpecificTapNotes(NoteData& inout,
 			}
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1318,7 +1318,7 @@ NoteDataUtil::RemoveFakes(NoteData& inout,
 			}
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1340,7 +1340,7 @@ NoteDataUtil::RemoveAllButOneTap(NoteData& inout, int row)
 		if (iter != inout.end(track) && iter->second.type == TapNoteType_Tap)
 			inout.RemoveTapNote(track, iter);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1356,7 +1356,7 @@ NoteDataUtil::RemoveAllButPlayer(NoteData& inout, PlayerNumber pn)
 				++i;
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 // TODO: Perform appropriate matrix calculations for everything instead.
@@ -1769,7 +1769,7 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
 	{
-		vector<int> doot(inout.GetNumTracks());
+		std::vector<int> doot(inout.GetNumTracks());
 		iota(std::begin(doot), std::end(doot), 0);
 
 		random_shuffle(doot.begin(), doot.end());
@@ -1858,7 +1858,7 @@ NoteDataUtil::Turn(NoteData& inout,
 		SuperShuffleTaps(tempNoteData, iStartIndex, iEndIndex);
 
 	inout.CopyAll(tempNoteData);
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1883,7 +1883,7 @@ NoteDataUtil::Backwards(NoteData& inout)
 	}
 
 	inout.swap(out);
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1902,7 +1902,7 @@ NoteDataUtil::SwapSides(NoteData& inout)
 
 	NoteData orig(inout);
 	inout.LoadTransformed(orig, orig.GetNumTracks(), iOriginalTrackToTakeFrom);
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -1917,7 +1917,7 @@ NoteDataUtil::Little(NoteData& inout, int iStartIndex, int iEndIndex)
 			inout.SetTapNote(t, i, TAP_EMPTY);
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 // Make all quarter notes into jumps.
@@ -1974,7 +1974,7 @@ NoteDataUtil::Wide(NoteData& inout, int iStartIndex, int iEndIndex)
 		}
 		inout.SetTapNote(iTrackToAdd, i, TAP_ADDITION_TAP);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2103,7 +2103,7 @@ NoteDataUtil::InsertIntelligentTaps(NoteData& inout,
 
 		inout.SetTapNote(iTrackOfNoteToAdd, iRowToAdd, TAP_ADDITION_TAP);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 #if 0
 class TrackIterator
@@ -2230,7 +2230,7 @@ NoteDataUtil::AddMines(NoteData& inout, int iStartIndex, int iEndIndex)
 			iRowCount = 0;
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2287,7 +2287,7 @@ NoteDataUtil::Echo(NoteData& inout, int iStartIndex, int iEndIndex)
 
 		inout.SetTapNote(iEchoTrack, iRowEcho, TAP_ADDITION_TAP);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2363,7 +2363,7 @@ NoteDataUtil::ConvertTapsToHolds(NoteData& inout,
 			}
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 /* Need to redo parsing to handle multiple notes on a row
@@ -2439,7 +2439,7 @@ NoteDataUtil::IcyWorld(NoteData& inout,
 		skipLine = !skipLine;
 		i++;
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2511,7 +2511,7 @@ NoteDataUtil::AnchorJS(NoteData& inout,
 		skipLine = !skipLine;
 		i++;
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 /* Same as AnchorJS, but it doesn't check if the next row will generate a jack.
@@ -2582,7 +2582,7 @@ NoteDataUtil::JackJS(NoteData& inout,
 		skipLine = !skipLine;
 		i++;
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2631,7 +2631,7 @@ NoteDataUtil::Stomp(NoteData& inout,
 			}
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2689,7 +2689,7 @@ NoteDataUtil::SnapToNearestNoteType(NoteData& inout,
 			inout.SetTapNote(c, iNewIndex, tnNew);
 		}
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2813,7 +2813,7 @@ NoteDataUtil::SwapUpDown(NoteData& inout, StepsType st)
 	NoteData tempND;
 	tempND.LoadTransformed(inout, inout.GetNumTracks(), TakeFrom);
 	inout.CopyAll(tempND);
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -2822,7 +2822,7 @@ NoteDataUtil::ArbitraryRemap(NoteData& inout, int* mapping)
 	NoteData tempND;
 	tempND.LoadTransformed(inout, inout.GetNumTracks(), mapping);
 	inout.CopyAll(tempND);
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 struct ValidRow
@@ -2850,7 +2850,7 @@ NoteDataUtil::RemoveStretch(NoteData& inout,
 							int iStartIndex,
 							int iEndIndex)
 {
-	vector<const ValidRow*> vpValidRowsToCheck;
+	std::vector<const ValidRow*> vpValidRowsToCheck;
 	for (unsigned i = 0; i < ARRAYLEN(g_ValidRows); i++) {
 		if (g_ValidRows[i].st == st)
 			vpValidRowsToCheck.push_back(&g_ValidRows[i]);
@@ -2879,7 +2879,7 @@ NoteDataUtil::RemoveStretch(NoteData& inout,
 		if (!bPassedOneMask)
 			RemoveAllButOneTap(inout, r);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 bool
@@ -2906,7 +2906,7 @@ NoteDataUtil::ConvertAdditionsToRegular(NoteData& inout)
 		tn.source = TapNoteSource_Original;
 		inout.SetTapNote(t, r, tn);
 	}
-	inout.RevalidateATIs(vector<int>(), false);
+	inout.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3007,7 +3007,7 @@ NoteDataUtil::TransformNoteData(NoteData& nd,
 		NoteDataUtil::Turn(
 		  nd, st, NoteDataUtil::super_shuffle, iStartIndex, iEndIndex);
 
-	nd.RevalidateATIs(vector<int>(), false);
+	nd.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3030,7 +3030,7 @@ NoteDataUtil::Scale(NoteData& nd, float fScale)
 	}
 
 	nd.swap(ndOut);
-	nd.RevalidateATIs(vector<int>(), false);
+	nd.RevalidateATIs(std::vector<int>(), false);
 }
 
 /* XXX: move this to an appropriate place, same place as NoteRowToBeat perhaps?
@@ -3075,7 +3075,7 @@ NoteDataUtil::ScaleRegion(NoteData& nd,
 	}
 
 	nd.swap(ndOut);
-	nd.RevalidateATIs(vector<int>(), false);
+	nd.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3088,7 +3088,7 @@ NoteDataUtil::InsertRows(NoteData& nd, int iStartIndex, int iRowsToAdd)
 	temp.CopyRange(nd, iStartIndex, MAX_NOTE_ROW);
 	nd.ClearRange(iStartIndex, MAX_NOTE_ROW);
 	nd.CopyRange(temp, 0, MAX_NOTE_ROW, iStartIndex + iRowsToAdd);
-	nd.RevalidateATIs(vector<int>(), false);
+	nd.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3101,7 +3101,7 @@ NoteDataUtil::DeleteRows(NoteData& nd, int iStartIndex, int iRowsToDelete)
 	temp.CopyRange(nd, iStartIndex + iRowsToDelete, MAX_NOTE_ROW);
 	nd.ClearRange(iStartIndex, MAX_NOTE_ROW);
 	nd.CopyRange(temp, 0, MAX_NOTE_ROW, iStartIndex);
-	nd.RevalidateATIs(vector<int>(), false);
+	nd.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3120,7 +3120,7 @@ NoteDataUtil::RemoveAllTapsOfType(NoteData& ndInOut, TapNoteType typeToRemove)
 				++iter;
 		}
 	}
-	ndInOut.RevalidateATIs(vector<int>(), false);
+	ndInOut.RevalidateATIs(std::vector<int>(), false);
 }
 
 void
@@ -3137,7 +3137,7 @@ NoteDataUtil::RemoveAllTapsExceptForType(NoteData& ndInOut,
 				++iter;
 		}
 	}
-	ndInOut.RevalidateATIs(vector<int>(), false);
+	ndInOut.RevalidateATIs(std::vector<int>(), false);
 }
 
 int
@@ -3247,7 +3247,7 @@ NoteDataUtil::GetTotalHoldTicks(NoteData* nd, const TimingData* td)
 	unsigned int ret = 0;
 	// Last row must be included. -- Matt
 	int end = nd->GetLastRow() + 1;
-	vector<TimingSegment*> segments = td->GetTimingSegments(SEGMENT_TICKCOUNT);
+	std::vector<TimingSegment*> segments = td->GetTimingSegments(SEGMENT_TICKCOUNT);
 	// We start with the LAST TimingSegment and work our way backwards.
 	// This way we can continually update end instead of having to lookup when
 	// the next segment starts.

@@ -49,7 +49,7 @@ struct OptionRowDefinition
 	bool m_bOneChoiceForAllPlayers{ false };
 	SelectType m_selectType{ SELECT_ONE };
 	LayoutType m_layoutType{ LAYOUT_SHOW_ALL_IN_ROW };
-	vector<RString> m_vsChoices;
+	std::vector<RString> m_vsChoices;
 	set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
 											// change focus to this row
 	int m_iDefault{ -1 };
@@ -173,7 +173,7 @@ class OptionRowHandler
 {
   public:
 	OptionRowDefinition m_Def;
-	vector<RString>
+	std::vector<RString>
 	  m_vsReloadRowMessages; // refresh this row on on these messages
 
 	OptionRowHandler()
@@ -217,12 +217,12 @@ class OptionRowHandler
 	virtual int GetDefaultOption() const { return -1; }
 	virtual void ImportOption(OptionRow*,
 							  const PlayerNumber&,
-							  vector<bool>& vbSelectedOut) const
+							  std::vector<bool>& vbSelectedOut) const
 	{
 	}
 	// Returns an OPT mask.
 	virtual int ExportOption(const PlayerNumber&,
-							 const vector<bool>& vbSelected) const
+							 const std::vector<bool>& vbSelected) const
 	{
 		return 0;
 	}
@@ -249,13 +249,13 @@ OptionRowHandler*
 MakeSimple(const MenuRowDef& mrd);
 
 void
-SelectExactlyOne(int iSelection, vector<bool>& vbSelectedOut);
+SelectExactlyOne(int iSelection, std::vector<bool>& vbSelectedOut);
 int
-GetOneSelection(const vector<bool>& vbSelected);
+GetOneSelection(const std::vector<bool>& vbSelected);
 }
 
 inline void
-VerifySelected(SelectType st, vector<bool>& selected, const RString& sName)
+VerifySelected(SelectType st, std::vector<bool>& selected, const RString& sName)
 {
 	int num_selected = 0;
 	if (st == SELECT_ONE) {

@@ -61,7 +61,7 @@ struct WinWdmPin
 	HANDLE m_hHandle;
 	WinWdmFilter* m_pParentFilter;
 	int m_iPinId;
-	vector<KSDATARANGE_AUDIO> m_dataRangesItem;
+	std::vector<KSDATARANGE_AUDIO> m_dataRangesItem;
 };
 
 enum DeviceSampleFormat
@@ -124,7 +124,7 @@ struct WinWdmFilter
 	void Release();
 
 	HANDLE m_hHandle;
-	vector<WinWdmPin*> m_apPins;
+	std::vector<WinWdmPin*> m_apPins;
 	RString m_sFilterName;
 	RString m_sFriendlyName;
 	int m_iUsageCount;
@@ -220,7 +220,7 @@ WdmGetPropertySimple(HANDLE hHandle,
 					 RString& sError)
 {
 	unsigned long iPropertySize = sizeof(KSPROPERTY) + iInstanceSize;
-	vector<char> buf;
+	std::vector<char> buf;
 	buf.resize(iPropertySize);
 	KSPROPERTY* ksProperty = (KSPROPERTY*)&buf[0];
 
@@ -252,7 +252,7 @@ WdmSetPropertySimple(HANDLE hHandle,
 					 unsigned long iInstanceSize,
 					 RString& sError)
 {
-	vector<char> buf;
+	std::vector<char> buf;
 	unsigned long iPropertySize = sizeof(KSPROPERTY) + iInstanceSize;
 	buf.resize(iPropertySize);
 	KSPROPERTY* ksProperty = (KSPROPERTY*)&buf[0];
@@ -778,12 +778,12 @@ WinWdmFilter::InstantiateRenderPin(const WAVEFORMATEX* wfex, RString& sError)
 
 template<typename T, typename U>
 void
-MoveToBeginning(vector<T>& v, const U& item)
+MoveToBeginning(std::vector<T>& v, const U& item)
 {
-	vector<T>::iterator it = find(v.begin(), v.end(), item);
+	std::vector<T>::iterator it = find(v.begin(), v.end(), item);
 	if (it == v.end())
 		return;
-	vector<T>::iterator next = it;
+	std::vector<T>::iterator next = it;
 	++next;
 	copy_backward(v.begin(), it, next);
 	*v.begin() = item;
@@ -858,7 +858,7 @@ WinWdmFilter::InstantiateRenderPin(
 	 * 1 (mono).  Prefer more channels, since some drivers won't send audio to
 	 * rear speakers in stereo modes.  Sort the preferred channel count first.
 	 */
-	vector<int> aChannels;
+	std::vector<int> aChannels;
 	aChannels.push_back(8);
 	aChannels.push_back(6);
 	aChannels.push_back(4);
@@ -867,7 +867,7 @@ WinWdmFilter::InstantiateRenderPin(
 	MoveToBeginning(aChannels, iPreferredOutputChannels);
 
 	/* Try all sample formats.  Try PreferredOutputSampleFormat first. */
-	vector<DeviceSampleFormat> SampleFormats;
+	std::vector<DeviceSampleFormat> SampleFormats;
 	SampleFormats.push_back(DeviceSampleFormat_Int16);
 	SampleFormats.push_back(DeviceSampleFormat_Int24);
 	SampleFormats.push_back(DeviceSampleFormat_Int32);
@@ -882,7 +882,7 @@ WinWdmFilter::InstantiateRenderPin(
 	 * Try all samplerates listed in the device's DATARANGES.  Sort iSampleRate
 	 * first, then 48k, then 44.1k, then higher sample rates first.
 	 */
-	vector<int> aSampleRates;
+	std::vector<int> aSampleRates;
 	{
 		for (size_t j = 0; j < m_apPins.size(); ++j) {
 			WinWdmPin* pPin = m_apPins[j];
@@ -910,7 +910,7 @@ WinWdmFilter::InstantiateRenderPin(
 	}
 
 	/* Try WAVE_FORMAT_EXTENSIBLE, then WAVE_FORMAT_PCM. */
-	vector<bool> aTryPCM;
+	std::vector<bool> aTryPCM;
 	aTryPCM.push_back(false);
 	aTryPCM.push_back(true);
 
@@ -993,7 +993,7 @@ GetDevicePath(HANDLE hHandle,
 
 /* Build a list of available filters. */
 static bool
-BuildFilterList(vector<WinWdmFilter*>& aFilters, RString& sError)
+BuildFilterList(std::vector<WinWdmFilter*>& aFilters, RString& sError)
 {
 	const GUID* pCategoryGuid = (GUID*)&KSCATEGORY_RENDER;
 
@@ -1531,7 +1531,7 @@ RageSoundDriver_WDMKS::Init()
 	if (!PaWinWdm_Initialize(sError))
 		return sError;
 
-	vector<WinWdmFilter*> apFilters;
+	std::vector<WinWdmFilter*> apFilters;
 	if (!BuildFilterList(apFilters, sError))
 		return "Error building filter list: " + sError;
 	if (apFilters.empty())

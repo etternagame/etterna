@@ -79,7 +79,7 @@ struct SongTagInfo
 	{
 	}
 };
-vector<float>
+std::vector<float>
 msdsplit(const RString& s);
 }
 /** @brief The version where fakes started to be used as a radar category. */

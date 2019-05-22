@@ -94,7 +94,7 @@ class PlayerInfo
 	 * @brief The list of Steps a player has to go through in this set.
 	 *
 	 * The size may be greater than 1 if playing a course. */
-	vector<Steps*> m_vpStepsQueue;
+	std::vector<Steps*> m_vpStepsQueue;
 
 	/** @brief The LifeMeter showing a Player's health. */
 	LifeMeter* m_pLifeMeter;
@@ -246,9 +246,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	 * @brief The songs left to play.
 	 *
 	 * The size can be greater than 1 if playing a course. */
-	vector<Song*> m_apSongsQueue;
-	vector<float> ratesqueue;
-	vector<string> playlistscorekeys;
+	std::vector<Song*> m_apSongsQueue;
+	std::vector<float> ratesqueue;
+	std::vector<string> playlistscorekeys;
 
 	float m_fTimeSinceLastDancingComment; // this counter is only running while
 										  // STATE_DANCING
@@ -297,9 +297,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	RageSound* m_pSoundMusic;
 
 
-	vector<PlayerInfo>
+	std::vector<PlayerInfo>
 	  m_vPlayerInfo; // filled by SGameplay derivatives in FillPlayerInfo
-	virtual void FillPlayerInfo(vector<PlayerInfo>& vPlayerInfoOut) = 0;
+	virtual void FillPlayerInfo(std::vector<PlayerInfo>& vPlayerInfoOut) = 0;
 	virtual PlayerInfo& GetPlayerInfoForInput(const InputEventPlus& iep)
 	{
 		return m_vPlayerInfo[iep.pn];
@@ -316,50 +316,50 @@ class ScreenGameplay : public ScreenWithMenuElements
 	bool m_bRestarted = false;
 };
 
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfoNotDummy(vector<PlayerInfo>::iterator iter,
-								 vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-							   vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-						vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextVisiblePlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v);
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerInfo(std::vector<PlayerInfo>::iterator iter,
+						 std::vector<PlayerInfo>& v);
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerInfoNotDummy(std::vector<PlayerInfo>::iterator iter,
+								 std::vector<PlayerInfo>& v);
+std::vector<PlayerInfo>::iterator
+GetNextEnabledPlayerNumberInfo(std::vector<PlayerInfo>::iterator iter,
+							   std::vector<PlayerInfo>& v);
+std::vector<PlayerInfo>::iterator
+GetNextPlayerNumberInfo(std::vector<PlayerInfo>::iterator iter,
+						std::vector<PlayerInfo>& v);
+std::vector<PlayerInfo>::iterator
+GetNextVisiblePlayerInfo(std::vector<PlayerInfo>::iterator iter,
+						 std::vector<PlayerInfo>& v);
 
 /** @brief Get each enabled Player's info. */
 #define FOREACH_EnabledPlayerInfo(v, pi)                                       \
-	for (vector<PlayerInfo>::iterator pi =                                     \
+	for (std::vector<PlayerInfo>::iterator pi =                                     \
 		   GetNextEnabledPlayerInfo(v.begin(), v);                             \
 		 pi != v.end();                                                        \
 		 pi = GetNextEnabledPlayerInfo(++pi, v))
 /** @brief Get each enabled Player's info as long as it's not a dummy player. */
 #define FOREACH_EnabledPlayerInfoNotDummy(v, pi)                               \
-	for (vector<PlayerInfo>::iterator pi =                                     \
+	for (std::vector<PlayerInfo>::iterator pi =                                     \
 		   GetNextEnabledPlayerInfoNotDummy(v.begin(), v);                     \
 		 pi != v.end();                                                        \
 		 pi = GetNextEnabledPlayerInfoNotDummy(++pi, v))
 /** @brief Get each enabled Player Number's info. */
 #define FOREACH_EnabledPlayerNumberInfo(v, pi)                                 \
-	for (vector<PlayerInfo>::iterator pi =                                     \
+	for (std::vector<PlayerInfo>::iterator pi =                                     \
 		   GetNextEnabledPlayerNumberInfo(v.begin(), v);                       \
 		 pi != v.end();                                                        \
 		 pi = GetNextEnabledPlayerNumberInfo(++pi, v))
 /** @brief Get each Player Number's info, regardless of whether it's enabled or
  * not. */
 #define FOREACH_PlayerNumberInfo(v, pi)                                        \
-	for (vector<PlayerInfo>::iterator pi =                                     \
+	for (std::vector<PlayerInfo>::iterator pi =                                     \
 		   GetNextPlayerNumberInfo(v.begin(), v);                              \
 		 pi != v.end();                                                        \
 		 pi = GetNextPlayerNumberInfo(++pi, v))
 /** @brief Get each visible Player's info. */
 #define FOREACH_VisiblePlayerInfo(v, pi)                                       \
-	for (vector<PlayerInfo>::iterator pi =                                     \
+	for (std::vector<PlayerInfo>::iterator pi =                                     \
 		   GetNextVisiblePlayerInfo(v.begin(), v);                             \
 		 pi != v.end();                                                        \
 		 pi = GetNextVisiblePlayerInfo(++pi, v))

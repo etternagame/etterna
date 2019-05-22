@@ -48,7 +48,7 @@ class RageSoundReader_Split : public RageSoundReader
 			m_iToChannel = iToChannel;
 		}
 	};
-	vector<ChannelMap> m_aChannels;
+	std::vector<ChannelMap> m_aChannels;
 
 	int m_iPositionFrame;
 	int m_iRequestFrames;

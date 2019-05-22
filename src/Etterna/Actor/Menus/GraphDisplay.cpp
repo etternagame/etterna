@@ -115,8 +115,8 @@ class GraphLine : public Actor
 	GraphLine* Copy() const override;
 
   private:
-	vector<RageSpriteVertex> m_Quads;
-	vector<RageSpriteVertex> m_pCircles;
+	std::vector<RageSpriteVertex> m_Quads;
+	std::vector<RageSpriteVertex> m_pCircles;
 };
 REGISTER_ACTOR_CLASS(GraphLine);
 

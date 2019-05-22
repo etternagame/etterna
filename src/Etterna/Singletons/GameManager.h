@@ -30,23 +30,23 @@ class GameManager
 	~GameManager();
 
 	void GetStylesForGame(const Game* pGame,
-						  vector<const Style*>& aStylesAddTo,
+						  std::vector<const Style*>& aStylesAddTo,
 						  bool editor = false);
 	const Game* GetGameForStyle(const Style* pStyle);
 	void GetStepsTypesForGame(const Game* pGame,
-							  vector<StepsType>& aStepsTypeAddTo);
+							  std::vector<StepsType>& aStepsTypeAddTo);
 	const Style* GetEditorStyleForStepsType(StepsType st);
 	void GetDemonstrationStylesForGame(const Game* pGame,
-									   vector<const Style*>& vpStylesOut);
+									   std::vector<const Style*>& vpStylesOut);
 	const Style* GetHowToPlayStyleForGame(const Game* pGame);
 	void GetCompatibleStyles(const Game* pGame,
 							 int iNumPlayers,
-							 vector<const Style*>& vpStylesOut);
+							 std::vector<const Style*>& vpStylesOut);
 	const Style* GetFirstCompatibleStyle(const Game* pGame,
 										 int iNumPlayers,
 										 StepsType st);
 
-	void GetEnabledGames(vector<const Game*>& aGamesOut);
+	void GetEnabledGames(std::vector<const Game*>& aGamesOut);
 	const Game* GetDefaultGame();
 	bool IsGameEnabled(const Game* pGame);
 	int GetIndexFromGame(const Game* pGame);
@@ -62,7 +62,7 @@ class GameManager
 	bool m_bResetTurns;
 	float m_fPreviousRate;
 	RString m_sModsToReset;
-	vector<RString> m_vTurnsToReset;
+	std::vector<RString> m_vTurnsToReset;
 	FailType m_iPreviousFail;
 	bool m_bRestartedGameplay;
 

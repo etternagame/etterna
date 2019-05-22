@@ -44,14 +44,14 @@ struct HighScoreImpl
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
-	vector<string> uploaded;
-	vector<float> vOffsetVector;
-	vector<int> vNoteRowVector;
-	vector<int> vTrackVector;
-	vector<TapNoteType> vTapNoteTypeVector;
-	vector<HoldReplayResult> vHoldReplayDataVector;
-	vector<float> vOnlineReplayTimestampVector;
-	vector<int> vRescoreJudgeVector;
+	std::vector<string> uploaded;
+	std::vector<float> vOffsetVector;
+	std::vector<int> vNoteRowVector;
+	std::vector<int> vTrackVector;
+	std::vector<TapNoteType> vTapNoteTypeVector;
+	std::vector<HoldReplayResult> vHoldReplayDataVector;
+	std::vector<float> vOnlineReplayTimestampVector;
+	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
 	string	sModifiers;
 	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
@@ -84,10 +84,10 @@ struct HighScoreImpl
 
 	float RescoreToWifeTS(float ts);
 
-	RString OffsetsToString(vector<float> v) const;
-	vector<float> OffsetsToVector(RString s);
-	RString NoteRowsToString(vector<int> v) const;
-	vector<int> NoteRowsToVector(RString s);
+	RString OffsetsToString(std::vector<float> v) const;
+	std::vector<float> OffsetsToVector(RString s);
+	RString NoteRowsToString(std::vector<int> v) const;
+	std::vector<int> NoteRowsToVector(RString s);
 
 	bool is39import = false;
 
@@ -165,7 +165,7 @@ HighScoreImpl::GetWifeGrade() const
 }
 
 RString
-HighScoreImpl::OffsetsToString(vector<float> v) const
+HighScoreImpl::OffsetsToString(std::vector<float> v) const
 {
 	RString o = "";
 	if (v.empty())
@@ -178,7 +178,7 @@ HighScoreImpl::OffsetsToString(vector<float> v) const
 }
 
 RString
-HighScoreImpl::NoteRowsToString(vector<int> v) const
+HighScoreImpl::NoteRowsToString(std::vector<int> v) const
 {
 	RString o = "";
 	if (v.empty())
@@ -190,10 +190,10 @@ HighScoreImpl::NoteRowsToString(vector<int> v) const
 	return o;
 }
 
-vector<float>
+std::vector<float>
 HighScoreImpl::OffsetsToVector(RString s)
 {
-	vector<float> o;
+	std::vector<float> o;
 	size_t startpos = 0;
 
 	if (s == "")
@@ -218,10 +218,10 @@ HighScoreImpl::OffsetsToVector(RString s)
 	return o;
 }
 
-vector<int>
+std::vector<int>
 HighScoreImpl::NoteRowsToVector(RString s)
 {
-	vector<int> o;
+	std::vector<int> o;
 	size_t startpos = 0;
 
 	if (s == "")
@@ -476,7 +476,7 @@ HighScoreImpl::WriteReplayData()
 }
 
 bool
-HighScore::WriteInputData(const vector<float>& oop)
+HighScore::WriteInputData(const std::vector<float>& oop)
 {
 	string append;
 	string profiledir;
@@ -520,14 +520,14 @@ HighScore::LoadReplayDataBasic()
 		return true;
 
 	string profiledir;
-	vector<int> vNoteRowVector;
-	vector<float> vOffsetVector;
+	std::vector<int> vNoteRowVector;
+	std::vector<float> vOffsetVector;
 	string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
 	string buffer;
-	vector<string> tokens;
+	std::vector<string> tokens;
 	stringstream ss;
 	int noteRow;
 	float offset;
@@ -577,17 +577,17 @@ HighScore::LoadReplayDataFull()
 	}
 
 	string profiledir;
-	vector<int> vNoteRowVector;
-	vector<float> vOffsetVector;
-	vector<int> vTrackVector;
-	vector<TapNoteType> vTapNoteTypeVector;
-	vector<HoldReplayResult> vHoldReplayDataVector;
+	std::vector<int> vNoteRowVector;
+	std::vector<float> vOffsetVector;
+	std::vector<int> vTrackVector;
+	std::vector<TapNoteType> vTapNoteTypeVector;
+	std::vector<HoldReplayResult> vHoldReplayDataVector;
 	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
 	string buffer;
-	vector<string> tokens;
+	std::vector<string> tokens;
 	int noteRow;
 	float offset;
 	int track;
@@ -838,57 +838,57 @@ HighScore::IsUploadedToServer(string s) const
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
 		   m_Impl->uploaded.end();
 }
-vector<float>
+std::vector<float>
 HighScore::GetCopyOfOffsetVector() const
 {
 	return m_Impl->vOffsetVector;
 }
-vector<int>
+std::vector<int>
 HighScore::GetCopyOfNoteRowVector() const
 {
 	return m_Impl->vNoteRowVector;
 }
-vector<int>
+std::vector<int>
 HighScore::GetCopyOfTrackVector() const
 {
 	return m_Impl->vTrackVector;
 }
-vector<TapNoteType>
+std::vector<TapNoteType>
 HighScore::GetCopyOfTapNoteTypeVector() const
 {
 	return m_Impl->vTapNoteTypeVector;
 }
-vector<HoldReplayResult>
+std::vector<HoldReplayResult>
 HighScore::GetCopyOfHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-vector<float>
+std::vector<float>
 HighScore::GetCopyOfSetOnlineReplayTimestampVector() const
 {
 	return m_Impl->vOnlineReplayTimestampVector;
 }
-const vector<float>&
+const std::vector<float>&
 HighScore::GetOffsetVector() const
 {
 	return m_Impl->vOffsetVector;
 }
-const vector<int>&
+const std::vector<int>&
 HighScore::GetNoteRowVector() const
 {
 	return m_Impl->vNoteRowVector;
 }
-const vector<int>&
+const std::vector<int>&
 HighScore::GetTrackVector() const
 {
 	return m_Impl->vTrackVector;
 }
-const vector<TapNoteType>&
+const std::vector<TapNoteType>&
 HighScore::GetTapNoteTypeVector() const
 {
 	return m_Impl->vTapNoteTypeVector;
 }
-const vector<HoldReplayResult>&
+const std::vector<HoldReplayResult>&
 HighScore::GetHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
@@ -1063,32 +1063,32 @@ HighScore::AddUploadedServer(string s)
 		m_Impl->uploaded.emplace_back(s);
 }
 void
-HighScore::SetOffsetVector(const vector<float>& v)
+HighScore::SetOffsetVector(const std::vector<float>& v)
 {
 	m_Impl->vOffsetVector = v;
 }
 void
-HighScore::SetNoteRowVector(const vector<int>& v)
+HighScore::SetNoteRowVector(const std::vector<int>& v)
 {
 	m_Impl->vNoteRowVector = v;
 }
 void
-HighScore::SetTrackVector(const vector<int>& v)
+HighScore::SetTrackVector(const std::vector<int>& v)
 {
 	m_Impl->vTrackVector = v;
 }
 void
-HighScore::SetTapNoteTypeVector(const vector<TapNoteType>& v)
+HighScore::SetTapNoteTypeVector(const std::vector<TapNoteType>& v)
 {
 	m_Impl->vTapNoteTypeVector = v;
 }
 void
-HighScore::SetHoldReplayDataVector(const vector<HoldReplayResult>& v)
+HighScore::SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v)
 {
 	m_Impl->vHoldReplayDataVector = v;
 }
 void
-HighScore::SetOnlineReplayTimestampVector(const vector<float>& v)
+HighScore::SetOnlineReplayTimestampVector(const std::vector<float>& v)
 {
 	m_Impl->vOnlineReplayTimestampVector = v;
 }
@@ -1098,7 +1098,7 @@ HighScore::SetScoreKey(const string& sk)
 	m_Impl->ScoreKey = sk;
 }
 void
-HighScore::SetRescoreJudgeVector(const vector<int>& v)
+HighScore::SetRescoreJudgeVector(const std::vector<int>& v)
 {
 	m_Impl->vRescoreJudgeVector = v;
 }
@@ -1321,7 +1321,7 @@ HighScoreList::RemoveAllButOneOfEachName()
 {
 	FOREACH(HighScore, vHighScores, i)
 	{
-		for (vector<HighScore>::iterator j = i + 1; j != vHighScores.end();
+		for (std::vector<HighScore>::iterator j = i + 1; j != vHighScores.end();
 			 j++) {
 			if (i->GetName() == j->GetName()) {
 				j--;
@@ -1346,7 +1346,7 @@ HighScoreList::MergeFromOtherHSL(HighScoreList& other, bool is_machine)
 	std::sort(vHighScores.begin(), vHighScores.end());
 	// Remove non-unique scores because they probably come from an accidental
 	// repeated merge. -Kyz
-	vector<HighScore>::iterator unique_end =
+	std::vector<HighScore>::iterator unique_end =
 	  std::unique(vHighScores.begin(), vHighScores.end());
 	vHighScores.erase(unique_end, vHighScores.end());
 	// Reverse it because sort moved the lesser scores to the top.
@@ -1465,7 +1465,7 @@ HighScore::RescoreToDPJudge(int x)
 	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
 						  0.66f, 0.50f, 0.33f, 0.20f };
 	float ts = tso[x - 1];
-	vector<int> vRescoreJudgeVector;
+	std::vector<int> vRescoreJudgeVector;
 	int marv = 0;
 	int perf = 0;
 	int great = 0;
@@ -1519,7 +1519,7 @@ HighScore::RescoreToDPJudge(int x)
 	return p / m;
 }
 
-vector<int>
+std::vector<int>
 HighScore::GetRescoreJudgeVector(int x)
 {
 	RescoreToDPJudge(x);

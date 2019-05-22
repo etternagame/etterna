@@ -51,14 +51,14 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
  */
 class JudgedRows
 {
-	vector<bool> m_vRows;
+	std::vector<bool> m_vRows;
 	int m_iStart{ 0 };
 	int m_iOffset{ 0 };
 
 	void Resize(size_t iMin)
 	{
 		size_t iNewSize = max(2 * m_vRows.size(), iMin);
-		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+		std::vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
 		vNewRows.reserve(iNewSize);
 		vNewRows.insert(
 		  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
@@ -570,7 +570,7 @@ GenerateCacheDataStructure(PlayerState* pPlayerState, const NoteData& notes)
 
 	pPlayerState->m_CacheDisplayedBeat.clear();
 
-	const vector<TimingSegment*> vScrolls =
+	const std::vector<TimingSegment*> vScrolls =
 	  pPlayerState->GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
 
 	float displayedBeat = 0.0f;
@@ -650,7 +650,7 @@ Player::Load()
 
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
-	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
+	const std::vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
 
@@ -919,7 +919,7 @@ Player::Update(float fDeltaTime)
 	if (m_pPlayerState->m_PlayerController == PC_REPLAY &&
 		PlayerAI::pScoreData->GetReplayType() == 2) {
 		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
-			vector<TapReplayResult> trrVector =
+			std::vector<TapReplayResult> trrVector =
 			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
 			for (TapReplayResult& trr : trrVector) {
 				StepReplay(trr.track, trr.row, now, false, false);
@@ -937,7 +937,7 @@ Player::Update(float fDeltaTime)
 		ASSERT(m_pPlayerState != NULL);
 
 		// TODO: Remove use of PlayerNumber.
-		vector<GameInput> GameI;
+		std::vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		  ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
 
@@ -991,7 +991,7 @@ Player::Update(float fDeltaTime)
 				++iter;
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		int iRowOfLastHoldNote = -1;
 		NoteData::all_tracks_iterator iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -1015,7 +1015,7 @@ Player::Update(float fDeltaTime)
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}
@@ -1079,7 +1079,7 @@ Player::Update(float fDeltaTime)
 void
 Player::UpdateHoldNotes(int iSongRow,
 						float fDeltaTime,
-						vector<TrackRowTapNote>& vTN)
+						std::vector<TrackRowTapNote>& vTN)
 {
 	ASSERT(!vTN.empty());
 
@@ -1259,7 +1259,7 @@ Player::UpdateHoldNotes(int iSongRow,
 					}
 				}
 			} else {
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, pn, GameI);
 
@@ -3036,7 +3036,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
 					PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-					vector<GameInput> GameI;
+					std::vector<GameInput> GameI;
 					GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 					  ->StyleInputToGameInput(iTrack, pn, GameI);
 					if (PREFSMAN->m_fPadStickSeconds > 0.f) {
@@ -3066,7 +3066,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				// explode
 				// TODO: Remove use of PlayerNumber.
 				PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, pn, GameI);
 				if (PREFSMAN->m_fPadStickSeconds > 0.0f) {
@@ -3141,7 +3141,7 @@ Player::CrossedRows(int iLastRowCrossed,
 			// There is a tick count at this row
 			if (tickCurrent > 0 && r % (ROWS_PER_BEAT / tickCurrent) == 0) {
 
-				vector<int> viColsWithHold;
+				std::vector<int> viColsWithHold;
 				int iNumHoldsHeldThisRow = 0;
 				int iNumHoldsMissedThisRow = 0;
 
@@ -3453,7 +3453,7 @@ void
 Player::HandleHoldCheckpoint(int iRow,
 							 int iNumHoldsHeldThisRow,
 							 int iNumHoldsMissedThisRow,
-							 const vector<int>& viColsWithHold)
+							 const std::vector<int>& viColsWithHold)
 {
 	bool bNoCheating = true;
 #ifdef DEBUG

@@ -212,7 +212,7 @@ HexToBinary(const RString& s, RString& sOut)
 float
 HHMMSSToSeconds(const RString& sHHMMSS)
 {
-	vector<RString> arrayBits;
+	std::vector<RString> arrayBits;
 	split(sHHMMSS, ":", arrayBits, false);
 
 	while (arrayBits.size() < 3)
@@ -586,7 +586,7 @@ static const LanguageInfo g_langs[] = {
 };
 
 void
-GetLanguageInfos(vector<const LanguageInfo*>& vAddTo)
+GetLanguageInfos(std::vector<const LanguageInfo*>& vAddTo)
 {
 	for (unsigned i = 0; i < ARRAYLEN(g_langs); ++i)
 		vAddTo.push_back(&g_langs[i]);
@@ -604,7 +604,7 @@ GetLanguageInfo(const RString& sIsoCode)
 }
 
 RString
-join(const RString& sDeliminator, const vector<RString>& sSource)
+join(const RString& sDeliminator, const std::vector<RString>& sSource)
 {
 	if (sSource.empty())
 		return RString();
@@ -628,8 +628,8 @@ join(const RString& sDeliminator, const vector<RString>& sSource)
 
 RString
 join(const RString& sDelimitor,
-	 vector<RString>::const_iterator begin,
-	 vector<RString>::const_iterator end)
+	 std::vector<RString>::const_iterator begin,
+	 std::vector<RString>::const_iterator end)
 {
 	if (begin == end)
 		return RString();
@@ -637,7 +637,7 @@ join(const RString& sDelimitor,
 	RString sRet;
 	size_t final_size = 0;
 	size_t delim_size = sDelimitor.size();
-	for (vector<RString>::const_iterator curr = begin; curr != end; ++curr) {
+	for (std::vector<RString>::const_iterator curr = begin; curr != end; ++curr) {
 		final_size += curr->size();
 		if (curr != end) {
 			final_size += delim_size;
@@ -656,7 +656,7 @@ join(const RString& sDelimitor,
 }
 
 std::string
-luajoin(const std::string& sDeliminator, const vector<std::string>& sSource)
+luajoin(const std::string& sDeliminator, const std::vector<std::string>& sSource)
 {
 	if (sSource.empty())
 		return std::string();
@@ -680,8 +680,8 @@ luajoin(const std::string& sDeliminator, const vector<std::string>& sSource)
 
 std::string
 luajoin(const std::string& sDelimitor,
-		vector<std::string>::const_iterator begin,
-		vector<std::string>::const_iterator end)
+		std::vector<std::string>::const_iterator begin,
+		std::vector<std::string>::const_iterator end)
 {
 	if (begin == end)
 		return std::string();
@@ -689,7 +689,7 @@ luajoin(const std::string& sDelimitor,
 	std::string sRet;
 	size_t final_size = 0;
 	size_t delim_size = sDelimitor.size();
-	for (vector<std::string>::const_iterator curr = begin; curr != end;
+	for (std::vector<std::string>::const_iterator curr = begin; curr != end;
 		 ++curr) {
 		final_size += curr->size();
 		if (curr != end) {
@@ -793,7 +793,7 @@ template<class S, class C>
 void
 do_split(const S& Source,
 		 const C Delimitor,
-		 vector<S>& AddIt,
+		 std::vector<S>& AddIt,
 		 const bool bIgnoreEmpty)
 {
 	/* Short-circuit if the source is empty; we want to return an empty vector
@@ -827,7 +827,7 @@ do_split(const S& Source,
 void
 split(const RString& sSource,
 	  const RString& sDelimitor,
-	  vector<RString>& asAddIt,
+	  std::vector<RString>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -839,7 +839,7 @@ split(const RString& sSource,
 void
 split(const std::wstring& sSource,
 	  const std::wstring& sDelimitor,
-	  vector<std::wstring>& asAddIt,
+	  std::vector<std::wstring>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -953,7 +953,7 @@ splitpath(const RString& sPath,
 {
 	sDir = sFilename = sExt = "";
 
-	vector<RString> asMatches;
+	std::vector<RString> asMatches;
 
 	/*
 	 * One level of escapes for the regex, one for C. Ew.
@@ -1036,11 +1036,11 @@ MakeValidFilename(RString& sName)
 }
 
 bool
-FindFirstFilenameContaining(const vector<RString>& filenames,
+FindFirstFilenameContaining(const std::vector<RString>& filenames,
 							RString& out,
-							const vector<RString>& starts_with,
-							const vector<RString>& contains,
-							const vector<RString>& ends_with)
+							const std::vector<RString>& starts_with,
+							const std::vector<RString>& contains,
+							const std::vector<RString>& ends_with)
 {
 	for (size_t i = 0; i < filenames.size(); ++i) {
 		RString lower = GetFileNameWithoutExtension(filenames[i]);
@@ -1186,7 +1186,7 @@ DirectoryIsEmpty(const RString& sDir)
 	if (!DoesFileExist(sDir))
 		return true;
 
-	vector<RString> asFileNames;
+	std::vector<RString> asFileNames;
 	GetDirListing(sDir, asFileNames);
 	return asFileNames.empty();
 }
@@ -1204,7 +1204,7 @@ CompareRStringsDesc(const RString& sStr1, const RString& sStr2)
 }
 
 void
-SortRStringArray(vector<RString>& arrayRStrings, const bool bSortAscending)
+SortRStringArray(std::vector<RString>& arrayRStrings, const bool bSortAscending)
 {
 	sort(arrayRStrings.begin(),
 		 arrayRStrings.end(),
@@ -1234,7 +1234,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 }
 
 bool
-CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
+CalcLeastSquares(const std::vector<pair<float, float>>& vCoordinates,
 				 float& fSlope,
 				 float& fIntercept,
 				 float& fError)
@@ -1264,7 +1264,7 @@ CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
 }
 
 void
-FilterHighErrorPoints(vector<pair<float, float>>& vCoordinates,
+FilterHighErrorPoints(std::vector<pair<float, float>>& vCoordinates,
 					  float fSlope,
 					  float fIntercept,
 					  float fCutoff)
@@ -1362,7 +1362,7 @@ CVSOrSVN(const RString& s)
 }
 
 void
-StripCvsAndSvn(vector<RString>& vs)
+StripCvsAndSvn(std::vector<RString>& vs)
 {
 	RemoveIf(vs, CVSOrSVN);
 }
@@ -1374,7 +1374,7 @@ MacResourceFork(const RString& s)
 }
 
 void
-StripMacResourceForks(vector<RString>& vs)
+StripMacResourceForks(std::vector<RString>& vs)
 {
 	RemoveIf(vs, MacResourceFork);
 }
@@ -1402,7 +1402,7 @@ DerefRedir(const RString& _path)
 
 		sPath2 += "*";
 
-		vector<RString> matches;
+		std::vector<RString> matches;
 		GetDirListing(sPath2, matches, false, true);
 
 		if (matches.empty())
@@ -1495,7 +1495,7 @@ GetFileContents(const std::string& sPath, std::string& sOut, bool bOneLine)
 }
 
 bool
-GetFileContents(const RString& sFile, vector<RString>& asOut)
+GetFileContents(const RString& sFile, std::vector<RString>& asOut)
 {
 	RageFile file;
 	if (!file.Open(sFile)) {
@@ -1511,7 +1511,7 @@ GetFileContents(const RString& sFile, vector<RString>& asOut)
 }
 
 bool
-GetFileContents(const std::string& sFile, vector<std::string>& asOut)
+GetFileContents(const std::string& sFile, std::vector<std::string>& asOut)
 {
 	RageFile file;
 	if (!file.Open(sFile)) {
@@ -1609,7 +1609,7 @@ Regex::Compare(const RString& sStr)
 }
 
 bool
-Regex::Compare(const RString& sStr, vector<RString>& asMatches)
+Regex::Compare(const RString& sStr, std::vector<RString>& asMatches)
 {
 	asMatches.clear();
 
@@ -1643,7 +1643,7 @@ Regex::Replace(const RString& sReplacement,
 			   const RString& sSubject,
 			   RString& sOut)
 {
-	vector<RString> asMatches;
+	std::vector<RString> asMatches;
 	if (!Compare(sSubject, asMatches))
 		return false;
 

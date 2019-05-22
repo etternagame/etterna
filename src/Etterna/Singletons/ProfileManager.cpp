@@ -69,7 +69,7 @@ struct DirAndProfile
 		profile.swap(other.profile);
 	}
 };
-static vector<DirAndProfile> g_vLocalProfile;
+static std::vector<DirAndProfile> g_vLocalProfile;
 
 static ThemeMetric<bool> FIXED_PROFILES("ProfileManager", "FixedProfiles");
 static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
@@ -298,7 +298,7 @@ ProfileManager::UnloadAllLocalProfiles()
 }
 
 static void
-add_category_to_global_list(vector<DirAndProfile>& cat)
+add_category_to_global_list(std::vector<DirAndProfile>& cat)
 {
 	g_vLocalProfile.insert(g_vLocalProfile.end(), cat.begin(), cat.end());
 }
@@ -310,7 +310,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		ld->SetText("Loading Profiles");
 	UnloadAllLocalProfiles();
 
-	vector<RString> profile_ids;
+	std::vector<RString> profile_ids;
 	GetDirListing(USER_PROFILES_DIR + "*", profile_ids, true, true);
 	// Profiles have 3 types:
 	// 1.  Guest profiles:
@@ -321,7 +321,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	//   Meant for use when testing things, listed last.
 	// If the user renames a profile directory manually, that should not be a
 	// problem. -Kyz
-	map<ProfileType, vector<DirAndProfile>> categorized_profiles;
+	map<ProfileType, std::vector<DirAndProfile>> categorized_profiles;
 	// The type data for a profile is in its own file so that loading isn't
 	// slowed down by copying temporary profiles around to make sure the list
 	// is sorted.  The profiles are loaded at the end. -Kyz
@@ -331,7 +331,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		derp.sDir = *id + "/";
 		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
-		map<ProfileType, vector<DirAndProfile>>::iterator category =
+		map<ProfileType, std::vector<DirAndProfile>>::iterator category =
 		  categorized_profiles.find(derp.profile.m_Type);
 		if (category == categorized_profiles.end()) {
 			categorized_profiles[derp.profile.m_Type].push_back(derp);
@@ -393,7 +393,7 @@ ProfileManager::CreateLocalProfile(const RString& sName, RString& sProfileIDOut)
 	// handled. -Kyz
 	int max_profile_number = -1;
 	int first_free_number = 0;
-	vector<RString> profile_ids;
+	std::vector<RString> profile_ids;
 	GetLocalProfileIDs(profile_ids);
 	FOREACH_CONST(RString, profile_ids, id)
 	{
@@ -718,7 +718,7 @@ ProfileManager::IsPersistentProfile(ProfileSlot slot) const
 }
 
 void
-ProfileManager::GetLocalProfileIDs(vector<RString>& vsProfileIDsOut) const
+ProfileManager::GetLocalProfileIDs(std::vector<RString>& vsProfileIDsOut) const
 {
 	vsProfileIDsOut.clear();
 	FOREACH_CONST(DirAndProfile, g_vLocalProfile, i)
@@ -730,7 +730,7 @@ ProfileManager::GetLocalProfileIDs(vector<RString>& vsProfileIDsOut) const
 
 void
 ProfileManager::GetLocalProfileDisplayNames(
-  vector<RString>& vsProfileDisplayNamesOut) const
+  std::vector<RString>& vsProfileDisplayNamesOut) const
 {
 	vsProfileDisplayNamesOut.clear();
 	FOREACH_CONST(DirAndProfile, g_vLocalProfile, i)
@@ -905,14 +905,14 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int GetLocalProfileIDs(T* p, lua_State* L)
 	{
-		vector<RString> vsProfileIDs;
+		std::vector<RString> vsProfileIDs;
 		p->GetLocalProfileIDs(vsProfileIDs);
 		LuaHelpers::CreateTableFromArray<RString>(vsProfileIDs, L);
 		return 1;
 	}
 	static int GetLocalProfileDisplayNames(T* p, lua_State* L)
 	{
-		vector<RString> vsProfileNames;
+		std::vector<RString> vsProfileNames;
 		p->GetLocalProfileDisplayNames(vsProfileNames);
 		LuaHelpers::CreateTableFromArray<RString>(vsProfileNames, L);
 		return 1;
