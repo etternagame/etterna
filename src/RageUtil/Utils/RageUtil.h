@@ -905,7 +905,7 @@ struct char_traits_char_nocase : public std::char_traits<char>
 		return nullptr;
 	}
 };
-typedef basic_string<char, char_traits_char_nocase> istring;
+typedef std::basic_string<char, char_traits_char_nocase> istring;
 
 /* Compatibility/convenience shortcuts. These are actually defined in
  * RageFileManager.h, but declared here since they're used in many places. */
