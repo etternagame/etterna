@@ -1911,7 +1911,7 @@ int
 StringToInt(const RString& sString)
 {
 	int ret;
-	istringstream(sString) >> ret;
+	std::istringstream(sString) >> ret;
 	return ret;
 }
 

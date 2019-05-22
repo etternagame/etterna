@@ -586,7 +586,7 @@ template<class T>
 bool
 operator>>(const RString& lhs, T& rhs)
 {
-	return !!(istringstream(lhs) >> rhs);
+	return !!(std::istringstream(lhs) >> rhs);
 }
 
 RString
