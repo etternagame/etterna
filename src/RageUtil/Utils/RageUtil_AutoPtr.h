@@ -50,8 +50,8 @@ class AutoPtrCopyOnWrite
 
 	void Swap(AutoPtrCopyOnWrite<T>& rhs)
 	{
-		swap(m_pPtr, rhs.m_pPtr);
-		swap(m_iRefCount, rhs.m_iRefCount);
+		std::swap(m_pPtr, rhs.m_pPtr);
+		std::swap(m_iRefCount, rhs.m_iRefCount);
 	}
 
 	inline AutoPtrCopyOnWrite<T>& operator=(const AutoPtrCopyOnWrite& rhs)
@@ -165,7 +165,7 @@ class HiddenPtr
 #endif
 
 	~HiddenPtr() { HiddenPtrTraits<T>::Delete(m_pPtr); }
-	void Swap(HiddenPtr<T>& rhs) { swap(m_pPtr, rhs.m_pPtr); }
+	void Swap(HiddenPtr<T>& rhs) { std::swap(m_pPtr, rhs.m_pPtr); }
 
 	HiddenPtr<T>& operator=(T* p)
 	{
