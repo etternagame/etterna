@@ -31,25 +31,25 @@ struct SplineSolutionCache
 
   private:
 	void prep_inner(size_t last, std::vector<float>& out);
-	bool find_in_cache(list<Entry>& cache,
+	bool find_in_cache(std::list<Entry>& cache,
 					   std::vector<float>& outd,
 					   std::vector<float>& outm);
-	void add_to_cache(list<Entry>& cache,
+	void add_to_cache(std::list<Entry>& cache,
 					  std::vector<float>& outd,
 					  std::vector<float>& outm);
-	list<Entry> straight_diagonals;
-	list<Entry> looped_diagonals;
+	std::list<Entry> straight_diagonals;
+	std::list<Entry> looped_diagonals;
 };
 
 const size_t solution_cache_limit = 16;
 
 bool
-SplineSolutionCache::find_in_cache(list<Entry>& cache,
+SplineSolutionCache::find_in_cache(std::list<Entry>& cache,
 								   std::vector<float>& outd,
 								   std::vector<float>& outm)
 {
 	size_t out_size = outd.size();
-	for (list<Entry>::iterator entry = cache.begin(); entry != cache.end();
+	for (std::list<Entry>::iterator entry = cache.begin(); entry != cache.end();
 		 ++entry) {
 		if (out_size == entry->diagonals.size()) {
 			for (size_t i = 0; i < out_size; ++i) {
@@ -66,7 +66,7 @@ SplineSolutionCache::find_in_cache(list<Entry>& cache,
 }
 
 void
-SplineSolutionCache::add_to_cache(list<Entry>& cache,
+SplineSolutionCache::add_to_cache(std::list<Entry>& cache,
 								  std::vector<float>& outd,
 								  std::vector<float>& outm)
 {

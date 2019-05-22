@@ -334,7 +334,7 @@ RageSoundReader_ThreadedBuffer::Read(float* pBuffer, int iFrames)
 		/* Delete any empty mappings from the beginning, but don't empty the
 		 * list, so we always have the current position and rate. If we delete
 		 * an item, the rate or position has probably changed, so return. */
-		list<Mapping>::iterator it = m_StreamPosition.begin();
+		std::list<Mapping>::iterator it = m_StreamPosition.begin();
 		++it;
 		if (it != m_StreamPosition.end() &&
 			!m_StreamPosition.front().iFramesBuffered) {

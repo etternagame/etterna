@@ -66,7 +66,7 @@ static bool g_bInvertY = false;
  * palette into a slot. We need to keep track of which texture's palette is
  * stored in what slot. */
 std::map<intptr_t, int> g_TexResourceToPaletteIndex;
-list<int> g_PaletteIndex;
+std::list<int> g_PaletteIndex;
 struct TexturePalette
 {
 	PALETTEENTRY p[256];
@@ -112,7 +112,7 @@ SetPalette(unsigned TexResource)
 
 	// Find this palette index in the least-recently-used queue and move it to
 	// the end.
-	for (list<int>::iterator i = g_PaletteIndex.begin();
+	for (std::list<int>::iterator i = g_PaletteIndex.begin();
 		 i != g_PaletteIndex.end();
 		 ++i) {
 		if (*i != iPalIndex)

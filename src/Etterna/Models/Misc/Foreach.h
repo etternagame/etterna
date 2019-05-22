@@ -45,13 +45,13 @@
 /** @brief General foreach loop iterating over a list. */
 #define FOREACHL(elemType, vect, var)                                          \
                                                                                \
-	for (list<elemType>::iterator var = (vect).begin(); (var) != (vect).end(); \
+	for (std::list<elemType>::iterator var = (vect).begin(); (var) != (vect).end(); \
 		 ++(var))
 /** @brief General foreach loop iterating over a list, using a constant
  * iterator. */
 #define FOREACHL_CONST(elemType, vect, var)                                    \
                                                                                \
-	for (list<elemType>::const_iterator var = (vect).begin();                  \
+	for (std::list<elemType>::const_iterator var = (vect).begin();                  \
 		 (var) != (vect).end();                                                \
 		 ++(var))
 
