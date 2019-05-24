@@ -1,20 +1,26 @@
 #include "Etterna/Globals/global.h"
 #include "GraphicsWindow.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/CommandLineActions.h"
+#include "Etterna/Singletons/InputFilter.h"
+#include "Etterna/Singletons/InputMapper.h"
+#include "Etterna/Singletons/ScreenManager.h"
+#include "RageUtil/Misc/RageInput.h"
 
 #include <set>
+#include <dbt.h>
 
 static const RString g_sClassName = PRODUCT_ID;
 
@@ -173,6 +179,27 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			CommandLineActions::CommandLineArgs args;
 			split(sCommandLine, "|", args.argv, false);
 			CommandLineActions::ToProcess.push_back(args);
+			break;
+		}
+		case WM_DEVICECHANGE: {
+			switch (wParam)
+			{
+				case DBT_CONFIGCHANGED:
+				case DBT_DEVICEARRIVAL:
+				case DBT_DEVICEREMOVECOMPLETE:
+				case DBT_DEVNODES_CHANGED:
+				{
+					DInput_ForceJoystickPollingInNextDevicesChangedCall();
+					if (INPUTMAN->DevicesChanged()) {
+						INPUTFILTER->Reset();
+						INPUTMAN->LoadDrivers();
+						RString sMessage;
+						if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
+							SCREENMAN->SystemMessage(sMessage);
+					}
+					break;
+				}
+			}
 			break;
 		}
 	}

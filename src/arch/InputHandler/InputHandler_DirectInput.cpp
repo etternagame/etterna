@@ -20,6 +20,10 @@ static vector<DIDevice> Devices;
 
 // Number of joysticks found:
 static int g_iNumJoysticks;
+static bool g_forceJoystickPolling = false;
+void DInput_ForceJoystickPollingInNextDevicesChangedCall() {
+	g_forceJoystickPolling = true;
+}
 
 static BOOL CALLBACK
 EnumDevicesCallback(const DIDEVICEINSTANCE* pdidInstance, void* pContext)
@@ -803,9 +807,6 @@ InputHandler_DInput::Update()
 	InputHandler::UpdateTimer();
 }
 
-const float POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS = 15.0f;
-const float POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS = 0.25f;
-
 bool
 InputHandler_DInput::DevicesChanged()
 {
@@ -825,28 +826,15 @@ InputHandler_DInput::DevicesChanged()
 
 	int iOldNumHidDevices = m_iLastSeenNumHidDevices;
 	m_iLastSeenNumHidDevices = GetNumHidDevices();
-	if (iOldNumHidDevices != m_iLastSeenNumHidDevices) {
+	if (iOldNumHidDevices != m_iLastSeenNumHidDevices || g_forceJoystickPolling) {
+		g_forceJoystickPolling = false;
 		LOG->Warn("HID devices changes");
-		m_iNumTimesLeftToPollForJoysticksChanged =
-		  static_cast<int>(POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS /
-						   POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS);
-	}
-
-	if (m_iNumTimesLeftToPollForJoysticksChanged > 0) {
-		static RageTimer timerPollJoysticks;
-		if (timerPollJoysticks.Ago() >=
-			POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS) {
-			m_iNumTimesLeftToPollForJoysticksChanged--;
-			timerPollJoysticks.Touch();
-			LOG->Warn("polling for joystick changes");
-
-			int iOldNumJoysticks = m_iLastSeenNumJoysticks;
-			m_iLastSeenNumJoysticks = GetNumJoysticksSlow();
-			if (iOldNumJoysticks != m_iLastSeenNumJoysticks) {
-				LOG->Warn("joysticks changed");
-				m_iNumTimesLeftToPollForJoysticksChanged = 0;
-				return true;
-			}
+		int iOldNumJoysticks = m_iLastSeenNumJoysticks;
+		m_iLastSeenNumJoysticks = GetNumJoysticksSlow();
+		if (iOldNumJoysticks != m_iLastSeenNumJoysticks) {
+			LOG->Warn("joysticks changed");
+			m_iNumTimesLeftToPollForJoysticksChanged = 0;
+			return true;
 		}
 	}
 
