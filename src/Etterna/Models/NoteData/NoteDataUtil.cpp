@@ -2378,7 +2378,7 @@ NoteDataUtil::IcyWorld(NoteData& inout,
 					   int iEndIndex)
 {
 	// Row, tap column
-	std::vector<tuple<int, int>> rowsWithNotes;
+	std::vector<std::tuple<int, int>> rowsWithNotes;
 	int currentTap = -1;
 
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
@@ -2394,7 +2394,7 @@ NoteDataUtil::IcyWorld(NoteData& inout,
 				break;
 			}
 		}
-		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(std::tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;
@@ -2450,7 +2450,7 @@ NoteDataUtil::AnchorJS(NoteData& inout,
 					   int iEndIndex)
 {
 	// Row, tap column
-	std::vector<tuple<int, int>> rowsWithNotes;
+	std::vector<std::tuple<int, int>> rowsWithNotes;
 	int currentTap = -1;
 
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
@@ -2466,7 +2466,7 @@ NoteDataUtil::AnchorJS(NoteData& inout,
 				break;
 			}
 		}
-		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(std::tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;
@@ -2524,7 +2524,7 @@ NoteDataUtil::JackJS(NoteData& inout,
 					 int iEndIndex)
 {
 	// Row, tap column
-	std::vector<tuple<int, int>> rowsWithNotes;
+	std::vector<std::tuple<int, int>> rowsWithNotes;
 	int currentTap = -1;
 
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
@@ -2540,7 +2540,7 @@ NoteDataUtil::JackJS(NoteData& inout,
 				break;
 			}
 		}
-		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(std::tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;

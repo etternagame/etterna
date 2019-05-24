@@ -137,7 +137,7 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 			vec.erase(std::remove_if(
 				vec.begin(),
 				vec.end(),
-				[id](tuple<std::function<void()>, float, float, int>& x) {
+				[id](std::tuple<std::function<void()>, float, float, int>& x) {
 				return std::get<3>(x) == id;
 			}),
 				vec.end());
@@ -592,7 +592,7 @@ class LunaScreen : public Luna<Screen>
 		auto& vec = p->delayedPeriodicFunctions;
 		auto it = find_if(vec.begin(),
 						  vec.end(),
-						  [r](tuple<std::function<void()>, float, float, int>& x) {
+						  [r](std::tuple<std::function<void()>, float, float, int>& x) {
 							  return std::get<3>(x) == r;
 						  });
 		if (it != vec.end()) {
