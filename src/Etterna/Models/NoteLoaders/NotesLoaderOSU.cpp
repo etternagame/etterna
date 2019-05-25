@@ -5,6 +5,7 @@
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 vector<string>
 split(string str, string token)
@@ -203,7 +204,9 @@ OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
 						 map<string, map<string, string>> parsedData)
 {
-	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
+	if (stoi(parsedData["General"]["Mode"]) != 3 ||
+		parsedData.find("HitObjects") ==
+		  parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
 		return false;
 	}
@@ -279,6 +282,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
+	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
 	for (auto it = parsedData["HitObjects"].begin();
 		 it != parsedData["HitObjects"].end();
 		 ++it) {
@@ -329,10 +333,12 @@ OsuLoader::LoadNoteDataFromParsedData(
 		  start,
 		  end,
 		  TAP_ORIGINAL_HOLD_HEAD);
-		newNoteData.SetTapNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  end + 1,
-		  TAP_ORIGINAL_LIFT);
+		if (useLifts)
+			newNoteData.SetTapNote(
+			  holds[i].lane /
+				(512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			  end + 1,
+			  TAP_ORIGINAL_LIFT);
 	}
 
 	// out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
