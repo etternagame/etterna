@@ -462,13 +462,13 @@ r[#r + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(20, 200)
+			self:xy(frameX + 120, SCREEN_BOTTOM - 225):visible(true)
 			self:zoom(0.7)
 			self:halign(0)
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
-				self:settext("NegBpms!")
+				self:settext("NegBPMs!")
 			else
 				self:settext("")
 			end
