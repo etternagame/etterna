@@ -145,6 +145,8 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 				  NSMAN->steps->GetDifficulty());
 			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+				FILTERMAN->filteringCommonPacks = false;
+				FILTERMAN->ResetSSFilters();
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
 				m_MusicWheel.ReloadSongList(false, "");
