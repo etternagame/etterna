@@ -182,19 +182,15 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_DEVICECHANGE: {
-			switch (wParam)
-			{
-				case DBT_CONFIGCHANGED:
-				case DBT_DEVICEARRIVAL:
-				case DBT_DEVICEREMOVECOMPLETE:
-				case DBT_DEVNODES_CHANGED:
-				{
+			switch (wParam) {
+				case DBT_DEVICEARRIVAL: {
 					DInput_ForceJoystickPollingInNextDevicesChangedCall();
 					if (INPUTMAN->DevicesChanged()) {
 						INPUTFILTER->Reset();
 						INPUTMAN->LoadDrivers();
 						RString sMessage;
-						if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
+						if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(
+							  sMessage))
 							SCREENMAN->SystemMessage(sMessage);
 					}
 					break;
