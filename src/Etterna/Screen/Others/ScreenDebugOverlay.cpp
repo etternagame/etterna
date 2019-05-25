@@ -1,4 +1,5 @@
 #include "Etterna/Globals/global.h"
+#include "arch/ArchHooks/ArchHooks.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Globals/GameLoop.h"
@@ -616,6 +617,11 @@ static LocalizedString REPLAY("ScreenDebugOverlay", "REPLAY");
 static LocalizedString SONG("ScreenDebugOverlay", "Song");
 static LocalizedString MACHINE("ScreenDebugOverlay", "Machine");
 static LocalizedString SYNC_TEMPO("ScreenDebugOverlay", "Tempo");
+static LocalizedString RENDER_SKIPS("ScreenDebugOverlay", "Rendering Skips");
+static LocalizedString EASTER_EGGS("ScreenDebugOverlay", "Easter Eggs");
+static LocalizedString OSU_LIFTS("ScreenDebugOverlay", "Osu Lifts");
+static LocalizedString PITCH_RATES("ScreenDebugOverlay", "Pitch Rates");
+static LocalizedString FULLSCREEN("ScreenDebugOverlay", "Fullscreen");
 
 class DebugLineAutoplay : public IDebugLine
 {
@@ -651,9 +657,7 @@ class DebugLineAutoplay : public IDebugLine
 	void DoAndLog(RString& sMessageOut) override
 	{
 		ASSERT(GAMESTATE->GetMasterPlayerNumber() != PLAYER_INVALID);
-		PlayerController pc =
-		  GAMESTATE->m_pPlayerState
-			->m_PlayerController;
+		PlayerController pc = GAMESTATE->m_pPlayerState->m_PlayerController;
 		bool bHoldingShift =
 		  INPUTFILTER->IsBeingPressed(
 			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
@@ -664,8 +668,8 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc == PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
 		if (GamePreferences::m_AutoPlay != PC_REPLAY)
 			GamePreferences::m_AutoPlay.Set(pc);
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerController = GamePreferences::m_AutoPlay;
+		GAMESTATE->m_pPlayerState->m_PlayerController =
+		  GamePreferences::m_AutoPlay;
 		FOREACH_MultiPlayer(p) GAMESTATE->m_pMultiPlayerState[p]
 		  ->m_PlayerController = GamePreferences::m_AutoPlay;
 
@@ -801,6 +805,24 @@ class DebugLineStats : public IDebugLine
 	{
 		PREFSMAN->m_bShowStats.Set(!PREFSMAN->m_bShowStats);
 		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
+class DebugLineSkips : public IDebugLine
+{
+	RString GetDisplayTitle() override { return RENDER_SKIPS.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override
+	{
+		return PREFSMAN->m_bShowSkips && PREFSMAN->m_bShowStats;
+	}
+	void DoAndLog(RString& sMessageOut) override
+	{
+		if (PREFSMAN->m_bShowStats) {
+			PREFSMAN->m_bShowSkips.Set(!PREFSMAN->m_bShowSkips);
+			IDebugLine::DoAndLog(sMessageOut);
+		}
 	}
 };
 
@@ -1351,6 +1373,60 @@ class DebugLineUptime : public IDebugLine
 	void DoAndLog(RString& sMessageOut) override {}
 };
 
+class DebugLineEasterEggs : public IDebugLine
+{
+	RString GetDisplayTitle() override { return EASTER_EGGS.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return PREFSMAN->m_bEasterEggs; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		PREFSMAN->m_bEasterEggs.Set(!PREFSMAN->m_bEasterEggs);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
+class DebugLineOsuLifts : public IDebugLine
+{
+	RString GetDisplayTitle() override { return OSU_LIFTS.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return PREFSMAN->LiftsOnOsuHolds; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		PREFSMAN->LiftsOnOsuHolds.Set(!PREFSMAN->LiftsOnOsuHolds);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
+class DebugLinePitchRates : public IDebugLine
+{
+	RString GetDisplayTitle() override { return PITCH_RATES.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return PREFSMAN->EnablePitchRates; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		PREFSMAN->EnablePitchRates.Set(!PREFSMAN->EnablePitchRates);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
+class DebugLineFullscreen : public IDebugLine
+{
+	RString GetDisplayTitle() override { return FULLSCREEN.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return true; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+#if !defined(__APPLE__)
+		ArchHooks::SetToggleWindowed();
+		IDebugLine::DoAndLog(sMessageOut);
+#endif
+	}
+};
+
 /* #ifdef out the lines below if you don't want them to appear on certain
  * platforms.  This is easier than #ifdefing the whole DebugLine definitions
  * that can span pages.
@@ -1393,6 +1469,11 @@ DECLARE_ONE(DebugLineForceCrash);
 DECLARE_ONE(DebugLineUptime);
 DECLARE_ONE(DebugLineResetKeyMapping);
 DECLARE_ONE(DebugLineMuteActions);
+DECLARE_ONE(DebugLineSkips);
+DECLARE_ONE(DebugLineEasterEggs);
+DECLARE_ONE(DebugLineOsuLifts);
+DECLARE_ONE(DebugLinePitchRates);
+DECLARE_ONE(DebugLineFullscreen);
 
 /*
  * (c) 2001-2005 Chris Danford, Glenn Maynard

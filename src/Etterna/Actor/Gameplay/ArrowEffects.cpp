@@ -141,14 +141,12 @@ ArrowEffects::Update()
 	{
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(pn);
 		const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
-		const SongPosition& position =
-		  GAMESTATE->m_bIsUsingStepTiming
-			? GAMESTATE->m_pPlayerState->m_Position
-			: GAMESTATE->m_Position;
+		const SongPosition& position = GAMESTATE->m_bIsUsingStepTiming
+										 ? GAMESTATE->m_pPlayerState->m_Position
+										 : GAMESTATE->m_Position;
 		const float field_zoom = GAMESTATE->m_pPlayerState->m_NotefieldZoom;
-		const float* effects = GAMESTATE->m_pPlayerState
-								 ->m_PlayerOptions.GetCurrent()
-								 .m_fEffects;
+		const float* effects =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fEffects;
 
 		PerPlayerData& data = g_EffectData;
 
@@ -571,8 +569,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	const float* fEffects = curr_options->m_fEffects;
 
 	// TODO: Don't index by PlayerNumber.
-	const Style::ColumnInfo* pCols =
-	  pStyle->m_ColumnInfo;
+	const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
 	PerPlayerData& data = g_EffectData;
 
 	if (fEffects[PlayerOptions::EFFECT_TORNADO] != 0) {
@@ -635,7 +632,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 				break;
 			case StyleType_OnePlayerOneSide:
 				break;
-			DEFAULT_FAIL(pStyle->m_StyleType);
+				DEFAULT_FAIL(pStyle->m_StyleType);
 		}
 	}
 
@@ -864,7 +861,7 @@ ArrowEffects::GetAlpha(int iCol,
 						0.0f);
 		return f;
 	}
-	return (fPercentVisible > 0.5f) ? 1.0f : 0.0f;
+	return fPercentVisible;
 }
 
 float
