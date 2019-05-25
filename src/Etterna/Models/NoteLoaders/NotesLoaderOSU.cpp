@@ -325,7 +325,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 	for (int i = 0; i < (int)holds.size(); ++i) {
 		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
 		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);
-		if (end - start > 0) {
+		if (end - start > 0 && useLifts) {
 			end = end - 1;
 		}
 		newNoteData.AddHoldNote(
