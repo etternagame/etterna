@@ -631,17 +631,28 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 		 iterator++) {
 		try {
 			auto jType = (*iterator).find("type");
-			auto payload = (*iterator).find("payload");
+			if (jType == iterator->end()) {
+				LOG->Trace(("Invalid ETTP message (No message type) : " +
+							iterator->get<string>())
+							.c_str());
+				continue;
+			}
 			auto error = (*iterator).find("error");
-			if (jType == iterator->end())
-				break;
 			if (error != iterator->end()) {
 				LOG->Trace(("Error on ETTP message " + jType->get<string>() +
 							":" + error->get<string>())
 							 .c_str());
-				break;
+				continue;
 			}
-			switch (ettServerMessageMap[jType->get<string>()]) {
+			auto payload = (*iterator).find("payload");
+			auto type = ettServerMessageMap.find(jType->get<string>());
+			if (ettServerMessageMap.end() == type) {
+				LOG->Trace(("Unknown ETTP message type " + jType->get<string>())
+							 .c_str());
+				continue;
+			}
+			// TODO: Check that payload is not iterator->end() in the cases that use it
+			switch (*type) {
 				case ettps_loginresponse:
 					waitingForTimeout = false;
 					if (!(n->loggedIn = (*payload)["logged"])) {
