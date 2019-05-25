@@ -403,7 +403,7 @@ void
 RageTextureManager::DiagnosticOutput() const
 {
 	unsigned iCount =
-	  distance(m_mapPathToTexture.begin(), m_mapPathToTexture.end());
+	  std::distance(m_mapPathToTexture.begin(), m_mapPathToTexture.end());
 	LOG->Trace("%u textures loaded:", iCount);
 
 	int iTotal = 0;

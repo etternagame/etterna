@@ -202,7 +202,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 		/* GetNextSourceFrame for each active sound should be the same.  If any
 		 * differ, delay the later sounds until the earlier ones catch back up
 		 * to put them back in sync. */
-		int iEarliestSound = distance(
+		int iEarliestSound = std::distance(
 		  aNextSourceFrames.begin(),
 		  min_element(aNextSourceFrames.begin(), aNextSourceFrames.end()));
 

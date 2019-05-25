@@ -1214,7 +1214,7 @@ SortRStringArray(std::vector<RString>& arrayRStrings, const bool bSortAscending)
 float
 calc_mean(const float* pStart, const float* pEnd)
 {
-	return std::accumulate(pStart, pEnd, 0.f) / distance(pStart, pEnd);
+	return std::accumulate(pStart, pEnd, 0.f) / std::distance(pStart, pEnd);
 }
 
 float
@@ -1227,7 +1227,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 	float fDev = 0.0f;
 	for (const float* i = pStart; i != pEnd; ++i)
 		fDev += (*i - fMean) * (*i - fMean);
-	fDev /= distance(pStart, pEnd) - (bSample ? 1 : 0);
+	fDev /= std::distance(pStart, pEnd) - (bSample ? 1 : 0);
 	fDev = sqrtf(fDev);
 
 	return fDev;

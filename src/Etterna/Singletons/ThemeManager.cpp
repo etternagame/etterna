@@ -635,13 +635,13 @@ ThemeManager::FilterFileLanguages(std::vector<RString>& asPaths)
 	std::vector<RString>::iterator it = partition(
 	  asPaths.begin(), asPaths.end(), CompareLanguageTag(m_sCurLanguage));
 
-	int iDist = distance(asPaths.begin(), it);
+	int iDist = std::distance(asPaths.begin(), it);
 	if (iDist == 0) {
 		// We didn't find any for the current language.  Try BASE_LANGUAGE.
 		it = partition(asPaths.begin(),
 					   asPaths.end(),
 					   CompareLanguageTag(SpecialFiles::BASE_LANGUAGE));
-		iDist = distance(asPaths.begin(), it);
+		iDist = std::distance(asPaths.begin(), it);
 	}
 
 	if (iDist == 1)
