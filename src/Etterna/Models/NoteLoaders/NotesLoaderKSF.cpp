@@ -313,7 +313,7 @@ LoadFromKSFFile(const RString& sPath,
 				iTickCount = static_cast<int>(numTemp);
 				// I have been owned by the man -DaisuMaster
 				stepsTiming.SetTickcountAtBeat(
-				  fCurBeat, clamp(iTickCount, 0, ROWS_PER_BEAT));
+				  fCurBeat, clamp<int>(iTickCount, 0, ROWS_PER_BEAT));
 			} else if (BeginsWith(sRowString, "|B")) {
 				// BPM
 				stepsTiming.SetBPMAtBeat(fCurBeat, numTemp);

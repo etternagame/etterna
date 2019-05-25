@@ -226,7 +226,7 @@ RageSurfaceUtils::Palettize(RageSurface*& pImg, int iColors, bool bDither)
 				// Use Floyd-Steinberg errors to adjust actual color.
 				for (int c = 0; c < 4; ++c) {
 					sc[c] = pixel[c] + thiserr[col + 1].c[c] / FS_SCALE;
-					sc[c] = clamp(sc[c], 0, (int32_t)maxval);
+					sc[c] = clamp<int32_t>(sc[c], 0, (int32_t)maxval);
 				}
 
 				PAM_ASSIGN(pixel,

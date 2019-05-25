@@ -623,8 +623,7 @@ void
 Model::SetPosition(float fSeconds)
 {
 	m_fCurFrame = FRAMES_PER_SECOND * fSeconds;
-	m_fCurFrame =
-	  clamp(m_fCurFrame, 0, static_cast<float>(m_pCurAnimation->nTotalFrames));
+	m_fCurFrame = clamp<int>(m_fCurFrame, 0, static_cast<float>(m_pCurAnimation->nTotalFrames));
 }
 
 void
@@ -647,10 +646,7 @@ Model::AdvanceFrame(float fDeltaTime)
 			wrap(m_fCurFrame,
 				 static_cast<float>(m_pCurAnimation->nTotalFrames));
 		else
-			m_fCurFrame =
-			  clamp(m_fCurFrame,
-					0,
-					static_cast<float>(m_pCurAnimation->nTotalFrames));
+			m_fCurFrame = clamp<float>(m_fCurFrame, 0, static_cast<float>(m_pCurAnimation->nTotalFrames));
 	}
 
 	SetBones(m_pCurAnimation, m_fCurFrame, m_vpBones);

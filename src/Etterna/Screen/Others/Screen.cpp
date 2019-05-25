@@ -162,7 +162,7 @@ Screen::Update(float fDeltaTime)
 
 	ActorFrame::Update(fDeltaTime);
 
-	m_fLockInputSecs = std::max(0, m_fLockInputSecs - fDeltaTime);
+	m_fLockInputSecs = std::max<float>(0, m_fLockInputSecs - fDeltaTime);
 
 	/* We need to ensure two things:
 	 * 1. Messages must be sent in the order of delay. If two messages are sent

@@ -358,7 +358,7 @@ RageLog::AddToInfo(const RString& str)
 		const RString txt(NEWLINE "Staticlog limit reached" NEWLINE);
 
 		const unsigned pos =
-		  std::min(staticlog_size, sizeof(staticlog) - txt.size());
+		  std::min<int>(staticlog_size, sizeof(staticlog) - txt.size());
 		memcpy(staticlog + pos, txt.data(), txt.size());
 		limit_reached = true;
 		return;

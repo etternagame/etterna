@@ -367,7 +367,7 @@ TimingData::GetActualBPM(float& fMinBPMOut,
 
 	for (unsigned i = 0; i < bpms.size(); i++) {
 		const float fBPM = ToBPM(bpms[i])->GetBPM();
-		fMaxBPMOut = clamp(std::max(fBPM, fMaxBPMOut), 0, highest);
+		fMaxBPMOut =  clamp<float>(std::max<float>(fBPM, fMaxBPMOut), 0, highest);
 		fMinBPMOut = std::min(fBPM, fMinBPMOut);
 	}
 }

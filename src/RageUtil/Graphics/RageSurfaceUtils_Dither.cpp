@@ -138,7 +138,7 @@ EDDitherPixel(int x, int y, int intensity, int conv, int32_t& accumError)
 	 * To store it, we have to clamp it (prevent overflow) and shift it
 	 * from fixed-point to [0,255].  The error introduced in that calculation
 	 * becomes the new accumError. */
-	int clamped_intensity = clamp(out_intensity, 0, 0xFFFFFF);
+	int clamped_intensity = clamp<int>(out_intensity, 0, 0xFFFFFF);
 	clamped_intensity &= 0xFF0000;
 
 	// Truncate.

@@ -1028,11 +1028,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(std::max(1u, GetTotalVertices()));
-		m_vTexture.resize(std::max(1u, GetTotalVertices()));
-		m_vNormal.resize(std::max(1u, GetTotalVertices()));
-		m_vTexMatrixScale.resize(std::max(1u, GetTotalVertices()));
-		m_vTriangles.resize(std::max(1u, GetTotalTriangles()));
+		m_vPosition.resize(std::max<int>(1u, GetTotalVertices()));
+		m_vTexture.resize(std::max<int>(1u, GetTotalVertices()));
+		m_vNormal.resize(std::max<int>(1u, GetTotalVertices()));
+		m_vTexMatrixScale.resize(std::max<int>(1u, GetTotalVertices()));
+		m_vTriangles.resize(std::max<int>(1u, GetTotalTriangles()));
 	}
 	void Change(const std::vector<msMesh>& vMeshes) override
 	{
@@ -1593,8 +1593,8 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 
 	/* Clamp the width to the hardware max for both lines and points (whichever
 	 * is more restrictive). */
-	fLineWidth = clamp(fLineWidth, g_line_range[0], g_line_range[1]);
-	fLineWidth = clamp(fLineWidth, g_point_range[0], g_point_range[1]);
+	fLineWidth = clamp<float>(fLineWidth, g_line_range[0], g_line_range[1]);
+	fLineWidth = clamp<float>(fLineWidth, g_point_range[0], g_point_range[1]);
 
 	/* Hmm.  The granularity of lines and points might be different; for
 	 * example, if lines are .5 and points are .25, we might want to snap the

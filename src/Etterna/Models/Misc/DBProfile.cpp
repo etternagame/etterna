@@ -374,7 +374,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 								   hs.GetDateTime().GetString())));
 
 		// Validate input.
-		hs.SetGrade(clamp(hs.GetGrade(), Grade_Tier01, Grade_Failed));
+		hs.SetGrade(clamp<Grade>(hs.GetGrade(), Grade_Tier01, Grade_Failed));
 
 		// Set any pb
 		if (scores[key].ScoresByRate[rate].PBptr == nullptr)

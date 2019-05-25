@@ -498,7 +498,7 @@ GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 		return 0;
 
 	/* Subtract the extra delay. */
-	return std::min(-fExtraDelay, 0);
+	return std::min<float>(-fExtraDelay, 0);
 }
 
 void

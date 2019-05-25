@@ -307,7 +307,7 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	float fPercent = iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
-	fPercent = std::max(0, fPercent);
+	fPercent = std::max<float>(0, fPercent);
 
 	int iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"

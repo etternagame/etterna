@@ -839,7 +839,7 @@ SMLoader::ProcessTickcounts(TimingData& out,
 
 		const float fTickcountBeat =
 		  RowToBeat(arrayTickcountValues[0], rowsPerBeat);
-		int iTicks = clamp(atoi(arrayTickcountValues[1]), 0, ROWS_PER_BEAT);
+		int iTicks = clamp<int>(atoi(arrayTickcountValues[1]), 0, ROWS_PER_BEAT);
 
 		out.AddSegment(TickcountSegment(BeatToNoteRow(fTickcountBeat), iTicks));
 	}

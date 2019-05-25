@@ -1194,7 +1194,7 @@ GameState::CountNotesSeparately()
 
 template<class T>
 void
-setstd::min(T& a, const T& b)
+setmin(T& a, const T& b)
 {
 	a = std::min(a, b);
 }

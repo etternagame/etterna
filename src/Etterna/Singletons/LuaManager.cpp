@@ -1511,7 +1511,7 @@ LuaFunction(VersionTime, (std::string)version_time);
 
 LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
-LuaFunction(clamp, clamp(FArg(1), FArg(2), FArg(3)));
+LuaFunction(clamp, clamp<float>(FArg(1), FArg(2), FArg(3)));
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 namespace {

@@ -145,15 +145,14 @@ ModIconRow::SetFromGameState()
 	std::vector<RString> vsOptions;
 	split(sOptions, ", ", vsOptions, true);
 
-	std::vector<RString>
-	  vsText; // fill these with what will be displayed on the tabs
+	std::vector<RString> vsText; // fill these with what will be displayed on the tabs
 	vsText.resize(m_vpModIcon.size());
 
 	// for each option, look for the best column to place it in
 	for (unsigned i = 0; i < vsOptions.size(); i++) {
 		RString sOption = vsOptions[i];
 		int iPerferredCol = OptionToPreferredColumn(sOption);
-		clamp(iPerferredCol, 0, (int)m_vpModIcon.size() - 1);
+//		clamp(iPerferredCol, 0, (int)m_vpModIcon.size() - 1); // FIXME: unused?
 
 		if (iPerferredCol == -1)
 			continue; // skip

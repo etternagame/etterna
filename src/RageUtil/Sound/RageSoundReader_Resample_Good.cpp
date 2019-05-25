@@ -74,7 +74,7 @@ ApplyKaiserWindow(float* pBuf, int iLen, float fBeta)
 	float p = (iLen - 1) / 2.0f;
 	for (int n = 0; n < iLen; ++n) {
 		float fN1 = fabsf((n - p) / p);
-		float fNum = fBeta * sqrtf(std::max(1 - fN1 * fN1, 0));
+		float fNum = fBeta * sqrtf(std::max<float>(1 - fN1 * fN1, 0));
 		fNum = BesselI0(fNum);
 		float fVal = fNum / fDenom;
 		pBuf[n] *= fVal;

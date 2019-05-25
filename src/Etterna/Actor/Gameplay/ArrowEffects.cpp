@@ -834,7 +834,7 @@ ArrowGetPercentVisible(float fYPosWithoutReverse)
 						  fAppearances[PlayerOptions::APPEARANCE_RANDOMVANISH];
 	}
 
-	return clamp(1 + fVisibleAdjust, 0, 1);
+	return clamp<int>(1 + fVisibleAdjust, 0, 1);
 }
 
 float

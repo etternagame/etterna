@@ -105,10 +105,8 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 			const float fSecondsBeforeStart = -s.m_StartTime.Ago();
 			const int64_t iFramesBeforeStart =
 			  int64_t(fSecondsBeforeStart * GetSampleRate());
-			const int iSilentFramesInThisBuffer = clamp(
-			  static_cast<int>(iFramesBeforeStart - iFramesUntilThisBuffer),
-			  0,
-			  iFramesLeft);
+			const int iSilentFramesInThisBuffer =
+			        clamp<int>( static_cast<int>(iFramesBeforeStart - iFramesUntilThisBuffer), 0, iFramesLeft);
 
 			iGotFrames += iSilentFramesInThisBuffer;
 			iFramesLeft -= iSilentFramesInThisBuffer;

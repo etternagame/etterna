@@ -190,8 +190,7 @@ WheelBase::Update(float fDeltaTime)
 
 		/* Make sure that we don't go further than 1 away, in case the speed is
 		 * very high or we miss a lot of frames. */
-		m_fPositionOffsetFromSelection =
-		  clamp(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
+		m_fPositionOffsetFromSelection = clamp<float>(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
 
 		// If it passed the selection, move again.
 		if ((m_Moving == -1 && m_fPositionOffsetFromSelection >= 0) ||

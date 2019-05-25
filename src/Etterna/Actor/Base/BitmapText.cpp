@@ -382,12 +382,10 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 	}
 
 	const int iNumGlyphs = m_vpFontPageTextures.size();
-	int iStartGlyph =
-	  lround(SCALE(m_pTempState->crop.left, 0, 1, 0, iNumGlyphs));
-	int iEndGlyph =
-	  lround(SCALE(m_pTempState->crop.right, 0, 1, iNumGlyphs, 0));
-	iStartGlyph = clamp(iStartGlyph, 0, iNumGlyphs);
-	iEndGlyph = clamp(iEndGlyph, 0, iNumGlyphs);
+	int iStartGlyph = lround(SCALE(m_pTempState->crop.left, 0, 1, 0, iNumGlyphs));
+	int iEndGlyph = lround(SCALE(m_pTempState->crop.right, 0, 1, iNumGlyphs, 0));
+	iStartGlyph = clamp<int>(iStartGlyph, 0, iNumGlyphs);
+	iEndGlyph = clamp<int>(iEndGlyph, 0, iNumGlyphs);
 
 	if (m_pTempState->fade.top > 0 || m_pTempState->fade.bottom > 0 ||
 		m_pTempState->fade.left > 0 || m_pTempState->fade.right > 0) {
@@ -442,7 +440,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 									   fLeftFadeStopGlyph,
 									   0.0f,
 									   1.0f);
-				fPercent = clamp(fPercent, 0.0f, 1.0f);
+				fPercent = clamp<float>(fPercent, 0.0f, 1.0f);
 				fAlpha *= fPercent * fLeftAlpha;
 			}
 
@@ -452,7 +450,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 									   fRightFadeStopGlyph,
 									   1.0f,
 									   0.0f);
-				fPercent = clamp(fPercent, 0.0f, 1.0f);
+				fPercent = clamp<float>(fPercent, 0.0f, 1.0f);
 				fAlpha *= fPercent * fRightAlpha;
 			}
 

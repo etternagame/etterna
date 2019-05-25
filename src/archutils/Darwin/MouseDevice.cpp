@@ -143,9 +143,9 @@ MouseDevice::GetButtonPresses(
 
 	float level = MACMouseScroll();
 	INPUTFILTER->ButtonPressed(
-	  DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, std::max(-level, 0), now));
+	  DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP,   std::max<float>(-level, 0), now));
 	INPUTFILTER->ButtonPressed(
-	  DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, std::max(+level, 0), now));
+	  DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, std::max<float>(+level, 0), now));
 
 	hash_map<IOHIDElementCookie, DeviceButton>::const_iterator iter =
 	  m_Mapping.find(cookie);

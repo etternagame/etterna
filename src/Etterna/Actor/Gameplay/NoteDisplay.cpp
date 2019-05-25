@@ -1680,7 +1680,7 @@ NoteDisplay::DrawActor(const TapNote& tn,
 		switch (cache->m_NoteColorType[part]) {
 			case NoteColorType_Denominator:
 				color = float(BeatToNoteType(fBeat));
-				color = clamp(color, 0, (cache->m_iNoteColorCount[part] - 1));
+				color = clamp<int>(color, 0, (cache->m_iNoteColorCount[part] - 1));
 				break;
 			case NoteColorType_Progress:
 				color =

@@ -313,9 +313,7 @@ ScreenSelectMaster::Init()
 						 m_aGameCommands.size());
 				else
 					m_mapCurrentChoiceToNextChoice[dir][c] =
-					  clamp(m_mapCurrentChoiceToNextChoice[dir][c],
-							0,
-							(int)m_aGameCommands.size() - 1);
+					        clamp<int>(m_mapCurrentChoiceToNextChoice[dir][c], 0, (int)m_aGameCommands.size() - 1);
 			}
 		}
 	}

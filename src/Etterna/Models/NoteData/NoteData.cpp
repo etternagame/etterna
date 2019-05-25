@@ -147,8 +147,8 @@ NoteData::CopyRange(const NoteData& from,
 				int iStartRow = lBegin->first + iMoveBy;
 				int iEndRow = iStartRow + head.iDuration;
 
-				iStartRow = clamp(iStartRow, rowToBegin, rowToEnd);
-				iEndRow = clamp(iEndRow, rowToBegin, rowToEnd);
+				iStartRow = clamp<int>(iStartRow, rowToBegin, rowToEnd);
+				iEndRow = clamp<int>(iEndRow, rowToBegin, rowToEnd);
 
 				this->AddHoldNote(t, iStartRow, iEndRow, head);
 			} else {

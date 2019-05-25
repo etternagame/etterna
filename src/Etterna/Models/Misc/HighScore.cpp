@@ -427,7 +427,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
 	// Validate input.
-	grade = clamp(grade, Grade_Tier01, Grade_Failed);
+	grade = clamp<Grade>(grade, Grade_Tier01, Grade_Failed);
 }
 
 bool
@@ -1283,7 +1283,7 @@ HighScoreList::AddHighScore(HighScore hs, int& iIndexOut, bool bIsMachine)
 	// and not here so that we don't end up with fewer than iMaxScores after
 	// removing HighScores with duplicate names.
 	//
-	HighGrade = min(hs.GetWifeGrade(), HighGrade);
+	HighGrade = std::min(hs.GetWifeGrade(), HighGrade);
 }
 
 void

@@ -49,7 +49,7 @@ RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
 
 	std::shuffle(
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);
-	arraySoundFiles.resize(min(arraySoundFiles.size(), (unsigned)iMaxToLoad));
+	arraySoundFiles.resize(std::min<int>(arraySoundFiles.size(), (unsigned)iMaxToLoad));
 
 	for (unsigned i = 0; i < arraySoundFiles.size(); i++)
 		LoadSound(sDir + arraySoundFiles[i]);

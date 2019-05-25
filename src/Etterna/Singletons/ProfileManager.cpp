@@ -678,7 +678,7 @@ ProfileManager::AddStepsScore(const Song* pSong,
 							  int& iMachineIndexOut)
 {
 	HighScore hs = hs_;
-	hs.SetPercentDP(std::max(0, hs.GetPercentDP())); // bump up negative scores
+	hs.SetPercentDP(std::max<float>(0, hs.GetPercentDP())); // bump up negative scores
 
 	iPersonalIndexOut = -1;
 	iMachineIndexOut = -1;
