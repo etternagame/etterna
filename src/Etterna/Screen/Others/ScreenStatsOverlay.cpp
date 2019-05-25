@@ -83,8 +83,12 @@ ScreenStatsOverlay::Update(float fDeltaTime)
 	this->SetVisible(PREFSMAN->m_bShowStats);
 	if (PREFSMAN->m_bShowStats) {
 		m_textStats.SetText(DISPLAY->GetStats());
-		if (SHOW_SKIPS && PREFSMAN->m_bShowSkips)
+		if (SHOW_SKIPS && PREFSMAN->m_bShowSkips) {
 			UpdateSkips();
+			m_quadSkipBackground.SetVisible(true);
+		} else {
+			m_quadSkipBackground.SetVisible(false);
+		}
 	}
 }
 
