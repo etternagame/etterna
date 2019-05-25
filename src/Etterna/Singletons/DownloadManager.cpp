@@ -30,7 +30,7 @@ using json = nlohmann::json;
 #ifdef _WIN32
 #include <intrin.h>
 #endif
-shared_ptr<DownloadManager> DLMAN = nullptr;
+std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(

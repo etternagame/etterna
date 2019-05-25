@@ -311,7 +311,7 @@ class DownloadManager
 	void PushSelf(lua_State* L);
 };
 
-extern shared_ptr<DownloadManager> DLMAN;
+extern std::shared_ptr<DownloadManager> DLMAN;
 
 #endif
 
