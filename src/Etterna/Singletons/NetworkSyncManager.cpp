@@ -652,7 +652,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				continue;
 			}
 			// TODO: Check that payload is not iterator->end() in the cases that use it
-			switch (*type) {
+			switch (type->second) {
 				case ettps_loginresponse:
 					waitingForTimeout = false;
 					if (!(n->loggedIn = (*payload)["logged"])) {
