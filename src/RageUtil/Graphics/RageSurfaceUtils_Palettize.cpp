@@ -303,7 +303,7 @@ RageSurfaceUtils::Palettize(RageSurface*& pImg, int iColors, bool bDither)
 		} while (col != limitcol);
 
 		if (bDither) {
-			swap(thiserr, nexterr);
+			std::swap(thiserr, nexterr);
 			fs_direction = !fs_direction;
 		}
 	}
