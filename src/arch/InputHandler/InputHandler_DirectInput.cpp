@@ -20,6 +20,12 @@ static vector<DIDevice> Devices;
 
 // Number of joysticks found:
 static int g_iNumJoysticks;
+static bool g_forceJoystickPolling = false;
+void
+DInput_ForceJoystickPollingInNextDevicesChangedCall()
+{
+	g_forceJoystickPolling = true;
+}
 
 static BOOL CALLBACK
 EnumDevicesCallback(const DIDEVICEINSTANCE* pdidInstance, void* pContext)
@@ -803,50 +809,28 @@ InputHandler_DInput::Update()
 	InputHandler::UpdateTimer();
 }
 
-const float POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS = 15.0f;
-const float POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS = 0.25f;
-
 bool
 InputHandler_DInput::DevicesChanged()
 {
-	/* GetNumJoysticksSlow() blocks DirectInput for a while even if called from
-	 * a different thread, so we can't poll with it. GetNumHidDevices() is fast,
-	 * but sometimes the DirectInput joysticks haven't updated by  the time the
-	 * HID registry value changes. So, poll using GetNumHidDevices(). When that
-	 * changes, poll using GetNumJoysticksSlow() for a little while to give
-	 * DirectInput time to catch up. On this XP machine (which? -aj), it takes
-	 * 2-10 DirectInput polls (0.5-2.5 seconds) to catch a newly installed
-	 * device after the registry value changes, and catches non-new
-	 * plugged/unplugged devices on the first DirectInputPoll. Note that this
-	 * "poll for N seconds" method will not work if the Add New Hardware wizard
-	 * halts device installation to wait for a driver. Most of the joysticks
-	 * people would want to use don't prompt for a driver though, and the wizard
-	 * adds them pretty quickly. */
+	/* Basically, check if devices are changed, especially joysticks.
+	This should only be called when appropriate (when Windows says devices
+	changed) The reason we don't just keep polling is because that's slow.
+	GetNumHidDevices() should be fast enough to not be slow, then just use logic
+	and modern magic.
+	*/
 
 	int iOldNumHidDevices = m_iLastSeenNumHidDevices;
 	m_iLastSeenNumHidDevices = GetNumHidDevices();
-	if (iOldNumHidDevices != m_iLastSeenNumHidDevices) {
-		LOG->Warn("HID devices changes");
-		m_iNumTimesLeftToPollForJoysticksChanged =
-		  static_cast<int>(POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS /
-						   POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS);
-	}
-
-	if (m_iNumTimesLeftToPollForJoysticksChanged > 0) {
-		static RageTimer timerPollJoysticks;
-		if (timerPollJoysticks.Ago() >=
-			POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS) {
-			m_iNumTimesLeftToPollForJoysticksChanged--;
-			timerPollJoysticks.Touch();
-			LOG->Warn("polling for joystick changes");
-
-			int iOldNumJoysticks = m_iLastSeenNumJoysticks;
-			m_iLastSeenNumJoysticks = GetNumJoysticksSlow();
-			if (iOldNumJoysticks != m_iLastSeenNumJoysticks) {
-				LOG->Warn("joysticks changed");
-				m_iNumTimesLeftToPollForJoysticksChanged = 0;
-				return true;
-			}
+	if (iOldNumHidDevices != m_iLastSeenNumHidDevices ||
+		g_forceJoystickPolling) {
+		g_forceJoystickPolling = false;
+		LOG->Warn("Caught HID Changes. Checking for Joystick Changes.");
+		int iOldNumJoysticks = m_iLastSeenNumJoysticks;
+		m_iLastSeenNumJoysticks = GetNumJoysticksSlow();
+		if (iOldNumJoysticks != m_iLastSeenNumJoysticks) {
+			LOG->Warn("Caught Joystick Changes.");
+			m_iNumTimesLeftToPollForJoysticksChanged = 0;
+			return true;
 		}
 	}
 
