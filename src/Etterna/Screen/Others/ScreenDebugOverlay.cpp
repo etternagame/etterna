@@ -1,4 +1,5 @@
 #include "Etterna/Globals/global.h"
+#include "arch/ArchHooks/ArchHooks.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Globals/GameLoop.h"
@@ -620,6 +621,7 @@ static LocalizedString RENDER_SKIPS("ScreenDebugOverlay", "Rendering Skips");
 static LocalizedString EASTER_EGGS("ScreenDebugOverlay", "Easter Eggs");
 static LocalizedString OSU_LIFTS("ScreenDebugOverlay", "Osu Lifts");
 static LocalizedString PITCH_RATES("ScreenDebugOverlay", "Pitch Rates");
+static LocalizedString FULLSCREEN("ScreenDebugOverlay", "Fullscreen");
 
 class DebugLineAutoplay : public IDebugLine
 {
@@ -1410,6 +1412,21 @@ class DebugLinePitchRates : public IDebugLine
 	}
 };
 
+class DebugLineFullscreen : public IDebugLine
+{
+	RString GetDisplayTitle() override { return FULLSCREEN.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return true; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+#if !defined(__APPLE__)
+		ArchHooks::SetToggleWindowed();
+		IDebugLine::DoAndLog(sMessageOut);
+#endif
+	}
+};
+
 /* #ifdef out the lines below if you don't want them to appear on certain
  * platforms.  This is easier than #ifdefing the whole DebugLine definitions
  * that can span pages.
@@ -1456,6 +1473,7 @@ DECLARE_ONE(DebugLineSkips);
 DECLARE_ONE(DebugLineEasterEggs);
 DECLARE_ONE(DebugLineOsuLifts);
 DECLARE_ONE(DebugLinePitchRates);
+DECLARE_ONE(DebugLineFullscreen);
 
 /*
  * (c) 2001-2005 Chris Danford, Glenn Maynard
