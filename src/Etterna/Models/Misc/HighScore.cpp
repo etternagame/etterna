@@ -440,7 +440,7 @@ HighScoreImpl::WriteReplayData()
 	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR))
 		FILEMAN->CreateDir(FULL_REPLAY_DIR);
 	std::string path = FULL_REPLAY_DIR + ScoreKey;
-	std::ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
 	ASSERT(vNoteRowVector.size() > 0);
@@ -482,7 +482,7 @@ HighScore::WriteInputData(const std::vector<float>& oop)
 	std::string profiledir;
 
 	std::string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	std::ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
 	ASSERT(oop.size() > 0);
@@ -524,7 +524,7 @@ HighScore::LoadReplayDataBasic()
 	std::vector<float> vOffsetVector;
 	std::string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
@@ -584,7 +584,7 @@ HighScore::LoadReplayDataFull()
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
 	std::string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;

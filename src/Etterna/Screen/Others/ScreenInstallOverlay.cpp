@@ -226,16 +226,16 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 
 					std::string path =
 						ndOutputPath + steps->GetChartKey() + ".cache";
-					std::ofstream FILE(path, ios::out | std::ofstream::binary);
+					std::ofstream FILE(path, std::ios::out | std::ofstream::binary);
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
 					FILE.close();
 					std::vector<NoteInfo> newVector;
 					std::ifstream INFILE(path,
 										 std::ios::in | std::ifstream::binary);
-					INFILE.seekg(0, ios::end);
+					INFILE.seekg(0, std::ios::end);
 					newVector.resize(u_int(INFILE.tellg() / sizeof(NoteInfo)));
-					INFILE.seekg(0, ios::beg);
+					INFILE.seekg(0, std::ios::beg);
 					INFILE.read((char*)&newVector[0],
 								newVector.capacity() * sizeof(NoteData));
 					INFILE.close();
