@@ -113,6 +113,11 @@ local defaultConfig = {
 		FullCombo = "#a4ff00",
 		RegularCombo = "#ffffff",
 		ComboLabel = "#00aeef"
+	},
+	laneCover = {
+		cover = "#333333",
+		bpmText = "#4CBB17",
+		heightText = "#FFFFFF"
 	}
 }
 
@@ -136,6 +141,10 @@ end
 
 function getLeaderboardColor(type)
 	return color(colorConfig:get_data().leaderboard[type])
+end
+
+function getLaneCoverColor(type)
+	return color(colorConfig:get_data().laneCover[type])
 end
 
 function getGradeColor(grade)
