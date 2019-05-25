@@ -440,7 +440,7 @@ HighScoreImpl::WriteReplayData()
 	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR))
 		FILEMAN->CreateDir(FULL_REPLAY_DIR);
 	std::string path = FULL_REPLAY_DIR + ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, ios::binary);
 	// check file
 
 	ASSERT(vNoteRowVector.size() > 0);
@@ -482,7 +482,7 @@ HighScore::WriteInputData(const std::vector<float>& oop)
 	std::string profiledir;
 
 	std::string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, ios::binary);
 	// check file
 
 	ASSERT(oop.size() > 0);

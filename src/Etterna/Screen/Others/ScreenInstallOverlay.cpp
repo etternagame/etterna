@@ -226,7 +226,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 
 					std::string path =
 						ndOutputPath + steps->GetChartKey() + ".cache";
-					ofstream FILE(path, ios::out | ofstream::binary);
+					std::ofstream FILE(path, ios::out | std::ofstream::binary);
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
 					FILE.close();
