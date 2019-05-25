@@ -2005,7 +2005,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 				try {
 					DownloadablePack tmp;
 					if (packJ.find("id") != packJ.end())
-						tmp.id = stoi(packJ.value("id", ""));
+						tmp.id = std::stoi(packJ.value("id", ""));
 					auto attr = packJ.find("attributes");
 					auto pack = attr != packJ.end() ? *attr : packJ;
 

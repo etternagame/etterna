@@ -613,7 +613,7 @@ HighScore::LoadReplayDataFull()
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[1]);
 			hrr.track = std::stoi(tokens[2]);
-			tmp = tokens.size() > 3 ? ::stoi(tokens[3]) : TapNoteSubType_Hold;
+			tmp = tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
 				!(typeid(tmp) == typeid(int))) {
 				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype "
@@ -649,7 +649,7 @@ HighScore::LoadReplayDataFull()
 		}
 		vTrackVector.emplace_back(track);
 
-		tmp = tokens.size() >= 4 ? ::stoi(tokens[3]) : TapNoteType_Tap;
+		tmp = tokens.size() >= 4 ? std::stoi(tokens[3]) : TapNoteType_Tap;
 		if (tmp < 0 || tmp >= TapNoteType_Invalid ||
 			!(typeid(tmp) == typeid(int))) {
 			LOG->Warn("Failed to load replay data at %s (\"Tapnotetype value "

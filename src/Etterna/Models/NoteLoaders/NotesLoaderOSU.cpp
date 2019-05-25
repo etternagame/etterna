@@ -141,7 +141,7 @@ OsuLoader::SetTimingData(std::map<std::string, std::map<std::string, std::string
 		auto line = it->first;
 		auto values = split(line, ",");
 
-		tp.emplace_back(std::pair<int, float>(stoi(values[0]), stof(values[1])));
+		tp.emplace_back(std::pair<int, float>(std::stoi(values[0]), stof(values[1])));
 	}
 	sort(tp.begin(), tp.end(), [](std::pair<int, float> a, std::pair<int, float> b) {
 		return a.first < b.first;
@@ -202,12 +202,12 @@ OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
 						 std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
-	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
+	if (std::stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
 		return false;
 	}
 
-	switch (stoi(parsedData["Difficulty"]["CircleSize"])) {
+	switch (std::stoi(parsedData["Difficulty"]["CircleSize"])) {
 		case (4): {
 			chart->m_StepsType = StepsType_dance_single;
 			break;
@@ -274,7 +274,7 @@ OsuLoader::LoadNoteDataFromParsedData(
   std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
 	NoteData newNoteData;
-	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
+	newNoteData.SetNumTracks(std::stoi(parsedData["Difficulty"]["CircleSize"]));
 
 	std::vector<OsuNote> taps;
 	std::vector<OsuHold> holds;
@@ -283,12 +283,12 @@ OsuLoader::LoadNoteDataFromParsedData(
 		 ++it) {
 		auto line = it->first;
 		auto values = split(line, ",");
-		int type = stoi(values[3]);
+		int type = std::stoi(values[3]);
 		if (type == 128)
 			holds.emplace_back(
-			  OsuHold(stoi(values[2]), stoi(values[5]), stoi(values[0])));
+			  OsuHold(std::stoi(values[2]), std::stoi(values[5]), std::stoi(values[0])));
 		else if ((type & 1) == 1)
-			taps.emplace_back(OsuNote(stoi(values[2]), stoi(values[0])));
+			taps.emplace_back(OsuNote(std::stoi(values[2]), std::stoi(values[0])));
 	}
 
 	sort(taps.begin(), taps.end(), [](OsuNote a, OsuNote b) {
@@ -313,7 +313,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 
 	for (int i = 0; i < (int)taps.size(); ++i) {
 		newNoteData.SetTapNote(
-		  taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  taps[i].lane / (512 / std::stoi(parsedData["Difficulty"]["CircleSize"])),
 		  MsToNoteRow(taps[i].ms - firstTap, out->m_pSong),
 		  TAP_ORIGINAL_TAP);
 	}
@@ -324,12 +324,12 @@ OsuLoader::LoadNoteDataFromParsedData(
 			end = end - 1;
 		}
 		newNoteData.AddHoldNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  holds[i].lane / (512 / std::stoi(parsedData["Difficulty"]["CircleSize"])),
 		  start,
 		  end,
 		  TAP_ORIGINAL_HOLD_HEAD);
 		newNoteData.SetTapNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  holds[i].lane / (512 / std::stoi(parsedData["Difficulty"]["CircleSize"])),
 		  end + 1,
 		  TAP_ORIGINAL_LIFT);
 	}
