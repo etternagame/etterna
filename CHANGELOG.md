@@ -4,8 +4,17 @@ All releases of Etterna are listed in this file as well as links to files detail
 ## [Unreleased] - TBD - Codebase Restructure & Quality of Life Patch 2
 
 Windows x64, Windows i386, and Mac installer future release.
-- Rewrote the CMake system
-- Redid the face of the repo
+### Added
+### Changed
+- Rewrote the CMake system - https://github.com/etternagame/etterna/pull/481 https://github.com/etternagame/etterna/pull/468 https://github.com/etternagame/etterna/pull/520
+- Redid the face of the repo - https://github.com/etternagame/etterna/pull/514
+- Use stb image to write images (Screenshots) - https://github.com/etternagame/etterna/pull/489
+- Rewrote all old changelogs to be more comprehensive and have a somewhat standard format - https://github.com/etternagame/etterna/pull/522
+### Removed
+### Fixed
+- Fix the game hanging sometimes due to the audio visualizer (Deadlocks) - https://github.com/etternagame/etterna/pull/536
+- Fix visual delay being affected by rates (https://github.com/etternagame/etterna/issues/485) - https://github.com/etternagame/etterna/pull/534
+- Fix stutter when plugging or unplugging devices on windows (https://github.com/etternagame/etterna/issues/537) - https://github.com/etternagame/etterna/pull/539
 
 ## [0.65.1] - 2019-03-10 - Quality of Life Patch
 
