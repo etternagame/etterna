@@ -475,7 +475,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.emplace_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
@@ -718,7 +718,7 @@ DownloadManager::AddFavorite(const std::string& chartkey)
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
 		LOG->Warn((requ.result + req + DLMAN->sessionUser).c_str());
 	};
-	SendRequest(req, { make_pair("chartkey", chartkey) }, done, true, true);
+	SendRequest(req, { std::make_pair("chartkey", chartkey) }, done, true, true);
 }
 
 void
@@ -762,10 +762,10 @@ DownloadManager::AddGoal(const std::string& chartkey,
 
 	};
 	std::vector<std::pair<string, string>> postParams = {
-		make_pair("chartkey", chartkey),
-		make_pair("rate", std::to_string(rate)),
-		make_pair("wife", std::to_string(wife)),
-		make_pair("timeAssigned", timeAssigned.GetString())
+		std::make_pair("chartkey", chartkey),
+		std::make_pair("rate", std::to_string(rate)),
+		std::make_pair("wife", std::to_string(wife)),
+		std::make_pair("timeAssigned", timeAssigned.GetString())
 	};
 	SendRequest(req, postParams, done, true, true);
 }
@@ -787,12 +787,12 @@ DownloadManager::UpdateGoal(const std::string& chartkey,
 
 	};
 	std::vector<std::pair<string, string>> postParams = {
-		make_pair("chartkey", chartkey),
-		make_pair("rate", std::to_string(rate)),
-		make_pair("wife", std::to_string(wife)),
-		make_pair("achieved", std::to_string(achieved)),
-		make_pair("timeAssigned", timeAssigned.GetString()),
-		make_pair("timeAchieved", doot)
+		std::make_pair("chartkey", chartkey),
+		std::make_pair("rate", std::to_string(rate)),
+		std::make_pair("wife", std::to_string(wife)),
+		std::make_pair("achieved", std::to_string(achieved)),
+		std::make_pair("timeAssigned", timeAssigned.GetString()),
+		std::make_pair("timeAchieved", doot)
 	};
 	SendRequest(req, postParams, done, true, true);
 }
@@ -1496,7 +1496,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			if (!replay->is_null() && replay->size() > 1)
 				for (auto& note : *replay) {
 					replayData.emplace_back(
-					  make_pair(note[0].get<float>(), note[1].get<float>()));
+					  std::make_pair(note[0].get<float>(), note[1].get<float>()));
 
 					timestamps.emplace_back(note[0].get<float>());
 					offsets.emplace_back(note[1].get<float>() / 1000.f);
@@ -1744,7 +1744,7 @@ DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.emplace_back(std::make_pair(pack, mirror));
 }
 
 void

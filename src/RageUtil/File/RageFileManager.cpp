@@ -1036,7 +1036,7 @@ RageFileManager::OpenForWriting(const RString& sPath, int mode, int& iError)
 		if (value == -1)
 			continue;
 
-		Values.push_back(make_pair(i, value));
+		Values.push_back(std::make_pair(i, value));
 	}
 
 	stable_sort(Values.begin(), Values.end(), SortBySecond);

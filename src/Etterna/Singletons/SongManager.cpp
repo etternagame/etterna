@@ -1536,7 +1536,7 @@ SongManager::AddSongToList(Song* new_song)
 	m_pSongs.emplace_back(new_song);
 	RString dir = new_song->GetSongDir();
 	dir.MakeLower();
-	m_SongsByDir.insert(make_pair(dir, new_song));
+	m_SongsByDir.insert(std::make_pair(dir, new_song));
 }
 
 void

@@ -451,7 +451,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 void
 Screen::SetTimeout(std::function<void()> f, float ms)
 {
-	delayedFunctions.emplace_back(make_pair(f, ms));
+	delayedFunctions.emplace_back(std::make_pair(f, ms));
 	return;
 }
 

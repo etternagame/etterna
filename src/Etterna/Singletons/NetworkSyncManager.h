@@ -297,7 +297,7 @@ class Chat
 	std::vector<std::string>& operator[](const std::pair<string, int>& p)
 	{
 		if (p.second == 0)
-			return rawMap.operator[](make_pair(string(""), 0));
+			return rawMap.operator[](std::make_pair(string(""), 0));
 		else
 			return rawMap.operator[](p);
 	}

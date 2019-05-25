@@ -154,7 +154,7 @@ AdjustSync::HandleAutosync(float fNoteOffBySeconds, float fStepTime)
 		case AutosyncType_Tempo: {
 			// We collect all of the data and process it at the end
 			s_vAutosyncTempoData.push_back(
-			  make_pair(fStepTime, fNoteOffBySeconds));
+			  std::make_pair(fStepTime, fNoteOffBySeconds));
 			break;
 		}
 		case AutosyncType_Machine:

@@ -448,7 +448,7 @@ SMLoader::ParseBPMs(std::vector<std::pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fBeat, fNewBPM));
+		out.emplace_back(std::make_pair(fBeat, fNewBPM));
 	}
 }
 
@@ -481,7 +481,7 @@ SMLoader::ParseStops(std::vector<std::pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fFreezeBeat, fFreezeSeconds));
+		out.emplace_back(std::make_pair(fFreezeBeat, fFreezeSeconds));
 	}
 }
 
