@@ -1918,7 +1918,7 @@ StringToInt(const RString& sString)
 RString
 IntToString(const int& iNum)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << iNum;
 	return ss.str();
 }
@@ -1945,7 +1945,7 @@ StringToFloat(const RString& sString, float& fOut)
 RString
 FloatToString(const float& num)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << num;
 	return ss.str();
 }

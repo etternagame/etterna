@@ -528,7 +528,7 @@ HighScore::LoadReplayDataBasic()
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
-	stringstream ss;
+	std::stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -540,7 +540,7 @@ HighScore::LoadReplayDataBasic()
 
 	// loop until eof
 	while (getline(fileStream, line)) {
-		stringstream ss(line);
+		std::stringstream ss(line);
 		// split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
@@ -604,7 +604,7 @@ HighScore::LoadReplayDataFull()
 
 	// loop until eof
 	while (getline(fileStream, line)) {
-		stringstream ss(line);
+		std::stringstream ss(line);
 		// split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
