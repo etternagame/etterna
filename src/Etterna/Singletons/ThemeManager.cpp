@@ -279,7 +279,7 @@ ThemeManager::GetLanguages(std::vector<RString>& AddTo)
 		GetLanguagesForTheme(g_vThemes[i].sThemeName, AddTo);
 
 	// remove dupes
-	sort(AddTo.begin(), AddTo.end());
+	std::sort(AddTo.begin(), AddTo.end());
 	std::vector<RString>::iterator it =
 	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
 	AddTo.erase(it, AddTo.end());

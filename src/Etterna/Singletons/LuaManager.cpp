@@ -1002,7 +1002,7 @@ LuaHelpers::GetLuaInformation()
 						if (LuaHelpers::FromStack(L, sMethod, -1))
 							c.m_vMethods.push_back(sMethod);
 					}
-					sort(c.m_vMethods.begin(), c.m_vMethods.end());
+					std::sort(c.m_vMethods.begin(), c.m_vMethods.end());
 					break;
 				}
 			}
@@ -1067,14 +1067,14 @@ LuaHelpers::GetLuaInformation()
 			LuaHelpers::Pop(L, sFunction);
 			vNamespaceFunctions.push_back(sFunction);
 		}
-		sort(vNamespaceFunctions.begin(), vNamespaceFunctions.end());
+		std::sort(vNamespaceFunctions.begin(), vNamespaceFunctions.end());
 	}
 	lua_pop(L, 2);
 
 	LUA->Release(L);
 
 	/* Globals */
-	sort(vFunctions.begin(), vFunctions.end());
+	std::sort(vFunctions.begin(), vFunctions.end());
 	for (auto const& func : vFunctions) {
 		XNode* pFunctionNode = pGlobalsNode->AppendChild("Function");
 		pFunctionNode->AppendAttr("name", func);

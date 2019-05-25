@@ -250,7 +250,7 @@ ScoresForChart::SetTopScores()
 			return (a->GetSkillsetSSR(Skill_Overall) >
 					b->GetSkillsetSSR(Skill_Overall));
 		};
-		sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+		std::sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
 
 		for (auto hs : eligiblescores)
 			hs->SetTopScore(0);
@@ -522,7 +522,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	sort(skillz.begin(), skillz.end());
+	std::sort(skillz.begin(), skillz.end());
 
 	float skillsetsum = 0.f;
 	for (size_t i = 1; i < skillz.size(); ++i) // drop the lowest skillset
@@ -573,7 +573,7 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const std::string& profileID)
 	auto ssrcomp = [&ss](HighScore* a, HighScore* b) {
 		return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss));
 	};
-	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
+	std::sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
 }
 
 HighScore*

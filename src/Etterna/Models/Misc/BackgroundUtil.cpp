@@ -143,7 +143,7 @@ void
 BackgroundUtil::SortBackgroundChangesArray(
   std::vector<BackgroundChange>& vBackgroundChanges)
 {
-	sort(vBackgroundChanges.begin(),
+	std::sort(vBackgroundChanges.begin(),
 		 vBackgroundChanges.end(),
 		 CompareBackgroundChanges);
 }

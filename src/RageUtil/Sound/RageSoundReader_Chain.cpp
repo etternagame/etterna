@@ -181,7 +181,7 @@ RageSoundReader_Chain::Finish()
 	}
 
 	/* Sort the sounds by start time. */
-	sort(m_aSounds.begin(), m_aSounds.end());
+	std::sort(m_aSounds.begin(), m_aSounds.end());
 }
 
 int

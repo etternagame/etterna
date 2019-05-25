@@ -1174,7 +1174,7 @@ GameState::GetAllUsedNoteSkins(std::vector<RString>& out) const
 	}
 
 	// Remove duplicates.
-	sort(out.begin(), out.end());
+	std::sort(out.begin(), out.end());
 	out.erase(unique(out.begin(), out.end()), out.end());
 }
 

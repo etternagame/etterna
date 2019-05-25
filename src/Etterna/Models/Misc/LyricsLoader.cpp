@@ -105,7 +105,7 @@ LyricsLoader::LoadFromLRCFile(const RString& sPath, Song& out)
 		}
 	}
 
-	sort(out.m_LyricSegments.begin(),
+	std::sort(out.m_LyricSegments.begin(),
 		 out.m_LyricSegments.end(),
 		 CompareLyricSegments);
 	LOG->Trace("LyricsLoader::LoadFromLRCFile done");

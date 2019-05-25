@@ -128,7 +128,7 @@ StepsUtil::CompareStepsPointersByTypeAndDifficulty(const Steps* pStep1,
 void
 StepsUtil::SortStepsByTypeAndDifficulty(std::vector<Steps*>& arraySongPointers)
 {
-	sort(arraySongPointers.begin(),
+	std::sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),
 		 CompareStepsPointersByTypeAndDifficulty);
 }
@@ -143,7 +143,7 @@ StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 void
 StepsUtil::SortStepsByDescription(std::vector<Steps*>& arraySongPointers)
 {
-	sort(arraySongPointers.begin(),
+	std::sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),
 		 CompareStepsPointersByDescription);
 }

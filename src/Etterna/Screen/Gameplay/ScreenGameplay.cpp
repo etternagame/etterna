@@ -2447,7 +2447,7 @@ ScreenGameplay::SaveReplay()
 			// Find a file name for the replay
 			std::vector<RString> files;
 			GetDirListing("Save/Replays/replay*", files, false, false);
-			sort(files.begin(), files.end());
+			std::sort(files.begin(), files.end());
 
 			// Files should be of the form "replay#####.xml".
 			int iIndex = 0;

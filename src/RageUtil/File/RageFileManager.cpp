@@ -463,7 +463,7 @@ RageFileManager::GetDirListing(const RString& sPath_,
 	if (iDriversThatReturnedFiles > 1) {
 		/* More than one driver returned files.  Remove duplicates
 		 * (case-insensitively). */
-		sort(AddTo.begin() + iOldSize, AddTo.end(), ilt);
+		std::sort(AddTo.begin() + iOldSize, AddTo.end(), ilt);
 		std::vector<RString>::iterator it =
 		  unique(AddTo.begin() + iOldSize, AddTo.end(), ieq);
 		AddTo.erase(it, AddTo.end());

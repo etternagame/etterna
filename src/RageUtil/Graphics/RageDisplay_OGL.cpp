@@ -510,7 +510,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 			  (const char*)glGetString(GL_EXTENSIONS);
 			std::vector<RString> asExtensions;
 			split(szExtensionString, " ", asExtensions);
-			sort(asExtensions.begin(), asExtensions.end());
+			std::sort(asExtensions.begin(), asExtensions.end());
 			size_t iNextToPrint = 0;
 			while (iNextToPrint < asExtensions.size()) {
 				size_t iLastToPrint = iNextToPrint;

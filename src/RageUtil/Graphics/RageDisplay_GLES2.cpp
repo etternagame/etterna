@@ -239,7 +239,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			extensions.push_back(string(ext));
 		}
 
-		sort( extensions.begin(), extensions.end() );
+		std::sort( extensions.begin(), extensions.end() );
 		size_t next = 0;
 		while( next < extensions.size() )
 		{
@@ -286,7 +286,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
 		std::vector<RString> asExtensions;
 		split(szExtensionString, " ", asExtensions);
-		sort(asExtensions.begin(), asExtensions.end());
+		std::sort(asExtensions.begin(), asExtensions.end());
 		size_t iNextToPrint = 0;
 		while (iNextToPrint < asExtensions.size()) {
 			size_t iLastToPrint = iNextToPrint;

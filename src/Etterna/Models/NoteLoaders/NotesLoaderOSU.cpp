@@ -291,10 +291,10 @@ OsuLoader::LoadNoteDataFromParsedData(
 			taps.emplace_back(OsuNote(std::stoi(values[2]), std::stoi(values[0])));
 	}
 
-	sort(taps.begin(), taps.end(), [](OsuNote a, OsuNote b) {
+	std::sort(taps.begin(), taps.end(), [](OsuNote a, OsuNote b) {
 		return a.ms < b.ms;
 	});
-	sort(holds.begin(), holds.end(), [](OsuHold a, OsuHold b) {
+	std::sort(holds.begin(), holds.end(), [](OsuHold a, OsuHold b) {
 		return a.msStart < b.msStart;
 	});
 

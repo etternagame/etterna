@@ -1206,7 +1206,7 @@ CompareRStringsDesc(const RString& sStr1, const RString& sStr2)
 void
 SortRStringArray(std::vector<RString>& arrayRStrings, const bool bSortAscending)
 {
-	sort(arrayRStrings.begin(),
+	std::sort(arrayRStrings.begin(),
 		 arrayRStrings.end(),
 		 bSortAscending ? CompareRStringsAsc : CompareRStringsDesc);
 }

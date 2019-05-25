@@ -1110,7 +1110,7 @@ Profile::FillGoalTable()
 	auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 		return a->timeassigned > b->timeassigned;
 	};
-	sort(goaltable.begin(), goaltable.end(), comp);
+	std::sort(goaltable.begin(), goaltable.end(), comp);
 }
 
 XNode*
@@ -1291,7 +1291,7 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 	// Find a file name for the screenshot
 	std::vector<RString> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
-	sort(files.begin(), files.end());
+	std::sort(files.begin(), files.end());
 
 	int iIndex = 0;
 
@@ -1604,14 +1604,14 @@ class LunaProfile : public Luna<Profile>
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 					return a->timeassigned < b->timeassigned;
 				}; // custom operators?
-				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 			return a->timeassigned > b->timeassigned;
 		};
-		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 1;
 		p->asc = true;
 		return 0;
@@ -1624,14 +1624,14 @@ class LunaProfile : public Luna<Profile>
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 					return a->rate < b->rate;
 				}; // custom operators?
-				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 			return a->rate > b->rate;
 		};
-		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 2;
 		p->asc = true;
 		return 0;
@@ -1649,7 +1649,7 @@ class LunaProfile : public Luna<Profile>
 							 SONGMAN->GetSongByChartkey(b->chartkey)
 							   ->GetDisplayMainTitle());
 				}; // custom operators?
-				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
@@ -1659,7 +1659,7 @@ class LunaProfile : public Luna<Profile>
 				   Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
 									  ->GetDisplayMainTitle());
 		};
-		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 3;
 		p->asc = true;
 		return 0;
@@ -1672,14 +1672,14 @@ class LunaProfile : public Luna<Profile>
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 					return a->priority > b->priority;
 				}; // custom operators?
-				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
 			return a->priority < b->priority;
 		};
-		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 4;
 		p->asc = true;
 		return 0;
@@ -1695,7 +1695,7 @@ class LunaProfile : public Luna<Profile>
 						   SONGMAN->GetStepsByChartkey(b->chartkey)
 							 ->GetMSD(b->rate, 0);
 				};
-				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
@@ -1704,7 +1704,7 @@ class LunaProfile : public Luna<Profile>
 					 ->GetMSD(a->rate, 0) >
 				   SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0);
 		};
-		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		std::sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 5;
 		p->asc = true;
 		return 0;

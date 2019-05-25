@@ -601,7 +601,7 @@ BMSChart::Load(const RString& chartPath)
 void
 BMSChart::TidyUpData()
 {
-	sort(objects.begin(), objects.end());
+	std::sort(objects.begin(), objects.end());
 }
 
 class BMSSong

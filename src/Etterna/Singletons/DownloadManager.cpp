@@ -151,7 +151,7 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 			std::string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
-		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
+		std::sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
 	}
 	std::string sResult = "Success installing " + sZipFile;
 	std::string extractTo =
@@ -1738,7 +1738,7 @@ void
 DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
-	sort(bundle.begin(),
+	std::sort(bundle.begin(),
 		 bundle.end(),
 		 [](DownloadablePack* x1, DownloadablePack* x2) {
 			 return x1->size < x2->size;

@@ -63,8 +63,8 @@ OptimizeDWIString(RString holds, RString taps)
 	/* First, sort the holds and taps in ASCII order.  This puts 2468 first.
 	 * This way 1379 combinations will always be found first, so we'll always
 	 * do eg. 1D, not 2I. */
-	sort(holds.begin(), holds.end());
-	sort(taps.begin(), taps.end());
+	std::sort(holds.begin(), holds.end());
+	std::sort(taps.begin(), taps.end());
 
 	/* Combine characters as much as possible. */
 	RString comb_taps, comb_holds;

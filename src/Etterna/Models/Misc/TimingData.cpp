@@ -1251,7 +1251,7 @@ void
 TimingData::SortSegments(TimingSegmentType tst)
 {
 	std::vector<TimingSegment*>& vSegments = m_avpTimingSegments[tst];
-	sort(vSegments.begin(), vSegments.end());
+	std::sort(vSegments.begin(), vSegments.end());
 }
 
 bool

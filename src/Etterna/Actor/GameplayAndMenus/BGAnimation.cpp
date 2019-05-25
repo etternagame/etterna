@@ -43,7 +43,7 @@ BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
 				vsLayerNames.push_back(pLayer->GetName());
 		}
 
-		sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
+		std::sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
 
 		FOREACH_CONST(RString, vsLayerNames, s)
 		{

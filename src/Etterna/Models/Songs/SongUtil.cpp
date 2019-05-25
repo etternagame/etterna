@@ -400,7 +400,7 @@ CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 void
 SongUtil::SortSongPointerArrayByTitle(std::vector<Song*>& vpSongsInOut)
 {
-	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByTitle);
+	std::sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByTitle);
 }
 
 static bool
@@ -422,7 +422,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 void
 SongUtil::SortSongPointerArrayByBPM(std::vector<Song*>& vpSongsInOut)
 {
-	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByBPM);
+	std::sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByBPM);
 }
 
 static bool
@@ -444,7 +444,7 @@ CompareSongPointersByLength(const Song* pSong1, const Song* pSong2)
 void
 SongUtil::SortSongPointerArrayByLength(std::vector<Song*>& vpSongsInOut)
 {
-	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByLength);
+	std::sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByLength);
 }
 
 void
@@ -489,7 +489,7 @@ SongUtil::SortSongPointerArrayByGrades(std::vector<Song*>& vpSongsInOut,
 		vals.push_back(val(pSong, g));
 	}
 
-	sort(
+	std::sort(
 	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
 
 	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
@@ -576,7 +576,7 @@ CompareSongPointersByGroupAndMSD(Skillset ss)
 void
 SongUtil::SortSongPointerArrayByGroupAndTitle(std::vector<Song*>& vpSongsInOut)
 {
-	sort(vpSongsInOut.begin(),
+	std::sort(vpSongsInOut.begin(),
 		 vpSongsInOut.end(),
 		 CompareSongPointersByGroupAndTitle);
 }
@@ -584,7 +584,7 @@ void
 SongUtil::SortSongPointerArrayByGroupAndMSD(std::vector<Song*>& vpSongsInOut,
 											Skillset ss)
 {
-	sort(vpSongsInOut.begin(),
+	std::sort(vpSongsInOut.begin(),
 		 vpSongsInOut.end(),
 		 CompareSongPointersByGroupAndMSD(ss));
 }

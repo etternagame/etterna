@@ -406,16 +406,16 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 
 			switch (iMax) {
 				case 0:
-					sort(&achv[indx], &achv[indx + clrs], compare_index_0);
+					std::sort(&achv[indx], &achv[indx + clrs], compare_index_0);
 					break;
 				case 1:
-					sort(&achv[indx], &achv[indx + clrs], compare_index_1);
+					std::sort(&achv[indx], &achv[indx + clrs], compare_index_1);
 					break;
 				case 2:
-					sort(&achv[indx], &achv[indx + clrs], compare_index_2);
+					std::sort(&achv[indx], &achv[indx + clrs], compare_index_2);
 					break;
 				case 3:
-					sort(&achv[indx], &achv[indx + clrs], compare_index_3);
+					std::sort(&achv[indx], &achv[indx + clrs], compare_index_3);
 					break;
 			}
 		}
@@ -437,7 +437,7 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 		bv[boxes].colors = clrs - j;
 		bv[boxes].sum = sm - lowersum;
 		++boxes;
-		sort(&bv[0], &bv[boxes], CompareBySumDescending);
+		std::sort(&bv[0], &bv[boxes], CompareBySumDescending);
 	}
 
 	/* Ok, we've got enough boxes. Now choose a representative color for
