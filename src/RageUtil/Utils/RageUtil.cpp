@@ -1214,7 +1214,7 @@ SortRStringArray(std::vector<RString>& arrayRStrings, const bool bSortAscending)
 float
 calc_mean(const float* pStart, const float* pEnd)
 {
-	return accumulate(pStart, pEnd, 0.f) / distance(pStart, pEnd);
+	return std::accumulate(pStart, pEnd, 0.f) / distance(pStart, pEnd);
 }
 
 float

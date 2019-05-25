@@ -116,7 +116,7 @@ GenerateSincLowPassFilter(float* pFIR, int iWinSize, float fCutoff)
 void
 NormalizeVector(float* pBuf, int iSize)
 {
-	float fTotal = accumulate(&pBuf[0], &pBuf[iSize], 0.0f);
+	float fTotal = std::accumulate(&pBuf[0], &pBuf[iSize], 0.0f);
 	MultiplyVector(&pBuf[0], &pBuf[iSize], 1 / fTotal);
 }
 
