@@ -167,7 +167,7 @@ MovieTexture_DShow::Init()
 
 	// flip all frame rects because movies are upside down
 	for (unsigned i = 0; i < m_TextureCoordRects.size(); i++)
-		swap(m_TextureCoordRects[i].top, m_TextureCoordRects[i].bottom);
+		std::swap(m_TextureCoordRects[i].top, m_TextureCoordRects[i].bottom);
 	return RString();
 }
 

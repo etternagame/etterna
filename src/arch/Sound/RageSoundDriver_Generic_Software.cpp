@@ -135,8 +135,8 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 					continue; // more data
 
 				/* We've used up p[0].  Try p[1]. */
-				swap(p[0], p[1]);
-				swap(pSize[0], pSize[1]);
+				std::swap(p[0], p[1]);
+				std::swap(pSize[0], pSize[1]);
 				continue;
 			}
 

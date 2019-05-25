@@ -1731,7 +1731,7 @@ Player::GetClosestNoteDirectional(int col,
 	m_NoteData.GetTapNoteRange(col, iStartRow, iEndRow, begin, end);
 
 	if (!bForward)
-		swap(begin, end);
+		std::swap(begin, end);
 
 	while (begin != end) {
 		if (!bForward)
