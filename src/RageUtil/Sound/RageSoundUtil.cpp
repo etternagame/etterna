@@ -28,8 +28,8 @@ RageSoundUtil::Pan(float* buffer, int frames, float fPos)
 							   SCALE(fPos, 0, 1, 0.5f, 1) };
 
 	if (bSwap) {
-		swap(fLeftFactors[0], fRightFactors[0]);
-		swap(fLeftFactors[1], fRightFactors[1]);
+		std::swap(fLeftFactors[0], fRightFactors[0]);
+		std::swap(fLeftFactors[1], fRightFactors[1]);
 	}
 
 	for (int samp = 0; samp < frames; ++samp) {
