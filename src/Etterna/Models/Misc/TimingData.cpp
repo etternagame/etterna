@@ -426,7 +426,7 @@ TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow) const
 	return INVALID_INDEX;
 }
 
-struct ts_less : binary_function<TimingSegment*, TimingSegment*, bool>
+struct ts_less : std::binary_function<TimingSegment*, TimingSegment*, bool>
 {
 	bool operator()(const TimingSegment* x, const TimingSegment* y) const
 	{
