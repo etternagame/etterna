@@ -121,11 +121,11 @@ StreamDisplay::SetPercent(float fPercent)
 	float fLifeMultiplier = THEME->GetMetricF("LifeMeterBar", "LifeMultiplier");
 #endif
 	DEBUG_ASSERT(fPercent >= 0.0f && fPercent <= 1.0f * fLifeMultiplier);
-	if (isnan(fPercent)) {
+	if (std::isnan(fPercent)) {
 		DEBUG_ASSERT_M(0, "fPercent is NaN");
 		fPercent = 1;
 	}
-	if (!isfinite(fPercent)) {
+	if (!std::isfinite(fPercent)) {
 		DEBUG_ASSERT_M(0, "fPercent is infinite");
 		fPercent = 1;
 	}

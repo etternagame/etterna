@@ -1928,7 +1928,7 @@ StringToFloat(const RString& sString)
 {
 	float ret = strtof(sString, NULL);
 
-	if (!isfinite(ret))
+	if (!std::isfinite(ret))
 		ret = 0.0f;
 	return ret;
 }
@@ -1939,7 +1939,7 @@ StringToFloat(const RString& sString, float& fOut)
 	char* endPtr;
 
 	fOut = strtof(sString, &endPtr);
-	return sString.size() && *endPtr == '\0' && isfinite(fOut);
+	return sString.size() && *endPtr == '\0' && std::isfinite(fOut);
 }
 
 RString
@@ -2472,7 +2472,7 @@ FromString<float>(const RString& sValue, float& out)
 {
 	const char* endptr = sValue.data() + sValue.size();
 	out = strtof(sValue, (char**)&endptr);
-	if (endptr != sValue.data() && isfinite(out))
+	if (endptr != sValue.data() && std::isfinite(out))
 		return true;
 	out = 0;
 	return false;
