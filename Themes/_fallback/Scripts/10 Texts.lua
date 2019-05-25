@@ -8,16 +8,12 @@ local shortDiffName = {
 	Difficulty_Hard		= 'HD',
 	Difficulty_Challenge= 'IN',
 	Difficulty_Edit 	= 'ED',
-	Difficulty_Couple	= 'CP',
-	Difficulty_Routine	= 'RT',
 	Beginner			= 'BG',
 	Easy				= 'EZ',
 	Normal				= 'NM',
 	Hard				= 'HD',
 	Insane 				= 'IN',
 	Edit 				= 'ED',
-	Couple				= 'CP',
-	Routine				= 'RT'
 }
 
 local scoreTypeText = {
@@ -35,8 +31,6 @@ local DiffName = {
 	Difficulty_Hard		= 'Hard',
 	Difficulty_Challenge= 'Insane',
 	Difficulty_Edit 	= 'Edit',
-	Difficulty_Couple	= 'Couple',
-	Difficulty_Routine	= 'Routine',
 }
 
 local gradeString = {
