@@ -44,7 +44,7 @@ __assert_perror_fail(int errnum,
 void
 UnexpectedExceptionHandler()
 {
-	type_info* pException = abi::__cxa_current_exception_type();
+	std::type_info* pException = abi::__cxa_current_exception_type();
 	char const* pName = pException->name();
 	int iStatus = -1;
 	char* pDem = abi::__cxa_demangle(pName, 0, 0, &iStatus);
@@ -57,7 +57,7 @@ UnexpectedExceptionHandler()
 void
 InstallExceptionHandler()
 {
-	set_terminate(UnexpectedExceptionHandler);
+	std::set_terminate(UnexpectedExceptionHandler);
 }
 
 /*
