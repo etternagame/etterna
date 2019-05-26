@@ -20,7 +20,6 @@ struct GoalsForChart;
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
 #include <unordered_map>
-using std::string;
 
 RString
 SONG_GROUP_COLOR_NAME(size_t i);
@@ -51,9 +50,9 @@ class SongManager
 	int DifferentialReloadDir(std::string dir);
 
 	bool IsGroupNeverCached(const RString& group) const;
-	void SetFavoritedStatus(std::set<string>& favs);
-	void SetPermaMirroredStatus(std::set<string>& pmir);
-	void SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap);
+	void SetFavoritedStatus(std::set<std::string>& favs);
+	void SetPermaMirroredStatus(std::set<std::string>& pmir);
+	void SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
 	std::vector<RString> GetSongGroupBannerPaths() {
@@ -160,7 +159,7 @@ class SongManager
 	void DeletePlaylist(const std::string& ck,
 						std::map<std::string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
-	  std::set<string>& favs,
+	  std::set<std::string>& favs,
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());
 
 	std::map<std::string, std::vector<Song*>> groupderps;
@@ -184,8 +183,8 @@ class SongManager
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
-	std::unordered_map<string, Song*> SongsByKey;
-	std::unordered_map<string, Steps*> StepsByKey;
+	std::unordered_map<std::string, Song*> SongsByKey;
+	std::unordered_map<std::string, Steps*> StepsByKey;
 
 	std::set<RString> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */

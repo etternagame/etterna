@@ -58,7 +58,7 @@ write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
 	size_t realsize = size * nmemb;
 	std::string tmp(static_cast<char*>(contents), realsize);
-	static_cast<string*>(userp)->append(tmp);
+	static_cast<std::string*>(userp)->append(tmp);
 	return realsize;
 }
 
@@ -117,7 +117,7 @@ bool
 DownloadManager::InstallSmzip(const std::string& sZipFile)
 {
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
-		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
+		FAIL_M(static_cast<std::string>("Failed to mount " + sZipFile).c_str());
 	std::vector<RString> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
 
@@ -156,7 +156,7 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 	std::string sResult = "Success installing " + sZipFile;
 	std::string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	FOREACH_CONST(string, vsFiles, sSrcFile)
+	FOREACH_CONST(std::string, vsFiles, sSrcFile)
 	{
 		std::string sDestFile = *sSrcFile;
 		sDestFile =
@@ -213,10 +213,10 @@ starts_with(std::string const& value, std::string const& start)
 	return value.rfind(start, 0) == 0;
 }
 inline void
-checkProtocol(string& url)
+checkProtocol(std::string& url)
 {
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
-		url = string("http://").append(url);
+		url = std::string("http://").append(url);
 }
 inline CURL*
 initBasicCURLHandle()
@@ -273,7 +273,7 @@ addFileToForm(curl_httppost*& form,
 	return true;
 }
 inline void
-SetCURLResultsString(CURL* curlHandle, string* str)
+SetCURLResultsString(CURL* curlHandle, std::string* str)
 {
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, str);
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
@@ -436,7 +436,7 @@ DownloadManager::UpdateDLSpeed(bool gameplay)
 }
 
 bool
-DownloadManager::EncodeSpaces(string& str)
+DownloadManager::EncodeSpaces(std::string& str)
 {
 
 	// Parse spaces (curl doesnt parse them properly)
@@ -761,7 +761,7 @@ DownloadManager::AddGoal(const std::string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	std::vector<std::pair<string, string>> postParams = {
+	std::vector<std::pair<std::string, std::string>> postParams = {
 		std::make_pair("chartkey", chartkey),
 		std::make_pair("rate", std::to_string(rate)),
 		std::make_pair("wife", std::to_string(wife)),
@@ -786,7 +786,7 @@ DownloadManager::UpdateGoal(const std::string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	std::vector<std::pair<string, string>> postParams = {
+	std::vector<std::pair<std::string, std::string>> postParams = {
 		std::make_pair("chartkey", chartkey),
 		std::make_pair("rate", std::to_string(rate)),
 		std::make_pair("wife", std::to_string(wife)),
@@ -858,7 +858,7 @@ SetCURLPOSTScore(CURL*& curlHandle,
 						 form,
 						 lastPtr,
 						 "datetime",
-						 string(hs->GetDateTime().GetString().c_str()));
+						 std::string(hs->GetDateTime().GetString().c_str()));
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "hitmine", hs->GetTapNoteScore(TNS_HitMine));
 	SetCURLFormPostField(
@@ -904,7 +904,7 @@ SetCURLPOSTScore(CURL*& curlHandle,
 						 form,
 						 lastPtr,
 						 "wifeGrade",
-						 string(GradeToString(hs->GetWifeGrade()).c_str()));
+						 std::string(GradeToString(hs->GetWifeGrade()).c_str()));
 }
 void
 DownloadManager::UploadScore(HighScore* hs)
@@ -1352,7 +1352,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 
 HTTPRequest*
 DownloadManager::SendRequest(std::string requestName,
-							 std::vector<std::pair<string, string>> params,
+							 std::vector<std::pair<std::string, std::string>> params,
 							 std::function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin,
 							 bool post,
@@ -1371,7 +1371,7 @@ DownloadManager::SendRequest(std::string requestName,
 HTTPRequest*
 DownloadManager::SendRequestToURL(
   std::string url,
-  std::vector<std::pair<string, string>> params,
+  std::vector<std::pair<std::string, std::string>> params,
   std::function<void(HTTPRequest&, CURLMsg*)> afterDone,
   bool requireLogin,
   bool post,
@@ -1457,7 +1457,7 @@ DownloadManager::RefreshCountryCodes()
 				auto code = *(codeJ.find("attributes"));
 				DLMAN->countryCodes.emplace_back(codeJ.value("id", ""));
 			}
-			DLMAN->countryCodes.push_back(string("Global")); // append the list
+			DLMAN->countryCodes.push_back(std::string("Global")); // append the list
 															 // to global/player
 															 // country code so
 															 // we dont have to
@@ -1468,7 +1468,7 @@ DownloadManager::RefreshCountryCodes()
 		}
 	};
 	SendRequest(
-	  "/misc/countrycodes", std::vector<std::pair<string, string>>(), done, true);
+	  "/misc/countrycodes", std::vector<std::pair<std::string, std::string>>(), done, true);
 }
 
 void
@@ -1552,12 +1552,12 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			}
 		} catch (std::exception e) {
 			LOG->Trace(
-			  (string("Replay data request failed for") + scoreid + e.what())
+			  (std::string("Replay data request failed for") + scoreid + e.what())
 				.c_str());
 		}
 	};
 	SendRequest("/replay/" + std::to_string(userid) + "/" + scoreid,
-				std::vector<std::pair<string, string>>(),
+				std::vector<std::pair<std::string, std::string>>(),
 				done,
 				true);
 }
@@ -1691,7 +1691,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		}
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
-				std::vector<std::pair<string, string>>(),
+				std::vector<std::pair<std::string, std::string>>(),
 				done,
 				true);
 }
@@ -1767,7 +1767,7 @@ DownloadManager::RefreshLastVersion()
 		}
 	};
 	SendRequest("client/version",
-				std::vector<std::pair<string, string>>(),
+				std::vector<std::pair<std::string, std::string>>(),
 				done,
 				false,
 				false,
@@ -1792,7 +1792,7 @@ DownloadManager::RefreshRegisterPage()
 		}
 	};
 	SendRequest("client/registration",
-				std::vector<std::pair<string, string>>(),
+				std::vector<std::pair<std::string, std::string>>(),
 				done,
 				false,
 				false,
@@ -2432,7 +2432,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		std::vector<HighScore*> filteredLeaderboardScores;
-		std::unordered_set<string> userswithscores;
+		std::unordered_set<std::string> userswithscores;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
 		std::string country = "";
 		if (!lua_isnoneornil(L, 2)) {

@@ -183,7 +183,7 @@ class ScoreManager
 		std::swap(score, AllScores.back());
 	}
 	const std::vector<HighScore*>& GetAllScores() { return AllScores; }
-	const std::unordered_map<string, HighScore*>& GetScoresByKey()
+	const std::unordered_map<std::string, HighScore*>& GetScoresByKey()
 	{
 		return ScoresByKey;
 	}
@@ -202,7 +202,7 @@ class ScoreManager
 	void SetAllTopScores(
 	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void PurgeScores();
-	std::unordered_map<string, ScoresForChart>* GetProfileScores(
+	std::unordered_map<std::string, ScoresForChart>* GetProfileScores(
 	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	{
 		return &(pscores[profileID]);
@@ -215,18 +215,18 @@ class ScoreManager
 	HighScore* tempscoreforonlinereplayviewing;
 	std::vector<HighScore*> scorestorecalc;
   private:
-	std::unordered_map<string, std::unordered_map<string, ScoresForChart>>
+	std::unordered_map<std::string, std::unordered_map<std::string, ScoresForChart>>
 	  pscores; // Profile scores
 
 	// Instead of storing pointers for each skillset just reshuffle the same set
 	// of pointers it's inexpensive and not called often
 	std::vector<HighScore*> TopSSRs;
 	std::vector<HighScore*> AllScores;
-	std::unordered_map<string, std::vector<HighScore*>> AllProfileScores;
+	std::unordered_map<std::string, std::vector<HighScore*>> AllProfileScores;
 
 	// pointers in a keyed index (by scorekey, in case it's not immediately
 	// obvious)
-	std::unordered_map<string, HighScore*> ScoresByKey;
+	std::unordered_map<std::string, HighScore*> ScoresByKey;
 };
 
 extern ScoreManager* SCOREMAN;

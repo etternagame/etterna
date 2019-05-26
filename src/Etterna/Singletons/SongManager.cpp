@@ -464,7 +464,7 @@ Playlist::CreateNode() const
 	FOREACH_CONST(std::vector<std::string>, courseruns, run)
 	{
 		XNode* r = new XNode("Run");
-		FOREACH_CONST(string, *run, sk)
+		FOREACH_CONST(std::string, *run, sk)
 		r->AppendChild(*sk);
 		cr->AppendChild(r);
 	}
@@ -576,7 +576,7 @@ SongManager::DeletePlaylist(const std::string& pl, std::map<std::string, Playlis
 }
 
 void
-SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
+SongManager::MakePlaylistFromFavorites(std::set<std::string>& favs,
 									   std::map<std::string, Playlist>& playlists)
 {
 	Playlist pl;
@@ -893,7 +893,7 @@ SongManager::IsGroupNeverCached(const RString& group) const
 }
 
 void
-SongManager::SetFavoritedStatus(std::set<string>& favs)
+SongManager::SetFavoritedStatus(std::set<std::string>& favs)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{
@@ -906,7 +906,7 @@ SongManager::SetFavoritedStatus(std::set<string>& favs)
 }
 
 void
-SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
+SongManager::SetPermaMirroredStatus(std::set<std::string>& pmir)
 {
 	FOREACH(Song*, m_pSongs, song)
 	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
@@ -916,7 +916,7 @@ SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 
 // hurr should probably redo both (all three) of these -mina
 void
-SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
+SongManager::SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{
@@ -1793,7 +1793,7 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		int idx = 1;
 		lua_newtable(L);
-		FOREACHM(string, Playlist, p->GetPlaylists(), pl)
+		FOREACHM(std::string, Playlist, p->GetPlaylists(), pl)
 		{
 			pl->second.PushSelf(L);
 			lua_rawseti(L, -2, idx);

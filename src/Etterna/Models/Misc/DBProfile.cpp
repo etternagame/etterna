@@ -302,7 +302,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 	  "INNER JOIN chartkeys ON chartkeys.id=charts.chartkeyid "
 	  "ORDER BY chartkeys.id, charts.id, scoresatrates.id");
 
-	std::unordered_map<string, ScoresForChart>& scores =
+	std::unordered_map<std::string, ScoresForChart>& scores =
 	  *(SCOREMAN->GetProfileScores());
 
 	std::string curCK = "";
@@ -526,7 +526,7 @@ DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
 			 "INTEGER, CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) "
 			 "REFERENCES chartkeys(id))");
 	if (!profile->FavoritedCharts.empty()) {
-		FOREACHS_CONST(string, profile->FavoritedCharts, ck)
+		FOREACHS_CONST(std::string, profile->FavoritedCharts, ck)
 		{
 			SQLite::Statement insertFav(
 			  *db, "INSERT INTO favourites VALUES (NULL, ?)");
@@ -649,7 +649,7 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 			 "REFERENCES chartkeys(id))");
 
 	if (!profile->PermaMirrorCharts.empty()) {
-		FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
+		FOREACHS_CONST(std::string, profile->PermaMirrorCharts, it)
 		{
 			int chID = FindOrCreateChartKey(db, *it);
 			db->exec("INSERT INTO permamirrors VALUES (NULL, " +
@@ -671,7 +671,7 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 	  "(chartkeyid) REFERENCES chartkeys(id))");
 
 	if (!profile->goalmap.empty()) {
-		FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
+		FOREACHUM_CONST(std::string, GoalsForChart, profile->goalmap, i)
 		{
 			const GoalsForChart& cg = i->second;
 			if (cg.goals.empty())
@@ -731,7 +731,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 
 	auto& pls = profile->allplaylists;
 	if (!pls.empty()) {
-		FOREACHM_CONST(string, Playlist, pls, pl)
+		FOREACHM_CONST(std::string, Playlist, pls, pl)
 		{
 			if (pl->first != "" && pl->first != "Favorites") {
 				SQLite::Statement insertPlaylist(
@@ -762,7 +762,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertCourseRun.exec();
 					int courseRunID =
 					  (int)sqlite3_last_insert_rowid(db->getHandle());
-					FOREACH_CONST(string, *run, scorekey)
+					FOREACH_CONST(std::string, *run, scorekey)
 					{
 						SQLite::Statement insertRun(
 						  *db, "INSERT INTO runs VALUES (NULL, ?, ?)");
@@ -855,9 +855,9 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				 "scorekeys(id))");
 	}
 
-	std::unordered_map<string, ScoresForChart>& pScores =
+	std::unordered_map<std::string, ScoresForChart>& pScores =
 	  *SCOREMAN->GetProfileScores();
-	FOREACHUM(string, ScoresForChart, pScores, chartPair)
+	FOREACHUM(std::string, ScoresForChart, pScores, chartPair)
 	{
 		// First is ckey and two is ScoresForChart
 		Chart ch = ((chartPair->second).ch);
@@ -892,7 +892,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				scoresAtRateID =
 				  (int)sqlite3_last_insert_rowid(db->getHandle());
 			}
-			FOREACHUM(string, HighScore, ratePair->second.scores, i)
+			FOREACHUM(std::string, HighScore, ratePair->second.scores, i)
 			{
 				if (mode != WriteOnlyWebExport ||
 					i->second.GetScoreKey() ==

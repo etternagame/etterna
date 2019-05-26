@@ -455,14 +455,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	  [this](
 		uWS::WebSocket<uWS::CLIENT>*, int code, char* message, size_t length) {
 		  this->error = true;
-		  this->errorMsg = string(message, length);
+		  this->errorMsg = std::string(message, length);
 		  this->ws = nullptr;
 	  });
 	uWSh->onDisconnection(
 	  [this](
 		uWS::WebSocket<uWS::SERVER>*, int code, char* message, size_t length) {
 		  this->error = true;
-		  this->errorMsg = string(message, length);
+		  this->errorMsg = std::string(message, length);
 		  this->ws = nullptr;
 	  });
 	uWSh->onMessage([this](uWS::WebSocket<uWS::CLIENT>* ws,
@@ -527,7 +527,7 @@ RoomData
 jsonToRoom(json& room)
 {
 	RoomData tmp;
-	std::string s = room["name"].get<string>();
+	std::string s = room["name"].get<std::string>();
 	tmp.SetName(s);
 	s = room.value("desc", "");
 	tmp.SetDescription(s);
@@ -535,7 +535,7 @@ jsonToRoom(json& room)
 	tmp.SetState(state);
 	tmp.SetHasPassword(room.value("pass", false));
 	for (auto&& player : room.at("players"))
-		tmp.players.emplace_back(player.get<string>());
+		tmp.players.emplace_back(player.get<std::string>());
 	return tmp;
 }
 void
@@ -636,16 +636,16 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			if (jType == iterator->end())
 				break;
 			if (error != iterator->end()) {
-				LOG->Trace(("Error on ETTP message " + jType->get<string>() +
-							":" + error->get<string>())
+				LOG->Trace(("Error on ETTP message " + jType->get<std::string>() +
+							":" + error->get<std::string>())
 							 .c_str());
 				break;
 			}
-			switch (ettServerMessageMap[jType->get<string>()]) {
+			switch (ettServerMessageMap[jType->get<std::string>()]) {
 				case ettps_loginresponse:
 					waitingForTimeout = false;
 					if (!(n->loggedIn = (*payload)["logged"])) {
-						n->loginResponse = (*payload)["msg"].get<string>();
+						n->loginResponse = (*payload)["msg"].get<std::string>();
 						n->loggedInUsername.clear();
 					}
 					else {
@@ -744,7 +744,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						hs.SetTrackVector(tracks);
 					} catch (std::exception e) {
 					} // No replay data for this score, its still valid
-					result.nameStr = (*payload)["name"].get<string>();
+					result.nameStr = (*payload)["name"].get<std::string>();
 					result.hs = hs;
 					result.playerOptions = payload->value("options", "");
 					n->m_EvalPlayerData.emplace_back(result);
@@ -791,14 +791,14 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				case ettps_recievechat: {
 					// chat[tabname, tabtype] = msg
 					int type = (*payload)["msgtype"].get<int>();
-					std::string tab = (*payload)["tab"].get<string>();
+					std::string tab = (*payload)["tab"].get<std::string>();
 					n->chat[{ tab, type }].emplace_back(
-					  (*payload)["msg"].get<string>());
+					  (*payload)["msg"].get<std::string>());
 					SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
 					Message msg("Chat");
 					msg.SetParam("tab", RString(tab.c_str()));
 					msg.SetParam(
-					  "msg", RString((*payload)["msg"].get<string>().c_str()));
+					  "msg", RString((*payload)["msg"].get<std::string>().c_str()));
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
 				} break;
@@ -810,7 +810,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							 ++it) {
 							float wife = (*it)["wife"];
 							RString jdgstr = (*it)["jdgstr"];
-							std::string user = (*it)["user"].get<string>();
+							std::string user = (*it)["user"].get<std::string>();
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
 						}
@@ -914,7 +914,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					NSMAN->lobbyuserlist.clear();
 					auto users = payload->at("users");
 					for (auto& user : users) {
-						NSMAN->lobbyuserlist.insert(user.get<string>());
+						NSMAN->lobbyuserlist.insert(user.get<std::string>());
 					}
 				} break;
 				case ettps_lobbyuserlistupdate: {
@@ -922,13 +922,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					if (payload->find("on") != payload->end()) {
 						auto newUsers = payload->at("on");
 						for (auto& user : newUsers) {
-							NSMAN->lobbyuserlist.insert(user.get<string>());
+							NSMAN->lobbyuserlist.insert(user.get<std::string>());
 						}
 					}
 					if (payload->find("off") != payload->end()) {
 						auto removedUsers = payload->at("off");
 						for (auto& user : removedUsers) {
-							NSMAN->lobbyuserlist.erase(user.get<string>());
+							NSMAN->lobbyuserlist.erase(user.get<std::string>());
 						}
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
@@ -954,7 +954,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					n->commonpacks.clear();
 					if (packlist.is_array()) {
 						for (auto&& pack : packlist) {
-							n->commonpacks.emplace_back(pack.get<string>());
+							n->commonpacks.emplace_back(pack.get<std::string>());
 						}
 					}
 				} break;
@@ -970,7 +970,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							int stored = 0;
 							try {
 								n->m_PlayerNames.emplace_back(
-								  player["name"].get<string>().c_str());
+								  player["name"].get<std::string>().c_str());
 								stored++;
 								n->m_PlayerStatus.emplace_back(
 								  player["status"]);
@@ -1209,7 +1209,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["score"] = hs->GetSSRNormPercent();
 	FOREACH_ENUM(Skillset, ss)
 	payload[SkillsetToString(ss).c_str()] = hs->GetSkillsetSSR(ss);
-	payload["datetime"] = string(hs->GetDateTime().GetString().c_str());
+	payload["datetime"] = std::string(hs->GetDateTime().GetString().c_str());
 	payload["hitmine"] = hs->GetTapNoteScore(TNS_HitMine);
 	payload["held"] = hs->GetHoldNoteScore(HNS_Held);
 	payload["letgo"] = hs->GetHoldNoteScore(HNS_LetGo);

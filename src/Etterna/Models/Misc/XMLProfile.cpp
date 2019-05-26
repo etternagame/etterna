@@ -152,7 +152,7 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the favorites node.");
 
 	XNode* favs = new XNode("Favorites");
-	FOREACHS_CONST(string, profile->FavoritedCharts, it)
+	FOREACHS_CONST(std::string, profile->FavoritedCharts, it)
 	favs->AppendChild(*it);
 	return favs;
 }
@@ -163,7 +163,7 @@ XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	XNode* pmir = new XNode("PermaMirror");
-	FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
+	FOREACHS_CONST(std::string, profile->PermaMirrorCharts, it)
 	pmir->AppendChild(*it);
 	return pmir;
 }
@@ -187,7 +187,7 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the scoregoals node.");
 
 	XNode* goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
+	FOREACHUM_CONST(std::string, GoalsForChart, profile->goalmap, i)
 	{
 		const GoalsForChart& cg = i->second;
 		goals->AppendChild(cg.CreateNode());
@@ -202,7 +202,7 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = profile->allplaylists;
-	FOREACHM_CONST(string, Playlist, pls, i)
+	FOREACHM_CONST(std::string, Playlist, pls, i)
 	if (i->first != "" && i->first != "Favorites")
 		playlists->AppendChild(i->second.CreateNode());
 	return playlists;

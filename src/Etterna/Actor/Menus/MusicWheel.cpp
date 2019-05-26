@@ -554,7 +554,7 @@ MusicWheel::FilterByStepKeys(std::vector<Song*>& inv)
 	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
 	check = [this](Song* x) {
-		FOREACH(string, hashList, hash)
+		FOREACH(std::string, hashList, hash)
 		if (x->HasChartByHash(*hash)) {
 			return true;
 		}
