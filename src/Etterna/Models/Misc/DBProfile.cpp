@@ -389,15 +389,14 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		};
 
 		scores[key].ScoresByRate[rate].bestGrade =
-		  min(hs.GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
+		        std::min<Grade>(hs.GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
 
 		// Very awkward, need to figure this out better so there isn't
 		// unnecessary redundancy between loading and adding
 		SCOREMAN->RegisterScore(&hs);
 		SCOREMAN->AddToKeyedIndex(&hs);
 
-		scores[key].bestGrade =
-		  min(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
+		scores[key].bestGrade = std::min<Grade>(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
 	}
 }
 void
