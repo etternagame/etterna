@@ -11,7 +11,7 @@ else() # All remaining compilers
 endif()
 
 # Universally required
-add_library(rapidjson STATIC IMPORTED ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson)
+add_subdirectory(rapidjson)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
@@ -44,7 +44,6 @@ set_target_properties(uv PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUIL
 # Organize Files in IDE
 list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
-    rapidjson
     discord-rpc
     SQLiteCpp sqlite3
     jsoncpp uv uv_a
