@@ -17,7 +17,6 @@ class Song;
 
 typedef std::vector<float> SDiffs;
 typedef std::vector<SDiffs> MinaSD;
-using std::string;
 
 /**
  * @brief Enforce a limit on the number of chars for the description.

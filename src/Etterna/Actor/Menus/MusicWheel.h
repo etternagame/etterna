@@ -10,7 +10,6 @@
 #include "WheelBase.h"
 
 class Song;
-using std::string;
 
 struct CompareSongPointerArrayBySectionName;
 
