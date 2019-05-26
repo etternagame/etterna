@@ -9,8 +9,6 @@
 #include <cstdio>
 #include <cstring>
 
-using namespace std;
-
 // In so many words, ceil(n/6).
 #define NUMBER_OF_SEXTETS_FOR_BIT_COUNT(n) (((n) + 5) / 6)
 

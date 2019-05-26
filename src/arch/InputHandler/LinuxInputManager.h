@@ -2,7 +2,6 @@
 #define LINUX_INPUT_MANAGER 1
 
 #include <vector>
-using namespace std;
 
 #include "Etterna/Globals/global.h"
 class InputHandler_Linux_Joystick;
