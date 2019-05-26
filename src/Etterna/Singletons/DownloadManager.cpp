@@ -16,16 +16,24 @@
 #include "CommandLineActions.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "curl/curl.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "RageUtil/Misc/RageString.h"
-#include <nlohmann/json.hpp>
-#include <unordered_set>
 #include <Etterna/Singletons/FilterManager.h>
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina
+
+#include "curl/curl.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/pointer.h"
+using namespace rapidjson;
+#include <iostream>
+#include <unordered_set>
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 #ifdef _WIN32
 #include <intrin.h>
@@ -804,16 +812,19 @@ DownloadManager::RefreshFavourites()
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
-		json j;
-		bool parsed = true;
-		try {
-			j = json::parse(req.result);
-			auto favs = j.find("data");
-			for (auto fav : *favs)
-				DLMAN->favorites.emplace_back(
-				  fav["attributes"].value("chartkey", ""));
-		} catch (exception e) {
+		Document d;
+		if(d.Parse(req.result.c_str()).HasParseError() ||
+			!d.HasMember("data") ||
+			!d["data"].IsArray())
 			DLMAN->favorites.clear();
+		else {
+			auto& favs = d["data"];
+			for (auto& fav : favs.GetArray()) {
+				if(fav.HasMember("attributes") && 
+					fav["attributes"].IsString())
+					DLMAN->favorites.emplace_back(
+						fav["attributes"].GetString());
+			}
 		}
 		MESSAGEMAN->Broadcast("FavouritesUpdate");
 	};
@@ -1811,47 +1822,65 @@ DownloadManager::RefreshTop25(Skillset ss)
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
-		try {
-			auto j = json::parse(req.result);
-			try {
-				if (j["errors"]["status"] == 404)
-					return;
-			} catch (exception e) {
-			}
-			auto scores = j.find("data");
-			vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
-
-			if (scores == j.end()) {
-				return;
-			}
-
-			for (auto scoreJ : (*scores)) {
-				try {
-					auto score = *(scoreJ.find("attributes"));
-					OnlineTopScore tmp;
-					tmp.songName = score.value("songName", "");
-					tmp.wifeScore =
-					  static_cast<float>(score.value("wife", 0.0) / 100.0);
-					tmp.overall =
-					  static_cast<float>(score.value("Overall", 0.0));
-					if (ss != Skill_Overall)
-						tmp.ssr = static_cast<float>(
-						  score["skillsets"].value(SkillsetToString(ss), 0.0));
-					else
-						tmp.ssr = tmp.overall;
-					tmp.chartkey = score.value("chartKey", "");
-					tmp.scorekey = scoreJ.value("id", "");
-					tmp.rate = static_cast<float>(score.value("rate", 0.0));
-					tmp.difficulty = StringToDifficulty(
-					  score.value("difficulty", "Invalid").c_str());
-					vec.push_back(tmp);
-				} catch (exception e) {
-					// score failed
-				}
-			}
-			MESSAGEMAN->Broadcast("OnlineUpdate");
-		} catch (exception e) { /* We already cleared the vector */
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError() ||
+			(d.HasMember("errors") &&
+				d["errors"].HasMember("status") &&
+				d["errors"]["status"].GetInt() == 404) ||
+			!d.HasMember("data") ||
+			!d["data"].IsArray()) {
+			StringBuffer buffer;
+			Writer<StringBuffer> writer(buffer);
+			d.Accept(writer);
+			LOG->Trace((std::string("Malformed top25 scores json: ") +
+				buffer.GetString()).c_str());
+			return;
 		}
+		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
+		auto& scores = d["data"];
+		for (auto& score_obj : scores.GetArray()) {
+			if (!score_obj.HasMember("attributes")) {
+				StringBuffer buffer;
+				Writer<StringBuffer> writer(buffer);
+				score_obj.Accept(writer);
+				LOG->Trace((std::string("Malformed single score in top25 scores json: ") +
+					buffer.GetString()).c_str());
+				continue;
+			}
+			auto& score = score_obj["attributes"];
+			if (!score.HasMember("songName") ||
+				!score["songName"].IsString() ||
+				!score.HasMember("wife") ||
+				!score["wife"].IsNumber() ||
+				!score.HasMember("Overall") ||
+				!score["Overall"].IsNumber() ||
+				!score.HasMember("chartKey") ||
+				!score["chartKey"].IsString() ||
+				!score_obj.HasMember("id") ||
+				!score_obj["id"].IsString() ||
+				!score.HasMember("rate") ||
+				!score["rate"].IsNumber() ||
+				!score.HasMember("difficulty") ||
+				!score["difficulty"].IsString() ||
+				(ss != Skill_Overall && (
+					!score.HasMember(SkillsetToString(ss).c_str()) ||
+					!score[SkillsetToString(ss).c_str()].IsNumber())))
+				continue;
+			OnlineTopScore tmp;
+			tmp.songName = score["songName"].GetString();
+			tmp.wifeScore = score["wife"].GetFloat() / 100.0;
+			tmp.overall = score["Overall"].GetFloat();
+			if (ss != Skill_Overall)
+				tmp.ssr = score[SkillsetToString(ss).c_str()].GetFloat();
+			else
+				tmp.ssr = tmp.overall;
+			tmp.chartkey = score["chartKey"].GetString();
+			tmp.scorekey = score_obj["id"].GetString();
+			tmp.rate = score["rate"].GetFloat();
+			tmp.difficulty = StringToDifficulty(score["difficulty"].GetString());
+			vec.push_back(tmp);
+		}
+		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest(req, {}, done);
 	return;
@@ -1986,70 +2015,66 @@ DownloadManager::RefreshPackList(const string& url)
 	if (url == "")
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
-		json j;
-		bool parsed = true;
-		try {
-			j = json::parse(req.result);
-		} catch (exception e) {
-			parsed = false;
-		}
-		if (!parsed)
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError() ||
+			!(d.IsArray() || (d.HasMember("data") &&
+				d["data"].IsArray()))) {
 			return;
+		}
 		auto& packlist = DLMAN->downloadablePacks;
 		DLMAN->downloadablePacks.clear();
-		try {
-			nlohmann::basic_json<> packs;
-			if (j.is_array())
-				packs = j;
+		Value* packs;
+		if (d.IsArray())
+			packs = &d;
+		else
+			packs = &(d["data"]);
+		for (auto& pack_obj : packs->GetArray()) {
+			DownloadablePack tmp;
+			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
+				tmp.id = stoi(pack_obj["id"].GetString());
 			else
-				packs = *(j.find("data"));
-			for (auto packJ : packs) {
-				try {
-					DownloadablePack tmp;
-					if (packJ.find("id") != packJ.end())
-						tmp.id = stoi(packJ.value("id", ""));
-					auto attr = packJ.find("attributes");
-					auto pack = attr != packJ.end() ? *attr : packJ;
+				tmp.id = 0;
 
-					if (pack.find("pack") != pack.end())
-						tmp.name = pack.value("pack", "");
-					else if (pack.find("packname") != pack.end())
-						tmp.name = pack.value("packname", "");
-					else if (pack.find("name") != pack.end())
-						tmp.name = pack.value("name", "");
-					else
-						continue;
-					try {
-						if (pack.find("download") != pack.end())
-							tmp.url = pack.value("download", "");
-						else if (pack.find("url") != pack.end())
-							tmp.url = pack.value("url", "");
-						else
-							continue;
-					} catch (exception e) {
-						continue;
-					}
-					try {
-						if (pack.find("mirror") != pack.end())
-							tmp.mirror = pack.value("mirror", "");
-					} catch (exception e) {
-					}
-					if (tmp.url.empty())
-						continue;
-					if (pack.find("average") != pack.end())
-						tmp.avgDifficulty =
-						  static_cast<float>(pack.value("average", 0.0));
-					else
-						tmp.avgDifficulty = 0.f;
-					if (pack.find("size") != pack.end())
-						tmp.size = pack.value("size", 0);
-					else
-						tmp.size = 0;
-					packlist.push_back(tmp);
-				} catch (exception e) {
-				}
+			auto& pack = pack_obj.HasMember("attributes") ? pack_obj["attributes"] : pack_obj;
+
+			if (pack.HasMember("pack") && pack["pack"].IsString())
+				tmp.name = pack["pack"].GetString();
+			else if (pack.HasMember("packname") && pack["packname"].IsString())
+				tmp.name = pack["packname"].GetString();
+			else if (pack.HasMember("name") && pack["name"].IsString())
+				tmp.name = pack["name"].GetString();
+			else
+				continue;
+
+			if (pack.HasMember("download") && pack["download"].IsString())
+				tmp.url = pack["download"].GetString();
+			else if (pack.HasMember("url") && pack["url"].IsString()) {
+				tmp.url = pack["url"].GetString();
 			}
-		} catch (exception e) {
+			else
+				tmp.url = "";
+			if (pack.HasMember("mirror") && pack["mirror"].IsString())
+				tmp.mirror = pack["mirror"].GetString();
+			else
+				tmp.mirror = "";
+			if (tmp.url.empty() && tmp.mirror.empty())
+				continue;
+			if (tmp.url.empty())
+				tmp.url = tmp.mirror;
+			else if (tmp.mirror.empty())
+				tmp.mirror = tmp.url;
+
+			if (pack.HasMember("average") && pack["average"].IsNumber())
+				tmp.avgDifficulty = pack["average"].GetFloat();
+			else
+				tmp.avgDifficulty = 0.f;
+
+			if (pack.HasMember("size") && pack["size"].IsNumber())
+				tmp.size = pack["size"].GetInt();
+			else
+				tmp.size = 0;
+
+			packlist.push_back(tmp);
 		}
 		DLMAN->RefreshCoreBundles();
 	};
