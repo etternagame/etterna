@@ -9,7 +9,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include <set>
-using std::string;
 
 class Style;
 class StepsID;

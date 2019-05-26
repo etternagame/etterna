@@ -834,7 +834,7 @@ SongCacheIndex::LoadCache(
 	return;
 }
 void
-SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
+SongCacheIndex::DeleteSongFromDBByCondition(std::string& condition)
 {
 	db->exec(("DELETE FROM timingdatas WHERE ID IN (SELECT TIMINGDATAID FROM "
 			  "steps WHERE SONGID IN(SELECT ID from songs WHERE " +

@@ -34,7 +34,7 @@ class SongCacheIndex
 	void LoadHyperCache(LoadingWindow* ld, std::map<RString, Song*>& hyperCache);
 	void LoadCache(LoadingWindow* ld,
 				   std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>& cache);
-	void DeleteSongFromDBByCondition(string& condition);
+	void DeleteSongFromDBByCondition(std::string& condition);
 	void DeleteSongFromDB(Song* songPtr);
 	void DeleteSongFromDBByDir(std::string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
