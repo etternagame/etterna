@@ -12,8 +12,6 @@
 #include <string>
 #include <unordered_map>
 
-using std::string;
-
 // Scores for a specific rate for a specific chart
 struct ScoresAtRate
 {
@@ -39,8 +37,8 @@ struct ScoresAtRate
 					  const float& rate,
 					  const std::string& profileID);
 
-	const std::vector<HighScore*> GetScores(const string) const;
-	std::unordered_map<string, HighScore> scores;
+	const std::vector<HighScore*> GetScores(const std::string) const;
+	std::unordered_map<std::string, HighScore> scores;
 
   private:
 };
