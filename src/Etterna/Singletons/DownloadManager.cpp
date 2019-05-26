@@ -810,7 +810,7 @@ DownloadManager::RefreshFavourites()
 			for (auto fav : *favs)
 				DLMAN->favorites.emplace_back(
 				  fav["attributes"].value("chartkey", ""));
-		} catch (exception e) {
+		} catch (std::exception e) {
 			DLMAN->favorites.clear();
 		}
 		MESSAGEMAN->Broadcast("FavouritesUpdate");
@@ -943,7 +943,7 @@ DownloadManager::UploadScore(HighScore* hs)
 			if (!delay && j["data"]["type"] == "ssrResults") {
 				hs->AddUploadedServer(serverURL.Get());
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -1014,7 +1014,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 						hs->AddUploadedServer(serverURL.Get());
 					}
 				}
-			} catch (exception e) {
+			} catch (std::exception e) {
 			}
 			if (!delay && j["data"]["type"] == "ssrResults") {
 				auto diffs = j["data"]["attributes"]["diff"];
@@ -1027,7 +1027,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 				hs->AddUploadedServer(serverURL.Get());
 				HTTPRunning = response_code;
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -1114,7 +1114,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const std::string& sk,
 						hs->AddUploadedServer(serverURL.Get());
 					}
 				}
-			} catch (exception e) {
+			} catch (std::exception e) {
 			}
 			if (!delay && j["data"]["type"] == "ssrResults") {
 				auto diffs = j["data"]["attributes"]["diff"];
@@ -1127,7 +1127,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const std::string& sk,
 				hs->AddUploadedServer(serverURL.Get());
 				HTTPRunning = response_code;
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 		if (callback)
 			callback();
@@ -1193,9 +1193,9 @@ DownloadManager::UpdateOnlineScoreReplayData(const std::string& sk,
 							hs->AddUploadedServer(serverURL.Get());
 						}
 					}
-				} catch (exception e) {
+				} catch (std::exception e) {
 				}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 		if (callback)
 			callback();
@@ -1321,13 +1321,13 @@ DownloadManager::RefreshUserRank()
 			try {
 				if (j["errors"]["status"] == 404)
 					return;
-			} catch (exception e) {
+			} catch (std::exception e) {
 			}
 			auto skillsets = j.find("data")->find("attributes");
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRanks)[ss] =
 			  skillsets->value(SkillsetToString(ss).c_str(), 0);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRanks)[ss] = 0;
 		}
@@ -1407,7 +1407,7 @@ DownloadManager::SendRequestToURL(
 			}
 			if (!delay)
 				afterDone(req, msg);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			afterDone(req, msg);
 		}
 	};
@@ -1463,7 +1463,7 @@ DownloadManager::RefreshCountryCodes()
 															 // we dont have to
 															 // merge tables in
 															 // lua -mina
-		} catch (exception e) {
+		} catch (std::exception e) {
 			// json failed
 		}
 	};
@@ -1491,7 +1491,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
-				throw exception();
+				throw std::exception();
 			auto replay = j.find("data")->find("attributes")->find("replay");
 			if (!replay->is_null() && replay->size() > 1)
 				for (auto& note : *replay) {
@@ -1550,7 +1550,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 				  L, Error, 2, 0, true); // 2 args, 0 results
 				LUA->Release(L);
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 			LOG->Trace(
 			  (string("Replay data request failed for") + scoreid + e.what())
 				.c_str());
@@ -1573,7 +1573,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
-				throw exception();
+				throw std::exception();
 			auto scores = j.find("data");
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
@@ -1668,7 +1668,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 
 				vec.emplace_back(tmp);
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 			// json failed
 		}
 
@@ -1721,7 +1721,7 @@ DownloadManager::RefreshCoreBundles()
 						bundle.emplace_back(&(*dlPack));
 				}
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 	};
 	SendRequest("packs/collections/", {}, done, false);
@@ -1755,7 +1755,7 @@ DownloadManager::RefreshLastVersion()
 		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			parsed = false;
 		}
 		if (!parsed)
@@ -1763,7 +1763,7 @@ DownloadManager::RefreshLastVersion()
 		try {
 			this->lastVersion = j["data"]["attributes"].value(
 			  "version", GAMESTATE->GetEtternaVersion().c_str());
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 	};
 	SendRequest("client/version",
@@ -1781,14 +1781,14 @@ DownloadManager::RefreshRegisterPage()
 		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			parsed = false;
 		}
 		if (!parsed)
 			return;
 		try {
 			this->registerPage = j["data"]["attributes"].value("url", "");
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 	};
 	SendRequest("client/registration",
@@ -1814,7 +1814,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			try {
 				if (j["errors"]["status"] == 404)
 					return;
-			} catch (exception e) {
+			} catch (std::exception e) {
 			}
 			auto scores = j.find("data");
 			std::vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
@@ -1843,12 +1843,12 @@ DownloadManager::RefreshTop25(Skillset ss)
 					tmp.difficulty = StringToDifficulty(
 					  score.value("difficulty", "Invalid").c_str());
 					vec.push_back(tmp);
-				} catch (exception e) {
+				} catch (std::exception e) {
 					// score failed
 				}
 			}
 			MESSAGEMAN->Broadcast("OnlineUpdate");
-		} catch (exception e) { /* We already cleared the vector */
+		} catch (std::exception e) { /* We already cleared the vector */
 		}
 	};
 	SendRequest(req, {}, done);
@@ -1865,7 +1865,7 @@ DownloadManager::RefreshUserData()
 		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			parsed = false;
 		}
 		try {
@@ -1877,7 +1877,7 @@ DownloadManager::RefreshUserData()
 			DLMAN->sessionRatings[Skill_Overall] =
 			  attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
 			DLMAN->countryCode = attr->value("countryCode", "");
-		} catch (exception e) {
+		} catch (std::exception e) {
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = 0.0f;
 		}
@@ -1935,14 +1935,14 @@ DownloadManager::StartSession(std::string user,
 		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			parsed = false;
 		}
 		try {
 			DLMAN->authToken = j["data"]["attributes"].value("accessToken", "");
 			DLMAN->sessionUser = user;
 			DLMAN->sessionPass = pass;
-		} catch (exception e) {
+		} catch (std::exception e) {
 			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
 			MESSAGEMAN->Broadcast("LoginFailed");
 			DLMAN->loggingIn = false;
@@ -1988,7 +1988,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			parsed = false;
 		}
 		if (!parsed)
@@ -2024,13 +2024,13 @@ DownloadManager::RefreshPackList(const std::string& url)
 							tmp.url = pack.value("url", "");
 						else
 							continue;
-					} catch (exception e) {
+					} catch (std::exception e) {
 						continue;
 					}
 					try {
 						if (pack.find("mirror") != pack.end())
 							tmp.mirror = pack.value("mirror", "");
-					} catch (exception e) {
+					} catch (std::exception e) {
 					}
 					if (tmp.url.empty())
 						continue;
@@ -2044,10 +2044,10 @@ DownloadManager::RefreshPackList(const std::string& url)
 					else
 						tmp.size = 0;
 					packlist.push_back(tmp);
-				} catch (exception e) {
+				} catch (std::exception e) {
 				}
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 		}
 		DLMAN->RefreshCoreBundles();
 	};

@@ -681,7 +681,7 @@ SongCacheIndex::~SongCacheIndex()
 	if (curTransaction != nullptr) {
 		try {
 			curTransaction->commit();
-		} catch (exception e) {
+		} catch (std::exception e) {
 			// DB transaction commit failed, we're destructing so we dont care.
 			// There really shouldnt be a transaction left anyways
 		}

@@ -473,7 +473,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-		} catch (exception e) {
+		} catch (std::exception e) {
 			LOG->Trace(
 			  "Error while processing ettprotocol json: %s (message: %s)",
 			  e.what(),
@@ -715,7 +715,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					hs.SetHoldNoteScore(HNS_Missed, score.value("ng", 0));
 					try {
 						hs.SetChordCohesion(!score["nocc"].get<bool>());
-					} catch (exception e) {
+					} catch (std::exception e) {
 						hs.SetChordCohesion(true);
 					}
 					hs.SetMusicRate(score.value("rate", 0.1f));
@@ -742,7 +742,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						hs.SetOffsetVector(offsets);
 						hs.SetNoteRowVector(noterows);
 						hs.SetTrackVector(tracks);
-					} catch (exception e) {
+					} catch (std::exception e) {
 					} // No replay data for this score, its still valid
 					result.nameStr = (*payload)["name"].get<string>();
 					result.hs = hs;
@@ -851,7 +851,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							RString SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (exception e) {
+						} catch (std::exception e) {
 							LOG->Trace("Error while parsing ettp json enter "
 									   "room response: %s",
 									   e.what());
@@ -866,7 +866,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						RoomData tmp = jsonToRoom((*payload)["room"]);
 						n->m_Rooms.emplace_back(tmp);
 						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					} catch (exception e) {
+					} catch (std::exception e) {
 						LOG->Trace(
 						  "Error while parsing ettp json newroom room: %s",
 						  e.what());
@@ -883,7 +883,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										 }),
 						  n->m_Rooms.end());
 						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					} catch (exception e) {
+					} catch (std::exception e) {
 						LOG->Trace(
 						  "Error while parsing ettp json deleteroom room: %s",
 						  e.what());
@@ -904,7 +904,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							roomIt->players = updated.players;
 							SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 						}
-					} catch (exception e) {
+					} catch (std::exception e) {
 						LOG->Trace(
 						  "Error while parsing ettp json roomlist room: %s",
 						  e.what());
@@ -941,7 +941,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						for (auto&& room : j1) {
 							try {
 								n->m_Rooms.emplace_back(jsonToRoom(room));
-							} catch (exception e) {
+							} catch (std::exception e) {
 								LOG->Trace("Error while parsing ettp json "
 										   "roomlist room: %s",
 										   e.what());
@@ -978,7 +978,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 									player["ready"]);
 								stored++;
 								n->m_ActivePlayer.emplace_back(i++);
-							} catch (exception e) {
+							} catch (std::exception e) {
 								if (stored > 0)
 									n->m_PlayerNames.pop_back();
 								if (stored > 1)
@@ -992,7 +992,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 			LOG->Trace("Error while parsing ettp json message: %s", e.what());
 		}
 	}
@@ -1177,7 +1177,7 @@ ETTProtocol::Send(json msg)
 {
 	try {
 		Send(msg.dump().c_str());
-	} catch (exception e) {
+	} catch (std::exception e) {
 		SCREENMAN->SystemMessage("Error: Chart contains invalid utf8");
 	}
 }
