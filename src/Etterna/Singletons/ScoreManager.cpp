@@ -66,7 +66,7 @@ ScoresAtRate::AddScore(HighScore& hs)
 std::vector<std::string>
 ScoresAtRate::GetSortedKeys()
 {
-	std::map<float, string, greater<float>> tmp;
+	std::map<float, string, std::greater<float>> tmp;
 	std::vector<std::string> o;
 	FOREACHUM(string, HighScore, scores, i)
 	tmp.emplace(i->second.GetWifeScore(), i->first);

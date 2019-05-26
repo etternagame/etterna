@@ -78,7 +78,7 @@ struct ScoresForChart
 					  const std::string& profileID);
 
 	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
-	std::map<int, ScoresAtRate, greater<int>> ScoresByRate;
+	std::map<int, ScoresAtRate, std::greater<int>> ScoresByRate;
 
 	// Sets rate indepdendent topscore tags inside highscores. 1 = best. 2 =
 	// 2nd. 0 = the rest. -mina
