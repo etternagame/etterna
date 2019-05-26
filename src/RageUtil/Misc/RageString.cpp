@@ -227,7 +227,6 @@ do_split(S const& source,
 		 int len,
 		 Rage::EmptyEntries const shouldIgnore)
 {
-	using std::min;
 	if (size != -1) {
 		// Start points to the beginning of the last delimiter. Move it up.
 		start += size + delimitor.size();

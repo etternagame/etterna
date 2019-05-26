@@ -2,7 +2,6 @@
 #define CUBIC_SPLINE_H
 
 #include <vector>
-using std::vector;
 #include "RageUtil/Misc/RageTypes.h"
 struct lua_State;
 

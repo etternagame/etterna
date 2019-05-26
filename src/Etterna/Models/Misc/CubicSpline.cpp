@@ -2,7 +2,6 @@
 #include "CubicSpline.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include <list>
-using std::list;
 
 // Spline solving optimization:
 // The tridiagonal part of the system of equations for a spline of size n is

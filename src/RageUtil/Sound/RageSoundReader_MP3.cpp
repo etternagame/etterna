@@ -276,7 +276,6 @@ get_this_frame_byte(const madlib_t* mad)
 bool
 RageSoundReader_MP3::handle_first_frame()
 {
-	using std::max;
 	bool ret = false;
 
 	/* Check for a XING tag. */
@@ -551,7 +550,6 @@ RageSoundReader_MP3::seek_stream_to_byte(int byte)
  * it way, since that can confuse the seek optimizations. */
 int RageSoundReader_MP3::resync()
 {
-	using std::max;
 	/* Save the timer; decoding will change it, and we need to put it back. */
 	mad_timer_t orig = mad->Timer;
 
@@ -690,7 +688,6 @@ RageSoundReader_MP3::Copy() const
 int
 RageSoundReader_MP3::Read(float* buf, int iFrames)
 {
-	using std::min;
 	int iFramesWritten = 0;
 
 	while (iFrames > 0) {
@@ -773,7 +770,6 @@ RageSoundReader_MP3::MADLIB_rewind()
 int
 RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 {
-	using std::max;
 	ASSERT(!Xing || mad->has_xing);
 	ASSERT(mad->length != -1);
 

@@ -23,8 +23,6 @@
 
 #include "lua.hpp"
 
-using std::vector;
-
 LuaManager* LUA = nullptr;
 struct Impl
 {
