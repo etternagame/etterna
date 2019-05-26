@@ -74,6 +74,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(Etterna Threads::Threads)
 
 ## Linking
+target_link_libraries(Etterna rapidjson)
 target_link_libraries(Etterna luajit)
 target_link_libraries(Etterna discord-rpc)
 target_link_libraries(Etterna sqlite3)
