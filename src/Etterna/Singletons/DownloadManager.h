@@ -243,7 +243,7 @@ class DownloadManager
 
 	std::string GetError() { return error; }
 	bool Error() { return error == ""; }
-	bool EncodeSpaces(string& str);
+	bool EncodeSpaces(std::string& str);
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
@@ -261,14 +261,14 @@ class DownloadManager
 	inline void SetCURLURL(CURL* curlHandle, std::string url);
 
 	HTTPRequest* SendRequest(std::string requestName,
-							 std::vector<std::pair<string, string>> params,
+							 std::vector<std::pair<std::string, std::string>> params,
 							 std::function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin = true,
 							 bool post = false,
 							 bool async = true,
 							 bool withBearer = true);
 	HTTPRequest* SendRequestToURL(std::string url,
-								  std::vector<std::pair<string, string>> params,
+								  std::vector<std::pair<std::string, std::string>> params,
 								  std::function<void(HTTPRequest&, CURLMsg*)> done,
 								  bool requireLogin,
 								  bool post,

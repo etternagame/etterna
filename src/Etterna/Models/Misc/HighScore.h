@@ -11,8 +11,6 @@ class XNode;
 struct RadarValues;
 struct lua_State;
 
-using std::string;
-
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
  *
@@ -131,10 +129,10 @@ struct HighScore
 	void SetDisqualified( bool b );
 	void SetReplayType( int i );
 
-	string* GetNameMutable();
-	const string* GetNameMutable() const
+	std::string* GetNameMutable();
+	const std::string* GetNameMutable() const
 	{
-		return const_cast<string*>(
+		return const_cast<std::string*>(
 		  const_cast<HighScore*>(this)->GetNameMutable());
 	}
 

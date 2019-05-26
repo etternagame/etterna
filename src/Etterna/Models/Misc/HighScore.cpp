@@ -16,10 +16,8 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "RageUtil/File/RageFileManager.h"
 
-const std::string BASIC_REPLAY_DIR =
-  "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
-const std::string FULL_REPLAY_DIR =
-  "Save/ReplaysV2/"; // contains freeze drops and mine hits as well as tap
+const std::string BASIC_REPLAY_DIR = "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
+const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/"; // contains freeze drops and mine hits as well as tap
 					 // offsets; fully "rewatchable" -mina
 
 struct HighScoreImpl
@@ -1189,7 +1187,7 @@ HighScore::ResetSkillsets()
 /* We normally don't give direct access to the members.  We need this one
  * for NameToFillIn; use a special accessor so it's easy to find where this
  * is used. */
-string*
+std::string*
 HighScore::GetNameMutable()
 {
 	return &m_Impl->sName;

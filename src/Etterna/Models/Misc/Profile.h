@@ -240,7 +240,7 @@ class Profile
 	bool m_bNewProfile{ false };
 
 	// seriously why is this not a thing -mina
-	string profiledir;
+    std::string profiledir;
 	bool IsEtternaProfile{ false };
 	/**
 	 * @brief Which machine did we play on last, based on the Guid?
@@ -271,13 +271,13 @@ class Profile
 	void AddToPermaMirror(const std::string& ck) { PermaMirrorCharts.emplace(ck); }
 	void RemoveFromFavorites(const std::string& ck);
 	void RemoveFromPermaMirror(const std::string& ck);
-	std::set<string> FavoritedCharts;
-	std::set<string> PermaMirrorCharts;
+	std::set<std::string> FavoritedCharts;
+	std::set<std::string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
 	void AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
-	std::unordered_map<string, GoalsForChart> goalmap;
+	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	std::vector<ScoreGoal*> goaltable;
 	int sortmode = 1;   // 1=date 2=rate 3=name 4=priority 5=diff, init to name

@@ -140,8 +140,8 @@ class ChartRequest
 {
   public:
 	ChartRequest(json& j)
-	  : chartkey(j["chartkey"].get<string>())
-	  , user(j["requester"].get<string>())
+	  : chartkey(j["chartkey"].get<std::string>())
+	  , user(j["requester"].get<std::string>())
 	  , rate(j["rate"])
 	{
 	}
@@ -292,12 +292,12 @@ class ETTProtocol : public NetProtocol
 class Chat
 {
   public:
-	std::map<std::pair<string, int>, std::vector<std::string>> rawMap;
+	std::map<std::pair<std::string, int>, std::vector<std::string>> rawMap;
 
-	std::vector<std::string>& operator[](const std::pair<string, int>& p)
+	std::vector<std::string>& operator[](const std::pair<std::string, int>& p)
 	{
 		if (p.second == 0)
-			return rawMap.operator[](std::make_pair(string(""), 0));
+			return rawMap.operator[](std::make_pair(std::string(""), 0));
 		else
 			return rawMap.operator[](p);
 	}
@@ -384,7 +384,7 @@ class NetworkSyncManager
 										// since function was last called.
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
-	std::set<string> lobbyuserlist;
+	std::set<std::string> lobbyuserlist;
 
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
 
