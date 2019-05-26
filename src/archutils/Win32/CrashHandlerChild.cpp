@@ -464,7 +464,7 @@ MakeCrashReport(const CompleteCrashData& Data, RString& sOut)
 {
 	sOut += ssprintf("%s crash report (build %s, %s @ %s)\n"
 					 "--------------------------------------\n\n",
-					 (string(PRODUCT_FAMILY) + product_version).c_str(),
+					 (std::string(PRODUCT_FAMILY) + product_version).c_str(),
 					 ::sm_version_git_hash,
 					 version_date,
 					 version_time);

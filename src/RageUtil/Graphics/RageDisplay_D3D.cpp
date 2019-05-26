@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -903,8 +903,8 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
   public:
 	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
-		m_vVertex.resize(std::max(1u, GetTotalVertices()));
-		m_vTriangles.resize(std::max(1u, GetTotalTriangles()));
+		m_vVertex.resize(std::max<size_t>(1u, GetTotalVertices()));
+		m_vTriangles.resize(std::max<size_t>(1u, GetTotalTriangles()));
 	}
 	void Change(const std::vector<msMesh>& vMeshes) override
 	{
