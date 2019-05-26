@@ -815,8 +815,7 @@ SongCacheIndex::LoadCache(
 		cacheParts.emplace_back(
 		  std::vector<std::pair<std::pair<RString, unsigned int>, Song*>*>());
 	for (int i = 0; i < threads; i++)
-		threadpool.emplace_back(
-		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
+		threadpool.emplace_back(std::thread(threadCallback, limit, i * limit, &(cacheParts[i])));
 	while (data._threadsFinished < threads) {
 		data.waitForUpdate();
 		if (abort) {
