@@ -1569,7 +1569,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		std::vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		// unordered_set<string> userswithscores;
+		// std::unordered_set<string> userswithscores;
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
@@ -2432,7 +2432,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		std::vector<HighScore*> filteredLeaderboardScores;
-		unordered_set<string> userswithscores;
+		std::unordered_set<string> userswithscores;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
 		std::string country = "";
 		if (!lua_isnoneornil(L, 2)) {
