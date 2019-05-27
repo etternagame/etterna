@@ -5,7 +5,6 @@
 #include "Etterna/Models/Misc/HighScore.h"
 #include <queue>
 #include "uWS.h"
-#include "Etterna/Models/Misc/JsonUtil.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 

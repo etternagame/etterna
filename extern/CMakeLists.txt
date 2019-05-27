@@ -16,7 +16,6 @@ add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
 add_subdirectory(json)
-add_subdirectory(jsoncpp)
 add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
 add_subdirectory(fftw-3.3.8)
@@ -46,7 +45,7 @@ list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
     discord-rpc
     SQLiteCpp sqlite3
-    jsoncpp uv uv_a
+    uv uv_a
     tomcrypt libtommath
     fftw3f glfw pcre
     zlib uWS libmad

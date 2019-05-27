@@ -32,7 +32,6 @@ list(APPEND NOTELOAD_SRC
 	"NoteLoaders/NotesLoader.cpp"
 	"NoteLoaders/NotesLoaderBMS.cpp"
 	"NoteLoaders/NotesLoaderDWI.cpp"
-	"NoteLoaders/NotesLoaderJson.cpp"
 	"NoteLoaders/NotesLoaderKSF.cpp"
 	"NoteLoaders/NotesLoaderSM.cpp"
 	"NoteLoaders/NotesLoaderSMA.cpp"
@@ -44,7 +43,6 @@ list(APPEND NOTELOAD_HPP
 	"NoteLoaders/NotesLoader.h"
 	"NoteLoaders/NotesLoaderBMS.h"
 	"NoteLoaders/NotesLoaderDWI.h"
-	"NoteLoaders/NotesLoaderJson.h"
 	"NoteLoaders/NotesLoaderKSF.h"
 	"NoteLoaders/NotesLoaderSM.h"
 	"NoteLoaders/NotesLoaderSMA.h"
@@ -54,13 +52,11 @@ list(APPEND NOTELOAD_HPP
 
 list(APPEND NOTEWRITE_SRC
 	"NoteWriters/NotesWriterDWI.cpp"
-	"NoteWriters/NotesWriterJson.cpp"
 	"NoteWriters/NotesWriterSM.cpp"
 	"NoteWriters/NotesWriterSSC.cpp"
 	"NoteWriters/NotesWriterETT.cpp")
 list(APPEND NOTEWRITE_HPP
 	"NoteWriters/NotesWriterDWI.h"
-	"NoteWriters/NotesWriterJson.h"
 	"NoteWriters/NotesWriterSM.h"
 	"NoteWriters/NotesWriterSSC.h"
 	"NoteWriters/NotesWriterETT.h")
@@ -122,7 +118,6 @@ list(APPEND REST_SRC
 	"Misc/GamePreferences.cpp"
 	"Misc/Grade.cpp"
 	"Misc/HighScore.cpp"
-	"Misc/JsonUtil.cpp"
 	"Misc/LocalizedString.cpp"
 	"Misc/LyricsLoader.cpp"
 	"Misc/ModsGroup.cpp"
@@ -177,7 +172,6 @@ list(APPEND REST_HPP
 	"Misc/Grade.h"
 	"Misc/HighScore.h"
 	"Misc/InputEventPlus.h"
-	"Misc/JsonUtil.h"
 	"Misc/LocalizedString.h"
 	"Misc/LyricsLoader.h"
 	"Misc/ModsGroup.h"
