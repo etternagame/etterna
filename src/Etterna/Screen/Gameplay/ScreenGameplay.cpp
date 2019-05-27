@@ -1112,10 +1112,12 @@ ScreenGameplay::BeginScreen()
 									  this->GetPlayerInfo(PLAYER_1)
 										->GetPlayerStageStats()
 										->m_iCurCombo);
-			  NSMAN->SendMPLeaderboardUpdate(
-				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore /
-				  this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore,
-				doot);
+			  auto player = this->GetPlayerInfo(PLAYER_1)->m_pPlayer;
+			  if(player->maxwifescore > 0)
+				  NSMAN->SendMPLeaderboardUpdate(
+					  player->curwifescore /
+					  player->maxwifescore,
+					doot);
 		  },
 		  0.25f,
 		  -1);

@@ -5,8 +5,7 @@
 #include "Etterna/Models/Misc/HighScore.h"
 #include <queue>
 #include "uWS.h"
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "rapidjson/document.h"
 
 class LoadingWindow;
 
@@ -138,10 +137,10 @@ struct NetServerInfo
 class ChartRequest
 {
   public:
-	ChartRequest(json& j)
-	  : chartkey(j["chartkey"].get<string>())
-	  , user(j["requester"].get<string>())
-	  , rate(j["rate"])
+	ChartRequest(const char* ck, const char* requester, int rate)
+	  : chartkey(ck)
+	  , user(requester)
+	  , rate(rate)
 	{
 	}
 	const string chartkey;
@@ -240,12 +239,12 @@ class NetProtocol
 class ETTProtocol : public NetProtocol
 { // Websockets using uwebsockets sending json
 	uWS::Hub* uWSh = new uWS::Hub();
-	vector<json> newMessages;
+	vector<std::unique_ptr<rapidjson::Document>> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	string errorMsg;
 	uWS::WebSocket<uWS::CLIENT>* ws{ nullptr };
-	void FindJsonChart(NetworkSyncManager* n, json& ch);
+	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
@@ -278,7 +277,6 @@ class ETTProtocol : public NetProtocol
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
-	void Send(json msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score,
 	int combo, float offset, int numNotes) override; void

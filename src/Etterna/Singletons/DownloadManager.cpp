@@ -480,7 +480,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
 		return nullptr;
 	}
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
@@ -720,7 +720,7 @@ void
 DownloadManager::AddFavorite(const string& chartkey)
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
-	DLMAN->favorites.emplace_back(chartkey);
+	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
 		LOG->Warn((requ.result + req + DLMAN->sessionUser).c_str());
 	};
@@ -809,17 +809,14 @@ DownloadManager::RefreshFavourites()
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
-		if(d.Parse(req.result.c_str()).HasParseError() ||
-			!d.HasMember("data") ||
-			!d["data"].IsArray())
+		if (d.Parse(req.result.c_str()).HasParseError() ||
+			!d.HasMember("data") || !d["data"].IsArray())
 			DLMAN->favorites.clear();
 		else {
 			auto& favs = d["data"];
 			for (auto& fav : favs.GetArray()) {
-				if(fav.HasMember("attributes") && 
-					fav["attributes"].IsString())
-					DLMAN->favorites.emplace_back(
-						fav["attributes"].GetString());
+				if (fav.HasMember("attributes") && fav["attributes"].IsString())
+					DLMAN->favorites.push_back(fav["attributes"].GetString());
 			}
 		}
 		MESSAGEMAN->Broadcast("FavouritesUpdate");
@@ -938,15 +935,14 @@ DownloadManager::UploadScore(HighScore* hs)
 			auto onStatus = [hs](int status) {
 				if (status == 22) {
 					DLMAN->StartSession(DLMAN->sessionUser,
-						DLMAN->sessionPass,
-						[hs](bool logged) {
-						if (logged) {
-							DLMAN->UploadScore(hs);
-						}
-					});
+										DLMAN->sessionPass,
+										[hs](bool logged) {
+											if (logged) {
+												DLMAN->UploadScore(hs);
+											}
+										});
 					return true;
-				}
-				else if (status == 404 || status == 405 || status == 406) {
+				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
 				}
 				return false;
@@ -959,17 +955,14 @@ DownloadManager::UploadScore(HighScore* hs)
 					if (onStatus(status))
 						return;
 				}
-			}
-			else if (d["errors"].HasMember("status") &&
-				d["errors"]["status"].IsInt()) {
+			} else if (d["errors"].HasMember("status") &&
+					   d["errors"]["status"].IsInt()) {
 				if (onStatus(d["errors"]["status"].GetInt()))
 					return;
 			}
 		}
-		if (d.HasMember("data") && 
-			d["data"].IsObject() && 
-			d["data"].HasMember("type") &&
-			d["data"]["type"].IsString() && 
+		if (d.HasMember("data") && d["data"].IsObject() &&
+			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
 			d["data"]["type"].GetString() == "ssrResults") {
 			hs->AddUploadedServer(serverURL.Get());
 		}
@@ -1028,17 +1021,15 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			auto onStatus = [hs](int status) {
 				if (status == 22) {
 					DLMAN->StartSession(
-						DLMAN->sessionUser,
-						DLMAN->sessionPass,
-						[hs](bool logged) {
-						if (logged) {
-							DLMAN->UploadScoreWithReplayData(hs);
-						}
-					});
+					  DLMAN->sessionUser,
+					  DLMAN->sessionPass,
+					  [hs](bool logged) {
+						  if (logged) {
+							  DLMAN->UploadScoreWithReplayData(hs);
+						  }
+					  });
 					return true;
-				}
-				else if (status == 404 || status == 405 ||
-					status == 406) {
+				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
 				}
 				return false;
@@ -1051,33 +1042,31 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					if (onStatus(status))
 						return;
 				}
-			}
-			else if (d["errors"].HasMember("status") &&
-				d["errors"]["status"].IsInt()) {
+			} else if (d["errors"].HasMember("status") &&
+					   d["errors"]["status"].IsInt()) {
 				if (onStatus(d["errors"]["status"].GetInt()))
 					return;
 			}
 		}
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
-			d["data"].HasMember("type") &&
-			d["data"]["type"].IsString() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
+			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
 			d["data"]["type"].GetString() == "ssrResults" &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&
 			d["data"]["attributes"]["diff"].IsObject()) {
 			auto& diffs = d["data"]["attributes"]["diff"];
-			FOREACH_ENUM(Skillset, ss) {
+			FOREACH_ENUM(Skillset, ss)
+			{
 				auto str = SkillsetToString(ss);
-				if (ss != Skill_Overall &&
-					diffs.HasMember(str.c_str()) &&
+				if (ss != Skill_Overall && diffs.HasMember(str.c_str()) &&
 					diffs[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] += diffs[str.c_str()].GetFloat();
+					(DLMAN->sessionRatings)[ss] +=
+					  diffs[str.c_str()].GetFloat();
 			}
-			if (diffs.HasMember("Rating") &&
-				diffs["Rating"].IsNumber())
-				(DLMAN->sessionRatings)[Skill_Overall] += diffs["Rating"].GetFloat();
+			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
+				(DLMAN->sessionRatings)[Skill_Overall] +=
+				  diffs["Rating"].GetFloat();
 			hs->AddUploadedServer(serverURL.Get());
 			HTTPRunning = response_code;
 		}
@@ -1151,20 +1140,18 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 			auto onStatus = [hs, &callback](int status) {
 				if (status == 22) {
 					DLMAN->StartSession(
-						DLMAN->sessionUser,
-						DLMAN->sessionPass,
-						[hs](bool logged) {
-						if (logged) {
-							DLMAN->UploadScoreWithReplayDataFromDisk(
+					  DLMAN->sessionUser,
+					  DLMAN->sessionPass,
+					  [hs](bool logged) {
+						  if (logged) {
+							  DLMAN->UploadScoreWithReplayDataFromDisk(
 								hs->GetScoreKey());
-						}
-					});
+						  }
+					  });
 					if (callback)
 						callback();
 					return true;
-				}
-				else if (status == 404 || status == 405 ||
-					status == 406) {
+				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
 				}
 				return false;
@@ -1177,33 +1164,31 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 					if (onStatus(status))
 						return;
 				}
-			}
-			else if (d["errors"].HasMember("status") &&
-				d["errors"]["status"].IsInt()) {
+			} else if (d["errors"].HasMember("status") &&
+					   d["errors"]["status"].IsInt()) {
 				if (onStatus(d["errors"]["status"].GetInt()))
 					return;
 			}
 		}
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
-			d["data"].HasMember("type") &&
-			d["data"]["type"].IsString() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
+			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
 			d["data"]["type"].GetString() == "ssrResults" &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&
 			d["data"]["attributes"]["diff"].IsObject()) {
 			auto& diffs = d["data"]["attributes"]["diff"];
-			FOREACH_ENUM(Skillset, ss) {
+			FOREACH_ENUM(Skillset, ss)
+			{
 				auto str = SkillsetToString(ss);
-				if (ss != Skill_Overall &&
-					diffs.HasMember(str.c_str()) &&
+				if (ss != Skill_Overall && diffs.HasMember(str.c_str()) &&
 					diffs[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] += diffs[str.c_str()].GetFloat();
+					(DLMAN->sessionRatings)[ss] +=
+					  diffs[str.c_str()].GetFloat();
 			}
-			if (diffs.HasMember("Rating") &&
-				diffs["Rating"].IsNumber())
-				(DLMAN->sessionRatings)[Skill_Overall] += diffs["Rating"].GetFloat();
+			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
+				(DLMAN->sessionRatings)[Skill_Overall] +=
+				  diffs["Rating"].GetFloat();
 			hs->AddUploadedServer(serverURL.Get());
 			HTTPRunning = response_code;
 		}
@@ -1251,22 +1236,19 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 		}
 		if (!d.HasMember("errors")) {
 			hs->AddUploadedServer(serverURL.Get());
-		}
-		else {
+		} else {
 			auto onStatus = [hs](int status) {
 				if (status == 22) {
 					DLMAN->StartSession(
-						DLMAN->sessionUser,
-						DLMAN->sessionPass,
-						[hs](bool logged) {
-						if (logged) {
-							DLMAN->UpdateOnlineScoreReplayData(
+					  DLMAN->sessionUser,
+					  DLMAN->sessionPass,
+					  [hs](bool logged) {
+						  if (logged) {
+							  DLMAN->UpdateOnlineScoreReplayData(
 								hs->GetScoreKey());
-						}
-					});
-				}
-				else if (status == 404 || status == 405 ||
-					status == 406) {
+						  }
+					  });
+				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
 				}
 			};
@@ -1277,9 +1259,8 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 					int status = error["status"].GetInt();
 					onStatus(status);
 				}
-			}
-			else if (d["errors"].HasMember("status") &&
-				d["errors"]["status"].IsInt()) {
+			} else if (d["errors"].HasMember("status") &&
+					   d["errors"]["status"].IsInt()) {
 				onStatus(d["errors"]["status"].GetInt());
 			}
 		}
@@ -1326,7 +1307,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 			if (scorePtr->HasReplayData() &&
 				scorePtr->IsUploadedToServer(serverURL.Get()) &&
 				!scorePtr->IsUploadedToServer("nru"))
-				toUpload.emplace_back(scorePtr);
+				toUpload.push_back(scorePtr);
 		}
 	}
 	UpdateReplayDataSequentially(toUpload);
@@ -1360,7 +1341,7 @@ DownloadManager::UploadScores()
 			if ((ts == 1 || ts == 2) &&
 				!scorePtr->IsUploadedToServer(serverURL.Get())) {
 				if (scorePtr->HasReplayData())
-					toUpload.emplace_back(scorePtr);
+					toUpload.push_back(scorePtr);
 			}
 		}
 	}
@@ -1406,18 +1387,16 @@ DownloadManager::RefreshUserRank()
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
 			return;
 		}
-		if (d.HasMember("errors") &&
-			d["errors"].IsObject() &&
-			d["errors"].HasMember("status") &&
-			d["errors"]["status"].IsInt() &&
+		if (d.HasMember("errors") && d["errors"].IsObject() &&
+			d["errors"].HasMember("status") && d["errors"]["status"].IsInt() &&
 			d["errors"]["status"].GetInt() == 404)
 			return;
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject()) {
 			auto& skillsets = d["data"]["attributes"];
-			FOREACH_ENUM(Skillset, ss) {
+			FOREACH_ENUM(Skillset, ss)
+			{
 				auto str = SkillsetToString(ss);
 				if (skillsets.HasMember(str.c_str()) &&
 					skillsets[str.c_str()].IsInt())
@@ -1491,26 +1470,25 @@ DownloadManager::SendRequestToURL(
 		if (d.HasMember("errors")) {
 			auto on22 = [req, msg, afterDone]() {
 				DLMAN->StartSession(DLMAN->sessionUser,
-					DLMAN->sessionPass,
-					[req, msg, afterDone](bool logged) {
-					if (logged) {
-						auto r = req;
-						afterDone(r, msg);
-					}
-				});
+									DLMAN->sessionPass,
+									[req, msg, afterDone](bool logged) {
+										if (logged) {
+											auto r = req;
+											afterDone(r, msg);
+										}
+									});
 			};
 			if (d["errors"].IsArray())
 				for (auto& error : d["errors"].GetArray()) {
-					if (error.HasMember("status") &&
-						error["status"].IsInt() &&
+					if (error.HasMember("status") && error["status"].IsInt() &&
 						error["status"].GetInt() == 22) {
 						on22();
 						return;
 					}
 				}
 			else if (d["errors"].IsObject() &&
-				d["errors"].HasMember("status") &&
-				d["errors"]["status"].IsInt()) {
+					 d["errors"].HasMember("status") &&
+					 d["errors"]["status"].IsInt()) {
 				if (d["errors"]["status"].GetInt() == 22) {
 					on22();
 					return;
@@ -1561,18 +1539,16 @@ DownloadManager::RefreshCountryCodes()
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
 			return;
 		}
-		if (d.HasMember("data") &&
-			d["data"].IsArray()) 
+		if (d.HasMember("data") && d["data"].IsArray())
 			for (auto& code_obj : d["data"].GetArray()) {
-				if (code_obj.HasMember("id") &&
-					code_obj["id"].IsString())
-					DLMAN->countryCodes.emplace_back(code_obj["id"].GetString());
+				if (code_obj.HasMember("id") && code_obj["id"].IsString())
+					DLMAN->countryCodes.push_back(code_obj["id"].GetString());
 				else
-					DLMAN->countryCodes.emplace_back("");
+					DLMAN->countryCodes.push_back("");
 			}
-			// append the list to global/player country code so
-			// we dont have to merge tables in lua -mina
-			DLMAN->countryCodes.push_back(string("Global")); 
+		// append the list to global/player country code so
+		// we dont have to merge tables in lua -mina
+		DLMAN->countryCodes.push_back(string("Global"));
 	};
 	SendRequest(
 	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
@@ -1596,58 +1572,52 @@ DownloadManager::RequestReplayData(const string& scoreid,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed replay data request response: " + req.result).c_str());
+			LOG->Trace(("Malformed replay data request response: " + req.result)
+						 .c_str());
 			return;
 		}
 		if (d.HasMember("errors")) {
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			LOG->Trace(
-				(string("Replay data request failed for ") + scoreid + 
-					" (Response: " + buffer.GetString() + ")")
-				.c_str());
+			LOG->Trace((string("Replay data request failed for ") + scoreid +
+						" (Response: " + buffer.GetString() + ")")
+						 .c_str());
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("replay") &&
 			d["data"]["attributes"]["replay"].IsArray()) {
 			for (auto& note : d["data"]["attributes"]["replay"].GetArray()) {
-				if (!note.IsArray() ||
-					note.Size() < 2 ||
-					!note[0].IsNumber() ||
+				if (!note.IsArray() || note.Size() < 2 || !note[0].IsNumber() ||
 					!note[1].IsNumber())
 					continue;
-				replayData.emplace_back(
-					make_pair(note[0].GetFloat(), note[1].GetFloat()));
+				replayData.push_back(
+				  make_pair(note[0].GetFloat(), note[1].GetFloat()));
 
-				timestamps.emplace_back(note[0].GetFloat());
-				offsets.emplace_back(note[1].GetFloat() / 1000.f);
+				timestamps.push_back(note[0].GetFloat());
+				offsets.push_back(note[1].GetFloat() / 1000.f);
 				if (note.Size() == 3 &&
 					note[2].IsInt()) { // pre-0.6 with noterows
-					rows.emplace_back(note[2].GetInt());
+					rows.push_back(note[2].GetInt());
 				}
-				if (note.Size() > 3 &&
-					note[2].IsInt() &&
+				if (note.Size() > 3 && note[2].IsInt() &&
 					note[3].IsInt()) { // 0.6 without noterows
-					tracks.emplace_back(note[2].GetInt());
-					types.emplace_back(
-						static_cast<TapNoteType>(note[3].GetInt()));
+					tracks.push_back(note[2].GetInt());
+					types.push_back(static_cast<TapNoteType>(note[3].GetInt()));
 				}
-				if (note.Size() == 5 &&
-					note[4].IsInt()) { // 0.6 with noterows
-					rows.emplace_back(note[4].GetInt());
+				if (note.Size() == 5 && note[4].IsInt()) { // 0.6 with noterows
+					rows.push_back(note[4].GetInt());
 				}
 			}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
 			auto it = find_if(
-				lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
-				return a.userid == userid && a.username == username;
-			});
+			  lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
+				  return a.userid == userid && a.username == username;
+			  });
 			if (it != lbd.end()) {
 				it->hs.SetOnlineReplayTimestampVector(timestamps);
 				it->hs.SetOffsetVector(offsets);
@@ -1663,10 +1633,10 @@ DownloadManager::RequestReplayData(const string& scoreid,
 		}
 
 		auto& lbd = DLMAN->chartLeaderboards[chartkey];
-		auto it = find_if(
-			lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
-			return a.userid == userid && a.username == username;
-		});
+		auto it =
+		  find_if(lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
+			  return a.userid == userid && a.username == username;
+		  });
 		if (it != lbd.end()) {
 			it->hs.SetOnlineReplayTimestampVector(timestamps);
 			it->hs.SetOffsetVector(offsets);
@@ -1684,7 +1654,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			auto L = LUA->Get();
 			callback.PushSelf(L);
 			RString Error =
-				"Error running RequestChartLeaderBoard Finish Function: ";
+			  "Error running RequestChartLeaderBoard Finish Function: ";
 			lua_newtable(L); // dunno whats going on here -mina
 			for (unsigned i = 0; i < replayData.size(); ++i) {
 				auto& pair = replayData[i];
@@ -1695,9 +1665,10 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				lua_rawseti(L, -2, 2);
 				lua_rawseti(L, -2, i + 1);
 			}
-			if (it != lbd.end()) it->hs.PushSelf(L);
+			if (it != lbd.end())
+				it->hs.PushSelf(L);
 			LuaHelpers::RunScriptOnStack(
-				L, Error, 2, 0, true); // 2 args, 0 results
+			  L, Error, 2, 0, true); // 2 args, 0 results
 			LUA->Release(L);
 		}
 	};
@@ -1720,8 +1691,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 
-		if (!d.HasMember("errors") &&
-			d.HasMember("data") &&
+		if (!d.HasMember("errors") && d.HasMember("data") &&
 			d["data"].IsArray()) {
 			auto& scores = d["data"];
 			for (auto& score_obj : scores.GetArray()) {
@@ -1738,8 +1708,9 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					LOG->Trace(("Malformed score in chart leaderboard (chart:"+
-						chartkey + "): " + buffer.GetString()).c_str());
+					LOG->Trace(("Malformed score in chart leaderboard (chart:" +
+								chartkey + "): " + buffer.GetString())
+								 .c_str());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1747,23 +1718,19 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				OnlineScore tmp;
 				// tmp.songId = score.value("songId", 0);
 				auto& user = score["user"];
-				if (score.HasMember("songId") &&
-					score["songId"].IsString())
+				if (score.HasMember("songId") && score["songId"].IsString())
 					tmp.songId = score["songId"].GetString();
 				else
 					tmp.songId = "";
-				if (user.HasMember("userName") &&
-					user["userName"].IsString())
+				if (user.HasMember("userName") && user["userName"].IsString())
 					tmp.username = user["userName"].GetString();
 				else
 					tmp.username = "";
-				if (user.HasMember("avatar") &&
-					user["avatar"].IsString())
+				if (user.HasMember("avatar") && user["avatar"].IsString())
 					tmp.avatar = user["avatar"].GetString();
 				else
 					tmp.avatar = "";
-				if (user.HasMember("userId") &&
-					user["userId"].IsInt())
+				if (user.HasMember("userId") && user["userId"].IsInt())
 					tmp.userid = user["userId"].GetInt();
 				else
 					tmp.userid = 0;
@@ -1782,8 +1749,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					tmp.playerRating = user["playerRating"].GetFloat();
 				else
 					tmp.playerRating = 0.0;
-				if (score.HasMember("wife") &&
-					score["wife"].IsNumber())
+				if (score.HasMember("wife") && score["wife"].IsNumber())
 					tmp.wife = score["wife"].GetFloat() / 100.0;
 				else
 					tmp.wife = 0.0;
@@ -1792,8 +1758,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					tmp.modifiers = score["modifiers"].GetString();
 				else
 					tmp.modifiers = "";
-				if (score.HasMember("maxCombo") &&
-					score["maxCombo"].IsInt())
+				if (score.HasMember("maxCombo") && score["maxCombo"].IsInt())
 					tmp.maxcombo = score["maxCombo"].GetInt();
 				else
 					tmp.maxcombo = 0;
@@ -1834,7 +1799,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 						tmp.minehits = judgements["hitMines"].GetInt();
 					else
 						tmp.minehits = 0;
-					if (judgements.HasMember("heldHold") && 
+					if (judgements.HasMember("heldHold") &&
 						judgements["heldHold"].IsInt())
 						tmp.held = judgements["heldHold"].GetInt();
 					else
@@ -1845,37 +1810,33 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					else
 						tmp.letgo = 0;
 				}
-				if (score.HasMember("datetime") &&
-					score["datetime"].IsString())
+				if (score.HasMember("datetime") && score["datetime"].IsString())
 					tmp.datetime.FromString(score["datetime"].GetString());
 				else
 					tmp.datetime.FromString("0");
-				if (score_obj.HasMember("id") &&
-					score_obj["id"].IsString())
+				if (score_obj.HasMember("id") && score_obj["id"].IsString())
 					tmp.scoreid = score_obj["id"].GetString();
 				else
 					tmp.scoreid = "";
 
 				// filter scores not on the current rate out if enabled... dunno
 				// if we need this precision -mina
-				if (score.HasMember("rate") &&
-					score["rate"].IsNumber())
+				if (score.HasMember("rate") && score["rate"].IsNumber())
 					tmp.rate = score["rate"].GetFloat();
 				else
 					tmp.rate = 0.0;
-				if (score.HasMember("noCC") &&
-					score["noCC"].IsBool())
+				if (score.HasMember("noCC") && score["noCC"].IsBool())
 					tmp.nocc = score["noCC"].GetBool();
 				else
 					tmp.nocc = false;
-				if (score.HasMember("valid") &&
-					score["valid"].IsBool())
+				if (score.HasMember("valid") && score["valid"].IsBool())
 					tmp.valid = score["valid"].GetBool();
 				else
 					tmp.valid = false;
 
 				auto& ssrs = score["skillsets"];
-				FOREACH_ENUM(Skillset, ss) {
+				FOREACH_ENUM(Skillset, ss)
+				{
 					auto str = SkillsetToString(ss);
 					if (ssrs.HasMember(str.c_str()) &&
 						ssrs[str.c_str()].IsNumber())
@@ -1883,8 +1844,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					else
 						tmp.SSRs[ss] = 0.0;
 				}
-				if (score.HasMember("hasReplay") &&
-					score["hasReplay"].IsBool())
+				if (score.HasMember("hasReplay") && score["hasReplay"].IsBool())
 					tmp.hasReplay = score["hasReplay"].GetBool();
 				else
 					tmp.hasReplay = false;
@@ -1929,7 +1889,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
 
 				FOREACH_ENUM(Skillset, ss)
-					hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
+				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
 
 				hs.userid = tmp.userid;
 				hs.scoreid = tmp.scoreid;
@@ -1937,7 +1897,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.countryCode = tmp.countryCode;
 				hs.hasReplay = tmp.hasReplay;
 
-				vec.emplace_back(tmp);
+				vec.push_back(tmp);
 			}
 		}
 
@@ -1946,7 +1906,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				RString Error =
-					"Error running RequestChartLeaderBoard Finish Function: ";
+				  "Error running RequestChartLeaderBoard Finish Function: ";
 				lua_newtable(L);
 				for (unsigned i = 0; i < vec.size(); ++i) {
 					auto& s = vec[i];
@@ -1954,7 +1914,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					lua_rawseti(L, -2, i + 1);
 				}
 				LuaHelpers::RunScriptOnStack(
-					L, Error, 1, 0, true); // 1 args, 0 results
+				  L, Error, 1, 0, true); // 1 args, 0 results
 			}
 			LUA->Release(L);
 		}
@@ -1975,8 +1935,7 @@ DownloadManager::RefreshCoreBundles()
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsArray()) {
+		if (d.HasMember("data") && d["data"].IsArray()) {
 			auto& dlPacks = DLMAN->downloadablePacks;
 			for (auto& bundleData : d["data"].GetArray()) {
 				if (!bundleData.HasMember("id") ||
@@ -1989,17 +1948,18 @@ DownloadManager::RefreshCoreBundles()
 				auto bundleName = bundleData["id"].GetString();
 				(DLMAN->bundles)[bundleName] = {};
 				auto& bundle = (DLMAN->bundles)[bundleName];
-				for (auto& pack : bundleData["attributes"]["packs"].GetArray()) {
+				for (auto& pack :
+					 bundleData["attributes"]["packs"].GetArray()) {
 					if (!pack.HasMember("packname") ||
 						!pack["packname"].IsString())
 						continue;
 					auto name = pack["packname"].GetString();
 					auto dlPack = find_if(
-						dlPacks.begin(),
-						dlPacks.end(),
-						[&name](DownloadablePack x) { return x.name == name; });
+					  dlPacks.begin(),
+					  dlPacks.end(),
+					  [&name](DownloadablePack x) { return x.name == name; });
 					if (dlPack != dlPacks.end())
-						bundle.emplace_back(&(*dlPack));
+						bundle.push_back(&(*dlPack));
 				}
 			}
 		}
@@ -2024,7 +1984,7 @@ DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
 }
 
 void
@@ -2037,8 +1997,7 @@ DownloadManager::RefreshLastVersion()
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("version") &&
@@ -2064,8 +2023,7 @@ DownloadManager::RefreshRegisterPage()
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("url") &&
@@ -2094,12 +2052,12 @@ DownloadManager::RefreshTop25(Skillset ss)
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
-			(d.HasMember("errors") &&
-				d["errors"].HasMember("status") &&
-				d["errors"]["status"].GetInt() == 404) ||
-			!d.HasMember("data") ||
-			!d["data"].IsArray()) {
-			LOG->Trace(("Malformed top25 scores request response: " + req.result).c_str());
+			(d.HasMember("errors") && d["errors"].HasMember("status") &&
+			 d["errors"]["status"].GetInt() == 404) ||
+			!d.HasMember("data") || !d["data"].IsArray()) {
+			LOG->Trace(
+			  ("Malformed top25 scores request response: " + req.result)
+				.c_str());
 			return;
 		}
 		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
@@ -2110,34 +2068,30 @@ DownloadManager::RefreshTop25(Skillset ss)
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
 				LOG->Trace((std::string("Malformed single score in top25 "
-					"scores request response: ") +
-					buffer.GetString()).c_str());
+										"scores request response: ") +
+							buffer.GetString())
+							 .c_str());
 				continue;
 			}
 			auto& score = score_obj["attributes"];
-			if (!score.HasMember("songName") ||
-				!score["songName"].IsString() ||
-				!score.HasMember("wife") ||
-				!score["wife"].IsNumber() ||
-				!score.HasMember("Overall") ||
-				!score["Overall"].IsNumber() ||
-				!score.HasMember("chartKey") ||
-				!score["chartKey"].IsString() ||
-				!score_obj.HasMember("id") ||
-				!score_obj["id"].IsString() ||
-				!score.HasMember("rate") ||
-				!score["rate"].IsNumber() ||
+			if (!score.HasMember("songName") || !score["songName"].IsString() ||
+				!score.HasMember("wife") || !score["wife"].IsNumber() ||
+				!score.HasMember("Overall") || !score["Overall"].IsNumber() ||
+				!score.HasMember("chartKey") || !score["chartKey"].IsString() ||
+				!score_obj.HasMember("id") || !score_obj["id"].IsString() ||
+				!score.HasMember("rate") || !score["rate"].IsNumber() ||
 				!score.HasMember("difficulty") ||
 				!score["difficulty"].IsString() ||
-				(ss != Skill_Overall && (
-					!score.HasMember(SkillsetToString(ss).c_str()) ||
-					!score[SkillsetToString(ss).c_str()].IsNumber()))) {
+				(ss != Skill_Overall &&
+				 (!score.HasMember(SkillsetToString(ss).c_str()) ||
+				  !score[SkillsetToString(ss).c_str()].IsNumber()))) {
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
 				LOG->Trace((std::string("Malformed single score in top25 "
-					"scores request response: ") +
-					buffer.GetString()).c_str());
+										"scores request response: ") +
+							buffer.GetString())
+							 .c_str());
 				continue;
 			}
 			OnlineTopScore tmp;
@@ -2151,7 +2105,8 @@ DownloadManager::RefreshTop25(Skillset ss)
 			tmp.chartkey = score["chartKey"].GetString();
 			tmp.scorekey = score_obj["id"].GetString();
 			tmp.rate = score["rate"].GetFloat();
-			tmp.difficulty = StringToDifficulty(score["difficulty"].GetString());
+			tmp.difficulty =
+			  StringToDifficulty(score["difficulty"].GetString());
 			vec.push_back(tmp);
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
@@ -2172,34 +2127,35 @@ DownloadManager::RefreshUserData()
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("skillsets") &&
 			d["data"]["attributes"]["skillsets"].IsObject()) {
 			auto& attr = d["data"]["attributes"];
 			auto& skillsets = attr["skillsets"];
-			FOREACH_ENUM(Skillset, ss) {
+			FOREACH_ENUM(Skillset, ss)
+			{
 				auto str = SkillsetToString(ss);
 				if (skillsets.HasMember(str.c_str()) &&
 					skillsets[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] = skillsets[str.c_str()].GetDouble();
+					(DLMAN->sessionRatings)[ss] =
+					  skillsets[str.c_str()].GetDouble();
 				else
 					(DLMAN->sessionRatings)[ss] = 0.0f;
 			}
 			if (skillsets.HasMember("playerRating") &&
 				skillsets["playerRating"].IsNumber())
-				DLMAN->sessionRatings[Skill_Overall] = attr["playerRating"].GetDouble();
+				DLMAN->sessionRatings[Skill_Overall] =
+				  attr["playerRating"].GetDouble();
 			if (skillsets.HasMember("countryCode") &&
 				skillsets["countryCode"].IsString())
 				DLMAN->countryCode = attr["countryCode"].GetString();
 			else
 				DLMAN->countryCode = "";
-		}
-		else
+		} else
 			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRatings)[ss] = 0.0f;
+		(DLMAN->sessionRatings)[ss] = 0.0f;
 
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
@@ -2257,17 +2213,16 @@ DownloadManager::StartSession(string user,
 			return;
 		}
 
-		if (d.HasMember("data") &&
-			d["data"].IsObject() &&
+		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("accessToken") &&
 			d["data"]["attributes"]["accessToken"].IsString()) {
-			DLMAN->authToken = d["data"]["attributes"]["accessToken"].GetString();
+			DLMAN->authToken =
+			  d["data"]["attributes"]["accessToken"].GetString();
 			DLMAN->sessionUser = user;
 			DLMAN->sessionPass = pass;
-		}
-		else {
+		} else {
 			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
 		}
 		DLMAN->OnLogin();
@@ -2308,8 +2263,7 @@ DownloadManager::RefreshPackList(const string& url)
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
-			!(d.IsArray() || (d.HasMember("data") &&
-				d["data"].IsArray()))) {
+			!(d.IsArray() || (d.HasMember("data") && d["data"].IsArray()))) {
 			return;
 		}
 		auto& packlist = DLMAN->downloadablePacks;
@@ -2326,7 +2280,9 @@ DownloadManager::RefreshPackList(const string& url)
 			else
 				tmp.id = 0;
 
-			auto& pack = pack_obj.HasMember("attributes") ? pack_obj["attributes"] : pack_obj;
+			auto& pack = pack_obj.HasMember("attributes")
+						   ? pack_obj["attributes"]
+						   : pack_obj;
 
 			if (pack.HasMember("pack") && pack["pack"].IsString())
 				tmp.name = pack["pack"].GetString();
@@ -2338,8 +2294,10 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				LOG->Trace((std::string("Missing pack name in packlist element: ") +
-					buffer.GetString()).c_str());
+				LOG->Trace(
+				  (std::string("Missing pack name in packlist element: ") +
+				   buffer.GetString())
+					.c_str());
 				continue;
 			}
 
@@ -2347,8 +2305,7 @@ DownloadManager::RefreshPackList(const string& url)
 				tmp.url = pack["download"].GetString();
 			else if (pack.HasMember("url") && pack["url"].IsString()) {
 				tmp.url = pack["url"].GetString();
-			}
-			else
+			} else
 				tmp.url = "";
 			if (pack.HasMember("mirror") && pack["mirror"].IsString())
 				tmp.mirror = pack["mirror"].GetString();
@@ -2358,8 +2315,10 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				LOG->Trace((std::string("Missing download link in packlist element: ") +
-					buffer.GetString()).c_str());
+				LOG->Trace(
+				  (std::string("Missing download link in packlist element: ") +
+				   buffer.GetString())
+					.c_str());
 				continue;
 			}
 			if (tmp.url.empty())
@@ -2962,4 +2921,3 @@ class LunaDownload : public Luna<Download>
 };
 
 LUA_REGISTER_CLASS(Download)
-
