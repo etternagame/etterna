@@ -98,4 +98,5 @@ GAMESTATE:UpdateDiscordMenu(
 		": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
 )
 
+File.Write("nowplaying.txt", " ")
 return t
