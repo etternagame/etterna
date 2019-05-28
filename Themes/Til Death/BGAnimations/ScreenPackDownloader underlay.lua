@@ -394,6 +394,13 @@ o[#o + 1] =
 			InitCommand = function(self)
 				self:zoom(fontScale):halign(1):valign(0):settext("Name:") -- this being so far down is kinda awkward
 			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(-90, 40)
+				self:zoom(fontScale):halign(0):valign(0):settext("Packs 2gb+ must be manually extracted into the Songs/ folder")
+			end
 		}
 }
 o[#o + 1] = LoadActor("packlistDisplay")
