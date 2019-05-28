@@ -177,9 +177,11 @@ local t =
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
+		-- now playing thing for streamers
 		local streamerstuff = "Now playing " .. GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
 			" by " .. GAMESTATE:GetCurrentSong():GetDisplayArtist() ..
-			" in " .. GAMESTATE:GetCurrentSong():GetGroupName()
+			" in " .. GAMESTATE:GetCurrentSong():GetGroupName() ..
+			" " .. state
 		File.Write("nowplaying.txt", streamerstuff)
 
 		screen = SCREENMAN:GetTopScreen()
