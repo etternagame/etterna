@@ -80,6 +80,7 @@ local defaultConfig = {
 	CBHighlight = false,
 	OneShotMirror = false,
 	JudgmentText = true,
+	ComboText = true,
 	ReceptorSize = 100,
 	BackgroundType = 1,
 	UserName = "",
