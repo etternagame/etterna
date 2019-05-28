@@ -177,6 +177,11 @@ local t =
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
+		local streamerstuff = "Now playing " .. GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
+			" by " .. GAMESTATE:GetCurrentSong():GetDisplayArtist() ..
+			" in " .. GAMESTATE:GetCurrentSong():GetGroupName()
+		File.Write("nowplaying.txt", streamerstuff)
+
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
