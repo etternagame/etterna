@@ -11,6 +11,8 @@ else() # All remaining compilers
 endif()
 
 # Universally required
+add_subdirectory(asio-1.12.2)
+add_subdirectory(websocketpp)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
