@@ -255,7 +255,7 @@ class ETTProtocol : public NetProtocol
 	std::shared_ptr<ws_client> client{ nullptr };
 	std::shared_ptr<wss_client> secure_client{ nullptr };
 	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };
-	void FindJsonChart(NetworkSyncManager* n, rapidjson::Document& ch);
+	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
