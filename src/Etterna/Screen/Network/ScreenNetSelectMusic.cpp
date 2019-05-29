@@ -101,10 +101,11 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		GAMESTATE->m_pCurSong.Set(NSMAN->song);
 		if (NSMAN->steps != nullptr) {
 			GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
-			GAMESTATE->m_PreferredDifficulty.Set(
-			  NSMAN->steps->GetDifficulty());
+			GAMESTATE->m_PreferredDifficulty.Set(NSMAN->steps->GetDifficulty());
 		}
 		if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+			FILTERMAN->filteringCommonPacks = false;
+			FILTERMAN->ResetSSFilters();
 			m_MusicWheel.ChangeSort(SORT_GROUP);
 			m_MusicWheel.FinishTweening();
 			m_MusicWheel.ReloadSongList(false, "");
@@ -144,6 +145,8 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 				  NSMAN->steps->GetDifficulty());
 			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+				FILTERMAN->filteringCommonPacks = false;
+				FILTERMAN->ResetSSFilters();
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
 				m_MusicWheel.ReloadSongList(false, "");

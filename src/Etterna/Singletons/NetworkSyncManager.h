@@ -4,8 +4,16 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include <queue>
-#include "uWS.h"
 #include "rapidjson/document.h"
+#define ASIO_STANDALONE
+#define _WEBSOCKETPP_CPP11_INTERNAL_
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
+typedef websocketpp::config::asio_tls_client::message_type::ptr wss_message_ptr;
+typedef ::websocketpp::client<websocketpp::config::asio_tls_client> wss_client;
+#include <websocketpp/config/asio_no_tls_client.hpp>
+typedef ::websocketpp::config::asio_client::message_type::ptr ws_message_ptr;
+typedef ::websocketpp::client<websocketpp::config::asio_client> ws_client;
 
 class LoadingWindow;
 
@@ -237,19 +245,23 @@ class NetProtocol
 };
 
 class ETTProtocol : public NetProtocol
-{ // Websockets using uwebsockets sending json
-	uWS::Hub* uWSh = new uWS::Hub();
-	vector<std::unique_ptr<rapidjson::Document>> newMessages;
+{ // Websockets using websocketpp sending json
+	std::unique_ptr<std::thread> thread;
+	std::mutex messageBufferMutex;
+	vector<json> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	string errorMsg;
-	uWS::WebSocket<uWS::CLIENT>* ws{ nullptr };
-	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
+	std::shared_ptr<ws_client> client{ nullptr };
+	std::shared_ptr<wss_client> secure_client{ nullptr };
+	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };
+	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
 	~ETTProtocol();
 	bool waitingForTimeout{ false };
+	bool creatingRoom{ false };
 	clock_t timeoutStart;
 	double timeout;
 	function<void(void)> onTimeout;

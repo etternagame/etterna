@@ -88,7 +88,6 @@ AutoScreenMessage(SM_BattleTrickLevel3);
 static Preference<bool> g_bCenter1Player("Center1Player", true);
 static Preference<bool> g_bShowLyrics("ShowLyrics", false);
 static Preference<float> g_fNetStartOffset("NetworkStartOffset", -3.0);
-static Preference<bool> g_bEasterEggs("EasterEggs", true);
 
 PlayerInfo::PlayerInfo()
   : m_pn(PLAYER_INVALID)
@@ -2084,10 +2083,10 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
-		if(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-		  .m_bPractice)
-			return;	// don't auto leave gameplay when finishing notes during practice mode
-					// this prevents use of eval screen during practice which im pretty sure nobody cares about?
+		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+			return; // don't auto leave gameplay when finishing notes during
+					// practice mode this prevents use of eval screen during
+					// practice which im pretty sure nobody cares about?
 
 		ResetGiveUpTimers(
 		  false); // don't allow giveup while the next song is loading
@@ -2243,7 +2242,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 
 		StartPlayingSong(MIN_SECONDS_TO_STEP_NEXT_SONG, 0);
 	} else if (SM == SM_PlayToasty) {
-		if (g_bEasterEggs) {
+		if (PREFSMAN->m_bEasterEggs) {
 			if (m_Toasty.IsWaiting()) {
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();

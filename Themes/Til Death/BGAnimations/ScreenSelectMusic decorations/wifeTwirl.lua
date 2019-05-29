@@ -462,13 +462,13 @@ r[#r + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(20, 200)
+			self:xy(frameX + 120, SCREEN_BOTTOM - 225):visible(true)
 			self:zoom(0.7)
 			self:halign(0)
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
-				self:settext("NegBpms!")
+				self:settext("NegBPMs!")
 			else
 				self:settext("")
 			end
@@ -590,6 +590,15 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 		highlight = {color = getMainColor("highlight")},
 		x = 10 - 100 + capWideScale(get43size(384), 384) + x,
 		y = 61 + capWideScale(get43size(120), 120),
+		font = {
+			scale = 0.3,
+			name = "Common Large",
+			color = color("#FFFFFF"),
+			padding = {
+				x = 10,
+				y = 10
+			}
+		},
 		onInit = function(self)
 			button.turnedOn = false
 			button.updateToggleButton = function()

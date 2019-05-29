@@ -14,11 +14,9 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
@@ -36,12 +34,12 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 using namespace rapidjson;
-#include "uWS.h"
+#include "asio.hpp"
 
 NetworkSyncManager* NSMAN;
 
 // Aldo: version_num used by GetCurrentSMVersion()
-// XXX: That's probably not what you want... --root
+// XXX: That's probably not what you want... --rootc
 
 #include "ver.h"
 
@@ -285,7 +283,7 @@ NetworkSyncManager::OffEval()
 void
 ETTProtocol::OffEval()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -302,7 +300,7 @@ ETTProtocol::OffEval()
 void
 ETTProtocol::OnEval()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -319,7 +317,7 @@ ETTProtocol::OnEval()
 void
 ETTProtocol::OnOptions()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -336,7 +334,7 @@ ETTProtocol::OnOptions()
 void
 ETTProtocol::OffOptions()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -359,20 +357,39 @@ ETTProtocol::close()
 	serverName = "";
 	roomName = "";
 	roomDesc = "";
+	waitingForTimeout = false;
 	inRoom = false;
-	((uWS::Group<uWS::SERVER>*)uWSh)->close();
-	((uWS::Group<uWS::CLIENT>*)uWSh)->close();
-	((uWS::Group<uWS::SERVER>*)uWSh)->terminate();
-	((uWS::Group<uWS::CLIENT>*)uWSh)->terminate();
-	delete uWSh;
-	uWSh = new uWS::Hub();
+	if (client) {
+		auto hdl = *(this->hdl);
+		auto client = this->client;
+		client->get_io_service().post([hdl, client]() {
+			client->pause_reading(hdl);
+			client->close(hdl, websocketpp::close::status::going_away, "");
+			client->resume_reading(hdl);
+		});
+	}
+	if (secure_client) {
+		auto hdl = *(this->hdl);
+		auto secure_client = this->secure_client;
+		secure_client->get_io_service().post([hdl, secure_client]() {
+			secure_client->pause_reading(hdl);
+			secure_client->close(
+			  hdl, websocketpp::close::status::going_away, "");
+			secure_client->resume_reading(hdl);
+		});
+	}
+	if (this->thread) {
+		thread->detach();
+		thread = nullptr;
+	}
+	hdl = nullptr;
+	client = nullptr;
+	secure_client = nullptr;
 }
 
 ETTProtocol::~ETTProtocol()
 {
-	if (uWSh != nullptr) {
-		delete uWSh;
-	}
+	close();
 }
 
 void
@@ -396,7 +413,8 @@ NetworkSyncManager::CloseConnection()
 	m_sArtist = "";
 	difficulty = Difficulty_Invalid;
 	meter = -1;
-	ETTP.close();
+	if (curProtocol)
+		curProtocol->close();
 	curProtocol = nullptr;
 	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
@@ -465,48 +483,12 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 					 unsigned short port,
 					 RString address)
 {
+	close();
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
-	uWSh->onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT>* ws,
-										  uWS::HttpRequest req) {
-		n->isSMOnline = true;
-		this->ws = ws;
-		LOG->Trace("Connected to ett server: %s", address.c_str());
-	});
-	uWSh->onError([this](void* ptr) {
-		this->error = true;
-		this->ws = nullptr;
-	});
-	uWSh->onHttpDisconnection([this](uWS::HttpSocket<true>* ptr) {
-		this->error = true;
-		this->ws = nullptr;
-	});
-	uWSh->onDisconnection(
-	  [this](
-		uWS::WebSocket<uWS::CLIENT>*, int code, char* message, size_t length) {
-		  this->error = true;
-		  this->errorMsg = string(message, length);
-		  this->ws = nullptr;
-	  });
-	uWSh->onDisconnection(
-	  [this](
-		uWS::WebSocket<uWS::SERVER>*, int code, char* message, size_t length) {
-		  this->error = true;
-		  this->errorMsg = string(message, length);
-		  this->ws = nullptr;
-	  });
-	uWSh->onMessage([this](uWS::WebSocket<uWS::CLIENT>* ws,
-						   char* message,
-						   size_t length,
-						   uWS::OpCode opCode) {
-		std::unique_ptr<Document> d(new Document);
-		if (d->Parse(message, length).HasParseError())
-			LOG->Trace("Error while processing ettprotocol json (message: %s )",
-					   message);
-		else
-			this->newMessages.push_back(std::move(d));
-	});
+	bool finished_connecting = false;
+
 	bool ws = true;
 	bool wss = true;
 	bool prepend = true;
@@ -518,36 +500,87 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		prepend = false;
 	}
 	time_t start;
+	auto msgHandler = [this](websocketpp::connection_hdl hdl,
+							 ws_message_ptr message) {
+    
+		std::unique_ptr<Document> d(new Document);
+		if (d->Parse(message->get_payload()).HasParseError())
+			LOG->Trace("Error while processing ettprotocol json (message: %s )",
+					   message);
+		else {
+		  std::lock_guard<std::mutex> l(this->messageBufferMutex);
+			this->newMessages.push_back(std::move(d));
+    }
+	};
+	auto openHandler = [n, this, address, &finished_connecting](
+						 websocketpp::connection_hdl hdl) {
+		finished_connecting = true;
+		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
+		n->isSMOnline = true;
+		LOG->Trace("Connected to ett server: %s", address.c_str());
+	};
+	auto failHandler = [n, this, address, &finished_connecting](
+						 websocketpp::connection_hdl hdl) {
+		finished_connecting = true;
+		n->isSMOnline = false;
+	};
+	auto closeHandler = [this](websocketpp::connection_hdl hdl) {
+		this->client = nullptr;
+	};
 	if (wss) {
-		uWSh->connect(
+		std::shared_ptr<wss_client> client(new wss_client());
+		client->init_asio();
+		client->set_message_handler(msgHandler);
+		client->set_open_handler(openHandler);
+		client->set_close_handler(closeHandler);
+		finished_connecting = false;
+		websocketpp::lib::error_code ec;
+		wss_client::connection_ptr con = client->get_connection(
 		  ((prepend ? "wss://" + address : address) + ":" + to_string(port))
 			.c_str(),
-		  nullptr,
-		  {},
-		  2000,
-		  nullptr);
-		uWSh->poll();
-		start = time(0);
-		while (!n->isSMOnline && !error) {
-			uWSh->poll();
-			if (difftime(time(0), start) > 1.5)
-				break;
+		  ec);
+		if (ec) {
+			LOG->Trace("Could not create ettp connection because: %s",
+					   ec.message().c_str());
+		} else {
+			client->connect(con);
+			while (!finished_connecting)
+				client->poll_one();
+			if (n->isSMOnline)
+				this->secure_client = std::move(client);
 		}
 	}
 	if (ws && !n->isSMOnline) {
-		error = false;
-		uWSh->connect(
+		std::shared_ptr<ws_client> client(new ws_client());
+		client->init_asio();
+		client->set_message_handler(msgHandler);
+		client->set_open_handler(openHandler);
+		client->set_fail_handler(failHandler);
+		client->set_close_handler(closeHandler);
+		finished_connecting = false;
+		websocketpp::lib::error_code ec;
+		ws_client::connection_ptr con = client->get_connection(
 		  ((prepend ? "ws://" + address : address) + ":" + to_string(port))
 			.c_str(),
-		  nullptr);
-		uWSh->poll();
-		start = time(0);
-		while (!n->isSMOnline && !error) {
-			uWSh->poll();
-			if (difftime(time(0), start) > 1.5)
-				break;
+		  ec);
+		if (ec) {
+			LOG->Trace("Could not create ettp connection because: %s",
+					   ec.message().c_str());
+		} else {
+			client->connect(con);
+			while (!finished_connecting) {
+				client->poll_one();
+			}
+			if (n->isSMOnline)
+				this->client = std::move(client);
 		}
 	}
+	if (n->isSMOnline) {
+		auto client = this->client;
+		this->thread = std::unique_ptr<std::thread>(
+		  new std::thread([client]() { client->run(); }));
+	} else
+		LOG->Trace("Failed to connect to ettp server: %s", address.c_str());
 	return n->isSMOnline;
 }
 RoomData
@@ -663,8 +696,7 @@ NetworkSyncManager::IsETTP()
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
-	uWSh->poll();
-	if (this->ws == nullptr) {
+	if (this->client == nullptr) {
 		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
@@ -678,6 +710,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			waitingForTimeout = false;
 		}
 	}
+	std::lock_guard<std::mutex> l(this->messageBufferMutex);
 	for (auto iterator = newMessages.begin(); iterator != newMessages.end();
 		 iterator++) {
 		try {
@@ -1032,7 +1065,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						MESSAGEMAN->Broadcast(msg);
 						RString SMOnlineSelectScreen = THEME->GetMetric(
 						  "ScreenNetRoom", "MusicSelectScreen");
-						SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+						SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
 					}
 				} break;
 				case ettps_chartrequest: {
@@ -1256,7 +1289,7 @@ NetworkSyncManager::Logout()
 void
 ETTProtocol::Logout()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1277,7 +1310,7 @@ NetworkSyncManager::Login(RString user, RString pass)
 void
 ETTProtocol::SendChat(const RString& message, string tab, int type)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1301,7 +1334,7 @@ ETTProtocol::SendChat(const RString& message, string tab, int type)
 void
 ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1326,8 +1359,13 @@ ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 void
 ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 {
-	if (ws == nullptr)
+	if (client == nullptr || creatingRoom)
 		return;
+	creatingRoom = true;
+	timeoutStart = clock();
+	waitingForTimeout = true;
+	timeout = 1;
+	onTimeout = [this](void) { this->creatingRoom = false; };
 	roomName = name.c_str();
 	roomDesc = desc.c_str();
 
@@ -1354,7 +1392,7 @@ ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 void
 ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	n->song = nullptr;
 	n->steps = nullptr;
@@ -1384,7 +1422,7 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 void
 ETTProtocol::EnterRoom(RString name, RString password)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	auto it = find_if(NSMAN->m_Rooms.begin(),
 					  NSMAN->m_Rooms.end(),
@@ -1415,7 +1453,7 @@ ETTProtocol::EnterRoom(RString name, RString password)
 void
 ETTProtocol::Login(RString user, RString pass)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 
 	NSMAN->loggedInUsername = user.c_str();
@@ -1469,13 +1507,14 @@ NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 void
 ETTProtocol::Send(const char* msg)
 {
-	if (ws != nullptr)
-		ws->send(msg);
+	if (client != nullptr) {
+		client->send(*hdl, msg, websocketpp::frame::opcode::text);
+	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1598,7 +1637,7 @@ NetworkSyncManager::ReportSongOver()
 void
 ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 
 	StringBuffer s;
@@ -1701,7 +1740,7 @@ void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
 	auto curSteps = GAMESTATE->m_pCurSteps;
-	if (ws == nullptr || song == nullptr || curSteps == nullptr ||
+	if (client == nullptr || song == nullptr || curSteps == nullptr ||
 		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 
