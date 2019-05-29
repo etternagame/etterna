@@ -130,6 +130,7 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	{
 		int theNumber = 0;
 		RString given = SArg(1);
+		given = given.MakeLower();
 		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++)
 		{
 			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
