@@ -2,26 +2,27 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "uWS.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/JsonUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include <cerrno>
-#include <chrono>
-#include <nlohmann/json.hpp>
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Actor/Menus/RoomInfoDisplay.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include <cerrno>
+#include <chrono>
+#include "uWS.h"
+#include "asio.hpp"
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 NetworkSyncManager* NSMAN;
 
 // Aldo: version_num used by GetCurrentSMVersion()
-// XXX: That's probably not what you want... --root
+// XXX: That's probably not what you want... --rootc
 
 #include "ver.h"
 
@@ -108,85 +109,91 @@ static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
 // Utility function (Since json needs to be valid utf8)
-string correct_non_utf_8(string *str)
+string
+correct_non_utf_8(string* str)
 {
-    int i,f_size=str->size();
-    unsigned char c,c2,c3,c4;
-    string to;
-    to.reserve(f_size);
+	int i, f_size = str->size();
+	unsigned char c, c2, c3, c4;
+	string to;
+	to.reserve(f_size);
 
-    for(i=0 ; i<f_size ; i++){
-        c=(unsigned char)(*str)[i];
-        if(c<32){//control char
-            if(c==9 || c==10 || c==13){//allow only \t \n \r
-                to.append(1,c);
-            }
-            continue;
-        }else if(c<127){//normal ASCII
-            to.append(1,c);
-            continue;
-        }else if(c<160){//control char (nothing should be defined here either ASCI, ISO_8859-1 or UTF8, so skipping)
-            if(c2==128){//fix microsoft mess, add euro
-                to.append(1,226);
-                to.append(1,130);
-                to.append(1,172);
-            }
-            if(c2==133){//fix IBM mess, add NEL = \n\r
-                to.append(1,10);
-                to.append(1,13);
-            }
-            continue;
-        }else if(c<192){//invalid for UTF8, converting ASCII
-            to.append(1,(unsigned char)194);
-            to.append(1,c);
-            continue;
-        }else if(c<194){//invalid for UTF8, converting ASCII
-            to.append(1,(unsigned char)195);
-            to.append(1,c-64);
-            continue;
-        }else if(c<224 && i+1<f_size){//possibly 2byte UTF8
-            c2=(unsigned char)(*str)[i+1];
-            if(c2>127 && c2<192){//valid 2byte UTF8
-                if(c==194 && c2<160){//control char, skipping
-                    ;
-                }else{
-                    to.append(1,c);
-                    to.append(1,c2);
-                }
-                i++;
-                continue;
-            }
-        }else if(c<240 && i+2<f_size){//possibly 3byte UTF8
-            c2=(unsigned char)(*str)[i+1];
-            c3=(unsigned char)(*str)[i+2];
-            if(c2>127 && c2<192 && c3>127 && c3<192){//valid 3byte UTF8
-                to.append(1,c);
-                to.append(1,c2);
-                to.append(1,c3);
-                i+=2;
-                continue;
-            }
-        }else if(c<245 && i+3<f_size){//possibly 4byte UTF8
-            c2=(unsigned char)(*str)[i+1];
-            c3=(unsigned char)(*str)[i+2];
-            c4=(unsigned char)(*str)[i+3];
-            if(c2>127 && c2<192 && c3>127 && c3<192 && c4>127 && c4<192){//valid 4byte UTF8
-                to.append(1,c);
-                to.append(1,c2);
-                to.append(1,c3);
-                to.append(1,c4);
-                i+=3;
-                continue;
-            }
-        }
-        //invalid UTF8, converting ASCII (c>245 || string too short for multi-byte))
-        to.append(1,(unsigned char)195);
-        to.append(1,c-64);
-    }
-    return to;
+	for (i = 0; i < f_size; i++) {
+		c = (unsigned char)(*str)[i];
+		if (c < 32) {							// control char
+			if (c == 9 || c == 10 || c == 13) { // allow only \t \n \r
+				to.append(1, c);
+			}
+			continue;
+		} else if (c < 127) { // normal ASCII
+			to.append(1, c);
+			continue;
+		} else if (c < 160) { // control char (nothing should be defined here
+							  // either ASCI, ISO_8859-1 or UTF8, so skipping)
+			if (c2 == 128) {  // fix microsoft mess, add euro
+				to.append(1, 226);
+				to.append(1, 130);
+				to.append(1, 172);
+			}
+			if (c2 == 133) { // fix IBM mess, add NEL = \n\r
+				to.append(1, 10);
+				to.append(1, 13);
+			}
+			continue;
+		} else if (c < 192) { // invalid for UTF8, converting ASCII
+			to.append(1, (unsigned char)194);
+			to.append(1, c);
+			continue;
+		} else if (c < 194) { // invalid for UTF8, converting ASCII
+			to.append(1, (unsigned char)195);
+			to.append(1, c - 64);
+			continue;
+		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
+			c2 = (unsigned char)(*str)[i + 1];
+			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
+				if (c == 194 && c2 < 160) { // control char, skipping
+					;
+				} else {
+					to.append(1, c);
+					to.append(1, c2);
+				}
+				i++;
+				continue;
+			}
+		} else if (c < 240 && i + 2 < f_size) { // possibly 3byte UTF8
+			c2 = (unsigned char)(*str)[i + 1];
+			c3 = (unsigned char)(*str)[i + 2];
+			if (c2 > 127 && c2 < 192 && c3 > 127 &&
+				c3 < 192) { // valid 3byte UTF8
+				to.append(1, c);
+				to.append(1, c2);
+				to.append(1, c3);
+				i += 2;
+				continue;
+			}
+		} else if (c < 245 && i + 3 < f_size) { // possibly 4byte UTF8
+			c2 = (unsigned char)(*str)[i + 1];
+			c3 = (unsigned char)(*str)[i + 2];
+			c4 = (unsigned char)(*str)[i + 3];
+			if (c2 > 127 && c2 < 192 && c3 > 127 && c3 < 192 && c4 > 127 &&
+				c4 < 192) { // valid 4byte UTF8
+				to.append(1, c);
+				to.append(1, c2);
+				to.append(1, c3);
+				to.append(1, c4);
+				i += 3;
+				continue;
+			}
+		}
+		// invalid UTF8, converting ASCII (c>245 || string too short for
+		// multi-byte))
+		to.append(1, (unsigned char)195);
+		to.append(1, c - 64);
+	}
+	return to;
 }
 
-string correct_non_utf_8(const RString &str)
+string
+correct_non_utf_8(const RString& str)
 {
 	string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
@@ -277,7 +284,7 @@ NetworkSyncManager::OffEval()
 void
 ETTProtocol::OffEval()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeeval];
@@ -288,7 +295,7 @@ ETTProtocol::OffEval()
 void
 ETTProtocol::OnEval()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openeval];
@@ -299,7 +306,7 @@ ETTProtocol::OnEval()
 void
 ETTProtocol::OnOptions()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openoptions];
@@ -310,7 +317,7 @@ ETTProtocol::OnOptions()
 void
 ETTProtocol::OffOptions()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeoptions];
@@ -327,21 +334,39 @@ ETTProtocol::close()
 	serverName = "";
 	roomName = "";
 	roomDesc = "";
+	waitingForTimeout = false;
 	inRoom = false;
-	((uWS::Group<uWS::SERVER>*)uWSh)->close();
-	((uWS::Group<uWS::CLIENT>*)uWSh)->close();
-	((uWS::Group<uWS::SERVER>*)uWSh)->terminate();
-	((uWS::Group<uWS::CLIENT>*)uWSh)->terminate();
-	delete uWSh;
-	uWSh = new uWS::Hub();
+	if (client) {
+		auto hdl = *(this->hdl);
+		auto client = this->client;
+		client->get_io_service().post([hdl, client]() {
+			client->pause_reading(hdl);
+			client->close(hdl, websocketpp::close::status::going_away, "");
+			client->resume_reading(hdl);
+		});
+	}
+	if (secure_client) {
+		auto hdl = *(this->hdl);
+		auto secure_client = this->secure_client;
+		secure_client->get_io_service().post([hdl, secure_client]() {
+			secure_client->pause_reading(hdl);
+			secure_client->close(
+			  hdl, websocketpp::close::status::going_away, "");
+			secure_client->resume_reading(hdl);
+		});
+	}
+	if (this->thread) {
+		thread->detach();
+		thread = nullptr;
+	}
+	hdl = nullptr;
+	client = nullptr;
+	secure_client = nullptr;
 }
 
 ETTProtocol::~ETTProtocol()
 {
-	if (uWSh != nullptr)
-	{
-		delete uWSh;
-	}
+	close();
 }
 
 void
@@ -365,7 +390,8 @@ NetworkSyncManager::CloseConnection()
 	m_sArtist = "";
 	difficulty = Difficulty_Invalid;
 	meter = -1;
-	ETTP.close();
+	if (curProtocol)
+		curProtocol->close();
 	curProtocol = nullptr;
 	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
@@ -434,52 +460,12 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 					 unsigned short port,
 					 RString address)
 {
+	close();
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
-	uWSh->onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT>* ws,
-										  uWS::HttpRequest req) {
-		n->isSMOnline = true;
-		this->ws = ws;
-		LOG->Trace("Connected to ett server: %s", address.c_str());
-	});
-	uWSh->onError([this](void* ptr) {
-		this->error = true;
-		this->ws = nullptr;
-	});
-	uWSh->onHttpDisconnection([this](uWS::HttpSocket<true>* ptr) {
-		this->error = true;
-		this->ws = nullptr;
-	});
-	uWSh->onDisconnection(
-	  [this](
-		uWS::WebSocket<uWS::CLIENT>*, int code, char* message, size_t length) {
-		  this->error = true;
-		  this->errorMsg = string(message, length);
-		  this->ws = nullptr;
-	  });
-	uWSh->onDisconnection(
-	  [this](
-		uWS::WebSocket<uWS::SERVER>*, int code, char* message, size_t length) {
-		  this->error = true;
-		  this->errorMsg = string(message, length);
-		  this->ws = nullptr;
-	  });
-	uWSh->onMessage([this](uWS::WebSocket<uWS::CLIENT>* ws,
-						   char* message,
-						   size_t length,
-						   uWS::OpCode opCode) {
-		string msg(message, length);
-		try {
-			json json = json::parse(msg);
-			this->newMessages.emplace_back(json);
-		} catch (exception e) {
-			LOG->Trace(
-			  "Error while processing ettprotocol json: %s (message: %s)",
-			  e.what(),
-			  message);
-		}
-	});
+	bool finished_connecting = false;
+
 	bool ws = true;
 	bool wss = true;
 	bool prepend = true;
@@ -491,36 +477,88 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		prepend = false;
 	}
 	time_t start;
+	auto msgHandler = [this](websocketpp::connection_hdl hdl,
+							 ws_message_ptr message) {
+		std::lock_guard<std::mutex> l(this->messageBufferMutex);
+		try {
+			json json = json::parse(message->get_payload());
+			this->newMessages.emplace_back(json);
+		} catch (exception e) {
+			LOG->Trace("Error while processing ettprotocol json: %s "
+					   "(message: %s)",
+					   e.what(),
+					   message);
+		}
+	};
+	auto openHandler = [n, this, address, &finished_connecting](
+						 websocketpp::connection_hdl hdl) {
+		finished_connecting = true;
+		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
+		n->isSMOnline = true;
+		LOG->Trace("Connected to ett server: %s", address.c_str());
+	};
+	auto failHandler = [n, this, address, &finished_connecting](
+						 websocketpp::connection_hdl hdl) {
+		finished_connecting = true;
+		n->isSMOnline = false;
+	};
+	auto closeHandler = [this](websocketpp::connection_hdl hdl) {
+		this->client = nullptr;
+	};
 	if (wss) {
-		uWSh->connect(
+		std::shared_ptr<wss_client> client(new wss_client());
+		client->init_asio();
+		client->set_message_handler(msgHandler);
+		client->set_open_handler(openHandler);
+		client->set_close_handler(closeHandler);
+		finished_connecting = false;
+		websocketpp::lib::error_code ec;
+		wss_client::connection_ptr con = client->get_connection(
 		  ((prepend ? "wss://" + address : address) + ":" + to_string(port))
 			.c_str(),
-		  nullptr,
-		  {},
-		  2000,
-		  nullptr);
-		uWSh->poll();
-		start = time(0);
-		while (!n->isSMOnline && !error) {
-			uWSh->poll();
-			if (difftime(time(0), start) > 1.5)
-				break;
+		  ec);
+		if (ec) {
+			LOG->Trace("Could not create ettp connection because: %s",
+					   ec.message().c_str());
+		} else {
+			client->connect(con);
+			while (!finished_connecting)
+				client->poll_one();
+			if (n->isSMOnline)
+				this->secure_client = std::move(client);
 		}
 	}
 	if (ws && !n->isSMOnline) {
-		error = false;
-		uWSh->connect(
+		std::shared_ptr<ws_client> client(new ws_client());
+		client->init_asio();
+		client->set_message_handler(msgHandler);
+		client->set_open_handler(openHandler);
+		client->set_fail_handler(failHandler);
+		client->set_close_handler(closeHandler);
+		finished_connecting = false;
+		websocketpp::lib::error_code ec;
+		ws_client::connection_ptr con = client->get_connection(
 		  ((prepend ? "ws://" + address : address) + ":" + to_string(port))
 			.c_str(),
-		  nullptr);
-		uWSh->poll();
-		start = time(0);
-		while (!n->isSMOnline && !error) {
-			uWSh->poll();
-			if (difftime(time(0), start) > 1.5)
-				break;
+		  ec);
+		if (ec) {
+			LOG->Trace("Could not create ettp connection because: %s",
+					   ec.message().c_str());
+		} else {
+			client->connect(con);
+			while (!finished_connecting) {
+				client->poll_one();
+			}
+			if (n->isSMOnline)
+				this->client = std::move(client);
 		}
 	}
+	if (n->isSMOnline) {
+		auto client = this->client;
+		this->thread = std::unique_ptr<std::thread>(
+		  new std::thread([client]() { client->run(); }));
+	} else
+		LOG->Trace("Failed to connect to ettp server: %s", address.c_str());
 	return n->isSMOnline;
 }
 RoomData
@@ -586,7 +624,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 				 n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
 				(n->m_sFileHash.empty() ||
 				 n->m_sFileHash == m_cSong->GetFileHash())) {
-				if (n->meter> 0 || n->difficulty != Difficulty_Invalid)
+				if (n->meter > 0 || n->difficulty != Difficulty_Invalid)
 					for (auto& steps : m_cSong->GetAllSteps()) {
 						if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
 							(n->difficulty == Difficulty_Invalid ||
@@ -612,8 +650,7 @@ NetworkSyncManager::IsETTP()
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
-	uWSh->poll();
-	if (this->ws == nullptr) {
+	if (this->client == nullptr) {
 		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
@@ -627,6 +664,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			waitingForTimeout = false;
 		}
 	}
+	std::lock_guard<std::mutex> l(this->messageBufferMutex);
 	for (auto iterator = newMessages.begin(); iterator != newMessages.end();
 		 iterator++) {
 		try {
@@ -647,8 +685,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					if (!(n->loggedIn = (*payload)["logged"])) {
 						n->loginResponse = (*payload)["msg"].get<string>();
 						n->loggedInUsername.clear();
-					}
-					else {
+					} else {
 						n->loginResponse = "";
 						n->loggedIn = true;
 					}
@@ -661,7 +698,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							   serverName.c_str(),
 							   serverVersion);
 					n->DisplayStartupStatus();
-					if (ws != nullptr) {
+					if (client != nullptr) {
 						json hello;
 						hello["type"] = ettClientMessageMap[ettpc_hello];
 						auto& payload = hello["payload"];
@@ -669,8 +706,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						payload["client"] = GAMESTATE->GetEtternaVersion();
 						payload["packs"] = json::array();
 						auto& packs = SONGMAN->GetSongGroupNames();
-						for(auto& pack : packs) {
-							payload["packs"].push_back(correct_non_utf_8(pack).c_str());
+						for (auto& pack : packs) {
+							payload["packs"].push_back(
+							  correct_non_utf_8(pack).c_str());
 						}
 						Send(hello);
 					}
@@ -753,7 +791,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 				}
 				case ettps_ping:
-					if (ws != nullptr) {
+					if (client != nullptr) {
 						json ping;
 						ping["type"] = ettClientMessageMap[ettpc_ping];
 						ping["id"] = msgId++;
@@ -829,7 +867,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						MESSAGEMAN->Broadcast(msg);
 						RString SMOnlineSelectScreen = THEME->GetMetric(
 						  "ScreenNetRoom", "MusicSelectScreen");
-						SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+						SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
 					}
 				} break;
 				case ettps_chartrequest: {
@@ -884,9 +922,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						  n->m_Rooms.end());
 						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 					} catch (exception e) {
-						LOG->Trace(
-						  "Error while parsing ettp json deleteroom room: %s",
-						  e.what());
+						LOG->Trace("Error while parsing ettp json "
+								   "deleteroom room: %s",
+								   e.what());
 					}
 					break;
 				case ettps_updateroom:
@@ -974,8 +1012,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								stored++;
 								n->m_PlayerStatus.emplace_back(
 								  player["status"]);
-								n->m_PlayerReady.emplace_back(
-									player["ready"]);
+								n->m_PlayerReady.emplace_back(player["ready"]);
 								stored++;
 								n->m_ActivePlayer.emplace_back(i++);
 							} catch (exception e) {
@@ -1032,7 +1069,7 @@ NetworkSyncManager::Logout()
 void
 ETTProtocol::Logout()
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json logout;
 	logout["type"] = ettClientMessageMap[ettpc_logout];
@@ -1047,7 +1084,7 @@ NetworkSyncManager::Login(RString user, RString pass)
 void
 ETTProtocol::SendChat(const RString& message, string tab, int type)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json chatMsg;
 	chatMsg["type"] = ettClientMessageMap[ettpc_sendchat];
@@ -1061,7 +1098,7 @@ ETTProtocol::SendChat(const RString& message, string tab, int type)
 void
 ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_mpleaderboardupdate];
@@ -1074,8 +1111,13 @@ ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 void
 ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 {
-	if (ws == nullptr)
+	if (client == nullptr || creatingRoom)
 		return;
+	creatingRoom = true;
+	timeoutStart = clock();
+	waitingForTimeout = true;
+	timeout = 1;
+	onTimeout = [this](void) { this->creatingRoom = false; };
 	roomName = name.c_str();
 	roomDesc = desc.c_str();
 	json createRoom;
@@ -1090,7 +1132,7 @@ ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 void
 ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	n->song = nullptr;
 	n->steps = nullptr;
@@ -1113,7 +1155,7 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 void
 ETTProtocol::EnterRoom(RString name, RString password)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	auto it = find_if(NSMAN->m_Rooms.begin(),
 					  NSMAN->m_Rooms.end(),
@@ -1133,7 +1175,7 @@ ETTProtocol::EnterRoom(RString name, RString password)
 void
 ETTProtocol::Login(RString user, RString pass)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json login;
 	login["type"] = ettClientMessageMap[ettpc_login];
@@ -1184,13 +1226,14 @@ ETTProtocol::Send(json msg)
 void
 ETTProtocol::Send(const char* msg)
 {
-	if (ws != nullptr)
-		ws->send(msg);
+	if (client != nullptr) {
+		client->send(*hdl, msg, websocketpp::frame::opcode::text);
+	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_sendscore];
@@ -1217,9 +1260,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["chartkey"] = hs->GetChartKey();
 	payload["rate"] = hs->GetMusicRate();
 	if (GAMESTATE->m_pPlayerState != nullptr)
-		payload["options"] = GAMESTATE->m_pPlayerState
-							   ->m_PlayerOptions.GetCurrent()
-							   .GetString();
+		payload["options"] =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString();
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 	payload["negsolo"] = chart->GetTimingData()->HasWarps() ||
 						 chart->m_StepsType != StepsType_dance_single;
@@ -1264,7 +1306,7 @@ NetworkSyncManager::ReportSongOver()
 void
 ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 {
-	if (ws == nullptr)
+	if (client == nullptr)
 		return;
 	json gameOver;
 	gameOver["type"] = ettClientMessageMap[ettpc_gameover];
@@ -1281,7 +1323,8 @@ NetworkSyncManager::ReportStyle()
 void
 NetworkSyncManager::StartRequest(short position)
 {
-	// This needs to be reset before ScreenEvaluation could possibly be called
+	// This needs to be reset before ScreenEvaluation could possibly be
+	// called
 	m_EvalPlayerData.clear();
 	if (curProtocol != nullptr)
 		curProtocol->StartRequest(this, position);
@@ -1358,9 +1401,8 @@ NetworkSyncManager::SelectUserSong()
 void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	auto curSteps =  GAMESTATE->m_pCurSteps;
-	if (ws == nullptr || song == nullptr ||
-		curSteps == nullptr ||
+	auto curSteps = GAMESTATE->m_pCurSteps;
+	if (client == nullptr || song == nullptr || curSteps == nullptr ||
 		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 	json j;
@@ -1378,11 +1420,10 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 	payload["chartkey"] = curSteps->GetChartKey().c_str();
 	payload["difficulty"] = DifficultyToString(curSteps->GetDifficulty());
 	payload["meter"] = curSteps->GetMeter();
-	payload["options"] = GAMESTATE->m_pPlayerState
-		->m_PlayerOptions.GetCurrent()
-		.GetString();
+	payload["options"] =
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString();
 	payload["rate"] = static_cast<int>(
-		(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	  (GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	j["id"] = msgId++;
 	Send(j);
 }
@@ -1554,9 +1595,9 @@ NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
 
 // Aldo: Please move this method to a new class, I didn't want to create new
 // files because I don't know how to properly update the files for each
-// platform. I preferred to misplace code rather than cause unneeded headaches
-// to non-windows users, although it would be nice to have in the wiki which
-// files to update when adding new files and how
+// platform. I preferred to misplace code rather than cause unneeded
+// headaches to non-windows users, although it would be nice to have in the
+// wiki which files to update when adding new files and how
 // (Xcode/stepmania_xcode4.3.xcodeproj has a really crazy structure :/).
 unsigned long
 NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
@@ -1595,8 +1636,7 @@ LuaFunction(ConnectToServer,
 							  ? RString(g_sLastServer)
 							  : RString(SArg(1))))
 
-static bool
-ReportStyle()
+  static bool ReportStyle()
 {
 	NSMAN->ReportStyle();
 	return true;
@@ -1618,7 +1658,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
-class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
+			class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {
   public:
 	static int IsETTP(T* p, lua_State* L)
@@ -1636,7 +1676,10 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 	{
 		auto& reqs = p->requests;
 		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
-		remove_if(reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) { return req == reqPtrToRemove; });
+		remove_if(
+		  reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) {
+			  return req == reqPtrToRemove;
+		  });
 		// Keep it in case lua keeps a reference to it
 		p->staleRequests.emplace_back(reqPtrToRemove);
 		return 0;
