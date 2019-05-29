@@ -3,22 +3,30 @@ local framex = SCREEN_WIDTH - capWideScale(get43size(230), 230)
 local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
 local spacing = 34
+local multiscores
 
+-- Takes an index into multiscores
+local function SetActivePlayer(locaIndex)
+	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
+	local item = scoreBoard:GetChild(locaIndex)
+	SCREENMAN:GetTopScreen():SetCurrentPlayerByName(multiscores[locaIndex].user)
+	item:GetChild("grade"):visible(not item:GetChild("grade"):GetVisible())
+	item:GetChild("clear"):visible(not item:GetChild("clear"):GetVisible())
+	item:GetChild("wife"):visible(not item:GetChild("wife"):GetVisible())
+	item:GetChild("combo"):visible(not item:GetChild("combo"):GetVisible())
+	item:GetChild("judge"):visible(not item:GetChild("judge"):GetVisible())
+	item:GetChild("date"):visible(not item:GetChild("date"):GetVisible())
+	item:GetChild("option"):visible(not item:GetChild("option"):GetVisible())
+end
 --Input event for mouse clicks
 local function input(event)
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
 	if event.DeviceInput.button == "DeviceButton_left mouse button" and scoreBoard then
 		if event.type == "InputEventType_Release" then
+			local scoreboard_items = scoreBoard:GetChildren()
 			for i = 1, #multiscores do
-				if isOver(scoreBoard:GetChildren()[tostring(i)]:GetChild("mouseOver")) then
-					SCREENMAN:GetTopScreen():SetCurrentPlayerByName(multiscores[i].user)
-					scoreBoard:GetChild(i):GetChild("grade"):visible(not scoreBoard:GetChild(i):GetChild("grade"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("clear"):visible(not scoreBoard:GetChild(i):GetChild("clear"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("wife"):visible(not scoreBoard:GetChild(i):GetChild("wife"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("combo"):visible(not scoreBoard:GetChild(i):GetChild("combo"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("judge"):visible(not scoreBoard:GetChild(i):GetChild("judge"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("date"):visible(not scoreBoard:GetChild(i):GetChild("date"):GetVisible())
-					scoreBoard:GetChild(i):GetChild("option"):visible(not scoreBoard:GetChild(i):GetChild("option"):GetVisible())
+				if isOver(scoreboard_items[tostring(i)]:GetChild("mouseOver")) then
+					SetActivePlayer(i)
 				end
 			end
 		end
@@ -28,25 +36,64 @@ end
 
 local function Update(self)
 	for i = 1, lines do
-		if isOver(self:GetChild(i):GetChild("mouseOver")) then
-			self:GetChild(i):GetChild("mouseOver"):diffusealpha(0.2)
+		local item = self:GetChild(i)
+		local mouseOver = item:GetChild("mouseOver")
+		if isOver(mouseOver) then
+			mouseOver:diffusealpha(0.2)
 		else
-			self:GetChild(i):GetChild("mouseOver"):diffusealpha(0)
-			self:GetChild(i):GetChild("grade"):visible(true)
-			self:GetChild(i):GetChild("wife"):visible(true)
-			self:GetChild(i):GetChild("combo"):visible(true)
-			self:GetChild(i):GetChild("judge"):visible(true)
-			self:GetChild(i):GetChild("clear"):visible(true)
-			self:GetChild(i):GetChild("date"):visible(false)
-			self:GetChild(i):GetChild("option"):visible(false)
+			mouseOver:diffusealpha(0)
+			item:GetChild("grade"):visible(true)
+			item:GetChild("wife"):visible(true)
+			item:GetChild("combo"):visible(true)
+			item:GetChild("judge"):visible(true)
+			item:GetChild("clear"):visible(true)
+			item:GetChild("date"):visible(false)
+			item:GetChild("option"):visible(false)
 		end
 	end
 end
 
 local sortFunction = function(first, second)
-	return first["highscore"]:GetWifeScore() > second["highscore"]:GetWifeScore()
+	return first.highscore:GetWifeScore() > second.highscore:GetWifeScore()
 end
 
+local function updateScoreBoard(self)
+	local selectedUserName = false
+	local selectedIndex = false
+	local screen = SCREENMAN:GetTopScreen()
+	if multiscores then
+		local cur = screen:GetCurrentPlayer()
+		for i = 1, #multiscores do
+			if cur == multiscores[i].idx then
+				selectedUserName = multiscores[i].user
+			end
+		end
+	end
+
+	multiscores = NSMAN:GetEvalScores()
+	-- Since we sort we need to store the originall indexes
+	for i = 1, #multiscores do
+		multiscores[i].idx = i
+	end
+	table.sort(multiscores, sortFunction)
+	for i = 1, #multiscores do
+		self:GetChild(i):queuecommand("UpdateNetScore")
+		if selectedUserName and multiscores[i].user == selectedUserName then
+			selectedIndex = i
+		end
+	end
+
+	if #multiscores > 0 then
+		-- If we dont delay this then the Init/Begin commands of the scoreboard
+		-- Override/replace this update the first time we do it
+		screen:setTimeout(
+			function()
+				SetActivePlayer(selectedIndex or 1)
+			end,
+			0
+		)
+	end
+end
 local t =
 	Def.ActorFrame {
 	Name = "scoreBoard",
@@ -55,19 +102,9 @@ local t =
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		multiscores = NSMAN:GetEvalScores()
-		table.sort(multiscores, sortFunction)
-		for i = 1, math.min(#multiscores) do
-			self:GetChild(i):queuecommand("UpdateNetScore")
-		end
+		updateScoreBoard(self)
 	end,
-	NewMultiScoreMessageCommand = function(self)
-		multiscores = NSMAN:GetEvalScores()
-		table.sort(multiscores, sortFunction)
-		for i = 1, math.min(#multiscores) do
-			self:GetChild(i):queuecommand("UpdateNetScore")
-		end
-	end
+	NewMultiScoreMessageCommand = updateScoreBoard
 }
 
 local function scoreitem(pn, i)
@@ -96,10 +133,10 @@ local function scoreitem(pn, i)
 				):diffusealpha(0.3):diffuserightedge(color("#33333300"))
 			end,
 			UpdateNetScoreCommand = function(self)
-				self:visible(SCREENMAN:GetTopScreen():GetCurrentPlayer() == i)
+				self:visible(multiscores[i] and SCREENMAN:GetTopScreen():GetCurrentPlayer() == multiscores[i].idx or false)
 			end,
 			UpdateNetEvalStatsMessageCommand = function(self)
-				self:visible(SCREENMAN:GetTopScreen():GetCurrentPlayer() == i)
+				self:visible(multiscores[i] and SCREENMAN:GetTopScreen():GetCurrentPlayer() == multiscores[i].idx or false)
 			end
 		},
 		--Quad that will act as the bounding box for mouse rollover/click stuff.
@@ -127,7 +164,7 @@ local function scoreitem(pn, i)
 				end,
 				UpdateNetScoreCommand = function(self)
 					self:settext(i)
-					if SCREENMAN:GetTopScreen():GetCurrentPlayer() == i then
+					if multiscores[i] and SCREENMAN:GetTopScreen():GetCurrentPlayer() == multiscores[i].idx then
 						self:diffuse(color("#ffcccc"))
 					else
 						self:diffuse(color("#FFFFFF"))
