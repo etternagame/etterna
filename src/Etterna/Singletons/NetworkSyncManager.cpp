@@ -1048,7 +1048,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
 						}
-						MESSAGEMAN->Broadcast(Message("MPLeaderboardUpdate"));
+						Message msg("MPLeaderboardUpdate");
+						MESSAGEMAN->Broadcast(msg);
 					}
 				} break;
 				case ettps_createroomresponse: {
