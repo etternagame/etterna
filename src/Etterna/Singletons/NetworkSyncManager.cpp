@@ -771,7 +771,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							   serverName.c_str(),
 							   serverVersion);
 					n->DisplayStartupStatus();
-					if (ws != nullptr) {
+					if (client != nullptr) {
 						StringBuffer s;
 						Writer<StringBuffer> writer(s);
 						writer.StartObject();
@@ -946,7 +946,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast("NewMultiScore");
 				} break;
 				case ettps_ping: {
-					if (ws != nullptr) {
+					if (client != nullptr) {
 						StringBuffer s;
 						Writer<StringBuffer> writer(s);
 						writer.StartObject();
