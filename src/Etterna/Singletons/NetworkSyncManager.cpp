@@ -504,9 +504,9 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 							 ws_message_ptr message) {
     
 		std::unique_ptr<Document> d(new Document);
-		if (d->Parse(message->get_payload()).HasParseError())
+		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
-					   message);
+					   message->get_payload().c_str());
 		else {
 		  std::lock_guard<std::mutex> l(this->messageBufferMutex);
 			this->newMessages.push_back(std::move(d));
