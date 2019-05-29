@@ -334,6 +334,10 @@ local function makeScoreDisplay(i)
 			if i > numscores then
 				self:visible(false)
 			end
+			self:SetUpdateFunction(function(self)
+				self:queuecommand("PercentMouseover")
+			end)
+			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CurrentSongChangedMessageCommand = function(self)
 			self:visible(false)
@@ -509,9 +513,28 @@ local function makeScoreDisplay(i)
 					self:visible(true):addy(-row2yoff)
 				end
 			},
+		Def.Quad {
+				InitCommand = function(self)
+					self:x(c5x):zoomto(50,10):halign(1):valign(1)
+					if collapsed then
+						self:x(c5x):zoomto(40, 10):halign(1):valign(0.5)
+					end
+					self:diffusealpha(0)
+				end,
+				PercentMouseoverCommand = function(self)
+					if isOver(self) and self:IsVisible() then
+						self:GetParent():GetChild("NormalText"):visible(false)
+						self:GetParent():GetChild("LongerText"):visible(true)
+					else
+						self:GetParent():GetChild("NormalText"):visible(true)
+						self:GetParent():GetChild("LongerText"):visible(false)
+					end
+				end
+			},
 		LoadFont("Common normal") ..
 			{
 				--percent
+				Name="NormalText",
 				InitCommand = function(self)
 					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
 					if collapsed then
@@ -520,6 +543,20 @@ local function makeScoreDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					self:settextf("%05.2f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
+				end
+			},
+			LoadFont("Common normal") ..
+			{
+				--percent
+				Name="LongerText",
+				InitCommand = function(self)
+					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
+					if collapsed then
+						self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settextf("%05.4f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
 				end
 			},
 		LoadFont("Common normal") ..
