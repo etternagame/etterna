@@ -69,6 +69,7 @@ local function updateScoreBoard(self)
 			end
 		end
 	end
+	selectedUserName = selectedUserName or NSMAN:GetLoggedInUsername()
 
 	multiscores = NSMAN:GetEvalScores()
 	-- Since we sort we need to store the originall indexes
@@ -83,15 +84,8 @@ local function updateScoreBoard(self)
 		end
 	end
 
-	if #multiscores > 0 then
-		-- If we dont delay this then the Init/Begin commands of the scoreboard
-		-- Override/replace this update the first time we do it
-		screen:setTimeout(
-			function()
-				SetActivePlayer(selectedIndex or 1)
-			end,
-			0
-		)
+	if #multiscores > 0 and type(selectedIndex) == "number" then
+		SetActivePlayer(selectedIndex)
 	end
 end
 local t =
