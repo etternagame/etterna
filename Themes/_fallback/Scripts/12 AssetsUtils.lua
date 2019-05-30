@@ -40,10 +40,10 @@ function getAssetPath(asset)
 		addProfileAssetFromGUID(GUID, asset)
 	end
 
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		return assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		return fileName
 	else
-		return assetFolders[asset] .. assetsConfig:get_data()[asset].default
+		return assetsConfig:get_data()[asset].default
 	end
 end
 function getAvatarPath()

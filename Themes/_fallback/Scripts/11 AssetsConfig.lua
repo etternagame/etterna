@@ -1,12 +1,12 @@
 local defaultConfig = {
 	avatar = {
-		default = "_fallback.png"
+		default = "Assets/Avatars/_fallback.png"
 	},
 	judgement = {
-		default = "default 1x6.png"
+		default = "Assets/Judgements/default 1x6.png"
 	},
 	toasty = {
-		default = "default"
+		default = "Assets/Toasties/default"
 	}
 }
 
@@ -25,7 +25,7 @@ local function isImage(filename)
 	local extensions = {".png", ".jpg", "jpeg"} -- lazy list
 	local ext = string.sub(filename, #filename-3)
 	for i=1, #extensions do
-		if extensions[i] == ext then return true end
+		if extensions[i] == ext then return filename end
 	end
 	return false
 end
@@ -34,9 +34,32 @@ local function isAudio(filename)
 	local extensions = {".wav", ".mp3", ".ogg", ".mp4"} -- lazy to check and put in names
 	local ext = string.sub(filename, #filename-3)
 	for i=1, #extensions do
-		if extensions[i] == ext then return true end
+		if extensions[i] == ext then return filename end
 	end
 	return false
+end
+
+function getToastyAssetPath(type)
+	local path = getAssetPath("toasty")
+	local files = FILEMAN:GetDirListing(path.."/")
+	if type == "sound" then
+		for i=1, #files do
+			local status = isAudio(files[i])
+			if status then
+				ms.ok(path .. " " .. status)
+				return path .. "/" .. status
+			end
+		end
+	end
+	if type == "image" then
+		for i=1, #files do
+			local status = isImage(files[i])
+			if status then
+				return path .. "/" .. status
+			end
+		end
+	end
+	return path
 end
 
 function findAssetsForPath(path)
