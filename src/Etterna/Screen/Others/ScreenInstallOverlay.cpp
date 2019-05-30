@@ -5,8 +5,6 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "json/value.h"
-#include "Etterna/Models/Misc/JsonUtil.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -14,7 +12,6 @@
 #include "ScreenInstallOverlay.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "json/value.h"
 class Song;
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/GameState.h"

@@ -79,8 +79,6 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToPrevScreen) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "PrevScreen"));
-	} else if (SM == SM_GoToNextScreen) {
-		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
 	} else if (SM == ETTP_Disconnect) {
 		TweenOffScreen();
 		Cancel(SM_GoToPrevScreen);
@@ -99,8 +97,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomDesc = ScreenTextEntry::s_sLastAnswer;
-			ScreenTextEntry::Password(
-			  SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
+			ScreenTextEntry::Password(SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
 		}
 	} else if (SM == SM_BackFromRoomPass) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
@@ -137,15 +134,18 @@ ScreenNetRoom::MenuStart(const InputEventPlus& input)
 void
 ScreenNetRoom::SelectCurrent()
 {
-
+	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
+		SCREENMAN->SystemMessage("Error: Already trying to create a room");
+		return;
+	}
 	m_RoomWheel.Select();
 	RoomWheelItemData* rwd =
 	  dynamic_cast<RoomWheelItemData*>(m_RoomWheel.LastSelected());
 	if (rwd != nullptr) {
 		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword) {
 			m_sLastPickedRoom = rwd->m_sText;
-			ScreenTextEntry::Password(
-			  SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD);
+			ScreenTextEntry::Password(SM_BackFromReqPass,
+									  ENTER_ROOM_REQPASSWORD);
 		} else {
 			NSMAN->EnterRoom(rwd->m_sText);
 		}
@@ -211,7 +211,6 @@ ScreenNetRoom::InfoSetVisible(bool visibility)
 {
 	m_roomInfo.SetVisible(visibility);
 }
-
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"

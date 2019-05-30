@@ -27,7 +27,6 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterDWI.h"
 #include "Etterna/Models/NoteWriters/NotesWriterETT.h"
-#include "Etterna/Models/NoteWriters/NotesWriterJson.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSM.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterETT.h"
@@ -1368,13 +1367,6 @@ Song::SaveToETTFile(const RString& sPath, bool bSavingCache, bool autosave)
 	(*s)->SetSavedToDisk(true);
 
 	return true;
-}
-
-bool
-Song::SaveToJsonFile(const RString& sPath)
-{
-	LOG->Trace("Song::SaveToJsonFile('%s')", sPath.c_str());
-	return NotesWriterJson::WriteSong(sPath, *this, true);
 }
 
 bool
