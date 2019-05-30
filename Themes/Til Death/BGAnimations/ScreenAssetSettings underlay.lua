@@ -30,6 +30,16 @@ local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
 
 local co -- for async loading images
 
+local function findIndexForCurPage()
+	local type = assetTypes[curType]
+	for i = 1+((curPage-1)*maxColumns*maxRows), 1+((curPage)*maxColumns*maxRows) do
+		if assetTable[i] == nil then return nil end
+		if assetFolders[type] .. assetTable[i] == curPath then
+			return i
+		end
+	end
+end
+
 local function isImage(filename)
 	local extensions = {".png", ".jpg", "jpeg"} -- lazy list
 	local ext = string.sub(filename, #filename-3)
@@ -50,11 +60,25 @@ end
 
 local function loadAssetTable() -- load asset table for current type
 	local type = assetTypes[curType]
+	curPath = getAssetByType(type, GUID)
+	selectedPath = getAssetByType(type, GUID)
 	assetTable = filter(isImage, FILEMAN:GetDirListing(assetFolders[type]))
+	local ind = findIndexForCurPage()
+	if ind ~= nil then curIndex = ind end
 end
 
 local function confirmPick() -- select the asset in the current index for use ingame
 	if curIndex == 0 then return end
+	local type = assetTypes[curType]
+	local name = assetTable[lastClickedIndex+((curPage-1)*maxColumns*maxRows)]
+	if name == nil then return end
+	local path = assetFolders[type] .. name
+	curPath = path
+	selectedPath = path
+
+	setAssetsByType(type, GUID, path)
+
+	MESSAGEMAN:Broadcast("PickChanged")
 end
 
 local function updateImages() -- Update all image actors (sprites)
@@ -126,6 +150,7 @@ local function moveCursor(x, y) -- move the cursor
             curIndex = math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1)))
         end
 	end
+	lastClickedIndex = curIndex
 	if curPage == nextPage then
 		MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex})
 	else
@@ -160,16 +185,23 @@ local function assetBox(i)
 					self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
 					self:diffusealpha(0)
 				else
-					name = assetTable[i+((curPage-1)*maxColumns*maxRows)]
+					local type = assetTypes[curType]
+					name = assetFolders[type] .. assetTable[i+((curPage-1)*maxColumns*maxRows)]
+					if name == curPath then
+						curIndex = i
+					end
 
 					-- Load the asset image
 					self:GetChild("Image"):playcommand("LoadAsset")
+					self:GetChild("SelectedAssetIndicator"):playcommand("Set")
 					if i == curIndex then
 						self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
 						self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
 						self:GetChild("Border"):diffuse(getMainColor("highlight")):diffusealpha(0.8)
 					else
 						self:GetChild("Image"):zoomto(assetHeight,assetWidth)
+						self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
+						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0.8)
 					end
 
 					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+50)
@@ -193,9 +225,8 @@ local function assetBox(i)
 	t[#t+1] = Def.Quad {
         Name = "SelectedAssetIndicator",
         InitCommand = function(self)
-            self:zoomto(assetWidth+13, assetHeight+13)
+            self:zoomto(assetWidth+14, assetHeight+14)
 			self:diffuse(getMainColor("negative")):diffusealpha(0)
-			self:playcommand("Set")
 		end,
 		SetCommand = function(self)
 			self:finishtweening()
@@ -219,37 +250,36 @@ local function assetBox(i)
         Name = "Border",
         InitCommand = function(self)
             self:zoomto(assetWidth+4, assetHeight+4)
-            if name == curPath then
-                curIndex = i
-            end
             self:diffuse(getMainColor("positive")):diffusealpha(0.8)
-        end,
+		end,
+		SelectCommand = function(self)
+			self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
+			self:zoomto(assetWidth+12, assetHeight+12)
+			self:diffuse(getMainColor("highlight")):diffusealpha(0.8)
+		end,
+		DeselectCommand = function(self)
+			self:smooth(0.2)
+			self:zoomto(assetWidth+4, assetHeight+4)
+			self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+		end,
         CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
 			if params.index == i then
-				self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
-				self:zoomto(assetWidth+12, assetHeight+12)
-				self:diffuse(getMainColor("highlight")):diffusealpha(0.8)
+				self:playcommand("Select")
 			else
-				self:smooth(0.2)
-				self:zoomto(assetWidth+4, assetHeight+4)
-				self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+				self:playcommand("Deselect")
 			end
 		end,
 		PageMovedMessageCommand = function(self, params)
 			self:finishtweening()
 			if params.index == i then
-				self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
-				self:zoomto(assetWidth+12, assetHeight+12)
-				self:diffuse(getMainColor("highlight")):diffusealpha(0.8)
+				self:playcommand("Select")
 			else
-				self:smooth(0.2)
-				self:zoomto(assetWidth+4, assetHeight+4)
-				self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+				self:playcommand("Deselect")
 			end
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+			if isOver(self) and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
 				if lastClickedIndex == i then
 					confirmPick()
 				end
@@ -263,9 +293,7 @@ local function assetBox(i)
     t[#t+1] = Def.Sprite {
         Name = "Image",
         LoadAssetCommand = function(self)
-            local type = assetTypes[curType]
-            local path = assetFolders[type] .. name
-			self:LoadBackground(path)
+			self:LoadBackground(name)
         end,
 		CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
@@ -447,9 +475,10 @@ end
 
 local t = Def.ActorFrame {
     InitCommand = function(self)
-
+		
     end,
 	BeginCommand = function(self)
+		SCREENMAN:set_input_redirected(PLAYER_1, true)
         top = SCREENMAN:GetTopScreen()
         top:AddInputCallback(input)
         co = coroutine.create(updateImages)
