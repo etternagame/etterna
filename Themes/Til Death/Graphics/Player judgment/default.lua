@@ -63,6 +63,12 @@ local t =
 		if not iFrame then
 			return
 		end
+		if iNumStates == 12 then
+			iFrame = iFrame * 2
+			if not param.Early then
+				iFrame = iFrame + 1
+			end
+		end
 
 		self:playcommand("Reset")
 		c.Judgment:visible(true)
