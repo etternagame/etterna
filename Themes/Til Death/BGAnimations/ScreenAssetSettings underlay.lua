@@ -17,6 +17,7 @@ local maxColumns = 5
 local curIndex = 1
 local GUID = profile:GetGUID()
 local curPath = ""
+local lastClickedIndex = 0
 
 local assetTable = {}
 
@@ -52,9 +53,13 @@ local function loadAssetTable() -- load asset table for current type
 	assetTable = filter(isImage, FILEMAN:GetDirListing(assetFolders[type]))
 end
 
+local function confirmPick() -- select the asset in the current index for use ingame
+	if curIndex == 0 then return end
+end
 
 local function updateImages() -- Update all image actors (sprites)
 	loadAssetTable()
+	MESSAGEMAN:Broadcast("UpdatingAssets")
     for i=1, math.min(maxRows * maxColumns, #assetTable) do
         MESSAGEMAN:Broadcast("UpdateAsset", {index = i})
         coroutine.yield()
@@ -63,13 +68,21 @@ local function updateImages() -- Update all image actors (sprites)
 end
 
 local function toggleAssetType(n) -- move asset type forward/backward
-    if n > 0 then n = 1 else n = -1 end
+	if n ~= 0 then
+		if n > 0 then n = 1 else n = -1 end
+	end
     curType = curType + n
     if curType > #assetTypes then
         curType = 1
     elseif curType == 0 then
         curType = #assetTypes
     end
+end
+
+local function loadAssetType(n) -- move and load asset type forward/backward
+	lastClickedIndex = 0
+	toggleAssetType(n)
+	co = coroutine.create(updateImages)
 end
 
 local function getIndex() -- Get cursor index
@@ -93,9 +106,11 @@ local function movePage(n) -- Move n pages forward/backward
     end
 end
 
-local function moveCursor(x, y) -- move the cursor i dunno
+local function moveCursor(x, y) -- move the cursor
     local move = x + y * maxColumns
-    local nextPage = curPage
+	local nextPage = curPage
+	local oldIndex = curIndex
+	local pageMoved = false
 
     if curPage > 1 and curIndex == 1 and move < 0 then
         curIndex = math.min(#assetTable, maxRows * maxColumns)
@@ -117,7 +132,10 @@ local function moveCursor(x, y) -- move the cursor i dunno
 		curPage = nextPage
 		MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
 		co = coroutine.create(updateImages)
-
+		pageMoved = true
+	end
+	if not pageMoved and curPage == nextPage and oldIndex == curIndex and move ~= 0 then -- load a new asset page if trying to move forward from this page
+		loadAssetType(move)
 	end
 end
 
@@ -170,13 +188,37 @@ local function assetBox(i)
 				self:diffusealpha(0)
 			end
 		end
+	}
+	
+	t[#t+1] = Def.Quad {
+        Name = "SelectedAssetIndicator",
+        InitCommand = function(self)
+            self:zoomto(assetWidth+13, assetHeight+13)
+			self:diffuse(getMainColor("negative")):diffusealpha(0)
+			self:playcommand("Set")
+		end,
+		SetCommand = function(self)
+			self:finishtweening()
+			if selectedPath == name then
+				self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
+				self:diffusealpha(0.8)
+			else
+				self:smooth(0.2)
+				self:diffusealpha(0)
+			end
+		end,
+		PageMovedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		PickChangedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
     }
 
     t[#t+1] = Def.Quad {
         Name = "Border",
         InitCommand = function(self)
             self:zoomto(assetWidth+4, assetHeight+4)
-            self:queuecommand("Set")
             if name == curPath then
                 curIndex = i
             end
@@ -205,33 +247,18 @@ local function assetBox(i)
 				self:zoomto(assetWidth+4, assetHeight+4)
 				self:diffuse(getMainColor("positive")):diffusealpha(0.8)
 			end
-		end
-    }
-
-    --[[
-    t[#t+1] = quadButton(3) .. {
-		InitCommand = function(self)
-			self:zoomto(avatarWidth, avatarHeight)
-			self:visible(false)
 		end,
-		TopPressedCommand = function(self, params)
-			-- Move the cursor to this index upon clicking
-			if params.input == "DeviceButton_left mouse button" then
-				-- Save and exit upon double clicking
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
 				if lastClickedIndex == i then
-					avatarConfig:get_data().avatar[GUID] = avatarTable[getAvatarIndex()]
-					avatarConfig:set_dirty()
-					avatarConfig:save()
-					SCREENMAN:GetTopScreen():Cancel()
-					MESSAGEMAN:Broadcast("AvatarChanged")
+					confirmPick()
 				end
-
 				lastClickedIndex = i
 				curIndex = i
-				MESSAGEMAN:Broadcast("CursorMoved",{index = i})
+				MESSAGEMAN:Broadcast("CursorMoved",{index = i})	
 			end
 		end
-    }]]
+	}
     
     t[#t+1] = Def.Sprite {
         Name = "Image",
@@ -310,6 +337,9 @@ local function mainContainer()
 		SetCommand = function(self)
 			local type = assetTypes[curType]
 			self:settext(type:gsub("^%l", string.upper))
+		end,
+		UpdatingAssetsMessageCommand = function(self)
+			self:queuecommand("Set")
 		end
 	}
 
@@ -328,9 +358,7 @@ local function mainContainer()
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
-				toggleAssetType(-1)
-				at:playcommand("Set")
-				co = coroutine.create(updateImages)
+				loadAssetType(-1)
 			end
 		end
 	}
@@ -350,9 +378,7 @@ local function mainContainer()
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
-				toggleAssetType(1)
-				at:playcommand("Set")
-				co = coroutine.create(updateImages)
+				loadAssetType(1)
 			end
 		end
 	}
@@ -369,10 +395,10 @@ local function input(event)
 		end
 
 		if event.button == "Start" then
+			confirmPick()
 			--avatarConfig:get_data().avatar[GUID] = avatarTable[getAvatarIndex()]
 			--avatarConfig:set_dirty()
 			--avatarConfig:save()
-			SCREENMAN:GetTopScreen():Cancel()
 			--MESSAGEMAN:Broadcast("AvatarChanged")
 		end
 
@@ -394,11 +420,11 @@ local function input(event)
 		end
 
 		if event.button == "EffectUp" then
-			movePage(-1)
+			loadAssetType(1)
 		end
 
 		if event.button == "EffectDown" then
-            movePage(1)
+			loadAssetType(-1)
         end
 	end
 	if event.type == "InputEventType_FirstPress" then
