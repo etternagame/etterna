@@ -58,11 +58,43 @@ local function isAudio(filename)
 	return false
 end
 
+local function getImagePath(path, assets) -- expecting a table of asset paths where fallbacks are default
+	for i=1, #assets do
+		if isImage(assets[i]) then
+			return path .. "/" .. assets[i]
+		end
+	end
+	return assetsFolder .. assetFolders[assetTypes[curType]] .. getDefaultAssetByType(assetType[curType]) .. "/default.png"
+end
+local function getSoundPath(path, assets) -- expecting a table of asset paths where fallbacks are default
+	for i=1, #assets do
+		if isAudio(assets[i]) then
+			return path .. "/" .. assets[i]
+		end
+	end
+	return assetsFolder .. assetFolders[assetTypes[curType]] .. getDefaultAssetByType(assetTypes[curType]) .. "/default.ogg"
+end
+
+local function containsDirsOnly(dirlisting)
+	if #dirlisting == 0 then return true end
+	for i=1, #dirlisting do
+		if isImage(dirlisting[i]) or isAudio(dirlisting[i]) then
+			return false
+		end
+	end
+	return true
+end
+
 local function loadAssetTable() -- load asset table for current type
 	local type = assetTypes[curType]
 	curPath = getAssetByType(type, GUID)
 	selectedPath = getAssetByType(type, GUID)
-	assetTable = filter(isImage, FILEMAN:GetDirListing(assetFolders[type]))
+	local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
+	if containsDirsOnly(dirlisting) then
+		assetTable = dirlisting
+	else
+		assetTable = filter(isImage, dirlisting)
+	end
 	local ind = findIndexForCurPage()
 	if ind ~= nil then curIndex = ind end
 end
@@ -193,6 +225,7 @@ local function assetBox(i)
 
 					-- Load the asset image
 					self:GetChild("Image"):playcommand("LoadAsset")
+					self:GetChild("Sound"):playcommand("LoadAsset")
 					self:GetChild("SelectedAssetIndicator"):playcommand("Set")
 					if i == curIndex then
 						self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
@@ -292,8 +325,14 @@ local function assetBox(i)
     
     t[#t+1] = Def.Sprite {
         Name = "Image",
-        LoadAssetCommand = function(self)
-			self:LoadBackground(name)
+		LoadAssetCommand = function(self)
+			local assets = findAssetsForPath(name)
+			if #assets > 1 then
+				local image = getImagePath(name, assets)
+				self:LoadBackground(image)
+			else
+				self:LoadBackground(name)
+			end
         end,
 		CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
@@ -315,7 +354,26 @@ local function assetBox(i)
 				self:zoomto(assetWidth, assetHeight)
 			end
 		end
-    }
+	}
+	
+	t[#t+1] = Def.Sound {
+		Name = "Sound",
+		LoadAssetCommand = function(self)
+			local assets = findAssetsForPath(name)
+			if #assets > 1 then
+				local soundpath = getSoundPath(name, assets)
+				self:load(soundpath)
+			else
+				self:load("")
+			end
+
+		end,
+		CursorMovedMessageCommand = function(self, params)
+			if params.index == i then
+				self:play()
+			end
+		end
+	}
     
     return t
 end
