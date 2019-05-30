@@ -95,6 +95,7 @@ local function loadAssetTable() -- load asset table for current type
 	else
 		assetTable = filter(isImage, dirlisting)
 	end
+	maxPage = math.max(1, math.ceil(#assetTable/(maxColumns * maxRows)))
 	local ind = findIndexForCurPage()
 	if ind ~= nil then curIndex = ind end
 end
@@ -137,12 +138,14 @@ end
 
 local function loadAssetType(n) -- move and load asset type forward/backward
 	lastClickedIndex = 0
+	curPage = 1
 	toggleAssetType(n)
 	co = coroutine.create(updateImages)
 end
 
 local function getIndex() -- Get cursor index
-    return ((curPage-1) * maxColumns * maxRows) + curIndex
+	local out = ((curPage-1) * maxColumns * maxRows) + curIndex
+    return out
 end
 
 local function movePage(n) -- Move n pages forward/backward
@@ -385,8 +388,9 @@ end
 local function mainContainer()
 	local fontScale = 0.5
 	local smallFontScale = 0.35
+	local tinyFontScale = 0.2
 	local fontRow1 = -frameHeight/2+20
-	local fontRow2 = -frameHeight/2+40
+	local fontRow2 = -frameHeight/2+45
 	local fontSpacing = 15
 	local at
 
@@ -409,6 +413,33 @@ local function mainContainer()
 			self:halign(0)
 			self:xy(-frameWidth/2 + fontSpacing, fontRow1)
 			self:settext("Asset Settings")
+		end
+	}
+
+	t[#t+1] = LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:zoom(smallFontScale)
+			self:xy(0, frameHeight/2 - 15)
+			self:settext("Arrows to move       Enter to select       Mouse support enabled")
+		end
+	}
+
+	t[#t+1] = LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:zoom(smallFontScale)
+			self:xy(-frameWidth/2 + fontSpacing + 35, fontRow2 + 5)
+			self:settext("")
+		end,
+		SetCommand = function(self)
+			local cur = getIndex()
+			local max = #assetTable
+			self:settext(cur .. "/" .. max)
+		end,
+		UpdateFinishedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		CursorMovedMessageCommand = function(self)
+			self:queuecommand("Set")
 		end
 	}
 
@@ -475,20 +506,14 @@ end
 
 local function input(event)
 	if event.type ~= "InputEventType_Release" then
-		-- Screen exits upon first press anyway so no need to check for repeats.
 		if event.button == "Back" then
 			SCREENMAN:GetTopScreen():Cancel()
 		end
 
 		if event.button == "Start" then
 			confirmPick()
-			--avatarConfig:get_data().avatar[GUID] = avatarTable[getAvatarIndex()]
-			--avatarConfig:set_dirty()
-			--avatarConfig:save()
-			--MESSAGEMAN:Broadcast("AvatarChanged")
 		end
 
-		-- We want repeats for these events anyway
 		if event.button == "Left" or event.button == "MenuLeft" then
 			moveCursor(-1, 0)
 		end
@@ -518,6 +543,11 @@ local function input(event)
 			MESSAGEMAN:Broadcast("MouseLeftClick")
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
+		
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+			movePage(-1)
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+			movePage(1)
 		end
 	end
 
