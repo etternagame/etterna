@@ -3,7 +3,7 @@ local defaultConfig = {
 		default = "_fallback.png"
 	},
 	judgement = {
-		default = "Judgment Normal"
+		default = "default 1x6.png"
 	},
 	toasty = {
 		default = "default"
