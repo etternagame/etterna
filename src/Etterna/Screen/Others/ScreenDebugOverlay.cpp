@@ -1354,14 +1354,6 @@ class DebugLineVisualDelayDown : public IDebugLine
 	}
 };
 
-class DebugLineForceCrash : public IDebugLine
-{
-	RString GetDisplayTitle() override { return FORCE_CRASH.GetValue(); }
-	RString GetDisplayValue() override { return RString(); }
-	bool IsEnabled() override { return false; }
-	void DoAndLog(RString& sMessageOut) override { FAIL_M("DebugLineCrash"); }
-};
-
 class DebugLineUptime : public IDebugLine
 {
 	RString GetDisplayTitle() override { return UPTIME.GetValue(); }
@@ -1465,7 +1457,6 @@ DECLARE_ONE(DebugLineVolumeDown);
 DECLARE_ONE(DebugLineVolumeUp);
 DECLARE_ONE(DebugLineVisualDelayDown);
 DECLARE_ONE(DebugLineVisualDelayUp);
-DECLARE_ONE(DebugLineForceCrash);
 DECLARE_ONE(DebugLineUptime);
 DECLARE_ONE(DebugLineResetKeyMapping);
 DECLARE_ONE(DebugLineMuteActions);
