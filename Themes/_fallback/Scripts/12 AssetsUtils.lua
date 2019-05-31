@@ -71,10 +71,10 @@ function getAssetPathFromProfileID(asset, profileID)
 		addProfileAssetFromGUID(GUID, asset)
 	end
 
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		return assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		return fileName
 	else
-		return assetFolders[asset] .. assetsConfig:get_data()[asset].default
+		return assetsConfig:get_data()[asset].default
 	end
 end
 
@@ -98,10 +98,10 @@ function getAsset(asset)
 	end
 
 	local file
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		file = assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		file = fileName
 	else
-		file = assetFolders[asset] .. assetsConfig:get_data()[asset] .. default
+		file = assetsConfig:get_data()[asset] .. default
 	end
 	t =
 		LoadActor(file) ..
