@@ -20,64 +20,34 @@ local t =
 	end
 }
 
+t[#t + 1] = LoadActor("_menulines")
+
 local frameX = THEME:GetMetric("ScreenTitleMenu", "ScrollerX") - 10
 local frameY = THEME:GetMetric("ScreenTitleMenu", "ScrollerY")
-
---Left gray rectangle
-t[#t + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(0, 0):halign(0):valign(0):zoomto(250, 900):diffuse(getTitleColor('BG_Left')):diffusealpha(1)
-	end
-}
-
---Right gray rectangle
-t[#t + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(250, 0):halign(0):valign(0):zoomto(1000, 900):diffuse(getTitleColor('BG_Right')):diffusealpha(1)
-	end
-}
-
---Light purple line
-t[#t + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(250, 0):halign(0):valign(0):zoomto(10, 900):diffuse(getTitleColor('Line_Left')):diffusealpha(1)
-	end
-}
-
---Dark purple line
-t[#t + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(260, 0):halign(0):valign(0):zoomto(10, 900):diffuse(getTitleColor('Line_Right')):diffusealpha(1)
-	end
-}
 
 --Title text
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
-		InitCommand=function(self)
-			self:xy(75,frameY-82):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
+		InitCommand = function(self)
+			self:xy(75, frameY - 82):zoom(0.65):valign(1):halign(0):diffuse(getMainColor("positive"))
 		end,
-		OnCommand=function(self)
+		OnCommand = function(self)
 			self:settext("Etterna")
 		end
-}
+	}
 
 --Theme text
 t[#t + 1] =
-	LoadFont("Common Normal") .. 
+	LoadFont("Common Normal") ..
 	{
-		InitCommand=function(self)
-			self:xy(95,frameY-52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
+		InitCommand = function(self)
+			self:xy(95, frameY - 52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor("positive"))
 		end,
-		OnCommand=function(self)
-		self:settext(getThemeName())
+		OnCommand = function(self)
+			self:settext(getThemeName())
 		end
-}
+	}
 
 -- lazy game update button -mina
 local gameneedsupdating = false
