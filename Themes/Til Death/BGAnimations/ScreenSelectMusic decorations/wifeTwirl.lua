@@ -802,7 +802,7 @@ t[#t + 1] =
 					function()
 						toggleNoteField()
 					end,
-					0.05
+					0.0025
 				)
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
