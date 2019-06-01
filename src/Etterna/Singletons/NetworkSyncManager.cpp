@@ -499,7 +499,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		ws = false;
 		prepend = false;
 	}
-	time_t start;
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
     
