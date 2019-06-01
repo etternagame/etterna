@@ -2645,6 +2645,23 @@ ScreenGameplay::SetPracticeSongPosition(float newPositionSeconds)
 	m_pSoundMusic->Pause(isPaused);
 
 	m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
+
+	// curwifescore sent via judgment msgs is stored in player
+	auto pl = m_vPlayerInfo[PLAYER_1].m_pPlayer;
+	// but the tns counts are stored here
+	auto stats = m_vPlayerInfo[PLAYER_1].GetPlayerStageStats();
+
+	// Reset the wife/judge counter related visible stuff
+	// we should _probably_ reset the replaydata vectors but i don't feel like it if we are refactoring gameplay soon
+	 pl->curwifescore = 0;
+	FOREACH_ENUM(TapNoteScore, tns)
+		stats->m_iTapNoteScores[tns] = 0;
+	FOREACH_ENUM(TapNoteScore, hns)
+		stats->m_iHoldNoteScores[hns] = 0;
+
+	// just having a message we can respond to directly is probably the best way to reset lua elemenmts
+	// rather than emulating a judgment message like replays
+	MESSAGEMAN->Broadcast("PracticeModeReset");
 }
 
 float

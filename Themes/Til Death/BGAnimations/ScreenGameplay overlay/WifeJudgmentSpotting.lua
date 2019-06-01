@@ -472,6 +472,9 @@ local function makeJudgeCount(judge, index) -- Makes county things for taps....
 			Name = judge,
 			InitCommand = function(self)
 				self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
+			end,
+			PracticeModeResetMessageCommand= function(self)
+				self:settext(0)
 			end
 		}
 end
