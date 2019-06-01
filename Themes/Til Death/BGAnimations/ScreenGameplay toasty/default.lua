@@ -1,3 +1,10 @@
+-- look for a custom lua file and if there is one load it instead
+if FILEMAN:DoesFileExist(getAssetPath("toasty").."/default.lua") then
+	local t = Def.ActorFrame {}
+	t[#t+1] = LoadActor("../../../../" .. getAssetPath("toasty") .. "/default")
+	return t
+ end
+
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
