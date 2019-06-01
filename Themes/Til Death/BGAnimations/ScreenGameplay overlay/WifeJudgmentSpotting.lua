@@ -527,6 +527,9 @@ function smeltErrorBar(index)
 			Zoomtoheight(self, MovableValues.ErrorBarHeight)
 			linear(self, barDuration)
 			diffusealpha(self, 0)
+		end,
+		PracticeModeResetMessageCommand = function(self)
+			diffusealpha(self, 0)
 		end
 	}
 end
