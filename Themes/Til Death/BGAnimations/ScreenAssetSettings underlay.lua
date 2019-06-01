@@ -15,6 +15,7 @@ local curPage = 1
 local maxRows = 5
 local maxColumns = 5
 local curIndex = 1
+local selectedIndex = 0
 local GUID = profile:GetGUID()
 local curPath = ""
 local lastClickedIndex = 0
@@ -35,6 +36,16 @@ local function findIndexForCurPage()
 	for i = 1+((curPage-1)*maxColumns*maxRows), 1+((curPage)*maxColumns*maxRows) do
 		if assetTable[i] == nil then return nil end
 		if assetFolders[type] .. assetTable[i] == curPath then
+			return i
+		end
+	end
+end
+
+local function findPickedIndexForCurPage()
+	local type = assetTypes[curType]
+	for i = 1, #assetTable do
+		if assetTable[i] == nil then return nil end
+		if assetFolders[type] .. assetTable[i] == selectedPath then
 			return i
 		end
 	end
@@ -97,6 +108,8 @@ local function loadAssetTable() -- load asset table for current type
 	end
 	maxPage = math.max(1, math.ceil(#assetTable/(maxColumns * maxRows)))
 	local ind = findIndexForCurPage()
+	local pickind = findPickedIndexForCurPage()
+	if pickind ~= nil then selectedIndex = pickind end
 	if ind ~= nil then curIndex = ind end
 end
 
@@ -135,6 +148,11 @@ end
 
 local function getIndex() -- Get cursor index
 	local out = ((curPage-1) * maxColumns * maxRows) + curIndex
+    return out
+end
+
+local function getSelectedIndex() -- Get cursor index
+	local out = ((curPage-1) * maxColumns * maxRows) + selectedIndex
     return out
 end
 
@@ -510,7 +528,7 @@ local function mainContainer()
 			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
 		end,
 		SetCommand = function(self)
-			local type = assetTable[curIndex]
+			local type = assetTable[getIndex()]
 			if type == nil then
 				self:settext("")
 			else
@@ -534,7 +552,7 @@ local function mainContainer()
 			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
 		end,
 		SetCommand = function(self)
-			local type = assetTable[curIndex]
+			local type = assetTable[selectedIndex]
 			if type == nil then
 				self:settext("")
 			else
