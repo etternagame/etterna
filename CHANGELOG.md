@@ -5,7 +5,7 @@ All releases of Etterna are listed in this file as well as links to files detail
 
 Windows x64, Windows i386, and Mac installer future release.
 ### Added
-- Asset Settings to pick Toasties, Judgments, and Avatars - [#538](../../pull/538) [3162b2e](../../commit/3162b2e4334538eeca413ed3419cd3d28bfb2b57) [615d748](../../commit/615d748605aa77eea93f87986055c800f9f27093) [35c7505](../../commit/35c7505da16d3e17fbcbcdd5dd0976334df47f21) [471b205](../../commit/471b20506c1b23bd9130f076c2556ceb4b42105a) [21062e7](../../commit/21062e74e0ec01f6e6e91a16d4a1352289feca41) [12515ef](../../commit/12515ef64edb48c03f4f2aa43d09a819bea24e29) [dbebb58](../../commit/dbebb58659d939980ae86fb6f0a71aa5044ae1c8)
+- Asset Settings to pick Toasties, Judgments, and Avatars - [#538](../../pull/538) [3162b2e](../../commit/3162b2e4334538eeca413ed3419cd3d28bfb2b57) [615d748](../../commit/615d748605aa77eea93f87986055c800f9f27093) [35c7505](../../commit/35c7505da16d3e17fbcbcdd5dd0976334df47f21) [471b205](../../commit/471b20506c1b23bd9130f076c2556ceb4b42105a) [21062e7](../../commit/21062e74e0ec01f6e6e91a16d4a1352289feca41) [12515ef](../../commit/12515ef64edb48c03f4f2aa43d09a819bea24e29) [dbebb58](../../commit/dbebb58659d939980ae86fb6f0a71aa5044ae1c8) [0f2da81](../../commit/0f2da81b60417056032055bc4a402ae14ced2384)
 - Button to enter sort mode - [a1dbd45](../../commit/a1dbd4515ecca6e2e0f3266a0bb03b3ceb945468)
 - Combo Text Hiding option is now available in Player Options - [5bc8790](../../commit/5bc8790dad5c64fcfbf1b9c4a644bafded151358)
 - Debug Menu has a new Misc Page with many new options - [339b91b](../../commit/339b91b3b30403e1ca35d9a192e23e636d90f6fc) [efa0767](../../commit/efa0767a3a0912854264bc98f8050efc0725ce20) [5738f17](../../commit/5738f17fdb04350bb708ca945e4306b186a65310)
@@ -13,10 +13,11 @@ Windows x64, Windows i386, and Mac installer future release.
 - Lane Cover is added to the Color Config - [a4a122a](../../commit/a4a122a4aa762d5a3fd96a6f8f5d1d983c9d05e8)
 - Legacy Toasty & Default 2x6 Judgment - [a54a46e](../../commit/a54a46e9a1c682f66128289ab3284c17e487a2de)
 - Lua access to Pack Download URL - [56c5d61](../../commit/56c5d61e8d41dc6205ec511d150112b3d1094f74)
-- Minanyms - [03e0704](../../commit/03e0704f93575dbd40d7ebe868e5100e76c7a4f7)
+- Minanyms - [03e0704](../../commit/03e0704f93575dbd40d7ebe868e5100e76c7a4f7) [a686ff1](../../commit/a686ff14b9c6e02736cff4864c252ac68eb7b218)
 - NowPlaying text file output for Streamers - [2015e2b](../../commit/2015e2bd39505ca1aa4a66285f03931c6020f83e) [22b8522](../../commit/22b8522c982f383c22bf14b274ef10e3b995cdb1) [f17f954](../../commit/f17f954c0be92b96a8d348168a2cec7ce3ae529f)
-- Pack Name text in the Group Sort functions as a Random Song Button - [26fa5ef](../../commit/26fa5ef3e8aac33f52fcf8dfcaa404060d1a0ea7)
+- Pack Name text in the Group Sort functions as a Random Song Button for that group - [26fa5ef](../../commit/26fa5ef3e8aac33f52fcf8dfcaa404060d1a0ea7)
 - Preference for toggling the Lifts at the end of Osu Holds - [315cca5](../../commit/315cca5b071d58370354a982da6cf5b5a25360d9) [4bfada0](../../commit/4bfada032c155f514e8fd5e14c82dcd20b3221e6)
+- "Select Music" text in any Sort functions as a Random Song Button for any song - [26fa5ef](../../commit/26fa5ef3e8aac33f52fcf8dfcaa404060d1a0ea7)
 - Support for building with Ninja & VS 2019 - [#514](../../pull/514)
 - Support for 2x6 Judgments (Early/Late Dots) - [73d0dcf](../../commit/73d0dcfd03bd4040b779697f7da7e54ffb47cbf9)
 ### Changed
