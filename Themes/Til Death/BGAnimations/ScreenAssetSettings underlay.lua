@@ -24,7 +24,9 @@ local assetTable = {}
 
 local frameWidth = SCREEN_WIDTH - 20
 local frameHeight = SCREEN_HEIGHT - 40
-local assetWidth = 50
+local squareWidth = 50
+local judgmentWidth = 125
+local assetWidth = squareWidth
 local assetHeight = 50
 local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
 local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
@@ -304,11 +306,18 @@ local function assetBox(i)
 						curIndex = i
 					end
 
+					if curType == 3 then
+						assetWidth = judgmentWidth
+					else
+						assetWidth = squareWidth
+					end
+
 					-- Load the asset image
 					self:GetChild("Image"):playcommand("LoadAsset")
 					self:GetChild("Sound"):playcommand("LoadAsset")
 					self:GetChild("SelectedAssetIndicator"):playcommand("Set")
 					if i == curIndex then
+						self:GetChild("Image"):finishtweening()
 						self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
 						self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
 						self:GetChild("Border"):diffuse(getMainColor("highlight")):diffusealpha(0.8)
@@ -333,6 +342,9 @@ local function assetBox(i)
 				self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
 				self:diffusealpha(0)
 			end
+			if curType == 3 then
+				MESSAGEMAN:Broadcast("CursorMoved",{index = findPickedIndexForCurPage()})
+			end
 		end
 	}
 	
@@ -343,6 +355,7 @@ local function assetBox(i)
 			self:diffuse(color("#AAAAAA")):diffusealpha(0)
 		end,
 		SetCommand = function(self)
+			self:zoomto(assetWidth+14, assetHeight+14)
 			self:finishtweening()
 			if selectedPath == name then
 				self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
