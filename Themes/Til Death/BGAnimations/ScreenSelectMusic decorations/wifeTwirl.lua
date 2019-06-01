@@ -14,6 +14,7 @@ local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local dontRemakeTheNotefield = false
 local songChanged = false
 
 local update = false
@@ -130,6 +131,7 @@ t[#t + 1] =
 	}
 
 local function toggleNoteField()
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
 	if song and not noteField then -- first time setup
 		noteField = true
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
@@ -796,6 +798,11 @@ t[#t + 1] =
 		end,
 		CurrentStyleChangedMessageCommand = function(self) -- need to regenerate the notefield when changing styles or crashman appears -mina
 			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
+				if not mcbootlarder:IsVisible() then
+					dontRemakeTheNotefield = true
+				else
+					dontRemakeTheNotefield = false
+				end
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
 				toggleNoteField()
