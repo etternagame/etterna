@@ -463,7 +463,7 @@ local function assetBox(i)
 
 		end,
 		CursorMovedMessageCommand = function(self, params)
-			if params.index == i then
+			if params.index == i and curType == 1 then
 				self:play()
 			end
 		end
