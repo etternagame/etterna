@@ -2144,8 +2144,8 @@ DownloadManager::RefreshUserData()
 				else
 					(DLMAN->sessionRatings)[ss] = 0.0f;
 			}
-			if (skillsets.HasMember("playerRating") &&
-				skillsets["playerRating"].IsNumber())
+			if (attr.HasMember("playerRating") &&
+				attr["playerRating"].IsNumber())
 				DLMAN->sessionRatings[Skill_Overall] =
 				  attr["playerRating"].GetDouble();
 			if (skillsets.HasMember("countryCode") &&
