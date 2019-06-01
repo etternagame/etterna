@@ -30,69 +30,6 @@ local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
 
 local co -- for async loading images
 
--- more code lifted straight from scwh
-local TAB = {
-	choices = {},
-	width = 100,
-	height = 20
-}
-
-function TAB.new(self, choices)
-	TAB.choices = choices
-	TAB.width = math.min(100, SCREEN_WIDTH*2/3 / #choices)
-
-	return self
-end
-
-function TAB.makeTabActors(tab)
-	local t = Def.ActorFrame{}
-
-	for i,v in pairs(tab.choices) do
-
-		t[#t+1] = Def.Quad {
-		InitCommand = function(self)
-			self:halign(0)
-			self:zoomto(tab.width, tab.height)
-			self:x(tab.width*(i-1))
-			self:diffuse(getMainColor("frames"))
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(0.7)
-			end
-		end,
-		TabPressedMessageCommand = function(self, params)
-			-- oh no
-		end,
-		UpdatingAssetsMessageCommand = function(self, params)
-			-- im bad
-			ms.ok(params.name .. " " .. curType)
-			if params.name ~= v then
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(1)
-			end
-		end
-
-	}
-
-		t[#t+1] = LoadFont("Common Large") .. {
-			InitCommand = function(self)
-				self:x((tab.width/2)+(tab.width*(i-1)))
-				self:maxwidth(tab.width/0.25)
-				self:zoom(0.25)
-				self:settext(v)
-			end
-		}
-	end
-
-	return t
-end
----
-
 local function findIndexForCurPage()
 	local type = assetTypes[curType]
 	for i = 1+((curPage-1)*maxColumns*maxRows), 1+((curPage)*maxColumns*maxRows) do
@@ -188,6 +125,8 @@ local function updateImages() -- Update all image actors (sprites)
 end
 
 local function loadAssetType(n) -- move and load asset type forward/backward
+	if n < 0 then n = 0 end
+	if n > #assetTypes then n = #assetTypes end
 	lastClickedIndex = 0
 	curPage = 1
 	curType = n
@@ -244,6 +183,76 @@ local function moveCursor(x, y) -- move the cursor
 		co = coroutine.create(updateImages)
 	end
 end
+
+-- more code lifted straight from scwh
+local TAB = {
+	choices = {},
+	width = 100,
+	height = 20
+}
+
+function TAB.new(self, choices)
+	TAB.choices = choices
+	TAB.width = math.min(100, SCREEN_WIDTH*2/3 / #choices)
+
+	return self
+end
+
+function TAB.makeTabActors(tab)
+	local t = Def.ActorFrame{}
+
+	for i,v in pairs(tab.choices) do
+
+		t[#t+1] = Def.Quad {
+		InitCommand = function(self)
+			self:halign(0)
+			self:zoomto(tab.width, tab.height)
+			self:x(tab.width*(i-1))
+			self:diffuse(getMainColor("frames"))
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
+				self:finishtweening()
+				self:smooth(0.1)
+				self:diffusealpha(0.7)
+				loadAssetType(i)
+			end
+		end,
+		TabPressedMessageCommand = function(self, params)
+			if params.name ~= v then
+				self:finishtweening()
+				self:smooth(0.1)
+				self:diffusealpha(1)
+			end
+		end,
+		UpdatingAssetsMessageCommand = function(self)
+			if curType == i then
+				self:finishtweening()
+				self:smooth(0.1)
+				self:diffusealpha(0.7)
+			else
+				self:finishtweening()
+				self:smooth(0.1)
+				self:diffusealpha(1)
+			end
+		end
+
+	}
+
+		t[#t+1] = LoadFont("Common Large") .. {
+			InitCommand = function(self)
+				self:x((tab.width/2)+(tab.width*(i-1)))
+				self:maxwidth(tab.width/0.25)
+				self:zoom(0.25)
+				self:settext(v)
+			end
+		}
+	end
+
+	return t
+end
+---
 
 local function assetBox(i)
     local name = assetTable[i]
@@ -581,11 +590,11 @@ local function input(event)
 		end
 
 		if event.button == "EffectUp" then
-			loadAssetType(1)
+			loadAssetType(curType + 1)
 		end
 
 		if event.button == "EffectDown" then
-			loadAssetType(-1)
+			loadAssetType(curType - 1)
         end
 	end
 	if event.type == "InputEventType_FirstPress" then
@@ -620,11 +629,6 @@ local t = Def.ActorFrame {
         top:AddInputCallback(input)
         co = coroutine.create(updateImages)
         self:SetUpdateFunction(update)
-	end,
-	TabPressedMessageCommand = function(self, params)
-		if curType ~= params.index then
-			loadAssetType(params.index)
-		end
 	end
 
 }
