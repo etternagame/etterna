@@ -2,8 +2,8 @@ local defaultConfig = {
 	avatar = {
 		default = "Assets/Avatars/_fallback.png"
 	},
-	judgement = {
-		default = "Assets/Judgements/default 1x6.png"
+	judgment = {
+		default = "Assets/Judgments/default 1x6.png"
 	},
 	toasty = {
 		default = "Assets/Toasties/default"
@@ -13,7 +13,7 @@ local defaultConfig = {
 assetsFolder = "Assets/"
 assetFolders = {
 	avatar = assetsFolder .. "Avatars/",
-	judgement = assetsFolder .. "Judgements/",
+	judgment = assetsFolder .. "Judgments/",
 	toasty = assetsFolder .. "Toasties/"
 }
 

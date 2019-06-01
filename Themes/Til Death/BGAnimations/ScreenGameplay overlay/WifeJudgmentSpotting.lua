@@ -508,7 +508,7 @@ local alpha = 0.07 -- ewma alpha
 local avg
 local lastAvg
 
--- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgement value before disappating or refreshing
+-- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgment value before disappating or refreshing
 -- Should eventually be handled by the game itself to optimize performance
 function smeltErrorBar(index)
 	return Def.Quad {

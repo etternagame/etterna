@@ -32,7 +32,7 @@ end
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
-		Texture = "../../../../" .. getAssetPath("judgement"),
+		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
 			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY)
