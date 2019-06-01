@@ -778,12 +778,26 @@ local function ihatestickinginputcallbackseverywhere(event)
 	return false
 end
 
-t[#t + 1] =
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
+t[#t + 1] = Def.ActorFrame {
+	InitCommand = function(self)
+		self:SetUpdateFunction( function(self)
+			self:queuecommand("Highlight")
+		end)
+	end,
+
 	LoadFont("Common Normal") ..
 	{
 		Name = "PreviewViewer",
 		BeginCommand = function(self)
-			mcbootlarder = self:GetParent():GetChild("ChartPreview")
+			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
 			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
 			self:xy(20, 235)
@@ -818,10 +832,12 @@ t[#t + 1] =
 				readyButton:Enable()
 				forceStart:Enable()
 			end
-		end
-	}
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+	},
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "PlayerOptionsButton",
@@ -831,12 +847,15 @@ t[#t + 1] =
 			self:halign(0)
 			self:settext("Player Options")
 		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end
-	}
+	},
 
 --[[ -- This is the Widget Button alternative of the above implementation.
 t[#t + 1] =
@@ -854,7 +873,6 @@ t[#t + 1] =
 	end
 }]]
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "MusicWheelSortButton",
@@ -871,8 +889,12 @@ t[#t + 1] =
 				-- more time than that since we'll be swapping out the entire music wheel anyway
 				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(8)
 			end
-		end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
 	}
+}
 
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t
