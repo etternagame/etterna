@@ -25,7 +25,7 @@ local frameWidth = SCREEN_WIDTH - 20
 local frameHeight = SCREEN_HEIGHT - 40
 local assetWidth = 50
 local assetHeight = 50
-local assetXSpacing = (frameWidth - 20) / (maxColumns + 1)
+local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
 local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
 
 local co -- for async loading images
@@ -124,22 +124,10 @@ local function updateImages() -- Update all image actors (sprites)
 	MESSAGEMAN:Broadcast("UpdateFinished")
 end
 
-local function toggleAssetType(n) -- move asset type forward/backward
-	if n ~= 0 then
-		if n > 0 then n = 1 else n = -1 end
-	end
-    curType = curType + n
-    if curType > #assetTypes then
-        curType = 1
-    elseif curType == 0 then
-        curType = #assetTypes
-    end
-end
-
 local function loadAssetType(n) -- move and load asset type forward/backward
 	lastClickedIndex = 0
 	curPage = 1
-	toggleAssetType(n)
+	curType = n
 	co = coroutine.create(updateImages)
 end
 
@@ -169,7 +157,6 @@ local function moveCursor(x, y) -- move the cursor
     local move = x + y * maxColumns
 	local nextPage = curPage
 	local oldIndex = curIndex
-	local pageMoved = false
 
     if curPage > 1 and curIndex == 1 and move < 0 then
         curIndex = math.min(#assetTable, maxRows * maxColumns)
@@ -192,10 +179,6 @@ local function moveCursor(x, y) -- move the cursor
 		curPage = nextPage
 		MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
 		co = coroutine.create(updateImages)
-		pageMoved = true
-	end
-	if not pageMoved and curPage == nextPage and oldIndex == curIndex and move ~= 0 then -- load a new asset page if trying to move forward from this page
-		loadAssetType(move)
 	end
 end
 
@@ -237,7 +220,7 @@ local function assetBox(i)
 					else
 						self:GetChild("Image"):zoomto(assetHeight,assetWidth)
 						self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
-						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0.8)
+						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0)
 					end
 
 					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+50)
@@ -262,7 +245,7 @@ local function assetBox(i)
         Name = "SelectedAssetIndicator",
         InitCommand = function(self)
             self:zoomto(assetWidth+14, assetHeight+14)
-			self:diffuse(getMainColor("negative")):diffusealpha(0)
+			self:diffuse(color("#AAAAAA")):diffusealpha(0)
 		end,
 		SetCommand = function(self)
 			self:finishtweening()
@@ -296,7 +279,7 @@ local function assetBox(i)
 		DeselectCommand = function(self)
 			self:smooth(0.2)
 			self:zoomto(assetWidth+4, assetHeight+4)
-			self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+			self:diffuse(getMainColor("positive")):diffusealpha(0)
 		end,
         CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
@@ -381,6 +364,8 @@ local function assetBox(i)
     return t
 end
 
+
+
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
@@ -416,13 +401,15 @@ local function mainContainer()
 		end
 	}
 
+	--[[
+	-- instructions
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
 			self:xy(0, frameHeight/2 - 15)
 			self:settext("Arrows to move       Enter to select       Mouse support enabled")
 		end
-	}
+	}]]
 
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
@@ -442,12 +429,12 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end
 	}
-
+--[[
 	t[#t+1] = LoadFont("Common Large") .. {
 		Name = "AssetType",
 		InitCommand = function(self)
 			self:zoom(fontScale)
-			self:xy(50, fontRow1)
+			self:xy(0, frameHeight/2 - 20)
 			self:queuecommand("Set")
 			at = self
 		end,
@@ -463,7 +450,7 @@ local function mainContainer()
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
-			self:xy(-50, fontRow1)
+			self:xy(-100, frameHeight/2 - 18)
 			self:settext("Prev")
 		end,
 		HighlightCommand = function(self)
@@ -483,7 +470,7 @@ local function mainContainer()
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
-			self:xy(150, fontRow1)
+			self:xy(100, frameHeight/2 - 18)
 			self:settext("Next")
 		end,
 		HighlightCommand = function(self)
@@ -498,7 +485,7 @@ local function mainContainer()
 				loadAssetType(1)
 			end
 		end
-	}
+	}]]
 
     return t
 end
@@ -555,6 +542,8 @@ local function input(event)
 
 end
 
+
+
 local function update(self, delta)
 	if coroutine.status(co) ~= "dead" then
 		coroutine.resume(co)
@@ -562,9 +551,6 @@ local function update(self, delta)
 end
 
 local t = Def.ActorFrame {
-    InitCommand = function(self)
-		
-    end,
 	BeginCommand = function(self)
 		SCREENMAN:set_input_redirected(PLAYER_1, true)
         top = SCREENMAN:GetTopScreen()
