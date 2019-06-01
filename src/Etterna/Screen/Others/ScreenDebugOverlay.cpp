@@ -562,6 +562,25 @@ ChangeVisualDelay(float fDelta)
 	pRet->Set(fSecs);
 }
 
+void
+ChangeGlobalOffset(float fDelta)
+{
+	Preference<float>* pRet =
+	  Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
+	float fSecs = pRet->Get();
+	fSecs += fDelta;
+	CLAMP(fSecs, -5.0f, 5.0f);
+	pRet->Set(fSecs);
+}
+
+void
+ResetGlobalOffset()
+{
+	Preference<float>* pRet =
+	  Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
+	pRet->Set(0.0f);
+}
+
 // DebugLines
 static LocalizedString AUTO_PLAY("ScreenDebugOverlay", "AutoPlay");
 static LocalizedString ASSIST("ScreenDebugOverlay", "Assist");
@@ -607,6 +626,13 @@ static LocalizedString PULL_BACK_CAMERA("ScreenDebugOverlay",
 static LocalizedString VISUAL_DELAY_UP("ScreenDebugOverlay", "Visual Delay Up");
 static LocalizedString VISUAL_DELAY_DOWN("ScreenDebugOverlay",
 										 "Visual Delay Down");
+static LocalizedString GLOBAL_OFFSET_UP("ScreenDebugOverlay",
+										"Global Offset Up");
+static LocalizedString GLOBAL_OFFSET_DOWN("ScreenDebugOverlay",
+										  "Global Offset Down");
+static LocalizedString GLOBAL_OFFSET_RESET("ScreenDebugOverlay",
+										   "Global Offset Reset");
+static LocalizedString KEY_CONFIG("ScreenDebugOverlay", "Key Config");
 static LocalizedString VOLUME_UP("ScreenDebugOverlay", "Volume Up");
 static LocalizedString VOLUME_DOWN("ScreenDebugOverlay", "Volume Down");
 static LocalizedString UPTIME("ScreenDebugOverlay", "Uptime");
@@ -811,7 +837,6 @@ class DebugLineStats : public IDebugLine
 class DebugLineSkips : public IDebugLine
 {
 	RString GetDisplayTitle() override { return RENDER_SKIPS.GetValue(); }
-	RString GetDisplayValue() override { return RString(); }
 	RString GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override
 	{
@@ -1368,7 +1393,6 @@ class DebugLineUptime : public IDebugLine
 class DebugLineEasterEggs : public IDebugLine
 {
 	RString GetDisplayTitle() override { return EASTER_EGGS.GetValue(); }
-	RString GetDisplayValue() override { return RString(); }
 	RString GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->m_bEasterEggs; }
 	void DoAndLog(RString& sMessageOut) override
@@ -1381,7 +1405,6 @@ class DebugLineEasterEggs : public IDebugLine
 class DebugLineOsuLifts : public IDebugLine
 {
 	RString GetDisplayTitle() override { return OSU_LIFTS.GetValue(); }
-	RString GetDisplayValue() override { return RString(); }
 	RString GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->LiftsOnOsuHolds; }
 	void DoAndLog(RString& sMessageOut) override
@@ -1394,7 +1417,6 @@ class DebugLineOsuLifts : public IDebugLine
 class DebugLinePitchRates : public IDebugLine
 {
 	RString GetDisplayTitle() override { return PITCH_RATES.GetValue(); }
-	RString GetDisplayValue() override { return RString(); }
 	RString GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->EnablePitchRates; }
 	void DoAndLog(RString& sMessageOut) override
@@ -1416,6 +1438,79 @@ class DebugLineFullscreen : public IDebugLine
 		ArchHooks::SetToggleWindowed();
 		IDebugLine::DoAndLog(sMessageOut);
 #endif
+	}
+};
+
+class DebugLineGlobalOffsetUp : public IDebugLine
+{
+	RString GetDisplayTitle() override { return GLOBAL_OFFSET_UP.GetValue(); }
+	RString GetDisplayValue() override
+	{
+		return ssprintf("%.03f", GetPref()->Get());
+	}
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return true; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		ChangeGlobalOffset(+0.001f);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+	Preference<float>* GetPref()
+	{
+		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
+	}
+};
+
+class DebugLineGlobalOffsetDown : public IDebugLine
+{
+	RString GetDisplayTitle() override { return GLOBAL_OFFSET_DOWN.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	bool IsEnabled() override { return true; }
+	RString GetPageName() const override { return "Misc"; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		ChangeGlobalOffset(-0.001f);
+		IDebugLine::DoAndLog(sMessageOut);
+		sMessageOut += " - " + ssprintf("%.03f", GetPref()->Get());
+	}
+	Preference<float>* GetPref()
+	{
+		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
+	}
+};
+
+class DebugLineGlobalOffsetReset : public IDebugLine
+{
+	RString GetDisplayTitle() override
+	{
+		return GLOBAL_OFFSET_RESET.GetValue();
+	}
+	RString GetDisplayValue() override { return RString(); }
+	bool IsEnabled() override { return true; }
+	RString GetPageName() const override { return "Misc"; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		ResetGlobalOffset();
+		IDebugLine::DoAndLog(sMessageOut);
+		sMessageOut += " - " + ssprintf("%.03f", GetPref()->Get());
+	}
+	Preference<float>* GetPref()
+	{
+		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
+	}
+};
+
+class DebugLineKeyConfig : public IDebugLine
+{
+	RString GetDisplayTitle() override { return KEY_CONFIG.GetValue(); }
+	RString GetDisplayValue() override { return RString(); }
+	RString GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return true; }
+	void DoAndLog(RString& sMessageOut) override
+	{
+		SCREENMAN->PopAllScreens();
+		GAMESTATE->Reset();
+		SCREENMAN->SetNewScreen("ScreenMapControllers");
 	}
 };
 
@@ -1465,6 +1560,10 @@ DECLARE_ONE(DebugLineEasterEggs);
 DECLARE_ONE(DebugLineOsuLifts);
 DECLARE_ONE(DebugLinePitchRates);
 DECLARE_ONE(DebugLineFullscreen);
+DECLARE_ONE(DebugLineGlobalOffsetDown);
+DECLARE_ONE(DebugLineGlobalOffsetUp);
+DECLARE_ONE(DebugLineGlobalOffsetReset);
+DECLARE_ONE(DebugLineKeyConfig);
 
 /*
  * (c) 2001-2005 Chris Danford, Glenn Maynard
