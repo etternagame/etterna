@@ -46,7 +46,6 @@ function getToastyAssetPath(type)
 		for i=1, #files do
 			local status = isAudio(files[i])
 			if status then
-				ms.ok(path .. " " .. status)
 				return path .. "/" .. status
 			end
 		end
