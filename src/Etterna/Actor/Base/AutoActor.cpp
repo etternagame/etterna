@@ -41,7 +41,7 @@ AutoActor::Load(Actor* pActor)
 }
 
 void
-AutoActor::Load(const RString& sPath)
+AutoActor::Load(const std::string& sPath)
 {
 	Unload();
 	m_pActor = ActorUtil::MakeActor(sPath);
@@ -52,7 +52,7 @@ AutoActor::Load(const RString& sPath)
 }
 
 void
-AutoActor::LoadB(const RString& sMetricsGroup, const RString& sElement)
+AutoActor::LoadB(const std::string& sMetricsGroup, const std::string& sElement)
 {
 	ThemeManager::PathInfo pi;
 	bool b = THEME->GetPathInfo(pi, EC_BGANIMATIONS, sMetricsGroup, sElement);
@@ -71,7 +71,7 @@ AutoActor::LoadActorFromNode(const XNode* pNode, Actor* pParent)
 }
 
 void
-AutoActor::LoadAndSetName(const RString& sScreenName, const RString& sActorName)
+AutoActor::LoadAndSetName(const std::string& sScreenName, const std::string& sActorName)
 {
 	Load(THEME->GetPathG(sScreenName, sActorName));
 	m_pActor->SetName(sActorName);

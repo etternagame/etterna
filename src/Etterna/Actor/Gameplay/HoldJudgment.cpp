@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "HoldJudgment.h"
@@ -15,7 +15,7 @@ HoldJudgment::HoldJudgment()
 }
 
 void
-HoldJudgment::Load(const RString& sPath)
+HoldJudgment::Load(const std::string& sPath)
 {
 	m_sprJudgment.Load(sPath);
 	m_sprJudgment->StopAnimating();

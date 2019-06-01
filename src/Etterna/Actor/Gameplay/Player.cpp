@@ -42,7 +42,7 @@
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
-						RString& sNameOut,
+						std::string& sNameOut,
 						float& defaultValueOut);
 
 /**
@@ -295,7 +295,7 @@ Player::~Player()
 /* Init() does the expensive stuff: load sounds and noteskins.  Load() just
  * loads a NoteData. */
 void
-Player::Init(const RString& sType,
+Player::Init(const std::string& sType,
 			 PlayerState* pPlayerState,
 			 PlayerStageStats* pPlayerStageStats,
 			 LifeMeter* pLM,
@@ -722,7 +722,7 @@ Player::Load()
 	// ScreenGameplay::m_pSoundMusic and ScreenEdit::m_pSoundMusic?) We don't
 	// have to load separate copies to set player fade: always make a copy, and
 	// set the fade on the copy.
-	RString sSongDir = pSong->GetSongDir();
+	std::string sSongDir = pSong->GetSongDir();
 	m_vKeysounds.resize(pSong->m_vsKeysoundFile.size());
 
 	// parameters are invalid somehow... -aj
@@ -731,7 +731,7 @@ Player::Load()
 
 	float fBalance = GameSoundManager::GetPlayerBalance(pn);
 	for (unsigned i = 0; i < m_vKeysounds.size(); i++) {
-		RString sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[i];
+		std::string sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[i];
 		RageSound& sound = m_vKeysounds[i];
 		if (sound.GetLoadedFilePath() != sKeysoundFilePath)
 			sound.Load(sKeysoundFilePath, true, &SoundParams);
@@ -3594,7 +3594,7 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 		msg.SetParam("TapNoteScore", tns);
 		msg.SetParam("FirstTrack", iTrack);
 		msg.SetParam("Judgment", tns);
-		msg.SetParam("Type", RString("Mine"));
+		msg.SetParam("Type", std::string("Mine"));
 
 		// Ms scoring implemenation - Mina
 		if (tns == TNS_HitMine)
@@ -3680,7 +3680,7 @@ Player::SetJudgment(int iRow,
 		msg.SetParam("Early", fTapNoteOffset < 0.0f);
 		msg.SetParam("Judgment", tns);
 		msg.SetParam("NoteRow", iRow);
-		msg.SetParam("Type", RString("Tap"));
+		msg.SetParam("Type", std::string("Tap"));
 		msg.SetParam("TapNoteOffset", tn.result.fTapNoteOffset);
 		if (m_pPlayerStageStats)
 			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
@@ -3807,7 +3807,7 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 		msg.SetParam("TapNoteScore", tn.result.tns);
 		msg.SetParam("HoldNoteScore", tn.HoldResult.hns);
 		msg.SetParam("Judgment", tn.HoldResult.hns);
-		msg.SetParam("Type", RString("Hold"));
+		msg.SetParam("Type", std::string("Hold"));
 		if (m_pPlayerStageStats != nullptr) {
 			msg.SetParam(
 			  "Val",

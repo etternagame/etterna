@@ -687,7 +687,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 						   const float& rate,
 						   const string& profileID)
 {
-	RString sk;
+	string sk;
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
@@ -726,7 +726,7 @@ ScoresForChart::LoadFromNode(const XNode* node,
 							 const string& ck,
 							 const string& profileID)
 {
-	RString rs = "";
+	string rs = "";
 	int rate;
 
 	if (node->GetName() == "Chart")
@@ -755,7 +755,7 @@ ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
 	FOREACH_CONST_Child(node, p)
 	{
 		// ASSERT(p->GetName() == "Chart");
-		RString tmp;
+		string tmp;
 		p->GetAttrValue("Key", tmp);
 		const string ck = tmp;
 		pscores[profileID][ck].LoadFromNode(p, ck, profileID);

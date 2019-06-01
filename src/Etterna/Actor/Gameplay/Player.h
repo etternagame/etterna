@@ -82,7 +82,7 @@ class Player : public ActorFrame
 						 float fDeltaTime,
 						 vector<TrackRowTapNote>& vTN);
 
-	void Init(const RString& sType,
+	void Init(const std::string& sType,
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
 			  LifeMeter* pLM,
