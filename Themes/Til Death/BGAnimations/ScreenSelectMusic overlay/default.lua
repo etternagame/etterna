@@ -35,7 +35,7 @@ t[#t + 1] =
 	Def.Actor {
 	CodeMessageCommand = function(self, params)
 		if params.Name == "AvatarShow" and getTabIndex() == 0 and not SCREENMAN:get_input_redirected(PLAYER_1) then
-			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
+			SCREENMAN:SetNewScreen("ScreenAssetSettings")
 		end
 	end
 }
