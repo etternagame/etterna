@@ -121,6 +121,7 @@ local function confirmPick() -- select the asset in the current index for use in
 	local path = assetFolders[type] .. name
 	curPath = path
 	selectedPath = path
+	selectedIndex = curIndex
 
 	setAssetsByType(type, GUID, path)
 
@@ -166,7 +167,8 @@ local function movePage(n) -- Move n pages forward/backward
 
     -- This loads all images again if we actually move to a new page.
     if nextPage ~= curPage then
-        curIndex = n < 0 and math.min(#assetTable, maxRows * maxColumns) or 1
+		curIndex = n < 0 and math.min(#assetTable, maxRows * maxColumns) or 1
+		lastClickedIndex = 0
         curPage = nextPage
         MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
         co = coroutine.create(updateImages)
