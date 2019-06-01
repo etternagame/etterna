@@ -208,7 +208,7 @@ function TAB.makeTabActors(tab)
 			self:halign(0)
 			self:zoomto(tab.width, tab.height)
 			self:x(tab.width*(i-1))
-			self:diffuse(getMainColor("frames"))
+			self:diffuse(color("#666666"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -449,7 +449,6 @@ local function mainContainer()
 	local fontRow1 = -frameHeight/2+20
 	local fontRow2 = -frameHeight/2+45
 	local fontSpacing = 15
-	local at
 
 	local t = Def.ActorFrame {
 		InitCommand = function(self)
@@ -501,14 +500,61 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end
 	}
---[[
+
+	t[#t+1] = LoadFont("Common Large") .. {
+		Name = "CurrentPath",
+		InitCommand = function(self)
+			self:zoom(smallFontScale)
+			self:halign(0)
+			self:xy(-frameWidth/2 + fontSpacing, frameHeight/2 - 15)
+			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
+		end,
+		SetCommand = function(self)
+			local type = assetTable[curIndex]
+			if type == nil then
+				self:settext("")
+			else
+				self:settext(type:gsub("^%l", string.upper))
+			end
+		end,
+		CursorMovedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		UpdateFinishedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	}
+
+	t[#t+1] = LoadFont("Common Large") .. {
+		Name = "SelectedPath",
+		InitCommand = function(self)
+			self:zoom(smallFontScale)
+			self:halign(0)
+			self:xy(TAB.width*#assetTypes/2 + 15, frameHeight/2 - 15)
+			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
+		end,
+		SetCommand = function(self)
+			local type = assetTable[curIndex]
+			if type == nil then
+				self:settext("")
+			else
+				self:settext(type:gsub("^%l", string.upper))
+			end
+		end,
+		PickChangedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		UpdateFinishedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	}
+
 	t[#t+1] = LoadFont("Common Large") .. {
 		Name = "AssetType",
 		InitCommand = function(self)
 			self:zoom(fontScale)
-			self:xy(0, frameHeight/2 - 20)
+			self:xy(0, fontRow1)
 			self:queuecommand("Set")
-			at = self
 		end,
 		SetCommand = function(self)
 			local type = assetTypes[curType]
@@ -518,7 +564,7 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end
 	}
-
+--[[
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
