@@ -8,7 +8,7 @@ for k,v in pairs(assetFolders) do
     assetTypes[curType] = k
     curType = curType + 1
 end
-curType = 1
+curType = 2
 
 local maxPage = 1
 local curPage = 1
