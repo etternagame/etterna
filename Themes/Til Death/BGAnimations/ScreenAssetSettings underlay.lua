@@ -239,6 +239,9 @@ function TAB.makeTabActors(tab)
 				loadAssetType(i)
 			end
 		end,
+		MouseRightClickMessageCommand = function(self)
+			SCREENMAN:GetTopScreen():Cancel()
+		end,
 		TabPressedMessageCommand = function(self, params)
 			if params.name ~= v then
 				self:finishtweening()
