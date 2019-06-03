@@ -2731,6 +2731,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;
+			if (p->ccoffonly && !score.nocc)
+				continue;
 			if (p->currentrateonly &&
 				lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
 				  lround(currentrate * 10000.f))
@@ -2778,6 +2780,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
+	static int ToggleCCFilter(T* p, lua_State* L)
+	{
+		p->ccoffonly = !p->ccoffonly;
+		return 0;
+	}
+	static int GetCCFilter(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ccoffonly);
+		return 1;
+	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
@@ -2815,6 +2827,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
+		ADD_METHOD(ToggleCCFilter);
+		ADD_METHOD(GetCCFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(Logout);
 	}

@@ -67,6 +67,7 @@ end
 
 local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
+local ccornah = {"Show Invalid", "Hide Invalid"}
 
 local scoretable = {}
 local o =
@@ -301,7 +302,7 @@ local o =
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
 				else
-					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1):valign(1)
+					self:xy(c5x - 160, headeroff):zoom(tzoom):halign(1):valign(1)
 				end
 			end,
 			HighlightCommand = function(self)
@@ -317,6 +318,36 @@ local o =
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
 					DLMAN:ToggleTopScoresOnlyFilter()
+					ind = 0
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
+				end
+			end
+		},
+	LoadFont("Common normal") ..
+		{
+			--ccon/off filter toggle
+			InitCommand = function(self)
+				if collapsed then
+					self:visible(false)
+					--self:xy(c5x - 110, headeroff):zoom(tzoom):halign(1):valign(1)
+				else
+					self:visible(true)
+					self:xy(c5x - 80, headeroff):zoom(tzoom):halign(1):valign(1)
+				end
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			UpdateCommand = function(self)
+				if DLMAN:GetCCFilter() then
+					self:settext(ccornah[1])
+				else
+					self:settext(ccornah[2])
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) then
+					DLMAN:ToggleCCFilter()
 					ind = 0
 					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
