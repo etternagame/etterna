@@ -7,6 +7,7 @@ Windows x64, Windows i386, and Mac installer future release.
 ### Added
 - Asset Settings to pick Toasties, Judgments, and Avatars - [#538](../../pull/538) [3162b2e](../../commit/3162b2e4334538eeca413ed3419cd3d28bfb2b57) [615d748](../../commit/615d748605aa77eea93f87986055c800f9f27093) [35c7505](../../commit/35c7505da16d3e17fbcbcdd5dd0976334df47f21) [471b205](../../commit/471b20506c1b23bd9130f076c2556ceb4b42105a) [21062e7](../../commit/21062e74e0ec01f6e6e91a16d4a1352289feca41) [12515ef](../../commit/12515ef64edb48c03f4f2aa43d09a819bea24e29) [dbebb58](../../commit/dbebb58659d939980ae86fb6f0a71aa5044ae1c8) [0f2da81](../../commit/0f2da81b60417056032055bc4a402ae14ced2384)
 - Button to enter sort mode - [a1dbd45](../../commit/a1dbd4515ecca6e2e0f3266a0bb03b3ceb945468)
+- Chord Cohesion Filter Toggle on Chart Leaderboards - [592b158](../../commit/592b1581a9ddb526a3a395dfa0d36ea9d0ed4a13)
 - Combo Text Hiding option is now available in Player Options - [5bc8790](../../commit/5bc8790dad5c64fcfbf1b9c4a644bafded151358)
 - Debug Menu has a new Misc Page with many new options - [339b91b](../../commit/339b91b3b30403e1ca35d9a192e23e636d90f6fc) [efa0767](../../commit/efa0767a3a0912854264bc98f8050efc0725ce20) [5738f17](../../commit/5738f17fdb04350bb708ca945e4306b186a65310)
 - Hotkey to toggle Practice Mode in SelectMusic on `Ctrl+O` - [a47f233](../../commit/a47f233d9da291841c030d9abb3d32fa5e8fd8fe)
@@ -64,6 +65,7 @@ Windows x64, Windows i386, and Mac installer future release.
 - Banners didn't show up for some autocomplete cases - [edf8a72](../../commit/edf8a7257c0955f503c3aa31c5b42e73ed948b4a)
 - Changing Judges on Evaluation didn't update CB Counts per hand - [4a3ec19](../../commit/4a3ec190b8d14eafd97d6f905d3f68b93c332c51) 
 - Chart Preview appeared again even after being turned off when changing style - [20bc0d4](../../commit/20bc0d4d9e634d1a2e9c8f44e9a525aaf2bf4a0a)
+- Current Rate Sort on Chart Leaderboards was not sorted by Wife Percent - [12d1520](../../commit/12d152073c5f14609dce3f610561e81c2bb475ff)
 - Differential Reloading disconnected the user from Multiplayer if it took more than 10 seconds - [#516](../../pull/516)
 - Game was hanging sometimes due to the Audio Visualizer (Deadlocks) - [#536](../../pull/536)
 - Game was stuttering when plugging or unplugging devices on Windows ([Issue 537](../../issues/537)) - [#539](../../pull/539)
@@ -73,7 +75,8 @@ Windows x64, Windows i386, and Mac installer future release.
 - Mac always hanged when disconnecting from multi ([Issue 475](../../issues/475))
 - Mac-specific cleanup functions for loading Songs broke some stuff - [1a31e74](../../commit/1a31e7441fe9e53476897b22e43f2bd5eb05e560)
 - Multiplayer Chat disappeared when minimizing after scrolling up - [3efd130](../../commit/3efd13082a0ddde8c0f3626cb65099d9aa4b8422)
-- Multiplayer Evaluation Scoreboard entries didn't always work ([Issue 462](../../issues/462)) - [#549](../../pull/549)
+- Multiplayer Evaluation Scoreboard entries didn't always work ([Issue 462](../../issues/462)) - [#549](../../pull/549) [3b4b2a1](../../commit/3b4b2a1a94ac96f4a2bee95b0b5e408b6cf37fda)
+- Multiplayer Evaluation Scoreboard entries showed an invalid date - [7dbd00c](../../commit/7dbd00c5851355996eae4b3af95d7ed0fac30980)
 - Multiplayer Ready & Force buttons had weird Font issues for some builds - [45cd0a0](../../commit/45cd0a02672423e4a515dc956c54a6deac6f3e4a)
 - MusicWheel Scrollbar was able to be clicked through the Til Death frame - [7bff5c3](../../commit/7bff5c3a0b713a20246314af2cf7a021c9de1162)
 - Nonzero Visual Delay settings were affected by Song Rates ([Issue 485](../../issues/485)) - [#534](../../pull/534)
@@ -83,6 +86,7 @@ Windows x64, Windows i386, and Mac installer future release.
 - Profile Stats (Play Time...) never updated unless finishing a Practice Mode play - [c1b8e06](../../commit/c1b8e06c80b8e5cc203ddfcf94ad8b44567bf8d4)
 - Rare crash occurred when exiting Practice Mode due to Fail settings - [c16a0f5](../../commit/c16a0f5e63592ed56967a573b64b481eda20afc5) [6271e50](../../commit/6271e50c139369373a7bb8e56a3eccfa3fbb89aa)
 - Replays used to have a slider that worked. It stopped working. - [14744f4](../../commit/14744f430e79f89e299b8cca6553460df8d35cdc)
+- Replay Viewing Buttons were functional in Multiplayer, which is impossible - [997d844](../../commit/997d8448fa1a7f1a58bc8462d585f0d4c4e36ca0)
 - Widescreen caused the target tracker, progress bar, and judgments to be offset in Gameplay - [3b27bf6](../../commit/3b27bf6fca39997732767a28b287040d31faa9f3)
  
 ## [0.65.1] - 2019-03-10 - Quality of Life Patch
