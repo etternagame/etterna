@@ -2741,8 +2741,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (country != "" && country != "Global" &&
 				leaderboardHighScore.countryCode != country)
 				continue;
+
 			filteredLeaderboardScores.push_back(&(score.hs));
 			userswithscores.emplace(leaderboardHighScore.GetName());
+		}
+
+		if (filteredLeaderboardScores.size() > 0 && p->currentrateonly) {
+			std::sort(filteredLeaderboardScores.begin(),
+					  filteredLeaderboardScores.end(),
+					  [](const HighScore* a, const HighScore* b) -> bool {
+						  return a->GetWifeScore() > b->GetWifeScore();
+					  });
 		}
 
 		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
