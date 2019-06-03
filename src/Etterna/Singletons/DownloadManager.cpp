@@ -2082,9 +2082,11 @@ DownloadManager::RefreshTop25(Skillset ss)
 				!score.HasMember("rate") || !score["rate"].IsNumber() ||
 				!score.HasMember("difficulty") ||
 				!score["difficulty"].IsString() ||
+				!score.HasMember("skillsets") ||
 				(ss != Skill_Overall &&
-				 (!score.HasMember(SkillsetToString(ss).c_str()) ||
-				  !score[SkillsetToString(ss).c_str()].IsNumber()))) {
+				 (!score["skillsets"].HasMember(SkillsetToString(ss).c_str()) ||
+				  !score["skillsets"][SkillsetToString(ss).c_str()]
+					 .IsNumber()))) {
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
@@ -2099,7 +2101,8 @@ DownloadManager::RefreshTop25(Skillset ss)
 			tmp.wifeScore = score["wife"].GetFloat() / 100.0;
 			tmp.overall = score["Overall"].GetFloat();
 			if (ss != Skill_Overall)
-				tmp.ssr = score[SkillsetToString(ss).c_str()].GetFloat();
+				tmp.ssr =
+				  score["skillsets"][SkillsetToString(ss).c_str()].GetFloat();
 			else
 				tmp.ssr = tmp.overall;
 			tmp.chartkey = score["chartKey"].GetString();
