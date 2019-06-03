@@ -96,7 +96,6 @@ local t =
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		updateScoreBoard(self)
 	end,
 	NewMultiScoreMessageCommand = updateScoreBoard
 }
