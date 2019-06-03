@@ -631,7 +631,7 @@ l[#l + 1] =
 		end,
 		BeginCommand = function(self)
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				self:x(-10):zoom(0.0000001):maxwidth(1)
+				self:visible(false)
 			end
 		end,
 		DisplayCommand = function(self)
@@ -661,7 +661,7 @@ l[#l + 1] =
 		end,
 		BeginCommand = function(self)
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				self:x(-10):zoom(0.0000001):maxwidth(1)
+				self:visible(false)
 			end
 		end,
 		DisplayCommand = function(self)

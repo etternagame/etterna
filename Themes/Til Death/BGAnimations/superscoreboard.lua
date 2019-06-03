@@ -512,7 +512,7 @@ local function makeScoreDisplay(i)
 				end,
 				BeginCommand = function(self)
 					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-						self:x(-10):zoom(0.0000001):maxwidth(1)
+						self:visible(false)
 					end
 				end,
 				DisplayCommand = function(self)
