@@ -261,7 +261,8 @@ local function scoreitem(pn, i)
 						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_Miss")
 					)
 				end
-			},
+			}
+		--[[ -- this doesnt do anything useful, usually just displays january 1900, why do we need it
 		LoadFont("Common normal") ..
 			{
 				Name = "date",
@@ -273,6 +274,7 @@ local function scoreitem(pn, i)
 					self:visible(false)
 				end
 			}
+		]]
 	}
 	return t
 end
