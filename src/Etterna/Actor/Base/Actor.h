@@ -197,7 +197,7 @@ class Actor : public MessageSubscriber
 	m_vEffectMagnitude(RageVector3(0,0,10)), m_effectColor1(RageColor(1,1,1,1)),
 	m_effectColor2(RageColor(1,1,1,1)) { }
 
-		RString			m_sName; // friendly name
+		std::string			m_sName; // friendly name
 		EffectAction	m_Action; // replaces the old Effect enum
 		EffectType		m_Type; // determined by EffectAction
 		float			m_fSecsIntoEffect;
@@ -330,11 +330,11 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's name.
 	 * @return the Actor's name. */
-	const RString& GetName() const { return m_sName; }
+	const std::string& GetName() const { return m_sName; }
 	/**
 	 * @brief Set the Actor's name to a new one.
 	 * @param sName the new name for the Actor. */
-	virtual void SetName(const RString& sName) { m_sName = sName; }
+	virtual void SetName(const std::string& sName) { m_sName = sName; }
 	/**
 	 * @brief Give this Actor a new parent.
 	 * @param pParent the new parent Actor. */
@@ -346,7 +346,7 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's lineage.
 	 * @return the Actor's lineage. */
-	RString GetLineage() const;
+	std::string GetLineage() const;
 
 	void SetFakeParent(Actor* mailman) { m_FakeParent = mailman; }
 	Actor* GetFakeParent() { return m_FakeParent; }
@@ -585,8 +585,8 @@ class Actor : public MessageSubscriber
 	void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
 	virtual void StopTweening();
 	void Sleep(float time);
-	void QueueCommand(const RString& sCommandName);
-	void QueueMessage(const RString& sMessageName);
+	void QueueCommand(const std::string& sCommandName);
+	void QueueMessage(const std::string& sMessageName);
 	virtual void FinishTweening();
 	virtual void HurryTweening(float factor);
 	// Let ActorFrame and BGAnimation override
@@ -659,11 +659,11 @@ class Actor : public MessageSubscriber
 						 float ramp_tof,
 						 float at_zero,
 						 float at_full,
-						 RString& err);
-	bool SetEffectHoldAtFull(float haf, RString& err);
+						 std::string& err);
+	bool SetEffectHoldAtFull(float haf, std::string& err);
 	void SetEffectOffset(float fTime) { m_fEffectOffset = fTime; }
 	void SetEffectClock(EffectClock c) { m_EffectClock = c; }
-	void SetEffectClockString(const RString& s); // convenience
+	void SetEffectClockString(const std::string& s); // convenience
 
 	void SetEffectMagnitude(const RageVector3& vec)
 	{
@@ -748,12 +748,12 @@ class Actor : public MessageSubscriber
 	virtual void PushContext(lua_State* L);
 
 	// Named commands
-	void AddCommand(const RString& sCmdName,
+	void AddCommand(const std::string& sCmdName,
 					apActorCommands apac,
 					bool warn = true);
-	bool HasCommand(const RString& sCmdName) const;
-	const apActorCommands* GetCommand(const RString& sCommandName) const;
-	void PlayCommand(const RString& sCommandName)
+	bool HasCommand(const std::string& sCmdName) const;
+	const apActorCommands* GetCommand(const std::string& sCommandName) const;
+	void PlayCommand(const std::string& sCommandName)
 	{
 		HandleMessage(Message(sCommandName));
 	} // convenience
@@ -795,7 +795,7 @@ class Actor : public MessageSubscriber
 
   protected:
 	/** @brief the name of the Actor. */
-	RString m_sName;
+	std::string m_sName;
 	/** @brief the current parent of this Actor if it exists. */
 	Actor* m_pParent;
 	// m_FakeParent exists to provide a way to render the actor inside another's
@@ -823,7 +823,7 @@ class Actor : public MessageSubscriber
 		float m_fTweenTime;
 		/** @brief The command to execute when this TweenState goes into effect.
 		 */
-		RString m_sCommandName;
+		std::string m_sCommandName;
 	};
 
 	RageVector3 m_baseRotation;
@@ -921,7 +921,7 @@ class Actor : public MessageSubscriber
 
   private:
 	// commands
-	map<RString, apActorCommands> m_mapNameToCommands;
+	map<std::string, apActorCommands> m_mapNameToCommands;
 };
 
 #endif

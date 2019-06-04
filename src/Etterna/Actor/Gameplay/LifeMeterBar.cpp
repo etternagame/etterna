@@ -28,7 +28,7 @@ LifeMeterBar::LifeMeterBar()
 	  "LifeMeterBar", LIFE_PERCENT_CHANGE_NAME, NUM_ScoreEvent);
 	m_pPlayerState = NULL;
 
-	const RString sType = "LifeMeterBar";
+	const std::string sType = "LifeMeterBar";
 
 	m_fPassingAlpha = 0;
 	m_fHotAlpha = 0;

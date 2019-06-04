@@ -180,6 +180,7 @@ class PrefsManager
 	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
+	Preference<bool> m_bNoGlow;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;

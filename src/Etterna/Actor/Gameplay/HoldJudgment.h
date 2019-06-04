@@ -1,4 +1,4 @@
-﻿#ifndef HOLD_JUDGMENT_H
+#ifndef HOLD_JUDGMENT_H
 #define HOLD_JUDGMENT_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -11,7 +11,7 @@ class HoldJudgment : public ActorFrame
   public:
 	HoldJudgment();
 	HoldJudgment* Copy() const override;
-	void Load(const RString& sPath);
+	void Load(const std::string& sPath);
 	void LoadFromNode(const XNode* pNode) override;
 
 	void SetHoldJudgment(HoldNoteScore hns);

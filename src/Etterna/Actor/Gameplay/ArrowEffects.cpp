@@ -4,6 +4,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "NoteDisplay.h"
 #include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
@@ -104,7 +105,6 @@ static ThemeMetric<float> BEAT_PI_HEIGHT("ArrowEffects", "BeatPIHeight");
 static ThemeMetric<float> TINY_PERCENT_BASE("ArrowEffects", "TinyPercentBase");
 static ThemeMetric<float> TINY_PERCENT_GATE("ArrowEffects", "TinyPercentGate");
 static ThemeMetric<bool> DIZZY_HOLD_HEADS("ArrowEffects", "DizzyHoldHeads");
-static ThemeMetric<bool> NO_GLOW("ArrowEffects", "NoGlow");
 
 static const PlayerOptions* curr_options = nullptr;
 
@@ -883,7 +883,7 @@ ArrowEffects::GetGlow(int iCol,
 
 	const float fDistFromHalf = fabsf(fPercentVisible - 0.5f);
 
-	if (!NO_GLOW) {
+	if (!PREFSMAN->m_bNoGlow) {
 		return SCALE(fDistFromHalf, 0, 0.5f, 1.3f, 0);
 	} else {
 		return 0;

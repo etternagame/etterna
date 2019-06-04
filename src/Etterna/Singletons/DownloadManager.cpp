@@ -2082,9 +2082,11 @@ DownloadManager::RefreshTop25(Skillset ss)
 				!score.HasMember("rate") || !score["rate"].IsNumber() ||
 				!score.HasMember("difficulty") ||
 				!score["difficulty"].IsString() ||
+				!score.HasMember("skillsets") ||
 				(ss != Skill_Overall &&
-				 (!score.HasMember(SkillsetToString(ss).c_str()) ||
-				  !score[SkillsetToString(ss).c_str()].IsNumber()))) {
+				 (!score["skillsets"].HasMember(SkillsetToString(ss).c_str()) ||
+				  !score["skillsets"][SkillsetToString(ss).c_str()]
+					 .IsNumber()))) {
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
@@ -2099,7 +2101,8 @@ DownloadManager::RefreshTop25(Skillset ss)
 			tmp.wifeScore = score["wife"].GetFloat() / 100.0;
 			tmp.overall = score["Overall"].GetFloat();
 			if (ss != Skill_Overall)
-				tmp.ssr = score[SkillsetToString(ss).c_str()].GetFloat();
+				tmp.ssr =
+				  score["skillsets"][SkillsetToString(ss).c_str()].GetFloat();
 			else
 				tmp.ssr = tmp.overall;
 			tmp.chartkey = score["chartKey"].GetString();
@@ -2144,8 +2147,8 @@ DownloadManager::RefreshUserData()
 				else
 					(DLMAN->sessionRatings)[ss] = 0.0f;
 			}
-			if (skillsets.HasMember("playerRating") &&
-				skillsets["playerRating"].IsNumber())
+			if (attr.HasMember("playerRating") &&
+				attr["playerRating"].IsNumber())
 				DLMAN->sessionRatings[Skill_Overall] =
 				  attr["playerRating"].GetDouble();
 			if (skillsets.HasMember("countryCode") &&
@@ -2731,6 +2734,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;
+			if (p->ccoffonly && !score.nocc)
+				continue;
 			if (p->currentrateonly &&
 				lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
 				  lround(currentrate * 10000.f))
@@ -2741,8 +2746,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (country != "" && country != "Global" &&
 				leaderboardHighScore.countryCode != country)
 				continue;
+
 			filteredLeaderboardScores.push_back(&(score.hs));
 			userswithscores.emplace(leaderboardHighScore.GetName());
+		}
+
+		if (filteredLeaderboardScores.size() > 0 && p->currentrateonly) {
+			std::sort(filteredLeaderboardScores.begin(),
+					  filteredLeaderboardScores.end(),
+					  [](const HighScore* a, const HighScore* b) -> bool {
+						  return a->GetWifeScore() > b->GetWifeScore();
+					  });
 		}
 
 		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
@@ -2767,6 +2781,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetTopScoresOnlyFilter(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->topscoresonly);
+		return 1;
+	}
+	static int ToggleCCFilter(T* p, lua_State* L)
+	{
+		p->ccoffonly = !p->ccoffonly;
+		return 0;
+	}
+	static int GetCCFilter(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ccoffonly);
 		return 1;
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
@@ -2806,6 +2830,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
+		ADD_METHOD(ToggleCCFilter);
+		ADD_METHOD(GetCCFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(Logout);
 	}

@@ -30,7 +30,6 @@ class ScreenStatsOverlay : public Screen
 	  std::chrono::steady_clock::now();
 	int m_LastSkip = 0;
 
-	ThemeMetric<bool> SHOW_SKIPS;
 	ThemeMetric<float> SKIP_X;
 	ThemeMetric<float> SKIP_Y;
 	ThemeMetric<float> SKIP_SPACING_Y;

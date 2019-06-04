@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "ActorScroller.h"
 #include "ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -70,7 +70,7 @@ ActorScroller::SetTransformFromReference(const LuaReference& ref)
 }
 
 void
-ActorScroller::SetTransformFromExpression(const RString& sTransformFunction)
+ActorScroller::SetTransformFromExpression(const std::string& sTransformFunction)
 {
 	LuaReference ref;
 	ref.SetFromExpression(sTransformFunction);

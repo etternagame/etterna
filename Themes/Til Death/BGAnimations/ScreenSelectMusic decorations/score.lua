@@ -631,7 +631,7 @@ l[#l + 1] =
 		end,
 		BeginCommand = function(self)
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				self:x(-10):zoom(0.0000001):maxwidth(1)
+				self:visible(false)
 			end
 		end,
 		DisplayCommand = function(self)
@@ -658,6 +658,11 @@ l[#l + 1] =
 		Name = "EvalViewer",
 		InitCommand = function(self)
 			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		BeginCommand = function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+				self:visible(false)
+			end
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then

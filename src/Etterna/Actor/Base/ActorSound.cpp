@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "ActorSound.h"
 #include "ActorUtil.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -7,7 +7,7 @@
 REGISTER_ACTOR_CLASS_WITH_NAME(ActorSound, Sound);
 
 void
-ActorSound::Load(const RString& sPath)
+ActorSound::Load(const std::string& sPath)
 {
 	m_Sound.Load(sPath, true);
 }

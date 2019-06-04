@@ -17,7 +17,7 @@ assetFolders = {
 	toasty = assetsFolder .. "Toasties/"
 }
 
-assetsConfig = create_setting("assetsConfig", "assetsConfig.lua", defaultConfig, 0)
+assetsConfig = create_setting("assetsConfig", "assetsConfig.lua", defaultConfig, 1)
 assetsConfig:load()
 avatarConfig = assetsConfig
 

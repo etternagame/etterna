@@ -13,7 +13,7 @@ class ActorSound : public Actor
 	~ActorSound() override = default;
 	ActorSound* Copy() const override;
 
-	void Load(const RString& sPath);
+	void Load(const std::string& sPath);
 	void Play();
 	void Pause(bool bPause);
 	void Stop();

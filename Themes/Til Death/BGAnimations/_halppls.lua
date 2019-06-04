@@ -102,25 +102,30 @@ t[#t + 1] =
 --have these strings in a separate file...?
 local stringList = {
 	{"Keys/Buttons", "Functions"},
-	{"1~5 or clicking the tabs", "Switch to the corresponding tab. (e.g. 3=score, 4=profile, etc.)"},
-	{"Doubletap <Select> or clicking the avatar", "Open avatar switch overlay."},
+	{"1~0 or clicking the tabs", "Switch to the corresponding tab. (e.g. 3=score, 4=profile, etc.)"},
+	{"Doubletap <Select> or clicking the avatar", "Open Asset Selection Screen."},
 	{"F12", "Open help overlay."},
 	{"<EffectUp>", "While the Score tab is selected, select the previous saved score."},
 	{"<EffectDown>", "While the Score tab is selected, select the next saved score."},
 	{"<EffectUp> while Holding <Select>", "While the Score tab is selected, select the previous available rate."},
 	{"<EffectDown> while Holding <Select>", "While the Score tab is selected, select the next available rate."},
 	{"Q while Holding Ctrl", "Triggers a differential reload for new packs and/or files."},
+	{"R while Holding Ctrl & Shift", "Triggers a reload from disk for the current Song."},
+	{"P while Holding Ctrl & Shift", "Triggers a reload from disk for the hovered Pack."},
 	{"F while Holding Ctrl", "When pressed on a file, adds it to your Favorites."},
 	{"G while Holding Ctrl", "When pressed on a file, adds it to your Goals."},
 	{"M while Holding Ctrl", "When pressed on a file, permanently mirrors it."},
 	{"P while Holding Ctrl", "Creates a new playlist."},
+	{"O while Holding Ctrl", "Toggles Practice Mode."},
 	{"A while Holding Ctrl", "While on a file, adds it to your selected playlist."},
+	{"Space", "Toggles Chart Preview."},
 	{"<EffectUp> or <EffectDown>", "While on a file, increases or decreases rate."},
 	{"<MenuUp> <MenuDown> <MenuUp> <MenuDown>", "Enables Sort: Mode Menu."},
+	{"Insert while in Multiplayer", "Toggles the Chat Overlay."},
 	{"F2", "Reloads metrics and textures."},
 	{"~", "While playing a file, restarts it."},
 	{"Tab", "Speeds up animations."},
-	{"ScrollLock", "Brings you to the Main Menu Options."},
+	{"ScrollLock while Holding Ctrl", "Brings you to the Main Menu Options."},
 	{"Holding F3", "Shows the Debug Menu."}
 }
 
