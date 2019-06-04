@@ -1,9 +1,9 @@
-#include "global.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "ALSA9Helpers.h"
 #include "ALSA9Dynamic.h"
-#include "PrefsManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 /* int err; must be defined before using this macro */
 #define ALSA_CHECK(x)                                                          \

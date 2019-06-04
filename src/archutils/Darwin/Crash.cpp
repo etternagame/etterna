@@ -1,6 +1,6 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "Crash.h"
-#include "ProductInfo.h"
+#include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
@@ -113,7 +113,8 @@ CrashHandler::IsDebuggerPresent()
 void
 CrashHandler::DebugBreak()
 {
-	DebugStr("\pDebugBreak()");
+	// TODO: Following command is depreciated.
+	// DebugStr("\pDebugBreak()");
 }
 
 /*

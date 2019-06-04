@@ -1,13 +1,61 @@
+--[[
+	There are 2 types of widgets:
+		- Wrappers for normal Actors which aim to have a more declarative uage and provide a
+		relatively simple way to access the C++ actor handles since they're automagically bound
+		to widget.actor in initialization.
+		- Higher level widgets like TextBox, Slider, ComboBox, etc
+	Of course, all of these "widgets" just return some combination of actors with some behaviour.
+	For every widget, you can do widget.actor to get the actual actor (As long as that
+		actor has been initialized, meaning it's InitCommand was executed. Using it in OnCommand's
+		is safe)
+	Naming conventions:
+	widget.actor = handle to C++ actor
+	lowercase first letter = not a "method"
+	uppercase first letter = a "method"
+	Widg.defaults.lowercasename = default params for "Name" actor
+	Other conventions:
+	Widg.WidgetName.new {param1=0,y=2,etc} to create an actor (You still have to add it to the actor
+		returned by the file)
+	All color parameters to widgets should be able to take a color string like "ffffff" or color("ffffff")
+		to reduce boilerplate (Calling color manually)
+	All widgets have an x and y and onInit (function(self)) params
+
+	Ex.:
+		local t = Widg.Container { x = SCREEN_WIDTH/2,y=SCREEN_HEIGHT/2}
+		local button1 = Widg.Button { x = -100 }
+		local button2 = Widg.Button {
+			x = 100,
+			onClick = function(self)
+				button1.
+			end
+		}
+		t:add(button1)
+		t:add(button2)
+		return t
+
+	TODOs: (Generals)
+		Make naming scheme coherent
+		Try to reduce function creation inside widget creation functions (Function creation is
+			NYI(not compiled) in LuaJit 2.1)
+			Probably use metatables where possible
+		"Visual" containers (Automagically mouse-wheel-scrollable html-like tables/lists that
+			also help abstract the item positioning math)
+		Find out why ComboBox (The ActorFrameTexture it uses) looks bad (Probably C++)
+		Consider implications of using metatables instead of fillNilTableFieldsFrom, specially mutability
+			of stuff like having a table inside default params (Like params.font.scale)
+--]]
 Widg = {}
 Widg.defaults = {}
-function fillNilTableFieldsFrom(table1, defaultTable)
+Widg.mts = {} -- metatables
+function Widg.fillNilTableFieldsFrom(table1, defaultTable)
 	for key, value in pairs(defaultTable) do
 		if table1[key] == nil then
 			table1[key] = defaultTable[key]
 		end
 	end
 end
-function checkColor(c)
+local fillNilTableFieldsFrom = Widg.fillNilTableFieldsFrom
+function Widg.checkColor(c)
 	if type(c) == "string" then
 		if string.sub(c, 1, 1) ~= "#" then
 			c = "#" .. c
@@ -19,6 +67,7 @@ function checkColor(c)
 	end
 	return c
 end
+local checkColor = Widg.checkColor
 
 Widg.defaults.container = {
 	x = 0,
@@ -28,6 +77,7 @@ Widg.defaults.container = {
 	visible = true,
 	name = "Container"
 }
+-- Widget wrapper for ActorFrame
 Widg.Container = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.container)
 	local container
@@ -38,13 +88,14 @@ Widg.Container = function(params)
 			container.actor = self
 			self:xy(params.x, params.y):visible(params.visible)
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(container)
 			end
 		end
 	}
 	container.add = function(container, item)
 		container[#container + 1] = item
 	end
+	container.Add = container.add
 	if params.content then
 		if params.content.Class then -- is an actor
 			container[#container + 1] = params.content
@@ -64,9 +115,12 @@ Widg.defaults.label = {
 	width = false,
 	color = color("#FFFFFF"),
 	halign = 0.5,
+	visible = true,
 	valign = 0.5,
+	multicolor = false, -- syntax: "|crrggbbaaTextWithColor1|crrggbbaaTextColor2"
 	onInit = false
 }
+-- Widget wrapper for BitmapText
 Widg.Label = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.label)
 	params.color = checkColor(params.color)
@@ -74,18 +128,18 @@ Widg.Label = function(params)
 	local initText = params.text
 	local label
 	label =
-		LoadFont(params.name) ..
+		(multicolor and LoadColorFont or LoadFont)(params.name) ..
 		{
 			Name = "Label",
 			InitCommand = function(self)
 				label.actor = self
-				self:xy(params.x, params.y):zoom(params.scale):halign(params.halign):valign(params.valign)
+				self:xy(params.x, params.y):zoom(params.scale):halign(params.halign):valign(params.valign):visible(params.visible)
 				if type(params.width) == "number" then
 					self:maxwidth(params.width / params.scale)
 				end
 				self:settext(initText):diffuse(params.color)
 				if params.onInit then
-					params.onInit(self)
+					params.onInit(label)
 				end
 			end
 		}
@@ -99,9 +153,11 @@ Widg.Label = function(params)
 	label.GetText = function(label, text)
 		return label.actor and label.actor:GetText() or initText
 	end
+	label.SetText = label.settext
 	return label
 end
 
+-- Widget wrapper for Quad
 Widg.defaults.rectangle = {
 	x = 0,
 	y = 0,
@@ -109,6 +165,7 @@ Widg.defaults.rectangle = {
 	height = 100,
 	color = color("#FFFFFF"),
 	onClick = false,
+	onRightClick = false, --TODO: Make the msgcommand for this execute
 	onInit = false,
 	alpha = 1.0,
 	halign = 0.5,
@@ -129,7 +186,7 @@ Widg.Rectangle = function(params)
 				params.height
 			):diffusealpha(params.alpha)
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(q)
 			end
 			self:visible(params.visible)
 			q.actor = self
@@ -140,7 +197,7 @@ Widg.Rectangle = function(params)
 		LeftClickMessageCommand = params.onClick and function(self)
 				if params.onClick and q:isOver() then
 					lastClick = os.clock()
-					params.onClick(self)
+					params.onClick(q)
 				end
 			end or nil
 	}
@@ -160,6 +217,8 @@ Widg.defaults.borders = {
 	onInit = false,
 	alpha = 1.0
 }
+-- 4 rectangles forming borders
+-- Abstraction over the necessary math and logic
 Widg.Borders = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.borders)
 	params.color = checkColor(params.color)
@@ -187,12 +246,14 @@ Widg.Borders = function(params)
 			alpha = params.alpha
 		}
 	)
-	local borders =
+	local borders
+	borders =
 		Def.ActorFrame {
 		InitCommand = function(self)
+			borders.actor = self
 			self:xy(params.x, params.y)
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(borders)
 			end
 		end,
 		left,
@@ -209,6 +270,7 @@ end
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
+Widg.highlightF = highlight
 
 Widg.defaults.borderedrect = {
 	x = 0,
@@ -224,6 +286,7 @@ Widg.defaults.borderedrect = {
 	alpha = 1.0,
 	visible = true
 }
+-- Combination of Widg.Borders and Widg.Rectangle
 Widg.BorderedRect = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.borderedrect)
 	params.color = checkColor(params.color)
@@ -280,7 +343,7 @@ Widg.Sprite = function(params)
 				self:zoomto(params.width, params.height)
 			end
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(sprite)
 			end
 		end
 	}
@@ -294,13 +357,13 @@ Widg.defaults.button = {
 	y = 0,
 	width = 50,
 	height = 20,
-	bgColor = color("#bb00bbFF"),
+	bgColor = color("#aaaaaa"),
 	border = {
-		color = Color.Blue,
+		color = color("#888888"),
 		width = 2
 	},
 	highlight = {
-		color = color("#dd00ddFF"),
+		color = color("#cccccc"),
 		alpha = false
 	},
 	onClick = false,
@@ -312,7 +375,7 @@ Widg.defaults.button = {
 	font = {
 		scale = 0.5,
 		name = "Common Large",
-		color = Color.White,
+		color = color("#000000"),
 		padding = {
 			x = 10,
 			y = 10
@@ -321,9 +384,25 @@ Widg.defaults.button = {
 	halign = 0.5,
 	valign = 0.5,
 	texture = false,
+	highlightCondition = isOver, -- function(self) -> bool
 	enabled = true
 }
-
+--[[
+	Structure: {
+		bg,
+		label,
+		borders, -- optional
+		sprite, -- optional
+		highlightSprite -- optional
+	}
+	Methods: {
+		GetText(),
+		SetText(text),
+		Diffuse(color),
+		Enable(),
+		Disable()
+	}
+]]
 Widg.Button = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.button)
 	if params.highlight then
@@ -340,12 +419,14 @@ Widg.Button = function(params)
 	local button
 	button =
 		Widg.Container {
+		x = params.x,
+		y = params.y,
 		onInit = function(self)
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(button)
 			end
 			if params.highlight then
-				self:SetUpdateFunction(highlight)
+				self.actor:SetUpdateFunction(highlight)
 			end
 			self.params = params
 			if not button.enabled then
@@ -358,9 +439,7 @@ Widg.Button = function(params)
 	button.sprite =
 		params.texture and
 		Widg.Sprite {
-			x = params.x,
 			color = params.bgColor,
-			y = params.y,
 			texture = "buttons/" .. params.texture,
 			width = params.width,
 			height = params.height,
@@ -371,9 +450,7 @@ Widg.Button = function(params)
 	button.highlightSprite =
 		params.highlight and params.highlight.texture and
 		Widg.Sprite {
-			x = params.x,
 			color = params.highlight.color,
-			y = params.y,
 			texture = "buttons/" .. params.highlight.texture,
 			width = params.width,
 			height = params.height,
@@ -384,8 +461,6 @@ Widg.Button = function(params)
 
 	button.bg =
 		Widg.Rectangle {
-		x = params.x,
-		y = params.y,
 		width = params.width,
 		height = params.height,
 		color = params.bgColor,
@@ -396,40 +471,44 @@ Widg.Button = function(params)
 					params.onClick(button)
 				end
 			end or false,
+		onRightClick = params.onRightClick,
 		halign = params.halign,
 		valign = params.valign,
 		visible = not params.texture
 	}
-	button.bg.HighlightCommand = params.highlight and function(self)
-			local mainActor = params.texture and button.sprite.actor or self
-			local isOver = isOver(self)
-			if params.highlight.texture then
-				(button.highlightSprite.actor):visible(isOver)
-			end
-			if isOver then
-				if params.highlight.color then
-					mainActor:diffuse(params.highlight.color)
+	do
+		local mainActor = params.texture and button.sprite.actor
+		button.bg.HighlightCommand = params.highlight and function(self)
+				mainActor = mainActor or self
+				local isOver = params.highlightCondition(self)
+				if params.highlight.texture then
+					(button.highlightSprite.actor):visible(isOver)
 				end
-				mainActor:diffusealpha(params.highlight.alpha or params.alpha or 1)
-				if params.onHighlight then
-					params.onHighlight(mainActor)
+				if isOver then
+					if params.highlight.color then
+						mainActor:diffuse(params.highlight.color)
+					end
+					mainActor:diffusealpha(params.highlight.alpha or params.alpha or 1)
+					if params.onHighlight then
+						params.onHighlight(button)
+					end
+				else
+					if params.bgColor then
+						mainActor:diffuse(params.bgColor)
+					end
+					mainActor:diffusealpha(params.alpha)
+					if params.onUnhighlight then
+						params.onUnhighlight(button)
+					end
 				end
-			else
-				if params.bgColor then
-					mainActor:diffuse(params.bgColor)
-				end
-				mainActor:diffusealpha(params.alpha)
-				if params.onUnhighlight then
-					params.onUnhighlight(mainActor)
-				end
-			end
-		end or nil
+			end or nil
+	end
 
 	button.borders =
 		(params.texture or not params.border) and Def.ActorFrame {} or
 		Widg.Borders {
-			y = params.y + params.height * (0.5 - params.valign),
-			x = params.x + params.width * (0.5 - params.halign),
+			y = params.height * (0.5 - params.valign),
+			x = params.width * (0.5 - params.halign),
 			color = params.border.color,
 			width = params.width,
 			height = params.height,
@@ -439,11 +518,13 @@ Widg.Button = function(params)
 
 	button.label =
 		Widg.Label {
-		x = params.x + params.width * (1 - params.halign),
-		y = params.y + params.height * (1 - params.valign),
+		x = params.width * (1 - params.halign),
+		y = params.height * (1 - params.valign),
 		scale = params.font.scale,
 		halign = params.font.halign,
+		color = params.font.color,
 		text = params.text,
+		name = params.font.name,
 		width = params.width - params.font.padding.x
 	}
 
@@ -454,9 +535,11 @@ Widg.Button = function(params)
 		return (button.label):GetText()
 	end
 	button.diffuse = function(button, color)
-		params.bgColor = color
+		params.bgColor = checkColor(color)
 		return (button.bg.actor):diffuse(color)
 	end
+	button.Diffuse = button.diffuse
+	button.SetText = button.settext
 	button.Enable = function(button)
 		button.enabled = true
 		return (button.actor):visible(button.enabled)
@@ -486,6 +569,10 @@ Widg.defaults.scrollable = {
 	onInit = false
 }
 Widg.scrollableCount = 0
+--[[
+	This aims to make actors in content "invisible" by the pixel outside of the defined rectangle
+		while also easily providing the ability to scroll them using a scrollbar or mouse wheel
+]]
 Widg.Scrollable = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.scrollable)
 	local textureName = params.textureName or "ScrollableWidget" .. tostring(Widg.scrollableCount)
@@ -519,287 +606,513 @@ Widg.Scrollable = function(params)
 			content
 		}
 	}
-	local scrollable =
+	local scrollable
+	scrollable =
 		Def.ActorFrame {
 		InitCommand = function(self)
+			scrollable.actor = self
 			self:xy(params.x + params.halign * params.width, params.y + params.valign * params.height)
 			self.AFT = AFT
 			self.sprite = sprite
 			self.content = content
 			self:SetTextureFiltering(true)
 			if params.onInit then
-				params.onInit(self, content, AFT, sprite)
+				params.onInit(scrollable, content, AFT, sprite)
 			end
 		end,
 		AFT,
 		sprite
 	}
 	scrollable.content = content
+	scrollable.aft = AFT
+	scrollable.sprite = sprite
 	return scrollable
 end
 
-local function basicHandle(params)
-	local h
-	h =
-		Widg.Rectangle {
-		color = "00FF00",
-		width = params.width / 5,
-		height = params.height,
-		valign = params.valign
-	}
-	h.onValueChange = function(val)
-		h.actor:x(val * params.width / (params.max - params.min) - params.width * params.halign * 0.5)
-	end
-	return h
-end
-local function basicBar(params)
-	return Widg.Rectangle {
-		color = "FF0000",
-		width = params.width,
-		height = params.height,
-		halign = params.halign,
-		valign = params.valign
-	}
-end
-Widg.defaults.sliderBase = {
-	x = 0,
-	y = 0,
-	visible = true,
-	width = 100,
-	height = 30,
-	onClick = false,
-	color = color("#FFFFFFFF"),
-	onValueChangeEnd = false, -- Called when the mouse click is released
-	onValueChange = false, -- Recieves the value between min and max
-	handle = basicHandle,
-	bar = basicBar,
-	onInit = false,
-	defaultValue = 10, -- starting value
-	max = 100,
-	min = 0,
-	step = 1,
-	halign = 1,
-	valign = 1,
-	vertical = false, -- todo
-	isRange = false, --  todo
-	bindToTable = {} -- Since tables are passed by reference, update t.value with the slider value.
-	-- If range, value = {start=number, end=number}
-}
-
-local function getRatioforAxis(mpos, pos, len, align)
-	-- for some reason this magic math works
-	-- it gives a number between 0 and 1
-	-- its the percentage of the rectangle that
-	-- is to the left of the mouse
-	return (mpos - (pos + len * (1 - align))) / len + 0.5
-end
--- this returns the current value for the slider
-local function getValue(mouse, params, slider)
-	local length = (params.max - params.min)
-	local ratio =
-		params.vertical and getRatioforAxis(mouse.y, getTrueY(slider), params.height, params.valign) or
-		getRatioforAxis(mouse.x, getTrueX(slider), params.width, params.halign)
-	return math.round((ratio * length + params.min) / params.step) * params.step
-end
-Widg.SliderBase = function(params)
-	fillNilTableFieldsFrom(params, Widg.defaults.sliderBase)
-	params.color = checkColor(params.color)
-	local bar = params.bar(params)
-	local handle = params.handle(params)
-	local updateFunction
-	local container =
-		Widg.Container {
-		visible = params.visible,
-		x = params.x,
-		y = params.y,
-		onInit = function(container)
-			handle.onValueChange(params.defaultValue)
-			container:SetUpdateFunction(updateFunction)
-			if params.onInit then
-				params.onInit(container)
-			end
+do
+	local function basicHandle(params)
+		local h
+		h =
+			Widg.Rectangle {
+			color = "00FF00",
+			width = params.width / 5,
+			height = params.height,
+			valign = params.valign
+		}
+		h.onValueChange = function(val)
+			h.actor:x(val * params.width / (params.max - params.min) - params.width * params.halign * 0.5)
 		end
-	}
-	if params.range and type(params.defaultValue) ~= "table" then
-		params.defaultValue = {params.defaultValue, params.defaultValue}
+		return h
 	end
-	local t = params.bindToTable
-	t.value = defaultValue
-	container.value = t.value
-	container:add(bar)
-	container:add(handle)
-	local clicked = false
-	local rectangle =
-		Widg.Rectangle {
-		width = params.width,
-		height = params.height,
-		halign = params.halign,
-		valign = params.valign,
-		onClick = function(rectangle)
-			clicked = true
-		end,
-		visible = false
-	}
-	container:add(rectangle)
-	updateFunction = function(container)
-		if clicked then
-			if isOver(rectangle.actor) and INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
-				local mouse = getMousePosition()
-				t.value = getValue(mouse, params, container)
-				container.value = t.value
-				if params.onValueChange then
-					params.onValueChange(t.value)
-				end
-				if handle.onValueChange then
-					handle.onValueChange(t.value)
-				end
-				if bar.onValueChange then
-					bar.onValueChange(t.value)
-				end
-			else
-				clicked = false
-				if params.onValueChangeEnd then
-					params.onValueChangeEnd(t.value)
-				end
-				if bar.onValueChange then
-					bar.onValueChange(t.value)
-				end
-				if bar.onValueChangeEnd then
-					bar.onValueChangeEnd(t.value)
-				end
-			end
-		end
-	end
-	return container
-end
-
-local function basicSelection(choice, params)
-	return Widg.Button {
-		y = 0,
-		text = choice,
-		width = params.width,
-		color = params.selectionColor,
-		border = false,
-		height = params.itemHeight,
-		highlight = {color = params.hoverColor},
-		alpha = 0.8
-	}
-end
-local function basicItem(choice, params)
-	return Widg.Button {
-		text = choice,
-		width = params.width,
-		height = params.itemHeight,
-		color = params.itemColor,
-		border = false,
-		alpha = 1,
-		highlight = {color = params.hoverColor}
-	}
-end
-Widg.defaults.comboBox = {
-	x = 0,
-	y = 0,
-	itemHeight = 20,
-	maxDisplayItems = 5,
-	width = 50,
-	onSelectionChanged = false, -- (newchoice, oldchoice)
-	onInit = false,
-	item = basicItem,
-	selection = basicSelection, -- must understand :settext
-	commands = {},
-	selectionColor = Color.Black,
-	hoverColor = Color.Blue,
-	itemColor = Color.Black,
-	choices = {"default"},
-	choice = false,
-	numitems = false,
-	scrollable = false
-}
-Widg.ComboBox = function(params, updateActor)
-	fillNilTableFieldsFrom(params, Widg.defaults.comboBox)
-	params.selectionColor = checkColor(params.selectionColor)
-	params.itemColor = checkColor(params.itemColor)
-	params.hoverColor = checkColor(params.hoverColor)
-
-	local combobox =
-		Widg.Container {
-		x = params.x - params.width / 2,
-		y = params.y - params.itemHeight / 2,
-		onInit = params.onInit,
-		visible = params.visible
-	}
-	fillNilTableFieldsFrom(combobox, params.commands)
-
-	if not params.numitems then
-		params.numitems = #(params.choices)
-	end
-	combobox.choices = params.choices
-	combobox.droppedDown = false
-	combobox.selected = 1
-	if params.choice then
-		for i, v in ipairs(params.choices) do
-			if v == params.choice then
-				combobox.selected = i
-			end
-		end
-	end
-	combobox.items = Widg.Container {visible = false}
-	combobox.selection = Widg.Container {}
-	combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
-	combobox.selection:add(combobox.selection.graphic)
-	combobox.selection:add(
-		Widg.Rectangle {
-			visible = false,
+	local function basicBar(params)
+		return Widg.Rectangle {
+			color = "FF0000",
 			width = params.width,
-			height = params.itemHeight,
-			onClick = function(self)
-				combobox.droppedDown = not combobox.droppedDown
-				local items = combobox.items.actor
-				items:visible(combobox.droppedDown)
+			height = params.height,
+			halign = params.halign,
+			valign = params.valign
+		}
+	end
+	Widg.defaults.sliderBase = {
+		x = 0,
+		y = 0,
+		visible = true,
+		enabled = true,
+		width = 100,
+		height = 30,
+		onClick = false,
+		color = color("#FFFFFFFF"),
+		onValueChangeEnd = false, -- Called when the mouse click is released
+		onValueChange = false, -- Recieves the value between min and max
+		handle = basicHandle, -- function(params) that returns an actor for the handle
+		--Note that the return value must have an onValueChange(val) field to update it's position
+		bar = basicBar, -- function(params) that returns an actor for the bar
+		onInit = false,
+		defaultValue = 10, -- starting value
+		max = 100,
+		min = 0,
+		step = 1,
+		halign = 1,
+		valign = 1,
+		vertical = false, -- todo
+		isRange = false --  todo
+		-- If range, value = {start=number, end=number}
+	}
+	local function getRatioforAxis(mpos, pos, len, align)
+		-- for some reason this magic math works
+		-- it gives a number between 0 and 1
+		-- its the percentage of the rectangle that
+		-- is to the left of the mouse
+		return (mpos - (pos + len * (1 - align))) / len + 0.5
+	end
+	-- this returns the current value for the slider
+	local function getValue(mouse, params, slider)
+		local length = (params.max - params.min)
+		local ratio =
+			params.vertical and getRatioforAxis(mouse.y, slider:GetTrueY(), params.height, params.valign) or
+			getRatioforAxis(mouse.x, slider:GetTrueX(), params.width, params.halign)
+		return math.round((ratio * length + params.min) / params.step) * params.step
+	end
+	--[[
+		Base Slider. Meant to be very flexible and customizable.
+		Structure: {
+			bar,
+			handle
+		}
+	]]
+	Widg.SliderBase = function(params)
+		fillNilTableFieldsFrom(params, Widg.defaults.sliderBase)
+		params.color = checkColor(params.color)
+		local bar = params.bar(params)
+		local handle = params.handle(params)
+		local updateFunction
+		local container
+		container =
+			Widg.Container {
+			visible = params.visible,
+			x = params.x,
+			y = params.y,
+			onInit = function(container)
+				handle.onValueChange(params.defaultValue)
+				container.actor:SetUpdateFunction(updateFunction)
+				if params.onInit then
+					params.onInit(container)
+				end
 			end
 		}
-	)
+		container.bar = bar
+		container.handle = handle
+		container.enabled = params.enabled
+		if params.range and type(params.defaultValue) ~= "table" then
+			params.defaultValue = {params.defaultValue, params.defaultValue}
+		end
+		container.value = params.defaultValue
+		container:add(bar)
+		container:add(handle)
+		local clicked = false
+		local rectangle =
+			Widg.Rectangle {
+			width = params.width,
+			height = params.height,
+			halign = params.halign,
+			valign = params.valign,
+			onClick = function(rectangle)
+				if container.enabled then
+					clicked = true
+				end
+			end,
+			-- isOver requires visible
+			alpha = 0,
+			visible = true
+		}
+		container:add(rectangle)
+		-- "Temporary" set value (Not the end of the movement)
+		container._SetValue = function(container, value)
+			container.value = value
+			if params.onValueChange then
+				params.onValueChange(value)
+			end
+			if handle.onValueChange then
+				handle.onValueChange(value)
+			end
+			if bar.onValueChange then
+				bar.onValueChange(value)
+			end
+		end
+		-- End of change set value
+		container.SetValue = function(container, value)
+			container:_SetValue(value)
+			if params.onValueChangeEnd then
+				params.onValueChangeEnd(value)
+			end
+			if bar.onValueChange then
+				bar.onValueChange(value)
+			end
+			if bar.onValueChangeEnd then
+				bar.onValueChangeEnd(value)
+			end
+		end
+		updateFunction = function(containerActor)
+			if clicked then
+				if isOver(rectangle.actor) and INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
+					local mouse = getMousePosition()
+					container:_SetValue(getValue(mouse, params, containerActor))
+				else
+					clicked = false
+					container:SetValue(container.value)
+				end
+			end
+		end
+		return container
+	end
+end
 
-	for i = 1, params.numitems do
-		(combobox.items):add(
+do
+	local function basicSelection(choice, params)
+		return Widg.Button {
+			y = 0,
+			text = choice,
+			width = params.width,
+			color = params.selectionColor,
+			border = false,
+			height = params.itemHeight,
+			highlight = {color = params.hoverColor},
+			alpha = 0.8
+		}
+	end
+	local function basicItem(choice, params)
+		return Widg.Button {
+			text = choice,
+			width = params.width,
+			height = params.itemHeight,
+			color = params.itemColor,
+			border = false,
+			alpha = 1,
+			highlight = {color = params.hoverColor}
+		}
+	end
+	Widg.defaults.comboBox = {
+		x = 0,
+		y = 0,
+		itemHeight = 20,
+		maxDisplayItems = 5,
+		width = 50,
+		onSelectionChanged = false, -- function(newchoice, oldchoice)
+		onInit = false,
+		item = basicItem, -- function(choice, params) : Creates the unselected actor for one choice
+		selection = basicSelection, -- function(choice, params) : Creates the selected actor for one choice
+		--Note that the return value must have a SetText(val) field to update it's position
+		commands = {},
+		selectionColor = Color.Black,
+		hoverColor = Color.Blue,
+		itemColor = Color.Black,
+		choices = {"default"},
+		choice = false,
+		numitems = false,
+		scrollable = false
+	}
+	Widg.ComboBox = function(params, updateActor)
+		fillNilTableFieldsFrom(params, Widg.defaults.comboBox)
+		params.selectionColor = checkColor(params.selectionColor)
+		params.itemColor = checkColor(params.itemColor)
+		params.hoverColor = checkColor(params.hoverColor)
+
+		local combobox =
 			Widg.Container {
-				y = i * params.itemHeight,
-				content = {
-					params.item(combobox.choices[i], params),
-					Widg.Rectangle {
-						width = params.width,
-						height = params.itemHeight,
-						visible = false,
-						onClick = function(self)
-							if combobox.droppedDown then
-								local g = combobox.selection.graphic
-								g:settext(combobox.choices[i])
-								if params.onSelectionChanged then
-									params.onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
+			x = params.x - params.width / 2,
+			y = params.y - params.itemHeight / 2,
+			onInit = params.onInit,
+			visible = params.visible
+		}
+		fillNilTableFieldsFrom(combobox, params.commands)
+
+		if not params.numitems then
+			params.numitems = #(params.choices)
+		end
+		combobox.choices = params.choices
+		combobox.droppedDown = false
+		combobox.selected = 1
+		if params.choice then
+			for i, v in ipairs(params.choices) do
+				if v == params.choice then
+					combobox.selected = i
+				end
+			end
+		end
+		combobox.items = Widg.Container {visible = false}
+		combobox.selection = Widg.Container {}
+		combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
+		combobox.selection:add(combobox.selection.graphic)
+		combobox.selection:add(
+			Widg.Rectangle {
+				visible = false,
+				width = params.width,
+				height = params.itemHeight,
+				onClick = function(self)
+					combobox.droppedDown = not combobox.droppedDown
+					local items = combobox.items.actor
+					items:visible(combobox.droppedDown)
+				end
+			}
+		)
+
+		for i = 1, params.numitems do
+			(combobox.items):add(
+				Widg.Container {
+					y = i * params.itemHeight,
+					content = {
+						params.item(combobox.choices[i], params),
+						Widg.Rectangle {
+							width = params.width,
+							height = params.itemHeight,
+							visible = false,
+							onClick = function(self)
+								if combobox.droppedDown then
+									local g = combobox.selection.graphic
+									g:SetText(combobox.choices[i])
+									if params.onSelectionChanged then
+										params.onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
+									end
+									combobox.selected = i
+									combobox.droppedDown = false
+									local items = combobox.items.actor
+									items:visible(combobox.droppedDown)
 								end
-								combobox.selected = i
-								combobox.droppedDown = false
-								local items = combobox.items.actor
-								items:visible(combobox.droppedDown)
 							end
-						end
+						}
 					}
 				}
-			}
-		)
-	end
+			)
+		end
 
-	if params.scrollable then
-		combobox:add(
-			Widg.Scrollable {
-				width = params.width,
-				height = params.itemHeight * (params.numitems + 1),
-				content = combobox.items
-			}
-		)
-	else
-		combobox:add(combobox.items)
+		if params.scrollable then
+			combobox:add(
+				Widg.Scrollable {
+					width = params.width,
+					height = params.itemHeight * (params.numitems + 1),
+					content = combobox.items
+				}
+			)
+		else
+			combobox:add(combobox.items)
+		end
+		combobox:add(combobox.selection)
+		return combobox
 	end
-	combobox:add(combobox.selection)
-	return combobox
+end
+
+Widg.defaults.textbox = {
+	-- All the Widg.button defaults and
+	text = "",
+	numeric = false,
+	cursor = {
+		blinkInterval = 0.15,
+		color = color "ffffff"
+	},
+	-- filter(key) == true => accept input (Otherwise discard it)
+	filter = false, -- If numeric is used then filter is set automatically
+	cursorOffset = 0, -- <=0 (Ex. if it's -1 then cursor would be as|d (The |))
+	onValueChangeEnd = false, -- Called when esc or enter is pressed
+	onValueChange = false, -- Called on each change to the string
+	clearOnEsc = false, -- Set to empty string when ending input with escape
+	inputStartCondition = function()
+		return not SCREENMAN:get_input_redirected(PLAYER_1)
+	end
+}
+do
+	-- delete => remove from in front of the cursor (Otherwise behind)
+	local function firstChunk(s, offset, delete)
+		return s:sub(1, offset - (delete and 1 or 2))
+	end
+	local function secondChunk(s, offset, delete)
+		return s:sub((delete and 2 or 1) + s:len() + offset)
+	end
+	local function removeCharacter(s, offset, delete)
+		return firstChunk(s, offset, delete) .. secondChunk(s, offset, delete)
+	end
+	local function addStrWithOffset(s, offset, new)
+		return firstChunk(s, offset, true) .. new .. secondChunk(s, offset, false)
+	end
+	Widg.mts.TextBox = {}
+	Widg.mts.TextBox.__index = Widg.mts.TextBox
+	function Widg.mts.TextBox:SetCursor(offset)
+		self.cursorOffset = offset
+		local len = self.text:len()
+		self.cursor.actor:x(self.params.width / 2 + (len / 2 + offset) * 6.5)
+	end
+	function Widg.mts.TextBox:SetText(str)
+		local params = self.params
+		if params.numeric then
+			str = str == "" and "0" or ((str:len() > 1 and str:sub(1, 1) == "0") and (str:sub(2)) or str)
+		end
+		self.text = str
+		self:ButtonSetText(str)
+		self:SetCursor(self.cursorOffset)
+		if params.onValueChange then
+			params.onValueChange(self, str)
+		end
+	end
+	function Widg.mts.TextBox:SetActive(active)
+		self.active = active
+		self.cursor.actor:visible(false)
+		if active then
+			self:SetCursor(0)
+		elseif self.params.onValueChangeEnd then
+			self.params.onValueChangeEnd()
+		end
+		SCREENMAN:set_input_redirected(PLAYER_1, active)
+		self:SetText(self.text)
+	end
+	function Widg.mts.TextBox:EndInput()
+		self:SetActive(false)
+		if self.params.onValueChangeEnd then
+			self.params.onValueChangeEnd(self, self.text)
+		end
+	end
+	function Widg.mts.TextBox:StartInput()
+		self:SetActive(true)
+	end
+	--[[
+		Defined using a button widget with an input callback.
+		Has a movable cursor
+		TODO: Handle cursor positioning better
+		TODO: Selections and copying (Needs C++ too iirc)
+	]]
+	Widg.TextBox = function(params)
+		fillNilTableFieldsFrom(params, Widg.defaults.textbox)
+		fillNilTableFieldsFrom(params, Widg.defaults.button)
+		if params.numeric then
+			params.filter = tonumber
+			params.text = params.text == "" and "0" or params.text
+		end
+		local cursor =
+			Widg.Label {
+			text = "I",
+			color = params.cursor.color,
+			scale = params.font.scale,
+			x = params.width / 2,
+			visible = false,
+			y = params.height / 2
+		}
+		local textbox
+		local inputF = function(event)
+			if not textbox.active then
+				return false
+			end
+			-- We want first press and repeat only
+			if event.type ~= "InputEventType_Release" then
+				if event.button == "Start" then
+					textbox:EndInput()
+					return true
+				elseif event.button == "Back" then
+					if params.clearOnEsc then
+						textbox:SetText("")
+					end
+					textbox:EndInput()
+					return true
+				elseif event.DeviceInput.button == "DeviceButton_backspace" then
+					textbox:SetText(removeCharacter(textbox.text, textbox.cursorOffset))
+				elseif event.DeviceInput.button == "DeviceButton_delete" then
+					textbox:SetText(removeCharacter(textbox.text, textbox.cursorOffset, true))
+					textbox:SetCursor(math.min(textbox.cursorOffset + 1, 0))
+				else
+					local key = event.DeviceInput.button:match("DeviceButton_(.+)")
+					if key == "v" and INPUTFILTER:IsControlPressed() then
+						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, HOOKS:GetClipboard()))
+					elseif key:len() == 1 and ((not params.filter) or params.filter(key)) then
+						-- xor
+						if INPUTFILTER:IsBeingPressed("caps lock") ~= INPUTFILTER:IsShiftPressed() then
+							key = key:upper()
+						end
+						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, key))
+					elseif key == "left" then
+						textbox:SetCursor(math.max(textbox.cursorOffset - 1, -textbox.text:len()))
+					elseif key == "right" then
+						textbox:SetCursor(math.min(textbox.cursorOffset + 1, 0))
+					elseif key == "home" then
+						textbox:SetCursor(-textbox.text:len())
+					elseif key == "space" then
+						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, " "))
+					elseif key == "tab" then
+						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, "\t"))
+					end
+				end
+			end
+		end
+		textbox =
+			Widg.Button(
+			setmetatable(
+				{
+					text = params.text,
+					highlightCondition = function(self)
+						return textbox.active or isOver(self)
+					end,
+					onRightClick = function()
+						textbox:EndInput()
+					end
+				},
+				{__index = params}
+			)
+		)
+		textbox.bg.LeftClickMessageCommand = function(self)
+			if not textbox.active then
+				if (not params.inputStartCondition) or params.inputStartCondition() and isOver(self) then
+					textbox:StartInput()
+				end
+			elseif not isOver(self) then
+				textbox:EndInput()
+			end
+		end
+		textbox.params = params
+		local blinkingCursor
+		do
+			local i = 0
+			local lastClock = 0
+			local b = true
+			local interval = params.cursor.blinkInterval
+			blinkingCursor = function(self)
+				highlight(self)
+				local newClock = os.clock()
+				i = i - lastClock + newClock
+				lastClock = newClock
+				if i > interval then
+					i = 0
+					b = not b
+					cursor.actor:settext("")
+				end
+			end
+		end
+		textbox.OnCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(inputF)
+			self:SetUpdateFunction(blinkingCursor)
+		end
+		textbox.text = params.text
+		textbox.cursorOffset = params.cursorOffset
+		textbox.ButtonSetText = textbox.SetText
+		setmetatable(textbox, Widg.mts.TextBox)
+		textbox.SetText = Widg.mts.TextBox.SetText -- Otherwise there's a collision with Button's
+		textbox:add(cursor)
+		textbox.cursor = cursor
+		return textbox
+	end
 end

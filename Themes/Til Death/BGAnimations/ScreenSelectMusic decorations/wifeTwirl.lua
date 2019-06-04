@@ -14,6 +14,7 @@ local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local dontRemakeTheNotefield = false
 local songChanged = false
 
 local update = false
@@ -130,6 +131,7 @@ t[#t + 1] =
 	}
 
 local function toggleNoteField()
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
 	if song and not noteField then -- first time setup
 		noteField = true
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
@@ -462,13 +464,13 @@ r[#r + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(20, 200)
+			self:xy(frameX + 120, SCREEN_BOTTOM - 225):visible(true)
 			self:zoom(0.7)
 			self:halign(0)
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
-				self:settext("NegBpms!")
+				self:settext("NegBPMs!")
 			else
 				self:settext("")
 			end
@@ -590,6 +592,15 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 		highlight = {color = getMainColor("highlight")},
 		x = 10 - 100 + capWideScale(get43size(384), 384) + x,
 		y = 61 + capWideScale(get43size(120), 120),
+		font = {
+			scale = 0.3,
+			name = "Common Large",
+			color = color("#FFFFFF"),
+			padding = {
+				x = 10,
+				y = 10
+			}
+		},
 		onInit = function(self)
 			button.turnedOn = false
 			button.updateToggleButton = function()
@@ -767,12 +778,26 @@ local function ihatestickinginputcallbackseverywhere(event)
 	return false
 end
 
-t[#t + 1] =
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
+t[#t + 1] = Def.ActorFrame {
+	InitCommand = function(self)
+		self:SetUpdateFunction( function(self)
+			self:queuecommand("Highlight")
+		end)
+	end,
+
 	LoadFont("Common Normal") ..
 	{
 		Name = "PreviewViewer",
 		BeginCommand = function(self)
-			mcbootlarder = self:GetParent():GetChild("ChartPreview")
+			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
 			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 			SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
 			self:xy(20, 235)
@@ -787,14 +812,14 @@ t[#t + 1] =
 		end,
 		CurrentStyleChangedMessageCommand = function(self) -- need to regenerate the notefield when changing styles or crashman appears -mina
 			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
+				if not mcbootlarder:IsVisible() then
+					dontRemakeTheNotefield = true
+				else
+					dontRemakeTheNotefield = false
+				end
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
-				SCREENMAN:GetTopScreen():setTimeout(
-					function()
-						toggleNoteField()
-					end,
-					0.05
-				)
+				toggleNoteField()
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
 		end,
@@ -807,10 +832,12 @@ t[#t + 1] =
 				readyButton:Enable()
 				forceStart:Enable()
 			end
-		end
-	}
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+	},
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "PlayerOptionsButton",
@@ -820,12 +847,15 @@ t[#t + 1] =
 			self:halign(0)
 			self:settext("Player Options")
 		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+			if isOver(self) and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end
-	}
+	},
 
 --[[ -- This is the Widget Button alternative of the above implementation.
 t[#t + 1] =
@@ -842,5 +872,29 @@ t[#t + 1] =
 		SCREENMAN:GetTopScreen():OpenOptions()
 	end
 }]]
+
+	LoadFont("Common Normal") ..
+	{
+		Name = "MusicWheelSortButton",
+		BeginCommand = function(self)
+			self:xy(20, 201)
+			self:zoom(0.5)
+			self:halign(0)
+			self:settext("Open Sort Menu")
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				-- open SORT_MODE_MENU, hardcoded the enum value (8 as of this commit) because 
+				-- I can't figure out in 3 minutes how to name reference it and it's not worth
+				-- more time than that since we'll be swapping out the entire music wheel anyway
+				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(8)
+			end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+	}
+}
+
 t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

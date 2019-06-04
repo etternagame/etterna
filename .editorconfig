@@ -3,7 +3,7 @@ root = true
 
 [*]
 indent_style = tab
-indent_size = 8
+indent_size = 4
 end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
@@ -15,5 +15,6 @@ indent_style = space
 [*.md]
 trim_trailing_whitespace = false
 
-[configure.ac]
-end_of_line = lf
+[{CMakeLists.txt, *.cmake}]
+indent_style = tab
+indent_size = 4

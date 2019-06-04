@@ -11,7 +11,7 @@
 #endif
 
 #if defined(__MINGW32__)
-#if !defined(_WINDOWS)
+#if !defined(_WIN32)
 #define _WINDOWS // This isn't defined under all versions of MinGW
 #endif
 #define NEED_CSTDLIB_WORKAROUND // Needed for llabs() in MinGW

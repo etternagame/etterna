@@ -1,10 +1,10 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_Win32_Pump.h"
 
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageInputDevice.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageInputDevice.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/USB.h"
 

@@ -232,7 +232,11 @@ local function makePackDisplay(i)
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) then
-						packinfo:DownloadAndInstall(true)
+						if packinfo:GetSize() > 2000000000 then
+							GAMESTATE:ApplyGameCommand("urlnoexit," .. packinfo:GetURL())
+						else
+							packinfo:DownloadAndInstall(true)
+						end
 					end
 				end
 			},

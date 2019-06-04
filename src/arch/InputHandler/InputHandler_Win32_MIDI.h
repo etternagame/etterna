@@ -2,7 +2,7 @@
 #define INPUT_HANDLER_WIN32_MIDI
 
 #include "InputHandler.h"
-#include "RageInputDevice.h"
+#include "RageUtil/Misc/RageInputDevice.h"
 
 class InputHandler_Win32_MIDI : public InputHandler
 {

@@ -2,15 +2,15 @@
  */
 #include "PthreadHelpers.h"
 
-#include "global.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
+#include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
-#if defined(UNIX)
+#ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif
 
-#if defined(LINUX)
+#ifdef __linux__
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -209,7 +209,6 @@ ResumeThread(uint64_t ThreadID)
  * This call leaves the given thread suspended, so the returned context doesn't
  * become invalid. ResumeThread() can be used to resume a thread after this
  * call. */
-#if defined(CRASH_HANDLER)
 bool
 GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 {
@@ -231,13 +230,13 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 		return false;
 	}
 
-#if defined(CPU_X86_64) || defined(CPU_X86)
+#if defined(__x86_64__) || defined(__i386__)
 	user_regs_struct regs;
 	if (ptrace(PTRACE_GETREGS, pid_t(ThreadID), NULL, &regs) == -1)
 		return false;
 
 	ctx->pid = pid_t(ThreadID);
-#if defined(CPU_X86_64)
+#if defined(__x86_64__)
 	ctx->ip = (void*)regs.rip;
 	ctx->bp = (void*)regs.rbp;
 	ctx->sp = (void*)regs.rsp;
@@ -262,9 +261,8 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
 
 	return true;
 }
-#endif
 
-#elif defined(UNIX)
+#elif defined(__unix__)
 #include <pthread.h>
 #include <signal.h>
 

@@ -2,7 +2,7 @@
  * Bignum routines for RSA and DH and stuff.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "CryptBn.h"
 
 #if defined(_MSC_VER)

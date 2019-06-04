@@ -9,11 +9,11 @@ struct Frame;
 /* This contains the information necessary to backtrace a thread. */
 struct BacktraceContext
 {
-#if defined(CPU_X86) || defined(CPU_X86_64)
+#if defined(__i386__) || defined(__x86_64__)
 	const void *ip, *bp, *sp;
 #endif
 
-#if defined(UNIX)
+#ifdef __unix__
 	pid_t pid;
 #endif
 
@@ -45,7 +45,7 @@ GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx);
 
 /* Set up a BacktraceContext to get a backtrace after receiving a signal, given
  * a ucontext_t (see sigaction(2)).  (This interface is UNIX-specific.) */
-#if defined(UNIX) || defined(MACOSX)
+#if defined(__unix__) || defined(__APPLE__)
 #include <ucontext.h>
 void
 GetSignalBacktraceContext(BacktraceContext* ctx, const ucontext_t* uc);

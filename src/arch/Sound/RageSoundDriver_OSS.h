@@ -2,8 +2,8 @@
 #define RAGE_SOUND_WAVEOUT
 
 #include "RageSoundDriver.h"
-#include "RageThreads.h"
-#include "RageTimer.h"
+#include "RageUtil/Misc/RageThreads.h"
+#include "RageUtil/Misc/RageTimer.h"
 
 class RageSoundDriver_OSS : public RageSoundDriver
 {

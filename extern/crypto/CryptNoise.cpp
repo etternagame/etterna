@@ -3,7 +3,7 @@
  * generator.
  */
 
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #if defined(_WINDOWS)
 #define _WIN32_WINNT 0x0400		// VC6 header needs this defined.  

@@ -1,15 +1,15 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_Generic.h"
-#include "PrefsManager.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageSurface.h"
-#include "RageTextureManager.h"
-#include "RageTextureRenderTarget.h"
-#include "RageUtil.h"
-#include "Sprite.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Actor/Base/Sprite.h"
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include "archutils/Win32/ErrorStrings.h"
 #include <windows.h>
 #endif

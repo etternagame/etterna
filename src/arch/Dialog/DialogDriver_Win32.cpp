@@ -1,11 +1,11 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "DialogDriver_Win32.h"
-#include "RageUtil.h"
+#include "RageUtil/Utils/RageUtil.h"
 #if !defined(SMPACKAGE)
-#include "LocalizedString.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
 #endif
-#include "ThemeManager.h"
-#include "ProductInfo.h"
+#include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Globals/ProductInfo.h"
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"

@@ -1,7 +1,7 @@
 /*
  * Prime generation.
  */
-#include "global.h"
+#include "Etterna/Globals/global.h"
 
 #include "CryptRand.h"
 #include "CryptPrime.h"

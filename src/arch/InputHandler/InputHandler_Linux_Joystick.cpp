@@ -1,9 +1,9 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "InputHandler_Linux_Joystick.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "LinuxInputManager.h"
-#include "RageInputDevice.h" // NUM_JOYSTICKS
+#include "RageUtil/Misc/RageInputDevice.h" // NUM_JOYSTICKS
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

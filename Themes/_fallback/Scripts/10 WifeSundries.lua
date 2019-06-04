@@ -87,6 +87,14 @@ function ms.ok(m)
 	end
 end
 
+--[[
+	Print a thing to the error console (F3+F6+8 to enable, F3+F6+9 to make it persist)
+	str: anything that can be used with tostring()
+]]
+function ms.p(str)
+	MESSAGEMAN:Broadcast("ScriptError", {message = tostring(str)})
+end
+
 function ms.type(m)
 	SCREENMAN:SystemMessage(type(m))
 end
@@ -256,7 +264,7 @@ function ChangeMusicRate(rate, params)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextScore" and rate > 0.75 and (getTabIndex() == 0 or getTabIndex() == 1) then
+	elseif params.Name == "NextScore" and rate > 0.55 and (getTabIndex() == 0 or getTabIndex() == 1) then
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
@@ -268,7 +276,7 @@ function ChangeMusicRate(rate, params)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextRate" and rate > 0.7 and (getTabIndex() == 0 or getTabIndex() == 1) then
+	elseif params.Name == "NextRate" and rate > 0.5 and (getTabIndex() == 0 or getTabIndex() == 1) then
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)

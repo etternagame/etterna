@@ -1,117 +1,85 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: required
 
-matrix:
-        include:
-                - env:
-                          CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
-                          WITH_FFMPEG_JOBS=1
-                  os: osx
-                - env:
-                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=OFF
-                          WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: &1
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - clang-5.0
-                                          - clang-format-5.0
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                - env:
-                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON
-                          WITH_FFMPEG_JOBS=1
-                  compiler: clang
-                  addons: *1
-                - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-                  compiler: gcc
-                  addons:
-                          apt:
-                                  sources:
-                                          - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise
-                                  packages:
-                                          - nasm
-                                          - libudev-dev
-                                          - gcc-5
-                                          - g++-5
-                                          - libmad0-dev
-                                          - libgtk2.0-dev
-                                          - binutils-dev
-                                          - libasound-dev
-                                          - libpulse-dev
-                                          - libjack-dev
-                                          - libc6-dev
-                                          - libogg-dev
-                                          - libvorbis-dev
-                                          - libxtst-dev
-                                          - libxrandr-dev
-                                          - libglew-dev
-                                          - libuv-dev
-                                          - clang-format-5.0
-                          coverity_scan:
-                                  project:
-                                          name: etternagame/etterna
-                                          description: "Build submitted via Travis CI"
-                                  notification_email: etternadev@gmail.com
-                                  build_command_prepend: "cov-configure --comptype g++ --compiler g++-5 --template"
-                                  build_command: "make -j 4"
-                                  branch_pattern: coverity_scan
+git:
+  depth: false
 
-before_script:
-        - if [ "${CXX_COMPILER}" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include; fi
-        - git submodule update --init
-        - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl;
-          export LIBRARY_SEARCH_PATHS=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
-          export LIBRARY_PATH=${TRAVIS_BUILD_DIR}/Xcode/Libraries;
-          brew install --HEAD libuv --universal;
-          brew install yasm;
-          brew install nasm;
-          brew uninstall libuv;
-          brew install libuv --universal;
-          brew uninstall openssl;
-          brew install openssl --universal;
-          brew uninstall zlib;
-          brew install zlib --universal;
-          brew install grep --with-default-names;
-          brew install clang-format --universal;
-          cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
-
-script:
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 100 xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
-          mv ../*.app ../Etterna.app;
-          xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
-        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cd .. && bash format-check.sh; fi
-
-before_install:
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
-          gem install dropbox-deployment; fi
-
-after_success:
-        - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ${TRAVIS_BUILD_DIR};
-          ruby uploadDmg.rb; fi
-
+# Path is modified here since we install CMake to the /usr/local/ prefix. Usually the system
+# would check the full path until it reached CMake, but Travis specifically adds their CMake
+# version to their path. We want our CMake to have priority, so we add it to the start of the 
+# search path. 
 env:
-        global:
-                secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
+  matrix:
+    - PATH=/usr/local/bin:${PATH}
+  # COVERITY_SCAN_TOKEN
+  global:
+    - secure: "dqRcKvhvVSV0+M9UuLTJvns4aFKHGdl7O2Bu5OkCt6hy2Fx6RErfNZKIhwoiIFSWbrLN5rbjiSrEttpGQR5lGBc3POxgW+578Ty7a8HUO5EMtXB5x4pFa8cWqkUe4xwX1tAZvHRZYpGutBwFDwLf2r6/RMZBV+FxwnjDOhpsFkIo7oIHo7qReeFoW5JkAYGOle+ZUyjjU/li/7svyO7dUmifQcdB3CQ8bMgF3Jyu8+HTzutsLep1rSN7vsw2X/NET+cvnqJ5fC//6B9stBcp80g5I3TMgx4w372VJ9Yn/Co/rqpkQ3toit+1KhJ39Wm3IaQiKctfeyvl1Wa8TDJqvmQxj/fsz+3Co+j0Afx0fW6IuF7i0aH0qJEH9sVohspyEdirlVc+QCaI2wBz06FaWZ9nIIy5fssRIzelf7MbjBHDD3iQU9TqeFZ+u4r30hUwRv1xrhpHg7f0zun0zQv29tfrroZTJQtBrCy8vscqIsP8GWPZeig/fW1Mn0vvCbI0Z7anmICYPjLWQDHjSVKexdWvmtux76PPIRlMB7FlQbQY5aar4olaSI8eFvLKV8/RUXICD36m+RNP1LXKhqJWmuvco88e+YUclvhYH+QAAqWN5f7qq4o0ujxeZvsQqYb9T5NEW+Wsap/g5RqX7S2D3XonNTGW3k14PEzdrpVVXfc="
+
+matrix:
+  include:
+
+    ##### Linux ##################
+    - os: linux
+      compiler: clang
+    - os: linux
+      compiler: gcc
+
+    ##### macOS ##################
+    - os: osx
+      osx_image: xcode10.1
+      install:
+        - sudo gem install xcpretty
+      script:
+        - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
+        - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -configuration Release | xcpretty
+
+# This will only run for the linux builds
+# The other os's have overridden the script tag
+script:
+  - sh .ci/build.sh
+  - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
+  - cmake ..
+  - make
+
+addons:
+  coverity_scan:
+    project:
+      name: etternagame/etterna
+      description: "Advanced cross-platform rhythm game focused on keyboard play"
+    notification_email: etternadev@gmail.com
+    build_command_prepend: "sh .ci/build.sh; mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build; cmake .."
+    build_command: "make -j 4"
+    branch_pattern: coverity_scan
+  homebrew:
+    packages:
+      - openssl
+      - cmake
+      - nasm
+    update: true
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+    packages:
+      - nasm
+      - libudev-dev
+      - gcc-5
+      - g++-5
+      - libmad0-dev
+      - libgtk2.0-dev
+      - binutils-dev
+      - libasound-dev
+      - libpulse-dev
+      - libjack-dev
+      - libc6-dev
+      - libogg-dev
+      - libvorbis-dev
+      - libxtst-dev
+      - libxrandr-dev
+      - libglew-dev
+      - libuv-dev
+      - clang-format-5.0
+    update: true
+

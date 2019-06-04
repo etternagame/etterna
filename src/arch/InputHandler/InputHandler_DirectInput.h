@@ -2,8 +2,10 @@
 #define INPUTHANDLER_DIRECTINPUT_H
 
 #include "InputHandler.h"
-#include "RageThreads.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include <chrono>
+
+void DInput_ForceJoystickPollingInNextDevicesChangedCall();
 
 struct DIDevice;
 class InputHandler_DInput : public InputHandler

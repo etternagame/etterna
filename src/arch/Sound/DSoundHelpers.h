@@ -1,7 +1,7 @@
 #ifndef DSOUND_HELPERS
 #define DSOUND_HELPERS 1
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <windows.h>
 #include <wtypes.h>
 #endif

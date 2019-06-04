@@ -1,18 +1,17 @@
-#include "global.h"
+#include "Etterna/Globals/global.h"
 #include "MovieTexture_FFMpeg.h"
 
-#include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageFile.h"
-#include "RageSurface.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Misc/RageLog.h"
+#include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/Graphics/RageSurface.h"
 
 #include <cerrno>
 
 static void
 FixLilEndian()
 {
-#if defined(ENDIAN_LITTLE)
 	static bool Initialized = false;
 	if (Initialized)
 		return;
@@ -39,7 +38,6 @@ FixLilEndian()
 			pf.masks[mask] = m;
 		}
 	}
-#endif
 }
 
 static int

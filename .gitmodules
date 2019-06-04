@@ -1,6 +1,0 @@
-[submodule "extern/SQLiteCpp"]
-	path = extern/SQLiteCpp
-	url = https://github.com/etternagame/SQLiteCpp
-[submodule "extern/json"]
-	path = extern/json
-	url = https://github.com/etternagame/json.git
