@@ -4,6 +4,9 @@ set(CMAKE_PACKAGE_DESCRIPTION "Advanced cross-platform rhythm game focused on ke
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/CPack/license_install.txt)
 set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be installed
 
+# Custom Variables
+set(INSTALL_DIR "Etterna")
+
 # Windows Specific CPack
 if(WIN32)
     set(CPACK_GENERATOR "NSIS")
@@ -32,7 +35,6 @@ elseif(APPLE)
     set(CPACK_GENERATOR DragNDrop)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
-    set(INSTALL_DIR "Etterna")
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
 endif()
 
