@@ -25,8 +25,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile com
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
+## Ninja specific setup (Different compilers required different color force commands)
 if(CMAKE_GENERATOR STREQUAL "Ninja")
-    set(CMAKE_CXX_FLAGS "-fcolor-diagnostics")              # Required flag to get color output from Ninja
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        add_compile_options("-fcolor-diagnostics")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options("-fdiagnostics-color=always")
+    endif()
 endif()
 
 ## Extern Library Variables
