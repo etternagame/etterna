@@ -43,13 +43,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake whe
 # Project Build Targets
 add_executable(Etterna)
 
-## Source - Add source to the Etterna target
-add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL so those install components are not in out install compnenets
-add_subdirectory(src/Etterna)
-add_subdirectory(src/arch)
-add_subdirectory(src/archutils)
-add_subdirectory(src/RageUtil)
-
 ## Setting Target Properties
 ### TODO: Temp output directories. Switch to out-of-source
 set_target_properties(Etterna PROPERTIES
@@ -101,6 +94,13 @@ elseif(APPLE)
 elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
+
+## Source - Add source to the Etterna target
+add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
+add_subdirectory(src/Etterna)
+add_subdirectory(src/arch)
+add_subdirectory(src/archutils)
+add_subdirectory(src/RageUtil)
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
