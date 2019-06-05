@@ -43,6 +43,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake whe
 # Project Build Targets
 add_executable(Etterna)
 
+# Load external libraries
+add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
+
 ## Setting Target Properties
 ### TODO: Temp output directories. Switch to out-of-source
 set_target_properties(Etterna PROPERTIES
@@ -96,7 +99,6 @@ elseif(UNIX)
 endif()
 
 ## Source - Add source to the Etterna target
-add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
 add_subdirectory(src/Etterna)
 add_subdirectory(src/arch)
 add_subdirectory(src/archutils)
