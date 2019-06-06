@@ -696,7 +696,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(100):diffuse(getMainColor("positive")):settext("Import Scores"):zoom(0.3)
+				self:x(100):diffuse(getMainColor("positive")):settext("Asset Settings"):zoom(0.3)
 			end
 		},
 	Def.Quad {
@@ -705,11 +705,7 @@ local profilebuttons =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
-				if PROFILEMAN:ConvertProfile(PLAYER_1) then
-					ms.ok("Imported scores from stats.xml")
-				else
-					ms.ok("Score import failed")
-				end
+				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
 		end
 	},

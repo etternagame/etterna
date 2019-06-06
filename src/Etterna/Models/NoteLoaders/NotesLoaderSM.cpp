@@ -339,9 +339,9 @@ SMLoader::LoadFromTokens(RString sStepsType,
 	if (sStepsType == "ez2-single-hard")
 		sStepsType = "ez2-single";
 
-	// HACK: "para-single" used to be called just "para"
-	if (sStepsType == "para")
-		sStepsType = "para-single";
+	// HACK: replace para and para-single with pump (both are 5 keys)
+	if (sStepsType == "para" || sStepsType == "para-single")
+		sStepsType = "pump-single";
 
 	out.m_StepsType = GAMEMAN->StringToStepsType(sStepsType);
 	out.m_StepsTypeStr = sStepsType;
@@ -986,8 +986,8 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 		case 8: {
 			RString tmp = aBGChangeValues[7];
 			tmp.MakeLower();
-			if ((tmp.find(".ini") != std::string::npos ||
-				 tmp.find(".xml") != std::string::npos) ) {
+			if ((tmp.find(".ini") != string::npos ||
+				 tmp.find(".xml") != string::npos)) {
 				return false;
 			}
 			change.m_def.m_sFile2 = aBGChangeValues[7];

@@ -20,8 +20,8 @@ enum MusicWheelUsesSections
 /** @brief The options for allowing the W1 timing. */
 enum AllowW1
 {
-	ALLOW_W1_NEVER,		   /**< The W1 timing is not used. */
-	ALLOW_W1_EVERYWHERE,   /**< The W1 timing is used for all modes. */
+	ALLOW_W1_NEVER,		 /**< The W1 timing is not used. */
+	ALLOW_W1_EVERYWHERE, /**< The W1 timing is used for all modes. */
 	NUM_AllowW1,
 	AllowW1_Invalid
 };
@@ -180,6 +180,7 @@ class PrefsManager
 	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
+	Preference<bool> m_bNoGlow;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
@@ -189,23 +190,24 @@ class PrefsManager
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 
-	Preference<Maybe>	m_ShowSongOptions;
-	Preference<float>	m_fMinPercentToSaveScores;
-	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
-	Preference<float>	m_fGlobalOffsetSeconds;
-	Preference<RString>	m_sLanguage;
-	Preference<int>	m_iCenterImageTranslateX;
-	Preference<int>	m_iCenterImageTranslateY;
-	Preference<int>	m_fCenterImageAddWidth;
-	Preference<int>	m_fCenterImageAddHeight;
+	Preference<Maybe> m_ShowSongOptions;
+	Preference<float> m_fMinPercentToSaveScores;
+	Preference<ShowDancingCharacters> m_ShowDancingCharacters;
+	Preference<float> m_fGlobalOffsetSeconds;
+	Preference<RString> m_sLanguage;
+	Preference<int> m_iCenterImageTranslateX;
+	Preference<int> m_iCenterImageTranslateY;
+	Preference<int> m_fCenterImageAddWidth;
+	Preference<int> m_fCenterImageAddHeight;
 	Preference<bool> m_bCelShadeModels;
 	Preference<bool> m_bPreferredSortUsesGroups;
 	Preference<bool> EnablePitchRates;
+	Preference<bool> LiftsOnOsuHolds;
+	Preference<bool> m_bEasterEggs;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
 	Preference<float> m_fPadStickSeconds;
-
 
 	// Useful for non 4:3 displays and resolutions < 640x480 where texels don't
 	// map directly to pixels.

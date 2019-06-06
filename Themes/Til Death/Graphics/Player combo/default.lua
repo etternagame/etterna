@@ -1,5 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
+local enabledCombo = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ComboText
 
 local function arbitraryComboX(value) 
 	c.Label:x(value) 
@@ -51,8 +52,8 @@ local t =
 		if (allowedCustomization) then
 			Movable.DeviceButton_3.element = c
 			Movable.DeviceButton_4.element = c
-			Movable.DeviceButton_3.condition = true
-			Movable.DeviceButton_4.condition = true
+			Movable.DeviceButton_3.condition = enabledCombo
+			Movable.DeviceButton_4.condition = enabledCombo
 			Movable.DeviceButton_3.Border = self:GetChild("Border")
 			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX 
 			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX 
@@ -112,4 +113,8 @@ local t =
 	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),
 }
 
-return t
+if enabledCombo then
+	return t
+end
+
+return {}

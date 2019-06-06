@@ -12,7 +12,7 @@ option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
 project(Etterna
-        VERSION 0.65.1
+		VERSION 0.66.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -74,13 +74,13 @@ find_package(Threads REQUIRED)
 target_link_libraries(Etterna Threads::Threads)
 
 ## Linking
+target_link_libraries(Etterna zlib)
+target_link_libraries(Etterna rapidjson)
+target_link_libraries(Etterna websocketpp)
 target_link_libraries(Etterna luajit)
 target_link_libraries(Etterna discord-rpc)
 target_link_libraries(Etterna sqlite3)
 target_link_libraries(Etterna SQLiteCpp)
-target_link_libraries(Etterna uWS)
-target_link_libraries(Etterna jsoncpp)
-target_link_libraries(Etterna nlohmann_json)
 target_link_libraries(Etterna tomcrypt)
 target_link_libraries(Etterna libtommath)
 target_link_libraries(Etterna fftw3f)

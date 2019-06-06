@@ -109,7 +109,7 @@ if(UNIX)
     endif (APPLE)
 endif(UNIX)
 
-target_include_directories(discord-rpc PRIVATE ${RAPIDJSON}/include)
+target_link_libraries(discord-rpc PRIVATE rapidjson)
 target_include_directories(discord-rpc PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 if (NOT ${ENABLE_IO_THREAD})

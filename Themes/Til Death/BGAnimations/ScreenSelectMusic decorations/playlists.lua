@@ -276,11 +276,16 @@ local function DeleteChartButton(i)
 				Name = "Text",
 				InitCommand = function(self)
 					self:halign(0)
-				end,
-				DisplaySinglePlaylistLevel2Command = function(self)
 					self:zoom(fontScale)
 					self:settext("Del")
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				end,
+				DisplaySinglePlaylistLevel2Command = function(self)
+					if pl:GetName() == "Favorites" then
+						self:visible(false)
+					else
+						self:visible(true)
+					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if ButtonActive(self) and singleplaylistactive then

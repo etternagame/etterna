@@ -742,8 +742,10 @@ InitializeConfOptions()
 
 	ADD(ConfOption("Announcer", Announcer, AnnouncerChoices));
 	ADD(ConfOption("DefaultNoteSkin", DefaultNoteSkin, DefaultNoteSkinChoices));
+	ADD(ConfOption("NoGlow", MovePref<bool>, "On", "Off"));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("ShowCaution", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
@@ -871,8 +873,7 @@ InitializeConfOptions()
 	ADD(ConfOption("Center1Player", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
 	// W1 is Fantastic Timing
-	ADD(ConfOption(
-	  "AllowW1", MovePref<AllowW1>, "Never", "Always"));
+	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 

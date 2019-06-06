@@ -11,11 +11,12 @@ else() # All remaining compilers
 endif()
 
 # Universally required
+add_subdirectory(rapidjson)
+add_subdirectory(asio-1.12.2)
+add_subdirectory(websocketpp)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
-add_subdirectory(json)
-add_subdirectory(jsoncpp)
 add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
 add_subdirectory(fftw-3.3.8)
@@ -25,7 +26,6 @@ add_subdirectory(pcre)
 add_subdirectory(stb)
 add_subdirectory(libuv)
 add_subdirectory(zlib)
-add_subdirectory(uWebSocket)
 add_subdirectory(libcurl)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
@@ -45,10 +45,10 @@ list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
     discord-rpc
     SQLiteCpp sqlite3
-    jsoncpp uv uv_a
+    uv uv_a
     tomcrypt libtommath
     fftw3f glfw pcre
-    zlib uWS libmad
+    zlib libmad
     ogg vorbis)
 
 set_property(TARGET ${ET_EXT_TARGETS} PROPERTY FOLDER "External Libraries") # Sort all extern libraries to a IDE folder/filter

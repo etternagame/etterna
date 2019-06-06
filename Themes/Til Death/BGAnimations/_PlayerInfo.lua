@@ -83,7 +83,7 @@ t[#t + 1] =
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				local top = SCREENMAN:GetTopScreen()
-				SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
+				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
 		end
 	},

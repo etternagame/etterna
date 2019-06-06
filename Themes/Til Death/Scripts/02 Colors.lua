@@ -34,16 +34,12 @@ local themeColors = {
 		Difficulty_Hard		= color("#ff6666"),		-- red
 		Difficulty_Challenge= color("#c97bff"),	-- light blue
 		Difficulty_Edit 	= color("0.8,0.8,0.8,1"),	-- gray
-		Difficulty_Couple	= color("#ed0972"),			-- hot pink
-		Difficulty_Routine	= color("#ff9a00"),			-- orange
 		Beginner	= color("#66ccff"),		
 		Easy		= color("#099948"),		-- green
 		Medium		= color("#ddaa00"),		-- yellow
 		Hard		= color("#ff6666"),		-- red
 		Challenge 		= color("#c97bff"),	-- Purple
 		Edit 		= color("0.8,0.8,0.8,1"),	-- gray
-		Couple		= color("#ed0972"),			-- hot pink
-		Routine		= color("#ff9a00")			-- orange
 	},
 
 	DifficultyVivid = {
@@ -53,8 +49,6 @@ local themeColors = {
 		Difficulty_Hard		= color("#ff0000"),		-- red
 		Difficulty_Challenge= color("#cc66ff"),	-- light blue
 		Difficulty_Edit 	= color("0.8,0.8,0.8,1"),	-- gray
-		Difficulty_Couple	= color("#ed0972"),			-- hot pink
-		Difficulty_Routine	= color("#ff9a00"),			-- orange
 		Beginner	= color("#0099ff"),		-- light blue
 		Easy		= color("#00ff00"),		-- green
 		Medium		= color("#ffff00"),		-- yellow
@@ -62,8 +56,6 @@ local themeColors = {
 		Hard		= color("#ff0000"),		-- red
 		Challenge 		= color("#cc66ff"),	-- Purple
 		Edit 		= color("0.8,0.8,0.8,1"),	-- gray
-		Couple		= color("#ed0972"),			-- hot pink
-		Routine		= color("#ff9a00")			-- orange
 	},
 
 	judgeColor = { -- Colors of each Judgment types

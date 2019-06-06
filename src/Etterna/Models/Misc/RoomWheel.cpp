@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
@@ -163,7 +163,6 @@ static LocalizedString ENTER_ROOM_NAME("RoomWheel", "Enter room name");
 bool
 RoomWheel::Select()
 {
-	SCREENMAN->PostMessageToTopScreen(SM_RoomInfoRetract, 0);
 
 	if (m_iSelection > 0)
 		return WheelBase::Select();

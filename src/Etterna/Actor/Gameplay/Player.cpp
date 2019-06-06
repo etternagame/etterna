@@ -3230,6 +3230,12 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 				m_pSecondaryScoreKeeper->HandleTapScore(tn);
 		} else {
 			tn.result.tns = TNS_Miss;
+
+			// avoid scoring notes that get passed when seeking in pm
+			// not sure how many rows grace time is needed (if any?)
+			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+				  .m_bPractice && iMissIfOlderThanThisRow - iter.Row() > 8)
+					tn.result.tns = TNS_None;
 			if (GAMESTATE->CountNotesSeparately()) {
 				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());

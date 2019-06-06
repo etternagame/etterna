@@ -1,4 +1,4 @@
---[[ 
+--[[
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
@@ -177,6 +177,15 @@ local t =
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
+		-- now playing thing for streamers
+		local streamerstuff =
+			"Now playing " ..
+			GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
+				" by " ..
+					GAMESTATE:GetCurrentSong():GetDisplayArtist() ..
+						" in " .. GAMESTATE:GetCurrentSong():GetGroupName() .. " " .. state
+		File.Write("nowplaying.txt", streamerstuff)
+
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
@@ -252,7 +261,7 @@ t[#t + 1] =
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	Old scwh lanecover back for now. Equivalent to "screencutting" on ffr; essentially hides notes for a fixed distance before they appear
-on screen so you can adjust the time arrows display on screen without modifying their spacing from each other. 
+on screen so you can adjust the time arrows display on screen without modifying their spacing from each other.
 ]]
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover then
 	t[#t + 1] = LoadActor("lanecover")
@@ -463,6 +472,9 @@ local function makeJudgeCount(judge, index) -- Makes county things for taps....
 			Name = judge,
 			InitCommand = function(self)
 				self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
+			end,
+			PracticeModeResetMessageCommand= function(self)
+				self:settext(0)
 			end
 		}
 end
@@ -482,7 +494,7 @@ end
 														    	**Player ErrorBar**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Visual display of deviance MovableValues. 
+	Visual display of deviance MovableValues.
 --]]
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
@@ -496,7 +508,7 @@ local alpha = 0.07 -- ewma alpha
 local avg
 local lastAvg
 
--- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgement value before disappating or refreshing
+-- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgment value before disappating or refreshing
 -- Should eventually be handled by the game itself to optimize performance
 function smeltErrorBar(index)
 	return Def.Quad {
@@ -514,6 +526,9 @@ function smeltErrorBar(index)
 			y(self, MovableValues.ErrorBarY)
 			Zoomtoheight(self, MovableValues.ErrorBarHeight)
 			linear(self, barDuration)
+			diffusealpha(self, 0)
+		end,
+		PracticeModeResetMessageCommand = function(self)
 			diffusealpha(self, 0)
 		end
 	}
@@ -553,7 +568,7 @@ local e =
 	DootCommand = function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
-		
+
 		-- basically we need the ewma version to exist inside this actor frame
 		-- for customize gameplay stuff, however it seems silly to have it running
 		-- visibility/nil/type checks if we aren't using it, so we can just remove
@@ -652,7 +667,7 @@ end
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	Song Completion Meter that doesn't eat 100 fps. Courtesy of simply love. Decided to make the full progress bar and mini progress bar
-separate entities. So you can have both, or one or the other, or neither. 
+separate entities. So you can have both, or one or the other, or neither.
 ]]
 -- User params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
@@ -666,15 +681,18 @@ local replaySlider =
 		width = width,
 		height = height,
 		min = 0,
-		visible = false,
+		visible = true,
 		max = GAMESTATE:GetCurrentSong():MusicLengthSeconds(),
+		onInit = function(slider)
+			slider.actor:diffusealpha(0)
+		end,
 		-- Change to onValueChangeEnd if this
 		-- lags too much
 		onValueChange = function(val)
 			SCREENMAN:GetTopScreen():SetReplayPosition(val)
 		end
 	} or
-	nil
+	Def.Actor {}
 local p =
 	Def.ActorFrame {
 	Name = "FullProgressBar",
@@ -688,6 +706,7 @@ local p =
 			Movable.DeviceButton_0.condition = enabledFullBar
 		end
 	end,
+	replaySlider,
 	Def.Quad {
 		InitCommand = function(self)
 			self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
@@ -740,8 +759,7 @@ local p =
 				diffuse(self, byMusicLength(ttime))
 			end
 		},
-	MovableBorder(width, height, 1, 0, 0),
-	replaySlider
+	MovableBorder(width, height, 1, 0, 0)
 }
 
 if enabledFullBar then
@@ -753,7 +771,7 @@ end
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	Song Completion Meter that doesn't eat 100 fps. Courtesy of simply love. Decided to make the full progress bar and mini progress bar
-separate entities. So you can have both, or one or the other, or neither. 
+separate entities. So you can have both, or one or the other, or neither.
 ]]
 local width = 34
 local height = 4
@@ -823,7 +841,7 @@ t[#t + 1] =
 														    	**BPM Display**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Better optimized frame update bpm display. 
+	Better optimized frame update bpm display.
 ]]
 local BPM
 local a = GAMESTATE:GetPlayerState(PLAYER_1):GetSongPosition()
@@ -833,7 +851,7 @@ local GetBPS = SongPosition.GetCurBPS
 local function UpdateBPM(self)
 	local bpm = GetBPS(a) * r
 	settext(BPM, Round(bpm, 2))
-end	
+end
 
 t[#t + 1] =
 	Def.ActorFrame {
@@ -898,7 +916,7 @@ end
 															 **NPS Display**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	re-enabling the old nps calc/graph for now 
+	re-enabling the old nps calc/graph for now
 ]]
 t[#t + 1] = LoadActor("npscalc")
 
@@ -1009,7 +1027,7 @@ local pm =
 }
 
 -- Load the CDGraph with a forced width parameter.
-pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width=wodth})
+pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width = wodth})
 
 -- more draw order shenanigans
 pm[#pm + 1] =

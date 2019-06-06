@@ -1,4 +1,21 @@
-local t = Def.ActorFrame {}
+local function highlight(self)
+	self:GetChild("rando"):queuecommand("Highlight")
+end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
+local t = Def.ActorFrame {
+	InitCommand=function(self)
+		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.025)
+	end
+}
 
 local frameWidth = 280
 local frameHeight = 20
@@ -37,9 +54,11 @@ t[#t + 1] =
 	end
 }
 
+local group_rand = ""
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
+		Name="rando",
 		InitCommand = function(self)
 			self:xy(frameX, frameY + 5):halign(1):zoom(0.55):maxwidth((frameWidth - 40) / 0.35)
 		end,
@@ -52,9 +71,11 @@ t[#t + 1] =
 			if sort == nil then
 				self:settext("Sort: ")
 			elseif sort == "SortOrder_Group" and song ~= nil then
-				self:settext(song:GetGroupName())
+				group_rand = song:GetGroupName()
+				self:settext(group_rand)
 			else
 				self:settext("Sort: " .. sortTable[sort])
+				group_rand = ""
 			end
 		end,
 		SortOrderChangedMessageCommand = function(self)
@@ -62,6 +83,19 @@ t[#t + 1] =
 		end,
 		CurrentSongChangedMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if group_rand ~= "" and isOver(self) then
+				math.randomseed(os.time())
+				local t = SONGMAN:GetSongsInGroup(group_rand)
+				local random_song = t[math.random(#t)]
+				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
+			end
+		end,
+		HighlightCommand=function(self)
+			if group_rand ~= "" then
+				highlightIfOver(self)
+			end
 		end
 	}
 

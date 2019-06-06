@@ -616,11 +616,37 @@ function scoreBoard(pn, position)
 		t[#t + 1] =
 			LoadFont("Common Normal") ..
 			{
+				Name=i,
 				InitCommand = function(self)
 					if i < 4 then
 						self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i])
 					else
 						self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settext(mcscoot[i])
+					end
+				end,
+				CodeMessageCommand = function(self, params)
+					local j = tonumber(self:GetName())
+					if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+						if j == 4 then
+							local tso = tst[judge]
+							if enabledCustomWindows then
+								tso = 1
+							end
+							mcscoot[j] = 0
+							mcscoot[j+1] = 0
+							for i = 1, #devianceTable do
+								if tracks[i] then	-- it would probably make sense to move all this to c++
+									if math.abs(devianceTable[i]) > tso * 90 then
+										if tracks[i] <= math.floor(ncol/2) then
+											mcscoot[j] = mcscoot[j] + 1
+										else
+											mcscoot[j+1] = mcscoot[j+1] + 1
+										end
+									end
+								end
+							end
+						end
+						self:xy(frameWidth + 20, frameY + 230 + 10 * j):zoom(0.4):halign(1):settext(mcscoot[j])
 					end
 				end
 			}

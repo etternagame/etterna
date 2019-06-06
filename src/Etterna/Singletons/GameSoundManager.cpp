@@ -117,7 +117,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * the sound. Be sure to leave the rest of g_Playing in place. */
 		RageSound* pOldSound = g_Playing->m_Music;
 		g_Playing->m_Music = new RageSound;
-		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
 			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		L.Unlock();
 
@@ -132,8 +132,9 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 	{
 		g_Mutex->Unlock();
 		auto* pSound = new RageSound;
-		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
 			pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		}
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
 		pSound->Load(ToPlay.m_sFile, false, &params);
@@ -278,7 +279,7 @@ GameSoundManager::DoPlayOnce(RString sPath)
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
-	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
 		pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 	pSound->Load(sPath, false);
 
@@ -364,9 +365,9 @@ GameSoundManager::StartQueuedSounds()
 			g_Mutex->Lock();
 			RageSound* pOldSound = g_Playing->m_Music;
 			g_Playing->m_Music = new RageSound;
-			if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 			g_Mutex->Unlock();
+			if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
+				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 
 			delete pOldSound;
 		}
@@ -423,7 +424,8 @@ GameSoundManager::GameSoundManager()
 
 	g_Mutex = new RageEvent("GameSoundManager");
 	g_Playing = new MusicPlaying(new RageSound);
-	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
+	soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
+	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
 		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize );
 
 	g_UpdatingTimer = true;
@@ -516,9 +518,11 @@ GameSoundManager::Update(float fDeltaTime)
 		}
 
 		if (g_Playing->m_Music->pendingPlayBackCall) {
+			g_Mutex->Unlock();
 			auto L = LUA->Get();
 			g_Playing->m_Music->ExecutePlayBackCallback(L);
 			LUA->Release(L);
+			g_Mutex->Lock();
 		}
 
 		bool bIsPlaying = g_Playing->m_Music->IsPlaying();
@@ -806,7 +810,7 @@ GameSoundManager::GetPlayerBalance(PlayerNumber pn)
 void GameSoundManager::HandleMessage(const Message& msg)
 {
 	if (msg.GetName() == "ScreenChanged" && callbackOwningScreen != SCREENMAN->GetTopScreen()) {
-		soundPlayCallback = LuaReference();
+		soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
 		g_Mutex->Lock();
 		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
@@ -910,7 +914,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
 		p->callbackOwningScreen = SCREENMAN->GetTopScreen();
-		p->soundPlayCallback = GetFuncArg(1, L);
+		p->soundPlayCallback = std::make_shared<LuaReference>(GetFuncArg(1, L));
 		if (lua_isnumber(L, 2))
 			p->recentPCMSamplesBufferSize = std::max((unsigned int)IArg(2), 512u);
 		g_Mutex->Lock();
@@ -921,7 +925,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	static int ClearPlayBackCallback(T* p, lua_State* L)
 	{
 		p->callbackOwningScreen = nullptr;
-		p->soundPlayCallback.Unset();
+		p->soundPlayCallback->Unset();
 		g_Mutex->Lock();
 		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();

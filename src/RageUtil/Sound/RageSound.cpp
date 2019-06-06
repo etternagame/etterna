@@ -336,9 +336,9 @@ RageSound::GetDataToPlay(float* pBuffer,
 	}
 	if (m_pSource->GetNumChannels() == 1)
 		RageSoundUtil::ConvertMonoToStereoInPlace(pBuffer, iFramesStored);
-	{
+	if (soundPlayCallback != nullptr) {
 		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet()) {
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			unsigned int samplesToCopy =
 				std::min(iFramesStored * m_pSource->GetNumChannels(),
@@ -365,13 +365,13 @@ RageSound::GetDataToPlay(float* pBuffer,
 
 void
 RageSound::ExecutePlayBackCallback(Lua* L) {
-	if (!pendingPlayBackCall)
+	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
 	fftwf_complex* out = static_cast<fftwf_complex*>(fftwBuffer);
 	std::string error;
 	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
-	soundPlayCallback.PushSelf(L);
+	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
 	for (int i = 0; i < nOut; ++i) {
 		auto r = out[i][0];
@@ -387,7 +387,7 @@ RageSound::ExecutePlayBackCallback(Lua* L) {
 	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
 	inPlayCallback = false;
 	if (error != "")	// hack for now because we're bad and didn't deal with clearing this -mina
-		soundPlayCallback.Unset();
+		soundPlayCallback->Unset();
 	pendingPlayBackCall = false;
 }
 
@@ -749,7 +749,7 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize) {
+RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize) {
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
@@ -760,7 +760,7 @@ RageSound::ActuallySetPlayBackCallback(LuaReference& f, unsigned int bufSize) {
 }
 
 void
-RageSound::SetPlayBackCallback(LuaReference f, unsigned int bufSize)
+RageSound::SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize)
 {
 	// If we're in play callback it's safe to call this from lua, since we've locked LUA->Get()
 	// But not from C++ in another thread
@@ -850,15 +850,15 @@ class LunaRageSound : public Luna<RageSound>
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
 		if (lua_isnumber(L, 2))
-			p->SetPlayBackCallback(GetFuncArg(1, L), IArg(2));
+			p->SetPlayBackCallback(std::make_shared<LuaReference>(GetFuncArg(1, L)), IArg(2));
 		else
-			p->SetPlayBackCallback(GetFuncArg(1, L));
+			p->SetPlayBackCallback(std::make_shared<LuaReference>(GetFuncArg(1, L)));
 		COMMON_RETURN_SELF;
 	}
 
 	static int ClearPlayBackCallback(T* p, lua_State* L)
 	{
-		p->SetPlayBackCallback(LuaReference());
+		p->SetPlayBackCallback(std::make_shared<LuaReference>(LuaReference()));
 		COMMON_RETURN_SELF;
 	}
 
