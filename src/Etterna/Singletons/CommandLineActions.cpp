@@ -95,7 +95,7 @@ Version()
 {
 #ifdef _WIN32
 	RString sProductID =
-	  ssprintf("%s", (string(PRODUCT_FAMILY) + product_version).c_str());
+	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + product_version).c_str());
 	RString sVersion = ssprintf("build %s\nCompile Date: %s @ %s",
 								::sm_version_git_hash,
 								version_date,
