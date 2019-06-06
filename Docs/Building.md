@@ -124,9 +124,9 @@ cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..
 
 ### GUI Project Generation
 
-![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
-
 In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
+
+![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
 
 **NOTE**: Setting `OPENSSL_ROOT_DIR` is unnecessary for linux users as CMake will find the location of OpenSSL on it's own.
 
@@ -134,7 +134,11 @@ In order to compile properly, you will want to make your CMake-GUI look similar 
 
 **Windows Users**: Remember to change the value to correspond to the correct 32bit or 64bit version of the OpenSSL library.
 
-Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure` then `Generate` and you are ready to start coding.
+Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure`. The first time this button is clicked (and a `CMakeCache.txt` does not exit in the build directory), CMake will ask about what generator you would like to use. If a Visual Studio generator is chosen, you should also ensure the `Optional platform for generator` field is not empty. Select `x64` for 64bit and `Win32` for 32bit. Once `Finish` is clicked, the project will begin configuring.
+
+![CMakeSetup Window](images/cmake-gui-03.png "CMakeSetup Window")
+
+Finally, click `Generate` and you are ready to start coding.
 
 ## Compiling
 
