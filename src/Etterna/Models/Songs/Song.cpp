@@ -817,7 +817,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			std::vector<RString> contains(1, "banner");
 			/* Some people do things differently for the sake of being
 			 * different. Don't match eg. abnormal, numbness. */
-			vector<RString> ends_with(1, "bn");
+			std::vector<RString> ends_with(1, "bn");
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
 			if (m_bHasBanner)

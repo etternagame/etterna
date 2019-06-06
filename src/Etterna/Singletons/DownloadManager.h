@@ -227,7 +227,7 @@ class DownloadManager
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
 	bool UpdateOnlineScoreReplayData(); // attempts updates existing replaydata
 										// server (Async, 1 request per score)
-	void RefreshPackList(const string& url);
+	void RefreshPackList(const std::string& url);
 
 	void init();
 	Download* DownloadAndInstallPack(const std::string& url, std::string filename = "");

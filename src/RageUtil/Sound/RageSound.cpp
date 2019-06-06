@@ -749,7 +749,7 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize) {
+RageSound::ActuallySetPlayBackCallback(std::shared_ptr<LuaReference> f, unsigned int bufSize) {
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
@@ -760,7 +760,7 @@ RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int 
 }
 
 void
-RageSound::SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize)
+RageSound::SetPlayBackCallback(std::shared_ptr<LuaReference> f, unsigned int bufSize)
 {
 	// If we're in play callback it's safe to call this from lua, since we've locked LUA->Get()
 	// But not from C++ in another thread

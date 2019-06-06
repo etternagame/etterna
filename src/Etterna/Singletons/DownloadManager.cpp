@@ -479,7 +479,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
@@ -717,7 +717,7 @@ DownloadManager::LoggedIn()
 void
 DownloadManager::AddFavorite(const std::string& chartkey)
 {
-	string req = "user/" + DLMAN->sessionUser + "/favorites";
+    std::string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
 		LOG->Warn((requ.result + req + DLMAN->sessionUser).c_str());
@@ -1546,7 +1546,7 @@ DownloadManager::RefreshCountryCodes()
 			}
 		// append the list to global/player country code so
 		// we dont have to merge tables in lua -mina
-		DLMAN->countryCodes.push_back(string("Global"));
+		DLMAN->countryCodes.push_back(std::string("Global"));
 	};
 	SendRequest(
 	  "/misc/countrycodes", std::vector<std::pair<std::string, std::string>>(), done, true);
@@ -1561,12 +1561,12 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
-		vector<pair<float, float>> replayData;
-		vector<float> timestamps;
-		vector<float> offsets;
-		vector<int> tracks;
-		vector<int> rows;
-		vector<TapNoteType> types;
+        std::vector<std::pair<float, float>> replayData;
+        std::vector<float> timestamps;
+        std::vector<float> offsets;
+        std::vector<int> tracks;
+        std::vector<int> rows;
+        std::vector<TapNoteType> types;
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
@@ -1578,7 +1578,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			LOG->Trace((string("Replay data request failed for ") + scoreid +
+			LOG->Trace((std::string("Replay data request failed for ") + scoreid +
 						" (Response: " + buffer.GetString() + ")")
 						 .c_str());
 			return;
@@ -1594,7 +1594,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 					!note[1].IsNumber())
 					continue;
 				replayData.push_back(
-				  make_pair(note[0].GetFloat(), note[1].GetFloat()));
+                        std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
 
 				timestamps.push_back(note[0].GetFloat());
 				offsets.push_back(note[1].GetFloat() / 1000.f);
@@ -1686,7 +1686,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
 			return;
 		}
-		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
+        std::vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 
 		if (!d.HasMember("errors") && d.HasMember("data") &&
@@ -1982,7 +1982,7 @@ DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 }
 
 void
@@ -2058,7 +2058,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 				.c_str());
 			return;
 		}
-		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
+        std::vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
 		auto& scores = d["data"];
 		for (auto& score_obj : scores.GetArray()) {
 			if (!score_obj.HasMember("attributes")) {
@@ -2277,7 +2277,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 		for (auto& pack_obj : packs->GetArray()) {
 			DownloadablePack tmp;
 			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
-				tmp.id = stoi(pack_obj["id"].GetString());
+				tmp.id = std::stoi(pack_obj["id"].GetString());
 			else
 				tmp.id = 0;
 

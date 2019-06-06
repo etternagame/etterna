@@ -108,12 +108,12 @@ static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
 // Utility function (Since json needs to be valid utf8)
-string
-correct_non_utf_8(string* str)
+std::string
+correct_non_utf_8(std::string* str)
 {
 	int i, f_size = str->size();
 	unsigned char c, c2, c3, c4;
-	string to;
+	std::string to;
 	to.reserve(f_size);
 
 	for (i = 0; i < f_size; i++) {
@@ -191,7 +191,7 @@ correct_non_utf_8(string* str)
 	return to;
 }
 
-string
+std::string
 correct_non_utf_8(const RString& str)
 {
 	std::string stdStr = str.c_str();
@@ -536,7 +536,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		wss_client::connection_ptr con = client->get_connection(
-		  ((prepend ? "wss://" + address : address) + ":" + to_string(port))
+		  ((prepend ? "wss://" + address : address) + ":" + std::to_string(port))
 			.c_str(),
 		  ec);
 		if (ec) {
@@ -561,7 +561,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		ws_client::connection_ptr con = client->get_connection(
-		  ((prepend ? "ws://" + address : address) + ":" + to_string(port))
+		  ((prepend ? "ws://" + address : address) + ":" + std::to_string(port))
 			.c_str(),
 		  ec);
 		if (ec) {
@@ -588,7 +588,7 @@ RoomData
 jsonToRoom(Value& room)
 {
 	RoomData tmp;
-	string s = room.HasMember("name") && room["name"].IsString()
+	std::string s = room.HasMember("name") && room["name"].IsString()
 				 ? room["name"].GetString()
 				 : "";
 	tmp.SetName(s);
@@ -720,13 +720,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				d.Accept(writer);
-				LOG->Trace((string("Recieved ETTP message with no type: ") +
+				LOG->Trace((std::string("Recieved ETTP message with no type: ") +
 							buffer.GetString())
 							 .c_str());
 				continue;
 			}
 			if (d.HasMember("error") && d["error"].IsString()) {
-				LOG->Trace((string("Error on ETTP message ") +
+				LOG->Trace((std::string("Error on ETTP message ") +
 							d["type"].GetString() + ": " +
 							d["error"].GetString())
 							 .c_str());
@@ -735,7 +735,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			auto type = ettServerMessageMap.find(d["type"].GetString());
 			if (ettServerMessageMap.end() == type) {
 				LOG->Trace(
-				  (string("Unknown ETTP message type ") + d["type"].GetString())
+				  (std::string("Unknown ETTP message type ") + d["type"].GetString())
 					.c_str());
 				continue;
 			}
@@ -920,9 +920,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						auto& offsets = replay["offsets"];
 						auto& noterows = replay["noterows"];
 						auto& tracks = replay["tracks"];
-						vector<float> v_offsets;
-						vector<int> v_noterows;
-						vector<int> v_tracks;
+						std::vector<float> v_offsets;
+                        std::vector<int> v_noterows;
+                        std::vector<int> v_tracks;
 						for (auto& offset : offsets.GetArray())
 							if (offset.IsNumber())
 								v_offsets.push_back(offset.GetFloat());
@@ -1045,7 +1045,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								continue;
 							float wife = score["wife"].GetFloat();
 							RString jdgstr = score["jdgstr"].GetString();
-							string user = score["user"].GetString();
+                            std::string user = score["user"].GetString();
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
 						}
@@ -1129,7 +1129,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						LOG->Trace("Invalid ETTP  deleteroom room message");
 						continue;
 					}
-					string name = payload["room"]["name"].GetString();
+                    std::string name = payload["room"]["name"].GetString();
 					n->m_Rooms.erase(std::remove_if(n->m_Rooms.begin(),
 													n->m_Rooms.end(),
 													[&](RoomData const& room) {

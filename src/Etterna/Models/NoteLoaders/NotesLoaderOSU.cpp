@@ -34,7 +34,7 @@ OsuLoader::ParseFileString(std::string fileContents)
 
 	SeparateTagsAndContents(fileContents, sections, contents);
 
-	map<string, map<string, string>> parsedData;
+	std::map<std::string, std::map<std::string, std::string>> parsedData;
 	bool colurz = (sections.size() == 8 &&
 				   std::count(sections.begin(), sections.end(), "Colours"));
 	if (sections.size() == 7 || colurz) {
@@ -280,8 +280,8 @@ OsuLoader::LoadNoteDataFromParsedData(
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(std::stoi(parsedData["Difficulty"]["CircleSize"]));
 
-	vector<OsuNote> taps;
-	vector<OsuHold> holds;
+	std::vector<OsuNote> taps;
+	std::vector<OsuHold> holds;
 	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
 	for (auto it = parsedData["HitObjects"].begin();
 		 it != parsedData["HitObjects"].end();

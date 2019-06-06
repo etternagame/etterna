@@ -248,10 +248,10 @@ class ETTProtocol : public NetProtocol
 { // Websockets using websocketpp sending json
 	std::unique_ptr<std::thread> thread;
 	std::mutex messageBufferMutex;
-	vector<std::unique_ptr<rapidjson::Document>> newMessages;
+	std::vector<std::unique_ptr<rapidjson::Document>> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
-	string errorMsg;
+	std::string errorMsg;
 	std::shared_ptr<ws_client> client{ nullptr };
 	std::shared_ptr<wss_client> secure_client{ nullptr };
 	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };

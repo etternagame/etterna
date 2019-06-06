@@ -1706,7 +1706,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// Set mirror mode on if mirror was on in the replay
 		// Also get ready to reset the turn mods to what they were before
 		RString mods = hs->GetModifiers();
-		vector<RString> oldTurns;
+		std::vector<RString> oldTurns;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().GetTurnMods(
 		  oldTurns);
 		if (mods.find("Mirror") != mods.npos) {

@@ -217,7 +217,7 @@ class CircBuf
 		if (buffer_size > sizes[0])
 			memcpy(p[1],
 				   buffer + from_first,
-				   std::max(buffer_size - sizes[0], 0u) * sizeof(T));
+				   std::max<unsigned int>(buffer_size - sizes[0], 0u) * sizeof(T));
 
 		advance_write_pointer(buffer_size);
 
@@ -248,7 +248,7 @@ class CircBuf
 		 */
 		memset(p[0], 0xFF, from_first * sizeof(T));
 		if (buffer_size > sizes[0])
-			memset(p[1], 0xFF, std::max(buffer_size - sizes[0], 0u) * sizeof(T));
+			memset(p[1], 0xFF, std::max<unsigned int>(buffer_size - sizes[0], 0u) * sizeof(T));
 
 		advance_read_pointer(buffer_size);
 		return true;

@@ -986,8 +986,8 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 		case 8: {
 			RString tmp = aBGChangeValues[7];
 			tmp.MakeLower();
-			if ((tmp.find(".ini") != string::npos ||
-				 tmp.find(".xml") != string::npos)) {
+			if ((tmp.find(".ini") != std::string::npos ||
+				 tmp.find(".xml") != std::string::npos)) {
 				return false;
 			}
 			change.m_def.m_sFile2 = aBGChangeValues[7];
