@@ -1092,6 +1092,13 @@ sm_main(int argc, char* argv[])
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
 	}
+	
+	// This mounts all the zip/etc archives as if they were folders
+	// So people can use e.g zips instead of folders for packs
+	// This way all the code using these (Like song load) can treat the contents
+	// of the archives as if they were extracted (In the rage file system)
+	MountTreeOfZips( SpecialFiles::PACKAGES_DIR );
+	MountTreeOfZips( SpecialFiles::USER_PACKAGES_DIR );
 
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
