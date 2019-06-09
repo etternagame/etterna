@@ -504,26 +504,24 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	t[#t + 1] =
+	if score:GetChordCohesion() == true then
+		t[#t + 1] =
 		LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 5, frameY + 210):zoom(0.25):halign(0)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			ScoreChangedMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				if score:GetChordCohesion() == true then
-					self:settext("Chord Cohesion: Yes")
-				else
-					self:settext("Chord Cohesion: No")
+			{
+				InitCommand = function(self)
+					self:xy(frameX + 5, frameY + 210):zoom(0.25):halign(0)
+				end,
+				BeginCommand = function(self)
+					self:queuecommand("Set")
+				end,
+				ScoreChangedMessageCommand = function(self)
+					self:queuecommand("Set")
+				end,
+				SetCommand = function(self)
+					self:settext("Chord Cohesion on")
 				end
-			end
-		}
+			}
+	end
 
 	--[[
 	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
