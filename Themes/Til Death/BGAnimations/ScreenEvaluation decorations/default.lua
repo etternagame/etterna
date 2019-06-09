@@ -525,6 +525,50 @@ function scoreBoard(pn, position)
 			end
 		}
 
+	--[[
+	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
+	values for maRatio and paRatio are then filled in. Finally ratioText and maRatio are aligned to paRatio.
+	--]]
+	local ratioText, maRatio, paRatio
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				ratioText = self
+				self:settext("MA/PA ratio:"):zoom(0.25):halign(1)
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				maRatio = self
+				self:zoom(0.25):halign(1):diffuse(byJudgment(judges[1]))
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				paRatio = self
+				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
+
+				marvelousTaps = score:GetTapNoteScore(judges[1])
+				perfectTaps = score:GetTapNoteScore(judges[2])
+				greatTaps = score:GetTapNoteScore(judges[3])
+
+				-- Fill in maRatio and paRatio
+				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
+				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
+
+				-- Align ratioText and maRatio to paRatio (self)
+				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
+				maRatio:xy(maRatioX, paRatio:GetY())
+				radioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
+				ratioText:xy(ratioTextX, paRatio:GetY())
+			end
+		}
+
 	local fart = {"Holds", "Mines", "Rolls", "Lifts", "Fakes"}
 	t[#t + 1] =
 		Def.Quad {
