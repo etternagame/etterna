@@ -10,10 +10,11 @@ Windows x64, Windows i386, and Mac installer release.
 - More specific information on Generators in the Building documentation - [#565](../../pull/565)
 ### Changed
 - Chord Cohesion indicator text on the Evaluation Screen appears only when it's on - [#569](../../pull/569)
+- Pressing Start on the Pack Downloader Screen shouldn't exit it - [18be076](../../commit/18be076d7698e054a1ebacab81c62b87ab467c42)
+- Pressing Start on the Bundle Select Screen shouldn't exit it - [18be076](../../commit/18be076d7698e054a1ebacab81c62b87ab467c42)
 - Random BG Preference is defaulted to Off since this apparently works now - [c4acf2a](../../commit/c4acf2a52edf2841ceb26f424e5959282289feb0)
 - Random Song Pickers shouldn't seed every click with OS clock seconds because it produces the same number every time second - [151c76e](../../commit/151c76e6f9dd4a87c2bcf6df9d8c6a075150783b)
 - Toasties in the Asset Picker shouldn't play the sound if the item is already selected - [0381772](../../commit/0381772cfa0c0588e21d339dccba03de9ec2e3ce)
-### Removed
 ### Fixed
 - Build order for CMake caused issues for everything but Windows - [#561](../../pull/561)
 - DownloadManager had broken logic which made updating Online rankings impossible - [68be106](../../commit/68be106bf14bdebe4b416b5abfe500fce3c3b61c)
