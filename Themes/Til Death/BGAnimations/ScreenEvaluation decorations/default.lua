@@ -564,7 +564,7 @@ function scoreBoard(pn, position)
 				-- Align ratioText and maRatio to paRatio (self)
 				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
 				maRatio:xy(maRatioX, paRatio:GetY())
-				radioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
+				ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
 				ratioText:xy(ratioTextX, paRatio:GetY())
 			end
 		}
