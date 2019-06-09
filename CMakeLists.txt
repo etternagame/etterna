@@ -25,8 +25,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile com
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
 
+## Ninja specific setup (Different compilers required different color force commands)
 if(CMAKE_GENERATOR STREQUAL "Ninja")
-    set(CMAKE_CXX_FLAGS "-fcolor-diagnostics")              # Required flag to get color output from Ninja
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        add_compile_options("-fcolor-diagnostics")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options("-fdiagnostics-color=always")
+    endif()
 endif()
 
 ## Extern Library Variables
@@ -43,12 +48,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake whe
 # Project Build Targets
 add_executable(Etterna)
 
-## Source - Add source to the Etterna target
-add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL so those install components are not in out install compnenets
-add_subdirectory(src/Etterna)
-add_subdirectory(src/arch)
-add_subdirectory(src/archutils)
-add_subdirectory(src/RageUtil)
+# Load external libraries
+add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
 
 ## Setting Target Properties
 ### TODO: Temp output directories. Switch to out-of-source
@@ -101,6 +102,12 @@ elseif(APPLE)
 elseif(UNIX)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
+
+## Source - Add source to the Etterna target
+add_subdirectory(src/Etterna)
+add_subdirectory(src/arch)
+add_subdirectory(src/archutils)
+add_subdirectory(src/RageUtil)
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
