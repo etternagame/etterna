@@ -94,7 +94,7 @@ t[#t + 1] =
 			end,
 			SetCommand = function(self)
 				self:settextf("%s: %5.2f", profileName, playerRating)
-				if profileName == "Default Profile" then
+				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(
 						"Choose a profile display name\nClicking your name will allow you to change it:",
 						64,
