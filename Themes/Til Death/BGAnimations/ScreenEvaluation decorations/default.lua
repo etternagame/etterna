@@ -504,24 +504,124 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	t[#t + 1] =
+	if score:GetChordCohesion() == true then
+		t[#t + 1] =
 		LoadFont("Common Large") ..
+			{
+				InitCommand = function(self)
+					self:xy(frameX + 3, frameY + 210):zoom(0.25):halign(0)
+					self:maxwidth(capWideScale(get43size(100), 160)/0.25)
+				end,
+				BeginCommand = function(self)
+					self:queuecommand("Set")
+				end,
+				ScoreChangedMessageCommand = function(self)
+					self:queuecommand("Set")
+				end,
+				SetCommand = function(self)
+					self:settext("Chord Cohesion on")
+				end
+			}
+	end
+
+	--[[
+	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
+	values for maRatio and paRatio are then filled in. Finally ratioText and maRatio are aligned to paRatio.
+	--]]
+	local ratioText, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
+	t[#t + 1] =
+	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 40, frameY * 2.49):zoom(0.25):halign(0)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			ScoreChangedMessageCommand = function(self)
-				self:queuecommand("Set")
+				ratioText = self
+				self:settext("MA/PA ratio:"):zoom(0.25):halign(1)
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				maRatio = self
+				self:zoom(0.25):halign(1):diffuse(byJudgment(judges[1]))
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				paRatio = self
+				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
+				marvelousTaps = score:GetTapNoteScore(judges[1])
+				perfectTaps = score:GetTapNoteScore(judges[2])
+				greatTaps = score:GetTapNoteScore(judges[3])
+				self:playcommand("Set")
 			end,
 			SetCommand = function(self)
+				-- Fill in maRatio and paRatio
+				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
+				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
+
+				-- Align ratioText and maRatio to paRatio (self)
+				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
+				maRatio:xy(maRatioX, paRatio:GetY())
+
+				ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
+				ratioText:xy(ratioTextX, paRatio:GetY())
 				if score:GetChordCohesion() == true then
-					self:settext("Chord Cohesion: Yes")
-				else
-					self:settext("Chord Cohesion: No")
+					maRatio:maxwidth(maRatio:GetZoomedWidth()/0.25)
+					self:maxwidth(self:GetZoomedWidth()/0.25)
+					ratioText:maxwidth(capWideScale(get43size(65), 85)/0.27)
 				end
+			end,
+			CodeMessageCommand = function(self, params)
+				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					if enabledCustomWindows then
+						marvelousTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 1)
+						perfectTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 2)
+						greatTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 3)
+					else
+						marvelousTaps = getRescoredJudge(dvt, judge, 1)
+						perfectTaps = getRescoredJudge(dvt, judge, 2)
+						greatTaps = getRescoredJudge(dvt, judge, 3)
+					end
+					self:playcommand("Set")
+				end
+				if params.Name == "ResetJudge" then
+					marvelousTaps = score:GetTapNoteScore(judges[1])
+					perfectTaps = score:GetTapNoteScore(judges[2])
+					greatTaps = score:GetTapNoteScore(judges[3])
+					self:playcommand("Set")
+				end
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				maRatio = self
+				self:zoom(0.25):halign(1):diffuse(byJudgment(judges[1]))
+			end
+		}
+	t[#t + 1] =
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				paRatio = self
+				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
+
+				marvelousTaps = score:GetTapNoteScore(judges[1])
+				perfectTaps = score:GetTapNoteScore(judges[2])
+				greatTaps = score:GetTapNoteScore(judges[3])
+
+				-- Fill in maRatio and paRatio
+				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
+				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
+
+				-- Align ratioText and maRatio to paRatio (self)
+				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
+				maRatio:xy(maRatioX, paRatio:GetY())
+				ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
+				ratioText:xy(ratioTextX, paRatio:GetY())
 			end
 		}
 
