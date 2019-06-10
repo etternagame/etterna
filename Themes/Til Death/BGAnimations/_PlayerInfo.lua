@@ -16,9 +16,11 @@ local AvatarY = SCREEN_HEIGHT - 50
 local playerRating = 0
 
 local setnewdisplayname = function(answer)
-	profile:RenameProfile(answer)
-	profileName = answer
-	MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+	if answer ~= "" then
+		profile:RenameProfile(answer)
+		profileName = answer
+		MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+	end
 end
 
 local function highlight(self)
