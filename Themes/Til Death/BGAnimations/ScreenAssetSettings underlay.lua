@@ -198,7 +198,7 @@ local function moveCursor(x, y) -- move the cursor
 	end
 	lastClickedIndex = curIndex
 	if curPage == nextPage then
-		MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex})
+		MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex, prevIndex = oldIndex})
 	else
 		curPage = nextPage
 		MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
@@ -410,9 +410,10 @@ local function assetBox(i)
 				if lastClickedIndex == i then
 					confirmPick()
 				end
+				local prev = curIndex
 				lastClickedIndex = i
 				curIndex = i
-				MESSAGEMAN:Broadcast("CursorMoved",{index = i})	
+				MESSAGEMAN:Broadcast("CursorMoved",{index = i, prevIndex = prev})
 			end
 		end
 	}
@@ -463,7 +464,7 @@ local function assetBox(i)
 
 		end,
 		CursorMovedMessageCommand = function(self, params)
-			if params.index == i and curType == 1 then
+			if params.index == i and curType == 1 and params.prevIndex ~= i then
 				self:play()
 			end
 		end

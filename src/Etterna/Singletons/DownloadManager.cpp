@@ -963,7 +963,7 @@ DownloadManager::UploadScore(HighScore* hs)
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults") {
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0) {
 			hs->AddUploadedServer(serverURL.Get());
 		}
 	};
@@ -1048,9 +1048,10 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					return;
 			}
 		}
+		LOG->Trace(("fasdfsdafs request response: " + req.result).c_str());
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults" &&
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&
@@ -1172,7 +1173,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults" &&
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&

@@ -86,7 +86,6 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if group_rand ~= "" and isOver(self) then
-				math.randomseed(os.time())
 				local t = SONGMAN:GetSongsInGroup(group_rand)
 				local random_song = t[math.random(#t)]
 				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
