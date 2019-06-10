@@ -6,6 +6,7 @@
 Windows x64, Windows i386, and Mac installer release.
 
 ### Added
+- Basic support for 10k (Pump Doubles) - [56c4123](../../commit/56c4123f29eb4dee941f3d69db528bcd6e027df1)
 - MA/PA ratio indicators on the Evaluation Screen - [#569](../../pull/569)
 - More specific information on Generators in the Building documentation - [#565](../../pull/565)
 ### Changed
@@ -17,6 +18,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Toasties in the Asset Picker shouldn't play the sound if the item is already selected - [0381772](../../commit/0381772cfa0c0588e21d339dccba03de9ec2e3ce)
 ### Fixed
 - Build order for CMake caused issues for everything but Windows - [#561](../../pull/561)
+- Colors for some Pump Difficulties caused errors due to removed code - [ddd57aa](../../commit/ddd57aab828152033ecc7f40a19c67571c7197a7)
 - DownloadManager had broken logic which made updating Online rankings impossible - [68be106](../../commit/68be106bf14bdebe4b416b5abfe500fce3c3b61c)
 - Linux builds failed due to a last minute CMake change - [#559](../../pull/559)
 - Multiplayer Evaluation Scoreboard had lua errors due to a removed Actor - [03e3436](../../commit/03e3436e0b74b988b4b1081d193db342ca4bea46)
