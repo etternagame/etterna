@@ -15,7 +15,6 @@ local function SetActivePlayer(locaIndex)
 	item:GetChild("wife"):visible(not item:GetChild("wife"):GetVisible())
 	item:GetChild("combo"):visible(not item:GetChild("combo"):GetVisible())
 	item:GetChild("judge"):visible(not item:GetChild("judge"):GetVisible())
-	item:GetChild("date"):visible(not item:GetChild("date"):GetVisible())
 	item:GetChild("option"):visible(not item:GetChild("option"):GetVisible())
 end
 --Input event for mouse clicks
@@ -47,7 +46,6 @@ local function Update(self)
 			item:GetChild("combo"):visible(true)
 			item:GetChild("judge"):visible(true)
 			item:GetChild("clear"):visible(true)
-			item:GetChild("date"):visible(false)
 			item:GetChild("option"):visible(false)
 		end
 	end

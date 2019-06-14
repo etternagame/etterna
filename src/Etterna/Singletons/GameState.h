@@ -175,13 +175,14 @@ class GameState
 	 * @return true if we do, or false otherwise. */
 	bool ShowW1() const;
 
-
-	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
-	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
-	BroadcastOnChange<StepsType>				m_PreferredStepsType;
-	BroadcastOnChange<Difficulty>		m_PreferredDifficulty;
-	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
-	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
+	BroadcastOnChange<RString>
+	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
+	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
+									  // song options screen
+	BroadcastOnChange<StepsType> m_PreferredStepsType;
+	BroadcastOnChange<Difficulty> m_PreferredDifficulty;
+	BroadcastOnChange<SortOrder> m_SortOrder; // set by MusicWheel
+	SortOrder m_PreferredSortOrder;			  // used by MusicWheel
 
 	int m_iNumStagesOfThisSong;
 	// Used by GameplayScreen to know if it needs to call NSMAN
@@ -217,7 +218,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.66.0"; }
+	RString GetEtternaVersion() { return "0.66.1"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();

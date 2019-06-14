@@ -81,7 +81,6 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
-				math.randomseed(os.time())
 				local t = SONGMAN:GetAllSongs()
 				local random_song = t[math.random(#t)]
 				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
