@@ -1048,7 +1048,7 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					return;
 			}
 		}
-		LOG->Trace(("fasdfsdafs request response: " + req.result).c_str());
+		LOG->Trace(("ReplayData Upload Response: " + req.result).c_str());
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
 			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
