@@ -216,10 +216,10 @@ SongManager::DifferentialReloadDir(string dir)
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
-			
+
 			// Update nsman to keep us from getting disconnected
 			NSMAN->Update(0.0f);
-			
+
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
 						 "Loading:\n" + group.name + "\n" +
@@ -1779,14 +1779,14 @@ class LunaSongManager : public Luna<SongManager>
 	static int SetActivePlaylist(T* p, lua_State* L)
 	{
 		p->activeplaylist = SArg(1);
-		return 1;
+		return 0;
 	}
 
 	static int NewPlaylist(T* p, lua_State* L)
 	{
 		ScreenTextEntry::TextEntry(
 		  SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
-		return 1;
+		return 0;
 	}
 
 	static int GetPlaylists(T* p, lua_State* L)
@@ -1807,7 +1807,7 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		p->DeletePlaylist(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	LunaSongManager()
