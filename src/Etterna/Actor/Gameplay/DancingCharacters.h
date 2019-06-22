@@ -4,7 +4,6 @@
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Actor/Base/AutoActor.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
-#include "RageUtil/Misc/RageTimer.h"
 class Model;
 
 /** @brief The different animation states for the dancer. */
@@ -60,7 +59,6 @@ class DancingCharacters : public ActorFrame
 	AutoActor m_bgFail;
 	AutoActor m_bgWin;
 	AutoActor m_bgWinFever;
-	RageTimer m_2DIdleTimer;
 
 	int m_i2DAnimState;
 };

@@ -52,7 +52,6 @@ DancingCharacters::DancingCharacters()
 {
 	PlayerNumber p = PLAYER_1;
 	m_pCharacter = new Model;
-	m_2DIdleTimer.SetZero();
 	m_i2DAnimState = AS2D_IDLE; // start on idle state
 	if (!GAMESTATE->IsPlayerEnabled(p))
 		return;
@@ -66,7 +65,7 @@ DancingCharacters::DancingCharacters()
 	std::string sCurrentAnim;
 	sCurrentAnim = sCharacterDirectory + "2DIdle";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgIdle.Load(sCurrentAnim);
 		m_bgIdle->SetXY(DC_X(p), DC_Y(p));
@@ -74,7 +73,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DMiss";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgMiss.Load(sCurrentAnim);
 		m_bgMiss->SetXY(DC_X(p), DC_Y(p));
@@ -82,7 +81,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DGood";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgGood.Load(sCurrentAnim);
 		m_bgGood->SetXY(DC_X(p), DC_Y(p));
@@ -90,7 +89,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DGreat";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgGreat.Load(sCurrentAnim);
 		m_bgGreat->SetXY(DC_X(p), DC_Y(p));
@@ -98,7 +97,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DFever";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgFever.Load(sCurrentAnim);
 		m_bgFever->SetXY(DC_X(p), DC_Y(p));
@@ -106,7 +105,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DFail";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgFail.Load(sCurrentAnim);
 		m_bgFail->SetXY(DC_X(p), DC_Y(p));
@@ -114,7 +113,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DWin";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgWin.Load(sCurrentAnim);
 		m_bgWin->SetXY(DC_X(p), DC_Y(p));
@@ -122,7 +121,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DWinFever";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgWinFever.Load(sCurrentAnim);
 		m_bgWinFever->SetXY(DC_X(p), DC_Y(p));
@@ -135,14 +134,14 @@ DancingCharacters::DancingCharacters()
 
 	m_pCharacter->LoadMilkshapeAscii(pChar->GetModelPath());
 	m_pCharacter->LoadMilkshapeAsciiBones("rest",
-												pChar->GetRestAnimationPath());
-	m_pCharacter->LoadMilkshapeAsciiBones(
-		"warmup", pChar->GetWarmUpAnimationPath());
-	m_pCharacter->LoadMilkshapeAsciiBones(
-		"dance", pChar->GetDanceAnimationPath());
+										  pChar->GetRestAnimationPath());
+	m_pCharacter->LoadMilkshapeAsciiBones("warmup",
+										  pChar->GetWarmUpAnimationPath());
+	m_pCharacter->LoadMilkshapeAsciiBones("dance",
+										  pChar->GetDanceAnimationPath());
 	m_pCharacter->SetCullMode(CULL_NONE); // many of the models floating
-												// around have the vertex order
-												// flipped
+										  // around have the vertex order
+										  // flipped
 
 	m_pCharacter->RunCommands(pChar->m_cmdInit);
 }
@@ -203,7 +202,7 @@ DancingCharacters::Update(float fDelta)
 	bool bGameplayStarting = GAMESTATE->m_bGameplayLeadIn;
 	if (!bWasGameplayStarting && bGameplayStarting) {
 		if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
-		  m_pCharacter->PlayAnimation("warmup");
+			m_pCharacter->PlayAnimation("warmup");
 	}
 	bWasGameplayStarting = bGameplayStarting;
 
@@ -259,47 +258,6 @@ DancingCharacters::Update(float fDelta)
 		m_fThisCameraStartBeat = static_cast<float>(iCurBeat);
 		m_fThisCameraEndBeat = float(iCurBeat + 8);
 	}
-	/*
-	// is there any of this still around? This block of code is _ugly_. -Colby
-	// update any 2D stuff
-	if( m_bgIdle.IsLoaded() )
-	{
-		if( m_bgIdle.IsLoaded() && m_i2DAnimState[p] == AS2D_IDLE )
-			m_bgIdle->Update( fDelta );
-		if( m_bgMiss[p].IsLoaded() && m_i2DAnimState[p] == AS2D_MISS )
-			m_bgMiss[p]->Update( fDelta );
-		if( m_bgGood[p].IsLoaded() && m_i2DAnimState[p] == AS2D_GOOD )
-			m_bgGood[p]->Update( fDelta );
-		if( m_bgGreat[p].IsLoaded() && m_i2DAnimState[p] == AS2D_GREAT )
-			m_bgGreat[p]->Update( fDelta );
-		if( m_bgFever[p].IsLoaded() && m_i2DAnimState[p] == AS2D_FEVER )
-			m_bgFever[p]->Update( fDelta );
-		if( m_bgFail[p].IsLoaded() && m_i2DAnimState[p] == AS2D_FAIL )
-			m_bgFail[p]->Update( fDelta );
-		if( m_bgWin[p].IsLoaded() && m_i2DAnimState[p] == AS2D_WIN )
-			m_bgWin[p]->Update( fDelta );
-		if( m_bgWinFever[p].IsLoaded() && m_i2DAnimState[p] == AS2D_WINFEVER
-	) m_bgWinFever[p]->Update(fDelta);
-
-		if(m_i2DAnimState[p] != AS2D_IDLE) // if we're not in idle state,
-	start a timer to return us to idle
-		{
-			// never return to idle state if we have failed / passed (i.e.
-	completed) the song if(m_i2DAnimState[p] != AS2D_WINFEVER &&
-	m_i2DAnimState[p] != AS2D_FAIL && m_i2DAnimState[p] != AS2D_WIN)
-			{
-				if(m_2DIdleTimer[p].IsZero())
-					m_2DIdleTimer[p].Touch();
-				if(!m_2DIdleTimer[p].IsZero() && m_2DIdleTimer[p].Ago()
-	> 1.0f)
-				{
-					m_2DIdleTimer[p].SetZero();
-					m_i2DAnimState[p] = AS2D_IDLE;
-				}
-			}
-		}
-	}
-	*/
 }
 
 void
