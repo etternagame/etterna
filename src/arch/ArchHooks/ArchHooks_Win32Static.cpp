@@ -27,7 +27,7 @@ InitTimer()
 }
 
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	if (!g_bTimerInitialized)
 		InitTimer();

@@ -1,4 +1,4 @@
-﻿/* RageTimer - Timer services. */
+/* RageTimer - Timer services. */
 
 #ifndef RAGE_TIMER_H
 #define RAGE_TIMER_H
@@ -24,11 +24,9 @@ class RageTimer
 	/* (alias) */
 	float PeekDeltaTime() const { return Ago(); }
 
-	/* deprecated: */
-	static float GetTimeSinceStart(
-	  bool bAccurate = true); // seconds since the program was started
-	static float GetTimeSinceStartFast() { return GetTimeSinceStart(false); }
-	static uint64_t GetUsecsSinceStart();
+	static float GetTimeSinceStart(); // seconds since the program was started
+	static uint64_t
+	GetUsecsSinceStart(); // microseconds since the program was started
 
 	/* Get a timer representing half of the time ago as this one. */
 	RageTimer Half() const;

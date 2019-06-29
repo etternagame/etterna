@@ -356,7 +356,7 @@ BitmapText::BuildChars()
 	}
 
 	if (m_bUsingDistortion) {
-		int iSeed = lround(RageTimer::GetTimeSinceStartFast() * 500000.0f);
+		int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
 		RandomGen rnd(iSeed);
 		for (unsigned int i = 0; i < m_aVertices.size(); i += 4) {
 			float w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
@@ -785,7 +785,7 @@ BitmapText::DrawPrimitives()
 		// render the diffuse pass
 		if (m_bRainbowScroll) {
 			int color_index =
-			  static_cast<int>(RageTimer::GetTimeSinceStartFast() / 0.200) %
+			  static_cast<int>(RageTimer::GetTimeSinceStart() / 0.200) %
 			  RAINBOW_COLORS.size();
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
 				const RageColor color = RAINBOW_COLORS[color_index];
@@ -808,9 +808,9 @@ BitmapText::DrawPrimitives()
 														  : iter->first * 4;
 				iEnd = min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = what; // top left
-					m_aVertices[i + 1].c = is; // bottom left
-					m_aVertices[i + 2].c = wrong; // bottom right
+					m_aVertices[i + 0].c = what;		  // top left
+					m_aVertices[i + 1].c = is;			  // bottom left
+					m_aVertices[i + 2].c = wrong;		  // bottom right
 					m_aVertices[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())
@@ -844,7 +844,7 @@ BitmapText::DrawPrimitives()
 		// apply jitter to verts
 		vector<RageVector3> vGlyphJitter;
 		if (m_bJitter) {
-			int iSeed = lround(RageTimer::GetTimeSinceStartFast() * 8);
+			int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
 			RandomGen rnd(iSeed);
 
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {

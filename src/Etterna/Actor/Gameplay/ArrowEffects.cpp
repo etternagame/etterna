@@ -135,7 +135,7 @@ void
 ArrowEffects::Update()
 {
 	static float fLastTime = 0;
-	float fTime = RageTimer::GetTimeSinceStartFast();
+	float fTime = RageTimer::GetTimeSinceStart();
 
 	FOREACH_EnabledPlayer(pn)
 	{
@@ -238,7 +238,7 @@ ArrowEffects::Update()
 
 		// Update Tipsy
 		if (effects[PlayerOptions::EFFECT_TIPSY] != 0) {
-			const float time = RageTimer::GetTimeSinceStartFast();
+			const float time = RageTimer::GetTimeSinceStart();
 			const float time_times_timer = time * TIPSY_TIMER_FREQUENCY;
 			const float arrow_times_mag = ARROW_SIZE * TIPSY_ARROW_MAGNITUDE;
 			const float time_times_offset_timer =
@@ -596,7 +596,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	if (fEffects[PlayerOptions::EFFECT_DRUNK] != 0)
 		fPixelOffsetFromCenter +=
 		  fEffects[PlayerOptions::EFFECT_DRUNK] *
-		  (RageFastCos(RageTimer::GetTimeSinceStartFast() +
+		  (RageFastCos(RageTimer::GetTimeSinceStart() +
 					   iColNum * DRUNK_COLUMN_FREQUENCY +
 					   fYOffset * DRUNK_OFFSET_FREQUENCY / SCREEN_HEIGHT) *
 		   ARROW_SIZE * DRUNK_ARROW_MAGNITUDE);
@@ -817,7 +817,7 @@ ArrowGetPercentVisible(float fYPosWithoutReverse)
 	if (fAppearances[PlayerOptions::APPEARANCE_STEALTH] != 0)
 		fVisibleAdjust -= fAppearances[PlayerOptions::APPEARANCE_STEALTH];
 	if (fAppearances[PlayerOptions::APPEARANCE_BLINK] != 0) {
-		float f = RageFastSin(RageTimer::GetTimeSinceStartFast() * 10);
+		float f = RageFastSin(RageTimer::GetTimeSinceStart() * 10);
 		f = Quantize(f, BLINK_MOD_FREQUENCY);
 		fVisibleAdjust += SCALE(f, 0, 1, -1, 0);
 	}

@@ -34,9 +34,9 @@ static std::chrono::microseconds g_iStartTime =
   ArchHooks::GetChronoDurationSinceStart();
 
 static uint64_t
-GetTime(bool /* bAccurate */)
+GetTime()
 {
-	return ArchHooks::GetMicrosecondsSinceStart(true);
+	return ArchHooks::GetMicrosecondsSinceStart();
 }
 
 static std::chrono::microseconds
@@ -46,7 +46,7 @@ GetChronoTime()
 }
 
 float
-RageTimer::GetTimeSinceStart(bool bAccurate)
+RageTimer::GetTimeSinceStart()
 {
 	auto usecs = GetChronoTime();
 	std::chrono::duration<float, std::micro> g = usecs - g_iStartTime;
@@ -57,13 +57,13 @@ RageTimer::GetTimeSinceStart(bool bAccurate)
 uint64_t
 RageTimer::GetUsecsSinceStart()
 {
-	return GetTime(true) - g_iStartTime.count();
+	return GetTime() - g_iStartTime.count();
 }
 
 void
 RageTimer::Touch()
 {
-	uint64_t usecs = GetTime(true);
+	uint64_t usecs = GetTime();
 
 	this->m_secs = unsigned(usecs / 1000000);
 	this->m_us = unsigned(usecs % 1000000);
@@ -157,7 +157,7 @@ RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStartFast())
+LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStart())
 
   /*
    * Copyright (c) 2001-2003 Chris Danford, Glenn Maynard
