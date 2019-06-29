@@ -3,25 +3,29 @@
 #ifndef RAGE_TIMER_H
 #define RAGE_TIMER_H
 
+#include <chrono>
+
 class RageTimer
 {
   public:
 	RageTimer() { Touch(); }
-	RageTimer(int secs, int us)
-	  : m_secs(secs)
-	  , m_us(us)
+	RageTimer(unsigned microseconds)
 	{
+		this->c_dur = std::chrono::microseconds(microseconds);
 	}
 
 	/* Time ago this RageTimer represents. */
 	float Ago() const;
 	void Touch();
-	bool IsZero() const { return m_secs == 0 && m_us == 0; }
-	void SetZero() { m_secs = m_us = 0; }
+	bool IsZero() const
+	{
+		return this->c_dur == std::chrono::microseconds::zero();
+	}
+	void SetZero() { this->c_dur = std::chrono::microseconds::zero(); }
 
 	/* Time between last call to GetDeltaTime() (Ago() + Touch()): */
 	float GetDeltaTime();
-	/* (alias) */
+	/* Alias for Ago */
 	float PeekDeltaTime() const { return Ago(); }
 
 	static float GetTimeSinceStart(); // seconds since the program was started
@@ -44,14 +48,8 @@ class RageTimer
 
 	bool operator<(const RageTimer& rhs) const;
 
-	/* "float" is bad for a "time since start" RageTimer.  If the game is
-	 * running for several days, we'll lose a lot of resolution.  I don't want
-	 * to use double everywhere, since it's slow.  I'd rather not use double
-	 * just for RageTimers, since it's too easy to get a type wrong and end up
-	 * with obscure resolution problems. */
-	unsigned m_secs{ 0 }, m_us{ 0 };
-
   private:
+	std::chrono::microseconds c_dur;
 	static RageTimer Sum(const RageTimer& lhs, float tm);
 	static float Difference(const RageTimer& lhs, const RageTimer& rhs);
 };

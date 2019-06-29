@@ -27,9 +27,12 @@
 #include "arch/ArchHooks/ArchHooks.h"
 
 #include <chrono>
-#define TIMESTAMP_RESOLUTION 1000000
 
-const RageTimer RageZeroTimer(0, 0);
+// this is hereby the difference between a second and a microsecond
+#define INT_TIMESTAMP_RESOLUTION 1000000
+#define FLOAT_TIMESTAMP_RESOLUTION 1000000.f
+
+const RageTimer RageZeroTimer(0);
 static std::chrono::microseconds g_iStartTime =
   ArchHooks::GetChronoDurationSinceStart();
 
@@ -49,9 +52,9 @@ float
 RageTimer::GetTimeSinceStart()
 {
 	auto usecs = GetChronoTime();
-	std::chrono::duration<float, std::micro> g = usecs - g_iStartTime;
+	std::chrono::microseconds g = usecs - g_iStartTime;
 
-	return g.count();
+	return g.count() / FLOAT_TIMESTAMP_RESOLUTION;
 }
 
 uint64_t
@@ -63,10 +66,7 @@ RageTimer::GetUsecsSinceStart()
 void
 RageTimer::Touch()
 {
-	uint64_t usecs = GetTime();
-
-	this->m_secs = unsigned(usecs / 1000000);
-	this->m_us = unsigned(usecs % 1000000);
+	this->c_dur = GetChronoTime();
 }
 
 float
@@ -116,27 +116,19 @@ RageTimer::operator-(const RageTimer& rhs) const
 bool
 RageTimer::operator<(const RageTimer& rhs) const
 {
-	if (m_secs != rhs.m_secs)
-		return m_secs < rhs.m_secs;
-	return m_us < rhs.m_us;
+	if (c_dur != rhs.c_dur)
+		return c_dur < rhs.c_dur;
+	return c_dur < rhs.c_dur;
 }
 
 RageTimer
 RageTimer::Sum(const RageTimer& lhs, float tm)
 {
-	/* tm == 5.25  -> secs =  5, us = 5.25  - ( 5) = .25
-	 * tm == -1.25 -> secs = -2, us = -1.25 - (-2) = .75 */
-	int seconds = static_cast<int>(floorf(tm));
-	auto us = static_cast<int>((tm - seconds) * TIMESTAMP_RESOLUTION);
+	uint64_t usecs = static_cast<uint64_t>(tm * INT_TIMESTAMP_RESOLUTION);
+	std::chrono::microseconds period(usecs);
 
-	RageTimer ret(0, 0); // Prevent unnecessarily checking the time
-	ret.m_secs = seconds + lhs.m_secs;
-	ret.m_us = us + lhs.m_us;
-
-	if (ret.m_us >= TIMESTAMP_RESOLUTION) {
-		ret.m_us -= TIMESTAMP_RESOLUTION;
-		++ret.m_secs;
-	}
+	RageTimer ret(0); // Prevent unnecessarily checking the time
+	ret.c_dur = period + lhs.c_dur;
 
 	return ret;
 }
@@ -144,16 +136,9 @@ RageTimer::Sum(const RageTimer& lhs, float tm)
 float
 RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
-	int secs = lhs.m_secs - rhs.m_secs;
-	int us = lhs.m_us - rhs.m_us;
+	std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
 
-	if (us < 0) {
-		us += TIMESTAMP_RESOLUTION;
-		--secs;
-	}
-
-	return static_cast<float>(secs) +
-		   static_cast<float>(us) / TIMESTAMP_RESOLUTION;
+	return static_cast<float>(diff.count()) / FLOAT_TIMESTAMP_RESOLUTION;
 }
 
 #include "Etterna/Singletons/LuaManager.h"
