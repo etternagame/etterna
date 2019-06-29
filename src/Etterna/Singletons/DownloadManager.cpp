@@ -1048,7 +1048,8 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					return;
 			}
 		}
-		LOG->Trace(("ReplayData Upload Response: " + req.result).c_str());
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace(("ReplayData Upload Response: " + req.result).c_str());
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
 			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
