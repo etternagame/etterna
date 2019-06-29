@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This can be used in two ways: as a timestamp or as a timer.
  *
  * As a timer,
@@ -26,10 +26,12 @@
 
 #include "arch/ArchHooks/ArchHooks.h"
 
+#include <chrono>
 #define TIMESTAMP_RESOLUTION 1000000
 
 const RageTimer RageZeroTimer(0, 0);
-static uint64_t g_iStartTime = ArchHooks::GetMicrosecondsSinceStart(true);
+static std::chrono::microseconds g_iStartTime =
+  ArchHooks::GetChronoDurationSinceStart();
 
 static uint64_t
 GetTime(bool /* bAccurate */)
@@ -37,21 +39,25 @@ GetTime(bool /* bAccurate */)
 	return ArchHooks::GetMicrosecondsSinceStart(true);
 }
 
+static std::chrono::microseconds
+GetChronoTime()
+{
+	return ArchHooks::GetChronoDurationSinceStart();
+}
+
 float
 RageTimer::GetTimeSinceStart(bool bAccurate)
 {
-	uint64_t usecs = GetTime(bAccurate);
-	usecs -= g_iStartTime;
-	/* Avoid using doubles for hardware that doesn't support them.
-	 * This is writing usecs = high*2^32 + low and doing
-	 * usecs/10^6 = high * (2^32/10^6) + low/10^6. */
-	return uint32_t(usecs >> 32) * 4294.967296f + uint32_t(usecs) / 1000000.f;
+	auto usecs = GetChronoTime();
+	std::chrono::duration<float, std::micro> g = usecs - g_iStartTime;
+
+	return g.count();
 }
 
 uint64_t
 RageTimer::GetUsecsSinceStart()
 {
-	return GetTime(true) - g_iStartTime;
+	return GetTime(true) - g_iStartTime.count();
 }
 
 void
