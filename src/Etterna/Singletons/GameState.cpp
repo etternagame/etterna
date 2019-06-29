@@ -572,8 +572,10 @@ GameState::CommitStageStats()
 	STATSMAN->CommitStatsToProfiles(&STATSMAN->m_CurStageStats);
 
 	// Update TotalPlaySeconds.
-	int iPlaySeconds = static_cast<int>(
-	  (std::chrono::high_resolution_clock::now() - m_timeGameStarted).count());
+	int iPlaySeconds =
+	  static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+						 std::chrono::steady_clock::now() - m_timeGameStarted)
+						 .count());
 
 	FOREACH_HumanPlayer(p)
 	{
