@@ -22,7 +22,6 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Singletons/ScoreManager.h"
@@ -1338,10 +1337,10 @@ Player::UpdateHoldNotes(int iSongRow,
 				// give positive life in Step(), not here.
 
 				// Decrease life
-				// Also clamp the roll decay window to the accepted "Judge 7" value for it. -poco
+				// Also clamp the roll decay window to the accepted "Judge 7"
+				// value for it. -poco
 				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25f);
-				fLife =
-				  max(fLife, 0); // clamp life
+				fLife = max(fLife, 0); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -3234,8 +3233,9 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			// avoid scoring notes that get passed when seeking in pm
 			// not sure how many rows grace time is needed (if any?)
 			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-				  .m_bPractice && iMissIfOlderThanThisRow - iter.Row() > 8)
-					tn.result.tns = TNS_None;
+				  .m_bPractice &&
+				iMissIfOlderThanThisRow - iter.Row() > 8)
+				tn.result.tns = TNS_None;
 			if (GAMESTATE->CountNotesSeparately()) {
 				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());

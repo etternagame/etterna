@@ -1,4 +1,4 @@
-﻿#ifndef INPUT_QUEUE_H
+#ifndef INPUT_QUEUE_H
 #define INPUT_QUEUE_H
 
 #include "Etterna/Models/Misc/GameInput.h"
@@ -6,7 +6,6 @@
 #include <chrono>
 
 class InputEventPlus;
-class RageTimer;
 
 /** @brief Stores a list of the most recently pressed MenuInputs for each
  * player. */
