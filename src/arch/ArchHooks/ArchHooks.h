@@ -1,6 +1,8 @@
 #ifndef ARCH_HOOKS_H
 #define ARCH_HOOKS_H
 
+#include <chrono>
+
 struct lua_State;
 class ArchHooks
 {
@@ -33,8 +35,7 @@ class ArchHooks
 
 	/* If this is a second instance, return true.
 	 * Optionally, give focus to the existing window. */
-	virtual bool CheckForMultipleInstances(int /* argc */,
-										   char* [] /* argv[] */)
+	virtual bool CheckForMultipleInstances(int /* argc */, char*[] /* argv[] */)
 	{
 		return false;
 	}
@@ -92,6 +93,7 @@ class ArchHooks
 	 * wrapping if possible.
 	 */
 	static int64_t GetMicrosecondsSinceStart(bool bAccurate);
+	static std::chrono::microseconds GetChronoDurationSinceStart();
 
 	/*
 	 * Add file search paths, higher priority first.
