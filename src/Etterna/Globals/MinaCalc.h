@@ -1,8 +1,19 @@
 #pragma once
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
+#include <map>
 
 using namespace std;
+
+// For internal, must be preprocessor defined
+#if defined(MINADLL_COMPILE) && defined(_WIN32)
+#define MINACALC_API __declspec(dllexport)
+#endif
+
+// For Stepmania
+#ifndef MINACALC_API
+#define MINACALC_API
+#endif
 
 typedef vector<float> SDiffs;
 typedef vector<SDiffs> MinaSD;
@@ -61,18 +72,18 @@ class Hand
 	vector<float> hsscale;
 	vector<float> jumpscale;
 	vector<float> anchorscale;
-	vector<int> v_itvpoints; // Point allotment for each interval
-
+	vector<int> v_itvpoints;	// Point allotment for each interval
+	vector<float> v_itvNPSdiff; // Calculated difficulty for each interval
+	vector<float> v_itvMSdiff;  // Calculated difficulty for each interval
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
-	vector<float> v_itvNPSdiff; // Calculated difficulty for each interval
-	vector<float> v_itvMSdiff;  // Calculated difficulty for each interval
+
 	float timingscale; // Timingscale for use in the point proportion function
 	float jumpstreamscaler = 0.975f;
 	float handstreamscaler = 0.92f;
 	float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						1.025f; // multiplier to standardize baselines
+						1.025; // multiplier to standardize baselines
 
 	// Stamina Model params
 	const float ceil = 1.08f;	// stamina multiplier max
@@ -100,19 +111,24 @@ class Calc
 	int fastwalk(const vector<NoteInfo>& NoteInfo);
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
-	before passing the results to the hand initialization functions. Also passes
-	the input timingscale value. */
+	before passing
+	the results to the hand initialization functions. Also passes the input
+	timingscale value. */
 	void InitializeHands(const vector<NoteInfo>& NoteInfo, float ts);
 
 	/*	Slices the track into predefined intervals of time. All taps within each
 	interval have their ms values from the last note in the same column
-	calculated and the result is spit out into a new Finger object, or vector of
-	vectors of floats (ms from last note in the track). */
+	calculated and the result is spit out
+	into a new Finger object, or vector of vectors of floats (ms from last note
+	in the track). */
 	Finger ProcessFinger(const vector<NoteInfo>& NoteInfo, int t);
 
 	// How many buttons do you press for this chart (currently hardcoded,
 	// clearly)
 	int numTracks = 4;
+
+	float vb = 0.f;
+	float vt = 0.f;
 
 	// Derivative calc params
 	float MusicRate = 1.f;
@@ -160,11 +176,11 @@ class Calc
 	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
 	const bool logpatterns = false;
 
-	float vt = 0.f;
-	float vb = 0.f;
-
 	Hand* left = new Hand;
 	Hand* right = new Hand;
+
+	float dumbvalue = 1.f;
+	int dumbcounter = 0;
 
 	JackSeq j0;
 	JackSeq j1;
@@ -172,15 +188,24 @@ class Calc
 	JackSeq j3;
 };
 
-vector<float> MinaSDCalc(const vector<NoteInfo>& NoteInfo,
+MINACALC_API vector<float>
+MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 		   int numTracks,
 		   float musicrate,
 		   float goal,
 		   float timingscale,
 		   bool negbpms);
-MinaSD MinaSDCalc(const vector<NoteInfo>& NoteInfo,
+MINACALC_API MinaSD
+MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 		   int numTracks,
 		   float goal,
 		   float timingscale,
 		   bool negbpms);
-int GetCalcVersion();
+MINACALC_API int
+GetCalcVersion();
+
+/*
+To get debug output:
+1. Turn off the built in showlog window
+2. Do StepMania.exe >> out.txt in cmd
+*/

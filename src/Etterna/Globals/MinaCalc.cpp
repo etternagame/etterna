@@ -2,7 +2,7 @@
 //
 
 #include "MinaCalc.h"
-#include <phpcpp.h> //Comment out for standard build.
+//#include <phpcpp.h> //Comment out for standard build.
 #include <iostream>
 #include <algorithm>
 #include <thread>
