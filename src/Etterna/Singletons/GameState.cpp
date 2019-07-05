@@ -28,8 +28,6 @@
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/Misc/Profile.h"
 
-#include <chrono>
-
 GameState* GAMESTATE =
   NULL; // global and accessible from anywhere in our program
 
@@ -110,6 +108,7 @@ GameState::GameState()
 	m_SeparatedStyles[PLAYER_1] = NULL;
 
 	m_pCurGame.Set(NULL);
+	m_timeGameStarted.SetZero();
 
 	m_iStageSeed = m_iGameSeed = 0;
 
@@ -252,6 +251,7 @@ GameState::Reset()
 
 	ASSERT(THEME != NULL);
 
+	m_timeGameStarted.SetZero();
 	SetCurrentStyle(NULL, PLAYER_INVALID);
 	FOREACH_MultiPlayer(p) m_MultiPlayerStatus[p] = MultiPlayerStatus_NotJoined;
 
@@ -415,7 +415,7 @@ GameState::JoinPlayers()
 void
 GameState::BeginGame()
 {
-	m_timeGameStarted = std::chrono::high_resolution_clock::now();
+	m_timeGameStarted.Touch();
 }
 
 void
@@ -573,9 +573,7 @@ GameState::CommitStageStats()
 
 	// Update TotalPlaySeconds.
 	int iPlaySeconds =
-	  static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
-						 std::chrono::steady_clock::now() - m_timeGameStarted)
-						 .count());
+	  max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
 
 	FOREACH_HumanPlayer(p)
 	{
@@ -1633,10 +1631,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(CountNotesSeparately, CountNotesSeparately())
 	static int GetSessionTime(T* p, lua_State* L)
 	{
-		std::chrono::duration<float> td =
-		  std::chrono::high_resolution_clock::now() - p->m_timeGameStarted;
-		int out = static_cast<int>(td.count());
-		lua_pushnumber(L, out);
+		lua_pushnumber(L, p->m_timeGameStarted.GetTimeSinceStart());
 		return 1;
 	}
 	static int GetSongOptions(T* p, lua_State* L)

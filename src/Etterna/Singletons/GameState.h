@@ -10,7 +10,6 @@
 #include "discord_rpc.h"
 
 #include <deque>
-#include <chrono>
 
 class Character;
 struct Game;
@@ -113,9 +112,8 @@ class GameState
 	Difficulty GetClosestShownDifficulty(PlayerNumber pn) const;
 	Difficulty GetEasiestStepsDifficulty() const;
 	Difficulty GetHardestStepsDifficulty() const;
-	std::chrono::high_resolution_clock::time_point
-	  m_timeGameStarted; // from the moment the first
-						 // player pressed Start
+	RageTimer m_timeGameStarted; // from the moment the first
+								 // player pressed Start
 	LuaTable* m_Environment;
 
 	// This is set to a random number per-game/round; it can be used for a
