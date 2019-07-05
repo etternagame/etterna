@@ -75,6 +75,7 @@ class Hand
 	vector<int> v_itvpoints;	// Point allotment for each interval
 	vector<float> v_itvNPSdiff; // Calculated difficulty for each interval
 	vector<float> v_itvMSdiff;  // Calculated difficulty for each interval
+	vector<float> dum;
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
@@ -167,6 +168,9 @@ class Calc
 	void Purge();
 	float techscaler = 0.97f;
 
+	Hand* left = new Hand;
+	Hand* right = new Hand;
+
   private:
 	vector<vector<int>> nervIntervals;
 
@@ -176,9 +180,6 @@ class Calc
 	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
 	const bool logpatterns = false;
 
-	Hand* left = new Hand;
-	Hand* right = new Hand;
-
 	float dumbvalue = 1.f;
 	int dumbcounter = 0;
 
@@ -187,6 +188,15 @@ class Calc
 	JackSeq j2;
 	JackSeq j3;
 };
+
+MINACALC_API vector<float>
+MinaSDCalcDumbThings(const vector<NoteInfo>& NoteInfo,
+					 int numTracks,
+					 float musicrate,
+					 float goal,
+					 float timingscale,
+					 bool negbpms,
+					 vector<float>& dum);
 
 MINACALC_API vector<float>
 MinaSDCalc(const vector<NoteInfo>& NoteInfo,

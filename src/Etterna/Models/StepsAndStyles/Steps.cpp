@@ -423,6 +423,29 @@ Steps::CalcEtternaMetadata()
 	GetTimingData()->UnsetEtaner();
 }
 
+void
+Steps::BorpNDorf()
+{
+	Decompress();
+	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
+	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
+
+	MinaSDCalcDumbThings(cereal,
+						 m_pNoteData->GetNumTracks(),
+						 1.f,
+						 0.93f,
+						 1.f,
+						 GetTimingData()->HasWarps(),
+						 dumbthings);
+
+	m_pNoteData->UnsetNerv();
+	m_pNoteData->UnsetSerializedNoteData();
+	GetTimingData()->UnsetEtaner();
+	Compress();
+}
+
+
 RString
 Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 {
@@ -932,6 +955,13 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
+	static int DootSpooks(T* p, lua_State* L)
+	{
+		p->BorpNDorf();
+		vector<float> tmp = p->dumbthings;
+		LuaHelpers::CreateTableFromArray(tmp, L);
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -963,6 +993,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
+		ADD_METHOD(DootSpooks);
 	}
 };
 

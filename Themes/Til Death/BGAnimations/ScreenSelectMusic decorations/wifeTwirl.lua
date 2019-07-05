@@ -897,4 +897,5 @@ t[#t + 1] =
 }
 
 t[#t + 1] = LoadActor("../_chartpreview.lua")
+t[#t + 1] = LoadActor("../_calcdisplay.lua")
 return t

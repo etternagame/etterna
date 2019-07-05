@@ -764,6 +764,7 @@ float Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs) {
 	}
 
 	const vector<float>& v = stam ? StamAdjust(x, diff) : diff;
+	dum = v;
 	float o = 0.f;
 	for (size_t i = 0; i < v.size(); i++) {
 		if (x > v[i])
@@ -1011,6 +1012,37 @@ void Calc::Purge() {
 	SAFE_DELETE(right);
 }
 
+vector<float>
+MinaSDCalcDumbThings(const vector<NoteInfo>& NoteInfo,
+					 int numTracks,
+					 float musicrate,
+					 float goal,
+					 float timingscale,
+					 bool negbpms,
+					 vector<float>& dum)
+{
+	vector<float> o;
+
+	// Return 0 for main ouput if the file is not 4k
+	if (numTracks != 4) {
+		o.emplace_back(0.f);
+		return (o);
+	}
+
+	unique_ptr<Calc> doot = make_unique<Calc>();
+	doot->MusicRate = musicrate;
+	CalcClamp(
+	  goal, 0.f, 0.96f); // cap SSR at 96% so things don't get out of hand
+	doot->Scoregoal = goal;
+	o = doot->CalcMain(NoteInfo, timingscale);
+	vector<float> boink;
+	for (int i = 0; i < doot->left->dum.size(); i++)
+		boink.push_back((doot->left->dum[i] + doot->right->dum[i]) / 2);
+	dum = boink;
+	doot->Purge();
+
+	return o;
+}
 
 // Function to generate SSR rating
 vector<float> MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float musicrate, float goal, float timingscale, bool negbpms) {
@@ -1063,187 +1095,4 @@ MinaSD MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float goal, f
 int GetCalcVersion()
 {
 	return 263;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// lvl2
-
-
-inline void SetOffset(vector<NoteInfo2>& NoteInfo, int off) {
-	int dev = off - NoteInfo[0].rowTime;
-	for (auto& n : NoteInfo)
-		n.rowTime += dev;
-}
-
-inline void SetIntervalIndicies(vector<NoteInfo2>& NoteInfo, vector<vector<int>>& itvidx) {
-
-	for (auto& n : NoteInfo) {
-		itvidx;
-	}
-}
-
-
-
-inline float CalcInternal2Verbose(int x, vector<int>& diffs, vector<int>& pointsgain) {
-	vector<int> curve(10000);
-	for (int i = 0; i < 10000; ++i)
-		curve[i] = static_cast<int>((sqrt(i) * -6.f) + 100.f);
-
-	vector<int> points_;
-	int o = 0;
-	for (auto& n : diffs) {
-		if (x > n) {
-			points_.emplace_back(100);
-			o += 100;
-		}
-		else if (x > n - 1000) {
-			int val = curve[n - x];
-			o += val;
-			points_.emplace_back(val);
-		}
-		else {
-			int val = -100;
-			o += val;
-			points_.emplace_back(val);
-		}
-	}
-	pointsgain = points_;
-	return static_cast<float>(o);
-}
-
-inline float Chisel2Verbose(int& pskill, int& res, int& iter, vector<int>& diffs, int& maxpoints, vector<int>& pointsgain) {
-	float gotpoints = 0.f;
-	do {
-		pskill += res;
-		gotpoints = CalcInternal2Verbose(pskill, diffs, pointsgain);
-	} while (gotpoints / static_cast<float>(maxpoints) < 0.93f);
-	if (iter == 11)
-		return static_cast<float>(pskill) / 1000.f;
-	++iter;
-	pskill -= res;
-	res >>= 1;
-	return Chisel2Verbose(pskill, res, iter, diffs, maxpoints, pointsgain);
-}
-
-inline void GetBaseDiffs(vector<int>& diffs, vector<NoteInfo2>& NoteInfo) {
-	int left = 1;
-	int down = 1 << 1;
-	int up = 1 << 2;
-	int right = 1 << 3;
-
-	int time;
-	int lastleft = -5000;
-	int lastdown = -5000;
-	int lastup = -5000;
-	int lastright = -5000;
-
-	int idx = 0;
-	for (auto& n : NoteInfo) {
-		if (n.notes & left) {
-			time = n.rowTime - lastleft;
-			lastleft = n.rowTime;
-			diffs[idx] = 500000 / time;
-			++idx;
-		}
-		if (n.notes & down) {
-			time = n.rowTime - lastdown;
-			lastdown = n.rowTime;
-			diffs[idx] = 5000000 / time;
-			++idx;
-		}
-		if (n.notes & up) {
-			time = n.rowTime - lastup;
-			lastup = n.rowTime;
-			diffs[idx] = 5000000 / time;
-			++idx;
-		}
-		if (n.notes & right) {
-			time = n.rowTime - lastright;
-			lastright = n.rowTime;
-			diffs[idx] = 5000000 / time;
-			++idx;
-		}
-	}
-}
-
-float MinaCalcSSR(vector<NoteInfo2>& NoteInfo, int& rate, float& goal, int& maxpoints, vector<int>& diffs) {
-	for (auto& n : NoteInfo)
-		n.rowTime /= rate;
-
-	vector<int> pointsgain;
-
-	int pskill = 0;
-	int res = 2560;
-	int iter = 0;
-
-	float fdiff = 0.f;
-	GetBaseDiffs(diffs, NoteInfo);
-
-	for (auto& n : NoteInfo)
-		n.rowTime *= rate;
-
-	/*
-	int pointsgained = 0;
-	for (auto& n : pointsgain)
-	pointsgained += n;
-	string o2;
-	o2.append("DIFF" + to_string(fdiff) + "\n");
-	o2.append("RATE " + to_string(rate) + " " + to_string(NoteInfo.size()) + " " + to_string(diffs.size()) + "\n");
-	o2.append("MAXPOINTS " + to_string(maxpoints) + " " + to_string(pointsgained) + " " + to_string(pointsgained / static_cast<float>(maxpoints)) + "\n");
-	for (size_t i = 0; i < diffs.size(); ++i)
-	o2.append(to_string(diffs[i]) + " " + to_string(pointsgain[i]) + "\n");
-	*/
-
-
-	return Chisel2Verbose(pskill, res, iter, diffs, maxpoints, pointsgain);
-}
-
-
-void MinaCalc2(MinaSD& output, vector<NoteInfo2>& NoteInfo, float musicrate, float goal) {
-	if (NoteInfo.empty())
-		return;
-
-	MinaSD allrates;
-	int rateCount = 21;
-	float scaler = 0.75f;
-
-
-	int precision = 10;
-	vector<vector<int>> itvidx;
-
-	int left = 1;
-	int down = 1 << 1;
-	int up = 1 << 2;
-	int right = 1 << 3;
-
-
-	SetOffset(NoteInfo, 0);
-
-	int maxpoints = 0;
-	for (auto& n : NoteInfo)
-		maxpoints += (n.notes & left ? 1 : 0) + (n.notes & down ? 1 : 0) + (n.notes & up ? 1 : 0) + (n.notes & right ? 1 : 0);
-
-	vector<int> diffs(maxpoints);
-	maxpoints *= 100;
-
-	for (int rate = 7; rate < rateCount; ++rate) {
-		output[rate - 7][6] = MinaCalcSSR(NoteInfo, rate, goal, maxpoints, diffs) * scaler;
-	}
-
-	return;
 }
