@@ -13,6 +13,10 @@ class RageTimer
 	{
 		this->c_dur = std::chrono::microseconds(microseconds);
 	}
+	RageTimer(unsigned secs, unsigned microseconds)
+	{
+		this->c_dur = std::chrono::microseconds(secs * 1000000 + microseconds);
+	}
 
 	/* Time ago this RageTimer represents. */
 	float Ago() const;
@@ -47,9 +51,9 @@ class RageTimer
 	float operator-(const RageTimer& rhs) const;
 
 	bool operator<(const RageTimer& rhs) const;
+	std::chrono::microseconds c_dur;
 
   private:
-	std::chrono::microseconds c_dur;
 	static RageTimer Sum(const RageTimer& lhs, float tm);
 	static float Difference(const RageTimer& lhs, const RageTimer& rhs);
 };
