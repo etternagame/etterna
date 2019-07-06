@@ -154,7 +154,7 @@ ArchHooks_Unix::GetClock()
 }
 
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	OpenGetTime();
 
@@ -168,7 +168,7 @@ ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
 }
 #else
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
