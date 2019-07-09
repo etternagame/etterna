@@ -196,7 +196,7 @@ MinaSDCalcDumbThings(const vector<NoteInfo>& NoteInfo,
 					 float goal,
 					 float timingscale,
 					 bool negbpms,
-					 vector<float>& dum);
+					 vector<vector<float>>& dum);
 
 MINACALC_API vector<float>
 MinaSDCalc(const vector<NoteInfo>& NoteInfo,

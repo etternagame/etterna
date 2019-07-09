@@ -445,7 +445,6 @@ Steps::BorpNDorf()
 	Compress();
 }
 
-
 RString
 Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 {
@@ -958,8 +957,12 @@ class LunaSteps : public Luna<Steps>
 	static int DootSpooks(T* p, lua_State* L)
 	{
 		p->BorpNDorf();
-		vector<float> tmp = p->dumbthings;
-		LuaHelpers::CreateTableFromArray(tmp, L);
+		lua_newtable(L);
+		for (int i = 0; i < p->dumbthings.size(); ++i) {
+			vector<float> poop = p->dumbthings[i];
+			LuaHelpers::CreateTableFromArray(poop, L);
+			lua_rawseti(L, -2, i + 1);
+		}
 		return 1;
 	}
 	LunaSteps()

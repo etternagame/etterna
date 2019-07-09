@@ -580,7 +580,7 @@ void Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float ts) {
 	left->rollscale = RollDownscaler(l[0], l[1]);
 	left->hsscale = HSDownscaler(NoteInfo);
 	left->jumpscale = JumpDownscaler(NoteInfo);
-
+	left->dum = left->ohjumpscale;
 
 	right = new Hand;
 	right->InitHand(r[0], r[1], ts);
@@ -589,6 +589,7 @@ void Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float ts) {
 	right->rollscale = RollDownscaler(r[0], r[1]);
 	right->hsscale = left->hsscale;
 	right->jumpscale = left->jumpscale;
+	right->dum = right->ohjumpscale;
 
 	j0 = SequenceJack(NoteInfo, 0);
 	j1 = SequenceJack(NoteInfo, 1);
@@ -764,7 +765,7 @@ float Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs) {
 	}
 
 	const vector<float>& v = stam ? StamAdjust(x, diff) : diff;
-	dum = v;
+	//dum = v;
 	float o = 0.f;
 	for (size_t i = 0; i < v.size(); i++) {
 		if (x > v[i])
@@ -1019,7 +1020,7 @@ MinaSDCalcDumbThings(const vector<NoteInfo>& NoteInfo,
 					 float goal,
 					 float timingscale,
 					 bool negbpms,
-					 vector<float>& dum)
+					 vector<vector<float>>& dum)
 {
 	vector<float> o;
 
@@ -1035,10 +1036,9 @@ MinaSDCalcDumbThings(const vector<NoteInfo>& NoteInfo,
 	  goal, 0.f, 0.96f); // cap SSR at 96% so things don't get out of hand
 	doot->Scoregoal = goal;
 	o = doot->CalcMain(NoteInfo, timingscale);
-	vector<float> boink;
-	for (int i = 0; i < doot->left->dum.size(); i++)
-		boink.push_back((doot->left->dum[i] + doot->right->dum[i]) / 2);
-	dum = boink;
+
+	dum.push_back(doot->left->dum);
+	dum.push_back(doot->right->dum);
 	doot->Purge();
 
 	return o;

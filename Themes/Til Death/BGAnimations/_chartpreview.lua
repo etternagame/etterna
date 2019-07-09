@@ -37,7 +37,7 @@ local t = Def.ActorFrame {
 	InitCommand=function(self)
 		self:visible(false)
         self:SetUpdateFunction(UpdatePreviewPos)
-		cd = self:GetChild("ChordDensityGraph"):visible(false):draworder(1000)
+		cd = self:GetChild("notChordDensityGraph"):visible(false):draworder(1000)
 		memehamstermax = self
 	end,
 	CurrentSongChangedMessageCommand=function(self)
@@ -88,7 +88,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "PosBG",
 		InitCommand = function(self)
-			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
+			self:zoomto(wodth, hidth):halign(0):diffuse(color(".1,.1,.1,1")):draworder(900)
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
@@ -112,7 +112,8 @@ local t = Def.ActorFrame {
 	}
 }
 
-t[#t + 1] = LoadActor("_chorddensitygraph.lua")
+--t[#t + 1] = LoadActor("_chorddensitygraph.lua")
+t[#t + 1] = LoadActor("_calcdisplay.lua")
 
 -- more draw order shenanigans
 t[#t + 1] = LoadFont("Common Normal") .. {
