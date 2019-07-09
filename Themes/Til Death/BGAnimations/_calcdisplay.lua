@@ -65,10 +65,14 @@ local o =
 	OnCommand = function(self)
         self:xy(plotX, plotY)
     end,
+    OffCommand = function(self)
+        self:playcommand("CalcInfoOff")
+    end,
     CalcInfoOnMessageCommand = function(self)
         updateCoolStuff()
         self:visible(true)
         enabled = true
+        SCREENMAN:GetTopScreen():GetMusicWheel():visible(false)
         self:RunCommandsOnChildren(
             function(self)
                 self:playcommand("DoTheThing")
@@ -78,6 +82,7 @@ local o =
     CalcInfoOffMessageCommand = function(self)
         self:visible(false)
         enabled = false
+        SCREENMAN:GetTopScreen():GetMusicWheel():visible(true)
     end,
     CurrentStepsP1ChangedMessageCommand = function(self)
         updateCoolStuff()

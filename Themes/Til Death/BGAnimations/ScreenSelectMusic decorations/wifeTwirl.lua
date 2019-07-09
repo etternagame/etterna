@@ -20,8 +20,6 @@ local songChanged = false
 
 local function toggleCalcInfo(state)
 	infoOnScreen = state
-	
-	SCREENMAN:GetTopScreen():GetMusicWheel():visible(not infoOnScreen)
 
 	if infoOnScreen then
 		MESSAGEMAN:Broadcast("CalcInfoOn")
