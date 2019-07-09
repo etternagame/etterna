@@ -6,6 +6,7 @@ local score
 local song
 local steps
 local noteField = false
+local infoOnScreen = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
@@ -16,6 +17,19 @@ local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 local dontRemakeTheNotefield = false
 local songChanged = false
+
+local function toggleCalcInfo(state)
+	infoOnScreen = state
+	
+	SCREENMAN:GetTopScreen():GetMusicWheel():visible(not infoOnScreen)
+
+	if infoOnScreen then
+		MESSAGEMAN:Broadcast("CalcInfoOn")
+	else
+		MESSAGEMAN:Broadcast("CalcInfoOff")
+	end
+end
+
 
 local update = false
 local t =
@@ -82,6 +96,7 @@ local t =
 		if noteField and mcbootlarder:IsVisible() then
 			mcbootlarder:visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			toggleCalcInfo(false)
 			heyiwasusingthat = true
 		end
 	end,
@@ -131,7 +146,7 @@ t[#t + 1] =
 	}
 
 local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
 	if song and not noteField then -- first time setup
 		noteField = true
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
@@ -145,7 +160,7 @@ local function toggleNoteField()
 			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
 			songChanged = false
 		end
-		return
+		return true
 	end
 
 	if song then
@@ -153,6 +168,7 @@ local function toggleNoteField()
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			toggleCalcInfo(false) -- force calc info off
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
@@ -164,6 +180,7 @@ local function toggleNoteField()
 				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
+			return true
 		end
 	end
 end
@@ -787,6 +804,7 @@ local function highlightIfOver(self)
 end
 
 t[#t + 1] = Def.ActorFrame {
+	Name = "LittleButtonsOnTheLeft",
 	InitCommand = function(self)
 		self:SetUpdateFunction( function(self)
 			self:queuecommand("Highlight")
@@ -808,6 +826,17 @@ t[#t + 1] = Def.ActorFrame {
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and (song or noteField) then
 				toggleNoteField()
+			end
+		end,
+		MouseRightClickMessageCommand = function(self)
+			if isOver(self) and (song or noteField) then
+				if mcbootlarder:IsVisible() then
+					toggleCalcInfo(not infoOnScreen)
+				else
+					if toggleNoteField() then
+						toggleCalcInfo(true)
+					end
+				end
 			end
 		end,
 		CurrentStyleChangedMessageCommand = function(self) -- need to regenerate the notefield when changing styles or crashman appears -mina

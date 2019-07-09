@@ -1,13 +1,23 @@
 local finalSecond
 
+-- for cdgraph fitting
+--[[
 local plotWidth, plotHeight = capWideScale(280, 300), 40
 local plotX, plotY = plotWidth/2, 0
+]]
+-- for standard fitting
+local oldWidth = capWideScale(280, 300)
+local plotWidth, plotHeight = capWideScale(300,450), 160
+local plotX, plotY = oldWidth+3 + plotWidth/2, -20 + plotHeight/2
+
+
 local dotDims, plotMargin = 2, 4
 local maxOffset = 40
 local baralpha = 0.2
-local bgalpha = 0
+local bgalpha = 0.9
 local textzoom = 0.35
 local song
+local enabled = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
 	if finalSecond == 0 then
@@ -20,30 +30,131 @@ local function fitY(y) -- Scale diff values to fit within plot height
 	return -1 * y / maxOffset * plotHeight
 end
 
+-- transforms the position of the mouse from the cd graph to the calc info graph
+local function transformPosition(pos, w, px)
+    distanceAcrossOriginal = (pos - px) / w
+    out = distanceAcrossOriginal * plotWidth - plotWidth/2
+    return out
+end
+
 local o =
 	Def.ActorFrame {
     Name = "notChordDensityGraph",
 	OnCommand = function(self)
-		self:xy(plotX, plotY)
-		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
-	end
+        self:xy(plotX, plotY)
+    end,
+    CalcInfoOnMessageCommand = function(self)
+        self:visible(true)
+        enabled = true
+        self:RunCommandsOnChildren(
+            function(self)
+                self:queuecommand("CurrentStepsP1Changed")
+            end
+        )
+    end,
+    CalcInfoOffMessageCommand = function(self)
+        self:visible(false)
+        enabled = false
+    end
 
 }
--- Background
-o[#o + 1] =
-	Def.Quad {
-        CurrentStepsP1ChangedMessageCommand = function(self)
-            song = GAMESTATE:GetCurrentSong()
-            if song then
-                self:visible(true)
-		        self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(
-			    bgalpha
-                )
-            else
-                self:visible(false)
-            end
-	    end
-    }
+-- graph bg
+o[#o + 1] = Def.Quad {
+    InitCommand = function(self)
+        self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
+            bgalpha
+        )
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song then
+            self:visible(true)
+        else
+            self:visible(false)
+        end
+    end
+}
+
+-- second bg
+o[#o + 1] = Def.Quad {
+    InitCommand = function(self)
+        self:y(plotHeight + 5)
+        self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
+            bgalpha
+        )
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song then
+            self:visible(true)
+        else
+            self:visible(false)
+        end
+    end
+}
+
+o[#o + 1] = LoadFont("Common Normal") .. {
+    InitCommand = function(self)
+        self:xy(-plotWidth/4, plotHeight + 5 + plotHeight/2 + 35)
+        self:zoom(0.55)
+        self:settext("")
+        self:maxwidth(plotWidth * 3/4 / 0.55)
+        self:halign(0)
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            title = song:GetDisplayFullTitle()
+            artist = song:GetDisplayArtist()
+            self:settext(title .. "\n  ~" .. artist)
+        end
+    end
+}
+
+-- top graph average text
+o[#o + 1] = LoadFont("Common Normal") .. {
+    InitCommand = function(self)
+        self:xy(-plotWidth/2 + 5, plotHeight/3):halign(0)
+        self:zoom(0.5)
+        self:settext("fff")
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot1 = steeps:DootSpooks()[1]
+            local bloot2 = steeps:DootSpooks()[2]
+            local ave1 = 0
+            local ave2 = 0
+            if #bloot1 > 0 then ave1 = table.average(bloot1) end
+            if #bloot2 > 0 then ave2 = table.average(bloot2) end
+            self:settextf("Left Average: %.4f\nRight Average: %.4f", ave1, ave2)
+        end
+    end
+}
+
+-- lower graph average text
+o[#o + 1] = LoadFont("Common Normal") .. {
+    InitCommand = function(self)
+        self:xy(-plotWidth/2 + 5, plotHeight + plotHeight/3):halign(0)
+        self:zoom(0.5)
+        self:settext("fff")
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot1 = steeps:DootSpooks()[1]
+            local bloot2 = steeps:DootSpooks()[2]
+            local ave1 = 0
+            local ave2 = 0
+            if #bloot1 > 0 then ave1 = table.average(bloot1) end
+            if #bloot2 > 0 then ave2 = table.average(bloot2) end
+            self:settextf("Left Average: %.4f\nRight Average: %.4f", ave1, ave2)
+        end
+    end
+}
+
 
 local dotWidth = 0
 local function setOffsetVerts(vt, x, y, c)
@@ -52,81 +163,204 @@ local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x + dotWidth, y - dotWidth, 0}, c}
 	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
-o[#o + 1] =
-	Def.ActorMultiVertex {
-        CurrentStepsP1ChangedMessageCommand = function(self)
-            song = GAMESTATE:GetCurrentSong()
-            if song then
-                self:SetVertices({})
-                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+-- top graph main line
+o[#o + 1] = Def.ActorMultiVertex {
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            self:SetVertices({})
+            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-                self:visible(true)
-                finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
-                local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                local bloot = {}
-		        local verts = {}
-                bloot = steeps:DootSpooks()[1]
-                local highest = 0
-                
-                for i = 1, #bloot do
-                    if bloot[i] > highest then
-                        highest = bloot[i]
-                    end
+            self:visible(true)
+            finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot = {}
+            local verts = {}
+            bloot = steeps:DootSpooks()[1]
+            local highest = 0
+            
+            for i = 1, #bloot do
+                if bloot[i] > highest then
+                    highest = bloot[i]
                 end
-                maxOffset = highest * 1.2
-                for i = 1, #bloot do
-    			    local x = fitX(i)
-			        local y = fitY(bloot[i])
-                    local cullur = offsetToJudgeColor(y, 1)
-                    y = y + plotHeight / 2
-			        setOffsetVerts(verts, x, y, cullur)
-                end
-                
-                self:SetVertices(verts)
-                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-            else
-                self:visible(false)
             end
-        end
-    }
-
-    o[#o + 1] =
-	Def.ActorMultiVertex {
-        CurrentStepsP1ChangedMessageCommand = function(self)
-            song = GAMESTATE:GetCurrentSong()
-            if song then
-                self:SetVertices({})
-                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-                self:visible(true)
-                finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
-                local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                local bloot = {}
-		        local verts = {}
-                bloot = steeps:DootSpooks()[2]
-                local highest = 0
-                
-                for i = 1, #bloot do
-                    if bloot[i] > highest then
-                        highest = bloot[i]
-                    end
-                end
-                maxOffset = highest * 1.2
-                for i = 1, #bloot do
-    			    local x = fitX(i)
-			        local y = fitY(bloot[i])
-                    local cullur = offsetToJudgeColor(y/10, 1)
-                    y = y + plotHeight / 2
-			        setOffsetVerts(verts, x, y, cullur)
-                end
-                
-                self:SetVertices(verts)
-                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-            else
-                self:visible(false)
+            maxOffset = highest * 1.2
+            for i = 1, #bloot do
+                local x = fitX(i)
+                local y = fitY(bloot[i])
+                local cullur = offsetToJudgeColor(y, 1)
+                y = y + plotHeight / 2
+                setOffsetVerts(verts, x, y, cullur)
             end
+            
+            self:SetVertices(verts)
+            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+        else
+            self:visible(false)
         end
-    }
+    end
+}
+
+-- top graph alt line
+o[#o + 1] = Def.ActorMultiVertex {
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            self:SetVertices({})
+            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+
+            self:visible(true)
+            finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot = {}
+            local verts = {}
+            bloot = steeps:DootSpooks()[2]
+            local highest = 0
+            
+            for i = 1, #bloot do
+                if bloot[i] > highest then
+                    highest = bloot[i]
+                end
+            end
+            maxOffset = highest * 1.2
+            for i = 1, #bloot do
+                local x = fitX(i)
+                local y = fitY(bloot[i])
+                local cullur = offsetToJudgeColor(y/10, 1)
+                y = y + plotHeight / 2
+                setOffsetVerts(verts, x, y, cullur)
+            end
+            
+            self:SetVertices(verts)
+            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+        else
+            self:visible(false)
+        end
+    end
+}
 
 
+-- bottom graph main line
+o[#o + 1] = Def.ActorMultiVertex {
+    InitCommand = function(self)
+        self:y(plotHeight+5)
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            self:SetVertices({})
+            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+
+            self:visible(true)
+            finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot = {}
+            local verts = {}
+            bloot = steeps:DootSpooks()[1]
+            local highest = 0
+            
+            for i = 1, #bloot do
+                if bloot[i] > highest then
+                    highest = bloot[i]
+                end
+            end
+            maxOffset = highest * 1.2
+            for i = 1, #bloot do
+                local x = fitX(i)
+                local y = fitY(bloot[i])
+                local cullur = offsetToJudgeColor(y, 1)
+                y = y + plotHeight / 2
+                setOffsetVerts(verts, x, y, cullur)
+            end
+            
+            self:SetVertices(verts)
+            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+        else
+            self:visible(false)
+        end
+    end
+}
+
+-- bottom graph alt line
+o[#o + 1] = Def.ActorMultiVertex {
+    InitCommand = function(self)
+        self:y(plotHeight+5)
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        song = GAMESTATE:GetCurrentSong()
+        if song and enabled then
+            self:SetVertices({})
+            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+
+            self:visible(true)
+            finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
+            local steeps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local bloot = {}
+            local verts = {}
+            bloot = steeps:DootSpooks()[2]
+            local highest = 0
+            
+            for i = 1, #bloot do
+                if bloot[i] > highest then
+                    highest = bloot[i]
+                end
+            end
+            maxOffset = highest * 1.2
+            for i = 1, #bloot do
+                local x = fitX(i)
+                local y = fitY(bloot[i])
+                local cullur = offsetToJudgeColor(y/10, 1)
+                y = y + plotHeight / 2
+                setOffsetVerts(verts, x, y, cullur)
+            end
+            
+            self:SetVertices(verts)
+            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+        else
+            self:visible(false)
+        end
+    end
+}
+
+-- a bunch of things for stuff and things
+o[#o + 1] = LoadFont("Common Normal") .. {
+    Name = "Seektext1",
+    InitCommand = function(self)
+        self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+    end,
+    UpdatePositionCommand = function(self, params)
+        self:x(transformPosition(params.pos, params.w, params.px) - 5)
+    end
+}
+
+o[#o + 1] = Def.Quad {
+    Name = "Seek1",
+    InitCommand = function(self)
+        self:zoomto(2, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+    end,
+    UpdatePositionCommand = function(self, params)
+        self:x(transformPosition(params.pos, params.w, params.px))
+    end
+}
+
+o[#o + 1] = LoadFont("Common Normal") .. {
+    Name = "Seektext2",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+    end,
+    UpdatePositionCommand = function(self, params)
+        self:x(transformPosition(params.pos, params.w, params.px) - 5)
+    end
+}
+
+o[#o + 1] = Def.Quad {
+    Name = "Seek2",
+    InitCommand = function(self)
+        self:y(plotHeight+5)
+        self:zoomto(2, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+    end,
+    UpdatePositionCommand = function(self, params)
+        self:x(transformPosition(params.pos, params.w, params.px))
+    end
+}
 return o

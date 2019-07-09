@@ -63,6 +63,12 @@ t[#t + 1] =
 	ChartPreviewOffMessageCommand = function(self)
 		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
 	end,
+	CalcInfoOnMessageCommand = function(self)
+		self:x(20)
+	end,
+	CalcInfoOffMessageCommand = function(self)
+		self:x(stepsdisplayx)
+	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
