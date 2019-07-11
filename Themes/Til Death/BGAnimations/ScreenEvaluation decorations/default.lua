@@ -178,6 +178,20 @@ function scoreBoard(pn, position)
 				self:diffuse(byMSD(meter))
 			end
 		}
+		t[#t + 1] =
+		LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 65, frameY + 46):zoom(0.15):halign(0):valign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				self:settext(":Mina Standardized Difficulty (MSD)")
+			end
+		}
 	t[#t + 1] =
 		LoadFont("Common Large") ..
 		{
@@ -196,11 +210,26 @@ function scoreBoard(pn, position)
 				self:diffuse(byMSD(meter))
 			end
 		}
+				t[#t + 1] =
+		LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 145, frameY + 35):zoom(0.15):halign(0):valign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				self:settext("Score Specific Rating (SSR):")
+			end
+		}
+
 	t[#t + 1] =
 		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth + frameX, frameY + 7):zoom(0.5):halign(1):valign(0):maxwidth(200)
+				self:xy(frameWidth + frameX, frameY + 7):zoom(0.25):halign(1):valign(0)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -208,7 +237,8 @@ function scoreBoard(pn, position)
 			SetCommand = function(self)
 				local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 				local diff = getDifficulty(steps:GetDifficulty())
-				self:settext(getShortDifficulty(diff))
+				local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
+				self:settext(string.upper(stype.." "..diff))
 				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
 			end
 		}
@@ -504,97 +534,136 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	if score:GetChordCohesion() == true then
-		t[#t + 1] =
+	t[#t + 1] = -- FA Ratio
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameX + 3, frameY + 210):zoom(0.25):halign(0)
-					self:maxwidth(capWideScale(get43size(100), 160)/0.25)
-				end,
-				BeginCommand = function(self)
-					self:queuecommand("Set")
-				end,
-				ScoreChangedMessageCommand = function(self)
-					self:queuecommand("Set")
-				end,
-				SetCommand = function(self)
-					self:settext("Chord Cohesion on")
+		{
+			InitCommand = function(self)
+				self:xy(frameX, frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self) -- Replace with FA, EA, and CB Ratio
+					self:diffuse(color(colorConfig:get_data().judgment["TapNoteScore_W1"]))
+					self:settext("MA Ratio:")
+			end
+		}
+	
+	t[#t + 1] =
+		LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 55 , frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self) -- Replace with FA, EA, and CB Ratio
+				local ratio = score:GetTapNoteScore("TapNoteScore_W1")/score:GetTapNoteScore("TapNoteScore_W2")
+				self:settext(string.sub(ratio,0,5)..":1")
+				if ratio == math.huge or ratio == "nan" then
+					self:diffuse(color("#66CCFF"))
+				elseif ratio > 10 then
+					self:diffuse(color("#99FF99"))
+				elseif ratio < 3 then
+					self:diffuse(color("#FF0000"))
+				elseif ratio < 4 and ratio > 3 then
+					self:diffuse(color("#FFFF00"))
 				end
-			}
-	end
-
-	--[[
-	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
-	values for maRatio and paRatio are then filled in. Finally ratioText and maRatio are aligned to paRatio.
-	--]]
-	local ratioText, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
-	t[#t + 1] =
-	LoadFont("Common Large") ..
+			end
+		}
+	t[#t + 1] = -- EA Ratio
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				ratioText = self
-				self:settext("MA/PA ratio:"):zoom(0.25):halign(1)
+				self:xy(frameX + 105, frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self) -- Replace with FA, EA, and CB Ratio
+				self:diffuse(color(colorConfig:get_data().judgment["TapNoteScore_W2"]))
+				self:settext("PA Ratio:")
 			end
 		}
 	t[#t + 1] =
-	LoadFont("Common Large") ..
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				maRatio = self
-				self:zoom(0.25):halign(1):diffuse(byJudgment(judges[1]))
+				self:xy(frameX + 160, frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self) -- Replace with FA, EA, and CB Ratio
+				local ratio = score:GetTapNoteScore("TapNoteScore_W2")/score:GetTapNoteScore("TapNoteScore_W3")
+				self:settext(string.sub(ratio,0,5)..":1")
+				if ratio == math.huge or score:GetTapNoteScore("TapNoteScore_W3") == 0 then
+					self:diffuse(color("#66CCFF"))
+				elseif ratio > 10 then
+					self:diffuse(color("#99FF99"))
+				elseif ratio < 4 then
+					self:diffuse(color("#FF0000"))
+				elseif ratio < 5 and ratio > 4 then
+					self:diffuse(color("#FFFF00"))
+				end
+			end
+		}
+	t[#t + 1] = -- CB Ratio
+		LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 205, frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self) -- Replace with FA, EA, and CB Ratio
+				self:diffuse(color(colorConfig:get_data().judgment["TapNoteScore_Miss"]))
+				self:settext("CB Ratio:")
 			end
 		}
 	t[#t + 1] =
-	LoadFont("Common Large") ..
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				paRatio = self
-				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
-				marvelousTaps = score:GetTapNoteScore(judges[1])
-				perfectTaps = score:GetTapNoteScore(judges[2])
-				greatTaps = score:GetTapNoteScore(judges[3])
-				self:playcommand("Set")
+				self:xy(frameX + 260, frameY * 2.49):zoom(0.25):halign(0)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				-- Fill in maRatio and paRatio
-				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
-				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
-
-				-- Align ratioText and maRatio to paRatio (self)
-				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
-				maRatio:xy(maRatioX, paRatio:GetY())
-
-				ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
-				ratioText:xy(ratioTextX, paRatio:GetY())
-				if score:GetChordCohesion() == true then
-					maRatio:maxwidth(maRatio:GetZoomedWidth()/0.25)
-					self:maxwidth(self:GetZoomedWidth()/0.25)
-					ratioText:maxwidth(capWideScale(get43size(65), 85)/0.27)
-				end
-			end,
-			CodeMessageCommand = function(self, params)
-				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					if enabledCustomWindows then
-						marvelousTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 1)
-						perfectTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 2)
-						greatTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 3)
-					else
-						marvelousTaps = getRescoredJudge(dvt, judge, 1)
-						perfectTaps = getRescoredJudge(dvt, judge, 2)
-						greatTaps = getRescoredJudge(dvt, judge, 3)
-					end
-					self:playcommand("Set")
-				end
-				if params.Name == "ResetJudge" then
-					marvelousTaps = score:GetTapNoteScore(judges[1])
-					perfectTaps = score:GetTapNoteScore(judges[2])
-					greatTaps = score:GetTapNoteScore(judges[3])
-					self:playcommand("Set")
+				local ratio = (score:GetTapNoteScore("TapNoteScore_W1")+score:GetTapNoteScore("TapNoteScore_W2")+score:GetTapNoteScore("TapNoteScore_W3"))/(score:GetTapNoteScore("TapNoteScore_W4")+score:GetTapNoteScore("TapNoteScore_W5")+score:GetTapNoteScore("TapNoteScore_Miss"))
+				self:settext(string.sub(ratio,0,5)..":1")
+				if ratio == math.huge or (score:GetTapNoteScore("TapNoteScore_W4")+score:GetTapNoteScore("TapNoteScore_W5")+score:GetTapNoteScore("TapNoteScore_Miss")) == 0 then
+					self:diffuse(color("#66CCFF"))
+				elseif ratio > 200 then
+					self:diffuse(color("#99FF99"))
+				elseif ratio < 75 then
+					self:diffuse(color("#FF0000"))
+				elseif ratio < 100 and ratio > 75 then
+					self:diffuse(color("#FFFF00"))
 				end
 			end
 		}
-
 	local fart = {"Holds", "Mines", "Rolls", "Lifts", "Fakes"}
 	t[#t + 1] =
 		Def.Quad {
