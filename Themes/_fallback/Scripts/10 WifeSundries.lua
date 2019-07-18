@@ -14,7 +14,7 @@ ms.RelevantRadarsShort = {
 	THEME:GetString("RadarCategoryShort", "Holds")..":",
 	THEME:GetString("RadarCategoryShort", "Mines")..":",
 	THEME:GetString("RadarCategoryShort", "TotalTaps")..":",
-	THEME:GetString("RadarCategoryShort", "Mines")..":",
+	THEME:GetString("RadarCategoryShort", "Rolls")..":",
 	THEME:GetString("RadarCategoryShort", "Lifts")..":",
 	THEME:GetString("RadarCategoryShort", "Fakes")..":"
 }
