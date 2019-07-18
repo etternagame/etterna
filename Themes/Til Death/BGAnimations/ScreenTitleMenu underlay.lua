@@ -112,7 +112,7 @@ t[#t + 1] =
 		OnCommand = function(self)
 			self:xy(buttons.x + 3, buttons.y + 14):halign(1):zoom(buttons.fontScale):diffuse(getMainColor("positive"))
 			if gameneedsupdating then
-				self:settext("Update Available\nClick to Update")
+				self:settext(THEME:GetString("ScreenTitleMenu", "UpdateAvailable"))
 			else
 				self:settext("")
 			end
