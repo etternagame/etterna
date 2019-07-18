@@ -78,6 +78,8 @@ ms.SkillSetsShort = {
 
 ms.JudgeScalers = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
 
+local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
+
 -- **Functions**
 function ms.ok(m)
 	if not m then
@@ -217,7 +219,7 @@ function getRateDisplayString(x)
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. "Music"
+	return x .. musicstr
 end
 
 function getCurRateValue()
