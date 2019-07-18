@@ -98,7 +98,7 @@ t[#t + 1] =
 				self:settextf("%s: %5.2f", profileName, playerRating)
 				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(
-						"Choose a profile display name\nClicking your name will allow you to change it:",
+						THEME:GetString("ProfileChanges", "ProfileNew"),
 						64,
 						false,
 						setnewdisplayname
@@ -107,7 +107,7 @@ t[#t + 1] =
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-					easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
+					easyInputStringWithFunction(THEME:GetString("ProfileChanges", "ProfileNameChange"), 64, false, setnewdisplayname)
 				end
 			end,
 			ProfileRenamedMessageCommand = function(self, params)
