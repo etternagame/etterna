@@ -61,6 +61,16 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	Selected = THEME:GetString("ScreenBundleSelect", "Selected Bundle"),
+	AverageDiff = THEME:GetString("ScreenBundleSelect", "AverageDiff"),
+	TotalSize = THEME:GetString("ScreenBundleSelect", "TotalSize"),
+	MB = THEME:GetString("ScreenBundleSelect", "MB"),
+	DownloadAll = THEME:GetString("ScreenBundleSelect", "DownloadAll"),
+	GoBack = THEME:GetString("ScreenBundleSelect", "GoBack"),
+	Expanded = THEME:GetString("ScreenBundleSelect", "Expanded")
+}
+
 local width = SCREEN_WIDTH / 3
 local tzoom = 0.5
 local packh = 36
@@ -102,9 +112,7 @@ local o =
 				self:xy(width / 2 + offx, 24):zoom(tzoom):halign(0)
 			end,
 			OnCommand = function(self)
-				self:settext(
-					"Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are larger downloads.\nPacks you already have will be skipped"
-				)
+				self:settext(THEME:GetString("ScreenBundleSelect", "Explanation"))
 			end
 		},
 	LoadFont("Common Large") ..
@@ -114,7 +122,7 @@ local o =
 				self:xy(width / 2 + offx, offy * 2 - 20):zoom(0.4):halign(0)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(
+				self:settextf("%s: %s", translated_info["Selected"], minidoots[ind]:gsub("-Expanded", " ("..translated_info["Expanded"]..")")):diffuse(
 					color(diffcolors[math.ceil(ind / 2)])
 				)
 			end
@@ -126,7 +134,7 @@ local o =
 				self:xy(width / 2 + offx, offy * 2):zoom(tzoom + 0.1):halign(0):maxwidth(width / 2 / tzoom)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settextf("Average Difficulty: %0.2f", packtable.AveragePackDifficulty):diffuse(byMSD(packtable.AveragePackDifficulty))
+				self:settextf("%s: %0.2f", translated_info["AverageDiff"], packtable.AveragePackDifficulty):diffuse(byMSD(packtable.AveragePackDifficulty))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -136,7 +144,7 @@ local o =
 				self:xy(width * 2 + width / 2 - 150, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settextf("Total Size: %i(MB)", packtable.TotalSize):diffuse(byFileSize(packtable.TotalSize))
+				self:settextf("%s: %i(%s)", translated_info["TotalSize"], packtable.TotalSize, translated_info["MB"]):diffuse(byFileSize(packtable.TotalSize))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -146,7 +154,7 @@ local o =
 				self:xy(width * 2 + width / 2 - 40, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
 			end,
 			PackTableRefreshCommand = function(self)
-				self:settext("Download All")
+				self:settext(translated_info["DownloadAll"])
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
@@ -178,7 +186,7 @@ local o =
 	LoadFont("Common normal") ..
 		{
 			InitCommand = function(self)
-				self:y(offy + 16):zoom(tzoom + 0.1):halign(0.5):maxwidth(width / 2 / tzoom):settext("Return to search")
+				self:y(offy + 16):zoom(tzoom + 0.1):halign(0.5):maxwidth(width / 2 / tzoom):settext(translated_info["GoBack"])
 			end
 		}
 }
@@ -225,7 +233,7 @@ local function makedoots(i)
 					self:zoom(tzoom)
 				end,
 				OnCommand = function(self)
-					self:settext(minidoots[i]:gsub("-Expanded", " (expanded)"))
+					self:settext(minidoots[i]:gsub("-Expanded", " ("..translated_info["Expanded"]..")"))
 				end
 			},
 		LoadFont("Common normal") ..
@@ -235,7 +243,7 @@ local function makedoots(i)
 				end,
 				OnCommand = function(self)
 					local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-					self:settextf("(%dMB)", bundle["TotalSize"])
+					self:settextf("(%d%s)", bundle["TotalSize"], translated_info["MB"])
 				end
 			}
 	}

@@ -54,7 +54,7 @@ local o =
 				self:zoom(0.5)
 			end,
 			OnCommand = function(self)
-				self:settext("You have no songs!")
+				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Alert"))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -63,7 +63,7 @@ local o =
 				self:y(24):zoom(0.5)
 			end,
 			OnCommand = function(self)
-				self:settext("Select a skill range to begin downloading some")
+				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Task"))
 			end
 		},
 	LoadFont("Common normal") ..
@@ -72,9 +72,7 @@ local o =
 				self:y(330):zoom(0.4)
 			end,
 			OnCommand = function(self)
-				self:settext(
-					"Core bundles are diverse selections of packs that span a skill range. They are chosen based on quality\nand popularity and are intended to span a variety of music and chart types. They will always be \navailable for download in the Packs tab in case you misjudge your level or wish for an easy step up."
-				)
+				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Explanation"))
 			end
 		}
 }

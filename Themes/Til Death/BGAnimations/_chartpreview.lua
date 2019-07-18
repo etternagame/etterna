@@ -9,6 +9,10 @@ local hidth = 40
 local yeet
 local cd
 
+local translated_info = {
+	Paused = THEME:GetString("ChartPreview", "Paused")
+}
+
 local function UpdatePreviewPos(self)
 	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or 
 	noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
@@ -49,7 +53,7 @@ local t = Def.ActorFrame {
 	MouseRightClickMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():PausePreviewNoteField()
 		if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-			self:GetChild("pausetext"):settext("Paused")
+			self:GetChild("pausetext"):settext(translated_info["Paused"])
 		else 
 			self:GetChild("pausetext"):settext("")
 		end

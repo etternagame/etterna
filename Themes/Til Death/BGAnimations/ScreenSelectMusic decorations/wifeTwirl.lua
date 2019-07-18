@@ -17,6 +17,13 @@ local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasb
 local dontRemakeTheNotefield = false
 local songChanged = false
 
+local translated_info = {
+	GoalTarget = THEME:GetString("ScreenSelectMusic", "GoalTargetString"),
+	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
+	BPM = THEME:GetString("ScreenSelectMusic", "BPM"),
+	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM")
+}
+
 local update = false
 local t =
 	Def.ActorFrame {
@@ -224,7 +231,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -243,7 +252,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -262,7 +273,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -326,7 +339,7 @@ t[#t + 1] =
 				if song and steps then
 					local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if goal then
-						self:settextf("Target\n%.2f%%", goal:GetPercent() * 100)
+						self:settextf("%s\n%.2f%%", translated_info["GoalTarget"], goal:GetPercent() * 100)
 					else
 						self:settext("")
 					end
@@ -357,7 +370,7 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song and score then
-					self:settextf("Max Combo: %d", score:GetMaxCombo())
+					self:settextf("%s: %d", translated_info["MaxCombo"], score:GetMaxCombo())
 				else
 					self:settext("")
 				end
@@ -470,7 +483,7 @@ r[#r + 1] =
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
-				self:settext("NegBPMs!")
+				self:settext(translated_info["NegBPM"])
 			else
 				self:settext("")
 			end
@@ -488,7 +501,7 @@ t[#t + 1] =
 		end,
 		MortyFartsCommand = function(self)
 			if song then
-				self:settext("BPM")
+				self:settext(translated_info["BPM"])
 			else
 				self:settext("")
 			end
@@ -622,7 +635,7 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 	}
 	return button
 end
-local forceStart = toggleButton("Unforce Start", "Force Start", "/force", 0)
+local forceStart = toggleButton(THEME:GetString("GeneralInfo", "UnforceStart"), THEME:GetString("GeneralInfo", "ForceStart"), "/force", 0)
 local readyButton
 do
 	-- do-end block to minimize the scope of 'f'
@@ -641,7 +654,7 @@ do
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton("Unready", "Ready", "/ready", 50, areWeReadiedUp)
+	readyButton = toggleButton(THEME:GetString("GeneralInfo", "Unready"), THEME:GetString("GeneralInfo", "Ready"), "/ready", 50, areWeReadiedUp)
 	readyButton.UsersUpdateMessageCommand = function(self)
 		readyButton.turnedOn = areWeReadiedUp()
 		readyButton.updateToggleButton()
@@ -803,7 +816,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 235)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Toggle Preview")
+			self:settext(THEME:GetString("ScreenSelectMusic", "TogglePreview"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and (song or noteField) then
@@ -845,7 +858,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 218)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Player Options")
+			self:settext(THEME:GetString("ScreenSelectMusic", "PlayerOptions"))
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -880,7 +893,7 @@ t[#t + 1] =
 			self:xy(20, 201)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Open Sort Menu")
+			self:settext(THEME:GetString("ScreenSelectMusic", "OpenSortMenu"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then

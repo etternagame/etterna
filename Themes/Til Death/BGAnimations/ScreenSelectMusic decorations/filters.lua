@@ -59,6 +59,18 @@ local function FilterInput(event)
 	end
 end
 
+local translated_info = {
+	Mode = THEME:GetString("TabFilter", "Mode"),
+	HighestOnly = THEME:GetString("TabFilter", "HighestOnly"),
+	On = THEME:GetString("OptionNames", "On"),
+	Off = THEME:GetString("OptionNames", "Off"),
+	Matches = THEME:GetString("TabFilter", "Matches"),
+	CommonPackFilter = THEME:GetString("TabFilter", "CommonPackFilter"),
+	Length = THEME:GetString("TabFilter", "Length"),
+	AND = THEME:GetString("TabFilter", "AND"),
+	OR = THEME:GetString("TabFilter", "OR")
+}
+
 local f =
 	Def.ActorFrame {
 	InitCommand = function(self)
@@ -77,7 +89,7 @@ local f =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(5, offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext("Filters (WIP)")
+				self:xy(5, offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(THEME:GetString("TabFilter", "Title"))
 			end
 		},
 	OnCommand = function(self)
@@ -110,45 +122,35 @@ local f =
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY):zoom(0.3):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Left click on the filter value to set it.")
+				self:settext(THEME:GetString("TabFilter", "ExplainStartInput"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 20):zoom(0.3):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Right click/Start/Back to cancel input.")
+				self:settext(THEME:GetString("TabFilter", "ExplainCancelInput"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 40):zoom(0.3):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Greyed out values are inactive.")
+				self:settext(THEME:GetString("TabFilter", "ExplainGrey"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 60):zoom(0.3):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Using both bounds creates a range.")
+				self:settext(THEME:GetString("TabFilter", "ExplainBounds"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 80):zoom(0.3):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("'Highest Only' applies only to Mode: Or")
+				self:settext(THEME:GetString("TabFilter", "ExplainHighest"))
 			end
 		},
 	LoadFont("Common Large") ..
@@ -157,7 +159,7 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
-				self:settextf("Max Rate:%5.1fx", FILTERMAN:GetMaxFilterRate())
+				self:settextf("%s:%5.1fx", THEME:GetString("TabFilter", "MaxRate"), FILTERMAN:GetMaxFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -188,7 +190,7 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
-				self:settextf("Min Rate:%5.1fx", FILTERMAN:GetMinFilterRate())
+				self:settextf("%s:%5.1fx", THEME:GetString("TabFilter", "MinRate"), FILTERMAN:GetMinFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -220,9 +222,9 @@ local f =
 			end,
 			SetCommand = function(self)
 				if FILTERMAN:GetFilterMode() then
-					self:settext("Mode: " .. "AND")
+					self:settextf("%s: %s", translated_info["Mode"], translated_info["AND"])
 				else
-					self:settext("Mode: " .. "OR")
+					self:settextf("%s: %s", translated_info["Mode"], translated_info["OR"])
 				end
 			end,
 			FilterModeChangedMessageCommand = function(self)
@@ -248,9 +250,9 @@ local f =
 			end,
 			SetCommand = function(self)
 				if FILTERMAN:GetHighestSkillsetsOnly() then
-					self:settext("Highest Only: " .. "ON")
+					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["On"])
 				else
-					self:settext("Highest Only: " .. "OFF")
+					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["Off"])
 				end
 				if FILTERMAN:GetFilterMode() then
 					self:diffuse(color("#666666"))
@@ -280,7 +282,7 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoom(textzoom):halign(0):settext("")
 			end,
 			FilterResultsMessageCommand = function(self, msg)
-				self:settext("Matches: " .. msg.Matches .. "/" .. msg.Total)
+				self:settextf("%s: %i/%i", translated_info["Matches"], msg.Matches, msg.Total)
 			end
 		},
 	LoadFont("Common Large") ..
@@ -301,7 +303,7 @@ local f =
 				end
 			end,
 			SetCommand = function(self)
-				self:settext("Common Packs Only: " .. (self.packlistFiltering and "On" or "Off"))
+				self:settextf("%s: %s", translated_info["CommonPackFilter"], (self.packlistFiltering and translated_info["On"] or translated_info["Off"]))
 			end,
 			FilterModeChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -318,7 +320,7 @@ local function CreateFilterInputBox(i)
 					self:addx(10):addy(175 + (i - 1) * spacingY):halign(0):zoom(textzoom)
 				end,
 				SetCommand = function(self)
-					self:settext(i == (#ms.SkillSets + 1) and "Length" or ms.SkillSets[i])
+					self:settext(i == (#ms.SkillSets + 1) and translated_info["Length"] or ms.SkillSetsTranslated[i])
 				end
 			},
 		Def.Quad {
@@ -466,9 +468,7 @@ f[#f + 1] =
 	{
 		InitCommand = function(self)
 			self:xy(frameX + frameWidth - 150, frameY + 250):halign(0.5):zoom(0.35)
-		end,
-		BeginCommand = function(self)
-			self:settext("Reset")
+			self:settext(THEME:GetString("TabFilter", "Reset"))
 		end
 	}
 

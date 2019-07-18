@@ -132,19 +132,16 @@ t[#t + 1] =
 			end,
 			LogOutMessageCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settext("Click to login")
+					self:settext(THEME:GetString("GeneralInfo", "ClickToLogin"))
 				else
-					self:settext("Not logged in")
+					self:settext(THEME:GetString("GeneralInfo", "NotLoggedIn"))
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settextf(
-						"%s",
-						"Click to Logout"
-					)
+					self:settext(THEME:GetString("GeneralInfo", "ClickToLogout"))
 				else
-					self:settextf("")
+					self:settext("")
 				end
 			end,
 			OnlineUpdateMessageCommand = function(self)
@@ -171,17 +168,18 @@ t[#t + 1] =
 			end,
 			LogOutMessageCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settextf("")
+					self:settext("")
 					self:GetParent():SetUpdateFunction(highlight2)
 				else
-					self:settextf("")
+					self:settext("")
 					self:GetParent():SetUpdateFunction(highlight)
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
-						"Logged in as %s (%5.2f: #%i) \n",
+						"%s %s (%5.2f: #%i) \n",
+						THEME:GetString("GeneralInfo", "LoggedInAs.."),
 						DLMAN:GetUsername(),
 						DLMAN:GetSkillsetRating("Overall"),
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
@@ -189,7 +187,8 @@ t[#t + 1] =
 					self:GetParent():SetUpdateFunction(highlight2)
 				else
 					self:settextf(
-						"Logged in as %s (%5.2f: #%i)",
+						"%s %s (%5.2f: #%i)",
+						THEME:GetString("GeneralInfo", "LoggedInAs.."),
 						DLMAN:GetUsername(),
 						DLMAN:GetSkillsetRating("Overall"),
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
@@ -209,14 +208,14 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoomto(100, 30):diffusealpha(0)
 		end,
 		LoginFailedMessageCommand = function(self)
-			ms.ok("Login failed!")
+			ms.ok(THEME:GetString("GeneralInfo", "LoginFailed"))
 		end,
 		LoginMessageCommand = function(self)
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-			ms.ok("Succesfully logged in")
+			ms.ok(THEME:GetString("GeneralInfo", "LoginSuccess"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
@@ -228,8 +227,8 @@ t[#t + 1] =
 						pass = answer
 						DLMAN:Login(user, pass)
 					end
-					easyInputStringWithFunction("Password:", 50, true, password)
-					easyInputStringWithFunction("Username:", 50, false, username)
+					easyInputStringWithFunction(THEME:GetString("GeneralInfo","Password")..":", 50, true, password)
+					easyInputStringWithFunction(THEME:GetString("GeneralInfo","Username")..":", 50, false, username)
 				else
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
@@ -249,7 +248,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(playCount .. " Plays")
+				self:settextf("%s %s", playCount, THEME:GetString("GeneralInfo", "ProfilePlays"))
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -261,7 +260,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(noteCount .. " Arrows Smashed")
+				self:settextf("%s %s", noteCount, THEME:GetString("GeneralInfo", "ProfileTapsHit"))
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -274,7 +273,7 @@ t[#t + 1] =
 			end,
 			SetCommand = function(self)
 				local time = SecondsToHHMMSS(playTime)
-				self:settextf(time .. " PlayTime")
+				self:settextf("%s %s", time, THEME:GetString("GeneralInfo", "ProfilePlaytime"))
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -289,7 +288,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext("Judge: " .. GetTimingDifficulty())
+				self:settextf("%s: %s", THEME:GetString("GeneralInfo", "ProfileJudge"), GetTimingDifficulty())
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -314,7 +313,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Refresh Songs")
+				self:settextf(THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"))
 			end,
 			HighlightCommand=function(self)
 				highlightIfOver(self)
@@ -334,7 +333,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
+				self:settextf("%s: %i", THEME:GetString("GeneralInfo", "ProfileSongsLoaded"), SONGMAN:GetNumSongs())
 			end,
 			DFRFinishedMessageCommand = function(self)
 				self:queuecommand("Set")

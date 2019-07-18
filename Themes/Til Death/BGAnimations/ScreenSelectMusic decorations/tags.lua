@@ -22,6 +22,16 @@ local ptags = tags:get_data().playerTags
 local playertags = {}
 local displayindex = {}
 
+local translated_info = {
+	AddTag = THEME:GetString("TabTags", "AddTag"),
+	Mode = THEME:GetString("TabTags", "Mode"),
+	AND = THEME:GetString("TabTags", "AND"),
+	OR = THEME:GetString("TabTags", "OR"),
+	Next = THEME:GetString("TabTags", "Next"),
+	Previous = THEME:GetString("TabTags", "Previous"),
+	Showing = THEME:GetString("TabTags", "Showing")
+}
+
 local function newTagInput(event)
 	changed = false
 	if event.type ~= "InputEventType_Release" and onTab and hasFocus then
@@ -121,9 +131,8 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
-				"Player Tags"
-			)
+			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+			self:settext(THEME:GetString("TabTags", "Title"))
 		end
 	}
 
@@ -297,7 +306,11 @@ local function makeTag(i)
 	return t
 end
 
-local fawa = {"Chart Tags", "Filter By", "Remove"}
+local fawa = {
+	THEME:GetString("TabTags", "TagList"),
+	THEME:GetString("TabTags", "TagFilter"),
+	THEME:GetString("TabTags", "TagDelete")
+}
 local function funcButton(i)
 	local t =
 		Def.ActorFrame {
@@ -358,7 +371,7 @@ r[#r + 1] =
 				self:halign(0):zoom(fontScale)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
-				self:settext("Add new tag:")
+				self:settextf("%s:", translated_info["AddTag"])
 			end
 		},
 	Def.Quad {
@@ -423,7 +436,7 @@ r[#r + 1] =
 				self:zoom(fontScale):halign(0)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
-				self:settext("Mode: " .. (filterMode and "AND" or "OR"))
+				self:settextf("%s: %s", translated_info["Mode"], (filterMode and translated_info["AND"] or translated_info["OR"]))
 			end,
 			UpdateTagsMessageCommand = function(self)
 				self:queuecommand("BORPBORPNORFNORFc")
@@ -463,7 +476,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Next")
+				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["Next"])
 			end
 		},
 	Def.Quad {
@@ -480,7 +493,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Previous")
+				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["Previous"])
 			end
 		},
 	LoadFont("Common Large") ..
@@ -490,7 +503,8 @@ r[#r + 1] =
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
 				self:settextf(
-					"Showing %i-%i of %i",
+					"%s %i-%i (%i)",
+					translated_info["Showing"],
 					math.min(((currenttagpage - 1) * tagsperpage) + 1, #displayindex),
 					math.min(currenttagpage * tagsperpage, #displayindex),
 					#displayindex

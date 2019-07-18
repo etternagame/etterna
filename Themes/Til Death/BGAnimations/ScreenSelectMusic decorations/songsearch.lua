@@ -79,10 +79,10 @@ local t =
 			end,
 			SetCommand = function(self)
 				if active then
-					self:settext("Search Active:")
+					self:settextf("%s:", THEME:GetString("TabSearch", "Active"))
 					self:diffuse(getGradeColor("Grade_Tier03"))
 				else
-					self:settext("Search Complete:")
+					self:settextf("%s:", THEME:GetString("TabSearch", "Complete"))
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
 				end
 			end,
@@ -106,48 +106,28 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Start to lock search results.")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "ExplainStart"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 175):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Back to cancel search.")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "ExplainBack"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Delete resets search query.")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "ExplainDelete"))
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Currently supports standard english alphabet only.")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "ExplainLimitation"))
 			end
 		}
 }

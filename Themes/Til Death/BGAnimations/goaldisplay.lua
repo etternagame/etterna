@@ -59,7 +59,25 @@ local function byAchieved(scoregoal)
 	end
 	return color("#aaaaaa")
 end
-local filts = {"All Goals", "Completed", "Incomplete"}
+local filts = {
+	THEME:GetString("TabGoals", "FilterAll"),
+	THEME:GetString("TabGoals", "FilterCompleted"),
+	THEME:GetString("TabGoals", "FilterIncomplete")
+}
+
+local translated_info = {
+	PriorityLong = THEME:GetString("TabGoals", "PriorityLong"),
+	PriorityShort = THEME:GetString("TabGoals", "PriorityShort"),
+	RateLong = THEME:GetString("TabGoals", "RateLong"),
+	RateShort = THEME:GetString("TabGoals", "RateShort"),
+	Song = THEME:GetString("TabGoals", "Song"),
+	Date = THEME:GetString("TabGoals", "Date"),
+	Difficulty = THEME:GetString("TabGoals", "Difficulty"),
+	Best = THEME:GetString("TabGoals", "Best"),
+	Assigned = THEME:GetString("TabGoals", "AssignedDate"),
+	Achieved = THEME:GetString("TabGoals", "AchievedDate"),
+	Vacuous = THEME:GetString("TabGoals", "VacuousGoal"),
+}
 
 local goaltable
 local o =
@@ -133,13 +151,13 @@ local o =
 				self:xy(c0x + 10, headeroff):zoom(tzoom):halign(0.5)
 			end,
 			UpdateCommand = function(self)
-				self:settext("P")
+				self:settext(translated_info["PriorityShort"])
 			end,
 			HighlightCommand = function(self)
 				if isOver(self) then
-					self:settext("Priority"):diffusealpha(0.6)
+					self:settext(translated_info["PriorityLong"]):diffusealpha(0.6)
 				else
-					self:settext("P"):diffusealpha(1)
+					self:settext(translated_info["PriorityShort"]):diffusealpha(1)
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
@@ -157,13 +175,13 @@ local o =
 				self:xy(c1x + 25, headeroff):zoom(tzoom):halign(0.5)
 			end,
 			UpdateCommand = function(self)
-				self:settext("R")
+				self:settext(translated_info["RateShort"])
 			end,
 			HighlightCommand = function(self)
 				if isOver(self) then
-					self:settext("Rate"):diffusealpha(0.6)
+					self:settext(translated_info["RateLong"]):diffusealpha(0.6)
 				else
-					self:settext("R"):diffusealpha(1)
+					self:settext(translated_info["RateShort"]):diffusealpha(1)
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
@@ -178,7 +196,7 @@ local o =
 		{
 			--name
 			InitCommand = function(self)
-				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext("Song")
+				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Song"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -213,7 +231,7 @@ local o =
 		{
 			--date
 			InitCommand = function(self)
-				self:xy(c4x - 5, headeroff):zoom(tzoom):halign(1):settext("Date")
+				self:xy(c4x - 5, headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -230,7 +248,7 @@ local o =
 		{
 			--diff
 			InitCommand = function(self)
-				self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext("Diff")
+				self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Difficulty"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -414,14 +432,14 @@ local function makeGoalDisplay(i)
 					if pb then
 						if pb:GetMusicRate() < sg:GetRate() then
 							local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
-							self:settextf("Best: %5.2f%% (%s)", pb:GetWifeScore() * 100, ratestring)
+							self:settextf("%s: %5.2f%% (%s)", translated_info["Best"], pb:GetWifeScore() * 100, ratestring)
 						else
-							self:settextf("Best: %5.2f%%", pb:GetWifeScore() * 100)
+							self:settextf("%s: %5.2f%%", translated_info["Best"], pb:GetWifeScore() * 100)
 						end
 						self:diffuse(getGradeColor(pb:GetWifeGrade()))
 						self:visible(true)
 					else
-						self:settextf("(Best: %5.2f%%)", 0)
+						self:settextf("(%s: %5.2f%%)", translated_info["Best"], 0)
 						self:diffuse(byAchieved(sg))
 					end
 				end
@@ -433,7 +451,7 @@ local function makeGoalDisplay(i)
 					self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width / 4 / tzoom)
 				end,
 				DisplayCommand = function(self)
-					self:settext("Assigned: " .. sg:WhenAssigned()):diffuse(byAchieved(sg))
+					self:settextf("%s: %s", translated_info["Assigned"], sg:WhenAssigned()):diffuse(byAchieved(sg))
 				end
 			},
 		LoadFont("Common normal") ..
@@ -444,9 +462,9 @@ local function makeGoalDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					if sg:IsAchieved() then
-						self:settext("Achieved: " .. sg:WhenAchieved())
+						self:settextf("%s: %s", translated_info["Achieved"], sg:WhenAchieved())
 					elseif sg:IsVacuous() then
-						self:settext("Vacuous goal")
+						self:settext(translated_info["Vacuous"])
 					else
 						self:settext("")
 					end

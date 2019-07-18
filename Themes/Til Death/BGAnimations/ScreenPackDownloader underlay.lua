@@ -195,19 +195,22 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0):settext("Filters:")
+				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
+				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "Filters"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0):settext("Avg Diff:")
+				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "AverageDiff"))
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0):settext("Size (MB):")
+				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "Size"))
 			end
 		},
 	-- maybe we'll have more one day
@@ -235,7 +238,8 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2):settext("Bundle Select")
+				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
+				self:settext(THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"))
 			end
 		},
 	--[[
@@ -295,9 +299,8 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
-					"Cancel current dl"
-				)
+				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3)
+				self:settext(THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"))
 			end
 		}
 }
@@ -392,14 +395,16 @@ o[#o + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:zoom(fontScale):halign(1):valign(0):settext("Name:") -- this being so far down is kinda awkward
+				self:zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "SearchingName")) -- this being so far down is kinda awkward
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
 				self:xy(-90, 40)
-				self:zoom(fontScale):halign(0):valign(0):settext("Packs 2gb+ must be manually extracted into the Songs/ folder")
+				self:zoom(fontScale):halign(0):valign(0)
+				self:settext(THEME:GetString("ScreenPackDownloader", "ExplainSizeLimit"))
 			end
 		}
 }

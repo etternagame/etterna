@@ -28,7 +28,7 @@ local function Update(self)
 	self:GetChild("currentTime"):settextf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second)
 
 	local sessiontime = GAMESTATE:GetSessionTime()
-	self:GetChild("SessionTime"):settextf("Session Time: " .. SecondsToHHMMSS(sessiontime))
+	self:GetChild("SessionTime"):settextf("%s: %s", THEME:GetString("GeneralInfo", "SessionTime"), SecondsToHHMMSS(sessiontime))
 	self:diffuse(getMainColor("positive"))
 end
 
