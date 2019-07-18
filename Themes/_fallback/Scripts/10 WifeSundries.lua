@@ -8,15 +8,15 @@ ms = {}
 
 -- Radar values people on earth actually care about
 ms.RelevantRadarsShort = {
-	"Notes:",
-	"Jumps:",
-	"Hands:",
-	"Holds:",
-	"Mines:",
-	"TotalTaps:",
-	"Rolls:",
-	"Lifts:",
-	"Fakes:"
+	THEME:GetString("RadarCategoryShort", "Notes")..":",
+	THEME:GetString("RadarCategoryShort", "Jumps")..":",
+	THEME:GetString("RadarCategoryShort", "Hands")..":",
+	THEME:GetString("RadarCategoryShort", "Holds")..":",
+	THEME:GetString("RadarCategoryShort", "Mines")..":",
+	THEME:GetString("RadarCategoryShort", "TotalTaps")..":",
+	THEME:GetString("RadarCategoryShort", "Mines")..":",
+	THEME:GetString("RadarCategoryShort", "Lifts")..":",
+	THEME:GetString("RadarCategoryShort", "Fakes")..":"
 }
 
 ms.RelevantRadars = {
