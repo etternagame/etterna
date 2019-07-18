@@ -1,4 +1,6 @@
-﻿#ifndef NOTES_LOADER_H
+//test
+
+#ifndef NOTES_LOADER_H
 #define NOTES_LOADER_H
 
 #include <set>
