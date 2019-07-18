@@ -922,7 +922,11 @@ InitializeConfOptions()
 				   "|7",
 				   "|8",
 				   "Insanity"));
-	ADD(ConfOption("DefaultFailType", DefaultFailType, DefaultFailChoices));
+	ADD(ConfOption("DefaultFailType",
+				   DefaultFailType,
+				   "Immediate",
+				   "ImmediateContinue",
+				   "EndOfSong"));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));
 	ADD(ConfOption("MinTNSToHideNotes",
 				   MovePref<TapNoteScore>,
