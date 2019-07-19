@@ -29,6 +29,13 @@ local t =
 	end
 }
 
+local translated_info = {
+	Validated = THEME:GetString("TabProfile", "ScoreValidated"),
+	Invalidated = THEME:GetString("TabProfile", "ScoreInvalidated"),
+	Online = THEME:GetString("TabProfile", "Online"),
+	Local = THEME:GetString("TabProfile", "Local")
+}
+
 local frameX = 10
 local frameY = 45
 local frameWidth = capWideScale(360, 400)
@@ -72,9 +79,8 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
-				"Profile Info (WIP)"
-			)
+			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+			self:settext(THEME:GetString("TabProfile", "Title"))
 		end
 	}
 
@@ -225,9 +231,9 @@ local function rankingLabel(i)
 					ths:ToggleEtternaValidation()
 					BroadcastIfActive("UpdateRanking")
 					if ths:GetEtternaValid() then
-						ms.ok("Score Revalidated")
+						ms.ok(translated_info["Validated"])
 					else
-						ms.ok("Score Invalidated")
+						ms.ok(translated_info["Invalidated"])
 					end
 				end
 			end,
@@ -276,7 +282,7 @@ local function rankingButton(i)
 					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
 				end,
 				BeginCommand = function(self)
-					self:settext(ms.SkillSets[i])
+					self:settext(ms.SkillSetsTranslated[i])
 				end
 			}
 	}
@@ -319,7 +325,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Next")
+				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(THEME:GetString("TabProfile", "NextPage"))
 			end
 		},
 	Def.Quad {
@@ -340,7 +347,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Previous")
+				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(THEME:GetString("TabProfile", "PreviousPage"))
 			end
 		},
 	LoadFont("Common Large") ..
@@ -383,7 +391,7 @@ local function littlebits(i)
 					self:y(22 * i):halign(0):zoom(0.5):diffuse(getMainColor("positive"))
 				end,
 				SetCommand = function(self)
-					self:settext(ms.SkillSets[i] .. ":")
+					self:settext(ms.SkillSetsTranslated[i] .. ":")
 				end
 			},
 		LoadFont("Common Large") ..
@@ -420,7 +428,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:diffuse(getMainColor("positive")):settext("Save Profile"):zoom(0.3)
+				self:diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "SaveProfile")):zoom(0.3)
 			end
 		},
 	Def.Quad {
@@ -440,7 +448,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(100):diffuse(getMainColor("positive")):settext("Asset Settings"):zoom(0.3)
+				self:x(100):diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "AssetSettingEntry")):zoom(0.3)
 			end
 		},
 	Def.Quad {
@@ -456,7 +464,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(200):diffuse(getMainColor("positive")):settext("Validate All"):zoom(0.3)
+				self:x(200):diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "ValidateAllScores")):zoom(0.3)
 			end
 		},
 	Def.Quad {

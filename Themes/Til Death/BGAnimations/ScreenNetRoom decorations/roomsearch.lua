@@ -208,12 +208,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Title: ")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settextf("%s: ", THEME:GetString("TabSearch", "RoomTitle"))
 			end
 		},
 	Def.Quad {
@@ -253,12 +248,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Desc: ")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settextf("%s: ", THEME:GetString("TabSearch", "RoomSubtitle"))
 			end
 		},
 	Def.Quad {
@@ -286,12 +276,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 50):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Open")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "RoomOpened"))
 			end
 		},
 	Def.Quad {
@@ -320,12 +305,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2 - 50, frameY - 50):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Password")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "RoomPassworded"))
 			end
 		},
 	Def.Quad {
@@ -354,12 +334,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth - 100, frameY - 50):zoom(0.4):halign(0)
-			end,
-			SetCommand = function(self)
-				self:settext("Ingame")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+				self:settext(THEME:GetString("TabSearch", "RoomInGameplay"))
 			end
 		},
 	Def.Quad {
@@ -388,18 +363,14 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
+				self:settext(THEME:GetString("TabSearch", "ExplainLimitation"))
 			end,
-			SetCommand = function(self)
-				self:settext("Currently supports standard english alphabet only.")
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext("Search")
+				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+				self:settext(THEME:GetString("TabSearch", "Title"))
 			end
 		}
 }

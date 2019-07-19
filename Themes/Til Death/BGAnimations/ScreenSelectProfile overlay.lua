@@ -31,6 +31,12 @@ local function genericHighlight(self, highlight, base, clickaction)
 	end
 end
 
+local translated_info = {
+	Title = THEME:GetString("ScreenSelectProfile", "Title"),
+	SongPlayed = THEME:GetString("ScreenSelectProfile", "SongPlayed"),
+	SongsPlayed = THEME:GetString("ScreenSelectProfile", "SongsPlayed")
+}
+
 function GetLocalProfiles()
 	local t = {}
 
@@ -57,9 +63,9 @@ function GetLocalProfiles()
 					end,
 					BeginCommand = function(self)
 						local numSongsPlayed = profile:GetNumTotalSongsPlayed()
-						local s = numSongsPlayed == 1 and "Song" or "Songs"
+						local s = numSongsPlayed == 1 and translated_info["SongPlayed"] or translated_info["SongsPlayed"]
 						-- todo: localize
-						self:settext(numSongsPlayed .. " " .. s .. " Played")
+						self:settext(numSongsPlayed .. " " .. s)
 					end
 				},
 			Def.Sprite {
@@ -318,7 +324,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Select Profile:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+			self:settextf("%s:", translated_info["Title"])
 		end
 	}
 
