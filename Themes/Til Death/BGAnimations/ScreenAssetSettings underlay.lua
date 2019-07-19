@@ -4,10 +4,13 @@ local profile = PROFILEMAN:GetProfile(PLAYER_1)
 
 local curType = 1
 local assetTypes = {}
+local translated_assets = {}
 for k,v in pairs(assetFolders) do
-    assetTypes[curType] = k
+	assetTypes[curType] = k
+	translated_assets[k] = THEME:GetString("ScreenAssetSettings", k)
     curType = curType + 1
 end
+
 curType = 2
 
 local maxPage = 1
@@ -594,8 +597,8 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end,
 		SetCommand = function(self)
-			local type = assetTypes[curType]
-			self:settext(type:gsub("^%l", string.upper))
+			local type = translated_assets[assetTypes[curType]]
+			self:settext(type)
 		end,
 		UpdatingAssetsMessageCommand = function(self)
 			self:queuecommand("Set")
@@ -724,8 +727,8 @@ t[#t+1] = mainContainer() .. {
 
 local l = 1
 local capTypes = {}
-for k,v in pairs(assetTypes) do
-	capTypes[l] = v:gsub("^%l", string.upper)
+for k,v in pairs(translated_assets) do
+	capTypes[l] = v
     l = l+1
 end
 local typeTabs = TAB:new(capTypes)
