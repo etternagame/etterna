@@ -24,6 +24,10 @@ local Colors = {
 	tab = color("#555555"),
 	activeTab = color("#999999")
 }
+local translated_info = {
+	WindowTitle = THEME:GetString("MultiPlayer", "ChatTitle"),
+	LobbyName = THEME:GetString("MultiPlayer", "LobbyName")
+}
 local chats = {}
 chats[0] = {}
 chats[1] = {}
@@ -168,7 +172,7 @@ chat[#chat + 1] =
 	{
 		Name = "BarLabel",
 		InitCommand = function(self)
-			self:settext("CHAT")
+			self:settext(translated_info["WindowTitle"])
 			self:halign(0):valign(0.5)
 			self:zoom(0.5)
 			self:diffuse(color("#000000"))
@@ -288,7 +292,7 @@ for i = 0, maxTabs - 1 do
 						return
 					end
 					if tabs[i + 1][1] == 0 and tabs[i + 1][2] == "" then
-						self:settext("Lobby")
+						self:settext(translated_info["LobbyName"])
 					else
 						self:settext(tabs[i + 1][2] or "")
 					end
