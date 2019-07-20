@@ -613,7 +613,8 @@ local e =
 				self:xy(MovableValues.ErrorBarX + errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext("Late"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
+				self:settext(THEME:GetString("ScreenGameplay", "ErrorBarLate"))
+				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -623,7 +624,8 @@ local e =
 				self:xy(MovableValues.ErrorBarX - errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext("Early"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
+				self:settext(THEME:GetString("ScreenGameplay", "ErrorBarEarly"))
+				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
 					"Doot"
 				)
 			end,

@@ -149,7 +149,7 @@ scroller[#scroller + 1] =
 			function(self)
 				SCREENMAN:GetTopScreen():ToggleReplayPause()
 				local paused = GAMESTATE:IsPaused()
-				self.label.actor:settext(paused and "Play" or "Pause")
+				self.label.actor:settext(paused and THEME:GetString("ScreenGameplay", "ButtonPlay") or THEME:GetString("ScreenGameplay", "ButtonPause"))
 			end
 		),
 		button(

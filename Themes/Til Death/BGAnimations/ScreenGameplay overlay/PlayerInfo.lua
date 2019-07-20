@@ -67,7 +67,7 @@ local t =
 				self:xy(PlayerFrameX + 53, PlayerFrameY - 2):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
-				self:settextf("Judge: %d", GetTimingDifficulty())
+				self:settextf("%s: %d", THEME:GetString("ScreenGameplay", "ScoringJudge"), GetTimingDifficulty())
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -76,7 +76,7 @@ local t =
 				self:xy(PlayerFrameX + 53, PlayerFrameY + 8):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
-				self:settext("Scoring: " .. scoringToText(themeConfig:get_data().global.DefaultScoreType))
+				self:settextf("%s: %s", THEME:GetString("ScreenGameplay", "ScoringType"), scoringToText(themeConfig:get_data().global.DefaultScoreType))
 			end
 		}
 }
