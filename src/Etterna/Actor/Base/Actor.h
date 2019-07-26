@@ -263,11 +263,12 @@ class Actor : public MessageSubscriber
 	bool IsOver(float mx, float my);
 
 	Actor* GetFakeParentOrParent(); // fake parent > parent -mina
-	float GetTrueX();	// recursive with parent (for mouseovers) -mina
-	float GetTrueY();	// same
-	float GetTrueZoom(); // same
-	bool IsVisible();	// same but for gating updates on things that may not
-						 // explicitly set visible = false -mina
+	float GetTrueX();		  // recursive with parent (for mouseovers) -mina
+	float GetTrueY();		  // same
+	float GetTrueRotationZ(); // same
+	float GetTrueZoom();	  // same
+	bool IsVisible(); // same but for gating updates on things that may not
+					  // explicitly set visible = false -mina
 
 	/**
 	 * @brief Calls multiple functions for drawing the Actors.

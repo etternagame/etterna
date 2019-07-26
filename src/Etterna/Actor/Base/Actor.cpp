@@ -305,16 +305,22 @@ Actor::IsOver(float mx, float my)
 
 	auto x = GetTrueX();
 	auto y = GetTrueY();
+
 	auto hal = GetHorizAlign();
 	auto val = GetVertAlign();
+
 	auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoom();
 	auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoom();
-	auto lr = x - (hal * wi);
-	auto rr = x + wi - (hal * wi);
-	auto ur = y - (val * hi);
-	auto br = ((y + hi) - (val * hi));
-	bool withinX = mx >= lr && mx <= rr;
-	bool withinY = my >= ur && my <= br;
+
+	auto rotZ = GetTrueRotationZ();
+
+	RageVector2 p1(mx - x, my - y);
+	RageVec2RotateFromOrigin(&p1, -rotZ);
+	p1.x += x;
+	p1.y += y;
+
+	bool withinX = (p1.x >= (x - hal * wi)) && (p1.x <= (x + wi - hal * wi));
+	bool withinY = (p1.y >= (y - val * hi)) && (p1.y <= (y + hi - val * hi));
 	return withinX && withinY;
 }
 Actor*
@@ -336,7 +342,10 @@ Actor::GetTrueX()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
-	return GetX() * mfp->GetTrueZoom() + mfp->GetTrueX();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.x * mfp->GetTrueZoom() + mfp->GetTrueX();
 }
 
 float
@@ -347,8 +356,23 @@ Actor::GetTrueY()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
-	return GetY() * mfp->GetTrueZoom() + mfp->GetTrueY();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.y * mfp->GetTrueZoom() + mfp->GetTrueY();
 }
+
+float
+Actor::GetTrueRotationZ()
+{
+	if (!this)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationZ();
+	return GetRotationZ() + mfp->GetTrueRotationZ();
+}
+
 float
 Actor::GetTrueZoom()
 {
@@ -377,8 +401,7 @@ Actor::Draw()
 	}
 
 	if (m_FakeParent != nullptr) {
-		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->EarlyAbortDraw()) {
+		if (!m_FakeParent->m_bVisible || m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
 		m_FakeParent->PreDraw();
@@ -409,8 +432,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible ||
-			state->EarlyAbortDraw()) {
+		if (!state->m_bVisible || state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
 			state->PreDraw();

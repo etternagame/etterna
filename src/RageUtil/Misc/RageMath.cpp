@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Most of these prototypes match up with the D3DX math functions.  Take a
  * function name, replace "Rage" with "D3DX" and look it up in the D3D SDK
  * docs for details.
@@ -12,6 +12,27 @@
 #ifdef _WIN32
 #include <d3dx9math.h>
 #endif
+
+void
+RageVec2RotateFromOrigin(RageVector2* pOut, float degrees)
+{
+	auto radians = degrees * PI / 180;
+	auto outx = pOut->x * RageFastCos(radians) - pOut->y * RageFastSin(radians);
+	auto outy = pOut->x * RageFastSin(radians) + pOut->y * RageFastCos(radians);
+	pOut->x = outx;
+	pOut->y = outy;
+}
+
+void
+RageVec2RotateFromPoint(RageVector2* p1, RageVector2* p2, float degrees)
+{
+	auto xdiff = p2->x - p1->x;
+	auto ydiff = p2->y - p1->y;
+	RageVector2 p3(xdiff, ydiff);
+	RageVec2RotateFromOrigin(&p3, degrees);
+	p2->x = p1->x + p3.x;
+	p2->y = p1->y + p3.y;
+}
 
 void
 RageVec3ClearBounds(RageVector3& mins, RageVector3& maxs)
