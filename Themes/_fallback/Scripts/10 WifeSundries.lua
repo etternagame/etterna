@@ -95,6 +95,73 @@ function ms.p(str)
 	MESSAGEMAN:Broadcast("ScriptError", {message = tostring(str)})
 end
 
+--[[
+	This runs the LuaJIT profiler.
+	Shows the approximate line of section of Lua that are being used the most.
+	This will cause a minor fps drop.
+]]
+function ms.startjitprofiler()
+	local profile = require("jit.profile")
+	local tH = {}
+	local tHS = {}
+	profile.start(
+		"li1",
+		function(th, samples, vmmode)
+			local f = require("jit.profile").dumpstack(th, "pl", 1)
+			tH[f] = 1 + (tH[f] or 0)
+			if not tHS[f] then
+				tHS[f] = {}
+			end
+			tHS[f][vmmode] = (tHS[f][vmmode] or 0) + 1
+		end
+	)
+	local function dump(o)
+		if type(o) == "table" then
+			local s = "{ "
+			for k, v in pairs(o) do
+				if type(k) ~= "number" then
+					k = '"' .. k .. '"'
+				end
+				s = s .. "[" .. k .. "] = " .. dump(v) .. ",\n"
+			end
+			return s .. "} "
+		else
+			return tostring(o)
+		end
+	end
+	SCREENMAN:GetTopScreen():setInterval(
+		function()
+			local tmp = {}
+			local n = 0
+			for k, v in pairs(tH) do
+				tmp[n + 1] = {k, v}
+				n = n + 1
+			end
+			table.sort(
+				tmp,
+				function(a, b)
+					return a[2] > b[2]
+				end
+			)
+			local str = ""
+			for _, v in ipairs(tmp) do
+				str = str .. dump(v[1]) .. " =" .. tostring(v[2]) .. "\n"
+			end
+
+			SCREENMAN:SystemMessage(str)
+		end,
+		1
+	)
+end
+
+--[[
+	Stop the LuaJIT profiler only if it has already been started.
+]]
+function ms.stopjitprofiler()
+	local profile = require("jit.profile")
+	profile.stop()
+end
+
 function ms.type(m)
 	SCREENMAN:SystemMessage(type(m))
 end
