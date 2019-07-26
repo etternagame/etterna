@@ -145,7 +145,7 @@ scroller[#scroller + 1] =
 	end,
 	content = {
 		button(
-			"Pause",
+			THEME:GetString("ScreenGameplay", "ButtonPause"),
 			function(self)
 				SCREENMAN:GetTopScreen():ToggleReplayPause()
 				local paused = GAMESTATE:IsPaused()
@@ -153,13 +153,13 @@ scroller[#scroller + 1] =
 			end
 		),
 		button(
-			"Fast Forward",
+			THEME:GetString("ScreenGameplay", "ButtonFastForward"),
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
 			end
 		),
 		button(
-			"Rewind",
+			THEME:GetString("ScreenGameplay", "ButtonRewind"),
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
 			end
