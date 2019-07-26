@@ -508,7 +508,7 @@ local function mainContainer()
 			self:zoom(fontScale)
 			self:halign(0)
 			self:xy(-frameWidth/2 + fontSpacing, fontRow1)
-			self:settext("Asset Settings")
+			self:settext(THEME:GetString("ScreenAssetSettings", "Title"))
 		end
 	}
 
