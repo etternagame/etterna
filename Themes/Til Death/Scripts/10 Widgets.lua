@@ -480,6 +480,7 @@ Widg.Button = function(params)
 		local mainActor = params.texture and button.sprite.actor
 		button.bg.HighlightCommand = params.highlight and function(self)
 				mainActor = mainActor or self
+				if not self.enabled then return end
 				local isOver = params.highlightCondition(self)
 				if params.highlight.texture then
 					(button.highlightSprite.actor):visible(isOver)
@@ -542,10 +543,12 @@ Widg.Button = function(params)
 	button.SetText = button.settext
 	button.Enable = function(button)
 		button.enabled = true
+		(button.actor):SetUpdateFunction(highlight)
 		return (button.actor):visible(button.enabled)
 	end
 	button.Disable = function(button)
 		button.enabled = false
+		(button.actor):SetUpdateFunction(nil)
 		return (button.actor):visible(button.enabled)
 	end
 

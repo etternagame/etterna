@@ -96,7 +96,7 @@ chat.ScreenChangedMessageCommand = function(self)
 		self:visible(false)
 		show = false
 		typing = false
-		s:setInterval(
+		s:setTimeout(
 			function()
 				self:visible(false)
 			end,

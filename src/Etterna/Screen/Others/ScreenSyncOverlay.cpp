@@ -12,6 +12,7 @@
 #include "Etterna/Models/Songs/Song.h"
 
 static bool previousGameplayState;
+static float slowupdate = 0;
 
 static bool
 IsGameplay()
@@ -53,8 +54,11 @@ ScreenSyncOverlay::Update(float fDeltaTime)
 	}
 
 	Screen::Update(fDeltaTime);
-
-	UpdateText();
+	slowupdate += fDeltaTime;
+	if (slowupdate > 0.25f) {
+		slowupdate = 0.f;
+		UpdateText();
+	}
 }
 
 bool g_bShowAutoplay = true;
