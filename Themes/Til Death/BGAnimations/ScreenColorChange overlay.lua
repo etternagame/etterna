@@ -56,7 +56,7 @@ local function generateCategory()
 			{
 				InitCommand = function(self)
 					self:xy(frameX[1], frameY + k * spacing)
-					self:settext(visibleItems[k])
+					self:settext(THEME:GetString("ScreenColorChange", visibleItems[k]))
 					self:zoom(scale)
 					self:halign(0)
 					self:queuecommand("UpdateColor")
@@ -64,7 +64,7 @@ local function generateCategory()
 				RowChangedMessageCommand = function(self, params)
 					if params.level == 1 then
 						self:queuecommand("UpdateColor")
-						self:settext(visibleItems[k])
+						self:settext(THEME:GetString("ScreenColorChange", visibleItems[k]))
 					end
 				end,
 				ColChangedMessageCommand = function(self, params)
@@ -132,7 +132,7 @@ local function generateCategoryColors()
 				InitCommand = function(self)
 					self:xy(frameX[2], frameY + i * spacing)
 					if visibleItems[i] ~= nil then
-						self:settext(visibleItems[i])
+						self:settext(THEME:GetString("ScreenColorChange", visibleItems[i]))
 					else
 						self:visible(false)
 					end
@@ -155,7 +155,7 @@ local function generateCategoryColors()
 				UpdateColorCommand = function(self)
 					if visibleItems[i] ~= nil then
 						self:visible(true)
-						self:settext(visibleItems[i])
+						self:settext(THEME:GetString("ScreenColorChange", visibleItems[i]))
 
 						if visibleItems[i] == currentItems[2][cursorIndex[2]] then
 							self:diffuse(getMainColor("highlight"))
@@ -278,7 +278,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight")):settext("Color Config:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight"))
+				:settext(THEME:GetString("ScreenColorChange", "Title"))
 		end
 	}
 
@@ -286,7 +287,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX[1], frameY):halign(0):valign(1):zoom(0.6):settext("Category:")
+			self:xy(frameX[1], frameY):halign(0):valign(1):zoom(0.6):settext(THEME:GetString("ScreenColorChange", "Category"))
 		end
 	}
 
@@ -294,7 +295,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX[2], frameY):halign(0):valign(1):zoom(0.6):settext("Name:")
+			self:xy(frameX[2], frameY):halign(0):valign(1):zoom(0.6):settext(THEME:GetString("ScreenColorChange", "Name"))
 		end
 	}
 
@@ -302,7 +303,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX[3], frameY):halign(0):valign(1):zoom(0.6):settext("Color:")
+			self:xy(frameX[3], frameY):halign(0):valign(1):zoom(0.6):settext(THEME:GetString("ScreenColorChange", "Color"))
 		end
 	}
 
