@@ -109,7 +109,7 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight")):settext("Color Config:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight")):settext(THEME:GetString("ScreenColorEdit", "Title"))
 		end
 	}
 
@@ -154,7 +154,7 @@ t[#t + 1] =
 		end,
 		OnCommand = function(self)
 			self:settextf(
-				'This will change the color "%s - %s".\n\nPress <Left>/<Right> to move cursor, <Up>/<Down> to change value.\nPress <Start> to confirm and <Back> to exit.\nPlease reload metrics after changing colors as some colors will not update unless you do so.',
+				THEME:GetString("ScreenColorEdit", "Description"),
 				selected[1],
 				selected[2]
 			)
