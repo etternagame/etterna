@@ -160,7 +160,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void SetSongPosition(float newPositionSeconds);
 	// Set the playback rate in the middle of gameplay, in practice mode only
 	float AddToPracticeRate(float amountAdded);
-	// Move the current position of the song in the middle of gameplay, in practice mode only
+	// Move the current position of the song in the middle of gameplay, in
+	// practice mode only
 	void SetPracticeSongPosition(float newPositionSeconds);
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
@@ -296,13 +297,12 @@ class ScreenGameplay : public ScreenWithMenuElements
 	GameplayAssist m_GameplayAssist;
 	RageSound* m_pSoundMusic;
 
-
-	vector<PlayerInfo>
+	PlayerInfo
 	  m_vPlayerInfo; // filled by SGameplay derivatives in FillPlayerInfo
-	virtual void FillPlayerInfo(vector<PlayerInfo>& vPlayerInfoOut) = 0;
+	virtual void FillPlayerInfo(PlayerInfo* vPlayerInfoOut) = 0;
 	virtual PlayerInfo& GetPlayerInfoForInput(const InputEventPlus& iep)
 	{
-		return m_vPlayerInfo[iep.pn];
+		return m_vPlayerInfo;
 	}
 
 	RageTimer m_timerGameplaySeconds;
@@ -315,55 +315,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	// True when the player hit RestartGameplay
 	bool m_bRestarted = false;
 };
-
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerInfoNotDummy(vector<PlayerInfo>::iterator iter,
-								 vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextEnabledPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-							   vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextPlayerNumberInfo(vector<PlayerInfo>::iterator iter,
-						vector<PlayerInfo>& v);
-vector<PlayerInfo>::iterator
-GetNextVisiblePlayerInfo(vector<PlayerInfo>::iterator iter,
-						 vector<PlayerInfo>& v);
-
-/** @brief Get each enabled Player's info. */
-#define FOREACH_EnabledPlayerInfo(v, pi)                                       \
-	for (vector<PlayerInfo>::iterator pi =                                     \
-		   GetNextEnabledPlayerInfo(v.begin(), v);                             \
-		 pi != v.end();                                                        \
-		 pi = GetNextEnabledPlayerInfo(++pi, v))
-/** @brief Get each enabled Player's info as long as it's not a dummy player. */
-#define FOREACH_EnabledPlayerInfoNotDummy(v, pi)                               \
-	for (vector<PlayerInfo>::iterator pi =                                     \
-		   GetNextEnabledPlayerInfoNotDummy(v.begin(), v);                     \
-		 pi != v.end();                                                        \
-		 pi = GetNextEnabledPlayerInfoNotDummy(++pi, v))
-/** @brief Get each enabled Player Number's info. */
-#define FOREACH_EnabledPlayerNumberInfo(v, pi)                                 \
-	for (vector<PlayerInfo>::iterator pi =                                     \
-		   GetNextEnabledPlayerNumberInfo(v.begin(), v);                       \
-		 pi != v.end();                                                        \
-		 pi = GetNextEnabledPlayerNumberInfo(++pi, v))
-/** @brief Get each Player Number's info, regardless of whether it's enabled or
- * not. */
-#define FOREACH_PlayerNumberInfo(v, pi)                                        \
-	for (vector<PlayerInfo>::iterator pi =                                     \
-		   GetNextPlayerNumberInfo(v.begin(), v);                              \
-		 pi != v.end();                                                        \
-		 pi = GetNextPlayerNumberInfo(++pi, v))
-/** @brief Get each visible Player's info. */
-#define FOREACH_VisiblePlayerInfo(v, pi)                                       \
-	for (vector<PlayerInfo>::iterator pi =                                     \
-		   GetNextVisiblePlayerInfo(v.begin(), v);                             \
-		 pi != v.end();                                                        \
-		 pi = GetNextVisiblePlayerInfo(++pi, v))
-
 #endif
 
 /**

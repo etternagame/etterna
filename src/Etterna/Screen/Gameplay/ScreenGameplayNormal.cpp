@@ -5,15 +5,11 @@
 REGISTER_SCREEN_CLASS(ScreenGameplayNormal);
 
 void
-ScreenGameplayNormal::FillPlayerInfo(vector<PlayerInfo>& vPlayerInfoOut)
+ScreenGameplayNormal::FillPlayerInfo(PlayerInfo* vPlayerInfoOut)
 {
-	vPlayerInfoOut.resize(NUM_PLAYERS);
-	vPlayerInfoOut[PLAYER_1].Load(
+	vPlayerInfoOut->Load(
 	  PLAYER_1, MultiPlayer_Invalid, true, Difficulty_Invalid);
 };
-
-// lua end
-
 /*
  * (c) 2005 Chris Danford
  * All rights reserved.
