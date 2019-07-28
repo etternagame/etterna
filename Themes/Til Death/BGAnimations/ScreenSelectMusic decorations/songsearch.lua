@@ -55,7 +55,7 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
-			ms.ok("Song search activated")
+			ms.ok(THEME:GetString("TabSearch", "HeaderMessage"))
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
 			active = true
