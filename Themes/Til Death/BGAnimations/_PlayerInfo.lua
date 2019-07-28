@@ -216,7 +216,7 @@ t[#t + 1] =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-			ms.ok("Succesfully logged in")
+			ms.ok("Successfully logged in")
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
