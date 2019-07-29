@@ -213,7 +213,7 @@ function UpdateInternal3(self, Player)
 					smallframe:visible(false)
 					bigframe:visible(false)
 					scroller:visible(false)
-					seltext:settext("No profile")
+					seltext:settext(THEME:GetString("GeneralInfo", "NoProfile"))
 				end
 			end
 	else

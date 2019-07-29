@@ -10,7 +10,7 @@ local t =
 
 local profileP1
 
-local profileNameP1 = "No Profile"
+local profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 local playCountP1 = 0
 local playTimeP1 = 0
 local noteCountP1 = 0
@@ -47,13 +47,13 @@ t[#t + 1] =
 				playTimeP1 = profileP1:GetTotalSessionSeconds()
 				noteCountP1 = profileP1:GetTotalTapsAndHolds()
 			else
-				profileNameP1 = "No Profile"
+				profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 				playCountP1 = 0
 				playTimeP1 = 0
 				noteCountP1 = 0
 			end
 		else
-			profileNameP1 = "No Profile"
+			profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 			playCountP1 = 0
 			playTimeP1 = 0
 			noteCountP1 = 0

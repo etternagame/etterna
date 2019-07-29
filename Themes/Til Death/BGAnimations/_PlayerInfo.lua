@@ -6,7 +6,7 @@ local t =
 
 local profile
 
-local profileName = "No Profile"
+local profileName = THEME:GetString("GeneralInfo", "NoProfile")
 local playCount = 0
 local playTime = 0
 local noteCount = 0
