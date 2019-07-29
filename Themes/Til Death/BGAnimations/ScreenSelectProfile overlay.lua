@@ -121,7 +121,7 @@ function LoadPlayerStuff(Player)
 		LoadCard(Color("Purple")),
 		LoadFont("Common Normal") ..
 			{
-				Text = "Press &START; to join.",
+				Text = THEME:GetString("ScreenSelectProfile", "PressStartToJoin"),
 				InitCommand = function(self)
 					self:shadowlength(1)
 				end,
