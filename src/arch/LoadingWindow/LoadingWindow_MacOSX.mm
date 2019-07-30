@@ -1,9 +1,9 @@
 #import <Cocoa/Cocoa.h>
-#import "ProductInfo.h"
+#import "Etterna/Globals/ProductInfo.h"
 #import "LoadingWindow_MacOSX.h"
-#import "RageUtil.h"
-#import "RageFile.h"
-#include "ThemeManager.h"
+#import "RageUtil/Utils/RageUtil.h"
+#import "RageUtil/File/RageFile.h"
+#include "Etterna/Singletons/ThemeManager.h"
 
 @interface LoadingWindowHelper : NSObject
 {

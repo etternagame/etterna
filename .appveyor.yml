@@ -1,0 +1,61 @@
+# Appveyor Behavior Config
+version: '{build}'
+clone_depth: 1 # Only clone the head of the repo
+pull_requests:
+  do_not_increment_build_number: true
+
+# Appveyor Build Config
+image:
+  - Visual Studio 2017
+
+platform:
+  - Win32
+  - x64
+
+init:
+  - "echo System Architecture: %PLATFORM%"
+  - choco upgrade cmake	nsis                    # Upgrade CMake
+  - set path=C:\Program Files\CMake\bin;%path%	# Add it to the path
+
+before_build:
+  - mkdir build && cd build
+  - cmake -DOPENSSL_ROOT_DIR="%OPENSSL_DIR%" -G "%GENERATOR%" -A "%PLATFORM%" ..
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\build
+  - msbuild Etterna.sln /p:Configuration=Release /p:Platform="%PLATFORM%"
+
+# CPack after build
+after_build:
+- cmd: cpack
+- cmd: ren "%APPVEYOR_BUILD_FOLDER%\build\*.exe" "*-%appveyor_build_version%-%PLATFORM%.exe"
+
+# Generate all possible combinations of the following environment variables
+# This will generate 4 builds, and do crosses that we don't want like a
+# 64bit generator and 32bit OpenSSL.
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
+    - GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
+
+# Don't generate builds with this specific combination of environment variables
+matrix:
+  exclude:
+    - platform: x64
+      GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
+
+    - platform: Win32
+      GENERATOR: "Visual Studio 15 2017"
+      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
+
+# Cache Choclatey packages so they don't need to be downloaded every time.
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+
+artifacts:
+- path: 'build\*.exe'
+  name: EtternaDevBuild

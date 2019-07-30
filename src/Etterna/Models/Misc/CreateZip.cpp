@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <tchar.h>
 #else
 #define _tcslen strlen

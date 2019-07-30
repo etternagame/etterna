@@ -5,9 +5,8 @@
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Save_PNG.h"
 #include "RageUtil/Utils/RageUtil.h"
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include <stb/stb_image_write.h>
 
 // Note: This function is only called on RageDisplay.cpp:978 and the sError result is not used in the response.
 bool RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, RString& sError) {

@@ -1,0 +1,27 @@
+project = "Etterna v@PROJECT_VERSION@"
+title = "Etterna Lua Documentation"
+description = "A cross-platform rhythm game"
+
+-- Output directory
+dir = "@PROJECT_BINARY_DIR@/ldoc_output"
+
+-- Source files
+file = {"@PROJECT_SOURCE_DIR@/Themes/_fallback/Scripts/", "@PROJECT_SOURCE_DIR@/Themes/_fallback/docs/"}
+
+-- Markdown files
+topics = '@PROJECT_SOURCE_DIR@/Themes/_fallback/docs/markdown'
+
+-- Proccess summaries and descriptions in markdown
+format = 'markdown'
+
+-- Left navigation panel scrolls independently
+style = '!fixed'
+
+-- Include local documentation in output
+all = true
+
+-- Run source through pretty parser
+pretty = true
+
+-- Disable LuaDoc compatability
+not_luadoc = true

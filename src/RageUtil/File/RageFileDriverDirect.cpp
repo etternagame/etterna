@@ -10,7 +10,7 @@
 #endif
 #include <cerrno>
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 
 #if defined(HAVE_DIRENT_H)
 #include <dirent.h>
@@ -20,7 +20,7 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include <windows.h>
 #include <io.h>
-#endif // !defined(WIN32)
+#endif // !defined(_WIN32)
 
 /* Direct filesystem access: */
 static struct FileDriverEntry_DIR : public FileDriverEntry
@@ -91,7 +91,7 @@ MakeFileObjDirect(RString sPath, int iMode, int& iError)
 		return NULL;
 	}
 
-#if defined(UNIX)
+#ifdef __unix__
 	struct stat st;
 	if (fstat(iFD, &st) != -1 && (st.st_mode & S_IFDIR)) {
 		iError = EISDIR;
@@ -261,7 +261,7 @@ RageFileObjDirect::RageFileObjDirect(const RString& sPath, int iFD, int iMode)
 }
 
 namespace {
-#if !defined(WIN32)
+#if !defined(_WIN32)
 bool
 FlushDir(RString sPath, RString& sError)
 {
@@ -358,7 +358,7 @@ RageFileObjDirect::~RageFileObjDirect()
 		RString sOldPath = MakeTempFilename(m_sPath);
 		RString sNewPath = m_sPath;
 
-#if defined(WIN32)
+#ifdef _WIN32
 		if (WinMoveFile(DoPathReplace(sOldPath), DoPathReplace(sNewPath)))
 			return;
 
@@ -467,8 +467,9 @@ RageFileObjDirect::GetFileSize() const
 	ASSERT_M(iOldPos != -1,
 			 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
 	const int iRet = static_cast<int>(lseek(m_iFD, 0, SEEK_END));
-	ASSERT_M(iRet != -1,
-			 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
+	// causes crashes when trying to unzip files >2gb, switch for large packs is handled theme-side in TD, so comment this out for now for other themes
+	//ASSERT_M(iRet != -1,
+	//		 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
 	lseek(m_iFD, iOldPos, SEEK_SET);
 	return iRet;
 }

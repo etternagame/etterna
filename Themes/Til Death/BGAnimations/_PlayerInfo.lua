@@ -16,9 +16,11 @@ local AvatarY = SCREEN_HEIGHT - 50
 local playerRating = 0
 
 local setnewdisplayname = function(answer)
-	profile:RenameProfile(answer)
-	profileName = answer
-	MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+	if answer ~= "" then
+		profile:RenameProfile(answer)
+		profileName = answer
+		MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+	end
 end
 
 local function highlight(self)
@@ -83,7 +85,7 @@ t[#t + 1] =
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				local top = SCREENMAN:GetTopScreen()
-				SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
+				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
 		end
 	},
@@ -94,7 +96,7 @@ t[#t + 1] =
 			end,
 			SetCommand = function(self)
 				self:settextf("%s: %5.2f", profileName, playerRating)
-				if profileName == "Default Profile" then
+				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(
 						"Choose a profile display name\nClicking your name will allow you to change it:",
 						64,

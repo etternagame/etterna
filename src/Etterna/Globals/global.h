@@ -1,11 +1,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#if defined(CMAKE_POWERED)
 #include "config.hpp"
-#elif defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
 #if _MSC_VER >= 1000
 #pragma once
@@ -19,11 +15,11 @@
 #define __STDC_CONSTANT_MACROS
 
 /* Platform-specific fixes. */
-#if defined(WIN32)
+#ifdef _WIN32
 #include "archutils/Win32/arch_setup.h"
-#elif defined(PBBUILD)
+#elif defined(__APPLE__)
 #include "archutils/Darwin/arch_setup.h"
-#elif defined(UNIX)
+#elif defined(__unix__)
 #include "archutils/Unix/arch_setup.h"
 #endif
 

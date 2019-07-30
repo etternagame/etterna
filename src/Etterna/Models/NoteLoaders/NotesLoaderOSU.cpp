@@ -5,6 +5,7 @@
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 vector<string>
 split(string str, string token)
@@ -34,8 +35,9 @@ OsuLoader::ParseFileString(string fileContents)
 	SeparateTagsAndContents(fileContents, sections, contents);
 
 	map<string, map<string, string>> parsedData;
-
-	if (sections.size() == 7) {
+	bool colurz = (sections.size() == 8 &&
+				   std::count(sections.begin(), sections.end(), "Colours"));
+	if (sections.size() == 7 || colurz) {
 		for (int i = 0; i < (int)sections.size(); ++i) {
 			for (auto& content : contents[i]) {
 				auto& str = content;
@@ -202,7 +204,9 @@ OsuLoader::LoadChartData(Song* song,
 						 Steps* chart,
 						 map<string, map<string, string>> parsedData)
 {
-	if (stoi(parsedData["General"]["Mode"]) != 3 || parsedData.find("HitObjects") == parsedData.end()) // if the mode isn't mania or notedata is empty
+	if (stoi(parsedData["General"]["Mode"]) != 3 ||
+		parsedData.find("HitObjects") ==
+		  parsedData.end()) // if the mode isn't mania or notedata is empty
 	{
 		return false;
 	}
@@ -278,6 +282,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
+	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
 	for (auto it = parsedData["HitObjects"].begin();
 		 it != parsedData["HitObjects"].end();
 		 ++it) {
@@ -320,7 +325,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 	for (int i = 0; i < (int)holds.size(); ++i) {
 		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
 		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);
-		if (end - start > 0) {
+		if (end - start > 0 && useLifts) {
 			end = end - 1;
 		}
 		newNoteData.AddHoldNote(
@@ -328,10 +333,12 @@ OsuLoader::LoadNoteDataFromParsedData(
 		  start,
 		  end,
 		  TAP_ORIGINAL_HOLD_HEAD);
-		newNoteData.SetTapNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  end + 1,
-		  TAP_ORIGINAL_LIFT);
+		if (useLifts)
+			newNoteData.SetTapNote(
+			  holds[i].lane /
+				(512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			  end + 1,
+			  TAP_ORIGINAL_LIFT);
 	}
 
 	// out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this

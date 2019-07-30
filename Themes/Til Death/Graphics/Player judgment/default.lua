@@ -32,7 +32,7 @@ end
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
-		Texture = "../../../../" .. getAssetPath("judgement"),
+		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
 			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY)
@@ -62,6 +62,12 @@ local t =
 		local iFrame = TNSFrames[param.TapNoteScore]
 		if not iFrame then
 			return
+		end
+		if iNumStates == 12 then
+			iFrame = iFrame * 2
+			if not param.Early then
+				iFrame = iFrame + 1
+			end
 		end
 
 		self:playcommand("Reset")

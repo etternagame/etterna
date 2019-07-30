@@ -1,0 +1,23 @@
+# Doxyfile 1.8.11
+
+# General
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = Etterna
+OUTPUT_LANGUAGE        = English
+PROJECT_NUMBER         = @PROJECT_VERSION@
+OUTPUT_DIRECTORY       = @PROJECT_BINARY_DIR@/doxygen
+INPUT                  = @PROJECT_SOURCE_DIR@/src
+INPUT_ENCODING         = UTF-8
+RECURSIVE              = YES
+
+# HTML
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+
+# DOT
+HAVE_DOT               = @DOXYGEN_HAVE_DOT@
+CLASS_DIAGRAMS         = YES
+DOT_NUM_THREADS        = 0
+
+# LATEX
+GENERATE_LATEX         = NO

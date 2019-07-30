@@ -298,7 +298,7 @@ function getCurrentKeyMode()
 		StepsType_Dance_Solo = "6K",
 		StepsType_Kb7_Single = "7K",
 		StepsType_Dance_Double = "8K",
-		StepsType_Dance_Couple = "8K"
+		StepsType_Pump_Double = "10K"
 	}
 	local stepstype = GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
 	return keys[stepstype]

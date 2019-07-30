@@ -10,4 +10,5 @@
  */
 #include "tomcrypt.h"
 
-ltc_math_descriptor ltc_mp;
+// Maybe we should updated libtomcrypt instead of putting this fix in manually?
+ltc_math_descriptor ltc_mp = { 0 };

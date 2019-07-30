@@ -31,10 +31,10 @@ local t = Def.ActorFrame {}
 t[#t + 1] =
 	Def.ActorFrame {
 	Def.Sprite {
-		Texture = "../../../../" .. getAssetPath("judgement"),
+		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
-			SCREENMAN:SystemMessage(getAssetPath("judgement"))
+			SCREENMAN:SystemMessage(getAssetPath("judgment"))
 			self:pause():visible(false)
 		end,
 		OnCommand = THEME:GetMetric("Judgment", "JudgmentOnCommand"),

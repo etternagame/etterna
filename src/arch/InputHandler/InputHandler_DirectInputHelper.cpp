@@ -9,7 +9,7 @@
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dinput8.lib")
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #pragma comment(lib, "dxguid.lib")
 #endif
 #endif

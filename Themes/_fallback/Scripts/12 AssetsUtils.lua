@@ -20,7 +20,7 @@ local function addProfileAssetFromGUID(GUID, asset)
 		asset = "avatar"
 	end
 	if not tableContains(assetsConfig:get_data().avatar, GUID) then
-		assetsConfig:get_data()[asset][GUID] = assetsConfig:get_data()[asset].default
+		assetsConfig:get_data()[asset][GUID] = getDefaultAssetByType(asset)
 		assetsConfig:set_dirty()
 		assetsConfig:save()
 	end
@@ -29,21 +29,21 @@ end
 -- returns the image path relative to the theme folder for the specified player.
 function getAssetPath(asset)
 	local pn = PLAYER_1
-	local fileName = assetsConfig:get_data()[asset].default
+	local fileName = getDefaultAssetByType(asset)
 
 	local profile = PROFILEMAN:GetProfile(pn)
 	local GUID = profile:GetGUID()
 
 	fileName = assetsConfig:get_data()[asset][GUID]
 	if fileName == nil then
-		fileName = assetsConfig:get_data()[asset].default
+		fileName = getDefaultAssetByType(asset)
 		addProfileAssetFromGUID(GUID, asset)
 	end
 
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		return assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		return fileName
 	else
-		return assetFolders[asset] .. assetsConfig:get_data()[asset].default
+		return getDefaultAssetByType(asset)
 	end
 end
 function getAvatarPath()
@@ -57,7 +57,7 @@ function getAssetPathFromProfileID(asset, profileID)
 	if not asset then
 		asset = "avatar"
 	end
-	local fileName = assetsConfig:get_data()[asset].default
+	local fileName = getDefaultAssetByType(asset)
 	if profileID == nil then
 		return fileName
 	end
@@ -67,14 +67,14 @@ function getAssetPathFromProfileID(asset, profileID)
 
 	fileName = assetsConfig:get_data()[asset][GUID]
 	if fileName == nil then
-		fileName = assetsConfig:get_data()[asset].default
+		fileName = getDefaultAssetByType(asset)
 		addProfileAssetFromGUID(GUID, asset)
 	end
 
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		return assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		return fileName
 	else
-		return assetFolders[asset] .. assetsConfig:get_data()[asset].default
+		return getDefaultAssetByType(asset)
 	end
 end
 
@@ -86,22 +86,22 @@ end
 -- Unused, it's more for testing.
 function getAsset(asset)
 	local pn = PLAYER_1
-	local fileName = assetsConfig:get_data()[asset].default
+	local fileName = getDefaultAssetByType(asset)
 
 	local profile = PROFILEMAN:GetProfile(pn)
 	local GUID = profile:GetGUID()
 
 	fileName = assetsConfig:get_data()[asset][GUID]
 	if fileName == nil then
-		fileName = assetsConfig:get_data()[asset] .. default
+		fileName = getDefaultAssetByType(asset)
 		addProfileFromGUID(GUID)
 	end
 
 	local file
-	if FILEMAN:DoesFileExist(assetFolders[asset] .. fileName) then
-		file = assetFolders[asset] .. fileName
+	if FILEMAN:DoesFileExist(fileName) then
+		file = fileName
 	else
-		file = assetFolders[asset] .. assetsConfig:get_data()[asset] .. default
+		file = getDefaultAssetByType(asset)
 	end
 	t =
 		LoadActor(file) ..

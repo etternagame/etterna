@@ -14,7 +14,7 @@
 
 #include "RageUtil/Utils/RageUtil.h"
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 #include "archutils/Darwin/Crash.h"
 #endif
 

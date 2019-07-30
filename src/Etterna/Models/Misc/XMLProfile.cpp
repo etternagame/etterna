@@ -502,7 +502,7 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
 		if (pScreenshot->GetName() != "Screenshot")
-			WARN_AND_CONTINUE_M(pScreenshot->GetName());
+			WARN_AND_CONTINUE_M(pScreenshot->GetName().c_str());
 
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
@@ -537,7 +537,7 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 		return ProfileLoadResult_FailedNoProfile;
 
 	if (xml->GetName() != "Stats") {
-		WARN_M(xml->GetName());
+		WARN_M(xml->GetName().c_str());
 		return ProfileLoadResult_FailedTampered;
 	}
 

@@ -1,4 +1,4 @@
-﻿/** @brief RageUtil - Miscellaneous helper macros and functions. */
+/** @brief RageUtil - Miscellaneous helper macros and functions. */
 
 #ifndef RAGE_UTIL_H
 #define RAGE_UTIL_H
@@ -304,7 +304,6 @@ Swap16(uint16_t n)
 }
 #endif
 
-#if defined(ENDIAN_LITTLE)
 inline uint32_t
 Swap32LE(uint32_t n)
 {
@@ -335,38 +334,6 @@ Swap16BE(uint16_t n)
 {
 	return Swap16(n);
 }
-#else
-inline uint32_t
-Swap32BE(uint32_t n)
-{
-	return n;
-}
-inline uint32_t
-Swap24BE(uint32_t n)
-{
-	return n;
-}
-inline uint16_t
-Swap16BE(uint16_t n)
-{
-	return n;
-}
-inline uint32_t
-Swap32LE(uint32_t n)
-{
-	return Swap32(n);
-}
-inline uint32_t
-Swap24LE(uint32_t n)
-{
-	return Swap24(n);
-}
-inline uint16_t
-Swap16LE(uint16_t n)
-{
-	return Swap16(n);
-}
-#endif
 
 typedef std::mt19937 RandomGen;
 
@@ -867,6 +834,10 @@ void
 ReplaceEntityText(RString& sText, const map<RString, RString>& m);
 void
 ReplaceEntityText(RString& sText, const map<char, RString>& m);
+void
+ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m);
+void
+ReplaceEntityText(std::string& sText, const map<char, std::string>& m);
 void
 Replace_Unicode_Markers(RString& Text);
 RString

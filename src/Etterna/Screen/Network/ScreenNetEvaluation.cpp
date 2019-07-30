@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "ScreenNetEvaluation.h"
@@ -131,6 +130,7 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	{
 		int theNumber = 0;
 		RString given = SArg(1);
+		given = given.MakeLower();
 		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++)
 		{
 			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
@@ -159,7 +159,6 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 LUA_REGISTER_DERIVED_CLASS(ScreenNetEvaluation, ScreenEvaluation)
 // lua end
 
-#endif
 
 /*
  * (c) 2004-2005 Charles Lohr, Joshua Allen

@@ -6,7 +6,7 @@
 #include <cerrno>
 #include <sys/stat.h>
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 
 #if defined(HAVE_DIRENT_H)
 #include <dirent.h>
@@ -23,7 +23,7 @@ DoPathReplace(const RString& sPath)
 	return TempPath;
 }
 
-#if defined(WIN32)
+#ifdef _WIN32
 static bool
 WinMoveFileInternal(const RString& sOldPath, const RString& sNewPath)
 {
@@ -96,7 +96,7 @@ CreateDirectories(const RString& Path)
 			curpath += "/";
 		curpath += parts[i];
 
-#if defined(WIN32)
+#ifdef _WIN32
 		if (curpath.size() == 2 && curpath[1] == ':') /* C: */
 		{
 			/* Don't try to create the drive letter alone. */
@@ -107,7 +107,7 @@ CreateDirectories(const RString& Path)
 		if (DoMkdir(curpath, 0777) == 0)
 			continue;
 
-#if defined(WIN32)
+#ifdef _WIN32
 		/* When creating a directory that already exists over Samba, Windows is
 		 * returning ENOENT instead of EEXIST. */
 		/* I can't reproduce this anymore.  If we get ENOENT, log it but keep
@@ -173,7 +173,7 @@ DirectFilenameDB::CacheFile(const RString& sPath)
 	while (!pFileSet->m_bFilled)
 		m_Mutex.Wait();
 
-#if defined(WIN32)
+#ifdef _WIN32
 	// There is almost surely a better way to do this
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = DoFindFirstFile(root + sPath, &fd);
@@ -220,7 +220,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
 	fs.age.GetDeltaTime(); // reset
 	fs.files.clear();
 
-#if defined(WIN32)
+#ifdef _WIN32
 	WIN32_FIND_DATA fd;
 
 	if (sPath.size() > 0 && sPath.Right(1) == "/")

@@ -24,12 +24,10 @@
 
 #include "arch/Threads/Threads.h"
 
-#if defined(CRASH_HANDLER)
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include "archutils/Win32/crash.h"
-#elif defined(LINUX) || defined(MACOSX)
+#elif defined(__linux__) || defined(__APPLE__)
 #include "archutils/Unix/CrashHandler.h"
-#endif
 #endif
 
 /* Assume TLS doesn't work until told otherwise.  It's ArchHooks's job to set
@@ -659,7 +657,6 @@ RageMutex::Lock()
 				   ThisSlotName.c_str(),
 				   OtherSlotName.c_str());
 
-#if defined(CRASH_HANDLER)
 		/* Don't leave GetThreadSlotsLock() locked when we call
 		 * ForceCrashHandlerDeadlock. */
 		GetThreadSlotsLock().Lock();
@@ -669,9 +666,7 @@ RageMutex::Lock()
 		/* Pass the crash handle of the other thread, so it can backtrace that
 		 * thread. */
 		CrashHandler::ForceDeadlock(sReason, CrashHandle);
-#else
-		FAIL_M(sReason);
-#endif
+
 	}
 
 	m_LockedBy = iThisThreadId;
@@ -838,11 +833,7 @@ RageSemaphore::Wait(bool bFailOnTimeout)
 			   ThisSlot ? ThisSlot->GetThreadName()
 						: "(???"
 						  ")"); // stupid trigraph warnings
-#if defined(CRASH_HANDLER)
 	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
-#else
-	RageException::Throw("%s", sReason.c_str());
-#endif
 }
 
 bool

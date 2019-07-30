@@ -1,7 +1,7 @@
 ﻿#ifndef RAGE_DISPLAY_OGL_HELPERS_H
 #define RAGE_DISPLAY_OGL_HELPERS_H
 
-#if defined(WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #endif
 

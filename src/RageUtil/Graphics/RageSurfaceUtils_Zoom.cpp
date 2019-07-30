@@ -4,7 +4,7 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil/Utils/RageUtil.h"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize.h"
+#include <stb/stb_image_resize.h>
 
 using namespace std;
 

@@ -8,10 +8,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-
-#if !defined(WITHOUT_NETWORKING)
 #include "ver.h"
-#endif
 
 // DEFAULTS_INI_PATH	= "Data/Defaults.ini";		// these can be overridden
 // PREFERENCES_INI_PATH	// overlay on Defaults.ini, contains the user's choices
@@ -178,6 +175,7 @@ PrefsManager::PrefsManager()
   , m_bShowInstructions("ShowInstructions", false)
   , m_bShowCaution("ShowCaution", false)
   , m_bFullTapExplosions("FullTapExplosions", true)
+  , m_bNoGlow("NoGlow", false)
   , m_bShowNativeLanguage("ShowNativeLanguage", true)
   , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
@@ -201,6 +199,8 @@ PrefsManager::PrefsManager()
   , // Work-In-Progress.. disable by default.
   m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
   , EnablePitchRates("EnablePitchRates", true)
+  , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
+  , m_bEasterEggs("EasterEggs", true)
   , m_fPadStickSeconds("PadStickSeconds", 0)
   , m_bForceMipMaps("ForceMipMaps", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
@@ -222,7 +222,7 @@ PrefsManager::PrefsManager()
   , m_sTestInitialScreen("TestInitialScreen", "")
   , m_MuteActions("MuteActions", false)
   , ThreadsToUse("ThreadsToUse", 0)
-  ,m_bLogToDisk("LogToDisk", true)
+  , m_bLogToDisk("LogToDisk", true)
   , m_verbose_log("VerboseLogging", 1)
   ,
 #if defined(DEBUG)
@@ -239,10 +239,7 @@ PrefsManager::PrefsManager()
   , m_bShowLoadingWindow("ShowLoadingWindow", true)
   , m_bPseudoLocalize("PseudoLocalize", false)
   , m_show_theme_errors("ShowThemeErrors", false)
-
-#if !defined(WITHOUT_NETWORKING)
   , m_bEnableScoreboard("EnableScoreboard", true)
-#endif
 
 {
 	Init();

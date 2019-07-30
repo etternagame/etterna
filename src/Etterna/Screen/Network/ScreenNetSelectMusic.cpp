@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -102,10 +101,11 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		GAMESTATE->m_pCurSong.Set(NSMAN->song);
 		if (NSMAN->steps != nullptr) {
 			GAMESTATE->m_pCurSteps.Set(NSMAN->steps);
-			GAMESTATE->m_PreferredDifficulty.Set(
-			  NSMAN->steps->GetDifficulty());
+			GAMESTATE->m_PreferredDifficulty.Set(NSMAN->steps->GetDifficulty());
 		}
 		if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+			FILTERMAN->filteringCommonPacks = false;
+			FILTERMAN->ResetSSFilters();
 			m_MusicWheel.ChangeSort(SORT_GROUP);
 			m_MusicWheel.FinishTweening();
 			m_MusicWheel.ReloadSongList(false, "");
@@ -145,6 +145,8 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 				  NSMAN->steps->GetDifficulty());
 			}
 			if (!m_MusicWheel.SelectSong(NSMAN->song)) {
+				FILTERMAN->filteringCommonPacks = false;
+				FILTERMAN->ResetSSFilters();
 				m_MusicWheel.ChangeSort(SORT_GROUP);
 				m_MusicWheel.FinishTweening();
 				m_MusicWheel.ReloadSongList(false, "");
@@ -414,7 +416,6 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectMusic, ScreenSelectMusic)
 // lua end
 
-#endif
 /*
  * (c) 2004-2005 Charles Lohr
  * All rights reserved.

@@ -7,7 +7,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <ctime>
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <windows.h>
 #endif
 #include <map>
@@ -198,7 +198,7 @@ RageLog::SetShowLogOutput(bool show)
 {
 	m_bShowLogOutput = show;
 
-#if defined(WIN32)
+#ifdef _WIN32
 	if (m_bShowLogOutput) {
 		// create a new console window and attach standard handles
 		AllocConsole();

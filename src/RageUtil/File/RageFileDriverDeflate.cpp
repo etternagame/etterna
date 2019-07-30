@@ -5,14 +5,14 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include <memory>
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include "zlib.h"
 #if defined(_MSC_VER)
 #if defined(BINARY_ZDL)
 #pragma comment(lib, "zdll.lib")
 #endif
 #endif
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 #include "zlib.h"
 #else
 #include <zlib.h>

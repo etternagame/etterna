@@ -1,5 +1,4 @@
 ﻿#include "Etterna/Globals/global.h"
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
@@ -191,7 +190,6 @@ RoomInfoDisplay::SetRoomInfo(const RoomInfo& info)
 	m_state = CLOSED;
 	m_deployDelay.Touch();
 }
-#endif
 
 /*
  * (c) 2006 Josh Allen

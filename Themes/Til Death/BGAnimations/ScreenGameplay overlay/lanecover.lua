@@ -4,7 +4,9 @@ local lockSpeedP1 = false
 
 local cover
 
-local laneColor = color("#333333")
+local laneColor = getLaneCoverColor("cover")
+local bpmColor = getLaneCoverColor("bpmText")
+local heightColor = getLaneCoverColor("heightText")
 
 local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
@@ -198,7 +200,7 @@ if enabledP1 then
 		{
 			Name = "CoverTextP1White",
 			InitCommand = function(self)
-				self:x(P1X - (width * getNoteFieldScale(PLAYER_1) / 8)):settext(0):valign(1):zoom(0.5)
+				self:x(P1X - (width * getNoteFieldScale(PLAYER_1) / 8)):settext(0):valign(1):zoom(0.5):diffuse(heightColor)
 			end,
 			BeginCommand = function(self)
 				self:settext(0)
@@ -221,7 +223,7 @@ if enabledP1 then
 		{
 			Name = "CoverTextP1Green",
 			InitCommand = function(self)
-				self:x(P1X + (width * getNoteFieldScale(PLAYER_1) / 8)):settext(0):valign(1):zoom(0.5):diffuse(color("#4CBB17"))
+				self:x(P1X + (width * getNoteFieldScale(PLAYER_1) / 8)):settext(0):valign(1):zoom(0.5):diffuse(bpmColor)
 			end,
 			BeginCommand = function(self)
 				self:settext(math.floor(getSpeed(PLAYER_1)))

@@ -9,7 +9,7 @@
 #include "RageTypes.h"
 #include <cfloat>
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 #include <d3dx9math.h>
 #endif
 
@@ -34,7 +34,7 @@ RageVec3AddToBounds(const RageVector3& p, RageVector3& mins, RageVector3& maxs)
 void
 RageVec2Normalize(RageVector2* pOut, const RageVector2* pV)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXVec2Normalize((D3DXVECTOR2*)pOut, (D3DXVECTOR2*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y);
@@ -46,7 +46,7 @@ RageVec2Normalize(RageVector2* pOut, const RageVector2* pV)
 void
 RageVec3Normalize(RageVector3* pOut, const RageVector3* pV)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXVec3Normalize((D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z);
@@ -69,7 +69,7 @@ VectorFloatNormalize(vector<float>& v)
 void
 RageVec3Cross(RageVector3* ret, RageVector3 const* a, RageVector3 const* b)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXVec3Cross((D3DXVECTOR3*)ret, (D3DXVECTOR3*)a, (D3DXVECTOR3*)b);
 #else
 	ret->x = (a->y * b->z) - (a->z * b->y);
@@ -83,7 +83,7 @@ RageVec3TransformCoord(RageVector3* pOut,
 					   const RageVector3* pV,
 					   const RageMatrix* pM)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXVec3TransformCoord(
 	  (D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV, (D3DXMATRIX*)pM);
 #else
@@ -98,7 +98,7 @@ RageVec3TransformNormal(RageVector3* pOut,
 						const RageVector3* pV,
 						const RageMatrix* pM)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXVec3TransformNormal(
 	  (D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV, (D3DXMATRIX*)pM);
 #else
@@ -176,7 +176,7 @@ RageMatrix::RageMatrix(float v00,
 void
 RageMatrixIdentity(RageMatrix* pOut)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixIdentity((D3DXMATRIX*)pOut);
 #else
 	static float identity[16] = {
@@ -216,7 +216,7 @@ RageMatrix::GetTranspose() const
 void
 RageMatrixMultiply(RageMatrix* pOut, const RageMatrix* pA, const RageMatrix* pB)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixMultiply((D3DXMATRIX*)pOut, (D3DXMATRIX*)pB, (D3DXMATRIX*)pA);
 #else
 	const RageMatrix& a = *pA;
@@ -246,7 +246,7 @@ RageMatrixMultiply(RageMatrix* pOut, const RageMatrix* pA, const RageMatrix* pB)
 void
 RageMatrixTranslation(RageMatrix* pOut, float x, float y, float z)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixTranslation((D3DXMATRIX*)pOut, x, y, z);
 #else
 	RageMatrixIdentity(pOut);
@@ -259,7 +259,7 @@ RageMatrixTranslation(RageMatrix* pOut, float x, float y, float z)
 void
 RageMatrixScaling(RageMatrix* pOut, float x, float y, float z)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixScaling((D3DXMATRIX*)pOut, x, y, z);
 #else
 	RageMatrixIdentity(pOut);
@@ -298,7 +298,7 @@ RageMatrixTranslate(RageMatrix* pOut,
 					float fTransY,
 					float fTransZ)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixTranslation((D3DXMATRIX*)pOut, fTransX, fTransY, fTransZ);
 #else
 	pOut->m00 = 1;
@@ -326,7 +326,7 @@ RageMatrixTranslate(RageMatrix* pOut,
 void
 RageMatrixScale(RageMatrix* pOut, float fScaleX, float fScaleY, float fScaleZ)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixScaling((D3DXMATRIX*)pOut, fScaleX, fScaleY, fScaleZ);
 #else
 	pOut->m00 = fScaleX;
@@ -469,7 +469,7 @@ RageQuatMultiply(RageVector4* pOut,
 				 const RageVector4& pA,
 				 const RageVector4& pB)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXQuaternionMultiply(
 	  (D3DXQUATERNION*)pOut, (D3DXQUATERNION*)&pA, (D3DXQUATERNION*)&pB);
 #else
@@ -627,7 +627,7 @@ RageQuatSlerp(RageVector4* pOut,
 			  const RageVector4& to,
 			  float t)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXQuaternionSlerp(
 	  (D3DXQUATERNION*)pOut, (D3DXQUATERNION*)&from, (D3DXQUATERNION*)&to, t);
 #else
@@ -755,7 +755,7 @@ RageMatrixAngles(RageMatrix* pOut, const RageVector3& angles)
 void
 RageMatrixTranspose(RageMatrix* pOut, const RageMatrix* pIn)
 {
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	D3DXMatrixTranspose((D3DXMATRIX*)pOut, (D3DXMATRIX*)pIn);
 #else
 	for (int i = 0; i < 4; i++)

@@ -88,7 +88,6 @@ AutoScreenMessage(SM_BattleTrickLevel3);
 static Preference<bool> g_bCenter1Player("Center1Player", true);
 static Preference<bool> g_bShowLyrics("ShowLyrics", false);
 static Preference<float> g_fNetStartOffset("NetworkStartOffset", -3.0);
-static Preference<bool> g_bEasterEggs("EasterEggs", true);
 
 PlayerInfo::PlayerInfo()
   : m_pn(PLAYER_INVALID)
@@ -282,9 +281,7 @@ ScreenGameplay::ScreenGameplay()
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-#if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(true);
-#endif
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 		LOG->Trace("Unloading replaydata.");
 		SCOREMAN->UnloadAllReplayData();
@@ -348,16 +345,6 @@ ScreenGameplay::Init()
 
 	GAMESTATE->SetPaused(false);
 	m_fReplayBookmarkSeconds = 0.f;
-
-	// Force FailOff in Practice Mode
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  FailType_Off;
-	}
 
 	int player = 1;
 	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
@@ -606,6 +593,18 @@ ScreenGameplay::Init()
 	m_gave_up = false;
 	m_skipped_song = false;
 
+	// Force FailOff in Practice Mode
+	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
+		GAMEMAN->m_iPreviousFail =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
+		  FailType_Off;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
+		  FailType_Off;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
+		  FailType_Off;
+	}
+
 	if (!GAMEMAN->m_bRestartedGameplay &&
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		GAMEMAN->m_bResetModifiers = true;
@@ -709,9 +708,7 @@ ScreenGameplay::~ScreenGameplay()
 
 	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->ReportSongOver();
-#if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateDLSpeed(false);
-#endif
 }
 
 void
@@ -1114,10 +1111,12 @@ ScreenGameplay::BeginScreen()
 									  this->GetPlayerInfo(PLAYER_1)
 										->GetPlayerStageStats()
 										->m_iCurCombo);
-			  NSMAN->SendMPLeaderboardUpdate(
-				this->GetPlayerInfo(PLAYER_1)->m_pPlayer->curwifescore /
-				  this->GetPlayerInfo(PLAYER_1)->m_pPlayer->maxwifescore,
-				doot);
+			  auto player = this->GetPlayerInfo(PLAYER_1)->m_pPlayer;
+			  if(player->maxwifescore > 0)
+				  NSMAN->SendMPLeaderboardUpdate(
+					  player->curwifescore /
+					  player->maxwifescore,
+					doot);
 		  },
 		  0.25f,
 		  -1);
@@ -2032,7 +2031,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
 		GAMESTATE->CommitStageStats();
 	// save current stage stats
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);
@@ -2084,6 +2083,11 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
+		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+			return; // don't auto leave gameplay when finishing notes during
+					// practice mode this prevents use of eval screen during
+					// practice which im pretty sure nobody cares about?
+
 		ResetGiveUpTimers(
 		  false); // don't allow giveup while the next song is loading
 
@@ -2238,7 +2242,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 
 		StartPlayingSong(MIN_SECONDS_TO_STEP_NEXT_SONG, 0);
 	} else if (SM == SM_PlayToasty) {
-		if (g_bEasterEggs) {
+		if (PREFSMAN->m_bEasterEggs) {
 			if (m_Toasty.IsWaiting()) {
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();
@@ -2641,6 +2645,23 @@ ScreenGameplay::SetPracticeSongPosition(float newPositionSeconds)
 	m_pSoundMusic->Pause(isPaused);
 
 	m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
+
+	// curwifescore sent via judgment msgs is stored in player
+	auto pl = m_vPlayerInfo[PLAYER_1].m_pPlayer;
+	// but the tns counts are stored here
+	auto stats = m_vPlayerInfo[PLAYER_1].GetPlayerStageStats();
+
+	// Reset the wife/judge counter related visible stuff
+	// we should _probably_ reset the replaydata vectors but i don't feel like it if we are refactoring gameplay soon
+	 pl->curwifescore = 0;
+	FOREACH_ENUM(TapNoteScore, tns)
+		stats->m_iTapNoteScores[tns] = 0;
+	FOREACH_ENUM(TapNoteScore, hns)
+		stats->m_iHoldNoteScores[hns] = 0;
+
+	// just having a message we can respond to directly is probably the best way to reset lua elemenmts
+	// rather than emulating a judgment message like replays
+	MESSAGEMAN->Broadcast("PracticeModeReset");
 }
 
 float

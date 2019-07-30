@@ -112,7 +112,7 @@ LowLevelWindow_X11::GetProcAddress(const RString& s)
 RString
 LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
-#if defined(UNIX)
+#ifdef __unix__
 	/* nVidia cards:
 	 * This only works the first time we set up a window; after that, the
 	 * drivers appear to cache the value, so you have to actually restart

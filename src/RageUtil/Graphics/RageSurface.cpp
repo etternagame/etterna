@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageSurface.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "stb_image.h"
+#include <stb/stb_image.h>
 #include <climits>
 
 int32_t

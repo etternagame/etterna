@@ -80,6 +80,7 @@ local defaultConfig = {
 	CBHighlight = false,
 	OneShotMirror = false,
 	JudgmentText = true,
+	ComboText = true,
 	ReceptorSize = 100,
 	BackgroundType = 1,
 	UserName = "",
@@ -92,14 +93,16 @@ local defaultConfig = {
 		["5K"] = DeepCopy(defaultGameplayCoordinates),
 		["6K"] = DeepCopy(defaultGameplayCoordinates),
 		["7K"] = DeepCopy(defaultGameplayCoordinates),
-		["8K"] = DeepCopy(defaultGameplayCoordinates)
+		["8K"] = DeepCopy(defaultGameplayCoordinates),
+		["10K"] = DeepCopy(defaultGameplayCoordinates)
 	},
 	GameplaySizes = {
 		["4K"] = DeepCopy(defaultGameplaySizes),
 		["5K"] = DeepCopy(defaultGameplaySizes),
 		["6K"] = DeepCopy(defaultGameplaySizes),
 		["7K"] = DeepCopy(defaultGameplaySizes),
-		["8K"] = DeepCopy(defaultGameplaySizes)
+		["8K"] = DeepCopy(defaultGameplaySizes),
+		["10K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
 
@@ -119,6 +122,7 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplaySizes["6K"] = sizes
 		defaultConfig.GameplaySizes["7K"] = sizes
 		defaultConfig.GameplaySizes["8K"] = sizes
+		defaultConfig.GameplaySizes["10K"] = sizes
 	end
 	if coords and not coords["4K"] then
 		defaultConfig.GameplayXYCoordinates["4K"] = coords
@@ -126,6 +130,7 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplayXYCoordinates["6K"] = coords
 		defaultConfig.GameplayXYCoordinates["7K"] = coords
 		defaultConfig.GameplayXYCoordinates["8K"] = coords
+		defaultConfig.GameplayXYCoordinates["10K"] = coords
 	end
 	force_table_elements_to_match_type = tmp
 	return tmp2(self, slot)

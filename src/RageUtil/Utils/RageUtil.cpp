@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil.h"
+#include "RageUtil/Misc/RageString.h"
 
 #include <cfloat>
 #include <ctime>
@@ -386,7 +387,9 @@ ssprintf(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	return vssprintf(fmt, va);
+	auto s = vssprintf(fmt, va);
+	va_end(va);
+	return s;
 }
 
 #define FMT_BLOCK_SIZE 2048 // # of bytes to increment per try
@@ -396,7 +399,7 @@ vssprintf(const char* szFormat, va_list argList)
 {
 	RString sStr;
 
-#if defined(WIN32)
+#ifdef _WIN32
 	char* pBuf = NULL;
 	int iChars = 1;
 	int iUsed = 0;
@@ -466,7 +469,7 @@ vssprintf(const char* szFormat, va_list argList)
  * %-3llu c d" to "a b %I64 %-3I64u c d". This assumes a well-formed format
  * string; invalid format strings should not crash, but the results are
  * undefined. */
-#if defined(WIN32)
+#ifdef _WIN32
 RString
 ConvertI64FormatString(const RString& sStr)
 {
@@ -1367,7 +1370,7 @@ StripCvsAndSvn(vector<RString>& vs)
 static bool
 MacResourceFork(const RString& s)
 {
-	return s.Left(2).EqualsNoCase("._");
+	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
 }
 
 void
@@ -1523,11 +1526,8 @@ GetFileContents(const std::string& sFile, vector<std::string>& asOut)
 	return true;
 }
 
-#ifndef USE_SYSTEM_PCRE
-#include "../../../extern/pcre/pcre.h"
-#else
-#include <pcre.h>
-#endif
+#include "pcre.h"
+
 void
 Regex::Compile()
 {
@@ -2079,6 +2079,100 @@ ReplaceEntityText(RString& sText, const map<char, RString>& m)
 		ASSERT(it != m.end());
 
 		const RString& sTo = it->second;
+		sRet.append(1, '&');
+		sRet.append(sTo);
+		sRet.append(1, ';');
+		++iOffset;
+	}
+
+	sText = sRet;
+}
+
+// &a; -> a
+void
+ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
+{
+	std::string sRet;
+
+	size_t iOffset = 0;
+	while (iOffset != sText.size()) {
+		size_t iStart = sText.find('&', iOffset);
+		if (iStart == sText.npos) {
+			// Optimization: if we didn't replace anything at all, do nothing.
+			if (iOffset == 0)
+				return;
+
+			// Append the rest of the string.
+			sRet.append(sText, iOffset, sRet.npos);
+			break;
+		}
+
+		// Append the text between iOffset and iStart.
+		sRet.append(sText, iOffset, iStart - iOffset);
+		iOffset += iStart - iOffset;
+
+		// Optimization: stop early on "&", so "&&&&&&&&&&&" isn't n^2.
+		size_t iEnd = sText.find_first_of("&;", iStart + 1);
+		if (iEnd == sText.npos || sText[iEnd] == '&') {
+			// & with no matching ;, or two & in a row. Append the & and
+			// continue.
+			sRet.append(sText, iStart, 1);
+			++iOffset;
+			continue;
+		}
+
+		std::string sElement = sText.substr(iStart + 1, iEnd - iStart - 1);
+		Rage::make_lower(sElement);
+
+		map<std::string, std::string>::const_iterator it = m.find(sElement);
+		if (it == m.end()) {
+			sRet.append(sText, iStart, iEnd - iStart + 1);
+			iOffset = iEnd + 1;
+			continue;
+		}
+
+		const std::string& sTo = it->second;
+		sRet.append(sTo);
+		iOffset = iEnd + 1;
+	}
+
+	sText = sRet;
+}
+
+// abcd -> &a; &b; &c; &d;
+void
+ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
+{
+	std::string sFind;
+
+	FOREACHM_CONST(char, std::string, m, c)
+	sFind.append(1, c->first);
+
+	std::string sRet;
+
+	size_t iOffset = 0;
+	while (iOffset != sText.size()) {
+		size_t iStart = sText.find_first_of(sFind, iOffset);
+		if (iStart == sText.npos) {
+			// Optimization: if we didn't replace anything at all, do nothing.
+			if (iOffset == 0)
+				return;
+
+			// Append the rest of the string.
+			sRet.append(sText, iOffset, sRet.npos);
+			break;
+		}
+
+		// Append the text between iOffset and iStart.
+		sRet.append(sText, iOffset, iStart - iOffset);
+		iOffset += iStart - iOffset;
+
+		char sElement = sText[iStart];
+
+		map<char, std::string>::const_iterator it = m.find(sElement);
+		ASSERT(it != m.end());
+
+		const std::string& sTo = it->second;
 		sRet.append(1, '&');
 		sRet.append(sTo);
 		sRet.append(1, ';');

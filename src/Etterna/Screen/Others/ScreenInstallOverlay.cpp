@@ -5,8 +5,6 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "json/value.h"
-#include "Etterna/Models/Misc/JsonUtil.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -14,7 +12,6 @@
 #include "ScreenInstallOverlay.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "json/value.h"
 class Song;
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/GameState.h"
@@ -39,10 +36,7 @@ class Song;
 #include <iterator>
 #include <vector>
 #include <fstream>
-
-#if !defined(WITHOUT_NETWORKING)
 #include "Etterna/Singletons/DownloadManager.h"
-#endif
 
 const RString TEMP_OS_MOUNT_POINT = "/@temp-os/";
 
@@ -251,12 +245,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 			}
 		}
 		if (IsHTTPProtocol(s)) {
-
-#if !defined(WITHOUT_NETWORKING)
 			DLMAN->DownloadAndInstallPack(s);
-#else
-			// TODO: Figure out a meaningful log message.
-#endif
 		} else if (IsPackageFile(s)) {
 			InstallSmzipOsArg(s);
 			reload = true;
@@ -312,7 +301,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		CommandLineActions::ToProcess.pop_back();
 		DoInstalls(args);
 	}
-#if !defined(WITHOUT_NETWORKING)
+
 	if (!DLMAN->gameplay) {
 		static float lastDLProgressUpdate = 0;
 		lastDLProgressUpdate += fDeltaTime;
@@ -342,8 +331,6 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		}
 		MESSAGEMAN->Broadcast(msg);
 	}
-
-#endif
 }
 
 /*

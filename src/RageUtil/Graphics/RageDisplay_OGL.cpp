@@ -21,7 +21,7 @@
 #include <chrono>
 #include <set>
 
-#if defined(WINDOWS)
+#ifdef _WIN32
 #include <GL/wglew.h>
 #endif
 
@@ -198,7 +198,6 @@ struct GLPixFmtInfo_t
 static void
 FixLittleEndian()
 {
-#if defined(ENDIAN_LITTLE)
 	static bool bInitialized = false;
 	if (bInitialized)
 		return;
@@ -227,7 +226,6 @@ FixLittleEndian()
 			pf.masks[mask] = m;
 		}
 	}
-#endif
 }
 
 static void
@@ -564,7 +562,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		LOG->Warn("Low-performance OpenGL renderer: %s", sError.c_str());
 	}
 
-#if defined(_WINDOWS)
+#ifdef _WIN32
 	/* GLDirect is a Direct3D wrapper for OpenGL.  It's rather buggy; and if in
 	 * any case GLDirect can successfully render us, we should be able to do so
 	 * too using Direct3D directly.  (If we can't, it's a bug that we can work
@@ -811,7 +809,7 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	}
 
 // I'm not sure this is correct -Colby
-#if defined(WINDOWS)
+#ifdef _WIN32
 	/* Set vsync the Windows way, if we can.  (What other extensions are there
 	 * to do this, for other archs?) */
 	if (wglewIsSupported("WGL_EXT_swap_control"))

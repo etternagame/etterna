@@ -21,10 +21,6 @@ function GetExtraColorThreshold()
 		pump = 21,
 		beat = 12,
 		kb7 = 10,
-		para = 10,
-		techno = 10,
-		lights = 10, -- lights shouldn't be playable
-		kickbox = 100 -- extra color is lame
 	}
 	return Modes[CurGameName()] or 10
 end
@@ -89,15 +85,11 @@ end
 -- [en] returns possible modes for ScreenSelectPlayMode
 function GameCompatibleModes()
 	local Modes = {
-		dance = "Single,Double,Solo,Versus,Couple",
-		pump = "Single,Double,HalfDouble,Versus,Couple,Routine",
-		beat = "5Keys,7Keys,10Keys,14Keys,Versus5,Versus7",
+		dance = "Single,Double,Solo",
+		pump = "Single,Double,HalfDouble",
+		beat = "5Keys,7Keys,10Keys,14Keys",
 		kb7 = "KB7",
-		para = "Single",
-		maniax = "Single,Double,Versus",
-		-- todo: add versus modes for technomotion
-		techno = "Single4,Single5,Single8,Double4,Double5,Double8",
-		lights = "Single" -- lights shouldn't be playable
+		maniax = "Single,Double",
 	}
 	return Modes[CurGameName()]
 end
@@ -114,9 +106,8 @@ function ScreenSelectStyleChoices()
 	for i, style in ipairs(styles) do
 		local name = style:GetName()
 		local cap_name = upper_first_letter(name)
-		-- couple-edit and threepanel don't seem like they should actually be
-		-- selectable. -Kyz
-		if name ~= "couple-edit" and name ~= "threepanel" then
+		-- threepanel don't seem like it should actually be selectable. 
+		if name ~= "threepanel" then
 			choices[#choices + 1] =
 				"name," .. cap_name .. ";style," .. name .. ";text," .. cap_name .. ";screen," .. Branch.AfterSelectStyle()
 		end
@@ -173,12 +164,6 @@ end
 -- ScoreKeeperClass:
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
-	if GAMESTATE:GetCurrentStyle() then
-		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
-		if styleType == "StyleType_TwoPlayersSharedSides" then
-			return "ScoreKeeperShared"
-		end
-	end
 	return "ScoreKeeperNormal"
 end
 

@@ -9,7 +9,7 @@ LoadingWindow::Create()
 {
 	if (!PREFSMAN->m_bShowLoadingWindow)
 		return new LoadingWindow_Null;
-#if defined(UNIX) && !defined(HAVE_GTK)
+#if defined(__unix__) && !defined(HAVE_GTK)
 	return new LoadingWindow_Null;
 #endif
 	// Don't load NULL by default.

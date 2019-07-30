@@ -3,8 +3,6 @@
 
 #define SM_DOWNMANAGER
 
-#if !defined(WITHOUT_NETWORKING)
-
 #include "Etterna/Globals/global.h"
 #include "CommandLineActions.h"
 #include "RageUtil/File/RageFile.h"
@@ -227,8 +225,8 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
-	bool UpdateOnlineScoreReplayData();	// attempts updates existing replaydata
-						 // server (Async, 1 request per score)
+	bool UpdateOnlineScoreReplayData(); // attempts updates existing replaydata
+										// server (Async, 1 request per score)
 	void RefreshPackList(const string& url);
 
 	void init();
@@ -280,6 +278,7 @@ class DownloadManager
 	void RefreshRegisterPage();
 	bool currentrateonly = false;
 	bool topscoresonly = true;
+	bool ccoffonly = true;
 	void RefreshCountryCodes();
 	void RequestReplayData(const string& scorekey,
 						   int userid,
@@ -314,7 +313,5 @@ class DownloadManager
 };
 
 extern shared_ptr<DownloadManager> DLMAN;
-
-#endif
 
 #endif

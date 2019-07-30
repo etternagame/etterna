@@ -186,7 +186,7 @@ Branch = {
 		end
 	end,
 	GameplayScreen = function()
-		return IsRoutine() and "ScreenGameplayShared" or "ScreenGameplay"
+		return "ScreenGameplay"
 	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"

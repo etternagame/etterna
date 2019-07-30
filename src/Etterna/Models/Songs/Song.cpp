@@ -27,7 +27,6 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterDWI.h"
 #include "Etterna/Models/NoteWriters/NotesWriterETT.h"
-#include "Etterna/Models/NoteWriters/NotesWriterJson.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSM.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterETT.h"
@@ -818,7 +817,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 			vector<RString> contains(1, "banner");
 			/* Some people do things differently for the sake of being
 			 * different. Don't match eg. abnormal, numbness. */
-			vector<RString> ends_with(1, " bn");
+			vector<RString> ends_with(1, "bn");
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
 			if (m_bHasBanner)
@@ -1371,13 +1370,6 @@ Song::SaveToETTFile(const RString& sPath, bool bSavingCache, bool autosave)
 }
 
 bool
-Song::SaveToJsonFile(const RString& sPath)
-{
-	LOG->Trace("Song::SaveToJsonFile('%s')", sPath.c_str());
-	return NotesWriterJson::WriteSong(sPath, *this, true);
-}
-
-bool
 Song::SaveToCacheFile()
 {
 	if (SONGMAN->IsGroupNeverCached(m_sGroupName)) {
@@ -1426,7 +1418,7 @@ Song::GetCacheFile(std::string sType)
 	PreDefs["Disc"] = GetDiscPath();
 
 	// Check if Predefined images exist, And return function if they do.
-	if (PreDefs[sType.c_str()].c_str())
+	if (PreDefs[sType.c_str()].c_str())		// pretty sure this evaluates to true even if the string is "", but haven't tested extensively
 		return PreDefs[sType.c_str()].c_str();
 
 	// Get all image files and put them into a vector.

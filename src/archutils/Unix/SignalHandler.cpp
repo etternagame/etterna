@@ -14,7 +14,7 @@
 #include <sys/mman.h>
 #include <cerrno>
 
-#if defined(MACOSX)
+#ifdef __APPLE__
 extern "C" int
 sigaltstack(const stack_t* __restrict, stack_t* __restrict);
 #endif
@@ -157,7 +157,7 @@ SignalHandler::OnClose(handler h)
 
 		bool bUseAltSigStack = true;
 
-#if defined(LINUX)
+#ifdef __linux__
 		/* Linuxthreads (pre-NPTL) sigaltstack is broken. */
 		if (!UsingNPTL())
 			bUseAltSigStack = false;
