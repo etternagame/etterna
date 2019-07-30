@@ -71,6 +71,9 @@
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
 #endif
 
+bool noWindow;
+
+
 void
 ShutdownGame();
 bool
@@ -810,6 +813,9 @@ CreateDisplay()
 		RageException::Throw("%s", ERROR_NO_VIDEO_RENDERERS.GetValue().c_str());
 
 	RageDisplay* pRet = NULL;
+	if(noWindow){
+		return new RageDisplay_Null;
+	} else {
 	for (unsigned i = 0; i < asRenderers.size(); i++) {
 		RString sRenderer = asRenderers[i];
 
@@ -849,6 +855,7 @@ CreateDisplay()
 
 		break; // the display is ready to go
 	}
+}
 
 	if (pRet == NULL)
 		RageException::Throw("%s", error.c_str());
@@ -1107,11 +1114,18 @@ sm_main(int argc, char* argv[])
 
 	GAMESTATE = new GameState;
 
+        std::vector<std::string> arguments(argv + 1, argv + argc);
+       noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str){return str == "notedataCache";});
+
+
 	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
-	LoadingWindow* pLoadingWindow = LoadingWindow::Create();
-	if (pLoadingWindow == NULL)
+	LoadingWindow* pLoadingWindow;
+        if(!noWindow) {
+          pLoadingWindow = LoadingWindow::Create();
+	  if (pLoadingWindow == NULL)
 		RageException::Throw("%s",
 							 COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
+        }
 
 	/* Do this early, so we have debugging output if anything else fails. LOG
 	 * and Dialog must be set up first. It shouldn't take long, but it might
@@ -1173,7 +1187,7 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-	{
+        if(!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
 		RString sError;
@@ -1235,8 +1249,8 @@ sm_main(int argc, char* argv[])
 		ShutdownGame();
 		return 0;
 	}
-
-	SAFE_DELETE(pLoadingWindow);
+        if(!noWindow)
+          SAFE_DELETE(pLoadingWindow);
 	StartDisplay();
 
 	StoreActualGraphicOptions();
@@ -1687,3 +1701,4 @@ LUAFUNC_REGISTER_COMMON(update_centering);
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+

@@ -5,7 +5,7 @@
 LowLevelWindow*
 LowLevelWindow::Create()
 {
-	return new ARCH_LOW_LEVEL_WINDOW;
+    return new ARCH_LOW_LEVEL_WINDOW;
 }
 
 /*
