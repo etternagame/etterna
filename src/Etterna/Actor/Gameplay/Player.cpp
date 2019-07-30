@@ -257,7 +257,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 
 	m_pLifeMeter = NULL;
 	m_pPrimaryScoreKeeper = NULL;
-	m_pSecondaryScoreKeeper = NULL;
 	m_pIterNeedsTapJudging = NULL;
 	m_pIterNeedsHoldJudging = NULL;
 	m_pIterUncrossedRows = NULL;
@@ -299,8 +298,7 @@ Player::Init(const std::string& sType,
 			 PlayerState* pPlayerState,
 			 PlayerStageStats* pPlayerStageStats,
 			 LifeMeter* pLM,
-			 ScoreKeeper* pPrimaryScoreKeeper,
-			 ScoreKeeper* pSecondaryScoreKeeper)
+			 ScoreKeeper* pPrimaryScoreKeeper)
 {
 
 	GRAY_ARROWS_Y_STANDARD.Load(sType, "ReceptorArrowsYStandard");
@@ -330,30 +328,8 @@ Player::Init(const std::string& sType,
 		TempCombo.SetName("Combo");
 		ActorUtil::LoadCommand(TempCombo, sType, "Transform");
 
-		int iEnabledPlayerIndex = -1;
-		int iNumEnabledPlayers = 0;
-		if (GAMESTATE->m_bMultiplayer) {
-			FOREACH_EnabledMultiPlayer(p)
-			{
-				if (p == pPlayerState->m_mp)
-					iEnabledPlayerIndex = iNumEnabledPlayers;
-				iNumEnabledPlayers++;
-			}
-		} else {
-			FOREACH_EnabledPlayer(p)
-			{
-				if (p == pPlayerState->m_PlayerNumber)
-					iEnabledPlayerIndex = iNumEnabledPlayers;
-				iNumEnabledPlayers++;
-			}
-		}
-
-		if (iNumEnabledPlayers ==
-			0) // hack for ScreenHowToPlay where no players are joined
-		{
-			iEnabledPlayerIndex = 0;
-			iNumEnabledPlayers = 1;
-		}
+		int iEnabledPlayerIndex = 0;
+		int iNumEnabledPlayers = 1;
 
 		for (int i = 0; i < NUM_REVERSE; i++) {
 			for (int j = 0; j < NUM_CENTERED; j++) {
@@ -381,7 +357,6 @@ Player::Init(const std::string& sType,
 	m_pPlayerStageStats = pPlayerStageStats;
 	m_pLifeMeter = pLM;
 	m_pPrimaryScoreKeeper = pPrimaryScoreKeeper;
-	m_pSecondaryScoreKeeper = pSecondaryScoreKeeper;
 
 	m_iLastSeenCombo = 0;
 	m_bSeenComboYet = false;
@@ -1338,10 +1313,10 @@ Player::UpdateHoldNotes(int iSongRow,
 				// give positive life in Step(), not here.
 
 				// Decrease life
-				// Also clamp the roll decay window to the accepted "Judge 7" value for it. -poco
+				// Also clamp the roll decay window to the accepted "Judge 7"
+				// value for it. -poco
 				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25f);
-				fLife =
-				  max(fLife, 0); // clamp life
+				fLife = max(fLife, 0); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -1359,9 +1334,6 @@ Player::UpdateHoldNotes(int iSongRow,
 		  fDeltaTime * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		if (m_pPrimaryScoreKeeper != nullptr)
 			m_pPrimaryScoreKeeper->HandleHoldActiveSeconds(
-			  fSecondsActiveSinceLastUpdate);
-		if (m_pSecondaryScoreKeeper != nullptr)
-			m_pSecondaryScoreKeeper->HandleHoldActiveSeconds(
 			  fSecondsActiveSinceLastUpdate);
 	}
 
@@ -1879,8 +1851,6 @@ Player::DoTapScoreNone()
 	 * avoided mines here. */
 	if (m_pPrimaryScoreKeeper != nullptr)
 		m_pPrimaryScoreKeeper->HandleTapScoreNone();
-	if (m_pSecondaryScoreKeeper != nullptr)
-		m_pSecondaryScoreKeeper->HandleTapScoreNone();
 
 	SendComboMessages(iOldCombo, iOldMissCombo);
 
@@ -3226,16 +3196,15 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			 * scores for avoided mines here. */
 			if (m_pPrimaryScoreKeeper)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
-			if (m_pSecondaryScoreKeeper)
-				m_pSecondaryScoreKeeper->HandleTapScore(tn);
 		} else {
 			tn.result.tns = TNS_Miss;
 
 			// avoid scoring notes that get passed when seeking in pm
 			// not sure how many rows grace time is needed (if any?)
 			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-				  .m_bPractice && iMissIfOlderThanThisRow - iter.Row() > 8)
-					tn.result.tns = TNS_None;
+				  .m_bPractice &&
+				iMissIfOlderThanThisRow - iter.Row() > 8)
+				tn.result.tns = TNS_None;
 			if (GAMESTATE->CountNotesSeparately()) {
 				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());
@@ -3344,8 +3313,6 @@ Player::UpdateJudgedRows(float fDeltaTime)
 			// Make sure hit mines affect the dance points.
 			if (m_pPrimaryScoreKeeper)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
-			if (m_pSecondaryScoreKeeper)
-				m_pSecondaryScoreKeeper->HandleTapScore(tn);
 			tn.result.bHidden = true;
 		}
 		// If we hit the end of the loop, m_pIterUnjudgedMineRows needs to be
@@ -3393,14 +3360,10 @@ Player::HandleTapRowScore(unsigned row)
 			continue;
 		if (m_pPrimaryScoreKeeper != nullptr)
 			m_pPrimaryScoreKeeper->HandleTapScore(tn);
-		if (m_pSecondaryScoreKeeper != nullptr)
-			m_pSecondaryScoreKeeper->HandleTapScore(tn);
 	}
 
 	if (m_pPrimaryScoreKeeper != NULL)
 		m_pPrimaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
-	if (m_pSecondaryScoreKeeper != NULL)
-		m_pSecondaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
 
 	const unsigned int iCurCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
@@ -3482,9 +3445,6 @@ Player::HandleHoldCheckpoint(int iRow,
 	if (m_pPrimaryScoreKeeper != nullptr)
 		m_pPrimaryScoreKeeper->HandleHoldCheckpointScore(
 		  m_NoteData, iRow, iNumHoldsHeldThisRow, iNumHoldsMissedThisRow);
-	if (m_pSecondaryScoreKeeper != nullptr)
-		m_pSecondaryScoreKeeper->HandleHoldCheckpointScore(
-		  m_NoteData, iRow, iNumHoldsHeldThisRow, iNumHoldsMissedThisRow);
 
 	if (iNumHoldsMissedThisRow == 0) {
 		// added for http://ssc.ajworld.net/sm-ssc/bugtracker/view.php?id=16 -aj
@@ -3536,8 +3496,6 @@ Player::HandleHoldScore(const TapNote& tn)
 
 	if (m_pPrimaryScoreKeeper != nullptr)
 		m_pPrimaryScoreKeeper->HandleHoldScore(tn);
-	if (m_pSecondaryScoreKeeper != nullptr)
-		m_pSecondaryScoreKeeper->HandleHoldScore(tn);
 	ChangeLife(holdScore, tapScore);
 }
 

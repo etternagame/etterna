@@ -38,7 +38,6 @@ class PlayerInfo
 			  MultiPlayer mp,
 			  bool bShowNoteField,
 			  int iAddToDifficulty);
-	void LoadDummyP1(int iDummyIndex, int iAddToDifficulty);
 
 	/**
 	 * @brief Retrieve the player's state and stage stats index.
@@ -68,7 +67,7 @@ class PlayerInfo
 	RString GetName() const
 	{
 		if (m_bIsDummy)
-			return ssprintf("Dummy%d", m_iDummyIndex);
+			return ssprintf("PlayerInfoDummy");
 		if (IsMultiPlayer())
 			return MultiPlayerToString(m_mp);
 		else
@@ -83,11 +82,8 @@ class PlayerInfo
 	/** @brief The present Player's multiplayer number. */
 	MultiPlayer m_mp{ MultiPlayer_Invalid };
 	bool m_bIsDummy{ false };
-	int m_iDummyIndex{ 0 };
 	int m_iAddToDifficulty{ 0 };	// if > 0, use the Nth harder Steps
 	bool m_bPlayerEnabled{ false }; // IsEnabled cache for iterators
-	PlayerState m_PlayerStateDummy;
-	PlayerStageStats m_PlayerStageStatsDummy;
 	SoundEffectControl m_SoundEffectControl;
 
 	/**
@@ -102,8 +98,6 @@ class PlayerInfo
 	BitmapText* m_ptextStepsDescription;
 	/** @brief The primary ScoreKeeper for keeping track of the score. */
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	/** @brief The secondary ScoreKeeper. Formerly used in PLAY_MODE_RAVE. */
-	ScoreKeeper* m_pSecondaryScoreKeeper;
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText* m_ptextPlayerOptions;
 	/** @brief The current attack modifiers that are in play for the moment. */
@@ -148,7 +142,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void PushSelf(lua_State* L) override;
 	LifeMeter* GetLifeMeter(PlayerNumber pn);
 	PlayerInfo* GetPlayerInfo(PlayerNumber pn);
-	PlayerInfo* GetDummyPlayerInfo(int iDummyIndex);
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
@@ -194,13 +187,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	ThemeMetric<float> MIN_SECONDS_TO_STEP;
 	ThemeMetric<float> MIN_SECONDS_TO_MUSIC;
 	ThemeMetric<float> MIN_SECONDS_TO_STEP_NEXT_SONG;
-	ThemeMetric<bool> START_GIVES_UP;
-	ThemeMetric<bool> BACK_GIVES_UP;
-	ThemeMetric<bool> SELECT_SKIPS_SONG;
-	ThemeMetric<bool> GIVING_UP_GOES_TO_PREV_SCREEN;
-	/** @brief The miss combo a player needs to fail out of a song. */
-	ThemeMetric<int> FAIL_ON_MISS_COMBO;
-	ThemeMetric<bool> ALLOW_CENTER_1_PLAYER;
 	ThemeMetric<RString> SONG_NUMBER_FORMAT;
 
 	void SetupSong(int iSongIndex);
@@ -262,7 +248,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/** @brief Used between songs in a course to show the next song. */
 	Transition m_NextSong;
 
-	BitmapText m_textSongOptions;
 	BitmapText m_Scoreboard[NUM_NSScoreBoardColumn]; // for NSMAN, so we can
 													 // have a scoreboard
 
@@ -272,10 +257,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	RageTimer m_GiveUpTimer;
 	bool m_gave_up;
-	RageTimer m_SkipSongTimer;
-	bool m_skipped_song;
 	void AbortGiveUpText(bool show_abort_text);
-	void AbortSkipSong(bool show_text);
 	void AbortGiveUp(bool bShowText);
 	void ResetGiveUpTimers(bool show_text);
 

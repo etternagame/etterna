@@ -66,9 +66,9 @@ ScreenSMOnlineLogin::ImportOptions(int iRow, const PlayerNumber& vpns)
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 			vector<RString>::iterator iter =
-				find(vsProfiles.begin(),
-					vsProfiles.end(),
-					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+			  find(vsProfiles.begin(),
+				   vsProfiles.end(),
+				   ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
 			if (iter != vsProfiles.end())
 				m_pRows[0]->SetOneSelection((PlayerNumber)PLAYER_1,
 											iter - vsProfiles.begin());
@@ -84,19 +84,16 @@ ScreenSMOnlineLogin::ExportOptions(int iRow, const PlayerNumber& vpns)
 			vector<RString> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			FOREACH_EnabledPlayer(pn)
-			{
-				auto selection = m_pRows[0]->GetOneSelection(pn);
-				if (selection <
-					static_cast<int>(
-					  m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size()) -
-					  1) {
-					ProfileManager::m_sDefaultLocalProfileID[pn].Set(
-					  vsProfiles[selection]);
-					typeUsername = false;
-				} else
-					typeUsername = true;
-			}
+			auto selection = m_pRows[0]->GetOneSelection(PLAYER_1);
+			if (selection <
+				static_cast<int>(
+				  m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size()) -
+				  1) {
+				ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
+				  vsProfiles[selection]);
+				typeUsername = false;
+			} else
+				typeUsername = true;
 		} break;
 	}
 }
@@ -155,9 +152,10 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			} else {
 				sLoginQuestion = "Enter username";
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
-										  NSMAN->loginResponse + "\n\n" +
-											sLoginQuestion,
-										  "", 255);
+										   NSMAN->loginResponse + "\n\n" +
+											 sLoginQuestion,
+										   "",
+										   255);
 			}
 		}
 	} else if (SM == SM_GoToNextScreen) {
@@ -166,10 +164,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			ExportOptions(r, GAMESTATE->GetMasterPlayerNumber());
 
 		PREFSMAN->SavePrefsToDisk();
-		FOREACH_EnabledPlayer(pn)
-		{
-			PROFILEMAN->LoadLocalProfileFromMachine(pn);
-		}
+		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 
 		if (GAMESTATE->IsPlayerEnabled((PlayerNumber)0) &&
 			GAMESTATE->IsPlayerEnabled((PlayerNumber)1) &&
@@ -192,9 +187,10 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			} else {
 				sLoginQuestion = "Enter username";
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
-										  NSMAN->loginResponse + "\n\n" +
-											sLoginQuestion,
-										  "", 255);
+										   NSMAN->loginResponse + "\n\n" +
+											 sLoginQuestion,
+										   "",
+										   255);
 			}
 		}
 		return;

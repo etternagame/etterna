@@ -86,8 +86,7 @@ class Player : public ActorFrame
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
 			  LifeMeter* pLM,
-			  ScoreKeeper* pPrimaryScoreKeeper,
-			  ScoreKeeper* pSecondaryScoreKeeper);
+			  ScoreKeeper* pPrimaryScoreKeeper);
 	void Load();
 	void CrossedRows(int iLastRowCrossed,
 					 const std::chrono::steady_clock::time_point& now);
@@ -252,7 +251,6 @@ class Player : public ActorFrame
 	TapNoteScore m_LastTapNoteScore;
 	LifeMeter* m_pLifeMeter;
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	ScoreKeeper* m_pSecondaryScoreKeeper;
 
 	int m_iFirstUncrossedRow; // used by hold checkpoints logic
 	NoteData::all_tracks_iterator* m_pIterNeedsTapJudging;

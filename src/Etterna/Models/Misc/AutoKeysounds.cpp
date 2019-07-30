@@ -52,18 +52,14 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 	/*
 	 * Add all current autoplay sounds in both players to the chain.
 	 */
-	int iNumTracks =
-	  m_ndAutoKeysoundsOnly.GetNumTracks();
+	int iNumTracks = m_ndAutoKeysoundsOnly.GetNumTracks();
 	for (int t = 0; t < iNumTracks; t++) {
 		int iRow = -1;
 		for (;;) {
 			/* Find the next row that either player has a note on. */
 			int iNextRow = INT_MAX;
-			FOREACH_EnabledPlayer(pn)
-			{
-				// XXX Hack. Enabled players need not have their own note data.
-				if (t >= m_ndAutoKeysoundsOnly.GetNumTracks())
-					continue;
+			// XXX Hack. Enabled players need not have their own note data.
+			if (!(t >= m_ndAutoKeysoundsOnly.GetNumTracks())) {
 				int iNextRowForPlayer = iRow;
 				/* XXX: If a BMS file only has one tap note per track,
 				 * this will prevent any keysounds from loading.
@@ -81,29 +77,21 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 			TapNote tn;
 			tn = m_ndAutoKeysoundsOnly.GetTapNote(t, iRow);
 
-			FOREACH_EnabledPlayer(pn)
-			{
-				if (tn == TAP_EMPTY)
-					continue;
+			if (tn == TAP_EMPTY)
+				continue;
 
-				ASSERT(tn.type == TapNoteType_AutoKeysound);
-				if (tn.iKeysoundIndex >= 0) {
-					RString sKeysoundFilePath =
-					  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
-					float fSeconds =
-					  GAMESTATE->m_pCurSteps
-						->GetTimingData()
-						->WhereUAtBroNoOffset(NoteRowToBeat(iRow)) +
-					  SOUNDMAN->GetPlayLatency();
+			ASSERT(tn.type == TapNoteType_AutoKeysound);
+			if (tn.iKeysoundIndex >= 0) {
+				RString sKeysoundFilePath =
+				  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
+				float fSeconds =
+				  GAMESTATE->m_pCurSteps->GetTimingData()->WhereUAtBroNoOffset(
+					NoteRowToBeat(iRow)) +
+				  SOUNDMAN->GetPlayLatency();
 
-					float fPan = 0;
-					// If two players are playing, pan the keysounds to each
-					// player's respective side
-					if (GAMESTATE->GetNumPlayersEnabled() == 2)
-						fPan = (pn == PLAYER_1) ? -1.0f : +1.0f;
-					int iIndex = pChain->LoadSound(sKeysoundFilePath);
-					pChain->AddSound(iIndex, fSeconds, fPan);
-				}
+				float fPan = 0;
+				int iIndex = pChain->LoadSound(sKeysoundFilePath);
+				pChain->AddSound(iIndex, fSeconds, fPan);
 			}
 		}
 	}
@@ -122,9 +110,7 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	pShared = nullptr;
 
 	vector<RString> vsMusicFile;
-	const RString sMusicPath =
-	  GAMESTATE->m_pCurSteps
-		->GetMusicPath();
+	const RString sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
 
 	if (!sMusicPath.empty())
 		vsMusicFile.push_back(sMusicPath);
@@ -223,10 +209,8 @@ AutoKeysounds::FinishLoading()
 	apSounds.push_back(m_pSharedSound);
 
 	if (m_pPlayerSounds != nullptr) {
-		m_pPlayerSounds =
-		  new RageSoundReader_PitchChange(m_pPlayerSounds);
-		m_pPlayerSounds =
-		  new RageSoundReader_PostBuffering(m_pPlayerSounds);
+		m_pPlayerSounds = new RageSoundReader_PitchChange(m_pPlayerSounds);
+		m_pPlayerSounds = new RageSoundReader_PostBuffering(m_pPlayerSounds);
 		m_pPlayerSounds = new RageSoundReader_Pan(m_pPlayerSounds);
 		apSounds.push_back(m_pPlayerSounds);
 	}

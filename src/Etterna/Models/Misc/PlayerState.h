@@ -1,4 +1,4 @@
-﻿/** @brief PlayerState - Holds per-player game state. */
+/** @brief PlayerState - Holds per-player game state. */
 
 #ifndef PlayerState_H
 #define PlayerState_H
@@ -49,8 +49,6 @@ class PlayerState
 	PlayerNumber m_PlayerNumber;
 	/**
 	 * @brief The MultiPlayer number assigned to this Player, typically 1-32.
-	 *
-	 * This is only used if GAMESTATE->m_bMultiplayer is true.
 	 */
 	MultiPlayer m_mp;
 
