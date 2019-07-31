@@ -1,24 +1,86 @@
-﻿/* RageLog - Manages logging. */
+/* RageLog - Manages logging. */
 
 #ifndef RAGE_LOG_H
 #define RAGE_LOG_H
+
+#include "RageUtil/Utils/RageUtil.h"
+#include "spdlog/spdlog.h"
 
 class RageLog
 {
   public:
 	RageLog();
 	~RageLog();
+	void Flush();
 
-	void Trace(const char* fmt, ...) PRINTF(2, 3);
-	void Warn(const char* fmt, ...) PRINTF(2, 3);
-	void Info(const char* fmt, ...) PRINTF(2, 3);
-	// Time is purely for writing profiling time data to the time log. -Kyz
-	void Time(const char* fmt, ...) PRINTF(2, 3);
+	template<typename... Args>
+	void Trace(const char* fmt, Args... args)
+	{
+		RString sBuff = ssprintf(fmt, args...);
+
+		AddToRecentLogs(sBuff);
+		g_fileLog->trace(sBuff.c_str());
+		if (m_bFlush)
+			Flush();
+		// Write(0, sBuff);
+	}
+
+	/* Use this for more important information; it'll always be included
+	 * in crash dumps. */
+	template<typename... Args>
+	void Info(const char* fmt, Args... args)
+	{
+		RString sBuff = ssprintf(fmt, args...);
+
+		g_fileLog->info(sBuff.c_str());
+		AddToInfo(sBuff);
+		AddToRecentLogs(sBuff);
+		g_fileLog->flush();
+		// Write(WRITE_TO_INFO, sBuff);
+	}
+
+	template<typename... Args>
+	void Warn(const char* fmt, Args... args)
+	{
+		RString sBuff = ssprintf(fmt, args...);
+
+		AddToRecentLogs(sBuff);
+		g_fileLog->warn(sBuff.c_str());
+		if (m_bFlush)
+			Flush();
+		// Write(WRITE_TO_INFO | WRITE_LOUD, sBuff);
+	}
+
+	template<typename... Args>
+	void Time(const char* fmt, Args... args)
+	{
+		RString sBuff = ssprintf(fmt, args...);
+
+		AddToRecentLogs(sBuff);
+		g_fileTimeLog->info(sBuff.c_str());
+		if (m_bFlush)
+			Flush();
+		// Write(WRITE_TO_TIME, sBuff);
+	}
+
+	template<typename... Args>
 	void UserLog(const RString& sType,
 				 const RString& sElement,
 				 const char* fmt,
-				 ...) PRINTF(4, 5);
-	void Flush();
+				 Args... args)
+	{
+		RString sBuf = ssprintf(fmt, args...);
+
+		if (!sType.empty())
+			sBuf = ssprintf(
+			  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
+
+		AddToRecentLogs(sBuf);
+		g_fileUserLog->info(sBuf.c_str());
+		if (m_bFlush)
+			Flush();
+		// Write(WRITE_TO_USER_LOG, sBuf);
+	}
 
 	void MapLog(const RString& key, const char* fmt, ...) PRINTF(3, 4);
 	void UnmapLog(const RString& key);
@@ -40,10 +102,12 @@ class RageLog
 	bool m_bUserLogToDisk{ false };
 	bool m_bFlush{ false };
 	bool m_bShowLogOutput{ false };
-	void Write(int, const RString& str);
+	shared_ptr<spdlog::logger> SetLogger(const char* name, const char* path);
 	void UpdateMappedLog();
 	void AddToInfo(const RString& buf);
 	void AddToRecentLogs(const RString& buf);
+	shared_ptr<spdlog::logger> g_fileLog, g_fileInfo, g_fileUserLog,
+	  g_fileTimeLog, g_consoleLog;
 };
 
 extern RageLog* LOG; // global and accessible from anywhere in our program

@@ -1,17 +1,19 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/async.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_sinks.h"
 
-#include <ctime>
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <map>
-
 RageLog* LOG; // global and accessible from anywhere in the program
 
 /*
@@ -54,16 +56,10 @@ RageLog* LOG; // global and accessible from anywhere in the program
  * map/unmap, using any mechanism to generate unique IDs. */
 static map<RString, RString> LogMaps;
 
-#define LOG_PATH "/Logs/log.txt"
-#define INFO_PATH "/Logs/info.txt"
-#define TIME_PATH "/Logs/timelog.txt"
-#define USER_PATH "/Logs/userlog.txt"
-
-static RageFile *g_fileLog, *g_fileInfo, *g_fileUserLog, *g_fileTimeLog;
-
-/* Mutex writes to the files.  Writing to files is not thread-aware, and this is
- * the only place we write to the same file from multiple threads. */
-static RageMutex* g_Mutex;
+#define LOG_PATH "Logs/log.txt"
+#define INFO_PATH "Logs/info.txt"
+#define TIME_PATH "Logs/timelog.txt"
+#define USER_PATH "Logs/userlog.txt"
 
 /* staticlog gets info.txt
  * crashlog gets log.txt */
@@ -84,19 +80,16 @@ enum
 
 RageLog::RageLog()
 {
-	g_fileLog = new RageFile;
-	g_fileInfo = new RageFile;
-	g_fileUserLog = new RageFile;
-	g_fileTimeLog = new RageFile;
+	try {
+		g_fileLog = SetLogger("Log", LOG_PATH);
+		g_fileInfo = SetLogger("Info", INFO_PATH);
+		g_fileUserLog = SetLogger("Userlog", USER_PATH);
+		g_fileTimeLog = SetLogger("Timelog", TIME_PATH);
+		spdlog::set_pattern("[%T.%e] [%P:%t] [%l]:  %v");
 
-	if (!g_fileTimeLog->Open(TIME_PATH, RageFile::WRITE | RageFile::STREAMED)) {
-		fprintf(stderr,
-				"Couldn't open %s: %s\n",
-				TIME_PATH,
-				g_fileTimeLog->GetError().c_str());
+	} catch (const spdlog::spdlog_ex& ex) {
+		sm_crash(ex.what());
 	}
-
-	g_Mutex = new RageMutex("Log");
 }
 
 RageLog::~RageLog()
@@ -112,15 +105,24 @@ RageLog::~RageLog()
 
 	Flush();
 	SetShowLogOutput(false);
-	g_fileLog->Close();
-	g_fileInfo->Close();
-	g_fileUserLog->Close();
-	g_fileTimeLog->Close();
+	spdlog::shutdown();
+}
 
-	SAFE_DELETE(g_Mutex);
-	SAFE_DELETE(g_fileLog);
-	SAFE_DELETE(g_fileInfo);
-	SAFE_DELETE(g_fileUserLog);
+shared_ptr<spdlog::logger>
+RageLog::SetLogger(const char* name, const char* path)
+{
+	shared_ptr<spdlog::logger> out;
+	vector<spdlog::sink_ptr> sinks;
+	try {
+		sinks.push_back(
+		  std::make_shared<spdlog::sinks::basic_file_sink_mt>(path));
+		sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
+		out = make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
+		spdlog::register_logger(out);
+	} catch (const spdlog::spdlog_ex& ex) {
+		sm_crash(ex.what());
+	}
+	return out;
 }
 
 void
@@ -130,18 +132,6 @@ RageLog::SetLogToDisk(bool b)
 		return;
 
 	m_bLogToDisk = b;
-
-	if (!m_bLogToDisk) {
-		if (g_fileLog->IsOpen())
-			g_fileLog->Close();
-		return;
-	}
-
-	if (!g_fileLog->Open(LOG_PATH, RageFile::WRITE | RageFile::STREAMED))
-		fprintf(stderr,
-				"Couldn't open %s: %s\n",
-				LOG_PATH,
-				g_fileLog->GetError().c_str());
 }
 
 void
@@ -151,18 +141,6 @@ RageLog::SetInfoToDisk(bool b)
 		return;
 
 	m_bInfoToDisk = b;
-
-	if (!m_bInfoToDisk) {
-		if (g_fileInfo->IsOpen())
-			g_fileInfo->Close();
-		return;
-	}
-
-	if (!g_fileInfo->Open(INFO_PATH, RageFile::WRITE | RageFile::STREAMED))
-		fprintf(stderr,
-				"Couldn't open %s: %s\n",
-				INFO_PATH,
-				g_fileInfo->GetError().c_str());
 }
 
 void
@@ -172,17 +150,6 @@ RageLog::SetUserLogToDisk(bool b)
 		return;
 
 	m_bUserLogToDisk = b;
-
-	if (!m_bUserLogToDisk) {
-		if (g_fileUserLog->IsOpen())
-			g_fileUserLog->Close();
-		return;
-	}
-	if (!g_fileUserLog->Open(USER_PATH, RageFile::WRITE | RageFile::STREAMED))
-		fprintf(stderr,
-				"Couldn't open %s: %s\n",
-				USER_PATH,
-				g_fileUserLog->GetError().c_str());
 }
 
 void
@@ -211,135 +178,12 @@ RageLog::SetShowLogOutput(bool show)
 }
 
 void
-RageLog::Trace(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
-	va_end(va);
-
-	Write(0, sBuff);
-}
-
-/* Use this for more important information; it'll always be included
- * in crash dumps. */
-void
-RageLog::Info(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
-	va_end(va);
-
-	Write(WRITE_TO_INFO, sBuff);
-}
-
-void
-RageLog::Warn(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
-	va_end(va);
-
-	Write(WRITE_TO_INFO | WRITE_LOUD, sBuff);
-}
-
-void
-RageLog::Time(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
-	va_end(va);
-
-	Write(WRITE_TO_TIME, sBuff);
-}
-
-void
-RageLog::UserLog(const RString& sType,
-				 const RString& sElement,
-				 const char* fmt,
-				 ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	RString sBuf = vssprintf(fmt, va);
-	va_end(va);
-
-	if (!sType.empty())
-		sBuf = ssprintf(
-		  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
-
-	Write(WRITE_TO_USER_LOG, sBuf);
-}
-
-void
-RageLog::Write(int where, const RString& sLine)
-{
-	LockMut(*g_Mutex);
-
-	const char* const sWarningSeparator =
-	  "/////////////////////////////////////////";
-	vector<RString> asLines;
-	split(sLine, "\n", asLines, false);
-	if (where & WRITE_LOUD) {
-		if (m_bLogToDisk && g_fileLog->IsOpen())
-			g_fileLog->PutLine(sWarningSeparator);
-		puts(sWarningSeparator);
-	}
-
-	RString sTimestamp =
-	  SecondsToMMSSMsMsMs(RageTimer::GetTimeSinceStart()) + ": ";
-	RString sWarning;
-	if (where & WRITE_LOUD)
-		sWarning = "WARNING: ";
-
-	for (unsigned i = 0; i < asLines.size(); ++i) {
-		RString& sStr = asLines[i];
-
-		if (sWarning.size())
-			sStr.insert(0, sWarning);
-
-		if (m_bShowLogOutput || (where & WRITE_TO_INFO))
-			puts(sStr); // fputws( (const wchar_t *)sStr.c_str(), stdout );
-		if (where & WRITE_TO_INFO)
-			AddToInfo(sStr);
-		if (m_bLogToDisk && (where & WRITE_TO_INFO) && g_fileInfo->IsOpen())
-			g_fileInfo->PutLine(sStr);
-		if (m_bUserLogToDisk && (where & WRITE_TO_USER_LOG) &&
-			g_fileUserLog->IsOpen())
-			g_fileUserLog->PutLine(sStr);
-
-		/* Add a timestamp to log.txt and RecentLogs, but not the rest of
-		 * info.txt and stdout. */
-		sStr.insert(0, sTimestamp);
-
-		if (where & WRITE_TO_TIME)
-			g_fileTimeLog->PutLine(sStr);
-
-		AddToRecentLogs(sStr);
-
-		if (m_bLogToDisk && g_fileLog->IsOpen())
-			g_fileLog->PutLine(sStr);
-	}
-
-	if (where & WRITE_LOUD) {
-		if (m_bLogToDisk && g_fileLog->IsOpen() && (where & WRITE_LOUD))
-			g_fileLog->PutLine(sWarningSeparator);
-		puts(sWarningSeparator);
-	}
-	if (m_bFlush || (where & WRITE_TO_INFO))
-		Flush();
-}
-
-void
 RageLog::Flush()
 {
-	g_fileLog->Flush();
-	g_fileInfo->Flush();
-	g_fileTimeLog->Flush();
-	g_fileUserLog->Flush();
+	g_fileLog->flush();
+	g_fileInfo->flush();
+	g_fileTimeLog->flush();
+	g_fileUserLog->flush();
 }
 
 #define NEWLINE "\n"
@@ -467,11 +311,11 @@ ShowWarningOrTrace(const char* file,
 	if (temp != nullptr)
 		file = temp + 4;
 
-	void (RageLog::*method)(const char* fmt, ...) =
-	  bWarning ? &RageLog::Warn : &RageLog::Trace;
-
 	if (LOG != nullptr)
-		(LOG->*method)("%s:%i: %s", file, line, message);
+		if (bWarning)
+			LOG->Warn("%s:%i: %s", file, line, message);
+		else
+			LOG->Trace("%s:%i: %s", file, line, message);
 	else
 		fprintf(stderr, "%s:%i: %s\n", file, line, message);
 }
