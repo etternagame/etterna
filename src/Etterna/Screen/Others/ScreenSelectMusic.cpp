@@ -687,19 +687,16 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			bool bLeftIsDown = false;
 			bool bRightIsDown = false;
 
-			FOREACH_HumanPlayer(p)
-			{
-				if (m_OptionsList.IsOpened())
-					continue;
-				if (SELECT_MENU_AVAILABLE &&
-					INPUTMAPPER->IsBeingPressed(GAME_BUTTON_SELECT, p))
-					continue;
+			if (m_OptionsList.IsOpened())
+				return false;
+			if (SELECT_MENU_AVAILABLE &&
+				INPUTMAPPER->IsBeingPressed(GAME_BUTTON_SELECT, PLAYER_1))
+				return false;
 
-				bLeftIsDown |= static_cast<int>(
-				  INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, p));
-				bRightIsDown |= static_cast<int>(
-				  INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, p));
-			}
+			bLeftIsDown |= static_cast<int>(
+			  INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, PLAYER_1));
+			bRightIsDown |= static_cast<int>(
+			  INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, PLAYER_1));
 
 			bool bBothDown = bLeftIsDown && bRightIsDown;
 			bool bNeitherDown = !bLeftIsDown && !bRightIsDown;
@@ -910,11 +907,8 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 	}
 
 	vector<PlayerNumber> vpns;
-	FOREACH_HumanPlayer(p)
-	{
-		if (pn == p || GAMESTATE->DifficultiesLocked()) {
-			vpns.push_back(p);
-		}
+	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
+		vpns.push_back(PLAYER_1);
 	}
 	AfterStepsOrTrailChange(vpns);
 
@@ -1122,12 +1116,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		case SelectionState_SelectingSteps: {
 			bool bInitiatedByMenuTimer = pn == PLAYER_INVALID;
 			bool bAllOtherHumanPlayersDone = true;
-			FOREACH_HumanPlayer(p)
-			{
-				if (p == pn)
-					continue;
-				bAllOtherHumanPlayersDone &= static_cast<int>(m_bStepsChosen);
-			}
 
 			bool bAllPlayersDoneSelectingSteps =
 			  bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
@@ -1164,17 +1152,14 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		} // we dont know who owns the notefield preview so we broadcast to get
 		  // the owner to submit itself for deletion -mina
 
-		FOREACH_HumanPlayer(p)
-		{
-			if (!m_bStepsChosen) {
-				m_bStepsChosen = true;
-				// Don't play start sound. We play it again below on finalized
-				// m_soundStart.Play(true);
+		if (!m_bStepsChosen) {
+			m_bStepsChosen = true;
+			// Don't play start sound. We play it again below on finalized
+			// m_soundStart.Play(true);
 
-				Message lMsg("StepsChosen");
-				lMsg.SetParam("Player", p);
-				MESSAGEMAN->Broadcast(lMsg);
-			}
+			Message lMsg("StepsChosen");
+			lMsg.SetParam("Player", PLAYER_1);
+			MESSAGEMAN->Broadcast(lMsg);
 		}
 
 		// Now that Steps have been chosen, set a Style that can play them.
@@ -1249,41 +1234,38 @@ void
 ScreenSelectMusic::SwitchToPreferredDifficulty()
 {
 
-	FOREACH_HumanPlayer(pn)
+	// Find the closest match to the user's preferred difficulty and
+	// StepsType.
+	int iCurDifference = -1;
+	int& iSelection = m_iSelection;
+	FOREACH_CONST(Steps*, m_vpSteps, s)
 	{
-		// Find the closest match to the user's preferred difficulty and
-		// StepsType.
-		int iCurDifference = -1;
-		int& iSelection = m_iSelection;
-		FOREACH_CONST(Steps*, m_vpSteps, s)
-		{
-			int i = s - m_vpSteps.begin();
+		int i = s - m_vpSteps.begin();
 
-			// If the current steps are listed, use them.
-			if (GAMESTATE->m_pCurSteps == *s) {
-				iSelection = i;
-				break;
-			}
-
-			if (GAMESTATE->m_PreferredDifficulty != Difficulty_Invalid) {
-				int iDifficultyDifference =
-				  abs((*s)->GetDifficulty() - GAMESTATE->m_PreferredDifficulty);
-				int iStepsTypeDifference = 0;
-				if (GAMESTATE->m_PreferredStepsType != StepsType_Invalid)
-					iStepsTypeDifference =
-					  abs((*s)->m_StepsType - GAMESTATE->m_PreferredStepsType);
-				int iTotalDifference =
-				  iStepsTypeDifference * NUM_Difficulty + iDifficultyDifference;
-
-				if (iCurDifference == -1 || iTotalDifference < iCurDifference) {
-					iSelection = i;
-					iCurDifference = iTotalDifference;
-				}
-			}
+		// If the current steps are listed, use them.
+		if (GAMESTATE->m_pCurSteps == *s) {
+			iSelection = i;
+			break;
 		}
 
-		CLAMP(iSelection, 0, m_vpSteps.size() - 1);
+		if (GAMESTATE->m_PreferredDifficulty != Difficulty_Invalid) {
+			int iDifficultyDifference =
+			  abs((*s)->GetDifficulty() - GAMESTATE->m_PreferredDifficulty);
+			int iStepsTypeDifference = 0;
+			if (GAMESTATE->m_PreferredStepsType != StepsType_Invalid)
+				iStepsTypeDifference =
+				  abs((*s)->m_StepsType - GAMESTATE->m_PreferredStepsType);
+			int iTotalDifference =
+			  iStepsTypeDifference * NUM_Difficulty + iDifficultyDifference;
+
+			if (iCurDifference == -1 || iTotalDifference < iCurDifference) {
+				iSelection = i;
+				iCurDifference = iTotalDifference;
+			}
+		}
 	}
+
+	CLAMP(iSelection, 0, m_vpSteps.size() - 1);
 }
 
 void
@@ -1449,7 +1431,7 @@ ScreenSelectMusic::AfterMusicChange()
 	g_StartedLoadingAt.Touch();
 
 	vector<PlayerNumber> vpns;
-	FOREACH_HumanPlayer(p) vpns.push_back(p);
+	vpns.push_back(PLAYER_1);
 
 	AfterStepsOrTrailChange(vpns);
 }
