@@ -115,7 +115,7 @@ RageLog::SetLogger(const char* name, const char* path)
 	vector<spdlog::sink_ptr> sinks;
 	try {
 		sinks.push_back(
-		  std::make_shared<spdlog::sinks::basic_file_sink_mt>(path));
+		  std::make_shared<spdlog::sinks::basic_file_sink_mt>(path, true));
 		sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
 		out = make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
 		spdlog::register_logger(out);
