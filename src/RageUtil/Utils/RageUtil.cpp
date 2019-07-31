@@ -382,16 +382,6 @@ GetLocalTime()
 	return tm;
 }
 
-RString
-ssprintf(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	auto s = vssprintf(fmt, va);
-	va_end(va);
-	return s;
-}
-
 #define FMT_BLOCK_SIZE 2048 // # of bytes to increment per try
 
 RString
@@ -2238,7 +2228,7 @@ RString
 WcharDisplayText(wchar_t c)
 {
 	RString sChr;
-	sChr = ssprintf("U+%4.4x", c);
+	sChr = ssprintf(std::string("U+%4.4x"), c);
 	if (c < 128)
 		sChr += ssprintf(" ('%c')", char(c));
 	return sChr;

@@ -507,8 +507,27 @@ FormatNumberAndSuffix(int i);
 struct tm
 GetLocalTime();
 
+template<typename... Args>
 RString
-ssprintf(const char* fmt, ...) PRINTF(1, 2);
+ssprintf(const char* format, Args... args)
+{
+	return ssprintf(std::string(format), args...);
+}
+
+template<typename... Args>
+RString
+ssprintf(const std::string& format, Args... args)
+{
+	// lifted without shame from stack overflow to replace 2002 code with 2011+
+	// code
+	size_t size =
+	  snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+	std::unique_ptr<char[]> buf(new char[size]);
+	snprintf(buf.get(), size, format.c_str(), args...);
+	return RString(
+	  std::string(buf.get(),
+				  buf.get() + size - 1)); // We don't want the '\0' inside
+}
 RString
 vssprintf(const char* fmt, va_list argList);
 RString
