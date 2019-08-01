@@ -61,23 +61,6 @@ static map<RString, RString> LogMaps;
 #define TIME_PATH "Logs/timelog.txt"
 #define USER_PATH "Logs/userlog.txt"
 
-/* staticlog gets info.txt
- * crashlog gets log.txt */
-enum
-{
-	/* If this is set, the message will also be written to info.txt. (info and
-	   warnings) */
-	WRITE_TO_INFO = 0x01,
-
-	/* If this is set, the message will also be written to userlog.txt. (user
-	   warnings only) */
-	WRITE_TO_USER_LOG = 0x02,
-
-	/* Whether this line should be loud when written to log.txt (warnings). */
-	WRITE_LOUD = 0x04,
-	WRITE_TO_TIME = 0x08
-};
-
 RageLog::RageLog()
 {
 	try {
@@ -85,7 +68,7 @@ RageLog::RageLog()
 		g_fileInfo = SetLogger("Info", INFO_PATH);
 		g_fileUserLog = SetLogger("Userlog", USER_PATH);
 		g_fileTimeLog = SetLogger("Timelog", TIME_PATH);
-		spdlog::set_pattern("[%T.%e] [%P:%t] [%l]:  %v");
+		spdlog::set_pattern("[%T.%e] [%t] [%l]:  %v");
 
 	} catch (const spdlog::spdlog_ex& ex) {
 		sm_crash(ex.what());
@@ -125,39 +108,6 @@ RageLog::SetLogger(const char* name, const char* path)
 	return out;
 }
 
-void
-RageLog::SetLogToDisk(bool b)
-{
-	if (m_bLogToDisk == b)
-		return;
-
-	m_bLogToDisk = b;
-}
-
-void
-RageLog::SetInfoToDisk(bool b)
-{
-	if (m_bInfoToDisk == b)
-		return;
-
-	m_bInfoToDisk = b;
-}
-
-void
-RageLog::SetUserLogToDisk(bool b)
-{
-	if (m_bUserLogToDisk == b)
-		return;
-
-	m_bUserLogToDisk = b;
-}
-
-void
-RageLog::SetFlushing(bool b)
-{
-	m_bFlush = b;
-}
-
 /* Enable or disable display of output to stdout, or a console window in
  * Windows. */
 void
@@ -186,6 +136,10 @@ RageLog::Flush()
 	g_fileUserLog->flush();
 }
 
+/*
+	The below section is relatively untouched. It is used for fast crash related
+   log dumping.
+*/
 #define NEWLINE "\n"
 
 static char staticlog[1024 * 32] = "";
