@@ -276,7 +276,7 @@ typedef std::numeric_limits<internal::dummy_int> fputil;
 inline dummy_int isinf(...) { return dummy_int(); }
 inline dummy_int _finite(...) { return dummy_int(); }
 inline dummy_int isnan(...) { return dummy_int(); }
-inline dummy_int _isnan(...) { return dummy_int(); }
+// inline dummy_int _isnan(...) { return dummy_int(); }
 
 template <typename Allocator>
 typename Allocator::value_type *allocate(Allocator& alloc, std::size_t n) {
