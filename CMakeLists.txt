@@ -75,6 +75,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(Etterna Threads::Threads)
 
 ## Linking
+target_link_libraries(Etterna spdlog)
 target_link_libraries(Etterna zlib)
 target_link_libraries(Etterna rapidjson)
 target_link_libraries(Etterna websocketpp)

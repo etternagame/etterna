@@ -11,6 +11,7 @@ else() # All remaining compilers
 endif()
 
 # Universally required
+add_subdirectory(spdlog)
 add_subdirectory(rapidjson)
 add_subdirectory(asio-1.12.2)
 add_subdirectory(websocketpp)
@@ -43,7 +44,7 @@ set_target_properties(uv PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUIL
 # Organize Files in IDE
 list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
-    discord-rpc
+    discord-rpc spdlog
     SQLiteCpp sqlite3
     uv uv_a
     tomcrypt libtommath
