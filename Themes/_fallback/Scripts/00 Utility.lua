@@ -303,3 +303,14 @@ function getCurrentKeyMode()
 	local stepstype = GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
 	return keys[stepstype]
 end
+
+--- Returns translated modifiers given a raw string of modifiers
+-- @tparam {string} raw string of modifiers
+-- @treturn {string} translated string of modifiers
+function getModifierTranslations(source)
+	local translated = {}
+	for mod in string.gmatch(source, "[^,%s]+") do
+		table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
+	end
+	return table.concat(translated, ", ")
+end

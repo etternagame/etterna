@@ -475,11 +475,7 @@ local l =
 				self:y(103):zoom(0.4):halign(0):settextf("%s:", translated_info["Mods"])
 			end,
 			DisplayCommand = function(self)
-				local translated = {}
-				for mod in string.gmatch(score:GetModifiers(), "[^,%s]+") do
-					table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
-				end
-				self:settextf("%s: %s", translated_info["Mods"], table.concat(translated, ", "))
+				self:settextf("%s: %s", translated_info["Mods"], getModifierTranslations(score:GetModifiers()))
 			end
 		},
 	LoadFont("Common Normal") ..

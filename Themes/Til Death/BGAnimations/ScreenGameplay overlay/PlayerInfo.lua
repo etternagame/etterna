@@ -58,11 +58,7 @@ local t =
 				self:xy(PlayerFrameX + 91, PlayerFrameY + 39):halign(0):zoom(0.4):maxwidth(SCREEN_WIDTH * 0.8)
 			end,
 			BeginCommand = function(self)
-				local translated = {}
-				for mod in string.gmatch(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current"), "[^,%s]+") do
-					table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
-				end
-				self:settext(table.concat(translated, ", "))
+				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")))
 			end
 		},
 	LoadFont("Common Normal") ..

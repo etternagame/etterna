@@ -387,11 +387,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local translated = {}
-				for mod in string.gmatch(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current"), "[^,%s]+") do
-					table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
-				end
-				self:settext(table.concat(translated, ", "))
+				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")))
 			end
 		}
 

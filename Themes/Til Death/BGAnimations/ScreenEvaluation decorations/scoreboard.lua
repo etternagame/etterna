@@ -180,11 +180,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				BeginCommand = function(self)
-					local translated = {}
-					for mod in string.gmatch(hsTable[index]:GetModifiers(), "[^,%s]+") do
-						table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
-					end
-					self:settext(table.concat(translated, ", "))
+					self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
 					self:visible(false)
 				end
 			},
