@@ -18,7 +18,8 @@ class ImageCache
 								  const std::string& sImagePath);
 	void CacheImage(const std::string& sImageDir,
 					const std::string& sImagePath);
-	void LoadImage(const std::string& sImageDir, const std::string& sImagePath);
+	void LoadImageToMem(const std::string& sImageDir,
+						const std::string& sImagePath);
 
 	void Demand(const std::string& sImageDir);
 	void Undemand(const std::string& sImageDir);

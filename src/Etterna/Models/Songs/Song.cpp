@@ -388,7 +388,7 @@ Song::FinalizeLoading()
 	// Load the cached Images, if it's not loaded already.
 	if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD) {
 		for (std::string Image : ImageDir) {
-			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
+			IMAGECACHE->LoadImageToMem(Image, GetCacheFile(Image));
 		}
 	}
 }
@@ -613,7 +613,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		m_bHasBackground = IsAFile(GetBackgroundPath());
 		for (std::string Image : ImageDir) {
-			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
+			IMAGECACHE->LoadImageToMem(Image, GetCacheFile(Image));
 		}
 
 		// There are several things that need to find a file from the dir with a
@@ -1040,10 +1040,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		SongUtil::AdjustDuplicateSteps(this);
 
 		// Clear fields for files that turned out to not exist.
-#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                           \
+#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                       \
 	if (!(has_name)) {                                                         \
 		(field_name) = "";                                                     \
-		(field_name2) = "";							\
+		(field_name2) = "";                                                    \
 	}
 		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile, m_sBannerPath);
 		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile, m_sBackgroundPath);
@@ -1418,7 +1418,9 @@ Song::GetCacheFile(std::string sType)
 	PreDefs["Disc"] = GetDiscPath();
 
 	// Check if Predefined images exist, And return function if they do.
-	if (PreDefs[sType.c_str()].c_str())		// pretty sure this evaluates to true even if the string is "", but haven't tested extensively
+	if (PreDefs[sType.c_str()]
+		  .c_str()) // pretty sure this evaluates to true even if the string is
+					// "", but haven't tested extensively
 		return PreDefs[sType.c_str()].c_str();
 
 	// Get all image files and put them into a vector.

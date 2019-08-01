@@ -36,7 +36,7 @@ static Preference<bool> g_bPalettedImageCache("PalettedImageCache", false);
  * cached, it'll be recreated.  This is efficient if the image hasn't changed,
  * but we still only do this in TidyUpData for songs.
  *
- * Call LoadImage to load a cached image into main memory.  This will call
+ * Call LoadImageToMem to load a cached image into main memory.  This will call
  * CacheImage only if needed.  This will not do a date/size check; call
  * CacheImage directly if you need that.
  *
@@ -65,7 +65,7 @@ ImageCache::GetImageCachePath(const std::string& sImageDir,
 
 /* If in on-demand mode, load all cached images.  This must be fast, so
  * cache files will not be created if they don't exist; that should be done
- * by CacheImage or LoadImage on startup. */
+ * by CacheImage or LoadImageToMem on startup. */
 void
 ImageCache::Demand(const std::string& sImageDir)
 {
@@ -112,8 +112,8 @@ ImageCache::Undemand(const std::string& sImageDir)
  * not be examined unless the cached image doesn't exist, so the image will
  * not be updated if the original file changes, for efficiency. */
 void
-ImageCache::LoadImage(const std::string& sImageDir,
-					  const std::string& sImagePath)
+ImageCache::LoadImageToMem(const std::string& sImageDir,
+						   const std::string& sImagePath)
 {
 	if (sImagePath == "")
 		return; // nothing to do
@@ -128,7 +128,8 @@ ImageCache::LoadImage(const std::string& sImageDir,
 		if (g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end())
 			return; /* already loaded */
 
-		CHECKPOINT_M(ssprintf("ImageCache::LoadImage: %s", sCachePath.c_str()));
+		CHECKPOINT_M(
+		  ssprintf("ImageCache::LoadImageToMem: %s", sCachePath.c_str()));
 		RageSurface* pImage = RageSurfaceUtils::LoadSurface(sCachePath);
 		if (pImage == nullptr) {
 			if (tries == 0) {
@@ -402,7 +403,7 @@ ImageCache::CacheImage(const std::string& sImageDir,
 		if (bCacheUpToDate) {
 			/* It's identical.  Just load it, if in preload. */
 			if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD)
-				LoadImage(sImageDir, sImagePath);
+				LoadImageToMem(sImageDir, sImagePath);
 
 			return;
 		}

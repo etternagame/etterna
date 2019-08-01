@@ -98,11 +98,12 @@ void
 AdjustSync::SaveSyncChanges()
 {
 	/* TODO: Save all of the timing data changes.
-	* Luckily, only the song timing data needs comparing here. */
-	if (GAMESTATE->m_pCurSong && s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming)
-	{
+	 * Luckily, only the song timing data needs comparing here. */
+	if (GAMESTATE->m_pCurSong &&
+		s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming) {
 
-		//Hack: Otherwise it doesnt work (files created are called /.sm and /.ssc)
+		// Hack: Otherwise it doesnt work (files created are called /.sm and
+		// /.ssc)
 		auto tmp = GAMESTATE->m_pCurSong->m_SongTiming;
 		GAMESTATE->m_pCurSong->ReloadFromSongDir();
 		GAMESTATE->m_pCurSong->m_SongTiming = tmp;
@@ -318,7 +319,7 @@ static LocalizedString TEMPO_SEGMENT_FROM("AdjustSync",
 static LocalizedString CHANGED_STOP(
   "AdjustSync",
   "The stop segment #%d changed from %+.3fs to %+.3fs (change of %+.3f).");
-static LocalizedString ERROR("AdjustSync", "Average Error %.5fs");
+static LocalizedString SYNC_ERROR("AdjustSync", "Average Error %.5fs");
 static LocalizedString ETC("AdjustSync", "Etc.");
 static LocalizedString TAPS_IGNORED("AdjustSync", "%d taps ignored.");
 
@@ -449,7 +450,7 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 		}
 
 		if (vsAddTo.size() > iOriginalSize && s_fAverageError > 0.0f) {
-			vsAddTo.push_back(ssprintf(ERROR.GetValue(), s_fAverageError));
+			vsAddTo.push_back(ssprintf(SYNC_ERROR.GetValue(), s_fAverageError));
 		}
 		if (vsAddTo.size() > iOriginalSize && s_iStepsFiltered > 0) {
 			vsAddTo.push_back(

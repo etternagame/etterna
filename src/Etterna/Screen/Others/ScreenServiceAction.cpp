@@ -68,8 +68,8 @@ static LocalizedString COPIED_TO_CARD("ScreenServiceAction",
 static LocalizedString COPIED("ScreenServiceAction", "%d copied");
 static LocalizedString OVERWRITTEN("ScreenServiceAction", "%d overwritten");
 static LocalizedString ADDED("ScreenServiceAction", "%d added");
-static LocalizedString IGNORED("ScreenServiceAction", "%d ignored");
-static LocalizedString FAILED("ScreenServiceAction", "%d failed");
+static LocalizedString IGNORED_STR("ScreenServiceAction", "%d ignored");
+static LocalizedString FAILED_STR("ScreenServiceAction", "%d failed");
 static LocalizedString DELETED("ScreenServiceAction", "%d deleted");
 
 static RString
@@ -94,9 +94,9 @@ CopyEdits(const RString& sFromProfileDir,
 	vs.push_back(ssprintf(COPIED.GetValue(), iNumSucceeded) + ", " +
 				 ssprintf(OVERWRITTEN.GetValue(), iNumOverwritten));
 	if (iNumIgnored)
-		vs.push_back(ssprintf(IGNORED.GetValue(), iNumIgnored));
+		vs.push_back(ssprintf(IGNORED_STR.GetValue(), iNumIgnored));
 	if (iNumErrored)
-		vs.push_back(ssprintf(FAILED.GetValue(), iNumErrored));
+		vs.push_back(ssprintf(FAILED_STR.GetValue(), iNumErrored));
 	return join("\n", vs);
 }
 
