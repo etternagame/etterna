@@ -70,6 +70,7 @@ RageLog::RageLog()
 		g_fileUserLog = SetLogger("Userlog", USER_PATH);
 		g_fileTimeLog = SetLogger("Timelog", TIME_PATH);
 		spdlog::set_pattern("[%T.%e] [%t] [%l]:  %v");
+		spdlog::flush_every(std::chrono::seconds(5));
 
 	} catch (const spdlog::spdlog_ex& ex) {
 		sm_crash(ex.what());
