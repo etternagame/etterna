@@ -64,6 +64,7 @@ static map<RString, RString> LogMaps;
 RageLog::RageLog()
 {
 	try {
+		spdlog::init_thread_pool(4096, 2);
 		g_fileLog = SetLogger("Log", LOG_PATH);
 		g_fileInfo = SetLogger("Info", INFO_PATH);
 		g_fileUserLog = SetLogger("Userlog", USER_PATH);
@@ -91,16 +92,21 @@ RageLog::~RageLog()
 	spdlog::shutdown();
 }
 
-shared_ptr<spdlog::logger>
+shared_ptr<spdlog::async_logger>
 RageLog::SetLogger(const char* name, const char* path)
 {
-	shared_ptr<spdlog::logger> out;
+	shared_ptr<spdlog::async_logger> out;
 	vector<spdlog::sink_ptr> sinks;
 	try {
 		sinks.push_back(
 		  std::make_shared<spdlog::sinks::basic_file_sink_mt>(path, true));
 		sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
-		out = make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
+		out = make_shared<spdlog::async_logger>(
+		  name,
+		  begin(sinks),
+		  end(sinks),
+		  spdlog::thread_pool(),
+		  spdlog::async_overflow_policy::block);
 		spdlog::register_logger(out);
 	} catch (const spdlog::spdlog_ex& ex) {
 		sm_crash(ex.what());

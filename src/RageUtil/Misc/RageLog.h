@@ -5,6 +5,7 @@
 
 #include "RageUtil/Utils/RageUtil.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/async_logger.h"
 
 class RageLog
 {
@@ -98,11 +99,12 @@ class RageLog
 	bool m_bUserLogToDisk{ false };
 	bool m_bFlush{ false };
 	bool m_bShowLogOutput{ false };
-	shared_ptr<spdlog::logger> SetLogger(const char* name, const char* path);
+	shared_ptr<spdlog::async_logger> SetLogger(const char* name,
+											   const char* path);
 	void UpdateMappedLog();
 	void AddToInfo(const RString& buf);
 	void AddToRecentLogs(const RString& buf);
-	shared_ptr<spdlog::logger> g_fileLog, g_fileInfo, g_fileUserLog,
+	shared_ptr<spdlog::async_logger> g_fileLog, g_fileInfo, g_fileUserLog,
 	  g_fileTimeLog, g_consoleLog;
 };
 
