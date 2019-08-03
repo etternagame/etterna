@@ -822,11 +822,6 @@ InitializeConfOptions()
 				   "FitInsideAvoidPillar"));
 
 	ADD(ConfOption("ShowDanger", MovePref<bool>, "Hide", "Show"));
-	ADD(ConfOption("ShowDancingCharacters",
-				   MovePref<ShowDancingCharacters>,
-				   "Default to Off",
-				   "Default to Random",
-				   "Select"));
 	ADD(ConfOption(
 	  "NumBackgrounds", NumBackgrounds, "|1", "|5", "|10", "|15", "|20"));
 

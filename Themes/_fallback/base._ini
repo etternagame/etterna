@@ -2049,7 +2049,6 @@ RightEdge=SCREEN_RIGHT
 BottomEdge=SCREEN_BOTTOM
 BrightnessOverlayFadeCommand=
 ClampOutputPercent=0
-ShowDancingCharacters=true
 UseStaticBackground=true
 
 [Judgment]
@@ -2520,7 +2519,6 @@ Line13="conf,ShowLyrics"
 Line14="conf,RandomBackgroundMode"
 Line15="conf,BGBrightness"
 Line16="conf,ShowDanger"
-Line17="conf,ShowDancingCharacters"
 Line18="conf,ShowBeginnerHelper"
 Line19="conf,NumBackgrounds"
 
@@ -3391,14 +3389,6 @@ Transfer From USB Drive,1="screen,ScreenOptionsManageEditSteps;name,Transfer Fro
 Class="ScreenReloadSongs"
 Fallback="Screen"
 NextScreen=ScreenTitleBranch()
-
-[DancingCharacters]
-#2D Character X/Y positions in relation to the center
-#of the screen
-2DCharacterXP1=-220
-2DCharacterYP1=0
-2DCharacterXP2=220
-2DCharacterYP2=0
 
 [FadingBanner]
 BannerOnCommand=

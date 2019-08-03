@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Background.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "DancingCharacters.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
@@ -29,8 +28,6 @@ static ThemeMetric<float> RIGHT_EDGE("Background", "RightEdge");
 static ThemeMetric<float> BOTTOM_EDGE("Background", "BottomEdge");
 static ThemeMetric<float> CLAMP_OUTPUT_PERCENT("Background",
 											   "ClampOutputPercent");
-static ThemeMetric<bool> SHOW_DANCING_CHARACTERS("Background",
-												 "ShowDancingCharacters");
 static ThemeMetric<bool> USE_STATIC_BG("Background", "UseStaticBackground");
 static ThemeMetric<float> RAND_BG_START_BEAT("Background", "RandomBGStartBeat");
 static ThemeMetric<float> RAND_BG_CHANGE_MEASURES("Background",
@@ -92,14 +89,11 @@ class BackgroundImpl : public ActorFrame
 		m_Brightness.Set(fBrightness);
 	} /* overrides pref and Cover */
 
-	DancingCharacters* GetDancingCharacters() { return m_pDancingCharacters; };
-
 	void GetLoadedBackgroundChanges(
 	  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
 
   protected:
 	bool m_bInitted;
-	DancingCharacters* m_pDancingCharacters;
 	const Song* m_pSong;
 	map<RString, BackgroundTransition> m_mapNameToTransition;
 	deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
@@ -177,7 +171,6 @@ GetBrightnessColor(float fBrightnessPercent)
 BackgroundImpl::BackgroundImpl()
 {
 	m_bInitted = false;
-	m_pDancingCharacters = nullptr;
 	m_pSong = nullptr;
 }
 
@@ -230,7 +223,6 @@ BackgroundImpl::Init()
 
 	// bool bOneOrMoreChars = false;
 	// if (bOneOrMoreChars && SHOW_DANCING_CHARACTERS)
-	// m_pDancingCharacters = new DancingCharacters;
 
 	RageColor c = GetBrightnessColor(0);
 
@@ -258,7 +250,6 @@ BackgroundImpl::Init()
 BackgroundImpl::~BackgroundImpl()
 {
 	Unload();
-	delete m_pDancingCharacters;
 }
 
 void
@@ -732,9 +723,6 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	TEXTUREMAN->EnableOddDimensionWarning();
 
-	if (m_pDancingCharacters != nullptr)
-		m_pDancingCharacters->LoadNextSong();
-
 	TEXTUREMAN->SetDefaultTexturePolicy(OldPolicy);
 }
 
@@ -877,9 +865,6 @@ BackgroundImpl::Update(float fDeltaTime)
 		m_bDangerAllWasVisible = bVisible;
 	}
 
-	if (m_pDancingCharacters != nullptr)
-		m_pDancingCharacters->Update(fDeltaTime);
-
 	FOREACH_BackgroundLayer(i)
 	{
 		Layer& layer = m_Layer[i];
@@ -897,17 +882,7 @@ BackgroundImpl::DrawPrimitives()
 	if (g_fBGBrightness == 0.0f)
 		return;
 
-	if (IsDangerAllVisible()) {
-		// Since this only shows when DANGER is visible, it will flash red on
-		// it's own accord :)
-		if (m_pDancingCharacters != nullptr)
-			m_pDancingCharacters->m_bDrawDangerLight = true;
-	}
-
 	{
-		if (m_pDancingCharacters != nullptr)
-			m_pDancingCharacters->m_bDrawDangerLight = false;
-
 		FOREACH_BackgroundLayer(i)
 		{
 			Layer& layer = m_Layer[i];
@@ -916,11 +891,6 @@ BackgroundImpl::DrawPrimitives()
 			if (layer.m_pFadingBGA != nullptr)
 				layer.m_pFadingBGA->Draw();
 		}
-	}
-
-	if (m_pDancingCharacters != nullptr) {
-		m_pDancingCharacters->Draw();
-		DISPLAY->ClearZBuffer();
 	}
 
 	ActorFrame::DrawPrimitives();
@@ -1064,11 +1034,6 @@ void
 Background::SetBrightness(float fBrightness)
 {
 	m_pImpl->SetBrightness(fBrightness);
-}
-DancingCharacters*
-Background::GetDancingCharacters()
-{
-	return m_pImpl->GetDancingCharacters();
 }
 void
 Background::GetLoadedBackgroundChanges(
