@@ -55,8 +55,7 @@ ScreenOptionsEditProfile::BeginScreen()
 ScreenOptionsEditProfile::~ScreenOptionsEditProfile() = default;
 
 void
-ScreenOptionsEditProfile::ImportOptions(int iRow,
-										const PlayerNumber& vpns)
+ScreenOptionsEditProfile::ImportOptions(int iRow, const PlayerNumber& vpns)
 {
 	Profile* pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
@@ -70,8 +69,7 @@ ScreenOptionsEditProfile::ImportOptions(int iRow,
 }
 
 void
-ScreenOptionsEditProfile::ExportOptions(int iRow,
-										const PlayerNumber& vpns)
+ScreenOptionsEditProfile::ExportOptions(int iRow, const PlayerNumber& vpns)
 {
 	Profile* pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);

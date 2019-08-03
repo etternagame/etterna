@@ -276,9 +276,9 @@ class OptionRowHandlerList : public OptionRowHandler
 
 			if (mc.IsZero()) {
 				/* The entry has no effect. This is usually a default "none
-					* of the above" entry. It will always return true for
-					* DescribesCurrentMode(). It's only the selected choice if
-					* nothing else matches. */
+				 * of the above" entry. It will always return true for
+				 * DescribesCurrentMode(). It's only the selected choice if
+				 * nothing else matches. */
 				continue;
 			}
 
@@ -305,16 +305,15 @@ class OptionRowHandlerList : public OptionRowHandler
 			int iFallbackOption = m_Def.m_iDefault;
 			if (iFallbackOption == -1) {
 				RString s =
-					ssprintf("No options in row \"list,%s\" were selected, "
-							"and no fallback row found; selected entry 0",
-							m_Def.m_sName.c_str());
+				  ssprintf("No options in row \"list,%s\" were selected, "
+						   "and no fallback row found; selected entry 0",
+						   m_Def.m_sName.c_str());
 				LOG->Warn("%s", s.c_str());
 				CHECKPOINT_M(s);
 				iFallbackOption = 0;
 			}
 
-			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption,
-													vbSelOut);
+			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption, vbSelOut);
 		}
 
 		VerifySelected(m_Def.m_selectType, vbSelOut, m_Def.m_sName);
@@ -436,9 +435,10 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		m_Def.m_vsChoices.clear();
 		m_aListEntries.clear();
 
-		if(GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) && GAMESTATE->m_pCurSong) // playing a song
+		if (GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) &&
+			GAMESTATE->m_pCurSong) // playing a song
 		{
-			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
+			m_Def.m_layoutType = StringToLayoutType(STEPS_ROW_LAYOUT_TYPE);
 
 			vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
@@ -596,12 +596,12 @@ class OptionRowHandlerSteps : public OptionRowHandler
 
 		// look for matching steps
 		vector<Steps*>::const_iterator iter =
-			find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
+		  find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
 		if (iter != m_vSteps.end()) {
 			unsigned i = iter - m_vSteps.begin();
 			vbSelOut[i] = true;
 		} else {
-		
+
 			// look for matching difficulty
 			bool matched = false;
 			if (m_pDifficultyToFill) {
@@ -1062,7 +1062,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		vector<bool>& vbSelOut = vbSelectedOut;
 
 		/* Evaluate the LoadSelections(self,array,pn) function, where
-			* array is a table representing vbSelectedOut. */
+		 * array is a table representing vbSelectedOut. */
 
 		// All selections default to false.
 		for (unsigned i = 0; i < vbSelOut.size(); ++i)
@@ -1088,7 +1088,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "LoadSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
@@ -1118,7 +1118,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		const vector<bool>& vbSel = vbSelected;
 
 		/* Evaluate SaveSelections(self,array,pn) function, where array is
-			* a table representing vbSelectedOut. */
+		 * a table representing vbSelectedOut. */
 
 		vector<bool> vbSelectedCopy = vbSel;
 
@@ -1142,7 +1142,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "SaveSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
@@ -1338,8 +1338,8 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 		if (GAMESTATE->m_pCurSteps) {
 			StepsType st = GAMESTATE->m_pCurSteps->m_StepsType;
-			vector<StepsType>::const_iterator iter = find(
-				m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
+			vector<StepsType>::const_iterator iter =
+			  find(m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
 			if (iter != m_vStepsTypesToShow.end()) {
 				unsigned i = iter - m_vStepsTypesToShow.begin();
 				vbSelOut[i] = true;
@@ -1398,7 +1398,7 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	int ExportOption(const PlayerNumber& vpns,
 					 const vector<bool>& vbSelected) const override
 	{
-		if( vbSelected[0] )
+		if (vbSelected[0])
 			m_gc.ApplyToAllPlayers();
 		return 0;
 	}

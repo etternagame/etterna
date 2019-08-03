@@ -74,7 +74,6 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 			Load##X##FromNode(X);                                              \
 	}
 
-
 ProfileLoadResult
 XMLProfile::LoadEttFromDir(RString dir)
 {
@@ -213,7 +212,8 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the favorites node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->FavoritedCharts.emplace(ck->GetName());
+	FOREACH_CONST_Child(pNode, ck)
+	  loadingProfile->FavoritedCharts.emplace(ck->GetName());
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
 	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
 									   loadingProfile->allplaylists);
@@ -224,7 +224,8 @@ XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the permamirror node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
+	FOREACH_CONST_Child(pNode, ck)
+	  loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
 	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
@@ -297,8 +298,7 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 		   // ??? reasons -mina
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
-		  DifficultyToString(
-			GAMESTATE->m_pCurSteps->GetDifficulty()));
+		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty()));
 	else if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
@@ -394,7 +394,6 @@ XMLProfile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
 					  sToDir + ETT_XML + SIGNATURE_APPEND);
 	}
 }
-
 
 void
 XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
@@ -565,7 +564,6 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 
 	return ProfileLoadResult_Success;
 }
-
 
 XNode*
 XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const

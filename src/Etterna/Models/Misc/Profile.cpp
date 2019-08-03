@@ -165,7 +165,6 @@ Profile::InitSongScores()
 	m_SongHighScores.clear();
 }
 
-
 void
 Profile::InitScreenshotData()
 {
@@ -751,7 +750,6 @@ Profile::swap(Profile& other)
 #undef SWAP_GENERAL
 #undef SWAP_ARRAY
 }
-
 
 void
 Profile::LoadCustomFunction(const RString& sDir)
@@ -1341,8 +1339,6 @@ class LunaProfile : public Luna<Profile>
 		luaL_typerror(L, 1, "Song");
 		COMMON_RETURN_SELF;
 	}
-
-
 
 	static int GetHighScoreListIfExists(T* p, lua_State* L)
 	{
