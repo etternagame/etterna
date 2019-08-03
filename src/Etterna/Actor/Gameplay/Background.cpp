@@ -221,9 +221,6 @@ BackgroundImpl::Init()
 		}
 	}
 
-	// bool bOneOrMoreChars = false;
-	// if (bOneOrMoreChars && SHOW_DANCING_CHARACTERS)
-
 	RageColor c = GetBrightnessColor(0);
 
 	m_quadBorderLeft.StretchTo(

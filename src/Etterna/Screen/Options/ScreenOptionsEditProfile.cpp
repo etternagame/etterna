@@ -1,7 +1,5 @@
 #include "Etterna/Globals/global.h"
 
-#include "Etterna/Models/Misc/Character.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Models/Misc/Profile.h"
@@ -13,7 +11,7 @@
 
 enum EditProfileRow
 {
-	ROW_CHARACTER,
+	ROW_NOTHING,
 };
 
 REGISTER_SCREEN_CLASS(ScreenOptionsEditProfile);
@@ -44,14 +42,9 @@ ScreenOptionsEditProfile::BeginScreen()
 		def.m_bAllowThemeTitle = false;
 		def.m_bAllowExplanation = false;
 		def.m_bExportOnChange = true;
-		def.m_sName = "Character";
+		def.m_sName = "nothing";
 		def.m_vsChoices.clear();
-		vector<Character*> vpCharacters;
-		CHARMAN->GetCharacters(vpCharacters);
-		FOREACH_CONST(Character*, vpCharacters, c)
-		def.m_vsChoices.push_back((*c)->GetDisplayName());
-		if (def.m_vsChoices.empty())
-			def.m_vsChoices.push_back(RString());
+		def.m_vsChoices.push_back(RString());
 	}
 
 	InitMenu(vHands);
@@ -71,8 +64,7 @@ ScreenOptionsEditProfile::ImportOptions(int iRow,
 	OptionRow& row = *m_pRows[iRow];
 
 	switch (iRow) {
-		case ROW_CHARACTER:
-			row.SetOneSharedSelectionIfPresent(pProfile->m_sCharacterID);
+		case ROW_NOTHING:
 			break;
 	}
 }
@@ -91,8 +83,7 @@ ScreenOptionsEditProfile::ExportOptions(int iRow,
 		sValue = row.GetRowDef().m_vsChoices[iIndex];
 
 	switch (iRow) {
-		case ROW_CHARACTER:
-			pProfile->m_sCharacterID = sValue;
+		case ROW_NOTHING:
 			break;
 	}
 }
@@ -138,7 +129,7 @@ ScreenOptionsEditProfile::ProcessMenuStart(const InputEventPlus& input)
 	// OptionRow &row = *m_pRows[iRow];
 
 	switch (iRow) {
-		case ROW_CHARACTER: {
+		case ROW_NOTHING: {
 		} break;
 		default:
 			ScreenOptions::ProcessMenuStart(input);

@@ -95,8 +95,6 @@ Branch = {
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
-
-		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
 		return "ScreenSelectMusic"

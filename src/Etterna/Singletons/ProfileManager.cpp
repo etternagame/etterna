@@ -1,6 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Character.h"
-#include "CharacterManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "Etterna/Models/Misc/HighScore.h"
@@ -18,8 +16,6 @@
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Models/Misc/Character.h"
-#include "CharacterManager.h"
 #include "DownloadManager.h"
 
 ProfileManager* PROFILEMAN =
@@ -74,9 +70,6 @@ static vector<DirAndProfile> g_vLocalProfile;
 static ThemeMetric<bool> FIXED_PROFILES("ProfileManager", "FixedProfiles");
 static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
 										   "NumFixedProfiles");
-#define FIXED_PROFILE_CHARACTER_ID(i)                                          \
-	THEME->GetMetric("ProfileManager",                                         \
-					 ssprintf("FixedProfileCharacterID%d", int((i) + 1)))
 
 ProfileManager::ProfileManager()
   : m_stats_prefix("")
@@ -107,29 +100,6 @@ ProfileManager::Init(LoadingWindow* ld)
 	m_bNewProfile = false;
 
 	RefreshLocalProfilesFromDisk(ld);
-
-	if (FIXED_PROFILES) {
-		// resize to the fixed number
-		if ((int)g_vLocalProfile.size() > NUM_FIXED_PROFILES)
-			g_vLocalProfile.erase(g_vLocalProfile.begin() + NUM_FIXED_PROFILES,
-								  g_vLocalProfile.end());
-
-		for (int i = g_vLocalProfile.size(); i < NUM_FIXED_PROFILES; i++) {
-			RString sCharacterID = FIXED_PROFILE_CHARACTER_ID(i);
-			Character* pCharacter = CHARMAN->GetCharacterFromID(sCharacterID);
-			ASSERT_M(pCharacter != NULL, sCharacterID);
-			RString sProfileID;
-			bool b =
-			  CreateLocalProfile(pCharacter->GetDisplayName(), sProfileID);
-			ASSERT(b);
-			Profile* pProfile = GetLocalProfile(sProfileID);
-			ASSERT_M(pProfile != NULL, sProfileID);
-			pProfile->m_sCharacterID = sCharacterID;
-			SaveLocalProfile(sProfileID);
-		}
-
-		ASSERT((int)g_vLocalProfile.size() == NUM_FIXED_PROFILES);
-	}
 
 	if (!g_vLocalProfile.empty())
 		m_sProfileDir = g_vLocalProfile[0].sDir;
@@ -425,7 +395,6 @@ ProfileManager::CreateLocalProfile(const RString& sName, RString& sProfileIDOut)
 	// Create the new profile.
 	Profile* pProfile = new Profile;
 	pProfile->m_sDisplayName = sName;
-	pProfile->m_sCharacterID = CHARMAN->GetRandomCharacter()->m_sCharacterID;
 	pProfile->m_sProfileID = profile_id;
 
 	// Save it to disk.

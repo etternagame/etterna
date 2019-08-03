@@ -87,7 +87,6 @@ ArchHooks::MountUserFilesystems(const RString& sDirOfExecutable)
 	  "dir", sAppDataDir + "/BackgroundTransitions", "/BackgroundTransitions");
 	FILEMAN->Mount("dir", sAppDataDir + "/Cache", "/Cache");
 	FILEMAN->Mount("dir", sAppDataDir + "/CDTitles", "/CDTitles");
-	FILEMAN->Mount("dir", sAppDataDir + "/Characters", "/Characters");
 	FILEMAN->Mount("dir", sAppDataDir + "/Courses", "/Courses");
 	FILEMAN->Mount("dir", sAppDataDir + "/Logs", "/Logs");
 	FILEMAN->Mount("dir", sAppDataDir + "/NoteSkins", "/NoteSkins");

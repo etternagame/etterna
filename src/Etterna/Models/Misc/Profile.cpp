@@ -32,8 +32,6 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
-#include "Etterna/Singletons/CharacterManager.h"
-#include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include <algorithm>
@@ -94,7 +92,6 @@ void
 Profile::InitEditableData()
 {
 	m_sDisplayName = "";
-	m_sCharacterID = "";
 	m_sLastUsedHighScoreName = "";
 }
 
@@ -184,26 +181,6 @@ Profile::GetDisplayNameOrHighScoreName() const
 		return m_sLastUsedHighScoreName;
 	else
 		return RString();
-}
-
-Character*
-Profile::GetCharacter() const
-{
-	vector<Character*> vpCharacters;
-	CHARMAN->GetCharacters(vpCharacters);
-	FOREACH_CONST(Character*, vpCharacters, c)
-	{
-		if ((*c)->m_sCharacterID.CompareNoCase(m_sCharacterID) == 0)
-			return *c;
-	}
-	return CHARMAN->GetDefaultCharacter();
-}
-
-void
-Profile::SetCharacter(const RString& sCharacterID)
-{
-	if (CHARMAN->GetCharacterFromID(sCharacterID))
-		m_sCharacterID = sCharacterID;
 }
 
 int
@@ -740,7 +717,6 @@ Profile::swap(Profile& other)
 	}                                                                          \
 	SWAP_GENERAL(m_ListPriority);
 	SWAP_STR_MEMBER(m_sDisplayName);
-	SWAP_STR_MEMBER(m_sCharacterID);
 	SWAP_STR_MEMBER(m_sLastUsedHighScoreName);
 	SWAP_STR_MEMBER(m_sGuid);
 	SWAP_GENERAL(m_iCurrentCombo);
@@ -808,7 +784,6 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	// Some stuff intentionally left out because the original reason for the
 	// stats prefix was to allow scores from different game types to coexist.
 	RString display_name = m_sDisplayName;
-	RString character_id = m_sCharacterID;
 	RString last_high_score_name = m_sLastUsedHighScoreName;
 	ProfileType type = m_Type;
 	int priority = m_ListPriority;
@@ -830,7 +805,6 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 		need_to_create_file = true;
 	}
 	m_sDisplayName = display_name;
-	m_sCharacterID = character_id;
 	m_sLastUsedHighScoreName = last_high_score_name;
 	m_Type = type;
 	m_ListPriority = priority;
@@ -1006,7 +980,6 @@ Profile::SaveEditableDataToDir(const RString& sDir) const
 	IniFile ini;
 
 	ini.SetValue("Editable", "DisplayName", m_sDisplayName);
-	ini.SetValue("Editable", "CharacterID", m_sCharacterID);
 	ini.SetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	ini.WriteFile(sDir + EDITABLE_INI);
@@ -1033,7 +1006,6 @@ Profile::LoadEditableDataFromDir(const RString& sDir)
 	ini.ReadFile(fn);
 
 	ini.GetValue("Editable", "DisplayName", m_sDisplayName);
-	ini.GetValue("Editable", "CharacterID", m_sCharacterID);
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
@@ -1421,16 +1393,6 @@ class LunaProfile : public Luna<Profile>
 		return 1;
 	}
 
-	static int GetCharacter(T* p, lua_State* L)
-	{
-		p->GetCharacter()->PushSelf(L);
-		return 1;
-	}
-	static int SetCharacter(T* p, lua_State* L)
-	{
-		p->SetCharacter(SArg(1));
-		COMMON_RETURN_SELF;
-	}
 	static int GetTotalNumSongsPlayed(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->m_iNumTotalSongsPlayed);
@@ -1813,8 +1775,6 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(GetAllUsedHighScoreNames);
 		ADD_METHOD(GetHighScoreListIfExists);
 		ADD_METHOD(GetHighScoreList);
-		ADD_METHOD(GetCharacter);
-		ADD_METHOD(SetCharacter);
 		ADD_METHOD(GetTotalNumSongsPlayed);
 		ADD_METHOD(GetSongsActual);
 		ADD_METHOD(GetSongsPossible);

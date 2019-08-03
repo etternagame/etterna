@@ -43,7 +43,6 @@ GameCommand::Init()
 	m_LuaFunction.Unset();
 	m_pSong = NULL;
 	m_pSteps = NULL;
-	m_pCharacter = NULL;
 	m_SortOrder = SortOrder_Invalid;
 	m_sSoundPath = "";
 	m_vsScreensToPrepare.clear();
@@ -115,9 +114,6 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 	if (m_pSong && GAMESTATE->m_pCurSong.Get() != m_pSong)
 		return false;
 	if (m_pSteps && GAMESTATE->m_pCurSteps.Get() != m_pSteps)
-		return false;
-	if ((m_pCharacter != nullptr) &&
-		GAMESTATE->m_pCurCharacters != m_pCharacter)
 		return false;
 	if (!m_sSongGroup.empty() &&
 		GAMESTATE->m_sPreferredSongGroup != m_sSongGroup)
@@ -510,8 +506,6 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 	}
 	if (m_pSteps)
 		GAMESTATE->m_pCurSteps.Set(m_pSteps);
-	if (m_pCharacter)
-		GAMESTATE->m_pCurCharacters = m_pCharacter;
 	for (map<RString, RString>::const_iterator i = m_SetEnv.begin();
 		 i != m_SetEnv.end();
 		 i++) {
@@ -577,7 +571,7 @@ GameCommand::IsZero() const
 	if (m_pm != PlayMode_Invalid || m_pStyle != NULL ||
 		m_dc != Difficulty_Invalid || m_sAnnouncer != "" ||
 		m_sPreferredModifiers != "" || m_sStageModifiers != "" ||
-		m_pSong != NULL || m_pSteps != NULL || m_pCharacter != NULL ||
+		m_pSong != NULL || m_pSteps != NULL ||
 		!m_sSongGroup.empty() || m_SortOrder != SortOrder_Invalid ||
 		!m_sProfileID.empty() || !m_sUrl.empty())
 		return false;
@@ -586,7 +580,6 @@ GameCommand::IsZero() const
 }
 
 // lua start
-#include "Character.h"
 #include "Game.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -651,14 +644,6 @@ class LunaGameCommand : public Luna<GameCommand>
 			p->m_pSteps->PushSelf(L);
 		return 1;
 	}
-	static int GetCharacter(T* p, lua_State* L)
-	{
-		if (p->m_pCharacter == NULL)
-			lua_pushnil(L);
-		else
-			p->m_pCharacter->PushSelf(L);
-		return 1;
-	}
 	static int GetSongGroup(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->m_sSongGroup);
@@ -702,7 +687,6 @@ class LunaGameCommand : public Luna<GameCommand>
 		ADD_METHOD(GetProfileID);
 		ADD_METHOD(GetSong);
 		ADD_METHOD(GetSteps);
-		ADD_METHOD(GetCharacter);
 		ADD_METHOD(GetSongGroup);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetUrl);

@@ -20,7 +20,6 @@
 
 class XNode;
 struct lua_State;
-class Character;
 struct Playlist;
 
 // Current file versions
@@ -140,7 +139,6 @@ class Profile
 	  :
 
 	  m_sDisplayName("")
-	  , m_sCharacterID("")
 	  , m_sLastUsedHighScoreName("")
 	  , m_sGuid(MakeGuid())
 	  , m_sDefaultModifiers()
@@ -171,8 +169,6 @@ class Profile
 
 	// smart accessors
 	RString GetDisplayNameOrHighScoreName() const;
-	Character* GetCharacter() const;
-	void SetCharacter(const RString& sCharacterID);
 	int GetTotalNumSongsPassed() const;
 	int GetTotalStepsWithTopGrade(StepsType st, Difficulty d, Grade g) const;
 	float GetSongsPossible(StepsType st, Difficulty dc) const;
@@ -200,7 +196,6 @@ class Profile
 
 	// Editable data
 	RString m_sDisplayName;
-	RString m_sCharacterID;
 	// Dont edit this. Should be unique (Is it?)
 	RString m_sProfileID;
 	/**

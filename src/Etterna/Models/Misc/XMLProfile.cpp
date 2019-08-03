@@ -288,7 +288,6 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	// redundant to the game app.
 	pGeneralDataNode->AppendChild("DisplayName",
 								  profile->GetDisplayNameOrHighScoreName());
-	pGeneralDataNode->AppendChild("CharacterID", profile->m_sCharacterID);
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
@@ -407,7 +406,6 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 	const XNode* pTemp;
 
 	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
-	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
 	pNode->GetChildValue("LastUsedHighScoreName",
 						 loadingProfile->m_sLastUsedHighScoreName);
 	pNode->GetChildValue("Guid", (*loadingProfile->GetGuid()));

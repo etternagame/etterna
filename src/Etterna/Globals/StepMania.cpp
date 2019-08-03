@@ -38,7 +38,6 @@
 
 // StepMania global classes
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/FontManager.h"
 #include "Etterna/Singletons/GameManager.h"
@@ -288,7 +287,6 @@ ShutdownGame()
 	SAFE_DELETE( INPUTFILTER );
 	SAFE_DELETE( MODELMAN );
 	SAFE_DELETE( PROFILEMAN ); // PROFILEMAN needs the songs still loaded
-	SAFE_DELETE( CHARMAN );
 	SAFE_DELETE( CRYPTMAN );
 	SAFE_DELETE( SONGMAN );
 	SAFE_DELETE( IMAGECACHE );
@@ -1212,7 +1210,6 @@ sm_main(int argc, char* argv[])
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
 		CRYPTMAN->GenerateGlobalKeys();
-	CHARMAN		= new CharacterManager;
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
