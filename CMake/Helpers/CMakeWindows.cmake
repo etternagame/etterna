@@ -14,7 +14,7 @@ set(ETTERNA_LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /INCREMENTAL")
 
 # Build type dependant compile flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja")
-	set_target_properties(SQLiteCpp sqlite3 lua discord-rpc PROPERTIES COMPILE_FLAGS "/MT") # The following libraries are set to be dynamically linked. These compile flags switch them to be statically linked.
+	set_target_properties(SQLiteCpp sqlite3 lua discord-rpc spdlog PROPERTIES COMPILE_FLAGS "/MT") # The following libraries are set to be dynamically linked. These compile flags switch them to be statically linked.
 	set(ETTERNA_COMPILE_FLAGS "${ETTERNA_COMPILE_FLAGS} /MT")
 	set(ETTERNA_LINK_FLAGS "${ETTERNA_LINK_FLAGS} /NODEFAULTLIB:\"LIBCMT\"")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
