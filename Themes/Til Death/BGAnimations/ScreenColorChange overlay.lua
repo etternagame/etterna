@@ -60,6 +60,7 @@ local function generateCategory()
 					self:zoom(scale)
 					self:halign(0)
 					self:queuecommand("UpdateColor")
+					self:maxwidth((frameX[2]-frameX[1] - 5) / scale)
 				end,
 				RowChangedMessageCommand = function(self, params)
 					if params.level == 1 then
@@ -139,6 +140,7 @@ local function generateCategoryColors()
 					self:zoom(scale)
 					self:halign(0)
 					self:queuecommand("UpdateColor")
+					self:maxwidth((frameX[3]-frameX[2] - 5) / scale)
 				end,
 				RowChanged2MessageCommand = function(self, params)
 					if params.level <= 2 then
