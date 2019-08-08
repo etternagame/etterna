@@ -418,7 +418,12 @@ local l =
 				if score:GetWifeScore() == 0 then
 					self:settext("")
 				else
-					self:settext(THEME:GetString("Skillsets", GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)))
+					local ss = GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+					if ss ~= "" then
+						self:settext(THEME:GetString("Skillsets", ss))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
