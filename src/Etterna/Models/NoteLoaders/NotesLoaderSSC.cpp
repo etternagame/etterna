@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/FileTypes/MsdFile.h" // No JSON here.
@@ -412,9 +412,18 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 {
 	if (info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit) {
 		info.loader->ProcessBPMs(
-		  *info.timing, (*info.params)[1], info.loader->GetSongTitle());
+		  *info.timing, (*info.params)[1], info.loader->GetSongTitle()
+		);
 		info.has_own_timing = true;
 	}
+
+	// If the header did not contain a BPM default to the first step's #BPMS
+	if ((info.song->m_SongTiming.GetSegmentIndexAtRow(SEGMENT_BPM, 0)) == -1) {
+		info.loader->ProcessBPMs(
+			info.song->m_SongTiming,(*info.params)[1], info.loader->GetSongTitle());
+	}
+	
+	
 	info.ssc_format = true;
 }
 void
