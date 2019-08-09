@@ -412,8 +412,7 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 {
 	if (info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit) {
 		info.loader->ProcessBPMs(
-		  *info.timing, (*info.params)[1], info.loader->GetSongTitle()
-		);
+		  *info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 
@@ -422,8 +421,6 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 		info.loader->ProcessBPMs(
 			info.song->m_SongTiming,(*info.params)[1], info.loader->GetSongTitle());
 	}
-	
-	
 	info.ssc_format = true;
 }
 void
