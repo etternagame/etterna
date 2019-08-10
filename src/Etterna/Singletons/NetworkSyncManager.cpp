@@ -501,15 +501,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	}
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
-    
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
 					   message->get_payload().c_str());
 		else {
-		  std::lock_guard<std::mutex> l(this->messageBufferMutex);
+			std::lock_guard<std::mutex> l(this->messageBufferMutex);
 			this->newMessages.push_back(std::move(d));
-    }
+		}
 	};
 	auto openHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
@@ -1240,12 +1239,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							!player.HasMember("ready") ||
 							!player["ready"].IsBool())
 							continue;
-						n->m_PlayerNames.push_back(
-						  player["name"].GetString());
-						n->m_PlayerStatus.push_back(
-						  player["status"].GetInt());
-						n->m_PlayerReady.push_back(
-						  player["ready"].GetBool());
+						n->m_PlayerNames.push_back(player["name"].GetString());
+						n->m_PlayerStatus.push_back(player["status"].GetInt());
+						n->m_PlayerReady.push_back(player["ready"].GetBool());
 						n->m_ActivePlayer.push_back(i++);
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
@@ -2174,27 +2170,3 @@ class LunaChartRequest : public Luna<ChartRequest>
 LUA_REGISTER_CLASS(ChartRequest)
 
 // lua end
-/*
- * (c) 2003-2004 Charles Lohr, Joshua Allen
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

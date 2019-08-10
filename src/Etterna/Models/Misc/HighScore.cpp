@@ -52,11 +52,12 @@ struct HighScoreImpl
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
-	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
-	string	sModifiers;
-	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
-	string sPlayerGuid;	// who made this high score
-	string sMachineGuid;	// where this high score was made
+	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
+	string sModifiers;
+	DateTime dateTime;   // return value of time() for when the highscore object
+						 // was created (immediately after achieved)
+	string sPlayerGuid;  // who made this high score
+	string sMachineGuid; // where this high score was made
 	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
@@ -101,27 +102,29 @@ struct HighScoreImpl
 bool
 HighScoreImpl::operator==(const HighScoreImpl& other) const
 {
-#define COMPARE(x)	if( (x)!=other.x )	return false;
-	COMPARE( sName );
-	COMPARE( grade );
-	COMPARE( iScore );
-	COMPARE( iMaxCombo );
-	COMPARE( fPercentDP );
-	COMPARE( fSurviveSeconds );
-	COMPARE( sModifiers );
-	COMPARE( dateTime );
-	COMPARE( sPlayerGuid );
-	COMPARE( sMachineGuid );
-	COMPARE( iProductID );
-	FOREACH_ENUM( TapNoteScore, tns )
-		COMPARE( iTapNoteScores[tns] );
-	FOREACH_ENUM( HoldNoteScore, hns )
-		COMPARE( iHoldNoteScores[hns] );
-	FOREACH_ENUM( Skillset, ss)
-		COMPARE(fSkillsetSSRs[ss]);
-	COMPARE( radarValues );
-	COMPARE( fLifeRemainingSeconds );
-	COMPARE( bDisqualified );
+#define COMPARE(x)                                                             \
+	if ((x) != other.x)                                                        \
+		return false;
+	COMPARE(sName);
+	COMPARE(grade);
+	COMPARE(iScore);
+	COMPARE(iMaxCombo);
+	COMPARE(fPercentDP);
+	COMPARE(fSurviveSeconds);
+	COMPARE(sModifiers);
+	COMPARE(dateTime);
+	COMPARE(sPlayerGuid);
+	COMPARE(sMachineGuid);
+	COMPARE(iProductID);
+	FOREACH_ENUM(TapNoteScore, tns)
+	COMPARE(iTapNoteScores[tns]);
+	FOREACH_ENUM(HoldNoteScore, hns)
+	COMPARE(iHoldNoteScores[hns]);
+	FOREACH_ENUM(Skillset, ss)
+	COMPARE(fSkillsetSSRs[ss]);
+	COMPARE(radarValues);
+	COMPARE(fLifeRemainingSeconds);
+	COMPARE(bDisqualified);
 #undef COMPARE
 
 	return true;
@@ -1315,7 +1318,6 @@ HighScoreList::GetTopScore() const
 	}
 }
 
-
 void
 HighScoreList::RemoveAllButOneOfEachName()
 {
@@ -1621,8 +1623,7 @@ class LunaHighScore : public Luna<HighScore>
 	static int IsFillInMarker(T* p, lua_State* L)
 	{
 		bool bIsFillInMarker = false;
-		bIsFillInMarker |=
-		  p->GetName() == RANKING_TO_FILL_IN_MARKER;
+		bIsFillInMarker |= p->GetName() == RANKING_TO_FILL_IN_MARKER;
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}
@@ -1878,28 +1879,3 @@ class LunaHighScoreList : public Luna<HighScoreList>
 
 LUA_REGISTER_CLASS(HighScoreList)
 // lua end
-
-/*
- * (c) 2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

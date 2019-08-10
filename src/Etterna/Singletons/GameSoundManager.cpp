@@ -118,7 +118,8 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		RageSound* pOldSound = g_Playing->m_Music;
 		g_Playing->m_Music = new RageSound;
 		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
-			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+													recentPCMSamplesBufferSize);
 		L.Unlock();
 
 		delete pOldSound;
@@ -133,7 +134,8 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		g_Mutex->Unlock();
 		auto* pSound = new RageSound;
 		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
-			pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+			pSound->SetPlayBackCallback(soundPlayCallback,
+										recentPCMSamplesBufferSize);
 		}
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
@@ -280,7 +282,8 @@ GameSoundManager::DoPlayOnce(RString sPath)
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
 	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
-		pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		pSound->SetPlayBackCallback(soundPlayCallback,
+									recentPCMSamplesBufferSize);
 	pSound->Load(sPath, false);
 
 	pSound->Play(false);
@@ -367,7 +370,8 @@ GameSoundManager::StartQueuedSounds()
 			g_Playing->m_Music = new RageSound;
 			g_Mutex->Unlock();
 			if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
-				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+				g_Playing->m_Music->SetPlayBackCallback(
+				  soundPlayCallback, recentPCMSamplesBufferSize);
 
 			delete pOldSound;
 		}
@@ -426,7 +430,8 @@ GameSoundManager::GameSoundManager()
 	g_Playing = new MusicPlaying(new RageSound);
 	soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
 	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
-		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize );
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+												recentPCMSamplesBufferSize);
 
 	g_UpdatingTimer = true;
 
@@ -807,12 +812,15 @@ GameSoundManager::GetPlayerBalance(PlayerNumber pn)
 	return 0;
 }
 
-void GameSoundManager::HandleMessage(const Message& msg)
+void
+GameSoundManager::HandleMessage(const Message& msg)
 {
-	if (msg.GetName() == "ScreenChanged" && callbackOwningScreen != SCREENMAN->GetTopScreen()) {
+	if (msg.GetName() == "ScreenChanged" &&
+		callbackOwningScreen != SCREENMAN->GetTopScreen()) {
 		soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+												recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 	}
 }
@@ -918,7 +926,8 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		if (lua_isnumber(L, 2))
 			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback,
+												p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
@@ -927,7 +936,8 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->callbackOwningScreen = nullptr;
 		p->soundPlayCallback->Unset();
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback,
+												p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
@@ -965,28 +975,3 @@ LuaFunc_get_sound_driver_list(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(get_sound_driver_list);
-
-/*
- * Copyright (c) 2003-2005 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
