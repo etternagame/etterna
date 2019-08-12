@@ -13,6 +13,7 @@
 
 static bool previousGameplayState;
 static AutosyncType lastSyncType;
+static PlayerController lastController;
 
 static bool
 IsGameplay()
@@ -126,7 +127,8 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 		AdjustSync::GetSyncChangeTextSong(vs);
 	}
 
-	if (forcedChange || !vs.empty() || type != lastSyncType) {
+	if (forcedChange || !vs.empty() || type != lastSyncType ||
+		pc != lastController) {
 		Message set_status("SetStatus");
 		set_status.SetParam("text", join("\n", vs));
 		m_overlay->HandleMessage(set_status);
@@ -149,13 +151,15 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 					  AdjustSync::OFFSET_SAMPLE_COUNT);
 	}
 
-	if (forcedChange || visible || type != lastSyncType) {
+	if (forcedChange || visible || type != lastSyncType ||
+		pc != lastController) {
 		Message set_adjustments("SetAdjustments");
 		set_adjustments.SetParam("visible", visible);
 		set_adjustments.SetParam("text", s);
 		m_overlay->HandleMessage(set_adjustments);
 	}
 	lastSyncType = type;
+	lastController = pc;
 }
 
 static LocalizedString CANT_SYNC_WHILE_PLAYING_A_COURSE(
