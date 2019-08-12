@@ -3,7 +3,7 @@
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "PlayerState.h"
-#include "Etterna/Singletons/Gamestate.h"
+#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeper.h"
