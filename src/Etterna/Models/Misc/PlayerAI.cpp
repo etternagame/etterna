@@ -56,61 +56,6 @@ map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 
-void
-PlayerAI::InitFromDisk()
-{
-	IniFile ini;
-	bool bSuccess = ini.ReadFile(AI_PATH);
-	if (!bSuccess) {
-		LuaHelpers::ReportScriptErrorFmt(
-		  "Error trying to read \"%s\" to load AI player skill settings.",
-		  AI_PATH);
-		for (auto& g_Distribution : g_Distributions) {
-			g_Distribution.SetDefaultWeights();
-			g_Distribution.ChangeWeightsToPercents();
-		}
-	} else {
-		for (int i = 0; i < NUM_SKILL_LEVELS; i++) {
-			RString sKey = ssprintf("Skill%d", i);
-			XNode* pNode = ini.GetChild(sKey);
-			TapScoreDistribution& dist = g_Distributions[i];
-			if (pNode == nullptr) {
-				LuaHelpers::ReportScriptErrorFmt(
-				  "AI.ini: \"%s\" section doesn't exist.", sKey.c_str());
-				dist.SetDefaultWeights();
-			} else {
-#define SET_MALF_IF(condition, tns)                                            \
-	if (condition) {                                                           \
-		LuaHelpers::ReportScriptErrorFmt(                                      \
-		  "AI weight for " #tns " in \"%s\" section not set.", sKey.c_str());  \
-		dist.fPercent[tns] = 0;                                                \
-	}
-				dist.fPercent[TNS_None] = 0;
-				bSuccess =
-				  pNode->GetAttrValue("WeightMiss", dist.fPercent[TNS_Miss]);
-				SET_MALF_IF(!bSuccess, TNS_Miss);
-				bSuccess =
-				  pNode->GetAttrValue("WeightW5", dist.fPercent[TNS_W5]);
-				SET_MALF_IF(!bSuccess, TNS_W5);
-				bSuccess =
-				  pNode->GetAttrValue("WeightW4", dist.fPercent[TNS_W4]);
-				SET_MALF_IF(!bSuccess, TNS_W4);
-				bSuccess =
-				  pNode->GetAttrValue("WeightW3", dist.fPercent[TNS_W3]);
-				SET_MALF_IF(!bSuccess, TNS_W3);
-				bSuccess =
-				  pNode->GetAttrValue("WeightW2", dist.fPercent[TNS_W2]);
-				SET_MALF_IF(!bSuccess, TNS_W2);
-				bSuccess =
-				  pNode->GetAttrValue("WeightW1", dist.fPercent[TNS_W1]);
-				SET_MALF_IF(!bSuccess, TNS_W1);
-#undef SET_MALF_IF
-			}
-			dist.ChangeWeightsToPercents();
-		}
-	}
-}
-
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 {
@@ -119,11 +64,7 @@ PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 	if (pPlayerState->m_PlayerController == PC_REPLAY)
 		return TNS_Miss;
 
-	const int iCpuSkill = pPlayerState->m_iCpuSkill;
-
-	TapScoreDistribution& distribution = g_Distributions[iCpuSkill];
-
-	return distribution.GetTapNoteScore();
+	return TNS_Miss;
 }
 
 TapNoteScore
@@ -151,6 +92,16 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
 		return TNS_W5;
 	return TNS_None;
+}
+
+void
+PlayerAI::ResetScoreData()
+{
+	delete pScoreData;
+	pScoreData = nullptr;
+	m_ReplayExactTapMap.clear();
+	m_ReplayHoldMap.clear();
+	m_ReplayTapMap.clear();
 }
 
 void

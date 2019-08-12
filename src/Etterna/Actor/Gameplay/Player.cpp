@@ -266,8 +266,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_bPaused = false;
 	m_bDelay = false;
 
-	PlayerAI::InitFromDisk();
-
 	m_pNoteField = NULL;
 	if (bVisibleParts) {
 		m_pNoteField = new NoteField;

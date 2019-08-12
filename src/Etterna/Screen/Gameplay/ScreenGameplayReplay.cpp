@@ -37,6 +37,9 @@ ScreenGameplayReplay::FillPlayerInfo(PlayerInfo* playerInfoOut)
 
 ScreenGameplayReplay::ScreenGameplayReplay()
 {
+	ASSERT_M(PlayerAI::pScoreData != nullptr,
+			 "Replay Highscore Info was empty.");
+
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;

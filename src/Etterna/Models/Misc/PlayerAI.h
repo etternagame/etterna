@@ -1,4 +1,4 @@
-﻿/* PlayerAI - Chooses which notes the AI steps on. */
+/* PlayerAI - Chooses which notes the AI steps on. */
 
 #ifndef PlayerAI_H
 #define PlayerAI_H
@@ -33,9 +33,12 @@ class PlayerAI
 	// data/notedata. This map is only useful for charts with column data.
 	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
 
-	static void InitFromDisk();
+	// For use in Autoplay
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
+
+	// Set the pointer to a HighScore
 	static void SetScoreData(HighScore* pHighScore);
+	static void ResetScoreData();
 
 	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
 	static TapNoteScore GetTapNoteScoreForReplay(
