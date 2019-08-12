@@ -32,6 +32,16 @@ function GameOverOrContinue()
 	end
 end
 
+function ToGameplay()
+	if GAMESTATE:IsPracticeMode() then
+		return "ScreenGameplayPractice"
+	elseif GAMESTATE:IsReplayMode() then
+		return "ScreenGameplayReplay"
+	else
+		return "ScreenGameplay"
+	end
+end
+
 Branch = {
 	Init = function()
 		return "ScreenInit"
@@ -188,9 +198,6 @@ Branch = {
 		else
 			return "ScreenStageInformation"
 		end
-	end,
-	GameplayScreen = function()
-		return "ScreenGameplay"
 	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"

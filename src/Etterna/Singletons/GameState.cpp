@@ -1862,6 +1862,8 @@ class LunaGameState : public Luna<GameState>
 		GamePreferences::m_AutoPlay.Set(p->m_pPlayerState->m_PlayerController);
 		return 0;
 	}
+	DEFINE_METHOD(IsPracticeMode, IsPracticeMode())
+	DEFINE_METHOD(IsReplayMode, IsReplayMode())
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
@@ -1954,6 +1956,8 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(UpdateDiscordMenu);
 		ADD_METHOD(UpdateDiscordPresence);
 		ADD_METHOD(IsPaused);
+		ADD_METHOD(IsPracticeMode);
+		ADD_METHOD(IsReplayMode);
 	}
 };
 
