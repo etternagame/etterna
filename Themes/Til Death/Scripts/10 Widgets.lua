@@ -480,7 +480,6 @@ Widg.Button = function(params)
 		local mainActor = params.texture and button.sprite.actor
 		button.bg.HighlightCommand = params.highlight and function(self)
 				mainActor = mainActor or self
-				if not self.enabled then return end
 				local isOver = params.highlightCondition(self)
 				if params.highlight.texture then
 					(button.highlightSprite.actor):visible(isOver)
