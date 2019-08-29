@@ -95,6 +95,14 @@ static const char* HealthStateNames[] = {
 XToString(HealthState);
 LuaXType(HealthState);
 
+static const char* GameplayModeNames[] = {
+	"Normal",
+	"Practice",
+	"Replay",
+};
+XToString(GameplayMode);
+LuaXType(GameplayMode);
+
 static const char* SortOrderNames[] = {
 	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
 	"TopGrades", "Artist",	"Genre",	 "ModeMenu",   "Recent",

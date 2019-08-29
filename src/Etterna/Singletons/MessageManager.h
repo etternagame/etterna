@@ -1,4 +1,4 @@
-﻿#ifndef MessageManager_H
+#ifndef MessageManager_H
 #define MessageManager_H
 
 #include "LuaManager.h"
@@ -20,6 +20,7 @@ enum MessageID
 	Message_CurrentTrailP1Changed,
 	Message_CurrentTrailP2Changed,
 	Message_GameplayLeadInChanged,
+	Message_GameplayModeChanged,
 	Message_EditStepsTypeChanged,
 	Message_EditCourseDifficultyChanged,
 	Message_EditSourceStepsChanged,

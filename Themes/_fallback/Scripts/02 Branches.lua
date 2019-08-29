@@ -33,9 +33,10 @@ function GameOverOrContinue()
 end
 
 function ToGameplay()
-	if GAMESTATE:IsPracticeMode() then
+	local mode = GAMESTATE:GetGameplayMode()
+	if mode == "GameplayMode_Practice" then
 		return "ScreenGameplayPractice"
-	elseif GAMESTATE:IsReplayMode() then
+	elseif mode == "GameplayMode_Replay" then
 		return "ScreenGameplayReplay"
 	else
 		return "ScreenGameplay"

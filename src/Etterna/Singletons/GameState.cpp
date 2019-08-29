@@ -92,6 +92,7 @@ GameState::GameState()
   , m_pCurSteps(Message_CurrentStepsP1Changed)
   , m_bGameplayLeadIn(Message_GameplayLeadInChanged)
   , m_sEditLocalProfileID(Message_EditLocalProfileIDChanged)
+  , m_gameplayMode(Message_GameplayModeChanged)
 {
 	g_pImpl = new GameStateImpl;
 
@@ -102,6 +103,8 @@ GameState::GameState()
 	m_timeGameStarted.SetZero();
 
 	m_iStageSeed = m_iGameSeed = 0;
+
+	m_gameplayMode.Set(GameplayMode_Normal);
 
 	m_PlayMode.Set(
 	  PlayMode_Invalid); // used by IsPlayerEnabled before the first screen
@@ -1862,8 +1865,12 @@ class LunaGameState : public Luna<GameState>
 		GamePreferences::m_AutoPlay.Set(p->m_pPlayerState->m_PlayerController);
 		return 0;
 	}
-	DEFINE_METHOD(IsPracticeMode, IsPracticeMode())
-	DEFINE_METHOD(IsReplayMode, IsReplayMode())
+	static int GetGameplayMode(T* p, lua_State* L)
+	{
+		GameplayMode mode = p->GetGameplayMode();
+		LuaHelpers::Push(L, mode);
+		return 1;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
@@ -1956,8 +1963,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(UpdateDiscordMenu);
 		ADD_METHOD(UpdateDiscordPresence);
 		ADD_METHOD(IsPaused);
-		ADD_METHOD(IsPracticeMode);
-		ADD_METHOD(IsReplayMode);
+		ADD_METHOD(GetGameplayMode);
 	}
 };
 

@@ -314,12 +314,9 @@ class GameState
 	Profile* GetEditLocalProfile();
 	bool m_bIsChartPreviewActive;
 
-	// is the game in a practice state
-	bool m_practice = false;
-	// is the game in a replay state
-	bool m_replay = false;
-	bool IsPracticeMode() { return m_practice; }
-	bool IsReplayMode() { return m_replay; }
+	// Current mode of Gameplay
+	BroadcastOnChange<GameplayMode> m_gameplayMode;
+	GameplayMode GetGameplayMode() { return m_gameplayMode; }
 
 	// Discord Rich Presence
 	void discordInit();

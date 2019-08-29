@@ -18,6 +18,15 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
+enum GameplayMode
+{
+	GameplayMode_Normal,
+	GameplayMode_Practice,
+	GameplayMode_Replay,
+	NUM_GameplayMode,
+	GameplayMode_Invalid
+};
+
 enum Skillset
 {
 	Skill_Overall,
