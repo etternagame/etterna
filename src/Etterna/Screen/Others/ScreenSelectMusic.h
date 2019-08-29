@@ -42,7 +42,8 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	bool MenuStart(const InputEventPlus& input) override;
 	bool MenuBack(const InputEventPlus& input) override;
-	bool SelectCurrent(PlayerNumber pn);
+	bool SelectCurrent(PlayerNumber pn,
+					   GameplayMode mode = GameplayMode_Normal);
 
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	void StartPlayingMusic() override {}

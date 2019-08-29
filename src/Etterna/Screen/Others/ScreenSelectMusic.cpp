@@ -1053,7 +1053,7 @@ ScreenSelectMusic::MenuStart(const InputEventPlus& input)
 }
 
 bool
-ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
+ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 {
 
 	switch (m_SelectionState) {
@@ -1188,6 +1188,18 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);
 		}
+		// mild hack:
+		/* a true return value (for all cases where the return value of this
+		 * function is handled) normally means the "input was handled" and
+		 * doesn't get pushed to more screens here, we call this function with a
+		 * non default mode value and that means that we aren't going to care
+		 * about handling input because we already handled input ok now that i
+		 * think about it this really doesn't matter but i still want to leave
+		 * this comment here to explain my logic for the odd return value (and
+		 * we want to know if the function call returned early to prevent
+		 * loading replay/practice stuff at the wrong time)
+		 */
+		return mode == GameplayMode_Practice || mode == GameplayMode_Replay;
 	}
 	return false;
 }
@@ -1603,13 +1615,23 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 
+		bool likely_entering_gameplay =
+		  p->SelectCurrent(PLAYER_1, GameplayMode_Replay);
+
+		// just in case
+		if (!likely_entering_gameplay) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		GAMESTATE->m_gameplayMode.Set(GameplayMode_Replay);
+
 		// we get timestamps not noterows when getting online replays from the
 		// site, since order is deterministic we'll just auto set the noterows
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
 		auto noterows = hs->GetNoteRowVector();
-		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
 		if (!timestamps.empty() &&
 			noterows.empty()) { // if we have noterows from newer uploads, just
 								// use them -mina
@@ -1724,7 +1746,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 				   hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
-		p->SelectCurrent(PLAYER_1);
 
 		// set mods back to what they were before
 		GAMEMAN->m_bResetModifiers = true;

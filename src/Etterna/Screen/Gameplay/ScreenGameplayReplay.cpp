@@ -26,8 +26,6 @@
 
 REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 
-class PlayerInfo;
-
 void
 ScreenGameplayReplay::FillPlayerInfo(PlayerInfo* playerInfoOut)
 {
@@ -75,6 +73,7 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		m_pSoundMusic->StopPlaying();
 
 	m_GameplayAssist.StopPlaying();
+	GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 
 	DLMAN->UpdateDLSpeed(false);
 }
