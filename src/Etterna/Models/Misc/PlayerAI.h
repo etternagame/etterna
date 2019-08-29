@@ -33,7 +33,7 @@ class PlayerAI
 	// data/notedata. This map is only useful for charts with column data.
 	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
 
-	// For use in Autoplay
+	// For use in Autoplay if we ever want to do funny things to the judgments
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
 
 	// Set the pointer to a HighScore

@@ -7,49 +7,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RadarValues.h"
 
-#define AI_PATH "Data/AI.ini"
-
-struct TapScoreDistribution
-{
-	float fPercent[NUM_TapNoteScore];
-
-	void ChangeWeightsToPercents()
-	{
-		float sum = 0;
-		for (float i : fPercent) {
-			sum += i;
-		}
-		for (float& i : fPercent) {
-			i /= sum;
-		}
-	}
-	void SetDefaultWeights()
-	{
-		fPercent[TNS_None] = 0;
-		fPercent[TNS_Miss] = 1;
-		fPercent[TNS_W5] = 0;
-		fPercent[TNS_W4] = 0;
-		fPercent[TNS_W3] = 0;
-		fPercent[TNS_W2] = 0;
-		fPercent[TNS_W1] = 0;
-	}
-
-	TapNoteScore GetTapNoteScore()
-	{
-		float fRand = randomf(0, 1);
-		float fCumulativePercent = 0;
-		for (int i = 0; i <= TNS_W1; i++) {
-			fCumulativePercent += fPercent[i];
-			if (fRand <= fCumulativePercent + 1e-4) // rounding error
-				return static_cast<TapNoteScore>(i);
-		}
-		// the fCumulativePercents must sum to 1.0, so we should never get here!
-		ASSERT_M(0, ssprintf("%f,%f", fRand, fCumulativePercent));
-	}
-};
-
-static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
-
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
