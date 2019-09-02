@@ -88,8 +88,8 @@ class Player : public ActorFrame
 			  LifeMeter* pLM,
 			  ScoreKeeper* pPrimaryScoreKeeper);
 	void Load();
-	void CrossedRows(int iLastRowCrossed,
-					 const std::chrono::steady_clock::time_point& now);
+	virtual void CrossedRows(int iLastRowCrossed,
+							 const std::chrono::steady_clock::time_point& now);
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *
@@ -155,14 +155,27 @@ class Player : public ActorFrame
 	int totalwifescore;
 
   protected:
-	void StepReplay(int col,
-					int row,
-					const std::chrono::steady_clock::time_point& tm,
-					bool bHeld,
-					bool bRelease,
-					float padStickSeconds = 0.0f);
 	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
 	void UpdateJudgedRows(float fDeltaTime);
+	// Updates visible parts: Hold Judgments, NoteField Zoom, Combo based Actors
+	void UpdateVisibleParts();
+	// Updates the pressed flags depending on input
+	// Tells the NoteField to do stuff basically
+	void UpdatePressedFlags();
+	// Updates Holds and Rolls
+	// For Rolls, just tells Autoplay to restep them
+	// For Holds, tells their life to decay
+	// ... oh man this is redundant
+	void UpdateHoldsAndRolls(float fDeltaTime,
+							 const std::chrono::steady_clock::time_point& now);
+	// Updates Crossed Rows for NoteData
+	// What this involves is:
+	//		Hold Life/Tapping Heads/Checkpoints
+	//		Mines (The act of holding a button to hit one)
+	//		Autoplay hitting taps
+	//		Keysounds
+	void Player::UpdateCrossedRows(
+	  const std::chrono::steady_clock::time_point& now);
 	void FlashGhostRow(int iRow);
 	void HandleTapRowScore(unsigned row);
 	void HandleHoldScore(const TapNote& tn);
@@ -278,6 +291,18 @@ class Player : public ActorFrame
 	ThemeMetric<bool> COMBO_UNDER_FIELD;
 	ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
 	ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	/**
+	  Does repeatedly stepping on a roll to keep it alive increment the
+	  combo?
+
+	  If set to true, repeatedly stepping on a roll will increment the combo.
+	  If set to false, only the roll head causes the combo to be incremented.
+
+	  For those wishing to make a theme very accurate to In The Groove 2, set
+	  this to false.
+	  PLAYER INIT MUST LOAD THIS OR YOU CRASH
+	  */
+	ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2
@@ -288,25 +313,6 @@ class Player : public ActorFrame
 	bool m_bTickHolds;
 	// This exists so that the board can be drawn underneath combo/judge. -Kyz
 	bool m_drawing_notefield_board;
-};
-
-class PlayerPlus
-{
-	Player* m_pPlayer;
-	NoteData m_NoteData;
-
-  public:
-	PlayerPlus() { m_pPlayer = new Player(m_NoteData); }
-	~PlayerPlus() { delete m_pPlayer; }
-	void Load(const NoteData& nd)
-	{
-		m_NoteData = nd;
-		m_pPlayer->Load();
-	}
-	Player* operator->() { return m_pPlayer; }
-	const Player* operator->() const { return m_pPlayer; }
-	operator Player*() { return m_pPlayer; }
-	operator const Player*() const { return m_pPlayer; }
 };
 
 #endif

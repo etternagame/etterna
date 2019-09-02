@@ -2082,7 +2082,6 @@ DrawDistanceAfterTargetsPixels=-60
 TapJudgmentsUnderField=false
 HoldJudgmentsUnderField=false
 PenalizeTapScoreNone=false
-JudgeHoldNotesOnSameRowTogether=false
 HoldCheckpoints=false
 ImmediateHoldLetGo=true
 RequireStepOnHoldHeads=true
