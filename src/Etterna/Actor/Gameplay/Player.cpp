@@ -466,12 +466,6 @@ Player::Init(const std::string& sType,
 		ActorUtil::LoadAllCommands(*m_pNoteField, sType);
 		this->AddChild(m_pNoteField);
 	}
-
-	m_vbFretIsDown.resize(
-	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-		->m_iColsPerPlayer);
-	FOREACH(bool, m_vbFretIsDown, b)
-	*b = false;
 }
 /**
  * @brief Determine if a TapNote needs a tap note style judgment.

@@ -10,6 +10,11 @@ class PlayerReplay : public Player
 	PlayerReplay(NoteData& nd, bool bVisibleParts = true);
 	~PlayerReplay() override;
 
+	void Init(const std::string& sType,
+			  PlayerState* pPlayerState,
+			  PlayerStageStats* pPlayerStageStats,
+			  LifeMeter* pLM,
+			  ScoreKeeper* pPrimaryScoreKeeper);
 	void Update(float fDeltaTime) override;
 	void CrossedRows(int iLastrowCrossed,
 					 const std::chrono::steady_clock::time_point& now) override;

@@ -17,11 +17,25 @@
 PlayerReplay::PlayerReplay(NoteData& nd, bool bVisibleParts)
   : Player(nd, bVisibleParts)
 {
+	// eh
 }
 
 PlayerReplay::~PlayerReplay()
 {
 	// dont have to do anything here
+}
+
+void
+PlayerReplay::Init(const std::string& sType,
+				   PlayerState* pPlayerState,
+				   PlayerStageStats* pPlayerStageStats,
+				   LifeMeter* pLM,
+				   ScoreKeeper* pPrimaryScoreKeeper)
+{
+	Player::Init(
+	  sType, pPlayerState, pPlayerStageStats, pLM, pPrimaryScoreKeeper);
+	if (m_pPlayerStageStats)
+		m_pPlayerStageStats->m_bDisqualified = true;
 }
 
 void
@@ -182,8 +196,6 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 			this->m_Timing->IsJudgableAtRow(iRow)) {
 			if (PlayerAI::GetReplayType() != 2) {
 				Step(iTrack, iRow, now, false, false);
-				if (m_pPlayerStageStats)
-					m_pPlayerStageStats->m_bDisqualified = true;
 			}
 		}
 

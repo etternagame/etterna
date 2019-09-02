@@ -277,8 +277,6 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	vector<bool> m_vbFretIsDown;
-
 	vector<RageSound> m_vKeysounds;
 
 	ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
