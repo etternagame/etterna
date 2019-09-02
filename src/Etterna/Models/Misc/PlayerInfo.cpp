@@ -8,6 +8,7 @@
 #include "PlayerStageStats.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeper.h"
 #include "Etterna/Actor/Gameplay/Player.h"
+#include "Etterna/Actor/Gameplay/PlayerReplay.h"
 #include "Etterna/Actor/Gameplay/LifeMeter.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -34,7 +35,8 @@ void
 PlayerInfo::Load(PlayerNumber pn,
 				 MultiPlayer mp,
 				 bool bShowNoteField,
-				 int iAddToDifficulty)
+				 int iAddToDifficulty,
+				 GameplayMode mode)
 {
 	m_pn = pn;
 	m_mp = mp;
@@ -60,7 +62,12 @@ PlayerInfo::Load(PlayerNumber pn,
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
 	m_ptextPlayerOptions = NULL;
-	m_pPlayer = new Player(m_NoteData, bShowNoteField);
+	if (mode == GameplayMode_Replay) {
+		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
+	} else {
+		m_pPlayer = new Player(m_NoteData, bShowNoteField);
+	}
+
 	m_pStepsDisplay = NULL;
 
 	if (IsMultiPlayer()) {

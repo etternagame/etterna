@@ -24,7 +24,8 @@ class PlayerInfo
 	void Load(PlayerNumber pn,
 			  MultiPlayer mp,
 			  bool bShowNoteField,
-			  int iAddToDifficulty);
+			  int iAddToDifficulty,
+			  GameplayMode mode = GameplayMode_Normal);
 
 	/**
 	 * @brief Retrieve the player's state and stage stats index.

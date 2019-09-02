@@ -1,5 +1,3 @@
-/* PlayerAI - Chooses which notes the AI steps on. */
-
 #ifndef PlayerAI_H
 #define PlayerAI_H
 
@@ -7,9 +5,11 @@
 #include "HighScore.h"
 
 class PlayerState;
+class TimingData;
 
 const int NUM_SKILL_LEVELS = 6; // 0-5
 
+// also known as ReplayManager
 class PlayerAI
 {
   public:

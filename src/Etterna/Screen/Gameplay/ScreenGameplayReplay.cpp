@@ -29,8 +29,11 @@ REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 void
 ScreenGameplayReplay::FillPlayerInfo(PlayerInfo* playerInfoOut)
 {
-	playerInfoOut->Load(
-	  PLAYER_1, MultiPlayer_Invalid, true, Difficulty_Invalid);
+	playerInfoOut->Load(PLAYER_1,
+						MultiPlayer_Invalid,
+						true,
+						Difficulty_Invalid,
+						GameplayMode_Replay);
 }
 
 ScreenGameplayReplay::ScreenGameplayReplay()

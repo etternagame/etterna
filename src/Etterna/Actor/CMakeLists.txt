@@ -46,6 +46,7 @@ list(APPEND ACTOR_GAMEPLAY_SRC
 	"Gameplay/NoteDisplay.cpp"
 	"Gameplay/NoteField.cpp"
 	"Gameplay/Player.cpp"
+	"Gameplay/PlayerReplay.cpp"
 	"Gameplay/ReceptorArrow.cpp"
 	"Gameplay/ReceptorArrowRow.cpp")
 
@@ -62,6 +63,7 @@ list(APPEND ACTOR_GAMEPLAY_HPP
 	"Gameplay/NoteDisplay.h"
 	"Gameplay/NoteField.h"
 	"Gameplay/Player.h"
+	"Gameplay/PlayerReplay.h"
 	"Gameplay/ReceptorArrow.h"
 	"Gameplay/ReceptorArrowRow.h")
 
