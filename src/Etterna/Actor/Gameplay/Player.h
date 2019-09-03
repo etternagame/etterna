@@ -174,8 +174,7 @@ class Player : public ActorFrame
 	//		Mines (The act of holding a button to hit one)
 	//		Autoplay hitting taps
 	//		Keysounds
-	void Player::UpdateCrossedRows(
-	  const std::chrono::steady_clock::time_point& now);
+	void UpdateCrossedRows(const std::chrono::steady_clock::time_point& now);
 	void FlashGhostRow(int iRow);
 	void HandleTapRowScore(unsigned row);
 	void HandleHoldScore(const TapNote& tn);

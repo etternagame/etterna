@@ -3090,8 +3090,7 @@ Player::SetJudgment(int iRow,
 	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr)
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
-	LOG->Trace(
-	  ssprintf("\toffset2 %f\ttns2 %d row %d", fTapNoteOffset, tns, iRow));
+
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Judgment");
 		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
@@ -3105,11 +3104,6 @@ Player::SetJudgment(int iRow,
 		msg.SetParam("TapNoteOffset", tn.result.fTapNoteOffset);
 		if (m_pPlayerStageStats)
 			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
-		for (int i = 0; i < 11; i++) {
-			LOG->Trace(ssprintf("judgment %d %d",
-								i,
-								m_pPlayerStageStats->m_iTapNoteScores[i] + 1));
-		}
 
 		if (tns != TNS_Miss)
 			msg.SetParam("Offset",
