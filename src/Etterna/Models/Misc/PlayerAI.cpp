@@ -248,6 +248,18 @@ PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 	}
 }
 
+bool
+PlayerAI::IsTapAtRowAndColumn(int noteRow, int col)
+{
+	if (m_ReplayTapMap.count(noteRow) == 0)
+		return false;
+	for (auto& tap : m_ReplayTapMap[noteRow]) {
+		if (tap.track == col)
+			return true;
+	}
+	return false;
+}
+
 vector<TapReplayResult>
 PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 {

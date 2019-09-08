@@ -73,6 +73,8 @@ class PlayerAI
 	// screen
 	static void CalculateRadarValuesForReplay(RadarValues& rv,
 											  RadarValues& possibleRV);
+	// Find a tap at the given row and column
+	static bool IsTapAtRowAndColumn(int noteRow, int col);
 };
 
 #endif
