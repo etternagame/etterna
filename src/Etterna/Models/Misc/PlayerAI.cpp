@@ -32,11 +32,12 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 	// scores.
 
 	// LOG->Trace("Given number %f ", fNoteOffset);
-	if (fNoteOffset <= -1.0f)
-		return TNS_Miss;
 	const float fSecondsFromExact = fabsf(fNoteOffset);
 	// LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f",
 	// fSecondsFromExact);
+
+	if (fSecondsFromExact >= 1.f)
+		return TNS_Miss;
 
 	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
 		return TNS_W1;
@@ -241,9 +242,9 @@ PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 {
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
-		return m_ReplayExactTapMap.lower_bound(0)->first <= noteRow;
+		return m_ReplayExactTapMap.lower_bound(-20000)->first <= noteRow;
 	} else {
-		return m_ReplayTapMap.lower_bound(0)->first <= noteRow;
+		return m_ReplayTapMap.lower_bound(-20000)->first <= noteRow;
 	}
 }
 
@@ -254,17 +255,17 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
-		auto rowIt = m_ReplayExactTapMap.lower_bound(-100);
+		auto rowIt = m_ReplayExactTapMap.lower_bound(-20000);
 		int row = rowIt->first;
-		for (; row <= noteRow && row != -100;) {
+		for (; row <= noteRow && row != -20000;) {
 			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
 	} else {
-		auto rowIt = m_ReplayTapMap.lower_bound(-100);
+		auto rowIt = m_ReplayTapMap.lower_bound(-20000);
 		int row = rowIt->first;
-		for (; row <= noteRow && row != -100;) {
+		for (; row <= noteRow && row != -20000;) {
 			vector<TapReplayResult> toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
@@ -308,7 +309,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayExactTapMap.end()) {
-			return -100;
+			return -20000;
 		} else {
 			return thing->first;
 		}
@@ -316,7 +317,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayTapMap.end()) {
-			return -100;
+			return -20000;
 		} else {
 			return thing->first;
 		}
