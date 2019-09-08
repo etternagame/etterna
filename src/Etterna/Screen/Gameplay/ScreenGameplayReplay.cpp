@@ -136,6 +136,21 @@ ScreenGameplayReplay::Update(float fDeltaTime)
 			if (curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat()) {
 				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
 			}
+			{
+				float fSecondsToStartFadingOutMusic,
+				  fSecondsToStartTransitioningOut;
+				GetMusicEndTiming(fSecondsToStartFadingOutMusic,
+								  fSecondsToStartTransitioningOut);
+
+				bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
+				if (bAllReallyFailed)
+					fSecondsToStartTransitioningOut += BEGIN_FAILED_DELAY;
+
+				if (GAMESTATE->m_Position.m_fMusicSeconds >=
+					  fSecondsToStartTransitioningOut &&
+					!m_NextSong.IsTransitioning())
+					this->PostScreenMessage(SM_NotesEnded, 0);
+			}
 		}
 		default:
 			break;
