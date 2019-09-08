@@ -155,6 +155,8 @@ class Player : public ActorFrame
 	int totalwifescore;
 
   protected:
+	static bool NeedsTapJudging(const TapNote& tn);
+	static bool NeedsHoldJudging(const TapNote& tn);
 	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
 	void UpdateJudgedRows(float fDeltaTime);
 	// Updates visible parts: Hold Judgments, NoteField Zoom, Combo based Actors

@@ -471,8 +471,8 @@ Player::Init(const std::string& sType,
  * @brief Determine if a TapNote needs a tap note style judgment.
  * @param tn the TapNote in question.
  * @return true if it does, false otherwise. */
-static bool
-NeedsTapJudging(const TapNote& tn)
+bool
+Player::NeedsTapJudging(const TapNote& tn)
 {
 	switch (tn.type) {
 		DEFAULT_FAIL(tn.type);
@@ -493,8 +493,8 @@ NeedsTapJudging(const TapNote& tn)
  * @brief Determine if a TapNote needs a hold note style judgment.
  * @param tn the TapNote in question.
  * @return true if it does, false otherwise. */
-static bool
-NeedsHoldJudging(const TapNote& tn)
+bool
+Player::NeedsHoldJudging(const TapNote& tn)
 {
 	switch (tn.type) {
 		DEFAULT_FAIL(tn.type);
