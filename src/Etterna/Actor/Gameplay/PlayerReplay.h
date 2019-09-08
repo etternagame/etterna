@@ -23,11 +23,14 @@ class PlayerReplay : public Player
 			  const std::chrono::steady_clock::time_point& tm,
 			  bool bHeld,
 			  bool bRelease,
-			  float padStickSeconds = 0.0f);
+			  float padStickSeconds = 0.0f,
+			  int rowToJudge = -1);
 
   protected:
 	void UpdateHoldsAndRolls(float fDeltaTime,
 							 const std::chrono::steady_clock::time_point& now);
+	void HandleTapRowScore(unsigned row);
+	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds);
 };
 
 #endif

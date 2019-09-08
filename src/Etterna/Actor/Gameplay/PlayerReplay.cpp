@@ -6,9 +6,11 @@
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
+#include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Singletons/StatsManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -71,8 +73,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 		{
 			NoteData::all_tracks_iterator& iter = *m_pIterNeedsHoldJudging;
 			while (!iter.IsAtEnd() && iter.Row() <= iSongRow &&
-				   !(iter->type == TapNoteType_HoldHead &&
-					 iter->HoldResult.hns == HNS_None))
+				   !NeedsHoldJudging(*iter))
 				++iter;
 		}
 
@@ -150,7 +151,7 @@ PlayerReplay::Update(float fDeltaTime)
 			vector<TapReplayResult> trrVector =
 			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
 			for (TapReplayResult& trr : trrVector) {
-				Step(trr.track, trr.row, now, false, false);
+				Step(trr.track, -1, now, false, false, 0.f, trr.row);
 			}
 		}
 	}
@@ -219,12 +220,151 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 }
 
 void
+PlayerReplay::HandleTapRowScore(unsigned row)
+{
+
+	TapNoteScore scoreOfLastTap =
+	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, row).result.tns;
+	const unsigned int iOldCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
+	const unsigned int iOldMissCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
+
+	if (scoreOfLastTap == TNS_Miss)
+		m_LastTapNoteScore = TNS_Miss;
+
+	for (int track = 0; track < m_NoteData.GetNumTracks(); ++track) {
+		const TapNote& tn = m_NoteData.GetTapNote(track, row);
+		// Mines cannot be handled here.
+		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Fake ||
+			tn.type == TapNoteType_Mine || tn.type == TapNoteType_AutoKeysound)
+			continue;
+		if (m_pPrimaryScoreKeeper != nullptr && false)
+			m_pPrimaryScoreKeeper->HandleTapScore(tn);
+	}
+
+	if (m_pPrimaryScoreKeeper != NULL)
+		m_pPrimaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
+
+	const unsigned int iCurCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
+	const unsigned int iCurMissCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
+
+	SendComboMessages(iOldCombo, iOldMissCombo);
+
+	if (m_pPlayerStageStats != nullptr) {
+		SetCombo(iCurCombo, iCurMissCombo);
+	}
+
+	// mostly dead code for announcers and other stuff...
+#define CROSSED(x) (iOldCombo < (x) && iCurCombo >= (x))
+	if (CROSSED(100))
+		SCREENMAN->PostMessageToTopScreen(SM_100Combo, 0);
+	else if (CROSSED(200))
+		SCREENMAN->PostMessageToTopScreen(SM_200Combo, 0);
+	else if (CROSSED(300))
+		SCREENMAN->PostMessageToTopScreen(SM_300Combo, 0);
+	else if (CROSSED(400))
+		SCREENMAN->PostMessageToTopScreen(SM_400Combo, 0);
+	else if (CROSSED(500))
+		SCREENMAN->PostMessageToTopScreen(SM_500Combo, 0);
+	else if (CROSSED(600))
+		SCREENMAN->PostMessageToTopScreen(SM_600Combo, 0);
+	else if (CROSSED(700))
+		SCREENMAN->PostMessageToTopScreen(SM_700Combo, 0);
+	else if (CROSSED(800))
+		SCREENMAN->PostMessageToTopScreen(SM_800Combo, 0);
+	else if (CROSSED(900))
+		SCREENMAN->PostMessageToTopScreen(SM_900Combo, 0);
+	else if (CROSSED(1000))
+		SCREENMAN->PostMessageToTopScreen(SM_1000Combo, 0);
+	else if ((iOldCombo / 100) < (iCurCombo / 100) && iCurCombo > 1000)
+		SCREENMAN->PostMessageToTopScreen(SM_ComboContinuing, 0);
+#undef CROSSED
+
+	// new max combo
+	if (m_pPlayerStageStats)
+		m_pPlayerStageStats->m_iMaxCombo =
+		  max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
+
+	/* Use the real current beat, not the beat we've been passed. That's because
+	 * we want to record the current life/combo to the current time; eg. if it's
+	 * a MISS, the beat we're registering is in the past, but the life is
+	 * changing now. We need to include time from previous songs in a course, so
+	 * we can't use GAMESTATE->m_fMusicSeconds. Use fStepsSeconds instead. */
+	if (m_pPlayerStageStats)
+		m_pPlayerStageStats->UpdateComboList(
+		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
+
+	ChangeLife(scoreOfLastTap);
+}
+
+void
+PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
+{
+	int iMissIfOlderThanThisRow;
+	const float fEarliestTime =
+	  m_pPlayerState->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
+	{
+		TimingData::GetBeatArgs beat_info;
+		beat_info.elapsed_time = fEarliestTime;
+		m_Timing->GetBeatAndBPSFromElapsedTime(beat_info);
+
+		iMissIfOlderThanThisRow = BeatToNoteRow(beat_info.beat);
+		if (beat_info.freeze_out || beat_info.delay_out) {
+			/* If there is a freeze on iMissIfOlderThanThisIndex, include this
+			 * index too. Otherwise we won't show misses for tap notes on
+			 * freezes until the freeze finishes. */
+			if (!beat_info.delay_out)
+				iMissIfOlderThanThisRow++;
+		}
+	}
+
+	NoteData::all_tracks_iterator& iter = *m_pIterNeedsTapJudging;
+
+	for (; !iter.IsAtEnd() && iter.Row() < iMissIfOlderThanThisRow; ++iter) {
+		TapNote& tn = *iter;
+
+		if (!NeedsTapJudging(tn))
+			continue;
+
+		// Ignore all notes in WarpSegments or FakeSegments.
+		if (!m_Timing->IsJudgableAtRow(iter.Row()))
+			continue;
+
+		if (tn.type == TapNoteType_Mine) {
+			tn.result.tns = TNS_AvoidMine;
+			/* The only real way to tell if a mine has been scored is if it has
+			 * disappeared but this only works for hit mines so update the
+			 * scores for avoided mines here. */
+			if (m_pPrimaryScoreKeeper)
+				m_pPrimaryScoreKeeper->HandleTapScore(tn);
+		} else {
+			tn.result.tns = TNS_Miss;
+
+			// avoid scoring notes that get passed when seeking in pm
+			// not sure how many rows grace time is needed (if any?)
+			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+				  .m_bPractice &&
+				iMissIfOlderThanThisRow - iter.Row() > 8)
+				tn.result.tns = TNS_None;
+			if (GAMESTATE->CountNotesSeparately()) {
+				SetJudgment(iter.Row(), iter.Track(), tn);
+				HandleTapRowScore(iter.Row());
+			}
+		}
+	}
+}
+
+void
 PlayerReplay::Step(int col,
 				   int row,
 				   const std::chrono::steady_clock::time_point& tm,
 				   bool bHeld,
 				   bool bRelease,
-				   float padStickSeconds)
+				   float padStickSeconds,
+				   int rowToJudge)
 {
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
@@ -425,6 +565,12 @@ PlayerReplay::Step(int col,
 			pTN->type != TapNoteType_Lift)
 			return;
 
+		// Replays without column data dont use offset stuff
+		// So we tell it to step NOW instead of at an offset
+		// This undoes a hack, basically
+		if (PlayerAI::GetReplayType() != 2)
+			rowToJudge = iRowOfOverlappingNoteOrRow;
+
 		// Score the Tap based on Replay Data
 		if (bHeld) // a hack to make Rolls not do weird things like
 				   // count as 0ms marvs.
@@ -433,14 +579,14 @@ PlayerReplay::Step(int col,
 			fNoteOffset = -1.f;
 		} else {
 			if (PlayerAI::GetReplayType() == 2) {
-				iRowOfOverlappingNoteOrRow = row;
+				// iRowOfOverlappingNoteOrRow = rowToJudge;
 			}
-			fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(
-			  pTN, iRowOfOverlappingNoteOrRow, col);
+			fNoteOffset =
+			  PlayerAI::GetTapNoteOffsetForReplay(pTN, rowToJudge, col);
 			if (fNoteOffset == -2.f) // we hit a mine
 			{
 				score = TNS_HitMine;
-				PlayerAI::RemoveTapFromVectors(iRowOfOverlappingNoteOrRow, col);
+				PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 			} else if (pTN->type == TapNoteType_Mine) // we are looking
 													  // at a mine but
 													  // missed it
@@ -453,10 +599,11 @@ PlayerReplay::Step(int col,
 															   fNoteOffset);
 			}
 		}
-		LOG->Trace(ssprintf("offset %f\n\tscore %d row %d",
+		LOG->Trace(ssprintf("offset %f\n\tscore %d row %d judged %d",
 							fNoteOffset,
 							score,
-							iRowOfOverlappingNoteOrRow));
+							iRowOfOverlappingNoteOrRow,
+							rowToJudge));
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
