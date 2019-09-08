@@ -82,6 +82,8 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
+		if (fabsf(replayOffsetVector[i]) > 0.18f)
+			continue;
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
