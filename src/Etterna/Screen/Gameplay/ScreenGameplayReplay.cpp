@@ -76,7 +76,9 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		m_pSoundMusic->StopPlaying();
 
 	m_GameplayAssist.StopPlaying();
-	GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
+
+	if (!GAMESTATE->m_bRestartedGameplay)
+		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 
 	DLMAN->UpdateDLSpeed(false);
 }

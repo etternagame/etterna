@@ -1203,7 +1203,7 @@ ScreenGameplay::BeginBackingOutFromGameplay()
 
 	m_Cancel.StartTransitioning(SM_DoPrevScreen);
 
-	GAMEMAN->m_bRestartedGameplay = true;
+	GAMESTATE->m_bRestartedGameplay = true;
 }
 
 void
@@ -1348,11 +1348,9 @@ ScreenGameplay::Input(const InputEventPlus& input)
 	}
 
 	// RestartGameplay may only be pressed when in Singleplayer.
-	// RestartGameplay may not be pressed within Replays.
 	// Clever theming or something can probably break this, but we should at
 	// least try.
-	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic" &&
-		GamePreferences::m_AutoPlay != PC_REPLAY) {
+	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic") {
 		/* Restart gameplay button moved from theme to allow for rebinding for
 		 * people who dont want to edit lua files :)
 		 */

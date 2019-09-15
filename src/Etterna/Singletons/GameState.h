@@ -318,6 +318,9 @@ class GameState
 	BroadcastOnChange<GameplayMode> m_gameplayMode;
 	GameplayMode GetGameplayMode() { return m_gameplayMode; }
 
+	// A "persistent" way to know if we restarted gameplay (hack)
+	bool m_bRestartedGameplay;
+
 	// Discord Rich Presence
 	void discordInit();
 	void updateDiscordPresence(const RString& largeImageText,

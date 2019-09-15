@@ -1437,7 +1437,6 @@ GameManager::GameManager()
 	m_fPreviousRate = 1.f;
 	m_sModsToReset;
 	m_vTurnsToReset;
-	m_bRestartedGameplay;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
