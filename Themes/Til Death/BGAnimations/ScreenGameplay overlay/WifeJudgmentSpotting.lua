@@ -246,7 +246,7 @@ local t =
 			tDiff = msg.WifePBDifferential
 		end
 		jdgCur = msg.Judgment
-		queuecommand(self, "SpottedOffset")
+		self:playcommand("SpottedOffset")
 	end
 }
 
@@ -561,7 +561,7 @@ local e =
 		if enabledErrorBar == 1 then
 			if dvCur ~= nil then
 				currentbar = ((currentbar) % barcount) + 1
-				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
+				ingots[currentbar]:playcommand("UpdateErrorBar") -- Update the next bar in the queue
 			end
 		end
 	end,
