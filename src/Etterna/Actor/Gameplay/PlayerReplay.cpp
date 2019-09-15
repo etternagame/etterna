@@ -41,6 +41,80 @@ PlayerReplay::Init(const std::string& sType,
 }
 
 void
+PlayerReplay::Load()
+{
+	Player::Load();
+
+	// Set the exact tap map when loading replay
+	PlayerAI::SetUpExactTapMap(m_Timing);
+}
+
+void
+PlayerReplay::UpdateHoldNotes(int iSongRow,
+							  float fDeltaTime,
+							  vector<TrackRowTapNote>& vTN)
+{
+	Player::UpdateHoldNotes(iSongRow, fDeltaTime, vTN);
+	ASSERT(!vTN.empty());
+
+	int iStartRow = vTN[0].iRow;
+	int iMaxEndRow = INT_MIN;
+	int iFirstTrackWithMaxEndRow = -1;
+
+	TapNoteSubType subType = TapNoteSubType_Invalid;
+	FOREACH(TrackRowTapNote, vTN, trtn)
+	{
+		int iTrack = trtn->iTrack;
+		ASSERT(iStartRow == trtn->iRow);
+		TapNote& tn = *trtn->pTN;
+		int iEndRow = iStartRow + tn.iDuration;
+		if (subType == TapNoteSubType_Invalid)
+			subType = tn.subType;
+
+		/* All holds must be of the same subType because fLife is handled
+		 * in different ways depending on the SubType. */
+		ASSERT(tn.subType == subType);
+
+		if (iEndRow > iMaxEndRow) {
+			iMaxEndRow = iEndRow;
+			iFirstTrackWithMaxEndRow = iTrack;
+		}
+	}
+
+	ASSERT(iFirstTrackWithMaxEndRow != -1);
+
+	FOREACH(TrackRowTapNote, vTN, trtn)
+	{
+		TapNote& tn = *trtn->pTN;
+
+		// check from now until the head of the hold to see if it should die
+		// possibly really bad, but we dont REALLY care that much about fps
+		// in replays, right?
+		bool holdDropped = false;
+		for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped; yeet++) {
+			if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack)) {
+				holdDropped = true;
+			}
+		}
+
+		if (holdDropped) // it should be dead
+		{
+			tn.HoldResult.bHeld = false;
+			tn.HoldResult.bActive = false;
+			tn.HoldResult.fLife = 0.f;
+			tn.HoldResult.hns = HNS_LetGo;
+
+			// score the dead hold
+			if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
+				IncrementMissCombo();
+			SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
+			HandleHoldScore(tn);
+			return;
+		}
+	}
+}
+
+void
 PlayerReplay::UpdateHoldsAndRolls(
   float fDeltaTime,
   const std::chrono::steady_clock::time_point& now)

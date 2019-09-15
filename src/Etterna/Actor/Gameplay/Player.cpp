@@ -151,9 +151,6 @@ ThemeMetric<bool> CHECKPOINTS_FLASH_ON_HOLD(
   "Player",
   "CheckpointsFlashOnHold"); // sm-ssc addition
 ThemeMetric<bool> IMMEDIATE_HOLD_LET_GO("Player", "ImmediateHoldLetGo");
-ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO(
-  "Player",
-  "ComboBreakOnImmediateHoldLetGo");
 /**
  * @brief Must a Player step on a hold head for a hold to activate?
  *
@@ -292,6 +289,8 @@ Player::Init(const std::string& sType,
 	DRAW_DISTANCE_BEFORE_TARGET_PIXELS.Load(sType,
 											"DrawDistanceBeforeTargetsPixels");
 	ROLL_BODY_INCREMENTS_COMBO.Load("Player", "RollBodyIncrementsCombo");
+	COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO.Load("Player",
+											  "ComboBreakOnImmediateHoldLetGo");
 
 	{
 		// Init judgment positions
@@ -564,13 +563,7 @@ Player::Load()
 	m_iFirstUncrossedRow = iNoteRow - 1;
 	m_pJudgedRows->Reset(iNoteRow);
 
-	// TODO: Remove use of PlayerNumber.
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-
-	/* The editor reuses Players ... so we really need to make sure everything
-	 * is reset and not tweening.  Perhaps ActorFrame should recurse to
-	 * subactors; then we could just this->StopTweening()? -glenn */
-	// hurr why don't you just set m_bPropagateCommands on it then -aj
+	// Make sure c++ bound actor's tweens are reset if they exist
 	if (m_sprJudgment)
 		m_sprJudgment->PlayCommand("Reset");
 	if (m_pPlayerStageStats != nullptr) {
@@ -579,11 +572,6 @@ Player::Load()
 		  m_pPlayerStageStats
 			->m_iCurMissCombo); // combo can persist between songs and games
 	}
-
-	/* Don't re-init this; that'll reload graphics.  Add a separate Reset() call
-	 * if some ScoreDisplays need it. */
-	//	if( m_pScore )
-	//		m_pScore->Init( pn );
 
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps->GetTimingData();
@@ -636,8 +624,6 @@ Player::Load()
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_StepsType);
 
-	const Song* pSong = GAMESTATE->m_pCurSong;
-
 	// Generate some cache data structure.
 	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
 
@@ -654,13 +640,6 @@ Player::Load()
 						   iDrawDistanceBeforeTargetsPixels);
 	}
 
-	// set this in Update
-	// m_pJudgment->SetX( JUDGMENT_X.GetValue(pn,bPlayerUsingBothSides) );
-	// m_pJudgment->SetY( bReverse ? JUDGMENT_Y_REVERSE : JUDGMENT_Y );
-
-	// Need to set Y positions of all these elements in Update since
-	// they change depending on PlayerOptions.
-
 	// Load keysounds.  If sounds are already loaded (as in the editor), don't
 	// reload them.
 	// XXX: the editor will load several duplicate copies (in each NoteField),
@@ -669,6 +648,7 @@ Player::Load()
 	// ScreenGameplay::m_pSoundMusic and ScreenEdit::m_pSoundMusic?) We don't
 	// have to load separate copies to set player fade: always make a copy, and
 	// set the fade on the copy.
+	const Song* pSong = GAMESTATE->m_pCurSong;
 	std::string sSongDir = pSong->GetSongDir();
 	m_vKeysounds.resize(pSong->m_vsKeysoundFile.size());
 
@@ -676,7 +656,7 @@ Player::Load()
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 
-	float fBalance = GameSoundManager::GetPlayerBalance(pn);
+	float fBalance = GameSoundManager::GetPlayerBalance(PLAYER_1);
 	for (unsigned i = 0; i < m_vKeysounds.size(); i++) {
 		std::string sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[i];
 		RageSound& sound = m_vKeysounds[i];
@@ -689,11 +669,6 @@ Player::Load()
 	if (m_pPlayerStageStats != nullptr)
 		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
 						  m_pPlayerStageStats->m_iCurMissCombo);
-
-	// If we are in a replay, attempt to load the real tapper stuff
-	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		PlayerAI::SetUpExactTapMap(m_Timing);
-	}
 
 	SAFE_DELETE(m_pIterNeedsTapJudging);
 	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
@@ -1107,39 +1082,6 @@ Player::UpdateHoldNotes(int iSongRow,
 		return; // we don't need to update the logic for this group
 	}
 
-	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		FOREACH(TrackRowTapNote, vTN, trtn)
-		{
-			TapNote& tn = *trtn->pTN;
-
-			// check from now until the head of the hold to see if it should die
-			// possibly really bad, but we dont REALLY care that much about fps
-			// in replays, right?
-			bool holdDropped = false;
-			for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped;
-				 yeet++) {
-				if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack)) {
-					holdDropped = true;
-				}
-			}
-
-			if (holdDropped) // it should be dead
-			{
-				tn.HoldResult.bHeld = false;
-				tn.HoldResult.bActive = false;
-				tn.HoldResult.fLife = 0.f;
-				tn.HoldResult.hns = HNS_LetGo;
-
-				// score the dead hold
-				if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
-					IncrementMissCombo();
-				SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
-				HandleHoldScore(tn);
-				return;
-			}
-		}
-	}
-
 	// LOG->Trace("hold note doesn't already have result, let's check.");
 
 	// LOG->Trace( ssprintf("[C++] hold note score:
@@ -1202,9 +1144,6 @@ Player::UpdateHoldNotes(int iSongRow,
 			(iStartRow + trtn->pTN->iDuration) > iSongRow) {
 			int iTrack = trtn->iTrack;
 
-			// TODO: Remove use of PlayerNumber.
-			PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-
 			if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
 				// TODO: Make the CPU miss sometimes.
 				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
@@ -1217,7 +1156,7 @@ Player::UpdateHoldNotes(int iSongRow,
 			} else {
 				vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-				  ->StyleInputToGameInput(iTrack, pn, GameI);
+				  ->StyleInputToGameInput(iTrack, PLAYER_1, GameI);
 
 				bIsHoldingButton &=
 				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp);
@@ -2529,9 +2468,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				tn.type != TapNoteType_AutoKeysound &&
 				tn.result.tns == TNS_None &&
 				this->m_Timing->IsJudgableAtRow(iRow)) {
-				if ((m_pPlayerState->m_PlayerController == PC_REPLAY &&
-					 PlayerAI::GetReplayType() != 2) ||
-					m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
 					m_pPlayerState->m_PlayerController == PC_CPU) {
 					Step(iTrack, iRow, now, false, false);
 					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
@@ -2562,8 +2499,7 @@ Player::CrossedRows(int iLastRowCrossed,
 	/* Update hold checkpoints
 	 *
 	 * TODO: Move this to a separate function. */
-	if (m_bTickHolds && m_pPlayerState->m_PlayerController != PC_AUTOPLAY &&
-		m_pPlayerState->m_PlayerController != PC_REPLAY) {
+	if (m_bTickHolds && m_pPlayerState->m_PlayerController == PC_HUMAN) {
 		// Few rows typically cross per update. Easier to check all crossed rows
 		// than to calculate from timing segments.
 		for (int r = m_iFirstUncrossedRow; r <= iLastRowCrossed; ++r) {
@@ -3255,7 +3191,8 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			ChangeWifeRecord();
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
+				m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;

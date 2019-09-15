@@ -959,7 +959,7 @@ Actor::BeginTweening(float time, ITween* pTween)
 
 	// If the number of tweens to ever gets this large, there's probably an
 	// infinitely recursing ActorCommand.
-	if (m_Tweens.size() > 50 && !(GamePreferences::m_AutoPlay == PC_REPLAY)) {
+	if (m_Tweens.size() > 50) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Tween overflow: \"%s\"; infinitely recursing ActorCommand?",
 		  GetLineage().c_str());

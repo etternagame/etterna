@@ -78,16 +78,16 @@ class Player : public ActorFrame
 		int iRow;
 		TapNote* pTN;
 	};
-	void UpdateHoldNotes(int iSongRow,
-						 float fDeltaTime,
-						 vector<TrackRowTapNote>& vTN);
+	virtual void UpdateHoldNotes(int iSongRow,
+								 float fDeltaTime,
+								 vector<TrackRowTapNote>& vTN);
 
-	void Init(const std::string& sType,
-			  PlayerState* pPlayerState,
-			  PlayerStageStats* pPlayerStageStats,
-			  LifeMeter* pLM,
-			  ScoreKeeper* pPrimaryScoreKeeper);
-	void Load();
+	virtual void Init(const std::string& sType,
+					  PlayerState* pPlayerState,
+					  PlayerStageStats* pPlayerStageStats,
+					  LifeMeter* pLM,
+					  ScoreKeeper* pPrimaryScoreKeeper);
+	virtual void Load();
 	virtual void CrossedRows(int iLastRowCrossed,
 							 const std::chrono::steady_clock::time_point& now);
 	/**
@@ -302,6 +302,7 @@ class Player : public ActorFrame
 	  PLAYER INIT MUST LOAD THIS OR YOU CRASH
 	  */
 	ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
+	ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2
