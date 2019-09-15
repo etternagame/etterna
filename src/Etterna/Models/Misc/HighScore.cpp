@@ -566,7 +566,7 @@ HighScore::LoadReplayDataBasic()
 	SetOffsetVector(vOffsetVector);
 
 	m_Impl->ReplayType = 1;
-	LOG->Trace("Loaded replay data at %s", path.c_str());
+	LOG->Trace("Loaded replay data type 1 at %s", path.c_str());
 	return true;
 }
 
@@ -672,7 +672,7 @@ HighScore::LoadReplayDataFull()
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
-	LOG->Trace("Loaded replay data at %s", path.c_str());
+	LOG->Trace("Loaded replay data type 2 at %s", path.c_str());
 	return true;
 }
 

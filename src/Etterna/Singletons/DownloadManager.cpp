@@ -1347,6 +1347,8 @@ DownloadManager::UploadScores()
 			}
 		}
 	}
+	if (!toUpload.empty())
+		LOG->Trace("Uploading top scores that were not synced.");
 	uploadSequentially(toUpload);
 	return true;
 }
