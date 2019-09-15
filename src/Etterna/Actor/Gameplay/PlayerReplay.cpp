@@ -375,7 +375,7 @@ PlayerReplay::Step(int col,
 	  m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
 	const float fTimeSinceStep = stepAgo;
 
-	LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
+	// LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
 
 	// idk if this is the correct value for input logs but we'll use them to
 	// test -mina ok this is 100% not the place to do this
@@ -552,7 +552,8 @@ PlayerReplay::Step(int col,
 
 		TapNote* pTN = nullptr;
 		NoteData::iterator iter = m_NoteData.FindTapNote(
-		  col, GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, true));
+		  col,
+		  GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, false));
 
 		pTN = &iter->second;
 
@@ -596,11 +597,6 @@ PlayerReplay::Step(int col,
 															   fNoteOffset);
 			}
 		}
-		LOG->Trace(ssprintf("offset %f\n\tscore %d row %d judged %d",
-							fNoteOffset,
-							score,
-							iRowOfOverlappingNoteOrRow,
-							rowToJudge));
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
