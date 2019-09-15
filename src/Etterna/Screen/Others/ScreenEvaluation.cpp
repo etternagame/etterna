@@ -320,24 +320,11 @@ ScreenEvaluation::HandleMenuStart()
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
+
+	// Reset mods
 	if (GAMEMAN->m_bResetModifiers) {
 		float oldRate = GAMEMAN->m_fPreviousRate;
 		const RString mods = GAMEMAN->m_sModsToReset;
-		/* // Reset mods
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(mods);
-		*/
-		FailType failreset = GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  failreset;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  failreset;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  failreset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;

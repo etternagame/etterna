@@ -91,17 +91,6 @@ ScreenSelectMusic::Init()
 	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_HUMAN;
 
-	// Remove failOff if we enter SSM with Practice Mode on so if the player
-	// turns it back off when entering a song, we don't have to worry about it
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-	}
-
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
 	SAMPLE_MUSIC_DELAY.Load(m_sName, "SampleMusicDelay");
@@ -201,6 +190,7 @@ ScreenSelectMusic::Init()
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
 	m_pPreviewNoteField = nullptr;
+	GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 
 	this->SortByDrawOrder();
 }
@@ -1730,16 +1720,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 		GAMEMAN->m_bResetTurns = true;
 		GAMEMAN->m_vTurnsToReset = oldTurns;
-		GAMEMAN->m_iPreviousFail =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType;
-
-		// REALLY BAD way to set fail off for a replay
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  FailType_Off;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",
@@ -1817,9 +1797,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
-
-		GAMEMAN->m_iPreviousFail =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType;
 
 		// go
 		LOG->Trace("Viewing evaluation screen for score key %s",
