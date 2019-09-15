@@ -69,6 +69,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
+	m_ReplayExactTapMap.clear();
 
 	if (!successful) {
 		return;
@@ -127,12 +128,12 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 void
 PlayerAI::SetUpExactTapMap(TimingData* timing)
 {
-	m_ReplayExactTapMap.clear();
-
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
 	if (pScoreData->GetReplayType() != 2)
 		return;
+
+	m_ReplayExactTapMap.clear();
 
 	pReplayTiming = timing;
 
