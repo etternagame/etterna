@@ -55,11 +55,12 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void
 PlayerAI::ResetScoreData()
 {
-	delete pScoreData;
+	// should probably not null out scoredata here
+	// but it is a highscore that exists somewhere so...
 	pScoreData = nullptr;
-	m_ReplayExactTapMap.clear();
-	m_ReplayHoldMap.clear();
 	m_ReplayTapMap.clear();
+	m_ReplayHoldMap.clear();
+	m_ReplayExactTapMap.clear();
 }
 
 void
