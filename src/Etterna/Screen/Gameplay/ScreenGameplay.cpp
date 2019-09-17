@@ -328,6 +328,7 @@ ScreenGameplay::Init()
 
 	m_GiveUpTimer.SetZero();
 	m_gave_up = false;
+	GAMESTATE->m_bRestartedGameplay = false;
 }
 
 bool
@@ -383,6 +384,11 @@ ScreenGameplay::~ScreenGameplay()
 	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->ReportSongOver();
 	DLMAN->UpdateDLSpeed(false);
+
+	if (!GAMESTATE->m_bRestartedGameplay) {
+		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
+		GAMESTATE->TogglePracticeMode(false);
+	}
 }
 
 void
@@ -1202,8 +1208,14 @@ ScreenGameplay::BeginBackingOutFromGameplay()
 	this->ClearMessageQueue();
 
 	m_Cancel.StartTransitioning(SM_DoPrevScreen);
+}
 
+void
+ScreenGameplay::RestartGameplay()
+{
 	GAMESTATE->m_bRestartedGameplay = true;
+	SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
+	BeginBackingOutFromGameplay();
 }
 
 void
@@ -1360,9 +1372,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
 		}
 		if (bHoldingRestart) {
-			SCREENMAN->GetTopScreen()->SetPrevScreenName(
-			  "ScreenStageInformation");
-			BeginBackingOutFromGameplay();
+			RestartGameplay();
 		}
 	}
 

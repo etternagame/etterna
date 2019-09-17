@@ -77,9 +77,6 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 
 	m_GameplayAssist.StopPlaying();
 
-	if (!GAMESTATE->m_bRestartedGameplay)
-		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
-
 	DLMAN->UpdateDLSpeed(false);
 }
 
@@ -218,8 +215,7 @@ ScreenGameplayReplay::Input(const InputEventPlus& input)
 		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
 	}
 	if (bHoldingRestart) {
-		SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
-		BeginBackingOutFromGameplay();
+		RestartGameplay();
 	}
 
 	return false;

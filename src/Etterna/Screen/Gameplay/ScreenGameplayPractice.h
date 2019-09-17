@@ -22,7 +22,7 @@ class ScreenGameplayPractice : public ScreenGameplay
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
-	void BeginBackingOutFromGameplay();
+	// void BeginBackingOutFromGameplay();
 
 	// Set the playback rate in the middle of gameplay
 	float SetRate(float newRate);

@@ -111,6 +111,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void SaveReplay();
 	bool AllAreFailing();
 
+	void RestartGameplay();
+
 	virtual void InitSongQueues();
 
 	/** @brief The different game states of ScreenGameplay. */
