@@ -1,9 +1,11 @@
 #include "Etterna/Globals/global.h"
+#include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "CryptManager.h"
 #include "discord_rpc.h"
+#include "DownloadManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameCommand.h"
@@ -18,6 +20,7 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
+#include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "StatsManager.h"
@@ -1373,6 +1376,40 @@ GameState::updateDiscordPresenceMenu(const RString& largeImageText)
 	Discord_UpdatePresence(&discordPresence);
 }
 
+void
+GameState::TogglePracticeModeSafe(bool set)
+{
+	auto screenname = SCREENMAN->GetTopScreen()->GetName();
+	bool gameplayscreen =
+	  screenname.find("ScreenGameplay") != std::string::npos;
+
+	// This isnt really "safe" but should at least make it harder to break
+	if (m_gameplayMode != GameplayMode_Replay && !gameplayscreen) {
+		TogglePracticeMode(set);
+	}
+}
+
+void
+GameState::TogglePracticeMode(bool set)
+{
+	m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice = set;
+	m_pPlayerState->m_PlayerOptions.GetPreferred().m_bPractice = set;
+	m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice = set;
+	m_gameplayMode.Set(set ? GameplayMode_Practice : GameplayMode_Normal);
+}
+
+bool
+GameState::IsPracticeMode()
+{
+	GameplayMode mode = GetGameplayMode();
+	bool ispractice =
+	  mode == GameplayMode_Practice &&
+	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice &&
+	  m_pPlayerState->m_PlayerOptions.GetPreferred().m_bPractice &&
+	  m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice;
+	return ispractice;
+}
+
 // lua start
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -1871,8 +1908,14 @@ class LunaGameState : public Luna<GameState>
 		LuaHelpers::Push(L, mode);
 		return 1;
 	}
+	static int SetPracticeMode(T* p, lua_State* L)
+	{
+		p->TogglePracticeModeSafe(BArg(1));
+		return 0;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
+	DEFINE_METHOD(IsPracticeMode, IsPracticeMode())
 	LunaGameState()
 	{
 		ADD_METHOD(SetAutoplay);
@@ -1964,6 +2007,8 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(UpdateDiscordPresence);
 		ADD_METHOD(IsPaused);
 		ADD_METHOD(GetGameplayMode);
+		ADD_METHOD(IsPracticeMode);
+		ADD_METHOD(SetPracticeMode);
 	}
 };
 

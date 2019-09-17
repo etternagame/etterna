@@ -317,6 +317,9 @@ class GameState
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;
 	GameplayMode GetGameplayMode() { return m_gameplayMode; }
+	void TogglePracticeModeSafe(bool set);
+	void TogglePracticeMode(bool set);
+	bool IsPracticeMode();
 
 	// A "persistent" way to know if we restarted gameplay (hack)
 	bool m_bRestartedGameplay;

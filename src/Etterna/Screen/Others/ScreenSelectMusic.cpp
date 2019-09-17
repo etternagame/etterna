@@ -190,7 +190,6 @@ ScreenSelectMusic::Init()
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
 	m_pPreviewNoteField = nullptr;
-	GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 
 	this->SortByDrawOrder();
 }
@@ -507,15 +506,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			return true;
 		} else if (bHoldingCtrl && c == 'O' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			bool opposite =
-			  !GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-				 .m_bPractice;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bPractice = opposite;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bPractice = opposite;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice =
-			  opposite;
+			bool opposite = !GAMESTATE->IsPracticeMode();
+			GAMESTATE->TogglePracticeMode(opposite);
 			if (opposite)
 				SCREENMAN->SystemMessage("Practice Mode On");
 			else
