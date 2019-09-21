@@ -27,7 +27,7 @@ class RageSoundReader_MP3 : public RageSoundReader_FileReader
 	unsigned GetNumChannels() const { return Channels; }
 	int GetSampleRate() const { return SampleRate; }
 	int GetNextSourceFrame() const;
-	bool SetProperty(const std::string& sProperty, float fValue);
+	bool SetProperty(const RString& sProperty, float fValue) override;
 
 	RageSoundReader_MP3();
 	~RageSoundReader_MP3();
