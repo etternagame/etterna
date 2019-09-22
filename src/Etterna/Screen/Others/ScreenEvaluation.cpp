@@ -40,15 +40,9 @@ AutoScreenMessage(SM_PlayCheer);
 
 REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
-ScreenEvaluation::ScreenEvaluation()
-{
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-}
+ScreenEvaluation::ScreenEvaluation() {}
 
-ScreenEvaluation::~ScreenEvaluation()
-{
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = true;
-}
+ScreenEvaluation::~ScreenEvaluation() {}
 
 void
 ScreenEvaluation::Init()

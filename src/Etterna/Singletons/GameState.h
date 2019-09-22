@@ -197,9 +197,6 @@ class GameState
 	 *
 	 * This resets whenever a player joins or continues. */
 	int m_iPlayerStageTokens;
-	// This is necessary so that IsFinalStageForEveryHumanPlayer knows to
-	// adjust for the current song cost.
-	bool m_AdjustTokensBySongCostForFinalStageCheck;
 
 	RString sExpandedSectionName;
 

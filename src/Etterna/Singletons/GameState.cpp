@@ -271,8 +271,6 @@ GameState::Reset()
 	m_iGameSeed = g_RandomNumberGenerator();
 	m_iStageSeed = g_RandomNumberGenerator();
 
-	m_AdjustTokensBySongCostForFinalStageCheck = true;
-
 	m_pCurSong.Set(GetDefaultSong());
 	m_pPreferredSong = NULL;
 
@@ -796,14 +794,17 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 		m_LastPositionSeconds = fPositionSeconds;
 	}
 
-	m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
-
 	if (m_pCurSteps) {
+		m_Position.UpdateSongPosition(
+		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
+
 		m_pPlayerState->m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
 		Actor::SetPlayerBGMBeat(PLAYER_1,
 								m_pPlayerState->m_Position.m_fSongBeatVisible,
 								m_pPlayerState->m_Position.m_fSongBeatNoOffset);
+	} else {
+		m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
 	}
 	Actor::SetBGMTime(GAMESTATE->m_Position.m_fMusicSecondsVisible,
 					  GAMESTATE->m_Position.m_fSongBeatVisible,
