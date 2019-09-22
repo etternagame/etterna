@@ -102,10 +102,6 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 						  RageSoundReader*& pShared,
 						  RageSoundReader*& pPlayer1)
 {
-	// If we have two players, prefer a three-track sound; otherwise prefer a
-	// two-track sound.
-	// bool bTwoPlayers = GAMESTATE->GetNumPlayersEnabled() == 2;
-
 	pPlayer1 = nullptr;
 	pShared = nullptr;
 
@@ -114,14 +110,6 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 
 	if (!sMusicPath.empty())
 		vsMusicFile.push_back(sMusicPath);
-
-	FOREACH_ENUM(InstrumentTrack, it)
-	{
-		if (it == InstrumentTrack_Guitar)
-			continue;
-		if (pSong->HasInstrumentTrack(it))
-			vsMusicFile.push_back(pSong->GetInstrumentTrackPath(it));
-	}
 
 	vector<RageSoundReader*> vpSounds;
 	FOREACH(RString, vsMusicFile, s)
@@ -154,19 +142,6 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 		pSongReader = new RageSoundReader_Extend(pSongReader);
 		pSongReader = new RageSoundReader_ThreadedBuffer(pSongReader);
 		pShared = pSongReader;
-	}
-
-	if (pSong->HasInstrumentTrack(InstrumentTrack_Guitar)) {
-		RString sError;
-		RageSoundReader* pGuitarTrackReader =
-		  RageSoundReader_FileReader::OpenFile(
-			pSong->GetInstrumentTrackPath(InstrumentTrack_Guitar), sError);
-		// Load the buffering filter before the effects filters, so effects
-		// aren't delayed.
-		pGuitarTrackReader = new RageSoundReader_Extend(pGuitarTrackReader);
-		pGuitarTrackReader =
-		  new RageSoundReader_ThreadedBuffer(pGuitarTrackReader);
-		pPlayer1 = pGuitarTrackReader;
 	}
 
 	return;
