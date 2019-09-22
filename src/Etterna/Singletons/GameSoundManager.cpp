@@ -395,10 +395,11 @@ GameSoundManager::HandleSetPosition()
 	vector<SoundPositionSetter> vec = g_PositionsToSet;
 	g_PositionsToSet.clear();
 	g_Mutex->Unlock();
-	if (!vec.empty()) {
-		for (unsigned i = 0; i < vec.size(); i++) {
-			vec[i].m_psound->SetPositionSeconds(vec[i].fSeconds);
-		}
+	for (unsigned i = 0; i < vec.size(); i++) {
+		// I wonder if this can crash when sounds get deleted
+		// only one way to find out - checkpoint and see if someone crashes :)
+		CHECKPOINT_M("Setting position for sound.");
+		vec[i].m_psound->SetPositionSeconds(vec[i].fSeconds);
 	}
 }
 
