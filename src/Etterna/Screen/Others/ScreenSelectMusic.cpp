@@ -327,6 +327,13 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
 		PlayParams.bApplyMusicRate = true;
 
+		// We will leave this FALSE for standard sample music
+		// Because accurate seeking is slow for MP3.
+		// The way music playing works does not cause stutter, but
+		// will cause inconsistent music playing experience and an overall
+		// negative feel.
+		PlayParams.bAccurateSync = false;
+
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
 		FallbackMusic.fFadeInLengthSeconds =

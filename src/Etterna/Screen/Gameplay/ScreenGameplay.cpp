@@ -619,11 +619,10 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 	ASSERT(fMinTimeToNotes >= 0);
 	ASSERT(fMinTimeToMusic >= 0);
 
-	m_pSoundMusic->SetProperty("AccurateSync", true);
-
 	RageSoundParams p;
 	p.m_fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	p.StopMode = RageSoundParams::M_CONTINUE;
+	p.m_bAccurateSync = true;
 
 	{
 		const float fFirstSecond = GAMESTATE->m_pCurSong->GetFirstSecond();

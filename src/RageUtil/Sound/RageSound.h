@@ -1,4 +1,4 @@
-﻿/* RageSound - High-level sound object. */
+/* RageSound - High-level sound object. */
 
 #ifndef RAGE_SOUND_H
 #define RAGE_SOUND_H
@@ -54,6 +54,9 @@ struct RageSoundParams
 	 * Currently, this is either 1/1, 5/4 or 4/5. */
 	float m_fPitch{ 1.0f };
 	float m_fSpeed{ 1.0f };
+
+	// Accurate Sync (for now only useful for MP3s)
+	bool m_bAccurateSync{ false };
 
 	/* Optional driver feature: time to actually start playing sounds.
 	 * If zero, or if not supported, the sound will start immediately. */

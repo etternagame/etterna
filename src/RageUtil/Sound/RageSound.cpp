@@ -696,6 +696,7 @@ RageSound::ApplyParams()
 	m_pSource->SetProperty("LengthSeconds", m_Param.m_LengthSeconds);
 	m_pSource->SetProperty("FadeInSeconds", m_Param.m_fFadeInSeconds);
 	m_pSource->SetProperty("FadeSeconds", m_Param.m_fFadeOutSeconds);
+	m_pSource->SetProperty("AccurateSync", m_Param.m_bAccurateSync);
 
 	float fVolume = m_Param.m_Volume * SOUNDMAN->GetMixVolume();
 	if (!m_Param.m_bIsCriticalSound)

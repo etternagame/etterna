@@ -1958,11 +1958,13 @@ Song::Borp()
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;
+	PlayParams.bAccurateSync = true;
 
 	GameSoundManager::PlayMusicParams FallbackMusic;
 	FallbackMusic.sFile = GetMusicPath();
 	FallbackMusic.fFadeInLengthSeconds = 1.f;
 	FallbackMusic.bAlignBeat = true;
+	FallbackMusic.bAccurateSync = true;
 
 	if (PlayParams.fLengthSeconds <
 		3.f) { // if the songpreview is after the last note
