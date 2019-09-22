@@ -91,6 +91,7 @@ RageSound::operator=(const RageSound& cpy)
 	m_iStreamFrame = cpy.m_iStreamFrame;
 	m_iStoppedSourceFrame = cpy.m_iStoppedSourceFrame;
 	m_bPlaying = false;
+	m_bPaused = cpy.m_bPaused;
 	m_bDeleteWhenFinished = false;
 
 	if (m_pSource != NULL) {
@@ -441,6 +442,8 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	SOUNDMAN->StartMixing(this);
+	if (m_bPaused)
+		Pause(true);
 
 	//	LOG->Trace("StartPlaying %p finished (%s)", this,
 	// this->GetLoadedFilePath().c_str());
@@ -554,6 +557,7 @@ RageSound::Pause(bool bPause)
 		LOG->Warn("RageSound::Pause: sound not loaded");
 		return false;
 	}
+	m_bPaused = bPause;
 
 	return SOUNDMAN->Pause(this, bPause);
 }

@@ -147,6 +147,7 @@ class RageSound : public RageSoundBase
 	/* Cleanly pause or unpause the sound. If the sound wasn't already playing,
 	 * return true and do nothing. */
 	bool Pause(bool bPause);
+	bool m_bPaused{ false };
 
 	float GetLengthSeconds();
 	float GetPositionSeconds(bool* approximate = nullptr,
