@@ -949,30 +949,25 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 int
 RageSoundReader_MP3::SetPosition(int iFrame)
 {
-	if (m_bAccurateSync) {
-		/* Seek using our own internal (accurate) TOC. */
-		int ret = SetPosition_toc(iFrame, false);
-		if (ret <= 0)
-			return ret; /* it set the error */
-
-		// Documentation states that set_hard is meant for seeking forward.
-		// And we only use it when seeking accurately.
-		// By this logic, we can rewind without a care in the world.
-		// The result of doing this means we seek from the beginning of audio.
-		// ...And that means it's a fully accurate seek. Thank you and goodnight
-		// -poco
+	// If the frame is 0, rewind to 0.
+	if (!iFrame) {
 		MADLIB_rewind();
+		return 1;
+	}
+
+	if (m_bAccurateSync) {
+		/* Previously, we used a different method of seeking here
+		 * before attempting to hard set the position.
+		 * The method was quick and allowed hard to be also quick.
+		 * However, somehow this made the final position completely wrong.
+		 * If we just hard set, we maintain some speed when moving forward
+		 * and if we move backward, we lose speed (but it doesn't feel as bad
+		 * because of the fact that there's less to seek)
+		 * -poco */
 
 		/* Align exactly. */
 		return SetPosition_hard(iFrame);
 	} else {
-		/* Rewinding is always fast and accurate, and SetPosition_estimate is
-		 * bad at 0. */
-		if (!iFrame) {
-			MADLIB_rewind();
-			return 1; /* ok */
-		}
-
 		/* We can do a fast jump in VBR with Xing with more accuracy than
 		 * without Xing. */
 		if (mad->has_xing)
