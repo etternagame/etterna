@@ -1961,7 +1961,7 @@ Song::Borp()
 	PlayParams.bAccurateSync = true;
 
 	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.sFile = "";
 	FallbackMusic.fFadeInLengthSeconds = 1.f;
 	FallbackMusic.bAlignBeat = true;
 	FallbackMusic.bAccurateSync = true;
