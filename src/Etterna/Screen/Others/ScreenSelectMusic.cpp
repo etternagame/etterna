@@ -1516,7 +1516,7 @@ ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
 {
 	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
 		SOUND->WithRageSoundPlaying([given](RageSound* pMusic) {
-			pMusic->SetPositionSeconds(given);
+			SOUND->SetSoundPosition(pMusic, given);
 			if (GAMESTATE->GetPaused())
 				pMusic->Pause(true);
 		});
