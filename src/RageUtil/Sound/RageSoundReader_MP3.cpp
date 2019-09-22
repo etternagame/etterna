@@ -955,6 +955,14 @@ RageSoundReader_MP3::SetPosition(int iFrame)
 		if (ret <= 0)
 			return ret; /* it set the error */
 
+		// Documentation states that set_hard is meant for seeking forward.
+		// And we only use it when seeking accurately.
+		// By this logic, we can rewind without a care in the world.
+		// The result of doing this means we seek from the beginning of audio.
+		// ...And that means it's a fully accurate seek. Thank you and goodnight
+		// -poco
+		MADLIB_rewind();
+
 		/* Align exactly. */
 		return SetPosition_hard(iFrame);
 	} else {
