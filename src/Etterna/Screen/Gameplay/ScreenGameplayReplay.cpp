@@ -40,12 +40,6 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 {
 	ASSERT_M(PlayerAI::pScoreData != nullptr,
 			 "Replay Highscore Info was empty.");
-
-	m_pSongBackground = NULL;
-	m_pSongForeground = NULL;
-	m_delaying_ready_announce = false;
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-	DLMAN->UpdateDLSpeed(true);
 }
 
 void
@@ -58,26 +52,8 @@ ScreenGameplayReplay::Init()
 
 ScreenGameplayReplay::~ScreenGameplayReplay()
 {
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = true;
-	if (this->IsFirstUpdate()) {
-		/* We never received any updates. That means we were deleted without
-		 * being used, and never actually played. (This can happen when backing
-		 * out of ScreenStage.) Cancel the stage. */
-		GAMESTATE->CancelStage();
-	}
-
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
-
-	SAFE_DELETE(m_pSongBackground);
-	SAFE_DELETE(m_pSongForeground);
-
-	if (m_pSoundMusic != nullptr)
-		m_pSoundMusic->StopPlaying();
-
-	m_GameplayAssist.StopPlaying();
-
-	DLMAN->UpdateDLSpeed(false);
 }
 
 void

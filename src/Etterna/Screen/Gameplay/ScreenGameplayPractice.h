@@ -7,12 +7,11 @@ class ScreenGameplayPractice : public ScreenGameplay
 {
   public:
 	virtual void FillPlayerInfo(PlayerInfo* playerInfoOut);
-
 	ScreenGameplayPractice();
 	void Init() override;
 	~ScreenGameplayPractice() override;
 
-	// void Update(float fDeltaTime) override;
+	void Update(float fDeltaTime) override;
 	// bool Input(const InputEventPlus& input) override;
 
 	// Lua

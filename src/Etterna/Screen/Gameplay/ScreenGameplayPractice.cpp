@@ -20,6 +20,7 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -35,11 +36,7 @@ ScreenGameplayPractice::FillPlayerInfo(PlayerInfo* playerInfoOut)
 
 ScreenGameplayPractice::ScreenGameplayPractice()
 {
-	m_pSongBackground = NULL;
-	m_pSongForeground = NULL;
-	m_delaying_ready_announce = false;
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-	DLMAN->UpdateDLSpeed(true);
+	// covered by base class constructor
 }
 
 void
@@ -50,26 +47,74 @@ ScreenGameplayPractice::Init()
 
 ScreenGameplayPractice::~ScreenGameplayPractice()
 {
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = true;
-	if (this->IsFirstUpdate()) {
-		/* We never received any updates. That means we were deleted without
-		 * being used, and never actually played. (This can happen when backing
-		 * out of ScreenStage.) Cancel the stage. */
-		GAMESTATE->CancelStage();
-	}
-
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
+}
 
-	SAFE_DELETE(m_pSongBackground);
-	SAFE_DELETE(m_pSongForeground);
+void
+ScreenGameplayPractice::Update(float fDeltaTime)
+{
+	if (GAMESTATE->m_pCurSong == NULL) {
+		Screen::Update(fDeltaTime);
+		return;
+	}
 
-	if (m_pSoundMusic != nullptr)
-		m_pSoundMusic->StopPlaying();
+	UpdateSongPosition(fDeltaTime);
 
-	m_GameplayAssist.StopPlaying();
+	if (m_bZeroDeltaOnNextUpdate) {
+		Screen::Update(0);
+		m_bZeroDeltaOnNextUpdate = false;
+	} else {
+		Screen::Update(fDeltaTime);
+	}
 
-	DLMAN->UpdateDLSpeed(false);
+	if (SCREENMAN->GetTopScreen() != this)
+		return;
+
+	m_AutoKeysounds.Update(fDeltaTime);
+
+	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
+
+	{
+		float fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		RageSoundParams p = m_pSoundMusic->GetParams();
+		if (std::fabs(p.m_fSpeed - fSpeed) > 0.01f && fSpeed >= 0.0f) {
+			p.m_fSpeed = fSpeed;
+			m_pSoundMusic->SetParams(p);
+		}
+	}
+
+	switch (m_DancingState) {
+		case STATE_DANCING: {
+
+			// Update living players' alive time
+			// HACK: Don't scale alive time when using tab/tilde.  Instead of
+			// accumulating time from a timer, this time should instead be tied
+			// to the music position.
+			float fUnscaledDeltaTime = m_timerGameplaySeconds.GetDeltaTime();
+			m_vPlayerInfo.GetPlayerStageStats()->m_fAliveSeconds +=
+			  fUnscaledDeltaTime *
+			  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+			// update fGameplaySeconds
+			STATSMAN->m_CurStageStats.m_fGameplaySeconds += fUnscaledDeltaTime;
+			float curBeat = GAMESTATE->m_Position.m_fSongBeat;
+			Song& s = *GAMESTATE->m_pCurSong;
+
+			if (curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat()) {
+				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
+			}
+		}
+		default:
+			break;
+	}
+
+	PlayTicks();
+	SendCrossedMessages();
+
+	// ArrowEffects::Update call moved because having it happen once per
+	// NoteField (which means twice in two player) seemed wasteful. -Kyz
+	ArrowEffects::Update();
 }
 
 void
@@ -112,7 +157,8 @@ ScreenGameplayPractice::TogglePracticePause()
 void
 ScreenGameplayPractice::SetPracticeSongPosition(float newPositionSeconds)
 {
-	m_pSoundMusic->SetPositionSeconds(newPositionSeconds);
+	SOUND->SetSoundPosition(m_pSoundMusic, newPositionSeconds);
+	// m_pSoundMusic->SetPositionSeconds(newPositionSeconds);
 
 	bool isPaused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Pause(isPaused);

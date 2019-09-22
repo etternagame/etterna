@@ -86,7 +86,6 @@ ScreenGameplay::ScreenGameplay()
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
 	DLMAN->UpdateDLSpeed(true);
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 		LOG->Trace("Unloading replaydata.");
@@ -362,7 +361,6 @@ ScreenGameplay::InitSongQueues()
 
 ScreenGameplay::~ScreenGameplay()
 {
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = true;
 	if (this->IsFirstUpdate()) {
 		/* We never received any updates. That means we were deleted without
 		 * being used, and never actually played. (This can happen when backing
