@@ -704,7 +704,7 @@ GameSoundManager::GetMusicPath() const
 void
 GameSoundManager::WithRageSoundPlaying(function<void(RageSound*)> f)
 {
-	LockMut(*g_Mutex);
+	// LockMut(*g_Mutex); // commented this to hack around something else
 	f(g_Playing->m_Music);
 }
 
