@@ -16,10 +16,11 @@ map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 {
-	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
-		return TNS_W1;
 	if (pPlayerState->m_PlayerController == PC_REPLAY)
 		return TNS_Miss;
+	if (pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+		pPlayerState->m_PlayerController == PC_CPU)
+		return TNS_W1;
 
 	return TNS_Miss;
 }
