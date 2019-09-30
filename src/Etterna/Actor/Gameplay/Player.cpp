@@ -1601,10 +1601,11 @@ Player::ChangeLifeRecord()
 			  fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 }
 
-// seemsgood
 void
 Player::ChangeWifeRecord()
 {
+	// Sets the life ... to the wife....
+	// That's not right.
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->SetLifeRecordAt(
 		  curwifescore / maxwifescore,
@@ -2980,7 +2981,6 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 #else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
 				m_pPlayerState->m_PlayerController == PC_REPLAY) {
-				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
