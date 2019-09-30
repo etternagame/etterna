@@ -12,6 +12,7 @@ TimingData* PlayerAI::pReplayTiming = nullptr;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
+map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
 
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
@@ -62,6 +63,7 @@ PlayerAI::ResetScoreData()
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
+	m_ReplaySnapshotMap.clear();
 }
 
 void
@@ -72,6 +74,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
+	m_ReplaySnapshotMap.clear();
 
 	if (!successful) {
 		return;
@@ -83,11 +86,16 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	auto replayTrackVector = pHighScore->GetCopyOfTrackVector();
 	auto replayHoldVector = pHighScore->GetCopyOfHoldReplayDataVector();
 
+	// Record valid noterows so that we don't waste a lot of time to do the last
+	// step here
+	std::set<int> validNoterows;
+
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
 		if (fabsf(replayOffsetVector[i]) > 0.18f)
 			continue;
+
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
@@ -110,6 +118,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 		} else {
 			vector<TapReplayResult> trrVector = { trr };
 			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
+			validNoterows.insert(replayNoteRowVector[i]);
 		}
 	}
 
@@ -123,7 +132,46 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 		} else {
 			vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
 			m_ReplayHoldMap[replayHoldVector[i].row] = hrrVector;
+			validNoterows.insert(replayHoldVector[i].row);
 		}
+	}
+
+	// Fill out the Snapshot map now that the other maps are not so out of order
+	int tempJudgments[NUM_TapNoteScore] = { 0 };
+	int holdsDropped = 0;
+	for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
+		// Check for taps and mines
+		if (m_ReplayTapMap.count(*r) != 0) {
+			for (auto instance = m_ReplayTapMap[*r].begin();
+				 instance != m_ReplayTapMap[*r].end();
+				 instance++) {
+				TapReplayResult& trr = *instance;
+				if (trr.type == TapNoteType_Mine) {
+					tempJudgments[TNS_HitMine]++;
+				} else {
+					TapNoteScore tns =
+					  GetTapNoteScoreForReplay(nullptr, trr.offset);
+					tempJudgments[tns]++;
+				}
+			}
+		}
+		// Check for dropped holds and rolls
+		if (m_ReplayHoldMap.count(*r) != 0) {
+			for (auto instance = m_ReplayHoldMap[*r].begin();
+				 instance != m_ReplayHoldMap[*r].end();
+				 instance++) {
+				holdsDropped++;
+			}
+		}
+
+		// Make the struct and cram it in there
+		ReplaySnapshot rs;
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			rs.judgments[tns] = tempJudgments[tns];
+		}
+		rs.holdsDropped = holdsDropped;
+		m_ReplaySnapshotMap[*r] = rs;
 	}
 }
 
@@ -207,6 +255,33 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 		}
 	}
 	return output;
+}
+
+ReplaySnapshot
+PlayerAI::GetReplaySnapshotForNoterow(int row)
+{
+	// The row doesn't necessarily have to exist in the Snapshot map.
+	// Because after a Snapshot, we can try this again for a later row
+	// And if there are no new snapshots (no events) nothing changes
+	// So we return that earlier snapshot.
+
+	// If the lowest value in the map is above the given row, return an empty
+	// snapshot
+	if (m_ReplaySnapshotMap.begin()->first > row) {
+		ReplaySnapshot rs;
+		return rs;
+	}
+
+	// For some reason I don't feel like figuring out, if the largest value in
+	// the map is below the given row, it returns 0 So we need to return the
+	// last value
+	if (m_ReplaySnapshotMap.rbegin()->first < row) {
+		return m_ReplaySnapshotMap.rbegin()->second;
+	}
+
+	// Otherwise just go ahead and return what we want
+	const int foundRow = m_ReplaySnapshotMap.lower_bound(row)->first;
+	return m_ReplaySnapshotMap[foundRow];
 }
 
 bool

@@ -9,6 +9,16 @@ class TimingData;
 
 const int NUM_SKILL_LEVELS = 6; // 0-5
 
+// Basically contains a record for any given noterow of the essential info about
+// the Player But only the info we can simply derive from the given ReplayData
+struct ReplaySnapshot
+{
+	// Contains Marv->Miss and Mines Hit
+	int judgments[NUM_TapNoteScore] = { 0 };
+	// Holds dropped
+	int holdsDropped = 0;
+};
+
 // also known as ReplayManager
 class PlayerAI
 {
@@ -32,6 +42,10 @@ class PlayerAI
 	// so that they are adjusted for offsets relative to the actual replay
 	// data/notedata. This map is only useful for charts with column data.
 	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
+
+	// A map with indices for each row of the chart, pointing to a snapshot
+	// of the Replay at that moment
+	static map<int, ReplaySnapshot> m_ReplaySnapshotMap;
 
 	// For use in Autoplay if we ever want to do funny things to the judgments
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
@@ -67,6 +81,8 @@ class PlayerAI
 	static vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
 	// Given a column and row, retrieve the adjusted row.
 	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
+	// Given a row, retrieve the Snapshot for that row.
+	static ReplaySnapshot GetReplaySnapshotForNoterow(int row);
 	// Remove a given Tap from the fallback and Full replay data vectors
 	static void RemoveTapFromVectors(int row, int col);
 	// Go through the replay data to fill out the radar values for the eval
