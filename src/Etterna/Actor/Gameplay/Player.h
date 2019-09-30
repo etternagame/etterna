@@ -221,7 +221,8 @@ class Player : public ActorFrame
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
-					   bool bAllowGraded) const;
+					   bool bAllowGraded,
+					   bool bAllowOldMines = true) const;
 	int GetClosestNonEmptyRowDirectional(int iStartRow,
 										 int iMaxRowsAhead,
 										 bool bAllowGraded,

@@ -1657,7 +1657,8 @@ Player::GetClosestNote(int col,
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
-					   bool bAllowGraded) const
+					   bool bAllowGraded,
+					   bool bAllowOldMines) const
 {
 	// Start at iIndexStartLookingAt and search outward.
 	int iNextIndex = GetClosestNoteDirectional(
@@ -1676,6 +1677,18 @@ Player::GetClosestNote(int col,
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
 	float fNextTime = m_Timing->WhereUAtBro(iNextIndex);
 	float fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
+
+	// If we passed a mine, we can't hit it anymore. Literally.
+	// So forget about them.
+	// RIP Minebug 20xx - 2019
+	if (!bAllowOldMines) {
+		TapNote* pTN = NULL;
+		NoteData::iterator iter = m_NoteData.FindTapNote(col, iPrevIndex);
+		DEBUG_ASSERT(iter != m_NoteData.end(col));
+		pTN = &iter->second;
+		if (pTN->type == TapNoteType_Mine)
+			return iNextIndex;
+	}
 
 	/* Figure out which row is closer. */
 	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime))
@@ -2044,7 +2057,7 @@ Player::Step(int col,
 	int iRowOfOverlappingNoteOrRow = row;
 	if (row == -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
-		  col, iSongRow, iStepSearchRows, iStepSearchRows, false);
+		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
 	if (iRowOfOverlappingNoteOrRow != -1) {
 		// compute the score for this hit
