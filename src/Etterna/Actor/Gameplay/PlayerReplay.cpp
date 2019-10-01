@@ -586,7 +586,7 @@ PlayerReplay::Step(int col,
 	int iRowOfOverlappingNoteOrRow = row;
 	if (row == -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
-		  col, iSongRow, iStepSearchRows, iStepSearchRows, false);
+		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
 	if (iRowOfOverlappingNoteOrRow != -1) {
 		// compute the score for this hit
