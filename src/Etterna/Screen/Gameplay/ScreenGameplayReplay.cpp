@@ -20,6 +20,7 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/GameSoundManager.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -296,59 +297,37 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	// But remember some files have notes at 0.0 seconds
 	if (newPositionSeconds <= 0)
 		newPositionSeconds = 0.f;
-	bool paused = GAMESTATE->GetPaused();
+	SOUND->SetSoundPosition(m_pSoundMusic, newPositionSeconds);
 
-	// Stop the music and generate a new "music"
-	m_pSoundMusic->Stop();
+	bool paused = GAMESTATE->GetPaused();
+	m_pSoundMusic->Pause(paused);
 
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
-	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
-	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
-	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
-					  fSecondsToStartTransitioningOut);
-
-	// Set up current rate and new position to play
-	RageSoundParams p;
-	p.m_StartSecond = newPositionSeconds;
-	p.m_fSpeed = rate;
-	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = rate;
-	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = rate;
-	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = rate;
-
-	// Prevent endless music or something
-	if (fSecondsToStartFadingOutMusic <
-		GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
-		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
-		p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
-							MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
-	}
-	p.StopMode = RageSoundParams::M_CONTINUE;
 
 	// If we scroll backwards, we need to render those notes again
-	if (newPositionSeconds < fSeconds) {
-		m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
-	}
+	// if (newPositionSeconds < fSeconds) {
+	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
+
+	//}
 
 	// If we are paused, set the volume to 0 so we don't make weird noises
 	if (paused) {
-		p.m_Volume = 0.f;
+
 	} else {
 		// Restart the file to make sure nothing weird is going on
-		ReloadCurrentSong();
+		// ReloadCurrentSong();
+		// SetupNoteDataFromRow(pSteps, newRow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
 	}
 
 	// Go
-	m_pSoundMusic->Play(false, &p);
+	// m_pSoundMusic->Play(false, &p);
 	// But only for like 1 frame if we are paused
-	if (paused)
-		m_pSoundMusic->Pause(true);
 
 	// misc info update
-	GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
-	UpdateSongPosition(0);
+	// GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
+	// UpdateSongPosition(0);
 }
 
 void
@@ -361,16 +340,22 @@ ScreenGameplayReplay::ToggleReplayPause()
 
 	// We are leaving pause mode
 	if (oldPause) {
+		m_pSoundMusic->Stop();
 		RageTimer tm;
 
 		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
+		Steps* pSteps = GAMESTATE->m_pCurSteps;
+		const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+		const int rowNow = BeatToNoteRow(fSongBeat);
+
 		// Restart the stage, technically (This will cause a lot of lag if there
 		// are a lot of notes.)
-		ReloadCurrentSong();
+		// ReloadCurrentSong();
+		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
-		PlayerAI::SetScoreData(PlayerAI::pScoreData);
+		PlayerAI::SetScoreData(PlayerAI::pScoreData, rowNow);
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		// Reset the wife/judge counter related visible stuff
@@ -409,16 +394,16 @@ ScreenGameplayReplay::ToggleReplayPause()
 
 		// Unpause
 		m_pSoundMusic->Play(false, &p);
-		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
-		UpdateSongPosition(0);
+		// GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
+		// UpdateSongPosition(0);
 		// SCREENMAN->SystemMessage("Unpaused Replay");
 	} else {
 		// Almost all of gameplay is based on the music moving.
 		// If the music is paused, nothing works.
 		// This is all we have to do.
-		m_pSoundMusic->Pause(newPause);
 		// SCREENMAN->SystemMessage("Paused Replay");
 	}
+	m_pSoundMusic->Pause(newPause);
 	GAMESTATE->SetPaused(newPause);
 }
 
