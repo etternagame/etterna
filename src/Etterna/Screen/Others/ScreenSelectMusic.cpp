@@ -1617,6 +1617,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Replay);
+		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
 		// we get timestamps not noterows when getting online replays from the
 		// site, since order is deterministic we'll just auto set the noterows
@@ -1631,7 +1632,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			  GAMESTATE->m_pCurSteps->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			// vector<int> ihatemylife;
-			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
 			auto nerv = nd.BuildAndGetNerv();
 			/* functionally dead code, may be removed -poco
 			if (!hs->GetChordCohesion()) {
@@ -1673,7 +1673,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			hs->SetOffsetVector(offsets);
 		}
 
-		PlayerAI::SetScoreData(hs);
+		PlayerAI::SetScoreData(hs, 0, &nd);
 
 		// prepare old mods to return to
 		const RString oldMods =

@@ -4,6 +4,7 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 
+class NoteData;
 class PlayerStageStats;
 class PlayerState;
 class TimingData;
@@ -53,7 +54,8 @@ class PlayerAI
 
 	// Set the pointer to a HighScore
 	static void SetScoreData(HighScore* pHighScore = pScoreData,
-							 int firstRow = 0);
+							 int firstRow = 0,
+							 NoteData* = nullptr);
 	static void ResetScoreData();
 
 	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);

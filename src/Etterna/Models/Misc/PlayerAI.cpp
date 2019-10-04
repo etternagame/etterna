@@ -68,14 +68,13 @@ PlayerAI::ResetScoreData()
 }
 
 void
-PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow)
+PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 {
 	bool successful = pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
-	m_ReplaySnapshotMap.clear();
 
 	if (!successful) {
 		return;
@@ -142,7 +141,15 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow)
 		}
 	}
 
+	// Misses don't always show up in Replay Data properly.
+	// We require the NoteData to validate the Judge count.
+	// If we don't have it, don't care.
+	if (pNoteData == nullptr)
+		return;
+
 	// Fill out the Snapshot map now that the other maps are not so out of order
+	// We leave out misses in this section because they aren't in the Replay
+	// Data
 	int tempJudgments[NUM_TapNoteScore] = { 0 };
 	int holdsDropped = 0;
 	for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
@@ -178,6 +185,80 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow)
 		}
 		rs.holdsDropped = holdsDropped;
 		m_ReplaySnapshotMap[*r] = rs;
+	}
+
+	// Now handle misses.
+	// For every row in notedata...
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*pNoteData, row)
+	{
+		// For every track in the row...
+		for (int track = 0; track < pNoteData->GetNumTracks(); track++) {
+			// Find the tapnote we are on
+			TapNote* pTN = NULL;
+			NoteData::iterator iter = pNoteData->FindTapNote(track, row);
+			DEBUG_ASSERT(iter != pNoteData->end(track));
+			pTN = &iter->second;
+
+			if (iter != pNoteData->end(track)) {
+				// It is impossible to "miss" these notes
+				if (pTN->type == TapNoteType_Mine ||
+					pTN->type == TapNoteType_Fake ||
+					pTN->type == TapNoteType_HoldTail ||
+					pTN->type == TapNoteType_AutoKeysound)
+					continue;
+				// If this tap is missing from the replay data, we count it as a
+				// miss.
+				if (m_ReplayTapMap.count(row) != 0) {
+					bool found = false;
+					for (auto& trr : m_ReplayTapMap[row]) {
+						if (trr.track == track)
+							found = true;
+					}
+					if (!found) {
+						tempJudgments[TNS_Miss]++;
+					}
+				} else {
+					tempJudgments[TNS_Miss]++;
+				}
+			}
+		}
+		// We have to update every single row with the new miss counts.
+		// This unfortunately takes more time.
+		// If current row is recorded in the snapshots, update the miss count
+		if (m_ReplaySnapshotMap.count(row) != 0) {
+			m_ReplaySnapshotMap[row].judgments[TNS_Miss] =
+			  tempJudgments[TNS_Miss];
+		} else {
+			// If the current row is after the last recorded row, make a new one
+			if (m_ReplaySnapshotMap.rbegin()->first < row) {
+				ReplaySnapshot rs;
+				FOREACH_ENUM(TapNoteScore, tns)
+				{
+					rs.judgments[tns] = tempJudgments[tns];
+				}
+				rs.holdsDropped = holdsDropped;
+				m_ReplaySnapshotMap[row] = rs;
+			}
+			// If the current row is before the earliest recorded row, make a
+			// new one
+			else if (m_ReplaySnapshotMap.begin()->first > row) {
+				ReplaySnapshot rs;
+				rs.judgments[TNS_Miss]++;
+				m_ReplaySnapshotMap[row] = rs;
+			} else // If the current row is in between recorded rows, copy an
+				   // older one
+			{
+				ReplaySnapshot rs;
+				const int prev = m_ReplaySnapshotMap.lower_bound(row)->first;
+				FOREACH_ENUM(TapNoteScore, tns)
+				{
+					rs.judgments[tns] =
+					  m_ReplaySnapshotMap[prev].judgments[tns];
+				}
+				rs.holdsDropped = m_ReplaySnapshotMap[prev].holdsDropped;
+				m_ReplaySnapshotMap[row] = rs;
+			}
+		}
 	}
 }
 
