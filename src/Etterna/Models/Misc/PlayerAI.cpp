@@ -67,7 +67,7 @@ PlayerAI::ResetScoreData()
 }
 
 void
-PlayerAI::SetScoreData(HighScore* pHighScore)
+PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow)
 {
 	bool successful = pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
@@ -94,6 +94,8 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	// in a map
 	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
 		if (fabsf(replayOffsetVector[i]) > 0.18f)
+			continue;
+		if (replayNoteRowVector[i] < firstRow)
 			continue;
 
 		TapReplayResult trr;
@@ -125,6 +127,9 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
 	for (size_t i = 0; i < replayHoldVector.size(); i++) {
+		if (replayHoldVector[i].row < firstRow)
+			continue;
+
 		// Create or append to the vector
 		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0) {
 			m_ReplayHoldMap[replayHoldVector[i].row].push_back(

@@ -51,7 +51,8 @@ class PlayerAI
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
 
 	// Set the pointer to a HighScore
-	static void SetScoreData(HighScore* pHighScore = pScoreData);
+	static void SetScoreData(HighScore* pHighScore = pScoreData,
+							 int firstRow = 0);
 	static void ResetScoreData();
 
 	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
