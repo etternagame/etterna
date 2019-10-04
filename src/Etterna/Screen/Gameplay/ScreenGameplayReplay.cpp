@@ -382,7 +382,7 @@ ScreenGameplayReplay::ToggleReplayPause()
 						  fSecondsToStartTransitioningOut);
 
 		RageSoundParams p;
-		p.m_StartSecond = fSeconds;
+		p.m_StartSecond = fSeconds - 0.25f;
 		p.m_fSpeed = rate;
 		if (fSecondsToStartFadingOutMusic <
 			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
