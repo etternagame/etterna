@@ -3105,6 +3105,15 @@ NoteDataUtil::DeleteRows(NoteData& nd, int iStartIndex, int iRowsToDelete)
 }
 
 void
+NoteDataUtil::RemoveAllButRange(NoteData& nd, int iStartIndex, int iEndIndex)
+{
+	ASSERT(abs(iStartIndex - iEndIndex) > 0);
+	nd.ClearRange(0, iStartIndex - 1);
+	nd.ClearRange(iEndIndex, MAX_NOTE_ROW);
+	nd.RevalidateATIs(vector<int>(), false);
+}
+
+void
 NoteDataUtil::RemoveAllTapsOfType(NoteData& ndInOut, TapNoteType typeToRemove)
 {
 	/* Be very careful when deleting the tap notes. Erasing elements from maps

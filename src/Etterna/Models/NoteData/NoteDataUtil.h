@@ -1,4 +1,4 @@
-﻿#ifndef NOTEDATAUTIL_H
+#ifndef NOTEDATAUTIL_H
 #define NOTEDATAUTIL_H
 
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
@@ -295,6 +295,9 @@ void
 InsertRows(NoteData& nd, int iStartIndex, int iRowsToShift);
 void
 DeleteRows(NoteData& nd, int iStartIndex, int iRowsToShift);
+
+void
+RemoveAllButRange(NoteData& nd, int iStartIndex, int iEndIndex);
 
 void
 RemoveAllTapsOfType(NoteData& ndInOut, TapNoteType typeToRemove);
