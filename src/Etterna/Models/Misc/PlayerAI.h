@@ -4,6 +4,7 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 
+class PlayerStageStats;
 class PlayerState;
 class TimingData;
 
@@ -92,6 +93,9 @@ class PlayerAI
 											  RadarValues& possibleRV);
 	// Find a tap at the given row and column
 	static bool IsTapAtRowAndColumn(int noteRow, int col);
+
+	// Fake the player stage stats using the current replay data
+	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss);
 };
 
 #endif

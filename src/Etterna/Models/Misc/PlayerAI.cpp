@@ -6,6 +6,7 @@
 #include "PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RadarValues.h"
+#include "PlayerStageStats.h"
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
@@ -564,4 +565,35 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 	rv[RadarCategory_Lifts] = liftsHit;
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
+}
+
+void
+PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
+{
+	// Radar values.
+	// The possible radar values have already been handled, so we just do the
+	// real values.
+	RadarValues rrv;
+	CalculateRadarValuesForReplay(rrv, pss->m_radarPossible);
+	pss->m_radarActual.Zero();
+	pss->m_radarActual += rrv;
+	pss->everusedautoplay = true;
+
+	// Judgments
+	for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
+		pss->m_iTapNoteScores[i] = pScoreData->GetTapNoteScore((TapNoteScore)i);
+	}
+	for (int i = 0; i < NUM_HoldNoteScore; i++) {
+		pss->m_iHoldNoteScores[i] =
+		  pScoreData->GetHoldNoteScore((HoldNoteScore)i);
+	}
+
+	// ReplayData
+	pss->m_HighScore = *pScoreData;
+	pss->CurWifeScore = pScoreData->GetWifeScore();
+	pss->m_fWifeScore = pScoreData->GetWifeScore();
+	pss->m_vNoteRowVector = pScoreData->GetNoteRowVector();
+	pss->m_vOffsetVector = pScoreData->GetOffsetVector();
+	pss->m_vTapNoteTypeVector = pScoreData->GetTapNoteTypeVector();
+	pss->m_vTrackVector = pScoreData->GetTrackVector();
 }
