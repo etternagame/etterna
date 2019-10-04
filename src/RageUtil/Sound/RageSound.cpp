@@ -442,8 +442,7 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	SOUNDMAN->StartMixing(this);
-	if (m_bPaused)
-		Pause(true);
+	Pause(m_bPaused);
 
 	//	LOG->Trace("StartPlaying %p finished (%s)", this,
 	// this->GetLoadedFilePath().c_str());
