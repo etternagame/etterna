@@ -201,6 +201,11 @@ ScreenGameplayReplay::Input(const InputEventPlus& input)
 void
 ScreenGameplayReplay::SaveStats()
 {
+	// Reload the replay data to make sure it is clean for calculations
+	PlayerAI::SetScoreData();
+	// Also the notedata
+	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
+
 	// We need to replace the newly created replay data with the actual old
 	// data Because to keep consistently lazy practices, we can just hack
 	// things together instead of fixing the real issue -poco
@@ -223,6 +228,8 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 		GAMESTATE->CancelStage();
 		return;
 	}
+
+	PlayerAI::SetPlayerStageStatsForReplay(m_vPlayerInfo.GetPlayerStageStats());
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 
