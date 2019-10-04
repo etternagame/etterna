@@ -55,6 +55,10 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
+	if (!GAMESTATE->m_bRestartedGameplay)
+		PlayerAI::ResetScoreData();
+	else
+		PlayerAI::SetScoreData();
 }
 
 void
