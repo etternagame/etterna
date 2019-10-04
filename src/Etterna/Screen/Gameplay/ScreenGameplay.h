@@ -113,6 +113,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void RestartGameplay();
 
+	virtual void SetupNoteDataFromRow(Steps* pSteps, int row);
+
 	virtual void InitSongQueues();
 
 	/** @brief The different game states of ScreenGameplay. */
