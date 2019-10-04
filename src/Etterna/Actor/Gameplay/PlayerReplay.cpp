@@ -215,9 +215,9 @@ PlayerReplay::Update(float fDeltaTime)
 
 	UpdateVisibleParts();
 
-	// This variable doesnt even do anything right now
-	// if (m_bPaused)
-	//	return;
+	// Sure, why not?
+	if (GAMESTATE->GetPaused())
+		return;
 
 	// Step with offsets if we have column data.
 	if (PlayerAI::pScoreData->GetReplayType() == 2) {
@@ -225,6 +225,8 @@ PlayerReplay::Update(float fDeltaTime)
 			vector<TapReplayResult> trrVector =
 			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
 			for (TapReplayResult& trr : trrVector) {
+				// LOG->Trace("\tPassing row %d pressed on %d", iSongRow,
+				// trr.row);
 				Step(trr.track, -1, now, false, false, 0.f, trr.row);
 			}
 		}
