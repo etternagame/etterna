@@ -210,18 +210,6 @@ ScreenGameplayReplay::SaveStats()
 	// Also the notedata
 	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
 
-	// We need to replace the newly created replay data with the actual old
-	// data Because to keep consistently lazy practices, we can just hack
-	// things together instead of fixing the real issue -poco
-	// (doing this fixes a lot of issues in the eval screen)
-	PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
-	HighScore* hs = PlayerAI::pScoreData;
-	pss->m_vHoldReplayData = hs->GetHoldReplayDataVector();
-	pss->m_vNoteRowVector = hs->GetNoteRowVector();
-	pss->m_vOffsetVector = hs->GetOffsetVector();
-	pss->m_vTapNoteTypeVector = hs->GetTapNoteTypeVector();
-	pss->m_vTrackVector = hs->GetTrackVector();
-
 	ScreenGameplay::SaveStats();
 }
 
@@ -233,6 +221,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 		return;
 	}
 
+	// Makes sure all PlayerStageStats discrepancies are corrected forcibly.
 	PlayerAI::SetPlayerStageStatsForReplay(m_vPlayerInfo.GetPlayerStageStats());
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);

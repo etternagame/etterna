@@ -673,6 +673,7 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	pss->m_HighScore = *pScoreData;
 	pss->CurWifeScore = pScoreData->GetWifeScore();
 	pss->m_fWifeScore = pScoreData->GetWifeScore();
+	pss->m_vHoldReplayData = pScoreData->GetHoldReplayDataVector();
 	pss->m_vNoteRowVector = pScoreData->GetNoteRowVector();
 	pss->m_vOffsetVector = pScoreData->GetOffsetVector();
 	pss->m_vTapNoteTypeVector = pScoreData->GetTapNoteTypeVector();
