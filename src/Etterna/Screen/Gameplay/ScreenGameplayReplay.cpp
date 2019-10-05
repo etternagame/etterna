@@ -128,7 +128,7 @@ ScreenGameplayReplay::Update(float fDeltaTime)
 
 				if (GAMESTATE->m_Position.m_fMusicSeconds >=
 					  fSecondsToStartTransitioningOut &&
-					!m_NextSong.IsTransitioning())
+					!m_NextSong.IsTransitioning() && !GAMESTATE->GetPaused())
 					this->PostScreenMessage(SM_NotesEnded, 0);
 			}
 		}
