@@ -126,6 +126,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
+	// Only present in replays with column data.
 	for (size_t i = 0; i < replayHoldVector.size(); i++) {
 		if (replayHoldVector[i].row < firstRow)
 			continue;
@@ -151,7 +152,9 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	// We leave out misses in this section because they aren't in the Replay
 	// Data
 	int tempJudgments[NUM_TapNoteScore] = { 0 };
-	int holdsDropped = 0;
+	int tempHNS[NUM_HoldNoteScore] = { 0 };
+
+	// Iterate over all the noterows we know are in the Replay Data
 	for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
 		// Check for taps and mines
 		if (m_ReplayTapMap.count(*r) != 0) {
@@ -173,21 +176,24 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			for (auto instance = m_ReplayHoldMap[*r].begin();
 				 instance != m_ReplayHoldMap[*r].end();
 				 instance++) {
-				holdsDropped++;
+				tempHNS[HNS_LetGo]++;
 			}
 		}
 
 		// Make the struct and cram it in there
 		ReplaySnapshot rs;
 		FOREACH_ENUM(TapNoteScore, tns)
-		{
-			rs.judgments[tns] = tempJudgments[tns];
-		}
-		rs.holdsDropped = holdsDropped;
+		rs.judgments[tns] = tempJudgments[tns];
+		FOREACH_ENUM(HoldNoteScore, hns)
+		rs.hns[hns] = tempHNS[hns];
 		m_ReplaySnapshotMap[*r] = rs;
 	}
 
-	// Now handle misses.
+	// map tracks to rows that begin a hold
+	vector<int> tempHoldsByTrack;
+	tempHoldsByTrack.reserve(pNoteData->GetNumTracks());
+
+	// Now handle misses and holds.
 	// For every row in notedata...
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*pNoteData, row)
 	{
@@ -200,6 +206,18 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			pTN = &iter->second;
 
 			if (iter != pNoteData->end(track)) {
+				// Deal with holds here
+				if (pTN->type == TapNoteType_HoldTail) {
+					int startrow = tempHoldsByTrack.at(track);
+					if (IsHoldDroppedInRowRangeForTrack(startrow, row, track)) {
+						tempHNS[HNS_LetGo]++;
+					} else {
+						tempHNS[HNS_Held]++;
+					}
+				} else if (pTN->type == TapNoteType_HoldHead) {
+					tempHoldsByTrack.at(track) = row;
+				}
+
 				// It is impossible to "miss" these notes
 				if (pTN->type == TapNoteType_Mine ||
 					pTN->type == TapNoteType_Fake ||
@@ -222,21 +240,22 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 				}
 			}
 		}
-		// We have to update every single row with the new miss counts.
+		// We have to update every single row with the new miss & hns counts.
 		// This unfortunately takes more time.
 		// If current row is recorded in the snapshots, update the miss count
 		if (m_ReplaySnapshotMap.count(row) != 0) {
 			m_ReplaySnapshotMap[row].judgments[TNS_Miss] =
 			  tempJudgments[TNS_Miss];
+			FOREACH_ENUM(HoldNoteScore, hns)
+			m_ReplaySnapshotMap[row].hns[hns] = tempHNS[hns];
 		} else {
 			// If the current row is after the last recorded row, make a new one
 			if (m_ReplaySnapshotMap.rbegin()->first < row) {
 				ReplaySnapshot rs;
 				FOREACH_ENUM(TapNoteScore, tns)
-				{
-					rs.judgments[tns] = tempJudgments[tns];
-				}
-				rs.holdsDropped = holdsDropped;
+				rs.judgments[tns] = tempJudgments[tns];
+				FOREACH_ENUM(HoldNoteScore, hns)
+				rs.hns[hns] = tempHNS[hns];
 				m_ReplaySnapshotMap[row] = rs;
 			}
 			// If the current row is before the earliest recorded row, make a
@@ -251,11 +270,9 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 				ReplaySnapshot rs;
 				const int prev = m_ReplaySnapshotMap.lower_bound(row)->first;
 				FOREACH_ENUM(TapNoteScore, tns)
-				{
-					rs.judgments[tns] =
-					  m_ReplaySnapshotMap[prev].judgments[tns];
-				}
-				rs.holdsDropped = m_ReplaySnapshotMap[prev].holdsDropped;
+				rs.judgments[tns] = m_ReplaySnapshotMap[prev].judgments[tns];
+				FOREACH_ENUM(HoldNoteScore, hns)
+				rs.hns[hns] = m_ReplaySnapshotMap[prev].hns[hns];
 				m_ReplaySnapshotMap[row] = rs;
 			}
 		}
@@ -389,6 +406,35 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 		}
 	}
 	return false;
+}
+
+bool
+PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
+{
+	// 2 is a replay with column data
+	if (pScoreData->GetReplayType() == 2) {
+		// Go over all holds in Replay Data
+		for (auto hiter = m_ReplayHoldMap.lower_bound(firstRow);
+			 hiter != m_ReplayHoldMap.end();
+			 hiter++) {
+			// If this row is before the start, skip it
+			if (hiter->first < firstRow)
+				continue;
+			// If this row is after the end, skip it
+			else if (hiter->first > endRow)
+				return false;
+			// This row might work. Check what tracks might have dropped.
+			for (auto hrr : hiter->second) {
+				if (hrr.track == track)
+					return true;
+			}
+		}
+		// Iteration finished without finding a drop.
+		return false;
+	} else {
+		// Replay Data doesn't contain hold data.
+		return false;
+	}
 }
 
 bool

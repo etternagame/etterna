@@ -17,8 +17,8 @@ struct ReplaySnapshot
 {
 	// Contains Marv->Miss and Mines Hit
 	int judgments[NUM_TapNoteScore] = { 0 };
-	// Holds dropped
-	int holdsDropped = 0;
+	// Hold note scores
+	int hns[NUM_HoldNoteScore] = { 0 };
 };
 
 // also known as ReplayManager
@@ -63,6 +63,11 @@ class PlayerAI
 	  const PlayerState* pPlayerState,
 	  float fNoteOffset);
 	static bool DetermineIfHoldDropped(int noteRow, int col);
+	// Returns true or false if the given range contains a dropped hold on the
+	// track
+	static bool IsHoldDroppedInRowRangeForTrack(int firstRow,
+												int endRow,
+												int track);
 	// Returns the column that needs to be tapped.
 	// Returns -1 if no column needs to be tapped.
 	static int DetermineNextTapColumn(int noteRow,
