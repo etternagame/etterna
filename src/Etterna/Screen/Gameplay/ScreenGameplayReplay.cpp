@@ -17,6 +17,8 @@
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/ScoreKeepers/ScoreKeeper.h"
+#include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
@@ -321,6 +323,20 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
 	}
 
+	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const int rowNow = BeatToNoteRow(fSongBeat);
+	// This breaks some oop standard in some book
+	PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
+	ReplaySnapshot rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+	FOREACH_ENUM(TapNoteScore, tns)
+	{
+		pss->m_iTapNoteScores[tns] = rs.judgments[tns];
+	}
+	FOREACH_ENUM(HoldNoteScore, hns)
+	{
+		pss->m_iHoldNoteScores[hns] = rs.hns[hns];
+	}
+
 	// Go
 	// m_pSoundMusic->Play(false, &p);
 	// But only for like 1 frame if we are paused
@@ -358,6 +374,17 @@ ScreenGameplayReplay::ToggleReplayPause()
 		PlayerAI::SetScoreData(PlayerAI::pScoreData, rowNow);
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
+		PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
+		ReplaySnapshot rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			pss->m_iTapNoteScores[tns] = rs.judgments[tns];
+		}
+		FOREACH_ENUM(HoldNoteScore, hns)
+		{
+			pss->m_iHoldNoteScores[hns] = rs.hns[hns];
+		}
+
 		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
@@ -372,7 +399,33 @@ ScreenGameplayReplay::ToggleReplayPause()
 			msg.SetParam("WifeDifferential", 0);
 			msg.SetParam("TotalPercent", 0);
 			msg.SetParam("Type", RString("Tap"));
-			msg.SetParam("Val", 0);
+			msg.SetParam("Val", pss->m_iTapNoteScores[tns]);
+			MESSAGEMAN->Broadcast(msg);
+		}
+		// We have to hackily only allow LetGo and Held through
+		// because til death decided that it should be this way
+		for (HoldNoteScore hns = HNS_LetGo; hns <= HNS_Held;
+			 hns = static_cast<HoldNoteScore>(hns + 1)) {
+			Message msg = Message("Judgment");
+			msg.SetParam("Player", 0);
+			msg.SetParam("MultiPlayer", 0);
+			msg.SetParam("WifePercent", 0);
+			msg.SetParam("Player", 0);
+			msg.SetParam("FirstTrack", 0);
+			msg.SetParam("CurWifeScore", 0);
+			msg.SetParam("MaxWifeScore", 0);
+			msg.SetParam("WifeDifferential", 0);
+			msg.SetParam("TotalPercent", 0);
+			msg.SetParam("FirstTrack", 0);
+			msg.SetParam(
+			  "NumTracks",
+			  static_cast<int>(
+				m_vPlayerInfo.m_pPlayer->GetNoteData().GetNumTracks()));
+			msg.SetParam("TapNoteScore", TapNoteScore_Invalid);
+			msg.SetParam("HoldNoteScore", HoldNoteScore_Invalid);
+			msg.SetParam("Judgment", hns);
+			msg.SetParam("Type", std::string("Hold"));
+			msg.SetParam("Val", pss->m_iHoldNoteScores[hns]);
 			MESSAGEMAN->Broadcast(msg);
 		}
 
