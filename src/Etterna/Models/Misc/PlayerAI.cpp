@@ -171,26 +171,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 				}
 			}
 		}
-		// Check for dropped holds and rolls
-		if (m_ReplayHoldMap.count(*r) != 0) {
-			for (auto instance = m_ReplayHoldMap[*r].begin();
-				 instance != m_ReplayHoldMap[*r].end();
-				 instance++) {
-				tempHNS[HNS_LetGo]++;
-			}
-		}
 
 		// Make the struct and cram it in there
+		// ignore holds for now since the following block takes care of them
 		ReplaySnapshot rs;
 		FOREACH_ENUM(TapNoteScore, tns)
 		rs.judgments[tns] = tempJudgments[tns];
-		FOREACH_ENUM(HoldNoteScore, hns)
-		rs.hns[hns] = tempHNS[hns];
 		m_ReplaySnapshotMap[*r] = rs;
 	}
-
-	// map tracks to rows that begin a hold
-	vector<int> tempHoldsByTrack(pNoteData->GetNumTracks());
 
 	// Now handle misses and holds.
 	// For every row in notedata...
@@ -206,21 +194,20 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 
 			if (iter != pNoteData->end(track)) {
 				// Deal with holds here
-				if (pTN->type == TapNoteType_HoldTail) {
-					int startrow = tempHoldsByTrack[track];
-					if (IsHoldDroppedInRowRangeForTrack(startrow, row, track)) {
+				if (pTN->type == TapNoteType_HoldHead) {
+					if (IsHoldDroppedInRowRangeForTrack(
+						  row, row + pTN->iDuration, track)) {
 						tempHNS[HNS_LetGo]++;
 					} else {
 						tempHNS[HNS_Held]++;
 					}
-				} else if (pTN->type == TapNoteType_HoldHead) {
-					tempHoldsByTrack[track] = row;
 				}
 
+				// Deal with misses here
 				// It is impossible to "miss" these notes
+				// TapNoteType_HoldTail does not exist in NoteData
 				if (pTN->type == TapNoteType_Mine ||
 					pTN->type == TapNoteType_Fake ||
-					pTN->type == TapNoteType_HoldTail ||
 					pTN->type == TapNoteType_AutoKeysound)
 					continue;
 				// If this tap is missing from the replay data, we count it as a
@@ -241,7 +228,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		}
 		// We have to update every single row with the new miss & hns counts.
 		// This unfortunately takes more time.
-		// If current row is recorded in the snapshots, update the miss count
+		// If current row is recorded in the snapshots, update the counts
 		if (m_ReplaySnapshotMap.count(row) != 0) {
 			m_ReplaySnapshotMap[row].judgments[TNS_Miss] =
 			  tempJudgments[TNS_Miss];
@@ -276,13 +263,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			}
 		}
 	}
-	// The final output here has 2 minor issues:
-	// - Holds completely missed are not counted as HNS_Missed
-	// - Holds completed are not placed in Snapshot until after they are
-	// complete
-	// However, completely missed holds are present in replay data.
-	// To solve the second issue: make replay mode automatically start holds
-	// if the hold head is not present in the original replay data
+	/* The final output here has 2 minor issues:
+	 * - Holds completely missed are not counted as HNS_Missed
+	 * - Holds completed are not placed in Snapshot until after they are
+	 * complete
+	 * However, completely missed holds are present in replay data.
+	 * The second issue does not cause miscounts, but does cause butchered holds
+	 * to be missed (but not judged)
+	 */
 }
 
 void
@@ -390,7 +378,21 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 	}
 
 	// Otherwise just go ahead and return what we want
-	const int foundRow = m_ReplaySnapshotMap.lower_bound(row)->first;
+	auto lb = m_ReplaySnapshotMap.lower_bound(row);
+	int foundRow = lb->first;
+
+	// lower_bound gets an iter to the next element >= the given key
+	// and we have to decrement if it is greater than the key (because we want
+	// that)
+	if (foundRow > row) {
+		if (lb != m_ReplaySnapshotMap.begin()) {
+			lb--;
+			foundRow = lb->first;
+		} else {
+			ReplaySnapshot rs;
+			return rs;
+		}
+	}
 	return m_ReplaySnapshotMap[foundRow];
 }
 
