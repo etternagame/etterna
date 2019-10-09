@@ -190,8 +190,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	}
 
 	// map tracks to rows that begin a hold
-	vector<int> tempHoldsByTrack;
-	tempHoldsByTrack.reserve(pNoteData->GetNumTracks());
+	vector<int> tempHoldsByTrack(pNoteData->GetNumTracks());
 
 	// Now handle misses and holds.
 	// For every row in notedata...
@@ -208,14 +207,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			if (iter != pNoteData->end(track)) {
 				// Deal with holds here
 				if (pTN->type == TapNoteType_HoldTail) {
-					int startrow = tempHoldsByTrack.at(track);
+					int startrow = tempHoldsByTrack[track];
 					if (IsHoldDroppedInRowRangeForTrack(startrow, row, track)) {
 						tempHNS[HNS_LetGo]++;
 					} else {
 						tempHNS[HNS_Held]++;
 					}
 				} else if (pTN->type == TapNoteType_HoldHead) {
-					tempHoldsByTrack.at(track) = row;
+					tempHoldsByTrack[track] = row;
 				}
 
 				// It is impossible to "miss" these notes
@@ -277,6 +276,13 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			}
 		}
 	}
+	// The final output here has 2 minor issues:
+	// - Holds completely missed are not counted as HNS_Missed
+	// - Holds completed are not placed in Snapshot until after they are
+	// complete
+	// However, completely missed holds are present in replay data.
+	// To solve the second issue: make replay mode automatically start holds
+	// if the hold head is not present in the original replay data
 }
 
 void
