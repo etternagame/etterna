@@ -220,6 +220,12 @@ Player::GetWindowSeconds(TimingWindow tw)
 	return fSecs;
 }
 
+float
+Player::GetTimingWindowScale()
+{
+	return m_fTimingWindowScale;
+}
+
 Player::Player(NoteData& nd, bool bVisibleParts)
   : m_NoteData(nd)
 {

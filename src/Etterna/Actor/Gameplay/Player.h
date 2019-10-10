@@ -120,6 +120,7 @@ class Player : public ActorFrame
 
 	static float GetMaxStepDistanceSeconds();
 	static float GetWindowSeconds(TimingWindow tw);
+	static float GetTimingWindowScale();
 	const NoteData& GetNoteData() const { return m_NoteData; }
 	bool HasVisibleParts() const { return m_pNoteField != NULL; }
 
