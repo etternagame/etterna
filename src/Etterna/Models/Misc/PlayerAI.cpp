@@ -771,10 +771,10 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 	}
 
 	// Take into account dropped holds and full misses
-	ReplaySnapshot* rs = &GetReplaySnapshotForNoterow(row);
-	out.first += rs->judgments[TNS_Miss] * -8.f;
-	out.first += rs->hns[HNS_LetGo] * -8.f;
-	out.second += rs->judgments[TNS_Miss] * 2.f;
+	ReplaySnapshot rs = GetReplaySnapshotForNoterow(row);
+	out.first += rs.judgments[TNS_Miss] * -8.f;
+	out.first += rs.hns[HNS_LetGo] * -8.f;
+	out.second += rs.judgments[TNS_Miss] * 2.f;
 
 	return out;
 }
