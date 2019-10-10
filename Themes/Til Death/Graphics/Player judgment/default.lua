@@ -55,7 +55,7 @@ local t =
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)
-		if param.HoldNoteScore then
+		if param.HoldNoteScore or param.FromReplay then
 			return
 		end
 		local iNumStates = c.Judgment:GetNumStates()

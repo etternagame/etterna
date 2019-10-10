@@ -384,20 +384,29 @@ ScreenGameplayReplay::ToggleReplayPause()
 		{
 			pss->m_iHoldNoteScores[hns] = rs.hns[hns];
 		}
+		PlayerState* ps = m_vPlayerInfo.GetPlayerState();
+		m_vPlayerInfo.m_pPlayer->curwifescore = rs.curwifescore;
+		m_vPlayerInfo.m_pPlayer->maxwifescore = rs.maxwifescore;
 
 		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
 			Message msg = Message("Judgment");
+			msg.SetParam("FromReplay", true);
 			msg.SetParam("Judgment", tns);
-			msg.SetParam("WifePercent", 0);
+			msg.SetParam("WifePercent",
+						 100 * rs.curwifescore / rs.maxwifescore);
 			msg.SetParam("Player", 0);
 			msg.SetParam("TapNoteScore", tns);
 			msg.SetParam("FirstTrack", 0);
-			msg.SetParam("CurWifeScore", 0);
-			msg.SetParam("MaxWifeScore", 0);
-			msg.SetParam("WifeDifferential", 0);
-			msg.SetParam("TotalPercent", 0);
+			msg.SetParam("CurWifeScore", rs.curwifescore);
+			msg.SetParam("MaxWifeScore", rs.maxwifescore);
+			msg.SetParam("WifeDifferential",
+						 rs.curwifescore -
+						   rs.maxwifescore * ps->playertargetgoal);
+			msg.SetParam("TotalPercent",
+						 100 * rs.curwifescore /
+						   m_vPlayerInfo.m_pPlayer->totalwifescore);
 			msg.SetParam("Type", RString("Tap"));
 			msg.SetParam("Val", pss->m_iTapNoteScores[tns]);
 			MESSAGEMAN->Broadcast(msg);
@@ -407,15 +416,20 @@ ScreenGameplayReplay::ToggleReplayPause()
 		for (HoldNoteScore hns = HNS_LetGo; hns <= HNS_Held;
 			 hns = static_cast<HoldNoteScore>(hns + 1)) {
 			Message msg = Message("Judgment");
+			msg.SetParam("FromReplay", true);
 			msg.SetParam("Player", 0);
 			msg.SetParam("MultiPlayer", 0);
-			msg.SetParam("WifePercent", 0);
-			msg.SetParam("Player", 0);
+			msg.SetParam("WifePercent",
+						 100 * rs.curwifescore / rs.maxwifescore);
 			msg.SetParam("FirstTrack", 0);
-			msg.SetParam("CurWifeScore", 0);
-			msg.SetParam("MaxWifeScore", 0);
-			msg.SetParam("WifeDifferential", 0);
-			msg.SetParam("TotalPercent", 0);
+			msg.SetParam("CurWifeScore", rs.curwifescore);
+			msg.SetParam("MaxWifeScore", rs.maxwifescore);
+			msg.SetParam("WifeDifferential",
+						 rs.curwifescore -
+						   rs.maxwifescore * ps->playertargetgoal);
+			msg.SetParam("TotalPercent",
+						 100 * rs.curwifescore /
+						   m_vPlayerInfo.m_pPlayer->totalwifescore);
 			msg.SetParam("FirstTrack", 0);
 			msg.SetParam(
 			  "NumTracks",
