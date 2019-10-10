@@ -234,6 +234,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			  tempJudgments[TNS_Miss];
 			FOREACH_ENUM(HoldNoteScore, hns)
 			m_ReplaySnapshotMap[row].hns[hns] = tempHNS[hns];
+
 		} else {
 			// If the current row is after the last recorded row, make a new one
 			if (m_ReplaySnapshotMap.rbegin()->first < row) {
@@ -254,11 +255,15 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 				   // older one
 			{
 				ReplaySnapshot rs;
-				const int prev = m_ReplaySnapshotMap.lower_bound(row)->first;
+				auto prev = m_ReplaySnapshotMap.lower_bound(row);
+				prev--;
+				// it is expected at this point that prev is not somehow outside
+				// the range if it is, we have bigger problems
 				FOREACH_ENUM(TapNoteScore, tns)
-				rs.judgments[tns] = m_ReplaySnapshotMap[prev].judgments[tns];
+				rs.judgments[tns] =
+				  m_ReplaySnapshotMap[prev->first].judgments[tns];
 				FOREACH_ENUM(HoldNoteScore, hns)
-				rs.hns[hns] = m_ReplaySnapshotMap[prev].hns[hns];
+				rs.hns[hns] = m_ReplaySnapshotMap[prev->first].hns[hns];
 				m_ReplaySnapshotMap[row] = rs;
 			}
 		}
@@ -271,6 +276,17 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	 * The second issue does not cause miscounts, but does cause butchered holds
 	 * to be missed (but not judged)
 	 */
+
+	const float ts = Player::GetTimingWindowScale();
+	// now update the wifescore values for each snapshot.
+	// wanna see me make an algorithm exponentially slower?
+	for (auto it = m_ReplaySnapshotMap.begin(); it != m_ReplaySnapshotMap.end();
+		 it++) {
+		pair<float, float> cwsmws = GetWifeScoreForRow(it->first, ts);
+		m_ReplaySnapshotMap[it->first].curwifescore = cwsmws.first;
+		m_ReplaySnapshotMap[it->first].maxwifescore = cwsmws.second;
+	}
+	// wanna see me do it again?
 }
 
 void
@@ -732,4 +748,33 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	pss->m_vOffsetVector = pScoreData->GetOffsetVector();
 	pss->m_vTapNoteTypeVector = pScoreData->GetTapNoteTypeVector();
 	pss->m_vTrackVector = pScoreData->GetTrackVector();
+}
+
+pair<float, float>
+PlayerAI::GetWifeScoreForRow(int row, float ts)
+{
+	// curwifescore, maxwifescore
+	pair<float, float> out = { 0.f, 0.f };
+
+	// Handle basic offset calculating and mines
+	for (auto it = m_ReplayTapMap.begin();
+		 it != m_ReplayTapMap.end() && it->first <= row;
+		 it++) {
+		for (auto& trr : it->second) {
+			if (trr.type == TapNoteType_Mine) {
+				out.first -= 8.f;
+			} else {
+				out.first += wife2(trr.offset, ts);
+				out.second += 2.f;
+			}
+		}
+	}
+
+	// Take into account dropped holds and full misses
+	ReplaySnapshot* rs = &GetReplaySnapshotForNoterow(row);
+	out.first += rs->judgments[TNS_Miss] * -8.f;
+	out.first += rs->hns[HNS_LetGo] * -8.f;
+	out.second += rs->judgments[TNS_Miss] * 2.f;
+
+	return out;
 }

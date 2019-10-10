@@ -19,6 +19,8 @@ struct ReplaySnapshot
 	int judgments[NUM_TapNoteScore] = { 0 };
 	// Hold note scores
 	int hns[NUM_HoldNoteScore] = { 0 };
+	float curwifescore = 0.f;
+	float maxwifescore = 0.f;
 };
 
 // also known as ReplayManager
@@ -103,6 +105,9 @@ class PlayerAI
 
 	// Fake the player stage stats using the current replay data
 	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss);
+
+	// Calculate the Wifescore for the given position in replay data
+	static pair<float, float> GetWifeScoreForRow(int row, float ts);
 };
 
 #endif
