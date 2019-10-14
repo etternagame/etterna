@@ -2121,6 +2121,10 @@ Player::Step(int col,
 			pTN->type != TapNoteType_Lift)
 			return;
 
+		// Fakes.
+		if (pTN->type == TapNoteType_Fake)
+			return;
+
 		switch (m_pPlayerState->m_PlayerController) {
 			case PC_HUMAN:
 				switch (pTN->type) {
