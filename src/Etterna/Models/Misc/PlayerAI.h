@@ -65,11 +65,11 @@ class PlayerAI
 	  const PlayerState* pPlayerState,
 	  float fNoteOffset);
 	static bool DetermineIfHoldDropped(int noteRow, int col);
-	// Returns true or false if the given range contains a dropped hold on the
-	// track
-	static bool IsHoldDroppedInRowRangeForTrack(int firstRow,
-												int endRow,
-												int track);
+	// Returns the row of the dropped hold if the given range contains a dropped
+	// hold on the track Returns -1 if no dropped hold is in range.
+	static int IsHoldDroppedInRowRangeForTrack(int firstRow,
+											   int endRow,
+											   int track);
 	// Returns the column that needs to be tapped.
 	// Returns -1 if no column needs to be tapped.
 	static int DetermineNextTapColumn(int noteRow,

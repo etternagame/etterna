@@ -154,6 +154,10 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	int tempJudgments[NUM_TapNoteScore] = { 0 };
 	int tempHNS[NUM_HoldNoteScore] = { 0 };
 
+	// Copy of the main hold map
+	// Delete the values as we go on to make sure they get counted
+	map<int, vector<HoldReplayResult>> m_unjudgedholds(m_ReplayHoldMap);
+
 	// Iterate over all the noterows we know are in the Replay Data
 	for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
 		// Check for taps and mines
@@ -195,12 +199,44 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 			if (iter != pNoteData->end(track)) {
 				// Deal with holds here
 				if (pTN->type == TapNoteType_HoldHead) {
-					if (IsHoldDroppedInRowRangeForTrack(
-						  row, row + pTN->iDuration, track)) {
+					int isDropped = IsHoldDroppedInRowRangeForTrack(
+					  row, row + pTN->iDuration, track);
+					if (isDropped != -1) {
 						tempHNS[HNS_LetGo]++;
+
+						// erase the hold from the mapping of unjudged holds
+						for (int i = 0; i < m_unjudgedholds[isDropped].size();
+							 i++) {
+							if (m_unjudgedholds[isDropped][i].track == track) {
+								m_unjudgedholds[isDropped].erase(
+								  m_unjudgedholds[isDropped].begin() + i);
+							}
+						}
+						if (m_unjudgedholds[isDropped].empty())
+							m_unjudgedholds.erase(isDropped);
 					} else {
 						tempHNS[HNS_Held]++;
 					}
+				}
+
+				// See if we passed the earliest dropped hold by now
+				// This catches issues where a hold is missed completely
+				// and the hold was short enough to bug out
+				// and the reported row of the dropped hold is weirdly placed
+				auto firstUnjudgedHold = m_unjudgedholds.begin();
+				if (firstUnjudgedHold != m_unjudgedholds.end()) {
+					auto hrrs = firstUnjudgedHold->second;
+					for (int i = 0; i < hrrs.size(); i++) {
+						if (hrrs[i].track == track) {
+							m_unjudgedholds[firstUnjudgedHold->first].erase(
+							  m_unjudgedholds[firstUnjudgedHold->first]
+								.begin() +
+							  i);
+							tempHNS[HNS_LetGo]++;
+						}
+					}
+					if (m_unjudgedholds[firstUnjudgedHold->first].empty())
+						m_unjudgedholds.erase(firstUnjudgedHold->first);
 				}
 
 				// Deal with misses here
@@ -432,7 +468,7 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 	return false;
 }
 
-bool
+int
 PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 {
 	// 2 is a replay with column data
@@ -446,18 +482,18 @@ PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 				continue;
 			// If this row is after the end, skip it
 			else if (hiter->first > endRow)
-				return false;
+				return -1;
 			// This row might work. Check what tracks might have dropped.
 			for (auto hrr : hiter->second) {
 				if (hrr.track == track)
-					return true;
+					return hiter->first;
 			}
 		}
 		// Iteration finished without finding a drop.
-		return false;
+		return -1;
 	} else {
 		// Replay Data doesn't contain hold data.
-		return false;
+		return -1;
 	}
 }
 
