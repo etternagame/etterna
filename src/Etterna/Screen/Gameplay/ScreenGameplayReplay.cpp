@@ -353,18 +353,17 @@ ScreenGameplayReplay::ToggleReplayPause()
 	bool oldPause = GAMESTATE->GetPaused();
 	// True if we are becoming paused
 	bool newPause = !GAMESTATE->GetPaused();
+	RageTimer tm;
+
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
+	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const int rowNow = BeatToNoteRow(fSongBeat);
 
 	// We are leaving pause mode
 	if (oldPause) {
 		m_pSoundMusic->Stop();
-		RageTimer tm;
-
-		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
-		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
-		Steps* pSteps = GAMESTATE->m_pCurSteps;
-		const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
-		const int rowNow = BeatToNoteRow(fSongBeat);
 
 		// Restart the stage, technically (This will cause a lot of lag if there
 		// are a lot of notes.)
@@ -458,6 +457,7 @@ ScreenGameplayReplay::ToggleReplayPause()
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 		}
 		p.StopMode = RageSoundParams::M_CONTINUE;
+		p.m_bAccurateSync = true;
 
 		// Unpause
 		m_pSoundMusic->Play(false, &p);
@@ -469,6 +469,21 @@ ScreenGameplayReplay::ToggleReplayPause()
 		// If the music is paused, nothing works.
 		// This is all we have to do.
 		// SCREENMAN->SystemMessage("Paused Replay");
+		// Set up the stage music to current params, simply
+		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
+		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
+						  fSecondsToStartTransitioningOut);
+		RageSoundParams p;
+		p.m_fSpeed = rate;
+		if (fSecondsToStartFadingOutMusic <
+			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
+								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+		}
+		p.StopMode = RageSoundParams::M_CONTINUE;
+		p.m_bAccurateSync = false;
+		m_pSoundMusic->SetParams(p);
 	}
 	m_pSoundMusic->Pause(newPause);
 	GAMESTATE->SetPaused(newPause);
