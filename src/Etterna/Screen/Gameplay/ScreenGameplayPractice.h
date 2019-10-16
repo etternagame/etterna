@@ -32,6 +32,9 @@ class ScreenGameplayPractice : public ScreenGameplay
 	void SetPracticeSongPosition(float newPositionSeconds);
 	// Toggle pause
 	void TogglePracticePause();
+
+  protected:
+	void SetupNoteDataFromRow(Steps* pSteps, int row) override;
 };
 
 #endif

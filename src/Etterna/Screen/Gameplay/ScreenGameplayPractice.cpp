@@ -118,6 +118,53 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 }
 
 void
+ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps, int row)
+{
+	NoteData originalNoteData;
+	pSteps->GetNoteData(originalNoteData);
+
+	const Style* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+	NoteData ndTransformed;
+	pStyle->GetTransformedNoteDataForStyle(
+	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+
+	// load player
+	{
+		m_vPlayerInfo.m_NoteData = ndTransformed;
+		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
+										  TapNoteType_AutoKeysound);
+		m_vPlayerInfo.m_pPlayer->Load();
+	}
+
+	// load auto keysounds
+	{
+		NoteData nd = ndTransformed;
+		NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
+		m_AutoKeysounds.Load(m_vPlayerInfo.GetStepsAndTrailIndex(), nd);
+	}
+
+	{
+		RString sType;
+		switch (GAMESTATE->m_SongOptions.GetCurrent().m_SoundEffectType) {
+			case SoundEffectType_Off:
+				sType = "SoundEffectControl_Off";
+				break;
+			case SoundEffectType_Speed:
+				sType = "SoundEffectControl_Speed";
+				break;
+			case SoundEffectType_Pitch:
+				sType = "SoundEffectControl_Pitch";
+				break;
+			default:
+				break;
+		}
+
+		m_vPlayerInfo.m_SoundEffectControl.Load(
+		  sType, m_vPlayerInfo.GetPlayerState(), &m_vPlayerInfo.m_NoteData);
+	}
+}
+
+void
 ScreenGameplayPractice::TogglePracticePause()
 {
 	// True if we were paused before now
@@ -149,8 +196,8 @@ ScreenGameplayPractice::TogglePracticePause()
 		// Go
 		m_pSoundMusic->Play(false, &p);
 	} else {
-		m_pSoundMusic->Pause(newPause);
 	}
+	m_pSoundMusic->Pause(newPause);
 	GAMESTATE->SetPaused(newPause);
 }
 
