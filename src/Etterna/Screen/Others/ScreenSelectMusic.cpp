@@ -1607,6 +1607,17 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 
+		// collect the noterows/timestamps early
+		// and abort if we shouldn't continue
+		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto noterows = hs->GetNoteRowVector();
+		if (noterows.empty() && timestamps.empty()) {
+			SCREENMAN->SystemMessage(
+			  "Replay appears to be empty. Report this score to developers.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		bool likely_entering_gameplay =
 		  p->SelectCurrent(PLAYER_1, GameplayMode_Replay);
 
@@ -1623,8 +1634,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// site, since order is deterministic we'll just auto set the noterows
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
-		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
-		auto noterows = hs->GetNoteRowVector();
 		if (!timestamps.empty() &&
 			noterows.empty()) { // if we have noterows from newer uploads, just
 								// use them -mina
