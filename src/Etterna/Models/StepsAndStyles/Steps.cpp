@@ -897,7 +897,9 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty())
 			return 0;
-		const vector<int>& nerv = nd.BuildAndGetNerv();
+		vector<int> nerv = nd.BuildAndGetNerv();
+		if (nerv.back() != nd.GetLastRow())
+			nerv.emplace_back(nd.GetLastRow());
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
 
