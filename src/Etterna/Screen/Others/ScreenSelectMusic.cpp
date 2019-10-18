@@ -1485,6 +1485,7 @@ ScreenSelectMusic::GeneratePreviewNoteField()
 	}
 
 	GAMESTATE->m_bIsChartPreviewActive = true;
+	GAMESTATE->SetPaused(false);
 
 	// Create and Render the NoteField afterwards
 	// It is done in this order so we don't see it before the music changes.

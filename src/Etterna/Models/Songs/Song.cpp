@@ -1973,6 +1973,7 @@ Song::Borp()
 		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
 	}
 	SOUND->PlayMusic(PlayParams, FallbackMusic);
+	GAMESTATE->SetPaused(false);
 }
 
 void

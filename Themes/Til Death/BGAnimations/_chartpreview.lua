@@ -83,6 +83,9 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2)
 			self:settext(""):diffuse(color("0.8,0,0"))
+		end,
+		NoteFieldVisibleMessageCommand = function(self)
+			self:settext("")
 		end
 	},
 	Def.Quad {
