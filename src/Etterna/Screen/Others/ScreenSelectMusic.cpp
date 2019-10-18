@@ -1682,7 +1682,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			}
 			hs->SetOffsetVector(offsets);
 		}
-
+		PlayerAI::ResetScoreData();
 		PlayerAI::SetScoreData(hs, 0, &nd);
 
 		// prepare old mods to return to
@@ -1778,7 +1778,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  false; // disallow viewing online score eval screens -mina
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
-		PlayerAI::SetScoreData(score);
+		PlayerAI::ResetScoreData();
+		PlayerAI::SetScoreData(score, 0, &nd);
+		TimingData* td = steps->GetTimingData();
+		PlayerAI::pReplayTiming = td;
 
 		auto& pss = ss.m_player;
 		pss.m_HighScore = *score;
@@ -1808,7 +1811,9 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			pss.m_iHoldNoteScores[i] =
 			  score->GetHoldNoteScore((HoldNoteScore)i);
 		}
+		pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
+		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
 
