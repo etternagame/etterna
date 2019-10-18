@@ -1812,6 +1812,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			  score->GetHoldNoteScore((HoldNoteScore)i);
 		}
 		pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
+		pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);
 		STATSMAN->m_CurStageStats = ss;

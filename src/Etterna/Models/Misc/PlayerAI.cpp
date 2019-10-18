@@ -823,6 +823,8 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	// Life record
 	pss->m_fLifeRecord.clear();
 	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
+	pss->m_ComboList.clear();
+	pss->m_ComboList = GenerateComboListForReplay();
 }
 
 pair<float, float>
@@ -866,15 +868,16 @@ PlayerAI::GenerateLifeRecordForReplay()
 	currentSnap++;
 	auto previousSnap = m_ReplaySnapshotMap.begin();
 	float lifeLevel = 0.5f;
+	const float rateUsed = pScoreData->GetMusicRate();
 
 	lifeRecord[0.f] = lifeLevel;
 
 	while (currentSnap != m_ReplaySnapshotMap.end()) {
-		float now = pReplayTiming->WhereUAtBro(currentSnap->first);
+		float now = pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
 		// these arrays are not unsigned so that if they somehow end up negative
 		// we dont sit here for a millenia waiting for it to finish
-		int differencesTNS[NUM_TapNoteScore];
-		int differencesHNS[NUM_HoldNoteScore];
+		int differencesTNS[NUM_TapNoteScore] = { 0 };
+		int differencesHNS[NUM_HoldNoteScore] = { 0 };
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
 			differencesTNS[tns] = currentSnap->second.judgments[tns] -
@@ -906,4 +909,74 @@ PlayerAI::GenerateLifeRecordForReplay()
 	}
 
 	return lifeRecord;
+}
+
+vector<PlayerStageStats::Combo_t>
+PlayerAI::GenerateComboListForReplay()
+{
+	vector<PlayerStageStats::Combo_t> combos;
+	PlayerStageStats::Combo_t firstCombo;
+	const float rateUsed = pScoreData->GetMusicRate();
+
+	int taps = 0;
+
+	combos.push_back(firstCombo);
+	PlayerStageStats::Combo_t* curCombo = &combos[0];
+	auto currentSnap = m_ReplaySnapshotMap.begin();
+	currentSnap++;
+	auto previousSnap = m_ReplaySnapshotMap.begin();
+	auto snapOfComboStart = m_ReplaySnapshotMap.begin();
+
+	// very lazily end combos at any combo breaker and just start a new one
+	while (currentSnap != m_ReplaySnapshotMap.end()) {
+		// let me show you how to not write a loop
+		if (currentSnap->second.judgments[TNS_W4] -
+				snapOfComboStart->second.judgments[TNS_W4] >
+			  0 ||
+			currentSnap->second.judgments[TNS_W5] -
+				snapOfComboStart->second.judgments[TNS_W5] >
+			  0 ||
+			currentSnap->second.judgments[TNS_Miss] -
+				snapOfComboStart->second.judgments[TNS_Miss] >
+			  0) {
+			taps += (currentSnap->second.judgments[TNS_W1] -
+					 snapOfComboStart->second.judgments[TNS_W1]);
+			taps += (currentSnap->second.judgments[TNS_W2] -
+					 snapOfComboStart->second.judgments[TNS_W2]);
+			taps += (currentSnap->second.judgments[TNS_W3] -
+					 snapOfComboStart->second.judgments[TNS_W3]);
+			curCombo->m_cnt = taps;
+			taps = 0;
+			float starttime =
+			  pReplayTiming->WhereUAtBro(snapOfComboStart->first) / rateUsed;
+			float finishtime =
+			  pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
+			curCombo->m_fSizeSeconds = finishtime - starttime;
+			curCombo->m_fStartSecond = starttime;
+			PlayerStageStats::Combo_t nextcombo;
+			combos.emplace_back(nextcombo);
+			curCombo = &(combos.back());
+			snapOfComboStart = currentSnap;
+			currentSnap++;
+		}
+		currentSnap++;
+	}
+	ReplaySnapshot workingSnap = m_ReplaySnapshotMap.rbegin()->second;
+	taps += (workingSnap.judgments[TNS_W1] -
+			 snapOfComboStart->second.judgments[TNS_W1]);
+	taps += (workingSnap.judgments[TNS_W2] -
+			 snapOfComboStart->second.judgments[TNS_W2]);
+	taps += (workingSnap.judgments[TNS_W3] -
+			 snapOfComboStart->second.judgments[TNS_W3]);
+	curCombo->m_cnt = taps;
+	float starttime =
+	  pReplayTiming->WhereUAtBro(snapOfComboStart->first) / rateUsed;
+	float finishtime =
+	  pReplayTiming->WhereUAtBro(m_ReplaySnapshotMap.rbegin()->first) /
+	  rateUsed;
+	curCombo->m_fSizeSeconds = finishtime - starttime;
+	curCombo->m_fStartSecond = starttime;
+	// i feel sick
+
+	return combos;
 }

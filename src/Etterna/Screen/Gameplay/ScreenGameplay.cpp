@@ -22,10 +22,10 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Actor/Gameplay/Player.h"
-#include "Etterna/Models/Misc/PlayerAI.h" // for NUM_SKILL_LEVELS
+#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Models/Misc/Profile.h" // for replay data stuff
+#include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundReader.h"
@@ -566,10 +566,9 @@ ScreenGameplay::LoadNextSong()
 		if (GAMESTATE->IsCpuPlayer(m_vPlayerInfo.GetStepsAndTrailIndex())) {
 			m_vPlayerInfo.GetPlayerState()->m_PlayerController = PC_CPU;
 			int iMeter = pSteps->GetMeter();
-			int iNewSkill =
-			  SCALE(iMeter, MIN_METER, MAX_METER, 0, NUM_SKILL_LEVELS - 1);
+			int iNewSkill = SCALE(iMeter, MIN_METER, MAX_METER, 0, 5);
 			/* Watch out: songs aren't actually bound by MAX_METER. */
-			iNewSkill = clamp(iNewSkill, 0, NUM_SKILL_LEVELS - 1);
+			iNewSkill = clamp(iNewSkill, 0, 5);
 			m_vPlayerInfo.GetPlayerState()->m_iCpuSkill = iNewSkill;
 		} else {
 			if (m_vPlayerInfo.GetPlayerState()

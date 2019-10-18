@@ -3,13 +3,11 @@
 
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
+#include "PlayerStageStats.h"
 
 class NoteData;
-class PlayerStageStats;
 class PlayerState;
 class TimingData;
-
-const int NUM_SKILL_LEVELS = 6; // 0-5
 
 // Basically contains a record for any given noterow of the essential info about
 // the Player But only the info we can simply derive from the given ReplayData
@@ -118,6 +116,10 @@ class PlayerAI
 	// Given the Replay Data and Snapshot map, we can make a simple estimated
 	// life graph.
 	static map<float, float> GenerateLifeRecordForReplay();
+
+	// Given the Replay Data and Snapshot map, we can make a simple estimate
+	// combo graph.
+	static vector<PlayerStageStats::Combo_t> GenerateComboListForReplay();
 };
 
 #endif
