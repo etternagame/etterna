@@ -31,7 +31,8 @@ class LifeMeterBar : public LifeMeter
 	float GetLife() const override { return m_fLifePercentage; }
 
 	void FillForHowToPlay(int NumT2s, int NumMisses);
-	// this function is solely for HowToPlay
+	static float MapTNSToDeltaLife(TapNoteScore s);
+	static float MapHNSToDeltaLife(HoldNoteScore score);
 
   private:
 	ThemeMetric<float> DANGER_THRESHOLD;

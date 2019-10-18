@@ -17,6 +17,70 @@ LIFE_PERCENT_CHANGE_NAME(size_t i)
 	return "LifePercentChange" + ScoreEventToString((ScoreEvent)i);
 }
 
+float
+LifeMeterBar::MapTNSToDeltaLife(TapNoteScore score)
+{
+	float fDeltaLife = 0.f;
+	switch (score) {
+		DEFAULT_FAIL(score);
+
+			// Using constant values here as a hack
+			// For estimating replay stuff
+
+		case TNS_W1:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_W2:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_W3:
+			fDeltaLife = 0.004f;
+			break;
+		case TNS_W4:
+			fDeltaLife = 0.f;
+			break;
+		case TNS_W5:
+			fDeltaLife = -0.04f;
+			break;
+		case TNS_Miss:
+			fDeltaLife = -0.08f;
+			break;
+		case TNS_HitMine:
+			fDeltaLife = -0.16f;
+			break;
+		case TNS_None:
+			fDeltaLife = -0.08f;
+			break;
+		case TNS_CheckpointHit:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_CheckpointMiss:
+			fDeltaLife = -0.08f;
+			break;
+	}
+	return fDeltaLife;
+}
+
+float
+LifeMeterBar::MapHNSToDeltaLife(HoldNoteScore score)
+{
+	float fDeltaLife = 0.f;
+	switch (score) {
+		case HNS_Held:
+			fDeltaLife = 0.f;
+			break;
+		case HNS_LetGo:
+			fDeltaLife = -0.08f;
+			break;
+		case HNS_Missed:
+			fDeltaLife = 0.f;
+			break;
+		default:
+			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
+	}
+	return fDeltaLife;
+}
+
 LifeMeterBar::LifeMeterBar()
 {
 	DANGER_THRESHOLD.Load("LifeMeterBar", "DangerThreshold");
