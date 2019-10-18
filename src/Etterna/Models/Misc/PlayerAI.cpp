@@ -651,9 +651,10 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	if (pScoreData == nullptr) // possible cheat prevention
 		return -1.f;
 
-	// Current v0.60 Replay Data format: [noterow] [offset] [track] [optional:
-	// tap note type] Current v0.60 Replay Data format (H section): H [noterow]
-	// [track] [optional: tap note subtype]
+	// Current v0.60 Replay Data format:
+	//	[noterow] [offset] [track] [optional: tap note type]
+	// Current v0.60 Replay Data format (H section):
+	//	H [noterow] [track] [optional: tap note subtype]
 	// LOG->Trace("Note row %d", noteRow);
 
 	// This replay has no column data or is considered Basic. (Pre-v0.60
@@ -874,32 +875,27 @@ PlayerAI::GenerateLifeRecordForReplay()
 
 	while (currentSnap != m_ReplaySnapshotMap.end()) {
 		float now = pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
+		ReplaySnapshot* cSnap = &currentSnap->second;
+		ReplaySnapshot* pSnap = &previousSnap->second;
 		// these arrays are not unsigned so that if they somehow end up negative
 		// we dont sit here for a millenia waiting for it to finish
 		int differencesTNS[NUM_TapNoteScore] = { 0 };
 		int differencesHNS[NUM_HoldNoteScore] = { 0 };
-		FOREACH_ENUM(TapNoteScore, tns)
-		{
-			differencesTNS[tns] = currentSnap->second.judgments[tns] -
-								  previousSnap->second.judgments[tns];
-		}
-		FOREACH_ENUM(HoldNoteScore, hns)
-		{
-			differencesHNS[hns] =
-			  currentSnap->second.hns[hns] - previousSnap->second.hns[hns];
-		}
-
 		float lifeDelta = 0.f;
+
 		FOREACH_ENUM(TapNoteScore, tns)
-		{
-			for (unsigned i = 0; i < differencesTNS[tns]; i++)
-				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
-		}
+		differencesTNS[tns] = cSnap->judgments[tns] - pSnap->judgments[tns];
+
 		FOREACH_ENUM(HoldNoteScore, hns)
-		{
-			for (unsigned i = 0; i < differencesHNS[hns]; i++)
-				lifeDelta += LifeMeterBar::MapHNSToDeltaLife(hns);
-		}
+		differencesHNS[hns] = cSnap->hns[hns] - pSnap->hns[hns];
+
+		FOREACH_ENUM(TapNoteScore, tns)
+		for (unsigned i = 0; i < differencesTNS[tns]; i++)
+			lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
+
+		FOREACH_ENUM(HoldNoteScore, hns)
+		for (unsigned i = 0; i < differencesHNS[hns]; i++)
+			lifeDelta += LifeMeterBar::MapHNSToDeltaLife(hns);
 
 		lifeLevel += lifeDelta;
 		CLAMP(lifeLevel, 0.f, 1.f);
@@ -914,53 +910,55 @@ PlayerAI::GenerateLifeRecordForReplay()
 vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay()
 {
+	// I don't want to do this without a snapshot map
+	if (m_ReplaySnapshotMap.empty())
+		return vector<PlayerStageStats::Combo_t>();
+
 	vector<PlayerStageStats::Combo_t> combos;
 	PlayerStageStats::Combo_t firstCombo;
 	const float rateUsed = pScoreData->GetMusicRate();
-
 	int taps = 0;
 
 	combos.push_back(firstCombo);
 	PlayerStageStats::Combo_t* curCombo = &combos[0];
 	auto currentSnap = m_ReplaySnapshotMap.begin();
 	currentSnap++;
-	auto previousSnap = m_ReplaySnapshotMap.begin();
 	auto snapOfComboStart = m_ReplaySnapshotMap.begin();
 
-	// very lazily end combos at any combo breaker and just start a new one
+	// Continue through all snapshots looking for combos
 	while (currentSnap != m_ReplaySnapshotMap.end()) {
-		// let me show you how to not write a loop
-		if (currentSnap->second.judgments[TNS_W4] -
-				snapOfComboStart->second.judgments[TNS_W4] >
-			  0 ||
-			currentSnap->second.judgments[TNS_W5] -
-				snapOfComboStart->second.judgments[TNS_W5] >
-			  0 ||
-			currentSnap->second.judgments[TNS_Miss] -
-				snapOfComboStart->second.judgments[TNS_Miss] >
-			  0) {
-			taps += (currentSnap->second.judgments[TNS_W1] -
-					 snapOfComboStart->second.judgments[TNS_W1]);
-			taps += (currentSnap->second.judgments[TNS_W2] -
-					 snapOfComboStart->second.judgments[TNS_W2]);
-			taps += (currentSnap->second.judgments[TNS_W3] -
-					 snapOfComboStart->second.judgments[TNS_W3]);
+		ReplaySnapshot* cSnap = &currentSnap->second;
+		ReplaySnapshot* sSnap = &snapOfComboStart->second;
+
+		// If we have a combo breaker, count the combo and start a new one
+		// (hardcoded combo breaker judgments because this is the true path)
+		if (cSnap->judgments[TNS_W4] > sSnap->judgments[TNS_W4] ||
+			cSnap->judgments[TNS_W5] > sSnap->judgments[TNS_W5] ||
+			cSnap->judgments[TNS_Miss] > sSnap->judgments[TNS_Miss]) {
+			taps += (cSnap->judgments[TNS_W1] - sSnap->judgments[TNS_W1]);
+			taps += (cSnap->judgments[TNS_W2] - sSnap->judgments[TNS_W2]);
+			taps += (cSnap->judgments[TNS_W3] - sSnap->judgments[TNS_W3]);
 			curCombo->m_cnt = taps;
-			taps = 0;
 			float starttime =
 			  pReplayTiming->WhereUAtBro(snapOfComboStart->first) / rateUsed;
 			float finishtime =
 			  pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
 			curCombo->m_fSizeSeconds = finishtime - starttime;
 			curCombo->m_fStartSecond = starttime;
+
+			// Start a new combo
 			PlayerStageStats::Combo_t nextcombo;
 			combos.emplace_back(nextcombo);
 			curCombo = &(combos.back());
 			snapOfComboStart = currentSnap;
 			currentSnap++;
+			taps = 0;
+		} else {
+			currentSnap++;
 		}
-		currentSnap++;
 	}
+	// The last combo probably didn't end on a combo breaker so
+	// calculate it real quick
 	ReplaySnapshot workingSnap = m_ReplaySnapshotMap.rbegin()->second;
 	taps += (workingSnap.judgments[TNS_W1] -
 			 snapOfComboStart->second.judgments[TNS_W1]);
@@ -976,7 +974,6 @@ PlayerAI::GenerateComboListForReplay()
 	  rateUsed;
 	curCombo->m_fSizeSeconds = finishtime - starttime;
 	curCombo->m_fStartSecond = starttime;
-	// i feel sick
 
 	return combos;
 }

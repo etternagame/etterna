@@ -359,19 +359,12 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
 
-	// If we scroll backwards, we need to render those notes again
-	// if (newPositionSeconds < fSeconds) {
 	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
 
-	//}
-
-	// If we are paused, set the volume to 0 so we don't make weird noises
-	if (paused) {
-
-	} else {
-		// Restart the file to make sure nothing weird is going on
-		// ReloadCurrentSong();
-		// SetupNoteDataFromRow(pSteps, newRow);
+	// Lightly reset some stats in case someone wants them
+	// Precalculated values are put in their place.
+	if (!paused) {
+		// Current StageStats is going to get overwritten so let's clear it here
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
 	}
 
@@ -388,14 +381,6 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	{
 		pss->m_iHoldNoteScores[hns] = rs.hns[hns];
 	}
-
-	// Go
-	// m_pSoundMusic->Play(false, &p);
-	// But only for like 1 frame if we are paused
-
-	// misc info update
-	// GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
-	// UpdateSongPosition(0);
 }
 
 void
@@ -417,9 +402,8 @@ ScreenGameplayReplay::ToggleReplayPause()
 	if (oldPause) {
 		m_pSoundMusic->Stop();
 
-		// Restart the stage, technically (This will cause a lot of lag if there
-		// are a lot of notes.)
-		// ReloadCurrentSong();
+		// Basically reinitialize all stage data from precalculated things
+		// Restarts the basic replay data in case something went weird
 		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
 		PlayerAI::SetScoreData(PlayerAI::pScoreData, rowNow);
@@ -513,14 +497,11 @@ ScreenGameplayReplay::ToggleReplayPause()
 
 		// Unpause
 		m_pSoundMusic->Play(false, &p);
-		// GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
-		// UpdateSongPosition(0);
-		// SCREENMAN->SystemMessage("Unpaused Replay");
 	} else {
 		// Almost all of gameplay is based on the music moving.
 		// If the music is paused, nothing works.
 		// This is all we have to do.
-		// SCREENMAN->SystemMessage("Paused Replay");
+
 		// Set up the stage music to current params, simply
 		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
@@ -534,6 +515,9 @@ ScreenGameplayReplay::ToggleReplayPause()
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 		}
 		p.StopMode = RageSoundParams::M_CONTINUE;
+		// Turn accuratesync off for going into pause mode
+		// to allow for smooth seeking in any direction
+		// AccurateSync is turned back on later when unpausing.
 		p.m_bAccurateSync = false;
 		m_pSoundMusic->SetParams(p);
 	}
