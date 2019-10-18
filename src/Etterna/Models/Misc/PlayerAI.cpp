@@ -18,6 +18,7 @@ float PlayerAI::replayRate = 1.f;
 RString PlayerAI::replayModifiers = "";
 RString PlayerAI::oldModifiers = "";
 float PlayerAI::oldRate = 1.f;
+RString PlayerAI::oldNoteskin = "";
 
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
@@ -73,6 +74,7 @@ PlayerAI::ResetScoreData()
 	replayModifiers.clear();
 	oldModifiers.clear();
 	oldRate = 1.f;
+	oldNoteskin.clear();
 }
 
 void

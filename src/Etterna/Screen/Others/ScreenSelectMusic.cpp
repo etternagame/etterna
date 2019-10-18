@@ -1701,6 +1701,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::replayRate = scoreRate;
 		PlayerAI::oldModifiers = oldMods;
 		PlayerAI::oldRate = oldRate;
+		auto ns =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+		if (ns.empty())
+			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
+		PlayerAI::oldNoteskin = ns;
 
 		// set mods based on the score, hopefully
 		// it is known that xmod->cmod and back does not work most of the time.

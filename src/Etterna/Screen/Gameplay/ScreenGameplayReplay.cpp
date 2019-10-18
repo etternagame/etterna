@@ -44,10 +44,6 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 	ASSERT_M(PlayerAI::pScoreData != nullptr,
 			 "Replay Highscore Info was empty.");
 
-	// Save current noteskin
-	auto ns =
-	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
-
 	// Set up rate
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
 
@@ -56,10 +52,22 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
 		  PlayerAI::replayModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
+		  PlayerAI::replayModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
+		  PlayerAI::replayModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
+		  PlayerAI::replayModifiers);
 
 		// Undo noteskin change
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-		  .FromOneModString(ns, RString());
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
 	}
 }
 
@@ -81,6 +89,20 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
 			  .FromString(PlayerAI::oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
+			  PlayerAI::oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
+			  PlayerAI::oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
+			  PlayerAI::oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .m_sNoteSkin = PlayerAI::oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+			  .m_sNoteSkin = PlayerAI::oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
+			  PlayerAI::oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
+			  PlayerAI::oldNoteskin;
 		}
 		GAMESTATE->m_SongOptions.Init();
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
