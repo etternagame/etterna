@@ -43,6 +43,21 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 {
 	ASSERT_M(PlayerAI::pScoreData != nullptr,
 			 "Replay Highscore Info was empty.");
+
+	// Save current noteskin
+	auto ns =
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+
+	// Set up rate
+	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
+	// Set up mods
+	GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+	GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
+	  PlayerAI::replayModifiers);
+
+	// Undo noteskin change
+	GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromOneModString(
+	  ns, RString());
 }
 
 void
@@ -57,9 +72,17 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
-	if (!GAMESTATE->m_bRestartedGameplay)
+
+	if (!GAMESTATE->m_bRestartedGameplay) {
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
+		  PlayerAI::oldModifiers);
+		GAMESTATE->m_SongOptions.Init();
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
+		  PlayerAI::oldRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::oldRate;
 		PlayerAI::ResetScoreData();
-	else
+	} else
 		PlayerAI::SetScoreData();
 }
 

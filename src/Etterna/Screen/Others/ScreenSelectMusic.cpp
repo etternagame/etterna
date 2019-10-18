@@ -1607,11 +1607,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 
-		// collect the noterows/timestamps early
-		// and abort if we shouldn't continue
-		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
-		auto noterows = hs->GetNoteRowVector();
-		if (noterows.empty() && timestamps.empty()) {
+		// Sometimes the site doesn't send a replay when we ask for one.
+		// This is not our fault.
+		// All scores should have keys.
+		if (hs->GetScoreKey().empty()) {
 			SCREENMAN->SystemMessage(
 			  "Replay appears to be empty. Report this score to developers.");
 			lua_pushboolean(L, false);
@@ -1634,6 +1633,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// site, since order is deterministic we'll just auto set the noterows
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
+		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
+		auto noterows = hs->GetNoteRowVector();
 		if (!timestamps.empty() &&
 			noterows.empty()) { // if we have noterows from newer uploads, just
 								// use them -mina
@@ -1686,16 +1687,20 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 		// prepare old mods to return to
 		const RString oldMods =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
+			true);
 
 		// set the heck out of the current rate to make sure everything runs
 		// correctly
 		float scoreRate = hs->GetMusicRate();
 		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
-		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
-		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
-		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
-		MESSAGEMAN->Broadcast("RateChanged");
+		// GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
+		// GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
+		// GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
+		// MESSAGEMAN->Broadcast("RateChanged");
+		PlayerAI::replayRate = scoreRate;
+		PlayerAI::oldModifiers = oldMods;
+		PlayerAI::oldRate = oldRate;
 
 		// set mods based on the score, hopefully
 		// it is known that xmod->cmod and back does not work most of the time.
@@ -1711,6 +1716,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// Set mirror mode on if mirror was on in the replay
 		// Also get ready to reset the turn mods to what they were before
 		RString mods = hs->GetModifiers();
+		PlayerAI::replayModifiers = mods;
 		vector<RString> oldTurns;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().GetTurnMods(
 		  oldTurns);
@@ -1729,7 +1735,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
 			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
 		}
-		GAMEMAN->m_bResetTurns = true;
+		// GAMEMAN->m_bResetTurns = true;
 		GAMEMAN->m_vTurnsToReset = oldTurns;
 
 		// lock the game into replay mode and GO
@@ -1739,7 +1745,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
 
 		// set mods back to what they were before
-		GAMEMAN->m_bResetModifiers = true;
+		// GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
 		GAMEMAN->m_sModsToReset = oldMods;
 		return 1;

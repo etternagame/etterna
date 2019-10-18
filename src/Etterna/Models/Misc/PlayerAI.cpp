@@ -14,6 +14,10 @@ map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
+float PlayerAI::replayRate = 1.f;
+RString PlayerAI::replayModifiers = "";
+RString PlayerAI::oldModifiers = "";
+float PlayerAI::oldRate = 1.f;
 
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
@@ -65,6 +69,10 @@ PlayerAI::ResetScoreData()
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
 	m_ReplaySnapshotMap.clear();
+	replayRate = 1.f;
+	replayModifiers.clear();
+	oldModifiers.clear();
+	oldRate = 1.f;
 }
 
 void

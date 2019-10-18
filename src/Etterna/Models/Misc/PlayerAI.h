@@ -51,6 +51,11 @@ class PlayerAI
 	// of the Replay at that moment
 	static map<int, ReplaySnapshot> m_ReplaySnapshotMap;
 
+	static RString oldModifiers;
+	static RString replayModifiers;
+	static float replayRate;
+	static float oldRate;
+
 	// For use in Autoplay if we ever want to do funny things to the judgments
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
 
