@@ -114,6 +114,10 @@ class PlayerAI
 
 	// Calculate the Wifescore for the given position in replay data
 	static pair<float, float> GetWifeScoreForRow(int row, float ts);
+
+	// Given the Replay Data and Snapshot map, we can make a simple estimated
+	// life graph.
+	static map<float, float> GenerateLifeRecordForReplay();
 };
 
 #endif

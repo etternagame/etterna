@@ -7,6 +7,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RadarValues.h"
 #include "PlayerStageStats.h"
+#include "Etterna/Actor/Gameplay/LifeMeterBar.h"
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
@@ -85,6 +86,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
+	// we dont clear snapshot map here for a particular reason
 
 	if (!successful) {
 		return;
@@ -361,14 +363,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 void
 PlayerAI::SetUpExactTapMap(TimingData* timing)
 {
+	pReplayTiming = timing;
+
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
 	if (pScoreData->GetReplayType() != 2)
 		return;
 
 	m_ReplayExactTapMap.clear();
-
-	pReplayTiming = timing;
 
 	// For every row in the replay data...
 	for (auto& row : m_ReplayTapMap) {
@@ -817,6 +819,10 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	pss->m_vOffsetVector = pScoreData->GetOffsetVector();
 	pss->m_vTapNoteTypeVector = pScoreData->GetTapNoteTypeVector();
 	pss->m_vTrackVector = pScoreData->GetTrackVector();
+
+	// Life record
+	pss->m_fLifeRecord.clear();
+	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
 }
 
 pair<float, float>
@@ -846,4 +852,58 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 	out.second += rs.judgments[TNS_Miss] * 2.f;
 
 	return out;
+}
+
+map<float, float>
+PlayerAI::GenerateLifeRecordForReplay()
+{
+	// I don't want to do this without a snapshot map
+	if (m_ReplaySnapshotMap.empty())
+		return map<float, float>();
+
+	map<float, float> lifeRecord;
+	auto currentSnap = m_ReplaySnapshotMap.begin();
+	currentSnap++;
+	auto previousSnap = m_ReplaySnapshotMap.begin();
+	float lifeLevel = 0.5f;
+
+	lifeRecord[0.f] = lifeLevel;
+
+	while (currentSnap != m_ReplaySnapshotMap.end()) {
+		float now = pReplayTiming->WhereUAtBro(currentSnap->first);
+		// these arrays are not unsigned so that if they somehow end up negative
+		// we dont sit here for a millenia waiting for it to finish
+		int differencesTNS[NUM_TapNoteScore];
+		int differencesHNS[NUM_HoldNoteScore];
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			differencesTNS[tns] = currentSnap->second.judgments[tns] -
+								  previousSnap->second.judgments[tns];
+		}
+		FOREACH_ENUM(HoldNoteScore, hns)
+		{
+			differencesHNS[hns] =
+			  currentSnap->second.hns[hns] - previousSnap->second.hns[hns];
+		}
+
+		float lifeDelta = 0.f;
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			for (unsigned i = 0; i < differencesTNS[tns]; i++)
+				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
+		}
+		FOREACH_ENUM(HoldNoteScore, hns)
+		{
+			for (unsigned i = 0; i < differencesHNS[hns]; i++)
+				lifeDelta += LifeMeterBar::MapHNSToDeltaLife(hns);
+		}
+
+		lifeLevel += lifeDelta;
+		CLAMP(lifeLevel, 0.f, 1.f);
+		lifeRecord[now] = lifeLevel;
+		currentSnap++;
+		previousSnap++;
+	}
+
+	return lifeRecord;
 }
