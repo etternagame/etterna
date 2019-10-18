@@ -58,6 +58,10 @@ LifeMeterBar::MapTNSToDeltaLife(TapNoteScore score)
 			fDeltaLife = -0.08f;
 			break;
 	}
+	if (fDeltaLife > 0)
+		fDeltaLife *= PREFSMAN->m_fLifeDifficultyScale;
+	else
+		fDeltaLife /= PREFSMAN->m_fLifeDifficultyScale;
 	return fDeltaLife;
 }
 
@@ -78,6 +82,10 @@ LifeMeterBar::MapHNSToDeltaLife(HoldNoteScore score)
 		default:
 			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
 	}
+	if (fDeltaLife > 0)
+		fDeltaLife *= PREFSMAN->m_fLifeDifficultyScale;
+	else
+		fDeltaLife /= PREFSMAN->m_fLifeDifficultyScale;
 	return fDeltaLife;
 }
 
