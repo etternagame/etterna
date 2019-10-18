@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/FileTypes/MsdFile.h" // No JSON here.
@@ -906,7 +906,8 @@ SSCLoader::ProcessScrolls(TimingData& out,
 bool
 SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 {
-	LOG->Trace("Loading notes from %s", cachePath.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loading notes from %s", cachePath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(cachePath, true)) {
