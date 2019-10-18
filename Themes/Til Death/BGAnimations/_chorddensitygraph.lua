@@ -97,7 +97,7 @@ local t = Def.ActorFrame {
 		self:diffusealpha(0)
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
-		self:queuecommand("GraphUpdate")
+		self:playcommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if self:IsVisible() then
