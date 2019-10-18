@@ -50,14 +50,17 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 
 	// Set up rate
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
-	// Set up mods
-	GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-	GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
-	  PlayerAI::replayModifiers);
 
-	// Undo noteskin change
-	GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromOneModString(
-	  ns, RString());
+	if (PREFSMAN->m_bReplaysUseScoreMods) {
+		// Set up mods
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
+		  PlayerAI::replayModifiers);
+
+		// Undo noteskin change
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+		  .FromOneModString(ns, RString());
+	}
 }
 
 void
@@ -74,13 +77,16 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
 
 	if (!GAMESTATE->m_bRestartedGameplay) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
-		  PlayerAI::oldModifiers);
+		if (PREFSMAN->m_bReplaysUseScoreMods) {
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .FromString(PlayerAI::oldModifiers);
+		}
 		GAMESTATE->m_SongOptions.Init();
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 		  PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::oldRate;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::oldRate;
 		PlayerAI::ResetScoreData();
 	} else
 		PlayerAI::SetScoreData();
