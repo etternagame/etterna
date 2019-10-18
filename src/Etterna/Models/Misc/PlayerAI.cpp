@@ -258,20 +258,43 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 					continue;
 				// If this tap is missing from the replay data, we count it as a
 				// miss.
-				if (m_ReplayTapMap.count(row) != 0) {
-					bool found = false;
-					for (auto& trr : m_ReplayTapMap[row]) {
-						if (trr.track == track)
-							found = true;
-					}
-					if (!found) {
+				if (pScoreData->GetReplayType() == 2) {
+					if (m_ReplayTapMap.count(row) != 0) {
+						bool found = false;
+						for (auto& trr : m_ReplayTapMap[row]) {
+							if (trr.track == track)
+								found = true;
+						}
+						if (!found) {
+							tempJudgments[TNS_Miss]++;
+						}
+					} else {
 						tempJudgments[TNS_Miss]++;
 					}
-				} else {
-					tempJudgments[TNS_Miss]++;
 				}
 			}
 		}
+		// Count how many misses there are per row instead since we dont have
+		// column data in type 1 replays
+		if (pScoreData->GetReplayType() != 2) {
+			unsigned notesOnRow = 0;
+			unsigned notesInReplayData = 0;
+			if (m_ReplayTapMap.count(row) != 0)
+				notesInReplayData += m_ReplayTapMap[row].size();
+			for (int track = 0; track < pNoteData->GetNumTracks(); track++) {
+				NoteData::iterator iter = pNoteData->FindTapNote(track, row);
+				if (iter != pNoteData->end(track)) {
+					TapNote* pTN = &iter->second;
+					if (pTN->type == TapNoteType_Fake ||
+						pTN->type == TapNoteType_Mine ||
+						pTN->type == TapNoteType_AutoKeysound)
+						continue;
+					notesOnRow++;
+				}
+			}
+			tempJudgments[TNS_Miss] += (notesOnRow - notesInReplayData);
+		}
+
 		// We have to update every single row with the new miss & hns counts.
 		// This unfortunately takes more time.
 		// If current row is recorded in the snapshots, update the counts
