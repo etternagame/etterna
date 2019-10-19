@@ -203,10 +203,6 @@ class TimingData
 	{
 		return GetSegmentAtRow(BeatToNoteRow(fBeat), tst);
 	}
-	TimingSegment* GetSegmentAtBeat(float fBeat, TimingSegmentType tst)
-	{
-		return const_cast<TimingSegment*>(GetSegmentAtBeat(fBeat, tst));
-	}
 
 #define DefineSegmentWithName(Seg, SegName, SegType)                           \
 	const Seg* Get##Seg##AtRow(int iNoteRow) const                             \
