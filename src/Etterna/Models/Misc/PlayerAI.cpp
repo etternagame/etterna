@@ -422,16 +422,59 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 	 * to be missed (but not judged)
 	 */
 
+	// now update the wifescore values for each relevant snapshot.
 	const float ts = Player::GetTimingWindowScale();
-	// now update the wifescore values for each snapshot.
-	// wanna see me make an algorithm exponentially slower?
+	// some snapshots end up with 0 values due to being "missing" from the
+	// replay data and we have to account for those
+	vector<int> snapShotsUnused;
 	for (auto it = m_ReplaySnapshotMap.begin(); it != m_ReplaySnapshotMap.end();
-		 it++) {
-		pair<float, float> cwsmws = GetWifeScoreForRow(it->first, ts);
-		m_ReplaySnapshotMap[it->first].curwifescore = cwsmws.first;
-		m_ReplaySnapshotMap[it->first].maxwifescore = cwsmws.second;
+		 it++)
+		snapShotsUnused.push_back(it->first);
+	float cws = 0.f;
+	float mws = 0.f;
+	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end();) {
+		const int r = it->first;
+		if (r > snapShotsUnused.front()) {
+			// if we somehow skipped a snapshot, the only difference should be
+			// in misses and non taps
+			ReplaySnapshot* rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
+			rs->curwifescore = cws - (rs->judgments[TNS_Miss] * 8.f) -
+							   (rs->hns[HNS_LetGo] * 8.f);
+			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
+			snapShotsUnused.erase(snapShotsUnused.begin());
+
+			continue; // retry the iteration (it++ is moved to below)
+		}
+		ReplaySnapshot* rs = GetReplaySnapshotForNoterow(r);
+		for (auto& trr : it->second) {
+			if (trr.type == TapNoteType_Mine) {
+				cws -= 8.f;
+			} else {
+				cws += wife2(trr.offset, ts);
+				mws += 2.f;
+			}
+		}
+		rs->curwifescore =
+		  cws - (rs->judgments[TNS_Miss] * 8.f) - (rs->hns[HNS_LetGo] * 8.f);
+		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
+
+		snapShotsUnused.erase(snapShotsUnused.begin());
+		it++;
 	}
-	// wanna see me do it again?
+	if (!snapShotsUnused.empty()) {
+		for (int row : snapShotsUnused) {
+			// This might not be technically correct
+			// But my logic is this:
+			// A snapshot without associated replaydata is one for a row
+			// which has no stat-affecting changes made to it.
+			// So this applies to rows with all Mines
+			// or rows with all Fakes (in the latest version)
+			ReplaySnapshot* prevrs = GetReplaySnapshotForNoterow(row - 1);
+			ReplaySnapshot* rs = &m_ReplaySnapshotMap[row];
+			rs->curwifescore = prevrs->curwifescore;
+			rs->maxwifescore = prevrs->maxwifescore;
+		}
+	}
 }
 
 void
@@ -480,7 +523,7 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 	return output;
 }
 
-ReplaySnapshot
+ReplaySnapshot*
 PlayerAI::GetReplaySnapshotForNoterow(int row)
 {
 	// The row doesn't necessarily have to exist in the Snapshot map.
@@ -492,14 +535,14 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 	// snapshot
 	if (m_ReplaySnapshotMap.begin()->first > row) {
 		ReplaySnapshot rs;
-		return rs;
+		return &rs;
 	}
 
 	// For some reason I don't feel like figuring out, if the largest value in
 	// the map is below the given row, it returns 0 So we need to return the
 	// last value
 	if (m_ReplaySnapshotMap.rbegin()->first < row) {
-		return m_ReplaySnapshotMap.rbegin()->second;
+		return &m_ReplaySnapshotMap.rbegin()->second;
 	}
 
 	// Otherwise just go ahead and return what we want
@@ -515,10 +558,10 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 			foundRow = lb->first;
 		} else {
 			ReplaySnapshot rs;
-			return rs;
+			return &rs;
 		}
 	}
-	return m_ReplaySnapshotMap[foundRow];
+	return &m_ReplaySnapshotMap[foundRow];
 }
 
 bool
@@ -887,10 +930,10 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 	}
 
 	// Take into account dropped holds and full misses
-	ReplaySnapshot rs = GetReplaySnapshotForNoterow(row);
-	out.first += rs.judgments[TNS_Miss] * -8.f;
-	out.first += rs.hns[HNS_LetGo] * -8.f;
-	out.second += rs.judgments[TNS_Miss] * 2.f;
+	ReplaySnapshot* rs = GetReplaySnapshotForNoterow(row);
+	out.first += rs->judgments[TNS_Miss] * -8.f;
+	out.first += rs->hns[HNS_LetGo] * -8.f;
+	out.second += rs->judgments[TNS_Miss] * 2.f;
 
 	return out;
 }

@@ -372,14 +372,14 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	const int rowNow = BeatToNoteRow(fSongBeat);
 	// This breaks some oop standard in some book
 	PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
-	ReplaySnapshot rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+	ReplaySnapshot* rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
-		pss->m_iTapNoteScores[tns] = rs.judgments[tns];
+		pss->m_iTapNoteScores[tns] = rs->judgments[tns];
 	}
 	FOREACH_ENUM(HoldNoteScore, hns)
 	{
-		pss->m_iHoldNoteScores[hns] = rs.hns[hns];
+		pss->m_iHoldNoteScores[hns] = rs->hns[hns];
 	}
 }
 
@@ -410,18 +410,18 @@ ScreenGameplayReplay::ToggleReplayPause()
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
-		ReplaySnapshot rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+		ReplaySnapshot* rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
-			pss->m_iTapNoteScores[tns] = rs.judgments[tns];
+			pss->m_iTapNoteScores[tns] = rs->judgments[tns];
 		}
 		FOREACH_ENUM(HoldNoteScore, hns)
 		{
-			pss->m_iHoldNoteScores[hns] = rs.hns[hns];
+			pss->m_iHoldNoteScores[hns] = rs->hns[hns];
 		}
 		PlayerState* ps = m_vPlayerInfo.GetPlayerState();
-		m_vPlayerInfo.m_pPlayer->curwifescore = rs.curwifescore;
-		m_vPlayerInfo.m_pPlayer->maxwifescore = rs.maxwifescore;
+		m_vPlayerInfo.m_pPlayer->curwifescore = rs->curwifescore;
+		m_vPlayerInfo.m_pPlayer->maxwifescore = rs->maxwifescore;
 
 		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)
@@ -430,17 +430,17 @@ ScreenGameplayReplay::ToggleReplayPause()
 			msg.SetParam("FromReplay", true);
 			msg.SetParam("Judgment", tns);
 			msg.SetParam("WifePercent",
-						 100 * rs.curwifescore / rs.maxwifescore);
+						 100 * rs->curwifescore / rs->maxwifescore);
 			msg.SetParam("Player", 0);
 			msg.SetParam("TapNoteScore", tns);
 			msg.SetParam("FirstTrack", 0);
-			msg.SetParam("CurWifeScore", rs.curwifescore);
-			msg.SetParam("MaxWifeScore", rs.maxwifescore);
+			msg.SetParam("CurWifeScore", rs->curwifescore);
+			msg.SetParam("MaxWifeScore", rs->maxwifescore);
 			msg.SetParam("WifeDifferential",
-						 rs.curwifescore -
-						   rs.maxwifescore * ps->playertargetgoal);
+						 rs->curwifescore -
+						   rs->maxwifescore * ps->playertargetgoal);
 			msg.SetParam("TotalPercent",
-						 100 * rs.curwifescore /
+						 100 * rs->curwifescore /
 						   m_vPlayerInfo.m_pPlayer->totalwifescore);
 			msg.SetParam("Type", RString("Tap"));
 			msg.SetParam("Val", pss->m_iTapNoteScores[tns]);
@@ -455,15 +455,15 @@ ScreenGameplayReplay::ToggleReplayPause()
 			msg.SetParam("Player", 0);
 			msg.SetParam("MultiPlayer", 0);
 			msg.SetParam("WifePercent",
-						 100 * rs.curwifescore / rs.maxwifescore);
+						 100 * rs->curwifescore / rs->maxwifescore);
 			msg.SetParam("FirstTrack", 0);
-			msg.SetParam("CurWifeScore", rs.curwifescore);
-			msg.SetParam("MaxWifeScore", rs.maxwifescore);
+			msg.SetParam("CurWifeScore", rs->curwifescore);
+			msg.SetParam("MaxWifeScore", rs->maxwifescore);
 			msg.SetParam("WifeDifferential",
-						 rs.curwifescore -
-						   rs.maxwifescore * ps->playertargetgoal);
+						 rs->curwifescore -
+						   rs->maxwifescore * ps->playertargetgoal);
 			msg.SetParam("TotalPercent",
-						 100 * rs.curwifescore /
+						 100 * rs->curwifescore /
 						   m_vPlayerInfo.m_pPlayer->totalwifescore);
 			msg.SetParam("FirstTrack", 0);
 			msg.SetParam(
