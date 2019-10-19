@@ -75,6 +75,11 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 	const float fFirstSecond = 0;
 	const float fLastSecond = s.GetTotalPossibleStepsSeconds();
 
+	// Unhide the templates.
+	m_pNormalCombo->SetVisible(true);
+	m_pMaxCombo->SetVisible(true);
+	m_pComboNumber->SetVisible(true);
+
 	// Find the largest combo.
 	int iMaxComboSize = 0;
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i)
@@ -163,11 +168,17 @@ class LunaComboGraph : public Luna<ComboGraph>
 		p->Set(*pStageStats, *pPlayerStageStats);
 		COMMON_RETURN_SELF;
 	}
+	static int Clear(T* p, lua_State* L)
+	{
+		p->DeleteAllChildren();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaComboGraph()
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(Set);
+		ADD_METHOD(Clear);
 	}
 };
 
