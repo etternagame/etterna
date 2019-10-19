@@ -320,6 +320,8 @@ Actor::IsOver(float mx, float my)
 Actor*
 Actor::GetFakeParentOrParent()
 {
+	if (!this)
+		return nullptr;
 	if (m_FakeParent)
 		return m_FakeParent;
 	if (m_pParent)
@@ -329,6 +331,8 @@ Actor::GetFakeParentOrParent()
 float
 Actor::GetTrueX()
 {
+	if (!this)
+		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
@@ -338,6 +342,8 @@ Actor::GetTrueX()
 float
 Actor::GetTrueY()
 {
+	if (!this)
+		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
@@ -346,6 +352,8 @@ Actor::GetTrueY()
 float
 Actor::GetTrueZoom()
 {
+	if (!this)
+		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoom();
@@ -354,6 +362,8 @@ Actor::GetTrueZoom()
 bool
 Actor::IsVisible()
 {
+	if (!this)
+		return false;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetVisible();
