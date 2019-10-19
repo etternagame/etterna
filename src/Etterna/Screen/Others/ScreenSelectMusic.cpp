@@ -1816,6 +1816,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);
+		ss.m_fMusicRate = score->GetMusicRate();
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
 
