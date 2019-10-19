@@ -27,6 +27,8 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
+#include "Etterna/Models/Misc/PlayerAI.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
@@ -302,6 +304,7 @@ ScreenEvaluation::MenuStart(const InputEventPlus& input)
 		return false;
 
 	m_soundStart.Play(true);
+	PlayerAI::ResetScoreData();
 
 	HandleMenuStart();
 	return true;
@@ -353,7 +356,20 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		LuaHelpers::Push(L, p->GetStageStats());
 		return 1;
 	}
-	LunaScreenEvaluation() { ADD_METHOD(GetStageStats); }
+	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
+	{
+		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
+		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
+		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		PlayerAI::SetScoreData(hs, 0, &nd);
+		PlayerAI::SetPlayerStageStatsForReplay(pPSS);
+		return 0;
+	}
+	LunaScreenEvaluation()
+	{
+		ADD_METHOD(GetStageStats);
+		ADD_METHOD(SetPlayerStageStatsFromReplayData);
+	}
 };
 
 LUA_REGISTER_DERIVED_CLASS(ScreenEvaluation, ScreenWithMenuElements)
