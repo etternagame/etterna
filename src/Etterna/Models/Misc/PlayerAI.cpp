@@ -92,6 +92,9 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		return;
 	}
 
+	if (pHighScore != nullptr && pNoteData != nullptr)
+		m_ReplaySnapshotMap.clear();
+
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
 	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
@@ -160,6 +163,52 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	if (pNoteData == nullptr)
 		return;
 
+	// Set up a mapping of every noterow to a snapshot of what has happened up
+	// to that point
+	SetUpSnapshotMap(pNoteData, validNoterows);
+}
+
+void
+PlayerAI::SetUpExactTapMap(TimingData* timing)
+{
+	pReplayTiming = timing;
+
+	// Don't continue if the replay doesn't have column data.
+	// We can't be accurate without it.
+	if (pScoreData->GetReplayType() != 2)
+		return;
+
+	m_ReplayExactTapMap.clear();
+
+	// For every row in the replay data...
+	for (auto& row : m_ReplayTapMap) {
+		// Get the current time and go over all taps on this row...
+		float rowTime = timing->WhereUAtBro(row.first);
+		for (TapReplayResult& trr : row.second) {
+			// Find the time adjusted for offset
+			// Then the beat according to that time
+			// Then the noterow according to that beat
+			float tapTime = rowTime + trr.offset;
+			float tapBeat = timing->GetBeatFromElapsedTime(tapTime);
+			int tapRow = BeatToNoteRow(tapBeat);
+			trr.offsetAdjustedRow = tapRow;
+
+			// And put that into the exacttapmap :)
+			if (m_ReplayExactTapMap.count(tapRow) != 0) {
+				m_ReplayExactTapMap[tapRow].push_back(trr);
+			} else {
+				vector<TapReplayResult> trrVector = { trr };
+				m_ReplayExactTapMap[tapRow] = trrVector;
+			}
+		}
+	}
+}
+
+void
+PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
+{
+	m_ReplaySnapshotMap.clear();
+
 	// Fill out the Snapshot map now that the other maps are not so out of order
 	// We leave out misses in this section because they aren't in the Replay
 	// Data
@@ -170,12 +219,11 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	// Delete the values as we go on to make sure they get counted
 	map<int, vector<HoldReplayResult>> m_unjudgedholds(m_ReplayHoldMap);
 
-	// Iterate over all the noterows we know are in the Replay Data
-	for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
-		// Check for taps and mines
-		if (m_ReplayTapMap.count(*r) != 0) {
-			for (auto instance = m_ReplayTapMap[*r].begin();
-				 instance != m_ReplayTapMap[*r].end();
+	// If we don't have validnoterows, just do it the hard way
+	if (validNoterows.empty()) {
+		for (auto row : m_ReplayTapMap) {
+			for (auto instance = row.second.begin();
+				 instance != row.second.end();
 				 instance++) {
 				TapReplayResult& trr = *instance;
 				if (trr.type == TapNoteType_Mine) {
@@ -186,14 +234,40 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 					tempJudgments[tns]++;
 				}
 			}
-		}
 
-		// Make the struct and cram it in there
-		// ignore holds for now since the following block takes care of them
-		ReplaySnapshot rs;
-		FOREACH_ENUM(TapNoteScore, tns)
-		rs.judgments[tns] = tempJudgments[tns];
-		m_ReplaySnapshotMap[*r] = rs;
+			// Make the struct and cram it in there
+			// ignore holds for now since the following block takes care of them
+			ReplaySnapshot rs;
+			FOREACH_ENUM(TapNoteScore, tns)
+			rs.judgments[tns] = tempJudgments[tns];
+			m_ReplaySnapshotMap[row.first] = rs;
+		}
+	} else {
+		// Iterate over all the noterows we know are in the Replay Data
+		for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
+			// Check for taps and mines
+			if (m_ReplayTapMap.count(*r) != 0) {
+				for (auto instance = m_ReplayTapMap[*r].begin();
+					 instance != m_ReplayTapMap[*r].end();
+					 instance++) {
+					TapReplayResult& trr = *instance;
+					if (trr.type == TapNoteType_Mine) {
+						tempJudgments[TNS_HitMine]++;
+					} else {
+						TapNoteScore tns =
+						  GetTapNoteScoreForReplay(nullptr, trr.offset);
+						tempJudgments[tns]++;
+					}
+				}
+			}
+
+			// Make the struct and cram it in there
+			// ignore holds for now since the following block takes care of them
+			ReplaySnapshot rs;
+			FOREACH_ENUM(TapNoteScore, tns)
+			rs.judgments[tns] = tempJudgments[tns];
+			m_ReplaySnapshotMap[*r] = rs;
+		}
 	}
 
 	// Now handle misses and holds.
@@ -358,42 +432,6 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		m_ReplaySnapshotMap[it->first].maxwifescore = cwsmws.second;
 	}
 	// wanna see me do it again?
-}
-
-void
-PlayerAI::SetUpExactTapMap(TimingData* timing)
-{
-	pReplayTiming = timing;
-
-	// Don't continue if the replay doesn't have column data.
-	// We can't be accurate without it.
-	if (pScoreData->GetReplayType() != 2)
-		return;
-
-	m_ReplayExactTapMap.clear();
-
-	// For every row in the replay data...
-	for (auto& row : m_ReplayTapMap) {
-		// Get the current time and go over all taps on this row...
-		float rowTime = timing->WhereUAtBro(row.first);
-		for (TapReplayResult& trr : row.second) {
-			// Find the time adjusted for offset
-			// Then the beat according to that time
-			// Then the noterow according to that beat
-			float tapTime = rowTime + trr.offset;
-			float tapBeat = timing->GetBeatFromElapsedTime(tapTime);
-			int tapRow = BeatToNoteRow(tapBeat);
-			trr.offsetAdjustedRow = tapRow;
-
-			// And put that into the exacttapmap :)
-			if (m_ReplayExactTapMap.count(tapRow) != 0) {
-				m_ReplayExactTapMap[tapRow].push_back(trr);
-			} else {
-				vector<TapReplayResult> trrVector = { trr };
-				m_ReplayExactTapMap[tapRow] = trrVector;
-			}
-		}
-	}
 }
 
 void
@@ -890,11 +928,11 @@ PlayerAI::GenerateLifeRecordForReplay()
 		differencesHNS[hns] = cSnap->hns[hns] - pSnap->hns[hns];
 
 		FOREACH_ENUM(TapNoteScore, tns)
-		for (unsigned i = 0; i < differencesTNS[tns]; i++)
+		for (int i = 0; i < differencesTNS[tns]; i++)
 			lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
 
 		FOREACH_ENUM(HoldNoteScore, hns)
-		for (unsigned i = 0; i < differencesHNS[hns]; i++)
+		for (int i = 0; i < differencesHNS[hns]; i++)
 			lifeDelta += LifeMeterBar::MapHNSToDeltaLife(hns);
 
 		lifeLevel += lifeDelta;

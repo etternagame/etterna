@@ -85,6 +85,10 @@ class PlayerAI
 	// Reset and populate the ReplayExactTapMap.
 	// This is meant to be run once Gameplay begins.
 	static void SetUpExactTapMap(TimingData* timing);
+	// Generates the map for every noterow in a Replay that describes what is
+	// happening
+	static void SetUpSnapshotMap(NoteData* pNotedata,
+								 set<int> validNoterows = set<int>());
 	// Check the Tap Replay Data to see if a tap is on this row
 	static bool TapExistsAtThisRow(int noteRow);
 	static bool TapExistsAtOrBeforeThisRow(int noteRow);
