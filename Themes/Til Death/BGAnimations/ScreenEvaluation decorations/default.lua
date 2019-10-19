@@ -10,6 +10,9 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("scoreboard")
 end
 
+local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+local originaljudge = GetTimingDifficulty()
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -58,6 +61,7 @@ t[#t + 1] =
 		end
 	}
 
+-- lifegraph
 local function GraphDisplay(pn)
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 
@@ -74,6 +78,13 @@ local function GraphDisplay(pn)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
 				self:xy(-22, 8)
+			end,
+			RecalculateGraphsMessageCommand = function(self, params)
+				-- called by the end of a codemessagecommand somewhere else
+				SetTimingDifficulty(tso[params.judge])
+				SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1))
+				self:playcommand("Begin")
+				MESSAGEMAN:Broadcast("SetComboGraph")
 			end
 		}
 	}
@@ -92,6 +103,11 @@ local function ComboGraph(pn)
 				self:Set(ss, ss:GetPlayerStageStats(pn))
 				self:zoom(0.8)
 				self:xy(-22, -2)
+			end,
+			SetComboGraphMessageCommand = function(self)
+				self:Clear()
+				self:Load("ComboGraph" .. ToEnumShortString(pn))
+				self:playcommand("Begin")
 			end
 		}
 	}
@@ -140,6 +156,9 @@ function scoreBoard(pn, position)
 			end
 			dvt = score:GetOffsetVector()
 			MESSAGEMAN:Broadcast("ScoreChanged")
+		end,
+		OffCommand = function(self)
+			SetTimingDifficulty(tso[originaljudge])
 		end
 	}
 	t[#t + 1] =
@@ -267,6 +286,7 @@ function scoreBoard(pn, position)
 							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
 							customWindow.name
 						)
+						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" then
 						judge = judge == #customWindows and 1 or judge + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
@@ -275,6 +295,7 @@ function scoreBoard(pn, position)
 							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
 							customWindow.name
 						)
+						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
 				elseif params.Name == "PrevJudge" and judge > 1 then
 					judge = judge - 1
@@ -283,6 +304,7 @@ function scoreBoard(pn, position)
 						getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps),
 						"Wife J" .. judge
 					)
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				elseif params.Name == "NextJudge" and judge < 9 then
 					judge = judge + 1
 					if judge == 9 then
@@ -298,10 +320,12 @@ function scoreBoard(pn, position)
 							"Wife J" .. judge
 						)
 					end
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				end
 				if params.Name == "ResetJudge" then
-					judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+					judge = enabledCustomWindows and 0 or originaljudge
 					self:playcommand("Set")
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				end
 			end
 		},
@@ -370,7 +394,7 @@ function scoreBoard(pn, position)
 					end
 				end
 				if params.Name == "ResetJudge" then
-					judge2 = enabledCustomWindows and 0 or GetTimingDifficulty()
+					judge2 = enabledCustomWindows and 0 or originaljudge
 					self:playcommand("Set")
 				end
 			end
