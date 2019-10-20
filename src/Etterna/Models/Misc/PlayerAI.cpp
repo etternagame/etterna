@@ -7,7 +7,10 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RadarValues.h"
 #include "PlayerStageStats.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Actor/Gameplay/LifeMeterBar.h"
+#include "Etterna/Models/NoteData/NoteDataUtil.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
@@ -268,6 +271,22 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 			rs.judgments[tns] = tempJudgments[tns];
 			m_ReplaySnapshotMap[*r] = rs;
 		}
+	}
+
+	// Have to account for mirror being in the highscore options
+	// please dont change styles in the middle of calculation and break this
+	// thanks
+	if (pScoreData->GetModifiers().find("mirror") != string::npos ||
+		pScoreData->GetModifiers().find("Mirror") != string::npos) {
+		PlayerOptions po;
+		po.Init();
+		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
+		NoteDataUtil::TransformNoteData(
+		  *pNoteData,
+		  *pReplayTiming,
+		  po,
+		  GAMESTATE->GetCurrentStyle(GAMESTATE->m_pPlayerState->m_PlayerNumber)
+			->m_StepsType);
 	}
 
 	// Now handle misses and holds.
