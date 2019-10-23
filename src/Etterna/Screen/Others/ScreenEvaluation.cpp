@@ -361,6 +361,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		PlayerAI::pReplayTiming = GAMESTATE->m_pCurSteps->GetTimingData();
 		PlayerAI::SetScoreData(hs, 0, &nd);
 		PlayerAI::SetPlayerStageStatsForReplay(pPSS);
 		return 0;
