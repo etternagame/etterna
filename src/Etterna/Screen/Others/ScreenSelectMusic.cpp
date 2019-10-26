@@ -1779,10 +1779,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  false; // disallow viewing online score eval screens -mina
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
+		TimingData* td = steps->GetTimingData();
 		PlayerAI::ResetScoreData();
 		PlayerAI::SetScoreData(score, 0, &nd);
-		TimingData* td = steps->GetTimingData();
-		PlayerAI::pReplayTiming = td;
+		PlayerAI::SetUpExactTapMap(td);
 
 		auto& pss = ss.m_player;
 		pss.m_HighScore = *score;

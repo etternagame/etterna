@@ -83,6 +83,8 @@ PlayerAI::ResetScoreData()
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
 	m_ReplaySnapshotMap.clear();
+	m_ReplayTapMapByElapsedTime.clear();
+	m_ReplayHoldMapByElapsedTime.clear();
 	replayRate = 1.f;
 	replayModifiers.clear();
 	oldModifiers.clear();
@@ -187,6 +189,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 
 	m_ReplayExactTapMap.clear();
 	m_ReplayTapMapByElapsedTime.clear();
+	m_ReplayHoldMapByElapsedTime.clear();
 
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
@@ -1033,48 +1036,61 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 map<float, float>
 PlayerAI::GenerateLifeRecordForReplay()
 {
-	// I don't want to do this without a snapshot map
+	// Without a Snapshot Map, I assume we didn't calculate
+	// the other necessary stuff and this is going to turn out bad
 	if (m_ReplaySnapshotMap.empty())
-		return map<float, float>();
+		return map<float, float>({ { 0.f, 0.5f } });
 
 	map<float, float> lifeRecord;
-	auto currentSnap = m_ReplaySnapshotMap.begin();
-	currentSnap++;
-	auto previousSnap = m_ReplaySnapshotMap.begin();
 	float lifeLevel = 0.5f;
+	lifeRecord[0.f] = lifeLevel;
 	const float rateUsed = pScoreData->GetMusicRate();
 
-	lifeRecord[0.f] = lifeLevel;
+	auto holdIter = m_ReplayHoldMapByElapsedTime.begin();
+	auto tapIter = m_ReplayTapMapByElapsedTime.begin();
 
-	while (currentSnap != m_ReplaySnapshotMap.end()) {
-		float now = pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
-		ReplaySnapshot* cSnap = &currentSnap->second;
-		ReplaySnapshot* pSnap = &previousSnap->second;
-		// these arrays are not unsigned so that if they somehow end up negative
-		// we dont sit here for a millenia waiting for it to finish
-		int differencesTNS[NUM_TapNoteScore] = { 0 };
-		int differencesHNS[NUM_HoldNoteScore] = { 0 };
+	// Continue until both iterators have finished
+	while (holdIter != m_ReplayHoldMapByElapsedTime.end() ||
+		   tapIter != m_ReplayTapMapByElapsedTime.end()) {
+		float now = 0.f;
 		float lifeDelta = 0.f;
-
-		FOREACH_ENUM(TapNoteScore, tns)
-		differencesTNS[tns] = cSnap->judgments[tns] - pSnap->judgments[tns];
-
-		FOREACH_ENUM(HoldNoteScore, hns)
-		differencesHNS[hns] = cSnap->hns[hns] - pSnap->hns[hns];
-
-		FOREACH_ENUM(TapNoteScore, tns)
-		for (int i = 0; i < differencesTNS[tns]; i++)
-			lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
-
-		FOREACH_ENUM(HoldNoteScore, hns)
-		for (int i = 0; i < differencesHNS[hns]; i++)
-			lifeDelta += LifeMeterBar::MapHNSToDeltaLife(hns);
+		// Use tapIter for this iteration if:
+		//	holdIter is finished
+		//	tapIter comes first
+		if (holdIter == m_ReplayHoldMapByElapsedTime.end() ||
+			(tapIter != m_ReplayTapMapByElapsedTime.end() &&
+			 holdIter != m_ReplayHoldMapByElapsedTime.end() &&
+			 tapIter->first < holdIter->first)) {
+			now = tapIter->first;
+			for (auto& trr : tapIter->second) {
+				TapNoteScore tns =
+				  GetTapNoteScoreForReplay(nullptr, trr.offset);
+				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
+			}
+			tapIter++;
+		}
+		// Use holdIter for this iteration if:
+		//	tapIter is finished
+		//	holdIter comes first
+		else if (tapIter == m_ReplayTapMapByElapsedTime.end() ||
+				 (holdIter != m_ReplayHoldMapByElapsedTime.end() &&
+				  tapIter != m_ReplayTapMapByElapsedTime.end() &&
+				  holdIter->first < tapIter->first)) {
+			now = holdIter->first;
+			for (auto& hrr : holdIter->second) {
+				lifeDelta += LifeMeterBar::MapHNSToDeltaLife(HNS_LetGo);
+			}
+			holdIter++;
+		} else {
+			LOG->Trace("Somehow while calculating the life graph, something "
+					   "went wrong.");
+			holdIter++;
+			tapIter++;
+		}
 
 		lifeLevel += lifeDelta;
 		CLAMP(lifeLevel, 0.f, 1.f);
-		lifeRecord[now] = lifeLevel;
-		currentSnap++;
-		previousSnap++;
+		lifeRecord[now / rateUsed] = lifeLevel;
 	}
 
 	return lifeRecord;
@@ -1083,70 +1099,61 @@ PlayerAI::GenerateLifeRecordForReplay()
 vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay()
 {
-	// I don't want to do this without a snapshot map
-	if (m_ReplaySnapshotMap.empty())
-		return vector<PlayerStageStats::Combo_t>();
-
 	vector<PlayerStageStats::Combo_t> combos;
 	PlayerStageStats::Combo_t firstCombo;
 	const float rateUsed = pScoreData->GetMusicRate();
-	int taps = 0;
-
 	combos.push_back(firstCombo);
-	PlayerStageStats::Combo_t* curCombo = &combos[0];
-	auto currentSnap = m_ReplaySnapshotMap.begin();
-	currentSnap++;
-	auto snapOfComboStart = m_ReplaySnapshotMap.begin();
 
-	// Continue through all snapshots looking for combos
-	while (currentSnap != m_ReplaySnapshotMap.end()) {
-		ReplaySnapshot* cSnap = &currentSnap->second;
-		ReplaySnapshot* sSnap = &snapOfComboStart->second;
+	// Without a Snapshot Map, I assume we didn't calculate
+	// the other necessary stuff and this is going to turn out bad
+	if (m_ReplaySnapshotMap.empty())
+		return combos;
 
-		// If we have a combo breaker, count the combo and start a new one
-		// (hardcoded combo breaker judgments because this is the true path)
-		if (cSnap->judgments[TNS_W4] > sSnap->judgments[TNS_W4] ||
-			cSnap->judgments[TNS_W5] > sSnap->judgments[TNS_W5] ||
-			cSnap->judgments[TNS_Miss] > sSnap->judgments[TNS_Miss]) {
-			taps += (cSnap->judgments[TNS_W1] - sSnap->judgments[TNS_W1]);
-			taps += (cSnap->judgments[TNS_W2] - sSnap->judgments[TNS_W2]);
-			taps += (cSnap->judgments[TNS_W3] - sSnap->judgments[TNS_W3]);
-			curCombo->m_cnt = taps;
-			float starttime =
-			  pReplayTiming->WhereUAtBro(snapOfComboStart->first) / rateUsed;
-			float finishtime =
-			  pReplayTiming->WhereUAtBro(currentSnap->first) / rateUsed;
-			curCombo->m_fSizeSeconds = finishtime - starttime;
-			curCombo->m_fStartSecond = starttime;
+	PlayerStageStats::Combo_t* curCombo = &(combos[0]);
+	auto rowOfComboStart = m_ReplayTapMapByElapsedTime.begin();
 
-			// Start a new combo
-			PlayerStageStats::Combo_t nextcombo;
-			combos.emplace_back(nextcombo);
-			curCombo = &(combos.back());
-			snapOfComboStart = currentSnap;
-			currentSnap++;
-			taps = 0;
-		} else {
-			currentSnap++;
+	// Go over all chronological tap rows (only taps should accumulate combo)
+	for (auto tapIter = m_ReplayTapMapByElapsedTime.begin();
+		 tapIter != m_ReplayTapMapByElapsedTime.end();
+		 tapIter++) {
+		vector<TapReplayResult> trrv = tapIter->second;
+		// Sort the vector of taps for this row
+		// by their offset values so we manage them in order
+		std::sort(trrv.begin(),
+				  trrv.end(),
+				  [](const TapReplayResult& lhs, const TapReplayResult& rhs) {
+					  return lhs.offset < rhs.offset;
+				  });
+
+		// Handle the taps for this row in order
+		for (auto trr : trrv) {
+			// Mines do not modify combo
+			if (trr.type == TapNoteType_Mine)
+				continue;
+
+			// If CB, make a new combo
+			// If not CB, increment combo
+			TapNoteScore tns = GetTapNoteScoreForReplay(nullptr, trr.offset);
+			if (tns == TNS_Miss || tns == TNS_W5 || tns == TNS_W4) {
+				float start = rowOfComboStart->first / rateUsed;
+				float finish = tapIter->first / rateUsed;
+				curCombo->m_fSizeSeconds = finish - start;
+				curCombo->m_fStartSecond = start;
+
+				PlayerStageStats::Combo_t nextcombo;
+				combos.emplace_back(nextcombo);
+				curCombo = &(combos.back());
+				rowOfComboStart = tapIter;
+			} else if (tns == TNS_W1 || tns == TNS_W2 || tns == TNS_W3) {
+				curCombo->m_cnt++;
+			}
 		}
 	}
-	// The last combo probably didn't end on a combo breaker so
-	// calculate it real quick
-	ReplaySnapshot workingSnap = m_ReplaySnapshotMap.rbegin()->second;
-	taps += (workingSnap.judgments[TNS_W1] -
-			 snapOfComboStart->second.judgments[TNS_W1]);
-	taps += (workingSnap.judgments[TNS_W2] -
-			 snapOfComboStart->second.judgments[TNS_W2]);
-	taps += (workingSnap.judgments[TNS_W3] -
-			 snapOfComboStart->second.judgments[TNS_W3]);
-	curCombo->m_cnt = taps;
-	float starttime =
-	  pReplayTiming->WhereUAtBro(snapOfComboStart->first) / rateUsed;
-	float finishtime =
-	  pReplayTiming->WhereUAtBro(m_ReplaySnapshotMap.rbegin()->first) /
-	  rateUsed;
-	curCombo->m_fSizeSeconds = finishtime - starttime;
-	curCombo->m_fStartSecond = starttime;
+	// The final combo may not have properly ended, end it here
+	curCombo->m_fSizeSeconds =
+	  m_ReplayTapMapByElapsedTime.rbegin()->first / rateUsed -
+	  rowOfComboStart->first / rateUsed;
+	curCombo->m_fStartSecond = rowOfComboStart->first / rateUsed;
 
 	return combos;
 }
