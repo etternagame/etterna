@@ -1190,11 +1190,6 @@ PlayerOptions::ContainsTransformOrTurn() const
 			case TRANSFORM_NOROLLS:
 			case TRANSFORM_NOMINES:
 			case TRANSFORM_ATTACKMINES:
-			case TRANSFORM_NOJUMPS:
-			case TRANSFORM_NOLIFTS:
-			case TRANSFORM_NOFAKES:
-			case TRANSFORM_NOQUADS:
-			case TRANSFORM_NOSTRETCH:
 				continue;
 		}
 		if (m_bTransforms[i])
