@@ -221,6 +221,15 @@ Player::GetWindowSeconds(TimingWindow tw)
 }
 
 float
+Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale)
+{
+	float fSecs = m_fTimingWindowSeconds[tw];
+	fSecs *= timingScale;
+	fSecs += m_fTimingWindowAdd;
+	return fSecs;
+}
+
+float
 Player::GetTimingWindowScale()
 {
 	return m_fTimingWindowScale;
