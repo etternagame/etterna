@@ -205,7 +205,6 @@ void
 ScreenGameplayPractice::SetPracticeSongPosition(float newPositionSeconds)
 {
 	SOUND->SetSoundPosition(m_pSoundMusic, newPositionSeconds);
-	// m_pSoundMusic->SetPositionSeconds(newPositionSeconds);
 
 	bool isPaused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Pause(isPaused);
@@ -218,16 +217,27 @@ ScreenGameplayPractice::SetPracticeSongPosition(float newPositionSeconds)
 	auto stats = m_vPlayerInfo.GetPlayerStageStats();
 
 	// Reset the wife/judge counter related visible stuff
-	// we should _probably_ reset the replaydata vectors but i don't feel like
-	// it if we are refactoring gameplay soon
 	pl->curwifescore = 0;
+	pl->maxwifescore = 0;
 	FOREACH_ENUM(TapNoteScore, tns)
 	stats->m_iTapNoteScores[tns] = 0;
 	FOREACH_ENUM(TapNoteScore, hns)
 	stats->m_iHoldNoteScores[hns] = 0;
+	stats->m_fWifeScore = 0;
+	stats->CurWifeScore = 0;
+	stats->MaxWifeScore = 0;
+	stats->m_vOffsetVector.clear();
+	stats->m_vNoteRowVector.clear();
+	stats->m_vTrackVector.clear();
+	stats->m_vTapNoteTypeVector.clear();
+	stats->m_vHoldReplayData.clear();
+	stats->m_iCurCombo = 0;
+	stats->m_iMaxCombo = 0;
+	stats->m_iCurMissCombo = 0;
+	stats->m_radarActual.Zero();
 
 	// just having a message we can respond to directly is probably the best way
-	// to reset lua elemenmts rather than emulating a judgment message like
+	// to reset lua elements rather than emulating a judgment message like
 	// replays
 	MESSAGEMAN->Broadcast("PracticeModeReset");
 }
