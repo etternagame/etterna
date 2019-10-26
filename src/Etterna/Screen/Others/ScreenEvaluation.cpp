@@ -362,13 +362,20 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		float ts = FArg(2);
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		if (hs->GetChordCohesion() || potmp.ContainsTransformOrTurn()) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
 		PlayerAI::SetScoreData(hs, 0, &nd);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
 		pPSS->m_fLifeRecord.clear();
 		pPSS->m_ComboList.clear();
 		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
 		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
-		return 0;
+		lua_pushboolean(L, true);
+		return 1;
 	}
 	LunaScreenEvaluation()
 	{

@@ -1189,7 +1189,7 @@ PlayerOptions::ContainsTransformOrTurn() const
 			return true;
 	}
 	for (int i = 0; i < NUM_TURNS; i++) {
-		if (m_bTurns[i])
+		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
 	return false;

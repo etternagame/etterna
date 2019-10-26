@@ -1812,8 +1812,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			pss.m_iHoldNoteScores[i] =
 			  score->GetHoldNoteScore((HoldNoteScore)i);
 		}
-		pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
-		pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		if (!hs->GetChordCohesion() && !potmp.ContainsTransformOrTurn()) {
+			pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
+			pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
+		}
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);
 		ss.m_fMusicRate = score->GetMusicRate();

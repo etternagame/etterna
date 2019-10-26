@@ -81,7 +81,8 @@ local function GraphDisplay(pn)
 			end,
 			RecalculateGraphsMessageCommand = function(self, params)
 				-- called by the end of a codemessagecommand somewhere else
-				SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge])
+				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge])
+				if not success then return end
 				self:playcommand("Begin")
 				MESSAGEMAN:Broadcast("SetComboGraph")
 			end
