@@ -40,7 +40,8 @@ PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 
 TapNoteScore
 PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
-								   float fNoteOffset)
+								   float fNoteOffset,
+								   float timingScale)
 {
 	// This code is basically a copy paste from somewhere in Player for grabbing
 	// scores.
@@ -53,15 +54,21 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 	if (fSecondsFromExact >= 1.f)
 		return TNS_Miss;
 
-	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
+	if (fSecondsFromExact <=
+		Player::GetWindowSecondsCustomScale(TW_W1, timingScale))
 		return TNS_W1;
-	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
+	else if (fSecondsFromExact <=
+			 Player::GetWindowSecondsCustomScale(TW_W2, timingScale))
 		return TNS_W2;
-	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W3))
+	else if (fSecondsFromExact <=
+			 Player::GetWindowSecondsCustomScale(TW_W3, timingScale))
 		return TNS_W3;
-	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W4))
+	else if (fSecondsFromExact <=
+			 Player::GetWindowSecondsCustomScale(TW_W4, timingScale))
 		return TNS_W4;
-	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
+	else if (fSecondsFromExact <=
+			 max(Player::GetWindowSecondsCustomScale(TW_W5, timingScale),
+				 0.18f))
 		return TNS_W5;
 	return TNS_None;
 }
@@ -1034,7 +1041,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 }
 
 map<float, float>
-PlayerAI::GenerateLifeRecordForReplay()
+PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 {
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
@@ -1064,7 +1071,7 @@ PlayerAI::GenerateLifeRecordForReplay()
 			now = tapIter->first;
 			for (auto& trr : tapIter->second) {
 				TapNoteScore tns =
-				  GetTapNoteScoreForReplay(nullptr, trr.offset);
+				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
 				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
 			}
 			tapIter++;
@@ -1097,7 +1104,7 @@ PlayerAI::GenerateLifeRecordForReplay()
 }
 
 vector<PlayerStageStats::Combo_t>
-PlayerAI::GenerateComboListForReplay()
+PlayerAI::GenerateComboListForReplay(float timingScale)
 {
 	vector<PlayerStageStats::Combo_t> combos;
 	PlayerStageStats::Combo_t firstCombo;
@@ -1133,7 +1140,8 @@ PlayerAI::GenerateComboListForReplay()
 
 			// If CB, make a new combo
 			// If not CB, increment combo
-			TapNoteScore tns = GetTapNoteScoreForReplay(nullptr, trr.offset);
+			TapNoteScore tns =
+			  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
 			if (tns == TNS_Miss || tns == TNS_W5 || tns == TNS_W4) {
 				float start = rowOfComboStart->first / rateUsed;
 				float finish = tapIter->first / rateUsed;

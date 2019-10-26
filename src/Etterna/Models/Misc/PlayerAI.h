@@ -4,6 +4,7 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "PlayerStageStats.h"
+#include "Etterna/Actor/Gameplay/Player.h"
 
 class NoteData;
 class PlayerState;
@@ -73,7 +74,8 @@ class PlayerAI
 	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
 	static TapNoteScore GetTapNoteScoreForReplay(
 	  const PlayerState* pPlayerState,
-	  float fNoteOffset);
+	  float fNoteOffset,
+	  float timingScale = Player::GetTimingWindowScale());
 	// Locate the earliest value in Seconds that is counted as a miss
 	static float FindMissWindowBegin();
 	static bool DetermineIfHoldDropped(int noteRow, int col);
@@ -127,11 +129,13 @@ class PlayerAI
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimated
 	// life graph.
-	static map<float, float> GenerateLifeRecordForReplay();
+	static map<float, float> GenerateLifeRecordForReplay(
+	  float timingScale = Player::GetTimingWindowScale());
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimate
 	// combo graph.
-	static vector<PlayerStageStats::Combo_t> GenerateComboListForReplay();
+	static vector<PlayerStageStats::Combo_t> GenerateComboListForReplay(
+	  float timingScale = Player::GetTimingWindowScale());
 };
 
 #endif
