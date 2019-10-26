@@ -361,9 +361,13 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
-		PlayerAI::pReplayTiming = GAMESTATE->m_pCurSteps->GetTimingData();
+		float ts = FArg(2);
 		PlayerAI::SetScoreData(hs, 0, &nd);
-		PlayerAI::SetPlayerStageStatsForReplay(pPSS);
+		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
+		pPSS->m_fLifeRecord.clear();
+		pPSS->m_ComboList.clear();
+		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
+		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
 		return 0;
 	}
 	LunaScreenEvaluation()

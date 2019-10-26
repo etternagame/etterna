@@ -81,8 +81,7 @@ local function GraphDisplay(pn)
 			end,
 			RecalculateGraphsMessageCommand = function(self, params)
 				-- called by the end of a codemessagecommand somewhere else
-				SetTimingDifficulty(tso[params.judge])
-				SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1))
+				SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge])
 				self:playcommand("Begin")
 				MESSAGEMAN:Broadcast("SetComboGraph")
 			end
@@ -156,9 +155,6 @@ function scoreBoard(pn, position)
 			end
 			dvt = score:GetOffsetVector()
 			MESSAGEMAN:Broadcast("ScoreChanged")
-		end,
-		OffCommand = function(self)
-			SetTimingDifficulty(tso[originaljudge])
 		end
 	}
 	t[#t + 1] =
