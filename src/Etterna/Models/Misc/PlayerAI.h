@@ -49,6 +49,12 @@ class PlayerAI
 	// of the Replay at that moment
 	static map<int, ReplaySnapshot> m_ReplaySnapshotMap;
 
+	// For Life/Combo graph calculations
+	// A reformatting of the ExactTapMap with elapsed times as keys
+	static map<float, vector<TapReplayResult>> m_ReplayTapMapByElapsedTime;
+	// A reformatting of the HoldMap with elapsed times as keys
+	static map<float, vector<HoldReplayResult>> m_ReplayHoldMapByElapsedTime;
+
 	static RString oldModifiers;
 	static RString replayModifiers;
 	static RString oldNoteskin;
@@ -68,6 +74,8 @@ class PlayerAI
 	static TapNoteScore GetTapNoteScoreForReplay(
 	  const PlayerState* pPlayerState,
 	  float fNoteOffset);
+	// Locate the earliest value in Seconds that is counted as a miss
+	static float FindMissWindowBegin();
 	static bool DetermineIfHoldDropped(int noteRow, int col);
 	// Returns the row of the dropped hold if the given range contains a dropped
 	// hold on the track Returns -1 if no dropped hold is in range.

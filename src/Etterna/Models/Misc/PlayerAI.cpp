@@ -18,6 +18,8 @@ map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
 map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
+map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
+map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
 RString PlayerAI::replayModifiers = "";
 RString PlayerAI::oldModifiers = "";
@@ -62,6 +64,13 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
 		return TNS_W5;
 	return TNS_None;
+}
+
+float
+PlayerAI::FindMissWindowBegin()
+{
+	// when this becomes useful, this will be finished
+	return 0.18f;
 }
 
 void
@@ -176,12 +185,13 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 {
 	pReplayTiming = timing;
 
+	m_ReplayExactTapMap.clear();
+	m_ReplayTapMapByElapsedTime.clear();
+
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
 	if (pScoreData->GetReplayType() != 2)
 		return;
-
-	m_ReplayExactTapMap.clear();
 
 	// For every row in the replay data...
 	for (auto& row : m_ReplayTapMap) {
@@ -203,6 +213,69 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 				vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
+
+			// Also put it into the elapsed time map :)
+			if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
+				m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
+			} else {
+				vector<TapReplayResult> trrVector = { trr };
+				m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
+			}
+		}
+	}
+
+	// Sneak in the HoldMapByElapsedTime construction for consistency
+	// Go over all of the elements, you know the deal.
+	// We can avoid getting offset rows here since drops don't do that
+	for (auto& row : m_ReplayHoldMap) {
+		float dropTime = timing->WhereUAtBro(row.first);
+		for (HoldReplayResult& hrr : row.second) {
+			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
+				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
+			} else {
+				vector<HoldReplayResult> hrrVector = { hrr };
+				m_ReplayHoldMapByElapsedTime[dropTime] = hrrVector;
+			}
+		}
+	}
+
+	// If things were in the right order by this point
+	// then we know SnapshotMap is filled out.
+	// This is how we can find misses quickly without having to keep
+	// track of them in some other special way.
+	if (!m_ReplaySnapshotMap.empty()) {
+		auto curSnap = m_ReplaySnapshotMap.begin();
+		curSnap++;
+		auto prevSnap = m_ReplaySnapshotMap.begin();
+		while (curSnap != m_ReplaySnapshotMap.end()) {
+			auto csn = curSnap->second;
+			auto psn = prevSnap->second;
+			int missDiff = csn.judgments[TNS_Miss] - psn.judgments[TNS_Miss];
+			if (missDiff > 0) {
+				int row = curSnap->first;
+				// the tap time is pushed back by the smallest normal boo
+				// window. the reason for this is that's about the point where
+				// the game should usually count something as a miss. we dont
+				// use this time for anything other than chronologically parsing
+				// replay data for combo/life stuff so this is okay (i hope)
+				float tapTime = timing->WhereUAtBro(row) + .18f;
+				for (int i = 0; i < missDiff; i++) {
+					// we dont really care about anything other than the offset
+					// because we have the estimate time at the row in the map
+					// and then we just need to know what judgment to assign it
+					TapReplayResult trr;
+					trr.row = row;
+					trr.offset = 1.f;
+					if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
+						m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
+					} else {
+						vector<TapReplayResult> trrVector = { trr };
+						m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
+					}
+				}
+			}
+			curSnap++;
+			prevSnap++;
 		}
 	}
 }
