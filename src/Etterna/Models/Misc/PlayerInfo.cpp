@@ -8,6 +8,7 @@
 #include "PlayerStageStats.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeper.h"
 #include "Etterna/Actor/Gameplay/Player.h"
+#include "Etterna/Actor/Gameplay/PlayerPractice.h"
 #include "Etterna/Actor/Gameplay/PlayerReplay.h"
 #include "Etterna/Actor/Gameplay/LifeMeter.h"
 
@@ -64,6 +65,8 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_ptextPlayerOptions = NULL;
 	if (mode == GameplayMode_Replay) {
 		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
+	} else if (mode == GameplayMode_Practice) {
+		m_pPlayer = new PlayerPractice(m_NoteData, bShowNoteField);
 	} else {
 		m_pPlayer = new Player(m_NoteData, bShowNoteField);
 	}
