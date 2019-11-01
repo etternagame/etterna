@@ -189,7 +189,7 @@ ScreenGameplayPractice::TogglePause()
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 						  fSecondsToStartTransitioningOut);
 
-		RageSoundParams p;
+		RageSoundParams p = m_pSoundMusic->GetParams();
 		p.m_StartSecond = fSeconds;
 		p.m_fSpeed = rate;
 		if (fSecondsToStartFadingOutMusic <
@@ -199,6 +199,7 @@ ScreenGameplayPractice::TogglePause()
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 		}
 		p.StopMode = RageSoundParams::M_CONTINUE;
+		p.m_bAccurateSync = true;
 		// Go
 		m_pSoundMusic->Play(false, &p);
 	} else {
@@ -211,10 +212,15 @@ void
 ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 										float noteDelay)
 {
+	bool isPaused = GAMESTATE->GetPaused();
+
+	RageSoundParams p = m_pSoundMusic->GetParams();
+	p.m_bAccurateSync = !isPaused;
+	m_pSoundMusic->SetParams(p);
+
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
 	UpdateSongPosition(0);
 
-	bool isPaused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Pause(isPaused);
 
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
@@ -295,6 +301,7 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 							MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 	}
 	p.StopMode = RageSoundParams::M_CONTINUE;
+	p.m_bAccurateSync = true;
 	// Go
 	m_pSoundMusic->Play(false, &p);
 	// But only for like 1 frame if we are paused
