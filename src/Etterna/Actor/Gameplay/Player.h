@@ -319,4 +319,54 @@ class Player : public ActorFrame
 	bool m_drawing_notefield_board;
 };
 
+/**
+ * @brief Helper class to ensure that each row is only judged once without
+ * taking too much memory.
+ */
+class JudgedRows
+{
+	vector<bool> m_vRows;
+	int m_iStart{ 0 };
+	int m_iOffset{ 0 };
+
+	void Resize(size_t iMin)
+	{
+		size_t iNewSize = max(2 * m_vRows.size(), iMin);
+		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+		vNewRows.reserve(iNewSize);
+		vNewRows.insert(
+		  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
+		vNewRows.resize(iNewSize, false);
+		m_vRows.swap(vNewRows);
+		m_iOffset = 0;
+	}
+
+  public:
+	JudgedRows() { Resize(32); }
+	// Returns true if the row has already been judged.
+	bool JudgeRow(int iRow)
+	{
+		if (iRow < m_iStart)
+			return true;
+		if (iRow >= m_iStart + static_cast<int>(m_vRows.size()))
+			Resize(iRow + 1 - m_iStart);
+		const int iIndex = (iRow - m_iStart + m_iOffset) % m_vRows.size();
+		const bool ret = m_vRows[iIndex];
+		m_vRows[iIndex] = true;
+		while (m_vRows[m_iOffset]) {
+			m_vRows[m_iOffset] = false;
+			++m_iStart;
+			if (++m_iOffset >= static_cast<int>(m_vRows.size()))
+				m_iOffset -= m_vRows.size();
+		}
+		return ret;
+	}
+	void Reset(int iStart)
+	{
+		m_iStart = iStart;
+		m_iOffset = 0;
+		m_vRows.assign(m_vRows.size(), false);
+	}
+};
+
 #endif
