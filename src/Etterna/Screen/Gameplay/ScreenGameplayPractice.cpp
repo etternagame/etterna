@@ -139,7 +139,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Load();
+		m_vPlayerInfo.m_pPlayer->Reload();
 	}
 
 	// load auto keysounds
