@@ -657,6 +657,56 @@ Player::Load()
 }
 
 void
+Player::Reload()
+{
+	// This basically does most of Player::Load
+	// but not all of it
+
+	m_LastTapNoteScore = TNS_None;
+
+	const int iNoteRow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	m_iFirstUncrossedRow = iNoteRow - 1;
+	m_pJudgedRows->Reset(iNoteRow);
+
+	// Make sure c++ bound actor's tweens are reset if they exist
+	if (m_sprJudgment)
+		m_sprJudgment->PlayCommand("Reset");
+	if (m_pPlayerStageStats != nullptr) {
+		SetCombo(
+		  m_pPlayerStageStats->m_iCurCombo,
+		  m_pPlayerStageStats
+			->m_iCurMissCombo); // combo can persist between songs and games
+	}
+
+	curwifescore = 0.f;
+	maxwifescore = 0.f;
+
+	if (m_pPlayerStageStats != nullptr)
+		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
+						  m_pPlayerStageStats->m_iCurMissCombo);
+
+	SAFE_DELETE(m_pIterNeedsTapJudging);
+	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterNeedsHoldJudging);
+	m_pIterNeedsHoldJudging = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUncrossedRows);
+	m_pIterUncrossedRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUnjudgedRows);
+	m_pIterUnjudgedRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
+
+	SAFE_DELETE(m_pIterUnjudgedMineRows);
+	m_pIterUnjudgedMineRows = new NoteData::all_tracks_iterator(
+	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
+}
+
+void
 Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
 {
 	const unsigned int iCurCombo =

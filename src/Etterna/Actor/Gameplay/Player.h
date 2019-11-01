@@ -88,6 +88,7 @@ class Player : public ActorFrame
 					  LifeMeter* pLM,
 					  ScoreKeeper* pPrimaryScoreKeeper);
 	virtual void Load();
+	virtual void Reload();
 	virtual void CrossedRows(int iLastRowCrossed,
 							 const std::chrono::steady_clock::time_point& now);
 	/**
