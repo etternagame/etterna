@@ -118,7 +118,9 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 }
 
 void
-ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps, int row)
+ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
+											 int minRow,
+											 int maxRow)
 {
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
@@ -127,6 +129,10 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps, int row)
 	NoteData ndTransformed;
 	pStyle->GetTransformedNoteDataForStyle(
 	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+
+	m_vPlayerInfo.GetPlayerState()->Update(0);
+
+	NoteDataUtil::RemoveAllButRange(ndTransformed, minRow, maxRow);
 
 	// load player
 	{
@@ -165,7 +171,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps, int row)
 }
 
 void
-ScreenGameplayPractice::TogglePracticePause()
+ScreenGameplayPractice::TogglePause()
 {
 	// True if we were paused before now
 	bool oldPause = GAMESTATE->GetPaused();
@@ -202,13 +208,22 @@ ScreenGameplayPractice::TogglePracticePause()
 }
 
 void
-ScreenGameplayPractice::SetPracticeSongPosition(float newPositionSeconds)
+ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
+										float noteDelay)
 {
-	SOUND->SetSoundPosition(m_pSoundMusic, newPositionSeconds);
+	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
+	UpdateSongPosition(0);
 
 	bool isPaused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Pause(isPaused);
 
+	Steps* pSteps = GAMESTATE->m_pCurSteps;
+	TimingData* pTiming = pSteps->GetTimingData();
+	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const float fNotesBeat =
+	  pTiming->GetBeatFromElapsedTime(newSongPositionSeconds);
+	const int rowNow = BeatToNoteRow(fNotesBeat);
+	SetupNoteDataFromRow(pSteps, rowNow);
 	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
 
 	// curwifescore sent via judgment msgs is stored in player
@@ -243,7 +258,7 @@ ScreenGameplayPractice::SetPracticeSongPosition(float newPositionSeconds)
 }
 
 float
-ScreenGameplayPractice::AddToPracticeRate(float amountAdded)
+ScreenGameplayPractice::AddToRate(float amountAdded)
 {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
@@ -295,31 +310,31 @@ ScreenGameplayPractice::AddToPracticeRate(float amountAdded)
 class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 {
   public:
-	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	static int SetSongPosition(T* p, lua_State* L)
 	{
 		float given = FArg(1);
-		p->SetPracticeSongPosition(given);
+		p->SetSongPosition(given);
 		return 0;
 	}
 
-	static int AddToPracticeRate(T* p, lua_State* L)
+	static int AddToRate(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
-		lua_pushnumber(L, p->AddToPracticeRate(rate));
+		lua_pushnumber(L, p->AddToRate(rate));
 		return 1;
 	}
 
-	static int TogglePracticePause(T* p, lua_State* L)
+	static int TogglePause(T* p, lua_State* L)
 	{
-		p->TogglePracticePause();
+		p->TogglePause();
 		return 0;
 	}
 
 	LunaScreenGameplayPractice()
 	{
-		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
-		ADD_METHOD(AddToPracticeRate);
-		ADD_METHOD(TogglePracticePause);
+		ADD_METHOD(SetSongPosition);
+		ADD_METHOD(AddToRate);
+		ADD_METHOD(TogglePause);
 	}
 };
 

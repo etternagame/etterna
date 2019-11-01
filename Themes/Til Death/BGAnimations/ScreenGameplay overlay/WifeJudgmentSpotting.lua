@@ -948,12 +948,12 @@ local function duminput(event)
 		MESSAGEMAN:Broadcast("MouseRightClick")
 	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
 		if bookmarkPosition ~= nil then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(bookmarkPosition)
+			SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition)
 		end
 	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToPracticeRate(0.05)
+		SCREENMAN:GetTopScreen():AddToRate(0.05)
 	elseif event.button == "EffectDown" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToPracticeRate(-0.05)
+		SCREENMAN:GetTopScreen():AddToRate(-0.05)
 	end
 	return false
 end
@@ -1047,7 +1047,7 @@ pm[#pm + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(self:GetX() * musicratio)
+			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio)
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)
@@ -1056,7 +1056,7 @@ pm[#pm + 1] =
 			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
 		else
 			if not (allowedCustomization) then
-				SCREENMAN:GetTopScreen():TogglePracticePause()
+				SCREENMAN:GetTopScreen():TogglePause()
 			end
 		end
 	end

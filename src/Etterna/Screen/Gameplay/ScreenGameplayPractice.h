@@ -25,16 +25,17 @@ class ScreenGameplayPractice : public ScreenGameplay
 
 	// Set the playback rate in the middle of gameplay
 	float SetRate(float newRate);
-	// Set the playback rate in the middle of gameplay, in practice mode only
-	float AddToPracticeRate(float amountAdded);
-	// Move the current position of the song in the middle of gameplay, in
-	// practice mode only
-	void SetPracticeSongPosition(float newPositionSeconds);
+	// Add to the playback rate in the middle of gameplay
+	float AddToRate(float amountAdded);
+	// Move the current position of the song in the middle of gameplay
+	void SetSongPosition(float newSongPositionSeconds, float noteDelay = 0.f);
 	// Toggle pause
-	void TogglePracticePause();
+	void TogglePause();
 
   protected:
-	void SetupNoteDataFromRow(Steps* pSteps, int row) override;
+	void SetupNoteDataFromRow(Steps* pSteps,
+							  int minRow = 0,
+							  int maxrow = MAX_NOTE_ROW);
 };
 
 #endif
