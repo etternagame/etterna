@@ -384,7 +384,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 }
 
 void
-ScreenGameplayReplay::ToggleReplayPause()
+ScreenGameplayReplay::TogglePause()
 {
 	// True if we were paused before now
 	bool oldPause = GAMESTATE->GetPaused();
@@ -529,14 +529,14 @@ ScreenGameplayReplay::ToggleReplayPause()
 class LunaScreenGameplayReplay : public Luna<ScreenGameplayReplay>
 {
   public:
-	static int SetReplayPosition(T* p, lua_State* L)
+	static int SetSongPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
 		if (GAMESTATE->GetPaused())
 			p->SetSongPosition(newpos);
 		return 0;
 	}
-	static int SetReplayRate(T* p, lua_State* L)
+	static int SetRate(T* p, lua_State* L)
 	{
 		float newrate = FArg(1);
 		if (!GAMESTATE->GetPaused()) {
@@ -546,18 +546,18 @@ class LunaScreenGameplayReplay : public Luna<ScreenGameplayReplay>
 		lua_pushnumber(L, p->SetRate(newrate));
 		return 1;
 	}
-	static int ToggleReplayPause(T* p, lua_State* L)
+	static int TogglePause(T* p, lua_State* L)
 	{
-		p->ToggleReplayPause();
+		p->TogglePause();
 		return 0;
 	}
-	static int SetReplayBookmark(T* p, lua_State* L)
+	static int SetBookmark(T* p, lua_State* L)
 	{
 		float position = FArg(1);
 		p->m_fReplayBookmarkSeconds = position;
 		return 0;
 	}
-	static int JumpToReplayBookmark(T* p, lua_State* L)
+	static int JumpToBookmark(T* p, lua_State* L)
 	{
 		if (GAMESTATE->GetPaused()) {
 			p->SetSongPosition(p->m_fReplayBookmarkSeconds);
@@ -568,11 +568,11 @@ class LunaScreenGameplayReplay : public Luna<ScreenGameplayReplay>
 
 	LunaScreenGameplayReplay()
 	{
-		ADD_METHOD(SetReplayPosition);
-		ADD_METHOD(SetReplayRate);
-		ADD_METHOD(ToggleReplayPause);
-		ADD_METHOD(SetReplayBookmark);
-		ADD_METHOD(JumpToReplayBookmark);
+		ADD_METHOD(SetSongPosition);
+		ADD_METHOD(SetRate);
+		ADD_METHOD(TogglePause);
+		ADD_METHOD(SetBookmark);
+		ADD_METHOD(JumpToBookmark);
 	}
 };
 

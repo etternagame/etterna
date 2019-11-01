@@ -25,7 +25,7 @@ class ScreenGameplayReplay : public ScreenGameplay
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newPositionSeconds);
 	// Toggle pause
-	void ToggleReplayPause();
+	void TogglePause();
 	float m_fReplayBookmarkSeconds;
 
   protected:

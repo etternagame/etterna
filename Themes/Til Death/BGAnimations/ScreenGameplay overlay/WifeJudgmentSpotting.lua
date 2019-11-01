@@ -689,7 +689,7 @@ local replaySlider =
 		-- Change to onValueChangeEnd if this
 		-- lags too much
 		onValueChange = function(val)
-			SCREENMAN:GetTopScreen():SetReplayPosition(val)
+			SCREENMAN:GetTopScreen():SetSongPosition(val)
 		end
 	} or
 	Def.Actor {}
