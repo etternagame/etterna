@@ -1,5 +1,5 @@
 local settext = BitmapText.settext
-local isPractice = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
+local isPractice = GAMESTATE:IsPracticeMode()
 
 local function highlight(self)
 	self:queuecommand("Highlight")
