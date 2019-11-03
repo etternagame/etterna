@@ -17,6 +17,13 @@ class PlayerPractice : public Player
 			  ScoreKeeper* pPrimaryScoreKeeper) override;
 	void Update(float fDeltaTime) override;
 
+	void Step(int col,
+			  int row,
+			  const std::chrono::steady_clock::time_point& tm,
+			  bool bHeld,
+			  bool bRelease,
+			  float padStickSeconds = 0.0f) override;
+
 	// When called, resets stage stats and necessary things
 	// Also sets countStats to false.
 	void PositionReset();

@@ -18,6 +18,7 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Actor/Gameplay/Player.h"
+#include "Etterna/Actor/Gameplay/PlayerPractice.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
@@ -30,8 +31,11 @@ REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
 void
 ScreenGameplayPractice::FillPlayerInfo(PlayerInfo* playerInfoOut)
 {
-	playerInfoOut->Load(
-	  PLAYER_1, MultiPlayer_Invalid, true, Difficulty_Invalid);
+	playerInfoOut->Load(PLAYER_1,
+						MultiPlayer_Invalid,
+						true,
+						Difficulty_Invalid,
+						GameplayMode_Practice);
 }
 
 ScreenGameplayPractice::ScreenGameplayPractice()
@@ -230,32 +234,11 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	  pTiming->GetBeatFromElapsedTime(newSongPositionSeconds);
 	const int rowNow = BeatToNoteRow(fNotesBeat);
 	SetupNoteDataFromRow(pSteps, rowNow);
-	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
-
-	// curwifescore sent via judgment msgs is stored in player
-	auto pl = m_vPlayerInfo.m_pPlayer;
-	// but the tns counts are stored here
-	auto stats = m_vPlayerInfo.GetPlayerStageStats();
 
 	// Reset the wife/judge counter related visible stuff
-	pl->curwifescore = 0;
-	pl->maxwifescore = 0;
-	FOREACH_ENUM(TapNoteScore, tns)
-	stats->m_iTapNoteScores[tns] = 0;
-	FOREACH_ENUM(TapNoteScore, hns)
-	stats->m_iHoldNoteScores[hns] = 0;
-	stats->m_fWifeScore = 0;
-	stats->CurWifeScore = 0;
-	stats->MaxWifeScore = 0;
-	stats->m_vOffsetVector.clear();
-	stats->m_vNoteRowVector.clear();
-	stats->m_vTrackVector.clear();
-	stats->m_vTapNoteTypeVector.clear();
-	stats->m_vHoldReplayData.clear();
-	stats->m_iCurCombo = 0;
-	stats->m_iMaxCombo = 0;
-	stats->m_iCurMissCombo = 0;
-	stats->m_radarActual.Zero();
+	PlayerPractice* pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+	pl->RenderAllNotesIgnoreScores();
+	pl->PositionReset();
 
 	// just having a message we can respond to directly is probably the best way
 	// to reset lua elements rather than emulating a judgment message like
