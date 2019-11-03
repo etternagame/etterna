@@ -948,7 +948,7 @@ local function duminput(event)
 		MESSAGEMAN:Broadcast("MouseRightClick")
 	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
 		if bookmarkPosition ~= nil then
-			SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition)
+			SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1)
 		end
 	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
 		SCREENMAN:GetTopScreen():AddToRate(0.05)
@@ -1047,7 +1047,7 @@ pm[#pm + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio)
+			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0)
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)

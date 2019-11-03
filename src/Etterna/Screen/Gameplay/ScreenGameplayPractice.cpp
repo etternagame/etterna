@@ -319,8 +319,9 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
   public:
 	static int SetSongPosition(T* p, lua_State* L)
 	{
-		float given = FArg(1);
-		p->SetSongPosition(given);
+		float position = FArg(1);
+		float delay = FArg(2);
+		p->SetSongPosition(position, delay);
 		return 0;
 	}
 
