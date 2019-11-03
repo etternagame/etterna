@@ -2,7 +2,7 @@
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-local practiceMode = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
+local practiceMode = GAMESTATE:IsPracticeMode()
 local jcKeys = tableKeys(colorConfig:get_data().judgment)
 local jcT = {} -- A "T" following a variable name will designate an object of type table.
 
@@ -952,6 +952,9 @@ local function duminput(event)
 		if event.DeviceInput.button == "DeviceButton_backspace" then
 			if bookmarkPosition ~= nil then
 				SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1)
+				if GAMESTATE:IsPaused() then
+					SCREENMAN:GetTopScreen():TogglePause()
+				end
 			end
 		elseif event.button == "EffectUp" then
 			SCREENMAN:GetTopScreen():AddToRate(0.05)
