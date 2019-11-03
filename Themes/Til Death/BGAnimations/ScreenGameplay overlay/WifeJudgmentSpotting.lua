@@ -942,19 +942,39 @@ local cd
 local bookmarkPosition
 
 local function duminput(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseLeftClick")
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseRightClick")
-	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
-		if bookmarkPosition ~= nil then
-			SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1)
+	if event.type == "InputEventType_Release" then
+		if event.DeviceInput.button == "DeviceButton_left mouse button" then
+			MESSAGEMAN:Broadcast("MouseLeftClick")
+		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
-	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToRate(0.05)
-	elseif event.button == "EffectDown" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToRate(-0.05)
+	elseif event.type == "InputEventType_FirstPress" then
+		if event.DeviceInput.button == "DeviceButton_backspace" then
+			if bookmarkPosition ~= nil then
+				SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1)
+			end
+		elseif event.button == "EffectUp" then
+			SCREENMAN:GetTopScreen():AddToRate(0.05)
+		elseif event.button == "EffectDown" then
+			SCREENMAN:GetTopScreen():AddToRate(-0.05)
+		elseif event.button == "Coin" then
+			bookmarkPosition = SCREENMAN:GetTopScreen():GetSongPosition()
+			cd:GetParent():GetChild("BookmarkPos"):playcommand("Set")
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
+			if GAMESTATE:IsPaused() then
+				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				SCREENMAN:GetTopScreen():SetSongPosition(pos + dir * 0.05,0)
+			end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+			if GAMESTATE:IsPaused() then
+				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				SCREENMAN:GetTopScreen():SetSongPosition(pos - dir * 0.05,0)
+			end
+		end
 	end
+	
 	return false
 end
 
