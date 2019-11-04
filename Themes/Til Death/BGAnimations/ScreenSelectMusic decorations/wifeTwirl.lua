@@ -49,8 +49,10 @@ local t =
 			self:queuecommand("MilkyTarts")
 		end
 		if song ~= bong then
+			if not song then
+				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
+			end
 			song = bong
-			hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
 			self:queuecommand("MortyFarts")
 			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
 				song:Borp()
