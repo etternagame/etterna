@@ -103,6 +103,11 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
 		if (PREFSMAN->m_bEasterEggs)
 			m_Toasty.Reset();
+
+		// Reset the wife/judge counter related visible stuff
+		PlayerPractice* pl =
+		  static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+		pl->PositionReset();
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
 

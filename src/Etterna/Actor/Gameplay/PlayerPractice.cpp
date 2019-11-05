@@ -5,6 +5,7 @@
 #include "NoteField.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/Game.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -137,24 +138,43 @@ PlayerPractice::PositionReset()
 	// Reset stage stats and stuff
 	countStats = false;
 
+	// wife points
 	curwifescore = 0;
 	maxwifescore = 0;
 
+	// combo color
+	m_bSeenComboYet = false;
+	m_iLastSeenCombo = 0;
+	m_pPlayerStageStats->m_bPlayerCanAchieveFullCombo = true;
+
+	// judgments
 	FOREACH_ENUM(TapNoteScore, tns)
 	m_pPlayerStageStats->m_iTapNoteScores[tns] = 0;
 	FOREACH_ENUM(TapNoteScore, hns)
 	m_pPlayerStageStats->m_iHoldNoteScores[hns] = 0;
 
+	// stage stats general info and replay data
 	m_pPlayerStageStats->m_fWifeScore = 0;
 	m_pPlayerStageStats->CurWifeScore = 0;
 	m_pPlayerStageStats->MaxWifeScore = 0;
-	m_pPlayerStageStats->m_vOffsetVector.clear();
-	m_pPlayerStageStats->m_vNoteRowVector.clear();
-	m_pPlayerStageStats->m_vTrackVector.clear();
-	m_pPlayerStageStats->m_vTapNoteTypeVector.clear();
-	m_pPlayerStageStats->m_vHoldReplayData.clear();
+	m_pPlayerStageStats->UnloadReplayData();
 	m_pPlayerStageStats->m_iCurCombo = 0;
 	m_pPlayerStageStats->m_iMaxCombo = 0;
 	m_pPlayerStageStats->m_iCurMissCombo = 0;
 	m_pPlayerStageStats->m_radarActual.Zero();
+
+	// combo graph, life graph
+	m_pPlayerStageStats->m_ComboList.clear();
+	m_pPlayerStageStats->m_ComboList.shrink_to_fit();
+	m_pPlayerStageStats->m_fLifeRecord.clear();
+
+	// misc judge info
+	m_iFirstUncrossedRow = -1;
+	m_pJudgedRows->Reset(-1);
+	for (int i = 0;
+		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+			   ->m_iColsPerPlayer;
+		 ++i) {
+		lastHoldHeadsSeconds[i] = -1000.f;
+	}
 }
