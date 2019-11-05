@@ -196,16 +196,23 @@ ScreenGameplayPractice::TogglePause()
 		RageSoundParams p = m_pSoundMusic->GetParams();
 		p.m_StartSecond = fSeconds - 0.01f;
 		p.m_fSpeed = rate;
-		if (fSecondsToStartFadingOutMusic <
-			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+		if (loopStart != loopEnd) {
+			p.m_fFadeOutSeconds = 3.f;
+			p.m_LengthSeconds = loopEnd + 3.f - loopStart;
+			p.StopMode = RageSoundParams::M_LOOP;
+		} else {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+			p.StopMode = RageSoundParams::M_CONTINUE;
 		}
-		p.StopMode = RageSoundParams::M_CONTINUE;
 		p.m_bAccurateSync = true;
 		// Go
 		m_pSoundMusic->Play(false, &p);
+		if (loopStart != loopEnd) {
+			p.m_StartSecond = loopStart;
+			m_pSoundMusic->SetParams(p);
+		}
 	}
 
 	m_pSoundMusic->Pause(newPause);
@@ -219,8 +226,11 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 										bool unpause)
 {
 	bool isPaused = GAMESTATE->GetPaused();
-
 	RageSoundParams p = m_pSoundMusic->GetParams();
+
+	// Letting this execute will freeze the music and thats bad
+	if (loopStart != loopEnd && newSongPositionSeconds > loopEnd)
+		return;
 
 	// If paused, we need to move fast so dont use slow seeking
 	// but if we want to hard seek, we dont care about speed
@@ -272,9 +282,9 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 	if (newRate <= 0.25f || newRate > 3.f)
 		return rate;
 
-	bool paused = GAMESTATE->GetPaused();
+	// bool paused = GAMESTATE->GetPaused();
 
-	m_pSoundMusic->Stop();
+	// m_pSoundMusic->Stop();
 
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
@@ -284,31 +294,75 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 					  fSecondsToStartTransitioningOut);
 
 	RageSoundParams p;
-	p.m_StartSecond = fSeconds;
+	// p.m_StartSecond = fSeconds;
 	p.m_fSpeed = newRate;
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
-	if (paused)
-		p.m_Volume = 0.f;
-	if (fSecondsToStartFadingOutMusic <
-		GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+	// if (paused)
+	//	p.m_Volume = 0.f;
+	if (loopStart != loopEnd) {
+		p.m_StartSecond = loopStart;
+		p.m_fFadeOutSeconds = 3.f;
+		p.m_LengthSeconds = (loopEnd + 3.f - loopStart);
+		p.StopMode = RageSoundParams::M_LOOP;
+	} else {
 		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 		p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 							MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+		p.StopMode = RageSoundParams::M_CONTINUE;
 	}
-	p.StopMode = RageSoundParams::M_CONTINUE;
 	p.m_bAccurateSync = true;
 	// Go
-	m_pSoundMusic->Play(false, &p);
+	m_pSoundMusic->SetParams(p);
+	// m_pSoundMusic->Play(false, &p);
 	// But only for like 1 frame if we are paused
-	if (paused)
-		m_pSoundMusic->Pause(true);
+	// if (paused)
+	//	m_pSoundMusic->Pause(true);
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 
 	MESSAGEMAN->Broadcast(
 	  "CurrentRateChanged"); // Tell the theme we changed the rate
 	return newRate;
+}
+
+void
+ScreenGameplayPractice::SetLoopRegion(float start, float end)
+{
+	loopStart = start;
+	loopEnd = end;
+
+	RageSoundParams p = m_pSoundMusic->GetParams();
+	p.m_StartSecond = start;
+	p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+	p.m_LengthSeconds = end + MUSIC_FADE_OUT_SECONDS - start;
+	p.StopMode = RageSoundParams::M_LOOP;
+
+	m_pSoundMusic->SetParams(p);
+}
+
+void
+ScreenGameplayPractice::ResetLoopRegion()
+{
+	loopStart = -2000.f;
+	loopEnd = -2000.f;
+
+	RageTimer tm;
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+
+	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
+	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
+					  fSecondsToStartTransitioningOut);
+
+	RageSoundParams p = m_pSoundMusic->GetParams();
+	p.m_StartSecond = GAMESTATE->m_pCurSong->GetFirstSecond() *
+					  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+	p.m_LengthSeconds =
+	  fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+	p.StopMode = RageSoundParams::M_CONTINUE;
+
+	m_pSoundMusic->SetParams(p);
 }
 
 class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
@@ -345,12 +399,28 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 		return 0;
 	}
 
+	static int SetLoopRegion(T* p, lua_State* L)
+	{
+		float begin = FArg(1);
+		float end = FArg(2);
+		p->SetLoopRegion(begin, end);
+		return 0;
+	}
+
+	static int ResetLoopRegion(T* p, lua_State* L)
+	{
+		p->ResetLoopRegion();
+		return 0;
+	}
+
 	LunaScreenGameplayPractice()
 	{
 		ADD_METHOD(SetSongPosition);
 		ADD_METHOD(SetSongPositionAndUnpause);
 		ADD_METHOD(AddToRate);
 		ADD_METHOD(TogglePause);
+		ADD_METHOD(SetLoopRegion);
+		ADD_METHOD(ResetLoopRegion);
 	}
 };
 

@@ -939,7 +939,63 @@ local musicratio = 1
 local wodth = capWideScale(get43size(240), 280)
 local hidth = 40
 local cd
-local bookmarkPosition
+local loopStartPos
+local loopEndPos
+
+local function handleRegionSetting(positionGiven)
+
+	-- first time starting a region
+	if not loopStartPos and not loopEndPos then
+		loopStartPos = positionGiven
+		MESSAGEMAN:Broadcast("RegionSet")
+		return
+	end
+
+	-- reset region to bookmark only if double right click
+	if positionGiven == loopStartPos or positionGiven == loopEndPos then
+		loopEndPos = nil
+		loopStartPos = positionGiven
+		MESSAGEMAN:Broadcast("RegionSet")
+		SCREENMAN:GetTopScreen():ResetLoopRegion()
+		return
+	end
+
+	-- measure the difference of the new pos from each end
+	local startDiff = math.abs(positionGiven - loopStartPos)
+	local endDiff = startDiff + 0.1
+	if loopEndPos then
+		endDiff = math.abs(positionGiven - loopEndPos)
+	end
+
+	-- use the diff to figure out which end to move
+
+	-- if there is no end, then you place the end
+	if not loopEndPos then
+		if loopStartPos < positionGiven then
+			loopEndPos = positionGiven
+		elseif loopStartPos > positionGiven then
+			loopEndPos = loopStartPos
+			loopStartPos = positionGiven
+		else
+			-- this should never happen
+			-- but if it does, reset to bookmark
+			loopEndPos = nil
+			loopStartPos = positionGiven
+			MESSAGEMAN:Broadcast("RegionSet")
+			SCREENMAN:GetTopScreen():ResetLoopRegion()
+			return
+		end
+	else
+		-- closer to the start, move the start
+		if startDiff < endDiff then
+			loopStartPos = positionGiven
+		else
+			loopEndPos = positionGiven
+		end
+	end
+	SCREENMAN:GetTopScreen():SetLoopRegion(loopStartPos * getCurRateValue(), loopEndPos * getCurRateValue())
+	MESSAGEMAN:Broadcast("RegionSet", {loopLength = loopEndPos-loopStartPos})
+end
 
 local function duminput(event)
 	if event.type == "InputEventType_Release" then
@@ -950,16 +1006,15 @@ local function duminput(event)
 		end
 	elseif event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_backspace" then
-			if bookmarkPosition ~= nil then
-				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(bookmarkPosition, 1, true)
+			if loopStartPos ~= nil then
+				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(loopStartPos, 1, true)
 			end
 		elseif event.button == "EffectUp" then
 			SCREENMAN:GetTopScreen():AddToRate(0.05)
 		elseif event.button == "EffectDown" then
 			SCREENMAN:GetTopScreen():AddToRate(-0.05)
 		elseif event.button == "Coin" then
-			bookmarkPosition = SCREENMAN:GetTopScreen():GetSongPosition()
-			cd:GetParent():GetChild("BookmarkPos"):playcommand("Set")
+			handleRegionSetting(SCREENMAN:GetTopScreen():GetSongPosition())
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
@@ -1067,13 +1122,17 @@ pm[#pm + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
+			local withCtrl = INPUTFILTER:IsControlPressed()
+			if withCtrl then
+				handleRegionSetting(self:GetX() * musicratio)
+			else
+				SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
+			end
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if isOver(self) then
-			bookmarkPosition = self:GetX() * musicratio
-			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
+			handleRegionSetting(self:GetX() * musicratio)
 		else
 			if not (allowedCustomization) then
 				SCREENMAN:GetTopScreen():TogglePause()
@@ -1091,7 +1150,24 @@ pm[#pm + 1] =
 	end,
 	SetCommand = function(self)
 		self:visible(true)
-		self:x(bookmarkPosition / musicratio)
+		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5)
+		self:x(loopStartPos / musicratio)
+	end,
+	RegionSetMessageCommand = function(self, params)
+		if not params or not params.loopLength then
+			self:playcommand("Set")
+		else
+			self:visible(true)
+			self:x(loopStartPos / musicratio):halign(0)
+			self:zoomto(params.loopLength / musicratio, hidth):diffuse(color(".7,.2,.7,0.5"))
+		end
+	end,
+	CurrentRateChangedMessageCommand = function(self)
+		if not loopEndPos and loopStartPos then
+			self:playcommand("Set")
+		elseif loopEndPos and loopStartPos then
+			self:playcommand("RegionSet", {loopLength = (loopEndPos - loopStartPos)})
+		end
 	end
 }
 

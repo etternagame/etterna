@@ -35,10 +35,18 @@ class ScreenGameplayPractice : public ScreenGameplay
 	// Toggle pause
 	void TogglePause();
 
+	// Practice Looper
+	void SetLoopRegion(float start, float end);
+	void ResetLoopRegion();
+
   protected:
 	void SetupNoteDataFromRow(Steps* pSteps,
 							  int minRow = 0,
 							  int maxrow = MAX_NOTE_ROW);
+
+  private:
+	float loopStart = -2000.f;
+	float loopEnd = -2000.f;
 };
 
 #endif
