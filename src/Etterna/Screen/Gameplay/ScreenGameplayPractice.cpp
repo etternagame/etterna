@@ -101,6 +101,8 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 
 		if (rowStart < rowEnd)
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
+		if (PREFSMAN->m_bEasterEggs)
+			m_Toasty.Reset();
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
 
@@ -298,6 +300,9 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	PlayerPractice* pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
 	pl->RenderAllNotesIgnoreScores();
 	pl->PositionReset();
+
+	if (PREFSMAN->m_bEasterEggs)
+		m_Toasty.Reset();
 
 	// just having a message we can respond to directly is probably the best way
 	// to reset lua elements rather than emulating a judgment message like
