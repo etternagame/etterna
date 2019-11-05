@@ -99,7 +99,8 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 		const int rowStart = BeatToNoteRow(startBeat);
 		const int rowEnd = BeatToNoteRow(endBeat);
 
-		SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
+		if (rowStart < rowEnd)
+			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
 
@@ -287,7 +288,8 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	if (loopStart != loopEnd) {
 		const float endBeat = pTiming->GetBeatFromElapsedTime(loopEnd);
 		const int rowEnd = BeatToNoteRow(endBeat);
-		SetupNoteDataFromRow(pSteps, rowNow, rowEnd);
+		if (rowNow < rowEnd)
+			SetupNoteDataFromRow(pSteps, rowNow, rowEnd);
 	} else {
 		SetupNoteDataFromRow(pSteps, rowNow);
 	}

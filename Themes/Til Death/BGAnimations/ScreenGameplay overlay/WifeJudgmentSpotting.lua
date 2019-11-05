@@ -1019,13 +1019,21 @@ local function duminput(event)
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
 				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				SCREENMAN:GetTopScreen():SetSongPosition(pos + dir * 0.05, 0, false)
+				local nextpos = pos + dir * 0.05
+				if loopEndPos ~= nil and nextpos >= loopEndPos then
+					handleRegionSetting(nextpos + 1)
+				end
+				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
 			end
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
 				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				SCREENMAN:GetTopScreen():SetSongPosition(pos - dir * 0.05, 0, false)
+				local nextpos = pos - dir * 0.05
+				if loopEndPos ~= nil and nextpos >= loopEndPos then
+					handleRegionSetting(nextpos + 1)
+				end
+				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
 			end
 		end
 	end
