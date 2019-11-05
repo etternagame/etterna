@@ -951,7 +951,7 @@ local function duminput(event)
 	elseif event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_backspace" then
 			if bookmarkPosition ~= nil then
-				SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1, false)
+				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(bookmarkPosition, 1, true)
 				if GAMESTATE:IsPaused() then
 					SCREENMAN:GetTopScreen():TogglePause()
 				end

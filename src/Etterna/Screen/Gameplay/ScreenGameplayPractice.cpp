@@ -215,18 +215,31 @@ ScreenGameplayPractice::TogglePause()
 void
 ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 										float noteDelay,
-										bool hardSeek)
+										bool hardSeek,
+										bool unpause)
 {
 	bool isPaused = GAMESTATE->GetPaused();
 
 	RageSoundParams p = m_pSoundMusic->GetParams();
+
+	// If paused, we need to move fast so dont use slow seeking
+	// but if we want to hard seek, we dont care about speed
 	p.m_bAccurateSync = !isPaused || hardSeek;
 	m_pSoundMusic->SetParams(p);
 
+	// realign mp3 files by seeking backwards to force a full reseek, then
+	// seeking forward to finish the job
+	if (hardSeek &&
+		newSongPositionSeconds > GAMESTATE->m_Position.m_fMusicSeconds)
+		SOUND->SetSoundPosition(m_pSoundMusic,
+								GAMESTATE->m_Position.m_fMusicSeconds - 0.01f);
+
+	// Set the final position
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
 	UpdateSongPosition(0);
 
-	m_pSoundMusic->Pause(isPaused);
+	if (unpause && isPaused)
+		m_pSoundMusic->Pause(false);
 
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	TimingData* pTiming = pSteps->GetTimingData();
@@ -310,6 +323,15 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 		return 0;
 	}
 
+	static int SetSongPositionAndUnpause(T* p, lua_State* L)
+	{
+		float position = FArg(1);
+		float delay = FArg(2);
+		bool hardseek = BArg(3);
+		p->SetSongPosition(position, delay, hardseek, true);
+		return 0;
+	}
+
 	static int AddToRate(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
@@ -326,6 +348,7 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 	LunaScreenGameplayPractice()
 	{
 		ADD_METHOD(SetSongPosition);
+		ADD_METHOD(SetSongPositionAndUnpause);
 		ADD_METHOD(AddToRate);
 		ADD_METHOD(TogglePause);
 	}

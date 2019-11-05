@@ -30,7 +30,8 @@ class ScreenGameplayPractice : public ScreenGameplay
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newSongPositionSeconds,
 						 float noteDelay = 0.f,
-						 bool hardSeek = false);
+						 bool hardSeek = false,
+						 bool unpause = false);
 	// Toggle pause
 	void TogglePause();
 
