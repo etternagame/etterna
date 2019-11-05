@@ -951,7 +951,7 @@ local function duminput(event)
 	elseif event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_backspace" then
 			if bookmarkPosition ~= nil then
-				SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1)
+				SCREENMAN:GetTopScreen():SetSongPosition(bookmarkPosition, 1, false)
 				if GAMESTATE:IsPaused() then
 					SCREENMAN:GetTopScreen():TogglePause()
 				end
@@ -967,13 +967,13 @@ local function duminput(event)
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
 				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				SCREENMAN:GetTopScreen():SetSongPosition(pos + dir * 0.05,0)
+				SCREENMAN:GetTopScreen():SetSongPosition(pos + dir * 0.05, 0, false)
 			end
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
 				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				SCREENMAN:GetTopScreen():SetSongPosition(pos - dir * 0.05,0)
+				SCREENMAN:GetTopScreen():SetSongPosition(pos - dir * 0.05, 0, false)
 			end
 		end
 	end
@@ -1070,7 +1070,7 @@ pm[#pm + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0)
+			SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)

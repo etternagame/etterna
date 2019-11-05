@@ -28,7 +28,9 @@ class ScreenGameplayPractice : public ScreenGameplay
 	// Add to the playback rate in the middle of gameplay
 	float AddToRate(float amountAdded);
 	// Move the current position of the song in the middle of gameplay
-	void SetSongPosition(float newSongPositionSeconds, float noteDelay = 0.f);
+	void SetSongPosition(float newSongPositionSeconds,
+						 float noteDelay = 0.f,
+						 bool hardSeek = false);
 	// Toggle pause
 	void TogglePause();
 

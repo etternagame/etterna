@@ -194,7 +194,7 @@ ScreenGameplayPractice::TogglePause()
 						  fSecondsToStartTransitioningOut);
 
 		RageSoundParams p = m_pSoundMusic->GetParams();
-		p.m_StartSecond = fSeconds;
+		p.m_StartSecond = fSeconds - 0.01f;
 		p.m_fSpeed = rate;
 		if (fSecondsToStartFadingOutMusic <
 			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
@@ -206,20 +206,21 @@ ScreenGameplayPractice::TogglePause()
 		p.m_bAccurateSync = true;
 		// Go
 		m_pSoundMusic->Play(false, &p);
-	} else {
 	}
+
 	m_pSoundMusic->Pause(newPause);
 	GAMESTATE->SetPaused(newPause);
 }
 
 void
 ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
-										float noteDelay)
+										float noteDelay,
+										bool hardSeek)
 {
 	bool isPaused = GAMESTATE->GetPaused();
 
 	RageSoundParams p = m_pSoundMusic->GetParams();
-	p.m_bAccurateSync = !isPaused;
+	p.m_bAccurateSync = !isPaused || hardSeek;
 	m_pSoundMusic->SetParams(p);
 
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
@@ -304,7 +305,8 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 	{
 		float position = FArg(1);
 		float delay = FArg(2);
-		p->SetSongPosition(position, delay);
+		bool hardseek = BArg(3);
+		p->SetSongPosition(position, delay, hardseek);
 		return 0;
 	}
 
