@@ -247,6 +247,14 @@ local t =
 		end
 		jdgCur = msg.Judgment
 		self:playcommand("SpottedOffset")
+	end,
+	PracticeModeResetMessageCommand = function(self)
+		tDiff = 0
+		wifey = 0
+		jdgct = 0
+		dvCur = nil
+		jdgCur = nil
+		self:playcommand("SpottedOffset")
 	end
 }
 
