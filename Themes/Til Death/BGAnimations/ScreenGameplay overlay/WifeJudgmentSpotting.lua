@@ -9,6 +9,7 @@ local jcT = {} -- A "T" following a variable name will designate an object of ty
 for i = 1, #jcKeys do
 	jcT[jcKeys[i]] = byJudgment(jcKeys[i])
 end
+jcT["TapNoteScore_None"] = color("1,1,1,1")
 
 local jdgT = {
 	-- Table of judgments for the judgecounter
