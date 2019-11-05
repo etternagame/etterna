@@ -88,6 +88,21 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 		}
 	}
 
+	// If we are using a loop region, check if the music looped
+	// If it did, reset the notedata.
+	if (loopStart != loopEnd &&
+		GAMESTATE->m_Position.m_fMusicSeconds + 0.1f < lastReportedSeconds) {
+		auto td = GAMESTATE->m_pCurSteps->GetTimingData();
+		const float startBeat = td->GetBeatFromElapsedTime(loopStart);
+		const float endBeat = td->GetBeatFromElapsedTime(loopEnd);
+
+		const int rowStart = BeatToNoteRow(startBeat);
+		const int rowEnd = BeatToNoteRow(endBeat);
+
+		SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
+	}
+	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
+
 	switch (m_DancingState) {
 		case STATE_DANCING: {
 
@@ -193,12 +208,14 @@ ScreenGameplayPractice::TogglePause()
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 						  fSecondsToStartTransitioningOut);
 
+		// Restart the music with the proper params
 		RageSoundParams p = m_pSoundMusic->GetParams();
 		p.m_StartSecond = fSeconds - 0.01f;
 		p.m_fSpeed = rate;
+		// If using a loop region, use the loop params instead
 		if (loopStart != loopEnd) {
-			p.m_fFadeOutSeconds = 3.f;
-			p.m_LengthSeconds = loopEnd + 3.f - loopStart;
+			p.m_fFadeOutSeconds = 1.f;
+			p.m_LengthSeconds = loopEnd + 5.f - loopStart;
 			p.StopMode = RageSoundParams::M_LOOP;
 		} else {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
@@ -207,10 +224,14 @@ ScreenGameplayPractice::TogglePause()
 			p.StopMode = RageSoundParams::M_CONTINUE;
 		}
 		p.m_bAccurateSync = true;
+
 		// Go
 		m_pSoundMusic->Play(false, &p);
+
+		// To force the music to actually loop like it should, need to do this
+		// after starting
 		if (loopStart != loopEnd) {
-			p.m_StartSecond = loopStart;
+			p.m_StartSecond = loopStart - 2.f;
 			m_pSoundMusic->SetParams(p);
 		}
 	}
@@ -228,7 +249,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	bool isPaused = GAMESTATE->GetPaused();
 	RageSoundParams p = m_pSoundMusic->GetParams();
 
-	// Letting this execute will freeze the music and thats bad
+	// Letting this execute will freeze the music most of the time and thats bad
 	if (loopStart != loopEnd && newSongPositionSeconds > loopEnd)
 		return;
 
@@ -248,16 +269,28 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
 	UpdateSongPosition(0);
 
+	// Unpause the music if we want it unpaused
 	if (unpause && isPaused)
 		m_pSoundMusic->Pause(false);
 
+	// Restart the notedata for the row we just moved to until the end of the
+	// file
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	TimingData* pTiming = pSteps->GetTimingData();
 	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const float fNotesBeat =
 	  pTiming->GetBeatFromElapsedTime(newSongPositionSeconds);
 	const int rowNow = BeatToNoteRow(fNotesBeat);
-	SetupNoteDataFromRow(pSteps, rowNow);
+
+	// When using a loop region, dont load notedata too far ahead since we won't
+	// see it
+	if (loopStart != loopEnd) {
+		const float endBeat = pTiming->GetBeatFromElapsedTime(loopEnd);
+		const int rowEnd = BeatToNoteRow(endBeat);
+		SetupNoteDataFromRow(pSteps, rowNow, rowEnd);
+	} else {
+		SetupNoteDataFromRow(pSteps, rowNow);
+	}
 
 	// Reset the wife/judge counter related visible stuff
 	PlayerPractice* pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
@@ -274,17 +307,12 @@ float
 ScreenGameplayPractice::AddToRate(float amountAdded)
 {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
 	float newRate = rate + amountAdded;
 
 	// Rates outside of this range may crash
 	// Use 0.25 because of floating point errors...
 	if (newRate <= 0.25f || newRate > 3.f)
 		return rate;
-
-	// bool paused = GAMESTATE->GetPaused();
-
-	// m_pSoundMusic->Stop();
 
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
@@ -293,18 +321,18 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 					  fSecondsToStartTransitioningOut);
 
+	// Set Music params using new rate
 	RageSoundParams p;
-	// p.m_StartSecond = fSeconds;
 	p.m_fSpeed = newRate;
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
-	// if (paused)
-	//	p.m_Volume = 0.f;
+
+	// If using loop region, also consider the loop params
 	if (loopStart != loopEnd) {
-		p.m_StartSecond = loopStart;
-		p.m_fFadeOutSeconds = 3.f;
-		p.m_LengthSeconds = (loopEnd + 3.f - loopStart);
+		p.m_StartSecond = loopStart - 2.f;
+		p.m_fFadeOutSeconds = 1.f;
+		p.m_LengthSeconds = loopEnd + 5.f - loopStart;
 		p.StopMode = RageSoundParams::M_LOOP;
 	} else {
 		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
@@ -313,12 +341,9 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 		p.StopMode = RageSoundParams::M_CONTINUE;
 	}
 	p.m_bAccurateSync = true;
-	// Go
+
+	// Apply param (rate) changes to the running Music
 	m_pSoundMusic->SetParams(p);
-	// m_pSoundMusic->Play(false, &p);
-	// But only for like 1 frame if we are paused
-	// if (paused)
-	//	m_pSoundMusic->Pause(true);
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 
 	MESSAGEMAN->Broadcast(
@@ -332,11 +357,18 @@ ScreenGameplayPractice::SetLoopRegion(float start, float end)
 	loopStart = start;
 	loopEnd = end;
 
+	// Tell the Music that it should loop on a given region instead
+	// 2 seconds are removed from the start for "intro"
+	// 5 seconds are added to the end for "outro"
+	// No notedata will occupy that space.
 	RageSoundParams p = m_pSoundMusic->GetParams();
-	p.m_StartSecond = start;
-	p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
-	p.m_LengthSeconds = end + MUSIC_FADE_OUT_SECONDS - start;
+	p.m_StartSecond = start - 2.f;
+	p.m_fFadeOutSeconds = 1.f;
+	p.m_LengthSeconds = end + 5.f - start;
 	p.StopMode = RageSoundParams::M_LOOP;
+
+	// We dont reset notedata here because that could get repetitive and also be
+	// annoying to users or cause other slowdowns
 
 	m_pSoundMusic->SetParams(p);
 }
@@ -344,16 +376,23 @@ ScreenGameplayPractice::SetLoopRegion(float start, float end)
 void
 ScreenGameplayPractice::ResetLoopRegion()
 {
+	// magic number defaults for loop region bounds
 	loopStart = -2000.f;
 	loopEnd = -2000.f;
 
+	// Reload notedata for the entire file starting at current row
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	auto td = GAMESTATE->m_pCurSteps->GetTimingData();
+	const float startBeat = td->GetBeatFromElapsedTime(fSeconds);
+	const int rowNow = BeatToNoteRow(startBeat);
+	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowNow);
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 					  fSecondsToStartTransitioningOut);
 
+	// Reapply the standard Music parameters
 	RageSoundParams p = m_pSoundMusic->GetParams();
 	p.m_StartSecond = GAMESTATE->m_pCurSong->GetFirstSecond() *
 					  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;

@@ -47,6 +47,7 @@ class ScreenGameplayPractice : public ScreenGameplay
   private:
 	float loopStart = -2000.f;
 	float loopEnd = -2000.f;
+	float lastReportedSeconds = -2000.f;
 };
 
 #endif
