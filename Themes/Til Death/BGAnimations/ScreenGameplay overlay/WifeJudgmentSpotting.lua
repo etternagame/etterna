@@ -952,9 +952,6 @@ local function duminput(event)
 		if event.DeviceInput.button == "DeviceButton_backspace" then
 			if bookmarkPosition ~= nil then
 				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(bookmarkPosition, 1, true)
-				if GAMESTATE:IsPaused() then
-					SCREENMAN:GetTopScreen():TogglePause()
-				end
 			end
 		elseif event.button == "EffectUp" then
 			SCREENMAN:GetTopScreen():AddToRate(0.05)
