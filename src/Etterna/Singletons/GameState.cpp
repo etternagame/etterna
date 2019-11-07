@@ -967,7 +967,8 @@ GameState::GetNumPlayersEnabled() const
 bool
 GameState::IsHumanPlayer(PlayerNumber pn) const
 {
-	if (pn == PLAYER_INVALID)
+	// only player 1 can play this game.
+	if (pn != PLAYER_1)
 		return false;
 
 	if (GetCurrentGame()->m_PlayersHaveSeparateStyles) {
