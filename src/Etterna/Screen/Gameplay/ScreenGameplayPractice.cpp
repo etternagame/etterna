@@ -22,6 +22,8 @@
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
+#include "RageUtil/Misc/RageInput.h"
+#include "Etterna/Singletons/SongManager.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -53,6 +55,90 @@ ScreenGameplayPractice::~ScreenGameplayPractice()
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
+}
+
+bool
+ScreenGameplayPractice::Input(const InputEventPlus& input)
+{
+	// override default input here so we can reload the song
+	// ... i wonder if this is doable.
+	// haha dont try to break it please
+	if (!IsTransitioning()) {
+		bool bHoldingCtrl =
+		  INPUTFILTER->IsBeingPressed(
+			DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
+		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL));
+		bool bHoldingShift =
+		  INPUTFILTER->IsBeingPressed(
+			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
+
+		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		MakeUpper(&c, 1);
+
+		// if you press ctrl+shift+R, you reload the song like in Music Select
+		// the catch is that this can break a lot of things probably
+		// so be careful with it
+
+		// initial implementation below, might just end up restarting the song
+		// and reloading there instead
+		if (bHoldingCtrl && bHoldingShift && c == 'R') {
+			Song* cursong = GAMESTATE->m_pCurSong;
+			vector<Steps*> chartsForThisSong = cursong->GetAllSteps();
+			vector<std::string> oldKeys;
+			for (auto k : chartsForThisSong)
+				oldKeys.emplace_back(k->GetChartKey());
+
+			cursong->ReloadFromSongDir();
+			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
+
+			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
+
+			float fSecondsToStartFadingOutMusic,
+			  fSecondsToStartTransitioningOut;
+			GetMusicEndTiming(fSecondsToStartFadingOutMusic,
+							  fSecondsToStartTransitioningOut);
+			RageSoundParams p = m_pSoundMusic->GetParams();
+			float basicSongStart =
+			  GAMESTATE->m_pCurSong->GetFirstSecond() * p.m_fSpeed;
+
+			// not using a loop region so just set the new sound params
+			if (loopEnd == loopStart) {
+				p.m_StartSecond = basicSongStart;
+				p.m_LengthSeconds =
+				  fSecondsToStartTransitioningOut - p.m_StartSecond;
+			} else {
+				// using a loop region, check to see if either end is outside
+				// the new song length
+				if (loopStart < basicSongStart) {
+					loopStart = basicSongStart;
+					p.m_StartSecond = basicSongStart;
+				}
+				if (loopEnd > fSecondsToStartTransitioningOut) {
+					loopEnd = fSecondsToStartTransitioningOut;
+					p.m_LengthSeconds =
+					  fSecondsToStartTransitioningOut - p.m_StartSecond;
+				}
+			}
+			RageTimer tm;
+			const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+			if (fSeconds > fSecondsToStartTransitioningOut ||
+				fSeconds < p.m_StartSecond) {
+				// i want to make sure things are done in a very particular
+				// order
+				m_pSoundMusic->SetParams(p);
+				SOUND->SetSoundPosition(m_pSoundMusic, p.m_StartSecond);
+			} else {
+				m_pSoundMusic->SetParams(p);
+			}
+
+			// let the theme know we just changed so many things internally
+			MESSAGEMAN->Broadcast("PracticeModeReload");
+			return true;
+		}
+	}
+
+	return ScreenGameplay::Input(input);
 }
 
 void

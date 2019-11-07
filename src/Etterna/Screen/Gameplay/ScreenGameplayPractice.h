@@ -12,7 +12,7 @@ class ScreenGameplayPractice : public ScreenGameplay
 	~ScreenGameplayPractice() override;
 
 	void Update(float fDeltaTime) override;
-	// bool Input(const InputEventPlus& input) override;
+	bool Input(const InputEventPlus& input) override;
 
 	// Lua
 	void PushSelf(lua_State* L) override;
