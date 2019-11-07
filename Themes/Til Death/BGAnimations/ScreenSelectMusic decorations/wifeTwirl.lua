@@ -297,7 +297,7 @@ t[#t + 1] =
 				end
 			end
 		},
-	-- Rate for the displayed score
+	-- Rate for the displayed score & Mirror PB Indicator
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
@@ -312,10 +312,15 @@ t[#t + 1] =
 						rate = rate:sub(0, #rate - 1)
 					end
 					rate = rate .. "x"
+					local mirrorStr = ""
+					if score:GetModifiers():lower():find("mirror") then
+						mirrorStr = " (M)"
+					end
+
 					if notCurRate then
-						self:settext("(" .. rate .. ")")
+						self:settext("(" .. rate .. ")" .. mirrorStr)
 					else
-						self:settext(rate)
+						self:settext(rate .. mirrorStr)
 					end
 				else
 					self:settext("")
