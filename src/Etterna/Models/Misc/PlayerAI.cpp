@@ -547,7 +547,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 
 			continue; // retry the iteration (it++ is moved to below)
 		}
-		ReplaySnapshot* rs = GetReplaySnapshotForNoterow(r);
+		auto rs = GetReplaySnapshotForNoterow(r);
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
 				cws -= 8.f;
@@ -571,7 +571,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 			// which has no stat-affecting changes made to it.
 			// So this applies to rows with all Mines
 			// or rows with all Fakes (in the latest version)
-			ReplaySnapshot* prevrs = GetReplaySnapshotForNoterow(row - 1);
+			auto prevrs = GetReplaySnapshotForNoterow(row - 1);
 			ReplaySnapshot* rs = &m_ReplaySnapshotMap[row];
 			rs->curwifescore = prevrs->curwifescore;
 			rs->maxwifescore = prevrs->maxwifescore;
@@ -625,7 +625,7 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 	return output;
 }
 
-ReplaySnapshot*
+std::shared_ptr<ReplaySnapshot>
 PlayerAI::GetReplaySnapshotForNoterow(int row)
 {
 	// The row doesn't necessarily have to exist in the Snapshot map.
@@ -636,15 +636,16 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 	// If the lowest value in the map is above the given row, return an empty
 	// snapshot
 	if (m_ReplaySnapshotMap.begin()->first > row) {
-		ReplaySnapshot rs;
-		return &rs;
+		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
 	}
 
 	// For some reason I don't feel like figuring out, if the largest value in
 	// the map is below the given row, it returns 0 So we need to return the
 	// last value
 	if (m_ReplaySnapshotMap.rbegin()->first < row) {
-		return &m_ReplaySnapshotMap.rbegin()->second;
+		return std::shared_ptr<ReplaySnapshot>{
+			&m_ReplaySnapshotMap.rbegin()->second, [](ReplaySnapshot*) {}
+		};
 	}
 
 	// Otherwise just go ahead and return what we want
@@ -659,11 +660,11 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 			lb--;
 			foundRow = lb->first;
 		} else {
-			ReplaySnapshot rs;
-			return &rs;
+			return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
 		}
 	}
-	return &m_ReplaySnapshotMap[foundRow];
+	return std::shared_ptr<ReplaySnapshot>{ &m_ReplaySnapshotMap[foundRow],
+											[](ReplaySnapshot*) {} };
 }
 
 bool
@@ -828,8 +829,8 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 float
 PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 {
-	/* Given the pTN coming from gameplay, we search for the matching note in
-	the replay data. If it is not found, it is a miss. (1.f)
+	/* Given the pTN coming from gameplay, we search for the matching note
+	in the replay data. If it is not found, it is a miss. (1.f)
 	*/
 	if (pScoreData == nullptr) // possible cheat prevention
 		return -1.f;
@@ -873,8 +874,8 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 				 i++) // go over all elements in the row
 			{
 				auto trr = m_ReplayExactTapMap[noteRow][i];
-				if (trr.track ==
-					col) // if the column expected is the actual note, use it
+				if (trr.track == col) // if the column expected is the
+									  // actual note, use it
 				{
 					if (trr.type == TapNoteType_Mine) // hack for mines
 						return -2.f;
@@ -899,8 +900,8 @@ void
 PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 										RadarValues& possibleRV)
 {
-	// We will do this thoroughly just in case someone decides to use the other
-	// categories we don't currently use
+	// We will do this thoroughly just in case someone decides to use the
+	// other categories we don't currently use
 	int tapsHit = 0;
 	int jumpsHit = 0;
 	int handsHit = 0;
@@ -977,8 +978,8 @@ void
 PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 {
 	// Radar values.
-	// The possible radar values have already been handled, so we just do the
-	// real values.
+	// The possible radar values have already been handled, so we just do
+	// the real values.
 	RadarValues rrv;
 	CalculateRadarValuesForReplay(rrv, pss->m_radarPossible);
 	pss->m_radarActual.Zero();
@@ -1032,7 +1033,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 	}
 
 	// Take into account dropped holds and full misses
-	ReplaySnapshot* rs = GetReplaySnapshotForNoterow(row);
+	auto rs = GetReplaySnapshotForNoterow(row);
 	out.first += rs->judgments[TNS_Miss] * -8.f;
 	out.first += rs->hns[HNS_LetGo] * -8.f;
 	out.second += rs->judgments[TNS_Miss] * 2.f;
@@ -1119,7 +1120,8 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	PlayerStageStats::Combo_t* curCombo = &(combos[0]);
 	auto rowOfComboStart = m_ReplayTapMapByElapsedTime.begin();
 
-	// Go over all chronological tap rows (only taps should accumulate combo)
+	// Go over all chronological tap rows (only taps should accumulate
+	// combo)
 	for (auto tapIter = m_ReplayTapMapByElapsedTime.begin();
 		 tapIter != m_ReplayTapMapByElapsedTime.end();
 		 tapIter++) {

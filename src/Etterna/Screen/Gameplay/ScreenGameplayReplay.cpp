@@ -372,7 +372,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	const int rowNow = BeatToNoteRow(fSongBeat);
 	// This breaks some oop standard in some book
 	PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
-	ReplaySnapshot* rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+	auto rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
 		pss->m_iTapNoteScores[tns] = rs->judgments[tns];
@@ -410,7 +410,7 @@ ScreenGameplayReplay::TogglePause()
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		PlayerStageStats* pss = m_vPlayerInfo.GetPlayerStageStats();
-		ReplaySnapshot* rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
 			pss->m_iTapNoteScores[tns] = rs->judgments[tns];

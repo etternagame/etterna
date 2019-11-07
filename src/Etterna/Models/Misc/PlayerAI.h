@@ -111,7 +111,7 @@ class PlayerAI
 	// Given a column and row, retrieve the adjusted row.
 	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
 	// Given a row, retrieve the Snapshot for that row.
-	static ReplaySnapshot* GetReplaySnapshotForNoterow(int row);
+	static std::shared_ptr<ReplaySnapshot> GetReplaySnapshotForNoterow(int row);
 	// Remove a given Tap from the fallback and Full replay data vectors
 	static void RemoveTapFromVectors(int row, int col);
 	// Go through the replay data to fill out the radar values for the eval
