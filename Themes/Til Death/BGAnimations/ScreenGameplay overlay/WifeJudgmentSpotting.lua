@@ -743,6 +743,9 @@ local p =
 			end,
 			DoneLoadingNextSongMessageCommand = function(self)
 				self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+			end,
+			PracticeModeReloadMessageCommand = function(self)
+				self:playcommand("Begin")
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -766,6 +769,9 @@ local p =
 				local ttime = GetPlayableTime()
 				settext(self, SecondsToMMSS(ttime))
 				diffuse(self, byMusicLength(ttime))
+			end,
+			PracticeModeReloadMessageCommand = function(self)
+				self:playcommand("CurrentRateChanged")
 			end
 		},
 	MovableBorder(width, height, 1, 0, 0)
@@ -892,6 +898,9 @@ t[#t + 1] =
 		else
 			BPM:settextf("%5.2f", GetBPS(a) * r)
 		end
+	end,
+	PracticeModeReloadMessageCommand = function(self)
+		self:playcommand("CurrentRateChanged")
 	end
 }
 
@@ -1080,6 +1089,9 @@ local pm =
 		self:SortByDrawOrder()
 		self:queuecommand("GraphUpdate")
 	end,
+	PracticeModeReloadMessageCommand = function(self)
+		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+	end,
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
@@ -1185,6 +1197,9 @@ pm[#pm + 1] =
 		elseif loopEndPos and loopStartPos then
 			self:playcommand("RegionSet", {loopLength = (loopEndPos - loopStartPos)})
 		end
+	end,
+	PracticeModeReloadMessageCommand = function(self)
+		self:playcommand("CurrentRateChanged")
 	end
 }
 
