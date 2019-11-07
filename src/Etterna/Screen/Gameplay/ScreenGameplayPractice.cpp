@@ -176,8 +176,11 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 
 	// If we are using a loop region, check if the music looped
 	// If it did, reset the notedata.
-	if (loopStart != loopEnd &&
+	if (!m_Out.IsTransitioning() && loopStart != loopEnd &&
 		GAMESTATE->m_Position.m_fMusicSeconds + 0.1f < lastReportedSeconds) {
+		if (!m_GiveUpTimer.IsZero())
+			return;
+
 		auto td = GAMESTATE->m_pCurSteps->GetTimingData();
 		const float startBeat = td->GetBeatFromElapsedTime(loopStart);
 		const float endBeat = td->GetBeatFromElapsedTime(loopEnd);
@@ -216,6 +219,22 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 
 			if (curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat()) {
 				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
+			}
+
+			// Handle the "give up" timer
+			// except hard code it to fire after 1 second
+			// instead of checking metrics
+			// because we want to exit fast on demand
+			bool bGiveUpTimerFired = false;
+			bGiveUpTimerFired =
+			  !m_GiveUpTimer.IsZero() && m_GiveUpTimer.Ago() > 1.f;
+			m_gave_up = bGiveUpTimerFired;
+
+			if (bGiveUpTimerFired) {
+				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
+				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
+				LOG->Trace("Exited Practice Mode to Evaluation");
+				this->PostScreenMessage(SM_LeaveGameplay, 0);
 			}
 		}
 		default:
