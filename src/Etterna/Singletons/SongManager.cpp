@@ -223,7 +223,7 @@ SongManager::DifferentialReloadDir(string dir)
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
 						 "Loading:\n" + group.name + "\n" +
-						   pNewSong->GetMainTitle());
+						   pNewSong->GetDisplayMainTitle());
 			MESSAGEMAN->Broadcast(msg);
 			SCREENMAN->Draw(); // not sure if this needs to be handled better
 							   // (more safely?) or if its fine-mina
