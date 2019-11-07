@@ -689,9 +689,9 @@ local replaySlider =
 	Widg.SliderBase {
 		width = width,
 		height = height,
-		min = 0,
+		min = GAMESTATE:GetCurrentSong():GetFirstSecond(),
 		visible = true,
-		max = GAMESTATE:GetCurrentSong():MusicLengthSeconds(),
+		max = GAMESTATE:GetCurrentSong():GetLastSecond(),
 		onInit = function(slider)
 			slider.actor:diffusealpha(0)
 		end,
