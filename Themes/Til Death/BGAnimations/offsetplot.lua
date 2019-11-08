@@ -69,6 +69,13 @@ local o =
 			ntt = score:GetTapNoteTypeVector()
 		end
 
+		-- missing noterows. this happens with many online replays.
+		-- we can approximate, but i dont want to do that right now.
+		if nrt == nil then
+			ms.ok("While constructing the offset plot, an error occurred. Press ESC to continue.")
+			return
+		end
+
 		-- Convert noterows to timestamps and plot dots (this is important it determines plot x values!!!)
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
