@@ -14,6 +14,10 @@
 #include <fstream>
 #include <sstream>
 #include "Etterna/Singletons/CryptManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
 
 const string BASIC_REPLAY_DIR =
@@ -1708,10 +1712,46 @@ class LunaHighScore : public Luna<HighScore>
 	{
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
+
+		auto timestamps = p->GetCopyOfSetOnlineReplayTimestampVector();
+
 		if (loaded || p->LoadReplayData()) {
+			// this is a local highscore with a local replay
+			// easy to just output the noterows loaded
 			LuaHelpers::CreateTableFromArray((*v), L);
-		} else
+		} else if (!timestamps.empty() && v->empty()) {
+			// this is a legacy online replay
+			// missing rows but with timestamps instead
+			// we can try our best to show the noterows by approximating
+			GAMESTATE->SetProcessedTimingData(
+			  GAMESTATE->m_pCurSteps->GetTimingData());
+			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
+			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+			auto nerv = nd.BuildAndGetNerv();
+			auto sdifs = td->BuildAndGetEtaner(nerv);
+			vector<int> noterows;
+			for (auto t : timestamps) {
+				auto timestamptobeat =
+				  td->GetBeatFromElapsedTime(t * p->GetMusicRate());
+				auto somenumberscaledbyoffsets =
+				  sdifs[0] - (timestamps[0] * p->GetMusicRate());
+				timestamptobeat += somenumberscaledbyoffsets;
+				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
+				noterows.emplace_back(noterowfrombeat);
+			}
+			int noterowoffsetter = nerv[0] - noterows[0];
+			for (auto& noterowwithoffset : noterows)
+				noterowwithoffset += noterowoffsetter;
+			GAMESTATE->SetProcessedTimingData(nullptr);
+			p->SetNoteRowVector(noterows);
+
+			v = &(p->GetNoteRowVector()); // uhh
+
+			LuaHelpers::CreateTableFromArray((*v), L);
+		} else {
+			// ok we got nothing, just throw null
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 
