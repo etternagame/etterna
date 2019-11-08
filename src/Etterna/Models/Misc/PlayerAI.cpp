@@ -1053,9 +1053,22 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 	float lifeLevel = 0.5f;
 	lifeRecord[0.f] = lifeLevel;
 	const float rateUsed = pScoreData->GetMusicRate();
+	float allOffset = 0.f;
 
 	auto holdIter = m_ReplayHoldMapByElapsedTime.begin();
 	auto tapIter = m_ReplayTapMapByElapsedTime.begin();
+
+	// offset everything by the first tap barely
+	if (m_ReplayTapMapByElapsedTime.size() != 0)
+		allOffset = tapIter->first + 0.001f;
+
+	// but if a hold messed with life before that somehow
+	// offset by that instead
+	// check for the offset less than the holditer because at this point
+	// it is either 0 or a number greater than it should be
+	if (m_ReplayHoldMapByElapsedTime.size() != 0 && holdIter->first > 0 &&
+		allOffset < holdIter->first)
+		allOffset = holdIter->first + 0.001f;
 
 	// Continue until both iterators have finished
 	while (holdIter != m_ReplayHoldMapByElapsedTime.end() ||
@@ -1098,7 +1111,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 
 		lifeLevel += lifeDelta;
 		CLAMP(lifeLevel, 0.f, 1.f);
-		lifeRecord[now / rateUsed] = lifeLevel;
+		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
 	return lifeRecord;
@@ -1110,6 +1123,7 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	vector<PlayerStageStats::Combo_t> combos;
 	PlayerStageStats::Combo_t firstCombo;
 	const float rateUsed = pScoreData->GetMusicRate();
+	float allOffset = 0.f;
 	combos.push_back(firstCombo);
 
 	// Without a Snapshot Map, I assume we didn't calculate
@@ -1119,6 +1133,11 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 
 	PlayerStageStats::Combo_t* curCombo = &(combos[0]);
 	auto rowOfComboStart = m_ReplayTapMapByElapsedTime.begin();
+
+	// offset all entries by the offset of the first note
+	// unless it's negative, then just ... dont
+	if (m_ReplayTapMapByElapsedTime.size() != 0 && rowOfComboStart->first > 0)
+		allOffset = rowOfComboStart->first + 0.001f;
 
 	// Go over all chronological tap rows (only taps should accumulate
 	// combo)
@@ -1145,8 +1164,8 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 			TapNoteScore tns =
 			  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
 			if (tns == TNS_Miss || tns == TNS_W5 || tns == TNS_W4) {
-				float start = rowOfComboStart->first / rateUsed;
-				float finish = tapIter->first / rateUsed;
+				float start = (rowOfComboStart->first - allOffset) / rateUsed;
+				float finish = (tapIter->first - allOffset) / rateUsed;
 				curCombo->m_fSizeSeconds = finish - start;
 				curCombo->m_fStartSecond = start;
 
@@ -1161,9 +1180,9 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	}
 	// The final combo may not have properly ended, end it here
 	curCombo->m_fSizeSeconds =
-	  m_ReplayTapMapByElapsedTime.rbegin()->first / rateUsed -
-	  rowOfComboStart->first / rateUsed;
-	curCombo->m_fStartSecond = rowOfComboStart->first / rateUsed;
+	  (m_ReplayTapMapByElapsedTime.rbegin()->first - allOffset) / rateUsed -
+	  (rowOfComboStart->first - allOffset) / rateUsed;
+	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
 	return combos;
 }
