@@ -562,7 +562,7 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and hs then
+					if isOver(self) and hs and not collapsed then
 						if hs:HasReplayData() then
 							DLMAN:RequestOnlineScoreReplayData(
 								hs,
