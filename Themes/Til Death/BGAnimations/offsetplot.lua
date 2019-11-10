@@ -175,7 +175,9 @@ o[#o + 1] =
 			bar:x(xpos)
 			txt:x(xpos - 4)
 			txt:y(ypos)
-			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(convertXToRow(xpos))
+			local row = convertXToRow(xpos)
+			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
+			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
 			local marvCount = judgments[10]
 			local perfCount = judgments[9]
 			local greatCount = judgments[8]
@@ -183,7 +185,7 @@ o[#o + 1] =
 			local badCount = judgments[6]
 			local missCount = judgments[5]
 
-			txt:settextf("%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d", "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount)
+			txt:settextf("%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %f", "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "WifePercent", wifescore)
 		else
 			bar:visible(false)
 			txt:visible(false)
