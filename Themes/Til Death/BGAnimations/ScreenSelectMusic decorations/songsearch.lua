@@ -4,6 +4,7 @@ local frameY = 180 + capWideScale(get43size(120), 120)
 local active = false
 local whee
 local lastsearchstring = ""
+local instantSearch = themeConfig:get_data().global.InstantSearch
 
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active == true then
@@ -15,6 +16,9 @@ local function searchInput(event)
 			MESSAGEMAN:Broadcast("EndingSearch")
 		elseif event.button == "Start" then
 			resetTabIndex(0)
+			if not instantSearch then
+				whee:SongSearch(searchstring)
+			end
 			MESSAGEMAN:Broadcast("EndingSearch")
 			MESSAGEMAN:Broadcast("TabChanged")
 		elseif event.DeviceInput.button == "DeviceButton_space" then -- add space to the string
@@ -39,7 +43,9 @@ local function searchInput(event)
 		end
 		if lastsearchstring ~= searchstring then
 			MESSAGEMAN:Broadcast("UpdateString")
-			whee:SongSearch(searchstring)
+			if instantSearch then
+				whee:SongSearch(searchstring)
+			end
 			lastsearchstring = searchstring
 		end
 	end
