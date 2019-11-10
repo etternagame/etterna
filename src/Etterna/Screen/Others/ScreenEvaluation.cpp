@@ -389,12 +389,21 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		LuaHelpers::CreateTableFromArray(toPush, L);
 		return 1;
 	}
+	static int GetReplaySnapshotWifePercentForNoterow(T* p, lua_State* L)
+	{
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
+		return 1;
+	}
 
 	LunaScreenEvaluation()
 	{
 		ADD_METHOD(GetStageStats);
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
+		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
 	}
 };
 
