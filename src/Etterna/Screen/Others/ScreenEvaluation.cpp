@@ -377,10 +377,24 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		lua_pushboolean(L, true);
 		return 1;
 	}
+	static int GetReplaySnapshotJudgmentsForNoterow(T* p, lua_State* L)
+	{
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		vector<int> toPush;
+
+		FOREACH_ENUM(TapNoteScore, tns)
+		toPush.emplace_back(rs->judgments[tns]);
+
+		LuaHelpers::CreateTableFromArray(toPush, L);
+		return 1;
+	}
+
 	LunaScreenEvaluation()
 	{
 		ADD_METHOD(GetStageStats);
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
+		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 	}
 };
 
