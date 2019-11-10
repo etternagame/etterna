@@ -376,6 +376,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 	// For every row in notedata...
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*pNoteData, row)
 	{
+		int tapsMissedInRow = 0;
+
 		// For every track in the row...
 		for (int track = 0; track < pNoteData->GetNumTracks(); track++) {
 			// Find the tapnote we are on
@@ -434,6 +436,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 					pTN->type == TapNoteType_Fake ||
 					pTN->type == TapNoteType_AutoKeysound)
 					continue;
+
 				// If this tap is missing from the replay data, we count it as a
 				// miss.
 				if (pScoreData->GetReplayType() == 2) {
@@ -445,13 +448,16 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 						}
 						if (!found) {
 							tempJudgments[TNS_Miss]++;
+							tapsMissedInRow++;
 						}
 					} else {
 						tempJudgments[TNS_Miss]++;
+						tapsMissedInRow++;
 					}
 				}
 			}
 		}
+
 		// Count how many misses there are per row instead since we dont have
 		// column data in type 1 replays
 		if (pScoreData->GetReplayType() != 2) {
@@ -471,6 +477,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 				}
 			}
 			tempJudgments[TNS_Miss] += (notesOnRow - notesInReplayData);
+			tapsMissedInRow += (notesOnRow - notesInReplayData);
 		}
 
 		// We have to update every single row with the new miss & hns counts.
@@ -496,7 +503,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 			// new one
 			else if (m_ReplaySnapshotMap.begin()->first > row) {
 				ReplaySnapshot rs;
-				rs.judgments[TNS_Miss]++;
+				rs.judgments[TNS_Miss] = tapsMissedInRow;
 				m_ReplaySnapshotMap[row] = rs;
 			} else // If the current row is in between recorded rows, copy an
 				   // older one
@@ -1054,20 +1061,24 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 	lifeRecord[0.f] = lifeLevel;
 	const float rateUsed = pScoreData->GetMusicRate();
 	float allOffset = 0.f;
+	float firstSnapshotTime =
+	  pReplayTiming->WhereUAtBro(m_ReplaySnapshotMap.begin()->first);
 
 	auto holdIter = m_ReplayHoldMapByElapsedTime.begin();
 	auto tapIter = m_ReplayTapMapByElapsedTime.begin();
 
-	// offset everything by the first tap barely
+	// offset everything by the first snapshot barely
 	if (m_ReplayTapMapByElapsedTime.size() != 0)
-		allOffset = tapIter->first + 0.001f;
+		allOffset = firstSnapshotTime + 0.001f;
 
 	// but if a hold messed with life before that somehow
 	// offset by that instead
 	// check for the offset less than the holditer because at this point
 	// it is either 0 or a number greater than it should be
+	// realistically this doesnt actually matter at all if we only track dropped
+	// holds but im putting it here anyways
 	if (m_ReplayHoldMapByElapsedTime.size() != 0 && holdIter->first > 0 &&
-		allOffset < holdIter->first)
+		allOffset > holdIter->first + 0.001f)
 		allOffset = holdIter->first + 0.001f;
 
 	// Continue until both iterators have finished
@@ -1124,6 +1135,8 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	PlayerStageStats::Combo_t firstCombo;
 	const float rateUsed = pScoreData->GetMusicRate();
 	float allOffset = 0.f;
+	float firstSnapshotTime =
+	  pReplayTiming->WhereUAtBro(m_ReplaySnapshotMap.begin()->first);
 	combos.push_back(firstCombo);
 
 	// Without a Snapshot Map, I assume we didn't calculate
@@ -1137,7 +1150,7 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	// offset all entries by the offset of the first note
 	// unless it's negative, then just ... dont
 	if (m_ReplayTapMapByElapsedTime.size() != 0 && rowOfComboStart->first > 0)
-		allOffset = rowOfComboStart->first + 0.001f;
+		allOffset = firstSnapshotTime + 0.001f;
 
 	// Go over all chronological tap rows (only taps should accumulate
 	// combo)
