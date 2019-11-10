@@ -66,7 +66,10 @@ PlayerPractice::Update(float fDeltaTime)
 	// Tell the NoteField we pressed (or didnt press) certain columns
 	UpdatePressedFlags();
 
-	if (!countStats)
+	// Don't judge anything if we aren't counting stats
+	// But also don't not judge anything if we are in Autoplay.
+	// I don't know why you would use Autoplay in Practice, but yeah
+	if (!countStats && m_pPlayerState->m_PlayerController == PC_HUMAN)
 		return;
 
 	// Tell Rolls to update (if in Autoplay)
