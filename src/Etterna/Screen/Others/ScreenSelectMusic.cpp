@@ -190,6 +190,7 @@ ScreenSelectMusic::Init()
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
 	m_pPreviewNoteField = nullptr;
+	PlayerAI::ResetScoreData();
 
 	this->SortByDrawOrder();
 }

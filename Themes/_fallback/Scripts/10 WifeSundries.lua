@@ -204,7 +204,11 @@ end
 
 -- Grabs the currently selected rate as a string in the form of "r.rrx" while dropping trailing 0s
 function getCurRateString()
-	return string.format("%.2f", getCurRateValue()):gsub("%.?0+$", "") .. "x"
+	return getRateString(getCurRateValue())
+end
+
+function getRateString(x)
+	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
 function getCurRateDisplayString()

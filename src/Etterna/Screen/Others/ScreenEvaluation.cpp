@@ -304,7 +304,6 @@ ScreenEvaluation::MenuStart(const InputEventPlus& input)
 		return false;
 
 	m_soundStart.Play(true);
-	PlayerAI::ResetScoreData();
 
 	HandleMenuStart();
 	return true;
@@ -397,6 +396,18 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
 		return 1;
 	}
+	static int GetReplayRate(T* p, lua_State* L)
+	{
+		// if we have a replay, give the data
+		if (PlayerAI::pScoreData != nullptr) {
+			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
+			return 1;
+		} else {
+			// otherwise give nothing
+			lua_pushnil(L);
+			return 1;
+		}
+	}
 
 	LunaScreenEvaluation()
 	{
@@ -404,6 +415,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
+		ADD_METHOD(GetReplayRate);
 	}
 };
 

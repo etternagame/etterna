@@ -53,10 +53,13 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, capWideScale(155, 170)):zoom(0.5):halign(0.5)
 		end,
 		BeginCommand = function(self)
-			if getCurRateString() == "1x" then
+			local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+			if not rate then rate = getCurRateValue() end
+			local ratestr = getRateString(rate)
+			if ratestr == "1x" then
 				self:settext("")
 			else
-				self:settext(getCurRateString())
+				self:settext(ratestr)
 			end
 		end
 	}
@@ -189,7 +192,9 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+				if not rate then rate = getCurRateValue() end
+				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(rate, 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end

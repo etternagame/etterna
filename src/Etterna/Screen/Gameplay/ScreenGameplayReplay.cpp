@@ -109,7 +109,6 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		  PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::oldRate;
-		PlayerAI::ResetScoreData();
 	} else
 		PlayerAI::SetScoreData();
 }
@@ -258,10 +257,11 @@ ScreenGameplayReplay::Input(const InputEventPlus& input)
 void
 ScreenGameplayReplay::SaveStats()
 {
+	// Reload the notedata after finishing in case we truncated it
+	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
 	// Reload the replay data to make sure it is clean for calculations
 	PlayerAI::SetScoreData();
-	// Also the notedata
-	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
+	PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 	ScreenGameplay::SaveStats();
 }
