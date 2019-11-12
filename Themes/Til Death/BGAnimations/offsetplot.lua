@@ -59,7 +59,7 @@ local function convertXToRow(x)
 	-- the 48 here is how many noterows there are per beat
 	-- this is a const defined in the game
 	-- and i sure hope it doesnt ever change
-	local td = GAMESTATE:GetCurrentSong():GetTimingData()
+	local td = GAMESTATE:GetCurrentSteps():GetTimingData()
 	local row = td:GetBeatFromElapsedTime(output * finalSecond) * 48
 
 	return row
@@ -185,6 +185,7 @@ o[#o + 1] =
 			local badCount = judgments[6]
 			local missCount = judgments[5]
 
+			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			txt:settextf("%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %f", "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "WifePercent", wifescore)
 		else
 			bar:visible(false)
