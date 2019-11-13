@@ -68,7 +68,11 @@ return Def.ActorFrame {
 				"h: Replay Buttons Spacing",
 				"j: Lifebar Position",
 				"k: Lifebar Size",
-				"l: Lifebar Rotation"
+				"l: Lifebar Rotation",
+				"x: BPM Text Position",
+				"c: BPM Text Size",
+				"v: Music Rate Text Position",
+				"b: Music Rate Text Size"
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 				local selectStr = THEME:GetString("GameButton", "Select")

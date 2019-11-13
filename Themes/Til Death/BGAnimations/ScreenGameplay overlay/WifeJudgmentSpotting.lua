@@ -836,10 +836,28 @@ end
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]
 t[#t + 1] =
+	Def.ActorFrame {
+	Name = "MusicRate",
+	InitCommand = function(self)
+		if (allowedCustomization) then
+			Movable.DeviceButton_v.element = self
+			Movable.DeviceButton_b.element = self
+			Movable.DeviceButton_v.condition = true
+			Movable.DeviceButton_b.condition = true
+			Movable.DeviceButton_v.Border = self:GetChild("Border")
+			Movable.DeviceButton_b.Border = self:GetChild("Border")
+		end
+		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY):zoom(MovableValues.MusicRateZoom)
+	end,
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 10):zoom(0.35):settext(getCurRateDisplayString())
+			self:zoom(0.35):settext(getCurRateDisplayString())
+		end,
+		OnCommand = function(self)
+			if allowedCustomization then
+				setBorderToText(self:GetParent():GetChild("Border"), self)
+			end
 		end,
 		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())
@@ -850,7 +868,9 @@ t[#t + 1] =
 		CurrentRateChangedMessageCommand = function(self)
 			self:playcommand("SetRate")
 		end
-	}
+	},
+	MovableBorder(100, 13, 1, 0, 0)
+}
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 														    	**BPM Display**
@@ -870,7 +890,17 @@ end
 
 t[#t + 1] =
 	Def.ActorFrame {
+	Name = "BPMText",
 	InitCommand = function(self)
+		if (allowedCustomization) then
+			Movable.DeviceButton_x.element = self
+			Movable.DeviceButton_c.element = self
+			Movable.DeviceButton_x.condition = true
+			Movable.DeviceButton_c.condition = true
+			Movable.DeviceButton_x.Border = self:GetChild("Border")
+			Movable.DeviceButton_c.Border = self:GetChild("Border")
+		end
+		self:x(MovableValues.BPMTextX):y(MovableValues.BPMTextY):zoom(MovableValues.BPMTextZoom)
 		BPM = self:GetChild("BPM")
 		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then -- dont bother updating for single bpm files
 			self:SetUpdateFunction(UpdateBPM)
@@ -883,7 +913,12 @@ t[#t + 1] =
 		{
 			Name = "BPM",
 			InitCommand = function(self)
-				self:x(SCREEN_CENTER_X):y(SCREEN_BOTTOM - 20):halign(0.5):zoom(0.40)
+				self:halign(0.5):zoom(0.40)
+			end,
+			OnCommand = function(self)
+				if allowedCustomization then
+					setBorderToText(self:GetParent():GetChild("Border"), self)
+				end
 			end
 		},
 	DoneLoadingNextSongMessageCommand = function(self)
@@ -901,7 +936,8 @@ t[#t + 1] =
 	end,
 	PracticeModeReloadMessageCommand = function(self)
 		self:playcommand("CurrentRateChanged")
-	end
+	end,
+	MovableBorder(40, 13, 1, 0, 0)
 }
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
