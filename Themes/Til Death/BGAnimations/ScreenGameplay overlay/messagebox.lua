@@ -71,7 +71,8 @@ return Def.ActorFrame {
 				"l: Lifebar Rotation"
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-				table.insert(text, "/: Lane Cover Height")
+				local selectStr = THEME:GetString("GameButton", "Select")
+				table.insert(text, selectStr..": Lane Cover Height")
 			end
 			if isPractice then
 				table.insert(text, "z: Density Graph Position")
