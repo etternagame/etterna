@@ -291,7 +291,9 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 }
 
 void
-PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
+PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
+						   set<int> validNoterows,
+						   float timingScale)
 {
 	m_ReplaySnapshotMap.clear();
 
@@ -315,8 +317,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;
 				} else {
-					TapNoteScore tns =
-					  GetTapNoteScoreForReplay(nullptr, trr.offset);
+					TapNoteScore tns = GetTapNoteScoreForReplay(
+					  nullptr, trr.offset, timingScale);
 					tempJudgments[tns]++;
 				}
 			}
@@ -340,8 +342,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 					if (trr.type == TapNoteType_Mine) {
 						tempJudgments[TNS_HitMine]++;
 					} else {
-						TapNoteScore tns =
-						  GetTapNoteScoreForReplay(nullptr, trr.offset);
+						TapNoteScore tns = GetTapNoteScoreForReplay(
+						  nullptr, trr.offset, timingScale);
 						tempJudgments[tns]++;
 					}
 				}
@@ -532,7 +534,6 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 	 */
 
 	// now update the wifescore values for each relevant snapshot.
-	const float ts = Player::GetTimingWindowScale();
 	// some snapshots end up with 0 values due to being "missing" from the
 	// replay data and we have to account for those
 	vector<int> snapShotsUnused;
@@ -559,7 +560,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData, set<int> validNoterows)
 			if (trr.type == TapNoteType_Mine) {
 				cws -= 8.f;
 			} else {
-				cws += wife2(trr.offset, ts);
+				cws += wife2(trr.offset, timingScale);
 				mws += 2.f;
 			}
 		}
