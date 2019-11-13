@@ -563,6 +563,7 @@ local function makeScoreDisplay(i)
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) and hs and not collapsed then
+						if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
 						if hs:HasReplayData() then
 							DLMAN:RequestOnlineScoreReplayData(
 								hs,
