@@ -940,7 +940,10 @@ function MovableInput(event)
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			-- commented this to save I/O time and reduce lag
+			-- just make sure to call this somewhere else to make sure stuff saves.
+			-- (like when the screen changes....)
+			--playerConfig:save(pn_to_profile_slot(PLAYER_1))
 		end
 	end
 	return false

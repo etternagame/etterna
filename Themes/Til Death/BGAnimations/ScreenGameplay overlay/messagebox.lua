@@ -18,6 +18,10 @@ return Def.ActorFrame {
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
 		self:SetUpdateFunction(highlight)
 	end,
+	OffCommand = function(self)
+		-- save CustomizeGameplay changes when leaving the screen
+		playerConfig:save(pn_to_profile_slot(PLAYER_1))
+	end,
 	Def.BitmapText {
 		Name = "message",
 		Font = "Common Normal",
