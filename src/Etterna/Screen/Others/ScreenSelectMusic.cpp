@@ -38,6 +38,7 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
@@ -515,7 +516,13 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'O' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			bool opposite = !GAMESTATE->IsPracticeMode();
+			// don't allow changing practice mode if online
+			bool online =
+			  NSMAN->isSMOnline && NSMAN->loggedIn && NSMAN->IsETTP();
+			opposite = opposite && !online;
+			// this function handles the same above logic for online toggling
 			GAMESTATE->TogglePracticeMode(opposite);
+
 			if (opposite)
 				SCREENMAN->SystemMessage("Practice Mode On");
 			else

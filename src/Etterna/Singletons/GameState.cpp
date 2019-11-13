@@ -16,6 +16,7 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "MessageManager.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "NetworkSyncManager.h"
 #include "NoteSkinManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "ProfileManager.h"
@@ -1394,6 +1395,10 @@ GameState::TogglePracticeModeSafe(bool set)
 void
 GameState::TogglePracticeMode(bool set)
 {
+	// If we are online, never allow turning practice mode on.
+	if (NSMAN->isSMOnline && NSMAN->loggedIn && NSMAN->IsETTP())
+		set = false;
+
 	m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice = set;
 	m_pPlayerState->m_PlayerOptions.GetPreferred().m_bPractice = set;
 	m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice = set;
