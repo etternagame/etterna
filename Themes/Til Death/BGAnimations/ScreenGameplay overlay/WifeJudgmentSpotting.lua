@@ -507,9 +507,10 @@ end
 --]]
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local barcount = 30 -- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value. You don't need more than 40.
+local barcount = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBarCount -- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value.
 local barWidth = 2 -- Width of the ticks.
 local barDuration = 0.75 -- Time duration in seconds before the ticks fade out. Doesn't need to be higher than 1. Maybe if you have 300 bars I guess.
+if barcount > 50 then barDuration = barcount / 50 end -- just procedurally set the duration if we pass 50 bars
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local currentbar = 1 -- so we know which error bar we need to update
 local ingots = {} -- references to the error bars

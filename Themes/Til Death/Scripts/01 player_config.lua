@@ -88,6 +88,7 @@ local defaultConfig = {
 	JudgmentText = true,
 	ComboText = true,
 	ReceptorSize = 100,
+	ErrorBarCount = 30,
 	BackgroundType = 1,
 	UserName = "",
 	PasswordToken = "",

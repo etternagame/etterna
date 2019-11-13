@@ -86,6 +86,41 @@ function ReceptorSize()
 	return t
 end
 
+local ErrorBarCountChoices = {}
+for i = 1, 200 do
+	ErrorBarCountChoices[i] = tostring(i)
+end
+function ErrorBarCount()
+	local t = {
+		Name = "ErrorBarCount",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = ErrorBarCountChoices,
+		LoadSelections = function(self, list, pn)
+			local prefs = playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBarCount
+			list[prefs] = true
+		end,
+		SaveSelections = function(self, list, pn)
+			local found = false
+			for i = 1, #list do
+				if not found then
+					if list[i] == true then
+						local value = i
+						playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBarCount = value
+						found = true
+					end
+				end
+			end
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function JudgmentText()
 	local t = {
 		Name = "JudgmentText",
