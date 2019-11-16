@@ -56,6 +56,7 @@ local t =
 			self:queuecommand("MortyFarts")
 			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
 				song:Borp()
+				hackysack = false
 			end
 		end
 		if getTabIndex() == 0 then
@@ -65,10 +66,11 @@ local t =
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 					song:Borp()
+					hackysack = false
 					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				elseif hackysack then
-					hackysack = false
 					song:Borp()
+					hackysack = false
 				end
 				heyiwasusingthat = false
 			end
@@ -151,6 +153,7 @@ local function toggleNoteField()
 		if songChanged then
 			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
 			songChanged = false
+			hackysack = false
 		end
 		return
 	end
@@ -166,9 +169,11 @@ local function toggleNoteField()
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
 				song:Borp()
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				hackysack = false
 			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
 				song:Borp()
 				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+				hackysack = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
