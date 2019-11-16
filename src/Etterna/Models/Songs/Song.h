@@ -402,10 +402,6 @@ class Song
 	// plays music for chart preview and is available to lua -mina
 	void Borp();
 
-	// plays just normal preview, for those annoying places in lua where it
-	// doesnt play properly -mina
-	void Norf();
-
 	bool SongCompleteForStyle(const Style* st) const;
 	bool HasStepsType(StepsType st) const;
 	bool HasStepsTypeAndDifficulty(StepsType st, Difficulty dc) const;
