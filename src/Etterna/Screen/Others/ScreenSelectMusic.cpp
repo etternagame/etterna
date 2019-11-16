@@ -342,6 +342,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 		SOUND->PlayMusic(PlayParams);
+		GAMESTATE->SetPaused(false);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 	}
 }
@@ -1520,6 +1521,7 @@ ScreenSelectMusic::DeletePreviewNoteField()
 			g_bSampleMusicWaiting = true;
 			CheckBackgroundRequests(true);
 		}
+		GAMESTATE->SetPaused(false);
 	}
 }
 

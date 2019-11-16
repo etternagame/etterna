@@ -383,8 +383,10 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	UpdateSongPosition(0);
 
 	// Unpause the music if we want it unpaused
-	if (unpause && isPaused)
+	if (unpause && isPaused) {
 		m_pSoundMusic->Pause(false);
+		GAMESTATE->SetPaused(false);
+	}
 
 	// Restart the notedata for the row we just moved to until the end of the
 	// file
@@ -415,8 +417,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 		m_Toasty.Reset();
 
 	// just having a message we can respond to directly is probably the best way
-	// to reset lua elements rather than emulating a judgment message like
-	// replays
+	// to reset lua elements
 	MESSAGEMAN->Broadcast("PracticeModeReset");
 }
 
@@ -463,8 +464,8 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 	m_pSoundMusic->SetParams(p);
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 
-	MESSAGEMAN->Broadcast(
-	  "CurrentRateChanged"); // Tell the theme we changed the rate
+	// Tell the theme we changed the rate
+	MESSAGEMAN->Broadcast("CurrentRateChanged");
 	return newRate;
 }
 
