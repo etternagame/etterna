@@ -55,7 +55,7 @@ local t =
 			song = bong
 			self:queuecommand("MortyFarts")
 			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
-				song:Borp()
+				song:PlaySampleMusicExtended()
 				hackysack = false
 			end
 		end
@@ -65,11 +65,11 @@ local t =
 				mcbootlarder:GetChild("NoteField"):visible(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-					song:Borp()
+					song:PlaySampleMusicExtended()
 					hackysack = false
 					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				elseif hackysack then
-					song:Borp()
+					song:PlaySampleMusicExtended()
 					hackysack = false
 				end
 				heyiwasusingthat = false
@@ -151,7 +151,7 @@ local function toggleNoteField()
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
 		if songChanged then
-			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+			song:PlaySampleMusicExtended() -- catches a dumb bug that isn't worth explaining -mina
 			songChanged = false
 			hackysack = false
 		end
@@ -167,11 +167,11 @@ local function toggleNoteField()
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-				song:Borp()
+				song:PlaySampleMusicExtended()
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				hackysack = false
 			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
-				song:Borp()
+				song:PlaySampleMusicExtended()
 				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 				hackysack = false
 			end

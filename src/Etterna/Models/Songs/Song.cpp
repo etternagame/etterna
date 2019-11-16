@@ -1946,7 +1946,7 @@ Song::IsMarathon() const
 }
 
 void
-Song::Borp()
+Song::PlaySampleMusicExtended()
 {
 	GameSoundManager::PlayMusicParams PlayParams;
 	PlayParams.sFile = GetMusicPath();
@@ -2381,9 +2381,9 @@ class LunaSong : public Luna<Song>
 		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
-	static int Borp(T* p, lua_State* L)
+	static int PlaySampleMusicExtended(T* p, lua_State* L)
 	{
-		p->Borp();
+		p->PlaySampleMusicExtended();
 		return 0;
 	}
 	LunaSong()
@@ -2450,7 +2450,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
-		ADD_METHOD(Borp);
+		ADD_METHOD(PlaySampleMusicExtended);
 	}
 };
 
