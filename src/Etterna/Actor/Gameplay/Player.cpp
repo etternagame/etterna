@@ -2313,20 +2313,15 @@ Player::Step(int col,
 			if (pTN->type != TapNoteType_Mine) {
 				const bool bBlind =
 				  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
-				// XXX: This is the wrong combo for shared players.
-				// STATSMAN->m_CurStageStats.m_Player[pn] might work, but could
-				// be wrong.
 				const bool bBright =
 				  (m_pPlayerStageStats &&
 				   m_pPlayerStageStats->m_iCurCombo >
-					 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD) ||
-				  bBlind;
+					 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD);
 				if (m_pNoteField != nullptr)
 					m_pNoteField->DidTapNote(
 					  col, bBlind ? TNS_W1 : score, bBright);
 				if (score >= m_pPlayerState->m_PlayerOptions.GetCurrent()
-							   .m_MinTNSToHideNotes ||
-					bBlind)
+							   .m_MinTNSToHideNotes)
 					HideNote(col, iRowOfOverlappingNoteOrRow);
 
 				if (pTN->result.tns != TNS_None) {
@@ -2399,8 +2394,7 @@ Player::FlashGhostRow(int iRow)
 	  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
 	const bool bBright =
 	  (m_pPlayerStageStats && m_pPlayerStageStats->m_iCurCombo >
-								(unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD) ||
-	  bBlind;
+								(unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD);
 
 	for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
 		const TapNote& tn = m_NoteData.GetTapNote(iTrack, iRow);
@@ -2412,9 +2406,8 @@ Player::FlashGhostRow(int iRow)
 		if (m_pNoteField != nullptr) {
 			m_pNoteField->DidTapNote(iTrack, lastTNS, bBright);
 		}
-		if (lastTNS >= m_pPlayerState->m_PlayerOptions.GetCurrent()
-						 .m_MinTNSToHideNotes ||
-			bBlind) {
+		if (lastTNS >=
+			m_pPlayerState->m_PlayerOptions.GetCurrent().m_MinTNSToHideNotes) {
 			HideNote(iTrack, iRow);
 		}
 	}
