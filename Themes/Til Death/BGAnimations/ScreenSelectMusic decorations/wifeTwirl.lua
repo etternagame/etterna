@@ -792,6 +792,12 @@ local function ihatestickinginputcallbackseverywhere(event)
 			toggleNoteField()
 		end
 	end
+	if event.type == "InputEventType_FirstPress" then
+		local CtrlPressed = INPUTFILTER:IsControlPressed()
+		if CtrlPressed and event.DeviceInput.button == "DeviceButton_l" then
+			MESSAGEMAN:Broadcast("LoginHotkeyPressed")
+		end
+	end
 	return false
 end
 

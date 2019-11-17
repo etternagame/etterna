@@ -40,6 +40,26 @@ local function highlightIfOver(self)
 	end
 end
 
+local function loginToggler()
+	if not DLMAN:IsLoggedIn() then
+		username = function(answer)
+			user = answer
+		end
+		password = function(answer)
+			pass = answer
+			DLMAN:Login(user, pass)
+		end
+		easyInputStringWithFunction("Password:", 50, true, password)
+		easyInputStringWithFunction("Username:", 50, false, username)
+	else
+		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
+		playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+		playerConfig:save(pn_to_profile_slot(PLAYER_1))
+		DLMAN:Logout()
+	end
+end
+
 t[#t + 1] =
 	Def.Actor {
 	BeginCommand = function(self)
@@ -220,24 +240,11 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-				if not DLMAN:IsLoggedIn() then
-					username = function(answer)
-						user = answer
-					end
-					password = function(answer)
-						pass = answer
-						DLMAN:Login(user, pass)
-					end
-					easyInputStringWithFunction("Password:", 50, true, password)
-					easyInputStringWithFunction("Username:", 50, false, username)
-				else
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-					playerConfig:save(pn_to_profile_slot(PLAYER_1))
-					DLMAN:Logout()
-				end
+				loginToggler()
 			end
+		end,
+		LoginHotkeyPressedMessageCommand = function(self)
+			loginToggler()
 		end
 	},
 	LoadFont("Common Normal") ..
