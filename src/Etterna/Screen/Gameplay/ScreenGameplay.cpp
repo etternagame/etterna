@@ -1521,9 +1521,21 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	}
 
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
+
+	// If we didn't cheat and aren't in Practice
+	// (Replay does its own thing somewhere else here)
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
-		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
+		HighScore* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
+		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+
+		// Load the replay data for the current score so some cool functionality
+		// works immediately
+		PlayerAI::ResetScoreData();
+		PlayerAI::SetScoreData(pHS, 0, &nd);
 		GAMESTATE->CommitStageStats();
+	}
+
 	// save current stage stats
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);
 
