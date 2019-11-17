@@ -449,8 +449,16 @@ function MPinput(event)
 		end
 	end
 
+	if event.type == "InputEventType_FirstPress" and event.DeviceInput.button == "DeviceButton_/" then
+		shouldOpen = true
+	end
+
+	if shouldOpen and event.type == "InputEventType_FirstPress" and event.DeviceInput.button ~= "DeviceButton_/" then
+		shouldOpen = false
+	end
+
 	if not typing and event.type == "InputEventType_Release" then -- keys for auto turning on chat if not already on -mina
-		if event.DeviceInput.button == "DeviceButton_/" then
+		if event.DeviceInput.button == "DeviceButton_/" and shouldOpen then
 			typing = true
 			update = true
 			if minimised then
@@ -458,6 +466,7 @@ function MPinput(event)
 				MESSAGEMAN:Broadcast("Minimise")
 			end
 			typingText = "/"
+			shouldOpen = false
 		end
 	end
 
