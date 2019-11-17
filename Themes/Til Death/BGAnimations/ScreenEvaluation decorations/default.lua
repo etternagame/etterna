@@ -283,42 +283,46 @@ function scoreBoard(pn, position)
 					if params.Name == "PrevJudge" then
 						judge = judge < 2 and #customWindows or judge - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 100) / 100
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" then
 						judge = judge == #customWindows and 1 or judge + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 100) / 100
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
 				elseif params.Name == "PrevJudge" and judge > 1 then
 					judge = judge - 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
 					self:settextf(
 						"%05.2f%% (%s)",
-						getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps),
+						perc,
 						"Wife J" .. judge
 					)
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				elseif params.Name == "NextJudge" and judge < 9 then
 					judge = judge + 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
 					if judge == 9 then
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife Justice"
 						)
 					else
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife J" .. judge
 						)
 					end
@@ -358,39 +362,43 @@ function scoreBoard(pn, position)
 					if params.Name == "PrevJudge" then
 						judge2 = judge2 < 2 and #customWindows or judge2 - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 10000) / 10000
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 					elseif params.Name == "NextJudge" then
 						judge2 = judge2 == #customWindows and 1 or judge2 + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 10000) / 10000
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 					end
 				elseif params.Name == "PrevJudge" and judge2 > 1 then
 					judge2 = judge2 - 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 10000) / 10000
 					self:settextf(
 						"%05.4f%% (%s)",
-						getRescoredWifeJudge(dvt, judge2, totalHolds - holdsHit, minesHit, totalTaps),
+						perc,
 						"Wife J" .. judge2
 					)
 				elseif params.Name == "NextJudge" and judge2 < 9 then
 					judge2 = judge2 + 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 10000) / 10000
 					if judge2 == 9 then
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife Justice"
 						)
 					else
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife J" .. judge2
 						)
 					end
