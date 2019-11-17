@@ -196,6 +196,11 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 		case KEY_F9:
 			bIncrease = false; /* fall through */
 		case KEY_F10:
+			if (!INPUTFILTER->IsBeingPressed(
+				  DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) &&
+				!INPUTFILTER->IsBeingPressed(
+				  DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)))
+				return Screen::Input(input);
 			a = ChangeSongBPM;
 			break;
 		case KEY_F11:
