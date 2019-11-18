@@ -44,6 +44,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Jumping to the Practice Bookmark/Loop unpauses the music - [642312f](../../../commit/642312f3bc07f45913cd47ce8c5c77e9b498c388)
 - Lane Cover Trigger button changes according to the binding for Select - [5e60a9f](../../../commit/5e60a9fb2cb19589fe99341aec4c4e8f59bb9150)
 - Leaderboard Scores sometimes don't have Replays but say they do. In this case, don't enter Replay - [747aeb8](../../../commit/747aeb869a809476c3f4c6a7703437d08405e622)
+- License Footers got moved to a single file - [#600](../../../pull/600)
 - Loading NoteData from SSC files is hidden behind the Verbose Logging Preference - [58d3236](../../../commit/58d32368dcf44aa7d1d2731ec9469efa0e0d7c8f)
 - Lua in ScreenSelectMusic was changed a little to give more FPS - [634a529](../../../commit/634a5291cdb706970c4dc563439c33b8dbb98a4c)
 - Optimized resetting stats by making a separate Player Reload method - [f32b31a](../../../commit/f32b31a7d64f50d935e5cb89ef2cbbbd927cdad7) [3f16a6c](../../../commit/3f16a6c53999f069d9f4a1146747e1a836797f51)
