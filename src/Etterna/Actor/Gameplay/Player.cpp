@@ -685,6 +685,14 @@ Player::Reload()
 		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
 						  m_pPlayerStageStats->m_iCurMissCombo);
 
+	/* Apply transforms. */
+	NoteDataUtil::TransformNoteData(
+	  m_NoteData,
+	  *m_Timing,
+	  m_pPlayerState->m_PlayerOptions.GetStage(),
+	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+		->m_StepsType);
+
 	SAFE_DELETE(m_pIterNeedsTapJudging);
 	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
 	  m_NoteData.GetTapNoteRangeAllTracks(iNoteRow, MAX_NOTE_ROW));
