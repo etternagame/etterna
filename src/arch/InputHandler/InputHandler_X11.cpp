@@ -344,7 +344,7 @@ InputHandler_X11::Update()
 				break;
 		}
 		if (real_release) {
-			ButtonPressed(DeviceInput(release_dv, release_db, 0));
+			RegisterKeyEvent(event.xkey.time, false, release_dv, release_db);
 		}
 		switch (event.type) {
 			case MotionNotify:
@@ -354,7 +354,8 @@ InputHandler_X11::Update()
 			case KeyPress:
 				curr_db = XSymToDeviceButton(XLookupKeysym(&event.xkey, 0));
 				if (curr_db != DeviceButton_Invalid) {
-					ButtonPressed(DeviceInput(DEVICE_KEYBOARD, curr_db, 1));
+					RegisterKeyEvent(
+					  event.xkey.time, true, DEVICE_KEYBOARD, curr_db);
 				}
 				break;
 			case KeyRelease:
@@ -381,7 +382,8 @@ InputHandler_X11::Update()
 						default:
 							break;
 					}
-					ButtonPressed(DeviceInput(DEVICE_MOUSE, curr_db, 1));
+					RegisterKeyEvent(
+					  event.xkey.time, true, DEVICE_MOUSE, curr_db);
 				}
 				break;
 			case ButtonRelease:
@@ -402,7 +404,7 @@ InputHandler_X11::Update()
 		}
 	}
 	if (last_release.type != 0) {
-		ButtonPressed(DeviceInput(release_dv, release_db, 0));
+		RegisterKeyEvent(event.xkey.time, false, release_dv, release_db);
 	}
 	InputHandler::UpdateTimer();
 }
@@ -415,4 +417,21 @@ InputHandler_X11::GetDevicesAndDescriptions(
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_KEYBOARD, "Keyboard"));
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_MOUSE, "Mouse"));
 	}
+}
+
+void
+InputHandler_X11::RegisterKeyEvent(unsigned long timestamp,
+								   bool keyDown,
+								   InputDevice input,
+								   DeviceButton button)
+{
+	// https://linux.die.net/man/3/xkeyevent
+	// Event timestamp is in milliseconds
+
+	std::chrono::steady_clock::time_point timer(
+	  std::chrono::milliseconds((long)timestamp));
+
+	DeviceInput di(input, button, keyDown ? 1 : 0, timer);
+
+	ButtonPressed(di);
 }
