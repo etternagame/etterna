@@ -38,7 +38,7 @@ return Def.ActorFrame {
 		Name = "Instructions",
 		Font = "Common Normal",
 		InitCommand = function(self)
-			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.45):visible(true)
+			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.4):visible(true)
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
