@@ -12,7 +12,7 @@ option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.66.1
+		VERSION 0.67.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
