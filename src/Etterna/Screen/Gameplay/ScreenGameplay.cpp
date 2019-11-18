@@ -86,7 +86,11 @@ ScreenGameplay::ScreenGameplay()
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;
+
+	// Tell DownloadManager we are in Gameplay
 	DLMAN->UpdateDLSpeed(true);
+
+	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 		LOG->Trace("Unloading replaydata.");
 		SCOREMAN->UnloadAllReplayData();
@@ -98,6 +102,7 @@ ScreenGameplay::Init()
 {
 	SubscribeToMessage("Judgment");
 
+	// Load some stuff from metrics ... for now.
 	PLAYER_TYPE.Load(m_sName, "PlayerType");
 	PLAYER_INIT_COMMAND.Load(m_sName, "PlayerInitCommand");
 	GIVE_UP_START_TEXT.Load(m_sName, "GiveUpStartText");
@@ -119,19 +124,25 @@ ScreenGameplay::Init()
 
 	ScreenWithMenuElements::Init();
 
+	// Tells the screen what player we are using
+	// specifically Normal, Practice, or Replay
 	this->FillPlayerInfo(&m_vPlayerInfo);
 
 	m_pSoundMusic = NULL;
 
+	// Prevent some crashes
+	// This happens when the screen changes but we dont have a song (obviously)
 	if (GAMESTATE->m_pCurSong == NULL)
-		return; // ScreenDemonstration will move us to the next screen.  We just
-				// need to survive for one update without crashing.
+		return;
 
 	/* Called once per stage (single song or single course). */
 	GAMESTATE->BeginStage();
 
+	// Starting gameplay, make sure Gamestate doesn't think we are paused
+	// because we ... don't start paused.
 	GAMESTATE->SetPaused(false);
 
+	// Make sure we have NoteData to play
 	unsigned int count = m_vPlayerInfo.m_vpStepsQueue.size();
 	for (unsigned int i = 0; i < count; i++) {
 		Steps* curSteps = m_vPlayerInfo.m_vpStepsQueue[i];
@@ -146,6 +157,8 @@ ScreenGameplay::Init()
 
 	ASSERT(GAMESTATE->m_pCurSteps.Get() != NULL);
 
+	// Doesn't technically do anything for now
+	// Since playmodes/courses are gone
 	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
 	STATSMAN->m_CurStageStats.m_player.m_pStyle =
 	  GAMESTATE->GetCurrentStyle(PLAYER_1);
@@ -175,6 +188,10 @@ ScreenGameplay::Init()
 
 	m_Toasty.Load(THEME->GetPathB(m_sName, "toasty"));
 	this->AddChild(&m_Toasty);
+
+	// //
+	// Start a bunch of stuff to make sure the Notefield is placed correctly
+	//
 
 	// Use the margin function to calculate where the notefields should be and
 	// what size to zoom them to.  This way, themes get margins to put cut-ins
@@ -231,6 +248,10 @@ ScreenGameplay::Init()
 	// ActorUtil::LoadAllCommands(m_vPlayerInfo.m_pPlayer, m_sName);
 	this->AddChild(m_vPlayerInfo.m_pPlayer);
 	m_vPlayerInfo.m_pPlayer->PlayCommand("On");
+
+	//
+	//
+	// //
 
 	m_NextSong.Load(THEME->GetPathB(m_sName, "next course song"));
 	m_NextSong.SetDrawOrder(DRAW_ORDER_TRANSITIONS - 1);
@@ -1029,49 +1050,14 @@ ScreenGameplay::Update(float fDeltaTime)
 			  !m_GiveUpTimer.IsZero() && m_GiveUpTimer.Ago() > GIVE_UP_SECONDS;
 			m_gave_up = bGiveUpTimerFired;
 
+			// Quitters deserve a failed score.
 			if (bGiveUpTimerFired) {
 				STATSMAN->m_CurStageStats.m_bGaveUp = true;
-				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified |=
-				  bGiveUpTimerFired; // Don't disqualify if failing for miss
-									 // combo.  The player should still be
-									 // eligable for a high score on
-									 // courses.
-				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass |=
-				  m_gave_up;
+				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
+				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				ResetGiveUpTimers(false);
-				if (GamePreferences::m_AutoPlay == PC_REPLAY ||
-					GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-					  .m_bPractice) {
-					if (GAMEMAN->m_bResetModifiers) {
-						float oldRate = GAMEMAN->m_fPreviousRate;
-						const RString mods = GAMEMAN->m_sModsToReset;
-						const vector<RString> oldturns =
-						  GAMEMAN->m_vTurnsToReset;
-						if (GAMEMAN->m_bResetTurns) {
-							GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState->m_PlayerOptions
-							  .GetCurrent()
-							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState->m_PlayerOptions
-							  .GetPreferred()
-							  .ResetModsToStringVector(oldturns);
-							GAMEMAN->m_bResetTurns = false;
-							GAMEMAN->m_vTurnsToReset.clear();
-						}
-						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
-						  oldRate;
-						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
-						  oldRate;
-						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
-						  oldRate;
-						GAMEMAN->m_bResetModifiers = false;
-						GAMEMAN->m_sModsToReset = "";
-						MESSAGEMAN->Broadcast("RateChanged");
-					}
-					GamePreferences::m_AutoPlay.Set(PC_HUMAN);
-				}
-				BeginBackingOutFromGameplay();
+				LOG->Trace("Exited Gameplay to Evaluation");
+				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}
 
@@ -1312,10 +1298,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 
 	if (m_DancingState != STATE_OUTRO && GAMESTATE->IsHumanPlayer(input.pn) &&
 		!m_Cancel.IsTransitioning()) {
-		/* Allow bailing out by holding any START button.
-		 * This gives a way to "give up" when a back button isn't available.
-		 * If this is also a style button, don't do this; pump center is start.
-		 */
+		/* Allow bailing out by holding any START button. */
 		bool bHoldingGiveUp = false;
 		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(
 			  input.GameI) == Column_Invalid) {
@@ -1324,7 +1307,6 @@ ScreenGameplay::Input(const InputEventPlus& input)
 
 		// Exiting gameplay by holding Start (Forced Fail)
 		if (bHoldingGiveUp) {
-			// No PREFSMAN->m_bDelayedEscape; always delayed.
 			if (input.type == IET_RELEASE) {
 				AbortGiveUp(true);
 			} else if (input.type == IET_FIRST_PRESS &&
@@ -1352,38 +1334,6 @@ ScreenGameplay::Input(const InputEventPlus& input)
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0f))) {
 				if (PREFSMAN->m_verbose_log > 1)
 					LOG->Trace("Player %i went back", input.pn + 1);
-				if (GamePreferences::m_AutoPlay == PC_REPLAY ||
-					GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-					  .m_bPractice) {
-					if (GAMEMAN->m_bResetModifiers) {
-						float oldRate = GAMEMAN->m_fPreviousRate;
-						const RString mods = GAMEMAN->m_sModsToReset;
-						const vector<RString> oldturns =
-						  GAMEMAN->m_vTurnsToReset;
-						if (GAMEMAN->m_bResetTurns) {
-							GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState->m_PlayerOptions
-							  .GetCurrent()
-							  .ResetModsToStringVector(oldturns);
-							GAMESTATE->m_pPlayerState->m_PlayerOptions
-							  .GetPreferred()
-							  .ResetModsToStringVector(oldturns);
-							GAMEMAN->m_bResetTurns = false;
-							GAMEMAN->m_vTurnsToReset.clear();
-						}
-						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
-						  oldRate;
-						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
-						  oldRate;
-						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
-						  oldRate;
-						GAMEMAN->m_bResetModifiers = false;
-						GAMEMAN->m_sModsToReset = "";
-						MESSAGEMAN->Broadcast("RateChanged");
-					}
-					GamePreferences::m_AutoPlay.Set(PC_HUMAN);
-				}
 				BeginBackingOutFromGameplay();
 			} else if (PREFSMAN->m_bDelayedBack &&
 					   input.type == IET_FIRST_PRESS) {

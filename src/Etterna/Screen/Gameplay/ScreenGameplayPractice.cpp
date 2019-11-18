@@ -235,6 +235,7 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
 				LOG->Trace("Exited Practice Mode to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
+				return;
 			}
 		}
 		default:

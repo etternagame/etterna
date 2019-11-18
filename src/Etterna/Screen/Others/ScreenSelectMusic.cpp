@@ -1646,24 +1646,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
 		auto noterows = hs->GetNoteRowVector();
-		if (!timestamps.empty() &&
-			noterows.empty()) { // if we have noterows from newer uploads, just
-								// use them -mina
+
+		// Construct noterows from given timestamps if timestamps are given
+		// alone
+		if (!timestamps.empty() && noterows.empty()) {
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			// vector<int> ihatemylife;
 			auto nerv = nd.BuildAndGetNerv();
-			/* functionally dead code, may be removed -poco
-			if (!hs->GetChordCohesion()) {
-				for (auto r : nerv)
-					for (int i = 0; i < nd.GetNumTapNotesInRow(r); ++i)
-						ihatemylife.emplace_back(r);
-			} else {
-				for (auto r : nerv)
-					ihatemylife.emplace_back(r);
-			}
-			*/
 			auto sdifs = td->BuildAndGetEtaner(nerv);
 			vector<int> noterows;
 			for (auto t : timestamps) {
@@ -1679,12 +1669,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			for (auto& noterowwithoffset : noterows)
 				noterowwithoffset += noterowoffsetter;
 			GAMESTATE->SetProcessedTimingData(nullptr);
-			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
 		}
 
-		// Since we keep misses on EO as 180ms, we need to convert them
-		// back.
+		// Since we keep misses on EO as 180ms, need to convert them back.
 		if (!timestamps.empty()) {
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
@@ -1693,6 +1681,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			}
 			hs->SetOffsetVector(offsets);
 		}
+
+		// Player AI Setup.
 		PlayerAI::ResetScoreData();
 		PlayerAI::SetScoreData(hs, 0, &nd);
 
@@ -1701,14 +1691,9 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
 			true);
 
-		// set the heck out of the current rate to make sure everything runs
-		// correctly
+		// Set Replay mods and rate to let it handle stuff
 		float scoreRate = hs->GetMusicRate();
 		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
-		// GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
-		// GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
-		// GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
-		// MESSAGEMAN->Broadcast("RateChanged");
 		PlayerAI::replayRate = scoreRate;
 		PlayerAI::oldModifiers = oldMods;
 		PlayerAI::oldRate = oldRate;
@@ -1717,42 +1702,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		if (ns.empty())
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		PlayerAI::oldNoteskin = ns;
-
-		// set mods based on the score, hopefully
-		// it is known that xmod->cmod and back does not work most of the time.
-		/*
-		CHECKPOINT_M("Setting mods for Replay Viewing.");
-		RString mods = hs->GetModifiers();
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(mods);
-		CHECKPOINT_M("Replay mods set.");
-		*/
-
-		// Set mirror mode on if mirror was on in the replay
-		// Also get ready to reset the turn mods to what they were before
-		RString mods = hs->GetModifiers();
-		PlayerAI::replayModifiers = mods;
-		vector<RString> oldTurns;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().GetTurnMods(
-		  oldTurns);
-		if (mods.find("Mirror") != mods.npos) {
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-		} else {
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-		}
-		// GAMEMAN->m_bResetTurns = true;
-		GAMEMAN->m_vTurnsToReset = oldTurns;
+		RString hsMods = hs->GetModifiers();
+		PlayerAI::replayModifiers = hsMods;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",
@@ -1760,10 +1711,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
 
-		// set mods back to what they were before
-		// GAMEMAN->m_bResetModifiers = true;
-		GAMEMAN->m_fPreviousRate = oldRate;
-		GAMEMAN->m_sModsToReset = oldMods;
 		return 1;
 	}
 
