@@ -232,7 +232,7 @@ ArrowEffects::Update()
 
 	// Update Tipsy
 	if (effects[PlayerOptions::EFFECT_TIPSY] != 0) {
-		const float time = RageTimer::GetTimeSinceStartFast();
+		const float time = RageTimer::GetTimeSinceStart();
 		const float time_times_timer = time * TIPSY_TIMER_FREQUENCY;
 		const float arrow_times_mag = ARROW_SIZE * TIPSY_ARROW_MAGNITUDE;
 		const float time_times_offset_timer =
