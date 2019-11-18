@@ -40,6 +40,25 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	ProfileNew = THEME:GetString("ProfileChanges", "ProfileNew"),
+	NameChange = THEME:GetString("ProfileChanges", "ProfileNameChange"),
+	ClickLogin = THEME:GetString("GeneralInfo", "ClickToLogin"),
+	ClickLogout = THEME:GetString("GeneralInfo", "ClickToLogout"),
+	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn"),
+	LoggedInAs = THEME:GetString("GeneralInfo", "LoggedInAs.."),
+	LoginFailed = THEME:GetString("GeneralInfo", "LoginFailed"),
+	LoginSuccess = THEME:GetString("GeneralInfo", "LoginSuccess"),
+	Password = THEME:GetString("GeneralInfo","Password"),
+	Username = THEME:GetString("GeneralInfo","Username"),
+	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
+	TapsHit = THEME:GetString("GeneralInfo", "ProfileTapsHit"),
+	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
+	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
+	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
+	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded")
+}
+
 local function loginToggler()
 	if not DLMAN:IsLoggedIn() then
 		username = function(answer)
@@ -59,25 +78,6 @@ local function loginToggler()
 		DLMAN:Logout()
 	end
 end
-
-local translated_info = {
-	ProfileNew = THEME:GetString("ProfileChanges", "ProfileNew"),
-	NameChange = THEME:GetString("ProfileChanges", "ProfileNameChange"),
-	ClickLogin = THEME:GetString("GeneralInfo", "ClickToLogin"),
-	ClickLogout = THEME:GetString("GeneralInfo", "ClickToLogout"),
-	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn"),
-	LoggedInAs = THEME:GetString("GeneralInfo", "LoggedInAs.."),
-	LoginFailed = THEME:GetString("GeneralInfo", "LoginFailed"),
-	LoginSuccess = THEME:GetString("GeneralInfo", "LoginSuccess"),
-	Password = THEME:GetString("GeneralInfo","Password"),
-	Username = THEME:GetString("GeneralInfo","Username"),
-	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
-	TapsHit = THEME:GetString("GeneralInfo", "ProfileTapsHit"),
-	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
-	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
-	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
-	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded")
-}
 
 t[#t + 1] =
 	Def.Actor {
