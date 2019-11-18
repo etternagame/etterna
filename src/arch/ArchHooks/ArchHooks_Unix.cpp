@@ -35,6 +35,20 @@ extern "C" {
 #include <X11/Xatom.h>
 #endif
 
+#include <chrono>
+
+static bool g_bTimerInitialized;
+static std::chrono::steady_clock::time_point g_momentInitialized;
+
+static void
+InitTimer()
+{
+	if (g_bTimerInitialized)
+		return;
+	g_bTimerInitialized = true;
+	g_momentInitialized = std::chrono::steady_clock::now();
+}
+
 static bool
 IsFatalSignal(int signal)
 {
@@ -154,7 +168,7 @@ ArchHooks_Unix::GetClock()
 }
 
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	OpenGetTime();
 
@@ -166,9 +180,22 @@ ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
 		iRet = ArchHooks::FixupTimeIfBackwards(iRet);
 	return iRet;
 }
+std::chrono::microseconds
+ArchHooks::GetChronoDurationSinceStart()
+{
+	if (!g_bTimerInitialized)
+		InitTimer();
+
+	std::chrono::steady_clock::time_point now =
+	  std::chrono::steady_clock::now();
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+	  now - g_momentInitialized);
+
+	return us;
+}
 #else
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);

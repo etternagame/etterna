@@ -1,34 +1,40 @@
-﻿/* RageTimer - Timer services. */
+/* RageTimer - Timer services. */
 
 #ifndef RAGE_TIMER_H
 #define RAGE_TIMER_H
+
+#include <chrono>
 
 class RageTimer
 {
   public:
 	RageTimer() { Touch(); }
-	RageTimer(int secs, int us)
-	  : m_secs(secs)
-	  , m_us(us)
+	RageTimer(unsigned microseconds)
 	{
+		this->c_dur = std::chrono::microseconds(microseconds);
+	}
+	RageTimer(unsigned secs, unsigned microseconds)
+	{
+		this->c_dur = std::chrono::microseconds(secs * 1000000 + microseconds);
 	}
 
 	/* Time ago this RageTimer represents. */
 	float Ago() const;
 	void Touch();
-	bool IsZero() const { return m_secs == 0 && m_us == 0; }
-	void SetZero() { m_secs = m_us = 0; }
+	bool IsZero() const
+	{
+		return this->c_dur == std::chrono::microseconds::zero();
+	}
+	void SetZero() { this->c_dur = std::chrono::microseconds::zero(); }
 
 	/* Time between last call to GetDeltaTime() (Ago() + Touch()): */
 	float GetDeltaTime();
-	/* (alias) */
+	/* Alias for Ago */
 	float PeekDeltaTime() const { return Ago(); }
 
-	/* deprecated: */
-	static float GetTimeSinceStart(
-	  bool bAccurate = true); // seconds since the program was started
-	static float GetTimeSinceStartFast() { return GetTimeSinceStart(false); }
-	static uint64_t GetUsecsSinceStart();
+	static float GetTimeSinceStart(); // seconds since the program was started
+	static uint64_t
+	GetUsecsSinceStart(); // microseconds since the program was started
 
 	/* Get a timer representing half of the time ago as this one. */
 	RageTimer Half() const;
@@ -45,13 +51,7 @@ class RageTimer
 	float operator-(const RageTimer& rhs) const;
 
 	bool operator<(const RageTimer& rhs) const;
-
-	/* "float" is bad for a "time since start" RageTimer.  If the game is
-	 * running for several days, we'll lose a lot of resolution.  I don't want
-	 * to use double everywhere, since it's slow.  I'd rather not use double
-	 * just for RageTimers, since it's too easy to get a type wrong and end up
-	 * with obscure resolution problems. */
-	unsigned m_secs{ 0 }, m_us{ 0 };
+	std::chrono::microseconds c_dur;
 
   private:
 	static RageTimer Sum(const RageTimer& lhs, float tm);

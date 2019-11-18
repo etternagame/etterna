@@ -22,7 +22,6 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Singletons/ScoreManager.h"

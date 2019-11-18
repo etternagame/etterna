@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Base/AutoActor.h"
 #include "BGAnimationLayer.h"
@@ -660,7 +660,7 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 			}
 			break;
 		case TYPE_TILES: {
-			float fSecs = RageTimer::GetTimeSinceStartFast();
+			float fSecs = RageTimer::GetTimeSinceStart();
 			float fTotalWidth = m_iNumTilesWide * m_fTilesSpacingX;
 			float fTotalHeight = m_iNumTilesHigh * m_fTilesSpacingY;
 

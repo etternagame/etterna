@@ -4,6 +4,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include <sys/time.h>
 #include <errno.h>
+#include <chrono>
 
 #ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
@@ -342,8 +343,11 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		/* If we support condattr_setclock, we'll set the condition to use
 		 * the same clock as RageTimer and can use it directly. If the
 		 * clock is CLOCK_REALTIME, that's the default anyway. */
-		abstime.tv_sec = pTimeout->m_secs;
-		abstime.tv_nsec = pTimeout->m_us * 1000;
+		uint64_t usec = pTimeout->c_dur.count();
+		unsigned sec = floor(usec / 1000000);
+		unsigned nsec = (usec - sec * 1000000) * 1000;
+		abstime.tv_sec = sec;
+		abstime.tv_nsec = nsec;
 	} else {
 		// The RageTimer clock is different than the wait clock; convert it.
 		timeval tv;
@@ -354,8 +358,11 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		float fSecondsInFuture = -pTimeout->Ago();
 		timeofday += fSecondsInFuture;
 
-		abstime.tv_sec = timeofday.m_secs;
-		abstime.tv_nsec = timeofday.m_us * 1000;
+		uint64_t usec = timeofday.c_dur.count();
+		unsigned sec = floor(usec / 1000000);
+		unsigned nsec = (usec - sec * 1000000) * 1000;
+		abstime.tv_sec = sec;
+		abstime.tv_nsec = nsec;
 	}
 
 	int iRet = pthread_cond_timedwait(&m_Cond, &m_pParent->mutex, &abstime);

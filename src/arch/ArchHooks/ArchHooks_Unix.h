@@ -2,6 +2,7 @@
 #define ARCH_HOOKS_UNIX_H
 
 #include "ArchHooks.h"
+#include <chrono>
 class ArchHooks_Unix : public ArchHooks
 {
   public:
@@ -11,6 +12,7 @@ class ArchHooks_Unix : public ArchHooks
 
 	void SetTime(tm newtime);
 	int64_t GetMicrosecondsSinceStart();
+	std::chrono::microseconds GetChronoDurationSinceStart();
 
 	void MountInitialFilesystems(const RString& sDirOfExecutable);
 	float GetDisplayAspectRatio() { return 4.0f / 3; }

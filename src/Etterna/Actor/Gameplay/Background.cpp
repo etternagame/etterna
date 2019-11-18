@@ -11,7 +11,6 @@
 #include "Etterna/Actor/Base/Quad.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"

@@ -52,7 +52,6 @@ DancingCharacters::DancingCharacters()
 {
 	PlayerNumber p = PLAYER_1;
 	m_pCharacter = new Model;
-	m_2DIdleTimer.SetZero();
 	m_i2DAnimState = AS2D_IDLE; // start on idle state
 	if (!GAMESTATE->IsPlayerEnabled(p))
 		return;
@@ -259,47 +258,6 @@ DancingCharacters::Update(float fDelta)
 		m_fThisCameraStartBeat = static_cast<float>(iCurBeat);
 		m_fThisCameraEndBeat = float(iCurBeat + 8);
 	}
-	/*
-	// is there any of this still around? This block of code is _ugly_. -Colby
-	// update any 2D stuff
-	if( m_bgIdle.IsLoaded() )
-	{
-		if( m_bgIdle.IsLoaded() && m_i2DAnimState[p] == AS2D_IDLE )
-			m_bgIdle->Update( fDelta );
-		if( m_bgMiss[p].IsLoaded() && m_i2DAnimState[p] == AS2D_MISS )
-			m_bgMiss[p]->Update( fDelta );
-		if( m_bgGood[p].IsLoaded() && m_i2DAnimState[p] == AS2D_GOOD )
-			m_bgGood[p]->Update( fDelta );
-		if( m_bgGreat[p].IsLoaded() && m_i2DAnimState[p] == AS2D_GREAT )
-			m_bgGreat[p]->Update( fDelta );
-		if( m_bgFever[p].IsLoaded() && m_i2DAnimState[p] == AS2D_FEVER )
-			m_bgFever[p]->Update( fDelta );
-		if( m_bgFail[p].IsLoaded() && m_i2DAnimState[p] == AS2D_FAIL )
-			m_bgFail[p]->Update( fDelta );
-		if( m_bgWin[p].IsLoaded() && m_i2DAnimState[p] == AS2D_WIN )
-			m_bgWin[p]->Update( fDelta );
-		if( m_bgWinFever[p].IsLoaded() && m_i2DAnimState[p] == AS2D_WINFEVER
-	) m_bgWinFever[p]->Update(fDelta);
-
-		if(m_i2DAnimState[p] != AS2D_IDLE) // if we're not in idle state,
-	start a timer to return us to idle
-		{
-			// never return to idle state if we have failed / passed (i.e.
-	completed) the song if(m_i2DAnimState[p] != AS2D_WINFEVER &&
-	m_i2DAnimState[p] != AS2D_FAIL && m_i2DAnimState[p] != AS2D_WIN)
-			{
-				if(m_2DIdleTimer[p].IsZero())
-					m_2DIdleTimer[p].Touch();
-				if(!m_2DIdleTimer[p].IsZero() && m_2DIdleTimer[p].Ago()
-	> 1.0f)
-				{
-					m_2DIdleTimer[p].SetZero();
-					m_i2DAnimState[p] = AS2D_IDLE;
-				}
-			}
-		}
-	}
-	*/
 }
 
 void

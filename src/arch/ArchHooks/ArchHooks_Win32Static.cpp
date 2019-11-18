@@ -6,14 +6,16 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
 
-// for timeGetTime
 #include <windows.h>
 #include <mmsystem.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm.lib")
 #endif
 
+#include <chrono>
+
 static bool g_bTimerInitialized;
+static std::chrono::steady_clock::time_point g_momentInitialized;
 
 static void
 InitTimer()
@@ -21,23 +23,36 @@ InitTimer()
 	if (g_bTimerInitialized)
 		return;
 	g_bTimerInitialized = true;
-
-	timeBeginPeriod(1);
+	g_momentInitialized = std::chrono::steady_clock::now();
 }
 
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	if (!g_bTimerInitialized)
 		InitTimer();
 
-	int64_t ret = timeGetTime() * int64_t(1000);
-	if (bAccurate) {
-		ret = FixupTimeIfLooped(ret);
-		ret = FixupTimeIfBackwards(ret);
-	}
+	std::chrono::steady_clock::time_point now =
+	  std::chrono::steady_clock::now();
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+	  now - g_momentInitialized);
+	int64_t ret = us.count();
 
 	return ret;
+}
+
+std::chrono::microseconds
+ArchHooks::GetChronoDurationSinceStart()
+{
+	if (!g_bTimerInitialized)
+		InitTimer();
+
+	std::chrono::steady_clock::time_point now =
+	  std::chrono::steady_clock::now();
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+	  now - g_momentInitialized);
+
+	return us;
 }
 
 static RString

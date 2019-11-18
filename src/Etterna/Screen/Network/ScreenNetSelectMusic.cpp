@@ -17,7 +17,6 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetSelectMusic.h"

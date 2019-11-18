@@ -5,7 +5,6 @@
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "ALSA9Dynamic.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
