@@ -6,6 +6,7 @@
 Windows x64, Windows i386, and Mac installer release.
 
 ### Added
+- Actors provide True Z Rotation to Lua - [04b2664](../../../commit/04b2664544334ef9e31906d872859a46242f5ce9)
 - BPM & Rate Text can be moved in Customize Gameplay - [7f1d23a](../../../commit/7f1d23aab1f3a068ddfeddeb5c9fed43252debe6)
 - Clicking the WifePercent of a Leaderboard Score with a Replay will show the Offset Plot - [2d41a71](../../../commit/2d41a71532c2a9b0e998d2ca2f2592f923eeb925)
 - ComboGraphs in Evaluation recalculate given a Replay - [15075a7](../../../commit/15075a79f23cad73a4ccad9e2c8f695bae303978) [04ce0cf](../../../commit/04ce0cf37c461e63a9a1b05a254e557d0739b818) [a7bee3d](../../../commit/a7bee3d09181b882faf88a4d0efa9f7c8caa8760) [c3904ce](../../../commit/c3904ceb8b61257db36190ce7003a9eb7c5a23ad) [818e12d](../../../commit/818e12de2a2a9d0b7d5dde01de20be7826472ce5) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [03f9e02](../../../commit/03f9e02317cdcb4c23bb0656827b8b396990bf62) [c5dedd9](../../../commit/c5dedd94f5f0a692e163c8a046423cc3a1081434)
@@ -13,6 +14,7 @@ Windows x64, Windows i386, and Mac installer release.
 - LifeGraphs in Evaluation recalculate given a Replay - [458799e](../../../commit/458799eb884915fbe5e29c600172cc095f1e7916) [6d5e994](../../../commit/6d5e99447040cf406ccf590c800b3f19f71031fe) [9f96ec5](../../../commit/9f96ec544e91f18fbd11439f5ad1ba572680fc3d) [a7bee3d](../../../commit/a7bee3d09181b882faf88a4d0efa9f7c8caa8760) [c3904ce](../../../commit/c3904ceb8b61257db36190ce7003a9eb7c5a23ad) [818e12d](../../../commit/818e12de2a2a9d0b7d5dde01de20be7826472ce5) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [03f9e02](../../../commit/03f9e02317cdcb4c23bb0656827b8b396990bf62) [c5dedd9](../../../commit/c5dedd94f5f0a692e163c8a046423cc3a1081434)
 - Login/Logout hotkey set to Ctrl+L - [cdbc3e4](../../../commit/cdbc3e400bcabad0582ebf556fddb8497eb13331)
 - Lua-accessible way to set Practice Mode - [090b236](../../../commit/090b236cc765c772db6de2facc2c1581c6a10ccb) [d71d937](../../../commit/d71d93752c61da83f9012c2202a8b8bc0d65b530)
+- LuaJIT profiler added to fallback scripts - [4e6f2fc](../../../commit/4e6f2fc03a6debf223d0cce465719cc3fe21e0e0)
 - NoteDataUtil has access to just setting up part of the NoteData - [373e034](../../../commit/373e034cf258d2db4a5c1e29e0464f889346180b) [565e0a9](../../../commit/565e0a9d34e860ed6f72feac2c30ebb65393270c)
 - Offset Plot in Evaluation can be hovered to show the Judgments and WifePercent - [2f47527](../../../commit/2f47527eaeb20a1daff57df6f7d8089fe4c2f666) [92eb552](../../../commit/92eb552eaef4c8482fca856f5bf95c4d5645967c) [1a32edd](../../../commit/1a32edded148a402d366136be37ae144695905ea) [aae918c](../../../commit/aae918cbf8eb5bfd3fe2d6dd7af895ac98779c6d)
 - PBs shown in the General Tab have an M next to the rate for PBs that have Mirror mod - [2726864](../../../commit/272686442cf0a7bade1722dcd309a8b806ef1d70)
@@ -25,6 +27,7 @@ Windows x64, Windows i386, and Mac installer release.
 - RageSounds keep track of the paused state - [3fd8f50](../../../commit/3fd8f502db3fe7e1d927120cab9e3a04d8315740) [6539851](../../../commit/65398514af02918360b3bb786fc581a4ea3aa05b)
 - ReplaySnapshots added to PlayerAI, to provide a "Snapshot" of the Replay at any given noterow - [11b81cf](../../../commit/11b81cfcb1d0a04748d7409b2b486d475873fd47) [23f1e08](../../../commit/23f1e0822eba1ce62db78ccf47d934d25be3cafa) [7abdc4e](../../../commit/7abdc4e9547ddbf7c899e332d6521c2c91ba2118) [f3cdf3d](../../../commit/f3cdf3dc447580e5e9ce7d3cfa762067b8fac943) [3accece](../../../commit/3accece749e900af02f3388ab42a9f6138cb7fd8) [4cc4d07](../../../commit/4cc4d0797d85764a2abfaff68f2aa949cc67bada) [d7d8248](../../../commit/d7d8248d927fc586b4accdcbcc023029d387487f) [a4b9e0d](../../../commit/a4b9e0de4da0685a560844f0914ce2083fb0e5ac) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [075b994](../../../commit/075b9944a5b11d741d305c44707e9ada84e3e60a) [0310b38](../../../commit/0310b38665ae5802a39bbb06e2488ca447b92c2b)
 - Theme Preference to require pressing Enter to confirm a song search - [cdc0abb](../../../commit/cdc0abb005df2da6595964936bb7ee6d44966054)
+- Translation support for Til Death widely increased, Chinese Translation updated - [#597](../../../pull/597)
 ### Changed
 - Borp is now PlaySampleMusicExtended - [553dbf1](../../../commit/553dbf17b0b15ace058a1181ff604ba4cb691df6)
 - Buttons to change song BPM (F9, F10) require Ctrl to be pressed - [1d8fcc2](../../../commit/1d8fcc280b8cbe18df8c71b8241669e55bf6c095)
@@ -42,8 +45,10 @@ Windows x64, Windows i386, and Mac installer release.
 - Lane Cover Trigger button changes according to the binding for Select - [5e60a9f](../../../commit/5e60a9fb2cb19589fe99341aec4c4e8f59bb9150)
 - Leaderboard Scores sometimes don't have Replays but say they do. In this case, don't enter Replay - [747aeb8](../../../commit/747aeb869a809476c3f4c6a7703437d08405e622)
 - Loading NoteData from SSC files is hidden behind the Verbose Logging Preference - [58d3236](../../../commit/58d32368dcf44aa7d1d2731ec9469efa0e0d7c8f)
+- Lua in ScreenSelectMusic was changed a little to give more FPS - [634a529](../../../commit/634a5291cdb706970c4dc563439c33b8dbb98a4c)
 - Optimized resetting stats by making a separate Player Reload method - [f32b31a](../../../commit/f32b31a7d64f50d935e5cb89ef2cbbbd927cdad7) [3f16a6c](../../../commit/3f16a6c53999f069d9f4a1146747e1a836797f51)
 - Practice Mode can exit to Evaluation again - [1b97bbe](../../../commit/1b97bbe98c2ebb3af347ed8b32c0b67147c137d5)
+- Replaced the existing RageTimer implementation internals with C++ chrono stuff - [#591](../../../pull/591)
 - ReplayData from the Leaderboard is already cached, so don't request it again - [809c34b](../../../commit/809c34bdeb1563324011ef43181dc454419e7647)
 - ReplayData Parsing throws out misses - [de03620](../../../commit/de03620fa87c99c518904ec105256dc35512b288)
 - Replays use all mods of the score being viewed, based on a Preference - [af59834](../../../commit/af598349f6757bbb34d48e90ba7338f50ba48571) [3a3602d](../../../commit/3a3602d138dca230758af1533e09f67893ce09e0) [8a25456](../../../commit/8a2545606e8eb4bfd03a80ca110a9853b3ea9c80)
@@ -55,6 +60,7 @@ Windows x64, Windows i386, and Mac installer release.
 - TimingWindowScale is basically now a global - [148e6dc](../../../commit/148e6dc43127c3a6cedd4223e7ef8431c71e6061)
 - Use the scroll wheel to scroll in Practice - [7cb4630](../../../commit/7cb46308a6a0feefa1bb0b671ea241d0d0dafc3e)
 - Use InsertCoin to set the Bookmark/Loop region in Practice - [7cb4630](../../../commit/7cb46308a6a0feefa1bb0b671ea241d0d0dafc3e)
+- Use separate thread for CrashHandler on Windows - [#640](../../../pull/640)
 - WifePercent recalculation should use the same floor process so the numbers are consistent - [5322ee2](../../../commit/5322ee271c5b25e3623492966315ef4193671fcb)
 - Using / as a modifier key (like Select) shouldn't let the Chat Overlay pop up - [1ab2cbd](../../../commit/1ab2cbdc1c5c7d11af32c886f50fa4faaf4d2591)
 ### Removed
@@ -65,6 +71,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Norf - [934c6a2](../../../commit/934c6a24a5760ff3bfa1f48b71ea497826cbcafa)
 - Tokens? - [5468cc6](../../../commit/5468cc60faa2406f535b0ee7764100e94ae0d174)
 ### Fixed
+- BPM didn't properly update for SSC files with different specified BPM - [#619](../../../pull/619)
 - CBHighlights appeared twice if the Hold/Roll head score was a CB - [9a1196b](../../../commit/9a1196bc84e5914be03a49444574ad77900825b6)
 - Changing songs quickly or using the Random button broke the Chord Density Graph rendering - [9565f2f](../../../commit/9565f2f418db79b7efb90e105e7620e27331a767)
 - Chart Preview seeking fails to work when moving from a pack to a song - [97c99c0](../../../commit/97c99c0f1fb9a2af6029e38b259f56898f98fc45)
@@ -84,6 +91,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Plays Counter in PlayerInfo didn't update unless restarting the game - [a2c6a0f](../../../commit/a2c6a0fdf4f63455332cb87aabe1a0939291cec8) [3af6e62](../../../commit/3af6e62a3689191b057e1f3a2920bbd680e9e162)
 - Pressing a tap after a Mine but before a Tap when the windows overlap cause the judgment to be a miss - [b3c8501](../../../commit/b3c8501e59ba2cdd59e1aa02c17e4b8ff94fc495) [81317d9](../../../commit/81317d9c08c32208a7cc4cf98a12f317755f9db9)
 - Pressing any button on Player 2 in Gameplay allowed hitting Mines - [39f30c0](../../../commit/39f30c01b11f8c547109b8410b10768b2f563d13)
+- Pressing Game Start was impossible when the Caution Screen was active - [02281e5](../../../commit/02281e5b4dcdeb6b89ccc523d50e34793e5eb3a7)
 - Replays didn't work correctly. Fixing this was a big list of changes that can't be summarized well - [69aaf3c](../../../commit/69aaf3c87810b52327cceafd90165d9f2b7ca1e9) [4402db8](../../../commit/4402db84088c0df67b5702214b643b8efe9adc39) [ae28a69](../../../commit/ae28a697012c92636c9862b688c3f88b52075109)
 - Replays had the Mean, Absolute Mean, and Standard Deviation all wrong - [49b18b3](../../../commit/49b18b37f56d17c80032e6438aa0c00bf259d470)
 - Replays missed negative noterows - [5820aa7](../../../commit/5820aa7c7167d0c434b750289f4c2fca9f1bb37a)
@@ -92,5 +100,8 @@ Windows x64, Windows i386, and Mac installer release.
 - Seeking in variable bitrate MP3s caused incorrect position reporting - [c7bc664](../../../commit/c7bc66466389b01d78d6ebc143c1dd4f1fbc7589) [2453611](../../../commit/24536112cd5cabc3732e3b3a8bc2982ea8d8bfe8) [7f6148d](../../../commit/7f6148d5a93ea181bfa8de42f6cdef3e869c992d) [46ee353](../../../commit/46ee353f3881652734f1b5f37c4aab7039a24f55) [2422ec7](../../../commit/2422ec7c126a83b79cccee60a3002a544016befe) [e7ad42e](../../../commit/e7ad42e6f1dcc507a6289a27c76fdf73860c4c66) [b8ae11a](../../../commit/b8ae11adea3021a3d678ad8dc4d70a681f504da0) [0a60b59](../../../commit/0a60b59029510b877eab273af30ad0054c6c31c7)
 - Sometimes Gameplay sent a TNS_None, throwing a Lua error from the Error Bar - [bdca4ea](../../../commit/bdca4ea3b3ca90532ccb1ac43c2b2f7f160f3b86)
 - Sync Overlay updated every frame and did too much when it shouldn't, hurting FPS - [20c8338](../../../commit/20c833800b4fd9c07ae44edfdc135645d9a69dd1) [668edef](../../../commit/668edef3241d9b876f877311db24c6bec67509c1)
+- Turning Judgments off in Player Options caused a harmless Lua error - [6f0f65a](../../../commit/6f0f65a63bba957bdb3ce7c55ea437f9f1f6a197)
+- Updating Tags too often killed FPS sometimes - [1ad013a](../../../commit/1ad013a9eb3635e727d259910d6ed3f54d884b0b)
 - Using the Blind mod caused taps to disappear seemingly randomly - [7d80865](../../../commit/7d80865238aad48197dadc831b07087df420b7fd)
 - When lagging in ScreenSelectMusic with Chart Preview on, the wrong preview music might play - [dd3af14](../../../commit/dd3af14470b7b0398bae1437face61faafd3c017)
+- X11 Input Drivers produced bad timestamps, forcing "polling lines" on Linux - [#643](../../../pull/643)
