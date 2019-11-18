@@ -21,7 +21,14 @@ local translated_info = {
 	GoalTarget = THEME:GetString("ScreenSelectMusic", "GoalTargetString"),
 	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
 	BPM = THEME:GetString("ScreenSelectMusic", "BPM"),
-	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM")
+	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM"),
+	UnForceStart = THEME:GetString("GeneralInfo", "UnforceStart"),
+	ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
+	Unready = THEME:GetString("GeneralInfo", "Unready"),
+	Ready = THEME:GetString("GeneralInfo", "Ready"),
+	TogglePreview = THEME:GetString("ScreenSelectMusic", "TogglePreview"),
+	PlayerOptions = THEME:GetString("ScreenSelectMusic", "PlayerOptions"),
+	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu")
 }
 
 local update = false
@@ -635,7 +642,7 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 	}
 	return button
 end
-local forceStart = toggleButton(THEME:GetString("GeneralInfo", "UnforceStart"), THEME:GetString("GeneralInfo", "ForceStart"), "/force", 0)
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", 0)
 local readyButton
 do
 	-- do-end block to minimize the scope of 'f'
@@ -654,7 +661,7 @@ do
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton(THEME:GetString("GeneralInfo", "Unready"), THEME:GetString("GeneralInfo", "Ready"), "/ready", 50, areWeReadiedUp)
+	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, areWeReadiedUp)
 	readyButton.UsersUpdateMessageCommand = function(self)
 		readyButton.turnedOn = areWeReadiedUp()
 		readyButton.updateToggleButton()
@@ -816,7 +823,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 235)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext(THEME:GetString("ScreenSelectMusic", "TogglePreview"))
+			self:settext(translated_info["TogglePreview"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and (song or noteField) then
@@ -858,7 +865,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 218)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext(THEME:GetString("ScreenSelectMusic", "PlayerOptions"))
+			self:settext(translated_info["PlayerOptions"])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -893,7 +900,7 @@ t[#t + 1] =
 			self:xy(20, 201)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext(THEME:GetString("ScreenSelectMusic", "OpenSortMenu"))
+			self:settext(translated_info["OpenSort"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then

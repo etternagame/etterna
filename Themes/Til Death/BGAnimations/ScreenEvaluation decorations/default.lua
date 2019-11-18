@@ -10,6 +10,11 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("scoreboard")
 end
 
+local translated_info = {
+	CCOn = THEME:GetString("ScreenEvaluation", "ChordCohesionOn"),
+	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
+}
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -519,7 +524,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(THEME:GetString("ScreenEvaluation", "ChordCohesionOn"))
+					self:settext(translated_info["CCOn"])
 				end
 			}
 	end
@@ -534,7 +539,7 @@ function scoreBoard(pn, position)
 		{
 			InitCommand = function(self)
 				ratioText = self
-				self:settextf("%s:", THEME:GetString("ScreenEvaluation", "MAPARatio"))
+				self:settextf("%s:", translated_info["MAPARatio"])
 				self:zoom(0.25):halign(1)
 			end
 		}

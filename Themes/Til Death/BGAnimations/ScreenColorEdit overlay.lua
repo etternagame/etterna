@@ -9,6 +9,11 @@ for i = 2, #themeColor do --First string is a "#", ignore.
 	colorTable[i - 1] = themeColor:sub(i, i)
 end
 
+local translated_info = {
+	Title = THEME:GetString("ScreenColorEdit", "Title"),
+	Description = THEME:GetString("ScreenColorEdit", "Description")
+}
+
 local function scroller(index)
 	count = count + 1
 	local number = tonumber(colorTable[index], 16)
@@ -109,7 +114,7 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight")):settext(THEME:GetString("ScreenColorEdit", "Title"))
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("highlight")):settext(translated_info["Title"])
 		end
 	}
 
@@ -154,7 +159,7 @@ t[#t + 1] =
 		end,
 		OnCommand = function(self)
 			self:settextf(
-				THEME:GetString("ScreenColorEdit", "Description"),
+				translated_info["Description"],
 				selected[1],
 				selected[2]
 			)

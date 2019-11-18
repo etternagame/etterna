@@ -1,3 +1,8 @@
+local translated_info = {
+	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin"),
+	NoProfile = THEME:GetString("GeneralInfo", "NoProfile")
+}
+
 function GetLocalProfiles()
 	local t = {}
 
@@ -84,7 +89,7 @@ function LoadPlayerStuff(Player)
 		}; --]]
 		LoadFont("Common Normal") ..
 			{
-				Text = THEME:GetString("ScreenSelectProfile", "PressStartToJoin"),
+				Text = translated_info["PressStart"],
 				InitCommand = function(self)
 					self:shadowlength(1)
 				end,
@@ -209,7 +214,7 @@ function UpdateInternal3(self, Player)
 					smallframe:visible(false)
 					bigframe:visible(false)
 					scroller:visible(false)
-					seltext:settext(THEME:GetString("GeneralInfo", "NoProfile"))
+					seltext:settext(translated_info["NoProfile"])
 				end
 			end
 	else

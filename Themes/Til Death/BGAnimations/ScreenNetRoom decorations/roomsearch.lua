@@ -141,6 +141,16 @@ local function searchInput(event)
 	end
 end
 
+local translated_info = {
+	Title = THEME:GetString("TabSearch", "RoomTitle"),
+	Subtitle = THEME:GetString("TabSearch", "RoomSubtitle"),
+	Opened = THEME:GetString("TabSearch", "RoomOpened"),
+	Passworded = THEME:GetString("TabSearch", "RoomPassworded"),
+	InGameplay = THEME:GetString("TabSearch", "RoomInGameplay"),
+	TabTitle = THEME:GetString("TabSearch", "Title"),
+	Explanation = THEME:GetString("TabSearch", "ExplainLimitation")
+}
+
 local function ButtonActive(self)
 	return isOver(self) and update
 end
@@ -208,7 +218,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-				self:settextf("%s: ", THEME:GetString("TabSearch", "RoomTitle"))
+				self:settextf("%s: ", translated_info["Title"])
 			end
 		},
 	Def.Quad {
@@ -248,7 +258,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-				self:settextf("%s: ", THEME:GetString("TabSearch", "RoomSubtitle"))
+				self:settextf("%s: ", translated_info["Subtitle"])
 			end
 		},
 	Def.Quad {
@@ -276,7 +286,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 50):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "RoomOpened"))
+				self:settext(translated_info["Opened"])
 			end
 		},
 	Def.Quad {
@@ -305,7 +315,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2 - 50, frameY - 50):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "RoomPassworded"))
+				self:settext(translated_info["Passworded"])
 			end
 		},
 	Def.Quad {
@@ -334,7 +344,7 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth - 100, frameY - 50):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "RoomInGameplay"))
+				self:settext(translated_info["InGameplay"])
 			end
 		},
 	Def.Quad {
@@ -363,14 +373,14 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
-				self:settext(THEME:GetString("TabSearch", "ExplainLimitation"))
+				self:settext(translated_info["Explanation"])
 			end,
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabSearch", "Title"))
+				self:settext(translated_info["TabTitle"])
 			end
 		}
 }

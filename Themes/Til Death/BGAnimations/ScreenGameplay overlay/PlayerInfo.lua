@@ -3,6 +3,11 @@ local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
 local PlayerFrameX = 0
 local PlayerFrameY = SCREEN_HEIGHT - 50
 
+local translated_info = {
+	Judge = THEME:GetString("ScreenGameplay", "ScoringJudge"),
+	Scoring = THEME:GetString("ScreenGameplay", "ScoringType")
+}
+
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
@@ -67,7 +72,7 @@ local t =
 				self:xy(PlayerFrameX + 53, PlayerFrameY - 2):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
-				self:settextf("%s: %d", THEME:GetString("ScreenGameplay", "ScoringJudge"), GetTimingDifficulty())
+				self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -76,7 +81,7 @@ local t =
 				self:xy(PlayerFrameX + 53, PlayerFrameY + 8):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
-				self:settextf("%s: %s", THEME:GetString("ScreenGameplay", "ScoringType"), scoringToText(themeConfig:get_data().global.DefaultScoreType))
+				self:settextf("%s: %s", translated_info["Scoring"], scoringToText(themeConfig:get_data().global.DefaultScoreType))
 			end
 		}
 }

@@ -33,7 +33,13 @@ local translated_info = {
 	Validated = THEME:GetString("TabProfile", "ScoreValidated"),
 	Invalidated = THEME:GetString("TabProfile", "ScoreInvalidated"),
 	Online = THEME:GetString("TabProfile", "Online"),
-	Local = THEME:GetString("TabProfile", "Local")
+	Local = THEME:GetString("TabProfile", "Local"),
+	Title = THEME:GetString("TabProfile", "Title"),
+	NextPage = THEME:GetString("TabProfile", "NextPage"),
+	PreviousPage = THEME:GetString("TabProfile", "PreviousPage"),
+	SaveProfile = THEME:GetString("TabProfile", "SaveProfile"),
+	AssetSettings = THEME:GetString("TabProfile", "AssetSettingEntry"),
+	ValidateAll = THEME:GetString("TabProfile", "ValidateAllScores")
 }
 
 local frameX = 10
@@ -80,7 +86,7 @@ t[#t + 1] =
 	{
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-			self:settext(THEME:GetString("TabProfile", "Title"))
+			self:settext(translated_info["Title"])
 		end
 	}
 
@@ -326,7 +332,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabProfile", "NextPage"))
+				self:settext(translated_info["NextPage"])
 			end
 		},
 	Def.Quad {
@@ -348,7 +354,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabProfile", "PreviousPage"))
+				self:settext(translated_info["PreviousPage"])
 			end
 		},
 	LoadFont("Common Large") ..
@@ -428,7 +434,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "SaveProfile")):zoom(0.3)
+				self:diffuse(getMainColor("positive")):settext(translated_info["SaveProfile"]):zoom(0.3)
 			end
 		},
 	Def.Quad {
@@ -448,7 +454,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(100):diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "AssetSettingEntry")):zoom(0.3)
+				self:x(100):diffuse(getMainColor("positive")):settext(translated_info["AssetSettings"]):zoom(0.3)
 			end
 		},
 	Def.Quad {
@@ -464,7 +470,7 @@ local profilebuttons =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(200):diffuse(getMainColor("positive")):settext(THEME:GetString("TabProfile", "ValidateAllScores")):zoom(0.3)
+				self:x(200):diffuse(getMainColor("positive")):settext(translated_info["ValidateAll"]):zoom(0.3)
 			end
 		},
 	Def.Quad {

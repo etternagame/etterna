@@ -115,6 +115,14 @@ scroller =
 }
 local span = 50
 local x = -1 * span
+
+local translated_info = {
+	Pause = THEME:GetString("ScreenGameplay", "ButtonPause"),
+	FastForward = THEME:GetString("ScreenGameplay", "ButtonFastForward"),
+	Rewind = THEME:GetString("ScreenGameplay", "ButtonRewind"),
+	Play = THEME:GetString("ScreenGameplay", "ButtonPlay")
+}
+
 local function button(txt, click)
 	x = x + span
 	return Widg.Button {
@@ -145,21 +153,21 @@ scroller[#scroller + 1] =
 	end,
 	content = {
 		button(
-			THEME:GetString("ScreenGameplay", "ButtonPause"),
+			translated_info["Pause"],
 			function(self)
 				SCREENMAN:GetTopScreen():ToggleReplayPause()
 				local paused = GAMESTATE:IsPaused()
-				self.label.actor:settext(paused and THEME:GetString("ScreenGameplay", "ButtonPlay") or THEME:GetString("ScreenGameplay", "ButtonPause"))
+				self.label.actor:settext(paused and translated_info["Play"] or translated_info["Pause"])
 			end
 		),
 		button(
-			THEME:GetString("ScreenGameplay", "ButtonFastForward"),
+			translated_info["FastForward"],
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
 			end
 		),
 		button(
-			THEME:GetString("ScreenGameplay", "ButtonRewind"),
+			translated_info["Rewind"],
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
 			end

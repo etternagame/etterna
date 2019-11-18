@@ -68,7 +68,8 @@ local translated_info = {
 	MB = THEME:GetString("ScreenBundleSelect", "MB"),
 	DownloadAll = THEME:GetString("ScreenBundleSelect", "DownloadAll"),
 	GoBack = THEME:GetString("ScreenBundleSelect", "GoBack"),
-	Expanded = THEME:GetString("ScreenBundleSelect", "Expanded")
+	Expanded = THEME:GetString("ScreenBundleSelect", "Expanded"),
+	Explanation = THEME:GetString("ScreenBundleSelect", "Explanation")
 }
 
 local width = SCREEN_WIDTH / 3
@@ -112,7 +113,7 @@ local o =
 				self:xy(width / 2 + offx, 24):zoom(tzoom):halign(0)
 			end,
 			OnCommand = function(self)
-				self:settext(THEME:GetString("ScreenBundleSelect", "Explanation"))
+				self:settext(translated_info["Explanation"])
 			end
 		},
 	LoadFont("Common Large") ..

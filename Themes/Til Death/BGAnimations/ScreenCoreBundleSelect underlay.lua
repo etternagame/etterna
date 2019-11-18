@@ -13,6 +13,12 @@ local function input(event)
 	return false
 end
 
+local translated_info = {
+	Alert = THEME:GetString("ScreenCoreBundleSelect", "Alert"),
+	Task = THEME:GetString("ScreenCoreBundleSelect", "Task"),
+	Explanation = THEME:GetString("ScreenCoreBundleSelect", "Explanation")
+}
+
 local o =
 	Def.ActorFrame {
 	InitCommand = function(self)
@@ -54,7 +60,7 @@ local o =
 				self:zoom(0.5)
 			end,
 			OnCommand = function(self)
-				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Alert"))
+				self:settext(translated_info["Alert"])
 			end
 		},
 	LoadFont("Common normal") ..
@@ -63,7 +69,7 @@ local o =
 				self:y(24):zoom(0.5)
 			end,
 			OnCommand = function(self)
-				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Task"))
+				self:settext(translated_info["Task"])
 			end
 		},
 	LoadFont("Common normal") ..
@@ -72,7 +78,7 @@ local o =
 				self:y(330):zoom(0.4)
 			end,
 			OnCommand = function(self)
-				self:settext(THEME:GetString("ScreenCoreBundleSelect", "Explanation"))
+				self:settext(translated_info["Explanation"])
 			end
 		}
 }

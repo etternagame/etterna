@@ -29,7 +29,8 @@ local translated_info = {
 	OR = THEME:GetString("TabTags", "OR"),
 	Next = THEME:GetString("TabTags", "Next"),
 	Previous = THEME:GetString("TabTags", "Previous"),
-	Showing = THEME:GetString("TabTags", "Showing")
+	Showing = THEME:GetString("TabTags", "Showing"),
+	Title = THEME:GetString("TabTags", "Title"),
 }
 
 local function newTagInput(event)
@@ -132,7 +133,7 @@ t[#t + 1] =
 	{
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-			self:settext(THEME:GetString("TabTags", "Title"))
+			self:settext(translated_info["Title"])
 		end
 	}
 

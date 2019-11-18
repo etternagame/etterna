@@ -34,7 +34,9 @@ end
 local translated_info = {
 	Title = THEME:GetString("ScreenSelectProfile", "Title"),
 	SongPlayed = THEME:GetString("ScreenSelectProfile", "SongPlayed"),
-	SongsPlayed = THEME:GetString("ScreenSelectProfile", "SongsPlayed")
+	SongsPlayed = THEME:GetString("ScreenSelectProfile", "SongsPlayed"),
+	NoProfile = THEME:GetString("GeneralInfo", "NoProfile"),
+	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin")
 }
 
 function GetLocalProfiles()
@@ -121,7 +123,7 @@ function LoadPlayerStuff(Player)
 		LoadCard(Color("Purple")),
 		LoadFont("Common Normal") ..
 			{
-				Text = THEME:GetString("ScreenSelectProfile", "PressStartToJoin"),
+				Text = translated_info["PressStart"],
 				InitCommand = function(self)
 					self:shadowlength(1)
 				end,
@@ -213,7 +215,7 @@ function UpdateInternal3(self, Player)
 					smallframe:visible(false)
 					bigframe:visible(false)
 					scroller:visible(false)
-					seltext:settext(THEME:GetString("GeneralInfo", "NoProfile"))
+					seltext:settext(translated_info["NoProfile"])
 				end
 			end
 	else

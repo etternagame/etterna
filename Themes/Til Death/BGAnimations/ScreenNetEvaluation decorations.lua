@@ -11,6 +11,11 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("MPscoreboard")
 end
 
+local translated_info = {
+	CCOn = THEME:GetString("ScreenEvaluation", "ChordCohesionOn"),
+	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
+}
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -428,7 +433,7 @@ function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				if score:GetChordCohesion() == true then
-					self:settext(THEME:GetString("ScreenEvaluation", "ChordCohesionOn"))
+					self:settext(translated_info["CCOn"])
 				else
 					self:settext("")
 				end

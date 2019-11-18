@@ -45,6 +45,10 @@ local sortTable = {
 	SortOrder_Technical = THEME:GetString("SortOrder", "Technical")
 }
 
+local translated_info = {
+	Sort = THEME:GetString("SortOrder", "SortWord")
+}
+
 t[#t + 1] =
 	Def.Quad {
 	Name = "CurrentSort",
@@ -68,12 +72,12 @@ t[#t + 1] =
 			local sort = GAMESTATE:GetSortOrder()
 			local song = GAMESTATE:GetCurrentSong()
 			if sort == nil then
-				self:settextf("%s: ", THEME:GetString("SortOrder", "SortWord"))
+				self:settextf("%s: ", translated_info["Sort"])
 			elseif sort == "SortOrder_Group" and song ~= nil then
 				group_rand = song:GetGroupName()
 				self:settext(group_rand)
 			else
-				self:settextf("%s: %s", THEME:GetString("SortOrder", "SortWord"), sortTable[sort])
+				self:settextf("%s: %s", translated_info["Sort"], sortTable[sort])
 				group_rand = ""
 			end
 		end,

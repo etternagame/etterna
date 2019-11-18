@@ -146,6 +146,16 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	Filters = THEME:GetString("ScreenPackDownloader", "Filters"),
+	AverageDiff = THEME:GetString("ScreenPackDownloader", "AverageDiff"),
+	Size = THEME:GetString("ScreenPackDownloader", "Size"),
+	EnterBundles = THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"),
+	CancelCurrent = THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"),
+	SearchName = THEME:GetString("ScreenPackDownloader", "SearchingName"),
+	SizeExplanation = THEME:GetString("ScreenPackDownloader", "ExplainSizeLimit")
+}
+
 local width = SCREEN_WIDTH / 3
 local fontScale = 0.5
 local packh = 36
@@ -196,21 +206,21 @@ local o =
 		{
 			InitCommand = function(self)
 				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
-				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "Filters"))
+				self:settextf("%s:", translated_info["Filters"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "AverageDiff"))
+				self:settextf("%s:", translated_info["AverageDiff"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "Size"))
+				self:settextf("%s:", translated_info["Size"])
 			end
 		},
 	-- maybe we'll have more one day
@@ -239,7 +249,7 @@ local o =
 		{
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
-				self:settext(THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"))
+				self:settext(translated_info["EnterBundles"])
 			end
 		},
 	--[[
@@ -300,7 +310,7 @@ local o =
 		{
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3)
-				self:settext(THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"))
+				self:settext(translated_info["CancelCurrent"])
 			end
 		}
 }
@@ -396,7 +406,7 @@ o[#o + 1] =
 		{
 			InitCommand = function(self)
 				self:zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", THEME:GetString("ScreenPackDownloader", "SearchingName")) -- this being so far down is kinda awkward
+				self:settextf("%s:", translated_info["SearchName"]) -- this being so far down is kinda awkward
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -404,7 +414,7 @@ o[#o + 1] =
 			InitCommand = function(self)
 				self:xy(-90, 40)
 				self:zoom(fontScale):halign(0):valign(0)
-				self:settext(THEME:GetString("ScreenPackDownloader", "ExplainSizeLimit"))
+				self:settext(translated_info["SizeExplanation"])
 			end
 		}
 }

@@ -45,6 +45,16 @@ local function searchInput(event)
 	end
 end
 
+local translated_info = {
+	Header = THEME:GetString("TabSearch", "HeaderMessage"),
+	Active = THEME:GetString("TabSearch", "Active"),
+	Complete = THEME:GetString("TabSearch", "Complete"),
+	ExplainStart = THEME:GetString("TabSearch", "ExplainStart"),
+	ExplainBack = THEME:GetString("TabSearch", "ExplainBack"),
+	ExplainDel = THEME:GetString("TabSearch", "ExplainDelete"),
+	ExplainLimit = THEME:GetString("TabSearch", "ExplainLimitation")
+}
+
 local t =
 	Def.ActorFrame {
 	OnCommand = function(self)
@@ -55,7 +65,7 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
-			ms.ok(THEME:GetString("TabSearch", "HeaderMessage"))
+			ms.ok(translated_info["Header"])
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
 			active = true
@@ -79,10 +89,10 @@ local t =
 			end,
 			SetCommand = function(self)
 				if active then
-					self:settextf("%s:", THEME:GetString("TabSearch", "Active"))
+					self:settextf("%s:", translated_info["Active"])
 					self:diffuse(getGradeColor("Grade_Tier03"))
 				else
-					self:settextf("%s:", THEME:GetString("TabSearch", "Complete"))
+					self:settextf("%s:", translated_info["Complete"])
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
 				end
 			end,
@@ -106,28 +116,28 @@ local t =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "ExplainStart"))
+				self:settext(translated_info["ExplainStart"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 175):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "ExplainBack"))
+				self:settext(translated_info["ExplainBack"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-				self:settext(THEME:GetString("TabSearch", "ExplainDelete"))
+				self:settext(translated_info["ExplainDel"])
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
-				self:settext(THEME:GetString("TabSearch", "ExplainLimitation"))
+				self:settext(translated_info["ExplainLimit"])
 			end
 		}
 }

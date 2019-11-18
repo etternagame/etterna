@@ -96,7 +96,14 @@ local translated_info = {
 	Delete = THEME:GetString("TabPlaylists", "Delete"),
 	Showing = THEME:GetString("TabPlaylists", "Showing"),
 	ChartCount = THEME:GetString("TabPlaylists", "ChartCount"),
-	AverageRating = THEME:GetString("TabPlaylists", "AverageRating")
+	AverageRating = THEME:GetString("TabPlaylists", "AverageRating"),
+	Title = THEME:GetString("TabPlaylists", "Title"),
+	ExplainAdd = THEME:GetString("TabPlaylists", "ExplainAddChart"),
+	ExplainPlaylist = THEME:GetString("TabPlaylists", "ExplainNewPlaylist"),
+	PlayAsCourse = THEME:GetString("TabPlaylists", "PlayAsCourse"),
+	Back = THEME:GetString("TabPlaylists", "Back"),
+	Next = THEME:GetString("TabPlaylists", "Next"),
+	Previous = THEME:GetString("TabPlaylists", "Previous"),
 }
 
 t[#t + 1] =
@@ -118,7 +125,7 @@ t[#t + 1] =
 	{
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-			self:settext(THEME:GetString("TabPlaylists", "Title"))
+			self:settext(translated_info["Title"])
 		end
 	}
 t[#t + 1] =
@@ -128,10 +135,10 @@ t[#t + 1] =
 			self:xy(frameWidth, frameY + offsetY - 9):zoom(0.6):halign(1):diffuse(getMainColor("positive"))
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
-			self:settext(THEME:GetString("TabPlaylists", "ExplainAddChart"))
+			self:settext(translated_info["ExplainAdd"])
 		end,
 		DisplayAllMessageCommand = function(self)
-			self:settext(THEME:GetString("TabPlaylists", "ExplainNewPlaylist"))
+			self:settext(translated_info["ExplainPlaylist"])
 		end
 	}
 
@@ -452,7 +459,7 @@ b2[#b2 + 1] =
 	{
 		InitCommand = function(self)
 			self:zoom(0.3):x(85)
-			self:settext(THEME:GetString("TabPlaylists", "PlayAsCourse"))
+			self:settext(translated_info["PlayAsCourse"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and singleplaylistactive then
@@ -467,7 +474,7 @@ b2[#b2 + 1] =
 	{
 		InitCommand = function(self)
 			self:zoom(0.3)
-			self:settext(THEME:GetString("TabPlaylists", "Back"))
+			self:settext(translated_info["Back"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and singleplaylistactive then
@@ -489,7 +496,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabPlaylists", "Next"))
+				self:settext(translated_info["Next"])
 			end,
 			DisplayAllMessageCommand = function(self)
 				self:visible(false)
@@ -509,7 +516,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabPlaylists", "Previous"))
+				self:settext(translated_info["Previous"])
 			end,
 			DisplayAllMessageCommand = function(self)
 				self:visible(false)
@@ -735,7 +742,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabPlaylists", "Next"))
+				self:settext(translated_info["Next"])
 			end,
 			DisplaySinglePlaylistMessageCommand = function(self)
 				self:visible(false)
@@ -754,7 +761,7 @@ r[#r + 1] =
 		{
 			InitCommand = function(self)
 				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
-				self:settext(THEME:GetString("TabPlaylists", "Previous"))
+				self:settext(translated_info["Previous"])
 			end,
 			DisplaySinglePlaylistMessageCommand = function(self)
 				self:visible(false)

@@ -100,6 +100,11 @@ local function DottedBorder(width, height, bw, x, y)
 	}
 end
 
+local translated_info = {
+	ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
+	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly")
+}
+
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 isCentered = PREFSMAN:GetPreference("Center1Player")
@@ -613,7 +618,7 @@ local e =
 				self:xy(MovableValues.ErrorBarX + errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext(THEME:GetString("ScreenGameplay", "ErrorBarLate"))
+				self:settext(translated_info["ErrorLate"])
 				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
 			end
 		},
@@ -624,7 +629,7 @@ local e =
 				self:xy(MovableValues.ErrorBarX - errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext(THEME:GetString("ScreenGameplay", "ErrorBarEarly"))
+				self:settext(translated_info["ErrorEarly"])
 				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
 					"Doot"
 				)

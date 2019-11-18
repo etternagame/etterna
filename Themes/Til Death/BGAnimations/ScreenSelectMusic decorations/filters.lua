@@ -68,7 +68,15 @@ local translated_info = {
 	CommonPackFilter = THEME:GetString("TabFilter", "CommonPackFilter"),
 	Length = THEME:GetString("TabFilter", "Length"),
 	AND = THEME:GetString("TabFilter", "AND"),
-	OR = THEME:GetString("TabFilter", "OR")
+	OR = THEME:GetString("TabFilter", "OR"),
+	ExplainStartInput = THEME:GetString("TabFilter", "ExplainStartInput"),
+	ExplainCancelInput = THEME:GetString("TabFilter", "ExplainCancelInput"),
+	ExplainGrey = THEME:GetString("TabFilter", "ExplainGrey"),
+	ExplainBounds = THEME:GetString("TabFilter", "ExplainBounds"),
+	ExplainHighest = THEME:GetString("TabFilter", "ExplainHighest"),
+	MaxRate = THEME:GetString("TabFilter", "MaxRate"),
+	Title = THEME:GetString("TabFilter", "Title"),
+	MinRate = THEME:GetString("TabFilter", "MinRate")
 }
 
 local f =
@@ -89,7 +97,7 @@ local f =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(5, offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(THEME:GetString("TabFilter", "Title"))
+				self:xy(5, offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(translated_info["Title"])
 			end
 		},
 	OnCommand = function(self)
@@ -122,35 +130,35 @@ local f =
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY):zoom(0.3):halign(0)
-				self:settext(THEME:GetString("TabFilter", "ExplainStartInput"))
+				self:settext(translated_info["ExplainStartInput"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 20):zoom(0.3):halign(0)
-				self:settext(THEME:GetString("TabFilter", "ExplainCancelInput"))
+				self:settext(translated_info["ExplainCancelInput"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 40):zoom(0.3):halign(0)
-				self:settext(THEME:GetString("TabFilter", "ExplainGrey"))
+				self:settext(translated_info["ExplainGrey"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 60):zoom(0.3):halign(0)
-				self:settext(THEME:GetString("TabFilter", "ExplainBounds"))
+				self:settext(translated_info["ExplainBounds"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
 				self:xy(frameX, frameY + 80):zoom(0.3):halign(0)
-				self:settext(THEME:GetString("TabFilter", "ExplainHighest"))
+				self:settext(translated_info["ExplainHighest"])
 			end
 		},
 	LoadFont("Common Large") ..
@@ -159,7 +167,7 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
-				self:settextf("%s:%5.1fx", THEME:GetString("TabFilter", "MaxRate"), FILTERMAN:GetMaxFilterRate())
+				self:settextf("%s:%5.1fx", translated_info["MaxRate"], FILTERMAN:GetMaxFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -190,7 +198,7 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
-				self:settextf("%s:%5.1fx", THEME:GetString("TabFilter", "MinRate"), FILTERMAN:GetMinFilterRate())
+				self:settextf("%s:%5.1fx", translated_info["MinRate"], FILTERMAN:GetMinFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")

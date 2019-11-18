@@ -20,7 +20,8 @@ local cd -- chord density graph
 
 local translated_text = {
 	AverageNPS = THEME:GetString("TabMSD", "AverageNPS"),
-	NegBPM = THEME:GetString("TabMSD", "NegativeBPM")
+	NegBPM = THEME:GetString("TabMSD", "NegativeBPM"),
+	Title = THEME:GetString("TabMSD", "Title")
 }
 
 --Actor Frame
@@ -152,9 +153,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-			self:settext(
-				THEME:GetString("TabMSD", "Title")
-			)
+			self:settext(translated_text["Title"])
 		end
 	}
 t[#t + 1] =
