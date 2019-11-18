@@ -11,6 +11,7 @@
 #include "ScreenGameplaySyncMachine.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplaySyncMachine);
 
@@ -49,12 +50,14 @@ ScreenGameplaySyncMachine::Init()
 
 	GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 
-	ScreenGameplayNormal::Init();
-
+	PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
+	GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
 	SO_GROUP_ASSIGN(GAMESTATE->m_SongOptions,
 					ModsLevel_Stage,
 					m_AutosyncType,
 					AutosyncType_Machine);
+
+	ScreenGameplayNormal::Init();
 
 	ClearMessageQueue(); // remove all of the messages set in ScreenGameplay
 						 // that animate "ready", "here we go", etc.
