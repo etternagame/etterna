@@ -878,6 +878,13 @@ class LunaScoreManager : public Luna<ScoreManager>
 		last->PushSelf(L);
 		return 1;
 	}
+
+	static int GetTotalNumberOfScores(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetAllProfileScores().size());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
@@ -887,6 +894,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetMostRecentScore);
 		ADD_METHOD(GetTempReplayScore);
+		ADD_METHOD(GetTotalNumberOfScores);
 	}
 };
 
