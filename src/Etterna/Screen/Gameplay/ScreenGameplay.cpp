@@ -1144,6 +1144,10 @@ ScreenGameplay::FailFadeRemovePlayer(PlayerInfo* pi)
 void
 ScreenGameplay::SendCrossedMessages()
 {
+	// hmmm...
+	if (GAMESTATE->m_pCurSong == nullptr)
+		return;
+
 	{
 		static int iRowLastCrossed = 0;
 
