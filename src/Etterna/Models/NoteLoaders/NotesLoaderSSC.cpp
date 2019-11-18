@@ -415,6 +415,12 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 		  *info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
+
+	// If the header did not contain a BPM default to the first step's #BPMS
+	if ((info.song->m_SongTiming.GetSegmentIndexAtRow(SEGMENT_BPM, 0)) == -1) {
+		info.loader->ProcessBPMs(
+			info.song->m_SongTiming,(*info.params)[1], info.loader->GetSongTitle());
+	}
 	info.ssc_format = true;
 }
 void
