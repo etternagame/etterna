@@ -44,7 +44,6 @@ install(DIRECTORY Assets                COMPONENT Etterna DESTINATION "${INSTALL
 install(DIRECTORY BackgroundEffects     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(DIRECTORY BackgroundTransitions COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(DIRECTORY BGAnimations          COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Characters            COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(DIRECTORY Data                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(DIRECTORY NoteSkins             COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(DIRECTORY Scripts               COMPONENT Etterna DESTINATION "${INSTALL_DIR}")

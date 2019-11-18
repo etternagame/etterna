@@ -62,15 +62,6 @@ XToString(RandomBackgroundMode);
 StringToX(RandomBackgroundMode);
 LuaXType(RandomBackgroundMode);
 
-static const char* ShowDancingCharactersNames[] = {
-	"Off",
-	"Random",
-	"Select",
-};
-XToString(ShowDancingCharacters);
-StringToX(ShowDancingCharacters);
-LuaXType(ShowDancingCharacters);
-
 static const char* ImageCacheModeNames[] = { "Off",
 											 "LowResPreload",
 											 "LowResLoadOnDemand",
@@ -187,7 +178,6 @@ PrefsManager::PrefsManager()
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
-  , m_ShowDancingCharacters("ShowDancingCharacters", SDC_Off)
   , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
   , m_sLanguage("Language", "")
   , // ThemeManager will deal with this invalid language

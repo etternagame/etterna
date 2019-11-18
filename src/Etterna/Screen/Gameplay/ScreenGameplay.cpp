@@ -4,7 +4,6 @@
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Actor/Gameplay/DancingCharacters.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Actor/Gameplay/Foreground.h"
 #include "Etterna/Models/Misc/Game.h"
@@ -1618,24 +1617,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == SM_LeaveGameplay) {
 		GAMESTATE->m_DanceDuration = GAMESTATE->m_DanceStartTime.Ago();
-		// update dancing characters for win / lose
-		DancingCharacters* pDancers = NULL;
-		if (m_pSongBackground != nullptr)
-			pDancers = m_pSongBackground->GetDancingCharacters();
-		if (pDancers != nullptr) {
-			// XXX: In battle modes, switch( GAMESTATE->GetStageResult(p) ).
-			if (m_vPlayerInfo.GetPlayerStageStats()->m_bFailed)
-				pDancers->Change2DAnimState(m_vPlayerInfo.m_pn,
-											AS2D_FAIL); // fail anim
-			else if (m_vPlayerInfo.m_pLifeMeter &&
-					 m_vPlayerInfo.GetPlayerState()->m_HealthState ==
-					   HealthState_Hot)
-				pDancers->Change2DAnimState(
-				  m_vPlayerInfo.m_pn, AS2D_WINFEVER); // full life pass anim
-			else
-				pDancers->Change2DAnimState(m_vPlayerInfo.m_pn,
-											AS2D_WIN); // pass anim
-		}
 
 		// End round.
 		if (m_DancingState == STATE_OUTRO) // ScreenGameplay already ended

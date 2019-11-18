@@ -312,12 +312,6 @@ ChoiceListFrameOffCommand=linear,0.5;diffusealpha,0;glow,1,1,1,0
 UseModeSpecificBGAnims=false
 EnableCharSelect=false
 Only2DChars=false
-CharacterIconP1Y=SCREEN_CENTER_Y+0
-CharacterIconP1X=SCREEN_CENTER_X+0
-CharacterIconP2Y=SCREEN_CENTER_Y+0
-CharacterIconP2X=SCREEN_CENTER_X+0
-CharacterIconP1OffCommand=linear,0.3;diffusealpha,0;sleep,10
-CharacterIconP2OffCommand=linear,0.3;diffusealpha,0;sleep,10
 
 [GroupList]
 StartX=0
@@ -351,7 +345,7 @@ TitleInitCommand=horizalign,left;vertalign,top;shadowlength,2;
 [ScreenInstructions]
 Class="ScreenInstructions"
 Fallback="ScreenWithMenuElements"
-NextScreen="ScreenSelectCharacter"
+NextScreen="ScreenTitleMenu"
 PrevScreen=ScreenTitleBranch()
 TimerSeconds=15
 ShowStyleIcon=true
@@ -2044,7 +2038,6 @@ RightEdge=SCREEN_RIGHT
 BottomEdge=SCREEN_BOTTOM
 BrightnessOverlayFadeCommand=
 ClampOutputPercent=0
-ShowDancingCharacters=true
 UseStaticBackground=true
 
 [Judgment]
@@ -2514,7 +2507,6 @@ Line13="conf,ShowLyrics"
 Line14="conf,RandomBackgroundMode"
 Line15="conf,BGBrightness"
 Line16="conf,ShowDanger"
-Line17="conf,ShowDancingCharacters"
 Line18="conf,ShowBeginnerHelper"
 Line19="conf,NumBackgrounds"
 
@@ -2836,10 +2828,6 @@ ResetGameState=false
 LifeMeterBarX=SCREEN_CENTER_X-160
 LifeMeterBarY=SCREEN_TOP+56
 LifeMeterBarOnCommand=addy,-90;sleep,1.4;linear,0.4;addy,90
-UseCharacter=true
-CharacterX=SCREEN_CENTER_X-200
-CharacterY=SCREEN_CENTER_Y+160
-CharacterOnCommand=zoom,20;addy,-SCREEN_WIDTH;sleep,6.0;decelerate,0.4;addy,SCREEN_WIDTH
 UsePad=true
 PadX=SCREEN_CENTER_X-280
 PadY=SCREEN_CENTER_Y+70
@@ -3041,7 +3029,7 @@ NextScreen=ScreenPlayerOptionsNext()
 PlayMusic=false
 TimerSeconds=30
 ShowStyleIcon=false
-LineNames="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+LineNames="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
 Line1="list,Speed"
 Line2="list,Accel"
 Line3="list,Effect"
@@ -3058,7 +3046,6 @@ Line13="list,Hide"
 Line14="list,Persp"
 Line15="list,ScoreDisplay"
 Line16="list,Steps"
-Line17="list,Characters"
 
 [ScreenSongOptions]
 Class="ScreenSongOptions"
@@ -3115,52 +3102,6 @@ TimerSeconds=0
 Fallback="ScreenEnding"
 ; decorations send "SM_BeginFadingOut", so timer is disabled
 TimerSeconds=0
-
-[ScreenSelectCharacter]
-Class="ScreenSelectCharacter"
-Fallback="ScreenWithMenuElements"
-WaitForChildrenBeforeTweeningOut=true
-TitleP1OnCommand=x,140;y,80;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-TitleP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-TitleP2OnCommand=x,500;y,80;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-TitleP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-CardP1OnCommand=x,140;y,180;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-CardP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-CardP2OnCommand=x,500;y,180;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-CardP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-CardArrowsP1OnCommand=x,140;y,180;diffusealpha,0;linear,0.3;diffusealpha,1
-CardArrowsP1OffCommand=linear,0.3;diffusealpha,0
-CardArrowsP2OnCommand=x,500;y,180;diffusealpha,0;linear,0.3;diffusealpha,1
-CardArrowsP2OffCommand=linear,0.3;diffusealpha,0
-ExplanationOnCommand=x,SCREEN_CENTER_X;y,140;diffusealpha,0;linear,0.3;diffusealpha,1
-ExplanationOffCommand=linear,0.3;diffusealpha,0
-AttackFrameP1OnCommand=x,140;y,380;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-AttackFrameP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-AttackFrameP2OnCommand=x,500;y,380;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-AttackFrameP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-AttackIconWidth=40
-AttackIconHeight=40
-AttackIconsP1StartX=SCREEN_CENTER_X-192
-AttackIconsP1StartY=SCREEN_CENTER_Y+116
-AttackIconsP2StartX=SCREEN_CENTER_X+168
-AttackIconsP2StartY=SCREEN_CENTER_Y+116
-AttackIconsSpacingX=42
-AttackIconsSpacingY=32
-AttackIconsP1OnCommand=addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-AttackIconsP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-AttackIconsP2OnCommand=addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-AttackIconsP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-IconWidth=40
-IconHeight=40
-IconsP1OnCommand=addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-IconsP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-IconsP2OnCommand=addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-IconsP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-SleepAfterTweenOffSeconds=0.8
-TimerSeconds=40
-ShowStyleIcon=true
-PrevScreen=ScreenTitleBranch()
-NextScreen=SongSelectionScreen()
 
 [BeginnerHelper]
 # All X,Y coordinates are relative to the HelperX,Y
@@ -3385,14 +3326,6 @@ Transfer From USB Drive,1="screen,ScreenOptionsManageEditSteps;name,Transfer Fro
 Class="ScreenReloadSongs"
 Fallback="Screen"
 NextScreen=ScreenTitleBranch()
-
-[DancingCharacters]
-#2D Character X/Y positions in relation to the center
-#of the screen
-2DCharacterXP1=-220
-2DCharacterYP1=0
-2DCharacterXP2=220
-2DCharacterYP2=0
 
 [FadingBanner]
 BannerOnCommand=

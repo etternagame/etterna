@@ -12,7 +12,6 @@
 
 class Song;
 class Steps;
-class Character;
 class Style;
 struct Game;
 struct lua_State;
@@ -33,7 +32,6 @@ class GameCommand
 	  , m_LuaFunction()
 	  , m_pSong(NULL)
 	  , m_pSteps(NULL)
-	  , m_pCharacter(NULL)
 	  , m_SetEnv()
 	  , m_SetPref()
 	  , m_sSongGroup("")
@@ -86,7 +84,6 @@ class GameCommand
 	LuaReference m_LuaFunction;
 	Song* m_pSong;
 	Steps* m_pSteps;
-	Character* m_pCharacter;
 	std::map<RString, RString> m_SetEnv;
 	std::map<RString, RString> m_SetPref;
 	RString m_sSongGroup;

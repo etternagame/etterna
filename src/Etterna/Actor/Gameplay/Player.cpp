@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "ArrowEffects.h"
-#include "DancingCharacters.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"

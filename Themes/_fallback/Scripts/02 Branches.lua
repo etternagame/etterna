@@ -114,8 +114,6 @@ Branch = {
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
-
-		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
 		if (THEME:GetMetric("Common", "AutoSetStyle") == true) then

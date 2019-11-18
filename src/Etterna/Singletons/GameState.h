@@ -11,7 +11,6 @@
 
 #include <deque>
 
-class Character;
 struct Game;
 struct lua_State;
 class LuaTable;
@@ -279,9 +278,6 @@ class GameState
 	bool PlayerIsUsingModifier(PlayerNumber pn, const RString& sModifier);
 
 	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
-
-	// character stuff
-	Character* m_pCurCharacters;
 
 	int GetNumSidesJoined() const;
 	// PlayerState

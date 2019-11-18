@@ -1,6 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Character.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "CommonMetrics.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Foreach.h"
@@ -638,39 +636,6 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		m_ppStepsToFill->Set(pSteps);
 
 		return 0;
-	}
-};
-
-class OptionRowHandlerListCharacters : public OptionRowHandlerList
-{
-	bool LoadInternal(const Commands&) override
-	{
-		m_Def.m_bOneChoiceForAllPlayers = false;
-		m_Def.m_bAllowThemeItems = false;
-		m_Def.m_sName = "Characters";
-		m_Def.m_iDefault = 0;
-		m_Default.m_pCharacter = CHARMAN->GetDefaultCharacter();
-
-		{
-			m_Def.m_vsChoices.push_back(OFF);
-			GameCommand mc;
-			mc.m_pCharacter = NULL;
-			m_aListEntries.push_back(mc);
-		}
-
-		vector<Character*> vpCharacters;
-		CHARMAN->GetCharacters(vpCharacters);
-		for (unsigned i = 0; i < vpCharacters.size(); i++) {
-			Character* pCharacter = vpCharacters[i];
-			RString s = pCharacter->GetDisplayName();
-			s.MakeUpper();
-
-			m_Def.m_vsChoices.push_back(s);
-			GameCommand mc;
-			mc.m_pCharacter = pCharacter;
-			m_aListEntries.push_back(mc);
-		}
-		return true;
 	}
 };
 
@@ -1490,9 +1455,7 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 		else if (sParam.CompareNoCase("StepsLocked") == 0) {
 			MAKE(OptionRowHandlerListSteps);
 			pHand->m_Def.m_bOneChoiceForAllPlayers = true;
-		} else if (sParam.CompareNoCase("Characters") == 0)
-			MAKE(OptionRowHandlerListCharacters)
-		else if (sParam.CompareNoCase("Styles") == 0)
+		} else if (sParam.CompareNoCase("Styles") == 0)
 			MAKE(OptionRowHandlerListStyles)
 		else if (sParam.CompareNoCase("Groups") == 0)
 			MAKE(OptionRowHandlerListGroups)

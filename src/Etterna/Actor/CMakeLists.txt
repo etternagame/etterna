@@ -36,7 +36,6 @@ list(APPEND ACTOR_BASE_HPP
 list(APPEND ACTOR_GAMEPLAY_SRC
 	"Gameplay/ArrowEffects.cpp"
 	"Gameplay/Background.cpp"
-	"Gameplay/DancingCharacters.cpp"
 	"Gameplay/Foreground.cpp"
 	"Gameplay/GhostArrowRow.cpp"
 	"Gameplay/HoldJudgment.cpp"
@@ -54,7 +53,6 @@ list(APPEND ACTOR_GAMEPLAY_SRC
 list(APPEND ACTOR_GAMEPLAY_HPP
 	"Gameplay/ArrowEffects.h"
 	"Gameplay/Background.h"
-	"Gameplay/DancingCharacters.h"
 	"Gameplay/Foreground.h"
 	"Gameplay/GhostArrowRow.h"
 	"Gameplay/HoldJudgment.h"

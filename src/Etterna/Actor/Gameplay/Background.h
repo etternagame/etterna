@@ -1,10 +1,9 @@
-﻿#ifndef BACKGROUND_H
+#ifndef BACKGROUND_H
 #define BACKGROUND_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 
-class DancingCharacters;
 class Song;
 class BackgroundImpl;
 /** @brief the Background that is behind the notes while playing. */
@@ -27,11 +26,6 @@ class Background : public ActorFrame
 	// child. -Kyz
 	bool m_disable_draw;
 	bool EarlyAbortDraw() const override { return m_disable_draw; }
-
-	/**
-	 * @brief Retrieve whatever dancing characters are in use.
-	 * @return the dancing characters. */
-	DancingCharacters* GetDancingCharacters();
 
 	void GetLoadedBackgroundChanges(
 	  vector<BackgroundChange>** pBackgroundChangesOut);

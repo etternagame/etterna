@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
-#include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "CryptManager.h"
 #include "discord_rpc.h"
@@ -1757,12 +1756,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	DEFINE_METHOD(GetCurMusicSeconds, m_Position.m_fMusicSeconds)
 
-	static int GetCharacter(T* p, lua_State* L)
-	{
-		p->m_pCurCharacters->PushSelf(L);
-		return 1;
-	}
-	static int SetCharacter(T* p, lua_State* L) { COMMON_RETURN_SELF; }
 	static int GetExpandedSectionName(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->sExpandedSectionName);
@@ -1990,8 +1983,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(JoinInput);
 		ADD_METHOD(GetSongPercent);
 		ADD_METHOD(GetCurMusicSeconds);
-		ADD_METHOD(GetCharacter);
-		ADD_METHOD(SetCharacter);
 		ADD_METHOD(GetExpandedSectionName);
 		ADD_METHOD(AddStageToPlayer);
 		ADD_METHOD(InsertCoin);

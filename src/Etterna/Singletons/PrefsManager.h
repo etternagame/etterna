@@ -49,14 +49,6 @@ enum RandomBackgroundMode
 	NUM_RandomBackgroundMode,
 	RandomBackgroundMode_Invalid
 };
-enum ShowDancingCharacters
-{
-	SDC_Off,
-	SDC_Random,
-	SDC_Select,
-	NUM_ShowDancingCharacters,
-	ShowDancingCharacters_Invalid
-};
 enum ImageCacheMode
 {
 	IMGCACHE_OFF,
@@ -192,7 +184,6 @@ class PrefsManager
 
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
-	Preference<ShowDancingCharacters> m_ShowDancingCharacters;
 	Preference<float> m_fGlobalOffsetSeconds;
 	Preference<RString> m_sLanguage;
 	Preference<int> m_iCenterImageTranslateX;
