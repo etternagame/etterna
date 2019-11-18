@@ -1,9 +1,10 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "ComboGraph.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/Misc/StageStats.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 const int MinComboSizeToShow = 5;
 
@@ -74,6 +75,11 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 	const float fFirstSecond = 0;
 	const float fLastSecond = s.GetTotalPossibleStepsSeconds();
 
+	// Unhide the templates.
+	m_pNormalCombo->SetVisible(true);
+	m_pMaxCombo->SetVisible(true);
+	m_pComboNumber->SetVisible(true);
+
 	// Find the largest combo.
 	int iMaxComboSize = 0;
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i)
@@ -86,11 +92,12 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 
 		const bool bIsMax = (combo.GetStageCnt() == iMaxComboSize);
 
-		LOG->Trace("combo %i is %f+%f of %f",
-				   i,
-				   combo.m_fStartSecond,
-				   combo.m_fSizeSeconds,
-				   fLastSecond);
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("combo %i is %f+%f of %f",
+					   i,
+					   combo.m_fStartSecond,
+					   combo.m_fSizeSeconds,
+					   fLastSecond);
 		Actor* pSprite = bIsMax ? m_pMaxCombo->Copy() : m_pNormalCombo->Copy();
 
 		const float fStart =
@@ -161,11 +168,17 @@ class LunaComboGraph : public Luna<ComboGraph>
 		p->Set(*pStageStats, *pPlayerStageStats);
 		COMMON_RETURN_SELF;
 	}
+	static int Clear(T* p, lua_State* L)
+	{
+		p->DeleteAllChildren();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaComboGraph()
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(Set);
+		ADD_METHOD(Clear);
 	}
 };
 

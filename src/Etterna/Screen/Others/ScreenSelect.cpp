@@ -186,31 +186,12 @@ ScreenSelect::HandleScreenMessage(const ScreenMessage SM)
 		ASSERT(GAMESTATE->GetMasterPlayerNumber() != PlayerNumber_Invalid);
 		int iMastersIndex =
 		  this->GetSelectionIndex(GAMESTATE->GetMasterPlayerNumber());
-		bool bAllPlayersChoseTheSame = true;
-		FOREACH_HumanPlayer(p)
-		{
-			if (this->GetSelectionIndex(p) != iMastersIndex) {
-				bAllPlayersChoseTheSame = false;
-				break;
-			}
-		}
 
 		if (!m_aGameCommands.empty()) {
-			if (bAllPlayersChoseTheSame) {
-				const GameCommand& gc = m_aGameCommands[iMastersIndex];
-				m_sNextScreen = gc.m_sScreen;
-				if (!gc.m_bInvalid)
-					gc.ApplyToAllPlayers();
-			} else {
-				FOREACH_HumanPlayer(p)
-				{
-					int iIndex = this->GetSelectionIndex(p);
-					const GameCommand& gc = m_aGameCommands[iIndex];
-					m_sNextScreen = gc.m_sScreen;
-					if (!gc.m_bInvalid)
-						gc.Apply(p);
-				}
-			}
+			const GameCommand& gc = m_aGameCommands[iMastersIndex];
+			m_sNextScreen = gc.m_sScreen;
+			if (!gc.m_bInvalid)
+				gc.ApplyToAllPlayers();
 		}
 		StopTimer();
 

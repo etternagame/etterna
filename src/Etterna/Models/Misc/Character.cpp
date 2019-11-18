@@ -213,20 +213,20 @@ Character::Has2DElems()
 void
 Character::DemandGraphics()
 {
-//	++m_iPreloadRefcount;
-//	if (m_iPreloadRefcount == 1) {
-//		RString s = GetIconPath();
-//		if (!s.empty())
-//			m_Preload.Load(s);
-//	}
+	//	++m_iPreloadRefcount;
+	//	if (m_iPreloadRefcount == 1) {
+	//		RString s = GetIconPath();
+	//		if (!s.empty())
+	//			m_Preload.Load(s);
+	//	}
 }
 
 void
 Character::UndemandGraphics()
 {
-//	--m_iPreloadRefcount;
-//	if (m_iPreloadRefcount == 0)
-//		m_Preload.UnloadAll();
+	//	--m_iPreloadRefcount;
+	//	if (m_iPreloadRefcount == 0)
+	//		m_Preload.UnloadAll();
 }
 
 // lua start

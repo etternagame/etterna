@@ -21,7 +21,8 @@ XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)
 	if (sError.empty())
 		return true;
 
-	std::string sWarning = ssprintf("XML: LoadFromFile failed: %s", sError.c_str());
+	std::string sWarning =
+	  ssprintf("XML: LoadFromFile failed: %s", sError.c_str());
 	LuaHelpers::ReportScriptError(sWarning, "XML_PARSE_ERROR");
 	return false;
 }

@@ -318,4 +318,4 @@ static LocalizedString DESTINATION_ALREADY_EXISTS(
   "NotesWriterSM",
   "Error renaming file.  Destination file '%s' already exists.");
 static LocalizedString ERROR_WRITING_FILE("NotesWriterSM",
-                                          "Error writing file '%s'.");
+										  "Error writing file '%s'.");

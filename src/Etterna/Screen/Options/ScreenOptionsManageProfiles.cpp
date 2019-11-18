@@ -141,7 +141,8 @@ ScreenOptionsManageProfiles::BeginScreen()
 		def.m_sExplanationName = "Select Profile";
 
 		PlayerNumber pn = PLAYER_INVALID;
-		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get()) pn = PLAYER_1;
+		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get())
+			pn = PLAYER_1;
 		if (pn != PLAYER_INVALID)
 			def.m_vsChoices.push_back(PlayerNumberToLocalizedString(pn));
 		OptionRowHandlers.push_back(pHand);
@@ -282,9 +283,9 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				case ProfileAction_SetDefaultP1:
 				case ProfileAction_SetDefaultP2: {
 					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-							   .Get() == GetLocalProfileIDWithFocus())
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-						.Set("");
+						  .Get() == GetLocalProfileIDWithFocus())
+						ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
+						  "");
 
 					auto pn =
 					  static_cast<PlayerNumber>(ScreenMiniMenu::s_iLastRowCode -
@@ -316,41 +317,45 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf( CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str() );
-					ScreenPrompt::Prompt( SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO );
-				}
-				break;
-			case ProfileAction_MergeToMachine:
-				break;
-			case ProfileAction_MergeToMachineSkipTotal:
-				break;
-			case ProfileAction_MergeToP1:
-				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
-					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-				break;
-			case ProfileAction_ChangeToGuest:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Guest);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_ChangeToNormal:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Normal);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_ChangeToTest:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Test);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_MoveUp:
-				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), true);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_MoveDown:
-				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), false);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
+					RString sMessage = ssprintf(
+					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
+					ScreenPrompt::Prompt(
+					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
+				} break;
+				case ProfileAction_MergeToMachine:
+					break;
+				case ProfileAction_MergeToMachineSkipTotal:
+					break;
+				case ProfileAction_MergeToP1:
+					PROFILEMAN->MergeLocalProfiles(
+					  GetLocalProfileIDWithFocus(),
+					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+					break;
+				case ProfileAction_ChangeToGuest:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_ChangeToNormal:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_ChangeToTest:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_MoveUp:
+					PROFILEMAN->MoveProfilePriority(
+					  GetLocalProfileIndexWithFocus(), true);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_MoveDown:
+					PROFILEMAN->MoveProfilePriority(
+					  GetLocalProfileIndexWithFocus(), false);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
 			}
 		}
 	} else if (SM == SM_LoseFocus) {
@@ -406,13 +411,8 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	{
 		g_TempMenu.rows.clear();
 #define ADD_ACTION(i)                                                          \
-	g_TempMenu.rows.push_back(MenuRowDef(i,                                    \
-										 ProfileActionToLocalizedString(i),    \
-										 true,                                 \
-										 false,                                \
-										 false,                                \
-										 0,                                    \
-										 ""));
+	g_TempMenu.rows.push_back(MenuRowDef(                                      \
+	  i, ProfileActionToLocalizedString(i), true, false, false, 0, ""));
 
 		ADD_ACTION(ProfileAction_SetDefaultP1);
 		if (PROFILEMAN->FixedProfiles()) {
@@ -438,16 +438,14 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 }
 
 void
-ScreenOptionsManageProfiles::ImportOptions(
-  int /* iRow */,
-  const PlayerNumber& /* vpns */)
+ScreenOptionsManageProfiles::ImportOptions(int /* iRow */,
+										   const PlayerNumber& /* vpns */)
 {
 }
 
 void
-ScreenOptionsManageProfiles::ExportOptions(
-  int /* iRow */,
-  const PlayerNumber& /* vpns */)
+ScreenOptionsManageProfiles::ExportOptions(int /* iRow */,
+										   const PlayerNumber& /* vpns */)
 {
 }
 

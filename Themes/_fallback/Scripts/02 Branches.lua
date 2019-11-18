@@ -32,6 +32,17 @@ function GameOverOrContinue()
 	end
 end
 
+function ToGameplay()
+	local mode = GAMESTATE:GetGameplayMode()
+	if mode == "GameplayMode_Practice" then
+		return "ScreenGameplayPractice"
+	elseif mode == "GameplayMode_Replay" then
+		return "ScreenGameplayReplay"
+	else
+		return "ScreenGameplay"
+	end
+end
+
 Branch = {
 	Init = function()
 		return "ScreenInit"
@@ -188,9 +199,6 @@ Branch = {
 		else
 			return "ScreenStageInformation"
 		end
-	end,
-	GameplayScreen = function()
-		return "ScreenGameplay"
 	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"

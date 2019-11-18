@@ -40,12 +40,13 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 	auto* cProcessed = new char[len];
 	int iProcessedLen = -1;
 	while (i < len) {
-		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' && ReadingValue == false) {
+		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' &&
+			ReadingValue == false) {
 			/* Skip a comment entirely; don't copy the comment to the
 			 * parameter */
 
-			// there is no legitimate reason to allow people to place comments inside value fields
-			// this is indescribably stupid -mina
+			// there is no legitimate reason to allow people to place comments
+			// inside value fields this is indescribably stupid -mina
 			do {
 				i++;
 			} while (i < len && buf[i] != '\n');
@@ -72,9 +73,9 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 				break;
 			}
 
-			// sm5 devs make code block to hand hold idiots who don't know how delimiters work
-			// in the process sm5 devs show they don't know how delimiters work
-			// time to handhold -mina
+			// sm5 devs make code block to hand hold idiots who don't know how
+			// delimiters work in the process sm5 devs show they don't know how
+			// delimiters work time to handhold -mina
 			if (buf[i - 1] == ':')
 				FirstChar = false;
 

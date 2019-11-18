@@ -464,8 +464,7 @@ ScoreKeeperNormal::HandleTapNoteScoreInternal(const NoteData& nd,
 	}
 
 	// update judged row totals. Respect Combo segments here.
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	ComboSegment* cs = td.GetComboSegmentAtRow(row);
 	if (tns == TNS_CheckpointHit || tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iTapNoteScores[tns] += cs->GetCombo();
@@ -492,8 +491,7 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 	if (iNumHitContinueCombo > 0 || iNumHitMaintainCombo > 0) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 	}
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (iNumBreakCombo == 0) {
 		int multiplier =
 		  (iRow == -1 ? 1 : td.GetComboSegmentAtRow(iRow)->GetCombo());
@@ -515,8 +513,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 	if (m_ComboIsPerRow) {
 		iNumTapsInRow = min(iNumTapsInRow, 1);
 	}
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 		int multiplier =
@@ -603,8 +600,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// handle combo logic
 #ifndef DEBUG
 	if ((GamePreferences::m_AutoPlay != PC_HUMAN ||
-		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0))
-	{
+		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0)) {
 		m_cur_toasty_combo = 0;
 		return;
 	}

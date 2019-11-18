@@ -1347,6 +1347,8 @@ DownloadManager::UploadScores()
 			}
 		}
 	}
+	if (!toUpload.empty())
+		LOG->Trace("Uploading top scores that were not synced.");
 	uploadSequentially(toUpload);
 	return true;
 }
@@ -1626,6 +1628,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
+				it->hs.SetScoreKey("Online_" + scoreid);
 
 				if (tracks.empty())
 					it->hs.SetReplayType(1);
@@ -1645,6 +1648,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
+			it->hs.SetScoreKey("Online_" + scoreid);
 
 			if (tracks.empty())
 				it->hs.SetReplayType(1);
@@ -2679,9 +2683,30 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		string username = hs->GetDisplayName();
 		string scoreid = hs->scoreid;
 		string ck = hs->GetChartKey();
+
+		bool alreadyHasReplay = false;
+		alreadyHasReplay |= !hs->GetNoteRowVector().empty();
+		alreadyHasReplay |=
+		  !hs->GetCopyOfSetOnlineReplayTimestampVector().empty();
+		alreadyHasReplay |= !hs->GetOffsetVector().empty();
+
 		LuaReference f;
 		if (lua_isfunction(L, 2))
 			f = GetFuncArg(2, L);
+
+		if (alreadyHasReplay) {
+			if (!f.IsNil() && f.IsSet()) {
+				auto L = LUA->Get();
+				f.PushSelf(L);
+				RString Error =
+				  "Error running RequestChartLeaderBoard Finish Function: ";
+				hs->PushSelf(L);
+				LuaHelpers::RunScriptOnStack(
+				  L, Error, 2, 0, true); // 2 args, 0 results
+			}
+			return 0;
+		}
+
 		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
 		return 0;
 	}

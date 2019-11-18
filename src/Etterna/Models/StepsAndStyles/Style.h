@@ -82,9 +82,10 @@ class Style
 	// fixed zoom that is only applied to the columns, ScreenGameplay now
 	// calculates a zoom factor to apply to the notefield and puts it in the
 	// PlayerState. -Kyz
-	//bool		m_bNeedsZoomOutWith2Players;
-	/** @brief Can this style use the BeginnerHelper for assisting new people to the game? */
-	bool		m_bLockDifficulties;
+	// bool		m_bNeedsZoomOutWith2Players;
+	/** @brief Can this style use the BeginnerHelper for assisting new people to
+	 * the game? */
+	bool m_bLockDifficulties;
 
 	void StyleInputToGameInput(int iCol,
 							   PlayerNumber pn,

@@ -322,19 +322,19 @@ CompareSongPointersBySortValueDescending(const Song* pSong1, const Song* pSong2)
 void
 SongUtil::MakeSortString(RString& s)
 {
-    s.MakeUpper();
+	s.MakeUpper();
 
-    // Make sure that non-alphanumeric strings are placed at the very end.
-    if (s.size() > 0) {
-        if (s[0] == '.') // like the song ".59"
-            s.erase(s.begin());
+	// Make sure that non-alphanumeric strings are placed at the very end.
+	if (s.size() > 0) {
+		if (s[0] == '.') // like the song ".59"
+			s.erase(s.begin());
 
-        if (s[0] == '#')
-            return;
+		if (s[0] == '#')
+			return;
 
-        if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
-            s = char(126) + s;
-    }
+		if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
+			s = char(126) + s;
+	}
 }
 
 RString
@@ -729,12 +729,10 @@ SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
 			val = "0";
 		else if (val == sOther)
 			val = "2";
-		else
-		{
+		else {
 			MakeSortString(val);
 			val = "1" + val;
 		}
-			
 
 		g_mapSongSortVal[vpSongsInOut[i]] = val;
 	}
@@ -1040,23 +1038,6 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 									 vpPossibleStyles);
 	else
 		vpPossibleStyles.push_back(GAMESTATE->GetCurrentStyle(PLAYER_INVALID));
-
-	// Only allow OneSide Styles in Workout
-	if( GAMESTATE->m_bMultiplayer )
-	{
-		for( int i=vpPossibleStyles.size()-1; i>=0; i-- )
-		{
-			const Style *pStyle = vpPossibleStyles[i];
-			switch( pStyle->m_StyleType )
-			{
-			DEFAULT_FAIL( pStyle->m_StyleType );
-			case StyleType_OnePlayerOneSide:
-				continue;
-			case StyleType_OnePlayerTwoSides:
-				break;
-			}
-		}
-	}
 
 	set<StepsType> vStepsTypes;
 	FOREACH(const Style*, vpPossibleStyles, s)

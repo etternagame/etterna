@@ -32,10 +32,11 @@ class AutoActor
 	void Load(const std::string& sPath);
 	void LoadB(const std::string& sMetricsGroup,
 			   const std::string& sElement); // load a background and set up
-										 // LuaThreadVariables for recursive
-										 // loading
+											 // LuaThreadVariables for recursive
+											 // loading
 	void LoadActorFromNode(const XNode* pNode, Actor* pParent);
-	void LoadAndSetName(const std::string& sScreenName, const std::string& sActorName);
+	void LoadAndSetName(const std::string& sScreenName,
+						const std::string& sActorName);
 
   protected:
 	/** @brief the Actor for which there is a smart pointer to. */

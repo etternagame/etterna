@@ -138,8 +138,10 @@ NoteField::UncacheNoteSkin(const RString& sNoteSkin_)
 void
 NoteField::CacheAllUsedNoteSkins()
 {
-	/* Cache all note skins that we might need for the whole song, course or battle
-	 * play, so we don't have to load them later (such as between course songs). */
+	/* Cache all note skins that we might need for the whole song, course or
+	 * battle
+	 * play, so we don't have to load them later (such as between course songs).
+	 */
 	vector<RString> asSkinsLower;
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
@@ -179,21 +181,17 @@ NoteField::CacheAllUsedNoteSkins()
 	m_pCurDisplay = it->second;
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
 
-	FOREACH_EnabledPlayer(pn)
-	{
-		RString sNoteSkinLower = GAMESTATE->m_pPlayerState
-								   ->m_PlayerOptions.GetCurrent()
-								   .m_sNoteSkin;
-		NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
-		sNoteSkinLower.MakeLower();
-		it = m_NoteDisplays.find(sNoteSkinLower);
-		ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
-		m_pDisplays[pn] = it->second;
-	}
+	RString sNoteSkinLower =
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
+	NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
+	sNoteSkinLower.MakeLower();
+	it = m_NoteDisplays.find(sNoteSkinLower);
+	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
+	m_pDisplays[PLAYER_1] = it->second;
 
 	// I don't think this is needed?
 	// It's done in Load -- Nick12
-	//InitColumnRenderers();
+	// InitColumnRenderers();
 }
 
 void
@@ -248,7 +246,6 @@ NoteField::Load(const NoteData* pNoteData,
 					  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 						->m_iColsPerPlayer));
 
-
 	ensure_note_displays_have_skin();
 	InitColumnRenderers();
 }
@@ -281,36 +278,32 @@ NoteField::ensure_note_displays_have_skin()
 	if (it == m_NoteDisplays.end()) {
 		CacheAllUsedNoteSkins();
 		it = m_NoteDisplays.find(sNoteSkinLower);
-		ASSERT_M(it != m_NoteDisplays.end(),
-			ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
-				sNoteSkinLower.c_str()));
+		ASSERT_M(
+		  it != m_NoteDisplays.end(),
+		  ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
+				   sNoteSkinLower.c_str()));
 	}
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-	FOREACH_EnabledPlayer(pn)
-	{
-		sNoteSkinLower = GAMESTATE->m_pPlayerState
-						   ->m_PlayerOptions.GetCurrent()
-						   .m_sNoteSkin;
+	sNoteSkinLower =
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
 
-		// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
-		// needed.
+	// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
+	// needed.
+	if (sNoteSkinLower.empty()) {
+		sNoteSkinLower =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = GAMESTATE->m_pPlayerState
-							   ->m_PlayerOptions.GetPreferred()
-							   .m_sNoteSkin;
-
-			if (sNoteSkinLower.empty()) {
-				sNoteSkinLower = "default";
-			}
-			m_NoteDisplays.insert(
-			  pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+			sNoteSkinLower = "default";
 		}
-
-		sNoteSkinLower.MakeLower();
-		it = m_NoteDisplays.find(sNoteSkinLower);
-		ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
-		m_pDisplays[pn] = it->second;
+		m_NoteDisplays.insert(
+		  pair<RString, NoteDisplayCols*>(sNoteSkinLower, badIdea));
 	}
+
+	sNoteSkinLower.MakeLower();
+	it = m_NoteDisplays.find(sNoteSkinLower);
+	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
+	m_pDisplays[PLAYER_1] = it->second;
 }
 
 void
@@ -325,11 +318,8 @@ NoteField::InitColumnRenderers()
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 		->m_iColsPerPlayer);
 	for (size_t ncr = 0; ncr < m_ColumnRenderers.size(); ++ncr) {
-		FOREACH_EnabledPlayer(pn)
-		{
-			m_ColumnRenderers[ncr].m_displays[pn] =
-			  &(m_pDisplays[pn]->display[ncr]);
-		}
+		m_ColumnRenderers[ncr].m_displays[PLAYER_1] =
+		  &(m_pDisplays[PLAYER_1]->display[ncr]);
 		m_ColumnRenderers[ncr].m_displays[PLAYER_INVALID] =
 		  &(m_pCurDisplay->display[ncr]);
 		m_ColumnRenderers[ncr].m_column = ncr;
@@ -823,9 +813,8 @@ NoteField::DrawPrimitives()
 
 	unsigned i = 0;
 	// Draw beat bars
-	if( SHOW_BEAT_BARS && pTiming != NULL )
-	{
-		const vector<TimingSegment *> &tSigs = *segs[SEGMENT_TIME_SIG];
+	if (SHOW_BEAT_BARS && pTiming != NULL) {
+		const vector<TimingSegment*>& tSigs = *segs[SEGMENT_TIME_SIG];
 		int iMeasureIndex = 0;
 		for (i = 0; i < tSigs.size(); i++) {
 			const TimeSignatureSegment* ts = ToTimeSignature(tSigs[i]);
@@ -864,9 +853,9 @@ NoteField::DrawPrimitives()
 		}
 	}
 
-	// Optimization is very important here because there are so many arrows to draw.
-	// Draw the arrows in order of column. This minimizes texture switches and
-	// lets us draw in big batches.
+	// Optimization is very important here because there are so many arrows to
+	// draw. Draw the arrows in order of column. This minimizes texture switches
+	// and lets us draw in big batches.
 
 	const Style* pStyle =
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);

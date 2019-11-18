@@ -17,9 +17,11 @@ class ScreenNetEvaluation : public ScreenEvaluation
 
 	int m_iCurrentPlayer;
 	void UpdateStats();
+
   protected:
 	void HandleScreenMessage(ScreenMessage SM) override;
 	void TweenOffScreen() override;
+
   private:
 	int m_iActivePlayers;
 	PlayerNumber m_pActivePlayer;

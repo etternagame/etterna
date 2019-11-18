@@ -41,7 +41,7 @@ class StepsDisplayList : public ActorFrame
 
 	AutoActor m_Cursors;
 	ActorFrame m_CursorFrames; // contains Cursor so that color can
-											// fade independent of other tweens
+							   // fade independent of other tweens
 
 	struct Line
 	{

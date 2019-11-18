@@ -10,8 +10,6 @@ class Song;
 class Profile;
 class XNode;
 
-
-
 /** @brief A Song and one of its Steps. */
 class SongAndSteps
 {

@@ -666,7 +666,6 @@ RageMutex::Lock()
 		/* Pass the crash handle of the other thread, so it can backtrace that
 		 * thread. */
 		CrashHandler::ForceDeadlock(sReason, CrashHandle);
-
 	}
 
 	m_LockedBy = iThisThreadId;

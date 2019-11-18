@@ -247,15 +247,13 @@ WriteDWINotesField(RageFile& f, const Steps& out, int start)
 			int row = BeatToNoteRow(static_cast<float>(b));
 
 			RString str;
-			switch( out.m_StepsType )
-			{
-			case StepsType_dance_single:
-			case StepsType_dance_double:
-				str = NotesToDWIString( 
-					notedata.GetTapNote(start+0, row), 
-					notedata.GetTapNote(start+1, row),
-					notedata.GetTapNote(start+2, row),
-					notedata.GetTapNote(start+3, row) );
+			switch (out.m_StepsType) {
+				case StepsType_dance_single:
+				case StepsType_dance_double:
+					str = NotesToDWIString(notedata.GetTapNote(start + 0, row),
+										   notedata.GetTapNote(start + 1, row),
+										   notedata.GetTapNote(start + 2, row),
+										   notedata.GetTapNote(start + 3, row));
 
 					// Blank out the notes so we don't write them again if the
 					// incrementer is small
@@ -328,12 +326,18 @@ WriteDWINotesTag(RageFile& f, const Steps& out)
 
 	LOG->Trace("Steps::WriteDWINotesTag");
 
-	switch( out.m_StepsType )
-	{
-	case StepsType_dance_single:	f.Write( "#SINGLE:" );	break;
-	case StepsType_dance_double:	f.Write( "#DOUBLE:" );	break;
-	case StepsType_dance_solo:	f.Write( "#SOLO:" );	break;
-	default:	return false;	// not a type supported by DWI
+	switch (out.m_StepsType) {
+		case StepsType_dance_single:
+			f.Write("#SINGLE:");
+			break;
+		case StepsType_dance_double:
+			f.Write("#DOUBLE:");
+			break;
+		case StepsType_dance_solo:
+			f.Write("#SOLO:");
+			break;
+		default:
+			return false; // not a type supported by DWI
 	}
 
 	Difficulty d = out.GetDifficulty();
@@ -451,11 +455,10 @@ NotesWriterDWI::Write(const RString& sPath, const Song& out)
 		if (!WriteDWINotesTag(f, *pSteps))
 			continue;
 
-		WriteDWINotesField( f, *pSteps, 0 );
-		if( pSteps->m_StepsType==StepsType_dance_double)
-		{
-			f.PutLine( ":" );
-			WriteDWINotesField( f, *pSteps, 4 );
+		WriteDWINotesField(f, *pSteps, 0);
+		if (pSteps->m_StepsType == StepsType_dance_double) {
+			f.PutLine(":");
+			WriteDWINotesField(f, *pSteps, 4);
 		}
 
 		f.PutLine(";");

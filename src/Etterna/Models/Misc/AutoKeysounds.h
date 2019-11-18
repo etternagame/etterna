@@ -35,9 +35,9 @@ class AutoKeysounds
 	NoteData m_ndAutoKeysoundsOnly;
 	vector<RageSound> m_vKeysounds;
 	RageSound m_sSound;
-	RageSoundReader* m_pChain;					   // owned by m_sSound
+	RageSoundReader* m_pChain;		  // owned by m_sSound
 	RageSoundReader* m_pPlayerSounds; // owned by m_sSound
-	RageSoundReader* m_pSharedSound;			   // owned by m_sSound
+	RageSoundReader* m_pSharedSound;  // owned by m_sSound
 };
 
 #endif

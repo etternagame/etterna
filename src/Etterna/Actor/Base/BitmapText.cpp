@@ -808,9 +808,9 @@ BitmapText::DrawPrimitives()
 														  : iter->first * 4;
 				iEnd = min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = what; // top left
-					m_aVertices[i + 1].c = is; // bottom left
-					m_aVertices[i + 2].c = wrong; // bottom right
+					m_aVertices[i + 0].c = what;		  // top left
+					m_aVertices[i + 1].c = is;			  // bottom left
+					m_aVertices[i + 2].c = wrong;		  // bottom right
 					m_aVertices[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())

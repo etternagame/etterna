@@ -117,19 +117,19 @@ struct HighScore
 	void SetOnlineReplayTimestampVector(const vector<float>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
-	void SetAliveSeconds( float f );
-	void SetMaxCombo( unsigned int i );
-	void SetModifiers( const string &s );
-	void SetDateTime( DateTime d );
-	void SetPlayerGuid( const string &s );
-	void SetMachineGuid( const string &s );
-	void SetProductID( int i );
-	void SetTapNoteScore( TapNoteScore tns, int i );
-	void SetHoldNoteScore( HoldNoteScore tns, int i );
-	void SetRadarValues( const RadarValues &rv );
-	void SetLifeRemainingSeconds( float f );
-	void SetDisqualified( bool b );
-	void SetReplayType( int i );
+	void SetAliveSeconds(float f);
+	void SetMaxCombo(unsigned int i);
+	void SetModifiers(const string& s);
+	void SetDateTime(DateTime d);
+	void SetPlayerGuid(const string& s);
+	void SetMachineGuid(const string& s);
+	void SetProductID(int i);
+	void SetTapNoteScore(TapNoteScore tns, int i);
+	void SetHoldNoteScore(HoldNoteScore tns, int i);
+	void SetRadarValues(const RadarValues& rv);
+	void SetLifeRemainingSeconds(float f);
+	void SetDisqualified(bool b);
+	void SetReplayType(int i);
 
 	string* GetNameMutable();
 	const string* GetNameMutable() const

@@ -1010,7 +1010,7 @@ BMSChartReader::DetermineStepsType()
 					else
 						return StepsType_beat_single7;
 			}
-		case 2: 
+		case 2:
 		case 3: // double
 			switch (nonEmptyTracksCount) {
 				case 8:

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "LuaManager.h"
@@ -25,6 +25,7 @@ static const char* MessageIDNames[] = {
 	"CurrentTrailP1Changed",
 	"CurrentTrailP2Changed",
 	"GameplayLeadInChanged",
+	"GameplayModeChanged",
 	"EditStepsTypeChanged",
 	"EditCourseDifficultyChanged",
 	"EditSourceStepsChanged",

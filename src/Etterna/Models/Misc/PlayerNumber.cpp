@@ -3,13 +3,10 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "PlayerNumber.h"
 
-static const char* PlayerNumberNames[] = {
-	"P1"
-};
+static const char* PlayerNumberNames[] = { "P1" };
 XToString(PlayerNumber);
 XToLocalizedString(PlayerNumber);
-LuaFunction(PlayerNumberToString,
-			PlayerNumberToString(PLAYER_1));
+LuaFunction(PlayerNumberToString, PlayerNumberToString(PLAYER_1));
 LuaXType(PlayerNumber);
 LuaFunction(PlayerNumberToLocalizedString,
 			PlayerNumberToLocalizedString(PLAYER_1));

@@ -1185,11 +1185,18 @@ bool
 PlayerOptions::ContainsTransformOrTurn() const
 {
 	for (int i = 0; i < NUM_TRANSFORMS; i++) {
+		switch (i) {
+			case TRANSFORM_NOHOLDS:
+			case TRANSFORM_NOROLLS:
+			case TRANSFORM_NOMINES:
+			case TRANSFORM_ATTACKMINES:
+				continue;
+		}
 		if (m_bTransforms[i])
 			return true;
 	}
 	for (int i = 0; i < NUM_TURNS; i++) {
-		if (m_bTurns[i])
+		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
 	return false;
@@ -1738,7 +1745,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(NoQuads);
 		ADD_METHOD(NoStretch);
 		ADD_METHOD(MuteOnError);
-		//ADD_METHOD(PracticeMode); -- To Restrict theme access to practice mode
+		// ADD_METHOD(PracticeMode); -- To Restrict theme access to practice
+		// mode
 		ADD_METHOD(UsingPractice);
 
 		ADD_METHOD(NoteSkin);

@@ -234,12 +234,18 @@ LoadFromKSFFile(const RString& sPath,
 			out.m_StepsType = StepsType_pump_single;
 	}
 
-	switch( out.m_StepsType )
-	{
-	case StepsType_pump_single: notedata.SetNumTracks( 5 ); break;
-	case StepsType_pump_double: notedata.SetNumTracks( 10 ); break;
-	case StepsType_pump_halfdouble: notedata.SetNumTracks( 6 ); break;
-	default: FAIL_M( ssprintf("%i", out.m_StepsType) );
+	switch (out.m_StepsType) {
+		case StepsType_pump_single:
+			notedata.SetNumTracks(5);
+			break;
+		case StepsType_pump_double:
+			notedata.SetNumTracks(10);
+			break;
+		case StepsType_pump_halfdouble:
+			notedata.SetNumTracks(6);
+			break;
+		default:
+			FAIL_M(ssprintf("%i", out.m_StepsType));
 	}
 
 	int t = 0;

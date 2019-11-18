@@ -5,7 +5,8 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include <chrono>
 
-void DInput_ForceJoystickPollingInNextDevicesChangedCall();
+void
+DInput_ForceJoystickPollingInNextDevicesChangedCall();
 
 struct DIDevice;
 class InputHandler_DInput : public InputHandler

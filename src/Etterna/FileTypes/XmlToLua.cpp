@@ -482,11 +482,13 @@ actor_template_t::load_frames_from_file(RString const& fname,
 			// the "0000" part is the id of the frame.
 			RString field_type = RString(attr->first).Left(5);
 			if (field_type == "Frame") {
-				int id = StringToInt(RString(attr->first).Right(attr->first.size() - 5));
+				int id = StringToInt(
+				  RString(attr->first).Right(attr->first.size() - 5));
 				make_space_for_frame(id);
 				attr->second->GetValue(frames[id].frame);
 			} else if (field_type == "Delay") {
-				int id = StringToInt(RString(attr->first).Right(attr->first.size() - 5));
+				int id = StringToInt(
+				  RString(attr->first).Right(attr->first.size() - 5));
 				make_space_for_frame(id);
 				attr->second->GetValue(frames[id].delay);
 			} else if (field_type == "Textu") {

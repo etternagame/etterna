@@ -92,25 +92,25 @@ scroller =
 	end,
 	ReplayScrollCommand = function(self)
 		newpos = getNewSongPos()
-		SCREENMAN:GetTopScreen():SetReplayPosition(newpos)
+		SCREENMAN:GetTopScreen():SetSongPosition(newpos)
 	end,
 	ReplayRateCommand = function(self)
 		newrate = getNewRate()
-		givenrate = SCREENMAN:GetTopScreen():SetReplayRate(newrate)
+		givenrate = SCREENMAN:GetTopScreen():SetRate(newrate)
 		if givenrate ~= nil then
 			realnewrate = notShit.round(givenrate, 3)
 		--SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
 		end
 	end,
 	ReplayPauseToggleCommand = function(self)
-		SCREENMAN:GetTopScreen():ToggleReplayPause()
+		SCREENMAN:GetTopScreen():TogglePause()
 	end,
 	ReplayBookmarkSetCommand = function(self)
 		position = SCREENMAN:GetTopScreen():GetSongPosition()
-		SCREENMAN:GetTopScreen():SetReplayBookmark(position)
+		SCREENMAN:GetTopScreen():SetBookmark(position)
 	end,
 	ReplayBookmarkGotoCommand = function(self)
-		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
+		SCREENMAN:GetTopScreen():JumpToBookmark()
 	end,
 }
 local span = 50
@@ -147,7 +147,7 @@ scroller[#scroller + 1] =
 		button(
 			"Pause",
 			function(self)
-				SCREENMAN:GetTopScreen():ToggleReplayPause()
+				SCREENMAN:GetTopScreen():TogglePause()
 				local paused = GAMESTATE:IsPaused()
 				self.label.actor:settext(paused and "Play" or "Pause")
 			end
@@ -155,13 +155,13 @@ scroller[#scroller + 1] =
 		button(
 			"Fast Forward",
 			function()
-				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
+				SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
 			end
 		),
 		button(
 			"Rewind",
 			function()
-				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
+				SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
 			end
 		),
 	}

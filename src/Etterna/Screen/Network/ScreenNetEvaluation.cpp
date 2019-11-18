@@ -131,13 +131,11 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 		int theNumber = 0;
 		RString given = SArg(1);
 		given = given.MakeLower();
-		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++)
-		{
+		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++) {
 			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
 			RString name = pd.nameStr;
 			name.MakeLower();
-			if (name == given)
-			{
+			if (name == given) {
 				p->m_iCurrentPlayer = (int)i;
 				p->UpdateStats();
 				break;

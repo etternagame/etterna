@@ -33,6 +33,7 @@ class GameSoundManager : MessageSubscriber
 			fFadeOutLengthSeconds = 0;
 			bAlignBeat = true;
 			bApplyMusicRate = false;
+			bAccurateSync = false;
 		}
 
 		RString sFile;
@@ -44,6 +45,7 @@ class GameSoundManager : MessageSubscriber
 		float fFadeOutLengthSeconds;
 		bool bAlignBeat;
 		bool bApplyMusicRate;
+		bool bAccurateSync;
 	};
 	void PlayMusic(PlayMusicParams params,
 				   PlayMusicParams FallbackMusicParams = PlayMusicParams());
@@ -55,7 +57,8 @@ class GameSoundManager : MessageSubscriber
 				   float fFadeInLengthSeconds = 0,
 				   float fade_len = 0,
 				   bool align_beat = true,
-				   bool bApplyMusicRate = false);
+				   bool bApplyMusicRate = false,
+				   bool bAccurateSync = false);
 	void StopMusic() { PlayMusic(""); }
 	void DimMusic(float fVolume, float fDurationSeconds);
 	RString GetMusicPath() const;
@@ -71,13 +74,18 @@ class GameSoundManager : MessageSubscriber
 	static float GetPlayerBalance(PlayerNumber pn);
 	void WithRageSoundPlaying(function<void(RageSound*)> f);
 	TimingData GetPlayingMusicTiming();
-	
+
+	// Set a sound's position given its pointer
+	// Meant to avoid blocking the game execution (stutter)
+	void SetSoundPosition(RageSound* s, float fSeconds);
+
 	void StartMusic(MusicToPlay& ToPlay);
 	void DoPlayOnce(RString sPath);
 	void StartQueuedSounds();
 	void DoPlayOnceFromDir(RString sPath);
 	bool SoundWaiting();
-		
+	void HandleSetPosition();
+
 	std::shared_ptr<LuaReference> soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
 	Screen* callbackOwningScreen{ nullptr };

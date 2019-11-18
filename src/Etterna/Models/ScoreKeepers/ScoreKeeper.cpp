@@ -32,9 +32,12 @@ ScoreKeeper::GetScoreOfLastTapInRow(const NoteData& nd,
 
 #include "ScoreKeeperNormal.h"
 
-ScoreKeeper* ScoreKeeper::MakeScoreKeeper( const RString &sClassName, PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats )
+ScoreKeeper*
+ScoreKeeper::MakeScoreKeeper(const RString& sClassName,
+							 PlayerState* pPlayerState,
+							 PlayerStageStats* pPlayerStageStats)
 {
-	if( sClassName == "ScoreKeeperNormal" )
-		return new ScoreKeeperNormal( pPlayerState, pPlayerStageStats );
-	FAIL_M( ssprintf("Invalid ScoreKeeper named %s!", sClassName.c_str() ));
+	if (sClassName == "ScoreKeeperNormal")
+		return new ScoreKeeperNormal(pPlayerState, pPlayerStageStats);
+	FAIL_M(ssprintf("Invalid ScoreKeeper named %s!", sClassName.c_str()));
 }

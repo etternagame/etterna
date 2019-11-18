@@ -8,7 +8,6 @@
 #include "StepsUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
-
 // Sorting stuff
 map<const Steps*, RString> steps_sort_val;
 

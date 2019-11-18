@@ -50,6 +50,9 @@ local t =
 			end,
 			CurrentRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			PracticeModeReloadMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	LoadFont("Common Normal") ..

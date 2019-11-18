@@ -14,6 +14,10 @@
 #include <fstream>
 #include <sstream>
 #include "Etterna/Singletons/CryptManager.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
 
 const string BASIC_REPLAY_DIR =
@@ -52,11 +56,12 @@ struct HighScoreImpl
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	vector<float> vOnlineReplayTimestampVector;
 	vector<int> vRescoreJudgeVector;
-	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
-	string	sModifiers;
-	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
-	string sPlayerGuid;	// who made this high score
-	string sMachineGuid;	// where this high score was made
+	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
+	string sModifiers;
+	DateTime dateTime;   // return value of time() for when the highscore object
+						 // was created (immediately after achieved)
+	string sPlayerGuid;  // who made this high score
+	string sMachineGuid; // where this high score was made
 	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
@@ -101,27 +106,29 @@ struct HighScoreImpl
 bool
 HighScoreImpl::operator==(const HighScoreImpl& other) const
 {
-#define COMPARE(x)	if( (x)!=other.x )	return false;
-	COMPARE( sName );
-	COMPARE( grade );
-	COMPARE( iScore );
-	COMPARE( iMaxCombo );
-	COMPARE( fPercentDP );
-	COMPARE( fSurviveSeconds );
-	COMPARE( sModifiers );
-	COMPARE( dateTime );
-	COMPARE( sPlayerGuid );
-	COMPARE( sMachineGuid );
-	COMPARE( iProductID );
-	FOREACH_ENUM( TapNoteScore, tns )
-		COMPARE( iTapNoteScores[tns] );
-	FOREACH_ENUM( HoldNoteScore, hns )
-		COMPARE( iHoldNoteScores[hns] );
-	FOREACH_ENUM( Skillset, ss)
-		COMPARE(fSkillsetSSRs[ss]);
-	COMPARE( radarValues );
-	COMPARE( fLifeRemainingSeconds );
-	COMPARE( bDisqualified );
+#define COMPARE(x)                                                             \
+	if ((x) != other.x)                                                        \
+		return false;
+	COMPARE(sName);
+	COMPARE(grade);
+	COMPARE(iScore);
+	COMPARE(iMaxCombo);
+	COMPARE(fPercentDP);
+	COMPARE(fSurviveSeconds);
+	COMPARE(sModifiers);
+	COMPARE(dateTime);
+	COMPARE(sPlayerGuid);
+	COMPARE(sMachineGuid);
+	COMPARE(iProductID);
+	FOREACH_ENUM(TapNoteScore, tns)
+	COMPARE(iTapNoteScores[tns]);
+	FOREACH_ENUM(HoldNoteScore, hns)
+	COMPARE(iHoldNoteScores[hns]);
+	FOREACH_ENUM(Skillset, ss)
+	COMPARE(fSkillsetSSRs[ss]);
+	COMPARE(radarValues);
+	COMPARE(fLifeRemainingSeconds);
+	COMPARE(bDisqualified);
 #undef COMPARE
 
 	return true;
@@ -563,7 +570,7 @@ HighScore::LoadReplayDataBasic()
 	SetOffsetVector(vOffsetVector);
 
 	m_Impl->ReplayType = 1;
-	LOG->Trace("Loaded replay data at %s", path.c_str());
+	LOG->Trace("Loaded replay data type 1 at %s", path.c_str());
 	return true;
 }
 
@@ -669,7 +676,7 @@ HighScore::LoadReplayDataFull()
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
-	LOG->Trace("Loaded replay data at %s", path.c_str());
+	LOG->Trace("Loaded replay data type 2 at %s", path.c_str());
 	return true;
 }
 
@@ -1315,7 +1322,6 @@ HighScoreList::GetTopScore() const
 	}
 }
 
-
 void
 HighScoreList::RemoveAllButOneOfEachName()
 {
@@ -1621,8 +1627,7 @@ class LunaHighScore : public Luna<HighScore>
 	static int IsFillInMarker(T* p, lua_State* L)
 	{
 		bool bIsFillInMarker = false;
-		bIsFillInMarker |=
-		  p->GetName() == RANKING_TO_FILL_IN_MARKER;
+		bIsFillInMarker |= p->GetName() == RANKING_TO_FILL_IN_MARKER;
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}
@@ -1707,10 +1712,46 @@ class LunaHighScore : public Luna<HighScore>
 	{
 		auto* v = &(p->GetNoteRowVector());
 		bool loaded = v->size() > 0;
+
+		auto timestamps = p->GetCopyOfSetOnlineReplayTimestampVector();
+
 		if (loaded || p->LoadReplayData()) {
+			// this is a local highscore with a local replay
+			// easy to just output the noterows loaded
 			LuaHelpers::CreateTableFromArray((*v), L);
-		} else
+		} else if (!timestamps.empty() && v->empty()) {
+			// this is a legacy online replay
+			// missing rows but with timestamps instead
+			// we can try our best to show the noterows by approximating
+			GAMESTATE->SetProcessedTimingData(
+			  GAMESTATE->m_pCurSteps->GetTimingData());
+			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
+			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+			auto nerv = nd.BuildAndGetNerv();
+			auto sdifs = td->BuildAndGetEtaner(nerv);
+			vector<int> noterows;
+			for (auto t : timestamps) {
+				auto timestamptobeat =
+				  td->GetBeatFromElapsedTime(t * p->GetMusicRate());
+				auto somenumberscaledbyoffsets =
+				  sdifs[0] - (timestamps[0] * p->GetMusicRate());
+				timestamptobeat += somenumberscaledbyoffsets;
+				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
+				noterows.emplace_back(noterowfrombeat);
+			}
+			int noterowoffsetter = nerv[0] - noterows[0];
+			for (auto& noterowwithoffset : noterows)
+				noterowwithoffset += noterowoffsetter;
+			GAMESTATE->SetProcessedTimingData(nullptr);
+			p->SetNoteRowVector(noterows);
+
+			v = &(p->GetNoteRowVector()); // uhh
+
+			LuaHelpers::CreateTableFromArray((*v), L);
+		} else {
+			// ok we got nothing, just throw null
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 

@@ -23,8 +23,7 @@ RageSurface_stb_Load(const RString& sPath,
 
 	int x, y, n;
 	unsigned char* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
-	if (doot == nullptr)
-	{
+	if (doot == nullptr) {
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
 	if (bHeaderOnly) {
@@ -32,16 +31,15 @@ RageSurface_stb_Load(const RString& sPath,
 		stbi_image_free(doot);
 		return RageSurfaceUtils::OPEN_OK;
 	} else {
-		ret =
-		  CreateSurfaceFrom(x,
-							y,
-							32,
-							Swap32BE(0xFF000000),
-							Swap32BE(0x00FF0000),
-							Swap32BE(0x0000FF00),
-							Swap32BE(0x000000FF),
-							doot,
-							x * 4);
+		ret = CreateSurfaceFrom(x,
+								y,
+								32,
+								Swap32BE(0xFF000000),
+								Swap32BE(0x00FF0000),
+								Swap32BE(0x0000FF00),
+								Swap32BE(0x000000FF),
+								doot,
+								x * 4);
 	}
 
 	if (ret == nullptr) {

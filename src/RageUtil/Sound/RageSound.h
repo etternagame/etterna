@@ -1,4 +1,4 @@
-﻿/* RageSound - High-level sound object. */
+/* RageSound - High-level sound object. */
 
 #ifndef RAGE_SOUND_H
 #define RAGE_SOUND_H
@@ -55,6 +55,9 @@ struct RageSoundParams
 	float m_fPitch{ 1.0f };
 	float m_fSpeed{ 1.0f };
 
+	// Accurate Sync (for now only useful for MP3s)
+	bool m_bAccurateSync{ false };
+
 	/* Optional driver feature: time to actually start playing sounds.
 	 * If zero, or if not supported, the sound will start immediately. */
 	RageTimer m_StartTime;
@@ -91,7 +94,7 @@ struct RageSoundLoadParams
 
 class RageSound : public RageSoundBase
 {
-public:
+  public:
 	RageSound();
 	~RageSound() override;
 	RageSound(const RageSound& cpy);
@@ -112,8 +115,8 @@ public:
 	 * is broken or missing.
 	 */
 	bool Load(const RString& sFile,
-		bool bPrecache,
-		const RageSoundLoadParams* pParams = nullptr);
+			  bool bPrecache,
+			  const RageSoundLoadParams* pParams = nullptr);
 
 	/* Using this version means the "don't care" about caching. Currently,
 	 * this always will not cache the sound; this may become a preference. */
@@ -138,16 +141,17 @@ public:
 
 	void Play(bool is_action, const RageSoundParams* params = nullptr);
 	void PlayCopy(bool is_action,
-		const RageSoundParams* pParams = nullptr) const;
+				  const RageSoundParams* pParams = nullptr) const;
 	void Stop();
 
 	/* Cleanly pause or unpause the sound. If the sound wasn't already playing,
 	 * return true and do nothing. */
 	bool Pause(bool bPause);
+	bool m_bPaused{ false };
 
 	float GetLengthSeconds();
 	float GetPositionSeconds(bool* approximate = nullptr,
-		RageTimer* Timestamp = nullptr) const;
+							 RageTimer* Timestamp = nullptr) const;
 	RString GetLoadedFilePath() const override { return m_sFilePath; }
 	bool IsPlaying() const { return m_bPlaying; }
 
@@ -159,13 +163,15 @@ public:
 	void SetStopModeFromString(const RString& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	void SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize = 1024);
+	void SetPlayBackCallback(shared_ptr<LuaReference> f,
+							 unsigned int bufSize = 1024);
 	atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);
-private:
+
+  private:
 	mutable RageMutex m_Mutex;
 
 	RageSoundReader* m_pSource;
@@ -184,10 +190,12 @@ private:
 	 * play until it becomes positive. */
 	int64_t m_iStreamFrame;
 
-	void* fftwBuffer{nullptr};
-	void ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize);
+	void* fftwBuffer{ nullptr };
+	void ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
+									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
-	std::mutex recentSamplesMutex; // For all operations related to sound play callbacks
+	std::mutex
+	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	shared_ptr<LuaReference> soundPlayCallback;
 	vector<float> recentPCMSamples;

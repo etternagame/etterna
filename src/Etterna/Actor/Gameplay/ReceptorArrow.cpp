@@ -14,7 +14,9 @@ ReceptorArrow::ReceptorArrow()
 }
 
 void
-ReceptorArrow::Load(const PlayerState* pPlayerState, int iColNo, std::string Type)
+ReceptorArrow::Load(const PlayerState* pPlayerState,
+					int iColNo,
+					std::string Type)
 {
 	m_pPlayerState = pPlayerState;
 	m_iColNo = iColNo;
@@ -29,7 +31,8 @@ ReceptorArrow::Load(const PlayerState* pPlayerState, int iColNo, std::string Typ
 	// requirements. -Kyz
 	NOTESKIN->SetGameController(GameI[0].controller);
 
-	std::string sButton = GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(iColNo);
+	std::string sButton =
+	  GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(iColNo);
 	m_pReceptor.Load(NOTESKIN->LoadActor(sButton, Type));
 	this->AddChild(m_pReceptor);
 

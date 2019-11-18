@@ -1040,10 +1040,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		SongUtil::AdjustDuplicateSteps(this);
 
 		// Clear fields for files that turned out to not exist.
-#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                           \
+#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                       \
 	if (!(has_name)) {                                                         \
 		(field_name) = "";                                                     \
-		(field_name2) = "";							\
+		(field_name2) = "";                                                    \
 	}
 		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile, m_sBannerPath);
 		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile, m_sBackgroundPath);
@@ -1418,7 +1418,9 @@ Song::GetCacheFile(std::string sType)
 	PreDefs["Disc"] = GetDiscPath();
 
 	// Check if Predefined images exist, And return function if they do.
-	if (PreDefs[sType.c_str()].c_str())		// pretty sure this evaluates to true even if the string is "", but haven't tested extensively
+	if (PreDefs[sType.c_str()]
+		  .c_str()) // pretty sure this evaluates to true even if the string is
+					// "", but haven't tested extensively
 		return PreDefs[sType.c_str()].c_str();
 
 	// Get all image files and put them into a vector.
@@ -1944,7 +1946,7 @@ Song::IsMarathon() const
 }
 
 void
-Song::Borp()
+Song::PlaySampleMusicExtended()
 {
 	GameSoundManager::PlayMusicParams PlayParams;
 	PlayParams.sFile = GetMusicPath();
@@ -1956,11 +1958,13 @@ Song::Borp()
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;
+	PlayParams.bAccurateSync = true;
 
 	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.sFile = "";
 	FallbackMusic.fFadeInLengthSeconds = 1.f;
 	FallbackMusic.bAlignBeat = true;
+	FallbackMusic.bAccurateSync = true;
 
 	if (PlayParams.fLengthSeconds <
 		3.f) { // if the songpreview is after the last note
@@ -1969,27 +1973,7 @@ Song::Borp()
 		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
 	}
 	SOUND->PlayMusic(PlayParams, FallbackMusic);
-}
-
-void
-Song::Norf()
-{
-	GameSoundManager::PlayMusicParams PlayParams;
-	PlayParams.sFile = GetMusicPath();
-	PlayParams.pTiming = nullptr;
-	PlayParams.bForceLoop = true;
-	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds = m_fMusicSampleLengthSeconds;
-	PlayParams.fFadeOutLengthSeconds = 1.f;
-	PlayParams.bAlignBeat = true;
-	PlayParams.bApplyMusicRate = true;
-
-	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = GetMusicPath();
-	FallbackMusic.fFadeInLengthSeconds = 1.f;
-	FallbackMusic.bAlignBeat = true;
-
-	SOUND->PlayMusic(PlayParams, FallbackMusic);
+	GAMESTATE->SetPaused(false);
 }
 
 // lua start
@@ -2397,14 +2381,9 @@ class LunaSong : public Luna<Song>
 		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
-	static int Borp(T* p, lua_State* L)
+	static int PlaySampleMusicExtended(T* p, lua_State* L)
 	{
-		p->Borp();
-		return 0;
-	}
-	static int Norf(T* p, lua_State* L)
-	{
-		p->Norf();
+		p->PlaySampleMusicExtended();
 		return 0;
 	}
 	LunaSong()
@@ -2471,8 +2450,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
-		ADD_METHOD(Borp);
-		ADD_METHOD(Norf);
+		ADD_METHOD(PlaySampleMusicExtended);
 	}
 };
 

@@ -71,7 +71,8 @@ AutoActor::LoadActorFromNode(const XNode* pNode, Actor* pParent)
 }
 
 void
-AutoActor::LoadAndSetName(const std::string& sScreenName, const std::string& sActorName)
+AutoActor::LoadAndSetName(const std::string& sScreenName,
+						  const std::string& sActorName)
 {
 	Load(THEME->GetPathG(sScreenName, sActorName));
 	m_pActor->SetName(sActorName);

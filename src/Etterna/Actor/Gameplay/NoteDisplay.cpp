@@ -216,10 +216,17 @@ MakeNoteResource(const RString& sButton,
 	NoteSkinAndPath nsap(
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
 
-	Color = "4th";
+	/* In its current state, the color feature here produces 9 times the actors
+	 * we want. Anyone curious: That makes it 24x4x9 vs 24x4.
+	 * This drops Gameplay FPS by several hundred, albeit uncapped and
+	 * above 1000fps. Regardless, almost everyone doesn't care about this.
+	 * By this logic we can cripple/disable the feature by doing this instead.
+	 */
+	if (PREFSMAN->m_FastNoteRendering)
+		Color = "4th";
+
 	map<NoteSkinAndPath, NoteResource*>::iterator it =
-	  g_NoteResource[Color].find(nsap); // i cant figure out how color changes
-										// what actors are loaded... -mina
+	  g_NoteResource[Color].find(nsap);
 	if (it == g_NoteResource[Color].end()) {
 		auto* pRes = new NoteResource(nsap);
 
@@ -1935,7 +1942,7 @@ NoteColumnRenderer::DrawPrimitives()
 		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func)                                       \
-		DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
+	DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
 	DRAW_TAP_SET(holds, DrawHoldsInRange);
 	DTS_INNER(
 	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);

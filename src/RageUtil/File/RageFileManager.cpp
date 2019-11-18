@@ -458,7 +458,7 @@ RageFileManager::GetDirListing(const RString& sPath_,
 		}
 	}
 
-	UnreferenceAllDrivers(apDriverList);	
+	UnreferenceAllDrivers(apDriverList);
 	StripMacResourceForks(AddTo);
 
 	if (iDriversThatReturnedFiles > 1) {

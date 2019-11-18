@@ -321,8 +321,7 @@ StageStats::AssertValid(PlayerNumber pn) const
 	ASSERT(m_player.m_vpPossibleSteps.size() != 0);
 	ASSERT(m_player.m_vpPossibleSteps[0] != NULL);
 	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
-	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() <
-			   NUM_Difficulty,
+	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("Invalid Difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
 	ASSERT_M((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed,
@@ -345,8 +344,7 @@ StageStats::AssertValid(MultiPlayer pn) const
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps.size() != 0);
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL);
 	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
-	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() <
-			   NUM_Difficulty,
+	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
 	ASSERT((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed);
@@ -391,14 +389,16 @@ StageStats::AddStats(const StageStats& other)
 bool
 StageStats::OnePassed() const
 {
-	if (!m_player.m_bFailed) return true;
+	if (!m_player.m_bFailed)
+		return true;
 	return false;
 }
 
 bool
 StageStats::AllFailed() const
 {
-	if (!m_player.m_bFailed) return false;
+	if (!m_player.m_bFailed)
+		return false;
 	return true;
 }
 
@@ -418,8 +418,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 {
 
 	// 4k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType !=
-		StepsType_dance_single)
+	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single)
 		return false;
 
 	// chord cohesion is invalid
@@ -513,15 +512,15 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetChartKey(chartKey);
 	hs.SetGrade(pss.GetGrade());
 	hs.SetMachineGuid(getSystemUniqueId());
-	hs.SetScore( pss.m_iScore );
-	hs.SetPercentDP( pss.GetPercentDancePoints() );
-	hs.SetWifeScore( pss.GetWifeScore());
-	hs.SetWifePoints( pss.GetCurWifeScore());
-	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	hs.SetJudgeScale( pss.GetTimingScale());
-	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
-	hs.SetAliveSeconds( pss.m_fAliveSeconds );
-	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
+	hs.SetScore(pss.m_iScore);
+	hs.SetPercentDP(pss.GetPercentDancePoints());
+	hs.SetWifeScore(pss.GetWifeScore());
+	hs.SetWifePoints(pss.GetCurWifeScore());
+	hs.SetMusicRate(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	hs.SetJudgeScale(pss.GetTimingScale());
+	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
+	hs.SetAliveSeconds(pss.m_fAliveSeconds);
+	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
 
 	vector<RString> asModifiers;
 	{
@@ -611,9 +610,7 @@ StageStats::FinalizeScores(bool bSummary)
 	// don't save scores if the player chose not to
 	// also don't save if in practice mode
 	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore ||
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetCurrent()
-		  .m_bPractice)
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
 		return;
 
 	LOG->Trace("saving stats and high scores");
@@ -626,18 +623,9 @@ StageStats::FinalizeScores(bool bSummary)
 							? PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid
 							: RString("");
 	m_player.m_HighScore = FillInHighScore(m_player,
-												*GAMESTATE->m_pPlayerState,
-												RANKING_TO_FILL_IN_MARKER,
-												  sPlayerGuid);
-	FOREACH_EnabledMultiPlayer(mp)
-	{
-		RString sPlayerGuid = "00000000-0000-0000-0000-000000000000"; // FIXME
-		m_multiPlayer[mp].m_HighScore =
-		  FillInHighScore(m_multiPlayer[mp],
-						  *GAMESTATE->m_pMultiPlayerState[mp],
-						  "",
-						  sPlayerGuid);
-	}
+										   *GAMESTATE->m_pPlayerState,
+										   RANKING_TO_FILL_IN_MARKER,
+										   sPlayerGuid);
 
 	HighScore& hs = m_player.m_HighScore;
 
@@ -769,8 +757,7 @@ class LunaStageStats : public Luna<StageStats>
 	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
 	static int PlayerHasHighScore(T* p, lua_State* L)
 	{
-		lua_pushboolean(L,
-						p->PlayerHasHighScore(PLAYER_1));
+		lua_pushboolean(L, p->PlayerHasHighScore(PLAYER_1));
 		return 1;
 	}
 

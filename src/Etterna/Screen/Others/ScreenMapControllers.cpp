@@ -85,14 +85,15 @@ ScreenMapControllers::Init()
 		m_Line.push_back(new ActorFrame);
 		FOREACH_ENUM(GameController, c)
 		{
-			BitmapText &text = m_textLabel[c];
-			text.LoadFromFont( THEME->GetPathF(m_sName,"title") );
+			BitmapText& text = m_textLabel[c];
+			text.LoadFromFont(THEME->GetPathF(m_sName, "title"));
 			auto pn = PLAYER_1;
-			text.SetName( "Label"+PlayerNumberToString(pn) );
-			RString sText = ssprintf(PLAYER_SLOTS.GetValue(), PlayerNumberToLocalizedString(pn).c_str());
-			text.SetText( sText );
-			ActorUtil::LoadAllCommands( text, m_sName );
-			m_Line.back()->AddChild( &m_textLabel[c] );
+			text.SetName("Label" + PlayerNumberToString(pn));
+			RString sText = ssprintf(PLAYER_SLOTS.GetValue(),
+									 PlayerNumberToLocalizedString(pn).c_str());
+			text.SetText(sText);
+			ActorUtil::LoadAllCommands(text, m_sName);
+			m_Line.back()->AddChild(&m_textLabel[c]);
 		}
 		m_LineScroller.AddChild(m_Line.back());
 	}

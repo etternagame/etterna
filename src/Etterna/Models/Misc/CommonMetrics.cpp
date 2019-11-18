@@ -135,4 +135,4 @@ CommonMetrics::LocalizeOptionItem(const RString& s, bool bOptional)
 }
 
 LuaFunction(LocalizeOptionItem,
-            CommonMetrics::LocalizeOptionItem(SArg(1), true));
+			CommonMetrics::LocalizeOptionItem(SArg(1), true));

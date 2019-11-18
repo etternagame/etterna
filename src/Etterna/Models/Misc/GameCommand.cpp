@@ -64,7 +64,8 @@ CompareSongOptions(const SongOptions& so1, const SongOptions& so2);
 bool
 GameCommand::DescribesCurrentModeForAllPlayers() const
 {
-	FOREACH_HumanPlayer(pn) if (!DescribesCurrentMode(pn)) return false;
+	if (!DescribesCurrentMode(PLAYER_1))
+		return false;
 
 	return true;
 }
@@ -81,7 +82,8 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 	// doesn't match the difficulty of m_pCurSteps.
 	if (m_pSteps == NULL && m_dc != Difficulty_Invalid) {
 		// Why is this checking for all players?
-		if (GAMESTATE->m_PreferredDifficulty != m_dc) return false;
+		if (GAMESTATE->m_PreferredDifficulty != m_dc)
+			return false;
 	}
 
 	if (m_sAnnouncer != "" && m_sAnnouncer != ANNOUNCER->GetCurAnnouncerName())
@@ -469,13 +471,13 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 								   GAMESTATE->GetMasterPlayerNumber());
 		// If only one side is joined and we picked a style that requires both
 		// sides, join the other side.
-		switch( m_pStyle->m_StyleType )
-		{
-		case StyleType_OnePlayerOneSide:
-		case StyleType_OnePlayerTwoSides:
-			break;
-		default:
-			LuaHelpers::ReportScriptError("Invalid StyleType: " + m_pStyle->m_StyleType);
+		switch (m_pStyle->m_StyleType) {
+			case StyleType_OnePlayerOneSide:
+			case StyleType_OnePlayerTwoSides:
+				break;
+			default:
+				LuaHelpers::ReportScriptError("Invalid StyleType: " +
+											  m_pStyle->m_StyleType);
 		}
 	}
 	if (m_dc != Difficulty_Invalid)
@@ -562,8 +564,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		// applying options affects only the current stage
 		PlayerOptions po;
 		GAMESTATE->GetDefaultPlayerOptions(po);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(
-			ModsLevel_Stage, po);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Stage, po);
 
 		SongOptions so;
 		GAMESTATE->GetDefaultSongOptions(so);

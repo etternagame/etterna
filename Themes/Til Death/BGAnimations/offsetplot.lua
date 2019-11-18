@@ -42,8 +42,34 @@ local function fitY(y) -- Scale offset values to fit within plot height
 	return -1 * y / maxOffset * plotHeight / 2
 end
 
+local function HighlightUpdaterThing(self)
+	if SCREENMAN:GetTopScreen():GetName():find("Evaluation") then
+		self:GetChild("BGQuad"):queuecommand("Highlight")
+	end
+end
+
+-- convert a plot x position to a noterow
+local function convertXToRow(x)
+	local output = x + plotWidth/2
+	output = output / plotWidth
+
+	if output < 0 then output = 0 end
+	if output > 1 then output = 1 end
+
+	-- the 48 here is how many noterows there are per beat
+	-- this is a const defined in the game
+	-- and i sure hope it doesnt ever change
+	local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+	local row = td:GetBeatFromElapsedTime(output * finalSecond) * 48
+
+	return row
+end
+
 local o =
 	Def.ActorFrame {
+	InitCommand = function(self)
+		self:SetUpdateFunction(HighlightUpdaterThing)
+	end,
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
 
@@ -67,6 +93,13 @@ local o =
 			nrt = score:GetNoteRowVector()
 			ctt = score:GetTrackVector()
 			ntt = score:GetTapNoteTypeVector()
+		end
+
+		-- missing noterows. this happens with many online replays.
+		-- we can approximate, but i dont want to do that right now.
+		if nrt == nil then
+			ms.ok("While constructing the offset plot, an error occurred. Press ESC to continue.")
+			return
 		end
 
 		-- Convert noterows to timestamps and plot dots (this is important it determines plot x values!!!)
@@ -125,10 +158,39 @@ local o =
 -- Background
 o[#o + 1] =
 	Def.Quad {
+	Name = "BGQuad",
 	JudgeDisplayChangedMessageCommand = function(self)
 		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(
 			bgalpha
 		)
+	end,
+	HighlightCommand = function(self)
+		local bar = self:GetParent():GetChild("PosBar")
+		local txt = self:GetParent():GetChild("PosText")
+		if isOver(self) then
+			local xpos = INPUTFILTER:GetMouseX() - self:GetParent():GetX()
+			local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
+			bar:visible(true)
+			txt:visible(true)
+			bar:x(xpos)
+			txt:x(xpos - 4)
+			txt:y(ypos)
+			local row = convertXToRow(xpos)
+			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
+			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
+			local marvCount = judgments[10]
+			local perfCount = judgments[9]
+			local greatCount = judgments[8]
+			local goodCount = judgments[7]
+			local badCount = judgments[6]
+			local missCount = judgments[5]
+
+			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
+			txt:settextf("%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %f", "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "WifePercent", wifescore)
+		else
+			bar:visible(false)
+			txt:visible(false)
+		end
 	end
 }
 -- Center Bar
@@ -158,6 +220,18 @@ for i = 1, #fantabars do
 		end
 	}
 end
+
+-- Bar for current mouse position on graph
+o[#o + 1] = Def.Quad {
+	Name = "PosBar",
+	InitCommand = function(self)
+		self:visible(false)
+		self:zoomto(2, plotHeight + plotMargin):diffuse(color("0.5,0.5,0.5,1"))
+	end,
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:zoomto(2, plotHeight + plotMargin)
+	end
+}
 
 local dotWidth = dotDims / 2
 local function setOffsetVerts(vt, x, y, c)
@@ -240,6 +314,16 @@ o[#o + 1] =
 	{
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("Early (-%ims)", maxOffset)
+		end
+	}
+
+-- Text for judgments at mouse position
+o[#o + 1] = 
+	LoadFont("Common Normal") ..
+	{
+		Name = "PosText",
+		InitCommand = function(self)
+			self:x(8):valign(1):halign(1):zoom(0.4)
 		end
 	}
 

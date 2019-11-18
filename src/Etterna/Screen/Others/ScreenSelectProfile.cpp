@@ -181,7 +181,7 @@ ScreenSelectProfile::Finish()
 
 	if (m_iSelectedProfiles > 0) {
 		PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(
-			PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles - 1));
+		  PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles - 1));
 		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
 	}

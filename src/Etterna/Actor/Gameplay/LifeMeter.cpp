@@ -5,11 +5,11 @@
 LifeMeter*
 LifeMeter::MakeLifeMeter(LifeType t)
 {
-	switch( t )
-	{
-	case LifeType_Bar:     return new LifeMeterBar;
-	default:
-		FAIL_M(ssprintf("Unrecognized LifeMeter type: %i", t));
+	switch (t) {
+		case LifeType_Bar:
+			return new LifeMeterBar;
+		default:
+			FAIL_M(ssprintf("Unrecognized LifeMeter type: %i", t));
 	}
 }
 

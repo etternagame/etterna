@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -25,56 +25,34 @@ LastTapNoteScoreTrack(const NoteData& in, unsigned iRow, PlayerNumber pn)
 {
 	float scoretime = -9999;
 	int best_track = -1;
-	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		// In replay mode, judging misses as the "last" tap of every single row
-		// breaks judge counting. Since we judge left to right in Replay, we
-		// just check to see which track was last judged.
-		for (int t = in.GetNumTracks() - 1; t >= 0; t--) {
-			const TapNote& tn = in.GetTapNote(t, iRow);
-			if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
-				tn.type == TapNoteType_Fake ||
-				tn.type == TapNoteType_AutoKeysound)
-				continue;
-			if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
-				continue;
 
-			TapNoteScore tns = tn.result.tns;
-			if (tns == TNS_None)
-				continue;
-			best_track = t;
+	for (int t = 0; t < in.GetNumTracks(); t++) {
+		/* Skip empty tracks and mines */
+		const TapNote& tn = in.GetTapNote(t, iRow);
+		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
+			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
+			continue;
+		if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
+			continue;
+
+		TapNoteScore tns = tn.result.tns;
+
+		if (tns == TNS_Miss ||
+			(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
 			return t;
 		}
-		return best_track;
-	} else {
-		for (int t = 0; t < in.GetNumTracks(); t++) {
-			/* Skip empty tracks and mines */
-			const TapNote& tn = in.GetTapNote(t, iRow);
-			if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
-				tn.type == TapNoteType_Fake ||
-				tn.type == TapNoteType_AutoKeysound)
-				continue;
-			if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
-				continue;
+		if (tns == TNS_None)
+			continue;
 
-			TapNoteScore tns = tn.result.tns;
+		float tm = tn.result.fTapNoteOffset;
+		if (tm < scoretime)
+			continue;
 
-			if (tns == TNS_Miss ||
-				(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
-				return t;
-			}
-			if (tns == TNS_None)
-				continue;
-
-			float tm = tn.result.fTapNoteOffset;
-			if (tm < scoretime)
-				continue;
-
-			scoretime = tm;
-			best_track = t;
-		}
-
-		return best_track;
+		scoretime = tm;
+		best_track = t;
 	}
+
+	return best_track;
 }
 
 /* Return the minimum tap score of a row: the lowest grade of the tap in the

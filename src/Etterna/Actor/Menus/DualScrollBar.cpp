@@ -13,12 +13,12 @@ void
 DualScrollBar::Load(const RString& sType)
 {
 	m_sprScrollThumbUnderHalf.Load(
-		THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
+	  THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
 	m_sprScrollThumbUnderHalf->SetName(ssprintf("ThumbP%i", PLAYER_1 + 1));
 	this->AddChild(m_sprScrollThumbUnderHalf);
 
 	m_sprScrollThumbOverHalf.Load(
-		THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
+	  THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));
 	m_sprScrollThumbOverHalf->SetName(ssprintf("ThumbP%i", PLAYER_1 + 1));
 	this->AddChild(m_sprScrollThumbOverHalf);
 

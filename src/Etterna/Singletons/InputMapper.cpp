@@ -281,400 +281,451 @@ static const AutoMappings g_AutoMappings[] = {
 					   false), // R shoulder
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
-	AutoMappings(
-		"dance",
-		"GamePad Pro USB ",	// yes, there is a space at the end
-		"GamePad Pro USB",
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"SideWinder Game Pad USB version 1.0",
-		"SideWinder Game Pad USB",
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_5,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"4 axis 12 button joystick with hat switch",
-		"Super Joy Box 5",
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false )
-	   ),
-/*	AutoMappings(
+	AutoMappings("dance",
+				 "GamePad Pro USB ", // yes, there is a space at the end
+				 "GamePad Pro USB",
+				 AutoMappingEntry(0, JOY_LEFT, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "SideWinder Game Pad USB version 1.0",
+				 "SideWinder Game Pad USB",
+				 AutoMappingEntry(0, JOY_LEFT, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_5, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "4 axis 12 button joystick with hat switch",
+				 "Super Joy Box 5",
+				 AutoMappingEntry(0, JOY_LEFT, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
+	/*	AutoMappings(
 
-		"dance",
-		"MP-8866 Dual USB Joypad",
-		"Super Dual Box (from Lik-Sang, 2004)",
-		//NEEDS_DANCE_PAD_MAPPING_CODE,
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false ),
+			"dance",
+			"MP-8866 Dual USB Joypad",
+			"Super Dual Box (from Lik-Sang, 2004)",
+			//NEEDS_DANCE_PAD_MAPPING_CODE,
+			AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT, false ),
+			AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT, false ),
+			AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP, false ),
+			AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN, false ),
+			AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT, false
+	   ), AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false
+	   ), AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false
+	   ), AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false
+	   ), AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false
+	   ), AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false
 	   ),
-*/
-	   AutoMappings(
-		"dance",
-		"MP-8866 Dual USB Joypad",
-		"Super Dual Box (from DDRGame.com, Feb 2008)",
-		//NEEDS_DANCE_PAD_MAPPING_CODE,
-		AutoMappingEntry( 0, JOY_BUTTON_3,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_1,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-			   //AutoMappingEntry{ 0, JOY_BUTTON_5,    DANCE_BUTTON_DOWNLEFT,  false ),
-			   //AutoMappingEntry{ 0, JOY_BUTTON_6,    DANCE_BUTTON_DOWNRIGHT, false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"NTPAD",
-		"NTPAD",
-		AutoMappingEntry( 0, JOY_BUTTON_13,     DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_15,     DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_16,     DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_14,     DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"Psx Gamepad",
-		"PSXPAD",
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 1, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"XBOX Gamepad Plugin V0.01",
-		"X-Box gamepad",
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_DOWN,      false ),	       // A
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),	       // B
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_LEFT,      false ),	       // X
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_UP,	       false ),	       // Y
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),	       // L shoulder
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),	       // R shoulder
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"0b43:0003", // The EMS USB2 doesn't provide a model string, so Linux 
-				 // just gives us the VendorID and ModelID in hex.
-		"EMS USB2",
-			   // Player 1.
-		AutoMappingEntry( 0, JOY_BUTTON_16,     DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_14,     DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_13,     DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_15,     DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_SELECT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_COIN,       false )
-			   // Player 2.
-		/*AutoMappingEntry( 0, JOY_BUTTON_32,     DANCE_BUTTON_LEFT,      true ),
-		AutoMappingEntry( 0, JOY_BUTTON_30,     DANCE_BUTTON_RIGHT,     true ),
-		AutoMappingEntry( 0, JOY_BUTTON_29,     DANCE_BUTTON_UP,	       true ),
-		AutoMappingEntry( 0, JOY_BUTTON_31,     DANCE_BUTTON_DOWN,      true ),
-		AutoMappingEntry( 1, JOY_BUTTON_20,     DANCE_BUTTON_LEFT,      true ),
-		AutoMappingEntry( 1, JOY_BUTTON_18,     DANCE_BUTTON_RIGHT,     true ),
-		AutoMappingEntry( 1, JOY_BUTTON_17,     DANCE_BUTTON_UP,	       true ),
-		AutoMappingEntry( 1, JOY_BUTTON_19,     DANCE_BUTTON_DOWN,      true ),
-		AutoMappingEntry( 0, JOY_BUTTON_23,     DANCE_BUTTON_UPRIGHT,   true ),
-		AutoMappingEntry( 0, JOY_BUTTON_24,     DANCE_BUTTON_UPLEFT,    true ),
-		AutoMappingEntry( 0, JOY_BUTTON_25,     GAME_BUTTON_SELECT,     true ),
-		AutoMappingEntry( 0, JOY_BUTTON_26,     GAME_BUTTON_START,      true ),
-		AutoMappingEntry( 0, JOY_BUTTON_21,     GAME_BUTTON_BACK,       true ),
-		AutoMappingEntry( 0, JOY_BUTTON_22,     GAME_BUTTON_COIN,       true )*/
-	   ),
-	   AutoMappings(
-		"dance",
-		"Dance ", //Notice extra space at end
-		"LevelSix USB Pad (DDR638)",	// "DDR638" is the model number of the pad
-		AutoMappingEntry( 0, JOY_BUTTON_1,      DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"SmartJoy PLUS Adapter",
-		"SmartJoy PLUS Adapter",
-		AutoMappingEntry( 0, JOY_LEFT,	       /* dpad L */    DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       /* dpad R */    DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       /* dpad U */    DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       /* dpad D */    DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      /* Square */    DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      /* Circle */    DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      /* Tri */       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 1, JOY_BUTTON_3,      /* X */	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      /* L1 */	       DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      /* R1 */	       DANCE_BUTTON_UPRIGHT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     /* Select */    GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      /* Start	*/     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      /* R1 */	       GAME_BUTTON_SELECT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      /* R2 */	       GAME_BUTTON_COIN,       false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"RedOctane USB Pad|XBOX DDR", // "RedOctane USB Pad" is Ignition 3s and newer Afterburners.  "XBOX DDR" is older Afterburners.
-		"RedOctane Ignition 3 or Afterburner",
-		AutoMappingEntry( 0, JOY_BUTTON_1,      /* dpad L */    DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      /* dpad R */    DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      /* dpad U */    DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      /* dpad D */    DANCE_BUTTON_DOWN,      false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,       false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */    GAME_BUTTON_BACK,       false ),
-		//AutoMappingEntry{ 1, JOY_BUTTON_7,    /* X */	       GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      /* O */	       GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_9,      /* Start	*/     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     /* Sel */       GAME_BUTTON_BACK,       false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"Joypad to USB converter",
-		"EMS Trio Linker",
-		AutoMappingEntry( 0, JOY_BUTTON_16,     /* dpad L */    DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_14,     /* dpad R */    DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_13,     /* dpad U */    DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_15,     /* dpad D */    DANCE_BUTTON_DOWN,      false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,       false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */    GAME_BUTTON_BACK,       false ),
-		//AutoMappingEntry{ 1, JOY_BUTTON_7,    /* X */	       GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      /* O */	       GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_10,     /* Start	*/     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      /* Sel */       GAME_BUTTON_BACK,       false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"Positive Gaming Impact USB pad",
-		"Positive Gaming Impact USB pad",
-		AutoMappingEntry( 0, JOY_BUTTON_1,      /* dpad L */    DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      /* dpad R */    DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      /* dpad U */    DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      /* dpad D */    DANCE_BUTTON_DOWN,      false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,       false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */    GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      /* X */	       DANCE_BUTTON_UPLEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      /* O */	       DANCE_BUTTON_UPRIGHT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_9,      /* Start	*/     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     /* Sel */       GAME_BUTTON_BACK,       false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"USB Dance Pad",
-		"DDRGame Energy Dance Pad",
-		AutoMappingEntry( 0, JOY_BUTTON_13,     DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_15,     DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_16,     DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_14,     DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      DANCE_BUTTON_UPRIGHT,   false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"USB DancePad",
-		"D-Force Dance Pad",
-		AutoMappingEntry( 0, JOY_BUTTON_1,     DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,     DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,     DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,     DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"Dual USB Vibration Joystick",
-		"PC Multi Hub Double Power Box 4",
-		AutoMappingEntry( 0, JOY_BUTTON_13,     DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_15,     DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_16,     DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_14,     DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      DANCE_BUTTON_UPLEFT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      DANCE_BUTTON_UPRIGHT,   false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
-		//AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"dance",
-		"Controller \\(Harmonix Drum Kit for Xbox 360\\)",
-		"Rock Band drum controller (Xbox 360, Windows driver)",
-		AutoMappingEntry( 0, JOY_BUTTON_3,      DANCE_BUTTON_UP,	       false ),	       // blue drum
-		AutoMappingEntry( 0, JOY_BUTTON_4,      DANCE_BUTTON_DOWN,      false ),	       // yellow drum
-		AutoMappingEntry( 0, JOY_BUTTON_2,      DANCE_BUTTON_LEFT,      false ),	       // red drum
-		AutoMappingEntry( 0, JOY_BUTTON_1,      DANCE_BUTTON_RIGHT,     false ),	       // green	drum
-		AutoMappingEntry( 0, JOY_HAT_LEFT,      GAME_BUTTON_MENULEFT,   false ),	       // d-pad	left
-		AutoMappingEntry( 0, JOY_HAT_RIGHT,     GAME_BUTTON_MENURIGHT,  false ),	       // d-pad	right
-		AutoMappingEntry( 0, JOY_HAT_UP,	       GAME_BUTTON_MENUUP,     false ),	       // d-pad	up
-		AutoMappingEntry( 0, JOY_HAT_DOWN,      GAME_BUTTON_MENUDOWN,   false ),	       // d-pad	down
-		AutoMappingEntry( 0, JOY_BUTTON_8,      GAME_BUTTON_START,      false ),	       // start	button
-		AutoMappingEntry( 0, JOY_BUTTON_7,      GAME_BUTTON_BACK,       false )	       // back button
-	   ),
-	   AutoMappings(
-		"pump",
-		"Pump USB",
-		"Pump USB pad",
-		AutoMappingEntry( 0, JOY_BUTTON_1,      PUMP_BUTTON_UPLEFT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      PUMP_BUTTON_UPRIGHT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      PUMP_BUTTON_CENTER,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      PUMP_BUTTON_DOWNLEFT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      PUMP_BUTTON_DOWNRIGHT,  false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_BACK,       false )
-		/*AutoMappingEntry( 0, JOY_BUTTON_7,      PUMP_BUTTON_UPLEFT,     true ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      PUMP_BUTTON_UPRIGHT,    true ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      PUMP_BUTTON_CENTER,     true ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     PUMP_BUTTON_DOWNLEFT,   true ),
-		AutoMappingEntry( 0, JOY_BUTTON_11,     PUMP_BUTTON_DOWNRIGHT,  true )*/
-	   ),
-	   AutoMappings(
-		"pump",
-		"GamePad Pro USB ",	// yes, there is a space at the end
-		"GamePad Pro USB",
-		AutoMappingEntry( 0, JOY_BUTTON_5,      PUMP_BUTTON_UPLEFT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      PUMP_BUTTON_UPRIGHT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      PUMP_BUTTON_DOWNLEFT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      PUMP_BUTTON_DOWNRIGHT,  false ),
-		AutoMappingEntry( 0, JOY_LEFT,	       GAME_BUTTON_MENULEFT,   false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       GAME_BUTTON_MENURIGHT,  false ),
-		AutoMappingEntry( 0, JOY_UP,	       GAME_BUTTON_MENUUP,     false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       GAME_BUTTON_MENUDOWN,   false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      PUMP_BUTTON_CENTER,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-	   ),
-	   AutoMappings(
-		"pump",
-		"Controller \\(Harmonix Drum Kit for Xbox 360\\)",
-		"Rock Band drum controller (Xbox 360, Windows driver)",
-		AutoMappingEntry( 0, JOY_BUTTON_5,      PUMP_BUTTON_CENTER,     false ),	       // bass pedal
-		AutoMappingEntry( 0, JOY_BUTTON_3,      PUMP_BUTTON_UPRIGHT,    false ),	       // blue drum
-		AutoMappingEntry( 0, JOY_BUTTON_4,      PUMP_BUTTON_UPLEFT,     false ),	       // yellow drum
-		AutoMappingEntry( 0, JOY_BUTTON_2,      PUMP_BUTTON_DOWNLEFT,   false ),	       // red drum
-		AutoMappingEntry( 0, JOY_BUTTON_1,      PUMP_BUTTON_DOWNRIGHT,  false ),	       // green	drum
-		AutoMappingEntry( 0, JOY_HAT_LEFT,      GAME_BUTTON_MENULEFT,   false ),	       // d-pad	left
-		AutoMappingEntry( 0, JOY_HAT_RIGHT,     GAME_BUTTON_MENURIGHT,  false ),	       // d-pad	right
-		AutoMappingEntry( 0, JOY_HAT_UP,	       GAME_BUTTON_MENUUP,     false ),	       // d-pad	up
-		AutoMappingEntry( 0, JOY_HAT_DOWN,      GAME_BUTTON_MENUDOWN,   false ),	       // d-pad	down
-		AutoMappingEntry( 0, JOY_BUTTON_8,      GAME_BUTTON_START,      false ),	       // start	button
-		AutoMappingEntry( 0, JOY_BUTTON_7,      GAME_BUTTON_BACK,       false )	       // back button
-	   ),
-	   AutoMappings(
-		"para",
-		"ParaParaParadise Controller",
-		"ParaParaParadise Controller",
-		AutoMappingEntry( 0, JOY_BUTTON_5,      PARA_BUTTON_LEFT,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      PARA_BUTTON_UPLEFT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      PARA_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      PARA_BUTTON_UPRIGHT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_1,      PARA_BUTTON_RIGHT,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false ),
-		AutoMappingEntry( 0, JOY_BUTTON_11,     GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_12,     GAME_BUTTON_MENULEFT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_MENURIGHT,  false )
-	   ),
-	   AutoMappings(
-		"techno",
-		"Dance ", //Notice the extra space at end
-		"LevelSix USB Pad (DDR638)",	// "DDR638" is the model number of the pad
-		AutoMappingEntry( 0, JOY_BUTTON_1,      TECHNO_BUTTON_UP,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_2,      TECHNO_BUTTON_DOWN,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_3,      TECHNO_BUTTON_LEFT,     false ),
-		AutoMappingEntry( 0, JOY_BUTTON_4,      TECHNO_BUTTON_RIGHT,    false ),
-		AutoMappingEntry( 0, JOY_BUTTON_5,      TECHNO_BUTTON_DOWNRIGHT,false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      TECHNO_BUTTON_DOWNLEFT, false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      TECHNO_BUTTON_UPRIGHT,  false ),
-		AutoMappingEntry( 0, JOY_BUTTON_8,      TECHNO_BUTTON_UPLEFT,   false ),
-		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false )
-		),
+		   ),
+	*/
+	AutoMappings(
+	  "dance",
+	  "MP-8866 Dual USB Joypad",
+	  "Super Dual Box (from DDRGame.com, Feb 2008)",
+	  // NEEDS_DANCE_PAD_MAPPING_CODE,
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    DANCE_BUTTON_DOWNLEFT,  false ),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_6,    DANCE_BUTTON_DOWNRIGHT, false ),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "NTPAD",
+				 "NTPAD",
+				 AutoMappingEntry(0, JOY_BUTTON_13, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "Psx Gamepad",
+				 "PSXPAD",
+				 AutoMappingEntry(0, JOY_LEFT, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPLEFT, false),
+				 AutoMappingEntry(1, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "dance",
+	  "XBOX Gamepad Plugin V0.01",
+	  "X-Box gamepad",
+	  AutoMappingEntry(0, JOY_LEFT, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),  // A
+	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false), // B
+	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),  // X
+	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),	// Y
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_7,
+					   DANCE_BUTTON_UPLEFT,
+					   false), // L shoulder
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_8,
+					   DANCE_BUTTON_UPRIGHT,
+					   false), // R shoulder
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
+	AutoMappings(
+	  "dance",
+	  "0b43:0003", // The EMS USB2 doesn't provide a model string, so Linux
+				   // just gives us the VendorID and ModelID in hex.
+	  "EMS USB2",
+	  // Player 1.
+	  AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_13, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_SELECT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false),
+	  AutoMappingEntry(0, JOY_BUTTON_5, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_6, GAME_BUTTON_COIN, false)
+	  // Player 2.
+	  /*AutoMappingEntry( 0, JOY_BUTTON_32,     DANCE_BUTTON_LEFT,      true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_30,     DANCE_BUTTON_RIGHT,     true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_29,     DANCE_BUTTON_UP,	       true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_31,     DANCE_BUTTON_DOWN,      true ),
+	  AutoMappingEntry( 1, JOY_BUTTON_20,     DANCE_BUTTON_LEFT,      true ),
+	  AutoMappingEntry( 1, JOY_BUTTON_18,     DANCE_BUTTON_RIGHT,     true ),
+	  AutoMappingEntry( 1, JOY_BUTTON_17,     DANCE_BUTTON_UP,	       true ),
+	  AutoMappingEntry( 1, JOY_BUTTON_19,     DANCE_BUTTON_DOWN,      true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_23,     DANCE_BUTTON_UPRIGHT,   true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_24,     DANCE_BUTTON_UPLEFT,    true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_25,     GAME_BUTTON_SELECT,     true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_26,     GAME_BUTTON_START,      true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_21,     GAME_BUTTON_BACK,       true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_22,     GAME_BUTTON_COIN,       true )*/
+	  ),
+	AutoMappings(
+	  "dance",
+	  "Dance ",					   // Notice extra space at end
+	  "LevelSix USB Pad (DDR638)", // "DDR638" is the model number of the pad
+	  AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "dance",
+	  "SmartJoy PLUS Adapter",
+	  "SmartJoy PLUS Adapter",
+	  AutoMappingEntry(0, JOY_LEFT, /* dpad L */ DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_RIGHT, /* dpad R */ DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_UP, /* dpad U */ DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_DOWN, /* dpad D */ DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(1, JOY_BUTTON_4, /* Square */ DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(1, JOY_BUTTON_2, /* Circle */ DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(1, JOY_BUTTON_1, /* Tri */ DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(1, JOY_BUTTON_3, /* X */ DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, /* L1 */ DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, /* R1 */ DANCE_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, /* Select */ GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_9,
+					   /* Start	*/ GAME_BUTTON_START,
+					   false),
+	  AutoMappingEntry(0, JOY_BUTTON_5, /* R1 */ GAME_BUTTON_SELECT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_6, /* R2 */ GAME_BUTTON_COIN, false)),
+	AutoMappings(
+	  "dance",
+	  "RedOctane USB Pad|XBOX DDR", // "RedOctane USB Pad" is Ignition 3s and
+									// newer Afterburners.  "XBOX DDR" is older
+									// Afterburners.
+	  "RedOctane Ignition 3 or Afterburner",
+	  AutoMappingEntry(0, JOY_BUTTON_1, /* dpad L */ DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, /* dpad R */ DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, /* dpad U */ DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, /* dpad D */ DANCE_BUTTON_DOWN, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,
+	  // false ), AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */
+	  // GAME_BUTTON_BACK,       false ), AutoMappingEntry{ 1, JOY_BUTTON_7, /*
+	  // X
+	  // */	       GAME_BUTTON_START,      false ),
+	  AutoMappingEntry(0, JOY_BUTTON_8, /* O */ GAME_BUTTON_START, false),
+	  AutoMappingEntry(1,
+					   JOY_BUTTON_9,
+					   /* Start	*/ GAME_BUTTON_START,
+					   false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, /* Sel */ GAME_BUTTON_BACK, false)),
+	AutoMappings(
+	  "dance",
+	  "Joypad to USB converter",
+	  "EMS Trio Linker",
+	  AutoMappingEntry(0, JOY_BUTTON_16, /* dpad L */ DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_14,
+					   /* dpad R */ DANCE_BUTTON_RIGHT,
+					   false),
+	  AutoMappingEntry(0, JOY_BUTTON_13, /* dpad U */ DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_15, /* dpad D */ DANCE_BUTTON_DOWN, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,
+	  // false ), AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */
+	  // GAME_BUTTON_BACK,       false ), AutoMappingEntry{ 1, JOY_BUTTON_7, /*
+	  // X
+	  // */	       GAME_BUTTON_START,      false ),
+	  AutoMappingEntry(0, JOY_BUTTON_2, /* O */ GAME_BUTTON_START, false),
+	  AutoMappingEntry(1,
+					   JOY_BUTTON_10,
+					   /* Start	*/ GAME_BUTTON_START,
+					   false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, /* Sel */ GAME_BUTTON_BACK, false)),
+	AutoMappings(
+	  "dance",
+	  "Positive Gaming Impact USB pad",
+	  "Positive Gaming Impact USB pad",
+	  AutoMappingEntry(0, JOY_BUTTON_1, /* dpad L */ DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, /* dpad R */ DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, /* dpad U */ DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, /* dpad D */ DANCE_BUTTON_DOWN, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,
+	  // false ), AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */
+	  // GAME_BUTTON_BACK,       false ),
+	  AutoMappingEntry(0, JOY_BUTTON_7, /* X */ DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, /* O */ DANCE_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(1,
+					   JOY_BUTTON_9,
+					   /* Start	*/ GAME_BUTTON_START,
+					   false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, /* Sel */ GAME_BUTTON_BACK, false)),
+	AutoMappings(
+	  "dance",
+	  "USB Dance Pad",
+	  "DDRGame Energy Dance Pad",
+	  AutoMappingEntry(0, JOY_BUTTON_13, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_UPRIGHT, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "dance",
+	  "USB DancePad",
+	  "D-Force Dance Pad",
+	  AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "dance",
+	  "Dual USB Vibration Joystick",
+	  "PC Multi Hub Double Power Box 4",
+	  AutoMappingEntry(0, JOY_BUTTON_13, DANCE_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_UPRIGHT, false),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
+	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "dance",
+	  "Controller \\(Harmonix Drum Kit for Xbox 360\\)",
+	  "Rock Band drum controller (Xbox 360, Windows driver)",
+	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false), // blue drum
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_4,
+					   DANCE_BUTTON_DOWN,
+					   false), // yellow drum
+	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_LEFT, false), // red drum
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_1,
+					   DANCE_BUTTON_RIGHT,
+					   false), // green	drum
+	  AutoMappingEntry(0,
+					   JOY_HAT_LEFT,
+					   GAME_BUTTON_MENULEFT,
+					   false), // d-pad	left
+	  AutoMappingEntry(0,
+					   JOY_HAT_RIGHT,
+					   GAME_BUTTON_MENURIGHT,
+					   false),									  // d-pad	right
+	  AutoMappingEntry(0, JOY_HAT_UP, GAME_BUTTON_MENUUP, false), // d-pad	up
+	  AutoMappingEntry(0,
+					   JOY_HAT_DOWN,
+					   GAME_BUTTON_MENUDOWN,
+					   false), // d-pad	down
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_8,
+					   GAME_BUTTON_START,
+					   false),									 // start	button
+	  AutoMappingEntry(0, JOY_BUTTON_7, GAME_BUTTON_BACK, false) // back button
+	  ),
+	AutoMappings(
+	  "pump",
+	  "Pump USB",
+	  "Pump USB pad",
+	  AutoMappingEntry(0, JOY_BUTTON_1, PUMP_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, PUMP_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, PUMP_BUTTON_CENTER, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, PUMP_BUTTON_DOWNLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_5, PUMP_BUTTON_DOWNRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_6, GAME_BUTTON_BACK, false)
+	  /*AutoMappingEntry( 0, JOY_BUTTON_7,      PUMP_BUTTON_UPLEFT,     true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_8,      PUMP_BUTTON_UPRIGHT,    true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_9,      PUMP_BUTTON_CENTER,     true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_10,     PUMP_BUTTON_DOWNLEFT,   true ),
+	  AutoMappingEntry( 0, JOY_BUTTON_11,     PUMP_BUTTON_DOWNRIGHT,  true )*/
+	  ),
+	AutoMappings(
+	  "pump",
+	  "GamePad Pro USB ", // yes, there is a space at the end
+	  "GamePad Pro USB",
+	  AutoMappingEntry(0, JOY_BUTTON_5, PUMP_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_6, PUMP_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, PUMP_BUTTON_DOWNLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, PUMP_BUTTON_DOWNRIGHT, false),
+	  AutoMappingEntry(0, JOY_LEFT, GAME_BUTTON_MENULEFT, false),
+	  AutoMappingEntry(0, JOY_RIGHT, GAME_BUTTON_MENURIGHT, false),
+	  AutoMappingEntry(0, JOY_UP, GAME_BUTTON_MENUUP, false),
+	  AutoMappingEntry(0, JOY_DOWN, GAME_BUTTON_MENUDOWN, false),
+	  AutoMappingEntry(1, JOY_BUTTON_1, PUMP_BUTTON_CENTER, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
+	AutoMappings(
+	  "pump",
+	  "Controller \\(Harmonix Drum Kit for Xbox 360\\)",
+	  "Rock Band drum controller (Xbox 360, Windows driver)",
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_5,
+					   PUMP_BUTTON_CENTER,
+					   false), // bass pedal
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_3,
+					   PUMP_BUTTON_UPRIGHT,
+					   false), // blue drum
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_4,
+					   PUMP_BUTTON_UPLEFT,
+					   false), // yellow drum
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_2,
+					   PUMP_BUTTON_DOWNLEFT,
+					   false), // red drum
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_1,
+					   PUMP_BUTTON_DOWNRIGHT,
+					   false), // green	drum
+	  AutoMappingEntry(0,
+					   JOY_HAT_LEFT,
+					   GAME_BUTTON_MENULEFT,
+					   false), // d-pad	left
+	  AutoMappingEntry(0,
+					   JOY_HAT_RIGHT,
+					   GAME_BUTTON_MENURIGHT,
+					   false),									  // d-pad	right
+	  AutoMappingEntry(0, JOY_HAT_UP, GAME_BUTTON_MENUUP, false), // d-pad	up
+	  AutoMappingEntry(0,
+					   JOY_HAT_DOWN,
+					   GAME_BUTTON_MENUDOWN,
+					   false), // d-pad	down
+	  AutoMappingEntry(0,
+					   JOY_BUTTON_8,
+					   GAME_BUTTON_START,
+					   false),									 // start	button
+	  AutoMappingEntry(0, JOY_BUTTON_7, GAME_BUTTON_BACK, false) // back button
+	  ),
+	AutoMappings(
+	  "para",
+	  "ParaParaParadise Controller",
+	  "ParaParaParadise Controller",
+	  AutoMappingEntry(0, JOY_BUTTON_5, PARA_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, PARA_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, PARA_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, PARA_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_1, PARA_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false),
+	  AutoMappingEntry(0, JOY_BUTTON_11, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_12, GAME_BUTTON_MENULEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_MENURIGHT, false)),
+	AutoMappings(
+	  "techno",
+	  "Dance ",					   // Notice the extra space at end
+	  "LevelSix USB Pad (DDR638)", // "DDR638" is the model number of the pad
+	  AutoMappingEntry(0, JOY_BUTTON_1, TECHNO_BUTTON_UP, false),
+	  AutoMappingEntry(0, JOY_BUTTON_2, TECHNO_BUTTON_DOWN, false),
+	  AutoMappingEntry(0, JOY_BUTTON_3, TECHNO_BUTTON_LEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_4, TECHNO_BUTTON_RIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_5, TECHNO_BUTTON_DOWNRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_6, TECHNO_BUTTON_DOWNLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_7, TECHNO_BUTTON_UPRIGHT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_8, TECHNO_BUTTON_UPLEFT, false),
+	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
+	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 };
 
 void
@@ -1083,8 +1134,8 @@ InputMapper::IsBeingPressed(const GameInput& GameI,
 		DeviceInput DeviceI;
 
 		if (GameToDevice(GameI, i, DeviceI)) {
-			if (mp != MultiPlayer_Invalid)
-				DeviceI.device = MultiPlayerToInputDevice(mp);
+			// if (mp != MultiPlayer_Invalid)
+			//	DeviceI.device = MultiPlayerToInputDevice(mp);
 			if (INPUTFILTER->IsBeingPressed(DeviceI, pButtonState))
 				return true;
 		}

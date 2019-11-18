@@ -467,8 +467,9 @@ RageFileObjDirect::GetFileSize() const
 	ASSERT_M(iOldPos != -1,
 			 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
 	const int iRet = static_cast<int>(lseek(m_iFD, 0, SEEK_END));
-	// causes crashes when trying to unzip files >2gb, switch for large packs is handled theme-side in TD, so comment this out for now for other themes
-	//ASSERT_M(iRet != -1,
+	// causes crashes when trying to unzip files >2gb, switch for large packs is
+	// handled theme-side in TD, so comment this out for now for other themes
+	// ASSERT_M(iRet != -1,
 	//		 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
 	lseek(m_iFD, iOldPos, SEEK_SET);
 	return iRet;

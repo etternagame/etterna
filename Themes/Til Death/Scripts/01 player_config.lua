@@ -30,7 +30,11 @@ local defaultGameplayCoordinates = {
 	LifeP1Y = 10,
 	LifeP1Rotation = 0,
 	PracticeCDGraphX = 10,
-	PracticeCDGraphY = 85
+	PracticeCDGraphY = 85,
+	BPMTextX = SCREEN_CENTER_X,
+	BPMTextY = SCREEN_BOTTOM - 20,
+	MusicRateX = SCREEN_CENTER_X,
+	MusicRateY = SCREEN_BOTTOM - 10
 }
 
 local defaultGameplaySizes = {
@@ -55,7 +59,9 @@ local defaultGameplaySizes = {
 	LifeP1Width = 1.0,
 	LifeP1Height = 1.0,
 	PracticeCDGraphWidth = 0.8,
-	PracticeCDGraphHeight = 1
+	PracticeCDGraphHeight = 1,
+	MusicRateZoom = 1.0,
+	BPMTextZoom = 1.0
 }
 
 local defaultConfig = {
@@ -82,6 +88,7 @@ local defaultConfig = {
 	JudgmentText = true,
 	ComboText = true,
 	ReceptorSize = 100,
+	ErrorBarCount = 30,
 	BackgroundType = 1,
 	UserName = "",
 	PasswordToken = "",

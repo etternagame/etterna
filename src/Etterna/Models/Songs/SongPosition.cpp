@@ -36,7 +36,9 @@ SongPosition::UpdateSongPosition(float fPositionSeconds,
 	m_fSongBeatNoOffset =
 	  timing.GetBeatFromElapsedTimeNoOffset(fPositionSeconds);
 
-	m_fMusicSecondsVisible = fPositionSeconds - (g_fVisualDelaySeconds.Get() * GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate);
+	m_fMusicSecondsVisible =
+	  fPositionSeconds - (g_fVisualDelaySeconds.Get() *
+						  GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate);
 	beat_info.elapsed_time = m_fMusicSecondsVisible;
 	timing.GetBeatAndBPSFromElapsedTime(beat_info);
 	m_fSongBeatVisible = beat_info.beat;

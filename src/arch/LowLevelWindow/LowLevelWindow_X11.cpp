@@ -4,7 +4,7 @@
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX
-#include "RageUtil/Graphics/RageDisplay.h"  // VideoModeParams
+#include "RageUtil/Graphics/RageDisplay.h"   // VideoModeParams
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 

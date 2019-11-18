@@ -33,8 +33,7 @@ class ArchHooks
 
 	/* If this is a second instance, return true.
 	 * Optionally, give focus to the existing window. */
-	virtual bool CheckForMultipleInstances(int /* argc */,
-										   char* [] /* argv[] */)
+	virtual bool CheckForMultipleInstances(int /* argc */, char*[] /* argv[] */)
 	{
 		return false;
 	}

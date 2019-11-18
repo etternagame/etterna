@@ -56,8 +56,9 @@ class SongManager
 	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
-	vector<RString> GetSongGroupBannerPaths() {
-		return 	m_sSongGroupBannerPaths;
+	vector<RString> GetSongGroupBannerPaths()
+	{
+		return m_sSongGroupBannerPaths;
 	}
 	// RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
 	void GetSongGroupNames(vector<RString>& AddTo) const;
@@ -74,7 +75,9 @@ class SongManager
 	Song* GetSongByChartkey(const string& ck);
 	bool IsChartLoaded(const string& ck)
 	{
-		return SongsByKey.count(ck) == 1 && StepsByKey.count(ck) == 1;	// shouldn't be necessary but apparently it is -mina
+		return SongsByKey.count(ck) == 1 &&
+			   StepsByKey.count(ck) ==
+				 1; // shouldn't be necessary but apparently it is -mina
 	}
 
 	void ResetGroupColors();

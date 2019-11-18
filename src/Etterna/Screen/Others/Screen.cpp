@@ -115,7 +115,7 @@ void
 Screen::UpdateTimedFunctions(float fDeltaTime)
 {
 	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		++it) {
+		 ++it) {
 		auto& delayedF = *it;
 		delayedF.second -= fDeltaTime;
 		if (delayedF.second <= 0) {
@@ -124,23 +124,23 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 	}
 	// Doing this in place did weird things
 	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
-		delayedFunctions.end(),
-		[](pair<function<void()>, float>& x) {
-		return x.second <= 0;
-	}),
-		delayedFunctions.end());
+										  delayedFunctions.end(),
+										  [](pair<function<void()>, float>& x) {
+											  return x.second <= 0;
+										  }),
+						   delayedFunctions.end());
 	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
 		auto* L = LUA->Get();
 		for (auto id : delayedPeriodicFunctionIdsToDelete) {
 			luaL_unref(L, LUA_REGISTRYINDEX, id);
 			auto& vec = this->delayedPeriodicFunctions;
 			vec.erase(std::remove_if(
-				vec.begin(),
-				vec.end(),
-				[id](tuple<function<void()>, float, float, int>& x) {
-				return std::get<3>(x) == id;
-			}),
-				vec.end());
+						vec.begin(),
+						vec.end(),
+						[id](tuple<function<void()>, float, float, int>& x) {
+							return std::get<3>(x) == id;
+						}),
+					  vec.end());
 		}
 		LUA->Release(L);
 		delayedPeriodicFunctionIdsToDelete.clear();

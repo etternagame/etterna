@@ -42,7 +42,8 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	bool MenuStart(const InputEventPlus& input) override;
 	bool MenuBack(const InputEventPlus& input) override;
-	bool SelectCurrent(PlayerNumber pn);
+	bool SelectCurrent(PlayerNumber pn,
+					   GameplayMode mode = GameplayMode_Normal);
 
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	void StartPlayingMusic() override {}
@@ -52,7 +53,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	MusicWheel* GetMusicWheel() { return &m_MusicWheel; }
 
 	void OpenOptionsList(PlayerNumber pn);
-
 
 	bool can_open_options_list(PlayerNumber pn);
 

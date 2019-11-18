@@ -102,7 +102,6 @@ class GameState
 	  m_PlayMode; // many screens display different info depending on this value
 
 	bool m_bPlayingMulti = false;
-	bool m_bMultiplayer;
 	int m_iNumMultiplayerNoteFields;
 	bool DifficultiesLocked() const;
 	bool ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
@@ -198,9 +197,6 @@ class GameState
 	 *
 	 * This resets whenever a player joins or continues. */
 	int m_iPlayerStageTokens;
-	// This is necessary so that IsFinalStageForEveryHumanPlayer knows to
-	// adjust for the current song cost.
-	bool m_AdjustTokensBySongCostForFinalStageCheck;
 
 	RString sExpandedSectionName;
 
@@ -315,6 +311,16 @@ class GameState
 	Profile* GetEditLocalProfile();
 	bool m_bIsChartPreviewActive;
 
+	// Current mode of Gameplay
+	BroadcastOnChange<GameplayMode> m_gameplayMode;
+	GameplayMode GetGameplayMode() { return m_gameplayMode; }
+	void TogglePracticeModeSafe(bool set);
+	void TogglePracticeMode(bool set);
+	bool IsPracticeMode();
+
+	// A "persistent" way to know if we restarted gameplay (hack)
+	bool m_bRestartedGameplay;
+
 	// Discord Rich Presence
 	void discordInit();
 	void updateDiscordPresence(const RString& largeImageText,
@@ -336,43 +342,6 @@ class GameState
 	GameState(const GameState& rhs);
 	GameState& operator=(const GameState& rhs);
 };
-
-PlayerNumber
-GetNextHumanPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextEnabledPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextCpuPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextPotentialCpuPlayer(PlayerNumber pn);
-MultiPlayer
-GetNextEnabledMultiPlayer(MultiPlayer mp);
-
-/** @brief A foreach loop to act on each human Player. */
-#define FOREACH_HumanPlayer(pn)                                                \
-	for (PlayerNumber pn = GetNextHumanPlayer((PlayerNumber)-1);               \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextHumanPlayer(pn))
-/** @brief A foreach loop to act on each enabled Player. */
-#define FOREACH_EnabledPlayer(pn)                                              \
-	for (PlayerNumber pn = GetNextEnabledPlayer((PlayerNumber)-1);             \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextEnabledPlayer(pn))
-/** @brief A foreach loop to act on each CPU Player. */
-#define FOREACH_CpuPlayer(pn)                                                  \
-	for (PlayerNumber pn = GetNextCpuPlayer((PlayerNumber)-1);                 \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextCpuPlayer(pn))
-/** @brief A foreach loop to act on each potential CPU Player. */
-#define FOREACH_PotentialCpuPlayer(pn)                                         \
-	for (PlayerNumber pn = GetNextPotentialCpuPlayer((PlayerNumber)-1);        \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextPotentialCpuPlayer(pn))
-/** @brief A foreach loop to act on each Player in MultiPlayer. */
-#define FOREACH_EnabledMultiPlayer(mp)                                         \
-	for (MultiPlayer mp = GetNextEnabledMultiPlayer((MultiPlayer)-1);          \
-		 (mp) != MultiPlayer_Invalid;                                          \
-		 (mp) = GetNextEnabledMultiPlayer(mp))
 
 extern GameState*
   GAMESTATE; // global and accessible from anywhere in our program

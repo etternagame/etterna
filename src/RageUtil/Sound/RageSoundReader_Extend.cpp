@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_Extend.h"
 #include "RageSoundUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -204,5 +204,5 @@ RageSoundReader_Extend::SetProperty(const RString& sProperty, float fValue)
 		return true;
 	}
 
-	return false;
+	return RageSoundReader_Filter::SetProperty(sProperty, fValue);
 }

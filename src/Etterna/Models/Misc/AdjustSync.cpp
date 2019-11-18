@@ -98,11 +98,12 @@ void
 AdjustSync::SaveSyncChanges()
 {
 	/* TODO: Save all of the timing data changes.
-	* Luckily, only the song timing data needs comparing here. */
-	if (GAMESTATE->m_pCurSong && s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming)
-	{
+	 * Luckily, only the song timing data needs comparing here. */
+	if (GAMESTATE->m_pCurSong &&
+		s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming) {
 
-		//Hack: Otherwise it doesnt work (files created are called /.sm and /.ssc)
+		// Hack: Otherwise it doesnt work (files created are called /.sm and
+		// /.ssc)
 		auto tmp = GAMESTATE->m_pCurSong->m_SongTiming;
 		GAMESTATE->m_pCurSong->ReloadFromSongDir();
 		GAMESTATE->m_pCurSong->m_SongTiming = tmp;

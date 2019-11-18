@@ -124,12 +124,9 @@ void
 ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_MenuTimer) {
-		FOREACH_HumanPlayer(p)
-		{
-			InputEventPlus iep;
-			iep.pn = p;
-			MenuStart(iep);
-		}
+		InputEventPlus iep;
+		iep.pn = PLAYER_1;
+		MenuStart(iep);
 	}
 
 	Screen::HandleScreenMessage(SM);

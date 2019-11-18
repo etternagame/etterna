@@ -558,10 +558,9 @@ SongCacheIndex::DeleteDB()
 	FILEMAN->Remove(CACHE_DB);
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
-							  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
-								SQLITE_OPEN_FULLMUTEX);
-	}
-	catch (std::exception& e) {
+								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
+									SQLITE_OPEN_FULLMUTEX);
+	} catch (std::exception& e) {
 		LOG->Trace("Error reading cache db: %s", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
@@ -586,27 +585,28 @@ SongCacheIndex::CreateDBTables()
 	  "OFFSET TEXT, BPMS TEXT, STOPS TEXT, "
 	  "DELAYS TEXT, WARPS TEXT, TIMESIGNATURESEGMENT TEXT, TICKCOUNTS TEXT, "
 	  "COMBOS TEXT, SPEEDS TEXT, SCROLLS TEXT, FAKES TEXT, LABELS TEXT)");
-	db->exec("CREATE TABLE IF NOT EXISTS songs (ID INTEGER PRIMARY KEY, "
-			 "VERSION FLOAT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, "
-			 "TITLETRANSLIT TEXT, "
-			 "SUBTITLETRANSLIT TEXT, ARTISTTRANSLIT TEXT, GENRE TEXT, "
-			 "ORIGIN TEXT, CREDIT TEXT, BANNER TEXT, BACKGROUND TEXT, "
-			 "PREVIEWVID TEXT, JACKET TEXT, CDIMAGE TEXT, DISCIMAGE TEXT, "
-			 "LYRICSFILE TEXT, CDTITLE TEXT, MUSIC TEXT, PREVIEW TEXT, "
-			 "INSTRUMENTTRACK TEXT, "
-			 "OFFSET FLOAT, SAMPLESTART FLOAT, SAMPLELENGTH FLOAT, SELECTABLE "
-			 "INTEGER, "
-			 "DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, BPMS TEXT, STOPS TEXT, "
-			 "DELAYS TEXT, WARPS TEXT, "
-			 "TIMESIGNATURES TEXT, TICKCOUNTS TEXT, COMBOS TEXT, SPEEDS TEXT, "
-			 "SCROLLS TEXT, FAKES TEXT, LABELS TEXT, LASTSECONDHINT FLOAT, "
-			 "BGCHANGESLAYER1 TEXT, BGCHANGESLAYER2 TEXT, FGCHANGES TEXT, "
-			 "KEYSOUNDS TEXT, FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
-			 "SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, "
-			 "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
-			 "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
-			 "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
-			 "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
+	db->exec(
+	  "CREATE TABLE IF NOT EXISTS songs (ID INTEGER PRIMARY KEY, "
+	  "VERSION FLOAT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, "
+	  "TITLETRANSLIT TEXT, "
+	  "SUBTITLETRANSLIT TEXT, ARTISTTRANSLIT TEXT, GENRE TEXT, "
+	  "ORIGIN TEXT, CREDIT TEXT, BANNER TEXT, BACKGROUND TEXT, "
+	  "PREVIEWVID TEXT, JACKET TEXT, CDIMAGE TEXT, DISCIMAGE TEXT, "
+	  "LYRICSFILE TEXT, CDTITLE TEXT, MUSIC TEXT, PREVIEW TEXT, "
+	  "INSTRUMENTTRACK TEXT, "
+	  "OFFSET FLOAT, SAMPLESTART FLOAT, SAMPLELENGTH FLOAT, SELECTABLE "
+	  "INTEGER, "
+	  "DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, BPMS TEXT, STOPS TEXT, "
+	  "DELAYS TEXT, WARPS TEXT, "
+	  "TIMESIGNATURES TEXT, TICKCOUNTS TEXT, COMBOS TEXT, SPEEDS TEXT, "
+	  "SCROLLS TEXT, FAKES TEXT, LABELS TEXT, LASTSECONDHINT FLOAT, "
+	  "BGCHANGESLAYER1 TEXT, BGCHANGESLAYER2 TEXT, FGCHANGES TEXT, "
+	  "KEYSOUNDS TEXT, FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
+	  "SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, "
+	  "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
+	  "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
+	  "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
+	  "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
 	db->exec("CREATE TABLE IF NOT EXISTS steps (id INTEGER PRIMARY KEY, "
 			 "CHARTNAME TEXT, STEPSTYPE TEXT, DESCRIPTION TEXT, CHARTSTYLE "
 			 "TEXT, DIFFICULTY INTEGER, "
@@ -732,7 +732,8 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 }
 
 template<template<class, class...> class R1,
-		 template<class, class...> class R2,
+		 template<class, class...>
+		 class R2,
 		 class T,
 		 class... A1,
 		 class... A2>
@@ -1194,7 +1195,6 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->m_SongTiming.m_sFile = dir; // songs still have their fallback timing.
 	song->m_fVersion = STEPFILE_VERSION_NUMBER;
 
-
 	song->m_sMusicPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_PreviewPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sBannerPath = static_cast<const char*>(query.getColumn(index++));
@@ -1202,9 +1202,11 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->m_sCDPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sDiscPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sLyricsPath = static_cast<const char*>(query.getColumn(index++));
-	song->m_sBackgroundPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sBackgroundPath =
+	  static_cast<const char*>(query.getColumn(index++));
 	song->m_sCDTitlePath = static_cast<const char*>(query.getColumn(index++));
-	song->m_sPreviewVidPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sPreviewVidPath =
+	  static_cast<const char*>(query.getColumn(index++));
 
 	SMLoader::TidyUpData(*song, true);
 

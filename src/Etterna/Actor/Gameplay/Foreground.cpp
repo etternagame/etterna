@@ -38,15 +38,13 @@ Foreground::LoadFromSong(const Song* pSong)
 	{
 		const BackgroundChange& change = *bgc;
 		std::string sBGName = change.m_def.m_sFile1,
-				sLuaFile = pSong->GetSongDir() + sBGName + "/default.lua",
-				sXmlFile = pSong->GetSongDir() + sBGName + "/default.xml";
+					sLuaFile = pSong->GetSongDir() + sBGName + "/default.lua",
+					sXmlFile = pSong->GetSongDir() + sBGName + "/default.xml";
 
 		LoadedBGA bga;
 		if (DoesFileExist(sLuaFile)) {
 			LOG->Warn("Mod map detected, invalidating sequential assumption.");
-			TimingData* td =
-			  GAMESTATE->m_pCurSteps
-				->GetTimingData();
+			TimingData* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			td->InvalidateSequentialAssmption();
 
 			bga.m_bga = ActorUtil::MakeActor(sLuaFile, this);

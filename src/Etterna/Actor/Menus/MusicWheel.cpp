@@ -730,7 +730,8 @@ MusicWheel::BuildWheelItemDatas(
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
 
-		if (FILTERMAN->filteringCommonPacks && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
+		if (FILTERMAN->filteringCommonPacks && NSMAN->IsETTP() &&
+			!NSMAN->commonpacks.empty()) {
 			vector<Song*> tmp;
 			for (auto& song : arraySongs) {
 				auto& group = song->m_sGroupName;
@@ -1549,7 +1550,7 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	vector<Difficulty> vDifficultiesToRequire;
 
 	if (GAMESTATE->m_PreferredDifficulty == Difficulty_Invalid) {
-	// skip
+		// skip
 	}
 
 	// TRICKY: Don't require that edits be present if perferred
@@ -1558,10 +1559,9 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	// having a single edit for a locked song.
 	else if (GAMESTATE->m_PreferredDifficulty == Difficulty_Edit) {
 		// skip
-	}
-	else {
+	} else {
 
-	vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
+		vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
 	}
 
 	RString sPreferredGroup = m_sExpandedSectionName;

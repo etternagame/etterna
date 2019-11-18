@@ -43,7 +43,7 @@ t[#t + 1] =
 			self:playcommand("Off")
 		end
 	end,
-	PlayingSampleMusicMessageCommand = function(self)
+	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then

@@ -16,7 +16,7 @@ class ScreenSyncOverlay : public Screen
 	static void SetShowAutoplay(bool b);
 
   private:
-	void UpdateText();
+	void UpdateText(bool forcedChange = false);
 	void ShowHelp();
 	void HideHelp();
 

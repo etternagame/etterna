@@ -501,15 +501,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	}
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
-    
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
 					   message->get_payload().c_str());
 		else {
-		  std::lock_guard<std::mutex> l(this->messageBufferMutex);
+			std::lock_guard<std::mutex> l(this->messageBufferMutex);
 			this->newMessages.push_back(std::move(d));
-    }
+		}
 	};
 	auto openHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
@@ -1240,12 +1239,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							!player.HasMember("ready") ||
 							!player["ready"].IsBool())
 							continue;
-						n->m_PlayerNames.push_back(
-						  player["name"].GetString());
-						n->m_PlayerStatus.push_back(
-						  player["status"].GetInt());
-						n->m_PlayerReady.push_back(
-						  player["ready"].GetBool());
+						n->m_PlayerNames.push_back(player["name"].GetString());
+						n->m_PlayerStatus.push_back(player["status"].GetInt());
+						n->m_PlayerReady.push_back(player["ready"].GetBool());
 						n->m_ActivePlayer.push_back(i++);
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");

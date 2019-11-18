@@ -66,8 +66,6 @@ extern ThemeMetric<int> PERCENT_SCORE_DECIMAL_PLACES;
 
 extern ThemeMetric<RString> IMAGES_TO_CACHE;
 
-
-
 RString
 LocalizeOptionItem(const RString& s, bool bOptional);
 };

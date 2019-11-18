@@ -6,28 +6,29 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include <stb/stb_image_write.h>
 
-
-bool RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
+bool
+RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
 {
 	f.Close();
 
 	RageSurface* res;
 	bool converted = RageSurfaceUtils::ConvertSurface(surface,
-												res,
-												surface->w,
-												surface->h,
-												24,
-												Swap24BE(0xFF0000),
-												Swap24BE(0x00FF00),
-												Swap24BE(0x0000FF),
-												0);
+													  res,
+													  surface->w,
+													  surface->h,
+													  24,
+													  Swap24BE(0xFF0000),
+													  Swap24BE(0x00FF00),
+													  Swap24BE(0x0000FF),
+													  0);
 	if (!converted)
 		res = surface;
 
 	int quality = bHighQual ? 100 : 70;
 
 	// returns 0 on failure
-	bool success = stbi_write_jpg(f.GetRealPath(), res->w, res->h, 3, res->pixels, quality);
+	bool success =
+	  stbi_write_jpg(f.GetRealPath(), res->w, res->h, 3, res->pixels, quality);
 
 	if (converted)
 		delete res;

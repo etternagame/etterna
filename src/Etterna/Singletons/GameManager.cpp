@@ -1437,9 +1437,6 @@ GameManager::GameManager()
 	m_fPreviousRate = 1.f;
 	m_sModsToReset;
 	m_vTurnsToReset;
-	m_iPreviousFail = FailType_Immediate;	// this should never get called without being set with the player's existing
-											// option but default to avoid crashing due to a malformed enum just in case
-	m_bRestartedGameplay;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();

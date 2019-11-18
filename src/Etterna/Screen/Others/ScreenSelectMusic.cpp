@@ -38,6 +38,7 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
@@ -90,17 +91,6 @@ ScreenSelectMusic::Init()
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_HUMAN;
-
-	// Remove failOff if we enter SSM with Practice Mode on so if the player
-	// turns it back off when entering a song, we don't have to worry about it
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  GAMEMAN->m_iPreviousFail;
-	}
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
@@ -201,6 +191,7 @@ ScreenSelectMusic::Init()
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
 	m_pPreviewNoteField = nullptr;
+	PlayerAI::ResetScoreData();
 
 	this->SortByDrawOrder();
 }
@@ -274,7 +265,7 @@ ScreenSelectMusic::BeginScreen()
 		  0)
 		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
 
-	GAMEMAN->m_bRestartedGameplay = false;
+	GAMESTATE->m_bRestartedGameplay = false;
 
 	ScreenWithMenuElements::BeginScreen();
 }
@@ -338,12 +329,20 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
 		PlayParams.bApplyMusicRate = true;
 
+		// We will leave this FALSE for standard sample music
+		// Because accurate seeking is slow for MP3.
+		// The way music playing works does not cause stutter, but
+		// will cause inconsistent music playing experience and an overall
+		// negative feel.
+		PlayParams.bAccurateSync = false;
+
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
 		FallbackMusic.fFadeInLengthSeconds =
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 		SOUND->PlayMusic(PlayParams);
+		GAMESTATE->SetPaused(false);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 	}
 }
@@ -517,15 +516,14 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			return true;
 		} else if (bHoldingCtrl && c == 'O' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			bool opposite =
-			  !GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-				 .m_bPractice;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bPractice = opposite;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bPractice = opposite;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice =
-			  opposite;
+			bool opposite = !GAMESTATE->IsPracticeMode();
+			// don't allow changing practice mode if online
+			bool online =
+			  NSMAN->isSMOnline && NSMAN->loggedIn && NSMAN->IsETTP();
+			opposite = opposite && !online;
+			// this function handles the same above logic for online toggling
+			GAMESTATE->TogglePracticeMode(opposite);
+
 			if (opposite)
 				SCREENMAN->SystemMessage("Practice Mode On");
 			else
@@ -687,19 +685,16 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			bool bLeftIsDown = false;
 			bool bRightIsDown = false;
 
-			FOREACH_HumanPlayer(p)
-			{
-				if (m_OptionsList.IsOpened())
-					continue;
-				if (SELECT_MENU_AVAILABLE &&
-					INPUTMAPPER->IsBeingPressed(GAME_BUTTON_SELECT, p))
-					continue;
+			if (m_OptionsList.IsOpened())
+				return false;
+			if (SELECT_MENU_AVAILABLE &&
+				INPUTMAPPER->IsBeingPressed(GAME_BUTTON_SELECT, PLAYER_1))
+				return false;
 
-				bLeftIsDown |= static_cast<int>(
-				  INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, p));
-				bRightIsDown |= static_cast<int>(
-				  INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, p));
-			}
+			bLeftIsDown |= static_cast<int>(
+			  INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, PLAYER_1));
+			bRightIsDown |= static_cast<int>(
+			  INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, PLAYER_1));
 
 			bool bBothDown = bLeftIsDown && bRightIsDown;
 			bool bNeitherDown = !bLeftIsDown && !bRightIsDown;
@@ -910,11 +905,8 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 	}
 
 	vector<PlayerNumber> vpns;
-	FOREACH_HumanPlayer(p)
-	{
-		if (pn == p || GAMESTATE->DifficultiesLocked()) {
-			vpns.push_back(p);
-		}
+	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
+		vpns.push_back(PLAYER_1);
 	}
 	AfterStepsOrTrailChange(vpns);
 
@@ -1059,7 +1051,7 @@ ScreenSelectMusic::MenuStart(const InputEventPlus& input)
 }
 
 bool
-ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
+ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 {
 
 	switch (m_SelectionState) {
@@ -1122,12 +1114,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		case SelectionState_SelectingSteps: {
 			bool bInitiatedByMenuTimer = pn == PLAYER_INVALID;
 			bool bAllOtherHumanPlayersDone = true;
-			FOREACH_HumanPlayer(p)
-			{
-				if (p == pn)
-					continue;
-				bAllOtherHumanPlayersDone &= static_cast<int>(m_bStepsChosen);
-			}
 
 			bool bAllPlayersDoneSelectingSteps =
 			  bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
@@ -1164,17 +1150,14 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		} // we dont know who owns the notefield preview so we broadcast to get
 		  // the owner to submit itself for deletion -mina
 
-		FOREACH_HumanPlayer(p)
-		{
-			if (!m_bStepsChosen) {
-				m_bStepsChosen = true;
-				// Don't play start sound. We play it again below on finalized
-				// m_soundStart.Play(true);
+		if (!m_bStepsChosen) {
+			m_bStepsChosen = true;
+			// Don't play start sound. We play it again below on finalized
+			// m_soundStart.Play(true);
 
-				Message lMsg("StepsChosen");
-				lMsg.SetParam("Player", p);
-				MESSAGEMAN->Broadcast(lMsg);
-			}
+			Message lMsg("StepsChosen");
+			lMsg.SetParam("Player", PLAYER_1);
+			MESSAGEMAN->Broadcast(lMsg);
 		}
 
 		// Now that Steps have been chosen, set a Style that can play them.
@@ -1203,6 +1186,18 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);
 		}
+		// mild hack:
+		/* a true return value (for all cases where the return value of this
+		 * function is handled) normally means the "input was handled" and
+		 * doesn't get pushed to more screens here, we call this function with a
+		 * non default mode value and that means that we aren't going to care
+		 * about handling input because we already handled input ok now that i
+		 * think about it this really doesn't matter but i still want to leave
+		 * this comment here to explain my logic for the odd return value (and
+		 * we want to know if the function call returned early to prevent
+		 * loading replay/practice stuff at the wrong time)
+		 */
+		return mode == GameplayMode_Practice || mode == GameplayMode_Replay;
 	}
 	return false;
 }
@@ -1249,41 +1244,38 @@ void
 ScreenSelectMusic::SwitchToPreferredDifficulty()
 {
 
-	FOREACH_HumanPlayer(pn)
+	// Find the closest match to the user's preferred difficulty and
+	// StepsType.
+	int iCurDifference = -1;
+	int& iSelection = m_iSelection;
+	FOREACH_CONST(Steps*, m_vpSteps, s)
 	{
-		// Find the closest match to the user's preferred difficulty and
-		// StepsType.
-		int iCurDifference = -1;
-		int& iSelection = m_iSelection;
-		FOREACH_CONST(Steps*, m_vpSteps, s)
-		{
-			int i = s - m_vpSteps.begin();
+		int i = s - m_vpSteps.begin();
 
-			// If the current steps are listed, use them.
-			if (GAMESTATE->m_pCurSteps == *s) {
-				iSelection = i;
-				break;
-			}
-
-			if (GAMESTATE->m_PreferredDifficulty != Difficulty_Invalid) {
-				int iDifficultyDifference =
-				  abs((*s)->GetDifficulty() - GAMESTATE->m_PreferredDifficulty);
-				int iStepsTypeDifference = 0;
-				if (GAMESTATE->m_PreferredStepsType != StepsType_Invalid)
-					iStepsTypeDifference =
-					  abs((*s)->m_StepsType - GAMESTATE->m_PreferredStepsType);
-				int iTotalDifference =
-				  iStepsTypeDifference * NUM_Difficulty + iDifficultyDifference;
-
-				if (iCurDifference == -1 || iTotalDifference < iCurDifference) {
-					iSelection = i;
-					iCurDifference = iTotalDifference;
-				}
-			}
+		// If the current steps are listed, use them.
+		if (GAMESTATE->m_pCurSteps == *s) {
+			iSelection = i;
+			break;
 		}
 
-		CLAMP(iSelection, 0, m_vpSteps.size() - 1);
+		if (GAMESTATE->m_PreferredDifficulty != Difficulty_Invalid) {
+			int iDifficultyDifference =
+			  abs((*s)->GetDifficulty() - GAMESTATE->m_PreferredDifficulty);
+			int iStepsTypeDifference = 0;
+			if (GAMESTATE->m_PreferredStepsType != StepsType_Invalid)
+				iStepsTypeDifference =
+				  abs((*s)->m_StepsType - GAMESTATE->m_PreferredStepsType);
+			int iTotalDifference =
+			  iStepsTypeDifference * NUM_Difficulty + iDifficultyDifference;
+
+			if (iCurDifference == -1 || iTotalDifference < iCurDifference) {
+				iSelection = i;
+				iCurDifference = iTotalDifference;
+			}
+		}
 	}
+
+	CLAMP(iSelection, 0, m_vpSteps.size() - 1);
 }
 
 void
@@ -1442,14 +1434,17 @@ ScreenSelectMusic::AfterMusicChange()
 		if (SAMPLE_MUSIC_PREVIEW_MODE !=
 			SampleMusicPreviewMode_StartToPreview) {
 			if (!m_sSampleMusicToPlay.empty())
-				g_bSampleMusicWaiting = true;
+				// dont run basic preview if chart preview is running
+				// lua handles that stuff (we need to change that)
+				g_bSampleMusicWaiting = !(GAMESTATE->m_bIsChartPreviewActive &&
+										  m_pPreviewNoteField->IsVisible());
 		}
 	}
 
 	g_StartedLoadingAt.Touch();
 
 	vector<PlayerNumber> vpns;
-	FOREACH_HumanPlayer(p) vpns.push_back(p);
+	vpns.push_back(PLAYER_1);
 
 	AfterStepsOrTrailChange(vpns);
 }
@@ -1499,6 +1494,7 @@ ScreenSelectMusic::GeneratePreviewNoteField()
 	}
 
 	GAMESTATE->m_bIsChartPreviewActive = true;
+	GAMESTATE->SetPaused(false);
 
 	// Create and Render the NoteField afterwards
 	// It is done in this order so we don't see it before the music changes.
@@ -1525,6 +1521,7 @@ ScreenSelectMusic::DeletePreviewNoteField()
 			g_bSampleMusicWaiting = true;
 			CheckBackgroundRequests(true);
 		}
+		GAMESTATE->SetPaused(false);
 	}
 }
 
@@ -1533,7 +1530,7 @@ ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
 {
 	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
 		SOUND->WithRageSoundPlaying([given](RageSound* pMusic) {
-			pMusic->SetPositionSeconds(given);
+			SOUND->SetSoundPosition(pMusic, given);
 			if (GAMESTATE->GetPaused())
 				pMusic->Pause(true);
 		});
@@ -1621,32 +1618,42 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 
+		// Sometimes the site doesn't send a replay when we ask for one.
+		// This is not our fault.
+		// All scores should have keys.
+		if (hs->GetScoreKey().empty()) {
+			SCREENMAN->SystemMessage(
+			  "Replay appears to be empty. Report this score to developers.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		bool likely_entering_gameplay =
+		  p->SelectCurrent(PLAYER_1, GameplayMode_Replay);
+
+		// just in case
+		if (!likely_entering_gameplay) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		GAMESTATE->m_gameplayMode.Set(GameplayMode_Replay);
+		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+
 		// we get timestamps not noterows when getting online replays from the
 		// site, since order is deterministic we'll just auto set the noterows
 		// from the existing, if the score was cc off then we need to fill in
 		// extra rows for each tap in the chord -mina
 		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
 		auto noterows = hs->GetNoteRowVector();
-		auto REEEEEEEEEEEEEE = hs->GetOffsetVector();
-		if (!timestamps.empty() &&
-			noterows.empty()) { // if we have noterows from newer uploads, just
-								// use them -mina
+
+		// Construct noterows from given timestamps if timestamps are given
+		// alone
+		if (!timestamps.empty() && noterows.empty()) {
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			// vector<int> ihatemylife;
-			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
 			auto nerv = nd.BuildAndGetNerv();
-			/* functionally dead code, may be removed -poco
-			if (!hs->GetChordCohesion()) {
-				for (auto r : nerv)
-					for (int i = 0; i < nd.GetNumTapNotesInRow(r); ++i)
-						ihatemylife.emplace_back(r);
-			} else {
-				for (auto r : nerv)
-					ihatemylife.emplace_back(r);
-			}
-			*/
 			auto sdifs = td->BuildAndGetEtaner(nerv);
 			vector<int> noterows;
 			for (auto t : timestamps) {
@@ -1662,12 +1669,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			for (auto& noterowwithoffset : noterows)
 				noterowwithoffset += noterowoffsetter;
 			GAMESTATE->SetProcessedTimingData(nullptr);
-			// hs->SetNoteRowVector(ihatemylife);
 			hs->SetNoteRowVector(noterows);
 		}
 
-		// Since we keep misses on EO as 180ms, we need to convert them
-		// back.
+		// Since we keep misses on EO as 180ms, need to convert them back.
 		if (!timestamps.empty()) {
 			auto offsets = hs->GetCopyOfOffsetVector();
 			for (auto& offset : offsets) {
@@ -1677,77 +1682,35 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			hs->SetOffsetVector(offsets);
 		}
 
-		PlayerAI::SetScoreData(hs);
+		// Player AI Setup.
+		PlayerAI::ResetScoreData();
+		PlayerAI::SetScoreData(hs, 0, &nd);
 
 		// prepare old mods to return to
 		const RString oldMods =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString();
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
+			true);
 
-		// set the heck out of the current rate to make sure everything runs
-		// correctly
+		// Set Replay mods and rate to let it handle stuff
 		float scoreRate = hs->GetMusicRate();
 		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
-		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
-		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
-		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
-		MESSAGEMAN->Broadcast("RateChanged");
-
-		// set mods based on the score, hopefully
-		// it is known that xmod->cmod and back does not work most of the time.
-		/*
-		CHECKPOINT_M("Setting mods for Replay Viewing.");
-		RString mods = hs->GetModifiers();
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(mods);
-		CHECKPOINT_M("Replay mods set.");
-		*/
-
-		// Set mirror mode on if mirror was on in the replay
-		// Also get ready to reset the turn mods to what they were before
-		RString mods = hs->GetModifiers();
-		vector<RString> oldTurns;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().GetTurnMods(
-		  oldTurns);
-		if (mods.find("Mirror") != mods.npos) {
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-		} else {
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
-		}
-		GAMEMAN->m_bResetTurns = true;
-		GAMEMAN->m_vTurnsToReset = oldTurns;
-		GAMEMAN->m_iPreviousFail =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType;
-
-		// REALLY BAD way to set fail off for a replay
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  FailType_Off;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  FailType_Off;
+		PlayerAI::replayRate = scoreRate;
+		PlayerAI::oldModifiers = oldMods;
+		PlayerAI::oldRate = oldRate;
+		auto ns =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+		if (ns.empty())
+			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
+		PlayerAI::oldNoteskin = ns;
+		RString hsMods = hs->GetModifiers();
+		PlayerAI::replayModifiers = hsMods;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",
 				   hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
-		p->SelectCurrent(PLAYER_1);
 
-		// set mods back to what they were before
-		GAMEMAN->m_bResetModifiers = true;
-		GAMEMAN->m_fPreviousRate = oldRate;
-		GAMEMAN->m_sModsToReset = oldMods;
 		return 1;
 	}
 
@@ -1773,7 +1736,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  false; // disallow viewing online score eval screens -mina
 		auto score = SCOREMAN->GetMostRecentScore();
 		score->LoadReplayData();
-		PlayerAI::SetScoreData(score);
+		TimingData* td = steps->GetTimingData();
+		PlayerAI::ResetScoreData();
+		PlayerAI::SetScoreData(score, 0, &nd);
+		PlayerAI::SetUpExactTapMap(td);
 
 		auto& pss = ss.m_player;
 		pss.m_HighScore = *score;
@@ -1803,7 +1769,15 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			pss.m_iHoldNoteScores[i] =
 			  score->GetHoldNoteScore((HoldNoteScore)i);
 		}
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		if (!hs->GetChordCohesion() && !potmp.ContainsTransformOrTurn()) {
+			pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
+			pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
+		}
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
+		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);
+		ss.m_fMusicRate = score->GetMusicRate();
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
 
@@ -1814,9 +1788,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
-
-		GAMEMAN->m_iPreviousFail =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType;
 
 		// go
 		LOG->Trace("Viewing evaluation screen for score key %s",

@@ -120,7 +120,7 @@ function wifeMean(t)
 	end
 	local o = 0
 	for i = 1, c do
-		if t[i] ~= 1000 then
+		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + t[i]
 		else
 			m = m + 1
@@ -137,7 +137,7 @@ function wifeAbsMean(t)
 	end
 	local o = 0
 	for i = 1, c do
-		if t[i] ~= 1000 then
+		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + math.abs(t[i])
 		else
 			m = m + 1
@@ -151,7 +151,7 @@ function wifeSd(t)
 	local u2 = 0
 	local m = 0
 	for i = 1, #t do
-		if t[i] ~= 1000 then
+		if t[i] ~= 1000 and t[i] ~= -1100 then
 			u2 = u2 + (t[i] - u) ^ 2
 		else
 			m = m + 1
@@ -204,7 +204,11 @@ end
 
 -- Grabs the currently selected rate as a string in the form of "r.rrx" while dropping trailing 0s
 function getCurRateString()
-	return string.format("%.2f", getCurRateValue()):gsub("%.?0+$", "") .. "x"
+	return getRateString(getCurRateValue())
+end
+
+function getRateString(x)
+	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
 function getCurRateDisplayString()

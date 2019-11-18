@@ -377,8 +377,7 @@ Actor::Draw()
 	}
 
 	if (m_FakeParent != nullptr) {
-		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->EarlyAbortDraw()) {
+		if (!m_FakeParent->m_bVisible || m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
 		m_FakeParent->PreDraw();
@@ -409,8 +408,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible ||
-			state->EarlyAbortDraw()) {
+		if (!state->m_bVisible || state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
 			state->PreDraw();
@@ -961,7 +959,7 @@ Actor::BeginTweening(float time, ITween* pTween)
 
 	// If the number of tweens to ever gets this large, there's probably an
 	// infinitely recursing ActorCommand.
-	if (m_Tweens.size() > 50 && !(GamePreferences::m_AutoPlay == PC_REPLAY)) {
+	if (m_Tweens.size() > 50) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Tween overflow: \"%s\"; infinitely recursing ActorCommand?",
 		  GetLineage().c_str());

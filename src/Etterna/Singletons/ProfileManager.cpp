@@ -167,8 +167,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 		m_bNeedToBackUpLastLoad = true;
 	}
 
-	m_bLastLoadWasTamperedOrCorrupt =
-	  lr == ProfileLoadResult_FailedTampered;
+	m_bLastLoadWasTamperedOrCorrupt = lr == ProfileLoadResult_FailedTampered;
 
 	//
 	// Try to load from the backup if the original data fails to load
@@ -244,8 +243,8 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir,
-										  PREFSMAN->m_bSignProfileData);
+	bool b =
+	  GetProfile(pn)->SaveAllToDir(m_sProfileDir, PREFSMAN->m_bSignProfileData);
 
 	return b;
 }
@@ -798,8 +797,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->IsPersistentProfile(PLAYER_1));
+		lua_pushboolean(L, p->IsPersistentProfile(PLAYER_1));
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
@@ -868,8 +866,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
+		lua_pushboolean(L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
 		return 1;
 	}
 	static int GetPlayerName(T* p, lua_State* L)

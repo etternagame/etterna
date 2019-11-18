@@ -12,6 +12,8 @@
 #include "Etterna/Models/Songs/Song.h"
 
 static bool previousGameplayState;
+static AutosyncType lastSyncType;
+static PlayerController lastController;
 
 static bool
 IsGameplay()
@@ -78,7 +80,7 @@ static LocalizedString COLLECTING_SAMPLE("ScreenSyncOverlay",
 static LocalizedString STANDARD_DEVIATION("ScreenSyncOverlay",
 										  "Standard deviation");
 void
-ScreenSyncOverlay::UpdateText()
+ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
 	vector<RString> vs;
@@ -125,20 +127,21 @@ ScreenSyncOverlay::UpdateText()
 		AdjustSync::GetSyncChangeTextSong(vs);
 	}
 
-	Message set_status("SetStatus");
-	set_status.SetParam("text", join("\n", vs));
-	m_overlay->HandleMessage(set_status);
+	if (forcedChange || !vs.empty() || type != lastSyncType ||
+		pc != lastController) {
+		Message set_status("SetStatus");
+		set_status.SetParam("text", join("\n", vs));
+		m_overlay->HandleMessage(set_status);
+	}
 
 	// Update SyncInfo
 	bool visible =
 	  GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType != AutosyncType_Off;
-	Message set_adjustments("SetAdjustments");
-	set_adjustments.SetParam("visible", visible);
+	RString s;
 	if (visible) {
 		float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 		float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
 		float fStdDev = AdjustSync::s_fStandardDeviation;
-		RString s;
 		s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
 		s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
 		s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);
@@ -146,11 +149,17 @@ ScreenSyncOverlay::UpdateText()
 			 ssprintf(": %d / %d",
 					  AdjustSync::s_iAutosyncOffsetSample + 1,
 					  AdjustSync::OFFSET_SAMPLE_COUNT);
-		set_adjustments.SetParam("text", s);
-	} else {
-		set_adjustments.SetParam("text", RString(""));
 	}
-	m_overlay->HandleMessage(set_adjustments);
+
+	if (forcedChange || visible || type != lastSyncType ||
+		pc != lastController) {
+		Message set_adjustments("SetAdjustments");
+		set_adjustments.SetParam("visible", visible);
+		set_adjustments.SetParam("text", s);
+		m_overlay->HandleMessage(set_adjustments);
+	}
+	lastSyncType = type;
+	lastController = pc;
 }
 
 static LocalizedString CANT_SYNC_WHILE_PLAYING_A_COURSE(
@@ -187,6 +196,11 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 		case KEY_F9:
 			bIncrease = false; /* fall through */
 		case KEY_F10:
+			if (!INPUTFILTER->IsBeingPressed(
+				  DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) &&
+				!INPUTFILTER->IsBeingPressed(
+				  DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)))
+				return Screen::Input(input);
 			a = ChangeSongBPM;
 			break;
 		case KEY_F11:
@@ -329,7 +343,7 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 		ShowHelp();
 	}
 
-	UpdateText();
+	UpdateText(true);
 	return true;
 }
 

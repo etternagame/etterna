@@ -72,49 +72,51 @@ static bool g_bInvertY = false;
 static void
 InvalidateObjects();
 
-static RageDisplay::RagePixelFormatDesc PIXEL_FORMAT_DESC[NUM_RagePixelFormat] =
-  { { /* R8G8B8A8 */
-	  32,
-	  { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
-	{ /* B8G8R8A8 */
-	  32,
-	  { 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
-	{
-	  /* R4G4B4A4 */
-	  16,
-	  { 0xF000, 0x0F00, 0x00F0, 0x000F },
-	},
-	{
-	  /* R5G5B5A1 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0001 },
-	},
-	{
-	  /* R5G5B5X1 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0000 },
-	},
-	{ /* R8G8B8 */
-	  24,
-	  { 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
-	{
-	  /* Paletted */
-	  8,
-	  { 0, 0, 0, 0 } /* N/A */
-	},
-	{ /* B8G8R8 */
-	  24,
-	  { 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
-	{
-	  /* A1R5G5B5 */
-	  16,
-	  { 0x7C00, 0x03E0, 0x001F, 0x8000 },
-	},
-	{
-	  /* X1R5G5B5 */
-	  16,
-	  { 0x7C00, 0x03E0, 0x001F, 0x0000 },
-	} };
+static RageDisplay::RagePixelFormatDesc
+  PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
+	  { /* R8G8B8A8 */
+		32,
+		{ 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
+	  { /* B8G8R8A8 */
+		32,
+		{ 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
+	  {
+		/* R4G4B4A4 */
+		16,
+		{ 0xF000, 0x0F00, 0x00F0, 0x000F },
+	  },
+	  {
+		/* R5G5B5A1 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0001 },
+	  },
+	  {
+		/* R5G5B5X1 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0000 },
+	  },
+	  { /* R8G8B8 */
+		24,
+		{ 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
+	  {
+		/* Paletted */
+		8,
+		{ 0, 0, 0, 0 } /* N/A */
+	  },
+	  { /* B8G8R8 */
+		24,
+		{ 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
+	  {
+		/* A1R5G5B5 */
+		16,
+		{ 0x7C00, 0x03E0, 0x001F, 0x8000 },
+	  },
+	  {
+		/* X1R5G5B5 */
+		16,
+		{ 0x7C00, 0x03E0, 0x001F, 0x0000 },
+	  }
+  };
 
 /* g_GLPixFmtInfo is used for both texture formats and surface formats.  For
  * example, it's fine to ask for a RagePixelFormat_RGB5 texture, but to supply a

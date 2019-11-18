@@ -89,10 +89,8 @@ ReceptorArrowRow::Update(float fDeltaTime)
 			// column renderers.  Just do the lazy thing and offset x. -Kyz
 			const Style* style =
 			  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
-			m_ReceptorArrow[c]->SetX(
-			  style->m_ColumnInfo[c].fXOffset);
-			m_OverlayReceptorArrow[c]->SetX(
-			  style->m_ColumnInfo[c].fXOffset);
+			m_ReceptorArrow[c]->SetX(style->m_ColumnInfo[c].fXOffset);
+			m_OverlayReceptorArrow[c]->SetX(style->m_ColumnInfo[c].fXOffset);
 		}
 	}
 }

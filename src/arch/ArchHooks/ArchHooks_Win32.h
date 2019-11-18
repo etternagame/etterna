@@ -30,9 +30,11 @@ class ArchHooks_Win32 : public ArchHooks
 	void sShowCursor(bool set) override
 	{
 		if (set)
-			while (ShowCursor(true) < 0);
+			while (ShowCursor(true) < 0)
+				;
 		else
-			while (ShowCursor(false) >= 0);
+			while (ShowCursor(false) >= 0)
+				;
 	}
 
 	/** @brief Fetch the window height. */

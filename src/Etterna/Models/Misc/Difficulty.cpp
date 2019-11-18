@@ -123,4 +123,4 @@ StepsToCustomDifficulty(const Steps* pSteps)
 #include "Etterna/Models/Lua/LuaBinding.h"
 
 LuaFunction(StepsToCustomDifficulty,
-            StepsToCustomDifficulty(Luna<Steps>::check(L, 1)));
+			StepsToCustomDifficulty(Luna<Steps>::check(L, 1)));

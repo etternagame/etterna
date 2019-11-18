@@ -41,10 +41,12 @@ return Def.ActorFrame {
 			quad:zoomtowidth(self:GetZoomedWidth() + 20):zoomtoheight(self:GetZoomedHeight() + 20)
 		end,
 		ShowCommand = function(self)
+			self:visible(true)
 			self:stoptweening():linear(.3):diffusealpha(1):sleep(4):linear(.3):diffusealpha(0)
 		end,
 		HideCommand = function(self)
 			self:finishtweening()
+			self:visible(false)
 		end
 	},
 	Def.BitmapText {
@@ -56,6 +58,9 @@ return Def.ActorFrame {
 		end,
 		SetStatusCommand = function(self, param)
 			self:settext(param.text)
+		end,
+		HideCommand = function(self)
+			self:settext("")
 		end
 	},
 	Def.BitmapText {
@@ -67,6 +72,9 @@ return Def.ActorFrame {
 		end,
 		SetAdjustmentsCommand = function(self, param)
 			self:visible(param.visible):settext(param.text)
+		end,
+		HideCommand = function(self)
+			self:settext("")
 		end
 	}
 }

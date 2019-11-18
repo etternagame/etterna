@@ -52,18 +52,14 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 	/*
 	 * Add all current autoplay sounds in both players to the chain.
 	 */
-	int iNumTracks =
-	  m_ndAutoKeysoundsOnly.GetNumTracks();
+	int iNumTracks = m_ndAutoKeysoundsOnly.GetNumTracks();
 	for (int t = 0; t < iNumTracks; t++) {
 		int iRow = -1;
 		for (;;) {
 			/* Find the next row that either player has a note on. */
 			int iNextRow = INT_MAX;
-			FOREACH_EnabledPlayer(pn)
-			{
-				// XXX Hack. Enabled players need not have their own note data.
-				if (t >= m_ndAutoKeysoundsOnly.GetNumTracks())
-					continue;
+			// XXX Hack. Enabled players need not have their own note data.
+			if (!(t >= m_ndAutoKeysoundsOnly.GetNumTracks())) {
 				int iNextRowForPlayer = iRow;
 				/* XXX: If a BMS file only has one tap note per track,
 				 * this will prevent any keysounds from loading.
@@ -81,29 +77,21 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 			TapNote tn;
 			tn = m_ndAutoKeysoundsOnly.GetTapNote(t, iRow);
 
-			FOREACH_EnabledPlayer(pn)
-			{
-				if (tn == TAP_EMPTY)
-					continue;
+			if (tn == TAP_EMPTY)
+				continue;
 
-				ASSERT(tn.type == TapNoteType_AutoKeysound);
-				if (tn.iKeysoundIndex >= 0) {
-					RString sKeysoundFilePath =
-					  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
-					float fSeconds =
-					  GAMESTATE->m_pCurSteps
-						->GetTimingData()
-						->WhereUAtBroNoOffset(NoteRowToBeat(iRow)) +
-					  SOUNDMAN->GetPlayLatency();
+			ASSERT(tn.type == TapNoteType_AutoKeysound);
+			if (tn.iKeysoundIndex >= 0) {
+				RString sKeysoundFilePath =
+				  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
+				float fSeconds =
+				  GAMESTATE->m_pCurSteps->GetTimingData()->WhereUAtBroNoOffset(
+					NoteRowToBeat(iRow)) +
+				  SOUNDMAN->GetPlayLatency();
 
-					float fPan = 0;
-					// If two players are playing, pan the keysounds to each
-					// player's respective side
-					if (GAMESTATE->GetNumPlayersEnabled() == 2)
-						fPan = (pn == PLAYER_1) ? -1.0f : +1.0f;
-					int iIndex = pChain->LoadSound(sKeysoundFilePath);
-					pChain->AddSound(iIndex, fSeconds, fPan);
-				}
+				float fPan = 0;
+				int iIndex = pChain->LoadSound(sKeysoundFilePath);
+				pChain->AddSound(iIndex, fSeconds, fPan);
 			}
 		}
 	}
@@ -114,28 +102,14 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 						  RageSoundReader*& pShared,
 						  RageSoundReader*& pPlayer1)
 {
-	// If we have two players, prefer a three-track sound; otherwise prefer a
-	// two-track sound.
-	// bool bTwoPlayers = GAMESTATE->GetNumPlayersEnabled() == 2;
-
 	pPlayer1 = nullptr;
 	pShared = nullptr;
 
 	vector<RString> vsMusicFile;
-	const RString sMusicPath =
-	  GAMESTATE->m_pCurSteps
-		->GetMusicPath();
+	const RString sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
 
 	if (!sMusicPath.empty())
 		vsMusicFile.push_back(sMusicPath);
-
-	FOREACH_ENUM(InstrumentTrack, it)
-	{
-		if (it == InstrumentTrack_Guitar)
-			continue;
-		if (pSong->HasInstrumentTrack(it))
-			vsMusicFile.push_back(pSong->GetInstrumentTrackPath(it));
-	}
 
 	vector<RageSoundReader*> vpSounds;
 	FOREACH(RString, vsMusicFile, s)
@@ -168,19 +142,6 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 		pSongReader = new RageSoundReader_Extend(pSongReader);
 		pSongReader = new RageSoundReader_ThreadedBuffer(pSongReader);
 		pShared = pSongReader;
-	}
-
-	if (pSong->HasInstrumentTrack(InstrumentTrack_Guitar)) {
-		RString sError;
-		RageSoundReader* pGuitarTrackReader =
-		  RageSoundReader_FileReader::OpenFile(
-			pSong->GetInstrumentTrackPath(InstrumentTrack_Guitar), sError);
-		// Load the buffering filter before the effects filters, so effects
-		// aren't delayed.
-		pGuitarTrackReader = new RageSoundReader_Extend(pGuitarTrackReader);
-		pGuitarTrackReader =
-		  new RageSoundReader_ThreadedBuffer(pGuitarTrackReader);
-		pPlayer1 = pGuitarTrackReader;
 	}
 
 	return;
@@ -223,10 +184,8 @@ AutoKeysounds::FinishLoading()
 	apSounds.push_back(m_pSharedSound);
 
 	if (m_pPlayerSounds != nullptr) {
-		m_pPlayerSounds =
-		  new RageSoundReader_PitchChange(m_pPlayerSounds);
-		m_pPlayerSounds =
-		  new RageSoundReader_PostBuffering(m_pPlayerSounds);
+		m_pPlayerSounds = new RageSoundReader_PitchChange(m_pPlayerSounds);
+		m_pPlayerSounds = new RageSoundReader_PostBuffering(m_pPlayerSounds);
 		m_pPlayerSounds = new RageSoundReader_Pan(m_pPlayerSounds);
 		apSounds.push_back(m_pPlayerSounds);
 	}

@@ -126,15 +126,15 @@ class ProfileManager
 	RString m_stats_prefix;
 	Profile* dummy;
 	bool m_bLastLoadWasTamperedOrCorrupt; // true if Stats.xml was
-													   // present, but failed to
-													   // load (probably because
-													   // of a signature
-													   // failure)
-	bool m_bLastLoadWasFromLastGood; // if true, then
-					 // m_bLastLoadWasTamperedOrCorrupt
-					 // is also true
+										  // present, but failed to
+										  // load (probably because
+										  // of a signature
+										  // failure)
+	bool m_bLastLoadWasFromLastGood;	  // if true, then
+										  // m_bLastLoadWasTamperedOrCorrupt
+										  // is also true
 	mutable bool m_bNeedToBackUpLastLoad; // if true, back up
-													   // profile on next save
+										  // profile on next save
 	bool m_bNewProfile;
 };
 

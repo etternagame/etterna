@@ -13,7 +13,8 @@
 RString
 StepsTypeToString(StepsType st);
 
-// This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a vector of RStrings. -poco
+// This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a
+// vector of RStrings. -poco
 static vector<RString>
 GenerateRankingToFillInMarker()
 {
@@ -94,7 +95,13 @@ static const char* HealthStateNames[] = {
 XToString(HealthState);
 LuaXType(HealthState);
 
-
+static const char* GameplayModeNames[] = {
+	"Normal",
+	"Practice",
+	"Replay",
+};
+XToString(GameplayMode);
+LuaXType(GameplayMode);
 
 static const char* SortOrderNames[] = {
 	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
@@ -275,7 +282,8 @@ static const char* StageAwardNames[] = {
 	"90PercentW3",   "100PercentW3",
 };
 
-void DisplayBpms::Add( float f )
+void
+DisplayBpms::Add(float f)
 {
 	vfBpms.push_back(f);
 }
@@ -337,7 +345,6 @@ static const char* StyleTypeNames[] = {
 XToString(StyleType);
 StringToX(StyleType);
 LuaXType(StyleType);
-
 
 static const char* SampleMusicPreviewModeNames[] = { "Normal",
 													 "StartToPreview",
