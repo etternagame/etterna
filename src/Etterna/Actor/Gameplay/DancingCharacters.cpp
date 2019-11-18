@@ -66,7 +66,7 @@ DancingCharacters::DancingCharacters()
 	std::string sCurrentAnim;
 	sCurrentAnim = sCharacterDirectory + "2DIdle";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgIdle.Load(sCurrentAnim);
 		m_bgIdle->SetXY(DC_X(p), DC_Y(p));
@@ -74,7 +74,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DMiss";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgMiss.Load(sCurrentAnim);
 		m_bgMiss->SetXY(DC_X(p), DC_Y(p));
@@ -82,7 +82,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DGood";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgGood.Load(sCurrentAnim);
 		m_bgGood->SetXY(DC_X(p), DC_Y(p));
@@ -90,7 +90,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DGreat";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgGreat.Load(sCurrentAnim);
 		m_bgGreat->SetXY(DC_X(p), DC_Y(p));
@@ -98,7 +98,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DFever";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgFever.Load(sCurrentAnim);
 		m_bgFever->SetXY(DC_X(p), DC_Y(p));
@@ -106,7 +106,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DFail";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgFail.Load(sCurrentAnim);
 		m_bgFail->SetXY(DC_X(p), DC_Y(p));
@@ -114,7 +114,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DWin";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgWin.Load(sCurrentAnim);
 		m_bgWin->SetXY(DC_X(p), DC_Y(p));
@@ -122,7 +122,7 @@ DancingCharacters::DancingCharacters()
 
 	sCurrentAnim = sCharacterDirectory + "2DWinFever";
 	if (DoesFileExist(sCurrentAnim +
-						"/BGAnimation.ini")) // check 2D Idle BGAnim exists
+					  "/BGAnimation.ini")) // check 2D Idle BGAnim exists
 	{
 		m_bgWinFever.Load(sCurrentAnim);
 		m_bgWinFever->SetXY(DC_X(p), DC_Y(p));
@@ -135,14 +135,14 @@ DancingCharacters::DancingCharacters()
 
 	m_pCharacter->LoadMilkshapeAscii(pChar->GetModelPath());
 	m_pCharacter->LoadMilkshapeAsciiBones("rest",
-												pChar->GetRestAnimationPath());
-	m_pCharacter->LoadMilkshapeAsciiBones(
-		"warmup", pChar->GetWarmUpAnimationPath());
-	m_pCharacter->LoadMilkshapeAsciiBones(
-		"dance", pChar->GetDanceAnimationPath());
+										  pChar->GetRestAnimationPath());
+	m_pCharacter->LoadMilkshapeAsciiBones("warmup",
+										  pChar->GetWarmUpAnimationPath());
+	m_pCharacter->LoadMilkshapeAsciiBones("dance",
+										  pChar->GetDanceAnimationPath());
 	m_pCharacter->SetCullMode(CULL_NONE); // many of the models floating
-												// around have the vertex order
-												// flipped
+										  // around have the vertex order
+										  // flipped
 
 	m_pCharacter->RunCommands(pChar->m_cmdInit);
 }
@@ -203,7 +203,7 @@ DancingCharacters::Update(float fDelta)
 	bool bGameplayStarting = GAMESTATE->m_bGameplayLeadIn;
 	if (!bWasGameplayStarting && bGameplayStarting) {
 		if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
-		  m_pCharacter->PlayAnimation("warmup");
+			m_pCharacter->PlayAnimation("warmup");
 	}
 	bWasGameplayStarting = bGameplayStarting;
 
@@ -339,39 +339,32 @@ DancingCharacters::DrawPrimitives()
 
 	DISPLAY->LoadLookAt(45, m_CameraPoint, m_LookAt, RageVector3(0, 1, 0));
 
-	FOREACH_EnabledPlayer(p)
-	{
-		bool bFailed = STATSMAN->m_CurStageStats.m_player.m_bFailed;
-		bool bDanger = m_bDrawDangerLight;
+	bool bFailed = STATSMAN->m_CurStageStats.m_player.m_bFailed;
+	bool bDanger = m_bDrawDangerLight;
 
-		DISPLAY->SetLighting(true);
+	DISPLAY->SetLighting(true);
 
-		RageColor ambient = bFailed
-							  ? RageColor(0.2f, 0.1f, 0.1f, 1)
-							  : (bDanger ? RageColor(0.4f, 0.1f, 0.1f, 1)
-										 : RageColor(0.4f, 0.4f, 0.4f, 1));
-		RageColor diffuse = bFailed
-							  ? RageColor(0.4f, 0.1f, 0.1f, 1)
-							  : (bDanger ? RageColor(0.8f, 0.1f, 0.1f, 1)
-										 : RageColor(1, 0.95f, 0.925f, 1));
-		RageColor specular = RageColor(0.8f, 0.8f, 0.8f, 1);
-		DISPLAY->SetLightDirectional(
-		  0, ambient, diffuse, specular, RageVector3(-3, -7.5f, +9));
+	RageColor ambient = bFailed ? RageColor(0.2f, 0.1f, 0.1f, 1)
+								: (bDanger ? RageColor(0.4f, 0.1f, 0.1f, 1)
+										   : RageColor(0.4f, 0.4f, 0.4f, 1));
+	RageColor diffuse = bFailed ? RageColor(0.4f, 0.1f, 0.1f, 1)
+								: (bDanger ? RageColor(0.8f, 0.1f, 0.1f, 1)
+										   : RageColor(1, 0.95f, 0.925f, 1));
+	RageColor specular = RageColor(0.8f, 0.8f, 0.8f, 1);
+	DISPLAY->SetLightDirectional(
+	  0, ambient, diffuse, specular, RageVector3(-3, -7.5f, +9));
 
-		if (PREFSMAN->m_bCelShadeModels) {
-			m_pCharacter->DrawCelShaded();
+	if (PREFSMAN->m_bCelShadeModels) {
+		m_pCharacter->DrawCelShaded();
 
-			DISPLAY->SetLightOff(0);
-			DISPLAY->SetLighting(false);
-			continue;
-		}
-
+		DISPLAY->SetLightOff(0);
+		DISPLAY->SetLighting(false);
+	} else {
 		m_pCharacter->Draw();
 
 		DISPLAY->SetLightOff(0);
 		DISPLAY->SetLighting(false);
 	}
-
 	DISPLAY->CameraPopMatrix();
 
 	/*
@@ -397,28 +390,3 @@ DancingCharacters::DrawPrimitives()
 	}
 	 */
 }
-
-/*
- * (c) 2003-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

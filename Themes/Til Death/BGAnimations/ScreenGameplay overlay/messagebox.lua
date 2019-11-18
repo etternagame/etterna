@@ -1,5 +1,5 @@
 local settext = BitmapText.settext
-local isPractice = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
+local isPractice = GAMESTATE:IsPracticeMode()
 
 local function highlight(self)
 	self:queuecommand("Highlight")
@@ -17,6 +17,10 @@ return Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
 		self:SetUpdateFunction(highlight)
+	end,
+	OffCommand = function(self)
+		-- save CustomizeGameplay changes when leaving the screen
+		playerConfig:save(pn_to_profile_slot(PLAYER_1))
 	end,
 	Def.BitmapText {
 		Name = "message",
@@ -68,10 +72,15 @@ return Def.ActorFrame {
 				"h: Replay Buttons Spacing",
 				"j: Lifebar Position",
 				"k: Lifebar Size",
-				"l: Lifebar Rotation"
+				"l: Lifebar Rotation",
+				"x: BPM Text Position",
+				"c: BPM Text Size",
+				"v: Music Rate Text Position",
+				"b: Music Rate Text Size"
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-				table.insert(text, "/: Lane Cover Height")
+				local selectStr = THEME:GetString("GameButton", "Select")
+				table.insert(text, selectStr..": Lane Cover Height")
 			end
 			if isPractice then
 				table.insert(text, "z: Density Graph Position")

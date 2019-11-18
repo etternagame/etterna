@@ -10,6 +10,9 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("scoreboard")
 end
 
+local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+local originaljudge = GetTimingDifficulty()
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -50,14 +53,18 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, capWideScale(155, 170)):zoom(0.5):halign(0.5)
 		end,
 		BeginCommand = function(self)
-			if getCurRateString() == "1x" then
+			local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+			if not rate then rate = getCurRateValue() end
+			local ratestr = getRateString(rate)
+			if ratestr == "1x" then
 				self:settext("")
 			else
-				self:settext(getCurRateString())
+				self:settext(ratestr)
 			end
 		end
 	}
 
+-- lifegraph
 local function GraphDisplay(pn)
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 
@@ -74,6 +81,13 @@ local function GraphDisplay(pn)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
 				self:xy(-22, 8)
+			end,
+			RecalculateGraphsMessageCommand = function(self, params)
+				-- called by the end of a codemessagecommand somewhere else
+				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge])
+				if not success then return end
+				self:playcommand("Begin")
+				MESSAGEMAN:Broadcast("SetComboGraph")
 			end
 		}
 	}
@@ -92,6 +106,11 @@ local function ComboGraph(pn)
 				self:Set(ss, ss:GetPlayerStageStats(pn))
 				self:zoom(0.8)
 				self:xy(-22, -2)
+			end,
+			SetComboGraphMessageCommand = function(self)
+				self:Clear()
+				self:Load("ComboGraph" .. ToEnumShortString(pn))
+				self:playcommand("Begin")
 			end
 		}
 	}
@@ -173,7 +192,9 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+				if not rate then rate = getCurRateValue() end
+				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(rate, 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end
@@ -262,46 +283,55 @@ function scoreBoard(pn, position)
 					if params.Name == "PrevJudge" then
 						judge = judge < 2 and #customWindows or judge - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 100) / 100
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
+						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" then
 						judge = judge == #customWindows and 1 or judge + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 100) / 100
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
+						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
 				elseif params.Name == "PrevJudge" and judge > 1 then
 					judge = judge - 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
 					self:settextf(
 						"%05.2f%% (%s)",
-						getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps),
+						perc,
 						"Wife J" .. judge
 					)
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				elseif params.Name == "NextJudge" and judge < 9 then
 					judge = judge + 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
 					if judge == 9 then
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife Justice"
 						)
 					else
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife J" .. judge
 						)
 					end
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				end
 				if params.Name == "ResetJudge" then
-					judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+					judge = enabledCustomWindows and 0 or originaljudge
 					self:playcommand("Set")
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				end
 			end
 		},
@@ -332,45 +362,49 @@ function scoreBoard(pn, position)
 					if params.Name == "PrevJudge" then
 						judge2 = judge2 < 2 and #customWindows or judge2 - 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 10000) / 10000
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 					elseif params.Name == "NextJudge" then
 						judge2 = judge2 == #customWindows and 1 or judge2 + 1
 						customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
+						local perc = notShit.floor(getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps) * 10000) / 10000
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps),
+							perc,
 							customWindow.name
 						)
 					end
 				elseif params.Name == "PrevJudge" and judge2 > 1 then
 					judge2 = judge2 - 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 10000) / 10000
 					self:settextf(
 						"%05.4f%% (%s)",
-						getRescoredWifeJudge(dvt, judge2, totalHolds - holdsHit, minesHit, totalTaps),
+						perc,
 						"Wife J" .. judge2
 					)
 				elseif params.Name == "NextJudge" and judge2 < 9 then
 					judge2 = judge2 + 1
+					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 10000) / 10000
 					if judge2 == 9 then
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife Justice"
 						)
 					else
 						self:settextf(
 							"%05.4f%% (%s)",
-							getRescoredWifeJudge(dvt, judge2, (totalHolds - holdsHit), minesHit, totalTaps),
+							perc,
 							"Wife J" .. judge2
 						)
 					end
 				end
 				if params.Name == "ResetJudge" then
-					judge2 = enabledCustomWindows and 0 or GetTimingDifficulty()
+					judge2 = enabledCustomWindows and 0 or originaljudge
 					self:playcommand("Set")
 				end
 			end

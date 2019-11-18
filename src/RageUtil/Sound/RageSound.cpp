@@ -91,6 +91,7 @@ RageSound::operator=(const RageSound& cpy)
 	m_iStreamFrame = cpy.m_iStreamFrame;
 	m_iStoppedSourceFrame = cpy.m_iStoppedSourceFrame;
 	m_bPlaying = false;
+	m_bPaused = cpy.m_bPaused;
 	m_bDeleteWhenFinished = false;
 
 	if (m_pSource != NULL) {
@@ -341,17 +342,19 @@ RageSound::GetDataToPlay(float* pBuffer,
 		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			unsigned int samplesToCopy =
-				min(iFramesStored * m_pSource->GetNumChannels(),
-					recentPCMSamplesBufferSize - currentSamples);
+			  min(iFramesStored * m_pSource->GetNumChannels(),
+				  recentPCMSamplesBufferSize - currentSamples);
 			unsigned int samplesLeft =
-				recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
+			  recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
 				fftwf_complex* out = static_cast<fftwf_complex*>(fftwBuffer);
 				auto n = recentPCMSamplesBufferSize;
-				auto plan = fftwf_plan_dft_r2c_1d(recentPCMSamplesBufferSize, 
-					 recentPCMSamples.data(), out, FFTW_ESTIMATE);
+				auto plan = fftwf_plan_dft_r2c_1d(recentPCMSamplesBufferSize,
+												  recentPCMSamples.data(),
+												  out,
+												  FFTW_ESTIMATE);
 				fftwf_execute(plan);
 				fftwf_destroy_plan(plan);
 				copy(pBuffer, until, back_inserter(recentPCMSamples));
@@ -364,7 +367,8 @@ RageSound::GetDataToPlay(float* pBuffer,
 }
 
 void
-RageSound::ExecutePlayBackCallback(Lua* L) {
+RageSound::ExecutePlayBackCallback(Lua* L)
+{
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
@@ -377,16 +381,16 @@ RageSound::ExecutePlayBackCallback(Lua* L) {
 		auto r = out[i][0];
 		auto im = out[i][1];
 		lua_pushnumber(L,
-			(r * r + im * im) /
-			(0.01f + SOUNDMAN->GetMixVolume()) /
-			(0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
+					   (r * r + im * im) / (0.01f + SOUNDMAN->GetMixVolume()) /
+						 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
 		lua_rawseti(L, -2, i + 1);
 	}
 	PushSelf(L);
 	inPlayCallback = true;
 	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
 	inPlayCallback = false;
-	if (error != "")	// hack for now because we're bad and didn't deal with clearing this -mina
+	if (error != "") // hack for now because we're bad and didn't deal with
+					 // clearing this -mina
 		soundPlayCallback->Unset();
 	pendingPlayBackCall = false;
 }
@@ -438,6 +442,7 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	SOUNDMAN->StartMixing(this);
+	Pause(m_bPaused);
 
 	//	LOG->Trace("StartPlaying %p finished (%s)", this,
 	// this->GetLoadedFilePath().c_str());
@@ -551,6 +556,7 @@ RageSound::Pause(bool bPause)
 		LOG->Warn("RageSound::Pause: sound not loaded");
 		return false;
 	}
+	m_bPaused = bPause;
 
 	return SOUNDMAN->Pause(this, bPause);
 }
@@ -693,6 +699,7 @@ RageSound::ApplyParams()
 	m_pSource->SetProperty("LengthSeconds", m_Param.m_LengthSeconds);
 	m_pSource->SetProperty("FadeInSeconds", m_Param.m_fFadeInSeconds);
 	m_pSource->SetProperty("FadeSeconds", m_Param.m_fFadeOutSeconds);
+	m_pSource->SetProperty("AccurateSync", m_Param.m_bAccurateSync);
 
 	float fVolume = m_Param.m_Volume * SOUNDMAN->GetMixVolume();
 	if (!m_Param.m_bIsCriticalSound)
@@ -749,31 +756,31 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize) {
+RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
+									   unsigned int bufSize)
+{
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	if (fftwBuffer != nullptr)
 		fftwf_free(fftwBuffer);
-	auto nOut = static_cast<int>(recentPCMSamplesBufferSize/ 2 + 1);
+	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	fftwBuffer = fftwf_malloc(sizeof(fftwf_complex) * nOut);
 }
 
 void
 RageSound::SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize)
 {
-	// If we're in play callback it's safe to call this from lua, since we've locked LUA->Get()
-	// But not from C++ in another thread
-	// Invariant: The only calls to SetPlayBackCallback in C++ should be in the music thread
-	if(!inPlayCallback) {
+	// If we're in play callback it's safe to call this from lua, since we've
+	// locked LUA->Get() But not from C++ in another thread Invariant: The only
+	// calls to SetPlayBackCallback in C++ should be in the music thread
+	if (!inPlayCallback) {
 		std::lock_guard<std::mutex> guard(recentSamplesMutex);
 		ActuallySetPlayBackCallback(f, bufSize);
 		return;
 	}
 	ActuallySetPlayBackCallback(f, bufSize);
 }
-
-
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -850,9 +857,11 @@ class LunaRageSound : public Luna<RageSound>
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
 		if (lua_isnumber(L, 2))
-			p->SetPlayBackCallback(std::make_shared<LuaReference>(GetFuncArg(1, L)), IArg(2));
+			p->SetPlayBackCallback(
+			  std::make_shared<LuaReference>(GetFuncArg(1, L)), IArg(2));
 		else
-			p->SetPlayBackCallback(std::make_shared<LuaReference>(GetFuncArg(1, L)));
+			p->SetPlayBackCallback(
+			  std::make_shared<LuaReference>(GetFuncArg(1, L)));
 		COMMON_RETURN_SELF;
 	}
 
@@ -893,28 +902,3 @@ class LunaRageSound : public Luna<RageSound>
 
 LUA_REGISTER_CLASS(RageSound)
 // lua end
-
-/*
- * Copyright (c) 2002-2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

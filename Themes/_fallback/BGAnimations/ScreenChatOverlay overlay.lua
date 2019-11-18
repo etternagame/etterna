@@ -1,4 +1,3 @@
-local lastx, lasty = 0, 0
 local width, height = SCREEN_WIDTH, SCREEN_HEIGHT * 0.035
 local maxlines = 5
 local lineNumber = 5
@@ -7,7 +6,6 @@ local tabHeight = 1
 local maxTabs = 10
 local x, y = 0, SCREEN_HEIGHT - height * (maxlines + inputLineNumber + tabHeight)
 local moveY = 0
-local mousex, mousey = -1, -1
 local scale = 0.4
 local minimised = false
 local typing = false
@@ -402,13 +400,10 @@ function MPinput(event)
 			typing = true
 			update = true
 		elseif mx >= x and mx <= x + width and my >= y + moveY and my <= y + height + moveY then
-			mousex, mousey = mx, my -- no clue what this block of code is for
-			lastx, lasty = x, y
 			update = true
 		elseif not minimised then
 			local tabButton, closeTab = overTab(mx, my)
 			if not tabButton then
-				mousex, mousey = -1, -1
 				if typing then
 					update = true
 				end
@@ -449,8 +444,16 @@ function MPinput(event)
 		end
 	end
 
+	if event.type == "InputEventType_FirstPress" and event.DeviceInput.button == "DeviceButton_/" then
+		shouldOpen = true
+	end
+
+	if shouldOpen and event.type == "InputEventType_FirstPress" and event.DeviceInput.button ~= "DeviceButton_/" then
+		shouldOpen = false
+	end
+
 	if not typing and event.type == "InputEventType_Release" then -- keys for auto turning on chat if not already on -mina
-		if event.DeviceInput.button == "DeviceButton_/" then
+		if event.DeviceInput.button == "DeviceButton_/" and shouldOpen then
 			typing = true
 			update = true
 			if minimised then
@@ -458,6 +461,7 @@ function MPinput(event)
 				MESSAGEMAN:Broadcast("Minimise")
 			end
 			typingText = "/"
+			shouldOpen = false
 		end
 	end
 

@@ -167,8 +167,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 		m_bNeedToBackUpLastLoad = true;
 	}
 
-	m_bLastLoadWasTamperedOrCorrupt =
-	  lr == ProfileLoadResult_FailedTampered;
+	m_bLastLoadWasTamperedOrCorrupt = lr == ProfileLoadResult_FailedTampered;
 
 	//
 	// Try to load from the backup if the original data fails to load
@@ -244,8 +243,8 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir,
-										  PREFSMAN->m_bSignProfileData);
+	bool b =
+	  GetProfile(pn)->SaveAllToDir(m_sProfileDir, PREFSMAN->m_bSignProfileData);
 
 	return b;
 }
@@ -798,8 +797,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->IsPersistentProfile(PLAYER_1));
+		lua_pushboolean(L, p->IsPersistentProfile(PLAYER_1));
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
@@ -868,8 +866,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
+		lua_pushboolean(L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
 		return 1;
 	}
 	static int GetPlayerName(T* p, lua_State* L)
@@ -945,28 +942,3 @@ class LunaProfileManager : public Luna<ProfileManager>
 
 LUA_REGISTER_CLASS(ProfileManager)
 // lua end
-
-/*
- * (c) 2003-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

@@ -14,6 +14,7 @@ local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
 
@@ -48,10 +49,14 @@ local t =
 			self:queuecommand("MilkyTarts")
 		end
 		if song ~= bong then
+			if not song then
+				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
+			end
 			song = bong
 			self:queuecommand("MortyFarts")
 			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
-				song:Borp()
+				song:PlaySampleMusicExtended()
+				hackysack = false
 			end
 		end
 		if getTabIndex() == 0 then
@@ -60,8 +65,12 @@ local t =
 				mcbootlarder:GetChild("NoteField"):visible(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-					song:Borp()
+					song:PlaySampleMusicExtended()
+					hackysack = false
 					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				elseif hackysack then
+					song:PlaySampleMusicExtended()
+					hackysack = false
 				end
 				heyiwasusingthat = false
 			end
@@ -142,8 +151,9 @@ local function toggleNoteField()
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
 		if songChanged then
-			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
+			song:PlaySampleMusicExtended() -- catches a dumb bug that isn't worth explaining -mina
 			songChanged = false
+			hackysack = false
 		end
 		return
 	end
@@ -157,11 +167,13 @@ local function toggleNoteField()
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-				song:Borp()
+				song:PlaySampleMusicExtended()
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				hackysack = false
 			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
-				song:Borp()
+				song:PlaySampleMusicExtended()
 				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+				hackysack = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 		end
@@ -290,7 +302,7 @@ t[#t + 1] =
 				end
 			end
 		},
-	-- Rate for the displayed score
+	-- Rate for the displayed score & Mirror PB Indicator
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
@@ -305,10 +317,15 @@ t[#t + 1] =
 						rate = rate:sub(0, #rate - 1)
 					end
 					rate = rate .. "x"
+					local mirrorStr = ""
+					if score:GetModifiers():lower():find("mirror") then
+						mirrorStr = " (M)"
+					end
+
 					if notCurRate then
-						self:settext("(" .. rate .. ")")
+						self:settext("(" .. rate .. ")" .. mirrorStr)
 					else
-						self:settext(rate)
+						self:settext(rate .. mirrorStr)
 					end
 				else
 					self:settext("")
@@ -773,6 +790,12 @@ local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 		if event.DeviceInput.button == "DeviceButton_space" then
 			toggleNoteField()
+		end
+	end
+	if event.type == "InputEventType_FirstPress" then
+		local CtrlPressed = INPUTFILTER:IsControlPressed()
+		if CtrlPressed and event.DeviceInput.button == "DeviceButton_l" then
+			MESSAGEMAN:Broadcast("LoginHotkeyPressed")
 		end
 	end
 	return false

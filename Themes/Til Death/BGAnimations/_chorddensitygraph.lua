@@ -96,7 +96,7 @@ local t = Def.ActorFrame {
 		self:diffusealpha(0)
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
-		self:queuecommand("GraphUpdate")
+		self:playcommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if self:IsVisible() then
@@ -104,6 +104,9 @@ local t = Def.ActorFrame {
 		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
+		self:queuecommand("GraphUpdate")
+	end,
+	PracticeModeReloadMessageCommand = function(self)
 		self:queuecommand("GraphUpdate")
 	end,
 	Def.Quad {

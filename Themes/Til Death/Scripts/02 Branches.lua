@@ -181,9 +181,6 @@ Branch = {
 			return "ScreenStageInformation"
 		end
 	end,
-	GameplayScreen = function()
-		return "ScreenGameplay"
-	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"
 	end,

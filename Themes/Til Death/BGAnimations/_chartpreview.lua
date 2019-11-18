@@ -21,7 +21,7 @@ end
 
 local memehamstermax
 local function setUpPreviewNoteField() 
-    yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField() 
+	yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
     if yeet == nil then 
       return 
 	end 
@@ -30,7 +30,7 @@ local function setUpPreviewNoteField()
 	yeet = memehamstermax:GetChild("NoteField")
 	yeet:x(wodth/2)
 	memehamstermax:SortByDrawOrder()
-	MESSAGEMAN:Broadcast("NoteFieldVisible") 
+	MESSAGEMAN:Broadcast("NoteFieldVisible")
   end 
 
 local t = Def.ActorFrame {
@@ -48,11 +48,7 @@ local t = Def.ActorFrame {
 	end,
 	MouseRightClickMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():PausePreviewNoteField()
-		if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-			self:GetChild("pausetext"):settext("Paused")
-		else 
-			self:GetChild("pausetext"):settext("")
-		end
+		self:GetChild("pausetext"):playcommand("Set")
 	end,
     SetupNoteFieldCommand=function(self)
         setUpPreviewNoteField()
@@ -91,6 +87,16 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2)
 			self:settext(""):diffuse(color("0.8,0,0"))
+		end,
+		NoteFieldVisibleMessageCommand = function(self)
+			self:settext("")
+		end,
+		SetCommand = function(self)
+			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+				self:settext("Paused")
+			else 
+				self:settext("")
+			end
 		end
 	},
 	Def.Quad {

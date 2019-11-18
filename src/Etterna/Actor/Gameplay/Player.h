@@ -78,19 +78,19 @@ class Player : public ActorFrame
 		int iRow;
 		TapNote* pTN;
 	};
-	void UpdateHoldNotes(int iSongRow,
-						 float fDeltaTime,
-						 vector<TrackRowTapNote>& vTN);
+	virtual void UpdateHoldNotes(int iSongRow,
+								 float fDeltaTime,
+								 vector<TrackRowTapNote>& vTN);
 
-	void Init(const std::string& sType,
-			  PlayerState* pPlayerState,
-			  PlayerStageStats* pPlayerStageStats,
-			  LifeMeter* pLM,
-			  ScoreKeeper* pPrimaryScoreKeeper,
-			  ScoreKeeper* pSecondaryScoreKeeper);
-	void Load();
-	void CrossedRows(int iLastRowCrossed,
-					 const std::chrono::steady_clock::time_point& now);
+	virtual void Init(const std::string& sType,
+					  PlayerState* pPlayerState,
+					  PlayerStageStats* pPlayerStageStats,
+					  LifeMeter* pLM,
+					  ScoreKeeper* pPrimaryScoreKeeper);
+	virtual void Load();
+	virtual void Reload();
+	virtual void CrossedRows(int iLastRowCrossed,
+							 const std::chrono::steady_clock::time_point& now);
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *
@@ -107,12 +107,12 @@ class Player : public ActorFrame
 							 const TapNote* pTN,
 							 int RowOfOverlappingNoteOrRow);
 
-	void Step(int col,
-			  int row,
-			  const std::chrono::steady_clock::time_point& tm,
-			  bool bHeld,
-			  bool bRelease,
-			  float padStickSeconds = 0.0f);
+	virtual void Step(int col,
+					  int row,
+					  const std::chrono::steady_clock::time_point& tm,
+					  bool bHeld,
+					  bool bRelease,
+					  float padStickSeconds = 0.0f);
 
 	void FadeToFail();
 	void CacheAllUsedNoteSkins();
@@ -121,6 +121,9 @@ class Player : public ActorFrame
 
 	static float GetMaxStepDistanceSeconds();
 	static float GetWindowSeconds(TimingWindow tw);
+	static float GetWindowSecondsCustomScale(TimingWindow tw,
+											 float timingScale = 1.f);
+	static float GetTimingWindowScale();
 	const NoteData& GetNoteData() const { return m_NoteData; }
 	bool HasVisibleParts() const { return m_pNoteField != NULL; }
 
@@ -156,14 +159,28 @@ class Player : public ActorFrame
 	int totalwifescore;
 
   protected:
-	void StepReplay(int col,
-					int row,
-					const std::chrono::steady_clock::time_point& tm,
-					bool bHeld,
-					bool bRelease,
-					float padStickSeconds = 0.0f);
+	static bool NeedsTapJudging(const TapNote& tn);
+	static bool NeedsHoldJudging(const TapNote& tn);
 	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
 	void UpdateJudgedRows(float fDeltaTime);
+	// Updates visible parts: Hold Judgments, NoteField Zoom, Combo based Actors
+	void UpdateVisibleParts();
+	// Updates the pressed flags depending on input
+	// Tells the NoteField to do stuff basically
+	void UpdatePressedFlags();
+	// Updates Holds and Rolls
+	// For Rolls, just tells Autoplay to restep them
+	// For Holds, tells their life to decay
+	// ... oh man this is redundant
+	void UpdateHoldsAndRolls(float fDeltaTime,
+							 const std::chrono::steady_clock::time_point& now);
+	// Updates Crossed Rows for NoteData
+	// What this involves is:
+	//		Hold Life/Tapping Heads/Checkpoints
+	//		Mines (The act of holding a button to hit one)
+	//		Autoplay hitting taps
+	//		Keysounds
+	void UpdateCrossedRows(const std::chrono::steady_clock::time_point& now);
 	void FlashGhostRow(int iRow);
 	void HandleTapRowScore(unsigned row);
 	void HandleHoldScore(const TapNote& tn);
@@ -208,7 +225,8 @@ class Player : public ActorFrame
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
-					   bool bAllowGraded) const;
+					   bool bAllowGraded,
+					   bool bAllowOldMines = true) const;
 	int GetClosestNonEmptyRowDirectional(int iStartRow,
 										 int iMaxRowsAhead,
 										 bool bAllowGraded,
@@ -252,7 +270,6 @@ class Player : public ActorFrame
 	TapNoteScore m_LastTapNoteScore;
 	LifeMeter* m_pLifeMeter;
 	ScoreKeeper* m_pPrimaryScoreKeeper;
-	ScoreKeeper* m_pSecondaryScoreKeeper;
 
 	int m_iFirstUncrossedRow; // used by hold checkpoints logic
 	NoteData::all_tracks_iterator* m_pIterNeedsTapJudging;
@@ -266,8 +283,6 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	vector<bool> m_vbFretIsDown;
-
 	vector<RageSound> m_vKeysounds;
 
 	ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
@@ -280,6 +295,19 @@ class Player : public ActorFrame
 	ThemeMetric<bool> COMBO_UNDER_FIELD;
 	ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
 	ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	/**
+	  Does repeatedly stepping on a roll to keep it alive increment the
+	  combo?
+
+	  If set to true, repeatedly stepping on a roll will increment the combo.
+	  If set to false, only the roll head causes the combo to be incremented.
+
+	  For those wishing to make a theme very accurate to In The Groove 2, set
+	  this to false.
+	  PLAYER INIT MUST LOAD THIS OR YOU CRASH
+	  */
+	ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
+	ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2
@@ -292,48 +320,54 @@ class Player : public ActorFrame
 	bool m_drawing_notefield_board;
 };
 
-class PlayerPlus
+/**
+ * @brief Helper class to ensure that each row is only judged once without
+ * taking too much memory.
+ */
+class JudgedRows
 {
-	Player* m_pPlayer;
-	NoteData m_NoteData;
+	vector<bool> m_vRows;
+	int m_iStart{ 0 };
+	int m_iOffset{ 0 };
+
+	void Resize(size_t iMin)
+	{
+		size_t iNewSize = max(2 * m_vRows.size(), iMin);
+		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+		vNewRows.reserve(iNewSize);
+		vNewRows.insert(
+		  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
+		vNewRows.resize(iNewSize, false);
+		m_vRows.swap(vNewRows);
+		m_iOffset = 0;
+	}
 
   public:
-	PlayerPlus() { m_pPlayer = new Player(m_NoteData); }
-	~PlayerPlus() { delete m_pPlayer; }
-	void Load(const NoteData& nd)
+	JudgedRows() { Resize(32); }
+	// Returns true if the row has already been judged.
+	bool JudgeRow(int iRow)
 	{
-		m_NoteData = nd;
-		m_pPlayer->Load();
+		if (iRow < m_iStart)
+			return true;
+		if (iRow >= m_iStart + static_cast<int>(m_vRows.size()))
+			Resize(iRow + 1 - m_iStart);
+		const int iIndex = (iRow - m_iStart + m_iOffset) % m_vRows.size();
+		const bool ret = m_vRows[iIndex];
+		m_vRows[iIndex] = true;
+		while (m_vRows[m_iOffset]) {
+			m_vRows[m_iOffset] = false;
+			++m_iStart;
+			if (++m_iOffset >= static_cast<int>(m_vRows.size()))
+				m_iOffset -= m_vRows.size();
+		}
+		return ret;
 	}
-	Player* operator->() { return m_pPlayer; }
-	const Player* operator->() const { return m_pPlayer; }
-	operator Player*() { return m_pPlayer; }
-	operator const Player*() const { return m_pPlayer; }
+	void Reset(int iStart)
+	{
+		m_iStart = iStart;
+		m_iOffset = 0;
+		m_vRows.assign(m_vRows.size(), false);
+	}
 };
 
 #endif
-
-/*
- * (c) 2001-2006 Chris Danford, Steve Checkoway
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

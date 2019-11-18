@@ -33,6 +33,7 @@ class GameSoundManager : MessageSubscriber
 			fFadeOutLengthSeconds = 0;
 			bAlignBeat = true;
 			bApplyMusicRate = false;
+			bAccurateSync = false;
 		}
 
 		RString sFile;
@@ -44,6 +45,7 @@ class GameSoundManager : MessageSubscriber
 		float fFadeOutLengthSeconds;
 		bool bAlignBeat;
 		bool bApplyMusicRate;
+		bool bAccurateSync;
 	};
 	void PlayMusic(PlayMusicParams params,
 				   PlayMusicParams FallbackMusicParams = PlayMusicParams());
@@ -55,7 +57,8 @@ class GameSoundManager : MessageSubscriber
 				   float fFadeInLengthSeconds = 0,
 				   float fade_len = 0,
 				   bool align_beat = true,
-				   bool bApplyMusicRate = false);
+				   bool bApplyMusicRate = false,
+				   bool bAccurateSync = false);
 	void StopMusic() { PlayMusic(""); }
 	void DimMusic(float fVolume, float fDurationSeconds);
 	RString GetMusicPath() const;
@@ -71,13 +74,18 @@ class GameSoundManager : MessageSubscriber
 	static float GetPlayerBalance(PlayerNumber pn);
 	void WithRageSoundPlaying(function<void(RageSound*)> f);
 	TimingData GetPlayingMusicTiming();
-	
+
+	// Set a sound's position given its pointer
+	// Meant to avoid blocking the game execution (stutter)
+	void SetSoundPosition(RageSound* s, float fSeconds);
+
 	void StartMusic(MusicToPlay& ToPlay);
 	void DoPlayOnce(RString sPath);
 	void StartQueuedSounds();
 	void DoPlayOnceFromDir(RString sPath);
 	bool SoundWaiting();
-		
+	void HandleSetPosition();
+
 	std::shared_ptr<LuaReference> soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
 	Screen* callbackOwningScreen{ nullptr };
@@ -90,28 +98,3 @@ class GameSoundManager : MessageSubscriber
 
 extern GameSoundManager* SOUND;
 #endif
-
-/*
- * Copyright (c) 2003-2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

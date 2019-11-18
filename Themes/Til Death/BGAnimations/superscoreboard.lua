@@ -560,6 +560,20 @@ local function makeScoreDisplay(i)
 						self:GetParent():GetChild("NormalText"):visible(true)
 						self:GetParent():GetChild("LongerText"):visible(false)
 					end
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) and hs and not collapsed then
+						if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
+						if hs:HasReplayData() then
+							DLMAN:RequestOnlineScoreReplayData(
+								hs,
+								function()
+									setScoreForPlot(hs)
+									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")					
+								end
+							)
+						end
+					end
 				end
 			},
 		LoadFont("Common normal") ..
