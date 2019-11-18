@@ -99,7 +99,7 @@ function tabs(index)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(tabNames[index])
+				self:settext(THEME:GetString("TabNames", tabNames[index]))
 				if isTabEnabled(index) then
 					if index == 6 and FILTERMAN:AnyActiveFilter() then
 						self:diffuse(color("#cc2929"))

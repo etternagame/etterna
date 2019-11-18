@@ -10,6 +10,11 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("scoreboard")
 end
 
+local translated_info = {
+	CCOn = THEME:GetString("ScreenEvaluation", "ChordCohesionOn"),
+	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
+}
+
 local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
 local originaljudge = GetTimingDifficulty()
 
@@ -421,7 +426,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current"))
+				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")))
 			end
 		}
 
@@ -553,7 +558,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext("Chord Cohesion on")
+					self:settext(translated_info["CCOn"])
 				end
 			}
 	end
@@ -568,7 +573,8 @@ function scoreBoard(pn, position)
 		{
 			InitCommand = function(self)
 				ratioText = self
-				self:settext("MA/PA ratio:"):zoom(0.25):halign(1)
+				self:settextf("%s:", translated_info["MAPARatio"])
+				self:zoom(0.25):halign(1)
 			end
 		}
 	t[#t + 1] =
@@ -630,6 +636,13 @@ function scoreBoard(pn, position)
 		}
 
 	local fart = {"Holds", "Mines", "Rolls", "Lifts", "Fakes"}
+	local fart_translated = {
+		Holds = THEME:GetString("RadarCategory", "Holds"),
+		Mines = THEME:GetString("RadarCategory", "Mines"),
+		Rolls = THEME:GetString("RadarCategory", "Rolls"),
+		Lifts = THEME:GetString("RadarCategory", "Lifts"),
+		Fakes = THEME:GetString("RadarCategory", "Fakes")
+	}
 	t[#t + 1] =
 		Def.Quad {
 		InitCommand = function(self)
@@ -641,7 +654,7 @@ function scoreBoard(pn, position)
 			LoadFont("Common Normal") ..
 			{
 				InitCommand = function(self)
-					self:xy(frameX, frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(fart[i])
+					self:xy(frameX, frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(fart_translated[fart[i]])
 				end
 			}
 		t[#t + 1] =
@@ -700,7 +713,13 @@ function scoreBoard(pn, position)
 		end
 	}
 	local smallest, largest = wifeRange(devianceTable)
-	local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
+	local doot = {
+		THEME:GetString("ScreenEvaluation", "Mean"),
+		THEME:GetString("ScreenEvaluation", "AbsMean"),
+		THEME:GetString("ScreenEvaluation", "StandardDev"),
+		THEME:GetString("ScreenEvaluation", "LeftCB"),
+		THEME:GetString("ScreenEvaluation", "RightCB")
+	}
 	local mcscoot = {
 		wifeMean(devianceTable),
 		wifeAbsMean(devianceTable),

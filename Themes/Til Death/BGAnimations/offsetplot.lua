@@ -19,6 +19,14 @@ local baralpha = 0.2
 local bgalpha = 0.8
 local textzoom = 0.35
 
+local translated_info = {
+	Left = THEME:GetString("OffsetPlot", "ExplainLeft"),
+	Right = THEME:GetString("OffsetPlot", "ExplainRight"),
+	Down = THEME:GetString("OffsetPlot", "ExplainDown"),
+	Early = THEME:GetString("OffsetPlot", "Early"),
+	Late = THEME:GetString("OffsetPlot", "Late")
+}
+
 -- initialize tables we need for replay data here, we don't know where we'll be loading from yet
 local dvt = {}
 local nrt = {}
@@ -288,12 +296,12 @@ o[#o + 1] =
 			if #ntt > 0 then
 				if handspecific then
 					if left then
-						self:settext("Highlighting left hand taps")
+						self:settext(translated_info["Left"])
 					else
-						self:settext("Highlighting right hand taps")
+						self:settext(translated_info["Right"])
 					end
 				else
-					self:settext("Down toggles highlights")
+					self:settext(translated_info["Down"])
 				end
 			else
 				self:settext("")
@@ -306,14 +314,14 @@ o[#o + 1] =
 	LoadFont("Common Normal") ..
 	{
 		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("Late (+%ims)", maxOffset)
+			self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("%s (+%ims)", translated_info["Late"], maxOffset)
 		end
 	}
 o[#o + 1] =
 	LoadFont("Common Normal") ..
 	{
 		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("Early (-%ims)", maxOffset)
+			self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("%s (-%ims)", translated_info["Early"], maxOffset)
 		end
 	}
 

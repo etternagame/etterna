@@ -7,7 +7,10 @@ local scoreIndex = 1
 local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local nestedTab = 1
-local nestedTabs = {"Local", "Online"}
+local nestedTabs = {
+	THEME:GetString("TabScore", "NestedLocal"),
+	THEME:GetString("TabScore", "NestedOnline")
+}
 local hasReplayData
 
 local frameX = 10
@@ -36,6 +39,26 @@ local judges = {
 	"TapNoteScore_Miss",
 	"HoldNoteScore_Held",
 	"HoldNoteScore_LetGo"
+}
+
+local translated_info = {
+	MaxCombo = THEME:GetString("TabScore", "MaxCombo"),
+	MissCount = THEME:GetString("TabScore", "MissCount"),
+	DateAchieved = THEME:GetString("TabScore", "DateAchieved"),
+	Mods = THEME:GetString("TabScore", "Mods"),
+	Rate = THEME:GetString("TabScore", "Rate"), -- used in conjunction with Showing
+	Showing = THEME:GetString("TabScore", "Showing"), -- to produce a scuffed thing
+	ChordCohesion = THEME:GetString("TabScore", "ChordCohesion"),
+	Judge = THEME:GetString("TabScore", "ScoreJudge"),
+	NoScores = THEME:GetString("TabScore", "NoScores"),
+	Yes = THEME:GetString("OptionNames", "Yes"),
+	No = THEME:GetString("OptionNames", "No"),
+	ShowOffset = THEME:GetString("TabScore", "ShowOffsetPlot"),
+	NoReplayData = THEME:GetString("TabScore", "NoReplayData"),
+	ShowReplay = THEME:GetString("TabScore", "ShowReplay"),
+	ShowEval = THEME:GetString("TabScore", "ShowEval"),
+	UploadReplay = THEME:GetString("TabScore", "Upload Replay"),
+	UploadingReplay = THEME:GetString("TabScore", "UploadingReplay")
 }
 
 local defaultRateText = ""
@@ -393,7 +416,12 @@ local l =
 				if score:GetWifeScore() == 0 then
 					self:settext("")
 				else
-					self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+					local ss = GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+					if ss ~= "" then
+						self:settext(THEME:GetString("Skillsets", ss))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -401,7 +429,7 @@ local l =
 		{
 			Name = "ClearType",
 			InitCommand = function(self)
-				self:y(43):zoom(0.5):halign(0):settext("No Play"):diffuse(color(colorConfig:get_data().clearType["NoPlay"]))
+				self:y(43):zoom(0.5):halign(0):settext(""):diffuse(color(colorConfig:get_data().clearType["NoPlay"]))
 			end,
 			DisplayCommand = function(self)
 				self:settext(getClearTypeFromScore(pn, score, 0))
@@ -412,24 +440,24 @@ local l =
 		{
 			Name = "Combo",
 			InitCommand = function(self)
-				self:y(58):zoom(0.4):halign(0):settext("Max Combo:")
+				self:y(58):zoom(0.4):halign(0):settextf("%s:", translated_info["MaxCombo"])
 			end,
 			DisplayCommand = function(self)
-				self:settextf("Max Combo: %d", score:GetMaxCombo())
+				self:settextf("%s: %d", translated_info["MaxCombo"], score:GetMaxCombo())
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			Name = "MissCount",
 			InitCommand = function(self)
-				self:y(73):zoom(0.4):halign(0):settext("Miss Count:")
+				self:y(73):zoom(0.4):halign(0):settextf("%s:", translated_info["MissCount"])
 			end,
 			DisplayCommand = function(self)
 				local missCount = getScoreMissCount(score)
 				if missCount ~= nil then
-					self:settext("Miss Count: " .. missCount)
+					self:settextf("%s: %s", translated_info["MissCount"], missCount)
 				else
-					self:settext("Miss Count: -")
+					self:settextf("%s: -", translated_info["MissCount"])
 				end
 			end
 		},
@@ -437,44 +465,43 @@ local l =
 		{
 			Name = "Date",
 			InitCommand = function(self)
-				self:y(88):zoom(0.4):halign(0):settext("Date Achieved:")
+				self:y(88):zoom(0.4):halign(0):settextf("%s:", translated_info["DateAchieved"])
 			end,
 			DisplayCommand = function(self)
-				self:settext("Date Achieved: " .. getScoreDate(score))
+				self:settextf("%s: %s", translated_info["DateAchieved"], getScoreDate(score))
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			Name = "Mods",
 			InitCommand = function(self)
-				self:y(103):zoom(0.4):halign(0):settext("Mods:")
+				self:y(103):zoom(0.4):halign(0):settextf("%s:", translated_info["Mods"])
 			end,
 			DisplayCommand = function(self)
-				self:settext("Mods: " .. score:GetModifiers())
+				self:settextf("%s: %s", translated_info["Mods"], getModifierTranslations(score:GetModifiers()))
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(1):settext(
-					"No Scores Saved"
-				)
+				self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(1)
+				self:settext(translated_info["NoScores"])
 			end,
 			DisplayCommand = function(self)
-				self:settextf("Rate %s - Showing %d/%d", rates[rateIndex], scoreIndex, #rtTable[rates[rateIndex]])
+				self:settextf("%s %s - %s %d/%d", translated_info["Rate"], rates[rateIndex], translated_info["Showing"], scoreIndex, #rtTable[rates[rateIndex]])
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			Name = "ChordCohesion",
 			InitCommand = function(self)
-				self:y(frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(0):settext("Chord Cohesion:")
+				self:y(frameHeight - headeroffY - 10 - offsetY):zoom(0.4):halign(0):settextf("%s:", translated_info["ChordCohesion"])
 			end,
 			DisplayCommand = function(self)
 				if score:GetChordCohesion() then
-					self:settext("Chord Cohesion: Yes")
+					self:settextf("%s: %s", translated_info["ChordCohesion"], translated_info["Yes"])
 				else
-					self:settext("Chord Cohesion: No")
+					self:settextf("%s: %s", translated_info["ChordCohesion"], translated_info["No"])
 				end
 			end
 		},
@@ -489,7 +516,7 @@ local l =
 				if not j then
 					j = 4
 				end
-				self:settext("Judge " .. j)
+				self:settextf("%s %i", translated_info["Judge"], j)
 			end
 		}
 }
@@ -604,9 +631,9 @@ l[#l + 1] =
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
-				self:settext("Show Replay Data")
+				self:settext(translated_info["ShowOffset"])
 			else
-				self:settext("No Replay Data")
+				self:settext(translated_info["NoReplayData"])
 			end
 		end,
 		HighlightCommand = function(self)
@@ -634,9 +661,9 @@ l[#l + 1] =
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
-				self:settext("View Replay")
+				self:settext(translated_info["ShowReplay"])
 			else
-				self:settext("No Replay Data")
+				self:settext(translated_info["NoReplayData"])
 			end
 		end,
 		HighlightCommand = function(self)
@@ -664,7 +691,7 @@ l[#l + 1] =
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
-				self:settext("View Eval Screen")
+				self:settext(translated_info["ShowEval"])
 			else
 				self:settext("")
 			end
@@ -690,7 +717,7 @@ l[#l + 1] =
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
-				self:settext("Upload Replay Data")
+				self:settext(translated_info["UploadReplay"])
 			else
 				self:settext("")
 			end
@@ -702,7 +729,7 @@ l[#l + 1] =
 			if nestedTab == 1 then
 				if getTabIndex() == 2 and isOver(self) then
 					DLMAN:SendReplayDataForOldScore(score:GetScoreKey())
-					ms.ok("Uploading Replay Data...") --should have better feedback -mina
+					ms.ok(translated_info["UploadingReplay"]) --should have better feedback -mina
 				end
 			end
 		end

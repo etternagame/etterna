@@ -8,15 +8,15 @@ ms = {}
 
 -- Radar values people on earth actually care about
 ms.RelevantRadarsShort = {
-	"Notes:",
-	"Jumps:",
-	"Hands:",
-	"Holds:",
-	"Mines:",
-	"TotalTaps:",
-	"Rolls:",
-	"Lifts:",
-	"Fakes:"
+	THEME:GetString("RadarCategoryShort", "Notes")..":",
+	THEME:GetString("RadarCategoryShort", "Jumps")..":",
+	THEME:GetString("RadarCategoryShort", "Hands")..":",
+	THEME:GetString("RadarCategoryShort", "Holds")..":",
+	THEME:GetString("RadarCategoryShort", "Mines")..":",
+	THEME:GetString("RadarCategoryShort", "TotalTaps")..":",
+	THEME:GetString("RadarCategoryShort", "Rolls")..":",
+	THEME:GetString("RadarCategoryShort", "Lifts")..":",
+	THEME:GetString("RadarCategoryShort", "Fakes")..":"
 }
 
 ms.RelevantRadars = {
@@ -76,7 +76,31 @@ ms.SkillSetsShort = {
 	"Tech"
 }
 
+ms.SkillSetsTranslatedByName = {
+	Overall = THEME:GetString("Skillsets", "Overall"),
+	Stream = THEME:GetString("Skillsets", "Stream"),
+	Jumpstream = THEME:GetString("Skillsets", "Jumpstream"),
+	Handstream = THEME:GetString("Skillsets", "Handstream"),
+	Stamina = THEME:GetString("Skillsets", "Stamina"),
+	JackSpeed = THEME:GetString("Skillsets", "JackSpeed"),
+	Chordjack = THEME:GetString("Skillsets", "Chordjack"),
+	Technical = THEME:GetString("Skillsets", "Technical"),
+}
+
+ms.SkillSetsTranslated = {
+	THEME:GetString("Skillsets", "Overall"),
+	THEME:GetString("Skillsets", "Stream"),
+	THEME:GetString("Skillsets", "Jumpstream"),
+	THEME:GetString("Skillsets", "Handstream"),
+	THEME:GetString("Skillsets", "Stamina"),
+	THEME:GetString("Skillsets", "JackSpeed"),
+	THEME:GetString("Skillsets", "Chordjack"),
+	THEME:GetString("Skillsets", "Technical"),
+}
+
 ms.JudgeScalers = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+
+local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
 -- **Functions**
 function ms.ok(m)
@@ -288,7 +312,7 @@ function getRateDisplayString(x)
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. "Music"
+	return x .. musicstr
 end
 
 function getCurRateValue()

@@ -72,8 +72,12 @@ RageTimer g_CanOpenOptionsList(RageZeroTimer);
 
 static LocalizedString PERMANENTLY_DELETE("ScreenSelectMusic",
 										  "PermanentlyDelete");
+static LocalizedString NAME_PLAYLIST("ScreenSelectMusic", "NamePlaylist");
+static LocalizedString ADDED_TO_PLAYLIST("ScreenSelectMusic",
+										 "AddedToPlaylist");
 
 REGISTER_SCREEN_CLASS(ScreenSelectMusic);
+
 void
 ScreenSelectMusic::Init()
 {
@@ -537,7 +541,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'P' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			ScreenTextEntry::TextEntry(
-			  SM_BackFromNamePlaylist, "Name Playlist", "", 128);
+			  SM_BackFromNamePlaylist, NAME_PLAYLIST, "", 128);
 			MESSAGEMAN->Broadcast("DisplayAll");
 			return true;
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
@@ -550,7 +554,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			  GAMESTATE->m_pCurSteps->GetChartKey());
 			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(
-			  ssprintf("Added chart: %s to playlist: %s",
+			  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
 					   SONGMAN->activeplaylist.c_str()));
 			return true;

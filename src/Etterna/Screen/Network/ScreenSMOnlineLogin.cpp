@@ -25,6 +25,10 @@ AutoScreenMessage(ETTP_LoginResponse);
 
 static LocalizedString DEFINE_A_PROFILE("ScreenSMOnlineLogin",
 										"You must define a Profile.");
+static LocalizedString LOGIN_BUTTON("ScreenSMOnlineLogin", "LoginButton");
+static LocalizedString ENTER_USERNAME("ScreenSMOnlineLogin", "EnterUsername");
+static LocalizedString TYPE_USERNAME("ScreenSMOnlineLogin", "TypeUsername");
+
 void
 ScreenSMOnlineLogin::Init()
 {
@@ -43,7 +47,7 @@ ScreenSMOnlineLogin::Init()
 	pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 
 	PROFILEMAN->GetLocalProfileDisplayNames(pHand->m_Def.m_vsChoices);
-	pHand->m_Def.m_vsChoices.emplace_back("Type Username");
+	pHand->m_Def.m_vsChoices.emplace_back(TYPE_USERNAME.GetValue());
 	if (pHand->m_Def.m_vsChoices.empty()) {
 		// Give myself a message so that I can bail out later
 		PostScreenMessage(SM_NoProfilesDefined, 0);
@@ -54,7 +58,7 @@ ScreenSMOnlineLogin::Init()
 	InitMenu(vHands);
 	SOUND->PlayMusic(THEME->GetPathS("ScreenOptionsServiceChild", "music"));
 	OptionRow& row = *m_pRows.back();
-	row.SetExitText("Login");
+	row.SetExitText(LOGIN_BUTTON);
 }
 
 void
@@ -150,7 +154,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 											sLoginQuestion,
 										  NULL);
 			} else {
-				sLoginQuestion = "Enter username";
+				sLoginQuestion = ENTER_USERNAME.GetValue();
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										   NSMAN->loginResponse + "\n\n" +
 											 sLoginQuestion,
@@ -185,7 +189,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 				ScreenTextEntry::Password(
 				  SM_PasswordDone, sLoginQuestion, NULL);
 			} else {
-				sLoginQuestion = "Enter username";
+				sLoginQuestion = ENTER_USERNAME.GetValue();
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
 										   NSMAN->loginResponse + "\n\n" +
 											 sLoginQuestion,

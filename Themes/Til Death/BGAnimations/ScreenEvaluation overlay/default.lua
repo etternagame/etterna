@@ -8,7 +8,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Results:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+			self:settextf("%s:", THEME:GetString("ScreenEvaluation", "Title"))
 		end
 	}
 

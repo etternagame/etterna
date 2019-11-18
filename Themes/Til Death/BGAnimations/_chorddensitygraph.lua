@@ -10,6 +10,10 @@ end
 local hidth = 40
 local txtoff = 10
 
+local translated_info = {
+	nps = THEME:GetString("ChordDensityGraph", "NPS")
+}
+
 local textonleft = true
 local function textmover(self)
     if isOver(self:GetChild("npstext")) and textonleft then
@@ -69,7 +73,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		parent:GetChild("npsline"):y(-hidth * 0.7)
-		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. "nps"):y(-hidth * 0.9)
+		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. translated_info["nps"]):y(-hidth * 0.9)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph

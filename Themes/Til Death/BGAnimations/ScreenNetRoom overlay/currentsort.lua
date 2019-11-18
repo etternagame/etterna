@@ -5,20 +5,6 @@ local frameHeight = 20
 local frameX = SCREEN_WIDTH - 5
 local frameY = 15
 
-local sortTable = {
-	SortOrder_Preferred = "Preferred",
-	SortOrder_Group = "Group",
-	SortOrder_Title = "Title",
-	SortOrder_BPM = "BPM",
-	SortOrder_Popularity = "Popular",
-	SortOrder_TopGrades = "Grade",
-	SortOrder_Artist = "Artist",
-	SortOrder_Genre = "Genre",
-	SortOrder_ModeMenu = "Mode Menu",
-	SortOrder_Length = "Song Length",
-	SortOrder_Recent = "Recently Played"
-}
-
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{

@@ -107,6 +107,8 @@ static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 											 "Connection to '%s' successful.");
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
+static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
+
 // Utility function (Since json needs to be valid utf8)
 string
 correct_non_utf_8(string* str)
@@ -1478,7 +1480,7 @@ ETTProtocol::Login(RString user, RString pass)
 	timeout = 5.0;
 	onTimeout = [](void) {
 		NSMAN->loggedInUsername.clear();
-		NSMAN->loginResponse = "Login timed out";
+		NSMAN->loginResponse = LOGIN_TIMEOUT.GetValue();
 		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 	};
 }

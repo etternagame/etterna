@@ -37,6 +37,7 @@ t[#t + 1] =
 	end
 }
 
+--[[
 if themeConfig:get_data().global.TipType == 2 or themeConfig:get_data().global.TipType == 3 then
 	t[#t + 1] =
 		LoadFont("Common Normal") ..
@@ -54,5 +55,6 @@ if themeConfig:get_data().global.TipType == 2 or themeConfig:get_data().global.T
 			end
 		}
 end
+]]
 
 return t

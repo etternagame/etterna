@@ -18,6 +18,8 @@ t[#t + 1] =
 		end
 	}
 
+local translated_time = THEME:GetString("GeneralInfo", "SessionTime")
+
 local function Update(self)
 	local year = Year()
 	local month = MonthOfYear() + 1
@@ -28,7 +30,7 @@ local function Update(self)
 	self:GetChild("currentTime"):settextf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second)
 
 	local sessiontime = GAMESTATE:GetSessionTime()
-	self:GetChild("SessionTime"):settextf("Session Time: " .. SecondsToHHMMSS(sessiontime))
+	self:GetChild("SessionTime"):settextf("%s: %s", translated_time, SecondsToHHMMSS(sessiontime))
 	self:diffuse(getMainColor("positive"))
 end
 
