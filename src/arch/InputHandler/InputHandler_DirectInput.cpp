@@ -471,9 +471,6 @@ InputHandler_DInput::UpdatePolled(
 						INPUTFILTER->UpdateCursorLocation(
 						  static_cast<float>(cursorPos.x),
 						  static_cast<float>(cursorPos.y));
-						INPUTFILTER->UpdateCursorLocation(
-						  static_cast<float>(cursorPos.x),
-						  static_cast<float>(cursorPos.y));
 
 						DeviceInput di(
 						  dev,
@@ -586,9 +583,6 @@ InputHandler_DInput::UpdateBuffered(
 						POINT cursorPos;
 						GetCursorPos(&cursorPos);
 						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
-						INPUTFILTER->UpdateCursorLocation(
-						  static_cast<float>(cursorPos.x),
-						  static_cast<float>(cursorPos.y));
 						INPUTFILTER->UpdateCursorLocation(
 						  static_cast<float>(cursorPos.x),
 						  static_cast<float>(cursorPos.y));

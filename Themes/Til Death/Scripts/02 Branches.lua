@@ -65,11 +65,7 @@ Branch = {
 		end
 	end,
 	AfterTitleMenu = function()
-		if PREFSMAN:GetPreference("ShowCaution") then
-			return "ScreenCaution"
-		else
-			return Branch.StartGame()
-		end
+		return Branch.StartGame()
 	end,
 	StartGame = function()
 		multiplayer = false

@@ -814,6 +814,7 @@ t[#t + 1] = Def.ActorFrame {
 		self:SetUpdateFunction( function(self)
 			self:queuecommand("Highlight")
 		end)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 
 	LoadFont("Common Normal") ..

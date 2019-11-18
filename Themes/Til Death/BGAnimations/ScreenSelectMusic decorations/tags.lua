@@ -97,9 +97,6 @@ local t =
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("BORPBORPNORFNORFc")
-	end,
-	CurrentSongChangedMessageCommand = function(self)
-		self:queuecommand("BORPBORPNORFNORFc")
 	end
 }
 

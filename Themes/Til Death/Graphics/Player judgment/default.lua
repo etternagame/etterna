@@ -82,4 +82,4 @@ if enabledJudgment then
 	return t
 end
 
-return {}
+return Def.ActorFrame {}

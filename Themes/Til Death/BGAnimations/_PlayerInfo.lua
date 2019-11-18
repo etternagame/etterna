@@ -81,6 +81,7 @@ t[#t + 1] =
 	BeginCommand = function(self)
 		self:queuecommand("Set")
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 	SetCommand = function(self)
 		if profile == nil then

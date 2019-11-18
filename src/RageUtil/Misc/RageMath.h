@@ -1,4 +1,4 @@
-﻿/* RageMath - vector/matrix math utilities. */
+/* RageMath - vector/matrix math utilities. */
 
 #ifndef RAGE_MATH_H
 #define RAGE_MATH_H
@@ -12,6 +12,12 @@ struct RageVector2;
 struct RageVector3;
 struct RageVector4;
 struct RageMatrix;
+
+void
+RageVec2RotateFromOrigin(RageVector2* pOut, float degrees);
+
+void
+RageVec2RotateFromPoint(RageVector2* p1, RageVector2* p2, float degrees);
 
 void
 RageVec3ClearBounds(struct RageVector3& mins, RageVector3& maxs);

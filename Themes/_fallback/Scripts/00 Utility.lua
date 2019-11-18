@@ -34,7 +34,6 @@ function isWindowed()
 end
 
 --- Get the actor's real X (Not relative to the parent like self:GetX()) by recursively grabbing the parents' position
--- Does not take zoom into account.
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueX(element)
@@ -42,7 +41,6 @@ function getTrueX(element)
 end
 
 --- Get the actor's real Y (Not relative to the parent like self:GetY()) by recursively grabbing the parents' position
--- Does not take zoom into account.
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueY(element)
