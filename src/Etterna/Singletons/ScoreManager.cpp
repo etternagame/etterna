@@ -14,6 +14,7 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include <cstdint>
+#include <numeric>
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -524,7 +525,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss)
 	{
-		// actually skip overall, and jack stamina for now
+		// skip overall ss
 		if (ss == Skill_Overall)
 			continue;
 
@@ -534,13 +535,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	sort(skillz.begin(), skillz.end());
-
-	float skillsetsum = 0.f;
-	for (size_t i = 1; i < skillz.size(); ++i) // drop the lowest skillset
-		skillsetsum += skillz[i];
-
-	prating = skillsetsum / 6.f;
+	prating = std::accumulate(skillz.begin(), skillz.end(), 0.f) / 7.f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
