@@ -604,7 +604,7 @@ t[#t + 1] =
 			end
 			self:LoadBackground(bnpath)
 		end
-		self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
+		self:diffusealpha(1)
 	end,
 	ChartPreviewOnMessageCommand = function(self)
 		self:visible(false)
