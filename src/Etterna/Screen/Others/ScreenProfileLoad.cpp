@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ScreenManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "ScreenProfileLoad.h"
 
 REGISTER_SCREEN_CLASS(ScreenProfileLoad);
@@ -30,6 +31,23 @@ void
 ScreenProfileLoad::Continue()
 {
 	if (m_bHaveProfileToLoad) {
+		// So basically if we only have 1 profile nothing works
+		// the fix is to force the first profile to load
+		// then act like nothing happened
+		if (PROFILEMAN->GetNumLocalProfiles() == 1) {
+			PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(
+			  PROFILEMAN->GetLocalProfileIDFromIndex(0));
+			PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
+			GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+		} else if (PROFILEMAN->GetNumLocalProfiles() == 0) {
+			// but also sometimes we might have 0 profiles
+			// in that case make a new one, duh
+			RString id;
+			PROFILEMAN->CreateLocalProfile("Default Profile", id);
+			PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(id);
+			PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
+			GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+		}
 		GAMESTATE->LoadProfiles(LOAD_EDITS);
 		SCREENMAN->ZeroNextUpdate();
 	}
