@@ -760,6 +760,11 @@ class LunaStageStats : public Luna<StageStats>
 		lua_pushboolean(L, p->PlayerHasHighScore(PLAYER_1));
 		return 1;
 	}
+	static int GetLivePlay(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->m_bLivePlay);
+		return 1;
+	}
 
 	LunaStageStats()
 	{
@@ -774,6 +779,7 @@ class LunaStageStats : public Luna<StageStats>
 		ADD_METHOD(GetStageIndex);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(PlayerHasHighScore);
+		ADD_METHOD(GetLivePlay);
 	}
 };
 

@@ -70,6 +70,10 @@ class StageStats
 	void FinalizeScores(bool bSummary);
 	string mostrecentscorekey;
 
+	// Show that this StageStats was a live play or is merely a reproduction
+	// using a Replay
+	bool m_bLivePlay = false;
+
 	/**
 	 * @brief Determine if the PlayerNumber has a high score.
 	 * @param pn the PlayerNumber in question.
