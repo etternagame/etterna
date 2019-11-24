@@ -426,7 +426,7 @@ float
 ScreenGameplayPractice::AddToRate(float amountAdded)
 {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	float newRate = rate + amountAdded;
+	double newRate = std::floor((rate + amountAdded) * 100 + 0.5) / 100;
 
 	// Rates outside of this range may crash
 	// Use 0.25 because of floating point errors...
