@@ -61,6 +61,7 @@ class PlayerAI
 	static RString oldNoteskin;
 	static float replayRate;
 	static float oldRate;
+	static FailType oldFailType;
 
 	// For use in Autoplay if we ever want to do funny things to the judgments
 	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);

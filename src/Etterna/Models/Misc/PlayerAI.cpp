@@ -25,6 +25,7 @@ RString PlayerAI::replayModifiers = "";
 RString PlayerAI::oldModifiers = "";
 float PlayerAI::oldRate = 1.f;
 RString PlayerAI::oldNoteskin = "";
+FailType PlayerAI::oldFailType = FailType_Immediate;
 
 TapNoteScore
 PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
@@ -97,6 +98,7 @@ PlayerAI::ResetScoreData()
 	oldModifiers.clear();
 	oldRate = 1.f;
 	oldNoteskin.clear();
+	oldFailType = FailType_Immediate;
 }
 
 void
