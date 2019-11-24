@@ -1398,7 +1398,8 @@ void
 GameState::TogglePracticeMode(bool set)
 {
 	// If we are online, never allow turning practice mode on.
-	if (NSMAN->isSMOnline && NSMAN->loggedIn && NSMAN->IsETTP())
+	if (NSMAN != nullptr && NSMAN->isSMOnline && NSMAN->loggedIn &&
+		NSMAN->IsETTP())
 		set = false;
 
 	m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice = set;
