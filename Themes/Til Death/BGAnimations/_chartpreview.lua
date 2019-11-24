@@ -9,6 +9,11 @@ local hidth = 40
 local yeet
 local cd
 
+local yPos = Var("yPos")
+local yPosReverse = Var("yPosReverse")
+if not yPos then yPos = 55 end
+if not yPosReverse then yPosReverse = 208 end
+
 local translated_info = {
 	Paused = THEME:GetString("ChartPreview", "Paused")
 }
@@ -35,7 +40,7 @@ local function setUpPreviewNoteField()
 	yeet:x(wodth/2)
 	memehamstermax:SortByDrawOrder()
 	MESSAGEMAN:Broadcast("NoteFieldVisible")
-  end 
+end
 
 local t = Def.ActorFrame {
 	Name = "ChartPreview",
@@ -74,6 +79,16 @@ local t = Def.ActorFrame {
 		cd:visible(true):y(20)				-- need to control this manually -mina
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
+	end,
+	OptionsScreenClosedMessageCommand = function(self)
+		local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+		if self:GetChild("NoteField") ~= nil then
+			if not rev then
+				self:GetChild("NoteField"):y(yPos * 1.5)
+			else
+				self:GetChild("NoteField"):y(yPos * 1.5 + yPosReverse)
+			end
+		end
 	end,
 	Def.Quad {
 		Name = "BG",

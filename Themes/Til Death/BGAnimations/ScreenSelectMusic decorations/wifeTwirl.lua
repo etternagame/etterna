@@ -988,5 +988,5 @@ t[#t + 1] =
 	}
 }
 
-t[#t + 1] = LoadActor("../_chartpreview.lua")
+t[#t + 1] = LoadActorWithParams("../_chartpreview.lua", {yPos = prevY, yPosReverse = prevrevY})
 return t
