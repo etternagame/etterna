@@ -95,6 +95,9 @@ local t = Def.ActorFrame {
 		NoteFieldVisibleMessageCommand = function(self)
 			self:settext("")
 		end,
+		PreviewMusicStartedMessageCommand = function(self)
+			self:playcommand("Set")
+		end,
 		SetCommand = function(self)
 			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
 				self:settext(translated_info["Paused"])

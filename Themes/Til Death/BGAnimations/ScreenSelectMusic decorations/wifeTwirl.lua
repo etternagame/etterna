@@ -13,10 +13,11 @@ local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions(
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
 local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
+local previewVisible = false
+local justChangedStyles = false
 
 local translated_info = {
 	GoalTarget = THEME:GetString("ScreenSelectMusic", "GoalTargetString"),
@@ -31,6 +32,66 @@ local translated_info = {
 	PlayerOptions = THEME:GetString("ScreenSelectMusic", "PlayerOptions"),
 	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu")
 }
+
+-- to reduce repetitive code for setting preview music position with booleans
+local function playMusicForPreview(song)
+	song:PlaySampleMusicExtended()
+	MESSAGEMAN:Broadcast("PreviewMusicStarted")
+
+	-- use this opportunity to set all the random booleans to make it consistent
+	songChanged = false
+	boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+	hackysack = false
+end
+
+-- to reduce repetitive code for setting preview visibility with booleans
+local function setPreviewPartsState(state)
+	if state == nil then return end
+	mcbootlarder:visible(state)
+	mcbootlarder:GetChild("NoteField"):visible(state)
+	heyiwasusingthat = not state
+	previewVisible = state
+end
+
+local function toggleNoteField()
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
+	if song and not noteField then -- first time setup
+		noteField = true
+		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
+		mcbootlarder:playcommand("SetupNoteField")
+		mcbootlarder:xy(prevX, prevY)
+		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
+		if usingreverse then
+			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
+		end
+		playMusicForPreview(song)
+		songChanged = false
+		hackysack = false
+		previewVisible = true
+		return
+	end
+
+	if song then
+		if mcbootlarder:IsVisible() then
+			mcbootlarder:visible(false)
+			mcbootlarder:GetChild("NoteField"):visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			previewVisible = false
+		else
+			mcbootlarder:visible(true)
+			mcbootlarder:GetChild("NoteField"):visible(true)
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged then
+				playMusicForPreview(song)
+				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				hackysack = false
+				songChanged = false
+			end
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
+			previewVisible = true
+		end
+	end
+end
+
 
 local update = false
 local t =
@@ -48,64 +109,76 @@ local t =
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
 		end
-		if getTabIndex() ~= 0 then
+		-- if not on General and we started the noteField and we changed tabs then changed songs
+		-- this means the music should be set again as long as the preview is still "on" but off screen
+		if getTabIndex() ~= 0 and noteField and heyiwasusingthat then
 			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
 		end
-		if getTabIndex() == 0 and noteField and not mcbootlarder:GetChild("NoteField"):IsVisible() then
-			boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = true
+
+		-- if the preview was turned on ever but is currently not on screen as the song changes
+		-- this goes hand in hand with the above boolean
+		if noteField and not previewVisible then
+			songChanged = true
 		end
-		songChanged = true
+	end,
+	DelayedChartUpdateMessageCommand = function(self)
+		-- wait for the music wheel to settle before playing the music
+		-- to keep things very slightly more easy to deal with
+		-- and reduce a tiny bit of lag
+		local s = GAMESTATE:GetCurrentSong()
+		local shouldPlayMusic = false
+		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField"):IsVisible())
+		shouldPlayMusic = shouldPlayMusic or boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone
+		shouldPlayMusic = shouldPlayMusic or hackysack
+		shouldPlayMusic = shouldPlayMusic and not justChangedStyles
+		if s and shouldPlayMusic then
+			playMusicForPreview(s)
+		end
+		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+		hackysack = false
+		justChangedStyles = false
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
 		local bong = GAMESTATE:GetCurrentSong()
-		if not bong then
-			self:queuecommand("MilkyTarts")
+		-- if not on a song and preview is on, hide it (dont turn it off)
+		if not bong and noteField and mcbootlarder:IsVisible() then
+			setPreviewPartsState(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
 		end
+
+		-- if the song changed
 		if song ~= bong then
-			if not song then
+			if not song and previewVisible then
 				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
 			end
 			song = bong
 			self:queuecommand("MortyFarts")
-			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
-				song:PlaySampleMusicExtended()
-				hackysack = false
-			end
 		end
+
+		-- on general tab
 		if getTabIndex() == 0 then
-			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then -- these can prolly be wrapped better too -mina
-				mcbootlarder:visible(true)
-				mcbootlarder:GetChild("NoteField"):visible(true)
+			-- if preview was on and should be made visible again
+			if heyiwasusingthat and bong and noteField then
+				setPreviewPartsState(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
-				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-					song:PlaySampleMusicExtended()
-					hackysack = false
-					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-				elseif hackysack then
-					song:PlaySampleMusicExtended()
-					hackysack = false
-				end
-				heyiwasusingthat = false
+			elseif bong and noteField and previewVisible then
+				-- make sure that it is visible even if it isnt, when it should be
+				-- (haha lets call this 1000000 times nothing could go wrong)
+				setPreviewPartsState(true)
 			end
+
 			self:queuecommand("On")
 			update = true
 		else
-			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:IsVisible() then
-				mcbootlarder:visible(false)
-				mcbootlarder:GetChild("NoteField"):visible(false)
+			-- changing tabs off of general with preview on, hide the preview
+			if bong and noteField and mcbootlarder:IsVisible() then
+				setPreviewPartsState(false)
 				MESSAGEMAN:Broadcast("ChartPreviewOff")
-				heyiwasusingthat = true
 			end
+
 			self:queuecommand("Off")
 			update = false
-		end
-	end,
-	MilkyTartsCommand = function(self) -- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
-		if noteField and mcbootlarder:IsVisible() then
-			mcbootlarder:visible(false)
-			MESSAGEMAN:Broadcast("ChartPreviewOff")
-			heyiwasusingthat = true
 		end
 	end,
 	TabChangedMessageCommand = function(self)
@@ -152,47 +225,6 @@ t[#t + 1] =
 			self:queuecommand("MintyFresh")
 		end
 	}
-
-local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
-	if song and not noteField then -- first time setup
-		noteField = true
-		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
-		mcbootlarder:playcommand("SetupNoteField")
-		mcbootlarder:xy(prevX, prevY)
-		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
-		if usingreverse then
-			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
-		end
-		if songChanged then
-			song:PlaySampleMusicExtended() -- catches a dumb bug that isn't worth explaining -mina
-			songChanged = false
-			hackysack = false
-		end
-		return
-	end
-
-	if song then
-		if mcbootlarder:IsVisible() then
-			mcbootlarder:visible(false)
-			mcbootlarder:GetChild("NoteField"):visible(false)
-			MESSAGEMAN:Broadcast("ChartPreviewOff")
-		else
-			mcbootlarder:visible(true)
-			mcbootlarder:GetChild("NoteField"):visible(true)
-			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-				song:PlaySampleMusicExtended()
-				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-				hackysack = false
-			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
-				song:PlaySampleMusicExtended()
-				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
-				hackysack = false
-			end
-			MESSAGEMAN:Broadcast("ChartPreviewOn")
-		end
-	end
-end
 
 t[#t + 1] =
 	Def.Actor {
@@ -863,6 +895,8 @@ t[#t + 1] = Def.ActorFrame {
 				end
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
+				justChangedStyles = true
+				song = GAMESTATE:GetCurrentSong()
 				toggleNoteField()
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
