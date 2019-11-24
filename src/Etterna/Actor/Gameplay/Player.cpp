@@ -3022,13 +3022,6 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 #endif
 		}
 
-		// hack for practice mode fps: dont send messages for missed mines in
-		// practice mode -poco
-		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_bPractice &&
-			tns == TNS_AvoidMine)
-			return;
-
 		MESSAGEMAN->Broadcast(msg);
 		if (m_pPlayerStageStats &&
 			((tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO) ||
@@ -3046,14 +3039,6 @@ Player::SetJudgment(int iRow,
 					TapNoteScore tns,
 					float fTapNoteOffset)
 {
-	// skip misses older than a second in practice mode to prevent huge freezes
-	// when skipping in long songs -poco
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice &&
-		iRow <
-		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-			m_Timing->WhereUAtBro(m_pPlayerState->m_Position.m_fSongBeat) - 1)))
-		return;
-
 	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr)
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
@@ -3176,14 +3161,6 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment(tn.HoldResult.hns);
 
 	AddHoldToReplayData(iTrack, &tn, iRow);
-
-	// skip misses older than a second in practice mode to prevent
-	// huge freezes when skipping in long songs -poco
-	if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice &&
-		iRow <
-		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-			m_Timing->WhereUAtBro(m_pPlayerState->m_Position.m_fSongBeat) - 5)))
-		return;
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Judgment");
