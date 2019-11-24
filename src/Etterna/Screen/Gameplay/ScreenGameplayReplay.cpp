@@ -46,6 +46,9 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 
 	// Set up rate
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
+	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::replayRate;
+	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::replayRate;
+	GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = PlayerAI::replayRate;
 
 	if (PREFSMAN->m_bReplaysUseScoreMods) {
 		// Set up mods
@@ -117,6 +120,7 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		  PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::oldRate;
+		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = PlayerAI::oldRate;
 	} else
 		PlayerAI::SetScoreData();
 }
