@@ -18,6 +18,7 @@ local dontRemakeTheNotefield = false
 local songChanged = false
 local previewVisible = false
 local justChangedStyles = false
+local onlyChangedSteps = false
 
 local itsOn = false
 
@@ -129,10 +130,11 @@ local t =
 		-- and reduce a tiny bit of lag
 		local s = GAMESTATE:GetCurrentSong()
 		local shouldPlayMusic = false
-		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField"):IsVisible())
+		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
 		shouldPlayMusic = shouldPlayMusic or boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone
 		shouldPlayMusic = shouldPlayMusic or hackysack
-		shouldPlayMusic = shouldPlayMusic and not justChangedStyles
+		shouldPlayMusic = shouldPlayMusic and (not justChangedStyles and not onlyChangedSteps)
+
 		if s and shouldPlayMusic then
 			playMusicForPreview(s)
 		end
@@ -151,11 +153,15 @@ local t =
 
 		-- if the song changed
 		if song ~= bong then
+			justChangedStyles = false
+			onlyChangedSteps = false
 			if not song and previewVisible then
 				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
 			end
 			song = bong
 			self:queuecommand("MortyFarts")
+		else
+			onlyChangedSteps = true
 		end
 
 		-- on general tab
