@@ -8,8 +8,8 @@ local tso = tst[judge]
 local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
 judge = enabledCustomWindows and 0 or judge
 local customWindowsData = timingWindowConfig:get_data()
-local customWindows = customWindowsData.customWindows
-local customWindow
+local customWindows = timingWindowConfig:get_data().customWindows
+local customWindow = timingWindowConfig:get_data()[customWindows[1]]
 
 local plotWidth, plotHeight = 400, 120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth / 2, SCREEN_HEIGHT - 56 - plotHeight / 2
@@ -116,10 +116,10 @@ local o =
 		if enabledCustomWindows then
 			if params.Name == "PrevJudge" then
 				judge = judge < 2 and #customWindows or judge - 1
-				customWindow = customWindowsData[customWindows[judge]]
+				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 			elseif params.Name == "NextJudge" then
 				judge = judge == #customWindows and 1 or judge + 1
-				customWindow = customWindowsData[customWindows[judge]]
+				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
 			end
 		elseif params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
@@ -328,6 +328,39 @@ o[#o + 1] =
 		Name = "PosText",
 		InitCommand = function(self)
 			self:x(8):valign(1):halign(1):zoom(0.4)
+		end
+	}
+
+-- Text for current judge window
+-- Only for SelectMusic (not Eval)
+o[#o + 1] = 
+	LoadFont("Common Normal") ..
+	{
+		Name = "JudgeText",
+		InitCommand = function(self)
+			self:valign(0):halign(0):zoom(0.4)
+			self:xy(-plotWidth/2, -plotHeight/2)
+			self:settext("")
+		end,
+		OnCommand = function(self)
+			local name = SCREENMAN:GetTopScreen():GetName()
+			if name == "ScreenScoreTabOffsetPlot" then
+				self:playcommand("Set")
+			else
+				self:visible(false)
+			end
+		end,
+		SetCommand = function(self)
+			if enabledCustomWindows then
+				jdgname = customWindow.name
+			else
+				jdgname = "J" .. judge
+			end
+			self:settextf("%s", jdgname)
+		end,
+		JudgeDisplayChangedMessageCommand = function(self)
+			self:playcommand("Set")
+			self:xy(-plotWidth / 2 + 5, -plotHeight / 2 + 15):zoom(textzoom):halign(0):valign(0)
 		end
 	}
 
