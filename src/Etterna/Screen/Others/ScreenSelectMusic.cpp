@@ -1709,11 +1709,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::oldRate = oldRate;
 		auto ns =
 		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+		auto ft =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType;
 		if (ns.empty())
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		PlayerAI::oldNoteskin = ns;
 		RString hsMods = hs->GetModifiers();
 		PlayerAI::replayModifiers = hsMods;
+		PlayerAI::oldFailType = ft;
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",

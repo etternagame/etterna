@@ -103,6 +103,14 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 			  PlayerAI::oldNoteskin;
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
 			  PlayerAI::oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .m_FailType = PlayerAI::oldFailType;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
+			  PlayerAI::oldFailType;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
+			  PlayerAI::oldFailType;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_FailType =
+			  PlayerAI::oldFailType;
 		}
 		GAMESTATE->m_SongOptions.Init();
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
