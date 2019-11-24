@@ -1473,6 +1473,9 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 		GAMESTATE->m_iPlayerStageTokens = 0;
 	}
 
+	// Properly set the LivePlay bool
+	STATSMAN->m_CurStageStats.m_bLivePlay = true;
+
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 
 	// If we didn't cheat and aren't in Practice
