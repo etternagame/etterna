@@ -22,10 +22,10 @@ local moving = false
 
 local function DlInput(event)
 
-	if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+	if (event.DeviceInput.button == "DeviceButton_mousewheel up" or event.button == "MenuUp" or event.button == "MenuLeft") and event.type == "InputEventType_FirstPress" then
 		moving = true
 		MESSAGEMAN:Broadcast("WheelUpSlow")
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+	elseif (event.DeviceInput.button == "DeviceButton_mousewheel down" or event.button == "MenuDown" or event.button == "MenuRight") and event.type == "InputEventType_FirstPress" then
 		moving = true
 		MESSAGEMAN:Broadcast("WheelDownSlow")
 	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
