@@ -89,8 +89,16 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 			for (auto k : chartsForThisSong)
 				oldKeys.emplace_back(k->GetChartKey());
 
-			cursong->ReloadFromSongDir();
+			bool success = cursong->ReloadFromSongDir();
 			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
+
+			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
+				LOG->Trace("The Player attempted something resulting in an "
+						   "unrecoverable error while in Gameplay Practice and "
+						   "has been ejected.");
+				BeginBackingOutFromGameplay();
+				return true;
+			}
 
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
 
