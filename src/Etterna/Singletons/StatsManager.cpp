@@ -99,6 +99,7 @@ StatsManager::AddPlayerStatsToProfile(Profile* pProfile)
 	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating,
 							   pProfile->m_fPlayerSkillsets,
 							   pProfile->m_sProfileID);
+	MESSAGEMAN->Broadcast("PlayerRatingUpdated");
 }
 
 void
@@ -265,6 +266,13 @@ class LunaStatsManager : public Luna<StatsManager>
 		return 1;
 	}
 
+	static int UpdatePlayerRating(T* p, lua_State* L)
+	{
+		Profile* profile = PROFILEMAN->GetProfile(PLAYER_1);
+		p->AddPlayerStatsToProfile(profile);
+		return 0;
+	}
+
 	LunaStatsManager()
 	{
 		ADD_METHOD(GetCurStageStats);
@@ -277,6 +285,7 @@ class LunaStatsManager : public Luna<StatsManager>
 		ADD_METHOD(GetBestGrade);
 		ADD_METHOD(GetWorstGrade);
 		ADD_METHOD(GetBestFinalGrade);
+		ADD_METHOD(UpdatePlayerRating);
 	}
 };
 
