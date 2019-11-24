@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenProfileSave.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/StatsManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenProfileSave);
 
@@ -23,7 +24,10 @@ ScreenProfileSave::Continue()
 {
 	DLMAN->chartLeaderboards.clear(); // clear cached leaderboard scores when
 									  // saving after gameplay -mina
-	GAMESTATE->SavePlayerProfiles();
+	if (!STATSMAN->m_vPlayedStageStats.empty())
+		if (STATSMAN->m_vPlayedStageStats.back().m_bLivePlay)
+			GAMESTATE->SavePlayerProfiles();
+
 	SCREENMAN->ZeroNextUpdate();
 
 	StartTransitioningScreen(SM_GoToNextScreen);
