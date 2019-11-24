@@ -608,9 +608,7 @@ StageStats::FinalizeScores(bool bSummary)
 	}
 
 	// don't save scores if the player chose not to
-	// also don't save if in practice mode
-	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore ||
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice)
+	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore)
 		return;
 
 	LOG->Trace("saving stats and high scores");
@@ -650,6 +648,13 @@ StageStats::FinalizeScores(bool bSummary)
 				  hs.GetRadarValues());
 			}
 		}
+		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		return;
+	}
+
+	if (GAMESTATE->IsPracticeMode()) {
+		SCOREMAN->camefromreplay = true;
+		SCOREMAN->tempscoreforonlinereplayviewing = &hs;
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;
 	}
