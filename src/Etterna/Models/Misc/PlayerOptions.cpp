@@ -140,7 +140,6 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	for (int i = 0; i < NUM_TRANSFORMS; i++)
 		DO_COPY(m_bTransforms[i]);
 	DO_COPY(m_bMuteOnError);
-	DO_COPY(m_bPractice);
 	DO_COPY(m_FailType);
 	DO_COPY(m_MinTNSToHideNotes);
 	DO_COPY(m_sNoteSkin);
@@ -994,7 +993,6 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	COMPARE(m_FailType);
 	COMPARE(m_MinTNSToHideNotes);
 	COMPARE(m_bMuteOnError);
-	COMPARE(m_bPractice);
 	COMPARE(m_fDark);
 	COMPARE(m_fBlind);
 	COMPARE(m_fCover);
@@ -1046,7 +1044,6 @@ PlayerOptions::operator=(PlayerOptions const& other)
 	CPY(m_FailType);
 	CPY(m_MinTNSToHideNotes);
 	CPY(m_bMuteOnError);
-	CPY(m_bPractice);
 	CPY_SPEED(fDark);
 	CPY_SPEED(fBlind);
 	CPY_SPEED(fCover);
@@ -1223,7 +1220,6 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_bTransforms[TRANSFORM_NOLIFTS]);
 	SAVE(m_bTransforms[TRANSFORM_NOFAKES]);
 	SAVE(m_bMuteOnError);
-	SAVE(m_bPractice);
 	SAVE(m_sNoteSkin);
 	SAVE(m_fAppearances[APPEARANCE_HIDDEN]);
 	SAVE(m_fAppearances[APPEARANCE_HIDDEN_OFFSET]);
