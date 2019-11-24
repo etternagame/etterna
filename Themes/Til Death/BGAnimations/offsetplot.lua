@@ -51,9 +51,7 @@ local function fitY(y) -- Scale offset values to fit within plot height
 end
 
 local function HighlightUpdaterThing(self)
-	if SCREENMAN:GetTopScreen():GetName():find("Evaluation") then
-		self:GetChild("BGQuad"):queuecommand("Highlight")
-	end
+	self:GetChild("BGQuad"):queuecommand("Highlight")
 end
 
 -- convert a plot x position to a noterow
@@ -75,15 +73,13 @@ end
 
 local o =
 	Def.ActorFrame {
-	InitCommand = function(self)
-		self:SetUpdateFunction(HighlightUpdaterThing)
-	end,
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
 
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
+			self:SetUpdateFunction(HighlightUpdaterThing)
 			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
