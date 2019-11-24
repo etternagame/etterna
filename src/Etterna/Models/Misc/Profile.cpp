@@ -1755,7 +1755,10 @@ class LunaProfile : public Luna<Profile>
 	static int RenameProfile(T* p, lua_State* L)
 	{
 		p->m_sDisplayName = SArg(1);
-		p->SaveEditableDataToDir(p->m_sProfileID);
+		// roundabout way to force id to be a dir
+		// sometimes its a dir and sometimes it a number
+		RString dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
+		p->SaveEditableDataToDir(dir);
 		return 1;
 	}
 
