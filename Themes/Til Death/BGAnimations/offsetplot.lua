@@ -127,7 +127,8 @@ local o =
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
 			tso = tst[judge]
-		elseif params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
+		end
+		if params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
 			if not handspecific then
 				handspecific = true
 				left = true
@@ -252,11 +253,25 @@ o[#o + 1] =
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183 * tso)
+			
+			-- get the color for the tap
 			local cullur =
 				(enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or
 				offsetToJudgeColor(dvt[i], tst[judge])
+			cullur[4] = 1
+			local cullurFaded = {}
+
 			if math.abs(y) > plotHeight / 2 then
 				y = fitY(fit)
+			end
+
+			-- if fading by hands, get the faded color
+			if handspecific then
+				-- make a copy of the color to get the faded color
+				for ind,c in pairs(cullur) do
+					cullurFaded[ind] = c
+				end
+				cullurFaded[4] = 0.28 -- hex 48 is approximately this
 			end
 
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
@@ -265,13 +280,13 @@ o[#o + 1] =
 					if ctt[i] == 0 or ctt[i] == 1 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
-						setOffsetVerts(verts, x, y, offsetToJudgeColorAlpha(dvt[i], tst[judge])) -- highlight left
+						setOffsetVerts(verts, x, y, cullurFaded) -- highlight left
 					end
 				elseif handspecific then
 					if ctt[i] == 2 or ctt[i] == 3 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
-						setOffsetVerts(verts, x, y, offsetToJudgeColorAlpha(dvt[i], tst[judge])) -- highlight right
+						setOffsetVerts(verts, x, y, cullurFaded) -- highlight right
 					end
 				else
 					setOffsetVerts(verts, x, y, cullur)
