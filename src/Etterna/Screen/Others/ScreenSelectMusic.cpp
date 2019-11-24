@@ -1545,9 +1545,13 @@ void
 ScreenSelectMusic::PausePreviewNoteFieldMusic()
 {
 	bool paused = GAMESTATE->GetPaused();
-	SOUND->WithRageSoundPlaying(
-	  [paused](RageSound* pMusic) { pMusic->Pause(!paused); });
-	GAMESTATE->SetPaused(!paused);
+	SOUND->WithRageSoundPlaying([paused](RageSound* pMusic) {
+		bool success = pMusic->Pause(!paused);
+		// sometimes we might attempt to pause a sound before it starts and that
+		// fails, but returns a false state on failure which is good for telling
+		// us we didnt really pause anything (wow who would have thought)
+		GAMESTATE->SetPaused(success && pMusic->m_bPaused);
+	});
 }
 
 // lua start
