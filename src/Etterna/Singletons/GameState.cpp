@@ -128,6 +128,9 @@ GameState::GameState()
 
 	sExpandedSectionName = "";
 
+	// Just make sure practice is off for sure.
+	TogglePracticeMode(false);
+
 	// Don't reset yet; let the first screen do it, so we can use PREFSMAN and
 	// THEME.
 	// Reset();
@@ -1401,6 +1404,7 @@ GameState::TogglePracticeMode(bool set)
 	m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice = set;
 	m_pPlayerState->m_PlayerOptions.GetPreferred().m_bPractice = set;
 	m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice = set;
+	m_pPlayerState->m_PlayerOptions.GetStage().m_bPractice = set;
 	m_gameplayMode.Set(set ? GameplayMode_Practice : GameplayMode_Normal);
 }
 
@@ -1412,7 +1416,8 @@ GameState::IsPracticeMode()
 	  mode == GameplayMode_Practice &&
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice &&
 	  m_pPlayerState->m_PlayerOptions.GetPreferred().m_bPractice &&
-	  m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice;
+	  m_pPlayerState->m_PlayerOptions.GetSong().m_bPractice &&
+	  m_pPlayerState->m_PlayerOptions.GetStage().m_bPractice;
 	return ispractice;
 }
 
