@@ -557,6 +557,7 @@ GameState::CommitStageStats()
 	Profile* pPlayerProfile = PROFILEMAN->GetProfile(PLAYER_1);
 	if (pPlayerProfile)
 		pPlayerProfile->m_iTotalSessionSeconds += iPlaySeconds;
+	STATSMAN->AddPlayerStatsToProfile(pPlayerProfile);
 }
 
 /* Called by ScreenSelectMusic (etc). Increment the stage counter if we just

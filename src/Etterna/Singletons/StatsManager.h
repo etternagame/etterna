@@ -28,6 +28,7 @@ class StatsManager
 	StageStats& GetAccumPlayedStageStats() { return m_AccumPlayedStageStats; }
 
 	static void CommitStatsToProfiles(const StageStats* pSS);
+	void AddPlayerStatsToProfile(Profile* pProfile);
 
 	void UnjoinPlayer(PlayerNumber pn);
 	void GetStepsInUse(set<Steps*>& apInUseOut) const;

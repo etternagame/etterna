@@ -18,11 +18,6 @@
 StatsManager* STATSMAN =
   NULL; // global object accessible from anywhere in the program
 
-void
-AddPlayerStatsToProfile(Profile* pProfile,
-						const StageStats& ss,
-						PlayerNumber pn);
-
 StatsManager::StatsManager()
 {
 	// Register with Lua.
@@ -99,9 +94,7 @@ StatsManager::CalcAccumPlayedStageStats()
 // fffff this is back here because some scores/files dont calc properly if
 // called during load -mina
 void
-AddPlayerStatsToProfile(Profile* pProfile,
-						const StageStats& ss,
-						PlayerNumber pn)
+StatsManager::AddPlayerStatsToProfile(Profile* pProfile)
 {
 	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating,
 							   pProfile->m_fPlayerSkillsets,
