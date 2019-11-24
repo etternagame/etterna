@@ -3,14 +3,25 @@ t[#t + 1] = LoadActor("../_frame")
 t[#t + 1] = LoadActor("../_PlayerInfo")
 t[#t + 1] = LoadActor("currenttime")
 
+translated_info = {
+	Title = THEME:GetString("ScreenEvaluation", "Title"),
+	Replay = THEME:GetString("ScreenEvaluation", "ReplayTitle")
+}
+
 --what the settext says
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
 			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
-			self:settextf("%s:", THEME:GetString("ScreenEvaluation", "Title"))
-		end
+			self:settext("")
+		end,
+		OnCommand = function(self)
+			local title = translated_info["Title"]
+			local ss = SCREENMAN:GetTopScreen():GetStageStats()
+			if not ss:GetLivePlay() then title = translated_info["Replay"] end
+			self:settextf("%s:", title)
+		end,
 	}
 
 --Group folder name
