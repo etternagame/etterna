@@ -56,8 +56,13 @@ local t = Def.ActorFrame {
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
-		SCREENMAN:GetTopScreen():PausePreviewNoteField()
-		self:GetChild("pausetext"):playcommand("Set")
+		local tab = getTabIndex()
+		-- the Score and Profile tabs have right click functionality
+		-- so ignore right clicks if on those
+		if tab ~= 2 and tab ~= 4 then
+			SCREENMAN:GetTopScreen():PausePreviewNoteField()
+			self:GetChild("pausetext"):playcommand("Set")
+		end
 	end,
     SetupNoteFieldCommand=function(self)
         setUpPreviewNoteField()
