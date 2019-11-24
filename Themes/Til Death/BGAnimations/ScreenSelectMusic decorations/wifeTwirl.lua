@@ -19,6 +19,8 @@ local songChanged = false
 local previewVisible = false
 local justChangedStyles = false
 
+local itsOn = false
+
 local translated_info = {
 	GoalTarget = THEME:GetString("ScreenSelectMusic", "GoalTargetString"),
 	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
@@ -600,10 +602,16 @@ t[#t + 1] =
 		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
-		self:addx(capWideScale(34, 0))
+		if not itsOn then
+			self:addx(capWideScale(34, 0))
+			itsOn = true
+		end
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:addx(capWideScale(-34, 0))
+		if itsOn then
+			self:addx(capWideScale(-34, 0))
+			itsOn = false
+		end
 	end
 }
 

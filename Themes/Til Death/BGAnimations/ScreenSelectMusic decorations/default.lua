@@ -12,6 +12,8 @@ t[#t + 1] = LoadActor("playlists")
 t[#t + 1] = LoadActor("downloads")
 t[#t + 1] = LoadActor("tags")
 
+local itsOn = false
+
 local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(48, 56)
 
 t[#t + 1] =
@@ -57,10 +59,16 @@ t[#t + 1] =
 		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
-		self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
+		if not itsOn then
+			self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
+			itsOn = true
+		end
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
+		if itsOn then
+			self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
+			itsOn = false
+		end
 	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
