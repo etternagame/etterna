@@ -11,30 +11,15 @@ local minidoots = {
 	"Expert-Expanded"
 }
 local diffcolors = {"#66ccff", "#099948", "#ddaa00", "#ff6666", "#c97bff"}
-local pressingtab
 local moving
 
 local function input(event)
-	if event.DeviceInput.button == "DeviceButton_tab" then
-		if event.type == "InputEventType_FirstPress" then
-			pressingtab = true
-		elseif event.type == "InputEventType_Release" then
-			pressingtab = false
-		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+	if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 		moving = true
-		if pressingtab == true then
-			MESSAGEMAN:Broadcast("WheelUpFast")
-		else
-			MESSAGEMAN:Broadcast("WheelUpSlow")
-		end
+		MESSAGEMAN:Broadcast("WheelUpSlow")
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 		moving = true
-		if pressingtab == true then
-			MESSAGEMAN:Broadcast("WheelDownFast")
-		else
-			MESSAGEMAN:Broadcast("WheelDownSlow")
-		end
+		MESSAGEMAN:Broadcast("WheelDownSlow")
 	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseLeftClick")
