@@ -91,6 +91,10 @@ t[#t + 1] =
 		playTime = profile:GetTotalSessionSeconds()
 		noteCount = profile:GetTotalTapsAndHolds()
 		playerRating = profile:GetPlayerRating()
+	end,
+	PlayerRatingUpdatedMessageCommand = function(self)
+		playerRating = profile:GetPlayerRating()
+		self:GetParent():GetChild("AvatarPlayerNumber_P1"):GetChild("Name"):playcommand("Set")
 	end
 }
 
@@ -131,10 +135,12 @@ t[#t + 1] =
 	},
 	LoadFont("Common Normal") ..
 		{
+			Name = "Name",
 			InitCommand = function(self)
 				self:xy(AvatarX + 53, AvatarY + 7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
+				ms.ok(1)
 				self:settextf("%s: %5.2f", profileName, playerRating)
 				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(

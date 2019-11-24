@@ -701,6 +701,7 @@ local profilebuttons =
 			if ButtonActive(self) and rankingSkillset == 1 then
 				if PROFILEMAN:SaveProfile(PLAYER_1) then
 					ms.ok(translated_info["Success"])
+					STATSMAN:UpdatePlayerRating()
 				else
 					ms.ok(translated_info["Failure"])
 				end
@@ -736,6 +737,7 @@ local profilebuttons =
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
 				SCOREMAN:ValidateAllScores()
+				STATSMAN:UpdatePlayerRating()
 			end
 		end
 	}
