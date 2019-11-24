@@ -194,7 +194,9 @@ ScreenSelectMusic::Init()
 	m_soundOptionsChange.Load(THEME->GetPathS(m_sName, "options"));
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
+	// Chart Preview.
 	m_pPreviewNoteField = nullptr;
+	// Replay Data Manager Reset.
 	PlayerAI::ResetScoreData();
 
 	this->SortByDrawOrder();
