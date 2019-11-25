@@ -140,7 +140,6 @@ t[#t + 1] =
 				self:xy(AvatarX + 53, AvatarY + 7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
-				ms.ok(1)
 				self:settextf("%s: %5.2f", profileName, playerRating)
 				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(
