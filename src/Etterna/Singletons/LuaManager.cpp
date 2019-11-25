@@ -1504,11 +1504,6 @@ LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
 LuaFunction(ProductVersion, (std::string)product_version);
 LuaFunction(ProductID, (std::string)PRODUCT_ID);
 
-extern char const* const version_date;
-extern char const* const version_time;
-LuaFunction(VersionDate, (std::string)version_date);
-LuaFunction(VersionTime, (std::string)version_time);
-
 LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
 LuaFunction(clamp, clamp(FArg(1), FArg(2), FArg(3)));
