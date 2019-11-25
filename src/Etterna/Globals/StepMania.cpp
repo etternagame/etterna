@@ -969,10 +969,7 @@ WriteLogHeader()
 {
 	LOG->Info("%s%s", PRODUCT_FAMILY, product_version);
 
-	LOG->Info("Compiled %s @ %s (build %s)",
-			  version_date,
-			  version_time,
-			  ::sm_version_git_hash);
+	LOG->Info("(build %s)", ::version_git_hash);
 
 	time_t cur_time;
 	time(&cur_time);
