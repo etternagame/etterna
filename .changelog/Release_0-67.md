@@ -81,6 +81,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Macros for PlayerNumbers - [cd23136](../../../commit/cd231368b4f27d61b2ce5cd4e440951d32c76fe4) [f6dd063](../../../commit/f6dd0638e31e8c5b82eb8088c09e3655eade26f7)
 - Norf - [934c6a2](../../../commit/934c6a24a5760ff3bfa1f48b71ea497826cbcafa)
 - Tokens? - [5468cc6](../../../commit/5468cc60faa2406f535b0ee7764100e94ae0d174)
+- Version Date/Time info internally and in crash logs - [14acf71](../../../commit/14acf7178b558f90c88d60bda1c41a9c3fc7d23d) [4b6a20c](../../../commit/4b6a20cbcdfc2e3f12d702680eedf909c347681a)
 ### Fixed
 - Banners in SelectMusic were not properly cropped - [120bd5a](../../../commit/120bd5a42a21781b5916668cb16013bc32a0b8dc)
 - BPM didn't properly update for SSC files with different specified BPM - [#619](../../../pull/619)
@@ -92,6 +93,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Chart Preview seeking fails to work when moving from a pack to a song - [97c99c0](../../../commit/97c99c0f1fb9a2af6029e38b259f56898f98fc45)
 - Chart Preview sometimes restarted when changing tabs and doing other stuff - [44a4999](../../../commit/44a4999facc71135bd05c0d8af1507fd3255ba77) [66a54ea](../../../commit/66a54ea3a63239eafd70d87d2a2fd3140b45d8cf)
 - Chord Density Graphs were not synced for files that end in a hold - [7bc619f](../../../commit/7bc619f2a9112691b12df0513bf483bcf8de84dd)
+- Crash logs stopped showing the Build information at some point due to a CMake change - [14acf71](../../../commit/14acf7178b558f90c88d60bda1c41a9c3fc7d23d) [a9794ff](../../../commit/a9794ffd54c37cd2cad0ac1614748074131276cf)
 - Crashed rarely on multithreaded startup in a specific case where a profile has at least 1 score for each difficulty on a song that has multiple difficulties - [c988456](../../../commit/c988456cf0fe010c0e1b113a7ea74c0cb5ace93c)
 - Customize Gameplay movement caused very heavy I/O usage - [852cd31](../../../commit/852cd31d4d0495cd867be17b0b75f3b2faf9463c)
 - Custom Windows caused a rare Lua error in Offset Plots - [d75dd20](../../../commit/d75dd20d14812dc4755a5cfd992ec6cdbc73a634)

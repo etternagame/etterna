@@ -16,6 +16,14 @@ project(Etterna
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
+# Git Hash Info
+execute_process(COMMAND git describe --tags
+  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+  OUTPUT_VARIABLE PRODUCT_GIT_HASH
+  RESULT_VARIABLE ret
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 ## CMake and Compiler Setup
 set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Version
 set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
