@@ -40,7 +40,7 @@ ScreenNetEvaluation::Input(const InputEventPlus& input)
 	if (input.DeviceI.button == KEY_ENTER)
 		return false;
 
-	return Screen::Input(input);
+	return ScreenEvaluation::Input(input);
 }
 
 void
