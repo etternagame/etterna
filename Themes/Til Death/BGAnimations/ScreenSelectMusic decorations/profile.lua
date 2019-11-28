@@ -614,6 +614,9 @@ local function littlebits(i)
 				end,
 				UpdateRankingMessageCommand = function(self)
 					self:queuecommand("Set")
+				end,
+				PlayerRatingUpdatedMessageCommand = function(self)
+					self:queuecommand("Set")
 				end
 			}
 	}
