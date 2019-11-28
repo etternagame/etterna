@@ -374,7 +374,6 @@ XToString(MultiPlayerStatus);
 
 static const char* FailTypeNames[] = {
 	"Immediate",
-	"ImmediateContinue",
 	"EndOfSong",
 	"Off",
 };

@@ -366,7 +366,6 @@ static void
 DefaultFailChoices(vector<RString>& out)
 {
 	out.push_back("Immediate");
-	out.push_back("ImmediateContinue");
 	out.push_back("EndOfSong");
 	out.push_back("Off");
 }
@@ -917,11 +916,8 @@ InitializeConfOptions()
 				   "|7",
 				   "|8",
 				   "Insanity"));
-	ADD(ConfOption("DefaultFailType",
-				   DefaultFailType,
-				   "Immediate",
-				   "ImmediateContinue",
-				   "EndOfSong"));
+	ADD(
+	  ConfOption("DefaultFailType", DefaultFailType, "Immediate", "EndOfSong"));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));
 	ADD(ConfOption("MinTNSToHideNotes",
 				   MovePref<TapNoteScore>,

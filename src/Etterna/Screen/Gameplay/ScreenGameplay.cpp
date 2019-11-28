@@ -996,7 +996,6 @@ ScreenGameplay::Update(float fDeltaTime)
 						if (!m_vPlayerInfo.m_pLifeMeter->IsFailing())
 							bAllFailed = false;
 						break;
-					case FailType_ImmediateContinue:
 					case FailType_EndOfSong:
 						bAllFailed =
 						  false; // wait until the end of the song to fail.

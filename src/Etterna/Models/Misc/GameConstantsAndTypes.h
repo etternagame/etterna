@@ -551,11 +551,9 @@ MultiPlayerStatusToString(MultiPlayerStatus i);
 /** @brief How can the Player fail a song? */
 enum FailType
 {
-	FailType_Immediate,			/**< fail immediately when life touches 0 */
-	FailType_ImmediateContinue, /**< Same as above, but allow playing the rest
-								   of the song */
-	FailType_EndOfSong,			/**< fail if life is at 0 when the song ends */
-	FailType_Off,				/**< never fail */
+	FailType_Immediate, /**< fail immediately when life touches 0 */
+	FailType_EndOfSong, /**< fail if life is at 0 when the song ends */
+	FailType_Off,		/**< never fail */
 	NUM_FailType,
 	FailType_Invalid
 };

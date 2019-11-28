@@ -341,9 +341,6 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 	switch (m_FailType) {
 		case FailType_Immediate:
 			break;
-		case FailType_ImmediateContinue:
-			AddTo.push_back("FailImmediateContinue");
-			break;
 		case FailType_EndOfSong:
 			AddTo.push_back("FailAtEnd");
 			break;
@@ -729,9 +726,8 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		SET_FLOAT(fRandomSpeed)
 	else if (sBit == "failarcade" || sBit == "failimmediate")
 		m_FailType = FailType_Immediate;
-	else if (sBit == "failendofsong" || sBit == "failimmediatecontinue")
-		m_FailType = FailType_ImmediateContinue;
-	else if (sBit == "failatend")
+	else if (sBit == "failatend" || sBit == "failendofsong" ||
+			 sBit == "failimmediatecontinue")
 		m_FailType = FailType_EndOfSong;
 	else if (sBit == "failoff")
 		m_FailType = FailType_Off;
