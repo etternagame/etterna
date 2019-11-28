@@ -1098,8 +1098,12 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			 tapIter->first < holdIter->first)) {
 			now = tapIter->first;
 			for (auto& trr : tapIter->second) {
-				TapNoteScore tns =
-				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+				TapNoteScore tns;
+				if (trr.type != TapNoteType_Mine)
+					tns = GetTapNoteScoreForReplay(
+					  nullptr, trr.offset, timingScale);
+				else
+					tns = TNS_HitMine;
 				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
 			}
 			tapIter++;
