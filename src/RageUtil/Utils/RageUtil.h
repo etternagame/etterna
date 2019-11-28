@@ -7,6 +7,7 @@
 #include <random>
 #include <sstream>
 #include <vector>
+#include <memory>
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
@@ -507,8 +508,26 @@ FormatNumberAndSuffix(int i);
 struct tm
 GetLocalTime();
 
+template<typename... Args>
 RString
-ssprintf(const char* fmt, ...) PRINTF(1, 2);
+ssprintf(const char* format, Args... args)
+{
+	// Extra space for '\0'
+	size_t size = snprintf(nullptr, 0, format, args...) + 1;
+	std::unique_ptr<char[]> buf(new char[size]);
+	snprintf(buf.get(), size, format, args...);
+
+	// Don't want the '\0' inside
+	return RString(std::string(buf.get(), buf.get() + size - 1));
+}
+
+template<typename... Args>
+RString
+ssprintf(const std::string& format, Args... args)
+{
+	return ssprintf(format.c_str(), args...);
+}
+
 RString
 vssprintf(const char* fmt, va_list argList);
 RString
