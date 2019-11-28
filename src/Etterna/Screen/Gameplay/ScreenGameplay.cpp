@@ -263,7 +263,8 @@ ScreenGameplay::Init()
 	// Add individual life meter
 	switch (GAMESTATE->m_PlayMode) {
 		case PLAY_MODE_REGULAR:
-			if (!GAMESTATE->IsPlayerEnabled(m_vPlayerInfo.m_pn))
+			if (!GAMESTATE->IsPlayerEnabled(m_vPlayerInfo.m_pn) ||
+				m_sName == "ScreenGameplaySyncMachine")
 				break;
 
 			m_vPlayerInfo.m_pLifeMeter =
@@ -909,23 +910,26 @@ ScreenGameplay::Update(float fDeltaTime)
 	// update GameState HealthState
 	HealthState& hs = m_vPlayerInfo.GetPlayerState()->m_HealthState;
 	HealthState OldHealthState = hs;
-	if (failtype != FailType_Off && m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
-		hs = HealthState_Dead;
-	} else if (m_vPlayerInfo.m_pLifeMeter->IsHot()) {
-		hs = HealthState_Hot;
-	} else if (failtype != FailType_Off &&
-			   m_vPlayerInfo.m_pLifeMeter->IsInDanger()) {
-		hs = HealthState_Danger;
-	} else {
-		hs = HealthState_Alive;
-	}
+	if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
+		if (failtype != FailType_Off &&
+			m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
+			hs = HealthState_Dead;
+		} else if (m_vPlayerInfo.m_pLifeMeter->IsHot()) {
+			hs = HealthState_Hot;
+		} else if (failtype != FailType_Off &&
+				   m_vPlayerInfo.m_pLifeMeter->IsInDanger()) {
+			hs = HealthState_Danger;
+		} else {
+			hs = HealthState_Alive;
+		}
 
-	if (hs != OldHealthState) {
-		Message msg("HealthStateChanged");
-		msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
-		msg.SetParam("HealthState", hs);
-		msg.SetParam("OldHealthState", OldHealthState);
-		MESSAGEMAN->Broadcast(msg);
+		if (hs != OldHealthState) {
+			Message msg("HealthStateChanged");
+			msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
+			msg.SetParam("HealthState", hs);
+			msg.SetParam("OldHealthState", OldHealthState);
+			MESSAGEMAN->Broadcast(msg);
+		}
 	}
 
 	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
@@ -946,65 +950,69 @@ ScreenGameplay::Update(float fDeltaTime)
 			 * kill dead Oni players. */
 			PlayerNumber pn = m_vPlayerInfo.GetStepsAndTrailIndex();
 
-			LifeType lt = m_vPlayerInfo.GetPlayerState()
-							->m_PlayerOptions.GetStage()
-							.m_LifeType;
+			if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
+				LifeType lt = m_vPlayerInfo.GetPlayerState()
+								->m_PlayerOptions.GetStage()
+								.m_LifeType;
 
-			// check for individual fail
-			if (!(failtype == FailType_Off || failtype == FailType_EndOfSong) &&
-				(m_vPlayerInfo.m_pLifeMeter->IsFailing() ||
-				 m_vPlayerInfo.GetPlayerStageStats()->m_bFailed)) {
+				// check for individual fail
+				if (!(failtype == FailType_Off ||
+					  failtype == FailType_EndOfSong) &&
+					(m_vPlayerInfo.m_pLifeMeter->IsFailing() ||
+					 m_vPlayerInfo.GetPlayerStageStats()->m_bFailed)) {
 
-				LOG->Trace("Player %d failed", static_cast<int>(pn));
-				m_vPlayerInfo.GetPlayerStageStats()->m_bFailed = true; // fail
+					LOG->Trace("Player %d failed", static_cast<int>(pn));
+					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
+					  true; // fail
 
-				{
-					Message msg("PlayerFailed");
-					msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
-					MESSAGEMAN->Broadcast(msg);
+					{
+						Message msg("PlayerFailed");
+						msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
+						MESSAGEMAN->Broadcast(msg);
+					}
 				}
-			}
 
-			// Check for and do Oni die.
-			bool bAllowOniDie = false;
-			switch (lt) {
-				case LifeType_Battery:
-					bAllowOniDie = true;
-					break;
-				default:
-					break;
-			}
-			if (bAllowOniDie && failtype == FailType_Immediate) {
-				if (!STATSMAN->m_CurStageStats
-					   .AllFailed()) // if not the last one to fail
-				{
-					// kill them!
-					FailFadeRemovePlayer(&m_vPlayerInfo);
+				// Check for and do Oni die.
+				bool bAllowOniDie = false;
+				switch (lt) {
+					case LifeType_Battery:
+						bAllowOniDie = true;
+						break;
+					default:
+						break;
 				}
-			}
+				if (bAllowOniDie && failtype == FailType_Immediate) {
+					if (!STATSMAN->m_CurStageStats
+						   .AllFailed()) // if not the last one to fail
+					{
+						// kill them!
+						FailFadeRemovePlayer(&m_vPlayerInfo);
+					}
+				}
 
-			bool bAllFailed = true;
-			switch (failtype) {
-				case FailType_Immediate:
-					if (!m_vPlayerInfo.m_pLifeMeter->IsFailing())
-						bAllFailed = false;
-					break;
-				case FailType_ImmediateContinue:
-				case FailType_EndOfSong:
-					bAllFailed =
-					  false; // wait until the end of the song to fail.
-					break;
-				case FailType_Off:
-					bAllFailed = false; // never fail.
-					break;
-				default:
-					FAIL_M("Invalid fail type! Aborting...");
-			}
+				bool bAllFailed = true;
+				switch (failtype) {
+					case FailType_Immediate:
+						if (!m_vPlayerInfo.m_pLifeMeter->IsFailing())
+							bAllFailed = false;
+						break;
+					case FailType_ImmediateContinue:
+					case FailType_EndOfSong:
+						bAllFailed =
+						  false; // wait until the end of the song to fail.
+						break;
+					case FailType_Off:
+						bAllFailed = false; // never fail.
+						break;
+					default:
+						FAIL_M("Invalid fail type! Aborting...");
+				}
 
-			if (bAllFailed) {
-				m_pSoundMusic->StopPlaying();
-				SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
-				m_LyricDisplay.Stop();
+				if (bAllFailed) {
+					m_pSoundMusic->StopPlaying();
+					SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
+					m_LyricDisplay.Stop();
+				}
 			}
 
 			// Update living players' alive time

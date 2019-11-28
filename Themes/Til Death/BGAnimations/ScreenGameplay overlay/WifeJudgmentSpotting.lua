@@ -217,10 +217,12 @@ local t =
 			Movable.DeviceButton_l.condition = true
 		end
 
-		lifebar:zoomtowidth(MovableValues.LifeP1Width)
-		lifebar:zoomtoheight(MovableValues.LifeP1Height)
-		lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
-		lifebar:rotationz(MovableValues.LifeP1Rotation)
+		if lifebar ~= nil then
+			lifebar:zoomtowidth(MovableValues.LifeP1Width)
+			lifebar:zoomtoheight(MovableValues.LifeP1Height)
+			lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
+			lifebar:rotationz(MovableValues.LifeP1Rotation)
+		end
 
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
