@@ -173,14 +173,16 @@ o[#o + 1] =
 	HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("PosBar")
 		local txt = self:GetParent():GetChild("PosText")
+		local bg = self:GetParent():GetChild("PosBG")
 		if isOver(self) then
 			local xpos = INPUTFILTER:GetMouseX() - self:GetParent():GetX()
-			local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
 			bar:visible(true)
 			txt:visible(true)
+			bg:visible(true)
 			bar:x(xpos)
-			txt:x(xpos - 4)
-			txt:y(ypos)
+			txt:x(xpos - 2)
+			bg:x(xpos)
+			bg:zoomto(txt:GetZoomedWidth() + 4, txt:GetZoomedHeight() + 4)
 			local row = convertXToRow(xpos)
 			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
 			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
@@ -192,10 +194,12 @@ o[#o + 1] =
 			local missCount = judgments[5]
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
-			txt:settextf("%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %f", "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "WifePercent", wifescore)
+			-- The odd formatting here is in case we want to add translation support.
+			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d", wifescore, "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount)
 		else
 			bar:visible(false)
 			txt:visible(false)
+			bg:visible(false)
 		end
 	end
 }
@@ -337,13 +341,22 @@ o[#o + 1] =
 		end
 	}
 
+-- Background for judgments at mouse position
+o[#o + 1] = Def.Quad {
+	Name = "PosBG",
+	InitCommand = function(self)
+		self:valign(1):halign(1):zoomto(30,30):diffuse(color(".1,.1,.1,.45")):y(-plotHeight / 2 - plotMargin)
+		self:visible(false)
+	end
+}
+
 -- Text for judgments at mouse position
 o[#o + 1] = 
 	LoadFont("Common Normal") ..
 	{
 		Name = "PosText",
 		InitCommand = function(self)
-			self:x(8):valign(1):halign(1):zoom(0.4)
+			self:x(8):valign(1):halign(1):zoom(0.4):y(-plotHeight / 2 - plotMargin - 2)
 		end
 	}
 
