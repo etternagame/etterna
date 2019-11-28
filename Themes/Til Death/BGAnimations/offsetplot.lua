@@ -143,6 +143,7 @@ local o =
 			judge = enabledCustomWindows and 0 or GetTimingDifficulty()
 			tso = tst[GetTimingDifficulty()]
 		end
+		if params.Name ~= "ResetJudge" and params.Name ~= "PrevJudge" and params.Name ~= "NextJudge" and params.Name ~= "ToggleHands" then return end
 		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end,
@@ -359,9 +360,7 @@ o[#o + 1] =
 		end,
 		OnCommand = function(self)
 			local name = SCREENMAN:GetTopScreen():GetName()
-			if name == "ScreenScoreTabOffsetPlot" then
-				self:playcommand("Set")
-			else
+			if name ~= "ScreenScoreTabOffsetPlot" then
 				self:visible(false)
 			end
 		end,
