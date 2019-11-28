@@ -52,12 +52,13 @@ ScreenGameplaySyncMachine::Init()
 
 	PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 	GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+
+	ScreenGameplayNormal::Init();
+
 	SO_GROUP_ASSIGN(GAMESTATE->m_SongOptions,
 					ModsLevel_Stage,
 					m_AutosyncType,
 					AutosyncType_Machine);
-
-	ScreenGameplayNormal::Init();
 
 	ClearMessageQueue(); // remove all of the messages set in ScreenGameplay
 						 // that animate "ready", "here we go", etc.
@@ -93,6 +94,9 @@ ScreenGameplaySyncMachine::Input(const InputEventPlus& input)
 		_input.GameI.controller = GameController_1;
 	if (_input.pn != PLAYER_INVALID)
 		_input.pn = PLAYER_1;
+
+	// Hacky way to never allow skipping to "eval" from this screen
+	AbortGiveUp(false);
 
 	return ScreenGameplay::Input(_input);
 }
