@@ -101,7 +101,8 @@ local defaultConfig = {
 		["6K"] = DeepCopy(defaultGameplayCoordinates),
 		["7K"] = DeepCopy(defaultGameplayCoordinates),
 		["8K"] = DeepCopy(defaultGameplayCoordinates),
-		["10K"] = DeepCopy(defaultGameplayCoordinates)
+		["10K"] = DeepCopy(defaultGameplayCoordinates),
+		["14K"] = DeepCopy(defaultGameplayCoordinates)
 	},
 	GameplaySizes = {
 		["4K"] = DeepCopy(defaultGameplaySizes),
@@ -109,7 +110,8 @@ local defaultConfig = {
 		["6K"] = DeepCopy(defaultGameplaySizes),
 		["7K"] = DeepCopy(defaultGameplaySizes),
 		["8K"] = DeepCopy(defaultGameplaySizes),
-		["10K"] = DeepCopy(defaultGameplaySizes)
+		["10K"] = DeepCopy(defaultGameplaySizes),
+		["14K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
 
