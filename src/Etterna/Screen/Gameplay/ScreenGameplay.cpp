@@ -400,15 +400,15 @@ ScreenGameplay::~ScreenGameplay()
 
 	m_GameplayAssist.StopPlaying();
 
-	// Tell Multiplayer we ended the song
-	if (GAMESTATE->m_bPlayingMulti)
-		NSMAN->ReportSongOver();
-
-	// Tell DownloadManager we aren't in Gameplay
-	DLMAN->UpdateDLSpeed(false);
-
 	// If we didn't just restart gameplay...
 	if (!GAMESTATE->m_bRestartedGameplay) {
+		// Tell Multiplayer we ended the song
+		if (GAMESTATE->m_bPlayingMulti)
+			NSMAN->ReportSongOver();
+
+		// Tell DownloadManager we aren't in Gameplay
+		DLMAN->UpdateDLSpeed(false);
+
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 		GAMESTATE->TogglePracticeMode(false);
 	}
