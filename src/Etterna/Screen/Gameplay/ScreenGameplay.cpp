@@ -1264,7 +1264,10 @@ void
 ScreenGameplay::RestartGameplay()
 {
 	GAMESTATE->m_bRestartedGameplay = true;
-	SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
+	if (m_sName.find("Net") != std::string::npos)
+		SetPrevScreenName("ScreenNetStageInformation");
+	else
+		SetPrevScreenName("ScreenStageInformation");
 	BeginBackingOutFromGameplay();
 }
 
@@ -1373,21 +1376,16 @@ ScreenGameplay::Input(const InputEventPlus& input)
 			return false;
 	}
 
-	// RestartGameplay may only be pressed when in Singleplayer.
-	// Clever theming or something can probably break this, but we should at
-	// least try.
-	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic") {
-		/* Restart gameplay button moved from theme to allow for rebinding for
-		 * people who dont want to edit lua files :)
-		 */
-		bool bHoldingRestart = false;
-		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(
-			  input.GameI) == Column_Invalid) {
-			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
-		}
-		if (bHoldingRestart) {
-			RestartGameplay();
-		}
+	/* Restart gameplay button moved from theme to allow for rebinding for
+	 * people who dont want to edit lua files :)
+	 */
+	bool bHoldingRestart = false;
+	if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) ==
+		Column_Invalid) {
+		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+	}
+	if (bHoldingRestart) {
+		RestartGameplay();
 	}
 
 	// handle a step or battle item activate
