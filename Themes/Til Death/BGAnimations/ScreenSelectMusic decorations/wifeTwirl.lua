@@ -75,6 +75,7 @@ local function toggleNoteField()
 	end
 
 	if song then
+		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
 		if mcbootlarder:IsVisible() then
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)
@@ -123,6 +124,12 @@ local t =
 		if noteField and not previewVisible then
 			songChanged = true
 		end
+		
+		-- if switching songs, we want the notedata to disappear temporarily
+		if noteField then
+			mcbootlarder:GetChild("NoteField"):finishtweening()
+			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
+		end
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		-- wait for the music wheel to settle before playing the music
@@ -138,6 +145,7 @@ local t =
 		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong)
 
 		if s and shouldPlayMusic then
+			mcbootlarder:GetChild("NoteField"):diffusealpha(1)
 			playMusicForPreview(s)
 		end
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
