@@ -205,6 +205,7 @@ MusicWheel::ReloadSongList(bool searching, RString findme)
 	// when cancelling a search stay in the pack of your match... this should be
 	// more intuitive and relevant behavior -mina
 	if (findme == "" && lastvalidsearch != "") {
+		lastvalidsearch = "";
 		m_WheelItemDatasStatus[GAMESTATE->m_SortOrder] = INVALID;
 		readyWheelItemsData(GAMESTATE->m_SortOrder, false, findme);
 		SetOpenSection(m_sExpandedSectionName);
