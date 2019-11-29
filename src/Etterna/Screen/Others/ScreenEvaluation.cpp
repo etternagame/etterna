@@ -409,6 +409,14 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			return 1;
 		}
 	}
+	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
+	{
+		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
+		return 1;
+	}
 
 	LunaScreenEvaluation()
 	{
@@ -417,6 +425,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
 		ADD_METHOD(GetReplayRate);
+		ADD_METHOD(ScoreUsedInvalidModifier);
 	}
 };
 

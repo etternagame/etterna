@@ -79,7 +79,10 @@ local o =
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
-			self:SetUpdateFunction(HighlightUpdaterThing)
+			local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
+			if allowHovering then
+				self:SetUpdateFunction(HighlightUpdaterThing)
+			end
 			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
