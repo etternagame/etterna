@@ -34,8 +34,6 @@
 GameState* GAMESTATE =
   NULL; // global and accessible from anywhere in our program
 
-#define NAME_BLACKLIST_FILE "/Data/NamesBlacklist.txt"
-
 class GameStateMessageHandler : public MessageSubscriber
 {
 	void HandleMessage(const Message& msg) override
