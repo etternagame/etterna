@@ -1650,6 +1650,12 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		return 1;
 	}
 
+	static int ContainsTransformOrTurn(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ContainsTransformOrTurn());
+		return 1;
+	}
+
 	LunaPlayerOptions()
 	{
 		ADD_METHOD(IsEasierForSongAndSteps);
@@ -1759,6 +1765,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(UsingReverse);
 		ADD_METHOD(GetReversePercentForColumn);
 		ADD_METHOD(GetStepAttacks);
+		ADD_METHOD(ContainsTransformOrTurn);
 	}
 };
 

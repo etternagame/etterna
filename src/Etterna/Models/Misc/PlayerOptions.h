@@ -88,6 +88,8 @@ class PlayerOptions
 													 // and optionally set
 													 // sErrorDetailOut
 	void ChooseRandomModifiers();
+	// Returns true for modifiers that should invalidate a score or otherwise
+	// make it impossible to calculate Replay info
 	bool ContainsTransformOrTurn() const;
 
 	// Lua
