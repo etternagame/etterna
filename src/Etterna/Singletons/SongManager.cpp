@@ -539,7 +539,9 @@ Playlist::GetAverageRating()
 	int numloaded = 0;
 	for (auto& n : chartlist) {
 		if (n.loaded) {
-			o += n.stepsptr->GetMSD(n.rate, 0);
+			auto rate = n.rate;
+			CLAMP(rate, 0.7f, 3.f);
+			o += n.stepsptr->GetMSD(rate, 0);
 			++numloaded;
 		}
 	}
