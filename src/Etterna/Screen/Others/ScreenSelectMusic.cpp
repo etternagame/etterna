@@ -1638,6 +1638,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			return 1;
 		}
 
+		// Warn but do not disallow Replays that use playback-breaking mods.
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		if (potmp.ContainsTransformOrTurn()) {
+			SCREENMAN->SystemMessage("Warning: This Replay uses modifiers "
+									 "which may break the Replay playback.");
+		}
+
 		bool likely_entering_gameplay =
 		  p->SelectCurrent(PLAYER_1, GameplayMode_Replay);
 
