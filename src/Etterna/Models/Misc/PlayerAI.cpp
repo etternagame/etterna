@@ -299,6 +299,15 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 {
 	m_ReplaySnapshotMap.clear();
 
+	// Don't continue if the scoredata used invalidating mods
+	// (Particularly mods that make it difficult to match NoteData)
+	if (pScoreData != nullptr) {
+		PlayerOptions potmp;
+		potmp.FromString(pScoreData->GetModifiers());
+		if (potmp.ContainsTransformOrTurn())
+			return;
+	}
+
 	// Fill out the Snapshot map now that the other maps are not so out of order
 	// We leave out misses in this section because they aren't in the Replay
 	// Data
