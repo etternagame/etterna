@@ -129,11 +129,13 @@ local t =
 		-- to keep things very slightly more easy to deal with
 		-- and reduce a tiny bit of lag
 		local s = GAMESTATE:GetCurrentSong()
+		local unexpectedlyChangedSong = s ~= song
+
 		local shouldPlayMusic = false
 		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
 		shouldPlayMusic = shouldPlayMusic or boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone
 		shouldPlayMusic = shouldPlayMusic or hackysack
-		shouldPlayMusic = shouldPlayMusic and (not justChangedStyles and not onlyChangedSteps)
+		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong)
 
 		if s and shouldPlayMusic then
 			playMusicForPreview(s)
