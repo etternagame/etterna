@@ -671,7 +671,7 @@ StageStats::FinalizeScores(bool bSummary)
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
 	}
-	if (NSMAN->isSMOnline)
+	if (NSMAN->loggedIn)
 		NSMAN->ReportHighScore(&hs, m_player);
 	if (m_player.m_fWifeScore > 0.f) {
 
