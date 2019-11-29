@@ -957,8 +957,8 @@ ScreenGameplay::Update(float fDeltaTime)
 
 				// check for individual fail
 				if (!(failtype == FailType_Off) &&
-					(m_vPlayerInfo.m_pLifeMeter->IsFailing() ||
-					 m_vPlayerInfo.GetPlayerStageStats()->m_bFailed)) {
+					m_vPlayerInfo.m_pLifeMeter->IsFailing() &&
+					!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
 
 					LOG->Trace("Player %d failed", static_cast<int>(pn));
 					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
