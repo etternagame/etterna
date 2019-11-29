@@ -246,11 +246,6 @@ class Steps
 	 * @return true if it does, or false otherwise. */
 	bool HasSignificantTimingChanges() const;
 
-	/**
-	 * @brief Determine if the Steps have any attacks.
-	 * @return true if it does, or false otherwise. */
-	bool HasAttacks() const;
-
 	const RString GetMusicPath() const; // Returns the path for loading.
 	const RString& GetMusicFile()
 	  const; // Returns the filename for the simfile.

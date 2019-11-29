@@ -52,10 +52,8 @@ struct Group
 SongManager* SONGMAN =
   NULL; // global and accessible from anywhere in our program
 
-/** @brief The file that contains various random attacks. */
 const RString ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
 const RString EDIT_SUBDIR = "Edits/";
-const RString ATTACK_FILE = "/Data/RandomAttacks.txt";
 
 static const ThemeMetric<RageColor> EXTRA_COLOR("SongManager", "ExtraColor");
 static const ThemeMetric<int> EXTRA_COLOR_METER("SongManager",

@@ -88,7 +88,6 @@ class PlayerInfo
 	ScoreKeeper* m_pPrimaryScoreKeeper;
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText* m_ptextPlayerOptions;
-	/** @brief The current attack modifiers that are in play for the moment. */
 
 	/** @brief The NoteData the Player has to get through. */
 	NoteData m_NoteData;

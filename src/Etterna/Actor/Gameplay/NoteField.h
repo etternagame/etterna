@@ -9,7 +9,6 @@
 #include "Etterna/Actor/Gameplay/ReceptorArrowRow.h"
 #include "Etterna/Actor/Base/Sprite.h"
 
-struct Attack;
 class NoteData;
 /** @brief An Actor that renders NoteData. */
 class NoteField : public ActorFrame
@@ -99,9 +98,6 @@ class NoteField : public ActorFrame
 								  float horiz_align,
 								  const RageColor& color,
 								  const RageColor& glow);
-	void DrawAttackText(float beat,
-						const Attack& attack,
-						const RageColor& glow);
 	void DrawBGChangeText(float beat,
 						  RString new_bg_name,
 						  const RageColor& glow);
