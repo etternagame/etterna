@@ -7,6 +7,7 @@ Windows x64, Windows i386, and Mac installer release.
 
 ### Added
 - Actors provide True Z Rotation to Lua - [04b2664](../../../commit/04b2664544334ef9e31906d872859a46242f5ce9)
+- BMS 5k, 7k, 10k, and 14k support added to CustomizeGameplay - [b84d2fe](../../../commit/b84d2fed1ae3f0d3d0e6eb6a6cb148181c5d0565)
 - BPM & Rate Text can be moved in Customize Gameplay - [7f1d23a](../../../commit/7f1d23aab1f3a068ddfeddeb5c9fed43252debe6)
 - Clicking the WifePercent of a Leaderboard Score with a Replay will show the Offset Plot - [2d41a71](../../../commit/2d41a71532c2a9b0e998d2ca2f2592f923eeb925)
 - ComboGraphs in Evaluation recalculate given a Replay - [15075a7](../../../commit/15075a79f23cad73a4ccad9e2c8f695bae303978) [04ce0cf](../../../commit/04ce0cf37c461e63a9a1b05a254e557d0739b818) [a7bee3d](../../../commit/a7bee3d09181b882faf88a4d0efa9f7c8caa8760) [c3904ce](../../../commit/c3904ceb8b61257db36190ce7003a9eb7c5a23ad) [818e12d](../../../commit/818e12de2a2a9d0b7d5dde01de20be7826472ce5) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [03f9e02](../../../commit/03f9e02317cdcb4c23bb0656827b8b396990bf62) [c5dedd9](../../../commit/c5dedd94f5f0a692e163c8a046423cc3a1081434)
@@ -16,6 +17,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Login/Logout hotkey set to Ctrl+L - [cdbc3e4](../../../commit/cdbc3e400bcabad0582ebf556fddb8497eb13331)
 - Lua-accessible way to set Practice Mode - [090b236](../../../commit/090b236cc765c772db6de2facc2c1581c6a10ccb) [d71d937](../../../commit/d71d93752c61da83f9012c2202a8b8bc0d65b530)
 - Lua-accessible way to recalculate Player Rating - [fe7f462](../../../commit/fe7f462d676d1279443800ecba382d097cb8259d)
+- Lua-accessible way to check Player Options for Invalidating mods - [08f4028](../../../commit/08f402884e7b95473e3ccc3df17841e057f00f66)
 - Lua-accessible way to check Player Options for Replay breaking mods - [d80a510](../../../commit/d80a510e62da097a44217b38f6b21a575a67ae7d)
 - LuaJIT profiler added to fallback scripts - [4e6f2fc](../../../commit/4e6f2fc03a6debf223d0cce465719cc3fe21e0e0)
 - NoteDataUtil has access to just setting up part of the NoteData - [373e034](../../../commit/373e034cf258d2db4a5c1e29e0464f889346180b) [565e0a9](../../../commit/565e0a9d34e860ed6f72feac2c30ebb65393270c)
@@ -48,6 +50,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Gameplay's PlayerInfo vector is now just an attribute - [0fd192d](../../../commit/0fd192d0c147284d2ef9711646152053479bb853)
 - Gameplay Restart stuff got moved internally from Gamemanager to Gamestate - [e8cd51c](../../../commit/e8cd51c1a5ba08c33f3b4815a5ce2595dd288fc3) [149cf04](../../../commit/149cf04a78842e56ef2f2980cce966d6c33bad80)
 - Gameplay Restart button can be pressed in Multiplayer now - [cabf0cd](../../../commit/cabf0cdcb8c633ca096cd27bfce576d36e25495a) [a4e40bc](../../../commit/a4e40bca47cf8c6779656964b1f8a05c5284654a)
+- Gameplay Splash will alert the player for 2 extra seconds of invalidating mods - [86d5253](../../../commit/86d525329f062d6068df8cc365333fa66ad3b771)
 - GameplaySyncMachine should use the mods of the first profile - [9305595](../../../commit/930559503a410a5862c64b654565451a11c5cc50)
 - JudgedRows moved to the Player header instead of cpp - [78e8b4f](../../../commit/78e8b4fddac5ec85aa903aec99a9e948db0871d8)
 - Jumping to the Practice Bookmark/Loop unpauses the music - [642312f](../../../commit/642312f3bc07f45913cd47ce8c5c77e9b498c388)
@@ -82,7 +85,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Using / as a modifier key (like Select) shouldn't let the Chat Overlay pop up - [1ab2cbd](../../../commit/1ab2cbdc1c5c7d11af32c886f50fa4faaf4d2591)
 ### Removed
 - AI.ini - [055ef81](../../../commit/055ef81d96095b416ca9ea7dee99fba316817ad6)
-- FailImmediateContinue (superceded by FailAtEnd) - [4ee9370](../../../commit/4ee9370cf06e3043b7ed8ef5304d0ae20b942714)
+- FailAtEnd (superceded by FailImmediateContinue) - [8b63a20](../../../commit/8b63a201800544622c2f4dd17e8f6c83c5cbcb8d)
 - Frets - [611781d](../../../commit/611781da6bd9587ba8d9f1cdc08eee04f60a3cc7)
 - Instrument Tracks for Guitars - [8a09087](../../../commit/8a09087b8e96010a24391d8ebcb7f745091e2975)
 - Macros for PlayerNumbers - [cd23136](../../../commit/cd231368b4f27d61b2ce5cd4e440951d32c76fe4) [f6dd063](../../../commit/f6dd0638e31e8c5b82eb8088c09e3655eade26f7)
@@ -121,6 +124,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Pausing music before it is loaded caused weird state issues - [11852b3](../../../commit/11852b34c7d8f1477aa8b91d398260897d062e1c)
 - Plays Counter in PlayerInfo didn't update unless restarting the game - [a2c6a0f](../../../commit/a2c6a0fdf4f63455332cb87aabe1a0939291cec8) [3af6e62](../../../commit/3af6e62a3689191b057e1f3a2920bbd680e9e162)
 - Player Rating stopped updating until restarting the game - [25f6e36](../../../commit/25f6e36801db4e0950c557a85e5c6f0e91ec7062)
+- Playlists containing a Song with a rate outside the range of 0.7 to 3.0 crashed the game - [a5d964d](../../../commit/a5d964d0f3b162880068fab57d2bb10411f2fc58)
 - Pressing a tap after a Mine but before a Tap when the windows overlap cause the judgment to be a miss - [b3c8501](../../../commit/b3c8501e59ba2cdd59e1aa02c17e4b8ff94fc495) [81317d9](../../../commit/81317d9c08c32208a7cc4cf98a12f317755f9db9)
 - Pressing any button on Player 2 in Gameplay allowed hitting Mines - [39f30c0](../../../commit/39f30c01b11f8c547109b8410b10768b2f563d13)
 - Pressing Game Start was impossible when the Caution Screen was active - [02281e5](../../../commit/02281e5b4dcdeb6b89ccc523d50e34793e5eb3a7)
@@ -133,6 +137,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Replays missed negative noterows - [5820aa7](../../../commit/5820aa7c7167d0c434b750289f4c2fca9f1bb37a)
 - Replay Scrolling using the Progress Bar Slider was not accurate - [d7e77d3](../../../commit/d7e77d33e3d78707e2a01984a590b72ad5c416d1)
 - Right clicking to pause the music on ScreenSelectMusic conflicted with Profile and Score tab functionality. It is now impossible to pause on these tabs. - [979e95d](../../../commit/979e95dcac18b4b469769e8d67391edc3293d026)
+- Screenshots folder was not in the gitignore - [162a3cc](../../../commit/162a3cc81d7953a2a08c91813be48de3ac5ee9df)
 - Searching for Songs using certain orders of result-returning and empty result-returning searches and deleting the searches caused some weird behavior - [f1aa6c0](../../../commit/f1aa6c0ac7a990eba5f36af2c5705b58021e1bb8)
 - Seeking in variable bitrate MP3s caused incorrect position reporting - [c7bc664](../../../commit/c7bc66466389b01d78d6ebc143c1dd4f1fbc7589) [2453611](../../../commit/24536112cd5cabc3732e3b3a8bc2982ea8d8bfe8) [7f6148d](../../../commit/7f6148d5a93ea181bfa8de42f6cdef3e869c992d) [46ee353](../../../commit/46ee353f3881652734f1b5f37c4aab7039a24f55) [2422ec7](../../../commit/2422ec7c126a83b79cccee60a3002a544016befe) [e7ad42e](../../../commit/e7ad42e6f1dcc507a6289a27c76fdf73860c4c66) [b8ae11a](../../../commit/b8ae11adea3021a3d678ad8dc4d70a681f504da0) [0a60b59](../../../commit/0a60b59029510b877eab273af30ad0054c6c31c7)
 - Sometimes Gameplay sent a TNS_None, throwing a Lua error from the Error Bar - [bdca4ea](../../../commit/bdca4ea3b3ca90532ccb1ac43c2b2f7f160f3b86)
