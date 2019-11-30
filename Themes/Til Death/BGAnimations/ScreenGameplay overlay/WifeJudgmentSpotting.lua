@@ -1057,7 +1057,7 @@ local function handleRegionSetting(positionGiven)
 			loopEndPos = positionGiven
 		end
 	end
-	SCREENMAN:GetTopScreen():SetLoopRegion(loopStartPos * getCurRateValue(), loopEndPos * getCurRateValue())
+	SCREENMAN:GetTopScreen():SetLoopRegion(loopStartPos, loopEndPos)
 	MESSAGEMAN:Broadcast("RegionSet", {loopLength = loopEndPos-loopStartPos})
 end
 
