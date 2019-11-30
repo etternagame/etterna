@@ -453,8 +453,17 @@ RageSound::SetPositionSeconds(float fGiven)
 {
 	if (m_bPlaying) {
 		Stop();
+		// Sometimes the state of this bool becomes incorrect if running this
+		// function very very often, so force it here in the hopes that
+		// StartPlaying will fix everything. (the result in these cases is
+		// instead a lot of perceived lag, but that's better than a crash to me)
+		m_bPlaying = false;
 		// SetPositionFrames(lround(fGiven * samplerate()));
-		StartPlaying(fGiven, true);
+
+		// and funnily enough in conjunction with the above hack if we dont put
+		// this into a while loop the song sync breaks in those situations
+		while (!m_bPlaying)
+			StartPlaying(fGiven, true);
 	}
 }
 
