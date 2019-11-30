@@ -405,14 +405,18 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	const float fNotesBeat =
 	  pTiming->GetBeatFromElapsedTime(newSongPositionSeconds);
 	const int rowNow = BeatToNoteRow(fNotesBeat);
+	lastReportedSeconds = newSongPositionSeconds;
 
-	// When using a loop region, dont load notedata too far ahead since we won't
-	// see it
+	// When using a loop region, just keep the loaded Notedata in the region
 	if (loopStart != loopEnd) {
 		const float endBeat = pTiming->GetBeatFromElapsedTime(loopEnd);
 		const int rowEnd = BeatToNoteRow(endBeat);
-		if (rowNow < rowEnd)
-			SetupNoteDataFromRow(pSteps, rowNow, rowEnd);
+		const float startBeat = pTiming->GetBeatFromElapsedTime(loopStart);
+		const int rowStart = BeatToNoteRow(startBeat);
+		const int rowUsed = max(rowStart, rowNow);
+		// Assert crash if this check isn't done
+		if (rowUsed < rowEnd)
+			SetupNoteDataFromRow(pSteps, rowUsed, rowEnd);
 	} else {
 		SetupNoteDataFromRow(pSteps, rowNow);
 	}
