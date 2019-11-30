@@ -1195,6 +1195,48 @@ PlayerOptions::ContainsTransformOrTurn() const
 	return false;
 }
 
+vector<RString>
+PlayerOptions::GetInvalidatingModifiers() const
+{
+	vector<RString> AddTo;
+
+	if (m_bTurns[TURN_BACKWARDS])
+		AddTo.push_back("Backwards");
+	if (m_bTurns[TURN_LEFT])
+		AddTo.push_back("Left");
+	if (m_bTurns[TURN_RIGHT])
+		AddTo.push_back("Right");
+	if (m_bTurns[TURN_SHUFFLE])
+		AddTo.push_back("Shuffle");
+	if (m_bTurns[TURN_SOFT_SHUFFLE])
+		AddTo.push_back("SoftShuffle");
+	if (m_bTurns[TURN_SUPER_SHUFFLE])
+		AddTo.push_back("SuperShuffle");
+
+	if (m_bTransforms[TRANSFORM_NOHOLDS])
+		AddTo.push_back("NoHolds");
+	if (m_bTransforms[TRANSFORM_NOROLLS])
+		AddTo.push_back("NoRolls");
+	if (m_bTransforms[TRANSFORM_NOMINES])
+		AddTo.push_back("NoMines");
+	if (m_bTransforms[TRANSFORM_LITTLE])
+		AddTo.push_back("Little");
+	if (m_bTransforms[TRANSFORM_NOJUMPS])
+		AddTo.push_back("NoJumps");
+	if (m_bTransforms[TRANSFORM_NOHANDS])
+		AddTo.push_back("NoHands");
+	if (m_bTransforms[TRANSFORM_NOLIFTS])
+		AddTo.push_back("NoLifts");
+	if (m_bTransforms[TRANSFORM_NOFAKES])
+		AddTo.push_back("NoFakes");
+	if (m_bTransforms[TRANSFORM_NOQUADS])
+		AddTo.push_back("NoQuads");
+	if (m_bTransforms[TRANSFORM_NOSTRETCH])
+		AddTo.push_back("NoStretch");
+
+	return AddTo;
+}
+
 RString
 PlayerOptions::GetSavedPrefsString() const
 {
@@ -1656,6 +1698,13 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		return 1;
 	}
 
+	static int GetInvalidatingMods(T* p, lua_State* L)
+	{
+		vector<RString> mods = p->GetInvalidatingModifiers();
+		LuaHelpers::CreateTableFromArray(mods, L);
+		return 1;
+	}
+
 	LunaPlayerOptions()
 	{
 		ADD_METHOD(IsEasierForSongAndSteps);
@@ -1766,6 +1815,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(GetReversePercentForColumn);
 		ADD_METHOD(GetStepAttacks);
 		ADD_METHOD(ContainsTransformOrTurn);
+		ADD_METHOD(GetInvalidatingMods);
 	}
 };
 

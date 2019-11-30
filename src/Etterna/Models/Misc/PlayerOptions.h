@@ -92,6 +92,8 @@ class PlayerOptions
 	// make it impossible to calculate Replay info
 	bool ContainsTransformOrTurn() const;
 
+	vector<RString> GetInvalidatingModifiers() const;
+
 	// Lua
 	void PushSelf(lua_State* L);
 
