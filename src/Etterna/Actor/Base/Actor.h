@@ -113,6 +113,7 @@ class Actor : public MessageSubscriber
 	 * @brief Copy a new Actor to the old one.
 	 * @param cpy the new Actor to use in place of this one. */
 	Actor(const Actor& cpy);
+	Actor &operator=(Actor other);
 	~Actor() override;
 	virtual Actor* Copy() const;
 	virtual void InitState();

@@ -157,7 +157,7 @@ list(APPEND REST_HPP
 	"Misc/CryptHelpers.h"
 	"Misc/CubicSpline.h"
 	"Misc/DateTime.h"
-	"Misc/DisplayResolutions.h"
+	"Misc/DisplaySpec.h"
 	"Misc/Difficulty.h"
 	"Misc/EnumHelper.h"
 	"Misc/EnumHelper.h"

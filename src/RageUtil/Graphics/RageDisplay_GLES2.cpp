@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageDisplay.h"
 #include "RageDisplay_GLES2.h"
@@ -11,7 +11,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
@@ -430,10 +430,10 @@ RageDisplay_GLES2::~RageDisplay_GLES2()
 }
 
 void
-RageDisplay_GLES2::GetDisplayResolutions(DisplayResolutions& out) const
+RageDisplay_GLES2::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	g_pWind->GetDisplayResolutions(out);
+	g_pWind->GetDisplaySpecs(out);
 }
 
 RageSurface*
@@ -522,7 +522,7 @@ RageDisplay_GLES2::GetApiDescription() const
 	return "OpenGL ES 2.0";
 }
 
-const VideoModeParams*
+const ActualVideoModeParams*
 RageDisplay_GLES2::GetActualVideoModeParams() const
 {
 	return g_pWind->GetActualVideoModeParams();

@@ -4,6 +4,8 @@
 
 #include <X11/Xlib.h> // Window
 #include <X11/Xutil.h>
+#include <Etterna/Models/Misc/DisplaySpec.h>
+
 namespace X11Helper {
 // All functions in here that return a bool return true on success, and
 // false on failure.
@@ -32,6 +34,17 @@ MakeWindow(Window& win,
 		   int width,
 		   int height,
 		   bool overrideRedirect);
+
+void
+SetWMState(const Window &root,
+		   const Window &win,
+		   const long action,
+		   const Atom aton);
+
+#ifdef HAVE_XINERAMA
+	bool SetWMFullscreenMonitors(const DisplaySpec &target);
+#endif
 };
+
 
 #endif

@@ -37,6 +37,13 @@ LayoutTypeToString(LayoutType pm);
 LayoutType
 StringToLayoutType(const RString& s);
 LuaDeclareType(LayoutType);
+enum ReloadChanged
+{
+	RELOAD_CHANGED_NONE, RELOAD_CHANGED_ENABLED, RELOAD_CHANGED_ALL, NUM_ReloadChanged, ReloadChanged_Invalid
+};
+const RString& ReloadChangedToString( ReloadChanged rc );
+ReloadChanged StringToReloadChanged(const std::string& rc);
+LuaDeclareType(ReloadChanged);
 
 /** @brief Define the purpose of the OptionRow. */
 struct OptionRowDefinition
@@ -206,12 +213,6 @@ class OptionRowHandler
 	 * graphic elements will also be reinitialized. If only m_vEnabledForPlayers
 	 * has been changed, return RELOAD_CHANGED_ENABLED. If the row is static,
 	 * and nothing has changed, return RELOAD_CHANGED_NONE. */
-	enum ReloadChanged
-	{
-		RELOAD_CHANGED_NONE,
-		RELOAD_CHANGED_ENABLED,
-		RELOAD_CHANGED_ALL
-	};
 	virtual ReloadChanged Reload() { return RELOAD_CHANGED_NONE; }
 
 	virtual int GetDefaultOption() const { return -1; }

@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_DISPLAY_GLES2_H
+#ifndef RAGE_DISPLAY_GLES2_H
 #define RAGE_DISPLAY_GLES2_H
 
 #include "RageDisplay.h"
@@ -12,13 +12,13 @@ class RageDisplay_GLES2 : public RageDisplay
 				 bool bAllowUnacceleratedRenderer) override;
 
 	RString GetApiDescription() const override;
-	virtual void GetDisplayResolutions(DisplayResolutions& out) const override;
+	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override;
+	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;

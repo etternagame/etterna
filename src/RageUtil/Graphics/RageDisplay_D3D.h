@@ -1,4 +1,4 @@
-﻿/* RageDisplay_D3D - Direct3D renderer. */
+/* RageDisplay_D3D - Direct3D renderer. */
 
 #ifndef RAGE_DISPLAY_D3D_H
 #define RAGE_DISPLAY_D3D_H
@@ -12,14 +12,14 @@ class RageDisplay_D3D : public RageDisplay
 				 bool bAllowUnacceleratedRenderer) override;
 
 	RString GetApiDescription() const override { return "D3D"; }
-	virtual void GetDisplayResolutions(DisplayResolutions& out) const override;
+	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override;
+	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;

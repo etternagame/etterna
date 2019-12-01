@@ -1,10 +1,12 @@
-﻿/* RageDisplay_Legacy: OpenGL renderer. */
+/* RageDisplay_Legacy: OpenGL renderer. */
 
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
+#include "RageTextureRenderTarget.h"
+#include "Etterna/Actor/Base/Sprite.h"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -37,7 +39,7 @@ class RageDisplay_Legacy : public RageDisplay
 				 bool bAllowUnacceleratedRenderer) override;
 
 	RString GetApiDescription() const override { return "OpenGL"; }
-	void GetDisplayResolutions(DisplayResolutions& out) const override;
+	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
@@ -50,7 +52,7 @@ class RageDisplay_Legacy : public RageDisplay
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override;
+	ActualVideoModeParams GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -65,6 +67,7 @@ class RageDisplay_Legacy : public RageDisplay
 					   int width,
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
+	bool UseOffscreenRenderTarget();
 	RageSurface* GetTexture(intptr_t iTexture) override;
 	RageTextureLock* CreateTextureLock() override;
 
@@ -78,6 +81,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetEffectMode(EffectMode effect) override;
 	bool IsEffectModeSupported(EffectMode effect) override;
 	bool SupportsRenderToTexture() const;
+	bool SupportsFullscreenBorderlessWindow() const;
 	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
@@ -145,6 +149,9 @@ class RageDisplay_Legacy : public RageDisplay
 	bool SupportsSurfaceFormat(RagePixelFormat pixfmt);
 
 	void SendCurrentMatrices();
+
+private:
+	RageTextureRenderTarget *offscreenRenderTarget = nullptr;
 };
 
 #endif

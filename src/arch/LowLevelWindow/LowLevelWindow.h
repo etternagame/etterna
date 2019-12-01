@@ -3,9 +3,10 @@
 
 #include <set>
 
-class DisplayResolution;
-typedef set<DisplayResolution> DisplayResolutions;
+class DisplaySpec;
+typedef set<DisplaySpec> DisplaySpecs;
 class VideoModeParams;
+class ActualVideoModeParams;
 class RenderTarget;
 struct RenderTargetParam;
 /** @brief Handle low-level operations that OGL 1.x doesn't give us. */
@@ -23,7 +24,7 @@ class LowLevelWindow
 	// need to be reloaded.
 	virtual RString TryVideoMode(const VideoModeParams& p,
 								 bool& bNewDeviceOut) = 0;
-	virtual void GetDisplayResolutions(DisplayResolutions& out) const = 0;
+	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	virtual void LogDebugInformation() const {}
 	virtual bool IsSoftwareRenderer(RString& /* sError */) { return false; }
@@ -31,10 +32,12 @@ class LowLevelWindow
 	virtual void SwapBuffers() = 0;
 	virtual void Update() {}
 
-	virtual const VideoModeParams* GetActualVideoModeParams() const = 0;
+	virtual const ActualVideoModeParams GetActualVideoModeParams() const = 0;
 
 	virtual bool SupportsRenderToTexture() const { return false; }
 	virtual RenderTarget* CreateRenderTarget() { return NULL; }
+
+	virtual bool SupportsFullscreenBorderlessWindow() const { return false; };
 
 	virtual bool SupportsThreadedRendering() { return false; }
 	virtual void BeginConcurrentRenderingMainThread() {}

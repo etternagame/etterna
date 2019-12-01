@@ -22,14 +22,14 @@ class LowLevelWindow_MacOSX : public LowLevelWindow
 	~LowLevelWindow_MacOSX();
 	void* GetProcAddress(const RString& s);
 	RString TryVideoMode(const VideoModeParams& p, bool& newDeviceOut);
-	void GetDisplayResolutions(DisplayResolutions& dr) const;
+	void GetDisplaySpecs(DisplaySpecs& dr) const;
 
 	void SwapBuffers();
 	void Update();
 
-	const VideoModeParams* GetActualVideoModeParams() const
+	const ActualVideoModeParams GetActualVideoModeParams() const
 	{
-		return &m_CurrentParams;
+		return m_CurrentParams;
 	}
 
 	bool SupportsRenderToTexture() const { return true; }

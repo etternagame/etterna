@@ -353,7 +353,7 @@ class OptionRowHandlerList : public OptionRowHandler
 		return gc.m_sScreen;
 	}
 
-	ReloadChanged Reload() override
+	virtual ReloadChanged Reload() override
 	{
 		// HACK: always reload "speed", to update the BPM text in the name of
 		// the speed line
@@ -761,6 +761,7 @@ class OptionRowHandlerLua : public OptionRowHandler
   public:
 	LuaReference* m_pLuaTable;
 	LuaReference m_EnabledForPlayersFunc;
+	LuaReference m_ReloadFunc;
 
 	bool m_TableIsSane{ false };
 	bool m_GoToFirstOnStart{ false };
@@ -881,6 +882,17 @@ class OptionRowHandlerLua : public OptionRowHandler
 		}
 		lua_pop(L, 1);
 
+		lua_getfield(L, -1, "Reload");
+		if(!lua_isnil(L, -1))
+		{
+			if(!lua_isfunction(L, -1))
+			{
+				LuaHelpers::ReportScriptErrorFmt("LUA_ERROR:  \"%s\" \"Reload\" entry is not a function.", RowName.c_str());
+				return false;
+			}
+		}
+		lua_pop(L, 1);
+
 		lua_getfield(L, -1, "LoadSelections");
 		if (!lua_isfunction(L, -1)) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -949,6 +961,22 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 	}
 
+	void LoadChoices(Lua *L)
+	{
+		// Iterate over the "Choices" table.
+		lua_getfield(L, -1, "Choices");
+		lua_pushnil( L );
+		while(lua_next(L, -2) != 0)
+		{
+			// `key' is at index -2 and `value' at index -1
+			const char *pValue = lua_tostring(L, -1);
+			//LOG->Trace( "choice: '%s'", pValue);
+			m_Def.m_vsChoices.push_back(pValue);
+			lua_pop(L, 1); // removes `value'; keeps `key' for next iteration
+		}
+		lua_pop(L, 1); // pop choices table
+	}
+
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
@@ -1002,17 +1030,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_Def.m_selectType = StringToSelectType(pStr);
 		lua_pop(L, 1);
 
-		// Iterate over the "Choices" table.
-		lua_getfield(L, -1, "Choices");
-		lua_pushnil(L);
-		while (lua_next(L, -2) != 0) {
-			// `key' is at index -2 and `value' at index -1
-			const char* pValue = lua_tostring(L, -1);
-			// LOG->Trace( "choice: '%s'", pValue);
-			m_Def.m_vsChoices.push_back(pValue);
-			lua_pop(L, 1); // removes `value'; keeps `key' for next iteration
-		}
-		lua_pop(L, 1); // pop choices table
+		LoadChoices(L);
 
 		// Set the EnabledForPlayers function.
 		lua_getfield(L, -1, "EnabledForPlayers");
@@ -1034,6 +1052,10 @@ class OptionRowHandlerLua : public OptionRowHandler
 		}
 		lua_pop(L, 1); // pop ReloadRowMessages table
 
+		// Set the Reload function
+		lua_getfield(L, -1, "Reload");
+		m_ReloadFunc.SetFromStack(L);
+
 		lua_pop(L, 1); // pop main table
 		ASSERT(lua_gettop(L) == 0);
 
@@ -1041,10 +1063,49 @@ class OptionRowHandlerLua : public OptionRowHandler
 		return m_TableIsSane;
 	}
 
-	ReloadChanged Reload() override
+	virtual ReloadChanged Reload() override
 	{
+		if (!m_TableIsSane)
+		{
+			return RELOAD_CHANGED_NONE;
+		}
+
+		/* We'll always call SetEnabledForPlayers, and
+		 * return at least RELOAD_CHANGED_ENABLED,
+		 * to preserve original OptionRowHandlerLua behavior.
+		 *
+		 * Will also call the standard OptionRowHandler::Reload
+		 * function to determine whether we should declare a full
+		 * RELOAD_CHANGED_ALL
+		 */
+		ReloadChanged effect = RELOAD_CHANGED_ENABLED;
+
+		if (!m_ReloadFunc.IsNil())
+		{
+			Lua *L = LUA->Get();
+			m_ReloadFunc.PushSelf( L );
+
+			// Argument 1: (self)
+			m_pLuaTable->PushSelf( L );
+			std::string error = "Reload: ";
+
+			LuaHelpers::RunScriptOnStack( L, error, 1, 1, true );
+			effect = std::max( effect, Enum::Check<ReloadChanged>( L, -1 ));
+			lua_pop( L, 1 );
+
+			if (effect == RELOAD_CHANGED_ALL)
+			{
+				m_Def.m_vsChoices.clear();
+				m_pLuaTable->PushSelf( L );
+				LoadChoices( L );
+				lua_pop( L, 1 );
+				ASSERT( lua_gettop(L) == 0 );
+			}
+			LUA->Release( L );
+		}
+
 		SetEnabledForPlayers();
-		return RELOAD_CHANGED_ENABLED;
+		return effect;
 	}
 
 	void ImportOption(OptionRow* pRow,
@@ -1145,8 +1206,11 @@ class OptionRowHandlerLua : public OptionRowHandler
 			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "SaveSelections: ";
-		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
-		ASSERT(lua_gettop(L) == 2);
+		LuaHelpers::RunScriptOnStack(L, error, 3, 1, true);
+		ASSERT(lua_gettop(L) == 3); // SaveSelections *may* return effects flags, otherwise nil
+		double ret = lua_tonumber(L, -1);
+		ASSERT_M((lua_isnumber( L, -1 ) && std::floor( ret ) == ret) || lua_isnil( L, -1 ),
+				 "SaveSelections must return integer flags, or nill" );
 
 		lua_pop(L, 1); // pop option table
 		lua_pop(L, 1); // pop vbSelected table
@@ -1533,3 +1597,14 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 
 	return pHand;
 }
+
+// Expose ReloadChanged to Lua
+static const char *ReloadChangedNames[] =
+{
+	"None",
+	"Enabled",
+	"All"
+};
+XToString(ReloadChanged);
+StringToX(ReloadChanged);
+LuaXType(ReloadChanged);

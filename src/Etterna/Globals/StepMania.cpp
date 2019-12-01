@@ -93,7 +93,8 @@ StepMania::GetPreferredVideoModeParams(VideoModeParams& paramsOut)
 		iWidth -= iWidth % 2;
 	}
 
-	paramsOut = VideoModeParams(PREFSMAN->m_bWindowed,
+	paramsOut = VideoModeParams(PREFSMAN->m_bWindowed || PREFSMAN->m_bFullscreenIsBorderlessWindow,
+								PREFSMAN->m_sDisplayId,
 								iWidth,
 								PREFSMAN->m_iDisplayHeight,
 								PREFSMAN->m_iDisplayColorDepth,
@@ -103,6 +104,7 @@ StepMania::GetPreferredVideoModeParams(VideoModeParams& paramsOut)
 								PREFSMAN->m_bSmoothLines,
 								PREFSMAN->m_bTrilinearFiltering,
 								PREFSMAN->m_bAnisotropicFiltering,
+								!PREFSMAN->m_bWindowed && PREFSMAN->m_bFullscreenIsBorderlessWindow,
 								CommonMetrics::WINDOW_TITLE,
 								THEME->GetPathG("Common", "window icon"),
 								PREFSMAN->m_bPAL,
@@ -122,7 +124,7 @@ static LocalizedString NO_SMOOTH_LINES("Etterna", "NoSmoothLines");
 static RString
 GetActualGraphicOptionsString()
 {
-	const VideoModeParams& params = (*DISPLAY->GetActualVideoModeParams());
+	const VideoModeParams& params = DISPLAY->GetActualVideoModeParams();
 	RString sFormat = "%s %s %dx%d %d " + COLOR.GetValue() + " %d " +
 					  TEXTURE.GetValue() + " %dHz %s %s";
 	RString sLog =
@@ -147,8 +149,13 @@ StoreActualGraphicOptions()
 	/* Store the settings that RageDisplay was actually able to use so that
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
-	const VideoModeParams& params = (*DISPLAY->GetActualVideoModeParams());
-	PREFSMAN->m_bWindowed.Set(params.windowed);
+	const VideoModeParams& params = DISPLAY->GetActualVideoModeParams();
+	PREFSMAN->m_bWindowed.Set(params.windowed && !params.bWindowIsFullscreenBorderless);
+	if (!params.windowed && !params.bWindowIsFullscreenBorderless) {
+		// In all other cases, want to preserve the value of this preference,
+		// but if DISPLAY decides to go fullscreen exclusive, we'll persist that decision
+		PREFSMAN->m_bFullscreenIsBorderlessWindow.Set(false);
+	}
 
 	/* If we're windowed, we may have tweaked the width based on the aspect
 	 * ratio. Don't save this new value over the preferred value. */

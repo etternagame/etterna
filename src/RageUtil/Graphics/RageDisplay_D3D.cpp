@@ -1,5 +1,5 @@
-﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Globals/global.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -284,20 +284,39 @@ RageDisplay_D3D::~RageDisplay_D3D()
 }
 
 void
-RageDisplay_D3D::GetDisplayResolutions(DisplayResolutions& out) const
+RageDisplay_D3D::GetDisplaySpecs( DisplaySpecs &out ) const
 {
 	out.clear();
-	int iCnt =
-	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
+	int iCnt = g_pd3d->GetAdapterModeCount( D3DADAPTER_DEFAULT, g_DefaultAdapterFormat );
 
-	for (int i = 0; i < iCnt; ++i) {
-		D3DDISPLAYMODE mode;
-		g_pd3d->EnumAdapterModes(
-		  D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, i, &mode);
-
-		DisplayResolution res = { mode.Width, mode.Height };
-		out.insert(res);
+	std::set<DisplayMode> modes;
+	D3DDISPLAYMODE mode;
+	for ( int i = 0; i < iCnt; ++i )
+	{
+		g_pd3d->EnumAdapterModes( D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, i, &mode );
+		modes.insert( { mode.Width, mode.Height, static_cast<double> (mode.RefreshRate) } );
 	}
+
+	// Get the current display mode
+	if ( g_pd3d->GetAdapterDisplayMode( D3DADAPTER_DEFAULT, &mode ) == D3D_OK )
+	{
+		D3DADAPTER_IDENTIFIER9 ID;
+		g_pd3d->GetAdapterIdentifier( D3DADAPTER_DEFAULT, 0, &ID );
+		DisplayMode active = { mode.Width, mode.Height, static_cast<double> (mode.RefreshRate) };
+		Rage::RectI bounds( 0, 0, active.width, active.height );
+		out.insert( DisplaySpec( "", "Fullscreen", modes, active, bounds ) );
+	}
+	else
+	{
+		LOG->Warn( "Could not find active mode for default D3D adapter" );
+		if ( !modes.empty() )
+		{
+			const DisplayMode &m = *modes.begin();
+			Rage::RectI bounds( 0, 0, m.width, m.height );
+			out.insert( DisplaySpec( "", "Fullscreen", modes, m, bounds ) );
+		}
+	}
+
 }
 
 D3DFORMAT
@@ -786,7 +805,7 @@ RageDisplay_D3D::CreateScreenshot()
 	return result;
 }
 
-const VideoModeParams*
+const ActualVideoModeParams*
 RageDisplay_D3D::GetActualVideoModeParams() const
 {
 	return GraphicsWindow::GetParams();

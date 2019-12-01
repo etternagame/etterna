@@ -22,6 +22,7 @@ class Sprite : public Actor
 
 	Sprite();
 	Sprite(const Sprite& cpy);
+	Sprite &operator=(Sprite other);
 	~Sprite() override;
 
 	// See explanation in source.
