@@ -52,7 +52,7 @@ class RageDisplay_Legacy : public RageDisplay
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	ActualVideoModeParams GetActualVideoModeParams() const override;
+	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -150,8 +150,8 @@ class RageDisplay_Legacy : public RageDisplay
 
 	void SendCurrentMatrices();
 
-private:
-	RageTextureRenderTarget *offscreenRenderTarget = nullptr;
+  private:
+	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
 #endif

@@ -32,7 +32,7 @@ class LowLevelWindow
 	virtual void SwapBuffers() = 0;
 	virtual void Update() {}
 
-	virtual const ActualVideoModeParams GetActualVideoModeParams() const = 0;
+	virtual const ActualVideoModeParams* GetActualVideoModeParams() const = 0;
 
 	virtual bool SupportsRenderToTexture() const { return false; }
 	virtual RenderTarget* CreateRenderTarget() { return NULL; }

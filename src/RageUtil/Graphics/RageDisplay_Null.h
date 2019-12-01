@@ -17,7 +17,10 @@ class RageDisplay_Null : public RageDisplay
 
 	bool BeginFrame() override { return true; }
 	void EndFrame() override;
-	ActualVideoModeParams GetActualVideoModeParams() const { return m_Params; }
+	const ActualVideoModeParams* GetActualVideoModeParams() const override
+	{
+		return (ActualVideoModeParams*)&m_Params;
+	}
 	void SetBlendMode(BlendMode) override {}
 	bool SupportsTextureFormat(RagePixelFormat,
 							   bool /* realtime */ = false) override

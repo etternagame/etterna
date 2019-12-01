@@ -61,7 +61,7 @@ LowLevelWindow_Win32::~LowLevelWindow_Win32()
 }
 
 void
-LowLevelWindow_Win32::GetDisplaySpecs(DisplayResolutions& out) const
+LowLevelWindow_Win32::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	GraphicsWindow::GetDisplaySpecs(out);
 }
@@ -334,7 +334,8 @@ LowLevelWindow_Win32::Update()
 const ActualVideoModeParams*
 LowLevelWindow_Win32::GetActualVideoModeParams() const
 {
-	return GraphicsWindow::GetParams();
+	return reinterpret_cast<ActualVideoModeParams*>(
+	  GraphicsWindow::GetParams());
 }
 
 class RenderTarget_Win32 : public RenderTarget

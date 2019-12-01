@@ -99,7 +99,7 @@ class VideoModeParams
 	// Initialize with a constructor so to guarantee all paramters
 	// are filled (in case new params are added).
 	VideoModeParams(bool windowed_,
-	                RString sDisplayId_,
+					RString sDisplayId_,
 					int width_,
 					int height_,
 					int bpp_,
@@ -109,7 +109,7 @@ class VideoModeParams
 					bool bSmoothLines_,
 					bool bTrilinearFiltering_,
 					bool bAnisotropicFiltering_,
-	                bool bWindowIsFullscreenBorderless_,
+					bool bWindowIsFullscreenBorderless_,
 					const RString& sWindowTitle_,
 					const RString& sIconFile_,
 					bool PAL_,
@@ -133,23 +133,25 @@ class VideoModeParams
 	{
 	}
 
-	VideoModeParams(const VideoModeParams &other)
-		: windowed(other.windowed)
-		, sDisplayId(other.sDisplayId)
-		, width(other.width)
-		, height(other.height)
-		, bpp(other.bpp)
-		, rate(other.rate)
-		, vsync(other.vsync)
-		, interlaced(other.interlaced)
-		, bSmoothLines(other.bSmoothLines)
-		, bTrilinearFiltering(other.bTrilinearFiltering)
-		, bAnisotropicFiltering(other.bAnisotropicFiltering)
-		, bWindowIsFullscreenBorderless(other.bWindowIsFullscreenBorderless)
-		, sWindowTitle(other.sWindowTitle)
-		, sIconFile(other.sIconFile)
-		, PAL(other.PAL)
-		, fDisplayAspectRatio(other.fDisplayAspectRatio){}
+	VideoModeParams(const VideoModeParams& other)
+	  : windowed(other.windowed)
+	  , sDisplayId(other.sDisplayId)
+	  , width(other.width)
+	  , height(other.height)
+	  , bpp(other.bpp)
+	  , rate(other.rate)
+	  , vsync(other.vsync)
+	  , interlaced(other.interlaced)
+	  , bSmoothLines(other.bSmoothLines)
+	  , bTrilinearFiltering(other.bTrilinearFiltering)
+	  , bAnisotropicFiltering(other.bAnisotropicFiltering)
+	  , bWindowIsFullscreenBorderless(other.bWindowIsFullscreenBorderless)
+	  , sWindowTitle(other.sWindowTitle)
+	  , sIconFile(other.sIconFile)
+	  , PAL(other.PAL)
+	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
+	{
+	}
 
 	VideoModeParams()
 	  : sWindowTitle(RString())
@@ -174,24 +176,38 @@ class VideoModeParams
 };
 
 /**
- * @brief The _actual_ VideoModeParams determined by the LowLevelWindow implementation.
- * Contains all the attributes of VideoModeParams, plus the actual window width/height determined by
- * LLW
+ * @brief The _actual_ VideoModeParams determined by the LowLevelWindow
+ * implementation. Contains all the attributes of VideoModeParams, plus the
+ * actual window width/height determined by LLW
  */
-class ActualVideoModeParams: public VideoModeParams
+class ActualVideoModeParams : public VideoModeParams
 {
-public:
-	ActualVideoModeParams(): VideoModeParams(), windowWidth(0), windowHeight(0), renderOffscreen(false) {}
-	ActualVideoModeParams(const VideoModeParams &params) : VideoModeParams(params),
-															 windowWidth(params.width),
-															 windowHeight(params.height),
-															 renderOffscreen(false)
-	{ }
-	ActualVideoModeParams(const VideoModeParams &params, int windowWidth, int windowHeight, bool renderOffscreen) :
-		VideoModeParams(params), windowWidth(windowWidth), windowHeight(windowHeight),
-		renderOffscreen(renderOffscreen)
-	{ }
-	ActualVideoModeParams (const ActualVideoModeParams &other) = default;
+  public:
+	ActualVideoModeParams()
+	  : VideoModeParams()
+	  , windowWidth(0)
+	  , windowHeight(0)
+	  , renderOffscreen(false)
+	{
+	}
+	ActualVideoModeParams(const VideoModeParams& params)
+	  : VideoModeParams(params)
+	  , windowWidth(params.width)
+	  , windowHeight(params.height)
+	  , renderOffscreen(false)
+	{
+	}
+	ActualVideoModeParams(const VideoModeParams& params,
+						  int windowWidth,
+						  int windowHeight,
+						  bool renderOffscreen)
+	  : VideoModeParams(params)
+	  , windowWidth(windowWidth)
+	  , windowHeight(windowHeight)
+	  , renderOffscreen(renderOffscreen)
+	{
+	}
+	ActualVideoModeParams(const ActualVideoModeParams& other) = default;
 
 	// If bWindowIsFullscreenBorderless is true,
 	// then these properties will differ from width/height (which describe the
@@ -262,8 +278,8 @@ class RageDisplay
 
 	virtual bool BeginFrame();
 	virtual void EndFrame();
-	virtual ActualVideoModeParams GetActualVideoModeParams() const = 0;
-	bool IsWindowed() const { return this->GetActualVideoModeParams().windowed; }
+	virtual const ActualVideoModeParams* GetActualVideoModeParams() const = 0;
+	bool IsWindowed() const { return (*GetActualVideoModeParams()).windowed; }
 
 	virtual void SetBlendMode(BlendMode mode) = 0;
 
