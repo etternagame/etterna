@@ -3,7 +3,6 @@
 
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "RageUtil/Graphics/RageTextureRenderTarget.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
 
 class Actor;
