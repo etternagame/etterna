@@ -28,9 +28,9 @@
 
 #include <chrono>
 
-// this is hereby the difference between a second and a microsecond
-#define INT_TIMESTAMP_RESOLUTION 1000000
-#define FLOAT_TIMESTAMP_RESOLUTION 1000000.f
+// let this henceforth be referred to as the difference between a second and a
+// microsecond *kingly fanfare*
+#define TIMESTAMP_RESOLUTION 1000000
 
 const RageTimer RageZeroTimer(0);
 static std::chrono::microseconds g_iStartTime =
@@ -54,7 +54,7 @@ RageTimer::GetTimeSinceStart()
 	auto usecs = GetChronoTime();
 	std::chrono::microseconds g = usecs - g_iStartTime;
 
-	return g.count() / FLOAT_TIMESTAMP_RESOLUTION;
+	return g.count() / TIMESTAMP_RESOLUTION;
 }
 
 uint64_t
@@ -124,7 +124,7 @@ RageTimer::operator<(const RageTimer& rhs) const
 RageTimer
 RageTimer::Sum(const RageTimer& lhs, float tm)
 {
-	uint64_t usecs = static_cast<uint64_t>(tm * INT_TIMESTAMP_RESOLUTION);
+	uint64_t usecs = static_cast<uint64_t>(tm * TIMESTAMP_RESOLUTION);
 	std::chrono::microseconds period(usecs);
 
 	RageTimer ret(0); // Prevent unnecessarily checking the time
@@ -138,7 +138,7 @@ RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
 	std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
 
-	return static_cast<float>(diff.count()) / FLOAT_TIMESTAMP_RESOLUTION;
+	return static_cast<float>(diff.count()) / TIMESTAMP_RESOLUTION;
 }
 
 #include "Etterna/Singletons/LuaManager.h"
