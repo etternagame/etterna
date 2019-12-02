@@ -33,7 +33,11 @@ ArchHooks::GetMicrosecondsSinceStart()
 	if (!g_bTimerInitialized)
 		InitTimer();
 
-	return timeGetTime() * int64_t(1000);
+	int64_t ret = timeGetTime() * int64_t(1000);
+	ret = FixupTimeIfLooped(ret);
+	ret = FixupTimeIfBackwards(ret);
+
+	return ret;
 }
 
 std::chrono::microseconds
