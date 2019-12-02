@@ -15,7 +15,6 @@
 #include <chrono>
 
 static bool g_bTimerInitialized;
-static std::chrono::steady_clock::time_point g_momentInitialized;
 
 static void
 InitTimer()
@@ -23,7 +22,9 @@ InitTimer()
 	if (g_bTimerInitialized)
 		return;
 	g_bTimerInitialized = true;
-	g_momentInitialized = std::chrono::steady_clock::now();
+
+	// Set Windows clock resolution to 1ms
+	timeBeginPeriod(1);
 }
 
 int64_t
@@ -32,13 +33,7 @@ ArchHooks::GetMicrosecondsSinceStart()
 	if (!g_bTimerInitialized)
 		InitTimer();
 
-	std::chrono::steady_clock::time_point now =
-	  std::chrono::steady_clock::now();
-	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
-	  now - g_momentInitialized);
-	int64_t ret = us.count();
-
-	return ret;
+	return timeGetTime() * int64_t(1000);
 }
 
 std::chrono::microseconds
@@ -47,12 +42,10 @@ ArchHooks::GetChronoDurationSinceStart()
 	if (!g_bTimerInitialized)
 		InitTimer();
 
-	std::chrono::steady_clock::time_point now =
-	  std::chrono::steady_clock::now();
-	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
-	  now - g_momentInitialized);
-
-	return us;
+	// You may be thinking "why dont we use ::now() compared with a duration and
+	// return that?" well, that didnt work, is all i can say right now. maybe
+	// rewriting it later will work
+	return std::chrono::microseconds(GetMicrosecondsSinceStart());
 }
 
 static RString
