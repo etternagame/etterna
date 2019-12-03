@@ -27,6 +27,9 @@ local function searchInput(event)
 			searchstring = searchstring:sub(1, -2) -- remove the last element of the string
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			searchstring = ""
+			if not instantSearch then
+				whee:SongSearch(searchstring)
+			end
 		elseif event.DeviceInput.button == "DeviceButton_=" then
 			searchstring = searchstring .. "="
 		else
