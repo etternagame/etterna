@@ -14,6 +14,7 @@
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerPractice.h"
@@ -93,6 +94,9 @@ PlayerPractice::Step(int col,
 					 bool bRelease,
 					 float padStickSeconds)
 {
+	if (GamePreferences::m_AutoPlay != PC_HUMAN)
+		countStats = true;
+
 	if (!countStats) {
 		// big brained override to toggle this boolean and do everything else
 		// normally
