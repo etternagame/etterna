@@ -468,6 +468,12 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
 		return false;
 
+	// This is a mod which adds mines, replacing existing notes and making files
+	// easier
+	if (ps.m_PlayerOptions.GetStage()
+		  .m_bTransforms[PlayerOptions::TRANSFORM_MINES])
+		return false;
+
 	// this would be difficult to accomplish but for parity's sake we should
 	if (mods.find("NoHolds") != mods.npos && pss.filegotholds)
 		return false;

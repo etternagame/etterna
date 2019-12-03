@@ -1219,6 +1219,8 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("NoRolls");
 	if (m_bTransforms[TRANSFORM_NOMINES])
 		AddTo.push_back("NoMines");
+	if (m_bTransforms[TRANSFORM_MINES])
+		AddTo.push_back("Mines");
 	if (m_bTransforms[TRANSFORM_LITTLE])
 		AddTo.push_back("Little");
 	if (m_bTransforms[TRANSFORM_NOJUMPS])
