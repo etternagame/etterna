@@ -62,14 +62,18 @@ ScreenMapControllers::Init()
 	RString sButtons = BUTTONS_TO_MAP;
 	if (sButtons.empty()) {
 		/* Map all buttons for this game. */
-		FOREACH_GameButtonInScheme(INPUTMAPPER->GetInputScheme(), gb)
-		{
+		// Skip the first 4 buttons to avoid confusion.
+		for (GameButton gb = GAME_BUTTON_START;
+			 gb < INPUTMAPPER->GetInputScheme()->m_iButtonsPerController;
+			 enum_add<GameButton>(gb, +1)) {
 			KeyToMap k;
 			k.m_GameButton = gb;
 			m_KeysToMap.push_back(k);
 		}
 	} else {
 		/* Map the specified buttons. */
+		// Specifying gamebuttons here crashes when switching games.
+		// Specify menu buttons here (using metrics) if need to be rebound.
 		vector<RString> asBits;
 		split(sButtons, ",", asBits);
 		for (unsigned i = 0; i < asBits.size(); ++i) {
