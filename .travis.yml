@@ -32,7 +32,7 @@ matrix:
         - sudo gem install xcpretty
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
+        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 -DOPENSSL_LIBRARIES=/usr/local/opt/openssl@1.1/lib -G "Xcode" ..
         - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -configuration Release | xcpretty
 
 # This will only run for the linux builds
