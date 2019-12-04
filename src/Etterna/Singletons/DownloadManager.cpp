@@ -2222,6 +2222,13 @@ DownloadManager::StartSession(string user,
 			return;
 		}
 
+		// Site 404s when login fails
+		if (d.HasMember("errors") && d["errors"].IsArray()) {
+			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
+			MESSAGEMAN->Broadcast("LoginFailed");
+			DLMAN->loggingIn = false;
+		}
+
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
