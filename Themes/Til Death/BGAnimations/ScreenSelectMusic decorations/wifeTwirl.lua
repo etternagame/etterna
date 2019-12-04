@@ -19,6 +19,7 @@ local songChanged = false
 local previewVisible = false
 local justChangedStyles = false
 local onlyChangedSteps = false
+local prevtab = 0
 
 local itsOn = false
 
@@ -175,15 +176,19 @@ local t =
 
 		-- if the song changed
 		if song ~= bong then
-			justChangedStyles = false
-			onlyChangedSteps = false
-			if not song and previewVisible then
+			if not lockbools then
+				justChangedStyles = false
+				onlyChangedSteps = false
+			end
+			if not song and previewVisible and not lockbools then
 				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
 			end
 			song = bong
 			self:queuecommand("MortyFarts")
 		else
-			onlyChangedSteps = true
+			if not lockbools then
+				onlyChangedSteps = true
+			end
 		end
 
 		-- on general tab
@@ -210,12 +215,24 @@ local t =
 			self:queuecommand("Off")
 			update = false
 		end
+		lockbools = false
 	end,
 	TabChangedMessageCommand = function(self)
-		self:queuecommand("MintyFresh")
-		if getTabIndex() == 0 and mcbootlarder and mcbootlarder:GetChild("NoteField") then
-			mcbootlarder:GetChild("NoteField"):finishtweening()
-			mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+		local newtab = getTabIndex()
+		if newtab ~= prevtab then
+			self:queuecommand("MintyFresh")
+			prevtab = newtab
+			if getTabIndex() == 0 and noteField then
+				mcbootlarder:GetChild("NoteField"):finishtweening()
+				mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+				lockbools = true
+			elseif getTabIndex() ~= 0 and noteField then
+				hackysack = mcbootlarder:IsVisible()
+				onlyChangedSteps = false
+				justChangedStyles = false
+				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				lockbools = true
+			end
 		end
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
