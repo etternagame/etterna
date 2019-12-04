@@ -183,6 +183,7 @@ t[#t + 1] =
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
+				if not DLMAN:IsLoggedIn() then return end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settext(translated_info["ClickLogout"])
 				else
@@ -221,6 +222,7 @@ t[#t + 1] =
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
+				if not DLMAN:IsLoggedIn() then return end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
 						"%s %s (%5.2f: #%i) \n",
@@ -256,6 +258,7 @@ t[#t + 1] =
 			ms.ok(translated_info["LoginFailed"])
 		end,
 		LoginMessageCommand = function(self)
+			if not DLMAN:IsLoggedIn() then return end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
