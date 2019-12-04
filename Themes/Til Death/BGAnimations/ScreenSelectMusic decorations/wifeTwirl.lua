@@ -201,6 +201,10 @@ local t =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
+		if getTabIndex() == 0 and mcbootlarder and mcbootlarder:GetChild("NoteField") then
+			mcbootlarder:GetChild("NoteField"):finishtweening()
+			mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+		end
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
