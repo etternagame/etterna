@@ -54,7 +54,7 @@ RageTimer::GetTimeSinceStart()
 	auto usecs = GetChronoTime();
 	std::chrono::microseconds g = usecs - g_iStartTime;
 
-	return g.count() / TIMESTAMP_RESOLUTION;
+	return static_cast<float>(g.count()) / TIMESTAMP_RESOLUTION;
 }
 
 uint64_t
