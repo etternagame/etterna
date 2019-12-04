@@ -81,6 +81,8 @@ local function toggleNoteField()
 			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			previewVisible = false
+			hackysack = changingSongs
+			changingSongs = false
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
@@ -124,6 +126,11 @@ local t =
 		if noteField and not previewVisible then
 			songChanged = true
 		end
+
+		-- an awkwardly named bool describing the fact that we just changed songs
+		-- used in notefield creation function to see if we should restart music
+		-- it is immediately turned off when toggling notefield
+		changingSongs = true
 		
 		-- if switching songs, we want the notedata to disappear temporarily
 		if noteField then
@@ -139,9 +146,14 @@ local t =
 		local unexpectedlyChangedSong = s ~= song
 
 		local shouldPlayMusic = false
+		-- should play the music because the notefield is visible
 		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
+		-- should play the music if we switched songs while on a different tab
 		shouldPlayMusic = shouldPlayMusic or boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone
+		-- should play the music if we switched to a song from a pack tab
+		-- also applies for if we just toggled the notefield or changed screen tabs
 		shouldPlayMusic = shouldPlayMusic or hackysack
+		-- should play the music if we already should and we either jumped song or we didnt change the style/song
 		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong)
 
 		if s and shouldPlayMusic then
