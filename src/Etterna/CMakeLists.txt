@@ -13,6 +13,7 @@ add_subdirectory(Screen)
 add_subdirectory(Singletons)
 
 # Generated Source Code
+include(${PROJECT_SOURCE_DIR}/CMake/Helpers/SetupGit.cmake)
 configure_file(config.in.hpp ${CMAKE_BINARY_DIR}/generated/config.hpp)
 configure_file(verstub.in.cpp ${CMAKE_BINARY_DIR}/generated/verstub.cpp)
 
