@@ -359,6 +359,11 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 		TimingData& original = s_vpTimingDataOriginal[0];
 		TimingData& testing = GAMESTATE->m_pCurSong->m_SongTiming;
 
+		// the files should match. typically this is the case but sometimes that
+		// just isnt true and we really dont want to let it happen
+		if (original.m_sFile != testing.m_sFile)
+			return;
+
 		{
 			float fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
 			float fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
