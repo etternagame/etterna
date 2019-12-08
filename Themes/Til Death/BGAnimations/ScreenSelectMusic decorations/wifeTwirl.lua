@@ -68,7 +68,12 @@ local function toggleNoteField()
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
-		playMusicForPreview(song)
+		if not songChanged then
+			playMusicForPreview(song)
+			tryingToStart = true
+		else
+			tryingToStart = false
+		end
 		songChanged = false
 		hackysack = false
 		previewVisible = true
@@ -155,7 +160,7 @@ local t =
 		-- also applies for if we just toggled the notefield or changed screen tabs
 		shouldPlayMusic = shouldPlayMusic or hackysack
 		-- should play the music if we already should and we either jumped song or we didnt change the style/song
-		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong)
+		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
 
 		if s and shouldPlayMusic then
 			mcbootlarder:GetChild("NoteField"):diffusealpha(1)
