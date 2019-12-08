@@ -1590,7 +1590,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int SelectCurrent(T* p, lua_State* L)
 	{
 		p->SelectCurrent(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static int GetSelectionState(T* p, lua_State* L)
@@ -1605,13 +1605,23 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		Playlist& pl = SONGMAN->GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course
-		if (pl.chartlist.empty())
+		if (pl.chartlist.empty()) {
+			lua_pushboolean(L, false);
 			return 1;
+		}
 
 		// dont allow playlists with an unloaded chart to be played as a course
 		FOREACH(Chart, pl.chartlist, ch)
-		if (!ch->loaded)
+		if (!ch->loaded) {
+			lua_pushboolean(L, false);
 			return 1;
+		}
+
+		// dont start a playlist in practice or replay
+		if (GAMESTATE->GetGameplayMode() != GameplayMode_Normal) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
 
 		SONGMAN->playlistcourse = name;
 		GAMESTATE->isplaylistcourse = true;
@@ -1620,6 +1630,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  pl.chartlist[0].rate;
 		MESSAGEMAN->Broadcast("RateChanged");
 		p->SelectCurrent(PLAYER_1);
+		lua_pushboolean(L, true);
 		return 1;
 	}
 
