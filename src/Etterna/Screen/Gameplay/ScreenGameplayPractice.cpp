@@ -485,6 +485,11 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 void
 ScreenGameplayPractice::SetLoopRegion(float start, float end)
 {
+	// Don't allow a loop region that is too negative.
+	// Some songs actually do start in negative time, so be lenient.
+	if (start < -2 || end < -2)
+		return;
+
 	loopStart = start;
 	loopEnd = end;
 

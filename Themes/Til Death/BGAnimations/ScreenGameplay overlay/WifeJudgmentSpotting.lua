@@ -1007,6 +1007,10 @@ local loopStartPos
 local loopEndPos
 
 local function handleRegionSetting(positionGiven)
+	-- don't allow a negative region 
+	-- internally it is limited to -2
+	-- the start delay is 2 seconds, so limit this to 0
+	if positionGiven < 0 then return end
 
 	-- first time starting a region
 	if not loopStartPos and not loopEndPos then
