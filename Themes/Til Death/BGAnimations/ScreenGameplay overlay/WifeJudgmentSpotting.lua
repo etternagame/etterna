@@ -239,6 +239,9 @@ local t =
 			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
 			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		end
+		-- update all stats in gameplay (as if it was a reset) when loading a new song
+		-- particularly for playlists
+		self:playcommand("PracticeModeReset")
 	end,
 	JudgmentMessageCommand = function(self, msg)
 		tDiff = msg.WifeDifferential
