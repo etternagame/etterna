@@ -85,6 +85,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Use InsertCoin to set the Bookmark/Loop region in Practice - [7cb4630](../../../commit/7cb46308a6a0feefa1bb0b671ea241d0d0dafc3e)
 - Use separate thread for CrashHandler on Windows - [#640](../../../pull/640)
 - WifePercent recalculation should use the same floor process so the numbers are consistent - [5322ee2](../../../commit/5322ee271c5b25e3623492966315ef4193671fcb)
+- Windows Installer (CPack with NSIS) should generate a proper shortcut and install into a consistent directory - [#660](../../../pull/660)
 - Using / as a modifier key (like Select) shouldn't let the Chat Overlay pop up - [1ab2cbd](../../../commit/1ab2cbdc1c5c7d11af32c886f50fa4faaf4d2591)
 ### Removed
 - AI.ini - [055ef81](../../../commit/055ef81d96095b416ca9ea7dee99fba316817ad6)
