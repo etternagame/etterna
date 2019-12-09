@@ -224,6 +224,7 @@ SongUtil::AdjustDuplicateSteps(Song* pSong)
 			StepsUtil::SortNotesArrayByDifficulty(vSteps);
 			for (unsigned k = 1; k < vSteps.size(); k++) {
 				vSteps[k]->SetDifficulty(Difficulty_Edit);
+				vSteps[k]->SetDupeDiff(true);
 				if (vSteps[k]->GetDescription() == "") {
 					/* "Hard Edit" */
 					RString EditName =

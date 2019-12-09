@@ -132,6 +132,8 @@ class Steps
 									 const RString& sDescription);
 	void SetCredit(const RString& sCredit);
 	void SetChartStyle(const RString& sChartStyle);
+	void SetDupeDiff(bool state) { m_bDuplicateDifficulty = state; }
+	bool IsDupeDiff() { return m_bDuplicateDifficulty; }
 	static bool MakeValidEditDescription(
 	  RString& sPreferredDescription); // return true if was modified
 
@@ -319,6 +321,8 @@ class Steps
 	 * @brief What is the maximum specified BPM?
 	 * If this is a range, then min should not be equal to max. */
 	float specifiedBPMMax;
+
+	bool m_bDuplicateDifficulty = false;
 };
 
 #endif
