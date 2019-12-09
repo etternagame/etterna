@@ -169,6 +169,7 @@ local t =
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 		hackysack = false
 		justChangedStyles = false
+		tryingToStart = false
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
