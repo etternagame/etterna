@@ -9,6 +9,8 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
@@ -1103,7 +1105,23 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 				  (out.GetDifficulty() == StringToDifficulty(difficulty) ||
 				   out.GetDifficulty() ==
 					 OldStyleStringToDifficulty(difficulty)))) {
-				continue;
+				if (out.IsDupeDiff()) {
+					// for duplicate difficulties, check by chartkey.
+					// not aware of a case where chartkey is not filled here.
+					RString noteData = sParams[6];
+					Trim(noteData);
+					Steps tmp(out.m_pSong);
+					tmp.m_Timing = out.m_Timing;
+					tmp.m_StepsType = out.m_StepsType;
+					tmp.SetSMNoteData(noteData);
+					NoteData tnd = tmp.GetNoteData();
+					tnd.LogNonEmptyRows();
+
+					auto ck = tmp.GenerateChartKey(tnd, tmp.GetTimingData());
+					if (ck != out.GetChartKey())
+						continue;
+				} else
+					continue;
 			}
 
 			RString noteData = sParams[6];
