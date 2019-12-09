@@ -798,6 +798,9 @@ local largeImageTooltip =
 local detail =
 	GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
 	" " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+if not STATSMAN:GetCurStageStats():GetLivePlay() then
+	detail = "Replayed: "..detail
+end
 -- truncated to 128 characters(discord hard limit)
 detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 local state =
