@@ -1,4 +1,5 @@
 ## CPack Setup
+set(CPACK_PACKAGE_NAME "Etterna")
 set(CPACK_PACKAGE_VENDOR "Etterna Team")
 set(CMAKE_PACKAGE_DESCRIPTION "Advanced cross-platform rhythm game focused on keyboard play")
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/CPack/license_install.txt)
@@ -17,9 +18,13 @@ if(WIN32)
     set(CPACK_NSIS_MUI_UNIICON ${PROJECT_SOURCE_DIR}/CMake/CPack/Windows/Install.ico)
     set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${PROJECT_SOURCE_DIR}/CMake/CPack/Windows/welcome-ett.bmp)
 	set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-	set(CPACK_NSIS_MODIFY_PATH ON)
+	set(CPACK_NSIS_MODIFY_PATH OFF)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY Etterna)
+    set(CPACK_PACKAGE_EXECUTABLES Etterna;Etterna)
 	set(CPACK_CREATE_DESKTOP_LINKS Etterna.exe)
     set(CPACK_PACKAGE_ICON ${PROJECT_SOURCE_DIR}\\\\CMake\\\\CPack\\\\Windows\\\\header-ett.bmp)
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$INSTDIR\\\\Etterna.lnk\\\" \\\"$INSTDIR\\\\Program\\\\Etterna.exe\\\"")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$INSTDIR\\\\Etterna.lnk\\\"")
 
     ## Switch the strings below to use backslashes. NSIS requires it for those variables in particular. Copied from original script.
     string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
