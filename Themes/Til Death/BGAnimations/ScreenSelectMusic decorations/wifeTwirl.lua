@@ -137,6 +137,7 @@ local t =
 		-- used in notefield creation function to see if we should restart music
 		-- it is immediately turned off when toggling notefield
 		changingSongs = true
+		tryingToStart = false
 		
 		-- if switching songs, we want the notedata to disappear temporarily
 		if noteField then
