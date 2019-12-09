@@ -594,7 +594,11 @@ DWILoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 			if (out.m_StepsType != GetTypeFromMode(valueName))
 				continue;
 			if (out.GetDifficulty() !=
-				DwiCompatibleStringToDifficulty(params[1]))
+				  DwiCompatibleStringToDifficulty(params[1]) &&
+				out.GetDescription().find(
+				  DifficultyToString(
+					DwiCompatibleStringToDifficulty(params[1])) +
+				  " Edit") == RString::npos)
 				continue;
 			if (out.GetMeter() != StringToInt(params[2]))
 				continue;
