@@ -582,6 +582,7 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
 	vector<NoteData> parts;
+	parts.emplace_back(in);
 	float fLastBeat = -1.0f;
 
 	FOREACH(NoteData, parts, nd)
@@ -681,6 +682,7 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
 	vector<NoteData> parts;
+	parts.emplace_back(in);
 	float fLastBeat = -1.f;
 
 	FOREACH(NoteData, parts, nd)
