@@ -856,7 +856,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[1] then
@@ -871,7 +871,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[2] then
@@ -886,7 +886,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[3] then
