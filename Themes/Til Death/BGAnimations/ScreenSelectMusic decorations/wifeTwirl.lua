@@ -61,6 +61,7 @@ local function toggleNoteField()
 	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
 	if song and not noteField then -- first time setup
 		noteField = true
+		justChangedStyles = false
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
 		mcbootlarder:xy(prevX, prevY)
@@ -164,7 +165,7 @@ local t =
 		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
 
 		if s and shouldPlayMusic then
-			mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+			if mcbootlarder and mcbootlarder:GetChild("NoteField") then mcbootlarder:GetChild("NoteField"):diffusealpha(1) end
 			playMusicForPreview(s)
 		end
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
