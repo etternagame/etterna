@@ -345,6 +345,12 @@ SMLoader::LoadFromTokens(RString sStepsType,
 	if (sStepsType == "para" || sStepsType == "para-single")
 		sStepsType = "pump-single";
 
+	// what could go wrong with doing this? (a lot of things)
+	// we removed couple but those charts probably work better as 8k charts
+	// chartkey resolving for loading notedata should make this work
+	if (sStepsType == "dance-couple")
+		sStepsType = "dance-double";
+
 	out.m_StepsType = GAMEMAN->StringToStepsType(sStepsType);
 	out.m_StepsTypeStr = sStepsType;
 	out.SetDescription(sDescription);
