@@ -685,6 +685,7 @@ function scoreBoard(pn, position)
 	local devianceTable = pss:GetOffsetVector()
 	local cbl = 0
 	local cbr = 0
+	local cbm = 0
 
 	-- basic per-hand stats to be expanded on later
 	local tst = ms.JudgeScalers
@@ -693,13 +694,16 @@ function scoreBoard(pn, position)
 		tso = 1
 	end
 	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
+	local middleCol = ncol/2
 	for i = 1, #devianceTable do
 		if tracks[i] then	-- we dont load track data when reconstructing eval screen apparently so we have to nil check -mina
 			if math.abs(devianceTable[i]) > tso * 90 then
-				if tracks[i] <= math.floor(ncol/2) then	-- just assume middle col in 7k is right hand thumb for now -mina
+				if tracks[i] < middleCol then
 					cbl = cbl + 1
-				else
+				elseif tracks[i] > middleCol then
 					cbr = cbr + 1
+				else
+					cbm = cbm + 1
 				end
 			end
 		end
@@ -719,22 +723,29 @@ function scoreBoard(pn, position)
 		THEME:GetString("ScreenEvaluation", "AbsMean"),
 		THEME:GetString("ScreenEvaluation", "StandardDev"),
 		THEME:GetString("ScreenEvaluation", "LeftCB"),
-		THEME:GetString("ScreenEvaluation", "RightCB")
+		THEME:GetString("ScreenEvaluation", "RightCB"),
+		THEME:GetString("ScreenEvaluation", "MiddleCB")
 	}
 	local mcscoot = {
 		wifeMean(devianceTable),
 		wifeAbsMean(devianceTable),
 		wifeSd(devianceTable),
 		cbl,
-		cbr
+		cbr,
+		cbm
 	}
 
-	for i = 1, #doot do
+	-- if theres a middle lane, display its cbs too
+	local lines = ((ncol+1) % 2 == 0) and #doot-1  or #doot
+	local tzoom = lines == 5 and 0.4 or 0.3
+	local ySpacing = lines == 5 and 10 or 8.5
+
+	for i = 1, lines do
 		t[#t + 1] =
 			LoadFont("Common Normal") ..
 			{
 				InitCommand = function(self)
-					self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(doot[i])
+					self:xy(frameX + capWideScale(get43size(130), 160), frameY + 230 + ySpacing * i):zoom(tzoom):halign(0):settext(doot[i])
 				end
 			}
 		t[#t + 1] =
@@ -743,9 +754,9 @@ function scoreBoard(pn, position)
 				Name=i,
 				InitCommand = function(self)
 					if i < 4 then
-						self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settextf("%5.2fms", mcscoot[i])
+						self:xy(frameWidth + 20, frameY + 230 + ySpacing * i):zoom(tzoom):halign(1):settextf("%5.2fms", mcscoot[i])
 					else
-						self:xy(frameWidth + 20, frameY + 230 + 10 * i):zoom(0.4):halign(1):settext(mcscoot[i])
+						self:xy(frameWidth + 20, frameY + 230 + ySpacing * i):zoom(tzoom):halign(1):settext(mcscoot[i])
 					end
 				end,
 				CodeMessageCommand = function(self, params)
