@@ -9,6 +9,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Actors provide True Z Rotation to Lua - [04b2664](../../../commit/04b2664544334ef9e31906d872859a46242f5ce9)
 - BMS 5k, 7k, 10k, and 14k support added to CustomizeGameplay - [b84d2fe](../../../commit/b84d2fed1ae3f0d3d0e6eb6a6cb148181c5d0565)
 - BPM & Rate Text can be moved in Customize Gameplay - [7f1d23a](../../../commit/7f1d23aab1f3a068ddfeddeb5c9fed43252debe6)
+- CB Highlighting and Counting in Evaluation and Offset Plots accounts for the middle column now - [a563a8f](../../../commit/a563a8febe5f047892317802e4b07cef895bdc8d) [cae1e35](../../../commit/cae1e35063f88e5941b31bde69cefaba0af12c86)
 - Clicking the WifePercent of a Leaderboard Score with a Replay will show the Offset Plot - [2d41a71](../../../commit/2d41a71532c2a9b0e998d2ca2f2592f923eeb925)
 - ComboGraphs in Evaluation recalculate given a Replay - [15075a7](../../../commit/15075a79f23cad73a4ccad9e2c8f695bae303978) [04ce0cf](../../../commit/04ce0cf37c461e63a9a1b05a254e557d0739b818) [a7bee3d](../../../commit/a7bee3d09181b882faf88a4d0efa9f7c8caa8760) [c3904ce](../../../commit/c3904ceb8b61257db36190ce7003a9eb7c5a23ad) [818e12d](../../../commit/818e12de2a2a9d0b7d5dde01de20be7826472ce5) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [03f9e02](../../../commit/03f9e02317cdcb4c23bb0656827b8b396990bf62) [c5dedd9](../../../commit/c5dedd94f5f0a692e163c8a046423cc3a1081434)
 - Current Judge string on Offset Plots in SelectMusic - [ba71fbd](../../../commit/ba71fbd88297c6f7fdb3c8c738002f40937f510f)
