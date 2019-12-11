@@ -21,6 +21,7 @@ local textzoom = 0.35
 
 local translated_info = {
 	Left = THEME:GetString("OffsetPlot", "ExplainLeft"),
+	Middle = THEME:GetString("OffsetPlot", "ExplainMiddle"),
 	Right = THEME:GetString("OffsetPlot", "ExplainRight"),
 	Down = THEME:GetString("OffsetPlot", "ExplainDown"),
 	Early = THEME:GetString("OffsetPlot", "Early"),
@@ -35,9 +36,12 @@ local ntt = {}
 local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSong(PLAYER_1):GetLastSecond()
 local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+local oddColumns = false
+local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector indexing at 0
 
 local handspecific = false
 local left = false
+local middle = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
 	if finalSecond == 0 then
@@ -109,6 +113,9 @@ local o =
 			return
 		end
 
+		oddColumns = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() % 2 ~= 0 -- hopefully the style is consistently set here
+		middleColumn = (GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()-1) / 2.0
+
 		-- Convert noterows to timestamps and plot dots (this is important it determines plot x values!!!)
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
@@ -132,12 +139,17 @@ local o =
 			tso = tst[judge]
 		end
 		if params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
-			if not handspecific then
+			if not handspecific then -- moving from none to left
 				handspecific = true
 				left = true
-			elseif handspecific and left then
+			elseif handspecific and left then -- moving from left to middle
+				if oddColumns then
+					middle = true
+				end
 				left = false
-			elseif handspecific and not left then
+			elseif handspecific and middle then -- moving from middle to right
+				middle = false
+			elseif handspecific and not left then -- moving from right to none
 				handspecific = false
 			end
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
@@ -285,13 +297,19 @@ o[#o + 1] =
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then
 				if handspecific and left then
-					if ctt[i] == 0 or ctt[i] == 1 then
+					if ctt[i] < middleColumn then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight left
 					end
+				elseif handspecific and middle then
+					if ctt[i] == middleColumn then
+						setOffsetVerts(verts, x, y, cullur)
+					else
+						setOffsetVerts(verts, x, y, cullurFaded) -- highlight middle
+					end
 				elseif handspecific then
-					if ctt[i] == 2 or ctt[i] == 3 then
+					if ctt[i] > middleColumn then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight right
@@ -316,6 +334,8 @@ o[#o + 1] =
 				if handspecific then
 					if left then
 						self:settext(translated_info["Left"])
+					elseif middle then
+						self:settext(translated_info["Middle"])
 					else
 						self:settext(translated_info["Right"])
 					end
