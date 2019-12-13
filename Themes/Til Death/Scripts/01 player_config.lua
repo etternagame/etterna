@@ -96,6 +96,7 @@ local defaultConfig = {
 	CustomEvaluationWindowTimings = false,
 	PracticeMode = false,
 	GameplayXYCoordinates = {
+		["3K"] = DeepCopy(defaultGameplayCoordinates),
 		["4K"] = DeepCopy(defaultGameplayCoordinates),
 		["5K"] = DeepCopy(defaultGameplayCoordinates),
 		["6K"] = DeepCopy(defaultGameplayCoordinates),
@@ -106,6 +107,7 @@ local defaultConfig = {
 		["16K"] = DeepCopy(defaultGameplayCoordinates)
 	},
 	GameplaySizes = {
+		["3K"] = DeepCopy(defaultGameplaySizes),
 		["4K"] = DeepCopy(defaultGameplaySizes),
 		["5K"] = DeepCopy(defaultGameplaySizes),
 		["6K"] = DeepCopy(defaultGameplaySizes),
@@ -128,6 +130,7 @@ playerConfig.load = function(self, slot)
 	local coords = x.GameplayXYCoordinates
 	local sizes = x.GameplaySizes
 	if sizes and not sizes["4K"] then
+		defaultConfig.GameplaySizes["3K"] = sizes
 		defaultConfig.GameplaySizes["4K"] = sizes
 		defaultConfig.GameplaySizes["5K"] = sizes
 		defaultConfig.GameplaySizes["6K"] = sizes
@@ -139,6 +142,7 @@ playerConfig.load = function(self, slot)
 
 	end
 	if coords and not coords["4K"] then
+		defaultConfig.GameplayXYCoordinates["3K"] = coords
 		defaultConfig.GameplayXYCoordinates["4K"] = coords
 		defaultConfig.GameplayXYCoordinates["5K"] = coords
 		defaultConfig.GameplayXYCoordinates["6K"] = coords

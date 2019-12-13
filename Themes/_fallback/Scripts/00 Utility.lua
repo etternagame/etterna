@@ -291,6 +291,7 @@ end
 -- @treturn string keymode
 function getCurrentKeyMode()
 	local keys = {
+		StepsType_Dance_Threepanel = "3K",
 		StepsType_Dance_Single = "4K",
 		StepsType_Pump_Single = "5K",
 		StepsType_Pump_Halfdouble = "6K",
