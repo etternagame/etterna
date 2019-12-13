@@ -293,6 +293,7 @@ function getCurrentKeyMode()
 	local keys = {
 		StepsType_Dance_Single = "4K",
 		StepsType_Pump_Single = "5K",
+		StepsType_Pump_Halfdouble = "6K",
 		StepsType_Bm_Single5 = "6K",
 		StepsType_Dance_Solo = "6K",
 		StepsType_Kb7_Single = "7K",
