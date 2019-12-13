@@ -102,7 +102,8 @@ local defaultConfig = {
 		["7K"] = DeepCopy(defaultGameplayCoordinates),
 		["8K"] = DeepCopy(defaultGameplayCoordinates),
 		["10K"] = DeepCopy(defaultGameplayCoordinates),
-		["14K"] = DeepCopy(defaultGameplayCoordinates)
+		["12K"] = DeepCopy(defaultGameplayCoordinates),
+		["16K"] = DeepCopy(defaultGameplayCoordinates)
 	},
 	GameplaySizes = {
 		["4K"] = DeepCopy(defaultGameplaySizes),
@@ -111,7 +112,8 @@ local defaultConfig = {
 		["7K"] = DeepCopy(defaultGameplaySizes),
 		["8K"] = DeepCopy(defaultGameplaySizes),
 		["10K"] = DeepCopy(defaultGameplaySizes),
-		["14K"] = DeepCopy(defaultGameplaySizes)
+		["12K"] = DeepCopy(defaultGameplaySizes),
+		["16K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
 
@@ -132,6 +134,9 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplaySizes["7K"] = sizes
 		defaultConfig.GameplaySizes["8K"] = sizes
 		defaultConfig.GameplaySizes["10K"] = sizes
+		defaultConfig.GameplaySizes["12K"] = sizes
+		defaultConfig.GameplaySizes["16K"] = sizes
+
 	end
 	if coords and not coords["4K"] then
 		defaultConfig.GameplayXYCoordinates["4K"] = coords
@@ -140,6 +145,8 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplayXYCoordinates["7K"] = coords
 		defaultConfig.GameplayXYCoordinates["8K"] = coords
 		defaultConfig.GameplayXYCoordinates["10K"] = coords
+		defaultConfig.GameplayXYCoordinates["12K"] = coords
+		defaultConfig.GameplayXYCoordinates["16K"] = coords
 	end
 	force_table_elements_to_match_type = tmp
 	return tmp2(self, slot)
