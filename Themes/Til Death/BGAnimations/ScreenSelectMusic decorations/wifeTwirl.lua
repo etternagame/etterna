@@ -66,6 +66,8 @@ local function toggleNoteField()
 		mcbootlarder:playcommand("SetupNoteField")
 		mcbootlarder:xy(prevX, prevY)
 		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
+		mcbootlarder:diffusealpha(1)
+		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
 		if usingreverse then
 			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
 		end
