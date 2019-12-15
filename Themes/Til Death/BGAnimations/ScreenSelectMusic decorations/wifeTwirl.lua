@@ -174,6 +174,7 @@ local t =
 		hackysack = false
 		justChangedStyles = false
 		tryingToStart = false
+		songChanged = false
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
