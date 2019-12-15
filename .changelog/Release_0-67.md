@@ -7,7 +7,7 @@ Windows x64, Windows i386, and Mac installer release.
 
 ### Added
 - Actors provide True Z Rotation to Lua - [04b2664](../../../commit/04b2664544334ef9e31906d872859a46242f5ce9)
-- BMS 5k, 7k, 10k, and 14k support added to CustomizeGameplay - [b84d2fe](../../../commit/b84d2fed1ae3f0d3d0e6eb6a6cb148181c5d0565)
+- BMS 6k, 8k, 12k, 16k, Dance 3k, Pump 6k support added to CustomizeGameplay - [b84d2fe](../../../commit/b84d2fed1ae3f0d3d0e6eb6a6cb148181c5d0565) [567f4ec](../../../commit/567f4eccdde6d87980c60fe01f9933b648125a97) [a2b9aeb](../../../commit/a2b9aeb4cf91b178a048c88c0d79cf99e5e23fbf) [ff3f16c](../../../commit/ff3f16ca12645910d3d1516cfb2058d9304bac1a)
 - BPM & Rate Text can be moved in Customize Gameplay - [7f1d23a](../../../commit/7f1d23aab1f3a068ddfeddeb5c9fed43252debe6)
 - CB Highlighting and Counting in Evaluation and Offset Plots accounts for the middle column now - [a563a8f](../../../commit/a563a8febe5f047892317802e4b07cef895bdc8d) [cae1e35](../../../commit/cae1e35063f88e5941b31bde69cefaba0af12c86)
 - Clicking the WifePercent of a Leaderboard Score with a Replay will show the Offset Plot - [2d41a71](../../../commit/2d41a71532c2a9b0e998d2ca2f2592f923eeb925)
@@ -36,6 +36,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Steps will keep track of whether or not they are a duplicate Difficulty (same Difficulty, but not same chart) - [1ea4c49](../../../commit/1ea4c499b3d1ab5fb55225b89eb653405d322920)
 - RageSounds keep track of the paused state - [3fd8f50](../../../commit/3fd8f502db3fe7e1d927120cab9e3a04d8315740) [6539851](../../../commit/65398514af02918360b3bb786fc581a4ea3aa05b)
 - ReplaySnapshots added to PlayerAI, to provide a "Snapshot" of the Replay at any given noterow - [11b81cf](../../../commit/11b81cfcb1d0a04748d7409b2b486d475873fd47) [23f1e08](../../../commit/23f1e0822eba1ce62db78ccf47d934d25be3cafa) [7abdc4e](../../../commit/7abdc4e9547ddbf7c899e332d6521c2c91ba2118) [f3cdf3d](../../../commit/f3cdf3dc447580e5e9ce7d3cfa762067b8fac943) [3accece](../../../commit/3accece749e900af02f3388ab42a9f6138cb7fd8) [4cc4d07](../../../commit/4cc4d0797d85764a2abfaff68f2aa949cc67bada) [d7d8248](../../../commit/d7d8248d927fc586b4accdcbcc023029d387487f) [a4b9e0d](../../../commit/a4b9e0de4da0685a560844f0914ce2083fb0e5ac) [b1afbaf](../../../commit/b1afbafd7aa4cafac08b63e333201e9aca9dd82d) [075b994](../../../commit/075b9944a5b11d741d305c44707e9ada84e3e60a) [0310b38](../../../commit/0310b38665ae5802a39bbb06e2488ca447b92c2b)
+- TestInput Screen has new text indicating what button to press to exit - [#663](../../../pull/663)
 - Theme Preference to require pressing Enter to confirm a song search - [cdc0abb](../../../commit/cdc0abb005df2da6595964936bb7ee6d44966054) [dd3672f](../../../commit/dd3672fdd166d6cbdc152ca47a9225974aeb55a6) [9325131](../../../commit/9325131a7b42de67667437f96fd24e92493544f4)
 - Translation support for Til Death widely increased, Chinese Translation updated - [#597](../../../pull/597)
 ### Changed
@@ -92,6 +93,7 @@ Windows x64, Windows i386, and Mac installer release.
 - Using / as a modifier key (like Select) shouldn't let the Chat Overlay pop up - [1ab2cbd](../../../commit/1ab2cbdc1c5c7d11af32c886f50fa4faaf4d2591)
 ### Removed
 - AI.ini - [055ef81](../../../commit/055ef81d96095b416ca9ea7dee99fba316817ad6)
+- Characters - [#617](../../../pull/617)
 - FailAtEnd (superceded by FailImmediateContinue) - [8b63a20](../../../commit/8b63a201800544622c2f4dd17e8f6c83c5cbcb8d)
 - Frets - [611781d](../../../commit/611781da6bd9587ba8d9f1cdc08eee04f60a3cc7)
 - Instrument Tracks for Guitars - [8a09087](../../../commit/8a09087b8e96010a24391d8ebcb7f745091e2975)
@@ -110,10 +112,10 @@ Windows x64, Windows i386, and Mac installer release.
 - Changing rates in Gameplay and then checking Player Options caused the rate to reset to 0.5x - [65eb024](../../../commit/65eb024a3a96675bca5d7a903b097eb80b12ba51) [128690e](../../../commit/128690ec3e8f29f33b65cb37a0c8571051b99cab)
 - Chart Preview pausing and then doing almost anything broke the consistency of it - [c7be276](../../../commit/c7be2763b2933ca0631c511ced50933674a2239f) [0258040](../../../commit/025804096c0dc021067db2fc7c9d1ffacdce522f)
 - Chart Preview set position incorrectly when swapping between Reverse and Upscroll after already turning preview on - [aec1145](../../../commit/aec11457165b8b4c8acd1c51aeb2773923ba8906)
-- Chart Preview seeking fails to work when moving from a pack to a song - [97c99c0](../../../commit/97c99c0f1fb9a2af6029e38b259f56898f98fc45)
+- Chart Preview seeking fails to work when moving from a pack to a song - [97c99c0](../../../commit/97c99c0f1fb9a2af6029e38b259f56898f98fc45) [1c2d2a5](../../../commit/1c2d2a5d68d123d1adfc64945a3672cb98f379f0)
 - Chart Preview sometimes restarted when changing tabs and doing other stuff - [44a4999](../../../commit/44a4999facc71135bd05c0d8af1507fd3255ba77) [66a54ea](../../../commit/66a54ea3a63239eafd70d87d2a2fd3140b45d8cf)
 - Chart Preview stopped playing music randomly - [f11b462](../../../commit/f11b462cdc5e4bca95664e511e6879177b65c831) [8b683c5](../../../commit/8b683c5334ae2794dbb10d7539bb9ed2ab5113e7) [f046dbe](../../../commit/f046dbe7702fc737a08c13500eeabd7c83112d07) [443411a](../../../commit/443411aa9fdcbbf2ed2323a59313d0d427aa2386) [a915aca](../../../commit/a915acaa00f1759f5011e2d4865dc89d82430e28)
-- Chart Preview went invisible - [2aa5531](../../../commit/2aa5531893d6c37de84103d9e1fa858b583b8e8a)
+- Chart Preview went invisible - [2aa5531](../../../commit/2aa5531893d6c37de84103d9e1fa858b583b8e8a) [2b8761c](../../../commit/2b8761c39c84106d67f94430a2a4705ee376a53f)
 - Chord Density Graphs were not synced for files that end in a hold - [7bc619f](../../../commit/7bc619f2a9112691b12df0513bf483bcf8de84dd)
 - Crash logs stopped showing the Build information at some point due to a CMake change - [14acf71](../../../commit/14acf7178b558f90c88d60bda1c41a9c3fc7d23d) [a9794ff](../../../commit/a9794ffd54c37cd2cad0ac1614748074131276cf)
 - Crashed if logged in to Multiplayer while not actually being in Multiplayer on some systems - [655ea08](../../../commit/655ea086cf18cc565fdedae17f7351fa930b573b)
