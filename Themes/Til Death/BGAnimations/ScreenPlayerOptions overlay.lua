@@ -10,7 +10,7 @@ local t =
 
 local profileP1
 
-local profileNameP1 = "No Profile"
+local profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 local playCountP1 = 0
 local playTimeP1 = 0
 local noteCountP1 = 0
@@ -47,13 +47,13 @@ t[#t + 1] =
 				playTimeP1 = profileP1:GetTotalSessionSeconds()
 				noteCountP1 = profileP1:GetTotalTapsAndHolds()
 			else
-				profileNameP1 = "No Profile"
+				profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 				playCountP1 = 0
 				playTimeP1 = 0
 				noteCountP1 = 0
 			end
 		else
-			profileNameP1 = "No Profile"
+			profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 			playCountP1 = 0
 			playTimeP1 = 0
 			noteCountP1 = 0
@@ -97,7 +97,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(profileNameP1 .. "'s Scroll Speed:")
+				self:settextf("%s%s", profileNameP1, THEME:GetString("ScreenPlayerOptions", "ScrollSpeed"))
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -158,7 +158,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Player Options:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+			self:settextf("%s:", THEME:GetString("ScreenPlayerOptions", "Title"))
 		end
 	}
 

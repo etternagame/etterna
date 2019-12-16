@@ -36,7 +36,6 @@ list(APPEND ACTOR_BASE_HPP
 list(APPEND ACTOR_GAMEPLAY_SRC
 	"Gameplay/ArrowEffects.cpp"
 	"Gameplay/Background.cpp"
-	"Gameplay/DancingCharacters.cpp"
 	"Gameplay/Foreground.cpp"
 	"Gameplay/GhostArrowRow.cpp"
 	"Gameplay/HoldJudgment.cpp"
@@ -46,13 +45,14 @@ list(APPEND ACTOR_GAMEPLAY_SRC
 	"Gameplay/NoteDisplay.cpp"
 	"Gameplay/NoteField.cpp"
 	"Gameplay/Player.cpp"
+	"Gameplay/PlayerPractice.cpp"
+	"Gameplay/PlayerReplay.cpp"
 	"Gameplay/ReceptorArrow.cpp"
 	"Gameplay/ReceptorArrowRow.cpp")
 
 list(APPEND ACTOR_GAMEPLAY_HPP
 	"Gameplay/ArrowEffects.h"
 	"Gameplay/Background.h"
-	"Gameplay/DancingCharacters.h"
 	"Gameplay/Foreground.h"
 	"Gameplay/GhostArrowRow.h"
 	"Gameplay/HoldJudgment.h"
@@ -62,6 +62,8 @@ list(APPEND ACTOR_GAMEPLAY_HPP
 	"Gameplay/NoteDisplay.h"
 	"Gameplay/NoteField.h"
 	"Gameplay/Player.h"
+	"Gameplay/PlayerPractice.h"
+	"Gameplay/PlayerReplay.h"
 	"Gameplay/ReceptorArrow.h"
 	"Gameplay/ReceptorArrowRow.h")
 

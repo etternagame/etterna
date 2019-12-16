@@ -205,6 +205,7 @@ MusicWheel::ReloadSongList(bool searching, RString findme)
 	// when cancelling a search stay in the pack of your match... this should be
 	// more intuitive and relevant behavior -mina
 	if (findme == "" && lastvalidsearch != "") {
+		lastvalidsearch = "";
 		m_WheelItemDatasStatus[GAMESTATE->m_SortOrder] = INVALID;
 		readyWheelItemsData(GAMESTATE->m_SortOrder, false, findme);
 		SetOpenSection(m_sExpandedSectionName);
@@ -448,12 +449,21 @@ MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme)
 	size_t artist = findme.find("artist=");
 	size_t author = findme.find("author=");
 	size_t title = findme.find("title=");
+	size_t subtitle = findme.find("subtitle=");
+
+	// title is a substring of title
+	// so if found that way, check again
+	if (title == subtitle + 3) {
+		title = findme.find("title=", title + 1);
+	}
+
 	string findartist = "";
 	string findauthor = "";
 	string findtitle = "";
+	string findsubtitle = "";
 
 	if (artist != findme.npos || author != findme.npos ||
-		title != findme.npos) {
+		title != findme.npos || subtitle != findme.npos) {
 		super_search = true;
 		if (artist != findme.npos)
 			findartist = findme.substr(
@@ -464,64 +474,176 @@ MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme)
 		if (title != findme.npos)
 			findtitle = findme.substr(
 			  title + 6, findme.find(static_cast<char>(title), ';') - title);
+		if (subtitle != findme.npos)
+			findsubtitle = findme.substr(
+			  subtitle + 9,
+			  findme.find(static_cast<char>(subtitle), ';') - subtitle);
 	}
 
+	// The giant block of code below is for optimization purposes.
+	// Basically, we don't want to give a single fat lambda to the filter that
+	// checks and short circuits. Instead, we want to just not check at all.
+	// It's a baby sized optimization but adds up over time. The binary comments
+	// help verify which things are being checked.
 	vector<Song*> tmp;
 	std::function<bool(Song*)> check;
 	if (super_search == false) {
+		// 0000
 		check = [&findme](Song* x) {
 			return contains(x->GetDisplayMainTitle(), findme);
 		};
 	} else {
-		if (findartist != "" && findtitle != "" && findauthor != "") {
-			check = [&findauthor, &findartist, &findtitle](Song* x) {
-				return contains(x->GetDisplayArtist(), findartist) ||
-					   contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-								findauthor) ||
-					   contains(x->GetDisplayMainTitle(), findtitle);
-			};
+		if (findartist != "" && findtitle != "" && findauthor != "" &&
+			findsubtitle != "") {
+			// 1111
+			check =
+			  [&findauthor, &findartist, &findtitle, &findsubtitle](Song* x) {
+				  return contains(x->GetDisplayArtist(), findartist) ||
+						 contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
+								  findauthor) ||
+						 contains(x->GetDisplayMainTitle(), findtitle) ||
+						 contains(x->GetDisplaySubTitle(), findsubtitle);
+			  };
 		} else {
-			if (findauthor == "") {
-				if (findtitle == "")
-					check = [&findartist](Song* x) {
-						return contains(x->GetDisplayArtist(), findartist);
+			if (findsubtitle != "") {
+				if (findauthor == "" && findtitle == "" && findartist == "") {
+					// 1000
+					check = [&findsubtitle](Song* x) {
+						return contains(x->GetDisplaySubTitle(), findsubtitle);
 					};
-				else {
-					if (findartist == "")
-						check = [&findtitle](Song* x) {
-							return contains(x->GetDisplayMainTitle(),
-											findtitle);
-						};
-					else
-						check = [&findartist, &findtitle](Song* x) {
-							return contains(x->GetDisplayArtist(),
-											findartist) ||
-								   contains(x->GetDisplayMainTitle(),
-											findtitle);
-						};
+				} else {
+					if (findauthor == "") {
+						if (findtitle == "")
+							// 1001
+							check = [&findsubtitle, &findartist](Song* x) {
+								return contains(x->GetDisplayArtist(),
+												findartist) ||
+									   contains(x->GetDisplaySubTitle(),
+												findsubtitle);
+							};
+						else {
+							if (findartist == "")
+								// 1010
+								check = [&findsubtitle, &findtitle](Song* x) {
+									return contains(x->GetDisplayMainTitle(),
+													findtitle) ||
+										   contains(x->GetDisplaySubTitle(),
+													findsubtitle);
+								};
+							else
+								// 1011
+								check = [&findsubtitle,
+										 &findartist,
+										 &findtitle](Song* x) {
+									return contains(x->GetDisplayArtist(),
+													findartist) ||
+										   contains(x->GetDisplayMainTitle(),
+													findtitle) ||
+										   contains(x->GetDisplaySubTitle(),
+													findsubtitle);
+								};
+						}
+					} else {
+						if (findtitle == "") {
+							if (findartist == "")
+								// 1100
+								check = [&findsubtitle, &findauthor](Song* x) {
+									return contains(
+											 x->GetOrTryAtLeastToGetSimfileAuthor(),
+											 findauthor) ||
+										   contains(x->GetDisplaySubTitle(),
+													findsubtitle);
+								};
+							else
+								// 1101
+								check = [&findsubtitle,
+										 &findauthor,
+										 &findartist](Song* x) {
+									return contains(x->GetDisplayArtist(),
+													findartist) ||
+										   contains(
+											 x->GetOrTryAtLeastToGetSimfileAuthor(),
+											 findauthor) ||
+										   contains(x->GetDisplaySubTitle(),
+													findsubtitle);
+								};
+						} else {
+							// 1110
+							check = [&findsubtitle, &findauthor, &findtitle](
+									  Song* x) {
+								return contains(x->GetDisplayMainTitle(),
+												findtitle) ||
+									   contains(
+										 x->GetOrTryAtLeastToGetSimfileAuthor(),
+										 findauthor) ||
+									   contains(x->GetDisplaySubTitle(),
+												findsubtitle);
+							};
+						}
+					}
 				}
 			} else {
-				if (findtitle == "") {
-					if (findartist == "")
-						check = [&findauthor](Song* x) {
-							return contains(
-							  x->GetOrTryAtLeastToGetSimfileAuthor(),
-							  findauthor);
-						};
-					else
-						check = [&findauthor, &findartist](Song* x) {
-							return contains(x->GetDisplayArtist(),
-											findartist) ||
-								   contains(
-									 x->GetOrTryAtLeastToGetSimfileAuthor(),
-									 findauthor);
-						};
-				} else {
-					check = [&findauthor, &findtitle](Song* x) {
-						return contains(x->GetDisplayMainTitle(), findtitle) ||
+				if (findartist != "" && findtitle != "" && findauthor != "") {
+					// 0111
+					check = [&findauthor, &findartist, &findtitle](Song* x) {
+						return contains(x->GetDisplayArtist(), findartist) ||
 							   contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-										findauthor);
+										findauthor) ||
+							   contains(x->GetDisplayMainTitle(), findtitle);
 					};
+				} else {
+					if (findauthor == "") {
+						if (findtitle == "")
+							// 0001
+							check = [&findartist](Song* x) {
+								return contains(x->GetDisplayArtist(),
+												findartist);
+							};
+						else {
+							if (findartist == "")
+								// 0010
+								check = [&findtitle](Song* x) {
+									return contains(x->GetDisplayMainTitle(),
+													findtitle);
+								};
+							else
+								// 0011
+								check = [&findartist, &findtitle](Song* x) {
+									return contains(x->GetDisplayArtist(),
+													findartist) ||
+										   contains(x->GetDisplayMainTitle(),
+													findtitle);
+								};
+						}
+					} else {
+						if (findtitle == "") {
+							if (findartist == "")
+								// 0100
+								check = [&findauthor](Song* x) {
+									return contains(
+									  x->GetOrTryAtLeastToGetSimfileAuthor(),
+									  findauthor);
+								};
+							else
+								// 0101
+								check = [&findauthor, &findartist](Song* x) {
+									return contains(x->GetDisplayArtist(),
+													findartist) ||
+										   contains(
+											 x->GetOrTryAtLeastToGetSimfileAuthor(),
+											 findauthor);
+								};
+						} else {
+							// 0110
+							check = [&findauthor, &findtitle](Song* x) {
+								return contains(x->GetDisplayMainTitle(),
+												findtitle) ||
+									   contains(
+										 x->GetOrTryAtLeastToGetSimfileAuthor(),
+										 findauthor);
+							};
+						}
+					}
 				}
 			}
 		}
@@ -730,7 +852,8 @@ MusicWheel::BuildWheelItemDatas(
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
 
-		if (FILTERMAN->filteringCommonPacks && NSMAN->IsETTP() && !NSMAN->commonpacks.empty()) {
+		if (FILTERMAN->filteringCommonPacks && NSMAN->IsETTP() &&
+			!NSMAN->commonpacks.empty()) {
 			vector<Song*> tmp;
 			for (auto& song : arraySongs) {
 				auto& group = song->m_sGroupName;
@@ -1549,7 +1672,7 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	vector<Difficulty> vDifficultiesToRequire;
 
 	if (GAMESTATE->m_PreferredDifficulty == Difficulty_Invalid) {
-	// skip
+		// skip
 	}
 
 	// TRICKY: Don't require that edits be present if perferred
@@ -1558,10 +1681,9 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 	// having a single edit for a locked song.
 	else if (GAMESTATE->m_PreferredDifficulty == Difficulty_Edit) {
 		// skip
-	}
-	else {
+	} else {
 
-	vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
+		vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
 	}
 
 	RString sPreferredGroup = m_sExpandedSectionName;
@@ -1715,28 +1837,3 @@ class LunaMusicWheel : public Luna<MusicWheel>
 
 LUA_REGISTER_DERIVED_CLASS(MusicWheel, WheelBase)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Chris Gomez, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

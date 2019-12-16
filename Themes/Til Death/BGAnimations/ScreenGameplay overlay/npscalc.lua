@@ -111,6 +111,11 @@ local peakNPS = {
 	PlayerNumber_P2 = 0
 }
 
+local translated_info = {
+	Peak = THEME:GetString("ScreenGameplay", "NPSGraphPeakNPS"),
+	NPS = THEME:GetString("ScreenGameplay", "NPSGraphNPS")
+}
+
 ---------------
 -- Functions --
 ---------------
@@ -188,7 +193,7 @@ local function Update(self)
 						tostring(dynamicWindow)
 					)
 				else
-					self:GetChild("NPSDisplay"):GetChild("Text"):settextf("%0.0f NPS (Peak %0.0f)", curNPS, peakNPS[pn])
+					self:GetChild("NPSDisplay"):GetChild("Text"):settextf("%0.0f %s (%s %0.0f)", curNPS, translated_info["NPS"], translated_info["Peak"], peakNPS[pn])
 				end
 			end
 			-- update the window size.

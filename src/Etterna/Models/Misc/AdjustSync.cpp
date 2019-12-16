@@ -98,11 +98,12 @@ void
 AdjustSync::SaveSyncChanges()
 {
 	/* TODO: Save all of the timing data changes.
-	* Luckily, only the song timing data needs comparing here. */
-	if (GAMESTATE->m_pCurSong && s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming)
-	{
+	 * Luckily, only the song timing data needs comparing here. */
+	if (GAMESTATE->m_pCurSong &&
+		s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming) {
 
-		//Hack: Otherwise it doesnt work (files created are called /.sm and /.ssc)
+		// Hack: Otherwise it doesnt work (files created are called /.sm and
+		// /.ssc)
 		auto tmp = GAMESTATE->m_pCurSong->m_SongTiming;
 		GAMESTATE->m_pCurSong->ReloadFromSongDir();
 		GAMESTATE->m_pCurSong->m_SongTiming = tmp;
@@ -358,6 +359,11 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 		TimingData& original = s_vpTimingDataOriginal[0];
 		TimingData& testing = GAMESTATE->m_pCurSong->m_SongTiming;
 
+		// the files should match. typically this is the case but sometimes that
+		// just isnt true and we really dont want to let it happen
+		if (original.m_sFile != testing.m_sFile)
+			return;
+
 		{
 			float fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
 			float fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
@@ -458,28 +464,3 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 #undef SEGMENTS_MISMATCH_MESSAGE
 	}
 }
-
-/*
- * (c) 2003-2006 Chris Danford, John Bauer
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

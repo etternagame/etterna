@@ -11,7 +11,6 @@
 #include "InputHandler_DirectInputHelper.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
@@ -471,9 +470,6 @@ InputHandler_DInput::UpdatePolled(
 						INPUTFILTER->UpdateCursorLocation(
 						  static_cast<float>(cursorPos.x),
 						  static_cast<float>(cursorPos.y));
-						INPUTFILTER->UpdateCursorLocation(
-						  static_cast<float>(cursorPos.x),
-						  static_cast<float>(cursorPos.y));
 
 						DeviceInput di(
 						  dev,
@@ -586,9 +582,6 @@ InputHandler_DInput::UpdateBuffered(
 						POINT cursorPos;
 						GetCursorPos(&cursorPos);
 						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
-						INPUTFILTER->UpdateCursorLocation(
-						  static_cast<float>(cursorPos.x),
-						  static_cast<float>(cursorPos.y));
 						INPUTFILTER->UpdateCursorLocation(
 						  static_cast<float>(cursorPos.x),
 						  static_cast<float>(cursorPos.y));

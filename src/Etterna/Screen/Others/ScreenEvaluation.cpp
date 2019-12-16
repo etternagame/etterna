@@ -27,6 +27,8 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
+#include "Etterna/Models/Misc/PlayerAI.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
@@ -40,15 +42,9 @@ AutoScreenMessage(SM_PlayCheer);
 
 REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
-ScreenEvaluation::ScreenEvaluation()
-{
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = false;
-}
+ScreenEvaluation::ScreenEvaluation() {}
 
-ScreenEvaluation::~ScreenEvaluation()
-{
-	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck = true;
-}
+ScreenEvaluation::~ScreenEvaluation() {}
 
 void
 ScreenEvaluation::Init()
@@ -82,18 +78,16 @@ ScreenEvaluation::Init()
 		ss.m_player.m_pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
 		if (RandomInt(2))
 			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
-								ModsLevel_Stage,
-								m_bTransforms,
-								PlayerOptions::TRANSFORM_ECHO,
-								true); // show "disqualified"
+							  ModsLevel_Stage,
+							  m_bTransforms,
+							  PlayerOptions::TRANSFORM_ECHO,
+							  true); // show "disqualified"
 		SO_GROUP_ASSIGN(
-			GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
+		  GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
 
 		GAMESTATE->JoinPlayer(PLAYER_1);
-		GAMESTATE->m_pCurSteps.Set(
-			GAMESTATE->m_pCurSong->GetAllSteps()[0]);
-		ss.m_player.m_vpPossibleSteps.push_back(
-			GAMESTATE->m_pCurSteps);
+		GAMESTATE->m_pCurSteps.Set(GAMESTATE->m_pCurSong->GetAllSteps()[0]);
+		ss.m_player.m_vpPossibleSteps.push_back(GAMESTATE->m_pCurSteps);
 		ss.m_player.m_iStepsPlayed = 1;
 
 		PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState->m_PlayerOptions,
@@ -101,13 +95,12 @@ ScreenEvaluation::Init()
 						m_fScrollSpeed,
 						2.0f);
 		PO_GROUP_CALL(GAMESTATE->m_pPlayerState->m_PlayerOptions,
-						ModsLevel_Stage,
-						ChooseRandomModifiers);
+					  ModsLevel_Stage,
+					  ChooseRandomModifiers);
 
-		for( float f = 0; f < 100.0f; f += 1.0f )
-		{
-			float fP1 = fmodf(f/100*4+.3f,1);
-			ss.m_player.SetLifeRecordAt( fP1, f );
+		for (float f = 0; f < 100.0f; f += 1.0f) {
+			float fP1 = fmodf(f / 100 * 4 + .3f, 1);
+			ss.m_player.SetLifeRecordAt(fP1, f);
 		}
 		float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
 		ss.m_player.m_iActualDancePoints = RandomInt(3);
@@ -140,7 +133,7 @@ ScreenEvaluation::Init()
 		ss.m_player.m_iTapNoteScores[TNS_W2] = RandomInt(3);
 		ss.m_player.m_iTapNoteScores[TNS_W3] = RandomInt(3);
 		ss.m_player.m_iPossibleGradePoints =
-			4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
+		  4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
 		ss.m_player.m_fLifeRemainingSeconds = randomf(90, 580);
 		ss.m_player.m_iScore = random_up_to(900 * 1000 * 1000);
 		ss.m_player.m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
@@ -157,10 +150,9 @@ ScreenEvaluation::Init()
 				case RadarCategory_Rolls:
 				case RadarCategory_Lifts:
 				case RadarCategory_Fakes:
-					ss.m_player.m_radarPossible[rc] =
-						1 + (random_up_to(200));
+					ss.m_player.m_radarPossible[rc] = 1 + (random_up_to(200));
 					ss.m_player.m_radarActual[rc] = random_up_to(
-						static_cast<int>(ss.m_player.m_radarPossible[rc]));
+					  static_cast<int>(ss.m_player.m_radarPossible[rc]));
 					break;
 				default:
 					break;
@@ -180,8 +172,6 @@ ScreenEvaluation::Init()
 	m_pStageStats = &STATSMAN->m_vPlayedStageStats.back();
 
 	m_bSavedScreenshot = false;
-
-
 
 	// update persistent statistics
 	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
@@ -203,7 +193,7 @@ ScreenEvaluation::Init()
 	bool bOneHasFullW4Combo = false;
 	if (GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
 		if ((m_pStageStats->m_player.m_iMachineHighScoreIndex == 0 ||
-				m_pStageStats->m_player.m_iPersonalHighScoreIndex == 0)) {
+			 m_pStageStats->m_player.m_iPersonalHighScoreIndex == 0)) {
 			bOneHasNewTopRecord = true;
 		}
 
@@ -326,42 +316,23 @@ ScreenEvaluation::HandleMenuStart()
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
+
+	// Reset mods
 	if (GAMEMAN->m_bResetModifiers) {
 		float oldRate = GAMEMAN->m_fPreviousRate;
 		const RString mods = GAMEMAN->m_sModsToReset;
-		/* // Reset mods
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString("clearall");
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(mods);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(mods);
-		*/
-		FailType failreset = GAMEMAN->m_iPreviousFail;
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetSong()
-		  .m_FailType = failreset;
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetCurrent()
-		  .m_FailType = failreset;
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetPreferred()
-		  .m_FailType = failreset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
-		
+
 		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
-			GAMESTATE->m_pPlayerState
-			  ->m_PlayerOptions.GetSong()
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
 			  .ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState
-			  ->m_PlayerOptions.GetCurrent()
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
 			  .ResetModsToStringVector(oldturns);
-			GAMESTATE->m_pPlayerState
-			  ->m_PlayerOptions.GetPreferred()
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
 			  .ResetModsToStringVector(oldturns);
 			GAMEMAN->m_bResetTurns = false;
 			GAMEMAN->m_vTurnsToReset.clear();
@@ -384,34 +355,80 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		LuaHelpers::Push(L, p->GetStageStats());
 		return 1;
 	}
-	LunaScreenEvaluation() { ADD_METHOD(GetStageStats); }
+	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
+	{
+		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
+		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
+		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		float ts = FArg(2);
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		if (hs->GetChordCohesion() || potmp.ContainsTransformOrTurn()) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
+		PlayerAI::SetScoreData(hs, 0);
+		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
+		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
+		pPSS->m_fLifeRecord.clear();
+		pPSS->m_ComboList.clear();
+		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
+		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
+		lua_pushboolean(L, true);
+		return 1;
+	}
+	static int GetReplaySnapshotJudgmentsForNoterow(T* p, lua_State* L)
+	{
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		vector<int> toPush;
+
+		FOREACH_ENUM(TapNoteScore, tns)
+		toPush.emplace_back(rs->judgments[tns]);
+
+		LuaHelpers::CreateTableFromArray(toPush, L);
+		return 1;
+	}
+	static int GetReplaySnapshotWifePercentForNoterow(T* p, lua_State* L)
+	{
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
+		return 1;
+	}
+	static int GetReplayRate(T* p, lua_State* L)
+	{
+		// if we have a replay, give the data
+		if (PlayerAI::pScoreData != nullptr) {
+			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
+			return 1;
+		} else {
+			// otherwise give nothing
+			lua_pushnil(L);
+			return 1;
+		}
+	}
+	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
+	{
+		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		PlayerOptions potmp;
+		potmp.FromString(hs->GetModifiers());
+		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
+		return 1;
+	}
+
+	LunaScreenEvaluation()
+	{
+		ADD_METHOD(GetStageStats);
+		ADD_METHOD(SetPlayerStageStatsFromReplayData);
+		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
+		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
+		ADD_METHOD(GetReplayRate);
+		ADD_METHOD(ScoreUsedInvalidModifier);
+	}
 };
 
 LUA_REGISTER_DERIVED_CLASS(ScreenEvaluation, ScreenWithMenuElements)
 
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

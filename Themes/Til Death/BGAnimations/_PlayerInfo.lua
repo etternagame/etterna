@@ -6,7 +6,7 @@ local t =
 
 local profile
 
-local profileName = "No Profile"
+local profileName = THEME:GetString("GeneralInfo", "NoProfile")
 local playCount = 0
 local playTime = 0
 local noteCount = 0
@@ -40,6 +40,45 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	ProfileNew = THEME:GetString("ProfileChanges", "ProfileNew"),
+	NameChange = THEME:GetString("ProfileChanges", "ProfileNameChange"),
+	ClickLogin = THEME:GetString("GeneralInfo", "ClickToLogin"),
+	ClickLogout = THEME:GetString("GeneralInfo", "ClickToLogout"),
+	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn"),
+	LoggedInAs = THEME:GetString("GeneralInfo", "LoggedInAs.."),
+	LoginFailed = THEME:GetString("GeneralInfo", "LoginFailed"),
+	LoginSuccess = THEME:GetString("GeneralInfo", "LoginSuccess"),
+	Password = THEME:GetString("GeneralInfo","Password"),
+	Username = THEME:GetString("GeneralInfo","Username"),
+	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
+	TapsHit = THEME:GetString("GeneralInfo", "ProfileTapsHit"),
+	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
+	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
+	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
+	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded")
+}
+
+local function loginToggler()
+	if not DLMAN:IsLoggedIn() then
+		username = function(answer)
+			user = answer
+		end
+		password = function(answer)
+			pass = answer
+			DLMAN:Login(user, pass)
+		end
+		easyInputStringWithFunction(translated_info["Password"]..":", 50, true, password)
+		easyInputStringWithFunction(translated_info["Username"]..":", 50, false, username)
+	else
+		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
+		playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+		playerConfig:save(pn_to_profile_slot(PLAYER_1))
+		DLMAN:Logout()
+	end
+end
+
 t[#t + 1] =
 	Def.Actor {
 	BeginCommand = function(self)
@@ -48,10 +87,14 @@ t[#t + 1] =
 	SetCommand = function(self)
 		profile = GetPlayerOrMachineProfile(PLAYER_1)
 		profileName = profile:GetDisplayName()
-		playCount = profile:GetTotalNumSongsPlayed()
+		playCount = SCOREMAN:GetTotalNumberOfScores()
 		playTime = profile:GetTotalSessionSeconds()
 		noteCount = profile:GetTotalTapsAndHolds()
 		playerRating = profile:GetPlayerRating()
+	end,
+	PlayerRatingUpdatedMessageCommand = function(self)
+		playerRating = profile:GetPlayerRating()
+		self:GetParent():GetChild("AvatarPlayerNumber_P1"):GetChild("Name"):playcommand("Set")
 	end
 }
 
@@ -61,6 +104,7 @@ t[#t + 1] =
 	BeginCommand = function(self)
 		self:queuecommand("Set")
 		self:SetUpdateFunction(highlight)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 	SetCommand = function(self)
 		if profile == nil then
@@ -91,6 +135,7 @@ t[#t + 1] =
 	},
 	LoadFont("Common Normal") ..
 		{
+			Name = "Name",
 			InitCommand = function(self)
 				self:xy(AvatarX + 53, AvatarY + 7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor("positive"))
 			end,
@@ -98,7 +143,7 @@ t[#t + 1] =
 				self:settextf("%s: %5.2f", profileName, playerRating)
 				if profileName == "Default Profile" or profileName == "" then
 					easyInputStringWithFunction(
-						"Choose a profile display name\nClicking your name will allow you to change it:",
+						translated_info["ProfileNew"],
 						64,
 						false,
 						setnewdisplayname
@@ -107,7 +152,7 @@ t[#t + 1] =
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-					easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
+					easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
 				end
 			end,
 			ProfileRenamedMessageCommand = function(self, params)
@@ -132,19 +177,17 @@ t[#t + 1] =
 			end,
 			LogOutMessageCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settext("Click to login")
+					self:settext(translated_info["ClickLogin"])
 				else
-					self:settext("Not logged in")
+					self:settext(translated_info["NotLoggedIn"])
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
+				if not DLMAN:IsLoggedIn() then return end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settextf(
-						"%s",
-						"Click to Logout"
-					)
+					self:settext(translated_info["ClickLogout"])
 				else
-					self:settextf("")
+					self:settext("")
 				end
 			end,
 			OnlineUpdateMessageCommand = function(self)
@@ -171,17 +214,19 @@ t[#t + 1] =
 			end,
 			LogOutMessageCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settextf("")
+					self:settext("")
 					self:GetParent():SetUpdateFunction(highlight2)
 				else
-					self:settextf("")
+					self:settext("")
 					self:GetParent():SetUpdateFunction(highlight)
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
+				if not DLMAN:IsLoggedIn() then return end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
-						"Logged in as %s (%5.2f: #%i) \n",
+						"%s %s (%5.2f: #%i) \n",
+						translated_info["LoggedInAs"],
 						DLMAN:GetUsername(),
 						DLMAN:GetSkillsetRating("Overall"),
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
@@ -189,7 +234,8 @@ t[#t + 1] =
 					self:GetParent():SetUpdateFunction(highlight2)
 				else
 					self:settextf(
-						"Logged in as %s (%5.2f: #%i)",
+						"%s %s (%5.2f: #%i)",
+						translated_info["LoggedInAs"],
 						DLMAN:GetUsername(),
 						DLMAN:GetSkillsetRating("Overall"),
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
@@ -209,35 +255,23 @@ t[#t + 1] =
 			self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoomto(100, 30):diffusealpha(0)
 		end,
 		LoginFailedMessageCommand = function(self)
-			ms.ok("Login failed!")
+			ms.ok(translated_info["LoginFailed"])
 		end,
 		LoginMessageCommand = function(self)
+			if not DLMAN:IsLoggedIn() then return end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-			ms.ok("Succesfully logged in")
+			ms.ok(translated_info["LoginSuccess"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-				if not DLMAN:IsLoggedIn() then
-					username = function(answer)
-						user = answer
-					end
-					password = function(answer)
-						pass = answer
-						DLMAN:Login(user, pass)
-					end
-					easyInputStringWithFunction("Password:", 50, true, password)
-					easyInputStringWithFunction("Username:", 50, false, username)
-				else
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-					playerConfig:save(pn_to_profile_slot(PLAYER_1))
-					DLMAN:Logout()
-				end
+				loginToggler()
 			end
+		end,
+		LoginHotkeyPressedMessageCommand = function(self)
+			loginToggler()
 		end
 	},
 	LoadFont("Common Normal") ..
@@ -249,7 +283,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(playCount .. " Plays")
+				self:settextf("%s %s", playCount, translated_info["Plays"])
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -261,7 +295,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(noteCount .. " Arrows Smashed")
+				self:settextf("%s %s", noteCount, translated_info["TapsHit"])
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -274,7 +308,7 @@ t[#t + 1] =
 			end,
 			SetCommand = function(self)
 				local time = SecondsToHHMMSS(playTime)
-				self:settextf(time .. " PlayTime")
+				self:settextf("%s %s", time, translated_info["Playtime"])
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -289,7 +323,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext("Judge: " .. GetTimingDifficulty())
+				self:settextf("%s: %s", translated_info["Judge"], GetTimingDifficulty())
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -314,7 +348,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Refresh Songs")
+				self:settextf(translated_info["RefreshSongs"])
 			end,
 			HighlightCommand=function(self)
 				highlightIfOver(self)
@@ -334,7 +368,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
+				self:settextf("%s: %i", translated_info["SongsLoaded"], SONGMAN:GetNumSongs())
 			end,
 			DFRFinishedMessageCommand = function(self)
 				self:queuecommand("Set")
