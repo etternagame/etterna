@@ -1,9 +1,7 @@
 # Release Changelog
 
 
-## [0.67.0] - 2019-??-?? - Translation Support, Replay Fixes, and Practice Updates
-
-Windows x64, Windows i386, and Mac installer release.
+## [0.67.0] - 2019-12-16 - Translation Support, Replay Fixes, and Practice Updates
 
 ### Added
 - Actors provide True Z Rotation to Lua - [04b2664](../../../commit/04b2664544334ef9e31906d872859a46242f5ce9)
