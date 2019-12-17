@@ -16,6 +16,7 @@ local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
+local songChanged2 = false
 local previewVisible = false
 local justChangedStyles = false
 local onlyChangedSteps = false
@@ -95,11 +96,12 @@ local function toggleNoteField()
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
-			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged then
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged or songChanged2 then
 				playMusicForPreview(song)
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				hackysack = false
 				songChanged = false
+				songChanged2 = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			previewVisible = true
@@ -134,6 +136,14 @@ local t =
 		-- this goes hand in hand with the above boolean
 		if noteField and not previewVisible then
 			songChanged = true
+		end
+
+		-- check to see if the song actually really changed
+		-- >:(
+		if noteField and GAMESTATE:GetCurrentSong() ~= song then
+			songChanged2 = true
+		else
+			songChanged2 = false
 		end
 
 		-- an awkwardly named bool describing the fact that we just changed songs
