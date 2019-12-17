@@ -143,7 +143,7 @@ local t =
 		tryingToStart = false
 		
 		-- if switching songs, we want the notedata to disappear temporarily
-		if noteField then
+		if noteField and songChanged then
 			mcbootlarder:GetChild("NoteField"):finishtweening()
 			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
 		end
