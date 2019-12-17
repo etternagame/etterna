@@ -167,7 +167,7 @@ static const Style g_Style_Dance_Single = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 3, 2, 1, Style::END_MAPPING },
-	  { 0, 3, 2, 1, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -237,7 +237,7 @@ static const Style g_Style_Dance_Solo = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
-	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -269,7 +269,7 @@ static const Style g_Style_Dance_ThreePanel = {
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  // 4 3 5
 	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING },
-	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -366,7 +366,7 @@ static const Style g_Style_Pump_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  2,
@@ -533,7 +533,7 @@ static const Style g_Style_KB7_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -615,7 +615,7 @@ static const Style g_Style_Ez2_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 4, 2, 1, 3, Style::END_MAPPING },
-	  { 0, 4, 2, 1, 3, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -655,7 +655,7 @@ static const Style g_Style_Ez2_Real = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 6, 3, 2, 4, 1, 5, Style::END_MAPPING },
-	  { 0, 6, 3, 2, 4, 1, 5, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -801,7 +801,7 @@ static const Style g_Style_DS3DDX_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, 7, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, 7, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -903,16 +903,7 @@ static const Style g_Style_Beat_Single5 = {
 		5,
 		5,
 		Style::END_MAPPING },
-	  { 0,
-		1,
-		2,
-		3,
-		4,
-		Style::NO_MAPPING,
-		Style::NO_MAPPING,
-		5,
-		5,
-		Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -1015,7 +1006,7 @@ static const Style g_Style_Beat_Single7 = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
-	  { 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1170,7 +1161,7 @@ static const Style g_Style_Maniax_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 2, 0, 3, Style::END_MAPPING },
-	  { 1, 2, 0, 3, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1305,14 +1296,7 @@ static const Style g_Style_Popn_Five = {
 		3,
 		4,
 		Style::END_MAPPING },
-	  { Style::NO_MAPPING,
-		Style::NO_MAPPING,
-		0,
-		1,
-		2,
-		3,
-		4,
-		Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1351,7 +1335,7 @@ static const Style g_Style_Popn_Nine = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
