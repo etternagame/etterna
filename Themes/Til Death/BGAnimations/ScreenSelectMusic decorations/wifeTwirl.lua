@@ -175,6 +175,7 @@ local t =
 		justChangedStyles = false
 		tryingToStart = false
 		songChanged = false
+		onlyChangedSteps = true
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
