@@ -1460,7 +1460,6 @@ ScreenGameplay::SongFinished()
 	if (GAMESTATE->m_pCurSteps) {
 		GAMESTATE->m_pCurSteps->GetTimingData()->ReleaseLookup();
 	}
-	AdjustSync::HandleSongEnd();
 	SaveStats(); // Let subclasses save the stats.
 }
 

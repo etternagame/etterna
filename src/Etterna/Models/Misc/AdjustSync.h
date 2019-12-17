@@ -32,9 +32,7 @@ class AdjustSync
 	static void SaveSyncChanges();
 	static void RevertSyncChanges();
 	static void HandleAutosync(float fNoteOffBySeconds, float fStepTime);
-	static void HandleSongEnd();
 	static void AutosyncOffset();
-	static void AutosyncTempo();
 	static void GetSyncChangeTextGlobal(vector<RString>& vsAddTo);
 	static void GetSyncChangeTextSong(vector<RString>& vsAddTo);
 
@@ -44,14 +42,6 @@ class AdjustSync
 	static float s_fAutosyncOffset[OFFSET_SAMPLE_COUNT];
 	static int s_iAutosyncOffsetSample;
 	static float s_fStandardDeviation;
-
-	// Measured in seconds.  If the average error is too high, we
-	// reject the recorded data for the Least Squares Regression.
-	static const float ERROR_TOO_HIGH;
-
-	static vector<pair<float, float>> s_vAutosyncTempoData;
-	static float s_fAverageError;
-	static int s_iStepsFiltered;
 };
 
 #endif

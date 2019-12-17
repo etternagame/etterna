@@ -72,7 +72,6 @@ static LocalizedString AUTO_PLAY_REPLAY("ScreenSyncOverlay", "Replay");
 static LocalizedString AUTO_SYNC_SONG("ScreenSyncOverlay", "AutoSync Song");
 static LocalizedString AUTO_SYNC_MACHINE("ScreenSyncOverlay",
 										 "AutoSync Machine");
-static LocalizedString AUTO_SYNC_TEMPO("ScreenSyncOverlay", "AutoSync Tempo");
 static LocalizedString OLD_OFFSET("ScreenSyncOverlay", "Old offset");
 static LocalizedString NEW_OFFSET("ScreenSyncOverlay", "New offset");
 static LocalizedString COLLECTING_SAMPLE("ScreenSyncOverlay",
@@ -114,9 +113,6 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 			break;
 		case AutosyncType_Machine:
 			vs.push_back(AUTO_SYNC_MACHINE);
-			break;
-		case AutosyncType_Tempo:
-			vs.push_back(AUTO_SYNC_TEMPO);
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid autosync type: %i", type));
