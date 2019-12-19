@@ -1083,7 +1083,7 @@ ScreenGameplay::Update(float fDeltaTime)
 									  SECONDS_BETWEEN_COMMENTS);
 					break;
 				default:
-					FAIL_M(ssprintf("Invalid PlayMode: %i", mode));
+					break;
 			}
 		}
 		default:
