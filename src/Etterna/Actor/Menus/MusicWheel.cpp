@@ -1004,6 +1004,9 @@ MusicWheel::BuildWheelItemDatas(
 			}
 		}
 
+		allSongsFiltered = arraySongs;
+		allSongsByGroupFiltered.clear();
+
 		// make WheelItemDatas with sections
 
 		if (so != SORT_GROUP) {
@@ -1086,13 +1089,21 @@ MusicWheel::BuildWheelItemDatas(
 				// need to interact with the filter/search system so check if
 				// the song is in the arraysongs set defined above -mina
 				for (auto& s : gsongs)
-					if (hurp.count(s))
+					if (hurp.count(s)) {
 						arrayWheelItemDatas.emplace_back(
 						  new MusicWheelItemData(WheelItemDataType_Song,
 												 s,
 												 gname,
 												 SONGMAN->GetSongColor(s),
 												 0));
+						if (allSongsByGroupFiltered.count(gname)) {
+							allSongsByGroupFiltered[gname].emplace_back(s);
+						} else {
+							vector<Song*> v;
+							v.emplace_back(s);
+							allSongsByGroupFiltered[gname] = v;
+						}
+					}
 			}
 		}
 	}
@@ -1820,6 +1831,31 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		return 1;
 	}
 
+	static int GetSongs(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		for (size_t i = 0; i < p->allSongsFiltered.size(); ++i) {
+			p->allSongsFiltered[i]->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
+	static int GetSongsInGroup(T* p, lua_State* L)
+	{
+		lua_newtable(L);
+		auto group = SArg(1);
+
+		if (p->allSongsByGroupFiltered.count(group) == 0)
+			return 1;
+
+		for (size_t i = 0; i < p->allSongsByGroupFiltered[group].size(); ++i) {
+			p->allSongsByGroupFiltered[group][i]->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
 	LunaMusicWheel()
 	{
 		ADD_METHOD(ChangeSort);
@@ -1832,6 +1868,8 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		ADD_METHOD(MoveAndCheckType);
 		ADD_METHOD(FilterByStepKeys);
 		ADD_METHOD(SetPackListFiltering);
+		ADD_METHOD(GetSongs);
+		ADD_METHOD(GetSongsInGroup);
 	}
 };
 
