@@ -58,6 +58,18 @@ local function HighlightUpdaterThing(self)
 	self:GetChild("BGQuad"):queuecommand("Highlight")
 end
 
+local function scaleToJudge(scale)
+	scale = notShit.round(scale, 2)
+	local scales = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local out = 4
+	for k,v in pairs(scales) do
+		if v == scale then
+			out = k
+		end
+	end
+	return out
+end
+
 -- convert a plot x position to a noterow
 local function convertXToRow(x)
 	local output = x + plotWidth/2
@@ -83,6 +95,10 @@ local o =
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
+			if not enabledCustomWindows then
+				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				tso = tst[judge]
+			end
 			local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
 			if allowHovering then
 				self:SetUpdateFunction(HighlightUpdaterThing)
