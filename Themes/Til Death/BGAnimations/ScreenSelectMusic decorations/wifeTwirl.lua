@@ -43,6 +43,8 @@ local function playMusicForPreview(song)
 	song:PlaySampleMusicExtended()
 	MESSAGEMAN:Broadcast("PreviewMusicStarted")
 
+	restartedMusic = true
+
 	-- use this opportunity to set all the random booleans to make it consistent
 	songChanged = false
 	boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
@@ -97,7 +99,9 @@ local function toggleNoteField()
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged or songChanged2 then
-				playMusicForPreview(song)
+				if not restartedMusic then
+					playMusicForPreview(song)
+				end
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				hackysack = false
 				songChanged = false
@@ -142,6 +146,7 @@ local t =
 		-- >:(
 		if noteField and GAMESTATE:GetCurrentSong() ~= song then
 			songChanged2 = true
+			restartedMusic = false
 		else
 			songChanged2 = false
 		end
