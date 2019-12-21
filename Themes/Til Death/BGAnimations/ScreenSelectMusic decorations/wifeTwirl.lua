@@ -213,7 +213,7 @@ local t =
 			song = bong
 			self:queuecommand("MortyFarts")
 		else
-			if not lockbools then
+			if not lockbools and not songChanged2 then
 				onlyChangedSteps = true
 			end
 		end
