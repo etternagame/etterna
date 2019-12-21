@@ -89,9 +89,11 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if group_rand ~= "" and isOver(self) then
-				local t = SONGMAN:GetSongsInGroup(group_rand)
+				local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+				local t = w:GetSongsInGroup(group_rand)
+				if #t == 0 then return end
 				local random_song = t[math.random(#t)]
-				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
+				w:SelectSong(random_song)
 			end
 		end,
 		HighlightCommand=function(self)

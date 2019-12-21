@@ -154,6 +154,7 @@ AdjustSync::AutosyncOffset()
 			case AutosyncType_Song: {
 				GAMESTATE->m_pCurSong->m_SongTiming.m_fBeat0OffsetInSeconds +=
 				  mean;
+				GAMESTATE->m_pCurSong->m_SongTiming.PrepareLookup();
 				const vector<Steps*>& vpSteps =
 				  GAMESTATE->m_pCurSong->GetAllSteps();
 				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
@@ -163,6 +164,7 @@ AdjustSync::AutosyncOffset()
 					if ((*s)->m_Timing.empty())
 						continue;
 					(*s)->m_Timing.m_fBeat0OffsetInSeconds += mean;
+					(*s)->m_Timing.PrepareLookup();
 				}
 				break;
 			}

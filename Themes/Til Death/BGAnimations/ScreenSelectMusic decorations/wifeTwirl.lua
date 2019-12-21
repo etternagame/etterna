@@ -16,6 +16,7 @@ local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
+local songChanged2 = false
 local previewVisible = false
 local justChangedStyles = false
 local onlyChangedSteps = false
@@ -41,6 +42,8 @@ local translated_info = {
 local function playMusicForPreview(song)
 	song:PlaySampleMusicExtended()
 	MESSAGEMAN:Broadcast("PreviewMusicStarted")
+
+	restartedMusic = true
 
 	-- use this opportunity to set all the random booleans to make it consistent
 	songChanged = false
@@ -95,11 +98,14 @@ local function toggleNoteField()
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
-			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged then
-				playMusicForPreview(song)
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged or songChanged2 then
+				if not restartedMusic then
+					playMusicForPreview(song)
+				end
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				hackysack = false
 				songChanged = false
+				songChanged2 = false
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			previewVisible = true
@@ -136,6 +142,15 @@ local t =
 			songChanged = true
 		end
 
+		-- check to see if the song actually really changed
+		-- >:(
+		if noteField and GAMESTATE:GetCurrentSong() ~= song then
+			songChanged2 = true
+			restartedMusic = false
+		else
+			songChanged2 = false
+		end
+
 		-- an awkwardly named bool describing the fact that we just changed songs
 		-- used in notefield creation function to see if we should restart music
 		-- it is immediately turned off when toggling notefield
@@ -143,7 +158,7 @@ local t =
 		tryingToStart = false
 		
 		-- if switching songs, we want the notedata to disappear temporarily
-		if noteField then
+		if noteField and songChanged2 and previewVisible then
 			mcbootlarder:GetChild("NoteField"):finishtweening()
 			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
 		end
@@ -175,6 +190,7 @@ local t =
 		justChangedStyles = false
 		tryingToStart = false
 		songChanged = false
+		onlyChangedSteps = true
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
@@ -197,7 +213,7 @@ local t =
 			song = bong
 			self:queuecommand("MortyFarts")
 		else
-			if not lockbools then
+			if not lockbools and not songChanged2 then
 				onlyChangedSteps = true
 			end
 		end
@@ -631,6 +647,9 @@ t[#t + 1] =
 	Def.Sprite {
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
+	end,
+	CurrentStyleChangedMessageCommand = function(self)
+		self:playcommand("MortyFarts")
 	end,
 	MortyFartsCommand = function(self)
 		self:finishtweening()
