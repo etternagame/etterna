@@ -1,7 +1,7 @@
 # Release Changelog
 
 
-## [0.67.1] - 2019-12-?? - Hotfix
+## [0.67.1] - 2019-12-23 - Hotfix
 
 ### Added
 - Lua has access to the Display Refresh Rate - [4c5dec0](../../../commit/4c5dec0687b368019b678bb3922fbeff23c2e050)
@@ -26,4 +26,6 @@
 - NoteSkin Previews always failed in non-Dance Games - [a7c80ac](../../../commit/a7c80acf37e7ae888000c8436da207e1e432758d)
 - Player 2 was still working in Gameplay and could still hit Mines - [9991f49](../../../commit/9991f4901c29539ae375467ebd0565034f986c9c)
 - Playmodes crashed the game oddly when messing with the main menu and autosync - [f9136ce](../../../commit/f9136ced71c97e1f138852e5f92a9b72880282b2)
+- Replays can desync in some cases. When that happened before, any tap could be hit in any order from any distance - [913b0d8](../../../commit/913b0d8fb04c241f3ddf939b56a819f8a3d59a51)
+- Replays didn't apply Mirror when Mod Emulation was turned off - [190eead](../../../commit/190eeade1ac3c0a64ae08436e127f5328fc3c5ed)
 - Toasty makes a sound but did not appear again in Practice after resets - [66642ba](../../../commit/66642bacf66af709f73f0ad3fcf3f4e7e38a2e6a)
