@@ -58,6 +58,7 @@ class PlayerAI
 
 	static RString oldModifiers;
 	static RString replayModifiers;
+	static bool replayUsedMirror;
 	static RString oldNoteskin;
 	static float replayRate;
 	static float oldRate;

@@ -1733,8 +1733,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		if (ns.empty())
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		PlayerAI::oldNoteskin = ns;
+		bool usesMirror = potmp.m_bTurns[PlayerOptions::TURN_MIRROR];
 		RString hsMods = hs->GetModifiers();
 		PlayerAI::replayModifiers = hsMods;
+		PlayerAI::replayUsedMirror = usesMirror;
 		PlayerAI::oldFailType = ft;
 
 		// lock the game into replay mode and GO
