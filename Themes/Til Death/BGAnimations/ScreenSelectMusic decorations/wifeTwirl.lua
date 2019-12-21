@@ -648,6 +648,9 @@ t[#t + 1] =
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
 	end,
+	CurrentStyleChangedMessageCommand = function(self)
+		self:playcommand("MortyFarts")
+	end,
 	MortyFartsCommand = function(self)
 		self:finishtweening()
 		if song then
