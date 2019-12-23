@@ -7,8 +7,9 @@ local NSPreviewXSpan = 35
 local NSPreviewReceptorY = -30
 local OptionRowHeight = 35
 local NoteskinRow = 0
+local NSDirTable = GameToNSkinElements()
 
-function NSkinPreviewWrapper(dir, ele)
+local function NSkinPreviewWrapper(dir, ele)
 	return Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoom(NSPreviewSize)
@@ -16,6 +17,27 @@ function NSkinPreviewWrapper(dir, ele)
 		LoadNSkinPreview("Get", dir, ele, PLAYER_1)
 	}
 end
+local function NSkinPreviewExtraTaps()
+	local out = Def.ActorFrame {}
+	for i = 2, #NSDirTable do
+		out[#out+1] = Def.ActorFrame {
+			Def.ActorFrame {
+				InitCommand = function(self)
+					self:x(NSPreviewXSpan * (i-1))
+				end,
+				NSkinPreviewWrapper(NSDirTable[i], "Tap Note")
+			},
+			Def.ActorFrame {
+				InitCommand = function(self)
+					self:x(NSPreviewXSpan * (i-1)):y(NSPreviewReceptorY)
+				end,
+				NSkinPreviewWrapper(NSDirTable[i], "Receptor")
+			}
+		}
+	end
+	return out
+end
+
 t[#t + 1] =
 	Def.ActorFrame {
 	OnCommand = function(self)
@@ -42,54 +64,16 @@ t[#t + 1] =
 		)
 	end,
 	Def.ActorFrame {
-		NSkinPreviewWrapper("Down", "Tap Note")
+		NSkinPreviewWrapper(NSDirTable[1], "Tap Note")
 	},
 	Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(NSPreviewReceptorY)
 		end,
-		NSkinPreviewWrapper("Down", "Receptor")
+		NSkinPreviewWrapper(NSDirTable[1], "Receptor")
 	}
 }
 if GetScreenAspectRatio() > 1.7 then
-	t[#t][#(t[#t]) + 1] =
-		Def.ActorFrame {
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 1)
-			end,
-			NSkinPreviewWrapper("Left", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 1):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Left", "Receptor")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 2)
-			end,
-			NSkinPreviewWrapper("Up", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 2):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Up", "Receptor")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 3)
-			end,
-			NSkinPreviewWrapper("Right", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 3):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Right", "Receptor")
-		}
-	}
+	t[#t][#(t[#t]) + 1] = NSkinPreviewExtraTaps()
 end
 return t

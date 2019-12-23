@@ -10,7 +10,6 @@ enum AutosyncType
 	AutosyncType_Off,
 	AutosyncType_Song,
 	AutosyncType_Machine,
-	AutosyncType_Tempo,
 	NUM_AutosyncType,
 	AutosyncType_Invalid
 };

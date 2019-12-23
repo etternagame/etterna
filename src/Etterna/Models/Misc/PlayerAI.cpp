@@ -22,6 +22,7 @@ map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
 map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
 RString PlayerAI::replayModifiers = "";
+bool PlayerAI::replayUsedMirror = false;
 RString PlayerAI::oldModifiers = "";
 float PlayerAI::oldRate = 1.f;
 RString PlayerAI::oldNoteskin = "";
@@ -95,6 +96,7 @@ PlayerAI::ResetScoreData()
 	m_ReplayHoldMapByElapsedTime.clear();
 	replayRate = 1.f;
 	replayModifiers.clear();
+	replayUsedMirror = false;
 	oldModifiers.clear();
 	oldRate = 1.f;
 	oldNoteskin.clear();

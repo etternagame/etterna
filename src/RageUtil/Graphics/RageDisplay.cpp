@@ -1313,10 +1313,18 @@ class LunaRageDisplay : public Luna<RageDisplay>
 		return 1;
 	}
 
+	static int GetDisplayRefreshRate(T* p, lua_State* L)
+	{
+		VideoModeParams params = *p->GetActualVideoModeParams();
+		lua_pushnumber(L, params.rate);
+		return 1;
+	}
+
 	LunaRageDisplay()
 	{
 		ADD_METHOD(GetDisplayWidth);
 		ADD_METHOD(GetDisplayHeight);
+		ADD_METHOD(GetDisplayRefreshRate);
 		ADD_METHOD(GetFPS);
 		ADD_METHOD(GetVPF);
 		ADD_METHOD(GetCumFPS);

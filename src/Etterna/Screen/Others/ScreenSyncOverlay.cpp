@@ -72,7 +72,6 @@ static LocalizedString AUTO_PLAY_REPLAY("ScreenSyncOverlay", "Replay");
 static LocalizedString AUTO_SYNC_SONG("ScreenSyncOverlay", "AutoSync Song");
 static LocalizedString AUTO_SYNC_MACHINE("ScreenSyncOverlay",
 										 "AutoSync Machine");
-static LocalizedString AUTO_SYNC_TEMPO("ScreenSyncOverlay", "AutoSync Tempo");
 static LocalizedString OLD_OFFSET("ScreenSyncOverlay", "Old offset");
 static LocalizedString NEW_OFFSET("ScreenSyncOverlay", "New offset");
 static LocalizedString COLLECTING_SAMPLE("ScreenSyncOverlay",
@@ -114,9 +113,6 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 			break;
 		case AutosyncType_Machine:
 			vs.push_back(AUTO_SYNC_MACHINE);
-			break;
-		case AutosyncType_Tempo:
-			vs.push_back(AUTO_SYNC_TEMPO);
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid autosync type: %i", type));
@@ -181,7 +177,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 	enum Action
 	{
 		RevertSyncChanges,
-		ChangeSongBPM,
 		ChangeGlobalOffset,
 		ChangeSongOffset,
 		Action_Invalid
@@ -192,16 +187,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 	switch (input.DeviceI.button) {
 		case KEY_F4:
 			a = RevertSyncChanges;
-			break;
-		case KEY_F9:
-			bIncrease = false; /* fall through */
-		case KEY_F10:
-			if (!INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) &&
-				!INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)))
-				return Screen::Input(input);
-			a = ChangeSongBPM;
 			break;
 		case KEY_F11:
 			bIncrease = false; /* fall through */
@@ -239,50 +224,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 			SCREENMAN->SystemMessage(SYNC_CHANGES_REVERTED);
 			AdjustSync::RevertSyncChanges();
 			break;
-		case ChangeSongBPM: {
-			float fDelta = bIncrease ? +0.02f : -0.02f;
-			if (INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_RALT)) ||
-				INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_LALT))) {
-				fDelta /= 20;
-			}
-			switch (input.type) {
-				case IET_RELEASE:
-					fDelta *= 0;
-					break;
-				case IET_REPEAT: {
-					if (INPUTFILTER->GetSecsHeld(input.DeviceI) < 1.0f)
-						fDelta *= 0;
-					else
-						fDelta *= 10;
-					break;
-				}
-				default:
-					break;
-			}
-			if (GAMESTATE->m_pCurSong != NULL) {
-				TimingData& sTiming = GAMESTATE->m_pCurSong->m_SongTiming;
-				BPMSegment* seg = sTiming.GetBPMSegmentAtBeat(
-				  GAMESTATE->m_Position.m_fSongBeat);
-				seg->SetBPS(seg->GetBPS() + fDelta);
-				const vector<Steps*>& vpSteps =
-				  GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-				{
-					TimingData& pTiming = (*s)->m_Timing;
-					// Empty means it inherits song timing,
-					// which has already been updated.
-					if (pTiming.empty())
-						continue;
-					float second = sTiming.GetElapsedTimeFromBeat(
-					  GAMESTATE->m_Position.m_fSongBeat);
-					seg = pTiming.GetBPMSegmentAtBeat(
-					  pTiming.GetBeatFromElapsedTime(second));
-					seg->SetBPS(seg->GetBPS() + fDelta);
-				}
-			}
-		} break;
 		case ChangeGlobalOffset:
 		case ChangeSongOffset: {
 			float fDelta = bIncrease ? +0.02f : -0.02f;

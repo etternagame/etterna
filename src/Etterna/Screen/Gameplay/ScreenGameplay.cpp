@@ -1083,7 +1083,7 @@ ScreenGameplay::Update(float fDeltaTime)
 									  SECONDS_BETWEEN_COMMENTS);
 					break;
 				default:
-					FAIL_M(ssprintf("Invalid PlayMode: %i", mode));
+					break;
 			}
 		}
 		default:
@@ -1460,7 +1460,6 @@ ScreenGameplay::SongFinished()
 	if (GAMESTATE->m_pCurSteps) {
 		GAMESTATE->m_pCurSteps->GetTimingData()->ReleaseLookup();
 	}
-	AdjustSync::HandleSongEnd();
 	SaveStats(); // Let subclasses save the stats.
 }
 

@@ -8,7 +8,6 @@ static const char* AutosyncTypeNames[] = {
 	"Off",
 	"Song",
 	"Machine",
-	"Tempo",
 };
 XToString(AutosyncType);
 XToLocalizedString(AutosyncType);
@@ -88,9 +87,6 @@ SongOptions::GetMods(vector<RString>& AddTo) const
 			break;
 		case AutosyncType_Machine:
 			AddTo.push_back("AutosyncMachine");
-			break;
-		case AutosyncType_Tempo:
-			AddTo.push_back("AutosyncTempo");
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid autosync type: %i", m_AutosyncType));
@@ -190,8 +186,6 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_AutosyncType = on ? AutosyncType_Song : AutosyncType_Off;
 	else if (sBit == "autosyncmachine")
 		m_AutosyncType = on ? AutosyncType_Machine : AutosyncType_Off;
-	else if (sBit == "autosynctempo")
-		m_AutosyncType = on ? AutosyncType_Tempo : AutosyncType_Off;
 	else if (sBit == "effect" && !on)
 		m_SoundEffectType = SoundEffectType_Off;
 	else if (sBit == "effectspeed")

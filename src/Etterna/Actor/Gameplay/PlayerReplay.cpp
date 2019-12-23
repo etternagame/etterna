@@ -227,7 +227,7 @@ PlayerReplay::Update(float fDeltaTime)
 			for (TapReplayResult& trr : trrVector) {
 				// LOG->Trace("\tPassing row %d pressed on %d", iSongRow,
 				// trr.row);
-				Step(trr.track, -1, now, false, false, 0.f, trr.row);
+				Step(trr.track, trr.row, now, false, false, 0.f, trr.row);
 			}
 		}
 	}
