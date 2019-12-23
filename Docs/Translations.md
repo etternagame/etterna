@@ -9,7 +9,7 @@ Translation support has always been a part of Stepmania to some extent. With Ett
 
 ## Languages
 
-Language support in hit and miss. Technically, Etterna supports this entire list of languages: [Here](http://www.loc.gov/standards/iso639-2/php/code_list.php)
+Language support is hit and miss. Technically, Etterna supports this entire list of languages: [Here](http://www.loc.gov/standards/iso639-2/php/code_list.php)
 
 Only the 2 letter codes are implemented. The list can also be viewed directly [Here](https://github.com/etternagame/etterna/blob/5b4f5a5138f9e0d351c4ba2961fde5c69697f936/src/RageUtil/Utils/RageUtil.cpp#L504-L576)
 
@@ -17,7 +17,7 @@ Find your language in the list if it exists and keep track of its 2 letter code.
 
 Next is knowing whether or not your language's script or font is supported. In most cases, it is. If your language can entirely be represented with the English alphabet, there is almost no reason there would be any error. Some scripts are unsupported because a font for them does not exist. Some letters in some languages or some combinations of letters are unsupported either due to them missing from the font or some other bug.
 
-Figuring out if your language is supported at the moment is mostly trial and error.
+Figuring out if your language is supported at the moment is mostly trial and error. If there are any errors with particular scripts, letters, or combinations of letters, let us know and we can look at ways to fix it possibly.
 
 ## Process
 
