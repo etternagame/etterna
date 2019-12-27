@@ -63,6 +63,9 @@ class MusicWheel : public WheelBase
 	// multiplayer common pack filtering
 	bool packlistFiltering{ false };
 
+	vector<Song*> allSongsFiltered;
+	map<RString, vector<Song*>> allSongsByGroupFiltered;
+
 	// Lua
 	void PushSelf(lua_State* L) override;
 
