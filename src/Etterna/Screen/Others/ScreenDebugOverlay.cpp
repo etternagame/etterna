@@ -642,7 +642,6 @@ static LocalizedString CPU("ScreenDebugOverlay", "CPU");
 static LocalizedString REPLAY("ScreenDebugOverlay", "REPLAY");
 static LocalizedString SONG("ScreenDebugOverlay", "Song");
 static LocalizedString MACHINE("ScreenDebugOverlay", "Machine");
-static LocalizedString SYNC_TEMPO("ScreenDebugOverlay", "Tempo");
 static LocalizedString RENDER_SKIPS("ScreenDebugOverlay", "Rendering Skips");
 static LocalizedString EASTER_EGGS("ScreenDebugOverlay", "Easter Eggs");
 static LocalizedString OSU_LIFTS("ScreenDebugOverlay", "Osu Lifts");
@@ -768,9 +767,6 @@ class DebugLineAutosync : public IDebugLine
 			case AutosyncType_Machine:
 				return MACHINE.GetValue();
 				break;
-			case AutosyncType_Tempo:
-				return SYNC_TEMPO.GetValue();
-				break;
 			default:
 				FAIL_M(ssprintf("Invalid autosync type: %i", type));
 		}
@@ -785,8 +781,7 @@ class DebugLineAutosync : public IDebugLine
 	{
 		int as = GAMESTATE->m_SongOptions.GetSong().m_AutosyncType + 1;
 		bool bAllowSongAutosync = true;
-		if (!bAllowSongAutosync &&
-			(as == AutosyncType_Song || as == AutosyncType_Tempo))
+		if (!bAllowSongAutosync && as == AutosyncType_Song)
 			as = AutosyncType_Machine;
 		wrap(as, NUM_AutosyncType);
 		SO_GROUP_ASSIGN(GAMESTATE->m_SongOptions,

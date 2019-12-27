@@ -409,6 +409,15 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			return 1;
 		}
 	}
+	static int GetReplayJudge(T* p, lua_State* L)
+	{
+		if (PlayerAI::pScoreData != nullptr) {
+			lua_pushnumber(L, PlayerAI::pScoreData->GetJudgeScale());
+		} else {
+			lua_pushnumber(L, Player::GetTimingWindowScale());
+		}
+		return 1;
+	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
@@ -425,6 +434,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
 		ADD_METHOD(GetReplayRate);
+		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);
 	}
 };

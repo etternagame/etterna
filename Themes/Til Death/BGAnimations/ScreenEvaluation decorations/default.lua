@@ -151,11 +151,27 @@ function scoreBoard(pn, position)
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
 
+	local function scaleToJudge(scale)
+		scale = notShit.round(scale, 2)
+		local scales = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+		local out = 4
+		for k,v in pairs(scales) do
+			if v == scale then
+				out = k
+			end
+		end
+		return out
+	end
+
 	local t =
 		Def.ActorFrame {
 		BeginCommand = function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH - (frameX * 2) - frameWidth)
+			end
+			if not enabledCustomWindows then
+				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				judge2 = judge
 			end
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)

@@ -72,6 +72,18 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
 		  PlayerAI::oldNoteskin;
 	}
+
+	// Set up mirror
+	FOREACH_ENUM(ModsLevel, lvl)
+	{
+		PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
+						  lvl,
+						  m_bTurns,
+						  PlayerOptions::TURN_MIRROR,
+						  PlayerAI::replayUsedMirror);
+	}
+	// We don't have to ever turn off mirror actually, due to the
+	// reinitialization of PlayerOptions in the deconstructor.
 }
 
 void
@@ -88,33 +100,31 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
 
 	if (!GAMESTATE->m_bRestartedGameplay) {
-		if (PREFSMAN->m_bReplaysUseScoreMods) {
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .FromString(PlayerAI::oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
-			  PlayerAI::oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
-			  PlayerAI::oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
-			  PlayerAI::oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_sNoteSkin = PlayerAI::oldNoteskin;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-			  .m_sNoteSkin = PlayerAI::oldNoteskin;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
-			  PlayerAI::oldNoteskin;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
-			  PlayerAI::oldNoteskin;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .m_FailType = PlayerAI::oldFailType;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-			  PlayerAI::oldFailType;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-			  PlayerAI::oldFailType;
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_FailType =
-			  PlayerAI::oldFailType;
-		}
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
+		  PlayerAI::oldModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
+		  PlayerAI::oldModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
+		  PlayerAI::oldModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
+		  PlayerAI::oldModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
+		  PlayerAI::oldNoteskin;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
+		  PlayerAI::oldFailType;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
+		  PlayerAI::oldFailType;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
+		  PlayerAI::oldFailType;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_FailType =
+		  PlayerAI::oldFailType;
 		GAMESTATE->m_SongOptions.Init();
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
 		  PlayerAI::oldRate;

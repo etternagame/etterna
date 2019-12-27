@@ -41,6 +41,30 @@ local function SimChild(Container, Type)
 	return rType
 end
 
+function GameToNSkinElements()
+	local out = Def.ActorFrame {}
+	-- for this, restrict to only 4 keys to show them off
+	-- and to save on visible space
+	local theTable = {
+		dance = {
+			"Left", "Down", "Up", "Right"
+		},
+		pump = {
+			"DownLeft", "UpLeft", "Center", "UpRight", --"DownRight" 
+		},
+		kb7 = {
+			"Key1", "Key2", "Key3", "Key4", --"Key5", "Key6", "Key7"
+		},
+		beat = {
+			"scratch", "Key1", "Key2", "Key3"
+			--"Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7", "scratch"
+		}
+	}
+
+	local game = PREFSMAN:GetPreference("CurrentGame")
+	return theTable[game]
+end
+
 --- Load a NoteSkin preview actor
 -- @tparam string Noteskin Noteskin name. If "Get" then it does the currently selected noteskin, and updates itself when it changes. Defaults to "Get"
 -- @tparam string Button Ex: "Up". Defaults to "Down"

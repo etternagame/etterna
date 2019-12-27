@@ -1,3 +1,8 @@
+local translated_info = {
+	ExitText = THEME:GetString("ScreenTestInput", "ExitText"),
+	Start = THEME:GetString("GameButton", "Start")
+}
+
 return Def.ActorFrame {
 	--Def.ControllerStateDisplay {
 	--	InitCommand=function(self)
@@ -24,10 +29,11 @@ return Def.ActorFrame {
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y+150):zoom(0.5):halign(0.5)
+			self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y+150):zoom(0.5):halign(0.5):maxwidth(240 / 0.5)
 		end,
 		OnCommand = function(self)
-			self:settext("Hold 'Enter' to exit")
+			local fmtstr = translated_info["ExitText"]
+			self:settextf(fmtstr, translated_info["Start"])
 		end
 	}
 }
