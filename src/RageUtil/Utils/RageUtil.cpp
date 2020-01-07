@@ -388,12 +388,10 @@ GetLocalTime()
 
 #define FMT_BLOCK_SIZE 2048 // # of bytes to increment per try
 
-RString
-vssprintf(const char* szFormat, va_list argList)
-{
-	RString sStr;
-
 #ifdef _WIN32
+int
+FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
+{
 	char* pBuf = NULL;
 	int iChars = 1;
 	int iUsed = 0;
@@ -414,6 +412,20 @@ vssprintf(const char* szFormat, va_list argList)
 		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
+
+	*eBuf = pBuf;
+	return iUsed;
+}
+#endif
+
+RString
+vssprintf(const char* szFormat, va_list argList)
+{
+	RString sStr;
+
+#ifdef _WIN32
+	char* pBuf = NULL;
+	int iUsed = FillCharBuffer(&pBuf, szFormat, argList);
 
 	// assign whatever we managed to format
 	sStr.assign(pBuf, iUsed);
