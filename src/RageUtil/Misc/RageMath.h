@@ -1,5 +1,7 @@
 /* RageMath - vector/matrix math utilities. */
 
+#include <vector>
+
 #ifndef RAGE_MATH_H
 #define RAGE_MATH_H
 

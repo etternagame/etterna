@@ -1,6 +1,8 @@
 #ifndef AdjustSync_H
 #define AdjustSync_H
 
+#include <vector>
+
 class TimingData;
 /**
  * @brief Allows for adjusting the sync of a song.

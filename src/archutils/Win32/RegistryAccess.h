@@ -3,6 +3,8 @@
 #ifndef REGISTRY_ACCESS_H
 #define REGISTRY_ACCESS_H
 
+#include <vector>
+
 namespace RegistryAccess {
 bool
 GetRegValue(const RString& sKey, const RString& sName, RString& val);

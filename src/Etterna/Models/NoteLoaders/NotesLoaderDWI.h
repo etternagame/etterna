@@ -1,9 +1,10 @@
-﻿/** @brief DWILoader - reads a Song from a .DWI file. */
+/** @brief DWILoader - reads a Song from a .DWI file. */
 
 #ifndef NOTES_LOADER_DWI_H
 #define NOTES_LOADER_DWI_H
 
 #include <set>
+#include <vector>
 
 class Song;
 class Steps;

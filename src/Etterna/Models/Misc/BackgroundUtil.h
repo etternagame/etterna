@@ -1,6 +1,8 @@
 #ifndef BackgroundUtil_H
 #define BackgroundUtil_H
 
+#include <vector>
+
 class Song;
 class XNode;
 

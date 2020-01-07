@@ -8,6 +8,7 @@
 #include "archutils/win32/ErrorStrings.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <windows.h>
+#include <string>
 #include <Commdlg.h>
 #include <tchar.h>
 #include "Dwmapi.h"
@@ -182,7 +183,7 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	// negative is just the wrong font being in the window.
 	// Setting the FR_PRIVATE flag for the font will unload the font at program
 	// termination.
-	string szFontFile =
+	std::string szFontFile =
 	  RageFileManagerUtil::sDirOfExecutable.substr(
 		0, RageFileManagerUtil::sDirOfExecutable.length() - 7) +
 	  FONT_FILE;
