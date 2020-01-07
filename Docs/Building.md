@@ -66,7 +66,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ### macOS Dependencies
 
-macOS has no other unique dependencies.
+- `YASM` or `NASM`. They can be installed with brew commands `brew install yasm` or `brew install nasm`. They are not directly used for Etterna, though is required for ffmpeg to be built from source.
 
 ## Project Generation
 
@@ -122,6 +122,10 @@ cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 16 2019" -A Win32 
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # 64bit Windows
 ```
 
+##### macOS Xcode Generation Note
+
+When generating a project for Xcode, you may see errors stating `No CMAKE_{C,CXX}_COMPILER could be found.` Ensure that you have the Xcode command line tools installed. The command line tools can be installed with `xcodeselect --install`. You may also have to run `xcode-select --reset` to ensure the correct command line tools are apart of the system path.
+
 ### GUI Project Generation
 
 In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
@@ -167,7 +171,7 @@ Open the `Etterna.xcodeproj` file generated within the build directory, select t
 #### Xcode CLI
 
 ```bash
-xcodebuild -project Etterna.xcodeproj -configuration Release
+xcodebuild -project Etterna.xcodeproj -configuration Release****
 ```
 
 Due to the extreme verbosity of `xcodebuild`, we recommend [xcpretty](https://github.com/xcpretty/xcpretty) to clean up the output.
