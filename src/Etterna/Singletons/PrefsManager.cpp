@@ -62,15 +62,6 @@ XToString(RandomBackgroundMode);
 StringToX(RandomBackgroundMode);
 LuaXType(RandomBackgroundMode);
 
-static const char* ShowDancingCharactersNames[] = {
-	"Off",
-	"Random",
-	"Select",
-};
-XToString(ShowDancingCharacters);
-StringToX(ShowDancingCharacters);
-LuaXType(ShowDancingCharacters);
-
 static const char* ImageCacheModeNames[] = { "Off",
 											 "LowResPreload",
 											 "LowResLoadOnDemand",
@@ -173,8 +164,9 @@ PrefsManager::PrefsManager()
   m_bDelayedBack("DelayedBack", false)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
   , m_bShowInstructions("ShowInstructions", false)
-  , m_bShowCaution("ShowCaution", false)
   , m_bFullTapExplosions("FullTapExplosions", true)
+  , m_bNoGlow("NoGlow", false)
+  , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)
   , m_bShowNativeLanguage("ShowNativeLanguage", true)
   , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
@@ -186,7 +178,6 @@ PrefsManager::PrefsManager()
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
-  , m_ShowDancingCharacters("ShowDancingCharacters", SDC_Off)
   , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
   , m_sLanguage("Language", "")
   , // ThemeManager will deal with this invalid language
@@ -198,6 +189,8 @@ PrefsManager::PrefsManager()
   , // Work-In-Progress.. disable by default.
   m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
   , EnablePitchRates("EnablePitchRates", true)
+  , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
+  , m_bEasterEggs("EasterEggs", true)
   , m_fPadStickSeconds("PadStickSeconds", 0)
   , m_bForceMipMaps("ForceMipMaps", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
@@ -219,7 +212,7 @@ PrefsManager::PrefsManager()
   , m_sTestInitialScreen("TestInitialScreen", "")
   , m_MuteActions("MuteActions", false)
   , ThreadsToUse("ThreadsToUse", 0)
-  ,m_bLogToDisk("LogToDisk", true)
+  , m_bLogToDisk("LogToDisk", true)
   , m_verbose_log("VerboseLogging", 1)
   ,
 #if defined(DEBUG)
@@ -569,28 +562,3 @@ class LunaPrefsManager : public Luna<PrefsManager>
 
 LUA_REGISTER_CLASS(PrefsManager)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Chris Gomez
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

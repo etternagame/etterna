@@ -1,6 +1,5 @@
 list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
 	"AnnouncerManager.cpp"
-	"CharacterManager.cpp"
 	"CommandLineActions.cpp"
 	"CryptManager.cpp"
 	"FilterManager.cpp"
@@ -26,7 +25,6 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
 
 list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
 	"AnnouncerManager.h"
-	"CharacterManager.h"
 	"CommandLineActions.h"
 	"CryptManager.h"
 	"FilterManager.h"

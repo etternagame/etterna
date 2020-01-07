@@ -31,6 +31,16 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	Name = THEME:GetString("PacklistDisplay", "Name"),
+	AverageDiff = THEME:GetString("PacklistDisplay", "AverageDiff"),
+	Size = THEME:GetString("PacklistDisplay", "Size"),
+	Installed = THEME:GetString("PacklistDisplay", "Installed"),
+	Download = THEME:GetString("PacklistDisplay", "Download"),
+	Mirror = THEME:GetString("PacklistDisplay", "Mirror"),
+	MB = THEME:GetString("PacklistDisplay", "MB")
+}
+
 packlist = {}
 local packtable
 local o =
@@ -95,7 +105,7 @@ local o =
 		{
 			--name
 			InitCommand = function(self)
-				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext("Name")
+				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Name"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -112,7 +122,7 @@ local o =
 		{
 			--avg
 			InitCommand = function(self)
-				self:xy(c3x - 5, headeroff):zoom(tzoom):halign(1):settext("Avg")
+				self:xy(c3x - 5, headeroff):zoom(tzoom):halign(1):settext(translated_info["AverageDiff"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -129,7 +139,7 @@ local o =
 		{
 			--size
 			InitCommand = function(self)
-				self:xy(c4x, headeroff):zoom(tzoom):halign(1):settext("Size")
+				self:xy(c4x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Size"])
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -222,9 +232,9 @@ local function makePackDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					if installed then
-						self:settext("Installed")
+						self:settext(translated_info["Installed"])
 					else
-						self:settext("Download")
+						self:settext(translated_info["Download"])
 					end
 				end,
 				HighlightCommand = function(self)
@@ -232,7 +242,11 @@ local function makePackDisplay(i)
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) then
-						packinfo:DownloadAndInstall(true)
+						if packinfo:GetSize() > 2000000000 then
+							GAMESTATE:ApplyGameCommand("urlnoexit," .. packinfo:GetURL())
+						else
+							packinfo:DownloadAndInstall(true)
+						end
 					end
 				end
 			},
@@ -244,9 +258,9 @@ local function makePackDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					if installed then
-						self:settext("Installed")
+						self:settext(translated_info["Installed"])
 					else
-						self:settext("Mirror")
+						self:settext(translated_info["Mirror"])
 					end
 				end,
 				HighlightCommand = function(self)
@@ -266,7 +280,7 @@ local function makePackDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					local psize = packinfo:GetSize() / 1024 / 1024
-					self:settextf("%iMB", psize):diffuse(byFileSize(psize))
+					self:settextf("%i%s", psize, translated_info["MB"]):diffuse(byFileSize(psize))
 				end
 			}
 	}

@@ -41,16 +41,18 @@ local defaultConfig = {
 		Difficulty_Hard = "#ff6666", -- red
 		Difficulty_Challenge = "#c97bff", -- light blue
 		Difficulty_Edit = "#666666", -- gray
-		Difficulty_Couple = "#ed0972", -- hot pink
-		Difficulty_Routine = "#ff9a00", -- orange
 		Beginner = "#66ccff",
 		Easy = "#099948", -- green
 		Medium = "#ddaa00", -- yellow
 		Hard = "#ff6666", -- red
 		Challenge = "#c97bff", -- Purple
 		Edit = "#666666", -- gray
-		Couple = "#ed0972", -- hot pink
-		Routine = "#ff9a00" -- orange
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
 	difficultyVivid = {
 		Difficulty_Beginner = "#0099ff", -- light blue
@@ -59,16 +61,18 @@ local defaultConfig = {
 		Difficulty_Hard = "#ff0000", -- red
 		Difficulty_Challenge = "#cc66ff", -- light blue
 		Difficulty_Edit = "#666666", -- gray
-		Difficulty_Couple = "#ed0972", -- hot pink
-		Difficulty_Routine = "#ff9a00", -- orange
 		Beginner = "#0099ff", -- light blue
 		Easy = "#00ff00", -- green
 		Medium = "#ffff00", -- yellow
 		Hard = "#ff0000", -- red
 		Challenge = "#cc66ff", -- Purple
 		Edit = "#666666", -- gray
-		Couple = "#ed0972", -- hot pink
-		Routine = "#ff9a00" -- orange
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
 	grade = {
 		Grade_Tier01 = "#66ccff", -- AAAA
@@ -113,6 +117,11 @@ local defaultConfig = {
 		FullCombo = "#a4ff00",
 		RegularCombo = "#ffffff",
 		ComboLabel = "#00aeef"
+	},
+	laneCover = {
+		cover = "#333333",
+		bpmText = "#4CBB17",
+		heightText = "#FFFFFF"
 	}
 }
 
@@ -136,6 +145,10 @@ end
 
 function getLeaderboardColor(type)
 	return color(colorConfig:get_data().leaderboard[type])
+end
+
+function getLaneCoverColor(type)
+	return color(colorConfig:get_data().laneCover[type])
 end
 
 function getGradeColor(grade)

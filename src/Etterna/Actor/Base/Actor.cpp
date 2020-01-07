@@ -132,11 +132,11 @@ Actor::InitState()
 }
 
 static bool
-GetMessageNameFromCommandName(const RString& sCommandName,
-							  RString& sMessageNameOut)
+GetMessageNameFromCommandName(const std::string& sCommandName,
+							  std::string& sMessageNameOut)
 {
-	if (sCommandName.Right(7) == "Message") {
-		sMessageNameOut = sCommandName.Left(sCommandName.size() - 7);
+	if (RString(sCommandName).Right(7) == "Message") {
+		sMessageNameOut = RString(sCommandName).Left(sCommandName.size() - 7);
 		return true;
 	}
 
@@ -258,16 +258,16 @@ Actor::LoadFromNode(const XNode* pNode)
 	FOREACH_CONST_Attr(pNode, pAttr)
 	{
 		// Load Name, if any.
-		const RString& sKeyName = pAttr->first;
+		const std::string& sKeyName = pAttr->first;
 		const XNodeValue* pValue = pAttr->second;
 		if (EndsWith(sKeyName, "Command")) {
 			LuaReference* pRef = new LuaReference;
 			pValue->PushValue(L);
 			pRef->SetFromStack(L);
-			RString sCmdName = sKeyName.Left(sKeyName.size() - 7);
+			std::string sCmdName = RString(sKeyName).Left(sKeyName.size() - 7);
 			AddCommand(sCmdName, apActorCommands(pRef));
 		} else if (sKeyName == "Name")
-			SetName(pValue->GetValue<RString>());
+			SetName(pValue->GetValue<std::string>());
 		else if (sKeyName == "BaseRotationX")
 			SetBaseRotationX(pValue->GetValue<float>());
 		else if (sKeyName == "BaseRotationY")
@@ -305,16 +305,22 @@ Actor::IsOver(float mx, float my)
 
 	auto x = GetTrueX();
 	auto y = GetTrueY();
+
 	auto hal = GetHorizAlign();
 	auto val = GetVertAlign();
+
 	auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoom();
 	auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoom();
-	auto lr = x - (hal * wi);
-	auto rr = x + wi - (hal * wi);
-	auto ur = y - (val * hi);
-	auto br = ((y + hi) - (val * hi));
-	bool withinX = mx >= lr && mx <= rr;
-	bool withinY = my >= ur && my <= br;
+
+	auto rotZ = GetTrueRotationZ();
+
+	RageVector2 p1(mx - x, my - y);
+	RageVec2RotateFromOrigin(&p1, -rotZ);
+	p1.x += x;
+	p1.y += y;
+
+	bool withinX = (p1.x >= (x - hal * wi)) && (p1.x <= (x + wi - hal * wi));
+	bool withinY = (p1.y >= (y - val * hi)) && (p1.y <= (y + hi - val * hi));
 	return withinX && withinY;
 }
 Actor*
@@ -336,7 +342,10 @@ Actor::GetTrueX()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
-	return GetX() * mfp->GetTrueZoom() + mfp->GetTrueX();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.x * mfp->GetTrueZoom() + mfp->GetTrueX();
 }
 
 float
@@ -347,8 +356,23 @@ Actor::GetTrueY()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
-	return GetY() * mfp->GetTrueZoom() + mfp->GetTrueY();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.y * mfp->GetTrueZoom() + mfp->GetTrueY();
 }
+
+float
+Actor::GetTrueRotationZ()
+{
+	if (!this)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationZ();
+	return GetRotationZ() + mfp->GetTrueRotationZ();
+}
+
 float
 Actor::GetTrueZoom()
 {
@@ -377,8 +401,7 @@ Actor::Draw()
 	}
 
 	if (m_FakeParent != nullptr) {
-		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->EarlyAbortDraw()) {
+		if (!m_FakeParent->m_bVisible || m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
 		m_FakeParent->PreDraw();
@@ -409,8 +432,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible ||
-			state->EarlyAbortDraw()) {
+		if (!state->m_bVisible || state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
 			state->PreDraw();
@@ -802,7 +824,7 @@ Actor::UpdateTweening(float fDeltaTime)
 		TI.m_fTimeLeftInTween -= fSecsToSubtract;
 		fDeltaTime -= fSecsToSubtract;
 
-		RString sCommand = TI.m_sCommandName;
+		std::string sCommand = TI.m_sCommandName;
 		if (bBeginning) // we are just beginning this tween
 		{
 			m_start = m_current; // set the start position
@@ -827,7 +849,7 @@ Actor::UpdateTweening(float fDeltaTime)
 			// don't access TI or TS after, since this may modify the tweening
 			// queue.
 			if (!sCommand.empty()) {
-				if (sCommand.Left(1) == "!")
+				if (RString(sCommand).Left(1) == "!")
 					MESSAGEMAN->Broadcast(sCommand.substr(1));
 				else
 					this->PlayCommand(sCommand);
@@ -920,10 +942,10 @@ Actor::UpdateInternal(float delta_time)
 	this->UpdateTweening(delta_time);
 }
 
-RString
+std::string
 Actor::GetLineage() const
 {
-	RString sPath;
+	std::string sPath;
 
 	if (m_pParent)
 		sPath = m_pParent->GetLineage() + '/';
@@ -961,7 +983,7 @@ Actor::BeginTweening(float time, ITween* pTween)
 
 	// If the number of tweens to ever gets this large, there's probably an
 	// infinitely recursing ActorCommand.
-	if (m_Tweens.size() > 50 && !(GamePreferences::m_AutoPlay == PC_REPLAY)) {
+	if (m_Tweens.size() > 50) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Tween overflow: \"%s\"; infinitely recursing ActorCommand?",
 		  GetLineage().c_str());
@@ -1059,21 +1081,21 @@ Actor::ScaleTo(const RectF& rect, StretchType st)
 }
 
 void
-Actor::SetEffectClockString(const RString& s)
+Actor::SetEffectClockString(const std::string& s)
 {
-	if (s.EqualsNoCase("timer"))
+	if (RString(s).EqualsNoCase("timer"))
 		this->SetEffectClock(CLOCK_TIMER);
-	else if (s.EqualsNoCase("timerglobal"))
+	else if (RString(s).EqualsNoCase("timerglobal"))
 		this->SetEffectClock(CLOCK_TIMER_GLOBAL);
-	else if (s.EqualsNoCase("beat"))
+	else if (RString(s).EqualsNoCase("beat"))
 		this->SetEffectClock(CLOCK_BGM_BEAT);
-	else if (s.EqualsNoCase("music"))
+	else if (RString(s).EqualsNoCase("music"))
 		this->SetEffectClock(CLOCK_BGM_TIME);
-	else if (s.EqualsNoCase("bgm"))
+	else if (RString(s).EqualsNoCase("bgm"))
 		this->SetEffectClock(CLOCK_BGM_BEAT); // compat, deprecated
-	else if (s.EqualsNoCase("musicnooffset"))
+	else if (RString(s).EqualsNoCase("musicnooffset"))
 		this->SetEffectClock(CLOCK_BGM_TIME_NO_OFFSET);
-	else if (s.EqualsNoCase("beatnooffset"))
+	else if (RString(s).EqualsNoCase("beatnooffset"))
 		this->SetEffectClock(CLOCK_BGM_BEAT_NO_OFFSET);
 }
 
@@ -1123,7 +1145,7 @@ Actor::SetEffectTiming(float ramp_toh,
 					   float ramp_tof,
 					   float at_full,
 					   float at_zero,
-					   RString& err)
+					   std::string& err)
 {
 	// No negative timings
 	if (ramp_toh < 0 || at_half < 0 || ramp_tof < 0 || at_full < 0 ||
@@ -1152,7 +1174,7 @@ Actor::SetEffectTiming(float ramp_toh,
 }
 
 bool
-Actor::SetEffectHoldAtFull(float haf, RString& err)
+Actor::SetEffectHoldAtFull(float haf, std::string& err)
 {
 	return SetEffectTiming(m_effect_ramp_to_half,
 						   m_effect_hold_at_half,
@@ -1373,7 +1395,7 @@ Actor::RunCommands(const LuaReference& cmds, const LuaReference* pParamTable)
 		pParamTable->PushSelf(L);
 
 	// call function with 2 arguments and 0 results
-	RString Error = "Error playing command:";
+	std::string Error = "Error playing command:";
 	LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
 
 	LUA->Release(L);
@@ -1510,7 +1532,7 @@ Actor::Sleep(float time)
 }
 
 void
-Actor::QueueCommand(const RString& sCommandName)
+Actor::QueueCommand(const std::string& sCommandName)
 {
 	BeginTweening(0, TWEEN_LINEAR);
 	TweenInfo& TI = m_Tweens.back()->info;
@@ -1518,7 +1540,7 @@ Actor::QueueCommand(const RString& sCommandName)
 }
 
 void
-Actor::QueueMessage(const RString& sMessageName)
+Actor::QueueMessage(const std::string& sMessageName)
 {
 	// Hack: use "!" as a marker to broadcast a command, instead of playing a
 	// command, so we don't have to add yet another element to every tween
@@ -1529,15 +1551,15 @@ Actor::QueueMessage(const RString& sMessageName)
 }
 
 void
-Actor::AddCommand(const RString& sCmdName, apActorCommands apac, bool warn)
+Actor::AddCommand(const std::string& sCmdName, apActorCommands apac, bool warn)
 {
 	if (HasCommand(sCmdName) && warn) {
-		RString sWarning =
+		std::string sWarning =
 		  GetLineage() + "'s command '" + sCmdName + "' defined twice";
 		LuaHelpers::ReportScriptError(sWarning, "COMMAND_DEFINED_TWICE");
 	}
 
-	RString sMessage;
+	std::string sMessage;
 	if (GetMessageNameFromCommandName(sCmdName, sMessage)) {
 		SubscribeToMessage(sMessage);
 		m_mapNameToCommands[sMessage] =
@@ -1548,15 +1570,15 @@ Actor::AddCommand(const RString& sCmdName, apActorCommands apac, bool warn)
 }
 
 bool
-Actor::HasCommand(const RString& sCmdName) const
+Actor::HasCommand(const std::string& sCmdName) const
 {
 	return GetCommand(sCmdName) != nullptr;
 }
 
 const apActorCommands*
-Actor::GetCommand(const RString& sCommandName) const
+Actor::GetCommand(const std::string& sCommandName) const
 {
-	map<RString, apActorCommands>::const_iterator it =
+	map<std::string, apActorCommands>::const_iterator it =
 	  m_mapNameToCommands.find(sCommandName);
 	if (it == m_mapNameToCommands.end())
 		return nullptr;
@@ -2215,7 +2237,7 @@ class LunaActor : public Luna<Actor>
 		if (lua_isnumber(L, 5) != 0) {
 			haf = FArg(5);
 		}
-		RString err;
+		std::string err;
 		if (!p->SetEffectTiming(rth, hah, rtf, haf, haz, err)) {
 			luaL_error(L, err.c_str());
 		}
@@ -2223,7 +2245,7 @@ class LunaActor : public Luna<Actor>
 	}
 	static int effect_hold_at_full(T* p, lua_State* L)
 	{
-		RString err;
+		std::string err;
 		if (!p->SetEffectHoldAtFull(FArg(1), err)) {
 			luaL_error(L, err.c_str());
 		}
@@ -2552,7 +2574,7 @@ class LunaActor : public Luna<Actor>
 
 	static int GetName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetName());
+		lua_pushstring(L, p->GetName().c_str());
 		return 1;
 	}
 	static int GetParent(T* p, lua_State* L)
@@ -2834,28 +2856,3 @@ class LunaActor : public Luna<Actor>
 
 LUA_REGISTER_INSTANCED_BASE_CLASS(Actor)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

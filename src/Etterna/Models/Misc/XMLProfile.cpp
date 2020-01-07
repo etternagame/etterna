@@ -74,7 +74,6 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 			Load##X##FromNode(X);                                              \
 	}
 
-
 ProfileLoadResult
 XMLProfile::LoadEttFromDir(RString dir)
 {
@@ -213,7 +212,8 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the favorites node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->FavoritedCharts.emplace(ck->GetName());
+	FOREACH_CONST_Child(pNode, ck)
+	  loadingProfile->FavoritedCharts.emplace(ck->GetName());
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
 	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
 									   loadingProfile->allplaylists);
@@ -224,7 +224,8 @@ XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the permamirror node.");
 
-	FOREACH_CONST_Child(pNode, ck) loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
+	FOREACH_CONST_Child(pNode, ck)
+	  loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
 	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
@@ -288,7 +289,6 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	// redundant to the game app.
 	pGeneralDataNode->AppendChild("DisplayName",
 								  profile->GetDisplayNameOrHighScoreName());
-	pGeneralDataNode->AppendChild("CharacterID", profile->m_sCharacterID);
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
@@ -298,8 +298,7 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 		   // ??? reasons -mina
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
-		  DifficultyToString(
-			GAMESTATE->m_pCurSteps->GetDifficulty()));
+		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty()));
 	else if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
@@ -396,7 +395,6 @@ XMLProfile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
 	}
 }
 
-
 void
 XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 {
@@ -407,7 +405,6 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 	const XNode* pTemp;
 
 	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
-	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
 	pNode->GetChildValue("LastUsedHighScoreName",
 						 loadingProfile->m_sLastUsedHighScoreName);
 	pNode->GetChildValue("Guid", (*loadingProfile->GetGuid()));
@@ -502,7 +499,7 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
 		if (pScreenshot->GetName() != "Screenshot")
-			WARN_AND_CONTINUE_M(pScreenshot->GetName());
+			WARN_AND_CONTINUE_M(pScreenshot->GetName().c_str());
 
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
@@ -537,7 +534,7 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 		return ProfileLoadResult_FailedNoProfile;
 
 	if (xml->GetName() != "Stats") {
-		WARN_M(xml->GetName());
+		WARN_M(xml->GetName().c_str());
 		return ProfileLoadResult_FailedTampered;
 	}
 
@@ -567,7 +564,6 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 
 	return ProfileLoadResult_Success;
 }
-
 
 XNode*
 XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const

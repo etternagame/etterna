@@ -12,7 +12,7 @@ DefaultCpuModifiers=""
 DefaultNoteSkinName="default"
 DifficultiesToShow="beginner,easy,medium,hard,challenge"
 CourseDifficultiesToShow="easy,medium,hard"
-StepsTypesToHide="dance-couple,dance-solo,pump-halfdouble,lights-cabinet"
+StepsTypesToHide="dance-solo,pump-halfdouble"
 ScreenWidth=640
 ScreenHeight=480
 OverlayScreens="ScreenSystemLayer,ScreenSyncOverlay,ScreenStatsOverlay,ScreenDebugOverlay"
@@ -64,9 +64,6 @@ UnlockNames=""
 # The song "ABC" can be unlocked via roulette; pick an arbitrary code
 # to use to store the unlock.
 # Unlock2Command=song,"ABC";code,"59183751";roulette
-
-[LightsManager]
-GameButtonsToShow=""
 
 [ScreenSelect]
 Fallback="ScreenWithMenuElements"
@@ -176,10 +173,9 @@ IdleTimeoutSeconds=0
 TimerSeconds=30
 UpdateOnMessage=""
 PrevScreen="ScreenTitleMenu"
-ChoiceNames="1,2,3"
+ChoiceNames="1,3"
 # The "name" here affects the announcer, eg. "ScreenSelectStyle comment single".
 Choice1="style,single;name,1Player;text,1 Player;screen,ScreenSelectPlayMode"
-Choice2="style,versus;name,2Players;text,2 Players;screen,ScreenSelectPlayMode"
 Choice3="style,double;name,Double;text,Double;screen,ScreenSelectPlayMode"
 ShowIcon=true
 PerChoiceIconElement=false
@@ -316,12 +312,6 @@ ChoiceListFrameOffCommand=linear,0.5;diffusealpha,0;glow,1,1,1,0
 UseModeSpecificBGAnims=false
 EnableCharSelect=false
 Only2DChars=false
-CharacterIconP1Y=SCREEN_CENTER_Y+0
-CharacterIconP1X=SCREEN_CENTER_X+0
-CharacterIconP2Y=SCREEN_CENTER_Y+0
-CharacterIconP2X=SCREEN_CENTER_X+0
-CharacterIconP1OffCommand=linear,0.3;diffusealpha,0;sleep,10
-CharacterIconP2OffCommand=linear,0.3;diffusealpha,0;sleep,10
 
 [GroupList]
 StartX=0
@@ -355,7 +345,7 @@ TitleInitCommand=horizalign,left;vertalign,top;shadowlength,2;
 [ScreenInstructions]
 Class="ScreenInstructions"
 Fallback="ScreenWithMenuElements"
-NextScreen="ScreenSelectCharacter"
+NextScreen="ScreenTitleMenu"
 PrevScreen=ScreenTitleBranch()
 TimerSeconds=15
 ShowStyleIcon=true
@@ -598,9 +588,6 @@ TimerSeconds=-1
 UseAlternativeInput=false
 PlayerType="Player"
 PlayerInitCommand=y,SCREEN_CENTER_Y
-StartGivesUp=true
-BackGivesUp=false
-FailOnMissCombo=-1
 GivingUpGoesToPrevScreen=false
 GivingUpGoesToNextScreen=false
 InitialBackgroundBrightness=1
@@ -611,7 +598,6 @@ MusicFadeOutSeconds=0.5
 OutTransitionLength=1.5
 CourseTransitionLength=0.5
 BeginFailedDelay=1.0
-AllowCenter1Player=true
 ScoreKeeperClass="ScoreKeeperNormal"
 SongBackgroundOnCommand=
 SongForegroundOnCommand=
@@ -734,19 +720,10 @@ DebugOnCommand=wrapwidthpixels,SCREEN_WIDTH-50;strokecolor,color("#000000");
 DebugOffCommand=stoptweening;linear,1/8;diffusealpha,0
 SecondsBetweenComments=10
 TickEarlySeconds=0.05
-ShowLifeMeterForDisabledPlayers=false
 PlayerP1OnCommand=
 PlayerP1OffCommand=
-PlayerP2OnCommand=
-PlayerP2OffCommand=
 PlayerP1OnePlayerOneSideX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP2OnePlayerOneSideX=math.floor(scale(0.75,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP1TwoPlayersTwoSidesX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))
-PlayerP2TwoPlayersTwoSidesX=math.floor(scale(0.75,0,1,SCREEN_LEFT,SCREEN_RIGHT))
 PlayerP1OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP2OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP1TwoPlayersSharedSidesX=SCREEN_CENTER_X
-PlayerP2TwoPlayersSharedSidesX=SCREEN_CENTER_X
 LeftFrameX=math.floor(scale(0.25,0,1,SCREEN_LEFT,SCREEN_RIGHT))-160
 LeftFrameY=SCREEN_CENTER_Y
 LeftFrameOnCommand=addx,-200;linear,0.5;addx,200
@@ -1460,7 +1437,6 @@ Fallback="Screen"
 StatsX=SCREEN_RIGHT-8
 StatsY=SCREEN_TOP+10
 StatsOnCommand=horizalign,right;vertalign,top;shadowlength,1
-ShowSkips=true
 SkipX=SCREEN_RIGHT-100
 SkipY=SCREEN_BOTTOM-100
 SkipWidth=190
@@ -1992,17 +1968,6 @@ NextScreen="ScreenOptionsService"
 PrevScreen="ScreenOptionsService"
 HelpText=ScreenString("HelpTextTestInput")
 
-[ScreenTestLights]
-Class="ScreenTestLights"
-Fallback="ScreenOptionsServiceChild"
-NextScreen="ScreenOptionsService"
-PrevScreen="ScreenOptionsService"
-HelpText=ScreenString("HelpTextTestLights")
-TextX=SCREEN_CENTER_X-200
-TextY=SCREEN_CENTER_Y
-TextOnCommand=
-TextOffCommand=
-
 [ScreenTestSound]
 Class="ScreenTestSound"
 Fallback="ScreenOptionsServiceChild"
@@ -2073,7 +2038,6 @@ RightEdge=SCREEN_RIGHT
 BottomEdge=SCREEN_BOTTOM
 BrightnessOverlayFadeCommand=
 ClampOutputPercent=0
-ShowDancingCharacters=true
 UseStaticBackground=true
 
 [Judgment]
@@ -2111,7 +2075,6 @@ DrawDistanceAfterTargetsPixels=-60
 TapJudgmentsUnderField=false
 HoldJudgmentsUnderField=false
 PenalizeTapScoreNone=false
-JudgeHoldNotesOnSameRowTogether=false
 HoldCheckpoints=false
 ImmediateHoldLetGo=true
 RequireStepOnHoldHeads=true
@@ -2544,7 +2507,6 @@ Line13="conf,ShowLyrics"
 Line14="conf,RandomBackgroundMode"
 Line15="conf,BGBrightness"
 Line16="conf,ShowDanger"
-Line17="conf,ShowDancingCharacters"
 Line18="conf,ShowBeginnerHelper"
 Line19="conf,NumBackgrounds"
 
@@ -2729,7 +2691,7 @@ ScrollerItemTransformFunction=function(self,offset,itemIndex,numItems) self:y(46
 Fallback="ScreenAttract"
 Class="ScreenRanking"
 TimerSeconds=-1
-StepsTypesToHide="dance-couple,dance-solo,dance-routine,pump-halfdouble,pump-couple"
+StepsTypesToHide="dance-solo,pump-halfdouble"
 PageFadeSeconds=1.0
 CoursesToShow=GetCoursesToShowRanking()
 SecondsPerPage=5
@@ -2866,10 +2828,6 @@ ResetGameState=false
 LifeMeterBarX=SCREEN_CENTER_X-160
 LifeMeterBarY=SCREEN_TOP+56
 LifeMeterBarOnCommand=addy,-90;sleep,1.4;linear,0.4;addy,90
-UseCharacter=true
-CharacterX=SCREEN_CENTER_X-200
-CharacterY=SCREEN_CENTER_Y+160
-CharacterOnCommand=zoom,20;addy,-SCREEN_WIDTH;sleep,6.0;decelerate,0.4;addy,SCREEN_WIDTH
 UsePad=true
 PadX=SCREEN_CENTER_X-280
 PadY=SCREEN_CENTER_Y+70
@@ -2893,7 +2851,7 @@ MinSecondsToStep=0
 MinSecondsToMusic=0
 ShowCourseModifiersProbability=0
 AllowAdvancedModifiers=false
-AllowStyleTypes="TwoPlayersTwoSides"
+AllowStyleTypes=""
 
 [ScreenJukebox]
 ShowCourseModifiersProbability=0
@@ -2926,11 +2884,7 @@ ShowStyleIcon=false
 MaxRankingNameLength=4
 NextScreen="ScreenProfileSave"
 PlayerP1OnePlayerOneSideX=SCREEN_CENTER_X-160
-PlayerP2OnePlayerOneSideX=SCREEN_CENTER_X+160
-PlayerP1TwoPlayersTwoSidesX=SCREEN_CENTER_X-160
-PlayerP2TwoPlayersTwoSidesX=SCREEN_CENTER_X+160
 PlayerP1OnePlayerTwoSidesX=SCREEN_CENTER_X
-PlayerP2OnePlayerTwoSidesX=SCREEN_CENTER_X
 
 [EditCoursesMenu]
 Arrows1X=SCREEN_CENTER_X-130
@@ -3075,7 +3029,7 @@ NextScreen=ScreenPlayerOptionsNext()
 PlayMusic=false
 TimerSeconds=30
 ShowStyleIcon=false
-LineNames="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+LineNames="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
 Line1="list,Speed"
 Line2="list,Accel"
 Line3="list,Effect"
@@ -3092,7 +3046,6 @@ Line13="list,Hide"
 Line14="list,Persp"
 Line15="list,ScoreDisplay"
 Line16="list,Steps"
-Line17="list,Characters"
 
 [ScreenSongOptions]
 Class="ScreenSongOptions"
@@ -3149,52 +3102,6 @@ TimerSeconds=0
 Fallback="ScreenEnding"
 ; decorations send "SM_BeginFadingOut", so timer is disabled
 TimerSeconds=0
-
-[ScreenSelectCharacter]
-Class="ScreenSelectCharacter"
-Fallback="ScreenWithMenuElements"
-WaitForChildrenBeforeTweeningOut=true
-TitleP1OnCommand=x,140;y,80;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-TitleP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-TitleP2OnCommand=x,500;y,80;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-TitleP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-CardP1OnCommand=x,140;y,180;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-CardP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-CardP2OnCommand=x,500;y,180;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-CardP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-CardArrowsP1OnCommand=x,140;y,180;diffusealpha,0;linear,0.3;diffusealpha,1
-CardArrowsP1OffCommand=linear,0.3;diffusealpha,0
-CardArrowsP2OnCommand=x,500;y,180;diffusealpha,0;linear,0.3;diffusealpha,1
-CardArrowsP2OffCommand=linear,0.3;diffusealpha,0
-ExplanationOnCommand=x,SCREEN_CENTER_X;y,140;diffusealpha,0;linear,0.3;diffusealpha,1
-ExplanationOffCommand=linear,0.3;diffusealpha,0
-AttackFrameP1OnCommand=x,140;y,380;addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-AttackFrameP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-AttackFrameP2OnCommand=x,500;y,380;addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-AttackFrameP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-AttackIconWidth=40
-AttackIconHeight=40
-AttackIconsP1StartX=SCREEN_CENTER_X-192
-AttackIconsP1StartY=SCREEN_CENTER_Y+116
-AttackIconsP2StartX=SCREEN_CENTER_X+168
-AttackIconsP2StartY=SCREEN_CENTER_Y+116
-AttackIconsSpacingX=42
-AttackIconsSpacingY=32
-AttackIconsP1OnCommand=addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-AttackIconsP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-AttackIconsP2OnCommand=addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-AttackIconsP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-IconWidth=40
-IconHeight=40
-IconsP1OnCommand=addx,-SCREEN_WIDTH*0.6;bounceend,0.5;addx,SCREEN_WIDTH*0.6
-IconsP1OffCommand=sleep,0.2;bouncebegin,0.5;addx,-SCREEN_WIDTH*0.6
-IconsP2OnCommand=addx,SCREEN_WIDTH*0.6;bounceend,0.5;addx,-SCREEN_WIDTH*0.6
-IconsP2OffCommand=sleep,0.2;bouncebegin,0.5;addx,SCREEN_WIDTH*0.6
-SleepAfterTweenOffSeconds=0.8
-TimerSeconds=40
-ShowStyleIcon=true
-PrevScreen=ScreenTitleBranch()
-NextScreen=SongSelectionScreen()
 
 [BeginnerHelper]
 # All X,Y coordinates are relative to the HelperX,Y
@@ -3350,12 +3257,11 @@ BatLives,7="mod,7 lives;name,7"
 BatLives,8="mod,8 lives;name,8"
 BatLives,9="mod,9 lives;name,9"
 BatLives,10="mod,10 lives;name,10"
-Fail="4;together"
+Fail="3;together"
 FailDefault=""
 Fail,1="mod,failImmediate;name,Immediate"
 Fail,2="mod,FailImmediateContinue;name,ImmediateContinue"
-Fail,3="mod,FailAtEnd;name,FailAtEnd"
-Fail,4="mod,failoff;name,Off"
+Fail,3="mod,failoff;name,Off"
 Assist="4;together"
 AssistDefault=""
 Assist,1="mod,no clap,no metronome;name,Off"
@@ -3419,14 +3325,6 @@ Transfer From USB Drive,1="screen,ScreenOptionsManageEditSteps;name,Transfer Fro
 Class="ScreenReloadSongs"
 Fallback="Screen"
 NextScreen=ScreenTitleBranch()
-
-[DancingCharacters]
-#2D Character X/Y positions in relation to the center
-#of the screen
-2DCharacterXP1=-220
-2DCharacterYP1=0
-2DCharacterXP2=220
-2DCharacterYP2=0
 
 [FadingBanner]
 BannerOnCommand=

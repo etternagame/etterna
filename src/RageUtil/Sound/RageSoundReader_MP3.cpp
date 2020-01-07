@@ -949,22 +949,25 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 int
 RageSoundReader_MP3::SetPosition(int iFrame)
 {
+	// If the frame is 0, rewind to 0.
+	if (!iFrame) {
+		MADLIB_rewind();
+		return 1;
+	}
+
 	if (m_bAccurateSync) {
-		/* Seek using our own internal (accurate) TOC. */
-		int ret = SetPosition_toc(iFrame, false);
-		if (ret <= 0)
-			return ret; /* it set the error */
+		/* Previously, we used a different method of seeking here
+		 * before attempting to hard set the position.
+		 * The method was quick and allowed hard to be also quick.
+		 * However, somehow this made the final position completely wrong.
+		 * If we just hard set, we maintain some speed when moving forward
+		 * and if we move backward, we lose speed (but it doesn't feel as bad
+		 * because of the fact that there's less to seek)
+		 * -poco */
 
 		/* Align exactly. */
 		return SetPosition_hard(iFrame);
 	} else {
-		/* Rewinding is always fast and accurate, and SetPosition_estimate is
-		 * bad at 0. */
-		if (!iFrame) {
-			MADLIB_rewind();
-			return 1; /* ok */
-		}
-
 		/* We can do a fast jump in VBR with Xing with more accuracy than
 		 * without Xing. */
 		if (mad->has_xing)
@@ -977,7 +980,7 @@ RageSoundReader_MP3::SetPosition(int iFrame)
 }
 
 bool
-RageSoundReader_MP3::SetProperty(const std::string& sProperty, float fValue)
+RageSoundReader_MP3::SetProperty(const RString& sProperty, float fValue)
 {
 	if (sProperty == "AccurateSync") {
 		m_bAccurateSync = (fValue > 0.001f);

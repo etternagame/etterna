@@ -21,13 +21,14 @@ XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)
 	if (sError.empty())
 		return true;
 
-	RString sWarning = ssprintf("XML: LoadFromFile failed: %s", sError.c_str());
+	std::string sWarning =
+	  ssprintf("XML: LoadFromFile failed: %s", sError.c_str());
 	LuaHelpers::ReportScriptError(sWarning, "XML_PARSE_ERROR");
 	return false;
 }
 
 bool
-XmlFileUtil::LoadFromFileShowErrors(XNode& xml, const RString& sFile)
+XmlFileUtil::LoadFromFileShowErrors(XNode& xml, const std::string& sFile)
 {
 	RageFile f;
 	if (!f.Open(sFile, RageFile::READ)) {
@@ -39,7 +40,7 @@ XmlFileUtil::LoadFromFileShowErrors(XNode& xml, const RString& sFile)
 
 	bool bSuccess = LoadFromFileShowErrors(xml, f);
 	if (!bSuccess) {
-		RString sWarning =
+		std::string sWarning =
 		  ssprintf("XML: LoadFromFile failed for file: %s", sFile.c_str());
 		LuaHelpers::ReportScriptError(sWarning, "XML_PARSE_ERROR");
 	}
@@ -54,8 +55,8 @@ static const char chXMLTagPre = '/';
 static const char chXMLExclamation = '!';
 static const char chXMLDash = '-';
 
-static map<RString, RString> g_mapEntitiesToChars;
-static map<char, RString> g_mapCharsToEntities;
+static map<std::string, std::string> g_mapEntitiesToChars;
+static map<char, std::string> g_mapCharsToEntities;
 
 static void
 InitEntities()
@@ -89,24 +90,24 @@ InitEntities()
 							  } };
 
 	for (auto ent : EntityTable) {
-		g_mapEntitiesToChars[ent.pEntity] = RString(1, ent.c);
+		g_mapEntitiesToChars[ent.pEntity] = std::string(1, ent.c);
 		g_mapCharsToEntities[ent.c] = ent.pEntity;
 	}
 }
 
 // skip spaces
 static void
-tcsskip(const RString& s, RString::size_type& i)
+tcsskip(const std::string& s, std::string::size_type& i)
 {
 	i = s.find_first_not_of(" \t\r\n", i);
 }
 
 // put string of (psz~end) on ps string
 static void
-SetString(const RString& s,
+SetString(const std::string& s,
 		  int iStart,
 		  int iEnd,
-		  RString* ps,
+		  std::string* ps,
 		  bool trim = false)
 {
 	if (trim) {
@@ -130,11 +131,11 @@ SetString(const RString& s,
 //          pi = parser information
 // Return : advanced string pointer. (error return npos)
 namespace {
-RString::size_type
+std::string::size_type
 LoadAttributes(XNode* pNode,
-			   const RString& xml,
-			   RString& sErrorOut,
-			   RString::size_type iOffset)
+			   const std::string& xml,
+			   std::string& sErrorOut,
+			   std::string::size_type iOffset)
 {
 	while (iOffset < xml.size()) {
 		tcsskip(xml, iOffset);
@@ -148,7 +149,7 @@ LoadAttributes(XNode* pNode,
 			return iOffset; // well-formed tag
 
 		// XML Attr Name
-		RString::size_type iEnd = xml.find_first_of(" =", iOffset);
+		std::string::size_type iEnd = xml.find_first_of(" =", iOffset);
 		if (iEnd == xml.npos) {
 			// error
 			if (sErrorOut.empty())
@@ -158,7 +159,7 @@ LoadAttributes(XNode* pNode,
 		}
 
 		// XML Attr Name
-		RString sName;
+		std::string sName;
 		SetString(xml, iOffset, iEnd, &sName);
 
 		// add new attribute
@@ -198,7 +199,7 @@ LoadAttributes(XNode* pNode,
 				return string::npos;
 			}
 
-			RString sValue;
+			std::string sValue;
 			SetString(xml, iOffset, iEnd, &sValue, true);
 			ReplaceEntityText(sValue, g_mapEntitiesToChars);
 			pAttr->SetValue(sValue);
@@ -222,11 +223,11 @@ LoadAttributes(XNode* pNode,
 // Param  : pszXml - plain xml text
 //          pi = parser information
 // Return : advanced string pointer  (error return npos)
-RString::size_type
+std::string::size_type
 LoadInternal(XNode* pNode,
-			 const RString& xml,
-			 RString& sErrorOut,
-			 RString::size_type iOffset)
+			 const std::string& xml,
+			 std::string& sErrorOut,
+			 std::string::size_type iOffset)
 {
 	pNode->Clear();
 
@@ -244,7 +245,7 @@ LoadInternal(XNode* pNode,
 		iOffset += 4;
 
 		// Find the close tag.
-		RString::size_type iEnd = xml.find("-->", iOffset);
+		std::string::size_type iEnd = xml.find("-->", iOffset);
 		if (iEnd == string::npos) {
 			if (sErrorOut.empty())
 				sErrorOut = "Unterminated comment";
@@ -260,8 +261,8 @@ LoadInternal(XNode* pNode,
 
 	// XML Node Tag Name Open
 	iOffset++;
-	RString::size_type iTagEnd = xml.find_first_of(" \t\r\n/>", iOffset);
-	RString sName;
+	std::string::size_type iTagEnd = xml.find_first_of(" \t\r\n/>", iOffset);
+	std::string sName;
 	SetString(xml, iOffset, iTagEnd, &sName);
 	pNode->SetName(sName);
 	iOffset = iTagEnd;
@@ -311,7 +312,7 @@ LoadInternal(XNode* pNode,
 	if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == NULL) {
 		// Text Value
 		++iOffset;
-		RString::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
+		std::string::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
 		if (iEnd == string::npos) {
 			if (sErrorOut.empty())
 				sErrorOut = ssprintf("%s must be closed with </%s>",
@@ -321,7 +322,7 @@ LoadInternal(XNode* pNode,
 			return string::npos;
 		}
 
-		RString sValue;
+		std::string sValue;
 		SetString(xml, iOffset, iEnd, &sValue, true);
 
 		iOffset = iEnd;
@@ -358,7 +359,7 @@ LoadInternal(XNode* pNode,
 			if (iOffset >= xml.size())
 				continue;
 
-			RString::size_type iEnd = xml.find_first_of(" >", iOffset);
+			std::string::size_type iEnd = xml.find_first_of(" >", iOffset);
 			if (iEnd == string::npos) {
 				if (sErrorOut.empty())
 					sErrorOut = ssprintf("it must be closed with </%s>",
@@ -367,7 +368,7 @@ LoadInternal(XNode* pNode,
 				return string::npos;
 			}
 
-			RString closename;
+			std::string closename;
 			SetString(xml, iOffset, iEnd, &closename);
 			iOffset = iEnd + 1;
 			if (closename == pNode->GetName()) {
@@ -387,7 +388,7 @@ LoadInternal(XNode* pNode,
 			if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == NULL &&
 				iOffset < xml.size() && xml[iOffset] != chXMLTagOpen) {
 				// Text Value
-				RString::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
+				std::string::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
 				if (iEnd == string::npos) {
 					// error cos not exist CloseTag </TAG>
 					if (sErrorOut.empty())
@@ -396,7 +397,7 @@ LoadInternal(XNode* pNode,
 					return string::npos;
 				}
 
-				RString sValue;
+				std::string sValue;
 				SetString(xml, iOffset, iEnd, &sValue, true);
 
 				iOffset = iEnd;
@@ -433,7 +434,7 @@ GetXMLInternal(const XNode* pNode,
 	{
 		if (p->first == XNode::TEXT_ATTRIBUTE)
 			continue;
-		RString attr(p->second->GetValue<RString>());
+		std::string attr(p->second->GetValue<std::string>());
 		ReplaceEntityText(attr, g_mapCharsToEntities);
 		WRITE(" ");
 		WRITE(p->first);
@@ -466,7 +467,7 @@ GetXMLInternal(const XNode* pNode,
 					for (int i = 0; i < iTabBase; i++)
 						WRITE("\t");
 			}
-			RString s;
+			std::string s;
 			pText->GetValue(s);
 			ReplaceEntityText(s, g_mapCharsToEntities);
 			WRITE(s);
@@ -492,7 +493,7 @@ GetXMLInternal(const XNode* pNode,
 } // namespace
 
 void
-XmlFileUtil::Load(XNode* pNode, const RString& sXml, RString& sErrorOut)
+XmlFileUtil::Load(XNode* pNode, const std::string& sXml, std::string& sErrorOut)
 {
 	InitEntities();
 	LoadInternal(pNode, sXml, sErrorOut, 0);
@@ -506,7 +507,7 @@ XmlFileUtil::GetXML(const XNode* pNode, RageFileBasic& f, bool bWriteTabs)
 	return GetXMLInternal(pNode, f, bWriteTabs, iTabBase);
 }
 
-RString
+std::string
 XmlFileUtil::GetXML(const XNode* pNode)
 {
 	RageFileObjMem f;
@@ -519,7 +520,7 @@ XmlFileUtil::GetXML(const XNode* pNode)
 bool
 XmlFileUtil::SaveToFile(const XNode* pNode,
 						RageFileBasic& f,
-						const RString& sStylesheet,
+						const std::string& sStylesheet,
 						bool bWriteTabs)
 {
 	f.PutLine("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
@@ -538,8 +539,8 @@ XmlFileUtil::SaveToFile(const XNode* pNode,
 
 bool
 XmlFileUtil::SaveToFile(const XNode* pNode,
-						const RString& sFile,
-						const RString& sStylesheet,
+						const std::string& sFile,
+						const std::string& sStylesheet,
 						bool bWriteTabs)
 {
 	RageFile f;
@@ -568,14 +569,14 @@ class XNodeLuaValue : public XNodeValue
 		return val;
 	}
 
-	void GetValue(RString& out) const override;
+	void GetValue(std::string& out) const override;
 	void GetValue(int& out) const override;
 	void GetValue(float& out) const override;
 	void GetValue(bool& out) const override;
 	void GetValue(unsigned& out) const override;
 	void PushValue(lua_State* L) const override;
 
-	void SetValue(const RString& v) override;
+	void SetValue(const std::string& v) override;
 	void SetValue(int v) override;
 	void SetValue(float v) override;
 	void SetValue(unsigned v) override;
@@ -589,7 +590,7 @@ XNodeLuaValue::PushValue(lua_State* L) const
 }
 
 void
-XNodeLuaValue::GetValue(RString& out) const
+XNodeLuaValue::GetValue(std::string& out) const
 {
 	Lua* L = LUA->Get();
 	PushValue(L);
@@ -638,7 +639,7 @@ XNodeLuaValue::SetValueFromStack(lua_State* L)
 }
 
 void
-XNodeLuaValue::SetValue(const RString& v)
+XNodeLuaValue::SetValue(const std::string& v)
 {
 	Lua* L = LUA->Get();
 	LuaHelpers::Push(L, v);
@@ -673,11 +674,11 @@ XNodeLuaValue::SetValue(unsigned v)
 namespace {
 XNodeValue*
 CompileXMLNodeValue(Lua* L,
-					const RString& sName,
+					const std::string& sName,
 					const XNodeValue* pValue,
-					const RString& sFile)
+					const std::string& sFile)
 {
-	RString sExpression;
+	std::string sExpression;
 	pValue->GetValue(sExpression);
 
 	if (EndsWith(sName, "Command")) {
@@ -699,9 +700,9 @@ CompileXMLNodeValue(Lua* L,
 } // namespace
 
 void
-XmlFileUtil::AnnotateXNodeTree(XNode* pNode, const RString& sFile)
+XmlFileUtil::AnnotateXNodeTree(XNode* pNode, const std::string& sFile)
 {
-	RString sDir = Dirname(sFile);
+	std::string sDir = Dirname(sFile);
 
 	vector<XNode*> queue;
 	queue.push_back(pNode);
@@ -722,7 +723,7 @@ XmlFileUtil::AnnotateXNodeTree(XNode* pNode, const RString& sFile)
 }
 
 void
-XmlFileUtil::CompileXNodeTree(XNode* pNode, const RString& sFile)
+XmlFileUtil::CompileXNodeTree(XNode* pNode, const std::string& sFile)
 {
 	vector<XNode*> aToCompile;
 	aToCompile.push_back(pNode);
@@ -748,7 +749,7 @@ XmlFileUtil::CompileXNodeTree(XNode* pNode, const RString& sFile)
 namespace {
 XNode*
 XNodeFromTableRecursive(lua_State* L,
-						const RString& sName,
+						const std::string& sName,
 						LuaReference& ProcessedTables)
 {
 	auto* pNode = new XNode(sName);
@@ -762,7 +763,7 @@ XNodeFromTableRecursive(lua_State* L,
 	}
 
 	// Iterate over the table, pulling out attributes and tables to process.
-	vector<RString> NodeNamesToAdd;
+	vector<std::string> NodeNamesToAdd;
 	vector<LuaReference> NodesToAdd;
 
 	/* Add array elements first, in array order, so iterating over the XNode
@@ -791,7 +792,7 @@ XNodeFromTableRecursive(lua_State* L,
 					continue;
 			}
 
-			RString nName;
+			std::string nName;
 			LuaHelpers::Pop(L, nName);
 			NodeNamesToAdd.push_back(nName);
 			NodesToAdd.push_back(LuaReference());
@@ -799,7 +800,7 @@ XNodeFromTableRecursive(lua_State* L,
 			continue;
 		}
 
-		RString nName;
+		std::string nName;
 		LuaHelpers::Pop(L, nName);
 
 		// Otherwise, add an attribute.
@@ -811,7 +812,7 @@ XNodeFromTableRecursive(lua_State* L,
 
 	// Recursively process tables.
 	for (size_t i = 0; i < NodesToAdd.size(); ++i) {
-		const RString& sNodeName = NodeNamesToAdd[i];
+		const std::string& sNodeName = NodeNamesToAdd[i];
 		LuaReference& NodeToAdd = NodesToAdd[i];
 
 		// Check if the table is on the stack.
@@ -911,28 +912,3 @@ XmlFileUtil::MergeIniUnder(XNode* pFrom, XNode* pTo)
 		pTo->AppendChild(pNode);
 	}
 }
-
-/*
- * (c) 2001-2006 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

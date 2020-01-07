@@ -321,8 +321,7 @@ StageStats::AssertValid(PlayerNumber pn) const
 	ASSERT(m_player.m_vpPossibleSteps.size() != 0);
 	ASSERT(m_player.m_vpPossibleSteps[0] != NULL);
 	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
-	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() <
-			   NUM_Difficulty,
+	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("Invalid Difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
 	ASSERT_M((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed,
@@ -345,8 +344,7 @@ StageStats::AssertValid(MultiPlayer pn) const
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps.size() != 0);
 	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL);
 	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
-	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() <
-			   NUM_Difficulty,
+	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
 	ASSERT((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed);
@@ -391,14 +389,16 @@ StageStats::AddStats(const StageStats& other)
 bool
 StageStats::OnePassed() const
 {
-	if (!m_player.m_bFailed) return true;
+	if (!m_player.m_bFailed)
+		return true;
 	return false;
 }
 
 bool
 StageStats::AllFailed() const
 {
-	if (!m_player.m_bFailed) return false;
+	if (!m_player.m_bFailed)
+		return false;
 	return true;
 }
 
@@ -418,8 +418,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 {
 
 	// 4k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType !=
-		StepsType_dance_single)
+	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single)
 		return false;
 
 	// chord cohesion is invalid
@@ -469,6 +468,12 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
 		return false;
 
+	// This is a mod which adds mines, replacing existing notes and making files
+	// easier
+	if (ps.m_PlayerOptions.GetStage()
+		  .m_bTransforms[PlayerOptions::TRANSFORM_MINES])
+		return false;
+
 	// this would be difficult to accomplish but for parity's sake we should
 	if (mods.find("NoHolds") != mods.npos && pss.filegotholds)
 		return false;
@@ -513,15 +518,15 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetChartKey(chartKey);
 	hs.SetGrade(pss.GetGrade());
 	hs.SetMachineGuid(getSystemUniqueId());
-	hs.SetScore( pss.m_iScore );
-	hs.SetPercentDP( pss.GetPercentDancePoints() );
-	hs.SetWifeScore( pss.GetWifeScore());
-	hs.SetWifePoints( pss.GetCurWifeScore());
-	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	hs.SetJudgeScale( pss.GetTimingScale());
-	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
-	hs.SetAliveSeconds( pss.m_fAliveSeconds );
-	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
+	hs.SetScore(pss.m_iScore);
+	hs.SetPercentDP(pss.GetPercentDancePoints());
+	hs.SetWifeScore(pss.GetWifeScore());
+	hs.SetWifePoints(pss.GetCurWifeScore());
+	hs.SetMusicRate(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	hs.SetJudgeScale(pss.GetTimingScale());
+	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
+	hs.SetAliveSeconds(pss.m_fAliveSeconds);
+	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
 
 	vector<RString> asModifiers;
 	{
@@ -609,11 +614,7 @@ StageStats::FinalizeScores(bool bSummary)
 	}
 
 	// don't save scores if the player chose not to
-	// also don't save if in practice mode
-	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore ||
-		GAMESTATE->m_pPlayerState
-		  ->m_PlayerOptions.GetCurrent()
-		  .m_bPractice)
+	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore)
 		return;
 
 	LOG->Trace("saving stats and high scores");
@@ -626,18 +627,9 @@ StageStats::FinalizeScores(bool bSummary)
 							? PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid
 							: RString("");
 	m_player.m_HighScore = FillInHighScore(m_player,
-												*GAMESTATE->m_pPlayerState,
-												RANKING_TO_FILL_IN_MARKER,
-												  sPlayerGuid);
-	FOREACH_EnabledMultiPlayer(mp)
-	{
-		RString sPlayerGuid = "00000000-0000-0000-0000-000000000000"; // FIXME
-		m_multiPlayer[mp].m_HighScore =
-		  FillInHighScore(m_multiPlayer[mp],
-						  *GAMESTATE->m_pMultiPlayerState[mp],
-						  "",
-						  sPlayerGuid);
-	}
+										   *GAMESTATE->m_pPlayerState,
+										   RANKING_TO_FILL_IN_MARKER,
+										   sPlayerGuid);
 
 	HighScore& hs = m_player.m_HighScore;
 
@@ -665,6 +657,13 @@ StageStats::FinalizeScores(bool bSummary)
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;
 	}
+
+	if (GAMESTATE->IsPracticeMode()) {
+		SCOREMAN->camefromreplay = true;
+		SCOREMAN->tempscoreforonlinereplayviewing = &hs;
+		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		return;
+	}
 	// new score structure -mina
 	int istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
@@ -678,7 +677,7 @@ StageStats::FinalizeScores(bool bSummary)
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
 	}
-	if (NSMAN->isSMOnline)
+	if (NSMAN->loggedIn)
 		NSMAN->ReportHighScore(&hs, m_player);
 	if (m_player.m_fWifeScore > 0.f) {
 
@@ -769,8 +768,12 @@ class LunaStageStats : public Luna<StageStats>
 	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
 	static int PlayerHasHighScore(T* p, lua_State* L)
 	{
-		lua_pushboolean(L,
-						p->PlayerHasHighScore(PLAYER_1));
+		lua_pushboolean(L, p->PlayerHasHighScore(PLAYER_1));
+		return 1;
+	}
+	static int GetLivePlay(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->m_bLivePlay);
 		return 1;
 	}
 
@@ -787,33 +790,9 @@ class LunaStageStats : public Luna<StageStats>
 		ADD_METHOD(GetStageIndex);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(PlayerHasHighScore);
+		ADD_METHOD(GetLivePlay);
 	}
 };
 
 LUA_REGISTER_CLASS(StageStats)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

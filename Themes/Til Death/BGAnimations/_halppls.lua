@@ -77,7 +77,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):settext("Help Menu:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55)
+			self:settextf("%s:", THEME:GetString("Tips", "Title"))
 		end
 	}
 
@@ -85,7 +86,8 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, SCREEN_HEIGHT - 15):halign(0):valign(1):zoom(0.35):settext("Press any key to hide this overlay.")
+			self:xy(5, SCREEN_HEIGHT - 15):halign(0):valign(1):zoom(0.35)
+			self:settext(THEME:GetString("Tips", "HowToHideThis"))
 		end
 	}
 
@@ -93,35 +95,48 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, SCREEN_HEIGHT - 5):halign(0):valign(1):zoom(0.35):settext(
-				"You can disable this overlay showing up automatically in Theme Options, but it can still be accessed by pressing F12."
-			)
+			self:xy(5, SCREEN_HEIGHT - 5):halign(0):valign(1):zoom(0.35)
+			self:settext(THEME:GetString("Tips", "HowToDisableThis"))
 		end
 	}
 
---have these strings in a separate file...?
+local function transStr(line)
+	return {
+		THEME:GetString("Tips", "HowTo"..line),
+		THEME:GetString("Tips", "Describe"..line)
+	}
+end
+
 local stringList = {
-	{"Keys/Buttons", "Functions"},
-	{"1~5 or clicking the tabs", "Switch to the corresponding tab. (e.g. 3=score, 4=profile, etc.)"},
-	{"Doubletap <Select> or clicking the avatar", "Open avatar switch overlay."},
-	{"F12", "Open help overlay."},
-	{"<EffectUp>", "While the Score tab is selected, select the previous saved score."},
-	{"<EffectDown>", "While the Score tab is selected, select the next saved score."},
-	{"<EffectUp> while Holding <Select>", "While the Score tab is selected, select the previous available rate."},
-	{"<EffectDown> while Holding <Select>", "While the Score tab is selected, select the next available rate."},
-	{"Q while Holding Ctrl", "Triggers a differential reload for new packs and/or files."},
-	{"F while Holding Ctrl", "When pressed on a file, adds it to your Favorites."},
-	{"G while Holding Ctrl", "When pressed on a file, adds it to your Goals."},
-	{"M while Holding Ctrl", "When pressed on a file, permanently mirrors it."},
-	{"P while Holding Ctrl", "Creates a new playlist."},
-	{"A while Holding Ctrl", "While on a file, adds it to your selected playlist."},
-	{"<EffectUp> or <EffectDown>", "While on a file, increases or decreases rate."},
-	{"<MenuUp> <MenuDown> <MenuUp> <MenuDown>", "Enables Sort: Mode Menu."},
-	{"F2", "Reloads metrics and textures."},
-	{"~", "While playing a file, restarts it."},
-	{"Tab", "Speeds up animations."},
-	{"ScrollLock", "Brings you to the Main Menu Options."},
-	{"Holding F3", "Shows the Debug Menu."}
+	{
+		THEME:GetString("Tips", "Keys").."/"..THEME:GetString("Tips", "Buttons"),
+		THEME:GetString("Tips", "Function")
+	},
+	transStr("Tab"),
+	transStr("Assets"),
+	transStr("Help"),
+	transStr("ScorePrevious"),
+	transStr("ScoreNext"),
+	transStr("ScoreRatePrevious"),
+	transStr("ScoreRateNext"),
+	transStr("DiffReload"),
+	transStr("DiskReload"),
+	transStr("PackDiskReload"),
+	transStr("Favorite"),
+	transStr("Goal"),
+	transStr("Mirror"),
+	transStr("Playlist"),
+	transStr("Practice"),
+	transStr("AddToPlaylist"),
+	transStr("Preview"),
+	transStr("Rate"),
+	transStr("Sort"),
+	transStr("ChatToggle"),
+	transStr("TextureReload"),
+	transStr("Restart"),
+	transStr("SpeedyTween"),
+	transStr("OperatorKey"),
+	transStr("Debug"),
 }
 
 local function makeText(index)

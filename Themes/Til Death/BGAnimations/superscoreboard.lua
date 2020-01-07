@@ -65,8 +65,25 @@ local function byAchieved(scoregoal)
 	return color("#aaaaaa")
 end
 
-local filts = {"All Rates", "Current Rate"}
-local topornah = {"Top Scores", "All Scores"}
+local filts = {
+	THEME:GetString("NestedScores", "FilterAll"),
+	THEME:GetString("NestedScores", "FilterCurrent")
+}
+local topornah = {
+	THEME:GetString("NestedScores", "ScoresTop"),
+	THEME:GetString("NestedScores", "ScoresAll")
+}
+local ccornah = {
+	THEME:GetString("NestedScores", "ShowInvalid"),
+	THEME:GetString("NestedScores", "HideInvalid")
+}
+
+local translated_info = {
+	LoginToView = THEME:GetString("NestedScores", "LoginToView"),
+	NoScoresFound = THEME:GetString("NestedScores", "NoScoresFound"),
+	RetrievingScores = THEME:GetString("NestedScores", "RetrievingScores"),
+	Watch = THEME:GetString("NestedScores", "WatchReplay")
+}
 
 local scoretable = {}
 local o =
@@ -199,6 +216,7 @@ local o =
 				self:GetParent():GetParent():playcommand("Collapse")
 			elseif isOver(self) then
 				self:GetParent():GetParent():playcommand("Expand")
+				SCREENMAN:GetTopScreen():PausePreviewNoteField()
 			end
 		end
 	},
@@ -250,10 +268,10 @@ local o =
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
 				elseif not online and #scoretable == 0 then
-					self:settext("Login to view scores")
+					self:settext(translated_info["LoginToView"])
 				else
 					if #scoretable == 0 then
-						self:settext("Online scores not tracked...")
+						self:settext(translated_info["NoScoresFound"])
 					else
 						self:settext("")
 					end
@@ -264,9 +282,9 @@ local o =
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
 				elseif not online and #scoretable == 0 then
-					self:settext("Login to view scores")
+					self:settext(translated_info["LoginToView"])
 				else
-					self:settext("Retrieving scores...")
+					self:settext(translated_info["NoScoresFound"])
 				end
 			end
 		},
@@ -301,7 +319,7 @@ local o =
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
 				else
-					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1):valign(1)
+					self:xy(c5x - 160, headeroff):zoom(tzoom):halign(1):valign(1)
 				end
 			end,
 			HighlightCommand = function(self)
@@ -321,6 +339,36 @@ local o =
 					self:GetParent():queuecommand("GetFilteredLeaderboard")
 				end
 			end
+		},
+	LoadFont("Common normal") ..
+		{
+			--ccon/off filter toggle
+			InitCommand = function(self)
+				if collapsed then
+					self:visible(false)
+					--self:xy(c5x - 110, headeroff):zoom(tzoom):halign(1):valign(1)
+				else
+					self:visible(true)
+					self:xy(c5x - 80, headeroff):zoom(tzoom):halign(1):valign(1)
+				end
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			UpdateCommand = function(self)
+				if DLMAN:GetCCFilter() then
+					self:settext(ccornah[1])
+				else
+					self:settext(ccornah[2])
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) then
+					DLMAN:ToggleCCFilter()
+					ind = 0
+					self:GetParent():queuecommand("GetFilteredLeaderboard")
+				end
+			end
 		}
 }
 
@@ -334,6 +382,10 @@ local function makeScoreDisplay(i)
 			if i > numscores then
 				self:visible(false)
 			end
+			self:SetUpdateFunction(function(self)
+				self:queuecommand("PercentMouseover")
+			end)
+			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CurrentSongChangedMessageCommand = function(self)
 			self:visible(false)
@@ -477,13 +529,13 @@ local function makeScoreDisplay(i)
 				end,
 				BeginCommand = function(self)
 					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-						self:x(-10):zoom(0.0000001):maxwidth(1)
+						self:visible(false)
 					end
 				end,
 				DisplayCommand = function(self)
 					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
 						if hs:HasReplayData() then
-							self:settext("Watch")
+							self:settext(translated_info["Watch"])
 						else
 							self:settext("")
 						end
@@ -509,9 +561,42 @@ local function makeScoreDisplay(i)
 					self:visible(true):addy(-row2yoff)
 				end
 			},
+		Def.Quad {
+				InitCommand = function(self)
+					self:x(c5x):zoomto(50,10):halign(1):valign(1)
+					if collapsed then
+						self:x(c5x):zoomto(40, 10):halign(1):valign(0.5)
+					end
+					self:diffusealpha(0)
+				end,
+				PercentMouseoverCommand = function(self)
+					if isOver(self) and self:IsVisible() then
+						self:GetParent():GetChild("NormalText"):visible(false)
+						self:GetParent():GetChild("LongerText"):visible(true)
+					else
+						self:GetParent():GetChild("NormalText"):visible(true)
+						self:GetParent():GetChild("LongerText"):visible(false)
+					end
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) and hs and not collapsed then
+						if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
+						if hs:HasReplayData() then
+							DLMAN:RequestOnlineScoreReplayData(
+								hs,
+								function()
+									setScoreForPlot(hs)
+									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")					
+								end
+							)
+						end
+					end
+				end
+			},
 		LoadFont("Common normal") ..
 			{
 				--percent
+				Name="NormalText",
 				InitCommand = function(self)
 					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
 					if collapsed then
@@ -520,6 +605,20 @@ local function makeScoreDisplay(i)
 				end,
 				DisplayCommand = function(self)
 					self:settextf("%05.2f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
+				end
+			},
+			LoadFont("Common normal") ..
+			{
+				--percent
+				Name="LongerText",
+				InitCommand = function(self)
+					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
+					if collapsed then
+						self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settextf("%05.4f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
 				end
 			},
 		LoadFont("Common normal") ..

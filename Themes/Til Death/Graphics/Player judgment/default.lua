@@ -32,7 +32,7 @@ end
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
-		Texture = "../../../../" .. getAssetPath("judgement"),
+		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
 			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY)
@@ -55,13 +55,19 @@ local t =
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)
-		if param.HoldNoteScore then
+		if param.HoldNoteScore or param.FromReplay then
 			return
 		end
 		local iNumStates = c.Judgment:GetNumStates()
 		local iFrame = TNSFrames[param.TapNoteScore]
 		if not iFrame then
 			return
+		end
+		if iNumStates == 12 then
+			iFrame = iFrame * 2
+			if not param.Early then
+				iFrame = iFrame + 1
+			end
 		end
 
 		self:playcommand("Reset")
@@ -76,4 +82,4 @@ if enabledJudgment then
 	return t
 end
 
-return {}
+return Def.ActorFrame {}

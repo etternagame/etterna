@@ -32,6 +32,17 @@ function GameOverOrContinue()
 	end
 end
 
+function ToGameplay()
+	local mode = GAMESTATE:GetGameplayMode()
+	if mode == "GameplayMode_Practice" then
+		return "ScreenGameplayPractice"
+	elseif mode == "GameplayMode_Replay" then
+		return "ScreenGameplayReplay"
+	else
+		return "ScreenGameplay"
+	end
+end
+
 Branch = {
 	Init = function()
 		return "ScreenInit"
@@ -63,11 +74,7 @@ Branch = {
 		end
 	end,
 	AfterTitleMenu = function()
-		if PREFSMAN:GetPreference("ShowCaution") then
-			return "ScreenCaution"
-		else
-			return Branch.StartGame()
-		end
+		return Branch.StartGame()
 	end,
 	StartGame = function()
 		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
@@ -107,8 +114,6 @@ Branch = {
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
-
-		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
 		if (THEME:GetMetric("Common", "AutoSetStyle") == true) then
@@ -188,9 +193,6 @@ Branch = {
 		else
 			return "ScreenStageInformation"
 		end
-	end,
-	GameplayScreen = function()
-		return IsRoutine() and "ScreenGameplayShared" or "ScreenGameplay"
 	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"

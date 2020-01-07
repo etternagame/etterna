@@ -15,7 +15,9 @@ Cache/
 Logs/
 Program/
 Save/
+Screenshots/
 Songs/
 
 # Misc Ignores
 crashinfo.txt
+nowplaying.txt

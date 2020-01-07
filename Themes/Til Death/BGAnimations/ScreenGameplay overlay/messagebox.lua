@@ -1,5 +1,5 @@
 local settext = BitmapText.settext
-local isPractice = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
+local isPractice = GAMESTATE:IsPracticeMode()
 
 local function highlight(self)
 	self:queuecommand("Highlight")
@@ -13,10 +13,18 @@ local function highlightIfOver(self)
 	end
 end
 
+local function transStr(line)
+	return THEME:GetString("CustomizeGameplay", line)
+end
+
 return Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
 		self:SetUpdateFunction(highlight)
+	end,
+	OffCommand = function(self)
+		-- save CustomizeGameplay changes when leaving the screen
+		playerConfig:save(pn_to_profile_slot(PLAYER_1))
 	end,
 	Def.BitmapText {
 		Name = "message",
@@ -30,51 +38,56 @@ return Def.ActorFrame {
 		Name = "Instructions",
 		Font = "Common Normal",
 		InitCommand = function(self)
-			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.45):visible(true)
+			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.4):visible(true)
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
 		end,
 		OnCommand = function(self)
 			local text = {
-				"Enable AutoplayCPU with shift+f8\n",
-				"Press keys to toggle active elements",
-				"Right click cancels any active element\n",
-				"1: Judgement Text Position",
-				"2: Judgement Text Size",
-				"3: Combo Text Position",
-				"4: Combo Text Size",
-				"5: Error Bar Text Position",
-				"6: Error Bar Text Size",
-				"7: Target Tracker Text Position",
-				"8: Target Tracker Text Size",
-				"9: Full Progress Bar Position",
-				"0: Full Progress Bar Size",
-				"q: Mini Progress Bar Position",
-				"w: Display Percent Text Position",
-				"e: Display Percent Text Size",
-				"r: Notefield Position",
-				"t: Notefield Size",
-				"y: NPS Display Text Position",
-				"u: NPS Display Text Size",
-				"i: NPS Graph Position",
-				"o: NPS Graph Size",
-				"p: Judge Counter Position",
-				"a: Leaderboard Position",
-				"s: Leaderboard Size",
-				"d: Leaderboard Spacing",
-				"f: Replay Buttons Position",
+				transStr("InstructionAutoplay"),
+				transStr("InstructionPressKeys"),
+				transStr("InstructionCancel"),
+				"1: "..transStr("JudgmentPosition"),
+				"2: "..transStr("JudgmentSize"),
+				"3: "..transStr("ComboPosition"),
+				"4: "..transStr("ComboSize"),
+				"5: "..transStr("ErrorBarPosition"),
+				"6: "..transStr("ErrorBarSize"),
+				"7: "..transStr("TargetTrackerPosition"),
+				"8: "..transStr("TargetTrackerSize"),
+				"9: "..transStr("FullProgressBarPosition"),
+				"0: "..transStr("FullProgressBarSize"),
+				"q: "..transStr("MiniProgressBarPosition"),
+				"w: "..transStr("DisplayPercentPosition"),
+				"e: "..transStr("DisplayPercentSize"),
+				"r: "..transStr("NotefieldPosition"),
+				"t: "..transStr("NotefieldSize"),
+				"y: "..transStr("NPSDisplayPosition"),
+				"u: "..transStr("NPSDisplaySize"),
+				"i: "..transStr("NPSGraphPosition"),
+				"o: "..transStr("NPSGraphSize"),
+				"p: "..transStr("JudgeCounterPosition"),
+				"a: "..transStr("LeaderboardPosition"),
+				"s: "..transStr("LeaderboardSize"),
+				"d: "..transStr("LeaderboardSpacing"),
+				"f: "..transStr("ReplayButtonPosition"),
 				--"g: Replay Buttons Size",
-				"h: Replay Buttons Spacing",
-				"j: Lifebar Position",
-				"k: Lifebar Size",
-				"l: Lifebar Rotation"
+				"h: "..transStr("ReplayButtonSpacing"),
+				"j: "..transStr("LifebarPosition"),
+				"k: "..transStr("LifebarSize"),
+				"l: "..transStr("LifebarRotation"),
+				"x: "..transStr("BPMPosition"),
+				"c: "..transStr("BPMSize"),
+				"v: "..transStr("RatePosition"),
+				"b: "..transStr("RateSize")
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-				table.insert(text, "/: Lane Cover Height")
+				local selectStr = THEME:GetString("GameButton", "Select")
+				table.insert(text, selectStr..": "..transStr("LaneCoverHeight"))
 			end
 			if isPractice then
-				table.insert(text, "z: Density Graph Position")
+				table.insert(text, "z: "..transStr("DensityGraphPosition"))
 			end
 			self:settext(table.concat(text, "\n"))
 		end

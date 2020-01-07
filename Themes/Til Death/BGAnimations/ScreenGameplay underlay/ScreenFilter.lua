@@ -104,6 +104,7 @@ local function laneHighlight()
 			JudgmentMessageCommand=function(self,params)
 				local notes = params.Notes
 				local firstTrack = params.FirstTrack+1
+				if params.HoldNoteScore then return end
 				if params.Player == pn and params.TapNoteScore then
 					local enum  = Enum.Reverse(TapNoteScore)[params.TapNoteScore]
 					if enum < judgeThreshold and enum > 3 and i == firstTrack then
@@ -174,41 +175,6 @@ if numPlayers == 1 then
 		end
 	}
 	t[#t+1] = laneHighlight()
-else
-	-- two players... a bit more complex.
-	if styleType == "TwoPlayersSharedSides" then
-		-- routine, just use one in the center.
-		local player = GAMESTATE:GetMasterPlayerNumber()
-		local pNum = player == PLAYER_1 and 1 or 2
-		local metricName = "PlayerP" .. pNum .. "TwoPlayersSharedSidesX"
-		t[#t + 1] =
-			Def.Quad {
-			Name = "RoutineFilter",
-			InitCommand = function(self)
-				self:x(THEME:GetMetric("ScreenGameplay", metricName)):CenterY():zoomto(
-					filterWidth * getNoteFieldScale(player),
-					SCREEN_HEIGHT
-				):diffusecolor(filterColor):diffusealpha(filterAlphas[player])
-			end
-		}
-	else
-		-- otherwise we need two separate ones. to the pairsmobile!
-		for i, player in ipairs(PlayerNumber) do
-			local pNum = (player == PLAYER_1) and 1 or 2
-			filterAlphas[player] = playerConfig:get_data(pn_to_profile_slot(player)).ScreenFilter
-			local metricName = string.format("PlayerP%i%sX", pNum, styleType)
-			local pos = THEME:GetMetric("ScreenGameplay", metricName)
-			t[#t + 1] =
-				Def.Quad {
-				Name = "Player" .. pNum .. "Filter",
-				InitCommand = function(self)
-					self:x(pos):CenterY():zoomto(filterWidth * getNoteFieldScale(player), SCREEN_HEIGHT):diffusecolor(filterColor):diffusealpha(
-						filterAlphas[player]
-					)
-				end
-			}
-		end
-	end
 end
 
 return t

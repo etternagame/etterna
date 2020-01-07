@@ -14,7 +14,7 @@ class XNodeValue
 	virtual ~XNodeValue() = default;
 	virtual XNodeValue* Copy() const = 0;
 
-	virtual void GetValue(RString& out) const = 0;
+	virtual void GetValue(std::string& out) const = 0;
 	virtual void GetValue(int& out) const = 0;
 	virtual void GetValue(float& out) const = 0;
 	virtual void GetValue(bool& out) const = 0;
@@ -29,7 +29,7 @@ class XNodeValue
 		return val;
 	}
 
-	virtual void SetValue(const RString& v) = 0;
+	virtual void SetValue(const std::string& v) = 0;
 	virtual void SetValue(int v) = 0;
 	virtual void SetValue(float v) = 0;
 	virtual void SetValue(unsigned v) = 0;
@@ -39,25 +39,25 @@ class XNodeValue
 class XNodeStringValue : public XNodeValue
 {
   public:
-	RString m_sValue;
+	std::string m_sValue;
 
 	XNodeValue* Copy() const override { return new XNodeStringValue(*this); }
 
-	void GetValue(RString& out) const override;
+	void GetValue(std::string& out) const override;
 	void GetValue(int& out) const override;
 	void GetValue(float& out) const override;
 	void GetValue(bool& out) const override;
 	void GetValue(unsigned& out) const override;
 	void PushValue(lua_State* L) const override;
 
-	void SetValue(const RString& v) override;
+	void SetValue(const std::string& v) override;
 	void SetValue(int v) override;
 	void SetValue(float v) override;
 	void SetValue(unsigned v) override;
 	void SetValueFromStack(lua_State* L) override;
 };
 
-typedef map<RString, XNodeValue*> XAttrs;
+typedef map<std::string, XNodeValue*> XAttrs;
 class XNode;
 typedef vector<XNode*> XNodes;
 /** @brief Loop through each node. */
@@ -89,16 +89,16 @@ class XNode
 {
   private:
 	XNodes m_childs; // child nodes
-	multimap<RString, XNode*> m_children_by_name;
+	multimap<std::string, XNode*> m_children_by_name;
 
   public:
-	RString m_sName;
+	std::string m_sName;
 	XAttrs m_attrs; // attributes
 
-	void SetName(const RString& sName) { m_sName = sName; }
-	const RString& GetName() const { return m_sName; }
+	void SetName(const std::string& sName) { m_sName = sName; }
+	const std::string& GetName() const { return m_sName; }
 
-	static const RString TEXT_ATTRIBUTE;
+	static const std::string TEXT_ATTRIBUTE;
 	template<typename T>
 	void GetTextValue(T& out) const
 	{
@@ -106,10 +106,10 @@ class XNode
 	}
 
 	// in own attribute list
-	const XNodeValue* GetAttr(const RString& sAttrName) const;
-	XNodeValue* GetAttr(const RString& sAttrName);
+	const XNodeValue* GetAttr(const std::string& sAttrName) const;
+	XNodeValue* GetAttr(const std::string& sAttrName);
 	template<typename T>
-	bool GetAttrValue(const RString& sName, T& out) const
+	bool GetAttrValue(const std::string& sName, T& out) const
 	{
 		const XNodeValue* pAttr = GetAttr(sName);
 		if (pAttr == NULL)
@@ -117,7 +117,7 @@ class XNode
 		pAttr->GetValue(out);
 		return true;
 	}
-	bool PushAttrValue(lua_State* L, const RString& sName) const;
+	bool PushAttrValue(lua_State* L, const std::string& sName) const;
 
 	XNodes::iterator GetChildrenBegin() { return m_childs.begin(); }
 	XNodes::const_iterator GetChildrenBegin() const { return m_childs.begin(); }
@@ -126,10 +126,10 @@ class XNode
 	bool ChildrenEmpty() const { return m_childs.empty(); }
 
 	// in one level child nodes
-	const XNode* GetChild(const RString& sName) const;
-	XNode* GetChild(const RString& sName);
+	const XNode* GetChild(const std::string& sName) const;
+	XNode* GetChild(const std::string& sName);
 	template<typename T>
-	bool GetChildValue(const RString& sName, T& out) const
+	bool GetChildValue(const std::string& sName, T& out) const
 	{
 		const XNode* pChild = GetChild(sName);
 		if (pChild == NULL)
@@ -137,17 +137,17 @@ class XNode
 		pChild->GetTextValue(out);
 		return true;
 	}
-	bool PushChildValue(lua_State* L, const RString& sName) const;
+	bool PushChildValue(lua_State* L, const std::string& sName) const;
 
 	// modify DOM
 	template<typename T>
-	XNode* AppendChild(const RString& sName, T value)
+	XNode* AppendChild(const std::string& sName, T value)
 	{
 		XNode* p = AppendChild(sName);
 		p->AppendAttr(XNode::TEXT_ATTRIBUTE, value);
 		return p;
 	}
-	XNode* AppendChild(const RString& sName)
+	XNode* AppendChild(const std::string& sName)
 	{
 		auto* p = new XNode(sName);
 		return AppendChild(p);
@@ -157,21 +157,21 @@ class XNode
 	void RemoveChildFromByName(XNode* node);
 	void RenameChildInByName(XNode* node);
 
-	XNodeValue* AppendAttrFrom(const RString& sName,
+	XNodeValue* AppendAttrFrom(const std::string& sName,
 							   XNodeValue* pValue,
 							   bool bOverwrite = true);
-	XNodeValue* AppendAttr(const RString& sName);
+	XNodeValue* AppendAttr(const std::string& sName);
 	template<typename T>
-	XNodeValue* AppendAttr(const RString& sName, T value)
+	XNodeValue* AppendAttr(const std::string& sName, T value)
 	{
 		XNodeValue* pVal = AppendAttr(sName);
 		pVal->SetValue(value);
 		return pVal;
 	}
-	bool RemoveAttr(const RString& sName);
+	bool RemoveAttr(const std::string& sName);
 
 	XNode();
-	explicit XNode(const RString& sName);
+	explicit XNode(const std::string& sName);
 	XNode(const XNode& cpy);
 	~XNode() { Free(); }
 

@@ -4,10 +4,16 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include <queue>
-#include "uWS.h"
-#include "Etterna/Models/Misc/JsonUtil.h"
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "rapidjson/document.h"
+#define ASIO_STANDALONE
+#define _WEBSOCKETPP_CPP11_INTERNAL_
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
+typedef websocketpp::config::asio_tls_client::message_type::ptr wss_message_ptr;
+typedef ::websocketpp::client<websocketpp::config::asio_tls_client> wss_client;
+#include <websocketpp/config/asio_no_tls_client.hpp>
+typedef ::websocketpp::config::asio_client::message_type::ptr ws_message_ptr;
+typedef ::websocketpp::client<websocketpp::config::asio_client> ws_client;
 
 class LoadingWindow;
 
@@ -139,10 +145,10 @@ struct NetServerInfo
 class ChartRequest
 {
   public:
-	ChartRequest(json& j)
-	  : chartkey(j["chartkey"].get<string>())
-	  , user(j["requester"].get<string>())
-	  , rate(j["rate"])
+	ChartRequest(const char* ck, const char* requester, int rate)
+	  : chartkey(ck)
+	  , user(requester)
+	  , rate(rate)
 	{
 	}
 	const string chartkey;
@@ -239,19 +245,23 @@ class NetProtocol
 };
 
 class ETTProtocol : public NetProtocol
-{ // Websockets using uwebsockets sending json
-	uWS::Hub* uWSh = new uWS::Hub();
-	vector<json> newMessages;
+{ // Websockets using websocketpp sending json
+	std::unique_ptr<std::thread> thread;
+	std::mutex messageBufferMutex;
+	vector<std::unique_ptr<rapidjson::Document>> newMessages;
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	string errorMsg;
-	uWS::WebSocket<uWS::CLIENT>* ws{ nullptr };
-	void FindJsonChart(NetworkSyncManager* n, json& ch);
+	std::shared_ptr<ws_client> client{ nullptr };
+	std::shared_ptr<wss_client> secure_client{ nullptr };
+	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };
+	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
 	~ETTProtocol();
 	bool waitingForTimeout{ false };
+	bool creatingRoom{ false };
 	clock_t timeoutStart;
 	double timeout;
 	function<void(void)> onTimeout;
@@ -279,7 +289,6 @@ class ETTProtocol : public NetProtocol
 	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
-	void Send(json msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score,
 	int combo, float offset, int numNotes) override; void
@@ -457,28 +466,3 @@ class NetworkSyncManager
 extern NetworkSyncManager* NSMAN;
 
 #endif
-
-/*
- * (c) 2003-2004 Charles Lohr, Joshua Allen
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

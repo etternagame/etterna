@@ -30,37 +30,34 @@ ScreenStatsOverlay::Init()
 	 * the time in the log. */
 	m_LastSkip = 0;
 
-	SHOW_SKIPS.Load(m_sName, "ShowSkips");
-	if (SHOW_SKIPS && PREFSMAN->m_bShowSkips) {
-		SKIP_X.Load(m_sName, "SkipX");
-		SKIP_Y.Load(m_sName, "SkipY");
-		SKIP_SPACING_Y.Load(m_sName, "SkipSpacingY");
-		SKIP_WIDTH.Load(m_sName, "SkipWidth");
+	SKIP_X.Load(m_sName, "SkipX");
+	SKIP_Y.Load(m_sName, "SkipY");
+	SKIP_SPACING_Y.Load(m_sName, "SkipSpacingY");
+	SKIP_WIDTH.Load(m_sName, "SkipWidth");
 
-		RectF rectSkips =
-		  RectF(SKIP_X - SKIP_WIDTH / 2,
-				SKIP_Y - (SKIP_SPACING_Y * NUM_SKIPS_TO_SHOW) / 2 - 10,
-				SKIP_X + SKIP_WIDTH / 2,
-				SKIP_Y + (SKIP_SPACING_Y * NUM_SKIPS_TO_SHOW) / 2 + 10);
-		m_quadSkipBackground.StretchTo(rectSkips);
-		m_quadSkipBackground.SetDiffuse(RageColor(0, 0, 0, 0.4f));
-		this->AddChild(&m_quadSkipBackground);
+	RectF rectSkips =
+	  RectF(SKIP_X - SKIP_WIDTH / 2,
+			SKIP_Y - (SKIP_SPACING_Y * NUM_SKIPS_TO_SHOW) / 2 - 10,
+			SKIP_X + SKIP_WIDTH / 2,
+			SKIP_Y + (SKIP_SPACING_Y * NUM_SKIPS_TO_SHOW) / 2 + 10);
+	m_quadSkipBackground.StretchTo(rectSkips);
+	m_quadSkipBackground.SetDiffuse(RageColor(0, 0, 0, 0.4f));
+	this->AddChild(&m_quadSkipBackground);
 
-		for (int i = 0; i < NUM_SKIPS_TO_SHOW; i++) {
-			/* This is somewhat big.  Let's put it on the right side, where
-			 * it'll obscure the 2P side during gameplay; there's nowhere to put
-			 * it that doesn't obscure something, and it's just a diagnostic. */
-			m_textSkips[i].LoadFromFont(THEME->GetPathF("Common", "normal"));
-			m_textSkips[i].SetX(SKIP_X);
-			m_textSkips[i].SetY(SCALE(i,
-									  0,
-									  NUM_SKIPS_TO_SHOW - 1,
-									  rectSkips.top + 10,
-									  rectSkips.bottom - 10));
-			m_textSkips[i].SetDiffuse(RageColor(1, 1, 1, 0));
-			m_textSkips[i].SetShadowLength(0);
-			this->AddChild(&m_textSkips[i]);
-		}
+	for (int i = 0; i < NUM_SKIPS_TO_SHOW; i++) {
+		/* This is somewhat big.  Let's put it on the right side, where
+		 * it'll obscure the 2P side during gameplay; there's nowhere to put
+		 * it that doesn't obscure something, and it's just a diagnostic. */
+		m_textSkips[i].LoadFromFont(THEME->GetPathF("Common", "normal"));
+		m_textSkips[i].SetX(SKIP_X);
+		m_textSkips[i].SetY(SCALE(i,
+								  0,
+								  NUM_SKIPS_TO_SHOW - 1,
+								  rectSkips.top + 10,
+								  rectSkips.bottom - 10));
+		m_textSkips[i].SetDiffuse(RageColor(1, 1, 1, 0));
+		m_textSkips[i].SetShadowLength(0);
+		this->AddChild(&m_textSkips[i]);
 	}
 
 	this->SubscribeToMessage("ShowStatsChanged");
@@ -83,8 +80,12 @@ ScreenStatsOverlay::Update(float fDeltaTime)
 	this->SetVisible(PREFSMAN->m_bShowStats);
 	if (PREFSMAN->m_bShowStats) {
 		m_textStats.SetText(DISPLAY->GetStats());
-		if (SHOW_SKIPS && PREFSMAN->m_bShowSkips)
+		if (PREFSMAN->m_bShowSkips) {
+			m_quadSkipBackground.SetVisible(true);
 			UpdateSkips();
+		} else {
+			m_quadSkipBackground.SetVisible(false);
+		}
 	}
 }
 
@@ -158,28 +159,3 @@ ScreenStatsOverlay::UpdateSkips()
 		}
 	}
 }
-
-/*
- * (c) 2001-2005 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

@@ -43,7 +43,6 @@ GameCommand::Init()
 	m_LuaFunction.Unset();
 	m_pSong = NULL;
 	m_pSteps = NULL;
-	m_pCharacter = NULL;
 	m_SortOrder = SortOrder_Invalid;
 	m_sSoundPath = "";
 	m_vsScreensToPrepare.clear();
@@ -64,7 +63,8 @@ CompareSongOptions(const SongOptions& so1, const SongOptions& so2);
 bool
 GameCommand::DescribesCurrentModeForAllPlayers() const
 {
-	FOREACH_HumanPlayer(pn) if (!DescribesCurrentMode(pn)) return false;
+	if (!DescribesCurrentMode(PLAYER_1))
+		return false;
 
 	return true;
 }
@@ -81,7 +81,8 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 	// doesn't match the difficulty of m_pCurSteps.
 	if (m_pSteps == NULL && m_dc != Difficulty_Invalid) {
 		// Why is this checking for all players?
-		if (GAMESTATE->m_PreferredDifficulty != m_dc) return false;
+		if (GAMESTATE->m_PreferredDifficulty != m_dc)
+			return false;
 	}
 
 	if (m_sAnnouncer != "" && m_sAnnouncer != ANNOUNCER->GetCurAnnouncerName())
@@ -115,9 +116,6 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 	if (m_pSong && GAMESTATE->m_pCurSong.Get() != m_pSong)
 		return false;
 	if (m_pSteps && GAMESTATE->m_pCurSteps.Get() != m_pSteps)
-		return false;
-	if ((m_pCharacter != nullptr) &&
-		GAMESTATE->m_pCurCharacters != m_pCharacter)
 		return false;
 	if (!m_sSongGroup.empty() &&
 		GAMESTATE->m_sPreferredSongGroup != m_sSongGroup)
@@ -469,13 +467,13 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 								   GAMESTATE->GetMasterPlayerNumber());
 		// If only one side is joined and we picked a style that requires both
 		// sides, join the other side.
-		switch( m_pStyle->m_StyleType )
-		{
-		case StyleType_OnePlayerOneSide:
-		case StyleType_OnePlayerTwoSides:
-			break;
-		default:
-			LuaHelpers::ReportScriptError("Invalid StyleType: " + m_pStyle->m_StyleType);
+		switch (m_pStyle->m_StyleType) {
+			case StyleType_OnePlayerOneSide:
+			case StyleType_OnePlayerTwoSides:
+				break;
+			default:
+				LuaHelpers::ReportScriptError("Invalid StyleType: " +
+											  m_pStyle->m_StyleType);
 		}
 	}
 	if (m_dc != Difficulty_Invalid)
@@ -510,8 +508,6 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 	}
 	if (m_pSteps)
 		GAMESTATE->m_pCurSteps.Set(m_pSteps);
-	if (m_pCharacter)
-		GAMESTATE->m_pCurCharacters = m_pCharacter;
 	for (map<RString, RString>::const_iterator i = m_SetEnv.begin();
 		 i != m_SetEnv.end();
 		 i++) {
@@ -562,8 +558,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		// applying options affects only the current stage
 		PlayerOptions po;
 		GAMESTATE->GetDefaultPlayerOptions(po);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(
-			ModsLevel_Stage, po);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.Assign(ModsLevel_Stage, po);
 
 		SongOptions so;
 		GAMESTATE->GetDefaultSongOptions(so);
@@ -577,16 +572,15 @@ GameCommand::IsZero() const
 	if (m_pm != PlayMode_Invalid || m_pStyle != NULL ||
 		m_dc != Difficulty_Invalid || m_sAnnouncer != "" ||
 		m_sPreferredModifiers != "" || m_sStageModifiers != "" ||
-		m_pSong != NULL || m_pSteps != NULL || m_pCharacter != NULL ||
-		!m_sSongGroup.empty() || m_SortOrder != SortOrder_Invalid ||
-		!m_sProfileID.empty() || !m_sUrl.empty())
+		m_pSong != NULL || m_pSteps != NULL || !m_sSongGroup.empty() ||
+		m_SortOrder != SortOrder_Invalid || !m_sProfileID.empty() ||
+		!m_sUrl.empty())
 		return false;
 
 	return true;
 }
 
 // lua start
-#include "Character.h"
 #include "Game.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -651,14 +645,6 @@ class LunaGameCommand : public Luna<GameCommand>
 			p->m_pSteps->PushSelf(L);
 		return 1;
 	}
-	static int GetCharacter(T* p, lua_State* L)
-	{
-		if (p->m_pCharacter == NULL)
-			lua_pushnil(L);
-		else
-			p->m_pCharacter->PushSelf(L);
-		return 1;
-	}
 	static int GetSongGroup(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->m_sSongGroup);
@@ -702,7 +688,6 @@ class LunaGameCommand : public Luna<GameCommand>
 		ADD_METHOD(GetProfileID);
 		ADD_METHOD(GetSong);
 		ADD_METHOD(GetSteps);
-		ADD_METHOD(GetCharacter);
 		ADD_METHOD(GetSongGroup);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetUrl);
@@ -714,28 +699,3 @@ class LunaGameCommand : public Luna<GameCommand>
 
 LUA_REGISTER_CLASS(GameCommand)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

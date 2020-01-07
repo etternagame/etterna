@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil.h"
+#include "RageUtil/Misc/RageString.h"
 
 #include <cfloat>
 #include <ctime>
@@ -379,14 +380,6 @@ GetLocalTime()
 	struct tm tm;
 	localtime_r(&t, &tm);
 	return tm;
-}
-
-RString
-ssprintf(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va, fmt);
-	return vssprintf(fmt, va);
 }
 
 #define FMT_BLOCK_SIZE 2048 // # of bytes to increment per try
@@ -1367,7 +1360,7 @@ StripCvsAndSvn(vector<RString>& vs)
 static bool
 MacResourceFork(const RString& s)
 {
-	return s.Left(2).EqualsNoCase("._");
+	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
 }
 
 void
@@ -2085,6 +2078,100 @@ ReplaceEntityText(RString& sText, const map<char, RString>& m)
 	sText = sRet;
 }
 
+// &a; -> a
+void
+ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
+{
+	std::string sRet;
+
+	size_t iOffset = 0;
+	while (iOffset != sText.size()) {
+		size_t iStart = sText.find('&', iOffset);
+		if (iStart == sText.npos) {
+			// Optimization: if we didn't replace anything at all, do nothing.
+			if (iOffset == 0)
+				return;
+
+			// Append the rest of the string.
+			sRet.append(sText, iOffset, sRet.npos);
+			break;
+		}
+
+		// Append the text between iOffset and iStart.
+		sRet.append(sText, iOffset, iStart - iOffset);
+		iOffset += iStart - iOffset;
+
+		// Optimization: stop early on "&", so "&&&&&&&&&&&" isn't n^2.
+		size_t iEnd = sText.find_first_of("&;", iStart + 1);
+		if (iEnd == sText.npos || sText[iEnd] == '&') {
+			// & with no matching ;, or two & in a row. Append the & and
+			// continue.
+			sRet.append(sText, iStart, 1);
+			++iOffset;
+			continue;
+		}
+
+		std::string sElement = sText.substr(iStart + 1, iEnd - iStart - 1);
+		Rage::make_lower(sElement);
+
+		map<std::string, std::string>::const_iterator it = m.find(sElement);
+		if (it == m.end()) {
+			sRet.append(sText, iStart, iEnd - iStart + 1);
+			iOffset = iEnd + 1;
+			continue;
+		}
+
+		const std::string& sTo = it->second;
+		sRet.append(sTo);
+		iOffset = iEnd + 1;
+	}
+
+	sText = sRet;
+}
+
+// abcd -> &a; &b; &c; &d;
+void
+ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
+{
+	std::string sFind;
+
+	FOREACHM_CONST(char, std::string, m, c)
+	sFind.append(1, c->first);
+
+	std::string sRet;
+
+	size_t iOffset = 0;
+	while (iOffset != sText.size()) {
+		size_t iStart = sText.find_first_of(sFind, iOffset);
+		if (iStart == sText.npos) {
+			// Optimization: if we didn't replace anything at all, do nothing.
+			if (iOffset == 0)
+				return;
+
+			// Append the rest of the string.
+			sRet.append(sText, iOffset, sRet.npos);
+			break;
+		}
+
+		// Append the text between iOffset and iStart.
+		sRet.append(sText, iOffset, iStart - iOffset);
+		iOffset += iStart - iOffset;
+
+		char sElement = sText[iStart];
+
+		map<char, std::string>::const_iterator it = m.find(sElement);
+		ASSERT(it != m.end());
+
+		const std::string& sTo = it->second;
+		sRet.append(1, '&');
+		sRet.append(sTo);
+		sRet.append(1, ';');
+		++iOffset;
+	}
+
+	sText = sRet;
+}
+
 // Replace &#nnnn; (decimal) and &xnnnn; (hex) with corresponding UTF-8
 // characters.
 void
@@ -2643,28 +2730,3 @@ LuaFunc_get_music_file_length(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(get_music_file_length);
-
-/*
- * Copyright (c) 2001-2005 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

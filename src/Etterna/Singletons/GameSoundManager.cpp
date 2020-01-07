@@ -94,11 +94,19 @@ struct MusicToPlay
 	bool bForceLoop;
 	float fStartSecond, fLengthSeconds, fFadeInLengthSeconds,
 	  fFadeOutLengthSeconds;
-	bool bAlignBeat, bApplyMusicRate;
+	bool bAlignBeat, bApplyMusicRate, bAccurateSync;
 	MusicToPlay() { HasTiming = false; }
 };
 vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
+
+// A position to be set on a sound
+struct SoundPositionSetter
+{
+	RageSound* m_psound;
+	float fSeconds;
+};
+vector<SoundPositionSetter> g_PositionsToSet;
 
 void
 GameSoundManager::StartMusic(MusicToPlay& ToPlay)
@@ -117,8 +125,9 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * the sound. Be sure to leave the rest of g_Playing in place. */
 		RageSound* pOldSound = g_Playing->m_Music;
 		g_Playing->m_Music = new RageSound;
-		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
+			g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+													recentPCMSamplesBufferSize);
 		L.Unlock();
 
 		delete pOldSound;
@@ -132,8 +141,10 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 	{
 		g_Mutex->Unlock();
 		auto* pSound = new RageSound;
-		if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-			pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
+			pSound->SetPlayBackCallback(soundPlayCallback,
+										recentPCMSamplesBufferSize);
+		}
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
 		pSound->Load(ToPlay.m_sFile, false, &params);
@@ -263,6 +274,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		p.m_fFadeInSeconds = ToPlay.fFadeInLengthSeconds;
 		p.m_fFadeOutSeconds = ToPlay.fFadeOutLengthSeconds;
 		p.m_StartTime = when;
+		p.m_bAccurateSync = ToPlay.bAccurateSync;
 		if (ToPlay.bForceLoop)
 			p.StopMode = RageSoundParams::M_LOOP;
 		NewMusic->m_Music->SetParams(p);
@@ -278,8 +290,9 @@ GameSoundManager::DoPlayOnce(RString sPath)
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
 	auto* pSound = new RageSound;
-	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-		pSound->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
+		pSound->SetPlayBackCallback(soundPlayCallback,
+									recentPCMSamplesBufferSize);
 	pSound->Load(sPath, false);
 
 	pSound->Play(false);
@@ -313,7 +326,8 @@ bool
 GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
-		   !g_SoundsToPlayOnceFromAnnouncer.empty() || !g_MusicsToPlay.empty();
+		   !g_SoundsToPlayOnceFromAnnouncer.empty() ||
+		   !g_MusicsToPlay.empty() || !g_PositionsToSet.empty();
 }
 
 void
@@ -364,12 +378,28 @@ GameSoundManager::StartQueuedSounds()
 			g_Mutex->Lock();
 			RageSound* pOldSound = g_Playing->m_Music;
 			g_Playing->m_Music = new RageSound;
-			if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-				g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
 			g_Mutex->Unlock();
+			if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
+				g_Playing->m_Music->SetPlayBackCallback(
+				  soundPlayCallback, recentPCMSamplesBufferSize);
 
 			delete pOldSound;
 		}
+	}
+}
+
+void
+GameSoundManager::HandleSetPosition()
+{
+	g_Mutex->Lock();
+	vector<SoundPositionSetter> vec = g_PositionsToSet;
+	g_PositionsToSet.clear();
+	g_Mutex->Unlock();
+	for (unsigned i = 0; i < vec.size(); i++) {
+		// I wonder if this can crash when sounds get deleted
+		// only one way to find out - checkpoint and see if someone crashes :)
+		CHECKPOINT_M("Setting position for sound.");
+		vec[i].m_psound->SetPositionSeconds(vec[i].fSeconds);
 	}
 }
 
@@ -405,6 +435,8 @@ MusicThread_start(void* p)
 
 		soundman->StartQueuedSounds();
 
+		soundman->HandleSetPosition();
+
 		if (bFlushing) {
 			g_Mutex->Lock();
 			g_Mutex->Signal();
@@ -423,8 +455,10 @@ GameSoundManager::GameSoundManager()
 
 	g_Mutex = new RageEvent("GameSoundManager");
 	g_Playing = new MusicPlaying(new RageSound);
-	if (!soundPlayCallback.IsNil() && soundPlayCallback.IsSet())
-		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize );
+	soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
+	if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet())
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+												recentPCMSamplesBufferSize);
 
 	g_UpdatingTimer = true;
 
@@ -516,9 +550,11 @@ GameSoundManager::Update(float fDeltaTime)
 		}
 
 		if (g_Playing->m_Music->pendingPlayBackCall) {
+			g_Mutex->Unlock();
 			auto L = LUA->Get();
 			g_Playing->m_Music->ExecutePlayBackCallback(L);
 			LUA->Release(L);
+			g_Mutex->Lock();
 		}
 
 		bool bIsPlaying = g_Playing->m_Music->IsPlaying();
@@ -669,7 +705,7 @@ GameSoundManager::GetMusicPath() const
 void
 GameSoundManager::WithRageSoundPlaying(function<void(RageSound*)> f)
 {
-	LockMut(*g_Mutex);
+	// LockMut(*g_Mutex); // commented this to hack around something else
 	f(g_Playing->m_Music);
 }
 
@@ -681,6 +717,18 @@ GameSoundManager::GetPlayingMusicTiming()
 }
 
 void
+GameSoundManager::SetSoundPosition(RageSound* s, float fSeconds)
+{
+	SoundPositionSetter snd;
+	snd.fSeconds = fSeconds;
+	snd.m_psound = s;
+	g_Mutex->Lock();
+	g_PositionsToSet.push_back(snd);
+	g_Mutex->Broadcast();
+	g_Mutex->Unlock();
+}
+
+void
 GameSoundManager::PlayMusic(const RString& sFile,
 							const TimingData* pTiming,
 							bool bForceLoop,
@@ -689,7 +737,8 @@ GameSoundManager::PlayMusic(const RString& sFile,
 							float fFadeInLengthSeconds,
 							float fFadeOutLengthSeconds,
 							bool bAlignBeat,
-							bool bApplyMusicRate)
+							bool bApplyMusicRate,
+							bool bAccurateSync)
 {
 	PlayMusicParams params;
 	params.sFile = sFile;
@@ -733,6 +782,7 @@ GameSoundManager::PlayMusic(PlayMusicParams params,
 	ToPlay.fFadeOutLengthSeconds = params.fFadeOutLengthSeconds;
 	ToPlay.bAlignBeat = params.bAlignBeat;
 	ToPlay.bApplyMusicRate = params.bApplyMusicRate;
+	ToPlay.bAccurateSync = params.bAccurateSync;
 
 	/* Add the MusicToPlay to the g_MusicsToPlay queue. */
 	g_Mutex->Lock();
@@ -803,12 +853,15 @@ GameSoundManager::GetPlayerBalance(PlayerNumber pn)
 	return 0;
 }
 
-void GameSoundManager::HandleMessage(const Message& msg)
+void
+GameSoundManager::HandleMessage(const Message& msg)
 {
-	if (msg.GetName() == "ScreenChanged" && callbackOwningScreen != SCREENMAN->GetTopScreen()) {
-		soundPlayCallback = LuaReference();
+	if (msg.GetName() == "ScreenChanged" &&
+		callbackOwningScreen != SCREENMAN->GetTopScreen()) {
+		soundPlayCallback = std::make_shared<LuaReference>(LuaReference());
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback, recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(soundPlayCallback,
+												recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 	}
 }
@@ -910,20 +963,22 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	static int SetPlayBackCallback(T* p, lua_State* L)
 	{
 		p->callbackOwningScreen = SCREENMAN->GetTopScreen();
-		p->soundPlayCallback = GetFuncArg(1, L);
+		p->soundPlayCallback = std::make_shared<LuaReference>(GetFuncArg(1, L));
 		if (lua_isnumber(L, 2))
 			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback,
+												p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
 	static int ClearPlayBackCallback(T* p, lua_State* L)
 	{
 		p->callbackOwningScreen = nullptr;
-		p->soundPlayCallback.Unset();
+		p->soundPlayCallback->Unset();
 		g_Mutex->Lock();
-		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback, p->recentPCMSamplesBufferSize);
+		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback,
+												p->recentPCMSamplesBufferSize);
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
@@ -961,28 +1016,3 @@ LuaFunc_get_sound_driver_list(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(get_sound_driver_list);
-
-/*
- * Copyright (c) 2003-2005 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

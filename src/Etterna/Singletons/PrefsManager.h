@@ -20,8 +20,8 @@ enum MusicWheelUsesSections
 /** @brief The options for allowing the W1 timing. */
 enum AllowW1
 {
-	ALLOW_W1_NEVER,		   /**< The W1 timing is not used. */
-	ALLOW_W1_EVERYWHERE,   /**< The W1 timing is used for all modes. */
+	ALLOW_W1_NEVER,		 /**< The W1 timing is not used. */
+	ALLOW_W1_EVERYWHERE, /**< The W1 timing is used for all modes. */
 	NUM_AllowW1,
 	AllowW1_Invalid
 };
@@ -48,14 +48,6 @@ enum RandomBackgroundMode
 	BGMODE_RANDOMMOVIES,
 	NUM_RandomBackgroundMode,
 	RandomBackgroundMode_Invalid
-};
-enum ShowDancingCharacters
-{
-	SDC_Off,
-	SDC_Random,
-	SDC_Select,
-	NUM_ShowDancingCharacters,
-	ShowDancingCharacters_Invalid
 };
 enum ImageCacheMode
 {
@@ -177,9 +169,10 @@ class PrefsManager
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions; // how to play a mode
-	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
+	Preference<bool> m_bNoGlow;
+	Preference<bool> m_bReplaysUseScoreMods;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
@@ -189,23 +182,23 @@ class PrefsManager
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 
-	Preference<Maybe>	m_ShowSongOptions;
-	Preference<float>	m_fMinPercentToSaveScores;
-	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
-	Preference<float>	m_fGlobalOffsetSeconds;
-	Preference<RString>	m_sLanguage;
-	Preference<int>	m_iCenterImageTranslateX;
-	Preference<int>	m_iCenterImageTranslateY;
-	Preference<int>	m_fCenterImageAddWidth;
-	Preference<int>	m_fCenterImageAddHeight;
+	Preference<Maybe> m_ShowSongOptions;
+	Preference<float> m_fMinPercentToSaveScores;
+	Preference<float> m_fGlobalOffsetSeconds;
+	Preference<RString> m_sLanguage;
+	Preference<int> m_iCenterImageTranslateX;
+	Preference<int> m_iCenterImageTranslateY;
+	Preference<int> m_fCenterImageAddWidth;
+	Preference<int> m_fCenterImageAddHeight;
 	Preference<bool> m_bCelShadeModels;
 	Preference<bool> m_bPreferredSortUsesGroups;
 	Preference<bool> EnablePitchRates;
+	Preference<bool> LiftsOnOsuHolds;
+	Preference<bool> m_bEasterEggs;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
 	Preference<float> m_fPadStickSeconds;
-
 
 	// Useful for non 4:3 displays and resolutions < 640x480 where texels don't
 	// map directly to pixels.
@@ -290,30 +283,3 @@ extern PrefsManager*
   PREFSMAN; // global and accessible from anywhere in our program
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Chris Gomez (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

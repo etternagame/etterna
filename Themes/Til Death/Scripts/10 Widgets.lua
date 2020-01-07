@@ -1,13 +1,12 @@
-
 --[[
 	There are 2 types of widgets:
-		- Wrappers for normal Actors which aim to have a more declarative uage and provide a 
-		relatively simple way to access the C++ actor handles since they're automagically bound 
+		- Wrappers for normal Actors which aim to have a more declarative uage and provide a
+		relatively simple way to access the C++ actor handles since they're automagically bound
 		to widget.actor in initialization.
 		- Higher level widgets like TextBox, Slider, ComboBox, etc
 	Of course, all of these "widgets" just return some combination of actors with some behaviour.
-	For every widget, you can do widget.actor to get the actual actor (As long as that 
-		actor has been initialized, meaning it's InitCommand was executed. Using it in OnCommand's 
+	For every widget, you can do widget.actor to get the actual actor (As long as that
+		actor has been initialized, meaning it's InitCommand was executed. Using it in OnCommand's
 		is safe)
 	Naming conventions:
 	widget.actor = handle to C++ actor
@@ -15,12 +14,12 @@
 	uppercase first letter = a "method"
 	Widg.defaults.lowercasename = default params for "Name" actor
 	Other conventions:
-	Widg.WidgetName.new {param1=0,y=2,etc} to create an actor (You still have to add it to the actor 
+	Widg.WidgetName.new {param1=0,y=2,etc} to create an actor (You still have to add it to the actor
 		returned by the file)
 	All color parameters to widgets should be able to take a color string like "ffffff" or color("ffffff")
 		to reduce boilerplate (Calling color manually)
 	All widgets have an x and y and onInit (function(self)) params
-	
+
 	Ex.:
 		local t = Widg.Container { x = SCREEN_WIDTH/2,y=SCREEN_HEIGHT/2}
 		local button1 = Widg.Button { x = -100 }
@@ -36,13 +35,13 @@
 
 	TODOs: (Generals)
 		Make naming scheme coherent
-		Try to reduce function creation inside widget creation functions (Function creation is 
+		Try to reduce function creation inside widget creation functions (Function creation is
 			NYI(not compiled) in LuaJit 2.1)
 			Probably use metatables where possible
-		"Visual" containers (Automagically mouse-wheel-scrollable html-like tables/lists that 
+		"Visual" containers (Automagically mouse-wheel-scrollable html-like tables/lists that
 			also help abstract the item positioning math)
 		Find out why ComboBox (The ActorFrameTexture it uses) looks bad (Probably C++)
-		Consider implications of using metatables instead of fillNilTableFieldsFrom, specially mutability 
+		Consider implications of using metatables instead of fillNilTableFieldsFrom, specially mutability
 			of stuff like having a table inside default params (Like params.font.scale)
 --]]
 Widg = {}
@@ -424,7 +423,7 @@ Widg.Button = function(params)
 		y = params.y,
 		onInit = function(self)
 			if params.onInit then
-				params.onInit(self)
+				params.onInit(button)
 			end
 			if params.highlight then
 				self.actor:SetUpdateFunction(highlight)
@@ -491,7 +490,7 @@ Widg.Button = function(params)
 					end
 					mainActor:diffusealpha(params.highlight.alpha or params.alpha or 1)
 					if params.onHighlight then
-						params.onHighlight(mainActor)
+						params.onHighlight(button)
 					end
 				else
 					if params.bgColor then
@@ -499,7 +498,7 @@ Widg.Button = function(params)
 					end
 					mainActor:diffusealpha(params.alpha)
 					if params.onUnhighlight then
-						params.onUnhighlight(mainActor)
+						params.onUnhighlight(button)
 					end
 				end
 			end or nil
@@ -543,10 +542,12 @@ Widg.Button = function(params)
 	button.SetText = button.settext
 	button.Enable = function(button)
 		button.enabled = true
+		(button.actor):SetUpdateFunction(highlight)
 		return (button.actor):visible(button.enabled)
 	end
 	button.Disable = function(button)
 		button.enabled = false
+		(button.actor):SetUpdateFunction(nil)
 		return (button.actor):visible(button.enabled)
 	end
 
@@ -676,8 +677,7 @@ do
 		halign = 1,
 		valign = 1,
 		vertical = false, -- todo
-		isRange = false, --  todo
-		bindToTable = {} -- Since tables are passed by reference, update t.value with the slider value.
+		isRange = false --  todo
 		-- If range, value = {start=number, end=number}
 	}
 	local function getRatioforAxis(mpos, pos, len, align)
@@ -691,8 +691,8 @@ do
 	local function getValue(mouse, params, slider)
 		local length = (params.max - params.min)
 		local ratio =
-			params.vertical and getRatioforAxis(mouse.y, getTrueY(slider), params.height, params.valign) or
-			getRatioforAxis(mouse.x, getTrueX(slider), params.width, params.halign)
+			params.vertical and getRatioforAxis(mouse.y, slider:GetTrueY(), params.height, params.valign) or
+			getRatioforAxis(mouse.x, slider:GetTrueX(), params.width, params.halign)
 		return math.round((ratio * length + params.min) / params.step) * params.step
 	end
 	--[[
@@ -716,7 +716,7 @@ do
 			y = params.y,
 			onInit = function(container)
 				handle.onValueChange(params.defaultValue)
-				container:SetUpdateFunction(updateFunction)
+				container.actor:SetUpdateFunction(updateFunction)
 				if params.onInit then
 					params.onInit(container)
 				end
@@ -728,9 +728,7 @@ do
 		if params.range and type(params.defaultValue) ~= "table" then
 			params.defaultValue = {params.defaultValue, params.defaultValue}
 		end
-		local t = params.bindToTable
-		t.value = defaultValue
-		container.value = t.value
+		container.value = params.defaultValue
 		container:add(bar)
 		container:add(handle)
 		local clicked = false
@@ -745,35 +743,45 @@ do
 					clicked = true
 				end
 			end,
-			visible = false
+			-- isOver requires visible
+			alpha = 0,
+			visible = true
 		}
 		container:add(rectangle)
-		updateFunction = function(container)
+		-- "Temporary" set value (Not the end of the movement)
+		container._SetValue = function(container, value)
+			container.value = value
+			if params.onValueChange then
+				params.onValueChange(value)
+			end
+			if handle.onValueChange then
+				handle.onValueChange(value)
+			end
+			if bar.onValueChange then
+				bar.onValueChange(value)
+			end
+		end
+		-- End of change set value
+		container.SetValue = function(container, value)
+			container:_SetValue(value)
+			if params.onValueChangeEnd then
+				params.onValueChangeEnd(value)
+			end
+			if bar.onValueChange then
+				bar.onValueChange(value)
+			end
+			if bar.onValueChangeEnd then
+				bar.onValueChangeEnd(value)
+			end
+		end
+		updateFunction = function(containerActor)
 			if clicked then
 				if isOver(rectangle.actor) and INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
 					local mouse = getMousePosition()
-					t.value = getValue(mouse, params, container)
-					container.value = t.value
-					if params.onValueChange then
-						params.onValueChange(t.value)
-					end
-					if handle.onValueChange then
-						handle.onValueChange(t.value)
-					end
-					if bar.onValueChange then
-						bar.onValueChange(t.value)
-					end
+					container:_SetValue(getValue(mouse, params, containerActor))
 				else
 					clicked = false
-					if params.onValueChangeEnd then
-						params.onValueChangeEnd(t.value)
-					end
-					if bar.onValueChange then
-						bar.onValueChange(t.value)
-					end
-					if bar.onValueChangeEnd then
-						bar.onValueChangeEnd(t.value)
-					end
+					container:SetValue(container.value)
 				end
 			end
 		end

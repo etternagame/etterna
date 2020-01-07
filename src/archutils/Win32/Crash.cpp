@@ -294,8 +294,8 @@ RunChild()
 	}
 }
 
-static long
-MainExceptionHandler(EXCEPTION_POINTERS* pExc)
+static DWORD WINAPI
+MainExceptionHandler(LPVOID lpParameter)
 {
 	// Flush the log so it isn't cut off at the end.
 	/* 1. We can't do regular file access in the crash handler.
@@ -313,6 +313,7 @@ MainExceptionHandler(EXCEPTION_POINTERS* pExc)
 	 * However, once in a while some driver or library turns evil and unmasks an
 	 * exception flag on us. If this happens, re-mask it and continue execution.
 	 */
+	PEXCEPTION_POINTERS pExc = reinterpret_cast<PEXCEPTION_POINTERS>(lpParameter);
 	switch (pExc->ExceptionRecord->ExceptionCode) {
 		case EXCEPTION_FLT_INVALID_OPERATION:
 		case EXCEPTION_FLT_DENORMAL_OPERAND:
@@ -400,22 +401,19 @@ long __stdcall CrashHandler::ExceptionHandler(EXCEPTION_POINTERS* pExc)
 	/* If the stack overflowed, we have a very limited amount of stack space.
 	 * Allocate a new stack, and run the exception handler in it, to increase
 	 * the chances of success. */
-	int iSize = 1024 * 32;
-	char* pStack = (char*)VirtualAlloc(
-	  NULL, iSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	pStack += iSize;
-#if defined(_MSC_VER)
-#if _WIN64
-	// TODO
-#else
-	// FIXME: This will probably explode on x86-64
-	_asm mov esp, pStack;
-#endif
-#elif defined(__GNUC__)
-	asm volatile("movl %%esp, %0\n\t" : : "r"(pStack));
-#endif
+	HANDLE hExceptionHandler = CreateThread(nullptr, 1024 * 32, MainExceptionHandler, reinterpret_cast<LPVOID>(pExc), 0, nullptr);
+	if (hExceptionHandler == NULL)
+	{
+		TerminateProcess(GetCurrentProcess(), 0);
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+	WaitForSingleObject(hExceptionHandler, INFINITE);
 
-	return MainExceptionHandler(pExc);
+	DWORD ret;
+	GetExitCodeThread(hExceptionHandler, &ret);
+	CloseHandle(hExceptionHandler);
+
+	return static_cast<long>(ret);
 }
 
 //////////////////////////////////////////////////////////////////////////////

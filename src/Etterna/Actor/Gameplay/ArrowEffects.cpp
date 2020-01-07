@@ -4,6 +4,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "NoteDisplay.h"
 #include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
@@ -104,7 +105,6 @@ static ThemeMetric<float> BEAT_PI_HEIGHT("ArrowEffects", "BeatPIHeight");
 static ThemeMetric<float> TINY_PERCENT_BASE("ArrowEffects", "TinyPercentBase");
 static ThemeMetric<float> TINY_PERCENT_GATE("ArrowEffects", "TinyPercentGate");
 static ThemeMetric<bool> DIZZY_HOLD_HEADS("ArrowEffects", "DizzyHoldHeads");
-static ThemeMetric<bool> NO_GLOW("ArrowEffects", "NoGlow");
 
 static const PlayerOptions* curr_options = nullptr;
 
@@ -135,170 +135,159 @@ void
 ArrowEffects::Update()
 {
 	static float fLastTime = 0;
-	float fTime = RageTimer::GetTimeSinceStartFast();
+	float fTime = RageTimer::GetTimeSinceStart();
 
-	FOREACH_EnabledPlayer(pn)
-	{
-		const Style* pStyle = GAMESTATE->GetCurrentStyle(pn);
-		const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
-		const SongPosition& position =
-		  GAMESTATE->m_bIsUsingStepTiming
-			? GAMESTATE->m_pPlayerState->m_Position
-			: GAMESTATE->m_Position;
-		const float field_zoom = GAMESTATE->m_pPlayerState->m_NotefieldZoom;
-		const float* effects = GAMESTATE->m_pPlayerState
-								 ->m_PlayerOptions.GetCurrent()
-								 .m_fEffects;
+	const Style* pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
+	const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
+	const SongPosition& position = GAMESTATE->m_bIsUsingStepTiming
+									 ? GAMESTATE->m_pPlayerState->m_Position
+									 : GAMESTATE->m_Position;
+	const float field_zoom = GAMESTATE->m_pPlayerState->m_NotefieldZoom;
+	const float* effects =
+	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fEffects;
 
-		PerPlayerData& data = g_EffectData;
+	PerPlayerData& data = g_EffectData;
 
-		if (!position.m_bFreeze || !position.m_bDelay) {
-			data.m_fExpandSeconds += fTime - fLastTime;
-			data.m_fExpandSeconds = fmodf(data.m_fExpandSeconds, PI * 2);
-		}
+	if (!position.m_bFreeze || !position.m_bDelay) {
+		data.m_fExpandSeconds += fTime - fLastTime;
+		data.m_fExpandSeconds = fmodf(data.m_fExpandSeconds, PI * 2);
+	}
 
-		// Update Tornado
-		if (effects[PlayerOptions::EFFECT_TORNADO] != 0) {
-			for (int iColNum = 0; iColNum < MAX_COLS_PER_PLAYER; ++iColNum) {
-				// TRICKY: Tornado is very unplayable in doubles, so use a
-				// smaller tornado width if there are many columns
+	// Update Tornado
+	if (effects[PlayerOptions::EFFECT_TORNADO] != 0) {
+		for (int iColNum = 0; iColNum < MAX_COLS_PER_PLAYER; ++iColNum) {
+			// TRICKY: Tornado is very unplayable in doubles, so use a
+			// smaller tornado width if there are many columns
 
-				/* the below makes an assumption for dance mode.
-				 * perhaps check if we are actually playing on singles without,
-				 * say more than 6 columns. That would exclude IIDX, pop'n, and
-				 * techno-8, all of which would be very hectic.
-				 * certain non-singles modes (like halfdoubles 6cols)
-				 * could possibly have tornado enabled.
-				 * let's also take default resolution (640x480) into mind. -aj
-				 */
-				bool bWideField = pStyle->m_iColsPerPlayer > 4;
-				int iTornadoWidth = bWideField ? 2 : 3;
+			/* the below makes an assumption for dance mode.
+			 * perhaps check if we are actually playing on singles without,
+			 * say more than 6 columns. That would exclude IIDX, pop'n, and
+			 * techno-8, all of which would be very hectic.
+			 * certain non-singles modes (like halfdoubles 6cols)
+			 * could possibly have tornado enabled.
+			 * let's also take default resolution (640x480) into mind. -aj
+			 */
+			bool bWideField = pStyle->m_iColsPerPlayer > 4;
+			int iTornadoWidth = bWideField ? 2 : 3;
 
-				int iStartCol = iColNum - iTornadoWidth;
-				int iEndCol = iColNum + iTornadoWidth;
-				CLAMP(iStartCol, 0, pStyle->m_iColsPerPlayer - 1);
-				CLAMP(iEndCol, 0, pStyle->m_iColsPerPlayer - 1);
+			int iStartCol = iColNum - iTornadoWidth;
+			int iEndCol = iColNum + iTornadoWidth;
+			CLAMP(iStartCol, 0, pStyle->m_iColsPerPlayer - 1);
+			CLAMP(iEndCol, 0, pStyle->m_iColsPerPlayer - 1);
 
-				data.m_fMinTornadoX[iColNum] = FLT_MAX;
-				data.m_fMaxTornadoX[iColNum] = FLT_MIN;
+			data.m_fMinTornadoX[iColNum] = FLT_MAX;
+			data.m_fMaxTornadoX[iColNum] = FLT_MIN;
 
-				for (int i = iStartCol; i <= iEndCol; i++) {
-					data.m_fMinTornadoX[iColNum] =
-					  min(data.m_fMinTornadoX[iColNum],
-						  pCols[i].fXOffset * field_zoom);
-					data.m_fMaxTornadoX[iColNum] =
-					  max(data.m_fMaxTornadoX[iColNum],
-						  pCols[i].fXOffset * field_zoom);
-				}
+			for (int i = iStartCol; i <= iEndCol; i++) {
+				data.m_fMinTornadoX[iColNum] = min(
+				  data.m_fMinTornadoX[iColNum], pCols[i].fXOffset * field_zoom);
+				data.m_fMaxTornadoX[iColNum] = max(
+				  data.m_fMaxTornadoX[iColNum], pCols[i].fXOffset * field_zoom);
 			}
 		}
+	}
 
-		// Update Invert
-		if (effects[PlayerOptions::EFFECT_INVERT] != 0) {
-			for (int iColNum = 0; iColNum < MAX_COLS_PER_PLAYER; ++iColNum) {
-				const int iNumCols = pStyle->m_iColsPerPlayer;
-				const int iNumSides = 1;
-				const int iNumColsPerSide = iNumCols / iNumSides;
-				const int iSideIndex = iColNum / iNumColsPerSide;
-				const int iColOnSide = iColNum % iNumColsPerSide;
+	// Update Invert
+	if (effects[PlayerOptions::EFFECT_INVERT] != 0) {
+		for (int iColNum = 0; iColNum < MAX_COLS_PER_PLAYER; ++iColNum) {
+			const int iNumCols = pStyle->m_iColsPerPlayer;
+			const int iNumSides = 1;
+			const int iNumColsPerSide = iNumCols / iNumSides;
+			const int iSideIndex = iColNum / iNumColsPerSide;
+			const int iColOnSide = iColNum % iNumColsPerSide;
 
-				const int iColLeftOfMiddle = (iNumColsPerSide - 1) / 2;
-				const int iColRightOfMiddle = (iNumColsPerSide + 1) / 2;
+			const int iColLeftOfMiddle = (iNumColsPerSide - 1) / 2;
+			const int iColRightOfMiddle = (iNumColsPerSide + 1) / 2;
 
-				int iFirstColOnSide = -1;
-				int iLastColOnSide = -1;
-				if (iColOnSide <= iColLeftOfMiddle) {
-					iFirstColOnSide = 0;
-					iLastColOnSide = iColLeftOfMiddle;
-				} else if (iColOnSide >= iColRightOfMiddle) {
-					iFirstColOnSide = iColRightOfMiddle;
-					iLastColOnSide = iNumColsPerSide - 1;
-				} else {
-					iFirstColOnSide = iColOnSide / 2;
-					iLastColOnSide = iColOnSide / 2;
-				}
-
-				// mirror
-				int iNewColOnSide;
-				if (iFirstColOnSide == iLastColOnSide)
-					iNewColOnSide = 0;
-				else
-					iNewColOnSide = SCALE(iColOnSide,
-										  iFirstColOnSide,
-										  iLastColOnSide,
-										  iLastColOnSide,
-										  iFirstColOnSide);
-				const int iNewCol =
-				  iSideIndex * iNumColsPerSide + iNewColOnSide;
-
-				const float fOldPixelOffset = pCols[iColNum].fXOffset;
-				const float fNewPixelOffset = pCols[iNewCol].fXOffset;
-				data.m_fInvertDistance[iColNum] =
-				  fNewPixelOffset - fOldPixelOffset;
+			int iFirstColOnSide = -1;
+			int iLastColOnSide = -1;
+			if (iColOnSide <= iColLeftOfMiddle) {
+				iFirstColOnSide = 0;
+				iLastColOnSide = iColLeftOfMiddle;
+			} else if (iColOnSide >= iColRightOfMiddle) {
+				iFirstColOnSide = iColRightOfMiddle;
+				iLastColOnSide = iNumColsPerSide - 1;
+			} else {
+				iFirstColOnSide = iColOnSide / 2;
+				iLastColOnSide = iColOnSide / 2;
 			}
-		}
 
-		// Update Tipsy
-		if (effects[PlayerOptions::EFFECT_TIPSY] != 0) {
-			const float time = RageTimer::GetTimeSinceStartFast();
-			const float time_times_timer = time * TIPSY_TIMER_FREQUENCY;
-			const float arrow_times_mag = ARROW_SIZE * TIPSY_ARROW_MAGNITUDE;
-			const float time_times_offset_timer =
-			  time * TIPSY_OFFSET_TIMER_FREQUENCY;
-			const float arrow_times_offset_mag =
-			  ARROW_SIZE * TIPSY_OFFSET_ARROW_MAGNITUDE;
-			for (int col = 0; col < MAX_COLS_PER_PLAYER; ++col) {
-				data.m_tipsy_result[col] =
-				  RageFastCos(time_times_timer +
-							  (col * TIPSY_COLUMN_FREQUENCY)) *
-				  arrow_times_mag;
-				data.m_tipsy_offset_result[col] =
-				  RageFastCos(time_times_offset_timer +
-							  (col * TIPSY_OFFSET_COLUMN_FREQUENCY)) *
-				  arrow_times_offset_mag;
+			// mirror
+			int iNewColOnSide;
+			if (iFirstColOnSide == iLastColOnSide)
+				iNewColOnSide = 0;
+			else
+				iNewColOnSide = SCALE(iColOnSide,
+									  iFirstColOnSide,
+									  iLastColOnSide,
+									  iLastColOnSide,
+									  iFirstColOnSide);
+			const int iNewCol = iSideIndex * iNumColsPerSide + iNewColOnSide;
+
+			const float fOldPixelOffset = pCols[iColNum].fXOffset;
+			const float fNewPixelOffset = pCols[iNewCol].fXOffset;
+			data.m_fInvertDistance[iColNum] = fNewPixelOffset - fOldPixelOffset;
+		}
+	}
+
+	// Update Tipsy
+	if (effects[PlayerOptions::EFFECT_TIPSY] != 0) {
+		const float time = RageTimer::GetTimeSinceStart();
+		const float time_times_timer = time * TIPSY_TIMER_FREQUENCY;
+		const float arrow_times_mag = ARROW_SIZE * TIPSY_ARROW_MAGNITUDE;
+		const float time_times_offset_timer =
+		  time * TIPSY_OFFSET_TIMER_FREQUENCY;
+		const float arrow_times_offset_mag =
+		  ARROW_SIZE * TIPSY_OFFSET_ARROW_MAGNITUDE;
+		for (int col = 0; col < MAX_COLS_PER_PLAYER; ++col) {
+			data.m_tipsy_result[col] =
+			  RageFastCos(time_times_timer + (col * TIPSY_COLUMN_FREQUENCY)) *
+			  arrow_times_mag;
+			data.m_tipsy_offset_result[col] =
+			  RageFastCos(time_times_offset_timer +
+						  (col * TIPSY_OFFSET_COLUMN_FREQUENCY)) *
+			  arrow_times_offset_mag;
+		}
+	} else {
+		for (float& col : data.m_tipsy_result) {
+			col = 0;
+		}
+	}
+
+	// Update Beat
+	if (effects[PlayerOptions::EFFECT_BEAT] != 0) {
+		do {
+			float fAccelTime = 0.2f, fTotalTime = 0.5f;
+			float fBeat = position.m_fSongBeatVisible + fAccelTime;
+
+			const bool bEvenBeat = (static_cast<int>(fBeat) % 2) != 0;
+
+			data.m_fBeatFactor = 0;
+			if (fBeat < 0)
+				break;
+
+			// -100.2 -> -0.2 -> 0.2
+			fBeat -= truncf(fBeat);
+			fBeat += 1;
+			fBeat -= truncf(fBeat);
+
+			if (fBeat >= fTotalTime)
+				break;
+
+			if (fBeat < fAccelTime) {
+				data.m_fBeatFactor = SCALE(fBeat, 0.0f, fAccelTime, 0.0f, 1.0f);
+				data.m_fBeatFactor *= data.m_fBeatFactor;
+			} else /* fBeat < fTotalTime */ {
+				data.m_fBeatFactor =
+				  SCALE(fBeat, fAccelTime, fTotalTime, 1.0f, 0.0f);
+				data.m_fBeatFactor =
+				  1 - (1 - data.m_fBeatFactor) * (1 - data.m_fBeatFactor);
 			}
-		} else {
-			for (float& col : data.m_tipsy_result) {
-				col = 0;
-			}
-		}
 
-		// Update Beat
-		if (effects[PlayerOptions::EFFECT_BEAT] != 0) {
-			do {
-				float fAccelTime = 0.2f, fTotalTime = 0.5f;
-				float fBeat = position.m_fSongBeatVisible + fAccelTime;
-
-				const bool bEvenBeat = (static_cast<int>(fBeat) % 2) != 0;
-
-				data.m_fBeatFactor = 0;
-				if (fBeat < 0)
-					break;
-
-				// -100.2 -> -0.2 -> 0.2
-				fBeat -= truncf(fBeat);
-				fBeat += 1;
-				fBeat -= truncf(fBeat);
-
-				if (fBeat >= fTotalTime)
-					break;
-
-				if (fBeat < fAccelTime) {
-					data.m_fBeatFactor =
-					  SCALE(fBeat, 0.0f, fAccelTime, 0.0f, 1.0f);
-					data.m_fBeatFactor *= data.m_fBeatFactor;
-				} else /* fBeat < fTotalTime */ {
-					data.m_fBeatFactor =
-					  SCALE(fBeat, fAccelTime, fTotalTime, 1.0f, 0.0f);
-					data.m_fBeatFactor =
-					  1 - (1 - data.m_fBeatFactor) * (1 - data.m_fBeatFactor);
-				}
-
-				if (bEvenBeat)
-					data.m_fBeatFactor *= -1;
-				data.m_fBeatFactor *= 20.0f;
-			} while (false);
-		}
+			if (bEvenBeat)
+				data.m_fBeatFactor *= -1;
+			data.m_fBeatFactor *= 20.0f;
+		} while (false);
 	}
 	fLastTime = fTime;
 }
@@ -571,8 +560,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	const float* fEffects = curr_options->m_fEffects;
 
 	// TODO: Don't index by PlayerNumber.
-	const Style::ColumnInfo* pCols =
-	  pStyle->m_ColumnInfo;
+	const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
 	PerPlayerData& data = g_EffectData;
 
 	if (fEffects[PlayerOptions::EFFECT_TORNADO] != 0) {
@@ -599,7 +587,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	if (fEffects[PlayerOptions::EFFECT_DRUNK] != 0)
 		fPixelOffsetFromCenter +=
 		  fEffects[PlayerOptions::EFFECT_DRUNK] *
-		  (RageFastCos(RageTimer::GetTimeSinceStartFast() +
+		  (RageFastCos(RageTimer::GetTimeSinceStart() +
 					   iColNum * DRUNK_COLUMN_FREQUENCY +
 					   fYOffset * DRUNK_OFFSET_FREQUENCY / SCREEN_HEIGHT) *
 		   ARROW_SIZE * DRUNK_ARROW_MAGNITUDE);
@@ -635,7 +623,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 				break;
 			case StyleType_OnePlayerOneSide:
 				break;
-			DEFAULT_FAIL(pStyle->m_StyleType);
+				DEFAULT_FAIL(pStyle->m_StyleType);
 		}
 	}
 
@@ -820,7 +808,7 @@ ArrowGetPercentVisible(float fYPosWithoutReverse)
 	if (fAppearances[PlayerOptions::APPEARANCE_STEALTH] != 0)
 		fVisibleAdjust -= fAppearances[PlayerOptions::APPEARANCE_STEALTH];
 	if (fAppearances[PlayerOptions::APPEARANCE_BLINK] != 0) {
-		float f = RageFastSin(RageTimer::GetTimeSinceStartFast() * 10);
+		float f = RageFastSin(RageTimer::GetTimeSinceStart() * 10);
 		f = Quantize(f, BLINK_MOD_FREQUENCY);
 		fVisibleAdjust += SCALE(f, 0, 1, -1, 0);
 	}
@@ -864,7 +852,7 @@ ArrowEffects::GetAlpha(int iCol,
 						0.0f);
 		return f;
 	}
-	return (fPercentVisible > 0.5f) ? 1.0f : 0.0f;
+	return fPercentVisible;
 }
 
 float
@@ -886,7 +874,7 @@ ArrowEffects::GetGlow(int iCol,
 
 	const float fDistFromHalf = fabsf(fPercentVisible - 0.5f);
 
-	if (!NO_GLOW) {
+	if (!PREFSMAN->m_bNoGlow) {
 		return SCALE(fDistFromHalf, 0, 0.5f, 1.3f, 0);
 	} else {
 		return 0;
@@ -1262,28 +1250,3 @@ const luaL_Reg ArrowEffectsTable[] = {
 } // namespace
 
 LUA_REGISTER_NAMESPACE(ArrowEffects)
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

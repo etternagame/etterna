@@ -79,8 +79,6 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToPrevScreen) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "PrevScreen"));
-	} else if (SM == SM_GoToNextScreen) {
-		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
 	} else if (SM == ETTP_Disconnect) {
 		TweenOffScreen();
 		Cancel(SM_GoToPrevScreen);
@@ -99,8 +97,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomDesc = ScreenTextEntry::s_sLastAnswer;
-			ScreenTextEntry::Password(
-			  SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
+			ScreenTextEntry::Password(SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
 		}
 	} else if (SM == SM_BackFromRoomPass) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
@@ -137,15 +134,18 @@ ScreenNetRoom::MenuStart(const InputEventPlus& input)
 void
 ScreenNetRoom::SelectCurrent()
 {
-
+	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
+		SCREENMAN->SystemMessage("Error: Already trying to create a room");
+		return;
+	}
 	m_RoomWheel.Select();
 	RoomWheelItemData* rwd =
 	  dynamic_cast<RoomWheelItemData*>(m_RoomWheel.LastSelected());
 	if (rwd != nullptr) {
 		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword) {
 			m_sLastPickedRoom = rwd->m_sText;
-			ScreenTextEntry::Password(
-			  SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD);
+			ScreenTextEntry::Password(SM_BackFromReqPass,
+									  ENTER_ROOM_REQPASSWORD);
 		} else {
 			NSMAN->EnterRoom(rwd->m_sText);
 		}
@@ -212,7 +212,6 @@ ScreenNetRoom::InfoSetVisible(bool visibility)
 	m_roomInfo.SetVisible(visibility);
 }
 
-
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -258,29 +257,3 @@ class LunaScreenNetRoom : public Luna<ScreenNetRoom>
 
 LUA_REGISTER_DERIVED_CLASS(ScreenNetRoom, ScreenNetSelectBase)
 // lua end
-
-/*
- * (c) 2004 Charles Lohr, Josh Allen
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

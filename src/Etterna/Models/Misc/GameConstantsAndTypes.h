@@ -18,8 +18,17 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
+enum GameplayMode
+{
+	GameplayMode_Normal,
+	GameplayMode_Practice,
+	GameplayMode_Replay,
+	NUM_GameplayMode,
+	GameplayMode_Invalid
+};
 
-enum Skillset {
+enum Skillset
+{
 	Skill_Overall,
 	Skill_Stream,
 	Skill_Jumpstream,
@@ -111,7 +120,6 @@ enum StepsType
 	StepsType_ez2_single,
 	StepsType_ez2_double,
 	StepsType_ez2_real,
-	StepsType_para_single,
 	StepsType_ds3ddx_single,
 	StepsType_beat_single5,
 	StepsType_beat_double5,
@@ -119,12 +127,6 @@ enum StepsType
 	StepsType_beat_double7,
 	StepsType_maniax_single,
 	StepsType_maniax_double,
-	StepsType_techno_single4,
-	StepsType_techno_single5,
-	StepsType_techno_single8,
-	StepsType_techno_double4,
-	StepsType_techno_double5,
-	StepsType_techno_double8,
 	StepsType_popn_five,
 	StepsType_popn_nine,
 	NUM_StepsType, // leave this at the end
@@ -453,8 +455,8 @@ struct DisplayBpms
 /** @brief The various style types available. */
 enum StyleType
 {
-	StyleType_OnePlayerOneSide,		/**< Single style */
-	StyleType_OnePlayerTwoSides,		/**< Double style */
+	StyleType_OnePlayerOneSide,  /**< Single style */
+	StyleType_OnePlayerTwoSides, /**< Double style */
 	NUM_StyleType,
 	StyleType_Invalid
 };
@@ -552,7 +554,6 @@ enum FailType
 	FailType_Immediate,			/**< fail immediately when life touches 0 */
 	FailType_ImmediateContinue, /**< Same as above, but allow playing the rest
 								   of the song */
-	FailType_EndOfSong,			/**< fail if life is at 0 when the song ends */
 	FailType_Off,				/**< never fail */
 	NUM_FailType,
 	FailType_Invalid
@@ -565,30 +566,3 @@ FailTypeToLocalizedString(FailType cat);
 LuaDeclareType(FailType);
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Chris Gomez (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

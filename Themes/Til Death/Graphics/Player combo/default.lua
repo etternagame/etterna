@@ -1,5 +1,6 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
+local enabledCombo = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ComboText
 
 local function arbitraryComboX(value) 
 	c.Label:x(value) 
@@ -22,6 +23,8 @@ local mfcNumbers = getComboColor("Marv_FullCombo")
 local pfcNumbers = getComboColor("Perf_FullCombo")
 local fcNumbers = getComboColor("FullCombo")
 local regNumbers = getComboColor("RegularCombo")
+
+local translated_combo = THEME:GetString("ScreenGameplay", "ComboText")
 
 local t =
 	Def.ActorFrame {
@@ -51,8 +54,8 @@ local t =
 		if (allowedCustomization) then
 			Movable.DeviceButton_3.element = c
 			Movable.DeviceButton_4.element = c
-			Movable.DeviceButton_3.condition = true
-			Movable.DeviceButton_4.condition = true
+			Movable.DeviceButton_3.condition = enabledCombo
+			Movable.DeviceButton_4.condition = enabledCombo
 			Movable.DeviceButton_3.Border = self:GetChild("Border")
 			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX 
 			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX 
@@ -62,7 +65,7 @@ local t =
 	end,
 	OnCommand = function(self)
 		if (allowedCustomization) then
-			c.Label:settext("COMBO")
+			c.Label:settext(translated_combo)
 			c.Number:visible(true)
 			c.Label:visible(true)
 			c.Number:settext(1000)
@@ -79,7 +82,7 @@ local t =
 			return
 		end
 
-		c.Label:settext("COMBO")
+		c.Label:settext(translated_combo)
 		c.Number:visible(true)
 		c.Label:visible(true)
 		c.Number:settext(iCombo)
@@ -112,4 +115,8 @@ local t =
 	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),
 }
 
-return t
+if enabledCombo then
+	return t
+end
+
+return {}

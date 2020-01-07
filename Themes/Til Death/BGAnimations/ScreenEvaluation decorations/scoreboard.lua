@@ -180,7 +180,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				BeginCommand = function(self)
-					self:settext(hsTable[index]:GetModifiers())
+					self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
 					self:visible(false)
 				end
 			},

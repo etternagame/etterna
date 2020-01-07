@@ -17,6 +17,78 @@ LIFE_PERCENT_CHANGE_NAME(size_t i)
 	return "LifePercentChange" + ScoreEventToString((ScoreEvent)i);
 }
 
+float
+LifeMeterBar::MapTNSToDeltaLife(TapNoteScore score)
+{
+	float fDeltaLife = 0.f;
+	switch (score) {
+		DEFAULT_FAIL(score);
+
+			// Using constant values here as a hack
+			// For estimating replay stuff
+
+		case TNS_W1:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_W2:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_W3:
+			fDeltaLife = 0.004f;
+			break;
+		case TNS_W4:
+			fDeltaLife = 0.f;
+			break;
+		case TNS_W5:
+			fDeltaLife = -0.04f;
+			break;
+		case TNS_Miss:
+			fDeltaLife = -0.08f;
+			break;
+		case TNS_HitMine:
+			fDeltaLife = -0.16f;
+			break;
+		case TNS_None:
+			fDeltaLife = -0.08f;
+			break;
+		case TNS_CheckpointHit:
+			fDeltaLife = 0.008f;
+			break;
+		case TNS_CheckpointMiss:
+			fDeltaLife = -0.08f;
+			break;
+	}
+	if (fDeltaLife > 0)
+		fDeltaLife *= PREFSMAN->m_fLifeDifficultyScale;
+	else
+		fDeltaLife /= PREFSMAN->m_fLifeDifficultyScale;
+	return fDeltaLife;
+}
+
+float
+LifeMeterBar::MapHNSToDeltaLife(HoldNoteScore score)
+{
+	float fDeltaLife = 0.f;
+	switch (score) {
+		case HNS_Held:
+			fDeltaLife = 0.f;
+			break;
+		case HNS_LetGo:
+			fDeltaLife = -0.08f;
+			break;
+		case HNS_Missed:
+			fDeltaLife = 0.f;
+			break;
+		default:
+			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
+	}
+	if (fDeltaLife > 0)
+		fDeltaLife *= PREFSMAN->m_fLifeDifficultyScale;
+	else
+		fDeltaLife /= PREFSMAN->m_fLifeDifficultyScale;
+	return fDeltaLife;
+}
+
 LifeMeterBar::LifeMeterBar()
 {
 	DANGER_THRESHOLD.Load("LifeMeterBar", "DangerThreshold");
@@ -28,7 +100,7 @@ LifeMeterBar::LifeMeterBar()
 	  "LifeMeterBar", LIFE_PERCENT_CHANGE_NAME, NUM_ScoreEvent);
 	m_pPlayerState = NULL;
 
-	const RString sType = "LifeMeterBar";
+	const std::string sType = "LifeMeterBar";
 
 	m_fPassingAlpha = 0;
 	m_fHotAlpha = 0;
@@ -346,28 +418,3 @@ LifeMeterBar::FillForHowToPlay(int NumW2s, int NumMisses)
 	CLAMP(m_fLifePercentage, 0.0f, 1.0f);
 	AfterLifeChanged();
 }
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
