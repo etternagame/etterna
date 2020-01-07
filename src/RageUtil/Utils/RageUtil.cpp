@@ -396,15 +396,20 @@ vssprintf(const char* szFormat, va_list argList)
 	int iTry = 0;
 
 	do {
+		// must free the buffer: _malloca allocates on the heap OR the stack
+		// depending on the space needed
+		_freea(pBuf);
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
 		iChars += iTry * FMT_BLOCK_SIZE;
-		pBuf = (char*)_alloca(sizeof(char) * iChars);
+		pBuf = (char*)_malloca(sizeof(char) * iChars);
 		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
 
 	// assign whatever we managed to format
 	sStr.assign(pBuf, iUsed);
+	// free the buffer one last time
+	_freea(pBuf);
 #else
 	static bool bExactSizeSupported;
 	static bool bInitialized = false;
