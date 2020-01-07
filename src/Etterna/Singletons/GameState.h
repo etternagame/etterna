@@ -11,7 +11,6 @@
 
 #include <deque>
 
-class Character;
 struct Game;
 struct lua_State;
 class LuaTable;
@@ -102,7 +101,6 @@ class GameState
 	  m_PlayMode; // many screens display different info depending on this value
 
 	bool m_bPlayingMulti = false;
-	bool m_bMultiplayer;
 	int m_iNumMultiplayerNoteFields;
 	bool DifficultiesLocked() const;
 	bool ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
@@ -112,8 +110,8 @@ class GameState
 	Difficulty GetClosestShownDifficulty(PlayerNumber pn) const;
 	Difficulty GetEasiestStepsDifficulty() const;
 	Difficulty GetHardestStepsDifficulty() const;
-	RageTimer
-	  m_timeGameStarted; // from the moment the first player pressed Start
+	RageTimer m_timeGameStarted; // from the moment the first
+								 // player pressed Start
 	LuaTable* m_Environment;
 
 	// This is set to a random number per-game/round; it can be used for a
@@ -175,13 +173,14 @@ class GameState
 	 * @return true if we do, or false otherwise. */
 	bool ShowW1() const;
 
-
-	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
-	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
-	BroadcastOnChange<StepsType>				m_PreferredStepsType;
-	BroadcastOnChange<Difficulty>		m_PreferredDifficulty;
-	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
-	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
+	BroadcastOnChange<RString>
+	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
+	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
+									  // song options screen
+	BroadcastOnChange<StepsType> m_PreferredStepsType;
+	BroadcastOnChange<Difficulty> m_PreferredDifficulty;
+	BroadcastOnChange<SortOrder> m_SortOrder; // set by MusicWheel
+	SortOrder m_PreferredSortOrder;			  // used by MusicWheel
 
 	int m_iNumStagesOfThisSong;
 	// Used by GameplayScreen to know if it needs to call NSMAN
@@ -197,9 +196,6 @@ class GameState
 	 *
 	 * This resets whenever a player joins or continues. */
 	int m_iPlayerStageTokens;
-	// This is necessary so that IsFinalStageForEveryHumanPlayer knows to
-	// adjust for the current song cost.
-	bool m_AdjustTokensBySongCostForFinalStageCheck;
 
 	RString sExpandedSectionName;
 
@@ -217,7 +213,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.66.0"; }
+	RString GetEtternaVersion() { return "0.67.1"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -283,9 +279,6 @@ class GameState
 
 	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
 
-	// character stuff
-	Character* m_pCurCharacters;
-
 	int GetNumSidesJoined() const;
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */
@@ -314,6 +307,16 @@ class GameState
 	Profile* GetEditLocalProfile();
 	bool m_bIsChartPreviewActive;
 
+	// Current mode of Gameplay
+	BroadcastOnChange<GameplayMode> m_gameplayMode;
+	GameplayMode GetGameplayMode() { return m_gameplayMode; }
+	void TogglePracticeModeSafe(bool set);
+	void TogglePracticeMode(bool set);
+	bool IsPracticeMode();
+
+	// A "persistent" way to know if we restarted gameplay (hack)
+	bool m_bRestartedGameplay;
+
 	// Discord Rich Presence
 	void discordInit();
 	void updateDiscordPresence(const RString& largeImageText,
@@ -336,71 +339,7 @@ class GameState
 	GameState& operator=(const GameState& rhs);
 };
 
-PlayerNumber
-GetNextHumanPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextEnabledPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextCpuPlayer(PlayerNumber pn);
-PlayerNumber
-GetNextPotentialCpuPlayer(PlayerNumber pn);
-MultiPlayer
-GetNextEnabledMultiPlayer(MultiPlayer mp);
-
-/** @brief A foreach loop to act on each human Player. */
-#define FOREACH_HumanPlayer(pn)                                                \
-	for (PlayerNumber pn = GetNextHumanPlayer((PlayerNumber)-1);               \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextHumanPlayer(pn))
-/** @brief A foreach loop to act on each enabled Player. */
-#define FOREACH_EnabledPlayer(pn)                                              \
-	for (PlayerNumber pn = GetNextEnabledPlayer((PlayerNumber)-1);             \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextEnabledPlayer(pn))
-/** @brief A foreach loop to act on each CPU Player. */
-#define FOREACH_CpuPlayer(pn)                                                  \
-	for (PlayerNumber pn = GetNextCpuPlayer((PlayerNumber)-1);                 \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextCpuPlayer(pn))
-/** @brief A foreach loop to act on each potential CPU Player. */
-#define FOREACH_PotentialCpuPlayer(pn)                                         \
-	for (PlayerNumber pn = GetNextPotentialCpuPlayer((PlayerNumber)-1);        \
-		 (pn) != PLAYER_INVALID;                                               \
-		 (pn) = GetNextPotentialCpuPlayer(pn))
-/** @brief A foreach loop to act on each Player in MultiPlayer. */
-#define FOREACH_EnabledMultiPlayer(mp)                                         \
-	for (MultiPlayer mp = GetNextEnabledMultiPlayer((MultiPlayer)-1);          \
-		 (mp) != MultiPlayer_Invalid;                                          \
-		 (mp) = GetNextEnabledMultiPlayer(mp))
-
 extern GameState*
   GAMESTATE; // global and accessible from anywhere in our program
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Glenn Maynard, Chris Gomez (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

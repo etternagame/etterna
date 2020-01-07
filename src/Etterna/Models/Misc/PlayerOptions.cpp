@@ -140,7 +140,6 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	for (int i = 0; i < NUM_TRANSFORMS; i++)
 		DO_COPY(m_bTransforms[i]);
 	DO_COPY(m_bMuteOnError);
-	DO_COPY(m_bPractice);
 	DO_COPY(m_FailType);
 	DO_COPY(m_MinTNSToHideNotes);
 	DO_COPY(m_sNoteSkin);
@@ -344,9 +343,6 @@ PlayerOptions::GetMods(std::vector<RString>& AddTo, bool bForceNoteSkin) const
 			break;
 		case FailType_ImmediateContinue:
 			AddTo.push_back("FailImmediateContinue");
-			break;
-		case FailType_EndOfSong:
-			AddTo.push_back("FailAtEnd");
 			break;
 		case FailType_Off:
 			AddTo.push_back("FailOff");
@@ -730,10 +726,9 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		SET_FLOAT(fRandomSpeed)
 	else if (sBit == "failarcade" || sBit == "failimmediate")
 		m_FailType = FailType_Immediate;
-	else if (sBit == "failendofsong" || sBit == "failimmediatecontinue")
+	else if (sBit == "failendofsong" || sBit == "failimmediatecontinue" ||
+			 sBit == "failatend")
 		m_FailType = FailType_ImmediateContinue;
-	else if (sBit == "failatend")
-		m_FailType = FailType_EndOfSong;
 	else if (sBit == "failoff")
 		m_FailType = FailType_Off;
 	else if (sBit == "faildefault") {
@@ -994,7 +989,6 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	COMPARE(m_FailType);
 	COMPARE(m_MinTNSToHideNotes);
 	COMPARE(m_bMuteOnError);
-	COMPARE(m_bPractice);
 	COMPARE(m_fDark);
 	COMPARE(m_fBlind);
 	COMPARE(m_fCover);
@@ -1046,7 +1040,6 @@ PlayerOptions::operator=(PlayerOptions const& other)
 	CPY(m_FailType);
 	CPY(m_MinTNSToHideNotes);
 	CPY(m_bMuteOnError);
-	CPY(m_bPractice);
 	CPY_SPEED(fDark);
 	CPY_SPEED(fBlind);
 	CPY_SPEED(fCover);
@@ -1185,14 +1178,65 @@ bool
 PlayerOptions::ContainsTransformOrTurn() const
 {
 	for (int i = 0; i < NUM_TRANSFORMS; i++) {
+		switch (i) {
+			case TRANSFORM_NOHOLDS:
+			case TRANSFORM_NOROLLS:
+			case TRANSFORM_NOMINES:
+			case TRANSFORM_ATTACKMINES:
+				continue;
+		}
 		if (m_bTransforms[i])
 			return true;
 	}
 	for (int i = 0; i < NUM_TURNS; i++) {
-		if (m_bTurns[i])
+		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
 	return false;
+}
+
+std::vector<RString>
+PlayerOptions::GetInvalidatingModifiers() const
+{
+	std::vector<RString> AddTo;
+
+	if (m_bTurns[TURN_BACKWARDS])
+		AddTo.push_back("Backwards");
+	if (m_bTurns[TURN_LEFT])
+		AddTo.push_back("Left");
+	if (m_bTurns[TURN_RIGHT])
+		AddTo.push_back("Right");
+	if (m_bTurns[TURN_SHUFFLE])
+		AddTo.push_back("Shuffle");
+	if (m_bTurns[TURN_SOFT_SHUFFLE])
+		AddTo.push_back("SoftShuffle");
+	if (m_bTurns[TURN_SUPER_SHUFFLE])
+		AddTo.push_back("SuperShuffle");
+
+	if (m_bTransforms[TRANSFORM_NOHOLDS])
+		AddTo.push_back("NoHolds");
+	if (m_bTransforms[TRANSFORM_NOROLLS])
+		AddTo.push_back("NoRolls");
+	if (m_bTransforms[TRANSFORM_NOMINES])
+		AddTo.push_back("NoMines");
+	if (m_bTransforms[TRANSFORM_MINES])
+		AddTo.push_back("Mines");
+	if (m_bTransforms[TRANSFORM_LITTLE])
+		AddTo.push_back("Little");
+	if (m_bTransforms[TRANSFORM_NOJUMPS])
+		AddTo.push_back("NoJumps");
+	if (m_bTransforms[TRANSFORM_NOHANDS])
+		AddTo.push_back("NoHands");
+	if (m_bTransforms[TRANSFORM_NOLIFTS])
+		AddTo.push_back("NoLifts");
+	if (m_bTransforms[TRANSFORM_NOFAKES])
+		AddTo.push_back("NoFakes");
+	if (m_bTransforms[TRANSFORM_NOQUADS])
+		AddTo.push_back("NoQuads");
+	if (m_bTransforms[TRANSFORM_NOSTRETCH])
+		AddTo.push_back("NoStretch");
+
+	return AddTo;
 }
 
 RString
@@ -1216,7 +1260,6 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_bTransforms[TRANSFORM_NOLIFTS]);
 	SAVE(m_bTransforms[TRANSFORM_NOFAKES]);
 	SAVE(m_bMuteOnError);
-	SAVE(m_bPractice);
 	SAVE(m_sNoteSkin);
 	SAVE(m_fAppearances[APPEARANCE_HIDDEN]);
 	SAVE(m_fAppearances[APPEARANCE_HIDDEN_OFFSET]);
@@ -1651,6 +1694,19 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		return 1;
 	}
 
+	static int ContainsTransformOrTurn(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ContainsTransformOrTurn());
+		return 1;
+	}
+
+	static int GetInvalidatingMods(T* p, lua_State* L)
+	{
+		std::vector<RString> mods = p->GetInvalidatingModifiers();
+		LuaHelpers::CreateTableFromArray(mods, L);
+		return 1;
+	}
+
 	LunaPlayerOptions()
 	{
 		ADD_METHOD(IsEasierForSongAndSteps);
@@ -1738,7 +1794,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(NoQuads);
 		ADD_METHOD(NoStretch);
 		ADD_METHOD(MuteOnError);
-		//ADD_METHOD(PracticeMode); -- To Restrict theme access to practice mode
+		// ADD_METHOD(PracticeMode); -- To Restrict theme access to practice
+		// mode
 		ADD_METHOD(UsingPractice);
 
 		ADD_METHOD(NoteSkin);
@@ -1759,33 +1816,10 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(UsingReverse);
 		ADD_METHOD(GetReversePercentForColumn);
 		ADD_METHOD(GetStepAttacks);
+		ADD_METHOD(ContainsTransformOrTurn);
+		ADD_METHOD(GetInvalidatingMods);
 	}
 };
 
 LUA_REGISTER_CLASS(PlayerOptions)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

@@ -780,10 +780,10 @@ template<typename T, typename U>
 void
 MoveToBeginning(std::vector<T>& v, const U& item)
 {
-	std::vector<T>::iterator it = find(v.begin(), v.end(), item);
+	typename std::vector<T>::iterator it = find(v.begin(), v.end(), item);
 	if (it == v.end())
 		return;
-	std::vector<T>::iterator next = it;
+	typename std::vector<T>::iterator next = it;
 	++next;
 	copy_backward(v.begin(), it, next);
 	*v.begin() = item;

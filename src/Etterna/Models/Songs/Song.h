@@ -267,10 +267,10 @@ class Song
 	std::string m_sMusicPath;
 	std::string m_PreviewPath;
 	std::string m_sInstrumentTrackPath[NUM_InstrumentTrack];
-	std::string m_sBannerPath;  // typically a 16:5 ratio graphic (e.g. 256x80)
+	std::string m_sBannerPath; // typically a 16:5 ratio graphic (e.g. 256x80)
 	std::string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
-	std::string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
-	std::string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
+	std::string m_sCDPath; // square (e.g. 128x128 [DDR 1st-3rd])
+	std::string m_sDiscPath; // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
 	std::string m_sLyricsPath;
 	std::string m_sBackgroundPath;
 	std::string m_sCDTitlePath;
@@ -280,7 +280,10 @@ class Song
 
 	static RString GetSongAssetPath(RString sPath, const RString& sSongPath);
 	const std::string& GetMusicPath() const {return m_sMusicPath;}
-	const std::string& GetInstrumentTrackPath(InstrumentTrack it) const {return m_sInstrumentTrackPath[it];}
+	const std::string& GetInstrumentTrackPath(InstrumentTrack it) const
+	{
+	    return m_sInstrumentTrackPath[it];
+	}
 	const std::string& GetBannerPath() const {return m_sBannerPath;}
 	const std::string& GetJacketPath() const { return m_sJacketPath; }
 	const std::string& GetCDImagePath() const { return m_sCDPath; }
@@ -377,7 +380,6 @@ class Song
 	 * This must be sorted before gameplay. */
 	std::vector<LyricSegment> m_LyricSegments;
 
-
 	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
 	void AddForegroundChange(BackgroundChange seg);
 	void AddLyricSegment(LyricSegment seg);
@@ -386,12 +388,10 @@ class Song
 	const BackgroundChange& GetBackgroundAtBeat(BackgroundLayer iLayer,
 												float fBeat) const;
 
-
 	Steps* CreateSteps();
 	void InitSteps(Steps* pSteps);
 
 	RString GetOrTryAtLeastToGetSimfileAuthor();
-
 
 	bool HasSignificantBpmChangesOrStops() const;
 	float GetStepsSeconds() const;
@@ -399,11 +399,7 @@ class Song
 	bool IsMarathon() const;
 
 	// plays music for chart preview and is available to lua -mina
-	void Borp();
-
-	// plays just normal preview, for those annoying places in lua where it
-	// doesnt play properly -mina
-	void Norf();
+	void PlaySampleMusicExtended();
 
 	bool SongCompleteForStyle(const Style* st) const;
 	bool HasStepsType(StepsType st) const;
@@ -474,30 +470,3 @@ class Song
 };
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Glenn Maynard (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

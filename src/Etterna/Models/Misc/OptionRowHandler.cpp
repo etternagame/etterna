@@ -1,6 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Character.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "CommonMetrics.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Foreach.h"
@@ -278,9 +276,9 @@ class OptionRowHandlerList : public OptionRowHandler
 
 			if (mc.IsZero()) {
 				/* The entry has no effect. This is usually a default "none
-					* of the above" entry. It will always return true for
-					* DescribesCurrentMode(). It's only the selected choice if
-					* nothing else matches. */
+				 * of the above" entry. It will always return true for
+				 * DescribesCurrentMode(). It's only the selected choice if
+				 * nothing else matches. */
 				continue;
 			}
 
@@ -307,16 +305,15 @@ class OptionRowHandlerList : public OptionRowHandler
 			int iFallbackOption = m_Def.m_iDefault;
 			if (iFallbackOption == -1) {
 				RString s =
-					ssprintf("No options in row \"list,%s\" were selected, "
-							"and no fallback row found; selected entry 0",
-							m_Def.m_sName.c_str());
+				  ssprintf("No options in row \"list,%s\" were selected, "
+						   "and no fallback row found; selected entry 0",
+						   m_Def.m_sName.c_str());
 				LOG->Warn("%s", s.c_str());
 				CHECKPOINT_M(s);
 				iFallbackOption = 0;
 			}
 
-			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption,
-													vbSelOut);
+			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption, vbSelOut);
 		}
 
 		VerifySelected(m_Def.m_selectType, vbSelOut, m_Def.m_sName);
@@ -438,9 +435,10 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		m_Def.m_vsChoices.clear();
 		m_aListEntries.clear();
 
-		if(GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) && GAMESTATE->m_pCurSong) // playing a song
+		if (GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) &&
+			GAMESTATE->m_pCurSong) // playing a song
 		{
-			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
+			m_Def.m_layoutType = StringToLayoutType(STEPS_ROW_LAYOUT_TYPE);
 
 			std::vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
@@ -597,13 +595,13 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		ASSERT(m_vSteps.size() == vbSelOut.size());
 
 		// look for matching steps
-		std::vector<Steps*>::const_iterator iter =
-			find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
+        std::vector<Steps*>::const_iterator iter =
+		  find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
 		if (iter != m_vSteps.end()) {
 			unsigned i = iter - m_vSteps.begin();
 			vbSelOut[i] = true;
 		} else {
-		
+
 			// look for matching difficulty
 			bool matched = false;
 			if (m_pDifficultyToFill) {
@@ -638,39 +636,6 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		m_ppStepsToFill->Set(pSteps);
 
 		return 0;
-	}
-};
-
-class OptionRowHandlerListCharacters : public OptionRowHandlerList
-{
-	bool LoadInternal(const Commands&) override
-	{
-		m_Def.m_bOneChoiceForAllPlayers = false;
-		m_Def.m_bAllowThemeItems = false;
-		m_Def.m_sName = "Characters";
-		m_Def.m_iDefault = 0;
-		m_Default.m_pCharacter = CHARMAN->GetDefaultCharacter();
-
-		{
-			m_Def.m_vsChoices.push_back(OFF);
-			GameCommand mc;
-			mc.m_pCharacter = NULL;
-			m_aListEntries.push_back(mc);
-		}
-
-		std::vector<Character*> vpCharacters;
-		CHARMAN->GetCharacters(vpCharacters);
-		for (unsigned i = 0; i < vpCharacters.size(); i++) {
-			Character* pCharacter = vpCharacters[i];
-			RString s = pCharacter->GetDisplayName();
-			s.MakeUpper();
-
-			m_Def.m_vsChoices.push_back(s);
-			GameCommand mc;
-			mc.m_pCharacter = pCharacter;
-			m_aListEntries.push_back(mc);
-		}
-		return true;
 	}
 };
 
@@ -1097,7 +1062,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		std::vector<bool>& vbSelOut = vbSelectedOut;
 
 		/* Evaluate the LoadSelections(self,array,pn) function, where
-			* array is a table representing vbSelectedOut. */
+		 * array is a table representing vbSelectedOut. */
 
 		// All selections default to false.
 		for (unsigned i = 0; i < vbSelOut.size(); ++i)
@@ -1123,7 +1088,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "LoadSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
@@ -1153,7 +1118,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		const std::vector<bool>& vbSel = vbSelected;
 
 		/* Evaluate SaveSelections(self,array,pn) function, where array is
-			* a table representing vbSelectedOut. */
+		 * a table representing vbSelectedOut. */
 
 		std::vector<bool> vbSelectedCopy = vbSel;
 
@@ -1177,7 +1142,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "SaveSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
@@ -1373,8 +1338,8 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 		if (GAMESTATE->m_pCurSteps) {
 			StepsType st = GAMESTATE->m_pCurSteps->m_StepsType;
-			std::vector<StepsType>::const_iterator iter = find(
-				m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
+            std::vector<StepsType>::const_iterator iter =
+			  find(m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
 			if (iter != m_vStepsTypesToShow.end()) {
 				unsigned i = iter - m_vStepsTypesToShow.begin();
 				vbSelOut[i] = true;
@@ -1433,7 +1398,7 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	int ExportOption(const PlayerNumber& vpns,
 					 const std::vector<bool>& vbSelected) const override
 	{
-		if( vbSelected[0] )
+		if (vbSelected[0])
 			m_gc.ApplyToAllPlayers();
 		return 0;
 	}
@@ -1490,9 +1455,7 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 		else if (sParam.CompareNoCase("StepsLocked") == 0) {
 			MAKE(OptionRowHandlerListSteps);
 			pHand->m_Def.m_bOneChoiceForAllPlayers = true;
-		} else if (sParam.CompareNoCase("Characters") == 0)
-			MAKE(OptionRowHandlerListCharacters)
-		else if (sParam.CompareNoCase("Styles") == 0)
+		} else if (sParam.CompareNoCase("Styles") == 0)
 			MAKE(OptionRowHandlerListStyles)
 		else if (sParam.CompareNoCase("Groups") == 0)
 			MAKE(OptionRowHandlerListGroups)
@@ -1547,7 +1510,7 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 
 	pHand->m_Def.m_vEnabledForPlayers.clear();
 	if (mr.pfnEnabled != nullptr ? mr.pfnEnabled() : mr.bEnabled) {
-		FOREACH_EnabledPlayer(pn) pHand->m_Def.m_vEnabledForPlayers.insert(pn);
+		pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 	}
 
 	pHand->m_Def.m_bOneChoiceForAllPlayers = true;
@@ -1570,28 +1533,3 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 
 	return pHand;
 }
-
-/*
- * (c) 2002-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

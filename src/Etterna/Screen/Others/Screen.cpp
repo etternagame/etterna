@@ -115,7 +115,7 @@ void
 Screen::UpdateTimedFunctions(float fDeltaTime)
 {
 	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		++it) {
+		 ++it) {
 		auto& delayedF = *it;
 		delayedF.second -= fDeltaTime;
 		if (delayedF.second <= 0) {
@@ -124,23 +124,23 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 	}
 	// Doing this in place did weird things
 	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
-		delayedFunctions.end(),
-		[](std::pair<std::function<void()>, float>& x) {
-		return x.second <= 0;
-	}),
-		delayedFunctions.end());
+										  delayedFunctions.end(),
+										  [](std::pair<std::function<void()>, float>& x) {
+											  return x.second <= 0;
+										  }),
+						   delayedFunctions.end());
 	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
 		auto* L = LUA->Get();
 		for (auto id : delayedPeriodicFunctionIdsToDelete) {
 			luaL_unref(L, LUA_REGISTRYINDEX, id);
 			auto& vec = this->delayedPeriodicFunctions;
 			vec.erase(std::remove_if(
-				vec.begin(),
-				vec.end(),
-				[id](std::tuple<std::function<void()>, float, float, int>& x) {
-				return std::get<3>(x) == id;
-			}),
-				vec.end());
+						vec.begin(),
+						vec.end(),
+						[id](std::tuple<std::function<void()>, float, float, int>& x) {
+							return std::get<3>(x) == id;
+						}),
+					  vec.end());
 		}
 		LUA->Release(L);
 		delayedPeriodicFunctionIdsToDelete.clear();
@@ -625,28 +625,3 @@ LUA_REGISTER_DERIVED_CLASS(Screen, ActorFrame)
 // lua end
 
 REGISTER_SCREEN_CLASS(Screen);
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

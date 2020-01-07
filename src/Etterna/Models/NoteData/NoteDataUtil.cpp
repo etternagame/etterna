@@ -581,97 +581,86 @@ void
 NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
-	std::vector<NoteData> parts;
+	NoteData nd = in;
 	float fLastBeat = -1.0f;
 
-	FOREACH(NoteData, parts, nd)
-	{
-		InsertHoldTails(*nd);
-		fLastBeat = std::max(fLastBeat, nd->GetLastBeat());
-	}
+	InsertHoldTails(nd);
+	fLastBeat = std::max(fLastBeat, nd.GetLastBeat());
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
 
 	sRet = "";
-	FOREACH(NoteData, parts, nd)
+	for (int m = 0; m <= iLastMeasure; ++m) // foreach measure
 	{
-		if (nd != parts.begin())
-			sRet.append("&\n");
-		for (int m = 0; m <= iLastMeasure; ++m) // foreach measure
-		{
-			if (m)
-				sRet.append(1, ',');
-			sRet += ssprintf("  // measure %d\n", m);
+		if (m)
+			sRet.append(1, ',');
+		sRet += ssprintf("  // measure %d\n", m);
 
-			NoteType nt = GetSmallestNoteTypeForMeasure(*nd, m);
-			int iRowSpacing;
-			if (nt == NoteType_Invalid)
-				iRowSpacing = 1;
-			else
-				iRowSpacing = lround(NoteTypeToBeat(nt) * ROWS_PER_BEAT);
-			// (verify first)
-			// iRowSpacing = BeatToNoteRow( NoteTypeToBeat(nt) );
+		NoteType nt = GetSmallestNoteTypeForMeasure(nd, m);
+		int iRowSpacing;
+		if (nt == NoteType_Invalid)
+			iRowSpacing = 1;
+		else
+			iRowSpacing = lround(NoteTypeToBeat(nt) * ROWS_PER_BEAT);
+		// (verify first)
+		// iRowSpacing = BeatToNoteRow( NoteTypeToBeat(nt) );
 
-			const int iMeasureStartRow = m * ROWS_PER_MEASURE;
-			const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
+		const int iMeasureStartRow = m * ROWS_PER_MEASURE;
+		const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
 
-			for (int r = iMeasureStartRow; r <= iMeasureLastRow;
-				 r += iRowSpacing) {
-				for (int t = 0; t < nd->GetNumTracks(); ++t) {
-					const TapNote& tn = nd->GetTapNote(t, r);
-					char c;
-					switch (tn.type) {
-						case TapNoteType_Empty:
-							c = '0';
-							break;
-						case TapNoteType_Tap:
-							c = '1';
-							break;
-						case TapNoteType_HoldHead:
-							switch (tn.subType) {
-								case TapNoteSubType_Hold:
-									c = '2';
-									break;
-								case TapNoteSubType_Roll:
-									c = '4';
-									break;
-								// case TapNoteSubType_Mine:	c = 'N'; break;
-								default:
-									FAIL_M(
-									  ssprintf("Invalid tap note subtype: %i",
-											   tn.subType));
-							}
-							break;
-						case TapNoteType_HoldTail:
-							c = '3';
-							break;
-						case TapNoteType_Mine:
-							c = 'M';
-							break;
-						case TapNoteType_AutoKeysound:
-							c = 'K';
-							break;
-						case TapNoteType_Lift:
-							c = 'L';
-							break;
-						case TapNoteType_Fake:
-							c = 'F';
-							break;
-						default:
-							c = '\0';
-							FAIL_M(
-							  ssprintf("Invalid tap note type: %i", tn.type));
-					}
-					sRet.append(1, c);
-
-					// hey maybe if we have TapNoteType_Item we can do things
-					// here.
-					if (tn.iKeysoundIndex >= 0)
-						sRet.append(ssprintf("[%d]", tn.iKeysoundIndex));
+		for (int r = iMeasureStartRow; r <= iMeasureLastRow; r += iRowSpacing) {
+			for (int t = 0; t < nd.GetNumTracks(); ++t) {
+				const TapNote& tn = nd.GetTapNote(t, r);
+				char c;
+				switch (tn.type) {
+					case TapNoteType_Empty:
+						c = '0';
+						break;
+					case TapNoteType_Tap:
+						c = '1';
+						break;
+					case TapNoteType_HoldHead:
+						switch (tn.subType) {
+							case TapNoteSubType_Hold:
+								c = '2';
+								break;
+							case TapNoteSubType_Roll:
+								c = '4';
+								break;
+							// case TapNoteSubType_Mine:	c = 'N'; break;
+							default:
+								FAIL_M(ssprintf("Invalid tap note subtype: %i",
+												tn.subType));
+						}
+						break;
+					case TapNoteType_HoldTail:
+						c = '3';
+						break;
+					case TapNoteType_Mine:
+						c = 'M';
+						break;
+					case TapNoteType_AutoKeysound:
+						c = 'K';
+						break;
+					case TapNoteType_Lift:
+						c = 'L';
+						break;
+					case TapNoteType_Fake:
+						c = 'F';
+						break;
+					default:
+						c = '\0';
+						FAIL_M(ssprintf("Invalid tap note type: %i", tn.type));
 				}
+				sRet.append(1, c);
 
-				sRet.append(1, '\n');
+				// hey maybe if we have TapNoteType_Item we can do things
+				// here.
+				if (tn.iKeysoundIndex >= 0)
+					sRet.append(ssprintf("[%d]", tn.iKeysoundIndex));
 			}
+
+			sRet.append(1, '\n');
 		}
 	}
 }
@@ -680,13 +669,10 @@ void
 NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 {
 	// Get note data
-	std::vector<NoteData> parts;
+	NoteData nd = in;
 	float fLastBeat = -1.f;
 
-	FOREACH(NoteData, parts, nd)
-	{
-		fLastBeat = std::max(fLastBeat, nd->GetLastBeat());
-	}
+	fLastBeat = std::max(fLastBeat, nd.GetLastBeat());
 
 	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
 
@@ -697,136 +683,130 @@ NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
 		return;
 	}
 
-	FOREACH(NoteData, parts, nd)
-	{
-		if (nd != parts.begin())
-			sRet.append("&\n");
-		for (int m = 0; m <= iLastMeasure; ++m) {
-			if (m)
-				sRet.append(1, ',');
-			NoteType nt = GetSmallestNoteTypeForMeasure(*nd, m);
-			int iRowSpacing;
-			if (nt == NoteType_Invalid)
-				iRowSpacing = 1;
-			else
-				iRowSpacing = lround(NoteTypeToBeat(nt) * ROWS_PER_BEAT);
+	for (int m = 0; m <= iLastMeasure; ++m) {
+		if (m)
+			sRet.append(1, ',');
+		NoteType nt = GetSmallestNoteTypeForMeasure(nd, m);
+		int iRowSpacing;
+		if (nt == NoteType_Invalid)
+			iRowSpacing = 1;
+		else
+			iRowSpacing = lround(NoteTypeToBeat(nt) * ROWS_PER_BEAT);
 
-			const int iMeasureStartRow = m * ROWS_PER_MEASURE;
-			const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
+		const int iMeasureStartRow = m * ROWS_PER_MEASURE;
+		const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
 
-			sRet.append(std::to_string(nt));
-			for (int r = iMeasureStartRow; r <= iMeasureLastRow;
-				 r += iRowSpacing) {
-				std::string halp;
-				for (int t = 0; t < nd->GetNumTracks(); ++t) {
-					const TapNote& tn = nd->GetTapNote(t, r);
-					if (tn.type == TapNoteType_Empty) {
-						halp.append("E");
-						continue;
-					} else if (tn.type == TapNoteType_Tap) {
-						halp.append("T");
-						continue;
-					} else if (tn.type == TapNoteType_HoldHead) {
-						if (tn.subType == TapNoteSubType_Hold) {
-							halp.append("H");
-							continue;
-						}
-						if (tn.subType == TapNoteSubType_Roll) {
-							halp.append("R");
-							continue;
-						}
-					} else if (tn.type == TapNoteType_HoldTail) {
-						halp.append("J");
-						continue;
-					} else if (tn.type == TapNoteType_Mine) {
-						halp.append("*");
-						continue;
-					} else if (tn.type == TapNoteType_Lift) {
-						halp.append("^");
-						continue;
-					} else if (tn.type == TapNoteType_Fake) {
-						halp.append("V");
+		sRet.append(std::to_string(nt));
+		for (int r = iMeasureStartRow; r <= iMeasureLastRow; r += iRowSpacing) {
+            std::string halp;
+			for (int t = 0; t < nd.GetNumTracks(); ++t) {
+				const TapNote& tn = nd.GetTapNote(t, r);
+				if (tn.type == TapNoteType_Empty) {
+					halp.append("E");
+					continue;
+				} else if (tn.type == TapNoteType_Tap) {
+					halp.append("T");
+					continue;
+				} else if (tn.type == TapNoteType_HoldHead) {
+					if (tn.subType == TapNoteSubType_Hold) {
+						halp.append("H");
 						continue;
 					}
+					if (tn.subType == TapNoteSubType_Roll) {
+						halp.append("R");
+						continue;
+					}
+				} else if (tn.type == TapNoteType_HoldTail) {
+					halp.append("J");
+					continue;
+				} else if (tn.type == TapNoteType_Mine) {
+					halp.append("*");
+					continue;
+				} else if (tn.type == TapNoteType_Lift) {
+					halp.append("^");
+					continue;
+				} else if (tn.type == TapNoteType_Fake) {
+					halp.append("V");
+					continue;
 				}
-
-				if (halp == "EEEE")
-					halp = "?";
-				else if (halp == "TTEE")
-					halp = "M";
-				else if (halp == "EETT")
-					halp = "W";
-				else if (halp == "TEEE")
-					halp = "L";
-				else if (halp == "ETEE")
-					halp = "D";
-				else if (halp == "EETE")
-					halp = "U";
-				else if (halp == "EEET")
-					halp = "Y";
-				else if (halp == "TEET")
-					halp = "B";
-				else if (halp == "ETTE")
-					halp = "Z";
-				else if (halp == "ETET")
-					halp = "G";
-				else if (halp == "TETE")
-					halp = "K";
-				else if (halp == "TTTE")
-					halp = "U";
-				else if (halp == "ETTT")
-					halp = "I";
-				else if (halp == "TETT")
-					halp = "O";
-				else if (halp == "TTET")
-					halp = "P";
-
-				sRet.append(halp);
 			}
-			sRet.append("\n");
+
+			if (halp == "EEEE")
+				halp = "?";
+			else if (halp == "TTEE")
+				halp = "M";
+			else if (halp == "EETT")
+				halp = "W";
+			else if (halp == "TEEE")
+				halp = "L";
+			else if (halp == "ETEE")
+				halp = "D";
+			else if (halp == "EETE")
+				halp = "U";
+			else if (halp == "EEET")
+				halp = "Y";
+			else if (halp == "TEET")
+				halp = "B";
+			else if (halp == "ETTE")
+				halp = "Z";
+			else if (halp == "ETET")
+				halp = "G";
+			else if (halp == "TETE")
+				halp = "K";
+			else if (halp == "TTTE")
+				halp = "U";
+			else if (halp == "ETTT")
+				halp = "I";
+			else if (halp == "TETT")
+				halp = "O";
+			else if (halp == "TTET")
+				halp = "P";
+
+			sRet.append(halp);
 		}
-		size_t oop = 1;
-		for (;;) {
-			oop = sRet.find("??", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "~");
-		}
-		oop = 1;
-		for (;;) {
-			oop = sRet.find("~~", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "|");
-		}
-		oop = 1;
-		for (;;) {
-			oop = sRet.find("||", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "!");
-		}
-		oop = 1;
-		for (;;) {
-			oop = sRet.find("!!", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "-");
-		}
-		oop = 1;
-		for (;;) {
-			oop = sRet.find("--", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "`");
-		}
-		oop = 1;
-		for (;;) {
-			oop = sRet.find("``", oop - 1);
-			if (oop == std::string::npos)
-				break;
-			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, ".");
-		}
+		sRet.append("\n");
+	}
+	size_t oop = 1;
+	for (;;) {
+		oop = sRet.find("??", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "~");
+	}
+	oop = 1;
+	for (;;) {
+		oop = sRet.find("~~", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "|");
+	}
+	oop = 1;
+	for (;;) {
+		oop = sRet.find("||", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "!");
+	}
+	oop = 1;
+	for (;;) {
+		oop = sRet.find("!!", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "-");
+	}
+	oop = 1;
+	for (;;) {
+		oop = sRet.find("--", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "`");
+	}
+	oop = 1;
+	for (;;) {
+		oop = sRet.find("``", oop - 1);
+		if (oop == std::string::npos)
+			break;
+		sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, ".");
 	}
 	sRet.shrink_to_fit();
 }
@@ -3105,6 +3085,15 @@ NoteDataUtil::DeleteRows(NoteData& nd, int iStartIndex, int iRowsToDelete)
 }
 
 void
+NoteDataUtil::RemoveAllButRange(NoteData& nd, int iStartIndex, int iEndIndex)
+{
+	ASSERT(abs(iStartIndex - iEndIndex) > 0);
+	nd.ClearRange(0, iStartIndex - 1);
+	nd.ClearRange(iEndIndex, MAX_NOTE_ROW);
+	nd.RevalidateATIs(std::vector<int>(), false);
+}
+
+void
 NoteDataUtil::RemoveAllTapsOfType(NoteData& ndInOut, TapNoteType typeToRemove)
 {
 	/* Be very careful when deleting the tap notes. Erasing elements from maps
@@ -3266,28 +3255,3 @@ NoteDataUtil::GetTotalHoldTicks(NoteData* nd, const TimingData* td)
 	}
 	return ret;
 }
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

@@ -23,27 +23,30 @@ local frameX = SCREEN_WIDTH - 5
 local frameY = 15
 
 local sortTable = {
-	SortOrder_Preferred = "Preferred",
-	SortOrder_Group = "Group",
-	SortOrder_Title = "Title",
-	SortOrder_BPM = "BPM",
-	SortOrder_Popularity = "Popular",
-	SortOrder_TopGrades = "Grade",
-	SortOrder_Artist = "Artist",
-	SortOrder_Genre = "Genre",
-	SortOrder_ModeMenu = "Mode Menu",
-	SortOrder_Length = "Song Length",
-	SortOrder_Recent = "Recently Played",
-	SortOrder_Favorites = "Favorites",
-	SortOrder_Overall = "Overall",
-	SortOrder_Stream = "Stream",
-	SortOrder_Jumpstream = "Jumpstream",
-	SortOrder_Handstream = "Handstream",
-	SortOrder_Stamina = "Stamina",
-	SortOrder_JackSpeed = "JackSpeed",
-	SortOrder_Chordjack = "Chordjack",
-	SortOrder_Technical = "Technical",
-	SortOrder_Length = "Length"
+	SortOrder_Preferred = THEME:GetString("SortOrder", "Preferred"),
+	SortOrder_Group = THEME:GetString("SortOrder", "Group"),
+	SortOrder_Title = THEME:GetString("SortOrder", "Title"),
+	SortOrder_BPM = THEME:GetString("SortOrder", "BPM"),
+	SortOrder_Popularity = THEME:GetString("SortOrder", "Popularity"),
+	SortOrder_TopGrades = THEME:GetString("SortOrder", "TopGrades"),
+	SortOrder_Artist = THEME:GetString("SortOrder", "Artist"),
+	SortOrder_Genre = THEME:GetString("SortOrder", "Genre"),
+	SortOrder_ModeMenu = THEME:GetString("SortOrder", "ModeMenu"),
+	SortOrder_Length = THEME:GetString("SortOrder", "Length"),
+	SortOrder_Recent = THEME:GetString("SortOrder", "Recent"),
+	SortOrder_Favorites = THEME:GetString("SortOrder", "Favorites"),
+	SortOrder_Overall = THEME:GetString("SortOrder", "Overall"),
+	SortOrder_Stream = THEME:GetString("SortOrder", "Stream"),
+	SortOrder_Jumpstream = THEME:GetString("SortOrder", "Jumpstream"),
+	SortOrder_Handstream = THEME:GetString("SortOrder", "Handstream"),
+	SortOrder_Stamina = THEME:GetString("SortOrder", "Stamina"),
+	SortOrder_JackSpeed = THEME:GetString("SortOrder", "JackSpeed"),
+	SortOrder_Chordjack = THEME:GetString("SortOrder", "Chordjack"),
+	SortOrder_Technical = THEME:GetString("SortOrder", "Technical")
+}
+
+local translated_info = {
+	Sort = THEME:GetString("SortOrder", "SortWord")
 }
 
 t[#t + 1] =
@@ -69,12 +72,12 @@ t[#t + 1] =
 			local sort = GAMESTATE:GetSortOrder()
 			local song = GAMESTATE:GetCurrentSong()
 			if sort == nil then
-				self:settext("Sort: ")
+				self:settextf("%s: ", translated_info["Sort"])
 			elseif sort == "SortOrder_Group" and song ~= nil then
 				group_rand = song:GetGroupName()
 				self:settext(group_rand)
 			else
-				self:settext("Sort: " .. sortTable[sort])
+				self:settextf("%s: %s", translated_info["Sort"], sortTable[sort])
 				group_rand = ""
 			end
 		end,
@@ -86,10 +89,11 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if group_rand ~= "" and isOver(self) then
-				math.randomseed(os.time())
-				local t = SONGMAN:GetSongsInGroup(group_rand)
+				local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+				local t = w:GetSongsInGroup(group_rand)
+				if #t == 0 then return end
 				local random_song = t[math.random(#t)]
-				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
+				w:SelectSong(random_song)
 			end
 		end,
 		HighlightCommand=function(self)

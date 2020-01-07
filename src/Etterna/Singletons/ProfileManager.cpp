@@ -1,6 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Character.h"
-#include "CharacterManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "Etterna/Models/Misc/HighScore.h"
@@ -18,8 +16,6 @@
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Models/Misc/Character.h"
-#include "CharacterManager.h"
 #include "DownloadManager.h"
 
 ProfileManager* PROFILEMAN =
@@ -74,9 +70,6 @@ static std::vector<DirAndProfile> g_vLocalProfile;
 static ThemeMetric<bool> FIXED_PROFILES("ProfileManager", "FixedProfiles");
 static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
 										   "NumFixedProfiles");
-#define FIXED_PROFILE_CHARACTER_ID(i)                                          \
-	THEME->GetMetric("ProfileManager",                                         \
-					 ssprintf("FixedProfileCharacterID%d", int((i) + 1)))
 
 ProfileManager::ProfileManager()
   : m_stats_prefix("")
@@ -107,29 +100,6 @@ ProfileManager::Init(LoadingWindow* ld)
 	m_bNewProfile = false;
 
 	RefreshLocalProfilesFromDisk(ld);
-
-	if (FIXED_PROFILES) {
-		// resize to the fixed number
-		if ((int)g_vLocalProfile.size() > NUM_FIXED_PROFILES)
-			g_vLocalProfile.erase(g_vLocalProfile.begin() + NUM_FIXED_PROFILES,
-								  g_vLocalProfile.end());
-
-		for (int i = g_vLocalProfile.size(); i < NUM_FIXED_PROFILES; i++) {
-			RString sCharacterID = FIXED_PROFILE_CHARACTER_ID(i);
-			Character* pCharacter = CHARMAN->GetCharacterFromID(sCharacterID);
-			ASSERT_M(pCharacter != NULL, sCharacterID);
-			RString sProfileID;
-			bool b =
-			  CreateLocalProfile(pCharacter->GetDisplayName(), sProfileID);
-			ASSERT(b);
-			Profile* pProfile = GetLocalProfile(sProfileID);
-			ASSERT_M(pProfile != NULL, sProfileID);
-			pProfile->m_sCharacterID = sCharacterID;
-			SaveLocalProfile(sProfileID);
-		}
-
-		ASSERT((int)g_vLocalProfile.size() == NUM_FIXED_PROFILES);
-	}
 
 	if (!g_vLocalProfile.empty())
 		m_sProfileDir = g_vLocalProfile[0].sDir;
@@ -167,8 +137,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 		m_bNeedToBackUpLastLoad = true;
 	}
 
-	m_bLastLoadWasTamperedOrCorrupt =
-	  lr == ProfileLoadResult_FailedTampered;
+	m_bLastLoadWasTamperedOrCorrupt = lr == ProfileLoadResult_FailedTampered;
 
 	//
 	// Try to load from the backup if the original data fails to load
@@ -244,8 +213,8 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir,
-										  PREFSMAN->m_bSignProfileData);
+	bool b =
+	  GetProfile(pn)->SaveAllToDir(m_sProfileDir, PREFSMAN->m_bSignProfileData);
 
 	return b;
 }
@@ -425,7 +394,6 @@ ProfileManager::CreateLocalProfile(const RString& sName, RString& sProfileIDOut)
 	// Create the new profile.
 	Profile* pProfile = new Profile;
 	pProfile->m_sDisplayName = sName;
-	pProfile->m_sCharacterID = CHARMAN->GetRandomCharacter()->m_sCharacterID;
 	pProfile->m_sProfileID = profile_id;
 
 	// Save it to disk.
@@ -798,8 +766,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->IsPersistentProfile(PLAYER_1));
+		lua_pushboolean(L, p->IsPersistentProfile(PLAYER_1));
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
@@ -868,8 +835,7 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
 	{
-		lua_pushboolean(
-		  L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
+		lua_pushboolean(L, p->LastLoadWasTamperedOrCorrupt(PLAYER_1));
 		return 1;
 	}
 	static int GetPlayerName(T* p, lua_State* L)
@@ -945,28 +911,3 @@ class LunaProfileManager : public Luna<ProfileManager>
 
 LUA_REGISTER_CLASS(ProfileManager)
 // lua end
-
-/*
- * (c) 2003-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

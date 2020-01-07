@@ -47,6 +47,12 @@ local defaultConfig = {
 		Hard = "#ff6666", -- red
 		Challenge = "#c97bff", -- Purple
 		Edit = "#666666", -- gray
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
 	difficultyVivid = {
 		Difficulty_Beginner = "#0099ff", -- light blue
@@ -61,6 +67,12 @@ local defaultConfig = {
 		Hard = "#ff0000", -- red
 		Challenge = "#cc66ff", -- Purple
 		Edit = "#666666", -- gray
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
 	grade = {
 		Grade_Tier01 = "#66ccff", -- AAAA

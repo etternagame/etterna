@@ -141,7 +141,8 @@ ScreenOptionsManageProfiles::BeginScreen()
 		def.m_sExplanationName = "Select Profile";
 
 		PlayerNumber pn = PLAYER_INVALID;
-		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get()) pn = PLAYER_1;
+		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get())
+			pn = PLAYER_1;
 		if (pn != PLAYER_INVALID)
 			def.m_vsChoices.push_back(PlayerNumberToLocalizedString(pn));
 		OptionRowHandlers.push_back(pHand);
@@ -282,9 +283,9 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				case ProfileAction_SetDefaultP1:
 				case ProfileAction_SetDefaultP2: {
 					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-							   .Get() == GetLocalProfileIDWithFocus())
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-						.Set("");
+						  .Get() == GetLocalProfileIDWithFocus())
+						ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
+						  "");
 
 					auto pn =
 					  static_cast<PlayerNumber>(ScreenMiniMenu::s_iLastRowCode -
@@ -316,41 +317,45 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf( CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str() );
-					ScreenPrompt::Prompt( SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO );
-				}
-				break;
-			case ProfileAction_MergeToMachine:
-				break;
-			case ProfileAction_MergeToMachineSkipTotal:
-				break;
-			case ProfileAction_MergeToP1:
-				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),
-					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-				break;
-			case ProfileAction_ChangeToGuest:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Guest);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_ChangeToNormal:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Normal);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_ChangeToTest:
-				PROFILEMAN->ChangeProfileType(GetLocalProfileIndexWithFocus(),
-					ProfileType_Test);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_MoveUp:
-				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), true);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
-			case ProfileAction_MoveDown:
-				PROFILEMAN->MoveProfilePriority(GetLocalProfileIndexWithFocus(), false);
-				SCREENMAN->SetNewScreen(this->m_sName); // reload
-				break;
+					RString sMessage = ssprintf(
+					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
+					ScreenPrompt::Prompt(
+					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
+				} break;
+				case ProfileAction_MergeToMachine:
+					break;
+				case ProfileAction_MergeToMachineSkipTotal:
+					break;
+				case ProfileAction_MergeToP1:
+					PROFILEMAN->MergeLocalProfiles(
+					  GetLocalProfileIDWithFocus(),
+					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+					break;
+				case ProfileAction_ChangeToGuest:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_ChangeToNormal:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_ChangeToTest:
+					PROFILEMAN->ChangeProfileType(
+					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_MoveUp:
+					PROFILEMAN->MoveProfilePriority(
+					  GetLocalProfileIndexWithFocus(), true);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
+				case ProfileAction_MoveDown:
+					PROFILEMAN->MoveProfilePriority(
+					  GetLocalProfileIndexWithFocus(), false);
+					SCREENMAN->SetNewScreen(this->m_sName); // reload
+					break;
 			}
 		}
 	} else if (SM == SM_LoseFocus) {
@@ -406,13 +411,8 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	{
 		g_TempMenu.rows.clear();
 #define ADD_ACTION(i)                                                          \
-	g_TempMenu.rows.push_back(MenuRowDef(i,                                    \
-										 ProfileActionToLocalizedString(i),    \
-										 true,                                 \
-										 false,                                \
-										 false,                                \
-										 0,                                    \
-										 ""));
+	g_TempMenu.rows.push_back(MenuRowDef(                                      \
+	  i, ProfileActionToLocalizedString(i), true, false, false, 0, ""));
 
 		ADD_ACTION(ProfileAction_SetDefaultP1);
 		if (PROFILEMAN->FixedProfiles()) {
@@ -438,16 +438,14 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 }
 
 void
-ScreenOptionsManageProfiles::ImportOptions(
-  int /* iRow */,
-  const PlayerNumber& /* vpns */)
+ScreenOptionsManageProfiles::ImportOptions(int /* iRow */,
+										   const PlayerNumber& /* vpns */)
 {
 }
 
 void
-ScreenOptionsManageProfiles::ExportOptions(
-  int /* iRow */,
-  const PlayerNumber& /* vpns */)
+ScreenOptionsManageProfiles::ExportOptions(int /* iRow */,
+										   const PlayerNumber& /* vpns */)
 {
 }
 
@@ -475,28 +473,3 @@ ScreenOptionsManageProfiles::GetLocalProfileIDWithFocus() const
 		return RString();
 	return m_vsLocalProfileID[iIndex];
 }
-
-/*
- * (c) 2002-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

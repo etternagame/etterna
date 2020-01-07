@@ -558,10 +558,9 @@ SongCacheIndex::DeleteDB()
 	FILEMAN->Remove(CACHE_DB);
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
-							  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
-								SQLITE_OPEN_FULLMUTEX);
-	}
-	catch (std::exception& e) {
+								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
+									SQLITE_OPEN_FULLMUTEX);
+	} catch (std::exception& e) {
 		LOG->Trace("Error reading cache db: %s", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
@@ -586,27 +585,28 @@ SongCacheIndex::CreateDBTables()
 	  "OFFSET TEXT, BPMS TEXT, STOPS TEXT, "
 	  "DELAYS TEXT, WARPS TEXT, TIMESIGNATURESEGMENT TEXT, TICKCOUNTS TEXT, "
 	  "COMBOS TEXT, SPEEDS TEXT, SCROLLS TEXT, FAKES TEXT, LABELS TEXT)");
-	db->exec("CREATE TABLE IF NOT EXISTS songs (ID INTEGER PRIMARY KEY, "
-			 "VERSION FLOAT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, "
-			 "TITLETRANSLIT TEXT, "
-			 "SUBTITLETRANSLIT TEXT, ARTISTTRANSLIT TEXT, GENRE TEXT, "
-			 "ORIGIN TEXT, CREDIT TEXT, BANNER TEXT, BACKGROUND TEXT, "
-			 "PREVIEWVID TEXT, JACKET TEXT, CDIMAGE TEXT, DISCIMAGE TEXT, "
-			 "LYRICSFILE TEXT, CDTITLE TEXT, MUSIC TEXT, PREVIEW TEXT, "
-			 "INSTRUMENTTRACK TEXT, "
-			 "OFFSET FLOAT, SAMPLESTART FLOAT, SAMPLELENGTH FLOAT, SELECTABLE "
-			 "INTEGER, "
-			 "DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, BPMS TEXT, STOPS TEXT, "
-			 "DELAYS TEXT, WARPS TEXT, "
-			 "TIMESIGNATURES TEXT, TICKCOUNTS TEXT, COMBOS TEXT, SPEEDS TEXT, "
-			 "SCROLLS TEXT, FAKES TEXT, LABELS TEXT, LASTSECONDHINT FLOAT, "
-			 "BGCHANGESLAYER1 TEXT, BGCHANGESLAYER2 TEXT, FGCHANGES TEXT, "
-			 "KEYSOUNDS TEXT, FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
-			 "SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, "
-			 "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
-			 "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
-			 "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
-			 "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
+	db->exec(
+	  "CREATE TABLE IF NOT EXISTS songs (ID INTEGER PRIMARY KEY, "
+	  "VERSION FLOAT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, "
+	  "TITLETRANSLIT TEXT, "
+	  "SUBTITLETRANSLIT TEXT, ARTISTTRANSLIT TEXT, GENRE TEXT, "
+	  "ORIGIN TEXT, CREDIT TEXT, BANNER TEXT, BACKGROUND TEXT, "
+	  "PREVIEWVID TEXT, JACKET TEXT, CDIMAGE TEXT, DISCIMAGE TEXT, "
+	  "LYRICSFILE TEXT, CDTITLE TEXT, MUSIC TEXT, PREVIEW TEXT, "
+	  "INSTRUMENTTRACK TEXT, "
+	  "OFFSET FLOAT, SAMPLESTART FLOAT, SAMPLELENGTH FLOAT, SELECTABLE "
+	  "INTEGER, "
+	  "DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, BPMS TEXT, STOPS TEXT, "
+	  "DELAYS TEXT, WARPS TEXT, "
+	  "TIMESIGNATURES TEXT, TICKCOUNTS TEXT, COMBOS TEXT, SPEEDS TEXT, "
+	  "SCROLLS TEXT, FAKES TEXT, LABELS TEXT, LASTSECONDHINT FLOAT, "
+	  "BGCHANGESLAYER1 TEXT, BGCHANGESLAYER2 TEXT, FGCHANGES TEXT, "
+	  "KEYSOUNDS TEXT, FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
+	  "SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, "
+	  "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
+	  "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
+	  "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
+	  "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
 	db->exec("CREATE TABLE IF NOT EXISTS steps (id INTEGER PRIMARY KEY, "
 			 "CHARTNAME TEXT, STEPSTYPE TEXT, DESCRIPTION TEXT, CHARTSTYLE "
 			 "TEXT, DIFFICULTY INTEGER, "
@@ -732,7 +732,8 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 }
 
 template<template<class, class...> class R1,
-		 template<class, class...> class R2,
+		 template<class, class...>
+		 class R2,
 		 class T,
 		 class... A1,
 		 class... A2>
@@ -1193,7 +1194,6 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->m_SongTiming.m_sFile = dir; // songs still have their fallback timing.
 	song->m_fVersion = STEPFILE_VERSION_NUMBER;
 
-
 	song->m_sMusicPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_PreviewPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sBannerPath = static_cast<const char*>(query.getColumn(index++));
@@ -1201,9 +1201,11 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	song->m_sCDPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sDiscPath = static_cast<const char*>(query.getColumn(index++));
 	song->m_sLyricsPath = static_cast<const char*>(query.getColumn(index++));
-	song->m_sBackgroundPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sBackgroundPath =
+	  static_cast<const char*>(query.getColumn(index++));
 	song->m_sCDTitlePath = static_cast<const char*>(query.getColumn(index++));
-	song->m_sPreviewVidPath = static_cast<const char*>(query.getColumn(index++));
+	song->m_sPreviewVidPath =
+	  static_cast<const char*>(query.getColumn(index++));
 
 	SMLoader::TidyUpData(*song, true);
 
@@ -1243,28 +1245,3 @@ SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
 	}
 	return true;
 }
-
-/*
- * (c) 2002-2003 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

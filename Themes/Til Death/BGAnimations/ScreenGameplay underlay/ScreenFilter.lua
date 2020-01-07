@@ -104,6 +104,7 @@ local function laneHighlight()
 			JudgmentMessageCommand=function(self,params)
 				local notes = params.Notes
 				local firstTrack = params.FirstTrack+1
+				if params.HoldNoteScore then return end
 				if params.Player == pn and params.TapNoteScore then
 					local enum  = Enum.Reverse(TapNoteScore)[params.TapNoteScore]
 					if enum < judgeThreshold and enum > 3 and i == firstTrack then

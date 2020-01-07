@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -25,56 +25,34 @@ LastTapNoteScoreTrack(const NoteData& in, unsigned iRow, PlayerNumber pn)
 {
 	float scoretime = -9999;
 	int best_track = -1;
-	if (GamePreferences::m_AutoPlay == PC_REPLAY) {
-		// In replay mode, judging misses as the "last" tap of every single row
-		// breaks judge counting. Since we judge left to right in Replay, we
-		// just check to see which track was last judged.
-		for (int t = in.GetNumTracks() - 1; t >= 0; t--) {
-			const TapNote& tn = in.GetTapNote(t, iRow);
-			if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
-				tn.type == TapNoteType_Fake ||
-				tn.type == TapNoteType_AutoKeysound)
-				continue;
-			if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
-				continue;
 
-			TapNoteScore tns = tn.result.tns;
-			if (tns == TNS_None)
-				continue;
-			best_track = t;
+	for (int t = 0; t < in.GetNumTracks(); t++) {
+		/* Skip empty tracks and mines */
+		const TapNote& tn = in.GetTapNote(t, iRow);
+		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
+			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
+			continue;
+		if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
+			continue;
+
+		TapNoteScore tns = tn.result.tns;
+
+		if (tns == TNS_Miss ||
+			(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
 			return t;
 		}
-		return best_track;
-	} else {
-		for (int t = 0; t < in.GetNumTracks(); t++) {
-			/* Skip empty tracks and mines */
-			const TapNote& tn = in.GetTapNote(t, iRow);
-			if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
-				tn.type == TapNoteType_Fake ||
-				tn.type == TapNoteType_AutoKeysound)
-				continue;
-			if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
-				continue;
+		if (tns == TNS_None)
+			continue;
 
-			TapNoteScore tns = tn.result.tns;
+		float tm = tn.result.fTapNoteOffset;
+		if (tm < scoretime)
+			continue;
 
-			if (tns == TNS_Miss ||
-				(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
-				return t;
-			}
-			if (tns == TNS_None)
-				continue;
-
-			float tm = tn.result.fTapNoteOffset;
-			if (tm < scoretime)
-				continue;
-
-			scoretime = tm;
-			best_track = t;
-		}
-
-		return best_track;
+		scoretime = tm;
+		best_track = t;
 	}
+
+	return best_track;
 }
 
 /* Return the minimum tap score of a row: the lowest grade of the tap in the
@@ -421,28 +399,3 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 		}
 	}
 }
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

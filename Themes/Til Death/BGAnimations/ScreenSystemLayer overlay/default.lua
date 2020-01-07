@@ -54,6 +54,11 @@ local function dooting(self)
 	end
 end
 
+local translated_info = {
+	ItemsDownloading = THEME:GetString("ScreenSystemLayerOverlay", "ItemsDownloading"),
+	ItemsLeftInQueue = THEME:GetString("ScreenSystemLayerOverlay", "ItemsLeftInQueue")
+}
+
 local dltzoom = 0.5
 -- download queue/progress
 t[#t + 1] =
@@ -94,10 +99,13 @@ t[#t + 1] =
 			):halign(0):valign(0):zoom(dltzoom)
 		end,
 		DLProgressAndQueueUpdateMessageCommand = function(self, params)
-			self:settext(
-				params.dlsize ..
-					" items currently downloading\n" ..
-						params.dlprogress .. "\n\n" .. params.queuesize .. " items in download queue:\n" .. params.queuedpacks
+			self:settextf("%s %s\n%s\n\n%s %s:\n%s",
+				params.dlsize,
+				translated_info["ItemsDownloading"],
+				params.dlprogress,
+				params.queuesize,
+				translated_info["ItemsLeftInQueue"],
+				params.queuedpacks
 			)
 			self:GetParent():GetChild("BGQframe"):zoomy(self:GetHeight() - hhh / 4 + 10)
 		end

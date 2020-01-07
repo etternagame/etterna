@@ -464,8 +464,7 @@ ScoreKeeperNormal::HandleTapNoteScoreInternal(const NoteData& nd,
 	}
 
 	// update judged row totals. Respect Combo segments here.
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	ComboSegment* cs = td.GetComboSegmentAtRow(row);
 	if (tns == TNS_CheckpointHit || tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iTapNoteScores[tns] += cs->GetCombo();
@@ -492,8 +491,7 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 	if (iNumHitContinueCombo > 0 || iNumHitMaintainCombo > 0) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 	}
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (iNumBreakCombo == 0) {
 		int multiplier =
 		  (iRow == -1 ? 1 : td.GetComboSegmentAtRow(iRow)->GetCombo());
@@ -515,8 +513,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 	if (m_ComboIsPerRow) {
 		iNumTapsInRow = std::min(iNumTapsInRow, 1);
 	}
-	TimingData& td =
-	  *GAMESTATE->m_pCurSteps->GetTimingData();
+	TimingData& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 		int multiplier =
@@ -603,8 +600,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// handle combo logic
 #ifndef DEBUG
 	if ((GamePreferences::m_AutoPlay != PC_HUMAN ||
-		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0))
-	{
+		 m_pPlayerState->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0)) {
 		m_cur_toasty_combo = 0;
 		return;
 	}
@@ -930,28 +926,3 @@ ScoreKeeperNormal::HoldNoteScoreToGradePoints(HoldNoteScore hns, bool bBeginner)
 	}
 	return iWeight;
 }
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

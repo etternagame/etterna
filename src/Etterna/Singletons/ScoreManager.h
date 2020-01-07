@@ -173,8 +173,12 @@ class ScoreManager
 	void PushSelf(lua_State* L);
 	HighScore* GetMostRecentScore()
 	{
-		if (camefromreplay)
+		if (camefromreplay) {
+			ASSERT_M(tempscoreforonlinereplayviewing != nullptr,
+					 "Temp score for Replay & Practice viewing was empty.");
 			return tempscoreforonlinereplayviewing;
+		}
+		ASSERT_M(AllScores.size() != 0, "Profile has no Scores.");
 		return AllScores.back();
 	}
 	void PutScoreAtTheTop(std::string scorekey)
@@ -210,10 +214,15 @@ class ScoreManager
 
 	void PurgeProfileScores(
 	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	void UnloadAllReplayData() { for (auto& s: AllScores) s->UnloadReplayData(); }
+	void UnloadAllReplayData()
+	{
+		for (auto& s : AllScores)
+			s->UnloadReplayData();
+	}
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
 	std::vector<HighScore*> scorestorecalc;
+
   private:
 	std::unordered_map<std::string, std::unordered_map<std::string, ScoresForChart>>
 	  pscores; // Profile scores

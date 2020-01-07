@@ -4,6 +4,7 @@
 #define XML_FILE_H
 
 #include <map>
+#include <vector>
 struct DateTime;
 class RageFileBasic;
 struct lua_State;

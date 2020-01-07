@@ -12,6 +12,8 @@
 #include "Etterna/Models/Songs/Song.h"
 
 static bool previousGameplayState;
+static AutosyncType lastSyncType;
+static PlayerController lastController;
 
 static bool
 IsGameplay()
@@ -70,7 +72,6 @@ static LocalizedString AUTO_PLAY_REPLAY("ScreenSyncOverlay", "Replay");
 static LocalizedString AUTO_SYNC_SONG("ScreenSyncOverlay", "AutoSync Song");
 static LocalizedString AUTO_SYNC_MACHINE("ScreenSyncOverlay",
 										 "AutoSync Machine");
-static LocalizedString AUTO_SYNC_TEMPO("ScreenSyncOverlay", "AutoSync Tempo");
 static LocalizedString OLD_OFFSET("ScreenSyncOverlay", "Old offset");
 static LocalizedString NEW_OFFSET("ScreenSyncOverlay", "New offset");
 static LocalizedString COLLECTING_SAMPLE("ScreenSyncOverlay",
@@ -78,7 +79,7 @@ static LocalizedString COLLECTING_SAMPLE("ScreenSyncOverlay",
 static LocalizedString STANDARD_DEVIATION("ScreenSyncOverlay",
 										  "Standard deviation");
 void
-ScreenSyncOverlay::UpdateText()
+ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
 	std::vector<RString> vs;
@@ -113,9 +114,6 @@ ScreenSyncOverlay::UpdateText()
 		case AutosyncType_Machine:
 			vs.push_back(AUTO_SYNC_MACHINE);
 			break;
-		case AutosyncType_Tempo:
-			vs.push_back(AUTO_SYNC_TEMPO);
-			break;
 		default:
 			FAIL_M(ssprintf("Invalid autosync type: %i", type));
 	}
@@ -125,20 +123,21 @@ ScreenSyncOverlay::UpdateText()
 		AdjustSync::GetSyncChangeTextSong(vs);
 	}
 
-	Message set_status("SetStatus");
-	set_status.SetParam("text", join("\n", vs));
-	m_overlay->HandleMessage(set_status);
+	if (forcedChange || !vs.empty() || type != lastSyncType ||
+		pc != lastController) {
+		Message set_status("SetStatus");
+		set_status.SetParam("text", join("\n", vs));
+		m_overlay->HandleMessage(set_status);
+	}
 
 	// Update SyncInfo
 	bool visible =
 	  GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType != AutosyncType_Off;
-	Message set_adjustments("SetAdjustments");
-	set_adjustments.SetParam("visible", visible);
+	RString s;
 	if (visible) {
 		float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 		float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
 		float fStdDev = AdjustSync::s_fStandardDeviation;
-		RString s;
 		s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
 		s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
 		s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);
@@ -146,11 +145,17 @@ ScreenSyncOverlay::UpdateText()
 			 ssprintf(": %d / %d",
 					  AdjustSync::s_iAutosyncOffsetSample + 1,
 					  AdjustSync::OFFSET_SAMPLE_COUNT);
-		set_adjustments.SetParam("text", s);
-	} else {
-		set_adjustments.SetParam("text", RString(""));
 	}
-	m_overlay->HandleMessage(set_adjustments);
+
+	if (forcedChange || visible || type != lastSyncType ||
+		pc != lastController) {
+		Message set_adjustments("SetAdjustments");
+		set_adjustments.SetParam("visible", visible);
+		set_adjustments.SetParam("text", s);
+		m_overlay->HandleMessage(set_adjustments);
+	}
+	lastSyncType = type;
+	lastController = pc;
 }
 
 static LocalizedString CANT_SYNC_WHILE_PLAYING_A_COURSE(
@@ -172,7 +177,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 	enum Action
 	{
 		RevertSyncChanges,
-		ChangeSongBPM,
 		ChangeGlobalOffset,
 		ChangeSongOffset,
 		Action_Invalid
@@ -183,11 +187,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 	switch (input.DeviceI.button) {
 		case KEY_F4:
 			a = RevertSyncChanges;
-			break;
-		case KEY_F9:
-			bIncrease = false; /* fall through */
-		case KEY_F10:
-			a = ChangeSongBPM;
 			break;
 		case KEY_F11:
 			bIncrease = false; /* fall through */
@@ -225,50 +224,6 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 			SCREENMAN->SystemMessage(SYNC_CHANGES_REVERTED);
 			AdjustSync::RevertSyncChanges();
 			break;
-		case ChangeSongBPM: {
-			float fDelta = bIncrease ? +0.02f : -0.02f;
-			if (INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_RALT)) ||
-				INPUTFILTER->IsBeingPressed(
-				  DeviceInput(DEVICE_KEYBOARD, KEY_LALT))) {
-				fDelta /= 20;
-			}
-			switch (input.type) {
-				case IET_RELEASE:
-					fDelta *= 0;
-					break;
-				case IET_REPEAT: {
-					if (INPUTFILTER->GetSecsHeld(input.DeviceI) < 1.0f)
-						fDelta *= 0;
-					else
-						fDelta *= 10;
-					break;
-				}
-				default:
-					break;
-			}
-			if (GAMESTATE->m_pCurSong != NULL) {
-				TimingData& sTiming = GAMESTATE->m_pCurSong->m_SongTiming;
-				BPMSegment* seg = sTiming.GetBPMSegmentAtBeat(
-				  GAMESTATE->m_Position.m_fSongBeat);
-				seg->SetBPS(seg->GetBPS() + fDelta);
-				const std::vector<Steps*>& vpSteps =
-				  GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<std::vector<Steps*>&>(vpSteps), s)
-				{
-					TimingData& pTiming = (*s)->m_Timing;
-					// Empty means it inherits song timing,
-					// which has already been updated.
-					if (pTiming.empty())
-						continue;
-					float second = sTiming.GetElapsedTimeFromBeat(
-					  GAMESTATE->m_Position.m_fSongBeat);
-					seg = pTiming.GetBPMSegmentAtBeat(
-					  pTiming.GetBeatFromElapsedTime(second));
-					seg->SetBPS(seg->GetBPS() + fDelta);
-				}
-			}
-		} break;
 		case ChangeGlobalOffset:
 		case ChangeSongOffset: {
 			float fDelta = bIncrease ? +0.02f : -0.02f;
@@ -329,7 +284,7 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 		ShowHelp();
 	}
 
-	UpdateText();
+	UpdateText(true);
 	return true;
 }
 
@@ -344,28 +299,3 @@ ScreenSyncOverlay::HideHelp()
 {
 	m_overlay->PlayCommand("Hide");
 }
-
-/*
- * (c) 2001-2005 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

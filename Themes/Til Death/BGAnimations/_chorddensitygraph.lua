@@ -10,6 +10,10 @@ end
 local hidth = 40
 local txtoff = 10
 
+local translated_info = {
+	nps = THEME:GetString("ChordDensityGraph", "NPS")
+}
+
 local textonleft = true
 local function textmover(self)
     if isOver(self:GetChild("npstext")) and textonleft then
@@ -69,7 +73,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		parent:GetChild("npsline"):y(-hidth * 0.7)
-		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. "nps"):y(-hidth * 0.9)
+		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. translated_info["nps"]):y(-hidth * 0.9)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
@@ -90,14 +94,13 @@ end
 local t = Def.ActorFrame {
     Name = "ChordDensityGraph",
     InitCommand=function(self)
-		self:SetUpdateFunction(textmover)
 		cdg = self
 	end,
 	CurrentSongChangedMessageCommand = function(self)
 		self:diffusealpha(0)
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
-		self:queuecommand("GraphUpdate")
+		self:playcommand("GraphUpdate")
 	end,
 	CurrentRateChangedMessageCommand = function(self)
 		if self:IsVisible() then
@@ -105,6 +108,9 @@ local t = Def.ActorFrame {
 		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
+		self:queuecommand("GraphUpdate")
+	end,
+	PracticeModeReloadMessageCommand = function(self)
 		self:queuecommand("GraphUpdate")
 	end,
 	Def.Quad {
@@ -120,9 +126,12 @@ t[#t+1] =
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
 			if self:IsVisible() then
+				self:GetParent():SetUpdateFunction(textmover)
 				updateGraphMultiVertex(cdg, self)
 				self:GetParent():linear(0.3)
 				self:GetParent():diffusealpha(1)
+			else
+				self:GetParent():SetUpdateFunction(nil)
 			end
 		end
 	}

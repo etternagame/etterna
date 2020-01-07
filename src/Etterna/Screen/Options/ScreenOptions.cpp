@@ -140,15 +140,13 @@ ScreenOptions::Init()
 	// init line highlights
 	m_sprLineHighlight.Load(
 	  THEME->GetPathG(m_sName, ssprintf("LineHighlight P%d", PLAYER_1 + 1)));
-	m_sprLineHighlight->SetName(
-	  ssprintf("LineHighlightP%d", PLAYER_1 + 1));
+	m_sprLineHighlight->SetName(ssprintf("LineHighlightP%d", PLAYER_1 + 1));
 	m_sprLineHighlight->SetX(LINE_HIGHLIGHT_X);
 	LOAD_ALL_COMMANDS(m_sprLineHighlight);
 	m_frameContainer.AddChild(m_sprLineHighlight);
 
 	// init cursors
-	m_Cursor.Load("OptionsCursor" + PlayerNumberToString(PLAYER_1),
-							true);
+	m_Cursor.Load("OptionsCursor" + PlayerNumberToString(PLAYER_1), true);
 	m_Cursor.SetName("Cursor");
 	LOAD_ALL_COMMANDS(m_Cursor);
 	m_frameContainer.AddChild(&m_Cursor);
@@ -159,7 +157,7 @@ ScreenOptions::Init()
 			  THEME->GetPathF(m_sName, "explanation"));
 			m_textExplanation.SetDrawOrder(2);
 			m_textExplanation.SetName("Explanation" +
-												PlayerNumberToString(PLAYER_1));
+									  PlayerNumberToString(PLAYER_1));
 			LOAD_ALL_COMMANDS_AND_SET_XY(m_textExplanation);
 			m_frameContainer.AddChild(&m_textExplanation);
 			break;
@@ -281,19 +279,16 @@ ScreenOptions::RestartOptions()
 	}
 
 	// Hide the highlight if no rows are enabled.
-	m_sprLineHighlight->SetVisible(
-	  m_iCurrentRow != -1 && GAMESTATE->IsHumanPlayer(PLAYER_1));
+	m_sprLineHighlight->SetVisible(m_iCurrentRow != -1 &&
+								   GAMESTATE->IsHumanPlayer(PLAYER_1));
 
 	CHECKPOINT_M("About to get the rows positioned right.");
 
 	PositionRows(false);
-	FOREACH_HumanPlayer(pn)
-	{
-		for (unsigned r = 0; r < m_pRows.size(); ++r) {
-			this->RefreshIcons(r, pn);
-		}
-		PositionCursor(pn);
+	for (unsigned r = 0; r < m_pRows.size(); ++r) {
+		this->RefreshIcons(r, PLAYER_1);
 	}
+	PositionCursor(PLAYER_1);
 
 	AfterChangeRow(PLAYER_1);
 	CHECKPOINT_M("Rows positioned.");
@@ -710,7 +705,7 @@ ScreenOptions::AfterChangeValueOrRow(PlayerNumber pn)
 		/* After changing a value, position underlines. Do this for both
 		 * players, since underlines for both players will change with
 		 * m_bOneChoiceForAllPlayers. */
-		FOREACH_HumanPlayer(p) m_pRows[r]->PositionUnderlines(p);
+		m_pRows[r]->PositionUnderlines(PLAYER_1);
 		m_pRows[r]->PositionIcons(pn);
 		m_pRows[r]->SetRowHasFocus(
 		  pn, GAMESTATE->IsHumanPlayer(pn) && iCurRow == (int)r);
@@ -725,7 +720,7 @@ ScreenOptions::AfterChangeValueOrRow(PlayerNumber pn)
 	}
 
 	// Update all players, since changing one player can move both cursors.
-	FOREACH_HumanPlayer(p) TweenCursor(p);
+	TweenCursor(PLAYER_1);
 	OptionRow& row = *m_pRows[iCurRow];
 	const bool bExitSelected = row.GetRowType() == OptionRow::RowType_Exit;
 	if (GAMESTATE->GetNumHumanPlayers() != 1 && PLAYER_1 != pn)
@@ -915,10 +910,8 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 				MenuDown(input);
 				break;
 			case NAV_THREE_KEY_ALT:
-				ChangeValueInRowRelative(m_iCurrentRow,
-										 input.pn,
-										 +1,
-										 input.type != IET_FIRST_PRESS);
+				ChangeValueInRowRelative(
+				  m_iCurrentRow, input.pn, +1, input.type != IET_FIRST_PRESS);
 				break;
 
 			case NAV_TOGGLE_THREE_KEY:
@@ -965,12 +958,8 @@ ScreenOptions::StoreFocus(PlayerNumber pn)
 		return;
 
 	int iWidth, iY;
-	GetWidthXY(pn,
-			   m_iCurrentRow,
-			   row.GetChoiceInRowWithFocus(),
-			   iWidth,
-			   m_iFocusX,
-			   iY);
+	GetWidthXY(
+	  pn, m_iCurrentRow, row.GetChoiceInRowWithFocus(), iWidth, m_iFocusX, iY);
 	LOG->Trace("cur selection %ix%i @ %i",
 			   m_iCurrentRow,
 			   row.GetChoiceInRowWithFocus(),
@@ -1109,11 +1098,8 @@ ScreenOptions::ChangeValueInRowRelative(int iRow,
 
 		if (bForceFocusedChoiceTogether) {
 			// lock focus together
-			FOREACH_HumanPlayer(p)
-			{
-				row.SetChoiceInRowWithFocus(p, iNewChoiceWithFocus);
-				StoreFocus(p);
-			}
+			row.SetChoiceInRowWithFocus(PLAYER_1, iNewChoiceWithFocus);
+			StoreFocus(PLAYER_1);
 		}
 	}
 
@@ -1223,12 +1209,9 @@ ScreenOptions::MoveRowAbsolute(PlayerNumber pn, int iRow)
 	bool bChanged = false;
 	if (m_InputMode == INPUTMODE_INDIVIDUAL && PLAYER_1 != pn) {
 	} // skip
-	else if (m_iCurrentRow == iRow)
-	{
+	else if (m_iCurrentRow == iRow) {
 		// also skip
-	}
-	else
-	{
+	} else {
 
 		m_iCurrentRow = iRow;
 
@@ -1239,7 +1222,8 @@ ScreenOptions::MoveRowAbsolute(PlayerNumber pn, int iRow)
 		Message msg("ChangeRow");
 		msg.SetParam("PlayerNumber", PLAYER_1);
 		msg.SetParam("RowIndex", GetCurrentRow(PLAYER_1));
-		msg.SetParam("ChangedToExit", row.GetRowType() == OptionRow::RowType_Exit);
+		msg.SetParam("ChangedToExit",
+					 row.GetRowType() == OptionRow::RowType_Exit);
 		MESSAGEMAN->Broadcast(msg);
 	}
 
@@ -1334,7 +1318,8 @@ void ScreenOptions::SetOptionRowFromName( const RString& nombre )
 		for( unsigned i=0; i<m_pRows.size(); i++ )
 		{
 			if( m_pRows[i]->GetRowTitle() == nombre) &&
-m_pRows[i]->GetRowDef().IsEnabledForPlayer(PLAYER_1) ) MoveRowAbsolute(PLAYER_1,i)
+m_pRows[i]->GetRowDef().IsEnabledForPlayer(PLAYER_1) )
+MoveRowAbsolute(PLAYER_1,i)
 		}
 	}
 */
@@ -1392,28 +1377,3 @@ class LunaScreenOptions : public Luna<ScreenOptions>
 
 LUA_REGISTER_DERIVED_CLASS(ScreenOptions, ScreenWithMenuElements)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

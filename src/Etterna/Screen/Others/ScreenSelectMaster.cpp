@@ -45,7 +45,7 @@ REGISTER_SCREEN_CLASS(ScreenSelectMaster);
 		(vpns).push_back(PLAYER_1);                                            \
                                                                                \
 	} else {                                                                   \
-		FOREACH_HumanPlayer(p)(vpns).push_back(p);                             \
+		(vpns).push_back(PLAYER_1);                                            \
 	}
 
 ScreenSelectMaster::ScreenSelectMaster()
@@ -346,15 +346,14 @@ ScreenSelectMaster::BeginScreen()
 	m_bDoubleChoice = false;
 
 	if (!SHARED_SELECTION) {
-		if (GAMESTATE->IsHumanPlayer(PLAYER_1))
-		{} else
-		{
-		if (SHOW_CURSOR) {
-			if (m_sprCursor)
-				m_sprCursor->SetVisible(false);
-		}
-		if (SHOW_SCROLLER)
-			m_Scroller.SetVisible(false);
+		if (GAMESTATE->IsHumanPlayer(PLAYER_1)) {
+		} else {
+			if (SHOW_CURSOR) {
+				if (m_sprCursor)
+					m_sprCursor->SetVisible(false);
+			}
+			if (SHOW_SCROLLER)
+				m_Scroller.SetVisible(false);
 		}
 	}
 
@@ -399,14 +398,11 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 		m_fLockInputSecs = POST_SWITCH_PAGE_SECONDS;
 	} else if (SM == SM_MenuTimer) {
 		if (DOUBLE_PRESS_TO_SELECT) {
-			FOREACH_HumanPlayer(p)
-			{
-				m_bDoubleChoiceNoSound = true;
-				m_bDoubleChoice = true;
-				InputEventPlus iep;
-				iep.pn = p;
-				MenuStart(iep);
-			}
+			m_bDoubleChoiceNoSound = true;
+			m_bDoubleChoice = true;
+			InputEventPlus iep;
+			iep.pn = PLAYER_1;
+			MenuStart(iep);
 		}
 	}
 }
@@ -464,7 +460,7 @@ ScreenSelectMaster::UpdateSelectableChoices()
 		if (on_unplayable && first_playable != -1) {
 			ChangeSelection(*pn,
 							first_playable < m_iChoice ? MenuDir_Left
-															: MenuDir_Right,
+													   : MenuDir_Right,
 							first_playable);
 		}
 	}
@@ -472,12 +468,8 @@ ScreenSelectMaster::UpdateSelectableChoices()
 	/* If no options are playable at all, just wait.  Some external
 	 * stimulus may make options available (such as coin insertion).
 	 * If any options are playable, make sure one is selected. */
-	FOREACH_HumanPlayer(p)
-	{
-		if (!m_aGameCommands.empty() &&
-			!m_aGameCommands[m_iChoice].IsPlayable())
-			Move(p, MenuDir_Auto);
-	}
+	if (!m_aGameCommands.empty() && !m_aGameCommands[m_iChoice].IsPlayable())
+		Move(PLAYER_1, MenuDir_Auto);
 }
 
 bool
@@ -728,13 +720,8 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 			 * What is SharedPreviewAndCursor? -- Steve */
 			bool bOldStillHasFocus = false;
 			bool bNewAlreadyHadFocus = false;
-			FOREACH_HumanPlayer(p2)
-			{
-				if (p2 == *p)
-					continue;
-				bOldStillHasFocus |= m_iChoice == iOldChoice;
-				bNewAlreadyHadFocus |= m_iChoice == iNewChoice;
-			}
+			bOldStillHasFocus |= m_iChoice == iOldChoice;
+			bNewAlreadyHadFocus |= m_iChoice == iNewChoice;
 
 			if (DOUBLE_PRESS_TO_SELECT) {
 				// this player is currently on a single press, which they are
@@ -881,11 +868,8 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		return false;
 	if (SHARED_SELECTION || GetCurrentPage() == PAGE_2) {
 		// Return if any player has chosen
-		FOREACH_EnabledPlayer(p)
-		{
-			if (m_bChosen)
-				return false;
-		}
+		if (m_bChosen)
+			return false;
 	} else if (m_bChosen)
 		// Return if this player has already chosen
 		return false;
@@ -944,15 +928,12 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 	if ((bool)SHARED_SELECTION || GetCurrentPage() == PAGE_2) {
 		// Only one player has to pick. Choose this for all the other players,
 		// too.
-		FOREACH_EnabledPlayer(p)
-		{
-			ASSERT(!m_bChosen);
-			fSecs = std::max(fSecs, DoMenuStart(p));
-		}
+		ASSERT(!m_bChosen);
+		fSecs = std::max(fSecs, DoMenuStart(PLAYER_1));
 	} else {
 		fSecs = std::max(fSecs, DoMenuStart(pn));
 		// check to see if everyone has chosen
-		FOREACH_HumanPlayer(p) bAllDone &= m_bChosen;
+		bAllDone &= m_bChosen;
 	}
 
 	if (bAllDone) {
@@ -982,7 +963,7 @@ ScreenSelectMaster::TweenOnScreen()
 	if (SHOW_ICON) {
 		for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
 			m_vsprIcon[c]->PlayCommand((int(c) == m_iChoice) ? "GainFocus"
-																: "LoseFocus");
+															 : "LoseFocus");
 			m_vsprIcon[c]->FinishTweening();
 		}
 	}
@@ -993,8 +974,8 @@ ScreenSelectMaster::TweenOnScreen()
 			// Play Gain/LoseFocus before playing the on command.
 			// Gain/Lose will often stop tweening, which ruins the OnCommand.
 			for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
-				m_vsprScroll[c]->PlayCommand(
-				  int(c) == m_iChoice ? "GainFocus" : "LoseFocus");
+				m_vsprScroll[c]->PlayCommand(int(c) == m_iChoice ? "GainFocus"
+																 : "LoseFocus");
 				m_vsprScroll[c]->FinishTweening();
 			}
 
@@ -1074,8 +1055,7 @@ class LunaScreenSelectMaster : public Luna<ScreenSelectMaster>
   public:
 	static int GetSelectionIndex(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L, p->GetPlayerSelectionIndex(PLAYER_1));
+		lua_pushnumber(L, p->GetPlayerSelectionIndex(PLAYER_1));
 		return 1;
 	}
 	// should I even bother adding this? -aj
@@ -1088,28 +1068,3 @@ class LunaScreenSelectMaster : public Luna<ScreenSelectMaster>
 
 LUA_REGISTER_DERIVED_CLASS(ScreenSelectMaster, ScreenWithMenuElements)
 // lua end
-
-/*
- * (c) 2003-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

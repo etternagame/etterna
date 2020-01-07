@@ -961,7 +961,7 @@ DownloadManager::UploadScore(HighScore* hs)
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults") {
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0) {
 			hs->AddUploadedServer(serverURL.Get());
 		}
 	};
@@ -1046,9 +1046,11 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					return;
 			}
 		}
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace(("ReplayData Upload Response: " + req.result).c_str());
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults" &&
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&
@@ -1170,7 +1172,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const std::string& sk,
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			d["data"]["type"].GetString() == "ssrResults" &&
+			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("diff") &&
@@ -1343,6 +1345,8 @@ DownloadManager::UploadScores()
 			}
 		}
 	}
+	if (!toUpload.empty())
+		LOG->Trace("Uploading top scores that were not synced.");
 	uploadSequentially(toUpload);
 	return true;
 }
@@ -1622,6 +1626,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
+				it->hs.SetScoreKey("Online_" + scoreid);
 
 				if (tracks.empty())
 					it->hs.SetReplayType(1);
@@ -1641,6 +1646,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
+			it->hs.SetScoreKey("Online_" + scoreid);
 
 			if (tracks.empty())
 				it->hs.SetReplayType(1);
@@ -2214,6 +2220,13 @@ DownloadManager::StartSession(std::string user,
 			return;
 		}
 
+		// Site 404s when login fails
+		if (d.HasMember("errors") && d["errors"].IsArray()) {
+			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
+			MESSAGEMAN->Broadcast("LoginFailed");
+			DLMAN->loggingIn = false;
+		}
+
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("attributes") &&
 			d["data"]["attributes"].IsObject() &&
@@ -2672,12 +2685,33 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		OnlineHighScore* hs =
 		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
 		int userid = hs->userid;
-		std::string username = hs->GetDisplayName();
-		std::string scoreid = hs->scoreid;
-		std::string ck = hs->GetChartKey();
+		string username = hs->GetDisplayName();
+		string scoreid = hs->scoreid;
+		string ck = hs->GetChartKey();
+
+		bool alreadyHasReplay = false;
+		alreadyHasReplay |= !hs->GetNoteRowVector().empty();
+		alreadyHasReplay |=
+		  !hs->GetCopyOfSetOnlineReplayTimestampVector().empty();
+		alreadyHasReplay |= !hs->GetOffsetVector().empty();
+
 		LuaReference f;
 		if (lua_isfunction(L, 2))
 			f = GetFuncArg(2, L);
+
+		if (alreadyHasReplay) {
+			if (!f.IsNil() && f.IsSet()) {
+				auto L = LUA->Get();
+				f.PushSelf(L);
+				RString Error =
+				  "Error running RequestChartLeaderBoard Finish Function: ";
+				hs->PushSelf(L);
+				LuaHelpers::RunScriptOnStack(
+				  L, Error, 2, 0, true); // 2 args, 0 results
+			}
+			return 0;
+		}
+
 		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
 		return 0;
 	}

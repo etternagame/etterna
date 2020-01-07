@@ -462,12 +462,10 @@ struct CompleteCrashData
 static void
 MakeCrashReport(const CompleteCrashData& Data, RString& sOut)
 {
-	sOut += ssprintf("%s crash report (build %s, %s @ %s)\n"
+	sOut += ssprintf("%s crash report (build %s)\n"
 					 "--------------------------------------\n\n",
-					 (std::string(PRODUCT_FAMILY) + product_version).c_str(),
-					 ::sm_version_git_hash,
-					 version_date,
-					 version_time);
+					 (string(PRODUCT_FAMILY) + product_version).c_str(),
+					 ::version_git_hash);
 
 	sOut += ssprintf("Crash reason: %s\n", Data.m_CrashInfo.m_CrashReason);
 	sOut += ssprintf("\n");

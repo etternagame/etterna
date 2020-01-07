@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Background.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "DancingCharacters.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
@@ -11,7 +10,6 @@
 #include "Etterna/Actor/Base/Quad.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -29,8 +27,6 @@ static ThemeMetric<float> RIGHT_EDGE("Background", "RightEdge");
 static ThemeMetric<float> BOTTOM_EDGE("Background", "BottomEdge");
 static ThemeMetric<float> CLAMP_OUTPUT_PERCENT("Background",
 											   "ClampOutputPercent");
-static ThemeMetric<bool> SHOW_DANCING_CHARACTERS("Background",
-												 "ShowDancingCharacters");
 static ThemeMetric<bool> USE_STATIC_BG("Background", "UseStaticBackground");
 static ThemeMetric<float> RAND_BG_START_BEAT("Background", "RandomBGStartBeat");
 static ThemeMetric<float> RAND_BG_CHANGE_MEASURES("Background",
@@ -45,7 +41,7 @@ static Preference<bool> g_bShowDanger("ShowDanger", false);
 static Preference<float> g_fBGBrightness("BGBrightness", 0.2f);
 static Preference<RandomBackgroundMode> g_RandomBackgroundMode(
   "RandomBackgroundMode",
-  BGMODE_RANDOMMOVIES);
+  BGMODE_OFF);
 static Preference<int> g_iNumBackgrounds("NumBackgrounds", 10);
 static Preference<bool> g_bSongBackgrounds("SongBackgrounds", true);
 
@@ -92,14 +88,11 @@ class BackgroundImpl : public ActorFrame
 		m_Brightness.Set(fBrightness);
 	} /* overrides pref and Cover */
 
-	DancingCharacters* GetDancingCharacters() { return m_pDancingCharacters; };
-
 	void GetLoadedBackgroundChanges(
 	  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
 
   protected:
 	bool m_bInitted;
-	DancingCharacters* m_pDancingCharacters;
 	const Song* m_pSong;
 	std::map<RString, BackgroundTransition> m_mapNameToTransition;
 	std::deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
@@ -177,7 +170,6 @@ GetBrightnessColor(float fBrightnessPercent)
 BackgroundImpl::BackgroundImpl()
 {
 	m_bInitted = false;
-	m_pDancingCharacters = nullptr;
 	m_pSong = nullptr;
 }
 
@@ -228,10 +220,6 @@ BackgroundImpl::Init()
 		}
 	}
 
-	// bool bOneOrMoreChars = false;
-	// if (bOneOrMoreChars && SHOW_DANCING_CHARACTERS)
-		// m_pDancingCharacters = new DancingCharacters;
-
 	RageColor c = GetBrightnessColor(0);
 
 	m_quadBorderLeft.StretchTo(
@@ -258,7 +246,6 @@ BackgroundImpl::Init()
 BackgroundImpl::~BackgroundImpl()
 {
 	Unload();
-	delete m_pDancingCharacters;
 }
 
 void
@@ -732,9 +719,6 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	TEXTUREMAN->EnableOddDimensionWarning();
 
-	if (m_pDancingCharacters != nullptr)
-		m_pDancingCharacters->LoadNextSong();
-
 	TEXTUREMAN->SetDefaultTexturePolicy(OldPolicy);
 }
 
@@ -877,9 +861,6 @@ BackgroundImpl::Update(float fDeltaTime)
 		m_bDangerAllWasVisible = bVisible;
 	}
 
-	if (m_pDancingCharacters != nullptr)
-		m_pDancingCharacters->Update(fDeltaTime);
-
 	FOREACH_BackgroundLayer(i)
 	{
 		Layer& layer = m_Layer[i];
@@ -897,17 +878,7 @@ BackgroundImpl::DrawPrimitives()
 	if (g_fBGBrightness == 0.0f)
 		return;
 
-	if (IsDangerAllVisible()) {
-		// Since this only shows when DANGER is visible, it will flash red on
-		// it's own accord :)
-		if (m_pDancingCharacters != nullptr)
-			m_pDancingCharacters->m_bDrawDangerLight = true;
-	}
-
 	{
-		if (m_pDancingCharacters != nullptr)
-			m_pDancingCharacters->m_bDrawDangerLight = false;
-
 		FOREACH_BackgroundLayer(i)
 		{
 			Layer& layer = m_Layer[i];
@@ -916,11 +887,6 @@ BackgroundImpl::DrawPrimitives()
 			if (layer.m_pFadingBGA != nullptr)
 				layer.m_pFadingBGA->Draw();
 		}
-	}
-
-	if (m_pDancingCharacters != nullptr) {
-		m_pDancingCharacters->Draw();
-		DISPLAY->ClearZBuffer();
 	}
 
 	ActorFrame::DrawPrimitives();
@@ -938,8 +904,8 @@ bool
 BackgroundImpl::IsDangerAllVisible()
 {
 	// The players are never in danger in FAIL_OFF.
-	if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState) ==
-			 FailType_Off) return false;
+	if (GAMESTATE->GetPlayerFailType(GAMESTATE->m_pPlayerState) == FailType_Off)
+		return false;
 	if (!g_bShowDanger)
 		return false;
 
@@ -955,9 +921,11 @@ BrightnessOverlay::BrightnessOverlay()
 {
 	float fQuadWidth = (RIGHT_EDGE - LEFT_EDGE);
 
-	m_quadBGBrightness.StretchTo( RectF(LEFT_EDGE,TOP_EDGE,LEFT_EDGE+fQuadWidth,BOTTOM_EDGE) );
-	m_quadBGBrightnessFade.StretchTo( RectF(LEFT_EDGE+fQuadWidth,TOP_EDGE,RIGHT_EDGE-fQuadWidth,BOTTOM_EDGE) );
-	
+	m_quadBGBrightness.StretchTo(
+	  RectF(LEFT_EDGE, TOP_EDGE, LEFT_EDGE + fQuadWidth, BOTTOM_EDGE));
+	m_quadBGBrightnessFade.StretchTo(RectF(
+	  LEFT_EDGE + fQuadWidth, TOP_EDGE, RIGHT_EDGE - fQuadWidth, BOTTOM_EDGE));
+
 	m_quadBGBrightness.SetName("BrightnessOverlay");
 	ActorUtil::LoadAllCommands(m_quadBGBrightness, "Background");
 	this->AddChild(&m_quadBGBrightness);
@@ -982,8 +950,10 @@ BrightnessOverlay::Update(float fDeltaTime)
 void
 BrightnessOverlay::SetActualBrightness()
 {
-	float fLeftBrightness = 1-GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
-	float fRightBrightness = 1-GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
+	float fLeftBrightness =
+	  1 - GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
+	float fRightBrightness =
+	  1 - GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
 
 	float fBaseBGBrightness = g_fBGBrightness;
 
@@ -1005,9 +975,9 @@ BrightnessOverlay::SetActualBrightness()
 	RageColor LeftColor = GetBrightnessColor(fLeftBrightness);
 	RageColor RightColor = GetBrightnessColor(fRightBrightness);
 
-	m_quadBGBrightness.SetDiffuse( LeftColor );
-	m_quadBGBrightnessFade.SetDiffuseLeftEdge( LeftColor );
-	m_quadBGBrightnessFade.SetDiffuseRightEdge( RightColor );
+	m_quadBGBrightness.SetDiffuse(LeftColor);
+	m_quadBGBrightnessFade.SetDiffuseLeftEdge(LeftColor);
+	m_quadBGBrightnessFade.SetDiffuseRightEdge(RightColor);
 }
 
 void
@@ -1061,39 +1031,9 @@ Background::SetBrightness(float fBrightness)
 {
 	m_pImpl->SetBrightness(fBrightness);
 }
-DancingCharacters*
-Background::GetDancingCharacters()
-{
-	return m_pImpl->GetDancingCharacters();
-}
 void
 Background::GetLoadedBackgroundChanges(
   std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	m_pImpl->GetLoadedBackgroundChanges(pBackgroundChangesOut);
 }
-
-/*
- * (c) 2001-2004 Chris Danford, Ben Nordstrom
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

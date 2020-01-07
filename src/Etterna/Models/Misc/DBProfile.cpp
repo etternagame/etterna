@@ -72,38 +72,36 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 		return false;
 	loadingProfile->m_sDisplayName =
 	  static_cast<const char*>(gDataQuery.getColumn(1));
-	loadingProfile->m_sCharacterID =
-	  static_cast<const char*>(gDataQuery.getColumn(2));
 	loadingProfile->m_sLastUsedHighScoreName =
-	  static_cast<const char*>(gDataQuery.getColumn(3));
-	loadingProfile->m_sGuid = static_cast<const char*>(gDataQuery.getColumn(4));
+	  static_cast<const char*>(gDataQuery.getColumn(2));
+	loadingProfile->m_sGuid = static_cast<const char*>(gDataQuery.getColumn(3));
 	loadingProfile->m_SortOrder =
-	  StringToSortOrder(static_cast<const char*>(gDataQuery.getColumn(5)));
+	  StringToSortOrder(static_cast<const char*>(gDataQuery.getColumn(4)));
 	loadingProfile->m_LastDifficulty =
-	  static_cast<Difficulty>(static_cast<int>(gDataQuery.getColumn(6)));
+	  static_cast<Difficulty>(static_cast<int>(gDataQuery.getColumn(5)));
 	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(
-	  static_cast<const char*>(gDataQuery.getColumn(7)));
+	  static_cast<const char*>(gDataQuery.getColumn(6)));
 
-	std::string song = static_cast<const char*>(gDataQuery.getColumn(8));
+	std::string song = static_cast<const char*>(gDataQuery.getColumn(7));
 	if (song != "")
 		loadingProfile->m_lastSong.LoadFromString(song.c_str());
-	loadingProfile->m_iCurrentCombo = gDataQuery.getColumn(9);
-	loadingProfile->m_iTotalSessions = gDataQuery.getColumn(10);
-	loadingProfile->m_iTotalSessionSeconds = gDataQuery.getColumn(11);
-	loadingProfile->m_iTotalGameplaySeconds = gDataQuery.getColumn(12);
+	loadingProfile->m_iCurrentCombo = gDataQuery.getColumn(8);
+	loadingProfile->m_iTotalSessions = gDataQuery.getColumn(9);
+	loadingProfile->m_iTotalSessionSeconds = gDataQuery.getColumn(10);
+	loadingProfile->m_iTotalGameplaySeconds = gDataQuery.getColumn(11);
 	loadingProfile->m_LastPlayedDate.FromString(
-	  static_cast<const char*>(gDataQuery.getColumn(13)));
-	loadingProfile->m_iTotalDancePoints = gDataQuery.getColumn(14);
-	loadingProfile->m_iNumToasties = gDataQuery.getColumn(15);
-	loadingProfile->m_iTotalTapsAndHolds = gDataQuery.getColumn(16);
-	loadingProfile->m_iTotalJumps = gDataQuery.getColumn(17);
-	loadingProfile->m_iTotalHolds = gDataQuery.getColumn(18);
-	loadingProfile->m_iTotalRolls = gDataQuery.getColumn(19);
-	loadingProfile->m_iTotalMines = gDataQuery.getColumn(20);
-	loadingProfile->m_iTotalHands = gDataQuery.getColumn(21);
-	loadingProfile->m_iTotalLifts = gDataQuery.getColumn(22);
+	  static_cast<const char*>(gDataQuery.getColumn(12)));
+	loadingProfile->m_iTotalDancePoints = gDataQuery.getColumn(13);
+	loadingProfile->m_iNumToasties = gDataQuery.getColumn(14);
+	loadingProfile->m_iTotalTapsAndHolds = gDataQuery.getColumn(15);
+	loadingProfile->m_iTotalJumps = gDataQuery.getColumn(16);
+	loadingProfile->m_iTotalHolds = gDataQuery.getColumn(17);
+	loadingProfile->m_iTotalRolls = gDataQuery.getColumn(18);
+	loadingProfile->m_iTotalMines = gDataQuery.getColumn(19);
+	loadingProfile->m_iTotalHands = gDataQuery.getColumn(20);
+	loadingProfile->m_iTotalLifts = gDataQuery.getColumn(21);
 	loadingProfile->m_fPlayerRating =
-	  static_cast<float>(static_cast<double>(gDataQuery.getColumn(23)));
+	  static_cast<float>(static_cast<double>(gDataQuery.getColumn(22)));
 
 	SQLite::Statement modifierQuery(*db, "SELECT * FROM defaultmodifiers");
 	while (modifierQuery.executeStep()) {
@@ -542,7 +540,7 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 
 	db->exec("DROP TABLE IF EXISTS generaldata");
 	db->exec("CREATE TABLE generaldata (id INTEGER PRIMARY KEY, "
-			 "displayname TEXT, characterid TEXT, guid TEXT, sortorder TEXT, "
+			 "displayname TEXT, guid TEXT, sortorder TEXT, "
 			 "lastdiff INTEGER, laststeps TEXT, lastsong TEXT, totalsessions "
 			 "INTEGER, totalsessionseconds INTEGER, "
 			 "totalgameplayseconds INTEGER, lastplayedmachineguid TEXT, "
@@ -559,33 +557,32 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	  "INSERT INTO generaldata VALUES (NULL, ?,"
 	  "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 	insertGData.bind(1, profile->GetDisplayNameOrHighScoreName());
-	insertGData.bind(2, profile->m_sCharacterID);
-	insertGData.bind(3, profile->m_sGuid);
-	insertGData.bind(4, SortOrderToString(profile->m_SortOrder));
-	insertGData.bind(5, profile->m_LastDifficulty);
+	insertGData.bind(2, profile->m_sGuid);
+	insertGData.bind(3, SortOrderToString(profile->m_SortOrder));
+	insertGData.bind(4, profile->m_LastDifficulty);
 	insertGData.bind(
-	  6,
+	  5,
 	  ((profile->m_LastStepsType != StepsType_Invalid &&
 		profile->m_LastStepsType < NUM_StepsType)
 		 ? GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName
 		 : ""));
-	insertGData.bind(7, profile->m_lastSong.ToString());
-	insertGData.bind(8, profile->m_iTotalSessions);
-	insertGData.bind(9, profile->m_iTotalSessionSeconds);
-	insertGData.bind(10, profile->m_iTotalGameplaySeconds);
-	insertGData.bind(11, profile->m_sLastPlayedMachineGuid);
-	insertGData.bind(12, profile->m_LastPlayedDate.GetString());
-	insertGData.bind(13, profile->m_iTotalDancePoints);
-	insertGData.bind(14, profile->m_iNumToasties);
-	insertGData.bind(15, profile->m_iTotalTapsAndHolds);
-	insertGData.bind(16, profile->m_iTotalJumps);
-	insertGData.bind(17, profile->m_iTotalHolds);
-	insertGData.bind(18, profile->m_iTotalRolls);
-	insertGData.bind(19, profile->m_iTotalMines);
-	insertGData.bind(20, profile->m_iTotalHands);
-	insertGData.bind(21, profile->m_iTotalLifts);
-	insertGData.bind(22, profile->m_fPlayerRating);
-	insertGData.bind(23, profile->m_iNumTotalSongsPlayed);
+	insertGData.bind(6, profile->m_lastSong.ToString());
+	insertGData.bind(7, profile->m_iTotalSessions);
+	insertGData.bind(8, profile->m_iTotalSessionSeconds);
+	insertGData.bind(9, profile->m_iTotalGameplaySeconds);
+	insertGData.bind(10, profile->m_sLastPlayedMachineGuid);
+	insertGData.bind(11, profile->m_LastPlayedDate.GetString());
+	insertGData.bind(12, profile->m_iTotalDancePoints);
+	insertGData.bind(13, profile->m_iNumToasties);
+	insertGData.bind(14, profile->m_iTotalTapsAndHolds);
+	insertGData.bind(15, profile->m_iTotalJumps);
+	insertGData.bind(16, profile->m_iTotalHolds);
+	insertGData.bind(17, profile->m_iTotalRolls);
+	insertGData.bind(18, profile->m_iTotalMines);
+	insertGData.bind(19, profile->m_iTotalHands);
+	insertGData.bind(20, profile->m_iTotalLifts);
+	insertGData.bind(21, profile->m_fPlayerRating);
+	insertGData.bind(22, profile->m_iNumTotalSongsPlayed);
 	insertGData.exec();
 	db->exec("DROP TABLE IF EXISTS defaultmodifiers");
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "

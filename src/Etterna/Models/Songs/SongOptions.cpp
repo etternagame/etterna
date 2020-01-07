@@ -8,7 +8,6 @@ static const char* AutosyncTypeNames[] = {
 	"Off",
 	"Song",
 	"Machine",
-	"Tempo",
 };
 XToString(AutosyncType);
 XToLocalizedString(AutosyncType);
@@ -88,9 +87,6 @@ SongOptions::GetMods(std::vector<RString>& AddTo) const
 			break;
 		case AutosyncType_Machine:
 			AddTo.push_back("AutosyncMachine");
-			break;
-		case AutosyncType_Tempo:
-			AddTo.push_back("AutosyncTempo");
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid autosync type: %i", m_AutosyncType));
@@ -190,8 +186,6 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_AutosyncType = on ? AutosyncType_Song : AutosyncType_Off;
 	else if (sBit == "autosyncmachine")
 		m_AutosyncType = on ? AutosyncType_Machine : AutosyncType_Off;
-	else if (sBit == "autosynctempo")
-		m_AutosyncType = on ? AutosyncType_Tempo : AutosyncType_Off;
 	else if (sBit == "effect" && !on)
 		m_SoundEffectType = SoundEffectType_Off;
 	else if (sBit == "effectspeed")
@@ -287,28 +281,3 @@ class LunaSongOptions : public Luna<SongOptions>
 
 LUA_REGISTER_CLASS(SongOptions)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

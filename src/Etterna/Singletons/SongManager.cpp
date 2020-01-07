@@ -52,10 +52,8 @@ struct Group
 SongManager* SONGMAN =
   NULL; // global and accessible from anywhere in our program
 
-/** @brief The file that contains various random attacks. */
 const RString ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
 const RString EDIT_SUBDIR = "Edits/";
-const RString ATTACK_FILE = "/Data/RandomAttacks.txt";
 
 static const ThemeMetric<RageColor> EXTRA_COLOR("SongManager", "ExtraColor");
 static const ThemeMetric<int> EXTRA_COLOR_METER("SongManager",
@@ -216,14 +214,14 @@ SongManager::DifferentialReloadDir(std::string dir)
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
-			
+
 			// Update nsman to keep us from getting disconnected
 			NSMAN->Update(0.0f);
-			
+
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
 						 "Loading:\n" + group.name + "\n" +
-						   pNewSong->GetMainTitle());
+						   pNewSong->GetDisplayMainTitle());
 			MESSAGEMAN->Broadcast(msg);
 			SCREENMAN->Draw(); // not sure if this needs to be handled better
 							   // (more safely?) or if its fine-mina
@@ -541,7 +539,9 @@ Playlist::GetAverageRating()
 	int numloaded = 0;
 	for (auto& n : chartlist) {
 		if (n.loaded) {
-			o += n.stepsptr->GetMSD(n.rate, 0);
+			auto rate = n.rate;
+			CLAMP(rate, 0.7f, 3.f);
+			o += n.stepsptr->GetMSD(rate, 0);
 			++numloaded;
 		}
 	}
@@ -1779,14 +1779,14 @@ class LunaSongManager : public Luna<SongManager>
 	static int SetActivePlaylist(T* p, lua_State* L)
 	{
 		p->activeplaylist = SArg(1);
-		return 1;
+		return 0;
 	}
 
 	static int NewPlaylist(T* p, lua_State* L)
 	{
 		ScreenTextEntry::TextEntry(
 		  SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
-		return 1;
+		return 0;
 	}
 
 	static int GetPlaylists(T* p, lua_State* L)
@@ -1807,7 +1807,7 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		p->DeletePlaylist(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	LunaSongManager()
@@ -1949,28 +1949,3 @@ class LunaChart : public Luna<Chart>
 
 LUA_REGISTER_CLASS(Chart)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

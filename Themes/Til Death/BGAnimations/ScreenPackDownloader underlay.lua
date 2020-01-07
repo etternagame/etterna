@@ -18,30 +18,16 @@ local function sendFilterAndSearchQuery()
 	)
 end
 
-local pressingtab = false
 local moving = false
 
 local function DlInput(event)
-	if event.DeviceInput.button == "DeviceButton_tab" then
-		if event.type == "InputEventType_FirstPress" then
-			pressingtab = true
-		elseif event.type == "InputEventType_Release" then
-			pressingtab = false
-		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+
+	if (event.DeviceInput.button == "DeviceButton_mousewheel up" or event.button == "MenuUp" or event.button == "MenuLeft") and event.type == "InputEventType_FirstPress" then
 		moving = true
-		if pressingtab == true then
-			MESSAGEMAN:Broadcast("WheelUpFast")
-		else
-			MESSAGEMAN:Broadcast("WheelUpSlow")
-		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+		MESSAGEMAN:Broadcast("WheelUpSlow")
+	elseif (event.DeviceInput.button == "DeviceButton_mousewheel down" or event.button == "MenuDown" or event.button == "MenuRight") and event.type == "InputEventType_FirstPress" then
 		moving = true
-		if pressingtab == true then
-			MESSAGEMAN:Broadcast("WheelDownFast")
-		else
-			MESSAGEMAN:Broadcast("WheelDownSlow")
-		end
+		MESSAGEMAN:Broadcast("WheelDownSlow")
 	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseLeftClick")
@@ -146,6 +132,16 @@ local function highlightIfOver(self)
 	end
 end
 
+local translated_info = {
+	Filters = THEME:GetString("ScreenPackDownloader", "Filters"),
+	AverageDiff = THEME:GetString("ScreenPackDownloader", "AverageDiff"),
+	Size = THEME:GetString("ScreenPackDownloader", "Size"),
+	EnterBundles = THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"),
+	CancelCurrent = THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"),
+	SearchName = THEME:GetString("ScreenPackDownloader", "SearchingName"),
+	SizeExplanation = THEME:GetString("ScreenPackDownloader", "ExplainSizeLimit")
+}
+
 local width = SCREEN_WIDTH / 3
 local fontScale = 0.5
 local packh = 36
@@ -195,19 +191,22 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0):settext("Filters:")
+				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
+				self:settextf("%s:", translated_info["Filters"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0):settext("Avg Diff:")
+				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", translated_info["AverageDiff"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0):settext("Size (MB):")
+				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", translated_info["Size"])
 			end
 		},
 	-- maybe we'll have more one day
@@ -235,7 +234,8 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2):settext("Bundle Select")
+				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
+				self:settext(translated_info["EnterBundles"])
 			end
 		},
 	--[[
@@ -295,9 +295,8 @@ local o =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
-					"Cancel current dl"
-				)
+				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3)
+				self:settext(translated_info["CancelCurrent"])
 			end
 		}
 }
@@ -392,14 +391,16 @@ o[#o + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:zoom(fontScale):halign(1):valign(0):settext("Name:") -- this being so far down is kinda awkward
+				self:zoom(fontScale):halign(1):valign(0)
+				self:settextf("%s:", translated_info["SearchName"]) -- this being so far down is kinda awkward
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
 				self:xy(-90, 40)
-				self:zoom(fontScale):halign(0):valign(0):settext("Packs 2gb+ must be manually extracted into the Songs/ folder")
+				self:zoom(fontScale):halign(0):valign(0)
+				self:settext(translated_info["SizeExplanation"])
 			end
 		}
 }

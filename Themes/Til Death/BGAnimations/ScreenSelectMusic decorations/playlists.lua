@@ -92,6 +92,20 @@ local currentplaylistpage = 1
 local numplaylistpages = 1
 local playlistsperpage = 10
 
+local translated_info = {
+	Delete = THEME:GetString("TabPlaylists", "Delete"),
+	Showing = THEME:GetString("TabPlaylists", "Showing"),
+	ChartCount = THEME:GetString("TabPlaylists", "ChartCount"),
+	AverageRating = THEME:GetString("TabPlaylists", "AverageRating"),
+	Title = THEME:GetString("TabPlaylists", "Title"),
+	ExplainAdd = THEME:GetString("TabPlaylists", "ExplainAddChart"),
+	ExplainPlaylist = THEME:GetString("TabPlaylists", "ExplainNewPlaylist"),
+	PlayAsCourse = THEME:GetString("TabPlaylists", "PlayAsCourse"),
+	Back = THEME:GetString("TabPlaylists", "Back"),
+	Next = THEME:GetString("TabPlaylists", "Next"),
+	Previous = THEME:GetString("TabPlaylists", "Previous"),
+}
+
 t[#t + 1] =
 	Def.Quad {
 	InitCommand = function(self)
@@ -110,9 +124,8 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
-				"Playlists (WIP)"
-			)
+			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+			self:settext(translated_info["Title"])
 		end
 	}
 t[#t + 1] =
@@ -122,10 +135,10 @@ t[#t + 1] =
 			self:xy(frameWidth, frameY + offsetY - 9):zoom(0.6):halign(1):diffuse(getMainColor("positive"))
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
-			self:settext("Ctrl+A to add a new chart")
+			self:settext(translated_info["ExplainAdd"])
 		end,
 		DisplayAllMessageCommand = function(self)
-			self:settext("Ctrl+P to add a new playlist")
+			self:settext(translated_info["ExplainPlaylist"])
 		end
 	}
 
@@ -277,7 +290,7 @@ local function DeleteChartButton(i)
 				InitCommand = function(self)
 					self:halign(0)
 					self:zoom(fontScale)
-					self:settext("Del")
+					self:settext(translated_info["Delete"])
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
 				end,
 				DisplaySinglePlaylistLevel2Command = function(self)
@@ -445,7 +458,8 @@ b2[#b2 + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:zoom(0.3):x(85):settext("Play As Course")
+			self:zoom(0.3):x(85)
+			self:settext(translated_info["PlayAsCourse"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and singleplaylistactive then
@@ -459,7 +473,8 @@ b2[#b2 + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:zoom(0.3):settext("Back")
+			self:zoom(0.3)
+			self:settext(translated_info["Back"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and singleplaylistactive then
@@ -480,7 +495,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Next")
+				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(translated_info["Next"])
 			end,
 			DisplayAllMessageCommand = function(self)
 				self:visible(false)
@@ -499,7 +515,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Previous")
+				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(translated_info["Previous"])
 			end,
 			DisplayAllMessageCommand = function(self)
 				self:visible(false)
@@ -522,7 +539,8 @@ r[#r + 1] =
 			end,
 			SetCommand = function(self)
 				self:settextf(
-					"Showing %i-%i of %i",
+					"%s %i-%i (%i)",
+					translated_info["Showing"],
 					math.min(((currentchartpage - 1) * chartsperplaylist) + 1, #chartlist),
 					math.min(currentchartpage * chartsperplaylist, #chartlist),
 					#chartlist
@@ -583,7 +601,7 @@ local function DeletePlaylistButton(i)
 				end,
 				AllDisplayMessageCommand = function(self)
 					if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
-						self:settext("Del")
+						self:settext(translated_info["Delete"])
 						self:zoom(fontScale)
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					end
@@ -638,7 +656,8 @@ local function PlaylistSelectLabel(i)
 				AllDisplayMessageCommand = function(self)
 					if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
 						self:settextf(
-							"Number of charts: %d",
+							"%s: %d",
+							translated_info["ChartCount"],
 							allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetNumCharts()
 						)
 					end
@@ -652,7 +671,7 @@ local function PlaylistSelectLabel(i)
 					self:diffuse(getMainColor("positive"))
 				end,
 				AllDisplayMessageCommand = function(self)
-					self:settextf("Average Rating:")
+					self:settextf("%s:", translated_info["AverageRating"])
 				end
 			},
 		LoadFont("Common Large") ..
@@ -722,7 +741,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Next")
+				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(translated_info["Next"])
 			end,
 			DisplaySinglePlaylistMessageCommand = function(self)
 				self:visible(false)
@@ -740,7 +760,8 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Previous")
+				self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:settext(translated_info["Previous"])
 			end,
 			DisplaySinglePlaylistMessageCommand = function(self)
 				self:visible(false)
@@ -762,7 +783,8 @@ r[#r + 1] =
 			end,
 			SetCommand = function(self)
 				self:settextf(
-					"Showing %i-%i of %i",
+					"%s %i-%i (%i)",
+					translated_info["Showing"],
 					math.min(((currentplaylistpage - 1) * playlistsperpage) + 1, #allplaylists),
 					math.min(currentplaylistpage * playlistsperpage, #allplaylists),
 					#allplaylists
