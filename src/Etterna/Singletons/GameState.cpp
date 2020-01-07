@@ -686,7 +686,7 @@ GameState::SetCompatibleStylesForPlayers()
 		if (m_pCurSteps != NULL) {
 			st = m_pCurSteps->m_StepsType;
 		} else {
-			vector<StepsType> vst;
+			std::vector<StepsType> vst;
 			GAMEMAN->GetStepsTypesForGame(m_pCurGame, vst);
 			st = vst[0];
 		}

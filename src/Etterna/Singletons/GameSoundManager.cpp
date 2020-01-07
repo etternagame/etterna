@@ -106,7 +106,7 @@ struct SoundPositionSetter
 	RageSound* m_psound;
 	float fSeconds;
 };
-vector<SoundPositionSetter> g_PositionsToSet;
+std::vector<SoundPositionSetter> g_PositionsToSet;
 
 void
 GameSoundManager::StartMusic(MusicToPlay& ToPlay)
@@ -392,7 +392,7 @@ void
 GameSoundManager::HandleSetPosition()
 {
 	g_Mutex->Lock();
-	vector<SoundPositionSetter> vec = g_PositionsToSet;
+	std::vector<SoundPositionSetter> vec = g_PositionsToSet;
 	g_PositionsToSet.clear();
 	g_Mutex->Unlock();
 	for (unsigned i = 0; i < vec.size(); i++) {

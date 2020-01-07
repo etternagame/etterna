@@ -4,6 +4,7 @@
 #define RAGE_SOUND_READER_RESAMPLE_GOOD_H
 
 #include "RageSoundReader_Filter.h"
+#include <vector>
 
 class RageSoundResampler_Polyphase;
 

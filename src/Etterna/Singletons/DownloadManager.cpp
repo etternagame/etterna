@@ -2685,9 +2685,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		OnlineHighScore* hs =
 		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
 		int userid = hs->userid;
-		string username = hs->GetDisplayName();
-		string scoreid = hs->scoreid;
-		string ck = hs->GetChartKey();
+		std::string username = hs->GetDisplayName();
+        std::string scoreid = hs->scoreid;
+        std::string ck = hs->GetChartKey();
 
 		bool alreadyHasReplay = false;
 		alreadyHasReplay |= !hs->GetNoteRowVector().empty();
