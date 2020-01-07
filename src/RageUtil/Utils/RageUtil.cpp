@@ -15,6 +15,10 @@
 #include <numeric>
 #include <sstream>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 bool
 HexToBinary(const RString&, RString&);
 void
@@ -401,7 +405,12 @@ vssprintf(const char* szFormat, va_list argList)
 		_freea(pBuf);
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
 		iChars += iTry * FMT_BLOCK_SIZE;
-		pBuf = (char*)_malloca(sizeof(char) * iChars);
+		__try {
+			pBuf = (char*)_malloca(sizeof(char) * iChars);
+		} __except (GetExceptionCode() == STATUS_STACK_OVERFLOW) {
+			if (_resetstkoflw())
+				sm_crash("Unrecoverable Stack Overflow");
+		}
 		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
