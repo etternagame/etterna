@@ -93,6 +93,7 @@ RageSoundDriver_ALSA9_Software::RageSoundDriver_ALSA9_Software()
 {
 	m_pPCM = NULL;
 	m_bShutdown = false;
+	m_iSampleRate = 44100;
 }
 
 RString

@@ -1,4 +1,4 @@
-﻿#ifndef NOTE_DATA_H
+#ifndef NOTE_DATA_H
 #define NOTE_DATA_H
 
 #include "NoteDataStructures.h"
@@ -44,6 +44,7 @@ class NoteData
 	NoteData()
 	  : m_TapNotes()
 	{
+		m_numTracksLCD = 0;
 	}
 
 	iterator begin(int iTrack) { return m_TapNotes[iTrack].begin(); }

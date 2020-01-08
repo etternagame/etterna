@@ -147,6 +147,8 @@ LifeMeterBar::LifeMeterBar()
 	  m_fLifePercentChange.GetValue(SE_CheckpointMiss);
 	m_Change_SE_Held = m_fLifePercentChange.GetValue(SE_Held);
 	m_Change_SE_LetGo = m_fLifePercentChange.GetValue(SE_LetGo);
+	m_fLifePercentage = INITIAL_VALUE;
+	m_iProgressiveLifebar = 0;
 }
 
 LifeMeterBar::~LifeMeterBar()

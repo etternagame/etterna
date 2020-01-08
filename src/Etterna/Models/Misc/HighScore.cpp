@@ -293,6 +293,8 @@ HighScoreImpl::HighScoreImpl()
 	string ValidationKey = "";
 	TopScore = 0;
 	ReplayType = 2;
+	bNoChordCohesion = false;
+	bDisqualified = false;
 }
 
 XNode*

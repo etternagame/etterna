@@ -239,6 +239,10 @@ Alsa9Buf::Alsa9Buf()
 	preferred_writeahead = 8192;
 	preferred_chunksize = 1024;
 	pcm = NULL;
+	channels = 1;
+	buffersize = 16;
+	writeahead = false;
+	chunksize = 1024;
 }
 
 RString

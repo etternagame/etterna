@@ -216,8 +216,6 @@ class RageMutex
 	MutexImpl* m_pMutex;
 	RString m_sName;
 
-	int m_UniqueID;
-
 	uint64_t m_LockedBy;
 	int m_LockCnt;
 

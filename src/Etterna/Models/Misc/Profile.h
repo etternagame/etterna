@@ -152,6 +152,9 @@ class Profile
 	  , profiledir("")
 	{
 		m_lastSong.Unset();
+		m_fPlayerRating = 0.f;
+		FOREACH_ENUM(Skillset, ss)
+		m_fPlayerSkillsets[ss] = 0.f;
 
 		m_LastPlayedDate.Init();
 

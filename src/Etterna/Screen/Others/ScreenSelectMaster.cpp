@@ -53,6 +53,8 @@ ScreenSelectMaster::ScreenSelectMaster()
 	m_iChoice = 0;
 	m_bChosen = false;
 	m_bDoubleChoice = false;
+	m_bDoubleChoiceNoSound = false;
+	m_TrackingRepeatingInput = GameButton_Invalid;
 }
 
 void

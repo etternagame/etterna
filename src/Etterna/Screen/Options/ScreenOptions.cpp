@@ -90,6 +90,10 @@ ScreenOptions::ScreenOptions()
 			break;
 	}
 	m_InputMode = INPUTMODE_SHARE_CURSOR;
+	m_iCurrentRow = 0;
+	m_iFocusX = 0;
+	m_bWasOnExit = false;
+	m_bGotAtLeastOneStartPressed = false;
 }
 
 void

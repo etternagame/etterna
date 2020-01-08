@@ -244,6 +244,7 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_CullMode);
 
 	CPY(m_mapNameToCommands);
+	CPY(m_tween_uses_effect_delta);
 #undef CPY
 }
 
@@ -1629,6 +1630,8 @@ Actor::SetParent(Actor* pParent)
 Actor::TweenInfo::TweenInfo()
 {
 	m_pTween = nullptr;
+	m_fTimeLeftInTween = 0.f;
+	m_fTweenTime = 0.f;
 }
 
 Actor::TweenInfo::~TweenInfo()

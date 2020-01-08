@@ -1,4 +1,4 @@
-﻿/* MenuTimer - A timer on the menu that ticks down. */
+/* MenuTimer - A timer on the menu that ticks down. */
 
 #ifndef MENU_TIMER_H
 #define MENU_TIMER_H
@@ -38,7 +38,7 @@ class MenuTimer : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   protected:
-	float m_fSecondsLeft;
+	float m_fSecondsLeft = 0.f;
 	float m_fStallSeconds, m_fStallSecondsLeft;
 	bool m_bPaused;
 

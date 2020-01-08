@@ -86,6 +86,7 @@ class ThemeMetric : public IThemeMetric
 	  , m_Value(cpy.m_Value)
 	// do we transfer the current value or bCallEachTime?
 	{
+		m_bCallEachTime = false;
 		ThemeManager::Subscribe(this);
 	}
 

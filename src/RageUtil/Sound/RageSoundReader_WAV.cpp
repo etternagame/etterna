@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Straightforward WAV reading.  This only supports 8-bit and 16-bit PCM,
  * 4-bit ADPCM with one or two channels.  No other decompressors are planned:
  * this format is only useful for fast uncompressed audio, and ADPCM is only
@@ -206,7 +206,10 @@ struct WavReaderADPCM : public WavReader
 	WavReaderADPCM(RageFileBasic& f, const RageSoundReader_WAV::WavData& data)
 	  : WavReader(f, data)
 	{
+		m_iFramesPerBlock = 0;
 		m_pBuffer = NULL;
+		m_iBufferAvail = 0;
+		m_iBufferUsed = 0;
 	}
 
 	~WavReaderADPCM() override { delete[] m_pBuffer; }

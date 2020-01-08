@@ -30,6 +30,8 @@ Model::Model()
 	m_bLoop = true;
 	m_bDrawCelShaded = false;
 	m_pTempGeometry = NULL;
+	m_animation_length_seconds = 0.f;
+	m_fCurFrame = 0.f;
 }
 
 Model::~Model()

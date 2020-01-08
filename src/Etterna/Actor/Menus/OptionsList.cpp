@@ -167,6 +167,10 @@ OptionsList::OptionsList()
 {
 	m_iCurrentRow = 0;
 	m_pLinked = NULL;
+	m_bStartIsDown = false;
+	m_bAcceptStartRelease = false;
+	m_pn = PLAYER_1;
+	m_iMenuStackSelection = 0;
 }
 
 OptionsList::~OptionsList()

@@ -232,7 +232,11 @@ class BroadcastOnChange
 	T val;
 
   public:
-	explicit BroadcastOnChange(MessageID m) { mSendWhenChanged = m; }
+	explicit BroadcastOnChange(MessageID m)
+	{
+		val = T();
+		mSendWhenChanged = m;
+	}
 	const T Get() const { return val; }
 	void Set(T t)
 	{

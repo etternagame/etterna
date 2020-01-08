@@ -1,4 +1,4 @@
-﻿/* MeterDisplay - Display position in a song. */
+/* MeterDisplay - Display position in a song. */
 
 #ifndef METER_DISPLAY_H
 #define METER_DISPLAY_H
@@ -23,8 +23,8 @@ class MeterDisplay : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   private:
-	float m_fStreamWidth;
-	float m_fPercent;
+	float m_fStreamWidth = 0.f;
+	float m_fPercent = 0.5f;
 	AutoActor m_sprStream;
 	AutoActor m_sprTip;
 };

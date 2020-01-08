@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This is a filesystem wrapper driver.  To use it, mount it on top of another
  * filesystem at a different mountpoint.  For example, mount the local path
  * "d:/" as a normal directory to /cdrom-native:
@@ -123,20 +123,20 @@ class ThreadedFileWorker : public RageWorkerThread
 	FileSet m_ResultFileSet; /* out */
 
 	/* REQ_OPEN: */
-	int m_iRequestMode; /* in */
+	int m_iRequestMode = 0; /* in */
 
 	/* REQ_CLOSE, REQ_GET_FILE_SIZE, REQ_COPY: */
 	RageFileBasic* m_pRequestFile; /* in */
 
 	/* REQ_OPEN, REQ_GET_FILE_SIZE, REQ_READ, REQ_SEEK */
-	int m_iResultRequest; /* out */
+	int m_iResultRequest = 0; /* out */
 
 	/* REQ_READ, REQ_WRITE */
-	int m_iRequestSize;		/* in */
+	int m_iRequestSize = 0; /* in */
 	RString m_sResultError; /* out */
 
 	/* REQ_SEEK */
-	int m_iRequestPos; /* in */
+	int m_iRequestPos = 0; /* in */
 
 	/* REQ_READ */
 	char* m_pResultBuffer; /* out */
