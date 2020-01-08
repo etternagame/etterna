@@ -109,6 +109,7 @@ RageLog::SetLogger(const char* name, const char* path)
 		  spdlog::thread_pool(),
 		  spdlog::async_overflow_policy::block);
 		spdlog::register_logger(out);
+		out->set_level(spdlog::level::trace);
 	} catch (const spdlog::spdlog_ex& ex) {
 		sm_crash(ex.what());
 	}
