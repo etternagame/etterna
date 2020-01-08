@@ -90,7 +90,7 @@ Alsa9Buf::SetSWParams()
 
 	/* chunksize has been set to the period size.  Set avail_min to the period
 	 * size, too, so poll() wakes up once per chunk. */
-	err = dsnd_pcm_sw_params_set_avail_std::min(pcm, swparams, chunksize);
+	err = dsnd_pcm_sw_params_set_avail_min(pcm, swparams, chunksize);
 	ALSA_ASSERT("dsnd_pcm_sw_params_set_avail_min");
 
 	/* If this fails, we might have bound dsnd_pcm_sw_params_set_avail_min to
