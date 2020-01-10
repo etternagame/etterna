@@ -586,7 +586,7 @@ PlayerReplay::Step(int col,
 	TapNoteScore score = TNS_None;
 
 	int iRowOfOverlappingNoteOrRow = row;
-	if (row == -1)
+	if (row == -1 && col != -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
