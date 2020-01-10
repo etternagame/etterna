@@ -25,7 +25,6 @@ t[#t + 1] =
 		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
-			SCREENMAN:SystemMessage(getAssetPath("judgment"))
 			self:pause():visible(false)
 		end,
 		OnCommand = THEME:GetMetric("Judgment", "JudgmentOnCommand"),
