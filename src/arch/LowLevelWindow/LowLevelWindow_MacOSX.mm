@@ -382,7 +382,10 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 		}
 		
 		[m_WindowDelegate performSelectorOnMainThread:@selector(setParams:) withObject:[NSValue valueWithPointer:&p] waitUntilDone:YES];
-		[m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+
+		dispatch_async(dispatch_get_main_queue(), ^{
+            [m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+		});
 		[m_Context update];
 		[m_Context makeCurrentContext];
 		m_CurrentParams.windowed = true;
