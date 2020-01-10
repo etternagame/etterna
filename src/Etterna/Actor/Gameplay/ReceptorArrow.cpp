@@ -11,6 +11,8 @@ ReceptorArrow::ReceptorArrow()
 	m_bIsPressed = false;
 	m_bWasPressed = false;
 	m_bWasReverse = false;
+	m_pPlayerState = NULL;
+	m_iColNo = 0;
 }
 
 void

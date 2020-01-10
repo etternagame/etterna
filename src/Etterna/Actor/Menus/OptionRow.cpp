@@ -45,6 +45,9 @@ OptionRow::OptionRow(const OptionRowType* pSource)
 	m_textTitle = NULL;
 	m_ModIcons = NULL;
 
+	m_RowType = OptionRow::RowType_Normal;
+	m_sprFrame = NULL;
+
 	Clear();
 	this->AddChild(&m_Frame);
 

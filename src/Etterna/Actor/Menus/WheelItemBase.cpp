@@ -25,6 +25,9 @@ WheelItemBase::WheelItemBase(const WheelItemBase& cpy)
   , m_pData(cpy.m_pData)
   , m_bExpanded(cpy.m_bExpanded)
 {
+	// what
+	m_pGrayBar = NULL;
+
 	// FIXME
 	// if( cpy.m_pGrayBar == cpy.m_sprBar )
 	//	m_pGrayBar = m_sprBar;

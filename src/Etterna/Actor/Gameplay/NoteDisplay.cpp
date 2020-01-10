@@ -470,6 +470,8 @@ NoteColumnRenderArgs::SetPRZForActor(Actor* actor,
 
 NoteDisplay::NoteDisplay()
 {
+	m_pPlayerState = NULL;
+	m_fYReverseOffsetPixels = 0.f;
 	cache = new NoteMetricCache_t;
 }
 

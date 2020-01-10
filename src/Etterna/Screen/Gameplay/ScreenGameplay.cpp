@@ -94,6 +94,13 @@ ScreenGameplay::ScreenGameplay()
 		LOG->Trace("Unloading replaydata.");
 		SCOREMAN->UnloadAllReplayData();
 	}
+
+	m_DancingState = STATE_INTRO;
+	m_fTimeSinceLastDancingComment = 0.f;
+	m_bShowScoreboard = false;
+	m_gave_up = false;
+	m_bZeroDeltaOnNextUpdate = false;
+	m_pSoundMusic = NULL;
 }
 
 void

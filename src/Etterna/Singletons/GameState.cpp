@@ -126,6 +126,22 @@ GameState::GameState()
 
 	sExpandedSectionName = "";
 
+	this->SetMasterPlayerNumber(PLAYER_INVALID);
+	FOREACH_MultiPlayer(p) m_MultiPlayerStatus[p] = MultiPlayerStatus_NotJoined;
+	m_iNumMultiplayerNoteFields = 1;
+	m_bFailTypeWasExplicitlySet = false;
+	m_PreferredSortOrder = SORT_GROUP;
+	m_iNumStagesOfThisSong = 0;
+	m_iCurrentStageIndex = 0;
+	m_iPlayerStageTokens = 0;
+	m_bLoadingNextSong = false;
+	m_pPreferredSong = NULL;
+	m_DanceDuration = 0.f;
+	m_bTemporaryEventMode = false;
+	m_bRestartedGameplay = false;
+	m_LastPositionSeconds = 0.f;
+	m_paused = false;
+
 	// Just make sure practice is off for sure.
 	TogglePracticeMode(false);
 

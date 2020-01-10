@@ -202,6 +202,16 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_pIterUnjudgedRows = NULL;
 	m_pIterUnjudgedMineRows = NULL;
 
+	totalwifescore = 0.f;
+	m_Timing = NULL;
+	m_pActorWithJudgmentPosition = NULL;
+	m_pActorWithComboPosition = NULL;
+	m_LastTapNoteScore = TNS_None;
+	m_iFirstUncrossedRow = -1;
+	m_iLastSeenCombo = 0;
+	m_bSeenComboYet = false;
+	m_bTickHolds = false;
+
 	m_bPaused = false;
 	m_bDelay = false;
 

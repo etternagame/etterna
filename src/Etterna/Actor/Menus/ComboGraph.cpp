@@ -17,6 +17,7 @@ ComboGraph::ComboGraph()
 	m_pNormalCombo = NULL;
 	m_pMaxCombo = NULL;
 	m_pComboNumber = NULL;
+	m_pBacking = NULL;
 }
 
 void

@@ -34,6 +34,7 @@ RageFileObj::RageFileObj(const RageFileObj& cpy)
 		m_pReadBuf = m_pReadBuffer + iOffsetIntoBuffer;
 	} else {
 		m_pReadBuffer = NULL;
+		m_pReadBuf = NULL;
 	}
 
 	if (cpy.m_pWriteBuffer != NULL) {

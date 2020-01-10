@@ -14,6 +14,7 @@ SoundEffectControl::SoundEffectControl()
 	m_fLastLevel = 0.0f;
 	m_pPlayerState = NULL;
 	m_pNoteData = NULL;
+	m_pSoundReader = NULL;
 }
 
 void

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include <cassert>
 
 #include "ActorMultiVertex.h"
@@ -68,6 +68,7 @@ ActorMultiVertex::ActorMultiVertex()
 	_use_animation_state = false;
 	_secs_into_state = 0.0f;
 	_cur_state = 0;
+	AMV_TempState = nullptr;
 }
 
 ActorMultiVertex::~ActorMultiVertex()
@@ -90,6 +91,7 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	CPY(_secs_into_state);
 	CPY(_cur_state);
 	CPY(_states);
+	CPY(_decode_movie);
 #undef CPY
 
 	if (cpy._Texture != nullptr) {
@@ -97,6 +99,7 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	} else {
 		_Texture = nullptr;
 	}
+	AMV_TempState = nullptr;
 }
 
 void

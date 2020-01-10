@@ -22,6 +22,7 @@ REGISTER_ACTOR_CLASS(StepsDisplayList);
 
 StepsDisplayList::StepsDisplayList()
 {
+	m_CurSong = NULL;
 	m_bShown = true;
 	SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1));
 	SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + PLAYER_1));
