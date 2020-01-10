@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSurface.h"
@@ -721,10 +721,6 @@ RageSurfaceUtils::Blit(const RageSurface* src,
 					   int width,
 					   int height)
 {
-	if (width == -1)
-		width = src->w;
-	if (height == -1)
-		height = src->h;
 	width = min(src->w, dst->w);
 	height = min(src->h, dst->h);
 

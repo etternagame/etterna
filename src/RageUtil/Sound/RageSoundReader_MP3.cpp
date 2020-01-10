@@ -891,7 +891,6 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 
 		if (mad_timer_compare(desired, next_next_frame_timer) < 0 && !synthed) {
 			synth_output();
-			synthed = true;
 		}
 
 		int ret = do_mad_frame_decode();
