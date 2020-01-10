@@ -1,4 +1,4 @@
-﻿/** @brief NoteTypes - Types for holding tap notes and scores. */
+/** @brief NoteTypes - Types for holding tap notes and scores. */
 
 #ifndef NOTE_TYPES_H
 #define NOTE_TYPES_H
@@ -245,6 +245,13 @@ struct HoldReplayResult
 	int row;
 	int track; // column
 	TapNoteSubType subType;
+
+	HoldReplayResult()
+	{
+		row = 0;
+		track = 0;
+		subType = TapNoteSubType_Invalid;
+	}
 };
 
 struct TapReplayResult
@@ -254,6 +261,15 @@ struct TapReplayResult
 	float offset;		   // 0
 	TapNoteType type;	  // typically mines, holds, rolls, etc
 	int offsetAdjustedRow; // row assigned later on for full replays
+
+	TapReplayResult()
+	{
+		row = 0;
+		track = 0;
+		offset = 0.f;
+		type = TapNoteType_Invalid;
+		offsetAdjustedRow = 0;
+	}
 };
 
 extern TapNote TAP_EMPTY;				   // '0'

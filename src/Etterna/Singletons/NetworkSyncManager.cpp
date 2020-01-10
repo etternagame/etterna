@@ -114,7 +114,7 @@ string
 correct_non_utf_8(string* str)
 {
 	int i, f_size = str->size();
-	unsigned char c, c2, c3, c4;
+	unsigned char c = 0, c2 = 0, c3 = 0, c4 = 0;
 	string to;
 	to.reserve(f_size);
 
