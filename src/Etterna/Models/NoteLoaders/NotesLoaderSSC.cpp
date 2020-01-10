@@ -418,8 +418,9 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 
 	// If the header did not contain a BPM default to the first step's #BPMS
 	if ((info.song->m_SongTiming.GetSegmentIndexAtRow(SEGMENT_BPM, 0)) == -1) {
-		info.loader->ProcessBPMs(
-			info.song->m_SongTiming,(*info.params)[1], info.loader->GetSongTitle());
+		info.loader->ProcessBPMs(info.song->m_SongTiming,
+								 (*info.params)[1],
+								 info.loader->GetSongTitle());
 	}
 	info.ssc_format = true;
 }
@@ -1170,15 +1171,6 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 				reused_steps_info.steps = pNewNotes;
 				reused_steps_info.ssc_format = true;
 			} else if (sValueName == "NOTES") {
-				if (pSong == NULL) {
-					LOG->UserLog(
-					  "Edit file",
-					  sEditFilePath,
-					  "doesn't have a #SONG tag preceeding the first #NOTES "
-					  "tag,"
-					  " and is not in a valid song-specific folder.");
-					return false;
-				}
 
 				if (!reused_steps_info.ssc_format && iNumParams < 7) {
 					LOG->UserLog("Edit file",

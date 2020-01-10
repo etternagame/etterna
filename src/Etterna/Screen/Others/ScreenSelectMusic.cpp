@@ -1118,22 +1118,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 			break;
 
 		case SelectionState_SelectingSteps: {
-			bool bInitiatedByMenuTimer = pn == PLAYER_INVALID;
-			bool bAllOtherHumanPlayersDone = true;
-
-			bool bAllPlayersDoneSelectingSteps =
-			  bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
-
-			if (!bAllPlayersDoneSelectingSteps) {
-				m_bStepsChosen = true;
-				m_soundStart.Play(true);
-
-				// impldiff: Pump it Up Pro uses "StepsSelected". -aj
-				Message msg("StepsChosen");
-				msg.SetParam("Player", pn);
-				MESSAGEMAN->Broadcast(msg);
-				return true;
-			}
 		} break;
 	}
 	if (m_SelectionState == SelectionState_SelectingSteps) {

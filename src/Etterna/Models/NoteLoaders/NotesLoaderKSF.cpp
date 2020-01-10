@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/MsdFile.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
@@ -253,7 +253,6 @@ LoadFromKSFFile(const RString& sPath,
 	for (t = 0; t < 13; t++)
 		iHoldStartRow[t] = -1;
 
-	bool bTickChangeNeeded = false;
 	int newTick = -1;
 	float fCurBeat = 0.0f;
 	float prevBeat = 0.0f; // Used for hold tails.
@@ -358,12 +357,6 @@ LoadFromKSFFile(const RString& sPath,
 		// Half-doubles is offset; "0011111100000".
 		if (out.m_StepsType == StepsType_pump_halfdouble)
 			sRowString.erase(0, 2);
-
-		// Update TICKCOUNT for Direct Move files.
-		if (bTickChangeNeeded) {
-			iTickCount = newTick;
-			bTickChangeNeeded = false;
-		}
 
 		for (t = 0; t < notedata.GetNumTracks(); t++) {
 			if (sRowString[t] == '4') {
