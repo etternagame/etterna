@@ -444,7 +444,10 @@ class LunaRageFile : public Luna<RageFile>
 	{
 		can_safely_read(p, L);
 		RString string;
-		p->GetLine(string);
+		if (!p->GetLine(string)) {
+			lua_pushnil(L);
+			return 1;
+		}
 		lua_pushstring(L, string);
 		return 1;
 	}

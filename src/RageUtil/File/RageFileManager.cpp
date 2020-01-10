@@ -564,7 +564,10 @@ RageFileManager::CreateDir(const RString& sDir)
 {
 	RString sTempFile = sDir + "newdir.temp.newdir";
 	RageFile f;
-	f.Open(sTempFile, RageFile::WRITE);
+	if (!f.Open(sTempFile, RageFile::WRITE))
+		LOG->Trace("Creating temporary file '%s' failed: %s",
+				   sTempFile.c_str(),
+				   f.GetError().c_str());
 	f.Close();
 
 	Remove(sTempFile);
