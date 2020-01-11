@@ -172,10 +172,7 @@ MutexImpl_Pthreads::Lock()
 	}
 #endif
 
-	int ret;
-	do {
-		ret = pthread_mutex_lock(&mutex);
-	} while (ret == -1 && ret == EINTR);
+	int ret = pthread_mutex_lock(&mutex);
 
 	ASSERT_M(ret == 0, ssprintf("pthread_mutex_lock: %s", strerror(errno)));
 
