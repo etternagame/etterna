@@ -388,7 +388,7 @@ Profile::GetMostPopularSong() const
 void
 Profile::AddStepsHighScore(const Song* pSong,
 						   const Steps* pSteps,
-						   HighScore hs,
+						   const HighScore& hs,
 						   int& iIndexOut)
 {
 	GetStepsHighScoreList(pSong, pSteps).AddHighScore(hs, iIndexOut, false);

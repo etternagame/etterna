@@ -1288,7 +1288,9 @@ HighScoreList::Init()
 }
 
 void
-HighScoreList::AddHighScore(HighScore hs, int& iIndexOut, bool bIsMachine)
+HighScoreList::AddHighScore(const HighScore& hs,
+							int& iIndexOut,
+							bool bIsMachine)
 {
 	int i;
 	for (i = 0; i < static_cast<int>(vHighScores.size()); i++) {

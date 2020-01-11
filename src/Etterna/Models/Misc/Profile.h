@@ -314,7 +314,7 @@ class Profile
 
 	void AddStepsHighScore(const Song* pSong,
 						   const Steps* pSteps,
-						   HighScore hs,
+						   const HighScore& hs,
 						   int& iIndexOut);
 	const HighScoreList& GetStepsHighScoreList(const Song* pSong,
 											   const Steps* pSteps) const;
