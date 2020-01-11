@@ -870,12 +870,9 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 
 	if (m_fLockInputSecs > 0)
 		return false;
-	if (SHARED_SELECTION || GetCurrentPage() == PAGE_2) {
-		// Return if any player has chosen
-		if (m_bChosen)
-			return false;
-	} else if (m_bChosen)
-		// Return if this player has already chosen
+
+	// Return if player has chosen
+	if (m_bChosen)
 		return false;
 
 	if (!ProcessMenuStart(pn))
