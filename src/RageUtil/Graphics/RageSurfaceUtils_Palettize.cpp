@@ -1,4 +1,4 @@
-﻿/* from http://www.libpng.org/pub/png/apps/pngquant.html */
+/* from http://www.libpng.org/pub/png/apps/pngquant.html */
 
 #include "Etterna/Globals/global.h"
 #include "RageSurface.h"
@@ -478,19 +478,21 @@ mediancut(acolorhist_item* achv, int colors, int sum, int maxval, int newcolors)
 			a += PAM_GETA(achv[indx + i].acolor) * achv[indx + i].value;
 			lSum += achv[indx + i].value;
 		}
-		r = r / lSum;
+		if (lSum != 0) {
+			r = r / lSum;
+			g = g / lSum;
+			b = b / lSum;
+			a = a / lSum;
+		}
 		r = min(r, (long)maxval);
-		g = g / lSum;
 		g = min(g, (long)maxval);
-		b = b / lSum;
 		b = min(b, (long)maxval);
-		a = a / lSum;
 		a = min(a, (long)maxval);
 		PAM_ASSIGN(
 		  acolormap[bi].acolor, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a);
 #endif // REP_AVERAGE_PIXELS
 	}
-	
+
 	free(bv);
 	// All done.
 	return acolormap;
