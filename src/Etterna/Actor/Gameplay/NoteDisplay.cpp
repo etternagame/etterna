@@ -1800,17 +1800,18 @@ NoteDisplay::DrawTap(const TapNote& tn,
 	  ArrowEffects::GetYOffset(m_pPlayerState, column_args.column, fBeat);
 	// this is the line that forces the (1,1,1,x) part of the noteskin diffuse
 	// -aj
-	DrawActor(tn,
-			  pActor,
-			  part,
-			  field_args,
-			  column_args,
-			  fYOffset,
-			  fBeat,
-			  bIsAddition,
-			  fPercentFadeToFail,
-			  1.0f,
-			  false);
+	if (pActor != NULL)
+		DrawActor(tn,
+				  pActor,
+				  part,
+				  field_args,
+				  column_args,
+				  fYOffset,
+				  fBeat,
+				  bIsAddition,
+				  fPercentFadeToFail,
+				  1.0f,
+				  false);
 }
 
 void
