@@ -187,8 +187,10 @@ Actor::Actor(const Actor& cpy)
 
 	m_WrapperStates.resize(cpy.m_WrapperStates.size());
 	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		m_WrapperStates[i] =
-		  new ActorFrame(*dynamic_cast<ActorFrame*>(cpy.m_WrapperStates[i]));
+		auto cp = dynamic_cast<ActorFrame*>(cpy.m_WrapperStates[i]);
+		ASSERT_M(cp != nullptr,
+				 "Dynamic cast to ActorFrame copy failed at runtime.");
+		m_WrapperStates[i] = new ActorFrame(*cp);
 	}
 
 	CPY(m_baseRotation);

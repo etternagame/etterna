@@ -35,9 +35,14 @@ RageSoundReader_PitchChange::RageSoundReader_PitchChange(
 	/* The source tree has already been copied.  Our source is m_pResample; its
 	 * source is m_pSpeedChange (and its source is a copy of the pSource we were
 	 * initialized with). */
-	m_pResample = dynamic_cast<RageSoundReader_Resample_Good*>(&*m_pSource);
-	m_pSpeedChange =
+	auto prsmpl = dynamic_cast<RageSoundReader_Resample_Good*>(&*m_pSource);
+	auto pspdchng =
 	  dynamic_cast<RageSoundReader_SpeedChange*>(m_pResample->GetSource());
+	ASSERT_M(prsmpl != nullptr && pspdchng != nullptr,
+			 "Dynamic cast to RageSoundReader Resample or SpeedChange failed "
+			 "at runtime.");
+	m_pResample = prsmpl;
+	m_pSpeedChange = pspdchng;
 	m_fSpeedRatio = cpy.m_fSpeedRatio;
 	m_fPitchRatio = cpy.m_fPitchRatio;
 	m_fLastSetSpeedRatio = cpy.m_fLastSetSpeedRatio;
