@@ -548,24 +548,34 @@ HighScore::LoadReplayDataBasic()
 	}
 
 	// loop until eof
-	while (getline(fileStream, line)) {
-		stringstream ss(line);
-		// split line into tokens
-		while (ss >> buffer)
-			tokens.emplace_back(buffer);
+	try {
 
-		noteRow = std::stoi(tokens[0]);
-		if (!(typeid(noteRow) == typeid(int))) {
-			throw std::runtime_error("NoteRow value is not of type: int");
-		}
-		vNoteRowVector.emplace_back(noteRow);
+		while (getline(fileStream, line)) {
+			stringstream ss(line);
+			// split line into tokens
+			while (ss >> buffer)
+				tokens.emplace_back(buffer);
 
-		offset = std::stof(tokens[1]);
-		if (!(typeid(offset) == typeid(float))) {
-			throw std::runtime_error("Offset value is not of type: float");
+			noteRow = std::stoi(tokens[0]);
+			if (!(typeid(noteRow) == typeid(int))) {
+				throw std::runtime_error("NoteRow value is not of type: int");
+			}
+			vNoteRowVector.emplace_back(noteRow);
+
+			offset = std::stof(tokens[1]);
+			if (!(typeid(offset) == typeid(float))) {
+				throw std::runtime_error("Offset value is not of type: float");
+			}
+			vOffsetVector.emplace_back(offset);
+			tokens.clear();
 		}
-		vOffsetVector.emplace_back(offset);
-		tokens.clear();
+	} catch (std::runtime_error& e) {
+		LOG->Warn(
+		  "Failed to load replay data at %s due to runtime exception: %s",
+		  path.c_str(),
+		  e.what());
+		fileStream.close();
+		return false;
 	}
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);

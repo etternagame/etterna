@@ -544,11 +544,18 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
 		} else {
-			client->connect(con);
-			while (!finished_connecting)
-				client->poll_one();
-			if (n->isSMOnline)
-				this->secure_client = std::move(client);
+			try {
+				client->connect(con);
+				while (!finished_connecting)
+					client->poll_one();
+				if (n->isSMOnline)
+					this->secure_client = std::move(client);
+			} catch (websocketpp::http::exception& e) {
+				LOG->Warn("Failed to create ettp connection due to exception: "
+						  "%d --- %s",
+						  e.m_error_code,
+						  e.what());
+			}
 		}
 	}
 	if (ws && !n->isSMOnline) {
