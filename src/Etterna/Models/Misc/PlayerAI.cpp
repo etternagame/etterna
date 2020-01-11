@@ -106,19 +106,22 @@ PlayerAI::ResetScoreData()
 void
 PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 {
-	bool successful = pHighScore->LoadReplayData();
+	bool successful = false;
+	if (pHighScore != nullptr)
+		successful = pHighScore->LoadReplayData();
+
 	pScoreData = pHighScore;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
 	// we dont clear snapshot map here for a particular reason
 
-	if (!successful) {
+	if (pNoteData != nullptr)
+		m_ReplaySnapshotMap.clear();
+
+	if (!successful || pHighScore == nullptr) {
 		return;
 	}
-
-	if (pHighScore != nullptr && pNoteData != nullptr)
-		m_ReplaySnapshotMap.clear();
 
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();

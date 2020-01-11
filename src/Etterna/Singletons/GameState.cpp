@@ -569,9 +569,10 @@ GameState::CommitStageStats()
 	  max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
 
 	Profile* pPlayerProfile = PROFILEMAN->GetProfile(PLAYER_1);
-	if (pPlayerProfile)
+	if (pPlayerProfile) {
 		pPlayerProfile->m_iTotalSessionSeconds += iPlaySeconds;
-	STATSMAN->AddPlayerStatsToProfile(pPlayerProfile);
+		STATSMAN->AddPlayerStatsToProfile(pPlayerProfile);
+	}
 }
 
 /* Called by ScreenSelectMusic (etc). Increment the stage counter if we just

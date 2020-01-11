@@ -559,24 +559,28 @@ Player::Load()
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
-	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
+	if (m_pPlayerStageStats != nullptr)
+		m_pPlayerStageStats->serializednd =
+		  m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
 
-	if (m_Timing->HasWarps())
-		m_pPlayerStageStats->filehadnegbpms = true;
+	if (m_pPlayerStageStats != nullptr) {
+		if (m_Timing->HasWarps())
+			m_pPlayerStageStats->filehadnegbpms = true;
 
-	// check before nomines transform
-	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
-		m_pPlayerStageStats->filegotmines = true;
+		// check before nomines transform
+		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
+			m_pPlayerStageStats->filegotmines = true;
 
-	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
-		GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
-		m_pPlayerStageStats->filegotholds = true;
+		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
+			GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
+			m_pPlayerStageStats->filegotholds = true;
 
-	// check for lua script load (technically this is redundant a little with
-	// negbpm but whatever) -mina
-	if (!m_Timing->ValidSequentialAssumption)
-		m_pPlayerStageStats->luascriptwasloaded = true;
+		// check for lua script load (technically this is redundant a little
+		// with negbpm but whatever) -mina
+		if (!m_Timing->ValidSequentialAssumption)
+			m_pPlayerStageStats->luascriptwasloaded = true;
+	}
 
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),

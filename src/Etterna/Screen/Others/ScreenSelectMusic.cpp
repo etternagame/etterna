@@ -1273,9 +1273,7 @@ ScreenSelectMusic::AfterMusicChange()
 {
 	Song* pSong = m_MusicWheel.GetSelectedSong();
 	GAMESTATE->m_pCurSong.Set(pSong);
-	if (pSong != nullptr)
-		GAMESTATE->m_pPreferredSong = pSong;
-	else {
+	if (pSong == nullptr) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
 		if (m_pPreviewNoteField) {
 			m_pPreviewNoteField->SetVisible(false);
@@ -1286,6 +1284,8 @@ ScreenSelectMusic::AfterMusicChange()
 			// is pretty fast anyway -mina
 			SONGMAN->Cleanup();
 		}
+	} else {
+		GAMESTATE->m_pPreferredSong = pSong;
 	}
 
 	GAMESTATE->SetPaused(false); // hacky can see this being problematic
@@ -1385,25 +1385,29 @@ ScreenSelectMusic::AfterMusicChange()
 				case SampleMusicPreviewMode_Normal:
 				case SampleMusicPreviewMode_LastSong: // fall through
 													  // play the sample music
-					m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
-					if (!m_sSampleMusicToPlay.empty() &&
-						ActorUtil::GetFileType(m_sSampleMusicToPlay) !=
-						  FT_Sound) {
-						LuaHelpers::ReportScriptErrorFmt(
-						  "Music file %s for song is not a sound file, "
-						  "ignoring.",
-						  m_sSampleMusicToPlay.c_str());
-						m_sSampleMusicToPlay = "";
+					if (pSong != nullptr) {
+						m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+						if (!m_sSampleMusicToPlay.empty() &&
+							ActorUtil::GetFileType(m_sSampleMusicToPlay) !=
+							  FT_Sound) {
+							LuaHelpers::ReportScriptErrorFmt(
+							  "Music file %s for song is not a sound file, "
+							  "ignoring.",
+							  m_sSampleMusicToPlay.c_str());
+							m_sSampleMusicToPlay = "";
+						}
+						m_pSampleMusicTimingData = &pSong->m_SongTiming;
+						m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
+						m_fSampleLengthSeconds =
+						  pSong->m_fMusicSampleLengthSeconds;
 					}
-					m_pSampleMusicTimingData = &pSong->m_SongTiming;
-					m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
-					m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
 					break;
 				default:
 					FAIL_M(ssprintf("Invalid preview mode: %i", pmode));
 			}
 
-			SongUtil::GetPlayableSteps(pSong, m_vpSteps);
+			if (pSong != nullptr)
+				SongUtil::GetPlayableSteps(pSong, m_vpSteps);
 			if (m_vpSteps.empty()) {
 				// LuaHelpers::ReportScriptError("GetPlayableSteps returned
 				// nothing.");
