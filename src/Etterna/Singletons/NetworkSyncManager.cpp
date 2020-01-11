@@ -438,8 +438,8 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		sAddress = ServerIP.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
-		iPort =
-		  (unsigned short)strtol(ServerIP.substr(cLoc + 1).c_str(), &cEnd, 10);
+		auto sub = ServerIP.substr(cLoc + 1);
+		iPort = (unsigned short)strtol(sub.c_str(), &cEnd, 10);
 		if (*cEnd != 0 || errno != 0) {
 			LOG->Warn("Invalid port");
 			return;
