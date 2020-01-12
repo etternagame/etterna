@@ -90,6 +90,10 @@ ScreenOptions::ScreenOptions()
 			break;
 	}
 	m_InputMode = INPUTMODE_SHARE_CURSOR;
+	m_iCurrentRow = 0;
+	m_iFocusX = 0;
+	m_bWasOnExit = false;
+	m_bGotAtLeastOneStartPressed = false;
 }
 
 void
@@ -657,7 +661,7 @@ ScreenOptions::PositionRows(bool bTween)
 		if (i < first_start)
 			fPos = -0.5f;
 		else if (i >= first_end && i < second_start)
-			fPos = ((int)NUM_ROWS_SHOWN) / 2 - 0.5f;
+			fPos = (((int)NUM_ROWS_SHOWN) / 2) - 0.5f;
 		else if (i >= second_end)
 			fPos = ((int)NUM_ROWS_SHOWN) - 0.5f;
 

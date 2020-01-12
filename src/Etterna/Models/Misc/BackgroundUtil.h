@@ -90,7 +90,7 @@ struct BackgroundChange
 namespace BackgroundUtil {
 void
 AddBackgroundChange(vector<BackgroundChange>& vBackgroundChanges,
-					BackgroundChange seg);
+					const BackgroundChange& seg);
 void
 SortBackgroundChangesArray(vector<BackgroundChange>& vBackgroundChanges);
 

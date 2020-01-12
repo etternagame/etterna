@@ -1538,69 +1538,6 @@ TimingData::BuildAndGetEtar(int lastrow)
 		ElapsedTimesAtAllRows.emplace_back(
 		  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
 	return ElapsedTimesAtAllRows;
-
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
-	const vector<TimingSegment*>& bpms = segs[SEGMENT_BPM];
-	const vector<TimingSegment*>& warps = segs[SEGMENT_WARP];
-	const vector<TimingSegment*>& stops = segs[SEGMENT_STOP];
-	const vector<TimingSegment*>& delays = segs[SEGMENT_DELAY];
-
-	// handle single bpm case if applicable -mina
-	if (bpms.size() == 1) {
-		float bps = GetBPMAtRow(0) / 60.0f;
-		for (int i = 0; i < lastrow; ++i) {
-			ElapsedTimesAtAllRows.emplace_back(NoteRowToBeat(i) / bps -
-											   m_fBeat0OffsetInSeconds);
-			LOG->Warn("%f, %f",
-					  ElapsedTimesAtAllRows.back(),
-					  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-		}
-
-		return ElapsedTimesAtAllRows;
-	}
-
-	// use linear calculations if linear time is determined -mina
-	if (warps.size() + stops.size() + delays.size() == 0 && lastrow > 0) {
-		float last_time = 0.f;
-		float bps = GetBPMAtRow(0) / 60.0f;
-		int lastbpmrow = 0;
-		int event_row = 0;
-		float time_to_next_event = 0.f;
-
-		// start at one because the initial bpm is already handled
-		for (size_t i = 1; i < bpms.size(); ++i) {
-			event_row = bpms[i]->GetRow();
-			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
-			float next_event_time = last_time + time_to_next_event;
-			for (int r = lastbpmrow; r <= event_row && r < lastrow; ++r) {
-				float perc =
-				  (r - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
-				ElapsedTimesAtAllRows.emplace_back(last_time +
-												   time_to_next_event * perc -
-												   m_fBeat0OffsetInSeconds);
-				LOG->Warn("%f, %f",
-						  ElapsedTimesAtAllRows.back(),
-						  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
-			}
-			last_time = next_event_time;
-			bps = GetBPMAtRow(event_row) / 60.0f;
-			lastbpmrow = event_row;
-		}
-
-		// fill out any timestamps that lie beyond the last bpm change
-		for (int r = lastbpmrow; r < lastrow; ++r) {
-			float perc =
-			  (r - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
-			ElapsedTimesAtAllRows.emplace_back(
-			  last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
-			LOG->Trace("%f, %f",
-					   ElapsedTimesAtAllRows.back(),
-					   GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
-		}
-		LOG->Trace("%f", ElapsedTimesAtAllRows[lastrow]);
-
-		return ElapsedTimesAtAllRows;
-	}
 }
 
 /** @brief Allow Lua to have access to the TimingData. */

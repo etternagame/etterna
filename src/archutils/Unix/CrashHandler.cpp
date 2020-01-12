@@ -173,7 +173,8 @@ parent_process(int to_child, const CrashData* crash)
 	while (cnt < 1024 && (ps[cnt] = RageLog::GetRecentLog(cnt)) != NULL)
 		++cnt;
 
-	parent_write(to_child, &cnt, sizeof(cnt));
+	if (!parent_write(to_child, &cnt, sizeof(cnt)))
+		return;
 	for (int i = 0; i < cnt; ++i) {
 		size = strlen(ps[i]) + 1;
 		if (!parent_write(to_child, &size, sizeof(size)))

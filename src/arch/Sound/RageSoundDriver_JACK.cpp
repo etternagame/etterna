@@ -14,6 +14,7 @@ RageSoundDriver_JACK::RageSoundDriver_JACK()
 	client = NULL;
 	port_l = NULL;
 	port_r = NULL;
+	sample_rate = 0;
 }
 
 RageSoundDriver_JACK::~RageSoundDriver_JACK()

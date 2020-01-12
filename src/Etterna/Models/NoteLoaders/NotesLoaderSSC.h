@@ -62,6 +62,7 @@ struct StepsTagInfo
 	  , steps(nullptr)
 	  , timing(nullptr)
 	{
+		params = nullptr;
 	}
 };
 struct SongTagInfo

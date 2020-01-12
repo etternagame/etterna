@@ -45,6 +45,9 @@ OptionRow::OptionRow(const OptionRowType* pSource)
 	m_textTitle = NULL;
 	m_ModIcons = NULL;
 
+	m_RowType = OptionRow::RowType_Normal;
+	m_sprFrame = NULL;
+
 	Clear();
 	this->AddChild(&m_Frame);
 
@@ -921,12 +924,12 @@ OptionRow::ExportOptions(const PlayerNumber& vpns, bool bRowHasFocus)
 	// SELECT_NONE rows get exported if they have focus when the user
 	// presses Start.
 	int iChoice = GetChoiceInRowWithFocus();
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = true;
 
 	iChangeMask |= m_pHand->ExportOption(vpns, m_vbSelected);
 
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = false;
 
 	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);

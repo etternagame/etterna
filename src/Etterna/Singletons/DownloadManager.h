@@ -173,7 +173,7 @@ class DownloadManager
 	map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
 	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
-	CURLMcode ret;
+	CURLMcode ret = CURLM_CALL_MULTI_PERFORM;
 	int downloadingPacks{ 0 };
 	int HTTPRunning{ 0 };
 	bool loggingIn{

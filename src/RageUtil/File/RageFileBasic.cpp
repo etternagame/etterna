@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFileBasic.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
@@ -14,6 +14,7 @@ RageFileObj::RageFileObj()
 
 	m_iReadBufAvail = 0;
 	m_iWriteBufferPos = 0;
+	m_iWriteBufferSize = 0;
 	m_iWriteBufferUsed = 0;
 	m_bEOF = false;
 	m_iFilePos = 0;
@@ -33,6 +34,7 @@ RageFileObj::RageFileObj(const RageFileObj& cpy)
 		m_pReadBuf = m_pReadBuffer + iOffsetIntoBuffer;
 	} else {
 		m_pReadBuffer = NULL;
+		m_pReadBuf = NULL;
 	}
 
 	if (cpy.m_pWriteBuffer != NULL) {

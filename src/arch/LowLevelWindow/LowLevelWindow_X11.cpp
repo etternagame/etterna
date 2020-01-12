@@ -445,6 +445,8 @@ RenderTarget_X11::RenderTarget_X11(LowLevelWindow_X11* pWind)
 	m_iTexHandle = 0;
 	m_pOldContext = NULL;
 	m_pOldDrawable = 0;
+	m_iWidth = 0;
+	m_iHeight = 0;
 }
 
 RenderTarget_X11::~RenderTarget_X11()

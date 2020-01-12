@@ -390,7 +390,6 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 				out[rc] = state.lifts_hit;
 				break;
 			case RadarCategory_Fakes:
-				out[rc] = out[rc];
 				break;
 			case RadarCategory_Notes:
 				out[rc] = state.notes_hit;

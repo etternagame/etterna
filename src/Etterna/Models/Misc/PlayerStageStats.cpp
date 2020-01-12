@@ -414,7 +414,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 		return 1; // correct for rounding error
 
 	auto fCurMaxPercentDancePoints =
-	  static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	  static_cast<float>(m_iCurPossibleDancePoints) / m_iPossibleDancePoints;
 
 	return fCurMaxPercentDancePoints;
 }

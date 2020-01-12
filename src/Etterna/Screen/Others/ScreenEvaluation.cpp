@@ -42,7 +42,11 @@ AutoScreenMessage(SM_PlayCheer);
 
 REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
-ScreenEvaluation::ScreenEvaluation() {}
+ScreenEvaluation::ScreenEvaluation()
+{
+	m_pStageStats = NULL;
+	m_bSavedScreenshot = false;
+}
 
 ScreenEvaluation::~ScreenEvaluation() {}
 

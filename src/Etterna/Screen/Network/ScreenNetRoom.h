@@ -12,6 +12,7 @@
 class ScreenNetRoom : public ScreenNetSelectBase
 {
   public:
+	ScreenNetRoom();
 	void Init() override;
 	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;

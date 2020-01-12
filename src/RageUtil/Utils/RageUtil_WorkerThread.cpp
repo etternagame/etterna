@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_WorkerThread.h"
@@ -62,7 +62,9 @@ RageWorkerThread::StopThread()
 	SetTimeout(-1);
 
 	/* Shut down. */
-	DoRequest(REQ_SHUTDOWN);
+	if (!DoRequest(REQ_SHUTDOWN))
+		LOG->Warn("May have failed to shut down worker thread \"%s\"",
+				  m_sName.c_str());
 	m_WorkerThread.Wait();
 }
 

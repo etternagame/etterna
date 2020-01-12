@@ -11,7 +11,7 @@ class ScreenOptionsMaster : public ScreenOptions
 	void Init() override;
 
   private:
-	int m_iChangeMask;
+	int m_iChangeMask = 0;
 
   protected:
 	void HandleScreenMessage(ScreenMessage SM) override;
