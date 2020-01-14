@@ -590,7 +590,7 @@ PlayerReplay::Step(int col,
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
-	if (iRowOfOverlappingNoteOrRow != -1) {
+	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
 		// we need this later if we are autosyncing
@@ -723,7 +723,7 @@ PlayerReplay::Step(int col,
 	if (score == TNS_None)
 		DoTapScoreNone();
 
-	if (!bRelease) {
+	if (!bRelease && col != -1) {
 		/* Search for keyed sounds separately.  Play the nearest note. */
 		/* XXX: This isn't quite right. As per the above XXX for
 		 * iRowOfOverlappingNote, if iRowOfOverlappingNote is set to a previous
@@ -755,7 +755,8 @@ PlayerReplay::Step(int col,
 	}
 
 	if (!bRelease) {
-		if (m_pNoteField != nullptr) { // skip misses to emulate missing.
+		if (m_pNoteField != nullptr &&
+			col != -1) { // skip misses to emulate missing.
 			if (score != TNS_Miss) {
 				m_pNoteField->Step(col, score);
 			}

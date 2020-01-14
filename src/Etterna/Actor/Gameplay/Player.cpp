@@ -2091,11 +2091,11 @@ Player::Step(int col,
 	TapNoteScore score = TNS_None;
 
 	int iRowOfOverlappingNoteOrRow = row;
-	if (row == -1)
+	if (row == -1 && col != -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
-	if (iRowOfOverlappingNoteOrRow != -1) {
+	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
 		// only valid if
@@ -2346,7 +2346,7 @@ Player::Step(int col,
 	if (score == TNS_None)
 		DoTapScoreNone();
 
-	if (!bRelease) {
+	if (!bRelease && col != -1) {
 		/* Search for keyed sounds separately.  Play the nearest note. */
 		/* XXX: This isn't quite right. As per the above XXX for
 		 * iRowOfOverlappingNote, if iRowOfOverlappingNote is set to a previous
@@ -2379,7 +2379,7 @@ Player::Step(int col,
 	// XXX:
 
 	if (!bRelease) {
-		if (m_pNoteField != nullptr) {
+		if (m_pNoteField != nullptr && col != -1) {
 			m_pNoteField->Step(col, score);
 		}
 		Message msg("Step");
