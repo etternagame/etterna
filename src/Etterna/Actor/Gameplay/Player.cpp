@@ -738,12 +738,13 @@ Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("ComboChanged");
-		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
 		msg.SetParam("OldCombo", iOldCombo);
 		msg.SetParam("OldMissCombo", iOldMissCombo);
-		if (m_pPlayerState)
+		if (m_pPlayerState) {
+			msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
 			msg.SetParam("PlayerState",
 						 LuaReference::CreateFromPush(*m_pPlayerState));
+		}
 		if (m_pPlayerStageStats)
 			msg.SetParam("PlayerStageStats",
 						 LuaReference::CreateFromPush(*m_pPlayerStageStats));
