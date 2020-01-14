@@ -1238,12 +1238,6 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 			}
 		} else {
 			if (sValueName == "SONG") {
-				if (pSong != nullptr) {
-					/* LOG->UserLog("Edit file", sEditFilePath, "has more than
-					   one #SONG tag."); return false; */
-					continue;
-				}
-
 				RString sSongFullTitle = sParams[1];
 				this->SetSongTitle(sParams[1]);
 				sSongFullTitle.Replace('\\', '/');

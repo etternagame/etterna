@@ -441,6 +441,9 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 			? GetChoiceInRowWithFocus()
 			: i;
 
+		if (iChoiceWithFocus == -1)
+			continue;
+
 		float fAlpha = 1.0f;
 		if (m_pHand->m_Def.m_layoutType == LAYOUT_SHOW_ONE_IN_ROW) {
 			bool bRowEnabled = m_pHand->m_Def.m_vEnabledForPlayers.find(pn) !=

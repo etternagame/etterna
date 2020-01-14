@@ -94,6 +94,7 @@ ScreenOptions::ScreenOptions()
 	m_iFocusX = 0;
 	m_bWasOnExit = false;
 	m_bGotAtLeastOneStartPressed = false;
+	m_OptionsNavigation = NAV_THREE_KEY;
 }
 
 void
@@ -449,6 +450,11 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 
 	const OptionRow& row = *m_pRows[iRow];
 	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus();
+
+	if (iChoiceWithFocus == -1) {
+		LOG->Warn("Tried to tween cursor on row with no choices.");
+		return;
+	}
 
 	int iWidth, iX, iY;
 	GetWidthXY(pn, iRow, iChoiceWithFocus, iWidth, iX, iY);
@@ -868,7 +874,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 
 	if (row.GetFirstItemGoesDown()) {
 		int iChoiceInRow = row.GetChoiceInRowWithFocus();
-		if (iChoiceInRow == 0) {
+		if (iChoiceInRow == 0 || iChoiceInRow == -1) {
 			MenuDown(input);
 			return;
 		}
@@ -876,6 +882,11 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 
 	if (row.GetRowDef().m_selectType == SELECT_MULTIPLE) {
 		int iChoiceInRow = row.GetChoiceInRowWithFocus();
+		if (iChoiceInRow == -1) {
+			LOG->Warn(
+			  "MenuStart used on SelectMultiple OptionRow with no choices.");
+			return;
+		}
 		bool bSelected = !row.GetSelected(iChoiceInRow);
 		bool changed = row.SetSelected(pn, iChoiceInRow, bSelected);
 		if (changed) {
@@ -962,12 +973,16 @@ ScreenOptions::StoreFocus(PlayerNumber pn)
 		return;
 
 	int iWidth, iY;
-	GetWidthXY(
-	  pn, m_iCurrentRow, row.GetChoiceInRowWithFocus(), iWidth, m_iFocusX, iY);
-	LOG->Trace("cur selection %ix%i @ %i",
-			   m_iCurrentRow,
-			   row.GetChoiceInRowWithFocus(),
-			   m_iFocusX);
+	int iChoiceOnRow = row.GetChoiceInRowWithFocus();
+	if (iChoiceOnRow == -1) {
+		LOG->Warn("No choices found when setting focus.");
+	} else {
+		GetWidthXY(pn, m_iCurrentRow, iChoiceOnRow, iWidth, m_iFocusX, iY);
+		LOG->Trace("cur selection %ix%i @ %i",
+				   m_iCurrentRow,
+				   row.GetChoiceInRowWithFocus(),
+				   m_iFocusX);
+	}
 }
 
 bool

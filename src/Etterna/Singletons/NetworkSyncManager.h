@@ -417,7 +417,6 @@ class NetworkSyncManager
 	int meter;
 	int rate;
 
-	int m_sHash;
 	int m_iSelectMode;
 	void SelectUserSong();
 

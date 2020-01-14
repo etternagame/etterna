@@ -908,7 +908,12 @@ SongCacheIndex::FinishTransaction()
 {
 	if (curTransaction == nullptr)
 		return;
-	curTransaction->commit();
+	try {
+		curTransaction->commit();
+	} catch (exception e) {
+		// DB transaction commit failed, we're destructing so we dont care.
+		// There really shouldnt be a transaction left anyways
+	}
 	delete curTransaction;
 	curTransaction = nullptr;
 	return;

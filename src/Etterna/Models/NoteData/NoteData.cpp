@@ -1494,6 +1494,7 @@ NoteData::_all_tracks_iterator<ND, iter, TN>::_all_tracks_iterator(
 #undef COPY_OTHER
 {
 	m_pNoteData->AddATIToList(this);
+	m_Inclusive = false;
 }
 
 template<typename ND, typename iter, typename TN>
