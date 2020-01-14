@@ -215,6 +215,14 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	ld->SetIndeterminate(true);
 	ld->SetText("\nConnecting to multiplayer server");
 	StartUp();
+
+	m_playerLife = 0;
+	m_iSelectMode = 0;
+	m_playerID = 0;
+	m_step = 0;
+	m_score = 0;
+	m_combo = 0;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();

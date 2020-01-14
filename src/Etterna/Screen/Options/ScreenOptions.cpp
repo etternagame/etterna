@@ -94,6 +94,7 @@ ScreenOptions::ScreenOptions()
 	m_iFocusX = 0;
 	m_bWasOnExit = false;
 	m_bGotAtLeastOneStartPressed = false;
+	m_OptionsNavigation = NAV_THREE_KEY;
 }
 
 void
