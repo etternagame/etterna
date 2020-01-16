@@ -1030,6 +1030,27 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			Message msg("DisplayAll");
 			MESSAGEMAN->Broadcast(msg);
 		}
+
+		// restart preview music after finishing or cancelling playlist creation
+		// this is just copypasta'd and should be made a function? or we have something better? idk
+		GameSoundManager::PlayMusicParams PlayParams;
+		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
+		PlayParams.pTiming = m_pSampleMusicTimingData;
+		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS;
+		PlayParams.fStartSecond = m_fSampleStartSeconds;
+		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
+		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
+		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
+		PlayParams.bApplyMusicRate = true;
+		PlayParams.bAccurateSync = false;
+		GameSoundManager::PlayMusicParams FallbackMusic;
+		FallbackMusic.sFile = m_sLoopMusicPath;
+		FallbackMusic.fFadeInLengthSeconds =
+		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
+		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+		SOUND->PlayMusic(PlayParams);
+		GAMESTATE->SetPaused(false);
+		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage(SM);
