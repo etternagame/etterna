@@ -53,14 +53,14 @@ local function updateCalcInfoDisplays(actor)
 	px = actor:GetParent():GetX()
 	sl1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	sl2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	st2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
+	--sl2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
+	--st2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-	st2:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
+	--st2:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
 	sl1:visible(true)
-	sl2:visible(true)
+	--sl2:visible(true)
 	st1:visible(true)
-	st2:visible(true)
+	--st2:visible(true)
 end
 
 local t = Def.ActorFrame {
@@ -169,8 +169,8 @@ local t = Def.ActorFrame {
 				self:GetParent():GetChild("Seek"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):visible(false)
+				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):visible(false)
+				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):visible(false)
 			end
 		end
 	},

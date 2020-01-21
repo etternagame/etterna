@@ -52,6 +52,18 @@ local function playMusicForPreview(song)
 	hackysack = false
 end
 
+-- to toggle calc info display stuff
+local function toggleCalcInfo(state)
+	infoOnScreen = state
+
+	if infoOnScreen then
+		MESSAGEMAN:Broadcast("CalcInfoOn")
+		ms.ok(1)
+	else
+		MESSAGEMAN:Broadcast("CalcInfoOff")
+	end
+end
+
 -- to reduce repetitive code for setting preview visibility with booleans
 local function setPreviewPartsState(state)
 	if state == nil then return end
@@ -59,10 +71,13 @@ local function setPreviewPartsState(state)
 	mcbootlarder:GetChild("NoteField"):visible(state)
 	heyiwasusingthat = not state
 	previewVisible = state
+	if state ~= infoOnScreen and not state then
+		toggleCalcInfo(false)
+	end
 end
 
 local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
 	if song and not noteField then -- first time setup
 		noteField = true
 		justChangedStyles = false
@@ -84,7 +99,7 @@ local function toggleNoteField()
 		songChanged = false
 		hackysack = false
 		previewVisible = true
-		return
+		return true
 	end
 
 	if song then
@@ -111,20 +126,10 @@ local function toggleNoteField()
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			previewVisible = true
 		end
+		return true
 	end
+	return false
 end
-
-
-local function toggleCalcInfo(state)
-	infoOnScreen = state
-
-	if infoOnScreen then
-		MESSAGEMAN:Broadcast("CalcInfoOn")
-	else
-		MESSAGEMAN:Broadcast("CalcInfoOff")
-	end
-end
-
 
 local update = false
 local t =
@@ -273,12 +278,11 @@ local t =
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				lockbools = true
 			end
+		end
+	end,
 	MilkyTartsCommand = function(self) -- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
 		if noteField and mcbootlarder:IsVisible() then
-			mcbootlarder:visible(false)
-			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			toggleCalcInfo(false)
-			heyiwasusingthat = true
 		end
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
@@ -999,6 +1003,7 @@ t[#t + 1] = Def.ActorFrame {
 					toggleCalcInfo(not infoOnScreen)
 				else
 					if toggleNoteField() then
+						ms.ok(2)
 						toggleCalcInfo(true)
 					end
 				end
