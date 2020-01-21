@@ -162,3 +162,6 @@ MINACALC_API MinaSD
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo);
 MINACALC_API int
 GetCalcVersion();
+
+std::vector<float>
+skillset_vector(const DifficultyRating& difficulty);

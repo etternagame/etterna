@@ -455,13 +455,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				auto& serializednd = nd.SerializeNoteData(etaner);
 
 				auto dakine = MinaSDCalc(serializednd,
-										 steps->GetNoteData().GetNumTracks(),
 										 musicrate,
-										 ssrpercent,
-										 1.f,
-										 td->HasWarps());
+										 ssrpercent);
+				auto ssrVals = skillset_vector(dakine);
 				FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, dakine[ss]);
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				td->UnsetEtaner();
