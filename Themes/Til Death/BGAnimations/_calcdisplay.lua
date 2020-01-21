@@ -76,7 +76,7 @@ end
 
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
-local ssrUpperBoundWife = 1.0 -- right end of the graph
+local ssrUpperBoundWife = 0.97 -- right end of the graph
 local ssrResolution = 1 -- higher number = higher resolution graph (and lag)
 
 local function produceThisManySSRs(steps, rate)
@@ -135,6 +135,7 @@ local function updateCoolStuff()
         local roll = steps:DootSpooks(3)
         local hsds = steps:DootSpooks(4)
         local jumpds = steps:DootSpooks(5)
+        local msd = steps:DootSpooks(6)
         graphVecs[1] = {}
         graphVecs[1][1] = ohj[1]
         graphVecs[1][2] = ohj[2]
@@ -148,14 +149,17 @@ local function updateCoolStuff()
         graphVecs[1][10] = jumpds[2]
 
         graphVecs[2] = {}
-        graphVecs[2][1] = ssrs[1]
-        graphVecs[2][2] = ssrs[2]
-        graphVecs[2][3] = ssrs[3]
-        graphVecs[2][4] = ssrs[4]
-        graphVecs[2][5] = ssrs[5]
-        graphVecs[2][6] = ssrs[6]
-        graphVecs[2][7] = ssrs[7]
-        graphVecs[2][8] = ssrs[8]
+        graphVecs[2][1] = msd[1]
+        graphVecs[2][2] = msd[2]
+        --graphVecs[2][1] = ssrs[1]
+        --graphVecs[2][2] = ssrs[2]
+        --graphVecs[2][3] = ssrs[3]
+        --graphVecs[2][4] = ssrs[4]
+        --graphVecs[2][5] = ssrs[5]
+        --graphVecs[2][6] = ssrs[6]
+        --graphVecs[2][7] = ssrs[7]
+        --graphVecs[2][8] = ssrs[8]
+        --graphVecs[2][9] = ssrs[9]
     else
         graphVecs = {}
     end
@@ -310,10 +314,14 @@ o[#o + 1] = Def.Quad {
             local jack = ssrs[6][index]
             local chjk = ssrs[7][index]
             local tech = ssrs[8][index]
+            
+            local index = convertPercentToIndexForMods(perc)
+            local msd = graphVecs[2][1][index]
             if ovrl == nil then
                 txt:settext("")
             else
-                txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
+                txt:settextf("MSD: %5.4f", msd * getCurRateValue())
+                --txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
             end
 		else
 			bar:visible(false)
@@ -421,7 +429,7 @@ local function topGraphLine(lineNum, colorToUse)
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
                 end
-                
+
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
@@ -448,7 +456,34 @@ for i = 1,10 do
     o[#o+1] = topGraphLine(i, modColors[i])
 end
 
+local function bottomGraphLineMSD()
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
+                self:visible(true)
+                local verts = {}
+
+                for i = 1, #graphVecs[2][1] do
+                    local x = fitX(i, #graphVecs[2][1])
+                    local y = fitY2(graphVecs[2][1][i])
+
+                    setOffsetVerts(verts, x, y, color("1,0.3,1"))
+                end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end
+    }
+end
 
 local function bottomGraphLine(lineNum, colorToUse)
     return Def.ActorMultiVertex {
@@ -486,13 +521,13 @@ local skillsetColors = {
     color("#f2b5fa"),   -- stamina
     color("#6c969d"),   -- jack
     color("#a5f8d3"),   -- chordjack
-    color("#b0cec2")    -- tech
+    color("#b0cec2"),    -- tech
 }
 
-for i = 1,8 do
-    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-end
-
+--for i = 1,8 do
+--    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+--end
+o[#o+1] = bottomGraphLineMSD()
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
