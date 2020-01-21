@@ -303,8 +303,31 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	difficulty.technical *= 1.025f;
+	difficulty.handstream *= 0.5f;
+	difficulty.chordjack *= 0.5f;
+	difficulty.jack *= 0.5f;
+	difficulty.technical *= 0.5f;
+	difficulty.stamina *= 0.5f;
+	difficulty.stream =
+	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, false) *
+	  1.125f * grindscaler;
+	difficulty.jumpstream = Chisel(0.1f, 10.24f, score_goal, false, false, true, true, false) * grindscaler;
 	difficulty.overall = highest_difficulty(difficulty);
+
+	if (debugMod == CalcPatternMod::MSD) {
+		if (highest == difficulty.stream) {
+			float ihatelifekillmeplease = Chisel(
+			  0.1f, 10.24f, score_goal, false, false, true, false, false);
+			left_hand.debug = left_hand.finalMSDvals;
+			right_hand.debug = right_hand.finalMSDvals;
+		} else {
+			float noreallythisiscancerpleasekillme = Chisel(
+			  0.1f, 10.24f, score_goal, false, false, true, true, false);
+			left_hand.debug = left_hand.finalMSDvals;
+			right_hand.debug = right_hand.finalMSDvals;
+		}
+	}
+
 
 	return difficulty;
 }
@@ -409,7 +432,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		right_hand.debug = right_hand.rollscale;
 	}
 
-		j0 = SequenceJack(NoteInfo, 0, music_rate);
+	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
 	j3 = SequenceJack(NoteInfo, 3, music_rate);
@@ -556,15 +579,16 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 		  hs
 			? anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i] *
 				jumpscale[i]
-			: (js ? hsscale[i] * hsscale[i] * anchorscale[i] *
-					  sqrt(ohjumpscale[i]) * rollscale[i] * jumpscale[i]
+			: (js ? hsscale[i] * hsscale[i] * sqrt(anchorscale[i]) *
+					  sqrt(ohjumpscale[i]) * rollscale[i] * sqrt(jumpscale[i])
 				  : (nps
 					   ? hsscale[i] * hsscale[i] * hsscale[i] * anchorscale[i] *
-						   ohjumpscale[i] * ohjumpscale[i] * rollscale[i] *
-						   jumpscale[i] * jumpscale[i]
+						   ohjumpscale[i] * ohjumpscale[i] *
+						   ohjumpscale[i] * rollscale[i] * rollscale[i] * jumpscale[i] * jumpscale[i] *
+						   jumpscale[i]
 					   : anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i]));
 	}
-
+	finalMSDvals = diff;	// bad bad bad bad bad bad bad bad bad bad
 	if (stam)
 		StamAdjust(x, diff);
 	float output = 0.f;
@@ -600,9 +624,9 @@ Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
 			}
 			taps += columns;
 		}
-		output.push_back(taps != 0 ? pow(1 - (1.6f * static_cast<float>(jumps) /
+		output.push_back(taps != 0 ? pow(1 - (1.4f * static_cast<float>(jumps) /
 											  static_cast<float>(taps)),
-										 0.25f)
+										 0.5f)
 								   : 1.f);
 
 		if (logpatterns)
@@ -692,8 +716,8 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 2)
 				jumps++;
 		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
-											   static_cast<float>(taps) / 3.f)))
+		output[i] = taps != 0 ? sqrt(1 - (1.20f * static_cast<float>(jumps) /
+											   static_cast<float>(taps) / 3.f))
 							  : 1.f;
 
 		if (logpatterns)
@@ -728,7 +752,7 @@ Calc::RollDownscaler(const Finger& f1,
 		float interval_mean = mean(hand_intervals);
 
 		// i allowed >1 values here for reasons but lets not do that for now
-		float interval_cv = cv(hand_intervals) + 0.84f;
+		float interval_cv = cv(hand_intervals) + 0.82f;
 		output[i] = interval_cv >= 1.0f
 					  ? 1.0f
 					  : interval_cv * interval_cv;
@@ -753,14 +777,17 @@ Calc::RollDownscaler(const Finger& f1,
 	return output;
 }
 
+static const float ssrcap = 0.965f; // we do actually want this, especially now
+
 // Function to generate SSR rating
 DifficultyRating
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 {
-	if (NoteInfo.empty()) {
+	if (NoteInfo.size() <= 1) {
 		return DifficultyRating{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	}
-	return std::make_unique<Calc>()->CalcMain(NoteInfo, musicrate, goal);
+	return std::make_unique<Calc>()->CalcMain(
+	  NoteInfo, musicrate, min(goal, ssrcap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -791,12 +818,12 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 				vector<vector<float>>& handInfo,
 				CalcPatternMod cpm)
 {
-	if (NoteInfo.empty())
+	if (NoteInfo.size() <= 1)
 		return;
 
 	std::unique_ptr<Calc> debugRun = std::make_unique<Calc>();
 	debugRun->debugMod = cpm;
-	debugRun->CalcMain(NoteInfo, musicrate, goal);
+	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
 
 	// Locate and modify the uses of left/right debug in the code
 	handInfo.push_back(debugRun->left_hand.debug);
@@ -806,5 +833,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return -1;
+	return 3;
 }

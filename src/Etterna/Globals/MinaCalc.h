@@ -24,6 +24,8 @@ enum CalcPatternMod
 	Roll,
 	HS,
 	Jump,
+	MSD,
+	MSDStam,
 	ModCount,
 	None
 };
@@ -72,12 +74,13 @@ class Hand
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff; // Calculated difficulty for each interval
 	std::vector<float> debug; // debug info placement
+	std::vector<float> finalMSDvals; // cancer cancer cancer cancer
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
 
 	float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						1.025; // multiplier to standardize baselines
+						1.025 * 30.f / 28.18f * 30.f / 31.78f * 30.f / 28.9f * 30.f / 32.58f; // multiplier to standardize baselines
 
 	// Stamina Model params
 	const float ceil = 1.08f;	// stamina multiplier max
