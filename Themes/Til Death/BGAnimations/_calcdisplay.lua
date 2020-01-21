@@ -54,6 +54,15 @@ local function convertPercentToIndex(x)
     return ind
 end
 
+local function convertPercentToIndexForMods(x)
+    local output = x
+    if output < 0 then output = 0 end
+    if output > 1 then output = 1 end
+
+    local ind = notShit.round(output * #graphVecs[1][1])
+    return ind
+end
+
 local function HighlightUpdaterThing(self)
     if not enabled then return end
     self:GetChild("G2BG"):queuecommand("Highlight")
@@ -70,7 +79,7 @@ end
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
 local ssrUpperBoundWife = 1.0 -- right end of the graph
-local ssrResolution = 200 -- higher number = higher resolution graph (and lag)
+local ssrResolution = 30 -- higher number = higher resolution graph (and lag)
 
 local function produceThisManySSRs(steps, rate)
     local count = ssrResolution
@@ -204,7 +213,51 @@ o[#o + 1] = Def.Quad {
     end,
     DoTheThingCommand = function(self)
         self:visible(song ~= nil)
-    end
+    end,
+    HighlightCommand = function(self)
+		local bar = self:GetParent():GetChild("GraphSeekBar")
+        local txt = self:GetParent():GetChild("GraphText")
+        local bg = self:GetParent():GetChild("GraphTextBG")
+        if isOver(self) then
+            local mx = INPUTFILTER:GetMouseX()
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
+            
+            local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
+            local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
+            local rightEnd = self:GetTrueX() + w - (self:GetHAlign() * w)
+            local perc = (mx - leftEnd) / (rightEnd - leftEnd)
+            local goodXPos = -plotWidth/2 + perc * plotWidth
+
+			bar:visible(true)
+            txt:visible(true)
+            bg:visible(true)
+			bar:x(goodXPos)
+			txt:x(goodXPos - 4)
+            txt:y(ypos)
+            bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
+            bg:x(goodXPos)
+            bg:y(ypos + 3)
+            local index = convertPercentToIndexForMods(perc)
+            
+            -- this is so bad it ceases to be lazy, it's more work than iterating :|
+            local ohjl =    graphVecs[1][1][index]
+            local ohjr =    graphVecs[1][2][index]
+            local anchrl =  graphVecs[1][3][index]
+            local anchrr =  graphVecs[1][4][index]
+            local rolll =   graphVecs[1][5][index]
+            local rollr =   graphVecs[1][6][index]
+            local hsdsl =   graphVecs[1][7][index]
+            local hsdsr =   graphVecs[1][8][index]
+            local jumpdsl = graphVecs[1][9][index]
+            local jumpdsr = graphVecs[1][10][index]
+            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f",
+                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr)
+		else
+			bar:visible(false)
+            txt:visible(false)
+            bg:visible(false)
+		end
+	end
 }
 
 -- second bg
@@ -310,7 +363,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                     aves[i] = table.average(graphVecs[1][i])
                 end
             end
-            self:settextf("L Ave   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f\nR Ave   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f", aves[1], aves[3], aves[5], aves[7], aves[9], aves[2], aves[4], aves[6], aves[8], aves[10])
+            self:settextf("L Avg   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f\nR Avg   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f", aves[1], aves[3], aves[5], aves[7], aves[9], aves[2], aves[4], aves[6], aves[8], aves[10])
         end
     end
 }
@@ -478,5 +531,27 @@ o[#o + 1] = Def.Quad {
         self:zoomto(1, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
     end
 }
+
+o[#o + 1] = Def.Quad {
+    Name = "GraphTextBG",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
+    end
+}
+
+o[#o + 1] = LoadFont("Common Normal") .. {
+    Name = "GraphText",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
+    end
+}
+
+o[#o + 1] = Def.Quad {
+    Name = "GraphSeekBar",
+    InitCommand = function(self)
+        self:zoomto(1, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+    end
+}
+
 
 return o
