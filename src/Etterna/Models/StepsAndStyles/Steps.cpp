@@ -421,8 +421,10 @@ Steps::BorpNDorf(int modType)
 	dumbthings.clear();
 
 	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(
-		  cereal, 1.f, 0.93f, dumbthings, static_cast<CalcPatternMod>(modType));
+		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+						0.93f,
+						dumbthings,
+						static_cast<CalcPatternMod>(modType));
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
