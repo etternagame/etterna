@@ -60,6 +60,7 @@ class Hand
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff; // Calculated difficulty for each interval
+	std::vector<float> debug; // debug info placement
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
@@ -160,6 +161,11 @@ MINACALC_API DifficultyRating
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal);
 MINACALC_API MinaSD
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo);
+MINACALC_API void
+MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
+				float musicrate,
+				float goal,
+				std::vector<std::vector<float>>& handInfo);
 MINACALC_API int
 GetCalcVersion();
 

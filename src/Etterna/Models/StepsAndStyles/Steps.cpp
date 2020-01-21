@@ -419,15 +419,7 @@ Steps::BorpNDorf()
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	/*
-	MinaSDCalcDumbThings(cereal,
-						 m_pNoteData->GetNumTracks(),
-						 1.f,
-						 0.93f,
-						 1.f,
-						 GetTimingData()->HasWarps(),
-						 dumbthings);
-						 */
+	MinaSDCalcDebug(cereal, 1.f, 0.93f, dumbthings);
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();

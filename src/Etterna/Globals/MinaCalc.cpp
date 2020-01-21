@@ -392,6 +392,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
+	left_hand.debug = left_hand.jumpscale;
+	right_hand.debug = right_hand.jumpscale;
+
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
@@ -754,6 +757,24 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 			allrates.emplace_back(output);
 	}
 	return allrates;
+}
+
+// Debug output
+void
+MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
+					 float musicrate,
+					 float goal,
+					 vector<vector<float>>& handInfo)
+{
+	if (NoteInfo.empty())
+		return;
+
+	std::unique_ptr<Calc> debugRun = std::make_unique<Calc>();
+	debugRun->CalcMain(NoteInfo, musicrate, goal);
+
+	// Locate and modify the uses of left/right debug in the code
+	handInfo.push_back(debugRun->left_hand.debug);
+	handInfo.push_back(debugRun->right_hand.debug);
 }
 
 int

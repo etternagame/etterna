@@ -114,8 +114,8 @@ local function updateCoolStuff()
     end
     if steps then
         ssrs = getGraphForSteps(steps)
-        graph1Vec1 = {}--steps:DootSpooks()[1]
-        graph1Vec2 = {}--steps:DootSpooks()[2]
+        graph1Vec1 = steps:DootSpooks()[1]
+        graph1Vec2 = steps:DootSpooks()[2]
         graph2Vec1 = ssrs[1]
         graph2Vec2 = ssrs[2]
         graph2Vec3 = ssrs[3]
