@@ -58,7 +58,6 @@ local function toggleCalcInfo(state)
 
 	if infoOnScreen then
 		MESSAGEMAN:Broadcast("CalcInfoOn")
-		ms.ok(1)
 	else
 		MESSAGEMAN:Broadcast("CalcInfoOff")
 	end
@@ -108,9 +107,11 @@ local function toggleNoteField()
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			toggleCalcInfo(false)
 			previewVisible = false
 			hackysack = changingSongs
 			changingSongs = false
+			return false
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
@@ -125,8 +126,8 @@ local function toggleNoteField()
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			previewVisible = true
+			return true
 		end
-		return true
 	end
 	return false
 end
@@ -1003,7 +1004,6 @@ t[#t + 1] = Def.ActorFrame {
 					toggleCalcInfo(not infoOnScreen)
 				else
 					if toggleNoteField() then
-						ms.ok(2)
 						toggleCalcInfo(true)
 					end
 				end

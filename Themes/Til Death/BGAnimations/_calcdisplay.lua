@@ -67,13 +67,20 @@ local function transformPosition(pos, w, px)
     return out
 end
 
-local function produceThisManySSRs(steps, rate, count)
+
+-- for SSR graph generator, modify these constants
+local ssrLowerBoundWife = 0.90 -- left end of the graph
+local ssrUpperBoundWife = 1.0 -- right end of the graph
+local ssrResolution = 200 -- higher number = higher resolution graph (and lag)
+
+local function produceThisManySSRs(steps, rate)
+    local count = ssrResolution
     if count < 10 then count = 10 end
     local output = {}
     for j = 1,8 do output[j] = {0,0,0,0,0,0,0,0} end
 
     for i = 1, count do
-        local values = steps:GetSSRs(rate, 0.93 + (0.035 / count) * i)
+        local values = steps:GetSSRs(rate, ssrLowerBoundWife + ((ssrUpperBoundWife - ssrLowerBoundWife) / count) * i)
         for j = 1,8 do
             output[j][i] = values[j]
         end
@@ -82,9 +89,8 @@ local function produceThisManySSRs(steps, rate, count)
     return output
 end
 
-
 local function getGraphForSteps(steps)
-    local output = produceThisManySSRs(steps, getCurRateValue(), 350)
+    local output = produceThisManySSRs(steps, getCurRateValue())
 
     highest = output[1][1]
     lowest = output[1][1]
@@ -199,7 +205,8 @@ o[#o + 1] = Def.Quad {
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("Seek2")
-		local txt = self:GetParent():GetChild("Seektext2")
+        local txt = self:GetParent():GetChild("Seektext2")
+        local bg = self:GetParent():GetChild("Seektext2BG")
         if isOver(self) then
             local mx = INPUTFILTER:GetMouseX()
             local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
@@ -212,9 +219,13 @@ o[#o + 1] = Def.Quad {
 
 			bar:visible(true)
             txt:visible(true)
+            bg:visible(true)
 			bar:x(goodXPos)
 			txt:x(goodXPos - 4)
             txt:y(ypos)
+            bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
+            bg:x(goodXPos)
+            bg:y(ypos + 3)
             local index = convertPercentToIndex(perc)
             local ovrl = ssrs[1][index]
             local strm = ssrs[2][index]
@@ -227,11 +238,12 @@ o[#o + 1] = Def.Quad {
             if ovrl == nil then
                 txt:settext("")
             else
-                txt:settextf("Overall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", ovrl, strm, js, hs, stam, jack, chjk, tech)
+                txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
             end
 		else
 			bar:visible(false)
-			txt:visible(false)
+            txt:visible(false)
+            bg:visible(false)
 		end
 	end
 }
@@ -280,7 +292,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end,
     DoTheThingCommand = function(self)
         if song and enabled then
-            self:settextf("Upper Bound: %.4f\nLower Bound: %.4f", highest, lowest)
+            self:settextf("Upper Bound: %.4f\nLower Bound: %.4f", highest-1, lowest+1)
         end
     end
 }
@@ -603,6 +615,13 @@ o[#o + 1] = Def.Quad {
     end,
     UpdatePositionCommand = function(self, params)
         self:x(transformPosition(params.pos, params.w, params.px))
+    end
+}
+
+o[#o + 1] = Def.Quad {
+    Name = "Seektext2BG",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
     end
 }
 
