@@ -841,6 +841,25 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
 	}
+
+	static int GetSSRs(T* p, lua_State* L)
+	{
+		float rate = FArg(1);
+		float goal = FArg(2);
+		CLAMP(rate, 0.7f, 3.f);
+		auto nd = p->GetNoteData();
+		auto loot = nd.BuildAndGetNerv();
+		const vector<float>& etaner =
+		  p->GetTimingData()->BuildAndGetEtaner(loot);
+		auto& ni = nd.SerializeNoteData(etaner);
+
+		DifficultyRating d = MinaSDCalc(ni, rate, goal);
+		auto ssrs = skillset_vector(d);
+
+		LuaHelpers::CreateTableFromArray(ssrs, L);
+		return 1;
+	}
+
 	// ok really is this how i have to do this - mina
 	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State* L)
 	{
@@ -976,6 +995,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetStepsType);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
+		ADD_METHOD(GetSSRs);
 		ADD_METHOD(IsAnEdit);
 		ADD_METHOD(IsAPlayerEdit);
 		ADD_METHOD(GetDisplayBpms);
