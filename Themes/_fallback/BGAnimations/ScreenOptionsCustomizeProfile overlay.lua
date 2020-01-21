@@ -55,17 +55,6 @@ local function item_value_to_text(item, value)
 	return value
 end
 
-local char_list = {}
-do
-	local all_chars = CHARMAN:GetAllCharacters()
-	for i, char in ipairs(char_list) do
-		char_list[#char_list + 1] = {
-			setting = char:GetCharacterID(),
-			display_name = char:GetDisplayName()
-		}
-	end
-end
-
 local menu_items = {}
 --[[
 	{
@@ -106,14 +95,6 @@ local menu_items = {}
 		false_text = "female"
 	}
 }
-if #char_list > 0 then
-	menu_items[#menu_items + 1] = {
-		name = "character",
-		get = "GetCharacter",
-		set = "SetCharacter",
-		item_type = "list",
-		list = char_list
-	}
 end]]
 menu_items[#menu_items + 1] = {name = "exit", item_type = "exit"}
 

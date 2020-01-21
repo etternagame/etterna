@@ -13,6 +13,8 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
+#include <cstdint>
+#include <numeric>
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -226,7 +228,8 @@ ScoresForChart::SetTopScores()
 			eligiblescores.emplace_back(hs);
 	}
 
-	// if there aren't 2 noccpbs in top scores we might as well use old cc scores -mina
+	// if there aren't 2 noccpbs in top scores we might as well use old cc
+	// scores -mina
 	if (eligiblescores.size() < 2) {
 		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		{
@@ -237,7 +240,7 @@ ScoresForChart::SetTopScores()
 				eligiblescores.emplace_back(hs);
 		}
 	}
-	
+
 	if (eligiblescores.empty())
 		return;
 
@@ -351,50 +354,56 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	}
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
-	mutex stepsMutex;
-	vector<string> currentSteps;
-	class StepsLock
+
+	mutex songVectorPtrMutex;
+	vector<std::uintptr_t> currentlyLockedSongs;
+	// This is meant to ensure mutual exclusion for a song
+	class SongLock
 	{
 	  public:
-		mutex& stepsMutex;
-		vector<string>& currentSteps;
-		string& ck;
-		StepsLock(vector<string>& vec, mutex& mut, string& k)
-		  : currentSteps(vec)
-		  , stepsMutex(mut)
-		  , ck(k)
+		mutex& songVectorPtrMutex; // This mutex guards the vector
+		vector<std::uintptr_t>&
+		  currentlyLockedSongs; // Vector of currently locked songs
+		std::uintptr_t song;	// The song for this lock
+		SongLock(vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		  : currentlyLockedSongs(vec)
+		  , songVectorPtrMutex(mut)
+		  , song(k)
 		{
 			bool active = true;
 			{
-				lock_guard<mutex> lk(stepsMutex);
-				active = find(currentSteps.begin(), currentSteps.end(), ck) !=
-						 currentSteps.end();
+				lock_guard<mutex> lk(songVectorPtrMutex);
+				active = find(currentlyLockedSongs.begin(),
+							  currentlyLockedSongs.end(),
+							  song) != currentlyLockedSongs.end();
 				if (!active)
-					currentSteps.emplace_back(ck);
+					currentlyLockedSongs.emplace_back(song);
 			}
 			while (active) {
+				// TODO: Try to make this wake up from the destructor (CondVar's
+				// maybe)
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				{
-					lock_guard<mutex> lk(stepsMutex);
-					active =
-					  find(currentSteps.begin(), currentSteps.end(), ck) !=
-					  currentSteps.end();
+					lock_guard<mutex> lk(songVectorPtrMutex);
+					active = find(currentlyLockedSongs.begin(),
+								  currentlyLockedSongs.end(),
+								  song) != currentlyLockedSongs.end();
 					if (!active)
-						currentSteps.emplace_back(ck);
+						currentlyLockedSongs.emplace_back(song);
 				}
 			}
 		}
-		~StepsLock()
+		~SongLock()
 		{
-			lock_guard<mutex> lk(stepsMutex);
-			currentSteps.erase(
-			  find(currentSteps.begin(), currentSteps.end(), ck));
+			lock_guard<mutex> lk(songVectorPtrMutex);
+			currentlyLockedSongs.erase(find(
+			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
 		}
 	};
 	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
 				  ThreadData*)>
 	  callback =
-		[&stepsMutex, &currentSteps](
+		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
 			auto pair =
@@ -414,11 +423,14 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 				string ck = hs->GetChartKey();
-				StepsLock lk(currentSteps, stepsMutex, ck);
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
 				if (!steps)
 					continue;
+
+				SongLock lk(currentlyLockedSongs,
+							songVectorPtrMutex,
+							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
@@ -443,13 +455,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				auto& serializednd = nd.SerializeNoteData(etaner);
 
 				auto dakine = MinaSDCalc(serializednd,
-										 steps->GetNoteData().GetNumTracks(),
 										 musicrate,
-										 ssrpercent,
-										 1.f,
-										 td->HasWarps());
+										 ssrpercent);
+				auto ssrVals = skillset_vector(dakine);
 				FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, dakine[ss]);
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				td->UnsetEtaner();
@@ -513,7 +523,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss)
 	{
-		// actually skip overall, and jack stamina for now
+		// skip overall ss
 		if (ss == Skill_Overall)
 			continue;
 
@@ -523,13 +533,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	sort(skillz.begin(), skillz.end());
-
-	float skillsetsum = 0.f;
-	for (size_t i = 1; i < skillz.size(); ++i) // drop the lowest skillset
-		skillsetsum += skillz[i];
-
-	prating = skillsetsum / 6.f;
+	prating = std::accumulate(skillz.begin(), skillz.end(), 0.f) / 7.f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
@@ -716,7 +720,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
-		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() && SONGMAN->IsChartLoaded(ck))
+		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() &&
+			SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }
@@ -866,6 +871,13 @@ class LunaScoreManager : public Luna<ScoreManager>
 		last->PushSelf(L);
 		return 1;
 	}
+
+	static int GetTotalNumberOfScores(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetAllProfileScores().size());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
@@ -875,6 +887,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetMostRecentScore);
 		ADD_METHOD(GetTempReplayScore);
+		ADD_METHOD(GetTotalNumberOfScores);
 	}
 };
 

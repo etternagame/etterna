@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Most of these prototypes match up with the D3DX math functions.  Take a
  * function name, replace "Rage" with "D3DX" and look it up in the D3D SDK
  * docs for details.
@@ -12,6 +12,27 @@
 #ifdef _WIN32
 #include <d3dx9math.h>
 #endif
+
+void
+RageVec2RotateFromOrigin(RageVector2* pOut, float degrees)
+{
+	auto radians = degrees * PI / 180;
+	auto outx = pOut->x * RageFastCos(radians) - pOut->y * RageFastSin(radians);
+	auto outy = pOut->x * RageFastSin(radians) + pOut->y * RageFastCos(radians);
+	pOut->x = outx;
+	pOut->y = outy;
+}
+
+void
+RageVec2RotateFromPoint(RageVector2* p1, RageVector2* p2, float degrees)
+{
+	auto xdiff = p2->x - p1->x;
+	auto ydiff = p2->y - p1->y;
+	RageVector2 p3(xdiff, ydiff);
+	RageVec2RotateFromOrigin(&p3, degrees);
+	p2->x = p1->x + p3.x;
+	p2->y = p1->y + p3.y;
+}
 
 void
 RageVec3ClearBounds(RageVector3& mins, RageVector3& maxs)
@@ -1020,28 +1041,3 @@ LuaFunc_create_bezier(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(create_bezier);
-
-/*
- * Copyright (c) 2001-2006 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

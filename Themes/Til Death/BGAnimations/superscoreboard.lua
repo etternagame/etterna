@@ -65,9 +65,25 @@ local function byAchieved(scoregoal)
 	return color("#aaaaaa")
 end
 
-local filts = {"All Rates", "Current Rate"}
-local topornah = {"Top Scores", "All Scores"}
-local ccornah = {"Show Invalid", "Hide Invalid"}
+local filts = {
+	THEME:GetString("NestedScores", "FilterAll"),
+	THEME:GetString("NestedScores", "FilterCurrent")
+}
+local topornah = {
+	THEME:GetString("NestedScores", "ScoresTop"),
+	THEME:GetString("NestedScores", "ScoresAll")
+}
+local ccornah = {
+	THEME:GetString("NestedScores", "ShowInvalid"),
+	THEME:GetString("NestedScores", "HideInvalid")
+}
+
+local translated_info = {
+	LoginToView = THEME:GetString("NestedScores", "LoginToView"),
+	NoScoresFound = THEME:GetString("NestedScores", "NoScoresFound"),
+	RetrievingScores = THEME:GetString("NestedScores", "RetrievingScores"),
+	Watch = THEME:GetString("NestedScores", "WatchReplay")
+}
 
 local scoretable = {}
 local o =
@@ -200,6 +216,7 @@ local o =
 				self:GetParent():GetParent():playcommand("Collapse")
 			elseif isOver(self) then
 				self:GetParent():GetParent():playcommand("Expand")
+				SCREENMAN:GetTopScreen():PausePreviewNoteField()
 			end
 		end
 	},
@@ -251,10 +268,10 @@ local o =
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
 				elseif not online and #scoretable == 0 then
-					self:settext("Login to view scores")
+					self:settext(translated_info["LoginToView"])
 				else
 					if #scoretable == 0 then
-						self:settext("Online scores not tracked...")
+						self:settext(translated_info["NoScoresFound"])
 					else
 						self:settext("")
 					end
@@ -265,9 +282,9 @@ local o =
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
 				elseif not online and #scoretable == 0 then
-					self:settext("Login to view scores")
+					self:settext(translated_info["LoginToView"])
 				else
-					self:settext("Retrieving scores...")
+					self:settext(translated_info["NoScoresFound"])
 				end
 			end
 		},
@@ -518,7 +535,7 @@ local function makeScoreDisplay(i)
 				DisplayCommand = function(self)
 					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
 						if hs:HasReplayData() then
-							self:settext("Watch")
+							self:settext(translated_info["Watch"])
 						else
 							self:settext("")
 						end
@@ -559,6 +576,20 @@ local function makeScoreDisplay(i)
 					else
 						self:GetParent():GetChild("NormalText"):visible(true)
 						self:GetParent():GetChild("LongerText"):visible(false)
+					end
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) and hs and not collapsed then
+						if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
+						if hs:HasReplayData() then
+							DLMAN:RequestOnlineScoreReplayData(
+								hs,
+								function()
+									setScoreForPlot(hs)
+									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")					
+								end
+							)
+						end
 					end
 				end
 			},

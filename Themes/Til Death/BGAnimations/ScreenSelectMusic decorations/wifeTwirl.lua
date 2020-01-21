@@ -14,10 +14,45 @@ local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions(
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-local boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
+local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
+local songChanged2 = false
+local previewVisible = false
+local justChangedStyles = false
+local onlyChangedSteps = false
+local prevtab = 0
 
+local itsOn = false
+
+local translated_info = {
+	GoalTarget = THEME:GetString("ScreenSelectMusic", "GoalTargetString"),
+	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
+	BPM = THEME:GetString("ScreenSelectMusic", "BPM"),
+	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM"),
+	UnForceStart = THEME:GetString("GeneralInfo", "UnforceStart"),
+	ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
+	Unready = THEME:GetString("GeneralInfo", "Unready"),
+	Ready = THEME:GetString("GeneralInfo", "Ready"),
+	TogglePreview = THEME:GetString("ScreenSelectMusic", "TogglePreview"),
+	PlayerOptions = THEME:GetString("ScreenSelectMusic", "PlayerOptions"),
+	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu")
+}
+
+-- to reduce repetitive code for setting preview music position with booleans
+local function playMusicForPreview(song)
+	song:PlaySampleMusicExtended()
+	MESSAGEMAN:Broadcast("PreviewMusicStarted")
+
+	restartedMusic = true
+
+	-- use this opportunity to set all the random booleans to make it consistent
+	songChanged = false
+	boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+	hackysack = false
+end
+
+-- to toggle calc info display stuff
 local function toggleCalcInfo(state)
 	infoOnScreen = state
 
@@ -28,6 +63,74 @@ local function toggleCalcInfo(state)
 	end
 end
 
+-- to reduce repetitive code for setting preview visibility with booleans
+local function setPreviewPartsState(state)
+	if state == nil then return end
+	mcbootlarder:visible(state)
+	mcbootlarder:GetChild("NoteField"):visible(state)
+	heyiwasusingthat = not state
+	previewVisible = state
+	if state ~= infoOnScreen and not state then
+		toggleCalcInfo(false)
+	end
+end
+
+local function toggleNoteField()
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
+	if song and not noteField then -- first time setup
+		noteField = true
+		justChangedStyles = false
+		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
+		mcbootlarder:playcommand("SetupNoteField")
+		mcbootlarder:xy(prevX, prevY)
+		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
+		mcbootlarder:diffusealpha(1)
+		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+		if usingreverse then
+			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
+		end
+		if not songChanged then
+			playMusicForPreview(song)
+			tryingToStart = true
+		else
+			tryingToStart = false
+		end
+		songChanged = false
+		hackysack = false
+		previewVisible = true
+		return true
+	end
+
+	if song then
+		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+		if mcbootlarder:IsVisible() then
+			mcbootlarder:visible(false)
+			mcbootlarder:GetChild("NoteField"):visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			toggleCalcInfo(false)
+			previewVisible = false
+			hackysack = changingSongs
+			changingSongs = false
+			return false
+		else
+			mcbootlarder:visible(true)
+			mcbootlarder:GetChild("NoteField"):visible(true)
+			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged or songChanged2 then
+				if not restartedMusic then
+					playMusicForPreview(song)
+				end
+				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				hackysack = false
+				songChanged = false
+				songChanged2 = false
+			end
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
+			previewVisible = true
+			return true
+		end
+	end
+	return false
+end
 
 local update = false
 local t =
@@ -46,61 +149,142 @@ local t =
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
 		end
-		if getTabIndex() ~= 0 then
+		-- if not on General and we started the noteField and we changed tabs then changed songs
+		-- this means the music should be set again as long as the preview is still "on" but off screen
+		if getTabIndex() ~= 0 and noteField and heyiwasusingthat then
 			boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = true
 		end
-		if getTabIndex() == 0 and noteField and not mcbootlarder:GetChild("NoteField"):IsVisible() then
-			boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = true
+
+		-- if the preview was turned on ever but is currently not on screen as the song changes
+		-- this goes hand in hand with the above boolean
+		if noteField and not previewVisible then
+			songChanged = true
 		end
-		songChanged = true
+
+		-- check to see if the song actually really changed
+		-- >:(
+		if noteField and GAMESTATE:GetCurrentSong() ~= song then
+			songChanged2 = true
+			restartedMusic = false
+		else
+			songChanged2 = false
+		end
+
+		-- an awkwardly named bool describing the fact that we just changed songs
+		-- used in notefield creation function to see if we should restart music
+		-- it is immediately turned off when toggling notefield
+		changingSongs = true
+		tryingToStart = false
+		
+		-- if switching songs, we want the notedata to disappear temporarily
+		if noteField and songChanged2 and previewVisible then
+			mcbootlarder:GetChild("NoteField"):finishtweening()
+			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
+		end
+	end,
+	DelayedChartUpdateMessageCommand = function(self)
+		-- wait for the music wheel to settle before playing the music
+		-- to keep things very slightly more easy to deal with
+		-- and reduce a tiny bit of lag
+		local s = GAMESTATE:GetCurrentSong()
+		local unexpectedlyChangedSong = s ~= song
+
+		local shouldPlayMusic = false
+		-- should play the music because the notefield is visible
+		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
+		-- should play the music if we switched songs while on a different tab
+		shouldPlayMusic = shouldPlayMusic or boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone
+		-- should play the music if we switched to a song from a pack tab
+		-- also applies for if we just toggled the notefield or changed screen tabs
+		shouldPlayMusic = shouldPlayMusic or hackysack
+		-- should play the music if we already should and we either jumped song or we didnt change the style/song
+		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
+
+		if s and shouldPlayMusic then
+			if mcbootlarder and mcbootlarder:GetChild("NoteField") then mcbootlarder:GetChild("NoteField"):diffusealpha(1) end
+			playMusicForPreview(s)
+		end
+		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+		hackysack = false
+		justChangedStyles = false
+		tryingToStart = false
+		songChanged = false
+		onlyChangedSteps = true
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
 		local bong = GAMESTATE:GetCurrentSong()
-		if not bong then
-			self:queuecommand("MilkyTarts")
+		-- if not on a song and preview is on, hide it (dont turn it off)
+		if not bong and noteField and mcbootlarder:IsVisible() then
+			setPreviewPartsState(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
 		end
+
+		-- if the song changed
 		if song ~= bong then
+			if not lockbools then
+				justChangedStyles = false
+				onlyChangedSteps = false
+			end
+			if not song and previewVisible and not lockbools then
+				hackysack = true -- used in cases when moving from null song (pack hover) to a song (this fixes searching and preview not working)
+			end
 			song = bong
 			self:queuecommand("MortyFarts")
-			if noteField and mcbootlarder:GetChild("NoteField"):IsVisible() and song then
-				song:Borp()
+		else
+			if not lockbools and not songChanged2 then
+				onlyChangedSteps = true
 			end
 		end
+
+		-- on general tab
 		if getTabIndex() == 0 then
-			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then -- these can prolly be wrapped better too -mina
-				mcbootlarder:visible(true)
-				mcbootlarder:GetChild("NoteField"):visible(true)
+			-- if preview was on and should be made visible again
+			if heyiwasusingthat and bong and noteField then
+				setPreviewPartsState(true)
 				MESSAGEMAN:Broadcast("ChartPreviewOn")
-				if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-					song:Borp()
-					boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-				end
-				heyiwasusingthat = false
+			elseif bong and noteField and previewVisible then
+				-- make sure that it is visible even if it isnt, when it should be
+				-- (haha lets call this 1000000 times nothing could go wrong)
+				setPreviewPartsState(true)
 			end
+
 			self:queuecommand("On")
 			update = true
 		else
-			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:IsVisible() then
-				mcbootlarder:visible(false)
-				mcbootlarder:GetChild("NoteField"):visible(false)
+			-- changing tabs off of general with preview on, hide the preview
+			if bong and noteField and mcbootlarder:IsVisible() then
+				setPreviewPartsState(false)
 				MESSAGEMAN:Broadcast("ChartPreviewOff")
-				heyiwasusingthat = true
 			end
+
 			self:queuecommand("Off")
 			update = false
+		end
+		lockbools = false
+	end,
+	TabChangedMessageCommand = function(self)
+		local newtab = getTabIndex()
+		if newtab ~= prevtab then
+			self:queuecommand("MintyFresh")
+			prevtab = newtab
+			if getTabIndex() == 0 and noteField then
+				mcbootlarder:GetChild("NoteField"):finishtweening()
+				mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+				lockbools = true
+			elseif getTabIndex() ~= 0 and noteField then
+				hackysack = mcbootlarder:IsVisible()
+				onlyChangedSteps = false
+				justChangedStyles = false
+				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
+				lockbools = true
+			end
 		end
 	end,
 	MilkyTartsCommand = function(self) -- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
 		if noteField and mcbootlarder:IsVisible() then
-			mcbootlarder:visible(false)
-			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			toggleCalcInfo(false)
-			heyiwasusingthat = true
 		end
-	end,
-	TabChangedMessageCommand = function(self)
-		self:queuecommand("MintyFresh")
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
@@ -143,46 +327,6 @@ t[#t + 1] =
 			self:queuecommand("MintyFresh")
 		end
 	}
-
-local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
-	if song and not noteField then -- first time setup
-		noteField = true
-		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
-		mcbootlarder:playcommand("SetupNoteField")
-		mcbootlarder:xy(prevX, prevY)
-		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
-		if usingreverse then
-			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
-		end
-		if songChanged then
-			song:Borp() -- catches a dumb bug that isn't worth explaining -mina
-			songChanged = false
-		end
-		return true
-	end
-
-	if song then
-		if mcbootlarder:IsVisible() then
-			mcbootlarder:visible(false)
-			mcbootlarder:GetChild("NoteField"):visible(false)
-			MESSAGEMAN:Broadcast("ChartPreviewOff")
-			toggleCalcInfo(false) -- force calc info off
-		else
-			mcbootlarder:visible(true)
-			mcbootlarder:GetChild("NoteField"):visible(true)
-			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone then
-				song:Borp()
-				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
-			elseif boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff then
-				song:Borp()
-				boolthatgetssettotrueonsongchangebutonlyifonthegeneraltabandthepreviewhasbeentoggledoff = false
-			end
-			MESSAGEMAN:Broadcast("ChartPreviewOn")
-			return true
-		end
-	end
-end
 
 t[#t + 1] =
 	Def.Actor {
@@ -240,7 +384,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -259,7 +405,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -278,7 +426,9 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3))
+					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3)
+					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+					self:settext(out)
 				else
 					self:settext("")
 				end
@@ -306,7 +456,7 @@ t[#t + 1] =
 				end
 			end
 		},
-	-- Rate for the displayed score
+	-- Rate for the displayed score & Mirror PB Indicator
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
@@ -321,10 +471,15 @@ t[#t + 1] =
 						rate = rate:sub(0, #rate - 1)
 					end
 					rate = rate .. "x"
+					local mirrorStr = ""
+					if score:GetModifiers():lower():find("mirror") then
+						mirrorStr = " (M)"
+					end
+
 					if notCurRate then
-						self:settext("(" .. rate .. ")")
+						self:settext("(" .. rate .. ")" .. mirrorStr)
 					else
-						self:settext(rate)
+						self:settext(rate .. mirrorStr)
 					end
 				else
 					self:settext("")
@@ -342,7 +497,7 @@ t[#t + 1] =
 				if song and steps then
 					local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if goal then
-						self:settextf("Target\n%.2f%%", goal:GetPercent() * 100)
+						self:settextf("%s\n%.2f%%", translated_info["GoalTarget"], goal:GetPercent() * 100)
 					else
 						self:settext("")
 					end
@@ -373,7 +528,7 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song and score then
-					self:settextf("Max Combo: %d", score:GetMaxCombo())
+					self:settextf("%s: %d", translated_info["MaxCombo"], score:GetMaxCombo())
 				else
 					self:settext("")
 				end
@@ -486,7 +641,7 @@ r[#r + 1] =
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
-				self:settext("NegBPMs!")
+				self:settext(translated_info["NegBPM"])
 			else
 				self:settext("")
 			end
@@ -504,7 +659,7 @@ t[#t + 1] =
 		end,
 		MortyFartsCommand = function(self)
 			if song then
-				self:settext("BPM")
+				self:settext(translated_info["BPM"])
 			else
 				self:settext("")
 			end
@@ -516,6 +671,9 @@ t[#t + 1] =
 	Def.Sprite {
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
+	end,
+	CurrentStyleChangedMessageCommand = function(self)
+		self:playcommand("MortyFarts")
 	end,
 	MortyFartsCommand = function(self)
 		self:finishtweening()
@@ -547,10 +705,16 @@ t[#t + 1] =
 		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
-		self:addx(capWideScale(34, 0))
+		if not itsOn then
+			self:addx(capWideScale(34, 0))
+			itsOn = true
+		end
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:addx(capWideScale(-34, 0))
+		if itsOn then
+			self:addx(capWideScale(-34, 0))
+			itsOn = false
+		end
 	end
 }
 
@@ -583,7 +747,7 @@ t[#t + 1] =
 			end
 			self:LoadBackground(bnpath)
 		end
-		self:scaletoclipped(capWideScale(get43size(384), 384), capWideScale(get43size(120), 120)):diffusealpha(1)
+		self:diffusealpha(1)
 	end,
 	ChartPreviewOnMessageCommand = function(self)
 		self:visible(false)
@@ -638,7 +802,7 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 	}
 	return button
 end
-local forceStart = toggleButton("Unforce Start", "Force Start", "/force", 0)
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", 0)
 local readyButton
 do
 	-- do-end block to minimize the scope of 'f'
@@ -657,7 +821,7 @@ do
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton("Unready", "Ready", "/ready", 50, areWeReadiedUp)
+	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, areWeReadiedUp)
 	readyButton.UsersUpdateMessageCommand = function(self)
 		readyButton.turnedOn = areWeReadiedUp()
 		readyButton.updateToggleButton()
@@ -741,7 +905,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[1] then
@@ -756,7 +920,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[2] then
@@ -771,7 +935,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(450)
+			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
 		end,
 		MintyFreshCommand = function(self)
 			if song and ctags[3] then
@@ -791,6 +955,12 @@ local function ihatestickinginputcallbackseverywhere(event)
 			toggleNoteField()
 		end
 	end
+	if event.type == "InputEventType_FirstPress" then
+		local CtrlPressed = INPUTFILTER:IsControlPressed()
+		if CtrlPressed and event.DeviceInput.button == "DeviceButton_l" then
+			MESSAGEMAN:Broadcast("LoginHotkeyPressed")
+		end
+	end
 	return false
 end
 
@@ -808,6 +978,7 @@ t[#t + 1] = Def.ActorFrame {
 		self:SetUpdateFunction( function(self)
 			self:queuecommand("Highlight")
 		end)
+		self:SetUpdateFunctionInterval(0.05)
 	end,
 
 	LoadFont("Common Normal") ..
@@ -820,7 +991,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 235)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Toggle Preview")
+			self:settext(translated_info["TogglePreview"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and (song or noteField) then
@@ -847,6 +1018,8 @@ t[#t + 1] = Def.ActorFrame {
 				end
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				noteField = false
+				justChangedStyles = true
+				song = GAMESTATE:GetCurrentSong()
 				toggleNoteField()
 			end
 			oldstyle = GAMESTATE:GetCurrentStyle()
@@ -873,7 +1046,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 218)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Player Options")
+			self:settext(translated_info["PlayerOptions"])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -908,7 +1081,7 @@ t[#t + 1] =
 			self:xy(20, 201)
 			self:zoom(0.5)
 			self:halign(0)
-			self:settext("Open Sort Menu")
+			self:settext(translated_info["OpenSort"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -924,6 +1097,5 @@ t[#t + 1] =
 	}
 }
 
-t[#t + 1] = LoadActor("../_chartpreview.lua")
---t[#t + 1] = LoadActor("../_calcdisplay.lua")
+t[#t + 1] = LoadActorWithParams("../_chartpreview.lua", {yPos = prevY, yPosReverse = prevrevY})
 return t

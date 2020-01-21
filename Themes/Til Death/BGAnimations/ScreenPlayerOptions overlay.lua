@@ -10,7 +10,7 @@ local t =
 
 local profileP1
 
-local profileNameP1 = "No Profile"
+local profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 local playCountP1 = 0
 local playTimeP1 = 0
 local noteCountP1 = 0
@@ -47,13 +47,13 @@ t[#t + 1] =
 				playTimeP1 = profileP1:GetTotalSessionSeconds()
 				noteCountP1 = profileP1:GetTotalTapsAndHolds()
 			else
-				profileNameP1 = "No Profile"
+				profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 				playCountP1 = 0
 				playTimeP1 = 0
 				noteCountP1 = 0
 			end
 		else
-			profileNameP1 = "No Profile"
+			profileNameP1 = THEME:GetString("GeneralInfo", "NoProfile")
 			playCountP1 = 0
 			playTimeP1 = 0
 			noteCountP1 = 0
@@ -97,7 +97,7 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(profileNameP1 .. "'s Scroll Speed:")
+				self:settextf("%s%s", profileNameP1, THEME:GetString("ScreenPlayerOptions", "ScrollSpeed"))
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -158,7 +158,8 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Player Options:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+			self:settextf("%s:", THEME:GetString("ScreenPlayerOptions", "Title"))
 		end
 	}
 
@@ -169,14 +170,35 @@ local NSPreviewXSpan = 35
 local NSPreviewReceptorY = -30
 local OptionRowHeight = 35
 local NoteskinRow = 0
+local NSDirTable = GameToNSkinElements()
 
-function NSkinPreviewWrapper(dir, ele)
+local function NSkinPreviewWrapper(dir, ele)
 	return Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoom(NSPreviewSize)
 		end,
 		LoadNSkinPreview("Get", dir, ele, PLAYER_1)
 	}
+end
+local function NSkinPreviewExtraTaps()
+	local out = Def.ActorFrame {}
+	for i = 2, #NSDirTable do
+		out[#out+1] = Def.ActorFrame {
+			Def.ActorFrame {
+				InitCommand = function(self)
+					self:x(NSPreviewXSpan * (i-1))
+				end,
+				NSkinPreviewWrapper(NSDirTable[i], "Tap Note")
+			},
+			Def.ActorFrame {
+				InitCommand = function(self)
+					self:x(NSPreviewXSpan * (i-1)):y(NSPreviewReceptorY)
+				end,
+				NSkinPreviewWrapper(NSDirTable[i], "Receptor")
+			}
+		}
+	end
+	return out
 end
 t[#t + 1] =
 	Def.ActorFrame {
@@ -204,54 +226,16 @@ t[#t + 1] =
 		)
 	end,
 	Def.ActorFrame {
-		NSkinPreviewWrapper("Left", "Tap Note")
+		NSkinPreviewWrapper(NSDirTable[1], "Tap Note")
 	},
 	Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(NSPreviewReceptorY)
 		end,
-		NSkinPreviewWrapper("Left", "Receptor")
+		NSkinPreviewWrapper(NSDirTable[1], "Receptor")
 	}
 }
 if GetScreenAspectRatio() > 1.7 then
-	t[#t][#(t[#t]) + 1] =
-		Def.ActorFrame {
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 1)
-			end,
-			NSkinPreviewWrapper("Down", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 1):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Down", "Receptor")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 2)
-			end,
-			NSkinPreviewWrapper("Up", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 2):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Up", "Receptor")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 3)
-			end,
-			NSkinPreviewWrapper("Right", "Tap Note")
-		},
-		Def.ActorFrame {
-			InitCommand = function(self)
-				self:x(NSPreviewXSpan * 3):y(NSPreviewReceptorY)
-			end,
-			NSkinPreviewWrapper("Right", "Receptor")
-		}
-	}
+	t[#t][#(t[#t]) + 1] = NSkinPreviewExtraTaps()
 end
 return t

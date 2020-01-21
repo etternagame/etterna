@@ -32,8 +32,6 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
-#include "Etterna/Singletons/CharacterManager.h"
-#include "Etterna/Models/Misc/Character.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include <algorithm>
@@ -94,7 +92,6 @@ void
 Profile::InitEditableData()
 {
 	m_sDisplayName = "";
-	m_sCharacterID = "";
 	m_sLastUsedHighScoreName = "";
 }
 
@@ -168,7 +165,6 @@ Profile::InitSongScores()
 	m_SongHighScores.clear();
 }
 
-
 void
 Profile::InitScreenshotData()
 {
@@ -184,26 +180,6 @@ Profile::GetDisplayNameOrHighScoreName() const
 		return m_sLastUsedHighScoreName;
 	else
 		return RString();
-}
-
-Character*
-Profile::GetCharacter() const
-{
-	vector<Character*> vpCharacters;
-	CHARMAN->GetCharacters(vpCharacters);
-	FOREACH_CONST(Character*, vpCharacters, c)
-	{
-		if ((*c)->m_sCharacterID.CompareNoCase(m_sCharacterID) == 0)
-			return *c;
-	}
-	return CHARMAN->GetDefaultCharacter();
-}
-
-void
-Profile::SetCharacter(const RString& sCharacterID)
-{
-	if (CHARMAN->GetCharacterFromID(sCharacterID))
-		m_sCharacterID = sCharacterID;
 }
 
 int
@@ -740,7 +716,6 @@ Profile::swap(Profile& other)
 	}                                                                          \
 	SWAP_GENERAL(m_ListPriority);
 	SWAP_STR_MEMBER(m_sDisplayName);
-	SWAP_STR_MEMBER(m_sCharacterID);
 	SWAP_STR_MEMBER(m_sLastUsedHighScoreName);
 	SWAP_STR_MEMBER(m_sGuid);
 	SWAP_GENERAL(m_iCurrentCombo);
@@ -776,7 +751,6 @@ Profile::swap(Profile& other)
 #undef SWAP_ARRAY
 }
 
-
 void
 Profile::LoadCustomFunction(const RString& sDir)
 {
@@ -808,7 +782,6 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	// Some stuff intentionally left out because the original reason for the
 	// stats prefix was to allow scores from different game types to coexist.
 	RString display_name = m_sDisplayName;
-	RString character_id = m_sCharacterID;
 	RString last_high_score_name = m_sLastUsedHighScoreName;
 	ProfileType type = m_Type;
 	int priority = m_ListPriority;
@@ -830,7 +803,6 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 		need_to_create_file = true;
 	}
 	m_sDisplayName = display_name;
-	m_sCharacterID = character_id;
 	m_sLastUsedHighScoreName = last_high_score_name;
 	m_Type = type;
 	m_ListPriority = priority;
@@ -1006,7 +978,6 @@ Profile::SaveEditableDataToDir(const RString& sDir) const
 	IniFile ini;
 
 	ini.SetValue("Editable", "DisplayName", m_sDisplayName);
-	ini.SetValue("Editable", "CharacterID", m_sCharacterID);
 	ini.SetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	ini.WriteFile(sDir + EDITABLE_INI);
@@ -1033,7 +1004,6 @@ Profile::LoadEditableDataFromDir(const RString& sDir)
 	ini.ReadFile(fn);
 
 	ini.GetValue("Editable", "DisplayName", m_sDisplayName);
-	ini.GetValue("Editable", "CharacterID", m_sCharacterID);
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
@@ -1370,8 +1340,6 @@ class LunaProfile : public Luna<Profile>
 		COMMON_RETURN_SELF;
 	}
 
-
-
 	static int GetHighScoreListIfExists(T* p, lua_State* L)
 	{
 #define GET_IF_EXISTS(arga_type, argb_type)                                    \
@@ -1421,16 +1389,6 @@ class LunaProfile : public Luna<Profile>
 		return 1;
 	}
 
-	static int GetCharacter(T* p, lua_State* L)
-	{
-		p->GetCharacter()->PushSelf(L);
-		return 1;
-	}
-	static int SetCharacter(T* p, lua_State* L)
-	{
-		p->SetCharacter(SArg(1));
-		COMMON_RETURN_SELF;
-	}
 	static int GetTotalNumSongsPlayed(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->m_iNumTotalSongsPlayed);
@@ -1797,7 +1755,10 @@ class LunaProfile : public Luna<Profile>
 	static int RenameProfile(T* p, lua_State* L)
 	{
 		p->m_sDisplayName = SArg(1);
-		p->SaveEditableDataToDir(p->m_sProfileID);
+		// roundabout way to force id to be a dir
+		// sometimes its a dir and sometimes it a number
+		RString dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
+		p->SaveEditableDataToDir(dir);
 		return 1;
 	}
 
@@ -1813,8 +1774,6 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(GetAllUsedHighScoreNames);
 		ADD_METHOD(GetHighScoreListIfExists);
 		ADD_METHOD(GetHighScoreList);
-		ADD_METHOD(GetCharacter);
-		ADD_METHOD(SetCharacter);
 		ADD_METHOD(GetTotalNumSongsPlayed);
 		ADD_METHOD(GetSongsActual);
 		ADD_METHOD(GetSongsPossible);
@@ -1986,28 +1945,3 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 };
 LUA_REGISTER_CLASS(ScoreGoal)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

@@ -9,14 +9,13 @@
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Globals/MinaCalc.h"
 
 class Profile;
 class NoteData;
 struct lua_State;
 class Song;
 
-typedef vector<float> SDiffs;
-typedef vector<SDiffs> MinaSD;
 using std::string;
 
 /**
@@ -132,6 +131,8 @@ class Steps
 									 const RString& sDescription);
 	void SetCredit(const RString& sCredit);
 	void SetChartStyle(const RString& sChartStyle);
+	void SetDupeDiff(bool state) { m_bDuplicateDifficulty = state; }
+	bool IsDupeDiff() { return m_bDuplicateDifficulty; }
 	static bool MakeValidEditDescription(
 	  RString& sPreferredDescription); // return true if was modified
 
@@ -198,16 +199,13 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	const string& GetChartKey() const { return ChartKey; }
-	vector<float> thestuffs = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs,
-							thestuffs, thestuffs, thestuffs, thestuffs,
-							thestuffs, thestuffs, thestuffs, thestuffs,
-							thestuffs, thestuffs, thestuffs, thestuffs,
-							thestuffs, thestuffs, thestuffs, thestuffs,
-							thestuffs };
+	DifficultyRating dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+							dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+							dummy, dummy, dummy, dummy, dummy, dummy, dummy };
 	void SetChartKey(const RString& k) { ChartKey = k; }
-	void SetAllMSD(const MinaSD& msd) { stuffnthings = msd; }
-	MinaSD GetAllMSD() const { return stuffnthings; }
+	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
+	MinaSD GetAllMSD() const { return diffByRate; }
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
@@ -226,8 +224,11 @@ class Steps
 	// shouldn't - mina
 	bool IsRecalcValid();
 
-	// prolly needs an enum or something idk - mina
-	float GetMSD(float x, int i) const;
+	float GetMSD(float rate, int ss) const
+	{
+		return GetMSD(rate, static_cast<Skillset>(ss));
+	}
+	float GetMSD(float rate, Skillset ss) const;
 
 	/* This is a reimplementation of the lua version of the script to generate
 	chart keys, except this time using the notedata stored in game memory
@@ -247,11 +248,6 @@ class Steps
 	 * gameplay.
 	 * @return true if it does, or false otherwise. */
 	bool HasSignificantTimingChanges() const;
-
-	/**
-	 * @brief Determine if the Steps have any attacks.
-	 * @return true if it does, or false otherwise. */
-	bool HasAttacks() const;
 
 	const RString GetMusicPath() const; // Returns the path for loading.
 	const RString& GetMusicFile()
@@ -326,33 +322,8 @@ class Steps
 	 * @brief What is the maximum specified BPM?
 	 * If this is a range, then min should not be equal to max. */
 	float specifiedBPMMax;
+
+	bool m_bDuplicateDifficulty = false;
 };
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Glenn Maynard (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

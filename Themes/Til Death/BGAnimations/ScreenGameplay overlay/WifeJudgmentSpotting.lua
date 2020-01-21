@@ -2,13 +2,14 @@
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-local practiceMode = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingPractice()
+local practiceMode = GAMESTATE:IsPracticeMode()
 local jcKeys = tableKeys(colorConfig:get_data().judgment)
 local jcT = {} -- A "T" following a variable name will designate an object of type table.
 
 for i = 1, #jcKeys do
 	jcT[jcKeys[i]] = byJudgment(jcKeys[i])
 end
+jcT["TapNoteScore_None"] = color("1,1,1,1")
 
 local jdgT = {
 	-- Table of judgments for the judgecounter
@@ -100,6 +101,11 @@ local function DottedBorder(width, height, bw, x, y)
 	}
 end
 
+local translated_info = {
+	ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
+	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly")
+}
+
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 isCentered = PREFSMAN:GetPreference("Center1Player")
@@ -167,10 +173,16 @@ local t =
 		local largeImageTooltip =
 			GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
 			": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
+		local mode = GAMESTATE:GetGameplayMode()
 		local detail =
 			GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
 			" " ..
 				string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+		if mode == "GameplayMode_Replay" then
+			detail = "Replaying: "..detail
+		elseif mode == "GameplayMode_Practice" then
+			detail = "Practicing: "..detail
+		end
 		-- truncated to 128 characters(discord hard limit)
 		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1))
@@ -211,10 +223,12 @@ local t =
 			Movable.DeviceButton_l.condition = true
 		end
 
-		lifebar:zoomtowidth(MovableValues.LifeP1Width)
-		lifebar:zoomtoheight(MovableValues.LifeP1Height)
-		lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
-		lifebar:rotationz(MovableValues.LifeP1Rotation)
+		if lifebar ~= nil then
+			lifebar:zoomtowidth(MovableValues.LifeP1Width)
+			lifebar:zoomtoheight(MovableValues.LifeP1Height)
+			lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
+			lifebar:rotationz(MovableValues.LifeP1Rotation)
+		end
 
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
@@ -231,6 +245,9 @@ local t =
 			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
 			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		end
+		-- update all stats in gameplay (as if it was a reset) when loading a new song
+		-- particularly for playlists
+		self:playcommand("PracticeModeReset")
 	end,
 	JudgmentMessageCommand = function(self, msg)
 		tDiff = msg.WifeDifferential
@@ -246,7 +263,15 @@ local t =
 			tDiff = msg.WifePBDifferential
 		end
 		jdgCur = msg.Judgment
-		queuecommand(self, "SpottedOffset")
+		self:playcommand("SpottedOffset")
+	end,
+	PracticeModeResetMessageCommand = function(self)
+		tDiff = 0
+		wifey = 0
+		jdgct = 0
+		dvCur = nil
+		jdgCur = nil
+		self:playcommand("SpottedOffset")
 	end
 }
 
@@ -498,9 +523,10 @@ end
 --]]
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local barcount = 30 -- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value. You don't need more than 40.
+local barcount = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBarCount -- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value.
 local barWidth = 2 -- Width of the ticks.
 local barDuration = 0.75 -- Time duration in seconds before the ticks fade out. Doesn't need to be higher than 1. Maybe if you have 300 bars I guess.
+if barcount > 50 then barDuration = barcount / 50 end -- just procedurally set the duration if we pass 50 bars
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local currentbar = 1 -- so we know which error bar we need to update
 local ingots = {} -- references to the error bars
@@ -561,7 +587,7 @@ local e =
 		if enabledErrorBar == 1 then
 			if dvCur ~= nil then
 				currentbar = ((currentbar) % barcount) + 1
-				queuecommand(ingots[currentbar], "UpdateErrorBar") -- Update the next bar in the queue
+				ingots[currentbar]:playcommand("UpdateErrorBar") -- Update the next bar in the queue
 			end
 		end
 	end,
@@ -613,7 +639,8 @@ local e =
 				self:xy(MovableValues.ErrorBarX + errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext("Late"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
+				self:settext(translated_info["ErrorLate"])
+				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -623,7 +650,8 @@ local e =
 				self:xy(MovableValues.ErrorBarX - errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
-				self:settext("Early"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
+				self:settext(translated_info["ErrorEarly"])
+				self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
 					"Doot"
 				)
 			end,
@@ -680,16 +708,16 @@ local replaySlider =
 	Widg.SliderBase {
 		width = width,
 		height = height,
-		min = 0,
+		min = GAMESTATE:GetCurrentSong():GetFirstSecond(),
 		visible = true,
-		max = GAMESTATE:GetCurrentSong():MusicLengthSeconds(),
+		max = GAMESTATE:GetCurrentSong():GetLastSecond(),
 		onInit = function(slider)
 			slider.actor:diffusealpha(0)
 		end,
 		-- Change to onValueChangeEnd if this
 		-- lags too much
 		onValueChange = function(val)
-			SCREENMAN:GetTopScreen():SetReplayPosition(val)
+			SCREENMAN:GetTopScreen():SetSongPosition(val)
 		end
 	} or
 	Def.Actor {}
@@ -734,6 +762,9 @@ local p =
 			end,
 			DoneLoadingNextSongMessageCommand = function(self)
 				self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+			end,
+			PracticeModeReloadMessageCommand = function(self)
+				self:playcommand("Begin")
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -757,6 +788,9 @@ local p =
 				local ttime = GetPlayableTime()
 				settext(self, SecondsToMMSS(ttime))
 				diffuse(self, byMusicLength(ttime))
+			end,
+			PracticeModeReloadMessageCommand = function(self)
+				self:playcommand("CurrentRateChanged")
 			end
 		},
 	MovableBorder(width, height, 1, 0, 0)
@@ -821,10 +855,28 @@ end
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]
 t[#t + 1] =
+	Def.ActorFrame {
+	Name = "MusicRate",
+	InitCommand = function(self)
+		if (allowedCustomization) then
+			Movable.DeviceButton_v.element = self
+			Movable.DeviceButton_b.element = self
+			Movable.DeviceButton_v.condition = true
+			Movable.DeviceButton_b.condition = true
+			Movable.DeviceButton_v.Border = self:GetChild("Border")
+			Movable.DeviceButton_b.Border = self:GetChild("Border")
+		end
+		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY):zoom(MovableValues.MusicRateZoom)
+	end,
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 10):zoom(0.35):settext(getCurRateDisplayString())
+			self:zoom(0.35):settext(getCurRateDisplayString())
+		end,
+		OnCommand = function(self)
+			if allowedCustomization then
+				setBorderToText(self:GetParent():GetChild("Border"), self)
+			end
 		end,
 		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())
@@ -835,7 +887,9 @@ t[#t + 1] =
 		CurrentRateChangedMessageCommand = function(self)
 			self:playcommand("SetRate")
 		end
-	}
+	},
+	MovableBorder(100, 13, 1, 0, 0)
+}
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 														    	**BPM Display**
@@ -855,7 +909,17 @@ end
 
 t[#t + 1] =
 	Def.ActorFrame {
+	Name = "BPMText",
 	InitCommand = function(self)
+		if (allowedCustomization) then
+			Movable.DeviceButton_x.element = self
+			Movable.DeviceButton_c.element = self
+			Movable.DeviceButton_x.condition = true
+			Movable.DeviceButton_c.condition = true
+			Movable.DeviceButton_x.Border = self:GetChild("Border")
+			Movable.DeviceButton_c.Border = self:GetChild("Border")
+		end
+		self:x(MovableValues.BPMTextX):y(MovableValues.BPMTextY):zoom(MovableValues.BPMTextZoom)
 		BPM = self:GetChild("BPM")
 		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then -- dont bother updating for single bpm files
 			self:SetUpdateFunction(UpdateBPM)
@@ -868,7 +932,12 @@ t[#t + 1] =
 		{
 			Name = "BPM",
 			InitCommand = function(self)
-				self:x(SCREEN_CENTER_X):y(SCREEN_BOTTOM - 20):halign(0.5):zoom(0.40)
+				self:halign(0.5):zoom(0.40)
+			end,
+			OnCommand = function(self)
+				if allowedCustomization then
+					setBorderToText(self:GetParent():GetChild("Border"), self)
+				end
 			end
 		},
 	DoneLoadingNextSongMessageCommand = function(self)
@@ -883,7 +952,11 @@ t[#t + 1] =
 		else
 			BPM:settextf("%5.2f", GetBPS(a) * r)
 		end
-	end
+	end,
+	PracticeModeReloadMessageCommand = function(self)
+		self:playcommand("CurrentRateChanged")
+	end,
+	MovableBorder(40, 13, 1, 0, 0)
 }
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -939,22 +1012,109 @@ local musicratio = 1
 local wodth = capWideScale(get43size(240), 280)
 local hidth = 40
 local cd
-local bookmarkPosition
+local loopStartPos
+local loopEndPos
+
+local function handleRegionSetting(positionGiven)
+	-- don't allow a negative region 
+	-- internally it is limited to -2
+	-- the start delay is 2 seconds, so limit this to 0
+	if positionGiven < 0 then return end
+
+	-- first time starting a region
+	if not loopStartPos and not loopEndPos then
+		loopStartPos = positionGiven
+		MESSAGEMAN:Broadcast("RegionSet")
+		return
+	end
+
+	-- reset region to bookmark only if double right click
+	if positionGiven == loopStartPos or positionGiven == loopEndPos then
+		loopEndPos = nil
+		loopStartPos = positionGiven
+		MESSAGEMAN:Broadcast("RegionSet")
+		SCREENMAN:GetTopScreen():ResetLoopRegion()
+		return
+	end
+
+	-- measure the difference of the new pos from each end
+	local startDiff = math.abs(positionGiven - loopStartPos)
+	local endDiff = startDiff + 0.1
+	if loopEndPos then
+		endDiff = math.abs(positionGiven - loopEndPos)
+	end
+
+	-- use the diff to figure out which end to move
+
+	-- if there is no end, then you place the end
+	if not loopEndPos then
+		if loopStartPos < positionGiven then
+			loopEndPos = positionGiven
+		elseif loopStartPos > positionGiven then
+			loopEndPos = loopStartPos
+			loopStartPos = positionGiven
+		else
+			-- this should never happen
+			-- but if it does, reset to bookmark
+			loopEndPos = nil
+			loopStartPos = positionGiven
+			MESSAGEMAN:Broadcast("RegionSet")
+			SCREENMAN:GetTopScreen():ResetLoopRegion()
+			return
+		end
+	else
+		-- closer to the start, move the start
+		if startDiff < endDiff then
+			loopStartPos = positionGiven
+		else
+			loopEndPos = positionGiven
+		end
+	end
+	SCREENMAN:GetTopScreen():SetLoopRegion(loopStartPos, loopEndPos)
+	MESSAGEMAN:Broadcast("RegionSet", {loopLength = loopEndPos-loopStartPos})
+end
 
 local function duminput(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseLeftClick")
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseRightClick")
-	elseif event.DeviceInput.button == "DeviceButton_backspace" and event.type == "InputEventType_FirstPress" then
-		if bookmarkPosition ~= nil then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(bookmarkPosition)
+	if event.type == "InputEventType_Release" then
+		if event.DeviceInput.button == "DeviceButton_left mouse button" then
+			MESSAGEMAN:Broadcast("MouseLeftClick")
+		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
-	elseif event.button == "EffectUp" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToPracticeRate(0.05)
-	elseif event.button == "EffectDown" and event.type == "InputEventType_FirstPress" then
-		SCREENMAN:GetTopScreen():AddToPracticeRate(-0.05)
+	elseif event.type == "InputEventType_FirstPress" then
+		if event.DeviceInput.button == "DeviceButton_backspace" then
+			if loopStartPos ~= nil then
+				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(loopStartPos, 1, true)
+			end
+		elseif event.button == "EffectUp" then
+			SCREENMAN:GetTopScreen():AddToRate(0.05)
+		elseif event.button == "EffectDown" then
+			SCREENMAN:GetTopScreen():AddToRate(-0.05)
+		elseif event.button == "Coin" then
+			handleRegionSetting(SCREENMAN:GetTopScreen():GetSongPosition())
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
+			if GAMESTATE:IsPaused() then
+				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				local nextpos = pos + dir * 0.05
+				if loopEndPos ~= nil and nextpos >= loopEndPos then
+					handleRegionSetting(nextpos + 1)
+				end
+				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
+			end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+			if GAMESTATE:IsPaused() then
+				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				local nextpos = pos - dir * 0.05
+				if loopEndPos ~= nil and nextpos >= loopEndPos then
+					handleRegionSetting(nextpos + 1)
+				end
+				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
+			end
+		end
 	end
+	
 	return false
 end
 
@@ -987,6 +1147,9 @@ local pm =
 		cd:GetChild("cdbg"):diffusealpha(0)
 		self:SortByDrawOrder()
 		self:queuecommand("GraphUpdate")
+	end,
+	PracticeModeReloadMessageCommand = function(self)
+		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
 	end,
 	Def.Quad {
 		Name = "BG",
@@ -1047,16 +1210,20 @@ pm[#pm + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(self:GetX() * musicratio)
+			local withCtrl = INPUTFILTER:IsControlPressed()
+			if withCtrl then
+				handleRegionSetting(self:GetX() * musicratio)
+			else
+				SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
+			end
 		end
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if isOver(self) then
-			bookmarkPosition = self:GetX() * musicratio
-			self:GetParent():GetChild("BookmarkPos"):queuecommand("Set")
+			handleRegionSetting(self:GetX() * musicratio)
 		else
 			if not (allowedCustomization) then
-				SCREENMAN:GetTopScreen():TogglePracticePause()
+				SCREENMAN:GetTopScreen():TogglePause()
 			end
 		end
 	end
@@ -1071,7 +1238,27 @@ pm[#pm + 1] =
 	end,
 	SetCommand = function(self)
 		self:visible(true)
-		self:x(bookmarkPosition / musicratio)
+		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5)
+		self:x(loopStartPos / musicratio)
+	end,
+	RegionSetMessageCommand = function(self, params)
+		if not params or not params.loopLength then
+			self:playcommand("Set")
+		else
+			self:visible(true)
+			self:x(loopStartPos / musicratio):halign(0)
+			self:zoomto(params.loopLength / musicratio, hidth):diffuse(color(".7,.2,.7,0.5"))
+		end
+	end,
+	CurrentRateChangedMessageCommand = function(self)
+		if not loopEndPos and loopStartPos then
+			self:playcommand("Set")
+		elseif loopEndPos and loopStartPos then
+			self:playcommand("RegionSet", {loopLength = (loopEndPos - loopStartPos)})
+		end
+	end,
+	PracticeModeReloadMessageCommand = function(self)
+		self:playcommand("CurrentRateChanged")
 	end
 }
 

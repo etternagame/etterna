@@ -30,7 +30,11 @@ local defaultGameplayCoordinates = {
 	LifeP1Y = 10,
 	LifeP1Rotation = 0,
 	PracticeCDGraphX = 10,
-	PracticeCDGraphY = 85
+	PracticeCDGraphY = 85,
+	BPMTextX = SCREEN_CENTER_X,
+	BPMTextY = SCREEN_BOTTOM - 20,
+	MusicRateX = SCREEN_CENTER_X,
+	MusicRateY = SCREEN_BOTTOM - 10
 }
 
 local defaultGameplaySizes = {
@@ -55,7 +59,9 @@ local defaultGameplaySizes = {
 	LifeP1Width = 1.0,
 	LifeP1Height = 1.0,
 	PracticeCDGraphWidth = 0.8,
-	PracticeCDGraphHeight = 1
+	PracticeCDGraphHeight = 1,
+	MusicRateZoom = 1.0,
+	BPMTextZoom = 1.0
 }
 
 local defaultConfig = {
@@ -82,6 +88,7 @@ local defaultConfig = {
 	JudgmentText = true,
 	ComboText = true,
 	ReceptorSize = 100,
+	ErrorBarCount = 30,
 	BackgroundType = 1,
 	UserName = "",
 	PasswordToken = "",
@@ -89,20 +96,26 @@ local defaultConfig = {
 	CustomEvaluationWindowTimings = false,
 	PracticeMode = false,
 	GameplayXYCoordinates = {
+		["3K"] = DeepCopy(defaultGameplayCoordinates),
 		["4K"] = DeepCopy(defaultGameplayCoordinates),
 		["5K"] = DeepCopy(defaultGameplayCoordinates),
 		["6K"] = DeepCopy(defaultGameplayCoordinates),
 		["7K"] = DeepCopy(defaultGameplayCoordinates),
 		["8K"] = DeepCopy(defaultGameplayCoordinates),
-		["10K"] = DeepCopy(defaultGameplayCoordinates)
+		["10K"] = DeepCopy(defaultGameplayCoordinates),
+		["12K"] = DeepCopy(defaultGameplayCoordinates),
+		["16K"] = DeepCopy(defaultGameplayCoordinates)
 	},
 	GameplaySizes = {
+		["3K"] = DeepCopy(defaultGameplaySizes),
 		["4K"] = DeepCopy(defaultGameplaySizes),
 		["5K"] = DeepCopy(defaultGameplaySizes),
 		["6K"] = DeepCopy(defaultGameplaySizes),
 		["7K"] = DeepCopy(defaultGameplaySizes),
 		["8K"] = DeepCopy(defaultGameplaySizes),
-		["10K"] = DeepCopy(defaultGameplaySizes)
+		["10K"] = DeepCopy(defaultGameplaySizes),
+		["12K"] = DeepCopy(defaultGameplaySizes),
+		["16K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
 
@@ -117,20 +130,27 @@ playerConfig.load = function(self, slot)
 	local coords = x.GameplayXYCoordinates
 	local sizes = x.GameplaySizes
 	if sizes and not sizes["4K"] then
+		defaultConfig.GameplaySizes["3K"] = sizes
 		defaultConfig.GameplaySizes["4K"] = sizes
 		defaultConfig.GameplaySizes["5K"] = sizes
 		defaultConfig.GameplaySizes["6K"] = sizes
 		defaultConfig.GameplaySizes["7K"] = sizes
 		defaultConfig.GameplaySizes["8K"] = sizes
 		defaultConfig.GameplaySizes["10K"] = sizes
+		defaultConfig.GameplaySizes["12K"] = sizes
+		defaultConfig.GameplaySizes["16K"] = sizes
+
 	end
 	if coords and not coords["4K"] then
+		defaultConfig.GameplayXYCoordinates["3K"] = coords
 		defaultConfig.GameplayXYCoordinates["4K"] = coords
 		defaultConfig.GameplayXYCoordinates["5K"] = coords
 		defaultConfig.GameplayXYCoordinates["6K"] = coords
 		defaultConfig.GameplayXYCoordinates["7K"] = coords
 		defaultConfig.GameplayXYCoordinates["8K"] = coords
 		defaultConfig.GameplayXYCoordinates["10K"] = coords
+		defaultConfig.GameplayXYCoordinates["12K"] = coords
+		defaultConfig.GameplayXYCoordinates["16K"] = coords
 	end
 	force_table_elements_to_match_type = tmp
 	return tmp2(self, slot)
