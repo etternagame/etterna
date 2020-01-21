@@ -704,6 +704,7 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 	return output;
 }
 
+// THIS REALLY REALLY NEEDS TO HAVE THE FULL NOTEDATA TO DO PROPER CALCULATIONS
 vector<float>
 Calc::RollDownscaler(const Finger& f1,
 					 const Finger& f2,
@@ -726,17 +727,11 @@ Calc::RollDownscaler(const Finger& f1,
 
 		float interval_mean = mean(hand_intervals);
 
-		// this was for throwing out values that fell outside a range however
-		// since this whole thing was wrong to begin with it should be re-evaluated
-		//for (float& note : hand_intervals)
-		//	if (interval_mean / note < 0.6f)
-		//		note = interval_mean;
-
 		// i allowed >1 values here for reasons but lets not do that for now
 		float interval_cv = cv(hand_intervals) + 0.84f;
 		output[i] = interval_cv >= 1.0f
-					  ? min(sqrt(interval_cv), 1.0f)
-					  : interval_cv;
+					  ? 1.0f
+					  : interval_cv * interval_cv;
 
 		// this is erroneously picking up on oh jumps, i had anticipated and solved this issue
 		// in R, but it required the note data which i don't feel like passing to this function atm
@@ -744,7 +739,8 @@ Calc::RollDownscaler(const Finger& f1,
 		// to be proof positive that these are not rolls (this is not a good long term solution)
 		// this is _also_ still picking up jacks however this isn't as big a deal because jacks don't
 		// use the nps base anyway
-		if (ohjs[i] < 0.925f)
+		// ok this this is _also_ picking up trills and that sort of is a problem
+		if (ohjs[i] < 0.94f)
 			output[i] = 1.f;
 
 		if (logpatterns)
