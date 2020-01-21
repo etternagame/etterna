@@ -320,7 +320,7 @@ o[#o + 1] = Def.Quad {
             if ovrl == nil then
                 txt:settext("")
             else
-                txt:settextf("MSD: %5.4f", msd * getCurRateValue())
+                txt:settextf("MSD: %5.4f", msd)
                 --txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
             end
 		else
@@ -424,7 +424,7 @@ local function topGraphLine(lineNum, colorToUse)
                     end
                 end
                 for i = 1, #graphVecs[1][lineNum] do
-                    local x = fitX(i, finalSecond)
+                    local x = fitX(i, finalSecond / getCurRateValue())
                     local y = fitY(graphVecs[1][lineNum][i])
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
