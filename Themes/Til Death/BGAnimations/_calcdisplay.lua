@@ -7,16 +7,14 @@ local plotX, plotY = plotWidth/2, 0
 local oldWidth = capWideScale(280, 300)
 local plotWidth, plotHeight = capWideScale(300,450), 160
 local plotX, plotY = oldWidth+3 + plotWidth/2, -20 + plotHeight/2
-
 local dotDims, plotMargin = 2, 4
-local maxOffset = 40
 local highest = 0
 local lowest = 0
 local baralpha = 0.2
 local bgalpha = 0.9
 local textzoom = 0.35
 local enabled = false
-
+local modvaluescaler = 200
 local song
 local steps
 local finalSecond
@@ -31,7 +29,7 @@ local function fitX(x, lastX) -- Scale time values to fit within plot width.
 end
 
 local function fitY(y) -- Scale diff values to fit within plot height
-	return -1 * y / maxOffset * plotHeight
+	return -plotHeight * y + ((1 - y) * modvaluescaler) + 10
 end
 
 local function scale(x, lower, upper, scaledMin, scaledMax) -- uhh
@@ -79,7 +77,7 @@ end
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
 local ssrUpperBoundWife = 1.0 -- right end of the graph
-local ssrResolution = 30 -- higher number = higher resolution graph (and lag)
+local ssrResolution = 1 -- higher number = higher resolution graph (and lag)
 
 local function produceThisManySSRs(steps, rate)
     local count = ssrResolution
@@ -131,6 +129,7 @@ local function updateCoolStuff()
     end
     if steps then
         ssrs = getGraphForSteps(steps)
+        -- DEBUG STUFF FOR CALCDISPLAY GRAPHS SHOULD BE DONE IN ONE PASS THIS IS INSANE
         local ohj = steps:DootSpooks(1)
         local anchr = steps:DootSpooks(2)
         local roll = steps:DootSpooks(3)
@@ -416,12 +415,11 @@ local function topGraphLine(lineNum, colorToUse)
                         highest = graphVecs[1][lineNum][i]
                     end
                 end
-                maxOffset = highest * 1.2
                 for i = 1, #graphVecs[1][lineNum] do
                     local x = fitX(i, finalSecond)
                     local y = fitY(graphVecs[1][lineNum][i])
                     y = y + plotHeight / 2
-                    setOffsetVerts(verts, x, y, colorToUse)
+                    setOffsetVerts(verts, x, y, colorToUse) 
                 end
                 
                 self:SetVertices(verts)
@@ -510,7 +508,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 o[#o + 1] = Def.Quad {
     Name = "Seek1",
     InitCommand = function(self)
-        self:zoomto(2, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+        self:zoomto(1, plotHeight):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
     end,
     UpdatePositionCommand = function(self, params)
         self:x(transformPosition(params.pos, params.w, params.px))
