@@ -176,12 +176,18 @@ LoadingWindow_Win32::SetSplash(const RageSurface* pSplash)
 LoadingWindow_Win32::LoadingWindow_Win32()
 {
 	w = this;
+
+	// Load a provided font for clarity in the load window
+	// if this font fails to load or is missing, the only
+	// negative is just the wrong font being in the window.
+	// Setting the FR_PRIVATE flag for the font will unload the font at program
+	// termination.
 	string szFontFile =
 	  RageFileManagerUtil::sDirOfExecutable.substr(
 		0, RageFileManagerUtil::sDirOfExecutable.length() - 7) +
 	  FONT_FILE;
 	int nResults = AddFontResourceEx(szFontFile.c_str(), // font file name
-									 NULL,				 // font characteristics
+									 FR_PRIVATE,		 // font flags
 									 NULL);
 
 	m_hIcon = NULL;

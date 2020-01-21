@@ -91,7 +91,7 @@ MusicWheelItem::MusicWheelItem(RString sType)
 
 	m_pGradeDisplay.Load(THEME->GetPathG(sType, "grades"));
 	m_pGradeDisplay->SetName(
-		ssprintf("GradeP%d", static_cast<int>(PLAYER_1 + 1)));
+	  ssprintf("GradeP%d", static_cast<int>(PLAYER_1 + 1)));
 	this->AddChild(m_pGradeDisplay);
 	LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay);
 
@@ -137,7 +137,6 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 
 	m_pGradeDisplay = cpy.m_pGradeDisplay;
 	this->AddChild(m_pGradeDisplay);
-	
 }
 
 MusicWheelItem::~MusicWheelItem()
@@ -266,88 +265,85 @@ MusicWheelItem::RefreshGrades()
 
 	if (pWID == NULL)
 		return; // LoadFromWheelItemData() hasn't been called yet.
-	FOREACH_HumanPlayer(p)
-	{
-		m_pGradeDisplay->SetVisible(false);
+	m_pGradeDisplay->SetVisible(false);
 
-		if (pWID->m_pSong == NULL)
-			continue;
+	if (pWID->m_pSong == NULL)
+		return;
 
-		Difficulty dc;
-		if (GAMESTATE->m_pCurSteps)
-			dc = GAMESTATE->m_pCurSteps->GetDifficulty();
-		else
-			dc = GAMESTATE->m_PreferredDifficulty;
+	Difficulty dc;
+	if (GAMESTATE->m_pCurSteps)
+		dc = GAMESTATE->m_pCurSteps->GetDifficulty();
+	else
+		dc = GAMESTATE->m_PreferredDifficulty;
 
-		ProfileSlot ps;
-		if (PROFILEMAN->IsPersistentProfile(p))
-			ps = static_cast<ProfileSlot>(p);
-		else
-			continue;
+	ProfileSlot ps;
+	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
+		ps = static_cast<ProfileSlot>(PLAYER_1);
+	else
+		return;
 
-		StepsType st;
-		if (GAMESTATE->m_pCurSteps)
-			st = GAMESTATE->m_pCurSteps->m_StepsType;
-		else
-			st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
+	StepsType st;
+	if (GAMESTATE->m_pCurSteps)
+		st = GAMESTATE->m_pCurSteps->m_StepsType;
+	else
+		st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
 
-		m_pGradeDisplay->SetVisible(true);
+	m_pGradeDisplay->SetVisible(true);
 
-		HighScoreList* BestpHSL = NULL;
-		Grade gradeBest = Grade_Invalid;
-		Difficulty dcBest = Difficulty_Invalid;
-		if (PROFILEMAN->IsPersistentProfile(ps)) {
-			if (pWID->m_pSong != nullptr) {
-				bool hasCurrentStyleSteps = false;
-				FOREACH_ENUM_N(Difficulty, 6, i)
-				{
-					Steps* pSteps =
-					  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-					if (pSteps != NULL) {
-						hasCurrentStyleSteps = true;
-						Grade dcg =
-						  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-						if (gradeBest >= dcg) {
-							dcBest = i;
-							gradeBest = dcg;
-						}
+	HighScoreList* BestpHSL = NULL;
+	Grade gradeBest = Grade_Invalid;
+	Difficulty dcBest = Difficulty_Invalid;
+	if (PROFILEMAN->IsPersistentProfile(ps)) {
+		if (pWID->m_pSong != nullptr) {
+			bool hasCurrentStyleSteps = false;
+			FOREACH_ENUM_N(Difficulty, 6, i)
+			{
+				Steps* pSteps =
+				  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+				if (pSteps != NULL) {
+					hasCurrentStyleSteps = true;
+					Grade dcg =
+					  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+					if (gradeBest >= dcg) {
+						dcBest = i;
+						gradeBest = dcg;
 					}
 				}
-				// If no grade was found for the current style/stepstype
-				if (!hasCurrentStyleSteps) {
-					// Get the best grade among all steps
-					auto& allSteps = pWID->m_pSong->GetAllSteps();
-					for (auto& stepsPtr : allSteps) {
-						if (stepsPtr->m_StepsType ==
-							st) // Skip already checked steps of type st
-							continue;
-						Grade dcg =
-						  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
-						if (gradeBest >= dcg) {
-							dcBest = stepsPtr->GetDifficulty();
-							gradeBest = dcg;
-						}
+			}
+			// If no grade was found for the current style/stepstype
+			if (!hasCurrentStyleSteps) {
+				// Get the best grade among all steps
+				auto& allSteps = pWID->m_pSong->GetAllSteps();
+				for (auto& stepsPtr : allSteps) {
+					if (stepsPtr->m_StepsType ==
+						st) // Skip already checked steps of type st
+						continue;
+					Grade dcg =
+					  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+					if (gradeBest >= dcg) {
+						dcBest = stepsPtr->GetDifficulty();
+						gradeBest = dcg;
 					}
 				}
 			}
 		}
-
-		// still needs cleaning up -mina
-		Message msg("SetGrade");
-		msg.SetParam("PlayerNumber", p);
-		if (pWID->m_pSong->IsFavorited())
-			msg.SetParam("Favorited", 1);
-		if (pWID->m_pSong->IsPermaMirror())
-			msg.SetParam("PermaMirror", 1);
-		if (pWID->m_pSong->HasGoal())
-			msg.SetParam("HasGoal", 1);
-		if (gradeBest != Grade_Invalid || (BestpHSL != nullptr)) {
-			msg.SetParam("Grade", gradeBest);
-			msg.SetParam("Difficulty", DifficultyToString(dcBest));
-			msg.SetParam("NumTimesPlayed", 0);
-		}
-		m_pGradeDisplay->HandleMessage(msg);
 	}
+
+	// still needs cleaning up -mina
+	Message msg("SetGrade");
+	msg.SetParam("PlayerNumber", PLAYER_1);
+	if (pWID->m_pSong->IsFavorited())
+		msg.SetParam("Favorited", 1);
+	if (pWID->m_pSong->IsPermaMirror())
+		msg.SetParam("PermaMirror", 1);
+	if (pWID->m_pSong->HasGoal())
+		msg.SetParam("HasGoal", 1);
+	if (gradeBest != Grade_Invalid || (BestpHSL != nullptr)) {
+		msg.SetParam("Grade", gradeBest);
+		msg.SetParam("Difficulty", DifficultyToString(dcBest));
+		msg.SetParam("NumTimesPlayed", 0);
+	}
+	m_pGradeDisplay->HandleMessage(msg);
 }
 
 void
@@ -355,28 +351,3 @@ MusicWheelItem::HandleMessage(const Message& msg)
 {
 	WheelItemBase::HandleMessage(msg);
 }
-
-/*
- * (c) 2001-2004 Chris Danford, Chris Gomez, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

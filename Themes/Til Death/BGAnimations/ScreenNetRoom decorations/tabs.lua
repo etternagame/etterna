@@ -135,7 +135,7 @@ function tabs(index)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(tabNames[index])
+				self:settext(THEME:GetString("TabNames", tabNames[index]))
 				if isTabEnabled(index) then
 					self:diffuse(getMainColor("positive"))
 				else

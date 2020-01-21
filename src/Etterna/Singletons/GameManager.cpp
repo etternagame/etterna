@@ -167,7 +167,7 @@ static const Style g_Style_Dance_Single = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 3, 2, 1, Style::END_MAPPING },
-	  { 0, 3, 2, 1, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -237,7 +237,7 @@ static const Style g_Style_Dance_Solo = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
-	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -269,7 +269,7 @@ static const Style g_Style_Dance_ThreePanel = {
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  // 4 3 5
 	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING },
-	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -366,7 +366,7 @@ static const Style g_Style_Pump_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  2,
@@ -533,7 +533,7 @@ static const Style g_Style_KB7_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -615,7 +615,7 @@ static const Style g_Style_Ez2_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 4, 2, 1, 3, Style::END_MAPPING },
-	  { 0, 4, 2, 1, 3, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -655,7 +655,7 @@ static const Style g_Style_Ez2_Real = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 6, 3, 2, 4, 1, 5, Style::END_MAPPING },
-	  { 0, 6, 3, 2, 4, 1, 5, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{
 	  // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
@@ -801,7 +801,7 @@ static const Style g_Style_DS3DDX_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, 7, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, 7, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -903,16 +903,7 @@ static const Style g_Style_Beat_Single5 = {
 		5,
 		5,
 		Style::END_MAPPING },
-	  { 0,
-		1,
-		2,
-		3,
-		4,
-		Style::NO_MAPPING,
-		Style::NO_MAPPING,
-		5,
-		5,
-		Style::END_MAPPING } },
+	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -1015,7 +1006,7 @@ static const Style g_Style_Beat_Single7 = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
-	  { 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1170,7 +1161,7 @@ static const Style g_Style_Maniax_Single = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 1, 2, 0, 3, Style::END_MAPPING },
-	  { 1, 2, 0, 3, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1305,14 +1296,7 @@ static const Style g_Style_Popn_Five = {
 		3,
 		4,
 		Style::END_MAPPING },
-	  { Style::NO_MAPPING,
-		Style::NO_MAPPING,
-		0,
-		1,
-		2,
-		3,
-		4,
-		Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1351,7 +1335,7 @@ static const Style g_Style_Popn_Nine = {
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Style::END_MAPPING },
-	  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Style::END_MAPPING },
+	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -1437,9 +1421,6 @@ GameManager::GameManager()
 	m_fPreviousRate = 1.f;
 	m_sModsToReset;
 	m_vTurnsToReset;
-	m_iPreviousFail = FailType_Immediate;	// this should never get called without being set with the player's existing
-											// option but default to avoid crashing due to a malformed enum just in case
-	m_bRestartedGameplay;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -1799,28 +1780,3 @@ class LunaGameManager : public Luna<GameManager>
 
 LUA_REGISTER_CLASS(GameManager)
 // lua end
-
-/*
- * (c) 2001-2006 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

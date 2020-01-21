@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This can be used in two ways: as a timestamp or as a timer.
  *
  * As a timer,
@@ -26,41 +26,47 @@
 
 #include "arch/ArchHooks/ArchHooks.h"
 
+#include <chrono>
+
+// let this henceforth be referred to as the difference between a second and a
+// microsecond *kingly fanfare*
 #define TIMESTAMP_RESOLUTION 1000000
 
-const RageTimer RageZeroTimer(0, 0);
-static uint64_t g_iStartTime = ArchHooks::GetMicrosecondsSinceStart(true);
+const RageTimer RageZeroTimer(0);
+static std::chrono::microseconds g_iStartTime =
+  ArchHooks::GetChronoDurationSinceStart();
 
 static uint64_t
-GetTime(bool /* bAccurate */)
+GetTime()
 {
-	return ArchHooks::GetMicrosecondsSinceStart(true);
+	return ArchHooks::GetMicrosecondsSinceStart();
+}
+
+static std::chrono::microseconds
+GetChronoTime()
+{
+	return ArchHooks::GetChronoDurationSinceStart();
 }
 
 float
-RageTimer::GetTimeSinceStart(bool bAccurate)
+RageTimer::GetTimeSinceStart()
 {
-	uint64_t usecs = GetTime(bAccurate);
-	usecs -= g_iStartTime;
-	/* Avoid using doubles for hardware that doesn't support them.
-	 * This is writing usecs = high*2^32 + low and doing
-	 * usecs/10^6 = high * (2^32/10^6) + low/10^6. */
-	return uint32_t(usecs >> 32) * 4294.967296f + uint32_t(usecs) / 1000000.f;
+	auto usecs = GetChronoTime();
+	std::chrono::microseconds g = usecs - g_iStartTime;
+
+	return static_cast<float>(g.count()) / TIMESTAMP_RESOLUTION;
 }
 
 uint64_t
 RageTimer::GetUsecsSinceStart()
 {
-	return GetTime(true) - g_iStartTime;
+	return GetTime() - g_iStartTime.count();
 }
 
 void
 RageTimer::Touch()
 {
-	uint64_t usecs = GetTime(true);
-
-	this->m_secs = unsigned(usecs / 1000000);
-	this->m_us = unsigned(usecs % 1000000);
+	this->c_dur = GetChronoTime();
 }
 
 float
@@ -110,27 +116,19 @@ RageTimer::operator-(const RageTimer& rhs) const
 bool
 RageTimer::operator<(const RageTimer& rhs) const
 {
-	if (m_secs != rhs.m_secs)
-		return m_secs < rhs.m_secs;
-	return m_us < rhs.m_us;
+	if (c_dur != rhs.c_dur)
+		return c_dur < rhs.c_dur;
+	return c_dur < rhs.c_dur;
 }
 
 RageTimer
 RageTimer::Sum(const RageTimer& lhs, float tm)
 {
-	/* tm == 5.25  -> secs =  5, us = 5.25  - ( 5) = .25
-	 * tm == -1.25 -> secs = -2, us = -1.25 - (-2) = .75 */
-	int seconds = static_cast<int>(floorf(tm));
-	auto us = static_cast<int>((tm - seconds) * TIMESTAMP_RESOLUTION);
+	uint64_t usecs = static_cast<uint64_t>(tm * TIMESTAMP_RESOLUTION);
+	std::chrono::microseconds period(usecs);
 
-	RageTimer ret(0, 0); // Prevent unnecessarily checking the time
-	ret.m_secs = seconds + lhs.m_secs;
-	ret.m_us = us + lhs.m_us;
-
-	if (ret.m_us >= TIMESTAMP_RESOLUTION) {
-		ret.m_us -= TIMESTAMP_RESOLUTION;
-		++ret.m_secs;
-	}
+	RageTimer ret(0); // Prevent unnecessarily checking the time
+	ret.c_dur = period + lhs.c_dur;
 
 	return ret;
 }
@@ -138,42 +136,10 @@ RageTimer::Sum(const RageTimer& lhs, float tm)
 float
 RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
-	int secs = lhs.m_secs - rhs.m_secs;
-	int us = lhs.m_us - rhs.m_us;
+	std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
 
-	if (us < 0) {
-		us += TIMESTAMP_RESOLUTION;
-		--secs;
-	}
-
-	return static_cast<float>(secs) +
-		   static_cast<float>(us) / TIMESTAMP_RESOLUTION;
+	return static_cast<float>(diff.count()) / TIMESTAMP_RESOLUTION;
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStartFast())
-
-  /*
-   * Copyright (c) 2001-2003 Chris Danford, Glenn Maynard
-   * All rights reserved.
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining a
-   * copy of this software and associated documentation files (the
-   * "Software"), to deal in the Software without restriction, including
-   * without limitation the rights to use, copy, modify, merge, publish,
-   * distribute, and/or sell copies of the Software, and to permit persons to
-   * whom the Software is furnished to do so, provided that the above
-   * copyright notice(s) and this permission notice appear in all copies of
-   * the Software and that both the above copyright notice(s) and this
-   * permission notice appear in supporting documentation.
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
-   * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
-   * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
-   * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-   * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-   * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-   * PERFORMANCE OF THIS SOFTWARE.
-   */
+LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStart())

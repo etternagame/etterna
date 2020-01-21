@@ -74,16 +74,19 @@ t[#t + 1] =
 	{
 		Name="rando",
 		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive")):settext("Select Music:")
+			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+			self:settextf("%s:", THEME:GetString("ScreenSelectMusic", "Title"))
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
-				local t = SONGMAN:GetAllSongs()
+				local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+				local t = w:GetSongs()
+				if #t == 0 then return end
 				local random_song = t[math.random(#t)]
-				SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(random_song)
+				w:SelectSong(random_song)
 			end
 		end
 	}

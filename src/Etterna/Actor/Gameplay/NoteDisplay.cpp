@@ -216,10 +216,17 @@ MakeNoteResource(const RString& sButton,
 	NoteSkinAndPath nsap(
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
 
-	Color = "4th";
+	/* In its current state, the color feature here produces 9 times the actors
+	 * we want. Anyone curious: That makes it 24x4x9 vs 24x4.
+	 * This drops Gameplay FPS by several hundred, albeit uncapped and
+	 * above 1000fps. Regardless, almost everyone doesn't care about this.
+	 * By this logic we can cripple/disable the feature by doing this instead.
+	 */
+	if (PREFSMAN->m_FastNoteRendering)
+		Color = "4th";
+
 	map<NoteSkinAndPath, NoteResource*>::iterator it =
-	  g_NoteResource[Color].find(nsap); // i cant figure out how color changes
-										// what actors are loaded... -mina
+	  g_NoteResource[Color].find(nsap);
 	if (it == g_NoteResource[Color].end()) {
 		auto* pRes = new NoteResource(nsap);
 
@@ -1935,7 +1942,7 @@ NoteColumnRenderer::DrawPrimitives()
 		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func)                                       \
-		DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
+	DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
 	DRAW_TAP_SET(holds, DrawHoldsInRange);
 	DTS_INNER(
 	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);
@@ -2091,29 +2098,3 @@ struct LunaNoteColumnRenderer : Luna<NoteColumnRenderer>
 };
 
 LUA_REGISTER_DERIVED_CLASS(NoteColumnRenderer, Actor)
-
-/*
- * NoteColumnRenderer and associated spline stuff (c) Eric Reese 2014-2015
- * (c) 2001-2006 Brian Bugh, Ben Nordstrom, Chris Danford, Steve Checkoway
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

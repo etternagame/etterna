@@ -50,26 +50,26 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
 	if (pChild == NULL) {
 		LuaHelpers::ReportScriptErrorFmt(
-			"%s: StepsDisplayList: missing the node \"CursorP%d\"",
-			ActorUtil::GetWhere(pNode).c_str(),
-			PLAYER_1 + 1);
+		  "%s: StepsDisplayList: missing the node \"CursorP%d\"",
+		  ActorUtil::GetWhere(pNode).c_str(),
+		  PLAYER_1 + 1);
 	} else {
 		m_Cursors.LoadActorFromNode(pChild, this);
 	}
 
 	/* Hack: we need to tween cursors both up to down (cursor motion) and
-		* visible to invisible (fading).  Cursor motion needs to stoptweening,
-		* so multiple motions don't queue and look unresponsive.  However, that
-		* stoptweening interrupts fading, resulting in the cursor remaining
-		* invisible or partially invisible.  So, do them in separate tweening
-		* stacks.  This means the Cursor command can't change diffuse colors; I
-		* think we do need a diffuse color stack ... */
+	 * visible to invisible (fading).  Cursor motion needs to stoptweening,
+	 * so multiple motions don't queue and look unresponsive.  However, that
+	 * stoptweening interrupts fading, resulting in the cursor remaining
+	 * invisible or partially invisible.  So, do them in separate tweening
+	 * stacks.  This means the Cursor command can't change diffuse colors; I
+	 * think we do need a diffuse color stack ... */
 	pChild = pNode->GetChild(ssprintf("CursorP%iFrame", PLAYER_1 + 1));
 	if (pChild == NULL) {
 		LuaHelpers::ReportScriptErrorFmt(
-			"%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
-			ActorUtil::GetWhere(pNode).c_str(),
-			PLAYER_1 + 1);
+		  "%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
+		  ActorUtil::GetWhere(pNode).c_str(),
+		  PLAYER_1 + 1);
 	} else {
 		m_CursorFrames.LoadFromNode(pChild);
 		m_CursorFrames.AddChild(m_Cursors);
@@ -111,21 +111,21 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 void
 StepsDisplayList::UpdatePositions()
 {
-	int iCurrentRow= GetCurrentRowIndex(PLAYER_1);
+	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	const int total = NUM_SHOWN_ITEMS;
 	const int halfsize = total / 2;
 
 	int first_start, first_end, second_start, second_end;
 
-	// Choices for each player. If only one player is active, it's the same for both.
+	// Choices for each player. If only one player is active, it's the same for
+	// both.
 	int P1Choice = iCurrentRow;
 
 	vector<Row>& Rows = m_Rows;
 
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
-	if( !BothPlayersActivated )
-	{
+	if (!BothPlayersActivated) {
 		// Simply center the cursor.
 		first_start = max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
@@ -133,7 +133,7 @@ StepsDisplayList::UpdatePositions()
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max( earliest - halfsize/2, 0 );
+		first_start = max(earliest - halfsize / 2, 0);
 		first_end = first_start + halfsize;
 
 		// Second half:
@@ -347,8 +347,8 @@ StepsDisplayList::Hide()
 void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
-	if (msg.GetName() ==
-		MessageIDToString((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1)))
+	if (msg.GetName() == MessageIDToString((MessageID)(
+						   Message_CurrentStepsP1Changed + PLAYER_1)))
 		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);
@@ -381,28 +381,3 @@ class LunaStepsDisplayList : public Luna<StepsDisplayList>
 
 LUA_REGISTER_DERIVED_CLASS(StepsDisplayList, ActorFrame)
 // lua end
-
-/*
- * (c) 2003-2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

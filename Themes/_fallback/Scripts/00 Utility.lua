@@ -34,7 +34,6 @@ function isWindowed()
 end
 
 --- Get the actor's real X (Not relative to the parent like self:GetX()) by recursively grabbing the parents' position
--- Does not take zoom into account.
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueX(element)
@@ -42,7 +41,6 @@ function getTrueX(element)
 end
 
 --- Get the actor's real Y (Not relative to the parent like self:GetY()) by recursively grabbing the parents' position
--- Does not take zoom into account.
 -- @tparam actor element the actor
 -- @treturn number
 function getTrueY(element)
@@ -293,13 +291,30 @@ end
 -- @treturn string keymode
 function getCurrentKeyMode()
 	local keys = {
+		StepsType_Dance_Threepanel = "3K",
 		StepsType_Dance_Single = "4K",
 		StepsType_Pump_Single = "5K",
+		StepsType_Pump_Halfdouble = "6K",
+		StepsType_Bm_Single5 = "6K",
 		StepsType_Dance_Solo = "6K",
 		StepsType_Kb7_Single = "7K",
+		StepsType_Bm_Single7 = "8K",
 		StepsType_Dance_Double = "8K",
-		StepsType_Pump_Double = "10K"
+		StepsType_Pump_Double = "10K",
+		StepsType_Bm_Double5 = "12K",
+		StepsType_Bm_Double7 = "16K",
 	}
 	local stepstype = GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
 	return keys[stepstype]
+end
+
+--- Returns translated modifiers given a raw string of modifiers
+-- @tparam {string} raw string of modifiers
+-- @treturn {string} translated string of modifiers
+function getModifierTranslations(source)
+	local translated = {}
+	for mod in string.gmatch(source, "[^,%s]+") do
+		table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
+	end
+	return table.concat(translated, ", ")
 end

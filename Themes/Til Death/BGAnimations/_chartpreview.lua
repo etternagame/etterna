@@ -10,7 +10,17 @@ local yeet
 local cd
 local calcinfo
 
+local yPos = Var("yPos")
+local yPosReverse = Var("yPosReverse")
+if not yPos then yPos = 55 end
+if not yPosReverse then yPosReverse = 208 end
+
+local translated_info = {
+	Paused = THEME:GetString("ChartPreview", "Paused")
+}
+
 local function UpdatePreviewPos(self)
+	if not self:IsVisible() then return end
 	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or 
 	noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
@@ -21,7 +31,7 @@ end
 
 local memehamstermax
 local function setUpPreviewNoteField() 
-    yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField() 
+	yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
     if yeet == nil then 
       return 
 	end 
@@ -69,13 +79,12 @@ local t = Def.ActorFrame {
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
-		if not isOver(self:GetParent():GetChild("LittleButtonsOnTheLeft"):GetChild("PreviewViewer")) then
+		local tab = getTabIndex()
+		-- the Score and Profile tabs have right click functionality
+		-- so ignore right clicks if on those
+		if tab ~= 2 and tab ~= 4 then
 			SCREENMAN:GetTopScreen():PausePreviewNoteField()
-			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-				self:GetChild("pausetext"):settext("Paused")
-			else 
-				self:GetChild("pausetext"):settext("")
-			end
+			self:GetChild("pausetext"):playcommand("Set")
 		end
 	end,
     SetupNoteFieldCommand=function(self)
@@ -84,12 +93,30 @@ local t = Def.ActorFrame {
 	end,
 	hELPidontDNOKNOWMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
+		self:SetUpdateFunction(nil)
+	end,
+	ChartPreviewOffMessageCommand=function(self)
+		self:SetUpdateFunction(nil)
+	end,
+	ChartPreviewOnMessageCommand=function(self)
+		self:SetUpdateFunction(UpdatePreviewPos)
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
-        self:visible(true)
+		self:visible(true)
+		self:SetUpdateFunction(UpdatePreviewPos)
 		cd:visible(true):y(20)				-- need to control this manually -mina
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
+	end,
+	OptionsScreenClosedMessageCommand = function(self)
+		local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+		if self:GetChild("NoteField") ~= nil then
+			if not rev then
+				self:GetChild("NoteField"):y(yPos * 1.5)
+			else
+				self:GetChild("NoteField"):y(yPos * 1.5 + yPosReverse)
+			end
+		end
 	end,
 	Def.Quad {
 		Name = "BG",
@@ -107,6 +134,19 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2)
 			self:settext(""):diffuse(color("0.8,0,0"))
+		end,
+		NoteFieldVisibleMessageCommand = function(self)
+			self:settext("")
+		end,
+		PreviewMusicStartedMessageCommand = function(self)
+			self:playcommand("Set")
+		end,
+		SetCommand = function(self)
+			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+				self:settext(translated_info["Paused"])
+			else 
+				self:settext("")
+			end
 		end
 	},
 	Def.Quad {

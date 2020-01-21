@@ -41,7 +41,6 @@ local offsetY = 20
 
 local stringList = {
 	{"Etterna Version:", ProductFamily() .. " " .. ProductVersion()},
-	{"Build Date:", VersionDate() .. " " .. VersionTime()},
 	{"Theme Version:", getThemeName() .. " " .. getThemeVersion()},
 	{"Total Songs:", SONGMAN:GetNumSongs() .. " Songs in " .. SONGMAN:GetNumSongGroups() .. " Groups"},
 	{"Total Courses:", SONGMAN:GetNumCourses() .. " Courses in " .. SONGMAN:GetNumCourseGroups() .. " Groups"},

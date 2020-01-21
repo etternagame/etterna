@@ -6,12 +6,13 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
 
-// for timeGetTime
 #include <windows.h>
 #include <mmsystem.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm.lib")
 #endif
+
+#include <chrono>
 
 static bool g_bTimerInitialized;
 
@@ -22,22 +23,33 @@ InitTimer()
 		return;
 	g_bTimerInitialized = true;
 
+	// Set Windows clock resolution to 1ms
 	timeBeginPeriod(1);
 }
 
 int64_t
-ArchHooks::GetMicrosecondsSinceStart(bool bAccurate)
+ArchHooks::GetMicrosecondsSinceStart()
 {
 	if (!g_bTimerInitialized)
 		InitTimer();
 
 	int64_t ret = timeGetTime() * int64_t(1000);
-	if (bAccurate) {
-		ret = FixupTimeIfLooped(ret);
-		ret = FixupTimeIfBackwards(ret);
-	}
+	ret = FixupTimeIfLooped(ret);
+	ret = FixupTimeIfBackwards(ret);
 
 	return ret;
+}
+
+std::chrono::microseconds
+ArchHooks::GetChronoDurationSinceStart()
+{
+	if (!g_bTimerInitialized)
+		InitTimer();
+
+	// You may be thinking "why dont we use ::now() compared with a duration and
+	// return that?" well, that didnt work, is all i can say right now. maybe
+	// rewriting it later will work
+	return std::chrono::microseconds(GetMicrosecondsSinceStart());
 }
 
 static RString
@@ -87,7 +99,6 @@ ArchHooks::MountUserFilesystems(const RString& sDirOfExecutable)
 	  "dir", sAppDataDir + "/BackgroundTransitions", "/BackgroundTransitions");
 	FILEMAN->Mount("dir", sAppDataDir + "/Cache", "/Cache");
 	FILEMAN->Mount("dir", sAppDataDir + "/CDTitles", "/CDTitles");
-	FILEMAN->Mount("dir", sAppDataDir + "/Characters", "/Characters");
 	FILEMAN->Mount("dir", sAppDataDir + "/Courses", "/Courses");
 	FILEMAN->Mount("dir", sAppDataDir + "/Logs", "/Logs");
 	FILEMAN->Mount("dir", sAppDataDir + "/NoteSkins", "/NoteSkins");

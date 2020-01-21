@@ -65,11 +65,7 @@ Branch = {
 		end
 	end,
 	AfterTitleMenu = function()
-		if PREFSMAN:GetPreference("ShowCaution") then
-			return "ScreenCaution"
-		else
-			return Branch.StartGame()
-		end
+		return Branch.StartGame()
 	end,
 	StartGame = function()
 		multiplayer = false
@@ -95,8 +91,6 @@ Branch = {
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
-
-		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
 		return "ScreenSelectMusic"
@@ -184,9 +178,6 @@ Branch = {
 		else
 			return "ScreenStageInformation"
 		end
-	end,
-	GameplayScreen = function()
-		return "ScreenGameplay"
 	end,
 	AfterGameplay = function()
 		return "ScreenEvaluationNormal"
