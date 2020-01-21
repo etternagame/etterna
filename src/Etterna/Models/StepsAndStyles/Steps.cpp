@@ -852,6 +852,8 @@ class LunaSteps : public Luna<Steps>
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(loot);
 		auto& ni = nd.SerializeNoteData(etaner);
+		if (ni.size() == 0)
+			return 0;
 
 		DifficultyRating d = MinaSDCalc(ni, rate, goal);
 		auto ssrs = skillset_vector(d);
