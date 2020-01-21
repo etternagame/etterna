@@ -209,7 +209,7 @@ class Steps
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
-	void BorpNDorf();
+	void BorpNDorf(int modType);
 	vector<vector<float>> dumbthings;
 
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
