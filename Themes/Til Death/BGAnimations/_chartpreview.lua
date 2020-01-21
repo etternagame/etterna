@@ -26,6 +26,11 @@ local function UpdatePreviewPos(self)
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
+
+		-- calcdisplay position indicator (not the best place to put this but it works)
+		local calcgraphpos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		local badorp = self:GetChild("notChordDensityGraph"):GetChild("GraphPos")
+		badorp:zoomto(math.min(calcgraphpos * capWideScale(300,450) / capWideScale(280,300), capWideScale(300,450)), hidth * 3):halign(0)
 	end
 end
 

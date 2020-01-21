@@ -202,7 +202,14 @@ local o =
     end,
     CurrentRateChangedMessageCommand = function(self)
         self:playcommand("CurrentStepsP1Changed")
-    end
+    end,
+    Def.Quad {
+        Name = "GraphPos",
+        InitCommand = function(self)
+            self:xy(-plotWidth/2, -20)
+            self:zoomto(0, 0):diffuse(color("1,1,1,1")):halign(0):draworder(1100):halign(0):diffusealpha(0.1)
+        end
+    }
 }
 -- graph bg
 o[#o + 1] = Def.Quad {
