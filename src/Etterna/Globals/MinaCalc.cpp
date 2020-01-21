@@ -303,15 +303,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	difficulty.handstream *= 0.5f;
-	difficulty.chordjack *= 0.5f;
-	difficulty.jack *= 0.5f;
-	difficulty.technical *= 0.5f;
-	difficulty.stamina *= 0.5f;
 	difficulty.stream =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, false) *
-	  1.125f * grindscaler;
-	difficulty.jumpstream = Chisel(0.1f, 10.24f, score_goal, false, false, true, true, false) * grindscaler;
+	  Chisel(0.1f, 10.24f, score_goal, true, false, true, false, false) * 0.90f * grindscaler;
+	difficulty.jumpstream = Chisel(0.1f, 10.24f, score_goal, true, false, true, true, false) * 0.93f * grindscaler;
 	difficulty.overall = highest_difficulty(difficulty);
 
 	if (debugMod == CalcPatternMod::MSD) {
@@ -326,6 +320,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			left_hand.debug = left_hand.finalMSDvals;
 			right_hand.debug = right_hand.finalMSDvals;
 		}
+	} else if (debugMod == CalcPatternMod::PtLoss) {
+		left_hand.debug = left_hand.pointslost;
+		right_hand.debug = right_hand.pointslost;
 	}
 
 
@@ -580,22 +577,33 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 			? anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i] *
 				jumpscale[i]
 			: (js ? hsscale[i] * hsscale[i] * sqrt(anchorscale[i]) *
-					  sqrt(ohjumpscale[i]) * rollscale[i] * sqrt(jumpscale[i])
+					  sqrt(ohjumpscale[i]) * rollscale[i] * rollscale[i] *
+					  sqrt(jumpscale[i]) *
+					  (1.f + abs((jumpscale[i] - 1.f)) * 2.05f) *
+					  (1.f + abs((ohjumpscale[i] - 1.f)) * 0.45f) * 0.8f
 				  : (nps
-					   ? hsscale[i] * hsscale[i] * hsscale[i] * anchorscale[i] *
-						   ohjumpscale[i] * ohjumpscale[i] *
-						   ohjumpscale[i] * rollscale[i] * rollscale[i] * jumpscale[i] * jumpscale[i] *
-						   jumpscale[i]
+					   ? sqrt(hsscale[i]) * anchorscale[i] *
+						   pow(ohjumpscale[i], 0.85f) *
+						   rollscale[i] * jumpscale[i] *
+						   (1.f + abs((sqrt(jumpscale[i]) - 1.f)) * 1.05f) *
+						   (1.f + abs((ohjumpscale[i] - 1.f)) * 0.25f)
 					   : anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i]));
 	}
-	finalMSDvals = diff;	// bad bad bad bad bad bad bad bad bad bad
+	
 	if (stam)
 		StamAdjust(x, diff);
+	finalMSDvals = diff; // bad bad bad bad bad bad bad bad bad bad
 	float output = 0.f;
+	std::vector<float> pointloss;
 	for (size_t i = 0; i < diff.size(); i++) {
-		output += x > diff[i] ? v_itvpoints[i]
-							  : v_itvpoints[i] * pow(x / diff[i], 1.8f);
+		float gainedpoints = x > diff[i]
+							   ? v_itvpoints[i]
+							   : v_itvpoints[i] * pow(x / diff[i], 1.8f);
+
+		output += gainedpoints;
+		pointloss.push_back(v_itvpoints[i] - gainedpoints);
 	}
+	pointslost = pointloss;	// to the bone
 	return output;
 }
 
@@ -619,14 +627,12 @@ Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
 			}
 			if (columns == 2) {
 				jumps++;
-				taps += 2; // this gets added twice intentionally to mimic
-						   // mina's ratings more closely
 			}
 			taps += columns;
 		}
-		output.push_back(taps != 0 ? pow(1 - (1.4f * static_cast<float>(jumps) /
+		output.push_back(taps != 0 ? pow(1 - (1.1f * static_cast<float>(jumps) /
 											  static_cast<float>(taps)),
-										 0.5f)
+										 1.f)
 								   : 1.f);
 
 		if (logpatterns)
@@ -716,7 +722,7 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 2)
 				jumps++;
 		}
-		output[i] = taps != 0 ? sqrt(1 - (1.20f * static_cast<float>(jumps) /
+		output[i] = taps != 0 ? sqrt(1 - (static_cast<float>(jumps) /
 											   static_cast<float>(taps) / 3.f))
 							  : 1.f;
 
@@ -748,13 +754,16 @@ Calc::RollDownscaler(const Finger& f1,
 			hand_intervals.emplace_back(time1);
 		for (float time2 : f2[i])
 			hand_intervals.emplace_back(time2);
+		
+		sort(hand_intervals.begin(), hand_intervals.end());
+		if (hand_intervals.back() > hand_intervals[hand_intervals.size() - 1] * 3.f)
+			hand_intervals.pop_back();
 
 		float interval_mean = mean(hand_intervals);
 
-		// i allowed >1 values here for reasons but lets not do that for now
-		float interval_cv = cv(hand_intervals) + 0.82f;
+		float interval_cv = cv(hand_intervals) + 0.85f;
 		output[i] = interval_cv >= 1.0f
-					  ? 1.0f
+					  ? min(sqrt(sqrt(interval_cv)), 1.075f)
 					  : interval_cv * interval_cv;
 
 		// this is erroneously picking up on oh jumps, i had anticipated and solved this issue

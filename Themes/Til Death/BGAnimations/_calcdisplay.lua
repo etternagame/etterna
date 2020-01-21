@@ -14,7 +14,7 @@ local baralpha = 0.2
 local bgalpha = 0.9
 local textzoom = 0.35
 local enabled = false
-local modvaluescaler = 200
+local modvaluescaler = 150
 local song
 local steps
 local finalSecond
@@ -136,6 +136,7 @@ local function updateCoolStuff()
         local hsds = steps:DootSpooks(4)
         local jumpds = steps:DootSpooks(5)
         local msd = steps:DootSpooks(6)
+        local pts = steps:DootSpooks(7)
         graphVecs[1] = {}
         graphVecs[1][1] = ohj[1]
         graphVecs[1][2] = ohj[2]
@@ -151,6 +152,8 @@ local function updateCoolStuff()
         graphVecs[2] = {}
         graphVecs[2][1] = msd[1]
         graphVecs[2][2] = msd[2]
+        graphVecs[2][3] = pts[1]
+        graphVecs[2][4] = pts[2]
         --graphVecs[2][1] = ssrs[1]
         --graphVecs[2][2] = ssrs[2]
         --graphVecs[2][3] = ssrs[3]
@@ -456,7 +459,7 @@ for i = 1,10 do
     o[#o+1] = topGraphLine(i, modColors[i])
 end
 
-local function bottomGraphLineMSD()
+local function bottomGraphLineMSD(lineNum, colorToUse)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
             self:y(plotHeight+5)
@@ -469,9 +472,9 @@ local function bottomGraphLineMSD()
                 self:visible(true)
                 local verts = {}
 
-                for i = 1, #graphVecs[2][1] do
-                    local x = fitX(i, #graphVecs[2][1])
-                    local y = fitY2(graphVecs[2][1][i])
+                for i = 1, #graphVecs[2][lineNum] do
+                    local x = fitX(i, #graphVecs[2][lineNum])
+                    local y = fitY2(graphVecs[2][lineNum][i])
 
                     setOffsetVerts(verts, x, y, color("1,0.3,1"))
                 end
@@ -524,10 +527,11 @@ local skillsetColors = {
     color("#b0cec2"),    -- tech
 }
 
---for i = 1,8 do
---    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
---end
-o[#o+1] = bottomGraphLineMSD()
+for i = 1,4 do
+    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+    o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
+end
+
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
