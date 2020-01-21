@@ -380,7 +380,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
 	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1]);
+	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1], left_hand.ohjumpscale);
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
@@ -388,7 +388,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.InitPoints(fingers[2], fingers[3]);
 	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
 	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
-	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3]);
+	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3], right_hand.ohjumpscale);
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -705,7 +705,9 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 }
 
 vector<float>
-Calc::RollDownscaler(const Finger& f1, const Finger& f2)
+Calc::RollDownscaler(const Finger& f1,
+					 const Finger& f2,
+					 const std::vector<float> ohjs)
 {
 	vector<float> output(
 	  f1.size()); // this is slightly problematic because if one finger is
@@ -724,14 +726,26 @@ Calc::RollDownscaler(const Finger& f1, const Finger& f2)
 
 		float interval_mean = mean(hand_intervals);
 
-		for (float& note : hand_intervals)
-			if (interval_mean / note < 0.6f)
-				note = interval_mean;
+		// this was for throwing out values that fell outside a range however
+		// since this whole thing was wrong to begin with it should be re-evaluated
+		//for (float& note : hand_intervals)
+		//	if (interval_mean / note < 0.6f)
+		//		note = interval_mean;
 
-		float interval_cv = cv(hand_intervals) + 0.85f;
+		// i allowed >1 values here for reasons but lets not do that for now
+		float interval_cv = cv(hand_intervals) + 0.84f;
 		output[i] = interval_cv >= 1.0f
-					  ? min(sqrt(sqrt(interval_cv)), 1.075f)
-					  : interval_cv * interval_cv * interval_cv;
+					  ? min(sqrt(interval_cv), 1.0f)
+					  : interval_cv;
+
+		// this is erroneously picking up on oh jumps, i had anticipated and solved this issue
+		// in R, but it required the note data which i don't feel like passing to this function atm
+		// instead, since we have already done the ohj detection, we'll consider strong ohj scaling
+		// to be proof positive that these are not rolls (this is not a good long term solution)
+		// this is _also_ still picking up jacks however this isn't as big a deal because jacks don't
+		// use the nps base anyway
+		if (ohjs[i] < 0.925f)
+			output[i] = 1.f;
 
 		if (logpatterns)
 			std::cout << "ro " << output[i] << std::endl;
