@@ -20,8 +20,7 @@ local enabled = false
 local song
 local steps
 local finalSecond
-local graph1Vec1, graph1Vec2
-local graph2Vec1, graph2Vec2
+local graphVecs = {}
 local ssrs
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
@@ -105,6 +104,15 @@ local function getGraphForSteps(steps)
     return output
 end
 
+--[[ enum mapping for downscaler things:
+    put these as the argument for DootSpooks
+    1 = One hand jump downscaler
+    2 = Anchor downscaler
+    3 = Roll downscaler
+    4 = Handstream downscaler
+    5 = Jumpstream downscaler
+    anything else = no output
+]]
 -- edit this to change graph and number output
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
@@ -114,28 +122,36 @@ local function updateCoolStuff()
     end
     if steps then
         ssrs = getGraphForSteps(steps)
-        graph1Vec1 = steps:DootSpooks()[1]
-        graph1Vec2 = steps:DootSpooks()[2]
-        graph2Vec1 = ssrs[1]
-        graph2Vec2 = ssrs[2]
-        graph2Vec3 = ssrs[3]
-        graph2Vec4 = ssrs[4]
-        graph2Vec5 = ssrs[5]
-        graph2Vec6 = ssrs[6]
-        graph2Vec7 = ssrs[7]
-        graph2Vec8 = ssrs[8]
+        local ohj = steps:DootSpooks(1)
+        local anchr = steps:DootSpooks(2)
+        local roll = steps:DootSpooks(3)
+        local hsds = steps:DootSpooks(4)
+        local jumpds = steps:DootSpooks(5)
+        graphVecs[1] = {}
+        graphVecs[1][1] = ohj[1]
+        graphVecs[1][2] = ohj[2]
+        graphVecs[1][3] = anchr[1]
+        graphVecs[1][4] = anchr[2]
+        graphVecs[1][5] = roll[1]
+        graphVecs[1][6] = roll[2]
+        graphVecs[1][7] = hsds[1]
+        graphVecs[1][8] = hsds[2]
+        graphVecs[1][9] = jumpds[1]
+        graphVecs[1][10] = jumpds[2]
+
+        graphVecs[2] = {}
+        graphVecs[2][1] = ssrs[1]
+        graphVecs[2][2] = ssrs[2]
+        graphVecs[2][3] = ssrs[3]
+        graphVecs[2][4] = ssrs[4]
+        graphVecs[2][5] = ssrs[5]
+        graphVecs[2][6] = ssrs[6]
+        graphVecs[2][7] = ssrs[7]
+        graphVecs[2][8] = ssrs[8]
     else
-        graph1Vec1 = {}
-        graph1Vec2 = {}
-        graph2Vec1 = {}
-        graph2Vec2 = {}
-        graph2Vec3 = {}
-        graph2Vec4 = {}
-        graph2Vec5 = {}
-        graph2Vec6 = {}
-        graph2Vec7 = {}
-        graph2Vec8 = {}
+        graphVecs = {}
     end
+    MESSAGEMAN:Broadcast("UpdateAverages")
 end
 
 local o =
@@ -265,20 +281,36 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end
 }
 
+--[[ enum mapping for downscaler things:
+    put these as the argument for DootSpooks
+    1 = One hand jump downscaler
+    2 = Anchor downscaler
+    3 = Roll downscaler
+    4 = Handstream downscaler
+    5 = Jumpstream downscaler
+    anything else = no output
+]]
 -- top graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
         self:xy(-plotWidth/2 + 5, plotHeight/3):halign(0)
         self:zoom(0.5)
-        self:settext("fff")
+        self:settext("")
+        self:maxwidth((plotWidth-10) / 0.5)
     end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            local ave1 = 0
-            local ave2 = 0
-            if #graph1Vec1 > 0 then ave1 = table.average(graph1Vec1) end
-            if #graph1Vec2 > 0 then ave2 = table.average(graph1Vec2) end
-            self:settextf("Left Average: %.4f\nRight Average: %.4f", ave1, ave2)
+    UpdateAveragesMessageCommand = function(self)
+        if song then
+            local aves = {}
+            if not graphVecs[1] or not graphVecs[1][1] then 
+                self:settext("")
+                return
+            end
+            for i = 1,10 do
+                if graphVecs[1][i] and #graphVecs[1][i] > 0 then
+                    aves[i] = table.average(graphVecs[1][i])
+                end
+            end
+            self:settextf("L Ave   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f\nR Ave   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f", aves[1], aves[3], aves[5], aves[7], aves[9], aves[2], aves[4], aves[6], aves[8], aves[10])
         end
     end
 }
@@ -305,297 +337,104 @@ local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x + dotWidth, y - dotWidth, 0}, c}
 	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
--- top graph main line
-o[#o + 1] = Def.ActorMultiVertex {
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-            self:visible(true)
-            local verts = {}
-            local highest = 0
+local function topGraphLine(lineNum, colorToUse)
+    return Def.ActorMultiVertex {
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-            for i = 1, #graph1Vec1 do
-                if graph1Vec1[i] > highest then
-                    highest = graph1Vec1[i]
+                self:visible(true)
+                local verts = {}
+                local highest = 0
+
+                if not graphVecs[1] or not graphVecs[1][lineNum] then return end
+
+                for i = 1, #graphVecs[1][lineNum] do
+                    if graphVecs[1][lineNum][i] > highest then
+                        highest = graphVecs[1][lineNum][i]
+                    end
                 end
-            end
-            maxOffset = highest * 1.2
-            for i = 1, #graph1Vec1 do
-                local x = fitX(i, finalSecond)
-                local y = fitY(graph1Vec1[i])
-                local cullur = offsetToJudgeColor(y, 1)
-                y = y + plotHeight / 2
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- top graph alt line
-o[#o + 1] = Def.ActorMultiVertex {
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-            local highest = 0
-            
-            for i = 1, #graph1Vec2 do
-                if graph1Vec2[i] > highest then
-                    highest = graph1Vec2[i]
+                maxOffset = highest * 1.2
+                for i = 1, #graphVecs[1][lineNum] do
+                    local x = fitX(i, finalSecond)
+                    local y = fitY(graphVecs[1][lineNum][i])
+                    y = y + plotHeight / 2
+                    setOffsetVerts(verts, x, y, colorToUse)
                 end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
             end
-            maxOffset = highest * 1.2
-            for i = 1, #graph1Vec2 do
-                local x = fitX(i, finalSecond)
-                local y = fitY(graph1Vec2[i])
-                local cullur = offsetToJudgeColor(y/10, 1)
-                y = y + plotHeight / 2
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
         end
-    end
+    }
+end
+
+local modColors = {
+    color("1,0,0"),         -- red          = ohjump left
+    color("0.8,0.2,0.2"),   -- light red         (right)
+    color("0,0,1"),         -- blue         = anchor left
+    color("0.2,0.2,0.8"),   -- light blue        (right)
+    color("0,1,0"),         -- green        = roll left
+    color("0.3,0.9,0.3"),   -- light green       (right)
+    color("1,1,0"),         -- yellow       = handstream left
+    color("0.6,0.6,0"),     -- dark yellow      (right)
+    color("1,0,1"),         -- purple       = jumpstream left
+    color("1,0.3,1")        -- light purple      (right)
 }
 
---[[
--- bottom graph overall line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+for i = 1,10 do
+    o[#o+1] = topGraphLine(i, modColors[i])
+end
 
-            self:visible(true)
-            local verts = {}
 
-            for i = 1, #graph2Vec1 do
-                local x = fitX(i, #graph2Vec1)
-                local y = fitY2(graph2Vec1[i])
-                local cullur = color("#aaaaaa")
-                setOffsetVerts(verts, x, y, cullur)
+
+local function bottomGraphLine(lineNum, colorToUse)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+
+                self:visible(true)
+                local verts = {}
+
+                for i = 1, #graphVecs[2][lineNum] do
+                    local x = fitX(i, #graphVecs[2][lineNum])
+                    local y = fitY2(graphVecs[2][lineNum][i])
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
             end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
         end
-    end
-}]]
+    }
+end
 
--- bottom graph stream line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec2 do
-                local x = fitX(i, #graph2Vec2)
-                local y = fitY2(graph2Vec2[i])
-                local cullur = color("#7d6b91")
-
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
+local skillsetColors = {
+    color("#7d6b91"),   -- stream
+    color("#8481db"),   -- jumpstream
+    color("#995fa3"),   -- handstream
+    color("#f2b5fa"),   -- stamina
+    color("#6c969d"),   -- jack
+    color("#a5f8d3"),   -- chordjack
+    color("#b0cec2")    -- tech
 }
 
--- bottom graph js line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+for i = 1,8 do
+    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+end
 
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec3 do
-                local x = fitX(i, #graph2Vec3)
-                local y = fitY2(graph2Vec3[i])
-                local cullur = color("#8481db")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- bottom graph hs line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec4 do
-                local x = fitX(i, #graph2Vec4)
-                local y = fitY2(graph2Vec4[i])
-                local cullur = color("#995fa3")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- bottom graph stamina line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec5 do
-                local x = fitX(i, #graph2Vec5)
-                local y = fitY2(graph2Vec5[i])
-                local cullur = color("#f2b5fa")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- bottom graph jackspeed line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec6 do
-                local x = fitX(i, #graph2Vec6)
-                local y = fitY2(graph2Vec6[i])
-                local cullur = color("#6c969d")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- bottom graph chordjack line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec7 do
-                local x = fitX(i, #graph2Vec7)
-                local y = fitY2(graph2Vec7[i])
-                local cullur = color("#a5f8d3")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
-
--- bottom graph technical line
-o[#o + 1] = Def.ActorMultiVertex {
-    InitCommand = function(self)
-        self:y(plotHeight+5)
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:SetVertices({})
-            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
-            self:visible(true)
-            local verts = {}
-
-            for i = 1, #graph2Vec8 do
-                local x = fitX(i, #graph2Vec8)
-                local y = fitY2(graph2Vec8[i])
-                local cullur = color("#b0cec2")
-                setOffsetVerts(verts, x, y, cullur)
-            end
-            
-            self:SetVertices(verts)
-            self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
-        else
-            self:visible(false)
-        end
-    end
-}
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
