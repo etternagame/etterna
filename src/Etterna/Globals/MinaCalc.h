@@ -17,6 +17,17 @@ typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;
 typedef std::vector<float> JackSeq;
 
+enum CalcPatternMod
+{
+	OHJump,
+	Anchor,
+	Roll,
+	HS,
+	Jump,
+	ModCount,
+	None
+};
+
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
 calculator is to estimate the difficulty of a file given the physical properties
@@ -94,6 +105,7 @@ class Calc
 								float music_rate);
 
 	int numitv;
+	CalcPatternMod debugMod = CalcPatternMod::None;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
 	before passing
@@ -165,7 +177,8 @@ MINACALC_API void
 MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				std::vector<std::vector<float>>& handInfo);
+				std::vector<std::vector<float>>& handInfo,
+				CalcPatternMod cpm = CalcPatternMod::None);
 MINACALC_API int
 GetCalcVersion();
 

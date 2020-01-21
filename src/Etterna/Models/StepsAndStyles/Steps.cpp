@@ -411,15 +411,18 @@ Steps::CalcEtternaMetadata()
 }
 
 void
-Steps::BorpNDorf()
+Steps::BorpNDorf(int modType)
 {
 	// function is responsible for producing debug output
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
+	dumbthings.clear();
 
-	MinaSDCalcDebug(cereal, 1.f, 0.93f, dumbthings);
+	if (modType < CalcPatternMod::ModCount && modType >= 0)
+		MinaSDCalcDebug(
+		  cereal, 1.f, 0.93f, dumbthings, static_cast<CalcPatternMod>(modType));
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -961,7 +964,8 @@ class LunaSteps : public Luna<Steps>
 	}
 	static int DootSpooks(T* p, lua_State* L)
 	{
-		p->BorpNDorf();
+		int modType = IArg(1) - 1;
+		p->BorpNDorf(modType);
 		lua_newtable(L);
 		for (int i = 0; i < p->dumbthings.size(); ++i) {
 			vector<float> poop = p->dumbthings[i];
