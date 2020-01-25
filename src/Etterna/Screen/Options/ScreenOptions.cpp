@@ -88,13 +88,15 @@ ScreenOptions::ScreenOptions()
 		case 2:
 			SetNavigation(NAV_THREE_KEY_ALT);
 			break;
+		default:
+			SetNavigation(NAV_THREE_KEY);
+			break;
 	}
 	m_InputMode = INPUTMODE_SHARE_CURSOR;
 	m_iCurrentRow = 0;
 	m_iFocusX = 0;
 	m_bWasOnExit = false;
 	m_bGotAtLeastOneStartPressed = false;
-	m_OptionsNavigation = NAV_THREE_KEY;
 }
 
 void
