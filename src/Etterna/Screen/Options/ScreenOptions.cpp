@@ -934,6 +934,12 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 			case NAV_TOGGLE_THREE_KEY:
 			case NAV_TOGGLE_FIVE_KEY: {
 				int iChoiceInRow = row.GetChoiceInRowWithFocus();
+				if (iChoiceInRow == -1) {
+					LOG->Warn(
+					  "MenuStart used on other SelectType OptionRow with "
+					  "no choices.");
+					return;
+				}
 				if (row.GetRowDef().m_bOneChoiceForAllPlayers)
 					row.SetOneSharedSelection(iChoiceInRow);
 				else
