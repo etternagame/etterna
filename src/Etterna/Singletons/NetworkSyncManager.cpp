@@ -543,7 +543,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_message_handler(msgHandler);
 			client->set_open_handler(openHandler);
 			client->set_close_handler(closeHandler);
-		} catch (websocketpp::exception& e) {
+		} catch (exception& e) {
 			LOG->Warn(
 			  "Failed to initialize ettp connection due to exception: %s",
 			  e.what());
@@ -581,7 +581,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_open_handler(openHandler);
 			client->set_fail_handler(failHandler);
 			client->set_close_handler(closeHandler);
-		} catch (websocketpp::exception& e) {
+		} catch (exception& e) {
 			LOG->Warn(
 			  "Failed to initialize ettp connection due to exception: %s",
 			  e.what());
