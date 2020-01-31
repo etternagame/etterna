@@ -88,13 +88,15 @@ ScreenOptions::ScreenOptions()
 		case 2:
 			SetNavigation(NAV_THREE_KEY_ALT);
 			break;
+		default:
+			SetNavigation(NAV_THREE_KEY);
+			break;
 	}
 	m_InputMode = INPUTMODE_SHARE_CURSOR;
 	m_iCurrentRow = 0;
 	m_iFocusX = 0;
 	m_bWasOnExit = false;
 	m_bGotAtLeastOneStartPressed = false;
-	m_OptionsNavigation = NAV_THREE_KEY;
 }
 
 void
@@ -932,6 +934,12 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 			case NAV_TOGGLE_THREE_KEY:
 			case NAV_TOGGLE_FIVE_KEY: {
 				int iChoiceInRow = row.GetChoiceInRowWithFocus();
+				if (iChoiceInRow == -1) {
+					LOG->Warn(
+					  "MenuStart used on other SelectType OptionRow with "
+					  "no choices.");
+					return;
+				}
 				if (row.GetRowDef().m_bOneChoiceForAllPlayers)
 					row.SetOneSharedSelection(iChoiceInRow);
 				else

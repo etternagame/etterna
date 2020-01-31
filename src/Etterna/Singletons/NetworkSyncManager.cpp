@@ -537,11 +537,17 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	if (wss) {
 		std::shared_ptr<wss_client> client(new wss_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_close_handler(closeHandler);
+		} catch (websocketpp::exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		wss_client::connection_ptr con = client->get_connection(
@@ -568,12 +574,19 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	}
 	if (ws && !n->isSMOnline) {
 		std::shared_ptr<ws_client> client(new ws_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_fail_handler(failHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_fail_handler(failHandler);
+			client->set_close_handler(closeHandler);
+		} catch (websocketpp::exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
+
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		ws_client::connection_ptr con = client->get_connection(
