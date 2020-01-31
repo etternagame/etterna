@@ -187,11 +187,13 @@ RoomWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pWID,
 	m_text.SetText(pWID->m_sText);
 	m_text.SetDiffuseColor(pWID->m_color);
 
-	const auto* tmpdata = dynamic_cast<const RoomWheelItemData*>(pWID);
-	WheelItemBase::LoadFromWheelItemData(pWID, iIndex, bHasFocus, iDrawIndex);
-	m_Desc.SetText(tmpdata->m_sDesc);
-	m_Desc.SetDiffuseColor(pWID->m_color);
-	m_sprColorPart->SetDiffuse(pWID->m_color);
+	if (const auto* tmpdata = dynamic_cast<const RoomWheelItemData*>(pWID)) {
+		WheelItemBase::LoadFromWheelItemData(
+		  pWID, iIndex, bHasFocus, iDrawIndex);
+		m_Desc.SetText(tmpdata->m_sDesc);
+		m_Desc.SetDiffuseColor(pWID->m_color);
+		m_sprColorPart->SetDiffuse(pWID->m_color);
+	}
 }
 
 void

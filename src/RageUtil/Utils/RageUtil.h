@@ -831,6 +831,7 @@ class Regex
 	Regex(const RString& sPat = "");
 	Regex(const Regex& rhs);
 	Regex& operator=(const Regex& rhs);
+	Regex& operator=(Regex&& rhs);
 	~Regex();
 	bool IsSet() const { return !m_sPattern.empty(); }
 	void Set(const RString& str);

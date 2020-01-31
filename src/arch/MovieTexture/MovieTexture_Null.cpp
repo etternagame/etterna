@@ -20,7 +20,7 @@ class MovieTexture_Null : public RageMovieTexture
 	void SetLooping(bool looping = true) { loop = looping; }
 
   private:
-	bool loop;
+	bool loop = false;
 	intptr_t texHandle;
 };
 

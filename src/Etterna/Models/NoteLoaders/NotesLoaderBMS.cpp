@@ -218,7 +218,7 @@ struct bmsCommandTree
 
 	struct bmsNodeS
 	{ // Each of these imply one branching level.
-		unsigned int branchHeight;
+		unsigned int branchHeight = 0;
 		enum
 		{
 			CT_NULL,
@@ -830,6 +830,10 @@ BMSChartReader::BMSChartReader(BMSChart* chart, Steps* steps, BMSSong* bmsSong)
 	this->out = steps;
 	this->song = bmsSong;
 	this->nonEmptyTracks = chart->referencedTracks;
+	this->lntype = 1;
+	this->nonEmptyTracksCount = 0;
+	this->player = 1;
+	this->initialBPM = 60.f;
 }
 
 bool

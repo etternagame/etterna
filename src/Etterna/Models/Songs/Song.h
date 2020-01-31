@@ -381,8 +381,9 @@ class Song
 	 * This must be sorted before gameplay. */
 	vector<LyricSegment> m_LyricSegments;
 
-	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
-	void AddForegroundChange(BackgroundChange seg);
+	void AddBackgroundChange(BackgroundLayer blLayer,
+							 const BackgroundChange& seg);
+	void AddForegroundChange(const BackgroundChange& seg);
 	void AddLyricSegment(LyricSegment seg);
 
 	void GetDisplayBpms(DisplayBpms& AddTo) const;

@@ -45,6 +45,9 @@ OptionRow::OptionRow(const OptionRowType* pSource)
 	m_textTitle = NULL;
 	m_ModIcons = NULL;
 
+	m_RowType = OptionRow::RowType_Normal;
+	m_sprFrame = NULL;
+
 	Clear();
 	this->AddChild(&m_Frame);
 
@@ -438,6 +441,9 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 			? GetChoiceInRowWithFocus()
 			: i;
 
+		if (iChoiceWithFocus == -1)
+			continue;
+
 		float fAlpha = 1.0f;
 		if (m_pHand->m_Def.m_layoutType == LAYOUT_SHOW_ONE_IN_ROW) {
 			bool bRowEnabled = m_pHand->m_Def.m_vEnabledForPlayers.find(pn) !=
@@ -464,8 +470,7 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 
 		ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
 
-		bool bSelected =
-		  (iChoiceWithFocus == -1) ? false : m_vbSelected[iChoiceWithFocus];
+		bool bSelected = m_vbSelected[iChoiceWithFocus];
 		bool bVisible = bSelected && GAMESTATE->IsHumanPlayer(pn);
 
 		ul.BeginTweening(m_pParentType->TWEEN_SECONDS);
@@ -921,12 +926,12 @@ OptionRow::ExportOptions(const PlayerNumber& vpns, bool bRowHasFocus)
 	// SELECT_NONE rows get exported if they have focus when the user
 	// presses Start.
 	int iChoice = GetChoiceInRowWithFocus();
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = true;
 
 	iChangeMask |= m_pHand->ExportOption(vpns, m_vbSelected);
 
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = false;
 
 	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);

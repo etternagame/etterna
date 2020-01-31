@@ -113,6 +113,8 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	SQLite::Statement skillsetsQuery(*db, "SELECT * FROM playerskillsets");
 	while (skillsetsQuery.executeStep()) {
 		int skillsetNum = skillsetsQuery.getColumn(1);
+		if (skillsetNum == -1)
+			skillsetNum = 0;
 		float skillsetValue =
 		  static_cast<float>(static_cast<double>(skillsetsQuery.getColumn(2)));
 		loadingProfile->m_fPlayerSkillsets[skillsetNum] = skillsetValue;

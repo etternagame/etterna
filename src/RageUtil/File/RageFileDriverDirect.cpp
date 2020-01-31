@@ -397,7 +397,12 @@ RageFileObjDirect::~RageFileObjDirect()
 	} while (false);
 
 	// The write or the rename failed. Delete the incomplete temporary file.
-	DoRemove(MakeTempFilename(m_sPath));
+	int err = DoRemove(MakeTempFilename(m_sPath));
+	if (err != 0)
+		WARN(ssprintf(
+		  "On writing or renaming file, deleting temporary file failed with "
+		  "error %d",
+		  err));
 }
 
 int
@@ -471,7 +476,10 @@ RageFileObjDirect::GetFileSize() const
 	// handled theme-side in TD, so comment this out for now for other themes
 	// ASSERT_M(iRet != -1,
 	//		 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
-	lseek(m_iFD, iOldPos, SEEK_SET);
+	const int iRet2 = lseek(m_iFD, iOldPos, SEEK_SET);
+	if (iRet2 == -1)
+		WARN("Undoing seek for filesize getter may have failed.");
+
 	return iRet;
 }
 

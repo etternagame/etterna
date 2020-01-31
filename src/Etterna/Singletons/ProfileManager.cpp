@@ -74,6 +74,11 @@ static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
 ProfileManager::ProfileManager()
   : m_stats_prefix("")
 {
+	dummy = nullptr;
+	m_bLastLoadWasFromLastGood = false;
+	m_bLastLoadWasTamperedOrCorrupt = false;
+	m_bNeedToBackUpLastLoad = false;
+	m_bNewProfile = false;
 
 	// Register with Lua.
 	{

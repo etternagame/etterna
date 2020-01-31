@@ -25,6 +25,10 @@ PlayerState::Reset()
 	m_PlayerController = PC_HUMAN;
 
 	m_iCpuSkill = 5;
+
+	// basic defaults but not necessarily always correct
+	m_fReadBPM = 60.f;
+	m_NumCols = 4;
 }
 
 // pointless if attacks are gone?

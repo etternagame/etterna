@@ -61,7 +61,7 @@ struct InputQueueCode
 	};
 	vector<ButtonPress> m_aPresses;
 
-	float m_fMaxSecondsBack;
+	float m_fMaxSecondsBack = 0.f;
 };
 
 extern InputQueue*

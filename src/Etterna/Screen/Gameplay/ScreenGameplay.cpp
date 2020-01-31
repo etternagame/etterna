@@ -94,6 +94,13 @@ ScreenGameplay::ScreenGameplay()
 		LOG->Trace("Unloading replaydata.");
 		SCOREMAN->UnloadAllReplayData();
 	}
+
+	m_DancingState = STATE_INTRO;
+	m_fTimeSinceLastDancingComment = 0.f;
+	m_bShowScoreboard = false;
+	m_gave_up = false;
+	m_bZeroDeltaOnNextUpdate = false;
+	m_pSoundMusic = NULL;
 }
 
 void
@@ -627,9 +634,7 @@ ScreenGameplay::LoadNextSong()
 		m_vPlayerInfo.m_pStepsDisplay->PlayCommand(bReverse ? "SetReverse"
 															: "SetNoReverse");
 
-	m_LyricDisplay.PlayCommand(
-	  bAllReverse ? "SetReverse"
-				  : bAtLeastOneReverse ? "SetOneReverse" : "SetNoReverse");
+	m_LyricDisplay.PlayCommand(bAllReverse ? "SetReverse" : "SetNoReverse");
 
 	// Load lyrics
 	// XXX: don't load this here (who and why? -aj)
@@ -1612,14 +1617,9 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 			// Load the next song in the course.
 			HandleScreenMessage(SM_StartLoadingNextSong);
 			return;
-		}
-		if (bAllReallyFailed || bIsLastSong || m_gave_up) {
+		} else {
 			// Time to leave from ScreenGameplay
 			HandleScreenMessage(SM_LeaveGameplay);
-		} else {
-			// Load the next song in the course.
-			HandleScreenMessage(SM_StartLoadingNextSong);
-			return;
 		}
 	} else if (SM == SM_LeaveGameplay) {
 		GAMESTATE->m_DanceDuration = GAMESTATE->m_DanceStartTime.Ago();

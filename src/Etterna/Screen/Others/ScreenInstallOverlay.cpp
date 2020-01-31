@@ -115,7 +115,12 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (path == "" || !FILEMAN->IsAFile(path))
 					continue;
 				RageFile f;
-				f.Open(path);
+				if (!f.Open(path)) {
+					RageException::Throw(
+					  "ScreenInstallOverlay failed to open \"%s\": %s",
+					  path.c_str(),
+					  f.GetError().c_str());
+				}
 				string p = f.GetPath();
 				f.Close();
 				std::ofstream dst(imgsOutputPath + packFolder + pack +
@@ -164,7 +169,12 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					  tmpOutPutPath, *pSong, vpStepsToSave, true);
 
 					RageFile f;
-					f.Open(tmpOutPutPath);
+					if (!f.Open(tmpOutPutPath)) {
+						RageException::Throw(
+						  "ScreenInstallOverlay failed to open \"%s\": %s",
+						  tmpOutPutPath.c_str(),
+						  f.GetError().c_str());
+					}
 					string p = f.GetPath();
 					f.Close();
 					std::ofstream dst(sscCacheFilePath, std::ios::binary);

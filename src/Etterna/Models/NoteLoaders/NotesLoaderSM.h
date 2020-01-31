@@ -1,4 +1,4 @@
-﻿#ifndef NotesLoaderSM_H
+#ifndef NotesLoaderSM_H
 #define NotesLoaderSM_H
 
 #include "Etterna/Models/Misc/BackgroundUtil.h"
@@ -184,7 +184,7 @@ struct SMLoader
 
 	virtual void ProcessCombos(TimingData& /* out */,
 							   const RString& line,
-							   int /* rowsPerBeat */ = -1)
+							   const int /* rowsPerBeat */ = -1)
 	{
 	}
 

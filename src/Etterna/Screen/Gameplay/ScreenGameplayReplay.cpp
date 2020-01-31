@@ -44,6 +44,8 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 	ASSERT_M(PlayerAI::pScoreData != nullptr,
 			 "Replay Highscore Info was empty.");
 
+	m_fReplayBookmarkSeconds = 0.f;
+
 	// Set up rate
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::replayRate;

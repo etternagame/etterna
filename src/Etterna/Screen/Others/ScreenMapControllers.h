@@ -40,10 +40,10 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	void SetCursorFromSetListCurrent();
 	void StartWaitingForPress();
 
-	unsigned int m_CurController;
-	unsigned int m_CurButton;
-	unsigned int m_CurSlot;
-	unsigned int m_MaxDestItem;
+	unsigned int m_CurController = 0;
+	unsigned int m_CurButton = 0;
+	unsigned int m_CurSlot = 0;
+	unsigned int m_MaxDestItem = 0;
 
 	bool m_ChangeOccurred;
 
@@ -67,13 +67,13 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	BitmapText m_ListHeaderLabels[NUM_GameController]
 								 [NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
 
-	float m_AutoDismissWarningSecs;
+	float m_AutoDismissWarningSecs = 2.5f;
 	AutoActor m_Warning;
 
-	float m_AutoDismissNoSetListPromptSecs;
+	float m_AutoDismissNoSetListPromptSecs = 5.f;
 	AutoActor m_NoSetListPrompt;
 
-	float m_AutoDismissSanitySecs;
+	float m_AutoDismissSanitySecs = 5.f;
 	AutoActor m_SanityMessage;
 
 	struct SetListEntry

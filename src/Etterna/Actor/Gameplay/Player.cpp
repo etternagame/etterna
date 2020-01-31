@@ -202,6 +202,16 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_pIterUnjudgedRows = NULL;
 	m_pIterUnjudgedMineRows = NULL;
 
+	totalwifescore = 0.f;
+	m_Timing = NULL;
+	m_pActorWithJudgmentPosition = NULL;
+	m_pActorWithComboPosition = NULL;
+	m_LastTapNoteScore = TNS_None;
+	m_iFirstUncrossedRow = -1;
+	m_iLastSeenCombo = 0;
+	m_bSeenComboYet = false;
+	m_bTickHolds = false;
+
 	m_bPaused = false;
 	m_bDelay = false;
 
@@ -549,24 +559,28 @@ Player::Load()
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
-	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
+	if (m_pPlayerStageStats != nullptr)
+		m_pPlayerStageStats->serializednd =
+		  m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
 
-	if (m_Timing->HasWarps())
-		m_pPlayerStageStats->filehadnegbpms = true;
+	if (m_pPlayerStageStats != nullptr) {
+		if (m_Timing->HasWarps())
+			m_pPlayerStageStats->filehadnegbpms = true;
 
-	// check before nomines transform
-	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
-		m_pPlayerStageStats->filegotmines = true;
+		// check before nomines transform
+		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
+			m_pPlayerStageStats->filegotmines = true;
 
-	if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
-		GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
-		m_pPlayerStageStats->filegotholds = true;
+		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
+			GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
+			m_pPlayerStageStats->filegotholds = true;
 
-	// check for lua script load (technically this is redundant a little with
-	// negbpm but whatever) -mina
-	if (!m_Timing->ValidSequentialAssumption)
-		m_pPlayerStageStats->luascriptwasloaded = true;
+		// check for lua script load (technically this is redundant a little
+		// with negbpm but whatever) -mina
+		if (!m_Timing->ValidSequentialAssumption)
+			m_pPlayerStageStats->luascriptwasloaded = true;
+	}
 
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
@@ -724,12 +738,13 @@ Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("ComboChanged");
-		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
 		msg.SetParam("OldCombo", iOldCombo);
 		msg.SetParam("OldMissCombo", iOldMissCombo);
-		if (m_pPlayerState)
+		if (m_pPlayerState) {
+			msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
 			msg.SetParam("PlayerState",
 						 LuaReference::CreateFromPush(*m_pPlayerState));
+		}
 		if (m_pPlayerStageStats)
 			msg.SetParam("PlayerStageStats",
 						 LuaReference::CreateFromPush(*m_pPlayerStageStats));
@@ -2076,11 +2091,11 @@ Player::Step(int col,
 	TapNoteScore score = TNS_None;
 
 	int iRowOfOverlappingNoteOrRow = row;
-	if (row == -1)
+	if (row == -1 && col != -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
-	if (iRowOfOverlappingNoteOrRow != -1) {
+	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		float fNoteOffset = 0.f;
 		// only valid if
@@ -2256,39 +2271,26 @@ Player::Step(int col,
 					float fWindowW4 = GetWindowSeconds(TW_W4);
 					float fWindowW5 = GetWindowSeconds(TW_W5);
 
-					// W1 is the top judgment, there is no overlap.
-					if (score == TNS_W1)
-						fNoteOffset = randomf(-fWindowW1, fWindowW1);
-					else {
-						// figure out overlap.
-						float fLowerBound = 0.0f;	// negative upper limit
-						float fUpperBound = 0.0f;	// positive lower limit
-						float fCompareWindow = 0.0f; // filled in here:
-						if (score == TNS_W2) {
-							fLowerBound = -fWindowW1;
-							fUpperBound = fWindowW1;
-							fCompareWindow = fWindowW2;
-						} else if (score == TNS_W3) {
-							fLowerBound = -fWindowW2;
-							fUpperBound = fWindowW2;
-							fCompareWindow = fWindowW3;
-						} else if (score == TNS_W4) {
-							fLowerBound = -fWindowW3;
-							fUpperBound = fWindowW3;
-							fCompareWindow = fWindowW4;
-						} else if (score == TNS_W5) {
-							fLowerBound = -fWindowW4;
-							fUpperBound = fWindowW4;
-							fCompareWindow = fWindowW5;
-						}
-						float f1 = randomf(-fCompareWindow, fLowerBound);
-						float f2 = randomf(fUpperBound, fCompareWindow);
-
-						if (randomf() * 100 >= 50)
-							fNoteOffset = f1;
-						else
-							fNoteOffset = f2;
+					// figure out overlap.
+					float fLowerBound = 0.0f;	// negative upper limit
+					float fUpperBound = 0.0f;	// positive lower limit
+					float fCompareWindow = 0.0f; // filled in here:
+					if (score == TNS_W4) {
+						fLowerBound = -fWindowW3;
+						fUpperBound = fWindowW3;
+						fCompareWindow = fWindowW4;
+					} else if (score == TNS_W5) {
+						fLowerBound = -fWindowW4;
+						fUpperBound = fWindowW4;
+						fCompareWindow = fWindowW5;
 					}
+					float f1 = randomf(-fCompareWindow, fLowerBound);
+					float f2 = randomf(fUpperBound, fCompareWindow);
+
+					if (randomf() * 100 >= 50)
+						fNoteOffset = f1;
+					else
+						fNoteOffset = f2;
 				}
 
 				break;
@@ -2344,7 +2346,7 @@ Player::Step(int col,
 	if (score == TNS_None)
 		DoTapScoreNone();
 
-	if (!bRelease) {
+	if (!bRelease && col != -1) {
 		/* Search for keyed sounds separately.  Play the nearest note. */
 		/* XXX: This isn't quite right. As per the above XXX for
 		 * iRowOfOverlappingNote, if iRowOfOverlappingNote is set to a previous
@@ -2377,7 +2379,7 @@ Player::Step(int col,
 	// XXX:
 
 	if (!bRelease) {
-		if (m_pNoteField != nullptr) {
+		if (m_pNoteField != nullptr && col != -1) {
 			m_pNoteField->Step(col, score);
 		}
 		Message msg("Step");

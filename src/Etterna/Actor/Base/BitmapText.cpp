@@ -97,6 +97,7 @@ BitmapText::operator=(const BitmapText& cpy)
 	CPY(m_vpFontPageTextures);
 	CPY(m_mAttributes);
 	CPY(m_bHasGlowAttribute);
+	CPY(m_TextGlowMode);
 	CPY(BMT_Tweens);
 	CPY(BMT_current);
 	CPY(BMT_start);

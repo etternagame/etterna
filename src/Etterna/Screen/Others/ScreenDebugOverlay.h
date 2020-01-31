@@ -28,8 +28,8 @@ class ScreenDebugOverlay : public Screen
 
 	RString GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
 	vector<RString> m_asPages;
-	int m_iCurrentPage;
-	bool m_bForcedHidden;
+	int m_iCurrentPage = 0;
+	bool m_bForcedHidden = false;
 
 	Quad m_Quad;
 	BitmapText m_textHeader;

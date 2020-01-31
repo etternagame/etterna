@@ -11,7 +11,7 @@ LoadingWindow::Create()
 		return new LoadingWindow_Null;
 #if defined(__unix__) && !defined(HAVE_GTK)
 	return new LoadingWindow_Null;
-#endif
+#else
 	// Don't load NULL by default.
 	const RString drivers = "win32,macosx,gtk";
 	vector<RString> DriversToTry;
@@ -73,4 +73,5 @@ LoadingWindow::Create()
 	}
 
 	return ret;
+#endif
 }

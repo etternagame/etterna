@@ -16,8 +16,8 @@ class CircBuf
 	 * buffer (read_pos == write_pos) is indistinguishable from an empty buffer.
 	 *
 	 * Invariants: read_pos < size, write_pos < size. */
-	unsigned size;
-	unsigned m_iBlockSize;
+	unsigned size = 0;
+	unsigned m_iBlockSize = 0;
 
 	/* These are volatile to prevent reads and writes to them from being
 	 * optimized. */
