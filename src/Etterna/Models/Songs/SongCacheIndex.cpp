@@ -253,7 +253,13 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		}
 		insertTimingData.bind(timingDataIndex++, labels);
 	}
-	insertTimingData.exec();
+	try {
+		insertTimingData.exec();
+	} catch (exception e) {
+		LOG->Warn(
+		  "Failed to execute statement to insert TimingData from Cache: %s",
+		  e.what());
+	}
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 
@@ -321,7 +327,13 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 	}
 	insertSteps.bind(stepsIndex++, pSteps->GetFilename().c_str());
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
-	insertSteps.exec();
+
+	try {
+		insertSteps.exec();
+	} catch (exception e) {
+		LOG->Warn("Failed to execute statement to insert Steps from Cache: %s",
+				  e.what());
+	}
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 /*	Save a song to the cache db*/
@@ -763,12 +775,18 @@ SongCacheIndex::LoadCache(
   LoadingWindow* ld,
   vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
 {
-	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
-	if (ld && count > 0) {
-		ld->SetIndeterminate(false);
-		ld->SetText("Loading Cache\n");
-		ld->SetProgress(0);
-		ld->SetTotalWork(count);
+	int count = 0;
+	try {
+		count = db->execAndGet("SELECT COUNT(*) FROM songs");
+		if (ld && count > 0) {
+			ld->SetIndeterminate(false);
+			ld->SetText("Loading Cache\n");
+			ld->SetProgress(0);
+			ld->SetTotalWork(count);
+		}
+	} catch (exception e) {
+		LOG->Warn("Failed to count all from songs table in Cache DB: %s",
+				  e.what());
 	}
 	cache.reserve(count);
 	int fivePercent = std::max(count / 100 * 5, 1);
@@ -844,14 +862,23 @@ SongCacheIndex::LoadCache(
 void
 SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 {
-	db->exec(("DELETE FROM timingdatas WHERE ID IN (SELECT TIMINGDATAID FROM "
-			  "steps WHERE SONGID IN(SELECT ID from songs WHERE " +
-			  condition + "))")
-			   .c_str());
-	db->exec(("DELETE FROM steps WHERE SONGID IN (SELECT ID from songs WHERE " +
-			  condition + ")")
-			   .c_str());
-	db->exec(("DELETE FROM songs WHERE " + condition).c_str());
+	try {
+		db->exec(
+		  ("DELETE FROM timingdatas WHERE ID IN (SELECT TIMINGDATAID FROM "
+		   "steps WHERE SONGID IN(SELECT ID from songs WHERE " +
+		   condition + "))")
+			.c_str());
+		db->exec(
+		  ("DELETE FROM steps WHERE SONGID IN (SELECT ID from songs WHERE " +
+		   condition + ")")
+			.c_str());
+		db->exec(("DELETE FROM songs WHERE " + condition).c_str());
+	} catch (exception e) {
+		LOG->Warn("Failed to execute Song Deletion from DB with condition "
+				  "'%s'\nException: %s",
+				  condition.c_str(),
+				  e.what());
+	}
 }
 void
 SongCacheIndex::DeleteSongFromDB(Song* songPtr)
