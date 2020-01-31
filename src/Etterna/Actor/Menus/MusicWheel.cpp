@@ -179,6 +179,11 @@ MusicWheel::BeginScreen()
 	RebuildWheelItems();
 }
 
+MusicWheel::MusicWheel()
+{
+	FOREACH_ENUM(SortOrder, so) { m_WheelItemDatasStatus[so] = INVALID; }
+}
+
 MusicWheel::~MusicWheel()
 {
 	FOREACH_ENUM(SortOrder, so)

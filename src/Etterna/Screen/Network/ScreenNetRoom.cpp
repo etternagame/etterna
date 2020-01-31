@@ -31,6 +31,12 @@ static LocalizedString ENTER_ROOM_REQPASSWORD("ScreenNetRoom",
 
 REGISTER_SCREEN_CLASS(ScreenNetRoom);
 
+ScreenNetRoom::ScreenNetRoom()
+{
+	m_Rooms = NULL;
+	m_iRoomPlace = 0;
+}
+
 void
 ScreenNetRoom::Init()
 {

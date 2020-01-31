@@ -472,7 +472,8 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	GetCommandlineArgument("Type", &sSection);
+	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
+		LOG->Trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;
 }

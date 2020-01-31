@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoaderSM.h" // may need this.
@@ -412,21 +412,23 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 			}
 
 			pNewNotes = new Steps(&out);
-
-			LoadFromTokens(sParams[1],
-						   sParams[2],
-						   sParams[3],
-						   sParams[4],
-						   sParams[5],
-						   sParams[6],
-						   *pNewNotes);
-			pNewNotes->SetFilename(sPath);
-			out.AddSteps(pNewNotes);
-
-			// Handle timing changes and convert negative bpms/stops
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
-			ProcessBPMsAndStops(timing, vBPMChanges, vStops);
+			if (pNewNotes) {
+				LoadFromTokens(sParams[1],
+							   sParams[2],
+							   sParams[3],
+							   sParams[4],
+							   sParams[5],
+							   sParams[6],
+							   *pNewNotes);
+				pNewNotes->SetFilename(sPath);
+				out.AddSteps(pNewNotes);
+				// Handle timing changes and convert negative bpms/stops
+				TimingData& timing = pNewNotes->m_Timing;
+				ProcessBPMsAndStops(timing, vBPMChanges, vStops);
+			} else {
+				TimingData& timing = out.m_SongTiming;
+				ProcessBPMsAndStops(timing, vBPMChanges, vStops);
+			}
 		} else if (sValueName == "TIMESIGNATURES" || sValueName == "LEADTRACK")
 			;
 		else

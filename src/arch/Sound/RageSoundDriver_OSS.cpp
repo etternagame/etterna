@@ -173,6 +173,7 @@ RageSoundDriver_OSS::RageSoundDriver_OSS()
 	fd = -1;
 	shutdown = false;
 	last_cursor_pos = 0;
+	samplerate = 44100;
 }
 
 RString

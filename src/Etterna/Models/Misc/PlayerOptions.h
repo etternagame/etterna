@@ -209,7 +209,7 @@ class PlayerOptions
 	float GetReversePercentForColumn(
 	  int iCol) const; // accounts for all Directions
 
-	PlayerNumber m_pn; // Needed for fetching the style.
+	PlayerNumber m_pn{ PLAYER_1 }; // Needed for fetching the style.
 
 	LifeType m_LifeType{ LifeType_Bar };
 	DrainType m_DrainType{ DrainType_Normal }; // only used with LifeBar

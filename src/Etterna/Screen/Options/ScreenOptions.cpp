@@ -88,8 +88,15 @@ ScreenOptions::ScreenOptions()
 		case 2:
 			SetNavigation(NAV_THREE_KEY_ALT);
 			break;
+		default:
+			SetNavigation(NAV_THREE_KEY);
+			break;
 	}
 	m_InputMode = INPUTMODE_SHARE_CURSOR;
+	m_iCurrentRow = 0;
+	m_iFocusX = 0;
+	m_bWasOnExit = false;
+	m_bGotAtLeastOneStartPressed = false;
 }
 
 void
@@ -446,6 +453,11 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 	const OptionRow& row = *m_pRows[iRow];
 	const int iChoiceWithFocus = row.GetChoiceInRowWithFocus();
 
+	if (iChoiceWithFocus == -1) {
+		LOG->Warn("Tried to tween cursor on row with no choices.");
+		return;
+	}
+
 	int iWidth, iX, iY;
 	GetWidthXY(pn, iRow, iChoiceWithFocus, iWidth, iX, iY);
 
@@ -657,7 +669,7 @@ ScreenOptions::PositionRows(bool bTween)
 		if (i < first_start)
 			fPos = -0.5f;
 		else if (i >= first_end && i < second_start)
-			fPos = ((int)NUM_ROWS_SHOWN) / 2 - 0.5f;
+			fPos = (((int)NUM_ROWS_SHOWN) / 2) - 0.5f;
 		else if (i >= second_end)
 			fPos = ((int)NUM_ROWS_SHOWN) - 0.5f;
 
@@ -864,7 +876,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 
 	if (row.GetFirstItemGoesDown()) {
 		int iChoiceInRow = row.GetChoiceInRowWithFocus();
-		if (iChoiceInRow == 0) {
+		if (iChoiceInRow == 0 || iChoiceInRow == -1) {
 			MenuDown(input);
 			return;
 		}
@@ -872,6 +884,11 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 
 	if (row.GetRowDef().m_selectType == SELECT_MULTIPLE) {
 		int iChoiceInRow = row.GetChoiceInRowWithFocus();
+		if (iChoiceInRow == -1) {
+			LOG->Warn(
+			  "MenuStart used on SelectMultiple OptionRow with no choices.");
+			return;
+		}
 		bool bSelected = !row.GetSelected(iChoiceInRow);
 		bool changed = row.SetSelected(pn, iChoiceInRow, bSelected);
 		if (changed) {
@@ -917,6 +934,12 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 			case NAV_TOGGLE_THREE_KEY:
 			case NAV_TOGGLE_FIVE_KEY: {
 				int iChoiceInRow = row.GetChoiceInRowWithFocus();
+				if (iChoiceInRow == -1) {
+					LOG->Warn(
+					  "MenuStart used on other SelectType OptionRow with "
+					  "no choices.");
+					return;
+				}
 				if (row.GetRowDef().m_bOneChoiceForAllPlayers)
 					row.SetOneSharedSelection(iChoiceInRow);
 				else
@@ -958,12 +981,16 @@ ScreenOptions::StoreFocus(PlayerNumber pn)
 		return;
 
 	int iWidth, iY;
-	GetWidthXY(
-	  pn, m_iCurrentRow, row.GetChoiceInRowWithFocus(), iWidth, m_iFocusX, iY);
-	LOG->Trace("cur selection %ix%i @ %i",
-			   m_iCurrentRow,
-			   row.GetChoiceInRowWithFocus(),
-			   m_iFocusX);
+	int iChoiceOnRow = row.GetChoiceInRowWithFocus();
+	if (iChoiceOnRow == -1) {
+		LOG->Warn("No choices found when setting focus.");
+	} else {
+		GetWidthXY(pn, m_iCurrentRow, iChoiceOnRow, iWidth, m_iFocusX, iY);
+		LOG->Trace("cur selection %ix%i @ %i",
+				   m_iCurrentRow,
+				   row.GetChoiceInRowWithFocus(),
+				   m_iFocusX);
+	}
 }
 
 bool

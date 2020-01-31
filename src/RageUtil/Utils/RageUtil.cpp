@@ -1604,6 +1604,15 @@ Regex::operator=(const Regex& rhs)
 	return *this;
 }
 
+Regex&
+Regex::operator=(Regex&& rhs)
+{
+	std::swap(m_iBackrefs, rhs.m_iBackrefs);
+	std::swap(m_pReg, rhs.m_pReg);
+	std::swap(m_sPattern, rhs.m_sPattern);
+	return *this;
+}
+
 Regex::~Regex()
 {
 	Release();

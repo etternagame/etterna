@@ -19,6 +19,7 @@ class MusicWheel : public WheelBase
 	friend struct CompareSongPointerArrayBySectionName;
 
   public:
+	MusicWheel();
 	~MusicWheel() override;
 	void Load(const string& sType) override;
 	void BeginScreen();
@@ -45,7 +46,6 @@ class MusicWheel : public WheelBase
 	bool SelectSong(const Song* p);
 	bool SelectSection(const RString& SectionName);
 	void SetOpenSection(const RString& group) override;
-	SortOrder GetSortOrder() const { return m_SortOrder; }
 	void ChangeMusic(int dist) override; /* +1 or -1 */ // CHECK THIS
 	void FinishChangingSorts();
 	void PlayerJoined();
@@ -90,7 +90,6 @@ class MusicWheel : public WheelBase
 	void readyWheelItemsData(SortOrder so, bool searching, RString findme);
 
 	RString m_sLastModeMenuItem;
-	SortOrder m_SortOrder;
 	RageSound m_soundChangeSort;
 
 	bool WheelItemIsVisible(int n);

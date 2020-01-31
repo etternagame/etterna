@@ -20,6 +20,8 @@ ScoreManager* SCOREMAN = NULL;
 
 ScoreManager::ScoreManager()
 {
+	tempscoreforonlinereplayviewing = nullptr;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();

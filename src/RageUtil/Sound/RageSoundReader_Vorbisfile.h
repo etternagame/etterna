@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Vorbisfile - Read from a Vorbisfile interface. */
+/* RageSoundReader_Vorbisfile - Read from a Vorbisfile interface. */
 
 #ifndef RAGE_SOUND_READER_VORBISFILE_H
 #define RAGE_SOUND_READER_VORBISFILE_H
@@ -25,11 +25,11 @@ class RageSoundReader_Vorbisfile : public RageSoundReader_FileReader
 
   private:
 	OggVorbis_File* vf;
-	bool eof;
+	bool eof = false;
 	bool FillBuf();
 	RString filename;
-	int read_offset;
-	unsigned channels;
+	int read_offset = 0;
+	unsigned channels = 0;
 };
 
 #endif

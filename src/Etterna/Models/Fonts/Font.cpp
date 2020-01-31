@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Font.h"
 #include "Etterna/FileTypes/IniFile.h"
 
@@ -300,6 +300,7 @@ Font::Font()
   m_DefaultStrokeColor(RageColor(0, 0, 0, 0))
   , m_sChars("")
 {
+	ZERO(m_iCharToGlyphCache);
 }
 Font::~Font()
 {

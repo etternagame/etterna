@@ -505,6 +505,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		OptionRowHandler::Init();
 		m_ppStepsToFill = NULL;
 		m_pDifficultyToFill = NULL;
+		m_pst = NULL;
 		m_vSteps.clear();
 		m_vDifficulties.clear();
 	}

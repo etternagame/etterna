@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_WAV - WAV reader. */
+/* RageSoundReader_WAV - WAV reader. */
 
 #ifndef RAGE_SOUND_READER_WAV_H
 #define RAGE_SOUND_READER_WAV_H
@@ -30,9 +30,10 @@ class RageSoundReader_WAV : public RageSoundReader_FileReader
 
 	struct WavData
 	{
-		int32_t m_iDataChunkPos, m_iDataChunkSize, m_iExtraFmtPos,
-		  m_iSampleRate, m_iFormatTag;
-		int16_t m_iChannels, m_iBitsPerSample, m_iBlockAlign, m_iExtraFmtBytes;
+		int32_t m_iDataChunkPos = 0, m_iDataChunkSize = 0, m_iExtraFmtPos = 0,
+				m_iSampleRate = 0, m_iFormatTag = 0;
+		int16_t m_iChannels = 0, m_iBitsPerSample = 0, m_iBlockAlign = 0,
+				m_iExtraFmtBytes = 0;
 	};
 
   private:

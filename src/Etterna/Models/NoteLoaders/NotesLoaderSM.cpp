@@ -31,6 +31,7 @@ struct SMSongTagInfo
 	  , song(s)
 	  , path(p)
 	{
+		params = nullptr;
 	}
 };
 
