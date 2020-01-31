@@ -78,6 +78,19 @@ class TimingData
 		Copy(cpy);
 		return *this;
 	}
+	TimingData& operator=(TimingData&& other)
+	{
+		std::swap(m_beat_start_lookup, other.m_beat_start_lookup);
+		std::swap(m_time_start_lookup, other.m_time_start_lookup);
+		std::swap(m_avpTimingSegments, other.m_avpTimingSegments);
+		std::swap(m_sFile, other.m_sFile);
+		std::swap(m_fBeat0OffsetInSeconds, other.m_fBeat0OffsetInSeconds);
+		std::swap(ElapsedTimesAtAllRows, other.ElapsedTimesAtAllRows);
+		std::swap(ElapsedTimesAtNonEmptyRows, other.ElapsedTimesAtNonEmptyRows);
+		std::swap(ValidSequentialAssumption, other.ValidSequentialAssumption);
+
+		return *this;
+	}
 
 	// GetBeatArgs, GetBeatStarts, m_beat_start_lookup, m_time_start_lookup,
 	// PrepareLookup, and ReleaseLookup form a system for speeding up finding
