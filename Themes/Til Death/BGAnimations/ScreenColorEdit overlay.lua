@@ -27,6 +27,31 @@ local currentColor = color("1,1,1")
 local hexEntryString = "#"
 local textCursorPos = 2
 
+local function colorToHSV(color)
+	local r = color[1]
+	local g = color[2]
+	local b = color[3]
+	local cmax = math.max(r, g, b)
+	local cmin = math.min(r, g, b)
+	local dc = cmax - cmin -- delta c
+	local h = 0
+	if dc == 0 then
+		h = 0
+	elseif cmax == r then
+		h = 60 * (((g-b)/dc) % 6)
+	elseif cmax == g then
+		h = 60 * (((b-r)/dc) + 2)
+	elseif cmax == b then
+		h = 60 * (((r-g)/dc) + 4)
+	end
+	local s = (cmax == 0 and 0 or dc / cmax)
+	local v = cmax
+
+	local alpha = (color[4] and color[4] or 1)
+
+	return h, 1-s, 1-v, alpha
+end
+
 local function applyHSV()
 	local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
 	newColor[4] = alphaNum
@@ -42,6 +67,9 @@ local function applyHSV()
 
 	MESSAGEMAN:Broadcast("ClickedNewColor")
 end
+
+-- set up the initial current color stuff
+hueNum, satNum, valNum, alphaNum = colorToHSV(color(themeColor))
 
 local function updateSaturation(percent)
 	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
@@ -189,10 +217,7 @@ local function handleTextUpdate()
 	local s = (cmax == 0 and 0 or dc / cmax)
 	local v = cmax
 
-	hueNum = h
-	satNum = 1 - s
-	valNum = 1 - v
-	alphaNum = finalcolor[4]
+	hueNum, satNum, valNum, alphaNum = colorToHSV(finalcolor)
 
 	aboutToSave = true
 	applyHSV()
@@ -241,6 +266,7 @@ end
 local t = Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(inputeater)
+		applyHSV()
 	end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == "ColorCancel" then
@@ -435,7 +461,7 @@ t[#t+1] = Def.ActorFrame {
 			self:halign(0):valign(0)
 			self:zoom(0.25)
 			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
-			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor.\nUse <Backspace> and <Delete> to delete characters.\nPress <Enter> after confirming or after clicking to save and exit.\nPress <Esc> to exit without saving.")
+			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor.\nUse <Backspace> and <Delete> to reset characters.\nPress <Enter> after confirming or after clicking to save and exit.\nPress <Esc> to exit without saving.")
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -513,7 +539,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(20)
 			self:valign(0):halign(0):zoom(0.4)
-			self:settext("RGB:")
+			self:settext("RGBA:")
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -530,11 +556,11 @@ t[#t+1] = Def.ActorFrame {
 			self:y(20)
 			self:x(colorBoxHeight)
 			self:valign(0):halign(1):zoom(0.4)
-			self:settext("101, 101, 101")
+			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
 		end,
 		ClickedNewColorMessageCommand = function(self)
 			local r,g,b,a = colorToRGBNums(currentColor)
-			self:settextf("%.2f, %.2f, %.2f", r,g,b)
+			self:settextf("%.2f, %.2f, %.2f, %.2f", r,g,b,a)
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -543,11 +569,55 @@ t[#t+1] = Def.ActorFrame {
 			self:x(colorBoxHeight)
 			self:y(40)
 			self:valign(0):halign(1):zoom(0.4)
-			self:settext("#aabbccdd")
+			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
 		end,
 		ClickedNewColorMessageCommand = function(self)
 			local clr = ColorToHex(currentColor)
 			self:settext(clr)
+		end
+	}
+}
+
+t[#t+1] = Def.ActorFrame {
+	Name = "OldInfo",
+	InitCommand = function(self)
+		self:xy(colorBoxHeight * 2, SCREEN_HEIGHT / 8 + colorBoxHeight + genericSpacing)
+	end,
+
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:settext("Saved Color")
+			self:halign(0):valign(0)
+			self:zoom(0.4)
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "SelectedRGB",
+		InitCommand = function(self)
+			self:y(20)
+			self:valign(0):halign(0):zoom(0.4)
+			local svd = color(themeColor)
+			local r,g,b,a = colorToRGBNums(svd)
+			self:settextf("%.2f, %.2f, %.2f, %.2f", r,g,b,a)
+			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "SelectedHex",
+		InitCommand = function(self)
+			self:y(40)
+			self:valign(0):halign(0):zoom(0.4)
+			self:settext(themeColor:upper())
+			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
+		end
+	},
+	Def.Quad {
+		Name = "SavedPreview",
+		InitCommand = function(self)
+			self:x(colorBoxHeight / 1.5 + 5)
+			self:halign(0):valign(0)
+			self:zoomto(colorBoxHeight/4, colorBoxHeight/4)
+			self:diffuse(color(themeColor))
 		end
 	}
 }
