@@ -259,6 +259,32 @@ local function inputeater(event)
 			if before ~= textCursorPos then
 				MESSAGEMAN:Broadcast("UpdateStringDisplay")
 			end
+		elseif event.button == "Up" or event.button == "MenuUp" then
+			if textCursorPos <= #hexEntryString then
+				local numInIndex = tonumber("0x"..hexEntryString:sub(textCursorPos,textCursorPos))
+				numInIndex = numInIndex + 1
+				if numInIndex > 15 then numInIndex = 0 end
+				local theCharacter = ("%X"):format(numInIndex)
+
+				local left = hexEntryString:sub(1,textCursorPos-1)
+				local right = hexEntryString:sub(textCursorPos+1)
+				hexEntryString = left .. theCharacter .. right
+				aboutToSave = false
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			end
+		elseif event.button == "Down" or event.button == "MenuDown" then
+			if textCursorPos <= #hexEntryString then
+				local numInIndex = tonumber("0x"..hexEntryString:sub(textCursorPos,textCursorPos))
+				numInIndex = numInIndex - 1
+				if numInIndex < 0 then numInIndex = 15 end
+				local theCharacter = ("%X"):format(numInIndex)
+
+				local left = hexEntryString:sub(1,textCursorPos-1)
+				local right = hexEntryString:sub(textCursorPos+1)
+				hexEntryString = left .. theCharacter .. right
+				aboutToSave = false
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			end
 		end
 	end
 end
