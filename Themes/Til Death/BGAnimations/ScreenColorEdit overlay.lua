@@ -274,7 +274,11 @@ local t = Def.ActorFrame {
 		end
 		if params.Name == "ColorStart" then
 			if aboutToSave then
-				-- save
+				colorConfig:get_data()[selected[1]][selected[2]] = "#" .. ColorToHex(currentColor)
+				colorConfig:set_dirty()
+				colorConfig:save()
+				MESSAGEMAN:Broadcast("RowChanged", {level=1})
+				THEME:ReloadMetrics()
 				SCREENMAN:GetTopScreen():Cancel()
 			else
 				handleTextUpdate()
