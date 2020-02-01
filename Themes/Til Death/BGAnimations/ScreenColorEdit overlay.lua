@@ -10,6 +10,62 @@ local translated_info = {
 	Description = THEME:GetString("ScreenColorEdit", "Description")
 }
 
+local colorBoxHeight = 250
+local saturationSliderWidth = 25
+local genericSpacing = 15
+local saturationOverlay = nil
+local saturationSliderPos = nil
+local colorPickPosition = nil
+local colorPreview = nil
+local aboutToSave = false
+
+local satNum = 0 -- saturation percent
+local hueNum = 0 -- degrees 0-360 exclusive
+local valNum = 0 -- brightness percent
+local alphaNum = 1 -- alpha percent
+local currentColor = color("1,1,1")
+local hexEntryString = "#"
+local textCursorPos = 2
+
+local function applyHSV()
+	local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
+	newColor[4] = alphaNum
+	currentColor = newColor
+
+	colorPickPosition:xy(saturationSliderWidth + (colorBoxHeight * hueNum/360), colorBoxHeight * valNum)
+	saturationOverlay:diffusealpha(satNum)
+	saturationSliderPos:y(colorBoxHeight * satNum)
+	alphaSliderPos:y(colorBoxHeight * (1-alphaNum))
+
+	textCursorPos = 9
+	hexEntryString = "#" .. ColorToHex(currentColor)
+
+	MESSAGEMAN:Broadcast("ClickedNewColor")
+end
+
+local function updateSaturation(percent)
+	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
+
+	satNum = percent
+	applyHSV()
+end
+
+local function updateAlpha(percent)
+	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
+
+	alphaNum = 1 - percent
+	applyHSV()
+end
+
+local function updateColor(percentX, percentY)
+	if percentY < 0 then percentY = 0 elseif percentY > 1 then percentY = 1 end
+	if percentX < 0 then percentX = 0 elseif percentX > 1 then percentX = 1 end
+
+	hueNum = 360 * percentX
+	valNum = percentY
+	applyHSV()
+end
+
 local function getRotationZ(self)
 	local parent = self:GetParent()
 	if parent == nil then
@@ -17,6 +73,37 @@ local function getRotationZ(self)
 	else
 		return self:GetRotationZ() + getRotationZ(parent)
 	end
+end
+
+-- find the x position for a char in text relative to text left edge
+local function getXPositionInText(self, index)
+	local overallWidth = self:GetZoomedWidth()
+	local tlChar1 = self:getGlyphRect(1) -- top left vertex of first char in text
+	local tlCharIndex = self:getGlyphRect(index) -- top left of char at text
+	-- the [1] index is the x coordinate of the vertex
+
+	local theX = tlCharIndex[1] - tlChar1[1]
+
+	return theX * self:GetZoom()
+end
+
+local function getWidthOfChar(self, index)
+	local tl, bl, tr, br = self:getGlyphRect(index)
+	local glyphWidth = tr[1] - bl[1]
+
+	return glyphWidth / (self:GetZoom() * 10) -- im not really sure why this works
+end
+
+local function cursorCanMove(speed)
+
+	local maxTextSize = (#hexEntryString == 9 and 9 or #hexEntryString + 1)
+
+	local tmpCursor = textCursorPos + speed
+	if tmpCursor > maxTextSize or tmpCursor < 2 then
+		return 0
+	end
+
+	return speed
 end
 
 local function localMousePos(self, mx, my)
@@ -40,10 +127,113 @@ local function colorToRGBNums(c)
 	return rX, gX, bX, aX
 end
 
+local function handleHexEntry(character)
+	character = character:upper()
+	
+	if #hexEntryString <= 9 then -- #23 45 67 89 format
+		if #hexEntryString == 9 and textCursorPos == 9 then
+			hexEntryString = hexEntryString:sub(1,-2) .. character
+		else
+			if textCursorPos == #hexEntryString + 1 then
+				hexEntryString = hexEntryString .. character
+			else
+				local left = hexEntryString:sub(1,textCursorPos-1)
+				local right = hexEntryString:sub(textCursorPos+1)
+				hexEntryString = left .. character .. right
+			end
+			textCursorPos = textCursorPos + 1
+		end
+	end
+	if textCursorPos > 9 then textCursorPos = 9 end
+
+	aboutToSave = false
+	MESSAGEMAN:Broadcast("UpdateStringDisplay")
+end
+
+local function handleTextUpdate()
+	local hxl = #hexEntryString - 1
+	local finalcolor = color("1,1,1,1")
+
+	if hxl == 3 or hxl == 4 or hxl == 5 then -- color 3/4/5 hex
+		finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,2)) / 15
+		finalcolor[2] = tonumber("0x"..hexEntryString:sub(3,3)) / 15
+		finalcolor[3] = tonumber("0x"..hexEntryString:sub(4,4)) / 15
+		if hxl == 4 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,5)) / 15 end
+		if hxl == 5 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,6)) / 255 end
+	elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex 
+		finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,3)) / 255
+		finalcolor[2] = tonumber("0x"..hexEntryString:sub(4,5)) / 255
+		finalcolor[3] = tonumber("0x"..hexEntryString:sub(6,7)) / 255
+		if hxl == 7 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(7,7)) / 15 end
+		if hxl == 8 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(8,9)) / 255 end
+	else
+		return
+	end
+
+	local r = finalcolor[1] -- [0,1]
+	local g = finalcolor[2]
+	local b = finalcolor[3]
+	local cmax = math.max(r, g, b)
+	local cmin = math.min(r, g, b)
+	local dc = cmax - cmin -- delta c
+	local h = 0
+	if dc == 0 then
+		h = 0
+	elseif cmax == r then
+		h = 60 * (((g-b)/dc) % 6)
+	elseif cmax == g then
+		h = 60 * (((b-r)/dc) + 2)
+	elseif cmax == b then
+		h = 60 * (((r-g)/dc) + 4)
+	end
+	local s = (cmax == 0 and 0 or dc / cmax)
+	local v = cmax
+
+	hueNum = h
+	satNum = 1 - s
+	valNum = 1 - v
+	alphaNum = finalcolor[4]
+
+	aboutToSave = true
+	applyHSV()
+end
+
 local function inputeater(event)
 	if event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
 			MESSAGEMAN:Broadcast("MouseLeftClick")
+		elseif event.char and event.char:match('[%x]') then -- match all hex
+			handleHexEntry(event.char)
+		elseif event.DeviceInput.button == "DeviceButton_delete" then
+			hexEntryString = "#"
+			textCursorPos = 2
+			aboutToSave = false
+			MESSAGEMAN:Broadcast("UpdateStringDisplay")
+		elseif event.DeviceInput.button == "DeviceButton_backspace" then
+			if #hexEntryString > 1 then
+				if textCursorPos - 1 == #hexEntryString then
+					hexEntryString = hexEntryString:sub(1, -2)
+				else
+					local left = hexEntryString:sub(1,textCursorPos-1)
+					local right = hexEntryString:sub(textCursorPos+1)
+					hexEntryString = left .. "0" .. right
+				end
+				textCursorPos = textCursorPos + cursorCanMove(-1)
+				aboutToSave = false
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			end
+		elseif event.button == "Left" or event.button == "MenuLeft" then
+			local before = textCursorPos
+			textCursorPos = textCursorPos + cursorCanMove(-1)
+			if before ~= textCursorPos then
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			end
+		elseif event.button == "Right" or event.button == "MenuRight" then
+			local before = textCursorPos
+			textCursorPos = textCursorPos + cursorCanMove(1)
+			if before ~= textCursorPos then
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			end
 		end
 	end
 end
@@ -57,7 +247,12 @@ local t = Def.ActorFrame {
 			SCREENMAN:GetTopScreen():Cancel()
 		end
 		if params.Name == "ColorStart" then
-			SCREENMAN:GetTopScreen():Cancel()
+			if aboutToSave then
+				-- save
+				SCREENMAN:GetTopScreen():Cancel()
+			else
+				handleTextUpdate()
+			end
 		end
 	end,
 	Def.Quad {
@@ -68,53 +263,6 @@ local t = Def.ActorFrame {
 		end
 	}
 }
-
-local colorBoxHeight = 250
-local saturationSliderWidth = 25
-local genericSpacing = 15
-local saturationOverlay = nil
-local saturationSliderPos = nil
-local colorPickPosition = nil
-local colorPreview = nil
-
-local satNum = 0 -- saturation percent
-local hueNum = 0 -- degrees 0-360 exclusive
-local valNum = 0 -- brightness percent
-local alphaNum = 0 -- alpha percent
-local currentColor = color("1,1,1")
-
-local function applyHSV()
-	local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
-	newColor[4] = alphaNum
-	currentColor = newColor
-	MESSAGEMAN:Broadcast("ClickedNewColor")
-end
-
-local function updateSaturation(percent)
-	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
-
-	saturationOverlay:diffusealpha(percent)
-	satNum = percent
-	applyHSV()
-end
-
-local function updateAlpha(percent)
-	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
-
-	alphaNum = 1 - percent
-	applyHSV()
-end
-
-local function updateColor(percentX, percentY)
-	if percentY < 0 then percentY = 0 elseif percentY > 1 then percentY = 1 end
-	if percentX < 0 then percentX = 0 elseif percentX > 1 then percentX = 1 end
-
-	colorPickPosition:xy(saturationSliderWidth + (colorBoxHeight * percentX), colorBoxHeight * percentY)
-
-	hueNum = 360 * percentX
-	valNum = percentY
-	applyHSV()
-end
 
 t[#t+1] = Def.ActorFrame {
 	Name = "ColorPickEquipment",
@@ -135,6 +283,7 @@ t[#t+1] = Def.ActorFrame {
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
+				aboutToSave = true
 				updateColor(relX / colorBoxHeight, relY / colorBoxHeight)
 			end
 		end
@@ -162,15 +311,15 @@ t[#t+1] = Def.ActorFrame {
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
+				aboutToSave = true
 				updateSaturation(relY / colorBoxHeight)
-				saturationSliderPos:y(relY)
 			end
 		end
 	},
 	Def.Quad {
 		Name = "SaturationSliderPos",
 		InitCommand = function(self)
-			self:diffuse(color("0,0,0"))
+			self:diffuse(getMainColor("positive"))
 			self:zoomto(saturationSliderWidth, 2)
 			self:xy(0,0)
 			self:valign(0):halign(0)
@@ -190,15 +339,15 @@ t[#t+1] = Def.ActorFrame {
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
+				aboutToSave = true
 				updateAlpha(relY / colorBoxHeight)
-				alphaSliderPos:y(relY)
 			end
 		end
 	},
 	Def.Quad {
 		Name = "AlphaSliderPos",
 		InitCommand = function(self)
-			self:diffuse(color("0,0,0"))
+			self:diffuse(getMainColor("positive"))
 			self:zoomto(saturationSliderWidth, 2)
 			self:xy(0,0)
 			self:valign(0):halign(1)
@@ -244,6 +393,11 @@ t[#t+1] = Def.ActorFrame {
 			self:xy(saturationSliderWidth/2, -3)
 			self:settext("Sat")
 			self:zoom(0.15)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				updateSaturation(0)
+			end
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -252,7 +406,93 @@ t[#t+1] = Def.ActorFrame {
 			self:xy(-saturationSliderWidth/2, -3)
 			self:settext("Alpha")
 			self:zoom(0.15)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				updateAlpha(0)
+			end
 		end
+	},
+}
+
+t[#t+1] = Def.ActorFrame {
+	Name = "ManualEntryArea",
+	InitCommand = function(self)
+		self:xy(colorBoxHeight * 2, SCREEN_HEIGHT / 8)
+	end,
+
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:halign(0):valign(0)
+			self:zoom(0.4)
+			self:settext("Manual Entry")
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "Explanation",
+		InitCommand = function(self)
+			self:y(genericSpacing + 5)
+			self:halign(0):valign(0)
+			self:zoom(0.25)
+			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
+			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor.\nUse <Backspace> and <Delete> to delete characters.\nPress <Enter> after confirming or after clicking to save and exit.\nPress <Esc> to exit without saving.")
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "InputText",
+		InitCommand = function(self)
+			self:y(genericSpacing * 5)
+			self:halign(0):valign(0)
+			self:zoom(0.4)
+			self:settext("#")
+		end,
+		UpdateStringDisplayMessageCommand = function(self)
+			self:settext(hexEntryString)
+			self:GetParent():GetChild("CursorPosition"):playcommand("UpdateCursorDisplay")
+		end,
+		ClickedNewColorMessageCommand = function(self)
+			self:playcommand("UpdateStringDisplay")
+		end
+	},
+	Def.Quad {
+		Name = "CursorPosition",
+		InitCommand = function(self)
+			self:x(11)
+			self:halign(0):valign(0)
+			self:zoomto(10,2)
+			self:y(20 + genericSpacing * 5)
+		end,
+		UpdateCursorDisplayCommand = function(self)
+			local pos = 11
+			local txt = self:GetParent():GetChild("InputText")
+			if textCursorPos ~= #hexEntryString + 1 then -- if the cursor is under an actual char
+				local glyphWidth = getWidthOfChar(txt, textCursorPos) - 1
+				self:zoomto(glyphWidth, 2)
+				pos = getXPositionInText(txt, textCursorPos)
+			else
+				pos = getXPositionInText(txt, textCursorPos-1) + getWidthOfChar(txt, textCursorPos-1)
+			end
+			self:finishtweening()
+			self:linear(0.05)
+			self:x(pos)
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "SavingIndicator",
+		InitCommand = function(self)
+			self:y(genericSpacing * 7)
+			self:settext("ABOUT TO SAVE")
+			self:valign(0):halign(0)
+			self:zoom(0.5)
+			self:visible(false)
+		end,
+		ClickedNewColorMessageCommand = function(self)
+			self:visible(aboutToSave)
+		end,
+		UpdateStringDisplayMessageCommand = function(self)
+			self:visible(aboutToSave)
+		end
+		
 	}
 }
 
