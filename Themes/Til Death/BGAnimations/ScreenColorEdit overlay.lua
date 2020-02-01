@@ -3,7 +3,14 @@ local themeColor = colorConfig:get_data()[selected[1]][selected[2]]
 
 local translated_info = {
 	Title = THEME:GetString("ScreenColorEdit", "Title"),
-	Description = THEME:GetString("ScreenColorEdit", "Description")
+	Description = THEME:GetString("ScreenColorEdit", "Description"),
+	AboutToSave = THEME:GetString("ScreenColorEdit", "AboutToSave"),
+	Hexadecimal = THEME:GetString("ScreenColorEdit", "Hexadecimal"),
+	RGBA = THEME:GetString("ScreenColorEdit", "RedGreenBlueAlpha"),
+	ManualEntry = THEME:GetString("ScreenColorEdit", "ManualEntry"),
+	Alpha = THEME:GetString("ScreenColorEdit", "Alpha"),
+	Saturation = THEME:GetString("ScreenColorEdit", "Saturation"),
+	DefaultDescription = THEME:GetString("ScreenColorEdit", "DefaultDescription")
 }
 
 local colorBoxHeight = 250
@@ -454,7 +461,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:valign(1)
 			self:xy(saturationSliderWidth/2, -3)
-			self:settext("Sat")
+			self:settext(translated_info["Saturation"])
 			self:zoom(0.15)
 		end,
 		MouseLeftClickMessageCommand = function(self)
@@ -467,7 +474,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:valign(1)
 			self:xy(-saturationSliderWidth/2, -3)
-			self:settext("Alpha")
+			self:settext(translated_info["Alpha"])
 			self:zoom(0.15)
 		end,
 		MouseLeftClickMessageCommand = function(self)
@@ -488,7 +495,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:halign(0):valign(0)
 			self:zoom(0.4)
-			self:settext("Manual Entry")
+			self:settext(translated_info["ManualEntry"])
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -498,7 +505,7 @@ t[#t+1] = Def.ActorFrame {
 			self:halign(0):valign(0)
 			self:zoom(0.25)
 			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
-			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor\nUse <Backspace> and <Delete> to reset characters\nPress <Enter> after confirming or after clicking to save and exit\nPress <Esc> to exit without saving")
+			self:settext(translated_info["Description"])
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -544,7 +551,7 @@ t[#t+1] = Def.ActorFrame {
 		Name = "SavingIndicator",
 		InitCommand = function(self)
 			self:y(genericSpacing * 7)
-			self:settext("ABOUT TO SAVE")
+			self:settext(translated_info["AboutToSave"])
 			self:valign(0):halign(0)
 			self:zoom(0.5)
 			self:visible(false)
@@ -586,7 +593,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(20)
 			self:valign(0):halign(0):zoom(0.4)
-			self:settext("RGBA:")
+			self:settext("%s:", translated_info["RGBA"])
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -594,7 +601,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(40)
 			self:valign(0):halign(0):zoom(0.4)
-			self:settext("Hex:")
+			self:settextf("%s:", translated_info["Hexadecimal"])
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -684,7 +691,7 @@ t[#t+1] = Def.ActorFrame {
 			self:valign(0):halign(0)
 			self:zoom(0.25)
 			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
-			self:settext("Press <CTRL + Delete> to select the default color\nPress <ALT + Delete> to undo changes")
+			self:settext(translated_info["DefaultDescription"])
 		end
 	}
 }
