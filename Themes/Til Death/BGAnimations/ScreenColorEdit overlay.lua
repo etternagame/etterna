@@ -26,7 +26,18 @@ local function localMousePos(self, mx, my)
 	return x * math.cos(rz) - y * math.sin(rz), x * math.sin(rz) + y * math.cos(rz)
 end
 
-local function posToColor(x, y)
+local function colorToRGBNums(c)
+	local r = c[1]
+	local g = c[2]
+	local b = c[3]
+	local a = HasAlpha(c)
+
+	local rX = scale(r, 0, 1, 0, 255)
+	local gX = scale(g, 0, 1, 0, 255)
+	local bX = scale(b, 0, 1, 0, 255)
+	local aX = scale(a, 0, 1, 0, 255)
+
+	return rX, gX, bX, aX
 end
 
 local function inputeater(event)
@@ -60,6 +71,7 @@ local t = Def.ActorFrame {
 
 local colorBoxHeight = 250
 local saturationSliderWidth = 25
+local genericSpacing = 15
 local saturationOverlay = nil
 local saturationSliderPos = nil
 local colorPickPosition = nil
@@ -68,11 +80,14 @@ local colorPreview = nil
 local satNum = 0 -- saturation percent
 local hueNum = 0 -- degrees 0-360 exclusive
 local valNum = 0 -- brightness percent
+local alphaNum = 0 -- alpha percent
+local currentColor = color("1,1,1")
 
 local function applyHSV()
 	local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
-
-	colorPreview:diffuse(newColor)
+	newColor[4] = alphaNum
+	currentColor = newColor
+	MESSAGEMAN:Broadcast("ClickedNewColor")
 end
 
 local function updateSaturation(percent)
@@ -80,7 +95,13 @@ local function updateSaturation(percent)
 
 	saturationOverlay:diffusealpha(percent)
 	satNum = percent
-	-- update numbers and stuff
+	applyHSV()
+end
+
+local function updateAlpha(percent)
+	if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
+
+	alphaNum = 1 - percent
 	applyHSV()
 end
 
@@ -134,6 +155,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:zoomto(saturationSliderWidth, colorBoxHeight)
 			self:valign(0):halign(0)
+			self:diffuse(color(".7,.7,.7"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -155,6 +177,44 @@ t[#t+1] = Def.ActorFrame {
 			saturationSliderPos = self
 		end,
 	},
+
+	Def.Quad {
+		Name = "AlphaSlider",
+		InitCommand = function(self)
+			self:zoomto(saturationSliderWidth, colorBoxHeight)
+			self:valign(0):halign(1)
+			self:diffuse(color(".7,.7,.7"))
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				local y = INPUTFILTER:GetMouseY()
+				local x = INPUTFILTER:GetMouseX()
+				local relX, relY = localMousePos(self, x, y)
+				updateAlpha(relY / colorBoxHeight)
+				alphaSliderPos:y(relY)
+			end
+		end
+	},
+	Def.Quad {
+		Name = "AlphaSliderPos",
+		InitCommand = function(self)
+			self:diffuse(color("0,0,0"))
+			self:zoomto(saturationSliderWidth, 2)
+			self:xy(0,0)
+			self:valign(0):halign(1)
+			alphaSliderPos = self
+		end,
+	},
+	Def.Quad {
+		Name = "SliderDivider",
+		InitCommand = function(self)
+			self:valign(0)
+			self:y(-15)
+			self:diffuse(getMainColor("highlight"))
+			self:zoomto(2, colorBoxHeight + 15)
+		end
+	},
+
 	Def.Sprite {
 		Name = "ColorPickPosition",
 		Texture = THEME:GetPathG("", "_thick circle"),
@@ -173,6 +233,82 @@ t[#t+1] = Def.ActorFrame {
 			self:valign(0):halign(0)
 			colorPreview = self
 		end,
+		ClickedNewColorMessageCommand = function(self)
+			self:diffuse(currentColor)
+		end
+	},
+
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:valign(1)
+			self:xy(saturationSliderWidth/2, -3)
+			self:settext("Sat")
+			self:zoom(0.15)
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:valign(1)
+			self:xy(-saturationSliderWidth/2, -3)
+			self:settext("Alpha")
+			self:zoom(0.15)
+		end
+	}
+}
+
+t[#t+1] = Def.ActorFrame {
+	Name = "ColorPickInformation",
+	InitCommand = function(self)
+		self:xy(SCREEN_WIDTH / 12, SCREEN_HEIGHT / 8 + colorBoxHeight + genericSpacing)
+	end,
+
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:valign(0):halign(0):zoom(0.4)
+			self:settext("Current Color")
+		end,
+	},
+	LoadFont("Common Large") .. {
+		Name = "RGBInfo",
+		InitCommand = function(self)
+			self:y(20)
+			self:valign(0):halign(0):zoom(0.4)
+			self:settext("RGB:")
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "HexInfo",
+		InitCommand = function(self)
+			self:y(40)
+			self:valign(0):halign(0):zoom(0.4)
+			self:settext("Hex:")
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "SelectedRGB",
+		InitCommand = function(self)
+			self:y(20)
+			self:x(colorBoxHeight)
+			self:valign(0):halign(1):zoom(0.4)
+			self:settext("101, 101, 101")
+		end,
+		ClickedNewColorMessageCommand = function(self)
+			local r,g,b,a = colorToRGBNums(currentColor)
+			self:settextf("%.2f, %.2f, %.2f", r,g,b)
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "SelectedHex",
+		InitCommand = function(self)
+			self:x(colorBoxHeight)
+			self:y(40)
+			self:valign(0):halign(1):zoom(0.4)
+			self:settext("#aabbccdd")
+		end,
+		ClickedNewColorMessageCommand = function(self)
+			local clr = ColorToHex(currentColor)
+			self:settext(clr)
+		end
 	}
 }
 
