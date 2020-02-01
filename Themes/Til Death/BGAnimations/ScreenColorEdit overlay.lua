@@ -1,9 +1,5 @@
 local selected = getTableKeys()
 local themeColor = colorConfig:get_data()[selected[1]][selected[2]]
-local colorTable = {}
-for i = 2, #themeColor do -- First char in string is a "#", ignore.
-	colorTable[i - 1] = themeColor:sub(i, i)
-end
 
 local translated_info = {
 	Title = THEME:GetString("ScreenColorEdit", "Title"),
@@ -230,10 +226,17 @@ local function inputeater(event)
 		elseif event.char and event.char:match('[%x]') then -- match all hex
 			handleHexEntry(event.char)
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
-			hexEntryString = "#"
-			textCursorPos = 2
-			aboutToSave = false
-			MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			if INPUTFILTER:IsControlPressed() then
+				local default = getDefaultColorForCurColor()
+				hueNum, satNum, valNum, alphaNum = colorToHSV(color(default))
+				aboutToSave = false
+				applyHSV()
+			else
+				hexEntryString = "#"
+				textCursorPos = 2
+				aboutToSave = false
+			end
+				MESSAGEMAN:Broadcast("UpdateStringDisplay")
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			if #hexEntryString > 1 then
 				if textCursorPos - 1 == #hexEntryString then
@@ -630,6 +633,11 @@ t[#t+1] = Def.ActorFrame {
 			local r,g,b,a = colorToRGBNums(svd)
 			self:settextf("%.2f, %.2f, %.2f, %.2f", r,g,b,a)
 			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
+		end,
+		UpdateSavedColorMessageCommand = function(self)
+			local svd = color(themeColor)
+			local r,g,b,a = colorToRGBNums(svd)
+			self:settextf("%.2f, %.2f, %.2f, %.2f", r,g,b,a)
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -639,6 +647,9 @@ t[#t+1] = Def.ActorFrame {
 			self:valign(0):halign(0):zoom(0.4)
 			self:settext(themeColor:upper())
 			self:maxwidth((colorBoxHeight / 1.5) / 0.4)
+		end,
+		UpdateSavedColorMessageCommand = function(self)
+			self:settext(themeColor:upper())
 		end
 	},
 	Def.Quad {
@@ -648,6 +659,18 @@ t[#t+1] = Def.ActorFrame {
 			self:halign(0):valign(0)
 			self:zoomto(colorBoxHeight/4, colorBoxHeight/4)
 			self:diffuse(color(themeColor))
+		end,
+		UpdateSavedColorMessageCommand = function(self)
+			self:diffuse(color(themeColor))
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:y(65)
+			self:valign(0):halign(0)
+			self:zoom(0.25)
+			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
+			self:settext("Press <CTRL + Delete> to select the default color")
 		end
 	}
 }
