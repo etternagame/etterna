@@ -231,12 +231,16 @@ local function inputeater(event)
 				hueNum, satNum, valNum, alphaNum = colorToHSV(color(default))
 				aboutToSave = false
 				applyHSV()
+			elseif INPUTFILTER:IsBeingPressed("right alt") or INPUTFILTER:IsBeingPressed("left alt") then
+				hueNum, satNum, valNum, alphaNum = colorToHSV(color(themeColor))
+				aboutToSave = false
+				applyHSV()
 			else
 				hexEntryString = "#"
 				textCursorPos = 2
 				aboutToSave = false
 			end
-				MESSAGEMAN:Broadcast("UpdateStringDisplay")
+			MESSAGEMAN:Broadcast("UpdateStringDisplay")
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			if #hexEntryString > 1 then
 				if textCursorPos - 1 == #hexEntryString then
@@ -494,7 +498,7 @@ t[#t+1] = Def.ActorFrame {
 			self:halign(0):valign(0)
 			self:zoom(0.25)
 			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
-			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor.\nUse <Backspace> and <Delete> to reset characters.\nPress <Enter> after confirming or after clicking to save and exit.\nPress <Esc> to exit without saving.")
+			self:settextf("Press <Enter> to confirm a typed color. Use <Left/Right> to move the cursor\nUse <Backspace> and <Delete> to reset characters\nPress <Enter> after confirming or after clicking to save and exit\nPress <Esc> to exit without saving")
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -552,6 +556,16 @@ t[#t+1] = Def.ActorFrame {
 			self:visible(aboutToSave)
 		end
 		
+	},
+	LoadFont("Common Large") .. {
+		Name = "SelectedTypeIndicator",
+		InitCommand = function(self)
+			self:y(genericSpacing * 10)
+			self:valign(0):halign(0)
+			self:settextf("%s - %s", THEME:GetString("ScreenColorChange", selected[1]), THEME:GetString("ScreenColorChange", selected[2]))
+			self:zoom(0.4)
+			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.4)
+		end
 	}
 }
 
@@ -670,7 +684,7 @@ t[#t+1] = Def.ActorFrame {
 			self:valign(0):halign(0)
 			self:zoom(0.25)
 			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
-			self:settext("Press <CTRL + Delete> to select the default color")
+			self:settext("Press <CTRL + Delete> to select the default color\nPress <ALT + Delete> to undo changes")
 		end
 	}
 }
