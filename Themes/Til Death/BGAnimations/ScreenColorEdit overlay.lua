@@ -13,7 +13,7 @@ local translated_info = {
 	DefaultDescription = THEME:GetString("ScreenColorEdit", "DefaultDescription")
 }
 
-local colorBoxHeight = 250
+local colorBoxHeight = GetScreenAspectRatio() == 1 and 175 or 250
 local saturationSliderWidth = 25
 local genericSpacing = 15
 local saturationOverlay = nil
@@ -488,7 +488,7 @@ t[#t+1] = Def.ActorFrame {
 t[#t+1] = Def.ActorFrame {
 	Name = "ManualEntryArea",
 	InitCommand = function(self)
-		self:xy(colorBoxHeight * 2, SCREEN_HEIGHT / 8)
+		self:xy(SCREEN_WIDTH / 12 + saturationSliderWidth + 5 * colorBoxHeight / 4 + 10, SCREEN_HEIGHT / 8)
 	end,
 
 	LoadFont("Common Large") .. {
@@ -504,7 +504,7 @@ t[#t+1] = Def.ActorFrame {
 			self:y(genericSpacing + 5)
 			self:halign(0):valign(0)
 			self:zoom(0.25)
-			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.25)
+			self:maxwidth((SCREEN_WIDTH - (SCREEN_WIDTH / 12 + saturationSliderWidth + 5 * colorBoxHeight / 4) - 25) / 0.25)
 			self:settext(translated_info["Description"])
 		end
 	},
@@ -571,7 +571,7 @@ t[#t+1] = Def.ActorFrame {
 			self:valign(0):halign(0)
 			self:settextf("%s - %s", THEME:GetString("ScreenColorChange", selected[1]), THEME:GetString("ScreenColorChange", selected[2]))
 			self:zoom(0.4)
-			self:maxwidth((SCREEN_WIDTH - colorBoxHeight * 2 - 15) / 0.4)
+			self:maxwidth((SCREEN_WIDTH - (SCREEN_WIDTH / 12 + saturationSliderWidth + 5 * colorBoxHeight / 4) - 25) / 0.4)
 		end
 	}
 }
@@ -593,7 +593,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(20)
 			self:valign(0):halign(0):zoom(0.4)
-			self:settext("%s:", translated_info["RGBA"])
+			self:settextf("%s:", translated_info["RGBA"])
 		end
 	},
 	LoadFont("Common Large") .. {
@@ -635,7 +635,7 @@ t[#t+1] = Def.ActorFrame {
 t[#t+1] = Def.ActorFrame {
 	Name = "OldInfo",
 	InitCommand = function(self)
-		self:xy(colorBoxHeight * 2, SCREEN_HEIGHT / 8 + colorBoxHeight + genericSpacing)
+		self:xy(SCREEN_WIDTH / 12 + saturationSliderWidth + 5 * colorBoxHeight / 4 + 10, SCREEN_HEIGHT / 8 + colorBoxHeight + genericSpacing)
 	end,
 
 	LoadFont("Common Large") .. {
