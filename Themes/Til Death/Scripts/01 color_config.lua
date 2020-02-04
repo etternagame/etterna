@@ -139,6 +139,10 @@ function setTableKeys(table)
 	curColor = table
 end
 
+function getDefaultColorForCurColor()
+	return defaultConfig[curColor[1]][curColor[2]]
+end
+
 function getMainColor(type)
 	return color(colorConfig:get_data().main[type])
 end

@@ -3,8 +3,9 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
+#include "arch/ArchHooks/ArchHooks.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX
-#include "RageUtil/Graphics/RageDisplay.h"   // VideoModeParams
+#include "RageUtil/Graphics/RageDisplay.h"	 // VideoModeParams
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 
@@ -29,6 +30,7 @@ static GLXContext g_pBackgroundContext = NULL;
 static Window g_AltWindow = None;
 static Rotation g_OldRotation;
 static int g_iOldSize;
+static Atom g_wmDeleteMessage;
 XRRScreenConfiguration* g_pScreenConfig = NULL;
 
 static LocalizedString FAILED_CONNECTION_XSERVER(
@@ -203,6 +205,9 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 		XGetWindowAttributes(Dpy, Win, &winAttrib);
 		XSelectInput(Dpy, Win, winAttrib.your_event_mask | StructureNotifyMask);
 		XMapWindow(Dpy, Win);
+
+		g_wmDeleteMessage = XInternAtom(Dpy, "WM_DELETE_WINDOW", False);
+		XSetWMProtocols(Dpy, Win, &g_wmDeleteMessage, 1);
 
 		// Wait until we actually have a mapped window before trying to
 		// use it!
@@ -386,6 +391,16 @@ LowLevelWindow_X11::SwapBuffers()
 
 		XUnlockDisplay(Dpy);
 #endif
+	}
+}
+
+void
+LowLevelWindow_X11::Update()
+{
+	XEvent event;
+	if (XCheckTypedEvent(Dpy, ClientMessage, &event) &&
+		event.xclient.data.l[0] == g_wmDeleteMessage) {
+		ArchHooks::SetUserQuit();
 	}
 }
 

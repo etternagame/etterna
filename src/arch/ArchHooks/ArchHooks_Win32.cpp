@@ -17,6 +17,7 @@ static HANDLE g_hInstanceMutex;
 static bool g_bIsMultipleInstance = false;
 
 #if _MSC_VER >= 1400 // VC8
+#include <cwchar>
 void
 InvalidParameterHandler(const wchar_t* szExpression,
 						const wchar_t* szFunction,
@@ -24,7 +25,33 @@ InvalidParameterHandler(const wchar_t* szExpression,
 						unsigned int iLine,
 						uintptr_t pReserved)
 {
-	FAIL_M("Invalid parameter"); // TODO: Make this more informative
+	CHECKPOINT_M("Entered Invalid Parameter Handler");
+
+	std::mbstate_t state = std::mbstate_t();
+	int lenExpr = 1 + std::wcsrtombs(NULL, &szExpression, 0, &state);
+	state = std::mbstate_t();
+	int lenFunc = 1 + std::wcsrtombs(NULL, &szFunction, 0, &state);
+	state = std::mbstate_t();
+	int lenFile = 1 + std::wcsrtombs(NULL, &szFile, 0, &state);
+
+	std::vector<char> strExpr(lenExpr);
+	std::vector<char> strFunc(lenFunc);
+	std::vector<char> strFile(lenFile);
+
+	std::wcsrtombs(&strExpr[0], &szExpression, lenExpr, &state);
+	std::wcsrtombs(&strFunc[0], &szFunction, lenFunc, &state);
+	std::wcsrtombs(&strFile[0], &szFile, lenFile, &state);
+
+	std::string expr(strExpr.begin(), strExpr.end());
+	std::string func(strFunc.begin(), strFunc.end());
+	std::string file(strFile.begin(), strFile.end());
+
+	FAIL_M(ssprintf(
+	  "Invalid Parameter In C Function %s\n File: %s Line %d\n Expression: %s",
+	  func,
+	  file,
+	  iLine,
+	  expr));
 }
 #endif
 
