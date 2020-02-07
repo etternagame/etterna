@@ -195,7 +195,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
 
 	js *= 0.95f;
-	hs *= 0.95f;
+	hs *= 0.9f;
 	stam *= 0.9f;
 
 	float chordjack = jack * 0.75f;
@@ -575,7 +575,7 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 		diff[i] *=
 		  hs
 			? anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i] *
-				jumpscale[i]
+				jumpscale[i] * (1 + sqrt(abs(1 - hsscale[i]) * 0.75f))
 			: (js ? hsscale[i] * hsscale[i] * sqrt(anchorscale[i]) *
 					  sqrt(ohjumpscale[i]) * rollscale[i] * rollscale[i] *
 					  sqrt(jumpscale[i]) *
@@ -695,8 +695,8 @@ Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 3)
 				handtaps++;
 		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(handtaps) /
-											   static_cast<float>(taps))))
+		output[i] = taps != 0 ? sqrt(1 - (static_cast<float>(handtaps) /
+											   static_cast<float>(taps) / 2))
 							  : 1.f;
 
 		if (logpatterns)
