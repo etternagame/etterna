@@ -72,51 +72,49 @@ static bool g_bInvertY = false;
 static void
 InvalidateObjects();
 
-static RageDisplay::RagePixelFormatDesc
-  PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
-	  { /* R8G8B8A8 */
-		32,
-		{ 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
-	  { /* B8G8R8A8 */
-		32,
-		{ 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
-	  {
-		/* R4G4B4A4 */
-		16,
-		{ 0xF000, 0x0F00, 0x00F0, 0x000F },
-	  },
-	  {
-		/* R5G5B5A1 */
-		16,
-		{ 0xF800, 0x07C0, 0x003E, 0x0001 },
-	  },
-	  {
-		/* R5G5B5X1 */
-		16,
-		{ 0xF800, 0x07C0, 0x003E, 0x0000 },
-	  },
-	  { /* R8G8B8 */
-		24,
-		{ 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
-	  {
-		/* Paletted */
-		8,
-		{ 0, 0, 0, 0 } /* N/A */
-	  },
-	  { /* B8G8R8 */
-		24,
-		{ 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
-	  {
-		/* A1R5G5B5 */
-		16,
-		{ 0x7C00, 0x03E0, 0x001F, 0x8000 },
-	  },
-	  {
-		/* X1R5G5B5 */
-		16,
-		{ 0x7C00, 0x03E0, 0x001F, 0x0000 },
-	  }
-  };
+static RageDisplay::RagePixelFormatDesc PIXEL_FORMAT_DESC[NUM_RagePixelFormat] =
+  { { /* R8G8B8A8 */
+	  32,
+	  { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
+	{ /* B8G8R8A8 */
+	  32,
+	  { 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
+	{
+	  /* R4G4B4A4 */
+	  16,
+	  { 0xF000, 0x0F00, 0x00F0, 0x000F },
+	},
+	{
+	  /* R5G5B5A1 */
+	  16,
+	  { 0xF800, 0x07C0, 0x003E, 0x0001 },
+	},
+	{
+	  /* R5G5B5X1 */
+	  16,
+	  { 0xF800, 0x07C0, 0x003E, 0x0000 },
+	},
+	{ /* R8G8B8 */
+	  24,
+	  { 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
+	{
+	  /* Paletted */
+	  8,
+	  { 0, 0, 0, 0 } /* N/A */
+	},
+	{ /* B8G8R8 */
+	  24,
+	  { 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
+	{
+	  /* A1R5G5B5 */
+	  16,
+	  { 0x7C00, 0x03E0, 0x001F, 0x8000 },
+	},
+	{
+	  /* X1R5G5B5 */
+	  16,
+	  { 0x7C00, 0x03E0, 0x001F, 0x0000 },
+	} };
 
 /* g_GLPixFmtInfo is used for both texture formats and surface formats.  For
  * example, it's fine to ask for a RagePixelFormat_RGB5 texture, but to supply a
@@ -587,10 +585,10 @@ RageDisplay_Legacy::~RageDisplay_Legacy()
 }
 
 void
-RageDisplay_Legacy::GetDisplayResolutions(DisplayResolutions& out) const
+RageDisplay_Legacy::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	g_pWind->GetDisplayResolutions(out);
+	g_pWind->GetDisplaySpecs(out);
 }
 
 static void
@@ -774,6 +772,7 @@ RageDisplay_Legacy::ResolutionChanged()
 	RageDisplay::ResolutionChanged();
 }
 
+
 // Return true if mode change was successful.
 // bNewDeviceOut is set true if a new device was created and textures
 // need to be reloaded.
@@ -840,8 +839,8 @@ RageDisplay_Legacy::BeginFrame()
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
-	int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
-	int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
+	int fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
+	int fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
 	glViewport(0, 0, fWidth, fHeight);
 	glClearColor(0, 0, 0, 0);
 	SetZWrite(true);
@@ -876,9 +875,11 @@ RageDisplay_Legacy::CreateScreenshot()
 	int width = (*g_pWind->GetActualVideoModeParams()).width;
 	int height = (*g_pWind->GetActualVideoModeParams()).height;
 
-	const RagePixelFormatDesc& desc = PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
+	const RagePixelFormatDesc& desc =
+		PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
 	RageSurface* image = CreateSurface(
-	  width, height, desc.bpp, desc.masks[0], desc.masks[1], desc.masks[2], 0);
+		width, height, desc.bpp, desc.masks[0], desc.masks[1], desc.masks[2], 0);
+
 
 	DebugFlushGLErrors();
 
@@ -886,12 +887,12 @@ RageDisplay_Legacy::CreateScreenshot()
 	DebugAssertNoGLError();
 
 	glReadPixels(0,
-				 0,
-				 (*g_pWind->GetActualVideoModeParams()).width,
-				 (*g_pWind->GetActualVideoModeParams()).height,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 image->pixels);
+					0,
+					(*g_pWind->GetActualVideoModeParams()).width,
+					(*g_pWind->GetActualVideoModeParams()).height,
+					GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					image->pixels);
 	DebugAssertNoGLError();
 
 	RageSurfaceUtils::FlipVertically(image);
@@ -934,7 +935,7 @@ RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 	return pImage;
 }
 
-const VideoModeParams*
+const ActualVideoModeParams*
 RageDisplay_Legacy::GetActualVideoModeParams() const
 {
 	return g_pWind->GetActualVideoModeParams();
@@ -2667,6 +2668,17 @@ RageDisplay_Legacy::SupportsRenderToTexture() const
 	return GLEW_EXT_framebuffer_object || g_pWind->SupportsRenderToTexture();
 }
 
+bool
+RageDisplay_Legacy::SupportsFullscreenBorderlessWindow() const
+{
+	// In order to support FSBW, we're going to need the LowLevelWindow
+	// implementation to support creating a fullscreen borderless window, and
+	// we're going to need RenderToTexture support in order to render in
+	// alternative resolutions
+	return g_pWind->SupportsFullscreenBorderlessWindow() &&
+		   SupportsRenderToTexture();
+}
+
 /*
  * Render-to-texture can be implemented in several ways: the generic
  * GL_ARB_pixel_buffer_object, or platform-specifically.  PBO is not available
@@ -2717,8 +2729,8 @@ RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 		DISPLAY->CameraPopMatrix();
 
 		/* Reset the viewport. */
-		int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
-		int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
+		int fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
+		int fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
 		glViewport(0, 0, fWidth, fHeight);
 
 		if (g_pCurrentRenderTarget != nullptr)

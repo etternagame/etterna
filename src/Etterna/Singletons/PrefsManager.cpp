@@ -119,6 +119,7 @@ PrefsManager::PrefsManager()
   ,
 
   m_bWindowed("Windowed", true)
+  , m_sDisplayId("DisplayId", "")
   , m_iDisplayWidth("DisplayWidth", 800)
   , m_iDisplayHeight("DisplayHeight", 600)
   , m_fDisplayAspectRatio("DisplayAspectRatio",
@@ -134,6 +135,7 @@ PrefsManager::PrefsManager()
   , m_iMaxTextureResolution("MaxTextureResolution", 1024)
   , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
   , m_bAllowMultitexture("AllowMultitexture", true)
+  , m_bFullscreenIsBorderlessWindow("FullscreenIsBorderlessWindow", false)
   , m_bAllowedLag("AllowedLag", 0.001f)
   , m_bShowStats("ShowStats", TRUE_IF_DEBUG)
   , m_bShowSkips("ShowSkips", true)

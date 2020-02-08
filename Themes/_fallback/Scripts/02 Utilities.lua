@@ -128,6 +128,13 @@ function table.itemcount(t)
 	return i
 end
 
+function math.gcd(a, b)
+	while b ~= 0 do
+		a, b = b, math.mod(a, b)
+	end
+	return a
+end
+
 function math.round(num, pre)
 	if pre and pre < 0 then
 		pre = 0

@@ -127,6 +127,7 @@ class PrefsManager
 
   public:
 	Preference<bool> m_bWindowed;
+	Preference<RString> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
 	Preference<int> m_iDisplayHeight;
 	Preference<float> m_fDisplayAspectRatio;
@@ -140,6 +141,7 @@ class PrefsManager
 	Preference<int> m_iRefreshRate;
 	Preference<bool> m_bAllowMultitexture;
 	Preference<float> m_bAllowedLag;
+	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bShowStats;
 	Preference<bool> m_bShowSkips;
 	Preference<bool> m_bShowMouseCursor;
