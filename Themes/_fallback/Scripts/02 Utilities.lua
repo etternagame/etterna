@@ -353,15 +353,11 @@ local function round(num, idp)
 end
 
 function IsUsingWideScreen()
-	local curAspect = round(GetScreenAspectRatio(), 5)
-	for k, v in pairs(AspectRatios) do
-		if AspectRatios[k] == curAspect then
-			if k == "SixteenNine" or k == "SixteenTen" then
-				return true
-			else
-				return false
-			end
-		end
+	local curAspect = GetScreenAspectRatio()
+	if math.abs(curAspect-16/9) <= .044 or math.abs(curAspect - 16/10) <= .044 then
+		return true
+	else
+		return false
 	end
 end
 
