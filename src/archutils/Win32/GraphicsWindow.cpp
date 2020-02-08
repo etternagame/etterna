@@ -18,6 +18,7 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 
 #include <set>
 #include <dbt.h>
@@ -27,6 +28,7 @@ static const RString g_sClassName = PRODUCT_ID;
 static HWND g_hWndMain;
 static HDC g_HDC;
 static VideoModeParams g_CurrentParams;
+static ActualVideoModeParams g_ActualParams;
 static bool g_bResolutionChanged = false;
 static bool g_bHasFocus = true;
 static HICON g_hIcon = NULL;
@@ -171,6 +173,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_CurrentParams.height = iHeight;
 				g_bResolutionChanged = true;
 			}
+			g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 			break;
 		}
 		case WM_COPYDATA: {
@@ -417,6 +420,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		GetMessage(&msg, NULL, 0, 0);
 		DispatchMessage(&msg);
 	}
+	g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 }
 
 /** @brief Shut down the window, but don't reset the video mode. */
@@ -527,10 +531,10 @@ GraphicsWindow::GetHDC()
 	return g_HDC;
 }
 
-VideoModeParams*
+ActualVideoModeParams*
 GraphicsWindow::GetParams()
 {
-	return &g_CurrentParams;
+	return &g_ActualParams;
 }
 
 void
