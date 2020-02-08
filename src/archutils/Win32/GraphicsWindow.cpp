@@ -291,10 +291,7 @@ GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 static int
 GetWindowStyle(bool bWindowed, bool bBorderless)
 {
-	if (bBorderless)
-		return WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX |
-			   WS_MINIMIZEBOX;
-	else if (bWindowed)
+	if (bWindowed && !bBorderless)
 		return WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	else
 		return WS_POPUP;
