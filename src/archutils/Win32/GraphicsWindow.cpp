@@ -289,9 +289,12 @@ GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 }
 
 static int
-GetWindowStyle(bool bWindowed)
+GetWindowStyle(bool bWindowed, bool bBorderless)
 {
-	if (bWindowed)
+	if (bBorderless)
+		return WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX |
+			   WS_MINIMIZEBOX;
+	else if (bWindowed)
 		return WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	else
 		return WS_POPUP;
@@ -309,7 +312,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	AdjustVideoModeParams(g_CurrentParams);
 
 	if (g_hWndMain == NULL || bForceRecreateWindow) {
-		int iWindowStyle = GetWindowStyle(p.windowed);
+		int iWindowStyle =
+		  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 
 		AppInstance inst;
 		HWND hWnd = CreateWindow(g_sClassName,
@@ -378,7 +382,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 
 	/* The window style may change as a result of switching to or from
 	 * fullscreen; apply it. Don't change the WS_VISIBLE bit. */
-	int iWindowStyle = GetWindowStyle(p.windowed);
+	int iWindowStyle =
+	  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 	if (GetWindowLong(g_hWndMain, GWL_STYLE) & WS_VISIBLE)
 		iWindowStyle |= WS_VISIBLE;
 	SetWindowLong(g_hWndMain, GWL_STYLE, iWindowStyle);
@@ -572,11 +577,15 @@ GraphicsWindow::GetDisplayResolutions(DisplayResolutions& out)
 	ZERO(dm);
 	dm.dmSize = sizeof(dm);
 	int i = 0;
-	while (EnumDisplaySettings(NULL, i++, &dm)) {
-		// Windows 8 and later don't support less than 32bpp, so don't even test
-		// for them.  GetDisplayResolutions is only for resolutions anyway. -Kyz
-		if (dm.dmBitsPerPel < 32) {
-			continue;
+	std::set<DisplayMode> modes;
+	while (EnumDisplaySettingsEx(nullptr, i++, dm.get(), 0)) {
+		if (isvalid(dm) /*&& ChangeDisplaySettingsEx(
+							 nullptr, dm.get(), nullptr, CDS_TEST, nullptr) ==
+							 DISP_CHANGE_SUCCESSFUL*/) {
+			DisplayMode m = { dm->dmPelsWidth,
+							  dm->dmPelsHeight,
+							  static_cast<double>(dm->dmDisplayFrequency) };
+			modes.insert(m);
 		}
 		DisplayResolution res = { dm.dmPelsWidth, dm.dmPelsHeight };
 		std::set<DisplayResolution>::iterator entry = out.find(res);
