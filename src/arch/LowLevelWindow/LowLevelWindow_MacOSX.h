@@ -10,6 +10,7 @@ typedef uint32_t CGDirectDisplayID;
 
 class LowLevelWindow_MacOSX : public LowLevelWindow
 {
+	ActualVideoModeParams m_ActualParams;
 	VideoModeParams m_CurrentParams;
 	id m_WindowDelegate;
 	id m_Context;
@@ -29,7 +30,8 @@ class LowLevelWindow_MacOSX : public LowLevelWindow
 
 	const ActualVideoModeParams* GetActualVideoModeParams() const
 	{
-		return &m_CurrentParams;
+		m_ActualParams = ActualVideoModeParams(m_CurrentParams);
+		return &m_ActualParams;
 	}
 
 	bool SupportsRenderToTexture() const { return true; }
