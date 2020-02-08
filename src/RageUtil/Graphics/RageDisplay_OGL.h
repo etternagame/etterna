@@ -5,6 +5,8 @@
 
 #include "Etterna/Models/Misc/DisplayResolutions.h"
 #include "RageDisplay.h"
+#include "Etterna/Actor/Base/Sprite.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -65,6 +67,7 @@ class RageDisplay_Legacy : public RageDisplay
 					   int width,
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
+	bool UseOffscreenRenderTarget();
 	RageSurface* GetTexture(intptr_t iTexture) override;
 	RageTextureLock* CreateTextureLock() override;
 
@@ -145,6 +148,9 @@ class RageDisplay_Legacy : public RageDisplay
 	bool SupportsSurfaceFormat(RagePixelFormat pixfmt);
 
 	void SendCurrentMatrices();
+
+  private:
+	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
 #endif
