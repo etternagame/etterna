@@ -18,6 +18,7 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 
 #include <set>
 #include <dbt.h>
@@ -27,6 +28,7 @@ static const RString g_sClassName = PRODUCT_ID;
 static HWND g_hWndMain;
 static HDC g_HDC;
 static VideoModeParams g_CurrentParams;
+static ActualVideoModeParams g_ActualParams;
 static bool g_bResolutionChanged = false;
 static bool g_bHasFocus = true;
 static HICON g_hIcon = NULL;
@@ -171,6 +173,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_CurrentParams.height = iHeight;
 				g_bResolutionChanged = true;
 			}
+			g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 			break;
 		}
 		case WM_COPYDATA: {
@@ -286,9 +289,9 @@ GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 }
 
 static int
-GetWindowStyle(bool bWindowed)
+GetWindowStyle(bool bWindowed, bool bBorderless)
 {
-	if (bWindowed)
+	if (bWindowed && !bBorderless)
 		return WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	else
 		return WS_POPUP;
@@ -306,7 +309,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	AdjustVideoModeParams(g_CurrentParams);
 
 	if (g_hWndMain == NULL || bForceRecreateWindow) {
-		int iWindowStyle = GetWindowStyle(p.windowed);
+		int iWindowStyle =
+		  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 
 		AppInstance inst;
 		HWND hWnd = CreateWindow(g_sClassName,
@@ -375,7 +379,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 
 	/* The window style may change as a result of switching to or from
 	 * fullscreen; apply it. Don't change the WS_VISIBLE bit. */
-	int iWindowStyle = GetWindowStyle(p.windowed);
+	int iWindowStyle =
+	  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 	if (GetWindowLong(g_hWndMain, GWL_STYLE) & WS_VISIBLE)
 		iWindowStyle |= WS_VISIBLE;
 	SetWindowLong(g_hWndMain, GWL_STYLE, iWindowStyle);
@@ -417,6 +422,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		GetMessage(&msg, NULL, 0, 0);
 		DispatchMessage(&msg);
 	}
+	g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 }
 
 /** @brief Shut down the window, but don't reset the video mode. */
@@ -527,10 +533,10 @@ GraphicsWindow::GetHDC()
 	return g_HDC;
 }
 
-VideoModeParams*
+ActualVideoModeParams*
 GraphicsWindow::GetParams()
 {
-	return &g_CurrentParams;
+	return &g_ActualParams;
 }
 
 void
@@ -586,9 +592,9 @@ GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 	int i = 0;
 	std::set<DisplayMode> modes;
 	while (EnumDisplaySettingsEx(nullptr, i++, dm.get(), 0)) {
-		if (isvalid(dm) && ChangeDisplaySettingsEx(
+		if (isvalid(dm) /*&& ChangeDisplaySettingsEx(
 							 nullptr, dm.get(), nullptr, CDS_TEST, nullptr) ==
-							 DISP_CHANGE_SUCCESSFUL) {
+							 DISP_CHANGE_SUCCESSFUL*/) {
 			DisplayMode m = { dm->dmPelsWidth,
 							  dm->dmPelsHeight,
 							  static_cast<double>(dm->dmDisplayFrequency) };

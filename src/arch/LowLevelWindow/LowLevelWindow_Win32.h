@@ -20,6 +20,8 @@ class LowLevelWindow_Win32 : public LowLevelWindow
 	virtual bool SupportsRenderToTexture() const { return true; }
 	virtual RenderTarget* CreateRenderTarget();
 
+	bool SupportsFullscreenBorderlessWindow() const { return true; }
+
 	const ActualVideoModeParams* GetActualVideoModeParams() const;
 };
 

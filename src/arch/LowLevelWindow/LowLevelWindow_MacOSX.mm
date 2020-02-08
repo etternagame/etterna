@@ -1,6 +1,6 @@
 #import "Etterna/Globals/global.h"
 #import "arch/LowLevelWindow/LowLevelWindow_MacOSX.h"
-#import "Etterna/Models/Misc/DisplayResolutions.h"
+#import "Etterna/Models/Misc/DisplaySpec.h"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/Misc/RageThreads.h"
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
@@ -564,28 +564,51 @@ static bool GetBoolValue( CFTypeRef r )
 	return r && CFGetTypeID( r ) == CFBooleanGetTypeID() && CFBooleanGetValue( CFBooleanRef(r) );
 }
 
-void LowLevelWindow_MacOSX::GetDisplayResolutions( DisplayResolutions &dr ) const
+static double GetDoubleValue( CFTypeRef r )
+{
+	double ret;
+
+	if( !r || CFGetTypeID(r) != CFNumberGetTypeID() || !CFNumberGetValue(CFNumberRef(r), kCFNumberDoubleType, &ret) )
+		return 0;
+	return ret;
+}
+
+static DisplayMode ConvertDisplayMode( CFDictionaryRef dict )
+{
+	int width = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayWidth) );
+	int height = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayHeight) );
+	double rate = GetDoubleValue( CFDictionaryGetValue(dict, kCGDisplayRefreshRate) );
+
+	return { static_cast<unsigned int> (width), static_cast<unsigned int> (height), rate};
+}
+
+void LowLevelWindow_MacOSX::GetDisplaySpecs( DisplaySpecs &specs ) const
 {
 	CFArrayRef modes = CGDisplayAvailableModes( kCGDirectMainDisplay );
 	ASSERT( modes );
 	const CFIndex count = CFArrayGetCount( modes );
 	
+	std::set<DisplayMode> available;
+	CFDictionaryRef currentModeDict = CGDisplayCurrentMode( kCGDirectMainDisplay );
+	DisplayMode current = ConvertDisplayMode( currentModeDict );
+	
 	for( CFIndex i = 0; i < count; ++i )
 	{
 		CFDictionaryRef dict = (CFDictionaryRef)CFArrayGetValueAtIndex( modes, i );
-		int width = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayWidth) );
-		int height = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayHeight) );
 		CFTypeRef safe = CFDictionaryGetValue( dict, kCGDisplayModeIsSafeForHardware );
-		bool stretched = GetBoolValue( CFDictionaryGetValue(dict, kCGDisplayModeIsStretched) );
 		
-		if( !width || !height )
+		DisplayMode mode = ConvertDisplayMode( dict );
+
+		if( !mode.width || !mode.height )
 			continue;
 		if( safe && !GetBoolValue( safe ) )
 			continue;
-		DisplayResolution res = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), stretched };
-		dr.insert( res );
+		available.insert( mode );
 	}
 	// Do not release modes! We don't own them here.
+	RectI bounds( 0, 0, current.width, current.height );
+	DisplaySpec s( "", "Fullscreen", available, current, bounds );
+	specs.insert( s );
 }
 
 void LowLevelWindow_MacOSX::SwapBuffers()

@@ -73,6 +73,7 @@ class RageDisplay_D3D : public RageDisplay
 	void SetCelShaded(int stage) override;
 
 	bool IsD3DInternal() override;
+	bool SupportsFullscreenBorderlessWindow() const { return true; }
 
 	RageCompiledGeometry* CreateCompiledGeometry() override;
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;

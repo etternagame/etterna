@@ -72,49 +72,51 @@ static bool g_bInvertY = false;
 static void
 InvalidateObjects();
 
-static RageDisplay::RagePixelFormatDesc PIXEL_FORMAT_DESC[NUM_RagePixelFormat] =
-  { { /* R8G8B8A8 */
-	  32,
-	  { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
-	{ /* B8G8R8A8 */
-	  32,
-	  { 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
-	{
-	  /* R4G4B4A4 */
-	  16,
-	  { 0xF000, 0x0F00, 0x00F0, 0x000F },
-	},
-	{
-	  /* R5G5B5A1 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0001 },
-	},
-	{
-	  /* R5G5B5X1 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0000 },
-	},
-	{ /* R8G8B8 */
-	  24,
-	  { 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
-	{
-	  /* Paletted */
-	  8,
-	  { 0, 0, 0, 0 } /* N/A */
-	},
-	{ /* B8G8R8 */
-	  24,
-	  { 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
-	{
-	  /* A1R5G5B5 */
-	  16,
-	  { 0x7C00, 0x03E0, 0x001F, 0x8000 },
-	},
-	{
-	  /* X1R5G5B5 */
-	  16,
-	  { 0x7C00, 0x03E0, 0x001F, 0x0000 },
-	} };
+static RageDisplay::RagePixelFormatDesc
+  PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
+	  { /* R8G8B8A8 */
+		32,
+		{ 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
+	  { /* B8G8R8A8 */
+		32,
+		{ 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
+	  {
+		/* R4G4B4A4 */
+		16,
+		{ 0xF000, 0x0F00, 0x00F0, 0x000F },
+	  },
+	  {
+		/* R5G5B5A1 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0001 },
+	  },
+	  {
+		/* R5G5B5X1 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0000 },
+	  },
+	  { /* R8G8B8 */
+		24,
+		{ 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
+	  {
+		/* Paletted */
+		8,
+		{ 0, 0, 0, 0 } /* N/A */
+	  },
+	  { /* B8G8R8 */
+		24,
+		{ 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
+	  {
+		/* A1R5G5B5 */
+		16,
+		{ 0x7C00, 0x03E0, 0x001F, 0x8000 },
+	  },
+	  {
+		/* X1R5G5B5 */
+		16,
+		{ 0x7C00, 0x03E0, 0x001F, 0x0000 },
+	  }
+  };
 
 /* g_GLPixFmtInfo is used for both texture formats and surface formats.  For
  * example, it's fine to ask for a RagePixelFormat_RGB5 texture, but to supply a
@@ -760,6 +762,36 @@ SetupExtensions()
 	}
 }
 
+bool
+RageDisplay_Legacy::UseOffscreenRenderTarget()
+{
+	if (!(*GetActualVideoModeParams()).renderOffscreen || !TEXTUREMAN) {
+		return false;
+	}
+
+	if (!offscreenRenderTarget) {
+		RenderTargetParam param;
+		param.bWithDepthBuffer = true;
+		param.bWithAlpha = true;
+		param.bFloat = false;
+		param.iWidth = (*GetActualVideoModeParams()).width;
+		param.iHeight = (*GetActualVideoModeParams()).height;
+		RageTextureID id(
+		  ssprintf("FullscreenTexture%dx%d", param.iWidth, param.iHeight));
+		// See if we have this texture loaded already
+		// (not GC'd yet). If it exists and we try to recreate
+		// it, we'll get an error
+		if (TEXTUREMAN->IsTextureRegistered(id)) {
+			offscreenRenderTarget = static_cast<RageTextureRenderTarget*>(
+			  TEXTUREMAN->LoadTexture(id));
+		} else {
+			offscreenRenderTarget = new RageTextureRenderTarget(id, param);
+			TEXTUREMAN->RegisterTexture(id, offscreenRenderTarget);
+		}
+	}
+	return true;
+}
+
 void
 RageDisplay_Legacy::ResolutionChanged()
 {
@@ -770,8 +802,12 @@ RageDisplay_Legacy::ResolutionChanged()
 		EndFrame();
 
 	RageDisplay::ResolutionChanged();
-}
 
+	if (offscreenRenderTarget && TEXTUREMAN) {
+		TEXTUREMAN->UnloadTexture(offscreenRenderTarget);
+		offscreenRenderTarget = nullptr;
+	}
+}
 
 // Return true if mode change was successful.
 // bNewDeviceOut is set true if a new device was created and textures
@@ -846,12 +882,37 @@ RageDisplay_Legacy::BeginFrame()
 	SetZWrite(true);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	return RageDisplay::BeginFrame();
+	bool beginFrame = RageDisplay::BeginFrame();
+	if (beginFrame && UseOffscreenRenderTarget()) {
+		offscreenRenderTarget->BeginRenderingTo(false);
+	}
+
+	return beginFrame;
 }
 
 void
 RageDisplay_Legacy::EndFrame()
 {
+	if (UseOffscreenRenderTarget()) {
+		offscreenRenderTarget->FinishRenderingTo();
+		Sprite fullscreenSprite;
+		// We've got a hold of this, don't want sprite deleting it when
+		// it's deleted
+		offscreenRenderTarget->m_iRefCount++;
+		fullscreenSprite.SetTexture(offscreenRenderTarget);
+		fullscreenSprite.SetHorizAlign(align_left);
+		fullscreenSprite.SetVertAlign(align_top);
+		CameraPushMatrix();
+		LoadMenuPerspective(
+		  0,
+		  GetActualVideoModeParams()->width,
+		  GetActualVideoModeParams()->height,
+		  static_cast<float>(GetActualVideoModeParams()->width) / 2.f,
+		  static_cast<float>(GetActualVideoModeParams()->height) / 2.f);
+		fullscreenSprite.Draw();
+		CameraPopMatrix();
+	}
+
 	FrameLimitBeforeVsync();
 	auto beforePresent = std::chrono::steady_clock::now();
 	g_pWind->SwapBuffers();
@@ -875,27 +936,45 @@ RageDisplay_Legacy::CreateScreenshot()
 	int width = (*g_pWind->GetActualVideoModeParams()).width;
 	int height = (*g_pWind->GetActualVideoModeParams()).height;
 
-	const RagePixelFormatDesc& desc =
-		PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
-	RageSurface* image = CreateSurface(
-		width, height, desc.bpp, desc.masks[0], desc.masks[1], desc.masks[2], 0);
+	RageSurface* image = nullptr;
+	if (offscreenRenderTarget) {
+		RageSurface* raw = GetTexture(offscreenRenderTarget->GetTexHandle());
+		image = CreateSurface(offscreenRenderTarget->GetImageWidth(),
+							  offscreenRenderTarget->GetImageHeight(),
+							  raw->fmt.BitsPerPixel,
+							  raw->fmt.Rmask,
+							  raw->fmt.Gmask,
+							  raw->fmt.Bmask,
+							  raw->fmt.Amask);
+		RageSurfaceUtils::Blit(raw, image);
+		delete raw;
+	} else {
+		const RagePixelFormatDesc& desc =
+		  PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
+		image = CreateSurface(width,
+							  height,
+							  desc.bpp,
+							  desc.masks[0],
+							  desc.masks[1],
+							  desc.masks[2],
+							  0);
 
+		DebugFlushGLErrors();
 
-	DebugFlushGLErrors();
+		glReadBuffer(GL_FRONT);
+		DebugAssertNoGLError();
 
-	glReadBuffer(GL_FRONT);
-	DebugAssertNoGLError();
+		glReadPixels(0,
+					 0,
+					 (*g_pWind->GetActualVideoModeParams()).width,
+					 (*g_pWind->GetActualVideoModeParams()).height,
+					 GL_RGBA,
+					 GL_UNSIGNED_BYTE,
+					 image->pixels);
+		DebugAssertNoGLError();
 
-	glReadPixels(0,
-					0,
-					(*g_pWind->GetActualVideoModeParams()).width,
-					(*g_pWind->GetActualVideoModeParams()).height,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					image->pixels);
-	DebugAssertNoGLError();
-
-	RageSurfaceUtils::FlipVertically(image);
+		RageSurfaceUtils::FlipVertically(image);
+	}
 
 	return image;
 }

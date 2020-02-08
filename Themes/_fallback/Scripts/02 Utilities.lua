@@ -1,6 +1,6 @@
 -- Find a key in tab with the given value.
 function FindValue(tab, value)
-	for key, name in tab do
+	for key, name in pairs(tab) do
 		if value == name then
 			return key
 		end
@@ -11,7 +11,7 @@ end
 
 -- Return the index of a true value in list.
 function FindSelection(list)
-	for index, on in list do
+	for index, on in ipairs(list) do
 		if on then
 			return index
 		end
@@ -122,7 +122,7 @@ end
 --Get the count of all items in a table
 function table.itemcount(t)
 	local i = 0
-	while next(t) ~= nil do
+	for _,v in pairs(t) do
 		i = i + 1
 	end
 	return i

@@ -3,8 +3,9 @@
 
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include <windows.h>
+
 class VideoModeParams;
-class DisplayResolution;
+class ActualVideoModeParams;
 
 /** @brief Sets up a window for OpenGL/D3D. */
 namespace GraphicsWindow {
@@ -37,8 +38,9 @@ DestroyGraphicsWindow();
 void
 GetDisplaySpecs(DisplaySpecs& out);
 
-VideoModeParams*
+ActualVideoModeParams*
 GetParams();
+
 HDC
 GetHDC();
 void
