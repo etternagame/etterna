@@ -30,7 +30,6 @@ class LowLevelWindow_MacOSX : public LowLevelWindow
 
 	const ActualVideoModeParams* GetActualVideoModeParams() const
 	{
-		m_ActualParams = ActualVideoModeParams(m_CurrentParams);
 		return &m_ActualParams;
 	}
 

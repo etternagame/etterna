@@ -433,6 +433,8 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 		m_CurrentParams.vsync = p.vsync;
 	}
 	
+	m_ActualParams = ActualVideoModeParams(m_CurrentParams);
+	
 	return RString();
 }
 
@@ -548,6 +550,7 @@ void LowLevelWindow_MacOSX::SetActualParamsFromMode( CFDictionaryRef mode )
 	}
 
 	m_CurrentParams.bpp = GetDisplayBitsPerPixel( kCGDirectMainDisplay );
+	m_ActualParams = ActualVideoModeParams(m_CurrentParams);
 }
 
 static int GetIntValue( CFTypeRef r )
@@ -629,6 +632,8 @@ void LowLevelWindow_MacOSX::Update()
 		return;
 	m_CurrentParams.width = g_iWidth;
 	m_CurrentParams.height = g_iHeight;
+	m_ActualParams.windowWidth = g_iWidth;
+	m_ActualParams.windowHeight = g_iHeight;
 	lock.Unlock(); // Unlock before calling ResolutionChanged().
 	[m_Context update];
 	DISPLAY->ResolutionChanged();
