@@ -4,7 +4,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
@@ -18,6 +18,7 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 
 #include <set>
 #include <dbt.h>
@@ -27,6 +28,7 @@ static const RString g_sClassName = PRODUCT_ID;
 static HWND g_hWndMain;
 static HDC g_HDC;
 static VideoModeParams g_CurrentParams;
+static ActualVideoModeParams g_ActualParams;
 static bool g_bResolutionChanged = false;
 static bool g_bHasFocus = true;
 static HICON g_hIcon = NULL;
@@ -171,6 +173,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_CurrentParams.height = iHeight;
 				g_bResolutionChanged = true;
 			}
+			g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 			break;
 		}
 		case WM_COPYDATA: {
@@ -286,9 +289,9 @@ GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 }
 
 static int
-GetWindowStyle(bool bWindowed)
+GetWindowStyle(bool bWindowed, bool bBorderless)
 {
-	if (bWindowed)
+	if (bWindowed && !bBorderless)
 		return WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	else
 		return WS_POPUP;
@@ -306,7 +309,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	AdjustVideoModeParams(g_CurrentParams);
 
 	if (g_hWndMain == NULL || bForceRecreateWindow) {
-		int iWindowStyle = GetWindowStyle(p.windowed);
+		int iWindowStyle =
+		  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 
 		AppInstance inst;
 		HWND hWnd = CreateWindow(g_sClassName,
@@ -375,7 +379,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 
 	/* The window style may change as a result of switching to or from
 	 * fullscreen; apply it. Don't change the WS_VISIBLE bit. */
-	int iWindowStyle = GetWindowStyle(p.windowed);
+	int iWindowStyle =
+	  GetWindowStyle(p.windowed, p.bWindowIsFullscreenBorderless);
 	if (GetWindowLong(g_hWndMain, GWL_STYLE) & WS_VISIBLE)
 		iWindowStyle |= WS_VISIBLE;
 	SetWindowLong(g_hWndMain, GWL_STYLE, iWindowStyle);
@@ -417,6 +422,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		GetMessage(&msg, NULL, 0, 0);
 		DispatchMessage(&msg);
 	}
+	g_ActualParams = ActualVideoModeParams(g_CurrentParams);
 }
 
 /** @brief Shut down the window, but don't reset the video mode. */
@@ -527,10 +533,10 @@ GraphicsWindow::GetHDC()
 	return g_HDC;
 }
 
-VideoModeParams*
+ActualVideoModeParams*
 GraphicsWindow::GetParams()
 {
-	return &g_CurrentParams;
+	return &g_ActualParams;
 }
 
 void
@@ -562,26 +568,56 @@ GraphicsWindow::GetHwnd()
 }
 
 void
-GraphicsWindow::GetDisplayResolutions(DisplayResolutions& out)
+GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 {
-	DEVMODE dm;
-	ZERO(dm);
-	dm.dmSize = sizeof(dm);
-	int i = 0;
-	while (EnumDisplaySettings(NULL, i++, &dm)) {
+	const size_t DM_DRIVER_EXTRA_BYTES = 4096;
+	const size_t DMSIZE = sizeof(DEVMODE) + DM_DRIVER_EXTRA_BYTES;
+	auto reset = [=](std::unique_ptr<DEVMODE>& p) {
+		::memset(p.get(), 0, DMSIZE);
+		p->dmSize = sizeof(DEVMODE);
+		p->dmDriverExtra = static_cast<WORD>(DM_DRIVER_EXTRA_BYTES);
+	};
+	auto isvalid = [](std::unique_ptr<DEVMODE>& dm) {
 		// Windows 8 and later don't support less than 32bpp, so don't even test
-		// for them.  GetDisplayResolutions is only for resolutions anyway. -Kyz
-		if (dm.dmBitsPerPel < 32) {
-			continue;
+		// for them.
+		return (dm->dmFields & DM_PELSWIDTH) &&
+			   (dm->dmFields & DM_PELSHEIGHT) &&
+			   (dm->dmFields & DM_DISPLAYFREQUENCY) &&
+			   (dm->dmBitsPerPel >= 32 || !(dm->dmFields & DM_BITSPERPEL));
+	};
+
+	std::unique_ptr<DEVMODE> dm(static_cast<DEVMODE*>(operator new(DMSIZE)));
+	reset(dm);
+
+	int i = 0;
+	std::set<DisplayMode> modes;
+	while (EnumDisplaySettingsEx(nullptr, i++, dm.get(), 0)) {
+		if (isvalid(dm) /*&& ChangeDisplaySettingsEx(
+							 nullptr, dm.get(), nullptr, CDS_TEST, nullptr) ==
+							 DISP_CHANGE_SUCCESSFUL*/) {
+			DisplayMode m = { dm->dmPelsWidth,
+							  dm->dmPelsHeight,
+							  static_cast<double>(dm->dmDisplayFrequency) };
+			modes.insert(m);
 		}
-		DisplayResolution res = { dm.dmPelsWidth, dm.dmPelsHeight };
-		std::set<DisplayResolution>::iterator entry = out.find(res);
-		if (entry == out.end()) {
-			if (ChangeDisplaySettings(&dm, CDS_TEST) ==
-				DISP_CHANGE_SUCCESSFUL) {
-				out.insert(res);
-			}
-		}
+		reset(dm);
+	}
+	reset(dm);
+	// Get the current display mode
+	if (EnumDisplaySettingsEx(nullptr, ENUM_CURRENT_SETTINGS, dm.get(), 0) &&
+		isvalid(dm)) {
+		DisplayMode m = { dm->dmPelsWidth,
+						  dm->dmPelsHeight,
+						  static_cast<double>(dm->dmDisplayFrequency) };
+		RectI bounds = {
+			0, 0, static_cast<int>(m.width), static_cast<int>(m.height)
+		};
+		out.insert(DisplaySpec("", "Fullscreen", modes, m, bounds));
+	} else if (!modes.empty()) {
+		LOG->Warn("Could not retrieve valid current display mode");
+		out.insert(DisplaySpec("", "Fullscreen", *modes.begin()));
+	} else {
+		LOG->Warn("Could not retrieve *any* DisplaySpecs!");
 	}
 }
 

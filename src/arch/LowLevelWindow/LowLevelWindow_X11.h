@@ -17,17 +17,18 @@ class LowLevelWindow_X11 : public LowLevelWindow
 	void LogDebugInformation() const;
 	bool IsSoftwareRenderer(RString& sError);
 	void SwapBuffers();
-	void Update();
 
-	const VideoModeParams* GetActualVideoModeParams() const
+	const ActualVideoModeParams* GetActualVideoModeParams() const
 	{
 		return &CurrentParams;
 	}
 
-	void GetDisplayResolutions(DisplayResolutions& out) const;
+	void GetDisplaySpecs(DisplaySpecs& out) const;
 
 	bool SupportsRenderToTexture() const;
 	RenderTarget* CreateRenderTarget();
+
+	bool SupportsFullscreenBorderlessWindow() const;
 
 	bool SupportsThreadedRendering();
 	void BeginConcurrentRenderingMainThread();
@@ -36,8 +37,10 @@ class LowLevelWindow_X11 : public LowLevelWindow
 	void EndConcurrentRendering();
 
   private:
+	void RestoreOutputConfig();
+
 	bool m_bWasWindowed;
-	VideoModeParams CurrentParams;
+	ActualVideoModeParams CurrentParams;
 };
 
 #ifdef ARCH_LOW_LEVEL_WINDOW
