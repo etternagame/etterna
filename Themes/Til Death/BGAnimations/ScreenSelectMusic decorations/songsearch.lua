@@ -96,7 +96,7 @@ local t =
 			SetCommand = function(self)
 				if active then
 					self:settextf("%s:", translated_info["Active"])
-					self:diffuse(getGradeColor("Grade_Tier11"))
+					self:diffuse(getGradeColor("Grade_Tier10"))
 				else
 					self:settextf("%s:", translated_info["Complete"])
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
