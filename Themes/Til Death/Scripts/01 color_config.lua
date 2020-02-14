@@ -75,7 +75,7 @@ local defaultConfig = {
 		Nightmare = "#666666"
 	},
 	grades = {
-		Grade_Tier01 = "#66ccff", -- AAAAA
+		Grade_Tier01 = "#ffffff", -- AAAAA
 		Grade_Tier02 = "#66ccff", -- AAAA:
 		Grade_Tier03 = "#66ccff", -- AAAA.
 		Grade_Tier04 = "#66ccff", -- AAAA
