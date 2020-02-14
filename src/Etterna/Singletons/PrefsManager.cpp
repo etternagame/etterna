@@ -180,6 +180,7 @@ PrefsManager::PrefsManager()
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
+  , m_bSortBySSRNorm("SortBySSRNormPercent", false)
   , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
   , m_sLanguage("Language", "")
   , // ThemeManager will deal with this invalid language
