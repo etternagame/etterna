@@ -194,27 +194,27 @@ GetGradeFromPercent(float fPercent)
 {
 	if (fPercent >= 0.99999f)
 		return Grade_Tier01;
-	if (fPercent >= 0.9999f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9999f)
 		return Grade_Tier02;
-	if (fPercent >= 0.9998f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
 		return Grade_Tier03;
 	if (fPercent >= 0.9997f)
 		return Grade_Tier04;
-	if (fPercent >= 0.9992f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9992f)
 		return Grade_Tier05;
-	if (fPercent >= 0.9985f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9985f)
 		return Grade_Tier06;
 	if (fPercent >= 0.9975f)
 		return Grade_Tier07;
-	if (fPercent >= 0.99f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
 		return Grade_Tier08;
-	if (fPercent >= 0.965f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
 		return Grade_Tier09;
 	if (fPercent >= 0.93f)
 		return Grade_Tier10;
-	if (fPercent >= 0.9f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
 		return Grade_Tier11;
-	if (fPercent >= 0.85f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
 		return Grade_Tier12;
 	if (fPercent >= 0.8f)
 		return Grade_Tier13;
