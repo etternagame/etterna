@@ -185,11 +185,31 @@ function getGradeThreshold(pn, grade)
 	end
 end
 
+function getGradeFamilyForMidGrade(grade)
+	if grade == "Grade_Tier02" or grade == "Grade_Tier03" or grade == "Grade_Tier04" then
+		-- quads
+		return "Grade_Tier04"
+	elseif grade == "Grade_Tier05" or grade == "Grade_Tier06" or grade == "Grade_Tier07" then
+		return "Grade_Tier07"
+		-- triples
+	elseif grade == "Grade_Tier08" or grade == "Grade_Tier09" or grade == "Grade_Tier10" then
+		-- doubles
+		return "Grade_Tier10"
+	elseif grade == "Grade_Tier11" or grade == "Grade_Tier12" or grade == "Grade_Tier13" then
+		-- singles
+		return "Grade_Tier13"
+	else
+		-- quint and others
+		return grade
+	end
+end
+
 function getNearbyGrade(pn, DPScore, grade)
 	local nextGrade
 	local gradeScore = 0
 	local nextGradeScore = 0
-	if grade == "Grade_Tier01" or grade == "Grade_Tier02" or grade == "Grade_Tier05" then
+
+	if grade == "Grade_Tier01" or grade == "Grade_Tier02" or grade == "Grade_Tier03" or grade == "Grade_Tier04" then
 		return grade, 0
 	elseif grade == "Grade_Failed" then
 		return "Grade_Tier16", DPScore
