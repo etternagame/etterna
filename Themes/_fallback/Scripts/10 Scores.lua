@@ -189,12 +189,12 @@ function getNearbyGrade(pn, DPScore, grade)
 	local nextGrade
 	local gradeScore = 0
 	local nextGradeScore = 0
-	if grade == "Grade_Tier01" or grade == "Grade_Tier02" then
+	if grade == "Grade_Tier01" or grade == "Grade_Tier02" or grade == "Grade_Tier05" then
 		return grade, 0
 	elseif grade == "Grade_Failed" then
-		return "Grade_Tier07", DPScore
+		return "Grade_Tier16", DPScore
 	elseif grade == "Grade_None" then
-		return "Grade_Tier07", 0
+		return "Grade_Tier16", 0
 	else
 		nextGrade = string.format("Grade_Tier%02d", (tonumber(grade:sub(-2)) - 1))
 		gradeScore = getGradeThreshold(pn, grade)
