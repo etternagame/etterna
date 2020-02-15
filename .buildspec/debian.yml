@@ -1,0 +1,75 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Requirements for the aws cli commands.
+      - pip install --upgrade pip
+      - pip install --upgrade awscli
+      # Update the system
+      - apt-get update && apt-get upgrade -y
+      # Install required libraries
+      - >
+        apt-get install -y
+        nasm
+        libudev-dev
+        gcc-5
+        g++-5
+        libmad0-dev
+        libgtk2.0-dev
+        binutils-dev
+        libasound-dev
+        libpulse-dev
+        libjack-dev
+        libc6-dev
+        libogg-dev
+        libvorbis-dev
+        libxtst-dev
+        libxrandr-dev
+        libglew-dev
+        libuv-dev
+        clang-format-5.0
+        libcurl4-openssl-dev
+        curl
+        libssl-dev
+        ninja-build
+        zip
+      # Install cmake 3.14.0 (Basically the same as ./.ci/build.sh without sudo)
+      - curl -LO --silent https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Linux-x86_64.sh
+      - sh cmake-3.14.0-Linux-x86_64.sh --prefix=/usr/local/ --exclude-subdir --skip-license
+  pre_build:
+    commands:
+      - mkdir -p $CODEBUILD_SRC_DIR/build
+      - cd $CODEBUILD_SRC_DIR/build
+      - cmake -G "Ninja" ..
+  build:
+    commands:
+      - ninja
+  post_build:
+    commands:
+      - > # Package up all we need for a portable zip.
+        cd $CODEBUILD_SRC_DIR && zip -r
+        Etterna-Linux-Debian-based_commit-$CODEBUILD_RESOLVED_SOURCE_VERSION.zip
+        portable.ini
+        Etterna
+        Announcers/*
+        Assets/*
+        BackgroundEffects/*
+        BackgroundTransitions/*
+        BGAnimations/*
+        Data/*
+        Docs/*
+        GameTools/*
+        NoteSkins/*
+        Scripts/*
+        Songs/*
+        Themes/*
+        STEPMANIA.TXT
+        README.md
+        LICENSE
+        CHANGELOG.md
+        .changelog/*
+      - > # Copy the portable zip to S3. Requireds the S3_BUILD_BUCKET environment variable to be set in the build config.
+        aws s3 cp
+        $CODEBUILD_SRC_DIR/Etterna-Linux_commit-$CODEBUILD_RESOLVED_SOURCE_VERSION.zip
+        $S3_BUILD_BUCKET
