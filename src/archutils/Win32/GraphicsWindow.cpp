@@ -592,9 +592,9 @@ GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 	int i = 0;
 	std::set<DisplayMode> modes;
 	while (EnumDisplaySettingsEx(nullptr, i++, dm.get(), 0)) {
-		if (isvalid(dm) /*&& ChangeDisplaySettingsEx(
+		if (isvalid(dm) && ChangeDisplaySettingsEx(
 							 nullptr, dm.get(), nullptr, CDS_TEST, nullptr) ==
-							 DISP_CHANGE_SUCCESSFUL*/) {
+							 DISP_CHANGE_SUCCESSFUL) {
 			DisplayMode m = { dm->dmPelsWidth,
 							  dm->dmPelsHeight,
 							  static_cast<double>(dm->dmDisplayFrequency) };
