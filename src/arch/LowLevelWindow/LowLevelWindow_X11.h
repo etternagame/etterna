@@ -17,6 +17,7 @@ class LowLevelWindow_X11 : public LowLevelWindow
 	void LogDebugInformation() const;
 	bool IsSoftwareRenderer(RString& sError);
 	void SwapBuffers();
+	void Update();
 
 	const ActualVideoModeParams* GetActualVideoModeParams() const
 	{

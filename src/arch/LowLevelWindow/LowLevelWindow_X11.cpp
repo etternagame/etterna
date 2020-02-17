@@ -3,6 +3,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
+#include "arch/ArchHooks/ArchHooks.h"
 #include "RageUtil/Graphics/RageDisplay.h" // VideoModeParams
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -35,6 +36,7 @@ static GLXContext g_pBackgroundContext = NULL;
 static Window g_AltWindow = None;
 static bool g_bChangedScreenSize = false;
 static SizeID g_iOldSize = None;
+static Atom g_wmDeleteMessage;
 static Rotation g_OldRotation = RR_Rotate_0;
 static XRRScreenConfiguration* g_pScreenConfig = nullptr;
 static RRMode g_originalRandRMode = None;
@@ -273,6 +275,9 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 					 Win,
 					 winAttrib.your_event_mask | StructureNotifyMask |
 					   PropertyChangeMask);
+
+		g_wmDeleteMessage = XInternAtom(Dpy, "WM_DELETE_WINDOW", False);
+		XSetWMProtocols(Dpy, Win, &g_wmDeleteMessage, 1);
 
 		XMapWindow(Dpy, Win);
 
@@ -699,6 +704,16 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	}
 
 	return ""; // Success
+}
+
+void
+LowLevelWindow_X11::Update()
+{
+	XEvent event;
+	if (XCheckTypedEvent(Dpy, ClientMessage, &event) &&
+		event.xclient.data.l[0] == g_wmDeleteMessage) {
+		ArchHooks::SetUserQuit();
+	}
 }
 
 void
