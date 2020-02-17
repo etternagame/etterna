@@ -876,6 +876,8 @@ InitializeConfOptions()
 	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
