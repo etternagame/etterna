@@ -171,7 +171,7 @@ Open the `Etterna.xcodeproj` file generated within the build directory, select t
 #### Xcode CLI
 
 ```bash
-xcodebuild -project Etterna.xcodeproj -configuration Release****
+xcodebuild -project Etterna.xcodeproj -configuration Release
 ```
 
 Due to the extreme verbosity of `xcodebuild`, we recommend [xcpretty](https://github.com/xcpretty/xcpretty) to clean up the output.
