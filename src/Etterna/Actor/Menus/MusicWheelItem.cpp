@@ -154,6 +154,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	WheelItemBase::LoadFromWheelItemData(pData, iIndex, bHasFocus, iDrawIndex);
 
 	const auto* pWID = dynamic_cast<const MusicWheelItemData*>(pData);
+	ASSERT_M(pWID != nullptr,
+			 "Dynamic cast to load wheel item datas failed at runtime.");
 
 	// hide all
 	FOREACH_ENUM(MusicWheelItemType, i)

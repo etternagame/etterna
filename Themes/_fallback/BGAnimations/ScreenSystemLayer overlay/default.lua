@@ -64,8 +64,6 @@ end
 end --]]
 --
 local t = Def.ActorFrame {}
--- Aux
-t[#t + 1] = LoadActor(THEME:GetPathB("ScreenSystemLayer", "aux"))
 -- Credits
 t[#t + 1] =
 	Def.ActorFrame {

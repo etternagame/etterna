@@ -51,8 +51,8 @@ struct RageSurfaceFormat
 	RageSurfaceFormat(const RageSurfaceFormat& cpy);
 	~RageSurfaceFormat();
 
-	int32_t BytesPerPixel;
-	int32_t BitsPerPixel;
+	int32_t BytesPerPixel = 1;
+	int32_t BitsPerPixel = 8;
 	uint32_t Mask[4];
 	uint32_t Shift[4];
 	uint8_t Loss[4];
@@ -87,8 +87,8 @@ struct RageSurface
 	uint8_t* pixels;
 	bool pixels_owned;
 	bool stb_loadpoint;
-	int32_t w, h, pitch;
-	int32_t flags;
+	int32_t w = 0, h = 0, pitch = 0;
+	int32_t flags = 0;
 
 	RageSurface();
 	RageSurface(const RageSurface& cpy);

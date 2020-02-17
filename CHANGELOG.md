@@ -1,6 +1,24 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
+## [0.68.0] - 2020-02-17 - New Color Editor & Borderless Fullscreen
+
+Windows x64, Windows i386, and Mac installer release.
+- Color Editor rewritten, and borderless fullscreen added. Many small changes for stability.
+- [Notes](.changelog/Release_0-68.md)
+
+## [0.67.1] - 2019-12-23 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release.
+- Chart Preview bugfixes, further Replay bugfixes, and an improvement to the Random Song picker.
+- [Notes](.changelog/Release_0-67-1.md)
+
+## [0.67.0] - 2019-12-16 - Til Death Translation Support, Replay Fixes, Practice Updates
+
+Windows x64 and Windows i386 installer release.
+- Most Replay bugs fixed, Chinese Til Death Translation added, and enhancements to Practice Mode to improve user experience.
+- [Notes](.changelog/Release_0-67-0.md)
+
 ## [0.66.1] - 2019-06-13 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release.

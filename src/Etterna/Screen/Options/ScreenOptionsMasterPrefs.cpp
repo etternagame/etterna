@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
@@ -267,22 +267,23 @@ ThemeChoices(vector<RString>& out)
 	*s = THEME->GetThemeDisplayName(*s);
 }
 
-static DisplayResolutions display_resolution_list;
+static DisplaySpecs display_specs;
 static void
-cache_display_resolution_list()
+cache_display_specs()
 {
-	if (display_resolution_list.empty()) {
-		DISPLAY->GetDisplayResolutions(display_resolution_list);
+	if (display_specs.empty()) {
+		DISPLAY->GetDisplaySpecs(display_specs);
 	}
 }
 
 static void
 DisplayResolutionChoices(vector<RString>& out)
 {
-	cache_display_resolution_list();
-	FOREACHS_CONST(DisplayResolution, display_resolution_list, iter)
+	cache_display_specs();
+	FOREACHS_CONST(DisplaySpec, display_specs, iter)
 	{
-		RString s = ssprintf("%dx%d", iter->iWidth, iter->iHeight);
+		RString s = ssprintf(
+		  "%dx%d", iter->currentMode()->width, iter->currentMode()->height);
 		out.push_back(s);
 	}
 }
@@ -472,6 +473,8 @@ LifeDifficulty(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+
 static int
 GetTimingDifficulty()
 {
@@ -560,10 +563,13 @@ DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 	static vector<res_t> res_choices;
 
 	if (res_choices.empty()) {
-		cache_display_resolution_list();
-		FOREACHS_CONST(DisplayResolution, display_resolution_list, iter)
+		cache_display_specs();
+		FOREACHS_CONST(DisplaySpec, display_specs, iter)
 		{
-			res_choices.push_back(res_t(iter->iWidth, iter->iHeight));
+			if (iter->currentMode() != NULL) {
+				res_choices.push_back(res_t(iter->currentMode()->width,
+											iter->currentMode()->height));
+			}
 		}
 	}
 
@@ -715,10 +721,10 @@ InitializeConfOptions()
 	if (!g_ConfOptions.empty())
 		return;
 
-	// Clear the display_resolution_list so that we don't get problems from
+	// Clear the display_specs so that we don't get problems from
 	// caching it.  If the DisplayResolution option row is on the screen, it'll
 	// recache the list. -Kyz
-	display_resolution_list.clear();
+	display_specs.clear();
 
 	// There are a couple ways of getting the current preference column or
 	// turning a new choice in the interface into a new preference. The easiest
@@ -870,6 +876,8 @@ InitializeConfOptions()
 	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
@@ -1096,3 +1104,11 @@ ConfOption::MakeOptionsList(vector<RString>& out) const
 {
 	out = names;
 }
+
+static const char* OptEffectNames[] = { "SavePreferences", "ApplyGraphics",
+										"ApplyTheme",	  "ChangeGame",
+										"ApplySound",	  "ApplySong",
+										"ApplyAspectRatio" };
+XToString(OptEffect);
+StringToX(OptEffect);
+LuaXType(OptEffect);

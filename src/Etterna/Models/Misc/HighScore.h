@@ -215,7 +215,7 @@ struct HighScoreList
 	}
 	const HighScore& GetTopScore() const;
 
-	void AddHighScore(HighScore hs, int& iIndexOut, bool bIsMachine);
+	void AddHighScore(const HighScore& hs, int& iIndexOut, bool bIsMachine);
 	void IncrementPlayCount(DateTime dtLastPlayed);
 	void RemoveAllButOneOfEachName();
 

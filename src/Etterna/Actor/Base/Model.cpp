@@ -30,6 +30,8 @@ Model::Model()
 	m_bLoop = true;
 	m_bDrawCelShaded = false;
 	m_pTempGeometry = NULL;
+	m_animation_length_seconds = 0.f;
+	m_fCurFrame = 0.f;
 }
 
 Model::~Model()
@@ -688,9 +690,9 @@ Model::SetBones(const msAnimation* pAnimation,
 			vPos =
 			  pLastPositionKey->Position +
 			  (pThisPositionKey->Position - pLastPositionKey->Position) * s;
-		} else if (pLastPositionKey == NULL)
+		} else if (pLastPositionKey == NULL && pThisPositionKey != NULL)
 			vPos = pThisPositionKey->Position;
-		else if (pThisPositionKey == NULL)
+		else if (pThisPositionKey == NULL && pLastPositionKey != NULL)
 			vPos = pLastPositionKey->Position;
 
 		// search for the adjacent rotation keys
@@ -710,9 +712,9 @@ Model::SetBones(const msAnimation* pAnimation,
 			  fFrame, pLastRotationKey->fTime, pThisRotationKey->fTime, 0, 1);
 			RageQuatSlerp(
 			  &vRot, pLastRotationKey->Rotation, pThisRotationKey->Rotation, s);
-		} else if (pLastRotationKey == NULL) {
+		} else if (pLastRotationKey == NULL && pThisRotationKey != NULL) {
 			vRot = pThisRotationKey->Rotation;
-		} else if (pThisRotationKey == NULL) {
+		} else if (pThisRotationKey == NULL && pLastRotationKey != NULL) {
 			vRot = pLastRotationKey->Rotation;
 		}
 

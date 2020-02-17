@@ -89,12 +89,12 @@ vector<RString> g_SoundsToPlayOnceFromAnnouncer;
 struct MusicToPlay
 {
 	RString m_sFile, m_sTimingFile;
-	bool HasTiming;
+	bool HasTiming = false;
 	TimingData m_TimingData;
-	bool bForceLoop;
-	float fStartSecond, fLengthSeconds, fFadeInLengthSeconds,
-	  fFadeOutLengthSeconds;
-	bool bAlignBeat, bApplyMusicRate, bAccurateSync;
+	bool bForceLoop = false;
+	float fStartSecond = 0, fLengthSeconds = 0, fFadeInLengthSeconds = 0,
+		  fFadeOutLengthSeconds = 0;
+	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false;
 	MusicToPlay() { HasTiming = false; }
 };
 vector<MusicToPlay> g_MusicsToPlay;

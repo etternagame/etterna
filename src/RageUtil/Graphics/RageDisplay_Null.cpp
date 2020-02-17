@@ -1,6 +1,6 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -61,11 +61,12 @@ RageDisplay_Null::Init(const VideoModeParams& p,
 }
 
 void
-RageDisplay_Null::GetDisplayResolutions(DisplayResolutions& out) const
+RageDisplay_Null::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	DisplayResolution res = { 640, 480, true };
-	out.insert(res);
+	DisplayMode nullMode = { 640U, 480U, 30.0 };
+	DisplaySpec nullSpec("NullDisplay", "NullDisplay", nullMode);
+	out.insert(nullSpec);
 }
 
 RageSurface*

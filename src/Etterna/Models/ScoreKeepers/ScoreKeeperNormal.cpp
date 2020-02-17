@@ -42,6 +42,19 @@ ScoreKeeperNormal::ScoreKeeperNormal(PlayerState* pPlayerState,
 									 PlayerStageStats* pPlayerStageStats)
   : ScoreKeeper(pPlayerState, pPlayerStageStats)
 {
+	m_iScoreRemainder = 0;
+	m_iMaxPossiblePoints = 0;
+	m_iTapNotesHit = 0;
+	m_iNumTapsAndHolds = 0;
+	m_iMaxScoreSoFar = 0;
+	m_iPointBonus = 0;
+	m_cur_toasty_combo = 0;
+	m_cur_toasty_level = 0;
+	m_next_toasty_at = 0;
+	m_bIsLastSongInCourse = false;
+	m_bIsBeginner = false;
+	m_iNumNotesHitThisRow = 0;
+	m_lroundTo = 1;
 }
 
 void

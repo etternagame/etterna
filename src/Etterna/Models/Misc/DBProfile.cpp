@@ -113,6 +113,8 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	SQLite::Statement skillsetsQuery(*db, "SELECT * FROM playerskillsets");
 	while (skillsetsQuery.executeStep()) {
 		int skillsetNum = skillsetsQuery.getColumn(1);
+		if (skillsetNum == -1)
+			skillsetNum = 0;
 		float skillsetValue =
 		  static_cast<float>(static_cast<double>(skillsetsQuery.getColumn(2)));
 		loadingProfile->m_fPlayerSkillsets[skillsetNum] = skillsetValue;
@@ -380,10 +382,25 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 			  &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
 		else {
 			// update pb if a better score is found
-			if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() <
-				hs.GetWifeScore())
-				scores[key].ScoresByRate[rate].PBptr =
-				  &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
+			if (PREFSMAN->m_bSortBySSRNorm) {
+
+				if (scores[key].ScoresByRate[rate].PBptr->GetSSRNormPercent() <
+					hs.GetSSRNormPercent())
+					scores[key].ScoresByRate[rate].PBptr =
+					  &scores[key]
+						 .ScoresByRate[rate]
+						 .scores.find(ScoreKey)
+						 ->second;
+			} else {
+
+				if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() <
+					hs.GetWifeScore())
+					scores[key].ScoresByRate[rate].PBptr =
+					  &scores[key]
+						 .ScoresByRate[rate]
+						 .scores.find(ScoreKey)
+						 ->second;
+			}
 		};
 
 		scores[key].ScoresByRate[rate].bestGrade =

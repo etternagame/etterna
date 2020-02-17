@@ -9,7 +9,7 @@ class ScreenExit : public Screen
 	void Init() override;
 
   private:
-	bool m_Exited;
+	bool m_Exited = false;
 };
 
 #endif

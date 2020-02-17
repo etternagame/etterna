@@ -116,8 +116,6 @@ RageTimer::operator-(const RageTimer& rhs) const
 bool
 RageTimer::operator<(const RageTimer& rhs) const
 {
-	if (c_dur != rhs.c_dur)
-		return c_dur < rhs.c_dur;
 	return c_dur < rhs.c_dur;
 }
 

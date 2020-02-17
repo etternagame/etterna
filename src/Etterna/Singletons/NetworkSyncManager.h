@@ -262,8 +262,8 @@ class ETTProtocol : public NetProtocol
 	~ETTProtocol();
 	bool waitingForTimeout{ false };
 	bool creatingRoom{ false };
-	clock_t timeoutStart;
-	double timeout;
+	clock_t timeoutStart = 0;
+	double timeout = 0;
 	function<void(void)> onTimeout;
 	string roomName;
 	string roomDesc;
@@ -417,7 +417,6 @@ class NetworkSyncManager
 	int meter;
 	int rate;
 
-	int m_sHash;
 	int m_iSelectMode;
 	void SelectUserSong();
 

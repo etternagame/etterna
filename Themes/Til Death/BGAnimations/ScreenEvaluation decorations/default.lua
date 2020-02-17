@@ -141,7 +141,7 @@ local frameWidth = SCREEN_CENTER_X - 120
 
 function scoreBoard(pn, position)
 	local customWindow
-	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+	local judge = enabledCustomWindows and 0 or (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
 	local judge2 = judge
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
@@ -170,7 +170,11 @@ function scoreBoard(pn, position)
 				self:x(SCREEN_WIDTH - (frameX * 2) - frameWidth)
 			end
 			if not enabledCustomWindows then
-				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
+					judge = 4
+				else
+					judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				end
 				judge2 = judge
 			end
 		end,
@@ -289,7 +293,11 @@ function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:GetWifeScore() * 10000) / 100, "Wife")
+				local ws = "Wife"
+				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
+					ws = "Wife J4"
+				end
+				self:settextf("%05.2f%% (%s)", notShit.floor(score:GetWifeScore() * 10000) / 100, ws)
 			end,
 			ScoreChangedMessageCommand = function(self)
 				self:queuecommand("Set")

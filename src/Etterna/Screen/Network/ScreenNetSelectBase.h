@@ -44,9 +44,9 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	AutoActor m_sprChatInputBox;
 	AutoActor m_sprChatOutputBox;
 	RString m_sTextInput;
-	unsigned int m_sTextLastestInputsIndex;
+	unsigned int m_sTextLastestInputsIndex = 0;
 	vector<RString> m_sTextLastestInputs;
-	unsigned int scroll;
+	unsigned int scroll = 0;
 	RString m_actualText;
 
 	vector<BitmapText> m_textUsers;

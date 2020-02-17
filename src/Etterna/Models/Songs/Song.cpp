@@ -183,7 +183,7 @@ Song::Reset()
 }
 
 void
-Song::AddBackgroundChange(BackgroundLayer iLayer, BackgroundChange seg)
+Song::AddBackgroundChange(BackgroundLayer iLayer, const BackgroundChange& seg)
 {
 	// Delete old background change at this start beat, if any.
 	FOREACH(BackgroundChange, GetBackgroundChanges(iLayer), bgc)
@@ -199,7 +199,7 @@ Song::AddBackgroundChange(BackgroundLayer iLayer, BackgroundChange seg)
 }
 
 void
-Song::AddForegroundChange(BackgroundChange seg)
+Song::AddForegroundChange(const BackgroundChange& seg)
 {
 	BackgroundUtil::AddBackgroundChange(GetForegroundChanges(), seg);
 }

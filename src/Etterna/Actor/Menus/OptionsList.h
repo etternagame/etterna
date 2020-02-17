@@ -1,4 +1,4 @@
-﻿#ifndef SCREEN_OPTIONS_LIST_H
+#ifndef SCREEN_OPTIONS_LIST_H
 #define SCREEN_OPTIONS_LIST_H
 
 #include "Etterna/Actor/Base/BitmapText.h"
@@ -23,13 +23,13 @@ class OptionListRow : public ActorFrame
 	void Start();
 
   private:
-	OptionsList* m_pOptions;
+	OptionsList* m_pOptions = nullptr;
 
 	vector<BitmapText> m_Text;
 	// underline for each ("self or child has selection")
 	vector<AutoActor> m_Underlines;
 
-	bool m_bItemsInTwoRows;
+	bool m_bItemsInTwoRows = false;
 
 	ThemeMetric<float> ITEMS_SPACING_Y;
 };

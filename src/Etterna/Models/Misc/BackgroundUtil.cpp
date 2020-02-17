@@ -151,7 +151,7 @@ BackgroundUtil::SortBackgroundChangesArray(
 void
 BackgroundUtil::AddBackgroundChange(
   vector<BackgroundChange>& vBackgroundChanges,
-  BackgroundChange seg)
+  const BackgroundChange& seg)
 {
 	vector<BackgroundChange>::iterator it;
 	it = upper_bound(vBackgroundChanges.begin(),

@@ -1880,6 +1880,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetModifiers(tmp.modifiers);
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
+				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
 

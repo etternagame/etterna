@@ -156,19 +156,42 @@ HighScoreImpl::GetWifeGrade() const
 	if (grade == Grade_Failed)
 		return Grade_Failed;
 
-	if (fWifeScore >= 0.9997f)
+	auto prc = fWifeScore;
+
+	if (PREFSMAN->m_bSortBySSRNorm)
+		prc = fSSRNormPercent;
+
+	if (prc >= 0.99999f)
 		return Grade_Tier01;
-	if (fWifeScore >= 0.9975f)
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9999f)
 		return Grade_Tier02;
-	if (fWifeScore >= 0.93f)
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9998f)
 		return Grade_Tier03;
-	if (fWifeScore >= 0.8f)
+	if (prc >= 0.9997f)
 		return Grade_Tier04;
-	if (fWifeScore >= 0.7f)
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9992f)
 		return Grade_Tier05;
-	if (fWifeScore >= 0.6f)
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9985f)
 		return Grade_Tier06;
-	return Grade_Tier07;
+	if (prc >= 0.9975f)
+		return Grade_Tier07;
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99f)
+		return Grade_Tier08;
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.965f)
+		return Grade_Tier09;
+	if (prc >= 0.93f)
+		return Grade_Tier10;
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9f)
+		return Grade_Tier11;
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.85f)
+		return Grade_Tier12;
+	if (prc >= 0.8f)
+		return Grade_Tier13;
+	if (prc >= 0.7f)
+		return Grade_Tier14;
+	if (prc >= 0.6f)
+		return Grade_Tier15;
+	return Grade_Tier16;
 }
 
 RString
@@ -293,6 +316,8 @@ HighScoreImpl::HighScoreImpl()
 	string ValidationKey = "";
 	TopScore = 0;
 	ReplayType = 2;
+	bNoChordCohesion = false;
+	bDisqualified = false;
 }
 
 XNode*
@@ -546,24 +571,34 @@ HighScore::LoadReplayDataBasic()
 	}
 
 	// loop until eof
-	while (getline(fileStream, line)) {
-		stringstream ss(line);
-		// split line into tokens
-		while (ss >> buffer)
-			tokens.emplace_back(buffer);
+	try {
 
-		noteRow = std::stoi(tokens[0]);
-		if (!(typeid(noteRow) == typeid(int))) {
-			throw std::runtime_error("NoteRow value is not of type: int");
-		}
-		vNoteRowVector.emplace_back(noteRow);
+		while (getline(fileStream, line)) {
+			stringstream ss(line);
+			// split line into tokens
+			while (ss >> buffer)
+				tokens.emplace_back(buffer);
 
-		offset = std::stof(tokens[1]);
-		if (!(typeid(offset) == typeid(float))) {
-			throw std::runtime_error("Offset value is not of type: float");
+			noteRow = std::stoi(tokens[0]);
+			if (!(typeid(noteRow) == typeid(int))) {
+				throw std::runtime_error("NoteRow value is not of type: int");
+			}
+			vNoteRowVector.emplace_back(noteRow);
+
+			offset = std::stof(tokens[1]);
+			if (!(typeid(offset) == typeid(float))) {
+				throw std::runtime_error("Offset value is not of type: float");
+			}
+			vOffsetVector.emplace_back(offset);
+			tokens.clear();
 		}
-		vOffsetVector.emplace_back(offset);
-		tokens.clear();
+	} catch (std::runtime_error& e) {
+		LOG->Warn(
+		  "Failed to load replay data at %s due to runtime exception: %s",
+		  path.c_str(),
+		  e.what());
+		fileStream.close();
+		return false;
 	}
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);
@@ -1286,7 +1321,9 @@ HighScoreList::Init()
 }
 
 void
-HighScoreList::AddHighScore(HighScore hs, int& iIndexOut, bool bIsMachine)
+HighScoreList::AddHighScore(const HighScore& hs,
+							int& iIndexOut,
+							bool bIsMachine)
 {
 	int i;
 	for (i = 0; i < static_cast<int>(vHighScores.size()); i++) {
@@ -1596,7 +1633,10 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetWifeScore(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->GetWifeScore());
+		if (PREFSMAN->m_bSortBySSRNorm)
+			lua_pushnumber(L, p->GetSSRNormPercent());
+		else
+			lua_pushnumber(L, p->GetWifeScore());
 		return 1;
 	}
 	static int GetWifePoints(T* p, lua_State* L)

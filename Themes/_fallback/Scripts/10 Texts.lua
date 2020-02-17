@@ -34,14 +34,23 @@ local DiffName = {
 }
 
 local gradeString = {
-	Grade_Tier01 = 'AAAA',
-	Grade_Tier02 = 'AAA',
-	Grade_Tier03 = 'AA',
-	Grade_Tier04 = 'A',
-	Grade_Tier05 = 'B',
-	Grade_Tier06 = 'C',
-	Grade_Tier07 = 'D',
-	Grade_Failed = 'F'
+	Grade_Tier01 = THEME:GetString("Grade", "Tier01"), -- AAAAA
+	Grade_Tier02 = THEME:GetString("Grade", "Tier02"), -- AAAA:
+	Grade_Tier03 = THEME:GetString("Grade", "Tier03"), -- AAAA.
+	Grade_Tier04 = THEME:GetString("Grade", "Tier04"), -- AAAA
+	Grade_Tier05 = THEME:GetString("Grade", "Tier05"), -- AAA:
+	Grade_Tier06 = THEME:GetString("Grade", "Tier06"), -- AAA.
+	Grade_Tier07 = THEME:GetString("Grade", "Tier07"), -- AAA
+	Grade_Tier08 = THEME:GetString("Grade", "Tier08"), -- AA:
+	Grade_Tier09 = THEME:GetString("Grade", "Tier09"), -- AA.
+	Grade_Tier10 = THEME:GetString("Grade", "Tier10"), -- AA
+	Grade_Tier11 = THEME:GetString("Grade", "Tier11"), -- A:
+	Grade_Tier12 = THEME:GetString("Grade", "Tier12"), -- A.
+	Grade_Tier13 = THEME:GetString("Grade", "Tier13"), -- A
+	Grade_Tier14 = THEME:GetString("Grade", "Tier14"), -- B
+	Grade_Tier15 = THEME:GetString("Grade", "Tier15"), -- C
+	Grade_Tier16 = THEME:GetString("Grade", "Tier16"),
+	Grade_Failed = THEME:GetString("Grade", "Failed")
 }
 
 local shortJudgeString = { -- Text strings for each Judgment types

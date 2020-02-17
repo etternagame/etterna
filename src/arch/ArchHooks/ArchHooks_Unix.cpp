@@ -191,9 +191,13 @@ ArchHooks::GetPreferredLanguage()
 {
 	RString locale;
 
-	if (getenv("LANG")) {
-		locale = getenv("LANG");
-		locale = locale.substr(0, 2);
+	const char* env = getenv("LANG");
+
+	if (env != NULL) {
+		char loc[64] = { 0 };
+		strncat(loc, env, sizeof(loc) - 1);
+		RString t(loc);
+		locale = t.substr(0, 2);
 	} else
 		locale = "en";
 

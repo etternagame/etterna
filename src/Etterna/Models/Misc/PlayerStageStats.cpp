@@ -192,19 +192,37 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 Grade
 GetGradeFromPercent(float fPercent)
 {
-	if (fPercent >= 0.9997f)
+	if (fPercent >= 0.99999f)
 		return Grade_Tier01;
-	if (fPercent >= 0.9975f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9999f)
 		return Grade_Tier02;
-	if (fPercent >= 0.93f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
 		return Grade_Tier03;
-	if (fPercent >= 0.8f)
+	if (fPercent >= 0.9997f)
 		return Grade_Tier04;
-	if (fPercent >= 0.7f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9992f)
 		return Grade_Tier05;
-	if (fPercent >= 0.6f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9985f)
 		return Grade_Tier06;
-	return Grade_Tier07;
+	if (fPercent >= 0.9975f)
+		return Grade_Tier07;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
+		return Grade_Tier08;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
+		return Grade_Tier09;
+	if (fPercent >= 0.93f)
+		return Grade_Tier10;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
+		return Grade_Tier11;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
+		return Grade_Tier12;
+	if (fPercent >= 0.8f)
+		return Grade_Tier13;
+	if (fPercent >= 0.7f)
+		return Grade_Tier14;
+	if (fPercent >= 0.6f)
+		return Grade_Tier15;
+	return Grade_Tier16;
 }
 
 Grade
@@ -414,7 +432,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 		return 1; // correct for rounding error
 
 	auto fCurMaxPercentDancePoints =
-	  static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	  static_cast<float>(m_iCurPossibleDancePoints) / m_iPossibleDancePoints;
 
 	return fCurMaxPercentDancePoints;
 }
