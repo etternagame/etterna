@@ -1,7 +1,7 @@
 # Release Changelog
 
 
-## [0.68.0] - 2020-02-17 - Hotfix
+## [0.68.0] - 2020-02-17 - New Color Editor & Borderless Fullscreen
 
 ### Added
 - AAAAA Grade, Midgrades, and SSRNormPercent prioritization - [#698](../../../pull/698)
