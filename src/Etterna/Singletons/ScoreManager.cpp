@@ -72,24 +72,17 @@ ScoresAtRate::GetSortedKeys()
 {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
-	FOREACHUM(string, HighScore, scores, i)
-	tmp.emplace(i->second.GetWifeScore(), i->first);
+	if (PREFSMAN->m_bSortBySSRNorm) {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetSSRNormPercent(), i->first);
+	} else {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetWifeScore(), i->first);
+	}
 	FOREACHM(float, string, tmp, j)
 	o.emplace_back(j->second);
 	return o;
 }
-
-/*
-const vector<HighScore*> ScoresAtRate::GetScores() const {
-	map<float, string, greater<float>> tmp;
-	vector<HighScore*> o;
-	FOREACHUM_CONST(string, HighScore, scores, i)
-		tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, string, tmp, j)
-		o.emplace_back(j->second);
-	return o;
-}
-*/
 
 void
 ScoreManager::PurgeScores()
