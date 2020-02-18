@@ -179,6 +179,7 @@ function scoreBoard(pn, position)
 					-- you ever hack something so hard?
 					aboutToForceWindowSettings = true
 					MESSAGEMAN:Broadcast("ForceWindow", {judge=4})
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
 				else
 					judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 					judge2 = judge
