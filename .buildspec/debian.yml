@@ -69,7 +69,7 @@ phases:
         LICENSE
         CHANGELOG.md
         .changelog/*
-      - > # Copy the portable zip to S3. Requireds the S3_BUILD_BUCKET environment variable to be set in the build config.
+      - > # Copy the portable zip to S3. Requires the S3_BUILD_BUCKET environment variable to be set in the build config.
         aws s3 cp
         $CODEBUILD_SRC_DIR/Etterna-Linux-Debian-based_commit-$CODEBUILD_RESOLVED_SOURCE_VERSION.zip
         $S3_BUILD_BUCKET
