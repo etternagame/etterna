@@ -93,6 +93,11 @@ local t =
 }
 
 local function scoreitem(pn, index, scoreIndex, drawindex)
+	-- first box always displays the number 1 score
+	if drawindex == 0 then
+		index = 1
+	end
+
 	--Whether the score at index is the score that was just played.
 	local equals = (index == scoreIndex)
 
@@ -117,7 +122,10 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			self:x(SCREEN_WIDTH*10)
 		end,
 		UpdatePageMessageCommand = function(self)
-			index = (curPage - 1) * lines + drawindex+1
+			if index == 1 then return end
+			-- this weird math sets the index for every element but the top one
+			-- so basically the order for 5 lines on the 2nd page is 1,6,7,8,9 and so on
+			index = (curPage - 1) * lines + drawindex+1 + (curPage > 1 and (-1 - (curPage > 2 and curPage-2 or 0)) or 0)
 			equals = (index == scoreIndex)
 			if hsTable[index] ~= nil then
 				self:playcommand("Show")
@@ -302,9 +310,10 @@ if lines > #hsTable then
 	lines = #hsTable
 end
 
+-- weird math explanation can be found above somewhere
 local drawindex = 0
-curPage = math.ceil(scoreIndex / lines)
-local startind = (curPage-1) * lines + 1
+curPage = math.ceil(scoreIndex / (lines-1))
+local startind = (curPage-1) * lines + 1 + (curPage > 1 and (-1 - (curPage > 2 and curPage-2 or 0)) or 0)
 
 while drawindex < lines do
 	t[#t+1] = scoreitem(player,startind,scoreIndex,drawindex)
