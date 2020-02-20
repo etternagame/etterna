@@ -20,6 +20,10 @@
 #include <chrono>
 #include <thread>
 
+#ifdef _WIN32
+#include "archutils/Win32/GraphicsWindow.h"
+#endif
+
 // Statistics stuff
 auto g_LastCheckTimer = std::chrono::steady_clock::now();
 int g_iNumVerts;
@@ -1364,6 +1368,17 @@ class LunaRageDisplay : public Luna<RageDisplay>
 		lua_pushboolean(L, p->SupportsFullscreenBorderlessWindow());
 		return 1;
 	}
+	static int MoveWindow(T* p, lua_State* L)
+	{
+		bool success = false;
+#ifdef _WIN32
+		int x = IArg(1);
+		int y = IArg(2);
+		success = GraphicsWindow::PushWindow(x, y);
+#endif
+		lua_pushboolean(L, success);
+		return 1;
+	}
 
 	LunaRageDisplay()
 	{
@@ -1376,6 +1391,7 @@ class LunaRageDisplay : public Luna<RageDisplay>
 		ADD_METHOD(GetDisplaySpecs);
 		ADD_METHOD(SupportsRenderToTexture);
 		ADD_METHOD(SupportsFullscreenBorderlessWindow);
+		ADD_METHOD(MoveWindow);
 	}
 };
 
