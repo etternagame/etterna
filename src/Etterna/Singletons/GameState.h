@@ -213,7 +213,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.68.0"; }
+	RString GetEtternaVersion() { return "0.68.1"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();

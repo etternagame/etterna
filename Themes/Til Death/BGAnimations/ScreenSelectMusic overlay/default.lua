@@ -92,8 +92,8 @@ t[#t + 1] =
 	}
 
 t[#t + 1] = LoadActor("../_cursor")
-t[#t + 1] = LoadActor("../_halppls")
 t[#t + 1] = LoadActor("currenttime")
+t[#t + 1] = LoadActor("../_halppls")
 
 GAMESTATE:UpdateDiscordMenu(
 	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..

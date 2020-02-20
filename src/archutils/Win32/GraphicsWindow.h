@@ -38,6 +38,9 @@ DestroyGraphicsWindow();
 void
 GetDisplaySpecs(DisplaySpecs& out);
 
+BOOL
+PushWindow(int a, int b);
+
 ActualVideoModeParams*
 GetParams();
 

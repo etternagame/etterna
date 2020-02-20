@@ -1587,8 +1587,11 @@ HighScore::WriteReplayData()
 float
 HighScore::ConvertDpToWife()
 {
-	if (m_Impl->fWifeScore > 0.f)
+	if (m_Impl->fWifeScore > 0.f) {
+		if (PREFSMAN->m_bSortBySSRNorm)
+			return m_Impl->fSSRNormPercent;
 		return m_Impl->fWifeScore;
+	}
 
 	if (m_Impl->grade == Grade_Failed)
 		return 0.f;

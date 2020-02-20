@@ -16,7 +16,10 @@ local translated_info = {
 }
 
 local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
-local originaljudge = GetTimingDifficulty()
+local originaljudge = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+
+-- im going to cry
+local aboutToForceWindowSettings = false
 
 t[#t + 1] =
 	LoadFont("Common Normal") ..
@@ -172,10 +175,15 @@ function scoreBoard(pn, position)
 			if not enabledCustomWindows then
 				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
 					judge = 4
+					judge2 = judge
+					-- you ever hack something so hard?
+					aboutToForceWindowSettings = true
+					MESSAGEMAN:Broadcast("ForceWindow", {judge=4})
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
 				else
 					judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+					judge2 = judge
 				end
-				judge2 = judge
 			end
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)
@@ -266,6 +274,9 @@ function scoreBoard(pn, position)
 			self:SetUpdateFunction(function(self)
 				self:queuecommand("PercentMouseover")
 			end)
+		end,
+		ForceWindowMessageCommand = function(self, params)
+			self:playcommand("Set")
 		end,
 		Def.Quad {
 			InitCommand = function(self)
@@ -451,7 +462,12 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")))
+				local mstring = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")
+				local ss = SCREENMAN:GetTopScreen():GetStageStats()
+				if not ss:GetLivePlay() then
+					mstring = SCREENMAN:GetTopScreen():GetReplayModifiers()
+				end
+				self:settext(getModifierTranslations(mstring))
 			end
 		}
 
@@ -472,7 +488,19 @@ function scoreBoard(pn, position)
 			BeginCommand = function(self)
 				self:glowshift():effectcolor1(color("1,1,1," .. tostring(pss:GetPercentageOfTaps(v) * 0.4))):effectcolor2(
 					color("1,1,1,0")
-				):sleep(0.5):decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
+				)
+				if aboutToForceWindowSettings then return end
+				self:sleep(0.5):decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
+			end,
+			ForceWindowMessageCommand = function(self, params)
+				if enabledCustomWindows then
+					self:finishtweening():decelerate(2):zoomx(
+						frameWidth * getRescoredCustomJudge(dvt, customWindow.judgeWindows, k) / totalTaps
+					)
+				else
+					local rescoreJudges = getRescoredJudge(dvt, judge, k)
+					self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
+				end
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -497,10 +525,14 @@ function scoreBoard(pn, position)
 					self:xy(frameX + 10, frameY + 80 + ((k - 1) * 22)):zoom(0.25):halign(0)
 				end,
 				BeginCommand = function(self)
+					if aboutToForceWindowSettings then return end
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
 					self:settext(getJudgeStrings(v))
+				end,
+				ForceWindowMessageCommand = function(self, params)
+					self:playcommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
 					if enabledCustomWindows and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
@@ -518,6 +550,7 @@ function scoreBoard(pn, position)
 					self:xy(frameX + frameWidth - 40, frameY + 80 + ((k - 1) * 22)):zoom(0.25):halign(1)
 				end,
 				BeginCommand = function(self)
+					if aboutToForceWindowSettings then return end
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
@@ -525,6 +558,13 @@ function scoreBoard(pn, position)
 				end,
 				ScoreChangedMessageCommand = function(self)
 					self:queuecommand("Set")
+				end,
+				ForceWindowMessageCommand = function(self, params)
+					if enabledCustomWindows then
+						self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
+					else
+						self:settext(getRescoredJudge(dvt, judge, k))
+					end
 				end,
 				CodeMessageCommand = function(self, params)
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -546,10 +586,20 @@ function scoreBoard(pn, position)
 					self:xy(frameX + frameWidth - 38, frameY + 80 + ((k - 1) * 22)):zoom(0.3):halign(0)
 				end,
 				BeginCommand = function(self)
+					if aboutToForceWindowSettings then return end
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
 					self:settextf("(%03.2f%%)", pss:GetPercentageOfTaps(v) * 100)
+				end,
+				ForceWindowMessageCommand = function(self, params)
+					local rescoredJudge
+					if enabledCustomWindows then
+						rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
+					else
+						rescoredJudge = getRescoredJudge(dvt, params.judge, k)
+					end
+					self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
 				end,
 				CodeMessageCommand = function(self, params)
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -657,6 +707,18 @@ function scoreBoard(pn, position)
 					greatTaps = score:GetTapNoteScore(judges[3])
 					self:playcommand("Set")
 				end
+			end,
+			ForceWindowMessageCommand = function(self)
+				if enabledCustomWindows then
+					marvelousTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 1)
+					perfectTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 2)
+					greatTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 3)
+				else
+					marvelousTaps = getRescoredJudge(dvt, judge, 1)
+					perfectTaps = getRescoredJudge(dvt, judge, 2)
+					greatTaps = getRescoredJudge(dvt, judge, 3)
+				end
+				self:playcommand("Set")
 			end
 		}
 
@@ -786,6 +848,31 @@ function scoreBoard(pn, position)
 				CodeMessageCommand = function(self, params)
 					local j = tonumber(self:GetName())
 					if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+						if j == 4 then
+							local tso = tst[judge]
+							if enabledCustomWindows then
+								tso = 1
+							end
+							mcscoot[j] = 0
+							mcscoot[j+1] = 0
+							for i = 1, #devianceTable do
+								if tracks[i] then	-- it would probably make sense to move all this to c++
+									if math.abs(devianceTable[i]) > tso * 90 then
+										if tracks[i] <= math.floor(ncol/2) then
+											mcscoot[j] = mcscoot[j] + 1
+										else
+											mcscoot[j+1] = mcscoot[j+1] + 1
+										end
+									end
+								end
+							end
+						end
+						self:xy(frameWidth + 20, frameY + 230 + 10 * j):zoom(0.4):halign(1):settext(mcscoot[j])
+					end
+				end,
+				ForceWindowMessageCommand = function(self)
+					local j = tonumber(self:GetName())
+					if j > 3 then
 						if j == 4 then
 							local tso = tst[judge]
 							if enabledCustomWindows then
