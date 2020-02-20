@@ -29,6 +29,18 @@ if GAMESTATE:IsPlayerEnabled(player) then
 	scoreIndex = getHighScoreIndex(hsTable, score)
 end
 
+local curPage = 1
+local maxPages = math.ceil(#hsTable/lines)
+
+local function movePage(n)
+	if n > 0 then 
+		curPage = ((curPage+n-1) % maxPages + 1)
+	else
+		curPage = ((curPage+n+maxPages-1) % maxPages+1)
+	end
+	MESSAGEMAN:Broadcast("UpdatePage")
+end
+
 --Input event for mouse clicks
 local function input(event)
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
@@ -52,6 +64,22 @@ local function input(event)
 			end
 		end
 	end
+	if event.type == "InputEventType_FirstPress" and scoreBoard then
+		if event.button == "MenuLeft" then
+			movePage(-1)
+		end
+
+		if event.button == "MenuRight" then
+			movePage(1)
+		end
+
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+			MESSAGEMAN:Broadcast("WheelUpSlow")
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+			MESSAGEMAN:Broadcast("WheelDownSlow")
+		end
+
+	end
 	return false
 end
 
@@ -64,11 +92,6 @@ local t =
 }
 
 local function scoreitem(pn, index, scoreIndex, drawindex)
-	--First box always displays the 1st place score
-	if drawindex == 0 then
-		index = 1
-	end
-
 	--Whether the score at index is the score that was just played.
 	local equals = (index == scoreIndex)
 
@@ -76,6 +99,31 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 	local t =
 		Def.ActorFrame {
 		Name = "scoreItem" .. tostring(drawindex),
+		ShowCommand = function(self)
+			self:playcommand("Begin")
+			self:x(100)
+			self:diffusealpha(0)
+			self:finishtweening()
+			self:sleep((drawindex)*0.03)
+			self:linear(0.3)
+			self:x(0)
+			self:diffusealpha(1)
+		end,
+		HideCommand = function(self)
+			self:stoptweening()
+			self:linear(0.1)
+			self:diffusealpha(0)
+			self:x(SCREEN_WIDTH*10)
+		end,
+		UpdatePageMessageCommand = function(self)
+			index = (curPage - 1) * lines + drawindex+1
+			equals = (index == scoreIndex)
+			if hsTable[index] ~= nil then
+				self:playcommand("Show")
+			else
+				self:playcommand("Hide")
+			end
+		end,
 		--The main quad
 		Def.Quad {
 			InitCommand = function(self)
@@ -110,12 +158,11 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 		--ClearType lamps
 		Def.Quad {
 			InitCommand = function(self)
-				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(8, 30):halign(0):valign(0):diffuse(
-					getClearTypeFromScore(pn, hsTable[index], 2)
-				)
+				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(8, 30):halign(0):valign(0)
 			end,
 			BeginCommand = function(self)
-				self:visible(GAMESTATE:IsHumanPlayer(pn))
+				self:visible(GAMESTATE:IsHumanPlayer(pn)):diffuse(
+					getClearTypeFromScore(pn, hsTable[index], 2))
 			end
 		},
 		--rank
@@ -251,26 +298,13 @@ if lines > #hsTable then
 end
 
 local drawindex = 0
-local startind = 1
-local finishind = lines + startind - 1
+curPage = math.ceil(scoreIndex / lines)
+local startind = (curPage-1) * lines + 1
 
--- Sets the range of indexes to display depending on your rank
-if scoreIndex > math.floor(#hsTable - lines / 2) then
-	startind = #hsTable - lines + 1
-	finishind = #hsTable
-elseif scoreIndex > math.floor(lines / 2) then
-	finishind = scoreIndex + math.floor(lines / 2)
-	if lines % 2 == 1 then
-		startind = scoreIndex - math.floor(lines / 2)
-	else
-		startind = scoreIndex - math.floor(lines / 2) + 1
-	end
-end
-
-while drawindex < #hsTable and startind <= finishind do
-	t[#t + 1] = scoreitem(player, startind, scoreIndex, drawindex)
-	startind = startind + 1
-	drawindex = drawindex + 1
+while drawindex < lines do
+	t[#t+1] = scoreitem(player,startind,scoreIndex,drawindex)
+	startind = startind+1
+	drawindex  = drawindex+1
 end
 
 --Update function for showing mouse rollovers
@@ -293,5 +327,25 @@ end
 t.InitCommand = function(self)
 	self:SetUpdateFunction(Update)
 end
+
+t[#t+1] = Def.Quad {
+	InitCommand = function(self)
+		self:xy(framex - 20,framey - 20)
+		self:valign(0):halign(0)
+		self:diffusealpha(0)
+		self:zoomto(20 + frameWidth, 20 + (30) * lines + lines * (5))
+	end,
+	WheelUpSlowMessageCommand = function(self)
+		if isOver(self) then
+			movePage(-1)
+		end
+	end,
+	WheelDownSlowMessageCommand = function(self)
+		if isOver(self) then
+			movePage(1)
+		end
+	end
+
+}
 
 return t
