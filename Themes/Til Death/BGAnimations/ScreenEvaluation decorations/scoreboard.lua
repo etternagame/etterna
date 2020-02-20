@@ -13,6 +13,7 @@ local hsTable
 local rtTable
 local scoreIndex
 local score
+local usingSSRSort = PREFSMAN:GetPreference("SortBySSRNormPercent")
 
 local player = GAMESTATE:GetEnabledPlayers()[1]
 
@@ -190,10 +191,14 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
 				end,
 				BeginCommand = function(self)
+					local wstring = "Wife"
+					if usingSSRSort then
+						wstring = "Wife J4"
+					end
 					if hsTable[index]:GetWifeScore() == 0 then
-						self:settextf("NA (%s)", "Wife")
+						self:settextf("NA (%s)", wstring)
 					else
-						self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, "Wife")
+						self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, wstring)
 					end
 				end
 			},
