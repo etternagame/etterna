@@ -163,7 +163,7 @@ local t =
 	Def.ActorFrame {
 	Name = "WifePerch",
 	OnCommand = function(self)
-		if allowedCustomization then
+		if allowedCustomization and SCREENMAN:GetTopScreen():GetName() ~= "ScreenGameplaySyncMachine" then
 			-- auto enable autoplay
 			GAMESTATE:SetAutoplay(true)
 		else
