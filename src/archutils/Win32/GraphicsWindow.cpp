@@ -592,9 +592,9 @@ GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 	int i = 0;
 	std::set<DisplayMode> modes;
 	while (EnumDisplaySettingsEx(nullptr, i++, dm.get(), 0)) {
-		if (isvalid(dm) /*&& ChangeDisplaySettingsEx(
+		if (isvalid(dm) && ChangeDisplaySettingsEx(
 							 nullptr, dm.get(), nullptr, CDS_TEST, nullptr) ==
-							 DISP_CHANGE_SUCCESSFUL*/) {
+							 DISP_CHANGE_SUCCESSFUL) {
 			DisplayMode m = { dm->dmPelsWidth,
 							  dm->dmPelsHeight,
 							  static_cast<double>(dm->dmDisplayFrequency) };
@@ -619,6 +619,26 @@ GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 	} else {
 		LOG->Warn("Could not retrieve *any* DisplaySpecs!");
 	}
+}
+
+BOOL
+GraphicsWindow::PushWindow(int a, int b)
+{
+	HWND g = GetHwnd();
+
+	if (!g_ActualParams.windowed)
+		return 0;
+
+	RECT r;
+	GetWindowRect(g, &r);
+	// The immediately below is for "Aero Glass"
+	// DwmGetWindowAttribute(g, DWMWA_EXTENDED_FRAME_BOUNDS, &r, sizeof(r));
+
+	int x = r.left + a;
+	int y = r.top + b;
+
+	return SetWindowPos(
+	  g, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 /*

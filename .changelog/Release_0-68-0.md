@@ -21,3 +21,4 @@
 - Pack Downloader buttons always returned the mirror even if not clicking mirror - [9c00f34](../../../commit/9c00f3415955a390edd4bfd20bbe92a8d7d4a441)
 - Playlist creation overlay used to stop music - [7c0ddb9](../../../commit/7c0ddb993a2cbfb72e0a6635e61ebe5b5547596e)
 - Resolved around 200 simple coverity defects - [#683](../../../pull/683)
+    

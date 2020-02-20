@@ -13,10 +13,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)                                                  \
-	THEME->GetMetricF(                                                         \
-	  "PlayerStageStats",                                                      \
-	  ssprintf("GradePercent%s", GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
 	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsAllW2s")
@@ -287,24 +283,24 @@ PlayerStageStats::GetGrade() const
 	// TODO: Change these conditions to use Lua instead. -aj
 	if (GRADE_TIER02_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W1))
-			return Grade_Tier01;
+			return Grade_Tier04; // quad
 
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier02;
+			return Grade_Tier07; // triple
 
 		grade = max(grade, Grade_Tier03);
 	}
 
 	if (GRADE_TIER01_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier01;
-		grade = max(grade, Grade_Tier02);
+			return Grade_Tier04;		  // quad
+		grade = max(grade, Grade_Tier07); // triple
 	}
 
 	if (GRADE_TIER02_IS_FULL_COMBO) {
 		if (FullComboOfScore(g_MinScoreToMaintainCombo))
-			return Grade_Tier02;
-		grade = max(grade, Grade_Tier03);
+			return Grade_Tier07;		  // triple
+		grade = max(grade, Grade_Tier10); // double
 	}
 
 	return grade;
