@@ -2369,7 +2369,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	m_TempFileName =
 	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
-	ASSERT(opened);
+	ASSERT_M(opened, p_RFWrapper.file.GetError());
 	DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
