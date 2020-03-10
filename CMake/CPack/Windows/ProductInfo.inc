@@ -6,7 +6,7 @@
 
 !define PRODUCT_ID "Etterna"
 ; TODO: This needs to be updated with the git rev hash
-!define PRODUCT_VER "v0.68.1"
+!define PRODUCT_VER "v0.69.0"
 !define PRODUCT_DISPLAY "${PRODUCT_FAMILY} ${PRODUCT_VER}"
 !define PRODUCT_BITMAP "ett"
 
