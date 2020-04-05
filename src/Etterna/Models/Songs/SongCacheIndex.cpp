@@ -778,7 +778,7 @@ SongCacheIndex::LoadCache(
 	int count = 0;
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
-		if (ld && count > 0) {
+		if (ld != nullptr && count > 0) {
 			ld->SetIndeterminate(false);
 			ld->SetText("Loading Cache\n");
 			ld->SetProgress(0);
