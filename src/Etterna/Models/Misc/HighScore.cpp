@@ -1439,8 +1439,8 @@ HighScore::RescoreToWifeJudge(int x)
 
 	/* we don't want to have to access notedata when loading or rescording
 	scores so we use the vector length of offset replay data to determine point
-	denominators however full replays store mine and hold drop offsets, meaning
-	we have to screen them out when calculating the max points -mina*/
+	denominators however full replays store mine hits as offsets, meaning
+	we have to screen them out when calculating the max points*/
 	if (m_Impl->ReplayType == 2) {
 		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
 
