@@ -1773,16 +1773,6 @@ class LunaHighScore : public Luna<HighScore>
 		lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1)));
 		return 1;
 	}
-	static int RescoreToWifeJoodge(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->RescoreToWifeJoodge(IArg(1)));
-		return 1;
-	}
-	static int RescoreToWifeJoodge2(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->RescoreToWifeJoodge2(IArg(1)));
-		return 1;
-	}
 	static int RescoreToDPJudge(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->RescoreToDPJudge(IArg(1)));
@@ -1954,9 +1944,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(ConvertDpToWife);
 		ADD_METHOD(GetWifeScore);
 		ADD_METHOD(GetWifePoints);
-		ADD_METHOD( RescoreToWifeJoodge );	// REMOVE WHEN ALL MOVED TO LUA
-		ADD_METHOD(RescoreToWifeJoodge2);
-		ADD_METHOD(RescoreToWifeJudge);
+		//ADD_METHOD(RescoreToWifeJudge);
 		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD(RescoreJudges);
 		ADD_METHOD(GetSkillsetSSR);
