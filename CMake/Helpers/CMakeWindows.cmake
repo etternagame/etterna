@@ -32,7 +32,7 @@ set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 target_compile_options(Etterna PRIVATE /W3)
 
 # Linking - Windows Only
-target_link_libraries(Etterna curl)
+target_link_libraries(Etterna libcurl)
 target_link_libraries(Etterna ffmpeg)
 
 find_package(DirectX REQUIRED)
