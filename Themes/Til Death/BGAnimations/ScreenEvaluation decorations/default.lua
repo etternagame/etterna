@@ -308,7 +308,7 @@ function scoreBoard(pn, position)
 				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
 					ws = "Wife J4"
 				end
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:GetWifeScore() * 10000) / 100, ws)
+				self:settextf("%05.2f%% : %05.2f%% (%s)", notShit.floor(score:GetWifeScore() * 10000) / 100, notShit.floor(score:RescoreToWifeJoodge(GetTimingDifficulty()) * 10000) / 100, ws)
 			end,
 			ScoreChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -345,25 +345,31 @@ function scoreBoard(pn, position)
 				elseif params.Name == "PrevJudge" and judge > 1 then
 					judge = judge - 1
 					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local perc2 = score:RescoreToWifeJoodge(judge) * 100	-- move to lua sooner rather than later
+					local perc3 = score:RescoreToWifeJoodge2(judge) * 100	-- cause this stuff is borked with olde replays
 					self:settextf(
-						"%05.2f%% (%s)",
-						perc,
-						"Wife J" .. judge
+						self:settextf(
+							"%05.2f%% : %05.2f%% (%s)",
+							perc, perc2,
+							"Wife J" .. judge
+						)
 					)
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				elseif params.Name == "NextJudge" and judge < 9 then
 					judge = judge + 1
 					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local perc2 = score:RescoreToWifeJoodge(judge) * 100	-- move to lua sooner rather than later
+					local perc3 = score:RescoreToWifeJoodge2(judge) * 100
 					if judge == 9 then
 						self:settextf(
-							"%05.2f%% (%s)",
-							perc,
+							"%05.2f%% : %05.2f%% (%s)",
+							perc, perc2,
 							"Wife Justice"
 						)
 					else
 						self:settextf(
-							"%05.2f%% (%s)",
-							perc,
+							"%05.2f%% : %05.2f%% (%s)",
+							perc, perc2,
 							"Wife J" .. judge
 						)
 					end

@@ -1454,6 +1454,79 @@ HighScore::RescoreToWifeJudge(int x)
 }
 
 float
+HighScore::RescoreToWifeJoodge(int x)
+{
+	if (!LoadReplayData())
+		return m_Impl->fWifeScore;
+
+	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
+						  0.66f, 0.50f, 0.33f, 0.20f };
+	float ts = tso[x - 1];
+	float p = 0;
+	for (auto& n : m_Impl->vOffsetVector)
+		p += wife3(abs(n * 1000.f), ts);
+
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
+		  m_Impl->iHoldNoteScores[HNS_Missed]) *
+		 -6.f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+
+	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+
+	/* we don't want to have to access notedata when loading or rescording
+	scores so we use the vector length of offset replay data to determine point
+	denominators however full replays store mine and hold drop offsets, meaning
+	we have to screen them out when calculating the max points -mina*/
+	if (m_Impl->ReplayType == 2) {
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+
+		// we screened out extra offsets due to mines in the replay from the
+		// denominator but we've still increased the numerator with 0.00f
+		// offsets (2pts)
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+	}
+
+	return p / pmax;
+}
+
+float
+HighScore::RescoreToWifeJoodge2(int x)
+{
+	if (!LoadReplayData())
+		return m_Impl->fWifeScore;
+
+	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
+						  0.66f, 0.50f, 0.33f, 0.20f };
+	float ts = tso[x - 1];
+	float p = 0;
+	for (auto& n : m_Impl->vOffsetVector)
+		p += wife4(abs(n * 1000.f), ts);
+
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
+		  m_Impl->iHoldNoteScores[HNS_Missed]) *
+		 -6.f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+
+	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+
+	/* we don't want to have to access notedata when loading or rescording
+	scores so we use the vector length of offset replay data to determine point
+	denominators however full replays store mine and hold drop offsets, meaning
+	we have to screen them out when calculating the max points -mina*/
+	if (m_Impl->ReplayType == 2) {
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+
+		// we screened out extra offsets due to mines in the replay from the
+		// denominator but we've still increased the numerator with 0.00f
+		// offsets (2pts)
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+	}
+
+	return p / pmax;
+}
+
+
+float
 HighScore::RescoreToWifeJudgeDuringLoad(int x)
 {
 	if (!LoadReplayData())
@@ -1700,6 +1773,16 @@ class LunaHighScore : public Luna<HighScore>
 		lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1)));
 		return 1;
 	}
+	static int RescoreToWifeJoodge(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->RescoreToWifeJoodge(IArg(1)));
+		return 1;
+	}
+	static int RescoreToWifeJoodge2(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->RescoreToWifeJoodge2(IArg(1)));
+		return 1;
+	}
 	static int RescoreToDPJudge(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->RescoreToDPJudge(IArg(1)));
@@ -1871,8 +1954,10 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(ConvertDpToWife);
 		ADD_METHOD(GetWifeScore);
 		ADD_METHOD(GetWifePoints);
-		// ADD_METHOD( RescoreToWifeJudge );
-		// ADD_METHOD( RescoreToDPJudge );
+		ADD_METHOD( RescoreToWifeJoodge );	// REMOVE WHEN ALL MOVED TO LUA
+		ADD_METHOD(RescoreToWifeJoodge2);
+		ADD_METHOD(RescoreToWifeJudge);
+		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD(RescoreJudges);
 		ADD_METHOD(GetSkillsetSSR);
 		ADD_METHOD(GetMusicRate);

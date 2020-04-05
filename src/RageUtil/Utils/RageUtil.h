@@ -137,6 +137,9 @@ wife2(float maxms, float ts)
 	return (2 - -8) * (1 - y) + -8;
 }
 
+float wife3(float maxms, float ts);
+float wife4(float maxms, float ts);
+
 inline void
 wrap(int& x, int n)
 {
