@@ -504,6 +504,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	  onUpdate,
 	  callback,
 	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+
+	SCOREMAN->scorestorecalc.clear();
+	SCOREMAN->scorestorecalc.shrink_to_fit();
 	return;
 }
 
