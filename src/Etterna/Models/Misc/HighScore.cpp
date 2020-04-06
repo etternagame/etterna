@@ -640,12 +640,8 @@ HighScore::LoadReplayDataFull()
 	int tmp;
 
 	// check file
-	if (!fileStream) {
-		LOG->Trace(
-		  "Failed to load replay data at %s, checking for older replay version",
-		  path.c_str());
+	if (!fileStream)
 		return false;
-	}
 
 	// loop until eof
 	while (getline(fileStream, line)) {
