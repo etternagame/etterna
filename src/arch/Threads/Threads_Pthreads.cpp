@@ -4,6 +4,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include <sys/time.h>
 #include <errno.h>
+#include <chrono>
 
 #ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
@@ -171,10 +172,7 @@ MutexImpl_Pthreads::Lock()
 	}
 #endif
 
-	int ret;
-	do {
-		ret = pthread_mutex_lock(&mutex);
-	} while (ret == -1 && ret == EINTR);
+	int ret = pthread_mutex_lock(&mutex);
 
 	ASSERT_M(ret == 0, ssprintf("pthread_mutex_lock: %s", strerror(errno)));
 
@@ -342,8 +340,11 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		/* If we support condattr_setclock, we'll set the condition to use
 		 * the same clock as RageTimer and can use it directly. If the
 		 * clock is CLOCK_REALTIME, that's the default anyway. */
-		abstime.tv_sec = pTimeout->m_secs;
-		abstime.tv_nsec = pTimeout->m_us * 1000;
+		uint64_t usec = pTimeout->c_dur.count();
+		unsigned sec = floor(usec / 1000000);
+		unsigned nsec = (usec - sec * 1000000) * 1000;
+		abstime.tv_sec = sec;
+		abstime.tv_nsec = nsec;
 	} else {
 		// The RageTimer clock is different than the wait clock; convert it.
 		timeval tv;
@@ -354,8 +355,11 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		float fSecondsInFuture = -pTimeout->Ago();
 		timeofday += fSecondsInFuture;
 
-		abstime.tv_sec = timeofday.m_secs;
-		abstime.tv_nsec = timeofday.m_us * 1000;
+		uint64_t usec = timeofday.c_dur.count();
+		unsigned sec = floor(usec / 1000000);
+		unsigned nsec = (usec - sec * 1000000) * 1000;
+		abstime.tv_sec = sec;
+		abstime.tv_nsec = nsec;
 	}
 
 	int iRet = pthread_cond_timedwait(&m_Cond, &m_pParent->mutex, &abstime);
@@ -564,28 +568,3 @@ MakeSemaphore(int iInitialValue)
 {
 	return new SemaImpl_Pthreads(iInitialValue);
 }
-
-/*
- * (c) 2001-2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

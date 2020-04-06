@@ -149,6 +149,31 @@ X11Helper::MakeWindow(Window& win,
 	return true;
 }
 
+void
+X11Helper::SetWMState(const Window& root,
+					  const Window& win,
+					  const long action,
+					  const Atom atom)
+{
+	if (!Dpy)
+		return;
+	Atom wm_state = XInternAtom(Dpy, "_NET_WM_STATE", False);
+	XEvent xev;
+	memset(&xev, 0, sizeof(xev));
+	xev.type = ClientMessage;
+	xev.xclient.window = Win;
+	xev.xclient.message_type = wm_state;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = action; // 0 = Remove, 1 = Add, 2 = Toggle
+	xev.xclient.data.l[1] = atom;
+	xev.xclient.data.l[2] = 0; // end list of Atoms
+	XSendEvent(Dpy,
+			   root,
+			   False,
+			   SubstructureRedirectMask | SubstructureNotifyMask,
+			   &xev);
+}
+
 int
 ErrorCallback(Display* d, XErrorEvent* err)
 {
@@ -171,27 +196,88 @@ FatalCallback(Display* d)
 	RageException::Throw("Fatal I/O error communicating with X server.");
 }
 
-/*
- * (c) 2005, 2006 Ben Anderson, Steve Checkoway
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+
+bool
+X11Helper::SetWMFullscreenMonitors(const DisplaySpec& target)
+{
+	int num_screens = 0;
+	XineramaScreenInfo* screens = XineramaQueryScreens(Dpy, &num_screens);
+	if (screens == nullptr) {
+		return false;
+	}
+
+	XineramaScreenInfo* end = screens + num_screens;
+	RectI monitors{};
+	bool found_bounds = false;
+
+	if (target.isVirtual()) {
+		auto topmost = std::min_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.y_org < b.y_org;
+		  });
+		monitors.top = topmost->screen_number;
+
+		auto bottommost = std::max_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.y_org < b.y_org;
+		  });
+		monitors.bottom = bottommost->screen_number;
+
+		auto leftmost = std::min_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.x_org < b.x_org;
+		  });
+		monitors.left = leftmost->screen_number;
+
+		auto rightmost = std::max_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.x_org < b.x_org;
+		  });
+		monitors.right = rightmost->screen_number;
+		found_bounds = true;
+	} else if (target.currentMode() != nullptr) {
+		auto mon = std::find_if(screens, end, [&](XineramaScreenInfo& screen) {
+			return screen.x_org == target.currentBounds().left &&
+				   screen.y_org == target.currentBounds().top &&
+				   screen.width == target.currentMode()->width &&
+				   screen.height == target.currentMode()->height;
+		});
+		if (mon != end) {
+			monitors.left = monitors.right = monitors.top = monitors.bottom =
+			  mon->screen_number;
+			found_bounds = true;
+		}
+	}
+
+	XFree(screens);
+	XWindowAttributes attr = { 0 };
+	if (!found_bounds || !XGetWindowAttributes(Dpy, Win, &attr)) {
+		return false;
+	}
+
+	SetWMState(
+	  attr.root, Win, 1, XInternAtom(Dpy, "_NET_WM_STATE_FULLSCREEN", False));
+
+	XClientMessageEvent xclient = { 0 };
+	xclient.type = ClientMessage;
+	xclient.window = Win;
+	xclient.message_type =
+	  XInternAtom(Dpy, "_NET_WM_FULLSCREEN_MONITORS", False);
+	xclient.format = 32;
+	xclient.data.l[0] = monitors.top;
+	xclient.data.l[1] = monitors.bottom;
+	xclient.data.l[2] = monitors.left;
+	xclient.data.l[3] = monitors.right;
+	xclient.data.l[4] = 1;
+	XSendEvent(Dpy,
+			   attr.root,
+			   False,
+			   SubstructureRedirectMask | SubstructureNotifyMask,
+			   reinterpret_cast<XEvent*>(&xclient));
+	XFlush(Dpy);
+
+	return true;
+}
+#endif

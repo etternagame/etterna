@@ -383,6 +383,12 @@ using lutime_t = int; // define it ourselves since we don't include time.h
 typedef struct iztimes
 {
 	lutime_t atime, mtime, ctime;
+	iztimes()
+	{
+		atime = 0;
+		mtime = 0;
+		ctime = 0;
+	}
 } iztimes; // access, modify, create times
 
 typedef struct zlist
@@ -604,6 +610,18 @@ class TZip
 	TZip()
 	  : pfout(NULL)
 	{
+		opos = 0;
+		mapsize = 0;
+		attr = 0;
+		times = iztimes();
+		timestamp = 0;
+		isize = 0;
+		ired = 0;
+		crc = 0;
+		bufin = 0;
+		lenin = 0;
+		posin = 0;
+		csize = 0;
 	}
 	~TZip() = default;
 

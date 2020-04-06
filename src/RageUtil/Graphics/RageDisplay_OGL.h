@@ -1,10 +1,12 @@
-﻿/* RageDisplay_Legacy: OpenGL renderer. */
+/* RageDisplay_Legacy: OpenGL renderer. */
 
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
+#include "Etterna/Actor/Base/Sprite.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -37,7 +39,7 @@ class RageDisplay_Legacy : public RageDisplay
 				 bool bAllowUnacceleratedRenderer) override;
 
 	RString GetApiDescription() const override { return "OpenGL"; }
-	void GetDisplayResolutions(DisplayResolutions& out) const override;
+	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
@@ -50,7 +52,7 @@ class RageDisplay_Legacy : public RageDisplay
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override;
+	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -65,6 +67,7 @@ class RageDisplay_Legacy : public RageDisplay
 					   int width,
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
+	bool UseOffscreenRenderTarget();
 	RageSurface* GetTexture(intptr_t iTexture) override;
 	RageTextureLock* CreateTextureLock() override;
 
@@ -78,6 +81,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetEffectMode(EffectMode effect) override;
 	bool IsEffectModeSupported(EffectMode effect) override;
 	bool SupportsRenderToTexture() const;
+	bool SupportsFullscreenBorderlessWindow() const;
 	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
@@ -145,31 +149,9 @@ class RageDisplay_Legacy : public RageDisplay
 	bool SupportsSurfaceFormat(RagePixelFormat pixfmt);
 
 	void SendCurrentMatrices();
+
+  private:
+	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
 #endif
-
-/*
- * Copyright (c) 2001-2011 Chris Danford, Glenn Maynard, Colby Klein
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

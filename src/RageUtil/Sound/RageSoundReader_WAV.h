@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_WAV - WAV reader. */
+/* RageSoundReader_WAV - WAV reader. */
 
 #ifndef RAGE_SOUND_READER_WAV_H
 #define RAGE_SOUND_READER_WAV_H
@@ -30,9 +30,10 @@ class RageSoundReader_WAV : public RageSoundReader_FileReader
 
 	struct WavData
 	{
-		int32_t m_iDataChunkPos, m_iDataChunkSize, m_iExtraFmtPos,
-		  m_iSampleRate, m_iFormatTag;
-		int16_t m_iChannels, m_iBitsPerSample, m_iBlockAlign, m_iExtraFmtBytes;
+		int32_t m_iDataChunkPos = 0, m_iDataChunkSize = 0, m_iExtraFmtPos = 0,
+				m_iSampleRate = 0, m_iFormatTag = 0;
+		int16_t m_iChannels = 0, m_iBitsPerSample = 0, m_iBlockAlign = 0,
+				m_iExtraFmtBytes = 0;
 	};
 
   private:
@@ -42,28 +43,3 @@ class RageSoundReader_WAV : public RageSoundReader_FileReader
 };
 
 #endif
-
-/*
- * (c) 2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

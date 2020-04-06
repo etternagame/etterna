@@ -183,7 +183,7 @@ Song::Reset()
 }
 
 void
-Song::AddBackgroundChange(BackgroundLayer iLayer, BackgroundChange seg)
+Song::AddBackgroundChange(BackgroundLayer iLayer, const BackgroundChange& seg)
 {
 	// Delete old background change at this start beat, if any.
 	FOREACH(BackgroundChange, GetBackgroundChanges(iLayer), bgc)
@@ -199,7 +199,7 @@ Song::AddBackgroundChange(BackgroundLayer iLayer, BackgroundChange seg)
 }
 
 void
-Song::AddForegroundChange(BackgroundChange seg)
+Song::AddForegroundChange(const BackgroundChange& seg)
 {
 	BackgroundUtil::AddBackgroundChange(GetForegroundChanges(), seg);
 }
@@ -1040,10 +1040,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 		SongUtil::AdjustDuplicateSteps(this);
 
 		// Clear fields for files that turned out to not exist.
-#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                           \
+#define CLEAR_NOT_HAS(has_name, field_name, field_name2)                       \
 	if (!(has_name)) {                                                         \
 		(field_name) = "";                                                     \
-		(field_name2) = "";							\
+		(field_name2) = "";                                                    \
 	}
 		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile, m_sBannerPath);
 		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile, m_sBackgroundPath);
@@ -1418,7 +1418,9 @@ Song::GetCacheFile(std::string sType)
 	PreDefs["Disc"] = GetDiscPath();
 
 	// Check if Predefined images exist, And return function if they do.
-	if (PreDefs[sType.c_str()].c_str())		// pretty sure this evaluates to true even if the string is "", but haven't tested extensively
+	if (PreDefs[sType.c_str()]
+		  .c_str()) // pretty sure this evaluates to true even if the string is
+					// "", but haven't tested extensively
 		return PreDefs[sType.c_str()].c_str();
 
 	// Get all image files and put them into a vector.
@@ -1944,7 +1946,7 @@ Song::IsMarathon() const
 }
 
 void
-Song::Borp()
+Song::PlaySampleMusicExtended()
 {
 	GameSoundManager::PlayMusicParams PlayParams;
 	PlayParams.sFile = GetMusicPath();
@@ -1956,11 +1958,13 @@ Song::Borp()
 	PlayParams.fFadeOutLengthSeconds = 1.f;
 	PlayParams.bAlignBeat = true;
 	PlayParams.bApplyMusicRate = true;
+	PlayParams.bAccurateSync = true;
 
 	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = GetMusicPath();
+	FallbackMusic.sFile = "";
 	FallbackMusic.fFadeInLengthSeconds = 1.f;
 	FallbackMusic.bAlignBeat = true;
+	FallbackMusic.bAccurateSync = true;
 
 	if (PlayParams.fLengthSeconds <
 		3.f) { // if the songpreview is after the last note
@@ -1969,27 +1973,7 @@ Song::Borp()
 		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
 	}
 	SOUND->PlayMusic(PlayParams, FallbackMusic);
-}
-
-void
-Song::Norf()
-{
-	GameSoundManager::PlayMusicParams PlayParams;
-	PlayParams.sFile = GetMusicPath();
-	PlayParams.pTiming = nullptr;
-	PlayParams.bForceLoop = true;
-	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds = m_fMusicSampleLengthSeconds;
-	PlayParams.fFadeOutLengthSeconds = 1.f;
-	PlayParams.bAlignBeat = true;
-	PlayParams.bApplyMusicRate = true;
-
-	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = GetMusicPath();
-	FallbackMusic.fFadeInLengthSeconds = 1.f;
-	FallbackMusic.bAlignBeat = true;
-
-	SOUND->PlayMusic(PlayParams, FallbackMusic);
+	GAMESTATE->SetPaused(false);
 }
 
 // lua start
@@ -2397,14 +2381,9 @@ class LunaSong : public Luna<Song>
 		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
-	static int Borp(T* p, lua_State* L)
+	static int PlaySampleMusicExtended(T* p, lua_State* L)
 	{
-		p->Borp();
-		return 0;
-	}
-	static int Norf(T* p, lua_State* L)
-	{
-		p->Norf();
+		p->PlaySampleMusicExtended();
 		return 0;
 	}
 	LunaSong()
@@ -2471,35 +2450,9 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewVidPath);
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
-		ADD_METHOD(Borp);
-		ADD_METHOD(Norf);
+		ADD_METHOD(PlaySampleMusicExtended);
 	}
 };
 
 LUA_REGISTER_CLASS(Song)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

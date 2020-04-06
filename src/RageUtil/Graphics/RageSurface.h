@@ -51,8 +51,8 @@ struct RageSurfaceFormat
 	RageSurfaceFormat(const RageSurfaceFormat& cpy);
 	~RageSurfaceFormat();
 
-	int32_t BytesPerPixel;
-	int32_t BitsPerPixel;
+	int32_t BytesPerPixel = 1;
+	int32_t BitsPerPixel = 8;
 	uint32_t Mask[4];
 	uint32_t Shift[4];
 	uint8_t Loss[4];
@@ -87,8 +87,8 @@ struct RageSurface
 	uint8_t* pixels;
 	bool pixels_owned;
 	bool stb_loadpoint;
-	int32_t w, h, pitch;
-	int32_t flags;
+	int32_t w = 0, h = 0, pitch = 0;
+	int32_t flags = 0;
 
 	RageSurface();
 	RageSurface(const RageSurface& cpy);
@@ -115,28 +115,3 @@ CreateSurfaceFrom(int width,
 				  uint32_t pitch);
 
 #endif
-
-/*
- * (c) 2001-2004 Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

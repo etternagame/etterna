@@ -47,6 +47,12 @@ local defaultConfig = {
 		Hard = "#ff6666", -- red
 		Challenge = "#c97bff", -- Purple
 		Edit = "#666666", -- gray
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
 	difficultyVivid = {
 		Difficulty_Beginner = "#0099ff", -- light blue
@@ -61,25 +67,31 @@ local defaultConfig = {
 		Hard = "#ff0000", -- red
 		Challenge = "#cc66ff", -- Purple
 		Edit = "#666666", -- gray
+		Difficulty_Crazy = "#cc66ff",
+		Difficulty_Freestyle = "#666666",
+		Difficulty_Nightmare = "#666666",
+		Crazy = "#cc66ff",
+		Freestyle = "#666666",
+		Nightmare = "#666666"
 	},
-	grade = {
-		Grade_Tier01 = "#66ccff", -- AAAA
-		Grade_Tier02 = "#eebb00", -- AAA
-		Grade_Tier03 = "#66cc66", -- AA
-		Grade_Tier04 = "#da5757", -- A
-		Grade_Tier05 = "#5b78bb", -- B
-		Grade_Tier06 = "#c97bff", -- C
-		Grade_Tier07 = "#8c6239", -- D
-		Grade_Tier08 = "#000000", -- ITG PLS
-		Grade_Tier09 = "#000000", -- ITG PLS
-		Grade_Tier10 = "#000000", -- ITG PLS
-		Grade_Tier11 = "#000000", -- ITG PLS
-		Grade_Tier12 = "#000000", -- ITG PLS
-		Grade_Tier13 = "#000000", -- ITG PLS
-		Grade_Tier14 = "#000000", -- ITG PLS
-		Grade_Tier15 = "#000000", -- ITG PLS
-		Grade_Tier16 = "#000000", -- ITG PLS
-		Grade_Tier17 = "#000000", -- ITG PLS
+	grades = {
+		Grade_Tier01 = "#ffffff", -- AAAAA
+		Grade_Tier02 = "#66ccff", -- AAAA:
+		Grade_Tier03 = "#66ccff", -- AAAA.
+		Grade_Tier04 = "#66ccff", -- AAAA
+		Grade_Tier05 = "#eebb00", -- AAA:
+		Grade_Tier06 = "#eebb00", -- AAA.
+		Grade_Tier07 = "#eebb00", -- AAA
+		Grade_Tier08 = "#66cc66", -- AA:
+		Grade_Tier09 = "#66cc66", -- AA.
+		Grade_Tier10 = "#66cc66", -- AA
+		Grade_Tier11 = "#da5757", -- A:
+		Grade_Tier12 = "#da5757", -- A.
+		Grade_Tier13 = "#da5757", -- A
+		Grade_Tier14 = "#5b78bb", -- B
+		Grade_Tier15 = "#c97bff", -- C
+		Grade_Tier16 = "#8c6239", -- D
+		Grade_Tier17 = "#000000",
 		Grade_Failed = "#cdcdcd", -- F
 		Grade_None = "#666666" -- no play
 	},
@@ -127,6 +139,10 @@ function setTableKeys(table)
 	curColor = table
 end
 
+function getDefaultColorForCurColor()
+	return defaultConfig[curColor[1]][curColor[2]]
+end
+
 function getMainColor(type)
 	return color(colorConfig:get_data().main[type])
 end
@@ -140,7 +156,7 @@ function getLaneCoverColor(type)
 end
 
 function getGradeColor(grade)
-	return color(colorConfig:get_data().grade[grade]) or color(colorConfig:get_data().grade["Grade_None"])
+	return color(colorConfig:get_data().grades[grade]) or color(colorConfig:get_data().grades["Grade_None"])
 end
 
 function getDifficultyColor(diff)
@@ -229,7 +245,7 @@ end
 
 -- i guess if i'm going to use this naming convention it might as well be complete and standardized which means redundancy -mina
 function byGrade(grade)
-	return color(colorConfig:get_data().grade[grade]) or color(colorConfig:get_data().grade["Grade_None"])
+	return color(colorConfig:get_data().grades[grade]) or color(colorConfig:get_data().grades["Grade_None"])
 end
 
 -- Colorized stuff

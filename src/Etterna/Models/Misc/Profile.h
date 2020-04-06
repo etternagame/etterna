@@ -6,7 +6,7 @@
 #include "Etterna/Models/Misc/Grade.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "Etterna/Models/Songs/SongUtil.h"  // for SongID
+#include "Etterna/Models/Songs/SongUtil.h"			 // for SongID
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h" // for StepsID
 #include "Etterna/Models/StepsAndStyles/StyleUtil.h" // for StyleID
 #include "Etterna/Models/Lua/LuaReference.h"
@@ -20,7 +20,6 @@
 
 class XNode;
 struct lua_State;
-class Character;
 struct Playlist;
 
 // Current file versions
@@ -140,7 +139,6 @@ class Profile
 	  :
 
 	  m_sDisplayName("")
-	  , m_sCharacterID("")
 	  , m_sLastUsedHighScoreName("")
 	  , m_sGuid(MakeGuid())
 	  , m_sDefaultModifiers()
@@ -154,6 +152,9 @@ class Profile
 	  , profiledir("")
 	{
 		m_lastSong.Unset();
+		m_fPlayerRating = 0.f;
+		FOREACH_ENUM(Skillset, ss)
+		m_fPlayerSkillsets[ss] = 0.f;
 
 		m_LastPlayedDate.Init();
 
@@ -171,8 +172,6 @@ class Profile
 
 	// smart accessors
 	RString GetDisplayNameOrHighScoreName() const;
-	Character* GetCharacter() const;
-	void SetCharacter(const RString& sCharacterID);
 	int GetTotalNumSongsPassed() const;
 	int GetTotalStepsWithTopGrade(StepsType st, Difficulty d, Grade g) const;
 	float GetSongsPossible(StepsType st, Difficulty dc) const;
@@ -200,7 +199,6 @@ class Profile
 
 	// Editable data
 	RString m_sDisplayName;
-	RString m_sCharacterID;
 	// Dont edit this. Should be unique (Is it?)
 	RString m_sProfileID;
 	/**
@@ -316,7 +314,7 @@ class Profile
 
 	void AddStepsHighScore(const Song* pSong,
 						   const Steps* pSteps,
-						   HighScore hs,
+						   const HighScore& hs,
 						   int& iIndexOut);
 	const HighScoreList& GetStepsHighScoreList(const Song* pSong,
 											   const Steps* pSteps) const;
@@ -400,30 +398,3 @@ class Profile
 };
 
 #endif
-
-/**
- * @file
- * @author Chris Danford (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

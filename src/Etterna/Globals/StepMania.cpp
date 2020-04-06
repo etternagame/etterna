@@ -38,7 +38,6 @@
 
 // StepMania global classes
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/FontManager.h"
 #include "Etterna/Singletons/GameManager.h"
@@ -94,20 +93,23 @@ StepMania::GetPreferredVideoModeParams(VideoModeParams& paramsOut)
 		iWidth -= iWidth % 2;
 	}
 
-	paramsOut = VideoModeParams(PREFSMAN->m_bWindowed,
-								iWidth,
-								PREFSMAN->m_iDisplayHeight,
-								PREFSMAN->m_iDisplayColorDepth,
-								PREFSMAN->m_iRefreshRate,
-								PREFSMAN->m_bVsync,
-								PREFSMAN->m_bInterlaced,
-								PREFSMAN->m_bSmoothLines,
-								PREFSMAN->m_bTrilinearFiltering,
-								PREFSMAN->m_bAnisotropicFiltering,
-								CommonMetrics::WINDOW_TITLE,
-								THEME->GetPathG("Common", "window icon"),
-								PREFSMAN->m_bPAL,
-								PREFSMAN->m_fDisplayAspectRatio);
+	paramsOut = VideoModeParams(
+	  PREFSMAN->m_bWindowed || PREFSMAN->m_bFullscreenIsBorderlessWindow,
+	  PREFSMAN->m_sDisplayId,
+	  iWidth,
+	  PREFSMAN->m_iDisplayHeight,
+	  PREFSMAN->m_iDisplayColorDepth,
+	  PREFSMAN->m_iRefreshRate,
+	  PREFSMAN->m_bVsync,
+	  PREFSMAN->m_bInterlaced,
+	  PREFSMAN->m_bSmoothLines,
+	  PREFSMAN->m_bTrilinearFiltering,
+	  PREFSMAN->m_bAnisotropicFiltering,
+	  !PREFSMAN->m_bWindowed && PREFSMAN->m_bFullscreenIsBorderlessWindow,
+	  CommonMetrics::WINDOW_TITLE,
+	  THEME->GetPathG("Common", "window icon"),
+	  PREFSMAN->m_bPAL,
+	  PREFSMAN->m_fDisplayAspectRatio);
 }
 
 static LocalizedString COLOR("Etterna", "color");
@@ -149,8 +151,14 @@ StoreActualGraphicOptions()
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
 	const VideoModeParams& params = (*DISPLAY->GetActualVideoModeParams());
-	PREFSMAN->m_bWindowed.Set(params.windowed);
-
+	PREFSMAN->m_bWindowed.Set(params.windowed &&
+							  !params.bWindowIsFullscreenBorderless);
+	if (!params.windowed && !params.bWindowIsFullscreenBorderless) {
+		// In all other cases, want to preserve the value of this preference,
+		// but if DISPLAY decides to go fullscreen exclusive, we'll persist that
+		// decision
+		PREFSMAN->m_bFullscreenIsBorderlessWindow.Set(false);
+	}
 	/* If we're windowed, we may have tweaked the width based on the aspect
 	 * ratio. Don't save this new value over the preferred value. */
 	if (!PREFSMAN->m_bWindowed) {
@@ -282,28 +290,27 @@ ShutdownGame()
 	SAFE_DELETE(NSMAN);
 	/* Delete INPUTMAN before the other INPUTFILTER handlers, or an input
 	 * driver may try to send a message to INPUTFILTER after we delete it. */
-	SAFE_DELETE( INPUTMAN );
-	SAFE_DELETE( INPUTQUEUE );
-	SAFE_DELETE( INPUTMAPPER );
-	SAFE_DELETE( INPUTFILTER );
-	SAFE_DELETE( MODELMAN );
-	SAFE_DELETE( PROFILEMAN ); // PROFILEMAN needs the songs still loaded
-	SAFE_DELETE( CHARMAN );
-	SAFE_DELETE( CRYPTMAN );
-	SAFE_DELETE( SONGMAN );
-	SAFE_DELETE( IMAGECACHE );
-	SAFE_DELETE( SONGINDEX );
-	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
-	SAFE_DELETE( PREFSMAN );
-	SAFE_DELETE( GAMESTATE );
-	SAFE_DELETE( GAMEMAN );
-	SAFE_DELETE( NOTESKIN );
-	SAFE_DELETE( THEME );
-	SAFE_DELETE( ANNOUNCER );
-	SAFE_DELETE( SOUNDMAN );
-	SAFE_DELETE( FONT );
-	SAFE_DELETE( TEXTUREMAN );
-	SAFE_DELETE( DISPLAY );
+	SAFE_DELETE(INPUTMAN);
+	SAFE_DELETE(INPUTQUEUE);
+	SAFE_DELETE(INPUTMAPPER);
+	SAFE_DELETE(INPUTFILTER);
+	SAFE_DELETE(MODELMAN);
+	SAFE_DELETE(PROFILEMAN); // PROFILEMAN needs the songs still loaded
+	SAFE_DELETE(CRYPTMAN);
+	SAFE_DELETE(SONGMAN);
+	SAFE_DELETE(IMAGECACHE);
+	SAFE_DELETE(SONGINDEX);
+	SAFE_DELETE(SOUND); // uses GAMESTATE, PREFSMAN
+	SAFE_DELETE(PREFSMAN);
+	SAFE_DELETE(GAMESTATE);
+	SAFE_DELETE(GAMEMAN);
+	SAFE_DELETE(NOTESKIN);
+	SAFE_DELETE(THEME);
+	SAFE_DELETE(ANNOUNCER);
+	SAFE_DELETE(SOUNDMAN);
+	SAFE_DELETE(FONT);
+	SAFE_DELETE(TEXTUREMAN);
+	SAFE_DELETE(DISPLAY);
 	Dialog::Shutdown();
 	SAFE_DELETE(LOG);
 	DLMAN.reset();
@@ -971,10 +978,7 @@ WriteLogHeader()
 {
 	LOG->Info("%s%s", PRODUCT_FAMILY, product_version);
 
-	LOG->Info("Compiled %s @ %s (build %s)",
-			  version_date,
-			  version_time,
-			  ::sm_version_git_hash);
+	LOG->Info("(build %s)", ::version_git_hash);
 
 	time_t cur_time;
 	time(&cur_time);
@@ -1212,7 +1216,6 @@ sm_main(int argc, char* argv[])
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
 		CRYPTMAN->GenerateGlobalKeys();
-	CHARMAN		= new CharacterManager;
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
@@ -1533,26 +1536,6 @@ HandleInputEvents(float fDeltaTime)
 		input.type = ieArray[i].type;
 		swap(input.InputList, ieArray[i].m_ButtonState);
 
-		// hack for testing (MultiPlayer) with only one joystick
-		/*
-		if( input.DeviceI.IsJoystick() )
-		{
-			if( INPUTFILTER->IsBeingPressed(
-		DeviceInput(DEVICE_KEYBOARD,KEY_LSHIFT) ) ) input.DeviceI.device =
-		(InputDevice)(input.DeviceI.device + 1); if(
-		INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_LCTRL) ) )
-				input.DeviceI.device = (InputDevice)(input.DeviceI.device + 2);
-			if( INPUTFILTER->IsBeingPressed(
-		DeviceInput(DEVICE_KEYBOARD,KEY_LALT) ) ) input.DeviceI.device =
-		(InputDevice)(input.DeviceI.device + 4); if(
-		INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_RALT) ) )
-				input.DeviceI.device = (InputDevice)(input.DeviceI.device + 8);
-			if( INPUTFILTER->IsBeingPressed(
-		DeviceInput(DEVICE_KEYBOARD,KEY_RCTRL) ) ) input.DeviceI.device =
-		(InputDevice)(input.DeviceI.device + 16);
-		}
-		*/
-
 		INPUTMAPPER->DeviceToGame(input.DeviceI, input.GameI);
 
 		input.mp = MultiPlayer_Invalid;
@@ -1567,11 +1550,6 @@ HandleInputEvents(float fDeltaTime)
 
 				// LOG->Trace( "device %d, %d", diTemp.device, diTemp.button );
 				if (INPUTMAPPER->DeviceToGame(diTemp, gi)) {
-					if (GAMESTATE->m_bMultiplayer) {
-						input.GameI = gi;
-						// LOG->Trace( "game %d %d", input.GameI.controller,
-						// input.GameI.button );
-					}
 
 					input.mp = InputMapper::InputDeviceToMultiPlayer(
 					  input.DeviceI.device);
@@ -1603,7 +1581,6 @@ HandleInputEvents(float fDeltaTime)
 
 		if (HandleGlobalInputs(input))
 			continue; // skip
-
 
 		SCREENMAN->Input(input);
 	}
@@ -1658,28 +1635,3 @@ LuaFunc_update_centering(lua_State* L)
 	return 0;
 }
 LUAFUNC_REGISTER_COMMON(update_centering);
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

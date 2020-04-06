@@ -4,10 +4,13 @@ local profile = PROFILEMAN:GetProfile(PLAYER_1)
 
 local curType = 1
 local assetTypes = {}
+local translated_assets = {}
 for k,v in pairs(assetFolders) do
-    assetTypes[curType] = k
+	assetTypes[curType] = k
+	translated_assets[k] = THEME:GetString("ScreenAssetSettings", k)
     curType = curType + 1
 end
+
 curType = 2
 
 local maxPage = 1
@@ -198,7 +201,7 @@ local function moveCursor(x, y) -- move the cursor
 	end
 	lastClickedIndex = curIndex
 	if curPage == nextPage then
-		MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex})
+		MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex, prevIndex = oldIndex})
 	else
 		curPage = nextPage
 		MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
@@ -410,9 +413,10 @@ local function assetBox(i)
 				if lastClickedIndex == i then
 					confirmPick()
 				end
+				local prev = curIndex
 				lastClickedIndex = i
 				curIndex = i
-				MESSAGEMAN:Broadcast("CursorMoved",{index = i})	
+				MESSAGEMAN:Broadcast("CursorMoved",{index = i, prevIndex = prev})
 			end
 		end
 	}
@@ -463,7 +467,7 @@ local function assetBox(i)
 
 		end,
 		CursorMovedMessageCommand = function(self, params)
-			if params.index == i and curType == 1 then
+			if params.index == i and curType == 1 and params.prevIndex ~= i then
 				self:play()
 			end
 		end
@@ -504,7 +508,7 @@ local function mainContainer()
 			self:zoom(fontScale)
 			self:halign(0)
 			self:xy(-frameWidth/2 + fontSpacing, fontRow1)
-			self:settext("Asset Settings")
+			self:settext(THEME:GetString("ScreenAssetSettings", "Title"))
 		end
 	}
 
@@ -593,8 +597,8 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end,
 		SetCommand = function(self)
-			local type = assetTypes[curType]
-			self:settext(type:gsub("^%l", string.upper))
+			local type = translated_assets[assetTypes[curType]]
+			self:settext(type)
 		end,
 		UpdatingAssetsMessageCommand = function(self)
 			self:queuecommand("Set")
@@ -723,8 +727,8 @@ t[#t+1] = mainContainer() .. {
 
 local l = 1
 local capTypes = {}
-for k,v in pairs(assetTypes) do
-	capTypes[l] = v:gsub("^%l", string.upper)
+for k,v in pairs(translated_assets) do
+	capTypes[l] = v
     l = l+1
 end
 local typeTabs = TAB:new(capTypes)

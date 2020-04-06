@@ -1,4 +1,4 @@
-﻿/* RageDisplay - Renderer base class. */
+/* RageDisplay - Renderer base class. */
 
 #ifndef RAGEDISPLAY_H
 #define RAGEDISPLAY_H
@@ -8,8 +8,8 @@
 #include <chrono>
 #include <set>
 
-class DisplayResolution;
-typedef set<DisplayResolution> DisplayResolutions;
+class DisplaySpec;
+typedef set<DisplaySpec> DisplaySpecs;
 
 const int REFRESH_DEFAULT = 0;
 struct RageSurface;
@@ -99,6 +99,7 @@ class VideoModeParams
 	// Initialize with a constructor so to guarantee all paramters
 	// are filled (in case new params are added).
 	VideoModeParams(bool windowed_,
+					RString sDisplayId_,
 					int width_,
 					int height_,
 					int bpp_,
@@ -108,11 +109,13 @@ class VideoModeParams
 					bool bSmoothLines_,
 					bool bTrilinearFiltering_,
 					bool bAnisotropicFiltering_,
+					bool bWindowIsFullscreenBorderless_,
 					const RString& sWindowTitle_,
 					const RString& sIconFile_,
 					bool PAL_,
 					float fDisplayAspectRatio_)
 	  : windowed(windowed_)
+	  , sDisplayId(sDisplayId_)
 	  , width(width_)
 	  , height(height_)
 	  , bpp(bpp_)
@@ -122,6 +125,7 @@ class VideoModeParams
 	  , bSmoothLines(bSmoothLines_)
 	  , bTrilinearFiltering(bTrilinearFiltering_)
 	  , bAnisotropicFiltering(bAnisotropicFiltering_)
+	  , bWindowIsFullscreenBorderless(bWindowIsFullscreenBorderless_)
 	  , sWindowTitle(sWindowTitle_)
 	  , sIconFile(sIconFile_)
 	  , PAL(PAL_)
@@ -129,11 +133,48 @@ class VideoModeParams
 	{
 	}
 
+	VideoModeParams(const VideoModeParams& other)
+	  : windowed(other.windowed)
+	  , sDisplayId(other.sDisplayId)
+	  , width(other.width)
+	  , height(other.height)
+	  , bpp(other.bpp)
+	  , rate(other.rate)
+	  , vsync(other.vsync)
+	  , interlaced(other.interlaced)
+	  , bSmoothLines(other.bSmoothLines)
+	  , bTrilinearFiltering(other.bTrilinearFiltering)
+	  , bAnisotropicFiltering(other.bAnisotropicFiltering)
+	  , bWindowIsFullscreenBorderless(other.bWindowIsFullscreenBorderless)
+	  , sWindowTitle(other.sWindowTitle)
+	  , sIconFile(other.sIconFile)
+	  , PAL(other.PAL)
+	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
+	{
+	}
+
 	VideoModeParams()
-	  : sWindowTitle(RString())
-	  , sIconFile(RString()){};
+	  : windowed(false)
+	  , width(0)
+	  , height(0)
+	  , bpp(0)
+	  , rate(0)
+	  , vsync(false)
+	  , interlaced(false)
+	  , bSmoothLines(false)
+	  , bTrilinearFiltering(false)
+	  , bAnisotropicFiltering(false)
+	  , sWindowTitle(RString())
+	  , sIconFile(RString())
+	  , PAL(false)
+	  , fDisplayAspectRatio(0.0f)
+	{
+	}
+
+	virtual ~VideoModeParams() {}
 
 	bool windowed{ false };
+	RString sDisplayId;
 	int width{ 0 };
 	int height{ 0 };
 	int bpp{ 0 };
@@ -143,10 +184,53 @@ class VideoModeParams
 	bool bSmoothLines{ false };
 	bool bTrilinearFiltering{ false };
 	bool bAnisotropicFiltering{ false };
+	bool bWindowIsFullscreenBorderless{ false };
 	RString sWindowTitle;
 	RString sIconFile;
 	bool PAL{ false };
 	float fDisplayAspectRatio{ 0.0f };
+};
+
+/**
+ * @brief The _actual_ VideoModeParams determined by the LowLevelWindow
+ * implementation. Contains all the attributes of VideoModeParams, plus the
+ * actual window width/height determined by LLW
+ */
+class ActualVideoModeParams : public VideoModeParams
+{
+  public:
+	ActualVideoModeParams()
+	  : VideoModeParams()
+	  , windowWidth(0)
+	  , windowHeight(0)
+	  , renderOffscreen(false)
+	{
+	}
+	ActualVideoModeParams(const VideoModeParams& params)
+	  : VideoModeParams(params)
+	  , windowWidth(params.width)
+	  , windowHeight(params.height)
+	  , renderOffscreen(false)
+	{
+	}
+	ActualVideoModeParams(const VideoModeParams& params,
+						  int windowWidth,
+						  int windowHeight,
+						  bool renderOffscreen)
+	  : VideoModeParams(params)
+	  , windowWidth(windowWidth)
+	  , windowHeight(windowHeight)
+	  , renderOffscreen(renderOffscreen)
+	{
+	}
+	ActualVideoModeParams(const ActualVideoModeParams& other) = default;
+
+	// If bWindowIsFullscreenBorderless is true,
+	// then these properties will differ from width/height (which describe the
+	// render size)
+	int windowWidth;
+	int windowHeight;
+	bool renderOffscreen;
 };
 
 struct RenderTargetParam
@@ -195,7 +279,7 @@ class RageDisplay
 						 bool bAllowUnacceleratedRenderer) = 0;
 
 	virtual RString GetApiDescription() const = 0;
-	virtual void GetDisplayResolutions(DisplayResolutions& out) const = 0;
+	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
 
@@ -210,7 +294,7 @@ class RageDisplay
 
 	virtual bool BeginFrame();
 	virtual void EndFrame();
-	virtual const VideoModeParams* GetActualVideoModeParams() const = 0;
+	virtual const ActualVideoModeParams* GetActualVideoModeParams() const = 0;
 	bool IsWindowed() { return (*GetActualVideoModeParams()).windowed; }
 
 	virtual void SetBlendMode(BlendMode mode) = 0;
@@ -256,7 +340,8 @@ class RageDisplay
 		return effect == EffectMode_Normal;
 	}
 
-	bool SupportsRenderToTexture() const { return false; }
+	virtual bool SupportsRenderToTexture() const { return false; }
+	virtual bool SupportsFullscreenBorderlessWindow() const { return false; }
 
 	/* Create a render target, returning a texture handle. In addition to normal
 	 * texture functions, this can be passed to SetRenderTarget. Delete with
@@ -511,27 +596,3 @@ extern RageDisplay*
   DISPLAY; // global and accessible from anywhere in our program
 
 #endif
-/*
- * Copyright (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

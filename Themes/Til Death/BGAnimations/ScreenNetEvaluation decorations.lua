@@ -11,6 +11,11 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 	t[#t + 1] = LoadActor("MPscoreboard")
 end
 
+local translated_info = {
+	CCOn = THEME:GetString("ScreenEvaluation", "ChordCohesionOn"),
+	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
+}
+
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -428,14 +433,21 @@ function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				if score:GetChordCohesion() == true then
-					self:settext("Chord Cohesion: Yes")
+					self:settext(translated_info["CCOn"])
 				else
-					self:settext("Chord Cohesion: No")
+					self:settext("")
 				end
 			end
 		}
 
 	local fart = {"Holds", "Mines", "Rolls", "Lifts", "Fakes"}
+	local fart_translated = {
+		Holds = THEME:GetString("RadarCategory", "Holds"),
+		Mines = THEME:GetString("RadarCategory", "Mines"),
+		Rolls = THEME:GetString("RadarCategory", "Rolls"),
+		Lifts = THEME:GetString("RadarCategory", "Lifts"),
+		Fakes = THEME:GetString("RadarCategory", "Fakes")
+	}
 	t[#t + 1] =
 		Def.Quad {
 		InitCommand = function(self)
@@ -447,7 +459,7 @@ function scoreBoard(pn, position)
 			LoadFont("Common Normal") ..
 			{
 				InitCommand = function(self)
-					self:xy(frameX, frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(fart[i])
+					self:xy(frameX, frameY + 230 + 10 * i):zoom(0.4):halign(0):settext(fart_translated[fart[i]])
 				end
 			}
 		t[#t + 1] =
@@ -503,7 +515,13 @@ function scoreBoard(pn, position)
 				)
 			end
 		}
-		local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
+		local doot = {
+			THEME:GetString("ScreenEvaluation", "Mean"),
+			THEME:GetString("ScreenEvaluation", "AbsMean"),
+			THEME:GetString("ScreenEvaluation", "StandardDev"),
+			THEME:GetString("ScreenEvaluation", "LeftCB"),
+			THEME:GetString("ScreenEvaluation", "RightCB")
+		}
 		local mcscoot = { 
 			function() 
 				return wifeMean(devianceTable) 

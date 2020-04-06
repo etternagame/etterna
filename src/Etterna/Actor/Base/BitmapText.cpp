@@ -97,6 +97,7 @@ BitmapText::operator=(const BitmapText& cpy)
 	CPY(m_vpFontPageTextures);
 	CPY(m_mAttributes);
 	CPY(m_bHasGlowAttribute);
+	CPY(m_TextGlowMode);
 	CPY(BMT_Tweens);
 	CPY(BMT_current);
 	CPY(BMT_start);
@@ -356,7 +357,7 @@ BitmapText::BuildChars()
 	}
 
 	if (m_bUsingDistortion) {
-		int iSeed = lround(RageTimer::GetTimeSinceStartFast() * 500000.0f);
+		int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
 		RandomGen rnd(iSeed);
 		for (unsigned int i = 0; i < m_aVertices.size(); i += 4) {
 			float w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
@@ -785,7 +786,7 @@ BitmapText::DrawPrimitives()
 		// render the diffuse pass
 		if (m_bRainbowScroll) {
 			int color_index =
-			  static_cast<int>(RageTimer::GetTimeSinceStartFast() / 0.200) %
+			  static_cast<int>(RageTimer::GetTimeSinceStart() / 0.200) %
 			  RAINBOW_COLORS.size();
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
 				const RageColor color = RAINBOW_COLORS[color_index];
@@ -808,9 +809,9 @@ BitmapText::DrawPrimitives()
 														  : iter->first * 4;
 				iEnd = min(iEnd, m_aVertices.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = what; // top left
-					m_aVertices[i + 1].c = is; // bottom left
-					m_aVertices[i + 2].c = wrong; // bottom right
+					m_aVertices[i + 0].c = what;		  // top left
+					m_aVertices[i + 1].c = is;			  // bottom left
+					m_aVertices[i + 2].c = wrong;		  // bottom right
 					m_aVertices[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())
@@ -844,7 +845,7 @@ BitmapText::DrawPrimitives()
 		// apply jitter to verts
 		vector<RageVector3> vGlyphJitter;
 		if (m_bJitter) {
-			int iSeed = lround(RageTimer::GetTimeSinceStartFast() * 8);
+			int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
 			RandomGen rnd(iSeed);
 
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
@@ -1603,28 +1604,3 @@ class LunaColorBitmapText : public Luna<ColorBitmapText>
 };
 LUA_REGISTER_DERIVED_CLASS(ColorBitmapText, BitmapText)
 // lua end
-
-/*
- * (c) 2003-2007 Chris Danford, Charles Lohr, Steve Checkoway
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

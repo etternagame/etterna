@@ -40,6 +40,8 @@ The project is sorely lacking in documentation. The current aim is to document t
 
 The Til Death theme (Default) only has one translation available. In order to make others, simply copy etterna/Themes/Til Death/Languages/en.ini and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them(Some of the text is hard-coded so it's not possible to translate it).
 
+A guide on this can be found in [the translations document](Translations.md).
+
 ## Packaging
 
 A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. I've already made a more-or-less functional debian package here: https://github.com/nico-abram/etterna/tree/debian/

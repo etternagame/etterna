@@ -18,6 +18,12 @@ meter[1] = 0.00
 
 local cd -- chord density graph
 
+local translated_text = {
+	AverageNPS = THEME:GetString("TabMSD", "AverageNPS"),
+	NegBPM = THEME:GetString("TabMSD", "NegativeBPM"),
+	Title = THEME:GetString("TabMSD", "Title")
+}
+
 --Actor Frame
 local t =
 	Def.ActorFrame {
@@ -96,7 +102,7 @@ local function littlebits(i)
 				SetCommand = function(self)
 					--skillset name
 					if song and steps then
-						self:settext(ms.SkillSets[i] .. ":")
+						self:settext(ms.SkillSetsTranslated[i] .. ":")
 					else
 						self:settext("")
 					end
@@ -146,9 +152,8 @@ t[#t + 1] =
 t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
-				"MSD Breakdown (Wip)"
-			)
+			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+			self:settext(translated_text["Title"])
 		end
 	}
 t[#t + 1] =
@@ -217,10 +222,10 @@ t[#t + 1] =
 			if steps ~= nil and song ~= nil and update then
 				length = song:GetStepsSeconds()
 				notecount = steps:GetRadarValues(pn):GetValue("RadarCategory_Notes")
-				self:settext(string.format("%0.2f Average NPS", notecount / length * getCurRateValue()))
+				self:settextf("%0.2f %s", notecount / length * getCurRateValue(), translated_text["AverageNPS"])
 				self:diffuse(Saturation(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())), 0.3))
 			else
-				self:settext("0.00 Average NPS")
+				self:settextf("0.00 %s", translated_text["AverageNPS"])
 			end
 		end
 	}
@@ -233,7 +238,7 @@ t[#t + 1] =
 		end,
 		SetCommand = function(self)
 			if steps and steps:GetTimingData():HasWarps() then
-				self:settext("Negative Bpms")
+				self:settext(translated_text["NegBPM"])
 			else
 				self:settext("")
 			end

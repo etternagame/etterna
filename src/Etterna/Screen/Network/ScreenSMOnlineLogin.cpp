@@ -25,6 +25,10 @@ AutoScreenMessage(ETTP_LoginResponse);
 
 static LocalizedString DEFINE_A_PROFILE("ScreenSMOnlineLogin",
 										"You must define a Profile.");
+static LocalizedString LOGIN_BUTTON("ScreenSMOnlineLogin", "LoginButton");
+static LocalizedString ENTER_USERNAME("ScreenSMOnlineLogin", "EnterUsername");
+static LocalizedString TYPE_USERNAME("ScreenSMOnlineLogin", "TypeUsername");
+
 void
 ScreenSMOnlineLogin::Init()
 {
@@ -43,7 +47,7 @@ ScreenSMOnlineLogin::Init()
 	pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 
 	PROFILEMAN->GetLocalProfileDisplayNames(pHand->m_Def.m_vsChoices);
-	pHand->m_Def.m_vsChoices.emplace_back("Type Username");
+	pHand->m_Def.m_vsChoices.emplace_back(TYPE_USERNAME.GetValue());
 	if (pHand->m_Def.m_vsChoices.empty()) {
 		// Give myself a message so that I can bail out later
 		PostScreenMessage(SM_NoProfilesDefined, 0);
@@ -54,7 +58,7 @@ ScreenSMOnlineLogin::Init()
 	InitMenu(vHands);
 	SOUND->PlayMusic(THEME->GetPathS("ScreenOptionsServiceChild", "music"));
 	OptionRow& row = *m_pRows.back();
-	row.SetExitText("Login");
+	row.SetExitText(LOGIN_BUTTON);
 }
 
 void
@@ -66,9 +70,9 @@ ScreenSMOnlineLogin::ImportOptions(int iRow, const PlayerNumber& vpns)
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 			vector<RString>::iterator iter =
-				find(vsProfiles.begin(),
-					vsProfiles.end(),
-					ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
+			  find(vsProfiles.begin(),
+				   vsProfiles.end(),
+				   ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
 			if (iter != vsProfiles.end())
 				m_pRows[0]->SetOneSelection((PlayerNumber)PLAYER_1,
 											iter - vsProfiles.begin());
@@ -84,19 +88,16 @@ ScreenSMOnlineLogin::ExportOptions(int iRow, const PlayerNumber& vpns)
 			vector<RString> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			FOREACH_EnabledPlayer(pn)
-			{
-				auto selection = m_pRows[0]->GetOneSelection(pn);
-				if (selection <
-					static_cast<int>(
-					  m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size()) -
-					  1) {
-					ProfileManager::m_sDefaultLocalProfileID[pn].Set(
-					  vsProfiles[selection]);
-					typeUsername = false;
-				} else
-					typeUsername = true;
-			}
+			auto selection = m_pRows[0]->GetOneSelection(PLAYER_1);
+			if (selection <
+				static_cast<int>(
+				  m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size()) -
+				  1) {
+				ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
+				  vsProfiles[selection]);
+				typeUsername = false;
+			} else
+				typeUsername = true;
 		} break;
 	}
 }
@@ -153,11 +154,12 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 											sLoginQuestion,
 										  NULL);
 			} else {
-				sLoginQuestion = "Enter username";
+				sLoginQuestion = ENTER_USERNAME.GetValue();
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
-										  NSMAN->loginResponse + "\n\n" +
-											sLoginQuestion,
-										  "", 255);
+										   NSMAN->loginResponse + "\n\n" +
+											 sLoginQuestion,
+										   "",
+										   255);
 			}
 		}
 	} else if (SM == SM_GoToNextScreen) {
@@ -166,10 +168,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			ExportOptions(r, GAMESTATE->GetMasterPlayerNumber());
 
 		PREFSMAN->SavePrefsToDisk();
-		FOREACH_EnabledPlayer(pn)
-		{
-			PROFILEMAN->LoadLocalProfileFromMachine(pn);
-		}
+		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 
 		if (GAMESTATE->IsPlayerEnabled((PlayerNumber)0) &&
 			GAMESTATE->IsPlayerEnabled((PlayerNumber)1) &&
@@ -190,11 +189,12 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 				ScreenTextEntry::Password(
 				  SM_PasswordDone, sLoginQuestion, NULL);
 			} else {
-				sLoginQuestion = "Enter username";
+				sLoginQuestion = ENTER_USERNAME.GetValue();
 				ScreenTextEntry::TextEntry(SM_UsernameDone,
-										  NSMAN->loginResponse + "\n\n" +
-											sLoginQuestion,
-										  "", 255);
+										   NSMAN->loginResponse + "\n\n" +
+											 sLoginQuestion,
+										   "",
+										   255);
 			}
 		}
 		return;
@@ -233,28 +233,3 @@ ScreenSMOnlineLogin::SendLogin(RString sPassword, RString user)
 {
 	NSMAN->Login(user, sPassword);
 }
-
-/*
- * (c) 2004-2005 Charles Lohr, Adam Lowman
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

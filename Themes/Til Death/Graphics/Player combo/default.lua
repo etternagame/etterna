@@ -24,6 +24,8 @@ local pfcNumbers = getComboColor("Perf_FullCombo")
 local fcNumbers = getComboColor("FullCombo")
 local regNumbers = getComboColor("RegularCombo")
 
+local translated_combo = THEME:GetString("ScreenGameplay", "ComboText")
+
 local t =
 	Def.ActorFrame {
 	InitCommand = function(self)
@@ -63,7 +65,7 @@ local t =
 	end,
 	OnCommand = function(self)
 		if (allowedCustomization) then
-			c.Label:settext("COMBO")
+			c.Label:settext(translated_combo)
 			c.Number:visible(true)
 			c.Label:visible(true)
 			c.Number:settext(1000)
@@ -80,7 +82,7 @@ local t =
 			return
 		end
 
-		c.Label:settext("COMBO")
+		c.Label:settext(translated_combo)
 		c.Number:visible(true)
 		c.Label:visible(true)
 		c.Number:settext(iCombo)

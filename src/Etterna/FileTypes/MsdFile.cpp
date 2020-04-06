@@ -40,12 +40,13 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 	auto* cProcessed = new char[len];
 	int iProcessedLen = -1;
 	while (i < len) {
-		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' && ReadingValue == false) {
+		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' &&
+			ReadingValue == false) {
 			/* Skip a comment entirely; don't copy the comment to the
 			 * parameter */
 
-			// there is no legitimate reason to allow people to place comments inside value fields
-			// this is indescribably stupid -mina
+			// there is no legitimate reason to allow people to place comments
+			// inside value fields this is indescribably stupid -mina
 			do {
 				i++;
 			} while (i < len && buf[i] != '\n');
@@ -72,9 +73,9 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 				break;
 			}
 
-			// sm5 devs make code block to hand hold idiots who don't know how delimiters work
-			// in the process sm5 devs show they don't know how delimiters work
-			// time to handhold -mina
+			// sm5 devs make code block to hand hold idiots who don't know how
+			// delimiters work in the process sm5 devs show they don't know how
+			// delimiters work time to handhold -mina
 			if (buf[i - 1] == ':')
 				FirstChar = false;
 
@@ -190,29 +191,3 @@ MsdFile::GetParam(unsigned val, unsigned par) const
 
 	return values[val].params[par];
 }
-
-/*
- * (c) 2001-2006 Chris Danford, Glenn Maynard
- *
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

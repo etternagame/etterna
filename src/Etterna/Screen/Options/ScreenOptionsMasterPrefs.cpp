@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
@@ -267,22 +267,23 @@ ThemeChoices(vector<RString>& out)
 	*s = THEME->GetThemeDisplayName(*s);
 }
 
-static DisplayResolutions display_resolution_list;
+static DisplaySpecs display_specs;
 static void
-cache_display_resolution_list()
+cache_display_specs()
 {
-	if (display_resolution_list.empty()) {
-		DISPLAY->GetDisplayResolutions(display_resolution_list);
+	if (display_specs.empty()) {
+		DISPLAY->GetDisplaySpecs(display_specs);
 	}
 }
 
 static void
 DisplayResolutionChoices(vector<RString>& out)
 {
-	cache_display_resolution_list();
-	FOREACHS_CONST(DisplayResolution, display_resolution_list, iter)
+	cache_display_specs();
+	FOREACHS_CONST(DisplaySpec, display_specs, iter)
 	{
-		RString s = ssprintf("%dx%d", iter->iWidth, iter->iHeight);
+		RString s = ssprintf(
+		  "%dx%d", iter->currentMode()->width, iter->currentMode()->height);
 		out.push_back(s);
 	}
 }
@@ -367,7 +368,6 @@ DefaultFailChoices(vector<RString>& out)
 {
 	out.push_back("Immediate");
 	out.push_back("ImmediateContinue");
-	out.push_back("EndOfSong");
 	out.push_back("Off");
 }
 
@@ -473,6 +473,8 @@ LifeDifficulty(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
+
 static int
 GetTimingDifficulty()
 {
@@ -561,10 +563,13 @@ DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 	static vector<res_t> res_choices;
 
 	if (res_choices.empty()) {
-		cache_display_resolution_list();
-		FOREACHS_CONST(DisplayResolution, display_resolution_list, iter)
+		cache_display_specs();
+		FOREACHS_CONST(DisplaySpec, display_specs, iter)
 		{
-			res_choices.push_back(res_t(iter->iWidth, iter->iHeight));
+			if (iter->currentMode() != NULL) {
+				res_choices.push_back(res_t(iter->currentMode()->width,
+											iter->currentMode()->height));
+			}
 		}
 	}
 
@@ -716,10 +721,10 @@ InitializeConfOptions()
 	if (!g_ConfOptions.empty())
 		return;
 
-	// Clear the display_resolution_list so that we don't get problems from
+	// Clear the display_specs so that we don't get problems from
 	// caching it.  If the DisplayResolution option row is on the screen, it'll
 	// recache the list. -Kyz
-	display_resolution_list.clear();
+	display_specs.clear();
 
 	// There are a couple ways of getting the current preference column or
 	// turning a new choice in the interface into a new preference. The easiest
@@ -744,10 +749,10 @@ InitializeConfOptions()
 	ADD(ConfOption("DefaultNoteSkin", DefaultNoteSkin, DefaultNoteSkinChoices));
 	ADD(ConfOption("NoGlow", MovePref<bool>, "On", "Off"));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
+	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
-	ADD(ConfOption("ShowCaution", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,
 				   "Never",
@@ -822,11 +827,6 @@ InitializeConfOptions()
 				   "FitInsideAvoidPillar"));
 
 	ADD(ConfOption("ShowDanger", MovePref<bool>, "Hide", "Show"));
-	ADD(ConfOption("ShowDancingCharacters",
-				   MovePref<ShowDancingCharacters>,
-				   "Default to Off",
-				   "Default to Random",
-				   "Select"));
 	ADD(ConfOption(
 	  "NumBackgrounds", NumBackgrounds, "|1", "|5", "|10", "|15", "|20"));
 
@@ -876,6 +876,8 @@ InitializeConfOptions()
 	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
@@ -922,7 +924,8 @@ InitializeConfOptions()
 				   "|7",
 				   "|8",
 				   "Insanity"));
-	ADD(ConfOption("DefaultFailType", DefaultFailType, DefaultFailChoices));
+	ADD(ConfOption(
+	  "DefaultFailType", DefaultFailType, "Immediate", "ImmediateContinue"));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));
 	ADD(ConfOption("MinTNSToHideNotes",
 				   MovePref<TapNoteScore>,
@@ -1102,29 +1105,10 @@ ConfOption::MakeOptionsList(vector<RString>& out) const
 	out = names;
 }
 
-/**
- * @file
- * @author Glenn Maynard (c) 2003-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
+static const char* OptEffectNames[] = { "SavePreferences", "ApplyGraphics",
+										"ApplyTheme",	  "ChangeGame",
+										"ApplySound",	  "ApplySong",
+										"ApplyAspectRatio" };
+XToString(OptEffect);
+StringToX(OptEffect);
+LuaXType(OptEffect);

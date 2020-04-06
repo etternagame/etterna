@@ -3,7 +3,7 @@ local defaultConfig = {
 		default = "Assets/Avatars/_fallback.png"
 	},
 	judgment = {
-		default = "Assets/Judgments/default 1x6.png"
+		default = "Assets/Judgments/default 1x6 (Doubleres).png"
 	},
 	toasty = {
 		default = "Assets/Toasties/default"

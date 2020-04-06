@@ -44,11 +44,8 @@ t[#t + 1] =
 }
 
 local function Update(self)
-	t.InitCommand = function(self)
-		self:SetUpdateFunction(Update)
-	end
 	--self:GetChild("MouseXY"):settextf("X:%5.2f Y:%5.2f W:%5.2f",INPUTFILTER:GetMouseX(),INPUTFILTER:GetMouseY(),INPUTFILTER:GetMouseWheel())
-	if not PREFSMAN:GetPreference("Windowed") then
+	if not PREFSMAN:GetPreference("Windowed") and not PREFSMAN:GetPreference("FullscreenIsBorderlessWindow") then
 		self:GetChild("Cursor"):xy(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY())
 		self:GetChild("Cursor"):visible(true)
 	else

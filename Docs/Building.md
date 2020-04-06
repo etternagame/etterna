@@ -47,7 +47,7 @@ cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_0j.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_0j.exe)
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_0L.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_0L.exe)
 
 ### Linux Dependencies
 
@@ -66,7 +66,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ### macOS Dependencies
 
-macOS has no other unique dependencies.
+- `YASM` or `NASM`. They can be installed with brew commands `brew install yasm` or `brew install nasm`. They are not directly used for Etterna, though is required for ffmpeg to be built from source.
 
 ## Project Generation
 
@@ -122,11 +122,15 @@ cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 16 2019" -A Win32 
 cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # 64bit Windows
 ```
 
+##### macOS Xcode Generation Note
+
+When generating a project for Xcode, you may see errors stating `No CMAKE_{C,CXX}_COMPILER could be found.` Ensure that you have the Xcode command line tools installed. The command line tools can be installed with `xcodeselect --install`. You may also have to run `xcode-select --reset` to ensure the correct command line tools are apart of the system path.
+
 ### GUI Project Generation
 
-![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
-
 In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
+
+![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
 
 **NOTE**: Setting `OPENSSL_ROOT_DIR` is unnecessary for linux users as CMake will find the location of OpenSSL on it's own.
 
@@ -134,7 +138,11 @@ In order to compile properly, you will want to make your CMake-GUI look similar 
 
 **Windows Users**: Remember to change the value to correspond to the correct 32bit or 64bit version of the OpenSSL library.
 
-Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure` then `Generate` and you are ready to start coding.
+Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure`. The first time this button is clicked (and a `CMakeCache.txt` does not exit in the build directory), CMake will ask about what generator you would like to use. If a Visual Studio generator is chosen, you should also ensure the `Optional platform for generator` field is not empty. Select `x64` for 64bit and `Win32` for 32bit. Once `Finish` is clicked, the project will begin configuring.
+
+![CMakeSetup Window](images/cmake-gui-03.png "CMakeSetup Window")
+
+Finally, click `Generate` and you are ready to start coding.
 
 ## Compiling
 

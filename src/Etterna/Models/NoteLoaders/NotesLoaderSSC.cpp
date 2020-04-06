@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/FileTypes/MsdFile.h" // No JSON here.
@@ -414,6 +414,13 @@ SetStepsBPMs(SSC::StepsTagInfo& info)
 		info.loader->ProcessBPMs(
 		  *info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
+	}
+
+	// If the header did not contain a BPM default to the first step's #BPMS
+	if ((info.song->m_SongTiming.GetSegmentIndexAtRow(SEGMENT_BPM, 0)) == -1) {
+		info.loader->ProcessBPMs(info.song->m_SongTiming,
+								 (*info.params)[1],
+								 info.loader->GetSongTitle());
 	}
 	info.ssc_format = true;
 }
@@ -906,7 +913,8 @@ SSCLoader::ProcessScrolls(TimingData& out,
 bool
 SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 {
-	LOG->Trace("Loading notes from %s", cachePath.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Loading notes from %s", cachePath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(cachePath, true)) {
@@ -1163,15 +1171,6 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 				reused_steps_info.steps = pNewNotes;
 				reused_steps_info.ssc_format = true;
 			} else if (sValueName == "NOTES") {
-				if (pSong == NULL) {
-					LOG->UserLog(
-					  "Edit file",
-					  sEditFilePath,
-					  "doesn't have a #SONG tag preceeding the first #NOTES "
-					  "tag,"
-					  " and is not in a valid song-specific folder.");
-					return false;
-				}
 
 				if (!reused_steps_info.ssc_format && iNumParams < 7) {
 					LOG->UserLog("Edit file",
@@ -1239,12 +1238,6 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 			}
 		} else {
 			if (sValueName == "SONG") {
-				if (pSong != nullptr) {
-					/* LOG->UserLog("Edit file", sEditFilePath, "has more than
-					   one #SONG tag."); return false; */
-					continue;
-				}
-
 				RString sSongFullTitle = sParams[1];
 				this->SetSongTitle(sParams[1]);
 				sSongFullTitle.Replace('\\', '/');
@@ -1273,28 +1266,3 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 	// Edit had no valid #NOTES sections
 	return false;
 }
-
-/*
- * (c) 2011 Jason Felds
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

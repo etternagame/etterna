@@ -1,6 +1,6 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -8,41 +8,43 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-static RageDisplay::RagePixelFormatDesc PIXEL_FORMAT_DESC[NUM_RagePixelFormat] =
-  { { /* R8G8B8A8 */
-	  32,
-	  { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
-	{
-	  /* R4G4B4A4 */
-	  16,
-	  { 0xF000, 0x0F00, 0x00F0, 0x000F },
-	},
-	{
-	  /* R5G5B5A1 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0001 },
-	},
-	{
-	  /* R5G5B5 */
-	  16,
-	  { 0xF800, 0x07C0, 0x003E, 0x0000 },
-	},
-	{ /* R8G8B8 */
-	  24,
-	  { 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
-	{
-	  /* Paletted */
-	  8,
-	  { 0, 0, 0, 0 } /* N/A */
-	},
-	{ /* B8G8R8A8 */
-	  24,
-	  { 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
-	{
-	  /* A1B5G5R5 */
-	  16,
-	  { 0x7C00, 0x03E0, 0x001F, 0x8000 },
-	} };
+static RageDisplay::RagePixelFormatDesc
+  PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
+	  { /* R8G8B8A8 */
+		32,
+		{ 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
+	  {
+		/* R4G4B4A4 */
+		16,
+		{ 0xF000, 0x0F00, 0x00F0, 0x000F },
+	  },
+	  {
+		/* R5G5B5A1 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0001 },
+	  },
+	  {
+		/* R5G5B5 */
+		16,
+		{ 0xF800, 0x07C0, 0x003E, 0x0000 },
+	  },
+	  { /* R8G8B8 */
+		24,
+		{ 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
+	  {
+		/* Paletted */
+		8,
+		{ 0, 0, 0, 0 } /* N/A */
+	  },
+	  { /* B8G8R8A8 */
+		24,
+		{ 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
+	  {
+		/* A1B5G5R5 */
+		16,
+		{ 0x7C00, 0x03E0, 0x001F, 0x8000 },
+	  }
+  };
 
 RageDisplay_Null::RageDisplay_Null()
 {
@@ -59,11 +61,12 @@ RageDisplay_Null::Init(const VideoModeParams& p,
 }
 
 void
-RageDisplay_Null::GetDisplayResolutions(DisplayResolutions& out) const
+RageDisplay_Null::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	DisplayResolution res = { 640, 480, true };
-	out.insert(res);
+	DisplayMode nullMode = { 640U, 480U, 30.0 };
+	DisplaySpec nullSpec("NullDisplay", "NullDisplay", nullMode);
+	out.insert(nullSpec);
 }
 
 RageSurface*
@@ -147,28 +150,3 @@ void
 RageDisplay_Null::DeleteCompiledGeometry(RageCompiledGeometry* p)
 {
 }
-
-/*
- * Copyright (c) 2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

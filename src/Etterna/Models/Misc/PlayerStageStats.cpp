@@ -13,10 +13,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)                                                  \
-	THEME->GetMetricF(                                                         \
-	  "PlayerStageStats",                                                      \
-	  ssprintf("GradePercent%s", GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
 	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsAllW2s")
@@ -192,19 +188,37 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 Grade
 GetGradeFromPercent(float fPercent)
 {
-	if (fPercent >= 0.9997f)
+	if (fPercent >= 0.99999f)
 		return Grade_Tier01;
-	if (fPercent >= 0.9975f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9999f)
 		return Grade_Tier02;
-	if (fPercent >= 0.93f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
 		return Grade_Tier03;
-	if (fPercent >= 0.8f)
+	if (fPercent >= 0.9997f)
 		return Grade_Tier04;
-	if (fPercent >= 0.7f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9992f)
 		return Grade_Tier05;
-	if (fPercent >= 0.6f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9985f)
 		return Grade_Tier06;
-	return Grade_Tier07;
+	if (fPercent >= 0.9975f)
+		return Grade_Tier07;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
+		return Grade_Tier08;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
+		return Grade_Tier09;
+	if (fPercent >= 0.93f)
+		return Grade_Tier10;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
+		return Grade_Tier11;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
+		return Grade_Tier12;
+	if (fPercent >= 0.8f)
+		return Grade_Tier13;
+	if (fPercent >= 0.7f)
+		return Grade_Tier14;
+	if (fPercent >= 0.6f)
+		return Grade_Tier15;
+	return Grade_Tier16;
 }
 
 Grade
@@ -269,24 +283,24 @@ PlayerStageStats::GetGrade() const
 	// TODO: Change these conditions to use Lua instead. -aj
 	if (GRADE_TIER02_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W1))
-			return Grade_Tier01;
+			return Grade_Tier04; // quad
 
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier02;
+			return Grade_Tier07; // triple
 
 		grade = max(grade, Grade_Tier03);
 	}
 
 	if (GRADE_TIER01_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier01;
-		grade = max(grade, Grade_Tier02);
+			return Grade_Tier04;		  // quad
+		grade = max(grade, Grade_Tier07); // triple
 	}
 
 	if (GRADE_TIER02_IS_FULL_COMBO) {
 		if (FullComboOfScore(g_MinScoreToMaintainCombo))
-			return Grade_Tier02;
-		grade = max(grade, Grade_Tier03);
+			return Grade_Tier07;		  // triple
+		grade = max(grade, Grade_Tier10); // double
 	}
 
 	return grade;
@@ -414,7 +428,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 		return 1; // correct for rounding error
 
 	auto fCurMaxPercentDancePoints =
-	  static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	  static_cast<float>(m_iCurPossibleDancePoints) / m_iPossibleDancePoints;
 
 	return fCurMaxPercentDancePoints;
 }
@@ -882,42 +896,46 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
   /** @brief Allow Lua to have access to the PlayerStageStats. */
   class LunaPlayerStageStats : public Luna<PlayerStageStats>
 {
-public:
-	DEFINE_METHOD( GetNumControllerSteps,		m_iNumControllerSteps )
-	DEFINE_METHOD( GetLifeRemainingSeconds,		m_fLifeRemainingSeconds )
-	DEFINE_METHOD( GetSurvivalSeconds,			GetSurvivalSeconds() )
-	DEFINE_METHOD( GetCurrentCombo,				m_iCurCombo )
-	DEFINE_METHOD( GetCurrentMissCombo,			m_iCurMissCombo )
-	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
-	DEFINE_METHOD( GetScore,					m_iScore )
-	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
-	DEFINE_METHOD( GetCurWifeScore,				CurWifeScore)
-	DEFINE_METHOD( GetMaxWifeScore,				MaxWifeScore)
-	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
-	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
-	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
-	DEFINE_METHOD( FullCombo,					FullCombo() )
-	DEFINE_METHOD( FullComboOfScore,			FullComboOfScore( Enum::Check<TapNoteScore>(L, 1) ) )
-	DEFINE_METHOD( MaxCombo,					GetMaxCombo().m_cnt )
-	DEFINE_METHOD( GetCurrentLife,				GetCurrentLife() )
-	DEFINE_METHOD( GetGrade,					GetGrade() )
-	DEFINE_METHOD( GetWifeGrade,				GetWifeGrade())
-	DEFINE_METHOD( GetActualDancePoints,		m_iActualDancePoints )
-	DEFINE_METHOD( GetPossibleDancePoints,		m_iPossibleDancePoints )
-	DEFINE_METHOD( GetCurrentPossibleDancePoints,		m_iCurPossibleDancePoints )
-	DEFINE_METHOD( GetPercentDancePoints,		GetPercentDancePoints() )
-	DEFINE_METHOD( GetLessonScoreActual,		GetLessonScoreActual() )
-	DEFINE_METHOD( GetLessonScoreNeeded,		GetLessonScoreNeeded() )
-	DEFINE_METHOD( GetPersonalHighScoreIndex,	m_iPersonalHighScoreIndex )
-	DEFINE_METHOD( GetMachineHighScoreIndex,	m_iMachineHighScoreIndex )
-	DEFINE_METHOD( IsDisqualified,				IsDisqualified() )
-	DEFINE_METHOD( GetAliveSeconds,				m_fAliveSeconds )
-	DEFINE_METHOD( GetTotalTaps,				GetTotalTaps() )
-	DEFINE_METHOD( GetPercentageOfTaps,			GetPercentageOfTaps( Enum::Check<TapNoteScore>(L, 1) ) )
-	DEFINE_METHOD( GetBestFullComboTapNoteScore, GetBestFullComboTapNoteScore() )
-	DEFINE_METHOD( GetFailed, 					m_bFailed )
-	DEFINE_METHOD( GetSongsPassed, 					m_iSongsPassed )
-	DEFINE_METHOD( GetSongsPlayed, 					m_iSongsPlayed )
+  public:
+	DEFINE_METHOD(GetNumControllerSteps, m_iNumControllerSteps)
+	DEFINE_METHOD(GetLifeRemainingSeconds, m_fLifeRemainingSeconds)
+	DEFINE_METHOD(GetSurvivalSeconds, GetSurvivalSeconds())
+	DEFINE_METHOD(GetCurrentCombo, m_iCurCombo)
+	DEFINE_METHOD(GetCurrentMissCombo, m_iCurMissCombo)
+	DEFINE_METHOD(GetCurrentScoreMultiplier, m_iCurScoreMultiplier)
+	DEFINE_METHOD(GetScore, m_iScore)
+	DEFINE_METHOD(GetWifeScore, m_fWifeScore)
+	DEFINE_METHOD(GetCurWifeScore, CurWifeScore)
+	DEFINE_METHOD(GetMaxWifeScore, MaxWifeScore)
+	DEFINE_METHOD(GetCurMaxScore, m_iCurMaxScore)
+	DEFINE_METHOD(GetTapNoteScores,
+				  m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)])
+	DEFINE_METHOD(GetHoldNoteScores,
+				  m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)])
+	DEFINE_METHOD(FullCombo, FullCombo())
+	DEFINE_METHOD(FullComboOfScore,
+				  FullComboOfScore(Enum::Check<TapNoteScore>(L, 1)))
+	DEFINE_METHOD(MaxCombo, GetMaxCombo().m_cnt)
+	DEFINE_METHOD(GetCurrentLife, GetCurrentLife())
+	DEFINE_METHOD(GetGrade, GetGrade())
+	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
+	DEFINE_METHOD(GetActualDancePoints, m_iActualDancePoints)
+	DEFINE_METHOD(GetPossibleDancePoints, m_iPossibleDancePoints)
+	DEFINE_METHOD(GetCurrentPossibleDancePoints, m_iCurPossibleDancePoints)
+	DEFINE_METHOD(GetPercentDancePoints, GetPercentDancePoints())
+	DEFINE_METHOD(GetLessonScoreActual, GetLessonScoreActual())
+	DEFINE_METHOD(GetLessonScoreNeeded, GetLessonScoreNeeded())
+	DEFINE_METHOD(GetPersonalHighScoreIndex, m_iPersonalHighScoreIndex)
+	DEFINE_METHOD(GetMachineHighScoreIndex, m_iMachineHighScoreIndex)
+	DEFINE_METHOD(IsDisqualified, IsDisqualified())
+	DEFINE_METHOD(GetAliveSeconds, m_fAliveSeconds)
+	DEFINE_METHOD(GetTotalTaps, GetTotalTaps())
+	DEFINE_METHOD(GetPercentageOfTaps,
+				  GetPercentageOfTaps(Enum::Check<TapNoteScore>(L, 1)))
+	DEFINE_METHOD(GetBestFullComboTapNoteScore, GetBestFullComboTapNoteScore())
+	DEFINE_METHOD(GetFailed, m_bFailed)
+	DEFINE_METHOD(GetSongsPassed, m_iSongsPassed)
+	DEFINE_METHOD(GetSongsPlayed, m_iSongsPlayed)
 
 	static int GetHighScore(T* p, lua_State* L)
 	{
@@ -1118,76 +1136,51 @@ public:
 		ADD_METHOD(GetOffsetVector);
 		ADD_METHOD(GetTrackVector);
 		ADD_METHOD(GetTapNoteTypeVector);
-		ADD_METHOD( WifeScoreOffset );
-		ADD_METHOD( GetNoteRowVector );
-		ADD_METHOD( GetWifeScore );
-		ADD_METHOD( GetCurWifeScore );
-		ADD_METHOD( GetMaxWifeScore );
-		ADD_METHOD( GetCurMaxScore );
-		ADD_METHOD( GetTapNoteScores );
-		ADD_METHOD( GetHoldNoteScores );
-		ADD_METHOD( FullCombo );
-		ADD_METHOD( FullComboOfScore );
-		ADD_METHOD( MaxCombo );
-		ADD_METHOD( GetCurrentLife );
-		ADD_METHOD( GetGrade );
-		ADD_METHOD( GetWifeGrade );
-		ADD_METHOD( GetHighScore );
-		ADD_METHOD( GetActualDancePoints );
-		ADD_METHOD( GetPossibleDancePoints );
-		ADD_METHOD( GetCurrentPossibleDancePoints );
-		ADD_METHOD( GetPercentDancePoints );
-		ADD_METHOD( GetLessonScoreActual );
-		ADD_METHOD( GetLessonScoreNeeded );
-		ADD_METHOD( GetPersonalHighScoreIndex );
-		ADD_METHOD( GetMachineHighScoreIndex );
-		ADD_METHOD( IsDisqualified );
-		ADD_METHOD( GetPlayedSteps );
-		ADD_METHOD( GetPossibleSteps );
-		ADD_METHOD( GetComboList );
-		ADD_METHOD( GetLifeRecord );
-		ADD_METHOD( GetWifeRecord );
-		ADD_METHOD( GetAliveSeconds );
-		ADD_METHOD( GetPercentageOfTaps );
-		ADD_METHOD( GetTotalTaps );
-		ADD_METHOD( GetRadarActual );
-		ADD_METHOD( GetRadarPossible );
-		ADD_METHOD( GetBestFullComboTapNoteScore );
-		ADD_METHOD( GetFailed );
-		ADD_METHOD( SetScore );
-		ADD_METHOD( GetCurMaxScore );
-		ADD_METHOD( SetCurMaxScore );
-		ADD_METHOD( FailPlayer );
-		ADD_METHOD( GetSongsPassed );
-		ADD_METHOD( GetSongsPlayed );
-		ADD_METHOD( UnloadReplayData );
+		ADD_METHOD(WifeScoreOffset);
+		ADD_METHOD(GetNoteRowVector);
+		ADD_METHOD(GetWifeScore);
+		ADD_METHOD(GetCurWifeScore);
+		ADD_METHOD(GetMaxWifeScore);
+		ADD_METHOD(GetCurMaxScore);
+		ADD_METHOD(GetTapNoteScores);
+		ADD_METHOD(GetHoldNoteScores);
+		ADD_METHOD(FullCombo);
+		ADD_METHOD(FullComboOfScore);
+		ADD_METHOD(MaxCombo);
+		ADD_METHOD(GetCurrentLife);
+		ADD_METHOD(GetGrade);
+		ADD_METHOD(GetWifeGrade);
+		ADD_METHOD(GetHighScore);
+		ADD_METHOD(GetActualDancePoints);
+		ADD_METHOD(GetPossibleDancePoints);
+		ADD_METHOD(GetCurrentPossibleDancePoints);
+		ADD_METHOD(GetPercentDancePoints);
+		ADD_METHOD(GetLessonScoreActual);
+		ADD_METHOD(GetLessonScoreNeeded);
+		ADD_METHOD(GetPersonalHighScoreIndex);
+		ADD_METHOD(GetMachineHighScoreIndex);
+		ADD_METHOD(IsDisqualified);
+		ADD_METHOD(GetPlayedSteps);
+		ADD_METHOD(GetPossibleSteps);
+		ADD_METHOD(GetComboList);
+		ADD_METHOD(GetLifeRecord);
+		ADD_METHOD(GetWifeRecord);
+		ADD_METHOD(GetAliveSeconds);
+		ADD_METHOD(GetPercentageOfTaps);
+		ADD_METHOD(GetTotalTaps);
+		ADD_METHOD(GetRadarActual);
+		ADD_METHOD(GetRadarPossible);
+		ADD_METHOD(GetBestFullComboTapNoteScore);
+		ADD_METHOD(GetFailed);
+		ADD_METHOD(SetScore);
+		ADD_METHOD(GetCurMaxScore);
+		ADD_METHOD(SetCurMaxScore);
+		ADD_METHOD(FailPlayer);
+		ADD_METHOD(GetSongsPassed);
+		ADD_METHOD(GetSongsPlayed);
+		ADD_METHOD(UnloadReplayData);
 	}
 };
 
 LUA_REGISTER_CLASS(PlayerStageStats)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

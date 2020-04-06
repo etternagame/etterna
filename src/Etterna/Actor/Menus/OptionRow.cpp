@@ -45,6 +45,9 @@ OptionRow::OptionRow(const OptionRowType* pSource)
 	m_textTitle = NULL;
 	m_ModIcons = NULL;
 
+	m_RowType = OptionRow::RowType_Normal;
+	m_sprFrame = NULL;
+
 	Clear();
 	this->AddChild(&m_Frame);
 
@@ -104,8 +107,8 @@ OptionRowType::Load(const RString& sMetricsGroup, Actor* pParent)
 	ActorUtil::LoadAllCommands(m_textItem, sMetricsGroup);
 
 	if (SHOW_UNDERLINES) {
-		m_Underline.Load(
-		  "OptionsUnderline" + PlayerNumberToString(PLAYER_1), false);
+		m_Underline.Load("OptionsUnderline" + PlayerNumberToString(PLAYER_1),
+						 false);
 	}
 
 	m_textTitle.LoadFromFont(THEME->GetPathF(sMetricsGroup, "title"));
@@ -245,8 +248,7 @@ OptionRow::InitText(RowType type)
 
 	if (m_pParentType->SHOW_MOD_ICONS) {
 		switch (m_RowType) {
-			case RowType_Normal:
-			{
+			case RowType_Normal: {
 				m_ModIcons = new ModIcon(m_pParentType->m_ModIcon);
 				m_ModIcons->SetDrawOrder(-1); // under title
 				m_ModIcons->PlayCommand("On");
@@ -315,7 +317,7 @@ OptionRow::InitText(RowType type)
 			if (m_pParentType->SHOW_UNDERLINES &&
 				GetRowType() != OptionRow::RowType_Exit) {
 				OptionsCursor* pCursor =
-					new OptionsCursor(m_pParentType->m_Underline);
+				  new OptionsCursor(m_pParentType->m_Underline);
 				m_Underline.push_back(pCursor);
 
 				int iWidth, iX, iY;
@@ -346,7 +348,7 @@ OptionRow::InitText(RowType type)
 				// init underlines
 				if (m_pParentType->SHOW_UNDERLINES) {
 					OptionsCursor* ul =
-						new OptionsCursor(m_pParentType->m_Underline);
+					  new OptionsCursor(m_pParentType->m_Underline);
 					m_Underline.push_back(ul);
 					ul->SetX(fX);
 					ul->SetBarWidth(static_cast<int>(fItemWidth));
@@ -364,7 +366,7 @@ OptionRow::InitText(RowType type)
 	for (unsigned c = 0; c < m_textItems.size(); c++)
 		m_Frame.AddChild(m_textItems[c]);
 	for (unsigned c = 0; c < m_Underline.size(); c++)
-	  m_Frame.AddChild(m_Underline[c]);
+		m_Frame.AddChild(m_Underline[c]);
 
 	// This is set in OptionRow::AfterImportOptions, so if we're reused with a
 	// different song selected, SHOW_BPM_IN_SPEED_TITLE will show the new BPM.
@@ -439,6 +441,9 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 			? GetChoiceInRowWithFocus()
 			: i;
 
+		if (iChoiceWithFocus == -1)
+			continue;
+
 		float fAlpha = 1.0f;
 		if (m_pHand->m_Def.m_layoutType == LAYOUT_SHOW_ONE_IN_ROW) {
 			bool bRowEnabled = m_pHand->m_Def.m_vEnabledForPlayers.find(pn) !=
@@ -463,12 +468,9 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 		// only set alpha, in case a theme tries to color underlines. -aj
 		ul.SetDiffuseAlpha(fAlpha);
 
-		ASSERT(m_vbSelected.size() ==
-			   m_pHand->m_Def.m_vsChoices.size());
+		ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
 
-		bool bSelected = (iChoiceWithFocus == -1)
-						   ? false
-						   : m_vbSelected[iChoiceWithFocus];
+		bool bSelected = m_vbSelected[iChoiceWithFocus];
 		bool bVisible = bSelected && GAMESTATE->IsHumanPlayer(pn);
 
 		ul.BeginTweening(m_pParentType->TWEEN_SECONDS);
@@ -570,9 +572,9 @@ OptionRow::UpdateEnabledDisabled()
 		}
 
 		// Logically dead code
-		//if (bThisItemHasFocusByAny)
+		// if (bThisItemHasFocusByAny)
 		//	m_textItems[j]->PlayCommand("GainFocus");
-		//else
+		// else
 		m_textItems[j]->PlayCommand("LoseFocus");
 	}
 
@@ -589,22 +591,19 @@ OptionRow::UpdateEnabledDisabled()
 
 			break;
 		case LAYOUT_SHOW_ONE_IN_ROW:
-			FOREACH_HumanPlayer(pn)
+			bRowEnabled = m_pHand->m_Def.m_vEnabledForPlayers.find(PLAYER_1) !=
+						  m_pHand->m_Def.m_vEnabledForPlayers.end();
+
+			if (!m_pHand->m_Def.m_bOneChoiceForAllPlayers) {
+				if (m_bRowHasFocus)
+					color = m_pParentType->COLOR_SELECTED;
+				else if (bRowEnabled)
+					color = m_pParentType->COLOR_NOT_SELECTED;
+				else
+					color = m_pParentType->COLOR_DISABLED;
+			}
 			{
-				bRowEnabled = m_pHand->m_Def.m_vEnabledForPlayers.find(pn) !=
-							  m_pHand->m_Def.m_vEnabledForPlayers.end();
-
-				if (!m_pHand->m_Def.m_bOneChoiceForAllPlayers) {
-					if (m_bRowHasFocus)
-						color = m_pParentType->COLOR_SELECTED;
-					else if (bRowEnabled)
-						color = m_pParentType->COLOR_NOT_SELECTED;
-					else
-						color = m_pParentType->COLOR_DISABLED;
-				}
-
-				unsigned item_no =
-				  m_pHand->m_Def.m_bOneChoiceForAllPlayers ? 0 : pn;
+				unsigned item_no = 0;
 
 				// If player_no is 2 and there is no player 1:
 				item_no = min(item_no, m_textItems.size() - 1);
@@ -837,20 +836,20 @@ OptionRow::Reload()
 	*/
 
 	switch (m_pHand->Reload()) {
-		case OptionRowHandler::RELOAD_CHANGED_NONE:
+		case RELOAD_CHANGED_NONE:
 			break;
 
-		case OptionRowHandler::RELOAD_CHANGED_ALL: {
+		case RELOAD_CHANGED_ALL: {
 			ChoicesChanged(m_RowType);
 
 			ImportOptions(PLAYER_1);
-			FOREACH_HumanPlayer(p) AfterImportOptions(p);
+			AfterImportOptions(PLAYER_1);
 			// fall through
 		}
 
-		case OptionRowHandler::RELOAD_CHANGED_ENABLED:
+		case RELOAD_CHANGED_ENABLED:
 			UpdateEnabledDisabled();
-			FOREACH_HumanPlayer(pn) PositionUnderlines(pn);
+			PositionUnderlines(PLAYER_1);
 			break;
 	}
 
@@ -906,12 +905,11 @@ OptionRow::ImportOptions(const PlayerNumber& vpns)
 
 	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
 	VerifySelected(
-		m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
+	  m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
 }
 
 int
-OptionRow::ExportOptions(const PlayerNumber& vpns,
-						 bool bRowHasFocus)
+OptionRow::ExportOptions(const PlayerNumber& vpns, bool bRowHasFocus)
 {
 	ASSERT(m_pHand->m_Def.m_vsChoices.size() > 0);
 
@@ -921,19 +919,19 @@ OptionRow::ExportOptions(const PlayerNumber& vpns,
 	bool bFocus = bRowHasFocus;
 
 	VerifySelected(
-		m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
+	  m_pHand->m_Def.m_selectType, m_vbSelected, m_pHand->m_Def.m_sName);
 	ASSERT(m_vbSelected.size() == m_pHand->m_Def.m_vsChoices.size());
 	ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
 
 	// SELECT_NONE rows get exported if they have focus when the user
 	// presses Start.
 	int iChoice = GetChoiceInRowWithFocus();
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = true;
 
 	iChangeMask |= m_pHand->ExportOption(vpns, m_vbSelected);
 
-	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus)
+	if (m_pHand->m_Def.m_selectType == SELECT_NONE && bFocus && iChoice != -1)
 		m_vbSelected[iChoice] = false;
 
 	INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED(m_vbSelected);
@@ -950,8 +948,7 @@ class LunaOptionRow : public Luna<OptionRow>
 	DEFINE_METHOD(FirstItemGoesDown, GetFirstItemGoesDown())
 	static int GetChoiceInRowWithFocus(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L, p->GetChoiceInRowWithFocus());
+		lua_pushnumber(L, p->GetChoiceInRowWithFocus());
 		return 1;
 	}
 	DEFINE_METHOD(GetLayoutType, GetHandler()->m_Def.m_layoutType)
@@ -994,28 +991,3 @@ class LunaOptionRow : public Luna<OptionRow>
 
 LUA_REGISTER_DERIVED_CLASS(OptionRow, ActorFrame)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

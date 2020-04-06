@@ -38,6 +38,20 @@ LayoutType
 StringToLayoutType(const RString& s);
 LuaDeclareType(LayoutType);
 
+enum ReloadChanged
+{
+	RELOAD_CHANGED_NONE,
+	RELOAD_CHANGED_ENABLED,
+	RELOAD_CHANGED_ALL,
+	NUM_ReloadChanged,
+	ReloadChanged_Invalid
+};
+const RString&
+ReloadChangedToString(ReloadChanged rc);
+ReloadChanged
+StringToReloadChanged(const RString& s);
+LuaDeclareType(ReloadChanged);
+
 /** @brief Define the purpose of the OptionRow. */
 struct OptionRowDefinition
 {
@@ -206,12 +220,6 @@ class OptionRowHandler
 	 * graphic elements will also be reinitialized. If only m_vEnabledForPlayers
 	 * has been changed, return RELOAD_CHANGED_ENABLED. If the row is static,
 	 * and nothing has changed, return RELOAD_CHANGED_NONE. */
-	enum ReloadChanged
-	{
-		RELOAD_CHANGED_NONE,
-		RELOAD_CHANGED_ENABLED,
-		RELOAD_CHANGED_ALL
-	};
 	virtual ReloadChanged Reload() { return RELOAD_CHANGED_NONE; }
 
 	virtual int GetDefaultOption() const { return -1; }
@@ -297,30 +305,3 @@ VerifySelected(SelectType st, vector<bool>& selected, const RString& sName)
 }
 
 #endif
-
-/**
- * @file
- * @author Chris Danford (c) 2002-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

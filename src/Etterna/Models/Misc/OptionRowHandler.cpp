@@ -1,6 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Character.h"
-#include "Etterna/Singletons/CharacterManager.h"
 #include "CommonMetrics.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Foreach.h"
@@ -278,9 +276,9 @@ class OptionRowHandlerList : public OptionRowHandler
 
 			if (mc.IsZero()) {
 				/* The entry has no effect. This is usually a default "none
-					* of the above" entry. It will always return true for
-					* DescribesCurrentMode(). It's only the selected choice if
-					* nothing else matches. */
+				 * of the above" entry. It will always return true for
+				 * DescribesCurrentMode(). It's only the selected choice if
+				 * nothing else matches. */
 				continue;
 			}
 
@@ -307,16 +305,15 @@ class OptionRowHandlerList : public OptionRowHandler
 			int iFallbackOption = m_Def.m_iDefault;
 			if (iFallbackOption == -1) {
 				RString s =
-					ssprintf("No options in row \"list,%s\" were selected, "
-							"and no fallback row found; selected entry 0",
-							m_Def.m_sName.c_str());
+				  ssprintf("No options in row \"list,%s\" were selected, "
+						   "and no fallback row found; selected entry 0",
+						   m_Def.m_sName.c_str());
 				LOG->Warn("%s", s.c_str());
 				CHECKPOINT_M(s);
 				iFallbackOption = 0;
 			}
 
-			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption,
-													vbSelOut);
+			OptionRowHandlerUtil::SelectExactlyOne(iFallbackOption, vbSelOut);
 		}
 
 		VerifySelected(m_Def.m_selectType, vbSelOut, m_Def.m_sName);
@@ -438,9 +435,10 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		m_Def.m_vsChoices.clear();
 		m_aListEntries.clear();
 
-		if(GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) && GAMESTATE->m_pCurSong) // playing a song
+		if (GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) &&
+			GAMESTATE->m_pCurSong) // playing a song
 		{
-			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
+			m_Def.m_layoutType = StringToLayoutType(STEPS_ROW_LAYOUT_TYPE);
 
 			vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
@@ -507,6 +505,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		OptionRowHandler::Init();
 		m_ppStepsToFill = NULL;
 		m_pDifficultyToFill = NULL;
+		m_pst = NULL;
 		m_vSteps.clear();
 		m_vDifficulties.clear();
 	}
@@ -598,12 +597,12 @@ class OptionRowHandlerSteps : public OptionRowHandler
 
 		// look for matching steps
 		vector<Steps*>::const_iterator iter =
-			find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
+		  find(m_vSteps.begin(), m_vSteps.end(), m_ppStepsToFill->Get());
 		if (iter != m_vSteps.end()) {
 			unsigned i = iter - m_vSteps.begin();
 			vbSelOut[i] = true;
 		} else {
-		
+
 			// look for matching difficulty
 			bool matched = false;
 			if (m_pDifficultyToFill) {
@@ -638,39 +637,6 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		m_ppStepsToFill->Set(pSteps);
 
 		return 0;
-	}
-};
-
-class OptionRowHandlerListCharacters : public OptionRowHandlerList
-{
-	bool LoadInternal(const Commands&) override
-	{
-		m_Def.m_bOneChoiceForAllPlayers = false;
-		m_Def.m_bAllowThemeItems = false;
-		m_Def.m_sName = "Characters";
-		m_Def.m_iDefault = 0;
-		m_Default.m_pCharacter = CHARMAN->GetDefaultCharacter();
-
-		{
-			m_Def.m_vsChoices.push_back(OFF);
-			GameCommand mc;
-			mc.m_pCharacter = NULL;
-			m_aListEntries.push_back(mc);
-		}
-
-		vector<Character*> vpCharacters;
-		CHARMAN->GetCharacters(vpCharacters);
-		for (unsigned i = 0; i < vpCharacters.size(); i++) {
-			Character* pCharacter = vpCharacters[i];
-			RString s = pCharacter->GetDisplayName();
-			s.MakeUpper();
-
-			m_Def.m_vsChoices.push_back(s);
-			GameCommand mc;
-			mc.m_pCharacter = pCharacter;
-			m_aListEntries.push_back(mc);
-		}
-		return true;
 	}
 };
 
@@ -796,6 +762,7 @@ class OptionRowHandlerLua : public OptionRowHandler
   public:
 	LuaReference* m_pLuaTable;
 	LuaReference m_EnabledForPlayersFunc;
+	LuaReference m_ReloadFunc;
 
 	bool m_TableIsSane{ false };
 	bool m_GoToFirstOnStart{ false };
@@ -916,6 +883,17 @@ class OptionRowHandlerLua : public OptionRowHandler
 		}
 		lua_pop(L, 1);
 
+		lua_getfield(L, -1, "Reload");
+		if (!lua_isnil(L, -1)) {
+			if (!lua_isfunction(L, -1)) {
+				LuaHelpers::ReportScriptErrorFmt(
+				  "LUA_ERROR:  \"%s\" \"Reload\" entry is not a function.",
+				  RowName.c_str());
+				return false;
+			}
+		}
+		lua_pop(L, 1);
+
 		lua_getfield(L, -1, "LoadSelections");
 		if (!lua_isfunction(L, -1)) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -984,6 +962,21 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 	}
 
+	void LoadChoices(Lua* L)
+	{
+		// Iterate over the "Choices" table.
+		lua_getfield(L, -1, "Choices");
+		lua_pushnil(L);
+		while (lua_next(L, -2) != 0) {
+			// `key' is at index -2 and `value' at index -1
+			const char* pValue = lua_tostring(L, -1);
+			// LOG->Trace( "choice: '%s'", pValue);
+			m_Def.m_vsChoices.push_back(pValue);
+			lua_pop(L, 1); // removes `value'; keeps `key' for next iteration
+		}
+		lua_pop(L, 1); // pop choices table
+	}
+
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
@@ -1037,17 +1030,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_Def.m_selectType = StringToSelectType(pStr);
 		lua_pop(L, 1);
 
-		// Iterate over the "Choices" table.
-		lua_getfield(L, -1, "Choices");
-		lua_pushnil(L);
-		while (lua_next(L, -2) != 0) {
-			// `key' is at index -2 and `value' at index -1
-			const char* pValue = lua_tostring(L, -1);
-			// LOG->Trace( "choice: '%s'", pValue);
-			m_Def.m_vsChoices.push_back(pValue);
-			lua_pop(L, 1); // removes `value'; keeps `key' for next iteration
-		}
-		lua_pop(L, 1); // pop choices table
+		LoadChoices(L);
 
 		// Set the EnabledForPlayers function.
 		lua_getfield(L, -1, "EnabledForPlayers");
@@ -1069,6 +1052,10 @@ class OptionRowHandlerLua : public OptionRowHandler
 		}
 		lua_pop(L, 1); // pop ReloadRowMessages table
 
+		// Set the Reload function
+		lua_getfield(L, -1, "Reload");
+		m_ReloadFunc.SetFromStack(L);
+
 		lua_pop(L, 1); // pop main table
 		ASSERT(lua_gettop(L) == 0);
 
@@ -1078,8 +1065,44 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 	ReloadChanged Reload() override
 	{
+		if (!m_TableIsSane) {
+			return RELOAD_CHANGED_NONE;
+		}
+
+		/* We'll always call SetEnabledForPlayers, and
+		 * return at least RELOAD_CHANGED_ENABLED,
+		 * to preserve original OptionRowHandlerLua behavior.
+		 *
+		 * Will also call the standard OptionRowHandler::Reload
+		 * function to determine whether we should declare a full
+		 * RELOAD_CHANGED_ALL
+		 */
+		ReloadChanged effect = RELOAD_CHANGED_ENABLED;
+
+		if (!m_ReloadFunc.IsNil()) {
+			Lua* L = LUA->Get();
+			m_ReloadFunc.PushSelf(L);
+
+			// Argument 1: (self)
+			m_pLuaTable->PushSelf(L);
+			RString error = "Reload: ";
+
+			LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
+			effect = std::max(effect, Enum::Check<ReloadChanged>(L, -1));
+			lua_pop(L, 1);
+
+			if (effect == RELOAD_CHANGED_ALL) {
+				m_Def.m_vsChoices.clear();
+				m_pLuaTable->PushSelf(L);
+				LoadChoices(L);
+				lua_pop(L, 1);
+				ASSERT(lua_gettop(L) == 0);
+			}
+			LUA->Release(L);
+		}
+
 		SetEnabledForPlayers();
-		return RELOAD_CHANGED_ENABLED;
+		return effect;
 	}
 
 	void ImportOption(OptionRow* pRow,
@@ -1097,7 +1120,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		vector<bool>& vbSelOut = vbSelectedOut;
 
 		/* Evaluate the LoadSelections(self,array,pn) function, where
-			* array is a table representing vbSelectedOut. */
+		 * array is a table representing vbSelectedOut. */
 
 		// All selections default to false.
 		for (unsigned i = 0; i < vbSelOut.size(); ++i)
@@ -1123,7 +1146,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "LoadSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
@@ -1149,11 +1172,13 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 		ASSERT(lua_gettop(L) == 0);
 
+		int effects = 0;
+
 		PlayerNumber p = vpns;
 		const vector<bool>& vbSel = vbSelected;
 
 		/* Evaluate SaveSelections(self,array,pn) function, where array is
-			* a table representing vbSelectedOut. */
+		 * a table representing vbSelectedOut. */
 
 		vector<bool> vbSelectedCopy = vbSel;
 
@@ -1177,11 +1202,19 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LuaHelpers::Push(L, p);
 
 		ASSERT(lua_gettop(L) ==
-				6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
+			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
 		RString error = "SaveSelections: ";
-		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
-		ASSERT(lua_gettop(L) == 2);
+		LuaHelpers::RunScriptOnStack(L, error, 3, 1, true);
+		ASSERT(lua_gettop(L) ==
+			   3); // SaveSelections *may* return effects flags, otherwise nil
+		double ret = lua_tonumber(L, -1);
+		ASSERT_M((lua_isnumber(L, -1) && std::floor(ret) == ret) ||
+				   lua_isnil(L, -1),
+				 "SaveSelections must return integer flags, or nill");
+		effects |= static_cast<int>(ret);
+
+		lua_pop(L, 1); // pop effects
 
 		lua_pop(L, 1); // pop option table
 		lua_pop(L, 1); // pop vbSelected table
@@ -1190,8 +1223,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 		LUA->Release(L);
 
-		// XXX: allow specifying the mask
-		return 0;
+		return effects;
 	}
 	bool NotifyOfSelection(PlayerNumber pn, int choice) override
 	{
@@ -1373,8 +1405,8 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 		if (GAMESTATE->m_pCurSteps) {
 			StepsType st = GAMESTATE->m_pCurSteps->m_StepsType;
-			vector<StepsType>::const_iterator iter = find(
-				m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
+			vector<StepsType>::const_iterator iter =
+			  find(m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
 			if (iter != m_vStepsTypesToShow.end()) {
 				unsigned i = iter - m_vStepsTypesToShow.begin();
 				vbSelOut[i] = true;
@@ -1433,7 +1465,7 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	int ExportOption(const PlayerNumber& vpns,
 					 const vector<bool>& vbSelected) const override
 	{
-		if( vbSelected[0] )
+		if (vbSelected[0])
 			m_gc.ApplyToAllPlayers();
 		return 0;
 	}
@@ -1490,9 +1522,7 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 		else if (sParam.CompareNoCase("StepsLocked") == 0) {
 			MAKE(OptionRowHandlerListSteps);
 			pHand->m_Def.m_bOneChoiceForAllPlayers = true;
-		} else if (sParam.CompareNoCase("Characters") == 0)
-			MAKE(OptionRowHandlerListCharacters)
-		else if (sParam.CompareNoCase("Styles") == 0)
+		} else if (sParam.CompareNoCase("Styles") == 0)
 			MAKE(OptionRowHandlerListStyles)
 		else if (sParam.CompareNoCase("Groups") == 0)
 			MAKE(OptionRowHandlerListGroups)
@@ -1547,7 +1577,7 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 
 	pHand->m_Def.m_vEnabledForPlayers.clear();
 	if (mr.pfnEnabled != nullptr ? mr.pfnEnabled() : mr.bEnabled) {
-		FOREACH_EnabledPlayer(pn) pHand->m_Def.m_vEnabledForPlayers.insert(pn);
+		pHand->m_Def.m_vEnabledForPlayers.insert(PLAYER_1);
 	}
 
 	pHand->m_Def.m_bOneChoiceForAllPlayers = true;
@@ -1571,27 +1601,7 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 	return pHand;
 }
 
-/*
- * (c) 2002-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
+static const char* ReloadChangedNames[] = { "None", "Enabled", "All" };
+XToString(ReloadChanged);
+StringToX(ReloadChanged);
+LuaXType(ReloadChanged);

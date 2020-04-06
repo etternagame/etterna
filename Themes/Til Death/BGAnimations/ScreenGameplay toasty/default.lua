@@ -13,7 +13,7 @@ local t =
 			self:Load(getToastyAssetPath("image"))
 		end,
 		StartTransitioningCommand = function(self)
-			self:decelerate(0.25):x(SCREEN_WIDTH - 100):sleep(1.75):accelerate(0.5):x(SCREEN_WIDTH + 100):linear(0):diffusealpha(0)
+			self:diffusealpha(1):decelerate(0.25):x(SCREEN_WIDTH - 100):sleep(1.75):accelerate(0.5):x(SCREEN_WIDTH + 100):linear(0):diffusealpha(0)
 		end
 	},
 	Def.Sound {

@@ -1538,69 +1538,6 @@ TimingData::BuildAndGetEtar(int lastrow)
 		ElapsedTimesAtAllRows.emplace_back(
 		  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
 	return ElapsedTimesAtAllRows;
-
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
-	const vector<TimingSegment*>& bpms = segs[SEGMENT_BPM];
-	const vector<TimingSegment*>& warps = segs[SEGMENT_WARP];
-	const vector<TimingSegment*>& stops = segs[SEGMENT_STOP];
-	const vector<TimingSegment*>& delays = segs[SEGMENT_DELAY];
-
-	// handle single bpm case if applicable -mina
-	if (bpms.size() == 1) {
-		float bps = GetBPMAtRow(0) / 60.0f;
-		for (int i = 0; i < lastrow; ++i) {
-			ElapsedTimesAtAllRows.emplace_back(NoteRowToBeat(i) / bps -
-											   m_fBeat0OffsetInSeconds);
-			LOG->Warn("%f, %f",
-					  ElapsedTimesAtAllRows.back(),
-					  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-		}
-
-		return ElapsedTimesAtAllRows;
-	}
-
-	// use linear calculations if linear time is determined -mina
-	if (warps.size() + stops.size() + delays.size() == 0 && lastrow > 0) {
-		float last_time = 0.f;
-		float bps = GetBPMAtRow(0) / 60.0f;
-		int lastbpmrow = 0;
-		int event_row = 0;
-		float time_to_next_event = 0.f;
-
-		// start at one because the initial bpm is already handled
-		for (size_t i = 1; i < bpms.size(); ++i) {
-			event_row = bpms[i]->GetRow();
-			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
-			float next_event_time = last_time + time_to_next_event;
-			for (int r = lastbpmrow; r <= event_row && r < lastrow; ++r) {
-				float perc =
-				  (r - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
-				ElapsedTimesAtAllRows.emplace_back(last_time +
-												   time_to_next_event * perc -
-												   m_fBeat0OffsetInSeconds);
-				LOG->Warn("%f, %f",
-						  ElapsedTimesAtAllRows.back(),
-						  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
-			}
-			last_time = next_event_time;
-			bps = GetBPMAtRow(event_row) / 60.0f;
-			lastbpmrow = event_row;
-		}
-
-		// fill out any timestamps that lie beyond the last bpm change
-		for (int r = lastbpmrow; r < lastrow; ++r) {
-			float perc =
-			  (r - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
-			ElapsedTimesAtAllRows.emplace_back(
-			  last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
-			LOG->Trace("%f, %f",
-					   ElapsedTimesAtAllRows.back(),
-					   GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
-		}
-		LOG->Trace("%f", ElapsedTimesAtAllRows[lastrow]);
-
-		return ElapsedTimesAtAllRows;
-	}
 }
 
 /** @brief Allow Lua to have access to the TimingData. */
@@ -1748,28 +1685,3 @@ class LunaTimingData : public Luna<TimingData>
 
 LUA_REGISTER_CLASS(TimingData)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford, Glenn Maynard
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

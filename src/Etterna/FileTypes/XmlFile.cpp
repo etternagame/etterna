@@ -154,7 +154,12 @@ XNode::PushChildValue(lua_State* L, const std::string& sName) const
 		lua_pushnil(L);
 		return false;
 	}
-	pChild->GetAttr(XNode::TEXT_ATTRIBUTE)->PushValue(L);
+	const auto attr = pChild->GetAttr(XNode::TEXT_ATTRIBUTE);
+	if (attr == NULL) {
+		lua_pushnil(L);
+		return false;
+	}
+	attr->PushValue(L);
 	return true;
 }
 
@@ -234,7 +239,9 @@ XNode::RemoveAttr(const std::string& sName)
  * will be deleted. If bOverwrite is false and a node already exists with that
  * name, the new value will be deleted. */
 XNodeValue*
-XNode::AppendAttrFrom(const std::string& sName, XNodeValue* pValue, bool bOverwrite)
+XNode::AppendAttrFrom(const std::string& sName,
+					  XNodeValue* pValue,
+					  bool bOverwrite)
 {
 	DEBUG_ASSERT(sName.size());
 	pair<XAttrs::iterator, bool> ret =

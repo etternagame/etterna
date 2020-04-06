@@ -5,7 +5,7 @@ list(APPEND cdefs CPU_X86_64 HAVE_LIBPTHREAD
 	"BACKTRACE_LOOKUP_METHOD_TEXT=\"backtrace_symbols\""
 	"BACKTRACE_LOOKUP_METHOD_DLADDR"
 	PACKAGE_NAME="Etterna"
-	PACKAGE_VERSION="EtteraVersion")
+	PACKAGE_VERSION="EtternaVersion")
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 
 # Find Libraries
@@ -14,6 +14,7 @@ find_package(DLFCN REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Xrandr REQUIRED)
+find_package(Xinerama)
 find_package(PulseAudio)
 find_package(ALSA)
 find_package(JACK)

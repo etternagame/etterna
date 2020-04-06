@@ -49,14 +49,6 @@ enum RandomBackgroundMode
 	NUM_RandomBackgroundMode,
 	RandomBackgroundMode_Invalid
 };
-enum ShowDancingCharacters
-{
-	SDC_Off,
-	SDC_Random,
-	SDC_Select,
-	NUM_ShowDancingCharacters,
-	ShowDancingCharacters_Invalid
-};
 enum ImageCacheMode
 {
 	IMGCACHE_OFF,
@@ -135,6 +127,7 @@ class PrefsManager
 
   public:
 	Preference<bool> m_bWindowed;
+	Preference<RString> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
 	Preference<int> m_iDisplayHeight;
 	Preference<float> m_fDisplayAspectRatio;
@@ -148,6 +141,7 @@ class PrefsManager
 	Preference<int> m_iRefreshRate;
 	Preference<bool> m_bAllowMultitexture;
 	Preference<float> m_bAllowedLag;
+	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bShowStats;
 	Preference<bool> m_bShowSkips;
 	Preference<bool> m_bShowMouseCursor;
@@ -177,14 +171,15 @@ class PrefsManager
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions; // how to play a mode
-	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
+	Preference<bool> m_bReplaysUseScoreMods;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
+	Preference<bool> m_bSortBySSRNorm;
 	Preference<AllowW1>
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
@@ -192,7 +187,6 @@ class PrefsManager
 
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
-	Preference<ShowDancingCharacters> m_ShowDancingCharacters;
 	Preference<float> m_fGlobalOffsetSeconds;
 	Preference<RString> m_sLanguage;
 	Preference<int> m_iCenterImageTranslateX;
@@ -204,6 +198,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_bUseMidGrades;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
@@ -292,30 +287,3 @@ extern PrefsManager*
   PREFSMAN; // global and accessible from anywhere in our program
 
 #endif
-
-/**
- * @file
- * @author Chris Danford, Chris Gomez (c) 2001-2004
- * @section LICENSE
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

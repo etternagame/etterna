@@ -107,12 +107,14 @@ static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 											 "Connection to '%s' successful.");
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
+static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
+
 // Utility function (Since json needs to be valid utf8)
 string
 correct_non_utf_8(string* str)
 {
 	int i, f_size = str->size();
-	unsigned char c, c2, c3, c4;
+	unsigned char c = 0, c2 = 0, c3 = 0, c4 = 0;
 	string to;
 	to.reserve(f_size);
 
@@ -213,6 +215,14 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	ld->SetIndeterminate(true);
 	ld->SetText("\nConnecting to multiplayer server");
 	StartUp();
+
+	m_playerLife = 0;
+	m_iSelectMode = 0;
+	m_playerID = 0;
+	m_step = 0;
+	m_score = 0;
+	m_combo = 0;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -436,8 +446,8 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		sAddress = ServerIP.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
-		iPort =
-		  (unsigned short)strtol(ServerIP.substr(cLoc + 1).c_str(), &cEnd, 10);
+		auto sub = ServerIP.substr(cLoc + 1);
+		iPort = (unsigned short)strtol(sub.c_str(), &cEnd, 10);
 		if (*cEnd != 0 || errno != 0) {
 			LOG->Warn("Invalid port");
 			return;
@@ -501,15 +511,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	}
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
-    
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
 					   message->get_payload().c_str());
 		else {
-		  std::lock_guard<std::mutex> l(this->messageBufferMutex);
+			std::lock_guard<std::mutex> l(this->messageBufferMutex);
 			this->newMessages.push_back(std::move(d));
-    }
+		}
 	};
 	auto openHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
@@ -528,11 +537,17 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	if (wss) {
 		std::shared_ptr<wss_client> client(new wss_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_close_handler(closeHandler);
+		} catch (exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		wss_client::connection_ptr con = client->get_connection(
@@ -543,21 +558,35 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
 		} else {
-			client->connect(con);
-			while (!finished_connecting)
-				client->poll_one();
-			if (n->isSMOnline)
-				this->secure_client = std::move(client);
+			try {
+				client->connect(con);
+				while (!finished_connecting)
+					client->poll_one();
+				if (n->isSMOnline)
+					this->secure_client = std::move(client);
+			} catch (websocketpp::http::exception& e) {
+				LOG->Warn("Failed to create ettp connection due to exception: "
+						  "%d --- %s",
+						  e.m_error_code,
+						  e.what());
+			}
 		}
 	}
 	if (ws && !n->isSMOnline) {
 		std::shared_ptr<ws_client> client(new ws_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_fail_handler(failHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_fail_handler(failHandler);
+			client->set_close_handler(closeHandler);
+		} catch (exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
+
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		ws_client::connection_ptr con = client->get_connection(
@@ -568,12 +597,19 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
 		} else {
-			client->connect(con);
-			while (!finished_connecting) {
-				client->poll_one();
+			try {
+				client->connect(con);
+				while (!finished_connecting) {
+					client->poll_one();
+				}
+				if (n->isSMOnline)
+					this->client = std::move(client);
+			} catch (websocketpp::http::exception& e) {
+				LOG->Warn("Failed to create ettp connection due to exception: "
+						  "%d --- %s",
+						  e.m_error_code,
+						  e.what());
 			}
-			if (n->isSMOnline)
-				this->client = std::move(client);
 		}
 	}
 	if (n->isSMOnline) {
@@ -1240,12 +1276,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							!player.HasMember("ready") ||
 							!player["ready"].IsBool())
 							continue;
-						n->m_PlayerNames.push_back(
-						  player["name"].GetString());
-						n->m_PlayerStatus.push_back(
-						  player["status"].GetInt());
-						n->m_PlayerReady.push_back(
-						  player["ready"].GetBool());
+						n->m_PlayerNames.push_back(player["name"].GetString());
+						n->m_PlayerStatus.push_back(player["status"].GetInt());
+						n->m_PlayerReady.push_back(player["ready"].GetBool());
 						n->m_ActivePlayer.push_back(i++);
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
@@ -1482,7 +1515,7 @@ ETTProtocol::Login(RString user, RString pass)
 	timeout = 5.0;
 	onTimeout = [](void) {
 		NSMAN->loggedInUsername.clear();
-		NSMAN->loginResponse = "Login timed out";
+		NSMAN->loginResponse = LOGIN_TIMEOUT.GetValue();
 		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 	};
 }
@@ -2174,27 +2207,3 @@ class LunaChartRequest : public Luna<ChartRequest>
 LUA_REGISTER_CLASS(ChartRequest)
 
 // lua end
-/*
- * (c) 2003-2004 Charles Lohr, Joshua Allen
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

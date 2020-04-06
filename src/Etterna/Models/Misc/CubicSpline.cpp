@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "CubicSpline.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include <list>
@@ -813,24 +813,43 @@ CubicSplineN::dimension() const
 	return m_splines.size();
 }
 
-// m_dirty is set before the member so that the set_dirty that is created
-// can actually be used to set the dirty flag. -Kyz
-#define SET_GET_MEM(member, name)                                              \
-                                                                               \
-	void CubicSplineN::set_##name(bool b)                                      \
-                                                                               \
-	{                                                                          \
-		m_dirty = true;                                                        \
-		(member) = b;                                                          \
-	}                                                                          \
-                                                                               \
-	bool CubicSplineN::get_##name() const { return member; }
+void
+CubicSplineN::set_loop(bool b)
+{
+	m_dirty = true;
+	m_loop = b;
+}
 
-SET_GET_MEM(m_loop, loop);
-SET_GET_MEM(m_polygonal, polygonal);
-SET_GET_MEM(m_dirty, dirty);
+bool
+CubicSplineN::get_loop() const
+{
+	return m_loop;
+}
 
-#undef SET_GET_MEM
+void
+CubicSplineN::set_polygonal(bool b)
+{
+	m_dirty = true;
+	m_polygonal = b;
+}
+
+bool
+CubicSplineN::get_polygonal() const
+{
+	return m_polygonal;
+}
+
+void
+CubicSplineN::set_dirty(bool b)
+{
+	m_dirty = b;
+}
+
+bool
+CubicSplineN::get_dirty() const
+{
+	return m_dirty;
+}
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -1070,29 +1089,3 @@ LuaFunc_create_spline(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(create_spline);
-
-// Side note:  Actually written between 2014/12/26 and 2014/12/28
-/*
- * Copyright (c) 2014-2015 Eric Reese
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

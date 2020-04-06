@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include <cassert>
 
 #include "ActorMultiVertex.h"
@@ -68,6 +68,7 @@ ActorMultiVertex::ActorMultiVertex()
 	_use_animation_state = false;
 	_secs_into_state = 0.0f;
 	_cur_state = 0;
+	AMV_TempState = nullptr;
 }
 
 ActorMultiVertex::~ActorMultiVertex()
@@ -90,6 +91,7 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	CPY(_secs_into_state);
 	CPY(_cur_state);
 	CPY(_states);
+	CPY(_decode_movie);
 #undef CPY
 
 	if (cpy._Texture != nullptr) {
@@ -97,6 +99,7 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	} else {
 		_Texture = nullptr;
 	}
+	AMV_TempState = nullptr;
 }
 
 void
@@ -339,7 +342,7 @@ ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 	for (size_t v = 0; v < num_verts; ++v) {
 		vector<float> pos;
 		const int spi = v % num_splines;
-		auto part = static_cast<float>(v / num_splines);
+		auto part = static_cast<float>(v) / num_splines;
 		_splines[spi].evaluate(part * tper[spi], pos);
 		verts[v + first].p.x = pos[0];
 		verts[v + first].p.y = pos[1];
@@ -1210,28 +1213,3 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 };
 
 LUA_REGISTER_DERIVED_CLASS(ActorMultiVertex, Actor)
-
-/*
- * (c) 2014 Matthew Gardner and Eric Reese
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */

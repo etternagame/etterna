@@ -60,9 +60,26 @@ local typecolors = {
 	--[15]	= color("#e61e25"),
 }
 
+local typetranslations = {
+	THEME:GetString("ClearTypes", "MFC"),
+	THEME:GetString("ClearTypes", "WF"),
+	THEME:GetString("ClearTypes", "SDP"),
+	THEME:GetString("ClearTypes", "PFC"),
+	THEME:GetString("ClearTypes", "BF"),
+	THEME:GetString("ClearTypes", "SDG"),
+	THEME:GetString("ClearTypes", "FC"),
+	THEME:GetString("ClearTypes", "MF"),
+	THEME:GetString("ClearTypes", "SDCB"),
+	THEME:GetString("ClearTypes", "Clear"),
+	THEME:GetString("ClearTypes", "Failed"),
+	THEME:GetString("ClearTypes", "Invalid"),
+	THEME:GetString("ClearTypes", "No Play"),
+	"-"
+}
+
 -- Methods for other uses (manually setting colors/text, etc.)
 local function getClearTypeText(index)
-	return typetable[index]
+	return typetranslations[index] -- this couldnt possibly break anything right? haha
 end
 
 local function getShortClearTypeText(index)

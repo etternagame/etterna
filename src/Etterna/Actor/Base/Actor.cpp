@@ -187,8 +187,10 @@ Actor::Actor(const Actor& cpy)
 
 	m_WrapperStates.resize(cpy.m_WrapperStates.size());
 	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		m_WrapperStates[i] =
-		  new ActorFrame(*dynamic_cast<ActorFrame*>(cpy.m_WrapperStates[i]));
+		auto cp = dynamic_cast<ActorFrame*>(cpy.m_WrapperStates[i]);
+		ASSERT_M(cp != nullptr,
+				 "Dynamic cast to ActorFrame copy failed at runtime.");
+		m_WrapperStates[i] = new ActorFrame(*cp);
 	}
 
 	CPY(m_baseRotation);
@@ -244,6 +246,7 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_CullMode);
 
 	CPY(m_mapNameToCommands);
+	CPY(m_tween_uses_effect_delta);
 #undef CPY
 }
 
@@ -305,16 +308,22 @@ Actor::IsOver(float mx, float my)
 
 	auto x = GetTrueX();
 	auto y = GetTrueY();
+
 	auto hal = GetHorizAlign();
 	auto val = GetVertAlign();
+
 	auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoom();
 	auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoom();
-	auto lr = x - (hal * wi);
-	auto rr = x + wi - (hal * wi);
-	auto ur = y - (val * hi);
-	auto br = ((y + hi) - (val * hi));
-	bool withinX = mx >= lr && mx <= rr;
-	bool withinY = my >= ur && my <= br;
+
+	auto rotZ = GetTrueRotationZ();
+
+	RageVector2 p1(mx - x, my - y);
+	RageVec2RotateFromOrigin(&p1, -rotZ);
+	p1.x += x;
+	p1.y += y;
+
+	bool withinX = (p1.x >= (x - hal * wi)) && (p1.x <= (x + wi - hal * wi));
+	bool withinY = (p1.y >= (y - val * hi)) && (p1.y <= (y + hi - val * hi));
 	return withinX && withinY;
 }
 Actor*
@@ -336,7 +345,10 @@ Actor::GetTrueX()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
-	return GetX() * mfp->GetTrueZoom() + mfp->GetTrueX();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.x * mfp->GetTrueZoom() + mfp->GetTrueX();
 }
 
 float
@@ -347,8 +359,23 @@ Actor::GetTrueY()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
-	return GetY() * mfp->GetTrueZoom() + mfp->GetTrueY();
+	RageVector2 p1(GetX(), GetY());
+	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
+
+	return p1.y * mfp->GetTrueZoom() + mfp->GetTrueY();
 }
+
+float
+Actor::GetTrueRotationZ()
+{
+	if (!this)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationZ();
+	return GetRotationZ() + mfp->GetTrueRotationZ();
+}
+
 float
 Actor::GetTrueZoom()
 {
@@ -377,8 +404,7 @@ Actor::Draw()
 	}
 
 	if (m_FakeParent != nullptr) {
-		if (!m_FakeParent->m_bVisible ||
-			m_FakeParent->EarlyAbortDraw()) {
+		if (!m_FakeParent->m_bVisible || m_FakeParent->EarlyAbortDraw()) {
 			return;
 		}
 		m_FakeParent->PreDraw();
@@ -409,8 +435,7 @@ Actor::Draw()
 	// -Kyz
 	for (size_t i = m_WrapperStates.size(); i > 0 && dont_abort_draw; --i) {
 		Actor* state = m_WrapperStates[i - 1];
-		if (!state->m_bVisible ||
-			state->EarlyAbortDraw()) {
+		if (!state->m_bVisible || state->EarlyAbortDraw()) {
 			dont_abort_draw = false;
 		} else {
 			state->PreDraw();
@@ -961,7 +986,7 @@ Actor::BeginTweening(float time, ITween* pTween)
 
 	// If the number of tweens to ever gets this large, there's probably an
 	// infinitely recursing ActorCommand.
-	if (m_Tweens.size() > 50 && !(GamePreferences::m_AutoPlay == PC_REPLAY)) {
+	if (m_Tweens.size() > 50) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Tween overflow: \"%s\"; infinitely recursing ActorCommand?",
 		  GetLineage().c_str());
@@ -1607,6 +1632,8 @@ Actor::SetParent(Actor* pParent)
 Actor::TweenInfo::TweenInfo()
 {
 	m_pTween = nullptr;
+	m_fTimeLeftInTween = 0.f;
+	m_fTweenTime = 0.f;
 }
 
 Actor::TweenInfo::~TweenInfo()
@@ -2834,28 +2861,3 @@ class LunaActor : public Luna<Actor>
 
 LUA_REGISTER_INSTANCED_BASE_CLASS(Actor)
 // lua end
-
-/*
- * (c) 2001-2004 Chris Danford
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, and/or sell copies of the Software, and to permit persons to
- * whom the Software is furnished to do so, provided that the above
- * copyright notice(s) and this permission notice appear in all copies of
- * the Software and that both the above copyright notice(s) and this
- * permission notice appear in supporting documentation.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
- * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
- * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
