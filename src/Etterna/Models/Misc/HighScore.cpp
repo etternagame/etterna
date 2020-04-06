@@ -95,6 +95,7 @@ struct HighScoreImpl
 	vector<int> NoteRowsToVector(RString s);
 
 	bool is39import = false;
+	int WifeVersion = 0;
 
 	bool operator==(const HighScoreImpl& other) const;
 	bool operator!=(const HighScoreImpl& other) const
@@ -318,6 +319,7 @@ HighScoreImpl::HighScoreImpl()
 	ReplayType = 2;
 	bNoChordCohesion = false;
 	bDisqualified = false;
+	WifeVersion = 0;
 }
 
 XNode*
@@ -382,7 +384,7 @@ HighScoreImpl::CreateEttNode() const
 								 ValidationKeys[ValidationKey_Brittle]);
 	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Weak),
 								 ValidationKeys[ValidationKey_Weak]);
-
+	pNode->AppendChild("WV", WifeVersion);
 	return pNode;
 }
 
@@ -458,6 +460,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		  "S" +
 		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
+	pNode->GetChildValue("WV", WifeVersion);
 	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
@@ -995,6 +998,11 @@ HighScore::GetSkillsetSSR(Skillset ss) const
 {
 	return m_Impl->fSkillsetSSRs[ss];
 }
+int
+HighScore::GetWifeVersion() const
+{
+	return m_Impl->WifeVersion;
+}
 const RadarValues&
 HighScore::GetRadarValues() const
 {
@@ -1418,7 +1426,7 @@ Screenshot::LoadFromNode(const XNode* pNode)
 }
 
 float
-HighScore::RescoreToWifeJudge(int x)
+HighScore::RescoreToWife2Judge(int x)
 {
 	if (!LoadReplayData())
 		return m_Impl->fWifeScore;
@@ -1453,25 +1461,40 @@ HighScore::RescoreToWifeJudge(int x)
 	return p / pmax;
 }
 
-float
-HighScore::RescoreToWifeJoodge(int x)
+bool
+HighScore::RescoreToWife3()
 {
 	if (!LoadReplayData())
-		return m_Impl->fWifeScore;
+		return false;
 
-	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-						  0.66f, 0.50f, 0.33f, 0.20f };
-	float ts = tso[x - 1];
 	float p = 0;
 	for (auto& n : m_Impl->vOffsetVector)
-		p += wife3(abs(n * 1000.f), ts);
+		p += wife3(n, 1);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+		 -3.5f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -5.5f;
 
 	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	if (m_Impl->ReplayType == 2) {
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+	}
+
+	m_Impl->fSSRNormPercent =  p / pmax;
+	m_Impl->WifeVersion = 3;
+
+	p = 0;
+	for (auto& n : m_Impl->vOffsetVector)
+		p += wife3(n, m_Impl->fJudgeScale);
+
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
+		  m_Impl->iHoldNoteScores[HNS_Missed]) *
+		 -3.5f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -5.5f;
+
+	pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 
 	/* we don't want to have to access notedata when loading or rescording
 	scores so we use the vector length of offset replay data to determine point
@@ -1485,44 +1508,8 @@ HighScore::RescoreToWifeJoodge(int x)
 		// offsets (2pts)
 		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
 	}
-
-	return p / pmax;
-}
-
-float
-HighScore::RescoreToWifeJoodge2(int x)
-{
-	if (!LoadReplayData())
-		return m_Impl->fWifeScore;
-
-	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-						  0.66f, 0.50f, 0.33f, 0.20f };
-	float ts = tso[x - 1];
-	float p = 0;
-	for (auto& n : m_Impl->vOffsetVector)
-		p += wife4(abs(n * 1000.f), ts);
-
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
-
-	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-
-	/* we don't want to have to access notedata when loading or rescording
-	scores so we use the vector length of offset replay data to determine point
-	denominators however full replays store mine and hold drop offsets, meaning
-	we have to screen them out when calculating the max points -mina*/
-	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-
-		// we screened out extra offsets due to mines in the replay from the
-		// denominator but we've still increased the numerator with 0.00f
-		// offsets (2pts)
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-	}
-
-	return p / pmax;
+	m_Impl->fWifeScore = p / pmax;
+	return true;
 }
 
 
