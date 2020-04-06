@@ -423,15 +423,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (!doot) {
 					//hs->SetSSRNormPercent(0); this is probably not a good idea
 				}
-				LOG->Trace("asdff");
+
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
 				if (!steps) {
 					LOG->Trace(
 					  ("there are no steps so skipping recalc of " + hs->GetScoreKey()).c_str());
-				}
 					continue;
+				}	
 
 				SongLock lk(currentlyLockedSongs,
 							songVectorPtrMutex,
@@ -477,7 +477,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 										 1.f,
 										 td->HasWarps());
 				FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, dakine[ss]);
+					hs->SetSkillsetSSR(ss, dakine[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				LOG->Trace(("complete recalc of " + hs->GetScoreKey()).c_str());
