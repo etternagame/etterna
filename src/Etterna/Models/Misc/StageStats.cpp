@@ -582,7 +582,7 @@ FillInHighScore(const PlayerStageStats& pss,
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
 		else
-			hs.SetSSRNormPercent(hs.RescoreToWifeJudge(4));
+			hs.SetSSRNormPercent(hs.RescoreToWife2Judge(4));
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());

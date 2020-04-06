@@ -127,6 +127,7 @@ class PrefsManager
 
   public:
 	Preference<bool> m_bWindowed;
+	Preference<RString> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
 	Preference<int> m_iDisplayHeight;
 	Preference<float> m_fDisplayAspectRatio;
@@ -140,6 +141,7 @@ class PrefsManager
 	Preference<int> m_iRefreshRate;
 	Preference<bool> m_bAllowMultitexture;
 	Preference<float> m_bAllowedLag;
+	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bShowStats;
 	Preference<bool> m_bShowSkips;
 	Preference<bool> m_bShowMouseCursor;
@@ -177,6 +179,7 @@ class PrefsManager
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
+	Preference<bool> m_bSortBySSRNorm;
 	Preference<AllowW1>
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
@@ -195,6 +198,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_bUseMidGrades;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.

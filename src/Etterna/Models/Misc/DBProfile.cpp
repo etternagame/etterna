@@ -382,10 +382,25 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 			  &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
 		else {
 			// update pb if a better score is found
-			if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() <
-				hs.GetWifeScore())
-				scores[key].ScoresByRate[rate].PBptr =
-				  &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
+			if (PREFSMAN->m_bSortBySSRNorm) {
+
+				if (scores[key].ScoresByRate[rate].PBptr->GetSSRNormPercent() <
+					hs.GetSSRNormPercent())
+					scores[key].ScoresByRate[rate].PBptr =
+					  &scores[key]
+						 .ScoresByRate[rate]
+						 .scores.find(ScoreKey)
+						 ->second;
+			} else {
+
+				if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() <
+					hs.GetWifeScore())
+					scores[key].ScoresByRate[rate].PBptr =
+					  &scores[key]
+						 .ScoresByRate[rate]
+						 .scores.find(ScoreKey)
+						 ->second;
+			}
 		};
 
 		scores[key].ScoresByRate[rate].bestGrade =

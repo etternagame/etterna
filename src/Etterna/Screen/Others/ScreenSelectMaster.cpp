@@ -719,13 +719,8 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 		m_iChoice = iNewChoice;
 
 		if (SHOW_ICON) {
-			/* XXX: If !SharedPreviewAndCursor, this is incorrect. (Nothing uses
-			 * both icon focus and !SharedPreviewAndCursor right now.)
-			 * What is SharedPreviewAndCursor? -- Steve */
 			bool bOldStillHasFocus = false;
-			bool bNewAlreadyHadFocus = false;
 			bOldStillHasFocus |= m_iChoice == iOldChoice;
-			bNewAlreadyHadFocus |= m_iChoice == iNewChoice;
 
 			if (DOUBLE_PRESS_TO_SELECT) {
 				// this player is currently on a single press, which they are
@@ -734,21 +729,18 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 					if (!bOldStillHasFocus)
 						m_vsprIcon[iOldChoice]->PlayCommand(
 						  "LostSelectedLoseFocus");
-					if (!bNewAlreadyHadFocus)
-						m_vsprIcon[iNewChoice]->PlayCommand(
-						  "LostSelectedGainFocus");
+					m_vsprIcon[iNewChoice]->PlayCommand(
+					  "LostSelectedGainFocus");
 				} else {
 					if (!bOldStillHasFocus)
 						m_vsprIcon[iOldChoice]->PlayCommand("LoseFocus");
-					if (!bNewAlreadyHadFocus)
-						m_vsprIcon[iNewChoice]->PlayCommand("GainFocus");
+					m_vsprIcon[iNewChoice]->PlayCommand("GainFocus");
 				}
 			} else // not using double selection
 			{
 				if (!bOldStillHasFocus)
 					m_vsprIcon[iOldChoice]->PlayCommand("LoseFocus");
-				if (!bNewAlreadyHadFocus)
-					m_vsprIcon[iNewChoice]->PlayCommand("GainFocus");
+				m_vsprIcon[iNewChoice]->PlayCommand("GainFocus");
 			}
 		}
 

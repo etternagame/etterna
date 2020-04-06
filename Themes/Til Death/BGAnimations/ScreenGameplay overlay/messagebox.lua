@@ -19,6 +19,9 @@ end
 
 return Def.ActorFrame {
 	OnCommand = function(self)
+		if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then 
+			self:visible(false)
+		end
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
 		self:SetUpdateFunction(highlight)
 	end,

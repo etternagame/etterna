@@ -95,7 +95,7 @@ local o =
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
-			if not enabledCustomWindows then
+			if not enabledCustomWindows and not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				tso = tst[judge]
 			end
@@ -136,6 +136,7 @@ local o =
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 		end
+
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
 	end,
 	CodeMessageCommand = function(self, params)
@@ -177,6 +178,12 @@ local o =
 		if params.Name ~= "ResetJudge" and params.Name ~= "PrevJudge" and params.Name ~= "NextJudge" and params.Name ~= "ToggleHands" then return end
 		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
+	ForceWindowMessageCommand = function(self, params)
+		judge = params.judge
+		tso = tst[judge]
+		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
+		forcedWindow = true
 	end,
 	UpdateNetEvalStatsMessageCommand = function(self) -- i haven't updated or tested neteval during last round of work -mina
 		local s = SCREENMAN:GetTopScreen():GetHighScore()

@@ -1,6 +1,6 @@
 -- Find a key in tab with the given value.
 function FindValue(tab, value)
-	for key, name in tab do
+	for key, name in pairs(tab) do
 		if value == name then
 			return key
 		end
@@ -11,7 +11,7 @@ end
 
 -- Return the index of a true value in list.
 function FindSelection(list)
-	for index, on in list do
+	for index, on in ipairs(list) do
 		if on then
 			return index
 		end
@@ -122,10 +122,17 @@ end
 --Get the count of all items in a table
 function table.itemcount(t)
 	local i = 0
-	while next(t) ~= nil do
+	for _,v in pairs(t) do
 		i = i + 1
 	end
 	return i
+end
+
+function math.gcd(a, b)
+	while b ~= 0 do
+		a, b = b, math.mod(a, b)
+	end
+	return a
 end
 
 function math.round(num, pre)
@@ -353,15 +360,11 @@ local function round(num, idp)
 end
 
 function IsUsingWideScreen()
-	local curAspect = round(GetScreenAspectRatio(), 5)
-	for k, v in pairs(AspectRatios) do
-		if AspectRatios[k] == curAspect then
-			if k == "SixteenNine" or k == "SixteenTen" then
-				return true
-			else
-				return false
-			end
-		end
+	local curAspect = GetScreenAspectRatio()
+	if math.abs(curAspect-16/9) <= .044 or math.abs(curAspect - 16/10) <= .044 then
+		return true
+	else
+		return false
 	end
 end
 

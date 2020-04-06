@@ -164,10 +164,12 @@ struct HighScore
 	string GetDisplayName() const;
 
 	// Mina stuff - Mina
-	float RescoreToWifeJudge(int x);
+	float RescoreToWife2Judge(int x);
+	bool RescoreToWife3();						// will update both wifescore (matching the judge the score was achieved on) and ssrnorm
 	float RescoreToWifeJudgeDuringLoad(int x); // uuugh -mina
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
+	int GetWifeVersion() const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
@@ -179,6 +181,7 @@ struct HighScore
 	int userid = -1;
 	string avatar;
 	string countryCode;
+	int wife_ver = 0;
 
 	int norms = 0;
 	int musics = 0;

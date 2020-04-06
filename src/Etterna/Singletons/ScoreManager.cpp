@@ -72,24 +72,17 @@ ScoresAtRate::GetSortedKeys()
 {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
-	FOREACHUM(string, HighScore, scores, i)
-	tmp.emplace(i->second.GetWifeScore(), i->first);
+	if (PREFSMAN->m_bSortBySSRNorm) {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetSSRNormPercent(), i->first);
+	} else {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetWifeScore(), i->first);
+	}
 	FOREACHM(float, string, tmp, j)
 	o.emplace_back(j->second);
 	return o;
 }
-
-/*
-const vector<HighScore*> ScoresAtRate::GetScores() const {
-	map<float, string, greater<float>> tmp;
-	vector<HighScore*> o;
-	FOREACHUM_CONST(string, HighScore, scores, i)
-		tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, string, tmp, j)
-		o.emplace_back(j->second);
-	return o;
-}
-*/
 
 void
 ScoreManager::PurgeScores()
@@ -422,8 +415,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					data->setUpdated(true);
 				}
 				++scoreIndex;
-				if (hs->GetSSRCalcVersion() == GetCalcVersion())
+				if (hs->GetSSRCalcVersion() == 12341234)
 					continue;
+				bool doot = false;
+				if (hs->GetWifeVersion() != 1234)
+					doot = hs->RescoreToWife3();
+				if (!doot) {
+					hs->SetSSRNormPercent(0);
+				}
+
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
@@ -724,7 +724,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
-		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() &&
+		if (scores[sk].GetSSRCalcVersion() != 212341423 &&
 			SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}

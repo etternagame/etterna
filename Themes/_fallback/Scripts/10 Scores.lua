@@ -185,16 +185,36 @@ function getGradeThreshold(pn, grade)
 	end
 end
 
+function getGradeFamilyForMidGrade(grade)
+	if grade == "Grade_Tier02" or grade == "Grade_Tier03" or grade == "Grade_Tier04" then
+		-- quads
+		return "Grade_Tier04"
+	elseif grade == "Grade_Tier05" or grade == "Grade_Tier06" or grade == "Grade_Tier07" then
+		return "Grade_Tier07"
+		-- triples
+	elseif grade == "Grade_Tier08" or grade == "Grade_Tier09" or grade == "Grade_Tier10" then
+		-- doubles
+		return "Grade_Tier10"
+	elseif grade == "Grade_Tier11" or grade == "Grade_Tier12" or grade == "Grade_Tier13" then
+		-- singles
+		return "Grade_Tier13"
+	else
+		-- quint and others
+		return grade
+	end
+end
+
 function getNearbyGrade(pn, DPScore, grade)
 	local nextGrade
 	local gradeScore = 0
 	local nextGradeScore = 0
-	if grade == "Grade_Tier01" or grade == "Grade_Tier02" then
+
+	if grade == "Grade_Tier01" or grade == "Grade_Tier02" or grade == "Grade_Tier03" or grade == "Grade_Tier04" then
 		return grade, 0
 	elseif grade == "Grade_Failed" then
-		return "Grade_Tier07", DPScore
+		return "Grade_Tier16", DPScore
 	elseif grade == "Grade_None" then
-		return "Grade_Tier07", 0
+		return "Grade_Tier16", 0
 	else
 		nextGrade = string.format("Grade_Tier%02d", (tonumber(grade:sub(-2)) - 1))
 		gradeScore = getGradeThreshold(pn, grade)
@@ -573,4 +593,65 @@ function GetDisplayScore()	-- wrapper for above that prioritizes current rate's 
 		score = GetDisplayScoreByFilter(0, false)
 	end
 	return score
+end
+
+-- erf constants
+a1 =  0.254829592
+    a2 = -0.284496736
+    a3 =  1.421413741
+    a4 = -1.453152027
+    a5 =  1.061405429
+    p  =  0.3275911
+
+
+function erf(x)
+    -- Save the sign of x
+    sign = 1
+    if x < 0 then
+        sign = -1
+    end
+    x = math.abs(x)
+
+    -- A&S formula 7.1.26
+    t = 1.0/(1.0 + p*x)
+    y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*math.exp(-x*x)
+
+    return sign*y
+end
+
+-- note lua should always be dealing with MS not S as a unit
+function wife3(maxms, ts, max_points, miss_weight, ridic, max_boo_weight, poi, dev) -- only args for testing/comparison purposes atm
+	-- judge scaling stuff
+	local ridic = ridic * ts
+	local max_boo_weight = max_boo_weight * ts
+	local poi = poi * ts
+	local dev = dev * ts
+
+	-- shortcut case handling
+	if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
+		return max_points
+	end
+	if maxms > max_boo_weight then	-- we can just set miss values manually
+		return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
+	end								-- purpose of the scoring curve, which is to assign point values
+
+	-- actual calculations
+	local y_val = (erf((poi - maxms) / dev) + 1) / 2;
+	local lower_bound = max_points + 
+		((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
+	
+	return (max_points - lower_bound) * y_val + lower_bound;
+end
+
+-- holy shit this is fugly
+function getRescoredWife3Judge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes, a, b, c, d, e, f)
+	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local ts = tso[judgeScale]
+	local p = 0.0
+	for i = 1, #offsetVector do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(offsetVector[i]), ts, a, b, c, d, e, f)	
+	end
+	p = p + (holdsMissed * -3.5)							-- subject to change (is higher than miss value atm)
+	p = p + (minesHit * -b)									-- subject to change (is higher than miss value atm)
+	return (p / (totalNotes * 2)) * 100.0
 end
