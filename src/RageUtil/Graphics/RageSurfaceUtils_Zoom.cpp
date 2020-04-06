@@ -6,8 +6,6 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize.h>
 
-using namespace std;
-
 void
 RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
 {
