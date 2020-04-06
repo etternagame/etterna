@@ -803,7 +803,6 @@ typedef CStdStr<char> CStdStringA; // a better std::string
 #define StdStringEqualsNoCase SSENCA
 
 struct StdStringLessNoCase
-  : std::binary_function<CStdStringA, CStdStringA, bool>
 {
 	inline bool operator()(const CStdStringA& sLeft,
 						   const CStdStringA& sRight) const
@@ -812,7 +811,6 @@ struct StdStringLessNoCase
 	}
 };
 struct StdStringEqualsNoCase
-  : std::binary_function<CStdStringA, CStdStringA, bool>
 {
 	inline bool operator()(const CStdStringA& sLeft,
 						   const CStdStringA& sRight) const

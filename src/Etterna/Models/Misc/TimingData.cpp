@@ -426,7 +426,7 @@ TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow) const
 	return INVALID_INDEX;
 }
 
-struct ts_less : binary_function<TimingSegment*, TimingSegment*, bool>
+struct ts_less
 {
 	bool operator()(const TimingSegment* x, const TimingSegment* y) const
 	{
@@ -1440,7 +1440,8 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 }
 
 vector<float>
-TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv, float rate)
+TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
+											  float rate)
 {
 	vector<float> o;
 	for (auto nr : nrv)
