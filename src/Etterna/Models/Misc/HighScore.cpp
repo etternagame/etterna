@@ -1768,16 +1768,6 @@ class LunaHighScore : public Luna<HighScore>
 					   p->GetHoldNoteScore(Enum::Check<HoldNoteScore>(L, 1)));
 		return 1;
 	}
-	static int RescoreToWifeJudge(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1)));
-		return 1;
-	}
-	static int RescoreToDPJudge(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->RescoreToDPJudge(IArg(1)));
-		return 1;
-	}
 	static int RescoreJudges(T* p, lua_State* L)
 	{
 		lua_newtable(L);
@@ -1944,8 +1934,6 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(ConvertDpToWife);
 		ADD_METHOD(GetWifeScore);
 		ADD_METHOD(GetWifePoints);
-		//ADD_METHOD(RescoreToWifeJudge);
-		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD(RescoreJudges);
 		ADD_METHOD(GetSkillsetSSR);
 		ADD_METHOD(GetMusicRate);
