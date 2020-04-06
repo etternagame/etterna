@@ -1479,6 +1479,13 @@ HighScore::RescoreToWife3()
 	if (!LoadReplayData())
 		return false;
 
+	if (m_Impl->fJudgeScale == 0.f) {
+		LOG->Trace(("somehow there is replaydata but the judgescale is 0 at  " +
+					m_Impl->ScoreKey)
+					 .c_str());
+		return false;
+	}
+	
 	float wife3_hold_drop_weight = -4.5f;
 	float wife3_mine_hit_weight = -7.f;
 
