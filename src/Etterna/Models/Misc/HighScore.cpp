@@ -1495,17 +1495,8 @@ HighScore::RescoreToWife3()
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -5.5f;
 
 	pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-
-	/* we don't want to have to access notedata when loading or rescording
-	scores so we use the vector length of offset replay data to determine point
-	denominators however full replays store mine and hold drop offsets, meaning
-	we have to screen them out when calculating the max points -mina*/
 	if (m_Impl->ReplayType == 2) {
 		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-
-		// we screened out extra offsets due to mines in the replay from the
-		// denominator but we've still increased the numerator with 0.00f
-		// offsets (2pts)
 		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
 	}
 	m_Impl->fWifeScore = p / pmax;
@@ -1532,17 +1523,8 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
 	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-
-	/* we don't want to have to access notedata when loading or rescording
-	scores so we use the vector length of offset replay data to determine point
-	denominators however full replays store mine and hold drop offsets, meaning
-	we have to screen them out when calculating the max points -mina*/
 	if (m_Impl->ReplayType == 2) {
 		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-
-		// we screened out extra offsets due to mines in the replay from the
-		// denominator but we've still increased the numerator with 0.00f
-		// offsets (2pts)
 		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
 	}
 

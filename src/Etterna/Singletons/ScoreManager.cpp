@@ -415,8 +415,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					data->setUpdated(true);
 				}
 				++scoreIndex;
-				if (hs->GetSSRCalcVersion() == GetCalcVersion())
+				if (hs->GetSSRCalcVersion() == 12341234)
 					continue;
+				bool doot = false;
+				if (hs->GetWifeVersion() != 1234)
+					doot = hs->RescoreToWife3();
+				if (!doot) {
+					hs->SetSSRNormPercent(0);
+				}
+
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
@@ -717,7 +724,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
-		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() &&
+		if (scores[sk].GetSSRCalcVersion() != 212341423 &&
 			SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
