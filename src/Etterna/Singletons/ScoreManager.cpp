@@ -338,7 +338,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+	vector<HighScore*> scores = SCOREMAN->GetAllProfileScores(profileID);
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -421,13 +421,16 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (hs->GetWifeVersion() != 1234)
 					doot = hs->RescoreToWife3();
 				if (!doot) {
-					hs->SetSSRNormPercent(0);
+					//hs->SetSSRNormPercent(0); this is probably not a good idea
 				}
-
+				LOG->Trace("asdff");
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
-				if (!steps)
+				if (!steps) {
+					LOG->Trace(
+					  ("there are no steps so skipping recalc of " + hs->GetScoreKey()).c_str());
+				}
 					continue;
 
 				SongLock lk(currentlyLockedSongs,
@@ -436,6 +439,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
+					LOG->Trace(
+					("invalid score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					continue;
 				}
 
@@ -443,7 +448,16 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float musicrate = hs->GetMusicRate();
 
 				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+					LOG->Trace(
+					("bad score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					hs->ResetSkillsets();
+					continue;
+				}
+
+				if (hs->HasReplayData() && hs->GetJudgeScale() == 0.f) {
+					LOG->Trace(
+					  ("somehow there is replaydata but the judgescale is 0 so skipping recalc of " + hs->GetScoreKey())
+						.c_str());
 					continue;
 				}
 
@@ -465,6 +479,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, dakine[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
+
+				LOG->Trace(("complete recalc of " + hs->GetScoreKey()).c_str());
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
