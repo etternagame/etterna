@@ -569,7 +569,7 @@ HighScore::LoadReplayDataBasic()
 
 	// check file
 	if (!fileStream) {
-		LOG->Warn("Failed to load replay data at %s", path.c_str());
+		LOG->Trace("Failed to load replay data at %s", path.c_str());
 		return false;
 	}
 
