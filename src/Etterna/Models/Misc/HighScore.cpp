@@ -1483,14 +1483,17 @@ HighScore::RescoreToWife3()
 	if (!LoadReplayData())
 		return false;
 
+	float wife3_hold_drop_weight = -4.5f;
+	float wife3_mine_hit_weight = -7.f;
+
 	float p = 0;
 	for (auto& n : m_Impl->vOffsetVector)
 		p += wife3(n, 1);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -3.5f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -5.5f;
+		 wife3_hold_drop_weight;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
 	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 	if (m_Impl->ReplayType == 2) {
@@ -1499,16 +1502,17 @@ HighScore::RescoreToWife3()
 	}
 
 	m_Impl->fSSRNormPercent =  p / pmax;
-	m_Impl->WifeVersion = 3;
 
+	// ok so this is kind of lazy but we do actually want to rescore the wifescore
+	// for the judge this score was achieved on
 	p = 0;
 	for (auto& n : m_Impl->vOffsetVector)
 		p += wife3(n, m_Impl->fJudgeScale);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -3.5f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -5.5f;
+		 wife3_hold_drop_weight;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
 	pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 	if (m_Impl->ReplayType == 2) {
@@ -1516,6 +1520,7 @@ HighScore::RescoreToWife3()
 		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
 	}
 	m_Impl->fWifeScore = p / pmax;
+	m_Impl->WifeVersion = 3;
 	return true;
 }
 

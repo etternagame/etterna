@@ -651,7 +651,7 @@ function getRescoredWife3Judge(offsetVector, judgeScale, holdsMissed, minesHit, 
 	for i = 1, #offsetVector do							-- wife2 does not require abs due to ^2 but this does
 		p = p + wife3(math.abs(offsetVector[i]), ts, a, b, c, d, e, f)	
 	end
-	p = p + (holdsMissed * -3.5)							-- subject to change (is higher than miss value atm)
-	p = p + (minesHit * -b)									-- subject to change (is higher than miss value atm)
+	p = p + (holdsMissed * -4.5)
+	p = p + (minesHit * -7)
 	return (p / (totalNotes * 2)) * 100.0
 end
