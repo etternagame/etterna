@@ -19,6 +19,11 @@ local oldWidth = noteFieldWidth
 local filter
 local cbContainer
 
+-- this happens when not in gameplay
+if noteFieldWidth == nil then
+	return Def.ActorFrame {}
+end
+
 local function input(event)
 	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
 		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
