@@ -170,6 +170,7 @@ class PrefsManager
 											   // succession
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
+	Preference<bool> m_bShowInstructions;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;

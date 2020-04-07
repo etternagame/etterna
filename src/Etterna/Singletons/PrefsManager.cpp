@@ -165,6 +165,7 @@ PrefsManager::PrefsManager()
   , // this was 10 by default in SM3.95 -dguzek
   m_bDelayedBack("DelayedBack", false)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
+  , m_bShowInstructions("ShowInstruction", false)
   , m_bFullTapExplosions("FullTapExplosions", true)
   , m_bNoGlow("NoGlow", false)
   , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)

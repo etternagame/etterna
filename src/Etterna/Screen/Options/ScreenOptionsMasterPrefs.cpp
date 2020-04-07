@@ -363,6 +363,31 @@ DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 	}
 }
 
+static void
+DefaultFailChoices(vector<RString>& out)
+{
+	out.push_back("Immediate");
+	out.push_back("ImmediateContinue");
+	out.push_back("Off");
+}
+
+static void
+DefaultFailType(int& sel, bool to_sel, const ConfOption* conf_option)
+{
+	if (to_sel) {
+
+		PlayerOptions po;
+		po.FromString(PREFSMAN->m_sDefaultModifiers);
+		sel = po.m_FailType;
+	} else {
+		PlayerOptions po;
+		SongOptions so;
+		GetPrefsDefaultModifiers(po, so);
+		po.m_FailType = static_cast<FailType>(sel);
+		SetPrefsDefaultModifiers(po, so);
+	}
+}
+
 // Background options
 static void
 BGBrightness(int& sel, bool ToSel, const ConfOption* pConfOption)
@@ -728,6 +753,7 @@ InitializeConfOptions()
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,
 				   "Never",
@@ -871,6 +897,8 @@ InitializeConfOptions()
 				   "|6",
 				   "|7"));
 	g_ConfOptions.back().m_sPrefName = "LifeDifficultyScale";
+	ADD(ConfOption(
+	  "DefaultFailType", DefaultFailType, "Immediate", "ImmediateContinue"));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));
 	ADD(ConfOption("MinTNSToHideNotes",
 				   MovePref<TapNoteScore>,
