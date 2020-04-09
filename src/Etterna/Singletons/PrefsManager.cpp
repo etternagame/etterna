@@ -119,6 +119,7 @@ PrefsManager::PrefsManager()
   ,
 
   m_bWindowed("Windowed", true)
+  , m_sDisplayId("DisplayId", "")
   , m_iDisplayWidth("DisplayWidth", 800)
   , m_iDisplayHeight("DisplayHeight", 600)
   , m_fDisplayAspectRatio("DisplayAspectRatio",
@@ -134,6 +135,7 @@ PrefsManager::PrefsManager()
   , m_iMaxTextureResolution("MaxTextureResolution", 1024)
   , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
   , m_bAllowMultitexture("AllowMultitexture", true)
+  , m_bFullscreenIsBorderlessWindow("FullscreenIsBorderlessWindow", false)
   , m_bAllowedLag("AllowedLag", 0.001f)
   , m_bShowStats("ShowStats", TRUE_IF_DEBUG)
   , m_bShowSkips("ShowSkips", true)
@@ -163,7 +165,7 @@ PrefsManager::PrefsManager()
   , // this was 10 by default in SM3.95 -dguzek
   m_bDelayedBack("DelayedBack", false)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
-  , m_bShowInstructions("ShowInstructions", false)
+  , m_bShowInstructions("ShowInstruction", false)
   , m_bFullTapExplosions("FullTapExplosions", true)
   , m_bNoGlow("NoGlow", false)
   , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)
@@ -174,10 +176,12 @@ PrefsManager::PrefsManager()
 							 MusicWheelUsesSections_ALWAYS)
   , m_iMusicWheelSwitchSpeed("MusicWheelSwitchSpeed", 15)
   , m_AllowW1("AllowW1", ALLOW_W1_EVERYWHERE)
+  , m_bUseMidGrades("UseMidGrades", false)
   , m_bEventMode("EventMode", true)
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
+  , m_bSortBySSRNorm("SortBySSRNormPercent", false)
   , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
   , m_sLanguage("Language", "")
   , // ThemeManager will deal with this invalid language
@@ -472,7 +476,8 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	GetCommandlineArgument("Type", &sSection);
+	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
+		LOG->Trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;
 }

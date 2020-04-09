@@ -3356,15 +3356,7 @@ DeltaSecondsHeldCommand=shadowlength,4;diffusealpha,1;zoom,1.25;linear,0.3;zoomx
 DeltaSecondsGainLifeCommand=
 
 [PlayerStageStats]
-NumGradeTiersUsed=8
-GradePercentTier01=1.00
-GradePercentTier02=0.99
-GradePercentTier03=0.97
-GradePercentTier04=0.93
-GradePercentTier05=0.80
-GradePercentTier06=0.65
-GradePercentTier07=0.45
-GradePercentTier08=-99999.000000
+NumGradeTiersUsed=16
 GradeTier01IsAllW2s=false
 GradeTier02IsAllW2s=false
 GradeTier02IsFullCombo=false

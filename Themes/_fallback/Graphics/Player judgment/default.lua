@@ -10,15 +10,6 @@ local JudgeCmds = {
 	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand")
 }
 
-local ProtimingCmds = {
-	TapNoteScore_W1 = THEME:GetMetric("Protiming", "ProtimingW1Command"),
-	TapNoteScore_W2 = THEME:GetMetric("Protiming", "ProtimingW2Command"),
-	TapNoteScore_W3 = THEME:GetMetric("Protiming", "ProtimingW3Command"),
-	TapNoteScore_W4 = THEME:GetMetric("Protiming", "ProtimingW4Command"),
-	TapNoteScore_W5 = THEME:GetMetric("Protiming", "ProtimingW5Command"),
-	TapNoteScore_Miss = THEME:GetMetric("Protiming", "ProtimingMissCommand")
-}
-
 local TNSFrames = {
 	TapNoteScore_W1 = 0,
 	TapNoteScore_W2 = 1,
@@ -34,7 +25,6 @@ t[#t + 1] =
 		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
-			SCREENMAN:SystemMessage(getAssetPath("judgment"))
 			self:pause():visible(false)
 		end,
 		OnCommand = THEME:GetMetric("Judgment", "JudgmentOnCommand"),
@@ -42,18 +32,6 @@ t[#t + 1] =
 			self:finishtweening():stopeffect():visible(false)
 		end
 	},
-	LoadFont("Common Normal") ..
-		{
-			Name = "ProtimingDisplay",
-			Text = "",
-			InitCommand = function(self)
-				self:visible(false)
-			end,
-			OnCommand = THEME:GetMetric("Protiming", "ProtimingOnCommand"),
-			ResetCommand = function(self)
-				self:finishtweening():stopeffect():visible(false)
-			end
-		},
 	InitCommand = function(self)
 		c = self:GetChildren()
 	end,
@@ -86,9 +64,6 @@ t[#t + 1] =
 		c.Judgment:setstate(iFrame)
 		JudgeCmds[param.TapNoteScore](c.Judgment)
 
-		--~ 		c.ProtimingDisplay:visible( true );
-		c.ProtimingDisplay:settext(math.floor(math.abs(param.TapNoteOffset * 1000)))
-		ProtimingCmds[param.TapNoteScore](c.ProtimingDisplay)
 	end
 }
 

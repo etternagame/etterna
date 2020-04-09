@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
 #include "Grade.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -37,18 +37,27 @@ GradeToOldString(Grade g)
 	// string is meant to be human readable
 	switch (g) {
 		case Grade_Tier01:
-			return "AAAA";
 		case Grade_Tier02:
-			return "AAA";
 		case Grade_Tier03:
-			return "AA";
 		case Grade_Tier04:
-			return "A";
+			return "AAAA";
 		case Grade_Tier05:
-			return "B";
 		case Grade_Tier06:
-			return "C";
 		case Grade_Tier07:
+			return "AAA";
+		case Grade_Tier08:
+		case Grade_Tier09:
+		case Grade_Tier10:
+			return "AA";
+		case Grade_Tier11:
+		case Grade_Tier12:
+		case Grade_Tier13:
+			return "A";
+		case Grade_Tier14:
+			return "B";
+		case Grade_Tier15:
+			return "C";
+		case Grade_Tier16:
 			return "D";
 		case Grade_Failed:
 			return "E";

@@ -152,6 +152,9 @@ class Profile
 	  , profiledir("")
 	{
 		m_lastSong.Unset();
+		m_fPlayerRating = 0.f;
+		FOREACH_ENUM(Skillset, ss)
+		m_fPlayerSkillsets[ss] = 0.f;
 
 		m_LastPlayedDate.Init();
 
@@ -311,7 +314,7 @@ class Profile
 
 	void AddStepsHighScore(const Song* pSong,
 						   const Steps* pSteps,
-						   HighScore hs,
+						   const HighScore& hs,
 						   int& iIndexOut);
 	const HighScoreList& GetStepsHighScoreList(const Song* pSong,
 											   const Steps* pSteps) const;

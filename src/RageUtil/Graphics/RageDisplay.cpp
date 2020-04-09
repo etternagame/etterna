@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -19,6 +19,10 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #include <chrono>
 #include <thread>
+
+#ifdef _WIN32
+#include "archutils/Win32/GraphicsWindow.h"
+#endif
 
 // Statistics stuff
 auto g_LastCheckTimer = std::chrono::steady_clock::now();
@@ -118,16 +122,31 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	vs.push_back(err);
 
 	// Fall back on a known resolution good rather than 640 x 480.
-	DisplayResolutions dr;
-	this->GetDisplayResolutions(dr);
+	DisplaySpecs dr;
+	this->GetDisplaySpecs(dr);
 	if (dr.empty()) {
 		vs.push_back("No display resolutions");
 		return SETVIDEOMODE_FAILED.GetValue() + " " + join(";", vs);
 	}
 
-	const DisplayResolution& d = *dr.begin();
-	p.width = d.iWidth;
-	p.height = d.iHeight;
+	DisplaySpec d = *dr.begin();
+	// Try to find DisplaySpec corresponding to requested display
+	for (const auto& candidate : dr) {
+		if (candidate.currentMode() != nullptr) {
+			d = candidate;
+			if (candidate.id() == p.sDisplayId) {
+				break;
+			}
+		}
+	}
+
+	p.sDisplayId = d.id();
+	const DisplayMode supported = d.currentMode() != nullptr
+									? *d.currentMode()
+									: *d.supportedModes().begin();
+	p.width = supported.width;
+	p.height = supported.height;
+	p.rate = static_cast<int>(round(supported.refreshRate));
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
 		return RString();
 	vs.push_back(err);
@@ -908,8 +927,9 @@ RageDisplay::GetCenteringMatrix(float fTranslateX,
 {
 	// in screen space, left edge = -1, right edge = 1, bottom edge = -1. top
 	// edge = 1
-	auto fWidth = static_cast<float>((*GetActualVideoModeParams()).width);
-	auto fHeight = static_cast<float>((*GetActualVideoModeParams()).height);
+	auto fWidth = static_cast<float>((*GetActualVideoModeParams()).windowWidth);
+	auto fHeight =
+	  static_cast<float>((*GetActualVideoModeParams()).windowHeight);
 	float fPercentShiftX = SCALE(fTranslateX, 0, fWidth, 0, +2.0f);
 	float fPercentShiftY = SCALE(fTranslateY, 0, fHeight, 0, -2.0f);
 	float fPercentScaleX = SCALE(fAddWidth, 0, fWidth, 1.0f, 2.0f);
@@ -1277,6 +1297,15 @@ RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
+static void
+register_REFRESH_DEFAULT(lua_State* L)
+{
+	lua_pushstring(L, "REFRESH_DEFAULT");
+	lua_pushinteger(L, REFRESH_DEFAULT);
+	lua_settable(L, LUA_GLOBALSINDEX);
+}
+REGISTER_WITH_LUA_FUNCTION(register_REFRESH_DEFAULT);
+
 /** @brief Allow Lua to have access to the RageDisplay. */
 class LunaRageDisplay : public Luna<RageDisplay>
 {
@@ -1315,8 +1344,39 @@ class LunaRageDisplay : public Luna<RageDisplay>
 
 	static int GetDisplayRefreshRate(T* p, lua_State* L)
 	{
-		VideoModeParams params = *p->GetActualVideoModeParams();
-		lua_pushnumber(L, params.rate);
+		auto params = p->GetActualVideoModeParams();
+		lua_pushnumber(L, params->rate);
+		return 1;
+	}
+
+	static int GetDisplaySpecs(T* p, lua_State* L)
+	{
+		DisplaySpecs s;
+		p->GetDisplaySpecs(s);
+		pushDisplaySpecs(L, s);
+		return 1;
+	}
+
+	static int SupportsRenderToTexture(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->SupportsRenderToTexture());
+		return 1;
+	}
+
+	static int SupportsFullscreenBorderlessWindow(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->SupportsFullscreenBorderlessWindow());
+		return 1;
+	}
+	static int MoveWindow(T* p, lua_State* L)
+	{
+		bool success = false;
+#ifdef _WIN32
+		int x = IArg(1);
+		int y = IArg(2);
+		success = GraphicsWindow::PushWindow(x, y);
+#endif
+		lua_pushboolean(L, success);
 		return 1;
 	}
 
@@ -1328,6 +1388,10 @@ class LunaRageDisplay : public Luna<RageDisplay>
 		ADD_METHOD(GetFPS);
 		ADD_METHOD(GetVPF);
 		ADD_METHOD(GetCumFPS);
+		ADD_METHOD(GetDisplaySpecs);
+		ADD_METHOD(SupportsRenderToTexture);
+		ADD_METHOD(SupportsFullscreenBorderlessWindow);
+		ADD_METHOD(MoveWindow);
 	}
 };
 

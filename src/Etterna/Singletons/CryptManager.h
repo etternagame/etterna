@@ -40,6 +40,7 @@ class CryptManager
 	static RString GetMD5ForString(const RString& sData);  // in binary
 	static RString GetSHA1ForString(const RString& sData); // in binary
 	static RString GetSHA1ForFile(const RString& fn);	  // in binary
+	static RString GetSHA256ForString(const RString& sData);
 
 	static RString GetPublicKeyFileName();
 

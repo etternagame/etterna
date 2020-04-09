@@ -171,6 +171,8 @@ BackgroundImpl::BackgroundImpl()
 {
 	m_bInitted = false;
 	m_pSong = nullptr;
+	m_fLastMusicSeconds = 0.f;
+	m_bDangerAllWasVisible = false;
 }
 
 BackgroundImpl::Layer::Layer()

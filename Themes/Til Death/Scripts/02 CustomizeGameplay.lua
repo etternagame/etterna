@@ -66,7 +66,10 @@ local function loadValuesTable()
 	MovableValues.MusicRateX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateX
 	MovableValues.MusicRateY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateY
 	MovableValues.MusicRateZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].MusicRateZoom
+end
 
+function unsetMovableKeymode()
+	MovableValues = {}
 end
 
 function setMovableKeymode(key)
@@ -854,6 +857,7 @@ local function updatetext(button)
 end
 
 function MovableInput(event)
+	if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then return end
 	if getAutoplay() ~= 0 then
 		-- this will eat any other mouse input than a right click (toggle)
 		-- so we don't have to worry about anything weird happening with the ersatz inputs -mina
@@ -1015,6 +1019,12 @@ function MovableBorder(width, height, bw, x, y)
 		InitCommand=function(self)
 			self:xy(x,y):diffusealpha(0)
 			self:SetUpdateFunction(bordermousereact)
+		end,
+		OnCommand=function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then
+				self:visible(false)
+				self:SetUpdateFunction(nil)
+			end
 		end,
 		ChangeWidthCommand=function(self, params)
 			self:GetChild("xbar"):zoomx(params.val)

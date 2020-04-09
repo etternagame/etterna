@@ -114,7 +114,7 @@ string
 correct_non_utf_8(string* str)
 {
 	int i, f_size = str->size();
-	unsigned char c, c2, c3, c4;
+	unsigned char c = 0, c2 = 0, c3 = 0, c4 = 0;
 	string to;
 	to.reserve(f_size);
 
@@ -212,9 +212,19 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	loggedIn = false;
 	m_startupStatus = 0; // By default, connection not tried.
 	m_ActivePlayers = 0;
-	ld->SetIndeterminate(true);
-	ld->SetText("\nConnecting to multiplayer server");
+	if (ld) {
+		ld->SetIndeterminate(true);
+		ld->SetText("\nConnecting to multiplayer server");
+	}
 	StartUp();
+
+	m_playerLife = 0;
+	m_iSelectMode = 0;
+	m_playerID = 0;
+	m_step = 0;
+	m_score = 0;
+	m_combo = 0;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -438,8 +448,8 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		sAddress = ServerIP.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
-		iPort =
-		  (unsigned short)strtol(ServerIP.substr(cLoc + 1).c_str(), &cEnd, 10);
+		auto sub = ServerIP.substr(cLoc + 1);
+		iPort = (unsigned short)strtol(sub.c_str(), &cEnd, 10);
 		if (*cEnd != 0 || errno != 0) {
 			LOG->Warn("Invalid port");
 			return;
@@ -529,11 +539,17 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	if (wss) {
 		std::shared_ptr<wss_client> client(new wss_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_close_handler(closeHandler);
+		} catch (exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		wss_client::connection_ptr con = client->get_connection(
@@ -544,21 +560,35 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
 		} else {
-			client->connect(con);
-			while (!finished_connecting)
-				client->poll_one();
-			if (n->isSMOnline)
-				this->secure_client = std::move(client);
+			try {
+				client->connect(con);
+				while (!finished_connecting)
+					client->poll_one();
+				if (n->isSMOnline)
+					this->secure_client = std::move(client);
+			} catch (websocketpp::http::exception& e) {
+				LOG->Warn("Failed to create ettp connection due to exception: "
+						  "%d --- %s",
+						  e.m_error_code,
+						  e.what());
+			}
 		}
 	}
 	if (ws && !n->isSMOnline) {
 		std::shared_ptr<ws_client> client(new ws_client());
-		client->init_asio();
-		client->clear_access_channels(websocketpp::log::alevel::all);
-		client->set_message_handler(msgHandler);
-		client->set_open_handler(openHandler);
-		client->set_fail_handler(failHandler);
-		client->set_close_handler(closeHandler);
+		try {
+			client->init_asio();
+			client->clear_access_channels(websocketpp::log::alevel::all);
+			client->set_message_handler(msgHandler);
+			client->set_open_handler(openHandler);
+			client->set_fail_handler(failHandler);
+			client->set_close_handler(closeHandler);
+		} catch (exception& e) {
+			LOG->Warn(
+			  "Failed to initialize ettp connection due to exception: %s",
+			  e.what());
+		}
+
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		ws_client::connection_ptr con = client->get_connection(
@@ -569,12 +599,19 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
 		} else {
-			client->connect(con);
-			while (!finished_connecting) {
-				client->poll_one();
+			try {
+				client->connect(con);
+				while (!finished_connecting) {
+					client->poll_one();
+				}
+				if (n->isSMOnline)
+					this->client = std::move(client);
+			} catch (websocketpp::http::exception& e) {
+				LOG->Warn("Failed to create ettp connection due to exception: "
+						  "%d --- %s",
+						  e.m_error_code,
+						  e.what());
 			}
-			if (n->isSMOnline)
-				this->client = std::move(client);
 		}
 	}
 	if (n->isSMOnline) {

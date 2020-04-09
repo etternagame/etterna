@@ -780,9 +780,6 @@ class DebugLineAutosync : public IDebugLine
 	void DoAndLog(RString& sMessageOut) override
 	{
 		int as = GAMESTATE->m_SongOptions.GetSong().m_AutosyncType + 1;
-		bool bAllowSongAutosync = true;
-		if (!bAllowSongAutosync && as == AutosyncType_Song)
-			as = AutosyncType_Machine;
 		wrap(as, NUM_AutosyncType);
 		SO_GROUP_ASSIGN(GAMESTATE->m_SongOptions,
 						ModsLevel_Song,

@@ -714,7 +714,7 @@ class CStdStr : public std::basic_string<CT>
 			return 0;
 
 		static const CT ch = CT(0);
-		MYSIZE nNewLen = MYTRAITS::length(szNew);
+		MYSIZE nNewLen = szNew == 0 ? 0 : MYTRAITS::length(szNew);
 		PCMYSTR szRealNew = szNew == 0 ? &ch : szNew;
 
 		while ((nIdx = this->find(szOld, nIdx)) != MYBASE::npos) {

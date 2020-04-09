@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -129,10 +129,8 @@ GetName(lua_State* L)
 	luaL_checktype(L, 1, LUA_TTABLE);
 
 	/* Look up the reverse table. */
-	luaL_getmetafield(L, 1, "name");
-
 	/* If there was no metafield, then we were called on the wrong type. */
-	if (lua_isnil(L, -1))
+	if (luaL_getmetafield(L, 1, "name") == 0 || lua_isnil(L, -1))
 		luaL_typerror(L, 1, "enum");
 
 	return 1;

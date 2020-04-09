@@ -595,6 +595,8 @@ RageSoundReader_MP3::RageSoundReader_MP3()
 {
 	mad = new madlib_t;
 	m_bAccurateSync = false;
+	SampleRate = 44100;
+	Channels = 2;
 
 	mad_stream_init(&mad->Stream);
 	mad_frame_init(&mad->Frame);
@@ -889,7 +891,6 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 
 		if (mad_timer_compare(desired, next_next_frame_timer) < 0 && !synthed) {
 			synth_output();
-			synthed = true;
 		}
 
 		int ret = do_mad_frame_decode();

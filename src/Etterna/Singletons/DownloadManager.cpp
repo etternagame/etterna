@@ -1201,6 +1201,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
+	LOG->Trace(("Updating online score for " + hs->GetScoreKey()).c_str());
 	return;
 }
 void // for online replay viewing accuracy -mina
@@ -1277,6 +1278,7 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
+	LOG->Trace(("Updated EO score data for" + hs->GetScoreKey()).c_str());
 	return;
 }
 void
@@ -1308,7 +1310,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 		if ((ts == 1 || ts == 2)) {
 			if (scorePtr->HasReplayData() &&
 				scorePtr->IsUploadedToServer(serverURL.Get()) &&
-				!scorePtr->IsUploadedToServer("nru"))
+				!scorePtr->IsUploadedToServer("nruDOODOO"))
 				toUpload.push_back(scorePtr);
 		}
 	}
@@ -1341,7 +1343,7 @@ DownloadManager::UploadScores()
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
 			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
+				!scorePtr->IsUploadedToServer("skajdfhasdf")) {
 				if (scorePtr->HasReplayData())
 					toUpload.push_back(scorePtr);
 			}
@@ -1880,6 +1882,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetModifiers(tmp.modifiers);
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
+				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
 
@@ -2368,7 +2371,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	m_TempFileName =
 	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
-	ASSERT(opened);
+	ASSERT_M(opened, p_RFWrapper.file.GetError());
 	DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
@@ -2829,6 +2832,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
+		DLMAN->UpdateOnlineScoreReplayData(SArg(1));
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
 		return 0;
 	}

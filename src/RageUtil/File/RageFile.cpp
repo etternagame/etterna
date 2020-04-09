@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This provides an interface to open files in RageFileManager's namespace
  * This is just a simple RageFileBasic wrapper on top of another RageFileBasic;
  * when a file is open, is acts like the underlying RageFileBasic, except that
@@ -14,6 +14,7 @@
 RageFile::RageFile()
 {
 	m_File = NULL;
+	m_Mode = 0;
 }
 
 RageFile::RageFile(const RageFile& cpy)
@@ -443,7 +444,10 @@ class LunaRageFile : public Luna<RageFile>
 	{
 		can_safely_read(p, L);
 		RString string;
-		p->GetLine(string);
+		if (!p->GetLine(string)) {
+			lua_pushnil(L);
+			return 1;
+		}
 		lua_pushstring(L, string);
 		return 1;
 	}

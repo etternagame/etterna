@@ -1,10 +1,11 @@
 #ifndef GRAPHICS_WINDOW_H
 #define GRAPHICS_WINDOW_H
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include <windows.h>
+
 class VideoModeParams;
-class DisplayResolution;
+class ActualVideoModeParams;
 
 /** @brief Sets up a window for OpenGL/D3D. */
 namespace GraphicsWindow {
@@ -35,10 +36,14 @@ void
 DestroyGraphicsWindow();
 
 void
-GetDisplayResolutions(DisplayResolutions& out);
+GetDisplaySpecs(DisplaySpecs& out);
 
-VideoModeParams*
+BOOL
+PushWindow(int a, int b);
+
+ActualVideoModeParams*
 GetParams();
+
 HDC
 GetHDC();
 void

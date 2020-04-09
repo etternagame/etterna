@@ -1,4 +1,4 @@
-﻿/*
+/*
  * NoteData is organized by:
  *  track - corresponds to different columns of notes on the screen
  *  row/index - corresponds to subdivisions of beats
@@ -1447,10 +1447,10 @@ NoteData::_all_tracks_iterator<ND, iter, TN>::_all_tracks_iterator(
 
 	m_StartRow = iStartRow;
 	m_EndRow = iEndRow;
+	m_Inclusive = bInclusive;
 
 	for (int iTrack = 0; iTrack < m_pNoteData->GetNumTracks(); ++iTrack) {
 		iter begin, end;
-		m_Inclusive = bInclusive;
 		if (bInclusive)
 			m_pNoteData->GetTapNoteRangeInclusive(
 			  iTrack, iStartRow, iEndRow, begin, end);
@@ -1494,6 +1494,7 @@ NoteData::_all_tracks_iterator<ND, iter, TN>::_all_tracks_iterator(
 #undef COPY_OTHER
 {
 	m_pNoteData->AddATIToList(this);
+	m_Inclusive = false;
 }
 
 template<typename ND, typename iter, typename TN>

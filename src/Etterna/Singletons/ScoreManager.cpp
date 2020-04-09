@@ -20,6 +20,8 @@ ScoreManager* SCOREMAN = NULL;
 
 ScoreManager::ScoreManager()
 {
+	tempscoreforonlinereplayviewing = nullptr;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -70,24 +72,17 @@ ScoresAtRate::GetSortedKeys()
 {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
-	FOREACHUM(string, HighScore, scores, i)
-	tmp.emplace(i->second.GetWifeScore(), i->first);
+	if (PREFSMAN->m_bSortBySSRNorm) {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetSSRNormPercent(), i->first);
+	} else {
+		FOREACHUM(string, HighScore, scores, i)
+		tmp.emplace(i->second.GetWifeScore(), i->first);
+	}
 	FOREACHM(float, string, tmp, j)
 	o.emplace_back(j->second);
 	return o;
 }
-
-/*
-const vector<HighScore*> ScoresAtRate::GetScores() const {
-	map<float, string, greater<float>> tmp;
-	vector<HighScore*> o;
-	FOREACHUM_CONST(string, HighScore, scores, i)
-		tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, string, tmp, j)
-		o.emplace_back(j->second);
-	return o;
-}
-*/
 
 void
 ScoreManager::PurgeScores()
@@ -343,7 +338,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+	vector<HighScore*> scores = SCOREMAN->GetAllProfileScores(profileID);
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -420,13 +415,23 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					data->setUpdated(true);
 				}
 				++scoreIndex;
-				if (hs->GetSSRCalcVersion() == GetCalcVersion())
+				if (hs->GetSSRCalcVersion() == 12341234)
 					continue;
+				bool doot = false;
+				if (hs->GetWifeVersion() != 1234)
+					doot = hs->RescoreToWife3();
+				if (!doot) {
+					//hs->SetSSRNormPercent(0); this is probably not a good idea
+				}
+
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
-				if (!steps)
+				if (!steps) {
+					LOG->Trace(
+					  ("there are no steps so skipping recalc of " + hs->GetScoreKey()).c_str());
 					continue;
+				}	
 
 				SongLock lk(currentlyLockedSongs,
 							songVectorPtrMutex,
@@ -434,6 +439,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
+					LOG->Trace(
+					("invalid score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					continue;
 				}
 
@@ -441,7 +448,16 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float musicrate = hs->GetMusicRate();
 
 				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+					LOG->Trace(
+					("bad score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					hs->ResetSkillsets();
+					continue;
+				}
+
+				if (hs->HasReplayData() && hs->GetJudgeScale() == 0.f) {
+					LOG->Trace(
+					  ("somehow there is replaydata but the judgescale is 0 so skipping recalc of " + hs->GetScoreKey())
+						.c_str());
 					continue;
 				}
 
@@ -461,8 +477,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 										 1.f,
 										 td->HasWarps());
 				FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, dakine[ss]);
+					hs->SetSkillsetSSR(ss, dakine[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
+
+				LOG->Trace(("complete recalc of " + hs->GetScoreKey()).c_str());
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
@@ -502,6 +520,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	  onUpdate,
 	  callback,
 	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+
+	SCOREMAN->scorestorecalc.clear();
+	SCOREMAN->scorestorecalc.shrink_to_fit();
 	return;
 }
 
@@ -722,7 +743,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
-		if (scores[sk].GetSSRCalcVersion() != GetCalcVersion() &&
+		if (scores[sk].GetSSRCalcVersion() != 212341423 &&
 			SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}

@@ -13,10 +13,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)                                                  \
-	THEME->GetMetricF(                                                         \
-	  "PlayerStageStats",                                                      \
-	  ssprintf("GradePercent%s", GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
 	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsAllW2s")
@@ -192,19 +188,37 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 Grade
 GetGradeFromPercent(float fPercent)
 {
-	if (fPercent >= 0.9997f)
+	if (fPercent >= 0.99999f)
 		return Grade_Tier01;
-	if (fPercent >= 0.9975f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9999f)
 		return Grade_Tier02;
-	if (fPercent >= 0.93f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
 		return Grade_Tier03;
-	if (fPercent >= 0.8f)
+	if (fPercent >= 0.9997f)
 		return Grade_Tier04;
-	if (fPercent >= 0.7f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9992f)
 		return Grade_Tier05;
-	if (fPercent >= 0.6f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9985f)
 		return Grade_Tier06;
-	return Grade_Tier07;
+	if (fPercent >= 0.9975f)
+		return Grade_Tier07;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
+		return Grade_Tier08;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
+		return Grade_Tier09;
+	if (fPercent >= 0.93f)
+		return Grade_Tier10;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
+		return Grade_Tier11;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
+		return Grade_Tier12;
+	if (fPercent >= 0.8f)
+		return Grade_Tier13;
+	if (fPercent >= 0.7f)
+		return Grade_Tier14;
+	if (fPercent >= 0.6f)
+		return Grade_Tier15;
+	return Grade_Tier16;
 }
 
 Grade
@@ -269,24 +283,24 @@ PlayerStageStats::GetGrade() const
 	// TODO: Change these conditions to use Lua instead. -aj
 	if (GRADE_TIER02_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W1))
-			return Grade_Tier01;
+			return Grade_Tier04; // quad
 
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier02;
+			return Grade_Tier07; // triple
 
 		grade = max(grade, Grade_Tier03);
 	}
 
 	if (GRADE_TIER01_IS_ALL_W2S) {
 		if (FullComboOfScore(TNS_W2))
-			return Grade_Tier01;
-		grade = max(grade, Grade_Tier02);
+			return Grade_Tier04;		  // quad
+		grade = max(grade, Grade_Tier07); // triple
 	}
 
 	if (GRADE_TIER02_IS_FULL_COMBO) {
 		if (FullComboOfScore(g_MinScoreToMaintainCombo))
-			return Grade_Tier02;
-		grade = max(grade, Grade_Tier03);
+			return Grade_Tier07;		  // triple
+		grade = max(grade, Grade_Tier10); // double
 	}
 
 	return grade;
@@ -414,7 +428,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 		return 1; // correct for rounding error
 
 	auto fCurMaxPercentDancePoints =
-	  static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	  static_cast<float>(m_iCurPossibleDancePoints) / m_iPossibleDancePoints;
 
 	return fCurMaxPercentDancePoints;
 }

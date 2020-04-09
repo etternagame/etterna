@@ -42,7 +42,11 @@ AutoScreenMessage(SM_PlayCheer);
 
 REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
-ScreenEvaluation::ScreenEvaluation() {}
+ScreenEvaluation::ScreenEvaluation()
+{
+	m_pStageStats = NULL;
+	m_bSavedScreenshot = false;
+}
 
 ScreenEvaluation::~ScreenEvaluation() {}
 
@@ -418,6 +422,15 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		}
 		return 1;
 	}
+	static int GetReplayModifiers(T* p, lua_State* L)
+	{
+		if (PlayerAI::pScoreData != nullptr) {
+			LuaHelpers::Push(L, PlayerAI::pScoreData->GetModifiers());
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
@@ -436,6 +449,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);
+		ADD_METHOD(GetReplayModifiers);
 	}
 };
 

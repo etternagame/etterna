@@ -7,6 +7,25 @@
 
 #include <X11/extensions/dpms.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <string>
+#include <sstream>
+#include <cstdlib>
+
+#include <csignal>
+
+void
+printCallStack()
+{
+	pid_t myPid = getpid();
+	std::string pstackCommand = "pstack ";
+	std::stringstream ss;
+	ss << myPid;
+	pstackCommand += ss.str();
+	system(pstackCommand.c_str());
+}
+
 Display* X11Helper::Dpy = NULL;
 Window X11Helper::Win = None;
 
@@ -24,6 +43,8 @@ bool
 X11Helper::OpenXConnection()
 {
 	DEBUG_ASSERT(Dpy == NULL && Win == None);
+
+	std::raise(SIGINT);
 
 	int res = XInitThreads();
 	if (res == 0)
@@ -149,6 +170,31 @@ X11Helper::MakeWindow(Window& win,
 	return true;
 }
 
+void
+X11Helper::SetWMState(const Window& root,
+					  const Window& win,
+					  const long action,
+					  const Atom atom)
+{
+	if (!Dpy)
+		return;
+	Atom wm_state = XInternAtom(Dpy, "_NET_WM_STATE", False);
+	XEvent xev;
+	memset(&xev, 0, sizeof(xev));
+	xev.type = ClientMessage;
+	xev.xclient.window = Win;
+	xev.xclient.message_type = wm_state;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = action; // 0 = Remove, 1 = Add, 2 = Toggle
+	xev.xclient.data.l[1] = atom;
+	xev.xclient.data.l[2] = 0; // end list of Atoms
+	XSendEvent(Dpy,
+			   root,
+			   False,
+			   SubstructureRedirectMask | SubstructureNotifyMask,
+			   &xev);
+}
+
 int
 ErrorCallback(Display* d, XErrorEvent* err)
 {
@@ -170,3 +216,89 @@ FatalCallback(Display* d)
 {
 	RageException::Throw("Fatal I/O error communicating with X server.");
 }
+
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+
+bool
+X11Helper::SetWMFullscreenMonitors(const DisplaySpec& target)
+{
+	int num_screens = 0;
+	XineramaScreenInfo* screens = XineramaQueryScreens(Dpy, &num_screens);
+	if (screens == nullptr) {
+		return false;
+	}
+
+	XineramaScreenInfo* end = screens + num_screens;
+	RectI monitors{};
+	bool found_bounds = false;
+
+	if (target.isVirtual()) {
+		auto topmost = std::min_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.y_org < b.y_org;
+		  });
+		monitors.top = topmost->screen_number;
+
+		auto bottommost = std::max_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.y_org < b.y_org;
+		  });
+		monitors.bottom = bottommost->screen_number;
+
+		auto leftmost = std::min_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.x_org < b.x_org;
+		  });
+		monitors.left = leftmost->screen_number;
+
+		auto rightmost = std::max_element(
+		  screens, end, [](XineramaScreenInfo& a, XineramaScreenInfo& b) {
+			  return a.x_org < b.x_org;
+		  });
+		monitors.right = rightmost->screen_number;
+		found_bounds = true;
+	} else if (target.currentMode() != nullptr) {
+		auto mon = std::find_if(screens, end, [&](XineramaScreenInfo& screen) {
+			return screen.x_org == target.currentBounds().left &&
+				   screen.y_org == target.currentBounds().top &&
+				   screen.width == target.currentMode()->width &&
+				   screen.height == target.currentMode()->height;
+		});
+		if (mon != end) {
+			monitors.left = monitors.right = monitors.top = monitors.bottom =
+			  mon->screen_number;
+			found_bounds = true;
+		}
+	}
+
+	XFree(screens);
+	XWindowAttributes attr = { 0 };
+	if (!found_bounds || !XGetWindowAttributes(Dpy, Win, &attr)) {
+		return false;
+	}
+
+	SetWMState(
+	  attr.root, Win, 1, XInternAtom(Dpy, "_NET_WM_STATE_FULLSCREEN", False));
+
+	XClientMessageEvent xclient = { 0 };
+	xclient.type = ClientMessage;
+	xclient.window = Win;
+	xclient.message_type =
+	  XInternAtom(Dpy, "_NET_WM_FULLSCREEN_MONITORS", False);
+	xclient.format = 32;
+	xclient.data.l[0] = monitors.top;
+	xclient.data.l[1] = monitors.bottom;
+	xclient.data.l[2] = monitors.left;
+	xclient.data.l[3] = monitors.right;
+	xclient.data.l[4] = 1;
+	XSendEvent(Dpy,
+			   attr.root,
+			   False,
+			   SubstructureRedirectMask | SubstructureNotifyMask,
+			   reinterpret_cast<XEvent*>(&xclient));
+	XFlush(Dpy);
+
+	return true;
+}
+#endif

@@ -16,7 +16,7 @@ class ScreenSMOnlineLogin : public ScreenOptions
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
 	RString GetSelectedProfileID();
-	int m_iPlayer;
+	int m_iPlayer = 0;
 	bool typeUsername{ false };
 	string username;
 };
