@@ -572,7 +572,10 @@ SetMSDValues(SSC::StepsTagInfo& info)
 	auto size = params.params.size();
 	// Start from index 1
 	for (size_t i = 1; i <= size; i++)
-		o.emplace_back(SSC::msdsplit(params[i]));
+	{
+		auto m = SSC::msdsplit(params[i]);
+		o.push_back(DifficultyRating{ m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+	}
 	info.steps->SetAllMSD(o);
 }
 
