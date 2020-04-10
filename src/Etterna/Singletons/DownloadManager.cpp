@@ -1087,9 +1087,8 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 		return;
 
 	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
-	if (!hs->LoadReplayData())
-		if (callback)
-			callback();
+	if (!hs->HasReplayData())
+		return;
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
