@@ -831,15 +831,14 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 			  diff[i] * anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i];
 	}
 
-	if (stam)
-		StamAdjust(x, diff);
-	finalMSDvals = diff; // bad bad bad bad bad bad bad bad bad bad
+	const vector<float>& v = stam ? StamAdjust(x, diff) : diff;
+	finalMSDvals = v; // bad bad bad bad bad bad bad bad bad bad
 	float output = 0.f;
 	std::vector<float> pointloss;
-	for (size_t i = 0; i < diff.size(); i++) {
-		float gainedpoints = x > diff[i]
+	for (size_t i = 0; i < v.size(); i++) {
+		float gainedpoints = x > v[i]
 							   ? v_itvpoints[i]
-							   : v_itvpoints[i] * pow(x / diff[i], 1.8f);
+							   : v_itvpoints[i] * pow(x / v[i], 1.8f);
 
 		output += gainedpoints;
 		pointloss.push_back(v_itvpoints[i] - gainedpoints);
