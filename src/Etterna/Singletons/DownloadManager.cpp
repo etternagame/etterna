@@ -1201,10 +1201,10 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	LOG->Trace(("Updating online score for " + hs->GetScoreKey()).c_str());
+	LOG->Trace(("Updated online score for " + hs->GetScoreKey()).c_str());
 	return;
 }
-void // for online replay viewing accuracy -mina
+void // think this is basically deprecated (was for updating borked replay data on site)
 DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 											 function<void()> callback)
 {
@@ -1278,7 +1278,7 @@ DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	LOG->Trace(("Updated EO score data for" + hs->GetScoreKey()).c_str());
+	LOG->Trace(("Updated EO replay data for" + hs->GetScoreKey()).c_str());
 	return;
 }
 void
@@ -1310,7 +1310,7 @@ DownloadManager::UpdateOnlineScoreReplayData()
 		if ((ts == 1 || ts == 2)) {
 			if (scorePtr->HasReplayData() &&
 				scorePtr->IsUploadedToServer(serverURL.Get()) &&
-				!scorePtr->IsUploadedToServer("nruDOODOO"))
+				!scorePtr->IsUploadedToServer("nru"))
 				toUpload.push_back(scorePtr);
 		}
 	}
@@ -1343,7 +1343,7 @@ DownloadManager::UploadScores()
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
 			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer("skajdfhasdf")) {
+				!scorePtr->IsUploadedToServer(serverURL.Get())) {
 				if (scorePtr->HasReplayData())
 					toUpload.push_back(scorePtr);
 			}
@@ -2185,7 +2185,7 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-		// DLMAN->UpdateOnlineScoreReplayData();
+		// DLMAN->UpdateOnlineScoreReplayData(); probably safe to delete this/related functions after 0.69 release (they will be redundant/obsolete)
 	}
 	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
@@ -2832,7 +2832,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
-		DLMAN->UpdateOnlineScoreReplayData(SArg(1));
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
 		return 0;
 	}
