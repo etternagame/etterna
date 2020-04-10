@@ -1479,6 +1479,8 @@ HighScore::RescoreToWife3()
 	if (!LoadReplayData())
 		return false;
 
+	// i don't know why this would be possible or what to do if we catch these
+	// cases, but it is somehow (probably exclusive to my profile)
 	if (m_Impl->fJudgeScale == 0.f) {
 		LOG->Trace(("somehow there is replaydata but the judgescale is 0 at  " +
 					m_Impl->ScoreKey)

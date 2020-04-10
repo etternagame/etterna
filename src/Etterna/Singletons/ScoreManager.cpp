@@ -338,7 +338,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*> scores = SCOREMAN->GetAllProfileScores(profileID);
+	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -415,51 +415,41 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					data->setUpdated(true);
 				}
 				++scoreIndex;
-				if (hs->GetSSRCalcVersion() == 12341234)
-					continue;
-				bool doot = false;
-				if (hs->GetWifeVersion() != 1234)
-					doot = hs->RescoreToWife3();
-				if (!doot) {
-					//hs->SetSSRNormPercent(0); this is probably not a good idea
-				}
 
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-
-				if (!steps) {
-					LOG->Trace(
-					  ("there are no steps so skipping recalc of " + hs->GetScoreKey()).c_str());
+				
+				// this _should_ be impossible since ischartloaded() checks are required on all charts before getting here
+				// but just in case...
+				if (!steps)
 					continue;
-				}	
 
 				SongLock lk(currentlyLockedSongs,
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
+				// throws out scores on solo files and stuff with warps
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
-					LOG->Trace(
-					("invalid score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					continue;
 				}
 
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
+				// check needs to be done before rescoring to wife3 since highscore doesn't have
+				// access to notedata and will assume total points based on replay data vector
+				// lengths; any pass will have the correct length (also we don't care about fails)
 				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
-					LOG->Trace(
-					("bad score so skipping recalc of " + hs->GetScoreKey()).c_str());
 					hs->ResetSkillsets();
 					continue;
 				}
 
-				if (hs->HasReplayData() && hs->GetJudgeScale() == 0.f) {
-					LOG->Trace(
-					  ("somehow there is replaydata but the judgescale is 0 so skipping recalc of " + hs->GetScoreKey())
-						.c_str());
+				bool remarried = hs->RescoreToWife3();
+
+				// if this is not a rescore and has already been run on the current calc vers, skip
+				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
-				}
 
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
@@ -480,7 +470,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					hs->SetSkillsetSSR(ss, dakine[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
-				LOG->Trace(("complete recalc of " + hs->GetScoreKey()).c_str());
+				if (remarried)	// maybe recalculated scores should be renamed rescored?
+					SCOREMAN->recalculatedscores.push_back(hs->GetScoreKey());
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
@@ -743,8 +734,19 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
-		if (scores[sk].GetSSRCalcVersion() != 212341423 &&
-			SONGMAN->IsChartLoaded(ck))
+
+		// technically there is one scenario in which we can rescore to a
+		// new wifeversion but not need to recalculate the ssr, which is
+		// if the rescored wife% is identical to the previous one, this is
+		// unlikely enough that we can just run them in the same loop
+
+		// we also must rescore all scores rather than just pbs because
+		// top score rankings may in fact shift post-rescore, this will
+		// be taken care of by calcplayerrating which will be called after
+		// recalculatessrs
+		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
+		bool getremarried = scores[sk].GetWifeVersion() < 3;
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }

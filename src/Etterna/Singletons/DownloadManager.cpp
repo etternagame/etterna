@@ -1155,6 +1155,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
+					LOG->Trace("Error uploading score %s", hs->GetScoreKey().c_str());
 				}
 				return false;
 			};
@@ -1201,10 +1202,10 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	LOG->Trace(("Updated online score for " + hs->GetScoreKey()).c_str());
 	return;
 }
-void // think this is basically deprecated (was for updating borked replay data on site)
+void // think this is basically deprecated (was for updating borked replay data
+	 // on site)
 DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 											 function<void()> callback)
 {
@@ -1349,8 +1350,19 @@ DownloadManager::UploadScores()
 			}
 		}
 	}
+
+	// we don't want to run the upload check for rescores; rescores have
+	// replaydata by definition
+	auto& scores_two_electric_boogaloo = SCOREMAN->recalculatedscores;
+	for (auto sk : scores_two_electric_boogaloo) {
+		auto s = SCOREMAN->GetScoresByKey().at(sk);	// doing this the long way around cause reasons
+		auto ts = s->GetTopScore();					// but could be swapped back to pointer vector
+		if (ts == 1 || ts == 2)
+			toUpload.push_back(s);
+	}
+
 	if (!toUpload.empty())
-		LOG->Trace("Uploading top scores that were not synced.");
+		LOG->Trace("Updating online scores.");
 	uploadSequentially(toUpload);
 	return true;
 }
@@ -2185,7 +2197,9 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-		// DLMAN->UpdateOnlineScoreReplayData(); probably safe to delete this/related functions after 0.69 release (they will be redundant/obsolete)
+		// DLMAN->UpdateOnlineScoreReplayData(); probably safe to delete
+		// this/related functions after 0.69 release (they will be
+		// redundant/obsolete)
 	}
 	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
