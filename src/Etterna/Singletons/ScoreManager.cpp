@@ -345,7 +345,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
-		ld->SetText("\nUpdating Ratings");
+		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) + " scores" );
 	}
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
