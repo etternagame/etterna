@@ -1114,16 +1114,34 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		while (qSteps.executeStep()) {
 			int stepsIndex = 0;
 
-		MinaSD o;
-		stringstream msds;
-		msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
-		string msdsatrate;
-		while (std::getline(msds, msdsatrate, ':'))
-		{
-			auto m = SSC::msdsplit(msdsatrate);
-			o.push_back(std::vector<float>{ 1, 2, 3, 4, 5, 6, 7, 8 });
-		}
-		pNewNotes->SetAllMSD(o);
+			pNewNotes = song->CreateSteps();
+			int stepsID = qSteps.getColumn(stepsIndex++);
+			RString chartName =
+			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
+			pNewNotes->SetChartName(chartName);
+			string stepsType =
+			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
+			pNewNotes->m_StepsType = GAMEMAN->StringToStepsType(stepsType);
+			pNewNotes->m_StepsTypeStr = stepsType;
+			RString description =
+			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
+			pNewNotes->SetDescription(description);
+			pNewNotes->SetChartStyle(
+			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
+			pNewNotes->SetDifficulty(static_cast<Difficulty>(
+			  static_cast<int>(qSteps.getColumn(stepsIndex++))));
+			pNewNotes->SetMeter(qSteps.getColumn(stepsIndex++));
+
+			MinaSD o;
+			stringstream msds;
+			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
+			string msdsatrate;
+			while (std::getline(msds, msdsatrate, ':')) {
+				auto m = SSC::msdsplit(msdsatrate);
+				o.push_back(DifficultyRating{
+				  m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+			}
+			pNewNotes->SetAllMSD(o);
 
 			pNewNotes->SetChartKey(
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
