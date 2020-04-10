@@ -153,8 +153,7 @@ class Calc
 	std::vector<float> HSDownscaler(const std::vector<NoteInfo>& NoteInfo);
 	std::vector<float> JumpDownscaler(const std::vector<NoteInfo>& NoteInfo);
 	std::vector<float> RollDownscaler(const Finger& f1,
-									  const Finger& f2,
-									  const std::vector<float> ohjs);
+									  const Finger& f2);
 
 	Hand left_hand;
 	Hand right_hand;
