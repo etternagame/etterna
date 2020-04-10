@@ -744,7 +744,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
 		bool getremarried = scores[sk].GetWifeVersion() < 3;
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
+			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }
