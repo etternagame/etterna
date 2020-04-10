@@ -396,19 +396,51 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     5 = Jumpstream downscaler
     anything else = no output
 ]]
+modnames = {
+    "ohjl",
+    "ohjr",
+    "anchl",
+    "anchr",
+    "rolll",
+    "rollr",
+    "hsl",
+    "hsr",
+    "jsl",
+    "jsr"
+}
+
+local modColors = {
+    color("1,0,0"),         -- red          = ohjump left
+    color("0.8,0.2,0.2"),   -- light red         (right)
+    color("0,0,1"),         -- blue         = anchor left
+    color("0.2,0.2,0.8"),   -- light blue        (right)
+    color("0,1,0"),         -- green        = roll left
+    color("0.3,0.9,0.3"),   -- light green       (right)
+    color("1,1,0"),         -- yellow       = handstream left
+    color("0.6,0.6,0"),     -- dark yellow      (right)
+    color("1,0,1"),         -- purple       = jumpstream left
+    color("1,0.3,1")        -- light purple      (right)
+}
+
 -- top graph average text
-o[#o + 1] = LoadFont("Common Normal") .. {
-    InitCommand = function(self)
-        self:xy(-plotWidth/2 + 5, plotHeight/3):halign(0)
-        self:zoom(0.5)
-        self:settext("")
-        self:maxwidth((plotWidth-10) / 0.5)
-    end,
-    UpdateAveragesMessageCommand = function(self)
-        if song then
-            local aves = {}
-            if not graphVecs[1] or not graphVecs[1][1] then 
-                self:settext("")
+makeskillsetlabeltext = function(i) 
+    return LoadFont("Common Normal") .. {
+        InitCommand = function(self)
+            local xspace = 45
+            self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
+            self:zoom(0.5)
+            self:settext("")
+            self:maxwidth((plotWidth-10) / 0.5)
+            if i % 2 == 0 then
+                self:addy(20)
+                self:addx(-xspace)
+            end
+        end,
+        UpdateAveragesMessageCommand = function(self)
+            if song then
+                local aves = {}
+                if not graphVecs[1] or not graphVecs[1][1] then 
+                  self:settext("")
                 return
             end
             for i = 1,10 do
@@ -416,10 +448,12 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                     aves[i] = table.average(graphVecs[1][i])
                 end
             end
-            self:settextf("L Avg   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f\nR Avg   OHJ: %.4f  Anchr: %.4f  Roll: %.4f  HS: %.4f  JS: %.4f", aves[1], aves[3], aves[5], aves[7], aves[9], aves[2], aves[4], aves[6], aves[8], aves[10])
+            self:diffuse(modColors[i])
+            self:settextf("%s: %.4f", modnames[i], aves[i])
         end
     end
 }
+end
 
 -- lower graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
@@ -450,10 +484,21 @@ local function topGraphLine(lineNum, colorToUse)
             if song and enabled then
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
                 self:visible(true)
                 local verts = {}
                 local highest = 0
+
+                if lineNum == 11 then
+                    for i = 1, #graphVecs[1][1] do
+                        local x = fitX(i, #graphVecs[1][1])
+                        local y = fitY1(1)
+                        y = y + plotHeight / 2
+                        setOffsetVerts(verts, x, y, color("1,1,1"))
+                    end
+                    self:SetVertices(verts)
+                    self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+                    return
+                end
 
                 if not graphVecs[1] or not graphVecs[1][lineNum] then return end
 
@@ -479,22 +524,11 @@ local function topGraphLine(lineNum, colorToUse)
     }
 end
 
-local modColors = {
-    color("1,0,0"),         -- red          = ohjump left
-    color("0.8,0.2,0.2"),   -- light red         (right)
-    color("0,0,1"),         -- blue         = anchor left
-    color("0.2,0.2,0.8"),   -- light blue        (right)
-    color("0,1,0"),         -- green        = roll left
-    color("0.3,0.9,0.3"),   -- light green       (right)
-    color("1,1,0"),         -- yellow       = handstream left
-    color("0.6,0.6,0"),     -- dark yellow      (right)
-    color("1,0,1"),         -- purple       = jumpstream left
-    color("1,0.3,1")        -- light purple      (right)
-}
-
 for i = 1,10 do
     o[#o+1] = topGraphLine(i, modColors[i])
+    o[#o+1] = makeskillsetlabeltext(i)
 end
+o[#o+1] = topGraphLine(11, modColors[i])    -- super hack to make 1.0 value indicator line
 
 local function bottomGraphLineMSD(lineNum, colorToUse)
     return Def.ActorMultiVertex {
