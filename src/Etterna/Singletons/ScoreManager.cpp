@@ -463,7 +463,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				auto dakine = MinaSDCalc(serializednd,
 										 musicrate,
 										 ssrpercent);
-				auto ssrVals = skillset_vector(dakine);
+				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());

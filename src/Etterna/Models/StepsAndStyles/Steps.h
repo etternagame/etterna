@@ -199,7 +199,7 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	const string& GetChartKey() const { return ChartKey; }
-	DifficultyRating dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 							dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 							dummy, dummy, dummy, dummy, dummy, dummy, dummy };

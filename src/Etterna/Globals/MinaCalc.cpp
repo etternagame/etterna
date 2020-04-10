@@ -1,394 +1,609 @@
+// MinaCalc.cpp : Defines the exported functions for the DLL application.
+//
+
 #include "MinaCalc.h"
-#include <cmath>
 #include <iostream>
 #include <algorithm>
-#include <memory>
-#include <numeric>
+#include <thread>
+#include <future>
+#include <mutex>
+#include <cmath>
+#include <fstream>
 
-using std::max;
-using std::min;
-using std::pow;
-using std::sqrt;
-using std::vector;
-template<typename T>
-T
-CalcClamp(T x, T l, T h)
+using namespace std;
+
+#define SAFE_DELETE(p)                                                         \
+	{                                                                          \
+		delete p;                                                              \
+		p = NULL;                                                              \
+	}
+
+template<typename T, typename U>
+inline U
+lerp(T x, U l, U h)
 {
-	return x > h ? h : (x < l ? l : x);
+	return static_cast<U>(x * (h - l) + l);
 }
 
-inline float
-mean(const vector<float>& v)
-{
-	return std::accumulate(begin(v), end(v), 0.f) / v.size();
-}
-
-// Coefficient of variation
-inline float
-cv(const vector<float>& input)
-{
-	float sd = 0.f;
-	float average = mean(input);
-	for (float i : input)
-		sd += (i - average) * (i - average);
-
-	return sqrt(sd / input.size()) / average;
-}
-
-inline float
-downscale_low_accuracy_scores(float f, float sg)
-{
-	return sg >= 0.93f ? f : min(max(f - sqrt(0.93f - sg), 0.f), 100.f);
-}
-
+template<typename T, typename U, typename V>
 inline void
-Smooth(vector<float>& input, float neutral)
+CalcClamp(T& x, U l, V h)
 {
-	float f1;
-	float f2 = neutral;
-	float f3 = neutral;
+	if (x > static_cast<T>(h))
+		x = static_cast<T>(h);
+	else if (x < static_cast<T>(l))
+		x = static_cast<T>(l);
+}
 
-	for (float& i : input) {
+inline float
+mean(vector<float>& v)
+{
+	float sum = 0.f;
+	for (size_t i = 0; i < v.size(); ++i)
+		sum += v[i];
+
+	return sum / v.size();
+}
+
+// Coefficient of variance
+inline float
+cv(vector<float>& v)
+{
+	float sum = 0.f;
+	float mean;
+	float sd = 0.f;
+
+	for (size_t i = 0; i < v.size(); i++)
+		sum += v[i];
+
+	mean = sum / v.size();
+	for (size_t i = 0; i < v.size(); i++)
+		sd += pow(v[i] - mean, 2);
+
+	return sqrt(sd / v.size()) / mean;
+}
+
+inline float
+downscalebaddies(float& f, float sg)
+{
+	CalcClamp(f, 0.f, 100.f);
+	if (sg >= 0.93f)
+		return f;
+	float o = f * 1 - sqrt(0.93f - sg);
+	CalcClamp(f, 0.f, 100.f);
+	return o;
+}
+
+// Specifically for pattern modifiers as the neutral value is 1
+inline void
+PatternSmooth(vector<float>& v)
+{
+	float f1 = 1.f;
+	float f2 = 1.f;
+	float f3 = 1.f;
+	float total = 3.f;
+
+	for (size_t i = 0; i < v.size(); i++) {
+		total -= f1;
 		f1 = f2;
 		f2 = f3;
-		f3 = i;
-		i = (f1 + f2 + f3) / 3;
+		f3 = v[i];
+		total += f3;
+		v[i] = (f1 + f2 + f3) / 3;
 	}
 }
 
 inline void
-DifficultyMSSmooth(vector<float>& input)
+DifficultySmooth(vector<float>& v)
 {
-	float f1;
+	float f1 = 0.f;
+	float f2 = 0.f;
+	float f3 = 0.f;
+	float total = 0.f;
+
+	for (size_t i = 0; i < v.size(); i++) {
+		total -= f1;
+		f1 = f2;
+		f2 = f3;
+		f3 = v[i];
+		total += f3;
+		v[i] = (f1 + f2 + f3) / 3;
+	}
+}
+
+inline void
+DifficultyMSSmooth(vector<float>& v)
+{
+	float f1 = 0.f;
 	float f2 = 0.f;
 
-	for (float& i : input) {
+	for (size_t i = 0; i < v.size(); i++) {
 		f1 = f2;
-		f2 = i;
-		i = (f1 + f2) / 2.f;
+		f2 = v[i];
+		v[i] = (f1 + f2) / 2.f;
 	}
 }
 
 inline float
-AggregateScores(const vector<float>& skillsets, float rating, float resolution)
+AggregateScores(vector<float>& invector, float rating, float res, int iter)
 {
 	float sum;
-	for (int iter = 1; iter <= 11; iter++) {
-		do {
-			rating += resolution;
-			sum = 0.0f;
-			for (float i : skillsets) {
-				sum += 2.f / std::erfc(0.5f * (i - rating)) - 1.f;
-			}
-		} while (3 < sum);
-		rating -= resolution;
-		resolution /= 2.f;
-	}
-	return rating + 2.f * resolution;
-}
-
-unsigned int
-column_count(unsigned int note)
-{
-	return note % 2 + note / 2 % 2 + note / 4 % 2 + note / 8 % 2;
+	do {
+		rating += res;
+		sum = 0.0f;
+		for (int i = 0; i < static_cast<int>(invector.size()); i++) {
+			sum += 2.f / erfc(0.5f * (invector[i] - rating)) - 1.f;
+		}
+	} while (3 < sum);
+	if (iter == 11)
+		return rating;
+	return AggregateScores(invector, rating - res, res / 2.f, iter + 1);
 }
 
 float
-chord_proportion(const vector<NoteInfo>& NoteInfo, const int chord_size)
+normalizer(float x, float y, float z1, float z2)
 {
-	unsigned int taps = 0;
-	unsigned int chords = 0;
+	float norm = ((x / y) - 1.f) * z1;
+	CalcClamp(norm, 0.f, 1.f);
+	float o = x * z2 * norm + x * (1.f - z2);
+	return o;
+}
 
-	for (auto row : NoteInfo) {
-		unsigned int notes = column_count(row.notes);
+float
+jumpprop(const vector<NoteInfo>& NoteInfo)
+{
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
+
+	int taps = 0;
+	int jamps = 0;
+
+	for (size_t r = 0; r < NoteInfo.size(); r++) {
+		int notes = (NoteInfo[r].notes & left ? 1 : 0) +
+					(NoteInfo[r].notes & down ? 1 : 0) +
+					(NoteInfo[r].notes & up ? 1 : 0) +
+					(NoteInfo[r].notes & right ? 1 : 0);
 		taps += notes;
-		if (notes == chord_size)
-			chords += notes;
+		if (notes == 2)
+			jamps += notes;
 	}
 
-	return static_cast<float>(chords) / static_cast<float>(taps);
+	return static_cast<float>(jamps) / static_cast<float>(taps);
+}
+
+float
+handprop(const vector<NoteInfo>& NoteInfo)
+{
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
+
+	int taps = 0;
+	int hands = 0;
+
+	for (size_t r = 0; r < NoteInfo.size(); r++) {
+		int notes = (NoteInfo[r].notes & left ? 1 : 0) +
+					(NoteInfo[r].notes & down ? 1 : 0) +
+					(NoteInfo[r].notes & up ? 1 : 0) +
+					(NoteInfo[r].notes & right ? 1 : 0);
+		taps += notes;
+		if (notes == 3)
+			hands += notes;
+	}
+
+	return static_cast<float>(hands) / static_cast<float>(taps);
+}
+
+float
+notcj(const vector<NoteInfo>& NoteInfo)
+{
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
+
+	int taps = 0;
+	int hands = 0;
+	int lcol = 0;
+	int lnotes = 0;
+	for (size_t r = 0; r < NoteInfo.size(); r++) {
+		int lefty = NoteInfo[r].notes & left ? 1 : 0;
+		int downy = NoteInfo[r].notes & down ? 1 : 0;
+		int upy = NoteInfo[r].notes & up ? 1 : 0;
+		int righty = NoteInfo[r].notes & right ? 1 : 0;
+
+		int notes = lefty + downy + upy + righty;
+		int tcol = 0;
+		if (notes == 1) {
+			if (lefty)
+				tcol = left;
+			if (downy)
+				tcol = down;
+			if (upy)
+				tcol = up;
+			if (righty)
+				tcol = right;
+
+			if (tcol != lcol && (lnotes == 3 || lnotes == 2))
+				taps += 1;
+		}
+
+		if ((notes == 3 || notes == 2) && lnotes == 1) {
+			if (lefty && lcol == left)
+				taps -= 1;
+			if (downy && lcol == down)
+				taps -= 1;
+			if (upy && lcol == up)
+				taps -= 1;
+			if (righty && lcol == right)
+				taps -= 1;
+			taps += 1;
+		}
+
+		taps += notes;
+		if (notes == 3)
+			hands += notes;
+
+		lnotes = notes;
+		if (lefty)
+			lcol = left;
+		if (downy)
+			lcol = down;
+		if (upy)
+			lcol = up;
+		if (righty)
+			lcol = right;
+	}
+
+	return static_cast<float>(hands) / static_cast<float>(taps);
+}
+
+float
+quadprop(const vector<NoteInfo>& NoteInfo)
+{
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
+
+	int taps = 0;
+	int quads = 0;
+
+	for (size_t r = 0; r < NoteInfo.size(); r++) {
+		int notes = (NoteInfo[r].notes & left ? 1 : 0) +
+					(NoteInfo[r].notes & down ? 1 : 0) +
+					(NoteInfo[r].notes & up ? 1 : 0) +
+					(NoteInfo[r].notes & right ? 1 : 0);
+		taps += notes;
+		if (notes == 4)
+			quads += notes;
+	}
+
+	return static_cast<float>(quads) / static_cast<float>(taps);
 }
 
 vector<float>
-skillset_vector(const DifficultyRating& difficulty)
-{
-	return vector<float>{ difficulty.overall,	difficulty.stream,
-						  difficulty.jumpstream, difficulty.handstream,
-						  difficulty.stamina,	difficulty.jack,
-						  difficulty.chordjack,  difficulty.technical };
-}
-
-float
-highest_difficulty(const DifficultyRating& difficulty)
-{
-	auto v = { difficulty.stream,	 difficulty.jumpstream,
-			   difficulty.handstream, difficulty.stamina,
-			   difficulty.jack,		  difficulty.chordjack,
-			   difficulty.technical };
-	return *std::max_element(v.begin(), v.end());
-}
-
-DifficultyRating
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
-			   float music_rate,
+			   float timingscale,
 			   float score_goal)
 {
+	// LOG->Trace("%f", etaner.back());
 	float grindscaler =
-	  CalcClamp(
-		0.93f + (0.07f * (NoteInfo.back().rowTime - 30.f) / 30.f), 0.93f, 1.f) *
-	  CalcClamp(
-		0.873f + (0.13f * (NoteInfo.back().rowTime - 15.f) / 15.f), 0.87f, 1.f);
+	  0.93f + (0.07f * (NoteInfo.back().rowTime - 30.f) / 30.f);
+	CalcClamp(grindscaler, 0.93f, 1.f);
 
-	float shortstamdownscaler = CalcClamp(
-	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
+	float grindscaler2 =
+	  0.873f + (0.13f * (NoteInfo.back().rowTime - 15.f) / 15.f);
+	CalcClamp(grindscaler2, 0.87f, 1.f);
 
-	float jprop = chord_proportion(NoteInfo, 2);
-	float nojumpsdownscaler =
-	  CalcClamp(0.8f + (0.2f * (jprop + 0.5f)), 0.8f, 1.f);
-	float manyjumpsdownscaler = CalcClamp(1.43f - jprop, 0.85f, 1.f);
+	float shortstamdownscaler =
+	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f);
+	CalcClamp(shortstamdownscaler, 0.9f, 1.f);
 
-	float hprop = chord_proportion(NoteInfo, 3);
-	float nohandsdownscaler =
-	  CalcClamp(0.8f + (0.2f * (hprop + 0.75f)), 0.8f, 1.f);
-	float allhandsdownscaler = CalcClamp(1.23f - hprop, 0.85f, 1.f);
+	float jprop = jumpprop(NoteInfo);
+	float nojumpsdownscaler = 0.8f + (0.2f * (jprop + 0.5f));
+	CalcClamp(nojumpsdownscaler, 0.8f, 1.f);
 
-	float qprop = chord_proportion(NoteInfo, 4);
-	float lotquaddownscaler = CalcClamp(1.13f - qprop, 0.85f, 1.f);
+	float hprop = handprop(NoteInfo);
 
-	float jumpthrill = CalcClamp(1.625f - jprop - hprop, 0.85f, 1.f);
+	float nohandsdownscaler = 0.8f + (0.2f * (hprop + 0.75f));
+	CalcClamp(nohandsdownscaler, 0.8f, 1.f);
 
-	InitializeHands(NoteInfo, music_rate);
+	float allhandsdownscaler = 1.23f - hprop;
+	CalcClamp(allhandsdownscaler, 0.85f, 1.f);
+
+	float manyjampdownscaler = 1.43f - jprop;
+	CalcClamp(manyjampdownscaler, 0.85f, 1.f);
+
+	float qprop = quadprop(NoteInfo);
+	float lotquaddownscaler = 1.13f - qprop;
+	CalcClamp(lotquaddownscaler, 0.85f, 1.f);
+
+	float jumpthrill = 1.625f - jprop - hprop;
+	CalcClamp(jumpthrill, 0.85f, 1.f);
+
+	vector<float> o;
+	o.reserve(8);
+
+	InitializeHands(NoteInfo, timingscale);
 	TotalMaxPoints();
 	float stream =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, false);
-	float js =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, true, false);
-	float hs =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, true);
+	  Chisel(0.1f, 10.24f, 1, false, false, true, false, false);
+	float js = Chisel(0.1f, 10.24f, 1, false, false, true, true, false);
+	float hs = Chisel(0.1f, 10.24f, 1, false, false, true, false, true);
 	float tech =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, false, false, false);
+	  Chisel(0.1f, 10.24f, 1, false, false, false, false, false);
 	float jack =
-	  Chisel(0.1f, 10.24f, score_goal, false, true, true, false, false);
+	  Chisel(0.1f, 10.24f, 1, false, true, true, false, false);
+	float jackstam =
+	  jack;
 
 	float techbase = max(stream, jack);
-	tech = CalcClamp((tech / techbase) * tech, tech * 0.85f, tech);
+	float techorig = tech;
+	tech = (tech / techbase) * tech;
+	CalcClamp(tech, techorig * 0.85f, techorig);
 
-	float stam;
+	float stam = 0.f;
 	if (stream > tech || js > tech || hs > tech)
 		if (stream > js && stream > hs)
-			stam = Chisel(stream - 0.1f,
-						  2.56f,
-						  score_goal,
-						  true,
-						  false,
-						  true,
-						  false,
-						  false);
+			stam = Chisel(
+			  stream - 0.1f, 2.56f, 1, true, false, true, false, false);
 		else if (js > hs)
 			stam = Chisel(
-			  js - 0.1f, 2.56f, score_goal, true, false, true, true, false);
+			  js - 0.1f, 2.56f, 1, true, false, true, true, false);
 		else
 			stam = Chisel(
-			  hs - 0.1f, 2.56f, score_goal, true, false, true, false, true);
+			  hs - 0.1f, 2.56f, 1, true, false, true, false, true);
 	else
 		stam = Chisel(
-		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
+		  tech - 0.1f, 2.56f, 1, true, false, false, false, false);
 
-	js *= 0.95f;
-	hs *= 0.95f;
-	stam *= 0.9f;
+	o.emplace_back(0.f); // temp
+	o.emplace_back(downscalebaddies(stream, Scoregoal));
 
-	float chordjack = jack * 0.75f;
-	tech *= 0.95f;
+	js = normalizer(js, stream, 7.25f, 0.25f);
+	o.emplace_back(downscalebaddies(js, Scoregoal));
+	hs = normalizer(hs, stream, 6.5f, 0.3f);
+	hs = normalizer(hs, js, 11.5f, 0.15f);
+	o.emplace_back(downscalebaddies(hs, Scoregoal));
 
-	DifficultyRating difficulty =
-	  DifficultyRating{ 0.0,
-						downscale_low_accuracy_scores(stream, score_goal),
-						downscale_low_accuracy_scores(js, score_goal),
-						downscale_low_accuracy_scores(hs, score_goal),
-						downscale_low_accuracy_scores(stam, score_goal),
-						downscale_low_accuracy_scores(jack, score_goal),
-						downscale_low_accuracy_scores(chordjack, score_goal),
-						downscale_low_accuracy_scores(tech, score_goal) };
+	float stambase = max(max(stream, tech * 0.96f), max(js, hs));
+	if (stambase == stream)
+		stambase *= 0.975f;
 
-	chordjack = difficulty.handstream;
+	stam = normalizer(stam, stambase, 7.75f, 0.2f);
+	o.emplace_back(downscalebaddies(stam, Scoregoal));
 
-	difficulty.stream *=
-	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler;
-	difficulty.jumpstream *=
-	  nojumpsdownscaler * allhandsdownscaler * lotquaddownscaler;
-	difficulty.handstream *= nohandsdownscaler * allhandsdownscaler * 1.015f *
-							 manyjumpsdownscaler * lotquaddownscaler;
-	difficulty.stamina = CalcClamp(
-	  difficulty.stamina * shortstamdownscaler * 0.985f * lotquaddownscaler,
-	  1.f,
-	  max(max(difficulty.stream, difficulty.jack),
-		  max(difficulty.jumpstream, difficulty.handstream)) *
-		1.1f);
-	difficulty.technical *=
-	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler * 1.01f;
+	o.emplace_back(downscalebaddies(jack, Scoregoal));
+	jackstam = normalizer(jackstam, jack, 5.5f, 0.25f);
+	o.emplace_back(downscalebaddies(jackstam, Scoregoal));
+	float technorm = max(max(stream, js), hs);
+	tech = normalizer(tech, technorm, 8.f, .15f) * techscaler;
+	o.emplace_back(downscalebaddies(tech, Scoregoal));
 
-	chordjack *= CalcClamp(qprop + hprop + jprop + 0.2f, 0.5f, 1.f) * 1.025f;
+	float definitelycj = qprop + hprop + jprop + 0.2f;
+	CalcClamp(definitelycj, 0.5f, 1.f);
 
-	bool downscale_chordjack_at_end = false;
-	if (chordjack > difficulty.jack)
-		difficulty.chordjack = chordjack;
-	else
-		downscale_chordjack_at_end = true;
+	// chordjack
+	float cj = o[3];
 
-	fingerbias /= static_cast<float>(2 * nervIntervals.size());
-	float finger_bias_scaling = CalcClamp(3.55f - fingerbias, 0.85f, 1.f);
-	difficulty.technical *= finger_bias_scaling;
+	o[1] *= allhandsdownscaler * manyjampdownscaler * lotquaddownscaler;
+	o[2] *= nojumpsdownscaler * allhandsdownscaler * lotquaddownscaler;
+	o[3] *= nohandsdownscaler * allhandsdownscaler * 1.015f *
+			manyjampdownscaler * lotquaddownscaler;
+	o[4] *= shortstamdownscaler * 0.985f * lotquaddownscaler;
 
-	if (finger_bias_scaling <= 0.95f) {
-		difficulty.jack *= 1.f + (1.f - sqrt(finger_bias_scaling));
+	cj = normalizer(cj, o[3], 5.5f, 0.3f) * definitelycj * 1.025f;
+
+	bool iscj = cj > o[5];
+	if (iscj)
+		o[6] = cj;
+
+	o[7] *= allhandsdownscaler * manyjampdownscaler * lotquaddownscaler * 1.01f;
+
+	float stamclamp = max(max(o[1], o[5]), max(o[2], o[3]));
+	CalcClamp(o[4], 1.f, stamclamp * 1.1f);
+
+	dumbvalue = (dumbvalue / static_cast<float>(dumbcounter));
+	float stupidvalue = 1.f - (dumbvalue - 2.55f);
+	CalcClamp(stupidvalue, 0.85f, 1.f);
+	o[7] *= stupidvalue;
+
+	if (stupidvalue <= 0.95f) {
+		o[5] *= 1.f + (1.f - sqrt(stupidvalue));
 	}
 
-	float max_js_hs = max(difficulty.handstream, difficulty.jumpstream);
-	if (difficulty.stream < max_js_hs)
-		difficulty.stream -= sqrt(max_js_hs - difficulty.stream);
+	float skadoot = max(o[3], o[2]);
+	if (o[1] < skadoot)
+		o[1] -= sqrt(skadoot - o[1]);
 
-	vector<float> temp_vec = skillset_vector(difficulty);
-	float overall = AggregateScores(temp_vec, 0.f, 10.24f);
-	difficulty.overall = downscale_low_accuracy_scores(overall, score_goal);
+	float overall = AggregateScores(o, 0.f, 10.24f, 1);
+	o[0] = downscalebaddies(overall, Scoregoal);
 
-	temp_vec = skillset_vector(difficulty);
-	float aDvg = mean(temp_vec) * 1.2f;
-	difficulty.overall = downscale_low_accuracy_scores(
-	  min(difficulty.overall, aDvg) * grindscaler, score_goal);
-	difficulty.stream = downscale_low_accuracy_scores(
-	  min(difficulty.stream, aDvg * 1.0416f) * grindscaler, score_goal);
-	difficulty.jumpstream =
-	  downscale_low_accuracy_scores(
-		min(difficulty.jumpstream, aDvg * 1.0416f) * grindscaler, score_goal) *
-	  jumpthrill;
-	difficulty.handstream =
-	  downscale_low_accuracy_scores(
-		min(difficulty.handstream, aDvg) * grindscaler, score_goal) *
-	  jumpthrill;
-	difficulty.stamina =
-	  downscale_low_accuracy_scores(min(difficulty.stamina, aDvg) * grindscaler,
-									score_goal) *
-	  sqrt(jumpthrill) * 0.996f;
-	difficulty.jack = downscale_low_accuracy_scores(
-	  min(difficulty.jack, aDvg) * grindscaler, score_goal);
-	difficulty.chordjack = downscale_low_accuracy_scores(
-	  min(difficulty.chordjack, aDvg) * grindscaler, score_goal);
-	difficulty.technical =
-	  downscale_low_accuracy_scores(
-		min(difficulty.technical, aDvg * 1.0416f) * grindscaler, score_goal) *
-	  sqrt(jumpthrill);
-
-	float highest = max(difficulty.overall, highest_difficulty(difficulty));
-
-	vector<float> temp = skillset_vector(difficulty);
-	difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
-
-	if (downscale_chordjack_at_end) {
-		difficulty.chordjack *= 0.9f;
+	float aDvg = mean(o) * 1.2f;
+	for (size_t i = 0; i < o.size(); i++) {
+		if (i == 1 || i == 2 || i == 7) {
+			CalcClamp(o[i], 0.f, aDvg * 1.0416f);
+			o[i] *= grindscaler * grindscaler2;
+		} else {
+			CalcClamp(o[i], 0.f, aDvg);
+			o[i] *= grindscaler * grindscaler2;
+		}
+		o[i] = downscalebaddies(o[i], Scoregoal);
 	}
 
-	float dating = CalcClamp(0.5f + (highest / 100.f), 0.f, 0.9f);
+	o[2] *= jumpthrill;
+	o[3] *= jumpthrill;
+	o[4] *= sqrt(jumpthrill) * 0.996f;
+	o[7] *= sqrt(jumpthrill);
 
-	if (score_goal < dating) {
-		difficulty = DifficultyRating{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	float highest = 0.f;
+	for (auto v : o) {
+		if (v > highest)
+			highest = v;
+	}
+	o[0] = AggregateScores(o, 0.f, 10.24f, 1);
+	;
+
+	float dating = 0.5f + (highest / 100.f);
+	CalcClamp(dating, 0.f, 0.9f);
+
+	if (Scoregoal < dating) {
+		for (size_t i = 0; i < o.size(); i++) {
+			o[i] = 0.f;
+		}
 	}
 
-	difficulty.jack *= 0.925f;
+	o[5] *= 1.0075f;
 
-	if (highest == difficulty.technical) {
-		difficulty.technical -= CalcClamp(
-		  4.5f - difficulty.technical + difficulty.handstream, 0.f, 4.5f);
-		difficulty.technical -= CalcClamp(
-		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
+	float hsnottech = o[7] - o[3];
+	float jsnottech = o[7] - o[2];
+
+	if (highest == o[7]) {
+		hsnottech = 4.5f - hsnottech;
+		CalcClamp(hsnottech, 0.f, 4.5f);
+		o[7] -= hsnottech;
+
+		jsnottech = 4.5f - jsnottech;
+		CalcClamp(jsnottech, 0.f, 4.5f);
+		o[7] -= jsnottech;
 	}
 
-	difficulty.technical *= 1.025f;
-	difficulty.overall = highest_difficulty(difficulty);
+	o[7] *= 1.025f;
+	if (!iscj)
+		o[6] *= 0.9f;
 
-	return difficulty;
+	highest = 0.f;
+	o[0] = 0.f;
+	for (auto v : o) {
+		if (v > highest)
+			highest = v;
+	}
+	o[0] = highest;
+
+	if (debugMod == CalcPatternMod::MSD) {	// will need case switches later depending on which was highest skillset
+		float ihatelifekillmeplease = Chisel(0.1f, 10.24f, score_goal, false, false, true, false, false);
+		left_hand.debug = left_hand.finalMSDvals;
+		right_hand.debug = right_hand.finalMSDvals;
+	} else if (debugMod == CalcPatternMod::PtLoss) {
+		left_hand.debug = left_hand.pointslost;
+		right_hand.debug = right_hand.pointslost;
+	}
+
+	return o;
 }
 
 // ugly jack stuff
-float
-Calc::JackLoss(const vector<float>& j, float x)
+vector<float>
+Calc::JackStamAdjust(vector<float>& j, float x, bool jackstam)
 {
-	float output = 0.f;
-	float ceiling = 1.f;
+	vector<float> o(j.size());
+	float floor = 1.f;
 	float mod = 1.f;
-	float base_ceiling = 1.15f;
+	float ceil = 1.15f;
 	float fscale = 1750.f;
 	float prop = 0.75f;
 	float mag = 250.f;
-
-	for (float i : j) {
-		mod += ((i / (prop * x)) - 1) / mag;
-		if (mod > 1.f)
-			ceiling += (mod - 1) / fscale;
-		mod = CalcClamp(mod, 1.f, base_ceiling * sqrt(ceiling));
-		i *= mod;
-		if (x < i)
-			output +=
-			  1.f -
-			  pow(
-				x / (i * 0.96f),
-				1.5f); // This can cause output to decrease if 0.96 * i < x < i
+	float multstam = 1.f;
+	if (jackstam) {
+		multstam = 1.f;
+		prop = 0.55f;
+		ceil = 1.5f;
+		fscale = 1550.f;
+		mag = 750.f;
 	}
-	return CalcClamp(7.f * output, 0.f, 10000.f);
+
+	for (size_t i = 0; i < j.size(); i++) {
+		mod += ((j[i] * multstam / (prop * x)) - 1) / mag;
+		if (mod > 1.f)
+			floor += (mod - 1) / fscale;
+		CalcClamp(mod, 1.f, ceil * sqrt(floor));
+		o[i] = j[i] * mod;
+	}
+	return o;
+}
+
+float
+Calc::JackLoss(vector<float>& j, float x, bool jackstam)
+{
+	const vector<float>& v = JackStamAdjust(j, x, jackstam);
+	float o = 0.f;
+	for (size_t i = 0; i < v.size(); i++) {
+		if (x < v[i])
+			o += 7.f - (7.f * pow(x / (v[i] * 0.96f), 1.5f));
+	}
+	CalcClamp(o, 0.f, 10000.f);
+	return o;
 }
 
 JackSeq
-Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
-				   unsigned int t,
-				   float music_rate)
+Calc::SequenceJack(const vector<NoteInfo>& NoteInfo, int t)
 {
-	vector<float> output;
+	vector<float> o;
 	float last = -5.f;
-	float interval1;
-	float interval2 = 0.f;
-	float interval3 = 0.f;
-	unsigned int track = 1u << t;
+	float mats1 = 0.f;
+	float mats2 = 0.f;
+	float mats3 = 0.f;
+	float timestamp = 0.f;
+	int track = 1 << t;
 
-	for (auto i : NoteInfo) {
-		if (i.notes & track) {
-			float current_time = i.rowTime / music_rate;
-			interval1 = interval2;
-			interval2 = interval3;
-			interval3 = 1000.f * (current_time - last);
-			last = current_time;
-			output.emplace_back(
-			  min(2800.f / min((interval1 + interval2 + interval3) / 3.f,
-							   interval3 * 1.4f),
-				  50.f));
+	for (size_t i = 0; i < NoteInfo.size(); i++) {
+		float scaledtime = NoteInfo[i].rowTime / MusicRate;
+		if (NoteInfo[i].notes & track) {
+			mats1 = mats2;
+			mats2 = mats3;
+			mats3 = 1000.f * (scaledtime - last);
+			last = scaledtime;
+			timestamp = (mats1 + mats2 + mats3) / 3.f;
+
+			CalcClamp(timestamp, 25.f, mats3 * 1.4f);
+			float tmp = 1 / timestamp * 2800.f;
+			CalcClamp(tmp, 0.f, 50.f);
+			o.emplace_back(tmp);
 		}
 	}
-	return output;
+	return o;
+}
+
+int
+Calc::fastwalk(const vector<NoteInfo>& NoteInfo)
+{
+	int Interval = 0;
+	for (size_t i = 0; i < NoteInfo.size(); i++) {
+		if (NoteInfo[i].rowTime / MusicRate >= Interval * IntervalSpan)
+			++Interval;
+	}
+	return Interval;
 }
 
 void
-Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
+Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float ts)
 {
-	numitv = static_cast<int>(
-	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
+	numitv = fastwalk(NoteInfo);
 
-	ProcessedFingers fingers;
+	ProcessedFingers l;
+	ProcessedFingers r;
 	for (int i = 0; i < 4; i++) {
-		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
+		if (i <= numTracks / 2 - 1)
+			l.emplace_back(ProcessFinger(NoteInfo, i));
+		else
+			r.emplace_back(ProcessFinger(NoteInfo, i));
 	}
 
-	left_hand.InitDiff(fingers[0], fingers[1]);
-	left_hand.InitPoints(fingers[0], fingers[1]);
-	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
-	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1]);
+	left_hand.InitHand(l[0], l[1], ts);
+	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 0, 1);
+	left_hand.anchorscale = Anchorscaler(NoteInfo, 0, 1);
+	left_hand.rollscale = RollDownscaler(l[0], l[1]);
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
-	right_hand.InitDiff(fingers[2], fingers[3]);
-	right_hand.InitPoints(fingers[2], fingers[3]);
-	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
-	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
-	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3]);
+	right_hand.InitHand(r[0], r[1], ts);
+	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 2, 3);
+	right_hand.anchorscale = Anchorscaler(NoteInfo, 2, 3);
+	right_hand.rollscale = RollDownscaler(r[0], r[1]);
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -409,39 +624,64 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		right_hand.debug = right_hand.rollscale;
 	}
 
-	j0 = SequenceJack(NoteInfo, 0, music_rate);
-	j1 = SequenceJack(NoteInfo, 1, music_rate);
-	j2 = SequenceJack(NoteInfo, 2, music_rate);
-	j3 = SequenceJack(NoteInfo, 3, music_rate);
+	j0 = SequenceJack(NoteInfo, 0);
+	j1 = SequenceJack(NoteInfo, 1);
+	j2 = SequenceJack(NoteInfo, 2);
+	j3 = SequenceJack(NoteInfo, 3);
+
+	vector<Finger> ltmp;
+	vector<Finger> rtmp;
+	l.swap(ltmp);
+	r.swap(rtmp);
+
+	l.shrink_to_fit();
+	r.shrink_to_fit();
 }
 
 Finger
-Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
-					unsigned int t,
-					float music_rate)
+Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo, int t)
 {
-	int Interval = 0;
+	int Interval = 1;
 	float last = -5.f;
-	Finger AllIntervals(numitv, vector<float>());
-	if (t == 0)
-		nervIntervals = vector<vector<int>>(numitv, vector<int>());
-	unsigned int column = 1u << t;
+	Finger AllIntervals(numitv);
+	vector<float> CurrentInterval;
+	float Timestamp;
+	vector<int> itvnervtmp;
+	vector<vector<int>> itvnerv(numitv);
 
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
+
+	int column = 1 << t;
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
-		float scaledtime = NoteInfo[i].rowTime / music_rate;
+		float scaledtime = NoteInfo[i].rowTime / MusicRate;
 
-		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan)
+		if (scaledtime >= Interval * IntervalSpan) {
+			AllIntervals[Interval - 1] = CurrentInterval;
+			CurrentInterval.clear();
+
+			itvnerv[Interval - 1] = itvnervtmp;
+			itvnervtmp.clear();
 			++Interval;
-
-		if (NoteInfo[i].notes & column) {
-			AllIntervals[Interval].emplace_back(
-			  CalcClamp(1000 * (scaledtime - last), 40.f, 5000.f));
-			last = scaledtime;
 		}
 
-		if (t == 0 && NoteInfo[i].notes != 0)
-			nervIntervals[Interval].emplace_back(i);
+		if (NoteInfo[i].notes & column) {
+			Timestamp = 1000 * (scaledtime - last);
+			last = scaledtime;
+			CalcClamp(Timestamp, 40.f, 5000.f);
+			CurrentInterval.emplace_back(Timestamp);
+		}
+
+		if (t == 0 && (NoteInfo[i].notes & left || NoteInfo[i].notes & down ||
+					   NoteInfo[i].notes & up || NoteInfo[i].notes & right)) {
+			itvnervtmp.emplace_back(i);
+		}
 	}
+
+	if (t == 0)
+		nervIntervals = itvnerv;
 	return AllIntervals;
 }
 
@@ -449,109 +689,133 @@ void
 Calc::TotalMaxPoints()
 {
 	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
-		MaxPoints += static_cast<float>(left_hand.v_itvpoints[i] +
-										right_hand.v_itvpoints[i]);
+		MaxPoints +=
+		  static_cast<int>(left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i]);
 }
 
 float
-Calc::Chisel(float player_skill,
-			 float resolution,
-			 float score_goal,
-			 bool stamina,
+Calc::Chisel(float pskill,
+			 float res,
+			 int iter,
+			 bool stam,
 			 bool jack,
 			 bool nps,
 			 bool js,
 			 bool hs)
 {
-	float gotpoints;
-	for (int iter = 1; iter <= 7; iter++) {
-		do {
-			if (player_skill > 100.f)
-				return player_skill;
-			player_skill += resolution;
-			gotpoints =
-			  jack
-				? MaxPoints - JackLoss(j0, player_skill) -
-					JackLoss(j1, player_skill) - JackLoss(j2, player_skill) -
-					JackLoss(j3, player_skill)
-				: left_hand.CalcInternal(player_skill, stamina, nps, js, hs) +
-					right_hand.CalcInternal(player_skill, stamina, nps, js, hs);
+	float gotpoints = 0.f;
+	do {
+		if (pskill > 100.f)
+			return pskill;
+		pskill += res;
+		if (jack) {
+			{
+				gotpoints = MaxPoints;
+				gotpoints -=
+				  JackLoss(j0, pskill, false) + JackLoss(j1, pskill, false) +
+				  JackLoss(j2, pskill, false) + JackLoss(j3, pskill, false);
+			}
+		} else
+			gotpoints = left_hand.CalcInternal(pskill, stam, nps, js, hs) +
+						right_hand.CalcInternal(pskill, stam, nps, js, hs);
 
-		} while (gotpoints / MaxPoints < score_goal);
-		player_skill -= resolution;
-		resolution /= 2.f;
-	}
-	return player_skill + 2.f * resolution;
+	} while (gotpoints / MaxPoints < Scoregoal);
+	if (iter == 7)
+		return pskill;
+	return Chisel(
+	  pskill - res, res / 2.f, iter + 1, stam, jack, nps, js, hs);
+}
+
+// Hand stuff
+void
+Hand::InitHand(Finger& f1, Finger& f2, float ts)
+{
+	SetTimingScale(ts);
+	InitDiff(f1, f2);
+	InitPoints(f1, f2);
 }
 
 float
-Hand::CalcMSEstimate(vector<float>& input)
+Hand::CalcMSEstimate(vector<float>& v)
 {
-	if (input.empty())
+	if (v.empty())
 		return 0.f;
 
-	sort(input.begin(), input.end());
+	sort(v.begin(), v.end());
 	float m = 0;
-	input[0] *= 1.066f; // This is gross
-	size_t End = min(input.size(), static_cast<size_t>(6));
+	v[0] *= 1.066f;
+	size_t End = min(v.size(), static_cast<size_t>(6));
 	for (size_t i = 0; i < End; i++)
-		m += input[i];
-	return 1375.f * End / m;
+		m += v[i];
+	return 1 / (m / (End)) * 1375;
 }
 
 void
 Hand::InitDiff(Finger& f1, Finger& f2)
 {
-	v_itvNPSdiff = vector<float>(f1.size());
-	v_itvMSdiff = vector<float>(f1.size());
+	vector<float> tmpNPS(f1.size());
+	vector<float> tmpMS(f1.size());
 
 	for (size_t i = 0; i < f1.size(); i++) {
-		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty = CalcMSEstimate(f1[i]);
-		float right_difficulty = CalcMSEstimate(f2[i]);
-		float difficulty = max(left_difficulty, right_difficulty);
-		v_itvNPSdiff[i] = finalscaler * nps;
-		v_itvMSdiff[i] = finalscaler * (5.f * difficulty + 4.f * nps) / 9.f;
+		float nps = 1.6f * static_cast<float>(f1[i].size() +
+											  f2[i].size()); // intervalspan
+		float aa = CalcMSEstimate(f1[i]);
+		float bb = CalcMSEstimate(f2[i]);
+		float ms = max(aa, bb);
+		tmpNPS[i] = finalscaler * nps;
+		tmpMS[i] =
+		  finalscaler * (ms + ms + ms + ms + ms + nps + nps + nps + nps) / 9.f;
 	}
-	Smooth(v_itvNPSdiff, 0.f);
 	if (SmoothDifficulty)
-		DifficultyMSSmooth(v_itvMSdiff);
+		DifficultyMSSmooth(tmpMS);
+
+	DifficultySmooth(tmpNPS);
+	v_itvNPSdiff = tmpNPS;
+	v_itvMSdiff = tmpMS;
 }
 
 void
-Hand::InitPoints(const Finger& f1, const Finger& f2)
+Hand::InitPoints(Finger& f1, Finger& f2)
 {
 	for (size_t i = 0; i < f1.size(); i++)
 		v_itvpoints.emplace_back(static_cast<int>(f1[i].size()) +
 								 static_cast<int>(f2[i].size()));
 }
 
-void
-Hand::StamAdjust(float x, vector<float>& diff)
+vector<float>
+Hand::StamAdjust(float x, vector<float> diff)
 {
+	vector<float> o(diff.size());
 	float floor = 1.f; // stamina multiplier min (increases as chart advances)
-	float mod = 1.f;   // multiplier
-	float avs1;
+	float mod = 1.f;   // mutliplier
+
+	float avs1 = 0.f;
 	float avs2 = 0.f;
 
-	for (float& i : diff) {
+	for (size_t i = 0; i < diff.size(); i++) {
 		avs1 = avs2;
-		avs2 = i;
+		avs2 = diff[i];
 		float ebb = (avs1 + avs2) / 2;
 		mod += ((ebb / (prop * x)) - 1) / mag;
 		if (mod > 1.f)
 			floor += (mod - 1) / fscale;
-		mod = CalcClamp(mod, floor, ceil);
-		i *= mod;
+		CalcClamp(mod, floor, ceil);
+		o[i] = diff[i] * mod;
 	}
+	return o;
 }
 
 float
 Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 {
-	vector<float> diff = nps ? v_itvNPSdiff : v_itvMSdiff;
+	vector<float> diff;
 
-		for (size_t i = 0; i < diff.size(); ++i) {
+	if (nps)
+		diff = v_itvNPSdiff;
+	else
+		diff = v_itvMSdiff;
+
+	for (size_t i = 0; i < diff.size(); ++i) {
 		if (hs)
 			diff[i] = diff[i] * anchorscale[i] * sqrt(ohjumpscale[i]) *
 					  rollscale[i] * jumpscale[i];
@@ -566,7 +830,7 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 			diff[i] =
 			  diff[i] * anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i];
 	}
-	
+
 	if (stam)
 		StamAdjust(x, diff);
 	finalMSDvals = diff; // bad bad bad bad bad bad bad bad bad bad
@@ -580,205 +844,310 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 		output += gainedpoints;
 		pointloss.push_back(v_itvpoints[i] - gainedpoints);
 	}
-	pointslost = pointloss;	// to the bone
+	pointslost = pointloss; // to the bone
 	return output;
 }
 
+// pattern modifiers
 vector<float>
-Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
-					   unsigned int firstNote,
-					   unsigned int secondNote)
+Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo, int t1, int t2)
 {
-	vector<float> output;
-
-	for (const vector<int>& interval : nervIntervals) {
-		int taps = 0;
-		int jumps = 0;
-		for (int row : interval) {
-			int columns = 0;
-			if (NoteInfo[row].notes & firstNote) {
-				++columns;
-			}
-			if (NoteInfo[row].notes & secondNote) {
-				++columns;
-			}
-			if (columns == 2) {
-				jumps++;
-			}
-			taps += columns;
-		}
-		output.push_back(taps != 0 ? pow(1 - (1.1f * static_cast<float>(jumps) /
-											  static_cast<float>(taps)),
-										 1.f)
-								   : 1.f);
-
-		if (logpatterns)
-			std::cout << "ohj " << output.back() << std::endl;
-	}
-
-	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
-}
-
-vector<float>
-Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
-				   unsigned int firstNote,
-				   unsigned int secondNote)
-{
-	vector<float> output(nervIntervals.size());
+	vector<float> o(nervIntervals.size());
+	int firstNote = 1 << t1;
+	int secondNote = 1 << t2;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int lcol = 0;
-		int rcol = 0;
-		for (int row : nervIntervals[i]) {
-			if (NoteInfo[row].notes & firstNote)
-				++lcol;
-			if (NoteInfo[row].notes & secondNote)
-				++rcol;
+		if (nervIntervals[i].empty())
+			o[i] = 1.f;
+		else {
+			int taps = 0;
+			int jumptaps = 0;
+			for (size_t r = 0; r < nervIntervals[i].size(); r++) {
+				int row = nervIntervals[i][r];
+				if (NoteInfo[row].notes & firstNote) {
+					++taps;
+					if (NoteInfo[row].notes & secondNote) {
+						jumptaps += 2;
+						++taps;
+					}
+				}
+			}
+			o[i] = taps != 0 ? pow(1 - (static_cast<float>(jumptaps) /
+										static_cast<float>(taps) / 2.5f),
+								   0.25f)
+							 : 1.f;
+
+			if (logpatterns)
+				cout << "ohj " << o[i] << endl;
 		}
-		bool anyzero = lcol == 0 || rcol == 0;
-		output[i] =
-		  anyzero
-			? 1.f
-			: CalcClamp(sqrt(1 - (static_cast<float>(min(lcol, rcol)) /
-								  static_cast<float>(max(lcol, rcol)) / 4.45f)),
-						0.8f,
-						1.05f);
-
-		fingerbias += (static_cast<float>(max(lcol, rcol)) + 2.f) /
-					  (static_cast<float>(min(lcol, rcol)) + 1.f);
-
-		if (logpatterns)
-			std::cout << "an " << output[i] << std::endl;
 	}
 
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		PatternSmooth(o);
+	return o;
+}
+
+// pattern modifiers
+vector<float>
+Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo, int t1, int t2)
+{
+	vector<float> o(nervIntervals.size());
+	int firstNote = 1 << t1;
+	int secondNote = 1 << t2;
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		if (nervIntervals[i].empty())
+			o[i] = 1.f;
+		else {
+			int lcol = 0;
+			int rcol = 0;
+			for (size_t r = 0; r < nervIntervals[i].size(); r++) {
+				int row = nervIntervals[i][r];
+				if (NoteInfo[row].notes & firstNote)
+					++lcol;
+				if (NoteInfo[row].notes & secondNote)
+					++rcol;
+			}
+			bool anyzero = lcol == 0 || rcol == 0;
+			o[i] = anyzero
+					 ? 1.f
+					 : sqrt(1 - (static_cast<float>(min(lcol, rcol)) /
+								 static_cast<float>(max(lcol, rcol)) / 4.45f));
+
+			float stupidthing = (static_cast<float>(max(lcol, rcol)) + 2.f) /
+								(static_cast<float>(min(lcol, rcol)) + 1.f);
+			dumbvalue += stupidthing;
+			++dumbcounter;
+
+			CalcClamp(o[i], 0.8f, 1.05f);
+
+			if (logpatterns)
+				cout << "an " << o[i] << endl;
+		}
+	}
+
+	if (SmoothPatterns)
+		PatternSmooth(o);
+	return o;
 }
 
 vector<float>
 Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
 {
-	vector<float> output(nervIntervals.size());
+	vector<float> o(nervIntervals.size());
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		unsigned int taps = 0;
-		unsigned int handtaps = 0;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-			if (notes == 3)
-				handtaps++;
-		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(handtaps) /
-											   static_cast<float>(taps))))
-							  : 1.f;
+		if (nervIntervals[i].empty())
+			o[i] = 1.f;
+		else {
+			int taps = 0;
+			int handtaps = 0;
+			for (size_t r = 0; r < nervIntervals[i].size(); r++) {
+				int row = nervIntervals[i][r];
+				int notes = (NoteInfo[row].notes & left ? 1 : 0) +
+							(NoteInfo[row].notes & down ? 1 : 0) +
+							(NoteInfo[row].notes & up ? 1 : 0) +
+							(NoteInfo[row].notes & right ? 1 : 0);
+				taps += notes;
+				if (notes == 3)
+					handtaps += notes;
+			}
+			o[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(handtaps) /
+											  static_cast<float>(taps) / 3.f)))
+							 : 1.f;
 
-		if (logpatterns)
-			std::cout << "hs " << output[i] << std::endl;
+			if (logpatterns)
+				cout << "hs " << o[i] << endl;
+		}
 	}
 
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		PatternSmooth(o);
+	return o;
 }
 
 vector<float>
 Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 {
-	vector<float> output(nervIntervals.size());
+	vector<float> o(nervIntervals.size());
+	int left = 1;
+	int down = 1 << 1;
+	int up = 1 << 2;
+	int right = 1 << 3;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		unsigned int taps = 0;
-		unsigned int jumps = 0;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-			if (notes == 2)
-				jumps++;
-		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
-										  static_cast<float>(taps) / 3.f)))
-						 : 1.f;
+		if (nervIntervals[i].empty())
+			o[i] = 1.f;
+		else {
+			int taps = 0;
+			int jamps = 0;
+			for (size_t r = 0; r < nervIntervals[i].size(); r++) {
+				int row = nervIntervals[i][r];
+				int notes = (NoteInfo[row].notes & left ? 1 : 0) +
+							(NoteInfo[row].notes & down ? 1 : 0) +
+							(NoteInfo[row].notes & up ? 1 : 0) +
+							(NoteInfo[row].notes & right ? 1 : 0);
+				taps += notes;
+				if (notes == 2)
+					jamps += notes;
+			}
+			o[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(jamps) /
+											  static_cast<float>(taps) / 6.f)))
+							 : 1.f;
 
-		if (logpatterns)
-			std::cout << "ju " << output[i] << std::endl;
+			if (logpatterns)
+				cout << "ju " << o[i] << endl;
+		}
 	}
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		PatternSmooth(o);
+	return o;
 }
 
 vector<float>
-Calc::RollDownscaler(const Finger& f1, const Finger& f2)
+Calc::RollDownscaler(Finger f1, Finger f2)
 {
-	vector<float> output(
-	  f1.size()); // this is slightly problematic because if one finger is
-				  // longer than the other you could potentially have different
-				  // results with f1 and f2 switched
+	vector<float> o(f1.size());
 	for (size_t i = 0; i < f1.size(); i++) {
-		if (f1[i].size() + f2[i].size() <= 1) {
-			output[i] = 1.f;
-			continue;
+		if (f1[i].empty() && f2[i].empty())
+			o[i] = 1.f;
+		else {
+			vector<float> cvint;
+			for (size_t ii = 0; ii < f1[i].size(); ii++)
+				cvint.emplace_back(f1[i][ii]);
+			for (size_t ii = 0; ii < f2[i].size(); ii++)
+				cvint.emplace_back(f2[i][ii]);
+
+			float mmm = mean(cvint);
+
+			for (size_t i = 0; i < cvint.size(); ++i)
+				cvint[i] = mmm / cvint[i] < 0.6f ? mmm : cvint[i];
+
+			if (cvint.size() == 1) {
+				o[i] = 1.f;
+				continue;
+			}
+
+			float dacv = cv(cvint);
+			if (dacv >= 0.15)
+				o[i] = sqrt(sqrt(0.85f + dacv));
+			else
+				o[i] = pow(0.85f + dacv, 3);
+			CalcClamp(o[i], 0.f, 1.075f);
+
+			if (logpatterns)
+				cout << "ro " << o[i] << endl;
 		}
-		vector<float> hand_intervals;
-		for (float time1 : f1[i])
-			hand_intervals.emplace_back(time1);
-		for (float time2 : f2[i])
-			hand_intervals.emplace_back(time2);
-
-		float interval_mean = mean(hand_intervals);
-
-		for (float& note : hand_intervals)
-			if (interval_mean / note < 0.6f)
-				note = interval_mean;
-
-		float interval_cv = cv(hand_intervals) + 0.85f;
-		output[i] = interval_cv >= 1.0f
-					  ? min(sqrt(sqrt(interval_cv)), 1.075f)
-					  : interval_cv * interval_cv * interval_cv;
-
-		if (logpatterns)
-			std::cout << "ro " << output[i] << std::endl;
 	}
 
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
+		PatternSmooth(o);
 
-	return output;
+	return o;
 }
 
-static const float ssrcap = 0.965f; // we do actually want this, especially now
+void
+Calc::Purge()
+{
+	vector<float> tmp1;
+	vector<float> tmp2;
+	vector<float> tmp3;
+	vector<float> tmp4;
+
+	j0.swap(tmp1);
+	j1.swap(tmp2);
+	j2.swap(tmp3);
+	j3.swap(tmp4);
+
+	j0.shrink_to_fit();
+	j1.shrink_to_fit();
+	j2.shrink_to_fit();
+	j3.shrink_to_fit();
+
+	vector<float> l1;
+	vector<float> l2;
+	vector<float> l3;
+	vector<float> l4;
+	vector<float> l5;
+
+	left_hand.ohjumpscale.swap(l1);
+	left_hand.anchorscale.swap(l2);
+	left_hand.rollscale.swap(l3);
+	left_hand.hsscale.swap(l4);
+	left_hand.jumpscale.swap(l5);
+
+	left_hand.ohjumpscale.shrink_to_fit();
+	left_hand.anchorscale.shrink_to_fit();
+	left_hand.rollscale.shrink_to_fit();
+	left_hand.hsscale.shrink_to_fit();
+	left_hand.jumpscale.shrink_to_fit();
+
+	vector<float> r1;
+	vector<float> r2;
+	vector<float> r3;
+	vector<float> r4;
+	vector<float> r5;
+
+	right_hand.ohjumpscale.swap(l1);
+	right_hand.anchorscale.swap(l2);
+	right_hand.rollscale.swap(l3);
+	right_hand.hsscale.swap(l4);
+	right_hand.jumpscale.swap(l5);
+
+	right_hand.ohjumpscale.shrink_to_fit();
+	right_hand.anchorscale.shrink_to_fit();
+	right_hand.rollscale.shrink_to_fit();
+	right_hand.hsscale.shrink_to_fit();
+	right_hand.jumpscale.shrink_to_fit();
+}
+
+static const float ssrcap = 0.965f; // cap SSR at 96% so things don't get out of hand YES WE ACTUALLY NEED THIS FFS
 
 // Function to generate SSR rating
-DifficultyRating
-MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
+vector<float>
+MinaSDCalc(const vector<NoteInfo>& NoteInfo,
+		   float musicrate,
+		   float goal)
 {
-	if (NoteInfo.size() <= 1) {
-		return DifficultyRating{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	}
-	return std::make_unique<Calc>()->CalcMain(
-	  NoteInfo, musicrate, min(goal, ssrcap));
+	vector<float> o;
+
+	unique_ptr<Calc> doot = make_unique<Calc>();
+	doot->MusicRate = musicrate;
+	CalcClamp(
+	  goal, 0.f, ssrcap);
+	doot->Scoregoal = goal;
+	o = doot->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
+
+	doot->Purge();
+
+	return o;
 }
 
 // Wrap difficulty calculation for all standard rates
 MinaSD
 MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 {
-	MinaSD allrates;
-	int lower_rate = 7;
-	int upper_rate = 21;
 
-	if (!NoteInfo.empty())
-		for (int i = lower_rate; i < upper_rate; i++)
-			allrates.emplace_back(
-			  MinaSDCalc(NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
-	else {
-		DifficultyRating output{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-		for (int i = lower_rate; i < upper_rate; i++)
-			allrates.emplace_back(output);
+	MinaSD allrates;
+
+	int rateCount = 21;
+
+	if (!NoteInfo.empty()) {
+		for (int i = 7; i < rateCount; i++) {
+			auto tempVal =
+			  MinaSDCalc(NoteInfo, 1.f, 0.93f);
+			allrates.emplace_back(tempVal);
+		}
+	} else {
+		vector<float> o{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+
+		for (int i = 7; i < rateCount; i++) {
+			allrates.emplace_back(o);
+		}
 	}
 	return allrates;
 }
@@ -803,8 +1172,9 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	handInfo.push_back(debugRun->right_hand.debug);
 }
 
+
 int
 GetCalcVersion()
 {
-	return -1;
+	return 263;
 }
