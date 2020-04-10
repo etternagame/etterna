@@ -195,7 +195,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
 
 	js *= 0.95f;
-	hs *= 0.9f;
+	hs *= 0.95f;
 	stam *= 0.9f;
 
 	float chordjack = jack * 0.75f;
@@ -303,28 +303,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	difficulty.stream =
-	  Chisel(0.1f, 10.24f, score_goal, true, false, true, false, false) * 0.90f * grindscaler;
-	difficulty.jumpstream = Chisel(0.1f, 10.24f, score_goal, true, false, true, true, false) * 0.93f * grindscaler;
+	difficulty.technical *= 1.025f;
 	difficulty.overall = highest_difficulty(difficulty);
-
-	if (debugMod == CalcPatternMod::MSD) {
-		if (highest == difficulty.stream) {
-			float ihatelifekillmeplease = Chisel(
-			  0.1f, 10.24f, score_goal, false, false, true, false, false);
-			left_hand.debug = left_hand.finalMSDvals;
-			right_hand.debug = right_hand.finalMSDvals;
-		} else {
-			float noreallythisiscancerpleasekillme = Chisel(
-			  0.1f, 10.24f, score_goal, false, false, true, true, false);
-			left_hand.debug = left_hand.finalMSDvals;
-			right_hand.debug = right_hand.finalMSDvals;
-		}
-	} else if (debugMod == CalcPatternMod::PtLoss) {
-		left_hand.debug = left_hand.pointslost;
-		right_hand.debug = right_hand.pointslost;
-	}
-
 
 	return difficulty;
 }
@@ -400,7 +380,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
 	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1], left_hand.ohjumpscale);
+	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1]);
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
@@ -408,7 +388,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.InitPoints(fingers[2], fingers[3]);
 	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
 	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
-	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3], right_hand.ohjumpscale);
+	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3]);
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -571,23 +551,20 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 {
 	vector<float> diff = nps ? v_itvNPSdiff : v_itvMSdiff;
 
-	for (size_t i = 0; i < diff.size(); ++i) {
-		diff[i] *=
-		  hs
-			? anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i] *
-				jumpscale[i] * (1 + sqrt(abs(1 - hsscale[i]) * 0.75f))
-			: (js ? hsscale[i] * hsscale[i] * sqrt(anchorscale[i]) *
-					  sqrt(ohjumpscale[i]) * rollscale[i] * rollscale[i] *
-					  sqrt(jumpscale[i]) *
-					  (1.f + abs((jumpscale[i] - 1.f)) * 2.05f) *
-					  (1.f + abs((ohjumpscale[i] - 1.f)) * 0.45f) * 0.8f
-				  : (nps
-					   ? sqrt(hsscale[i]) * anchorscale[i] *
-						   pow(ohjumpscale[i], 0.85f) *
-						   rollscale[i] * jumpscale[i] *
-						   (1.f + abs((sqrt(jumpscale[i]) - 1.f)) * 1.05f) *
-						   (1.f + abs((ohjumpscale[i] - 1.f)) * 0.25f)
-					   : anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i]));
+		for (size_t i = 0; i < diff.size(); ++i) {
+		if (hs)
+			diff[i] = diff[i] * anchorscale[i] * sqrt(ohjumpscale[i]) *
+					  rollscale[i] * jumpscale[i];
+		else if (js)
+			diff[i] = diff[i] * pow(hsscale[i], 2) * anchorscale[i] *
+					  sqrt(ohjumpscale[i]) * rollscale[i] * jumpscale[i];
+		else if (nps)
+			diff[i] = diff[i] * pow(hsscale[i], 3) * anchorscale[i] *
+					  pow(ohjumpscale[i], 2) * rollscale[i] *
+					  pow(jumpscale[i], 2);
+		else
+			diff[i] =
+			  diff[i] * anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i];
 	}
 	
 	if (stam)
@@ -695,8 +672,8 @@ Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 3)
 				handtaps++;
 		}
-		output[i] = taps != 0 ? sqrt(1 - (static_cast<float>(handtaps) /
-											   static_cast<float>(taps) / 2))
+		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(handtaps) /
+											   static_cast<float>(taps))))
 							  : 1.f;
 
 		if (logpatterns)
@@ -722,9 +699,9 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 2)
 				jumps++;
 		}
-		output[i] = taps != 0 ? sqrt(1 - (static_cast<float>(jumps) /
-											   static_cast<float>(taps) / 3.f))
-							  : 1.f;
+		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
+										  static_cast<float>(taps) / 3.f)))
+						 : 1.f;
 
 		if (logpatterns)
 			std::cout << "ju " << output[i] << std::endl;
@@ -734,11 +711,8 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 	return output;
 }
 
-// THIS REALLY REALLY NEEDS TO HAVE THE FULL NOTEDATA TO DO PROPER CALCULATIONS
 vector<float>
-Calc::RollDownscaler(const Finger& f1,
-					 const Finger& f2,
-					 const std::vector<float> ohjs)
+Calc::RollDownscaler(const Finger& f1, const Finger& f2)
 {
 	vector<float> output(
 	  f1.size()); // this is slightly problematic because if one finger is
@@ -754,27 +728,17 @@ Calc::RollDownscaler(const Finger& f1,
 			hand_intervals.emplace_back(time1);
 		for (float time2 : f2[i])
 			hand_intervals.emplace_back(time2);
-		
-		sort(hand_intervals.begin(), hand_intervals.end());
-		if (hand_intervals.back() > hand_intervals[hand_intervals.size() - 1] * 3.f)
-			hand_intervals.pop_back();
 
 		float interval_mean = mean(hand_intervals);
+
+		for (float& note : hand_intervals)
+			if (interval_mean / note < 0.6f)
+				note = interval_mean;
 
 		float interval_cv = cv(hand_intervals) + 0.85f;
 		output[i] = interval_cv >= 1.0f
 					  ? min(sqrt(sqrt(interval_cv)), 1.075f)
-					  : interval_cv * interval_cv;
-
-		// this is erroneously picking up on oh jumps, i had anticipated and solved this issue
-		// in R, but it required the note data which i don't feel like passing to this function atm
-		// instead, since we have already done the ohj detection, we'll consider strong ohj scaling
-		// to be proof positive that these are not rolls (this is not a good long term solution)
-		// this is _also_ still picking up jacks however this isn't as big a deal because jacks don't
-		// use the nps base anyway
-		// ok this this is _also_ picking up trills and that sort of is a problem
-		if (ohjs[i] < 0.94f)
-			output[i] = 1.f;
+					  : interval_cv * interval_cv * interval_cv;
 
 		if (logpatterns)
 			std::cout << "ro " << output[i] << std::endl;
@@ -842,5 +806,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 3;
+	return -1;
 }
