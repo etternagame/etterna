@@ -743,7 +743,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
-		bool getremarried = scores[sk].GetWifeVersion() < 3;
+		bool getremarried = scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
 		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
 			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
