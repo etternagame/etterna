@@ -41,10 +41,10 @@ NotesWriterSSC::MSDToString(MinaSD x)
 }
 
 RString
-NotesWriterSSC::MSDsAtRateToString(DifficultyRating x)
+NotesWriterSSC::MSDsAtRateToString(std::vector<float> x)
 {
 	RString o = "";
-	auto msds = skillset_vector(x);
+	auto msds = x;
 	for (size_t ii = 0; ii < msds.size(); ii++) {
 		o.append(to_string(msds[ii]).substr(0, 5));
 		if (ii != msds.size() - 1)

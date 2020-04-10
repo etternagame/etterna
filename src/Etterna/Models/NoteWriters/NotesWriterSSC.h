@@ -45,7 +45,7 @@ WriteEditFileToMachine(const Song* pSong, Steps* pSteps, RString& sErrorOut);
 RString
 MSDToString(MinaSD x);
 RString
-MSDsAtRateToString(DifficultyRating x);
+MSDsAtRateToString(std::vector<float> x);
 }
 
 #endif

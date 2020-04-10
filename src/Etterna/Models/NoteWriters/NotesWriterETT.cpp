@@ -37,7 +37,7 @@ MSDToString2(MinaSD x)
 {
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
-		auto msds = skillset_vector(x[i]);
+		auto msds = x[i];
 		for (size_t ii = 0; ii < msds.size(); ii++)
 		{
 			o.append(to_string(msds[ii]).substr(0, 5));

@@ -361,17 +361,17 @@ Steps::GetMSD(float rate, Skillset ss) const
 {
 	if (rate > 2.f) // just extrapolate from 2x+
 	{
-		const float pDiff = skillset_vector(diffByRate[13])[ss];
+		const float pDiff = diffByRate[13][ss];
 		return pDiff + pDiff * ((rate - 2.f) * .5f);
 	}
 
 	int idx = static_cast<int>(rate * 10) - 7;
 	float prop = fmod(rate * 10.f, 1.f);
 	if (prop == 0 && rate <= 2.f)
-		return skillset_vector(diffByRate[idx])[ss];
+		return diffByRate[idx][ss];
 
-	const float pDiffL = skillset_vector(diffByRate[idx])[ss];
-	const float pDiffH = skillset_vector(diffByRate[idx + 1])[ss];
+	const float pDiffL = diffByRate[idx][ss];
+	const float pDiffH = diffByRate[idx + 1][ss];
 	return lerp(prop, pDiffL, pDiffH);
 }
 
@@ -380,7 +380,7 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 {
 	int idx = static_cast<int>(x * 10) - 7;
 	map<float, Skillset> why;
-	vector<float> tmp = skillset_vector(diffByRate[idx]);
+	vector<float> tmp = diffByRate[idx];
 	FOREACH_ENUM(Skillset, ss)
 	if (ss != Skill_Overall || includeoverall)
 		why.emplace(tmp[ss], ss);
@@ -852,8 +852,8 @@ class LunaSteps : public Luna<Steps>
 		if (ni.size() == 0)
 			return 0;
 
-		DifficultyRating d = MinaSDCalc(ni, rate, goal);
-		auto ssrs = skillset_vector(d);
+		std::vector<float> d = MinaSDCalc(ni, rate, goal);
+		auto ssrs = d;
 
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;

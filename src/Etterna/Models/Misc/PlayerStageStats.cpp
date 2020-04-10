@@ -379,9 +379,9 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	return skillset_vector(MinaSDCalc(serializednd,
+	return MinaSDCalc(serializednd,
 					  musicrate,
-					  ssrpercent));
+					  ssrpercent);
 }
 
 float
