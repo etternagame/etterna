@@ -148,7 +148,9 @@ local minanyms = {
 	"slayers_jukeboxer",
 	"the Feen",
 	"Minanym",
-	"table point hoarder"
+	"table point hoarder",
+	"yes and no",
+	"unconjoined juxtaposition",
 }
 
 math.random()
