@@ -450,12 +450,12 @@ InputDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
 static void
 TimingWindowScale(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	// StepMania 5 values (implemented 2008/03/12)
-	// const float mapping[] = { 2.0f,1.66f,1.33f,1.00f,0.75f,0.50f,0.25f };
-
-	// StepMania 3.9 and 4.0 values:
-	const float mapping[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-							  0.66f, 0.50f, 0.33f, 0.20f };
+	// we are no longer supporting j1-3, they will be set to 1.f like j4
+	// to avoid issues with expected array sizes that i do not want to debug
+	auto& ts = GAMESTATE->timingscales;
+	float mapping[9]; // hardcodered because ide yell at me
+	for (size_t i = 0; i < ts.size(); ++i)
+		mapping[i] = ts[i];
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
 }
 
