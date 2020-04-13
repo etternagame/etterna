@@ -449,7 +449,7 @@ function wife2(maxms, ts)
 end
 
 function getRescoredJudge(offsetVector, judgeScale, judge)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local windows = {22.5, 45.0, 90.0, 135.0, 180.0, 500.0}
 	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
@@ -499,7 +499,7 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 end
 
 function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
 	for i = 1, #offsetVector do
@@ -721,7 +721,7 @@ end
 
 -- holy shit this is fugly
 function getRescoredWife3Judge(version, offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
 	for i = 1, #offsetVector do							-- wife2 does not require abs due to ^2 but this does

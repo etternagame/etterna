@@ -98,7 +98,7 @@ ms.SkillSetsTranslated = {
 	THEME:GetString("Skillsets", "Technical"),
 }
 
-ms.JudgeScalers = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
