@@ -199,7 +199,7 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 		}
 
 		if (rowNotes != 0) {
-			NoteInfo rowOutput{ rowNotes, etaner[i] };
+			NoteInfo rowOutput{ static_cast<unsigned int>(rowNotes), etaner[i] };
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 	}
