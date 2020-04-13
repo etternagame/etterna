@@ -1138,7 +1138,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 	if (!NoteInfo.empty()) {
 		for (int i = 7; i < rateCount; i++) {
 			auto tempVal =
-			  MinaSDCalc(NoteInfo, 1.f, 0.93f);
+				MinaSDCalc(NoteInfo, i / 10.f, 0.93f);
 			allrates.emplace_back(tempVal);
 		}
 	} else {
