@@ -695,7 +695,7 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 		elseif version == 6 then
 			max_points = 2
 			miss_weight = -5.5
-			ridic = 9 * ts
+			ridic = 10.5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
 			poi = 53 * (ts^j_pow)
