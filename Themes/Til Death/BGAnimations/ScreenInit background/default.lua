@@ -151,6 +151,7 @@ local minanyms = {
 	"table point hoarder",
 	"yes and no",
 	"unconjoined juxtaposition",
+	"cancerous snake",
 }
 
 math.random()
