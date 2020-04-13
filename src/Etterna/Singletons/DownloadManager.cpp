@@ -893,6 +893,8 @@ SetCURLPOSTScore(CURL*& curlHandle,
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "wife_version", hs->GetWifeVersion());
+	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
 	SetCURLFormPostField(curlHandle,
 						 form,
