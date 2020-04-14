@@ -498,19 +498,19 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
-function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
+function getRescoredWifeJudge(judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #offsetVector do
-		p = p + wife2(offsetVector[i], ts)
+	for i = 1, #rst["dvt"] do
+		p = p + wife2(rst["dvt"][i], ts)
 	end
-	p = p + (holdsMissed * -6)
-	p = p + (minesHit * -8)
-	return (p / (totalNotes * 2)) * 100.0
+	p = p + (rst["holdsMissed"] * -6)
+	p = p + (rst["minesHit"] * -8)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
 
-function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
+function getRescoredCustomPercentage(customWindows, rst)
 	local p = 0.0
 	local weights = customWindows.judgeWeights
 	local windows = customWindows.judgeWindows
@@ -518,10 +518,10 @@ function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, ho
 	for i = 1, 6 do
 		p = p + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
 	end
-	p = p + (holdsHit * weights.holdHit)
-	p = p + (holdsMissed * weights.holdMiss)
-	p = p + (minesHit * weights.mineHit)
-	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	p = p + (holdsHit * rst["holdsHit"])
+	p = p + (holdsMissed * rst["holdsMissed"])
+	p = p + (minesHit * rst["minesHit"])
+	p = p / ((totalNotes * weights.marv) + (rst["totalHolds"] * weights.holdHit))
 	return p * 100.0
 end
 
@@ -597,11 +597,11 @@ end
 
 -- erf constants
 a1 =  0.254829592
-    a2 = -0.284496736
-    a3 =  1.421413741
-    a4 = -1.453152027
-    a5 =  1.061405429
-    p  =  0.3275911
+a2 = -0.284496736
+a3 =  1.421413741
+a4 = -1.453152027
+a5 =  1.061405429
+p  =  0.3275911
 
 
 function erf(x)
@@ -720,14 +720,14 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 end
 
 -- holy shit this is fugly
-function getRescoredWife3Judge(version, offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
+function getRescoredWife3Judge(version, judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #offsetVector do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(offsetVector[i]), ts, version)	
+	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
 	end
-	p = p + (holdsMissed * -4.5)
-	p = p + (minesHit * -7)
-	return (p / (totalNotes * 2)) * 100.0
+	p = p + (rst["holdsMissed"] * -4.5)
+	p = p + (rst["minesHit"] * -7)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
