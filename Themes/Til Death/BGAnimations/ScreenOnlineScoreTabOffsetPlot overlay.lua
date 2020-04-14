@@ -2,7 +2,7 @@
 local score = getOnlineScoreForPlot()
 local replayData = score.replaydata
 
-local tst = mns.JudgeScalers
+local tst = ms.JudgeScalers
 local plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 local plotX, plotY = SCREEN_CENTER_X, SCREEN_CENTER_Y
 local dotDims, plotMargin = 2, 4
