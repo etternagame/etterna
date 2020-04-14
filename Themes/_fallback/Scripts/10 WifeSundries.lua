@@ -254,7 +254,7 @@ end
 function wifeRange(t)
 	local x, y = 10000, 0
 	for i = 1, #t do
-		if t[i] ~= 1000 then
+		if math.abs(t[i]) <= 180 then		-- some replays (online ones i think?) are flagging misses as 1100 for some reason
 			if math.abs(t[i]) < math.abs(x) then
 				x = t[i]
 			end
