@@ -65,7 +65,9 @@ struct HighScoreImpl
 	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
+	int tnsnorm[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
+	int hnsnorm[NUM_HoldNoteScore];
 	float fSkillsetSSRs[NUM_Skillset];
 	string ValidationKeys[NUM_ValidationKey];
 	RadarValues radarValues;
