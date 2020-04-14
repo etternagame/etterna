@@ -633,7 +633,7 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 	local log_pow = 0
 	local lower_bound = 0
 
-	if (version == 1) or (version == 4) then -- hyperbolic lower bound
+	if (version == 1) or (version == 2) then -- hyperbolic lower bound
 		if (version == 1) then
 			max_points = 2
 			miss_weight = -5.5
@@ -662,7 +662,7 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 		-- lower bound calculation
 		local lower_bound = max_points + ((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
 	else -- logarithmic lower bound
-		if version == 2 then
+		if version == 3 then
 			max_points = 2
 			miss_weight = -5
 			ridic = 11 * ts
@@ -672,7 +672,7 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 			dev = 30 * (ts^j_pow)
 			magic = 180 * ts
 			log_pow = 8 -- higher = more linear, but its really sensitive and you have to change some other parameters along with it just dont touch ok
-		elseif version == 3 then
+		elseif version == 5 then
 			max_points = 2
 			miss_weight = -5.5
 			ridic = 9 * ts
@@ -682,7 +682,7 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 			dev = 31 * (ts^j_pow)
 			magic = 0.05 * ts 
 			log_pow = 2 
-		elseif version == 5 then
+		elseif version == 4 then
 			max_points = 2
 			miss_weight = -5
 			ridic = 11 * ts
