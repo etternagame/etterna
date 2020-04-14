@@ -378,3 +378,8 @@ function ChangeMusicRate(rate, params)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
 end
+
+-- hur dur floats
+for i = 1, #ms.JudgeScalers do
+	ms.JudgeScalers[i] = notShit.round(ms.JudgeScalers[i], 2)
+end
