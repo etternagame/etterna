@@ -914,6 +914,9 @@ SetCURLPOSTScore(CURL*& curlHandle,
 						 "wifeGrade",
 						 string(GradeToString(hs->GetWifeGrade()).c_str()));
 }
+
+// we want to keep this for uploading old scores without replaydata,
+// since it will be the only way apart from xml upload
 void
 DownloadManager::UploadScore(HighScore* hs)
 {
@@ -975,6 +978,8 @@ DownloadManager::UploadScore(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
+
+// this is for new/live played scores that have replaydata in memory
 void
 DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 {
@@ -1211,8 +1216,9 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	HTTPRequests.push_back(req);
 	return;
 }
-void // think this is basically deprecated (was for updating borked replay data
-	 // on site)
+
+// only appends replaydata to an existing eo score without altering it
+void
 DownloadManager::UpdateOnlineScoreReplayData(const string& sk,
 											 function<void()> callback)
 {
@@ -1326,7 +1332,8 @@ DownloadManager::UpdateOnlineScoreReplayData()
 	return true;
 }
 void
-uploadSequentially(deque<HighScore*> toUpload)
+uploadSequentially(deque<HighScore*> toUpload) // maybe this can set a progress
+											   // bar for uploads? idk
 {
 	auto it = toUpload.begin();
 	if (it != toUpload.end()) {
@@ -2204,9 +2211,11 @@ DownloadManager::OnLogin()
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores()) {
 		DLMAN->UploadScores();
-		// DLMAN->UpdateOnlineScoreReplayData(); probably safe to delete
-		// this/related functions after 0.69 release (they will be
-		// redundant/obsolete)
+
+		// ok we don't actually want to delete this yet since this is
+		// specifically for appending replaydata for a score the site does not
+		// have data for without altering the score entry in any other way, but
+		// keep disabled for now DLMAN->UpdateOnlineScoreReplayData();
 	}
 	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
