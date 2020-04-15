@@ -1380,6 +1380,35 @@ DownloadManager::UploadScores()
 	uploadSequentially(toUpload);
 	return true;
 }
+
+// manual upload function that will upload all scores for a chart
+// that skips some of the constraints of the auto uploaders
+void
+DownloadManager::ForceUploadScoresForChart(std::string ck)
+{
+	deque<HighScore*> toUpload;
+	for (auto& s : SCOREMAN->GetScoresForChart(ck)->GetAllScores())
+		toUpload.push_back(s);
+	uploadSequentially(toUpload);
+}
+
+// dont wrap the chart function so we can see progress as a whole (todo)
+void
+DownloadManager::ForceUploadScoresForPack(std::string pack)
+{
+	deque<HighScore*> toUpload;
+	auto songs = SONGMAN->GetSongs(pack);
+	for (auto so : songs)
+		for (auto c : so->GetAllSteps()) {
+			auto cs = SCOREMAN->GetScoresForChart(c->GetChartKey());
+			if (cs)
+				for (auto s : cs->GetAllScores()) {
+					toUpload.push_back(s);
+				}
+		}
+
+	uploadSequentially(toUpload);
+}
 void
 DownloadManager::EndSessionIfExists()
 {
@@ -2865,6 +2894,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
 		return 0;
 	}
+	static int UploadScoresForChart(T* p, lua_State* L)
+	{
+		DLMAN->ForceUploadScoresForChart(SArg(1));
+		return 0;
+	}
+	static int UploadScoresForPack(T* p, lua_State* L)
+	{
+		DLMAN->ForceUploadScoresForPack(SArg(1));
+		return 0;
+	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetCountryCodes);
@@ -2900,6 +2939,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(ToggleCCFilter);
 		ADD_METHOD(GetCCFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
+		ADD_METHOD(UploadScoresForChart);
+		ADD_METHOD(UploadScoresForPack);
 		ADD_METHOD(Logout);
 	}
 };

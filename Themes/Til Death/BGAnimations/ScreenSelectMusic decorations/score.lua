@@ -734,6 +734,48 @@ l[#l + 1] =
 			end
 		end
 	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonTWO",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 90 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("Upload all scores for this chart")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadScoresForChart(score:GetChartKey())
+				end
+			end
+		end
+	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonTHREEEEEEEE",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 110 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("Upload all scores for charts in this pack")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadScoresForPack(GAMESTATE:GetCurrentSong():GetGroupName())
+				end
+			end
+		end
+	}
 t[#t + 1] = l
 
 t[#t + 1] =
