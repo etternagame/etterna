@@ -1081,7 +1081,10 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
-void // not tested exhaustively -mina
+
+// for older scores or newer scores that failed to upload using the above
+// function we should probably do some refactoring of this
+void
 DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 												   function<void()> callback)
 {
@@ -1089,8 +1092,11 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 		return;
 
 	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
+	// this should never be true unless we are using the manual forceupload
+	// functions, in which case we will defer to the scoreuploader that
+	// does not use replaydata
 	if (!hs->HasReplayData())
-		return;
+		UploadScore(hs);
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
