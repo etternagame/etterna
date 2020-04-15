@@ -84,6 +84,15 @@ ScoresAtRate::GetSortedKeys()
 	return o;
 }
 
+const vector<HighScore*>&
+ScoresAtRate::GetAllScores()
+{
+	vector<HighScore*> o;
+	FOREACHUM(string, HighScore, scores, i)
+		o.push_back(&i->second);
+	return o;
+}
+
 void
 ScoreManager::PurgeScores()
 {
@@ -268,6 +277,17 @@ ScoresForChart::GetAllPBPtrs()
 	return o;
 }
 
+const vector<HighScore*>&
+ScoresForChart::GetAllScores()
+{
+	vector<HighScore*> o;
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
+		for (auto s : i->second.GetAllScores())
+			o.push_back(s);
+	return o;
+}
+
+// is there any reason for this to be nested and not just a single vector?
 vector<vector<HighScore*>>
 ScoreManager::GetAllPBPtrs(const string& profileID)
 {
