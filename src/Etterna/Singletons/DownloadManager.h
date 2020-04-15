@@ -225,6 +225,8 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
+	void ForceUploadScoresForChart(std::string ck);	// forced upload wrapper for charts
+	void ForceUploadScoresForPack(std::string pack);// forced upload wrapper for packs
 	bool UpdateOnlineScoreReplayData(); // attempts updates existing replaydata
 										// server (Async, 1 request per score)
 	void RefreshPackList(const string& url);
