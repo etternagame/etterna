@@ -26,16 +26,6 @@ end
 
 local function input(event)
 	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
-		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_left" then
-				filter:addx(-3)
-				cbContainer:addx(-3)
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				filter:addx(3)
-				cbContainer:addx(3)
-			end
-		end
 		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				oldWidth = noteFieldWidth
@@ -100,7 +90,6 @@ local function laneHighlight()
 				end
 				self:xy((-(arrowWidth * (cols / 2) * getNoteFieldScale(pn)) + ((i - 1) * arrowWidth * getNoteFieldScale(pn)) +(getNoteFieldScale(pn) * arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
 				self:fadebottom(0.6):fadetop(0.6)
-				self:addx(notefieldX)
 				self:visible(false)
 			end,
 			JudgmentMessageCommand=function(self,params)
@@ -165,7 +154,6 @@ t[#t + 1] =
 		self:zoomto(filterWidth * getNoteFieldScale(player) * noteFieldWidth, SCREEN_HEIGHT * 2)
 		self:diffusecolor(filterColor)
 		self:diffusealpha(filterAlphas[player])
-		self:addx(notefieldX)
 		filter = self
 	end,
 	UpdateCommand = function(self)
