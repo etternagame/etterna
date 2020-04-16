@@ -668,40 +668,40 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 			ridic = 5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 55 * (ts^j_pow)
-			dev = 30 * (ts^j_pow)
-			magic = 40 * ts
-			log_pow = 8 -- higher = more linear, but its really sensitive and you have to change some other parameters along with it just dont touch ok
+			poi = 60 * (ts^j_pow)
+			dev = 28 * (ts^j_pow)
+			magic = 30 * ts
+			log_pow = 7.5 -- higher = more linear, but its really sensitive and you have to change some other parameters along with it just dont touch ok
 		elseif version == 5 then
 			max_points = 2
 			miss_weight = -5.5
-			ridic = 9 * ts
+			ridic = 4 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 53 * (ts^j_pow)
-			dev = 31 * (ts^j_pow)
-			magic = 0.05 * ts 
-			log_pow = 2 
+			poi = 55 * (ts^j_pow)	
+			dev = 25 * (ts^j_pow)
+			magic = 39 * ts 
+			log_pow = 9 
 		elseif version == 4 then
 			max_points = 2
-			miss_weight = -5
+			miss_weight = -5.5
 			ridic = 6 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 61 * (ts^j_pow)
+			poi = 55 * (ts^j_pow)
 			dev = 29 * (ts^j_pow)
-			magic = 100 * ts
-			log_pow = 6.5 
+			magic = 0.02225 * ts
+			log_pow = 1.7
 		elseif version == 6 then
 			max_points = 2
 			miss_weight = -5.5
-			ridic = 10.5 * ts
+			ridic = 5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 53 * (ts^j_pow)
+			poi = 59 * (ts^j_pow)
 			dev = 31 * (ts^j_pow)
-			magic = 0.05 * ts 
-			log_pow = 2 
+			magic = 0.0225 * ts 
+			log_pow = 1.66
 		end
 		-- shortcut case handling
 		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
