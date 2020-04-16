@@ -123,8 +123,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_12, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -138,8 +136,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -153,8 +149,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -168,8 +162,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_5, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -183,48 +175,18 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
-	/*	AutoMappings(
-
-			"dance",
-			"MP-8866 Dual USB Joypad",
-			"Super Dual Box (from Lik-Sang, 2004)",
-			//NEEDS_DANCE_PAD_MAPPING_CODE,
-			AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT, false ),
-			AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT, false ),
-			AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP, false ),
-			AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN, false ),
-			AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,
-	   false ), AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,
-	   false ), AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,
-	   false ), AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,
-	   false ), AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,
-	   false ), AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,
-	   false ),
-		   ),
-	*/
-	AutoMappings(
-	  "dance",
-	  "MP-8866 Dual USB Joypad",
-	  "Super Dual Box (from DDRGame.com, Feb 2008)",
-	  // NEEDS_DANCE_PAD_MAPPING_CODE,
-	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false),
-	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
-	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    DANCE_BUTTON_DOWNLEFT,  false ),
-	  // AutoMappingEntry{ 0, JOY_BUTTON_6,    DANCE_BUTTON_DOWNRIGHT, false ),
-	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
-	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "MP-8866 Dual USB Joypad",
+				 "Super Dual Box (from DDRGame.com, Feb 2008)",
+				 // NEEDS_DANCE_PAD_MAPPING_CODE,
+				 AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
 				 "NTPAD",
 				 "NTPAD",
@@ -236,10 +198,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -253,10 +211,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPRIGHT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
 	AutoMappings(
@@ -271,14 +225,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false), // B
 	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),  // X
 	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),	// Y
-	  AutoMappingEntry(0,
-					   JOY_BUTTON_7,
-					   DANCE_BUTTON_UPLEFT,
-					   false), // L shoulder
-	  AutoMappingEntry(0,
-					   JOY_BUTTON_8,
-					   DANCE_BUTTON_UPRIGHT,
-					   false), // R shoulder
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
 	AutoMappings("dance",
@@ -292,8 +238,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -307,8 +251,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_5, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -322,48 +264,18 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
-	/*	AutoMappings(
-
-			"dance",
-			"MP-8866 Dual USB Joypad",
-			"Super Dual Box (from Lik-Sang, 2004)",
-			//NEEDS_DANCE_PAD_MAPPING_CODE,
-			AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT, false ),
-			AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT, false ),
-			AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP, false ),
-			AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP, false ),
-			AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN, false ),
-			AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT, false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false
-	   ), AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false
-	   ), AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false
-	   ),
-		   ),
-	*/
-	AutoMappings(
-	  "dance",
-	  "MP-8866 Dual USB Joypad",
-	  "Super Dual Box (from DDRGame.com, Feb 2008)",
-	  // NEEDS_DANCE_PAD_MAPPING_CODE,
-	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false),
-	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
-	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    DANCE_BUTTON_DOWNLEFT,  false ),
-	  // AutoMappingEntry{ 0, JOY_BUTTON_6,    DANCE_BUTTON_DOWNRIGHT, false ),
-	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
-	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
+	AutoMappings("dance",
+				 "MP-8866 Dual USB Joypad",
+				 "Super Dual Box (from DDRGame.com, Feb 2008)",
+				 // NEEDS_DANCE_PAD_MAPPING_CODE,
+				 AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UP, false),
+				 AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
+				 AutoMappingEntry(0, JOY_BUTTON_1, DANCE_BUTTON_LEFT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
+				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
+				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
 				 "NTPAD",
 				 "NTPAD",
@@ -375,10 +287,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings("dance",
@@ -392,10 +300,6 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_RIGHT, false),
 				 AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),
 				 AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-				 AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(0, JOY_BUTTON_5, DANCE_BUTTON_UPRIGHT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_8, DANCE_BUTTON_UPLEFT, false),
-				 AutoMappingEntry(1, JOY_BUTTON_6, DANCE_BUTTON_UPRIGHT, false),
 				 AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false),
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
 	AutoMappings(
@@ -410,14 +314,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false), // B
 	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),  // X
 	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),	// Y
-	  AutoMappingEntry(0,
-					   JOY_BUTTON_7,
-					   DANCE_BUTTON_UPLEFT,
-					   false), // L shoulder
-	  AutoMappingEntry(0,
-					   JOY_BUTTON_8,
-					   DANCE_BUTTON_UPRIGHT,
-					   false), // R shoulder
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
 	AutoMappings(
@@ -434,28 +330,10 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false),
 	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_UP, false),
 	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_SELECT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_5, GAME_BUTTON_BACK, false),
-	  AutoMappingEntry(0, JOY_BUTTON_6, GAME_BUTTON_COIN, false)
-	  // Player 2.
-	  /*AutoMappingEntry( 0, JOY_BUTTON_32,     DANCE_BUTTON_LEFT,      true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_30,     DANCE_BUTTON_RIGHT,     true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_29,     DANCE_BUTTON_UP,	       true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_31,     DANCE_BUTTON_DOWN,      true ),
-	  AutoMappingEntry( 1, JOY_BUTTON_20,     DANCE_BUTTON_LEFT,      true ),
-	  AutoMappingEntry( 1, JOY_BUTTON_18,     DANCE_BUTTON_RIGHT,     true ),
-	  AutoMappingEntry( 1, JOY_BUTTON_17,     DANCE_BUTTON_UP,	       true ),
-	  AutoMappingEntry( 1, JOY_BUTTON_19,     DANCE_BUTTON_DOWN,      true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_23,     DANCE_BUTTON_UPRIGHT,   true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_24,     DANCE_BUTTON_UPLEFT,    true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_25,     GAME_BUTTON_SELECT,     true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_26,     GAME_BUTTON_START,      true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_21,     GAME_BUTTON_BACK,       true ),
-	  AutoMappingEntry( 0, JOY_BUTTON_22,     GAME_BUTTON_COIN,       true )*/
-	  ),
+	  AutoMappingEntry(0, JOY_BUTTON_6, GAME_BUTTON_COIN, false)),
 	AutoMappings(
 	  "dance",
 	  "Dance ",					   // Notice extra space at end
@@ -464,8 +342,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
 	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPRIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPLEFT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_START, false)),
 	AutoMappings(
@@ -480,8 +356,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(1, JOY_BUTTON_2, /* Circle */ DANCE_BUTTON_RIGHT, false),
 	  AutoMappingEntry(1, JOY_BUTTON_1, /* Tri */ DANCE_BUTTON_UP, false),
 	  AutoMappingEntry(1, JOY_BUTTON_3, /* X */ DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, /* L1 */ DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, /* R1 */ DANCE_BUTTON_UPRIGHT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, /* Select */ GAME_BUTTON_BACK, false),
 	  AutoMappingEntry(0,
 					   JOY_BUTTON_9,
@@ -543,8 +417,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  // AutoMappingEntry{ 0, JOY_BUTTON_5,    /* Tri */       GAME_BUTTON_BACK,
 	  // false ), AutoMappingEntry{ 0, JOY_BUTTON_6,    /* Square */
 	  // GAME_BUTTON_BACK,       false ),
-	  AutoMappingEntry(0, JOY_BUTTON_7, /* X */ DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, /* O */ DANCE_BUTTON_UPRIGHT, false),
 	  AutoMappingEntry(1,
 					   JOY_BUTTON_9,
 					   /* Start	*/ GAME_BUTTON_START,
@@ -558,8 +430,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_DOWN, false),
 	  AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_LEFT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_UPRIGHT, false),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
@@ -572,8 +442,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_DOWN, false),
 	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_4, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_7, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_8, DANCE_BUTTON_UPRIGHT, false),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
@@ -586,8 +454,6 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_BUTTON_15, DANCE_BUTTON_DOWN, false),
 	  AutoMappingEntry(0, JOY_BUTTON_16, DANCE_BUTTON_LEFT, false),
 	  AutoMappingEntry(0, JOY_BUTTON_14, DANCE_BUTTON_RIGHT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_3, DANCE_BUTTON_UPLEFT, false),
-	  AutoMappingEntry(0, JOY_BUTTON_2, DANCE_BUTTON_UPRIGHT, false),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_1,    DANCE_BUTTON_DOWNLEFT,  false ),
 	  // AutoMappingEntry{ 0, JOY_BUTTON_4,    DANCE_BUTTON_DOWNRIGHT, false ),
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_BACK, false),
@@ -1398,7 +1264,13 @@ InputScheme::GetGameButtonName(GameButton gb) const
 {
 	if (gb == GameButton_Invalid)
 		return "";
-	return GetGameButtonInfo(gb)->m_szName;
+	auto e = GetGameButtonInfo(gb)->m_szName;
+
+	// this happens if your keymapping ini has an unknown mapping
+	if (e == nullptr)
+		return "";
+
+	return e;
 }
 
 void
