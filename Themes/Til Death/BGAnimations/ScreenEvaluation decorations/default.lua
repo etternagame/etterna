@@ -386,7 +386,7 @@ function scoreBoard(pn, position)
 						judge = judge - 1
 						self:settextf(
 							"%05.2f%% (%s)",
-							notShit.floor(getRescoredWifeJudge(judge, rescoretable), 2)
+							notShit.floor(getRescoredWifeJudge(judge, rescoretable), 2),
 							"Wife J" .. judge
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
