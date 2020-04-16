@@ -386,7 +386,7 @@ function scoreBoard(pn, position)
 						judge = judge - 1
 						self:settextf(
 							"%05.2f%% (%s)",
-							getRescoredWifeJudge(judge, rescoretable),
+							notShit.floor(getRescoredWifeJudge(judge, rescoretable), 2)
 							"Wife J" .. judge
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
@@ -436,7 +436,7 @@ function scoreBoard(pn, position)
 						wife2perc = getRescoredWifeJudge(GetTimingDifficulty(), rescoretable)
 					end
 					self:settextf(
-						"%05.4f%% (%s)", 
+						"%05.5f%% (%s)", 
 						notShit.floor(wife2perc, 4), ws.." J"..GetTimingDifficulty()
 					)
 				end,
@@ -450,7 +450,7 @@ function scoreBoard(pn, position)
 							judge2 = judge2 < 2 and #customWindows or judge2 - 1
 							customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
 							self:settextf(
-								"%05.4f%% (%s)",
+								"%05.5f%% (%s)",
 								getRescoredCustomPercentage(customWindow, rescoretable),
 								customWindow.name
 							)
@@ -458,7 +458,7 @@ function scoreBoard(pn, position)
 							judge2 = judge2 == #customWindows and 1 or judge2 + 1
 							customWindow = timingWindowConfig:get_data()[customWindows[judge2]]
 							self:settextf(
-								"%05.4f%% (%s)",
+								"%05.5f%% (%s)",
 								getRescoredCustomPercentage(customWindow, rescoretable),
 								customWindow.name
 							)
@@ -466,22 +466,22 @@ function scoreBoard(pn, position)
 					elseif params.Name == "PrevJudge" and judge2 > 1 then
 						judge2 = judge2 - 1
 						self:settextf(
-							"%05.4f%% (%s)",
-							notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 4),
+							"%05.5f%% (%s)",
+							notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 5),
 							"Wife J" .. judge2
 						)
 					elseif params.Name == "NextJudge" and judge2 < 9 then
 						judge2 = judge2 + 1
 						if judge2 == 9 then
 							self:settextf(
-								"%05.4f%% (%s)",
-								notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 4),
+								"%05.5f%% (%s)",
+								notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 5),
 								"Wife Justice"
 							)
 						else
 							self:settextf(
-								"%05.4f%% (%s)",
-								notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 4),
+								"%05.5f%% (%s)",
+								notShit.floor(getRescoredWifeJudge(judge2, rescoretable), 5),
 								"Wife J" .. judge2
 							)
 						end
@@ -553,7 +553,7 @@ function scoreBoard(pn, position)
 					local c = "(%+5.2f)"
 					local wdiffs = {}
 					for i = 1, #batch do 
-						wdiffs[i] = batch[i] - wife2perc
+						wdiffs[i] = notShit.floor(batch[i] - wife2perc, 2)
 					end
 					self:settext(makebatchstring(a, b, c, batch, wdiffs))
 				end,
@@ -569,7 +569,7 @@ function scoreBoard(pn, position)
 					local wdiffs = {}
 					local wife2perc = getRescoredWifeJudge(judge, rescoretable)
 					for i = 1, #batch do 
-						wdiffs[i] = batch[i] - wife2perc
+						wdiffs[i] = notShit.floor(batch[i] - wife2perc, 2)
 					end
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then						
 						self:settext(makebatchstring(a, b, c, batch, wdiffs))
@@ -595,19 +595,19 @@ function scoreBoard(pn, position)
 					local rescoretable = getRescoreElements(pss, score)
 					local wife2perc
 					if PREFSMAN:GetPreference("SortBySSRNormPercent") then
-						wife2perc = getRescoredWifeJudge(4, rescoretable)
-						batch = batchcalc(4, rescoretable, 4)
+						wife2perc = getRescoredWifeJudge(5, rescoretable)
+						batch = batchcalc(4, rescoretable, 5)
 					else
 						-- normalize to the currently selected judge, not the replay judge
 						wife2perc = getRescoredWifeJudge(GetTimingDifficulty(), rescoretable)
-						batch = batchcalc(GetTimingDifficulty(), rescoretable, 4)
+						batch = batchcalc(GetTimingDifficulty(), rescoretable, 5)
 					end
-					local a = "%05.4f%%"
-					local b = "(%5.3f)"
-					local c = "(%+5.3f)"
+					local a = "%05.5f%%"
+					local b = "(%5.5f)"
+					local c = "(%+5.5f)"
 					local wdiffs = {}
 					for i = 1, #batch do 
-						wdiffs[i] = batch[i] - wife2perc
+						wdiffs[i] = notShit.floor(batch[i] - wife2perc, 5)
 					end
 					self:settext(makebatchstring(a, b, c, batch, wdiffs))
 				end,
@@ -616,14 +616,14 @@ function scoreBoard(pn, position)
 				end,
 				CodeMessageCommand = function(self, params)
 					local rescoretable = getRescoreElements(pss, score)
-					local a = "%05.4f%%"
-					local b = "(%05.3f)"
-					local c = "(%+5.3f)"
-					local batch = batchcalc(judge, rescoretable, 4)
+					local a = "%05.5f%%"
+					local b = "(%05.5f)"
+					local c = "(%+5.5f)"
+					local batch = batchcalc(judge, rescoretable, 5)
 					local wdiffs = {}
 					local wife2perc = getRescoredWifeJudge(judge, rescoretable)
 					for i = 1, #batch do 
-						wdiffs[i] = batch[i] - wife2perc
+						wdiffs[i] = notShit.floor(batch[i] - wife2perc, 5)
 					end
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then						
 						self:settext(makebatchstring(a, b, c, batch, wdiffs))
