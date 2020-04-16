@@ -131,6 +131,8 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
   AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
 
+static const AutoMappings g_AutoKeyMappings_Solo = g_AutoKeyMappings_Dance;
+
 // xxx: get this from the theme? (see others)
 // the problem with getting it from the noteskin is that this is meant to be
 // static const; if we switch to anything we likely won't get const anymore
@@ -214,13 +216,13 @@ static const Style g_Style_Dance_Double = {
 	false, // m_bLockDifficulties
 };
 
-static const Style g_Style_Dance_Solo = {
+static const Style g_Style_Solo_Single = {
 	// STYLE_DANCE_SOLO
 	true,						// m_bUsedForGameplay
 	true,						// m_bUsedForEdit
 	false,						// m_bUsedForDemonstration
 	false,						// m_bUsedForHowToPlay
-	"solo",						// m_szName
+	"single",					// m_szName
 	StepsType_dance_solo,		// m_StepsType
 	StyleType_OnePlayerOneSide, // m_StyleType
 	6,							// m_iColsPerPlayer
@@ -279,7 +281,6 @@ static const Style g_Style_Dance_ThreePanel = {
 
 static const Style* g_apGame_Dance_Styles[] = { &g_Style_Dance_Single,
 												&g_Style_Dance_Double,
-												&g_Style_Dance_Solo,
 												&g_Style_Dance_ThreePanel,
 												NULL };
 
@@ -292,6 +293,42 @@ static const Game g_Game_Dance = {
 	{					   // m_InputScheme
 	  "dance",			   // m_szName
 	  NUM_DANCE_BUTTONS,   // m_iButtonsPerController
+	  {
+		// m_szButtonNames
+		{ "Left", GAME_BUTTON_LEFT },
+		{ "Right", GAME_BUTTON_RIGHT },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Down", GAME_BUTTON_DOWN },
+		{ "UpLeft", GameButton_Invalid },
+		{ "UpRight", GameButton_Invalid },
+	  },
+	  &g_AutoKeyMappings_Dance },
+	{
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	},
+	TNS_W1, // m_mapW1To
+	TNS_W2, // m_mapW2To
+	TNS_W3, // m_mapW3To
+	TNS_W4, // m_mapW4To
+	TNS_W5, // m_mapW5To
+};
+
+static const Style* g_apGame_Solo_Styles[] = { &g_Style_Solo_Single, NULL };
+
+static const Game g_Game_Solo = {
+	"solo",				  // m_szName
+	g_apGame_Solo_Styles, // m_apStyles
+	false,				  // m_bCountNotesSeparately
+	false,				  // m_bTickHolds
+	false,				  // m_PlayersHaveSeparateStyles
+	{					  // m_InputScheme
+	  "solo",			  // m_szName
+	  NUM_DANCE_BUTTONS,  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
@@ -1410,8 +1447,8 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance,  &g_Game_Pump, &g_Game_KB7,	&g_Game_Ez2,
-	&g_Game_DS3DDX, &g_Game_Beat, &g_Game_Maniax, &g_Game_Popn,
+	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,  &g_Game_Ez2,  &g_Game_DS3DDX,
+	&g_Game_Beat,  &g_Game_Maniax, &g_Game_Popn, &g_Game_Solo,
 };
 
 GameManager::GameManager()
