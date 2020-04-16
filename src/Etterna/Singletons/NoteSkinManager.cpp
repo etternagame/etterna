@@ -78,11 +78,14 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	// clear path cache
 	g_PathCache.clear();
 
-	RString sBaseSkinFolder =
-	  SpecialFiles::NOTESKINS_DIR + pGame->m_szName + "/";
+	auto gameName = pGame->m_szName;
+	// how to make solo use dance skins
+	if (gameName == "solo")
+		gameName = "dance";
+	RString sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + gameName + "/";
 	RString sGlobalSkinFolder = SpecialFiles::NOTESKINS_DIR + "global" + "/";
 	RString sThemeSkinFolder =
-	  THEME->GetCurThemeDir() + "/NoteSkins/" + pGame->m_szName + "/";
+	  THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/";
 	vector<RString> asNoteSkinNames;
 	GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, true);
@@ -127,6 +130,10 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 	int iDepth = 0;
 	bool bLoadedCommon = false;
 	bool bLoadedBase = false;
+	auto gameName = m_pCurGame->m_szName;
+	// how to make solo use dance noteskins
+	if (gameName == "solo")
+		gameName = "dance";
 	for (;;) {
 		++iDepth;
 		if (iDepth >= 20) {
@@ -136,15 +143,15 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 			return false;
 		}
 
-		RString sDir = SpecialFiles::NOTESKINS_DIR + m_pCurGame->m_szName +
-					   "/" + sNoteSkinName + "/";
+		RString sDir =
+		  SpecialFiles::NOTESKINS_DIR + gameName + "/" + sNoteSkinName + "/";
 		if (!FILEMAN->IsADirectory(sDir))
 			sDir = SpecialFiles::NOTESKINS_DIR + "global" + "/" +
 				   sNoteSkinName + "/";
 
 		if (!FILEMAN->IsADirectory(sDir))
-			sDir = THEME->GetCurThemeDir() + "/NoteSkins/" +
-				   m_pCurGame->m_szName + "/" + sNoteSkinName + "/";
+			sDir = THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/" +
+				   sNoteSkinName + "/";
 
 		if (!FILEMAN->IsADirectory(sDir)) {
 			sDir = GLOBAL_BASE_DIR + sNoteSkinName + "/";
@@ -300,8 +307,10 @@ NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 			AddTo.push_back(iter->second.sName);
 		}
 	} else {
-		RString sBaseSkinFolder =
-		  SpecialFiles::NOTESKINS_DIR + pGame->m_szName + "/";
+		auto name = pGame->m_szName;
+		if (name == "solo")
+			name = "dance";
+		RString sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + name + "/";
 		GetDirListing(sBaseSkinFolder + "*", AddTo, true);
 		StripCvsAndSvn(AddTo);
 		StripMacResourceForks(AddTo);
