@@ -633,23 +633,31 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 	local log_pow = 0
 	local lower_bound = 0
 
-	if (version == 1) or (version == 2) then -- hyperbolic lower bound
+	if (version == 1) or (version == 2) or (version == 3) then -- hyperbolic lower bound
 		if (version == 1) then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 11 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 56 * (ts^j_pow)
-			dev = 26 * (ts^j_pow)
-		else
 			max_points = 2
 			miss_weight = -5.5
 			ridic = 5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 56 * (ts^j_pow)
-			dev = 23 * (ts^j_pow)
+			poi = 55.5 * (ts^j_pow)
+			dev = 21 * (ts^j_pow)
+		elseif (version == 2) then
+			max_points = 2
+			miss_weight = -5.5
+			ridic = 5 * ts
+			max_boo_weight = 180 * ts
+			j_pow = 0.66
+			poi = 57 * (ts^j_pow)
+			dev = 23.5 * (ts^j_pow)
+		elseif (version == 3) then
+			max_points = 2
+			miss_weight = -5.5
+			ridic = 5 * ts
+			max_boo_weight = 180 * ts
+			j_pow = 0.66
+			poi = 53 * (ts^j_pow)
+			dev = 17 * (ts^j_pow)
 		end
 		-- shortcut case handling
 		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
@@ -660,19 +668,9 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 		end								-- purpose of the scoring curve, which is to assign point values
 
 		-- lower bound calculation
-		local lower_bound = max_points + ((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
+		lower_bound = max_points + ((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
 	else -- logarithmic lower bound
-		if version == 3 then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 60 * (ts^j_pow)
-			dev = 28 * (ts^j_pow)
-			magic = 30 * ts
-			log_pow = 7.5 -- higher = more linear, but its really sensitive and you have to change some other parameters along with it just dont touch ok
-		elseif version == 5 then
+		if version == 5 then
 			max_points = 2
 			miss_weight = -5.5
 			ridic = 4 * ts
