@@ -521,7 +521,7 @@ function scoreBoard(pn, position)
 			},
 			Def.Quad {
 				InitCommand = function(self)
-					self:xy(frameX + capWideScale(215, 315), frameY + capWideScale(0, 100)):zoomto(capWideScale(280,320)/2.2,120):halign(0):valign(0.5):diffuse(
+					self:xy(frameX + capWideScale(215, 325), frameY + capWideScale(100, 100)):zoomto(capWideScale(280,320)/2.2,120):halign(0):valign(0.5):diffuse(
 						color("#333333CC"))	
 				end
 			},
@@ -567,7 +567,7 @@ function scoreBoard(pn, position)
 					local c = "(%+5.2f)"
 					local batch = batchcalc(judge, rescoretable, 2)
 					local wdiffs = {}
-					local wife2perc = getRescoredWifeJudge(judge, rescoretable)
+					local wife2perc = notShit.floor(getRescoredWifeJudge(judge, rescoretable), 2)
 					for i = 1, #batch do 
 						wdiffs[i] = notShit.floor(batch[i] - wife2perc, 2)
 					end
