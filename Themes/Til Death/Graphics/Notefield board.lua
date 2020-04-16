@@ -110,6 +110,12 @@ local t =
 	Def.ActorFrame {
 	OnCommand = function()
 		if (allowedCustomization) then
+			-- this isnt really necessary but it stops lua errors
+			-- basically this just triggers if we exit playeroptions into gameplay
+			-- and i dont want to investigate what causes it
+			-- but it doesnt break anything when it happens
+			-- so this just stops the lua error and breaks nothing else
+			if SCREENMAN:GetTopScreen() == nil then return end
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 	end
