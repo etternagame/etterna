@@ -131,7 +131,33 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
   AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
 
-static const AutoMappings g_AutoKeyMappings_Solo = g_AutoKeyMappings_Dance;
+static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
+  "",
+  "",
+  "",
+  AutoMappingEntry(0, KEY_LEFT, GAME_BUTTON_MENULEFT, false),
+  AutoMappingEntry(0, KEY_RIGHT, GAME_BUTTON_MENURIGHT, false),
+  AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
+  AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
+  AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
+  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
+  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UPRIGHT, false),
+  AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_UPLEFT, false),
+  AutoMappingEntry(0, KEY_Cc, DANCE_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_Cm, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+  AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
+  AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
+  AutoMappingEntry(0, KEY_KP_SLASH, GAME_BUTTON_MENULEFT, true),
+  AutoMappingEntry(0, KEY_KP_ASTERISK, GAME_BUTTON_MENURIGHT, true),
+  AutoMappingEntry(0, KEY_KP_HYPHEN, GAME_BUTTON_MENUUP, true),
+  AutoMappingEntry(0, KEY_KP_PLUS, GAME_BUTTON_MENUDOWN, true),
+  AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
+  AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
+  AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
+  AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true),
+  AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
+  AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
 
 // xxx: get this from the theme? (see others)
 // the problem with getting it from the noteskin is that this is meant to be
@@ -338,7 +364,7 @@ static const Game g_Game_Solo = {
 		{ "UpLeft", GameButton_Invalid },
 		{ "UpRight", GameButton_Invalid },
 	  },
-	  &g_AutoKeyMappings_Dance },
+	  &g_AutoKeyMappings_Solo },
 	{
 	  { GameButtonType_Step },
 	  { GameButtonType_Step },
