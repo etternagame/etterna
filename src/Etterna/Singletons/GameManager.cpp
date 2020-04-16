@@ -350,7 +350,7 @@ static const Game g_Game_Solo = {
 	false,				  // m_PlayersHaveSeparateStyles
 	{					  // m_InputScheme
 	  "solo",			  // m_szName
-	  NUM_DANCE_BUTTONS,  // m_iButtonsPerController
+	  NUM_SOLO_BUTTONS,   // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
