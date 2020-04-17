@@ -2,7 +2,7 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include <MinaCalc/MinaCalc.h>
+#include "Etterna/Globals/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -461,13 +461,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				auto& serializednd = nd.SerializeNoteData(etaner);
 
 				auto dakine = MinaSDCalc(serializednd,
-										 steps->GetNoteData().GetNumTracks(),
 										 musicrate,
-										 ssrpercent,
-										 1.f,
-										 td->HasWarps());
+										 ssrpercent);
+				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
-					hs->SetSkillsetSSR(ss, dakine[ss]);
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				if (remarried)	// maybe recalculated scores should be renamed rescored?
@@ -746,7 +744,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
 		bool getremarried = scores[sk].GetWifeVersion() < 3;
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
+			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }
