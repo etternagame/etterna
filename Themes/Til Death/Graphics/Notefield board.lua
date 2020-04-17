@@ -63,7 +63,7 @@ local function laneHighlight()
 	for i=1,cols do
 		r[#r+1] = Def.Quad{
 			InitCommand = function(self)
-				self:zoomto(getNoteFieldScale(pn) * (arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
+				self:zoomto((arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
 				
 				local reverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
 				local receptor = reverse and THEME:GetMetric("Player", "ReceptorArrowsYStandard") or THEME:GetMetric("Player", "ReceptorArrowsYReverse")
@@ -75,7 +75,7 @@ local function laneHighlight()
 				else
 					thewidth = noteFieldWidth - 1
 				end
-				self:xy((-(arrowWidth * (cols / 2) * getNoteFieldScale(pn)) + ((i - 1) * arrowWidth * getNoteFieldScale(pn)) + (getNoteFieldScale(pn) * arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
+				self:xy((-(arrowWidth * (cols / 2)) + ((i - 1) * arrowWidth) + (arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
 				self:fadebottom(0.6):fadetop(0.6)
 				self:visible(false)
 			end,
@@ -133,14 +133,14 @@ t[#t + 1] =
 	Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * getNoteFieldScale(PLAYER_1) * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
 		self:diffusecolor(filterColor)
 		self:diffusealpha(filterAlphas)
 		filter = self
 	end,
 	UpdateCommand = function(self)
 		noteFieldWidth = MovableValues.NotefieldWidth
-		self:zoomto(filterWidth * getNoteFieldScale(PLAYER_1) * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
 	end
 }
 
