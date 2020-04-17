@@ -8,7 +8,6 @@ local wodth = capWideScale(280, 300)
 local hidth = 40
 local yeet
 local cd
-local calcinfo
 
 local yPos = Var("yPos")
 local yPosReverse = Var("yPosReverse")
@@ -26,11 +25,6 @@ local function UpdatePreviewPos(self)
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
-
-		-- calcdisplay position indicator (not the best place to put this but it works)
-		local calcgraphpos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
-		local badorp = self:GetChild("notChordDensityGraph"):GetChild("GraphPos")
-		badorp:zoomto(math.min(calcgraphpos * capWideScale(300,450) / capWideScale(280,300), capWideScale(300,450)), hidth * 3):halign(0)
 	end
 end
 
@@ -45,35 +39,13 @@ local function setUpPreviewNoteField()
 	yeet = memehamstermax:GetChild("NoteField")
 	yeet:x(wodth/2)
 	memehamstermax:SortByDrawOrder()
-	MESSAGEMAN:Broadcast("NoteFieldVisible") 
-end
-local function gpx(actor)
-	return actor:GetParent():GetX()
-end
-local function updateCalcInfoDisplays(actor)
-	if not calcinfo:GetVisible() then
-		return
-	end
-	mx = INPUTFILTER:GetMouseX()
-	px = actor:GetParent():GetX()
-	sl1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	st1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--sl2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--st2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	st1:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-	--st2:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-	sl1:visible(true)
-	--sl2:visible(true)
-	st1:visible(true)
-	--st2:visible(true)
+	MESSAGEMAN:Broadcast("NoteFieldVisible")
 end
 
 local t = Def.ActorFrame {
 	Name = "ChartPreview",
 	InitCommand=function(self)
 		self:visible(false)
-        self:SetUpdateFunction(UpdatePreviewPos)
-		calcinfo = self:GetChild("notChordDensityGraph"):visible(false):draworder(1000) -- actor for calcinfo
 		cd = self:GetChild("ChordDensityGraph"):visible(false):draworder(1000)
 		memehamstermax = self
 	end,
@@ -157,8 +129,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "PosBG",
 		InitCommand = function(self)
-			--self:zoomto(wodth, hidth):halign(0):diffuse(color(".1,.1,.1,1")):draworder(900) -- alt bg for calc info
-			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900) -- cdgraph bg
+			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
@@ -168,14 +139,9 @@ local t = Def.ActorFrame {
 				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
 				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
 				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-				updateCalcInfoDisplays(self)
 			else
 				self:GetParent():GetChild("Seektext"):visible(false)
 				self:GetParent():GetChild("Seek"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):visible(false)
 			end
 		end
 	},
@@ -188,7 +154,6 @@ local t = Def.ActorFrame {
 }
 
 t[#t + 1] = LoadActor("_chorddensitygraph.lua")
-t[#t + 1] = LoadActor("_calcdisplay.lua")
 
 -- more draw order shenanigans
 t[#t + 1] = LoadFont("Common Normal") .. {

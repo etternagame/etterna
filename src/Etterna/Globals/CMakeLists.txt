@@ -1,12 +1,10 @@
 list(APPEND GLOBAL_FILES_SRC
-	"MinaCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
 	"SpecialFiles.cpp"
 	"StepMania.cpp") # TODO: Refactor into separate main project.
 
 list(APPEND GLOBAL_FILES_HPP
-	"MinaCalc.h"
 	"GameLoop.h"
 	"global.h"
 	"OptionsBinding.h"

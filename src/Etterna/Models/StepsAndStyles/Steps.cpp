@@ -14,7 +14,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -357,22 +357,16 @@ Steps::IsRecalcValid()
 }
 
 float
-Steps::GetMSD(float rate, Skillset ss) const
+Steps::GetMSD(float x, int i) const
 {
-	if (rate > 2.f) // just extrapolate from 2x+
-	{
-		const float pDiff = diffByRate[13][ss];
-		return pDiff + pDiff * ((rate - 2.f) * .5f);
-	}
+	if (x > 2.f) // just extrapolate from 2x+
+		return stuffnthings[13][i] + stuffnthings[13][i] * ((x - 2.f) * .5f);
 
-	int idx = static_cast<int>(rate * 10) - 7;
-	float prop = fmod(rate * 10.f, 1.f);
-	if (prop == 0 && rate <= 2.f)
-		return diffByRate[idx][ss];
-
-	const float pDiffL = diffByRate[idx][ss];
-	const float pDiffH = diffByRate[idx + 1][ss];
-	return lerp(prop, pDiffL, pDiffH);
+	int idx = static_cast<int>(x * 10) - 7;
+	float prop = fmod(x * 10.f, 1.f);
+	if (prop == 0 && x <= 2.f)
+		return stuffnthings[idx][i];
+	return lerp(prop, stuffnthings[idx][i], stuffnthings[idx + 1][i]);
 }
 
 map<float, Skillset>
@@ -380,7 +374,7 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 {
 	int idx = static_cast<int>(x * 10) - 7;
 	map<float, Skillset> why;
-	vector<float> tmp = diffByRate[idx];
+	SDiffs tmp = stuffnthings[idx];
 	FOREACH_ENUM(Skillset, ss)
 	if (ss != Skill_Overall || includeoverall)
 		why.emplace(tmp[ss], ss);
@@ -394,9 +388,27 @@ Steps::CalcEtternaMetadata()
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	diffByRate = MinaSDCalc(cereal);
+	stuffnthings = MinaSDCalc(cereal,
+							  m_pNoteData->GetNumTracks(),
+							  0.93f,
+							  1.f,
+							  GetTimingData()->HasWarps());
+
+	// if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() ==
+	// false)  MinaCalc2(stuffnthings,
+	// GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
+
+	// replace the old sm notedata string with the new ett notedata string
+	// compressed format for internal use
+	/*	Not yet though
+	if (m_pNoteData->GetNumTracks() == 4 && m_StepsType ==
+	StepsType_dance_single) NoteDataUtil::GetETTNoteDataString(*m_pNoteData,
+	m_sNoteDataCompressed); else { m_sNoteDataCompressed = "";
+	m_sNoteDataCompressed.shrink_to_fit();
+	}
+	*/
 
 	// set first and last second for this steps object
 	if (!etaner.empty()) {
@@ -407,29 +419,8 @@ Steps::CalcEtternaMetadata()
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
+	// m_pNoteData->UnsetSerializedNoteData2();
 	GetTimingData()->UnsetEtaner();
-}
-
-void
-Steps::BorpNDorf(int modType)
-{
-	// function is responsible for producing debug output
-	Decompress();
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
-	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
-	dumbthings.clear();
-
-	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
-						0.93f,
-						dumbthings,
-						static_cast<CalcPatternMod>(modType));
-
-	m_pNoteData->UnsetNerv();
-	m_pNoteData->UnsetSerializedNoteData();
-	GetTimingData()->UnsetEtaner();
-	Compress();
 }
 
 RString
@@ -833,32 +824,11 @@ class LunaSteps : public Luna<Steps>
 	static int GetMSD(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
-		Skillset index = static_cast<Skillset>(IArg(2) - 1);
+		int index = IArg(2) - 1;
 		CLAMP(rate, 0.7f, 3.f);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
 	}
-
-	static int GetSSRs(T* p, lua_State* L)
-	{
-		float rate = FArg(1);
-		float goal = FArg(2);
-		CLAMP(rate, 0.7f, 3.f);
-		auto nd = p->GetNoteData();
-		auto loot = nd.BuildAndGetNerv();
-		const vector<float>& etaner =
-		  p->GetTimingData()->BuildAndGetEtaner(loot);
-		auto& ni = nd.SerializeNoteData(etaner);
-		if (ni.size() == 0)
-			return 0;
-
-		std::vector<float> d = MinaSDCalc(ni, rate, goal);
-		auto ssrs = d;
-
-		LuaHelpers::CreateTableFromArray(ssrs, L);
-		return 1;
-	}
-
 	// ok really is this how i have to do this - mina
 	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State* L)
 	{
@@ -964,18 +934,6 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
-	static int DootSpooks(T* p, lua_State* L)
-	{
-		int modType = IArg(1) - 1;
-		p->BorpNDorf(modType);
-		lua_newtable(L);
-		for (int i = 0; i < p->dumbthings.size(); ++i) {
-			vector<float> poop = p->dumbthings[i];
-			LuaHelpers::CreateTableFromArray(poop, L);
-			lua_rawseti(L, -2, i + 1);
-		}
-		return 1;
-	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -995,7 +953,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetStepsType);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
-		ADD_METHOD(GetSSRs);
 		ADD_METHOD(IsAnEdit);
 		ADD_METHOD(IsAPlayerEdit);
 		ADD_METHOD(GetDisplayBpms);
@@ -1008,7 +965,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
-		ADD_METHOD(DootSpooks);
 	}
 };
 
