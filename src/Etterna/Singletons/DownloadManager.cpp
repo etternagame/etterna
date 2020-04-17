@@ -1100,7 +1100,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	// this should never be true unless we are using the manual forceupload
 	// functions, in which case we will defer to the scoreuploader that
 	// does not use replaydata
-	if (!hs->HasReplayData())
+	if (!hs->LoadReplayData())
 		UploadScore(hs);
 
 	CURL* curlHandle = initCURLHandle(true);
