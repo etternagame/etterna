@@ -84,12 +84,20 @@ ScoresAtRate::GetSortedKeys()
 	return o;
 }
 
-const vector<HighScore*>&
+const vector<HighScore*>
 ScoresAtRate::GetAllScores()
 {
 	vector<HighScore*> o;
 	FOREACHUM(string, HighScore, scores, i)
 		o.push_back(&i->second);
+
+	// upload the worst scores first and the best scores last
+	// so we catch any de-facto pbs that are created by actual
+	// pbs failing the upload checks for w.e reason
+	auto ssrcomp = [](HighScore* a, HighScore* b) {
+		return (a->GetSSRNormPercent() < b->GetSSRNormPercent());
+	};
+	sort(o.begin(), o.end(), ssrcomp);
 	return o;
 }
 
@@ -277,7 +285,7 @@ ScoresForChart::GetAllPBPtrs()
 	return o;
 }
 
-const vector<HighScore*>&
+const vector<HighScore*>
 ScoresForChart::GetAllScores()
 {
 	vector<HighScore*> o;

@@ -39,7 +39,7 @@ struct ScoresAtRate
 					  const float& rate,
 					  const string& profileID);
 
-	const vector<HighScore*>& GetAllScores();
+	const vector<HighScore*> GetAllScores();
 	unordered_map<string, HighScore> scores;
 
   private:
@@ -72,7 +72,7 @@ struct ScoresForChart
 	Chart ch;
 
 	ScoresAtRate* GetScoresAtRate(const int& rate);
-	const vector<HighScore*>& GetAllScores();
+	const vector<HighScore*> GetAllScores();
 	XNode* CreateNode(const string& ck) const;
 	void LoadFromNode(const XNode* node,
 					  const string& ck,
