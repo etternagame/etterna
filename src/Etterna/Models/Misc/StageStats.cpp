@@ -2,7 +2,7 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Profile.h"
@@ -17,7 +17,7 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "Etterna/Models/Songs/Song.h"
 #include "GamePreferences.h"
 

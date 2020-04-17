@@ -572,11 +572,7 @@ SetMSDValues(SSC::StepsTagInfo& info)
 	auto size = params.params.size();
 	// Start from index 1
 	for (size_t i = 1; i <= size; i++)
-	{
-		auto m = SSC::msdsplit(params[i]);
-		o.push_back(
-		  std::vector<float>{ 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f });
-	}
+		o.emplace_back(SSC::msdsplit(params[i]));
 	info.steps->SetAllMSD(o);
 }
 

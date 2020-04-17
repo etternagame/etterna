@@ -9,13 +9,14 @@
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
-#include "Etterna/Globals/MinaCalc.h"
 
 class Profile;
 class NoteData;
 struct lua_State;
 class Song;
 
+typedef vector<float> SDiffs;
+typedef vector<SDiffs> MinaSD;
 using std::string;
 
 /**
@@ -199,18 +200,19 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	const string& GetChartKey() const { return ChartKey; }
-	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy };
+	vector<float> thestuffs = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs,
+							thestuffs, thestuffs, thestuffs, thestuffs,
+							thestuffs, thestuffs, thestuffs, thestuffs,
+							thestuffs, thestuffs, thestuffs, thestuffs,
+							thestuffs, thestuffs, thestuffs, thestuffs,
+							thestuffs };
 	void SetChartKey(const RString& k) { ChartKey = k; }
-	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
-	MinaSD GetAllMSD() const { return diffByRate; }
+	void SetAllMSD(const MinaSD& msd) { stuffnthings = msd; }
+	MinaSD GetAllMSD() const { return stuffnthings; }
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
-	void BorpNDorf(int modType);
-	vector<vector<float>> dumbthings;
 
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;
@@ -224,11 +226,8 @@ class Steps
 	// shouldn't - mina
 	bool IsRecalcValid();
 
-	float GetMSD(float rate, int ss) const
-	{
-		return GetMSD(rate, static_cast<Skillset>(ss));
-	}
-	float GetMSD(float rate, Skillset ss) const;
+	// prolly needs an enum or something idk - mina
+	float GetMSD(float x, int i) const;
 
 	/* This is a reimplementation of the lua version of the script to generate
 	chart keys, except this time using the notedata stored in game memory

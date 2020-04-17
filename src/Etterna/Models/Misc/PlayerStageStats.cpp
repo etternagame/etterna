@@ -4,7 +4,7 @@
 #include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include <MinaCalc/MinaCalc.h>
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -380,8 +380,11 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	Steps* steps = GAMESTATE->m_pCurSteps;
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	return MinaSDCalc(serializednd,
+					  steps->GetNoteData().GetNumTracks(),
 					  musicrate,
-					  ssrpercent);
+					  ssrpercent,
+					  1.f,
+					  steps->GetTimingData()->HasWarps());
 }
 
 float

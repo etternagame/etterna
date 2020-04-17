@@ -1107,7 +1107,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 		Steps* pNewNotes = nullptr;
-		
+
 		SQLite::Statement qSteps(
 		  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
 
@@ -1136,10 +1136,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			stringstream msds;
 			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string msdsatrate;
-			while (std::getline(msds, msdsatrate, ':')) {
-				auto m = SSC::msdsplit(msdsatrate);
-				o.push_back({m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
-			}
+			while (std::getline(msds, msdsatrate, ':'))
+				o.emplace_back(SSC::msdsplit(msdsatrate));
 			pNewNotes->SetAllMSD(o);
 
 			pNewNotes->SetChartKey(
