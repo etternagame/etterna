@@ -152,7 +152,7 @@ end
 
 local batchcalc = function(j, rst, precision)
 	local o = {}
-	for i = 1, 6 do
+	for i = 1, 4 do
 		o[i] = notShit.floor(getRescoredWife3Judge(i, j, rst), precision)
 	end
 	return o
@@ -160,7 +160,7 @@ end
 
 local makebatchstring = function(a, b, c, ba, wd)
 	local wee = ""
-	for i = 1, 6 do
+	for i = 1, 4 do
 		wee = wee .. string.format(a, ba[i])
 		local boop
 		if wd[i] < 0 then
@@ -521,7 +521,7 @@ function scoreBoard(pn, position)
 			},
 			Def.Quad {
 				InitCommand = function(self)
-					self:xy(frameX + capWideScale(215, 325), frameY + capWideScale(100, 100)):zoomto(capWideScale(280,320)/2.2,120):halign(0):valign(0.5):diffuse(
+					self:xy(frameX + capWideScale(215, 315), frameY + capWideScale(80, 80)):zoomto(capWideScale(280,340)/2.2,80):halign(0):valign(0.5):diffuse(
 						color("#333333CC"))	
 				end
 			},

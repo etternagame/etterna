@@ -640,24 +640,24 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 			ridic = 5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 55.5 * (ts^j_pow)
-			dev = 21 * (ts^j_pow)
+			poi = 56.5 * (ts^j_pow)
+			dev = 20.75 * (ts^j_pow)
 		elseif (version == 2) then
 			max_points = 2
 			miss_weight = -5.5
-			ridic = 5 * ts
+			ridic = 7.5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
 			poi = 57 * (ts^j_pow)
-			dev = 23.5 * (ts^j_pow)
+			dev = 22 * (ts^j_pow)
 		elseif (version == 3) then
 			max_points = 2
-			miss_weight = -5.5
-			ridic = 5 * ts
+			miss_weight = -6
+			ridic = 7.5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 53 * (ts^j_pow)
-			dev = 17 * (ts^j_pow)
+			poi = 57.37 * (ts^j_pow)
+			dev = 21.77 * (ts^j_pow)
 		end
 		-- shortcut case handling
 		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
@@ -670,36 +670,16 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 		-- lower bound calculation
 		lower_bound = max_points + ((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
 	else -- logarithmic lower bound
-		if version == 5 then
+		if version == 4 then
 			max_points = 2
 			miss_weight = -5.5
-			ridic = 4 * ts
+			ridic = 7.5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
 			poi = 55 * (ts^j_pow)	
 			dev = 25 * (ts^j_pow)
 			magic = 39 * ts 
-			log_pow = 9 
-		elseif version == 4 then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 6 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 55 * (ts^j_pow)
-			dev = 29 * (ts^j_pow)
-			magic = 0.02225 * ts
-			log_pow = 1.7
-		elseif version == 6 then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 59 * (ts^j_pow)
-			dev = 31 * (ts^j_pow)
-			magic = 0.0225 * ts 
-			log_pow = 1.66
+			log_pow = 8 
 		end
 		-- shortcut case handling
 		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
@@ -713,6 +693,9 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 		lower_bound = max_points + ((miss_weight - max_points) * (math.log(((maxms - ridic)*magic) + 1)/math.log(((max_boo_weight - ridic)*magic) + 1))^log_pow);
 	end
 	-- calculate the actual value
+	if (version == 3) and (maxms > 60) then
+		return 3.605 - (0.05058 * maxms)
+	end
 	local y_val = (erf((poi - maxms) / dev) + 1) / 2;
 	return (max_points - lower_bound) * y_val + lower_bound;
 end
