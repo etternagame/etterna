@@ -225,10 +225,8 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
-	void ForceUploadScoresForChart(std::string ck);	// forced upload wrapper for charts
-	void ForceUploadScoresForPack(std::string pack);// forced upload wrapper for packs
-	bool UpdateOnlineScoreReplayData(); // attempts updates existing replaydata
-										// server (Async, 1 request per score)
+	void ForceUploadScoresForChart(const std::string& ck, bool startnow);	// forced upload wrapper for charts
+	void ForceUploadScoresForPack(const std::string& pack, bool startnow);	// forced upload wrapper for packs
 	void RefreshPackList(const string& url);
 
 	void init();
@@ -249,9 +247,6 @@ class DownloadManager
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
-	  const string& sk,
-	  function<void()> callback = function<void()>());
-	void UpdateOnlineScoreReplayData(
 	  const string& sk,
 	  function<void()> callback = function<void()>());
 	void UploadScore(HighScore* hs);
