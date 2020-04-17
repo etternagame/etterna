@@ -1,8 +1,6 @@
-﻿#pragma once
+#pragma once
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
-
-using namespace std;
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -14,12 +12,26 @@ using namespace std;
 #define MINACALC_API
 #endif
 
-typedef vector<float> SDiffs;
-typedef vector<SDiffs> MinaSD;
+  typedef std::vector<float>
+	SDiffs;
+typedef std::vector<SDiffs> MinaSD;
 
-typedef vector<vector<float>> Finger;
-typedef vector<Finger> ProcessedFingers;
-typedef vector<float> JackSeq;
+typedef std::vector<std::vector<float>> Finger;
+typedef std::vector<Finger> ProcessedFingers;
+typedef std::vector<float> JackSeq;
+
+enum CalcPatternMod
+{
+	OHJump,
+	Anchor,
+	Roll,
+	HS,
+	Jump,
+	MSD, // is pulling stam adjusted values atm
+	PtLoss,
+	ModCount,
+	None
+};
 
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
@@ -33,9 +45,9 @@ class Hand
 {
   public:
 	/*	Spits out a rough estimate of difficulty based on the ms values within
-	the interval The vector passed to it is the vector of ms values within each
-	interval, and not the full vector of intervals. */
-	float CalcMSEstimate(vector<float>& v);
+	the interval The std::vector passed to it is the std::vector of ms values within each
+	interval, and not the full std::vector of intervals. */
+	float CalcMSEstimate(std::vector<float>& v);
 
 	// Wraps the three prepatory functions below
 	void InitHand(Finger& f1, Finger& f2, float ts);
@@ -58,7 +70,7 @@ class Hand
 	wane. Experience in both gameplay and algorithm testing has shown the
 	appropriate value to be around 0.8. The multiplier is scaled to the
 	proportionate difference in player skill. */
-	vector<float> StamAdjust(float x, vector<float> diff);
+	std::vector<float> StamAdjust(float x, std::vector<float> diff);
 
 	/*	For a given player skill level x, invokes the function used by wife
 	scoring to assert the average of the distribution of point gain for each
@@ -66,23 +78,26 @@ class Hand
 	of points achieved by this hand. */
 	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs);
 
-	vector<float> ohjumpscale;
-	vector<float> rollscale;
-	vector<float> hsscale;
-	vector<float> jumpscale;
-	vector<float> anchorscale;
-	vector<int> v_itvpoints; // Point allotment for each interval
-
+	std::vector<float> ohjumpscale;
+	std::vector<float> rollscale;
+	std::vector<float> hsscale;
+	std::vector<float> jumpscale;
+	std::vector<float> anchorscale;
+	std::vector<int> v_itvpoints;	// Point allotment for each interval
+	std::vector<float> v_itvNPSdiff; // Calculated difficulty for each interval
+	std::vector<float> v_itvMSdiff;  // Calculated difficulty for each interval
+	std::vector<float> debug;		 // debug info placement
+	std::vector<float> finalMSDvals; // cancer cancer cancer cancer
+	std::vector<float> pointslost;
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
-	vector<float> v_itvNPSdiff; // Calculated difficulty for each interval
-	vector<float> v_itvMSdiff;  // Calculated difficulty for each interval
+
 	float timingscale; // Timingscale for use in the point proportion function
 	float jumpstreamscaler = 0.975f;
 	float handstreamscaler = 0.92f;
 	float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						1.025f; // multiplier to standardize baselines
+						1.025; // multiplier to standardize baselines
 
 	// Stamina Model params
 	const float ceil = 1.08f;	// stamina multiplier max
@@ -99,30 +114,37 @@ class Calc
 	hand objects and then runs the chisel function under varying circumstances
 	to estimate difficulty for each different skillset. Currently only
 	overall/stamina are being produced. */
-	vector<float> CalcMain(const vector<NoteInfo>& NoteInfo, float timingscale);
+	std::vector<float> CalcMain(const std::vector<NoteInfo>& NoteInfo, float timingscale, float score_goal);
 
 	// redo these asap
-	vector<float> JackStamAdjust(vector<float>& j, float x, bool jackstam);
-	float JackLoss(vector<float>& j, float x, bool jackstam);
-	JackSeq SequenceJack(const vector<NoteInfo>& NoteInfo, int t);
+	std::vector<float> JackStamAdjust(std::vector<float>& j, float x, bool jackstam);
+	float JackLoss(std::vector<float>& j, float x, bool jackstam);
+	JackSeq SequenceJack(const std::vector<NoteInfo>& NoteInfo, int t);
+
+	CalcPatternMod debugMod = CalcPatternMod::None;
 
 	int numitv;
-	int fastwalk(const vector<NoteInfo>& NoteInfo);
+	int fastwalk(const std::vector<NoteInfo>& NoteInfo);
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
-	before passing the results to the hand initialization functions. Also passes
-	the input timingscale value. */
-	void InitializeHands(const vector<NoteInfo>& NoteInfo, float ts);
+	before passing
+	the results to the hand initialization functions. Also passes the input
+	timingscale value. */
+	void InitializeHands(const std::vector<NoteInfo>& NoteInfo, float ts);
 
 	/*	Slices the track into predefined intervals of time. All taps within each
 	interval have their ms values from the last note in the same column
-	calculated and the result is spit out into a new Finger object, or vector of
-	vectors of floats (ms from last note in the track). */
-	Finger ProcessFinger(const vector<NoteInfo>& NoteInfo, int t);
+	calculated and the result is spit out
+	into a new Finger object, or std::vector of std::vectors of floats (ms from last note
+	in the track). */
+	Finger ProcessFinger(const std::vector<NoteInfo>& NoteInfo, int t);
 
 	// How many buttons do you press for this chart (currently hardcoded,
 	// clearly)
 	int numTracks = 4;
+
+	float vb = 0.f;
+	float vt = 0.f;
 
 	// Derivative calc params
 	float MusicRate = 1.f;
@@ -146,23 +168,24 @@ class Calc
 				 bool jack,
 				 bool nps,
 				 bool js,
-				 bool hs,
-				 bool jackstam);
+				 bool hs);
 
-	vector<float> OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
+	std::vector<float> OHJumpDownscaler(const std::vector<NoteInfo>& NoteInfo,
 								   int t1,
 								   int t2);
-	vector<float> Anchorscaler(const vector<NoteInfo>& NoteInfo,
+	std::vector<float> Anchorscaler(const std::vector<NoteInfo>& NoteInfo,
 							   int t1,
 							   int t2);
-	vector<float> HSDownscaler(const vector<NoteInfo>& NoteInfo);
-	vector<float> JumpDownscaler(const vector<NoteInfo>& NoteInfo);
-	vector<float> RollDownscaler(Finger f1, Finger f2);
+	std::vector<float> HSDownscaler(const std::vector<NoteInfo>& NoteInfo);
+	std::vector<float> JumpDownscaler(const std::vector<NoteInfo>& NoteInfo);
+	std::vector<float> RollDownscaler(Finger f1, Finger f2);
 	void Purge();
 	float techscaler = 0.97f;
 
+	Hand left_hand;
+	Hand right_hand;
   private:
-	vector<vector<int>> nervIntervals;
+	std::vector<std::vector<int>> nervIntervals;
 
 	// Const calc params
 	const bool SmoothPatterns =
@@ -170,11 +193,8 @@ class Calc
 	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
 	const bool logpatterns = false;
 
-	float vt = 0.f;
-	float vb = 0.f;
-
-	Hand* left = new Hand;
-	Hand* right = new Hand;
+	float dumbvalue = 1.f;
+	int dumbcounter = 0;
 
 	JackSeq j0;
 	JackSeq j1;
@@ -182,18 +202,24 @@ class Calc
 	JackSeq j3;
 };
 
-MINACALC_API vector<float>
-MinaSDCalc(const vector<NoteInfo>& NoteInfo,
-		   int numTracks,
+MINACALC_API std::vector<float>
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
-		   float goal,
-		   float timingscale,
-		   bool negbpms);
+		   float goal);
 MINACALC_API MinaSD
-MinaSDCalc(const vector<NoteInfo>& NoteInfo,
-		   int numTracks,
-		   float goal,
-		   float timingscale,
-		   bool negbpms);
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo);
+
+MINACALC_API void
+MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
+				float musicrate,
+				float goal,
+				std::vector<std::vector<float>>& handInfo,
+				CalcPatternMod cpm = CalcPatternMod::None);
 MINACALC_API int
 GetCalcVersion();
+
+/*
+To get debug output:
+1. Turn off the built in showlog window
+2. Do StepMania.exe >> out.txt in cmd
+*/

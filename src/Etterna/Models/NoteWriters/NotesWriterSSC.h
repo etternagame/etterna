@@ -1,4 +1,4 @@
-﻿#ifndef NOTES_WRITER_SSC_H
+#ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
 
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -45,7 +45,7 @@ WriteEditFileToMachine(const Song* pSong, Steps* pSteps, RString& sErrorOut);
 RString
 MSDToString(MinaSD x);
 RString
-MSDsAtRateToString(SDiffs x);
+MSDsAtRateToString(std::vector<float> x);
 }
 
 #endif
