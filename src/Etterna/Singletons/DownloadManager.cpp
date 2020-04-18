@@ -979,8 +979,8 @@ DownloadManager::UploadScore(HighScore* hs,
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback{move(callback)}, load_from_disk](HTTPRequest& req,
-													   CURLMsg*) {
+	auto done = [this, hs, callback{ move(callback) }, load_from_disk](
+				  HTTPRequest& req, CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
@@ -989,8 +989,7 @@ DownloadManager::UploadScore(HighScore* hs,
 					   "response body: \"%s\")",
 					   rapidjson::GetParseError_En(d.GetParseError()),
 					   req.result.c_str());
-			if (callback)
-				callback();
+			callback();
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -1006,30 +1005,31 @@ DownloadManager::UploadScore(HighScore* hs,
 							   response_code,
 							   status,
 							   req.result.c_str());
-					DLMAN->StartSession(DLMAN->sessionUser,
-										DLMAN->sessionPass,
-										[hs,
-										 callback{ move(callback) },
-										 load_from_disk](bool logged) {
-											if (logged) {
-												DLMAN->UploadScore(
-												  hs, callback, load_from_disk);
-											}
-										});
+					DLMAN->StartSession(
+					  DLMAN->sessionUser,
+					  DLMAN->sessionPass,
+					  [hs, callback{ move(callback) }, load_from_disk](
+						bool logged) {
+						  if (logged) {
+							  DLMAN->UploadScore(hs, callback, load_from_disk);
+						  }
+					  });
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
 					hs->forceuploadedthissession = true;
 				}
-				LOG->Trace(
-				  "Score upload response contains error "
-				  "(http status: %d error status: %d response body: \"%s\" score key: \"%s\")",
-				  response_code,
-				  status,
-				  req.result.c_str(),
-          hs->GetScoreKey().c_str());
-				if (callback)
-					callback();
+				// We don't log 406s because those are "not a a pb"
+				// Which are normal, unless we're using verbose logging
+				if (status != 406 || PREFSMAN->m_verbose_log > 1)
+					LOG->Trace(
+					  "Score upload response contains error "
+					  "(http status: %d error status: %d response body: "
+					  "\"%s\" score key: \"%s\")",
+					  response_code,
+					  status,
+					  req.result.c_str(),
+					  hs->GetScoreKey().c_str());
 				return false;
 			};
 			if (d["errors"].IsArray()) {
@@ -1051,6 +1051,8 @@ DownloadManager::UploadScore(HighScore* hs,
 						   response_code,
 						   req.result.c_str());
 			}
+			callback();
+			return;
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
 			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
@@ -1080,8 +1082,7 @@ DownloadManager::UploadScore(HighScore* hs,
 					   response_code,
 					   req.result.c_str());
 		}
-		if (callback)
-			callback();
+		callback();
 	};
 	// TODO: Do we want to call callback in the fail HTTPRequest handler?
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -1097,7 +1098,7 @@ void
 DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 {
 	this->UploadScore(
-	  hs, nullptr, true /* (Without replay data loading from disk)*/);
+	  hs, []() {}, true /* (Without replay data loading from disk)*/);
 }
 
 // for older scores or newer scores that failed to upload using the above
@@ -1169,7 +1170,8 @@ DownloadManager::UploadScores()
 	}
 
 	if (!toUpload.empty())
-		LOG->Trace("Updating online scores.");
+		LOG->Trace("Updating online scores. (Uploading %d scores)",
+				   toUpload.size());
 	uploadSequentially(toUpload, toUpload.size());
 
 	return true;
@@ -1201,26 +1203,31 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 					ForceUploadScoreQueue.push_back(s);
 	}
 
-	if (startnow)
+	if (startnow) {
+		LOG->Trace("Starting sequential upload of %d scores",
+				   ForceUploadScoreQueue.size());
 		BeginSequentialUploadOfAccumulatedQueue();
+	}
 }
-
 // wrapper for packs
 void
 DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
-	// This check is a bit redundant, we don't want to try to begin the upload
-	// when this is called from within a "bigger" forceupload, either of these
-	// checks should be enough I think
+	// This check is a bit redundant, we don't want to try to begin the
+	// upload when this is called from within a "bigger" forceupload, either
+	// of these checks should be enough I think
 	startnow = startnow && ForceUploadScoreQueue.empty();
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);
 
-	if (startnow)
+	if (startnow) {
+		LOG->Trace("Starting sequential upload of %d scores",
+				   ForceUploadScoreQueue.size());
 		BeginSequentialUploadOfAccumulatedQueue();
+	}
 }
 void
 DownloadManager::ForceUploadAllScores()
@@ -1228,8 +1235,10 @@ DownloadManager::ForceUploadAllScores()
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-				ForceUploadScoresForChart(c->GetChartKey(), false);
+			ForceUploadScoresForChart(c->GetChartKey(), false);
 
+	LOG->Trace("Starting sequential upload of %d scores",
+			   ForceUploadScoreQueue.size());
 	BeginSequentialUploadOfAccumulatedQueue();
 }
 void
@@ -1705,8 +1714,8 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				else
 					tmp.scoreid = "";
 
-				// filter scores not on the current rate out if enabled... dunno
-				// if we need this precision -mina
+				// filter scores not on the current rate out if enabled...
+				// dunno if we need this precision -mina
 				if (score.HasMember("rate") && score["rate"].IsNumber())
 					tmp.rate = score["rate"].GetFloat();
 				else
@@ -1735,20 +1744,20 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				else
 					tmp.hasReplay = false;
 
-				// eo still has some old profiles with various edge issues that
-				// unfortunately need to be handled here screen out old 11111
-				// flags (my greatest mistake) and it's probably a safe bet to
-				// throw out below 25% scores -mina
+				// eo still has some old profiles with various edge issues
+				// that unfortunately need to be handled here screen out old
+				// 11111 flags (my greatest mistake) and it's probably a
+				// safe bet to throw out below 25% scores -mina
 				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
 
-				// it seems prudent to maintain the eo functionality in this way
-				// and screen out multiple scores from the same user even more
-				// prudent would be to put this last where it belongs, we don't
-				// want to screen out scores for players who wouldn't have had
-				// them registered in the first place -mina Moved this filtering
-				// to the Lua call. -poco
-				// if (userswithscores.count(tmp.username) == 1)
+				// it seems prudent to maintain the eo functionality in this
+				// way and screen out multiple scores from the same user
+				// even more prudent would be to put this last where it
+				// belongs, we don't want to screen out scores for players
+				// who wouldn't have had them registered in the first place
+				// -mina Moved this filtering to the Lua call. -poco if
+				// (userswithscores.count(tmp.username) == 1)
 				//	continue;
 
 				// userswithscores.emplace(tmp.username);
@@ -2065,9 +2074,10 @@ DownloadManager::OnLogin()
 		DLMAN->UploadScores();
 
 		// ok we don't actually want to delete this yet since this is
-		// specifically for appending replaydata for a score the site does not
-		// have data for without altering the score entry in any other way, but
-		// keep disabled for now DLMAN->UpdateOnlineScoreReplayData();
+		// specifically for appending replaydata for a score the site does
+		// not have data for without altering the score entry in any other
+		// way, but keep disabled for now
+		// DLMAN->UpdateOnlineScoreReplayData();
 	}
 	if (GAMESTATE->m_pCurSteps != nullptr)
 		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
@@ -2548,7 +2558,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		if (!bundle.empty())
 			avgpackdiff /= bundle.size();
 
-		// this may be kind of unintuitive but lets roll with it for now -mina
+		// this may be kind of unintuitive but lets roll with it for now
+		// -mina
 		lua_pushnumber(L, totalsize);
 		lua_setfield(L, -2, "TotalSize");
 		lua_pushnumber(L, avgpackdiff);
@@ -2621,8 +2632,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
-					RString Error =
-					  "Error running RequestChartLeaderBoard Finish Function: ";
+					RString Error = "Error running RequestChartLeaderBoard "
+									"Finish Function: ";
 					lua_newtable(L);
 					for (unsigned i = 0; i < leaderboardScores.size(); ++i) {
 						auto& s = leaderboardScores[i];

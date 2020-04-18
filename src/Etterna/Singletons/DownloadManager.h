@@ -259,7 +259,7 @@ class DownloadManager
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
 	  HighScore* hs,
-	  function<void()> callback = function<void()>());
+	  function<void()> callback = []() {});
 
 	bool ShouldUploadScores();
 
