@@ -27,6 +27,7 @@
 #include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 using namespace rapidjson;
 #include <iostream>
@@ -538,7 +539,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mHTTPHandle, &HTTPRunning);
 			break;
@@ -629,7 +630,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
@@ -915,193 +916,21 @@ SetCURLPOSTScore(CURL*& curlHandle,
 						 string(GradeToString(hs->GetWifeGrade()).c_str()));
 }
 
-// we want to keep this for uploading old scores without replaydata,
-// since it will be the only way apart from xml upload
 void
-DownloadManager::UploadScore(HighScore* hs)
+DownloadManager::UploadScore(HighScore* hs,
+							 function<void()> callback,
+							 bool load_from_disk)
 {
-	if (!LoggedIn())
+	if (!LoggedIn()) {
+		LOG->Trace(
+		  "Attempted to upload score when not logged in (scorekey: \"%s\")",
+		  hs->GetScoreKey().c_str());
 		return;
-	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
-	curl_httppost* form = nullptr;
-	curl_httppost* lastPtr = nullptr;
-	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "[]");
-	SetCURLPostToURL(curlHandle, url);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [hs](HTTPRequest& req, CURLMsg*) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
-			return;
-		}
-		if (d.HasMember("errors")) {
-			auto onStatus = [hs](int status) {
-				if (status == 22) {
-					DLMAN->StartSession(DLMAN->sessionUser,
-										DLMAN->sessionPass,
-										[hs](bool logged) {
-											if (logged) {
-												DLMAN->UploadScore(hs);
-											}
-										});
-					return true;
-				} else if (status == 404 || status == 405 || status == 406) {
-					hs->AddUploadedServer(serverURL.Get());
-				}
-				return false;
-			};
-			if (d["errors"].IsArray()) {
-				for (auto& error : d["errors"].GetArray()) {
-					if (!error["status"].IsInt())
-						continue;
-					int status = error["status"].GetInt();
-					if (onStatus(status))
-						return;
-				}
-			} else if (d["errors"].HasMember("status") &&
-					   d["errors"]["status"].IsInt()) {
-				if (onStatus(d["errors"]["status"].GetInt()))
-					return;
-			}
-		}
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0) {
-			hs->AddUploadedServer(serverURL.Get());
-		}
-	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, &(req->result));
-	curl_multi_add_handle(mHTTPHandle, req->handle);
-	HTTPRequests.push_back(req);
-	return;
-}
+	}
 
-// this is for new/live played scores that have replaydata in memory
-void
-DownloadManager::UploadScoreWithReplayData(HighScore* hs)
-{
-	if (!LoggedIn())
-		return;
-	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
-	curl_httppost* form = nullptr;
-	curl_httppost* lastPtr = nullptr;
-	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString;
-	const auto& offsets = hs->GetOffsetVector();
-	const auto& columns = hs->GetTrackVector();
-	const auto& types = hs->GetTapNoteTypeVector();
-	const auto& rows = hs->GetNoteRowVector();
-	if (offsets.size() > 0) {
-		replayString = "[";
-		vector<float>& timestamps = hs->timeStamps;
-		for (size_t i = 0; i < offsets.size(); i++) {
-			replayString += "[";
-			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]) + ",";
-			replayString += to_string(columns[i]) + ",";
-			replayString += to_string(types[i]) + ",";
-			replayString += to_string(rows[i]);
-			replayString += "],";
-		}
-		replayString =
-		  replayString.substr(0, replayString.size() - 1); // remove ","
-		replayString += "]";
-	} else
-		replayString = "";
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "replay_data", replayString);
-	SetCURLPostToURL(curlHandle, url);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs](HTTPRequest& req, CURLMsg*) {
-		long response_code;
-		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
-			return;
-		}
-		if (d.HasMember("errors")) {
-			auto onStatus = [hs](int status) {
-				if (status == 22) {
-					DLMAN->StartSession(
-					  DLMAN->sessionUser,
-					  DLMAN->sessionPass,
-					  [hs](bool logged) {
-						  if (logged) {
-							  DLMAN->UploadScoreWithReplayData(hs);
-						  }
-					  });
-					return true;
-				} else if (status == 404 || status == 405 || status == 406) {
-					hs->AddUploadedServer(serverURL.Get());
-				}
-				return false;
-			};
-			if (d["errors"].IsArray()) {
-				for (auto& error : d["errors"].GetArray()) {
-					if (!error["status"].IsInt())
-						continue;
-					int status = error["status"].GetInt();
-					if (onStatus(status))
-						return;
-				}
-			} else if (d["errors"].HasMember("status") &&
-					   d["errors"]["status"].IsInt()) {
-				if (onStatus(d["errors"]["status"].GetInt()))
-					return;
-			}
-		}
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace(("ReplayData Upload Response: " + req.result).c_str());
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("diff") &&
-			d["data"]["attributes"]["diff"].IsObject()) {
-			auto& diffs = d["data"]["attributes"]["diff"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (ss != Skill_Overall && diffs.HasMember(str.c_str()) &&
-					diffs[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] +=
-					  diffs[str.c_str()].GetFloat();
-			}
-			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
-				(DLMAN->sessionRatings)[Skill_Overall] +=
-				  diffs["Rating"].GetFloat();
-			hs->AddUploadedServer(serverURL.Get());
-			HTTPRunning = response_code;
-		}
-	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, &(req->result));
-	curl_multi_add_handle(mHTTPHandle, req->handle);
-	HTTPRequests.push_back(req);
-	return;
-}
-
-// for older scores or newer scores that failed to upload using the above
-// function we should probably do some refactoring of this
-void
-DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
-												   function<void()> callback)
-{
-	if (!LoggedIn())
-		return;
-
-	auto* hs = SCOREMAN->GetScoresByKey().at(sk);
-	// this should never be true unless we are using the manual forceupload
-	// functions, in which case we will defer to the scoreuploader that
-	// does not use replaydata
-	if (!hs->LoadReplayData())
-		UploadScore(hs);
+	if (load_from_disk) {
+		hs->LoadReplayData();
+	}
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
@@ -1116,8 +945,13 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-		if (steps == nullptr)
+		if (steps == nullptr) {
+			LOG->Trace("Attempted to upload score with no loaded steps "
+					   "(scorekey: \"%s\" chartkey: \"%s\")",
+					   hs->GetScoreKey().c_str(),
+					   hs->GetChartKey().c_str());
 			return;
+		}
 		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
 			rows, hs->GetMusicRate());
@@ -1136,39 +970,64 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 		  replayString.substr(0, replayString.size() - 1); // remove ","
 		replayString += "]";
 		hs->UnloadReplayData();
-	} else
-		replayString = "";
+	} else {
+		// this should never be true unless we are using the manual forceupload
+		// functions
+		replayString = "[]";
+	}
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback](HTTPRequest& req, CURLMsg*) {
+	auto done = [this, hs, callback{move(callback)}, load_from_disk](HTTPRequest& req,
+													   CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			LOG->Trace("Score upload response json parse error (error: \"%s\" "
+					   "response body: \"%s\")",
+					   rapidjson::GetParseError_En(d.GetParseError()),
+					   req.result.c_str());
+			if (callback)
+				callback();
 			return;
 		}
 		if (d.HasMember("errors")) {
-			auto onStatus = [hs, &callback](int status) {
+			auto onStatus = [hs,
+							 response_code,
+							 load_from_disk,
+							 &callback,
+							 &req](int status) {
 				if (status == 22) {
-					DLMAN->StartSession(
-					  DLMAN->sessionUser,
-					  DLMAN->sessionPass,
-					  [hs](bool logged) {
-						  if (logged) {
-							  DLMAN->UploadScoreWithReplayDataFromDisk(
-								hs->GetScoreKey());
-						  }
-					  });
-					if (callback)
-						callback();
+					LOG->Trace("Score upload response contains error, retrying "
+							   "(http status: %d error status: %d response "
+							   "body: \"%s\")",
+							   response_code,
+							   status,
+							   req.result.c_str());
+					DLMAN->StartSession(DLMAN->sessionUser,
+										DLMAN->sessionPass,
+										[hs,
+										 callback{ move(callback) },
+										 load_from_disk](bool logged) {
+											if (logged) {
+												DLMAN->UploadScore(
+												  hs, callback, load_from_disk);
+											}
+										});
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
-					LOG->Trace("Error uploading score %s", hs->GetScoreKey().c_str());
 				}
+				LOG->Trace(
+				  "Score upload response contains error "
+				  "(http status: %d error status: %d response body: \"%s\")",
+				  response_code,
+				  status,
+				  req.result.c_str());
+				if (callback)
+					callback();
 				return false;
 			};
 			if (d["errors"].IsArray()) {
@@ -1183,6 +1042,12 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 					   d["errors"]["status"].IsInt()) {
 				if (onStatus(d["errors"]["status"].GetInt()))
 					return;
+			} else {
+				LOG->Trace("Score upload response contains error and we failed "
+						   "to recognize it"
+						   "(http status: %d response body: \"%s\")",
+						   response_code,
+						   req.result.c_str());
 			}
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
@@ -1205,17 +1070,50 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 				(DLMAN->sessionRatings)[Skill_Overall] +=
 				  diffs["Rating"].GetFloat();
 			hs->AddUploadedServer(serverURL.Get());
-			HTTPRunning = response_code;
+			// HTTPRunning = response_code;// TODO: Why were we doing this?
+		} else {
+			LOG->Trace("Score upload response malformed json "
+					   "(http status: %d response body: \"%s\")",
+					   response_code,
+					   req.result.c_str());
 		}
 		if (callback)
 			callback();
 	};
+	// TODO: Do we want to call callback in the fail HTTPRequest handler?
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
+
 	return;
 }
+
+// this is for new/live played scores that have replaydata in memory
+void
+DownloadManager::UploadScoreWithReplayData(HighScore* hs)
+{
+	this->UploadScore(
+	  hs, nullptr, true /* (Without replay data loading from disk)*/);
+}
+
+// for older scores or newer scores that failed to upload using the above
+// function we should probably do some refactoring of this
+void
+DownloadManager::UploadScoreWithReplayDataFromDisk(HighScore* hs,
+												   function<void()> callback)
+{
+	this->UploadScore(
+	  hs, callback, true /* (With replay data loading from disk)*/);
+}
+
+// This function begins uploading the given list (deque) of scores
+// It does so one score at a time, sequentially (But without blocking)
+// So as to not spam the server with possibly hundreds or thousands of scores
+// the way it does that is by using a callback and moving the remaining scores
+// into the callback which calls this function again
+// (So it is essentially kind of recursive, with the base case of an empty
+// deque)
 void
 uploadSequentially(deque<HighScore*> toUpload, int workload)
 {
@@ -1224,23 +1122,26 @@ uploadSequentially(deque<HighScore*> toUpload, int workload)
 				 1.f - (static_cast<float>(toUpload.size()) /
 						static_cast<float>(workload)));
 	MESSAGEMAN->Broadcast(msg);
-	auto it = toUpload.begin();
-	if (it != toUpload.end()) {
+
+	if (!toUpload.empty()) {
+		auto hs = toUpload.front();
 		toUpload.pop_front();
-		auto& hs = (*it);
 		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs->GetScoreKey(), [hs, toUpload, workload]() {
-			  hs->AddUploadedServer(serverURL.Get());
+		  hs, [hs, toUpload{ move(toUpload) }, workload]() {
 			  uploadSequentially(toUpload, workload);
 		  });
 	}
 	return;
 }
+
 bool
 DownloadManager::UploadScores()
 {
 	if (!LoggedIn())
 		return false;
+
+	// First we accumulate top 2 scores that have not been uploaded and have
+	// replay data
 	auto scores = SCOREMAN->GetAllPBPtrs();
 	deque<HighScore*> toUpload;
 	for (auto& vec : scores) {
@@ -1256,8 +1157,8 @@ DownloadManager::UploadScores()
 
 	// we don't want to run the upload check for rescores; rescores have
 	// replaydata by definition
-	auto& scores_two_electric_boogaloo = SCOREMAN->recalculatedscores;
-	for (auto sk : scores_two_electric_boogaloo) {
+	auto& recalculatedscorekeys = SCOREMAN->recalculatedscores;
+	for (auto sk : recalculatedscorekeys) {
 		auto s = SCOREMAN->GetScoresByKey().at(sk);
 		auto ts = s->GetTopScore();
 		if (ts == 1 || ts == 2)
@@ -1267,10 +1168,11 @@ DownloadManager::UploadScores()
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores.");
 	uploadSequentially(toUpload, toUpload.size());
+
 	return true;
 }
 void
-DownloadManager::creepypasta()
+DownloadManager::BeginSequentialUploadOfAccumulatedQueue()
 {
 	// figure out how to make this not start if there are active uploads
 	uploadSequentially(ForceUploadScoreQueue, ForceUploadScoreQueue.size());
@@ -1283,7 +1185,10 @@ DownloadManager::creepypasta()
 void
 DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 {
-	startnow = startnow && ForceUploadScoreQueue.empty(); 
+	// This check is a bit redundant, we don't want to try to begin the upload
+	// when this is called from within a "bigger" forceupload, either of these
+	// checks should be enough I think
+	startnow = startnow && ForceUploadScoreQueue.empty();
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) { // ignoring topscore flags; upload worst->best
 		auto& test = cs->GetAllScores();
@@ -1293,7 +1198,7 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	}
 
 	if (startnow)
-		creepypasta();
+		BeginSequentialUploadOfAccumulatedQueue();
 }
 
 // wrapper for packs
@@ -1301,6 +1206,9 @@ void
 DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
+	// This check is a bit redundant, we don't want to try to begin the upload
+	// when this is called from within a "bigger" forceupload, either of these
+	// checks should be enough I think
 	startnow = startnow && ForceUploadScoreQueue.empty();
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
@@ -1308,19 +1216,17 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 			ForceUploadScoresForChart(c->GetChartKey(), false);
 
 	if (startnow)
-		creepypasta();
+		BeginSequentialUploadOfAccumulatedQueue();
 }
 void
-DownloadManager::ForceUploadAllScores(bool startnow)
+DownloadManager::ForceUploadAllScores()
 {
-	startnow = startnow && ForceUploadScoreQueue.empty();
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);
 
-	if (startnow)
-		creepypasta();
+	BeginSequentialUploadOfAccumulatedQueue();
 }
 void
 DownloadManager::EndSessionIfExists()
@@ -2166,10 +2072,10 @@ DownloadManager::OnLogin()
 }
 
 void
-DownloadManager::StartSession(string user,
-							  string pass,
-							  function<void(bool loggedIn)> callback =
-								[](bool) { return; })
+DownloadManager::StartSession(
+  string user,
+  string pass,
+  function<void(bool loggedIn)> callback = [](bool) { return; })
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user == "") {
@@ -2804,23 +2710,24 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
-		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
+		DLMAN->UploadScoreWithReplayDataFromDisk(
+		  SCOREMAN->GetScoresByKey().at(SArg(1)));
 		// DLMAN->UpdateOnlineScoreReplayData(SArg(1));
 		return 0;
 	}
 	static int UploadScoresForChart(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForChart(SArg(1), true);
+		DLMAN->ForceUploadScoresForChart(SArg(1));
 		return 0;
 	}
 	static int UploadScoresForPack(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForPack(SArg(1), true);
+		DLMAN->ForceUploadScoresForPack(SArg(1));
 		return 0;
 	}
 	static int UploadAllScores(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadAllScores(true);
+		DLMAN->ForceUploadAllScores();
 		return 0;
 	}
 	LunaDownloadManager()
