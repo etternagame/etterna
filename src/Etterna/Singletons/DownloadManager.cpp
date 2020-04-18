@@ -1167,6 +1167,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
+					hs->forceuploadedthissession = true;
 					LOG->Trace("Error uploading score %s", hs->GetScoreKey().c_str());
 				}
 				return false;
@@ -1205,6 +1206,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 				(DLMAN->sessionRatings)[Skill_Overall] +=
 				  diffs["Rating"].GetFloat();
 			hs->AddUploadedServer(serverURL.Get());
+			hs->forceuploadedthissession = true;
 			HTTPRunning = response_code;
 		}
 		if (callback)
@@ -1228,11 +1230,11 @@ uploadSequentially(deque<HighScore*> toUpload, int workload)
 	if (it != toUpload.end()) {
 		toUpload.pop_front();
 		auto& hs = (*it);
-		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs->GetScoreKey(), [hs, toUpload, workload]() {
-			  hs->AddUploadedServer(serverURL.Get());
-			  uploadSequentially(toUpload, workload);
-		  });
+			DLMAN->UploadScoreWithReplayDataFromDisk(
+			  hs->GetScoreKey(), [hs, toUpload, workload]() {
+				  hs->AddUploadedServer(serverURL.Get());
+				  uploadSequentially(toUpload, workload);
+			  });
 	}
 	return;
 }
@@ -1288,8 +1290,9 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	if (cs) { // ignoring topscore flags; upload worst->best
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
-			if (s->GetGrade() != Grade_Failed)
-				ForceUploadScoreQueue.push_back(s);
+			if (!s->forceuploadedthissession)
+				if (s->GetGrade() != Grade_Failed)
+					ForceUploadScoreQueue.push_back(s);
 	}
 
 	if (startnow)
@@ -1317,7 +1320,7 @@ DownloadManager::ForceUploadAllScores(bool startnow)
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			ForceUploadScoresForChart(c->GetChartKey(), false);
+				ForceUploadScoresForChart(c->GetChartKey(), false);
 
 	if (startnow)
 		creepypasta();
