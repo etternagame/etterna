@@ -1019,13 +1019,15 @@ DownloadManager::UploadScore(HighScore* hs,
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
 					hs->AddUploadedServer(serverURL.Get());
+					hs->forceuploadedthissession = true;
 				}
 				LOG->Trace(
 				  "Score upload response contains error "
-				  "(http status: %d error status: %d response body: \"%s\")",
+				  "(http status: %d error status: %d response body: \"%s\" score key: \"%s\")",
 				  response_code,
 				  status,
-				  req.result.c_str());
+				  req.result.c_str(),
+          hs->GetScoreKey().c_str());
 				if (callback)
 					callback();
 				return false;
@@ -1070,6 +1072,7 @@ DownloadManager::UploadScore(HighScore* hs,
 				(DLMAN->sessionRatings)[Skill_Overall] +=
 				  diffs["Rating"].GetFloat();
 			hs->AddUploadedServer(serverURL.Get());
+			hs->forceuploadedthissession = true;
 			// HTTPRunning = response_code;// TODO: Why were we doing this?
 		} else {
 			LOG->Trace("Score upload response malformed json "
@@ -1193,8 +1196,9 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	if (cs) { // ignoring topscore flags; upload worst->best
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
-			if (s->GetGrade() != Grade_Failed)
-				ForceUploadScoreQueue.push_back(s);
+			if (!s->forceuploadedthissession)
+				if (s->GetGrade() != Grade_Failed)
+					ForceUploadScoreQueue.push_back(s);
 	}
 
 	if (startnow)
@@ -1224,7 +1228,7 @@ DownloadManager::ForceUploadAllScores()
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			ForceUploadScoresForChart(c->GetChartKey(), false);
+				ForceUploadScoresForChart(c->GetChartKey(), false);
 
 	BeginSequentialUploadOfAccumulatedQueue();
 }

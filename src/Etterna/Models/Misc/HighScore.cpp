@@ -89,13 +89,6 @@ struct HighScoreImpl
 					// unused but here for when we need it (not to be confused
 					// with hasreplay()) -mina
 
-	float RescoreToWifeTS(float ts);
-
-	RString OffsetsToString(vector<float> v) const;
-	vector<float> OffsetsToVector(RString s);
-	RString NoteRowsToString(vector<int> v) const;
-	vector<int> NoteRowsToVector(RString s);
-
 	bool is39import = false;
 	int WifeVersion = 0;
 
@@ -195,88 +188,6 @@ HighScoreImpl::GetWifeGrade() const
 	if (prc >= 0.6f)
 		return Grade_Tier15;
 	return Grade_Tier16;
-}
-
-RString
-HighScoreImpl::OffsetsToString(vector<float> v) const
-{
-	RString o = "";
-	if (v.empty())
-		return o;
-
-	o = to_string(v[0]);
-	for (size_t i = 1; i < v.size(); i++)
-		o.append("," + to_string(v[i]));
-	return o;
-}
-
-RString
-HighScoreImpl::NoteRowsToString(vector<int> v) const
-{
-	RString o = "";
-	if (v.empty())
-		return o;
-
-	o = to_string(v[0]);
-	for (size_t i = 1; i < v.size(); i++)
-		o.append("," + to_string(v[i]));
-	return o;
-}
-
-vector<float>
-HighScoreImpl::OffsetsToVector(RString s)
-{
-	vector<float> o;
-	size_t startpos = 0;
-
-	if (s == "")
-		return o;
-
-	do {
-		size_t pos;
-		pos = s.find(",", startpos);
-		if (pos == s.npos)
-			pos = s.size();
-
-		if (pos - startpos > 0) {
-			if (startpos == 0 && pos - startpos == s.size())
-				o.emplace_back(StringToFloat(s));
-			else {
-				const RString AddRString = s.substr(startpos, pos - startpos);
-				o.emplace_back(StringToFloat(AddRString));
-			}
-		}
-		startpos = pos + 1;
-	} while (startpos <= s.size());
-	return o;
-}
-
-vector<int>
-HighScoreImpl::NoteRowsToVector(RString s)
-{
-	vector<int> o;
-	size_t startpos = 0;
-
-	if (s == "")
-		return o;
-
-	do {
-		size_t pos;
-		pos = s.find(",", startpos);
-		if (pos == s.npos)
-			pos = s.size();
-
-		if (pos - startpos > 0) {
-			if (startpos == 0 && pos - startpos == s.size())
-				o.emplace_back(StringToInt(s));
-			else {
-				const RString AddRString = s.substr(startpos, pos - startpos);
-				o.emplace_back(StringToInt(AddRString));
-			}
-		}
-		startpos = pos + 1;
-	} while (startpos <= s.size());
-	return o;
 }
 
 void
@@ -820,12 +731,12 @@ HighScore::GenerateValidationKeys()
 	return key;
 }
 
-string
+const std::string&
 HighScore::GetName() const
 {
 	return m_Impl->sName;
 }
-string
+const std::string&
 HighScore::GetChartKey() const
 {
 	return m_Impl->ChartKey;
@@ -892,7 +803,7 @@ HighScore::GetEtternaValid() const
 	return m_Impl->bEtternaValid;
 }
 bool
-HighScore::IsUploadedToServer(string s) const
+HighScore::IsUploadedToServer(const std::string& s) const
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
 		   m_Impl->uploaded.end();
@@ -952,7 +863,7 @@ HighScore::GetHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-string
+const std::string&
 HighScore::GetScoreKey() const
 {
 	return m_Impl->ScoreKey;
@@ -967,7 +878,7 @@ HighScore::GetSurvivalSeconds() const
 {
 	return GetSurviveSeconds() + GetLifeRemainingSeconds();
 }
-string
+const std::string&
 HighScore::GetModifiers() const
 {
 	return m_Impl->sModifiers;
@@ -977,17 +888,17 @@ HighScore::GetDateTime() const
 {
 	return m_Impl->dateTime;
 }
-string
+const std::string&
 HighScore::GetPlayerGuid() const
 {
 	return m_Impl->sPlayerGuid;
 }
-string
+const std::string&
 HighScore::GetMachineGuid() const
 {
 	return m_Impl->sMachineGuid;
 }
-string
+const std::string&
 HighScore::GetCountryCode() const
 {
 	return m_Impl->countryCode;
@@ -1221,7 +1132,7 @@ HighScore::SetTopScore(int i)
 {
 	m_Impl->TopScore = i;
 }
-string
+const std::string&
 HighScore::GetValidationKey(ValidationKey vk) const
 {
 	return m_Impl->ValidationKeys[vk];
@@ -1327,7 +1238,7 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 	}
 }
 
-string
+const std::string&
 HighScore::GetDisplayName() const
 {
 	return GetName();
@@ -1558,18 +1469,6 @@ HighScore::RescoreToWifeJudgeDuringLoad(int x)
 
 	float o = p / pmax;
 	return o;
-}
-
-// do not use for now- mina
-float
-HighScoreImpl::RescoreToWifeTS(float ts)
-{
-	float p = 0;
-	FOREACH_CONST(float, vOffsetVector, f)
-	p += wife2(*f, ts);
-
-	p += (iHoldNoteScores[HNS_LetGo] + iHoldNoteScores[HNS_Missed]) * -6.f;
-	return p / static_cast<float>(vOffsetVector.size() * 2);
 }
 
 float

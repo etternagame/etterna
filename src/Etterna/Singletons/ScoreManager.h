@@ -184,7 +184,7 @@ class ScoreManager
 		ASSERT_M(AllScores.size() != 0, "Profile has no Scores.");
 		return AllScores.back();
 	}
-	void PutScoreAtTheTop(string scorekey)
+	void PutScoreAtTheTop(const string& scorekey)
 	{
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());

@@ -24,8 +24,8 @@ struct HighScore
 	/**
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
-	string GetName() const;
-	string GetChartKey() const;
+	const std::string& GetName() const;
+	const std::string& GetChartKey() const;
 	int GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
@@ -50,7 +50,7 @@ struct HighScore
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	bool IsUploadedToServer(string s) const;
+	bool IsUploadedToServer(const std::string& s) const;
 	vector<float> timeStamps;
 	const vector<float>& GetOffsetVector() const;
 	const vector<int>& GetNoteRowVector() const;
@@ -63,7 +63,7 @@ struct HighScore
 	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
 	vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
 	vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
-	string GetScoreKey() const;
+	const std::string& GetScoreKey() const;
 	int GetTopScore() const;
 	int GetReplayType() const;
 	/**
@@ -75,11 +75,11 @@ struct HighScore
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
-	string GetModifiers() const;
+	const std::string& GetModifiers() const;
 	DateTime GetDateTime() const;
-	string GetPlayerGuid() const;
-	string GetMachineGuid() const;
-	string GetCountryCode() const;
+	const std::string& GetPlayerGuid() const;
+	const std::string& GetMachineGuid() const;
+	const std::string& GetCountryCode() const;
 	int GetProductID() const;
 	int GetTapNoteScore(TapNoteScore tns) const;
 	int GetHoldNoteScore(HoldNoteScore tns) const;
@@ -161,7 +161,7 @@ struct HighScore
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	string GetDisplayName() const;
+	const std::string& GetDisplayName() const;
 
 	// Mina stuff - Mina
 	float RescoreToWife2Judge(int x);
@@ -174,7 +174,7 @@ struct HighScore
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
 	string GenerateValidationKeys();
-	string GetValidationKey(ValidationKey vk) const;
+	const std::string& GetValidationKey(ValidationKey vk) const;
 	vector<int> GetRescoreJudgeVector(int x);
 	// laazy
 	string scoreid;
@@ -182,7 +182,7 @@ struct HighScore
 	string avatar;
 	string countryCode;
 	int wife_ver = 0;
-
+	bool forceuploadedthissession = false;
 	int norms = 0;
 	int musics = 0;
 	int judges = 0;
