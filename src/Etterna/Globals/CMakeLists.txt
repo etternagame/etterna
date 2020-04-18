@@ -1,5 +1,6 @@
 list(APPEND GLOBAL_FILES_SRC
 	"MinaCalc.cpp"
+	"SoloCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
 	"SpecialFiles.cpp"
@@ -7,6 +8,7 @@ list(APPEND GLOBAL_FILES_SRC
 
 list(APPEND GLOBAL_FILES_HPP
 	"MinaCalc.h"
+	"SoloCalc.h"
 	"GameLoop.h"
 	"global.h"
 	"OptionsBinding.h"

@@ -10,6 +10,7 @@
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/SoloCalc.h"
 
 class Profile;
 class NoteData;
@@ -28,9 +29,9 @@ const int MAX_STEPS_DESCRIPTION_LENGTH = 255;
 /** @brief The different ways of displaying the BPM. */
 enum DisplayBPM
 {
-	DISPLAY_BPM_ACTUAL,	/**< Display the song's actual BPM. */
+	DISPLAY_BPM_ACTUAL,	   /**< Display the song's actual BPM. */
 	DISPLAY_BPM_SPECIFIED, /**< Display a specified value or values. */
-	DISPLAY_BPM_RANDOM,	/**< Display a random selection of BPMs. */
+	DISPLAY_BPM_RANDOM,	   /**< Display a random selection of BPMs. */
 	NUM_DisplayBPM,
 	DisplayBPM_Invalid
 };
@@ -201,8 +202,8 @@ class Steps
 	const string& GetChartKey() const { return ChartKey; }
 	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy };
+						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
 	void SetChartKey(const RString& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
 	MinaSD GetAllMSD() const { return diffByRate; }

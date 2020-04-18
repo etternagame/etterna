@@ -15,6 +15,7 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -394,7 +395,10 @@ Steps::CalcEtternaMetadata()
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	diffByRate = MinaSDCalc(cereal);
+	if (m_StepsType == StepsType_dance_solo)
+		diffByRate = SoloCalc(cereal);
+	else
+		diffByRate = MinaSDCalc(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -421,7 +425,8 @@ Steps::BorpNDorf(int modType)
 	dumbthings.clear();
 
 	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+		MinaSDCalcDebug(cereal,
+						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 						0.93f,
 						dumbthings,
 						static_cast<CalcPatternMod>(modType));
@@ -851,10 +856,14 @@ class LunaSteps : public Luna<Steps>
 		auto& ni = nd.SerializeNoteData(etaner);
 		if (ni.size() == 0)
 			return 0;
+		std::vector<float> d;
 
-		std::vector<float> d = MinaSDCalc(ni, rate, goal);
+		if (p->m_StepsType == StepsType_dance_solo) // Single SSR at the moment
+			d = SoloCalc(ni, rate, goal);			// may break the lua?
+		else
+			d = MinaSDCalc(ni, rate, goal);
+
 		auto ssrs = d;
-
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
