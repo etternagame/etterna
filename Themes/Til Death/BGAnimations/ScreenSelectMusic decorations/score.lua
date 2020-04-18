@@ -776,6 +776,27 @@ l[#l + 1] =
 			end
 		end
 	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonFOUR",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 130 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("MOVE EVERY ZIG")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadAllScores()
+				end
+			end
+		end
+	}
 t[#t + 1] = l
 
 t[#t + 1] =

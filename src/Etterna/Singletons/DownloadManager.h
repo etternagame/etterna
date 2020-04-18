@@ -224,9 +224,12 @@ class DownloadManager
 					  function<void(bool loggedIn)>
 						done); // Sends login request if not already logging in
 	void OnLogin();
+	void uploadSequentiallyTWEO();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
+	void creepypasta();
 	void ForceUploadScoresForChart(const std::string& ck, bool startnow);	// forced upload wrapper for charts
 	void ForceUploadScoresForPack(const std::string& pack, bool startnow);	// forced upload wrapper for packs
+	void ForceUploadAllScores(bool startnow);
 	void RefreshPackList(const string& url);
 
 	void init();
@@ -301,6 +304,7 @@ class DownloadManager
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
 	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
+	deque<HighScore*> ForceUploadScoreQueue;
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;

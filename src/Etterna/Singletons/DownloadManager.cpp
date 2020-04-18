@@ -1217,17 +1217,21 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(const string& sk,
 	return;
 }
 void
-uploadSequentially(deque<HighScore*> toUpload) // maybe this can set a progress
-											   // bar for uploads? idk
+uploadSequentially(deque<HighScore*> toUpload, int workload)
 {
+	Message msg("UploadProgress");
+	msg.SetParam("percent",
+				 1.f - (static_cast<float>(toUpload.size()) /
+						static_cast<float>(workload)));
+	MESSAGEMAN->Broadcast(msg);
 	auto it = toUpload.begin();
 	if (it != toUpload.end()) {
 		toUpload.pop_front();
 		auto& hs = (*it);
 		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs->GetScoreKey(), [hs, toUpload]() {
+		  hs->GetScoreKey(), [hs, toUpload, workload]() {
 			  hs->AddUploadedServer(serverURL.Get());
-			  uploadSequentially(toUpload);
+			  uploadSequentially(toUpload, workload);
 		  });
 	}
 	return;
@@ -1254,45 +1258,69 @@ DownloadManager::UploadScores()
 	// replaydata by definition
 	auto& scores_two_electric_boogaloo = SCOREMAN->recalculatedscores;
 	for (auto sk : scores_two_electric_boogaloo) {
-		auto s = SCOREMAN->GetScoresByKey().at(sk);	// doing this the long way around cause reasons
-		auto ts = s->GetTopScore();					// but could be swapped back to pointer vector
+		auto s = SCOREMAN->GetScoresByKey().at(sk);
+		auto ts = s->GetTopScore();
 		if (ts == 1 || ts == 2)
 			toUpload.push_back(s);
 	}
 
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores.");
-	uploadSequentially(toUpload);
+	uploadSequentially(toUpload, toUpload.size());
 	return true;
+}
+void
+DownloadManager::creepypasta()
+{
+	// figure out how to make this not start if there are active uploads
+	uploadSequentially(ForceUploadScoreQueue, ForceUploadScoreQueue.size());
+	ForceUploadScoreQueue.clear();
+	ForceUploadScoreQueue.shrink_to_fit();
 }
 
 // manual upload function that will upload all scores for a chart
 // that skips some of the constraints of the auto uploaders
 void
-DownloadManager::ForceUploadScoresForChart(std::string ck)
+DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 {
-	deque<HighScore*> toUpload;
-	for (auto& s : SCOREMAN->GetScoresForChart(ck)->GetAllScores())
-		toUpload.push_back(s);
-	uploadSequentially(toUpload);
+	startnow = startnow && ForceUploadScoreQueue.empty(); 
+	auto cs = SCOREMAN->GetScoresForChart(ck);
+	if (cs) { // ignoring topscore flags; upload worst->best
+		auto& test = cs->GetAllScores();
+		for (auto& s : test)
+			if (s->GetGrade() != Grade_Failed)
+				ForceUploadScoreQueue.push_back(s);
+	}
+
+	if (startnow)
+		creepypasta();
 }
 
-// dont wrap the chart function so we can see progress as a whole (todo)
+// wrapper for packs
 void
-DownloadManager::ForceUploadScoresForPack(std::string pack)
+DownloadManager::ForceUploadScoresForPack(const std::string& pack,
+										  bool startnow)
 {
-	deque<HighScore*> toUpload;
+	startnow = startnow && ForceUploadScoreQueue.empty();
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
-		for (auto c : so->GetAllSteps()) {
-			auto cs = SCOREMAN->GetScoresForChart(c->GetChartKey());
-			if (cs)
-				for (auto s : cs->GetAllScores()) {
-					toUpload.push_back(s);
-				}
-		}
+		for (auto c : so->GetAllSteps())
+			ForceUploadScoresForChart(c->GetChartKey(), false);
 
-	uploadSequentially(toUpload);
+	if (startnow)
+		creepypasta();
+}
+void
+DownloadManager::ForceUploadAllScores(bool startnow)
+{
+	startnow = startnow && ForceUploadScoreQueue.empty();
+	auto songs = SONGMAN->GetSongs(GROUP_ALL);
+	for (auto so : songs)
+		for (auto c : so->GetAllSteps())
+			ForceUploadScoresForChart(c->GetChartKey(), false);
+
+	if (startnow)
+		creepypasta();
 }
 void
 DownloadManager::EndSessionIfExists()
@@ -2777,16 +2805,22 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
 		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
+		// DLMAN->UpdateOnlineScoreReplayData(SArg(1));
 		return 0;
 	}
 	static int UploadScoresForChart(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForChart(SArg(1));
+		DLMAN->ForceUploadScoresForChart(SArg(1), true);
 		return 0;
 	}
 	static int UploadScoresForPack(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForPack(SArg(1));
+		DLMAN->ForceUploadScoresForPack(SArg(1), true);
+		return 0;
+	}
+	static int UploadAllScores(T* p, lua_State* L)
+	{
+		DLMAN->ForceUploadAllScores(true);
 		return 0;
 	}
 	LunaDownloadManager()
@@ -2826,6 +2860,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(UploadScoresForChart);
 		ADD_METHOD(UploadScoresForPack);
+		ADD_METHOD(UploadAllScores);
 		ADD_METHOD(Logout);
 	}
 };
