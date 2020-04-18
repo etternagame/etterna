@@ -731,12 +731,12 @@ HighScore::GenerateValidationKeys()
 	return key;
 }
 
-string
+const std::string&
 HighScore::GetName() const
 {
 	return m_Impl->sName;
 }
-string
+const std::string&
 HighScore::GetChartKey() const
 {
 	return m_Impl->ChartKey;
@@ -803,7 +803,7 @@ HighScore::GetEtternaValid() const
 	return m_Impl->bEtternaValid;
 }
 bool
-HighScore::IsUploadedToServer(string s) const
+HighScore::IsUploadedToServer(const std::string& s) const
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
 		   m_Impl->uploaded.end();
@@ -863,7 +863,7 @@ HighScore::GetHoldReplayDataVector() const
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-string
+const std::string&
 HighScore::GetScoreKey() const
 {
 	return m_Impl->ScoreKey;
@@ -878,7 +878,7 @@ HighScore::GetSurvivalSeconds() const
 {
 	return GetSurviveSeconds() + GetLifeRemainingSeconds();
 }
-string
+const std::string&
 HighScore::GetModifiers() const
 {
 	return m_Impl->sModifiers;
@@ -888,17 +888,17 @@ HighScore::GetDateTime() const
 {
 	return m_Impl->dateTime;
 }
-string
+const std::string&
 HighScore::GetPlayerGuid() const
 {
 	return m_Impl->sPlayerGuid;
 }
-string
+const std::string&
 HighScore::GetMachineGuid() const
 {
 	return m_Impl->sMachineGuid;
 }
-string
+const std::string&
 HighScore::GetCountryCode() const
 {
 	return m_Impl->countryCode;
@@ -1132,7 +1132,7 @@ HighScore::SetTopScore(int i)
 {
 	m_Impl->TopScore = i;
 }
-string
+const std::string&
 HighScore::GetValidationKey(ValidationKey vk) const
 {
 	return m_Impl->ValidationKeys[vk];
@@ -1238,7 +1238,7 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 	}
 }
 
-string
+const std::string&
 HighScore::GetDisplayName() const
 {
 	return GetName();
