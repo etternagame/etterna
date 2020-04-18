@@ -376,7 +376,6 @@ void
 Chart::FromKey(const string& ck)
 {
 	Song* song = SONGMAN->GetSongByChartkey(ck);
-	key = ck;
 
 	if (song != nullptr) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
