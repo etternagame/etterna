@@ -197,13 +197,8 @@ SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
 	// hack to return the same sd for all skillsets, for now
 	// doing it this way because of how ix structured this -five
 	for (int i = 0; i < 8; i++) {
-		// skills[i] = sd;
 		skills.emplace_back(sd);
 	}
-	// for (float i : skills) {
-	//	i = sd;
-	//	//skills.emplace_back(sd);
-	//}
 
 	return skills;
 }
