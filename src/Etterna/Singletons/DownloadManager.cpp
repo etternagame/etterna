@@ -925,6 +925,7 @@ DownloadManager::UploadScore(HighScore* hs,
 		LOG->Trace(
 		  "Attempted to upload score when not logged in (scorekey: \"%s\")",
 		  hs->GetScoreKey().c_str());
+		callback();
 		return;
 	}
 
@@ -979,8 +980,8 @@ DownloadManager::UploadScore(HighScore* hs,
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback{ move(callback) }, load_from_disk](
-				  HTTPRequest& req, CURLMsg*) {
+	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req,
+													 CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
@@ -1008,8 +1009,7 @@ DownloadManager::UploadScore(HighScore* hs,
 					DLMAN->StartSession(
 					  DLMAN->sessionUser,
 					  DLMAN->sessionPass,
-					  [hs, callback{ move(callback) }, load_from_disk](
-						bool logged) {
+					  [hs, callback, load_from_disk](bool logged) {
 						  if (logged) {
 							  DLMAN->UploadScore(hs, callback, load_from_disk);
 						  }
@@ -1084,8 +1084,10 @@ DownloadManager::UploadScore(HighScore* hs,
 		}
 		callback();
 	};
-	// TODO: Do we want to call callback in the fail HTTPRequest handler?
-	HTTPRequest* req = new HTTPRequest(curlHandle, done);
+	HTTPRequest* req = new HTTPRequest(
+	  curlHandle, done, nullptr, [callback](HTTPRequest& req, CURLMsg*) {
+		  callback();
+	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
@@ -1119,21 +1121,19 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(HighScore* hs,
 // (So it is essentially kind of recursive, with the base case of an empty
 // deque)
 void
-uploadSequentially(deque<HighScore*> toUpload, int workload)
+uploadSequentially()
 {
 	Message msg("UploadProgress");
-	msg.SetParam("percent",
-				 1.f - (static_cast<float>(toUpload.size()) /
-						static_cast<float>(workload)));
+	msg.SetParam(
+	  "percent",
+	  1.f - (static_cast<float>(DLMAN->ScoreUploadSequentialQueue.size()) /
+			 static_cast<float>(DLMAN->sequentialScoreUploadTotalWorkload)));
 	MESSAGEMAN->Broadcast(msg);
 
-	if (!toUpload.empty()) {
-		auto hs = toUpload.front();
-		toUpload.pop_front();
-		DLMAN->UploadScoreWithReplayDataFromDisk(
-		  hs, [hs, toUpload{ move(toUpload) }, workload]() {
-			  uploadSequentially(toUpload, workload);
-		  });
+	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
+		auto hs = DLMAN->ScoreUploadSequentialQueue.front();
+		DLMAN->ScoreUploadSequentialQueue.pop_front();
+		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
 	}
 	return;
 }
@@ -1144,10 +1144,10 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate top 2 scores that have not been uploaded and have
-	// replay data
+	// First we accumulate top 2 scores that have
+	// not been uploaded and have replay data
 	auto scores = SCOREMAN->GetAllPBPtrs();
-	deque<HighScore*> toUpload;
+	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
@@ -1172,17 +1172,18 @@ DownloadManager::UploadScores()
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores. (Uploading %d scores)",
 				   toUpload.size());
-	uploadSequentially(toUpload, toUpload.size());
+
+	bool was_not_uploading_already = this->ScoreUploadSequentialQueue.empty();
+	if (was_not_uploading_already)
+		this->sequentialScoreUploadTotalWorkload = toUpload.size();
+	else
+		this->sequentialScoreUploadTotalWorkload += toUpload.size();
+	this->ScoreUploadSequentialQueue.insert(
+	  this->ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
+	if (was_not_uploading_already)
+		uploadSequentially();
 
 	return true;
-}
-void
-DownloadManager::BeginSequentialUploadOfAccumulatedQueue()
-{
-	// figure out how to make this not start if there are active uploads
-	uploadSequentially(ForceUploadScoreQueue, ForceUploadScoreQueue.size());
-	ForceUploadScoreQueue.clear();
-	ForceUploadScoreQueue.shrink_to_fit();
 }
 
 // manual upload function that will upload all scores for a chart
@@ -1190,23 +1191,24 @@ DownloadManager::BeginSequentialUploadOfAccumulatedQueue()
 void
 DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 {
-	// This check is a bit redundant, we don't want to try to begin the upload
-	// when this is called from within a "bigger" forceupload, either of these
-	// checks should be enough I think
-	startnow = startnow && ForceUploadScoreQueue.empty();
+	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) { // ignoring topscore flags; upload worst->best
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
 			if (!s->forceuploadedthissession)
-				if (s->GetGrade() != Grade_Failed)
-					ForceUploadScoreQueue.push_back(s);
+				if (s->GetGrade() != Grade_Failed) {
+					this->ScoreUploadSequentialQueue.push_back(s);
+					this->sequentialScoreUploadTotalWorkload += 1;
+				}
 	}
 
 	if (startnow) {
+		this->sequentialScoreUploadTotalWorkload =
+		  this->ScoreUploadSequentialQueue.size();
 		LOG->Trace("Starting sequential upload of %d scores",
-				   ForceUploadScoreQueue.size());
-		BeginSequentialUploadOfAccumulatedQueue();
+				   this->ScoreUploadSequentialQueue.size());
+		uploadSequentially();
 	}
 }
 // wrapper for packs
@@ -1214,32 +1216,37 @@ void
 DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
-	// This check is a bit redundant, we don't want to try to begin the
-	// upload when this is called from within a "bigger" forceupload, either
-	// of these checks should be enough I think
-	startnow = startnow && ForceUploadScoreQueue.empty();
+	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);
 
 	if (startnow) {
+		this->sequentialScoreUploadTotalWorkload =
+		  this->ScoreUploadSequentialQueue.size();
 		LOG->Trace("Starting sequential upload of %d scores",
-				   ForceUploadScoreQueue.size());
-		BeginSequentialUploadOfAccumulatedQueue();
+				   this->ScoreUploadSequentialQueue.size());
+		uploadSequentially();
 	}
 }
 void
 DownloadManager::ForceUploadAllScores()
 {
+	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
+
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);
 
-	LOG->Trace("Starting sequential upload of %d scores",
-			   ForceUploadScoreQueue.size());
-	BeginSequentialUploadOfAccumulatedQueue();
+	if (not_already_uploading) {
+		this->sequentialScoreUploadTotalWorkload =
+		  this->ScoreUploadSequentialQueue.size();
+		LOG->Trace("Starting sequential upload of %d scores",
+				   this->ScoreUploadSequentialQueue.size());
+		uploadSequentially();
+	}
 }
 void
 DownloadManager::EndSessionIfExists()

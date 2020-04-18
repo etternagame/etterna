@@ -227,7 +227,6 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
-	void BeginSequentialUploadOfAccumulatedQueue();
 	void ForceUploadScoresForChart(
 	  const std::string& ck,
 	  bool startnow = true); // forced upload wrapper for charts
@@ -311,7 +310,8 @@ class DownloadManager
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
 	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
-	deque<HighScore*> ForceUploadScoreQueue;
+	deque<HighScore*> ScoreUploadSequentialQueue;
+	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
