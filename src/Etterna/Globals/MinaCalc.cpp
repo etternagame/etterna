@@ -149,7 +149,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	float hprop = chord_proportion(NoteInfo, 3);
 	float nohandsdownscaler =
-	  CalcClamp(0.8f + (0.2f * (hprop + 0.75f)), 0.8f, 1.f);
+	  CalcClamp(0.8f + (0.2f * (hprop + 0.65f)), 0.8f, 1.f);
 	float allhandsdownscaler = CalcClamp(1.23f - hprop, 0.85f, 1.f);
 
 	float qprop = chord_proportion(NoteInfo, 4);
@@ -195,8 +195,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
 
 	js *= 0.95f;
-	hs *= 0.95f;
-	stam *= 0.95f;
+	hs *= 0.975f;
+	stam *= 0.935f;
 
 	float chordjack = jack * 0.75f;
 	tech *= 0.95f;
@@ -577,7 +577,7 @@ Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
 
 	for (const vector<int>& interval : nervIntervals) {
 		int taps = 0;
-		int jumps = 0;
+		int jumptaps = 0;
 		for (int row : interval) {
 			int columns = 0;
 			if (NoteInfo[row].notes & firstNote) {
@@ -589,12 +589,12 @@ Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
 				++taps;
 			}
 			if (columns == 2)
-				jumps++;
+				jumptaps += 2;
 		}
-		output.push_back(taps != 0 ? pow(1 - (1.6f * static_cast<float>(jumps) /
-											  static_cast<float>(taps)),
-										 0.25f)
-								   : 1.f);
+		output.push_back( taps != 0 ? pow(1 - (static_cast<float>(jumptaps)/
+									static_cast<float>(taps) / 1.8f),
+							   0.25f)
+						 : 1.f);
 
 		if (logpatterns)
 			std::cout << "ohj " << output.back() << std::endl;
