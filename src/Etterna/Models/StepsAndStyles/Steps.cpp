@@ -31,6 +31,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include <algorithm>
 #include <thread>
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 /* register DisplayBPM with StringConversion */
 #include "Etterna/Models/Misc/EnumHelper.h"
@@ -411,20 +412,17 @@ Steps::CalcEtternaMetadata()
 }
 
 void
-Steps::BorpNDorf(int modType)
+Steps::GetCalcDebugOutput()
 {
 	// function is responsible for producing debug output
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
-	dumbthings.clear();
 
-	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+	MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 						0.93f,
-						dumbthings,
-						static_cast<CalcPatternMod>(modType));
+						calcdebugoutput);
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -966,14 +964,13 @@ class LunaSteps : public Luna<Steps>
 	}
 	static int DootSpooks(T* p, lua_State* L)
 	{
-		int modType = IArg(1) - 1;
-		p->BorpNDorf(modType);
+		p->GetCalcDebugOutput();
 		lua_newtable(L);
-		for (int i = 0; i < p->dumbthings.size(); ++i) {
-			vector<float> poop = p->dumbthings[i];
-			LuaHelpers::CreateTableFromArray(poop, L);
-			lua_rawseti(L, -2, i + 1);
-		}
+		//for (int i = 0; i < DebugCount; ++i) {
+		//	vector<float> poop = p->calcdebugoutput[i];
+		//	LuaHelpers::CreateTableFromArray(poop, L);
+		//	lua_rawseti(L, -2, i + 1);
+		//}
 		return 1;
 	}
 	LunaSteps()

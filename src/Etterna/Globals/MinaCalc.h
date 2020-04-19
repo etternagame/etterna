@@ -17,19 +17,6 @@ typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;
 typedef std::vector<float> JackSeq;
 
-enum CalcPatternMod
-{
-	OHJump,
-	Anchor,
-	Roll,
-	HS,
-	Jump,
-	MSD, // is pulling stam adjusted values atm
-	PtLoss,
-	ModCount,
-	None
-};
-
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
 calculator is to estimate the difficulty of a file given the physical properties
@@ -67,15 +54,14 @@ class Hand
 	scoring to assert the average of the distribution of point gain for each
 	interval and then tallies up the result to produce an average total number
 	of points achieved by this hand. */
-	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs);
+	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug);
 
 	std::vector<float> ohjumpscale, rollscale, hsscale, jumpscale, anchorscale;
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
-	  v_itvMSdiff; // Calculated difficulty for each interval
-	std::vector<float> debug;
-	std::vector<float> finalMSDvals; // cancer cancer cancer cancer
-	std::vector<float> pointslost;
+	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval
+	std::vector<float> debugValues[DebugCount];
+
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
@@ -99,15 +85,16 @@ class Calc
 	to estimate difficulty for each different skillset. Currently only
 	overall/stamina are being produced. */
 	std::vector<float> CalcMain(const std::vector<NoteInfo>& NoteInfo,
-							  float music_rate,
-							  float score_goal);
+								float music_rate,
+								float score_goal);
 
 	// redo these asap
 	static float JackLoss(const std::vector<float>& j, float x);
 	static JackSeq SequenceJack(const std::vector<NoteInfo>& NoteInfo,
 								unsigned int t,
 								float music_rate);
-	CalcPatternMod debugMod = CalcPatternMod::None;
+
+	bool debugmode = false;
 	int numitv;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
@@ -141,7 +128,8 @@ class Calc
 				 bool jack,
 				 bool nps,
 				 bool js,
-				 bool hs);
+				 bool hs,
+				 bool debugoutput = false);
 
 	std::vector<float> OHJumpDownscaler(const std::vector<NoteInfo>& NoteInfo,
 										unsigned int t1,
@@ -180,7 +168,6 @@ MINACALC_API void
 MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				std::vector<std::vector<float>>& handInfo,
-				CalcPatternMod cpm = CalcPatternMod::None);
+				std::vector<std::vector<float>[DebugCount]> handInfo);
 MINACALC_API int
 GetCalcVersion();

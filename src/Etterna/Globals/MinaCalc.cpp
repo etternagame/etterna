@@ -277,7 +277,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float highest = max(difficulty.overall, highest_difficulty(difficulty));
 
 	vector<float> temp = skillset_vector(difficulty);
-	difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
+	// difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
 
 	if (downscale_chordjack_at_end) {
 		difficulty.chordjack *= 0.9f;
@@ -296,7 +296,42 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	difficulty.technical *= 1.025f;
+	vector<float> pumpkin = skillset_vector(difficulty);
+	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
+	// this is the only time debugoutput arg should be set to true
+	if (debugmode) {
+		size_t idx = std::distance(
+		  pumpkin.begin(), std::max_element(pumpkin.begin(), pumpkin.end()));
+		float minval = *std::min_element(pumpkin.begin(), pumpkin.end());
+		switch (idx) {
+			case 1:
+				Chisel(
+					minval, 10.24f, score_goal, false, false, true, false, false, true);
+				break;
+			case 2:
+				Chisel(
+					minval, 10.24f, score_goal, false, false, true, true, false, true);
+				break;
+			case 3:
+				Chisel(
+					minval, 10.24f, score_goal, false, false, true, false, true, true);
+				break;
+			case 4:
+				Chisel(
+					minval, 10.24f, score_goal, false, false, false, false, false, true);
+				break;
+			case 5:
+				Chisel(
+					minval, 10.24f, score_goal, false, true, true, false, false, true);
+				break;
+			case 7:
+				Chisel(
+					minval, 10.24f, score_goal, true, false, false, false, false, true);
+				break;
+		}
+
+	}
+
 	difficulty.overall = highest_difficulty(difficulty);
 
 	return skillset_vector(difficulty);
@@ -353,6 +388,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
 	}
 
+	// should probably structure this to avoid copypasta
 	left_hand.InitDiff(fingers[0], fingers[1]);
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
@@ -369,29 +405,28 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
-	switch (debugMod) {
-		case CalcPatternMod::Jump:
-			left_hand.debug = left_hand.jumpscale;
-			right_hand.debug = right_hand.jumpscale;
-			break;
-		case CalcPatternMod::Anchor:
-			left_hand.debug = left_hand.anchorscale;
-			right_hand.debug = right_hand.anchorscale;
-			break;
-		case CalcPatternMod::HS:
-			left_hand.debug = left_hand.hsscale;
-			right_hand.debug = right_hand.hsscale;
-			break;
-		case CalcPatternMod::OHJump:
-			left_hand.debug = left_hand.ohjumpscale;
-			right_hand.debug = right_hand.ohjumpscale;
-			break;
-		case CalcPatternMod::Roll:
-			left_hand.debug = left_hand.rollscale;
-			right_hand.debug = right_hand.rollscale;
-			break;
+	// these values never change during calc so set them immediately
+	if (debugmode) {
+		left_hand.debugValues[Jump] = left_hand.jumpscale;
+		right_hand.debugValues[Jump] = right_hand.jumpscale;
+		left_hand.debugValues[Anchor] = left_hand.anchorscale;
+		right_hand.debugValues[Anchor] = right_hand.anchorscale;
+		left_hand.debugValues[HS] = left_hand.hsscale;
+		right_hand.debugValues[HS] = right_hand.hsscale;
+		left_hand.debugValues[OHJump] = left_hand.ohjumpscale;
+		right_hand.debugValues[OHJump] = right_hand.ohjumpscale;
+		left_hand.debugValues[Roll] = left_hand.rollscale;
+		right_hand.debugValues[Roll] = right_hand.rollscale;
+
+		// basemsd is just adjusted ms, i think, maybe misnomer
+		right_hand.debugValues[BaseNPS] = right_hand.v_itvNPSdiff;
+		left_hand.debugValues[BaseNPS] = left_hand.v_itvNPSdiff;
+		right_hand.debugValues[BaseMS] = right_hand.pureMSdiff;
+		left_hand.debugValues[BaseMS] = left_hand.pureMSdiff;
+		right_hand.debugValues[BaseMSD] = right_hand.v_itvMSdiff;
+		left_hand.debugValues[BaseMSD] = left_hand.v_itvMSdiff;
 	}
-	
+
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
@@ -447,6 +482,7 @@ Calc::TotalMaxPoints()
 										right_hand.v_itvpoints[i]);
 }
 
+// each skillset should just be a separate calc function [todo]
 float
 Calc::Chisel(float player_skill,
 			 float resolution,
@@ -455,7 +491,7 @@ Calc::Chisel(float player_skill,
 			 bool jack,
 			 bool nps,
 			 bool js,
-			 bool hs)
+			 bool hs, bool debugoutput)
 {
 	float gotpoints;
 	for (int iter = 1; iter <= 7; iter++) {
@@ -468,13 +504,23 @@ Calc::Chisel(float player_skill,
 				? MaxPoints - JackLoss(j0, player_skill) -
 					JackLoss(j1, player_skill) - JackLoss(j2, player_skill) -
 					JackLoss(j3, player_skill)
-				: left_hand.CalcInternal(player_skill, stamina, nps, js, hs) +
-					right_hand.CalcInternal(player_skill, stamina, nps, js, hs);
+				   : left_hand.CalcInternal(	// don't do debug yet
+					   player_skill, stamina, nps, js, hs, false) +
+					right_hand.CalcInternal(player_skill, stamina, nps, js, hs, false);
 
 		} while (gotpoints / MaxPoints < score_goal);
 		player_skill -= resolution;
 		resolution /= 2.f;
 	}
+
+	// these are the values for msd/stam adjusted msd/pointloss the 
+	// latter two are dependent on player_skill and so should only
+	// be recalculated with the final value already determined
+	if (debugoutput) {
+		left_hand.CalcInternal(player_skill, stamina, nps, js, hs, debugoutput);
+		right_hand.CalcInternal(player_skill, stamina, nps, js, hs, debugoutput);
+	}
+
 	return player_skill + 2.f * resolution;
 }
 
@@ -498,13 +544,14 @@ Hand::InitDiff(Finger& f1, Finger& f2)
 {
 	v_itvNPSdiff = vector<float>(f1.size());
 	v_itvMSdiff = vector<float>(f1.size());
-
+	pureMSdiff = vector<float>(f1.size());
 	for (size_t i = 0; i < f1.size(); i++) {
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
 		float left_difficulty = CalcMSEstimate(f1[i]);
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = max(left_difficulty, right_difficulty);
 		v_itvNPSdiff[i] = finalscaler * nps;
+		pureMSdiff[i] = finalscaler * difficulty;
 		v_itvMSdiff[i] = finalscaler * (5.f * difficulty + 4.f * nps) / 9.f;
 	}
 	Smooth(v_itvNPSdiff, 0.f);
@@ -543,8 +590,10 @@ Hand::StamAdjust(float x, vector<float>& diff)
 	return o;
 }
 
+// debug bool here is NOT the one calc, it is passed from chisel using the final
+// difficulty as the starting point and should only be executed once per chisel
 float
-Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
+Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 {
 	vector<float> diff = nps ? v_itvNPSdiff : v_itvMSdiff;
 
@@ -563,17 +612,24 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs)
 	}
 
 	const vector<float>& v = stam ? StamAdjust(x, diff) : diff;
-	finalMSDvals = v; // bad bad bad bad bad bad bad bad bad bad
+
+	if (debug) {
+		debugValues[MSD] = diff;	// pretty sure we need to copy
+		// final debug output should always be with stam activated
+		for (size_t i = 0; i < diff.size(); ++i)
+			debugValues[StamMod].emplace_back(diff[i] / v[i]);
+	}
+
 	float output = 0.f;
-	std::vector<float> pointloss;
 	for (size_t i = 0; i < v.size(); i++) {
 		float gainedpoints =
 		  x > v[i] ? v_itvpoints[i] : v_itvpoints[i] * pow(x / v[i], 1.8f);
 
 		output += gainedpoints;
-		pointloss.push_back(v_itvpoints[i] - gainedpoints);
+		if (debug)
+			debugValues[PtLoss].emplace_back(v_itvpoints[i] - gainedpoints);
 	}
-	pointslost = pointloss; // to the bone
+	
 	return output;
 }
 
@@ -753,7 +809,8 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 	if (NoteInfo.empty()) {
 		return { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	}
-	return std::make_unique<Calc>()->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
+	return std::make_unique<Calc>()->CalcMain(
+	  NoteInfo, musicrate, min(goal, ssrcap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -781,21 +838,19 @@ void
 MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				vector<vector<float>>& handInfo,
-				CalcPatternMod cpm)
+				vector<vector<float>[DebugCount]> handInfo)
 {
 	if (NoteInfo.size() <= 1)
 		return;
 
 	std::unique_ptr<Calc> debugRun = std::make_unique<Calc>();
-	debugRun->debugMod = cpm;
+	debugRun->debugmode = true;
 	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
 
 	// Locate and modify the uses of left/right debug in the code
-	handInfo.push_back(debugRun->left_hand.debug);
-	handInfo.push_back(debugRun->right_hand.debug);
+	handInfo.push_back(debugRun->left_hand.debugValues);
+	handInfo.push_back(debugRun->right_hand.debugValues);
 }
-
 
 int
 GetCalcVersion()

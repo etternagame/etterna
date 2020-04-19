@@ -209,8 +209,8 @@ class Steps
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
-	void BorpNDorf(int modType);
-	vector<vector<float>> dumbthings;
+	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
+	vector<vector<float[DebugCount]>> calcdebugoutput; // probably should clear this periodically
 
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;
