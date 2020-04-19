@@ -23,7 +23,6 @@ add_subdirectory(fftw-3.3.8)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(stb)
-add_subdirectory(libuv)
 add_subdirectory(zlib)
 add_subdirectory(libcurl)
 add_subdirectory(mad-0.15.1b)
@@ -37,14 +36,13 @@ endif()
 # Disable unused targets from building
 ## EXCLUDE_FROM_ALL stops building on linux
 ## EXCLUDE_FROM_DEFAULT_BUILD stops building on Visual Studio
-set_target_properties(uv PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+# (there was something here but we removed it)
 
 # Organize Files in IDE
 list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
     discord-rpc
     SQLiteCpp sqlite3
-    uv uv_a
     tomcrypt libtommath
     fftw3f glfw pcre
     zlib libmad
