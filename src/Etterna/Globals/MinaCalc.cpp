@@ -600,10 +600,10 @@ Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
 			if (columns == 2)
 				jumptaps += 2;
 		}
-		output.push_back( taps != 0 ? pow(1 - (static_cast<float>(jumptaps)/
-									static_cast<float>(taps) / 1.8f),
-							   0.25f)
-						 : 1.f);
+		output.push_back(taps != 0 ? pow(1 - (static_cast<float>(jumptaps) /
+											  static_cast<float>(taps) / 1.8f),
+										 0.25f)
+								   : 1.f);
 
 		if (logpatterns)
 			std::cout << "ohj " << output.back() << std::endl;
@@ -665,9 +665,10 @@ Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 3)
 				handtaps++;
 		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(handtaps) /
-											   static_cast<float>(taps))))
-							  : 1.f;
+		output[i] =
+		  taps != 0
+			? 1 - (static_cast<float>(handtaps) / static_cast<float>(taps))
+			: 1.f;
 
 		if (logpatterns)
 			std::cout << "hs " << output[i] << std::endl;
