@@ -1389,7 +1389,7 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3()
 {
-	if (!LoadReplayData())
+	if (!LoadReplayData() || m_Impl->GetWifeGrade() == Grade_Failed)
 		return false;
 
 	// i don't know why this would be possible or what to do if we catch these
