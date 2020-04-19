@@ -5,10 +5,7 @@
 #ifndef MINACALC_SOLOCALC_H
 #define MINACALC_SOLOCALC_H
 
-#include "NoteDataStructures.h"
-
-typedef std::vector<float> SDiffs;
-typedef std::vector<SDiffs> MinaSD;
+#include "Etterna/Globals/MinaCalc.h"
 
 // This is a very basic difficulty calculator for solo files that I am putting
 // together as a proof of concept
