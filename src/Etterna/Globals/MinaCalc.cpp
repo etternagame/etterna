@@ -194,12 +194,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		stam = Chisel(
 		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
 
-	js *= 0.95f;
-	hs *= 0.975f;
-	stam *= 0.935f;
-
 	float chordjack = jack * 0.75f;
-	tech *= 0.95f;
 
 	DifficultyRating difficulty =
 	  DifficultyRating{ 0.0,
