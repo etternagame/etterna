@@ -403,28 +403,39 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					unsigned int t,
 					float music_rate)
 {
-	int Interval = 0;
+	int Interval = 1;
 	float last = -5.f;
-	Finger AllIntervals(numitv, vector<float>());
-	if (t == 0)
-		nervIntervals = vector<vector<int>>(numitv, vector<int>());
+	Finger AllIntervals(numitv);
+	vector<float> CurrentInterval;
+	vector<int> itvnervtmp;
+	vector<vector<int>> itvnerv(numitv);
 	unsigned int column = 1u << t;
 
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
 		float scaledtime = NoteInfo[i].rowTime / music_rate;
 
-		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan)
+		if (scaledtime >= (float)Interval * IntervalSpan) {
+			AllIntervals[Interval - 1] = CurrentInterval;
+			CurrentInterval.clear();
+
+			itvnerv[Interval - 1] = itvnervtmp;
+			itvnervtmp.clear();
 			++Interval;
+		}
 
 		if (NoteInfo[i].notes & column) {
-			AllIntervals[Interval].emplace_back(
+			CurrentInterval.emplace_back(
 			  CalcClamp(1000 * (scaledtime - last), 40.f, 5000.f));
 			last = scaledtime;
 		}
 
-		if (t == 0 && NoteInfo[i].notes != 0)
-			nervIntervals[Interval].emplace_back(i);
+		if (t == 0 && NoteInfo[i].notes != 0) {
+			itvnervtmp.emplace_back(i);
+		}
 	}
+
+	if (t == 0)
+		nervIntervals = itvnerv;
 	return AllIntervals;
 }
 
