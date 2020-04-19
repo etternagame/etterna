@@ -196,7 +196,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	js *= 0.95f;
 	hs *= 0.95f;
-	stam *= 0.9f;
+	stam *= 0.95f;
 
 	float chordjack = jack * 0.75f;
 	tech *= 0.95f;
@@ -309,32 +309,16 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return skillset_vector(difficulty);
 }
 
-// ugly jack stuff
 float
 Calc::JackLoss(const vector<float>& j, float x)
 {
-	float output = 0.f;
-	float ceiling = 1.f;
-	float mod = 1.f;
-	float base_ceiling = 1.15f;
-	float fscale = 1750.f;
-	float prop = 0.75f;
-	float mag = 250.f;
-
-	for (float i : j) {
-		mod += ((i / (prop * x)) - 1) / mag;
-		if (mod > 1.f)
-			ceiling += (mod - 1) / fscale;
-		mod = CalcClamp(mod, 1.f, base_ceiling * sqrt(ceiling));
-		i *= mod;
-		if (x < i)
-			output +=
-			  1.f -
-			  pow(
-				x / (i * 0.96f),
-				1.5f); // This can cause output to decrease if 0.96 * i < x < i
+	float o = 0.f;
+	for (size_t i = 0; i < j.size(); i++) {
+		if (x < j[i])
+			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
 	}
-	return CalcClamp(7.f * output, 0.f, 10000.f);
+	CalcClamp(o, 0.f, 10000.f);
+	return o;
 }
 
 JackSeq
@@ -759,7 +743,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 	if (NoteInfo.empty()) {
 		return { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	}
-	return std::make_unique<Calc>()->CalcMain(NoteInfo, musicrate, goal);
+	return std::make_unique<Calc>()->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -770,7 +754,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 	int lower_rate = 7;
 	int upper_rate = 21;
 
-	if (!NoteInfo.empty())
+	if (NoteInfo.size() > 1)
 		for (int i = lower_rate; i < upper_rate; i++)
 			allrates.emplace_back(
 			  MinaSDCalc(NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
@@ -806,5 +790,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return -1;
+	return 264;
 }
