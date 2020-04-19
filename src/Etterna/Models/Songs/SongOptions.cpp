@@ -268,7 +268,6 @@ class LunaSongOptions : public Luna<SongOptions>
 		ADD_METHOD(StaticBackground);
 		ADD_METHOD(RandomBGOnly);
 		ADD_METHOD(SaveScore);
-		ADD_METHOD(SaveReplay);
 		ADD_METHOD(MusicRate);
 	}
 };
