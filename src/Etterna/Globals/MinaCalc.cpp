@@ -376,24 +376,29 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
-		if (debugMod == CalcPatternMod::Jump) {
-		left_hand.debug = left_hand.jumpscale;
-		right_hand.debug = right_hand.jumpscale;
-	} else if (debugMod == CalcPatternMod::Anchor) {
-		left_hand.debug = left_hand.anchorscale;
-		right_hand.debug = right_hand.anchorscale;
-	} else if (debugMod == CalcPatternMod::HS) {
-		left_hand.debug = left_hand.hsscale;
-		right_hand.debug = right_hand.hsscale;
-	} else if (debugMod == CalcPatternMod::OHJump) {
-		left_hand.debug = left_hand.ohjumpscale;
-		right_hand.debug = right_hand.ohjumpscale;
-	} else if (debugMod == CalcPatternMod::Roll) {
-		left_hand.debug = left_hand.rollscale;
-		right_hand.debug = right_hand.rollscale;
+	switch (debugMod) {
+		case CalcPatternMod::Jump:
+			left_hand.debug = left_hand.jumpscale;
+			right_hand.debug = right_hand.jumpscale;
+			break;
+		case CalcPatternMod::Anchor:
+			left_hand.debug = left_hand.anchorscale;
+			right_hand.debug = right_hand.anchorscale;
+			break;
+		case CalcPatternMod::HS:
+			left_hand.debug = left_hand.hsscale;
+			right_hand.debug = right_hand.hsscale;
+			break;
+		case CalcPatternMod::OHJump:
+			left_hand.debug = left_hand.ohjumpscale;
+			right_hand.debug = right_hand.ohjumpscale;
+			break;
+		case CalcPatternMod::Roll:
+			left_hand.debug = left_hand.rollscale;
+			right_hand.debug = right_hand.rollscale;
+			break;
 	}
-
-
+	
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
@@ -734,7 +739,7 @@ Calc::RollDownscaler(const Finger& f1, const Finger& f2)
 	return output;
 }
 
-static const float ssrcap = 0.965f; // cap SSR at 96% so things don't get out of
+static const float ssrcap = 0.975f; // cap SSR at 96% so things don't get out of
 									// hand YES WE ACTUALLY NEED THIS FFS
 // Function to generate SSR rating
 vector<float>
