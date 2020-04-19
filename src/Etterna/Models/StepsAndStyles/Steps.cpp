@@ -15,7 +15,6 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -858,8 +857,8 @@ class LunaSteps : public Luna<Steps>
 			return 0;
 		std::vector<float> d;
 
-		if (p->m_StepsType == StepsType_dance_solo) // Single SSR at the moment
-			d = SoloCalc(ni, rate, goal);			// may break the lua?
+		if (p->m_StepsType == StepsType_dance_solo)
+			d = SoloCalc(ni, rate, goal);
 		else
 			d = MinaSDCalc(ni, rate, goal);
 
