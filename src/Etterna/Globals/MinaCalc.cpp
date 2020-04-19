@@ -212,7 +212,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler;
 	difficulty.jumpstream *=
 	  nojumpsdownscaler * allhandsdownscaler * lotquaddownscaler;
-	difficulty.handstream *= nohandsdownscaler * allhandsdownscaler * 1.015f *
+	difficulty.handstream *= nohandsdownscaler * allhandsdownscaler *
 							 manyjumpsdownscaler * lotquaddownscaler;
 	difficulty.stamina = CalcClamp(
 	  difficulty.stamina * shortstamdownscaler * 0.985f * lotquaddownscaler,
@@ -288,8 +288,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	if (score_goal < dating) {
 		difficulty = DifficultyRating{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	}
-
-	difficulty.jack *= 0.925f;
 
 	if (highest == difficulty.technical) {
 		difficulty.technical -= CalcClamp(
