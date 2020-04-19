@@ -239,7 +239,6 @@ class LunaSongOptions : public Luna<SongOptions>
 	BOOL_INTERFACE(StaticBackground, StaticBackground);
 	BOOL_INTERFACE(RandomBGOnly, RandomBGOnly);
 	BOOL_INTERFACE(SaveScore, SaveScore);
-	BOOL_INTERFACE(SaveReplay, SaveReplay);
 	static int MusicRate(T* p, lua_State* L)
 	{
 		int original_top = lua_gettop(L);
