@@ -91,7 +91,7 @@ end
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
 local ssrUpperBoundWife = 0.97 -- right end of the graph
-local ssrResolution = 1 -- higher number = higher resolution graph (and lag)
+local ssrResolution = 200 -- higher number = higher resolution graph (and lag)
 
 local function produceThisManySSRs(steps, rate)
     local count = ssrResolution
@@ -164,19 +164,19 @@ local function updateCoolStuff()
         graphVecs[1][10] = jumpds[2]
 
         graphVecs[2] = {}
-        graphVecs[2][1] = msd[1]
-        graphVecs[2][2] = msd[2]
-        graphVecs[2][3] = pts[1]
-        graphVecs[2][4] = pts[2]
-        --graphVecs[2][1] = ssrs[1]
-        --graphVecs[2][2] = ssrs[2]
-        --graphVecs[2][3] = ssrs[3]
-        --graphVecs[2][4] = ssrs[4]
-        --graphVecs[2][5] = ssrs[5]
-        --graphVecs[2][6] = ssrs[6]
-        --graphVecs[2][7] = ssrs[7]
-        --graphVecs[2][8] = ssrs[8]
-        --graphVecs[2][9] = ssrs[9]
+        --graphVecs[2][1] = msd[1]
+        --graphVecs[2][2] = msd[2]
+        --graphVecs[2][3] = pts[1]
+        --graphVecs[2][4] = pts[2]
+        graphVecs[2][1] = ssrs[1]
+        graphVecs[2][2] = ssrs[2]
+        graphVecs[2][3] = ssrs[3]
+        graphVecs[2][4] = ssrs[4]
+        graphVecs[2][5] = ssrs[5]
+        graphVecs[2][6] = ssrs[6]
+        graphVecs[2][7] = ssrs[7]
+        graphVecs[2][8] = ssrs[8]
+        graphVecs[2][9] = ssrs[9]
 
 
         -- hardcode these numbers for constant upper graph bounds
@@ -600,9 +600,9 @@ local skillsetColors = {
     color("#b0cec2"),    -- tech
 }
 
-for i = 1,4 do
-    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-    o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
+for i = 1,9 do
+    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+    --o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
 end
 
 
