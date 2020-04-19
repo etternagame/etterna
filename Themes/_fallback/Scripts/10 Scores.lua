@@ -634,30 +634,40 @@ function wife3(maxms, ts, version) -- args are going to be set from in here for 
 	local lower_bound = 0
 
 	if (version == 1) or (version == 2) or (version == 3) then -- hyperbolic lower bound
-		if (version == 1) then
+		if (version == 1 or (version == 2)) then
 			max_points = 2
 			miss_weight = -5.5
 			ridic = 5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 56.5 * (ts^j_pow)
-			dev = 20.75 * (ts^j_pow)
-		elseif (version == 2) then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 7.5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
 			poi = 57 * (ts^j_pow)
 			dev = 22 * (ts^j_pow)
+
+			if maxms > 70 or (maxms < 57 and maxms > 20) then
+				max_points = 2
+				miss_weight = -5.5
+				ridic = 5 * ts
+				max_boo_weight = 180 * ts
+				j_pow = 0.66
+				poi = 56.5 * (ts^j_pow)
+				dev = 20.75 * (ts^j_pow)
+			end
+
+			if version == 1 then
+				miss_weight = -5.641623
+			end
+
+			if version == 1 and maxms >= 75 and maxms <= 180 then
+				return -0.8746 -  (0.0454 * (maxms - 75))
+			end
 		elseif (version == 3) then
 			max_points = 2
-			miss_weight = -6
+			miss_weight = -5.6
 			ridic = 7.5 * ts
 			max_boo_weight = 180 * ts
 			j_pow = 0.66
-			poi = 57.37 * (ts^j_pow)
-			dev = 21.77 * (ts^j_pow)
+			poi = 56.765 * (ts^j_pow)
+			dev = 20.89 * (ts^j_pow)
 		end
 		-- shortcut case handling
 		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
