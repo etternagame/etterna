@@ -328,22 +328,21 @@ o[#o + 1] = Def.Quad {
             bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
             bg:x(goodXPos)
             bg:y(ypos + 3)
-            local index = convertPercentToIndex(perc)
-            local ovrl = ssrs[1][index]
-            local strm = ssrs[2][index]
-            local js = ssrs[3][index]
-            local hs = ssrs[4][index]
-            local stam = ssrs[5][index]
-            local jack = ssrs[6][index]
-            local chjk = ssrs[7][index]
-            local tech = ssrs[8][index]
             
             local index = convertPercentToIndexForMods(perc)
-            local msd = graphVecs[2][1][index]
-            if ovrl == nil then
+            local npsl = graphVecs[2][1][index]
+            local npsr = graphVecs[2][2][index]
+            local msl = graphVecs[2][3][index]
+            local msr = graphVecs[2][4][index]
+            local bmsdl = graphVecs[2][5][index]
+            local bmsdr = graphVecs[2][6][index]
+            local msdl = graphVecs[2][7][index]
+            local msdr = graphVecs[2][8][index]
+            if msdl == nil then
                 txt:settext("")
             else
-                txt:settextf("MSD: %5.4f", msd)
+                txt:settextf("npsl: %5.4f\nnpsr: %5.4f\nmsl: %5.4f\nmsr: %5.4f\nbmsdl: %5.4f\nbmsdr: %5.4f\nmsdl: %5.4f\nmsdr: %5.4f\n",
+                    npsl, npsr, msl, msr, bmsdl, bmsdr, msdl, msdr)
                 --txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
             end
 		else
@@ -452,7 +451,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end,
     DoTheThingCommand = function(self)
         if song and enabled then
-            self:settextf("Upper Bound: %.4f\nLower Bound: %.4f", highest-1, lowest+1)
+            self:settextf("Upper Bound: %.4f\nLower Bound: %.4f", lowerGraphMax, lowerGraphMin)
         end
     end
 }
@@ -530,6 +529,12 @@ local function bottomGraphLineMSD(lineNum, colorToUse)
 
                 self:visible(true)
                 local verts = {}
+                for _, line in ipairs(graphVecs[2]) do
+                    for ind, val in pairs(line) do
+                        if val < lowerGraphMin then lowerGraphMin = val end
+                        if val > lowerGraphMax then lowerGraphMax = val end
+                    end
+                end
 
                 for i = 1, #graphVecs[2][lineNum] do
                     local x = fitX(i, #graphVecs[2][lineNum]) -- vector length based positioning
