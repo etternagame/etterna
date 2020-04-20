@@ -174,25 +174,21 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	tech = CalcClamp((tech / techbase) * tech, tech * 0.85f, tech);
 
 	float stam;
+
+	// stam is based which calc produced the highest output on base
 	if (stream > tech || js > tech || hs > tech)
 		if (stream > js && stream > hs)
 			stam = Chisel(stream - 0.1f,
-						  2.56f,
-						  score_goal,
-						  true,
-						  false,
-						  true,
-						  false,
-						  false);
+						  10.56f, score_goal, true, false, true, false, false);
 		else if (js > hs)
 			stam = Chisel(
-			  js - 0.1f, 2.56f, score_goal, true, false, true, true, false);
+			  js - 0.1f, 10.56f, score_goal, true, false, true, true, false);
 		else
 			stam = Chisel(
-			  hs - 0.1f, 2.56f, score_goal, true, false, true, false, true);
+			  hs - 0.1f, 10.56f, score_goal, true, false, true, false, true);
 	else
 		stam = Chisel(
-		  tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
+		  tech - 0.1f, 10.56f, score_goal, true, false, false, false, false);
 
 	float chordjack = jack * 0.75f;
 
@@ -231,13 +227,13 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			case 4:
 				if (stream > tech || js > tech || hs > tech)
 					if (stream > js && stream > hs)
-						Chisel(stream - 0.1f, 2.56f, score_goal, true, false, true, false, false, true);
+						Chisel(stream - 0.1f, 10.56f, score_goal, true, false, true, false, false, true);
 					else if (js > hs)
-						Chisel(js - 0.1f, 2.56f, score_goal, true, false, true, true, false, true);
+						Chisel(js - 0.1f, 10.56f, score_goal, true, false, true, true, false, true);
 					else
-						Chisel(hs - 0.1f, 2.56f, score_goal, true, false, true, false, true, true);
+						Chisel(hs - 0.1f, 10.56f, score_goal, true, false, true, false, true, true);
 				else
-					Chisel(tech - 0.1f, 2.56f, score_goal, true, false, false, false, false, true);
+					Chisel(tech - 0.1f, 10.56f, score_goal, true, false, false, false, false, true);
 				break;
 			case 5:
 				Chisel(
