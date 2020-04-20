@@ -835,6 +835,11 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 				// consecutive notes should "poison" the current cross column vector
 				// but without shifting the proportional scaling too much
 				// this is to avoid treating 121212212121 too much like 121212121212
+
+				// if we wanted to be _super explicit_ we could just reset the lr/rl
+				// vectors when hitting a consecutive note (and/or jump), there are
+				// advantages to being hyper explicit but at the moment this does
+				// sort of pick up rolly js quite well
 				if (thiscol)
 					rl.push_back(curtime - lasttime);
 				else
