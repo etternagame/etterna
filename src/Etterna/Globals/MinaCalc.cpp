@@ -588,7 +588,7 @@ Hand::StamAdjust(float x, vector<float>& diff)
 		mod += ((ebb / (prop * x)) - 1) / mag;
 		if (mod > 1.f)
 			floor += (mod - 1) / fscale;
-		CalcClamp(mod, floor, ceil);
+		mod = CalcClamp(mod, floor, ceil);
 		o[i] = diff[i] * mod;
 	}
 	return o;
@@ -622,7 +622,7 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 		// final debug output should always be with stam activated
 		debugValues[StamMod].resize(diff.size());
 		for (size_t i = 0; i < diff.size(); ++i)
-			debugValues[StamMod][i] = (v[i] / (diff[i] + + 0.00000001f));
+			debugValues[StamMod][i] = diff[i] == 0.f ? 1.f : v[i] / diff[i];
 	}
 
 	float output = 0.f;
