@@ -208,7 +208,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	chordjack = difficulty.handstream;
 
-		vector<float> pumpkin = skillset_vector(difficulty);
+	vector<float> pumpkin = skillset_vector(difficulty);
 	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
 	// this is the only time debugoutput arg should be set to true
 	if (debugmode) {
@@ -396,7 +396,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 			right_hand.debugValues[i].resize(numitv);
 		}
 	}
-	
+
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++) {
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
@@ -516,7 +516,7 @@ Calc::Chisel(float player_skill,
 		resolution /= 2.f;
 	}
 
-	// these are the values for msd/stam adjusted msd/pointloss the 
+	// these are the values for msd/stam adjusted msd/pointloss the
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
 	if (debugoutput) {
@@ -635,7 +635,7 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 			debugValues[PtLoss][i] = (v_itvpoints[i] - gainedpoints);
 		}
 	}
-	
+
 	return output;
 }
 
@@ -927,5 +927,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 264;
+	return 265;
 }
