@@ -208,6 +208,48 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	chordjack = difficulty.handstream;
 
+		vector<float> pumpkin = skillset_vector(difficulty);
+	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
+	// this is the only time debugoutput arg should be set to true
+	if (debugmode) {
+		size_t idx = std::distance(
+		  pumpkin.begin(), std::max_element(pumpkin.begin(), pumpkin.end()));
+		float minval = *std::min_element(pumpkin.begin(), pumpkin.end());
+		switch (idx) {
+			case 1:
+				Chisel(
+					minval, 10.24f, score_goal, true, false, true, false, false, true);
+				break;
+			case 2:
+				Chisel(
+					minval, 10.24f, score_goal, true, false, true, true, false, true);
+				break;
+			case 3:
+				Chisel(
+					minval, 10.24f, score_goal, true, false, true, false, true, true);
+				break;
+			case 4:
+				if (stream > tech || js > tech || hs > tech)
+					if (stream > js && stream > hs)
+						Chisel(stream - 0.1f, 2.56f, score_goal, true, false, true, false, false, true);
+					else if (js > hs)
+						Chisel(js - 0.1f, 2.56f, score_goal, true, false, true, true, false, true);
+					else
+						Chisel(hs - 0.1f, 2.56f, score_goal, true, false, true, false, true, true);
+				else
+					Chisel(tech - 0.1f, 2.56f, score_goal, true, false, false, false, false, true);
+				break;
+			case 5:
+				Chisel(
+					minval, 10.24f, score_goal, true, true, true, false, false, true);
+				break;
+			case 7:
+				Chisel(
+					minval, 10.24f, score_goal, true, false, false, false, false, true);
+				break;
+		}
+	}
+
 	difficulty.stream *=
 	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler;
 	difficulty.jumpstream *=
@@ -294,49 +336,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.handstream, 0.f, 4.5f);
 		difficulty.technical -= CalcClamp(
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
-	}
-
-	vector<float> pumpkin = skillset_vector(difficulty);
-	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
-	// this is the only time debugoutput arg should be set to true
-	if (debugmode) {
-		size_t idx = std::distance(
-		  pumpkin.begin(), std::max_element(pumpkin.begin(), pumpkin.end()));
-		float minval = *std::min_element(pumpkin.begin(), pumpkin.end());
-		switch (idx) {
-			case 1:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, false, false, true);
-				break;
-			case 2:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, true, false, true);
-				break;
-			case 3:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, false, true, true);
-				break;
-			case 4:
-				if (stream > tech || js > tech || hs > tech)
-					if (stream > js && stream > hs)
-						Chisel(stream - 0.1f, 2.56f, score_goal, true, false, true, false, false);
-					else if (js > hs)
-						Chisel(js - 0.1f, 2.56f, score_goal, true, false, true, true, false);
-					else
-						Chisel(hs - 0.1f, 2.56f, score_goal, true, false, true, false, true);
-				else
-					Chisel(tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
-				break;
-			case 5:
-				Chisel(
-					minval, 10.24f, score_goal, true, true, true, false, false, true);
-				break;
-			case 7:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, false, false, false, true);
-				break;
-		}
-
 	}
 
 	difficulty.overall = highest_difficulty(difficulty);
