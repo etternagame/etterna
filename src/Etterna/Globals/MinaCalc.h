@@ -70,9 +70,9 @@ class Hand
 						1.025; // multiplier to standardize baselines
 
 	// Stamina Model params
-	const float ceil = 1.08f;	// stamina multiplier max
+	const float ceil = 1.09f;	// stamina multiplier max
 	const float mag = 355.f;	 // multiplier generation scaler
-	const float fscale = 2000.f; // how fast the floor rises (it's lava)
+	const float fscale = 2500.f; // how fast the floor rises (it's lava)
 	const float prop =
 	  0.75f; // proportion of player difficulty at which stamina tax begins
 };
