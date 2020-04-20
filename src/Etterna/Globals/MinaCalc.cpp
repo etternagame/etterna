@@ -246,6 +246,20 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
+
+	// below are bandaids that the internal calc functions should handle prior
+	// _some_ basic adjustment post-evalution may be warranted but this is way
+	// too far, to the point where it becomes more difficult to make any positive
+	// changes, though it also happens to be where almost all of the balance of 263
+
+	// all relative scaling to specific skillsets should occur before this point, not
+	// after (it ended up this way due to the normalizers which were dumb and removed)
+	// stam is the only skillset that can/should be normalized to base values without
+	// interfering with anything else (since it's not based on a type of pattern)
+
+	// specific scaling to curve sub 93 scores down harder should take place last
+
+	/*
 	difficulty.stream *=
 	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler;
 	difficulty.jumpstream *=
@@ -334,8 +348,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
+	
+	 */
+	
 	difficulty.overall = highest_difficulty(difficulty);
-
 	return skillset_vector(difficulty);
 }
 
