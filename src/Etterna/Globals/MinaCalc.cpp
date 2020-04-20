@@ -383,6 +383,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	numitv = static_cast<int>(
 	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
 
+	if (debugmode) {
+		left_hand.debugValues.resize(DebugCount);
+		right_hand.debugValues.resize(DebugCount);
+		for (size_t i = 0; i < DebugCount; ++i) {
+			right_hand.debugValues[i].resize(numitv);
+		}
+	}
+	
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++) {
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
@@ -408,11 +416,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	// these values never change during calc so set them immediately
 	if (debugmode) {
 		left_hand.debugValues[Jump] = left_hand.jumpscale;
-		right_hand.debugValues[Jump] = right_hand.jumpscale;
+		right_hand.debugValues[Jump] = left_hand.jumpscale;
 		left_hand.debugValues[Anchor] = left_hand.anchorscale;
 		right_hand.debugValues[Anchor] = right_hand.anchorscale;
 		left_hand.debugValues[HS] = left_hand.hsscale;
-		right_hand.debugValues[HS] = right_hand.hsscale;
+		right_hand.debugValues[HS] = left_hand.hsscale;
 		left_hand.debugValues[OHJump] = left_hand.ohjumpscale;
 		right_hand.debugValues[OHJump] = right_hand.ohjumpscale;
 		left_hand.debugValues[Roll] = left_hand.rollscale;
@@ -838,7 +846,7 @@ void
 MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				vector<vector<float>[DebugCount]> handInfo)
+				vector<vector<vector<float>>>& handInfo)
 {
 	if (NoteInfo.size() <= 1)
 		return;

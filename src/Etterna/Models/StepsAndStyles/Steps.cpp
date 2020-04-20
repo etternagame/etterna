@@ -414,6 +414,8 @@ Steps::CalcEtternaMetadata()
 void
 Steps::GetCalcDebugOutput()
 {
+	if (!calcdebugoutput.empty())
+		return;
 	// function is responsible for producing debug output
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
@@ -962,15 +964,22 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
-	static int DootSpooks(T* p, lua_State* L)
+	static int GetCalcDebugOutput(T* p, lua_State* L)
 	{
 		p->GetCalcDebugOutput();
+		int lazy = 1;
 		lua_newtable(L);
-		//for (int i = 0; i < DebugCount; ++i) {
-		//	vector<float> poop = p->calcdebugoutput[i];
-		//	LuaHelpers::CreateTableFromArray(poop, L);
-		//	lua_rawseti(L, -2, i + 1);
-		//}
+		for (int i = 0; i < DebugCount; ++i) {
+			vector<float> poop = p->calcdebugoutput[0][i];
+			LuaHelpers::CreateTableFromArray(poop, L);
+			lua_rawseti(L, -2, lazy);
+			++lazy;
+
+			poop = p->calcdebugoutput[1][i];
+			LuaHelpers::CreateTableFromArray(poop, L);
+			lua_rawseti(L, -2, lazy);
+			++lazy;
+		}
 		return 1;
 	}
 	LunaSteps()
@@ -1005,7 +1014,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
-		ADD_METHOD(DootSpooks);
+		ADD_METHOD(GetCalcDebugOutput);
 	}
 };
 

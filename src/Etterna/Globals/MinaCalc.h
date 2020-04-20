@@ -60,7 +60,7 @@ class Hand
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval
-	std::vector<float> debugValues[DebugCount];
+	std::vector<std::vector<float>> debugValues;
 
   private:
 	const bool SmoothDifficulty =
@@ -168,6 +168,6 @@ MINACALC_API void
 MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				std::vector<std::vector<float>[DebugCount]> handInfo);
+				std::vector<std::vector<std::vector<float>>>& handInfo);
 MINACALC_API int
 GetCalcVersion();
