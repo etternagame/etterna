@@ -419,7 +419,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
 	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-	left_hand.rollscale = RollDownscaler(NoteInfo, 1, 2, music_rate);
+
+	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
@@ -427,7 +428,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.InitPoints(fingers[2], fingers[3]);
 	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
 	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
-	right_hand.rollscale = RollDownscaler(NoteInfo, 4, 8, music_rate);
+
+	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -782,25 +784,39 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 // downscales full rolls or rolly js, it looks explicitly for consistent cross column
 // timings on both hands; consecutive notes on the same column will reduce the penalty
 // 0.5-1 multiplier
+// also now downscales ohj because we don't want to run this loop too often even if it
+// makes code slightly clearer, i think, new ohj scaler is the same as the last one but
+// gives higher weight to sequences of ohjumps
+// 0.5-1 multipier
 vector<float>
-Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
+Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					 unsigned int t1,
 					 unsigned int t2,
-					 float music_rate)
+					 float music_rate, vector<float> doot[5])
 {
 	vector<float> output(nervIntervals.size());
 
 	// not sure if these should persist between intervals or not
+	// not doing so makes the pattern detection slightly more strict
+	// doing so will give the calc some context from the previous
+	// interval but might have strange practical consequences
+	// another major benefit of retaining last col from the previous
+	// interval is we don't have to keep resetting it and i don't like
+	// how that case is handled atm
 	int lastcol = -1;
 	float lasttime = 0.f;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// roll downscaler stuff
 		int totaltaps = 0;
 		vector<float> lr;
 		vector<float> rl;
 		int ltaps = 0;
 		int rtaps = 0;
-		int ohj = 0;	// quick hack to *roll* in sequential ohj downscaling
+
+		// ohj downscaler stuff
+		int jumptaps = 0;	// more intuitive to count taps in jumps
+		float ohj = 0.f;
 
 		for (int row : nervIntervals[i]) {
 			bool lcol = NoteInfo[row].notes & t1;
@@ -825,8 +841,9 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
+				// 
 				if (lcol && rcol)
-					ohj += 1;
+					jumptaps += 1;
 				else
 					ohj -= 1;
 				continue;
@@ -851,7 +868,12 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 				// if we wanted to be _super explicit_ we could just reset the lr/rl
 				// vectors when hitting a consecutive note (and/or jump), there are
 				// advantages to being hyper explicit but at the moment this does
-				// sort of pick up rolly js quite well
+				// sort of pick up rolly js quite well, though it would probably
+				// be more responsible longterm to have an explicit roll detector
+				// an explicit trill detector, and an explicit rolly js detector
+				// thing is debugging all 3 and making sure they work as intended
+				// and in exclusion is just as hard as making a couple of more generic
+				// mods and accepting they will overlap in certain scenarios
 				if (thiscol)
 					rl.push_back(curtime - lasttime);
 				else
@@ -862,7 +884,7 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 		}
 		int cvtaps = ltaps + rtaps;
 		if (cvtaps == 0) {
-			if (ohj > 0)	// temp sequential ohj penalty 
+			if (ohj > 0)
 				output[i] = CalcClamp(1.f * totaltaps / (ohj * 3.3f), 0.5f, 1.f);
 			else
 				output[i] = 1.f;
@@ -895,6 +917,8 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 
 	if (SmoothPatterns)
 		Smooth(output, 1.f);
+
+	doot[Roll] = output;
 
 	return output;
 }

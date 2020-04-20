@@ -58,6 +58,7 @@ class Hand
 	of points achieved by this hand. */
 	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug);
 
+	std::vector<float> doot[5];
 	std::vector<float> ohjumpscale, rollscale, hsscale, jumpscale, anchorscale;
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
@@ -141,10 +142,15 @@ class Calc
 									unsigned int t2);
 	std::vector<float> HSDownscaler(const std::vector<NoteInfo>& NoteInfo);
 	std::vector<float> JumpDownscaler(const std::vector<NoteInfo>& NoteInfo);
-	std::vector<float> RollDownscaler(const std::vector<NoteInfo>& NoteInfo,
-									  unsigned int t1,
-									  unsigned int t2,
-									  float music_rate);
+
+	// run pattern mods that require specific sequencing at the same time to
+	// avoid iterating through all rows of the noteinfo more than once
+	std::vector<float> SetSequentialDownscalers(
+	  const std::vector<NoteInfo>& NoteInfo,
+	  unsigned int t1,
+	  unsigned int t2,
+	  float music_rate,
+	  std::vector<float> doot[5]);
 
 	Hand left_hand;
 	Hand right_hand;
