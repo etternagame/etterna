@@ -788,13 +788,14 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 // makes code slightly clearer, i think, new ohj scaler is the same as the last one but
 // gives higher weight to sequences of ohjumps
 // 0.5-1 multipier
-vector<float>
+void
 Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					 unsigned int t1,
 					 unsigned int t2,
 					 float music_rate, vector<float> doot[5])
 {
-	vector<float> output(nervIntervals.size());
+	doot[Roll].resize(nervIntervals.size());
+	doot[OHJump].resize(nervIntervals.size());
 
 	// not sure if these should persist between intervals or not
 	// not doing so makes the pattern detection slightly more strict
@@ -815,7 +816,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int rtaps = 0;
 
 		// ohj downscaler stuff
-		int jumptaps = 0;	// more intuitive to count taps in jumps
+		int jumptaps = 0;			// more intuitive to count taps in jumps
+		int maxseqjumptaps = 0;		// basically the biggest sequence of ohj
 		float ohj = 0.f;
 
 		for (int row : nervIntervals[i]) {
@@ -841,16 +843,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
-				// 
+				// add jumptaps when hitting jumps for ohj
 				if (lcol && rcol)
-					jumptaps += 1;
-				else
-					ohj -= 1;
+					jumptaps += 2;
+
+				// set the largest ohj sequence
+				maxseqjumptaps = max(maxseqjumptaps, jumptaps);
 				continue;
 			}
-			ohj -= 1;
 
-			int thiscol = lcol < rcol;
+			int thiscol = lcol < rcol;			
 			if (thiscol != lastcol) { // ignore consecutive notes
 				if (thiscol) { // right column, push to right to left vector
 					rl.push_back(curtime - lasttime);
@@ -874,21 +876,47 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// thing is debugging all 3 and making sure they work as intended
 				// and in exclusion is just as hard as making a couple of more generic
 				// mods and accepting they will overlap in certain scenarios
+				// though again on the other hand explicit modifiers are easier to tune
+				// you just have to do a lot more of it
 				if (thiscol)
 					rl.push_back(curtime - lasttime);
 				else
 					lr.push_back(curtime - lasttime);
 				totaltaps += 2;	// yes this is cheezy
 			}
+
+			// ohj downscaler stuff
+			// we know between the following that the latter is more difficult
+			// [12][12][12]222[12][12][12]
+			// [12][12][12]212[12][12][12]
+			// so we want to penalize not only any break in the ohj sequence
+			// but further penalize breaks which contain cross column taps
+			// this should also reflect the difference between [12]122[12], [12]121[12]
+			// cases like 121[12][12]212[12][12]121 should probably have some penalty
+			// but likely won't with this setup, but everyone hates that anyway and it
+			// would be quite difficult to force the current setup to do so without
+			// increasing complexity significantly (probably)
+			jumptaps -= 1;			// we're already on single notes, so just decrement a lil
+			if (thiscol != lastcol) // easier to read if we do it again
+				jumptaps -= 2;
+
 			lastcol = thiscol;
 		}
 		int cvtaps = ltaps + rtaps;
+
+		// if this is true we have some combination of single notes and jumps
+		// where the single notes are all on the same column 2[12][12][12]2222
+		// in these cases we don't want to treat 2222[12][12][12]2 differently,
+		// so use the max sequence here exclusively
 		if (cvtaps == 0) {
-			if (ohj > 0)
-				output[i] = CalcClamp(1.f * totaltaps / (ohj * 3.3f), 0.5f, 1.f);
-			else
-				output[i] = 1.f;
-			continue; // longjacks
+			if (maxseqjumptaps > 0)
+				doot[OHJump][i] = CalcClamp(1.f * totaltaps / static_cast<float>(maxseqjumptaps), 0.5f, 1.f);
+			else // single note longjacks, do nothing
+				doot[OHJump][i] = 1.f;
+
+			// no rolls here by definition
+			doot[Roll][i] = 1.f;
+			continue; 
 		}
 
 		float cvlr = 0.2f;
@@ -912,15 +940,20 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// then scaled against how many taps we ignored
 		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		cv *= barf;
-		output[i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
+
+		// we just want a minimum amount of variation to escape getting downscaled
+		// cap to 1 (it's not an inherently bad idea to upscale sets of patterns
+		// with high variation but we shouldn't do that here, probably)
+		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 	}
 
-	if (SmoothPatterns)
-		Smooth(output, 1.f);
+	if (SmoothPatterns) {
+		Smooth(doot[Roll], 1.f);
+		Smooth(doot[OHJump], 1.f);
+	}
+		
 
-	doot[Roll] = output;
-
-	return output;
+	return;
 }
 
 static const float ssrcap = 0.975f; // cap SSR at 96% so things don't get out of
