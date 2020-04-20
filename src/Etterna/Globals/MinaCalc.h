@@ -67,7 +67,7 @@ class Hand
 	  true; // Do we moving average the difficulty intervals?
 
 	float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						1.025; // multiplier to standardize baselines
+						1.025f; // multiplier to standardize baselines
 
 	// Stamina Model params
 	const float ceil = 1.09f;	// stamina multiplier max
