@@ -788,6 +788,7 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 		vector<float> rl;
 		int ltaps = 0;
 		int rtaps = 0;
+		int ohj = 0;	// quick hack to *roll* in sequential ohj downscaling
 
 		for (int row : nervIntervals[i]) {
 			bool lcol = NoteInfo[row].notes & t1;
@@ -811,8 +812,14 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 
 				// yes we want to set this for jumps
 				lasttime = curtime;
+
+				if (lcol && rcol)
+					ohj += 1;
+				else
+					ohj -= 1;
 				continue;
 			}
+			ohj -= 1;
 
 			int thiscol = lcol < rcol;
 			if (thiscol != lastcol) { // ignore consecutive notes
@@ -838,7 +845,10 @@ Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
 		}
 		int cvtaps = ltaps + rtaps;
 		if (cvtaps == 0) {
-			output[i] = 1.f;
+			if (ohj > 0)	// temp sequential ohj penalty 
+				output[i] = CalcClamp(1.f * totaltaps / (ohj * 3.3f), 0.5f, 1.f);
+			else
+				output[i] = 1.f;
 			continue; // longjacks
 		}
 
