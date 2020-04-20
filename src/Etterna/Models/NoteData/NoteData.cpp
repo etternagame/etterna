@@ -213,30 +213,6 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 	return SerializedNoteData;
 }
 
-vector<NoteInfo2>&
-NoteData::SerializeNoteData2(const vector<float>& etaner)
-{
-	SerializedNoteData2.reserve(NonEmptyRowVector.size());
-
-	int tracks = GetNumTracks();
-	for (size_t i = 0; i < NonEmptyRowVector.size(); i++) {
-		int rowNotes = 0;
-		for (int q = 0; q < tracks; q++) {
-			if (GetTapNote(q, NonEmptyRowVector[i]).IsNote()) {
-				rowNotes |= 1 << q;
-			}
-		}
-
-		if (rowNotes != 0) {
-			NoteInfo2 rowOutput{ rowNotes,
-								 static_cast<int>(etaner[i] * 10000.f) };
-			SerializedNoteData2.emplace_back(rowOutput);
-		}
-	}
-
-	return SerializedNoteData2;
-}
-
 void
 NoteData::LogNonEmptyRows()
 {
