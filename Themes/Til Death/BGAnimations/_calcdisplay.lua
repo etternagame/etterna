@@ -142,46 +142,28 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
-        ssrs = getGraphForSteps(steps)
+       --ssrs = getGraphForSteps(steps)
         -- DEBUG STUFF FOR CALCDISPLAY GRAPHS SHOULD BE DONE IN ONE PASS THIS IS INSANE
-        local ohj = steps:DootSpooks(1)
-        local anchr = steps:DootSpooks(2)
-        local roll = steps:DootSpooks(3)
-        local hsds = steps:DootSpooks(4)
-        local jumpds = steps:DootSpooks(5)
-        local msd = steps:DootSpooks(6)
-        local pts = steps:DootSpooks(7)
+        local bap = steps:GetCalcDebugOutput()
         graphVecs[1] = {}
-        graphVecs[1][1] = ohj[1]
-        graphVecs[1][2] = ohj[2]
-        graphVecs[1][3] = anchr[1]
-        graphVecs[1][4] = anchr[2]
-        graphVecs[1][5] = roll[1]
-        graphVecs[1][6] = roll[2]
-        graphVecs[1][7] = hsds[1]
-        graphVecs[1][8] = hsds[2]
-        graphVecs[1][9] = jumpds[1]
-        graphVecs[1][10] = jumpds[2]
-
         graphVecs[2] = {}
-        --graphVecs[2][1] = msd[1]
-        --graphVecs[2][2] = msd[2]
-        --graphVecs[2][3] = pts[1]
-        --graphVecs[2][4] = pts[2]
-        graphVecs[2][1] = ssrs[1]
-        graphVecs[2][2] = ssrs[2]
-        graphVecs[2][3] = ssrs[3]
-        graphVecs[2][4] = ssrs[4]
-        graphVecs[2][5] = ssrs[5]
-        graphVecs[2][6] = ssrs[6]
-        graphVecs[2][7] = ssrs[7]
-        graphVecs[2][8] = ssrs[8]
-        graphVecs[2][9] = ssrs[9]
+        graphVecs[3] = {}
+        for i= 1, 10 do
+            graphVecs[1][i] = bap[i]
+        end
+        graphVecs[1][11] = bap[21]  -- stammod (should be separate prolly)
+        graphVecs[1][12] = bap[22]
 
+        for i = 11, 22 do
+            graphVecs[2][i - 10] = bap[i]
+        end
 
+        for i = 1, 8 do
+            --graphVecs[3][i] = ssrs[i]
+        end
         -- hardcode these numbers for constant upper graph bounds
-        upperGraphMin = 0
-        upperGraphMax = 1.1
+        upperGraphMin = 0.4
+        upperGraphMax = 1.3
         --[[-- uncomment to have adaptive upper graph
         for _, line in ipairs(graphVecs[1]) do
             for ind, val in pairs(line) do
@@ -299,8 +281,10 @@ o[#o + 1] = Def.Quad {
             local hsdsr =   graphVecs[1][8][index]
             local jumpdsl = graphVecs[1][9][index]
             local jumpdsr = graphVecs[1][10][index]
-            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f",
-                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr)
+            local sl = graphVecs[1][11][index]
+            local sr = graphVecs[1][12][index]
+            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f\nsl: %5.4f\nsr: %5.4f",
+                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr, sl, sr)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -406,7 +390,9 @@ modnames = {
     "hsl",
     "hsr",
     "jsl",
-    "jsr"
+    "jsr",
+    "sl",
+    "sr"
 }
 
 local modColors = {
@@ -419,14 +405,16 @@ local modColors = {
     color("1,1,0"),         -- yellow       = handstream left
     color("0.6,0.6,0"),     -- dark yellow      (right)
     color("1,0,1"),         -- purple       = jumpstream left
-    color("1,0.3,1")        -- light purple      (right)
+    color("1,0.3,1"),        -- light purple      (right)
+    color("1.4,1.3,1"),       
+    color("1.4,1.3,0.9")     
 }
 
 -- top graph average text
 makeskillsetlabeltext = function(i) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
-            local xspace = 45
+            local xspace = 35
             self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
             self:zoom(0.5)
             self:settext("")
@@ -443,7 +431,7 @@ makeskillsetlabeltext = function(i)
                   self:settext("")
                 return
             end
-            for i = 1,10 do
+            for i = 1, 12 do
                 if graphVecs[1][i] and #graphVecs[1][i] > 0 then
                     aves[i] = table.average(graphVecs[1][i])
                 end
@@ -488,7 +476,7 @@ local function topGraphLine(lineNum, colorToUse)
                 local verts = {}
                 local highest = 0
 
-                if lineNum == 11 then
+                if lineNum == 13 then
                     for i = 1, #graphVecs[1][1] do
                         local x = fitX(i, #graphVecs[1][1])
                         local y = fitY1(1)
@@ -524,11 +512,11 @@ local function topGraphLine(lineNum, colorToUse)
     }
 end
 
-for i = 1,10 do
+for i = 1,12 do
     o[#o+1] = topGraphLine(i, modColors[i])
     o[#o+1] = makeskillsetlabeltext(i)
 end
-o[#o+1] = topGraphLine(11, modColors[i])    -- super hack to make 1.0 value indicator line
+o[#o+1] = topGraphLine(13, modColors[i])    -- super hack to make 1.0 value indicator line
 
 local function bottomGraphLineMSD(lineNum, colorToUse)
     return Def.ActorMultiVertex {
@@ -548,7 +536,7 @@ local function bottomGraphLineMSD(lineNum, colorToUse)
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(graphVecs[2][lineNum][i], lowerGraphMin, lowerGraphMax)
 
-                    setOffsetVerts(verts, x, y, color("1,0.3,1"))
+                    setOffsetVerts(verts, x, y, colorToUse)
                 end
                 
                 self:SetVertices(verts)
@@ -600,9 +588,9 @@ local skillsetColors = {
     color("#b0cec2"),    -- tech
 }
 
-for i = 1,9 do
-    o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-    --o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
+for i = 1, 10 do
+    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+    o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
 end
 
 

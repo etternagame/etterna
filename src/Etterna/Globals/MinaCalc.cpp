@@ -277,7 +277,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float highest = max(difficulty.overall, highest_difficulty(difficulty));
 
 	vector<float> temp = skillset_vector(difficulty);
-	// difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
+	difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
 
 	if (downscale_chordjack_at_end) {
 		difficulty.chordjack *= 0.9f;
@@ -306,23 +306,30 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		switch (idx) {
 			case 1:
 				Chisel(
-					minval, 10.24f, score_goal, false, false, true, false, false, true);
+					minval, 10.24f, score_goal, true, false, true, false, false, true);
 				break;
 			case 2:
 				Chisel(
-					minval, 10.24f, score_goal, false, false, true, true, false, true);
+					minval, 10.24f, score_goal, true, false, true, true, false, true);
 				break;
 			case 3:
 				Chisel(
-					minval, 10.24f, score_goal, false, false, true, false, true, true);
+					minval, 10.24f, score_goal, true, false, true, false, true, true);
 				break;
 			case 4:
-				Chisel(
-					minval, 10.24f, score_goal, false, false, false, false, false, true);
+				if (stream > tech || js > tech || hs > tech)
+					if (stream > js && stream > hs)
+						Chisel(stream - 0.1f, 2.56f, score_goal, true, false, true, false, false);
+					else if (js > hs)
+						Chisel(js - 0.1f, 2.56f, score_goal, true, false, true, true, false);
+					else
+						Chisel(hs - 0.1f, 2.56f, score_goal, true, false, true, false, true);
+				else
+					Chisel(tech - 0.1f, 2.56f, score_goal, true, false, false, false, false);
 				break;
 			case 5:
 				Chisel(
-					minval, 10.24f, score_goal, false, true, true, false, false, true);
+					minval, 10.24f, score_goal, true, true, true, false, false, true);
 				break;
 			case 7:
 				Chisel(
@@ -624,8 +631,9 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 	if (debug) {
 		debugValues[MSD] = diff;	// pretty sure we need to copy
 		// final debug output should always be with stam activated
+		debugValues[StamMod].resize(diff.size());
 		for (size_t i = 0; i < diff.size(); ++i)
-			debugValues[StamMod].emplace_back(diff[i] / v[i]);
+			debugValues[StamMod][i] = (v[i] / (diff[i] + + 0.00000001f));
 	}
 
 	float output = 0.f;
@@ -634,8 +642,10 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 		  x > v[i] ? v_itvpoints[i] : v_itvpoints[i] * pow(x / v[i], 1.8f);
 
 		output += gainedpoints;
-		if (debug)
-			debugValues[PtLoss].emplace_back(v_itvpoints[i] - gainedpoints);
+		if (debug) {
+			debugValues[PtLoss].resize(diff.size());
+			debugValues[PtLoss][i] = (v_itvpoints[i] - gainedpoints);
+		}
 	}
 	
 	return output;
