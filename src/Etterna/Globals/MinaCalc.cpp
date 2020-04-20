@@ -571,7 +571,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 }
 
 vector<float>
-Hand::StamAdjust(float x, vector<float>& diff)
+Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 {
 	vector<float> o(diff.size());
 	float floor = 1.f; // stamina multiplier min (increases as chart advances)
@@ -589,6 +589,8 @@ Hand::StamAdjust(float x, vector<float>& diff)
 			floor += (mod - 1) / fscale;
 		mod = CalcClamp(mod, floor, ceil);
 		o[i] = diff[i] * mod;
+		if (debug)
+			o[i] = mod;
 	}
 	return o;
 }
@@ -614,14 +616,12 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 					   : anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i]));
 	}
 
-	const vector<float>& v = stam ? StamAdjust(x, diff) : diff;
+	const vector<float>& v = stam ? StamAdjust(x, diff, false) : diff;
 
 	if (debug) {
 		debugValues[MSD] = diff;	// pretty sure we need to copy
 		// final debug output should always be with stam activated
-		debugValues[StamMod].resize(diff.size());
-		for (size_t i = 0; i < diff.size(); ++i)
-			debugValues[StamMod][i] = diff[i] == 0.f ? 1.f : v[i] / diff[i];
+		debugValues[StamMod] = StamAdjust(x, diff, true);
 	}
 
 	float output = 0.f;
