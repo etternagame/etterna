@@ -407,7 +407,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
 	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-	left_hand.rollscale = RollDownscaler(fingers[0], fingers[1]);
+	left_hand.rollscale = RollDownscaler(NoteInfo, 1, 2, music_rate);
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
@@ -415,7 +415,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.InitPoints(fingers[2], fingers[3]);
 	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
 	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
-	right_hand.rollscale = RollDownscaler(fingers[2], fingers[3]);
+	right_hand.rollscale = RollDownscaler(NoteInfo, 4, 8, music_rate);
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -767,37 +767,103 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 	return output;
 }
 
+// downscales full rolls or rolly js, it looks explicitly for consistent cross column
+// timings on both hands; consecutive notes on the same column will reduce the penalty
+// 0.5-1 multiplier
 vector<float>
-Calc::RollDownscaler(const Finger& f1, const Finger& f2)
+Calc::RollDownscaler(const vector<NoteInfo>& NoteInfo,
+					 unsigned int t1,
+					 unsigned int t2,
+					 float music_rate)
 {
-	vector<float> output(
-	  f1.size()); // this is slightly problematic because if one finger is
-				  // longer than the other you could potentially have different
-				  // results with f1 and f2 switched
-	for (size_t i = 0; i < f1.size(); i++) {
-		if (f1[i].size() + f2[i].size() <= 1) {
-			output[i] = 1.f;
-			continue;
+	vector<float> output(nervIntervals.size());
+
+	// not sure if these should persist between intervals or not
+	int lastcol = -1;
+	float lasttime = 0.f;
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int totaltaps = 0;
+		vector<float> lr;
+		vector<float> rl;
+		int ltaps = 0;
+		int rtaps = 0;
+
+		for (int row : nervIntervals[i]) {
+			bool lcol = NoteInfo[row].notes & t1;
+			bool rcol = NoteInfo[row].notes & t2;
+			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+			float curtime = NoteInfo[row].rowTime / music_rate;
+
+			// skip first element and ignore jumps/no taps
+			if (!(lcol ^ rcol) || lastcol == -1) {
+
+				// fully skip empty rows, set nothing
+				if (!(lcol || rcol))
+					continue;
+
+				// it shouldn't matter if first row is a jump
+				if (lastcol == -1)
+					if (lcol)
+						lastcol = 0;
+					else
+						lastcol = 1;
+
+				// yes we want to set this for jumps
+				lasttime = curtime;
+				continue;
+			}
+
+			int thiscol = lcol < rcol;
+			if (thiscol != lastcol) { // ignore consecutive notes
+				if (thiscol) { // right column, push to right to left vector
+					rl.push_back(curtime - lasttime);
+					++rtaps;
+				} else {
+					lr.push_back(curtime - lasttime);
+					++ltaps;
+				}
+				lasttime = curtime; // only log cross column lasttimes
+			} else {
+				// consecutive notes should "poison" the current cross column vector
+				// but without shifting the proportional scaling too much
+				// this is to avoid treating 121212212121 too much like 121212121212
+				if (thiscol)
+					rl.push_back(curtime - lasttime);
+				else
+					lr.push_back(curtime - lasttime);
+				totaltaps += 2;	// yes this is cheezy
+			}
+			lastcol = thiscol;
 		}
-		vector<float> hand_intervals;
-		for (float time1 : f1[i])
-			hand_intervals.emplace_back(time1);
-		for (float time2 : f2[i])
-			hand_intervals.emplace_back(time2);
+		int cvtaps = ltaps + rtaps;
+		if (cvtaps == 0) {
+			output[i] = 1.f;
+			continue; // longjacks
+		}
 
-		float interval_mean = mean(hand_intervals);
+		float cvlr = 0.2f;
+		float cvrl = 0.2f;
+		if (ltaps > 1)
+			cvlr = cv(lr);
+		if (rtaps > 1)
+			cvrl = cv(rl);
 
-		for (float& note : hand_intervals)
-			if (interval_mean / note < 0.6f)
-				note = interval_mean;
+		// weighted average, but if one is empty we want it to skew high not low
+		// due to * 0		
+		float cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
+				   static_cast<float>(cvtaps + 2);
 
-		float interval_cv = cv(hand_intervals) + 0.85f;
-		output[i] = interval_cv >= 1.0f
-					  ? min(sqrt(sqrt(interval_cv)), 1.075f)
-					  : interval_cv * interval_cv * interval_cv;
+		// the vector with the lower mean should carry a little more weight
+		if (mean(lr) < mean(rl)) // right is higher
+			cv = (2.f * cv + cvlr) / 3.f;
+		else
+			cv = (2.f * cv + cvrl) / 3.f;
 
-		if (logpatterns)
-			std::cout << "ro " << output[i] << std::endl;
+		// then scaled against how many taps we ignored
+		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
+		cv *= barf;
+		output[i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 	}
 
 	if (SmoothPatterns)

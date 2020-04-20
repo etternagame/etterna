@@ -139,7 +139,10 @@ class Calc
 									unsigned int t2);
 	std::vector<float> HSDownscaler(const std::vector<NoteInfo>& NoteInfo);
 	std::vector<float> JumpDownscaler(const std::vector<NoteInfo>& NoteInfo);
-	std::vector<float> RollDownscaler(const Finger& f1, const Finger& f2);
+	std::vector<float> RollDownscaler(const std::vector<NoteInfo>& NoteInfo,
+									  unsigned int t1,
+									  unsigned int t2,
+									  float music_rate);
 
 	Hand left_hand;
 	Hand right_hand;
