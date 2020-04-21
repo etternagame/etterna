@@ -929,9 +929,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		return;
 	}
 
-	if (load_from_disk) {
+	if (load_from_disk)
 		hs->LoadReplayData();
-	}
 
 	CURL* curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
@@ -970,7 +969,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		replayString =
 		  replayString.substr(0, replayString.size() - 1); // remove ","
 		replayString += "]";
-		hs->UnloadReplayData();
+		if(load_from_disk)
+			hs->UnloadReplayData();
 	} else {
 		// this should never be true unless we are using the manual forceupload
 		// functions
@@ -1100,7 +1100,7 @@ void
 DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 {
 	this->UploadScore(
-	  hs, []() {}, true /* (Without replay data loading from disk)*/);
+	  hs, []() {}, false /* (Without replay data loading from disk)*/);
 }
 
 // for older scores or newer scores that failed to upload using the above
