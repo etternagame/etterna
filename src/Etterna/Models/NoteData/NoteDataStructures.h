@@ -28,7 +28,7 @@ struct DifficultyRating
 };
 
 
-enum CalcDebugValues
+enum CalcDebugValue
 {
 	OHJump,  // pattern mod (% values between 0-1)
 	Anchor,  // pattern mod (% values between 0-1)

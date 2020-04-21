@@ -17,6 +17,9 @@ typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;
 typedef std::vector<float> JackSeq;
 
+// number of pattern mods yes i know this is dumb help
+const static int ModCount = 5;
+
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
 calculator is to estimate the difficulty of a file given the physical properties
@@ -24,7 +27,7 @@ of such, and not to evalute the difficulty of reading (which is much less
 quantifiable). It is both less accurate and logically incorrect to attempt to
 assert a single difficulty for both hands for a given interval of time in a
 file, so most of the internal calculator operations are done after splitting up
-each track of the chart into their respective phalangeal parents. */  // This is stupid but whatever
+each track of the chart into their respective phalangeal parents. */
 class Hand
 {
   public:
@@ -59,7 +62,6 @@ class Hand
 	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug);
 
 	std::vector<float> doot[5];
-	std::vector<float> ohjumpscale, rollscale, hsscale, jumpscale, anchorscale;
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval
@@ -134,14 +136,14 @@ class Calc
 				 bool hs,
 				 bool debugoutput = false);
 
-	std::vector<float> OHJumpDownscaler(const std::vector<NoteInfo>& NoteInfo,
-										unsigned int t1,
-										unsigned int t2);
-	std::vector<float> Anchorscaler(const std::vector<NoteInfo>& NoteInfo,
+	void Anchorscaler(const std::vector<NoteInfo>& NoteInfo,
 									unsigned int t1,
-									unsigned int t2);
-	std::vector<float> HSDownscaler(const std::vector<NoteInfo>& NoteInfo);
-	std::vector<float> JumpDownscaler(const std::vector<NoteInfo>& NoteInfo);
+									unsigned int t2,
+									std::vector<float> doot[ModCount]);
+	void HSDownscaler(const std::vector<NoteInfo>& NoteInfo,
+									std::vector<float> doot[ModCount]);
+	void JumpDownscaler(const std::vector<NoteInfo>& NoteInfo,
+									  std::vector<float> doot[ModCount]);
 
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once
@@ -150,7 +152,7 @@ class Calc
 	  unsigned int t1,
 	  unsigned int t2,
 	  float music_rate,
-	  std::vector<float> doot[5]);
+	  std::vector<float> doot[ModCount]);
 
 	Hand left_hand;
 	Hand right_hand;

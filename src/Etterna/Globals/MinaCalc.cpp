@@ -414,50 +414,33 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
 	}
 
-	// should probably structure this to avoid copypasta
+	// initialize base difficulty and point values
 	left_hand.InitDiff(fingers[0], fingers[1]);
 	left_hand.InitPoints(fingers[0], fingers[1]);
-	left_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 1, 2);
-	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
-
-	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
-	left_hand.rollscale = left_hand.doot[Roll];
-	left_hand.ohjumpscale = left_hand.doot[OHJump];
-	left_hand.hsscale = HSDownscaler(NoteInfo);
-	left_hand.jumpscale = JumpDownscaler(NoteInfo);
-
 	right_hand.InitDiff(fingers[2], fingers[3]);
 	right_hand.InitPoints(fingers[2], fingers[3]);
-	right_hand.ohjumpscale = OHJumpDownscaler(NoteInfo, 4, 8);
-	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
 
+	// set pattern mods
+	Anchorscaler(NoteInfo, 1, 2, left_hand.doot);
+	Anchorscaler(NoteInfo, 4, 8, right_hand.doot);
+
+	// roll and ohj
+	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
 	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
-	right_hand.rollscale = right_hand.doot[Roll];
-	right_hand.ohjumpscale = right_hand.doot[OHJump];
-	right_hand.hsscale = left_hand.hsscale;
-	right_hand.jumpscale = left_hand.jumpscale;
 
-	// these values never change during calc so set them immediately
-	if (debugmode) {
-		left_hand.debugValues[Jump] = left_hand.jumpscale;
-		right_hand.debugValues[Jump] = left_hand.jumpscale;
-		left_hand.debugValues[Anchor] = left_hand.anchorscale;
-		right_hand.debugValues[Anchor] = right_hand.anchorscale;
-		left_hand.debugValues[HS] = left_hand.hsscale;
-		right_hand.debugValues[HS] = left_hand.hsscale;
-		left_hand.debugValues[OHJump] = left_hand.ohjumpscale;
-		right_hand.debugValues[OHJump] = right_hand.ohjumpscale;
-		left_hand.debugValues[Roll] = left_hand.rollscale;
-		right_hand.debugValues[Roll] = right_hand.rollscale;
+	// these are evaluated on all columns so right and left are the same
+	// these also may be redundant with updated stuff
+	HSDownscaler(NoteInfo, left_hand.doot);
+	JumpDownscaler(NoteInfo, left_hand.doot);
+	right_hand.doot[HS] = left_hand.doot[HS];
+	right_hand.doot[Jump] = left_hand.doot[Jump];
 
-		// basemsd is just adjusted ms, i think, maybe misnomer
-		right_hand.debugValues[BaseNPS] = right_hand.v_itvNPSdiff;
-		left_hand.debugValues[BaseNPS] = left_hand.v_itvNPSdiff;
-		right_hand.debugValues[BaseMS] = right_hand.pureMSdiff;
-		left_hand.debugValues[BaseMS] = left_hand.pureMSdiff;
-		right_hand.debugValues[BaseMSD] = right_hand.v_itvMSdiff;
-		left_hand.debugValues[BaseMSD] = left_hand.v_itvMSdiff;
-	}
+	// pattern mods and base msd never change so set them immediately
+	if (debugmode)
+		for (size_t i = 0; i < 9; ++i) {	
+			left_hand.debugValues[i] = left_hand.doot[i];
+			right_hand.debugValues[i] = right_hand.doot[i];
+		}
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
@@ -620,18 +603,23 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 {
 	vector<float> diff = nps ? v_itvNPSdiff : v_itvMSdiff;
 
+	// we kinda do want to reserve the power to apply mods differently to different
+	// skillsets but this isn't exactly ideal and in a perfect world we wouldn't
+	// also this is cancer independent from that and should be done with a switch
+	// at least, if not doing proper separated calcs
 	for (size_t i = 0; i < diff.size(); ++i) {
 		diff[i] *=
 		  hs
-			? anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i] *
-				jumpscale[i]
-			: (js ? hsscale[i] * hsscale[i] * anchorscale[i] *
-					  sqrt(ohjumpscale[i]) * rollscale[i] * jumpscale[i]
-				  : (nps
-					   ? hsscale[i] * hsscale[i] * hsscale[i] * anchorscale[i] *
-						   ohjumpscale[i] * ohjumpscale[i] * rollscale[i] *
-						   jumpscale[i] * jumpscale[i]
-					   : anchorscale[i] * sqrt(ohjumpscale[i]) * rollscale[i]));
+			? doot[Anchor][i] * sqrt(doot[OHJump][i]) * doot[Roll][i] *
+				doot[Jump][i]
+			 : (js ? doot[HS][i] * doot[HS][i] * doot[Anchor][i] *
+					   sqrt(doot[OHJump][i]) * doot[Roll][i] * doot[Jump][i]
+				   : (nps ? doot[HS][i] * doot[HS][i] * doot[HS][i] *
+						   doot[Anchor][i] * doot[OHJump][i] *
+							  doot[OHJump][i] * doot[Roll][i] * doot[Jump][i] *
+							  doot[Jump][i]
+						  : doot[Anchor][i] * sqrt(doot[OHJump][i]) *
+							  doot[Roll][i]));
 	}
 
 	const vector<float>& v = stam ? StamAdjust(x, diff, false) : diff;
@@ -657,49 +645,13 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 	return output;
 }
 
-vector<float>
-Calc::OHJumpDownscaler(const vector<NoteInfo>& NoteInfo,
-					   unsigned int firstNote,
-					   unsigned int secondNote)
-{
-	vector<float> output;
-
-	for (const vector<int>& interval : nervIntervals) {
-		int taps = 0;
-		int jumptaps = 0;
-		for (int row : interval) {
-			int columns = 0;
-			if (NoteInfo[row].notes & firstNote) {
-				++columns;
-				++taps;
-			}
-			if (NoteInfo[row].notes & secondNote) {
-				++columns;
-				++taps;
-			}
-			if (columns == 2)
-				jumptaps += 2;
-		}
-		output.push_back(taps != 0 ? pow(1 - (static_cast<float>(jumptaps) /
-											  static_cast<float>(taps) / 1.8f),
-										 0.25f)
-								   : 1.f);
-
-		if (logpatterns)
-			std::cout << "ohj " << output.back() << std::endl;
-	}
-
-	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
-}
-
-vector<float>
+void
 Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
 				   unsigned int firstNote,
-				   unsigned int secondNote)
+				   unsigned int secondNote,
+				   vector<float> doot[ModCount])
 {
-	vector<float> output(nervIntervals.size());
+	doot[Anchor].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		int lcol = 0;
@@ -711,7 +663,7 @@ Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
 				++rcol;
 		}
 		bool anyzero = lcol == 0 || rcol == 0;
-		output[i] =
+		doot[Anchor][i] =
 		  anyzero
 			? 1.f
 			: CalcClamp(sqrt(1 - (static_cast<float>(min(lcol, rcol)) /
@@ -723,18 +675,17 @@ Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
 					  (static_cast<float>(min(lcol, rcol)) + 1.f);
 
 		if (logpatterns)
-			std::cout << "an " << output[i] << std::endl;
+			std::cout << "an " << doot[Anchor][i] << std::endl;
 	}
 
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		Smooth(doot[Anchor], 1.f);
 }
 
-vector<float>
-Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
+void
+Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	vector<float> output(nervIntervals.size());
+	doot[HS].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
@@ -745,24 +696,23 @@ Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 3)
 				handtaps++;
 		}
-		output[i] =
+		doot[HS][i] =
 		  taps != 0
 			? 1 - (static_cast<float>(handtaps) / static_cast<float>(taps))
 			: 1.f;
 
 		if (logpatterns)
-			std::cout << "hs " << output[i] << std::endl;
+			std::cout << "hs " << doot[HS][i] << std::endl;
 	}
 
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		Smooth(doot[HS], 1.f);
 }
 
-vector<float>
-Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
+void
+Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	vector<float> output(nervIntervals.size());
+	doot[Jump].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
@@ -773,16 +723,16 @@ Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo)
 			if (notes == 2)
 				jumps++;
 		}
-		output[i] = taps != 0 ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
+		doot[Jump][i] = taps != 0
+						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
 											   static_cast<float>(taps) / 3.f)))
 							  : 1.f;
 
 		if (logpatterns)
-			std::cout << "ju " << output[i] << std::endl;
+			std::cout << "ju " << doot[Jump][i] << std::endl;
 	}
 	if (SmoothPatterns)
-		Smooth(output, 1.f);
-	return output;
+		Smooth(doot[Jump], 1.f);
 }
 
 // downscales full rolls or rolly js, it looks explicitly for consistent cross column
@@ -796,7 +746,7 @@ void
 Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					 unsigned int t1,
 					 unsigned int t2,
-					 float music_rate, vector<float> doot[5])
+					 float music_rate, vector<float> doot[ModCount])
 {
 	doot[Roll].resize(nervIntervals.size());
 	doot[OHJump].resize(nervIntervals.size());
@@ -908,13 +858,18 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		}
 		int cvtaps = ltaps + rtaps;
 
-		// if this is true we have some combination of single notes and jumps
-		// where the single notes are all on the same column 2[12][12][12]2222
-		// in these cases we don't want to treat 2222[12][12][12]2 differently,
-		// so use the max sequence here exclusively for the ohj scaler
+		// if this is true we have some combination of single notes and
+		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
+			// we don't want to treat 2[12][12][12]2222
+			// 2222[12][12][12]2 differently, so use the 
+			// max sequence here exclusively
 			if (maxseqjumptaps > 0)
-				doot[OHJump][i] = CalcClamp(1.f * totaltaps / static_cast<float>(maxseqjumptaps), 0.5f, 1.f);
+				doot[OHJump][i] =
+				  CalcClamp(1.f * static_cast<float>(totaltaps) /
+							  (static_cast<float>(maxseqjumptaps) * 2.5f),
+							0.5f,
+							1.f);
 			else // single note longjacks, do nothing
 				doot[OHJump][i] = 1.f;
 
@@ -951,8 +906,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 
 		// ohj stuff, wip
-		ohj = static_cast<float>(jumptaps) / static_cast<float>(totaltaps);
-		doot[OHJump][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
+		if (jumptaps < 1 && maxseqjumptaps < 1)
+			doot[OHJump][i] = 1.f;
+		else {
+			ohj = static_cast<float>(maxseqjumptaps + 1) /
+				  static_cast<float>(totaltaps + 1);
+			doot[OHJump][i] = CalcClamp(0.5f + sqrt(ohj), 0.5f, 1.f);
+		}
 	}
 
 	if (SmoothPatterns) {
