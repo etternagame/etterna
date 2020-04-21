@@ -142,6 +142,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float shortstamdownscaler = CalcClamp(
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
+	// all this garbage should be handled by pattern mods, before chisel is run
+	/*
 	float jprop = chord_proportion(NoteInfo, 2);
 	float nojumpsdownscaler =
 	  CalcClamp(0.8f + (0.2f * (jprop + 0.5f)), 0.8f, 1.f);
@@ -156,106 +158,54 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float lotquaddownscaler = CalcClamp(1.13f - qprop, 0.85f, 1.f);
 
 	float jumpthrill = CalcClamp(1.625f - jprop - hprop, 0.85f, 1.f);
+	*/
 
 	InitializeHands(NoteInfo, music_rate);
 	TotalMaxPoints();
-	float stream =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, false);
-	float js =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, true, false);
-	float hs =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, true, false, true);
-	float tech =
-	  Chisel(0.1f, 10.24f, score_goal, false, false, false, false, false);
-	float jack =
-	  Chisel(0.1f, 10.24f, score_goal, false, true, true, false, false);
 
-	float techbase = max(stream, jack);
-	tech = CalcClamp((tech / techbase) * tech, tech * 0.85f, tech);
-
-	float stam;
+	vector<float> mcbloop(NUM_SkillsetTWO);
+	// overall and stam will be left as 0.f by this block
+	for (int i = 0; i < NUM_SkillsetTWO; ++i)
+		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
 	// stam is based which calc produced the highest output on base
-	if (stream > tech || js > tech || hs > tech)
-		if (stream > js && stream > hs)
-			stam = Chisel(stream - 0.1f,
-						  10.56f, score_goal, true, false, true, false, false);
-		else if (js > hs)
-			stam = Chisel(
-			  js - 0.1f, 10.56f, score_goal, true, false, true, true, false);
-		else
-			stam = Chisel(
-			  hs - 0.1f, 10.56f, score_goal, true, false, true, false, true);
-	else
-		stam = Chisel(
-		  tech - 0.1f, 10.56f, score_goal, true, false, false, false, false);
-	float chordjack = 0.f;
-	DifficultyRating difficulty =
-	  DifficultyRating{ 0.0,
-						stream,
-						js,
-						hs,
-						stam,
-						jack,
-						chordjack,
-						tech};
+	size_t highest_base_skillset = std::distance(
+	  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
+	mcbloop[Stamina] = Chisel(mcbloop[highest_base_skillset] - 0.1f,
+							  10.24f,
+							  score_goal,
+							  highest_base_skillset,
+							  true);
 
-	chordjack = difficulty.handstream;
-
+	// yes i know how dumb this looks
+	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
+									mcbloop[3], mcbloop[4], mcbloop[5],
+									mcbloop[6], mcbloop[7] };
 	vector<float> pumpkin = skillset_vector(difficulty);
 	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
 	// this is the only time debugoutput arg should be set to true
-	if (debugmode) {
-		size_t idx = std::distance(
-		  pumpkin.begin(), std::max_element(pumpkin.begin(), pumpkin.end()));
-		float minval = *std::min_element(pumpkin.begin(), pumpkin.end());
-		switch (idx) {
-			case 1:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, false, false, true);
-				break;
-			case 2:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, true, false, true);
-				break;
-			case 3:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, true, false, true, true);
-				break;
-			case 4:
-				if (stream > tech || js > tech || hs > tech)
-					if (stream > js && stream > hs)
-						Chisel(stream - 0.1f, 10.56f, score_goal, true, false, true, false, false, true);
-					else if (js > hs)
-						Chisel(js - 0.1f, 10.56f, score_goal, true, false, true, true, false, true);
-					else
-						Chisel(hs - 0.1f, 10.56f, score_goal, true, false, true, false, true, true);
-				else
-					Chisel(tech - 0.1f, 10.56f, score_goal, true, false, false, false, false, true);
-				break;
-			case 5:
-				Chisel(
-					minval, 10.24f, score_goal, true, true, true, false, false, true);
-				break;
-			case 7:
-				Chisel(
-					minval, 10.24f, score_goal, true, false, false, false, false, true);
-				break;
-		}
-	}
-
+	if (debugmode)
+		Chisel(mcbloop[highest_base_skillset] - 0.001f,
+			   10.24f,
+			   score_goal,
+			   highest_base_skillset,
+			   true,
+			   true);
 
 	// below are bandaids that the internal calc functions should handle prior
 	// _some_ basic adjustment post-evalution may be warranted but this is way
-	// too far, to the point where it becomes more difficult to make any positive
-	// changes, though it also happens to be where almost all of the balance of 263
+	// too far, to the point where it becomes more difficult to make any
+	// positive changes, though it also happens to be where almost all of the
+	// balance of 263
 
-	// all relative scaling to specific skillsets should occur before this point, not
-	// after (it ended up this way due to the normalizers which were dumb and removed)
-	// stam is the only skillset that can/should be normalized to base values without
-	// interfering with anything else (since it's not based on a type of pattern)
+	// all relative scaling to specific skillsets should occur before this
+	// point, not after (it ended up this way due to the normalizers which were
+	// dumb and removed) stam is the only skillset that can/should be normalized
+	// to base values without interfering with anything else (since it's not
+	// based on a type of pattern)
 
-	// specific scaling to curve sub 93 scores down harder should take place last
+	// specific scaling to curve sub 93 scores down harder should take place
+	// last
 
 	/*
 	difficulty.stream *=
@@ -346,9 +296,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	
+	
 	 */
-	
+
 	difficulty.overall = highest_difficulty(difficulty);
 	return skillset_vector(difficulty);
 }
@@ -407,6 +357,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		}
 	}
 
+	// these get changed/updated frequently so allocate them once at the start
+	left_hand.adj_diff.resize(numitv);
+	right_hand.adj_diff.resize(numitv);
+	left_hand.stam_adj_diff.resize(numitv);
+	right_hand.stam_adj_diff.resize(numitv);
+
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++)
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
@@ -436,7 +392,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode)
-		for (size_t i = 0; i < 9; ++i) {	
+		for (size_t i = 0; i < 9; ++i) {
 			left_hand.debugValues[i] = left_hand.doot[i];
 			right_hand.debugValues[i] = right_hand.doot[i];
 		}
@@ -490,11 +446,9 @@ float
 Calc::Chisel(float player_skill,
 			 float resolution,
 			 float score_goal,
+			 int ss,
 			 bool stamina,
-			 bool jack,
-			 bool nps,
-			 bool js,
-			 bool hs, bool debugoutput)
+			 bool debugoutput)
 {
 	float gotpoints;
 	for (int iter = 1; iter <= 7; iter++) {
@@ -502,15 +456,18 @@ Calc::Chisel(float player_skill,
 			if (player_skill > 100.f)
 				return player_skill;
 			player_skill += resolution;
-			gotpoints =
-			  jack
-				? MaxPoints - JackLoss(j0, player_skill) -
-					JackLoss(j1, player_skill) - JackLoss(j2, player_skill) -
-					JackLoss(j3, player_skill)
-				   : left_hand.CalcInternal(	// don't do debug yet
-					   player_skill, stamina, nps, js, hs, false) +
-					right_hand.CalcInternal(player_skill, stamina, nps, js, hs, false);
+			if (ss == Overall || ss == Stamina)
+				return 0.f; // not how we set these values
 
+			// run standard calculator stuffies
+			gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
+						right_hand.CalcInternal(player_skill, ss, stamina);
+
+			// add jack sequencer point loss for jack speed and (maybe?) cj
+			if (ss == JackSpeed || ss == Chordjack)
+				gotpoints -=
+				  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				  JackLoss(j2, player_skill) - JackLoss(j3, player_skill);
 		} while (gotpoints / MaxPoints < score_goal);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -520,8 +477,8 @@ Calc::Chisel(float player_skill,
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
 	if (debugoutput) {
-		left_hand.CalcInternal(player_skill, stamina, nps, js, hs, debugoutput);
-		right_hand.CalcInternal(player_skill, stamina, nps, js, hs, debugoutput);
+		left_hand.CalcInternal(player_skill, ss, stamina, debugoutput);
+		right_hand.CalcInternal(player_skill, ss, stamina, debugoutput);
 	}
 
 	return player_skill + 2.f * resolution;
@@ -570,10 +527,9 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 								 static_cast<int>(f2[i].size()));
 }
 
-vector<float>
+void
 Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 {
-	vector<float> o(diff.size());
 	float floor = 1.f; // stamina multiplier min (increases as chart advances)
 	float mod = 1.f;   // mutliplier
 
@@ -588,45 +544,80 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		if (mod > 1.f)
 			floor += (mod - 1) / fscale;
 		mod = CalcClamp(mod, floor, ceil);
-		o[i] = diff[i] * mod;
+		stam_adj_diff[i] = diff[i] * mod;
 		if (debug)
-			o[i] = mod;
+			debugValues[StamMod][i] = mod;
 	}
-	return o;
 }
 
-// debug bool here is NOT the one in Calc, it is passed from chisel using the final
-// difficulty as the starting point and should only be executed once per chisel
+// debug bool here is NOT the one in Calc, it is passed from chisel using the
+// final difficulty as the starting point and should only be executed once per
+// chisel
 float
-Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
+Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 {
-	vector<float> diff = nps ? v_itvNPSdiff : v_itvMSdiff;
+	// vector<float> temppatternsmods;
+	// we're going to recycle adj_diff for this part
+	for (size_t i = 0; i < v_itvNPSdiff.size(); ++i) {
+		// only slightly less cancerous than before, this can/should be
+		// refactored once the areas of redundancy are more clearly defined
+		switch (ss) {
+			case Overall: // should never be the case, handled up the stack
+				break;
+			case Stream: // vanilla, apply everything based on nps diff
+				adj_diff[i] =
+				  v_itvNPSdiff[i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+			case Jumpstream: // dont apply cj
+				adj_diff[i] = v_itvNPSdiff[i] * doot[HS][i] / doot[Jump][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+			case Handstream: // here cj counterbalances hs a bit, not good
+							 // practice
+				adj_diff[i] =
+				  v_itvNPSdiff[i] / doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+			case Stamina: // should never be the case, handled up the stack
+				break;
+			case JackSpeed: // use ms hybrid base
+				adj_diff[i] = v_itvMSdiff[i] * doot[HS][i] * doot[Jump][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+			case Chordjack: // use ms hybrid base
+				adj_diff[i] =
+				  v_itvMSdiff[i] / doot[CJ][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+			case Technical: // use ms hybrid base
+				adj_diff[i] =
+				  v_itvMSdiff[i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				adj_diff[i] *= basescalers[ss];
+				break;
+		}
 
-	// we kinda do want to reserve the power to apply mods differently to different
-	// skillsets but this isn't exactly ideal and in a perfect world we wouldn't
-	// also this is cancer independent from that and should be done with a switch
-	// at least, if not doing proper separated calcs
-	for (size_t i = 0; i < diff.size(); ++i) {
-		diff[i] *=
-		  hs
-			? doot[Anchor][i] * sqrt(doot[OHJump][i]) * doot[Roll][i] *
-				doot[Jump][i]
-			 : (js ? doot[HS][i] * doot[HS][i] * doot[Anchor][i] *
-					   sqrt(doot[OHJump][i]) * doot[Roll][i] * doot[Jump][i]
-				   : (nps ? doot[HS][i] * doot[HS][i] * doot[HS][i] *
-						   doot[Anchor][i] * doot[OHJump][i] *
-							  doot[OHJump][i] * doot[Roll][i] * doot[Jump][i] *
-							  doot[Jump][i]
-						  : doot[Anchor][i] * sqrt(doot[OHJump][i]) *
-							  doot[Roll][i]));
+		// we always want to apply these mods, i think
+		adj_diff[i] *= doot[Roll][i] * doot[OHJump][i] * doot[Anchor][i];
 	}
 
-	const vector<float>& v = stam ? StamAdjust(x, diff, false) : diff;
+	if (stam) {
+		// not entirely happy how this is handled but stam is really a special
+		// case
+		for (auto& d : adj_diff)
+			d *= basescalers[Stamina];
+		StamAdjust(x, adj_diff);
+	}
+
+	// final difficulty values to use
+	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
 	if (debug) {
-		debugValues[MSD] = diff;	// pretty sure we need to copy
+		debugValues[MSD] = adj_diff;
 		// final debug output should always be with stam activated
-		debugValues[StamMod] = StamAdjust(x, diff, true);
+		debugValues[StamMod].resize(v.size());
+		debugValues[PtLoss].resize(v.size());
+		StamAdjust(x, adj_diff, true);
 	}
 
 	float output = 0.f;
@@ -635,10 +626,8 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 		  x > v[i] ? v_itvpoints[i] : v_itvpoints[i] * pow(x / v[i], 1.8f);
 
 		output += gainedpoints;
-		if (debug) {
-			debugValues[PtLoss].resize(diff.size());
+		if (debug)
 			debugValues[PtLoss][i] = (v_itvpoints[i] - gainedpoints);
-		}
 	}
 
 	return output;
@@ -697,7 +686,8 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		}
 		doot[HS][i] =
 		  taps != 0
-			? 1 - (static_cast<float>(handtaps) / static_cast<float>(taps))
+			? 1 - pow((static_cast<float>(handtaps) / static_cast<float>(taps)),
+					  1.5f)
 			: 1.f;
 
 		if (logpatterns)
@@ -724,8 +714,8 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		}
 		doot[Jump][i] = taps != 0
 						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
-											   static_cast<float>(taps) / 3.f)))
-							  : 1.f;
+										   static_cast<float>(taps) / 3.f)))
+						  : 1.f;
 
 		if (logpatterns)
 			std::cout << "ju " << doot[Jump][i] << std::endl;
@@ -743,7 +733,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
-		
+
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -769,18 +759,18 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		Smooth(doot[CJ], 1.f);
 }
 
-// downscales full rolls or rolly js, it looks explicitly for consistent cross column
-// timings on both hands; consecutive notes on the same column will reduce the penalty
-// 0.5-1 multiplier
-// also now downscales ohj because we don't want to run this loop too often even if it
-// makes code slightly clearer, i think, new ohj scaler is the same as the last one but
-// gives higher weight to sequences of ohjumps
-// 0.5-1 multipier
+// downscales full rolls or rolly js, it looks explicitly for consistent cross
+// column timings on both hands; consecutive notes on the same column will
+// reduce the penalty 0.5-1 multiplier also now downscales ohj because we don't
+// want to run this loop too often even if it makes code slightly clearer, i
+// think, new ohj scaler is the same as the last one but gives higher weight to
+// sequences of ohjumps 0.5-1 multipier
 void
 Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
-					 unsigned int t1,
-					 unsigned int t2,
-					 float music_rate, vector<float> doot[ModCount])
+							   unsigned int t1,
+							   unsigned int t2,
+							   float music_rate,
+							   vector<float> doot[ModCount])
 {
 	doot[Roll].resize(nervIntervals.size());
 	doot[OHJump].resize(nervIntervals.size());
@@ -804,8 +794,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int rtaps = 0;
 
 		// ohj downscaler stuff
-		int jumptaps = 0;			// more intuitive to count taps in jumps
-		int maxseqjumptaps = 0;		// basically the biggest sequence of ohj
+		int jumptaps = 0;		// more intuitive to count taps in jumps
+		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
 
 		for (int row : nervIntervals[i]) {
@@ -840,7 +830,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				continue;
 			}
 
-			int thiscol = lcol < rcol;			
+			int thiscol = lcol < rcol;
 			if (thiscol != lastcol) { // ignore consecutive notes
 				if (thiscol) { // right column, push to right to left vector
 					rl.push_back(curtime - lasttime);
@@ -851,26 +841,28 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime; // only log cross column lasttimes
 			} else {
-				// consecutive notes should "poison" the current cross column vector
-				// but without shifting the proportional scaling too much
-				// this is to avoid treating 121212212121 too much like 121212121212
+				// consecutive notes should "poison" the current cross column
+				// vector but without shifting the proportional scaling too much
+				// this is to avoid treating 121212212121 too much like
+				// 121212121212
 
-				// if we wanted to be _super explicit_ we could just reset the lr/rl
-				// vectors when hitting a consecutive note (and/or jump), there are
-				// advantages to being hyper explicit but at the moment this does
-				// sort of pick up rolly js quite well, though it would probably
-				// be more responsible longterm to have an explicit roll detector
-				// an explicit trill detector, and an explicit rolly js detector
-				// thing is debugging all 3 and making sure they work as intended
-				// and in exclusion is just as hard as making a couple of more generic
-				// mods and accepting they will overlap in certain scenarios
-				// though again on the other hand explicit modifiers are easier to tune
-				// you just have to do a lot more of it
+				// if we wanted to be _super explicit_ we could just reset the
+				// lr/rl vectors when hitting a consecutive note (and/or jump),
+				// there are advantages to being hyper explicit but at the
+				// moment this does sort of pick up rolly js quite well, though
+				// it would probably be more responsible longterm to have an
+				// explicit roll detector an explicit trill detector, and an
+				// explicit rolly js detector thing is debugging all 3 and
+				// making sure they work as intended and in exclusion is just as
+				// hard as making a couple of more generic mods and accepting
+				// they will overlap in certain scenarios though again on the
+				// other hand explicit modifiers are easier to tune you just
+				// have to do a lot more of it
 				if (thiscol)
 					rl.push_back(curtime - lasttime);
 				else
 					lr.push_back(curtime - lasttime);
-				totaltaps += 2;	// yes this is cheezy
+				totaltaps += 2; // yes this is cheezy
 			}
 
 			// ohj downscaler stuff
@@ -879,12 +871,14 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// [12][12][12]212[12][12][12]
 			// so we want to penalize not only any break in the ohj sequence
 			// but further penalize breaks which contain cross column taps
-			// this should also reflect the difference between [12]122[12], [12]121[12]
-			// cases like 121[12][12]212[12][12]121 should probably have some penalty
-			// but likely won't with this setup, but everyone hates that anyway and it
-			// would be quite difficult to force the current setup to do so without
-			// increasing complexity significantly (probably)
-			jumptaps -= 1;			// we're already on single notes, so just decrement a lil
+			// this should also reflect the difference between [12]122[12],
+			// [12]121[12] cases like 121[12][12]212[12][12]121 should probably
+			// have some penalty but likely won't with this setup, but everyone
+			// hates that anyway and it would be quite difficult to force the
+			// current setup to do so without increasing complexity
+			// significantly (probably)
+			jumptaps -=
+			  1; // we're already on single notes, so just decrement a lil
 			if (thiscol != lastcol) // easier to read if we do it again
 				jumptaps -= 2;
 
@@ -896,7 +890,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
 			// we don't want to treat 2[12][12][12]2222
-			// 2222[12][12][12]2 differently, so use the 
+			// 2222[12][12][12]2 differently, so use the
 			// max sequence here exclusively
 			if (maxseqjumptaps > 0)
 				doot[OHJump][i] =
@@ -909,7 +903,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			// no rolls here by definition
 			doot[Roll][i] = 1.f;
-			continue; 
+			continue;
 		}
 
 		float cvlr = 0.2f;
@@ -920,21 +914,21 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			cvrl = cv(rl);
 
 		// weighted average, but if one is empty we want it to skew high not low
-		// due to * 0		
+		// due to * 0
 		float cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
 		// the vector with the lower mean should carry a little more weight
 		float mlr = mean(lr);
 		float mrl = mean(rl);
-		bool rl_is_higher =  mlr < mrl;
-		cv = rl_is_higher ? (2.f * cv + cvlr) / 3.f
-							  : (2.f * cv + cvrl) / 3.f;
+		bool rl_is_higher = mlr < mrl;
+		cv = rl_is_higher ? (2.f * cv + cvlr) / 3.f : (2.f * cv + cvrl) / 3.f;
 
-		// if we want to screen out trills and focus on just rolls we can compare
-		// mean values, proper rolls will have one set with a mean 3x above the other
-		// trills will be 1:1 equal, this is a simple linear downscale for test purposes
-		// and i dont if it has unintended consequences, but it does work for saw-saw
+		// if we want to screen out trills and focus on just rolls we can
+		// compare mean values, proper rolls will have one set with a mean 3x
+		// above the other trills will be 1:1 equal, this is a simple linear
+		// downscale for test purposes and i dont if it has unintended
+		// consequences, but it does work for saw-saw
 		if (1) {
 			float notrills = 1.f;
 			if (mlr > 0.f && mrl > 0.f) {
@@ -944,14 +938,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			}
 			cv += notrills * 1.f; // just straight up add to cv
 		}
-			
+
 		// then scaled against how many taps we ignored
 		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		cv *= barf;
 
-		// we just want a minimum amount of variation to escape getting downscaled
-		// cap to 1 (it's not an inherently bad idea to upscale sets of patterns
-		// with high variation but we shouldn't do that here, probably)
+		// we just want a minimum amount of variation to escape getting
+		// downscaled cap to 1 (it's not an inherently bad idea to upscale sets
+		// of patterns with high variation but we shouldn't do that here,
+		// probably)
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 
 		// ohj stuff, wip
@@ -968,7 +963,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[OHJump], 1.f);
 	}
-		
 
 	return;
 }
@@ -1028,5 +1022,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 266;
+	return 267;
 }

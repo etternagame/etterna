@@ -2,6 +2,22 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
 
+// YEAH WHATEVER I HATE THIS DONT WANT TO DEAL WITH REDEFS AND SHIT
+enum SkillsetTWO
+{
+	Overall,
+	Stream,
+	Jumpstream,
+	Handstream,
+	Stamina,
+	JackSpeed,
+	Chordjack,
+	Technical,
+	NUM_SkillsetTWO,
+	garbagegamegarbagecodegarbagemina,
+};
+
+
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
 #define MINACALC_API __declspec(dllexport)
@@ -51,20 +67,26 @@ class Hand
 	wane. Experience in both gameplay and algorithm testing has shown the
 	appropriate value to be around 0.8. The multiplier is scaled to the
 	proportionate difference in player skill. */
-	std::vector<float> StamAdjust(float x,
-								  std::vector<float>& diff,
-								  bool debug);
+	// just recycle the stam_adj_diff vector directly in this function
+	void StamAdjust(float x, std::vector<float>& diff, bool debug = false);
 
 	/*	For a given player skill level x, invokes the function used by wife
 	scoring to assert the average of the distribution of point gain for each
 	interval and then tallies up the result to produce an average total number
 	of points achieved by this hand. */
-	float CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug);
+	float CalcInternal(float x, int ss, bool stam, bool debug = false);
 
 	std::vector<float> doot[5];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval
+
+	// pattern adjusted difficulty, allocate only once
+	std::vector<float> adj_diff;
+	// pattern adjusted difficulty, allocate only once, stam needs to be based
+	// on the above, and it needs to be recalculated every time the player_skill
+	// value changes, again based on the above
+	std::vector<float> stam_adj_diff;
 	std::vector<std::vector<float>> debugValues;
 
   private:
@@ -80,6 +102,15 @@ class Hand
 	const float fscale = 2500.f; // how fast the floor rises (it's lava)
 	const float prop =
 	  0.75f; // proportion of player difficulty at which stamina tax begins
+
+	// since we are no longer using the normalizer system we need to lower
+	// the base difficulty for each skillset and then detect pattern types
+	// to push down OR up, rather than just down and normalizing to a differential
+	// since chorded patterns have lower enps than streams, streams default to 1
+	// and chordstreams start lower
+	// stam is a special case and may use normalizers again
+	const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.9f,
+											  0.85f, 1.f, 0.9f, 1.f };
 };
 
 class Calc
@@ -129,11 +160,8 @@ class Calc
 	float Chisel(float player_skill,
 				 float resolution,
 				 float score_goal,
+				 int ss,	// skillset
 				 bool stamina,
-				 bool jack,
-				 bool nps,
-				 bool js,
-				 bool hs,
 				 bool debugoutput = false);
 
 	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
