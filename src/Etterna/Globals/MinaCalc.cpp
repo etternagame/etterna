@@ -175,13 +175,34 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// rerun all with stam on
 	for (int i = 0; i < NUM_SkillsetTWO; ++i)
-		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
+		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, true);
 
-	// weighted average with slack and a cap basically, we dont want insanely 
-	// long files to get out of hand, and we want intense files 2.5-3 minutes
-	// to have some meaningful change
-	mcbloop[Stamina] =
-	  CalcClamp((base * 0.75f) + (mcbloop[highest_base_skillset] * 0.225f), base * 0.75f, base * 1.15f);
+	// stam jams, stamina should push up the base ratings for files so files
+	// that are more difficult by virtue of being twice as long for more or less
+	// the same patterns don't get underrated, however they shouldn't be pushed
+	// up a huge amount either, we want high stream scores to be equally
+	// achieveable on longer or shorter files, ideally, the stam ratings itself
+	// is a separate consideration and will be scaled to the degree to which the
+	// stamina model affects the base rating
+
+	// first - zoot the boot up the loot, we don't want to straddle below and
+	// above 1 here
+	float mcfroggerbopper = pow(1.f + (mcbloop[highest_base_skillset] - base), 2) - 1.f;
+	// all pow with the pow now
+	float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+
+	// start with some% of the stam adjusted, scale the remaining to the pow'd
+	// differential anything at or over 1 is reasonably intense but lets not get
+	// it go too far how much stamina affects base ratings is handled in the
+	// global stam params, this controls how much it takes for stamina to affect
+	// the base rating, before it can positively affect the stamina rating,
+	// basically we want to start increasing the stamina rating starting around
+	// 5% bonus to base rating due to stamina, this gives us room to lower the
+	// stamina rating for not-stamina files, preventing pollution of stamina
+	// leaderboards with charts that are just very high rated but have no
+	// stamina component
+	mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.f, 1.1f);
+	mcbloop[Stamina] = 0.65f * poodle_in_a_porta_potty + (mcfroggerbopper * 0.35f * poodle_in_a_porta_potty);
 
 	// yes i know how dumb this looks
 	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
@@ -315,7 +336,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++) {
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.76f), 1.5f));
+			o += 7.f - (7.f * pow(x / (j[i] * 0.86f), 1.5f));
 	}
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
