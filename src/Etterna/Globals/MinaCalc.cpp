@@ -421,6 +421,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.anchorscale = Anchorscaler(NoteInfo, 1, 2);
 
 	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
+	left_hand.rollscale = left_hand.doot[Roll];
+	left_hand.ohjumpscale = left_hand.doot[OHJump];
 	left_hand.hsscale = HSDownscaler(NoteInfo);
 	left_hand.jumpscale = JumpDownscaler(NoteInfo);
 
@@ -430,6 +432,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.anchorscale = Anchorscaler(NoteInfo, 4, 8);
 
 	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
+	right_hand.rollscale = right_hand.doot[Roll];
+	right_hand.ohjumpscale = right_hand.doot[OHJump];
 	right_hand.hsscale = left_hand.hsscale;
 	right_hand.jumpscale = left_hand.jumpscale;
 
@@ -907,7 +911,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if this is true we have some combination of single notes and jumps
 		// where the single notes are all on the same column 2[12][12][12]2222
 		// in these cases we don't want to treat 2222[12][12][12]2 differently,
-		// so use the max sequence here exclusively
+		// so use the max sequence here exclusively for the ohj scaler
 		if (cvtaps == 0) {
 			if (maxseqjumptaps > 0)
 				doot[OHJump][i] = CalcClamp(1.f * totaltaps / static_cast<float>(maxseqjumptaps), 0.5f, 1.f);
@@ -945,6 +949,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// cap to 1 (it's not an inherently bad idea to upscale sets of patterns
 		// with high variation but we shouldn't do that here, probably)
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
+
+		// ohj stuff, wip
+		ohj = static_cast<float>(jumptaps) / static_cast<float>(totaltaps);
+		doot[OHJump][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 	}
 
 	if (SmoothPatterns) {
