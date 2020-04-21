@@ -512,7 +512,7 @@ Hand::InitDiff(Finger& f1, Finger& f2)
 		float difficulty = max(left_difficulty, right_difficulty);
 		v_itvNPSdiff[i] = finalscaler * nps;
 		pureMSdiff[i] = finalscaler * difficulty;
-		v_itvMSdiff[i] = finalscaler * (5.f * difficulty + 4.f * nps) / 9.f;
+		v_itvMSdiff[i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
 	}
 	Smooth(v_itvNPSdiff, 0.f);
 	if (SmoothDifficulty)
@@ -574,9 +574,8 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Handstream: // here cj counterbalances hs a bit, not good
-							 // practice
 				adj_diff[i] =
-				  v_itvNPSdiff[i] / doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				  v_itvNPSdiff[i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Stamina: // should never be the case, handled up the stack
