@@ -711,8 +711,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 void
 Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	doot[Jump].resize(nervIntervals.size());
-
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int jumps = 0;
@@ -726,6 +724,30 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
 											   static_cast<float>(taps) / 3.f)))
 							  : 1.f;
+
+		if (logpatterns)
+			std::cout << "ju " << doot[Jump][i] << std::endl;
+	}
+	if (SmoothPatterns)
+		Smooth(doot[Jump], 1.f);
+}
+
+void
+Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+{
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		unsigned int taps = 0;
+		unsigned int jumps = 0;
+		for (int row : nervIntervals[i]) {
+			unsigned int notes = column_count(NoteInfo[row].notes);
+			taps += notes;
+			if (notes == 2)
+				jumps++;
+		}
+		doot[Jump][i] = taps != 0
+						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
+										   static_cast<float>(taps) / 3.f)))
+						  : 1.f;
 
 		if (logpatterns)
 			std::cout << "ju " << doot[Jump][i] << std::endl;

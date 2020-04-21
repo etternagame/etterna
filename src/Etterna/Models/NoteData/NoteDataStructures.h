@@ -35,6 +35,7 @@ enum CalcDebugValue
 	Roll,	// pattern mod (% values between 0-1)
 	HS,		 // pattern mod (% values between 0-1)
 	Jump,	// pattern mod (% values between 0-1)
+	CJ,
 	BaseNPS, // unadjusted base nps difficulty
 	BaseMS,  // unadjusted base ms difficulty
 	BaseMSD, // unadjusted weighted values

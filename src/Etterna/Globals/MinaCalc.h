@@ -18,7 +18,7 @@ typedef std::vector<Finger> ProcessedFingers;
 typedef std::vector<float> JackSeq;
 
 // number of pattern mods yes i know this is dumb help
-const static int ModCount = 5;
+const static int ModCount = 6;
 
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
