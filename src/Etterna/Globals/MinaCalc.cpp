@@ -408,9 +408,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	}
 
 	ProcessedFingers fingers;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
-	}
 
 	// initialize base difficulty and point values
 	left_hand.InitDiff(fingers[0], fingers[1]);
@@ -430,8 +429,10 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	// these also may be redundant with updated stuff
 	SetHSMod(NoteInfo, left_hand.doot);
 	SetJumpMod(NoteInfo, left_hand.doot);
+	SetCJMod(NoteInfo, left_hand.doot);
 	right_hand.doot[HS] = left_hand.doot[HS];
 	right_hand.doot[Jump] = left_hand.doot[Jump];
+	right_hand.doot[CJ] = left_hand.doot[CJ];
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode)
@@ -594,7 +595,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	return o;
 }
 
-// debug bool here is NOT the one calc, it is passed from chisel using the final
+// debug bool here is NOT the one in Calc, it is passed from chisel using the final
 // difficulty as the starting point and should only be executed once per chisel
 float
 Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
@@ -710,6 +711,8 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 void
 Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
+	doot[Jump].resize(nervIntervals.size());
+
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int jumps = 0;
@@ -731,28 +734,39 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		Smooth(doot[Jump], 1.f);
 }
 
+// dunno what we're really doin here exactly
 void
 Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
+	doot[CJ].resize(nervIntervals.size());
+
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
-		unsigned int jumps = 0;
+		unsigned int chordtaps = 0;
+		
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
-			if (notes == 2)
-				jumps++;
+			if (notes > 1)
+				chordtaps += notes;
 		}
-		doot[Jump][i] = taps != 0
-						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
-										   static_cast<float>(taps) / 3.f)))
-						  : 1.f;
+
+		if (taps == 0 || chordtaps == 0) {
+			doot[CJ][i] = 1.f;
+			continue;
+		}
+
+		doot[CJ][i] =
+		  CalcClamp(sqrt(sqrt(1 - (static_cast<float>(chordtaps) /
+								   static_cast<float>(taps) / 3.f))),
+					0.5f,
+					1.f);
 
 		if (logpatterns)
-			std::cout << "ju " << doot[Jump][i] << std::endl;
+			std::cout << "ju " << doot[CJ][i] << std::endl;
 	}
 	if (SmoothPatterns)
-		Smooth(doot[Jump], 1.f);
+		Smooth(doot[CJ], 1.f);
 }
 
 // downscales full rolls or rolly js, it looks explicitly for consistent cross column

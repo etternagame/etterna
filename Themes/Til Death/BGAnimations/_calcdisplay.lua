@@ -148,14 +148,16 @@ local function updateCoolStuff()
         graphVecs[1] = {}
         graphVecs[2] = {}
         graphVecs[3] = {}
-        for i= 1, 10 do
+        for i= 1, 12 do
             graphVecs[1][i] = bap[i]
         end
-        graphVecs[1][11] = bap[21]  -- stammod (should be separate prolly)
-        graphVecs[1][12] = bap[22]
 
-        for i = 11, 22 do
-            graphVecs[2][i - 10] = bap[i]
+        -- need to properly enum this garbo
+        graphVecs[1][13] = bap[23]  -- stammod (should be separate prolly?)
+        graphVecs[1][14] = bap[24]
+
+        for i = 13, 24 do
+            graphVecs[2][i - 12] = bap[i]
         end
 
         for i = 1, 8 do
@@ -281,10 +283,12 @@ o[#o + 1] = Def.Quad {
             local hsdsr =   graphVecs[1][8][index]
             local jumpdsl = graphVecs[1][9][index]
             local jumpdsr = graphVecs[1][10][index]
-            local sl = graphVecs[1][11][index]
-            local sr = graphVecs[1][12][index]
-            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f\nsl: %5.4f\nsr: %5.4f",
-                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr, sl, sr)
+            local cjl = graphVecs[1][11][index]
+            local cjr = graphVecs[1][12][index]
+            local sl = graphVecs[1][13][index]
+            local sr = graphVecs[1][14][index]
+            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f\nsl: %5.4f\nsr: %5.4f\ncjl: %5.4f\ncjr: %5.4f",
+                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr, sl, sr, cjl, cjr)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -390,6 +394,8 @@ modnames = {
     "hsr",
     "jsl",
     "jsr",
+    "cjl",
+    "cjr",
     "sl",
     "sr"
 }
@@ -406,16 +412,18 @@ local modColors = {
     color("1,0,1"),         -- purple       = jumpstream left
     color("1,0.3,1"),        -- light purple      (right)
     color("1.4,1.3,1"),       
-    color("1.4,1.3,0.9")     
+    color("1.4,1.3,0.9"),
+    color(".4,1.3,1"),       
+    color(".4,1.3,0.9")          
 }
 
 -- top graph average text
 makeskillsetlabeltext = function(i) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
-            local xspace = 39   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 30   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
-            self:zoom(0.5)
+            self:zoom(0.35)
             self:settext("")
             self:maxwidth((plotWidth-10) / 0.5)
             if i % 2 == 0 then
@@ -430,7 +438,7 @@ makeskillsetlabeltext = function(i)
                   self:settext("")
                 return
             end
-            for i = 1, 12 do
+            for i = 1, 14 do
                 if graphVecs[1][i] and #graphVecs[1][i] > 0 then
                     aves[i] = table.average(graphVecs[1][i])
                 end
@@ -475,7 +483,7 @@ local function topGraphLine(lineNum, colorToUse)
                 local verts = {}
                 local highest = 0
 
-                if lineNum == 13 then
+                if lineNum == 15 then
                     for i = 1, #graphVecs[1][1] do
                         local x = fitX(i, #graphVecs[1][1])
                         local y = fitY1(1)
@@ -511,11 +519,11 @@ local function topGraphLine(lineNum, colorToUse)
     }
 end
 
-for i = 1,12 do
+for i = 1,14 do
     o[#o+1] = topGraphLine(i, modColors[i])
     o[#o+1] = makeskillsetlabeltext(i)
 end
-o[#o+1] = topGraphLine(13, modColors[i])    -- super hack to make 1.0 value indicator line
+o[#o+1] = topGraphLine(15, modColors[i])    -- super hack to make 1.0 value indicator line
 
 local function bottomGraphLineMSD(lineNum, colorToUse)
     return Def.ActorMultiVertex {
