@@ -891,11 +891,26 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				   static_cast<float>(cvtaps + 2);
 
 		// the vector with the lower mean should carry a little more weight
-		if (mean(lr) < mean(rl)) // right is higher
-			cv = (2.f * cv + cvlr) / 3.f;
-		else
-			cv = (2.f * cv + cvrl) / 3.f;
+		float mlr = mean(lr);
+		float mrl = mean(rl);
+		bool rl_is_higher =  mlr < mrl;
+		cv = rl_is_higher ? (2.f * cv + cvlr) / 3.f
+							  : (2.f * cv + cvrl) / 3.f;
 
+		// if we want to screen out trills and focus on just rolls we can compare
+		// mean values, proper rolls will have one set with a mean 3x above the other
+		// trills will be 1:1 equal, this is a simple linear downscale for test purposes
+		// and i dont if it has unintended consequences, but it does work for saw-saw
+		if (1) {
+			float notrills = 1.f;
+			if (mlr > 0.f && mrl > 0.f) {
+				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
+				div = CalcClamp(div, 1.f, 3.f);
+				notrills = CalcClamp(2.f - div, 0.f, 1.f);
+			}
+			cv += notrills * 1.f; // just straight up add to cv
+		}
+			
 		// then scaled against how many taps we ignored
 		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		cv *= barf;
