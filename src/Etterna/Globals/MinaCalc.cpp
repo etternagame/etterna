@@ -353,6 +353,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		left_hand.debugValues.resize(DebugCount);
 		right_hand.debugValues.resize(DebugCount);
 		for (size_t i = 0; i < DebugCount; ++i) {
+			left_hand.debugValues[i].resize(numitv);
 			right_hand.debugValues[i].resize(numitv);
 		}
 	}
@@ -450,24 +451,24 @@ Calc::Chisel(float player_skill,
 			 bool stamina,
 			 bool debugoutput)
 {
-	float gotpoints;
+	float gotpoints = 0.f;
 	for (int iter = 1; iter <= 7; iter++) {
 		do {
-			if (player_skill > 100.f)
+			if (player_skill > 41.f)
 				return player_skill;
 			player_skill += resolution;
 			if (ss == Overall || ss == Stamina)
 				return 0.f; // not how we set these values
 
-			// run standard calculator stuffies
-			gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
-						right_hand.CalcInternal(player_skill, ss, stamina);
-
-			// add jack sequencer point loss for jack speed and (maybe?) cj
+			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == JackSpeed || ss == Chordjack)
-				gotpoints -=
+				gotpoints = MaxPoints -
 				  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 				  JackLoss(j2, player_skill) - JackLoss(j3, player_skill);
+			else
+				// run standard calculator stuffies
+				gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
+							right_hand.CalcInternal(player_skill, ss, stamina);
 		} while (gotpoints / MaxPoints < score_goal);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -522,9 +523,11 @@ Hand::InitDiff(Finger& f1, Finger& f2)
 void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
-	for (size_t i = 0; i < f1.size(); i++)
-		v_itvpoints.emplace_back(static_cast<int>(f1[i].size()) +
-								 static_cast<int>(f2[i].size()));
+	v_itvpoints.resize(f1.size());
+	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
+		v_itvpoints[ki_is_rising] =
+		  static_cast<int>(f1[ki_is_rising].size()) +
+		  static_cast<int>(f2[ki_is_rising].size());
 }
 
 void
@@ -614,19 +617,19 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	if (debug) {
 		debugValues[MSD] = adj_diff;
 		// final debug output should always be with stam activated
-		debugValues[StamMod].resize(v.size());
-		debugValues[PtLoss].resize(v.size());
 		StamAdjust(x, adj_diff, true);
 	}
 
 	float output = 0.f;
-	for (size_t i = 0; i < v.size(); i++) {
+	for (size_t i = 0; i < v.size(); ++i) {
 		float gainedpoints =
-		  x > v[i] ? v_itvpoints[i] : v_itvpoints[i] * pow(x / v[i], 1.8f);
+		  x > v[i] ? static_cast<float>(v_itvpoints[i])
+				   : static_cast<float>(v_itvpoints[i]) * pow(x / v[i], 1.8f);
 
 		output += gainedpoints;
 		if (debug)
-			debugValues[PtLoss][i] = (v_itvpoints[i] - gainedpoints);
+			debugValues[PtLoss][i] =
+			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 	}
 
 	return output;

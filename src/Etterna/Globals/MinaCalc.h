@@ -74,7 +74,10 @@ class Hand
 	scoring to assert the average of the distribution of point gain for each
 	interval and then tallies up the result to produce an average total number
 	of points achieved by this hand. */
-	float CalcInternal(float x, int ss, bool stam, bool debug = false);
+	float CalcInternal(float x,
+					   int ss,
+					   bool stam,
+					   bool debug = false);
 
 	std::vector<float> doot[5];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
@@ -109,7 +112,7 @@ class Hand
 	// since chorded patterns have lower enps than streams, streams default to 1
 	// and chordstreams start lower
 	// stam is a special case and may use normalizers again
-	const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.9f,
+	const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.925f,
 											  0.85f, 1.f, 0.9f, 1.f };
 };
 
