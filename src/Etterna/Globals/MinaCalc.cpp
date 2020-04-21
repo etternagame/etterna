@@ -194,13 +194,13 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	DifficultyRating difficulty =
 	  DifficultyRating{ 0.0,
-						downscale_low_accuracy_scores(stream, score_goal),
-						downscale_low_accuracy_scores(js, score_goal),
-						downscale_low_accuracy_scores(hs, score_goal),
-						downscale_low_accuracy_scores(stam, score_goal),
-						downscale_low_accuracy_scores(jack, score_goal),
-						downscale_low_accuracy_scores(chordjack, score_goal),
-						downscale_low_accuracy_scores(tech, score_goal) };
+						stream,
+						js,
+						hs,
+						stam,
+						jack,
+						chordjack,
+						tech};
 
 	chordjack = difficulty.handstream;
 
