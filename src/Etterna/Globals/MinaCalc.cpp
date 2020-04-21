@@ -189,9 +189,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	else
 		stam = Chisel(
 		  tech - 0.1f, 10.56f, score_goal, true, false, false, false, false);
-
-	float chordjack = jack * 0.75f;
-
+	float chordjack = 0.f;
 	DifficultyRating difficulty =
 	  DifficultyRating{ 0.0,
 						stream,
@@ -421,8 +419,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.InitPoints(fingers[2], fingers[3]);
 
 	// set pattern mods
-	Anchorscaler(NoteInfo, 1, 2, left_hand.doot);
-	Anchorscaler(NoteInfo, 4, 8, right_hand.doot);
+	SetAnchorMod(NoteInfo, 1, 2, left_hand.doot);
+	SetAnchorMod(NoteInfo, 4, 8, right_hand.doot);
 
 	// roll and ohj
 	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
@@ -430,8 +428,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 
 	// these are evaluated on all columns so right and left are the same
 	// these also may be redundant with updated stuff
-	HSDownscaler(NoteInfo, left_hand.doot);
-	JumpDownscaler(NoteInfo, left_hand.doot);
+	SetHSMod(NoteInfo, left_hand.doot);
+	SetJumpMod(NoteInfo, left_hand.doot);
 	right_hand.doot[HS] = left_hand.doot[HS];
 	right_hand.doot[Jump] = left_hand.doot[Jump];
 
@@ -646,7 +644,7 @@ Hand::CalcInternal(float x, bool stam, bool nps, bool js, bool hs, bool debug)
 }
 
 void
-Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
+Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 				   unsigned int firstNote,
 				   unsigned int secondNote,
 				   vector<float> doot[ModCount])
@@ -683,7 +681,7 @@ Calc::Anchorscaler(const vector<NoteInfo>& NoteInfo,
 }
 
 void
-Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[HS].resize(nervIntervals.size());
 
@@ -710,7 +708,7 @@ Calc::HSDownscaler(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount
 }
 
 void
-Calc::JumpDownscaler(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[Jump].resize(nervIntervals.size());
 

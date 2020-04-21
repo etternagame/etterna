@@ -136,17 +136,23 @@ class Calc
 				 bool hs,
 				 bool debugoutput = false);
 
-	void Anchorscaler(const std::vector<NoteInfo>& NoteInfo,
+	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
 									unsigned int t1,
 									unsigned int t2,
 									std::vector<float> doot[ModCount]);
-	void HSDownscaler(const std::vector<NoteInfo>& NoteInfo,
+
+	// no longer going to necessarily be downscalers - that they were
+	// was a structural flaw of the old calc
+	void SetHSMod(const std::vector<NoteInfo>& NoteInfo,
 									std::vector<float> doot[ModCount]);
-	void JumpDownscaler(const std::vector<NoteInfo>& NoteInfo,
+	void SetJumpMod(const std::vector<NoteInfo>& NoteInfo,
 									  std::vector<float> doot[ModCount]);
+	void SetCJMod(const std::vector<NoteInfo>& NoteInfo,
+					std::vector<float> doot[ModCount]);
 
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once
+	// ok well we do it once per hand and we can probably solve that but...
 	void SetSequentialDownscalers(
 	  const std::vector<NoteInfo>& NoteInfo,
 	  unsigned int t1,
