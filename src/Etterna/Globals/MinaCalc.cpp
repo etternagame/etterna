@@ -168,14 +168,20 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	for (int i = 0; i < NUM_SkillsetTWO; ++i)
 		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
-	// stam is based which calc produced the highest output on base
+	// stam is based on which calc produced the highest output without it
 	size_t highest_base_skillset = std::distance(
 	  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
-	mcbloop[Stamina] = Chisel(mcbloop[highest_base_skillset] - 0.1f,
-							  10.24f,
-							  score_goal,
-							  highest_base_skillset,
-							  true);
+	float base = mcbloop[highest_base_skillset];
+
+	// rerun all with stam on
+	for (int i = 0; i < NUM_SkillsetTWO; ++i)
+		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
+
+	// weighted average with slack and a cap basically, we dont want insanely 
+	// long files to get out of hand, and we want intense files 2.5-3 minutes
+	// to have some meaningful change
+	mcbloop[Stamina] =
+	  CalcClamp((base * 0.75f) + (mcbloop[highest_base_skillset] * 0.225f), base * 0.75f, base * 1.15f);
 
 	// yes i know how dumb this looks
 	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
@@ -309,7 +315,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++) {
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
+			o += 7.f - (7.f * pow(x / (j[i] * 0.76f), 1.5f));
 	}
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
@@ -550,10 +556,10 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	for (size_t i = 0; i < diff.size(); i++) {
 		avs1 = avs2;
 		avs2 = diff[i];
-		float ebb = (avs1 + avs2) / 2;
-		mod += ((ebb / (prop * x)) - 1) / mag;
+		float ebb = (avs1 + avs2) / 2.f;
+		mod += ((ebb / (prop * x)) - 1.f) / mag;
 		if (mod > 1.f)
-			floor += (mod - 1) / fscale;
+			floor += (mod - 1.f) / fscale;
 		mod = CalcClamp(mod, floor, ceil);
 		stam_adj_diff[i] = diff[i] * mod;
 		if (debug)
@@ -636,8 +642,8 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 
 		output += gainedpoints;
 		if (debug)
-			debugValues[PtLoss][i] =
-			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
+			debugValues[PtLoss][i] = stam_adj_diff[i];
+			  //(static_cast<float>(v_itvpoints[i]) - gainedpoints);
 	}
 
 	return output;
