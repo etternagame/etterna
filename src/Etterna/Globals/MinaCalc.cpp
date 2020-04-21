@@ -392,11 +392,21 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.doot[CJ] = left_hand.doot[CJ];
 
 	// pattern mods and base msd never change so set them immediately
-	if (debugmode)
-		for (size_t i = 0; i < 9; ++i) {
+	if (debugmode) {
+		for (size_t i = 0; i < ModCount; ++i) {
 			left_hand.debugValues[i] = left_hand.doot[i];
 			right_hand.debugValues[i] = right_hand.doot[i];
 		}
+		// uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh yea
+		// somehow i never did this and debug was still getting the
+		// somewhat right values... somehow??
+		left_hand.debugValues[BaseNPS] = left_hand.v_itvNPSdiff;
+		left_hand.debugValues[BaseMS] = left_hand.pureMSdiff;
+		left_hand.debugValues[BaseMSD] = left_hand.v_itvMSdiff;
+		right_hand.debugValues[BaseNPS] = right_hand.v_itvNPSdiff;
+		right_hand.debugValues[BaseMS] = right_hand.pureMSdiff;
+		right_hand.debugValues[BaseMSD] = right_hand.v_itvMSdiff;
+	}
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
@@ -523,11 +533,9 @@ Hand::InitDiff(Finger& f1, Finger& f2)
 void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
-	v_itvpoints.resize(f1.size());
 	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
-		v_itvpoints[ki_is_rising] =
-		  static_cast<int>(f1[ki_is_rising].size()) +
-		  static_cast<int>(f2[ki_is_rising].size());
+		v_itvpoints.emplace_back(static_cast<int>(f1[ki_is_rising].size()) +
+								   static_cast<int>(f2[ki_is_rising].size()));
 }
 
 void
@@ -1024,5 +1032,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 267;
+	return 269;
 }

@@ -79,7 +79,7 @@ class Hand
 					   bool stam,
 					   bool debug = false);
 
-	std::vector<float> doot[5];
+	std::vector<float> doot[ModCount];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> v_itvNPSdiff,
 	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval

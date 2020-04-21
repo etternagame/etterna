@@ -156,7 +156,7 @@ local function updateCoolStuff()
         graphVecs[1][13] = bap[23]  -- stammod (should be separate prolly?)
         graphVecs[1][14] = bap[24]
 
-        for i = 13, 24 do
+        for i = 13, 22 do
             graphVecs[2][i - 12] = bap[i]
         end
 
@@ -342,11 +342,13 @@ o[#o + 1] = Def.Quad {
             local bmsdr = graphVecs[2][6][index]
             local msdl = graphVecs[2][7][index]
             local msdr = graphVecs[2][8][index]
+            local pll = graphVecs[2][9][index]
+            local plr = graphVecs[2][10][index]
             if msdl == nil then
                 txt:settext("")
             else
-                txt:settextf("npsl: %5.4f\nnpsr: %5.4f\nmsl: %5.4f\nmsr: %5.4f\nbmsdl: %5.4f\nbmsdr: %5.4f\nmsdl: %5.4f\nmsdr: %5.4f\n",
-                    npsl, npsr, msl, msr, bmsdl, bmsdr, msdl, msdr)
+                txt:settextf("npsl: %5.4f\nnpsr: %5.4f\nmsl: %5.4f\nmsr: %5.4f\nbmsdl: %5.4f\nbmsdr: %5.4f\nmsdl: %5.4f\nmsdr: %5.4f\npll: %5.4f\nplr: %5.4f",
+                    npsl, npsr, msl, msr, bmsdl, bmsdr, msdl, msdr, pll, plr)
                 --txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
             end
 		else
@@ -599,9 +601,12 @@ local skillsetColors = {
     color("#6c969d"),   -- jack
     color("#a5f8d3"),   -- chordjack
     color("#b0cec2"),    -- tech
+    color("#b0cec2"),    -- tech
+    color("1,0,0"),   
+    color("1,0,0"),
 }
 
-for i = 1, 10 do
+for i = 7, 10 do
     --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
     o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
 end
