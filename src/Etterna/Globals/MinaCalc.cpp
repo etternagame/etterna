@@ -406,6 +406,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 			right_hand.debugValues[i].resize(numitv);
 		}
 	}
+	for (size_t i = 0; i < DebugCount; ++i) {
+		left_hand.doot[i].resize(nervIntervals.size());
+		right_hand.doot[i].resize(nervIntervals.size());
+	}
+	
 
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++) {
@@ -649,8 +654,6 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 				   unsigned int secondNote,
 				   vector<float> doot[ModCount])
 {
-	doot[Anchor].resize(nervIntervals.size());
-
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		int lcol = 0;
 		int rcol = 0;
@@ -683,8 +686,6 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 void
 Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	doot[HS].resize(nervIntervals.size());
-
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int handtaps = 0;
@@ -746,9 +747,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					 unsigned int t2,
 					 float music_rate, vector<float> doot[ModCount])
 {
-	doot[Roll].resize(nervIntervals.size());
-	doot[OHJump].resize(nervIntervals.size());
-
 	// not sure if these should persist between intervals or not
 	// not doing so makes the pattern detection slightly more strict
 	// doing so will give the calc some context from the previous
