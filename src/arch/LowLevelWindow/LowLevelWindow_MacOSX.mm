@@ -638,7 +638,9 @@ void LowLevelWindow_MacOSX::Update()
 	m_ActualParams.windowWidth = g_iWidth;
 	m_ActualParams.windowHeight = g_iHeight;
 	lock.Unlock(); // Unlock before calling ResolutionChanged().
-	[m_Context update];
+	dispatch_async(dispatch_get_main_queue(), ^{
+	  [m_Context update];
+	});
 	DISPLAY->ResolutionChanged();
 }
 
