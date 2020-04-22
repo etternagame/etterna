@@ -211,10 +211,8 @@ class Steps
 	void CalcEtternaMetadata();
 	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
 	vector<vector<vector<float>>> calcdebugoutput; // probably should clear this periodically
-
-	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
-	vector<string> bustedkeys;
-	void MakeBustedKeys();
+	bool test_me = false;
+	float expected_overall_difficulty = 0.f;
 
 	// you are all idiots for not just doing this in the first place -mina
 	float firstsecond = 0.f;
