@@ -209,10 +209,13 @@ class Steps
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	void CalcEtternaMetadata();
+	float DoATestThing(float ev, Skillset ss);
 	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
 	vector<vector<vector<float>>> calcdebugoutput; // probably should clear this periodically
-	bool test_me = false;
-	float expected_overall_difficulty = 0.f;
+
+	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
+	vector<string> bustedkeys;
+	void MakeBustedKeys();
 
 	// you are all idiots for not just doing this in the first place -mina
 	float firstsecond = 0.f;
