@@ -1147,27 +1147,25 @@ DownloadManager::UploadScores()
 	// First we accumulate top 2 scores that have
 	// not been uploaded and have replay data
 	auto scores = SCOREMAN->GetAllPBPtrs();
+	auto& recalculatedscorekeys = SCOREMAN->recalculatedscores;
 	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
-			if ((ts == 1 || ts == 2) &&
-				!scorePtr->IsUploadedToServer(serverURL.Get())) {
-				if (scorePtr->HasReplayData())
+
+			// rescoring should already have properly set topscore values
+			// if they were to have shuffled
+			if (ts == 1 || ts == 2) {
+				// handle rescores, ignore upload check
+				if (recalculatedscorekeys.count(scorePtr->GetScoreKey()))
+					toUpload.push_back(scorePtr);
+				else if (!scorePtr->IsUploadedToServer(serverURL.Get()) &&
+						 scorePtr->HasReplayData())
 					toUpload.push_back(scorePtr);
 			}
 		}
 	}
 
-	// we don't want to run the upload check for rescores; rescores have
-	// replaydata by definition
-	auto& recalculatedscorekeys = SCOREMAN->recalculatedscores;
-	for (auto sk : recalculatedscorekeys) {
-		auto s = SCOREMAN->GetScoresByKey().at(sk);
-		auto ts = s->GetTopScore();
-		if (ts == 1 || ts == 2)
-			toUpload.push_back(s);
-	}
 
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores. (Uploading %d scores)",

@@ -497,7 +497,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				if (remarried)	// maybe recalculated scores should be renamed rescored?
-					SCOREMAN->recalculatedscores.push_back(hs->GetScoreKey());
+					SCOREMAN->recalculatedscores.emplace(hs->GetScoreKey());
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();

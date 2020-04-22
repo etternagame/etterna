@@ -225,7 +225,9 @@ class ScoreManager
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
 	vector<HighScore*> scorestorecalc;
-	vector<std::string> recalculatedscores;
+
+	// probably can avoid copying strings if we're sure it's safe
+	set<std::string> recalculatedscores;
 
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>
