@@ -483,11 +483,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				NoteData nd;
 				steps->GetNoteData(nd);
 
-				nd.LogNonEmptyRows();
-				auto& nerv = nd.GetNonEmptyRowVector();
-				auto& etaner = td->BuildAndGetEtaner(nerv);
-				auto& serializednd = nd.SerializeNoteData(etaner);
-
+				//nd.LogNonEmptyRows();
+				//auto& nerv = nd.GetNonEmptyRowVector();
+				//auto& etaner = td->BuildAndGetEtaner(nerv);
+				const auto& serializednd = nd.SerializeNoteData2(td);
 				auto dakine = MinaSDCalc(serializednd,
 										 musicrate,
 										 ssrpercent);

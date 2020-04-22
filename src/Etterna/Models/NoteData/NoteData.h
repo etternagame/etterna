@@ -238,6 +238,11 @@ class NoteData
 
 	// Mina stuf
 	void LogNonEmptyRows();
+
+	// this is like 30% faster than the above but it produces different hashes
+	// and it's probably not worth it to fix the logic and validate hashes
+	//void LogNonEmptyRowsv2();
+
 	void UnsetNerv()
 	{
 		vector<int> tmp;
@@ -263,7 +268,11 @@ class NoteData
 						   int iEndIndex = MAX_NOTE_ROW);
 	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
 	const vector<NoteInfo>& SerializeNoteData(const vector<float>& etaner);
-	vector<NoteInfo2>& SerializeNoteData2(const vector<float>& etaner);
+	// faster than the above and gives us more control over stuff like nerv generation
+	const vector<NoteInfo>& SerializeNoteData2(
+	  TimingData* ts,
+	  bool unset_nerv_when_done = true,
+	  bool unset_etaner_when_done = true);
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks(int iNewNumTracks);

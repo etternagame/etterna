@@ -11,6 +11,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include <unordered_map>
 
 REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))
 
@@ -203,38 +204,54 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 	}
-
-	// normalize first note to time 0 -mina
-	if (!SerializedNoteData.empty()) {
-		float offset = SerializedNoteData[0].rowTime;
-		for (size_t i = 0; i < SerializedNoteData.size(); i++)
-			SerializedNoteData[i].rowTime -= offset;
-	}
 	return SerializedNoteData;
 }
 
-vector<NoteInfo2>&
-NoteData::SerializeNoteData2(const vector<float>& etaner)
+// about twice as fast as above and more flexible about when to release
+// data that we might want to persist for a bit (still room for optimization)
+// in the functions that call it
+const vector<NoteInfo>&
+NoteData::SerializeNoteData2(TimingData* ts,
+							 bool unset_nerv_when_done,
+							 bool unset_etaner_when_done)
 {
-	SerializedNoteData2.reserve(NonEmptyRowVector.size());
-
+	// these should be deterministic, we should use existing stuff if
+	// it's there
+	//if (!SerializedNoteData.empty())
+		//return SerializedNoteData;
+	SerializedNoteData.clear();
+	SerializedNoteData.reserve(NonEmptyRowVector.size());
 	int tracks = GetNumTracks();
-	for (size_t i = 0; i < NonEmptyRowVector.size(); i++) {
-		int rowNotes = 0;
-		for (int q = 0; q < tracks; q++) {
-			if (GetTapNote(q, NonEmptyRowVector[i]).IsNote()) {
-				rowNotes |= 1 << q;
-			}
-		}
 
-		if (rowNotes != 0) {
-			NoteInfo2 rowOutput{ rowNotes,
-								 static_cast<int>(etaner[i] * 10000.f) };
-			SerializedNoteData2.emplace_back(rowOutput);
+	unordered_map<int, int> lal;
+	// iterate over tracks so we can avoid the lookup in gettapnote
+	for (int t = 0; t < tracks; ++t) {
+		const auto& tm = m_TapNotes[t];
+		for (const auto& r : tm)
+			if (r.second.IsNote()) {
+			auto& res = lal.emplace(r.first, 1 << t);
+			if (!res.second) // already added, update noteinfo
+				lal.at(r.first) |= 1 << t;
 		}
 	}
+	NonEmptyRowVector.clear();
+	NonEmptyRowVector.reserve(lal.size());
+	for (auto& soup : lal)
+		NonEmptyRowVector.push_back(soup.first);
+	std::sort(NonEmptyRowVector.begin(), NonEmptyRowVector.end());
 
-	return SerializedNoteData2;
+	const auto& etaner = ts->BuildAndGetEtaner(NonEmptyRowVector);
+	size_t idx = 0;
+	for (auto r : NonEmptyRowVector) {
+		NoteInfo rowOutput{ static_cast<unsigned int>(lal.at(r)), etaner[idx] };
+		SerializedNoteData.emplace_back(rowOutput);
+		++idx;
+	}
+	if (unset_etaner_when_done)
+		ts->UnsetEtaner();
+	if (unset_nerv_when_done)
+		UnsetNerv();
+	return SerializedNoteData;
 }
 
 void
@@ -244,6 +261,23 @@ NoteData::LogNonEmptyRows()
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, row)
 	NonEmptyRowVector.emplace_back(row);
 }
+/*	significantly faster than the above, but use case is more restrictive
+	and it's not that big a deal
+void
+NoteData::LogNonEmptyRowsv2()
+{
+	unordered_set<int> loggedrows;
+	NonEmptyRowVector.clear();
+	for (auto& t : m_TapNotes)
+		for (auto& r : t)
+			if (r.second.IsNote()) {
+				auto newrow = loggedrows.insert(r.first);
+				if (newrow.second)
+					NonEmptyRowVector.push_back(r.first);
+			}
+	std::sort(NonEmptyRowVector.begin(), NonEmptyRowVector.end());
+}
+*/
 
 bool
 NoteData::IsRowEmpty(int row) const

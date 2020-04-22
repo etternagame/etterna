@@ -390,35 +390,31 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 void
 Steps::CalcEtternaMetadata()
 {
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
-	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
+	// keep nerv, it's needed for chartkey generation, etaner isn't
+	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
 	diffByRate = MinaSDCalc(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
+	
 
 	// set first and last second for this steps object
-	if (!etaner.empty()) {
-		firstsecond = etaner.front();
+	if (!cereal.empty()) {
+		firstsecond = cereal[0].rowTime;
 		lastsecond =
 		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
 	}
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
-	GetTimingData()->UnsetEtaner();
 }
 
 void
 Steps::BorpNDorf(int modType)
 {
 	// function is responsible for producing debug output
-	Decompress();
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
-	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
-	dumbthings.clear();
+	//Decompress();
+	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData2(GetTimingData());
 
 	if (modType < CalcPatternMod::ModCount && modType >= 0)
 		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
