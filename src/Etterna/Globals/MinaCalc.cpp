@@ -213,8 +213,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
 	// this is the only time debugoutput arg should be set to true
 	if (debugmode)
-		Chisel(mcbloop[highest_base_skillset] - 0.001f,
-			   10.24f,
+		Chisel(mcbloop[highest_base_skillset] - 2.56f,
+			   0.32f,
 			   score_goal,
 			   highest_base_skillset,
 			   true,
