@@ -429,63 +429,26 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 
 	// TESTING TESTING STUFF STUFF
 	vector<float> test_vals[NUM_Skillset];
-	for (auto& s : StepsByKey) {
-		if (stream_test.count(s.first)) {
-			test_vals[Skill_Stream].emplace_back(
-			  s.second->DoATestThing(stream_test.at(s.first), Skill_Stream));
-			continue;
-		}
+	unordered_map<std::string, float> test_charts[NUM_Skillset];
+	test_charts[Skill_Stream] = stream_test;
+	test_charts[Skill_Jumpstream] = js_test;
+	test_charts[Skill_Stamina] = stam_test;
+	test_charts[Skill_Technical] = tech_test;
+	test_charts[Skill_JackSpeed] = jack_test;
 
-		if (js_test.count(s.first)) {
-			test_vals[Skill_Jumpstream].emplace_back(s.second->DoATestThing(
-			  js_test.at(s.first), Skill_Jumpstream));
-			continue;
-		}
+	FOREACH_ENUM(Skillset, ss)
+	for (auto& t : test_charts[ss])
+		if (StepsByKey.count(t.first))
+			test_vals[ss].emplace_back(StepsByKey[t.first]->DoATestThing(
+			  test_charts[ss].at(t.first), ss));
 
-		if (stam_test.count(s.first)) {
-			test_vals[Skill_Stamina].emplace_back(
-			  s.second->DoATestThing(stam_test.at(s.first), Skill_Stamina));
-			continue;
-		}
-
-		if (tech_test.count(s.first)) {
-			test_vals[Skill_Technical].emplace_back(
-			  s.second->DoATestThing(tech_test.at(s.first), Skill_Technical));
-			continue;
-		}
-
-		if (jack_test.count(s.first)) {
-			test_vals[Skill_JackSpeed].emplace_back(
-			  s.second->DoATestThing(jack_test.at(s.first), Skill_JackSpeed));
-			continue;
-		}
-	}
-
-	LOG->Trace("Test stream avg differential %f",
-			   std::accumulate(begin(test_vals[Skill_Stream]),
-							   end(test_vals[Skill_Stream]),
-							   0.f) /
-				 test_vals[Skill_Stream].size());
-	LOG->Trace("Test js avg differential %f",
-			   std::accumulate(begin(test_vals[Skill_Jumpstream]),
-							   end(test_vals[Skill_Jumpstream]),
-							   0.f) /
-				 test_vals[Skill_Jumpstream].size());
-	LOG->Trace("Test stam avg differential %f",
-			   std::accumulate(begin(test_vals[Skill_Stamina]),
-							   end(test_vals[Skill_Stamina]),
-							   0.f) /
-				 test_vals[Skill_Stamina].size());
-	LOG->Trace("Test tech avg differential %f",
-			   std::accumulate(begin(test_vals[Skill_Technical]),
-							   end(test_vals[Skill_Technical]),
-							   0.f) /
-				 test_vals[Skill_Technical].size());
-	LOG->Trace("Test jack avg differential %f",
-			   std::accumulate(begin(test_vals[Skill_JackSpeed]),
-							   end(test_vals[Skill_JackSpeed]),
-							   0.f) /
-				 test_vals[Skill_JackSpeed].size());
+	FOREACH_ENUM(Skillset, ss)
+	if (!test_vals[ss].empty())
+		LOG->Trace(
+		  "%+0.2f avg delta for test group %s",
+		  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.f) /
+			test_vals[ss].size(),
+		  SkillsetToString(ss).c_str());
 	cache.clear();
 }
 

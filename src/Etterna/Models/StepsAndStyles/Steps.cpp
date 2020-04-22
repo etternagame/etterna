@@ -422,12 +422,11 @@ Steps::DoATestThing(float ev, Skillset ss)
 
 	auto newcalc = MinaSDCalc(cereal, 1.f, 0.93f);
 	auto oldcalc = MinaSDCalc_OLD(cereal, 1.f, 0.93f);
-	LOG->Trace("%s : %f : %f",
-			   m_pSong->GetMainTitle().c_str(),
+	LOG->Trace("%+0.2f (%+06.2f%%): %+0.2f %s",
 			   newcalc[0] - ev,
-			   newcalc[0] - oldcalc[0]);
-
-	
+			   (newcalc[0] - ev) / ev * 100.f,
+			   newcalc[0] - oldcalc[0],
+	  m_pSong->GetMainTitle().c_str());
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();

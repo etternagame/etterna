@@ -651,9 +651,10 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
 	if (debug) {
-		debugValues[MSD] = adj_diff;
+		
 		// final debug output should always be with stam activated
 		StamAdjust(x, adj_diff, true);
+		debugValues[MSD] = stam_adj_diff;
 	}
 
 	float output = 0.f;
@@ -664,8 +665,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 
 		output += gainedpoints;
 		if (debug)
-			debugValues[PtLoss][i] = stam_adj_diff[i];
-			  //(static_cast<float>(v_itvpoints[i]) - gainedpoints);
+			debugValues[PtLoss][i] = (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 	}
 
 	return output;
