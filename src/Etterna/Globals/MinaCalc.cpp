@@ -173,9 +173,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
 	float base = mcbloop[highest_base_skillset];
 
-	// rerun all with stam on
+	// rerun all with stam on, optimize by starting at the non-stam adjusted
+	// base value for each skillset
 	for (int i = 0; i < NUM_SkillsetTWO; ++i)
-		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, true);
+		mcbloop[i] = Chisel(mcbloop[highest_base_skillset] -0.1f, 10.24f, score_goal, i, true);
 
 	// stam jams, stamina should push up the base ratings for files so files
 	// that are more difficult by virtue of being twice as long for more or less
