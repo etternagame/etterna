@@ -178,6 +178,14 @@ local function updateCoolStuff()
                 graphVecs[v[i]] = {}
                 for h = 1, 2 do     -- left/right hand loop
                     graphVecs[v[i]][h] = bap[k][v[i]][h]
+
+                    if k == "CalcDiffValue" then
+                        for j = 1, #graphVecs[v[i]][h] do
+                            local val = graphVecs[v[i]][h][j]
+                            if val < lowerGraphMin then lowerGraphMin = val end
+                            if val > lowerGraphMax then lowerGraphMax = val end
+                        end
+                    end
                 end
             end
         end
@@ -193,14 +201,6 @@ local function updateCoolStuff()
             end
         end]]
         -- same as immediately above
-        lowerGraphMin = 1000
-        lowerGraphMax = -1000
-        for _, line in ipairs(graphVecs) do
-            for ind, val in pairs(line) do
-            --   if val < lowerGraphMin then lowerGraphMin = val end
-            --    if val > lowerGraphMax then lowerGraphMax = val end
-            end
-        end
     else
         graphVecs = {}
     end
@@ -460,7 +460,6 @@ makeskillsetlabeltext = function(i, mod, hand)
                   self:settext("")
                 return
             end
-            ms.ok(i)
             for i = 1, #values do
                 if values[i] and #values > 0 then
                     aves[i] = table.average(values)
@@ -538,17 +537,7 @@ local function topGraphLine(mod, colorToUse, hand)
     }
 end
 
-for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
-    o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)    -- hand
-    o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
-    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, mod, 1)
-    o[#o+1] = makeskillsetlabeltext((i * 2), mod, 2)
-end
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
-o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
-
-local function bottomGraphLineMSD(lineNum, colorToUse)
+local function bottomGraphLineMSD(mod, colorToUse, hand)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
             self:y(plotHeight+5)
@@ -557,21 +546,17 @@ local function bottomGraphLineMSD(lineNum, colorToUse)
             if song and enabled then
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-                if not diff_vals or not diff_vals[lineNum] then return end
+                
                 self:visible(true)
 
                 local verts = {}
-                for _, line in ipairs(diff_vals) do
-                    for ind, val in pairs(line) do
-                        if val < lowerGraphMin then lowerGraphMin = val end
-                        if val > lowerGraphMax then lowerGraphMax = val end
-                    end
-                end
+                local values = graphVecs[mod][hand]
+                if not values or not values[1] then return end
 
-                for i = 1, #diff_vals[lineNum] do
-                    local x = fitX(i, #diff_vals[lineNum]) -- vector length based positioning
+                for i = 1, #values do
+                    local x = fitX(i, #values) -- vector length based positioning
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(diff_vals[lineNum][i], lowerGraphMin, lowerGraphMax)
+                    local y = fitY2(values[i], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
@@ -628,11 +613,24 @@ local skillsetColors = {
     color("1,0,0"),
 }
 
-for i = 1, #CalcDebugTypes["CalcDiffValue"] do
-    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-    --o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
+for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
+    o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)
+    o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
+    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, mod, 1)
+    o[#o+1] = makeskillsetlabeltext((i * 2), mod, 2)
 end
+-- add stam since it's not technically a pattern mod
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
+o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
+for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
+    o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
+    o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
+end
+o[#o+1] = topGraphLine("PtLoss", skillsetColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
+o[#o+1] = topGraphLine("PtLoss", skillsetColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
