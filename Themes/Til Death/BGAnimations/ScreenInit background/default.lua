@@ -152,6 +152,8 @@ local minanyms = {
 	"yes and no",
 	"unconjoined juxtaposition",
 	"cancerous snake",
+	"1:46 snufkin",
+	"MinaMinaCloneClone",
 }
 
 math.random()
