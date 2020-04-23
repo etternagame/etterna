@@ -131,6 +131,26 @@ highest_difficulty(const DifficultyRating& difficulty)
 	return *std::max_element(v.begin(), v.end());
 }
 
+// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
+float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
+					1.025f; // multiplier to standardize baselines
+
+// Stamina Model params
+const float stam_ceil = 1.1f;	 // stamina multiplier max
+const float stam_mag = 465.f;	 // multiplier generation scaler
+const float stam_fscale = 2222.f; // how fast the floor rises (it's lava)
+const float stam_prop =
+  0.7f; // proportion of player difficulty at which stamina tax begins
+
+// since we are no longer using the normalizer system we need to lower
+// the base difficulty for each skillset and then detect pattern types
+// to push down OR up, rather than just down and normalizing to a differential
+// since chorded patterns have lower enps than streams, streams default to 1
+// and chordstreams start lower
+// stam is a special case and may use normalizers again
+const float basescalers[NUM_SkillsetTWO] = { 0.f,	1.f, 0.9f, 0.925f,
+											 0.925f, 1.f, 0.9f, 0.95f };
+
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
@@ -582,10 +602,10 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		avs1 = avs2;
 		avs2 = diff[i];
 		float ebb = (avs1 + avs2) / 2.f;
-		mod += ((ebb / (prop * x)) - 1.f) / mag;
+		mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
 		if (mod > 1.f)
-			floor += (mod - 1.f) / fscale;
-		mod = CalcClamp(mod, floor, ceil);
+			floor += (mod - 1.f) / stam_fscale;
+		mod = CalcClamp(mod, floor, stam_ceil);
 		stam_adj_diff[i] = diff[i] * mod;
 		if (debug)
 			debugValues[2][StamMod][i] = mod;
@@ -696,8 +716,8 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 		doot[Anchor][i] =
 		  anyzero
 			? 1.f
-			: CalcClamp(sqrt(1 - (static_cast<float>(min(lcol, rcol)) /
-								  static_cast<float>(max(lcol, rcol)) / 4.45f)),
+			: CalcClamp(sqrt(1.1f - (static_cast<float>(min(lcol , rcol) + 0.25f) /
+								  static_cast<float>(max(lcol, rcol)) / 5.f)),
 						0.8f,
 						1.05f);
 

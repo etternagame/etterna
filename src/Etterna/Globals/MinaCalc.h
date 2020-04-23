@@ -97,25 +97,6 @@ class Hand
   private:
 	const bool SmoothDifficulty =
 	  true; // Do we moving average the difficulty intervals?
-
-	float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						1.025f; // multiplier to standardize baselines
-
-	// Stamina Model params
-	const float ceil = 1.1f;	// stamina multiplier max
-	const float mag = 465.f;	 // multiplier generation scaler
-	const float fscale = 2222.f; // how fast the floor rises (it's lava)
-	const float prop =
-	  0.7f; // proportion of player difficulty at which stamina tax begins
-
-	// since we are no longer using the normalizer system we need to lower
-	// the base difficulty for each skillset and then detect pattern types
-	// to push down OR up, rather than just down and normalizing to a differential
-	// since chorded patterns have lower enps than streams, streams default to 1
-	// and chordstreams start lower
-	// stam is a special case and may use normalizers again
-	const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.925f,
-											  0.95f, 1.f, 0.9f, 0.8f };
 };
 
 class Calc
