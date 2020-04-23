@@ -39,15 +39,6 @@ enum CalcPatternMod
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
-
-enum CalcDebugMisc
-{
-	PtLoss, // expected points loss (not really a diff thing but w.e)
-	StamMod,// stam adjust (values between 1- ~1.15)
-	NUM_CalcDebugMisc,
-	CalcDebugMisc_Invalid,
-};
-
 enum CalcDiffValue
 {
 	BaseNPS, // unadjusted base nps difficulty
@@ -56,6 +47,13 @@ enum CalcDiffValue
 	MSD,	 // pattern and stam adjusted difficulty values
 	NUM_CalcDiffValue,
 	CalcDiffValue_Invalid,
+};
+enum CalcDebugMisc
+{
+	PtLoss, // expected points loss (not really a diff thing but w.e)
+	StamMod,// stam adjust (values between 1- ~1.15)
+	NUM_CalcDebugMisc,
+	CalcDebugMisc_Invalid,
 };
 
 #endif

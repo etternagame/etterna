@@ -993,9 +993,10 @@ class LunaSteps : public Luna<Steps>
 	{
 		p->GetCalcDebugOutput();
 		int lazy = 1;
-		lua_newtable(L);
 
-		
+		lua_newtable(L);
+		lua_pushstring(L, RString("CalcPatternMod"));
+		lua_createtable(L, 0, NUM_CalcPatternMod);
 		for (int i = 0; i < NUM_CalcPatternMod; ++i) {
 			lua_pushstring(
 			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
@@ -1007,31 +1008,37 @@ class LunaSteps : public Luna<Steps>
 			}
 			lua_rawset(L, -3);
 		}
-		
-	
-		return 1;
+		lua_rawset(L, -3);
 
-		for (int i = 0; i < NUM_CalcPatternMod; ++i) {
+		lua_pushstring(L, RString("CalcDebugMisc"));
+		lua_createtable(L, 0, NUM_CalcDebugMisc);
+		for (int i = 0; i < NUM_CalcDebugMisc; ++i) {
 			lua_pushstring(
-			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
+			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
+			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				lua_createtable(L, 0, 2);
-				lua_pushnumber(L, i);
-				lua_rawseti(L, -4, 1);
-				lua_pushnumber(L, i * 1000);
-				lua_rawseti(L, -4, 2);
-				lua_rawset(L, -3);
+				vector<float> poop = p->calcdebugoutput[j][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
 			}
-
-			// lua_rawseti(L, -2, lazy);
-			++lazy;
+			lua_rawset(L, -3);
 		}
+		lua_rawset(L, -3);
 
-		/* vector<float>& poop = p->calcdebugoutput[0][i];
+		lua_pushstring(L, RString("CalcDiffValue"));
+		lua_createtable(L, 0, NUM_CalcDiffValue);
+		for (int i = 0; i < NUM_CalcDiffValue; ++i) {
 			lua_pushstring(
-			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
-			LuaHelpers::CreateTableFromArray(poop, L);
-			*/
+			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		lua_rawset(L, -3);
 		return 1;
 	}
 	LunaSteps()

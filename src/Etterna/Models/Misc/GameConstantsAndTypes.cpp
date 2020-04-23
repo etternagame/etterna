@@ -231,17 +231,17 @@ static const char* CalcPatternModNames[] = {
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
-static const char* CalcDebugMiscNames[] = {
-	"PtLoss", "StamMod",
-};
-XToString(CalcDebugMisc);
-LuaXType(CalcDebugMisc);
-
 static const char* CalcDiffValueNames[] = {
 	"BaseNPS", "BaseMS", "BaseMSD", "MSD",
 };
 XToString(CalcDiffValue);
 LuaXType(CalcDiffValue);
+
+static const char* CalcDebugMiscNames[] = {
+	"PtLoss", "StamMod",
+};
+XToString(CalcDebugMisc);
+LuaXType(CalcDebugMisc);
 
 static const char* ValidationKeyNames[] = {
 	"Brittle",

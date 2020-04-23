@@ -25,29 +25,7 @@ local finalSecond
 local graphVecs = {}
 local ssrs
 
-local CalcPatternMod = 
-{
-	"OHJump", 
-	"Anchor", 
-	"Roll",   
-	"HS",		
-	"Jump",   
-	"CJ",		
-}
 
-local CalcDebugMisc = 
-{
-    "PtLoss", -- goes in bot graph
-	"StamMod",-- goes in top graph
-}
-
-local CalcDiffValue =
-{
-	"BaseNPS", 
-	"BaseMS",  
-	"BaseMSD", 
-	"MSD",
-}
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
@@ -101,7 +79,7 @@ end
 
 local function HighlightUpdaterThing(self)
     if not enabled then return end
-    self:GetChild("G2BG"):queuecommand("Highlight")
+    --self:GetChild("G2BG"):queuecommand("Highlight")
 end
 
 -- transforms the position of the mouse from the cd graph to the calc info graph
@@ -159,6 +137,30 @@ end
     anything else = no output
 ]]
 -- edit this to change graph and number output
+
+local CalcDebugTypes = {
+    CalcPatternMod = {
+        "OHJump", 
+	    "Anchor", 
+	    "Roll",   
+	    "HS",		
+	    "Jump",   
+	    "CJ",
+    },
+    CalcDiffValue =
+    {
+        "BaseNPS", 
+        "BaseMS",  
+        "BaseMSD", 
+        "MSD",
+    },
+    CalcDebugMisc = 
+    {
+        "PtLoss", -- goes in bot graph
+	    "StamMod",-- goes in top graph
+    }
+}
+
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -166,31 +168,20 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
-       --ssrs = getGraphForSteps(steps)
-        -- DEBUG STUFF FOR CALCDISPLAY GRAPHS SHOULD BE DONE IN ONE PASS THIS IS INSANE
+       --ssrs = getGraphForSteps(steps) // maybe add back the new wrapper
+
         local bap = steps:GetCalcDebugOutput()
-        graphVecs[1] = {}
-        graphVecs[2] = {}
-        graphVecs[3] = {}
-        ms.ok(#bap["Jump"][1])
-        for i= 1, #CalcPatternMod do
-            graphVecs[1][i] = bap[CalcPatternMod[i]]
-            --ms.ok(showKeys(bap))
-            --ms.ok(#bap[CalcPatternMod[1]])
-            for ii = 1, #bap[CalcPatternMod[1]] do 
-            --ms.ok(bap[CalcPatternMod[1]][ii])
+
+        -- loop through types of debug output
+        for k, v in pairs(CalcDebugTypes) do
+            for i = 1, #v do        -- loop through specifc mods
+                graphVecs[v[i]] = {}
+                for h = 1, 2 do     -- left/right hand loop
+                    graphVecs[v[i]][h] = bap[k][v[i]][h]
+                end
             end
         end
-        graphVecs[1][13] = bap[23]  -- stammod (should be separate prolly?)
-        graphVecs[1][14] = bap[24]
 
-        for i = 13, 22 do
-            graphVecs[2][i - 12] = bap[i]
-        end
-
-        for i = 1, 8 do
-            --graphVecs[3][i] = ssrs[i]
-        end
         -- hardcode these numbers for constant upper graph bounds
         upperGraphMin = 0.4
         upperGraphMax = 1.3
@@ -201,14 +192,13 @@ local function updateCoolStuff()
                 if val > upperGraphMax then upperGraphMax = val end
             end
         end]]
-
         -- same as immediately above
         lowerGraphMin = 1000
         lowerGraphMax = -1000
-        for _, line in ipairs(graphVecs[2]) do
+        for _, line in ipairs(graphVecs) do
             for ind, val in pairs(line) do
-                if val < lowerGraphMin then lowerGraphMin = val end
-                if val > lowerGraphMax then lowerGraphMax = val end
+            --   if val < lowerGraphMin then lowerGraphMin = val end
+            --    if val > lowerGraphMax then lowerGraphMax = val end
             end
         end
     else
@@ -265,8 +255,9 @@ local o =
         end
     }
 }
+local gg= {}
 -- graph bg
-o[#o + 1] = Def.Quad {
+gg[#o + 1] = Def.Quad {
     InitCommand = function(self)
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
@@ -326,7 +317,7 @@ o[#o + 1] = Def.Quad {
 }
 
 -- second bg
-o[#o + 1] = Def.Quad {
+gg[#o + 1] = Def.Quad {
     Name = "G2BG",
     InitCommand = function(self)
         self:y(plotHeight + 5)
@@ -448,7 +439,7 @@ local modColors = {
 }
 
 -- top graph average text
-makeskillsetlabeltext = function(i) 
+makeskillsetlabeltext = function(i, mod, hand) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
             local xspace = 30   -- this is gonna look like shit on 4:3 no matter what so w.e
@@ -456,7 +447,7 @@ makeskillsetlabeltext = function(i)
             self:zoom(0.35)
             self:settext("")
             self:maxwidth((plotWidth-10) / 0.5)
-            if i % 2 == 0 then
+            if hand % 2 == 0 then
                 self:addy(20)
                 self:addx(-xspace)
             end
@@ -464,17 +455,19 @@ makeskillsetlabeltext = function(i)
         UpdateAveragesMessageCommand = function(self)
             if song then
                 local aves = {}
-                if not graphVecs[1] or not graphVecs[1][1] then 
+                local values = graphVecs[mod][hand]
+                if not values or not values[1] then 
                   self:settext("")
                 return
             end
-            for i = 1, 14 do
-                if graphVecs[1][i] and #graphVecs[1][i] > 0 then
-                    aves[i] = table.average(graphVecs[1][i])
+            ms.ok(i)
+            for i = 1, #values do
+                if values[i] and #values > 0 then
+                    aves[i] = table.average(values)
                 end
             end
             self:diffuse(modColors[i])
-            self:settextf("%s: %.4f", modnames[i], aves[i])
+            self:settextf("%s: %.4f", modnames[i * 2 ], aves[i])
         end
     end
 }
@@ -503,7 +496,7 @@ local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
 
-local function topGraphLine(lineNum, colorToUse)
+local function topGraphLine(mod, colorToUse, hand)
     return Def.ActorMultiVertex {
         DoTheThingCommand = function(self)
             if song and enabled then
@@ -513,9 +506,10 @@ local function topGraphLine(lineNum, colorToUse)
                 local verts = {}
                 local highest = 0
 
-                if lineNum == 15 then
-                    for i = 1, #graphVecs[1][1] do
-                        local x = fitX(i, #graphVecs[1][1])
+                -- hack to draw a line at 1.0
+                if mod == "base_line" then
+                    for i = 1, #graphVecs["Jump"][1] do
+                        local x = fitX(i, #graphVecs["Jump"][1])
                         local y = fitY1(1)
                         y = y + plotHeight / 2
                         setOffsetVerts(verts, x, y, color("1,1,1"))
@@ -525,17 +519,12 @@ local function topGraphLine(lineNum, colorToUse)
                     return
                 end
 
-                if not graphVecs[1] or not graphVecs[1][lineNum] then return end
-
-                for i = 1, #graphVecs[1][lineNum] do
-                    if graphVecs[1][lineNum][i] > highest then
-                        highest = graphVecs[1][lineNum][i]
-                    end
-                end
-                for i = 1, #graphVecs[1][lineNum] do
-                    local x = fitX(i, #graphVecs[1][lineNum]) -- vector length based positioning
+                local values = graphVecs[mod][hand]
+                if not values or not values[1] then return end
+                for i = 1, #values do
+                    local x = fitX(i, #values) -- vector length based positioning
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
-                    local y = fitY1(graphVecs[1][lineNum][i])
+                    local y = fitY1(values[i])
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
                 end
@@ -549,11 +538,15 @@ local function topGraphLine(lineNum, colorToUse)
     }
 end
 
-for i = 1,14 do
-    o[#o+1] = topGraphLine(i, modColors[i])
-    o[#o+1] = makeskillsetlabeltext(i)
+for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
+    o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)    -- hand
+    o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
+    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, mod, 1)
+    o[#o+1] = makeskillsetlabeltext((i * 2), mod, 2)
 end
-o[#o+1] = topGraphLine(15, modColors[i])    -- super hack to make 1.0 value indicator line
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
+o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 local function bottomGraphLineMSD(lineNum, colorToUse)
     return Def.ActorMultiVertex {
@@ -564,20 +557,21 @@ local function bottomGraphLineMSD(lineNum, colorToUse)
             if song and enabled then
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
-
+                if not diff_vals or not diff_vals[lineNum] then return end
                 self:visible(true)
+
                 local verts = {}
-                for _, line in ipairs(graphVecs[2]) do
+                for _, line in ipairs(diff_vals) do
                     for ind, val in pairs(line) do
                         if val < lowerGraphMin then lowerGraphMin = val end
                         if val > lowerGraphMax then lowerGraphMax = val end
                     end
                 end
 
-                for i = 1, #graphVecs[2][lineNum] do
-                    local x = fitX(i, #graphVecs[2][lineNum]) -- vector length based positioning
+                for i = 1, #diff_vals[lineNum] do
+                    local x = fitX(i, #diff_vals[lineNum]) -- vector length based positioning
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(graphVecs[2][lineNum][i], lowerGraphMin, lowerGraphMax)
+                    local y = fitY2(diff_vals[lineNum][i], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
@@ -634,9 +628,9 @@ local skillsetColors = {
     color("1,0,0"),
 }
 
-for i = 7, 10 do
+for i = 1, #CalcDebugTypes["CalcDiffValue"] do
     --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-    o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
+    --o[#o+1] = bottomGraphLineMSD(i, skillsetColors[i])
 end
 
 

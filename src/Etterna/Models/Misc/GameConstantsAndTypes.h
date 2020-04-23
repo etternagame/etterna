@@ -48,9 +48,9 @@ SkillsetToString(Skillset ss);
 const RString&
 CalcPatternModToString(CalcPatternMod);
 const RString&
-CalcDebugMiscToString(CalcDebugMisc);
-const RString&
 CalcDiffValueToString(CalcDiffValue);
+const RString&
+CalcDebugMiscToString(CalcDebugMisc);
 
 enum NSScoreBoardColumn
 {
