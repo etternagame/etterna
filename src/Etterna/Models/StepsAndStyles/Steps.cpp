@@ -958,7 +958,7 @@ class LunaSteps : public Luna<Steps>
 		int modType = IArg(1) - 1;
 		p->BorpNDorf(modType);
 		lua_newtable(L);
-		for (int i = 0; i < p->dumbthings.size(); ++i) {
+		for (size_t i = 0; i < p->dumbthings.size(); ++i) {
 			vector<float> poop = p->dumbthings[i];
 			LuaHelpers::CreateTableFromArray(poop, L);
 			lua_rawseti(L, -2, i + 1);
