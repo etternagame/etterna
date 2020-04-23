@@ -206,7 +206,8 @@ class Steps
 	void SetChartKey(const RString& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
 	MinaSD GetAllMSD() const { return diffByRate; }
-	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
+	vector<pair<Skillset, float>> SortSkillsetsAtRate(float x,
+													   bool includeoverall);
 
 	void CalcEtternaMetadata();
 	void BorpNDorf(int modType);

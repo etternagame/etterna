@@ -375,28 +375,31 @@ Steps::GetMSD(float rate, Skillset ss) const
 	return lerp(prop, pDiffL, pDiffH);
 }
 
-map<float, Skillset>
+vector<pair<Skillset, float>>
 Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 {
 	int idx = static_cast<int>(x * 10) - 7;
-	map<float, Skillset> why;
 	vector<float> tmp = diffByRate[idx];
+	vector<pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
-	if (ss != Skill_Overall || includeoverall)
-		why.emplace(tmp[ss], ss);
-	return why;
+		if (ss != Skill_Overall || includeoverall)
+			mort.emplace_back(ss, tmp[ss]);
+	std::sort(mort.begin(), mort.end(), [](auto& a, auto& b) -> bool {
+			return a.second > b.second;
+		});
+	return mort;
 }
 
 void
 Steps::CalcEtternaMetadata()
 {
 	// keep nerv, it's needed for chartkey generation, etaner isn't
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData2(GetTimingData(), false);
+	const vector<NoteInfo>& cereal =
+	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
 	diffByRate = MinaSDCalc(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
-	
 
 	// set first and last second for this steps object
 	if (!cereal.empty()) {
@@ -413,11 +416,13 @@ void
 Steps::BorpNDorf(int modType)
 {
 	// function is responsible for producing debug output
-	//Decompress();
-	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData2(GetTimingData());
+	// Decompress();
+	const vector<NoteInfo>& cereal =
+	  m_pNoteData->SerializeNoteData2(GetTimingData());
 
 	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+		MinaSDCalcDebug(cereal,
+						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 						0.93f,
 						dumbthings,
 						static_cast<CalcPatternMod>(modType));
@@ -854,31 +859,19 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
-
-	// ok really is this how i have to do this - mina
 	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State* L)
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 0.7f, 2.f);
+		int rank = IArg(2) - 1;	// indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
-		int rank = IArg(2);
-		int i = NUM_Skillset - 1; // exclude Overall from this... need to handle
-								  // overall better - mina
-		Skillset o = Skillset_Invalid;
-		float rval = 0.f;
-		float highval = 0.f;
-		FOREACHM(float, Skillset, sortedskillsets, thingy)
-		{
-			if (i == rank) {
-				rval = thingy->first;
-				o = thingy->second;
-			}
-			if (i == 1)
-				highval = thingy->first;
-			--i;
-		}
-		if (rval > highval * 0.9f)
-			lua_pushstring(L, SkillsetToString(o));
+		float relevance_cutoff = 0.9f;
+		float rval = sortedskillsets[rank].second;
+		float highval = sortedskillsets[0].second;
+		if (rank == 0)
+			lua_pushstring(L, SkillsetToString(sortedskillsets[0].first));
+		else if (rval > highval * relevance_cutoff)
+			lua_pushstring(L, SkillsetToString(sortedskillsets[rank].first));
 		else
 			lua_pushstring(L, "");
 		return 1;
