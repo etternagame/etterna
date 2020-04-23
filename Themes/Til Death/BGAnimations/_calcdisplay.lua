@@ -72,7 +72,7 @@ local function convertPercentToIndexForMods(x)
     if output < 0 then output = 0 end
     if output > 1 then output = 1 end
 
-    local ind = notShit.round(output * #graphVecs[1][1])
+    local ind = notShit.round(output * #graphVecs["Jump"][1])
     if ind < 1 then ind = 1 end
     return ind
 end
@@ -182,7 +182,6 @@ local function updateCoolStuff()
                     if k == "CalcDiffValue" then
                         for j = 1, #graphVecs[v[i]][h] do
                             local val = graphVecs[v[i]][h][j]
-                            if val < lowerGraphMin then lowerGraphMin = val end
                             if val > lowerGraphMax then lowerGraphMax = val end
                         end
                     end
@@ -190,17 +189,8 @@ local function updateCoolStuff()
             end
         end
 
-        -- hardcode these numbers for constant upper graph bounds
-        upperGraphMin = 0.4
-        upperGraphMax = 1.3
-        --[[-- uncomment to have adaptive upper graph
-        for _, line in ipairs(graphVecs[1]) do
-            for ind, val in pairs(line) do
-                if val < upperGraphMin then upperGraphMin = val end
-                if val > upperGraphMax then upperGraphMax = val end
-            end
-        end]]
-        -- same as immediately above
+        upperGraphMin = 0.3
+        upperGraphMax = 1.2
     else
         graphVecs = {}
     end
@@ -255,9 +245,9 @@ local o =
         end
     }
 }
-local gg= {}
+
 -- graph bg
-gg[#o + 1] = Def.Quad {
+o[#o + 1] = Def.Quad {
     InitCommand = function(self)
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
@@ -290,24 +280,35 @@ gg[#o + 1] = Def.Quad {
             bg:x(goodXPos)
             bg:y(ypos + 3)
             local index = convertPercentToIndexForMods(perc)
+
+            local farts = {}
+            local toofartstoofury = ""
+            local fartsfartsFOUR = {}
+            for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
+                for h = 1, 2 do
+                    local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                    farts[#farts + 1] = graphVecs[mod][h]
+                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                end
+            end
+            -- add stammod
+            for h = 1, 2 do
+                local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                farts[#farts + 1] = graphVecs["StamMod"][h]
+                fartsfartsFOUR[#fartsfartsFOUR + 1] = "StamMod"..blah
+            end
             
-            -- this is so bad it ceases to be lazy, it's more work than iterating :|
-            local ohjl =    graphVecs[1][1][index]
-            local ohjr =    graphVecs[1][2][index]
-            local anchrl =  graphVecs[1][3][index]
-            local anchrr =  graphVecs[1][4][index]
-            local rolll =   graphVecs[1][5][index]
-            local rollr =   graphVecs[1][6][index]
-            local hsdsl =   graphVecs[1][7][index]
-            local hsdsr =   graphVecs[1][8][index]
-            local jumpdsl = graphVecs[1][9][index]
-            local jumpdsr = graphVecs[1][10][index]
-            local cjl = graphVecs[1][11][index]
-            local cjr = graphVecs[1][12][index]
-            local sl = graphVecs[1][13][index]
-            local sr = graphVecs[1][14][index]
-            txt:settextf("ohjl: %5.4f\nohjr: %5.4f\nanchrl: %5.4f\nanchrr: %5.4f\nrolll: %5.4f\nrollr: %5.4f\nhsdsl: %5.4f\nhsdsr: %5.4f\njumpdsl: %5.4f\njumpdsr: %5.4f\nsl: %5.4f\nsr: %5.4f\ncjl: %5.4f\ncjr: %5.4f",
-                ohjl, ohjr, anchrl, anchrr, rolll, rollr, hsdsl, hsdsr, jumpdsl, jumpdsr, sl, sr, cjl, cjr)
+            for k, v in pairs(farts) do
+                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
+                toofartstoofury = toofartstoofury .. txt
+            end
+            txt:settext(toofartstoofury)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -317,7 +318,7 @@ gg[#o + 1] = Def.Quad {
 }
 
 -- second bg
-gg[#o + 1] = Def.Quad {
+o[#o + 1] = Def.Quad {
     Name = "G2BG",
     InitCommand = function(self)
         self:y(plotHeight + 5)
@@ -353,23 +354,36 @@ gg[#o + 1] = Def.Quad {
             bg:y(ypos + 3)
             
             local index = convertPercentToIndexForMods(perc)
-            local npsl = graphVecs[2][1][index]
-            local npsr = graphVecs[2][2][index]
-            local msl = graphVecs[2][3][index]
-            local msr = graphVecs[2][4][index]
-            local bmsdl = graphVecs[2][5][index]
-            local bmsdr = graphVecs[2][6][index]
-            local msdl = graphVecs[2][7][index]
-            local msdr = graphVecs[2][8][index]
-            local pll = graphVecs[2][9][index]
-            local plr = graphVecs[2][10][index]
-            if msdl == nil then
-                txt:settext("")
-            else
-                txt:settextf("npsl: %5.4f\nnpsr: %5.4f\nmsl: %5.4f\nmsr: %5.4f\nbmsdl: %5.4f\nbmsdr: %5.4f\nmsdl: %5.4f\nmsdr: %5.4f\npll: %5.4f\nplr: %5.4f",
-                    npsl, npsr, msl, msr, bmsdl, bmsdr, msdl, msdr, pll, plr)
-                --txt:settextf("Percent: %5.4f\nOverall: %.2f\nStream: %.2f\nJumpstream: %.2f\nHandstream: %.2f\nStamina: %.2f\nJackspeed: %.2f\nChordjack: %.2f\nTechnical: %.2f", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100, ovrl, strm, js, hs, stam, jack, chjk, tech)
+            local farts = {}
+            local toofartstoofury = ""
+            local fartsfartsFOUR = {}
+            for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+                for h = 1, 2 do
+                    local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                    farts[#farts + 1] = graphVecs[mod][h]
+                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                end
             end
+            
+            -- add ptloss
+            for h = 1, 2 do
+                local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                farts[#farts + 1] = graphVecs["PtLoss"][h]
+                fartsfartsFOUR[#fartsfartsFOUR + 1] = "PtLoss"..blah
+            end
+
+            for k, v in pairs(farts) do
+                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
+                toofartstoofury = toofartstoofury .. txt
+            end
+
+            txt:settext(toofartstoofury)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -404,7 +418,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     5 = Jumpstream downscaler
     anything else = no output
 ]]
-modnames = {
+local modnames = {
     "ohjl",
     "ohjr",
     "anchl",
@@ -466,7 +480,7 @@ makeskillsetlabeltext = function(i, mod, hand)
                 end
             end
             self:diffuse(modColors[i])
-            self:settextf("%s: %.4f", modnames[i * 2 ], aves[i])
+            self:settextf("%s: %.4f", modnames[i], aves[i])
         end
     end
 }
@@ -475,13 +489,13 @@ end
 -- lower graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
-        self:xy(-plotWidth/2 + 5, plotHeight + plotHeight/3):halign(0)
+        self:xy(-plotWidth/2 + 5, plotHeight/2 + 20):halign(0)
         self:zoom(0.5)
         self:settext("")
     end,
     DoTheThingCommand = function(self)
         if song and enabled then
-            self:settextf("Upper Bound: %.4f\nLower Bound: %.4f", lowerGraphMax, lowerGraphMin)
+            self:settextf("Upper Bound: %.4f", lowerGraphMax)
         end
     end
 }
@@ -622,15 +636,18 @@ end
 -- add stam since it's not technically a pattern mod
 o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
 o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 1, "StamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 2, "StamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
-    --o[#o+1] = bottomGraphLine(i, skillsetColors[i])
-    o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
-    o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
+    if i > 2 then   -- cut out the base stuff atm cause noise
+        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
+        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
+    end
 end
-o[#o+1] = topGraphLine("PtLoss", skillsetColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
-o[#o+1] = topGraphLine("PtLoss", skillsetColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 1], 1)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 2], 2)
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {

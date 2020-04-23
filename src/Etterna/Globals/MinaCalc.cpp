@@ -382,15 +382,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	numitv = static_cast<int>(
 	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
 
-	if (debugmode) {
-		left_hand.debugValues.resize(DebugCount);
-		right_hand.debugValues.resize(DebugCount);
-		for (int i = 0; i < DebugCount; ++i) {
-			left_hand.debugValues[i].resize(numitv);
-			right_hand.debugValues[i].resize(numitv);
-		}
-	}
-
 	// these get changed/updated frequently so allocate them once at the start
 	left_hand.adj_diff.resize(numitv);
 	right_hand.adj_diff.resize(numitv);
@@ -426,15 +417,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
+		left_hand.debugValues.resize(3);
+		right_hand.debugValues.resize(3);
+		left_hand.debugValues[0].resize(NUM_CalcPatternMod);
+		right_hand.debugValues[0].resize(NUM_CalcPatternMod);
+		left_hand.debugValues[1].resize(NUM_CalcDiffValue);
+		right_hand.debugValues[1].resize(NUM_CalcDiffValue);
+		left_hand.debugValues[2].resize(NUM_CalcDebugMisc);
+		right_hand.debugValues[2].resize(NUM_CalcDebugMisc);
+
 		for (size_t i = 0; i < ModCount; ++i) {
-			left_hand.debugValues[i] = left_hand.doot[i];
-			right_hand.debugValues[i] = right_hand.doot[i];
+			left_hand.debugValues[0][i] = left_hand.doot[i];
+			right_hand.debugValues[0][i] = right_hand.doot[i];
 		}
 
 		// set everything but final adjusted output here
 		for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i) {
-			left_hand.debugValues[i] = left_hand.soap[i];
-			right_hand.debugValues[i] = right_hand.soap[i];
+			left_hand.debugValues[1][i] = left_hand.soap[i];
+			right_hand.debugValues[1][i] = right_hand.soap[i];
 		}
 	}
 
@@ -588,7 +588,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		mod = CalcClamp(mod, floor, ceil);
 		stam_adj_diff[i] = diff[i] * mod;
 		if (debug)
-			debugValues[StamMod][i] = mod;
+			debugValues[2][StamMod][i] = mod;
 	}
 }
 
@@ -653,10 +653,11 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
 	if (debug) {
-
+		debugValues[2][StamMod].resize(v.size());
+		debugValues[2][PtLoss].resize(v.size());
 		// final debug output should always be with stam activated
 		StamAdjust(x, adj_diff, true);
-		debugValues[MSD] = stam_adj_diff;
+		debugValues[1][MSD] = stam_adj_diff;
 	}
 
 	float output = 0.f;
@@ -667,7 +668,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 
 		output += gainedpoints;
 		if (debug)
-			debugValues[PtLoss][i] =
+			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 	}
 
@@ -1046,7 +1047,7 @@ void
 MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				vector<vector<vector<float>>>& handInfo)
+				vector<vector<vector<vector<float>>>>& handInfo)
 {
 	if (NoteInfo.size() <= 1)
 		return;
@@ -1056,8 +1057,8 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
 
 	// Locate and modify the uses of left/right debug in the code
-	handInfo.push_back(debugRun->left_hand.debugValues);
-	handInfo.push_back(debugRun->right_hand.debugValues);
+	handInfo.emplace_back(debugRun->left_hand.debugValues);
+	handInfo.emplace_back(debugRun->right_hand.debugValues);
 }
 
 int

@@ -211,7 +211,7 @@ class Steps
 	void CalcEtternaMetadata();
 	float DoATestThing(float ev, Skillset ss);
 	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
-	vector<vector<vector<float>>> calcdebugoutput; // probably should clear this periodically
+	vector<vector<vector<vector<float>>>> calcdebugoutput; // probably should clear this periodically
 
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;

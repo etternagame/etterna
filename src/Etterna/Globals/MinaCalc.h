@@ -92,7 +92,7 @@ class Hand
 	// on the above, and it needs to be recalculated every time the player_skill
 	// value changes, again based on the above
 	std::vector<float> stam_adj_diff;
-	std::vector<std::vector<float>> debugValues;
+	std::vector<std::vector<std::vector<float>>> debugValues;
 
   private:
 	const bool SmoothDifficulty =
@@ -220,6 +220,6 @@ MINACALC_API void
 MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				std::vector<std::vector<std::vector<float>>>& handInfo);
+				std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
 MINACALC_API int
 GetCalcVersion();

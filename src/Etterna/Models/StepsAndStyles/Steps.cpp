@@ -1002,22 +1002,7 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][i];
-				LuaHelpers::CreateTableFromArray(poop, L);
-				lua_rawseti(L, -2, j + 1);
-			}
-			lua_rawset(L, -3);
-		}
-		lua_rawset(L, -3);
-
-		lua_pushstring(L, RString("CalcDebugMisc"));
-		lua_createtable(L, 0, NUM_CalcDebugMisc);
-		for (int i = 0; i < NUM_CalcDebugMisc; ++i) {
-			lua_pushstring(
-			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
-			lua_createtable(L, 0, 2);
-			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][i];
+				vector<float> poop = p->calcdebugoutput[j][0][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1032,7 +1017,22 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][i];
+				vector<float> poop = p->calcdebugoutput[j][1][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		lua_rawset(L, -3);
+
+		lua_pushstring(L, RString("CalcDebugMisc"));
+		lua_createtable(L, 0, NUM_CalcDebugMisc);
+		for (int i = 0; i < NUM_CalcDebugMisc; ++i) {
+			lua_pushstring(
+			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][2][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
