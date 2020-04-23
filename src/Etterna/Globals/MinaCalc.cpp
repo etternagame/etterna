@@ -713,13 +713,18 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 				++rcol;
 		}
 		bool anyzero = lcol == 0 || rcol == 0;
+		float bort = static_cast<float>(min(lcol, rcol)) /
+						static_cast<float>(
+						  max(lcol, rcol));
+		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
+
+		// 
+		bort = CalcClamp(bort, 0.9f, 1.1f);
+
 		doot[Anchor][i] =
 		  anyzero
 			? 1.f
-			: CalcClamp(sqrt(1.1f - (static_cast<float>(min(lcol , rcol) + 0.25f) /
-								  static_cast<float>(max(lcol, rcol)) / 5.f)),
-						0.8f,
-						1.05f);
+			: bort;
 
 		fingerbias += (static_cast<float>(max(lcol, rcol)) + 2.f) /
 					  (static_cast<float>(min(lcol, rcol)) + 1.f);
