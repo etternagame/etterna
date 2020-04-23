@@ -169,7 +169,7 @@ local function updateCoolStuff()
     end
     if steps then
        --ssrs = getGraphForSteps(steps) // maybe add back the new wrapper
-
+        lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
 
         -- loop through types of debug output
@@ -178,7 +178,6 @@ local function updateCoolStuff()
                 graphVecs[v[i]] = {}
                 for h = 1, 2 do     -- left/right hand loop
                     graphVecs[v[i]][h] = bap[k][v[i]][h]
-
                     if k == "CalcDiffValue" then
                         for j = 1, #graphVecs[v[i]][h] do
                             local val = graphVecs[v[i]][h][j]
@@ -641,7 +640,7 @@ o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 2, "St
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
-    if i > 2 then   -- cut out the base stuff atm cause noise
+    if i == 2 or i == 4 then   -- these are the most interesting ones atm
         o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
         o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
     end
