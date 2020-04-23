@@ -25,6 +25,30 @@ local finalSecond
 local graphVecs = {}
 local ssrs
 
+local CalcPatternMod = 
+{
+	"OHJump", 
+	"Anchor", 
+	"Roll",   
+	"HS",		
+	"Jump",   
+	"CJ",		
+}
+
+local CalcDebugMisc = 
+{
+    "PtLoss", -- goes in bot graph
+	"StamMod",-- goes in top graph
+}
+
+local CalcDiffValue =
+{
+	"BaseNPS", 
+	"BaseMS",  
+	"BaseMSD", 
+	"MSD",
+}
+
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
 		return 0
@@ -148,11 +172,15 @@ local function updateCoolStuff()
         graphVecs[1] = {}
         graphVecs[2] = {}
         graphVecs[3] = {}
-        for i= 1, 12 do
-            graphVecs[1][i] = bap[i]
+        ms.ok(#bap["Jump"][1])
+        for i= 1, #CalcPatternMod do
+            graphVecs[1][i] = bap[CalcPatternMod[i]]
+            --ms.ok(showKeys(bap))
+            --ms.ok(#bap[CalcPatternMod[1]])
+            for ii = 1, #bap[CalcPatternMod[1]] do 
+            --ms.ok(bap[CalcPatternMod[1]][ii])
+            end
         end
-
-        -- need to properly enum this garbo
         graphVecs[1][13] = bap[23]  -- stammod (should be separate prolly?)
         graphVecs[1][14] = bap[24]
 

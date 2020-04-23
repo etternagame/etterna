@@ -1,8 +1,8 @@
+#pragma once
 #include "MinaCalc.h"
 #include <cmath>
 #include <iostream>
 #include <algorithm>
-#include <memory>
 #include <numeric>
 
 using std::max;
@@ -10,6 +10,9 @@ using std::min;
 using std::pow;
 using std::sqrt;
 using std::vector;
+
+static int DebugCount = NUM_CalcPatternMod + NUM_CalcDiffValue + NUM_CalcDebugMisc;
+
 template<typename T>
 T
 CalcClamp(T x, T l, T h)
@@ -188,7 +191,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// first - zoot the boot up the loot, we don't want to straddle below and
 	// above 1 here
-	float mcfroggerbopper = pow(1.f + (mcbloop[highest_base_skillset] - base), 2) - 1.f;
+	float mcfroggerbopper =
+	  pow(1.f + (mcbloop[highest_base_skillset] - base), 2) - 1.f;
 	// all pow with the pow now
 	float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
@@ -203,7 +207,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// leaderboards with charts that are just very high rated but have no
 	// stamina component
 	mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.f, 1.1f);
-	mcbloop[Stamina] = 0.65f * poodle_in_a_porta_potty + (mcfroggerbopper * 0.35f * poodle_in_a_porta_potty);
+	mcbloop[Stamina] = 0.65f * poodle_in_a_porta_potty +
+					   (mcfroggerbopper * 0.35f * poodle_in_a_porta_potty);
 
 	// yes i know how dumb this looks
 	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
@@ -380,7 +385,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	if (debugmode) {
 		left_hand.debugValues.resize(DebugCount);
 		right_hand.debugValues.resize(DebugCount);
-		for (size_t i = 0; i < DebugCount; ++i) {
+		for (int i = 0; i < DebugCount; ++i) {
 			left_hand.debugValues[i].resize(numitv);
 			right_hand.debugValues[i].resize(numitv);
 		}
@@ -425,15 +430,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 			left_hand.debugValues[i] = left_hand.doot[i];
 			right_hand.debugValues[i] = right_hand.doot[i];
 		}
-		// uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh yea
-		// somehow i never did this and debug was still getting the
-		// somewhat right values... somehow??
-		left_hand.debugValues[BaseNPS] = left_hand.v_itvNPSdiff;
-		left_hand.debugValues[BaseMS] = left_hand.pureMSdiff;
-		left_hand.debugValues[BaseMSD] = left_hand.v_itvMSdiff;
-		right_hand.debugValues[BaseNPS] = right_hand.v_itvNPSdiff;
-		right_hand.debugValues[BaseMS] = right_hand.pureMSdiff;
-		right_hand.debugValues[BaseMSD] = right_hand.v_itvMSdiff;
+
+		// set everything but final adjusted output here
+		for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i) {
+			left_hand.debugValues[i] = left_hand.soap[i];
+			right_hand.debugValues[i] = right_hand.soap[i];
+		}
 	}
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
@@ -500,9 +502,10 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == JackSpeed || ss == Chordjack)
-				gotpoints = MaxPoints -
-				  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-				  JackLoss(j2, player_skill) - JackLoss(j3, player_skill);
+				gotpoints = MaxPoints - JackLoss(j0, player_skill) -
+							JackLoss(j1, player_skill) -
+							JackLoss(j2, player_skill) -
+							JackLoss(j3, player_skill);
 			else
 				// run standard calculator stuffies
 				gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
@@ -541,21 +544,21 @@ Hand::CalcMSEstimate(vector<float>& input)
 void
 Hand::InitDiff(Finger& f1, Finger& f2)
 {
-	v_itvNPSdiff = vector<float>(f1.size());
-	v_itvMSdiff = vector<float>(f1.size());
-	pureMSdiff = vector<float>(f1.size());
+	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+		soap[i].resize(f1.size());
+
 	for (size_t i = 0; i < f1.size(); i++) {
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
 		float left_difficulty = CalcMSEstimate(f1[i]);
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = max(left_difficulty, right_difficulty);
-		v_itvNPSdiff[i] = finalscaler * nps;
-		pureMSdiff[i] = finalscaler * difficulty;
-		v_itvMSdiff[i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
+		soap[BaseNPS][i] = finalscaler * nps;
+		soap[BaseMS][i] = finalscaler * difficulty;
+		soap[BaseMSD][i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
 	}
-	Smooth(v_itvNPSdiff, 0.f);
+	Smooth(soap[BaseNPS], 0.f);
 	if (SmoothDifficulty)
-		DifficultyMSSmooth(v_itvMSdiff);
+		DifficultyMSSmooth(soap[BaseMSD]);
 }
 
 void
@@ -563,7 +566,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
 	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
 		v_itvpoints.emplace_back(static_cast<int>(f1[ki_is_rising].size()) +
-								   static_cast<int>(f2[ki_is_rising].size()));
+								 static_cast<int>(f2[ki_is_rising].size()));
 }
 
 void
@@ -597,7 +600,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 {
 	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
-	for (size_t i = 0; i < v_itvNPSdiff.size(); ++i) {
+	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
 		// only slightly less cancerous than before, this can/should be
 		// refactored once the areas of redundancy are more clearly defined
 		switch (ss) {
@@ -605,32 +608,31 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				break;
 			case Stream: // vanilla, apply everything based on nps diff
 				adj_diff[i] =
-				  v_itvNPSdiff[i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				  soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Jumpstream: // dont apply cj
-				adj_diff[i] = v_itvNPSdiff[i] * doot[HS][i] / doot[Jump][i];
+				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Handstream: // here cj counterbalances hs a bit, not good
 				adj_diff[i] =
-				  v_itvNPSdiff[i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
+				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Stamina: // should never be the case, handled up the stack
 				break;
 			case JackSpeed: // use ms hybrid base
-				adj_diff[i] = v_itvMSdiff[i] * doot[HS][i] * doot[Jump][i];
+				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Chordjack: // use ms hybrid base
-				adj_diff[i] =
-				  v_itvMSdiff[i] / doot[CJ][i];
+				adj_diff[i] = soap[BaseMSD][i] / doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Technical: // use ms hybrid base
 				adj_diff[i] =
-				  v_itvMSdiff[i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				  soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 		}
@@ -651,7 +653,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
 	if (debug) {
-		
+
 		// final debug output should always be with stam activated
 		StamAdjust(x, adj_diff, true);
 		debugValues[MSD] = stam_adj_diff;
@@ -665,7 +667,8 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 
 		output += gainedpoints;
 		if (debug)
-			debugValues[PtLoss][i] = (static_cast<float>(v_itvpoints[i]) - gainedpoints);
+			debugValues[PtLoss][i] =
+			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 	}
 
 	return output;

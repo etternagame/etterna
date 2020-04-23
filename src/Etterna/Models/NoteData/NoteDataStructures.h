@@ -27,23 +27,35 @@ struct DifficultyRating
 	float technical;
 };
 
-
-enum CalcDebugValue
+// we do actually want to register these with lua i guess
+enum CalcPatternMod
 {
-	OHJump,  // pattern mod (% values between 0-1)
-	Anchor,  // pattern mod (% values between 0-1)
-	Roll,	// pattern mod (% values between 0-1)
-	HS,		 // pattern mod (% values between 0-1)
-	Jump,	// pattern mod (% values between 0-1)
-	CJ,
+	OHJump, // pattern mod (values between 0-1)
+	Anchor, // pattern mod (values between 0.9 - ~ 1.1)
+	Roll,   // pattern mod (values between 0-1)
+	HS,		// pattern mod (values between 0-1)
+	Jump,   // pattern mod (values between 0-1)
+	CJ,		// pattern mod (values between 0-1)
+	NUM_CalcPatternMod,
+	CalcPatternMod_Invalid,
+};
+
+enum CalcDebugMisc
+{
+	PtLoss, // expected points loss (not really a diff thing but w.e)
+	StamMod,// stam adjust (values between 1- ~1.15)
+	NUM_CalcDebugMisc,
+	CalcDebugMisc_Invalid,
+};
+
+enum CalcDiffValue
+{
 	BaseNPS, // unadjusted base nps difficulty
 	BaseMS,  // unadjusted base ms difficulty
 	BaseMSD, // unadjusted weighted values
 	MSD,	 // pattern and stam adjusted difficulty values
-	PtLoss,  // expected points lost
-	StamMod, // stam adjustment value (% values between 1-ciel)
-	DebugCount,
-	None
+	NUM_CalcDiffValue,
+	CalcDiffValue_Invalid,
 };
 
 #endif

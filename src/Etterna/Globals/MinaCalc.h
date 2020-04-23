@@ -34,7 +34,10 @@ typedef std::vector<Finger> ProcessedFingers;
 typedef std::vector<float> JackSeq;
 
 // number of pattern mods yes i know this is dumb help
-const static int ModCount = 6;
+// we want to group stamina adjustment with the others for
+// display purposes but we don't want it when initializing pattern arrays
+// because it doesn't get generated until after we're done
+const static int ModCount = NUM_CalcPatternMod;
 
 /*	The difficulties of each hand tend to be independent from one another. This
 is not absolute, as in the case of polyrhythm trilling. However the goal of the
@@ -81,8 +84,7 @@ class Hand
 
 	std::vector<float> doot[ModCount];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
-	std::vector<float> v_itvNPSdiff,
-	  v_itvMSdiff, pureMSdiff; // Calculated difficulty for each interval
+	std::vector<float> soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
 
 	// pattern adjusted difficulty, allocate only once
 	std::vector<float> adj_diff;

@@ -225,6 +225,24 @@ StringToSkillset(const RString& s)
 	return Skill_Overall;
 }
 
+static const char* CalcPatternModNames[] = {
+	"OHJump", "Anchor", "Roll", "HS", "Jump", "CJ",
+};
+XToString(CalcPatternMod);
+LuaXType(CalcPatternMod);
+
+static const char* CalcDebugMiscNames[] = {
+	"PtLoss", "StamMod",
+};
+XToString(CalcDebugMisc);
+LuaXType(CalcDebugMisc);
+
+static const char* CalcDiffValueNames[] = {
+	"BaseNPS", "BaseMS", "BaseMSD", "MSD",
+};
+XToString(CalcDiffValue);
+LuaXType(CalcDiffValue);
+
 static const char* ValidationKeyNames[] = {
 	"Brittle",
 	"Weak",

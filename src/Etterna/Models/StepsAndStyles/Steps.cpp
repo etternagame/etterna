@@ -426,7 +426,7 @@ Steps::DoATestThing(float ev, Skillset ss)
 			   newcalc[0] - ev,
 			   (newcalc[0] - ev) / ev * 100.f,
 			   newcalc[0] - oldcalc[0],
-	  m_pSong->GetMainTitle().c_str());
+			   m_pSong->GetMainTitle().c_str());
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -434,7 +434,6 @@ Steps::DoATestThing(float ev, Skillset ss)
 	Compress();
 	return newcalc[0] - ev;
 }
-
 
 void
 Steps::GetCalcDebugOutput()
@@ -447,9 +446,10 @@ Steps::GetCalcDebugOutput()
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	MinaSDCalcDebug(cereal, GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
-						0.93f,
-						calcdebugoutput);
+	MinaSDCalcDebug(cereal,
+					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+					0.93f,
+					calcdebugoutput);
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -994,17 +994,44 @@ class LunaSteps : public Luna<Steps>
 		p->GetCalcDebugOutput();
 		int lazy = 1;
 		lua_newtable(L);
-		for (int i = 0; i < DebugCount; ++i) {
-			vector<float> poop = p->calcdebugoutput[0][i];
-			LuaHelpers::CreateTableFromArray(poop, L);
-			lua_rawseti(L, -2, lazy);
-			++lazy;
 
-			poop = p->calcdebugoutput[1][i];
-			LuaHelpers::CreateTableFromArray(poop, L);
-			lua_rawseti(L, -2, lazy);
+		
+		for (int i = 0; i < NUM_CalcPatternMod; ++i) {
+			lua_pushstring(
+			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		
+	
+		return 1;
+
+		for (int i = 0; i < NUM_CalcPatternMod; ++i) {
+			lua_pushstring(
+			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
+			for (int j = 0; j < 2; ++j) {
+				lua_createtable(L, 0, 2);
+				lua_pushnumber(L, i);
+				lua_rawseti(L, -4, 1);
+				lua_pushnumber(L, i * 1000);
+				lua_rawseti(L, -4, 2);
+				lua_rawset(L, -3);
+			}
+
+			// lua_rawseti(L, -2, lazy);
 			++lazy;
 		}
+
+		/* vector<float>& poop = p->calcdebugoutput[0][i];
+			lua_pushstring(
+			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
+			LuaHelpers::CreateTableFromArray(poop, L);
+			*/
 		return 1;
 	}
 	LunaSteps()
