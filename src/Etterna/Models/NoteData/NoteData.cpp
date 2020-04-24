@@ -20,7 +20,6 @@ NoteData::Init()
 {
 	UnsetNerv();
 	UnsetSerializedNoteData();
-	UnsetSerializedNoteData2();
 	m_TapNotes = vector<TrackMap>(); // ensure that the memory is freed
 }
 

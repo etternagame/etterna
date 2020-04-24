@@ -238,25 +238,14 @@ class NoteData
 
 	// Mina stuf
 	void LogNonEmptyRows();
-
-	// this is like 30% faster than the above but it produces different hashes
-	// and it's probably not worth it to fix the logic and validate hashes
-	//void LogNonEmptyRowsv2();
-
-	void UnsetNerv()
-	{
-		vector<int> tmp;
-		NonEmptyRowVector.swap(tmp);
+	void UnsetNerv() {
+		NonEmptyRowVector.clear();
+		NonEmptyRowVector.shrink_to_fit();
 	}
 	void UnsetSerializedNoteData()
 	{
-		vector<NoteInfo> tmp;
-		SerializedNoteData.swap(tmp);
-	}
-	void UnsetSerializedNoteData2()
-	{
-		vector<NoteInfo2> tmp;
-		SerializedNoteData2.swap(tmp);
+		SerializedNoteData.clear();
+		SerializedNoteData.shrink_to_fit();
 	}
 	const vector<int>& BuildAndGetNerv()
 	{

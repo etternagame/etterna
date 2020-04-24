@@ -670,13 +670,13 @@ class TimingData
 	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
 	void UnsetElapsedTimesAtAllRows()
 	{
-		std::vector<float> emptyVector;
-		ElapsedTimesAtAllRows.swap(emptyVector);
+		ElapsedTimesAtAllRows.clear();
+		ElapsedTimesAtAllRows.shrink_to_fit();
 	};
 	void UnsetEtaner()
 	{
-		std::vector<float> tmp;
-		ElapsedTimesAtNonEmptyRows.swap(tmp);
+		ElapsedTimesAtNonEmptyRows.clear();
+		ElapsedTimesAtNonEmptyRows.shrink_to_fit();
 	}
 	float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
