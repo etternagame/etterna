@@ -180,7 +180,6 @@ local function updateCoolStuff()
             for i = 1, #v do        -- loop through specifc mods
                 graphVecs[v[i]] = {}
                 for h = 1, 2 do     -- left/right hand loop
-                    ms.ok(v[i])
                     graphVecs[v[i]][h] = bap[k][v[i]][h]
                     if k == "CalcDiffValue" then
                         for j = 1, #graphVecs[v[i]][h] do
@@ -434,14 +433,14 @@ local modnames = {
     "jsr",
     "cjl",
     "cjr",
-    "sl",
-    "sr",
     "stl",
     "str",
     "ohtl",
     "ohtr",
     "cl",
-    "cr"
+    "cr",
+    "sl",
+    "sr",
 }
 
 local modColors = {

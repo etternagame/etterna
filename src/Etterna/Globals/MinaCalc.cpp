@@ -429,7 +429,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	SetHSMod(NoteInfo, left_hand.doot);
 	SetJumpMod(NoteInfo, left_hand.doot);
 	SetCJMod(NoteInfo, left_hand.doot);
-	SetStreamMod(NoteInfo, left_hand.doot);
+	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	right_hand.doot[HS] = left_hand.doot[HS];
 	right_hand.doot[Jump] = left_hand.doot[Jump];
 	right_hand.doot[CJ] = left_hand.doot[CJ];
@@ -814,23 +814,65 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 
 void
 Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
-				   vector<float> doot[ModCount])
+				   vector<float> doot[ModCount], float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
 
+	float lasttime = -1.f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
-
+		vector<float> whatwhat;
 		for (int row : nervIntervals[i]) {
+			bool l = NoteInfo[row].notes & 1;
+			bool d = NoteInfo[row].notes & 2;
+			bool u = NoteInfo[row].notes & 4;
+			bool r = NoteInfo[row].notes & 8;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 1)
 				singletaps += notes;
+
+			float curtime = NoteInfo[row].rowTime / music_rate;
+			// push to thing i dunno what im doing with yet
+			float WOT = curtime - lasttime;
+			if (l)
+				whatwhat.push_back(WOT);
+			if (d)
+				whatwhat.push_back(WOT);
+			if (u)
+				whatwhat.push_back(WOT);
+			if (r)
+				whatwhat.push_back(WOT);
+			lasttime = curtime;
 		}
+
+		// something something push up polyrhythms???
+		float butt = 0.f;
+		std::sort(whatwhat.begin(), whatwhat.end(), [](float a, float b) {
+			return a > b;
+		});
+		if (whatwhat.size() <= 1)
+			butt = 1.f;
+		else
+			for (auto in : whatwhat)
+				for (auto the : whatwhat)
+					if (in >= the)
+						if (in <= 3.f * the)
+						if (the * 10000.f > 0.5f)
+						butt +=
+						  sqrt(sqrt(static_cast<float>(static_cast<int>(in * 10000.f + 0.5f) %
+							  static_cast<int>(10000.f * the + 0.5f))));
+
+		if (!whatwhat.empty())
+			butt /=	static_cast<float>(whatwhat.size());
+		butt = sqrt(butt) / 7.5f;
+
+		butt = CalcClamp(butt + 0.8f, 0.95f, 1.1f);
 
 		if (taps == 0 || singletaps == 0) {
 			doot[StreamMod][i] = 1.f;
+			doot[Chaos][i] = butt;
 			continue;
 		}
 
@@ -839,9 +881,15 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 									 static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
+
+		doot[Chaos][i] = butt;
 	}
-	if (SmoothPatterns)
+	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
+		Smooth(doot[Chaos], 1.f);
+		Smooth(doot[Chaos], 1.f);
+	}
+		
 }
 
 // downscales full rolls or rolly js, it looks explicitly for consistent cross
@@ -885,9 +933,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
 
-		// BEWOOP
-		vector<float> whatwhat;
-
 		for (int row : nervIntervals[i]) {
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
@@ -908,10 +953,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					else
 						lastcol = 1;
 
-				// dunno what im doing with this yet
-				if (!lastcol == -1)
-					whatwhat.push_back(curtime - lasttime);
-
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
@@ -924,8 +965,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 				continue;
 			}
-			// push to thing i dunno what im doing with yet
-			whatwhat.push_back(curtime - lasttime);
 
 			int thiscol = lcol < rcol;
 			if (thiscol != lastcol) { // ignore consecutive notes
@@ -982,19 +1021,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			lastcol = thiscol;
 		}
 
-		// something something push up polyrhythms???
-		float butt = 0.f;
-		std::sort(whatwhat.begin(), whatwhat.end());
-		if (whatwhat.size() <= 1)
-			butt = 1.f;
-		else
-			for (auto in : whatwhat)
-				for (auto the : whatwhat)
-					butt += static_cast<float>(static_cast<int>(in * 1000.f) %
-							static_cast<int>(1000.f * the));
-
-		if (!whatwhat.empty())
-			butt /= static_cast<float>(whatwhat.size()) * 1000.f;
 
 		int cvtaps = ltaps + rtaps;
 
@@ -1016,7 +1042,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// no rolls here by definition
 			doot[Roll][i] = 1.f;
 			doot[OHTrill][i] = 1.f;
-			doot[Chaos][i] = butt;
+			
 			continue;
 		}
 
@@ -1067,7 +1093,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// probably)
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 		doot[OHTrill][i] = CalcClamp(0.5f + sqrt(cv), 0.8f, 1.f);
-		doot[Chaos][i] = butt;
 
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)

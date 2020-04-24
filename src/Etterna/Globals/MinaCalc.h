@@ -151,7 +151,7 @@ class Calc
 				 bool debugoutput = false);
 
 	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
-					 std::vector<float> doot[ModCount]);
+					 std::vector<float> doot[ModCount], float music_rate);
 
 	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
 									unsigned int t1,
