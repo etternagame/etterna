@@ -347,7 +347,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	
+	
 	 */
 
 	difficulty.overall = highest_difficulty(difficulty);
@@ -804,7 +804,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 
 		doot[CJ][i] =
 		  CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(chordtaps) /
-								   static_cast<float>(taps) / 3.f))),
+									 static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
 	}
@@ -821,7 +821,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
-		
+
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -834,7 +834,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			continue;
 		}
 
-		doot[StreamMod][i] = CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(singletaps) /
+		doot[StreamMod][i] =
+		  CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(singletaps) /
 									 static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
@@ -884,6 +885,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
 
+		// BEWOOP
+		vector<float> whatwhat;
+
 		for (int row : nervIntervals[i]) {
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
@@ -904,6 +908,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					else
 						lastcol = 1;
 
+				// dunno what im doing with this yet
+				if (!lastcol == -1)
+					whatwhat.push_back(curtime - lasttime);
+
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
@@ -913,8 +921,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 				// set the largest ohj sequence
 				maxseqjumptaps = max(maxseqjumptaps, jumptaps);
+
 				continue;
 			}
+			// push to thing i dunno what im doing with yet
+			whatwhat.push_back(curtime - lasttime);
 
 			int thiscol = lcol < rcol;
 			if (thiscol != lastcol) { // ignore consecutive notes
@@ -970,6 +981,21 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			lastcol = thiscol;
 		}
+
+		// something something push up polyrhythms???
+		float butt = 0.f;
+		std::sort(whatwhat.begin(), whatwhat.end());
+		if (whatwhat.size() <= 1)
+			butt = 1.f;
+		else
+			for (auto in : whatwhat)
+				for (auto the : whatwhat)
+					butt += static_cast<float>(static_cast<int>(in * 1000.f) %
+							static_cast<int>(1000.f * the));
+
+		if (!whatwhat.empty())
+			butt /= static_cast<float>(whatwhat.size()) * 1000.f;
+
 		int cvtaps = ltaps + rtaps;
 
 		// if this is true we have some combination of single notes and
@@ -990,7 +1016,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// no rolls here by definition
 			doot[Roll][i] = 1.f;
 			doot[OHTrill][i] = 1.f;
-			doot[Chaos][i] = 1.f;
+			doot[Chaos][i] = butt;
 			continue;
 		}
 
@@ -1027,7 +1053,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			}
 			yes_trills = cv - notrills; // store high oh trill detection in case
 										// we want to do stuff with it later
-			cv += notrills * 1.f; // just straight up add to cv
+			cv += notrills * 1.f;		// just straight up add to cv
 		}
 
 		// then scaled against how many taps we ignored
@@ -1041,7 +1067,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// probably)
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
 		doot[OHTrill][i] = CalcClamp(0.5f + sqrt(cv), 0.8f, 1.f);
-		doot[Chaos][i] = 1.f;
+		doot[Chaos][i] = butt;
 
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)

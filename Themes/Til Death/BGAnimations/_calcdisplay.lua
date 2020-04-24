@@ -435,7 +435,13 @@ local modnames = {
     "cjl",
     "cjr",
     "sl",
-    "sr"
+    "sr",
+    "stl",
+    "str",
+    "ohtl",
+    "ohtr",
+    "cl",
+    "cr"
 }
 
 local modColors = {
@@ -452,16 +458,22 @@ local modColors = {
     color("1.4,1.3,1"),       
     color("1.4,1.3,0.9"),
     color(".4,1.3,1"),       
-    color(".4,1.3,0.9")          
+    color(".4,1.3,0.9"),
+    color(".7,1.3,1"),       
+    color(".7,1.3,0.9"),
+    color(".4,0.9,0.3"),       
+    color(".4,0.9,0.3"),
+    color(".4,0.5,0.59"),       
+    color(".4,0.3,0.49")
 }
 
 -- top graph average text
 makeskillsetlabeltext = function(i, mod, hand) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
-            local xspace = 30   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 22   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
-            self:zoom(0.35)
+            self:zoom(0.3)
             self:settext("")
             self:maxwidth((plotWidth-10) / 0.5)
             if hand % 2 == 0 then
