@@ -11,8 +11,6 @@ using std::pow;
 using std::sqrt;
 using std::vector;
 
-static int DebugCount = NUM_CalcPatternMod + NUM_CalcDiffValue + NUM_CalcDebugMisc;
-
 template<typename T>
 T
 CalcClamp(T x, T l, T h)
@@ -148,8 +146,8 @@ const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-const float basescalers[NUM_SkillsetTWO] = { 0.f,	1.f, 0.9f, 0.925f,
-											 0.925f, 1.f, 0.9f, 0.95f };
+const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.925f,
+											 0.95f, 1.f, 0.9f, 0.95f };
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
@@ -349,7 +347,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
 
-	
+	
 	 */
 
 	difficulty.overall = highest_difficulty(difficulty);
@@ -431,16 +429,18 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	SetHSMod(NoteInfo, left_hand.doot);
 	SetJumpMod(NoteInfo, left_hand.doot);
 	SetCJMod(NoteInfo, left_hand.doot);
+	SetStreamMod(NoteInfo, left_hand.doot);
 	right_hand.doot[HS] = left_hand.doot[HS];
 	right_hand.doot[Jump] = left_hand.doot[Jump];
 	right_hand.doot[CJ] = left_hand.doot[CJ];
+	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
 		left_hand.debugValues.resize(3);
 		right_hand.debugValues.resize(3);
-		left_hand.debugValues[0].resize(NUM_CalcPatternMod);
-		right_hand.debugValues[0].resize(NUM_CalcPatternMod);
+		left_hand.debugValues[0].resize(ModCount);
+		right_hand.debugValues[0].resize(ModCount);
 		left_hand.debugValues[1].resize(NUM_CalcDiffValue);
 		right_hand.debugValues[1].resize(NUM_CalcDiffValue);
 		left_hand.debugValues[2].resize(NUM_CalcDebugMisc);
@@ -521,7 +521,7 @@ Calc::Chisel(float player_skill,
 				return 0.f; // not how we set these values
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == JackSpeed || ss == Chordjack)
+			if (ss == JackSpeed || ss == Chordjack || Technical)
 				gotpoints = MaxPoints - JackLoss(j0, player_skill) -
 							JackLoss(j1, player_skill) -
 							JackLoss(j2, player_skill) -
@@ -632,12 +632,13 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Jumpstream: // dont apply cj
-				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i];
+				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i] *
+							  doot[StreamMod][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Handstream: // here cj counterbalances hs a bit, not good
-				adj_diff[i] =
-				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
+				adj_diff[i] = soap[BaseNPS][i] / max(doot[HS][i], 0.925f) *
+							  doot[Jump][i] * doot[StreamMod][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Stamina: // should never be the case, handled up the stack
@@ -647,7 +648,8 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Chordjack: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] / doot[CJ][i];
+				adj_diff[i] =
+				  soap[BaseMSD][i] / doot[CJ][i] * doot[StreamMod][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Technical: // use ms hybrid base
@@ -714,23 +716,16 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 		}
 		bool anyzero = lcol == 0 || rcol == 0;
 		float bort = static_cast<float>(min(lcol, rcol)) /
-						static_cast<float>(
-						  max(lcol, rcol));
+					 static_cast<float>(max(lcol, rcol));
 		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
 
-		// 
+		//
 		bort = CalcClamp(bort, 0.9f, 1.1f);
 
-		doot[Anchor][i] =
-		  anyzero
-			? 1.f
-			: bort;
+		doot[Anchor][i] = anyzero ? 1.f : bort;
 
 		fingerbias += (static_cast<float>(max(lcol, rcol)) + 2.f) /
 					  (static_cast<float>(min(lcol, rcol)) + 1.f);
-
-		if (logpatterns)
-			std::cout << "an " << doot[Anchor][i] << std::endl;
 	}
 
 	if (SmoothPatterns)
@@ -756,9 +751,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			? 1 - pow((static_cast<float>(handtaps) / static_cast<float>(taps)),
 					  1.5f)
 			: 1.f;
-
-		if (logpatterns)
-			std::cout << "hs " << doot[HS][i] << std::endl;
 	}
 
 	if (SmoothPatterns)
@@ -783,9 +775,6 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
 										   static_cast<float>(taps) / 3.f)))
 						  : 1.f;
-
-		if (logpatterns)
-			std::cout << "ju " << doot[Jump][i] << std::endl;
 	}
 	if (SmoothPatterns)
 		Smooth(doot[Jump], 1.f);
@@ -793,7 +782,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 // dunno what we're really doin here exactly
 void
-Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 {
 	doot[CJ].resize(nervIntervals.size());
 
@@ -814,16 +803,44 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		}
 
 		doot[CJ][i] =
-		  CalcClamp(sqrt(sqrt(1 - (static_cast<float>(chordtaps) /
+		  CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(chordtaps) /
 								   static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
-
-		if (logpatterns)
-			std::cout << "ju " << doot[CJ][i] << std::endl;
 	}
 	if (SmoothPatterns)
 		Smooth(doot[CJ], 1.f);
+}
+
+void
+Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
+				   vector<float> doot[ModCount])
+{
+	doot[StreamMod].resize(nervIntervals.size());
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		unsigned int taps = 0;
+		unsigned int singletaps = 0;
+		
+		for (int row : nervIntervals[i]) {
+			unsigned int notes = column_count(NoteInfo[row].notes);
+			taps += notes;
+			if (notes == 1)
+				singletaps += notes;
+		}
+
+		if (taps == 0 || singletaps == 0) {
+			doot[StreamMod][i] = 1.f;
+			continue;
+		}
+
+		doot[StreamMod][i] = CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(singletaps) /
+									 static_cast<float>(taps) / 3.f))),
+					0.5f,
+					1.f);
+	}
+	if (SmoothPatterns)
+		Smooth(doot[StreamMod], 1.f);
 }
 
 // downscales full rolls or rolly js, it looks explicitly for consistent cross
@@ -841,6 +858,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 {
 	doot[Roll].resize(nervIntervals.size());
 	doot[OHJump].resize(nervIntervals.size());
+	doot[OHTrill].resize(nervIntervals.size());
+	doot[Chaos].resize(nervIntervals.size());
 
 	// not sure if these should persist between intervals or not
 	// not doing so makes the pattern detection slightly more strict
@@ -970,6 +989,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			// no rolls here by definition
 			doot[Roll][i] = 1.f;
+			doot[OHTrill][i] = 1.f;
+			doot[Chaos][i] = 1.f;
 			continue;
 		}
 
@@ -996,6 +1017,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// above the other trills will be 1:1 equal, this is a simple linear
 		// downscale for test purposes and i dont if it has unintended
 		// consequences, but it does work for saw-saw
+		float yes_trills = 0.f;
 		if (1) {
 			float notrills = 1.f;
 			if (mlr > 0.f && mrl > 0.f) {
@@ -1003,18 +1025,23 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				div = CalcClamp(div, 1.f, 3.f);
 				notrills = CalcClamp(2.f - div, 0.f, 1.f);
 			}
+			yes_trills = cv - notrills; // store high oh trill detection in case
+										// we want to do stuff with it later
 			cv += notrills * 1.f; // just straight up add to cv
 		}
 
 		// then scaled against how many taps we ignored
 		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		cv *= barf;
+		yes_trills *= barf;
 
 		// we just want a minimum amount of variation to escape getting
 		// downscaled cap to 1 (it's not an inherently bad idea to upscale sets
 		// of patterns with high variation but we shouldn't do that here,
 		// probably)
 		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
+		doot[OHTrill][i] = CalcClamp(0.5f + sqrt(cv), 0.8f, 1.f);
+		doot[Chaos][i] = 1.f;
 
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
@@ -1081,7 +1108,6 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	debugRun->debugmode = true;
 	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
 
-	// Locate and modify the uses of left/right debug in the code
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
 }

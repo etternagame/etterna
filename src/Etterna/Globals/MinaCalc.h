@@ -150,6 +150,9 @@ class Calc
 				 bool stamina,
 				 bool debugoutput = false);
 
+	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
+					 std::vector<float> doot[ModCount]);
+
 	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
 									unsigned int t1,
 									unsigned int t2,

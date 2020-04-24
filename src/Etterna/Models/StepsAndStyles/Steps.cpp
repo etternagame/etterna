@@ -992,8 +992,6 @@ class LunaSteps : public Luna<Steps>
 	static int GetCalcDebugOutput(T* p, lua_State* L)
 	{
 		p->GetCalcDebugOutput();
-		int lazy = 1;
-
 		lua_newtable(L);
 		lua_pushstring(L, RString("CalcPatternMod"));
 		lua_createtable(L, 0, NUM_CalcPatternMod);

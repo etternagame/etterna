@@ -145,7 +145,10 @@ local CalcDebugTypes = {
 	    "Roll",   
 	    "HS",		
 	    "Jump",   
-	    "CJ",
+        "CJ",
+        "StreamMod",
+        "OHTrill",
+        "Chaos",
     },
     CalcDiffValue =
     {
@@ -177,6 +180,7 @@ local function updateCoolStuff()
             for i = 1, #v do        -- loop through specifc mods
                 graphVecs[v[i]] = {}
                 for h = 1, 2 do     -- left/right hand loop
+                    ms.ok(v[i])
                     graphVecs[v[i]][h] = bap[k][v[i]][h]
                     if k == "CalcDiffValue" then
                         for j = 1, #graphVecs[v[i]][h] do

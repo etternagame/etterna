@@ -36,6 +36,9 @@ enum CalcPatternMod
 	HS,		// pattern mod (values between 0-1)
 	Jump,   // pattern mod (values between 0-1)
 	CJ,		// pattern mod (values between 0-1)
+	StreamMod,
+	OHTrill,
+	Chaos,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
