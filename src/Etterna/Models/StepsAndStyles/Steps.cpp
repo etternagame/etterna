@@ -447,7 +447,7 @@ Steps::GetCalcDebugOutput()
 	//	return;
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
-	// Decompress();
+	Decompress();
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData());
 
