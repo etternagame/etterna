@@ -134,11 +134,11 @@ float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 					1.025f; // multiplier to standardize baselines
 
 // Stamina Model params
-const float stam_ceil = 1.1f;	 // stamina multiplier max
-const float stam_mag = 465.f;	 // multiplier generation scaler
+const float stam_ceil = 1.0933f;	 // stamina multiplier max
+const float stam_mag = 505.f;	 // multiplier generation scaler
 const float stam_fscale = 2222.f; // how fast the floor rises (it's lava)
 const float stam_prop =
-  0.7f; // proportion of player difficulty at which stamina tax begins
+  0.725f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
 // the base difficulty for each skillset and then detect pattern types
@@ -146,8 +146,8 @@ const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-const float basescalers[NUM_SkillsetTWO] = { 0.f,   1.f, 0.9f, 0.925f,
-											 0.95f, 1.f, 0.9f, 0.95f };
+const float basescalers[NUM_SkillsetTWO] = { 0.f,   0.975f, 0.9f, 0.925f,
+											 0.95f, 0.8f, 0.8f, 0.95f };
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
@@ -360,7 +360,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++) {
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.86f), 1.5f));
+			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
 	}
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
@@ -522,15 +522,16 @@ Calc::Chisel(float player_skill,
 				return 0.f; // not how we set these values
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == JackSpeed || ss == Chordjack )
-				gotpoints = MaxPoints - JackLoss(j0, player_skill) -
+			if (ss == JackSpeed || ss == Chordjack || ss == Technical)
+				gotpoints -=(JackLoss(j0, player_skill) -
 							JackLoss(j1, player_skill) -
 							JackLoss(j2, player_skill) -
-							JackLoss(j3, player_skill);
-			else
-				// run standard calculator stuffies
-				gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
-							right_hand.CalcInternal(player_skill, ss, stamina);
+							JackLoss(j3, player_skill)) / static_cast<float>(1.f + static_cast<float>(ss == Technical));
+			if (ss == JackSpeed || ss == Chordjack)
+				gotpoints += MaxPoints * 0.1f;
+			// run standard calculator stuffies
+			gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
+						right_hand.CalcInternal(player_skill, ss, stamina);
 		} while (gotpoints / MaxPoints < score_goal);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -629,7 +630,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				break;
 			case Stream: // vanilla, apply everything based on nps diff
 				adj_diff[i] =
-				  soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				  soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i] * doot[Chaos][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Jumpstream: // dont apply cj
@@ -653,8 +654,8 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Technical: // use ms hybrid base
-				adj_diff[i] =
-				  soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i];
+				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i] *
+							  doot[CJ][i] * doot[Chaos][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 		}
@@ -1166,5 +1167,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 271;
+	return 272;
 }

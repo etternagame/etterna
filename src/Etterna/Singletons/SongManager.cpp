@@ -66,6 +66,8 @@ static unordered_map<std::string, float> stream_test = {
 	{ "X3b87b6ac44151291b29e3fe2e8b047f6af28000e", 29.f },  // veda minty 1
 	{ "X8a7310367a2479daa48888b15b8be724452c4616", 29.5f }, // voodoo mon amour
 	{ "X24085a6e074ca3bd89c91b748d9b42061863e9c1", 25.f },  // electricity tim1
+	{ "Sc702a9b178552a1ee4deb1f9def89ffd58e4437a", 24.5f }, // bon-bon skwid6
+	
 };
 
 static unordered_map<std::string, float> stam_test = {
