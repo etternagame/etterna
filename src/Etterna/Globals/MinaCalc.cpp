@@ -598,18 +598,31 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 
-	for (size_t i = 0; i < diff.size(); i++) {
-		avs1 = avs2;
-		avs2 = diff[i];
-		float ebb = (avs1 + avs2) / 2.f;
-		mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
-		if (mod > 1.f)
-			floor += (mod - 1.f) / stam_fscale;
-		mod = CalcClamp(mod, floor, stam_ceil);
-		stam_adj_diff[i] = diff[i] * mod;
-		if (debug)
+	// i don't like the copypasta either but the boolchecks where they were
+	// were too slow
+	if (debug)
+		for (size_t i = 0; i < diff.size(); i++) {
+			avs1 = avs2;
+			avs2 = diff[i];
+			float ebb = (avs1 + avs2) / 2.f;
+			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			if (mod > 1.f)
+				floor += (mod - 1.f) / stam_fscale;
+			mod = CalcClamp(mod, floor, stam_ceil);
+			stam_adj_diff[i] = diff[i] * mod;
 			debugValues[2][StamMod][i] = mod;
-	}
+		}
+	else
+		for (size_t i = 0; i < diff.size(); i++) {
+			avs1 = avs2;
+			avs2 = diff[i];
+			float ebb = (avs1 + avs2) / 2.f;
+			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			if (mod > 1.f)
+				floor += (mod - 1.f) / stam_fscale;
+			mod = CalcClamp(mod, floor, stam_ceil);
+			stam_adj_diff[i] = diff[i] * mod;
+		}
 }
 
 // debug bool here is NOT the one in Calc, it is passed from chisel using the
@@ -673,27 +686,33 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	// final difficulty values to use
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
+	float output = 0.f;
+
+	// i don't like the copypasta either but the boolchecks where they were
+	// were too slow
 	if (debug) {
 		debugValues[2][StamMod].resize(v.size());
 		debugValues[2][PtLoss].resize(v.size());
 		// final debug output should always be with stam activated
 		StamAdjust(x, adj_diff, true);
 		debugValues[1][MSD] = stam_adj_diff;
-	}
 
-	float output = 0.f;
-	for (size_t i = 0; i < v.size(); ++i) {
-		float gainedpoints =
-		  x > v[i] ? static_cast<float>(v_itvpoints[i])
-				   : static_cast<float>(v_itvpoints[i]) * pow(x / v[i], 1.8f);
-
-		output += gainedpoints;
-		if (debug)
+		for (size_t i = 0; i < v.size(); ++i) {
+			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
+										  : static_cast<float>(v_itvpoints[i]) *
+											  pow(x / v[i], 1.8f);
+			output += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
-	}
-
-	return output;
+		}
+	} else
+		for (size_t i = 0; i < v.size(); ++i) {
+			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
+										  : static_cast<float>(v_itvpoints[i]) *
+											  pow(x / v[i], 1.8f);
+			output += gainedpoints;
+		}
+	  return output;
 }
 
 void
