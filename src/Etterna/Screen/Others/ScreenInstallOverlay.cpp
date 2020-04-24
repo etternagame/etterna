@@ -88,7 +88,7 @@ void
 DoInstalls(CommandLineActions::CommandLineArgs args)
 {
 	bool reload = false;
-	for (int i = 0; i < (int)args.argv.size(); i++) {
+	for (size_t i = 0; i < args.argv.size(); i++) {
 		RString s = args.argv[i];
 		if (s == "notedataCache") {
 			// TODO: Create the directories if they dont exist

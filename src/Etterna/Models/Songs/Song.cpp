@@ -1703,16 +1703,7 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
 	FOREACH(Steps*, vsteps, steps)
 	{
 		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
-		Skillset why = Skillset_Invalid;
-		int iA = 1;
-		FOREACHM(float, Skillset, sortedstuffs, poodle)
-		{
-			if (iA == NUM_Skillset)
-				why = poodle->second;
-			++iA;
-		}
-
-		if (why == ss)
+		if (sortedstuffs[0].first == ss)
 			return true;
 	}
 
@@ -1896,6 +1887,13 @@ Song::IsStepsUsingDifferentTiming(Steps* pSteps) const
 	// XXX This no longer depends on Song at all
 	return !pSteps->m_Timing.empty();
 }
+
+void
+Song::UnloadAllCalcDebugOutput()
+{
+	for (auto s : m_vpSteps)
+		s->UnloadCalcDebugOutput();
+	}
 
 bool
 Song::AnyChartUsesSplitTiming() const

@@ -164,6 +164,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
 	// all this garbage should be handled by pattern mods, before chisel is run
+  // ok maybe that isn't a hard and fast rule, but we should avoid it here
 	/*
 	float jprop = chord_proportion(NoteInfo, 2);
 	float nojumpsdownscaler =
@@ -346,8 +347,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		difficulty.technical -= CalcClamp(
 		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
 	}
-
-	
 	 */
 
 	difficulty.overall = highest_difficulty(difficulty);
@@ -358,10 +357,9 @@ float
 Calc::JackLoss(const vector<float>& j, float x)
 {
 	float o = 0.f;
-	for (size_t i = 0; i < j.size(); i++) {
+	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
 			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
-	}
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }

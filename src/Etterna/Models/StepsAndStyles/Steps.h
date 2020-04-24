@@ -206,13 +206,14 @@ class Steps
 	void SetChartKey(const RString& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
 	MinaSD GetAllMSD() const { return diffByRate; }
-	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
+	vector<pair<Skillset, float>> SortSkillsetsAtRate(float x,
+													   bool includeoverall);
 
 	void CalcEtternaMetadata();
 	float DoATestThing(float ev, Skillset ss);
 	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
 	vector<vector<vector<vector<float>>>> calcdebugoutput; // probably should clear this periodically
-
+	void UnloadCalcDebugOutput();
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;
 	void MakeBustedKeys();

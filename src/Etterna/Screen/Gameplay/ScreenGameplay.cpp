@@ -91,7 +91,7 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		LOG->Trace("Unloading replaydata.");
+		LOG->Trace("Unloading excess data.");
 		SCOREMAN->UnloadAllReplayData();
 	}
 
