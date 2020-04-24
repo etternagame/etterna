@@ -434,6 +434,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.doot[Jump] = left_hand.doot[Jump];
 	right_hand.doot[CJ] = left_hand.doot[CJ];
 	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
+	right_hand.doot[Chaos] = left_hand.doot[Chaos];
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
@@ -521,7 +522,7 @@ Calc::Chisel(float player_skill,
 				return 0.f; // not how we set these values
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == JackSpeed || ss == Chordjack || Technical)
+			if (ss == JackSpeed || ss == Chordjack )
 				gotpoints = MaxPoints - JackLoss(j0, player_skill) -
 							JackLoss(j1, player_skill) -
 							JackLoss(j2, player_skill) -
@@ -632,13 +633,12 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Jumpstream: // dont apply cj
-				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i] *
-							  doot[StreamMod][i];
+				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Handstream: // here cj counterbalances hs a bit, not good
 				adj_diff[i] = soap[BaseNPS][i] / max(doot[HS][i], 0.925f) *
-							  doot[Jump][i] * doot[StreamMod][i];
+							  doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Stamina: // should never be the case, handled up the stack
@@ -649,7 +649,7 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 				break;
 			case Chordjack: // use ms hybrid base
 				adj_diff[i] =
-				  soap[BaseMSD][i] / doot[CJ][i] * doot[StreamMod][i];
+				  soap[BaseMSD][i] / doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Technical: // use ms hybrid base
