@@ -264,7 +264,7 @@ o[#o + 1] = Def.Quad {
         local bg = self:GetParent():GetChild("GraphTextBG")
         if isOver(self) then
             local mx = INPUTFILTER:GetMouseX()
-            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY() + 80
             
             local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
             local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
