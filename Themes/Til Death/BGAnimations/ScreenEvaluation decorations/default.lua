@@ -6,6 +6,12 @@ local customWindows = timingWindowConfig:get_data().customWindows
 
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
+-- wife3 test stuff
+local wife_poi_test_val_a = 55
+local wife_poi_test_val_b = 57
+local wife_dev_test_val_a = 20
+local wife_dev_test_val_b = 23
+
 if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
 	t[#t + 1] = LoadActor("scoreboard")
 end
@@ -305,10 +311,27 @@ function scoreBoard(pn, position)
 			SetCommand = function(self)
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 				local ws = "Wife"
+				local totalHolds =
+					pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+				local holdsHit =
+					score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+				local minesHit =
+					pss:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+				local wife2perc = 1
+				local wife3perc = 1
+				local wife3perc2 = 1
 				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
 					ws = "Wife J4"
+					wife2perc = notShit.floor(getRescoredWifeJudge(dvt, 4, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					wife3perc = notShit.floor(getRescoredWife3Judge(dvt, 4, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_a, wife_dev_test_val_a) * 100) / 100
+					wife3perc2 = notShit.floor(getRescoredWife3Judge(dvt, 4, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_b, wife_dev_test_val_b) * 100) / 100
+				else
+					-- normalize to the currently selected judge, not the replay judge
+					wife2perc = notShit.floor(getRescoredWifeJudge(dvt, GetTimingDifficulty(), totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					wife3perc = notShit.floor(getRescoredWife3Judge(dvt, GetTimingDifficulty(), totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_a, wife_dev_test_val_a) * 100) / 100
+					wife3perc2 = notShit.floor(getRescoredWife3Judge(dvt, GetTimingDifficulty(), totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_b, wife_dev_test_val_b) * 100) / 100 
 				end
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:GetWifeScore() * 10000) / 100, ws)
+					self:settextf("%05.2f%% : %05.2f%% : %05.2f%% (%s)", notShit.floor(wife2perc * 100) / 100, wife3perc, wife3perc2, ws..GetTimingDifficulty())
 			end,
 			ScoreChangedMessageCommand = function(self)
 				self:queuecommand("Set")
@@ -344,26 +367,34 @@ function scoreBoard(pn, position)
 					end
 				elseif params.Name == "PrevJudge" and judge > 1 then
 					judge = judge - 1
-					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local wife2perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local wife3perc = notShit.floor(getRescoredWife3Judge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_a, wife_dev_test_val_a) * 100) / 100
+					local wife3perc2 = notShit.floor(getRescoredWife3Judge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_b, wife_dev_test_val_b) * 100) / 100
 					self:settextf(
-						"%05.2f%% (%s)",
-						perc,
-						"Wife J" .. judge
+						self:settextf(
+							"%05.2f%% : %05.2f%% : %05.2f%% (%s)",
+							wife2perc, wife3perc, wife3perc2,
+							"Wife J" .. judge
+						)
 					)
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 				elseif params.Name == "NextJudge" and judge < 9 then
 					judge = judge + 1
-					local perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local wife2perc = notShit.floor(getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps) * 100) / 100
+					local wife3perc = notShit.floor(getRescoredWife3Judge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_a, wife_dev_test_val_a) * 100) / 100
+					local wife3perc2 = notShit.floor(getRescoredWife3Judge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps, 2, -5.5, 11, 180, wife_poi_test_val_b, wife_dev_test_val_b) * 100) / 100
 					if judge == 9 then
 						self:settextf(
-							"%05.2f%% (%s)",
-							perc,
-							"Wife Justice"
+							self:settextf(
+								"%05.2f%% : %05.2f%% : %05.2f%% (%s)",
+								wife2perc, wife3perc, wife3perc2,
+								"justice"
+							)
 						)
 					else
 						self:settextf(
-							"%05.2f%% (%s)",
-							perc,
+							"%05.2f%% : %05.2f%% : %05.2f%% (%s)",
+							wife2perc, wife3perc, wife3perc2,
 							"Wife J" .. judge
 						)
 					end

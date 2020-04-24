@@ -301,7 +301,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = true;
 	if (PREFSMAN->m_bFastLoad)
 		SONGINDEX->LoadCache(ld, cache);
-	if (ld) {
+	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(cache.size());
 		ld->SetText("Loading songs from cache");
@@ -350,7 +350,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			}
 		};
 	auto onUpdate = [ld](int progress) {
-		if (ld)
+		if (ld != nullptr)
 			ld->SetProgress(progress);
 	};
 	parallelExecution<pair<pair<RString, unsigned int>, Song*>*>(

@@ -133,6 +133,11 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				self:playcommand("Hide")
 			end
 		end,
+		BeginCommand = function(self)
+			if hsTable[index] == nil then 
+				self:playcommand("Hide")
+			end
+		end,
 		--The main quad
 		Def.Quad {
 			InitCommand = function(self)
@@ -170,6 +175,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(8, 30):halign(0):valign(0)
 			end,
 			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
 				self:visible(GAMESTATE:IsHumanPlayer(pn)):diffuse(
 					getClearTypeFromScore(pn, hsTable[index], 2))
 			end
@@ -181,6 +187,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 then
 						self:settext(index)
 						if equals then
@@ -199,6 +206,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					local wstring = "Wife"
 					if usingSSRSort then
 						wstring = "Wife J4"
@@ -218,6 +226,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
 					self:visible(false)
 				end
@@ -231,6 +240,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 and index >= 1 then
 						self:settext(getGradeStrings(hsTable[index]:GetWifeGrade()))
 						self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
@@ -246,6 +256,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 and index >= 1 then
 						self:settext(getClearTypeFromScore(pn, hsTable[index], 0))
 						self:diffuse(getClearTypeFromScore(pn, hsTable[index], 2))
@@ -261,6 +272,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 and index >= 1 then
 						self:settextf("%sx", hsTable[index]:GetMaxCombo())
 					end
@@ -274,6 +286,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 and index >= 1 then
 						self:settextf(
 							"%d / %d / %d / %d / %d / %d",
@@ -295,6 +308,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0)
 				end,
 				BeginCommand = function(self)
+					if hsTable[index] == nil then return end
 					if #hsTable >= 1 and index >= 1 then
 						self:settext(hsTable[index]:GetDate())
 					end
@@ -308,13 +322,14 @@ end
 --can't have more lines than the # of scores huehuehu
 if lines > #hsTable then
 	lines = #hsTable
+	curPage = 1
+else
+	curPage = math.ceil(scoreIndex / (lines-1))
 end
 
 -- weird math explanation can be found above somewhere
 local drawindex = 0
-curPage = math.ceil(scoreIndex / (lines-1))
 local startind = (curPage-1) * lines + 1 + (curPage > 1 and (-1 - (curPage > 2 and curPage-2 or 0)) or 0)
-
 while drawindex < lines do
 	t[#t+1] = scoreitem(player,startind,scoreIndex,drawindex)
 	startind = startind+1
