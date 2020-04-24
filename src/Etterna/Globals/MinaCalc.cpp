@@ -188,7 +188,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	vector<float> mcbloop(NUM_SkillsetTWO);
 	// overall and stam will be left as 0.f by this loop
 	for (int i = 0; i < NUM_SkillsetTWO; ++i)
-		mcbloop[i] = Chisel(0.1f, 5.12f, score_goal, i, false);
+		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
 	// stam is based on which calc produced the highest output without it
 	size_t highest_base_skillset = std::distance(
@@ -198,7 +198,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// rerun all with stam on, optimize by starting at the non-stam adjusted
 	// base value for each skillset
 	for (int i = 0; i < NUM_SkillsetTWO; ++i)
-		mcbloop[i] = Chisel(mcbloop[i] - 1.28f, 0.64f, score_goal, i, true);
+		mcbloop[i] = Chisel(mcbloop[i] - 0.64f, 1.28f, score_goal, i, true);
 
 	// stam jams, stamina should push up the base ratings for files so files
 	// that are more difficult by virtue of being twice as long for more or less
@@ -483,7 +483,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 
 		if (NoteInfo[i].notes & column) {
 			AllIntervals[Interval].emplace_back(
-			  CalcClamp(1000 * (scaledtime - last), 40.f, 5000.f));
+			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f));
 			last = scaledtime;
 		}
 
