@@ -214,10 +214,6 @@ NoteData::SerializeNoteData2(TimingData* ts,
 							 bool unset_nerv_when_done,
 							 bool unset_etaner_when_done)
 {
-	// these should be deterministic, we should use existing stuff if
-	// it's there
-	//if (!SerializedNoteData.empty())
-		//return SerializedNoteData;
 	SerializedNoteData.clear();
 	SerializedNoteData.reserve(NonEmptyRowVector.size());
 	int tracks = GetNumTracks();
@@ -228,10 +224,22 @@ NoteData::SerializeNoteData2(TimingData* ts,
 		const auto& tm = m_TapNotes[t];
 		for (const auto& r : tm)
 			if (r.second.IsNote()) {
-			auto& res = lal.emplace(r.first, 1 << t);
-			if (!res.second) // already added, update noteinfo
-				lal.at(r.first) |= 1 << t;
-		}
+				// initialize in map
+				auto& res = lal.emplace(r.first, 1 << t);
+				if (!res.second)
+					// already added, but last column wasn't
+					// actually a tap, start here
+					if (lal.at(r.first) != 128)
+						lal.at(r.first) == 1 << t;
+					else
+						// already added and is a tap, update info
+						lal.at(r.first) |= 1 << t;
+			} else
+				// we need to keep track of more than just taps fo
+				// if we want to use this for key generation
+				// this won't alter tap values if there's something like
+				// 11MM
+				lal.emplace(r.first, 128);
 	}
 	NonEmptyRowVector.clear();
 	NonEmptyRowVector.reserve(lal.size());
@@ -242,8 +250,12 @@ NoteData::SerializeNoteData2(TimingData* ts,
 	const auto& etaner = ts->BuildAndGetEtaner(NonEmptyRowVector);
 	size_t idx = 0;
 	for (auto r : NonEmptyRowVector) {
-		NoteInfo rowOutput{ static_cast<unsigned int>(lal.at(r)), etaner[idx] };
-		SerializedNoteData.emplace_back(rowOutput);
+		// only send tap data to calc
+		if (lal.at(r) != 128) {
+			NoteInfo rowOutput{ static_cast<unsigned int>(lal.at(r)),
+								etaner[idx] };
+			SerializedNoteData.emplace_back(rowOutput);
+		}
 		++idx;
 	}
 	if (unset_etaner_when_done)
