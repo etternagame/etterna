@@ -438,8 +438,12 @@ Steps::DoATestThing(float ev, Skillset ss)
 void
 Steps::GetCalcDebugOutput()
 {
-	if (!calcdebugoutput.empty())
-		return;
+	// makes calc display not update with rate changes
+	// don't feel like making this fancy and it's fast
+	// enough now i guess
+	//if (!calcdebugoutput.empty())
+	//	return;
+	calcdebugoutput.clear();
 	// function is responsible for producing debug output
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
