@@ -1888,6 +1888,13 @@ Song::IsStepsUsingDifferentTiming(Steps* pSteps) const
 	return !pSteps->m_Timing.empty();
 }
 
+void
+Song::UnloadAllCalcDebugOutput()
+{
+	for (auto s : m_vpSteps)
+		s->UnloadCalcDebugOutput();
+	}
+
 bool
 Song::AnyChartUsesSplitTiming() const
 {

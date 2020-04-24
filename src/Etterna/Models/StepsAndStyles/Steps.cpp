@@ -433,6 +433,13 @@ Steps::BorpNDorf(int modType)
 	Compress();
 }
 
+void
+Steps::UnloadCalcDebugOutput()
+{
+	dumbthings.clear();
+	dumbthings.shrink_to_fit();
+}
+
 RString
 Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 {

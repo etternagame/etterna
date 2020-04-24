@@ -212,7 +212,7 @@ class Steps
 	void CalcEtternaMetadata();
 	void BorpNDorf(int modType);
 	vector<vector<float>> dumbthings;
-
+	void UnloadCalcDebugOutput();
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;
 	void MakeBustedKeys();

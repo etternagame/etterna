@@ -443,7 +443,7 @@ class Song
 
 	bool IsStepsUsingDifferentTiming(Steps* pSteps) const;
 	bool AnyChartUsesSplitTiming() const;
-
+	void UnloadAllCalcDebugOutput();
 	/**
 	 * @brief An array of keysound file names (e.g. "beep.wav").
 	 * The index in this array corresponds to the index in TapNote.

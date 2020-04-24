@@ -639,6 +639,13 @@ SongManager::GetSongByChartkey(const string& ck)
 	return nullptr;
 }
 
+void
+SongManager::UnloadAllCalcDebugOutput()
+{
+	for (auto s : m_pSongs)
+		s->UnloadAllCalcDebugOutput();
+}
+
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
   "SongManager",
   "The folder \"%s\" appears to be a song folder.  All song folders "
