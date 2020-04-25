@@ -1,8 +1,8 @@
-#pragma once
 #include "MinaCalc.h"
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <memory>
 #include <numeric>
 
 using std::max;
@@ -12,7 +12,7 @@ using std::sqrt;
 using std::vector;
 
 template<typename T>
-inline T&
+inline T
 CalcClamp(T x, T l, T h)
 {
 	return x > h ? h : (x < l ? l : x);

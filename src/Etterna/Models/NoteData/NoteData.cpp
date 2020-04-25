@@ -228,7 +228,7 @@ NoteData::SerializeNoteData2(TimingData* ts,
 		const auto& tm = m_TapNotes[t];
 		for (const auto& r : tm)
 			if (r.second.IsNote()) {
-			auto& res = lal.emplace(r.first, 1 << t);
+			auto res = lal.emplace(r.first, 1 << t);
 			if (!res.second) // already added, update noteinfo
 				lal.at(r.first) |= 1 << t;
 		}
