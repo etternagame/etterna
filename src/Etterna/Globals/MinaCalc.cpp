@@ -12,7 +12,7 @@ using std::sqrt;
 using std::vector;
 
 template<typename T>
-T
+inline T&
 CalcClamp(T x, T l, T h)
 {
 	return x > h ? h : (x < l ? l : x);
@@ -88,7 +88,7 @@ AggregateScores(const vector<float>& skillsets, float rating, float resolution)
 	return rating + 2.f * resolution;
 }
 
-unsigned int
+inline unsigned int
 column_count(unsigned int note)
 {
 	return note % 2 + note / 2 % 2 + note / 4 % 2 + note / 8 % 2;
@@ -119,7 +119,7 @@ skillset_vector(const DifficultyRating& difficulty)
 						  difficulty.chordjack,  difficulty.technical };
 }
 
-float
+inline float
 highest_difficulty(const DifficultyRating& difficulty)
 {
 	auto v = { difficulty.stream,	 difficulty.jumpstream,
@@ -130,14 +130,14 @@ highest_difficulty(const DifficultyRating& difficulty)
 }
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
+static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 					1.025f; // multiplier to standardize baselines
 
 // Stamina Model params
-const float stam_ceil = 1.0933f;	 // stamina multiplier max
-const float stam_mag = 505.f;	 // multiplier generation scaler
-const float stam_fscale = 2222.f; // how fast the floor rises (it's lava)
-const float stam_prop =
+static const float stam_ceil = 1.0933f; // stamina multiplier max
+static const float stam_mag = 505.f;	// multiplier generation scaler
+static const float stam_fscale = 2222.f; // how fast the floor rises (it's lava)
+static const float stam_prop =
   0.725f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
@@ -146,8 +146,9 @@ const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-const float basescalers[NUM_SkillsetTWO] = { 0.f,   0.975f, 0.9f, 0.925f,
-											 0.95f, 0.8f, 0.8f, 0.95f };
+static const float basescalers[NUM_SkillsetTWO] = {
+	0.f, 0.975f, 0.9f, 0.925f, 0.95f, 0.8f, 0.8f, 0.95f
+};
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
