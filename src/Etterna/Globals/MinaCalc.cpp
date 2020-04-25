@@ -131,12 +131,12 @@ highest_difficulty(const DifficultyRating& difficulty)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-					1.025f; // multiplier to standardize baselines
+								 1.025f; // multiplier to standardize baselines
 
 // Stamina Model params
-static const float stam_ceil = 1.0933f; // stamina multiplier max
-static const float stam_mag = 505.f;	// multiplier generation scaler
-static const float stam_fscale = 2222.f; // how fast the floor rises (it's lava)
+static const float stam_ceil = 1.0933f;  // stamina multiplier max
+static const float stam_mag = 505.f;	 // multiplier generation scaler
+static const float stam_fscale = 2000.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.725f; // proportion of player difficulty at which stamina tax begins
 
@@ -666,8 +666,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		for (size_t i = 0; i < diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = diff[i];
-			float ebb = (avs1 + avs2) / 2.f;
-			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 1.f)
 				floor += (mod - 1.f) / stam_fscale;
 			mod = CalcClamp(mod, floor, stam_ceil);
@@ -678,8 +677,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		for (size_t i = 0; i < diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = diff[i];
-			float ebb = (avs1 + avs2) / 2.f;
-			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 1.f)
 				floor += (mod - 1.f) / stam_fscale;
 			mod = CalcClamp(mod, floor, stam_ceil);
