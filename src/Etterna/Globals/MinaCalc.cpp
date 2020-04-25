@@ -469,11 +469,11 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					unsigned int t,
 					float music_rate)
 {
-	// optimization, anything with more than 100 notes in half a second
-	// will be thrown out by the calc way before this could crash, so
-	// just allocate memory here once and recycle this vector
-	vector<int> temp_queue(100);
-	int row_counter = 1;
+	// optimization, just allocate memory here once and recycle this vector
+	vector<float> temp_queue(5000);
+	vector<int> temp_queue_two(5000);
+	unsigned int row_counter = 0;
+	unsigned int row_counter_two = 0;
 
 	int Interval = 0;
 	float last = -5.f;
@@ -487,12 +487,23 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 
 		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
 			// dump stored values before iterating to new interval
-			AllIntervals[Interval].resize(row_counter);
-			auto it = std::next(AllIntervals[Interval].begin(), row_counter);
-			std::move(AllIntervals[Interval].begin(), it, std::back_inserter(temp_queue));
+			// we're in a while loop to skip through empty intervals
+			// so check the counter to make sure we didn't already assign
+			if (row_counter > 0) {
+				AllIntervals[Interval].resize(row_counter);
+				for (unsigned int n = 0; n < row_counter; ++n)
+					AllIntervals[Interval][n] = temp_queue[n];
+			}
+
+			if (row_counter_two > 0) {
+				nervIntervals[Interval].resize(row_counter_two);
+				for (unsigned int n = 0; n < row_counter_two; ++n)
+					nervIntervals[Interval][n] = temp_queue_two[n];
+			}
 
 			// reset the counter and iterate interval
 			row_counter = 0;
+			row_counter_two = 0;
 			++Interval;
 		}
 
@@ -503,8 +514,11 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 			last = scaledtime;
 		}
 
-		if (t == 0 && NoteInfo[i].notes != 0)
-			nervIntervals[Interval].emplace_back(i);
+		if (t == 0 && NoteInfo[i].notes != 0) {
+			temp_queue_two[row_counter_two] = i;
+			++row_counter_two;
+		}
+			
 	}
 	return AllIntervals;
 }
