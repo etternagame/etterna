@@ -150,6 +150,119 @@ static const float basescalers[NUM_SkillsetTWO] = {
 	0.f, 0.975f, 0.9f, 0.925f, 0.95f, 0.8f, 0.8f, 0.95f
 };
 
+void
+Calc::TotalMaxPoints()
+{
+	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
+		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
+}
+
+void
+Hand::InitPoints(const Finger& f1, const Finger& f2)
+{
+	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
+		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
+								 f2[ki_is_rising].size());
+}
+
+float
+Calc::JackLoss(const vector<float>& j, float x)
+{
+	float o = 0.f;
+	for (size_t i = 0; i < j.size(); i++)
+		if (x < j[i])
+			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
+	CalcClamp(o, 0.f, 10000.f);
+	return o;
+}
+
+JackSeq
+Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
+				   unsigned int t,
+				   float music_rate)
+{
+	vector<float> output;
+	float last = -5.f;
+	float interval1;
+	float interval2 = 0.f;
+	float interval3 = 0.f;
+	unsigned int track = 1u << t;
+
+	for (auto i : NoteInfo) {
+		if (i.notes & track) {
+			float current_time = i.rowTime / music_rate;
+			interval1 = interval2;
+			interval2 = interval3;
+			interval3 = 1000.f * (current_time - last);
+			last = current_time;
+			output.emplace_back(
+			  min(2800.f / min((interval1 + interval2 + interval3) / 3.f,
+							   interval3 * 1.4f),
+				  50.f));
+		}
+	}
+	return output;
+}
+
+Finger
+Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
+					unsigned int t,
+					float music_rate)
+{
+	// optimization, just allocate memory here once and recycle this vector
+	vector<float> temp_queue(5000);
+	vector<int> temp_queue_two(5000);
+	unsigned int row_counter = 0;
+	unsigned int row_counter_two = 0;
+
+	int Interval = 0;
+	float last = -5.f;
+	Finger AllIntervals(numitv, vector<float>());
+	if (t == 0)
+		nervIntervals = vector<vector<int>>(numitv, vector<int>());
+	unsigned int column = 1u << t;
+
+	for (size_t i = 0; i < NoteInfo.size(); i++) {
+		float scaledtime = NoteInfo[i].rowTime / music_rate;
+
+		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
+			// dump stored values before iterating to new interval
+			// we're in a while loop to skip through empty intervals
+			// so check the counter to make sure we didn't already assign
+			if (row_counter > 0) {
+				AllIntervals[Interval].resize(row_counter);
+				for (unsigned int n = 0; n < row_counter; ++n)
+					AllIntervals[Interval][n] = temp_queue[n];
+			}
+
+			if (row_counter_two > 0) {
+				nervIntervals[Interval].resize(row_counter_two);
+				for (unsigned int n = 0; n < row_counter_two; ++n)
+					nervIntervals[Interval][n] = temp_queue_two[n];
+			}
+
+			// reset the counter and iterate interval
+			row_counter = 0;
+			row_counter_two = 0;
+			++Interval;
+		}
+
+		if (NoteInfo[i].notes & column) {
+			// log all rows for this interval in pre-allocated mem
+			temp_queue[row_counter] =
+			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
+			++row_counter;
+			last = scaledtime;
+		}
+
+		if (t == 0 && NoteInfo[i].notes != 0) {
+			temp_queue_two[row_counter_two] = i;
+			++row_counter_two;
+		}
+	}
+	return AllIntervals;
+}
+
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
@@ -354,45 +467,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return skillset_vector(difficulty);
 }
 
-float
-Calc::JackLoss(const vector<float>& j, float x)
-{
-	float o = 0.f;
-	for (size_t i = 0; i < j.size(); i++)
-		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
-	CalcClamp(o, 0.f, 10000.f);
-	return o;
-}
-
-JackSeq
-Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
-				   unsigned int t,
-				   float music_rate)
-{
-	vector<float> output;
-	float last = -5.f;
-	float interval1;
-	float interval2 = 0.f;
-	float interval3 = 0.f;
-	unsigned int track = 1u << t;
-
-	for (auto i : NoteInfo) {
-		if (i.notes & track) {
-			float current_time = i.rowTime / music_rate;
-			interval1 = interval2;
-			interval2 = interval3;
-			interval3 = 1000.f * (current_time - last);
-			last = current_time;
-			output.emplace_back(
-			  min(2800.f / min((interval1 + interval2 + interval3) / 3.f,
-							   interval3 * 1.4f),
-				  50.f));
-		}
-	}
-	return output;
-}
-
 void
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 {
@@ -473,7 +547,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 		  right_hand.doot[Roll][i] * right_hand.doot[OHJump][i] *
 		  right_hand.doot[Anchor][i];
 	}
-	
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
@@ -481,70 +554,39 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	j3 = SequenceJack(NoteInfo, 3, music_rate);
 }
 
-Finger
-Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
-					unsigned int t,
-					float music_rate)
+float
+Hand::CalcMSEstimate(vector<float>& input)
 {
-	// optimization, just allocate memory here once and recycle this vector
-	vector<float> temp_queue(5000);
-	vector<int> temp_queue_two(5000);
-	unsigned int row_counter = 0;
-	unsigned int row_counter_two = 0;
+	if (input.empty())
+		return 0.f;
 
-	int Interval = 0;
-	float last = -5.f;
-	Finger AllIntervals(numitv, vector<float>());
-	if (t == 0)
-		nervIntervals = vector<vector<int>>(numitv, vector<int>());
-	unsigned int column = 1u << t;
-
-	for (size_t i = 0; i < NoteInfo.size(); i++) {
-		float scaledtime = NoteInfo[i].rowTime / music_rate;
-
-		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
-			// dump stored values before iterating to new interval
-			// we're in a while loop to skip through empty intervals
-			// so check the counter to make sure we didn't already assign
-			if (row_counter > 0) {
-				AllIntervals[Interval].resize(row_counter);
-				for (unsigned int n = 0; n < row_counter; ++n)
-					AllIntervals[Interval][n] = temp_queue[n];
-			}
-
-			if (row_counter_two > 0) {
-				nervIntervals[Interval].resize(row_counter_two);
-				for (unsigned int n = 0; n < row_counter_two; ++n)
-					nervIntervals[Interval][n] = temp_queue_two[n];
-			}
-
-			// reset the counter and iterate interval
-			row_counter = 0;
-			row_counter_two = 0;
-			++Interval;
-		}
-
-		if (NoteInfo[i].notes & column) {
-			// log all rows for this interval in pre-allocated mem
-			temp_queue[row_counter] =
-			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
-			++row_counter;
-			last = scaledtime;
-		}
-
-		if (t == 0 && NoteInfo[i].notes != 0) {
-			temp_queue_two[row_counter_two] = i;
-			++row_counter_two;
-		}
-	}
-	return AllIntervals;
+	sort(input.begin(), input.end());
+	float m = 0;
+	input[0] *= 1.066f; // This is gross
+	size_t End = min(input.size(), static_cast<size_t>(6));
+	for (size_t i = 0; i < End; i++)
+		m += input[i];
+	return 1375.f * End / m;
 }
 
 void
-Calc::TotalMaxPoints()
+Hand::InitDiff(Finger& f1, Finger& f2)
 {
-	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
-		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
+	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+		soap[i].resize(f1.size());
+
+	for (size_t i = 0; i < f1.size(); i++) {
+		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
+		float left_difficulty = CalcMSEstimate(f1[i]);
+		float right_difficulty = CalcMSEstimate(f2[i]);
+		float difficulty = max(left_difficulty, right_difficulty);
+		soap[BaseNPS][i] = finalscaler * nps;
+		soap[BaseMS][i] = finalscaler * difficulty;
+		soap[BaseMSD][i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
+	}
+	Smooth(soap[BaseNPS], 0.f);
+	if (SmoothDifficulty)
+		DifficultyMSSmooth(soap[BaseMSD]);
 }
 
 // each skillset should just be a separate calc function [todo]
@@ -623,83 +665,6 @@ Calc::Chisel(float player_skill,
 	}
 
 	return player_skill + 2.f * resolution;
-}
-
-float
-Hand::CalcMSEstimate(vector<float>& input)
-{
-	if (input.empty())
-		return 0.f;
-
-	sort(input.begin(), input.end());
-	float m = 0;
-	input[0] *= 1.066f; // This is gross
-	size_t End = min(input.size(), static_cast<size_t>(6));
-	for (size_t i = 0; i < End; i++)
-		m += input[i];
-	return 1375.f * End / m;
-}
-
-void
-Hand::InitDiff(Finger& f1, Finger& f2)
-{
-	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
-		soap[i].resize(f1.size());
-
-	for (size_t i = 0; i < f1.size(); i++) {
-		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty = CalcMSEstimate(f1[i]);
-		float right_difficulty = CalcMSEstimate(f2[i]);
-		float difficulty = max(left_difficulty, right_difficulty);
-		soap[BaseNPS][i] = finalscaler * nps;
-		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
-	}
-	Smooth(soap[BaseNPS], 0.f);
-	if (SmoothDifficulty)
-		DifficultyMSSmooth(soap[BaseMSD]);
-}
-
-void
-Hand::InitPoints(const Finger& f1, const Finger& f2)
-{
-	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
-		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
-								 f2[ki_is_rising].size());
-}
-
-void
-Hand::StamAdjust(float x, vector<float>& diff, bool debug)
-{
-	float floor = 1.f; // stamina multiplier min (increases as chart advances)
-	float mod = 1.f;   // mutliplier
-
-	float avs1 = 0.f;
-	float avs2 = 0.f;
-
-	// i don't like the copypasta either but the boolchecks where they were
-	// were too slow
-	if (debug)
-		for (size_t i = 0; i < diff.size(); i++) {
-			avs1 = avs2;
-			avs2 = diff[i];
-			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
-			mod = CalcClamp(mod, floor, stam_ceil);
-			stam_adj_diff[i] = diff[i] * mod;
-			debugValues[2][StamMod][i] = mod;
-		}
-	else
-		for (size_t i = 0; i < diff.size(); i++) {
-			avs1 = avs2;
-			avs2 = diff[i];
-			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
-			mod = CalcClamp(mod, floor, stam_ceil);
-			stam_adj_diff[i] = diff[i] * mod;
-		}
 }
 
 // debug bool here is NOT the one in Calc, it is passed from chisel using the
@@ -801,6 +766,40 @@ Hand::CalcInternal(float& gotpoints,
 			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
 								  : static_cast<float>(v_itvpoints[i]) *
 									  pow(x / v[i], 1.8f);
+		}
+}
+
+void
+Hand::StamAdjust(float x, vector<float>& diff, bool debug)
+{
+	float floor = 1.f; // stamina multiplier min (increases as chart advances)
+	float mod = 1.f;   // mutliplier
+
+	float avs1 = 0.f;
+	float avs2 = 0.f;
+
+	// i don't like the copypasta either but the boolchecks where they were
+	// were too slow
+	if (debug)
+		for (size_t i = 0; i < diff.size(); i++) {
+			avs1 = avs2;
+			avs2 = diff[i];
+			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
+			if (mod > 1.f)
+				floor += (mod - 1.f) / stam_fscale;
+			mod = CalcClamp(mod, floor, stam_ceil);
+			stam_adj_diff[i] = diff[i] * mod;
+			debugValues[2][StamMod][i] = mod;
+		}
+	else
+		for (size_t i = 0; i < diff.size(); i++) {
+			avs1 = avs2;
+			avs2 = diff[i];
+			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
+			if (mod > 1.f)
+				floor += (mod - 1.f) / stam_fscale;
+			mod = CalcClamp(mod, floor, stam_ceil);
+			stam_adj_diff[i] = diff[i] * mod;
 		}
 }
 
