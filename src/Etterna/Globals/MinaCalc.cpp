@@ -951,11 +951,9 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					if (in >= the)
 						if (in <= 3.f * the)
 							if (the * 10000.f > 0.5f)
-								butt +=
-								  pow(static_cast<float>(
-										static_cast<int>(in * 10000.f + 0.5f) %
-										static_cast<int>(10000.f * the + 0.5f)),
-									  0.25f);
+								butt += sqrt(sqrt(static_cast<float>(
+								  static_cast<int>(in * 10000.f + 0.5f) %
+								  static_cast<int>(10000.f * the + 0.5f))));
 
 		if (!whatwhat.empty())
 			butt /= static_cast<float>(whatwhat.size());
