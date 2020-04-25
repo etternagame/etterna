@@ -405,6 +405,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	left_hand.stam_adj_diff.resize(numitv);
 	right_hand.stam_adj_diff.resize(numitv);
 
+	// at least for the moment there are a few mods we want to apply evenly
+	// to all skillset, so pre-multiply them in these after they're generated
+	left_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
+	right_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
+
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++)
 		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
@@ -457,6 +462,18 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 			right_hand.debugValues[1][i] = right_hand.soap[i];
 		}
 	}
+
+	// it's probably time to loop over hands more sensibly or
+	// do this stuff inside the class
+	for (int i = 0; i < numitv; ++i) {
+		left_hand.pre_multiplied_pattern_mod_group_a[i] =
+		  left_hand.doot[Roll][i] * left_hand.doot[OHJump][i] *
+		  left_hand.doot[Anchor][i];
+		right_hand.pre_multiplied_pattern_mod_group_a[i] =
+		  right_hand.doot[Roll][i] * right_hand.doot[OHJump][i] *
+		  right_hand.doot[Anchor][i];
+	}
+	
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
@@ -738,7 +755,7 @@ Hand::CalcInternal(float& gotpoints,
 		}
 
 		// we always want to apply these mods, i think
-		adj_diff[i] *= doot[Roll][i] * doot[OHJump][i] * doot[Anchor][i];
+		adj_diff[i] *= pre_multiplied_pattern_mod_group_a[i];
 	}
 
 	if (stam) {

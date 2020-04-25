@@ -92,6 +92,9 @@ class Hand
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
 
+
+	// self extraplanetary
+	std::vector<float> pre_multiplied_pattern_mod_group_a;
 	// pattern adjusted difficulty, allocate only once
 	std::vector<float> adj_diff;
 	// pattern adjusted difficulty, allocate only once, stam needs to be based
