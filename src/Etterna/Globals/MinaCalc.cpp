@@ -592,6 +592,19 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 								 static_cast<int>(f2[ki_is_rising].size()));
 }
 
+
+inline void
+gratuitious_optimization_ebb(float& m, float& avs1, float& avs2, float& x)
+{
+	(((avs1 + avs2 / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
+}
+
+inline void
+gratuitious_optimization_floor(float& f, float& m)
+{
+	f += (m - 1.f) / stam_fscale;
+}
+
 void
 Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 {
@@ -607,10 +620,9 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		for (size_t i = 0; i < diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = diff[i];
-			float ebb = (avs1 + avs2) / 2.f;
-			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			gratuitious_optimization_ebb(mod, avs1, avs2, x);
 			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
+				gratuitious_optimization_floor(floor, mod);
 			mod = CalcClamp(mod, floor, stam_ceil);
 			stam_adj_diff[i] = diff[i] * mod;
 			debugValues[2][StamMod][i] = mod;
@@ -619,10 +631,9 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		for (size_t i = 0; i < diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = diff[i];
-			float ebb = (avs1 + avs2) / 2.f;
-			mod += ((ebb / (stam_prop * x)) - 1.f) / stam_mag;
+			gratuitious_optimization_ebb(mod, avs1, avs2, x);
 			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
+				gratuitious_optimization_floor(floor, mod);
 			mod = CalcClamp(mod, floor, stam_ceil);
 			stam_adj_diff[i] = diff[i] * mod;
 		}
