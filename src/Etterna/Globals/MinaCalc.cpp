@@ -540,7 +540,7 @@ Calc::Chisel(float player_skill,
 			 bool debugoutput)
 {
 	float gotpoints = 0.f;
-	int possiblepoints = 0.f;
+	int possiblepoints = 0;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
 	for (int iter = 1; iter <= 7; iter++) {
 		do {
@@ -908,35 +908,31 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				   float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
-
+	vector<float> giraffeasaurus(5000);
 	float lasttime = -1.f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
+		unsigned int boink = 0;
 		vector<float> whatwhat;
 		for (int row : nervIntervals[i]) {
-			bool l = NoteInfo[row].notes & 1;
-			bool d = NoteInfo[row].notes & 2;
-			bool u = NoteInfo[row].notes & 4;
-			bool r = NoteInfo[row].notes & 8;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 1)
 				singletaps += notes;
 
 			float curtime = NoteInfo[row].rowTime / music_rate;
-			// push to thing i dunno what im doing with yet
-			float WOT = curtime - lasttime;
-			if (l)
-				whatwhat.push_back(WOT);
-			if (d)
-				whatwhat.push_back(WOT);
-			if (u)
-				whatwhat.push_back(WOT);
-			if (r)
-				whatwhat.push_back(WOT);
+
+			// asdlkfaskdjlf
+			for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
+				giraffeasaurus[boink + pajamas] = curtime - lasttime;
+			boink += notes;
 			lasttime = curtime;
 		}
+
+		whatwhat.resize(boink);
+		for (unsigned int n = 0; n < boink; ++n)
+			whatwhat[n] = giraffeasaurus[n];
 
 		// something something push up polyrhythms???
 		float butt = 0.f;
@@ -946,8 +942,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		if (whatwhat.size() <= 1)
 			butt = 1.f;
 		else
-			for (auto in : whatwhat)
-				for (auto the : whatwhat)
+			for (auto& in : whatwhat)
+				for (auto& the : whatwhat)
 					if (in >= the)
 						if (in <= 3.f * the)
 							if (the * 10000.f > 0.5f)
