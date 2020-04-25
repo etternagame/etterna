@@ -77,7 +77,16 @@ class Hand
 	scoring to assert the average of the distribution of point gain for each
 	interval and then tallies up the result to produce an average total number
 	of points achieved by this hand. */
-	void CalcInternal(float& gotpoints, float x, int ss, bool stam, bool debug = false);
+	// return value is true if a player can no longer reach scoregoal even if
+	// they get 100% of the remaining points
+	void CalcInternal(float& gotpoints,
+					  int& maxpoints,
+					  int& possiblepoints,
+					  float& reqpoints,
+					  float& x,
+					  int ss,
+					  bool stam,
+					  bool debug = false);
 
 	std::vector<float> doot[ModCount];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
@@ -133,7 +142,7 @@ class Calc
 						 float music_rate);
 
 	// Derivative calc params
-	float MaxPoints = 0.f; // Total points achievable in the file
+	int MaxPoints = 0; // Total points achievable in the file
 	void TotalMaxPoints(); // Counts up the total points and assigns it
 
 	/*	Returns estimate of player skill needed to achieve score goal on chart.

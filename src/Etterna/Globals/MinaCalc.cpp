@@ -527,8 +527,7 @@ void
 Calc::TotalMaxPoints()
 {
 	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
-		MaxPoints += static_cast<float>(left_hand.v_itvpoints[i] +
-										right_hand.v_itvpoints[i]);
+		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
 }
 
 // each skillset should just be a separate calc function [todo]
@@ -541,6 +540,8 @@ Calc::Chisel(float player_skill,
 			 bool debugoutput)
 {
 	float gotpoints = 0.f;
+	int possiblepoints = 0.f;
+	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
 	for (int iter = 1; iter <= 7; iter++) {
 		do {
 			if (player_skill > 41.f)
@@ -548,21 +549,36 @@ Calc::Chisel(float player_skill,
 			player_skill += resolution;
 			if (ss == Overall || ss == Stamina)
 				return 0.f; // not how we set these values
+
+			// reset tallied score
 			gotpoints = 0.f;
+			possiblepoints = 0;
 			/*
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == JackSpeed || ss == Chordjack || ss == Technical)
 				gotpoints -=(JackLoss(j0, player_skill) -
 							JackLoss(j1, player_skill) -
 							JackLoss(j2, player_skill) -
-							JackLoss(j3, player_skill)) / static_cast<float>(1.f + static_cast<float>(ss == Technical));
-			if (ss == JackSpeed || ss == Chordjack)
-				gotpoints += MaxPoints * 0.1f;
+							JackLoss(j3, player_skill)) / static_cast<float>(1.f
+			+ static_cast<float>(ss == Technical)); if (ss == JackSpeed || ss ==
+			Chordjack) gotpoints += MaxPoints * 0.1f;
 			*/
 			// run standard calculator stuffies
-			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-		} while (gotpoints / MaxPoints < score_goal);
+			left_hand.CalcInternal(gotpoints,
+								   MaxPoints,
+								   possiblepoints,
+								   reqpoints,
+								   player_skill,
+								   ss,
+								   stamina);
+			right_hand.CalcInternal(gotpoints,
+									MaxPoints,
+									possiblepoints,
+									reqpoints,
+									player_skill,
+									ss,
+									stamina);
+		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.f;
 	}
@@ -571,8 +587,22 @@ Calc::Chisel(float player_skill,
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
 	if (debugoutput) {
-		left_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
-		right_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
+		left_hand.CalcInternal(gotpoints,
+							   MaxPoints,
+							   possiblepoints,
+							   reqpoints,
+							   player_skill,
+							   ss,
+							   stamina,
+							   debugoutput);
+		right_hand.CalcInternal(gotpoints,
+								MaxPoints,
+								possiblepoints,
+								reqpoints,
+								player_skill,
+								ss,
+								stamina,
+								debugoutput);
 	}
 
 	return player_skill + 2.f * resolution;
@@ -617,8 +647,8 @@ void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
 	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
-		v_itvpoints.emplace_back(static_cast<int>(f1[ki_is_rising].size()) +
-								 static_cast<int>(f2[ki_is_rising].size()));
+		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
+								 f2[ki_is_rising].size());
 }
 
 void
@@ -661,7 +691,14 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 // final difficulty as the starting point and should only be executed once per
 // chisel
 void
-Hand::CalcInternal(float& gotpoints, float x, int ss, bool stam, bool debug)
+Hand::CalcInternal(float& gotpoints,
+				   int& MaxPoints,
+				   int& possiblepoints,
+				   float& reqpoints,
+				   float& x,
+				   int ss,
+				   bool stam,
+				   bool debug)
 {
 	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
@@ -737,10 +774,18 @@ Hand::CalcInternal(float& gotpoints, float x, int ss, bool stam, bool debug)
 		}
 	} else
 		for (size_t i = 0; i < v.size(); ++i) {
-			gotpoints +=
-			  x > v[i]
-				? static_cast<float>(v_itvpoints[i])
-				: static_cast<float>(v_itvpoints[i]) * pow(x / v[i], 1.8f);
+			// check if it's even possible to achieve scoregoal with the
+			// remaining points available, we don't care too much about
+			// rounding error here, this about breaks even when calculating
+			// scores and is mostly an optimization to songload
+			if (i % 32 == 31)
+				if (MaxPoints - possiblepoints + static_cast<int>(gotpoints) <= static_cast<int>(reqpoints))
+					return;
+
+			possiblepoints += v_itvpoints[i];
+			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
+								  : static_cast<float>(v_itvpoints[i]) *
+									  pow(x / v[i], 1.8f);
 		}
 }
 
@@ -906,13 +951,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				for (auto the : whatwhat)
 					if (in >= the)
 						if (in <= 3.f * the)
-						if (the * 10000.f > 0.5f)
-						butt +=
-						  sqrt(sqrt(static_cast<float>(static_cast<int>(in * 10000.f + 0.5f) %
-							  static_cast<int>(10000.f * the + 0.5f))));
+							if (the * 10000.f > 0.5f)
+								butt += pow(static_cast<float>(
+								  static_cast<int>(in * 10000.f + 0.5f) %
+								  static_cast<int>(10000.f * the + 0.5f)), 0.25f);
 
 		if (!whatwhat.empty())
-			butt /=	static_cast<float>(whatwhat.size());
+			butt /= static_cast<float>(whatwhat.size());
 		butt = sqrt(butt) / 7.5f;
 
 		butt = CalcClamp(butt + 0.8f, 0.95f, 1.1f);
