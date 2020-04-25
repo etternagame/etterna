@@ -469,6 +469,12 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					unsigned int t,
 					float music_rate)
 {
+	// optimization, anything with more than 100 notes in half a second
+	// will be thrown out by the calc way before this could crash, so
+	// just allocate memory here once and recycle this vector
+	vector<int> temp_queue(100);
+	int row_counter = 1;
+
 	int Interval = 0;
 	float last = -5.f;
 	Finger AllIntervals(numitv, vector<float>());
@@ -479,12 +485,21 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
 		float scaledtime = NoteInfo[i].rowTime / music_rate;
 
-		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan)
+		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
+			// dump stored values before iterating to new interval
+			AllIntervals[Interval].resize(row_counter);
+			auto it = std::next(AllIntervals[Interval].begin(), row_counter);
+			std::move(AllIntervals[Interval].begin(), it, std::back_inserter(temp_queue));
+
+			// reset the counter and iterate interval
+			row_counter = 0;
 			++Interval;
+		}
 
 		if (NoteInfo[i].notes & column) {
-			AllIntervals[Interval].emplace_back(
-			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f));
+			// log all rows for this interval in pre-allocated mem
+			temp_queue[row_counter] = CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
+			++row_counter;
 			last = scaledtime;
 		}
 
