@@ -165,7 +165,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
 	// all this garbage should be handled by pattern mods, before chisel is run
-  // ok maybe that isn't a hard and fast rule, but we should avoid it here
+	// ok maybe that isn't a hard and fast rule, but we should avoid it here
 	/*
 	float jprop = chord_proportion(NoteInfo, 2);
 	float nojumpsdownscaler =
@@ -509,7 +509,8 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 
 		if (NoteInfo[i].notes & column) {
 			// log all rows for this interval in pre-allocated mem
-			temp_queue[row_counter] = CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
+			temp_queue[row_counter] =
+			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
 			++row_counter;
 			last = scaledtime;
 		}
@@ -518,7 +519,6 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 			temp_queue_two[row_counter_two] = i;
 			++row_counter_two;
 		}
-			
 	}
 	return AllIntervals;
 }
@@ -707,8 +707,8 @@ Hand::CalcInternal(float& gotpoints,
 			case Overall: // should never be the case, handled up the stack
 				break;
 			case Stream: // vanilla, apply everything based on nps diff
-				adj_diff[i] =
-				  soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] * doot[CJ][i] * doot[Chaos][i];
+				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] *
+							  doot[CJ][i] * doot[Chaos][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Jumpstream: // dont apply cj
@@ -716,8 +716,8 @@ Hand::CalcInternal(float& gotpoints,
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Handstream: // here cj counterbalances hs a bit, not good
-				adj_diff[i] = soap[BaseNPS][i] / max(doot[HS][i], 0.925f) *
-							  doot[Jump][i];
+				adj_diff[i] =
+				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Stamina: // should never be the case, handled up the stack
@@ -727,8 +727,7 @@ Hand::CalcInternal(float& gotpoints,
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Chordjack: // use ms hybrid base
-				adj_diff[i] =
-				  soap[BaseMSD][i] / doot[CJ][i];
+				adj_diff[i] = soap[BaseMSD][i] / doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Technical: // use ms hybrid base
@@ -777,7 +776,8 @@ Hand::CalcInternal(float& gotpoints,
 			// rounding error here, this about breaks even when calculating
 			// scores and is mostly an optimization to songload
 			if (i % 32 == 31)
-				if (MaxPoints - possiblepoints + static_cast<int>(gotpoints) <= static_cast<int>(reqpoints))
+				if (MaxPoints - possiblepoints + static_cast<int>(gotpoints) <=
+					static_cast<int>(reqpoints))
 					return;
 
 			possiblepoints += v_itvpoints[i];
@@ -904,7 +904,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 
 void
 Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
-				   vector<float> doot[ModCount], float music_rate)
+				   vector<float> doot[ModCount],
+				   float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
 
@@ -950,9 +951,11 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					if (in >= the)
 						if (in <= 3.f * the)
 							if (the * 10000.f > 0.5f)
-								butt += pow(static_cast<float>(
-								  static_cast<int>(in * 10000.f + 0.5f) %
-								  static_cast<int>(10000.f * the + 0.5f)), 0.25f);
+								butt +=
+								  pow(static_cast<float>(
+										static_cast<int>(in * 10000.f + 0.5f) %
+										static_cast<int>(10000.f * the + 0.5f)),
+									  0.25f);
 
 		if (!whatwhat.empty())
 			butt /= static_cast<float>(whatwhat.size());
@@ -979,7 +982,6 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Chaos], 1.f);
 		Smooth(doot[Chaos], 1.f);
 	}
-		
 }
 
 // downscales full rolls or rolly js, it looks explicitly for consistent cross
@@ -1111,7 +1113,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			lastcol = thiscol;
 		}
 
-
 		int cvtaps = ltaps + rtaps;
 
 		// if this is true we have some combination of single notes and
@@ -1132,7 +1133,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// no rolls here by definition
 			doot[Roll][i] = 1.f;
 			doot[OHTrill][i] = 1.f;
-			
+
 			continue;
 		}
 
