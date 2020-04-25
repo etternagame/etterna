@@ -39,6 +39,7 @@ enum CalcPatternMod
 	StreamMod,
 	OHTrill,
 	Chaos,
+	FlamJam,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

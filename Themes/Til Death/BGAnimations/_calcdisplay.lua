@@ -149,6 +149,7 @@ local CalcDebugTypes = {
         "StreamMod",
         "OHTrill",
         "Chaos",
+        "FlamJam"
     },
     CalcDiffValue =
     {
@@ -439,6 +440,8 @@ local modnames = {
     "ohtr",
     "cl",
     "cr",
+    "fcl",
+    "fcr",
     "sl",
     "sr",
 }

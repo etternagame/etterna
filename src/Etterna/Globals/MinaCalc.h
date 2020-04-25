@@ -159,6 +159,11 @@ class Calc
 				 bool stamina,
 				 bool debugoutput = false);
 
+	// nerf psuedo chords that are flams into oblivion
+	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
+					   std::vector<float> doot[],
+					   float& music_rate);
+
 	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
 					 std::vector<float> doot[ModCount], float music_rate);
 
