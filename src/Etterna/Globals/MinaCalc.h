@@ -77,10 +77,7 @@ class Hand
 	scoring to assert the average of the distribution of point gain for each
 	interval and then tallies up the result to produce an average total number
 	of points achieved by this hand. */
-	float CalcInternal(float x,
-					   int ss,
-					   bool stam,
-					   bool debug = false);
+	void CalcInternal(float& gotpoints, float x, int ss, bool stam, bool debug = false);
 
 	std::vector<float> doot[ModCount];
 	std::vector<int> v_itvpoints; // Point allotment for each interval

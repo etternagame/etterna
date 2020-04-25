@@ -519,7 +519,8 @@ Calc::Chisel(float player_skill,
 			player_skill += resolution;
 			if (ss == Overall || ss == Stamina)
 				return 0.f; // not how we set these values
-
+			gotpoints = 0.f;
+			/*
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == JackSpeed || ss == Chordjack || ss == Technical)
 				gotpoints -=(JackLoss(j0, player_skill) -
@@ -528,9 +529,10 @@ Calc::Chisel(float player_skill,
 							JackLoss(j3, player_skill)) / static_cast<float>(1.f + static_cast<float>(ss == Technical));
 			if (ss == JackSpeed || ss == Chordjack)
 				gotpoints += MaxPoints * 0.1f;
+			*/
 			// run standard calculator stuffies
-			gotpoints = left_hand.CalcInternal(player_skill, ss, stamina) +
-						right_hand.CalcInternal(player_skill, ss, stamina);
+			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 		} while (gotpoints / MaxPoints < score_goal);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -540,8 +542,8 @@ Calc::Chisel(float player_skill,
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
 	if (debugoutput) {
-		left_hand.CalcInternal(player_skill, ss, stamina, debugoutput);
-		right_hand.CalcInternal(player_skill, ss, stamina, debugoutput);
+		left_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
+		right_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
 	}
 
 	return player_skill + 2.f * resolution;
@@ -629,8 +631,8 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 // debug bool here is NOT the one in Calc, it is passed from chisel using the
 // final difficulty as the starting point and should only be executed once per
 // chisel
-float
-Hand::CalcInternal(float x, int ss, bool stam, bool debug)
+void
+Hand::CalcInternal(float& gotpoints, float x, int ss, bool stam, bool debug)
 {
 	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
@@ -687,8 +689,6 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 	// final difficulty values to use
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
 
-	float output = 0.f;
-
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
 	if (debug) {
@@ -702,18 +702,17 @@ Hand::CalcInternal(float x, int ss, bool stam, bool debug)
 			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
 										  : static_cast<float>(v_itvpoints[i]) *
 											  pow(x / v[i], 1.8f);
-			output += gainedpoints;
+			gotpoints += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 		}
 	} else
 		for (size_t i = 0; i < v.size(); ++i) {
-			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
-										  : static_cast<float>(v_itvpoints[i]) *
-											  pow(x / v[i], 1.8f);
-			output += gainedpoints;
+			gotpoints +=
+			  x > v[i]
+				? static_cast<float>(v_itvpoints[i])
+				: static_cast<float>(v_itvpoints[i]) * pow(x / v[i], 1.8f);
 		}
-	  return output;
 }
 
 void
