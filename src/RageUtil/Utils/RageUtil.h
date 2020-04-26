@@ -25,12 +25,7 @@ class RageFileDriver;
 
 /** @brief Zero out the memory. */
 #define ZERO(x) memset(&(x), 0, sizeof(x))
-/** @brief Copy from a to b. */
-#define COPY(a, b)                                                             \
-	do {                                                                       \
-		ASSERT(sizeof(a) == sizeof(b));                                        \
-		memcpy(&(a), &(b), sizeof(a));                                         \
-	} while (false)
+
 /** @brief Get the length of the array. */
 #define ARRAYLEN(a) (sizeof(a) / sizeof((a)[0]))
 
