@@ -180,7 +180,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_SkillsetTWO] = {
+static const float basescalers[NUM_Skillset] = {
 	0.f, 0.975f, 0.9f, 0.925f, 0.95f, 0.8f, 0.8f, 0.95f
 };
 
@@ -333,9 +333,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	InitializeHands(NoteInfo, music_rate);
 	TotalMaxPoints();
 
-	vector<float> mcbloop(NUM_SkillsetTWO);
+	vector<float> mcbloop(NUM_Skillset);
 	// overall and stam will be left as 0.f by this loop
-	for (int i = 0; i < NUM_SkillsetTWO; ++i)
+	for (int i = 0; i < NUM_Skillset; ++i)
 		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
 	// stam is based on which calc produced the highest output without it
@@ -345,7 +345,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// rerun all with stam on, optimize by starting at the non-stam adjusted
 	// base value for each skillset
-	for (int i = 0; i < NUM_SkillsetTWO; ++i)
+	for (int i = 0; i < NUM_Skillset; ++i)
 		mcbloop[i] = Chisel(mcbloop[i] - 0.64f, 1.28f, score_goal, i, true);
 
 	// stam jams, stamina should push up the base ratings for files so files
@@ -374,7 +374,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// leaderboards with charts that are just very high rated but have no
 	// stamina component
 	mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.f, 1.1f);
-	mcbloop[Stamina] = 0.65f * poodle_in_a_porta_potty +
+	mcbloop[Skill_Stamina] = 0.65f * poodle_in_a_porta_potty +
 					   (mcfroggerbopper * 0.35f * poodle_in_a_porta_potty);
 
 	// yes i know how dumb this looks
@@ -642,7 +642,7 @@ Calc::Chisel(float player_skill,
 			if (player_skill > 41.f)
 				return player_skill;
 			player_skill += resolution;
-			if (ss == Overall || ss == Stamina)
+			if (ss == Skill_Overall || ss == Skill_Stamina)
 				return 0.f; // not how we set these values
 
 			// reset tallied score
@@ -695,33 +695,35 @@ Hand::CalcInternal(float& gotpoints,
 		// only slightly less cancerous than before, this can/should be
 		// refactored once the areas of redundancy are more clearly defined
 		switch (ss) {
-			case Overall: // should never be the case, handled up the stack
+			case Skill_Overall: // should never be the case, handled up the
+								// stack
 				break;
-			case Stream: // vanilla, apply everything based on nps diff
+			case Skill_Stream: // vanilla, apply everything based on nps diff
 				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] *
 							  doot[CJ][i] * doot[Chaos][i] * doot[FlamJam][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Jumpstream: // dont apply cj
+			case Skill_Jumpstream: // dont apply cj
 				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Handstream: // here cj counterbalances hs a bit, not good
+			case Skill_Handstream: // here cj counterbalances hs a bit, not good
 				adj_diff[i] =
 				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Stamina: // should never be the case, handled up the stack
+			case Skill_Stamina: // should never be the case, handled up the
+								// stack
 				break;
-			case JackSpeed: // use ms hybrid base
+			case Skill_JackSpeed: // use ms hybrid base
 				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Chordjack: // use ms hybrid base
+			case Skill_Chordjack: // use ms hybrid base
 				adj_diff[i] = soap[BaseMSD][i] / doot[CJ][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Technical: // use ms hybrid base
+			case Skill_Technical: // use ms hybrid base
 				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i] *
 							  doot[CJ][i] * doot[Chaos][i];
 				adj_diff[i] *= basescalers[ss];
@@ -736,7 +738,7 @@ Hand::CalcInternal(float& gotpoints,
 		// not entirely happy how this is handled but stam is really a special
 		// case
 		for (auto& d : adj_diff)
-			d *= basescalers[Stamina];
+			d *= basescalers[Skill_Stamina];
 		StamAdjust(x, adj_diff);
 	}
 

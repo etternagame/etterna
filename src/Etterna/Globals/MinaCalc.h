@@ -2,22 +2,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
 
-// YEAH WHATEVER I HATE THIS DONT WANT TO DEAL WITH REDEFS AND SHIT
-enum SkillsetTWO
-{
-	Overall,
-	Stream,
-	Jumpstream,
-	Handstream,
-	Stamina,
-	JackSpeed,
-	Chordjack,
-	Technical,
-	NUM_SkillsetTWO,
-	garbagegamegarbagecodegarbagemina,
-};
-
-
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
 #define MINACALC_API __declspec(dllexport)

@@ -27,6 +27,20 @@ struct DifficultyRating
 	float technical;
 };
 
+enum Skillset
+{
+	Skill_Overall,
+	Skill_Stream,
+	Skill_Jumpstream,
+	Skill_Handstream,
+	Skill_Stamina,
+	Skill_JackSpeed,
+	Skill_Chordjack,
+	Skill_Technical,
+	NUM_Skillset,
+	Skillset_Invalid,
+};
+
 // we do actually want to register these with lua i guess
 enum CalcPatternMod
 {
