@@ -26,7 +26,7 @@ fastpow(double a, double b)
 }
 
 // reasonably accurate taylor approximation for ^ 1.8
-float
+inline float
 fast_pw(float x)
 {
 	float xbar = x - 0.5f;
