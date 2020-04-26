@@ -905,8 +905,8 @@ RageDisplay_Legacy::EndFrame()
 		CameraPushMatrix();
 		LoadMenuPerspective(
 		  0,
-		  GetActualVideoModeParams()->width,
-		  GetActualVideoModeParams()->height,
+		  static_cast<float>(GetActualVideoModeParams()->width),
+		  static_cast<float>(GetActualVideoModeParams()->height),
 		  static_cast<float>(GetActualVideoModeParams()->width) / 2.f,
 		  static_cast<float>(GetActualVideoModeParams()->height) / 2.f);
 		fullscreenSprite.Draw();
