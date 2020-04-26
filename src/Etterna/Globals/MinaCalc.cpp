@@ -181,7 +181,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = {
-	0.f, 0.975f, 0.9f, 0.925f, 0.95f, 0.8f, 0.8f, 0.95f
+	0.f, 0.975f, 0.9f, 0.925f, 0.f, 0.8f, 0.8f, 0.95f
 };
 
 void
@@ -734,13 +734,8 @@ Hand::CalcInternal(float& gotpoints,
 		adj_diff[i] *= pre_multiplied_pattern_mod_group_a[i];
 	}
 
-	if (stam) {
-		// not entirely happy how this is handled but stam is really a special
-		// case
-		for (auto& d : adj_diff)
-			d *= basescalers[Skill_Stamina];
+	if (stam)
 		StamAdjust(x, adj_diff);
-	}
 
 	// final difficulty values to use
 	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
