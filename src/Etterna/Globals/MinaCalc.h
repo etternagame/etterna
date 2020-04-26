@@ -107,6 +107,7 @@ class Calc
 								float music_rate);
 
 	bool debugmode = false;
+	bool capssr = true;	// set to true for scores, false for cache
 	int numitv;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"

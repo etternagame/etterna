@@ -194,6 +194,7 @@ static const float basescalers[NUM_Skillset] = {
 void
 Calc::TotalMaxPoints()
 {
+	MaxPoints = 0;
 	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
 		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
 }
@@ -201,6 +202,7 @@ Calc::TotalMaxPoints()
 void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
+	v_itvpoints.clear();
 	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
@@ -504,7 +506,21 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	 */
 
 	difficulty.overall = highest_difficulty(difficulty);
-	return skillset_vector(difficulty);
+
+	// the final push down, cap ssrs (score specific ratings) to stop vibro
+	// garbage and calc abuse from polluting leaderboards too much, a "true"
+	// 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
+	// do this for SCORES only, not cached file difficulties
+	auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
+	  skillset_vector(difficulty);
+	if (capssr) {
+		static const float ssrcap = 40.f;
+		
+		for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul)
+			r = CalcClamp(r, r, ssrcap);
+	}
+	
+	return bye_vibro_maybe_yes_this_should_be_refactored_lul;
 }
 
 void
@@ -645,7 +661,7 @@ Calc::Chisel(float player_skill,
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
-			if (player_skill > 41.f)
+			if (player_skill > 100.f)
 				return player_skill;
 			player_skill += resolution;
 			if (ss == Skill_Overall || ss == Skill_Stamina)
@@ -1092,6 +1108,15 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[FlamJam], 1.f);
 }
 
+// since the calc skillset balance now operates on +- rather than just - and
+// then normalization, we will use this to depress the stream rating for
+// non-stream files. edit: ok technically this should be done in the sequential
+// pass however that's getting so bloated and efficiency has been optimized
+// enough we can just loop through noteinfo sequentially a few times and it's
+// whatever
+
+// the chaos mod is also determined here for the moment, which pushes up polys
+// and stuff... idk how it even works myself tbh its a pretty hackjobjob
 void
 Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				   vector<float> doot[ModCount],
@@ -1388,17 +1413,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	return;
 }
 
-static const float ssrcap = 0.975f; // cap SSR at 96% so things don't get out of
-									// hand YES WE ACTUALLY NEED THIS FFS
+static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
+
 // Function to generate SSR rating
 vector<float>
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 {
-	if (NoteInfo.size() <= 1) {
+	if (NoteInfo.size() <= 1)
 		return { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	}
 	return std::make_unique<Calc>()->CalcMain(
-	  NoteInfo, musicrate, min(goal, ssrcap));
+	  NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -1409,10 +1433,15 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 	int lower_rate = 7;
 	int upper_rate = 21;
 
-	if (NoteInfo.size() > 1)
-		for (int i = lower_rate; i < upper_rate; i++)
-			allrates.emplace_back(
-			  MinaSDCalc(NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
+	if (NoteInfo.size() > 1) {
+		std::unique_ptr<Calc> cacheRun = std::make_unique<Calc>();
+		cacheRun->capssr = false;
+		for (int i = lower_rate; i < upper_rate; i++) {
+			allrates.emplace_back(cacheRun->CalcMain(
+			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
+		}
+	}
+	
 	else {
 		vector<float> output{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 		for (int i = lower_rate; i < upper_rate; i++)
@@ -1433,7 +1462,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	std::unique_ptr<Calc> debugRun = std::make_unique<Calc>();
 	debugRun->debugmode = true;
-	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssrcap));
+	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
