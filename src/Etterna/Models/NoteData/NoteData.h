@@ -231,6 +231,7 @@ class NoteData
 	// Mina stuf
 	vector<int> NonEmptyRowVector;
 	vector<NoteInfo> SerializedNoteData;
+	vector<NoteInfo2> SerializedNoteData2;
 
   public:
 	void Init();

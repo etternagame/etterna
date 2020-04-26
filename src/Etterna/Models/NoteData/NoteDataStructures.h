@@ -9,6 +9,12 @@ struct NoteInfo
 	float rowTime;
 };
 
+struct NoteInfo2
+{
+	int notes;
+	int rowTime;
+};
+
 struct DifficultyRating
 {
 	float overall;
