@@ -45,22 +45,6 @@ fastsqrt(float _in)
 	return out;
 }
 
-// completely untested potential alternative to above
-inline float
-fastsqrt2(float _in)
-{
-	constexpr __m128 zero = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	__m128 x = _mm_load_ss(&_in); // load the float
-
-	// sqrt = rsqrt(in)*in
-	__m128 xmm1 = _mm_rsqrt_ps(x);
-	__m128 sqrt = _mm_mul_ss(xmm1, x);
-	__m128 is_zero = _mm_cmpeq_ps(zero, x);
-	// andnot to handle zero and get the float out
-	return _mm_cvtss_f32(_mm_andnot_ps(is_zero, sqrt));
-}
-
 template<typename T>
 inline T
 CalcClamp(T x, T l, T h)
