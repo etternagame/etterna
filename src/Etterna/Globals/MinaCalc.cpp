@@ -2,14 +2,44 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <numeric>
+#include <xmmintrin.h>
 
 using std::max;
 using std::min;
 using std::pow;
 using std::sqrt;
 using std::vector;
+
+// not super accurate, good enough for our purposes
+inline float
+fastsqrt(float _in)
+{
+	if (_in == 0.f)
+		return 0.f;
+	__m128 in = _mm_load_ss(&_in);
+	float out;
+	_mm_store_ss(&out, _mm_mul_ss(in, _mm_rsqrt_ss(in)));
+	return out;
+}
+
+// completely untested potential alternative to above
+inline float
+fastsqrt2(float _in)
+{
+	constexpr __m128 zero = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	__m128 x = _mm_load_ss(&_in); // load the float
+
+	// sqrt = rsqrt(in)*in
+	__m128 xmm1 = _mm_rsqrt_ps(x);
+	__m128 sqrt = _mm_mul_ss(xmm1, x);
+	__m128 is_zero = _mm_cmpeq_ps(zero, x);
+	// andnot to handle zero and get the float out
+	return _mm_cvtss_f32(_mm_andnot_ps(is_zero, sqrt));
+}
 
 template<typename T>
 inline T
@@ -33,13 +63,13 @@ cv(const vector<float>& input)
 	for (float i : input)
 		sd += (i - average) * (i - average);
 
-	return sqrt(sd / input.size()) / average;
+	return fastsqrt(sd / input.size()) / average;
 }
 
 inline float
 downscale_low_accuracy_scores(float f, float sg)
 {
-	return sg >= 0.93f ? f : min(max(f - sqrt(0.93f - sg), 0.f), 100.f);
+	return sg >= 0.93f ? f : min(max(f - fastsqrt(0.93f - sg), 0.f), 100.f);
 }
 
 inline void
@@ -880,7 +910,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 				jumps++;
 		}
 		doot[Jump][i] = taps != 0
-						  ? sqrt(sqrt(1 - (static_cast<float>(jumps) /
+						  ? fastsqrt(fastsqrt(1 - (static_cast<float>(jumps) /
 										   static_cast<float>(taps) / 3.f)))
 						  : 1.f;
 	}
@@ -911,7 +941,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 		}
 
 		doot[CJ][i] =
-		  CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(chordtaps) /
+		  CalcClamp(fastsqrt(fastsqrt(1.f - (static_cast<float>(chordtaps) /
 									 static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
@@ -1123,13 +1153,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					if (in >= the)
 						if (in <= 3.f * the)
 							if (the * 10000.f > 0.5f)
-								butt += sqrt(sqrt(static_cast<float>(
+								butt += fastsqrt(fastsqrt(static_cast<float>(
 								  static_cast<int>(in * 10000.f + 0.5f) %
 								  static_cast<int>(10000.f * the + 0.5f))));
 
 		if (!whatwhat.empty())
 			butt /= static_cast<float>(whatwhat.size());
-		butt = sqrt(butt) / 7.5f;
+		butt = fastsqrt(butt) / 7.5f;
 
 		butt = CalcClamp(butt + 0.8f, 0.95f, 1.1f);
 
@@ -1140,7 +1170,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		}
 
 		doot[StreamMod][i] =
-		  CalcClamp(sqrt(sqrt(1.f - (static_cast<float>(singletaps) /
+		  CalcClamp(fastsqrt(fastsqrt(1.f - (static_cast<float>(singletaps) /
 									 static_cast<float>(taps) / 3.f))),
 					0.5f,
 					1.f);
@@ -1352,8 +1382,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// downscaled cap to 1 (it's not an inherently bad idea to upscale sets
 		// of patterns with high variation but we shouldn't do that here,
 		// probably)
-		doot[Roll][i] = CalcClamp(0.5f + sqrt(cv), 0.5f, 1.f);
-		doot[OHTrill][i] = CalcClamp(0.5f + sqrt(cv), 0.8f, 1.f);
+		doot[Roll][i] = CalcClamp(0.5f + fastsqrt(cv), 0.5f, 1.f);
+		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(cv), 0.8f, 1.f);
 
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
@@ -1361,7 +1391,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		else {
 			ohj = static_cast<float>(maxseqjumptaps + 1) /
 				  static_cast<float>(totaltaps + 1);
-			doot[OHJump][i] = CalcClamp(0.5f + sqrt(ohj), 0.5f, 1.f);
+			doot[OHJump][i] = CalcClamp(0.5f + fastsqrt(ohj), 0.5f, 1.f);
 		}
 	}
 
