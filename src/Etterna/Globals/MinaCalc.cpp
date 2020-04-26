@@ -982,7 +982,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 						flam_row_counter = 0;
 						cols = 0;
 					}
-					if (tol_exceed && flam_row_counter > 1|| flam_row_counter == 4)
+					if ((tol_exceed && flam_row_counter > 1) || flam_row_counter == 4)
 						// at least a flam jump has been detected, flag it
 						flamjamslamwham = true;
 
