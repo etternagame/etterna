@@ -345,7 +345,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	vector<float> mcbloop(NUM_Skillset);
 	// overall and stam will be left as 0.f by this loop
 	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(0.1f, 5.12f, score_goal, i, false);
+		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
 	// stam is based on which calc produced the highest output without it
 	size_t highest_base_skillset = std::distance(
