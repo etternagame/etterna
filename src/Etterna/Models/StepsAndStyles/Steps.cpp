@@ -15,6 +15,7 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -31,6 +32,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include <algorithm>
 #include <thread>
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 /* register DisplayBPM with StringConversion */
 #include "Etterna/Models/Misc/EnumHelper.h"
@@ -412,21 +414,48 @@ Steps::CalcEtternaMetadata()
 	m_pNoteData->UnsetSerializedNoteData();
 }
 
-void
-Steps::BorpNDorf(int modType)
+float
+Steps::DoATestThing(float ev, Skillset ss)
 {
+	Decompress();
+	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
+	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
+
+	auto newcalc = MinaSDCalc(cereal, 1.f, 0.93f);
+	auto oldcalc = MinaSDCalc_OLD(cereal, 1.f, 0.93f);
+	LOG->Trace("%+0.2f (%+06.2f%%): %+0.2f %s",
+			   newcalc[0] - ev,
+			   (newcalc[0] - ev) / ev * 100.f,
+			   newcalc[0] - oldcalc[0],
+			   m_pSong->GetMainTitle().c_str());
+
+	m_pNoteData->UnsetNerv();
+	m_pNoteData->UnsetSerializedNoteData();
+	GetTimingData()->UnsetEtaner();
+	Compress();
+	return newcalc[0] - ev;
+}
+
+void
+Steps::GetCalcDebugOutput()
+{
+	// makes calc display not update with rate changes
+	// don't feel like making this fancy and it's fast
+	// enough now i guess
+	//if (!calcdebugoutput.empty())
+	//	return;
+	calcdebugoutput.clear();
 	// function is responsible for producing debug output
-	// Decompress();
+	Decompress();
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData());
 
-	if (modType < CalcPatternMod::ModCount && modType >= 0)
-		MinaSDCalcDebug(cereal,
-						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
-						0.93f,
-						dumbthings,
-						static_cast<CalcPatternMod>(modType));
-
+	MinaSDCalcDebug(cereal,
+					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
+					0.93f,
+					calcdebugoutput);
+  
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
@@ -436,8 +465,8 @@ Steps::BorpNDorf(int modType)
 void
 Steps::UnloadCalcDebugOutput()
 {
-	dumbthings.clear();
-	dumbthings.shrink_to_fit();
+	calcdebugoutput.clear();
+	calcdebugoutput.shrink_to_fit();
 }
 
 RString
@@ -960,16 +989,54 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
-	static int DootSpooks(T* p, lua_State* L)
+	static int GetCalcDebugOutput(T* p, lua_State* L)
 	{
-		int modType = IArg(1) - 1;
-		p->BorpNDorf(modType);
+		p->GetCalcDebugOutput();
 		lua_newtable(L);
-		for (size_t i = 0; i < p->dumbthings.size(); ++i) {
-			vector<float> poop = p->dumbthings[i];
-			LuaHelpers::CreateTableFromArray(poop, L);
-			lua_rawseti(L, -2, i + 1);
+		lua_pushstring(L, RString("CalcPatternMod"));
+		lua_createtable(L, 0, NUM_CalcPatternMod);
+		for (int i = 0; i < NUM_CalcPatternMod; ++i) {
+			lua_pushstring(
+			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][0][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
 		}
+		lua_rawset(L, -3);
+
+		lua_pushstring(L, RString("CalcDiffValue"));
+		lua_createtable(L, 0, NUM_CalcDiffValue);
+		for (int i = 0; i < NUM_CalcDiffValue; ++i) {
+			lua_pushstring(
+			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][1][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		lua_rawset(L, -3);
+
+		lua_pushstring(L, RString("CalcDebugMisc"));
+		lua_createtable(L, 0, NUM_CalcDebugMisc);
+		for (int i = 0; i < NUM_CalcDebugMisc; ++i) {
+			lua_pushstring(
+			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
+			lua_createtable(L, 0, 2);
+			for (int j = 0; j < 2; ++j) {
+				vector<float> poop = p->calcdebugoutput[j][2][i];
+				LuaHelpers::CreateTableFromArray(poop, L);
+				lua_rawseti(L, -2, j + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		lua_rawset(L, -3);
 		return 1;
 	}
 	LunaSteps()
@@ -1004,7 +1071,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
-		ADD_METHOD(DootSpooks);
+		ADD_METHOD(GetCalcDebugOutput);
 	}
 };
 

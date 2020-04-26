@@ -210,8 +210,9 @@ class Steps
 													   bool includeoverall);
 
 	void CalcEtternaMetadata();
-	void BorpNDorf(int modType);
-	vector<vector<float>> dumbthings;
+	float DoATestThing(float ev, Skillset ss);
+	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
+	vector<vector<vector<vector<float>>>> calcdebugoutput; // probably should clear this periodically
 	void UnloadCalcDebugOutput();
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;
