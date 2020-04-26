@@ -466,7 +466,9 @@ local modColors = {
     color(".4,0.9,0.3"),       
     color(".4,0.9,0.3"),
     color(".4,0.5,0.59"),       
-    color(".4,0.3,0.49")
+    color(".4,0.3,0.49"),
+    color("1,0,0"),
+    color("1,0,0"),
 }
 
 -- top graph average text
