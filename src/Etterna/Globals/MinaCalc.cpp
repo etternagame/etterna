@@ -166,10 +166,16 @@ highest_difficulty(const DifficultyRating& difficulty)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-								 1.025f; // multiplier to standardize baselines
+								 1.025f * 0.925f; // multiplier to standardize baselines
+
+// ***note*** if we want max control over stamina we need to have one model for
+// affecting the other skillsets to a certain degree, enough to push up longer
+// stream ratings into contention with shorter ones, and another for both a more
+// granular and influential modifier to calculate the end stamina rating with
+// so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.0933f;  // stamina multiplier max
+static const float stam_ceil = 1.091234f;  // stamina multiplier max
 static const float stam_mag = 505.f;	 // multiplier generation scaler
 static const float stam_fscale = 2000.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
@@ -347,7 +353,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// rerun all with stam on, optimize by starting at the non-stam adjusted
 	// base value for each skillset
 	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(mcbloop[i] - 0.64f, 1.28f, score_goal, i, true);
+		mcbloop[i] = Chisel(mcbloop[i], 1.28f, score_goal, i, true);
 
 	// stam jams, stamina should push up the base ratings for files so files
 	// that are more difficult by virtue of being twice as long for more or less
@@ -355,28 +361,27 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// up a huge amount either, we want high stream scores to be equally
 	// achieveable on longer or shorter files, ideally, the stam ratings itself
 	// is a separate consideration and will be scaled to the degree to which the
-	// stamina model affects the base rating
-
-	// first - zoot the boot up the loot, we don't want to straddle below and
-	// above 1 here
-	float mcfroggerbopper =
-	  pow(1.f + (mcbloop[highest_base_skillset] - base), 2) - 1.f;
-	// all pow with the pow now
+	// stamina model affects the base rating, so while stamina should affect the
+	// base skillset ratings slightly we want the degree to which it makes files
+	// harder to be catalogued as the stamina rating
+	// scaling down stuff that has no stamina component will help preventing
+	// pollution of stamina leaderboards with charts that are just very high
+	// rated but take no stamina
 	float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
-	// start with some% of the stam adjusted, scale the remaining to the pow'd
-	// differential anything at or over 1 is reasonably intense but lets not get
-	// it go too far how much stamina affects base ratings is handled in the
-	// global stam params, this controls how much it takes for stamina to affect
-	// the base rating, before it can positively affect the stamina rating,
-	// basically we want to start increasing the stamina rating starting around
-	// 5% bonus to base rating due to stamina, this gives us room to lower the
-	// stamina rating for not-stamina files, preventing pollution of stamina
-	// leaderboards with charts that are just very high rated but have no
-	// stamina component
-	mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.f, 1.1f);
-	mcbloop[Skill_Stamina] = 0.65f * poodle_in_a_porta_potty +
-					   (mcfroggerbopper * 0.35f * poodle_in_a_porta_potty);
+	// ends up being a multiplier between ~0.8 and ~1
+	// tuning is a wip
+	float mcfroggerbopper =
+	  pow((poodle_in_a_porta_potty / base) - 0.075f, 2.5f);
+
+	// we wanted to shift the curve down a lot before pow'ing but it was too
+	// much to balance out, so we need to give some back, this is roughly
+	// equivalent of multiplying by 1.05 but also not really because math
+	// we don't want to push up the high end stuff anymore so just add to
+	// let stuff down the curve catch up a little
+	// remember we're operating on a multiplier
+	mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.05f, 0.8f, 1.09f);
+	mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
 
 	// yes i know how dumb this looks
 	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
@@ -1421,5 +1426,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 272;
+	return 273;
 }
