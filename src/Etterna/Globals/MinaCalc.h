@@ -80,9 +80,6 @@ class Hand
 	// return value is true if a player can no longer reach scoregoal even if
 	// they get 100% of the remaining points
 	void CalcInternal(float& gotpoints,
-					  int& maxpoints,
-					  int& possiblepoints,
-					  float& reqpoints,
 					  float& x,
 					  int ss,
 					  bool stam,

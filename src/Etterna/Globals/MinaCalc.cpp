@@ -13,6 +13,26 @@ using std::pow;
 using std::sqrt;
 using std::vector;
 
+// Relies on endiannes (significantly inaccurate)
+inline double
+fastpow(double a, double b)
+{
+	int u[2];
+	std::memcpy(&u, &a, sizeof a);
+	u[1] = static_cast<int>(b * (u[1] - 1072632447) + 1072632447);
+	u[0] = 0;
+	std::memcpy(&a, &u, sizeof a);
+	return a;
+}
+
+// reasonably accurate taylor approximation for ^ 1.8
+float
+fast_pw(float x)
+{
+	float xbar = x - 0.5f;
+	return 0.287175f + 1.03383f * xbar + 0.827063f * xbar * xbar;
+}
+
 // not super accurate, good enough for our purposes
 inline float
 fastsqrt(float _in)
@@ -655,20 +675,8 @@ Calc::Chisel(float player_skill,
 			Chordjack) gotpoints += MaxPoints * 0.1f;
 			*/
 			// run standard calculator stuffies
-			left_hand.CalcInternal(gotpoints,
-								   MaxPoints,
-								   possiblepoints,
-								   reqpoints,
-								   player_skill,
-								   ss,
-								   stamina);
-			right_hand.CalcInternal(gotpoints,
-									MaxPoints,
-									possiblepoints,
-									reqpoints,
-									player_skill,
-									ss,
-									stamina);
+			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -678,22 +686,10 @@ Calc::Chisel(float player_skill,
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
 	if (debugoutput) {
-		left_hand.CalcInternal(gotpoints,
-							   MaxPoints,
-							   possiblepoints,
-							   reqpoints,
-							   player_skill,
-							   ss,
-							   stamina,
-							   debugoutput);
-		right_hand.CalcInternal(gotpoints,
-								MaxPoints,
-								possiblepoints,
-								reqpoints,
-								player_skill,
-								ss,
-								stamina,
-								debugoutput);
+		left_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, debugoutput);
+		right_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, debugoutput);
 	}
 
 	return player_skill + 2.f * resolution;
@@ -704,9 +700,6 @@ Calc::Chisel(float player_skill,
 // chisel
 void
 Hand::CalcInternal(float& gotpoints,
-				   int& MaxPoints,
-				   int& possiblepoints,
-				   float& reqpoints,
 				   float& x,
 				   int ss,
 				   bool stam,
@@ -777,28 +770,16 @@ Hand::CalcInternal(float& gotpoints,
 
 		for (size_t i = 0; i < v.size(); ++i) {
 			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
-										  : static_cast<float>(v_itvpoints[i]) *
-											  pow(x / v[i], 1.8f);
+										  : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
 			gotpoints += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 		}
 	} else
-		for (size_t i = 0; i < v.size(); ++i) {
-			// check if it's even possible to achieve scoregoal with the
-			// remaining points available, we don't care too much about
-			// rounding error here, this about breaks even when calculating
-			// scores and is mostly an optimization to songload
-			if (i % 32 == 31)
-				if (MaxPoints - possiblepoints + static_cast<int>(gotpoints) <=
-					static_cast<int>(reqpoints))
-					return;
-
-			possiblepoints += v_itvpoints[i];
+		for (size_t i = 0; i < v.size(); ++i)
 			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
 								  : static_cast<float>(v_itvpoints[i]) *
-									  pow(x / v[i], 1.8f);
-		}
+									  fast_pw(x / v[i]);
 }
 
 void
