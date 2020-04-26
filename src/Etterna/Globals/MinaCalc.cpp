@@ -308,8 +308,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// rerun all with stam on, optimize by starting at the non-stam adjusted
 	// base value for each skillset
+	// we can actually set the stam floor to < 1 to shift the curve a bit
 	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(mcbloop[i] - 0.32f, 0.64f, score_goal, i, true);
+		mcbloop[i] = Chisel(mcbloop[i] * 0.95f, 0.64f, score_goal, i, true);
 
 	// all relative scaling to specific skillsets should occur before this
 	// point, not after (it ended up this way due to the normalizers which were
@@ -480,8 +481,8 @@ static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 
 // Stamina Model params
 static const float stam_ceil = 1.091234f; // stamina multiplier max
-static const float stam_mag = 505.f;	  // multiplier generation scaler
-static const float stam_fscale = 2000; // how fast the floor rises (it's lava)
+static const float stam_mag = 323.f;	  // multiplier generation scaler
+static const float stam_fscale = 250.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.725f; // proportion of player difficulty at which stamina tax begins
 
@@ -587,11 +588,7 @@ Calc::Chisel(float player_skill,
 // final difficulty as the starting point and should only be executed once per
 // chisel
 void
-Hand::CalcInternal(float& gotpoints,
-				   float& x,
-				   int ss,
-				   bool stam,
-				   bool debug)
+Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 {
 	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
@@ -654,24 +651,25 @@ Hand::CalcInternal(float& gotpoints,
 		debugValues[1][MSD] = stam_adj_diff;
 
 		for (size_t i = 0; i < v.size(); ++i) {
-			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
-										  : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
+			float gainedpoints =
+			  x > v[i] ? static_cast<float>(v_itvpoints[i])
+					   : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
 			gotpoints += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 		}
 	} else
 		for (size_t i = 0; i < v.size(); ++i)
-			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
-								  : static_cast<float>(v_itvpoints[i]) *
-									  fast_pw(x / v[i]);
+			gotpoints +=
+			  x > v[i] ? static_cast<float>(v_itvpoints[i])
+					   : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
 }
 
 void
 Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 {
-	float floor = 1.f; // stamina multiplier min (increases as chart advances)
-	float mod = 1.f;   // mutliplier
+	float floor = 0.95f; // stamina multiplier min (increases as chart advances)
+	float mod = 0.95f;	 // mutliplier
 
 	float avs1 = 0.f;
 	float avs2 = 0.f;
@@ -684,9 +682,11 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
+				if (floor < stam_ceil)
+					floor += (mod - 1.f) / stam_fscale;
+
 			mod = CalcClamp(mod, floor, stam_ceil);
-			stam_adj_diff[i] = diff[i] * mod;
+			stam_adj_diff[i] = avs2 * mod;
 			debugValues[2][StamMod][i] = mod;
 		}
 	else
@@ -694,10 +694,12 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f)
-				floor += (mod - 1.f) / stam_fscale;
+			if (mod > 1.f) 
+				if (floor < stam_ceil)
+					floor += (mod - 1.f) / stam_fscale;
+
 			mod = CalcClamp(mod, floor, stam_ceil);
-			stam_adj_diff[i] = diff[i] * mod;
+			stam_adj_diff[i] = avs2 * mod;
 		}
 }
 
@@ -1353,5 +1355,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 273;
+	return 274;
 }
