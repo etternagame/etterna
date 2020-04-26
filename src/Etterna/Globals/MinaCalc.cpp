@@ -343,7 +343,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	vector<float> mcbloop(NUM_Skillset);
 	// overall and stam will be left as 0.f by this loop
 	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
+		mcbloop[i] = Chisel(0.1f, 5.12f, score_goal, i, false);
 
 	// stam is based on which calc produced the highest output without it
 	size_t highest_base_skillset = std::distance(
@@ -353,7 +353,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// rerun all with stam on, optimize by starting at the non-stam adjusted
 	// base value for each skillset
 	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(mcbloop[i], 1.28f, score_goal, i, true);
+		mcbloop[i] = Chisel(mcbloop[i] - 0.32f, 0.64f, score_goal, i, true);
 
 	// stam jams, stamina should push up the base ratings for files so files
 	// that are more difficult by virtue of being twice as long for more or less
@@ -391,7 +391,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
 	// this is the only time debugoutput arg should be set to true
 	if (debugmode)
-		Chisel(mcbloop[highest_base_skillset] - 2.56f,
+		Chisel(mcbloop[highest_base_skillset] - 0.16f,
 			   0.32f,
 			   score_goal,
 			   highest_base_skillset,
@@ -643,7 +643,7 @@ Calc::Chisel(float player_skill,
 	float gotpoints = 0.f;
 	int possiblepoints = 0;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
-	for (int iter = 1; iter <= 7; iter++) {
+	for (int iter = 1; iter <= 8; iter++) {
 		do {
 			if (player_skill > 41.f)
 				return player_skill;
