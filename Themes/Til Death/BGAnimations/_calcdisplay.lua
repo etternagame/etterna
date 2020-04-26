@@ -475,7 +475,7 @@ local modColors = {
 makeskillsetlabeltext = function(i, mod, hand) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
-            local xspace = 22   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 20   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
             self:zoom(0.3)
             self:settext("")
