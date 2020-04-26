@@ -1192,12 +1192,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// how that case is handled atm
 	int lastcol = -1;
 	float lasttime = 0.f;
-
+	vector<float> lr;
+	vector<float> rl;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// roll downscaler stuff
 		int totaltaps = 0;
-		vector<float> lr;
-		vector<float> rl;
+		lr.clear();
+		rl.clear();
 		int ltaps = 0;
 		int rtaps = 0;
 
