@@ -164,33 +164,6 @@ highest_difficulty(const DifficultyRating& difficulty)
 	return *std::max_element(v.begin(), v.end());
 }
 
-// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-								 1.025f * 0.925f; // multiplier to standardize baselines
-
-// ***note*** if we want max control over stamina we need to have one model for
-// affecting the other skillsets to a certain degree, enough to push up longer
-// stream ratings into contention with shorter ones, and another for both a more
-// granular and influential modifier to calculate the end stamina rating with
-// so todo on that
-
-// Stamina Model params
-static const float stam_ceil = 1.091234f;  // stamina multiplier max
-static const float stam_mag = 505.f;	 // multiplier generation scaler
-static const float stam_fscale = 2000.f; // how fast the floor rises (it's lava)
-static const float stam_prop =
-  0.725f; // proportion of player difficulty at which stamina tax begins
-
-// since we are no longer using the normalizer system we need to lower
-// the base difficulty for each skillset and then detect pattern types
-// to push down OR up, rather than just down and normalizing to a differential
-// since chorded patterns have lower enps than streams, streams default to 1
-// and chordstreams start lower
-// stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = {
-	0.f, 0.975f, 0.9f, 0.925f, 0.f, 0.8f, 0.8f, 0.95f
-};
-
 void
 Calc::TotalMaxPoints()
 {
@@ -320,25 +293,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float shortstamdownscaler = CalcClamp(
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
-	// all this garbage should be handled by pattern mods, before chisel is run
-	// ok maybe that isn't a hard and fast rule, but we should avoid it here
-	/*
-	float jprop = chord_proportion(NoteInfo, 2);
-	float nojumpsdownscaler =
-	  CalcClamp(0.8f + (0.2f * (jprop + 0.5f)), 0.8f, 1.f);
-	float manyjumpsdownscaler = CalcClamp(1.43f - jprop, 0.85f, 1.f);
-
-	float hprop = chord_proportion(NoteInfo, 3);
-	float nohandsdownscaler =
-	  CalcClamp(0.8f + (0.2f * (hprop + 0.65f)), 0.8f, 1.f);
-	float allhandsdownscaler = CalcClamp(1.23f - hprop, 0.85f, 1.f);
-
-	float qprop = chord_proportion(NoteInfo, 4);
-	float lotquaddownscaler = CalcClamp(1.13f - qprop, 0.85f, 1.f);
-
-	float jumpthrill = CalcClamp(1.625f - jprop - hprop, 0.85f, 1.f);
-	*/
-
 	InitializeHands(NoteInfo, music_rate);
 	TotalMaxPoints();
 
@@ -356,6 +310,12 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// base value for each skillset
 	for (int i = 0; i < NUM_Skillset; ++i)
 		mcbloop[i] = Chisel(mcbloop[i] - 0.32f, 0.64f, score_goal, i, true);
+
+	// all relative scaling to specific skillsets should occur before this
+	// point, not after (it ended up this way due to the normalizers which were
+	// dumb and removed) stam is the only skillset that can/should be normalized
+	// to base values without interfering with anything else (since it's not
+	// based on a type of pattern)
 
 	// stam jams, stamina should push up the base ratings for files so files
 	// that are more difficult by virtue of being twice as long for more or less
@@ -399,111 +359,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   highest_base_skillset,
 			   true,
 			   true);
-
-	// below are bandaids that the internal calc functions should handle prior
-	// _some_ basic adjustment post-evalution may be warranted but this is way
-	// too far, to the point where it becomes more difficult to make any
-	// positive changes, though it also happens to be where almost all of the
-	// balance of 263
-
-	// all relative scaling to specific skillsets should occur before this
-	// point, not after (it ended up this way due to the normalizers which were
-	// dumb and removed) stam is the only skillset that can/should be normalized
-	// to base values without interfering with anything else (since it's not
-	// based on a type of pattern)
-
-	// specific scaling to curve sub 93 scores down harder should take place
-	// last
-
-	/*
-	difficulty.stream *=
-	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler;
-	difficulty.jumpstream *=
-	  nojumpsdownscaler * allhandsdownscaler * lotquaddownscaler;
-	difficulty.handstream *= nohandsdownscaler * allhandsdownscaler *
-							 manyjumpsdownscaler * lotquaddownscaler;
-	difficulty.stamina = CalcClamp(
-	  difficulty.stamina * shortstamdownscaler * 0.985f * lotquaddownscaler,
-	  1.f,
-	  max(max(difficulty.stream, difficulty.jack),
-		  max(difficulty.jumpstream, difficulty.handstream)) *
-		1.1f);
-	difficulty.technical *=
-	  allhandsdownscaler * manyjumpsdownscaler * lotquaddownscaler * 1.01f;
-
-	chordjack *= CalcClamp(qprop + hprop + jprop + 0.2f, 0.5f, 1.f) * 1.025f;
-
-	bool downscale_chordjack_at_end = false;
-	if (chordjack > difficulty.jack)
-		difficulty.chordjack = chordjack;
-	else
-		downscale_chordjack_at_end = true;
-
-	fingerbias /= static_cast<float>(2 * nervIntervals.size());
-	float finger_bias_scaling = CalcClamp(3.55f - fingerbias, 0.85f, 1.f);
-	difficulty.technical *= finger_bias_scaling;
-
-	if (finger_bias_scaling <= 0.95f) {
-		difficulty.jack *= 1.f + (1.f - sqrt(finger_bias_scaling));
-	}
-
-	float max_js_hs = max(difficulty.handstream, difficulty.jumpstream);
-	if (difficulty.stream < max_js_hs)
-		difficulty.stream -= sqrt(max_js_hs - difficulty.stream);
-
-	vector<float> temp_vec = skillset_vector(difficulty);
-	float overall = AggregateScores(temp_vec, 0.f, 10.24f);
-	difficulty.overall = downscale_low_accuracy_scores(overall, score_goal);
-
-	temp_vec = skillset_vector(difficulty);
-	float aDvg = mean(temp_vec) * 1.2f;
-	difficulty.overall = downscale_low_accuracy_scores(
-	  min(difficulty.overall, aDvg) * grindscaler, score_goal);
-	difficulty.stream = downscale_low_accuracy_scores(
-	  min(difficulty.stream, aDvg * 1.0416f) * grindscaler, score_goal);
-	difficulty.jumpstream =
-	  downscale_low_accuracy_scores(
-		min(difficulty.jumpstream, aDvg * 1.0416f) * grindscaler, score_goal) *
-	  jumpthrill;
-	difficulty.handstream =
-	  downscale_low_accuracy_scores(
-		min(difficulty.handstream, aDvg) * grindscaler, score_goal) *
-	  jumpthrill;
-	difficulty.stamina =
-	  downscale_low_accuracy_scores(min(difficulty.stamina, aDvg) * grindscaler,
-									score_goal) *
-	  sqrt(jumpthrill) * 0.996f;
-	difficulty.jack = downscale_low_accuracy_scores(
-	  min(difficulty.jack, aDvg) * grindscaler, score_goal);
-	difficulty.chordjack = downscale_low_accuracy_scores(
-	  min(difficulty.chordjack, aDvg) * grindscaler, score_goal);
-	difficulty.technical =
-	  downscale_low_accuracy_scores(
-		min(difficulty.technical, aDvg * 1.0416f) * grindscaler, score_goal) *
-	  sqrt(jumpthrill);
-
-	float highest = max(difficulty.overall, highest_difficulty(difficulty));
-
-	vector<float> temp = skillset_vector(difficulty);
-	difficulty.overall = AggregateScores(temp, 0.f, 10.24f);
-
-	if (downscale_chordjack_at_end) {
-		difficulty.chordjack *= 0.9f;
-	}
-
-	float dating = CalcClamp(0.5f + (highest / 100.f), 0.f, 0.9f);
-
-	if (score_goal < dating) {
-		difficulty = DifficultyRating{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-	}
-
-	if (highest == difficulty.technical) {
-		difficulty.technical -= CalcClamp(
-		  4.5f - difficulty.technical + difficulty.handstream, 0.f, 4.5f);
-		difficulty.technical -= CalcClamp(
-		  4.5f - difficulty.technical + difficulty.jumpstream, 0.f, 4.5f);
-	}
-	 */
 
 	difficulty.overall = highest_difficulty(difficulty);
 
@@ -611,6 +466,33 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
 	j3 = SequenceJack(NoteInfo, 3, music_rate);
 }
+
+// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
+static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
+								 1.025f *
+								 0.925f; // multiplier to standardize baselines
+
+// ***note*** if we want max control over stamina we need to have one model for
+// affecting the other skillsets to a certain degree, enough to push up longer
+// stream ratings into contention with shorter ones, and another for both a more
+// granular and influential modifier to calculate the end stamina rating with
+// so todo on that
+
+// Stamina Model params
+static const float stam_ceil = 1.091234f; // stamina multiplier max
+static const float stam_mag = 505.f;	  // multiplier generation scaler
+static const float stam_fscale = 2000; // how fast the floor rises (it's lava)
+static const float stam_prop =
+  0.725f; // proportion of player difficulty at which stamina tax begins
+
+// since we are no longer using the normalizer system we need to lower
+// the base difficulty for each skillset and then detect pattern types
+// to push down OR up, rather than just down and normalizing to a differential
+// since chorded patterns have lower enps than streams, streams default to 1
+// and chordstreams start lower
+// stam is a special case and may use normalizers again
+static const float basescalers[NUM_Skillset] = { 0.f, 0.975f, 0.9f, 0.925f,
+												 0.f, 0.8f,   0.8f, 0.95f };
 
 float
 Hand::CalcMSEstimate(vector<float>& input)
