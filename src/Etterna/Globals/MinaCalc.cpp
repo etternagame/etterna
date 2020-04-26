@@ -1010,7 +1010,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 						// and last elements detected were on the same row,
 						// ignore it, trying to do fc_dur == 0.f didn't work
 						// because of float precision
-						if (flam_rows[0] != flam_rows[flam_row_counter]) {
+						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
 							// basic linear scale for testing purposes, scaled
 							// to the window length and also flam size
 							mod_part =
