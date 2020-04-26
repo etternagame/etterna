@@ -6,6 +6,7 @@
 #include <memory>
 #include <numeric>
 #include <xmmintrin.h>
+#include <cstring>
 
 using std::max;
 using std::min;
