@@ -942,8 +942,13 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 	// the flamjam vector memory
 	int flam_row_counter = 0;
 	bool flamjamslamwham = false;
+
+	// in each interval
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// build up flam detection for this interval
 		vector<float> temp_mod;
+
+		// row loop to pick up flams within the interval
 		for (int row : nervIntervals[i]) {
 			// perhaps we should start tracking this instead of tracking it over
 			// and over....
@@ -1055,22 +1060,33 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 					++flam_row_counter;
 				}
 			}
-
-			// forgive a single instance of a chord flam for now; handle none
-			if (temp_mod.size() < 2)
-				doot[FlamJam][i] = 1.f;
-
-			float wee = 0.f;
-			for (auto& v : temp_mod)
-				wee += v;
-
-			// we can do this for now without worring about /0 since size is at
-			// least 2 to get here
-			wee /= static_cast<float>(temp_mod.size() - 1);
-
-			wee = CalcClamp(1.f - wee, 0.5f, 1.f);
-			doot[FlamJam][i] = wee;
 		}
+
+		// finishing the row loop leaves us with instances of flamjams
+		// forgive a single instance of a chord flam for now; handle none
+		if (temp_mod.size() < 2)
+			doot[FlamJam][i] = 1.f;
+
+		float wee = 0.f;
+		for (auto& v : temp_mod)
+			wee += v;
+
+		// we can do this for now without worring about /0 since size is at
+		// least 2 to get here
+		wee /= static_cast<float>(temp_mod.size() - 1);
+
+		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
+		doot[FlamJam][i] = wee;
+
+		// reset the stuffs, _theoretically_ since we are sequencing we don't
+		// even need at all to clear the flam detection however then we have
+		// to handle cases like a single note in an interval and i don't feel
+		// like doing that, a small number of flams that happen to straddle
+		// the interval splice points shouldn't make a huge difference, but if
+		// they do then we should deal with it
+		temp_mod.clear();
+		flam_row_counter = 0;
+		cols = 0;
 	}
 	if (SmoothPatterns)
 		Smooth(doot[FlamJam], 1.f);
