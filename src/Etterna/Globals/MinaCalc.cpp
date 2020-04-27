@@ -371,11 +371,11 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  skillset_vector(difficulty);
 	if (capssr) {
 		static const float ssrcap = 40.f;
-		
+
 		for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul)
 			r = CalcClamp(r, r, ssrcap);
 	}
-	
+
 	return bye_vibro_maybe_yes_this_should_be_refactored_lul;
 }
 
@@ -610,7 +610,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		// high ratings in every category
 		switch (ss) {
 				// streammod downscales anything not single tap focused
-			case Skill_Stream: 
+			case Skill_Stream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
 							  doot[StreamMod][i] * doot[Chaos][i];
 				break;
@@ -674,7 +674,7 @@ void
 Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 {
 	float floor = 0.95f; // stamina multiplier min (increases as chart advances)
-	float mod = 0.95f;	 // mutliplier
+	float mod = 0.95f;   // mutliplier
 
 	float avs1 = 0.f;
 	float avs2 = 0.f;
@@ -699,7 +699,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f) 
+			if (mod > 1.f)
 				if (floor < stam_ceil)
 					floor += (mod - 1.f) / stam_fscale;
 
@@ -901,14 +901,16 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 						flam_row_counter = 0;
 						cols = 0;
 					}
-					if ((tol_exceed && flam_row_counter > 1) || flam_row_counter == 4)
+					if ((tol_exceed && flam_row_counter > 1) ||
+						flam_row_counter == 4)
 						// at least a flam jump has been detected, flag it
 						flamjamslamwham = true;
 
-					// if we have identified a flam chord in some way; handle and
-					// reset, we don't want to skip the notes in this iteration
-					// yes this should be done in the column loop since a flam
-					// can start and end on any columns in any order
+					// if we have identified a flam chord in some way; handle
+					// and reset, we don't want to skip the notes in this
+					// iteration yes this should be done in the column loop
+					// since a flam can start and end on any columns in any
+					// order
 
 					// conditions to be here are at least 2 different columns
 					// have been logged as part of a flam chord and we have
@@ -1092,7 +1094,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		// we should allow for some leeway in bad interval slicing
 		// this maybe doesn't need to be so severe, on the other hand, maybe it
 		// doesn'ting need to be not needing'nt to be so severe
-		float prop = static_cast<float>(singletaps + 1) / static_cast<float>(taps - 1) * 10.f / 7.f;
+		float prop = static_cast<float>(singletaps + 1) /
+					 static_cast<float>(taps - 1) * 10.f / 7.f;
 		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
 
 		doot[Chaos][i] = butt;
@@ -1354,7 +1357,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
 		}
 	}
-	
+
 	else {
 		vector<float> output{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 		for (int i = lower_rate; i < upper_rate; i++)
