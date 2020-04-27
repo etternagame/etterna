@@ -187,7 +187,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.96f), 1.5f));
+			o += 4.f - (4.f * pow(x / (j[i]), 1.6f));
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
@@ -199,9 +199,10 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 {
 	vector<float> output;
 	float last = -5.f;
-	float interval1;
-	float interval2 = 0.f;
-	float interval3 = 0.f;
+	float interval1 = 250.f;
+	float interval2 = 250.f;
+	float interval3 = 250.f;
+	float interval4 = 250.f;
 	unsigned int track = 1u << t;
 
 	for (auto i : NoteInfo) {
@@ -209,11 +210,13 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			float current_time = i.rowTime / music_rate;
 			interval1 = interval2;
 			interval2 = interval3;
-			interval3 = 1000.f * (current_time - last);
+			interval3 = interval4;
+			interval4 = 1000.f * (current_time - last);
 			last = current_time;
 			output.emplace_back(
-			  min(2800.f / min((interval1 + interval2 + interval3) / 3.f,
-							   interval3 * 1.4f),
+			  min(2800.f /
+					min((interval1 + interval2 + interval3 + interval4) / 4.f,
+							   interval4 * 1.8f),
 				  50.f));
 		}
 	}
@@ -552,16 +555,14 @@ Calc::Chisel(float player_skill,
 			// reset tallied score
 			gotpoints = 0.f;
 			possiblepoints = 0;
-			/*
+
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == JackSpeed || ss == Chordjack || ss == Technical)
-				gotpoints -=(JackLoss(j0, player_skill) -
+			if (ss == Skill_JackSpeed || ss == Skill_Chordjack)
+				gotpoints += (JackLoss(j0, player_skill) -
 							JackLoss(j1, player_skill) -
 							JackLoss(j2, player_skill) -
-							JackLoss(j3, player_skill)) / static_cast<float>(1.f
-			+ static_cast<float>(ss == Technical)); if (ss == JackSpeed || ss ==
-			Chordjack) gotpoints += MaxPoints * 0.1f;
-			*/
+							JackLoss(j3, player_skill));
+			
 			// run standard calculator stuffies
 			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
