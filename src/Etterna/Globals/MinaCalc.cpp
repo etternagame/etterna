@@ -593,45 +593,51 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
 	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
-		// only slightly less cancerous than before, this can/should be
-		// refactored once the areas of redundancy are more clearly defined
+		// the new way we wil attempt to diffrentiate skillsets rather than
+		// using normalizers is by detecting whether or not we think a file is
+		// mostly comprised of a given pattern, producing a downscaler that
+		// slightly buffs up those files and produces a downscaler for files not
+		// detected of that type. the major potential failing of this system is
+		// that it ends up such that the rating is tied directly to whether or
+		// not a file can be more or less strongly determined to be of a pattern
+		// type, e.g. splithand trills being marked as more "js" than actual js,
+		// for the moment these modifiers are still built on proportion of taps
+		// in chords / total taps, but there's a lot more give than their used
+		// to be. they should be re-done as sequential detection for best effect
+		// but i don't know if that will be necessary for basic tuning
+		// if we don't do this files may end up misclassing hard and polluting
+		// leaderboards, and good scores on overrated files will simply produce
+		// high ratings in every category
 		switch (ss) {
-			case Skill_Overall: // handled up the stack, never happens here
+				// streammod downscales anything not single tap focused
+			case Skill_Stream: 
+				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
+							  doot[StreamMod][i] * doot[Chaos][i];
 				break;
-			case Skill_Stream: // vanilla, apply everything based on nps diff
-				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] *
-							  doot[CJ][i] * doot[Chaos][i] * doot[FlamJam][i] *
-							  doot[StreamMod][i];
-				adj_diff[i] *= basescalers[ss];
+				// jump downscales anything without some jumps
+			case Skill_Jumpstream:
+				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i];
 				break;
-			case Skill_Jumpstream: // dont apply cj
-				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] / doot[Jump][i];
-				adj_diff[i] *= basescalers[ss];
-				break;
-			case Skill_Handstream: // here cj counterbalances hs a bit, not good
-				adj_diff[i] =
-				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
-				adj_diff[i] *= basescalers[ss];
-				break;
-			case Skill_Stamina: // handled up the stack, never happens here
+				// hs downscales anything without some hands
+			case Skill_Handstream:
+				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i];
 				break;
 			case Skill_JackSpeed: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i];
-				adj_diff[i] *= basescalers[ss];
+				adj_diff[i] = soap[BaseMSD][i];
 				break;
 			case Skill_Chordjack: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] / doot[CJ][i];
-				adj_diff[i] *= basescalers[ss];
+				adj_diff[i] = soap[BaseMSD][i] * doot[CJ][i];
 				break;
 			case Skill_Technical: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i] *
-							  doot[CJ][i] * doot[Chaos][i];
-				adj_diff[i] *= basescalers[ss];
+				adj_diff[i] = soap[BaseMSD][i] * doot[Chaos][i];
+				break;
+			case Skill_Stamina: // handled up the stack, never happens here
+			case Skill_Overall: // handled up the stack, never happens here
 				break;
 		}
 
-		// we always want to apply these mods, i think
-		adj_diff[i] *= pre_multiplied_pattern_mod_group_a[i];
+		// we always want to apply these mods, i think (roll, anchor, ohjump)
+		adj_diff[i] *= pre_multiplied_pattern_mod_group_a[i] * basescalers[ss];
 	}
 
 	if (stam)
@@ -749,13 +755,18 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 3)
-				handtaps++;
+				handtaps += 3;
 		}
-		doot[HS][i] =
-		  taps != 0
-			? 1 - pow((static_cast<float>(handtaps) / static_cast<float>(taps)),
-					  1.5f)
-			: 1.f;
+
+		if (taps == 0)
+			doot[HS][i] = 1.f;
+		if (taps < 3)
+			doot[HS][i] = 0.8f;
+
+		// when bark of dog into canyon scream at you
+		float prop = static_cast<float>(handtaps + 1) /
+					 static_cast<float>(taps - 1) * 20.f / 7.f;
+		doot[HS][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
 	}
 
 	if (SmoothPatterns)
@@ -769,17 +780,23 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
-		unsigned int jumps = 0;
+		unsigned int jumptaps = 0;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 2)
-				jumps++;
+				jumptaps += 2;
 		}
-		doot[Jump][i] = taps != 0
-						  ? fastsqrt(fastsqrt(1 - (static_cast<float>(jumps) /
-										   static_cast<float>(taps) / 3.f)))
-						  : 1.f;
+
+		if (taps == 0)
+			doot[Jump][i] = 1.f;
+		if (taps < 2)
+			doot[Jump][i] = 0.8f;
+
+		// creepy banana
+		float prop = static_cast<float>(jumptaps + 1) /
+					 static_cast<float>(taps - 1) * 15.f / 7.f;
+		doot[Jump][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
 	}
 	if (SmoothPatterns)
 		Smooth(doot[Jump], 1.f);
@@ -807,11 +824,9 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			continue;
 		}
 
-		doot[CJ][i] =
-		  CalcClamp(fastsqrt(fastsqrt(1.f - (static_cast<float>(chordtaps) /
-									 static_cast<float>(taps) / 3.f))),
-					0.5f,
-					1.f);
+		// cappee pooster from stream for now
+		float prop = (chordtaps + 1) / (taps - 1) * 10.f / 7.f;
+		doot[CJ][i] = CalcClamp(sqrt(prop), 0.8f, 1.0f);
 	}
 	if (SmoothPatterns)
 		Smooth(doot[CJ], 1.f);
