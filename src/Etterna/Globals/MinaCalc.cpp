@@ -335,7 +335,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// ends up being a multiplier between ~0.8 and ~1
 	// tuning is a wip
 	float mcfroggerbopper =
-	  pow((poodle_in_a_porta_potty / base) - 0.075f, 2.5f);
+	  pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
 
 	// we wanted to shift the curve down a lot before pow'ing but it was too
 	// much to balance out, so we need to give some back, this is roughly
@@ -343,7 +343,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// we don't want to push up the high end stuff anymore so just add to
 	// let stuff down the curve catch up a little
 	// remember we're operating on a multiplier
-	mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.05f, 0.8f, 1.09f);
+	mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.025f, 0.8f, 1.09f);
 	mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
 
 	// yes i know how dumb this looks
@@ -480,11 +480,11 @@ static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.091234f; // stamina multiplier max
+static const float stam_ceil = 1.071234f; // stamina multiplier max
 static const float stam_mag = 323.f;	  // multiplier generation scaler
-static const float stam_fscale = 250.f; // how fast the floor rises (it's lava)
+static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
-  0.725f; // proportion of player difficulty at which stamina tax begins
+  0.75f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
 // the base difficulty for each skillset and then detect pattern types
