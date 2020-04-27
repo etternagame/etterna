@@ -765,7 +765,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 		// when bark of dog into canyon scream at you
 		float prop = static_cast<float>(handtaps + 1) /
-					 static_cast<float>(taps - 1) * 20.f / 7.f;
+					 static_cast<float>(taps - 1) * 28.f / 7.f;
 		doot[HS][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
 	}
 
@@ -795,7 +795,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 		// creepy banana
 		float prop = static_cast<float>(jumptaps + 1) /
-					 static_cast<float>(taps - 1) * 15.f / 7.f;
+					 static_cast<float>(taps - 1) * 18.f / 7.f;
 		doot[Jump][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
 	}
 	if (SmoothPatterns)
