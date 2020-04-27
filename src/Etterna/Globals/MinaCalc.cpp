@@ -1068,7 +1068,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			butt /= static_cast<float>(whatwhat.size());
 		butt = fastsqrt(butt) / 7.5f;
 
-		butt = CalcClamp(butt + 0.8f, 0.95f, 1.1f);
+		butt = CalcClamp(butt + 0.8f, 0.95f, 1.075f);
 
 		// 1 tap is by definition a single tap
 		if (taps < 2 || singletaps == 0) {
