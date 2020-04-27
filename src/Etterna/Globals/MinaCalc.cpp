@@ -596,12 +596,12 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		// only slightly less cancerous than before, this can/should be
 		// refactored once the areas of redundancy are more clearly defined
 		switch (ss) {
-			case Skill_Overall: // should never be the case, handled up the
-								// stack
+			case Skill_Overall: // handled up the stack, never happens here
 				break;
 			case Skill_Stream: // vanilla, apply everything based on nps diff
 				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Jump][i] *
-							  doot[CJ][i] * doot[Chaos][i] * doot[FlamJam][i];
+							  doot[CJ][i] * doot[Chaos][i] * doot[FlamJam][i] *
+							  doot[StreamMod][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
 			case Skill_Jumpstream: // dont apply cj
@@ -613,8 +613,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				  soap[BaseNPS][i] / max(doot[HS][i], 0.925f) * doot[Jump][i];
 				adj_diff[i] *= basescalers[ss];
 				break;
-			case Skill_Stamina: // should never be the case, handled up the
-								// stack
+			case Skill_Stamina: // handled up the stack, never happens here
 				break;
 			case Skill_JackSpeed: // use ms hybrid base
 				adj_diff[i] = soap[BaseMSD][i] * doot[HS][i] * doot[Jump][i];
@@ -1018,7 +1017,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 1)
-				singletaps += notes;
+				++singletaps;
 
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
@@ -1056,17 +1055,30 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 
 		butt = CalcClamp(butt + 0.8f, 0.95f, 1.1f);
 
-		if (taps == 0 || singletaps == 0) {
+		// 1 tap is by definition a single tap
+		if (taps < 2 || singletaps == 0) {
 			doot[StreamMod][i] = 1.f;
 			doot[Chaos][i] = butt;
 			continue;
 		}
 
-		doot[StreamMod][i] =
-		  CalcClamp(fastsqrt(fastsqrt(1.f - (static_cast<float>(singletaps) /
-									 static_cast<float>(taps) / 3.f))),
-					0.5f,
-					1.f);
+		// we're going to use this to downscale the stream skillset of anything
+		// that isn't stream, just a simple tap proportion for the moment but
+		// maybe if we need to do fancier sequential stuff we can, the only real
+		// concern are jack files registering as stream and that shouldn't be an
+		// issue because the amount of single taps required to do that to any
+		// effectual level would be unplayable
+
+		// we could also use this to push up stream files if we wanted to but
+		// i don't think that's advisable or necessary
+
+		// we want very light js to register as stream, something like jumps on
+		// every other 4th, so 17/19 ratio should return full points, but maybe
+		// we should allow for some leeway in bad interval slicing
+		// this maybe doesn't need to be so severe, on the other hand, maybe it
+		// doesn'ting need to be not needing'nt to be so severe
+		float prop = static_cast<float>(singletaps + 1) / static_cast<float>(taps - 1) * 10.f / 7.f;
+		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
 
 		doot[Chaos][i] = butt;
 	}
@@ -1108,6 +1120,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	vector<float> rl;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// roll downscaler stuff
+		// this appears not to be picking up certain patterns in certain test
+		// files, reminder to investigate
 		int totaltaps = 0;
 		lr.clear();
 		rl.clear();
