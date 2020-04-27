@@ -628,7 +628,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				adj_diff[i] = soap[BaseMSD][i] * doot[CJ][i];
 				break;
 			case Skill_Technical: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] * doot[Chaos][i];
+				adj_diff[i] =
+				  soap[BaseMSD][i] * max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
 				break;
 			case Skill_Stamina: // handled up the stack, never happens here
 			case Skill_Overall: // handled up the stack, never happens here
