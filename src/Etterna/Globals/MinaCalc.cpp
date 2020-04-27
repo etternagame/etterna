@@ -470,8 +470,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-								 1.025f *
-								 0.925f; // multiplier to standardize baselines
+								 1.025f; // multiplier to standardize baselines
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -492,8 +491,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.975f, 0.9f, 0.925f,
-												 0.f, 0.8f,   0.8f, 0.95f };
+static const float basescalers[NUM_Skillset] = { 0.f, 0.965f, 0.9f, 0.925f,
+												 0.f, 0.8f,   0.8f, 0.9f };
 
 float
 Hand::CalcMSEstimate(vector<float>& input)
