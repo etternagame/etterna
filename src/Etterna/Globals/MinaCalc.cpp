@@ -489,9 +489,9 @@ static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 // Stamina Model params
 static const float stam_ceil = 1.071234f; // stamina multiplier max
 static const float stam_mag = 323.f;	  // multiplier generation scaler
-static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
+static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
-  0.75f; // proportion of player difficulty at which stamina tax begins
+  0.7444f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
 // the base difficulty for each skillset and then detect pattern types
