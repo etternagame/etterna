@@ -1042,9 +1042,9 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
 			// asdlkfaskdjlf
-			//for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
-				if (curtime - lasttime < 0.25f)
-			giraffeasaurus[boink] = curtime - lasttime;
+			// for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
+			if (curtime - lasttime < 0.25f)
+				giraffeasaurus[boink] = curtime - lasttime;
 			++boink;
 			lasttime = curtime;
 		}
@@ -1077,76 +1077,82 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		butt = CalcClamp(butt + 0.8f, 0.95f, 1.075f);
 
 		auto HE = [](float x) {
-			vector<float> o;
-			o.push_back(1000.f * static_cast<float>(x));
-			for (int i = 2; i < 9; ++i) {
-				o.push_back(1000.f / i * static_cast<float>(x));
-				o.push_back(1000.f * i * static_cast<float>(x));
+			static const int HE = 9;
+			int this_is_a_counter = 0;
+			vector<float> o(2 * (HE - 2) + 1);
+			for (int i = 2; i < HE; ++i) {
+				o[this_is_a_counter] = (1000.f / i * static_cast<float>(x));
+				++this_is_a_counter;
 			}
-			std::sort(o.begin(), o.end());
+			o[this_is_a_counter] = 1000.f * static_cast<float>(x);
+			++this_is_a_counter;
+			for (int i = 2; i < HE; ++i) {
+				o[this_is_a_counter] = (1000.f * i * static_cast<float>(x));
+				++this_is_a_counter;
+			}
 			return o;
 		};
 		vector<vector<float>> hmmk;
-		for (auto& e : whatwhat) {
+		for (auto& e : whatwhat)
 			hmmk.emplace_back(HE(e));
-		}
 
+		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
 		float stub = 0.f;
 		// compare each expanded sequence with every other
-			if (hmmk.size() > 1) {
-				vector<float> mmbop;
-				set<int> uniqshare;
-				vector<float> biffs;
-				vector<float> awwoo;
-				for (size_t i = 0; i < hmmk.size() - 1; ++i) {
-					float zop = 0.f;		
-					auto& a = hmmk[i];
-					// compare element i against all others
-					for (size_t j = i + 1; j < hmmk.size(); ++j) {
-						auto& b = hmmk[j]; // i + 1 - last
-						biffs.clear();
-						for (size_t pP = 0; pP < a.size(); ++pP) {
-							for (size_t vi = 0; vi < a.size(); ++vi) {
-								float hi = 0.f;
-								float lo = 0.f;
-								if (a[pP] > b[vi]) {
-									hi = a[pP];
-									lo = b[vi];
-								} else {
-									lo = a[pP];
-									hi = b[vi];
-								}
-								biffs.emplace_back(fastsqrt(hi / lo));
+		if (hmmk.size() > 1) {
+			vector<float> mmbop;
+			set<int> uniqshare;
+			vector<float> biffs;
+			vector<float> awwoo;
+			for (size_t i = 0; i < hmmk.size() - 1; ++i) {
+				float zop = 0.f;
+				auto& a = hmmk[i];
+				// compare element i against all others
+				for (size_t j = i + 1; j < hmmk.size(); ++j) {
+					auto& b = hmmk[j]; // i + 1 - last
+					biffs.clear();
+					for (size_t pP = 0; pP < a.size(); ++pP) {
+						for (size_t vi = 0; vi < a.size(); ++vi) {
+							float hi = 0.f;
+							float lo = 0.f;
+							if (a[pP] > b[vi]) {
+								hi = a[pP];
+								lo = b[vi];
+							} else {
+								lo = a[pP];
+								hi = b[vi];
 							}
+							biffs.emplace_back(fastsqrt(hi / lo));
 						}
-
-						int under1 = 0;
-						float hair_scrunchy = 0.f;
-						for (auto& lul : biffs) {
-							if (lul < 1.05f) {
-								++under1;
-								hair_scrunchy += 2.f - lul;
-							}
-						}
-						awwoo.clear();
-						for (auto& lul : biffs)
-							awwoo.emplace_back(1.f /
-											static_cast<float>(hair_scrunchy + 1.f));
-						uniqshare.insert(under1);
-						//std::cout << "shared: " << under1 << std::endl;
 					}
-					zop = mean(awwoo);
-					mmbop.push_back(zop);
-					//std::cout << "zope: " << zop << std::endl;
+
+					int under1 = 0;
+					float hair_scrunchy = 0.f;
+					for (auto& lul : biffs) {
+						if (lul < 1.05f) {
+							++under1;
+							hair_scrunchy += 2.f - lul;
+						}
+					}
+					awwoo.clear();
+					for (auto& lul : biffs)
+						awwoo.emplace_back(
+						  1.f / static_cast<float>(hair_scrunchy + 1.f));
+					uniqshare.insert(under1);
+					// std::cout << "shared: " << under1 << std::endl;
 				}
-				stub = mean(mmbop);
-				stub *= fastsqrt(static_cast<float>(uniqshare.size()));
-				//std::cout << "mmbop: " << stub << std::endl;
-				
-				stub += 0.9f;
-				 stub = CalcClamp(stub, 0.9f, 1.05f);
-				//std::cout << "uniq " << uniqshare.size() << std::endl;
+				zop = mean(awwoo);
+				mmbop.push_back(zop);
+				// std::cout << "zope: " << zop << std::endl;
 			}
+			stub = mean(mmbop);
+			stub *= fastsqrt(static_cast<float>(uniqshare.size()));
+			// std::cout << "mmbop: " << stub << std::endl;
+
+			stub += 0.9f;
+			stub = CalcClamp(stub, 0.9f, 1.05f);
+			// std::cout << "uniq " << uniqshare.size() << std::endl;
+		}
 
 		// 1 tap is by definition a single tap
 		if (taps < 2 || singletaps == 0) {
@@ -1155,21 +1161,21 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			continue;
 		}
 
-		// we're going to use this to downscale the stream skillset of anything
-		// that isn't stream, just a simple tap proportion for the moment but
-		// maybe if we need to do fancier sequential stuff we can, the only real
-		// concern are jack files registering as stream and that shouldn't be an
-		// issue because the amount of single taps required to do that to any
-		// effectual level would be unplayable
+		// we're going to use this to downscale the stream skillset of
+		// anything that isn't stream, just a simple tap proportion for the
+		// moment but maybe if we need to do fancier sequential stuff we
+		// can, the only real concern are jack files registering as stream
+		// and that shouldn't be an issue because the amount of single taps
+		// required to do that to any effectual level would be unplayable
 
-		// we could also use this to push up stream files if we wanted to but
-		// i don't think that's advisable or necessary
+		// we could also use this to push up stream files if we wanted to
+		// but i don't think that's advisable or necessary
 
-		// we want very light js to register as stream, something like jumps on
-		// every other 4th, so 17/19 ratio should return full points, but maybe
-		// we should allow for some leeway in bad interval slicing
-		// this maybe doesn't need to be so severe, on the other hand, maybe it
-		// doesn'ting need to be not needing'nt to be so severe
+		// we want very light js to register as stream, something like jumps
+		// on every other 4th, so 17/19 ratio should return full points, but
+		// maybe we should allow for some leeway in bad interval slicing
+		// this maybe doesn't need to be so severe, on the other hand, maybe
+		// it doesn'ting need to be not needing'nt to be so severe
 		float prop = static_cast<float>(singletaps + 1) /
 					 static_cast<float>(taps - 1) * 10.f / 7.f;
 		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
@@ -1187,12 +1193,12 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-// downscales full rolls or rolly js, it looks explicitly for consistent cross
-// column timings on both hands; consecutive notes on the same column will
-// reduce the penalty 0.5-1 multiplier also now downscales ohj because we don't
-// want to run this loop too often even if it makes code slightly clearer, i
-// think, new ohj scaler is the same as the last one but gives higher weight to
-// sequences of ohjumps 0.5-1 multipier
+// downscales full rolls or rolly js, it looks explicitly for consistent
+// cross column timings on both hands; consecutive notes on the same column
+// will reduce the penalty 0.5-1 multiplier also now downscales ohj because
+// we don't want to run this loop too often even if it makes code slightly
+// clearer, i think, new ohj scaler is the same as the last one but gives
+// higher weight to sequences of ohjumps 0.5-1 multipier
 void
 Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							   unsigned int t1,
@@ -1218,8 +1224,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	vector<float> rl;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// roll downscaler stuff
-		// this appears not to be picking up certain patterns in certain test
-		// files, reminder to investigate
+		// this appears not to be picking up certain patterns in certain
+		// test files, reminder to investigate
 		int totaltaps = 0;
 		lr.clear();
 		rl.clear();
@@ -1275,23 +1281,24 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime; // only log cross column lasttimes
 			} else {
-				// consecutive notes should "poison" the current cross column
-				// vector but without shifting the proportional scaling too much
-				// this is to avoid treating 121212212121 too much like
-				// 121212121212
+				// consecutive notes should "poison" the current cross
+				// column vector but without shifting the proportional
+				// scaling too much this is to avoid treating 121212212121
+				// too much like 121212121212
 
-				// if we wanted to be _super explicit_ we could just reset the
-				// lr/rl vectors when hitting a consecutive note (and/or jump),
-				// there are advantages to being hyper explicit but at the
-				// moment this does sort of pick up rolly js quite well, though
-				// it would probably be more responsible longterm to have an
-				// explicit roll detector an explicit trill detector, and an
-				// explicit rolly js detector thing is debugging all 3 and
-				// making sure they work as intended and in exclusion is just as
-				// hard as making a couple of more generic mods and accepting
-				// they will overlap in certain scenarios though again on the
-				// other hand explicit modifiers are easier to tune you just
-				// have to do a lot more of it
+				// if we wanted to be _super explicit_ we could just reset
+				// the lr/rl vectors when hitting a consecutive note (and/or
+				// jump), there are advantages to being hyper explicit but
+				// at the moment this does sort of pick up rolly js quite
+				// well, though it would probably be more responsible
+				// longterm to have an explicit roll detector an explicit
+				// trill detector, and an explicit rolly js detector thing
+				// is debugging all 3 and making sure they work as intended
+				// and in exclusion is just as hard as making a couple of
+				// more generic mods and accepting they will overlap in
+				// certain scenarios though again on the other hand explicit
+				// modifiers are easier to tune you just have to do a lot
+				// more of it
 				if (thiscol)
 					rl.push_back(curtime - lasttime);
 				else
@@ -1300,17 +1307,17 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			}
 
 			// ohj downscaler stuff
-			// we know between the following that the latter is more difficult
-			// [12][12][12]222[12][12][12]
+			// we know between the following that the latter is more
+			// difficult [12][12][12]222[12][12][12]
 			// [12][12][12]212[12][12][12]
 			// so we want to penalize not only any break in the ohj sequence
 			// but further penalize breaks which contain cross column taps
 			// this should also reflect the difference between [12]122[12],
-			// [12]121[12] cases like 121[12][12]212[12][12]121 should probably
-			// have some penalty but likely won't with this setup, but everyone
-			// hates that anyway and it would be quite difficult to force the
-			// current setup to do so without increasing complexity
-			// significantly (probably)
+			// [12]121[12] cases like 121[12][12]212[12][12]121 should
+			// probably have some penalty but likely won't with this setup,
+			// but everyone hates that anyway and it would be quite
+			// difficult to force the current setup to do so without
+			// increasing complexity significantly (probably)
 			jumptaps -=
 			  1; // we're already on single notes, so just decrement a lil
 			if (thiscol != lastcol) // easier to read if we do it again
@@ -1350,8 +1357,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		if (rtaps > 1)
 			cvrl = cv(rl);
 
-		// weighted average, but if one is empty we want it to skew high not low
-		// due to * 0
+		// weighted average, but if one is empty we want it to skew high not
+		// low due to * 0
 		float cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
@@ -1362,10 +1369,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		cv = rl_is_higher ? (2.f * cv + cvlr) / 3.f : (2.f * cv + cvrl) / 3.f;
 
 		// if we want to screen out trills and focus on just rolls we can
-		// compare mean values, proper rolls will have one set with a mean 3x
-		// above the other trills will be 1:1 equal, this is a simple linear
-		// downscale for test purposes and i dont if it has unintended
-		// consequences, but it does work for saw-saw
+		// compare mean values, proper rolls will have one set with a mean
+		// 3x above the other trills will be 1:1 equal, this is a simple
+		// linear downscale for test purposes and i dont if it has
+		// unintended consequences, but it does work for saw-saw
 		float yes_trills = 0.f;
 		if (1) {
 			float notrills = 1.f;
@@ -1385,9 +1392,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		yes_trills *= barf;
 
 		// we just want a minimum amount of variation to escape getting
-		// downscaled cap to 1 (it's not an inherently bad idea to upscale sets
-		// of patterns with high variation but we shouldn't do that here,
-		// probably)
+		// downscaled cap to 1 (it's not an inherently bad idea to upscale
+		// sets of patterns with high variation but we shouldn't do that
+		// here, probably)
 		doot[Roll][i] = CalcClamp(0.5f + fastsqrt(cv), 0.5f, 1.f);
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(cv), 0.8f, 1.f);
 
