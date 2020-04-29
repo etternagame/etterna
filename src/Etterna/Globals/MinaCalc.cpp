@@ -1103,9 +1103,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					auto& a = hmmk[i];
 					// compare element i against all others
 					for (size_t j = i + 1; j < hmmk.size(); ++j) {
-
 						auto& b = hmmk[j]; // i + 1 - last
-
 						biffs.clear();
 						for (size_t pP = 0; pP < a.size(); ++pP) {
 							for (size_t vi = 0; vi < a.size(); ++vi) {
@@ -1127,7 +1125,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 						for (auto& lul : biffs) {
 							if (lul < 1.05f) {
 								++under1;
-								hair_scrunchy += lul;
+								hair_scrunchy += 2.f - lul;
 							}
 						}
 						awwoo.clear();
@@ -1146,7 +1144,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				//std::cout << "mmbop: " << stub << std::endl;
 				
 				stub += 0.9f;
-				 stub = CalcClamp(stub, 0.8f, 1.1f);
+				 stub = CalcClamp(stub, 0.9f, 1.05f);
 				//std::cout << "uniq " << uniqshare.size() << std::endl;
 			}
 
