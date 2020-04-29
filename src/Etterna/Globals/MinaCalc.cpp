@@ -816,7 +816,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		Smooth(doot[Jump], 1.f);
 }
 
-// dunno what we're really doin here exactly
+// depress cj rating for non-cj stuff and boost cj rating for cj stuff
 void
 Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 {
@@ -838,9 +838,11 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			continue;
 		}
 
-		// cappee pooster from stream for now
-		float prop = (chordtaps + 1) / (taps - 1) * 10.f / 7.f;
-		doot[CJ][i] = CalcClamp(sqrt(prop), 0.8f, 1.0f);
+		// we want to give a little leeway for single taps but not too much or
+		// sections of [12]4[123]   [123]4[23] will be flagged as chordjack when
+		// they're really just broken chordstream
+		float prop = (chordtaps + 1) / (taps - 1) * 12.f / 7.f;
+		doot[CJ][i] = CalcClamp(sqrt(prop), 0.7f, 1.1f);
 	}
 	if (SmoothPatterns)
 		Smooth(doot[CJ], 1.f);
