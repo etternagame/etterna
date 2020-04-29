@@ -29,12 +29,12 @@ fastpow(double a, double b)
 	return a;
 }
 
-// reasonably accurate taylor approximation for ^ 1.8
+// reasonably accurate taylor approximation for ^ 1.7
 inline float
 fast_pw(float x)
 {
 	float xbar = x - 0.5f;
-	return 0.287175f + 1.03383f * xbar + 0.827063f * xbar * xbar;
+	return 0.287175f + 1.13383f * xbar + 0.527063f * xbar * xbar;
 }
 
 // not super accurate, good enough for our purposes
