@@ -190,7 +190,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
-			o += 4.f - (4.f * pow(x / (j[i]), 1.6f));
+			o += 7.f - (7.f * pow(x / (j[i]), 1.7f));
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
@@ -218,9 +218,9 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			last = current_time;
 			output.emplace_back(
 			  min(2800.f /
-					min((interval1 + interval2 + interval3 + interval4) / 4.f,
-						interval4 * 1.8f),
-				  50.f));
+					min((interval2 + interval3 + interval4) / 3.f,
+						interval4 * CalcClamp(1.f + cv({interval1, interval2, interval3, interval4}), 1.f, 3.f)),
+				 45.f));
 		}
 	}
 	return output;
@@ -499,8 +499,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.965f, 0.9f, 0.925f,
-												 0.f, 0.8f,   0.8f, 0.9f };
+static const float basescalers[NUM_Skillset] = { 0.f, 0.975f, 0.94f, 0.95f,
+												 0.f, 0.8f,   0.85f, 0.9f };
 
 float
 Hand::CalcMSEstimate(vector<float>& input)
@@ -530,7 +530,7 @@ Hand::InitDiff(Finger& f1, Finger& f2)
 		float difficulty = max(left_difficulty, right_difficulty);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = finalscaler * (5.f * difficulty + 3.f * nps) / 8.f;
+		soap[BaseMSD][i] = finalscaler * (6.f * difficulty + 3.f * nps) / 9.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	if (SmoothDifficulty)
@@ -563,29 +563,33 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed)
-				gotpoints +=
+				gotpoints = MaxPoints + 
 				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
-			if (ss == Skill_Chordjack)
-				gotpoints -=
-				  sqrt(abs(JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
-			//if (debugoutput)
-				//std::cout << "jackloss: " <<
-				 // (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-				  // JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) <<
-				  //std::endl;
-			// we _don't_ want pure jack files to be listed as technical but we
-			// also don't want to depress technical files with moderate jacks
-			//if (ss == Skill_Technical)
-			//	gotpoints -=
-			//	  max(reqpoints * -0.5f,  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-			//	   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) /
-			//	  4.f);
+			else {
+				if (ss == Skill_Chordjack)
+					gotpoints -= sqrt(abs(
+					  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+					  JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
+				// if (debugoutput)
+				// std::cout << "jackloss: " <<
+				// (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				// JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) <<
+				// std::endl;
+				// we _don't_ want pure jack files to be listed as technical but
+				// we also don't want to depress technical files with moderate
+				// jacks
+				// if (ss == Skill_Technical)
+				//	gotpoints -=
+				//	  max(reqpoints * -0.5f,  (JackLoss(j0, player_skill) -
+				//JackLoss(j1, player_skill) - 	   JackLoss(j2, player_skill) -
+				//JackLoss(j3, player_skill)) / 	  4.f);
 
-			// run standard calculator stuffies
-			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+				// run standard calculator stuffies
+				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			}
+				
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -641,11 +645,13 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			case Skill_Handstream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i];
 				break;
-			case Skill_JackSpeed: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i];
+			case Skill_JackSpeed: // don't use ms hybrid base
+				adj_diff[i] =
+				  soap[BaseMSD][i] *
+				  max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
 				break;
-			case Skill_Chordjack: // use ms hybrid base
-				adj_diff[i] = soap[BaseMSD][i] * doot[CJ][i];
+			case Skill_Chordjack: // don't use ms hybrid base
+				adj_diff[i] = soap[BaseNPS][i] * doot[CJ][i];
 				break;
 			case Skill_Technical: // use ms hybrid base
 				adj_diff[i] =
