@@ -1249,32 +1249,33 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		}
 
 		// 1 tap is by definition a single tap
-		if (taps < 2 || singletaps == 0) {
+		if (taps < 2) {
 			doot[StreamMod][i] = 1.f;
 			doot[Chaos][i] = stub;
-			continue;
+		} else if (singletaps == 0) {
+			doot[StreamMod][i] = 0.8f;
+			doot[Chaos][i] = stub;
+		} else {
+			// we're going to use this to downscale the stream skillset of
+			// anything that isn't stream, just a simple tap proportion for the
+			// moment but maybe if we need to do fancier sequential stuff we
+			// can, the only real concern are jack files registering as stream
+			// and that shouldn't be an issue because the amount of single taps
+			// required to do that to any effectual level would be unplayable
+
+			// we could also use this to push up stream files if we wanted to
+			// but i don't think that's advisable or necessary
+
+			// we want very light js to register as stream, something like jumps
+			// on every other 4th, so 17/19 ratio should return full points, but
+			// maybe we should allow for some leeway in bad interval slicing
+			// this maybe doesn't need to be so severe, on the other hand, maybe
+			// it doesn'ting need to be not needing'nt to be so severe
+			float prop = static_cast<float>(singletaps + 1) /
+						 static_cast<float>(taps - 1) * 10.f / 7.f;
+			doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
+			doot[Chaos][i] = stub;
 		}
-
-		// we're going to use this to downscale the stream skillset of
-		// anything that isn't stream, just a simple tap proportion for the
-		// moment but maybe if we need to do fancier sequential stuff we
-		// can, the only real concern are jack files registering as stream
-		// and that shouldn't be an issue because the amount of single taps
-		// required to do that to any effectual level would be unplayable
-
-		// we could also use this to push up stream files if we wanted to
-		// but i don't think that's advisable or necessary
-
-		// we want very light js to register as stream, something like jumps
-		// on every other 4th, so 17/19 ratio should return full points, but
-		// maybe we should allow for some leeway in bad interval slicing
-		// this maybe doesn't need to be so severe, on the other hand, maybe
-		// it doesn'ting need to be not needing'nt to be so severe
-		float prop = static_cast<float>(singletaps + 1) /
-					 static_cast<float>(taps - 1) * 10.f / 7.f;
-		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
-
-		doot[Chaos][i] = stub;
 	}
 	for (auto& v : doot[Chaos])
 		if (debugmode) {
