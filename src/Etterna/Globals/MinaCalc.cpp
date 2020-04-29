@@ -807,7 +807,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		else {						// at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = static_cast<float>(handtaps + 1) /
-						 static_cast<float>(taps - 1) * 28.f / 7.f;
+						 static_cast<float>(taps - 1) * 32.f / 7.f;
 
 			float bromide = CalcClamp(4.f - not_stream, 0.975f, 1.f);
 			// downscale by jack density rather than upscale, like cj
@@ -870,7 +870,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			float prop = static_cast<float>(jumptaps + 1) /
 						 static_cast<float>(taps - 1) * 21.f / 7.f;
 			
-			float bromide = CalcClamp(3.f - not_stream, 0.975f, 1.f);
+			float bromide = CalcClamp(5.f - not_stream, 0.975f, 1.f);
 			// downscale by jack density rather than upscale, like cj
 			float brop = CalcClamp(3.f - actual_jacks, 0.95f, 1.f);
 			// clamp the original prop mod first before applying above
