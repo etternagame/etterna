@@ -600,7 +600,6 @@ Calc::Chisel(float player_skill,
 void
 Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 {
-	// vector<float> temppatternsmods;
 	// we're going to recycle adj_diff for this part
 	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
 		// the new way we wil attempt to diffrentiate skillsets rather than
@@ -640,7 +639,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				break;
 			case Skill_Technical: // use ms hybrid base
 				adj_diff[i] =
-				  soap[BaseMSD][i] *
+				  soap[BaseMSD][i] * doot[Chaos][i] *
 				  max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
 				break;
 			case Skill_Stamina: // handled up the stack, never happens here
@@ -1035,13 +1034,11 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				   float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
-	vector<float> giraffeasaurus(5000);
 	float lasttime = -1.f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
-		unsigned int boink = 0;
-		vector<float> whatwhat;
+		set<float> whatwhat;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -1050,40 +1047,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
-			// asdlkfaskdjlf
-			// for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
-			if (curtime - lasttime < 0.25f)
-				giraffeasaurus[boink] = curtime - lasttime;
-			++boink;
+			float giraffeasaurus = curtime - lasttime;
+			// screen out large hits, it should be ok if this is a discrete
+			// cutoff, but i don't like it
+			if (giraffeasaurus < 0.25f)
+				whatwhat.emplace(giraffeasaurus);
 			lasttime = curtime;
 		}
-
-		whatwhat.resize(boink);
-		for (unsigned int n = 0; n < boink; ++n)
-			whatwhat[n] = giraffeasaurus[n];
-
-		// something something push up polyrhythms???
-		float butt = 0.f;
-		std::sort(whatwhat.begin(), whatwhat.end(), [](float a, float b) {
-			return a > b;
-		});
-		if (whatwhat.size() <= 1)
-			butt = 1.f;
-		else
-			for (auto& in : whatwhat)
-				for (auto& the : whatwhat)
-					if (in >= the)
-						if (in <= 3.f * the)
-							if (the * 10000.f > 0.5f)
-								butt += fastsqrt(fastsqrt(static_cast<float>(
-								  static_cast<int>(in * 10000.f + 0.5f) %
-								  static_cast<int>(10000.f * the + 0.5f))));
-
-		if (!whatwhat.empty())
-			butt /= static_cast<float>(whatwhat.size());
-		butt = fastsqrt(butt) / 7.5f;
-
-		butt = CalcClamp(butt + 0.8f, 0.95f, 1.075f);
 
 		auto HE = [](float x) {
 			static const int HE = 9;
@@ -1135,11 +1105,20 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 						}
 					}
 
+					// not exactly correct naming but basically if hi/lo is
+					// close enough to 1 we can consider the two points an
+					// intersection between the respective quantization waves,
+					// the more intersections we pick up and the closer they are
+					// to 1 the more confident we are that what we have are
+					// duplicate quantizations, and the lower the final mod is
 					int under1 = 0;
 					float hair_scrunchy = 0.f;
 					for (auto& lul : biffs) {
 						if (lul < 1.05f) {
 							++under1;
+							// inverting; 1.05 values should produce a lower mod
+							// than 1.0s and since we are using this value as a
+							// divisor we need to flip it around
 							hair_scrunchy += 2.f - lul;
 						}
 					}
@@ -1161,12 +1140,15 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			stub += 0.9f;
 			stub = CalcClamp(stub, 0.9f, 1.05f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
+		} else {
+			// can't compare if there's only 1 ms value
+			stub = 1.f;
 		}
 
 		// 1 tap is by definition a single tap
 		if (taps < 2 || singletaps == 0) {
 			doot[StreamMod][i] = 1.f;
-			doot[Chaos][i] = 1.f;
+			doot[Chaos][i] = stub;
 			continue;
 		}
 
