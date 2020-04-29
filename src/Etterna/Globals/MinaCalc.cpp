@@ -564,6 +564,15 @@ Calc::Chisel(float player_skill,
 				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
 
+			// we _don't_ want pure jack files to be listed as technical but we
+			// also don't want them to depress technical files with moderate
+			// jack usage
+			if (ss == Skill_Technical)
+				gotpoints -=
+				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) /
+				  2.f;
+
 			// run standard calculator stuffies
 			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
