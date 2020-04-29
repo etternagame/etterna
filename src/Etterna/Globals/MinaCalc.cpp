@@ -77,7 +77,7 @@ cv(const vector<float>& input)
 inline float
 downscale_low_accuracy_scores(float f, float sg)
 {
-	return sg >= 0.93f ? f : min(max(f - fastsqrt(0.93f - sg), 0.f), 100.f);
+	return sg >= 0.93f ? f : min(max(f / sqrt(1.f + (0.93f - sg)), 0.f), 100.f);
 }
 
 inline void
@@ -377,8 +377,11 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	if (capssr) {
 		static const float ssrcap = 40.f;
 
-		for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul)
+		for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
+			// so 50%s on 60s don't give 35s
+			r = downscale_low_accuracy_scores(r, score_goal);
 			r = CalcClamp(r, r, ssrcap);
+		}		
 	}
 
 	return bye_vibro_maybe_yes_this_should_be_refactored_lul;
