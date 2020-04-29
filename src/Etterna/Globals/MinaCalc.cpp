@@ -1079,7 +1079,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		auto HE = [](float x) {
 			vector<float> o;
 			o.push_back(1000.f * static_cast<float>(x));
-			for (int i = 2; i < 9; ++i) {
+			for (int i = 2; i < 5; ++i) {
 				o.push_back(1000.f / i * static_cast<float>(x));
 				o.push_back(1000.f * i * static_cast<float>(x));
 			}
@@ -1088,8 +1088,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		};
 		vector<vector<float>> hmmk;
 		for (auto& e : whatwhat) {
-			auto temp = HE(e);
-			hmmk.push_back(temp);
+			hmmk.emplace_back(HE(e));
 		}
 
 		float stub = 0.f;
@@ -1098,9 +1097,9 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				vector<float> mmbop;
 				set<int> uniqshare;
 				vector<float> biffs;
+				vector<float> awwoo;
 				for (size_t i = 0; i < hmmk.size() - 1; ++i) {
-					float zop = 0.f;
-					vector<float> awwoo;
+					float zop = 0.f;		
 					auto& a = hmmk[i];
 					// compare element i against all others
 					for (size_t j = i + 1; j < hmmk.size(); ++j) {
@@ -1110,9 +1109,16 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 						biffs.clear();
 						for (size_t pP = 0; pP < a.size(); ++pP) {
 							for (size_t vi = 0; vi < a.size(); ++vi) {
-								float diff = sqrt(
-								  max(abs(b[vi] / a[pP]), abs(a[pP] / b[vi])));
-								biffs.push_back(diff);
+								float hi = 0.f;
+								float lo = 0.f;
+								if (a[pP] > b[vi]) {
+									hi = a[pP];
+									lo = b[vi];
+								} else {
+									lo = a[pP];
+									hi = b[vi];
+								}
+								biffs.emplace_back(fastsqrt(hi / lo));
 							}
 						}
 
@@ -1123,10 +1129,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 								++under1;
 								hair_scrunchy += lul;
 							}
-								
 						}
+						awwoo.clear();
 						for (auto& lul : biffs)
-							awwoo.push_back(1.f /
+							awwoo.emplace_back(1.f /
 											static_cast<float>(hair_scrunchy + 1.f));
 						uniqshare.insert(under1);
 						//std::cout << "shared: " << under1 << std::endl;
@@ -1136,7 +1142,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					//std::cout << "zope: " << zop << std::endl;
 				}
 				stub = mean(mmbop);
-				stub *= sqrt(static_cast<float>(uniqshare.size()));
+				stub *= fastsqrt(static_cast<float>(uniqshare.size()));
 				//std::cout << "mmbop: " << stub << std::endl;
 				
 				stub += 0.9f;
