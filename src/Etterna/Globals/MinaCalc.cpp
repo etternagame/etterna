@@ -1079,7 +1079,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		auto HE = [](float x) {
 			vector<float> o;
 			o.push_back(1000.f * static_cast<float>(x));
-			for (int i = 2; i < 5; ++i) {
+			for (int i = 2; i < 9; ++i) {
 				o.push_back(1000.f / i * static_cast<float>(x));
 				o.push_back(1000.f * i * static_cast<float>(x));
 			}
