@@ -8,10 +8,12 @@
 #include <xmmintrin.h>
 #include <cstring>
 #include <string>
+#include <set>
 
 using std::max;
 using std::min;
 using std::pow;
+using std::set;
 using std::sqrt;
 using std::vector;
 
@@ -841,7 +843,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 {
 	doot[FlamJam].resize(nervIntervals.size());
 	// scan for flam chords in this window
-	float grouping_tolerance = 25.f;
+	float grouping_tolerance = 10.f;
 	// tracks which columns were seen in the current flam chord
 	// this is essentially the same as if NoteInfo[row].notes
 	// was tracked over multiple rows
@@ -1040,9 +1042,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
 			// asdlkfaskdjlf
-			for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
-				giraffeasaurus[boink + pajamas] = curtime - lasttime;
-			boink += notes;
+			//for (unsigned int pajamas = 0; pajamas < notes; ++pajamas)
+				if (curtime - lasttime < 0.25f)
+			giraffeasaurus[boink] = curtime - lasttime;
+			++boink;
 			lasttime = curtime;
 		}
 
@@ -1076,7 +1079,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		auto HE = [](float x) {
 			vector<float> o;
 			o.push_back(1000.f * static_cast<float>(x));
-			for (int i = 2; i < 11; ++i) {
+			for (int i = 2; i < 9; ++i) {
 				o.push_back(1000.f / i * static_cast<float>(x));
 				o.push_back(1000.f * i * static_cast<float>(x));
 			}
@@ -1084,101 +1087,67 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			return o;
 		};
 		vector<vector<float>> hmmk;
-		if (debugmode)
-			for (auto& e : whatwhat) {
-				auto temp = HE(e);
-				hmmk.push_back(temp);
-				std::string zop = "";
-				for (auto& l : temp) {
-					zop.append(std::to_string(l));
-					zop.append(",");
-				}
-				std::cout << "butts: " << zop << std::endl;
-			}
+		for (auto& e : whatwhat) {
+			auto temp = HE(e);
+			hmmk.push_back(temp);
+		}
 
-		if (debugmode) {
-			float stub = 0.f;
-			// compare each expanded sequence with every other
+		float stub = 0.f;
+		// compare each expanded sequence with every other
 			if (hmmk.size() > 1) {
-				vector<int> thedupes;
-				for (size_t i = 0; i < hmmk.size() - 1; i++) {
+				vector<float> mmbop;
+				set<int> uniqshare;
+				vector<float> biffs;
+				for (size_t i = 0; i < hmmk.size() - 1; ++i) {
+					float zop = 0.f;
+					vector<float> awwoo;
 					auto& a = hmmk[i];
 					// compare element i against all others
-					for (size_t j = i + 1; j < hmmk.size(); j++) {
-						float dupstr = 0.f;
-						int matches = 0;
+					for (size_t j = i + 1; j < hmmk.size(); ++j) {
+
 						auto& b = hmmk[j]; // i + 1 - last
 
-						auto doot = b.end();
-						// only if this sequence isn't flagged as a dupe
-						bool duped =
-						  std::find(thedupes.begin(), thedupes.end(), i) !=
-						  thedupes.end();
-						if (duped)
-							std::cout << "skipping dupe at: " << i << std::endl;
-						if (!duped) {
-							float zop = 0.f;
-							size_t lowest_idx = 0;
-							float lowest_diff = 10000.f;
-							for (auto& pP : a) {
-								// compare all values in another double loop
-								vector<float> diffs;
-								for (size_t vi = 0; vi < a.size(); ++vi) {
-									diffs.push_back(abs(pP - b[vi]));
-								}
-
-								std::string zop = "";
-								for (auto& l : diffs) {
-									zop.append(std::to_string(l));
-									zop.append(",");
-								}
-
-								// index of first instance of lowest
-								// differential
-								size_t cur_lowest_idx = std::distance(
-								  diffs.begin(),
-								  std::min_element(diffs.begin(), diffs.end()));
-								float cur_lowest_diff = diffs[cur_lowest_idx];
-
-								// duplicated
-								if (cur_lowest_idx == 0)
-									break;
-
-								if (cur_lowest_diff < lowest_diff &&
-									cur_lowest_idx > lowest_idx) {
-									lowest_diff = cur_lowest_diff;
-									lowest_idx = cur_lowest_idx;
-
-									std::cout << "lowest diff is now: "
-											  << cur_lowest_idx << std::endl;
-									std::cout << "lowest val is now: "
-											  << cur_lowest_diff << std::endl;
-								}
-							}
-
-							if (lowest_idx == 0) {
-								thedupes.push_back(j);
-							} else {
-								auto c = HE(a[lowest_idx]);
-								// rescan differentials offset by lowest_diff
-								// total up abs
-								for (size_t vi = 0; vi < a.size(); ++vi) {
-									zop += abs(c[vi] - b[vi]);
-								}
-								std::cout << "zope: " << zop << std::endl;
+						biffs.clear();
+						for (size_t pP = 0; pP < a.size(); ++pP) {
+							for (size_t vi = 0; vi < a.size(); ++vi) {
+								float diff = sqrt(
+								  max(abs(b[vi] / a[pP]), abs(a[pP] / b[vi])));
+								biffs.push_back(diff);
 							}
 						}
+
+						int under1 = 0;
+						float hair_scrunchy = 0.f;
+						for (auto& lul : biffs) {
+							if (lul < 1.05f) {
+								++under1;
+								hair_scrunchy += lul;
+							}
+								
+						}
+						for (auto& lul : biffs)
+							awwoo.push_back(1.f /
+											static_cast<float>(hair_scrunchy + 1.f));
+						uniqshare.insert(under1);
+						//std::cout << "shared: " << under1 << std::endl;
 					}
+					zop = mean(awwoo);
+					mmbop.push_back(zop);
+					//std::cout << "zope: " << zop << std::endl;
 				}
+				stub = mean(mmbop);
+				stub *= sqrt(static_cast<float>(uniqshare.size()));
+				//std::cout << "mmbop: " << stub << std::endl;
+				
+				stub += 0.9f;
+				 stub = CalcClamp(stub, 0.8f, 1.1f);
+				//std::cout << "uniq " << uniqshare.size() << std::endl;
 			}
-		
-		}
-		
 
 		// 1 tap is by definition a single tap
 		if (taps < 2 || singletaps == 0) {
 			doot[StreamMod][i] = 1.f;
-			doot[Chaos][i] = butt;
+			doot[Chaos][i] = 1.f;
 			continue;
 		}
 
@@ -1201,11 +1170,12 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 					 static_cast<float>(taps - 1) * 10.f / 7.f;
 		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
 
-		doot[Chaos][i] = butt;
-
-		if (debugmode)
-			std::cout << "\nbutts: final " << butt << std::endl;
+		doot[Chaos][i] = stub;
 	}
+	for (auto& v : doot[Chaos])
+		if (debugmode) {
+			// std::cout << "butts: final " << v << std::endl;
+		}
 	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
 		Smooth(doot[Chaos], 1.f);
@@ -1493,5 +1463,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 274;
+	return 275;
 }
