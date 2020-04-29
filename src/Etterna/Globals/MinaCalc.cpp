@@ -1044,6 +1044,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
 		set<float> whatwhat;
+		vector<float> whatwhat2;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -1057,6 +1058,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			// cutoff, but i don't like it
 			if (giraffeasaurus < 0.25f)
 				whatwhat.emplace(giraffeasaurus);
+
+			// instead of making another new mod, calculate the original and most basic chaos mod and apply it along with the new one
+			for (size_t i = 0; i < notes; ++i)
+				whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
 		}
 
@@ -1143,7 +1148,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			// std::cout << "mmbop: " << stub << std::endl;
 
 			stub += 0.9f;
-			stub = CalcClamp(stub, 0.9f, 1.05f);
+			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
+			test_chaos_merge_stuff =
+			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
+			stub = CalcClamp(stub * test_chaos_merge_stuff, 0.9f, 1.05f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
