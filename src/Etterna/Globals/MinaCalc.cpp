@@ -190,7 +190,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i]), 1.7f));
+			o += 7.f - (7.f * pow(x / (j[i] * 0.88f), 1.7f));
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
@@ -217,9 +217,9 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			interval4 = 1000.f * (current_time - last);
 			last = current_time;
 			output.emplace_back(
-			  min(2800.f /
+			  min(2750.f /
 					min((interval2 + interval3 + interval4) / 3.f,
-						interval4 * CalcClamp(1.f + cv({interval1, interval2, interval3, interval4}), 1.f, 3.f)),
+						0.8f * interval4 * CalcClamp(1.f + cv({interval1, interval2, interval3, interval4}), 1.f, 1.8f)),
 				 45.f));
 		}
 	}
