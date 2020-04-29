@@ -33,11 +33,6 @@ if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
 endif()
 
-# Disable unused targets from building
-## EXCLUDE_FROM_ALL stops building on linux
-## EXCLUDE_FROM_DEFAULT_BUILD stops building on Visual Studio
-# (there was something here but we removed it)
-
 # Organize Files in IDE
 list(APPEND ET_EXT_TARGETS
     luajit lua minilua buildvm
