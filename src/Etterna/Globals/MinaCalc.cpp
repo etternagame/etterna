@@ -29,7 +29,7 @@ fastpow(double a, double b)
 	return a;
 }
 
-// reasonably accurate taylor approximation for ^ 1.7
+// reasonably accurate taylor approximation for ^ 1.7 (jk not anymore not really)
 inline float
 fast_pw(float x)
 {
@@ -1575,5 +1575,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 275;
+	return 276;
 }
