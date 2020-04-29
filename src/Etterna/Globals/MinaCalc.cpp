@@ -679,7 +679,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		for (size_t i = 0; i < v.size(); ++i) {
 			float gainedpoints =
 			  x > v[i] ? static_cast<float>(v_itvpoints[i])
-					   : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
+					   : static_cast<float>(v_itvpoints[i]) * fastpow(x / v[i], 1.7f);
 			gotpoints += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
@@ -688,7 +688,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		for (size_t i = 0; i < v.size(); ++i)
 			gotpoints +=
 			  x > v[i] ? static_cast<float>(v_itvpoints[i])
-					   : static_cast<float>(v_itvpoints[i]) * fast_pw(x / v[i]);
+					   : static_cast<float>(v_itvpoints[i]) * fastpow(x / v[i], 1.7f);
 }
 
 void
