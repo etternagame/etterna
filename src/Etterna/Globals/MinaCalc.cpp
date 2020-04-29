@@ -7,6 +7,7 @@
 #include <numeric>
 #include <xmmintrin.h>
 #include <cstring>
+#include <string>
 
 using std::max;
 using std::min;
@@ -216,7 +217,7 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			output.emplace_back(
 			  min(2800.f /
 					min((interval1 + interval2 + interval3 + interval4) / 4.f,
-							   interval4 * 1.8f),
+						interval4 * 1.8f),
 				  50.f));
 		}
 	}
@@ -337,8 +338,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// ends up being a multiplier between ~0.8 and ~1
 	// tuning is a wip
-	float mcfroggerbopper =
-	  pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
+	float mcfroggerbopper = pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
 
 	// we wanted to shift the curve down a lot before pow'ing but it was too
 	// much to balance out, so we need to give some back, this is roughly
@@ -558,11 +558,10 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed || ss == Skill_Chordjack)
-				gotpoints += (JackLoss(j0, player_skill) -
-							JackLoss(j1, player_skill) -
-							JackLoss(j2, player_skill) -
-							JackLoss(j3, player_skill));
-			
+				gotpoints +=
+				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
+
 			// run standard calculator stuffies
 			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
@@ -630,7 +629,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				break;
 			case Skill_Technical: // use ms hybrid base
 				adj_diff[i] =
-				  soap[BaseMSD][i] * max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
+				  soap[BaseMSD][i] *
+				  max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
 				break;
 			case Skill_Stamina: // handled up the stack, never happens here
 			case Skill_Overall: // handled up the stack, never happens here
@@ -1073,6 +1073,108 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 
 		butt = CalcClamp(butt + 0.8f, 0.95f, 1.075f);
 
+		auto HE = [](float x) {
+			vector<float> o;
+			o.push_back(1000.f * static_cast<float>(x));
+			for (int i = 2; i < 11; ++i) {
+				o.push_back(1000.f / i * static_cast<float>(x));
+				o.push_back(1000.f * i * static_cast<float>(x));
+			}
+			std::sort(o.begin(), o.end());
+			return o;
+		};
+		vector<vector<float>> hmmk;
+		if (debugmode)
+			for (auto& e : whatwhat) {
+				auto temp = HE(e);
+				hmmk.push_back(temp);
+				std::string zop = "";
+				for (auto& l : temp) {
+					zop.append(std::to_string(l));
+					zop.append(",");
+				}
+				std::cout << "butts: " << zop << std::endl;
+			}
+
+		if (debugmode) {
+			float stub = 0.f;
+			// compare each expanded sequence with every other
+			if (hmmk.size() > 1) {
+				vector<int> thedupes;
+				for (size_t i = 0; i < hmmk.size() - 1; i++) {
+					auto& a = hmmk[i];
+					// compare element i against all others
+					for (size_t j = i + 1; j < hmmk.size(); j++) {
+						float dupstr = 0.f;
+						int matches = 0;
+						auto& b = hmmk[j]; // i + 1 - last
+
+						auto doot = b.end();
+						// only if this sequence isn't flagged as a dupe
+						bool duped =
+						  std::find(thedupes.begin(), thedupes.end(), i) !=
+						  thedupes.end();
+						if (duped)
+							std::cout << "skipping dupe at: " << i << std::endl;
+						if (!duped) {
+							float zop = 0.f;
+							size_t lowest_idx = 0;
+							float lowest_diff = 10000.f;
+							for (auto& pP : a) {
+								// compare all values in another double loop
+								vector<float> diffs;
+								for (size_t vi = 0; vi < a.size(); ++vi) {
+									diffs.push_back(abs(pP - b[vi]));
+								}
+
+								std::string zop = "";
+								for (auto& l : diffs) {
+									zop.append(std::to_string(l));
+									zop.append(",");
+								}
+
+								// index of first instance of lowest
+								// differential
+								size_t cur_lowest_idx = std::distance(
+								  diffs.begin(),
+								  std::min_element(diffs.begin(), diffs.end()));
+								float cur_lowest_diff = diffs[cur_lowest_idx];
+
+								// duplicated
+								if (cur_lowest_idx == 0)
+									break;
+
+								if (cur_lowest_diff < lowest_diff &&
+									cur_lowest_idx > lowest_idx) {
+									lowest_diff = cur_lowest_diff;
+									lowest_idx = cur_lowest_idx;
+
+									std::cout << "lowest diff is now: "
+											  << cur_lowest_idx << std::endl;
+									std::cout << "lowest val is now: "
+											  << cur_lowest_diff << std::endl;
+								}
+							}
+
+							if (lowest_idx == 0) {
+								thedupes.push_back(j);
+							} else {
+								auto c = HE(a[lowest_idx]);
+								// rescan differentials offset by lowest_diff
+								// total up abs
+								for (size_t vi = 0; vi < a.size(); ++vi) {
+									zop += abs(c[vi] - b[vi]);
+								}
+								std::cout << "zope: " << zop << std::endl;
+							}
+						}
+					}
+				}
+			}
+		
+		}
+		
+
 		// 1 tap is by definition a single tap
 		if (taps < 2 || singletaps == 0) {
 			doot[StreamMod][i] = 1.f;
@@ -1100,6 +1202,9 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
 
 		doot[Chaos][i] = butt;
+
+		if (debugmode)
+			std::cout << "\nbutts: final " << butt << std::endl;
 	}
 	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
