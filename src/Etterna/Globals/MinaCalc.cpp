@@ -562,19 +562,26 @@ Calc::Chisel(float player_skill,
 			possiblepoints = 0;
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == Skill_JackSpeed || ss == Skill_Chordjack)
+			if (ss == Skill_JackSpeed)
 				gotpoints +=
 				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
-
-			// we _don't_ want pure jack files to be listed as technical but we
-			// also don't want them to depress technical files with moderate
-			// jack usage
-			if (ss == Skill_Technical)
+			if (ss == Skill_Chordjack)
 				gotpoints -=
-				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) /
-				  2.f;
+				  sqrt(abs(JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
+			//if (debugoutput)
+				//std::cout << "jackloss: " <<
+				 // (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+				  // JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) <<
+				  //std::endl;
+			// we _don't_ want pure jack files to be listed as technical but we
+			// also don't want to depress technical files with moderate jacks
+			//if (ss == Skill_Technical)
+			//	gotpoints -=
+			//	  max(reqpoints * -0.5f,  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+			//	   JackLoss(j2, player_skill) - JackLoss(j3, player_skill)) /
+			//	  4.f);
 
 			// run standard calculator stuffies
 			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
@@ -763,24 +770,52 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	doot[HS].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// sequencing stuff
+		int actual_jacks = 0;
+		int not_stream = 0;
+		int last_cols = 0;
+		int col_id[4] = { 1, 2, 4, 8 };
+
 		unsigned int taps = 0;
 		unsigned int handtaps = 0;
+		unsigned int last_notes = 0;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 3)
 				handtaps += 3;
+
+			// sequencing stuff
+			unsigned int cols = NoteInfo[row].notes;
+			for (auto& id : col_id)
+				if (cols & id && last_cols & id)
+					++actual_jacks;
+
+			// suppress jumptrilly garbage a little bit
+			if (last_notes == 1 && notes > 1)
+				++not_stream;
+			else if (last_notes > 1 && notes == 1)
+				++not_stream;
+			last_notes = notes;
+			last_cols = cols;
 		}
 
-		if (taps == 0)
+		if (taps == 0)				// nothing here
 			doot[HS][i] = 1.f;
-		if (taps < 3)
+		else if (taps < 3)			// look ma no hands
 			doot[HS][i] = 0.8f;
+		else {						// at least 1 hand
+			// when bark of dog into canyon scream at you
+			float prop = static_cast<float>(handtaps + 1) /
+						 static_cast<float>(taps - 1) * 28.f / 7.f;
 
-		// when bark of dog into canyon scream at you
-		float prop = static_cast<float>(handtaps + 1) /
-					 static_cast<float>(taps - 1) * 28.f / 7.f;
-		doot[HS][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
+			float bromide = CalcClamp(4.f - not_stream, 0.975f, 1.f);
+			// downscale by jack density rather than upscale, like cj
+			float brop = CalcClamp(3.f - actual_jacks, 0.8f, 1.f);
+			// clamp the original prop mod first before applying above
+			float zoot = CalcClamp(sqrt(prop), 0.8f, 1.025f);
+			doot[HS][i] = CalcClamp(zoot * bromide * brop, 0.8f, 1.025f);
+		}
 	}
 
 	if (SmoothPatterns)
@@ -793,24 +828,55 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	doot[Jump].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// sequencing stuff
+		int actual_jacks = 0;
+		int not_stream = 0;
+		int last_cols = 0;
+		int col_id[4] = { 1, 2, 4, 8 };
+
 		unsigned int taps = 0;
 		unsigned int jumptaps = 0;
+		unsigned int last_notes = 0;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 2)
 				jumptaps += 2;
+
+			// sequencing stuff
+			unsigned int cols = NoteInfo[row].notes;
+			for (auto& id : col_id)
+				if (cols & id && last_cols & id)
+					++actual_jacks;
+
+			// suppress jumptrilly garbage a little bit, this is redundant in
+			// some cases with ohjump downscaler so we can't go too ham
+			if (last_notes == 1)
+				if (notes == 1)
+					++not_stream;
+			if (last_notes > 1)
+				if (notes > 1)
+					++not_stream;
+			last_notes = notes;
+			last_cols = cols;
 		}
 
-		if (taps == 0)
+		if (taps == 0)				// nothing here
 			doot[Jump][i] = 1.f;
-		if (taps < 2)
+		else if (taps < 2)			// at least 1 tap but no jumps
 			doot[Jump][i] = 0.8f;
-
-		// creepy banana
-		float prop = static_cast<float>(jumptaps + 1) /
-					 static_cast<float>(taps - 1) * 18.f / 7.f;
-		doot[Jump][i] = CalcClamp(sqrt(prop), 0.8f, 1.025f);
+		else {						// at least 1 jump
+			// creepy banana
+			float prop = static_cast<float>(jumptaps + 1) /
+						 static_cast<float>(taps - 1) * 19.f / 7.f;
+			
+			float bromide = CalcClamp(4.f - not_stream, 0.975f, 1.f);
+			// downscale by jack density rather than upscale, like cj
+			float brop = CalcClamp(3.f - actual_jacks, 0.975f, 1.f);
+			// clamp the original prop mod first before applying above
+			float zoot = CalcClamp(sqrt(prop), 0.8f, 1.025f);
+			doot[Jump][i] = CalcClamp(zoot * bromide * brop, 0.8f, 1.025f);
+		}
 	}
 	if (SmoothPatterns)
 		Smooth(doot[Jump], 1.f);
@@ -821,28 +887,52 @@ void
 Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 {
 	doot[CJ].resize(nervIntervals.size());
-
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// sequencing stuff
+		int actual_jacks = 0;
+		int last_cols = 0;
+		int col_id[4] = { 1, 2, 4, 8 };
+
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
-
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes > 1)
 				chordtaps += notes;
+
+			// sequencing stuff
+			unsigned int cols = NoteInfo[row].notes;
+			for (auto& id : col_id)
+				if (cols & id && last_cols & id) {
+					++actual_jacks;
+					// if we don't break we're saying something like "chordjacks
+					// are harder if they share more columns from chord to
+					// chord" which is not true, it is in fact either irrelevant
+					// or the inverse depending on the scenario, this is merely
+					// to catch stuff like splithand jumptrills registering as
+					// chordjacks when they shouldn't be
+					break;
+				}
+					
+			last_cols = cols;
 		}
 
-		if (taps == 0 || chordtaps == 0) {
+		if (taps == 0)				// nothing here
 			doot[CJ][i] = 1.f;
-			continue;
+		else if (chordtaps == 0) {	// there are taps, but no chords
+			doot[CJ][i] = 0.7f;
+		} else {					// we have at least 1 chord
+			// we want to give a little leeway for single taps but not too much
+			// or sections of [12]4[123]   [123]4[23] will be flagged as
+			// chordjack when they're really just broken chordstream, and we
+			// also want to give enough leeway so that hyperdense chordjacks at
+			// lower bpms aren't automatically rated higher than more sparse
+			// jacks at higher bpms
+			float prop = (chordtaps + 1) / (taps - 1) * 13.f / 7.f;
+			float brop = CalcClamp(actual_jacks - 2.f, 0.5f, 1.f);
+			doot[CJ][i] = CalcClamp(brop * sqrt(prop), 0.7f, 1.1f);
 		}
-
-		// we want to give a little leeway for single taps but not too much or
-		// sections of [12]4[123]   [123]4[23] will be flagged as chordjack when
-		// they're really just broken chordstream
-		float prop = (chordtaps + 1) / (taps - 1) * 12.f / 7.f;
-		doot[CJ][i] = CalcClamp(sqrt(prop), 0.7f, 1.1f);
 	}
 	if (SmoothPatterns)
 		Smooth(doot[CJ], 1.f);
