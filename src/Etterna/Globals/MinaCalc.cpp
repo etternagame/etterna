@@ -1497,7 +1497,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// sets of patterns with high variation but we shouldn't do that
 		// here, probably)
 		doot[Roll][i] = CalcClamp(0.5f + fastsqrt(cv), 0.5f, 1.f);
-		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(cv), 0.8f, 1.f);
+		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
