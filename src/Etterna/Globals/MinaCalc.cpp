@@ -989,7 +989,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 {
 	doot[FlamJam].resize(nervIntervals.size());
 	// scan for flam chords in this window
-	float grouping_tolerance = 10.f;
+	float grouping_tolerance = 15.f;
 	// tracks which columns were seen in the current flam chord
 	// this is essentially the same as if NoteInfo[row].notes
 	// was tracked over multiple rows
@@ -1689,8 +1689,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf2) {
-				voobles.push_back(aaa);
-				bibbles.insert(aaa);
+				//voobles.push_back(aaa);
+				//bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf3) {
 				voobles.push_back(aaa);
@@ -1700,11 +1700,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				voobles.push_back(aaa);
 				bibbles.insert(aaa);
 			}
-			bbbrap = cv(voobles) *
-					 (2.f * static_cast<float>(bibbles.size()) /
-					  static_cast<float>(voobles.size()));
-			bbbrap += 0.66f;
-			bbbrap = CalcClamp(bbbrap, 0.65f, 2.f);
+			bbbrap = pow(cv(voobles), 3.f) *
+					 (10.f * static_cast<float>(bibbles.size()) /
+					  static_cast<float>(voobles.size() + 1));
+			bbbrap += 0.55f;
+			bbbrap = CalcClamp(bbbrap, 0.4f, 2.f);
 
 			if (debugmode) {
 				std::string rarp = "voobles: ";
@@ -1724,9 +1724,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		float barf =
 		  0.35f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
-		  dswip * 0.65f;
+		  dswip * 0.5f;
 		Cv += barf;
 		Cv *= barf2;
+		//bbbrap = CalcClamp(bbbrap, Cv, 2.f);
 		Cv *= bbbrap;
 		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
 
