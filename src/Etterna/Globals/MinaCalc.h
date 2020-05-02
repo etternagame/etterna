@@ -115,7 +115,8 @@ class Calc
 	the results to the hand initialization functions. Also passes the input
 	timingscale value. */
 	void InitializeHands(const std::vector<NoteInfo>& NoteInfo,
-						 float music_rate);
+						 float music_rate,
+						 float offset);
 
 	/*	Slices the track into predefined intervals of time. All taps within each
 	interval have their ms values from the last note in the same column
@@ -124,7 +125,8 @@ class Calc
 	in the track). */
 	Finger ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
 						 unsigned int t,
-						 float music_rate);
+						 float music_rate,
+						 float offset);
 
 	// Derivative calc params
 	int MaxPoints = 0; // Total points achievable in the file

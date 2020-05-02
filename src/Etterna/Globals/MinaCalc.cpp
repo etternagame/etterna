@@ -235,7 +235,8 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 Finger
 Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					unsigned int t,
-					float music_rate)
+					float music_rate,
+					float offset)
 {
 	// optimization, just allocate memory here once and recycle this vector
 	vector<float> temp_queue(5000);
@@ -251,7 +252,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	unsigned int column = 1u << t;
 
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
-		float scaledtime = NoteInfo[i].rowTime / music_rate;
+		float scaledtime = (NoteInfo[i].rowTime / music_rate) + offset;
 
 		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
 			// dump stored values before iterating to new interval
@@ -305,7 +306,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float shortstamdownscaler = CalcClamp(
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
-	InitializeHands(NoteInfo, music_rate);
+	InitializeHands(NoteInfo, music_rate, 0.4f);
 	TotalMaxPoints();
 
 	vector<float> mcbloop(NUM_Skillset);
@@ -394,7 +395,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 }
 
 void
-Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
+Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
+					  float music_rate,
+					  float offset)
 {
 	numitv = static_cast<int>(
 	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
@@ -412,7 +415,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++)
-		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate));
+		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate, offset));
 
 	// initialize base difficulty and point values
 	left_hand.InitDiff(fingers[0], fingers[1]);
