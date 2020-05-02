@@ -594,7 +594,8 @@ Calc::Chisel(float player_skill,
 				// if (ss == Skill_Technical)
 				//	gotpoints -=
 				//	  max(reqpoints * -0.5f,  (JackLoss(j0, player_skill) -
-				// JackLoss(j1, player_skill) - 	   JackLoss(j2, player_skill)
+				// JackLoss(j1, player_skill) - 	   JackLoss(j2,
+				// player_skill)
 				// - JackLoss(j3, player_skill)) / 	  4.f);
 
 				// run standard calculator stuffies
@@ -1333,12 +1334,14 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// another major benefit of retaining last col from the previous
 	// interval is we don't have to keep resetting it and i don't like
 	// how that case is handled atm
-	int lastcol = -1;
-	float lasttime = 0.f;
-	int lastsinglecol = -1;
+
 	vector<float> lr;
 	vector<float> rl;
+	float lasttime = 0.f;
+	static const float water_it_for_me = 0.1f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int lastcol = -1;
+		int lastsinglecol = -1;
 		// roll downscaler stuff
 		// this appears not to be picking up certain patterns in certain
 		// test files, reminder to investigate
@@ -1346,7 +1349,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		lr.clear();
 		rl.clear();
-		
+
 		int ltaps = 0;
 		int rtaps = 0;
 		int dswap = 0;
@@ -1370,7 +1373,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// 40, 40, 20 is meaningless since they're all psuedo jumps anyway,
 			// but it will prevent the roll downscaler from being applied to the
 			// degree it should
-			float bloaaap = 0.1f + curtime - lasttime;
+			float bloaaap = water_it_for_me + curtime - lasttime;
 
 			// ignore jumps/no tapsals
 			if (!(lcol ^ rcol)) {
@@ -1395,7 +1398,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					jumptaps += 2;
 					if (lastcol == 0) {
 						lr.push_back(bloaaap);
-					}	
+					}
 					if (lastcol == 1) {
 						rl.push_back(bloaaap);
 					}
@@ -1403,7 +1406,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					// on ohjumps treat the next note as always cross column
 					lastcol = -1;
 				}
-					
+
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
@@ -1415,17 +1418,18 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// if lcol is true and we are here we have 1 single tap and if lcol
 			// is true we are on column 0; don't try to be clever, even if lcol
 			// < rcol to convert bools into ints into a bool into an int worked
-			// it was needlessly confusing 
+			// it was needlessly confusing
 			int thiscol = lcol ? 0 : 1;
 
 			// ignore consecutive notes, if we encountered a one hand jump treat
 			// it as always being a column swap
-			//if (debugmode)
-			//std::cout << "lastcol is " << lastcol << std::endl;
-			//if (debugmode)
-			//std::cout << "thiscol is " << thiscol << std::endl;
+			// if (debugmode)
+			// std::cout << "lastcol is " << lastcol << std::endl;
+			// if (debugmode)
+			// std::cout << "thiscol is " << thiscol << std::endl;
 			if (thiscol != lastcol || lastcol == -1) {
-				// treat 1[12]2 as different from 1[12]1, count the latter as an anchor and the former as a roll with 4 notes
+				// treat 1[12]2 as different from 1[12]1, count the latter as an
+				// anchor and the former as a roll with 4 notes
 				if (lastcol == -1)
 					if (lastsinglecol == thiscol) {
 						++dswap;
@@ -1433,31 +1437,31 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 						++ltaps;
 						++rtaps;
 					}
-						
 
 				// this is the col we END on, so if we end on right, we are left
 				// to right, not right to left
 				if (rcol) {
 					lr.push_back(bloaaap);
 					++ltaps;
-					//if (debugmode)
-					//std::cout << "left right " << curtime - lasttime
+					// if (debugmode)
+					// std::cout << "left right " << curtime - lasttime
 					//		  << std::endl;
 				} else if (lcol) {
 					rl.push_back(bloaaap);
 					++rtaps;
-					//if (debugmode)
-					//std::cout << "right to left " << curtime - lasttime
+					// if (debugmode)
+					// std::cout << "right to left " << curtime - lasttime
 					//		  << std::endl;
 				} else {
-					//if (debugmode)
-					//std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA" << std::endl;
+					// if (debugmode)
+					// std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA" <<
+					// std::endl;
 				}
 				// only log cross column lasttimes on single notes
 				lasttime = curtime;
 			} else {
-				//if (debugmode)
-					//std::cout << "anchor" << std::endl;
+				// if (debugmode)
+				// std::cout << "anchor" << std::endl;
 				// consecutive notes should "poison" the current cross
 				// column vector but without shifting the proportional
 				// scaling too much this is to avoid treating 121212212121
@@ -1511,16 +1515,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			std::string rarp = "left to right: ";
 
 			for (auto& a : lr) {
-				rarp.append(std::to_string(a));
+				rarp.append(std::to_string(a - water_it_for_me));
 				rarp.append(", ");
 			}
 			rarp.append("\nright to left: ");
 
 			for (auto& b : rl) {
-				rarp.append(std::to_string(b));
+				rarp.append(std::to_string(b - water_it_for_me));
 				rarp.append(", ");
 			}
-				
+
 			std::cout << "" << rarp << std::endl;
 		}
 
@@ -1556,9 +1560,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			cvrl = cv(rl);
 
 		if (debugmode)
-		std::cout << "cv lr " << cvlr << std::endl;
+			std::cout << "cv lr " << cvlr << std::endl;
 		if (debugmode)
-		std::cout << "cv rl " << cvrl << std::endl;
+			std::cout << "cv rl " << cvrl << std::endl;
 
 		// weighted average, but if one is empty we want it to skew high not
 		// low due to * 0
@@ -1566,15 +1570,51 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				   static_cast<float>(cvtaps + 2);
 
 		if (debugmode)
-		std::cout << "cv " << cv << std::endl;
+			std::cout << "cv " << cv << std::endl;
 
 		// the vector with the higher mean should carry a little more weight
-		//float mlr = mean(lr);
-		//float mrl = mean(rl);
-		//bool rl_is_higher = mlr < mrl;
-		//cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv + cvlr) / 3.f;
-		//if (debugmode)
-		//	std::cout << "cv2 " << cv << std::endl;
+
+		float yes_trills = 1.f;
+
+		// check for oh trills
+		if (true) {
+			if (!lr.empty() && !rl.empty()) {
+
+				// ok this is SUPER jank but we added a flat amount to the ms
+				// values to water down the effects of variation, but that will
+				// negate the differential between the means of the two, so now
+				// we have to again subtract that amount from the ms values in
+				// the vectors
+				for (auto& v : lr)
+					v -= water_it_for_me;
+				for (auto& v : rl)
+					v -= water_it_for_me;
+
+				float no_trills = 1.f;
+				float mlr = mean(lr);
+				float mrl = mean(rl);
+				bool rl_is_higher = mlr < mrl;
+
+				// if the mean of one is much higher than the other, it's oh
+				// trills, so leave it alone, if it isn't, scale down the roll
+				// modifier by the oh trillyness, we don't want to affect that
+				// here
+				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
+				div = CalcClamp(div, 1.f, 3.f);
+				if (debugmode)
+					std::cout << "div " << div << std::endl;
+				no_trills = CalcClamp(1.5f - div, 0.f, 1.f);
+
+				// store high oh trill detection in case
+				// we want to do stuff with it later
+				yes_trills = cv - no_trills;
+				yes_trills = CalcClamp(yes_trills, 0.1f, 1.f);
+				cv += no_trills * 0.5f; // just straight up add to cv
+			}
+		}
+
+		// cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv + cvlr)
+		// / 3.f; if (debugmode) 	std::cout << "cv2 " << cv << std::endl;
 
 		// if we want to screen out trills and focus on just rolls we can
 		// compare mean values, proper rolls will have one set with a mean
@@ -1582,22 +1622,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// linear downscale for test purposes and i dont if it has
 		// unintended consequences, but it does work for saw-saw
 		/*
-		float yes_trills = 0.f;
-		if (false) {
-			float notrills = 1.f;
-			if (mlr > 0.f && mrl > 0.f) {
-				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
-				div = CalcClamp(div, 1.f, 3.f);
-				notrills = CalcClamp(2.f - div, 0.f, 1.f);
-			}
-			yes_trills = cv - notrills; // store high oh trill detection in case
-										// we want to do stuff with it later
-			cv += notrills * 1.f;		// just straight up add to cv
-		}
+
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1615,13 +1644,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// downscaled cap to 1 (it's not an inherently bad idea to upscale
 		// sets of patterns with high variation but we shouldn't do that
 		// here, probably)
+
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		float barf = 0.25f * static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
+		float barf =
+		  0.15f * static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		cv += barf;
 		cv *= barf2;
-		doot[Roll][i] = CalcClamp(cv, 0.25f, 1.15f);
-		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(1.f), 0.8f, 1.f);
+		doot[Roll][i] = CalcClamp(cv, 0.25f, 1.f);
+		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 		if (debugmode)
 			std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
@@ -1640,9 +1671,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[OHJump], 1.f);
 	}
 
+	// this is fugly but basically we want to negate any _bonus_ from chaos if
+	// the polys are arranged in a giant ass roll formation
 	for (size_t i = 0; i < doot[Chaos].size(); ++i)
-		if (doot[Roll][i] < 0.8f)
-			doot[Chaos][i] = CalcClamp(doot[Chaos][i], doot[Chaos][i], 1.f);
+		doot[Chaos][i] =
+		  CalcClamp(doot[Chaos][i] * doot[Roll][i], 1.f, doot[Chaos][i]);
 
 	return;
 }
