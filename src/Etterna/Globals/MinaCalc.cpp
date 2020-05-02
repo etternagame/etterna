@@ -29,7 +29,8 @@ fastpow(double a, double b)
 	return a;
 }
 
-// reasonably accurate taylor approximation for ^ 1.7 (jk not anymore not really)
+// reasonably accurate taylor approximation for ^ 1.7 (jk not anymore not
+// really)
 inline float
 fast_pw(float x)
 {
@@ -216,11 +217,16 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			interval3 = interval4;
 			interval4 = 1000.f * (current_time - last);
 			last = current_time;
-			output.emplace_back(
-			  min(2750.f /
-					min((interval2 + interval3 + interval4) / 3.f,
-						0.8f * interval4 * CalcClamp(1.f + cv({interval1, interval2, interval3, interval4}), 1.f, 1.8f)),
-				 45.f));
+			output.emplace_back(min(
+			  2750.f /
+				min(
+				  (interval2 + interval3 + interval4) / 3.f,
+				  0.8f * interval4 *
+					CalcClamp(
+					  1.f + cv({ interval1, interval2, interval3, interval4 }),
+					  1.f,
+					  1.8f)),
+			  45.f));
 		}
 	}
 	return output;
@@ -381,7 +387,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			// so 50%s on 60s don't give 35s
 			r = downscale_low_accuracy_scores(r, score_goal);
 			r = CalcClamp(r, r, ssrcap);
-		}		
+		}
 	}
 
 	return bye_vibro_maybe_yes_this_should_be_refactored_lul;
@@ -418,7 +424,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	SetAnchorMod(NoteInfo, 1, 2, left_hand.doot);
 	SetAnchorMod(NoteInfo, 4, 8, right_hand.doot);
 
-	// roll and ohj
 	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
 	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
 
@@ -435,6 +440,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo, float music_rate)
 	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
 	right_hand.doot[Chaos] = left_hand.doot[Chaos];
 	right_hand.doot[FlamJam] = left_hand.doot[FlamJam];
+
+	// roll and ohj, set these after chaos mod has been calculated so we can
+	// nerf the poly mod based on the roll mod, we don't want psuedo rolls
+	// formed by polys to get the poly bonus if at all possible
+	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
+	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
@@ -563,7 +574,8 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed)
-				gotpoints = MaxPoints + 
+				gotpoints =
+				  MaxPoints +
 				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
 			else {
@@ -582,14 +594,14 @@ Calc::Chisel(float player_skill,
 				// if (ss == Skill_Technical)
 				//	gotpoints -=
 				//	  max(reqpoints * -0.5f,  (JackLoss(j0, player_skill) -
-				//JackLoss(j1, player_skill) - 	   JackLoss(j2, player_skill) -
-				//JackLoss(j3, player_skill)) / 	  4.f);
+				// JackLoss(j1, player_skill) - 	   JackLoss(j2, player_skill)
+				// - JackLoss(j3, player_skill)) / 	  4.f);
 
 				// run standard calculator stuffies
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
-				
+
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.f;
@@ -683,18 +695,18 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		debugValues[1][MSD] = stam_adj_diff;
 
 		for (size_t i = 0; i < v.size(); ++i) {
-			float gainedpoints =
-			  x > v[i] ? static_cast<float>(v_itvpoints[i])
-					   : static_cast<float>(v_itvpoints[i]) * fastpow(x / v[i], 1.7f);
+			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
+										  : static_cast<float>(v_itvpoints[i]) *
+											  fastpow(x / v[i], 1.7f);
 			gotpoints += gainedpoints;
 			debugValues[2][PtLoss][i] =
 			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
 		}
 	} else
 		for (size_t i = 0; i < v.size(); ++i)
-			gotpoints +=
-			  x > v[i] ? static_cast<float>(v_itvpoints[i])
-					   : static_cast<float>(v_itvpoints[i]) * fastpow(x / v[i], 1.7f);
+			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
+								  : static_cast<float>(v_itvpoints[i]) *
+									  fastpow(x / v[i], 1.7f);
 }
 
 void
@@ -806,11 +818,11 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_cols = cols;
 		}
 
-		if (taps == 0)				// nothing here
+		if (taps == 0) // nothing here
 			doot[HS][i] = 1.f;
-		else if (taps < 3)			// look ma no hands
+		else if (taps < 3) // look ma no hands
 			doot[HS][i] = 0.8f;
-		else {						// at least 1 hand
+		else { // at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = static_cast<float>(handtaps + 1) /
 						 static_cast<float>(taps - 1) * 32.f / 7.f;
@@ -867,15 +879,15 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_cols = cols;
 		}
 
-		if (taps == 0)				// nothing here
+		if (taps == 0) // nothing here
 			doot[Jump][i] = 1.f;
-		else if (taps < 2)			// at least 1 tap but no jumps
+		else if (taps < 2) // at least 1 tap but no jumps
 			doot[Jump][i] = 0.8f;
-		else {						// at least 1 jump
+		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 21.f / 7.f;
-			
+						 static_cast<float>(taps - 1) * 20.f / 7.f;
+
 			float bromide = CalcClamp(5.f - not_stream, 0.975f, 1.f);
 			// downscale by jack density rather than upscale, like cj
 			float brop = CalcClamp(3.f - actual_jacks, 0.95f, 1.f);
@@ -920,15 +932,15 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 					// chordjacks when they shouldn't be
 					break;
 				}
-					
+
 			last_cols = cols;
 		}
 
-		if (taps == 0)				// nothing here
+		if (taps == 0) // nothing here
 			doot[CJ][i] = 1.f;
-		else if (chordtaps == 0) {	// there are taps, but no chords
+		else if (chordtaps == 0) { // there are taps, but no chords
 			doot[CJ][i] = 0.7f;
-		} else {					// we have at least 1 chord
+		} else { // we have at least 1 chord
 			// we want to give a little leeway for single taps but not too much
 			// or sections of [12]4[123]   [123]4[23] will be flagged as
 			// chordjack when they're really just broken chordstream, and we
@@ -1155,7 +1167,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			if (giraffeasaurus < 0.25f)
 				whatwhat.emplace(giraffeasaurus);
 
-			// instead of making another new mod, calculate the original and most basic chaos mod and apply it along with the new one
+			// instead of making another new mod, calculate the original and
+			// most basic chaos mod and apply it along with the new one
 			for (size_t i = 0; i < notes; ++i)
 				whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
@@ -1247,7 +1260,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
-			stub = CalcClamp(stub * test_chaos_merge_stuff, 0.925f, 1.04f);
+			stub =
+			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.96f, 1.04f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1321,6 +1335,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// how that case is handled atm
 	int lastcol = -1;
 	float lasttime = 0.f;
+	int lastsinglecol = -1;
 	vector<float> lr;
 	vector<float> rl;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
@@ -1328,60 +1343,121 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// this appears not to be picking up certain patterns in certain
 		// test files, reminder to investigate
 		int totaltaps = 0;
+
 		lr.clear();
 		rl.clear();
+		
 		int ltaps = 0;
 		int rtaps = 0;
+		int dswap = 0;
 
 		// ohj downscaler stuff
 		int jumptaps = 0;		// more intuitive to count taps in jumps
 		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
-
+		if (debugmode)
+			std::cout << "new interval" << std::endl;
 		for (int row : nervIntervals[i]) {
+			if (debugmode)
+				std::cout << "new row" << std::endl;
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
-			// skip first element and ignore jumps/no taps
-			if (!(lcol ^ rcol) || lastcol == -1) {
+			// as variation approaches 0 the effect of variation diminishes,
+			// e.g. given 140, 140, 120 ms and 40, 40, 20 ms the variation in
+			// 40, 40, 20 is meaningless since they're all psuedo jumps anyway,
+			// but it will prevent the roll downscaler from being applied to the
+			// degree it should
+			float bloaaap = 0.1f + curtime - lasttime;
 
+			// ignore jumps/no tapsals
+			if (!(lcol ^ rcol)) {
 				// fully skip empty rows, set nothing
-				if (!(lcol || rcol))
+				if (!(lcol || rcol)) {
+					if (debugmode)
+						std::cout << "empty row" << std::endl;
 					continue;
+				}
 
-				// it shouldn't matter if first row is a jump
-				if (lastcol == -1)
-					if (lcol)
-						lastcol = 0;
-					else
-						lastcol = 1;
+				if (debugmode)
+					std::cout << "jump" << std::endl;
 
+				// add jumptaps when hitting jumps for ohj
+				// turns out in order to catch rolls with periodic [12] jumps we
+				// need to actually count them as taps-inside-rolls rather than
+				// just ignoring them, and we can try kicking back an extra
+				// value into the lr or rl vectors since 1->[12] is technically
+				// a 1->2 and the difference in motion isn't appreciably
+				// different under the circumstances we are interested in
+				if (lcol && rcol) {
+					jumptaps += 2;
+					if (lastcol == 0) {
+						lr.push_back(bloaaap);
+					}	
+					if (lastcol == 1) {
+						rl.push_back(bloaaap);
+					}
+					lastsinglecol = lastcol;
+					// on ohjumps treat the next note as always cross column
+					lastcol = -1;
+				}
+					
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
-				// add jumptaps when hitting jumps for ohj
-				if (lcol && rcol)
-					jumptaps += 2;
-
 				// set the largest ohj sequence
 				maxseqjumptaps = max(maxseqjumptaps, jumptaps);
-
 				continue;
 			}
 
-			int thiscol = lcol < rcol;
-			if (thiscol != lastcol) { // ignore consecutive notes
-				if (thiscol) { // right column, push to right to left vector
-					rl.push_back(curtime - lasttime);
-					++rtaps;
-				} else {
-					lr.push_back(curtime - lasttime);
+			// if lcol is true and we are here we have 1 single tap and if lcol
+			// is true we are on column 0; don't try to be clever, even if lcol
+			// < rcol to convert bools into ints into a bool into an int worked
+			// it was needlessly confusing 
+			int thiscol = lcol ? 0 : 1;
+
+			// ignore consecutive notes, if we encountered a one hand jump treat
+			// it as always being a column swap
+			//if (debugmode)
+			//std::cout << "lastcol is " << lastcol << std::endl;
+			//if (debugmode)
+			//std::cout << "thiscol is " << thiscol << std::endl;
+			if (thiscol != lastcol || lastcol == -1) {
+				// treat 1[12]2 as different from 1[12]1, count the latter as an anchor and the former as a roll with 4 notes
+				if (lastcol == -1)
+					if (lastsinglecol == thiscol) {
+						++dswap;
+					} else {
+						++ltaps;
+						++rtaps;
+					}
+						
+
+				// this is the col we END on, so if we end on right, we are left
+				// to right, not right to left
+				if (rcol) {
+					lr.push_back(bloaaap);
 					++ltaps;
+					//if (debugmode)
+					//std::cout << "left right " << curtime - lasttime
+					//		  << std::endl;
+				} else if (lcol) {
+					rl.push_back(bloaaap);
+					++rtaps;
+					//if (debugmode)
+					//std::cout << "right to left " << curtime - lasttime
+					//		  << std::endl;
+				} else {
+					//if (debugmode)
+					//std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA" << std::endl;
 				}
-				lasttime = curtime; // only log cross column lasttimes
+				// only log cross column lasttimes on single notes
+				lasttime = curtime;
 			} else {
+				//if (debugmode)
+					//std::cout << "anchor" << std::endl;
 				// consecutive notes should "poison" the current cross
 				// column vector but without shifting the proportional
 				// scaling too much this is to avoid treating 121212212121
@@ -1400,11 +1476,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// certain scenarios though again on the other hand explicit
 				// modifiers are easier to tune you just have to do a lot
 				// more of it
-				if (thiscol)
-					rl.push_back(curtime - lasttime);
-				else
-					lr.push_back(curtime - lasttime);
-				totaltaps += 2; // yes this is cheezy
+
+				if (rcol)
+					lr.push_back(bloaaap);
+				else if (lcol)
+					rl.push_back(bloaaap);
+
+				// we have an anchor and we either have moderately complex
+				// patterning now or we have simply changed direction of the
+				// roll
+				++dswap;
 			}
 
 			// ohj downscaler stuff
@@ -1425,6 +1506,22 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				jumptaps -= 2;
 
 			lastcol = thiscol;
+		}
+		if (debugmode) {
+			std::string rarp = "left to right: ";
+
+			for (auto& a : lr) {
+				rarp.append(std::to_string(a));
+				rarp.append(", ");
+			}
+			rarp.append("\nright to left: ");
+
+			for (auto& b : rl) {
+				rarp.append(std::to_string(b));
+				rarp.append(", ");
+			}
+				
+			std::cout << "" << rarp << std::endl;
 		}
 
 		int cvtaps = ltaps + rtaps;
@@ -1458,24 +1555,35 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		if (rtaps > 1)
 			cvrl = cv(rl);
 
+		if (debugmode)
+		std::cout << "cv lr " << cvlr << std::endl;
+		if (debugmode)
+		std::cout << "cv rl " << cvrl << std::endl;
+
 		// weighted average, but if one is empty we want it to skew high not
 		// low due to * 0
 		float cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
-		// the vector with the lower mean should carry a little more weight
-		float mlr = mean(lr);
-		float mrl = mean(rl);
-		bool rl_is_higher = mlr < mrl;
-		cv = rl_is_higher ? (2.f * cv + cvlr) / 3.f : (2.f * cv + cvrl) / 3.f;
+		if (debugmode)
+		std::cout << "cv " << cv << std::endl;
+
+		// the vector with the higher mean should carry a little more weight
+		//float mlr = mean(lr);
+		//float mrl = mean(rl);
+		//bool rl_is_higher = mlr < mrl;
+		//cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv + cvlr) / 3.f;
+		//if (debugmode)
+		//	std::cout << "cv2 " << cv << std::endl;
 
 		// if we want to screen out trills and focus on just rolls we can
 		// compare mean values, proper rolls will have one set with a mean
 		// 3x above the other trills will be 1:1 equal, this is a simple
 		// linear downscale for test purposes and i dont if it has
 		// unintended consequences, but it does work for saw-saw
+		/*
 		float yes_trills = 0.f;
-		if (1) {
+		if (false) {
 			float notrills = 1.f;
 			if (mlr > 0.f && mrl > 0.f) {
 				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
@@ -1487,18 +1595,35 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			cv += notrills * 1.f;		// just straight up add to cv
 		}
 
+
 		// then scaled against how many taps we ignored
-		float barf = static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		cv *= barf;
+		
+		float barf = (-0.1f + (dswap * 0.1f));
+		barf += (barf2 - 1.f);
+		if (debugmode)
+			std::cout << "barf " << barf << std::endl;
+		cv += barf;
+		cv *= barf2;
+		cv = CalcClamp(cv, 0.f, 1.f);
+
+		if (debugmode)
+			std::cout << "cv3 " << cv << std::endl;
 		yes_trills *= barf;
+		*/
 
 		// we just want a minimum amount of variation to escape getting
 		// downscaled cap to 1 (it's not an inherently bad idea to upscale
 		// sets of patterns with high variation but we shouldn't do that
 		// here, probably)
-		doot[Roll][i] = CalcClamp(0.5f + fastsqrt(cv), 0.5f, 1.f);
-		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
-
+		float barf2 =
+		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
+		float barf = 0.25f * static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
+		cv += barf;
+		cv *= barf2;
+		doot[Roll][i] = CalcClamp(cv, 0.25f, 1.15f);
+		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(1.f), 0.8f, 1.f);
+		if (debugmode)
+			std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
 			doot[OHJump][i] = 1.f;
@@ -1511,8 +1636,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 	if (SmoothPatterns) {
 		Smooth(doot[Roll], 1.f);
+		Smooth(doot[Roll], 1.f);
 		Smooth(doot[OHJump], 1.f);
 	}
+
+	for (size_t i = 0; i < doot[Chaos].size(); ++i)
+		if (doot[Roll][i] < 0.8f)
+			doot[Chaos][i] = CalcClamp(doot[Chaos][i], doot[Chaos][i], 1.f);
 
 	return;
 }
@@ -1575,5 +1705,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 276;
+	return 277;
 }
