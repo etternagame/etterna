@@ -306,92 +306,113 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float shortstamdownscaler = CalcClamp(
 	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
 
-	InitializeHands(NoteInfo, music_rate, 0.4f);
-	TotalMaxPoints();
+	vector<vector<float>> the_hizzle_dizzles(3);
 
-	vector<float> mcbloop(NUM_Skillset);
-	// overall and stam will be left as 0.f by this loop
-	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
+	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0; WHAT_IS_EVEN_HAPPEN_THE_BOMB < 3;
+		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
+		InitializeHands(
+		  NoteInfo, music_rate, 0.2f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
+		TotalMaxPoints();
 
-	// stam is based on which calc produced the highest output without it
-	size_t highest_base_skillset = std::distance(
-	  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
-	float base = mcbloop[highest_base_skillset];
+		vector<float> mcbloop(NUM_Skillset);
+		// overall and stam will be left as 0.f by this loop
+		for (int i = 0; i < NUM_Skillset; ++i)
+			mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
-	// rerun all with stam on, optimize by starting at the non-stam adjusted
-	// base value for each skillset
-	// we can actually set the stam floor to < 1 to shift the curve a bit
-	for (int i = 0; i < NUM_Skillset; ++i)
-		mcbloop[i] = Chisel(mcbloop[i] * 0.95f, 0.64f, score_goal, i, true);
+		// stam is based on which calc produced the highest output without it
+		size_t highest_base_skillset = std::distance(
+		  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
+		float base = mcbloop[highest_base_skillset];
 
-	// all relative scaling to specific skillsets should occur before this
-	// point, not after (it ended up this way due to the normalizers which were
-	// dumb and removed) stam is the only skillset that can/should be normalized
-	// to base values without interfering with anything else (since it's not
-	// based on a type of pattern)
+		// rerun all with stam on, optimize by starting at the non-stam adjusted
+		// base value for each skillset
+		// we can actually set the stam floor to < 1 to shift the curve a bit
+		for (int i = 0; i < NUM_Skillset; ++i)
+			mcbloop[i] = Chisel(mcbloop[i] * 0.95f, 0.64f, score_goal, i, true);
 
-	// stam jams, stamina should push up the base ratings for files so files
-	// that are more difficult by virtue of being twice as long for more or less
-	// the same patterns don't get underrated, however they shouldn't be pushed
-	// up a huge amount either, we want high stream scores to be equally
-	// achieveable on longer or shorter files, ideally, the stam ratings itself
-	// is a separate consideration and will be scaled to the degree to which the
-	// stamina model affects the base rating, so while stamina should affect the
-	// base skillset ratings slightly we want the degree to which it makes files
-	// harder to be catalogued as the stamina rating
-	// scaling down stuff that has no stamina component will help preventing
-	// pollution of stamina leaderboards with charts that are just very high
-	// rated but take no stamina
-	float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+		// all relative scaling to specific skillsets should occur before this
+		// point, not after (it ended up this way due to the normalizers which
+		// were dumb and removed) stam is the only skillset that can/should be
+		// normalized to base values without interfering with anything else
+		// (since it's not based on a type of pattern)
 
-	// ends up being a multiplier between ~0.8 and ~1
-	// tuning is a wip
-	float mcfroggerbopper = pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
+		// stam jams, stamina should push up the base ratings for files so files
+		// that are more difficult by virtue of being twice as long for more or
+		// less the same patterns don't get underrated, however they shouldn't
+		// be pushed up a huge amount either, we want high stream scores to be
+		// equally achieveable on longer or shorter files, ideally, the stam
+		// ratings itself is a separate consideration and will be scaled to the
+		// degree to which the stamina model affects the base rating, so while
+		// stamina should affect the base skillset ratings slightly we want the
+		// degree to which it makes files harder to be catalogued as the stamina
+		// rating scaling down stuff that has no stamina component will help
+		// preventing pollution of stamina leaderboards with charts that are
+		// just very high rated but take no stamina
+		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
-	// we wanted to shift the curve down a lot before pow'ing but it was too
-	// much to balance out, so we need to give some back, this is roughly
-	// equivalent of multiplying by 1.05 but also not really because math
-	// we don't want to push up the high end stuff anymore so just add to
-	// let stuff down the curve catch up a little
-	// remember we're operating on a multiplier
-	mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.025f, 0.8f, 1.09f);
-	mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
+		// ends up being a multiplier between ~0.8 and ~1
+		// tuning is a wip
+		float mcfroggerbopper =
+		  pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
 
-	// yes i know how dumb this looks
-	DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
-									mcbloop[3], mcbloop[4], mcbloop[5],
-									mcbloop[6], mcbloop[7] };
-	vector<float> pumpkin = skillset_vector(difficulty);
-	// sets the 'proper' debug output, doesn't (shouldn't) affect actual values
-	// this is the only time debugoutput arg should be set to true
-	if (debugmode)
-		Chisel(mcbloop[highest_base_skillset] - 0.16f,
-			   0.32f,
-			   score_goal,
-			   highest_base_skillset,
-			   true,
-			   true);
+		// we wanted to shift the curve down a lot before pow'ing but it was too
+		// much to balance out, so we need to give some back, this is roughly
+		// equivalent of multiplying by 1.05 but also not really because math
+		// we don't want to push up the high end stuff anymore so just add to
+		// let stuff down the curve catch up a little
+		// remember we're operating on a multiplier
+		mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.025f, 0.8f, 1.09f);
+		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
 
-	difficulty.overall = highest_difficulty(difficulty);
+		// yes i know how dumb this looks
+		DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
+										mcbloop[3], mcbloop[4], mcbloop[5],
+										mcbloop[6], mcbloop[7] };
+		vector<float> pumpkin = skillset_vector(difficulty);
+		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
+		// values this is the only time debugoutput arg should be set to true
+		if (debugmode)
+			Chisel(mcbloop[highest_base_skillset] - 0.16f,
+				   0.32f,
+				   score_goal,
+				   highest_base_skillset,
+				   true,
+				   true);
 
-	// the final push down, cap ssrs (score specific ratings) to stop vibro
-	// garbage and calc abuse from polluting leaderboards too much, a "true"
-	// 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
-	// do this for SCORES only, not cached file difficulties
-	auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
-	  skillset_vector(difficulty);
-	if (capssr) {
-		static const float ssrcap = 40.f;
+		difficulty.overall = highest_difficulty(difficulty);
 
-		for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
-			// so 50%s on 60s don't give 35s
-			r = downscale_low_accuracy_scores(r, score_goal);
-			r = CalcClamp(r, r, ssrcap);
+		// the final push down, cap ssrs (score specific ratings) to stop vibro
+		// garbage and calc abuse from polluting leaderboards too much, a "true"
+		// 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
+		// do this for SCORES only, not cached file difficulties
+		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
+		  skillset_vector(difficulty);
+		if (capssr) {
+			static const float ssrcap = 40.f;
+
+			for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
+				// so 50%s on 60s don't give 35s
+				r = downscale_low_accuracy_scores(r, score_goal);
+				r = CalcClamp(r, r, ssrcap);
+			}
 		}
+		for (size_t bagles = 0;
+			 bagles < bye_vibro_maybe_yes_this_should_be_refactored_lul.size();
+			 ++bagles)
+			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(bye_vibro_maybe_yes_this_should_be_refactored_lul[bagles]);
+	}
+	vector<float> yo_momma(NUM_Skillset);
+	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
+		vector<float> girls;
+		for (size_t nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
+			girls.push_back(the_hizzle_dizzles[nibble][farts]);
+			
+		}
+		yo_momma[farts] = mean(girls);
+		girls.clear();
 	}
 
-	return bye_vibro_maybe_yes_this_should_be_refactored_lul;
+	return yo_momma;
 }
 
 void
@@ -1265,7 +1286,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub =
-			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.96f, 1.04f);
+			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.97f, 1.03f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1330,6 +1351,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	doot[OHTrill].resize(nervIntervals.size());
 	doot[Chaos].resize(nervIntervals.size());
 
+	vector<float> wadf1;
+	vector<float> wadf2;
+	vector<float> wadf3;
+	vector<float> wadf4;
+
 	// not sure if these should persist between intervals or not
 	// not doing so makes the pattern detection slightly more strict
 	// doing so will give the calc some context from the previous
@@ -1341,10 +1367,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	vector<float> lr;
 	vector<float> rl;
 	float lasttime = 0.f;
-	static const float water_it_for_me = 0.1f;
+	float dswip = 0.f;
+	int lastcol = -1;
+	int lastsinglecol = -1;
+	static const float water_it_for_me = 0.05f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int lastcol = -1;
-		int lastsinglecol = -1;
+		wadf1 = wadf2;
+		wadf2 = wadf3;
+		wadf3 = wadf4;
+		wadf4.clear();
+
 		// roll downscaler stuff
 		// this appears not to be picking up certain patterns in certain
 		// test files, reminder to investigate
@@ -1371,11 +1403,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
+			wadf4.push_back(curtime - lasttime);
+
 			// as variation approaches 0 the effect of variation diminishes,
 			// e.g. given 140, 140, 120 ms and 40, 40, 20 ms the variation in
 			// 40, 40, 20 is meaningless since they're all psuedo jumps anyway,
 			// but it will prevent the roll downscaler from being applied to the
-			// degree it should
+			// degree it should, so add a flat value to water down the effect
 			float bloaaap = water_it_for_me + curtime - lasttime;
 
 			// ignore jumps/no tapsals
@@ -1434,10 +1468,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// treat 1[12]2 as different from 1[12]1, count the latter as an
 				// anchor and the former as a roll with 4 notes
 				if (lastcol == -1)
-					if (lastsinglecol == thiscol) {
-						++dswap;
-					} else {
+					if (lcol) {
 						++ltaps;
+						//++rtaps;
+						//++dswap;
+					} else {
+						//++ltaps;
 						++rtaps;
 					}
 
@@ -1530,7 +1566,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			std::cout << "" << rarp << std::endl;
 		}
-
+		// I DONT KNOW OK
+		dswip = (dswip + dswap) / 2.f;
 		int cvtaps = ltaps + rtaps;
 
 		// if this is true we have some combination of single notes and
@@ -1549,7 +1586,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				doot[OHJump][i] = 1.f;
 
 			// no rolls here by definition
-			doot[Roll][i] = 1.f;
+			doot[Roll][i] = 0.9f;
 			doot[OHTrill][i] = 1.f;
 
 			continue;
@@ -1569,7 +1606,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		// weighted average, but if one is empty we want it to skew high not
 		// low due to * 0
-		float cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
+		float Cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
 		if (debugmode)
@@ -1598,38 +1635,32 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				float mrl = mean(rl);
 				bool rl_is_higher = mlr < mrl;
 
-				// if the mean of one is much higher than the other, it's oh
-				// trills, so leave it alone, if it isn't, scale down the roll
+				// if the mean of one isn't much higher than the other, it's oh
+				// trills, so leave it alone, if it is, scale down the roll
 				// modifier by the oh trillyness, we don't want to affect that
 				// here
 				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
 				div = CalcClamp(div, 1.f, 3.f);
 				if (debugmode)
 					std::cout << "div " << div << std::endl;
-				no_trills = CalcClamp(1.5f - div, 0.f, 1.f);
+				no_trills = CalcClamp(1.75f - div, 0.f, 1.f);
 
 				// store high oh trill detection in case
 				// we want to do stuff with it later
-				yes_trills = cv - no_trills;
+				yes_trills = Cv - no_trills;
 				yes_trills = CalcClamp(yes_trills, 0.1f, 1.f);
-				cv += no_trills * 0.5f; // just straight up add to cv
+				Cv += no_trills * 1.f; // just straight up add to cv
 			}
 		}
 
 		// cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv + cvlr)
 		// / 3.f; if (debugmode) 	std::cout << "cv2 " << cv << std::endl;
-
-		// if we want to screen out trills and focus on just rolls we can
-		// compare mean values, proper rolls will have one set with a mean
-		// 3x above the other trills will be 1:1 equal, this is a simple
-		// linear downscale for test purposes and i dont if it has
-		// unintended consequences, but it does work for saw-saw
 		/*
 
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1648,14 +1679,59 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// sets of patterns with high variation but we shouldn't do that
 		// here, probably)
 
+		vector<float> voobles;
+		set<float> bibbles;
+		float bbbrap = 0.f;
+		if (i > 4) {
+			voobles.clear();
+			for (auto& aaa : wadf1) {
+				// voobles.push_back(aaa);
+				// bibbles.insert(aaa);
+			}
+			for (auto& aaa : wadf2) {
+				voobles.push_back(aaa);
+				bibbles.insert(aaa);
+			}
+			for (auto& aaa : wadf3) {
+				voobles.push_back(aaa);
+				bibbles.insert(aaa);
+			}
+			for (auto& aaa : wadf4) {
+				voobles.push_back(aaa);
+				bibbles.insert(aaa);
+			}
+			bbbrap = cv(voobles) *
+					 (2.f * static_cast<float>(bibbles.size()) /
+					  static_cast<float>(voobles.size()));
+			bbbrap += 0.66f;
+			bbbrap = CalcClamp(bbbrap, 0.65f, 2.f);
+
+			if (debugmode) {
+				std::string rarp = "voobles: ";
+				for (auto& a : voobles) {
+					rarp.append(std::to_string(a));
+					rarp.append(", ");
+				}
+				std::cout << rarp << std::endl;
+				std::cout << "bibbles " << bibbles.size() / voobles.size()
+						  << std::endl;
+			}
+		} else {
+			bbbrap = 1.f;
+		}
+
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		float barf =
-		  0.15f * static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		cv += barf;
-		cv *= barf2;
-		doot[Roll][i] = CalcClamp(cv, 0.25f, 1.f);
-		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
+		  0.35f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
+		  dswip * 0.65f;
+		Cv += barf;
+		Cv *= barf2;
+		Cv *= bbbrap;
+		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
+
+		doot[OHTrill][i] = bbbrap;
+		// CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 		if (debugmode)
 			std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
@@ -1677,8 +1753,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
 	// the polys are arranged in a giant ass roll formation
 	for (size_t i = 0; i < doot[Chaos].size(); ++i)
-		doot[Chaos][i] =
-		  CalcClamp(doot[Chaos][i] * doot[Roll][i], 1.f, doot[Chaos][i]);
+		doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
+								   doot[Chaos][i],
+								   max(doot[Chaos][i] * doot[Roll][i], 1.f));
 
 	return;
 }
@@ -1741,5 +1818,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 277;
+	return 278;
 }
