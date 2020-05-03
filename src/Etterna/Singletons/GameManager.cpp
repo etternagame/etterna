@@ -127,6 +127,32 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
   AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
   AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
+  AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true));
+
+static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
+  "",
+  "",
+  "",
+  AutoMappingEntry(0, KEY_LEFT, GAME_BUTTON_MENULEFT, false),
+  AutoMappingEntry(0, KEY_RIGHT, GAME_BUTTON_MENURIGHT, false),
+  AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
+  AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
+  AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
+  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
+  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UPRIGHT, false),
+  AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_UPLEFT, false),
+  AutoMappingEntry(0, KEY_Cc, DANCE_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_Cm, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+  AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
+  AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
+  AutoMappingEntry(0, KEY_KP_SLASH, GAME_BUTTON_MENULEFT, true),
+  AutoMappingEntry(0, KEY_KP_ASTERISK, GAME_BUTTON_MENURIGHT, true),
+  AutoMappingEntry(0, KEY_KP_HYPHEN, GAME_BUTTON_MENUUP, true),
+  AutoMappingEntry(0, KEY_KP_PLUS, GAME_BUTTON_MENUDOWN, true),
+  AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
+  AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
+  AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
   AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true),
   AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
   AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
@@ -214,13 +240,13 @@ static const Style g_Style_Dance_Double = {
 	false, // m_bLockDifficulties
 };
 
-static const Style g_Style_Dance_Solo = {
+static const Style g_Style_Solo_Single = {
 	// STYLE_DANCE_SOLO
 	true,						// m_bUsedForGameplay
 	true,						// m_bUsedForEdit
 	false,						// m_bUsedForDemonstration
 	false,						// m_bUsedForHowToPlay
-	"solo",						// m_szName
+	"single",					// m_szName
 	StepsType_dance_solo,		// m_StepsType
 	StyleType_OnePlayerOneSide, // m_StyleType
 	6,							// m_iColsPerPlayer
@@ -279,7 +305,6 @@ static const Style g_Style_Dance_ThreePanel = {
 
 static const Style* g_apGame_Dance_Styles[] = { &g_Style_Dance_Single,
 												&g_Style_Dance_Double,
-												&g_Style_Dance_Solo,
 												&g_Style_Dance_ThreePanel,
 												NULL };
 
@@ -298,10 +323,44 @@ static const Game g_Game_Dance = {
 		{ "Right", GAME_BUTTON_RIGHT },
 		{ "Up", GAME_BUTTON_UP },
 		{ "Down", GAME_BUTTON_DOWN },
+	  },
+	  &g_AutoKeyMappings_Dance },
+	{
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	},
+	TNS_W1, // m_mapW1To
+	TNS_W2, // m_mapW2To
+	TNS_W3, // m_mapW3To
+	TNS_W4, // m_mapW4To
+	TNS_W5, // m_mapW5To
+};
+
+static const Style* g_apGame_Solo_Styles[] = { &g_Style_Solo_Single, NULL };
+
+static const Game g_Game_Solo = {
+	"solo",				  // m_szName
+	g_apGame_Solo_Styles, // m_apStyles
+	false,				  // m_bCountNotesSeparately
+	false,				  // m_bTickHolds
+	false,				  // m_PlayersHaveSeparateStyles
+	{					  // m_InputScheme
+	  "solo",			  // m_szName
+	  NUM_SOLO_BUTTONS,   // m_iButtonsPerController
+	  {
+		// m_szButtonNames
+		{ "Left", GAME_BUTTON_LEFT },
+		{ "Right", GAME_BUTTON_RIGHT },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Down", GAME_BUTTON_DOWN },
 		{ "UpLeft", GameButton_Invalid },
 		{ "UpRight", GameButton_Invalid },
 	  },
-	  &g_AutoKeyMappings_Dance },
+	  &g_AutoKeyMappings_Solo },
 	{
 	  { GameButtonType_Step },
 	  { GameButtonType_Step },
@@ -1410,8 +1469,8 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance,  &g_Game_Pump, &g_Game_KB7,	&g_Game_Ez2,
-	&g_Game_DS3DDX, &g_Game_Beat, &g_Game_Maniax, &g_Game_Popn,
+	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,  &g_Game_Ez2,  &g_Game_DS3DDX,
+	&g_Game_Beat,  &g_Game_Maniax, &g_Game_Popn, &g_Game_Solo,
 };
 
 GameManager::GameManager()

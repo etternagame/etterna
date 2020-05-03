@@ -73,6 +73,7 @@ class SongManager
 	// mina
 	Steps* GetStepsByChartkey(const string& ck);
 	Song* GetSongByChartkey(const string& ck);
+	void UnloadAllCalcDebugOutput();
 	bool IsChartLoaded(const string& ck)
 	{
 		return SongsByKey.count(ck) == 1 &&

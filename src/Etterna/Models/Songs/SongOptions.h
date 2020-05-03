@@ -44,7 +44,6 @@ class SongOptions
 	bool m_bStaticBackground{ false };
 	bool m_bRandomBGOnly{ false };
 	bool m_bSaveScore{ true };
-	bool m_bSaveReplay{ false };
 
 	/**
 	 * @brief Set up the SongOptions with reasonable defaults.

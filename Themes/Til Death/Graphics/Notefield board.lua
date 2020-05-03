@@ -3,13 +3,6 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local padding = 20 -- 10px on each side
 local arrowWidth = 64 -- until noteskin metrics are implemented...
 
-local filterColor = color("0,0,0,0")
-local filterAlphas = {
-	PlayerNumber_P1 = 1,
-	PlayerNumber_P2 = 1,
-	Default = 1
-}
-
 --moving notefield shenanigans
 local rPressed = false
 local tPressed = false
@@ -26,16 +19,6 @@ end
 
 local function input(event)
 	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
-		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_left" then
-				filter:addx(-3)
-				cbContainer:addx(-3)
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				filter:addx(3)
-				cbContainer:addx(3)
-			end
-		end
 		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				oldWidth = noteFieldWidth
@@ -56,17 +39,11 @@ end
 
 local style = GAMESTATE:GetCurrentStyle()
 local cols = style:ColumnsPerPlayer()
-
-local center1P = ((cols >= 6) or PREFSMAN:GetPreference("Center1Player"))
-
-local styleType = ToEnumShortString(style:GetStyleType())
 local filterWidth = (arrowWidth * cols) + padding
 
 local judgeThreshold = Enum.Reverse(TapNoteScore)[ComboContinue()]
 local enabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CBHighlight
-
 local alpha = 0.4
-
 
 local function laneHighlight()
 	local pn = PLAYER_1
@@ -86,7 +63,7 @@ local function laneHighlight()
 	for i=1,cols do
 		r[#r+1] = Def.Quad{
 			InitCommand = function(self)
-				self:zoomto(getNoteFieldScale(pn) * (arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
+				self:zoomto((arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
 				
 				local reverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
 				local receptor = reverse and THEME:GetMetric("Player", "ReceptorArrowsYStandard") or THEME:GetMetric("Player", "ReceptorArrowsYReverse")
@@ -98,9 +75,8 @@ local function laneHighlight()
 				else
 					thewidth = noteFieldWidth - 1
 				end
-				self:xy((-(arrowWidth * (cols / 2) * getNoteFieldScale(pn)) + ((i - 1) * arrowWidth * getNoteFieldScale(pn)) +(getNoteFieldScale(pn) * arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
+				self:xy((-(arrowWidth * (cols / 2)) + ((i - 1) * arrowWidth) + (arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
 				self:fadebottom(0.6):fadetop(0.6)
-				self:addx(notefieldX)
 				self:visible(false)
 			end,
 			JudgmentMessageCommand=function(self,params)
@@ -134,44 +110,37 @@ local t =
 	Def.ActorFrame {
 	OnCommand = function()
 		if (allowedCustomization) then
+			-- this isnt really necessary but it stops lua errors
+			-- basically this just triggers if we exit playeroptions into gameplay
+			-- and i dont want to investigate what causes it
+			-- but it doesnt break anything when it happens
+			-- so this just stops the lua error and breaks nothing else
+			if SCREENMAN:GetTopScreen() == nil then return end
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 	end
 }
 
-local player = GAMESTATE:GetMasterPlayerNumber()
-local pNum = (player == PLAYER_1) and 1 or 2
-
-filterAlphas[player] = playerConfig:get_data(pn_to_profile_slot(player)).ScreenFilter
-if filterAlphas[player] == nil then
-	filterAlphas[player] = 0
+local filterColor = color("0,0,0,0")
+local filterAlphas = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ScreenFilter
+if filterAlphas == nil then
+	filterAlphas = 0
 else
-	filterAlphas[player] = tonumber(filterAlphas[player])
-end
-
-local pos
--- [ScreenGameplay] PlayerP#Player*Side(s)X
-if center1P then
-	pos = SCREEN_CENTER_X
-else
-	local metricName = string.format("PlayerP%i%sX", pNum, styleType)
-	pos = THEME:GetMetric("ScreenGameplay", metricName)
+	filterAlphas = tonumber(filterAlphas)
 end
 
 t[#t + 1] =
 	Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * getNoteFieldScale(player) * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
 		self:diffusecolor(filterColor)
-		self:diffusealpha(filterAlphas[player])
-		self:addx(notefieldX)
+		self:diffusealpha(filterAlphas)
 		filter = self
 	end,
 	UpdateCommand = function(self)
-		local player = GAMESTATE:GetMasterPlayerNumber()
 		noteFieldWidth = MovableValues.NotefieldWidth
-		self:zoomto(filterWidth * getNoteFieldScale(player) * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
 	end
 }
 

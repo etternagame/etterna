@@ -70,6 +70,12 @@ t[#t + 1] =
 			itsOn = false
 		end
 	end,
+	CalcInfoOnMessageCommand = function(self)
+		self:x(20)
+	end,
+	CalcInfoOffMessageCommand = function(self)
+		self:x(stepsdisplayx)
+	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
@@ -96,6 +102,34 @@ t[#t + 1] =
 		},
 		CursorP2Frame = Def.Actor {}
 	}
+}
+
+--UPLOADBAR LULL
+t[#t + 1] = Def.Quad {
+	InitCommand = function(self)
+		self:xy(350, 300):zoomto(30, 100):diffuse(color("#111111")):valign(1):diffusealpha(0)
+	end,
+	UploadProgressMessageCommand = function(self, params)
+		self:diffusealpha(1)
+		self:zoomto(30, 100)
+		
+		if params.percent == 1 then
+			self:diffusealpha(0)
+		end
+	end
+}
+t[#t + 1] = Def.Quad {
+	InitCommand = function(self)
+		self:xy(350, 300):zoomto(30, 0):diffuse(color("#AAAAAAA")):valign(1):diffusealpha(0)
+	end,
+	UploadProgressMessageCommand = function(self, params)
+		self:diffusealpha(1)
+		self:zoomto(30, params.percent * 100)
+		
+		if params.percent == 1 then
+			self:diffusealpha(0)
+		end
+	end
 }
 
 t[#t + 1] = LoadActor("../_mousewheelscroll")

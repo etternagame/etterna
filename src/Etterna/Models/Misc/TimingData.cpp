@@ -130,18 +130,10 @@ TimingData::PrepareLookup()
 void
 TimingData::ReleaseLookup()
 {
-// According to The C++ Programming Language 3rd Ed., decreasing the size
-// of a vector doesn't actually free the memory it has allocated.  So this
-// small trick is required to actually free the memory. -Kyz
-#define CLEAR_LOOKUP(lookup)                                                   \
-	{                                                                          \
-		(lookup).clear();                                                      \
-		beat_start_lookup_t tmp = lookup;                                      \
-		(lookup).swap(tmp);                                                    \
-	}
-	CLEAR_LOOKUP(m_beat_start_lookup);
-	CLEAR_LOOKUP(m_time_start_lookup);
-#undef CLEAR_LOOKUP
+	m_beat_start_lookup.clear();
+	m_beat_start_lookup.shrink_to_fit();
+	m_time_start_lookup.clear();
+	m_time_start_lookup.shrink_to_fit();
 }
 
 RString
