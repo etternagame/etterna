@@ -1287,7 +1287,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub =
-			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.97f, 1.03f);
+			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.975f, 1.025f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1471,10 +1471,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				if (lastcol == -1)
 					if (lcol) {
 						++ltaps;
-						//++rtaps;
+						++rtaps;
 						//++dswap;
 					} else {
-						//++ltaps;
+						++ltaps;
 						++rtaps;
 					}
 
@@ -1723,9 +1723,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		float barf =
-		  0.35f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
-		  dswip * 0.5f;
+		float barf = 0.25f +
+		  0.4f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
+		  dswip * 0.25f;
+		Cv = sqrt(Cv) - 0.1f;
 		Cv += barf;
 		Cv *= barf2;
 		//bbbrap = CalcClamp(bbbrap, Cv, 2.f);
@@ -1820,5 +1821,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 278;
+	return 279;
 }
