@@ -1340,7 +1340,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub = CalcClamp(
-			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.025f);
+			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.05f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
