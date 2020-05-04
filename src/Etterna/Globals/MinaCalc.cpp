@@ -262,7 +262,7 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 				  (interval2 + interval3 + interval4) / 3.f,
 				  0.8f * interval4 *
 					CalcClamp(
-					  1.f + cv({ interval1, interval2, interval3, interval4 }),
+					  1.f + cv(vector<float>{ interval1, interval2, interval3, interval4 }),
 					  1.f,
 					  1.8f)),
 			  45.f));
