@@ -409,7 +409,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			girls.push_back(the_hizzle_dizzles[nibble][farts]);
 			
 		}
-		yo_momma[farts] = mean(girls);
+		yo_momma[farts] = mean(girls) * grindscaler;
 		girls.clear();
 	}
 
