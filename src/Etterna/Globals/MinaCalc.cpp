@@ -9,13 +9,17 @@
 #include <cstring>
 #include <string>
 #include <set>
+#include <unordered_set>
+#include <deque>
 
 using std::max;
 using std::min;
 using std::pow;
 using std::set;
+using std::unordered_set;
 using std::sqrt;
 using std::vector;
+using std::deque;
 
 // Relies on endiannes (significantly inaccurate)
 inline double
@@ -60,7 +64,20 @@ CalcClamp(T x, T l, T h)
 inline float
 mean(const vector<float>& v)
 {
-	return std::accumulate(begin(v), end(v), 0.f) / v.size();
+	return std::accumulate(begin(v), end(v), 0.f) /
+		   static_cast<float>(v.size());
+}
+
+inline float
+mean(const vector<int>& v)
+{
+	return std::accumulate(begin(v), end(v), 0) / static_cast<float>(v.size());
+}
+
+inline float
+mean(const unordered_set<int>& v)
+{
+	return std::accumulate(begin(v), end(v), 0) / static_cast<float>(v.size());
 }
 
 // Coefficient of variation
@@ -72,7 +89,29 @@ cv(const vector<float>& input)
 	for (float i : input)
 		sd += (i - average) * (i - average);
 
-	return fastsqrt(sd / input.size()) / average;
+	return fastsqrt(sd / static_cast<float>(input.size())) / average;
+}
+
+inline float
+cv(const vector<int>& input)
+{
+	float sd = 0.f;
+	float average = mean(input);
+	for (float i : input)
+		sd += (i - average) * (i - average);
+
+	return fastsqrt(sd / static_cast<float>(input.size())) / average;
+}
+
+inline float
+cv(const unordered_set<int>& input)
+{
+	float sd = 0.f;
+	float average = mean(input);
+	for (float i : input)
+		sd += (i - average) * (i - average);
+
+	return fastsqrt(sd / static_cast<float>(input.size())) / average;
 }
 
 inline float
