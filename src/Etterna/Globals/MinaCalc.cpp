@@ -340,12 +340,20 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 {
 	float grindscaler =
 	  CalcClamp(
-		0.93f + (0.07f * (NoteInfo.back().rowTime - 30.f) / 30.f), 0.93f, 1.f) *
+		0.93f +
+		  (0.07f * ((NoteInfo.back().rowTime / music_rate) - 30.f) / 30.f),
+		0.93f,
+		1.f) *
 	  CalcClamp(
-		0.873f + (0.13f * (NoteInfo.back().rowTime - 15.f) / 15.f), 0.87f, 1.f);
+		0.873f +
+		  (0.13f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
+		0.87f,
+		1.f);
 
 	float shortstamdownscaler = CalcClamp(
-	  0.9f + (0.1f * (NoteInfo.back().rowTime - 150.f) / 150.f), 0.9f, 1.f);
+	  0.9f + (0.1f * ((NoteInfo.back().rowTime / music_rate) - 150.f) / 150.f),
+	  0.9f,
+	  1.f);
 
 	static const int fo_rizzy = 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
