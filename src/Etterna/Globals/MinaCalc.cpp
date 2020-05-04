@@ -1880,12 +1880,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		// drop the oldest interval values if we have reached full size
 		if (itv_array.size() == itv_window)
-			itv_array.pop_back();
+			itv_array.pop_front();
 		// clear the current interval value vector
 		cur_vals.clear();
 
 		if (debugmode)
-			std::cout << "new interval" << std::endl;
+			std::cout << "new interval: " << i << std::endl;
 
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
@@ -1912,12 +1912,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 					std::cout << "jump" << std::endl;
 
 				if (lcol && rcol) {
-					if (lastcol == 0) {
-						//if (trunc_ms < max_ms_value)
-							//cur_vals.push_back(max_ms_value);
-					}
-					if (lastcol == 1) {
-					}
+					// add an extra value for oh jumps
+					if (trunc_ms < max_ms_value)
+						cur_vals.push_back(max_ms_value);
 					lastsinglecol = lastcol;
 				
 					lastcol = -1;
@@ -1970,7 +1967,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (auto& v : itv_array)
 			totalvalues += v.size();
 
-		if (totalvalues == 0) {
+		if (totalvalues < 2) {
 			doot[OHTrill][i] = pmod;
 			continue;
 		}
@@ -1985,6 +1982,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (auto& v : unique_vals)
 			if (v < mean_cutoff_factor * v_mean)
 				filtered_vals.push_back(v);
+
+		if (filtered_vals.size() < 2) {
+			doot[OHTrill][i] = pmod;
+			continue;
+		}
+
 		float unique_prop = static_cast<float>(unique_vals.size()) /
 							static_cast<float>(window_vals.size());
 		float cv_window = cv(window_vals);
@@ -2006,13 +2009,16 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (debugmode)
 			std::cout << "uprop: " << unique_prop << std::endl;
 
+		if (debugmode)
+			std::cout << "mean/min: " << v_mean / static_cast<float>(*std::min_element(filtered_vals.begin(), filtered_vals.end())) << std::endl;
+
 		if (unique_vals.empty() || filtered_vals.empty()) {
 			doot[OHTrill][i] = pmod;
 			continue;
 		}
 
-		pmod = cv_filtered;
-		pmod *= unique_prop * 10.f;
+		pmod = cv_filtered * 2.f;
+		//pmod += 1.25f * unique_prop;
 		pmod = CalcClamp(pmod, 0.4f, 2.f);
 
 		doot[OHTrill][i] = pmod;
