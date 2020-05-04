@@ -54,6 +54,7 @@ enum CalcPatternMod
 	OHTrill,
 	Chaos,
 	FlamJam,
+	WideRangeRoll,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

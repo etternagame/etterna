@@ -1396,11 +1396,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	doot[OHTrill].resize(nervIntervals.size());
 	doot[Chaos].resize(nervIntervals.size());
 
-	vector<float> wadf1;
-	vector<float> wadf2;
-	vector<float> wadf3;
-	vector<float> wadf4;
-
 	// not sure if these should persist between intervals or not
 	// not doing so makes the pattern detection slightly more strict
 	// doing so will give the calc some context from the previous
@@ -1417,11 +1412,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	int lastsinglecol = -1;
 	static const float water_it_for_me = 0.05f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		wadf1 = wadf2;
-		wadf2 = wadf3;
-		wadf3 = wadf4;
-		wadf4.clear();
-
 		// roll downscaler stuff
 		// this appears not to be picking up certain patterns in certain
 		// test files, reminder to investigate
@@ -1438,22 +1428,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int jumptaps = 0;		// more intuitive to count taps in jumps
 		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
-		if (debugmode)
-			std::cout << "new interval" << std::endl;
+		//if (debugmode)
+		//	std::cout << "new interval: " << i << std::endl;
 		for (int row : nervIntervals[i]) {
-			if (debugmode)
-				std::cout << "new row" << std::endl;
+			//if (debugmode)
+			//	std::cout << "new row" << std::endl;
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
-			float slurrp = static_cast<float>(
-			  static_cast<int>((curtime - lasttime) * 1000.f));
-			float burrp = 180.f;
-			if (debugmode)
-				std::cout << "slurp " << slurrp << std::endl;
-			if (slurrp < burrp)
-				wadf4.push_back(slurrp);
 
 			// as variation approaches 0 the effect of variation diminishes,
 			// e.g. given 140, 140, 120 ms and 40, 40, 20 ms the variation in
@@ -1466,13 +1449,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			if (!(lcol ^ rcol)) {
 				// fully skip empty rows, set nothing
 				if (!(lcol || rcol)) {
-					if (debugmode)
-						std::cout << "empty row" << std::endl;
+					//if (debugmode)
+					//	std::cout << "empty row" << std::endl;
 					continue;
 				}
 
-				if (debugmode)
-					std::cout << "jump" << std::endl;
+				//if (debugmode)
+				//	std::cout << "jump" << std::endl;
 
 				// add jumptaps when hitting jumps for ohj
 				// turns out in order to catch rolls with periodic [12] jumps we
@@ -1483,14 +1466,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// different under the circumstances we are interested in
 				if (lcol && rcol) {
 					jumptaps += 2;
-					if (lastcol == 0) {
-						lr.push_back(bloaaap);
-						if (curtime - lasttime < burrp)
-							wadf4.push_back(slurrp);
-					}
-					if (lastcol == 1) {
-						rl.push_back(bloaaap);
-					}
 					lastsinglecol = lastcol;
 					// on ohjumps treat the next note as always cross column
 					lastcol = -1;
@@ -1522,11 +1497,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// ok actually lets treat them the mostly same for the time
 				// being
 				if (lastcol == -1)
-					if (lcol) {
+					if (rcol) {
+						lr.push_back(bloaaap);
 						++ltaps;
 						++rtaps;
-						//++dswap;
-					} else {
+					} else if (lcol) {
+						rl.push_back(bloaaap);
 						++ltaps;
 						++rtaps;
 					}
@@ -1535,8 +1511,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// to right, not right to left
 				if (rcol) {
 					lr.push_back(bloaaap);
-					if (curtime - lasttime < burrp)
-						wadf4.push_back(slurrp);
 					++ltaps;
 					// if (debugmode)
 					// std::cout << "left right " << curtime - lasttime
@@ -1575,8 +1549,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// certain scenarios though again on the other hand explicit
 				// modifiers are easier to tune you just have to do a lot
 				// more of it
-				if (curtime - lasttime < burrp)
-					wadf4.push_back(slurrp);
 				if (rcol)
 					lr.push_back(bloaaap);
 				else if (lcol)
@@ -1607,6 +1579,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			lastcol = thiscol;
 		}
+
+		/*
 		if (debugmode) {
 			std::string rarp = "left to right: ";
 
@@ -1623,6 +1597,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 			std::cout << "" << rarp << std::endl;
 		}
+		*/
+
 		// I DONT KNOW OK
 		dswip = (dswip + dswap) / 2.f;
 		int cvtaps = ltaps + rtaps;
@@ -1656,21 +1632,18 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		if (rtaps > 1)
 			cvrl = cv(rl);
 
-		if (debugmode)
-			std::cout << "cv lr " << cvlr << std::endl;
-		if (debugmode)
-			std::cout << "cv rl " << cvrl << std::endl;
+		//if (debugmode)
+		//	std::cout << "cv lr " << cvlr << std::endl;
+		//if (debugmode)
+		//	std::cout << "cv rl " << cvrl << std::endl;
 
 		// weighted average, but if one is empty we want it to skew high not
 		// low due to * 0
 		float Cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
-		if (debugmode)
-			std::cout << "cv " << Cv << std::endl;
-
-		// the vector with the higher mean should carry a little more weight
-
+		//if (debugmode)
+		//	std::cout << "cv " << Cv << std::endl;
 		float yes_trills = 1.f;
 
 		// check for oh trills
@@ -1698,14 +1671,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// here
 				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
 				div = CalcClamp(div, 1.f, 3.f);
-				if (debugmode)
-					std::cout << "div " << div << std::endl;
+				//if (debugmode)
+				//	std::cout << "div " << div << std::endl;
 				no_trills = CalcClamp(1.75f - div, 0.f, 1.f);
 
 				// store high oh trill detection in case
 				// we want to do stuff with it later
-				yes_trills = Cv - no_trills;
-				yes_trills = CalcClamp(yes_trills, 0.1f, 1.f);
+				yes_trills = CalcClamp(1.1f - div, 0.f, 1.f);
 				Cv += no_trills * 1.f; // just straight up add to cv
 			}
 		}
@@ -1717,7 +1689,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1736,69 +1708,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// sets of patterns with high variation but we shouldn't do that
 		// here, probably)
 
-		vector<float> voobles;
-		vector<float> vooblesTWOOO;
-		set<float> bibbles;
-		float bbbrap = 0.f;
-		float bzzap = 1.8347f;
-		if (i > 4) {
-			voobles.clear();
-			for (auto& aaa : wadf1) {
-				float lobble = mean(wadf1);
-				if (aaa < bzzap * lobble)
-					voobles.push_back(aaa);
-				if (aaa < bzzap * lobble)
-					bibbles.insert(aaa);
-			}
-			for (auto& aaa : wadf2) {
-				float lobble = mean(wadf2);
-				if (aaa < bzzap * lobble)
-					voobles.push_back(aaa);
-				if (aaa < bzzap * lobble)
-					bibbles.insert(aaa);
-			}
-			for (auto& aaa : wadf3) {
-				float lobble = mean(wadf3);
-				if (aaa < bzzap * lobble)
-					voobles.push_back(aaa);
-				if (aaa < bzzap * lobble)
-					bibbles.insert(aaa);
-			}
-			for (auto& aaa : wadf4) {
-				float lobble = mean(wadf4);
-				if (aaa < bzzap * lobble)
-					voobles.push_back(aaa);
-				if (aaa < bzzap * lobble)
-					bibbles.insert(aaa);
-			}
-			for (auto& aaaaaa : bibbles)
-				vooblesTWOOO.push_back(aaaaaa);
-			float bubble = static_cast<float>(bibbles.size()) /
-						   static_cast<float>(voobles.size());
-			if (debugmode)
-				std::cout << "voob1: " << cv(voobles) << std::endl;
-			if (debugmode)
-				std::cout << "voob2: " << cv(vooblesTWOOO) << std::endl;
-
-			bbbrap = cv(voobles) + cv(vooblesTWOOO);
-			bbbrap *= bubble * 15.f;
-			bbbrap = CalcClamp(bbbrap, 0.4f, 2.f);
-
-			if (voobles.empty() || vooblesTWOOO.empty())
-				bbbrap = 1.f;
-			if (debugmode && !voobles.empty() && !vooblesTWOOO.empty()) {
-				std::string rarp = "voobles: ";
-				for (auto& a : voobles) {
-					rarp.append(std::to_string(a));
-					rarp.append(", ");
-				}
-				std::cout << rarp << std::endl;
-				std::cout << "bibbles " << bubble << std::endl;
-			}
-		} else {
-			bbbrap = 1.f;
-		}
-
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
 		float barf =
@@ -1808,14 +1717,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Cv = sqrt(Cv) - 0.1f;
 		Cv += barf;
 		Cv *= barf2;
-		// bbbrap = CalcClamp(bbbrap, Cv, 2.f);
-		// Cv *= bbbrap;
 		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
 
-		doot[OHTrill][i] = bbbrap;
-		// CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
-		if (debugmode)
-			std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
+		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
+		//if (debugmode)
+		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
 			doot[OHJump][i] = 1.f;
@@ -1829,7 +1735,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	if (SmoothPatterns) {
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[Roll], 1.f);
-		Smooth(doot[OHTrill], 1.f);
 		Smooth(doot[OHTrill], 1.f);
 		Smooth(doot[OHJump], 1.f);
 	}
@@ -1849,6 +1754,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	return;
 }
 
+// ok new plan this takes a bunch of the concepts i tried with the old
+// didn't-work-so-well-roll-downscaler and utilizes them across a wide range of
+// intervals, making it more suited to picking up and hammering long stretches
+// of jumptrillable roll patterns, this also apparently thinks every js and hs
+// pattern in existence is mashable too, probably because they are
 void
 Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 						   unsigned int t1,
@@ -1856,7 +1766,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 						   float music_rate,
 						   vector<float> doot[])
 {
-	doot[OHTrill].resize(nervIntervals.size());
+	doot[WideRangeRoll].resize(nervIntervals.size());
 
 	static const float min_mod = 0.4f;
 	unsigned int itv_window = 5;
@@ -1900,34 +1810,35 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
+
+			// we don't want slight bpm variations to pollute too much stuff,
+			// especially if we are going to use unique values at some point (we
+			// don't currently), if we do and even single digit rounding becomes
+			// an issue we can truncate further up
 			int trunc_ms = static_cast<int>((curtime - lasttime) * 1000.f);
 
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 
-			if (debugmode)
-				std::cout << "truncated ms value: " << trunc_ms << std::endl;
+			//if (debugmode)
+			//	std::cout << "truncated ms value: " << trunc_ms << std::endl;
 
 			// if (trunc_ms < max_ms_value)
 			//	cur_vals.push_back(trunc_ms);
 
 			if (!(lcol ^ rcol)) {
 				if (!(lcol || rcol)) {
-					if (debugmode)
-						std::cout << "empty row" << std::endl;
+				//	if (debugmode)
+				//		std::cout << "empty row" << std::endl;
 					continue;
 				}
 
-				if (debugmode)
-					std::cout << "jump" << std::endl;
+				//if (debugmode)
+				//	std::cout << "jump" << std::endl;
 
 				if (lcol && rcol) {
-					// add an extra value for oh jumps
-					// if (trunc_ms < max_ms_value)
-					//	cur_vals.push_back(max_ms_value);
 					lastsinglecol = lastcol;
-
 					lastcol = -1;
 				}
 				lasttime = curtime;
@@ -1936,15 +1847,28 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 			int thiscol = lcol ? 0 : 1;
 			if (thiscol != lastcol || lastcol == -1) {
-				if (lastcol == -1)
-					if (lcol) {
-						//++ltaps;
-						//++rtaps;
-					} else {
-						//++ltaps;
-						//++rtaps;
-					}
+				// handle ohjumps here, not above, because we only want to
+				// handle the last ohjump before an actual cross column, we
+				// don't want to handle long sequences of ohjumps inside rolls.
+				// technically they would be jumptrillable, but the point is to
+				// pick up _rolls_, we handle ohjumps elsewhere
+				// basically we treat ohjumps as they were either a cross column
+				// left or right, so that the roll detection still picks up
+				// rolls with ohjumps in them
+				if (lastcol == -1) {
+					// dump an extra value, cuz
+					if (rcol)
+						if (trunc_ms < max_ms_value)
+							lr.push_back(max_ms_value);
+					if (lcol)
+						if (trunc_ms < max_ms_value)
+							rl.push_back(max_ms_value);
 
+					// l vs r shouldn't matter here
+					++ltaps;
+					++rtaps;
+				}
+				
 				if (rcol) {
 					if (trunc_ms < max_ms_value)
 						lr.push_back(trunc_ms);
@@ -1953,8 +1877,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 					++rtaps;
 					if (trunc_ms < max_ms_value)
 						rl.push_back(trunc_ms);
-				} else {
-				}
+					}
 				lasttime = curtime;
 			} else {
 				if (trunc_ms < trunc_ms)
@@ -1963,8 +1886,19 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 			lastcol = thiscol;
 		}
+
+		// k lets try just running the pass with the rolls (lower mean indicates
+		// the rolls are flowing in that direction, for patterns that aren't
+		// rolls this should be functionally insignificant
 		cur_vals = mean(lr) < mean(rl) ? lr : rl;
 		int cv_taps = ltaps + rtaps;
+
+		// other defaults go to minimum, in this case we want maximum
+		if (cv_taps == 0) {
+			doot[WideRangeRoll][i] = 1.f;
+			continue;
+		}
+
 		itv_taps.push_back(totaltaps);
 		itv_cv_taps.push_back(cv_taps);
 
@@ -1991,10 +1925,13 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			totalvalues += v.size();
 
 		if (totalvalues < 1) {
-			doot[OHTrill][i] = pmod;
+			doot[WideRangeRoll][i] = pmod;
 			continue;
 		}
 
+		// the unique val stuff is not used at the moment, basically we filter
+		// out the vectors for stuff way outside the applicable range, like 500
+		// ms hits that would otherwise throw off the variation estimations
 		for (auto& v : itv_array)
 			for (auto& n : v) {
 				if (!unique_vals.count(n))
@@ -2006,8 +1943,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			if (v < mean_cutoff_factor * v_mean)
 				filtered_vals.push_back(v);
 
-		if (filtered_vals.size() < 2) {
-			doot[OHTrill][i] = pmod;
+		// true rolls shouldn't even get to this point unless they change
+		// direction, since they'll have only a single unique value
+		if (filtered_vals.size() < 2 || unique_vals.size() == 1) {
+			doot[WideRangeRoll][i] = pmod;
 			continue;
 		}
 
@@ -2016,7 +1955,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		float cv_window = cv(window_vals);
 		float cv_filtered = cv(filtered_vals);
 		float cv_unique = cv(unique_vals);
-
+		/*
 		if (debugmode) {
 			std::string rarp = "window vals: ";
 			for (auto& a : window_vals) {
@@ -2025,7 +1964,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			}
 			std::cout << rarp << std::endl;
 		}
-
+		*/
 		float mean_prop =
 		  v_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
 														filtered_vals.end()));
@@ -2033,14 +1972,15 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (debugmode)
 			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
 					  << std::endl;
-		if (debugmode)
-			std::cout << "uprop: " << unique_prop << std::endl;
+		//if (debugmode)
+		//	std::cout << "uprop: " << unique_prop << std::endl;
 
 		if (debugmode)
 			std::cout << "mean/min: " << mean_prop << std::endl;
 
-		if (unique_vals.empty() || filtered_vals.empty()) {
-			doot[OHTrill][i] = pmod;
+		// debug
+		if (unique_vals.empty() || filtered_vals.empty() || window_vals.empty()) {
+			doot[WideRangeRoll][i] = 1287634.f;
 			continue;
 		}
 		float cv_prop = cv_taps == 0 ? 1
@@ -2048,18 +1988,32 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 										 static_cast<float>(window_cv_taps);
 		if (debugmode)
 			std::cout << "cv prop " << cv_prop << "\n" << std::endl;
+
+		// basically the idea here is long sets of rolls if you only count
+		// values from specifically left->right or right->left, whichever lower,
+		// will have long sequences of identical values that should become very
+		// exaggerated over the course of 2.5 seconds compared to other files,
+		// since the values will be identical mean/min should be much closer to
+		// 1 compared to legitimate patterns and the number of notes contained
+		// in the roll compared to total notes (basically we don't count anchors
+		// as notes) will also be closer to 1; we want to pretty much only
+		// detect long cheesable sets of notes so multiplying window range cv by
+		// mean/min and totaltaps/cvtaps should put almost everything else over
+		// a 1.0 multiplier. perhaps mean/min should be calculated on the full
+		// window like taps/cvtaps are
 		pmod = cv_filtered * cv_prop * 1.5f * mean_prop;
 		// pmod += 1.25f * unique_prop;
 		pmod = CalcClamp(pmod, min_mod, 2.f);
 
-		doot[OHTrill][i] = pmod;
-		if (debugmode)
-			std::cout << "final mod " << doot[OHTrill][i] << "\n" << std::endl;
+		doot[WideRangeRoll][i] = pmod;
+		//if (debugmode)
+		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
+		//			  << std::endl;
 	}
 
 	if (SmoothPatterns) {
-		Smooth(doot[OHTrill], 1.f);
-		Smooth(doot[OHTrill], 1.f);
+		Smooth(doot[WideRangeRoll], 1.f);
+		Smooth(doot[WideRangeRoll], 1.f);
 	}
 	return;
 }

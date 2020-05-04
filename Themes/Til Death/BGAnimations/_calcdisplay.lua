@@ -149,7 +149,8 @@ local CalcDebugTypes = {
         "StreamMod",
         "OHTrill",
         "Chaos",
-        "FlamJam"
+        "FlamJam",
+        "WideRangeRoll",
     },
     CalcDiffValue =
     {
@@ -442,8 +443,11 @@ local modnames = {
     "cr",
     "fcl",
     "fcr",
+    "wrrl",
+    "wrrr",
     "sl",
     "sr",
+    
 }
 
 local modColors = {
@@ -467,6 +471,8 @@ local modColors = {
     color(".4,0.9,0.3"),
     color(".4,0.5,0.59"),       
     color(".4,0.3,0.49"),
+    color("1,0,0"),
+    color("1,0,0"),
     color("1,0,0"),
     color("1,0,0"),
 }
