@@ -439,14 +439,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		for (size_t bagles = 0;
 			 bagles < bye_vibro_maybe_yes_this_should_be_refactored_lul.size();
 			 ++bagles)
-			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(bye_vibro_maybe_yes_this_should_be_refactored_lul[bagles]);
+			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(
+			  bye_vibro_maybe_yes_this_should_be_refactored_lul[bagles]);
 	}
 	vector<float> yo_momma(NUM_Skillset);
 	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
 		for (size_t nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
 			girls.push_back(the_hizzle_dizzles[nibble][farts]);
-			
 		}
 		yo_momma[farts] = mean(girls) * grindscaler;
 		girls.clear();
@@ -510,6 +510,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// formed by polys to get the poly bonus if at all possible
 	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
 	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
+
+	WideWindowRollScaler(NoteInfo, 1, 2, music_rate, left_hand.doot);
+	WideWindowRollScaler(NoteInfo, 4, 8, music_rate, right_hand.doot);
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
@@ -1325,8 +1328,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
-			stub =
-			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.975f, 1.025f);
+			stub = CalcClamp(
+			  fastsqrt(stub) * test_chaos_merge_stuff, 0.975f, 1.025f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1442,8 +1445,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			wadf4.push_back(curtime - lasttime);
+			float slurrp =
+			  static_cast<float>(static_cast<int>((curtime - lasttime) * 1000.f));
+			float burrp = 180.f;
+			if (debugmode)
+				std::cout << "slurp " << slurrp << std::endl;
+			if (slurrp < burrp)
+				wadf4.push_back(slurrp);
 
 			// as variation approaches 0 the effect of variation diminishes,
 			// e.g. given 140, 140, 120 ms and 40, 40, 20 ms the variation in
@@ -1475,6 +1483,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 					jumptaps += 2;
 					if (lastcol == 0) {
 						lr.push_back(bloaaap);
+						if (curtime - lasttime < burrp)
+							wadf4.push_back(slurrp);
 					}
 					if (lastcol == 1) {
 						rl.push_back(bloaaap);
@@ -1507,6 +1517,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			if (thiscol != lastcol || lastcol == -1) {
 				// treat 1[12]2 as different from 1[12]1, count the latter as an
 				// anchor and the former as a roll with 4 notes
+				// ok actually lets treat them the mostly same for the time
+				// being
 				if (lastcol == -1)
 					if (lcol) {
 						++ltaps;
@@ -1521,6 +1533,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// to right, not right to left
 				if (rcol) {
 					lr.push_back(bloaaap);
+					if (curtime - lasttime < burrp)
+						wadf4.push_back(slurrp);
 					++ltaps;
 					// if (debugmode)
 					// std::cout << "left right " << curtime - lasttime
@@ -1559,7 +1573,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// certain scenarios though again on the other hand explicit
 				// modifiers are easier to tune you just have to do a lot
 				// more of it
-
+				if (curtime - lasttime < burrp)
+					wadf4.push_back(slurrp);
 				if (rcol)
 					lr.push_back(bloaaap);
 				else if (lcol)
@@ -1650,7 +1665,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				   static_cast<float>(cvtaps + 2);
 
 		if (debugmode)
-			std::cout << "cv " << cv << std::endl;
+			std::cout << "cv " << Cv << std::endl;
 
 		// the vector with the higher mean should carry a little more weight
 
@@ -1700,7 +1715,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1720,41 +1735,63 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// here, probably)
 
 		vector<float> voobles;
+		vector<float> vooblesTWOOO;
 		set<float> bibbles;
 		float bbbrap = 0.f;
+		float bzzap = 1.8347f;
 		if (i > 4) {
 			voobles.clear();
 			for (auto& aaa : wadf1) {
-				// voobles.push_back(aaa);
-				// bibbles.insert(aaa);
+				float lobble = mean(wadf1);
+				if (aaa < bzzap * lobble)
+				voobles.push_back(aaa);
+				if (aaa < bzzap * lobble)
+				bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf2) {
-				//voobles.push_back(aaa);
-				//bibbles.insert(aaa);
+				float lobble = mean(wadf2);
+				if (aaa < bzzap * lobble)
+				voobles.push_back(aaa);
+				if (aaa < bzzap * lobble)
+				bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf3) {
+				float lobble = mean(wadf3);
+				if (aaa < bzzap * lobble)
 				voobles.push_back(aaa);
+				if (aaa < bzzap * lobble)
 				bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf4) {
+				float lobble = mean(wadf4);
+				if (aaa < bzzap * lobble)
 				voobles.push_back(aaa);
+				if (aaa < bzzap * lobble)
 				bibbles.insert(aaa);
 			}
-			bbbrap = pow(cv(voobles), 3.f) *
-					 (10.f * static_cast<float>(bibbles.size()) /
-					  static_cast<float>(voobles.size() + 1));
-			bbbrap += 0.55f;
+			for (auto& aaaaaa : bibbles)
+				vooblesTWOOO.push_back(aaaaaa);
+			float bubble = static_cast<float>(bibbles.size()) /
+						   static_cast<float>(voobles.size());
+			if (debugmode)
+				std::cout << "voob1: " << cv(voobles) << std::endl;
+			if (debugmode)
+				std::cout << "voob2: " << cv(vooblesTWOOO) << std::endl;
+			
+			bbbrap = cv(voobles) + cv(vooblesTWOOO);
+			bbbrap *= bubble * 15.f;
 			bbbrap = CalcClamp(bbbrap, 0.4f, 2.f);
 
-			if (debugmode) {
+			if (voobles.empty() || vooblesTWOOO.empty())
+				bbbrap = 1.f;
+			if (debugmode && !voobles.empty() && !vooblesTWOOO.empty()) {
 				std::string rarp = "voobles: ";
 				for (auto& a : voobles) {
 					rarp.append(std::to_string(a));
 					rarp.append(", ");
 				}
 				std::cout << rarp << std::endl;
-				std::cout << "bibbles " << bibbles.size() / voobles.size()
-						  << std::endl;
+				std::cout << "bibbles " << bubble << std::endl;
 			}
 		} else {
 			bbbrap = 1.f;
@@ -1762,14 +1799,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		float barf = 0.25f +
+		float barf =
+		  0.25f +
 		  0.4f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
 		  dswip * 0.25f;
 		Cv = sqrt(Cv) - 0.1f;
 		Cv += barf;
 		Cv *= barf2;
-		//bbbrap = CalcClamp(bbbrap, Cv, 2.f);
-		Cv *= bbbrap;
+		// bbbrap = CalcClamp(bbbrap, Cv, 2.f);
+		// Cv *= bbbrap;
 		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
 
 		doot[OHTrill][i] = bbbrap;
@@ -1789,16 +1827,201 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	if (SmoothPatterns) {
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[Roll], 1.f);
+		Smooth(doot[OHTrill], 1.f);
+		Smooth(doot[OHTrill], 1.f);
 		Smooth(doot[OHJump], 1.f);
 	}
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
 	// the polys are arranged in a giant ass roll formation
-	for (size_t i = 0; i < doot[Chaos].size(); ++i)
-		doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
-								   doot[Chaos][i],
-								   max(doot[Chaos][i] * doot[Roll][i], 1.f));
+	//for (size_t i = 0; i < doot[Chaos].size(); ++i)
+	//	doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
+	//							   doot[Chaos][i],
+	//							   max(doot[Chaos][i] * doot[Roll][i], 1.f));
 
+	//for (size_t i = 0; i < doot[Roll].size(); ++i)
+	//	doot[Roll][i] = CalcClamp(doot[Roll][i] * doot[OHTrill][i],
+	//							  0.4f,
+	//							  1.f);
+
+		  return;
+}
+
+void
+Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
+					 unsigned int t1,
+					 unsigned int t2,
+					 float music_rate,
+					 vector<float> doot[])
+{
+	doot[OHTrill].resize(nervIntervals.size());
+
+	unsigned int itv_window = 5;
+	deque<vector<int>> itv_array;
+	vector<int> cur_vals;
+	vector<int> window_vals;
+	unordered_set<int> unique_vals;
+	vector<int> filtered_vals;
+
+	float lasttime = 0.f;
+	int lastcol = -1;
+	int lastsinglecol = -1;
+
+	static const float water_it_for_me = 0.05f;
+	static const int max_ms_value = 180;
+	static const float mean_cutoff_factor = 1.8f;
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int totaltaps = 0;
+		int ltaps = 0;
+		int rtaps = 0;
+
+		// drop the oldest interval values if we have reached full size
+		if (itv_array.size() == itv_window)
+			itv_array.pop_back();
+		// clear the current interval value vector
+		cur_vals.clear();
+
+		if (debugmode)
+			std::cout << "new interval" << std::endl;
+
+		for (int row : nervIntervals[i]) {
+			float curtime = NoteInfo[row].rowTime / music_rate;
+			int trunc_ms = static_cast<int>((curtime - lasttime) * 1000.f);
+
+			bool lcol = NoteInfo[row].notes & t1;
+			bool rcol = NoteInfo[row].notes & t2;
+			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+			
+			if (debugmode)
+				std::cout << "truncated ms value: " << trunc_ms << std::endl;
+
+			if (trunc_ms < max_ms_value)
+				cur_vals.push_back(trunc_ms);
+
+			if (!(lcol ^ rcol)) {
+				if (!(lcol || rcol)) {
+					if (debugmode)
+						std::cout << "empty row" << std::endl;
+					continue;
+				}
+
+				if (debugmode)
+					std::cout << "jump" << std::endl;
+
+				if (lcol && rcol) {
+					if (lastcol == 0) {
+						//if (trunc_ms < max_ms_value)
+							//cur_vals.push_back(max_ms_value);
+					}
+					if (lastcol == 1) {
+					}
+					lastsinglecol = lastcol;
+				
+					lastcol = -1;
+				}
+				lasttime = curtime;
+				continue;
+			}
+
+			int thiscol = lcol ? 0 : 1;
+			if (thiscol != lastcol || lastcol == -1) {
+				if (lastcol == -1)
+					if (lcol) {
+						++ltaps;
+						++rtaps;
+					} else {
+						++ltaps;
+						++rtaps;
+					}
+
+				if (rcol) {
+					//if (trunc_ms < max_ms_value)
+						//cur_vals.push_back(trunc_ms);
+					++ltaps;
+				} else if (lcol) {
+					++rtaps;
+					
+				} else {
+					
+				}
+				lasttime = curtime;
+			} else {
+				//if (trunc_ms < trunc_ms)
+					//cur_vals.push_back(trunc_ms);
+			}
+
+			lastcol = thiscol;
+		}
+
+		// push current interval values into deque, there should always be space
+		// since we pop front at the start of the loop if there isn't
+		itv_array.push_back(cur_vals);
+
+		// clear vectors before using them
+		window_vals.clear();
+		unique_vals.clear();
+		filtered_vals.clear();
+		
+		float pmod = 1.f;
+		unsigned int totalvalues = 0;
+		for (auto& v : itv_array)
+			totalvalues += v.size();
+
+		if (totalvalues == 0) {
+			doot[OHTrill][i] = pmod;
+			continue;
+		}
+
+		for (auto& v : itv_array)
+			for (auto& n : v) {
+				if (!unique_vals.count(n))
+					unique_vals.insert(n);
+				window_vals.push_back(n);
+			}
+		float v_mean = mean(window_vals);
+		for (auto& v : unique_vals)
+			if (v < mean_cutoff_factor * v_mean)
+				filtered_vals.push_back(v);
+		float unique_prop = static_cast<float>(unique_vals.size()) /
+							static_cast<float>(window_vals.size());
+		float cv_window = cv(window_vals);
+		float cv_filtered = cv(filtered_vals);
+		float cv_unique = cv(unique_vals);
+
+		if (debugmode) {
+			std::string rarp = "window vals: ";
+			for (auto& a : window_vals) {
+				rarp.append(std::to_string(a));
+				rarp.append(", ");
+			}
+			std::cout << rarp << std::endl;
+		}
+
+		if (debugmode)
+			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
+					  << std::endl;
+		if (debugmode)
+			std::cout << "uprop: " << unique_prop << std::endl;
+
+		if (unique_vals.empty() || filtered_vals.empty()) {
+			doot[OHTrill][i] = pmod;
+			continue;
+		}
+
+		pmod = cv_filtered;
+		pmod *= unique_prop * 10.f;
+		pmod = CalcClamp(pmod, 0.4f, 2.f);
+
+		doot[OHTrill][i] = pmod;
+		if (debugmode)
+			std::cout << "final mod " << doot[OHTrill][i] << "\n" << std::endl;
+	}
+
+	if (SmoothPatterns) {
+		//Smooth(doot[OHTrill], 1.f);
+		//Smooth(doot[OHTrill], 1.f);
+	}
 	return;
 }
 
@@ -1860,5 +2083,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 279;
+	return 280;
 }

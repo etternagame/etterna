@@ -175,6 +175,12 @@ class Calc
 	  float music_rate,
 	  std::vector<float> doot[ModCount]);
 
+	void WideWindowRollScaler(const std::vector<NoteInfo>& NoteInfo,
+							  unsigned int t1,
+							  unsigned int t2,
+							  float music_rate,
+							  std::vector<float> doot[ModCount]);
+
 	Hand left_hand;
 	Hand right_hand;
 
