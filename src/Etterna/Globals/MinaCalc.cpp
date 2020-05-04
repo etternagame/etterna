@@ -97,8 +97,8 @@ cv(const vector<int>& input)
 {
 	float sd = 0.f;
 	float average = mean(input);
-	for (float i : input)
-		sd += (i - average) * (i - average);
+	for (int i : input)
+		sd += (static_cast<float>(i) - average) * (static_cast<float>(i) - average);
 
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
 }
