@@ -12,14 +12,14 @@
 #include <unordered_set>
 #include <deque>
 
+using std::deque;
 using std::max;
 using std::min;
 using std::pow;
 using std::set;
-using std::unordered_set;
 using std::sqrt;
+using std::unordered_set;
 using std::vector;
-using std::deque;
 
 // Relies on endiannes (significantly inaccurate)
 inline double
@@ -260,13 +260,13 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			last = current_time;
 			output.emplace_back(min(
 			  2750.f /
-				min(
-				  (interval2 + interval3 + interval4) / 3.f,
-				  0.8f * interval4 *
-					CalcClamp(
-					  1.f + cv(vector<float>{ interval1, interval2, interval3, interval4 }),
-					  1.f,
-					  1.8f)),
+				min((interval2 + interval3 + interval4) / 3.f,
+					0.8f * interval4 *
+					  CalcClamp(
+						1.f + cv(vector<float>{
+								interval1, interval2, interval3, interval4 }),
+						1.f,
+						1.8f)),
 			  45.f));
 		}
 	}
@@ -1447,8 +1447,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
-			float slurrp =
-			  static_cast<float>(static_cast<int>((curtime - lasttime) * 1000.f));
+			float slurrp = static_cast<float>(
+			  static_cast<int>((curtime - lasttime) * 1000.f));
 			float burrp = 180.f;
 			if (debugmode)
 				std::cout << "slurp " << slurrp << std::endl;
@@ -1717,7 +1717,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1746,30 +1746,30 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			for (auto& aaa : wadf1) {
 				float lobble = mean(wadf1);
 				if (aaa < bzzap * lobble)
-				voobles.push_back(aaa);
+					voobles.push_back(aaa);
 				if (aaa < bzzap * lobble)
-				bibbles.insert(aaa);
+					bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf2) {
 				float lobble = mean(wadf2);
 				if (aaa < bzzap * lobble)
-				voobles.push_back(aaa);
+					voobles.push_back(aaa);
 				if (aaa < bzzap * lobble)
-				bibbles.insert(aaa);
+					bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf3) {
 				float lobble = mean(wadf3);
 				if (aaa < bzzap * lobble)
-				voobles.push_back(aaa);
+					voobles.push_back(aaa);
 				if (aaa < bzzap * lobble)
-				bibbles.insert(aaa);
+					bibbles.insert(aaa);
 			}
 			for (auto& aaa : wadf4) {
 				float lobble = mean(wadf4);
 				if (aaa < bzzap * lobble)
-				voobles.push_back(aaa);
+					voobles.push_back(aaa);
 				if (aaa < bzzap * lobble)
-				bibbles.insert(aaa);
+					bibbles.insert(aaa);
 			}
 			for (auto& aaaaaa : bibbles)
 				vooblesTWOOO.push_back(aaaaaa);
@@ -1779,7 +1779,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				std::cout << "voob1: " << cv(voobles) << std::endl;
 			if (debugmode)
 				std::cout << "voob2: " << cv(vooblesTWOOO) << std::endl;
-			
+
 			bbbrap = cv(voobles) + cv(vooblesTWOOO);
 			bbbrap *= bubble * 15.f;
 			bbbrap = CalcClamp(bbbrap, 0.4f, 2.f);
@@ -1836,34 +1836,39 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
 	// the polys are arranged in a giant ass roll formation
-	//for (size_t i = 0; i < doot[Chaos].size(); ++i)
+	// for (size_t i = 0; i < doot[Chaos].size(); ++i)
 	//	doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
 	//							   doot[Chaos][i],
 	//							   max(doot[Chaos][i] * doot[Roll][i], 1.f));
 
-	//for (size_t i = 0; i < doot[Roll].size(); ++i)
+	// for (size_t i = 0; i < doot[Roll].size(); ++i)
 	//	doot[Roll][i] = CalcClamp(doot[Roll][i] * doot[OHTrill][i],
 	//							  0.4f,
 	//							  1.f);
 
-		  return;
+	return;
 }
 
 void
 Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
-					 unsigned int t1,
-					 unsigned int t2,
-					 float music_rate,
-					 vector<float> doot[])
+						   unsigned int t1,
+						   unsigned int t2,
+						   float music_rate,
+						   vector<float> doot[])
 {
 	doot[OHTrill].resize(nervIntervals.size());
 
+	static const float min_mod = 0.4f;
 	unsigned int itv_window = 5;
 	deque<vector<int>> itv_array;
+	deque<int> itv_taps;
+	deque<int> itv_cv_taps;
 	vector<int> cur_vals;
 	vector<int> window_vals;
 	unordered_set<int> unique_vals;
 	vector<int> filtered_vals;
+	vector<int> lr;
+	vector<int> rl;
 
 	float lasttime = 0.f;
 	int lastcol = -1;
@@ -1879,10 +1884,16 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		int rtaps = 0;
 
 		// drop the oldest interval values if we have reached full size
-		if (itv_array.size() == itv_window)
+		if (itv_array.size() == itv_window) {
 			itv_array.pop_front();
+			itv_cv_taps.pop_front();
+			itv_taps.pop_front();
+		}
+		
 		// clear the current interval value vector
 		cur_vals.clear();
+		lr.clear();
+		rl.clear();
 
 		if (debugmode)
 			std::cout << "new interval: " << i << std::endl;
@@ -1894,12 +1905,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			
+
 			if (debugmode)
 				std::cout << "truncated ms value: " << trunc_ms << std::endl;
 
-			if (trunc_ms < max_ms_value)
-				cur_vals.push_back(trunc_ms);
+			// if (trunc_ms < max_ms_value)
+			//	cur_vals.push_back(trunc_ms);
 
 			if (!(lcol ^ rcol)) {
 				if (!(lcol || rcol)) {
@@ -1913,10 +1924,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 				if (lcol && rcol) {
 					// add an extra value for oh jumps
-					if (trunc_ms < max_ms_value)
-						cur_vals.push_back(max_ms_value);
+					// if (trunc_ms < max_ms_value)
+					//	cur_vals.push_back(max_ms_value);
 					lastsinglecol = lastcol;
-				
+
 					lastcol = -1;
 				}
 				lasttime = curtime;
@@ -1927,47 +1938,59 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			if (thiscol != lastcol || lastcol == -1) {
 				if (lastcol == -1)
 					if (lcol) {
-						++ltaps;
-						++rtaps;
+						//++ltaps;
+						//++rtaps;
 					} else {
-						++ltaps;
-						++rtaps;
+						//++ltaps;
+						//++rtaps;
 					}
 
 				if (rcol) {
-					//if (trunc_ms < max_ms_value)
-						//cur_vals.push_back(trunc_ms);
+					if (trunc_ms < max_ms_value)
+						lr.push_back(trunc_ms);
 					++ltaps;
 				} else if (lcol) {
 					++rtaps;
-					
+					if (trunc_ms < max_ms_value)
+						rl.push_back(trunc_ms);
 				} else {
-					
 				}
 				lasttime = curtime;
 			} else {
-				//if (trunc_ms < trunc_ms)
-					//cur_vals.push_back(trunc_ms);
+				if (trunc_ms < trunc_ms)
+					cur_vals.push_back(trunc_ms);
 			}
 
 			lastcol = thiscol;
 		}
+		cur_vals = mean(lr) < mean(rl) ? lr : rl;
+		int cv_taps = ltaps + rtaps;
+		itv_taps.push_back(totaltaps);
+		itv_cv_taps.push_back(cv_taps);
 
-		// push current interval values into deque, there should always be space
-		// since we pop front at the start of the loop if there isn't
+		unsigned int window_taps = 0;
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		unsigned int window_cv_taps = 0;
+		for (auto& n : itv_cv_taps)
+			window_cv_taps += n;
+
+		// push current interval values into deque, there should always be
+		// space since we pop front at the start of the loop if there isn't
 		itv_array.push_back(cur_vals);
 
 		// clear vectors before using them
 		window_vals.clear();
 		unique_vals.clear();
 		filtered_vals.clear();
-		
-		float pmod = 1.f;
+
+		float pmod = min_mod;
 		unsigned int totalvalues = 0;
 		for (auto& v : itv_array)
 			totalvalues += v.size();
 
-		if (totalvalues < 2) {
+		if (totalvalues < 1) {
 			doot[OHTrill][i] = pmod;
 			continue;
 		}
@@ -2003,6 +2026,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			std::cout << rarp << std::endl;
 		}
 
+		float mean_prop =
+		  v_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
+														filtered_vals.end()));
+
 		if (debugmode)
 			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
 					  << std::endl;
@@ -2010,16 +2037,20 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			std::cout << "uprop: " << unique_prop << std::endl;
 
 		if (debugmode)
-			std::cout << "mean/min: " << v_mean / static_cast<float>(*std::min_element(filtered_vals.begin(), filtered_vals.end())) << std::endl;
+			std::cout << "mean/min: " << mean_prop << std::endl;
 
 		if (unique_vals.empty() || filtered_vals.empty()) {
 			doot[OHTrill][i] = pmod;
 			continue;
 		}
-
-		pmod = cv_filtered * 2.f;
-		//pmod += 1.25f * unique_prop;
-		pmod = CalcClamp(pmod, 0.4f, 2.f);
+		float cv_prop = cv_taps == 0 ? 1
+									 : static_cast<float>(window_taps) /
+										 static_cast<float>(window_cv_taps);
+		if (debugmode)
+			std::cout << "cv prop " << cv_prop << "\n" << std::endl;
+		pmod = cv_filtered * cv_prop * 1.5f * mean_prop;
+		// pmod += 1.25f * unique_prop;
+		pmod = CalcClamp(pmod, min_mod, 2.f);
 
 		doot[OHTrill][i] = pmod;
 		if (debugmode)
@@ -2027,8 +2058,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	}
 
 	if (SmoothPatterns) {
-		//Smooth(doot[OHTrill], 1.f);
-		//Smooth(doot[OHTrill], 1.f);
+		Smooth(doot[OHTrill], 1.f);
+		Smooth(doot[OHTrill], 1.f);
 	}
 	return;
 }
