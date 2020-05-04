@@ -587,7 +587,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.975f, 0.94f, 0.95f,
+static const float basescalers[NUM_Skillset] = { 0.f, 0.96f, 0.94f, 0.95f,
 												 0.f, 0.8f,   0.85f, 0.9f };
 
 float
@@ -1340,7 +1340,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub = CalcClamp(
-			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.05f);
+			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
