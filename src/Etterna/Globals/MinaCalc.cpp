@@ -725,7 +725,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				// streammod downscales anything not single tap focused
 			case Skill_Stream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
-							  doot[StreamMod][i] * doot[Chaos][i];
+							  doot[StreamMod][i] * doot[Chaos][i] *
+							  doot[WideRangeRoll][i];
 				break;
 				// jump downscales anything without some jumps
 			case Skill_Jumpstream:
@@ -1042,7 +1043,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 {
 	doot[FlamJam].resize(nervIntervals.size());
 	// scan for flam chords in this window
-	float grouping_tolerance = 15.f;
+	float grouping_tolerance = 11.f;
 	// tracks which columns were seen in the current flam chord
 	// this is essentially the same as if NoteInfo[row].notes
 	// was tracked over multiple rows
@@ -1339,7 +1340,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub = CalcClamp(
-			  fastsqrt(stub) * test_chaos_merge_stuff, 0.975f, 1.025f);
+			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.025f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1436,10 +1437,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int jumptaps = 0;		// more intuitive to count taps in jumps
 		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
 		float ohj = 0.f;
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "new interval: " << i << std::endl;
 		for (int row : nervIntervals[i]) {
-			//if (debugmode)
+			// if (debugmode)
 			//	std::cout << "new row" << std::endl;
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
@@ -1457,12 +1458,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			if (!(lcol ^ rcol)) {
 				// fully skip empty rows, set nothing
 				if (!(lcol || rcol)) {
-					//if (debugmode)
+					// if (debugmode)
 					//	std::cout << "empty row" << std::endl;
 					continue;
 				}
 
-				//if (debugmode)
+				// if (debugmode)
 				//	std::cout << "jump" << std::endl;
 
 				// add jumptaps when hitting jumps for ohj
@@ -1635,14 +1636,14 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		float cvlr = 0.2f;
 		float cvrl = 0.2f;
-		if (ltaps > 1)
+		if (lr.size() > 1)
 			cvlr = cv(lr);
-		if (rtaps > 1)
+		if (rl.size() > 1)
 			cvrl = cv(rl);
 
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "cv lr " << cvlr << std::endl;
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "cv rl " << cvrl << std::endl;
 
 		// weighted average, but if one is empty we want it to skew high not
@@ -1650,7 +1651,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		float Cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "cv " << Cv << std::endl;
 		float yes_trills = 1.f;
 
@@ -1679,7 +1680,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// here
 				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
 				div = CalcClamp(div, 1.f, 3.f);
-				//if (debugmode)
+				// if (debugmode)
 				//	std::cout << "div " << div << std::endl;
 				no_trills = CalcClamp(1.75f - div, 0.f, 1.f);
 
@@ -1697,7 +1698,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1728,7 +1729,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
 
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && maxseqjumptaps < 1)
@@ -1776,8 +1777,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 {
 	doot[WideRangeRoll].resize(nervIntervals.size());
 
-	static const float min_mod = 0.4f;
-	unsigned int itv_window = 5;
+	static const float min_mod = 0.5f;
+	static const float max_mod = 1.035f;
+	unsigned int itv_window = 4;
 	deque<vector<int>> itv_array;
 	deque<int> itv_taps;
 	deque<int> itv_cv_taps;
@@ -1791,7 +1793,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	float lasttime = 0.f;
 	int lastcol = -1;
 	int lastsinglecol = -1;
-
+	int singletaps = 0;
 	static const float water_it_for_me = 0.05f;
 	static const int max_ms_value = 180;
 	static const float mean_cutoff_factor = 1.8f;
@@ -1807,14 +1809,14 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			itv_cv_taps.pop_front();
 			itv_taps.pop_front();
 		}
-		
+
 		// clear the current interval value vector
 		cur_vals.clear();
 		lr.clear();
 		rl.clear();
 
-		if (debugmode)
-			std::cout << "new interval: " << i << std::endl;
+		//if (debugmode)
+		//	std::cout << "new interval: " << i << std::endl;
 
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
@@ -1828,8 +1830,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+			if (column_count(NoteInfo[row].notes) == 1)
+				++singletaps;
 
-			//if (debugmode)
+			// if (debugmode)
 			//	std::cout << "truncated ms value: " << trunc_ms << std::endl;
 
 			// if (trunc_ms < max_ms_value)
@@ -1837,12 +1841,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 			if (!(lcol ^ rcol)) {
 				if (!(lcol || rcol)) {
-				//	if (debugmode)
-				//		std::cout << "empty row" << std::endl;
+					//	if (debugmode)
+					//		std::cout << "empty row" << std::endl;
 					continue;
 				}
 
-				//if (debugmode)
+				// if (debugmode)
 				//	std::cout << "jump" << std::endl;
 
 				if (lcol && rcol) {
@@ -1876,7 +1880,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 					++ltaps;
 					++rtaps;
 				}
-				
+
 				if (rcol) {
 					if (trunc_ms < max_ms_value)
 						lr.push_back(trunc_ms);
@@ -1885,7 +1889,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 					++rtaps;
 					if (trunc_ms < max_ms_value)
 						rl.push_back(trunc_ms);
-					}
+				}
 				lasttime = curtime;
 			} else {
 				if (trunc_ms < trunc_ms)
@@ -1900,12 +1904,6 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// rolls this should be functionally insignificant
 		cur_vals = mean(lr) < mean(rl) ? lr : rl;
 		int cv_taps = ltaps + rtaps;
-
-		// other defaults go to minimum, in this case we want maximum
-		if (cv_taps == 0) {
-			doot[WideRangeRoll][i] = 1.f;
-			continue;
-		}
 
 		itv_taps.push_back(totaltaps);
 		itv_cv_taps.push_back(cv_taps);
@@ -1927,15 +1925,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		unique_vals.clear();
 		filtered_vals.clear();
 
-		float pmod = min_mod;
 		unsigned int totalvalues = 0;
 		for (auto& v : itv_array)
 			totalvalues += v.size();
-
-		if (totalvalues < 1) {
-			doot[WideRangeRoll][i] = pmod;
-			continue;
-		}
 
 		// the unique val stuff is not used at the moment, basically we filter
 		// out the vectors for stuff way outside the applicable range, like 500
@@ -1947,10 +1939,27 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 				window_vals.push_back(n);
 			}
 		float v_mean = mean(window_vals);
-		for (auto& v : unique_vals)
+		for (auto& v : window_vals)
 			if (v < mean_cutoff_factor * v_mean)
 				filtered_vals.push_back(v);
 
+		float f_mean = mean(filtered_vals);
+		float cv_prop = cv_taps == 0 ? 1
+									 : static_cast<float>(window_taps) /
+										 static_cast<float>(window_cv_taps);
+
+		// other defaults go to minimum, in these cases we want maximum so the
+		// smoothing doesn't spill over from easy filler into hard sections too
+		// much
+		float pmod = CalcClamp(min_mod * cv_prop, min_mod, max_mod);
+		if (cv_taps == 0 || singletaps == 0) {
+			doot[WideRangeRoll][i] = 1.f;
+			continue;
+		}
+		if (totalvalues < 1) {
+			doot[WideRangeRoll][i] = pmod;
+			continue;
+		}
 		// true rolls shouldn't even get to this point unless they change
 		// direction, since they'll have only a single unique value
 		if (filtered_vals.size() < 2 || unique_vals.size() == 1) {
@@ -1974,28 +1983,32 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		}
 		*/
 		float mean_prop =
-		  v_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
+		  f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
 														filtered_vals.end()));
-
+		// this isn't really robust if theres a really short flam involved
+		// anywhere e.g. a 5ms flam offset for an oh jump when everything else
+		// is 50 ms will make the above way too high, something else must be
+		// used
+		mean_prop = 1.f;
+		/*
 		if (debugmode)
 			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
 					  << std::endl;
-		//if (debugmode)
-		//	std::cout << "uprop: " << unique_prop << std::endl;
+		if (debugmode)
+			std::cout << "uprop: " << unique_prop << std::endl;
 
 		if (debugmode)
 			std::cout << "mean/min: " << mean_prop << std::endl;
-
+			*/
 		// debug
-		if (unique_vals.empty() || filtered_vals.empty() || window_vals.empty()) {
+		if (unique_vals.empty() || filtered_vals.empty() ||
+			window_vals.empty()) {
 			doot[WideRangeRoll][i] = 1287634.f;
 			continue;
 		}
-		float cv_prop = cv_taps == 0 ? 1
-									 : static_cast<float>(window_taps) /
-										 static_cast<float>(window_cv_taps);
-		if (debugmode)
-			std::cout << "cv prop " << cv_prop << "\n" << std::endl;
+		
+		// if (debugmode)
+		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
 
 		// basically the idea here is long sets of rolls if you only count
 		// values from specifically left->right or right->left, whichever lower,
@@ -2009,18 +2022,18 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// mean/min and totaltaps/cvtaps should put almost everything else over
 		// a 1.0 multiplier. perhaps mean/min should be calculated on the full
 		// window like taps/cvtaps are
-		pmod = cv_filtered * cv_prop * 1.5f * mean_prop;
+		pmod = cv_filtered * cv_prop * 1.75f * mean_prop;
+		pmod += 0.4f;
 		// pmod += 1.25f * unique_prop;
-		pmod = CalcClamp(pmod, min_mod, 2.f);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[WideRangeRoll][i] = pmod;
-		//if (debugmode)
-		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
-		//			  << std::endl;
+		if (debugmode)
+			std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
+					  << std::endl;
 	}
 
 	if (SmoothPatterns) {
-		Smooth(doot[WideRangeRoll], 1.f);
 		Smooth(doot[WideRangeRoll], 1.f);
 	}
 	return;
@@ -2084,5 +2097,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 280;
+	return 281;
 }
