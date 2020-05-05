@@ -530,8 +530,8 @@ end
 -- lower graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
-        self:xy(-plotWidth/2 + 5, plotHeight/2 + 20):halign(0)
-        self:zoom(0.5)
+        self:xy(-plotWidth/2 + 5, plotHeight/2 + 10):halign(0):valign(0)
+        self:zoom(0.4)
         self:settext("")
     end,
     DoTheThingCommand = function(self)
