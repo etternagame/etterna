@@ -127,43 +127,11 @@ local function getGraphForSteps(steps)
     return output
 end
 
---[[ enum mapping for downscaler things:
-    put these as the argument for DootSpooks
-    1 = One hand jump downscaler
-    2 = Anchor downscaler
-    3 = Roll downscaler
-    4 = Handstream downscaler
-    5 = Jumpstream downscaler
-    anything else = no output
-]]
--- edit this to change graph and number output
-
+-- :thinking:
 local CalcDebugTypes = {
-    CalcPatternMod = {
-        "OHJump", 
-	    "Anchor", 
-	    "Roll",   
-	    "HS",		
-	    "Jump",   
-        "CJ",
-        "StreamMod",
-        "OHTrill",
-        "Chaos",
-        "FlamJam",
-        "WideRangeRoll",
-    },
-    CalcDiffValue =
-    {
-        "BaseNPS", 
-        "BaseMS",  
-        "BaseMSD", 
-        "MSD",
-    },
-    CalcDebugMisc = 
-    {
-        "PtLoss", -- goes in bot graph
-	    "StamMod",-- goes in top graph
-    }
+    CalcPatternMod = CalcPatternMod,
+    CalcDiffValue = CalcDiffValue,
+    CalcDebugMisc = CalcDebugMisc,
 }
 
 local function updateCoolStuff()
@@ -179,13 +147,14 @@ local function updateCoolStuff()
 
         -- loop through types of debug output
         for k, v in pairs(CalcDebugTypes) do
-            for i = 1, #v do        -- loop through specifc mods
-                graphVecs[v[i]] = {}
+            for i = 1, #v do        -- loop through specific mods
+                local modname = v[i]:gsub(k.."_", "")
+                graphVecs[modname] = {}
                 for h = 1, 2 do     -- left/right hand loop
-                    graphVecs[v[i]][h] = bap[k][v[i]][h]
+                    graphVecs[modname][h] = bap[k][modname][h]
                     if k == "CalcDiffValue" then
-                        for j = 1, #graphVecs[v[i]][h] do
-                            local val = graphVecs[v[i]][h][j]
+                        for j = 1, #graphVecs[modname][h] do
+                            local val = graphVecs[modname][h][j]
                             if val > lowerGraphMax then lowerGraphMax = val end
                         end
                     end
@@ -288,7 +257,8 @@ o[#o + 1] = Def.Quad {
             local modsToValues = {}
             local modText = ""
             local modNames = {}
-            for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
+            for i, mod in pairs(CalcPatternMod) do
+                local mod = mod:gsub("CalcPatternMod_", "")
                 for h = 1, 2 do
                     local blah = "L"
                     if h == 2 then
@@ -363,7 +333,8 @@ o[#o + 1] = Def.Quad {
             local modsToValues = {}
             local modText = ""
             local modNames = {}
-            for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+            for i, mod in pairs(CalcDiffValue) do
+                local mod = mod:gsub("CalcDiffValue_", "")
                 for h = 1, 2 do
                     local blah = "L"
                     if h == 2 then
@@ -671,28 +642,30 @@ local skillsetColors = {
 }
 
 -- pattern mod lines
-for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
-    o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)
-    o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
-    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, mod, 1)
-    o[#o+1] = makeskillsetlabeltext((i * 2), mod, 2)
+for i, mod in pairs(CalcPatternMod) do
+    local modname = mod:gsub("CalcPatternMod_", "") -- by design
+    o[#o+1] = topGraphLine(modname, modColors[(i * 2) - 1], 1)
+    o[#o+1] = topGraphLine(modname, modColors[i * 2], 2)
+    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, modname, 1)
+    o[#o+1] = makeskillsetlabeltext((i * 2), modname, 2)
 end
 -- add stam since it's not technically a pattern mod
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
-o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 1, "StamMod", 1)
-o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 2, "StamMod", 2)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 -- MSD mod lines
-for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+for i, mod in pairs(CalcDiffValue) do
+    local modname = mod:gsub("CalcDiffValue_", "") -- by design
     if i == 2 or i == 4 then   -- these are the most interesting ones atm
-        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
-        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
+        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - 1], 1)
+        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[i * 2], 2)
     end
 end
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 1], 1)
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
 
 -- SSR skillset lines
 for i = 1,8 do
