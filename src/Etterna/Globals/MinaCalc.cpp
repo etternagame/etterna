@@ -587,8 +587,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.96f, 0.94f, 0.95f,
-												 0.f, 0.8f,   0.85f, 0.9f };
+static const float basescalers[NUM_Skillset] = { 0.f, 0.96f, 0.94f,  0.95f,
+												 0.f, 0.8f,  0.875f, 0.9f };
 
 float
 Hand::CalcMSEstimate(vector<float>& input)
@@ -987,6 +987,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
+		int definitely_not_jacks = 0;
 		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
 
@@ -1012,6 +1013,12 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 					break;
 				}
 
+			// this reads pretty jank but since notes == 1, cols isn't cols, but
+			// a single col, and we can bitwise check to see if this is a jack
+			// or not, if it isn't then we have what should identify as
+			// chordstream not chordjack and we should appropriately punish
+			if (notes == 1 && !last_cols & cols)
+				++definitely_not_jacks;
 			last_cols = cols;
 		}
 
@@ -1026,9 +1033,15 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			// also want to give enough leeway so that hyperdense chordjacks at
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
-			float prop = (chordtaps + 1) / (taps - 1) * 13.f / 7.f;
+			float prop = (chordtaps + 1) / (taps - 1) * 23.f / 7.f;
 			float brop = CalcClamp(actual_jacks - 2.f, 0.5f, 1.f);
-			doot[CJ][i] = CalcClamp(brop * sqrt(prop), 0.7f, 1.1f);
+			// explicitly detect broken chordstream type stuff so we can give
+			// more leeway to single note jacks
+			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(2.f - definitely_not_jacks, 0.5f, 1.f);
+			doot[CJ][i] = CalcClamp(
+			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
+			  0.7f,
+			  1.1f);
 		}
 	}
 	if (SmoothPatterns)
@@ -1339,8 +1352,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
 			test_chaos_merge_stuff =
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
-			stub = CalcClamp(
-			  fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
+			stub =
+			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
 			// std::cout << "uniq " << uniqshare.size() << std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
@@ -1698,7 +1711,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1796,7 +1809,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	int singletaps = 0;
 
 	// unused atm but same concept as above if we do decide to use it
-	//static const float water_it_for_me = 0.05f;
+	// static const float water_it_for_me = 0.05f;
 
 	// miss window seems like a reasonable cutoff, we don't want 1500 ms hits
 	// after long breaks to poison the pool
@@ -1820,7 +1833,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		lr.clear();
 		rl.clear();
 
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "new interval: " << i << std::endl;
 
 		for (int row : nervIntervals[i]) {
@@ -1897,8 +1910,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime;
 			} else {
-			//	if (trunc_ms < trunc_ms)
-			//		cur_vals.push_back(trunc_ms);
+				//	if (trunc_ms < trunc_ms)
+				//		cur_vals.push_back(trunc_ms);
 			}
 
 			lastcol = thiscol;
@@ -2011,7 +2024,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			doot[WideRangeRoll][i] = 1287634.f;
 			continue;
 		}
-		
+
 		// if (debugmode)
 		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
 
