@@ -1037,7 +1037,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			float brop = CalcClamp(actual_jacks - 2.f, 0.5f, 1.f);
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
-			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(2.f - definitely_not_jacks, 0.5f, 1.f);
+			float brop_two_return_of_brop_electric_bropaloo =
+			  CalcClamp(2.f - definitely_not_jacks, 0.5f, 1.f);
 			doot[CJ][i] = CalcClamp(
 			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
 			  0.7f,
@@ -1711,7 +1712,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1719,7 +1720,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		cv += barf;
 		cv *= barf2;
 		cv = CalcClamp(cv, 0.f, 1.f);
-
 		if (debugmode)
 			std::cout << "cv3 " << cv << std::endl;
 		yes_trills *= barf;
