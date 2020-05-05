@@ -1712,7 +1712,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1796,6 +1796,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	deque<vector<int>> itv_array;
 	deque<int> itv_taps;
 	deque<int> itv_cv_taps;
+	deque<int> itv_single_taps;
 	vector<int> cur_vals;
 	vector<int> window_vals;
 	unordered_set<int> unique_vals;
@@ -1806,10 +1807,16 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	float lasttime = 0.f;
 	int lastcol = -1;
 	int lastsinglecol = -1;
-	int singletaps = 0;
+	int single_taps = 0;
 
-	// unused atm but same concept as above if we do decide to use it
-	// static const float water_it_for_me = 0.05f;
+	// we could implement this like the roll scaler above, however this is to
+	// prevent /0 errors exclusively at the moment (because we are truncating
+	// extremely high bpm 192nd flams can produce 0 as ms), causing potenial
+	// nan's in the sd function
+	// we could look into using this for balance purposes as well but things
+	// look ok for the moment and it would likely be a large time sink without
+	// proper tests setup
+	static const int ms_add = 1;
 
 	// miss window seems like a reasonable cutoff, we don't want 1500 ms hits
 	// after long breaks to poison the pool
@@ -1817,18 +1824,20 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	static const float mean_cutoff_factor = 1.7f;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int totaltaps = 0;
+		int interval_taps = 0;
 		int ltaps = 0;
 		int rtaps = 0;
+		int single_taps = 0;
 
 		// drop the oldest interval values if we have reached full size
 		if (itv_array.size() == itv_window) {
 			itv_array.pop_front();
 			itv_cv_taps.pop_front();
 			itv_taps.pop_front();
+			itv_single_taps.pop_front();
 		}
 
-		// clear the current interval value vector
+		// clear the current interval value vectors
 		cur_vals.clear();
 		lr.clear();
 		rl.clear();
@@ -1843,13 +1852,13 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			// especially if we are going to use unique values at some point (we
 			// don't currently), if we do and even single digit rounding becomes
 			// an issue we can truncate further up
-			int trunc_ms = static_cast<int>((curtime - lasttime) * 1000.f);
+			int trunc_ms = static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
 
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
-			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			if (column_count(NoteInfo[row].notes) == 1)
-				++singletaps;
+			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+			if (lcol ^ rcol)
+				++single_taps;
 
 			// if (debugmode)
 			//	std::cout << "truncated ms value: " << trunc_ms << std::endl;
@@ -1910,6 +1919,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime;
 			} else {
+				// the idea here was to help boost anchored patterns but all it
+				// did was just buff rolls with frequent directional swaps and
+				// anchored patterns are already more or less fine
+				// possibly look into taking this out of the lower level roll
+				// scaler as well
+
 				//	if (trunc_ms < trunc_ms)
 				//		cur_vals.push_back(trunc_ms);
 			}
@@ -1923,8 +1938,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		cur_vals = mean(lr) < mean(rl) ? lr : rl;
 		int cv_taps = ltaps + rtaps;
 
-		itv_taps.push_back(totaltaps);
+		itv_taps.push_back(interval_taps);
 		itv_cv_taps.push_back(cv_taps);
+		itv_single_taps.push_back(single_taps);
 
 		unsigned int window_taps = 0;
 		for (auto& n : itv_taps)
@@ -1933,6 +1949,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		unsigned int window_cv_taps = 0;
 		for (auto& n : itv_cv_taps)
 			window_cv_taps += n;
+
+		unsigned int window_single_taps = 0;
+		for (auto& n : itv_single_taps)
+			window_single_taps += n;
 
 		// push current interval values into deque, there should always be
 		// space since we pop front at the start of the loop if there isn't
@@ -1947,7 +1967,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (auto& v : itv_array)
 			totalvalues += v.size();
 
-		// the unique val stuff is not used at the moment, basically we filter
+		// the unique val is not really used at the moment, basically we filter
 		// out the vectors for stuff way outside the applicable range, like 500
 		// ms hits that would otherwise throw off the variation estimations
 		for (auto& v : itv_array)
@@ -1962,34 +1982,84 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 				filtered_vals.push_back(v);
 
 		float f_mean = mean(filtered_vals);
+
+		// bigger the lower the proportion of cross column single taps
+		// i.e. more anchors
+		// this is kinda buggy atm and producing sub 1 values for ??? reasons,
+		// but i don't think it makes too much difference and i don't want to
+		// spend more time on it right now
 		float cv_prop = cv_taps == 0 ? 1
 									 : static_cast<float>(window_taps) /
 										 static_cast<float>(window_cv_taps);
 
-		// other defaults go to minimum, in these cases we want maximum so the
-		// smoothing doesn't spill over from easy filler into hard sections too
-		// much
-		float pmod = CalcClamp(min_mod * cv_prop, min_mod, max_mod);
-		if (cv_taps == 0 || singletaps == 0) {
+		// bigger the lower the proportion of single taps to total taps
+		// i.e. more chords
+		float chord_prop =
+		  static_cast<float>(window_taps) / static_cast<float>(window_single_taps);
+
+		// handle anchors, chord filler, empty sections and single notes
+		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
 			doot[WideRangeRoll][i] = 1.f;
 			continue;
 		}
-		if (totalvalues < 1) {
-			doot[WideRangeRoll][i] = pmod;
-			continue;
-		}
-		// true rolls shouldn't even get to this point unless they change
-		// direction, since they'll have only a single unique value
-		if (filtered_vals.size() < 2 || unique_vals.size() == 1) {
-			doot[WideRangeRoll][i] = pmod;
+
+		float pmod = min_mod;
+		// these cases are likely a "true roll" and we can optimize by just
+		// direct setting them, if unique_vals == 1 then we only have a single
+		// instance of left->right or right->left ms values across 2seconds,
+		// this usually indicates a straight roll, if filtered vals == 1 the
+		// same thing applies, but we filtered out the occasional direction swap
+		// or a long break before the roll started. The scenario in which this
+		// would not indicate a straight roll is aggressively rolly js or hs,
+		// and while downscaling those is a goal, we shouldn't attempt to do it
+		// here, so we'll upscale the min mod by the anchor/chord proportion
+		// the < is for catching empty stuff that may have reached here
+		// edit: pretty sure this doesn't really effectively push up js/hs but
+		// it's w.e, we don't use this mod on those passes atm and it's more
+		// about the graphs looking pretty ugly than anything else
+		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
+			doot[WideRangeRoll][i] = CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
 			continue;
 		}
 
+		// scale base default to cv_prop and chord_prop, we want the base to be
+		// higher for filler sections that are mostly slow anchors/js/whatever,
+		// if there's filler that's in slow roll formation there's not much we
+		// can do about it affecting adjacant hard intervals on the smooth pass,
+		// however since we're running on a moving window the effect is
+		// mitigated both chord_prop and cv_prop are 1.0+ multipliers
+		// it's kind of hard to have a roll if you only have 12 notes in 2
+		// seconds, ideally we would steer away from discrete cutoffs of any
+		// kind but it's kind of hard to resist the temptation as it should be
+		// pretty safe here, even supposing we award a full modifier to
+		// something that we shouldn't have, it should make no practical
+		// difference apart from slightly upping the next hard interval on
+		// smooth, yes this is redundant with the above, but i figured it would
+		// be clearer to split up slightly different cases
+		if (window_taps <= 12) {
+			doot[WideRangeRoll][i] =
+			  CalcClamp(min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
+			continue;
+		}
+		
+		// we've handled basic cases and stuff that could cause /0 errors (hopefully)
+		// do maths now
 		float unique_prop = static_cast<float>(unique_vals.size()) /
 							static_cast<float>(window_vals.size());
 		float cv_window = cv(window_vals);
 		float cv_filtered = cv(filtered_vals);
 		float cv_unique = cv(unique_vals);
+
+		// this isn't really robust if theres a really short flam involved
+		// anywhere e.g. a 5ms flam offset for an oh jump when everything else
+		// is 50 ms will make the above way too high, something else must be
+		// used, leaving this here so i don't forget and try to use it again
+		// or some other idiot
+		//float mean_prop =
+		// f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
+		//												filtered_vals.end()));
+		// mean_prop = 1.f;
+		
 		/*
 		if (debugmode) {
 			std::string rarp = "window vals: ";
@@ -1999,16 +2069,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			}
 			std::cout << rarp << std::endl;
 		}
-		*/
-		float mean_prop =
-		  f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
-														filtered_vals.end()));
-		// this isn't really robust if theres a really short flam involved
-		// anywhere e.g. a 5ms flam offset for an oh jump when everything else
-		// is 50 ms will make the above way too high, something else must be
-		// used
-		mean_prop = 1.f;
-		/*
+		if (debugmode)
+			std::cout << "cprop: " << cv_prop << std::endl;
+
 		if (debugmode)
 			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
 					  << std::endl;
@@ -2018,12 +2081,6 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (debugmode)
 			std::cout << "mean/min: " << mean_prop << std::endl;
 			*/
-		// debug
-		if (unique_vals.empty() || filtered_vals.empty() ||
-			window_vals.empty()) {
-			doot[WideRangeRoll][i] = 1287634.f;
-			continue;
-		}
 
 		// if (debugmode)
 		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
@@ -2040,20 +2097,23 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// mean/min and totaltaps/cvtaps should put almost everything else over
 		// a 1.0 multiplier. perhaps mean/min should be calculated on the full
 		// window like taps/cvtaps are
-		pmod = cv_filtered * cv_prop * 1.75f * mean_prop;
+		pmod = cv_filtered * cv_prop * 1.75f;
 		pmod += 0.4f;
+		// both too sensitive and unreliable i think
 		// pmod += 1.25f * unique_prop;
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[WideRangeRoll][i] = pmod;
-		if (debugmode)
-			std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
-					  << std::endl;
+		//if (debugmode)
+		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
+		//			  << std::endl;
 	}
 
-	if (SmoothPatterns) {
+	// covering a window of 4 intervals does act as a smoother, and a better one
+	// than a double smooth for sure, however we still want to run the smoother
+	// anyway to rough out jagged edges and interval splicing error
+	if (SmoothPatterns)
 		Smooth(doot[WideRangeRoll], 1.f);
-	}
 	return;
 }
 
@@ -2115,5 +2175,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 281;
+	return 282;
 }
