@@ -2027,6 +2027,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// handle anchors, chord filler, empty sections and single notes
 		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
 			doot[WideRangeRoll][i] = 1.f;
+			doot[Chaos][i] = 1.f;
 			continue;
 		}
 
@@ -2047,6 +2048,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
 			doot[WideRangeRoll][i] =
 			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
+			doot[Chaos][i] = 1.f;
 			continue;
 		}
 
@@ -2067,6 +2069,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (window_taps <= 12) {
 			doot[WideRangeRoll][i] = CalcClamp(
 			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
+			doot[Chaos][i] = 1.f;
 			continue;
 		}
 
