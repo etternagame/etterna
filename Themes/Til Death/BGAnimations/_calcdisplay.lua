@@ -134,6 +134,47 @@ local CalcDebugTypes = {
     CalcDebugMisc = CalcDebugMisc,
 }
 
+-- active mods on top graph
+local activeMods = {}
+for k,v in pairs(CalcPatternMod) do
+    v = v:gsub("CalcPatternMod_", "")
+    activeMods[#activeMods+1] = v
+end
+activeMods[#activeMods+1] = "StamMod"
+
+-- specify enum names as tables here
+-- only allowed to have 9
+-- the 0th one is reserved for ssr graph toggle
+local debugGroups = {
+    {
+        OHJump = true,
+        Anchor = true
+    },
+    {
+        Roll = true,
+        HS = true
+    },
+    {
+        Jump = true,
+        CJ = true
+    },
+    {
+        StreamMod = true,
+        OHTrill = true,
+    },
+    {
+        Chaos = true,
+        FlamJam = true,
+    },
+    {
+        WideRangeRoll = true,
+        StamMod = true
+    },
+    {},
+    {},
+    [9] = {},
+}
+
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -168,6 +209,39 @@ local function updateCoolStuff()
         graphVecs = {}
     end
     MESSAGEMAN:Broadcast("UpdateAverages")
+end
+
+local activeModGroup = -1
+-- just switches the active group of lines
+-- all others are invis/grey
+local function switchToGroup(num)
+    if num == activeModGroup then
+        activeModGroup = -1
+    else
+        activeModGroup = num
+    end
+    MESSAGEMAN:Broadcast("UpdateActiveMods")
+end
+
+local ssrGraphActive = false
+local function switchSSRGraph()
+    ssrGraphActive = not ssrGraphActive
+    MESSAGEMAN:Broadcast("UpdateActiveLowerGraph")
+end
+
+local function yetAnotherInputCallback(event)
+	if event.type == "InputEventType_FirstPress" then
+        local CtrlPressed = INPUTFILTER:IsControlPressed()
+        if tonumber(event.char) and CtrlPressed then
+            local num = tonumber(event.char)
+            if num == 0 then
+                switchSSRGraph()
+            else
+                switchToGroup(num)
+            end 
+        end
+	end
+	return false
 end
 
 local o =
@@ -215,6 +289,9 @@ local o =
         InitCommand = function(self)
             self:xy(-plotWidth/2, -20)
             self:zoomto(0, 0):diffuse(color("1,1,1,1")):halign(0):draworder(1100):halign(0):diffusealpha(0.1)
+        end,
+        BeginCommand = function(self)
+            SCREENMAN:GetTopScreen():AddInputCallback(yetAnotherInputCallback)
         end
     }
 }
@@ -363,14 +440,14 @@ o[#o + 1] = Def.Quad {
             local ssrindex = convertPercentToIndex(perc)
             -- The names here are made under the assumption the skillsets and their positions never change
             local ssrAtIndex = {
-                ssrs[1][ssrindex],
-                ssrs[2][ssrindex],
-                ssrs[3][ssrindex],
-                ssrs[4][ssrindex],
-                ssrs[5][ssrindex],
-                ssrs[6][ssrindex],
-                ssrs[7][ssrindex],
-                ssrs[8][ssrindex],
+                ssrs[1][ssrindex], -- overall
+                ssrs[2][ssrindex], -- stream
+                ssrs[3][ssrindex], -- jumpstream
+                ssrs[4][ssrindex], -- handstream
+                ssrs[5][ssrindex], -- stamina
+                ssrs[6][ssrindex], -- jackspeed
+                ssrs[7][ssrindex], -- chordjack
+                ssrs[8][ssrindex], -- technical
             }
             local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
             for i, ss in ipairs(ms.SkillSets) do
@@ -471,8 +548,9 @@ local modColors = {
 }
 
 -- top graph average text
-makeskillsetlabeltext = function(i, mod, hand) 
+makeskillsetlabeltext = function(i, mod, hand)
     return LoadFont("Common Normal") .. {
+        Name = "SSLabel"..i,
         InitCommand = function(self)
             local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
@@ -485,19 +563,32 @@ makeskillsetlabeltext = function(i, mod, hand)
                 local aves = {}
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then 
-                  self:settext("")
-                return
-            end
-            for i = 1, #values do
-                if values[i] and #values > 0 then
-                    aves[i] = table.average(values)
+                    self:settext("")
+                    return
                 end
+                for i = 1, #values do
+                    if values[i] and #values > 0 then
+                        aves[i] = table.average(values)
+                    end
+                end
+                if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                    self:diffuse(modColors[i])
+                else
+                    self:diffuse(color(".3,.3,.3"))
+                end
+                self:settextf("%s: %.4f", modnames[i], aves[i])
             end
-            self:diffuse(modColors[i])
-            self:settextf("%s: %.4f", modnames[i], aves[i])
+        end,
+        UpdateActiveModsMessageCommand = function(self)
+            -- if this group is selected and we want to show it off
+            if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                self:playcommand("UpdateAverages")
+            else
+                -- grey out unselected groups
+                self:diffuse(color(".3,.3,.3"))
+            end
         end
-    end
-}
+    }
 end
 
 -- lower graph average text
@@ -560,6 +651,15 @@ local function topGraphLine(mod, colorToUse, hand)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
                 self:visible(false)
+            end
+        end,
+        UpdateActiveModsMessageCommand = function(self)
+            -- if this group is selected and we want to show it off
+            if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                self:diffusealpha(1)
+            else
+                -- hide unselected groups
+                self:diffusealpha(0)
             end
         end
     }
