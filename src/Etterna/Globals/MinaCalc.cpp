@@ -402,7 +402,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// just very high rated but take no stamina
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
-		
 		// the bigger this number the more stamina has to influence a file
 		// before it counts in the stam skillset, i.e. something that only
 		// benefits 2% from the stam modifiers will drop below the 1.0 mark and
@@ -535,6 +534,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	WideWindowRollScaler(NoteInfo, 1, 2, music_rate, left_hand.doot);
 	WideWindowRollScaler(NoteInfo, 4, 8, music_rate, right_hand.doot);
+	WideWindowJumptrillScaler(NoteInfo, 1, 2, music_rate, left_hand.doot);
+	WideWindowJumptrillScaler(NoteInfo, 4, 8, music_rate, right_hand.doot);
 
 	// pattern mods and base msd never change so set them immediately
 	if (debugmode) {
@@ -738,7 +739,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			case Skill_Stream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
 							  doot[StreamMod][i] * doot[Chaos][i] *
-							  doot[WideRangeRoll][i];
+							  doot[WideRangeRoll][i] * doot[OHTrill][i];
 				break;
 				// jump downscales anything without some jumps
 			case Skill_Jumpstream:
@@ -1734,7 +1735,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 
 		// then scaled against how many taps we ignored
-		
+		
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1874,7 +1875,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			// especially if we are going to use unique values at some point (we
 			// don't currently), if we do and even single digit rounding becomes
 			// an issue we can truncate further up
-			int trunc_ms = static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
+			int trunc_ms =
+			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
 
 			bool lcol = NoteInfo[row].notes & t1;
 			bool rcol = NoteInfo[row].notes & t2;
@@ -2016,8 +2018,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		// bigger the lower the proportion of single taps to total taps
 		// i.e. more chords
-		float chord_prop =
-		  static_cast<float>(window_taps) / static_cast<float>(window_single_taps);
+		float chord_prop = static_cast<float>(window_taps) /
+						   static_cast<float>(window_single_taps);
 
 		// handle anchors, chord filler, empty sections and single notes
 		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
@@ -2040,7 +2042,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// it's w.e, we don't use this mod on those passes atm and it's more
 		// about the graphs looking pretty ugly than anything else
 		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
-			doot[WideRangeRoll][i] = CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
+			doot[WideRangeRoll][i] =
+			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
 			continue;
 		}
 
@@ -2059,13 +2062,13 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// smooth, yes this is redundant with the above, but i figured it would
 		// be clearer to split up slightly different cases
 		if (window_taps <= 12) {
-			doot[WideRangeRoll][i] =
-			  CalcClamp(min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
+			doot[WideRangeRoll][i] = CalcClamp(
+			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
 			continue;
 		}
-		
-		// we've handled basic cases and stuff that could cause /0 errors (hopefully)
-		// do maths now
+
+		// we've handled basic cases and stuff that could cause /0 errors
+		// (hopefully) do maths now
 		float unique_prop = static_cast<float>(unique_vals.size()) /
 							static_cast<float>(window_vals.size());
 		float cv_window = cv(window_vals);
@@ -2077,11 +2080,11 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// is 50 ms will make the above way too high, something else must be
 		// used, leaving this here so i don't forget and try to use it again
 		// or some other idiot
-		//float mean_prop =
+		// float mean_prop =
 		// f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
 		//												filtered_vals.end()));
 		// mean_prop = 1.f;
-		
+
 		/*
 		if (debugmode) {
 			std::string rarp = "window vals: ";
@@ -2126,9 +2129,27 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[WideRangeRoll][i] = pmod;
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
 		//			  << std::endl;
+
+		float butt = 0.f;
+		int min_val =
+		  *std::min_element(filtered_vals.begin(), filtered_vals.end());
+		if (filtered_vals.size() > 1)
+			for (auto& in : filtered_vals)
+				butt += static_cast<float>(min_val % in) / static_cast<float>(min_val);
+
+				/*
+				for (auto& the : filtered_vals)
+					if (in >= the)
+						if (in <= 3.f * the)
+							if (the * 10000.f > 0.5f)
+								butt += fastsqrt(fastsqrt(static_cast<float>(
+								  static_cast<int>(in * 10000.f + 0.5f) %
+								  static_cast<int>(10000.f * the + 0.5f))));
+						  */
+		doot[Chaos][i] = butt / filtered_vals.size();
 	}
 
 	// covering a window of 4 intervals does act as a smoother, and a better one
@@ -2136,6 +2157,131 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	// anyway to rough out jagged edges and interval splicing error
 	if (SmoothPatterns)
 		Smooth(doot[WideRangeRoll], 1.f);
+	return;
+}
+
+// hyper explicit mega murder of long chains of 12211221122112211221122112211221
+void
+Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
+								unsigned int t1,
+								unsigned int t2,
+								float music_rate,
+								vector<float> doot[])
+{
+	doot[OHTrill].resize(nervIntervals.size());
+
+	static const float min_mod = 0.25f;
+	static const float max_mod = 1.f;
+	unsigned int itv_window = 6;
+
+	deque<int> itv_taps;
+	deque<int> itv_ccacc;
+
+	int lastcol = -1;
+	int last_cc_dir = -1;
+	int anchors_hit = 0;
+	int crop_circles = 0;
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// if (debugmode)
+		//	std::cout << "new interval " << i << std::endl;
+
+		int interval_taps = 0;
+		int ccacc_counter = 0;
+
+		// drop the oldest interval values if we have reached full size
+		if (itv_taps.size() == itv_window) {
+			itv_taps.pop_front();
+			itv_ccacc.pop_front();
+		}
+
+		for (int row : nervIntervals[i]) {
+			bool lcol = NoteInfo[row].notes & t1;
+			bool rcol = NoteInfo[row].notes & t2;
+			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+
+			if (!(lcol ^ rcol)) {
+				if (!(lcol || rcol)) {
+					continue;
+				}
+				// not sure yet how oh jumps interact with this
+				if (lcol && rcol) {
+					lastcol = -1;
+				}
+				continue;
+			}
+
+			int thiscol = lcol ? 0 : 1;
+			if (thiscol != lastcol || lastcol == -1) {
+				if (rcol) {
+					if (anchors_hit == 1 && last_cc_dir == 10) {
+						//if (debugmode)
+						//	std::cout << "ccacc detected ending on " << thiscol
+						//			  << std::endl;
+						++ccacc_counter;
+					}
+
+					anchors_hit = 0;
+					last_cc_dir = 01;
+				} else if (lcol) {
+					if (anchors_hit == 1 && last_cc_dir == 01) {
+						//if (debugmode)
+						//	std::cout << "ccacc detected ending on " << thiscol
+						//			  << std::endl;
+						++ccacc_counter;
+					}
+
+					last_cc_dir = 10;
+					anchors_hit = 0;
+				}
+			} else {
+				++anchors_hit;
+				//if (debugmode)
+				//	std::cout << "anchor hit " << std::endl;
+			}
+
+			lastcol = thiscol;
+		}
+
+		itv_taps.push_back(interval_taps);
+		itv_ccacc.push_back(max(ccacc_counter - 1, 0));
+
+		if (ccacc_counter > 0)
+			++crop_circles;
+		else
+			--crop_circles;
+		if (crop_circles < 0)
+			crop_circles = 0;
+
+		// if (debugmode)
+		//	std::cout << "crop circles: " << crop_circles << std::endl;
+
+		unsigned int window_taps = 0;
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		unsigned int window_ccacc = 0;
+		for (auto& n : itv_ccacc)
+			window_ccacc += n;
+
+		// if (debugmode)
+		//	std::cout << "window taps: " << window_taps << std::endl;
+		// if (debugmode)
+		//	std::cout << "window ccacc: " << window_ccacc << std::endl;
+
+		float pmod = 1.f;
+
+		if (window_ccacc > 0 && crop_circles > 0)
+			pmod =
+			  static_cast<float>(window_taps) /
+			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+
+		doot[OHTrill][i] = CalcClamp(pmod, min_mod, max_mod);
+		// if (debugmode)
+		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" << std::endl;
+	}
+
+	if (SmoothPatterns)
+		Smooth(doot[OHTrill], 1.f);
 	return;
 }
 
