@@ -675,7 +675,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
                 
-                self:visible(true)
+                self:visible(not ssrGraphActive)
 
                 local verts = {}
                 local values = graphVecs[mod][hand]
@@ -694,6 +694,11 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
             else
                 self:visible(false)
             end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                self:visible(not ssrGraphActive)
+            end
         end
     }
 end
@@ -708,7 +713,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-                self:visible(true)
+                self:visible(ssrGraphActive)
                 local verts = {}
 
                 for i = 1, #ssrs[lineNum] do
@@ -723,6 +728,11 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
                 self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                self:visible(ssrGraphActive)
             end
         end
     }
