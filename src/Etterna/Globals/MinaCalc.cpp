@@ -670,7 +670,7 @@ Calc::Chisel(float player_skill,
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
 			else {
 				if (ss == Skill_Chordjack)
-					gotpoints -= sqrt(abs(
+					gotpoints -= fastsqrt(abs(
 					  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
 					  JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
 				// if (debugoutput)
