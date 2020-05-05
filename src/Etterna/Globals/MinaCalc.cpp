@@ -400,10 +400,20 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// just very high rated but take no stamina
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
+		
+		// the bigger this number the more stamina has to influence a file
+		// before it counts in the stam skillset, i.e. something that only
+		// benefits 2% from the stam modifiers will drop below the 1.0 mark and
+		// move closer to 0 with the pow, resulting in a very low stamina rating
+		// (we want this), something that benefits 5.5% will have the 0.5%
+		// overflow multiplied and begin gaining some stam, and something that
+		// benefits 15% will max out the possible stam rating, which is
+		// (currently) a 1.07 multiplier to the base
+		// maybe using a multiplier and not a difference would be better?
+		static const float stam_curve_shift = 0.025f;
 		// ends up being a multiplier between ~0.8 and ~1
-		// tuning is a wip
 		float mcfroggerbopper =
-		  pow((poodle_in_a_porta_potty / base) - 0.05f, 2.5f);
+		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5f);
 
 		// we wanted to shift the curve down a lot before pow'ing but it was too
 		// much to balance out, so we need to give some back, this is roughly
@@ -411,7 +421,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// we don't want to push up the high end stuff anymore so just add to
 		// let stuff down the curve catch up a little
 		// remember we're operating on a multiplier
-		mcfroggerbopper = CalcClamp(mcfroggerbopper + 0.025f, 0.8f, 1.09f);
+		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.07f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
 
 		// yes i know how dumb this looks
@@ -575,9 +585,9 @@ static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.071234f; // stamina multiplier max
-static const float stam_mag = 323.f;	  // multiplier generation scaler
-static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
+static const float stam_ceil = 1.081234f; // stamina multiplier max
+static const float stam_mag = 373.f;	  // multiplier generation scaler
+static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.7444f; // proportion of player difficulty at which stamina tax begins
 
