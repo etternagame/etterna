@@ -1796,7 +1796,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	int singletaps = 0;
 	static const float water_it_for_me = 0.05f;
 	static const int max_ms_value = 180;
-	static const float mean_cutoff_factor = 1.8f;
+	static const float mean_cutoff_factor = 1.7f;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		int totaltaps = 0;
@@ -1892,8 +1892,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime;
 			} else {
-				if (trunc_ms < trunc_ms)
-					cur_vals.push_back(trunc_ms);
+			//	if (trunc_ms < trunc_ms)
+			//		cur_vals.push_back(trunc_ms);
 			}
 
 			lastcol = thiscol;
