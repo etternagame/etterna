@@ -2141,13 +2141,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		//			  << std::endl;
 
 		// chayoss stuff
-		unique_vals.clear();
 		window_vals.clear();
 		filtered_vals.clear();
 		for (auto& v : itv_arrayTWO) for (auto& n : v)
 		{
-			if (!unique_vals.count(n))
-				unique_vals.insert(n);
 			window_vals.push_back(n);
 		}
 		v_mean = mean(window_vals);
