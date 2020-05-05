@@ -1794,7 +1794,12 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	int lastcol = -1;
 	int lastsinglecol = -1;
 	int singletaps = 0;
-	static const float water_it_for_me = 0.05f;
+
+	// unused atm but same concept as above if we do decide to use it
+	//static const float water_it_for_me = 0.05f;
+
+	// miss window seems like a reasonable cutoff, we don't want 1500 ms hits
+	// after long breaks to poison the pool
 	static const int max_ms_value = 180;
 	static const float mean_cutoff_factor = 1.7f;
 
