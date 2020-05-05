@@ -67,7 +67,7 @@ static unordered_map<std::string, float> stream_test = {
 	{ "X8a7310367a2479daa48888b15b8be724452c4616", 29.5f }, // voodoo mon amour
 	{ "X24085a6e074ca3bd89c91b748d9b42061863e9c1", 25.f },  // electricity tim1
 	{ "Sc702a9b178552a1ee4deb1f9def89ffd58e4437a", 24.5f }, // bon-bon skwid6
-	
+
 };
 
 static unordered_map<std::string, float> stam_test = {
@@ -458,6 +458,7 @@ void
 Chart::FromKey(const string& ck)
 {
 	Song* song = SONGMAN->GetSongByChartkey(ck);
+	key = ck;
 
 	if (song != nullptr) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);

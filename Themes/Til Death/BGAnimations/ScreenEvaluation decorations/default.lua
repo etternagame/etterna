@@ -996,7 +996,7 @@ function scoreBoard(pn, position)
 	local doot = {
 		THEME:GetString("ScreenEvaluation", "Mean"),
 		THEME:GetString("ScreenEvaluation", "StandardDev"),
-		"Largest",
+		THEME:GetString("ScreenEvaluation", "LargestDev"),
 		THEME:GetString("ScreenEvaluation", "LeftCB"),
 		THEME:GetString("ScreenEvaluation", "RightCB"),
 		THEME:GetString("ScreenEvaluation", "MiddleCB")
