@@ -234,7 +234,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
-			o += 7.f - (7.f * pow(x / (j[i] * 0.88f), 1.7f));
+			o += 7.f - (7.f * fastpow(x / (j[i] * 0.88f), 1.7f));
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
