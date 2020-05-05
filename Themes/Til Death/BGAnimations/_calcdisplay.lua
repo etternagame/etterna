@@ -389,21 +389,23 @@ o[#o + 1] = Def.Quad {
                 modText = modText .. txt
             end
             
+            local ssrindex = convertPercentToIndex(perc)
             -- The names here are made under the assumption the skillsets and their positions never change
             local ssrAtIndex = {
-                Overall = ssrs[1][index],
-                Stream = ssrs[2][index],
-                Jumpstream = ssrs[3][index],
-                Handstream = ssrs[4][index],
-                Stamina = ssrs[5][index],
-                Jackspeed = ssrs[6][index],
-                Chordjack = ssrs[7][index],
-                Technical = ssrs[8][index],
+                Overall = ssrs[1][ssrindex],
+                Stream = ssrs[2][ssrindex],
+                Jumpstream = ssrs[3][ssrindex],
+                Handstream = ssrs[4][ssrindex],
+                Stamina = ssrs[5][ssrindex],
+                Jackspeed = ssrs[6][ssrindex],
+                Chordjack = ssrs[7][ssrindex],
+                Technical = ssrs[8][ssrindex],
             }
             local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
             for ss, val in pairs(ssrAtIndex) do
                 ssrtext = ssrtext .. string.format("%s: %.2f\n", ss, val)
             end
+            ssrtext = ssrtext:sub(1, #ssrtext-1) -- remove the end whitespace
             txt:settext(ssrtext)
 
             modText = modText:sub(1, #modText-1) -- remove the end whitespace
