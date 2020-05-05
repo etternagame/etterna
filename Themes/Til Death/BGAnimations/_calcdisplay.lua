@@ -501,15 +501,11 @@ local modColors = {
 makeskillsetlabeltext = function(i, mod, hand) 
     return LoadFont("Common Normal") .. {
         InitCommand = function(self)
-            local xspace = 20   -- this is gonna look like shit on 4:3 no matter what so w.e
-            self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
+            local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
+            self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
             self:maxwidth((plotWidth-10) / 0.5)
-            if hand % 2 == 0 then
-                self:addy(20)
-                self:addx(-xspace)
-            end
         end,
         UpdateAveragesMessageCommand = function(self)
             if song then
