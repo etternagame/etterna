@@ -1305,13 +1305,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			return o;
 		};
 		vector<vector<float>> hmmk;
-		for (auto& e : whatwhat)
-			hmmk.emplace_back(HE(e));
+		//for (auto& e : whatwhat)
+		//	hmmk.emplace_back(HE(e));
 
 		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
 		float stub = 0.f;
 		// compare each expanded sequence with every other
-		if (hmmk.size() > 1) {
+		if (false) {
 			vector<float> mmbop;
 			set<int> uniqshare;
 			vector<float> biffs;
@@ -1732,10 +1732,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// / 3.f; if (debugmode) 	std::cout << "cv2 " << cv << std::endl;
 		/*
 
-
-
 		// then scaled against how many taps we ignored
-		
+
 		float barf = (-0.1f + (dswap * 0.1f));
 		barf += (barf2 - 1.f);
 		if (debugmode)
@@ -1817,6 +1815,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 	static const float max_mod = 1.035f;
 	unsigned int itv_window = 4;
 	deque<vector<int>> itv_array;
+	deque<vector<int>> itv_arrayTWO;
 	deque<int> itv_taps;
 	deque<int> itv_cv_taps;
 	deque<int> itv_single_taps;
@@ -1855,6 +1854,7 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// drop the oldest interval values if we have reached full size
 		if (itv_array.size() == itv_window) {
 			itv_array.pop_front();
+			itv_arrayTWO.pop_front();
 			itv_cv_taps.pop_front();
 			itv_taps.pop_front();
 			itv_single_taps.pop_front();
@@ -1865,8 +1865,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		lr.clear();
 		rl.clear();
 
-		// if (debugmode)
-		//	std::cout << "new interval: " << i << std::endl;
+		if (debugmode)
+			std::cout << "new interval: " << i << std::endl;
 
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
@@ -1887,8 +1887,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 			// if (debugmode)
 			//	std::cout << "truncated ms value: " << trunc_ms << std::endl;
 
-			// if (trunc_ms < max_ms_value)
-			//	cur_vals.push_back(trunc_ms);
+			// for expurrrmental thing for chaos thing
+			if (trunc_ms < max_ms_value)
+				cur_vals.push_back(trunc_ms - ms_add);
 
 			if (!(lcol ^ rcol)) {
 				if (!(lcol || rcol)) {
@@ -1955,6 +1956,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 
 			lastcol = thiscol;
 		}
+
+		itv_arrayTWO.push_back(cur_vals);
 
 		// k lets try just running the pass with the rolls (lower mean indicates
 		// the rolls are flowing in that direction, for patterns that aren't
@@ -2084,16 +2087,17 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
 		//												filtered_vals.end()));
 		// mean_prop = 1.f;
-
 		/*
 		if (debugmode) {
 			std::string rarp = "window vals: ";
-			for (auto& a : window_vals) {
+			for (auto& a : filtered_vals) {
 				rarp.append(std::to_string(a));
 				rarp.append(", ");
 			}
 			std::cout << rarp << std::endl;
 		}
+		*/
+		/*
 		if (debugmode)
 			std::cout << "cprop: " << cv_prop << std::endl;
 
@@ -2133,23 +2137,80 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
 		//			  << std::endl;
 
+		// chayoss stuff
+		unique_vals.clear();
+		window_vals.clear();
+		filtered_vals.clear();
+		for (auto& v : itv_arrayTWO) for (auto& n : v)
+		{
+			if (!unique_vals.count(n))
+				unique_vals.insert(n);
+			window_vals.push_back(n);
+		}
+		v_mean = mean(window_vals);
+		for (auto& v : window_vals)
+			if (v < mean_cutoff_factor * v_mean)
+				filtered_vals.push_back(v);
+		/*
+		if (debugmode) {
+			std::string rarp = "chaos vals: ";
+			for (auto& a : filtered_vals) {
+				rarp.append(std::to_string(a));
+				rarp.append(", ");
+			}
+			std::cout << rarp << std::endl;
+		}
+		*/
+
+		// attempt #437 at some kind of complex pattern picker upper
 		float butt = 0.f;
+		int whatwhat = 0;
 		int min_val =
 		  *std::min_element(filtered_vals.begin(), filtered_vals.end());
-		if (filtered_vals.size() > 1)
+		std::sort(filtered_vals.begin(), filtered_vals.end());
+		if (filtered_vals.size() > 1) {
 			for (auto& in : filtered_vals)
-				butt += static_cast<float>(min_val % in) / static_cast<float>(min_val);
+				for (auto& the : filtered_vals) {
+				if (in == the) {
+					butt += 1.f;
+					++whatwhat;
+					continue;
+				}
+				if (in > the) {
+					float prop = static_cast<float>(in) / the;
+					int mop = static_cast<int>(prop);
+					float flop = prop - static_cast<float>(mop);
+					if (flop == 0.f) {
+						butt += 1.f;
+						++whatwhat;
+						continue;
+					} else if (flop >= 0.5f) {
+						flop = abs(flop - 1.f) + 1.f;
+						butt += flop;
 
-				/*
-				for (auto& the : filtered_vals)
-					if (in >= the)
-						if (in <= 3.f * the)
-							if (the * 10000.f > 0.5f)
-								butt += fastsqrt(fastsqrt(static_cast<float>(
-								  static_cast<int>(in * 10000.f + 0.5f) %
-								  static_cast<int>(10000.f * the + 0.5f))));
-						  */
-		doot[Chaos][i] = butt / filtered_vals.size();
+						//if (debugmode)
+						//	std::cout << "flop over: " << flop << " in: " << in
+						//			  << " the: " << the << " mop: " << mop
+						//			  << std::endl;
+					} else if (flop < 0.5f) {
+						flop += 1.f;
+						butt += flop;
+
+						//if (debugmode)
+						//	std::cout << "flop under: " << flop << " in: " << in
+						//			  << " the: " << the << " mop: " << mop
+						//			  << std::endl;
+					}
+					++whatwhat;
+				}
+			}
+		} else {
+			doot[Chaos][i] = 1.f;
+		}
+		if (whatwhat == 0)
+			whatwhat = 1;
+		doot[Chaos][i] =
+		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.95f, 1.05f);
 	}
 
 	// covering a window of 4 intervals does act as a smoother, and a better one
@@ -2214,7 +2275,7 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 			if (thiscol != lastcol || lastcol == -1) {
 				if (rcol) {
 					if (anchors_hit == 1 && last_cc_dir == 10) {
-						//if (debugmode)
+						// if (debugmode)
 						//	std::cout << "ccacc detected ending on " << thiscol
 						//			  << std::endl;
 						++ccacc_counter;
@@ -2224,7 +2285,7 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 					last_cc_dir = 01;
 				} else if (lcol) {
 					if (anchors_hit == 1 && last_cc_dir == 01) {
-						//if (debugmode)
+						// if (debugmode)
 						//	std::cout << "ccacc detected ending on " << thiscol
 						//			  << std::endl;
 						++ccacc_counter;
@@ -2235,7 +2296,7 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 				}
 			} else {
 				++anchors_hit;
-				//if (debugmode)
+				// if (debugmode)
 				//	std::cout << "anchor hit " << std::endl;
 			}
 
@@ -2343,5 +2404,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 282;
+	return 283;
 }
