@@ -119,7 +119,9 @@ cv(const unordered_set<int>& input)
 inline float
 downscale_low_accuracy_scores(float f, float sg)
 {
-	return sg >= 0.93f ? f : min(max(f / sqrt(1.f + (0.93f - sg)), 0.f), 100.f);
+	return sg >= 0.93f
+			 ? f
+			 : min(max(f / pow(1.f + (0.93f - sg), 0.75f), 0.f), 100.f);
 }
 
 inline void
