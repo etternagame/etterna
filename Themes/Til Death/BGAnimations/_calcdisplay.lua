@@ -25,7 +25,8 @@ local finalSecond
 local graphVecs = {}
 local ssrs = {}
 
-
+local topgraph
+local bottomgraph
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
@@ -223,6 +224,20 @@ local function switchToGroup(num)
     MESSAGEMAN:Broadcast("UpdateActiveMods")
 end
 
+local function addToModGroup(direction)
+    if activeModGroup == -1 then
+        if direction < 0 then
+            switchToGroup(9)
+        elseif direction > 0 then
+            switchToGroup(1)
+        end
+    else
+        local newg = (((activeModGroup) + direction) % 10)
+        if newg == 0 then newg = -1 end
+        switchToGroup(newg)
+    end
+end
+
 local ssrGraphActive = false
 local function switchSSRGraph()
     ssrGraphActive = not ssrGraphActive
@@ -230,7 +245,25 @@ local function switchSSRGraph()
 end
 
 local function yetAnotherInputCallback(event)
-	if event.type == "InputEventType_FirstPress" then
+    if event.type == "InputEventType_FirstPress" then
+        if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+            if isOver(topgraph) then
+                addToModGroup(1)
+                return true
+            elseif isOver(bottomgraph) then
+                switchSSRGraph()
+                return true
+            end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+            if isOver(topgraph) then
+                addToModGroup(-1)
+                return true
+            elseif isOver(bottomgraph) then
+                switchSSRGraph()
+                return true
+            end
+        end
+
         local CtrlPressed = INPUTFILTER:IsControlPressed()
         if tonumber(event.char) and CtrlPressed then
             local num = tonumber(event.char)
@@ -302,6 +335,7 @@ o[#o + 1] = Def.Quad {
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
         )
+        topgraph = self
     end,
     DoTheThingCommand = function(self)
         self:visible(song ~= nil)
@@ -381,6 +415,7 @@ o[#o + 1] = Def.Quad {
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
         )
+        bottomgraph = self
     end,
     DoTheThingCommand = function(self)
         self:visible(song ~= nil)
