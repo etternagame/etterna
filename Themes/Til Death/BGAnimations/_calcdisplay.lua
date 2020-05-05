@@ -312,7 +312,7 @@ o[#o + 1] = Def.Quad {
         local bg = self:GetParent():GetChild("GraphTextBG")
         if isOver(self) then
             local mx = INPUTFILTER:GetMouseX()
-            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY() + 80
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
             
             local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
             local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
@@ -328,7 +328,7 @@ o[#o + 1] = Def.Quad {
             txt:y(ypos)
             bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
             bg:x(goodXPos)
-            bg:y(ypos + 3)
+            bg:y(ypos)
             local index = convertPercentToIndexForMods(perc)
 
             local modsToValues = {}
@@ -356,8 +356,11 @@ o[#o + 1] = Def.Quad {
             end
             
             for k, v in pairs(modsToValues) do
-                local txt = string.format(modNames[k]..": %5.4f\n", v[index])
-                modText = modText .. txt
+                local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
+                if activeModGroup == -1 or debugGroups[activeModGroup][namenoHand] then
+                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    modText = modText .. txt
+                end
             end
 
             modText = modText:sub(1, #modText-1) -- remove the end whitespace
@@ -406,58 +409,60 @@ o[#o + 1] = Def.Quad {
             bg:x(goodXPos)
             bg:y(ypos + 3)
             
-            local index = convertPercentToIndexForMods(perc)
-            local modsToValues = {}
-            local modText = ""
-            local modNames = {}
-            for i, mod in pairs(CalcDiffValue) do
-                local mod = mod:gsub("CalcDiffValue_", "")
+            if not ssrGraphActive then
+                local index = convertPercentToIndexForMods(perc)
+                local modsToValues = {}
+                local modText = ""
+                local modNames = {}
+                for i, mod in pairs(CalcDiffValue) do
+                    local mod = mod:gsub("CalcDiffValue_", "")
+                    for h = 1, 2 do
+                        local blah = "L"
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+                        modNames[#modNames + 1] = mod..blah
+                    end
+                end
+                
+                -- add ptloss
                 for h = 1, 2 do
                     local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                    modsToValues[#modsToValues + 1] = graphVecs[mod][h]
-                    modNames[#modNames + 1] = mod..blah
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
+                        modNames[#modNames + 1] = "PtLoss"..blah
                 end
+
+                for k, v in pairs(modsToValues) do
+                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    modText = modText .. txt
+                end
+                modText = modText:sub(1, #modText-1) -- remove the end whitespace
+                txt:settext(modText)
+            else
+                local ssrindex = convertPercentToIndex(perc)
+                -- The names here are made under the assumption the skillsets and their positions never change
+                local ssrAtIndex = {
+                    ssrs[1][ssrindex], -- overall
+                    ssrs[2][ssrindex], -- stream
+                    ssrs[3][ssrindex], -- jumpstream
+                    ssrs[4][ssrindex], -- handstream
+                    ssrs[5][ssrindex], -- stamina
+                    ssrs[6][ssrindex], -- jackspeed
+                    ssrs[7][ssrindex], -- chordjack
+                    ssrs[8][ssrindex], -- technical
+                }
+                local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
+                for i, ss in ipairs(ms.SkillSets) do
+                    ssrtext = ssrtext .. string.format("%s: %.2f\n", ss, ssrAtIndex[i])
+                end
+                ssrtext = ssrtext:sub(1, #ssrtext-1) -- remove the end whitespace
+                txt:settext(ssrtext)
             end
             
-            -- add ptloss
-            for h = 1, 2 do
-                local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                    modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
-                    modNames[#modNames + 1] = "PtLoss"..blah
-            end
-
-            for k, v in pairs(modsToValues) do
-                local txt = string.format(modNames[k]..": %5.4f\n", v[index])
-                modText = modText .. txt
-            end
-            
-            local ssrindex = convertPercentToIndex(perc)
-            -- The names here are made under the assumption the skillsets and their positions never change
-            local ssrAtIndex = {
-                ssrs[1][ssrindex], -- overall
-                ssrs[2][ssrindex], -- stream
-                ssrs[3][ssrindex], -- jumpstream
-                ssrs[4][ssrindex], -- handstream
-                ssrs[5][ssrindex], -- stamina
-                ssrs[6][ssrindex], -- jackspeed
-                ssrs[7][ssrindex], -- chordjack
-                ssrs[8][ssrindex], -- technical
-            }
-            local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
-            for i, ss in ipairs(ms.SkillSets) do
-                ssrtext = ssrtext .. string.format("%s: %.2f\n", ss, ssrAtIndex[i])
-            end
-            ssrtext = ssrtext:sub(1, #ssrtext-1) -- remove the end whitespace
-            txt:settext(ssrtext)
-
-            modText = modText:sub(1, #modText-1) -- remove the end whitespace
-            --txt:settext(modText)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -828,14 +833,14 @@ o[#o + 1] = Def.Quad {
 o[#o + 1] = Def.Quad {
     Name = "GraphTextBG",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
     end
 }
 
 o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "GraphText",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
     end
 }
 
