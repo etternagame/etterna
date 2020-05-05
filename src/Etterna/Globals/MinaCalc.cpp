@@ -1278,13 +1278,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float giraffeasaurus = curtime - lasttime;
 			// screen out large hits, it should be ok if this is a discrete
 			// cutoff, but i don't like it
-			if (giraffeasaurus < 0.25f)
-				whatwhat.emplace(giraffeasaurus);
+			//if (giraffeasaurus < 0.25f)
+			//	whatwhat.emplace(giraffeasaurus);
 
 			// instead of making another new mod, calculate the original and
 			// most basic chaos mod and apply it along with the new one
-			for (size_t i = 0; i < notes; ++i)
-				whatwhat2.push_back(giraffeasaurus);
+			//for (size_t i = 0; i < notes; ++i)
+			//	whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
 		}
 
@@ -1385,10 +1385,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		// 1 tap is by definition a single tap
 		if (taps < 2) {
 			doot[StreamMod][i] = 1.f;
-			doot[Chaos][i] = stub;
+			//doot[Chaos][i] = stub;
 		} else if (singletaps == 0) {
 			doot[StreamMod][i] = 0.8f;
-			doot[Chaos][i] = stub;
+			//doot[Chaos][i] = stub;
 		} else {
 			// we're going to use this to downscale the stream skillset of
 			// anything that isn't stream, just a simple tap proportion for the
@@ -1407,10 +1407,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			// it doesn'ting need to be not needing'nt to be so severe
 			float prop = static_cast<float>(singletaps + 1) /
 						 static_cast<float>(taps - 1) * 10.f / 7.f;
-			float creepy_pasta = CalcClamp(5.f - actual_jacks, 0.5f, 1.f);
+			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
 			doot[StreamMod][i] =
 			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
-			doot[Chaos][i] = stub;
+			//doot[Chaos][i] = stub;
 		}
 	}
 	for (auto& v : doot[Chaos])
@@ -1419,8 +1419,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		}
 	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
-		Smooth(doot[Chaos], 1.f);
-		Smooth(doot[Chaos], 1.f);
+		//Smooth(doot[Chaos], 1.f);
+		//Smooth(doot[Chaos], 1.f);
 	}
 }
 
