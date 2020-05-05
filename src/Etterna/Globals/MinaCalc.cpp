@@ -1252,8 +1252,11 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				   float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
+	int last_col = -1;
+
 	float lasttime = -1.f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int actual_jacks = 0;
 		unsigned int taps = 0;
 		unsigned int singletaps = 0;
 		set<float> whatwhat;
@@ -1261,8 +1264,13 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
-			if (notes == 1)
+
+			if (notes == 1 && NoteInfo[row].notes == last_col)
+				++actual_jacks;
+			if (notes == 1) {
 				++singletaps;
+				last_col = NoteInfo[row].notes;
+			}
 
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
@@ -1398,7 +1406,9 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			// it doesn'ting need to be not needing'nt to be so severe
 			float prop = static_cast<float>(singletaps + 1) /
 						 static_cast<float>(taps - 1) * 10.f / 7.f;
-			doot[StreamMod][i] = CalcClamp(fastsqrt(prop), 0.8f, 1.0f);
+			float creepy_pasta = CalcClamp(5.f - actual_jacks, 0.5f, 1.f);
+			doot[StreamMod][i] =
+			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
 			doot[Chaos][i] = stub;
 		}
 	}
