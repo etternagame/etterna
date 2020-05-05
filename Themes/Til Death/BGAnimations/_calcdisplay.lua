@@ -23,7 +23,7 @@ local song
 local steps
 local finalSecond
 local graphVecs = {}
-local ssrs
+local ssrs = {}
 
 
 
@@ -173,7 +173,7 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
-       --ssrs = getGraphForSteps(steps) // maybe add back the new wrapper
+        ssrs = getGraphForSteps(steps) -- maybe add back the new wrapper
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
 
@@ -285,17 +285,17 @@ o[#o + 1] = Def.Quad {
             bg:y(ypos + 3)
             local index = convertPercentToIndexForMods(perc)
 
-            local farts = {}
-            local toofartstoofury = ""
-            local fartsfartsFOUR = {}
+            local modsToValues = {}
+            local modText = ""
+            local modNames = {}
             for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
                 for h = 1, 2 do
                     local blah = "L"
                     if h == 2 then
                         blah = "R"
                     end
-                    farts[#farts + 1] = graphVecs[mod][h]
-                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                    modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+                    modNames[#modNames + 1] = mod..blah
                 end
             end
             -- add stammod
@@ -304,15 +304,17 @@ o[#o + 1] = Def.Quad {
                     if h == 2 then
                         blah = "R"
                     end
-                farts[#farts + 1] = graphVecs["StamMod"][h]
-                fartsfartsFOUR[#fartsfartsFOUR + 1] = "StamMod"..blah
+                modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
+                modNames[#modNames + 1] = "StamMod"..blah
             end
             
-            for k, v in pairs(farts) do
-                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
-                toofartstoofury = toofartstoofury .. txt
+            for k, v in pairs(modsToValues) do
+                local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                modText = modText .. txt
             end
-            txt:settext(toofartstoofury)
+
+            modText = modText:sub(1, #modText-1) -- remove the end whitespace
+            txt:settext(modText)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -358,17 +360,17 @@ o[#o + 1] = Def.Quad {
             bg:y(ypos + 3)
             
             local index = convertPercentToIndexForMods(perc)
-            local farts = {}
-            local toofartstoofury = ""
-            local fartsfartsFOUR = {}
+            local modsToValues = {}
+            local modText = ""
+            local modNames = {}
             for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
                 for h = 1, 2 do
                     local blah = "L"
                     if h == 2 then
                         blah = "R"
                     end
-                    farts[#farts + 1] = graphVecs[mod][h]
-                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                    modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+                    modNames[#modNames + 1] = mod..blah
                 end
             end
             
@@ -378,16 +380,34 @@ o[#o + 1] = Def.Quad {
                     if h == 2 then
                         blah = "R"
                     end
-                farts[#farts + 1] = graphVecs["PtLoss"][h]
-                fartsfartsFOUR[#fartsfartsFOUR + 1] = "PtLoss"..blah
+                    modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
+                    modNames[#modNames + 1] = "PtLoss"..blah
             end
 
-            for k, v in pairs(farts) do
-                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
-                toofartstoofury = toofartstoofury .. txt
+            for k, v in pairs(modsToValues) do
+                local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                modText = modText .. txt
             end
+            
+            -- The names here are made under the assumption the skillsets and their positions never change
+            local ssrAtIndex = {
+                Overall = ssrs[1][index],
+                Stream = ssrs[2][index],
+                Jumpstream = ssrs[3][index],
+                Handstream = ssrs[4][index],
+                Stamina = ssrs[5][index],
+                Jackspeed = ssrs[6][index],
+                Chordjack = ssrs[7][index],
+                Technical = ssrs[8][index],
+            }
+            local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
+            for ss, val in pairs(ssrAtIndex) do
+                ssrtext = ssrtext .. string.format("%s: %.2f\n", ss, val)
+            end
+            txt:settext(ssrtext)
 
-            txt:settext(toofartstoofury)
+            modText = modText:sub(1, #modText-1) -- remove the end whitespace
+            --txt:settext(modText)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -609,7 +629,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
     }
 end
 
-local function bottomGraphLine(lineNum, colorToUse)
+local function bottomGraphLineSSR(lineNum, colorToUse)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
             self:y(plotHeight+5)
@@ -622,10 +642,10 @@ local function bottomGraphLine(lineNum, colorToUse)
                 self:visible(true)
                 local verts = {}
 
-                for i = 1, #graphVecs[2][lineNum] do
-                    local x = fitX(i, #graphVecs[2][lineNum]) -- vector length based positioning
+                for i = 1, #ssrs[lineNum] do
+                    local x = fitX(i, #ssrs[lineNum]) -- vector length based positioning
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(graphVecs[2][lineNum][i])
+                    local y = fitY2(ssrs[lineNum][i])
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
@@ -652,6 +672,7 @@ local skillsetColors = {
     color("1,0,0"),
 }
 
+-- pattern mod lines
 for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
     o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)
     o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
@@ -665,6 +686,7 @@ o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 1, "St
 o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 2, "StamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
+-- MSD mod lines
 for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
     if i == 2 or i == 4 then   -- these are the most interesting ones atm
         o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
@@ -673,6 +695,11 @@ for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
 end
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 1], 1)
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 2], 2)
+
+-- SSR skillset lines
+for i = 1,8 do
+    o[#o+1] = bottomGraphLineSSR(i, skillsetColors[i])
+end
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
