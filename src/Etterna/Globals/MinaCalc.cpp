@@ -1278,12 +1278,12 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float giraffeasaurus = curtime - lasttime;
 			// screen out large hits, it should be ok if this is a discrete
 			// cutoff, but i don't like it
-			//if (giraffeasaurus < 0.25f)
+			// if (giraffeasaurus < 0.25f)
 			//	whatwhat.emplace(giraffeasaurus);
 
 			// instead of making another new mod, calculate the original and
 			// most basic chaos mod and apply it along with the new one
-			//for (size_t i = 0; i < notes; ++i)
+			// for (size_t i = 0; i < notes; ++i)
 			//	whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
 		}
@@ -1305,7 +1305,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			return o;
 		};
 		vector<vector<float>> hmmk;
-		//for (auto& e : whatwhat)
+		// for (auto& e : whatwhat)
 		//	hmmk.emplace_back(HE(e));
 
 		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
@@ -1385,10 +1385,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		// 1 tap is by definition a single tap
 		if (taps < 2) {
 			doot[StreamMod][i] = 1.f;
-			//doot[Chaos][i] = stub;
+			// doot[Chaos][i] = stub;
 		} else if (singletaps == 0) {
 			doot[StreamMod][i] = 0.8f;
-			//doot[Chaos][i] = stub;
+			// doot[Chaos][i] = stub;
 		} else {
 			// we're going to use this to downscale the stream skillset of
 			// anything that isn't stream, just a simple tap proportion for the
@@ -1410,7 +1410,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
 			doot[StreamMod][i] =
 			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
-			//doot[Chaos][i] = stub;
+			// doot[Chaos][i] = stub;
 		}
 	}
 	for (auto& v : doot[Chaos])
@@ -1419,8 +1419,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		}
 	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
-		//Smooth(doot[Chaos], 1.f);
-		//Smooth(doot[Chaos], 1.f);
+		// Smooth(doot[Chaos], 1.f);
+		// Smooth(doot[Chaos], 1.f);
 	}
 }
 
@@ -1931,8 +1931,8 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		lr.clear();
 		rl.clear();
 
-		if (debugmode)
-			std::cout << "new interval: " << i << std::endl;
+		// if (debugmode)
+		//	std::cout << "new interval: " << i << std::endl;
 
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
@@ -2209,10 +2209,10 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// chayoss stuff
 		window_vals.clear();
 		filtered_vals.clear();
-		for (auto& v : itv_arrayTWO) for (auto& n : v)
-		{
-			window_vals.push_back(n);
-		}
+		for (auto& v : itv_arrayTWO)
+			for (auto& n : v) {
+				window_vals.push_back(n);
+			}
 		v_mean = mean(window_vals);
 		for (auto& v : window_vals)
 			if (v < mean_cutoff_factor * v_mean)
@@ -2251,22 +2251,24 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 						++whatwhat;
 						continue;
 					} else if (flop >= 0.5f) {
-						flop = abs(flop - 1.f) + 1.f;
-						butt += flop;
+							flop = abs(flop - 1.f) + 1.f;
+							butt += flop;
 
-						//if (debugmode)
-						//	std::cout << "flop over: " << flop << " in: " << in
-						//			  << " the: " << the << " mop: " << mop
-						//			  << std::endl;
-					} else if (flop < 0.5f) {
-						flop += 1.f;
-						butt += flop;
+							// if (debugmode)
+							//	std::cout << "flop over: " << flop << " in: " <<
+							//in
+							//			  << " the: " << the << " mop: " << mop
+							//			  << std::endl;
+						} else if (flop < 0.5f) {
+							flop += 1.f;
+							butt += flop;
 
-						//if (debugmode)
-						//	std::cout << "flop under: " << flop << " in: " << in
-						//			  << " the: " << the << " mop: " << mop
-						//			  << std::endl;
-					}
+							// if (debugmode)
+							//	std::cout << "flop under: " << flop << " in: "
+							//<< in
+							//			  << " the: " << the << " mop: " << mop
+							//			  << std::endl;
+						}
 					++whatwhat;
 				}
 			}
