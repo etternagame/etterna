@@ -670,9 +670,10 @@ Calc::Chisel(float player_skill,
 				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
 			else {
 				if (ss == Skill_Chordjack)
-					gotpoints -= fastsqrt(abs(
-					  JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-					  JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
+					gotpoints -= 0;
+				//fastsqrt(
+				  //abs(JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
+					  //JackLoss(j2, player_skill) - JackLoss(j3, player_skill)));
 				// if (debugoutput)
 				// std::cout << "jackloss: " <<
 				// (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
@@ -2253,20 +2254,20 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (filtered_vals.size() > 1) {
 			for (auto& in : filtered_vals)
 				for (auto& the : filtered_vals) {
-				if (in == the) {
-					butt += 1.f;
-					++whatwhat;
-					continue;
-				}
-				if (in > the) {
-					float prop = static_cast<float>(in) / the;
-					int mop = static_cast<int>(prop);
-					float flop = prop - static_cast<float>(mop);
-					if (flop == 0.f) {
+					if (in == the) {
 						butt += 1.f;
 						++whatwhat;
 						continue;
-					} else if (flop >= 0.5f) {
+					}
+					if (in > the) {
+						float prop = static_cast<float>(in) / the;
+						int mop = static_cast<int>(prop);
+						float flop = prop - static_cast<float>(mop);
+						if (flop == 0.f) {
+							butt += 1.f;
+							++whatwhat;
+							continue;
+						} else if (flop >= 0.5f) {
 							flop = abs(flop - 1.f) + 1.f;
 							butt += flop;
 
@@ -2285,9 +2286,9 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 							//			  << " the: " << the << " mop: " << mop
 							//			  << std::endl;
 						}
-					++whatwhat;
+						++whatwhat;
+					}
 				}
-			}
 		} else {
 			doot[Chaos][i] = 1.f;
 		}
