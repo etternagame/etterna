@@ -1649,10 +1649,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// if we have a consecutive single tap, and the column swaps, NOW,
 			// shred the ohjump modifier
 			if (thiscol != lastcol && lastcol != -1) {
-				jumptaps -= 2;
-				if (debugmode)
-					std::cout << "removed jumptap, now: " << jumptaps
-							  << std::endl;
+				jumptaps -= 1;
+		//		if (debugmode)
+		//			std::cout << "removed jumptap, now: " << jumptaps
+		//					  << std::endl;
+		//		if (debugmode)
+		//			std::cout << "last col is: " << lastcol
+		//					  << std::endl;
+		//		if (debugmode)
+		//			std::cout << "this col is: " << thiscol << std::endl;
 			}
 			lastcol = thiscol;
 		}
@@ -1685,25 +1690,25 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		if (cvtaps == 0) {
 			float zemod =
 			  CalcClamp(1.f * static_cast<float>(totaltaps) /
-						  (static_cast<float>(max_jumps_seq) * 5.f),
-						0.5f,
+						  (static_cast<float>(max_jumps_seq) * 2.5f),
+						0.77f,
 						1.f);
-			if (debugmode)
-				std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
+		//	if (debugmode)
+		//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
 
 			// we don't want to treat 2[12][12][12]2222
 			// 2222[12][12][12]2 differently, so use the
 			// max sequence here exclusively
 			if (max_jumps_seq > 0) {
 				doot[OHJump][i] = zemod;
-				if (debugmode)
-					std::cout << "zemod: " << zemod << std::endl;
+			//	if (debugmode)
+			//		std::cout << "zemod: " << zemod << std::endl;
 			}
 
 			else { // single note longjacks, do nothing
-				if (debugmode)
-					std::cout << "zemod would be but wasn't: " << zemod
-							  << std::endl;
+			//	if (debugmode)
+			//		std::cout << "zemod would be but wasn't: " << zemod
+			//				  << std::endl;
 				doot[OHJump][i] = 1.f;
 			}
 
@@ -1810,45 +1815,45 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && max_jumps_seq < 1) {
-			if (debugmode)
-				std::cout << "down to end but eze: " << max_jumps_seq
-						  << std::endl;
+	//		if (debugmode)
+	//			std::cout << "down to end but eze: " << max_jumps_seq
+	//					  << std::endl;
 			doot[OHJump][i] = 1.f;
 		} else {
 			// we want both the total number of jumps and the max sequence to
 			// count here, with more emphasis on the max sequence, sequence
 			// should be multiplied by 2 (or maybe slightly more?)
 			float max_seq_component =
-			  0.65f * fastsqrt(1.1f - static_cast<float>(max_jumps_seq * 2) /
+			  0.5f * fastsqrt(1.2f - static_cast<float>(max_jumps_seq * 2) /
 							  static_cast<float>(totaltaps));
 			max_seq_component =
 			  max_seq_component > 0.5f ? 0.5f : max_seq_component;
 							
 			float prop_component =
-				0.35f * fastsqrt(1.15f - static_cast<float>(jumptaps) /
+				0.5f * fastsqrt(1.2f - static_cast<float>(jumptaps) /
 								static_cast<float>(totaltaps));
 			prop_component = prop_component > 0.5f ? 0.5f : prop_component;
 
-			float base_ohj = 0.2f + max_seq_component + prop_component;
-			ohj = base_ohj;
+			float base_ohj = 0.3f + max_seq_component + prop_component;
+			ohj = fastsqrt(base_ohj);
 
-			if (debugmode)
-				std::cout << "jumptaps: "
-						  << jumptaps << std::endl;
-			if (debugmode)
-				std::cout << "maxseq: " << max_jumps_seq << std::endl;
-			if (debugmode)
-				std::cout << "total taps: " << totaltaps << std::endl;
-			if (debugmode)
-				std::cout << "seq comp: " << max_seq_component<< std::endl;
-			if (debugmode)
-				std::cout << "prop comp: " <<prop_component << std::endl;
-			if (debugmode)	
-				std::cout << "actual prop: " << ohj
-						  << std::endl;
+		//	if (debugmode)
+		//		std::cout << "jumptaps: "
+	//					  << jumptaps << std::endl;
+//			if (debugmode)
+//				std::cout << "maxseq: " << max_jumps_seq << std::endl;
+	//		if (debugmode)
+	//			std::cout << "total taps: " << totaltaps << std::endl;
+		//	if (debugmode)
+		//		std::cout << "seq comp: " << max_seq_component<< std::endl;
+			//if (debugmode)
+			//	std::cout << "prop comp: " <<prop_component << std::endl;
+			//if (debugmode)	
+			//	std::cout << "actual prop: " << ohj
+	//					  << std::endl;
 			doot[OHJump][i] = CalcClamp(ohj, 0.5f, 1.f);
-			if (debugmode)
-				std::cout << "final mod: " << doot[OHJump][i] << "\n" << std::endl;
+			//if (debugmode)
+			//	std::cout << "final mod: " << doot[OHJump][i] << "\n" << std::endl;
 		}
 	}
 
