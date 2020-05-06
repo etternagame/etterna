@@ -3,6 +3,7 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -487,7 +488,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				//auto& nerv = nd.GetNonEmptyRowVector();
 				//auto& etaner = td->BuildAndGetEtaner(nerv);
 				const auto& serializednd = nd.SerializeNoteData2(td);
-				auto dakine = MinaSDCalc(serializednd,
+				auto dakine = MinaSDCalc_OLD(serializednd,
 										 musicrate,
 										 ssrpercent);
 				auto ssrVals = dakine;
