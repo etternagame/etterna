@@ -1471,12 +1471,17 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int dswap = 0;
 
 		// ohj downscaler stuff
-		int jumptaps = 0;		// more intuitive to count taps in jumps
-		int maxseqjumptaps = 0; // basically the biggest sequence of ohj
+		int jumptaps = 0;	  // more intuitive to count taps in jumps
+		int max_jumps_seq = 0; // basically the biggest sequence of ohj
+		int cur_jumps_seq = 0;
 		float ohj = 0.f;
-		// if (debugmode)
-		//	std::cout << "new interval: " << i << std::endl;
+		bool newrow = true;
 		for (int row : nervIntervals[i]) {
+			if (debugmode && newrow)
+				std::cout << "new interval: " << i << " time: "
+						  << NoteInfo[row].rowTime / music_rate
+						  << " hand: " << t1 << std::endl;
+			newrow = false;
 			// if (debugmode)
 			//	std::cout << "new row" << std::endl;
 			bool lcol = NoteInfo[row].notes & t1;
@@ -1520,10 +1525,15 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// yes we want to set this for jumps
 				lasttime = curtime;
 
+				// iterate recent jumpsequence
+				++cur_jumps_seq;
 				// set the largest ohj sequence
-				maxseqjumptaps = max(maxseqjumptaps, jumptaps);
+				max_jumps_seq =
+				  cur_jumps_seq > max_jumps_seq ? cur_jumps_seq : max_jumps_seq;
 				continue;
 			}
+			// reset cur_jumps_seq on hitting a single note
+			cur_jumps_seq = 0;
 
 			// if lcol is true and we are here we have 1 single tap and if lcol
 			// is true we are on column 0; don't try to be clever, even if lcol
@@ -1618,11 +1628,21 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// but everyone hates that anyway and it would be quite
 			// difficult to force the current setup to do so without
 			// increasing complexity significantly (probably)
-			jumptaps -=
-			  1; // we're already on single notes, so just decrement a lil
-			if (thiscol != lastcol) // easier to read if we do it again
-				jumptaps -= 2;
 
+			// edit, breaks in ohj sequences are implicitly penalized by a base
+			// nps loss, we don't need to do it again here as it basically
+			// shreds the modifiers for quadjacks with some hands sprinkled in
+			//	jumptaps -=
+			//	 1; // we're already on single notes, so just decrement a lil
+
+			// if we have a consecutive single tap, and the column swaps, NOW,
+			// shred the ohjump modifier
+			if (thiscol != lastcol && lastcol != -1) {
+				jumptaps -= 2;
+				if (debugmode)
+					std::cout << "removed jumptap, now: " << jumptaps
+							  << std::endl;
+			}
 			lastcol = thiscol;
 		}
 
@@ -1652,17 +1672,29 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if this is true we have some combination of single notes and
 		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
+			float zemod =
+			  CalcClamp(1.f * static_cast<float>(totaltaps) /
+						  (static_cast<float>(max_jumps_seq) * 5.f),
+						0.5f,
+						1.f);
+			if (debugmode)
+				std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
+
 			// we don't want to treat 2[12][12][12]2222
 			// 2222[12][12][12]2 differently, so use the
 			// max sequence here exclusively
-			if (maxseqjumptaps > 0)
-				doot[OHJump][i] =
-				  CalcClamp(1.f * static_cast<float>(totaltaps) /
-							  (static_cast<float>(maxseqjumptaps) * 2.5f),
-							0.5f,
-							1.f);
-			else // single note longjacks, do nothing
+			if (max_jumps_seq > 0) {
+				doot[OHJump][i] = zemod;
+				if (debugmode)
+					std::cout << "zemod: " << zemod << std::endl;
+			}
+
+			else { // single note longjacks, do nothing
+				if (debugmode)
+					std::cout << "zemod would be but wasn't: " << zemod
+							  << std::endl;
 				doot[OHJump][i] = 1.f;
+			}
 
 			// no rolls here by definition
 			doot[Roll][i] = 0.9f;
@@ -1766,12 +1798,46 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if (debugmode)
 		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
-		if (jumptaps < 1 && maxseqjumptaps < 1)
+		if (jumptaps < 1 && max_jumps_seq < 1) {
+			if (debugmode)
+				std::cout << "down to end but eze: " << max_jumps_seq
+						  << std::endl;
 			doot[OHJump][i] = 1.f;
-		else {
-			ohj = static_cast<float>(maxseqjumptaps + 1) /
-				  static_cast<float>(totaltaps + 1);
-			doot[OHJump][i] = CalcClamp(0.5f + fastsqrt(ohj), 0.5f, 1.f);
+		} else {
+			// we want both the total number of jumps and the max sequence to
+			// count here, with more emphasis on the max sequence, sequence
+			// should be multiplied by 2 (or maybe slightly more?)
+			float max_seq_component =
+			  0.65f * fastsqrt(1.1f - static_cast<float>(max_jumps_seq * 2) /
+							  static_cast<float>(totaltaps));
+			max_seq_component =
+			  max_seq_component > 0.5f ? 0.5f : max_seq_component;
+							
+			float prop_component =
+				0.35f * fastsqrt(1.15f - static_cast<float>(jumptaps) /
+								static_cast<float>(totaltaps));
+			prop_component = prop_component > 0.5f ? 0.5f : prop_component;
+
+			float base_ohj = 0.2f + max_seq_component + prop_component;
+			ohj = base_ohj;
+
+			if (debugmode)
+				std::cout << "jumptaps: "
+						  << jumptaps << std::endl;
+			if (debugmode)
+				std::cout << "maxseq: " << max_jumps_seq << std::endl;
+			if (debugmode)
+				std::cout << "total taps: " << totaltaps << std::endl;
+			if (debugmode)
+				std::cout << "seq comp: " << max_seq_component<< std::endl;
+			if (debugmode)
+				std::cout << "prop comp: " <<prop_component << std::endl;
+			if (debugmode)	
+				std::cout << "actual prop: " << ohj
+						  << std::endl;
+			doot[OHJump][i] = CalcClamp(ohj, 0.5f, 1.f);
+			if (debugmode)
+				std::cout << "final mod: " << doot[OHJump][i] << "\n" << std::endl;
 		}
 	}
 
