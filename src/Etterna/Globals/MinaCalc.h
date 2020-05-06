@@ -107,6 +107,7 @@ class Calc
 								float music_rate);
 
 	bool debugmode = false;
+	bool capssr = true;	// set to true for scores, false for cache
 	int numitv;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
@@ -114,7 +115,8 @@ class Calc
 	the results to the hand initialization functions. Also passes the input
 	timingscale value. */
 	void InitializeHands(const std::vector<NoteInfo>& NoteInfo,
-						 float music_rate);
+						 float music_rate,
+						 float offset);
 
 	/*	Slices the track into predefined intervals of time. All taps within each
 	interval have their ms values from the last note in the same column
@@ -123,7 +125,8 @@ class Calc
 	in the track). */
 	Finger ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
 						 unsigned int t,
-						 float music_rate);
+						 float music_rate,
+						 float offset);
 
 	// Derivative calc params
 	int MaxPoints = 0; // Total points achievable in the file
@@ -172,6 +175,16 @@ class Calc
 	  float music_rate,
 	  std::vector<float> doot[ModCount]);
 
+	void WideWindowRollScaler(const std::vector<NoteInfo>& NoteInfo,
+							  unsigned int t1,
+							  unsigned int t2,
+							  float music_rate,
+							  std::vector<float> doot[ModCount]);
+	void WideWindowJumptrillScaler(const std::vector<NoteInfo>& NoteInfo,
+							  unsigned int t1,
+							  unsigned int t2,
+							  float music_rate,
+							  std::vector<float> doot[ModCount]);
 	Hand left_hand;
 	Hand right_hand;
 

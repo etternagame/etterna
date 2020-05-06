@@ -1648,11 +1648,11 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					user["playerRating"].IsNumber())
 					tmp.playerRating = user["playerRating"].GetFloat();
 				else
-					tmp.playerRating = 0.0;
+					tmp.playerRating = 0.f;
 				if (score.HasMember("wife") && score["wife"].IsNumber())
-					tmp.wife = score["wife"].GetFloat() / 100.0;
+					tmp.wife = score["wife"].GetFloat() / 100.f;
 				else
-					tmp.wife = 0.0;
+					tmp.wife = 0.f;
 				if (score.HasMember("modifiers") &&
 					score["modifiers"].IsString())
 					tmp.modifiers = score["modifiers"].GetString();
@@ -1999,7 +1999,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			}
 			OnlineTopScore tmp;
 			tmp.songName = score["songName"].GetString();
-			tmp.wifeScore = score["wife"].GetFloat() / 100.0;
+			tmp.wifeScore = score["wife"].GetFloat() / 100.f;
 			tmp.overall = score["Overall"].GetFloat();
 			if (ss != Skill_Overall)
 				tmp.ssr =

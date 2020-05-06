@@ -207,7 +207,7 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_pIterUnjudgedRows = NULL;
 	m_pIterUnjudgedMineRows = NULL;
 
-	totalwifescore = 0.f;
+	totalwifescore = 0;
 	m_Timing = NULL;
 	m_pActorWithJudgmentPosition = NULL;
 	m_pActorWithComboPosition = NULL;

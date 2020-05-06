@@ -23,9 +23,10 @@ local song
 local steps
 local finalSecond
 local graphVecs = {}
-local ssrs
+local ssrs = {}
 
-
+local topgraph
+local bottomgraph
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
@@ -127,44 +128,55 @@ local function getGraphForSteps(steps)
     return output
 end
 
---[[ enum mapping for downscaler things:
-    put these as the argument for DootSpooks
-    1 = One hand jump downscaler
-    2 = Anchor downscaler
-    3 = Roll downscaler
-    4 = Handstream downscaler
-    5 = Jumpstream downscaler
-    anything else = no output
-]]
--- edit this to change graph and number output
-
+-- :thinking:
 local CalcDebugTypes = {
-    CalcPatternMod = {
-        "OHJump", 
-	    "Anchor", 
-	    "Roll",   
-	    "HS",		
-	    "Jump",   
-        "CJ",
-        "StreamMod",
-        "OHTrill",
-        "Chaos",
-        "FlamJam"
-    },
-    CalcDiffValue =
-    {
-        "BaseNPS", 
-        "BaseMS",  
-        "BaseMSD", 
-        "MSD",
-    },
-    CalcDebugMisc = 
-    {
-        "PtLoss", -- goes in bot graph
-	    "StamMod",-- goes in top graph
-    }
+    CalcPatternMod = CalcPatternMod,
+    CalcDiffValue = CalcDiffValue,
+    CalcDebugMisc = CalcDebugMisc,
 }
 
+-- active mods on top graph
+local activeMods = {}
+for k,v in pairs(CalcPatternMod) do
+    v = v:gsub("CalcPatternMod_", "")
+    activeMods[#activeMods+1] = v
+end
+activeMods[#activeMods+1] = "StamMod"
+
+-- specify enum names as tables here
+-- only allowed to have 9
+-- the 0th one is reserved for ssr graph toggle
+local debugGroups = {
+    {
+        OHJump = true,
+        Anchor = true
+    },
+    {
+        Roll = true,
+        HS = true
+    },
+    {
+        Jump = true,
+        CJ = true
+    },
+    {
+        StreamMod = true,
+        OHTrill = true,
+    },
+    {
+        Chaos = true,
+        FlamJam = true,
+    },
+    {
+        WideRangeRoll = true,
+        StamMod = true
+    },
+    {},
+    {},
+    [9] = {},
+}
+
+local ssrGraphActive = false
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -172,19 +184,24 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
-       --ssrs = getGraphForSteps(steps) // maybe add back the new wrapper
+        if ssrGraphActive then
+            ssrs = getGraphForSteps(steps) -- maybe add back the new wrapper
+        else
+            ssrs = {}
+        end
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
 
         -- loop through types of debug output
         for k, v in pairs(CalcDebugTypes) do
-            for i = 1, #v do        -- loop through specifc mods
-                graphVecs[v[i]] = {}
+            for i = 1, #v do        -- loop through specific mods
+                local modname = v[i]:gsub(k.."_", "")
+                graphVecs[modname] = {}
                 for h = 1, 2 do     -- left/right hand loop
-                    graphVecs[v[i]][h] = bap[k][v[i]][h]
+                    graphVecs[modname][h] = bap[k][modname][h]
                     if k == "CalcDiffValue" then
-                        for j = 1, #graphVecs[v[i]][h] do
-                            local val = graphVecs[v[i]][h][j]
+                        for j = 1, #graphVecs[modname][h] do
+                            local val = graphVecs[modname][h][j]
                             if val > lowerGraphMax then lowerGraphMax = val end
                         end
                     end
@@ -198,6 +215,74 @@ local function updateCoolStuff()
         graphVecs = {}
     end
     MESSAGEMAN:Broadcast("UpdateAverages")
+end
+
+local activeModGroup = -1
+-- just switches the active group of lines
+-- all others are invis/grey
+local function switchToGroup(num)
+    if num == activeModGroup then
+        activeModGroup = -1
+    else
+        activeModGroup = num
+    end
+    MESSAGEMAN:Broadcast("UpdateActiveMods")
+end
+
+local function addToModGroup(direction)
+    if activeModGroup == -1 then
+        if direction < 0 then
+            switchToGroup(9)
+        elseif direction > 0 then
+            switchToGroup(1)
+        end
+    else
+        local newg = (((activeModGroup) + direction) % 10)
+        if newg == 0 then newg = -1 end
+        switchToGroup(newg)
+    end
+end
+
+local function switchSSRGraph()
+    ssrGraphActive = not ssrGraphActive
+    if ssrGraphActive and #ssrs == 0 then
+        ssrs = getGraphForSteps(steps)
+        MESSAGEMAN:Broadcast("UpdateSSRLines")
+    end
+    MESSAGEMAN:Broadcast("UpdateActiveLowerGraph")
+end
+
+local function yetAnotherInputCallback(event)
+    if event.type == "InputEventType_FirstPress" then
+        if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+            if isOver(topgraph) then
+                addToModGroup(1)
+                return true
+            elseif isOver(bottomgraph) then
+                switchSSRGraph()
+                return true
+            end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+            if isOver(topgraph) then
+                addToModGroup(-1)
+                return true
+            elseif isOver(bottomgraph) then
+                switchSSRGraph()
+                return true
+            end
+        end
+
+        local CtrlPressed = INPUTFILTER:IsControlPressed()
+        if tonumber(event.char) and CtrlPressed then
+            local num = tonumber(event.char)
+            if num == 0 then
+                switchSSRGraph()
+            else
+                switchToGroup(num)
+            end 
+        end
+	end
+	return false
 end
 
 local o =
@@ -245,6 +330,9 @@ local o =
         InitCommand = function(self)
             self:xy(-plotWidth/2, -20)
             self:zoomto(0, 0):diffuse(color("1,1,1,1")):halign(0):draworder(1100):halign(0):diffusealpha(0.1)
+        end,
+        BeginCommand = function(self)
+            SCREENMAN:GetTopScreen():AddInputCallback(yetAnotherInputCallback)
         end
     }
 }
@@ -255,6 +343,7 @@ o[#o + 1] = Def.Quad {
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
         )
+        topgraph = self
     end,
     DoTheThingCommand = function(self)
         self:visible(song ~= nil)
@@ -265,7 +354,7 @@ o[#o + 1] = Def.Quad {
         local bg = self:GetParent():GetChild("GraphTextBG")
         if isOver(self) then
             local mx = INPUTFILTER:GetMouseX()
-            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY() + 80
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
             
             local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
             local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
@@ -281,20 +370,21 @@ o[#o + 1] = Def.Quad {
             txt:y(ypos)
             bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
             bg:x(goodXPos)
-            bg:y(ypos + 3)
+            bg:y(ypos)
             local index = convertPercentToIndexForMods(perc)
 
-            local farts = {}
-            local toofartstoofury = ""
-            local fartsfartsFOUR = {}
-            for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
+            local modsToValues = {}
+            local modText = ""
+            local modNames = {}
+            for i, mod in pairs(CalcPatternMod) do
+                local mod = mod:gsub("CalcPatternMod_", "")
                 for h = 1, 2 do
                     local blah = "L"
                     if h == 2 then
                         blah = "R"
                     end
-                    farts[#farts + 1] = graphVecs[mod][h]
-                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                    modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+                    modNames[#modNames + 1] = mod..blah
                 end
             end
             -- add stammod
@@ -303,15 +393,20 @@ o[#o + 1] = Def.Quad {
                     if h == 2 then
                         blah = "R"
                     end
-                farts[#farts + 1] = graphVecs["StamMod"][h]
-                fartsfartsFOUR[#fartsfartsFOUR + 1] = "StamMod"..blah
+                modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
+                modNames[#modNames + 1] = "StamMod"..blah
             end
             
-            for k, v in pairs(farts) do
-                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
-                toofartstoofury = toofartstoofury .. txt
+            for k, v in pairs(modsToValues) do
+                local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
+                if activeModGroup == -1 or debugGroups[activeModGroup][namenoHand] then
+                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    modText = modText .. txt
+                end
             end
-            txt:settext(toofartstoofury)
+
+            modText = modText:sub(1, #modText-1) -- remove the end whitespace
+            txt:settext(modText)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -328,6 +423,7 @@ o[#o + 1] = Def.Quad {
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
         )
+        bottomgraph = self
     end,
     DoTheThingCommand = function(self)
         self:visible(song ~= nil)
@@ -356,37 +452,60 @@ o[#o + 1] = Def.Quad {
             bg:x(goodXPos)
             bg:y(ypos + 3)
             
-            local index = convertPercentToIndexForMods(perc)
-            local farts = {}
-            local toofartstoofury = ""
-            local fartsfartsFOUR = {}
-            for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+            if not ssrGraphActive then
+                local index = convertPercentToIndexForMods(perc)
+                local modsToValues = {}
+                local modText = ""
+                local modNames = {}
+                for i, mod in pairs(CalcDiffValue) do
+                    local mod = mod:gsub("CalcDiffValue_", "")
+                    for h = 1, 2 do
+                        local blah = "L"
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+                        modNames[#modNames + 1] = mod..blah
+                    end
+                end
+                
+                -- add ptloss
                 for h = 1, 2 do
                     local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                    farts[#farts + 1] = graphVecs[mod][h]
-                    fartsfartsFOUR[#fartsfartsFOUR + 1] = mod..blah
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
+                        modNames[#modNames + 1] = "PtLoss"..blah
                 end
+
+                for k, v in pairs(modsToValues) do
+                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    modText = modText .. txt
+                end
+                modText = modText:sub(1, #modText-1) -- remove the end whitespace
+                txt:settext(modText)
+            else
+                local ssrindex = convertPercentToIndex(perc)
+                -- The names here are made under the assumption the skillsets and their positions never change
+                local ssrAtIndex = {
+                    ssrs[1][ssrindex], -- overall
+                    ssrs[2][ssrindex], -- stream
+                    ssrs[3][ssrindex], -- jumpstream
+                    ssrs[4][ssrindex], -- handstream
+                    ssrs[5][ssrindex], -- stamina
+                    ssrs[6][ssrindex], -- jackspeed
+                    ssrs[7][ssrindex], -- chordjack
+                    ssrs[8][ssrindex], -- technical
+                }
+                local ssrtext = string.format("Percent: %5.4f\n", (ssrLowerBoundWife + (ssrUpperBoundWife-ssrLowerBoundWife)*perc)*100)
+                for i, ss in ipairs(ms.SkillSets) do
+                    ssrtext = ssrtext .. string.format("%s: %.2f\n", ss, ssrAtIndex[i])
+                end
+                ssrtext = ssrtext:sub(1, #ssrtext-1) -- remove the end whitespace
+                txt:settext(ssrtext)
             end
             
-            -- add ptloss
-            for h = 1, 2 do
-                local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                farts[#farts + 1] = graphVecs["PtLoss"][h]
-                fartsfartsFOUR[#fartsfartsFOUR + 1] = "PtLoss"..blah
-            end
-
-            for k, v in pairs(farts) do
-                local txt = string.format(fartsfartsFOUR[k]..": %5.4f\n", v[index])
-                toofartstoofury = toofartstoofury .. txt
-            end
-
-            txt:settext(toofartstoofury)
 		else
 			bar:visible(false)
             txt:visible(false)
@@ -442,8 +561,13 @@ local modnames = {
     "cr",
     "fcl",
     "fcr",
+    "wrrl",
+    "wrrr",
+    "wrjtl",
+    "wrjtr",
     "sl",
     "sr",
+    
 }
 
 local modColors = {
@@ -469,47 +593,61 @@ local modColors = {
     color(".4,0.3,0.49"),
     color("1,0,0"),
     color("1,0,0"),
+    color("1,0,0"),
+    color("1,0,0"),
+    color("1,0,0"),
+    color("1,0,0"),
 }
 
 -- top graph average text
-makeskillsetlabeltext = function(i, mod, hand) 
+makeskillsetlabeltext = function(i, mod, hand)
     return LoadFont("Common Normal") .. {
+        Name = "SSLabel"..i,
         InitCommand = function(self)
-            local xspace = 20   -- this is gonna look like shit on 4:3 no matter what so w.e
-            self:xy(-plotWidth/2 + 5 + ((i -1) * xspace), plotHeight/3):halign(0)
+            local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
+            self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
             self:maxwidth((plotWidth-10) / 0.5)
-            if hand % 2 == 0 then
-                self:addy(20)
-                self:addx(-xspace)
-            end
         end,
         UpdateAveragesMessageCommand = function(self)
             if song then
                 local aves = {}
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then 
-                  self:settext("")
-                return
-            end
-            for i = 1, #values do
-                if values[i] and #values > 0 then
-                    aves[i] = table.average(values)
+                    self:settext("")
+                    return
                 end
+                for i = 1, #values do
+                    if values[i] and #values > 0 then
+                        aves[i] = table.average(values)
+                    end
+                end
+                if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                    self:diffuse(modColors[i])
+                else
+                    self:diffuse(color(".3,.3,.3"))
+                end
+                self:settextf("%s: %.4f", modnames[i], aves[i])
             end
-            self:diffuse(modColors[i])
-            self:settextf("%s: %.4f", modnames[i], aves[i])
+        end,
+        UpdateActiveModsMessageCommand = function(self)
+            -- if this group is selected and we want to show it off
+            if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                self:playcommand("UpdateAverages")
+            else
+                -- grey out unselected groups
+                self:diffuse(color(".3,.3,.3"))
+            end
         end
-    end
-}
+    }
 end
 
 -- lower graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
-        self:xy(-plotWidth/2 + 5, plotHeight/2 + 20):halign(0)
-        self:zoom(0.5)
+        self:xy(-plotWidth/2 + 5, plotHeight/2 + 10):halign(0):valign(0)
+        self:zoom(0.4)
         self:settext("")
     end,
     DoTheThingCommand = function(self)
@@ -566,6 +704,15 @@ local function topGraphLine(mod, colorToUse, hand)
             else
                 self:visible(false)
             end
+        end,
+        UpdateActiveModsMessageCommand = function(self)
+            -- if this group is selected and we want to show it off
+            if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                self:diffusealpha(1)
+            else
+                -- hide unselected groups
+                self:diffusealpha(0)
+            end
         end
     }
 end
@@ -580,7 +727,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
                 
-                self:visible(true)
+                self:visible(not ssrGraphActive)
 
                 local verts = {}
                 local values = graphVecs[mod][hand]
@@ -599,27 +746,32 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
             else
                 self:visible(false)
             end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                self:visible(not ssrGraphActive)
+            end
         end
     }
 end
 
-local function bottomGraphLine(lineNum, colorToUse)
+local function bottomGraphLineSSR(lineNum, colorToUse)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
             self:y(plotHeight+5)
         end,
         DoTheThingCommand = function(self)
-            if song and enabled then
+            if song and enabled and #ssrs > 0 then
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-                self:visible(true)
+                self:visible(ssrGraphActive)
                 local verts = {}
 
-                for i = 1, #graphVecs[2][lineNum] do
-                    local x = fitX(i, #graphVecs[2][lineNum]) -- vector length based positioning
+                for i = 1, #ssrs[lineNum] do
+                    local x = fitX(i, #ssrs[lineNum]) -- vector length based positioning
                     --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(graphVecs[2][lineNum][i])
+                    local y = fitY2(ssrs[lineNum][i])
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
@@ -629,6 +781,14 @@ local function bottomGraphLine(lineNum, colorToUse)
             else
                 self:visible(false)
             end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                self:visible(ssrGraphActive)
+            end
+        end,
+        UpdateSSRLinesMessageCommand = function(self)
+            self:playcommand("DoTheThing")
         end
     }
 end
@@ -646,27 +806,36 @@ local skillsetColors = {
     color("1,0,0"),
 }
 
-for i, mod in pairs(CalcDebugTypes["CalcPatternMod"]) do
-    o[#o+1] = topGraphLine(mod, modColors[(i * 2) - 1], 1)
-    o[#o+1] = topGraphLine(mod, modColors[i * 2], 2)
-    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, mod, 1)
-    o[#o+1] = makeskillsetlabeltext((i * 2), mod, 2)
+-- pattern mod lines
+for i, mod in pairs(CalcPatternMod) do
+    local modname = mod:gsub("CalcPatternMod_", "") -- by design
+    o[#o+1] = topGraphLine(modname, modColors[(i * 2) - 1], 1)
+    o[#o+1] = topGraphLine(modname, modColors[i * 2], 2)
+    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, modname, 1)
+    o[#o+1] = makeskillsetlabeltext((i * 2), modname, 2)
 end
 -- add stam since it's not technically a pattern mod
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 1], 1)
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcDebugTypes["CalcPatternMod"] * 2) + 2], 2)
-o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 1, "StamMod", 1)
-o[#o+1] = makeskillsetlabeltext((#CalcDebugTypes["CalcPatternMod"] * 2) + 2, "StamMod", 2)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
+o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
-for i, mod in pairs(CalcDebugTypes["CalcDiffValue"]) do
+-- MSD mod lines
+for i, mod in pairs(CalcDiffValue) do
+    local modname = mod:gsub("CalcDiffValue_", "") -- by design
     if i == 2 or i == 4 then   -- these are the most interesting ones atm
-        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[(i * 2) - 1], 1)
-        o[#o+1] = bottomGraphLineMSD(mod, skillsetColors[i * 2], 2)
+        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - 1], 1)
+        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[i * 2], 2)
     end
 end
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 1], 1)
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDebugTypes["CalcDiffValue"] * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
+o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
+
+-- SSR skillset lines
+for i = 1,8 do
+    o[#o+1] = bottomGraphLineSSR(i, skillsetColors[i])
+end
 
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
@@ -714,14 +883,14 @@ o[#o + 1] = Def.Quad {
 o[#o + 1] = Def.Quad {
     Name = "GraphTextBG",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("0,0,0,.4")):zoomto(20,20)
     end
 }
 
 o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "GraphText",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):valign(1):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
     end
 }
 

@@ -413,7 +413,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 						tempHNS[HNS_LetGo]++;
 
 						// erase the hold from the mapping of unjudged holds
-						for (int i = 0; i < m_unjudgedholds[isDropped].size();
+						for (size_t i = 0; i < m_unjudgedholds[isDropped].size();
 							 i++) {
 							if (m_unjudgedholds[isDropped][i].track == track) {
 								m_unjudgedholds[isDropped].erase(
@@ -434,7 +434,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				auto firstUnjudgedHold = m_unjudgedholds.begin();
 				if (firstUnjudgedHold != m_unjudgedholds.end()) {
 					auto hrrs = firstUnjudgedHold->second;
-					for (int i = 0; i < hrrs.size(); i++) {
+					for (size_t i = 0; i < hrrs.size(); i++) {
 						if (hrrs[i].track == track) {
 							m_unjudgedholds[firstUnjudgedHold->first].erase(
 							  m_unjudgedholds[firstUnjudgedHold->first]
