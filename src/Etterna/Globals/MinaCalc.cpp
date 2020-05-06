@@ -991,7 +991,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			float prop = static_cast<float>(jumptaps + 1) /
 						 static_cast<float>(taps - 1) * 20.f / 7.f;
 
-			float bromide = CalcClamp(5.f - not_stream, 0.975f, 1.f);
+			float bromide = CalcClamp(3.f - not_stream, 0.975f, 1.f);
 			// downscale by jack density rather than upscale, like cj
 			float brop = CalcClamp(3.f - actual_jacks, 0.95f, 1.f);
 			// clamp the original prop mod first before applying above
@@ -1057,12 +1057,12 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			// also want to give enough leeway so that hyperdense chordjacks at
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
-			float prop = (chordtaps + 1) / (taps - 1) * 23.f / 7.f;
+			float prop = (chordtaps + 1) / (taps - 1) * 27.f / 7.f;
 			float brop = CalcClamp(actual_jacks - 2.f, 0.5f, 1.f);
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
-			  CalcClamp(2.f - definitely_not_jacks, 0.5f, 1.f);
+			  CalcClamp(5.f - definitely_not_jacks, 0.5f, 1.f);
 			doot[CJ][i] = CalcClamp(
 			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
 			  0.7f,
