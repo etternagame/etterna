@@ -176,6 +176,7 @@ local debugGroups = {
     [9] = {},
 }
 
+local ssrGraphActive = false
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -183,7 +184,11 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
-        ssrs = getGraphForSteps(steps) -- maybe add back the new wrapper
+        if ssrGraphActive then
+            ssrs = getGraphForSteps(steps) -- maybe add back the new wrapper
+        else
+            ssrs = {}
+        end
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
 
@@ -238,9 +243,12 @@ local function addToModGroup(direction)
     end
 end
 
-local ssrGraphActive = false
 local function switchSSRGraph()
     ssrGraphActive = not ssrGraphActive
+    if ssrGraphActive and #ssrs == 0 then
+        ssrs = getGraphForSteps(steps)
+        MESSAGEMAN:Broadcast("UpdateSSRLines")
+    end
     MESSAGEMAN:Broadcast("UpdateActiveLowerGraph")
 end
 
@@ -753,7 +761,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
             self:y(plotHeight+5)
         end,
         DoTheThingCommand = function(self)
-            if song and enabled then
+            if song and enabled and #ssrs > 0 then
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
@@ -778,6 +786,9 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
             if song and enabled then
                 self:visible(ssrGraphActive)
             end
+        end,
+        UpdateSSRLinesMessageCommand = function(self)
+            self:playcommand("DoTheThing")
         end
     }
 end
