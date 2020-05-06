@@ -399,7 +399,7 @@ Steps::CalcEtternaMetadata()
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	diffByRate = MinaSDCalc(cereal);
+	diffByRate = MinaSDCalc_OLD(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
