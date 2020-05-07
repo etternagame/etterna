@@ -1141,6 +1141,8 @@ uploadSequentially()
 bool
 DownloadManager::UploadScores()
 {
+	// disable for test version
+	return false;
 	if (!LoggedIn())
 		return false;
 
