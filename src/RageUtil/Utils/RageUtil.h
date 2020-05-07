@@ -132,7 +132,6 @@ wife2(float maxms, float ts)
 	return (2 - -8) * (1 - y) + -8;
 }
 
-// unnecessary to convert to ms, use seconds
 inline float
 wife3(float maxms, float ts)
 {
@@ -142,14 +141,14 @@ wife3(float maxms, float ts)
 	static const float max_points = 2.f;
 	static const float miss_weight = -5.5f;
 	// offset at which points starts decreasing(ms)
-	float ridic = 0.004f * ts;
+	float ridic = 4.f * ts;
 
 	// technically the max boo is always 180ms above j4 however this is immaterial
 	// to the end purpose of the scoring curve - assignment of point values
-	float max_boo_weight = 0.18f * ts;
+	float max_boo_weight = 180.f * ts;
 
 	// need positive values for this
-	maxms = abs(maxms);
+	maxms = abs(maxms * 1000.f);
 
 	// case optimizations
 	if (maxms <= ridic)
