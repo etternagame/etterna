@@ -1381,6 +1381,8 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3()
 {
+	if (GetWifeVersion() == 3)
+		return false;
 	if (!LoadReplayData() || m_Impl->GetWifeGrade() == Grade_Failed)
 		return false;
 
