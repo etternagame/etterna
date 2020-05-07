@@ -1085,7 +1085,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate 1.0",
 							   ck.c_str(),
-							   SkillsetToString(ss)));
+							   SkillsetToString(ss).c_str()));
 					float woo =
 					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
 				}
@@ -1124,7 +1124,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate %f",
 							   ck.c_str(),
-							   SkillsetToString(ss),
+							   SkillsetToString(ss).c_str(),
 							   rate));
 					float woo =
 					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
