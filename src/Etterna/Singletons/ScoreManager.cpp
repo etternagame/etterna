@@ -770,8 +770,13 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// top score rankings may in fact shift post-rescore, this will
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
-		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
+		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
 		bool getremarried = scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
+
+		// technically we don't need to have charts loaded to rescore to wife3,
+		// however trying to do this might be quite a bit of work and while it
+		// would be nice to have at some point it's not worth it just at this
+		// moment
 		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
 			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
