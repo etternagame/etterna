@@ -4,7 +4,6 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #if !defined(SMPACKAGE)
 #include "Etterna/Actor/Base/ActorUtil.h"
@@ -19,6 +18,7 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
+#include "Core/Services/Locator.hpp"
 
 #include "PrefsManager.h"
 
@@ -395,8 +395,7 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 std::string
 ThemeManager::GetDefaultLanguage()
 {
-	std::string sLangCode = HOOKS->GetPreferredLanguage();
-	return sLangCode;
+	return Locator::getArchHooks()->GetPreferredLanguage();
 }
 
 void

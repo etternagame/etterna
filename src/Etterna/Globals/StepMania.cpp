@@ -3,6 +3,7 @@
 #include "Etterna/Globals/rngthing.h"
 
 // Rage global classes
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -311,7 +312,7 @@ ShutdownGame()
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
-	SAFE_DELETE(HOOKS);
+//	SAFE_DELETE(HOOKS);
 	Discord_Shutdown();
 }
 
@@ -319,7 +320,7 @@ static void
 HandleException(const std::string& sError)
 {
 	if (g_bAutoRestart)
-		HOOKS->RestartProgram();
+        Locator::getArchHooks()->RestartProgram();
 
 	// Shut down first, so we exit graphics mode before trying to open a dialog.
 	ShutdownGame();
@@ -1040,11 +1041,12 @@ sm_main(int argc, char* argv[])
 	SetCommandlineArguments(argc, argv);
 
 	// Set up arch hooks first.  This may set up crash handling.
-	HOOKS = ArchHooks::Create();
-	HOOKS->Init();
+	Locator::provide(ArchHooks::Create());
+    ArchHooks* archHooks = Locator::getArchHooks();
+    archHooks->Init();
 
 	LUA = new LuaManager;
-	HOOKS->RegisterWithLua();
+    archHooks->RegisterWithLua();
 
 	MESSAGEMAN = new MessageManager;
 
@@ -1076,7 +1078,7 @@ sm_main(int argc, char* argv[])
 	 * this before opening the loading window, so if we give focus away, we
 	 * don't flash the window. */
 	if (!g_bAllowMultipleInstances.Get() &&
-		HOOKS->CheckForMultipleInstances(argc, argv)) {
+	    archHooks->CheckForMultipleInstances(argc, argv)) {
 		ShutdownGame();
 		return 0;
 	}
@@ -1129,7 +1131,7 @@ sm_main(int argc, char* argv[])
 	 * and Dialog must be set up first. It shouldn't take long, but it might
 	 * take a little time; do this after the LoadingWindow is shown, since we
 	 * don't want that to appear delayed. */
-	HOOKS->DumpDebugInfo();
+    archHooks->DumpDebugInfo();
 
 #if defined(HAVE_TLS)
 	LOG->Info("TLS is %savailable", RageThread::GetSupportsTLS() ? "" : "not ");
@@ -1531,7 +1533,8 @@ HandleInputEvents(float fDeltaTime)
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.
-	if (!HOOKS->AppHasFocus())
+	ArchHooks* archHooks = Locator::getArchHooks();
+	if (!archHooks->AppHasFocus())
 		return;
 
 	for (unsigned i = 0; i < ieArray.size(); i++) {

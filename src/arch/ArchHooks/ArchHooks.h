@@ -139,5 +139,3 @@ class ArchHooks
 };
 
 #endif
-
-extern ArchHooks* HOOKS; // global and accessible from anywhere in our program

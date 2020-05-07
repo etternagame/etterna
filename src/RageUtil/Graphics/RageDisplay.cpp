@@ -16,7 +16,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 
 #include <chrono>
 #include <thread>
@@ -1158,7 +1158,7 @@ RageDisplay::FrameLimitBeforeVsync()
 		}
 	}
 
-	if (!HOOKS->AppHasFocus())
+	if (!Locator::getArchHooks()->AppHasFocus())
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 

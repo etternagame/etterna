@@ -8,7 +8,7 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 
 #include <tuple>
 #include <algorithm>
@@ -51,7 +51,8 @@ Screen::Init()
 	HANDLE_BACK_BUTTON.Load(m_sName, "HandleBackButton");
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
-	HOOKS->sShowCursor(true);
+
+	Locator::getArchHooks()->sShowCursor(true);
 
 	delayedFunctions.clear();
 	delayedPeriodicFunctionIdsToDelete.clear();

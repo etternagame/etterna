@@ -5,7 +5,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/Crash.h"
@@ -550,7 +550,7 @@ GraphicsWindow::Update()
 		DispatchMessage(&msg);
 	}
 
-	HOOKS->SetHasFocus(g_bHasFocus);
+	Locator::getArchHooks()->SetHasFocus(g_bHasFocus);
 
 	if (g_bResolutionChanged && DISPLAY != nullptr) {
 		// LOG->Warn( "Changing resolution" );

@@ -5,6 +5,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Core/Services/Locator.hpp"
 
 #ifdef __APPLE__
 #include "../../archutils/Darwin/MouseDevice.h"
@@ -114,7 +115,7 @@ ArchHooks::RegisterWithLua()
 {
 	Lua* L = LUA->Get();
 	lua_pushstring(L, "HOOKS");
-	HOOKS->PushSelf(L);
+    Locator::getArchHooks()->PushSelf(L);
 	lua_settable(L, LUA_GLOBALSINDEX);
 	LUA->Release(L);
 }

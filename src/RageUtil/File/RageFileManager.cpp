@@ -7,7 +7,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 
 #include <cerrno>
 #include <algorithm>
@@ -342,13 +342,13 @@ RageFileManager::RageFileManager(const std::string& argv0)
 void
 RageFileManager::MountInitialFilesystems()
 {
-	HOOKS->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
+	Locator::getArchHooks()->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 
 void
 RageFileManager::MountUserFilesystems()
 {
-	HOOKS->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
+    Locator::getArchHooks()->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 
 RageFileManager::~RageFileManager()
