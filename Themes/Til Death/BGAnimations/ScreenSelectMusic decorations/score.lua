@@ -387,7 +387,16 @@ local l =
 				if score:GetWifeScore() == 0 then
 					self:settextf("NA")
 				else
-					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100):diffuse(byGrade(score:GetWifeGrade()))
+					local wv = score:GetWifeVers()
+					local ws = "Wife" .. wv .. " J"
+					local judge = 4
+					if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
+						judge = table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))
+					end
+					if not judge then judge = 4 end
+					local js = judge ~= 9 and judge or "ustice"
+					local perc = score:GetWifeScore() * 100
+					self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), ws .. js):diffuse(byGrade(score:GetWifeGrade()))
 				end
 			end
 		},
