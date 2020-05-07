@@ -1399,9 +1399,6 @@ HighScore::RescoreToWife3(float pmax)
 					 .c_str());
 		return false;
 	}
-	
-	static const float wife3_hold_drop_weight = -4.5f;
-	static const float wife3_mine_hit_weight = -7.f;
 
 	float p = 0.f;
 	for (auto& n : m_Impl->vOffsetVector)

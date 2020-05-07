@@ -564,8 +564,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
 			ReplaySnapshot* rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
-			rs->curwifescore = cws - (rs->judgments[TNS_Miss] * 8.f) -
-							   (rs->hns[HNS_LetGo] * 8.f);
+			rs->curwifescore = cws - (rs->judgments[TNS_Miss] * wife3_miss_weight) -
+							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
 			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 			snapShotsUnused.erase(snapShotsUnused.begin());
 
@@ -574,14 +574,14 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		auto rs = GetReplaySnapshotForNoterow(r);
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				cws -= 8.f;
+				cws -= wife3_mine_hit_weight;
 			} else {
-				cws += wife2(trr.offset, timingScale);
+				cws += wife3(trr.offset, timingScale);
 				mws += 2.f;
 			}
 		}
-		rs->curwifescore =
-		  cws - (rs->judgments[TNS_Miss] * 8.f) - (rs->hns[HNS_LetGo] * 8.f);
+		rs->curwifescore = cws - (rs->judgments[TNS_Miss] * wife3_miss_weight) -
+		  ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
 		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 
 		snapShotsUnused.erase(snapShotsUnused.begin());

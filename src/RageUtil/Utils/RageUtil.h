@@ -132,6 +132,10 @@ wife2(float maxms, float ts)
 	return (2 - -8) * (1 - y) + -8;
 }
 
+static const float wife3_mine_hit_weight = -7.f;
+static const float wife3_hold_drop_weight = -7.f;
+static const float wife3_miss_weight = -5.5f;
+
 inline float
 wife3(float maxms, float ts)
 {
@@ -139,7 +143,6 @@ wife3(float maxms, float ts)
 	static const float j_pow = 0.66f;
 	// min/max points
 	static const float max_points = 2.f;
-	static const float miss_weight = -5.5f;
 	// offset at which points starts decreasing(ms)
 	float ridic = 4.f * ts;
 
@@ -154,12 +157,12 @@ wife3(float maxms, float ts)
 	if (maxms <= ridic)
 		return max_points;
 	if (maxms > max_boo_weight)
-		return miss_weight;
+		return wife3_miss_weight;
 
 	float poi = 57.f * pow(ts, j_pow); // point of inflection for curve
 	float dev = 22.f * pow(ts, j_pow);
 	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
-	float lower_bound = max_points + ((miss_weight - max_points) *
+	float lower_bound = max_points + ((wife3_miss_weight - max_points) *
 									  sqrt(maxms * maxms - ridic * ridic) /
 									  (max_boo_weight - ridic));
 	return (max_points - lower_bound) * y_val + lower_bound;
