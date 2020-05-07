@@ -1193,6 +1193,8 @@ DownloadManager::UploadScores()
 void
 DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 {
+	// disable for test version
+	return;
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) { // ignoring topscore flags; upload worst->best
@@ -1218,6 +1220,8 @@ void
 DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
+	// disable for test version
+	return;
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
@@ -1235,6 +1239,8 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 void
 DownloadManager::ForceUploadAllScores()
 {
+	// disable for test version
+	return;
 	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
 
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
