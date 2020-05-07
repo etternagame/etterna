@@ -227,7 +227,7 @@ class ScoreManager
 	vector<HighScore*> scorestorecalc;
 
 	// probably can avoid copying strings if we're sure it's safe
-	set<std::string> recalculatedscores;
+	set<HighScore*> rescores;
 
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>

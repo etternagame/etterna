@@ -367,7 +367,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+	auto& scores = SCOREMAN->scorestorecalc;
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -445,7 +445,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				}
 				++scoreIndex;
 
-				string ck = hs->GetChartKey();
+				const string& ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 				
 				// this _should_ be impossible since ischartloaded() checks are required on all charts before getting here
@@ -466,27 +466,24 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
-				// check needs to be done before rescoring to wife3 since highscore doesn't have
-				// access to notedata and will assume total points based on replay data vector
-				// lengths; any pass will have the correct length (also we don't care about fails)
-				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+				// don't waste time on <= 0%s
+				if (ssrpercent <= 0.f) {
 					hs->ResetSkillsets();
 					continue;
 				}
 
-				bool remarried = hs->RescoreToWife3();
+				// ghasgh we need to decompress to get maxpoints
+				TimingData* td = steps->GetTimingData();
+				NoteData nd;
+				steps->GetNoteData(nd);
+
+				auto maxpoints = nd.WifeTotalScoreCalc(td);
+				bool remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
-				TimingData* td = steps->GetTimingData();
-				NoteData nd;
-				steps->GetNoteData(nd);
-
-				//nd.LogNonEmptyRows();
-				//auto& nerv = nd.GetNonEmptyRowVector();
-				//auto& etaner = td->BuildAndGetEtaner(nerv);
 				const auto& serializednd = nd.SerializeNoteData2(td);
 				auto dakine = MinaSDCalc_OLD(serializednd,
 										 musicrate,
@@ -496,8 +493,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
-				if (remarried)	// maybe recalculated scores should be renamed rescored?
-					SCOREMAN->recalculatedscores.emplace(hs->GetScoreKey());
+				// we only want to upload scores that have been rescored to
+				// wife3, not generic calc changes, since the site runs its own
+				// calc anyway
+				if (remarried)
+					SCOREMAN->rescores.emplace(hs);
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();

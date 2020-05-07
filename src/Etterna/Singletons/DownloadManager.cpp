@@ -1144,28 +1144,32 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate top 2 scores that have
-	// not been uploaded and have replay data
+	// First we accumulate top 2 scores that have not been uploaded and have
+	// replay data. There is no reason to upload updated calc versions to the
+	// site anymore - the site uses its own calc and afaik ignores the provided
+	// values, we only need to upload scores that have not been uploaded, and
+	// scores that have been rescored from wife2 to wife3
 	auto scores = SCOREMAN->GetAllPBPtrs();
-	auto& recalculatedscorekeys = SCOREMAN->recalculatedscores;
+	auto& newly_rescored = SCOREMAN->rescores;
 	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
 			auto ts = scorePtr->GetTopScore();
 
 			// rescoring should already have properly set topscore values
-			// if they were to have shuffled
+			// if they were to have shuffled due to the rescore
 			if (ts == 1 || ts == 2) {
 				// handle rescores, ignore upload check
-				if (recalculatedscorekeys.count(scorePtr->GetScoreKey()))
+				if (newly_rescored.count(scorePtr))
 					toUpload.push_back(scorePtr);
+				// normal behavior, upload scores that haven't been uploaded and
+				// have replays
 				else if (!scorePtr->IsUploadedToServer(serverURL.Get()) &&
 						 scorePtr->HasReplayData())
 					toUpload.push_back(scorePtr);
 			}
 		}
 	}
-
 
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores. (Uploading %d scores)",
