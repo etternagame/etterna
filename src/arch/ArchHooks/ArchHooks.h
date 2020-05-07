@@ -2,6 +2,7 @@
 #define ARCH_HOOKS_H
 
 #include <chrono>
+#include "Etterna/Globals/global.h"
 
 struct lua_State;
 class ArchHooks
