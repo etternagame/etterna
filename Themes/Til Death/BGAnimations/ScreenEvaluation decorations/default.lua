@@ -352,7 +352,7 @@ function scoreBoard(pn, position)
 							)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 						end
-					elseif params.Name == "PrevJudge" and judge > 1 then
+					elseif params.Name == "PrevJudge" and judge > 4 then
 						judge = judge - 1
 						rescorepercent = getRescoredWife3Judge(2, judge, rescoretable)
 						self:settextf(
