@@ -323,7 +323,7 @@ function scoreBoard(pn, position)
 					self:diffuse(getGradeColor(score:GetWifeGrade()))
 					self:settextf(
 						"%05.2f%% (%s)", 
-						notShit.floor(score:GetWifeScore() * 100, 2), "Wife3 J" .. js
+						notShit.floor(score:GetWifeScore() * 100, 2), ws .. js
 					)
 				end,
 				ScoreChangedMessageCommand = function(self)
