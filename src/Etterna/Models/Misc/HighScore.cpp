@@ -1384,10 +1384,9 @@ HighScore::RescoreToWife3(float pmax)
 	// already done
 	if (GetWifeVersion() == 3)
 		return false;
-	// can't do it or not worth the time
-	if (!LoadReplayData() || m_Impl->GetWifeGrade() == Grade_Failed)
+	// can't do it
+	if (!LoadReplayData())
 		return false;
-
 	// we can do it, but the result won't make sense
 	if (!m_Impl->bNoChordCohesion)
 		return false;
