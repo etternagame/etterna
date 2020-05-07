@@ -1811,6 +1811,14 @@ class LunaHighScore : public Luna<HighScore>
 		lua_pushstring(L, RString(p->avatar));
 		return 1;
 	}
+	static int GetWifeVers(T* p, lua_State* L)
+	{
+		int vers = p->GetWifeVersion();
+		if (vers != 3)
+			vers = 2;
+		lua_pushnumber(L, vers);
+		return 1;
+	}
 
 	DEFINE_METHOD(GetGrade, GetGrade())
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
@@ -1860,6 +1868,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetScoreid);
 		ADD_METHOD(GetScoreKey);
 		ADD_METHOD(GetAvatar);
+		ADD_METHOD(GetWifeVers);
 	}
 };
 
