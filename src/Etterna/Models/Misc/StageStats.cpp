@@ -579,10 +579,24 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetReplayType(
 		  2); // flag this before rescore so it knows we're LEGGIT
 
+		// ok this is a little jank but there's a few things going on here,
+		// first we can't trust that scores getting here are necessarily either
+		// fully completed or fails, so we can't trust that the wifescore in pss
+		// is necessarily the correct wifescore, or that rescoring using the
+		// offsetvectors will produce it
+		// second, since there is no setwifeversion function, newly minted
+		// scores won't have wifevers set, will be uploaded, then rescored on
+		// next load, and uploaded again, not a huge deal, but still undesirable
+		// thankfully we can fix both problems by just rescoring to wife3, this
+		// will properly set the wifescore as well as wife vers flags
+
+		// for this we need the actual totalpoints values, so we need steps data
+		auto& steps = GAMESTATE->m_pCurSteps;
+		auto& nd = steps->GetNoteData();
+		auto* td = steps->GetTimingData();
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
-		else
-			hs.SetSSRNormPercent(hs.RescoreToWife2Judge(4));
+		else hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
