@@ -1,11 +1,22 @@
 #include "Locator.hpp"
-IFileManager* Locator::fileManager = nullptr;
+// Static variable default values
+std::unique_ptr<IFileManager> Locator::fileManager = nullptr;
+std::unique_ptr<ArchHooks> Locator::archHooks = nullptr;
 
-IFileManager& Locator::getFileManager() {
-    return *fileManager;
+IFileManager* Locator::getFileManager() {
+    return fileManager.get();
+}
+
+ArchHooks *Locator::getArchHooks() {
+    return archHooks.get();
 }
 
 void Locator::provide(IFileManager* manager) {
-    if(fileManager == nullptr)
-        Locator::fileManager = manager;
+    if(!Locator::fileManager)
+        Locator::fileManager = std::unique_ptr<IFileManager>(manager);
+}
+
+void Locator::provide(ArchHooks *hooks) {
+    if(!Locator::archHooks)
+        Locator::archHooks = std::unique_ptr<ArchHooks>(hooks);
 }
