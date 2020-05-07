@@ -478,7 +478,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				steps->GetNoteData(nd);
 
 				auto maxpoints = nd.WifeTotalScoreCalc(td);
-				bool remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
+				bool remarried = false;
+				// ok due to a lack of foresight on my part we have to have a
+				// lever to forcibly recalc stuff marked wv 3 with, so we'll
+				// make the ssrcalcvers that lever, if it's changed, just force
+				// recalc wife3 in case wife3 has changed (which at the time of
+				// writing this, is likely, since it's still in flux but i've
+				// already set the version tag as the final)
+				if (hs->wife_ver != 3 || hs->GetSSRCalcVersion() != GetCalcVersion_OLD())
+					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion_OLD())
@@ -495,9 +503,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				// we only want to upload scores that have been rescored to
 				// wife3, not generic calc changes, since the site runs its own
-				// calc anyway
-				if (remarried)
-					SCOREMAN->rescores.emplace(hs);
+				// calc anyway, the rescore block above negates this because of
+				// dumb reasons so as soon as wife3 is finalized change it
+				// back!!
+				//if (remarried)
+				//	SCOREMAN->rescores.emplace(hs);
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
