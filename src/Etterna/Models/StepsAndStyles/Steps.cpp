@@ -881,8 +881,8 @@ class LunaSteps : public Luna<Steps>
 		float rate = FArg(1);
 		float goal = FArg(2);
 		CLAMP(rate, 0.7f, 3.f);
-		auto& nd = p->GetNoteData();
-		auto& loot = nd.BuildAndGetNerv();
+		auto nd = p->GetNoteData();
+		auto loot = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(loot);
 		auto& ni = nd.SerializeNoteData(etaner);

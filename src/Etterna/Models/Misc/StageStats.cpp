@@ -592,8 +592,8 @@ FillInHighScore(const PlayerStageStats& pss,
 		// will properly set the wifescore as well as wife vers flags
 
 		// for this we need the actual totalpoints values, so we need steps data
-		auto& steps = GAMESTATE->m_pCurSteps;
-		auto& nd = steps->GetNoteData();
+		auto steps = GAMESTATE->m_pCurSteps;
+		auto nd = steps->GetNoteData();
 		auto* td = steps->GetTimingData();
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
