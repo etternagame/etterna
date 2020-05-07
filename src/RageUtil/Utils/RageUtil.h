@@ -132,22 +132,33 @@ wife2(float maxms, float ts)
 	return (2 - -8) * (1 - y) + -8;
 }
 
+// unnecessary to convert to ms, use seconds
 inline float
 wife3(float maxms, float ts)
 {
-	maxms = abs(maxms * 1000.f); // need positive values for this
-	float max_points = 2.f;
-	float miss_weight = -5.5f;
-	float ridic = 7.5f * ts; // offset at which points starts decreasing(ms)
-	float max_boo_weight = 180.f * ts;
-	
+	// so judge scaling isn't so extreme
+	static const float j_pow = 0.66f;
+	// min/max points
+	static const float max_points = 2.f;
+	static const float miss_weight = -5.5f;
+	// offset at which points starts decreasing(ms)
+	float ridic = 0.004f * ts;
+
+	// technically the max boo is always 180ms above j4 however this is immaterial
+	// to the end purpose of the scoring curve - assignment of point values
+	float max_boo_weight = 0.18f * ts;
+
+	// need positive values for this
+	maxms = abs(maxms);
+
+	// case optimizations
 	if (maxms <= ridic)
 		return max_points;
 	if (maxms > max_boo_weight)
 		return miss_weight;
 
-	float poi = 57.f * ts; // point of inflection for curve
-	float dev = 22.f * ts;
+	float poi = 57.f * pow(ts, j_pow); // point of inflection for curve
+	float dev = 22.f * pow(ts, j_pow);
 	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
 	float lower_bound = max_points + ((miss_weight - max_points) *
 									  sqrt(maxms * maxms - ridic * ridic) /
