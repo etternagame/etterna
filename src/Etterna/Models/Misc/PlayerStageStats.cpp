@@ -1003,7 +1003,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 
 	static int WifeScoreOffset(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
+		lua_pushnumber(L, wife3(FArg(1), p->GetTimingScale()));
 		return 1;
 	}
 

@@ -1526,12 +1526,12 @@ HighScore::ConvertDpToWife()
 	float ts = 1.f;
 	float estpoints = 0.f;
 	float maxpoints = 0.f;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(.01125f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(.03375f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(.0675f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(.1125f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(.1575f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * -8;
+	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife3(.01125f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife3(.03375f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife3(.0675f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife3(.1125f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife3(.1575f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife3_miss_weight;
 
 	FOREACH_ENUM(TapNoteScore, tns)
 	maxpoints += 2 * m_Impl->iTapNoteScores[tns];
