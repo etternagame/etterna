@@ -144,7 +144,7 @@ wife3(float maxms, float ts)
 	// min/max points
 	static const float max_points = 2.f;
 	// offset at which points starts decreasing(ms)
-	float ridic = 4.f * ts;
+	float ridic = 3.f * ts;
 
 	// technically the max boo is always 180ms above j4 however this is immaterial
 	// to the end purpose of the scoring curve - assignment of point values
