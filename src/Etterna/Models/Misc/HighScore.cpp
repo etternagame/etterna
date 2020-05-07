@@ -1393,10 +1393,10 @@ HighScore::RescoreToWife3()
 		return false;
 	}
 	
-	float wife3_hold_drop_weight = -4.5f;
-	float wife3_mine_hit_weight = -7.f;
+	static const float wife3_hold_drop_weight = -4.5f;
+	static const float wife3_mine_hit_weight = -7.f;
 
-	float p = 0;
+	float p = 0.f;
 	for (auto& n : m_Impl->vOffsetVector)
 		p += wife3(n, 1);
 
@@ -1414,8 +1414,8 @@ HighScore::RescoreToWife3()
 	m_Impl->fSSRNormPercent =  p / pmax;
 
 	// ok so this is kind of lazy but we do actually want to rescore the wifescore
-	// for the judge this score was achieved on
-	p = 0;
+	// for the judge this score was achieved on as well as ssrnorm
+	p = 0.f;
 	for (auto& n : m_Impl->vOffsetVector)
 		p += wife3(n, m_Impl->fJudgeScale);
 
@@ -1515,6 +1515,7 @@ HighScore::WriteReplayData()
 	return m_Impl->WriteReplayData();
 }
 
+// TO BE REMOVED SOON
 // Ok I guess we can be more lenient and convert by midwindow values, but we
 // still have to assume j4 - mina
 float
