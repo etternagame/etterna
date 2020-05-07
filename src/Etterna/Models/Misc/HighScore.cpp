@@ -1379,7 +1379,7 @@ HighScore::RescoreToWife2Judge(int x)
 }
 
 bool
-HighScore::RescoreToWife3()
+HighScore::RescoreToWife3(float pmax)
 {
 	if (GetWifeVersion() == 3)
 		return false;
@@ -1407,12 +1407,6 @@ HighScore::RescoreToWife3()
 		 wife3_hold_drop_weight;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
-	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-	}
-
 	m_Impl->fSSRNormPercent =  p / pmax;
 
 	// ok so this is kind of lazy but we do actually want to rescore the wifescore
@@ -1426,11 +1420,6 @@ HighScore::RescoreToWife3()
 		 wife3_hold_drop_weight;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
-	pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-	}
 	m_Impl->fWifeScore = p / pmax;
 	m_Impl->WifeVersion = 3;
 	return true;
