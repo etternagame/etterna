@@ -165,8 +165,8 @@ struct HighScore
 
 	// Mina stuff - Mina
 	float RescoreToWife2Judge(int x);
-	bool RescoreToWife3();						// will update both wifescore (matching the judge the score was achieved on) and ssrnorm
-	float RescoreToWifeJudgeDuringLoad(int x); // uuugh -mina
+	// update wifescore (judge the score was achieved on) and ssrnorm
+	bool RescoreToWife3();
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
 	int GetWifeVersion() const;

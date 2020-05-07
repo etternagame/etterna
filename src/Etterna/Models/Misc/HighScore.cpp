@@ -1226,16 +1226,8 @@ void
 HighScore::LoadFromEttNode(const XNode* pNode)
 {
 	m_Impl->LoadFromEttNode(pNode);
-
-	if (m_Impl->fSSRNormPercent > 1000.f) {
-		if (m_Impl->grade != Grade_Failed)
-			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
-		else
-			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
-
-		m_Impl->vNoteRowVector.clear();
-		m_Impl->vOffsetVector.clear();
-	}
+	m_Impl->vNoteRowVector.clear();
+	m_Impl->vOffsetVector.clear();
 }
 
 const std::string&
@@ -1442,35 +1434,7 @@ HighScore::RescoreToWife3()
 	return true;
 }
 
-
-float
-HighScore::RescoreToWifeJudgeDuringLoad(int x)
-{
-	if (!LoadReplayData())
-		return m_Impl->fWifeScore;
-
-	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-						  0.66f, 0.50f, 0.33f, 0.20f };
-	float ts = tso[x - 1];
-	float p = 0;
-	for (auto& n : m_Impl->vOffsetVector)
-		p += wife2(n, ts);
-
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
-
-	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
-	}
-
-	float o = p / pmax;
-	return o;
-}
-
+// DONT REALLY KNOW WHY THIS IS STILL HERE 
 float
 HighScore::RescoreToDPJudge(int x)
 {
