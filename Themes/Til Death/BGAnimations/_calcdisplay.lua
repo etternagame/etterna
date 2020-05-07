@@ -660,7 +660,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 -- basemsd
 o[#o + 1] = LoadFont("Common Large") .. {
     InitCommand = function(self)
-        self:xy(-plotWidth/2 -5, plotHeight/2 + 20):halign(1):valign(0)
+        self:xy(-plotWidth/2 -5, plotHeight/2 - 100):halign(1):valign(0)
         self:zoom(0.35)
         self:settext("")
     end,
