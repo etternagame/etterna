@@ -468,7 +468,6 @@ t[#t + 1] =
 				if score:GetModifiers():lower():find("mirror") then
 					mirrorStr = "(M)"
 				end
-				mirrorStr = "(M)"
 				self:settext(mirrorStr)
 			else
 				self:settext("")
