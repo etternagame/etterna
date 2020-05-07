@@ -1015,19 +1015,38 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 		int definitely_not_jacks = 0;
 		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
+		int quads = 0;
 
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
+		bool newrow = true;
 		for (int row : nervIntervals[i]) {
+				if (debugmode && newrow)
+					std::cout << "new interval: " << i << " time: "
+							  << NoteInfo[row].rowTime   << std::endl;
+				newrow = false;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes > 1)
 				chordtaps += notes;
+			if (notes == 4)
+				++quads;
 
 			// sequencing stuff
 			unsigned int cols = NoteInfo[row].notes;
-			for (auto& id : col_id)
+		//	if (debugmode)
+		//		std::cout << "cols: " << cols << std::endl;
+			//if (debugmode)
+			//	std::cout << "last cols: " << last_cols << std::endl;
+			for (auto& id : col_id) {
+				//if (debugmode)
+				//	std::cout << "cur id: " << id << std::endl;
+				
 				if (cols & id && last_cols & id) {
+				//	if (debugmode)
+				//		std::cout << "actual jack at: " << id << std::endl;
+				//	if (debugmode)
+				//		std::cout << "with cols: " << cols << " last cols: " << last_cols << std::endl;
 					++actual_jacks;
 					// if we don't break we're saying something like "chordjacks
 					// are harder if they share more columns from chord to
@@ -1037,11 +1056,15 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 					// chordjacks when they shouldn't be
 					break;
 				}
+			}
+				
 
 			// this reads pretty jank but since notes == 1, cols isn't cols, but
 			// a single col, and we can bitwise check to see if this is a jack
 			// or not, if it isn't then we have what should identify as
 			// chordstream not chordjack and we should appropriately punish
+
+			// this doesn't actually work atm but w.e... may not need it
 			if (notes == 1 && !last_cols & cols)
 				++definitely_not_jacks;
 			last_cols = cols;
@@ -1058,16 +1081,44 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
 			// also want to give enough leeway so that hyperdense chordjacks at
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
-			float prop = (chordtaps + 1) / (taps - 1) * 27.f / 7.f;
-			float brop = CalcClamp(actual_jacks - 2.f, 0.5f, 1.f);
+			float prop = static_cast<float>(chordtaps + 1) / static_cast<float>(taps - 1) * 27.f / 7.f;
+			float brop = CalcClamp(actual_jacks - 2.f, 0.65f, 1.f);
+
+			float bruh_too_many_quads =
+			  1.6f - (static_cast<float>(quads * 4) / static_cast<float>(taps));
+			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.85f, 1.f);
+
+			
+			if (debugmode)
+				std::cout << "quads: " << quads<< std::endl;
+			if (debugmode)
+				std::cout << "taps: " << taps << std::endl;
+			if (debugmode)
+				std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
+			if (debugmode)
+				std::cout << "actual jacks: " << actual_jacks << std::endl;
+			if (debugmode)
+				std::cout << "not jacks: " << definitely_not_jacks << std::endl;
+			if (debugmode)
+				std::cout << "prop: " << prop << std::endl;
+			if (debugmode)
+				std::cout << "brop: " << brop << std::endl;
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
 			  CalcClamp(5.f - definitely_not_jacks, 0.5f, 1.f);
-			doot[CJ][i] = CalcClamp(
-			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
+
+			if (debugmode)
+				std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo<< std::endl;
+			doot[CJ][i] =
+			  bruh_too_many_quads *
+			  CalcClamp(brop * brop_two_return_of_brop_electric_bropaloo *
+						  sqrt(prop),
 			  0.7f,
 			  1.1f);
+			if (debugmode)
+				std::cout << "final mod: " << doot[CJ][i] << "\n"
+						  << std::endl;
 		}
 	}
 	if (SmoothPatterns)
@@ -1489,10 +1540,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		float ohj = 0.f;
 		bool newrow = true;
 		for (int row : nervIntervals[i]) {
-			if (debugmode && newrow)
-				std::cout << "new interval: " << i << " time: "
-						  << NoteInfo[row].rowTime / music_rate
-						  << " hand: " << t1 << std::endl;
+		//	if (debugmode && newrow)
+		//		std::cout << "new interval: " << i << " time: "
+		//				  << NoteInfo[row].rowTime / music_rate
+		//				  << " hand: " << t1 << std::endl;
 			newrow = false;
 			// if (debugmode)
 			//	std::cout << "new row" << std::endl;
@@ -1690,9 +1741,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
 			float zemod =
-			  CalcClamp(1.f * static_cast<float>(totaltaps) /
-						  (static_cast<float>(max_jumps_seq) * 2.5f),
-						0.77f,
+			  CalcClamp(pow(static_cast<float>(totaltaps) /
+						  (static_cast<float>(max_jumps_seq) * 2.33f), 2.f),
+						0.6f,
 						1.f);
 		//	if (debugmode)
 		//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
@@ -2489,5 +2540,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 285;
+	return 286;
 }
