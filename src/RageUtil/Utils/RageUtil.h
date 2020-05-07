@@ -133,7 +133,7 @@ wife2(float maxms, float ts)
 }
 
 static const float wife3_mine_hit_weight = -7.f;
-static const float wife3_hold_drop_weight = -7.f;
+static const float wife3_hold_drop_weight = -4.5f;
 static const float wife3_miss_weight = -5.5f;
 
 inline float
