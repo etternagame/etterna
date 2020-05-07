@@ -163,7 +163,7 @@ t[#t + 1] =
 		{
 			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 26):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 29):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -200,7 +200,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 25):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
