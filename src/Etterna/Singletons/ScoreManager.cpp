@@ -235,7 +235,7 @@ ScoresForChart::SetTopScores()
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	{
 		auto& hs = i->second.noccPBptr;
-		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 			hs->GetEtternaValid() && hs->GetChordCohesion() == 0 &&
 			hs->GetGrade() != Grade_Failed)
 			eligiblescores.emplace_back(hs);
@@ -247,7 +247,7 @@ ScoresForChart::SetTopScores()
 		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		{
 			auto& hs = i->second.PBptr;
-			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 				hs->GetEtternaValid() && hs->GetChordCohesion() != 0 &&
 				hs->GetGrade() != Grade_Failed)
 				eligiblescores.emplace_back(hs);
@@ -481,7 +481,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				bool remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
-				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
+				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion_OLD())
 					continue;
 
 				const auto& serializednd = nd.SerializeNoteData2(td);
@@ -491,7 +491,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
-				hs->SetSSRCalcVersion(GetCalcVersion());
+				hs->SetSSRCalcVersion(GetCalcVersion_OLD());
 
 				// we only want to upload scores that have been rescored to
 				// wife3, not generic calc changes, since the site runs its own
@@ -588,7 +588,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() &&
+			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
 				TopSSRs[i]->GetTopScore() != 0)
