@@ -89,7 +89,7 @@ ScoresAtRate::GetAllScores()
 {
 	vector<HighScore*> o;
 	FOREACHUM(string, HighScore, scores, i)
-		o.push_back(&i->second);
+	o.push_back(&i->second);
 
 	// upload the worst scores first and the best scores last
 	// so we catch any de-facto pbs that are created by actual
@@ -290,8 +290,8 @@ ScoresForChart::GetAllScores()
 {
 	vector<HighScore*> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-		for (auto s : i->second.GetAllScores())
-			o.push_back(s);
+	for (auto s : i->second.GetAllScores())
+		o.push_back(s);
 	return o;
 }
 
@@ -373,7 +373,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
-		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) + " scores" );
+		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) +
+					" scores");
 	}
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
@@ -446,9 +447,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				string ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-				
-				// this _should_ be impossible since ischartloaded() checks are required on all charts before getting here
-				// but just in case...
+
+				// this _should_ be impossible since ischartloaded() checks are
+				// required on all charts before getting here but just in
+				// case...
 				if (!steps)
 					continue;
 
@@ -465,9 +467,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
-				// check needs to be done before rescoring to wife3 since highscore doesn't have
-				// access to notedata and will assume total points based on replay data vector
-				// lengths; any pass will have the correct length (also we don't care about fails)
+				// check needs to be done before rescoring to wife3 since
+				// highscore doesn't have access to notedata and will assume
+				// total points based on replay data vector lengths; any pass
+				// will have the correct length (also we don't care about fails)
 				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
 					hs->ResetSkillsets();
 					continue;
@@ -475,7 +478,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				bool remarried = hs->RescoreToWife3();
 
-				// if this is not a rescore and has already been run on the current calc vers, skip
+				// if this is not a rescore and has already been run on the
+				// current calc vers, skip
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
@@ -483,19 +487,18 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				NoteData nd;
 				steps->GetNoteData(nd);
 
-				//nd.LogNonEmptyRows();
-				//auto& nerv = nd.GetNonEmptyRowVector();
-				//auto& etaner = td->BuildAndGetEtaner(nerv);
+				// nd.LogNonEmptyRows();
+				// auto& nerv = nd.GetNonEmptyRowVector();
+				// auto& etaner = td->BuildAndGetEtaner(nerv);
 				const auto& serializednd = nd.SerializeNoteData2(td);
-				auto dakine = MinaSDCalc(serializednd,
-										 musicrate,
-										 ssrpercent);
+				auto dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
-				if (remarried)	// maybe recalculated scores should be renamed rescored?
+				if (remarried) // maybe recalculated scores should be renamed
+							   // rescored?
 					SCOREMAN->recalculatedscores.emplace(hs->GetScoreKey());
 
 				td->UnsetEtaner();
@@ -650,6 +653,29 @@ ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
 	AllProfileScores[profileID].emplace_back(hs_);
 }
 
+XNode*
+CalcTestList::CreateNode() const
+{
+	XNode* pl = new XNode("CalcTestList");
+	pl->AppendAttr("Skillset", skillset);
+
+	XNode* cl = new XNode("Chartlist");
+	for (const auto p : filemapping) {
+		XNode* chart = new XNode("Chart");
+		chart->AppendAttr("Key", p.first);
+		chart->AppendAttr("Target", p.second.first);
+		chart->AppendAttr("Rate", p.second.second);
+		cl->AppendChild(chart);
+	}
+
+	if (!cl->ChildrenEmpty())
+		pl->AppendChild(cl);
+	else
+		delete cl;
+
+	return pl;
+}
+
 // Write scores to xml
 XNode*
 ScoresAtRate::CreateNode(const int& rate) const
@@ -770,9 +796,10 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
-		bool getremarried = scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
-			&& scores[sk].GetWifeGrade() != Grade_Failed)
+		bool getremarried =
+		  scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck) &&
+			scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }

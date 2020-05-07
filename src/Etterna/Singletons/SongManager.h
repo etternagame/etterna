@@ -35,6 +35,7 @@ class SongManager
 	~SongManager();
 
 	void InitSongsFromDisk(LoadingWindow* ld);
+	void CalcTestStuff();
 	void FreeSongs();
 	void Cleanup();
 
@@ -172,6 +173,9 @@ class SongManager
 								   // playlist groups
 
 	void FinalizeSong(Song* pNewSong, const RString& dir);
+
+	// combined test list for all profiles
+	map<Skillset, CalcTestList> testChartList;
 
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);

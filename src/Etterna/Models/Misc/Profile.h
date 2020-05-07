@@ -197,6 +197,8 @@ class Profile
 	// Profile Playlists
 	map<string, Playlist> allplaylists;
 
+	map<Skillset, CalcTestList> calctestlists;
+
 	// Editable data
 	RString m_sDisplayName;
 	// Dont edit this. Should be unique (Is it?)

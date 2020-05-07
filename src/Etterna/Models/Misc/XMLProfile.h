@@ -14,7 +14,6 @@ class XMLProfile
   public:
 	static void MoveBackupToDir(const RString& sFromDir, const RString& sToDir);
 
-
 	// Etterna profile
 	ProfileLoadResult LoadEttFromDir(RString dir);
 	bool SaveEttXmlToDir(RString sDir, const Profile* profile) const;
@@ -22,7 +21,6 @@ class XMLProfile
 
   private:
 	Profile* loadingProfile;
-	
 
 	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
 
@@ -32,7 +30,6 @@ class XMLProfile
 	void LoadPermaMirrorFromNode(const XNode* pNode);
 	void LoadScoreGoalsFromNode(const XNode* pNode);
 	void LoadPlaylistsFromNode(const XNode* pNode);
-
 
 	void LoadScreenshotDataFromNode(const XNode* pNode);
 
@@ -44,7 +41,8 @@ class XMLProfile
 	XNode* SavePermaMirrorCreateNode(const Profile* profile) const;
 	XNode* SaveScoreGoalsCreateNode(const Profile* profile) const;
 	XNode* SavePlaylistsCreateNode(const Profile* profile) const;
-
+	XNode* SaveCalcTestCreateNode(const Profile* profile) const;
+	void LoadCalcTestNode(const XNode* pNode) const;
 
 	XNode* SaveScreenshotDataCreateNode(const Profile* profile) const;
 

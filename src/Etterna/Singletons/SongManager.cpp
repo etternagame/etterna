@@ -429,29 +429,34 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	for (auto& pair : cache)
 		delete pair;
 
-	// TESTING TESTING STUFF STUFF
-	vector<float> test_vals[NUM_Skillset];
-	unordered_map<std::string, float> test_charts[NUM_Skillset];
-	test_charts[Skill_Stream] = stream_test;
-	test_charts[Skill_Jumpstream] = js_test;
-	test_charts[Skill_Stamina] = stam_test;
-	test_charts[Skill_Technical] = tech_test;
-	test_charts[Skill_JackSpeed] = jack_test;
-
-	FOREACH_ENUM(Skillset, ss)
-	for (auto& t : test_charts[ss])
-		if (StepsByKey.count(t.first))
-			test_vals[ss].emplace_back(StepsByKey[t.first]->DoATestThing(
-			  test_charts[ss].at(t.first), ss));
-
-	FOREACH_ENUM(Skillset, ss)
-	if (!test_vals[ss].empty())
-		LOG->Trace(
-		  "%+0.2f avg delta for test group %s",
-		  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.f) /
-			test_vals[ss].size(),
-		  SkillsetToString(ss).c_str());
 	cache.clear();
+}
+
+void
+SongManager::CalcTestStuff()
+{
+	vector<float> test_vals[NUM_Skillset];
+
+	// output calc differences for chartkeys and targets and stuff
+	for (auto p : testChartList) {
+		for (auto chart : p.second.filemapping) {
+			auto ss = p.first;
+			if (StepsByKey.count(chart.first))
+				test_vals[ss].emplace_back(
+				  StepsByKey[chart.first]->DoATestThing(chart.second.first,
+														ss));
+		}
+	}
+
+	FOREACH_ENUM(Skillset, ss)
+	{
+		if (!test_vals[ss].empty())
+			LOG->Trace(
+			  "%+0.2f avg delta for test group %s",
+			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.f) /
+				test_vals[ss].size(),
+			  SkillsetToString(ss).c_str());
+	}
 }
 
 void

@@ -207,6 +207,57 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 	return playlists;
 }
 
+XNode*
+XMLProfile::SaveCalcTestCreateNode(const Profile* profile) const
+{
+	CHECKPOINT_M("Saving the Calc Test node.");
+
+	XNode* calctestlists = new XNode("CalcTest");
+	auto& pls = profile->calctestlists;
+	FOREACHM_CONST(Skillset, CalcTestList, pls, i)
+	calctestlists->AppendChild(i->second.CreateNode());
+	return calctestlists;
+}
+
+void
+XMLProfile::LoadCalcTestNode(const XNode* pNode) const
+{
+	CHECKPOINT_M("Loading the Calc Test node.");
+
+	FOREACH_CONST_Child(pNode, chartlist) // "For Each Skillset
+	{
+		int ssI;
+		chartlist->GetAttrValue("Skillset", ssI);
+		Skillset ss = (Skillset)ssI;
+		CalcTestList tl;
+		tl.skillset = ss;
+		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
+		{
+			FOREACH_CONST_Child(uhh, entry) // For Each Chart
+			{
+				RString key;
+				float target;
+				float rate;
+				entry->GetAttrValue("Key", key);
+				entry->GetAttrValue("Target", target);
+				entry->GetAttrValue("Rate", rate);
+				pair<float, float> pf(target, rate);
+				tl.filemapping[key.c_str()] = pf;
+			}
+		}
+		loadingProfile->calctestlists[ss] = tl;
+		if (SONGMAN->testChartList.count(ss)) {
+			for (auto c : tl.filemapping) {
+				// this replaces any duplicates in order of profile load
+				// so ... dont duplicate them i guess
+				// but anything that isnt duplicate is added
+				SONGMAN->testChartList[ss].filemapping[c.first] = c.second;
+			}
+		} else
+			SONGMAN->testChartList[ss] = tl;
+	}
+}
+
 void
 XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
@@ -558,6 +609,10 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 	if (play)
 		LoadPlaylistsFromNode(play);
 
+	const XNode* calctest = xml->GetChild("CalcTest");
+	if (calctest)
+		LoadCalcTestNode(calctest);
+
 	const XNode* scores = xml->GetChild("PlayerScores");
 	if (scores)
 		LoadEttScoresFromNode(scores);
@@ -579,6 +634,9 @@ XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 
 	if (!profile->allplaylists.empty())
 		xml->AppendChild(SavePlaylistsCreateNode(profile));
+
+	if (!profile->calctestlists.empty())
+		xml->AppendChild(SaveCalcTestCreateNode(profile));
 
 	if (!profile->goalmap.empty())
 		xml->AppendChild(SaveScoreGoalsCreateNode(profile));
