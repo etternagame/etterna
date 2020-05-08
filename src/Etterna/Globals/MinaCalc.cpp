@@ -743,11 +743,12 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
 							  doot[StreamMod][i] * doot[Chaos][i] *
 							  doot[WideRangeRoll][i] *
-							  doot[WideRangeJumptrill][i] / doot[OHJump][i];
+							  doot[WideRangeJumptrill][i];
 				break;
 				// jump downscales anything without some jumps
 			case Skill_Jumpstream:
-				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i] * doot[Chaos][i] / doot[Roll][i];
+				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i] *
+							  doot[Chaos][i] / doot[Roll][i];
 				break;
 				// hs downscales anything without some hands
 			case Skill_Handstream:
@@ -761,7 +762,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				break;
 			case Skill_Chordjack: // don't use ms hybrid base
 				adj_diff[i] = soap[BaseNPS][i] * doot[CJ][i] / doot[Roll][i] /
-							  doot[OHJump][i] * doot[CJOHJump][i];
+							  doot[OHJump][i] * doot[CJOHJump][i] *
+							  doot[CJQuad][i];
 				break;
 			case Skill_Technical: // use ms hybrid base
 				adj_diff[i] =
