@@ -1125,8 +1125,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			float brop = CalcClamp(actual_jacks - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
-			  1.6f - (static_cast<float>(quads * 4) / static_cast<float>(taps));
-			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.85f, 1.f);
+			  1.5f - (static_cast<float>(quads * 4) / static_cast<float>(taps));
+			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
 
 			// if (debugmode)
 			//	std::cout << "quads: " << quads<< std::endl;
