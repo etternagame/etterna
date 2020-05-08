@@ -951,6 +951,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 void
 Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
+	static const float min_mod = 0.6f;
 	doot[Jump].resize(nervIntervals.size());
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
@@ -990,18 +991,18 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		if (taps == 0) // nothing here
 			doot[Jump][i] = 1.f;
 		else if (taps < 2) // at least 1 tap but no jumps
-			doot[Jump][i] = 0.8f;
+			doot[Jump][i] = min_mod;
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 20.f / 7.f;
+						 static_cast<float>(taps - 1) * 19.f / 7.f;
 
 			float bromide = CalcClamp(3.f - not_stream, 0.975f, 1.f);
 			// downscale by jack density rather than upscale, like cj
 			float brop = CalcClamp(3.f - actual_jacks, 0.95f, 1.f);
 			// clamp the original prop mod first before applying above
-			float zoot = CalcClamp(sqrt(prop), 0.8f, 1.025f);
-			doot[Jump][i] = CalcClamp(zoot * bromide * brop, 0.8f, 1.025f);
+			float zoot = CalcClamp(sqrt(prop), min_mod, 1.025f);
+			doot[Jump][i] = CalcClamp(zoot * bromide * brop, min_mod, 1.025f);
 		}
 	}
 	if (SmoothPatterns)
@@ -1010,9 +1011,10 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
 void
-Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[])
+Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[CJ].resize(nervIntervals.size());
+	doot[CJQuad].resize(nervIntervals.size());
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
