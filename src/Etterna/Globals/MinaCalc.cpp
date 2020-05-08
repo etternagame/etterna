@@ -338,8 +338,8 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 }
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-								 1.025f; // multiplier to standardize baselines
+static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f *
+								 1.125f; // multiplier to standardize baselines
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -348,11 +348,11 @@ static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.081234f; // stamina multiplier max
+static const float stam_ceil = 1.091234f; // stamina multiplier max
 static const float stam_mag = 373.f;	  // multiplier generation scaler
-static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
+static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
-  0.7444f; // proportion of player difficulty at which stamina tax begins
+  0.72424f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
 // the base difficulty for each skillset and then detect pattern types
@@ -360,8 +360,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,	0.98f, 0.925f, 0.975f,
-												 0.975f, 0.8f,  0.84f,  0.9f };
+static const float basescalers[NUM_Skillset] = { 0.f,	0.98f, 0.92f, 0.97f,
+												 0.94f, 0.8f,  0.84f,  0.9f };
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
@@ -439,7 +439,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// benefits 15% will max out the possible stam rating, which is
 		// (currently) a 1.07 multiplier to the base
 		// maybe using a multiplier and not a difference would be better?
-		static const float stam_curve_shift = 0.025f;
+		static const float stam_curve_shift = 0.015f;
 		// ends up being a multiplier between ~0.8 and ~1
 		float mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5f);
@@ -450,8 +450,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// we don't want to push up the high end stuff anymore so just add to
 		// let stuff down the curve catch up a little
 		// remember we're operating on a multiplier
-		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.07f);
-		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper;
+		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.09f);
+		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper * basescalers[Skill_Stamina];
 
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
@@ -1753,7 +1753,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// for js we lean into max sequences more, since they're better
 			// indicators of inflated difficulty
 			float max_seq_component =
-			  0.65f * (1.1f - static_cast<float>(max_jumps_seq * 2.5) /
+			  0.65f * (1.125f - static_cast<float>(max_jumps_seq * 2.5) /
 										static_cast<float>(totaltaps));
 			max_seq_component = CalcClamp(max_seq_component, 0.f, 0.65f);
 
