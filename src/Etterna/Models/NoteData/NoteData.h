@@ -237,7 +237,7 @@ class NoteData
 	void Init();
 
 	// Mina stuf
-	void LogNonEmptyRows();
+	void LogNonEmptyRows(TimingData* ts);
 	void UnsetNerv() {
 		NonEmptyRowVector.clear();
 		NonEmptyRowVector.shrink_to_fit();
@@ -247,9 +247,9 @@ class NoteData
 		SerializedNoteData.clear();
 		SerializedNoteData.shrink_to_fit();
 	}
-	const vector<int>& BuildAndGetNerv()
+	const vector<int>& BuildAndGetNerv(TimingData* ts)
 	{
-		LogNonEmptyRows();
+		LogNonEmptyRows(ts);
 		return NonEmptyRowVector;
 	}
 	int WifeTotalScoreCalc(TimingData* td,

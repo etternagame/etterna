@@ -1687,7 +1687,7 @@ class LunaHighScore : public Luna<HighScore>
 			  GAMESTATE->m_pCurSteps->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-			auto nerv = nd.BuildAndGetNerv();
+			auto nerv = nd.BuildAndGetNerv(td);
 			auto sdifs = td->BuildAndGetEtaner(nerv);
 			vector<int> noterows;
 			for (auto t : timestamps) {

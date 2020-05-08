@@ -1122,7 +1122,7 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 					tmp.m_StepsType = out.m_StepsType;
 					tmp.SetSMNoteData(noteData);
 					NoteData tnd = tmp.GetNoteData();
-					tnd.LogNonEmptyRows();
+					tnd.LogNonEmptyRows(&tmp.m_Timing);
 
 					auto ck = tmp.GenerateChartKey(tnd, tmp.GetTimingData());
 					if (ck != out.GetChartKey())

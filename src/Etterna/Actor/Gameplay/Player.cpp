@@ -561,7 +561,7 @@ Player::Load()
 	curwifescore = 0.f;
 	maxwifescore = 0.f;
 
-	m_NoteData.LogNonEmptyRows();
+	m_NoteData.LogNonEmptyRows(m_Timing);
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	if (m_pPlayerStageStats != nullptr)
