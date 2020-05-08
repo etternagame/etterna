@@ -853,7 +853,6 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 					local_ceil = stam_ceil * stam_floor;
 				}
 					
-
 			mod = CalcClamp(mod, stam_floor, local_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 		}
@@ -1236,6 +1235,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 
 		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
 		float stub = 0.f;
+		// using something else for chaos for now 
 		// compare each expanded sequence with every other
 		if (false) {
 			vector<float> mmbop;
