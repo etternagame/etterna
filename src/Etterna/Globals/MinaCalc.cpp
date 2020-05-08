@@ -2007,10 +2007,13 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// the unique val is not really used at the moment, basically we filter
 		// out the vectors for stuff way outside the applicable range, like 500
 		// ms hits that would otherwise throw off the variation estimations
+		// unique val is actually used for optimizing cases where you have
+		// absolute pure roll formation and you know youwant to slamjam it,
+		// there's probably a faster way to do the same thing but w.e for now
 		for (auto& v : itv_array)
 			for (auto& n : v) {
-				if (!unique_vals.count(n))
-					unique_vals.insert(n);
+				if (!unique_vals.count(n))	// 0.5% profiler
+					unique_vals.insert(n);	// 1% profiler
 				window_vals.push_back(n);
 			}
 		float v_mean = mean(window_vals);
