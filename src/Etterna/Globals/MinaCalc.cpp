@@ -1030,9 +1030,9 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		unsigned int chordtaps = 0;
 		bool newrow = true;
 		for (int row : nervIntervals[i]) {
-				if (debugmode && newrow)
-					std::cout << "new interval: " << i << " time: "
-							  << NoteInfo[row].rowTime   << std::endl;
+				//if (debugmode && newrow)
+				//	std::cout << "new interval: " << i << " time: "
+				//			  << NoteInfo[row].rowTime   << std::endl;
 				newrow = false;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -1079,10 +1079,14 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_cols = cols;
 		}
 
-		if (taps == 0) // nothing here
+		// nothing here
+		if (taps == 0) {
 			doot[CJ][i] = 1.f;
+			doot[CJQuad][i] = 1.f;
+		}
 		else if (chordtaps == 0) { // there are taps, but no chords
 			doot[CJ][i] = 0.7f;
+			doot[CJQuad][i] = 1.f;
 		} else { // we have at least 1 chord
 			// we want to give a little leeway for single taps but not too much
 			// or sections of [12]4[123]   [123]4[23] will be flagged as
@@ -1091,223 +1095,50 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
 			float prop = static_cast<float>(chordtaps + 1) / static_cast<float>(taps - 1) * 27.f / 7.f;
-			float brop = CalcClamp(actual_jacks - 2.f, 0.65f, 1.f);
+			float brop = CalcClamp(actual_jacks - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
 			  1.6f - (static_cast<float>(quads * 4) / static_cast<float>(taps));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.85f, 1.f);
 
 			
-			if (debugmode)
-				std::cout << "quads: " << quads<< std::endl;
-			if (debugmode)
-				std::cout << "taps: " << taps << std::endl;
-			if (debugmode)
-				std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
-			if (debugmode)
-				std::cout << "actual jacks: " << actual_jacks << std::endl;
-			if (debugmode)
-				std::cout << "not jacks: " << definitely_not_jacks << std::endl;
-			if (debugmode)
-				std::cout << "prop: " << prop << std::endl;
-			if (debugmode)
-				std::cout << "brop: " << brop << std::endl;
+			//if (debugmode)
+			//	std::cout << "quads: " << quads<< std::endl;
+			//if (debugmode)
+			//	std::cout << "taps: " << taps << std::endl;
+			//if (debugmode)
+			//	std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
+			//if (debugmode)
+			//	std::cout << "actual jacks: " << actual_jacks << std::endl;
+			//if (debugmode)
+			//	std::cout << "not jacks: " << definitely_not_jacks << std::endl;
+			//if (debugmode)
+			//	std::cout << "prop: " << prop << std::endl;
+			//if (debugmode)
+			//	std::cout << "brop: " << brop << std::endl;
+
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
 			  CalcClamp(5.f - definitely_not_jacks, 0.5f, 1.f);
 
-			if (debugmode)
-				std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo<< std::endl;
-			doot[CJ][i] =
-			  bruh_too_many_quads *
-			  CalcClamp(brop * brop_two_return_of_brop_electric_bropaloo *
+			//if (debugmode)
+			//	std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo<< std::endl;
+			doot[CJ][i] = CalcClamp(brop * brop_two_return_of_brop_electric_bropaloo *
 						  sqrt(prop),
 			  0.7f,
 			  1.1f);
-			if (debugmode)
-				std::cout << "final mod: " << doot[CJ][i] << "\n"
-						  << std::endl;
+			doot[CJQuad][i] = bruh_too_many_quads;
+			//if (debugmode)
+			//	std::cout << "final mod: " << doot[CJ][i] << "\n"
+			//			  << std::endl;
 		}
 	}
-	if (SmoothPatterns)
+	if (SmoothPatterns) {
 		Smooth(doot[CJ], 1.f);
-}
-
-// try to sniff out chords that are built as flams. BADLY NEEDS REFACTOR
-void
-Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
-					vector<float> doot[],
-					float& music_rate)
-{
-	doot[FlamJam].resize(nervIntervals.size());
-	// scan for flam chords in this window
-	float grouping_tolerance = 11.f;
-	// tracks which columns were seen in the current flam chord
-	// this is essentially the same as if NoteInfo[row].notes
-	// was tracked over multiple rows
-	int cols = 0;
-	// all permutations of these values are unique identifiers
-	int col_id[4] = { 1, 2, 4, 8 };
-	// unused atm but we might want this information, allocate once
-	vector<int> flam_rows(4);
-	// timing points of the elements of the flam chord, allocate once
-	vector<float> flamjam(4);
-	// we don't actually need this counter since we can derive it from cols but
-	// it might just be faster to track it locally since we will be recycling
-	// the flamjam vector memory
-	int flam_row_counter = 0;
-	bool flamjamslamwham = false;
-
-	// in each interval
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// build up flam detection for this interval
-		vector<float> temp_mod;
-
-		// row loop to pick up flams within the interval
-		for (int row : nervIntervals[i]) {
-			// perhaps we should start tracking this instead of tracking it over
-			// and over....
-			float scaled_time = NoteInfo[row].rowTime / music_rate * 1000.f;
-
-			// this can be optimized a lot by properly mapping out the notes
-			// value to arrow combinations (as it is constructed from them) and
-			// deterministic
-
-			// we are traversing intervals->rows->columns
-			for (auto& id : col_id) {
-				// check if there's a note here
-				bool isnoteatcol = NoteInfo[row].notes & id;
-				if (isnoteatcol) {
-					// we're past the tolerance range, break if we have grouped
-					// more than 1 note, or if we have filled an entire quad.
-					// with this behavior if we fill a quad of 192nd flams with
-					// order 1234 and there's still another note on 1 within the
-					// tolerance range we'll flag this as a flam chord and
-					// downscale appropriately, not sure if we want this as it
-					// could be the case that there is a second flamchord
-					// immediately after, and it's just vibro, or it could be
-					// the case that there are complex reasonable patterns
-					// following, perhaps a different behavior would be better
-
-					// we cannot exceed tolerance without at least 1 note
-					bool tol_exceed =
-					  flam_row_counter > 0 &&
-					  (scaled_time - flamjam[0]) > grouping_tolerance;
-
-					if (tol_exceed && flam_row_counter == 1) {
-						// single note, don't flag a detect
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-					if ((tol_exceed && flam_row_counter > 1) ||
-						flam_row_counter == 4)
-						// at least a flam jump has been detected, flag it
-						flamjamslamwham = true;
-
-					// if we have identified a flam chord in some way; handle
-					// and reset, we don't want to skip the notes in this
-					// iteration yes this should be done in the column loop
-					// since a flam can start and end on any columns in any
-					// order
-
-					// conditions to be here are at least 2 different columns
-					// have been logged as part of a flam chord and we have
-					// exceeded the tolerance for flam duration, or we have a
-					// full quad flam detected, though not necessarily exceeding
-					// the tolerance window. we do want to reset if it doesn't,
-					// because we want to pick up vibro flams and nerf them into
-					// oblivion too, i think
-					if (flamjamslamwham) {
-						// we'll construct the final pattern mod value from the
-						// flammyness and number of detected flam chords
-						float mod_part = 0.f;
-
-						// lower means more cheesable means nerf harder
-						float fc_dur =
-						  flamjam[flam_row_counter - 1] - flamjam[0];
-
-						// we don't want to affect explicit chords, but we have
-						// to be sure that the entire flam we've picked up is an
-						// actual chord and only an actual chord, if the first
-						// and last elements detected were on the same row,
-						// ignore it, trying to do fc_dur == 0.f didn't work
-						// because of float precision
-						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
-							// basic linear scale for testing purposes, scaled
-							// to the window length and also flam size
-							mod_part =
-							  fc_dur / grouping_tolerance / flam_row_counter;
-							temp_mod.push_back(mod_part);
-						}
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-						flamjamslamwham = false;
-					}
-
-					// we know chord flams can't contain multiple notes of the
-					// same column (those are just gluts), reset if detected
-					// even within the tolerance range (we can't be outside of
-					// it here by definition)
-					if (cols & id) {
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-
-					// conditions to reach here are that a note in this column
-					// has not been logged yet and we are still within the
-					// grouping tolerance. we don't need cur/last times here,
-					// the time of the first element will be used to determine
-					// the size of the total group
-
-					// track the time point of this note
-					flamjam[flam_row_counter] = scaled_time;
-					// track which row its on
-					flam_rows[flam_row_counter] = row;
-
-					// update unique column identifier
-					cols += id;
-					++flam_row_counter;
-				}
-			}
-		}
-
-		// finishing the row loop leaves us with instances of flamjams
-		// forgive a single instance of a chord flam for now; handle none
-		if (temp_mod.size() < 2)
-			doot[FlamJam][i] = 1.f;
-
-		float wee = 0.f;
-		for (auto& v : temp_mod)
-			wee += v;
-
-		// we can do this for now without worring about /0 since size is at
-		// least 2 to get here
-		wee /= static_cast<float>(temp_mod.size() - 1);
-
-		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
-		doot[FlamJam][i] = wee;
-
-		// reset the stuffs, _theoretically_ since we are sequencing we don't
-		// even need at all to clear the flam detection however then we have
-		// to handle cases like a single note in an interval and i don't feel
-		// like doing that, a small number of flams that happen to straddle
-		// the interval splice points shouldn't make a huge difference, but if
-		// they do then we should deal with it
-		temp_mod.clear();
-		flam_row_counter = 0;
-		cols = 0;
+		Smooth(doot[CJQuad], 1.f);
 	}
-	if (SmoothPatterns)
-		Smooth(doot[FlamJam], 1.f);
+		
 }
 
 // since the calc skillset balance now operates on +- rather than just - and
@@ -1511,6 +1342,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 {
 	doot[Roll].resize(nervIntervals.size());
 	doot[OHJump].resize(nervIntervals.size());
+	doot[CJOHJump].resize(nervIntervals.size());
 	doot[OHTrill].resize(nervIntervals.size());
 	doot[Chaos].resize(nervIntervals.size());
 
@@ -1546,7 +1378,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int jumptaps = 0;	  // more intuitive to count taps in jumps
 		int max_jumps_seq = 0; // basically the biggest sequence of ohj
 		int cur_jumps_seq = 0;
-		float ohj = 0.f;
 		bool newrow = true;
 		for (int row : nervIntervals[i]) {
 		//	if (debugmode && newrow)
@@ -1749,11 +1580,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if this is true we have some combination of single notes and
 		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
-			float zemod =
-			  CalcClamp(pow(static_cast<float>(totaltaps) /
-						  (static_cast<float>(max_jumps_seq) * 2.33f), 2.f),
-						0.6f,
-						1.f);
+			  
 		//	if (debugmode)
 		//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
 
@@ -1761,9 +1588,27 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// 2222[12][12][12]2 differently, so use the
 			// max sequence here exclusively
 			if (max_jumps_seq > 0) {
-				doot[OHJump][i] = zemod;
+
+			// yea i thought we might need to tune ohj downscalers for js and cj
+			// slightly differently
+			doot[OHJump][i] =
+			  CalcClamp(pow(static_cast<float>(totaltaps) /
+							  (static_cast<float>(max_jumps_seq) * 2.5f),
+							2.f),
+						0.5f,
+						1.f);
+
+			// ohjumps in cj can be either easier or harder depending on
+			// context.. so we have to pull back a bit so it doesn't swing too
+			// far when it shouldn't
+			doot[CJOHJump][i] =
+			  CalcClamp(pow(static_cast<float>(totaltaps) /
+							  (static_cast<float>(max_jumps_seq) * 2.33f),
+							2.f),
+						0.6f,
+						1.f);
 			//	if (debugmode)
-			//		std::cout << "zemod: " << zemod << std::endl;
+			//		std::cout << "chohj: " << doot[CJOHJump][i] << std::endl;
 			}
 
 			else { // single note longjacks, do nothing
@@ -1771,12 +1616,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			//		std::cout << "zemod would be but wasn't: " << zemod
 			//				  << std::endl;
 				doot[OHJump][i] = 1.f;
+				doot[CJOHJump][i] = 1.f;
 			}
 
 			// no rolls here by definition
 			doot[Roll][i] = 0.9f;
 			doot[OHTrill][i] = 1.f;
-
 			continue;
 		}
 
@@ -1880,23 +1725,44 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	//			std::cout << "down to end but eze: " << max_jumps_seq
 	//					  << std::endl;
 			doot[OHJump][i] = 1.f;
+			doot[CJOHJump][i] = 1.f;
 		} else {
+			// STANDARD OHJ
+			// for js we lean into max sequences more, since they're better
+			// indicators of inflated difficulty
+			float max_seq_component =
+			  0.65f * (1.1f - static_cast<float>(max_jumps_seq * 2.5) /
+										static_cast<float>(totaltaps));
+			max_seq_component = CalcClamp(max_seq_component, 0.f, 0.65f);
+
+			float prop_component =
+			  0.35f * (1.2f - static_cast<float>(jumptaps) /
+										static_cast<float>(totaltaps));
+			prop_component = CalcClamp(prop_component, 0.f, 0.65f);
+
+			float base_ohj = max_seq_component + prop_component;
+			float ohj = fastsqrt(base_ohj);
+
+			doot[OHJump][i] = CalcClamp(0.1f + ohj, 0.5f, 1.f);
+
+
+			// CH OHJ
 			// we want both the total number of jumps and the max sequence to
 			// count here, with more emphasis on the max sequence, sequence
 			// should be multiplied by 2 (or maybe slightly more?)
-			float max_seq_component =
+			max_seq_component =
 			  0.5f * fastsqrt(1.2f - static_cast<float>(max_jumps_seq * 2) /
 							  static_cast<float>(totaltaps));
 			max_seq_component =
 			  max_seq_component > 0.5f ? 0.5f : max_seq_component;
 							
-			float prop_component =
+			prop_component =
 				0.5f * fastsqrt(1.2f - static_cast<float>(jumptaps) /
 								static_cast<float>(totaltaps));
 			prop_component = prop_component > 0.5f ? 0.5f : prop_component;
 
-			float base_ohj = 0.3f + max_seq_component + prop_component;
-			ohj = fastsqrt(base_ohj);
+			float base_cjohj = 0.3f + max_seq_component + prop_component;
+			float cjohj = fastsqrt(base_cjohj);
 
 		//	if (debugmode)
 		//		std::cout << "jumptaps: "
@@ -1912,7 +1778,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			//if (debugmode)	
 			//	std::cout << "actual prop: " << ohj
 	//					  << std::endl;
-			doot[OHJump][i] = CalcClamp(ohj, 0.5f, 1.f);
+			doot[CJOHJump][i] = CalcClamp(cjohj, 0.5f, 1.f);
 			//if (debugmode)
 			//	std::cout << "final mod: " << doot[OHJump][i] << "\n" << std::endl;
 		}
@@ -1923,6 +1789,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[OHTrill], 1.f);
 		Smooth(doot[OHJump], 1.f);
+		Smooth(doot[CJOHJump], 1.f);
 	}
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
