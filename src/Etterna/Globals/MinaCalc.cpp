@@ -337,6 +337,32 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	return AllIntervals;
 }
 
+// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
+static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
+								 1.025f; // multiplier to standardize baselines
+
+// ***note*** if we want max control over stamina we need to have one model for
+// affecting the other skillsets to a certain degree, enough to push up longer
+// stream ratings into contention with shorter ones, and another for both a more
+// granular and influential modifier to calculate the end stamina rating with
+// so todo on that
+
+// Stamina Model params
+static const float stam_ceil = 1.081234f; // stamina multiplier max
+static const float stam_mag = 373.f;	  // multiplier generation scaler
+static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
+static const float stam_prop =
+  0.7444f; // proportion of player difficulty at which stamina tax begins
+
+// since we are no longer using the normalizer system we need to lower
+// the base difficulty for each skillset and then detect pattern types
+// to push down OR up, rather than just down and normalizing to a differential
+// since chorded patterns have lower enps than streams, streams default to 1
+// and chordstreams start lower
+// stam is a special case and may use normalizers again
+static const float basescalers[NUM_Skillset] = { 0.f,	0.98f, 0.925f, 0.975f,
+												 0.975f, 0.8f,  0.84f,  0.9f };
+
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
@@ -580,31 +606,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	j3 = SequenceJack(NoteInfo, 3, music_rate);
 }
 
-// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-								 1.025f; // multiplier to standardize baselines
-
-// ***note*** if we want max control over stamina we need to have one model for
-// affecting the other skillsets to a certain degree, enough to push up longer
-// stream ratings into contention with shorter ones, and another for both a more
-// granular and influential modifier to calculate the end stamina rating with
-// so todo on that
-
-// Stamina Model params
-static const float stam_ceil = 1.081234f; // stamina multiplier max
-static const float stam_mag = 373.f;	  // multiplier generation scaler
-static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
-static const float stam_prop =
-  0.7444f; // proportion of player difficulty at which stamina tax begins
-
-// since we are no longer using the normalizer system we need to lower
-// the base difficulty for each skillset and then detect pattern types
-// to push down OR up, rather than just down and normalizing to a differential
-// since chorded patterns have lower enps than streams, streams default to 1
-// and chordstreams start lower
-// stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.98f, 0.925f, 0.975f,
-												 0.f, 0.8f,  0.84f, 0.9f };
 float
 Hand::CalcMSEstimate(vector<float>& input)
 {
