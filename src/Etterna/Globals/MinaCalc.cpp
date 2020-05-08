@@ -603,9 +603,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.98f, 0.94f,  0.95f,
+static const float basescalers[NUM_Skillset] = { 0.f, 0.98f, 0.94f, 1.f,
 												 0.f, 0.8f,  0.84f, 0.9f };
-
 float
 Hand::CalcMSEstimate(vector<float>& input)
 {
