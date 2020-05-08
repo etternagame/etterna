@@ -2562,7 +2562,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 }
 
 static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
-
+#pragma region thedoots
 // Function to generate SSR rating
 vector<float>
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
@@ -2615,6 +2615,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
 }
+#pragma endregion
 
 int
 GetCalcVersion()
