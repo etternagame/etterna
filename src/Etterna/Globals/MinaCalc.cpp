@@ -603,7 +603,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f, 0.98f, 0.94f, 1.f,
+static const float basescalers[NUM_Skillset] = { 0.f, 0.98f, 0.925f, 0.975f,
 												 0.f, 0.8f,  0.84f, 0.9f };
 float
 Hand::CalcMSEstimate(vector<float>& input)
@@ -748,12 +748,13 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				// jump downscales anything without some jumps
 			case Skill_Jumpstream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i] *
-							  doot[Chaos][i] / doot[Roll][i];
+							  doot[Chaos][i] / doot[Roll][i] /
+							  sqrt(doot[OHJump][i]);
 				break;
 				// hs downscales anything without some hands
 			case Skill_Handstream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Chaos][i] /
-							  doot[Roll][i];
+							  doot[Roll][i] / sqrt(doot[OHJump][i]);
 				break;
 			case Skill_JackSpeed: // don't use ms hybrid base
 				adj_diff[i] =
