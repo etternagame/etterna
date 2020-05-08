@@ -21,6 +21,7 @@ using std::sqrt;
 using std::unordered_set;
 using std::vector;
 
+#pragma region utils
 // Relies on endiannes (significantly inaccurate)
 inline double
 fastpow(double a, double b)
@@ -227,6 +228,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
 }
+#pragma endregion utils
 
 float
 Calc::JackLoss(const vector<float>& j, float x)
