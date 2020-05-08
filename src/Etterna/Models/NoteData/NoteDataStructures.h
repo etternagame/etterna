@@ -58,6 +58,7 @@ enum CalcPatternMod
 	WideRangeJumptrill,
 	CJOHJump,
 	CJQuad,
+	TheThing,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

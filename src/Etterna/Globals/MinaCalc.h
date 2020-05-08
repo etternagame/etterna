@@ -143,6 +143,10 @@ class Calc
 				 bool stamina,
 				 bool debugoutput = false);
 
+	void TheThingLookerFinderThing(const std::vector<NoteInfo>& NoteInfo,
+								   float music_rate,
+								   std::vector<float> doot[]);
+
 	// nerf psuedo chords that are flams into oblivion
 	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
 					   std::vector<float> doot[],

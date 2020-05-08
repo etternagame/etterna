@@ -168,6 +168,7 @@ local debugGroups = {
     {
         Chaos = true,
         FlamJam = true,
+        TheThing = true,
     },
     {
         WideRangeRoll = true,
@@ -572,6 +573,8 @@ local modnames = {
     "cjohjr",
     "cjql",
     "cjqr",
+    "ttl",
+    "ttr",
     "sl",
     "sr",
     
@@ -610,6 +613,8 @@ local modColors = {
     color("1,0.6,0"),
     color("1,0.7,0"),
     color("1,0.7,0"),
+    color("0,0.7,1"),
+    color("0,0.7,1"),
 }
 
 -- top graph average text
