@@ -840,7 +840,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 					local_ceil = stam_ceil * stam_floor;
 				}
 			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil; 
+				local_ceil = super_stam_ceil;
 			mod = CalcClamp(mod, stam_floor, local_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 			debugValues[2][StamMod][i] = mod;
@@ -856,7 +856,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 					local_ceil = stam_ceil * stam_floor;
 				}
 			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil; 
+				local_ceil = super_stam_ceil;
 			mod = CalcClamp(mod, stam_floor, local_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 		}
@@ -1037,8 +1037,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		for (int row : nervIntervals[i]) {
 			//		if (debugmode && newrow)
 			//			std::cout << "new interval: " << i << " time: "
-		//					  << NoteInfo[row].rowTime   << std::endl;
-		//		newrow = false;
+			//					  << NoteInfo[row].rowTime   << std::endl;
+			//		newrow = false;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes > 1)
@@ -1048,8 +1048,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 			// sequencing stuff
 			unsigned int cols = NoteInfo[row].notes;
-		//	if (debugmode)
-		//		std::cout << "cols: " << cols << std::endl;
+			//	if (debugmode)
+			//		std::cout << "cols: " << cols << std::endl;
 			//	if (debugmode)
 			//		std::cout << "last cols: " << last_cols << std::endl;
 			for (auto& id : col_id) {
@@ -1089,9 +1089,9 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			if (last_was_definitely_not_jacks_maybe)
 				if (!(last_cols & cols)) {
 					++definitely_not_jacks;
-				//	if (debugmode)
-				//		std::cout << "definitely not jack: " << std::endl;
-				// don't reset last_was_definitely_not_jacks_maybe
+					//	if (debugmode)
+					//		std::cout << "definitely not jack: " << std::endl;
+					// don't reset last_was_definitely_not_jacks_maybe
 				}
 
 			// only set for single notes
@@ -1239,7 +1239,7 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 
 		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
 		float stub = 0.f;
-		// using something else for chaos for now 
+		// using something else for chaos for now
 		// compare each expanded sequence with every other
 		if (false) {
 			vector<float> mmbop;
@@ -1407,10 +1407,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		int cur_jumps_seq = 0;
 		bool newrow = true;
 		for (int row : nervIntervals[i]) {
-		//	if (debugmode && newrow)
-		//		std::cout << "new interval: " << i << " time: "
-		//				  << NoteInfo[row].rowTime / music_rate
-		//				  << " hand: " << t1 << std::endl;
+			//	if (debugmode && newrow)
+			//		std::cout << "new interval: " << i << " time: "
+			//				  << NoteInfo[row].rowTime / music_rate
+			//				  << " hand: " << t1 << std::endl;
 			newrow = false;
 			// if (debugmode)
 			//	std::cout << "new row" << std::endl;
@@ -1569,10 +1569,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// shred the ohjump modifier
 			if (thiscol != lastcol && lastcol != -1) {
 				jumptaps -= 1;
-		//		if (debugmode)
-		//			std::cout << "removed jumptap, now: " << jumptaps
-		//					  << std::endl;
-		//		if (debugmode)
+				//		if (debugmode)
+				//			std::cout << "removed jumptap, now: " << jumptaps
+				//					  << std::endl;
+				//		if (debugmode)
 				//			std::cout << "last col is: " << lastcol
 				//					  << std::endl;
 				//		if (debugmode)
@@ -1608,9 +1608,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if this is true we have some combination of single notes and
 		// jumps where the single notes are all on the same column
 		if (cvtaps == 0) {
-			  
-		//	if (debugmode)
-		//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
+
+			//	if (debugmode)
+			//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
 
 			// we don't want to treat 2[12][12][12]2222
 			// 2222[12][12][12]2 differently, so use the
@@ -1622,8 +1622,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				doot[OHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
 								  (static_cast<float>(max_jumps_seq) * 2.5f),
-							2.f),
-						0.5f,
+								2.f),
+							0.5f,
 							1.f);
 
 				// ohjumps in cj can be either easier or harder depending on
@@ -1632,7 +1632,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				doot[CJOHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
 								  (static_cast<float>(max_jumps_seq) * 2.33f),
-							2.f),
+								2.f),
 							0.6f,
 							1.f);
 				//	if (debugmode)
@@ -1641,9 +1641,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			}
 
 			else { // single note longjacks, do nothing
-			//	if (debugmode)
-			//		std::cout << "zemod would be but wasn't: " << zemod
-			//				  << std::endl;
+				   //	if (debugmode)
+				   //		std::cout << "zemod would be but wasn't: " << zemod
+				   //				  << std::endl;
 				doot[OHJump][i] = 1.f;
 				doot[CJOHJump][i] = 1.f;
 			}
@@ -1750,9 +1750,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && max_jumps_seq < 1) {
-	//		if (debugmode)
-	//			std::cout << "down to end but eze: " << max_jumps_seq
-	//					  << std::endl;
+			//		if (debugmode)
+			//			std::cout << "down to end but eze: " << max_jumps_seq
+			//					  << std::endl;
 			doot[OHJump][i] = 1.f;
 			doot[CJOHJump][i] = 1.f;
 		} else {
@@ -1761,12 +1761,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// indicators of inflated difficulty
 			float max_seq_component =
 			  0.65f * (1.125f - static_cast<float>(max_jumps_seq * 2.5) /
-										static_cast<float>(totaltaps));
+								  static_cast<float>(totaltaps));
 			max_seq_component = CalcClamp(max_seq_component, 0.f, 0.65f);
 
 			float prop_component =
 			  0.35f * (1.2f - static_cast<float>(jumptaps) /
-										static_cast<float>(totaltaps));
+								static_cast<float>(totaltaps));
 			prop_component = CalcClamp(prop_component, 0.f, 0.65f);
 
 			float base_ohj = max_seq_component + prop_component;
@@ -1780,19 +1780,19 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// should be multiplied by 2 (or maybe slightly more?)
 			max_seq_component =
 			  0.5f * fastsqrt(1.2f - static_cast<float>(max_jumps_seq * 2) /
-							  static_cast<float>(totaltaps));
+									   static_cast<float>(totaltaps));
 			max_seq_component =
 			  max_seq_component > 0.5f ? 0.5f : max_seq_component;
-							
+
 			prop_component =
-				0.5f * fastsqrt(1.2f - static_cast<float>(jumptaps) /
-								static_cast<float>(totaltaps));
+			  0.5f * fastsqrt(1.2f - static_cast<float>(jumptaps) /
+									   static_cast<float>(totaltaps));
 			prop_component = prop_component > 0.5f ? 0.5f : prop_component;
 
 			float base_cjohj = 0.3f + max_seq_component + prop_component;
 			float cjohj = fastsqrt(base_cjohj);
 
-		//	if (debugmode)
+			//	if (debugmode)
 			//		std::cout << "jumptaps: "
 			//					  << jumptaps << std::endl;
 			//			if (debugmode)
@@ -2387,6 +2387,177 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 
 	if (SmoothPatterns)
 		Smooth(doot[WideRangeJumptrill], 1.f);
+	return;
+}
+
+// look for a thing
+void
+Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
+								float music_rate,
+								vector<float> doot[])
+{
+	doot[TheThing].resize(nervIntervals.size());
+
+	static const float min_mod = 0.75f;
+	static const float max_mod = 1.f;
+	unsigned int itv_window = 3;
+
+	deque<int> itv_taps;
+	deque<int> itv_THINGS;
+
+	int lastcols = -1;
+	int col_ids[4] = { 1, 2, 4, 8 };
+	int the_slip = -1;
+	bool malcom = false;
+	int last_notes = 0;
+	bool the_last_warblers_call = false;
+	bool was23 = false;
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	//	if (debugmode)
+	//		std::cout << "new interval " << i << std::endl;
+
+		int interval_taps = 0;
+		int the_things_found = 0;
+
+		if (itv_taps.size() == itv_window) {
+			itv_taps.pop_front();
+			itv_THINGS.pop_front();
+		}
+
+		//bool newrow = true;
+		for (int row : nervIntervals[i]) {
+			//if (debugmode && newrow)
+			//	std::cout << "new interval: " << i
+			//			  << " time: " << NoteInfo[row].rowTime / music_rate
+			//			  << std::endl;
+			//newrow = false;
+			int notes = column_count(NoteInfo[row].notes);
+			int boot = NoteInfo[row].notes;
+			interval_taps += notes;
+
+			if (notes == 2) {
+				bool is12 = boot & col_ids[0] && boot & col_ids[1];
+				bool is23 = boot & col_ids[1] && boot & col_ids[2];
+				bool is34 = boot & col_ids[2] && boot & col_ids[3];
+				if (the_slip == -1) {
+				//	if (debugmode)
+				//		std::cout << "the slip: " << std::endl;
+					if (is12 || is34) {
+						the_slip = boot;
+				//		if (debugmode)
+				//			std::cout << "the slip is the boot: " << std::endl;
+					}
+					continue;
+				} else {
+			//		if (debugmode)
+			//			std::cout << "two but not the new: " << std::endl;
+					if (is23) {
+						if (was23) {
+			//				if (debugmode)
+			//					std::cout << "you knew to new to yew two ewes: "
+			//							  << std::endl;
+							malcom = false;
+							the_slip = -1;
+							the_last_warblers_call = false;
+							was23 = false;
+							//continue;
+						} else {
+			//				if (debugmode)
+			//					std::cout << "the malcom: " << std::endl;
+							malcom = true;
+							the_last_warblers_call = false;
+							was23 = true;
+							//continue;
+						}
+					} else if (the_slip != boot && malcom &&
+							   the_last_warblers_call && (is12 || is34) &&
+							   !(boot & lastcols)) {
+						the_slip = boot;
+						malcom = false;
+						the_last_warblers_call = false;
+						was23 = false;
+						++the_things_found;
+						//continue;
+					} else {
+						the_slip = -1;
+						malcom = false;
+						the_last_warblers_call = false;
+						was23 = false;
+					//	if (debugmode)
+					//		std::cout << "buckle my shoe reset: " << std::endl;
+						//continue;
+					}
+				}
+			}
+			if (notes == 1) {
+			//	if (debugmode)
+			//		std::cout << "A SINGLE THING O NO: " << std::endl;
+				if (the_last_warblers_call) {
+					the_last_warblers_call = false;
+					malcom = false;
+					the_slip = -1;
+					was23 = false;
+			//		if (debugmode)
+			//			std::cout << "RESET, 2 singles: " << std::endl;
+				} else {
+					if (the_slip != -1 /*&& !(lastcols & boot) */) {
+			//			if (debugmode)
+			//				std::cout
+			//				  << "SLIP ON SLIP UNTIL UR SLIP COME TRUE: "
+			//				  << std::endl;
+						the_last_warblers_call = true;
+					} else {
+						the_last_warblers_call = false;
+						malcom = false;
+						the_slip = -1;
+						was23 = false;
+			//			if (debugmode)
+			//				std::cout << "CABBAGE: " << std::endl;
+					}
+				}
+			}
+
+			if (notes == 3 || notes == 4) {
+				the_last_warblers_call = false;
+				malcom = false;
+				the_slip = -1;
+				was23 = false;
+			//	if (debugmode)
+			//		std::cout << "RESERT, 2 SLIDE 2 FURY: " << std::endl;
+			}
+			lastcols = boot;
+		}
+
+		itv_taps.push_back(interval_taps);
+		itv_THINGS.push_back(max(the_things_found, 0));
+
+		unsigned int window_taps = 0;
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		unsigned int window_things = 0;
+		for (auto& n : itv_THINGS)
+			window_things += n;
+
+		// if (debugmode)
+		//	std::cout << "window taps: " << window_taps << std::endl;
+		//if (debugmode)
+		//	std::cout << "things: " << window_things << std::endl;
+
+		float pmod = 1.f;
+		if (window_things > 0)
+			pmod = static_cast<float>(window_taps) /
+				   static_cast<float>(window_things * 55);
+
+		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
+		//if (debugmode)
+		//	std::cout << "final mod " << doot[TheThing][i] << "\n" << std::endl;
+	}
+
+	if (SmoothPatterns) {
+		Smooth(doot[TheThing], 1.f);
+		Smooth(doot[TheThing], 1.f);
+	}
 	return;
 }
 
