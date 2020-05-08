@@ -1072,20 +1072,11 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 						tl.filemapping[ck] = pf;
 						SONGMAN->testChartList[ss] = tl;
 					}
-					if (pProfile->calctestlists.count(ss)) {
-						pair<float, float> pf(target, 1.f);
-						pProfile->calctestlists[ss].filemapping[ck] = pf;
-					} else {
-						CalcTestList tl;
-						tl.skillset = ss;
-						pair<float, float> pf(target, 1.f);
-						tl.filemapping[ck] = pf;
-						pProfile->calctestlists[ss] = tl;
-					}
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate 1.0",
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str()));
+					SONGMAN->SaveCalcTestXmlToDir();
 					float woo =
 					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
 				}
@@ -1111,21 +1102,12 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 						tl.filemapping[ck] = pf;
 						SONGMAN->testChartList[ss] = tl;
 					}
-					if (pProfile->calctestlists.count(ss)) {
-						pair<float, float> pf(target, rate);
-						pProfile->calctestlists[ss].filemapping[ck] = pf;
-					} else {
-						CalcTestList tl;
-						tl.skillset = ss;
-						pair<float, float> pf(target, rate);
-						tl.filemapping[ck] = pf;
-						pProfile->calctestlists[ss] = tl;
-					}
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate %f",
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str(),
 							   rate));
+					SONGMAN->SaveCalcTestXmlToDir();
 					float woo =
 					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
 				}

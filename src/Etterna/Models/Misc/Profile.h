@@ -17,13 +17,14 @@
 #include <set>
 
 #include <unordered_map>
+using std::string;
 
 class XNode;
 struct lua_State;
 struct Playlist;
 
 // Current file versions
-extern const RString ETT_XML;
+extern const string ETT_XML;
 
 /**
  * @brief The filename where one can edit their personal profile data.
@@ -44,7 +45,7 @@ extern const RString EDITABLE_INI;
  * to their own profile for use in the game unless they also have the "don't
  * share" file.  DontShare contains a piece of information that we can
  * construct using STATS_XML but the user can't construct using STATS_XML. */
-extern const RString DONT_SHARE_SIG;
+extern const string DONT_SHARE_SIG;
 
 extern const RString PUBLIC_KEY_FILE;
 extern const RString SCREENSHOTS_SUBDIR;
@@ -196,8 +197,6 @@ class Profile
 	int m_ListPriority{ 0 };
 	// Profile Playlists
 	map<string, Playlist> allplaylists;
-
-	map<Skillset, CalcTestList> calctestlists;
 
 	// Editable data
 	RString m_sDisplayName;

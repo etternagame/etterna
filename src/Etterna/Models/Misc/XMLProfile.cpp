@@ -22,10 +22,12 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
-const RString ETT_XML = "Etterna.xml";
-const RString ETT_XML_GZ = "Etterna.xml.gz";
+using std::string;
+
+const string ETT_XML = "Etterna.xml";
+const string ETT_XML_GZ = "Etterna.xml.gz";
 /** @brief The filename containing the signature for ETT_XML's signature. */
-const RString DONT_SHARE_SIG = "DontShare.sig";
+const string DONT_SHARE_SIG = "DontShare.sig";
 static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 
 // Loading and saving
@@ -75,12 +77,11 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 	}
 
 ProfileLoadResult
-XMLProfile::LoadEttFromDir(RString dir)
+XMLProfile::LoadEttFromDir(string dir)
 {
-	dir += PROFILEMAN->GetStatsPrefix();
-	profiledir = dir;
+	profiledir = dir + PROFILEMAN->GetStatsPrefix();
 	loadingProfile->IsEtternaProfile = true;
-	RString fn = dir + ETT_XML;
+	string fn = profiledir.append(ETT_XML);
 
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
@@ -101,15 +102,16 @@ XMLProfile::LoadEttFromDir(RString dir)
 }
 
 bool
-XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const
+XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 {
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
-	sDir += PROFILEMAN->GetStatsPrefix();
+	string pDir = sDir + PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
-	RString fn = sDir + ETT_XML;
+	string fn = pDir.append(ETT_XML);
+	string fngz = pDir.append(ETT_XML_GZ);
 	{
-		RString sError;
+		string sError;
 		RageFile f;
 		if (!f.Open(fn, RageFile::WRITE)) {
 			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s",
@@ -129,19 +131,18 @@ XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const
 
 			/* After successfully saving ETT_XML_GZ, remove any stray
 			 * ETT_XML. */
-			if (FILEMAN->IsAFile(sDir + ETT_XML))
-				FILEMAN->Remove(sDir + ETT_XML);
+			if (FILEMAN->IsAFile(fn))
+				FILEMAN->Remove(fn);
 		} else {
 			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
 				return false;
 
 			/* After successfully saving ETT_XML, remove any stray
 			 * ETT_XML_GZ. */
-			if (FILEMAN->IsAFile(sDir + ETT_XML_GZ))
-				FILEMAN->Remove(sDir + ETT_XML_GZ);
+			if (FILEMAN->IsAFile(fngz))
+				FILEMAN->Remove(fngz);
 		}
 	}
-
 	return true;
 }
 
@@ -207,57 +208,6 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 	return playlists;
 }
 
-XNode*
-XMLProfile::SaveCalcTestCreateNode(const Profile* profile) const
-{
-	CHECKPOINT_M("Saving the Calc Test node.");
-
-	XNode* calctestlists = new XNode("CalcTest");
-	auto& pls = profile->calctestlists;
-	FOREACHM_CONST(Skillset, CalcTestList, pls, i)
-	calctestlists->AppendChild(i->second.CreateNode());
-	return calctestlists;
-}
-
-void
-XMLProfile::LoadCalcTestNode(const XNode* pNode) const
-{
-	CHECKPOINT_M("Loading the Calc Test node.");
-
-	FOREACH_CONST_Child(pNode, chartlist) // "For Each Skillset
-	{
-		int ssI;
-		chartlist->GetAttrValue("Skillset", ssI);
-		Skillset ss = (Skillset)ssI;
-		CalcTestList tl;
-		tl.skillset = ss;
-		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
-		{
-			FOREACH_CONST_Child(uhh, entry) // For Each Chart
-			{
-				RString key;
-				float target;
-				float rate;
-				entry->GetAttrValue("Key", key);
-				entry->GetAttrValue("Target", target);
-				entry->GetAttrValue("Rate", rate);
-				pair<float, float> pf(target, rate);
-				tl.filemapping[key.c_str()] = pf;
-			}
-		}
-		loadingProfile->calctestlists[ss] = tl;
-		if (SONGMAN->testChartList.count(ss)) {
-			for (auto c : tl.filemapping) {
-				// this replaces any duplicates in order of profile load
-				// so ... dont duplicate them i guess
-				// but anything that isnt duplicate is added
-				SONGMAN->testChartList[ss].filemapping[c.first] = c.second;
-			}
-		} else
-			SONGMAN->testChartList[ss] = tl;
-	}
-}
-
 void
 XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
@@ -289,7 +239,7 @@ GoalsForChart::LoadFromNode(const XNode* pNode)
 		doot.LoadFromNode(sg);
 		Add(doot);
 	}
-	RString chartkey;
+	string chartkey;
 	pNode->GetAttrValue("Key", chartkey);
 	for (auto& goal : goals)
 		goal.chartkey = chartkey;
@@ -300,7 +250,7 @@ XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 {
 	CHECKPOINT_M("Loading the scoregoals node.");
 
-	RString ck;
+	string ck;
 	FOREACH_CONST_Child(pNode, chgoals)
 	{
 		chgoals->GetAttrValue("Key", ck);
@@ -431,18 +381,15 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 }
 
 void
-XMLProfile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
+XMLProfile::MoveBackupToDir(string sFromDir, string sToDir)
 {
-	if (FILEMAN->IsAFile(sFromDir + ETT_XML) &&
-		FILEMAN->IsAFile(sFromDir + ETT_XML + SIGNATURE_APPEND)) {
-		FILEMAN->Move(sFromDir + ETT_XML, sToDir + ETT_XML);
-		FILEMAN->Move(sFromDir + ETT_XML + SIGNATURE_APPEND,
-					  sToDir + ETT_XML + SIGNATURE_APPEND);
-	} else if (FILEMAN->IsAFile(sFromDir + ETT_XML_GZ) &&
-			   FILEMAN->IsAFile(sFromDir + ETT_XML_GZ + SIGNATURE_APPEND)) {
-		FILEMAN->Move(sFromDir + ETT_XML_GZ, sToDir + ETT_XML);
-		FILEMAN->Move(sFromDir + ETT_XML_GZ + SIGNATURE_APPEND,
-					  sToDir + ETT_XML + SIGNATURE_APPEND);
+	string frompath = sFromDir.append(ETT_XML);
+	string fromsig = frompath.append(SIGNATURE_APPEND);
+	string topath = sToDir.append(ETT_XML);
+	string tosig = topath.append(SIGNATURE_APPEND);
+	if (FILEMAN->IsAFile(frompath) && FILEMAN->IsAFile(fromsig)) {
+		FILEMAN->Move(frompath, topath);
+		FILEMAN->Move(fromsig, tosig);
 	}
 }
 
@@ -452,7 +399,7 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 	CHECKPOINT_M("Loading the general node.");
 	ASSERT(pNode->GetName() == "GeneralData");
 
-	RString s;
+	string s;
 	const XNode* pTemp;
 
 	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
@@ -609,10 +556,6 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 	if (play)
 		LoadPlaylistsFromNode(play);
 
-	const XNode* calctest = xml->GetChild("CalcTest");
-	if (calctest)
-		LoadCalcTestNode(calctest);
-
 	const XNode* scores = xml->GetChild("PlayerScores");
 	if (scores)
 		LoadEttScoresFromNode(scores);
@@ -634,9 +577,6 @@ XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 
 	if (!profile->allplaylists.empty())
 		xml->AppendChild(SavePlaylistsCreateNode(profile));
-
-	if (!profile->calctestlists.empty())
-		xml->AppendChild(SaveCalcTestCreateNode(profile));
 
 	if (!profile->goalmap.empty())
 		xml->AppendChild(SaveScoreGoalsCreateNode(profile));

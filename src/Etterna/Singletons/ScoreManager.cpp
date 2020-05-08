@@ -653,29 +653,6 @@ ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
 	AllProfileScores[profileID].emplace_back(hs_);
 }
 
-XNode*
-CalcTestList::CreateNode() const
-{
-	XNode* pl = new XNode("CalcTestList");
-	pl->AppendAttr("Skillset", skillset);
-
-	XNode* cl = new XNode("Chartlist");
-	for (const auto p : filemapping) {
-		XNode* chart = new XNode("Chart");
-		chart->AppendAttr("Key", p.first);
-		chart->AppendAttr("Target", p.second.first);
-		chart->AppendAttr("Rate", p.second.second);
-		cl->AppendChild(chart);
-	}
-
-	if (!cl->ChildrenEmpty())
-		pl->AppendChild(cl);
-	else
-		delete cl;
-
-	return pl;
-}
-
 // Write scores to xml
 XNode*
 ScoresAtRate::CreateNode(const int& rate) const

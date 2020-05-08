@@ -12,11 +12,11 @@ class XNode;
 class XMLProfile
 {
   public:
-	static void MoveBackupToDir(const RString& sFromDir, const RString& sToDir);
+	static void MoveBackupToDir(std::string sFromDir, std::string sToDir);
 
 	// Etterna profile
-	ProfileLoadResult LoadEttFromDir(RString dir);
-	bool SaveEttXmlToDir(RString sDir, const Profile* profile) const;
+	ProfileLoadResult LoadEttFromDir(std::string dir);
+	bool SaveEttXmlToDir(std::string sDir, const Profile* profile) const;
 	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
 
   private:
@@ -41,12 +41,9 @@ class XMLProfile
 	XNode* SavePermaMirrorCreateNode(const Profile* profile) const;
 	XNode* SaveScoreGoalsCreateNode(const Profile* profile) const;
 	XNode* SavePlaylistsCreateNode(const Profile* profile) const;
-	XNode* SaveCalcTestCreateNode(const Profile* profile) const;
-	void LoadCalcTestNode(const XNode* pNode) const;
-
 	XNode* SaveScreenshotDataCreateNode(const Profile* profile) const;
 
-	RString profiledir;
+	std::string profiledir;
 };
 
 #endif

@@ -174,9 +174,11 @@ class SongManager
 
 	void FinalizeSong(Song* pNewSong, const RString& dir);
 
-	// combined test list for all profiles
+	// calc test stuff
+	XNode* SaveCalcTestCreateNode() const;
+	void LoadCalcTestNode() const;
+	void SaveCalcTestXmlToDir() const;
 	map<Skillset, CalcTestList> testChartList;
-
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
 	void LoadDWISongDir(const RString& sDir);

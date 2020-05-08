@@ -39,6 +39,8 @@
 #include "NetworkSyncManager.h"
 #include <numeric>
 
+using std::string;
+
 // AUTOMATED CALC TEST STUFF FIND BETTER PLACE TO PUT
 // chart key and rough desired output value
 static unordered_map<std::string, float> js_test = {
@@ -174,6 +176,7 @@ SongManager::InitAll(LoadingWindow* ld)
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk(ld);
+	LoadCalcTestNode();
 }
 
 static LocalizedString RELOADING("SongManager", "Reloading...");
@@ -1685,6 +1688,103 @@ makePlaylist(const RString& answer)
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
+static const string calctest_XML = "CalcTestList";
+
+XNode*
+CalcTestList::CreateNode() const
+{
+	XNode* pl = new XNode("CalcTestList");
+	pl->AppendAttr("Skillset", skillset);
+
+	XNode* cl = new XNode("Chartlist");
+	for (const auto p : filemapping) {
+		XNode* chart = new XNode("Chart");
+		Chart loot;
+		loot.FromKey(p.first);
+		chart->AppendAttr("aKey", p.first);
+		chart->AppendAttr("zSong", loot.lastsong);
+		chart->AppendAttr("cTarget", ssprintf("%.2f", p.second.first));
+		chart->AppendAttr("bRate", ssprintf("%.2f", p.second.second));
+		cl->AppendChild(chart);
+	}
+
+	if (!cl->ChildrenEmpty())
+		pl->AppendChild(cl);
+	else
+		delete cl;
+
+	return pl;
+}
+
+void
+  SongManager::LoadCalcTestNode() const
+{
+	string fn = "Save/" + calctest_XML;
+	int iError;
+	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL) {
+		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+		return;
+	}
+
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return;
+
+	CHECKPOINT_M("Loading the Calc Test node.");
+
+	FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
+	{
+		int ssI;
+		chartlist->GetAttrValue("Skillset", ssI);
+		Skillset ss = (Skillset)ssI;
+		CalcTestList tl;
+		tl.skillset = ss;
+		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
+		{
+			FOREACH_CONST_Child(uhh, entry) // For Each Chart
+			{
+				RString key;
+				float target;
+				float rate;
+				entry->GetAttrValue("aKey", key);
+				entry->GetAttrValue("bRate", rate);
+				entry->GetAttrValue("cTarget", target);
+				pair<float, float> pf(target, rate);
+				tl.filemapping[key.c_str()] = pf;
+			}
+		}
+		SONGMAN->testChartList[ss] = tl;
+	}
+}
+
+XNode*
+SongManager::SaveCalcTestCreateNode() const
+{
+	CHECKPOINT_M("Saving the Calc Test node.");
+
+	XNode* calctestlists = new XNode("CalcTest");
+	FOREACHM_CONST(Skillset, CalcTestList, testChartList, i)
+		calctestlists->AppendChild(i->second.CreateNode());
+	return calctestlists;
+}
+
+void
+SongManager::SaveCalcTestXmlToDir() const
+{
+	string fn = "Save/" + calctest_XML;
+	  // calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
+	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
+	string err;
+	RageFile f;
+	if (!f.Open(fn, RageFile::WRITE)) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+		return;
+	}
+	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
