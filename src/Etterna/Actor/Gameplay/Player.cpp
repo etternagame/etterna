@@ -570,7 +570,7 @@ Player::Load()
 	m_NoteData.UnsetSerializedNoteData();
 
 	if (m_pPlayerStageStats != nullptr) {
-		if (m_Timing->HasWarps())
+		if (m_Timing->HasWarps() || m_Timing->HasFakes())
 			m_pPlayerStageStats->filehadnegbpms = true;
 
 		// check before nomines transform
