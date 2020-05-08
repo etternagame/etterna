@@ -149,6 +149,7 @@ activeMods[#activeMods+1] = "StamMod"
 local debugGroups = {
     {
         OHJump = true,
+        CJOHJump = true,
         Anchor = true
     },
     {
@@ -157,7 +158,8 @@ local debugGroups = {
     },
     {
         Jump = true,
-        CJ = true
+        CJ = true,
+        CJQuad = true,
     },
     {
         StreamMod = true,
@@ -169,6 +171,7 @@ local debugGroups = {
     },
     {
         WideRangeRoll = true,
+        WideRangeJumptrill = true,
         StamMod = true
     },
     {},
