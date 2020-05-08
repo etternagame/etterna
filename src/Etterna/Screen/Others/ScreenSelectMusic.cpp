@@ -1095,8 +1095,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		} else if (words.size() == 3) {
 			try {
 				float target = stof(words[0]);
-				Skillset ss = (Skillset)stoi(words[1]);
-				float rate = stof(words[2]);
+				float rate = stof(words[1]);
+				Skillset ss = (Skillset)stoi(words[2]);
 				if (ss < 0 || ss >= NUM_Skillset)
 					SCREENMAN->SystemMessage("invalid skillset number");
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
