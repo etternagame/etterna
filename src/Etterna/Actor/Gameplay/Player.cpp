@@ -2996,7 +2996,7 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 
 		// Ms scoring implemenation - Mina
 		if (tns == TNS_HitMine)
-			curwifescore -= wife3_miss_weight;
+			curwifescore += wife3_mine_hit_weight;
 
 		if (m_pPlayerStageStats != nullptr) {
 			if (maxwifescore == 0.f)
@@ -3078,7 +3078,7 @@ Player::SetJudgment(int iRow,
 
 		if (m_pPlayerStageStats != nullptr) {
 			if (tns == TNS_Miss)
-				curwifescore -= wife3_miss_weight;
+				curwifescore += wife3_miss_weight;
 			else
 				curwifescore +=
 				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
@@ -3191,7 +3191,7 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 			// Ms scoring implemenation - Mina
 			if (tn.HoldResult.hns == HNS_LetGo ||
 				tn.HoldResult.hns == HNS_Missed)
-				curwifescore -= wife3_hold_drop_weight;
+				curwifescore += wife3_hold_drop_weight;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("CurWifeScore", curwifescore);
