@@ -338,8 +338,8 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 }
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-static const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f *
-								 1.125f; // multiplier to standardize baselines
+static const float finalscaler =
+  2.564f * 1.05f * 1.1f * 1.10f * 1.125f; // multiplier to standardize baselines
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -360,8 +360,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,	0.98f, 0.92f, 0.97f,
-												 0.94f, 0.8f,  0.84f,  0.9f };
+static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.92f, 0.97f,
+												 0.94f, 0.8f,  0.84f, 0.9f };
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
@@ -451,7 +451,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// let stuff down the curve catch up a little
 		// remember we're operating on a multiplier
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.09f);
-		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper * basescalers[Skill_Stamina];
+		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
+								 basescalers[Skill_Stamina];
 
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
