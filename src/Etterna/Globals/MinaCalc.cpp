@@ -2618,5 +2618,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 286;
+	return 287;
 }
