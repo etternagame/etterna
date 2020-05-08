@@ -570,6 +570,10 @@ Player::Load()
 	m_NoteData.UnsetSerializedNoteData();
 
 	if (m_pPlayerStageStats != nullptr) {
+		// if we can ensure that files that have fakes or warps no longer
+		// inflate file rating, we can actually lift this restriction, look into
+		// it for 0.70 calc release, related: we can look at solo upload stuff
+		// as well
 		if (m_Timing->HasWarps() || m_Timing->HasFakes())
 			m_pPlayerStageStats->filehadnegbpms = true;
 
