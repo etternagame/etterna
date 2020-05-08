@@ -820,40 +820,38 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
-	float super_stam_ceil = 1.1f;
+	const float super_stam_ceil = 1.115f;
 
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
 	if (debug)
 		for (size_t i = 0; i < diff.size(); i++) {
-			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil;
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 1.f)
-				if (stam_floor < local_ceil) {
+				if (stam_floor <= local_ceil) {
 					stam_floor += (mod - 1.f) / stam_fscale;
 					local_ceil = stam_ceil * stam_floor;
 				}
-
+			if (local_ceil > super_stam_ceil)
+				local_ceil = super_stam_ceil; 
 			mod = CalcClamp(mod, stam_floor, local_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 			debugValues[2][StamMod][i] = mod;
 		}
 	else
 		for (size_t i = 0; i < diff.size(); i++) {
-			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil;
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 1.f)
-				if (stam_floor < local_ceil) {
+				if (stam_floor <= local_ceil) {
 					stam_floor += (mod - 1.f) / stam_fscale;
 					local_ceil = stam_ceil * stam_floor;
 				}
-					
+			if (local_ceil > super_stam_ceil)
+				local_ceil = super_stam_ceil; 
 			mod = CalcClamp(mod, stam_floor, local_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 		}
