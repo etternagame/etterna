@@ -1025,15 +1025,16 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
 		int quads = 0;
+		bool last_was_definitely_not_jacks_maybe = false;
 
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
-		bool newrow = true;
+		//bool newrow = true;
 		for (int row : nervIntervals[i]) {
-				//if (debugmode && newrow)
-				//	std::cout << "new interval: " << i << " time: "
-				//			  << NoteInfo[row].rowTime   << std::endl;
-				newrow = false;
+		//		if (debugmode && newrow)
+		//			std::cout << "new interval: " << i << " time: "
+		//					  << NoteInfo[row].rowTime   << std::endl;
+		//		newrow = false;
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes > 1)
@@ -1045,8 +1046,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			unsigned int cols = NoteInfo[row].notes;
 		//	if (debugmode)
 		//		std::cout << "cols: " << cols << std::endl;
-			//if (debugmode)
-			//	std::cout << "last cols: " << last_cols << std::endl;
+		//	if (debugmode)
+		//		std::cout << "last cols: " << last_cols << std::endl;
 			for (auto& id : col_id) {
 				//if (debugmode)
 				//	std::cout << "cur id: " << id << std::endl;
@@ -1066,16 +1067,37 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 					break;
 				}
 			}
-				
 
-			// this reads pretty jank but since notes == 1, cols isn't cols, but
-			// a single col, and we can bitwise check to see if this is a jack
-			// or not, if it isn't then we have what should identify as
-			// chordstream not chordjack and we should appropriately punish
+			// probably should be refactored/simplified, we want to know if we
+			// have a bunch of stuff like [123]4[123] [12]3[124] which isn't
+			// actually chordjack, its just broken hs/js, and in fact with the
+			// level of leniency that is currently being applied to generic
+			// proportions, lots of heavy js/hs is being counted as cj for their
+			// 2nd rating, and by a close margin too, we can't just look for
+			// [123]4, we need to finish the sequence to be sure
+			// i _think_ we only want to do this for single notes, we could
+			// abstract it to a more generic pattern template, but let's be
+			// restrictive for now
 
-			// this doesn't actually work atm but w.e... may not need it
-			if (notes == 1 && !last_cols & cols)
-				++definitely_not_jacks;
+			// run the second check first, look for 3 rows in a row with no
+			// columns shared
+			if (last_was_definitely_not_jacks_maybe)
+				if (!(last_cols & cols)) {
+					++definitely_not_jacks;
+				//	if (debugmode)
+				//		std::cout << "definitely not jack: " << std::endl;
+				// don't reset last_was_definitely_not_jacks_maybe
+				}
+
+			// only set for single notes
+			if (notes == 1)
+				if (!(last_cols & cols)) {
+					//if (debugmode)
+					//	std::cout << "maybe not jack: " << std::endl;
+					last_was_definitely_not_jacks_maybe = true;
+				} else {
+					last_was_definitely_not_jacks_maybe = false;
+				}
 			last_cols = cols;
 		}
 
