@@ -522,6 +522,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	right_hand.doot[HS] = left_hand.doot[HS];
 	right_hand.doot[Jump] = left_hand.doot[Jump];
 	right_hand.doot[CJ] = left_hand.doot[CJ];
+	right_hand.doot[CJQuad] = left_hand.doot[CJQuad];
 	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
 	right_hand.doot[Chaos] = left_hand.doot[Chaos];
 	right_hand.doot[FlamJam] = left_hand.doot[FlamJam];
