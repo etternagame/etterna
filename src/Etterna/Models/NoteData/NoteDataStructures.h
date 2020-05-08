@@ -55,7 +55,9 @@ enum CalcPatternMod
 	Chaos,
 	FlamJam,
 	WideRangeRoll,
-	//WideRangeJumptrill,
+	WideRangeJumptrill,
+	CJOHJump,
+	CJQuad,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

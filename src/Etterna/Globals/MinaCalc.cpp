@@ -2365,7 +2365,7 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 								float music_rate,
 								vector<float> doot[])
 {
-	doot[OHTrill].resize(nervIntervals.size());
+	doot[WideRangeJumptrill].resize(nervIntervals.size());
 
 	static const float min_mod = 0.25f;
 	static const float max_mod = 1.f;
@@ -2472,13 +2472,13 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 			  static_cast<float>(window_taps) /
 			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
 
-		doot[OHTrill][i] = CalcClamp(pmod, min_mod, max_mod);
+		doot[WideRangeJumptrill][i] = CalcClamp(pmod, min_mod, max_mod);
 		// if (debugmode)
 		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" << std::endl;
 	}
 
 	if (SmoothPatterns)
-		Smooth(doot[OHTrill], 1.f);
+		Smooth(doot[WideRangeJumptrill], 1.f);
 	return;
 }
 
