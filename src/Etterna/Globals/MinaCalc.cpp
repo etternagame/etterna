@@ -2358,6 +2358,182 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 	return;
 }
 
+// try to sniff out chords that are built as flams. BADLY NEEDS REFACTOR
+void
+Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
+					vector<float> doot[],
+					float& music_rate)
+{
+	doot[FlamJam].resize(nervIntervals.size());
+	// scan for flam chords in this window
+	float grouping_tolerance = 11.f;
+	// tracks which columns were seen in the current flam chord
+	// this is essentially the same as if NoteInfo[row].notes
+	// was tracked over multiple rows
+	int cols = 0;
+	// all permutations of these values are unique identifiers
+	int col_id[4] = { 1, 2, 4, 8 };
+	// unused atm but we might want this information, allocate once
+	vector<int> flam_rows(4);
+	// timing points of the elements of the flam chord, allocate once
+	vector<float> flamjam(4);
+	// we don't actually need this counter since we can derive it from cols but
+	// it might just be faster to track it locally since we will be recycling
+	// the flamjam vector memory
+	int flam_row_counter = 0;
+	bool flamjamslamwham = false;
+
+	// in each interval
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// build up flam detection for this interval
+		vector<float> temp_mod;
+
+		// row loop to pick up flams within the interval
+		for (int row : nervIntervals[i]) {
+			// perhaps we should start tracking this instead of tracking it over
+			// and over....
+			float scaled_time = NoteInfo[row].rowTime / music_rate * 1000.f;
+
+			// this can be optimized a lot by properly mapping out the notes
+			// value to arrow combinations (as it is constructed from them) and
+			// deterministic
+
+			// we are traversing intervals->rows->columns
+			for (auto& id : col_id) {
+				// check if there's a note here
+				bool isnoteatcol = NoteInfo[row].notes & id;
+				if (isnoteatcol) {
+					// we're past the tolerance range, break if we have grouped
+					// more than 1 note, or if we have filled an entire quad.
+					// with this behavior if we fill a quad of 192nd flams with
+					// order 1234 and there's still another note on 1 within the
+					// tolerance range we'll flag this as a flam chord and
+					// downscale appropriately, not sure if we want this as it
+					// could be the case that there is a second flamchord
+					// immediately after, and it's just vibro, or it could be
+					// the case that there are complex reasonable patterns
+					// following, perhaps a different behavior would be better
+
+					// we cannot exceed tolerance without at least 1 note
+					bool tol_exceed =
+					  flam_row_counter > 0 &&
+					  (scaled_time - flamjam[0]) > grouping_tolerance;
+
+					if (tol_exceed && flam_row_counter == 1) {
+						// single note, don't flag a detect
+						flamjamslamwham = false;
+
+						// reset
+						flam_row_counter = 0;
+						cols = 0;
+					}
+					if ((tol_exceed && flam_row_counter > 1) ||
+						flam_row_counter == 4)
+						// at least a flam jump has been detected, flag it
+						flamjamslamwham = true;
+
+					// if we have identified a flam chord in some way; handle
+					// and reset, we don't want to skip the notes in this
+					// iteration yes this should be done in the column loop
+					// since a flam can start and end on any columns in any
+					// order
+
+					// conditions to be here are at least 2 different columns
+					// have been logged as part of a flam chord and we have
+					// exceeded the tolerance for flam duration, or we have a
+					// full quad flam detected, though not necessarily exceeding
+					// the tolerance window. we do want to reset if it doesn't,
+					// because we want to pick up vibro flams and nerf them into
+					// oblivion too, i think
+					if (flamjamslamwham) {
+						// we'll construct the final pattern mod value from the
+						// flammyness and number of detected flam chords
+						float mod_part = 0.f;
+
+						// lower means more cheesable means nerf harder
+						float fc_dur =
+						  flamjam[flam_row_counter - 1] - flamjam[0];
+
+						// we don't want to affect explicit chords, but we have
+						// to be sure that the entire flam we've picked up is an
+						// actual chord and only an actual chord, if the first
+						// and last elements detected were on the same row,
+						// ignore it, trying to do fc_dur == 0.f didn't work
+						// because of float precision
+						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
+							// basic linear scale for testing purposes, scaled
+							// to the window length and also flam size
+							mod_part =
+							  fc_dur / grouping_tolerance / flam_row_counter;
+							temp_mod.push_back(mod_part);
+						}
+
+						// reset
+						flam_row_counter = 0;
+						cols = 0;
+						flamjamslamwham = false;
+					}
+
+					// we know chord flams can't contain multiple notes of the
+					// same column (those are just gluts), reset if detected
+					// even within the tolerance range (we can't be outside of
+					// it here by definition)
+					if (cols & id) {
+						flamjamslamwham = false;
+
+						// reset
+						flam_row_counter = 0;
+						cols = 0;
+					}
+
+					// conditions to reach here are that a note in this column
+					// has not been logged yet and we are still within the
+					// grouping tolerance. we don't need cur/last times here,
+					// the time of the first element will be used to determine
+					// the size of the total group
+
+					// track the time point of this note
+					flamjam[flam_row_counter] = scaled_time;
+					// track which row its on
+					flam_rows[flam_row_counter] = row;
+
+					// update unique column identifier
+					cols += id;
+					++flam_row_counter;
+				}
+			}
+		}
+
+		// finishing the row loop leaves us with instances of flamjams
+		// forgive a single instance of a chord flam for now; handle none
+		if (temp_mod.size() < 2)
+			doot[FlamJam][i] = 1.f;
+
+		float wee = 0.f;
+		for (auto& v : temp_mod)
+			wee += v;
+
+		// we can do this for now without worring about /0 since size is at
+		// least 2 to get here
+		wee /= static_cast<float>(temp_mod.size() - 1);
+
+		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
+		doot[FlamJam][i] = wee;
+
+		// reset the stuffs, _theoretically_ since we are sequencing we don't
+		// even need at all to clear the flam detection however then we have
+		// to handle cases like a single note in an interval and i don't feel
+		// like doing that, a small number of flams that happen to straddle
+		// the interval splice points shouldn't make a huge difference, but if
+		// they do then we should deal with it
+		temp_mod.clear();
+		flam_row_counter = 0;
+		cols = 0;
+	}
+	if (SmoothPatterns)
+		Smooth(doot[FlamJam], 1.f);
+}
+
 static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
 
 // Function to generate SSR rating
