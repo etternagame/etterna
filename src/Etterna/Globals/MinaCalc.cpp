@@ -2489,8 +2489,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 	bool the_last_warblers_call = false;
 	bool was23 = false;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-	//	if (debugmode)
-	//		std::cout << "new interval " << i << std::endl;
+		//	if (debugmode)
+		//		std::cout << "new interval " << i << std::endl;
 
 		int interval_taps = 0;
 		int the_things_found = 0;
@@ -2926,5 +2926,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 287;
+	return 289;
 }
