@@ -360,7 +360,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.9f,  0.92f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.9f,  0.9f,
 												 0.94f, 0.8f,  0.84f, 0.8f };
 
 vector<float>
@@ -1087,15 +1087,15 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 27.f / 7.f;
+						 static_cast<float>(taps - 1) * 19.f / 7.f;
 
 			// maybe the better solution would instead of
 			// downscaling not js and jacks, just upscale js ??
 
 			// punish lots splithand jumptrills
 			float bromide = CalcClamp(
-			  1.5f - (static_cast<float>(not_js) / static_cast<float>(taps)),
-			  0.9f,
+			  1.45f - (static_cast<float>(not_js) / static_cast<float>(taps)),
+			  0.85f,
 			  1.f);
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
