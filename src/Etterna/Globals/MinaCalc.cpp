@@ -903,6 +903,9 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[HS].resize(nervIntervals.size());
 
+	static const float min_mod = 0.6f;
+	static const float max_mod = 1.1f;
+
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
