@@ -5,7 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include "NoteDataStructures.h"
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "SoloCalc.h"
 
 // using std::vector;
