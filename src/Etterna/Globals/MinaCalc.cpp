@@ -796,7 +796,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			// do funky special case stuff here, we want hs to count against js
 			// so they are mutually exclusive
 			case Skill_Jumpstream:
-				adj_diff[i] /= max(doot[HS][i], 1.f);
+				adj_diff[i] /= max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
 				break;
 			case Skill_Handstream:
 				adj_diff[i] /= fastsqrt(doot[OHJump][i]);
@@ -861,7 +861,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
-	const float super_stam_ceil = 1.1f;
+	const float super_stam_ceil = 1.11f;
 
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
