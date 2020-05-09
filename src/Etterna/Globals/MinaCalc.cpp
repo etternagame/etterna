@@ -521,8 +521,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// at least for the moment there are a few mods we want to apply evenly
 	// to all skillset, so pre-multiply them in these after they're generated
-	left_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
-	right_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
+	//left_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
+	//right_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
 
 	ProcessedFingers fingers;
 	for (int i = 0; i < 4; i++)
@@ -594,14 +594,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// it's probably time to loop over hands more sensibly or
 	// do this stuff inside the class
-	for (int i = 0; i < numitv; ++i) {
+	/*for (int i = 0; i < numitv; ++i) {
 		left_hand.pre_multiplied_pattern_mod_group_a[i] =
 		  left_hand.doot[Roll][i] * left_hand.doot[OHJump][i] *
 		  left_hand.doot[Anchor][i];
 		right_hand.pre_multiplied_pattern_mod_group_a[i] =
 		  right_hand.doot[Roll][i] * right_hand.doot[OHJump][i] *
 		  right_hand.doot[Anchor][i];
-	}
+	}*/
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
@@ -724,8 +724,45 @@ Calc::Chisel(float player_skill,
 void
 Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 {
+	vector<int> pmods_used[NUM_Skillset] = {
+		// overall, nothing, don't handle here
+		{},
+
+		// stream
+		{
+		  StreamMod,
+		  Roll,
+		  Chaos,
+		  WideRangeRoll,
+		  WideRangeJumptrill,
+		  FlamJam,
+		  OHJump,
+		  Anchor,
+		},
+
+		// js - deal with making hs count against this below
+		{ Jump, Chaos, OHJump, TheThing, Anchor },
+
+		// hs
+		{ HS, Chaos, OHJump, TheThing, Anchor },
+
+		// stam, nothing, don't handle here
+		{},
+
+		// jackspeed, ignore for now
+		{},
+
+		// chordjack
+		{ CJ, CJQuad, CJOHJump, Anchor},
+
+		// tech, ignore for now
+		{Anchor, Chaos, Roll, WideRangeJumptrill, WideRangeRoll, FlamJam},
+
+	};
+
 	// we're going to recycle adj_diff for this part
 	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
+#pragma region zz
 		// the new way we wil attempt to diffrentiate skillsets rather than
 		// using normalizers is by detecting whether or not we think a file is
 		// mostly comprised of a given pattern, producing a downscaler that
@@ -741,49 +778,38 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		// if we don't do this files may end up misclassing hard and polluting
 		// leaderboards, and good scores on overrated files will simply produce
 		// high ratings in every category
+#pragma endregion
+
+		float tp_mod = 1.f;
+		for (auto& pmod : pmods_used[ss])
+			tp_mod *= doot[pmod][i];
+		adj_diff[i] = soap[BaseNPS][i] * tp_mod;
 		switch (ss) {
-				// streammod downscales anything not single tap focused
-			case Skill_Stream:
-				adj_diff[i] = soap[BaseNPS][i] * doot[FlamJam][i] *
-							  doot[StreamMod][i] * doot[Chaos][i] *
-							  doot[WideRangeRoll][i] *
-							  doot[WideRangeJumptrill][i];
-				break;
-				// jump downscales anything without some jumps
+			// do funky special case stuff here, we want hs to count against js
+			// so they are mutually exclusive
 			case Skill_Jumpstream:
-				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i] *
-							  doot[Chaos][i] / doot[Roll][i] /
-							  sqrt(doot[OHJump][i]) * doot[TheThing][i] /
-							  max(doot[HS][i], 1.f);
+				adj_diff[i] /= max(doot[HS][i], 1.f);
 				break;
-				// hs downscales anything without some hands
-			case Skill_Handstream:
-				adj_diff[i] = soap[BaseNPS][i] * doot[HS][i] * doot[Chaos][i] /
-							  doot[Roll][i] / sqrt(doot[OHJump][i]) *
-							  doot[TheThing][i];
-				break;
-			case Skill_JackSpeed: // don't use ms hybrid base
-				adj_diff[i] =
-				  soap[BaseMSD][i] *
-				  max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
-				break;
-			case Skill_Chordjack: // don't use ms hybrid base
-				adj_diff[i] = soap[BaseNPS][i] * doot[CJ][i] / doot[Roll][i] /
-							  doot[OHJump][i] * doot[CJOHJump][i] *
-							  doot[CJQuad][i];
-				break;
-			case Skill_Technical: // use ms hybrid base
-				adj_diff[i] =
-				  soap[BaseMSD][i] * doot[Chaos][i] *
-				  max(max(doot[StreamMod][i], doot[Jump][i]), doot[HS][i]);
-				break;
-			case Skill_Stamina: // handled up the stack, never happens here
-			case Skill_Overall: // handled up the stack, never happens here
+			case Skill_Technical:
+				// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
+				{
+					vector<float> scoring_justice_warrior_agenda(NUM_Skillset -
+																 1);
+					for (int j = 0; j < NUM_Skillset - 1; ++j) {
+						float temp_tp_mod = 1.f * basescalers[j];
+						for (auto& pmod : pmods_used[j])
+							temp_tp_mod *= doot[pmod][i];
+						scoring_justice_warrior_agenda[j] = temp_tp_mod;
+					}
+					float muzzle =
+					  *std::max_element(scoring_justice_warrior_agenda.begin(),
+										scoring_justice_warrior_agenda.end());
+					adj_diff[i] = soap[BaseMSD][i] * muzzle * tp_mod;
+				}
 				break;
 		}
 
-		// we always want to apply these mods, i think (roll, anchor, ohjump)
-		adj_diff[i] *= pre_multiplied_pattern_mod_group_a[i] * basescalers[ss];
+		adj_diff[i] *= basescalers[ss];
 	}
 
 	if (stam)
@@ -840,9 +866,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 					stam_floor += (mod - 1.f) / stam_fscale;
 					local_ceil = stam_ceil * stam_floor;
 				}
-			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil;
-			mod = CalcClamp(mod, stam_floor, local_ceil);
+			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 			debugValues[2][StamMod][i] = mod;
 		}
@@ -856,9 +880,8 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 					stam_floor += (mod - 1.f) / stam_fscale;
 					local_ceil = stam_ceil * stam_floor;
 				}
-			if (local_ceil > super_stam_ceil)
-				local_ceil = super_stam_ceil;
-			mod = CalcClamp(mod, stam_floor, local_ceil);
+
+			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 		}
 }
