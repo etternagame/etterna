@@ -1141,6 +1141,7 @@ uploadSequentially()
 bool
 DownloadManager::UploadScores()
 {
+	return false;
 	if (!LoggedIn())
 		return false;
 
