@@ -361,7 +361,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.9f,  0.92f,
-												 0.94f, 0.8f,  0.84f, 0.975f };
+												 0.94f, 0.8f,  0.84f, 0.8f };
 
 vector<float>
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
