@@ -384,11 +384,11 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 	vector<float> tmp = diffByRate[idx];
 	vector<pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
-		if (ss != Skill_Overall || includeoverall)
-			mort.emplace_back(ss, tmp[ss]);
+	if (ss != Skill_Overall || includeoverall)
+		mort.emplace_back(ss, tmp[ss]);
 	std::sort(mort.begin(), mort.end(), [](auto& a, auto& b) -> bool {
-			return a.second > b.second;
-		});
+		return a.second > b.second;
+	});
 	return mort;
 }
 
@@ -399,7 +399,10 @@ Steps::CalcEtternaMetadata()
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	diffByRate = MinaSDCalc(cereal);
+	if (m_StepsType == StepsType_dance_solo)
+		diffByRate = SoloCalc(cereal);
+	else
+		diffByRate = MinaSDCalc(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -443,7 +446,7 @@ Steps::GetCalcDebugOutput()
 	// makes calc display not update with rate changes
 	// don't feel like making this fancy and it's fast
 	// enough now i guess
-	//if (!calcdebugoutput.empty())
+	// if (!calcdebugoutput.empty())
 	//	return;
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
@@ -455,7 +458,7 @@ Steps::GetCalcDebugOutput()
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93f,
 					calcdebugoutput);
-  
+
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
@@ -888,10 +891,14 @@ class LunaSteps : public Luna<Steps>
 		auto& ni = nd.SerializeNoteData(etaner);
 		if (ni.size() == 0)
 			return 0;
+		std::vector<float> d;
 
-		std::vector<float> d = MinaSDCalc(ni, rate, goal);
+		if (p->m_StepsType == StepsType_dance_solo)
+			d = SoloCalc(ni, rate, goal);
+		else
+			d = MinaSDCalc(ni, rate, goal);
+
 		auto ssrs = d;
-
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
@@ -899,7 +906,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 0.7f, 2.f);
-		int rank = IArg(2) - 1;	// indexing
+		int rank = IArg(2) - 1; // indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		float relevance_cutoff = 0.9f;
 		float rval = sortedskillsets[rank].second;
