@@ -975,7 +975,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[HSJ][i] = 1.f;
 		}
 		// look ma no hands
-		else if (taps < 3) {
+		else if (handtaps < 3) {
 			doot[HS][i] = min_mod;
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
@@ -1079,7 +1079,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[JSJ][i] = 1.f;
 		}
 		// at least 1 tap but no jumps
-		else if (taps < 2) {
+		else if (jumptaps < 2) {
 			doot[JS][i] = min_mod;
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
@@ -1865,14 +1865,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		  dswip * 0.25f;
 
 		// some weird anchor problems can cause sqrt(-f) here so...
-		if (Cv > 0.01f) {
+		if (Cv > 0.000000000000000000000000000000001f) {
 			Cv = fastsqrt(Cv) - 0.1f;
 			Cv += barf;
 			Cv *= barf2;
 			doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
-		}
-
-		else
+		} else
 			doot[Roll][i] = 1.f;
 
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
