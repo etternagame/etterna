@@ -2677,7 +2677,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 		float pmod = 1.f;
 		if (window_things > 0)
 			pmod = static_cast<float>(window_taps) /
-				   static_cast<float>(window_things * 66);
+				   static_cast<float>(window_things * 55);
 
 		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
 		// if (debugmode)
