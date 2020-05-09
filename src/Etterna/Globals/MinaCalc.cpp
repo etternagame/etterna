@@ -352,7 +352,7 @@ static const float stam_ceil = 1.091234f; // stamina multiplier max
 static const float stam_mag = 373.f;	  // multiplier generation scaler
 static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
-  0.72424f; // proportion of player difficulty at which stamina tax begins
+  0.69424f; // proportion of player difficulty at which stamina tax begins
 
 // since we are no longer using the normalizer system we need to lower
 // the base difficulty for each skillset and then detect pattern types
