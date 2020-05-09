@@ -377,7 +377,7 @@ function scoreBoard(pn, position)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
 					local ws = "Wife" .. wv .. " J"
-					if params.Name == "PrevJudge" and judge2 > 1 then
+					if params.Name == "PrevJudge" and judge2 > 4 then
 						judge2 = judge2 - 1
 						rescorepercent = getRescoredWife3Judge(2, judge2, rescoretable)
 						self:settextf(
