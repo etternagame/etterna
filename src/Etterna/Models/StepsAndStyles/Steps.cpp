@@ -420,6 +420,10 @@ Steps::CalcEtternaMetadata()
 float
 Steps::DoATestThing(float ev, Skillset ss)
 {
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return 0.f;
+
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
@@ -450,6 +454,11 @@ Steps::GetCalcDebugOutput()
 	//	return;
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
+
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return;
+
 	Decompress();
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData());
@@ -1007,7 +1016,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][0][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][0][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1022,7 +1033,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][1][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][1][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1037,7 +1050,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][2][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][2][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
