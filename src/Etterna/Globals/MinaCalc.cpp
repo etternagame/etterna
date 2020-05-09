@@ -753,7 +753,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			case Skill_Jumpstream:
 				adj_diff[i] = soap[BaseNPS][i] * doot[Jump][i] *
 							  doot[Chaos][i] / doot[Roll][i] /
-							  sqrt(doot[OHJump][i]) * doot[TheThing][i];
+							  sqrt(doot[OHJump][i]) * doot[TheThing][i] /
+							  max(doot[HS][i], 1.f);
 				break;
 				// hs downscales anything without some hands
 			case Skill_Handstream:
