@@ -1124,17 +1124,21 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	doot[CJS].resize(nervIntervals.size());
 	doot[CJJ].resize(nervIntervals.size());
 	doot[CJQuad].resize(nervIntervals.size());
+	int last_cols = 0;
+	set<unsigned int> hi;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		hi.clear();
 		// sequencing stuff
 		int actual_jacks = 0;
 		int definitely_not_jacks = 0;
-		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
 		int quads = 0;
 		bool last_was_definitely_not_jacks_maybe = false;
 
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
+		bool no_finger_swips = true;
+		
 		// bool newrow = true;
 		for (int row : nervIntervals[i]) {
 			//		if (debugmode && newrow)
@@ -1150,6 +1154,10 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 			// sequencing stuff
 			unsigned int cols = NoteInfo[row].notes;
+			if (cols != last_cols)
+				no_finger_swips = false;
+
+			hi.emplace(cols);
 			//	if (debugmode)
 			//		std::cout << "cols: " << cols << std::endl;
 			//	if (debugmode)
@@ -1266,6 +1274,10 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[CJS][i] = brop_two_return_of_brop_electric_bropaloo;
 			doot[CJJ][i] = brop;
 			doot[CJQuad][i] = bruh_too_many_quads;
+
+			// ITS JUST VIBRO THEN
+			if (no_finger_swips || hi.size() < 3)
+				doot[CJ][i] *= 0.85f;
 			// if (debugmode)
 			//	std::cout << "final mod: " << doot[CJ][i] << "\n"
 			//			  << std::endl;
