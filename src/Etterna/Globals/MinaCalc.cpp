@@ -1741,7 +1741,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// too far when it shouldn't
 				doot[CJOHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
-								  (static_cast<float>(max_jumps_seq) * 2.6f),
+								  (static_cast<float>(max_jumps_seq) * 2.33f),
 								2.f),
 							0.6f,
 							1.f);
