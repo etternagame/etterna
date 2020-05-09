@@ -2502,7 +2502,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 
 		bool newrow = true;
 		for (int row : nervIntervals[i]) {
-			//if (debugmode && newrow)
+			// if (debugmode && newrow)
 			//	std::cout << "new interval: " << i
 			//			  << " time: " << NoteInfo[row].rowTime / music_rate
 			//			  << std::endl;
@@ -2533,7 +2533,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						the_slip = boot;
 						//	if (debugmode)
 						//		std::cout << "the slip is the boot: " <<
-						//std::endl;
+						// std::endl;
 					}
 				} else {
 					// if (debugmode)
@@ -2542,7 +2542,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						if (was23) {
 							//		if (debugmode)
 							//			std::cout << "you knew to new to yew two
-							//ewes: "
+							// ewes: "
 							//					  << std::endl;
 							malcom = false;
 							the_slip = -1;
@@ -2551,7 +2551,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						} else {
 							//		if (debugmode)
 							//			std::cout << "the malcom: " <<
-							//std::endl;
+							// std::endl;
 							malcom = true;
 							the_last_warblers_call = false;
 							was23 = true;
@@ -2582,10 +2582,10 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						if (is12 || is34) {
 							the_slip = boot;
 							//		if (debugmode)
-							//			std::cout << "three four out the door: " <<
+							//			std::cout << "three four out the door: "
+							//<<
 							// std::endl;
-							}
-						else
+						} else
 							the_slip = -1;
 						malcom = false;
 						the_last_warblers_call = false;
@@ -2611,9 +2611,9 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						bool das_same = false;
 						for (auto& id : col_ids)
 							if (boot & id && lastcols & id) {
-								//if (debugmode)
+								// if (debugmode)
 								//	std::cout << "wtf boot:" << id << std::endl;
-								//if (debugmode)
+								// if (debugmode)
 								//	std::cout << "wtf id: " << id << std::endl;
 								das_same = true;
 								break;
