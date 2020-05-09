@@ -798,6 +798,9 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			case Skill_Jumpstream:
 				adj_diff[i] /= max(doot[HS][i], 1.f);
 				break;
+			case Skill_Handstream:
+				adj_diff[i] /= fastsqrt(doot[OHJump][i]);
+				break;
 			case Skill_Technical:
 				// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
 				{
