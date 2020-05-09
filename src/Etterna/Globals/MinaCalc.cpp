@@ -937,7 +937,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		if (taps == 0) // nothing here
 			doot[HS][i] = 1.f;
 		else if (taps < 3) // look ma no hands
-			doot[HS][i] = 0.8f;
+			doot[HS][i] = min_mod;
 		else { // at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = static_cast<float>(handtaps + 1) /
@@ -947,8 +947,8 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// downscale by jack density rather than upscale, like cj
 			float brop = CalcClamp(3.f - actual_jacks, 0.8f, 1.f);
 			// clamp the original prop mod first before applying above
-			float zoot = CalcClamp(sqrt(prop), 0.8f, 1.025f);
-			doot[HS][i] = CalcClamp(zoot * bromide * brop, 0.8f, 1.025f);
+			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
+			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 		}
 	}
 
@@ -959,13 +959,14 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 void
 Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	static const float min_mod = 0.6f;
 	doot[Jump].resize(nervIntervals.size());
+	static const float min_mod = 0.6f;
+	static const float max_mod = 1.1f;
 
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
-		int not_stream = 0;
+		int not_js = 0;
 		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
 
@@ -988,10 +989,12 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// some cases with ohjump downscaler so we can't go too ham
 			if (last_notes == 1)
 				if (notes == 1)
-					++not_stream;
+					++not_js;
 			if (last_notes > 1)
-				if (notes > 1)
-					++not_stream;
+				if (notes > 1) {
+					not_js += notes;
+				}
+
 			last_notes = notes;
 			last_cols = cols;
 		}
@@ -1003,14 +1006,28 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 19.f / 7.f;
+						 static_cast<float>(taps - 1) * 18.f / 7.f;
 
-			float bromide = CalcClamp(3.f - not_stream, 0.975f, 1.f);
-			// downscale by jack density rather than upscale, like cj
-			float brop = CalcClamp(3.f - actual_jacks, 0.95f, 1.f);
+			// maybe the better solution would instead of
+			// downscaling not js and jacks, just upscale js ??
+
+			// punish lots splithand jumptrills
+			float bromide = CalcClamp(
+			  1.5f - (static_cast<float>(not_js) / static_cast<float>(taps)),
+			  0.85f,
+			  1.f);
+			// downscale by jack density rather than upscale like cj
+			// ok we can't be lazy about this or ippon manzone is js
+			// (it's not)
+			// theoretically the ohjump downscaler should handle this but
+			// handling it here gives us more flixbility with the ohjump mod
+			float brop = CalcClamp(1.35f - (static_cast<float>(actual_jacks) /
+											static_cast<float>(taps)),
+								   0.5f,
+								   1.f);
 			// clamp the original prop mod first before applying above
-			float zoot = CalcClamp(sqrt(prop), min_mod, 1.025f);
-			doot[Jump][i] = CalcClamp(zoot * bromide * brop, min_mod, 1.025f);
+			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
+			doot[Jump][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 		}
 	}
 	if (SmoothPatterns)
