@@ -1045,12 +1045,11 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 				(notes > 1 && last_notes == 1))
 				if (!twas_jack)
 					seriously_not_js -= 3;
-
-			// suppress jumptrilly garbage a little bit, this is redundant in
-			// some cases with ohjump downscaler so we can't go too ham
+			
+			// FOLLOW THE RULES
 			if (last_notes == 1)
 				if (notes == 1) {
-					++not_js;
+					//++not_js;
 					seriously_not_js = max(seriously_not_js, 0);
 					++seriously_not_js;
 
@@ -1062,6 +1061,8 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 						not_js += seriously_not_js;
 				}
 
+			// suppress jumptrilly garbage a little bit, this is redundant in
+			// some cases with ohjump downscaler so we can't go too ham
 			if (last_notes > 1)
 				if (notes > 1) {
 					not_js += notes;
@@ -1086,15 +1087,15 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 20.f / 7.f;
+						 static_cast<float>(taps - 1) * 27.f / 7.f;
 
 			// maybe the better solution would instead of
 			// downscaling not js and jacks, just upscale js ??
 
 			// punish lots splithand jumptrills
 			float bromide = CalcClamp(
-			  1.45f - (static_cast<float>(not_js) / static_cast<float>(taps)),
-			  0.88f,
+			  1.5f - (static_cast<float>(not_js) / static_cast<float>(taps)),
+			  0.9f,
 			  1.f);
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
