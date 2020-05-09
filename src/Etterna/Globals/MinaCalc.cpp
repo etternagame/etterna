@@ -934,7 +934,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
-		int not_stream = 0;
+		int not_hs = 0;
 		int last_cols = 0;
 		int col_id[4] = { 1, 2, 4, 8 };
 
@@ -954,10 +954,10 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 					++actual_jacks;
 
 			// suppress jumptrilly garbage a little bit
-			if (last_notes == 1 && notes > 1)
-				++not_stream;
-			else if (last_notes > 1 && notes == 1)
-				++not_stream;
+			if (last_notes == 1 && notes == 1)
+				++not_hs;
+			else if (last_notes > 1 && notes > 1)
+				not_hs+= notes;
 			last_notes = notes;
 			last_cols = cols;
 		}
@@ -968,12 +968,18 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[HS][i] = min_mod;
 		else { // at least 1 hand
 			// when bark of dog into canyon scream at you
-			float prop = static_cast<float>(handtaps + 1) /
-						 static_cast<float>(taps - 1) * 32.f / 7.f;
+			float prop = 0.4f + (static_cast<float>(handtaps + 1) /
+						 static_cast<float>(taps - 1) * 32.f / 7.f);
 
-			float bromide = CalcClamp(4.f - not_stream, 0.975f, 1.f);
+			float bromide = CalcClamp(
+			  1.45f - (static_cast<float>(not_hs) / static_cast<float>(taps)),
+			  0.89f,
+			  1.f);
 			// downscale by jack density rather than upscale, like cj
-			float brop = CalcClamp(3.f - actual_jacks, 0.8f, 1.f);
+			float brop = CalcClamp(1.35f - (static_cast<float>(actual_jacks) /
+											static_cast<float>(taps)),
+								   0.5f,
+								   1.f);
 			// clamp the original prop mod first before applying above
 			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
