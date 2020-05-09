@@ -225,8 +225,13 @@ StringToSkillset(const RString& s)
 	return Skill_Overall;
 }
 
-static const char* CalcPatternModNames[] = { "OHJump", "Anchor", "Roll", "HS",
-											 "Jump",   "CJ",	 "StreamMod", "OHTrill", "Chaos" , "FlamJam", "WideRangeRoll", "WideRangeJumptrill", "CJOHJump", "CJQuad", "TheThing"};
+static const char* CalcPatternModNames[] = { "OHJump",
+											 "Anchor",
+											 "Roll",
+											 "HS",
+											 "HSS",
+											 "HSJ",
+											 "JS", "JSS", "JSJ",  "CJ",	"CJS", "CJJ", "StreamMod", "OHTrill", "Chaos" , "FlamJam", "WideRangeRoll", "WideRangeJumptrill", "CJOHJump", "CJQuad", "TheThing"};
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 

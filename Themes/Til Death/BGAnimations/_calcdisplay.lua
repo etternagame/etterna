@@ -73,7 +73,7 @@ local function convertPercentToIndexForMods(x)
     if output < 0 then output = 0 end
     if output > 1 then output = 1 end
 
-    local ind = notShit.round(output * #graphVecs["Jump"][1])
+    local ind = notShit.round(output * #graphVecs["JS"][1])
     if ind < 1 then ind = 1 end
     return ind
 end
@@ -148,32 +148,45 @@ activeMods[#activeMods+1] = "StamMod"
 -- the 0th one is reserved for ssr graph toggle
 local debugGroups = {
     {
-        OHJump = true,
-        CJOHJump = true,
-        Anchor = true
-    },
-    {
-        Roll = true,
-        HS = true
-    },
-    {
-        Jump = true,
-        CJ = true,
-        CJQuad = true,
-    },
-    {
         StreamMod = true,
         OHTrill = true,
+		OHJump = true,
+		StamMod = true
+    },
+	{
+		Roll = true,
+		WideRangeRoll = true,
+		WideRangeJumptrill = true
+	},
+    {
+        JS = true,
+        JSS = true,
+        JSJ = true,
+        OHJump = true,
+		TheThing = true,
+		StamMod = true
+    },
+	{
+        HS = true,
+        HSS = true,
+        HSJ = true,
+		OHJump = true,
+		TheThing = true,
+		StamMod = true
+	},
+    {
+        CJ = true,
+        CJS = true,
+        CJJ = true,
+        CJQuad = true,
+        CJOHJump = true,
+		StamMod = true
     },
     {
         Chaos = true,
         FlamJam = true,
         TheThing = true,
-    },
-    {
-        WideRangeRoll = true,
-        WideRangeJumptrill = true,
-        StamMod = true
+		Anchor = true
     },
     {},
     {},
@@ -553,10 +566,22 @@ local modnames = {
     "rollr",
     "hsl",
     "hsr",
+    "hssl",
+    "hssr",
+    "hsjl",
+    "hsjr",
     "jsl",
     "jsr",
+    "jssl",
+    "jssr",
+    "jsjl",
+    "jsjr",
     "cjl",
     "cjr",
+    "cjsl",
+    "cjsr",
+    "cjjl",
+    "cjjr",
     "stl",
     "str",
     "ohtl",
@@ -581,38 +606,38 @@ local modnames = {
 }
 
 local modColors = {
-    color("1,0,0"),         -- red          = ohjump left
-    color("0.8,0.2,0.2"),   -- light red         (right)
-    color("0,0,1"),         -- blue         = anchor left
-    color("0.2,0.2,0.8"),   -- light blue        (right)
+    color("1,0.8,0"),       -- gold			= ohjump left
+    color("1,1,0.2"), 		-- yellow        	 (right)
+    color("0.2,0.2,1"),     -- blue         = anchor left
+    color("0.3,0.3,0.9"),   -- light blue        (right)
     color("0,1,0"),         -- green        = roll left
     color("0.3,0.9,0.3"),   -- light green       (right)
     color("1,1,0"),         -- yellow       = handstream left
     color("0.6,0.6,0"),     -- dark yellow      (right)
-    color("1,0,1"),         -- purple       = jumpstream left
-    color("1,0.3,1"),        -- light purple      (right)
-    color("1.4,1.3,1"),       
-    color("1.4,1.3,0.9"),
-    color(".4,1.3,1"),       
-    color(".4,1.3,0.9"),
-    color(".7,1.3,1"),       
-    color(".7,1.3,0.9"),
-    color(".4,0.9,0.3"),       
-    color(".4,0.9,0.3"),
-    color(".4,0.5,0.59"),       
-    color(".4,0.3,0.49"),
-    color("1,0.2,0"),
-    color("1,0.2,0"),
-    color("1,0.3,0"),
-    color("1,0.3,0"),
-    color("1,0.4,0"),
-    color("1,0.4,0"),
-    color("1,0.5,0"),
-    color("1,0.5,0"),
-    color("1,0.6,0"),
-    color("1,0.6,0"),
-    color("1,0.7,0"),
-    color("1,0.7,0"),
+    color("1,0,1"),     	-- purple       = jumpstream left
+    color("1,0.3,1"),   	-- light purple      (right)
+    color("1.4,1.3,1"),     -- white 		= chordjack left
+    color("1.4,1.3,0.9"),   -- white			 (right)
+    color(".3,1.3,1"),      -- cyan			= stream left
+    color(".3,1.3,0.9"),	-- cyan				 (right)
+    color(".8,1.3,1"),      -- whiteblue	= oht left
+    color(".8,1.3,0.9"),	-- whiteblue		 (right)
+    color(".4,0.9,0.3"),    -- green		= chaos left
+    color(".4,0.9,0.3"),	-- green			 (right)
+    color(".4,0.5,0.59"),   -- teal			= flamjam left
+    color(".4,0.3,0.49"),   -- dark purple		 (right)
+    color("1,0.2,0"),		-- red			= wrr left
+    color("1,0.2,0"),		-- red				 (right)
+    color("1,0.5,0"),		-- orange		= wrjt left
+    color("1,0.5,0"),		-- orange			 (right)
+    color("1,0.4,0"),		-- orange		= cjohj left
+    color("1,0.4,0"),		-- orange			 (right)
+    color("1,1,0"),			-- yellow		= cjquad left
+    color("1,1,0"),			-- yellow			 (right)
+    color("0,0.8,1"),		-- light blue	= thething left
+    color("0,0.8,1"),		-- light blue		 (right)
+    color("0.7,1,0"),		-- lime			= stam left
+    color("0.7,1,0"),		-- lime				 (right)
     color("0,0.7,1"),
     color("0,0.7,1"),
 }

@@ -348,7 +348,7 @@ static const float finalscaler =
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.091234f; // stamina multiplier max
+static const float stam_ceil = 1.071234f; // stamina multiplier max
 static const float stam_mag = 373.f;	  // multiplier generation scaler
 static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
@@ -360,7 +360,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.9f,  0.94f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.98f, 0.9f,  0.92f,
 												 0.94f, 0.8f,  0.84f, 0.975f };
 
 vector<float>
@@ -552,8 +552,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	right_hand.doot[HS] = left_hand.doot[HS];
-	right_hand.doot[Jump] = left_hand.doot[Jump];
+	right_hand.doot[HSS] = left_hand.doot[HSS];
+	right_hand.doot[HSJ] = left_hand.doot[HSJ];
+	right_hand.doot[JS] = left_hand.doot[JS];
+	right_hand.doot[JSS] = left_hand.doot[JSS];
+	right_hand.doot[JSJ] = left_hand.doot[JSJ];
 	right_hand.doot[CJ] = left_hand.doot[CJ];
+	right_hand.doot[CJS] = left_hand.doot[CJS];
+	right_hand.doot[CJJ] = left_hand.doot[CJJ];
 	right_hand.doot[CJQuad] = left_hand.doot[CJQuad];
 	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
 	right_hand.doot[Chaos] = left_hand.doot[Chaos];
@@ -743,7 +749,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		},
 
 		// js - deal with making hs count against this below
-		{ Jump, Chaos, OHJump, TheThing, Anchor },
+		{ JS, Chaos, OHJump, TheThing, Anchor },
 
 		// hs
 		{ HS, Chaos, OHJump, TheThing, Anchor },
@@ -761,7 +767,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		{Anchor, Chaos, Roll, WideRangeJumptrill, WideRangeRoll, FlamJam},
 
 	};
-
+	vector<float> scoring_justice_warrior_agenda(NUM_Skillset - 1);
 	// we're going to recycle adj_diff for this part
 	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
 #pragma region zz
@@ -795,8 +801,6 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			case Skill_Technical:
 				// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
 				{
-					vector<float> scoring_justice_warrior_agenda(NUM_Skillset -
-																 1);
 					for (int j = 0; j < NUM_Skillset - 1; ++j) {
 						float temp_tp_mod = 1.f * basescalers[j];
 						for (auto& pmod : pmods_used[j])
@@ -854,7 +858,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
-	const float super_stam_ceil = 1.115f;
+	const float super_stam_ceil = 1.1f;
 
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
@@ -927,6 +931,8 @@ void
 Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[HS].resize(nervIntervals.size());
+	doot[HSS].resize(nervIntervals.size());
+	doot[HSJ].resize(nervIntervals.size());
 
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
@@ -962,10 +968,18 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_cols = cols;
 		}
 
-		if (taps == 0) // nothing here
+		// nothing here
+		if (taps == 0) {
 			doot[HS][i] = 1.f;
-		else if (taps < 3) // look ma no hands
+			doot[HSS][i] = 1.f;
+			doot[HSJ][i] = 1.f;
+		}
+		// look ma no hands
+		else if (taps < 3) {
 			doot[HS][i] = min_mod;
+			doot[HSS][i] = 1.f;
+			doot[HSJ][i] = 1.f;
+		}
 		else { // at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = 0.4f + (static_cast<float>(handtaps + 1) /
@@ -983,6 +997,8 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// clamp the original prop mod first before applying above
 			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
+			doot[HSS][i] = bromide;
+			doot[HSJ][i] = brop;
 		}
 	}
 
@@ -993,7 +1009,9 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 void
 Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
-	doot[Jump].resize(nervIntervals.size());
+	doot[JS].resize(nervIntervals.size());
+	doot[JSS].resize(nervIntervals.size());
+	doot[JSJ].resize(nervIntervals.size());
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
 
@@ -1014,11 +1032,19 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			if (notes == 2)
 				jumptaps += 2;
 
+			bool twas_jack = false;
 			// sequencing stuff
 			unsigned int cols = NoteInfo[row].notes;
 			for (auto& id : col_id)
-				if (cols & id && last_cols & id)
+				if (cols & id && last_cols & id) {
 					++actual_jacks;
+					twas_jack = true;
+				}
+
+			if ((last_notes > 1 && notes == 1) ||
+				(notes > 1 && last_notes == 1))
+				if (!twas_jack)
+					seriously_not_js -= 3;
 
 			// suppress jumptrilly garbage a little bit, this is redundant in
 			// some cases with ohjump downscaler so we can't go too ham
@@ -1033,28 +1059,34 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 					// this stop rolls between jumps getting floated up too
 					// high
 					if (seriously_not_js > 3)
-						not_js += 0;
-				} else {
-					seriously_not_js -= 3;
+						not_js += seriously_not_js;
 				}
 
 			if (last_notes > 1)
 				if (notes > 1) {
 					not_js += notes;
-				}
+				}	
 
 			last_notes = notes;
 			last_cols = cols;
 		}
 
-		if (taps == 0) // nothing here
-			doot[Jump][i] = 1.f;
-		else if (taps < 2) // at least 1 tap but no jumps
-			doot[Jump][i] = min_mod;
+		// nothing here
+		if (taps == 0) {
+			doot[JS][i] = 1.f;
+			doot[JSS][i] = 1.f;
+			doot[JSJ][i] = 1.f;
+		}
+		// at least 1 tap but no jumps
+		else if (taps < 2) {
+			doot[JS][i] = min_mod;
+			doot[JSS][i] = 1.f;
+			doot[JSJ][i] = 1.f;
+		}
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 19.f / 7.f;
+						 static_cast<float>(taps - 1) * 20.f / 7.f;
 
 			// maybe the better solution would instead of
 			// downscaling not js and jacks, just upscale js ??
@@ -1062,7 +1094,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// punish lots splithand jumptrills
 			float bromide = CalcClamp(
 			  1.45f - (static_cast<float>(not_js) / static_cast<float>(taps)),
-			  0.89f,
+			  0.88f,
 			  1.f);
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
@@ -1074,12 +1106,14 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 								   0.5f,
 								   1.f);
 			// clamp the original prop mod first before applying above
-			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
-			doot[Jump][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
+			float zoot = CalcClamp(fastsqrt(prop), min_mod, max_mod);
+			doot[JS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
+			doot[JSS][i] = bromide;
+			doot[JSJ][i] = brop;
 		}
 	}
 	if (SmoothPatterns)
-		Smooth(doot[Jump], 1.f);
+		Smooth(doot[JS], 1.f);
 }
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
@@ -1087,6 +1121,8 @@ void
 Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
 	doot[CJ].resize(nervIntervals.size());
+	doot[CJS].resize(nervIntervals.size());
+	doot[CJJ].resize(nervIntervals.size());
 	doot[CJQuad].resize(nervIntervals.size());
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
@@ -1175,9 +1211,13 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		// nothing here
 		if (taps == 0) {
 			doot[CJ][i] = 1.f;
+			doot[CJS][i] = 1.f;
+			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
 		} else if (chordtaps == 0) { // there are taps, but no chords
 			doot[CJ][i] = 0.7f;
+			doot[CJS][i] = 1.f;
+			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
 		} else { // we have at least 1 chord
 			// we want to give a little leeway for single taps but not too much
@@ -1187,7 +1227,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
 			float prop = static_cast<float>(chordtaps + 1) /
-						 static_cast<float>(taps - 1) * 27.f / 7.f;
+						 static_cast<float>(taps - 1) * 21.f / 7.f;
 			float brop = CalcClamp(actual_jacks - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
@@ -1212,8 +1252,10 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
-			  CalcClamp(5.f - definitely_not_jacks, 0.5f, 1.f);
-
+			  CalcClamp(1.2f - (static_cast<float>(definitely_not_jacks * 2) /
+								 static_cast<float>(taps)),
+						0.4f,
+						1.f);
 			// if (debugmode)
 			//	std::cout << "brop2: " <<
 			// brop_two_return_of_brop_electric_bropaloo<< std::endl;
@@ -1221,6 +1263,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
 			  0.7f,
 			  1.1f);
+			doot[CJS][i] = brop_two_return_of_brop_electric_bropaloo;
+			doot[CJJ][i] = brop;
 			doot[CJQuad][i] = bruh_too_many_quads;
 			// if (debugmode)
 			//	std::cout << "final mod: " << doot[CJ][i] << "\n"
@@ -1894,8 +1938,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[CJOHJump], 1.f);
 	}
 	// hack because i was sqrt'ing in calcinternal for js and hs
-	for (auto& v : doot[OHJump])
-		v = fastsqrt(v);
+	//for (auto& v : doot[OHJump])
+	//	v = fastsqrt(v);
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
 	// the polys are arranged in a giant ass roll formation
@@ -2283,8 +2327,6 @@ Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
 		// attempt #437 at some kind of complex pattern picker upper
 		float butt = 0.f;
 		int whatwhat = 0;
-		int min_val =
-		  *std::min_element(filtered_vals.begin(), filtered_vals.end());
 		std::sort(filtered_vals.begin(), filtered_vals.end());
 		if (filtered_vals.size() > 1) {
 			for (auto& in : filtered_vals)
