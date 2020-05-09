@@ -870,11 +870,10 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f)
-				if (stam_floor <= local_ceil) {
-					stam_floor += (mod - 1.f) / stam_fscale;
-					local_ceil = stam_ceil * stam_floor;
-				}
+			if (mod > 0.95f)
+				stam_floor += (mod - 0.95f) / stam_fscale;
+			local_ceil = stam_ceil * stam_floor;
+
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			stam_adj_diff[i] = avs2 * mod;
 			debugValues[2][StamMod][i] = mod;
@@ -884,11 +883,9 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 			avs1 = avs2;
 			avs2 = diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
-			if (mod > 1.f)
-				if (stam_floor <= local_ceil) {
-					stam_floor += (mod - 1.f) / stam_fscale;
-					local_ceil = stam_ceil * stam_floor;
-				}
+			if (mod > 0.95f)
+				stam_floor += (mod - 0.95f) / stam_fscale;
+				local_ceil = stam_ceil * stam_floor;
 
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			stam_adj_diff[i] = avs2 * mod;
