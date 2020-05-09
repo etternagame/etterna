@@ -1740,10 +1740,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		  0.25f +
 		  0.4f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
 		  dswip * 0.25f;
-		Cv = sqrt(Cv) - 0.1f;
-		Cv += barf;
-		Cv *= barf2;
-		doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
+
+		// some weird anchor problems can cause sqrt(-f) here so...
+		if (Cv > 0.01f) {
+			Cv = fastsqrt(Cv) - 0.1f;
+			Cv += barf;
+			Cv *= barf2;
+			doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
+		}
+
+		else doot[Roll][i] = 1.f;
 
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 		// if (debugmode)
