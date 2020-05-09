@@ -591,12 +591,8 @@ function scoreBoard(pn, position)
 				end,
 				CodeMessageCommand = function(self, params)
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-						local rescoredJudge
-						if enabledCustomWindows then
-							rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
-						else
-							rescoredJudge = getRescoredJudge(dvt, judge, k)
-						end
+						
+						local rescoredJudge = getRescoredJudge(dvt, judge, k)
 						self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
 					end
 					if params.Name == "ResetJudge" then
@@ -678,15 +674,9 @@ function scoreBoard(pn, position)
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					if enabledCustomWindows then
-						marvelousTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 1)
-						perfectTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 2)
-						greatTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 3)
-					else
 						marvelousTaps = getRescoredJudge(dvt, judge, 1)
 						perfectTaps = getRescoredJudge(dvt, judge, 2)
 						greatTaps = getRescoredJudge(dvt, judge, 3)
-					end
 					self:playcommand("Set")
 				end
 				if params.Name == "ResetJudge" then
@@ -697,15 +687,9 @@ function scoreBoard(pn, position)
 				end
 			end,
 			ForceWindowMessageCommand = function(self)
-				if enabledCustomWindows then
-					marvelousTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 1)
-					perfectTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 2)
-					greatTaps = getRescoredCustomJudge(dvt, customWindow.judgeWindows, 3)
-				else
-					marvelousTaps = getRescoredJudge(dvt, judge, 1)
-					perfectTaps = getRescoredJudge(dvt, judge, 2)
-					greatTaps = getRescoredJudge(dvt, judge, 3)
-				end
+				marvelousTaps = getRescoredJudge(dvt, judge, 1)
+				perfectTaps = getRescoredJudge(dvt, judge, 2)
+				greatTaps = getRescoredJudge(dvt, judge, 3)
 				self:playcommand("Set")
 			end
 		}
@@ -764,9 +748,6 @@ function scoreBoard(pn, position)
 	-- basic per-hand stats to be expanded on later
 	local tst = ms.JudgeScalers
 	local tso = tst[judge]
-	if enabledCustomWindows then
-		tso = 1
-	end
 	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
 	local middleCol = ncol/2
 	for i = 1, #devianceTable do
@@ -838,9 +819,6 @@ function scoreBoard(pn, position)
 					if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
 						if j == 4 then
 							local tso = tst[judge]
-							if enabledCustomWindows then
-								tso = 1
-							end
 							mcscoot[j] = 0
 							mcscoot[j+1] = 0
 							for i = 1, #devianceTable do
@@ -863,9 +841,6 @@ function scoreBoard(pn, position)
 					if j > 3 then
 						if j == 4 then
 							local tso = tst[judge]
-							if enabledCustomWindows then
-								tso = 1
-							end
 							mcscoot[j] = 0
 							mcscoot[j+1] = 0
 							for i = 1, #devianceTable do
