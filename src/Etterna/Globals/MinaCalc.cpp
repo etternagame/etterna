@@ -2451,106 +2451,160 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 			itv_THINGS.pop_front();
 		}
 
-		//bool newrow = true;
+		bool newrow = true;
 		for (int row : nervIntervals[i]) {
 			//if (debugmode && newrow)
 			//	std::cout << "new interval: " << i
 			//			  << " time: " << NoteInfo[row].rowTime / music_rate
 			//			  << std::endl;
-			//newrow = false;
+			newrow = false;
 			int notes = column_count(NoteInfo[row].notes);
 			int boot = NoteInfo[row].notes;
 			interval_taps += notes;
 
-			if (notes == 2) {
+			/*if (debugmode) {
+				std::string moop = "";
+				for (int i = 0; i < 4; ++i)
+					if (boot & col_ids[i])
+						moop.append(std::to_string(i + 1));
+				std::cout << "notes: " << moop << std::endl;
+			}*/
+			// try allowing hand formations... should be ok
+			if (notes == 2 || notes == 3) {
 				bool is12 = boot & col_ids[0] && boot & col_ids[1];
 				bool is23 = boot & col_ids[1] && boot & col_ids[2];
 				bool is34 = boot & col_ids[2] && boot & col_ids[3];
-				if (the_slip == -1) {
+
 				//	if (debugmode)
 				//		std::cout << "the slip: " << std::endl;
+				if (the_slip == -1) {
+					//		if (debugmode)
+					//			std::cout << "the slip: " << std::endl;
 					if (is12 || is34) {
 						the_slip = boot;
-				//		if (debugmode)
-				//			std::cout << "the slip is the boot: " << std::endl;
+						//	if (debugmode)
+						//		std::cout << "the slip is the boot: " <<
+						//std::endl;
 					}
-					continue;
 				} else {
-			//		if (debugmode)
-			//			std::cout << "two but not the new: " << std::endl;
+					// if (debugmode)
+					//	std::cout << "two but not the new: " << std::endl;
 					if (is23) {
 						if (was23) {
-			//				if (debugmode)
-			//					std::cout << "you knew to new to yew two ewes: "
-			//							  << std::endl;
+							//		if (debugmode)
+							//			std::cout << "you knew to new to yew two
+							//ewes: "
+							//					  << std::endl;
 							malcom = false;
 							the_slip = -1;
 							the_last_warblers_call = false;
 							was23 = false;
-							//continue;
 						} else {
-			//				if (debugmode)
-			//					std::cout << "the malcom: " << std::endl;
+							//		if (debugmode)
+							//			std::cout << "the malcom: " <<
+							//std::endl;
 							malcom = true;
 							the_last_warblers_call = false;
 							was23 = true;
-							//continue;
 						}
 					} else if (the_slip != boot && malcom &&
-							   the_last_warblers_call && (is12 || is34) &&
-							   !(boot & lastcols)) {
+							   the_last_warblers_call && (is12 || is34)) {
+						bool das_same = false;
+						for (auto& id : col_ids)
+							if (boot & id && lastcols & id) {
+								// if (debugmode)
+								//	std::cout << "wtf boot:" << id << std::endl;
+								// if (debugmode)
+								//	std::cout << "wtf id: " << id << std::endl;
+								das_same = true;
+								break;
+							}
+
+						if (!das_same) {
+							++the_things_found;
+						}
+						// maybe we want to reset to -1 here and only retain if
+						// thing found?
 						the_slip = boot;
 						malcom = false;
 						the_last_warblers_call = false;
 						was23 = false;
-						++the_things_found;
-						//continue;
 					} else {
-						the_slip = -1;
+						if (is12 || is34) {
+							the_slip = boot;
+							//		if (debugmode)
+							//			std::cout << "three four out the door: " <<
+							// std::endl;
+							}
+						else
+							the_slip = -1;
 						malcom = false;
 						the_last_warblers_call = false;
 						was23 = false;
-					//	if (debugmode)
-					//		std::cout << "buckle my shoe reset: " << std::endl;
-						//continue;
+						//		if (debugmode)
+						//			std::cout << "buckle my shoe reset: " <<
+						// std::endl;
 					}
 				}
 			}
 			if (notes == 1) {
-			//	if (debugmode)
-			//		std::cout << "A SINGLE THING O NO: " << std::endl;
+				// if (debugmode)
+				//		std::cout << "A SINGLE THING O NO: " << std::endl;
 				if (the_last_warblers_call) {
 					the_last_warblers_call = false;
 					malcom = false;
 					the_slip = -1;
 					was23 = false;
-			//		if (debugmode)
-			//			std::cout << "RESET, 2 singles: " << std::endl;
+					// if (debugmode)
+					//	std::cout << "RESET, 2 singles: " << std::endl;
 				} else {
-					if (the_slip != -1 /*&& !(lastcols & boot) */) {
-			//			if (debugmode)
-			//				std::cout
-			//				  << "SLIP ON SLIP UNTIL UR SLIP COME TRUE: "
-			//				  << std::endl;
-						the_last_warblers_call = true;
+					if (the_slip != -1) {
+						bool das_same = false;
+						for (auto& id : col_ids)
+							if (boot & id && lastcols & id) {
+								//if (debugmode)
+								//	std::cout << "wtf boot:" << id << std::endl;
+								//if (debugmode)
+								//	std::cout << "wtf id: " << id << std::endl;
+								das_same = true;
+								break;
+							}
+						if (!das_same) {
+							//	if (debugmode)
+							//		std::cout
+							//		  << "SLIP ON SLIP UNTIL UR SLIP COME
+							// TRUE:"
+							//		  << std::endl;
+							the_last_warblers_call = true;
+						} else {
+							//	if (debugmode)
+							//		std::cout
+							//		  << "HOL UP DOE (feamale hamtseer):"
+							//		  << std::endl;
+							the_slip = -1;
+							the_last_warblers_call = false;
+							was23 = false;
+							malcom = false;
+						}
+
 					} else {
 						the_last_warblers_call = false;
 						malcom = false;
-						the_slip = -1;
 						was23 = false;
-			//			if (debugmode)
-			//				std::cout << "CABBAGE: " << std::endl;
+						//			if (debugmode)
+						//				std::cout << "CABBAGE: " << std::endl;
 					}
 				}
 			}
 
-			if (notes == 3 || notes == 4) {
+			if (notes == 4) {
 				the_last_warblers_call = false;
 				malcom = false;
 				the_slip = -1;
 				was23 = false;
-			//	if (debugmode)
-			//		std::cout << "RESERT, 2 SLIDE 2 FURY: " << std::endl;
+				//		if (debugmode)
+				//			std::cout << "RESERT, 2 SLIDE 2 FURY: " <<
+				// std::endl;
 			}
 			lastcols = boot;
 		}
@@ -2568,16 +2622,16 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 
 		// if (debugmode)
 		//	std::cout << "window taps: " << window_taps << std::endl;
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "things: " << window_things << std::endl;
 
 		float pmod = 1.f;
 		if (window_things > 0)
 			pmod = static_cast<float>(window_taps) /
-				   static_cast<float>(window_things * 55);
+				   static_cast<float>(window_things * 66);
 
 		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
-		//if (debugmode)
+		// if (debugmode)
 		//	std::cout << "final mod " << doot[TheThing][i] << "\n" << std::endl;
 	}
 
