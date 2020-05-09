@@ -162,17 +162,17 @@ local debugGroups = {
         JS = true,
         JSS = true,
         JSJ = true,
-        OHJump = true,
-		TheThing = true,
 		StamMod = true
     },
 	{
         HS = true,
         HSS = true,
         HSJ = true,
-		OHJump = true,
-		TheThing = true,
 		StamMod = true
+	},
+	{
+		OHJump = true,
+		TheThing = true
 	},
     {
         CJ = true,
@@ -613,11 +613,23 @@ local modColors = {
     color("0,1,0"),         -- green        = roll left
     color("0.3,0.9,0.3"),   -- light green       (right)
     color("1,1,0"),         -- yellow       = handstream left
-    color("0.6,0.6,0"),     -- dark yellow      (right)
+    color("0.6,0.6,0"),     -- dark yellow       (right)
+	color("0,1,1"),			-- cyan			= handstream stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= handstream jack
+	color("1,0.2,0"),		-- orange			 (right)
     color("1,0,1"),     	-- purple       = jumpstream left
     color("1,0.3,1"),   	-- light purple      (right)
+	color("0,1,1"),			-- cyan			= jumpstream stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= jumpstream jack
+	color("1,0.2,0"),		-- orange			 (right)
     color("1.4,1.3,1"),     -- white 		= chordjack left
     color("1.4,1.3,0.9"),   -- white			 (right)
+	color("0,1,1"),			-- cyan			= chordjack stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= chordjack jack
+	color("1,0.2,0"),		-- orange			 (right)
     color(".3,1.3,1"),      -- cyan			= stream left
     color(".3,1.3,0.9"),	-- cyan				 (right)
     color(".8,1.3,1"),      -- whiteblue	= oht left
@@ -638,8 +650,6 @@ local modColors = {
     color("0,0.8,1"),		-- light blue		 (right)
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
-    color("0,0.7,1"),
-    color("0,0.7,1"),
 }
 
 -- top graph average text
