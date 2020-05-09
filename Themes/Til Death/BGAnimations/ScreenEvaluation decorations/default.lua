@@ -1,9 +1,5 @@
 local t = Def.ActorFrame {}
 
-local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
-
-local customWindows = timingWindowConfig:get_data().customWindows
-
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
 if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
@@ -157,8 +153,7 @@ local frameY = 140
 local frameWidth = SCREEN_CENTER_X - 120
 
 function scoreBoard(pn, position)
-	local customWindow
-	local judge = enabledCustomWindows and 0 or (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+	local judge = PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty()
 	local judge2 = judge
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
@@ -186,18 +181,16 @@ function scoreBoard(pn, position)
 			if position == 1 then
 				self:x(SCREEN_WIDTH - (frameX * 2) - frameWidth)
 			end
-			if not enabledCustomWindows then
-				if PREFSMAN:GetPreference("SortBySSRNormPercent") then
-					judge = 4
-					judge2 = judge
-					-- you ever hack something so hard?
-					aboutToForceWindowSettings = true
-					MESSAGEMAN:Broadcast("ForceWindow", {judge=4})
-					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
-				else
-					judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
-					judge2 = judge
-				end
+			if PREFSMAN:GetPreference("SortBySSRNormPercent") then
+				judge = 4
+				judge2 = judge
+				-- you ever hack something so hard?
+				aboutToForceWindowSettings = true
+				MESSAGEMAN:Broadcast("ForceWindow", {judge=4})
+				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
+			else
+				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				judge2 = judge
 			end
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)
@@ -334,25 +327,7 @@ function scoreBoard(pn, position)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
 					local ws = "Wife" .. wv .. " J"
-					if enabledCustomWindows then
-						if params.Name == "PrevJudge" then
-							judge = judge < 2 and #customWindows or judge - 1
-							customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-							rescorepercent = getRescoredCustomPercentage(customWindow, rescoretable)
-							self:settextf(
-								"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), customWindow.name
-							)
-						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
-						elseif params.Name == "NextJudge" then
-							judge = judge == #customWindows and 1 or judge + 1
-							customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-							rescorepercent = getRescoredCustomPercentage(customWindow, rescoretable)
-							self:settextf(
-								"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), customWindow.name
-							)
-						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
-						end
-					elseif params.Name == "PrevJudge" and judge > 4 then
+					if params.Name == "PrevJudge" and judge > 4 then
 						judge = judge - 1
 						rescorepercent = getRescoredWife3Judge(2, judge, rescoretable)
 						self:settextf(
@@ -369,7 +344,7 @@ function scoreBoard(pn, position)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
 					if params.Name == "ResetJudge" then
-						judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+						judge = GetTimingDifficulty()
 						self:playcommand("Set")
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
@@ -402,23 +377,7 @@ function scoreBoard(pn, position)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
 					local ws = "Wife" .. wv .. " J"
-					if enabledCustomWindows then
-						if params.Name == "PrevJudge" then
-							judge = judge < 2 and #customWindows or judge - 1
-							customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-							rescorepercent = getRescoredCustomPercentage(customWindow, rescoretable)
-							self:settextf(
-								"%05.5f%% (%s)", notShit.floor(rescorepercent, 5), customWindow.name
-							)
-						elseif params.Name == "NextJudge" then
-							judge = judge == #customWindows and 1 or judge + 1
-							customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-							rescorepercent = getRescoredCustomPercentage(customWindow, rescoretable)
-							self:settextf(
-								"%05.5f%% (%s)", notShit.floor(rescorepercent, 5), customWindow.name
-							)
-						end
-					elseif params.Name == "PrevJudge" and judge2 > 1 then
+					if params.Name == "PrevJudge" and judge2 > 1 then
 						judge2 = judge2 - 1
 						rescorepercent = getRescoredWife3Judge(2, judge2, rescoretable)
 						self:settextf(
@@ -433,7 +392,7 @@ function scoreBoard(pn, position)
 					)
 					end
 					if params.Name == "ResetJudge" then
-						judge2 = enabledCustomWindows and 0 or GetTimingDifficulty()
+						judge2 = GetTimingDifficulty()
 						self:playcommand("Set")
 					end
 				end
@@ -481,25 +440,13 @@ function scoreBoard(pn, position)
 				self:sleep(0.5):decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
 			end,
 			ForceWindowMessageCommand = function(self, params)
-				if enabledCustomWindows then
-					self:finishtweening():decelerate(2):zoomx(
-						frameWidth * getRescoredCustomJudge(dvt, customWindow.judgeWindows, k) / totalTaps
-					)
-				else
-					local rescoreJudges = getRescoredJudge(dvt, judge, k)
-					self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
-				end
+				local rescoreJudges = getRescoredJudge(dvt, judge, k)
+				self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					if enabledCustomWindows then
-						self:finishtweening():decelerate(2):zoomx(
-							frameWidth * getRescoredCustomJudge(dvt, customWindow.judgeWindows, k) / totalTaps
-						)
-					else
-						local rescoreJudges = getRescoredJudge(dvt, judge, k)
-						self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
-					end
+					local rescoreJudges = getRescoredJudge(dvt, judge, k)
+					self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
 				end
 				if params.Name == "ResetJudge" then
 					self:finishtweening():decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
@@ -523,9 +470,6 @@ function scoreBoard(pn, position)
 					self:playcommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
-					if enabledCustomWindows and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
-						self:settext(getCustomJudgeString(customWindow.judgeNames, k))
-					end
 					if params.Name == "ResetJudge" then
 						self:playcommand("Set")
 					end
@@ -548,19 +492,11 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				ForceWindowMessageCommand = function(self, params)
-					if enabledCustomWindows then
-						self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
-					else
-						self:settext(getRescoredJudge(dvt, judge, k))
-					end
+					self:settext(getRescoredJudge(dvt, judge, k))
 				end,
 				CodeMessageCommand = function(self, params)
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-						if enabledCustomWindows then
-							self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
-						else
-							self:settext(getRescoredJudge(dvt, judge, k))
-						end
+						self:settext(getRescoredJudge(dvt, judge, k))
 					end
 					if params.Name == "ResetJudge" then
 						self:playcommand("Set")
@@ -582,11 +518,7 @@ function scoreBoard(pn, position)
 				end,
 				ForceWindowMessageCommand = function(self, params)
 					local rescoredJudge
-					if enabledCustomWindows then
-						rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
-					else
-						rescoredJudge = getRescoredJudge(dvt, params.judge, k)
-					end
+					rescoredJudge = getRescoredJudge(dvt, params.judge, k)
 					self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
 				end,
 				CodeMessageCommand = function(self, params)

@@ -448,6 +448,7 @@ function wife2(maxms, ts)
 	return (2 - -8) * (1 - y) + -8
 end
 
+-- For Window-based Scoring
 function getRescoredJudge(offsetVector, judgeScale, judge)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
@@ -475,6 +476,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	return judgeCount
 end
 
+-- For Window-based Scoring
 function getRescoredCustomJudge(offsetVector, windows, judge)
 	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
 	local upperBound = windows[judges[judge]]
@@ -498,6 +500,7 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
+-- For Millisecond-based Scoring
 function getRescoredWifeJudge(judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
@@ -510,6 +513,7 @@ function getRescoredWifeJudge(judgeScale, rst)
 	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
 
+-- For Window-based Scoring
 function getRescoredCustomPercentage(customWindows, rst)
 	local p = 0.0
 	local weights = customWindows.judgeWeights
