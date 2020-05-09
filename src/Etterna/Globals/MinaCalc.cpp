@@ -1770,7 +1770,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
 		}
 
-		else doot[Roll][i] = 1.f;
+		else
+			doot[Roll][i] = 1.f;
 
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 		// if (debugmode)
