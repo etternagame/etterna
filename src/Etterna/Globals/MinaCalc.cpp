@@ -997,6 +997,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
 
+	int seriously_not_js = 0;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
@@ -1022,8 +1023,21 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// suppress jumptrilly garbage a little bit, this is redundant in
 			// some cases with ohjump downscaler so we can't go too ham
 			if (last_notes == 1)
-				if (notes == 1)
+				if (notes == 1) {
 					++not_js;
+					seriously_not_js = max(seriously_not_js, 0);
+					++seriously_not_js;
+
+					// light js really stops at [12]321[23] kind of density,
+					// anything below that should be picked up by speed, and
+					// this stop rolls between jumps getting floated up too
+					// high
+					if (seriously_not_js > 3)
+						not_js += 0;
+				} else {
+					seriously_not_js -= 3;
+				}
+
 			if (last_notes > 1)
 				if (notes > 1) {
 					not_js += notes;
@@ -1040,15 +1054,15 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 18.f / 7.f;
+						 static_cast<float>(taps - 1) * 19.f / 7.f;
 
 			// maybe the better solution would instead of
 			// downscaling not js and jacks, just upscale js ??
 
 			// punish lots splithand jumptrills
 			float bromide = CalcClamp(
-			  1.5f - (static_cast<float>(not_js) / static_cast<float>(taps)),
-			  0.85f,
+			  1.45f - (static_cast<float>(not_js) / static_cast<float>(taps)),
+			  0.89f,
 			  1.f);
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
@@ -1683,7 +1697,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				// too far when it shouldn't
 				doot[CJOHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
-								  (static_cast<float>(max_jumps_seq) * 2.33f),
+								  (static_cast<float>(max_jumps_seq) * 2.6f),
 								2.f),
 							0.6f,
 							1.f);
@@ -1879,6 +1893,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[OHJump], 1.f);
 		Smooth(doot[CJOHJump], 1.f);
 	}
+	// hack because i was sqrt'ing in calcinternal for js and hs
+	for (auto& v : doot[OHJump])
+		v = fastsqrt(v);
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
 	// the polys are arranged in a giant ass roll formation
