@@ -161,9 +161,9 @@ HighScoreImpl::GetWifeGrade() const
 		return Grade_Tier01;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9999f)
 		return Grade_Tier02;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9998f)
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99985f)
 		return Grade_Tier03;
-	if (prc >= 0.9997f)
+	if (prc >= 0.99975f)
 		return Grade_Tier04;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9992f)
 		return Grade_Tier05;
