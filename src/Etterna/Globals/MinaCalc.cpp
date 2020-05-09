@@ -339,7 +339,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 static const float finalscaler =
-  2.564f * 1.05f * 1.1f * 1.10f * 1.125f; // multiplier to standardize baselines
+  2.564f * 1.05f * 1.1f * 1.10f * 1.115f; // multiplier to standardize baselines
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -348,9 +348,9 @@ static const float finalscaler =
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.071234f; // stamina multiplier max
-static const float stam_mag = 373.f;	  // multiplier generation scaler
-static const float stam_fscale = 400.f; // how fast the floor rises (it's lava)
+static const float stam_ceil = 1.065234f; // stamina multiplier max
+static const float stam_mag = 273.f;	  // multiplier generation scaler
+static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.69424f; // proportion of player difficulty at which stamina tax begins
 
@@ -452,7 +452,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// we don't want to push up the high end stuff anymore so just add to
 		// let stuff down the curve catch up a little
 		// remember we're operating on a multiplier
-		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.09f);
+		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 
