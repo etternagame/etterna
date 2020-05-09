@@ -485,7 +485,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				// recalc wife3 in case wife3 has changed (which at the time of
 				// writing this, is likely, since it's still in flux but i've
 				// already set the version tag as the final)
-				if (hs->wife_ver != 3 || hs->GetSSRCalcVersion() != GetCalcVersion_OLD())
+			/*	if (hs->wife_ver != 3 || hs->GetSSRCalcVersion() != GetCalcVersion_OLD())*/
 					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
@@ -781,7 +781,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
-		bool getremarried = scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
+		bool getremarried = /*scores[sk].GetWifeVersion() < 3 &&*/ scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,
 		// however trying to do this might be quite a bit of work and while it

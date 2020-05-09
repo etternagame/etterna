@@ -1381,15 +1381,15 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3(float pmax)
 {
-	// already done
-	if (GetWifeVersion() == 3)
-		return false;
 	// can't do it
 	if (!LoadReplayData())
 		return false;
 	// we can do it, but the result won't make sense
-	if (!m_Impl->bNoChordCohesion)
+	if (!m_Impl->bNoChordCohesion) {
+		m_Impl->WifeVersion = 2;
 		return false;
+	}
+		
 
 	// i don't know why this would be possible or what to do if we catch these
 	// cases, but it is somehow (probably exclusive to my profile)
@@ -1423,6 +1423,7 @@ HighScore::RescoreToWife3(float pmax)
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
 	m_Impl->fWifeScore = p / pmax;
+	m_Impl->fWifePoints = p;
 	m_Impl->WifeVersion = 3;
 	return true;
 }

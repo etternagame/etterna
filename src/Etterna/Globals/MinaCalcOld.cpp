@@ -1128,5 +1128,5 @@ MinaSDCalc_OLD(const vector<NoteInfo>& NoteInfo)
 int
 GetCalcVersion_OLD()
 {
-	return 263;
+	return 292;
 }

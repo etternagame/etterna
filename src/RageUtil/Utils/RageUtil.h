@@ -137,17 +137,40 @@ static const float wife3_hold_drop_weight = -4.5f;
 static const float wife3_miss_weight = -5.5f;
 
 inline float
+werwerwerwerf(float x)
+{
+	static const float a1 = 0.254829592f;
+	static const float a2 = -0.284496736f;
+	static const float a3 = 1.421413741f;
+	static const float a4 = -1.453152027f;
+	static const float a5 = 1.061405429f;
+	static const float p = 0.3275911f;
+
+	int sign = 1;
+	if (x < 0.f)
+		sign = -1;
+	x = abs(x);
+
+	auto t = 1.f / (1.f + p * x);
+	auto y =
+	  1.f - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x * x);
+
+	return sign * y;
+}
+
+inline float
 wife3(float maxms, float ts)
 {
 	// so judge scaling isn't so extreme
-	static const float j_pow = 0.66f;
+	static const float j_pow = 0.75f;
 	// min/max points
 	static const float max_points = 2.f;
 	// offset at which points starts decreasing(ms)
-	float ridic = 3.f * ts;
+	float ridic = 5.f * ts;
 
-	// technically the max boo is always 180ms above j4 however this is immaterial
-	// to the end purpose of the scoring curve - assignment of point values
+	// technically the max boo is always 180ms above j4 however this is
+	// immaterial to the end purpose of the scoring curve - assignment of point
+	// values
 	float max_boo_weight = 180.f * ts;
 
 	// need positive values for this
@@ -156,16 +179,17 @@ wife3(float maxms, float ts)
 	// case optimizations
 	if (maxms <= ridic)
 		return max_points;
-	if (maxms > max_boo_weight)
-		return wife3_miss_weight;
 
-	float poi = 57.f * pow(ts, j_pow); // point of inflection for curve
-	float dev = 22.f * pow(ts, j_pow);
-	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
-	float lower_bound = max_points + ((wife3_miss_weight - max_points) *
-									  sqrt(maxms * maxms - ridic * ridic) /
-									  (max_boo_weight - ridic));
-	return (max_points - lower_bound) * y_val + lower_bound;
+	// piecewise inflection
+	float zero = 65.f * pow(ts, j_pow);
+	float dev = 22.7f *pow(ts, j_pow);
+
+	if (maxms <= zero)
+		return max_points * werwerwerwerf((zero - maxms) / dev);
+	else if (maxms <= max_boo_weight)
+		return (maxms - zero) * wife3_miss_weight / (max_boo_weight - zero);
+	else
+		return wife3_miss_weight;
 }
 
 inline void
