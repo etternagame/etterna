@@ -62,6 +62,8 @@ enum CalcPatternMod
 	FlamJam,
 	WideRangeRoll,
 	WideRangeJumptrill,
+	WideRangeBalance,
+	WideRangeAnchor,
 	CJOHJump,
 	CJQuad,
 	TheThing,

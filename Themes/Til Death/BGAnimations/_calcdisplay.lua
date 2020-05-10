@@ -186,7 +186,9 @@ local debugGroups = {
         Chaos = true,
         FlamJam = true,
         TheThing = true,
-		Anchor = true
+        Anchor = true,
+        WideRangeBalance = true,
+        WideRangeAnchor = true,
     },
     {},
     {},
@@ -598,6 +600,10 @@ local modnames = {
     "wrrr",
     "wrjtl",
     "wrjtr",
+    "wrbl",
+    "wrbr",
+    "wral",
+    "wrar",
     "cjohjl",
     "cjohjr",
     "cjql",
@@ -654,6 +660,10 @@ local modColors = {
     color("0,0.8,1"),		-- light blue		 (right)
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0.2"),		-- leme			= wrbr left
+    color("0.7,1,0.2"),		-- leme				 (right)
+    color("0.7,1,0.1"),		-- leme			= wrar left
+    color("0.7,1,0.1"),		-- leme				 (right)
 }
 
 -- top graph average text
@@ -661,7 +671,7 @@ makeskillsetlabeltext = function(i, mod, hand)
     return LoadFont("Common Normal") .. {
         Name = "SSLabel"..i,
         InitCommand = function(self)
-            local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 42   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
