@@ -429,32 +429,35 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		for (int i = 0; i < NUM_Skillset; ++i)
 			mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
-		// stam is based on which calc produced the highest output without it
+		// stam is based on which calc produced the highest output without
+		// it
 		size_t highest_base_skillset = std::distance(
 		  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
 		float base = mcbloop[highest_base_skillset];
 
-		// rerun all with stam on, optimize by starting at the non-stam adjusted
-		// base value for each skillset
-		// we can actually set the stam floor to < 1 to shift the curve a bit
+		// rerun all with stam on, optimize by starting at the non-stam
+		// adjusted base value for each skillset we can actually set the
+		// stam floor to < 1 to shift the curve a bit
 		for (int i = 0; i < NUM_Skillset; ++i)
 			mcbloop[i] = Chisel(mcbloop[i] * 0.90f, 0.64f, score_goal, i, true);
 
-		// all relative scaling to specific skillsets should occur before this
-		// point, not after (it ended up this way due to the normalizers which
-		// were dumb and removed) stam is the only skillset that can/should be
-		// normalized to base values without interfering with anything else
-		// (since it's not based on a type of pattern)
+		// all relative scaling to specific skillsets should occur before
+		// this point, not after (it ended up this way due to the
+		// normalizers which were dumb and removed) stam is the only
+		// skillset that can/should be normalized to base values without
+		// interfering with anything else (since it's not based on a type of
+		// pattern)
 
-		// stam jams, stamina should push up the base ratings for files so files
-		// that are more difficult by virtue of being twice as long for more or
-		// less the same patterns don't get underrated, however they shouldn't
-		// be pushed up a huge amount either, we want high stream scores to be
-		// equally achieveable on longer or shorter files, ideally, the stam
-		// ratings itself is a separate consideration and will be scaled to the
-		// degree to which the stamina model affects the base rating, so while
-		// stamina should affect the base skillset ratings slightly we want the
-		// degree to which it makes files harder to be catalogued as the stamina
+		// stam jams, stamina should push up the base ratings for files so
+		// files that are more difficult by virtue of being twice as long
+		// for more or less the same patterns don't get underrated, however
+		// they shouldn't be pushed up a huge amount either, we want high
+		// stream scores to be equally achieveable on longer or shorter
+		// files, ideally, the stam ratings itself is a separate
+		// consideration and will be scaled to the degree to which the
+		// stamina model affects the base rating, so while stamina should
+		// affect the base skillset ratings slightly we want the degree to
+		// which it makes files harder to be catalogued as the stamina
 		// rating scaling down stuff that has no stamina component will help
 		// preventing pollution of stamina leaderboards with charts that are
 		// just very high rated but take no stamina
@@ -462,23 +465,23 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		// the bigger this number the more stamina has to influence a file
 		// before it counts in the stam skillset, i.e. something that only
-		// benefits 2% from the stam modifiers will drop below the 1.0 mark and
-		// move closer to 0 with the pow, resulting in a very low stamina rating
-		// (we want this), something that benefits 5.5% will have the 0.5%
-		// overflow multiplied and begin gaining some stam, and something that
-		// benefits 15% will max out the possible stam rating, which is
-		// (currently) a 1.07 multiplier to the base
-		// maybe using a multiplier and not a difference would be better?
-		static const float stam_curve_shift = 0.015f;
+		// benefits 2% from the stam modifiers will drop below the 1.0 mark
+		// and move closer to 0 with the pow, resulting in a very low
+		// stamina rating (we want this), something that benefits 5.5% will
+		// have the 0.5% overflow multiplied and begin gaining some stam,
+		// and something that benefits 15% will max out the possible stam
+		// rating, which is (currently) a 1.07 multiplier to the base maybe
+		// using a multiplier and not a difference would be better?
+		static const float stam_curve_shift = 0.f;
 		// ends up being a multiplier between ~0.8 and ~1
 		float mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5f);
 
-		// we wanted to shift the curve down a lot before pow'ing but it was too
-		// much to balance out, so we need to give some back, this is roughly
-		// equivalent of multiplying by 1.05 but also not really because math
-		// we don't want to push up the high end stuff anymore so just add to
-		// let stuff down the curve catch up a little
+		// we wanted to shift the curve down a lot before pow'ing but it was
+		// too much to balance out, so we need to give some back, this is
+		// roughly equivalent of multiplying by 1.05 but also not really
+		// because math we don't want to push up the high end stuff anymore
+		// so just add to let stuff down the curve catch up a little
 		// remember we're operating on a multiplier
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
@@ -490,7 +493,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 										mcbloop[6], mcbloop[7] };
 		vector<float> pumpkin = skillset_vector(difficulty);
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
-		// values this is the only time debugoutput arg should be set to true
+		// values this is the only time debugoutput arg should be set to
+		// true
 		if (debugmode)
 			Chisel(mcbloop[highest_base_skillset] - 0.16f,
 				   0.32f,
@@ -501,10 +505,11 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		difficulty.overall = highest_difficulty(difficulty);
 
-		// the final push down, cap ssrs (score specific ratings) to stop vibro
-		// garbage and calc abuse from polluting leaderboards too much, a "true"
-		// 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
-		// do this for SCORES only, not cached file difficulties
+		// the final push down, cap ssrs (score specific ratings) to stop
+		// vibro garbage and calc abuse from polluting leaderboards too
+		// much, a "true" 38 is still unachieved so a cap of 40 [sic] is
+		// _extremely_ generous do this for SCORES only, not cached file
+		// difficulties
 		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
 		  skillset_vector(difficulty);
 		if (capssr) {
@@ -824,7 +829,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			// do funky special case stuff here, we want hs to count against js
 			// so they are mutually exclusive
 			case Skill_Jumpstream:
-				adj_diff[i] /= max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
+				adj_diff[i] /=
+				  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
 				break;
 			case Skill_Handstream:
 				adj_diff[i] /= fastsqrt(doot[OHJump][i]);
@@ -992,7 +998,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			if (last_notes == 1 && notes == 1)
 				++not_hs;
 			else if (last_notes > 1 && notes > 1)
-				not_hs+= notes;
+				not_hs += notes;
 			last_notes = notes;
 			last_cols = cols;
 		}
@@ -1008,11 +1014,10 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[HS][i] = min_mod;
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
-		}
-		else { // at least 1 hand
+		} else { // at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = 0.4f + (static_cast<float>(handtaps + 1) /
-						 static_cast<float>(taps - 1) * 32.f / 7.f);
+								 static_cast<float>(taps - 1) * 32.f / 7.f);
 
 			float bromide = CalcClamp(
 			  1.45f - (static_cast<float>(not_hs) / static_cast<float>(taps)),
@@ -1112,8 +1117,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[JS][i] = min_mod;
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
-		}
-		else { // at least 1 jump
+		} else { // at least 1 jump
 			// creepy banana
 			float prop = static_cast<float>(jumptaps + 1) /
 						 static_cast<float>(taps - 1) * 19.f / 7.f;
@@ -1978,7 +1982,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[CJOHJump], 1.f);
 	}
 	// hack because i was sqrt'ing in calcinternal for js and hs
-	//for (auto& v : doot[OHJump])
+	// for (auto& v : doot[OHJump])
 	//	v = fastsqrt(v);
 
 	// this is fugly but basically we want to negate any _bonus_ from chaos if
