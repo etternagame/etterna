@@ -903,6 +903,7 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 		}
 }
 
+#pragma region PatternMods
 void
 Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 				   unsigned int firstNote,
@@ -2936,6 +2937,12 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 	if (SmoothPatterns)
 		Smooth(doot[FlamJam], 1.f);
 }
+#pragma endregion SOMEONE NEEDS TO REFACTOR THIS SHIZZ FOR ME PLS ALL PATTERN  \
+  MODS SHOULD BE FUNCTION CALLS WITHIN A SINGLE INTERVAL LOOP,                 \
+  ALL THE STUFF THEY NEED SHOULD BE ARGS AND GENERATED IN THE SINGLE LOOP,     \
+  OVERHEAD DEBUG OUTPUT SHOULD SPIT OUT THE EXACT PATTERN IN EACH INTERVAL,    \
+  AND DEBUG FOR EACH PATTERN MOD SHOULD BE A LOCAL TOGGLE INSIDE THE FUNCTION  \
+	OR SOMETHING
 
 static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
 #pragma region thedoots
