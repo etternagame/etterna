@@ -242,10 +242,16 @@ sum(vector<int>& v)
 	return std::accumulate(begin(v), end(v), 0);
 }
 
+inline int
+sum(deque<int>& v)
+{
+	return std::accumulate(begin(v), end(v), 0);
+}
+
 inline float
 sum(vector<float>& v)
 {
-	return std::accumulate(begin(v), end(v), 0);
+	return std::accumulate(begin(v), end(v), 0.f);
 }
 
 void
