@@ -10,6 +10,7 @@
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/SoloCalc.h"
 
 class Profile;
 class NoteData;
@@ -201,18 +202,19 @@ class Steps
 	const string& GetChartKey() const { return ChartKey; }
 	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-							dummy, dummy, dummy, dummy, dummy, dummy, dummy };
+						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
 	void SetChartKey(const RString& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
 	MinaSD GetAllMSD() const { return diffByRate; }
 	vector<pair<Skillset, float>> SortSkillsetsAtRate(float x,
-													   bool includeoverall);
+													  bool includeoverall);
 
 	void CalcEtternaMetadata();
 	float DoATestThing(float ev, Skillset ss);
-	void GetCalcDebugOutput();	// now spits out everything with 1 calc call
-	vector<vector<vector<vector<float>>>> calcdebugoutput; // probably should clear this periodically
+	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
+	vector<vector<vector<vector<float>>>>
+	  calcdebugoutput; // probably should clear this periodically
 	void UnloadCalcDebugOutput();
 	string GenerateBustedChartKey(NoteData& nd, TimingData* td, int cores);
 	vector<string> bustedkeys;

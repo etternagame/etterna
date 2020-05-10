@@ -418,7 +418,8 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 {
 
 	// 4k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single)
+	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single &&
+		GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_solo)
 		return false;
 
 	// chord cohesion is invalid

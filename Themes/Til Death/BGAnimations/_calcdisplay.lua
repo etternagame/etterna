@@ -417,7 +417,9 @@ o[#o + 1] = Def.Quad {
             for k, v in pairs(modsToValues) do
                 local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
                 if activeModGroup == -1 or debugGroups[activeModGroup][namenoHand] then
-                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    local name = modNames[k] and modNames[k] or ""
+                    local value = v[index] and v[index] or 0
+                    local txt = string.format(name..": %5.4f\n", value)
                     modText = modText .. txt
                 end
             end
@@ -497,7 +499,9 @@ o[#o + 1] = Def.Quad {
                 end
 
                 for k, v in pairs(modsToValues) do
-                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    local name = modNames[k] and modNames[k] or ""
+                    local value = v[index] and v[index] or 0
+                    local txt = string.format(name..": %5.4f\n", value)
                     modText = modText .. txt
                 end
                 modText = modText:sub(1, #modText-1) -- remove the end whitespace
@@ -731,8 +735,8 @@ local function topGraphLine(mod, colorToUse, hand)
 
                 -- hack to draw a line at 1.0
                 if mod == "base_line" then
-                    for i = 1, #graphVecs["Jump"][1] do
-                        local x = fitX(i, #graphVecs["Jump"][1])
+                    for i = 1, #graphVecs["JS"][1] do
+                        local x = fitX(i, #graphVecs["JS"][1])
                         local y = fitY1(1)
                         y = y + plotHeight / 2
                         setOffsetVerts(verts, x, y, color("1,1,1"))

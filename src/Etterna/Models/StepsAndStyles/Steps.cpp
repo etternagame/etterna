@@ -344,7 +344,8 @@ Steps::Decompress()
 bool
 Steps::IsRecalcValid()
 {
-	if (m_StepsType != StepsType_dance_single)
+	if (m_StepsType != StepsType_dance_single &&
+		m_StepsType != StepsType_dance_solo)
 		return false;
 
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
@@ -384,11 +385,11 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 	vector<float> tmp = diffByRate[idx];
 	vector<pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
-		if (ss != Skill_Overall || includeoverall)
-			mort.emplace_back(ss, tmp[ss]);
+	if (ss != Skill_Overall || includeoverall)
+		mort.emplace_back(ss, tmp[ss]);
 	std::sort(mort.begin(), mort.end(), [](auto& a, auto& b) -> bool {
-			return a.second > b.second;
-		});
+		return a.second > b.second;
+	});
 	return mort;
 }
 
@@ -399,7 +400,10 @@ Steps::CalcEtternaMetadata()
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	diffByRate = MinaSDCalc(cereal);
+	if (m_StepsType == StepsType_dance_solo)
+		diffByRate = SoloCalc(cereal);
+	else
+		diffByRate = MinaSDCalc(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -417,6 +421,10 @@ Steps::CalcEtternaMetadata()
 float
 Steps::DoATestThing(float ev, Skillset ss)
 {
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return 0.f;
+
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
@@ -443,10 +451,15 @@ Steps::GetCalcDebugOutput()
 	// makes calc display not update with rate changes
 	// don't feel like making this fancy and it's fast
 	// enough now i guess
-	//if (!calcdebugoutput.empty())
+	// if (!calcdebugoutput.empty())
 	//	return;
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
+
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return;
+
 	Decompress();
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData());
@@ -455,7 +468,7 @@ Steps::GetCalcDebugOutput()
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93f,
 					calcdebugoutput);
-  
+
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
@@ -888,10 +901,14 @@ class LunaSteps : public Luna<Steps>
 		auto& ni = nd.SerializeNoteData(etaner);
 		if (ni.size() == 0)
 			return 0;
+		std::vector<float> d;
 
-		std::vector<float> d = MinaSDCalc(ni, rate, goal);
+		if (p->m_StepsType == StepsType_dance_solo)
+			d = SoloCalc(ni, rate, goal);
+		else
+			d = MinaSDCalc(ni, rate, goal);
+
 		auto ssrs = d;
-
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
@@ -899,7 +916,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 0.7f, 2.f);
-		int rank = IArg(2) - 1;	// indexing
+		int rank = IArg(2) - 1; // indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		float relevance_cutoff = 0.9f;
 		float rval = sortedskillsets[rank].second;
@@ -1000,7 +1017,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][0][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][0][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1015,7 +1034,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][1][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][1][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1030,7 +1051,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][2][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][2][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}

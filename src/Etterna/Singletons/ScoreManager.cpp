@@ -491,7 +491,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				// auto& nerv = nd.GetNonEmptyRowVector();
 				// auto& etaner = td->BuildAndGetEtaner(nerv);
 				const auto& serializednd = nd.SerializeNoteData2(td);
-				auto dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+				vector<float> dakine;
+				if (steps->m_StepsType == StepsType_dance_single)
+					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+				else if (steps->m_StepsType == StepsType_dance_solo)
+					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
@@ -579,6 +583,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 }
 
 // perhaps we will need a generalized version again someday, but not today
+// currently set to only allow dance single scores
 float
 ScoreManager::AggregateSSRs(Skillset ss,
 							float rating,
@@ -593,7 +598,9 @@ ScoreManager::AggregateSSRs(Skillset ss,
 			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() &&
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
-				TopSSRs[i]->GetTopScore() != 0)
+				TopSSRs[i]->GetTopScore() != 0 &&
+				SONGMAN->GetStepsByChartkey(TopSSRs[i]->GetChartKey())
+					->m_StepsType == StepsType_dance_single)
 				sum += max(
 				  0.0,
 				  2.f / erfc(0.1 * (TopSSRs[i]->GetSkillsetSSR(ss) - rating)) -
