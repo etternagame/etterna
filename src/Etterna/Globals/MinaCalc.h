@@ -111,10 +111,13 @@ class Calc
 	int numitv;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
-	before passing
-	the results to the hand initialization functions. Also passes the input
-	timingscale value. */
-	void InitializeHands(const std::vector<NoteInfo>& NoteInfo,
+	before passing the results to the hand initialization functions. Also passes
+	the input timingscale value. Hardcode a limit for nps and if we hit it just
+	return max value for the calc and move on, there's no point in calculating
+	values for 500 nps joke files. Mem optimization can be better if we only
+	allow 100 maximum notes for a single half second interval, return value is
+	whether or not we should continue calculation */
+	bool InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 						 float music_rate,
 						 float offset);
 
@@ -126,7 +129,8 @@ class Calc
 	Finger ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
 						 unsigned int t,
 						 float music_rate,
-						 float offset);
+						 float offset,
+						 bool& joke_file_mon);
 
 	// Derivative calc params
 	int MaxPoints = 0; // Total points achievable in the file

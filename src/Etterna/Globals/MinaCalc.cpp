@@ -540,7 +540,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
-void
+bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 					  float music_rate,
 					  float offset)
