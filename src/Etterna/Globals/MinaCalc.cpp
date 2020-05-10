@@ -396,8 +396,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		0.95f,
 		1.f) *
 	  CalcClamp(
-		0.9f +
-		  (0.1f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
+		0.9f + (0.1f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
 		0.9f,
 		1.f);
 
@@ -1111,7 +1110,6 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		Smooth(doot[JS], 1.f);
 }
 
-
 void
 Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 {
@@ -1213,7 +1211,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	if (SmoothPatterns)
 		Smooth(doot[HS], 1.f);
 }
-
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
 void
