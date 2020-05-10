@@ -309,16 +309,14 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	unsigned int column = 1u << t;
 
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
-
 		// we have hardcoded mem allocation for up to 100 nps, bail out on the
 		// entire file calc if we exceed that
-		if (row_counter > max_nps_for_single_interval ||
-			row_counter_two > max_nps_for_single_interval) {
+		if (row_counter >= max_nps_for_single_interval ||
+			row_counter_two >= max_nps_for_single_interval) {
 			// yes i know this is jank
 			joke_file_mon = true;
-			break;
+			return {};
 		}
-
 		float scaledtime = (NoteInfo[i].rowTime / music_rate) + offset;
 
 		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
