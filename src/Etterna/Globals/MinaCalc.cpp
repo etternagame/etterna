@@ -240,7 +240,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 								 f2[ki_is_rising].size());
 }
 #pragma endregion utils
-
+#pragma region CalcBodyFunctions
 float
 Calc::JackLoss(const vector<float>& j, float x)
 {
@@ -584,9 +584,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// set hand specific pattern mods
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		WideWindowRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		WideWindowJumptrillScaler(
-		  NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 	}
 
 	// these are evaluated on all columns so right and left are the same
@@ -964,6 +963,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			stam_adj_diff[i] = diff[i] * mod;
 		}
 }
+#pragma endregion
 
 #pragma region PatternMods
 void
@@ -2068,7 +2068,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 // of jumptrillable roll patterns, this also apparently thinks every js and hs
 // pattern in existence is mashable too, probably because they are
 void
-Calc::WideWindowRollScaler(const vector<NoteInfo>& NoteInfo,
+Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 						   unsigned int t1,
 						   unsigned int t2,
 						   float music_rate,
