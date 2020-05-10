@@ -31,6 +31,7 @@ static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
 static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
+static const vector<int> col_ids = { 1, 2, 4, 8 };
 
 #pragma region utils
 // Relies on endiannes (significantly inaccurate)
