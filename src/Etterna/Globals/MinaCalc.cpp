@@ -223,6 +223,30 @@ highest_difficulty(const DifficultyRating& difficulty)
 	return *std::max_element(v.begin(), v.end());
 }
 
+inline int
+max_val(vector<int>& v)
+{
+	return *std::max_element(v.begin(), v.end());
+}
+
+inline float
+max_val(vector<float>& v)
+{
+	return *std::max_element(v.begin(), v.end());
+}
+
+inline int
+sum(vector<int>& v)
+{
+	return std::accumulate(begin(v), end(v), 0);
+}
+
+inline float
+sum(vector<float>& v)
+{
+	return std::accumulate(begin(v), end(v), 0);
+}
+
 void
 Calc::TotalMaxPoints()
 {
