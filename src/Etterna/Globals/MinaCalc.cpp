@@ -1269,7 +1269,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
 			float prop = static_cast<float>(chordtaps + 1) /
-						 static_cast<float>(taps - 1) * 21.f / 7.f;
+						 static_cast<float>(taps - 1) * 38.f / 7.f;
 			float brop = CalcClamp(actual_jacks - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
