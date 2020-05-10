@@ -11,15 +11,26 @@
 #include <set>
 #include <unordered_set>
 #include <deque>
+#include <utility>
 
 using std::deque;
 using std::max;
 using std::min;
+using std::pair;
 using std::pow;
 using std::set;
 using std::sqrt;
 using std::unordered_set;
 using std::vector;
+
+// intervals are _half_ second, no pointing time or cpu cycles on 100 nps joke
+// files
+static const int max_nps_for_single_interval = 50;
+static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
+														0.f, 0.f, 0.f, 0.f };
+static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
+														100.f, 100.f, 100.f,
+														100.f, 100.f };
 
 #pragma region utils
 // Relies on endiannes (significantly inaccurate)
@@ -2927,7 +2938,7 @@ vector<float>
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 {
 	if (NoteInfo.size() <= 1)
-		return { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+		return dimples_the_all_zero_output;
 	return std::make_unique<Calc>()->CalcMain(
 	  NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
@@ -2947,13 +2958,9 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 			allrates.emplace_back(cacheRun->CalcMain(
 			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
 		}
-	}
-
-	else {
-		vector<float> output{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	} else
 		for (int i = lower_rate; i < upper_rate; i++)
-			allrates.emplace_back(output);
-	}
+			allrates.emplace_back(dimples_the_all_zero_output);
 	return allrates;
 }
 
