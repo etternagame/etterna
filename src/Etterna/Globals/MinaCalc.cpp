@@ -292,11 +292,12 @@ Finger
 Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					unsigned int t,
 					float music_rate,
-					float offset)
+					float offset,
+					bool& joke_file_mon)
 {
 	// optimization, just allocate memory here once and recycle this vector
-	vector<float> temp_queue(5000);
-	vector<int> temp_queue_two(5000);
+	vector<float> temp_queue(max_nps_for_single_interval);
+	vector<int> temp_queue_two(max_nps_for_single_interval);
 	unsigned int row_counter = 0;
 	unsigned int row_counter_two = 0;
 
@@ -308,6 +309,16 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	unsigned int column = 1u << t;
 
 	for (size_t i = 0; i < NoteInfo.size(); i++) {
+
+		// we have hardcoded mem allocation for up to 100 nps, bail out on the
+		// entire file calc if we exceed that
+		if (row_counter > max_nps_for_single_interval ||
+			row_counter_two > max_nps_for_single_interval) {
+			// yes i know this is jank
+			joke_file_mon = true;
+			break;
+		}
+
 		float scaledtime = (NoteInfo[i].rowTime / music_rate) + offset;
 
 		while (scaledtime > static_cast<float>(Interval + 1) * IntervalSpan) {
@@ -403,8 +414,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
-		InitializeHands(
+
+		bool continue_calc = InitializeHands(
 		  NoteInfo, music_rate, 0.2f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
+
+		// if we exceed max_nps_for_single_interval during processing
+		if (!continue_calc)
+			return gertrude_the_all_max_output;
+
 		TotalMaxPoints();
 
 		vector<float> mcbloop(NUM_Skillset);
