@@ -390,24 +390,23 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
 			   float score_goal)
 {
+	// in flux
 	float grindscaler =
 	  CalcClamp(
-		0.93f +
-		  (0.07f * ((NoteInfo.back().rowTime / music_rate) - 30.f) / 30.f),
-		0.93f,
+		0.95f +
+		  (0.05f * ((NoteInfo.back().rowTime / music_rate) - 30.f) / 30.f),
+		0.95f,
 		1.f) *
 	  CalcClamp(
-		0.873f +
-		  (0.13f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
-		0.87f,
+		0.9f +
+		  (0.1f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
+		0.9f,
 		1.f);
 
-	float shortstamdownscaler = CalcClamp(
-	  0.9f + (0.1f * ((NoteInfo.back().rowTime / music_rate) - 150.f) / 150.f),
-	  0.9f,
-	  1.f);
-
+	float jprop = chord_proportion(NoteInfo, 2);
 	float hprop = chord_proportion(NoteInfo, 3);
+	float qprop = chord_proportion(NoteInfo, 4);
+	float cprop = jprop + hprop + qprop;
 
 	static const int fo_rizzy = 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
@@ -419,8 +418,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  NoteInfo, music_rate, 0.2f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
 
 		// if we exceed max_nps_for_single_interval during processing
-		if (!continue_calc)
+		if (!continue_calc) {
+			std::cout << "skipping junk file" << std::endl;
 			return gertrude_the_all_max_output;
+		}
 
 		TotalMaxPoints();
 
