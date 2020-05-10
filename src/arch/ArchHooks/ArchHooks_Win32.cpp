@@ -56,7 +56,6 @@ InvalidParameterHandler(const wchar_t* szExpression,
 
 ArchHooks_Win32::ArchHooks_Win32()
 {
-	HOOKS = this;
 
 	/* Disable critical errors, and handle them internally.  We never want the
 	 * "drive not ready", etc. dialogs to pop up. */
