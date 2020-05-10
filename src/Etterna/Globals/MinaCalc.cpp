@@ -2531,6 +2531,12 @@ Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 }
 
 // look for a thing
+// a thing is [aa]x[23]x[cc] where aa and cc are either [12] or [34] or hands
+// that contain those jumps and where aa != cc and x's do not form jacks, this
+// pattern is one staple of extremely jumptrillable js and even if you hit it as
+// legit as possible, it's still a joke because of the way the patternage flows.
+// i have tentatively proposed naming this pattern and its variants "the slip"
+// after the worst aram fizz player i ever seened
 void
 Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 								float music_rate,
