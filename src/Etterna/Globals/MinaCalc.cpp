@@ -549,33 +549,48 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	numitv = static_cast<int>(
 	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
 
-	// these get changed/updated frequently so allocate them once at the start
-	left_hand.adj_diff.resize(numitv);
-	right_hand.adj_diff.resize(numitv);
-	left_hand.stam_adj_diff.resize(numitv);
-	right_hand.stam_adj_diff.resize(numitv);
-
-	// at least for the moment there are a few mods we want to apply evenly
-	// to all skillset, so pre-multiply them in these after they're generated
-	//left_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
-	//right_hand.pre_multiplied_pattern_mod_group_a.resize(numitv);
-
+	bool junk_file_mon = false;
 	ProcessedFingers fingers;
-	for (int i = 0; i < 4; i++)
-		fingers.emplace_back(ProcessFinger(NoteInfo, i, music_rate, offset));
+	for (int i = 0; i < 4; i++) {
+		fingers.emplace_back(
+		  ProcessFinger(NoteInfo, i, music_rate, offset, junk_file_mon));
 
-	// initialize base difficulty and point values
-	left_hand.InitDiff(fingers[0], fingers[1]);
-	left_hand.InitPoints(fingers[0], fingers[1]);
-	right_hand.InitDiff(fingers[2], fingers[3]);
-	right_hand.InitPoints(fingers[2], fingers[3]);
+		// don't bother with this file
+		if (junk_file_mon)
+			return false;
+	}
 
-	// set pattern mods
-	SetAnchorMod(NoteInfo, 1, 2, left_hand.doot);
-	SetAnchorMod(NoteInfo, 4, 8, right_hand.doot);
+	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
+										   { right_hand, { 4, 8 } } };
 
-	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
-	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
+	// loop to help with hand specific stuff, we could do this stuff in the
+	// class but that's more structural work and this is simple
+	for (auto& hp : spoopy) {
+		auto& hand = hp.first;
+		const auto& fv = hp.second;
+
+		// these definitely do change with every chisel test
+		hand.stam_adj_diff.resize(numitv);
+
+		// initialize base difficulty and point values
+		// ok i know this is messy and the loop doesn't solve anything here and
+		// almost defeats the purpose but whatever, we need to do this before
+		// the pmods
+		if (fv[0] == 1) {
+			hand.InitBaseDiff(fingers[0], fingers[1]);
+			hand.InitPoints(fingers[0], fingers[1]);
+		} else {
+			hand.InitBaseDiff(fingers[2], fingers[3]);
+			hand.InitPoints(fingers[2], fingers[3]);
+		}
+
+		// set hand specific pattern mods
+		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
+		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		WideWindowRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		WideWindowJumptrillScaler(
+		  NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+	}
 
 	// these are evaluated on all columns so right and left are the same
 	// these also may be redundant with updated stuff
@@ -585,70 +600,46 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
-	right_hand.doot[HS] = left_hand.doot[HS];
-	right_hand.doot[HSS] = left_hand.doot[HSS];
-	right_hand.doot[HSJ] = left_hand.doot[HSJ];
-	right_hand.doot[JS] = left_hand.doot[JS];
-	right_hand.doot[JSS] = left_hand.doot[JSS];
-	right_hand.doot[JSJ] = left_hand.doot[JSJ];
-	right_hand.doot[CJ] = left_hand.doot[CJ];
-	right_hand.doot[CJS] = left_hand.doot[CJS];
-	right_hand.doot[CJJ] = left_hand.doot[CJJ];
-	right_hand.doot[CJQuad] = left_hand.doot[CJQuad];
-	right_hand.doot[StreamMod] = left_hand.doot[StreamMod];
-	right_hand.doot[Chaos] = left_hand.doot[Chaos];
-	right_hand.doot[FlamJam] = left_hand.doot[FlamJam];
-	right_hand.doot[TheThing] = left_hand.doot[TheThing];
 
-	// roll and ohj, set these after chaos mod has been calculated so we can
-	// nerf the poly mod based on the roll mod, we don't want psuedo rolls
-	// formed by polys to get the poly bonus if at all possible
-	SetSequentialDownscalers(NoteInfo, 1, 2, music_rate, left_hand.doot);
-	SetSequentialDownscalers(NoteInfo, 4, 8, music_rate, right_hand.doot);
+	vector<int> bruh_they_the_same = { HS,		HSS,	 HSJ,		JS,
+									   JSS,		JSJ,	 CJ,		CJS,
+									   CJJ,		CJQuad,  StreamMod, Chaos,
+									   FlamJam, TheThing };
+	// hand agnostic mods are the same
+	for (auto pmod : bruh_they_the_same)
+		right_hand.doot[pmod] = left_hand.doot[pmod];
 
-	WideWindowRollScaler(NoteInfo, 1, 2, music_rate, left_hand.doot);
-	WideWindowRollScaler(NoteInfo, 4, 8, music_rate, right_hand.doot);
-	WideWindowJumptrillScaler(NoteInfo, 1, 2, music_rate, left_hand.doot);
-	WideWindowJumptrillScaler(NoteInfo, 4, 8, music_rate, right_hand.doot);
+	// loop to help with hand specific stuff
+	for (auto& hp : spoopy) {
+		auto& hand = hp.first;
+		const auto& fv = hp.second;
 
-	// pattern mods and base msd never change so set them immediately
-	if (debugmode) {
-		left_hand.debugValues.resize(3);
-		right_hand.debugValues.resize(3);
-		left_hand.debugValues[0].resize(ModCount);
-		right_hand.debugValues[0].resize(ModCount);
-		left_hand.debugValues[1].resize(NUM_CalcDiffValue);
-		right_hand.debugValues[1].resize(NUM_CalcDiffValue);
-		left_hand.debugValues[2].resize(NUM_CalcDebugMisc);
-		right_hand.debugValues[2].resize(NUM_CalcDebugMisc);
+		// needs to be done after pattern mods are calculated
+		hand.InitAdjDiff();
 
-		for (size_t i = 0; i < ModCount; ++i) {
-			left_hand.debugValues[0][i] = left_hand.doot[i];
-			right_hand.debugValues[0][i] = right_hand.doot[i];
-		}
+		// pattern mods and base msd never change, set degbug output for them
+		// now
+		if (debugmode) {
+			// 3 = number of different debug types
+			hand.debugValues.resize(3);
+			hand.debugValues[0].resize(ModCount);
+			hand.debugValues[1].resize(NUM_CalcDiffValue);
+			hand.debugValues[2].resize(NUM_CalcDebugMisc);
 
-		// set everything but final adjusted output here
-		for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i) {
-			left_hand.debugValues[1][i] = left_hand.soap[i];
-			right_hand.debugValues[1][i] = right_hand.soap[i];
+			for (size_t i = 0; i < ModCount; ++i)
+				hand.debugValues[0][i] = hand.doot[i];
+
+			// set everything but final adjusted output here
+			for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+				hand.debugValues[1][i] = hand.soap[i];
 		}
 	}
-
-	// it's probably time to loop over hands more sensibly or
-	// do this stuff inside the class
-	/*for (int i = 0; i < numitv; ++i) {
-		left_hand.pre_multiplied_pattern_mod_group_a[i] =
-		  left_hand.doot[Roll][i] * left_hand.doot[OHJump][i] *
-		  left_hand.doot[Anchor][i];
-		right_hand.pre_multiplied_pattern_mod_group_a[i] =
-		  right_hand.doot[Roll][i] * right_hand.doot[OHJump][i] *
-		  right_hand.doot[Anchor][i];
-	}*/
 
 	j0 = SequenceJack(NoteInfo, 0, music_rate);
 	j1 = SequenceJack(NoteInfo, 1, music_rate);
 	j2 = SequenceJack(NoteInfo, 2, music_rate);
 	j3 = SequenceJack(NoteInfo, 3, music_rate);
+	return true;
 }
 
 float
@@ -667,7 +658,7 @@ Hand::CalcMSEstimate(vector<float>& input)
 }
 
 void
-Hand::InitDiff(Finger& f1, Finger& f2)
+Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
 	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
@@ -760,13 +751,31 @@ Calc::Chisel(float player_skill,
 	return player_skill + 2.f * resolution;
 }
 
-// debug bool here is NOT the one in Calc, it is passed from chisel using the
-// final difficulty as the starting point and should only be executed once per
-// chisel
 void
-Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
+Hand::InitAdjDiff()
 {
-	vector<int> pmods_used[NUM_Skillset] = {
+	// new plan stop being dumb and doing this over and over again in calc
+	// internal because these values never change
+
+#pragma region zz
+	// the new way we wil attempt to diffrentiate skillsets rather than
+	// using normalizers is by detecting whether or not we think a file
+	// is mostly comprised of a given pattern, producing a downscaler
+	// that slightly buffs up those files and produces a downscaler for
+	// files not detected of that type. the major potential failing of
+	// this system is that it ends up such that the rating is tied
+	// directly to whether or not a file can be more or less strongly
+	// determined to be of a pattern type, e.g. splithand trills being
+	// marked as more "js" than actual js, for the moment these
+	// modifiers are still built on proportion of taps in chords / total
+	// taps, but there's a lot more give than their used to be. they
+	// should be re-done as sequential detection for best effect but i
+	// don't know if that will be necessary for basic tuning if we don't
+	// do this files may end up misclassing hard and polluting
+	// leaderboards, and good scores on overrated files will simply
+	// produce high ratings in every category
+#pragma endregion
+	static const vector<int> pmods_used[NUM_Skillset] = {
 		// overall, nothing, don't handle here
 		{},
 
@@ -782,7 +791,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		  Anchor,
 		},
 
-		// js - deal with making hs count against this below
+		// js
 		{ JS, Chaos, OHJump, TheThing, Anchor },
 
 		// hs
@@ -795,72 +804,98 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		{},
 
 		// chordjack
-		{ CJ, CJQuad, CJOHJump, Anchor},
+		{ CJ, CJQuad, CJOHJump, Anchor },
 
-		// tech, ignore for now
-		{Anchor, Chaos, Roll, WideRangeJumptrill, WideRangeRoll, FlamJam},
+		// tech, duNNO wat im DOIN
+		{ Anchor, Chaos, Roll, WideRangeJumptrill, WideRangeRoll, FlamJam },
 
 	};
+
 	vector<float> scoring_justice_warrior_agenda(NUM_Skillset - 1);
-	// we're going to recycle adj_diff for this part
-	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
-#pragma region zz
-		// the new way we wil attempt to diffrentiate skillsets rather than
-		// using normalizers is by detecting whether or not we think a file is
-		// mostly comprised of a given pattern, producing a downscaler that
-		// slightly buffs up those files and produces a downscaler for files not
-		// detected of that type. the major potential failing of this system is
-		// that it ends up such that the rating is tied directly to whether or
-		// not a file can be more or less strongly determined to be of a pattern
-		// type, e.g. splithand trills being marked as more "js" than actual js,
-		// for the moment these modifiers are still built on proportion of taps
-		// in chords / total taps, but there's a lot more give than their used
-		// to be. they should be re-done as sequential detection for best effect
-		// but i don't know if that will be necessary for basic tuning
-		// if we don't do this files may end up misclassing hard and polluting
-		// leaderboards, and good scores on overrated files will simply produce
-		// high ratings in every category
-#pragma endregion
 
-		float tp_mod = 1.f;
-		for (auto& pmod : pmods_used[ss])
-			tp_mod *= doot[pmod][i];
-		adj_diff[i] = soap[BaseNPS][i] * tp_mod;
-		switch (ss) {
-			// do funky special case stuff here, we want hs to count against js
-			// so they are mutually exclusive
-			case Skill_Jumpstream:
-				adj_diff[i] /=
-				  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
-				break;
-			case Skill_Handstream:
-				adj_diff[i] /= fastsqrt(doot[OHJump][i]);
-				break;
-			case Skill_Technical:
-				// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
-				{
-					for (int j = 0; j < NUM_Skillset - 1; ++j) {
-						float temp_tp_mod = 1.f * basescalers[j];
-						for (auto& pmod : pmods_used[j])
-							temp_tp_mod *= doot[pmod][i];
-						scoring_justice_warrior_agenda[j] = temp_tp_mod;
-					}
-					float muzzle =
-					  *std::max_element(scoring_justice_warrior_agenda.begin(),
-										scoring_justice_warrior_agenda.end());
-					adj_diff[i] = soap[BaseMSD][i] * muzzle * tp_mod;
-				}
-				break;
-		}
-
-		adj_diff[i] *= basescalers[ss];
+	// why can't i do this in the function that calls this?
+	for (int i = 0; i < NUM_Skillset; ++i) {
+		base_adj_diff[i].resize(soap[BaseNPS].size());
+		base_diff_for_stam_mod[i].resize(soap[BaseNPS].size());
 	}
 
+	// ok this loop is pretty wack i know, for each interval
+	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
+		float tp_mods[NUM_Skillset] = {
+			1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f
+		};
+
+		// total pattern mods for each skillset, we want this to be
+		// calculated before the main skillset loop because we might want
+		// access to the total js mod while on stream, or something
+		for (int ss = 0; ss < NUM_Skillset; ++ss) {
+			// is this even faster than multiplying 1.f by 1.f a billion times?
+			if (ss == Skill_Overall || ss == Skill_Stamina)
+				continue;
+			for (auto& pmod : pmods_used[ss])
+				tp_mods[ss] *= doot[pmod][i];
+		}
+
+		// main skillset loop, for each skillset that isn't overall or stam
+		for (int ss = 0; ss < NUM_Skillset; ++ss) {
+			if (ss == Skill_Overall || ss == Skill_Stamina)
+				continue;
+
+			// this should work and not be super slow?
+			auto& adj_diff = base_adj_diff[ss][i];
+			auto& stam_base = base_diff_for_stam_mod[ss][i];
+
+			// might need optimization, or not since this is not outside of a
+			// dumb loop now and is done once instead of a few hundred times
+			float funk = soap[BaseNPS][i] * tp_mods[ss] * basescalers[ss];
+			adj_diff = funk;
+			stam_base = funk;
+			switch (ss) {
+				// do funky special case stuff here
+
+				// test calculating stam for js/hs on max js/hs diff
+				// we want hs to count against js so they are mutually exclusive
+				case Skill_Jumpstream:
+					adj_diff /=
+					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
+
+					// maybe we should have 2 loops to avoid doing math twice
+					stam_base =
+					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
+					break;
+				case Skill_Handstream:
+					adj_diff /= fastsqrt(doot[OHJump][i]);
+					stam_base =
+					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
+					break;
+				case Skill_Technical:
+					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
+					{
+						for (int j = 0; j < NUM_Skillset - 1; ++j)
+							scoring_justice_warrior_agenda[j] = tp_mods[j];
+						float muzzle = *std::max_element(
+						  scoring_justice_warrior_agenda.begin(),
+						  scoring_justice_warrior_agenda.end());
+						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss];
+					}
+					break;
+			}
+		}
+	}
+}
+
+// debug bool here is NOT the one in Calc, it is passed from chisel using the
+// final difficulty as the starting point and should only be executed once per
+// chisel
+void
+Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
+{
+
 	if (stam)
-		StamAdjust(x, adj_diff);
+		StamAdjust(x, ss);
 
 	// final difficulty values to use
-	const vector<float>& v = stam ? stam_adj_diff : adj_diff;
+	const vector<float>& v = stam ? stam_adj_diff : base_adj_diff[ss];
 
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
@@ -868,7 +903,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		debugValues[2][StamMod].resize(v.size());
 		debugValues[2][PtLoss].resize(v.size());
 		// final debug output should always be with stam activated
-		StamAdjust(x, adj_diff, true);
+		StamAdjust(x, ss, true);
 		debugValues[1][MSD] = stam_adj_diff;
 
 		for (size_t i = 0; i < v.size(); ++i) {
@@ -886,8 +921,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 									  fastpow(x / v[i], 1.7f);
 }
 
-void
-Hand::StamAdjust(float x, vector<float>& diff, bool debug)
+inline void
+Hand::StamAdjust(float x, int ss, bool debug)
 {
 	float stam_floor =
 	  0.95f;		   // stamina multiplier min (increases as chart advances)
@@ -898,32 +933,38 @@ Hand::StamAdjust(float x, vector<float>& diff, bool debug)
 	float local_ceil = stam_ceil;
 	const float super_stam_ceil = 1.11f;
 
+	// use this to calculate the mod growth
+	const auto& base_diff = base_diff_for_stam_mod[ss];
+	// but apply the mod growth to these values
+	// they might be the same, or not
+	const auto& diff = base_adj_diff[ss];
+
 	// i don't like the copypasta either but the boolchecks where they were
 	// were too slow
 	if (debug)
-		for (size_t i = 0; i < diff.size(); i++) {
+		for (size_t i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
-			avs2 = diff[i];
+			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 0.95f)
 				stam_floor += (mod - 0.95f) / stam_fscale;
 			local_ceil = stam_ceil * stam_floor;
 
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
-			stam_adj_diff[i] = avs2 * mod;
+			stam_adj_diff[i] = diff[i] * mod;
 			debugValues[2][StamMod][i] = mod;
 		}
 	else
-		for (size_t i = 0; i < diff.size(); i++) {
+		for (size_t i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
-			avs2 = diff[i];
+			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 			if (mod > 0.95f)
 				stam_floor += (mod - 0.95f) / stam_fscale;
-				local_ceil = stam_ceil * stam_floor;
+			local_ceil = stam_ceil * stam_floor;
 
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
-			stam_adj_diff[i] = avs2 * mod;
+			stam_adj_diff[i] = diff[i] * mod;
 		}
 }
 
@@ -1002,7 +1043,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 				(notes > 1 && last_notes == 1))
 				if (!twas_jack)
 					seriously_not_js -= 3;
-			
+
 			// FOLLOW THE RULES
 			if (last_notes == 1)
 				if (notes == 1) {
@@ -1129,12 +1170,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 						not_hs += seriously_not_hs;
 				}
 
-			// sequencing stuff
-			unsigned int cols = NoteInfo[row].notes;
-			for (auto& id : col_id)
-				if (cols & id && last_cols & id)
-					++actual_jacks;
-
 			// suppress jumptrilly garbage a little bit
 			if (last_notes > 1)
 				if (notes > 1)
@@ -1204,7 +1239,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		unsigned int taps = 0;
 		unsigned int chordtaps = 0;
 		bool no_finger_swips = true;
-		
+
 		// bool newrow = true;
 		for (int row : nervIntervals[i]) {
 			//		if (debugmode && newrow)
@@ -1327,7 +1362,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
 			  CalcClamp(1.2f - (static_cast<float>(definitely_not_jacks * 2) /
-								 static_cast<float>(taps)),
+								static_cast<float>(taps)),
 						0.4f,
 						1.f);
 			// if (debugmode)

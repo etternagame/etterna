@@ -44,7 +44,15 @@ class Hand
 	estimates are underrated by ms estimates, and vice versa. Pattern modifiers
 	are used to adjust for circumstances in which this is not true. The result
 	is output to v_itvNPSdiff and v_itvMSdiff. */
-	void InitDiff(Finger& f1, Finger& f2);
+	void InitBaseDiff(Finger& f1, Finger& f2);
+
+	// I don't know why this was ever being done in the internal loop, only the
+	// stam adjusted difficulties were dependent on a player_skill input, these
+	// values are static. Just calculate them for each skillset after pattern
+	// mods are done. For reasons we want to calculate stam mod on a different
+	// vector than what we apply the stam mod to, so calculate those as well.
+	// Yes this makes sense. 
+	void InitAdjDiff();
 
 	// Totals up the points available for each interval
 	void InitPoints(const Finger& f1, const Finger& f2);
@@ -55,7 +63,8 @@ class Hand
 	appropriate value to be around 0.8. The multiplier is scaled to the
 	proportionate difference in player skill. */
 	// just recycle the stam_adj_diff vector directly in this function
-	void StamAdjust(float x, std::vector<float>& diff, bool debug = false);
+	// sometimes 
+	void StamAdjust(float x, int ss, bool debug = false);
 
 	/*	For a given player skill level x, invokes the function used by wife
 	scoring to assert the average of the distribution of point gain for each
@@ -73,14 +82,17 @@ class Hand
 	std::vector<int> v_itvpoints; // Point allotment for each interval
 	std::vector<float> soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
 
+	// not necessarily self extraplanetary
+	// apply stam model to these (but output is sent to stam_adj_diff, not modified here)
+	std::vector<float> base_adj_diff[NUM_Skillset];
+	// but use these as the input for model
+	std::vector<float> base_diff_for_stam_mod[NUM_Skillset];
 
-	// self extraplanetary
-	std::vector<float> pre_multiplied_pattern_mod_group_a;
-	// pattern adjusted difficulty, allocate only once
-	std::vector<float> adj_diff;
 	// pattern adjusted difficulty, allocate only once, stam needs to be based
 	// on the above, and it needs to be recalculated every time the player_skill
-	// value changes, again based on the above
+	// value changes, again based on the above, technically we could use the
+	// skill_stamina element of the arrays to store this and save an allocation
+	// but that might just be too confusing idk
 	std::vector<float> stam_adj_diff;
 	std::vector<std::vector<std::vector<float>>> debugValues;
 
