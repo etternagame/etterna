@@ -2516,10 +2516,10 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 // hyper explicit mega murder of long chains of 12211221122112211221122112211221
 void
-Calc::WideWindowJumptrillScaler(const vector<NoteInfo>& NoteInfo,
-								unsigned int t1,
-								unsigned int t2,
-								float music_rate,
+Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
+							   unsigned int t1,
+							   unsigned int t2,
+							   float music_rate,
 								vector<float> doot[])
 {
 	doot[WideRangeJumptrill].resize(nervIntervals.size());
