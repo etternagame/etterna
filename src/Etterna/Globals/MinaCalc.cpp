@@ -2586,7 +2586,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (whatwhat == 0)
 			whatwhat = 1;
 		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.05f);
+		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
 	}
 
 	// covering a window of 4 intervals does act as a smoother, and a better one
