@@ -948,7 +948,7 @@ Hand::InitAdjDiff()
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
 					break;
 				case Skill_Handstream:
-					adj_diff /= fastsqrt(doot[OHJump][i]);
+					//adj_diff /= fastsqrt(doot[OHJump][i]);
 					stam_base =
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
