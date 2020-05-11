@@ -675,7 +675,7 @@ makeskillsetlabeltext = function(i, mod, hand)
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
-            self:maxwidth((plotWidth-10) / 0.5)
+            self:maxwidth(100)
         end,
         UpdateAveragesMessageCommand = function(self)
             if song then
@@ -695,7 +695,7 @@ makeskillsetlabeltext = function(i, mod, hand)
                 else
                     self:diffuse(color(".3,.3,.3"))
                 end
-                self:settextf("%s: %.4f", modnames[i], aves[i])
+                self:settextf("%s: %.3f", modnames[i], aves[i])
             end
         end,
         UpdateActiveModsMessageCommand = function(self)
