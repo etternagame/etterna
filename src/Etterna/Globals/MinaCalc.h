@@ -114,9 +114,7 @@ class Calc
 
 	// redo these asap
 	static float JackLoss(const std::vector<float>& j, float x);
-	static JackSeq SequenceJack(const std::vector<NoteInfo>& NoteInfo,
-								unsigned int t,
-								float music_rate, bool debugmode);
+	static JackSeq SequenceJack(const Finger& f, bool debugmode);
 
 	bool debugmode = false;
 	bool capssr = true;	// set to true for scores, false for cache

@@ -305,7 +305,7 @@ Calc::JackLoss(const vector<float>& j, float x)
 	float o = 0.f;
 	for (size_t i = 0; i < j.size(); i++)
 		if (x < j[i])
-			o += 7.f - (17.f * fastpow(x / (j[i] * 1.88f), 1.7f));
+			o += 7.f - (7.f * fastpow(x / (j[i]), 1.7f));
 	CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
@@ -317,10 +317,7 @@ ms_to_bpm(float& x)
 }
 
 JackSeq
-Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
-				   unsigned int t,
-				   float music_rate,
-				   bool debugmode)
+Calc::SequenceJack(const Finger& f, bool debugmode)
 {
 	bool dbg = true && debugmode;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
@@ -337,90 +334,92 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 	// stuff like mines immediately after shortjacks)
 	vector<float> jack_diff;
 	static const int window_size = 5;
-	vector<float> window_taps = { -1.f, -2.f, -3.f, -4.f, -5.f };
-	vector<float> comp_diff(window_size - 1);
-	vector<float> eff_scalers(window_size - 1);
-	float last_time = -1.f;
-	unsigned int track = 1u << t;
-	for (auto r : NoteInfo) {
-		float last_diff = 0.f;
-		if (r.notes & track) {
-			// convert to ms from s, it's much more intuitive
-			float cur_time = r.rowTime / music_rate * 1000.f;
+	// be better if this was scalable but im dum
+	vector<float> window_taps = { 250.f, 250.f, 250.f, 250.f, 250.f };
+	vector<float> comp_diff(window_size);
+	vector<float> eff_scalers(window_size);
+
+	// intervals, we don't care that we're looping through intervals because the
+	// queue we build is interval agnostic, though it does make debug output
+	// easier to accomplish
+	for (auto i : f) {
+		// taps in interval
+		for (auto ms : i) {
+			float last_diff = 0.f;
 
 			if (dbg)
-				std::cout << "time now: " << cur_time / 1000.f << std::endl;
+				std::cout << "time now: " << ms / 1000.f << std::endl;
 			// update most recent values
 			for (size_t i = 1; i < window_taps.size(); ++i) {
 				if (false) {
 					std::cout << "window tap at: " << i - 1
-							  << " time was: " << window_taps[i - 1]
+							  << " ms was: " << window_taps[i - 1]
 							  << std::endl;
 					std::cout << "window tap at: " << i
-							  << " time is: " << window_taps[i] << std::endl;
-					std::cout << "difference is: "
-							  << window_taps[i] - window_taps[i - 1]
-							  << std::endl;
+							  << " ms is: " << window_taps[i] << std::endl;
 				}
 				window_taps[i - 1] = window_taps[i];
 			}
 
-			// new plan, store cur time so we can easily grab the time the last
-			// 5 hits take place over, if we need specific ms values, we can
-			// derive them
-			window_taps[window_size - 1] = cur_time;
-			float window_time = window_taps.back() - window_taps.front();
+			// ms from last note on same column
+			window_taps[window_size - 1] = ms;
+			float window_time = sum(window_taps);
 			if (dbg)
-				std::cout << "cur window time: " << window_time / 1000.f << std::endl;
+				std::cout << "cur window time: " << window_time / 1000.f
+						  << std::endl;
 
 			// yes this is many loops, but we don't want to sacrifice
-			// legitimately difficult minijacks in the name of proper evaluation
-			// of shortjacks and longjacks, so try scanning through the last 5
-			// in a minisequence to pick out something something?
-			for (size_t i = 1; i < window_taps.size(); ++i) {
-				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2, and
-				// 4th is 4 - 3, each with their own total time at n - 0, this
-				// leaves us with 4 components for jack difficulty estimation
-				// that will hopefully not underrate minijacks
+			// legitimately difficult minijacks in the name of proper
+			// evaluation of shortjacks and longjacks, so try scanning
+			// through the last 5 in a minisequence to pick out something
+			// something?
+			float comp_time = 0.f;
+			for (size_t i = 0; i < window_taps.size(); ++i) {
+				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
+				// and 4th is 4 - 3, each with their own total time at n -
+				// 0, this leaves us with 4 components for jack difficulty
+				// estimation that will hopefully not underrate minijacks
 
-				float base_ms = window_taps[i] - window_taps[i - 1];
-				float comp_time = window_taps[i] - window_taps[0];
+				float base_ms = window_taps[i];
+				comp_time += window_taps[i];
 
-				// we sequence inside the jack this way so that we don't ignore
-				// minijacks, but we don't want them to overpower things like
-				// they did in 263. We know the general rules that govern how
-				// hard minijacks, shortjacks, and longjacks are to hit - an
-				// isolated minijack has an effective window if 180ms + jack ms
-				// + 180, an isolated triplet has an effective window of 180 +
-				// jack ms + jack ms + 180, the latter is more difficult but not
-				// by much, even if the jacks are extremely fast, since jacks
-				// are effectively down translated from x bpm jacks to y bpm as
-				// a function of the miss window
+				// we sequence inside the jack this way so that we don't
+				// ignore minijacks, but we don't want them to overpower
+				// things like they did in 263. We know the general rules
+				// that govern how hard minijacks, shortjacks, and longjacks
+				// are to hit - an isolated minijack has an effective window
+				// if 180ms + jack ms
+				// + 180, an isolated triplet has an effective window of 180
+				// + jack ms + jack ms + 180, the latter is more difficult
+				// but not by much, even if the jacks are extremely fast,
+				// since jacks are effectively down translated from x bpm
+				// jacks to y bpm as a function of the miss window
 
-				// try adding 180 for now, and see how well it works
+				// try adding 90 for now, and see how well it works
 				float eff_ms = comp_time + 90.f;
 
 				// compute a simple scaler by taking the effective ms window
-				// (converted to bpm for the moment for familiarity / clarity)
-				// remember to multiply effective ms by number of jacks in the
-				// component
+				// (converted to bpm for the moment for familiarity /
+				// clarity) remember to multiply effective ms by number of
+				// jacks in the component
 
-				// we do want the base bpm to be the most recent value, not an
-				// average, since we will aggregate the value in (some) way at
-				// the end of this
+				// we do want the base bpm to be the most recent value, not
+				// an average, since we will aggregate the value in (some)
+				// way at the end of this
 				float base_bpm = ms_to_bpm(base_ms);
-				float eff_bpm = ms_to_bpm(eff_ms) * static_cast<float>(i);
+				float eff_bpm = ms_to_bpm(eff_ms) * (1 + static_cast<float>(i));
 				float eff_scaler = eff_bpm / base_bpm;
 
 				// ok this is pretty tricky, but basically if we catch a
 				// minijack in otherwise lenient spacing, we still want to
-				// evaluate it to at least a jack of some significance, we can
-				// divide by the effective scaler to get an idea of how the
-				// difficulty of the sequence at each stage is represented, then
-				// multiply by the final effective scaler for the sequence as a
-				// whole after aggregating the component estimates
-				comp_diff[i - 1] = base_bpm / eff_scaler;
-				eff_scalers[i - 1] = eff_scaler;
+				// evaluate it to at least a jack of some significance, we
+				// can divide by the effective scaler to get an idea of how
+				// the difficulty of the sequence at each stage is
+				// represented, then multiply by the final effective scaler
+				// for the sequence as a whole after aggregating the
+				// component estimates
+				comp_diff[i] = base_bpm / eff_scaler;
+				eff_scalers[i] = eff_scaler;
 				if (dbg) {
 					std::cout << "\nseq component: " << i << std::endl;
 					std::cout << "base bpm: " << base_bpm << std::endl;
@@ -430,13 +429,13 @@ Calc::SequenceJack(const vector<NoteInfo>& NoteInfo,
 			}
 
 			float comp_mean = mean(comp_diff);
-			// convert bpm to nps so we can apply finalscaler and get roughly
-			// comparable values to other skillsets and use the basescaler lever
-			// to fine tune
-			float fdiff = comp_mean / 15.f * finalscaler * mean(eff_scalers) * basescalers[Skill_JackSpeed];
+			// convert bpm to nps so we can apply finalscaler and get
+			// roughly comparable values to other skillsets and use the
+			// basescaler lever to fine tune
+			float fdiff = comp_mean / 15.f * finalscaler * mean(eff_scalers) *
+						  basescalers[Skill_JackSpeed];
 			last_diff = fdiff;
 			jack_diff.push_back(fdiff);
-			last_time = cur_time;
 			if (dbg) {
 				std::cout << "comp mean: " << comp_mean << std::endl;
 				std::cout << "fdiff: " << fdiff << std::endl;
@@ -779,10 +778,10 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	j0 = SequenceJack(NoteInfo, 0, music_rate, debugmode);
-	j1 = SequenceJack(NoteInfo, 1, music_rate, false);
-	j2 = SequenceJack(NoteInfo, 2, music_rate, false);
-	j3 = SequenceJack(NoteInfo, 3, music_rate, false);
+	j0 = SequenceJack(fingers[0], debugmode);
+	j1 = SequenceJack(fingers[1], false);
+	j2 = SequenceJack(fingers[2], false);
+	j3 = SequenceJack(fingers[3], false);
 	return true;
 }
 
