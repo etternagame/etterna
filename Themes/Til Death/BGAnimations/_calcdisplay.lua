@@ -500,6 +500,16 @@ o[#o + 1] = Def.Quad {
                         modNames[#modNames + 1] = "PtLoss"..blah
                 end
 
+                -- add ptloss
+                for h = 1, 2 do
+                    local blah = "L"
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs["JackPtLoss"][h]
+                        modNames[#modNames + 1] = "JackPtLoss"..blah
+                end
+
                 for k, v in pairs(modsToValues) do
                     local name = modNames[k] and modNames[k] or ""
                     local value = v[index] and v[index] or 0
@@ -898,6 +908,8 @@ for i, mod in pairs(CalcDiffValue) do
 end
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
 
 -- SSR skillset lines
 for i = 1,8 do

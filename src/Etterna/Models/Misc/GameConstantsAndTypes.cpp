@@ -242,7 +242,7 @@ XToString(CalcDiffValue);
 LuaXType(CalcDiffValue);
 
 static const char* CalcDebugMiscNames[] = {
-	"PtLoss", "StamMod",
+	"PtLoss", "JackPtLoss", "StamMod",
 };
 XToString(CalcDebugMisc);
 LuaXType(CalcDebugMisc);

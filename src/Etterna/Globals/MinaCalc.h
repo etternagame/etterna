@@ -113,8 +113,9 @@ class Calc
 								float score_goal);
 
 	// redo these asap
-	static float JackLoss(const std::vector<float>& j, float x);
-	static JackSeq SequenceJack(const Finger& f, bool debugmode);
+	float JackLoss(const std::vector<float>& j, float x);
+	float JackLossWrapper(float x);
+	JackSeq SequenceJack(const Finger& f, bool debugmode, int track);
 
 	bool debugmode = false;
 	bool capssr = true;	// set to true for scores, false for cache
@@ -209,6 +210,7 @@ class Calc
 	void WideRangeBalanceScaler(const std::vector<NoteInfo>& NoteInfo,
 								float music_rate,
 								std::vector<float> doot[ModCount]);
+	std::vector<std::vector<float>> dumbthingforjackdebugoutput[4];
 	Hand left_hand;
 	Hand right_hand;
 
@@ -222,10 +224,7 @@ class Calc
 	const bool logpatterns = false;
 	float fingerbias = 1.f;
 
-	JackSeq j0;
-	JackSeq j1;
-	JackSeq j2;
-	JackSeq j3;
+	JackSeq jacks[4];
 };
 
 MINACALC_API std::vector<float>

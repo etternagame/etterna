@@ -299,14 +299,54 @@ static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.88f,
 												 0.94f, 0.9f,  0.84f, 0.88f };
 
 #pragma region CalcBodyFunctions
+inline float
+hit_the_road(float x, float y)
+{
+	return 7.f * fastpow(x / y, 1.7f);
+}
+// returns a positive number or 0, output should be subtracted
+float
+Calc::JackLossWrapper(float x)
+{
+	float total_point_loss = 0.f;
+	for (auto& j : jacks)
+		total_point_loss += JackLoss(j, x);
+	total_point_loss = CalcClamp(total_point_loss, 0.f, 10000.f);
+
+	// kinda lame but we need to run it again with interval splices.. we should
+	// just store jacks in intervals in the first place
+	if (debugmode) {
+		left_hand.debugValues[2][JackPtLoss].resize(numitv);
+		right_hand.debugValues[2][JackPtLoss].resize(numitv);
+		for (auto t : { 0, 1, 2, 3}) {
+			auto& seagull = dumbthingforjackdebugoutput[t];
+
+			// iterating on jacks within intervals
+			for (size_t i = 0; i < seagull.size(); ++i) {
+				float loss = 0.f;
+				for (auto& j : seagull[i])
+					loss += hit_the_road(x, j);
+
+				if(t == 0 || t == 1)
+					left_hand.debugValues[2][JackPtLoss][i] = loss;
+				else
+					right_hand.debugValues[2][JackPtLoss][i] = loss;
+			}
+		}
+	}
+
+	return total_point_loss;
+}
+
+// returns a positive number or 0
 float
 Calc::JackLoss(const vector<float>& j, float x)
 {
 	float o = 0.f;
-	for (size_t i = 0; i < j.size(); i++)
-		if (x < j[i])
-			o += 7.f - (7.f * fastpow(x / (j[i]), 1.7f));
-	CalcClamp(o, 0.f, 10000.f);
+	for (auto& v : j)
+		if (x < v)
+			o += hit_the_road(x, v);
+	o = CalcClamp(o, 0.f, 10000.f);
 	return o;
 }
 
@@ -317,9 +357,9 @@ ms_to_bpm(float& x)
 }
 
 JackSeq
-Calc::SequenceJack(const Finger& f, bool debugmode)
+Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 {
-	bool dbg = true && debugmode;
+	bool dbg = true && debugmode && track == 0;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -339,22 +379,24 @@ Calc::SequenceJack(const Finger& f, bool debugmode)
 	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
 
+	vector<vector<float>> super_dbg_output;
+	vector<float> dbgoutput;
+
 	// intervals, we don't care that we're looping through intervals because the
 	// queue we build is interval agnostic, though it does make debug output
 	// easier to accomplish
 	for (auto i : f) {
+		dbgoutput.clear();
 		// taps in interval
 		for (auto ms : i) {
 			float last_diff = 0.f;
-
-			if (dbg)
+			if (false)
 				std::cout << "time now: " << ms / 1000.f << std::endl;
 			// update most recent values
 			for (size_t i = 1; i < window_taps.size(); ++i) {
 				if (false) {
 					std::cout << "window tap at: " << i - 1
-							  << " ms was: " << window_taps[i - 1]
-							  << std::endl;
+							  << " ms was: " << window_taps[i - 1] << std::endl;
 					std::cout << "window tap at: " << i
 							  << " ms is: " << window_taps[i] << std::endl;
 				}
@@ -436,14 +478,19 @@ Calc::SequenceJack(const Finger& f, bool debugmode)
 						  basescalers[Skill_JackSpeed];
 			last_diff = fdiff;
 			jack_diff.push_back(fdiff);
+			if (debugmode)
+				dbgoutput.push_back(fdiff);
 			if (dbg) {
 				std::cout << "comp mean: " << comp_mean << std::endl;
 				std::cout << "fdiff: " << fdiff << std::endl;
 				std::cout << "finished this sequence \n" << std::endl;
 			}
 		}
+		if (debugmode)
+			super_dbg_output.push_back(dbgoutput);
 	}
-
+	if (debugmode)
+		dumbthingforjackdebugoutput[track] = super_dbg_output;
 	return jack_diff;
 }
 
@@ -778,10 +825,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	j0 = SequenceJack(fingers[0], debugmode);
-	j1 = SequenceJack(fingers[1], false);
-	j2 = SequenceJack(fingers[2], false);
-	j3 = SequenceJack(fingers[3], false);
+	for (int i = 0; i < 4; ++i)
+			jacks[i] = SequenceJack(fingers[i], debugmode, i);
+
 	return true;
 }
 
@@ -851,10 +897,7 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed)
-				gotpoints =
-				  MaxPoints +
-				  (JackLoss(j0, player_skill) - JackLoss(j1, player_skill) -
-				   JackLoss(j2, player_skill) - JackLoss(j3, player_skill));
+				gotpoints = MaxPoints - JackLossWrapper(player_skill);
 			else {
 				if (ss == Skill_Chordjack)
 					gotpoints -= 0;
@@ -964,7 +1007,8 @@ Hand::InitAdjDiff()
 		{},
 
 		// jackspeed, ignore for now
-		{ Chaos,
+		{
+		  Chaos,
 		  Roll,
 		  WideRangeJumptrill,
 		  WideRangeRoll,
@@ -1051,7 +1095,7 @@ Hand::InitAdjDiff()
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
 					break;
 				case Skill_Handstream:
-					//adj_diff /= fastsqrt(doot[OHJump][i]);
+					// adj_diff /= fastsqrt(doot[OHJump][i]);
 					stam_base =
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
@@ -1066,7 +1110,8 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss] * basescalers[ss];
+						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss] *
+								   basescalers[ss];
 					}
 					break;
 			}
@@ -1375,7 +1420,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_notes = notes;
 			last_cols = cols;
 		}
-
 
 		if (handtaps > 0)
 			handtaps += jumptaps;
@@ -3555,5 +3599,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 296;
+	return 297;
 }
