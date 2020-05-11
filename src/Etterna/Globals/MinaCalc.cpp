@@ -501,7 +501,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// and something that benefits 15% will max out the possible stam
 		// rating, which is (currently) a 1.07 multiplier to the base maybe
 		// using a multiplier and not a difference would be better?
-		static const float stam_curve_shift = 0.f;
+		static const float stam_curve_shift = 0.015f;
 		// ends up being a multiplier between ~0.8 and ~1
 		float mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5f);
