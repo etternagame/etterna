@@ -2869,7 +2869,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 			  bool dbg)
 {
 	static const float min_mod = 1.f;
-	static const float max_mod = 1.065f;
+	static const float max_mod = 1.04f;
 	int interval_taps = 0;
 
 	bool newint1 = true;
