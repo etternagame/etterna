@@ -908,8 +908,8 @@ for i, mod in pairs(CalcDiffValue) do
 end
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
-o[#o+1] = bottomGraphLineMSD("JackPtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
-o[#o+1] = bottomGraphLineMSD("JackPtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 1)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 2)
 
 -- SSR skillset lines
 for i = 1,8 do
