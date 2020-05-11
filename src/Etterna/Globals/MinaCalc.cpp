@@ -1071,6 +1071,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	static const float max_mod = 1.1f;
 
 	int seriously_not_js = 0;
+	float last_mod = min_mod;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
@@ -1128,13 +1129,13 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 		// nothing here
 		if (taps == 0) {
-			doot[JS][i] = 1.f;
+			doot[JS][i] = min_mod;
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
 		}
 		// at least 1 tap but no jumps
-		else if (jumptaps < 2) {
-			doot[JS][i] = min_mod;
+		else if (jumptaps == 0) {
+			doot[JS][i] = CalcClamp(last_mod - 0.55f, min_mod, max_mod);
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
 		} else { // at least 1 jump
@@ -1164,6 +1165,7 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[JS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[JSS][i] = bromide;
 			doot[JSJ][i] = brop;
+			last_mod = doot[JS][i];
 		}
 	}
 	if (SmoothPatterns)
@@ -1182,6 +1184,7 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 	static const float max_mod = 1.1f;
 
 	int seriously_not_hs = 0;
+	float last_mod = min_mod;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// sequencing stuff
 		int actual_jacks = 0;
@@ -1191,12 +1194,17 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 		unsigned int taps = 0;
 		unsigned int handtaps = 0;
+		unsigned int jumptaps = 0;
 		unsigned int last_notes = 0;
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes == 3)
 				handtaps += 3;
+
+			// we want to catch hs with js components
+			if (notes == 2)
+				++jumptaps;
 
 			bool twas_jack = false;
 			// sequencing stuff
@@ -1215,7 +1223,6 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// BUT WHO MAKES THE RULES????????
 			if (last_notes == 1)
 				if (notes == 1) {
-					//++not_js;
 					seriously_not_hs = max(seriously_not_hs, 0);
 					++seriously_not_hs;
 
@@ -1235,21 +1242,31 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			last_cols = cols;
 		}
 
+
+		if (handtaps > 0)
+			handtaps += jumptaps;
+
 		// nothing here
 		if (taps == 0) {
-			doot[HS][i] = 1.f;
+			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
+			last_mod = doot[HS][i];
 		}
 		// look ma no hands
-		else if (handtaps < 3) {
-			doot[HS][i] = min_mod;
+		else if (handtaps == 0) {
+			// ok for hs specifically we will do this i think, basically stuff
+			// like du und ich with a bunch of hs then js alternating gets no hs
+			// rating because the smooth drags everything down now that the
+			// min_mod is so low
+			doot[HS][i] = max(last_mod - 0.05f, min_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
+			last_mod = doot[HS][i];
 		} else { // at least 1 hand
 			// when bark of dog into canyon scream at you
 			float prop = 0.4f + (static_cast<float>(handtaps + 1) /
-								 static_cast<float>(taps - 1) * 32.f / 7.f);
+								 static_cast<float>(taps - 1) * 31.f / 7.f);
 
 			float bromide = CalcClamp(
 			  1.45f - (static_cast<float>(not_hs) / static_cast<float>(taps)),
@@ -1265,11 +1282,11 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[HSS][i] = bromide;
 			doot[HSJ][i] = brop;
+			last_mod = doot[HS][i];
 		}
 	}
 
-	if (SmoothPatterns)
-		Smooth(doot[HS], 1.f);
+	Smooth(doot[HS], 1.f);
 }
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
