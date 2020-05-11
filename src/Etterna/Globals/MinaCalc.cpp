@@ -525,11 +525,17 @@ struct JumpHandChordData {
 JumpHandChordData Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo) {
 	JumpHandChordData data;
 	// these reserve statements should match the struct fields
+	data.num_row_variations.reserve(nervIntervals.size());
+	data.definitely_not_jacks.reserve(nervIntervals.size());
 	data.actual_jacks.reserve(nervIntervals.size());
+	data.actual_jacks_cj.reserve(nervIntervals.size());
 	data.not_js.reserve(nervIntervals.size());
 	data.not_hs.reserve(nervIntervals.size());
 	data.taps.reserve(nervIntervals.size());
+	data.jumptaps.reserve(nervIntervals.size());
 	data.handtaps.reserve(nervIntervals.size());
+	data.chordtaps.reserve(nervIntervals.size());
+	data.quads.reserve(nervIntervals.size());
 	
 	static const int col_id[4] = { 1, 2, 4, 8 };
 	
