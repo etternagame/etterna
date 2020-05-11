@@ -834,13 +834,28 @@ Hand::InitAdjDiff()
 		  FlamJam,
 		  OHJump,
 		  Anchor,
+		  WideRangeBalance,
 		},
 
 		// js
-		{ JS, Chaos, OHJump, TheThing, Anchor },
+		{
+		  JS,
+		  Chaos,
+		  OHJump,
+		  TheThing,
+		  Anchor,
+		  WideRangeBalance,
+		},
 
 		// hs
-		{ HS, Chaos, OHJump, TheThing, Anchor },
+		{
+		  HS,
+		  Chaos,
+		  OHJump,
+		  TheThing,
+		  Anchor,
+		  WideRangeBalance,
+		},
 
 		// stam, nothing, don't handle here
 		{},
@@ -853,13 +868,30 @@ Hand::InitAdjDiff()
 		  FlamJam,
 		  OHJump,
 		  CJOHJump,
-		  CJQuad },
+		  CJQuad,
+		  WideRangeBalance,
+		},
 
 		// chordjack
-		{ CJ, CJQuad, CJOHJump, Anchor },
+		{
+		  CJ,
+		  CJQuad,
+		  CJOHJump,
+		  Anchor,
+		  WideRangeBalance,
+		},
 
 		// tech, duNNO wat im DOIN
-		{ Anchor, Chaos, Roll, WideRangeJumptrill, WideRangeRoll, FlamJam },
+		{
+		  Anchor,
+		  Chaos,
+		  Roll,
+		  WideRangeJumptrill,
+		  WideRangeRoll,
+		  FlamJam,
+		  WideRangeBalance,
+		  WideRangeAnchor,
+		},
 
 	};
 
@@ -899,8 +931,7 @@ Hand::InitAdjDiff()
 
 			// might need optimization, or not since this is not outside of a
 			// dumb loop now and is done once instead of a few hundred times
-			float funk = soap[BaseNPS][i] * tp_mods[ss] * basescalers[ss] *
-						 doot[WideRangeBalance][i];
+			float funk = soap[BaseNPS][i] * tp_mods[ss] * basescalers[ss];
 			adj_diff = funk;
 			stam_base = funk;
 			switch (ss) {
@@ -932,7 +963,7 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss];
+						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss] * basescalers[ss];
 					}
 					break;
 			}
@@ -2837,8 +2868,8 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 			  vector<int>& col_taps,
 			  bool dbg)
 {
-	static const float min_mod = 0.9f;
-	static const float max_mod = 1.05f;
+	static const float min_mod = 1.f;
+	static const float max_mod = 1.065f;
 	int interval_taps = 0;
 
 	bool newint1 = true;
@@ -2898,7 +2929,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 
 	float pmod = static_cast<float>(window_max_anch) /
 				 static_cast<float>(window_taps_non_anchor) / 2.f;
-	pmod = 0.5f + fastsqrt(pmod);
+	pmod = 0.55f + fastsqrt(pmod);
 	return CalcClamp(pmod, min_mod, max_mod);
 }
 
@@ -2911,7 +2942,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 	bool dbg = false && debugmode;
 	doot[WideRangeBalance].resize(nervIntervals.size());
 
-	unsigned int itv_window = 3;
+	unsigned int itv_window = 2;
 	deque<int> itv_taps;
 	deque<vector<int>> itv_col_taps;
 
