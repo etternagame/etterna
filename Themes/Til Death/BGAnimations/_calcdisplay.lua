@@ -142,6 +142,7 @@ for k,v in pairs(CalcPatternMod) do
     activeMods[#activeMods+1] = v
 end
 activeMods[#activeMods+1] = "StamMod"
+activeMods[#activeMods+1] = "JackStamMod"
 
 -- specify enum names as tables here
 -- only allowed to have 9
@@ -415,6 +416,16 @@ o[#o + 1] = Def.Quad {
                 modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
                 modNames[#modNames + 1] = "StamMod"..blah
             end
+
+            -- add jackstammod
+            for h = 1, 2 do
+                local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                modsToValues[#modsToValues + 1] = graphVecs["JackStamMod"][h]
+                modNames[#modNames + 1] = "JackStamMod"..blah
+            end
             
             for k, v in pairs(modsToValues) do
                 local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
@@ -674,6 +685,8 @@ local modColors = {
     color("0.7,1,0.2"),		-- leme				 (right)
     color("0.7,1,0.1"),		-- leme			= wrar left
     color("0.7,1,0.1"),		-- leme				 (right)
+    color("0.7,1,0.7"),		-- leme			= wrar left
+    color("0.7,1,0.7"),		-- leme				 (right)
 }
 
 -- top graph average text
@@ -896,6 +909,10 @@ o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
 o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "JackStamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "JackStamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 -- MSD mod lines

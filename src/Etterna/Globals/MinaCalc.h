@@ -37,7 +37,7 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	static float CalcMSEstimate(std::vector<float>& input);
+	static float CalcMSEstimate(std::vector<float> input);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
@@ -112,9 +112,9 @@ class Calc
 								float music_rate,
 								float score_goal);
 
-	// redo these asap
-	float JackLoss(float x);
-	void SequenceJack(const Finger& f, bool debugmode, int track);
+	void JackStamAdjust(float x, int t, bool debug);
+	float JackLoss(float x, bool stam);
+	void SequenceJack(const Finger& f, bool debugmode, int track, int mode);
 
 	bool debugmode = false;
 	bool capssr = true;	// set to true for scores, false for cache
@@ -210,6 +210,7 @@ class Calc
 								float music_rate,
 								std::vector<float> doot[ModCount]);
 	std::vector<std::vector<float>> jacks[4];
+	std::vector<std::vector<float>> stam_adj_jacks[4];
 	Hand left_hand;
 	Hand right_hand;
 

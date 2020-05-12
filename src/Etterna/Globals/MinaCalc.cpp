@@ -296,20 +296,97 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.88f,
-												 0.94f, 1.8f,   0.84f, 0.88f };
+												 0.94f, 0.8f,  0.84f, 0.88f };
 
 #pragma region CalcBodyFunctions
+#pragma region JackModelFunctions
+inline void
+Calc::JackStamAdjust(float x, int t, bool debug)
+{
+	float stam_floor =
+	  0.95f;		   // stamina multiplier min (increases as chart advances)
+	float mod = 0.95f; // mutliplier
+
+	float avs1 = 0.f;
+	float avs2 = 0.f;
+	float local_ceil = stam_ceil;
+	const float super_stam_ceil = 1.11f;
+	const auto& diff = jacks[t];
+
+	static const float stam_ceil = 1.035234f; // stamina multiplier max
+	static const float stam_mag = 75.f;		  // multiplier generation scaler
+	static const float stam_fscale =
+	  125.f; // how fast the floor rises (it's lava)
+	static const float stam_prop = 1.5424f;
+
+	// adsafasdf fix later
+	stam_adj_jacks[t] = diff;
+	if (debug) {
+		left_hand.debugValues[2][JackStamMod].resize(numitv);
+		right_hand.debugValues[2][JackStamMod].resize(numitv);
+
+		for (size_t i = 0; i < diff.size(); ++i) {
+			float mod_sum = 0.f;
+			for (size_t j = 0; j < diff[i].size(); ++j) {
+				avs1 = avs2;
+				avs2 = diff[i][j];
+				mod +=
+				  ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
+				if (mod > 0.95f)
+					stam_floor += (mod - 0.95f) / stam_fscale;
+				local_ceil = stam_ceil * stam_floor;
+
+				mod =
+				  min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+				mod_sum += mod;
+				stam_adj_jacks[t][i][j] = diff[i][j] * mod;
+			}
+			// yes i know it's 1 col per hand atm
+			float itv_avg = 1.f;
+			if (diff[i].size() > 1)
+				itv_avg = mod_sum / static_cast<float>(diff[i].size());
+
+			if (t == 0)
+				left_hand.debugValues[2][JackStamMod][i] = itv_avg;
+			else if (t == 3)
+				right_hand.debugValues[2][JackStamMod][i] = itv_avg;
+		}
+	} else
+		for (size_t i = 0; i < diff.size(); ++i) {
+			for (size_t j = 0; j < diff[i].size(); ++j) {
+				avs1 = avs2;
+				avs2 = diff[i][j];
+				mod +=
+				  ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
+				if (mod > 0.95f)
+					stam_floor += (mod - 0.95f) / stam_fscale;
+				local_ceil = stam_ceil * stam_floor;
+
+				mod =
+				  min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+				stam_adj_jacks[t][i][j] = diff[i][j] * mod;
+			}
+		}
+}
+
 inline float
 hit_the_road(float x, float y)
 {
-	return min(4.f - (4.0 * fastpow(x / y, 1.7f)), 5.5);
+	return CalcClamp(5.5f - (4.5 * fastpow(x / y, 1.7f)), 0.0, 5.5);
 }
 
 // returns a positive number or 0, output should be subtracted
 float
-Calc::JackLoss(float x)
+Calc::JackLoss(float x, bool stam)
 {
 	bool dbg = false && debugmode;
+	// adjust for stam before main loop, since main loop is interval -> track
+	// and not track -> interval, we could also try doing this on the fly with
+	// an inline but i cba to mess with that atm
+	if (stam)
+		for (auto t : { 0, 1, 2, 3 })
+			JackStamAdjust(x, t, debugmode);
+
 	float total_point_loss = 0.f;
 	//  we should just store jacks in intervals in the first place
 	vector<float> left_loss(numitv);
@@ -320,7 +397,7 @@ Calc::JackLoss(float x)
 	// loop through tracks in the interval loop
 	for (int i = 0; i < numitv; ++i) {
 		for (auto t : { 0, 1, 2, 3 }) {
-			auto& seagull = jacks[t][i];
+			auto& seagull = stam ? stam_adj_jacks[t][i] : jacks[t][i];
 			float loss = 0.f;
 			for (auto& j : seagull) {
 				if (x >= j)
@@ -356,13 +433,13 @@ Calc::JackLoss(float x)
 }
 
 inline float
-ms_to_bpm(float& x)
+ms_to_bpm(float x)
 {
 	return 15000.f / x;
 }
 
 void
-Calc::SequenceJack(const Finger& f, bool debugmode, int track)
+Calc::SequenceJack(const Finger& f, bool debugmode, int track, int mode)
 {
 	bool dbg = false && debugmode && track == 0;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
@@ -377,12 +454,15 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 	// dependent on the previous components of the sequence, and what comes
 	// afterwards is not relevant (usually true in actual gameplay, outside of
 	// stuff like mines immediately after shortjacks)
-	static const int window_size = 5;
-	// be better if this was scalable but im dum
-	vector<float> window_taps = { 250.f, 250.f, 250.f, 250.f, 250.f };
+	int window_size = 5;
+	if (mode == 1)
+		window_size = 2;
+	vector<float> window_taps;
+	for (int i = 0; i < window_size; ++i)
+		window_taps.push_back(1250.f);
+
 	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
-
 	vector<vector<float>> itv_jacks;
 	vector<float> thejacks;
 
@@ -390,31 +470,20 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 	// queue we build is interval agnostic, though it does make debug output
 	// easier to accomplish
 	float time = 0.f;
-	for (auto i : f) {
+	for (auto& itv : f) {
 		thejacks.clear();
 		// taps in interval
-		for (auto ms : i) {
-			float last_diff = 0.f;
-			time += ms;
-			if (dbg)
-				std::cout << "time now: " << time / 1000.f << std::endl;
-			// update most recent values
-			for (size_t i = 1; i < window_taps.size(); ++i) {
-				if (false) {
-					std::cout << "window tap at: " << i - 1
-							  << " ms was: " << window_taps[i - 1] << std::endl;
-					std::cout << "window tap at: " << i
-							  << " ms is: " << window_taps[i] << std::endl;
-				}
-				window_taps[i - 1] = window_taps[i];
-			}
-
-			// ms from last note on same column
+		for (auto& ms : itv) {
+			time += ms;			
 			window_taps[window_size - 1] = ms;
-			float window_time = sum(window_taps);
-			if (dbg)
-				std::cout << "cur window time: " << window_time / 1000.f
-						  << std::endl;
+			if (dbg) {
+				std::cout << "time now: " << time / 1000.f << std::endl;
+				std::cout << "ms now: " << ms << std::endl;
+			}
+				
+			// update most recent values
+			for (size_t i = 1; i < window_taps.size(); ++i)
+				window_taps[i - 1] = window_taps[i];
 
 			// yes this is many loops, but we don't want to sacrifice
 			// legitimately difficult minijacks in the name of proper
@@ -422,6 +491,10 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 			// through the last 5 in a minisequence to pick out something
 			// something?
 			float comp_time = 0.f;
+			float momp_time = 0.f;
+			float hit_window_buffer = 300.f;
+			if (mode == 1)
+				hit_window_buffer = 105.f;
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
@@ -430,7 +503,7 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 
 				float base_ms = window_taps[i];
 				comp_time += window_taps[i];
-
+				hit_window_buffer = max(0.f, hit_window_buffer - base_ms);
 				// we sequence inside the jack this way so that we don't
 				// ignore minijacks, but we don't want them to overpower
 				// things like they did in 263. We know the general rules
@@ -439,55 +512,47 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 				// if 180ms + jack ms
 				// + 180, an isolated triplet has an effective window of 180
 				// + jack ms + jack ms + 180, the latter is more difficult
-				// but not by much, even if the jacks are extremely fast,
+				// but not by that much, even if the jacks are extremely fast,
 				// since jacks are effectively down translated from x bpm
 				// jacks to y bpm as a function of the miss window
 
-				// try adding 90 for now, and see how well it works
-				float eff_ms = comp_time + 360.f;
-
+				float eff_ms = comp_time + hit_window_buffer;
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
-				// clarity) remember to multiply effective ms by number of
-				// jacks in the component
+				// clarity) remember to divide time by number of jacks
 
-				// we do want the base bpm to be the most recent value, not
-				// an average, since we will aggregate the value in (some)
-				// way at the end of this
 				float base_bpm =
-				  ms_to_bpm(comp_time) * (1 + static_cast<float>(i));
-				float eff_bpm = ms_to_bpm(eff_ms) * (1 + static_cast<float>(i));
+				  ms_to_bpm(comp_time / (1 + static_cast<float>(i)));
+				float eff_bpm = ms_to_bpm(eff_ms / (1 + static_cast<float>(i)));
 				float eff_scaler = eff_bpm / base_bpm;
 
-				// ok this is pretty tricky, but basically if we catch a
-				// minijack in otherwise lenient spacing, we still want to
-				// evaluate it to at least a jack of some significance, we
-				// can divide by the effective scaler to get an idea of how
-				// the difficulty of the sequence at each stage is
-				// represented, then multiply by the final effective scaler
-				// for the sequence as a whole after aggregating the
-				// component estimates
-				comp_diff[i] =
-				  base_bpm / 15.f * finalscaler * basescalers[Skill_JackSpeed];
+				// convert bpm to nps so we can apply finalscaler and get
+				// roughly comparable values to other skillsets and use the
+				// basescaler lever to fine tune
+				// throw out any "jacks" above 180
+				comp_diff[i] = base_ms > 180.f ? 1.f
+											   : base_bpm / 15.f * finalscaler *
+												   basescalers[Skill_JackSpeed];
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
-					std::cout << "\nseq component: " << i << std::endl;
-					std::cout << "comp diff: " << comp_diff[i] << std::endl;
+					std::cout << "\nseq component: " << i << " : base ms: " << base_ms
+							  << " : comp diff: " << comp_diff[i] << std::endl;
 					std::cout << "base bpm: " << base_bpm << std::endl;
 					std::cout << "eff bpm: " << eff_bpm << std::endl;
 					std::cout << "eff scaler: " << eff_scaler << std::endl;
 				}
 			}
 
-			float comp_mean = comp_diff.back();
-			// convert bpm to nps so we can apply finalscaler and get
-			// roughly comparable values to other skillsets and use the
-			// basescaler lever to fine tune
-			float fdiff = comp_mean * max_val(eff_scalers);
-			last_diff = fdiff;
+			float fdiff = 0.f;
+			if (mode == 1)
+				// mini/trilpet jacks, we'll maximize the pickup on the final note
+				fdiff = comp_diff.back() * eff_scalers.back() * 0.66f;
+			else
+				fdiff = mean(comp_diff) * eff_scalers.back();
+
 			thejacks.push_back(fdiff);
 			if (dbg) {
-				std::cout << "comp mean: " << comp_mean << std::endl;
+				std::cout << "comp mean: " << mean(comp_diff) << std::endl;
 				std::cout << "fdiff: " << fdiff << std::endl;
 				std::cout << "finished this sequence \n" << std::endl;
 			}
@@ -496,6 +561,7 @@ Calc::SequenceJack(const Finger& f, bool debugmode, int track)
 	}
 	jacks[track] = itv_jacks;
 }
+#pragma endregion
 
 Finger
 Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
@@ -832,13 +898,13 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	}
 
 	for (int i = 0; i < 4; ++i)
-		SequenceJack(fingers[i], debugmode, i);
+		SequenceJack(fingers[i], debugmode, i, 1);
 
 	return true;
 }
 
 float
-Hand::CalcMSEstimate(vector<float>& input)
+Hand::CalcMSEstimate(vector<float> input)
 {
 	if (input.empty())
 		return 0.f;
@@ -903,7 +969,7 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed)
-				gotpoints = MaxPoints - JackLoss(player_skill);
+				gotpoints = MaxPoints - JackLoss(player_skill, stamina);
 			else {
 				if (ss == Skill_Chordjack)
 					gotpoints -= 0;
