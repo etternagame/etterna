@@ -620,7 +620,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// adjusted base value for each skillset we can actually set the
 		// stam floor to < 1 to shift the curve a bit
 		for (int i = 0; i < NUM_Skillset; ++i)
-			mcbloop[i] = Chisel(mcbloop[i] * 0.90f, 0.64f, score_goal, i, true);
+			mcbloop[i] = Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, true);
 
 		// all relative scaling to specific skillsets should occur before
 		// this point, not after (it ended up this way due to the
