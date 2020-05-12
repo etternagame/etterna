@@ -951,7 +951,6 @@ Hand::InitAdjDiff()
 	// new plan stop being dumb and doing this over and over again in calc
 	// internal because these values never change
 
-#pragma region zz
 	// the new way we wil attempt to diffrentiate skillsets rather than
 	// using normalizers is by detecting whether or not we think a file
 	// is mostly comprised of a given pattern, producing a downscaler
@@ -968,7 +967,7 @@ Hand::InitAdjDiff()
 	// do this files may end up misclassing hard and polluting
 	// leaderboards, and good scores on overrated files will simply
 	// produce high ratings in every category
-#pragma endregion
+
 	static const vector<int> pmods_used[NUM_Skillset] = {
 		// overall, nothing, don't handle here
 		{},
