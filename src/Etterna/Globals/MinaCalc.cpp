@@ -552,8 +552,11 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 
 		if (NoteInfo[i].notes & column) {
 			// log all rows for this interval in pre-allocated mem
+			// this is clamped to stop 192nd single minijacks from having an
+			// outsize influence on anything, they aren't actually that hard in
+			// isolation due to hit windows
 			temp_queue[row_counter] =
-			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
+			  CalcClamp(1000.f * (scaledtime - last), 20.f, 5000.f);
 			++row_counter;
 			last = scaledtime;
 		}
