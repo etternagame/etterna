@@ -604,6 +604,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		}
 
 		TotalMaxPoints();
+		stam_adj_jacks->resize(4);
 
 		vector<float> mcbloop(NUM_Skillset);
 		// overall and stam will be left as 0.f by this loop
