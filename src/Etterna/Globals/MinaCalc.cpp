@@ -594,8 +594,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
 
-		bool continue_calc = InitializeHands(
-		  NoteInfo, music_rate, 0.2f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
+		bool continue_calc = InitializeHands(NoteInfo, music_rate, 0.f);
 
 		// if we exceed max_nps_for_single_interval during processing
 		if (!continue_calc) {
