@@ -1078,7 +1078,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   SkillsetToString(ss).c_str()));
 					SONGMAN->SaveCalcTestXmlToDir();
 					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
+					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, 1.f);
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1109,7 +1109,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   rate));
 					SONGMAN->SaveCalcTestXmlToDir();
 					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss);
+					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, rate);
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");

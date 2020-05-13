@@ -419,7 +419,7 @@ Steps::CalcEtternaMetadata()
 }
 
 float
-Steps::DoATestThing(float ev, Skillset ss)
+Steps::DoATestThing(float ev, Skillset ss, float rate)
 {
 	// This is 4k only
 	if (m_StepsType != StepsType_dance_single)
@@ -430,8 +430,8 @@ Steps::DoATestThing(float ev, Skillset ss)
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, 1.f, 0.93f);
-	auto oldcalc = MinaSDCalc_OLD(cereal, 1.f, 0.93f);
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
+	auto oldcalc = MinaSDCalc_OLD(cereal, rate, 0.93f);
 	LOG->Trace("%+0.2f (%+06.2f%%): %+0.2f %s",
 			   newcalc[0] - ev,
 			   (newcalc[0] - ev) / ev * 100.f,

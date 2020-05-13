@@ -211,7 +211,7 @@ class Steps
 													  bool includeoverall);
 
 	void CalcEtternaMetadata();
-	float DoATestThing(float ev, Skillset ss);
+	float DoATestThing(float ev, Skillset ss, float rate);
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
 	vector<vector<vector<vector<float>>>>
 	  calcdebugoutput; // probably should clear this periodically

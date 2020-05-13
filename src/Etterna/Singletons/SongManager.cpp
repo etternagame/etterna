@@ -447,7 +447,7 @@ SongManager::CalcTestStuff()
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
 				  StepsByKey[chart.first]->DoATestThing(chart.second.first,
-														ss));
+														ss, chart.second.second));
 		}
 	}
 
