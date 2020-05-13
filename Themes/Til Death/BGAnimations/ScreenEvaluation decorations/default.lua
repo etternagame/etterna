@@ -334,7 +334,7 @@ function scoreBoard(pn, position)
 					local rescoretable = getRescoreElements(pss, score)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
-					local ws = "Wife" .. wv .. " J"
+					local ws = "Wife3" .. " J"
 					if params.Name == "PrevJudge" and judge > 4 then
 						judge = judge - 1
 						clampJudge()
@@ -387,7 +387,7 @@ function scoreBoard(pn, position)
 					local rescoretable = getRescoreElements(pss, score)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
-					local ws = "Wife" .. wv .. " J"
+					local ws = "Wife3" .. " J"
 					if params.Name == "PrevJudge" and judge2 > 4 then
 						judge2 = judge2 - 1
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
