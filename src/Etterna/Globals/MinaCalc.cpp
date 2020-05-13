@@ -1487,23 +1487,21 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				}
 			}
 
-			// suppress jumptrilly garbage a little bit
 			if (last_notes == 1 && notes == 1) {
-				++not_hs;
-
-				//++not_js;
 				seriously_not_js = max(seriously_not_js, 0);
 				++seriously_not_js;
 
-				// [Comment moved from SetJumpMod]
 				// light js really stops at [12]321[23] kind of density,
 				// anything below that should be picked up by speed, and
 				// this stop rolls between jumps getting floated up too
 				// high
 				if (seriously_not_js > 3) {
 					not_js += seriously_not_js;
+					// give light hs the light js treatment
+					not_hs += seriously_not_js;
 				}
 			} else if (last_notes > 1 && notes > 1) {
+				// suppress jumptrilly garbage a little bit
 				not_hs += notes;
 				not_js += notes;
 			}
