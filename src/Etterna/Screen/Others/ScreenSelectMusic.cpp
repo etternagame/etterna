@@ -1691,7 +1691,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			GAMESTATE->SetProcessedTimingData(
 			  GAMESTATE->m_pCurSteps->GetTimingData());
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			auto nerv = nd.BuildAndGetNerv();
+			auto nerv = nd.BuildAndGetNerv(td);
 			auto sdifs = td->BuildAndGetEtaner(nerv);
 			vector<int> noterows;
 			for (auto t : timestamps) {

@@ -399,7 +399,7 @@ Steps::CalcEtternaMetadata()
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	diffByRate = MinaSDCalc(cereal);
+	diffByRate = MinaSDCalc_OLD(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -418,7 +418,7 @@ float
 Steps::DoATestThing(float ev, Skillset ss)
 {
 	Decompress();
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv(GetTimingData());
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
@@ -882,7 +882,7 @@ class LunaSteps : public Luna<Steps>
 		float goal = FArg(2);
 		CLAMP(rate, 0.7f, 3.f);
 		auto nd = p->GetNoteData();
-		auto loot = nd.BuildAndGetNerv();
+		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(loot);
 		auto& ni = nd.SerializeNoteData(etaner);
@@ -916,7 +916,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		lua_newtable(L);
 		auto nd = p->GetNoteData();
-		auto loot = nd.BuildAndGetNerv();
+		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 
 		LuaHelpers::CreateTableFromArray(
 		  loot, L); // row (we need timestamps technically)
@@ -952,7 +952,7 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty())
 			return 0;
-		vector<int> nerv = nd.BuildAndGetNerv();
+		vector<int> nerv = nd.BuildAndGetNerv(p->GetTimingData());
 		if (nerv.back() != nd.GetLastRow())
 			nerv.emplace_back(nd.GetLastRow());
 		const vector<float>& etaner =

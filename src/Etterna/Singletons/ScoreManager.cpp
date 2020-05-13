@@ -3,6 +3,7 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -234,7 +235,7 @@ ScoresForChart::SetTopScores()
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	{
 		auto& hs = i->second.noccPBptr;
-		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 			hs->GetEtternaValid() && hs->GetChordCohesion() == 0 &&
 			hs->GetGrade() != Grade_Failed)
 			eligiblescores.emplace_back(hs);
@@ -246,7 +247,7 @@ ScoresForChart::SetTopScores()
 		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		{
 			auto& hs = i->second.PBptr;
-			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 				hs->GetEtternaValid() && hs->GetChordCohesion() != 0 &&
 				hs->GetGrade() != Grade_Failed)
 				eligiblescores.emplace_back(hs);
@@ -366,7 +367,7 @@ void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 {
 	RageTimer ld_timer;
-	vector<HighScore*>& scores = SCOREMAN->scorestorecalc;
+	auto& scores = SCOREMAN->scorestorecalc;
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
@@ -444,7 +445,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				}
 				++scoreIndex;
 
-				string ck = hs->GetChartKey();
+				const string& ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 				
 				// this _should_ be impossible since ischartloaded() checks are required on all charts before getting here
@@ -465,38 +466,42 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
-				// check needs to be done before rescoring to wife3 since highscore doesn't have
-				// access to notedata and will assume total points based on replay data vector
-				// lengths; any pass will have the correct length (also we don't care about fails)
-				if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+				// don't waste time on <= 0%s
+				if (ssrpercent <= 0.f) {
 					hs->ResetSkillsets();
 					continue;
 				}
 
-				bool remarried = hs->RescoreToWife3();
-
-				// if this is not a rescore and has already been run on the current calc vers, skip
-				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
-					continue;
-
+				// ghasgh we need to decompress to get maxpoints
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
 				steps->GetNoteData(nd);
 
-				//nd.LogNonEmptyRows();
-				//auto& nerv = nd.GetNonEmptyRowVector();
-				//auto& etaner = td->BuildAndGetEtaner(nerv);
+				auto maxpoints = nd.WifeTotalScoreCalc(td);
+				bool remarried = false;
+
+				if (hs->wife_ver != 3)
+					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
+
+				// if this is not a rescore and has already been run on the current calc vers, skip
+				// if it is a rescore, rerun it even if the calc version is the same
+				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion_OLD())
+					continue;
+
 				const auto& serializednd = nd.SerializeNoteData2(td);
-				auto dakine = MinaSDCalc(serializednd,
+				auto dakine = MinaSDCalc_OLD(serializednd,
 										 musicrate,
 										 ssrpercent);
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
-				hs->SetSSRCalcVersion(GetCalcVersion());
+				hs->SetSSRCalcVersion(GetCalcVersion_OLD());
 
-				if (remarried)	// maybe recalculated scores should be renamed rescored?
-					SCOREMAN->recalculatedscores.emplace(hs->GetScoreKey());
+				// we only want to upload scores that have been rescored to
+				// wife3, not generic calc changes, since the site runs its own
+				// calc anyway
+				if (remarried)
+					SCOREMAN->rescores.emplace(hs);
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
@@ -587,7 +592,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() &&
+			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
 				TopSSRs[i]->GetTopScore() != 0)
@@ -769,8 +774,16 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// top score rankings may in fact shift post-rescore, this will
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
-		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
-		bool getremarried = scores[sk].GetWifeVersion() < 3 && scores[sk].HasReplayData();
+		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
+		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
+
+		// technically we don't need to have charts loaded to rescore to wife3,
+		// however trying to do this might be quite a bit of work (it would
+		// require making a new lambda loop) and while it would be nice to have
+		// at some point it's not worth it just at this moment, and while it
+		// sort of makes sense from a user convenience aspect to allow this, it
+		// definitely does not make sense from a clarity or consistency
+		// perspective 
 		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
 			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);

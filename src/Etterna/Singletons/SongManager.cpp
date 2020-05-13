@@ -428,7 +428,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 				   tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
-
+	/*
 	// TESTING TESTING STUFF STUFF
 	vector<float> test_vals[NUM_Skillset];
 	unordered_map<std::string, float> test_charts[NUM_Skillset];
@@ -452,6 +452,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			test_vals[ss].size(),
 		  SkillsetToString(ss).c_str());
 	cache.clear();
+	*/
 }
 
 void

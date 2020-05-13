@@ -657,6 +657,20 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end
 }
 
+-- basemsd
+o[#o + 1] = LoadFont("Common Large") .. {
+    InitCommand = function(self)
+        self:xy(-plotWidth/2 -5, plotHeight/2 - 100):halign(1):valign(0)
+        self:zoom(0.35)
+        self:settext("")
+    end,
+    DoTheThingCommand = function(self)
+        if song and enabled then
+            self:settextf("MSD:\n %.2f", steps:GetSSRs(getCurRateValue(), 0.93)[1] )
+        end
+    end
+}
+
 
 local dotWidth = 0
 local function setOffsetVerts(vt, x, y, c)
