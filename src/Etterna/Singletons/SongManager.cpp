@@ -1630,7 +1630,7 @@ makePlaylist(const RString& answer)
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
-static const string calctest_XML = "CalcTestList";
+static const string calctest_XML = "CalcTestList.xml";
 
 XNode*
 CalcTestList::CreateNode() const
