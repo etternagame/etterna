@@ -34,7 +34,6 @@ SongOptions::Init()
 	m_bStaticBackground = false;
 	m_bRandomBGOnly = false;
 	m_bSaveScore = true;
-	m_bSaveReplay = false; // don't save replays by default?
 }
 
 void
@@ -52,7 +51,6 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 	DO_COPY(m_bStaticBackground);
 	DO_COPY(m_bRandomBGOnly);
 	DO_COPY(m_bSaveScore);
-	DO_COPY(m_bSaveReplay);
 #undef APPROACH
 #undef DO_COPY
 }
@@ -198,8 +196,6 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_bRandomBGOnly = on;
 	else if (sBit == "savescore")
 		m_bSaveScore = on;
-	else if (sBit == "savereplay")
-		m_bSaveReplay = on;
 	else
 		return false;
 
@@ -222,7 +218,6 @@ SongOptions::operator==(const SongOptions& other) const
 	COMPARE(m_bStaticBackground);
 	COMPARE(m_bRandomBGOnly);
 	COMPARE(m_bSaveScore);
-	COMPARE(m_bSaveReplay);
 #undef COMPARE
 	return true;
 }
@@ -244,7 +239,6 @@ class LunaSongOptions : public Luna<SongOptions>
 	BOOL_INTERFACE(StaticBackground, StaticBackground);
 	BOOL_INTERFACE(RandomBGOnly, RandomBGOnly);
 	BOOL_INTERFACE(SaveScore, SaveScore);
-	BOOL_INTERFACE(SaveReplay, SaveReplay);
 	static int MusicRate(T* p, lua_State* L)
 	{
 		int original_top = lua_gettop(L);
@@ -274,7 +268,6 @@ class LunaSongOptions : public Luna<SongOptions>
 		ADD_METHOD(StaticBackground);
 		ADD_METHOD(RandomBGOnly);
 		ADD_METHOD(SaveScore);
-		ADD_METHOD(SaveReplay);
 		ADD_METHOD(MusicRate);
 	}
 };

@@ -1815,7 +1815,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 					.GetString()
 					.c_str());
 	writer.Key("rate");
-	writer.Int((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	writer.Int(static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	writer.EndObject();
 	writer.EndObject();
 

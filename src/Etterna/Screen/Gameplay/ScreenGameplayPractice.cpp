@@ -453,11 +453,12 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 					  fSecondsToStartTransitioningOut);
 
 	// Set Music params using new rate
+	float rate_plus = static_cast<float>(newRate);
 	RageSoundParams p;
-	p.m_fSpeed = newRate;
-	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
-	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
-	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
+	p.m_fSpeed = rate_plus;
+	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = rate_plus;
+	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = rate_plus;
+	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = rate_plus;
 
 	// If using loop region, also consider the loop params
 	if (loopStart != loopEnd) {
@@ -479,7 +480,7 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 
 	// Tell the theme we changed the rate
 	MESSAGEMAN->Broadcast("CurrentRateChanged");
-	return newRate;
+	return static_cast<float>(rate_plus);
 }
 
 void

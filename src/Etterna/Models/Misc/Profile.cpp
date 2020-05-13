@@ -7,7 +7,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include <MinaCalc/MinaCalc.h>
+#include "Etterna/Globals/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/PrefsManager.h"

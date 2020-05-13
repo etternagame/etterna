@@ -382,7 +382,10 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 		}
 		
 		[m_WindowDelegate performSelectorOnMainThread:@selector(setParams:) withObject:[NSValue valueWithPointer:&p] waitUntilDone:YES];
-		[m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+
+		dispatch_async(dispatch_get_main_queue(), ^{
+            [m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+		});
 		[m_Context update];
 		[m_Context makeCurrentContext];
 		m_CurrentParams.windowed = true;
@@ -635,7 +638,9 @@ void LowLevelWindow_MacOSX::Update()
 	m_ActualParams.windowWidth = g_iWidth;
 	m_ActualParams.windowHeight = g_iHeight;
 	lock.Unlock(); // Unlock before calling ResolutionChanged().
-	[m_Context update];
+	dispatch_async(dispatch_get_main_queue(), ^{
+	  [m_Context update];
+	});
 	DISPLAY->ResolutionChanged();
 }
 

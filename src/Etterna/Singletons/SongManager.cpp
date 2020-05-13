@@ -37,6 +37,65 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
+#include <numeric>
+
+// AUTOMATED CALC TEST STUFF FIND BETTER PLACE TO PUT
+// chart key and rough desired output value
+static unordered_map<std::string, float> js_test = {
+	// js garbo
+	{ "X75012d7a17a174681beb31ce3858d1c9f726dddb",
+	  30.f }, // cos nb4, this is our baseline js 30
+	{ "X6a0c2fb0b567cdbc85e9eac3dbae40a6e66c7091",
+	  25.f }, // glorious crown fennec
+	{ "X11698acb2346ed45032768120064f24d3e1d282d", 23.5f }, // mmm nb5
+	{ "X2ed2aa7681f1f85119abae49985130bdc420e388",
+	  26.5f }, // invisible hand hi19 3
+};
+
+static unordered_map<std::string, float> stream_test = {
+	// speed garbo
+	{ "Xf0fbf2b1f5f1583f7f9faadb89f149c25d2ab8f3",
+	  30.f }, // reflec streams, att 1
+	{ "X984f26aacbe104976dfd80b002556c722163ba35", 21.f }, // chipwrecked hi19 5
+	{ "X3ecb1e6f7e1334218f0f71ff0ff3bea483210f86",
+	  28.f }, // amber starlight nb5
+	{ "X6be11ac59dcd2ef950bb28fec8cf0b05945c93ec", 27.f }, // tunak tunak hi19 4
+	{ "Xe4e68826a3d00062e163f3a29b42350f86089b26", 25.f }, // hallelujah minty 1
+	{ "X50e58103750092785dd9a4722477cc6ed1fea54e",
+	  25.5f }, // lofty's ending minty 1
+	{ "X3b87b6ac44151291b29e3fe2e8b047f6af28000e", 29.f },  // veda minty 1
+	{ "X8a7310367a2479daa48888b15b8be724452c4616", 29.5f }, // voodoo mon amour
+	{ "X24085a6e074ca3bd89c91b748d9b42061863e9c1", 25.f },  // electricity tim1
+	{ "Sc702a9b178552a1ee4deb1f9def89ffd58e4437a", 24.5f }, // bon-bon skwid6
+
+};
+
+static unordered_map<std::string, float> stam_test = {
+	// stam garbo
+	{ "Xdd74f464e7acbab921b91a2b5100901af24b3054", 25.5f }, // ttatf icy x
+	{ "X30acaf360a0e56bcc1376d36a98d24090a65074d", 23.5f }, // magic cycles nb4
+	{ "X9cd21dc241d821b69967a0058ccadcedf3cc9545",
+	  30.5f }, // battle of arcane might skwid 6
+};
+
+static unordered_map<std::string, float> jack_test = {
+	// jack garbo
+	{ "Xcee78c72ba6ba436ba9325f030c482bf13843376", 17.5f }, // F odi 2
+	{ "X85e5db71c00c154dc2c58cf1a87f9fb5a6393b99",
+	  26.f }, // vital vitriol skwid 7
+};
+
+static unordered_map<std::string, float> tech_test = {
+	// technical garbo
+	{ "X87bc96672f47c365a12c7226b895d5535e5f1a60",
+	  20.f }, // timepiece phase ii hi19 4
+	{ "Xaab20a4cb1634a23ad6f077c4cb6fef755769e6e", 17.f },  // luna clock odi 2
+	{ "Xecbb9d26ff2e40424d3c09e2bfe405149b954e2b", 22.5f }, // azul beg odi 2
+	{ "X7071eca33dfbb4850059bb6b8718f0cf65e46168", 20.f },  // usatei edit odi 2
+	{ "X0b685f34b530af918de78b98f3a80890df324926",
+	  27.f }, // do you feel it minty 1
+	{ "X3e6a2f7e924b9b2cc784aa02c02ad2772cf77ea9", 25.5f }, // runaway minty 1
+};
 
 typedef RString SongDir;
 struct Group
@@ -369,6 +428,29 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 				   tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
+
+	// TESTING TESTING STUFF STUFF
+	vector<float> test_vals[NUM_Skillset];
+	unordered_map<std::string, float> test_charts[NUM_Skillset];
+	test_charts[Skill_Stream] = stream_test;
+	test_charts[Skill_Jumpstream] = js_test;
+	test_charts[Skill_Stamina] = stam_test;
+	test_charts[Skill_Technical] = tech_test;
+	test_charts[Skill_JackSpeed] = jack_test;
+
+	FOREACH_ENUM(Skillset, ss)
+	for (auto& t : test_charts[ss])
+		if (StepsByKey.count(t.first))
+			test_vals[ss].emplace_back(StepsByKey[t.first]->DoATestThing(
+			  test_charts[ss].at(t.first), ss));
+
+	FOREACH_ENUM(Skillset, ss)
+	if (!test_vals[ss].empty())
+		LOG->Trace(
+		  "%+0.2f avg delta for test group %s",
+		  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.f) /
+			test_vals[ss].size(),
+		  SkillsetToString(ss).c_str());
 	cache.clear();
 }
 
@@ -638,6 +720,13 @@ SongManager::GetSongByChartkey(const string& ck)
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
 	return nullptr;
+}
+
+void
+SongManager::UnloadAllCalcDebugOutput()
+{
+	for (auto s : m_pSongs)
+		s->UnloadAllCalcDebugOutput();
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(

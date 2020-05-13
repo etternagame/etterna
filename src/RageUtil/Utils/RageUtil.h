@@ -25,12 +25,7 @@ class RageFileDriver;
 
 /** @brief Zero out the memory. */
 #define ZERO(x) memset(&(x), 0, sizeof(x))
-/** @brief Copy from a to b. */
-#define COPY(a, b)                                                             \
-	do {                                                                       \
-		ASSERT(sizeof(a) == sizeof(b));                                        \
-		memcpy(&(a), &(b), sizeof(a));                                         \
-	} while (false)
+
 /** @brief Get the length of the array. */
 #define ARRAYLEN(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -137,8 +132,28 @@ wife2(float maxms, float ts)
 	return (2 - -8) * (1 - y) + -8;
 }
 
-float wife3(float maxms, float ts);
-float wife4(float maxms, float ts);
+inline float
+wife3(float maxms, float ts)
+{
+	maxms = abs(maxms * 1000.f); // need positive values for this
+	float max_points = 2.f;
+	float miss_weight = -5.5f;
+	float ridic = 7.5f * ts; // offset at which points starts decreasing(ms)
+	float max_boo_weight = 180.f * ts;
+	
+	if (maxms <= ridic)
+		return max_points;
+	if (maxms > max_boo_weight)
+		return miss_weight;
+
+	float poi = 57.f * ts; // point of inflection for curve
+	float dev = 22.f * ts;
+	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
+	float lower_bound = max_points + ((miss_weight - max_points) *
+									  sqrt(maxms * maxms - ridic * ridic) /
+									  (max_boo_weight - ridic));
+	return (max_points - lower_bound) * y_val + lower_bound;
+}
 
 inline void
 wrap(int& x, int n)
@@ -780,14 +795,14 @@ FindIndex(T1 begin, T1 end, const T2* p)
 /* Useful for objects with no operator-, eg. map::iterator (more convenient than
  * advance). */
 template<class T>
-T
+inline T
 Increment(T a)
 {
 	++a;
 	return a;
 }
 template<class T>
-T
+inline T
 Decrement(T a)
 {
 	--a;

@@ -57,7 +57,8 @@ add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpa
 set_target_properties(Etterna PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}")
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}")
 
 if(NOT APPLE)
     set_target_properties(Etterna PROPERTIES LINK_WHAT_YOU_USE ON)
@@ -86,7 +87,6 @@ target_link_libraries(Etterna SQLiteCpp)
 target_link_libraries(Etterna tomcrypt)
 target_link_libraries(Etterna libtommath)
 target_link_libraries(Etterna fftw3f)
-target_link_libraries(Etterna MinaCalc)
 target_link_libraries(Etterna glfw)
 target_link_libraries(Etterna ogg)
 target_link_libraries(Etterna vorbis)

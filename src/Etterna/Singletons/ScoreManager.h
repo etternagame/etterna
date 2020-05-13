@@ -39,7 +39,7 @@ struct ScoresAtRate
 					  const float& rate,
 					  const string& profileID);
 
-	const vector<HighScore*> GetScores(const string) const;
+	const vector<HighScore*> GetAllScores();
 	unordered_map<string, HighScore> scores;
 
   private:
@@ -72,6 +72,7 @@ struct ScoresForChart
 	Chart ch;
 
 	ScoresAtRate* GetScoresAtRate(const int& rate);
+	const vector<HighScore*> GetAllScores();
 	XNode* CreateNode(const string& ck) const;
 	void LoadFromNode(const XNode* node,
 					  const string& ck,
@@ -183,7 +184,7 @@ class ScoreManager
 		ASSERT_M(AllScores.size() != 0, "Profile has no Scores.");
 		return AllScores.back();
 	}
-	void PutScoreAtTheTop(string scorekey)
+	void PutScoreAtTheTop(const string& scorekey)
 	{
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());
@@ -224,6 +225,9 @@ class ScoreManager
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
 	vector<HighScore*> scorestorecalc;
+
+	// probably can avoid copying strings if we're sure it's safe
+	set<std::string> recalculatedscores;
 
   private:
 	unordered_map<string, unordered_map<string, ScoresForChart>>

@@ -22,8 +22,11 @@ elseif bgtype == 3 then
 	songoptions:RandomBGOnly(true)
 end
 
-local t = Def.ActorFrame {}
+local t = Def.ActorFrame {
+	OffCommand = function(self)
+		unsetMovableKeymode()
+	end
+}
 setMovableKeymode(getCurrentKeyMode())
 t[#t + 1] = LoadActor("bg")
-t[#t + 1] = LoadActor("ScreenFilter")
 return t

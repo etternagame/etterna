@@ -35,9 +35,10 @@ class Download
 {
   public:
 	function<void(Download*)> Done;
-	Download(string url,
-			 string filename = "",
-			 function<void(Download*)> done = [](Download*) { return; });
+	Download(
+	  string url,
+	  string filename = "",
+	  function<void(Download*)> done = [](Download*) { return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -90,12 +91,13 @@ class DownloadablePack
 class HTTPRequest
 {
   public:
-	HTTPRequest(CURL* h,
-				function<void(HTTPRequest&, CURLMsg*)> done =
-				  [](HTTPRequest& req, CURLMsg*) { return; },
-				curl_httppost* postform = nullptr,
-				function<void(HTTPRequest&, CURLMsg*)> fail =
-				  [](HTTPRequest& req, CURLMsg*) { return; })
+	HTTPRequest(
+	  CURL* h,
+	  function<void(HTTPRequest&, CURLMsg*)> done = [](HTTPRequest& req,
+													   CURLMsg*) { return; },
+	  curl_httppost* postform = nullptr,
+	  function<void(HTTPRequest&, CURLMsg*)> fail = [](HTTPRequest& req,
+													   CURLMsg*) { return; })
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)
@@ -183,7 +185,7 @@ class DownloadManager
 	bool initialized{ false };
 	string error{ "" };
 	vector<DownloadablePack> downloadablePacks;
-	string authToken{ "" };   // Session cookie content
+	string authToken{ "" };	  // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
 	string lastVersion{
@@ -225,8 +227,13 @@ class DownloadManager
 						done); // Sends login request if not already logging in
 	void OnLogin();
 	bool UploadScores(); // Uploads all scores not yet uploaded to current
-	bool UpdateOnlineScoreReplayData(); // attempts updates existing replaydata
-										// server (Async, 1 request per score)
+	void ForceUploadScoresForChart(
+	  const std::string& ck,
+	  bool startnow = true); // forced upload wrapper for charts
+	void ForceUploadScoresForPack(
+	  const std::string& pack,
+	  bool startnow = true); // forced upload wrapper for packs
+	void ForceUploadAllScores();
 	void RefreshPackList(const string& url);
 
 	void init();
@@ -245,14 +252,13 @@ class DownloadManager
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
 
+	void UploadScore(HighScore* hs,
+					 function<void()> callback,
+					 bool load_from_disk);
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScoreWithReplayDataFromDisk(
-	  const string& sk,
-	  function<void()> callback = function<void()>());
-	void UpdateOnlineScoreReplayData(
-	  const string& sk,
-	  function<void()> callback = function<void()>());
-	void UploadScore(HighScore* hs);
+	  HighScore* hs,
+	  function<void()> callback = []() {});
 
 	bool ShouldUploadScores();
 
@@ -304,6 +310,8 @@ class DownloadManager
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
 	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
+	deque<HighScore*> ScoreUploadSequentialQueue;
+	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;

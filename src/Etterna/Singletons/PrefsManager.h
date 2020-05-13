@@ -163,14 +163,14 @@ class PrefsManager
 	Preference<float> m_fLifeDifficultyScale;
 
 	// Whoever added these: Please add a comment saying what they do. -Chris
-	Preference<int> m_iRegenComboAfterMiss;	// combo that must be met after a
+	Preference<int> m_iRegenComboAfterMiss;	   // combo that must be met after a
 											   // Miss to regen life
 	Preference<int> m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if
 											   // multiple Misses occur in rapid
 											   // succession
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
-	Preference<bool> m_bShowInstructions; // how to play a mode
+	Preference<bool> m_bShowInstructions;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
@@ -248,8 +248,9 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 
-	Preference<int> m_verbose_log; // levels 0, 1, and 2 where higher numbers
-								   // means more logging
+	// levels 0, 1, and 2 where higher numbers
+	// means more logging
+	Preference<int> m_verbose_log;
 
 	Preference<bool>
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play

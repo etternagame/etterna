@@ -60,7 +60,7 @@ end
 
 local function scaleToJudge(scale)
 	scale = notShit.round(scale, 2)
-	local scales = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local scales = ms.JudgeScalers
 	local out = 4
 	for k,v in pairs(scales) do
 		if v == scale then

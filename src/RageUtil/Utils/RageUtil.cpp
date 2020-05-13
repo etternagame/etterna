@@ -106,46 +106,6 @@ fapproach(float& val, float other_val, float to_move)
 	val += fToMove;
 }
 
-float
-wife3(float maxms, float ts)	// REPLICATE IN LUA FOR EVAL SCREEN RESCORING
-{
-	float max_points = 2.f;
-	float miss_points = -5.5f;
-	float ridic = 11.f * ts; // offset at which points starts decreasing(ms)
-	float maxboo = 180.f * ts;
-	float poi = 55.f * max(ts, pow(ts, 0.66f));   // point of inflection for curve
-	float dev = 20.f * ts;
-	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
-	float lower_bound =
-	  max_points + ((miss_points - max_points) *
-					sqrt(maxms * maxms - ridic * ridic) / (maxboo - ridic));
-	if (maxms <= ridic)
-		return max_points;
-	if (maxms > maxboo)
-		return -5.5f;
-	return (max_points - lower_bound) * y_val + lower_bound;
-}
-
-float
-wife4(float maxms, float ts) // if i wasnt garbage the constants would be args LUL
-{
-	float max_points = 2.f;
-	float miss_points = -5.5f;
-	float ridic = 11.f * ts;
-	float maxboo = 180.f * ts;
-	float poi = 55.f * max(ts, pow(ts, 0.5f));
-	float dev = 20.f * ts;
-	float y_val = (erf((poi - maxms) / dev) + 1.f) / 2.f;
-	float lower_bound =
-	  max_points + ((miss_points - max_points) *
-					sqrt(maxms * maxms - ridic * ridic) / (maxboo - ridic));
-	if (maxms <= ridic)
-		return max_points;
-	if (maxms > maxboo)
-		return -5.5f;
-	return (max_points - lower_bound) * y_val + lower_bound;
-}
-
 /* Return a positive x mod y. */
 float
 fmodfp(float x, float y)

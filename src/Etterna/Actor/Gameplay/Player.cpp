@@ -65,8 +65,10 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 		case TW_W5:
 			defaultValueOut = 0.180f;
 			break;
-		case TW_Mine: // same as great
-			defaultValueOut = 0.090f;
+		case TW_Mine: // ~same as j5 great, the explanation for this is quite
+					  // long but the general
+			defaultValueOut = 0.075f; // idea is that mines are more punishing
+									  // now so we can give a little back
 			break;
 		case TW_Hold: // allow enough time to take foot off and put back on
 			defaultValueOut = 0.250f;
@@ -107,13 +109,6 @@ ThemeMetric<bool> IMMEDIATE_HOLD_LET_GO("Player", "ImmediateHoldLetGo");
  * approaches will suffice. */
 ThemeMetric<bool> REQUIRE_STEP_ON_HOLD_HEADS("Player",
 											 "RequireStepOnHoldHeads");
-/**
- * @brief Must a Player step on a mine for it to activate?
- *
- * If set to true, the Player must step on a mine for it to blow up.
- * If set to false, merely holding your foot down as the mine approaches will
- * suffice. */
-ThemeMetric<bool> REQUIRE_STEP_ON_MINES("Player", "RequireStepOnMines");
 
 /**
  * @brief Does not stepping on a mine increase the combo?
@@ -162,6 +157,13 @@ ThemeMetric<float> M_MOD_HIGH_CAP("Player", "MModHighCap");
 float
 Player::GetWindowSeconds(TimingWindow tw)
 {
+	// mines should have a static hit window across all judges to be
+	// logically consistent with the idea that increasing judge should
+	// not make any elementof the game easier, so now they do
+	if (tw == TW_Mine)
+		return 0.075f; // explicit return until i remove this stuff from
+					   // prefs.ini
+
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
 	fSecs += m_fTimingWindowAdd;
@@ -171,6 +173,9 @@ Player::GetWindowSeconds(TimingWindow tw)
 float
 Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale)
 {
+	if (tw == TW_Mine)
+		return 0.075f;
+
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
 	fSecs += m_fTimingWindowAdd;
@@ -202,7 +207,7 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_pIterUnjudgedRows = NULL;
 	m_pIterUnjudgedMineRows = NULL;
 
-	totalwifescore = 0.f;
+	totalwifescore = 0;
 	m_Timing = NULL;
 	m_pActorWithJudgmentPosition = NULL;
 	m_pActorWithComboPosition = NULL;
@@ -2160,7 +2165,7 @@ Player::Step(int col,
 				switch (pTN->type) {
 					case TapNoteType_Mine:
 						// Stepped too close to mine?
-						if (!bRelease && (REQUIRE_STEP_ON_MINES == !bHeld) &&
+						if (!bRelease &&
 							fSecondsFromExact <= GetWindowSeconds(TW_Mine) &&
 							m_Timing->IsJudgableAtRow(iSongRow))
 							score = TNS_HitMine;
