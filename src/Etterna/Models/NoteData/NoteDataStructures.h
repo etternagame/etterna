@@ -62,6 +62,8 @@ enum CalcPatternMod
 	FlamJam,
 	WideRangeRoll,
 	WideRangeJumptrill,
+	WideRangeBalance,
+	WideRangeAnchor,
 	CJOHJump,
 	CJQuad,
 	TheThing,
@@ -80,7 +82,9 @@ enum CalcDiffValue
 enum CalcDebugMisc
 {
 	PtLoss, // expected points loss (not really a diff thing but w.e)
+	JackPtLoss,
 	StamMod,// stam adjust (values between 1- ~1.15)
+	JackStamMod,
 	NUM_CalcDebugMisc,
 	CalcDebugMisc_Invalid,
 };

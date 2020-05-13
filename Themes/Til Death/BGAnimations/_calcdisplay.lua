@@ -142,6 +142,7 @@ for k,v in pairs(CalcPatternMod) do
     activeMods[#activeMods+1] = v
 end
 activeMods[#activeMods+1] = "StamMod"
+activeMods[#activeMods+1] = "JackStamMod"
 
 -- specify enum names as tables here
 -- only allowed to have 9
@@ -186,7 +187,9 @@ local debugGroups = {
         Chaos = true,
         FlamJam = true,
         TheThing = true,
-		Anchor = true
+        Anchor = true,
+        WideRangeBalance = true,
+        WideRangeAnchor = true,
     },
     {},
     {},
@@ -413,6 +416,16 @@ o[#o + 1] = Def.Quad {
                 modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
                 modNames[#modNames + 1] = "StamMod"..blah
             end
+
+            -- add jackstammod
+            for h = 1, 2 do
+                local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                modsToValues[#modsToValues + 1] = graphVecs["JackStamMod"][h]
+                modNames[#modNames + 1] = "JackStamMod"..blah
+            end
             
             for k, v in pairs(modsToValues) do
                 local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
@@ -496,6 +509,16 @@ o[#o + 1] = Def.Quad {
                         end
                         modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
                         modNames[#modNames + 1] = "PtLoss"..blah
+                end
+
+                -- add ptloss
+                for h = 1, 2 do
+                    local blah = "L"
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs["JackPtLoss"][h]
+                        modNames[#modNames + 1] = "JackPtLoss"..blah
                 end
 
                 for k, v in pairs(modsToValues) do
@@ -598,6 +621,10 @@ local modnames = {
     "wrrr",
     "wrjtl",
     "wrjtr",
+    "wrbl",
+    "wrbr",
+    "wral",
+    "wrar",
     "cjohjl",
     "cjohjr",
     "cjql",
@@ -654,6 +681,12 @@ local modColors = {
     color("0,0.8,1"),		-- light blue		 (right)
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0.2"),		-- leme			= wrbr left
+    color("0.7,1,0.2"),		-- leme				 (right)
+    color("0.7,1,0.1"),		-- leme			= wrar left
+    color("0.7,1,0.1"),		-- leme				 (right)
+    color("0.7,1,0.7"),		-- leme			= wrar left
+    color("0.7,1,0.7"),		-- leme				 (right)
 }
 
 -- top graph average text
@@ -661,11 +694,11 @@ makeskillsetlabeltext = function(i, mod, hand)
     return LoadFont("Common Normal") .. {
         Name = "SSLabel"..i,
         InitCommand = function(self)
-            local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 42   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
-            self:maxwidth((plotWidth-10) / 0.5)
+            self:maxwidth(100)
         end,
         UpdateAveragesMessageCommand = function(self)
             if song then
@@ -685,7 +718,7 @@ makeskillsetlabeltext = function(i, mod, hand)
                 else
                     self:diffuse(color(".3,.3,.3"))
                 end
-                self:settextf("%s: %.4f", modnames[i], aves[i])
+                self:settextf("%s: %.3f", modnames[i], aves[i])
             end
         end,
         UpdateActiveModsMessageCommand = function(self)
@@ -876,6 +909,10 @@ o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
 o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "JackStamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "JackStamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 -- MSD mod lines
@@ -888,6 +925,8 @@ for i, mod in pairs(CalcDiffValue) do
 end
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 1)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 2)
 
 -- SSR skillset lines
 for i = 1,8 do
