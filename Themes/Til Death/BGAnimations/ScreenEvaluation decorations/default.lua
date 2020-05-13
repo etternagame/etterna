@@ -331,7 +331,7 @@ function scoreBoard(pn, position)
 						judge = judge - 1
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						self:settextf(
-							"%05.2f%% (%s) : %05.2f%%", notShit.floor(rescorepercent, 2), ws .. judge, notShit.floor(score:GetWifeScore() * 100, 2)
+							"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. judge
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" and judge < 9 then
@@ -339,7 +339,7 @@ function scoreBoard(pn, position)
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						local js = judge ~= 9 and judge or "ustice"
 							self:settextf(
-							"%05.2f%% (%s) : %05.2f%%", notShit.floor(rescorepercent, 2), ws .. js, notShit.floor(score:GetWifeScore() * 100, 2)
+								"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. js
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
