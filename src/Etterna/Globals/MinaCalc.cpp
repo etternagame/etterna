@@ -1408,6 +1408,11 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				++quads;
 			}
 
+			// we want mixed hs/js to register as hs, even at relatively sparse
+			// hand density
+			if (handtaps > 0)
+				handtaps += jumptaps;
+
 			// sequencing stuff
 			unsigned int cols = NoteInfo[row].notes;
 			row_variations.emplace(cols);
