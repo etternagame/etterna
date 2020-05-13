@@ -1369,8 +1369,6 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 	data.chordtaps.reserve(nervIntervals.size());
 	data.quads.reserve(nervIntervals.size());
 
-	static const int col_id[4] = { 1, 2, 4, 8 };
-
 	int seriously_not_js = 0;
 	set<unsigned int> row_variations;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
@@ -1432,7 +1430,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			}					
 
 			bool twas_jack = false;
-			for (auto& id : col_id) {
+			for (auto& id : col_ids) {
 				if (dbg_lv2)
 					std::cout << "cur id: " << id << std::endl;
 				if (cols & id && last_cols & id) {
