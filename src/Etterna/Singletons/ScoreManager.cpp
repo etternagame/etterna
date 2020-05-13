@@ -479,13 +479,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				auto maxpoints = nd.WifeTotalScoreCalc(td);
 				bool remarried = false;
-				// ok due to a lack of foresight on my part we have to have a
-				// lever to forcibly recalc stuff marked wv 3 with, so we'll
-				// make the ssrcalcvers that lever, if it's changed, just force
-				// recalc wife3 in case wife3 has changed (which at the time of
-				// writing this, is likely, since it's still in flux but i've
-				// already set the version tag as the final)
-			/*	if (hs->wife_ver != 3 || hs->GetSSRCalcVersion() != GetCalcVersion_OLD())*/
+
+				if (hs->wife_ver != 3)
 					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
@@ -781,12 +776,15 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
-		bool getremarried = /*scores[sk].GetWifeVersion() < 3 &&*/ scores[sk].HasReplayData();
+		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,
-		// however trying to do this might be quite a bit of work and while it
-		// would be nice to have at some point it's not worth it just at this
-		// moment
+		// however trying to do this might be quite a bit of work (it would
+		// require making a new lambda loop) and while it would be nice to have
+		// at some point it's not worth it just at this moment, and while it
+		// sort of makes sense from a user convenience aspect to allow this, it
+		// definitely does not make sense from a clarity or consistency
+		// perspective 
 		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
 			&& scores[sk].GetWifeGrade() != Grade_Failed)
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
