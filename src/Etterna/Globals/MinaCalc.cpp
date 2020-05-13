@@ -3261,7 +3261,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 {
 	doot[TheThing].resize(nervIntervals.size());
 
-	static const float min_mod = 0.75f;
+	static const float min_mod = 0.85513412f;
 	static const float max_mod = 1.f;
 	unsigned int itv_window = 3;
 
