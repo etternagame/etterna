@@ -101,6 +101,8 @@ class Hand
 	  true; // Do we moving average the difficulty intervals?
 };
 
+struct JumpHandChordData;
+
 class Calc
 {
   public:
@@ -160,7 +162,9 @@ class Calc
 	void TheThingLookerFinderThing(const std::vector<NoteInfo>& NoteInfo,
 								   float music_rate,
 								   std::vector<float> doot[]);
-
+	
+	JumpHandChordData gen_jump_hand_chord_data(const std::vector<NoteInfo>& NoteInfo);
+	
 	// nerf psuedo chords that are flams into oblivion
 	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
 					   std::vector<float> doot[],
@@ -176,12 +180,9 @@ class Calc
 
 	// no longer going to necessarily be downscalers - that they were
 	// was a structural flaw of the old calc
-	void SetHSMod(const std::vector<NoteInfo>& NoteInfo,
-									std::vector<float> doot[ModCount]);
-	void SetJumpMod(const std::vector<NoteInfo>& NoteInfo,
-									  std::vector<float> doot[ModCount]);
-	void SetCJMod(const std::vector<NoteInfo>& NoteInfo,
-					std::vector<float> doot[ModCount]);
+	void SetHSMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
+	void SetJumpMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
+	void SetCJMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
 
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once

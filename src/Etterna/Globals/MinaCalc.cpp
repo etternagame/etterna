@@ -843,6 +843,193 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
+struct JumpHandChordData {
+	vector<int> num_row_variations;
+	// man these names are cryptic
+	vector<int> definitely_not_jacks;
+	vector<int> actual_jacks;
+	vector<int> actual_jacks_cj;
+	vector<int> not_js;
+	vector<int> not_hs;
+	vector<unsigned int> taps;
+	vector<unsigned int> jumptaps;
+	vector<unsigned int> handtaps;
+	vector<unsigned int> chordtaps;
+	vector<unsigned int> quads;
+};
+
+JumpHandChordData Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo) {
+	JumpHandChordData data;
+	// these reserve statements should match the struct fields
+	data.num_row_variations.reserve(nervIntervals.size());
+	data.definitely_not_jacks.reserve(nervIntervals.size());
+	data.actual_jacks.reserve(nervIntervals.size());
+	data.actual_jacks_cj.reserve(nervIntervals.size());
+	data.not_js.reserve(nervIntervals.size());
+	data.not_hs.reserve(nervIntervals.size());
+	data.taps.reserve(nervIntervals.size());
+	data.jumptaps.reserve(nervIntervals.size());
+	data.handtaps.reserve(nervIntervals.size());
+	data.chordtaps.reserve(nervIntervals.size());
+	data.quads.reserve(nervIntervals.size());
+	
+	static const int col_id[4] = { 1, 2, 4, 8 };
+	
+	int seriously_not_js = 0;
+	set<unsigned int> row_variations;
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		row_variations.clear();
+		// sequencing stuff
+		bool last_was_definitely_not_jacks_maybe = false;
+		int definitely_not_jacks = 0;
+		int actual_jacks = 0;
+		int actual_jacks_cj = 0;
+		int not_js = 0;
+		int not_hs = 0;
+		int last_cols = 0;
+		
+		unsigned int taps = 0;
+		unsigned int jumptaps = 0;
+		unsigned int handtaps = 0;
+		unsigned int chordtaps = 0;
+		unsigned int quads = 0;
+		unsigned int last_notes = 0;
+		// bool newrow = true;
+		for (int row : nervIntervals[i]) {
+			//		if (debugmode && newrow)
+			//			std::cout << "new interval: " << i << " time: "
+			//					  << NoteInfo[row].rowTime   << std::endl;
+			//		newrow = false;
+			
+			unsigned int notes = column_count(NoteInfo[row].notes);
+			taps += notes;
+			if (notes > 1) {
+				chordtaps += notes;
+			}
+			if (notes == 2) {
+				jumptaps += 2;
+			} else if (notes == 3) {
+				handtaps += 3;
+			} else if (notes == 4) {
+				++quads;
+			}
+
+			// sequencing stuff
+			unsigned int cols = NoteInfo[row].notes;
+			row_variations.emplace(cols);
+			
+			//	if (debugmode)
+			//		std::cout << "cols: " << cols << std::endl;
+			//	if (debugmode)
+			//		std::cout << "last cols: " << last_cols << std::endl;
+			
+			bool twas_jack = false;
+			for (auto& id : col_id) {
+				// if (debugmode)
+				//	std::cout << "cur id: " << id << std::endl;
+				if (cols & id && last_cols & id) {
+					//	if (debugmode)
+					//		std::cout << "actual jack at: " << id << std::endl;
+					//	if (debugmode)
+					//		std::cout << "with cols: " << cols << " last cols: "
+					//<< last_cols << std::endl;
+					++actual_jacks;
+					twas_jack = true;
+				}
+			}
+			if (twas_jack) {
+				// [Comment moved from SetCJMod]
+				// if we used the normal actual_jack for CJ too we're saying something
+				// like "chordjacks" are harder if they share more columns from chord to
+				// chord" which is not true, it is in fact either irrelevant
+				// or the inverse depending on the scenario, this is merely
+				// to catch stuff like splithand jumptrills registering as
+				// chordjacks when they shouldn't be
+				++actual_jacks_cj;
+			}
+			
+			// [Comment moved from SetCJMod]
+			// probably should be refactored/simplified, we want to know if we
+			// have a bunch of stuff like [123]4[123] [12]3[124] which isn't
+			// actually chordjack, its just broken hs/js, and in fact with the
+			// level of leniency that is currently being applied to generic
+			// proportions, lots of heavy js/hs is being counted as cj for their
+			// 2nd rating, and by a close margin too, we can't just look for
+			// [123]4, we need to finish the sequence to be sure
+			// i _think_ we only want to do this for single notes, we could
+			// abstract it to a more generic pattern template, but let's be
+			// restrictive for now
+			
+			if (last_was_definitely_not_jacks_maybe) {
+				if (!(last_cols & cols)) { // if there is no (mini)jack
+					++definitely_not_jacks;
+					//	if (debugmode)
+					//		std::cout << "definitely not jack: " << std::endl;
+					// don't reset last_was_definitely_not_jacks_maybe
+				}
+			}
+			
+			// only set for single notes
+			if (notes == 1) {
+				if (!(last_cols & cols)) {
+					// if (debugmode)
+					//	std::cout << "maybe not jack: " << std::endl;
+					last_was_definitely_not_jacks_maybe = true;
+				} else {
+					last_was_definitely_not_jacks_maybe = false;
+				}
+			}
+			
+			// if prev row was chord and now it's a single tap, or vice-versa
+			if ((last_notes > 1 && notes == 1)
+					|| (notes > 1 && last_notes == 1)) {
+				if (!twas_jack) {
+					seriously_not_js -= 3;
+				}
+			}
+			
+			// suppress jumptrilly garbage a little bit
+			if (last_notes == 1 && notes == 1) {
+				++not_hs;
+				
+				//++not_js;
+				seriously_not_js = max(seriously_not_js, 0);
+				++seriously_not_js;
+
+				// [Comment moved from SetJumpMod]
+				// light js really stops at [12]321[23] kind of density,
+				// anything below that should be picked up by speed, and
+				// this stop rolls between jumps getting floated up too
+				// high
+				if (seriously_not_js > 3) {
+					not_js += seriously_not_js;
+				}
+			} else if (last_notes > 1 && notes > 1) {
+				not_hs += notes;
+				not_js += notes;
+			}
+			
+			last_notes = notes;
+			last_cols = cols;
+		}
+		
+		// keep care to match these to the struct fields
+		data.num_row_variations.push_back(row_variations.size());
+		data.definitely_not_jacks.push_back(definitely_not_jacks);
+		data.actual_jacks.push_back(actual_jacks);
+		data.actual_jacks_cj.push_back(actual_jacks_cj);
+		data.not_js.push_back(not_js);
+		data.not_hs.push_back(not_hs);
+		data.taps.push_back(taps);
+		data.jumptaps.push_back(jumptaps);
+		data.handtaps.push_back(handtaps);
+		data.chordtaps.push_back(chordtaps);
+		data.quads.push_back(quads);
+	}
+	
+	return data;
+}
+
 bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 					  float music_rate,
@@ -885,19 +1072,18 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
-
-		// set hand specific pattern mods
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 	}
-
+  
+  auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the same
 	// these also may be redundant with updated stuff
-	SetHSMod(NoteInfo, left_hand.doot);
-	SetJumpMod(NoteInfo, left_hand.doot);
-	SetCJMod(NoteInfo, left_hand.doot);
+	SetHSMod(jhc_data, left_hand.doot);
+	SetJumpMod(jhc_data, left_hand.doot);
+	SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
@@ -1370,93 +1556,86 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 }
 
 void
-Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetHSMod(const JumpHandChordData &data, vector<float> doot[ModCount])
+{
+	doot[HS].resize(nervIntervals.size());
+	doot[HSS].resize(nervIntervals.size());
+	doot[HSJ].resize(nervIntervals.size());
+
+	static const float min_mod = 0.6f;
+	static const float max_mod = 1.1f;
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		// nothing here
+		if (data.taps[i] == 0) {
+			doot[HS][i] = 1.f;
+			doot[HSS][i] = 1.f;
+			doot[HSJ][i] = 1.f;
+		}
+		// look ma no hands
+		else if (data.handtaps[i] < 3) {
+			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
+			doot[HSS][i] = 1.f;
+			doot[HSJ][i] = 1.f;
+		}
+		else { // at least 1 hand
+			// when bark of dog into canyon scream at you
+			float prop = 0.4f + (static_cast<float>(data.handtaps[i] + 1) /
+								 static_cast<float>(data.taps[i] - 1) * 32.f / 7.f);
+
+			float bromide = CalcClamp(
+			  1.45f - (static_cast<float>(data.not_hs[i]) / static_cast<float>(data.taps[i])),
+			  0.89f,
+			  1.f);
+			// downscale by jack density rather than upscale, like cj
+			float brop = CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
+											static_cast<float>(data.taps[i])),
+								   0.5f,
+								   1.f);
+			// clamp the original prop mod first before applying above
+			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
+			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
+			doot[HSS][i] = bromide;
+			doot[HSJ][i] = brop;
+		}
+	}
+
+	if (SmoothPatterns)
+		Smooth(doot[HS], 1.f);
+}
+
+void
+Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 {
 	doot[JS].resize(nervIntervals.size());
 	doot[JSS].resize(nervIntervals.size());
 	doot[JSJ].resize(nervIntervals.size());
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
-
-	int seriously_not_js = 0;
-	float last_mod = min_mod;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// sequencing stuff
-		int actual_jacks = 0;
-		int not_js = 0;
-		int last_cols = 0;
-		int col_id[4] = { 1, 2, 4, 8 };
-
-		unsigned int taps = 0;
-		unsigned int jumptaps = 0;
-		unsigned int last_notes = 0;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-			if (notes == 2)
-				jumptaps += 2;
-
-			bool twas_jack = false;
-			// sequencing stuff
-			unsigned int cols = NoteInfo[row].notes;
-			for (auto& id : col_id)
-				if (cols & id && last_cols & id) {
-					++actual_jacks;
-					twas_jack = true;
-				}
-
-			if ((last_notes > 1 && notes == 1) ||
-				(notes > 1 && last_notes == 1))
-				if (!twas_jack)
-					seriously_not_js -= 3;
-
-			// FOLLOW THE RULES
-			if (last_notes == 1)
-				if (notes == 1) {
-					//++not_js;
-					seriously_not_js = max(seriously_not_js, 0);
-					++seriously_not_js;
-
-					// light js really stops at [12]321[23] kind of density,
-					// anything below that should be picked up by speed, and
-					// this stop rolls between jumps getting floated up too
-					// high
-					if (seriously_not_js > 3)
-						not_js += seriously_not_js;
-				}
-
-			// suppress jumptrilly garbage a little bit, this is redundant in
-			// some cases with ohjump downscaler so we can't go too ham
-			if (last_notes > 1)
-				if (notes > 1)
-					not_js += notes;
-
-			last_notes = notes;
-			last_cols = cols;
-		}
-
+  
+  for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
-		if (taps == 0) {
-			doot[JS][i] = min_mod;
+		if (data.taps[i] == 0) {
+			doot[JS][i] = 1.f;
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
 		}
 		// at least 1 tap but no jumps
-		else if (jumptaps == 0) {
+		else if (data.jumptaps[i] < 2) {
 			doot[JS][i] = CalcClamp(last_mod - 0.55f, min_mod, max_mod);
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
 		} else { // at least 1 jump
 			// creepy banana
-			float prop = static_cast<float>(jumptaps + 1) /
-						 static_cast<float>(taps - 1) * 19.f / 7.f;
+			float prop = static_cast<float>(data.jumptaps[i] + 1) /
+						 static_cast<float>(data.taps[i] - 1) * 19.f / 7.f;
 
 			// maybe the better solution would instead of
 			// downscaling not js and jacks, just upscale js ??
 
 			// punish lots splithand jumptrills
 			float bromide = CalcClamp(
-			  1.45f - (static_cast<float>(not_js) / static_cast<float>(taps)),
+			  1.45f - (static_cast<float>(data.not_js[i]) / static_cast<float>(data.taps[i])),
 			  0.85f,
 			  1.f);
 			// downscale by jack density rather than upscale like cj
@@ -1464,8 +1643,8 @@ Calc::SetJumpMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// (it's not)
 			// theoretically the ohjump downscaler should handle this but
 			// handling it here gives us more flixbility with the ohjump mod
-			float brop = CalcClamp(1.35f - (static_cast<float>(actual_jacks) /
-											static_cast<float>(taps)),
+			float brop = CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
+											static_cast<float>(data.taps[i])),
 								   0.5f,
 								   1.f);
 			// clamp the original prop mod first before applying above
@@ -1598,111 +1777,20 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
 void
-Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetCJMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 {
 	doot[CJ].resize(nervIntervals.size());
 	doot[CJS].resize(nervIntervals.size());
 	doot[CJJ].resize(nervIntervals.size());
 	doot[CJQuad].resize(nervIntervals.size());
-	int last_cols = 0;
-	set<unsigned int> hi;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		hi.clear();
-		// sequencing stuff
-		int actual_jacks = 0;
-		int definitely_not_jacks = 0;
-		int col_id[4] = { 1, 2, 4, 8 };
-		int quads = 0;
-		bool last_was_definitely_not_jacks_maybe = false;
-
-		unsigned int taps = 0;
-		unsigned int chordtaps = 0;
-		bool no_finger_swips = true;
-
-		// bool newrow = true;
-		for (int row : nervIntervals[i]) {
-			//		if (debugmode && newrow)
-			//			std::cout << "new interval: " << i << " time: "
-			//					  << NoteInfo[row].rowTime   << std::endl;
-			//		newrow = false;
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-			if (notes > 1)
-				chordtaps += notes;
-			if (notes == 4)
-				++quads;
-
-			// sequencing stuff
-			unsigned int cols = NoteInfo[row].notes;
-			if (cols != last_cols)
-				no_finger_swips = false;
-
-			hi.emplace(cols);
-			//	if (debugmode)
-			//		std::cout << "cols: " << cols << std::endl;
-			//	if (debugmode)
-			//		std::cout << "last cols: " << last_cols << std::endl;
-			for (auto& id : col_id) {
-				// if (debugmode)
-				//	std::cout << "cur id: " << id << std::endl;
-
-				if (cols & id && last_cols & id) {
-					//	if (debugmode)
-					//		std::cout << "actual jack at: " << id << std::endl;
-					//	if (debugmode)
-					//		std::cout << "with cols: " << cols << " last cols: "
-					//<< last_cols << std::endl;
-					++actual_jacks;
-					// if we don't break we're saying something like "chordjacks
-					// are harder if they share more columns from chord to
-					// chord" which is not true, it is in fact either irrelevant
-					// or the inverse depending on the scenario, this is merely
-					// to catch stuff like splithand jumptrills registering as
-					// chordjacks when they shouldn't be
-					break;
-				}
-			}
-
-			// probably should be refactored/simplified, we want to know if we
-			// have a bunch of stuff like [123]4[123] [12]3[124] which isn't
-			// actually chordjack, its just broken hs/js, and in fact with the
-			// level of leniency that is currently being applied to generic
-			// proportions, lots of heavy js/hs is being counted as cj for their
-			// 2nd rating, and by a close margin too, we can't just look for
-			// [123]4, we need to finish the sequence to be sure
-			// i _think_ we only want to do this for single notes, we could
-			// abstract it to a more generic pattern template, but let's be
-			// restrictive for now
-
-			// run the second check first, look for 3 rows in a row with no
-			// columns shared
-			if (last_was_definitely_not_jacks_maybe)
-				if (!(last_cols & cols)) {
-					++definitely_not_jacks;
-					//	if (debugmode)
-					//		std::cout << "definitely not jack: " << std::endl;
-					// don't reset last_was_definitely_not_jacks_maybe
-				}
-
-			// only set for single notes
-			if (notes == 1)
-				if (!(last_cols & cols)) {
-					// if (debugmode)
-					//	std::cout << "maybe not jack: " << std::endl;
-					last_was_definitely_not_jacks_maybe = true;
-				} else {
-					last_was_definitely_not_jacks_maybe = false;
-				}
-			last_cols = cols;
-		}
-
 		// nothing here
-		if (taps == 0) {
+		if (data.taps[i] == 0) {
 			doot[CJ][i] = 1.f;
 			doot[CJS][i] = 1.f;
 			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
-		} else if (chordtaps == 0) { // there are taps, but no chords
+		} else if (data.chordtaps[i] == 0) { // there are taps, but no chords
 			doot[CJ][i] = 0.7f;
 			doot[CJS][i] = 1.f;
 			doot[CJJ][i] = 1.f;
@@ -1714,24 +1802,24 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// also want to give enough leeway so that hyperdense chordjacks at
 			// lower bpms aren't automatically rated higher than more sparse
 			// jacks at higher bpms
-			float prop = static_cast<float>(chordtaps + 1) /
-						 static_cast<float>(taps - 1) * 38.f / 7.f;
-			float brop = CalcClamp(actual_jacks - 2.f, 0.625f, 1.f);
+			float prop = static_cast<float>(data.chordtaps[i] + 1) /
+						 static_cast<float>(data.taps[i] - 1) * 38.f / 7.f;
+			float brop = CalcClamp(data.actual_jacks_cj[i] - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
-			  1.5f - (static_cast<float>(quads * 4) / static_cast<float>(taps));
+			  1.5f - (static_cast<float>(data.quads[i] * 4) / static_cast<float>(data.taps[i]));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
 
 			// if (debugmode)
-			//	std::cout << "quads: " << quads<< std::endl;
+			//	std::cout << "quads: " << data.quads[i] << std::endl;
 			// if (debugmode)
-			//	std::cout << "taps: " << taps << std::endl;
+			//	std::cout << "taps: " << data.taps[i] << std::endl;
 			// if (debugmode)
 			//	std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
 			// if (debugmode)
-			//	std::cout << "actual jacks: " << actual_jacks << std::endl;
+			//	std::cout << "actual jacks: " << data.actual_jacks_cj[i] << std::endl;
 			// if (debugmode)
-			//	std::cout << "not jacks: " << definitely_not_jacks << std::endl;
+			//	std::cout << "not jacks: " << data.definitely_not_jacks[i] << std::endl;
 			// if (debugmode)
 			//	std::cout << "prop: " << prop << std::endl;
 			// if (debugmode)
@@ -1740,8 +1828,8 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo =
-			  CalcClamp(1.2f - (static_cast<float>(definitely_not_jacks * 2) /
-								static_cast<float>(taps)),
+			  CalcClamp(1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
+								 static_cast<float>(data.taps[i])),
 						0.4f,
 						1.f);
 			// if (debugmode)
@@ -1756,7 +1844,7 @@ Calc::SetCJMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 			doot[CJQuad][i] = bruh_too_many_quads;
 
 			// ITS JUST VIBRO THEN
-			if (no_finger_swips || hi.size() < 3)
+			if (data.num_row_variations[i] == 0 || data.num_row_variations[i] < 3)
 				doot[CJ][i] *= 0.85f;
 			// if (debugmode)
 			//	std::cout << "final mod: " << doot[CJ][i] << "\n"
