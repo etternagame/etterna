@@ -1141,8 +1141,6 @@ uploadSequentially()
 bool
 DownloadManager::UploadScores()
 {
-	// disable for test version
-	return false;
 	if (!LoggedIn())
 		return false;
 
@@ -1241,8 +1239,6 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 void
 DownloadManager::ForceUploadAllScores()
 {
-	// disable for test version
-	return;
 	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
 
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
