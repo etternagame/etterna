@@ -843,7 +843,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
-struct JumpHandChordData {
+struct JumpHandChordData
+{
 	vector<int> num_row_variations;
 	// man these names are cryptic
 	vector<int> definitely_not_jacks;
@@ -857,7 +858,6 @@ struct JumpHandChordData {
 	vector<unsigned int> chordtaps;
 	vector<unsigned int> quads;
 };
-
 
 bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
@@ -906,8 +906,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 	}
-  
-  auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+
+	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the same
 	// these also may be redundant with updated stuff
 	SetHSMod(jhc_data, left_hand.doot);
@@ -1053,8 +1053,8 @@ Calc::Chisel(float player_skill,
 				// want minijacks and gluts almost exclusively, also cap the
 				// point loss so stuff doesn't go too overboard i guess idk
 				if (ss == Skill_Technical) {
-					//float j2 = j2 = JackLoss(player_skill, 2, stamina);
-					//gotpoints -=
+					// float j2 = j2 = JackLoss(player_skill, 2, stamina);
+					// gotpoints -=
 					//  fastsqrt(max(
 					//	max(j2 -
 					//		  JackLoss(player_skill / 1.3f, 0, stamina) * 2.f,
@@ -1353,6 +1353,8 @@ Hand::StamAdjust(float x, int ss, bool debug)
 JumpHandChordData
 Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 {
+	bool dbg = false && debugmode;
+	bool dbg_lv2 = false && debugmode;
 	JumpHandChordData data;
 	// these reserve statements should match the struct fields
 	data.num_row_variations.reserve(nervIntervals.size());
@@ -1388,13 +1390,20 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 		unsigned int chordtaps = 0;
 		unsigned int quads = 0;
 		unsigned int last_notes = 0;
-		// bool newrow = true;
-		for (int row : nervIntervals[i]) {
-			//		if (debugmode && newrow)
-			//			std::cout << "new interval: " << i << " time: "
-			//					  << NoteInfo[row].rowTime   << std::endl;
-			//		newrow = false;
 
+		bool newinterval = true;
+		if (dbg)
+			for (int row : nervIntervals[i]) {
+				if (dbg && newinterval)
+					std::cout << "new interval: " << i
+							  << " time: " << NoteInfo[row].rowTime
+							  << std::endl;
+
+				std::cout << NoteInfo[row].notes << std::endl;
+				newinterval = false;
+			}
+
+		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
 			if (notes > 1) {
@@ -1417,21 +1426,21 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			unsigned int cols = NoteInfo[row].notes;
 			row_variations.emplace(cols);
 
-			//	if (debugmode)
-			//		std::cout << "cols: " << cols << std::endl;
-			//	if (debugmode)
-			//		std::cout << "last cols: " << last_cols << std::endl;
+			if (dbg) {
+				std::cout << "cols: " << cols << std::endl;
+				std::cout << "last cols: " << last_cols << std::endl;
+			}					
 
 			bool twas_jack = false;
 			for (auto& id : col_id) {
-				// if (debugmode)
-				//	std::cout << "cur id: " << id << std::endl;
+				if (dbg_lv2)
+					std::cout << "cur id: " << id << std::endl;
 				if (cols & id && last_cols & id) {
-					//	if (debugmode)
-					//		std::cout << "actual jack at: " << id << std::endl;
-					//	if (debugmode)
-					//		std::cout << "with cols: " << cols << " last cols: "
-					//<< last_cols << std::endl;
+					if (dbg_lv2) {
+						std::cout << "actual jack at: " << id << std::endl;
+						std::cout << "with cols: " << cols
+								  << " last cols: " << last_cols << std::endl;
+					}
 					++actual_jacks;
 					twas_jack = true;
 				}
@@ -1460,19 +1469,20 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			// restrictive for now
 
 			if (last_was_definitely_not_jacks_maybe) {
-				if (!(last_cols & cols)) { // if there is no (mini)jack
+				// if there is no (mini)jack
+				if (!(last_cols & cols)) { 
 					++definitely_not_jacks;
-					//	if (debugmode)
-					//		std::cout << "definitely not jack: " << std::endl;
-					// don't reset last_was_definitely_not_jacks_maybe
+					if (dbg)
+						std::cout << "definitely not jack: " << std::endl;
+				// don't reset last_was_definitely_not_jacks_maybe
 				}
 			}
 
 			// only set for single notes
 			if (notes == 1) {
 				if (!(last_cols & cols)) {
-					// if (debugmode)
-					//	std::cout << "maybe not jack: " << std::endl;
+					if (dbg)
+						std::cout << "maybe not jack: " << std::endl;
 					last_was_definitely_not_jacks_maybe = true;
 				} else {
 					last_was_definitely_not_jacks_maybe = false;
@@ -1483,6 +1493,9 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			if ((last_notes > 1 && notes == 1) ||
 				(notes > 1 && last_notes == 1)) {
 				if (!twas_jack) {
+					if (dbg_lv2)
+						std::cout
+						  << "good hot js/hs: " << std::endl;
 					seriously_not_js -= 3;
 				}
 			}
@@ -1490,18 +1503,26 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			if (last_notes == 1 && notes == 1) {
 				seriously_not_js = max(seriously_not_js, 0);
 				++seriously_not_js;
+				if (dbg_lv2)
+					std::cout << "consecutive single note: " << seriously_not_js
+							  << std::endl;
 
 				// light js really stops at [12]321[23] kind of density,
 				// anything below that should be picked up by speed, and
 				// this stop rolls between jumps getting floated up too
 				// high
 				if (seriously_not_js > 3) {
+					if (dbg)
+						std::cout << "exceeding light js/hs tolerance: " << seriously_not_js << std::endl;
 					not_js += seriously_not_js;
 					// give light hs the light js treatment
 					not_hs += seriously_not_js;
 				}
 			} else if (last_notes > 1 && notes > 1) {
 				// suppress jumptrilly garbage a little bit
+				if (dbg)
+					std::cout
+					  << "sequential chords detected: " << std::endl;
 				not_hs += notes;
 				not_js += notes;
 			}
@@ -1686,7 +1707,7 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 					  static_cast<float>(data.taps[i])),
 			  0.4f,
 			  1.f);
-				
+
 			doot[CJ][i] = CalcClamp(
 			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
 			  min_mod,
@@ -1714,7 +1735,6 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 						  << brop_two_return_of_brop_electric_bropaloo
 						  << std::endl;
 			}
-			
 		}
 	}
 	Smooth(doot[CJ], 1.f);
