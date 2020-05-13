@@ -1532,7 +1532,7 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 	doot[JSJ].resize(nervIntervals.size());
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
-	float last_mod = 1.f;
+	float last_mod = min_mod;
   for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
 		if (data.taps[i] == 0) {
@@ -1541,7 +1541,7 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 			doot[JSJ][i] = 1.f;
 		}
 		// at least 1 tap but no jumps
-		else if (data.jumptaps[i] < 2) {
+		else if (data.jumptaps[i] == 0) {
 			doot[JS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
@@ -1588,7 +1588,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
-	float last_mod = 1.f;
+	float last_mod = min_mod;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
 		if (data.taps[i] == 0) {
@@ -1597,7 +1597,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			doot[HSJ][i] = 1.f;
 		}
 		// look ma no hands
-		else if (data.handtaps[i] < 3) {
+		else if (data.handtaps[i] == 0) {
 			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
