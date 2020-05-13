@@ -175,6 +175,13 @@ function scoreBoard(pn, position)
 		return out
 	end
 
+	-- we removed j1-3 so uhhh this stops things lazily
+	local function clampJudge()
+		if judge < 4 then judge = 4 end
+		if judge > 9 then judge = 9 end
+	end
+	clampJudge()
+
 	local t =
 		Def.ActorFrame {
 		BeginCommand = function(self)
@@ -190,6 +197,7 @@ function scoreBoard(pn, position)
 				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
 			else
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				clampJudge()
 				judge2 = judge
 			end
 		end,
@@ -329,6 +337,7 @@ function scoreBoard(pn, position)
 					local ws = "Wife" .. wv .. " J"
 					if params.Name == "PrevJudge" and judge > 4 then
 						judge = judge - 1
+						clampJudge()
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						self:settextf(
 							"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. judge
@@ -336,6 +345,7 @@ function scoreBoard(pn, position)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" and judge < 9 then
 						judge = judge + 1
+						clampJudge()
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						local js = judge ~= 9 and judge or "ustice"
 							self:settextf(
@@ -345,6 +355,7 @@ function scoreBoard(pn, position)
 					end
 					if params.Name == "ResetJudge" then
 						judge = GetTimingDifficulty()
+						clampJudge()
 						self:playcommand("Set")
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end

@@ -55,6 +55,7 @@ end
 -- we removed j1-3 so uhhh this stops things lazily
 local function clampJudge()
 	if judge < 4 then judge = 4 end
+	if judge > 9 then judge = 9 end
 end
 clampJudge()
 
