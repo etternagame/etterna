@@ -1392,16 +1392,15 @@ HighScore::RescoreToWife3(float pmax)
 		m_Impl->WifeVersion = 2;
 		return false;
 	}
-		
 
 	// i don't know why this would be possible or what to do if we catch these
 	// cases, but it is somehow (probably exclusive to my profile)
-	if (m_Impl->fJudgeScale == 0.f) {
+	/*if (m_Impl->fJudgeScale == 0.f) {
 		LOG->Trace(("somehow there is replaydata but the judgescale is 0 at  " +
 					m_Impl->ScoreKey)
 					 .c_str());
 		return false;
-	}
+	}*/
 
 	float p = 0.f;
 	for (auto& n : m_Impl->vOffsetVector)
