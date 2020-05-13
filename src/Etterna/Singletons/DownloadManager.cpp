@@ -1197,16 +1197,20 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	return;
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
 	auto cs = SCOREMAN->GetScoresForChart(ck);
-	if (cs) { // ignoring topscore flags; upload worst->best
+	if (cs) {
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
-			if (!s->forceuploadedthissession)
-				if (s->GetGrade() != Grade_Failed) {
-					this->ScoreUploadSequentialQueue.push_back(s);
-					this->sequentialScoreUploadTotalWorkload += 1;
+			if (!s->forceuploadedthissession) {
+				auto ts = s->GetTopScore();
+				if (ts == 1 || ts == 2) {
+					if (s->GetGrade() != Grade_Failed) {
+						this->ScoreUploadSequentialQueue.push_back(s);
+						this->sequentialScoreUploadTotalWorkload += 1;
+					}
 				}
+			}
 	}
-
+			
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
