@@ -1528,15 +1528,17 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 }
 
 void
-Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
+Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
+	bool dbg = false && debugmode;
 	doot[JS].resize(nervIntervals.size());
 	doot[JSS].resize(nervIntervals.size());
 	doot[JSJ].resize(nervIntervals.size());
+
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
 	float last_mod = min_mod;
-  for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
 		if (data.taps[i] == 0) {
 			doot[JS][i] = 1.f;
@@ -1545,6 +1547,8 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 		}
 		// at least 1 tap but no jumps
 		else if (data.jumptaps[i] == 0) {
+			// use a decay in case this is something like js, stream, js, stream
+			// js
 			doot[JS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
@@ -1557,34 +1561,36 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 			// downscaling not js and jacks, just upscale js ??
 
 			// punish lots splithand jumptrills
-			float bromide = CalcClamp(
-			  1.45f - (static_cast<float>(data.not_js[i]) / static_cast<float>(data.taps[i])),
-			  0.85f,
-			  1.f);
+			float bromide =
+			  CalcClamp(1.45f - (static_cast<float>(data.not_js[i]) /
+								 static_cast<float>(data.taps[i])),
+						0.85f,
+						1.f);
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
 			// (it's not)
 			// theoretically the ohjump downscaler should handle this but
 			// handling it here gives us more flixbility with the ohjump mod
-			float brop = CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
-											static_cast<float>(data.taps[i])),
-								   0.5f,
-								   1.f);
+			float brop =
+			  CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
+								 static_cast<float>(data.taps[i])),
+						0.5f,
+						1.f);
 			// clamp the original prop mod first before applying above
 			float zoot = CalcClamp(fastsqrt(prop), min_mod, max_mod);
 			doot[JS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[JSS][i] = bromide;
 			doot[JSJ][i] = brop;
-			last_mod = doot[JS][i];
 		}
+		last_mod = doot[JS][i];
 	}
-	if (SmoothPatterns)
-		Smooth(doot[JS], 1.f);
+	Smooth(doot[JS], 1.f);
 }
 
 void
 Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
+	bool dbg = false && debugmode;
 	doot[HS].resize(nervIntervals.size());
 	doot[HSS].resize(nervIntervals.size());
 	doot[HSJ].resize(nervIntervals.size());
@@ -1601,6 +1607,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 		}
 		// look ma no hands
 		else if (data.handtaps[i] == 0) {
+			// use a decay in case this is something like hs, js, hs, js
 			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
@@ -1626,22 +1633,24 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[HSS][i] = bromide;
 			doot[HSJ][i] = brop;
-			last_mod = doot[HS][i];
 		}
+		last_mod = doot[HS][i];
 	}
-
-	if (SmoothPatterns)
-		Smooth(doot[HS], 1.f);
+	Smooth(doot[HS], 1.f);
 }
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
 void
-Calc::SetCJMod(const JumpHandChordData &data, vector<float> doot[ModCount])
+Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
+	bool dbg = false && debugmode;
 	doot[CJ].resize(nervIntervals.size());
 	doot[CJS].resize(nervIntervals.size());
 	doot[CJJ].resize(nervIntervals.size());
 	doot[CJQuad].resize(nervIntervals.size());
+
+	static const float min_mod = 0.7f;
+	static const float max_mod = 1.1f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
 		if (data.taps[i] == 0) {
@@ -1650,7 +1659,7 @@ Calc::SetCJMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
 		} else if (data.chordtaps[i] == 0) { // there are taps, but no chords
-			doot[CJ][i] = 0.7f;
+			doot[CJ][i] = min_mod;
 			doot[CJS][i] = 1.f;
 			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
@@ -1666,54 +1675,50 @@ Calc::SetCJMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 			float brop = CalcClamp(data.actual_jacks_cj[i] - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
-			  1.5f - (static_cast<float>(data.quads[i] * 4) / static_cast<float>(data.taps[i]));
+			  1.5f - (static_cast<float>(data.quads[i] * 4) /
+					  static_cast<float>(data.taps[i]));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
-
-			// if (debugmode)
-			//	std::cout << "quads: " << data.quads[i] << std::endl;
-			// if (debugmode)
-			//	std::cout << "taps: " << data.taps[i] << std::endl;
-			// if (debugmode)
-			//	std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
-			// if (debugmode)
-			//	std::cout << "actual jacks: " << data.actual_jacks_cj[i] << std::endl;
-			// if (debugmode)
-			//	std::cout << "not jacks: " << data.definitely_not_jacks[i] << std::endl;
-			// if (debugmode)
-			//	std::cout << "prop: " << prop << std::endl;
-			// if (debugmode)
-			//	std::cout << "brop: " << brop << std::endl;
 
 			// explicitly detect broken chordstream type stuff so we can give
 			// more leeway to single note jacks
-			float brop_two_return_of_brop_electric_bropaloo =
-			  CalcClamp(1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
-								 static_cast<float>(data.taps[i])),
-						0.4f,
-						1.f);
-			// if (debugmode)
-			//	std::cout << "brop2: " <<
-			// brop_two_return_of_brop_electric_bropaloo<< std::endl;
+			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(
+			  1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
+					  static_cast<float>(data.taps[i])),
+			  0.4f,
+			  1.f);
+				
 			doot[CJ][i] = CalcClamp(
 			  brop * brop_two_return_of_brop_electric_bropaloo * sqrt(prop),
-			  0.7f,
-			  1.1f);
+			  min_mod,
+			  max_mod);
 			doot[CJS][i] = brop_two_return_of_brop_electric_bropaloo;
 			doot[CJJ][i] = brop;
 			doot[CJQuad][i] = bruh_too_many_quads;
 
 			// ITS JUST VIBRO THEN
-			if (data.num_row_variations[i] == 0 || data.num_row_variations[i] < 3)
+			if (data.num_row_variations[i] == 0 ||
+				data.num_row_variations[i] < 3)
 				doot[CJ][i] *= 0.85f;
-			// if (debugmode)
-			//	std::cout << "final mod: " << doot[CJ][i] << "\n"
-			//			  << std::endl;
+			if (dbg) {
+				std::cout << "quads: " << data.quads[i] << std::endl;
+				std::cout << "taps: " << data.taps[i] << std::endl;
+				std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
+				std::cout << "actual jacks: " << data.actual_jacks_cj[i]
+						  << std::endl;
+				std::cout << "not jacks: " << data.definitely_not_jacks[i]
+						  << std::endl;
+				std::cout << "prop: " << prop << std::endl;
+				std::cout << "brop: " << brop << std::endl;
+				std::cout << "final mod: " << doot[CJ][i] << "\n" << std::endl;
+				std::cout << "brop2: "
+						  << brop_two_return_of_brop_electric_bropaloo
+						  << std::endl;
+			}
+			
 		}
 	}
-	if (SmoothPatterns) {
-		Smooth(doot[CJ], 1.f);
-		Smooth(doot[CJQuad], 1.f);
-	}
+	Smooth(doot[CJ], 1.f);
+	Smooth(doot[CJQuad], 1.f);
 }
 
 // since the calc skillset balance now operates on +- rather than just - and
