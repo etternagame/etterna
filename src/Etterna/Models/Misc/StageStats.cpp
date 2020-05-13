@@ -418,7 +418,7 @@ bool
 DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 {
 
-	// 4k only
+	// 4k and 6k only
 	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single &&
 		GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_solo)
 		return false;
