@@ -385,13 +385,17 @@ SongManager::CalcTestStuff()
 
 	// output calc differences for chartkeys and targets and stuff
 	for (auto p : testChartList) {
+		auto ss = p.first;
+		LOG->Trace(
+			  "\nStarting calc test group %s\n", SkillsetToString(ss).c_str());
 		for (auto chart : p.second.filemapping) {
-			auto ss = p.first;
+			
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
 				  StepsByKey[chart.first]->DoATestThing(chart.second.ev,
 														ss, chart.second.rate));
 		}
+		LOG->Trace("\n\n");
 	}
 
 	FOREACH_ENUM(Skillset, ss)
