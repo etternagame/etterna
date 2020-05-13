@@ -582,22 +582,22 @@ HighScore::LoadReplayDataFull()
 			tokens.clear();
 			continue;
 		}
-		//bool a = buffer == "1";
-		//a = buffer == "2" || a;
-		//a = buffer == "3" || a;
-		//a = buffer == "4" || a;
-		//a = buffer == "5" || a;
-		//a = buffer == "6" || a;
-		//a = buffer == "7" || a;
-		//a = buffer == "8" || a;
-		//a = buffer == "9" || a;
-		//a = buffer == "0" || a;
-		//if (!a) {
+		// bool a = buffer == "1";
+		// a = buffer == "2" || a;
+		// a = buffer == "3" || a;
+		// a = buffer == "4" || a;
+		// a = buffer == "5" || a;
+		// a = buffer == "6" || a;
+		// a = buffer == "7" || a;
+		// a = buffer == "8" || a;
+		// a = buffer == "9" || a;
+		// a = buffer == "0" || a;
+		// if (!a) {
 		//	LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
 		//			  path.c_str());
 		//	return false;
 		//}
-			
+
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
 			LOG->Warn("Failed to load replay data at %s (\"NoteRow value is "
@@ -1355,14 +1355,31 @@ HighScore::RescoreToWife2Judge(int x)
 						  0.66f, 0.50f, 0.33f, 0.20f };
 	float ts = tso[x - 1];
 	float p = 0;
-	for (auto& n : m_Impl->vOffsetVector)
-		p += wife2(n, ts);
+
+	// the typevector is only available for full replays
+	if (m_Impl->ReplayType == 2) {
+		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+			// by the powers of god invested in me i declare these vectors the
+			// same size so this works all the time no matter what
+			auto& type = m_Impl->vTapNoteTypeVector[i];
+			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
+				type == TapNoteType_Lift) {
+				p += wife2(m_Impl->vOffsetVector[i], ts);
+			}
+		}
+	} else {
+		// blindly assume the offset vector is correct for old replays
+		for (auto& n : m_Impl->vOffsetVector) {
+			p += wife2(n, ts);
+		}
+	}
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
 		 -6.f;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
+	// this is a bad assumption but im leaving it here
 	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 
 	/* we don't want to have to access notedata when loading or rescording
@@ -1402,35 +1419,48 @@ HighScore::RescoreToWife3(float pmax)
 		return false;
 	}*/
 
-	float p = 0.f;
-	for (auto& n : m_Impl->vOffsetVector)
-		p += wife3(n, 1);
+	// SSRNormPercent
+	float p4 = 0.f;
+	// WifeScore for HighScore Judge
+	float pj = 0.f;
 
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 wife3_hold_drop_weight;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
+	// the typevector is only available for full replays
+	if (m_Impl->ReplayType == 2) {
+		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+			// by the powers of god invested in me i declare these vectors the
+			// same size so this works all the time no matter what
+			auto& type = m_Impl->vTapNoteTypeVector[i];
+			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
+				type == TapNoteType_Lift) {
+				p4 += wife3(m_Impl->vOffsetVector[i], 1);
+				pj += wife3(m_Impl->vOffsetVector[i], m_Impl->fJudgeScale);
+			}
+		}
+	} else {
+		// blindly assume the offset vector is correct for old replays
+		for (auto& n : m_Impl->vOffsetVector) {
+			p4 += wife3(n, 1);
+			pj += wife3(n, m_Impl->fJudgeScale);
+		}
+	}
 
-	m_Impl->fSSRNormPercent =  p / pmax;
+	float holdpoints = (m_Impl->iHoldNoteScores[HNS_LetGo] +
+						m_Impl->iHoldNoteScores[HNS_Missed]) *
+					   wife3_hold_drop_weight;
+	float minepoints =
+	  m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
-	// ok so this is kind of lazy but we do actually want to rescore the wifescore
-	// for the judge this score was achieved on as well as ssrnorm
-	p = 0.f;
-	for (auto& n : m_Impl->vOffsetVector)
-		p += wife3(n, m_Impl->fJudgeScale);
+	p4 += holdpoints + minepoints;
+	pj += holdpoints + minepoints;
 
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 wife3_hold_drop_weight;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
-
-	m_Impl->fWifeScore = p / pmax;
-	m_Impl->fWifePoints = p;
+	m_Impl->fSSRNormPercent = p4 / pmax;
+	m_Impl->fWifeScore = pj / pmax;
+	m_Impl->fWifePoints = pj;
 	m_Impl->WifeVersion = 3;
 	return true;
 }
 
-// DONT REALLY KNOW WHY THIS IS STILL HERE 
+// DONT REALLY KNOW WHY THIS IS STILL HERE
 float
 HighScore::RescoreToDPJudge(int x)
 {
