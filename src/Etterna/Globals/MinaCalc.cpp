@@ -1555,54 +1555,6 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Anchor], 1.f);
 }
 
-void
-Calc::SetHSMod(const JumpHandChordData &data, vector<float> doot[ModCount])
-{
-	doot[HS].resize(nervIntervals.size());
-	doot[HSS].resize(nervIntervals.size());
-	doot[HSJ].resize(nervIntervals.size());
-
-	static const float min_mod = 0.6f;
-	static const float max_mod = 1.1f;
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// nothing here
-		if (data.taps[i] == 0) {
-			doot[HS][i] = 1.f;
-			doot[HSS][i] = 1.f;
-			doot[HSJ][i] = 1.f;
-		}
-		// look ma no hands
-		else if (data.handtaps[i] < 3) {
-			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
-			doot[HSS][i] = 1.f;
-			doot[HSJ][i] = 1.f;
-		}
-		else { // at least 1 hand
-			// when bark of dog into canyon scream at you
-			float prop = 0.4f + (static_cast<float>(data.handtaps[i] + 1) /
-								 static_cast<float>(data.taps[i] - 1) * 32.f / 7.f);
-
-			float bromide = CalcClamp(
-			  1.45f - (static_cast<float>(data.not_hs[i]) / static_cast<float>(data.taps[i])),
-			  0.89f,
-			  1.f);
-			// downscale by jack density rather than upscale, like cj
-			float brop = CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
-											static_cast<float>(data.taps[i])),
-								   0.5f,
-								   1.f);
-			// clamp the original prop mod first before applying above
-			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
-			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
-			doot[HSS][i] = bromide;
-			doot[HSJ][i] = brop;
-		}
-	}
-
-	if (SmoothPatterns)
-		Smooth(doot[HS], 1.f);
-}
 
 void
 Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
@@ -1612,7 +1564,7 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 	doot[JSJ].resize(nervIntervals.size());
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
-  
+	float last_mod = 1.f;
   for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// nothing here
 		if (data.taps[i] == 0) {
@@ -1660,109 +1612,44 @@ Calc::SetJumpMod(const JumpHandChordData &data, vector<float> doot[ModCount])
 }
 
 void
-Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
+Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	static const bool dbg = false;
 	doot[HS].resize(nervIntervals.size());
 	doot[HSS].resize(nervIntervals.size());
 	doot[HSJ].resize(nervIntervals.size());
 
 	static const float min_mod = 0.6f;
 	static const float max_mod = 1.1f;
-
-	int seriously_not_hs = 0;
-	float last_mod = min_mod;
+	float last_mod = 1.f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// sequencing stuff
-		int actual_jacks = 0;
-		int not_hs = 0;
-		int last_cols = 0;
-		int col_id[4] = { 1, 2, 4, 8 };
-
-		unsigned int taps = 0;
-		unsigned int handtaps = 0;
-		unsigned int jumptaps = 0;
-		unsigned int last_notes = 0;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-			if (notes == 3)
-				handtaps += 3;
-
-			// we want to catch hs with js components
-			if (notes == 2)
-				++jumptaps;
-
-			bool twas_jack = false;
-			// sequencing stuff
-			unsigned int cols = NoteInfo[row].notes;
-			for (auto& id : col_id)
-				if (cols & id && last_cols & id) {
-					++actual_jacks;
-					twas_jack = true;
-				}
-
-			if ((last_notes > 1 && notes == 1) ||
-				(notes > 1 && last_notes == 1))
-				if (!twas_jack)
-					seriously_not_hs -= 3;
-
-			// BUT WHO MAKES THE RULES????????
-			if (last_notes == 1)
-				if (notes == 1) {
-					seriously_not_hs = max(seriously_not_hs, 0);
-					++seriously_not_hs;
-
-					// light ss really stops at [124]321[234] kind of density,
-					// anything below that should be picked up by speed, and
-					// this stop rolls getting floated up too high
-					if (seriously_not_hs > 3)
-						not_hs += seriously_not_hs;
-				}
-
-			// suppress jumptrilly garbage a little bit
-			if (last_notes > 1)
-				if (notes > 1)
-					not_hs += notes;
-
-			last_notes = notes;
-			last_cols = cols;
-		}
-
-		if (handtaps > 0)
-			handtaps += jumptaps;
-
 		// nothing here
-		if (taps == 0) {
+		if (data.taps[i] == 0) {
+			doot[HS][i] = 1.f;
+			doot[HSS][i] = 1.f;
+			doot[HSJ][i] = 1.f;
+		}
+		// look ma no hands
+		else if (data.handtaps[i] < 3) {
 			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
-			last_mod = doot[HS][i];
-		}
-		// look ma no hands
-		else if (handtaps == 0) {
-			// ok for hs specifically we will do this i think, basically stuff
-			// like du und ich with a bunch of hs then js alternating gets no hs
-			// rating because the smooth drags everything down now that the
-			// min_mod is so low
-			doot[HS][i] = max(last_mod - 0.05f, min_mod);
-			doot[HSS][i] = 1.f;
-			doot[HSJ][i] = 1.f;
-			last_mod = doot[HS][i];
 		} else { // at least 1 hand
 			// when bark of dog into canyon scream at you
-			float prop = 0.4f + (static_cast<float>(handtaps + 1) /
-								 static_cast<float>(taps - 1) * 31.f / 7.f);
+			float prop =
+			  0.4f + (static_cast<float>(data.handtaps[i] + 1) /
+					  static_cast<float>(data.taps[i] - 1) * 32.f / 7.f);
 
-			float bromide = CalcClamp(
-			  1.45f - (static_cast<float>(not_hs) / static_cast<float>(taps)),
-			  0.89f,
-			  1.f);
+			float bromide =
+			  CalcClamp(1.45f - (static_cast<float>(data.not_hs[i]) /
+								 static_cast<float>(data.taps[i])),
+						0.89f,
+						1.f);
 			// downscale by jack density rather than upscale, like cj
-			float brop = CalcClamp(1.35f - (static_cast<float>(actual_jacks) /
-											static_cast<float>(taps)),
-								   0.5f,
-								   1.f);
+			float brop =
+			  CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
+								 static_cast<float>(data.taps[i])),
+						0.5f,
+						1.f);
 			// clamp the original prop mod first before applying above
 			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
@@ -1772,7 +1659,8 @@ Calc::SetHSMod(const vector<NoteInfo>& NoteInfo, vector<float> doot[ModCount])
 		}
 	}
 
-	Smooth(doot[HS], 1.f);
+	if (SmoothPatterns)
+		Smooth(doot[HS], 1.f);
 }
 
 // depress cj rating for non-cj stuff and boost cj rating for cj stuff
