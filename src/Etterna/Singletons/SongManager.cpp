@@ -403,6 +403,7 @@ SongManager::CalcTestStuff()
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
 	}
+	SaveCalcTestXmlToDir();
 }
 
 void
