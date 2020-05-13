@@ -353,7 +353,7 @@ Steps::IsRecalcValid()
 		return false;
 
 	TimingData* td = GetTimingData();
-	if (td->HasWarps())
+	if (td->HasWarps() || td->HasFakes())
 		return false;
 
 	return true;
