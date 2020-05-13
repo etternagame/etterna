@@ -308,7 +308,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.88f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.8925f,
 												 0.94f, 0.8f,  0.84f, 0.88f };
 
 #pragma region CalcBodyFunctions
@@ -383,9 +383,16 @@ Calc::JackStamAdjust(float x, int t, int mode)
 }
 
 inline float
-hit_the_road(float x, float y)
+hit_the_road(float x, float y, int mode)
 {
-	return CalcClamp(5.5f - (5.0 * fastpow(x / y, 1.35f)), 0.0, 5.5);
+	if (mode == 0)
+		return CalcClamp(5.5f - (5.0 * fastpow(x / y, 1.35f)), 0.0, 5.5);
+	else if (mode == 1)
+		return CalcClamp(5.5f - (5.5 * fastpow(x / y, 1.5f)), 0.0, 5.5);
+	else if (mode == 2)
+		return (CalcClamp(3.5f - (2.5 * x / y), 0.0, 3.5));
+	else
+		return 0.f;
 }
 
 // returns a positive number or 0, output should be subtracted
@@ -419,7 +426,7 @@ Calc::JackLoss(float x, int mode, bool stam)
 			for (auto& j : seagull) {
 				if (x >= j)
 					continue;
-				float boat = hit_the_road(x, j);
+				float boat = hit_the_road(x, j, mode);
 				loss += boat;
 
 				if (dbg)
@@ -514,12 +521,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				window_taps[i - 1] = window_taps[i];
 
 			float comp_time = 0.f;
-			float momp_time = 0.f;
-			float hit_window_buffer = 360.f;
+			float hit_window_buffer = 380.f;
 			if (mode == 1)
-				hit_window_buffer = 140.f;
+				hit_window_buffer = 115.f;
 			if (mode == 2)
-				hit_window_buffer = 80.f;
+				hit_window_buffer = 90.f;
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
@@ -547,7 +553,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				else if (mode == 2)
 					buffer_drain = ms;
 				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
-				
+
 				float eff_ms = comp_time + hit_window_buffer;
 
 				// compute a simple scaler by taking the effective ms window
@@ -582,15 +588,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// the last effective scaler because that's the best estimate of
 				// the difficulty of the final note in the sequence, for long
 				// jacks it should always reach 1
-				fdiff = mean(comp_diff) * eff_scalers.back();
+				fdiff = mean(comp_diff) * eff_scalers.back() * 1.03f;
 			else if (mode == 1)
-				// more burst oriented jacks, double mean here because fuzzy
-				// math + intuition = incomprehensible mess
-				fdiff = mean(comp_diff) * mean(eff_scalers) * 1.05f;
+				// more burst oriented jacks, fuzzy math + intuition =
+				// incomprehensible mess
+				fdiff = comp_diff.back() * mean(eff_scalers) * 1.02f;
 			else if (mode == 2)
 				// minijacks, we want them to pop on this pass, thankfully,
 				// that's easy to accomplish
-				fdiff = comp_diff.back() * eff_scalers.back() * 0.75f;
+				fdiff = comp_diff.back() * eff_scalers.back() * 1.05f;
 
 			thejacks.push_back(fdiff);
 			if (dbg) {
@@ -669,7 +675,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 			// outsize influence on anything, they aren't actually that hard in
 			// isolation due to hit windows
 			temp_queue[row_counter] =
-			  CalcClamp(1000.f * (scaledtime - last), 20.f, 5000.f);
+			  CalcClamp(1000.f * (scaledtime - last), 40.f, 5000.f);
 			++row_counter;
 			last = scaledtime;
 		}
@@ -1006,6 +1012,7 @@ Calc::Chisel(float player_skill,
 			 bool stamina,
 			 bool debugoutput)
 {
+
 	float gotpoints = 0.f;
 	int possiblepoints = 0;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
@@ -1022,12 +1029,27 @@ Calc::Chisel(float player_skill,
 			possiblepoints = 0;
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
-			if (ss == Skill_JackSpeed)
+			if (ss == Skill_JackSpeed) {
+				// scan for burst jacks and longjacks and take the hardest
 				gotpoints = MaxPoints - max(JackLoss(player_skill, 0, stamina),
-											JackLoss(player_skill, 0, stamina));
-			else {
-				if (ss == Skill_Technical)
-					gotpoints -= sqrt(JackLoss(player_skill, 2, stamina));
+											JackLoss(player_skill, 1, stamina));
+			} else {
+				// try not to be redundant with longjacks or burst jacks, we
+				// want minijacks and gluts almost exclusively, also cap the
+				// point loss so stuff doesn't go too overboard i guess idk
+				if (ss == Skill_Technical) {
+					//float j2 = j2 = JackLoss(player_skill, 2, stamina);
+					//gotpoints -=
+					//  fastsqrt(max(
+					//	max(j2 -
+					//		  JackLoss(player_skill / 1.3f, 0, stamina) * 2.f,
+					//		max(j2 - JackLoss(player_skill / 1.3f, 1, stamina) *
+					//				   2.f,
+					//			0.f)),
+					//	0.f)) *
+					//  2.f;
+				}
+
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
