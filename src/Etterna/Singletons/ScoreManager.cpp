@@ -459,7 +459,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				// throws out scores on solo files and stuff with warps
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
 					continue;
