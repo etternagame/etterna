@@ -352,10 +352,6 @@ Steps::IsRecalcValid()
 		m_CachedRadarValues[RadarCategory_Notes] != 4)
 		return false;
 
-	TimingData* td = GetTimingData();
-	if (td->HasWarps() || td->HasFakes())
-		return false;
-
 	return true;
 }
 
