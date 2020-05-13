@@ -157,6 +157,8 @@ local minanyms = {
 	"Rainbow Accept",
 	"for optimizzles",
 	"poodle_in_a_porta_potty",
+	"scoring justice warrior",
+	"_ring.png",
 }
 
 math.random()
