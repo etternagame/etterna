@@ -35,6 +35,7 @@ class SongManager
 	~SongManager();
 
 	void InitSongsFromDisk(LoadingWindow* ld);
+	void CalcTestStuff();
 	void FreeSongs();
 	void Cleanup();
 
@@ -173,6 +174,11 @@ class SongManager
 
 	void FinalizeSong(Song* pNewSong, const RString& dir);
 
+	// calc test stuff
+	XNode* SaveCalcTestCreateNode() const;
+	void LoadCalcTestNode() const;
+	void SaveCalcTestXmlToDir() const;
+	map<Skillset, CalcTestList> testChartList;
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
 	void LoadDWISongDir(const RString& sDir);

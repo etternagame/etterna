@@ -90,7 +90,7 @@ ScoresAtRate::GetAllScores()
 {
 	vector<HighScore*> o;
 	FOREACHUM(string, HighScore, scores, i)
-		o.push_back(&i->second);
+	o.push_back(&i->second);
 
 	// upload the worst scores first and the best scores last
 	// so we catch any de-facto pbs that are created by actual
@@ -291,8 +291,8 @@ ScoresForChart::GetAllScores()
 {
 	vector<HighScore*> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
-		for (auto s : i->second.GetAllScores())
-			o.push_back(s);
+	for (auto s : i->second.GetAllScores())
+		o.push_back(s);
 	return o;
 }
 
@@ -374,7 +374,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
-		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) + " scores" );
+		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) +
+					" scores");
 	}
 	int onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 	int scoreindex = 0;
@@ -447,9 +448,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				const string& ck = hs->GetChartKey();
 				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-				
-				// this _should_ be impossible since ischartloaded() checks are required on all charts before getting here
-				// but just in case...
+
+				// this _should_ be impossible since ischartloaded() checks are
+				// required on all charts before getting here but just in
+				// case...
 				if (!steps)
 					continue;
 
@@ -457,7 +459,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				// throws out scores on solo files and stuff with warps
 				if (!steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
 					continue;
@@ -465,6 +466,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
+
 
 				// don't waste time on <= 0%s
 				if (ssrpercent <= 0.f) {
@@ -489,9 +491,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					continue;
 
 				const auto& serializednd = nd.SerializeNoteData2(td);
-				auto dakine = MinaSDCalc_OLD(serializednd,
-										 musicrate,
-										 ssrpercent);
+				vector<float> dakine;
+				if (steps->m_StepsType == StepsType_dance_single)
+					dakine = MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
+				else if (steps->m_StepsType == StepsType_dance_solo)
+					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
@@ -581,6 +585,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 }
 
 // perhaps we will need a generalized version again someday, but not today
+// currently set to only allow dance single scores
 float
 ScoreManager::AggregateSSRs(Skillset ss,
 							float rating,
@@ -595,7 +600,9 @@ ScoreManager::AggregateSSRs(Skillset ss,
 			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
-				TopSSRs[i]->GetTopScore() != 0)
+				TopSSRs[i]->GetTopScore() != 0 &&
+				SONGMAN->GetStepsByChartkey(TopSSRs[i]->GetChartKey())
+					->m_StepsType == StepsType_dance_single)
 				sum += max(
 				  0.0,
 				  2.f / erfc(0.1 * (TopSSRs[i]->GetSkillsetSSR(ss) - rating)) -
@@ -774,6 +781,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// top score rankings may in fact shift post-rescore, this will
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
+
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
 		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 

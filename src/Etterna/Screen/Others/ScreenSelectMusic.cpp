@@ -63,6 +63,7 @@ AutoScreenMessage(SM_SortOrderChanging);
 AutoScreenMessage(SM_SortOrderChanged);
 AutoScreenMessage(SM_BackFromPlayerOptions);
 AutoScreenMessage(SM_BackFromNamePlaylist);
+AutoScreenMessage(SM_BackFromCalcTestStuff);
 
 static bool g_bSampleMusicWaiting = false;
 static bool delayedchartupdatewaiting = false;
@@ -560,6 +561,30 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
 					   SONGMAN->activeplaylist.c_str()));
 			return true;
+		} else if (c == '`' && m_MusicWheel.IsSettled() &&
+				   input.type == IET_FIRST_PRESS &&
+				   GAMESTATE->m_pCurSteps != nullptr) {
+			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
+			Skillset foundSS = Skillset_Invalid;
+			for (auto ss : SONGMAN->testChartList) {
+				if (ss.second.filemapping.count(ck)) {
+					foundSS = ss.first;
+					break;
+				}
+			}
+			if (foundSS == Skillset_Invalid)
+				ScreenTextEntry::TextEntry(
+				  SM_BackFromCalcTestStuff,
+				  "FORMAT: MSD SKILLSET RATE   or   MSD SKILLSET\nOnly 1 rate "
+				  "per chart",
+				  "",
+				  128);
+			else {
+				SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				SCREENMAN->SystemMessage(ssprintf(
+				  "Removed this chart from the test list (skillset %d)",
+				  foundSS));
+			}
 		}
 	}
 
@@ -1019,6 +1044,89 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
+	} else if (SM == SM_BackFromCalcTestStuff) {
+		string ans = ScreenTextEntry::s_sLastAnswer;
+		vector<string> words;
+		istringstream iss(ans);
+		for (string s; iss >> s;)
+			words.push_back(s);
+		Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		// OOPS I COPY PASTED THE SAME CODE TWICE OH NO ITS TOO LATE I ALREADY
+		// FINISHED WRITING EVERYTHING AAAAAHHHH
+		if (words.size() == 2) {
+			try {
+				float target = stof(words[0]);
+				Skillset ss = (Skillset)stoi(words[1]);
+				if (ss < 0 || ss >= NUM_Skillset)
+					SCREENMAN->SystemMessage("invalid skillset number");
+				else if (GAMESTATE->m_pCurSteps != nullptr) {
+					CalcTest thetest;
+					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
+					if (SONGMAN->testChartList.count(ss)) {
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = 1.f;
+						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
+					} else {
+						CalcTestList tl;
+						tl.skillset = ss;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = 1.f;
+						tl.filemapping[ck] = thetest;
+						SONGMAN->testChartList[ss] = tl;
+					}
+					SCREENMAN->SystemMessage(
+					  ssprintf("added %s to %s at rate 1.0",
+							   ck.c_str(),
+							   SkillsetToString(ss).c_str()));
+					SONGMAN->SaveCalcTestXmlToDir();
+					float woo =
+					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, 1.f);
+				}
+			} catch (...) {
+				SCREENMAN->SystemMessage("you messed up (input exception)");
+			}
+		} else if (words.size() == 3) {
+			try {
+				float target = stof(words[0]);
+				float rate = stof(words[1]);
+				Skillset ss = (Skillset)stoi(words[2]);
+				if (ss < 0 || ss >= NUM_Skillset)
+					SCREENMAN->SystemMessage("invalid skillset number");
+				else if (GAMESTATE->m_pCurSteps != nullptr) {
+					CalcTest thetest;
+					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
+					if (SONGMAN->testChartList.count(ss)) {
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = rate;
+						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
+					} else {
+						CalcTestList tl;
+						tl.skillset = ss;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = rate;
+						tl.filemapping[ck] = thetest;
+						SONGMAN->testChartList[ss] = tl;
+					}
+					SCREENMAN->SystemMessage(
+					  ssprintf("added %s to %s at rate %f",
+							   ck.c_str(),
+							   SkillsetToString(ss).c_str(),
+							   rate));
+					SONGMAN->SaveCalcTestXmlToDir();
+					float woo =
+					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, rate);
+				}
+			} catch (...) {
+				SCREENMAN->SystemMessage("you messed up (input exception)");
+			}
+		} else {
+			SCREENMAN->SystemMessage("you messed up (wrong input format)");
+		}
 	}
 
 	if (SM == SM_BackFromNamePlaylist) {
@@ -1032,7 +1140,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		}
 
 		// restart preview music after finishing or cancelling playlist creation
-		// this is just copypasta'd and should be made a function? or we have something better? idk
+		// this is just copypasta'd and should be made a function? or we have
+		// something better? idk
 		GameSoundManager::PlayMusicParams PlayParams;
 		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
 		PlayParams.pTiming = m_pSampleMusicTimingData;
