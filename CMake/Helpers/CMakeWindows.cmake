@@ -18,6 +18,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja"
 	set(ETTERNA_COMPILE_FLAGS "${ETTERNA_COMPILE_FLAGS} /MT")
 	set(ETTERNA_LINK_FLAGS "${ETTERNA_LINK_FLAGS} /NODEFAULTLIB:\"LIBCMT\"")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_compile_options(/bigobj)
 	# TODO: Fix Debug build configuration
 	# At the moment, to build with debug information, use RelWithDebInfo.
 	# This issue with this is with CMake not linking everything properly with the /MTd compile flag

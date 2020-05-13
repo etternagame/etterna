@@ -17,13 +17,13 @@ project(Etterna
         LANGUAGES C CXX ASM)
 
 ## CMake and Compiler Setup
-set(CMAKE_CXX_STANDARD 14)                                  # Minimum C++ Version
-set(CMAKE_CXX_EXTENSIONS OFF)                               # True if compiler extensions are necessary. (Changes -std flag)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)                         # True to require minimum C++ version to compile
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Tell xcodebuild to target an older osx platform
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile commands for clang-tidy
-set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
+set(CMAKE_CXX_STANDARD 14)                                      # Minimum C++ Version
+set(CMAKE_CXX_EXTENSIONS OFF)                                   # True if compiler extensions are necessary. (Changes -std flag)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to require minimum C++ version to compile
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile commands for clang-tidy
+set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug")   # What configurations types do we want to support? (Changes what shows up in Visual Studio)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDE's
 
 ## Ninja specific setup (Different compilers required different color force commands)
 if(CMAKE_GENERATOR STREQUAL "Ninja")
@@ -107,6 +107,10 @@ add_subdirectory(src/Etterna)
 add_subdirectory(src/arch)
 add_subdirectory(src/archutils)
 add_subdirectory(src/RageUtil)
+
+# Organize source files in IDE. (Mostly for Visual Studio to show folders)
+file(GLOB_RECURSE source_code src/* ${PROJECT_BINARY_DIR}/generated/*)
+source_group(TREE ${PROJECT_SOURCE_DIR} PREFIX "Source" FILES ${source_code})
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
