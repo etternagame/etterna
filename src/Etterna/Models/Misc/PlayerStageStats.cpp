@@ -5,6 +5,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -382,7 +383,7 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	if (steps->m_StepsType == StepsType_dance_solo)
 		return SoloCalc(serializednd, musicrate, ssrpercent);
 	else
-		return MinaSDCalc(serializednd, musicrate, ssrpercent);
+		return MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
 }
 
 float
@@ -1003,7 +1004,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 
 	static int WifeScoreOffset(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
+		lua_pushnumber(L, wife3(FArg(1), p->GetTimingScale()));
 		return 1;
 	}
 

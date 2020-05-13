@@ -233,7 +233,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					NoteData nd;
 					steps->GetNoteData(nd);
 
-					nd.LogNonEmptyRows();
+					nd.LogNonEmptyRows(td);
 					auto& nerv = nd.GetNonEmptyRowVector();
 					auto& etaner = td->BuildAndGetEtaner(nerv);
 					auto& serializednd = nd.SerializeNoteData(etaner);

@@ -380,6 +380,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 void
 SongManager::CalcTestStuff()
 {
+
 	vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
