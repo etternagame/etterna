@@ -474,6 +474,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	int window_size = 5;
 	if (mode == 1)
 		window_size = 3;
+	if (mode == 2)
+		window_size = 2;
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
@@ -482,6 +484,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> eff_scalers(window_size);
 	vector<vector<float>> itv_jacks;
 	vector<float> thejacks;
+
+	// yes this is many loops, but we don't want to sacrifice
+	// legitimately difficult minijacks in the name of proper
+	// evaluation of shortjacks and longjack, so we're going to be dumb and
+	// hacky and run 3 separate passes trying to identify the strength of each
+	// minijack type, skillsets within the skillset as it were. An attempt was
+	// made to simply take the highest jack value of any type for each value but
+	// this resulted in the distribution being stretched out too far, we get
+	// better grouping this way
 
 	// intervals, we don't care that we're looping through intervals because the
 	// queue we build is interval agnostic, though it does make debug output
@@ -502,14 +513,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			for (size_t i = 1; i < window_taps.size(); ++i)
 				window_taps[i - 1] = window_taps[i];
 
-			// yes this is many loops, but we don't want to sacrifice
-			// legitimately difficult minijacks in the name of proper
-			// evaluation of shortjacks and longjacks, so try scanning
-			// through the last 5 in a minisequence to pick out something
-			// something?
 			float comp_time = 0.f;
 			float momp_time = 0.f;
-			float hit_window_buffer = 380.f;
+			float hit_window_buffer = 360.f;
 			if (mode == 1)
 				hit_window_buffer = 140.f;
 			if (mode == 2)
@@ -517,29 +523,36 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
-				// 0, this leaves us with 4 components for jack difficulty
-				// estimation that will hopefully not underrate minijacks
+				// 0, then we like, do stuff with them, you know, like pogs
 
-				float base_ms = window_taps[i];
-				comp_time += window_taps[i];
-				hit_window_buffer = max(0.f, hit_window_buffer - min(ms, 60.f));
-				// we sequence inside the jack this way so that we don't
-				// ignore minijacks, but we don't want them to overpower
-				// things like they did in 263. We know the general rules
-				// that govern how hard minijacks, shortjacks, and longjacks
-				// are to hit - an isolated minijack has an effective window
-				// if 180ms + jack ms
-				// + 180, an isolated triplet has an effective window of 180
+				// We know the general rules that govern how hard minijacks,
+				// shortjacks, and longjacks are to hit - an isolated minijack
+				// has an effective window if 180ms + jack ms + 180,
+				// an isolated triplet has an effective window of 180
 				// + jack ms + jack ms + 180, the latter is more difficult
 				// but not by that much, even if the jacks are extremely
 				// fast, since jacks are effectively down translated from x
-				// bpm jacks to y bpm as a function of the miss window
+				// bpm jacks to y bpm as a function of the miss window, we will
+				// attempt to emulate this by calculating a real and effective
+				// bpm of each component of a jack sequence and then doing
+				// wizard magic with them for great justice
 
+				float base_ms = window_taps[i];
+				comp_time += window_taps[i];
+				float buffer_drain = 0.f;
+				if (mode == 0)
+					buffer_drain = ms;
+				else if (mode == 1)
+					buffer_drain = min(ms, 60.f);
+				else if (mode == 2)
+					buffer_drain = ms;
+				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
+				
 				float eff_ms = comp_time + hit_window_buffer;
+
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
 				// clarity) remember to divide time by number of jacks
-
 				float base_bpm =
 				  ms_to_bpm(comp_time / (1 + static_cast<float>(i)));
 				float eff_bpm = ms_to_bpm(eff_ms / (1 + static_cast<float>(i)));
@@ -548,7 +561,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// convert bpm to nps so we can apply finalscaler and get
 				// roughly comparable values to other skillsets and use the
 				// basescaler lever to fine tune
-				// throw out any "jacks" above 180
+				// throw out any "jacks" above 180ms
 				comp_diff[i] = base_ms > 180.f ? 1.f
 											   : base_bpm / 15.f * finalscaler *
 												   basescalers[Skill_JackSpeed];
@@ -565,13 +578,18 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 			float fdiff = 0.f;
 			if (mode == 0)
-				// longer jacks
+				// longer jacks, mean of comp diff pushes up 5+ note jacks, take
+				// the last effective scaler because that's the best estimate of
+				// the difficulty of the final note in the sequence, for long
+				// jacks it should always reach 1
 				fdiff = mean(comp_diff) * eff_scalers.back();
 			else if (mode == 1)
-				// more burst oriented jacks
+				// more burst oriented jacks, double mean here because fuzzy
+				// math + intuition = incomprehensible mess
 				fdiff = mean(comp_diff) * mean(eff_scalers) * 1.05f;
 			else if (mode == 2)
-				// minijacks
+				// minijacks, we want them to pop on this pass, thankfully,
+				// that's easy to accomplish
 				fdiff = comp_diff.back() * eff_scalers.back() * 0.75f;
 
 			thejacks.push_back(fdiff);
@@ -929,13 +947,13 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// werwerwer
 	for (int i = 0; i < 4; ++i) {
 		SequenceJack(fingers[i], i, 0);
-		Smooth(jacks[i], 1.f);
+		// Smooth(jacks[i], 1.f);
 		SequenceJack(fingers[i], i, 1);
-		//Smooth(jacks2[i], 1.f);
+		// Smooth(jacks2[i], 1.f);
 		SequenceJack(fingers[i], i, 2);
-		//Smooth(jacks3[i], 1.f);
+		// Smooth(jacks3[i], 1.f);
 	}
-	
+
 	return true;
 }
 
@@ -1005,11 +1023,11 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed)
-				gotpoints = MaxPoints - max(JackLoss(player_skill, 1, stamina),
-											JackLoss(player_skill, 1, stamina));
+				gotpoints = MaxPoints - max(JackLoss(player_skill, 0, stamina),
+											JackLoss(player_skill, 0, stamina));
 			else {
 				if (ss == Skill_Technical)
-					gotpoints -= JackLoss(player_skill, 2, stamina);
+					gotpoints -= sqrt(JackLoss(player_skill, 2, stamina));
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
