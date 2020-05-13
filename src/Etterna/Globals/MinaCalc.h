@@ -112,9 +112,9 @@ class Calc
 								float music_rate,
 								float score_goal);
 
-	void JackStamAdjust(float x, int t, bool debug);
-	float JackLoss(float x, bool stam);
-	void SequenceJack(const Finger& f, bool debugmode, int track, int mode);
+	void JackStamAdjust(float x, int t, int mode);
+	float JackLoss(float x, int mode, bool stam);
+	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
 	bool capssr = true;	// set to true for scores, false for cache
@@ -210,6 +210,8 @@ class Calc
 								float music_rate,
 								std::vector<float> doot[ModCount]);
 	std::vector<std::vector<float>> jacks[4];
+	std::vector<std::vector<float>> jacks2[4];
+	std::vector<std::vector<float>> jacks3[4];
 	std::vector<std::vector<float>> stam_adj_jacks[4];
 	Hand left_hand;
 	Hand right_hand;
