@@ -579,21 +579,21 @@ HighScore::LoadReplayDataFull()
 			tokens.clear();
 			continue;
 		}
-		bool a = buffer == "1";
-		a = buffer == "2" || a;
-		a = buffer == "3" || a;
-		a = buffer == "4" || a;
-		a = buffer == "5" || a;
-		a = buffer == "6" || a;
-		a = buffer == "7" || a;
-		a = buffer == "8" || a;
-		a = buffer == "9" || a;
-		a = buffer == "0" || a;
-		if (!a) {
-			LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
-					  path.c_str());
-			return false;
-		}
+		//bool a = buffer == "1";
+		//a = buffer == "2" || a;
+		//a = buffer == "3" || a;
+		//a = buffer == "4" || a;
+		//a = buffer == "5" || a;
+		//a = buffer == "6" || a;
+		//a = buffer == "7" || a;
+		//a = buffer == "8" || a;
+		//a = buffer == "9" || a;
+		//a = buffer == "0" || a;
+		//if (!a) {
+		//	LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
+		//			  path.c_str());
+		//	return false;
+		//}
 			
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
