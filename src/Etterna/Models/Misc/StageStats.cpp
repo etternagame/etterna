@@ -605,7 +605,7 @@ FillInHighScore(const PlayerStageStats& pss,
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, dakine[ss]);
 
-			hs.SetSSRCalcVersion(GetCalcVersion_OLD());
+			hs.SetSSRCalcVersion(GetCalcVersion());
 		} else {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, 0.f);

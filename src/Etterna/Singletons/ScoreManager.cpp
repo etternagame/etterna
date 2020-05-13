@@ -235,7 +235,7 @@ ScoresForChart::SetTopScores()
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 	{
 		auto& hs = i->second.noccPBptr;
-		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
+		if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
 			hs->GetEtternaValid() && hs->GetChordCohesion() == 0 &&
 			hs->GetGrade() != Grade_Failed)
 			eligiblescores.emplace_back(hs);
@@ -247,7 +247,7 @@ ScoresForChart::SetTopScores()
 		FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		{
 			auto& hs = i->second.PBptr;
-			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() &&
 				hs->GetEtternaValid() && hs->GetChordCohesion() != 0 &&
 				hs->GetGrade() != Grade_Failed)
 				eligiblescores.emplace_back(hs);
@@ -487,19 +487,19 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				// if it is a rescore, rerun it even if the calc version is the same
-				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion_OLD())
+				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
 				const auto& serializednd = nd.SerializeNoteData2(td);
 				vector<float> dakine;
 				if (steps->m_StepsType == StepsType_dance_single)
-					dakine = MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
+					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
 				else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
-				hs->SetSSRCalcVersion(GetCalcVersion_OLD());
+				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				// we only want to upload scores that have been rescored to
 				// wife3, not generic calc changes, since the site runs its own
@@ -597,7 +597,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion_OLD() &&
+			if (TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() &&
 				TopSSRs[i]->GetEtternaValid() &&
 				TopSSRs[i]->GetChordCohesion() == 0 &&
 				TopSSRs[i]->GetTopScore() != 0 &&
@@ -782,7 +782,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 
-		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
+		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
 		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,

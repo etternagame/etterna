@@ -386,11 +386,11 @@ inline float
 hit_the_road(float x, float y, int mode)
 {
 	if (mode == 0)
-		return CalcClamp(5.5f - (5.0 * fastpow(x / y, 1.35f)), 0.0, 5.5);
+		return CalcClamp(5.5f - (5.0 * fastpow(x / y, 0.15f)), 0.0, 5.5);
 	else if (mode == 1)
-		return CalcClamp(5.5f - (5.5 * fastpow(x / y, 1.5f)), 0.0, 5.5);
+		return CalcClamp(5.5f - (5.5 * fastpow(x / y, 0.15f)), 0.0, 5.5);
 	else if (mode == 2)
-		return (CalcClamp(3.5f - (2.5 * x / y), 0.0, 3.5));
+		return (CalcClamp(3.5f - (5.5 * fastpow(x / y, 0.5f)), 0.0, 3.5));
 	else
 		return 0.f;
 }
