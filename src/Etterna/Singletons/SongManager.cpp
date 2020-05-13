@@ -446,8 +446,8 @@ SongManager::CalcTestStuff()
 			auto ss = p.first;
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
-				  StepsByKey[chart.first]->DoATestThing(chart.second.first,
-														ss, chart.second.second));
+				  StepsByKey[chart.first]->DoATestThing(chart.second.ev,
+														ss, chart.second.rate));
 		}
 	}
 
@@ -1703,8 +1703,11 @@ CalcTestList::CreateNode() const
 		loot.FromKey(p.first);
 		chart->AppendAttr("aKey", p.first);
 		chart->AppendAttr("zSong", loot.lastsong);
-		chart->AppendAttr("cTarget", ssprintf("%.2f", p.second.first));
-		chart->AppendAttr("bRate", ssprintf("%.2f", p.second.second));
+		chart->AppendAttr("cTarget", ssprintf("%.2f", p.second.ev));
+		chart->AppendAttr("bRate", ssprintf("%.2f", p.second.rate));
+		XNode* vers_hist = chart->AppendChild("VersionHistory");
+		for (const auto& vh : p.second.version_history)
+			vers_hist->AppendChild(to_string(vh.first), vh.second);
 		cl->AppendChild(chart);
 	}
 
@@ -1750,8 +1753,23 @@ void
 				entry->GetAttrValue("aKey", key);
 				entry->GetAttrValue("bRate", rate);
 				entry->GetAttrValue("cTarget", target);
-				pair<float, float> pf(target, rate);
-				tl.filemapping[key.c_str()] = pf;
+				CalcTest ct;
+				ct.ck = key;
+				ct.ev = target;
+				ct.rate = rate;
+
+				const XNode* vers_hist = entry->GetChild("VersionHistory");
+				if (vers_hist) {
+					FOREACH_CONST_Child(vers_hist, thing)
+					{
+						float mumbo = 0.f;
+						thing->GetTextValue(mumbo);
+						ct.version_history.emplace(
+						  pair<int, float>(stoi(thing->GetName()), mumbo));
+					}
+				}
+				
+				tl.filemapping[key.c_str()] = ct;
 			}
 		}
 		SONGMAN->testChartList[ss] = tl;

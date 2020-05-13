@@ -78,11 +78,17 @@ struct Playlist
 	void PushSelf(lua_State* L);
 };
 
+struct CalcTest	{
+	string ck;
+	float ev;
+	float rate;
+	map<int, float> version_history;
+};
+
 struct CalcTestList
 {
 	Skillset skillset;
-	map<string, pair<float, float>> filemapping;
-
+	map<string, CalcTest> filemapping;
 	XNode* CreateNode() const;
 };
 

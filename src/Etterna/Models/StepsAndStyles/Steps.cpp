@@ -424,7 +424,9 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 	// This is 4k only
 	if (m_StepsType != StepsType_dance_single)
 		return 0.f;
-
+	auto& vh =
+	  SONGMAN->testChartList[ss].filemapping.at(ChartKey).version_history;
+	
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
@@ -432,17 +434,25 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 
 	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
 	auto oldcalc = MinaSDCalc_OLD(cereal, rate, 0.93f);
-	LOG->Trace("%+0.2f (%+06.2f%%): %+0.2f %s",
-			   newcalc[0] - ev,
-			   (newcalc[0] - ev) / ev * 100.f,
-			   newcalc[0] - oldcalc[0],
+	float last_msd = newcalc[ss];
+	int prev_vers = GetCalcVersion() - 1;
+	if (vh.count(prev_vers))
+		last_msd = vh.at(prev_vers);
+	LOG->Trace("%0.2f : %0.2fx : %+0.2f : (%+06.2f%%) : %+0.2f : %+0.2f : %s",
+			   newcalc[ss],
+			   rate,
+			   newcalc[ss] - ev,
+			   (newcalc[ss] - ev) / ev * 100.f,
+			   newcalc[ss] - oldcalc[ss],
+			   newcalc[ss] - last_msd,
 			   m_pSong->GetMainTitle().c_str());
-
+	
+	vh.emplace(pair<int, float>(GetCalcVersion(), newcalc[ss]));
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
 	Compress();
-	return newcalc[0] - ev;
+	return newcalc[ss] - ev;
 }
 
 void

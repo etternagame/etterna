@@ -1061,15 +1061,20 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 				if (ss < 0 || ss >= NUM_Skillset)
 					SCREENMAN->SystemMessage("invalid skillset number");
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
+					CalcTest thetest;
 					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 					if (SONGMAN->testChartList.count(ss)) {
-						pair<float, float> pf(target, 1.f);
-						SONGMAN->testChartList[ss].filemapping[ck] = pf;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = 1.f;
+						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
 					} else {
 						CalcTestList tl;
 						tl.skillset = ss;
-						pair<float, float> pf(target, 1.f);
-						tl.filemapping[ck] = pf;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = 1.f;
+						tl.filemapping[ck] = thetest;
 						SONGMAN->testChartList[ss] = tl;
 					}
 					SCREENMAN->SystemMessage(
@@ -1091,15 +1096,20 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 				if (ss < 0 || ss >= NUM_Skillset)
 					SCREENMAN->SystemMessage("invalid skillset number");
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
+					CalcTest thetest;
 					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 					if (SONGMAN->testChartList.count(ss)) {
-						pair<float, float> pf(target, rate);
-						SONGMAN->testChartList[ss].filemapping[ck] = pf;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = rate;
+						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
 					} else {
 						CalcTestList tl;
 						tl.skillset = ss;
-						pair<float, float> pf(target, rate);
-						tl.filemapping[ck] = pf;
+						thetest.ck = ck;
+						thetest.ev = target;
+						thetest.rate = rate;
+						tl.filemapping[ck] = thetest;
 						SONGMAN->testChartList[ss] = tl;
 					}
 					SCREENMAN->SystemMessage(
