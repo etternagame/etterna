@@ -1705,10 +1705,14 @@ void
 				if (vers_hist) {
 					FOREACH_CONST_Child(vers_hist, thing)
 					{
-						float mumbo = 0.f;
-						thing->GetTextValue(mumbo);
-						ct.version_history.emplace(
-						  pair<int, float>(stoi(thing->GetName()), mumbo));
+						// don't load any values for the current version, it's
+						// in flux
+						if (stoi(thing->GetName()) != GetCalcVersion()) {
+							float mumbo = 0.f;
+							thing->GetTextValue(mumbo);
+							ct.version_history.emplace(
+							  pair<int, float>(stoi(thing->GetName()), mumbo));
+						}
 					}
 				}
 				
