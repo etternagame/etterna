@@ -498,11 +498,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 				// we only want to upload scores that have been rescored to
 				// wife3, not generic calc changes, since the site runs its own
-				// calc anyway, the rescore block above negates this because of
-				// dumb reasons so as soon as wife3 is finalized change it
-				// back!!
-				//if (remarried)
-				//	SCOREMAN->rescores.emplace(hs);
+				// calc anyway
+				if (remarried)
+					SCOREMAN->rescores.emplace(hs);
 
 				td->UnsetEtaner();
 				nd.UnsetNerv();
