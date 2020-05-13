@@ -297,7 +297,7 @@ HighScoreImpl::CreateEttNode() const
 								 ValidationKeys[ValidationKey_Brittle]);
 	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Weak),
 								 ValidationKeys[ValidationKey_Weak]);
-	pNode->AppendChild("WV", WifeVersion);
+	pNode->AppendChild("wv", WifeVersion);
 	return pNode;
 }
 
@@ -373,8 +373,11 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		  "S" +
 		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
-	pNode->GetChildValue("WV", WifeVersion);
-	// Validate input.
+	pNode->GetChildValue("wv", WifeVersion);
+
+	// Validate input. Wifegrade is calculated on the fly for themes, we are
+	// only keeping the old dp grades to check for grade_failed during various
+	// parts of load, so don't remove it
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
