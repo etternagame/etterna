@@ -578,7 +578,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			if (foundSS == Skillset_Invalid)
 				ScreenTextEntry::TextEntry(
 				  SM_BackFromCalcTestStuff,
-				  "FORMAT: MSD SKILLSET RATE   or   MSD SKILLSET\nOnly 1 rate "
+				  "FORMAT: MSD RATE SKILLSET  or   MSD SKILLSET\nOnly 1 rate "
 				  "per chart",
 				  "",
 				  128);
