@@ -493,8 +493,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// you actually study debug output while tinkering with numbers, trust me
 	// you aren't that smart.
 
-
-	bool dbg = true && debugmode && mode == 0;
+	bool dbg = true && debugmode && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -509,7 +508,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// stuff like mines immediately after shortjacks)
 	int window_size = 5;
 	if (mode == 1)
-		window_size = 3;
+		window_size = 2;
 	if (mode == 2)
 		window_size = 2;
 	vector<float> window_taps;
@@ -556,7 +555,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			float comp_time = 0.f;
 			float hit_window_buffer = 260.f;
 			if (mode == 1)
-				hit_window_buffer = 115.f;
+				hit_window_buffer = 160.f;
 			if (mode == 2)
 				hit_window_buffer = 90.f;
 
@@ -576,12 +575,18 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// attempt to emulate this by calculating a real and effective
 				// bpm of each component of a jack sequence and then doing
 				// wizard magic with them for great justice
-
+				float buffer_drain = 0.f;
 				float base_ms = window_taps[i];
 				comp_time += window_taps[i];
+
+				//if (mode == 1) {
+				//	buffer_drain = base_ms;
+				//	hit_window_buffer =
+				//	  max(0.f, hit_window_buffer - buffer_drain);
+				//}
+
 				float eff_ms = comp_time + hit_window_buffer;
 
-				float buffer_drain = 0.f;
 				buffer_drain = base_ms;
 				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
 
@@ -600,6 +605,13 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				comp_diff[i] = base_ms > 180.f ? 1.f
 											   : eff_bpm / 15.f * finalscaler *
 												   basescalers[Skill_JackSpeed];
+
+				if (mode == 1)
+					comp_diff[i] = base_ms > 180.f
+									 ? 1.f
+									 : base_bpm / 15.f * finalscaler *
+										 basescalers[Skill_JackSpeed];
+				
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
 					std::cout << "\nseq component: " << i
@@ -620,7 +632,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * mean(eff_scalers) * 0.85f;
+				fdiff = comp_diff.back() * mean(eff_scalers) * 1.425f;
 			else if (mode == 2)
 				// minijacks, we want them to pop on this pass, thankfully,
 				// that's easy to accomplish
