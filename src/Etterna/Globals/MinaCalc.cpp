@@ -35,7 +35,7 @@ static const vector<int> col_ids = { 1, 2, 4, 8 };
 
 #pragma region utils
 // Relies on endiannes (significantly inaccurate)
-inline double
+inline float
 fastpow(double a, double b)
 {
 	int u[2];
@@ -43,7 +43,7 @@ fastpow(double a, double b)
 	u[1] = static_cast<int>(b * (u[1] - 1072632447) + 1072632447);
 	u[0] = 0;
 	std::memcpy(&a, &u, sizeof a);
-	return a;
+	return static_cast<float>(a);
 }
 
 // reasonably accurate taylor approximation for ^ 1.7 (jk not anymore not
