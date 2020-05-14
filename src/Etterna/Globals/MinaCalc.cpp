@@ -724,13 +724,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float qprop = chord_proportion(NoteInfo, 4);
 	float cprop = jprop + hprop + qprop;
 
-	static const int fo_rizzy = 1;
+	static const int fo_rizzy = ssr ? 5 : 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
 
-		bool continue_calc = InitializeHands(NoteInfo, music_rate, 0.f);
+		bool continue_calc = InitializeHands(
+		  NoteInfo, music_rate, 0.1f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
 
 		// if we exceed max_nps_for_single_interval during processing
 		if (!continue_calc) {
@@ -829,7 +830,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// difficulties
 		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
 		  skillset_vector(difficulty);
-		if (capssr) {
+		if (ssr) {
 			static const float ssrcap = 40.f;
 
 			for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
@@ -3698,7 +3699,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 
 	if (NoteInfo.size() > 1) {
 		std::unique_ptr<Calc> cacheRun = std::make_unique<Calc>();
-		cacheRun->capssr = false;
+		cacheRun->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(cacheRun->CalcMain(
 			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
