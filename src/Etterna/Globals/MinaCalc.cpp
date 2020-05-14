@@ -32,7 +32,21 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const vector<int> col_ids = { 1, 2, 4, 8 };
-
+struct JumpHandChordData
+{
+	vector<int> num_row_variations;
+	// man these names are cryptic
+	vector<int> definitely_not_jacks;
+	vector<int> actual_jacks;
+	vector<int> actual_jacks_cj;
+	vector<int> not_js;
+	vector<int> not_hs;
+	vector<unsigned int> taps;
+	vector<unsigned int> jumptaps;
+	vector<unsigned int> handtaps;
+	vector<unsigned int> chordtaps;
+	vector<unsigned int> quads;
+};
 #pragma region utils
 // Relies on endiannes (significantly inaccurate)
 inline float
@@ -842,22 +856,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	return yo_momma;
 }
-
-struct JumpHandChordData
-{
-	vector<int> num_row_variations;
-	// man these names are cryptic
-	vector<int> definitely_not_jacks;
-	vector<int> actual_jacks;
-	vector<int> actual_jacks_cj;
-	vector<int> not_js;
-	vector<int> not_hs;
-	vector<unsigned int> taps;
-	vector<unsigned int> jumptaps;
-	vector<unsigned int> handtaps;
-	vector<unsigned int> chordtaps;
-	vector<unsigned int> quads;
-};
 
 bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
