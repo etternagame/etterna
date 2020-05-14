@@ -488,10 +488,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// notes but in sequences of values for sequences of notes. Longjacks will
 	// have more but lower values compared to minijacks. If this sounds simple
 	// it's because conceptually it is, but in practice the setup applies
-	// implicit methods by its design that may be redundant with an attempt to
-	// explicit use of them in loops, or not. It's not something you can
-	// understand unless you actually study debug output while tinkering with
-	// numbers, trust me you aren't that smart.
+	// implicit methods by its design that may be redundant with explicit use of
+	// them in loops, or not. It's not something you can understand well unless
+	// you actually study debug output while tinkering with numbers, trust me
+	// you aren't that smart.
 
 
 	bool dbg = true && debugmode && mode == 0;
