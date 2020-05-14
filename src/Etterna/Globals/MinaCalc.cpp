@@ -504,6 +504,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
 	vector<vector<float>> itv_jacks;
+	itv_jacks.reserve(numitv);
 	vector<float> thejacks;
 
 	// yes this is many loops, but we don't want to sacrifice
