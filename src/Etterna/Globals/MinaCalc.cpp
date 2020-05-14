@@ -479,7 +479,21 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	bool dbg = false && debugmode && track == 0;
+	// The way this setup functionally works out is pretty complex and extremely
+	// nuanced. The basic version is we scan over columns with a moving window
+	// of notes. We then construct a difficulty estimate for each window and the
+	// output is assigned to the note the window ends on. The difference between
+	// longjacks and minijacks does not manifest in a single value for a set of
+	// notes but in sequences of values for sequences of notes. Longjacks will
+	// have more but lower values compared to minijacks. If this sounds simple
+	// it's because conceptually it is, but in practice the setup applies
+	// implicit methods by its design that may be redundant with an attempt to
+	// explicit use of them in loops, or not. It's not something you can
+	// understand unless you actually study debug output while tinkering with
+	// numbers, trust me you aren't that smart.
+
+
+	bool dbg = true && debugmode && mode == 0;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -519,6 +533,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// intervals, we don't care that we're looping through intervals because the
 	// queue we build is interval agnostic, though it does make debug output
 	// easier to accomplish
+	if (dbg)
+		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
 	for (auto& itv : f) {
 		thejacks.clear();
