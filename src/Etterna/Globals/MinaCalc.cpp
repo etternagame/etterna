@@ -524,15 +524,16 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		// taps in interval
 		for (auto& ms : itv) {
 			time += ms;
-			window_taps[window_size - 1] = ms;
 			if (dbg) {
 				std::cout << "time now: " << time / 1000.f << std::endl;
 				std::cout << "ms now: " << ms << std::endl;
 			}
 
-			// update most recent values
+			// shift older values back
 			for (size_t i = 1; i < window_taps.size(); ++i)
 				window_taps[i - 1] = window_taps[i];
+			// add new value
+			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
 			float hit_window_buffer = 380.f;
