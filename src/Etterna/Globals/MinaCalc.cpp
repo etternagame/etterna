@@ -577,16 +577,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 				float base_ms = window_taps[i];
 				comp_time += window_taps[i];
-				float buffer_drain = 0.f;
-				if (mode == 0)
-					buffer_drain = ms;
-				else if (mode == 1)
-					buffer_drain = min(ms, 60.f);
-				else if (mode == 2)
-					buffer_drain = ms;
-				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
-
 				float eff_ms = comp_time + hit_window_buffer;
+
+				float buffer_drain = 0.f;
+				buffer_drain = base_ms;
+				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
 
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
