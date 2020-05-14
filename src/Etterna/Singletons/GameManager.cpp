@@ -127,6 +127,32 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
   AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
   AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
+  AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true));
+
+static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
+  "",
+  "",
+  "",
+  AutoMappingEntry(0, KEY_LEFT, GAME_BUTTON_MENULEFT, false),
+  AutoMappingEntry(0, KEY_RIGHT, GAME_BUTTON_MENURIGHT, false),
+  AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
+  AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
+  AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
+  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
+  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UPRIGHT, false),
+  AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_UPLEFT, false),
+  AutoMappingEntry(0, KEY_Cc, DANCE_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_Cm, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+  AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
+  AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
+  AutoMappingEntry(0, KEY_KP_SLASH, GAME_BUTTON_MENULEFT, true),
+  AutoMappingEntry(0, KEY_KP_ASTERISK, GAME_BUTTON_MENURIGHT, true),
+  AutoMappingEntry(0, KEY_KP_HYPHEN, GAME_BUTTON_MENUUP, true),
+  AutoMappingEntry(0, KEY_KP_PLUS, GAME_BUTTON_MENUDOWN, true),
+  AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
+  AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
+  AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
   AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true),
   AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
   AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
@@ -214,13 +240,13 @@ static const Style g_Style_Dance_Double = {
 	false, // m_bLockDifficulties
 };
 
-static const Style g_Style_Dance_Solo = {
+static const Style g_Style_Solo_Single = {
 	// STYLE_DANCE_SOLO
 	true,						// m_bUsedForGameplay
 	true,						// m_bUsedForEdit
 	false,						// m_bUsedForDemonstration
 	false,						// m_bUsedForHowToPlay
-	"solo",						// m_szName
+	"single",					// m_szName
 	StepsType_dance_solo,		// m_StepsType
 	StyleType_OnePlayerOneSide, // m_StyleType
 	6,							// m_iColsPerPlayer
@@ -279,7 +305,6 @@ static const Style g_Style_Dance_ThreePanel = {
 
 static const Style* g_apGame_Dance_Styles[] = { &g_Style_Dance_Single,
 												&g_Style_Dance_Double,
-												&g_Style_Dance_Solo,
 												&g_Style_Dance_ThreePanel,
 												NULL };
 
@@ -298,8 +323,6 @@ static const Game g_Game_Dance = {
 		{ "Right", GAME_BUTTON_RIGHT },
 		{ "Up", GAME_BUTTON_UP },
 		{ "Down", GAME_BUTTON_DOWN },
-		{ "UpLeft", GameButton_Invalid },
-		{ "UpRight", GameButton_Invalid },
 	  },
 	  &g_AutoKeyMappings_Dance },
 	{
@@ -317,26 +340,59 @@ static const Game g_Game_Dance = {
 	TNS_W5, // m_mapW5To
 };
 
-static const AutoMappings g_AutoKeyMappings_Pump = AutoMappings(
-  "",
-  "",
-  "",
-  AutoMappingEntry(0, KEY_Cq, PUMP_BUTTON_UPLEFT, false),
-  AutoMappingEntry(0, KEY_Ce, PUMP_BUTTON_UPRIGHT, false),
-  AutoMappingEntry(0, KEY_Cs, PUMP_BUTTON_CENTER, false),
-  AutoMappingEntry(0, KEY_Cz, PUMP_BUTTON_DOWNLEFT, false),
-  AutoMappingEntry(0, KEY_Cc, PUMP_BUTTON_DOWNRIGHT, false),
-  /*AutoMappingEntry( 0, KEY_KP_C7,		PUMP_BUTTON_UPLEFT,		true ),
-  AutoMappingEntry( 0, KEY_KP_C9,		PUMP_BUTTON_UPRIGHT,		true ),
-  AutoMappingEntry( 0, KEY_KP_C5,		PUMP_BUTTON_CENTER,		true ),
-  AutoMappingEntry( 0, KEY_KP_C1,		PUMP_BUTTON_DOWNLEFT,		true ),
-  AutoMappingEntry( 0, KEY_KP_C3,		PUMP_BUTTON_DOWNRIGHT,		true ),*/
+static const Style* g_apGame_Solo_Styles[] = { &g_Style_Solo_Single, NULL };
 
-  // unmap confusing default MenuButtons
-  AutoMappingEntry(0, KEY_KP_C8, GameButton_Invalid, false),
-  AutoMappingEntry(0, KEY_KP_C2, GameButton_Invalid, false),
-  AutoMappingEntry(0, KEY_KP_C4, GameButton_Invalid, false),
-  AutoMappingEntry(0, KEY_KP_C6, GameButton_Invalid, false));
+static const Game g_Game_Solo = {
+	"solo",				  // m_szName
+	g_apGame_Solo_Styles, // m_apStyles
+	false,				  // m_bCountNotesSeparately
+	false,				  // m_bTickHolds
+	false,				  // m_PlayersHaveSeparateStyles
+	{					  // m_InputScheme
+	  "solo",			  // m_szName
+	  NUM_SOLO_BUTTONS,   // m_iButtonsPerController
+	  {
+		// m_szButtonNames
+		{ "Left", GAME_BUTTON_LEFT },
+		{ "Right", GAME_BUTTON_RIGHT },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Down", GAME_BUTTON_DOWN },
+		{ "UpLeft", GameButton_Invalid },
+		{ "UpRight", GameButton_Invalid },
+	  },
+	  &g_AutoKeyMappings_Solo },
+	{
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	},
+	TNS_W1, // m_mapW1To
+	TNS_W2, // m_mapW2To
+	TNS_W3, // m_mapW3To
+	TNS_W4, // m_mapW4To
+	TNS_W5, // m_mapW5To
+};
+
+static const AutoMappings g_AutoKeyMappings_Pump =
+  AutoMappings("",
+			   "",
+			   "",
+			   AutoMappingEntry(0, KEY_Cq, PUMP_BUTTON_UPLEFT, false),
+			   AutoMappingEntry(0, KEY_Ce, PUMP_BUTTON_UPRIGHT, false),
+			   AutoMappingEntry(0, KEY_Cs, PUMP_BUTTON_CENTER, false),
+			   AutoMappingEntry(0, KEY_Cz, PUMP_BUTTON_DOWNLEFT, false),
+			   AutoMappingEntry(0, KEY_Cc, PUMP_BUTTON_DOWNRIGHT, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
+
+			   // unmap confusing default MenuButtons
+			   AutoMappingEntry(0, KEY_KP_C8, GameButton_Invalid, false),
+			   AutoMappingEntry(0, KEY_KP_C2, GameButton_Invalid, false),
+			   AutoMappingEntry(0, KEY_KP_C4, GameButton_Invalid, false),
+			   AutoMappingEntry(0, KEY_KP_C6, GameButton_Invalid, false));
 
 // PIU Defaults: RowSpacing = 60; ColSpacing = 52; ArrowSize = 54;
 // apparently column spacing is 48px
@@ -504,7 +560,9 @@ static const AutoMappings g_AutoKeyMappings_KB7 =
 			   AutoMappingEntry(0, KEY_SPACE, KB7_BUTTON_KEY4, false),
 			   AutoMappingEntry(0, KEY_Cj, KB7_BUTTON_KEY5, false),
 			   AutoMappingEntry(0, KEY_Ck, KB7_BUTTON_KEY6, false),
-			   AutoMappingEntry(0, KEY_Cl, KB7_BUTTON_KEY7, false));
+			   AutoMappingEntry(0, KEY_Cl, KB7_BUTTON_KEY7, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false));
 
 // ThemeMetric<int>	KB7_COL_SPACING	("ColumnSpacing","KB7");
 static const int KB7_COL_SPACING = 64;
@@ -735,7 +793,9 @@ static const AutoMappings g_AutoKeyMappings_Ez2 =
 			   AutoMappingEntry(0, KEY_Cx, EZ2_BUTTON_HANDUPLEFT, false),
 			   AutoMappingEntry(0, KEY_Cv, EZ2_BUTTON_HANDUPRIGHT, false),
 			   AutoMappingEntry(0, KEY_Cs, EZ2_BUTTON_HANDLRLEFT, false),
-			   AutoMappingEntry(0, KEY_Cf, EZ2_BUTTON_HANDLRRIGHT, false));
+			   AutoMappingEntry(0, KEY_Cf, EZ2_BUTTON_HANDLRRIGHT, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false));
 
 static const Game g_Game_Ez2 = {
 	"ez2",				 // m_szName
@@ -829,7 +889,9 @@ static const AutoMappings g_AutoKeyMappings_DS3DDX =
 			   AutoMappingEntry(0, KEY_Cx, DS3DDX_BUTTON_HANDDOWN, false),
 			   AutoMappingEntry(0, KEY_Ce, DS3DDX_BUTTON_FOOTUPRIGHT, false),
 			   AutoMappingEntry(0, KEY_Cc, DS3DDX_BUTTON_FOOTDOWNRIGHT, false),
-			   AutoMappingEntry(0, KEY_Cd, DS3DDX_BUTTON_HANDRIGHT, false));
+			   AutoMappingEntry(0, KEY_Cd, DS3DDX_BUTTON_HANDRIGHT, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false));
 
 static const Game g_Game_DS3DDX = {
 	"ds3ddx",				// m_szName
@@ -1095,7 +1157,9 @@ static const AutoMappings g_AutoKeyMappings_Beat =
 			   AutoMappingEntry(0, KEY_PERIOD, BEAT_BUTTON_KEY5, false),
 			   AutoMappingEntry(0, KEY_SEMICOLON, BEAT_BUTTON_KEY6, false),
 			   AutoMappingEntry(0, KEY_SLASH, BEAT_BUTTON_KEY7, false),
-			   AutoMappingEntry(0, KEY_SPACE, BEAT_BUTTON_SCRATCHUP, false));
+			   AutoMappingEntry(0, KEY_SPACE, BEAT_BUTTON_SCRATCHUP, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false));
 
 static const Game g_Game_Beat = {
 	"beat",				  // m_szName
@@ -1217,19 +1281,14 @@ static const Style* g_apGame_Maniax_Styles[] = { &g_Style_Maniax_Single,
 												 &g_Style_Maniax_Double,
 												 NULL };
 
-static const AutoMappings g_AutoKeyMappings_Maniax = AutoMappings(
-  "",
-  "",
-  "",
-  AutoMappingEntry(0, KEY_Ca, MANIAX_BUTTON_HANDUPLEFT, false),
-  AutoMappingEntry(0, KEY_Cs, MANIAX_BUTTON_HANDUPRIGHT, false),
-  AutoMappingEntry(0, KEY_Cz, MANIAX_BUTTON_HANDLRLEFT, false),
-  AutoMappingEntry(0, KEY_Cx, MANIAX_BUTTON_HANDLRRIGHT, false)
-  /*AutoMappingEntry( 0, KEY_KP_C4,		MANIAX_BUTTON_HANDUPLEFT,	true ),
-  AutoMappingEntry( 0, KEY_KP_C5,		MANIAX_BUTTON_HANDUPRIGHT,	true ),
-  AutoMappingEntry( 0, KEY_KP_C1,		MANIAX_BUTTON_HANDLRLEFT,	true ),
-  AutoMappingEntry( 0, KEY_KP_C2,		MANIAX_BUTTON_HANDLRRIGHT,	true )*/
-);
+static const AutoMappings g_AutoKeyMappings_Maniax =
+  AutoMappings("",
+			   "",
+			   "",
+			   AutoMappingEntry(0, KEY_Ca, MANIAX_BUTTON_HANDUPLEFT, false),
+			   AutoMappingEntry(0, KEY_Cs, MANIAX_BUTTON_HANDUPRIGHT, false),
+			   AutoMappingEntry(0, KEY_Cz, MANIAX_BUTTON_HANDLRLEFT, false),
+			   AutoMappingEntry(0, KEY_Cx, MANIAX_BUTTON_HANDLRRIGHT, false));
 
 static const Game g_Game_Maniax = {
 	"maniax",				// m_szName
@@ -1367,7 +1426,9 @@ static const AutoMappings g_AutoKeyMappings_Popn =
 			   AutoMappingEntry(0, KEY_Cf, POPN_BUTTON_RIGHT_BLUE, false),
 			   AutoMappingEntry(0, KEY_Cv, POPN_BUTTON_RIGHT_GREEN, false),
 			   AutoMappingEntry(0, KEY_Cg, POPN_BUTTON_RIGHT_YELLOW, false),
-			   AutoMappingEntry(0, KEY_Cb, POPN_BUTTON_RIGHT_WHITE, false));
+			   AutoMappingEntry(0, KEY_Cb, POPN_BUTTON_RIGHT_WHITE, false),
+			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
+			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false));
 
 static const Game g_Game_Popn = {
 	"popn",				  // m_szName
@@ -1410,8 +1471,8 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance,  &g_Game_Pump, &g_Game_KB7,	&g_Game_Ez2,
-	&g_Game_DS3DDX, &g_Game_Beat, &g_Game_Maniax, &g_Game_Popn,
+	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,  &g_Game_Ez2,  &g_Game_DS3DDX,
+	&g_Game_Beat,  &g_Game_Maniax, &g_Game_Popn, &g_Game_Solo,
 };
 
 GameManager::GameManager()

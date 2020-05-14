@@ -481,59 +481,6 @@ InputHandler_MacOSX_HID::GetDeviceSpecificInputString(const DeviceInput& di)
 	return InputHandler::GetDeviceSpecificInputString(di);
 }
 
-// Modified from NESControllerInterface of Macifom project,
-// used under MIT license from
-// http://macifom.googlecode.com/svn-history/r89/Macifom/trunk/NESControllerInterface.m
-// Used under MIT license from
-// http://inquisitivecocoa.com/2009/04/05/key-code-translator/
-static wchar_t
-KeyCodeToChar(CGKeyCode keyCode, unsigned int modifierFlags)
-{
-	TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
-	CFDataRef uchr = (CFDataRef)TISGetInputSourceProperty(
-	  currentKeyboard, kTISPropertyUnicodeKeyLayoutData);
-	const UCKeyboardLayout* keyboardLayout =
-	  uchr ? (const UCKeyboardLayout*)CFDataGetBytePtr(uchr) : NULL;
-
-	if (keyboardLayout) {
-		UInt32 deadKeyState = 0;
-		UniCharCount maxStringLength = 255;
-		UniCharCount actualStringLength = 0;
-		UniChar unicodeString[maxStringLength];
-
-		OSStatus status = UCKeyTranslate(keyboardLayout,
-										 keyCode,
-										 kUCKeyActionDown,
-										 modifierFlags,
-										 LMGetKbdType(),
-										 0,
-										 &deadKeyState,
-										 maxStringLength,
-										 &actualStringLength,
-										 unicodeString);
-
-		if (status != noErr) {
-			fprintf(stderr,
-					"There was an %s error translating from the '%d' key code "
-					"to a human readable string: %s\n",
-					GetMacOSStatusErrorString(status),
-					(int)status,
-					GetMacOSStatusCommentString(status));
-		} else if (actualStringLength == 0) {
-			fprintf(stderr,
-					"Couldn't find a translation for the '%d' key code\n",
-					keyCode);
-		} else {
-			return unicodeString[0];
-		}
-	} else {
-		fprintf(stderr,
-				"Couldn't find a translation for the '%d' key code\n",
-				keyCode);
-	}
-	return 0;
-}
-
 wchar_t
 InputHandler_MacOSX_HID::DeviceButtonToChar(DeviceButton button,
 											bool bUseCurrentKeyModifiers)
@@ -571,18 +518,6 @@ InputHandler_MacOSX_HID::DeviceButtonToChar(DeviceButton button,
 		case KEY_NUMLOCK:
 		case KEY_KP_ENTER:
 			return L'\0';
-	}
-
-	// Use Text Input Source services to convert the key code to character code.
-	UInt8 iMacVirtualKey;
-	if (KeyboardDevice::DeviceButtonToMacVirtualKey(button, iMacVirtualKey)) {
-		UInt32 nModifiers =
-		  bUseCurrentKeyModifiers ? GetCurrentKeyModifiers() : 0;
-		wchar_t sCharCode = KeyCodeToChar(iMacVirtualKey, nModifiers);
-
-		if (sCharCode != 0) {
-			return ApplyKeyModifiers(sCharCode);
-		}
 	}
 
 	return InputHandler::DeviceButtonToChar(button, bUseCurrentKeyModifiers);

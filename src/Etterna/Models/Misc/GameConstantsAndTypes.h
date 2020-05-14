@@ -5,6 +5,7 @@
 #define GAME_CONSTANTS_AND_TYPES_H
 
 #include "EnumHelper.h"
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <cfloat> // need the max for default.
 
 // Note definitions
@@ -27,22 +28,15 @@ enum GameplayMode
 	GameplayMode_Invalid
 };
 
-enum Skillset
-{
-	Skill_Overall,
-	Skill_Stream,
-	Skill_Jumpstream,
-	Skill_Handstream,
-	Skill_Stamina,
-	Skill_JackSpeed,
-	Skill_Chordjack,
-	Skill_Technical,
-	NUM_Skillset,
-	Skillset_Invalid,
-};
-
 const RString&
 SkillsetToString(Skillset ss);
+
+const RString&
+CalcPatternModToString(CalcPatternMod);
+const RString&
+CalcDiffValueToString(CalcDiffValue);
+const RString&
+CalcDebugMiscToString(CalcDebugMisc);
 
 enum NSScoreBoardColumn
 {

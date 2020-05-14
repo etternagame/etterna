@@ -375,6 +375,7 @@ static void
 DefaultFailType(int& sel, bool to_sel, const ConfOption* conf_option)
 {
 	if (to_sel) {
+
 		PlayerOptions po;
 		po.FromString(PREFSMAN->m_sDefaultModifiers);
 		sel = po.m_FailType;
@@ -449,12 +450,12 @@ InputDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
 static void
 TimingWindowScale(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	// StepMania 5 values (implemented 2008/03/12)
-	// const float mapping[] = { 2.0f,1.66f,1.33f,1.00f,0.75f,0.50f,0.25f };
-
-	// StepMania 3.9 and 4.0 values:
-	const float mapping[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-							  0.66f, 0.50f, 0.33f, 0.20f };
+	// we are no longer supporting j1-3, they will be set to 1.f like j4
+	// to avoid issues with expected array sizes that i do not want to debug
+	auto& ts = GAMESTATE->timingscales;
+	float mapping[9]; // hardcodered because ide yell at me
+	for (size_t i = 0; i < ts.size(); ++i)
+		mapping[i] = ts[i];
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
 }
 
@@ -763,9 +764,6 @@ InitializeConfOptions()
 	ADD(ConfOption("ShowLyrics", MovePref<bool>, "Hide", "Show"));
 
 	// Misc options
-	ADD(ConfOption("OnlyPreferredDifficulties", MovePref<bool>, "Off", "On"));
-	g_ConfOptions.back().m_iEffects = OPT_APPLY_SONG;
-
 	ADD(ConfOption("FastLoad", MovePref<bool>, "Off", "On"));
 	{
 		ConfOption c("EditRecordModeLeadIn", EditRecordModeLeadIn);
@@ -874,8 +872,6 @@ InitializeConfOptions()
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
 	// W1 is Fantastic Timing
 	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
-	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 
@@ -901,29 +897,6 @@ InitializeConfOptions()
 				   "|6",
 				   "|7"));
 	g_ConfOptions.back().m_sPrefName = "LifeDifficultyScale";
-	ADD(ConfOption("ProgressiveLifebar",
-				   MovePref<int>,
-				   "Off",
-				   "|1",
-				   "|2",
-				   "|3",
-				   "|4",
-				   "|5",
-				   "|6",
-				   "|7",
-				   "|8"));
-	ADD(ConfOption("ProgressiveStageLifebar",
-				   MovePref<int>,
-				   "Off",
-				   "|1",
-				   "|2",
-				   "|3",
-				   "|4",
-				   "|5",
-				   "|6",
-				   "|7",
-				   "|8",
-				   "Insanity"));
 	ADD(ConfOption(
 	  "DefaultFailType", DefaultFailType, "Immediate", "ImmediateContinue"));
 	ADD(ConfOption("ShowSongOptions", MovePref<Maybe>, "Ask", "Hide", "Show"));

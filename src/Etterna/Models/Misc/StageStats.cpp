@@ -2,7 +2,7 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
-#include <MinaCalc/MinaCalc.h>
+#include "Etterna/Globals/MinaCalc.h"
 #include "PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Profile.h"
@@ -17,7 +17,8 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
-#include <MinaCalc/MinaCalc.h>
+#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "GamePreferences.h"
 
@@ -417,8 +418,9 @@ bool
 DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 {
 
-	// 4k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single)
+	// 4k and 6k only
+	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single &&
+		GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_solo)
 		return false;
 
 	// chord cohesion is invalid
@@ -579,17 +581,31 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetReplayType(
 		  2); // flag this before rescore so it knows we're LEGGIT
 
+		// ok this is a little jank but there's a few things going on here,
+		// first we can't trust that scores getting here are necessarily either
+		// fully completed or fails, so we can't trust that the wifescore in pss
+		// is necessarily the correct wifescore, or that rescoring using the
+		// offsetvectors will produce it
+		// second, since there is no setwifeversion function, newly minted
+		// scores won't have wifevers set, will be uploaded, then rescored on
+		// next load, and uploaded again, not a huge deal, but still undesirable
+		// thankfully we can fix both problems by just rescoring to wife3, this
+		// will properly set the wifescore as well as wife vers flags
+
+		// for this we need the actual totalpoints values, so we need steps data
+		auto steps = GAMESTATE->m_pCurSteps;
+		auto nd = steps->GetNoteData();
+		auto* td = steps->GetTimingData();
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
-		else
-			hs.SetSSRNormPercent(hs.RescoreToWife2Judge(4));
+		else hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, dakine[ss]);
 
-			hs.SetSSRCalcVersion(GetCalcVersion());
+			hs.SetSSRCalcVersion(GetCalcVersion_OLD());
 		} else {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, 0.f);

@@ -91,7 +91,7 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		LOG->Trace("Unloading replaydata.");
+		LOG->Trace("Unloading excess data.");
 		SCOREMAN->UnloadAllReplayData();
 	}
 
@@ -1726,10 +1726,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		{
 			replaying = true;
 		}
-		// only save replays if the player chose to
-		if (GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay && !syncing &&
-			!replaying)
-			SaveReplay();
 
 		if (syncing)
 			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);
@@ -1807,77 +1803,6 @@ ScreenGameplay::GetPlayerInfo(PlayerNumber pn)
 	if (m_vPlayerInfo.m_pn == pn)
 		return &m_vPlayerInfo;
 	return NULL;
-}
-
-void
-ScreenGameplay::SaveReplay()
-{
-	/* Replay data TODO:
-	 * Add more player information (?)
-	 * Add AutoGen flag if steps were autogen?
-	 * Add proper steps hash?
-	 * Add modifiers used
-	 * Add date played, machine played on, etc.
-	 * Hash of some stuff to validate data (see Profile)
-	 */
-	Profile* pTempProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-	XNode* p = new XNode("ReplayData");
-	// append version number (in case the format changes)
-	p->AppendAttr("Version", 0);
-
-	// song information node
-	SongID songID;
-	songID.FromSong(GAMESTATE->m_pCurSong);
-	XNode* pSongInfoNode = songID.CreateNode();
-	pSongInfoNode->AppendChild("Title",
-							   GAMESTATE->m_pCurSong->GetDisplayFullTitle());
-	pSongInfoNode->AppendChild("Artist",
-							   GAMESTATE->m_pCurSong->GetDisplayArtist());
-	p->AppendChild(pSongInfoNode);
-
-	// steps information
-	StepsID stepsID;
-	stepsID.FromSteps(GAMESTATE->m_pCurSteps);
-	XNode* pStepsInfoNode = stepsID.CreateNode();
-	// hashing = argh
-	// pStepsInfoNode->AppendChild("StepsHash",
-	// stepsID.ToSteps(GAMESTATE->m_pCurSong,false)->GetHash());
-	p->AppendChild(pStepsInfoNode);
-
-	// player information node (rival data sup)
-	XNode* pPlayerInfoNode = new XNode("Player");
-	pPlayerInfoNode->AppendChild("DisplayName", pTempProfile->m_sDisplayName);
-	pPlayerInfoNode->AppendChild("Guid", pTempProfile->m_sGuid);
-	p->AppendChild(pPlayerInfoNode);
-
-	// the timings.
-	p->AppendChild(m_vPlayerInfo.m_pPlayer->GetNoteData().CreateNode());
-
-	// Find a file name for the replay
-	vector<RString> files;
-	GetDirListing("Save/Replays/replay*", files, false, false);
-	sort(files.begin(), files.end());
-
-	// Files should be of the form "replay#####.xml".
-	int iIndex = 0;
-
-	for (int i = files.size() - 1; i >= 0; --i) {
-		static Regex re("^replay([0-9]{5})\\....$");
-		vector<RString> matches;
-		if (!re.Compare(files[i], matches))
-			continue;
-
-		ASSERT(matches.size() == 1);
-		iIndex = StringToInt(matches[0]) + 1;
-		break;
-	}
-
-	RString sFileName = ssprintf("replay%05d.xml", iIndex);
-
-	XmlFileUtil::SaveToFile(p, "Save/Replays/" + sFileName);
-	SAFE_DELETE(p);
-	return;
 }
 
 const float

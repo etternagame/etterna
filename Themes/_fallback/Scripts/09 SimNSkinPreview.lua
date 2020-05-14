@@ -58,6 +58,10 @@ function GameToNSkinElements()
 		beat = {
 			"scratch", "Key1", "Key2", "Key3"
 			--"Key1", "Key2", "Key3", "Key4", "Key5", "Key6", "Key7", "scratch"
+		},
+		solo = {
+			"Left", "UpLeft", "UpRight", "Right"
+			--"Left", "UpLeft", "Down", "Up", "UpRight", "Right"
 		}
 	}
 

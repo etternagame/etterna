@@ -237,25 +237,19 @@ class NoteData
 	void Init();
 
 	// Mina stuf
-	void LogNonEmptyRows();
-	void UnsetNerv()
-	{
-		vector<int> tmp;
-		NonEmptyRowVector.swap(tmp);
+	void LogNonEmptyRows(TimingData* ts);
+	void UnsetNerv() {
+		NonEmptyRowVector.clear();
+		NonEmptyRowVector.shrink_to_fit();
 	}
 	void UnsetSerializedNoteData()
 	{
-		vector<NoteInfo> tmp;
-		SerializedNoteData.swap(tmp);
+		SerializedNoteData.clear();
+		SerializedNoteData.shrink_to_fit();
 	}
-	void UnsetSerializedNoteData2()
+	const vector<int>& BuildAndGetNerv(TimingData* ts)
 	{
-		vector<NoteInfo2> tmp;
-		SerializedNoteData2.swap(tmp);
-	}
-	const vector<int>& BuildAndGetNerv()
-	{
-		LogNonEmptyRows();
+		LogNonEmptyRows(ts);
 		return NonEmptyRowVector;
 	}
 	int WifeTotalScoreCalc(TimingData* td,
@@ -263,7 +257,11 @@ class NoteData
 						   int iEndIndex = MAX_NOTE_ROW);
 	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
 	const vector<NoteInfo>& SerializeNoteData(const vector<float>& etaner);
-	vector<NoteInfo2>& SerializeNoteData2(const vector<float>& etaner);
+	// faster than the above and gives us more control over stuff like nerv generation
+	const vector<NoteInfo>& SerializeNoteData2(
+	  TimingData* ts,
+	  bool unset_nerv_when_done = true,
+	  bool unset_etaner_when_done = true);
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks(int iNewNumTracks);

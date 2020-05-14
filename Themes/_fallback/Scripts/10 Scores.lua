@@ -448,8 +448,9 @@ function wife2(maxms, ts)
 	return (2 - -8) * (1 - y) + -8
 end
 
+-- For Window-based Scoring
 function getRescoredJudge(offsetVector, judgeScale, judge)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local windows = {22.5, 45.0, 90.0, 135.0, 180.0, 500.0}
 	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
@@ -475,6 +476,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	return judgeCount
 end
 
+-- For Window-based Scoring
 function getRescoredCustomJudge(offsetVector, windows, judge)
 	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
 	local upperBound = windows[judges[judge]]
@@ -498,19 +500,21 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
-function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+-- For Millisecond-based Scoring
+function getRescoredWifeJudge(judgeScale, rst)
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #offsetVector do
-		p = p + wife2(offsetVector[i], ts)
+	for i = 1, #rst["dvt"] do
+		p = p + wife2(rst["dvt"][i], ts)
 	end
-	p = p + (holdsMissed * -6)
-	p = p + (minesHit * -8)
-	return (p / (totalNotes * 2)) * 100.0
+	p = p + (rst["holdsMissed"] * -6)
+	p = p + (rst["minesHit"] * -8)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
 
-function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
+-- For Window-based Scoring
+function getRescoredCustomPercentage(customWindows, rst)
 	local p = 0.0
 	local weights = customWindows.judgeWeights
 	local windows = customWindows.judgeWindows
@@ -518,10 +522,10 @@ function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, ho
 	for i = 1, 6 do
 		p = p + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
 	end
-	p = p + (holdsHit * weights.holdHit)
-	p = p + (holdsMissed * weights.holdMiss)
-	p = p + (minesHit * weights.mineHit)
-	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	p = p + (holdsHit * rst["holdsHit"])
+	p = p + (holdsMissed * rst["holdsMissed"])
+	p = p + (minesHit * rst["minesHit"])
+	p = p / ((totalNotes * weights.marv) + (rst["totalHolds"] * weights.holdHit))
 	return p * 100.0
 end
 
@@ -597,11 +601,11 @@ end
 
 -- erf constants
 a1 =  0.254829592
-    a2 = -0.284496736
-    a3 =  1.421413741
-    a4 = -1.453152027
-    a5 =  1.061405429
-    p  =  0.3275911
+a2 = -0.284496736
+a3 =  1.421413741
+a4 = -1.453152027
+a5 =  1.061405429
+p  =  0.3275911
 
 
 function erf(x)
@@ -618,40 +622,38 @@ function erf(x)
 
     return sign*y
 end
+function wife3(maxms, ts, version)
 
--- note lua should always be dealing with MS not S as a unit
-function wife3(maxms, ts, max_points, miss_weight, ridic, max_boo_weight, poi, dev) -- only args for testing/comparison purposes atm
-	-- judge scaling stuff
-	local ridic = ridic * ts
-	local max_boo_weight = max_boo_weight * ts
-	local poi = poi * ts
-	local dev = dev * ts
+	local max_points = 2
+	local miss_weight = -5.5
+	local ridic = 5 * ts
+	local max_boo_weight = 180 * ts
+	local ts_pow = 0.75
+	local zero = 65 * (ts^ts_pow)
+	local power = 2.5
+	local dev = 22.7 * (ts^ts_pow)
 
-	-- shortcut case handling
+	-- case handling
 	if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
 		return max_points
-	end
-	if maxms > max_boo_weight then	-- we can just set miss values manually
+	elseif maxms <= zero then			-- ma/pa region, exponential
+			return max_points * erf((zero - maxms) / dev)
+	elseif maxms <= max_boo_weight then -- cb region, linear
+		return (maxms - zero) * miss_weight / (max_boo_weight - zero)
+	else							-- we can just set miss values manually
 		return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
 	end								-- purpose of the scoring curve, which is to assign point values
-
-	-- actual calculations
-	local y_val = (erf((poi - maxms) / dev) + 1) / 2;
-	local lower_bound = max_points + 
-		((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
-	
-	return (max_points - lower_bound) * y_val + lower_bound;
 end
 
 -- holy shit this is fugly
-function getRescoredWife3Judge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes, a, b, c, d, e, f)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+function getRescoredWife3Judge(version, judgeScale, rst)
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #offsetVector do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(offsetVector[i]), ts, a, b, c, d, e, f)	
+	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
 	end
-	p = p + (holdsMissed * -3.5)							-- subject to change (is higher than miss value atm)
-	p = p + (minesHit * -b)									-- subject to change (is higher than miss value atm)
-	return (p / (totalNotes * 2)) * 100.0
+	p = p + (rst["holdsMissed"] * -4.5)
+	p = p + (rst["minesHit"] * -7)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end

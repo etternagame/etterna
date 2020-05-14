@@ -360,7 +360,7 @@ inline int   BeatToNoteRow( float fBeatNum )
 inline int
 BeatToNoteRow(float fBeatNum)
 {
-	return lround(fBeatNum * ROWS_PER_BEAT);
+	return lround(fBeatNum * 48.f);
 }
 /**
  * @brief Convert the note row to a beat.

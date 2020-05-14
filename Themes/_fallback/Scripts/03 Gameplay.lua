@@ -257,32 +257,38 @@ local CodeDetectorCodes = {
 	PrevSteps1 = {
 		default = "",
 		dance = "Up,Up",
+		solo = "Up,Up",
 		pump = "+UpLeft"
 	},
 	PrevSteps2 = {
 		default = "MenuUp,MenuUp",
 		dance = "MenuUp,MenuUp",
+		solo = "MenuUp,MenuUp",
 		pump = ""
 	},
 	NextSteps1 = {
 		default = "",
 		dance = "Down,Down",
+		solo = "Down,Down",
 		pump = "+UpRight"
 	},
 	NextSteps2 = {
 		default = "MenuDown,MenuDown",
 		dance = "MenuDown,MenuDown",
+		solo = "MenuDown,MenuDown",
 		pump = ""
 	},
 	-- group
 	NextGroup = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = ""
 	},
 	PrevGroup = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = ""
 	},
 	CloseCurrentFolder = {
@@ -292,27 +298,32 @@ local CodeDetectorCodes = {
 	NextSort1 = {
 		default = "@MenuLeft-@MenuRight-Start",
 		dance = "@MenuLeft-@MenuRight-Start",
+		solo = "@MenuLeft-@MenuRight-Start",
 		pump = "@MenuLeft-@MenuRight-Start"
 	},
 	NextSort2 = {
 		default = "MenuLeft-MenuRight",
 		dance = "MenuLeft-MenuRight",
+		solo = "MenuLeft-MenuRight",
 		pump = "MenuLeft-MenuRight"
 	},
 	NextSort3 = {
 		default = "",
 		dance = "@Left-@Right-Start",
+		solo = "@Left-@Right-Start",
 		pump = "@DownLeft-@DownRight-Start"
 	},
 	NextSort4 = {
 		default = "",
 		dance = "Left-Right",
+		solo = "Left-Right",
 		pump = "DownLeft-DownRight"
 	},
 	-- modemenu
 	ModeMenu1 = {
 		default = "",
-		dance = "Up,Down,Up,Down"
+		dance = "Up,Down,Up,Down",
+		solo = "Up,Down,Up,Down"
 	},
 	ModeMenu2 = {
 		default = "MenuUp,MenuDown,MenuUp,MenuDown"
@@ -327,35 +338,42 @@ local CodeDetectorCodes = {
 	-- modifiers section
 	CancelAll = {
 		default = "",
-		dance = ""
+		dance = "",
+		solo = ""
 	},
 	--- specific modifiers
 	Mirror = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "DownRight,DownLeft,UpRight,UpLeft,DownRight,DownLeft,UpRight,UpLeft,Center"
 	},
 	Left = {
 		default = "",
-		dance = ""
+		dance = "",
+		solo = ""
 	},
 	Right = {
 		default = "",
-		dance = ""
+		dance = "",
+		solo = ""
 	},
 	Shuffle = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "UpLeft,UpRight,UpLeft,UpRight,DownLeft,DownRight,DownLeft,DownRight,Center" -- random
 	},
 	SuperShuffle = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "UpLeft,UpRight,DownLeft,DownRight,UpLeft,UpRight,DownLeft,DownRight,Center"
 	},
 	Reverse = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "UpLeft,DownLeft,UpRight,DownRight,UpLeft,DownLeft,UpRight,DownRight,DownRight" -- drop
 	},
 	Mines = {
@@ -368,17 +386,20 @@ local CodeDetectorCodes = {
 	NextScrollSpeed = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "UpLeft,UpRight,UpLeft,UpRight,Center"
 	},
 	PreviousScrollSpeed = {
 		default = "",
 		dance = "",
+		solo = "",
 		pump = "UpRight,UpLeft,UpRight,UpLeft,Center"
 	},
 	-- cancel all in player options
 	CancelAllPlayerOptions = {
 		default = "",
-		dance = ""
+		dance = "",
+		solo = ""
 	}
 }
 

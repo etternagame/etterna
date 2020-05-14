@@ -37,9 +37,11 @@ MSDToString2(MinaSD x)
 {
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
-		for (size_t ii = 0; ii < x[i].size(); ii++) {
-			o.append(to_string(x[i][ii]).substr(0, 5));
-			if (ii != x[i].size() - 1)
+		auto msds = x[i];
+		for (size_t ii = 0; ii < msds.size(); ii++)
+		{
+			o.append(to_string(msds[ii]).substr(0, 5));
+			if (ii != msds.size() - 1)
 				o.append(",");
 		}
 		if (i != x.size() - 1)

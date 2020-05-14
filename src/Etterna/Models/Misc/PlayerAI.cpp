@@ -413,7 +413,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 						tempHNS[HNS_LetGo]++;
 
 						// erase the hold from the mapping of unjudged holds
-						for (int i = 0; i < m_unjudgedholds[isDropped].size();
+						for (size_t i = 0; i < m_unjudgedholds[isDropped].size();
 							 i++) {
 							if (m_unjudgedholds[isDropped][i].track == track) {
 								m_unjudgedholds[isDropped].erase(
@@ -434,7 +434,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				auto firstUnjudgedHold = m_unjudgedholds.begin();
 				if (firstUnjudgedHold != m_unjudgedholds.end()) {
 					auto hrrs = firstUnjudgedHold->second;
-					for (int i = 0; i < hrrs.size(); i++) {
+					for (size_t i = 0; i < hrrs.size(); i++) {
 						if (hrrs[i].track == track) {
 							m_unjudgedholds[firstUnjudgedHold->first].erase(
 							  m_unjudgedholds[firstUnjudgedHold->first]
@@ -564,8 +564,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
 			ReplaySnapshot* rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
-			rs->curwifescore = cws - (rs->judgments[TNS_Miss] * 8.f) -
-							   (rs->hns[HNS_LetGo] * 8.f);
+			rs->curwifescore = cws + (rs->judgments[TNS_Miss] * wife3_miss_weight) +
+							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
 			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 			snapShotsUnused.erase(snapShotsUnused.begin());
 
@@ -574,14 +574,14 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		auto rs = GetReplaySnapshotForNoterow(r);
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				cws -= 8.f;
+				cws += wife3_mine_hit_weight;
 			} else {
-				cws += wife2(trr.offset, timingScale);
+				cws += wife3(trr.offset, timingScale);
 				mws += 2.f;
 			}
 		}
-		rs->curwifescore =
-		  cws - (rs->judgments[TNS_Miss] * 8.f) - (rs->hns[HNS_LetGo] * 8.f);
+		rs->curwifescore = cws + (rs->judgments[TNS_Miss] * wife3_miss_weight) +
+		  ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
 		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 
 		snapShotsUnused.erase(snapShotsUnused.begin());
@@ -1048,9 +1048,9 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 		 it++) {
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				out.first -= 8.f;
+				out.first += wife3_mine_hit_weight;
 			} else {
-				out.first += wife2(trr.offset, ts);
+				out.first += wife3(trr.offset, ts);
 				out.second += 2.f;
 			}
 		}
@@ -1058,8 +1058,8 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 
 	// Take into account dropped holds and full misses
 	auto rs = GetReplaySnapshotForNoterow(row);
-	out.first += rs->judgments[TNS_Miss] * -8.f;
-	out.first += rs->hns[HNS_LetGo] * -8.f;
+	out.first += rs->judgments[TNS_Miss] * wife3_miss_weight;
+	out.first += rs->hns[HNS_LetGo] * wife3_hold_drop_weight;
 	out.second += rs->judgments[TNS_Miss] * 2.f;
 
 	return out;

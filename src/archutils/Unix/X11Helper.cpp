@@ -44,8 +44,6 @@ X11Helper::OpenXConnection()
 {
 	DEBUG_ASSERT(Dpy == NULL && Win == None);
 
-	std::raise(SIGINT);
-
 	int res = XInitThreads();
 	if (res == 0)
 		return false;

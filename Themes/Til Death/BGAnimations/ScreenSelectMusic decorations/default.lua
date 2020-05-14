@@ -70,6 +70,12 @@ t[#t + 1] =
 			itsOn = false
 		end
 	end,
+	CalcInfoOnMessageCommand = function(self)
+		self:x(20)
+	end,
+	CalcInfoOffMessageCommand = function(self)
+		self:x(stepsdisplayx)
+	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {

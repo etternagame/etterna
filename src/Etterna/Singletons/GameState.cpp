@@ -1935,6 +1935,11 @@ class LunaGameState : public Luna<GameState>
 		p->TogglePracticeModeSafe(BArg(1));
 		return 0;
 	}
+	static int GetTimingScales(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->timingscales, L);
+		return 1;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	DEFINE_METHOD(IsPracticeMode, IsPracticeMode())
@@ -2029,6 +2034,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetGameplayMode);
 		ADD_METHOD(IsPracticeMode);
 		ADD_METHOD(SetPracticeMode);
+		ADD_METHOD(GetTimingScales);
 	}
 };
 
