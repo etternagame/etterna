@@ -1037,8 +1037,7 @@ sm_main(int argc, char* argv[])
 	seed_lua_prng();
 
 	// Initialize Logging
-	Core::ILogger* logger = new PlogLogger();
-    Locator::provide(logger);
+    Locator::provide(new PlogLogger());
 
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);

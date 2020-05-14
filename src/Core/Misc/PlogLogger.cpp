@@ -1,10 +1,8 @@
 #include "PlogLogger.hpp"
 
-#include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
-
-#include <chrono>
-
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 
 class EtternaFormatter {
 public:
@@ -14,20 +12,14 @@ public:
     }
 
     static plog::util::nstring format(const plog::Record &record) {
-        plog::util::nostringstream ss;
-        tm time;
+        tm time{};
         plog::util::localtime_s(&time, &record.getTime().time);
 
-        // Log Format -> [YYYY-MM-DD,HH:MM:SS.MIL][Severity]: Message
-        // Time Section
-        ss << "[" << (time.tm_year + 1900) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday << ",";
-        ss << time.tm_hour << ":" << time.tm_min << ":" << time.tm_sec << "." << record.getTime().millitm << "]";
-
-        // Severity Section
-        ss << "[" << std::setw(5) << plog::severityToString(record.getSeverity()) << "]";
-
-        // Log Message
-        ss << ": " << record.getMessage() << "\n";
+        // Log Format -> [YYYY-MM-DD HH:MM:SS][Severity]: Message
+        plog::util::nostringstream ss;
+        ss << fmt::format("[{:%F %T}]", time); // Time
+        ss << fmt::format("[{:<5}]", plog::severityToString(record.getSeverity())); // Severity
+        ss << fmt::format(": {}\n", record.getMessage()); // Message
 
         return ss.str();
     }
@@ -38,26 +30,15 @@ PlogLogger::PlogLogger() {
     plog::init(plog::Severity::info, &consoleAppender);
 }
 
-void PlogLogger::trace(std::string message) {
-    PLOG(plog::verbose) << message;
+void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
+    PLOG(PlogLogger::convertSeverity(logLevel)) << message;
 }
 
-void PlogLogger::debug(std::string message) {
-    PLOG(plog::debug) << message;
-}
-
-void PlogLogger::info(std::string message) {
-    PLOG(plog::info) << message;
-}
-
-void PlogLogger::warn(std::string message) {
-    PLOG(plog::warning) << message;
-}
-
-void PlogLogger::error(std::string message) {
-    PLOG(plog::error) << message;
-}
-
-void PlogLogger::fatal(std::string message) {
-    PLOG(plog::fatal) << message;
+plog::Severity PlogLogger::convertSeverity(ILogger::Severity logLevel) {
+    if(logLevel == Severity::TRACE) return plog::Severity::verbose;
+    if(logLevel == Severity::DEBUG) return plog::Severity::debug;
+    if(logLevel == Severity::INFO) return plog::Severity::info;
+    if(logLevel == Severity::WARN) return plog::Severity::warning;
+    if(logLevel == Severity::ERROR) return plog::Severity::error;
+    if(logLevel == Severity::FATAL) return plog::Severity::fatal;
 }

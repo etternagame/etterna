@@ -2,21 +2,15 @@
 #define CORE_MISC_PLOGLOGGER_HPP
 
 #include "Core/Services/ILogger.hpp"
+#include <plog/Log.h>
 
 class PlogLogger : public Core::ILogger {
 public:
     PlogLogger();
-
+protected:
+    void log(ILogger::Severity logLevel, const std::string_view message) override;
 private:
-    // Overridden Functions
-    void trace(std::string message) override;
-    void debug(std::string message) override;
-    void info(std::string message) override;
-    void warn(std::string message) override;
-    void error(std::string message) override;
-    void fatal(std::string message) override;
-
-    // Class Specific
+    static plog::Severity convertSeverity(Core::ILogger::Severity logLevel);
 };
 
 #endif //CORE_MISC_PLOGLOGGER_HPP
