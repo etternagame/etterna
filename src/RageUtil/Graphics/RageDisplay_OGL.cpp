@@ -2776,10 +2776,11 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 	else
 		pTarget = g_pWind->CreateRenderTarget();
 	
+	intptr_t iTexture = 0;
 	if (pTarget) {
 		pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 		
-		intptr_t iTexture = pTarget->GetTexture();
+		iTexture = pTarget->GetTexture();
 		
 		ASSERT(g_mapRenderTargets.find(iTexture) == g_mapRenderTargets.end());
 		g_mapRenderTargets[iTexture] = pTarget;
