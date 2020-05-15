@@ -512,7 +512,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (mode == 1)
 		window_size = 2;
 	if (mode == 2)
-		window_size = 5;
+		window_size = 4;
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
@@ -524,7 +524,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> thejacks;
 
 	// doge adventure etc
-	static const float max_diff = 40.f;
+	static const float max_diff = 60.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -560,11 +560,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 300.f;
+			float hit_window_buffer = 280.f;
 			if (mode == 1)
 				hit_window_buffer = 250.f;
 			if (mode == 2)
-				hit_window_buffer = 60.f;
+				hit_window_buffer = 240.f;
 
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
@@ -654,7 +654,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 						// new thing be try use base bpm instead of effective
 						// dunno this might be dum
 					case 1:
-						comp_diff[i] = base_bpm;
+						comp_diff[i] = eff_bpm;
 						break;
 					// same thing but divide by eff scaler to POPIZZLE?? idk
 					case 2:
@@ -691,11 +691,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * mean(eff_scalers) * 1.95f;
+				fdiff = max_val(comp_diff) * mean(eff_scalers) * 1.35f;
 			else if (mode == 2)
 				// minijacks, why does this seem to work so well?? it's
 				// basically just ms + 60 i guess???? optimize later
-				fdiff = comp_diff.front() * 0.75f;
+				fdiff = comp_diff.back() * 1.5f * mean(eff_scalers);
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
 			thejacks.push_back(fdiff);
@@ -3805,5 +3805,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 303;
+	return 304;
 }
