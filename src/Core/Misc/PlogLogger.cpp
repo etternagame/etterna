@@ -18,7 +18,7 @@ public:
         // Log Format -> [YYYY-MM-DD HH:MM:SS][Severity]: Message
         plog::util::nostringstream ss;
         ss << fmt::format("[{:%F %T}]", time).c_str(); // Time
-        ss << fmt::format("[{:<5}]", plog::severityToString(record.getSeverity())).c_str(); // Severity
+        ss << fmt::format("[{:<4}]", plog::severityToString(record.getSeverity())).c_str(); // Severity
 		ss << ": " << record.getMessage() << "\n"; // Message
         return ss.str();
     }
@@ -26,7 +26,7 @@ public:
 
 PlogLogger::PlogLogger() {
     static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
-    plog::init(plog::Severity::info, &consoleAppender);
+    plog::init(plog::Severity::verbose, &consoleAppender);
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
