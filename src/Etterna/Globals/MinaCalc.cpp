@@ -324,7 +324,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.89f, 0.8925f, 0.94f, 0.75f, 0.84f, 0.88f };
+	0.f, 0.97f, 0.89f, 0.8925f, 0.94f, 0.77f, 0.84f, 0.84f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -451,7 +451,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 			right_loss[i] = max(flurbo[2], flurbo[3]);
 			// slight optimization i guess, bail if we can no longer reach score
 			// goal (but only outside of debug)
-		} else if (total_point_loss > mpl)
+		} else if (total_point_loss > mpl && mode != 0)
 			return total_point_loss;
 
 		total_point_loss += max(flurbo[0], flurbo[1]);
@@ -492,7 +492,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// you actually study debug output while tinkering with numbers, trust me
 	// you aren't that smart.
 
-	bool dbg = true && debugmode && mode == 0;
+	bool dbg = false && debugmode && mode == 0;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -1127,7 +1127,7 @@ Calc::Chisel(float player_skill,
 			} else {
 				if (ss == Skill_Technical)
 					gotpoints -=
-					  sqrt(JackLoss(player_skill, 0, max_points_lost, false));
+					  (JackLoss(player_skill, 0, max_points_lost, false));
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
@@ -1324,7 +1324,7 @@ Hand::InitAdjDiff()
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
 						adj_diff = soap[BaseNPS][i] * muzzle * tp_mods[ss] *
-								   basescalers[ss];
+								   basescalers[ss] / fastsqrt(doot[Anchor][i]);
 					}
 					break;
 			}
@@ -1359,9 +1359,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		for (size_t i = 0; i < v.size(); ++i) {
 			if (x > v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
-				float lostpoints = gotpoints -=
-				  (pts - (pts * fastpow(x / v[i], 1.7f)));
-				gotpoints -= lostpoints;
+				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
+				gotpoints -= lostpoints;				  
 				debugValues[2][PtLoss][i] = lostpoints;
 			}
 		}
