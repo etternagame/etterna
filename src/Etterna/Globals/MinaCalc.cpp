@@ -1097,7 +1097,6 @@ Calc::Chisel(float player_skill,
 {
 
 	float gotpoints = 0.f;
-	int possiblepoints = 0;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
 	float max_points_lost = static_cast<float>(MaxPoints) - reqpoints;
 	for (int iter = 1; iter <= 8; iter++) {
@@ -1108,9 +1107,8 @@ Calc::Chisel(float player_skill,
 			if (ss == Skill_Overall || ss == Skill_Stamina)
 				return 0.f; // not how we set these values
 
-			// reset tallied score
-			gotpoints = 0.f;
-			possiblepoints = 0;
+			// reset tallied score, always deduct rather than accumulate now
+			gotpoints = MaxPoints;
 
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
@@ -1125,11 +1123,11 @@ Calc::Chisel(float player_skill,
 				  max(JackLoss(player_skill, 1, max_points_lost, false),
 					  max(JackLoss(player_skill, 2, max_points_lost, false),
 						  JackLoss(player_skill, 3, max_points_lost, false)));
-				gotpoints = MaxPoints - jloss;
+				gotpoints -= jloss;
 			} else {
 				if (ss == Skill_Technical)
 					gotpoints -=
-					  JackLoss(player_skill, 0, max_points_lost, false);
+					  sqrt(JackLoss(player_skill, 0, max_points_lost, false));
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
@@ -1359,18 +1357,20 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		debugValues[1][MSD] = stam_adj_diff;
 
 		for (size_t i = 0; i < v.size(); ++i) {
-			float gainedpoints = x > v[i] ? static_cast<float>(v_itvpoints[i])
-										  : static_cast<float>(v_itvpoints[i]) *
-											  fastpow(x / v[i], 1.7f);
-			gotpoints += gainedpoints;
-			debugValues[2][PtLoss][i] =
-			  (static_cast<float>(v_itvpoints[i]) - gainedpoints);
+			if (x > v[i]) {
+				float pts = static_cast<float>(v_itvpoints[i]);
+				float lostpoints = gotpoints -=
+				  (pts - (pts * fastpow(x / v[i], 1.7f)));
+				gotpoints -= lostpoints;
+				debugValues[2][PtLoss][i] = lostpoints;
+			}
 		}
 	} else
 		for (size_t i = 0; i < v.size(); ++i)
-			gotpoints += x > v[i] ? static_cast<float>(v_itvpoints[i])
-								  : static_cast<float>(v_itvpoints[i]) *
-									  fastpow(x / v[i], 1.7f);
+			if (x < v[i]) {
+				float pts = static_cast<float>(v_itvpoints[i]);
+				gotpoints -= (pts - (pts * fastpow(x / v[i], 1.7f)));
+			}
 }
 
 inline void
@@ -3947,5 +3947,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 311;
+	return 312;
 }
