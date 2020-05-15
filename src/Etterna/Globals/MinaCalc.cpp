@@ -535,7 +535,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> thejacks;
 
 	// doge adventure etc
-	static const float max_diff = 45.f;
+	static const float max_diff = 55.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -573,7 +573,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			float comp_time = 0.f;
 			float hit_window_buffer = 120.f;
 			if (mode == 1)
-				hit_window_buffer = 175.f;
+				hit_window_buffer = 165.f;
 			if (mode == 2)
 				hit_window_buffer = 275.f;
 			if (mode == 3)
@@ -695,20 +695,14 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 			float fdiff = 0.f;
 			if (mode == 0)
-				// longer jacks, take the mean of the component difficulties (if
-				// it's actually a longjack, it should be much higher), then
-				// multiply by the final effective bpm scaler
-
-				// dunno if we should even multiply effective scaler again here,
-				// since it's applied every step of the way in comp_diff and we
-				// are taking the mean of comp_diff
 				fdiff = comp_diff.back() * 1.2f * mean(eff_scalers);
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * 1.3f * eff_scalers.back();
+				fdiff = comp_diff.back() * 1.4f * eff_scalers.back();
 			else if (mode == 2)
-				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
+				// medium-longjack pass
+				fdiff = comp_diff.back() * 1.45f * mean(eff_scalers);
 			else if (mode == 3)
 				// minijacks, why does this seem to work so well?? it's
 				// basically just ms + 60 i guess???? optimize later
@@ -3827,5 +3821,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 309;
+	return 310;
 }
