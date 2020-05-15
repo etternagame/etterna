@@ -1,8 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageDisplay.h"
 #include "RageDisplay_GLES2.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSurface.h"
 #include "RageTextureManager.h"
@@ -194,8 +194,8 @@ bool bAlphaTestEnabled = false;
 
 RageDisplay_GLES2::RageDisplay_GLES2()
 {
-	LOG->Trace("RageDisplay_GLES2::RageDisplay_GLES2()");
-	LOG->MapLog("renderer", "Current renderer: OpenGL ES 2.0");
+	Locator::getLogger()->trace("RageDisplay_GLES2::RageDisplay_GLES2()");
+	Locator::getLogger()->trace("Current renderer: OpenGL ES 2.0");
 
 	FixLittleEndian();
 	//	RageDisplay_GLES2_Helpers::Init();
@@ -220,14 +220,14 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
-	LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
-	LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
-	LOG->Info("OGL Max texture size: %i", Caps::iMaxTextureSize);
-	LOG->Info("OGL Texture units: %i", Caps::iMaxTextureUnits);
+	Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
+	Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
+	Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
+	Locator::getLogger()->trace("OGL Max texture size: {}", Caps::iMaxTextureSize);
+	Locator::getLogger()->trace("OGL Texture units: {}", Caps::iMaxTextureUnits);
 
 	/* Pretty-print the extension string: */
-	LOG->Info("OGL Extensions:");
+	Locator::getLogger()->trace("OGL Extensions:");
 	{
 		// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
 		// this will be useful in the future.
@@ -304,7 +304,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			}
 
 			if (iNextToPrint == iLastToPrint) {
-				LOG->Info("  %s", asExtensions[iNextToPrint].c_str());
+				Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
 				++iNextToPrint;
 				continue;
 			}
@@ -320,7 +320,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 				if (iNextToPrint == iLastToPrint ||
 					sList.size() + asExtensions[iNextToPrint + 1].size() >
 					  120) {
-					LOG->Info("%s", sList.c_str());
+					Locator::getLogger()->trace(sList.c_str());
 					sList = "    ";
 				}
 				++iNextToPrint;
@@ -348,7 +348,7 @@ RageDisplay_GLES2::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
 	VideoModeParams vm = p;
 	vm.windowed = true; // force windowed until I trust this thing.
-	LOG->Warn("RageDisplay_GLES2::TryVideoMode( %d, %d, %d, %d, %d, %d )",
+	Locator::getLogger()->warn("RageDisplay_GLES2::TryVideoMode( {}, {}, {}, {}, {}, {} )",
 			  vm.windowed,
 			  vm.width,
 			  vm.height,

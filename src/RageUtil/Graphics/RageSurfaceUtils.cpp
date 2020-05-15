@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -901,8 +901,7 @@ RageSurfaceUtils::LoadSurface(const std::string& file)
 	 * created with a different version whose CreateSurface() behavior
 	 * was different. */
 	if (h.pitch != img->pitch) {
-		LOG->Trace(
-		  "Error loading \"%s\": expected pitch %i, got %i (%ibpp, %i width)",
+		Locator::getLogger()->trace("Error loading \"{}\": expected pitch {}, got {} ({}bpp, {} width)",
 		  file.c_str(),
 		  h.pitch,
 		  img->pitch,

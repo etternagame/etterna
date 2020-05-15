@@ -5,7 +5,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils_Zoom.h"
@@ -106,7 +106,7 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
-	LOG->Trace("TryVideoMode failed: %s", err.c_str());
+	Locator::getLogger()->trace("TryVideoMode failed: {}", err.c_str());
 	vs.push_back(err);
 
 	// fall back to settings that will most likely work
@@ -181,7 +181,7 @@ RageDisplay::ProcessStatsOnFlip()
 			if (LOG_FPS && !(PREFSMAN->m_verbose_log > 1)) {
 				auto sStats = GetStats();
 				s_replace(sStats, "\n", ", ");
-				LOG->Trace("%s", sStats.c_str());
+				Locator::getLogger()->trace(sStats.c_str());
 			}
 		}
 	}
@@ -982,8 +982,7 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 
 	RageFile out;
 	if (!out.Open(sPath, RageFile::WRITE)) {
-		LOG->Trace(
-		  "Couldn't write %s: %s", sPath.c_str(), out.GetError().c_str());
+		Locator::getLogger()->trace("Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
 		SAFE_DELETE(surface);
 		return false;
 	}
@@ -1012,8 +1011,7 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	SAFE_DELETE(surface);
 
 	if (!bSuccess) {
-		LOG->Trace(
-		  "Couldn't write %s: %s", sPath.c_str(), out.GetError().c_str());
+		Locator::getLogger()->trace("Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
 		return false;
 	}
 

@@ -5,7 +5,7 @@
 #include "RageDisplay.h"
 #include "RageDisplay_D3D.h"
 #include "RageUtil/Misc/RageException.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
@@ -202,12 +202,12 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 {
 	GraphicsWindow::Initialize(true);
 
-	LOG->Trace("RageDisplay_D3D::RageDisplay_D3D()");
-	LOG->MapLog("renderer", "Current renderer: Direct3D");
+	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");
+	Locator::getLogger()->trace("Current renderer: Direct3D");
 
 	g_pd3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (g_pd3d == nullptr) {
-		LOG->Trace("Direct3DCreate9 failed");
+		Locator::getLogger()->trace("Direct3DCreate9 failed");
 		return D3D_NOT_INSTALLED.GetValue();
 	}
 
@@ -219,31 +219,25 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	D3DADAPTER_IDENTIFIER9 identifier;
 	g_pd3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &identifier);
 
-	LOG->Trace("Driver: %s\n"
-			   "Description: %s\n"
-			   "Max texture size: %d\n"
-			   "Alpha in palette: %s\n",
-			   identifier.Driver,
-			   identifier.Description,
-			   g_DeviceCaps.MaxTextureWidth,
-			   (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) != 0u
-				 ? "yes"
-				 : "no");
+	Locator::getLogger()->trace(
+	  "Driver: {}\n"
+	  "Description: {}\n"
+	  "Max texture size: {}\n"
+	  "Alpha in palette: {}\n",
+	  identifier.Driver,
+	  identifier.Description,
+	  g_DeviceCaps.MaxTextureWidth,
+	  (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
 
-	LOG->Trace("This display adaptor supports the following modes:");
+	Locator::getLogger()->trace("This display adaptor supports the following modes:");
 	D3DDISPLAYMODE mode;
 
 	const auto modeCount =
 	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
 
 	for (UINT u = 0; u < modeCount; u++) {
-		if (SUCCEEDED(g_pd3d->EnumAdapterModes(
-			  D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
-			LOG->Trace("  %ux%u %uHz, format %d",
-					   mode.Width,
-					   mode.Height,
-					   mode.RefreshRate,
-					   mode.Format);
+		if (SUCCEEDED(g_pd3d->EnumAdapterModes(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
+			Locator::getLogger()->trace("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
 		}
 	}
 
@@ -265,7 +259,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 RageDisplay_D3D::~RageDisplay_D3D()
 {
-	LOG->Trace("RageDisplay_D3D::~RageDisplay()");
+	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
 
 	GraphicsWindow::Shutdown();
 
@@ -313,7 +307,7 @@ RageDisplay_D3D::GetDisplaySpecs(DisplaySpecs& out) const
 		const RectI bounds(0, 0, active.width, active.height);
 		out.insert(DisplaySpec("", "Fullscreen", modes, active, bounds));
 	} else {
-		LOG->Warn("Could not find active mode for default D3D adapter");
+		Locator::getLogger()->warn("Could not find active mode for default D3D adapter");
 		if (!modes.empty()) {
 			const auto& m = *modes.begin();
 			const RectI bounds(0, 0, m.width, m.height);
@@ -359,7 +353,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 			fmtDisplay = vBackBufferFormat;
 		}
 
-		LOG->Trace("Testing format: display %d, back buffer %d, windowed %d...",
+		Locator::getLogger()->trace("Testing format: display {}, back buffer {}, windowed {}...",
 				   fmtDisplay,
 				   fmtBackBuffer,
 				   static_cast<int>(bWindowed));
@@ -375,11 +369,11 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 		}
 
 		// done searching
-		LOG->Trace("This will work.");
+		Locator::getLogger()->trace("This will work.");
 		return fmtBackBuffer;
 	}
 
-	LOG->Trace("Couldn't find an appropriate back buffer format.");
+	Locator::getLogger()->trace("Couldn't find an appropriate back buffer format.");
 	return D3DFMT_UNKNOWN;
 }
 
@@ -444,11 +438,9 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
 	auto iBest = -1;
 	auto iBestScore = 0;
-	LOG->Trace("cur: %ux%u %uHz, format %i",
-			   current.Width,
-			   current.Height,
-			   current.RefreshRate,
-			   current.Format);
+	Locator::getLogger()->trace("cur: {}x{} {}Hz, format {}",
+			   current.Width, current.Height,
+			   current.RefreshRate, current.Format);
 	for (auto i = 0; i < iCnt; ++i) {
 		D3DDISPLAYMODE mode;
 		g_pd3d->EnumAdapterModes(
@@ -501,12 +493,9 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 			iBestScore = iScore;
 		}
 
-		LOG->Trace("try: %ux%u %uHz, format %i: score %i",
-				   mode.Width,
-				   mode.Height,
-				   mode.RefreshRate,
-				   mode.Format,
-				   iScore);
+		Locator::getLogger()->trace("try: {}x{} {}Hz, format {}: score {}",
+				   mode.Width, mode.Height,
+				   mode.RefreshRate, mode.Format, iScore);
 	}
 
 	if (iBest == -1) {
@@ -562,8 +551,8 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 	pD3Dpp->Flags = 0;
 
-	LOG->Trace(
-	  "Present Parameters: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+	Locator::getLogger()->trace(
+	  "Present Parameters: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
 	  pD3Dpp->BackBufferWidth,
 	  pD3Dpp->BackBufferHeight,
 	  pD3Dpp->BackBufferFormat,
@@ -585,7 +574,7 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
   -> std::string
 {
 	auto p = _p;
-	LOG->Warn("RageDisplay_D3D::TryVideoMode( %d, %d, %d, %d, %d, %d )",
+	Locator::getLogger()->warn("RageDisplay_D3D::TryVideoMode( {}, {}, {}, {}, {}, {} )",
 			  static_cast<int>(p.windowed),
 			  p.width,
 			  p.height,
@@ -1878,7 +1867,7 @@ D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 											   D3DPOOL_DEFAULT,
 											   &m_uTexHandle,
 											   nullptr))) {
-		LOG->Warn("FAILED: CreateTexture failed");
+		Locator::getLogger()->warn("FAILED: CreateTexture failed");
 	}
 
 	// Unlike OpenGL, D3D must use a depth stencil when using render targets
@@ -1891,7 +1880,7 @@ D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 		  true,
 		  &m_iDepthBufferHandle,
 		  nullptr))) {
-		LOG->Warn("FAILED: Didn't make depth stencil.");
+		Locator::getLogger()->warn("FAILED: Didn't make depth stencil.");
 	}
 }
 
@@ -1899,37 +1888,30 @@ void
 D3DRenderTarget_FramebufferObject::StartRenderingTo()
 {
 	// Save default color and depth buffer
-	if (!SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &defaultColorBuffer))) {
-		LOG->Warn("Failed to get default color buffer");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &defaultColorBuffer)))
+		Locator::getLogger()->warn("Failed to get default color buffer");
 
-	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer))) {
-		LOG->Warn("Failed to get default depth buffer");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer)))
+		Locator::getLogger()->warn("Failed to get default depth buffer");
 
 	// Set the render target to our RenderTarget texture
 	m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
-	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle))) {
-		LOG->Warn("Failed to set target to RenderTarget");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
+		Locator::getLogger()->warn("Failed to set target to RenderTarget");
 
-	if (!SUCCEEDED(
-		  g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle))) {
-		LOG->Warn("Failed to set targetDepth to RenderTargetDepth");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle)))
+		Locator::getLogger()->warn("Failed to set targetDepth to RenderTargetDepth");
 }
 
 void
 D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 {
 	// Restore the original color and depth buffers
-	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer))) {
-		LOG->Warn("Failed to set target to BackBuffer");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
+		Locator::getLogger()->warn("Failed to set target to BackBuffer");
 
-	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(defaultDepthBuffer))) {
-		LOG->Warn("Failed to set targetDepth to BackBufferDepth");
-	}
+	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(defaultDepthBuffer)))
+		Locator::getLogger()->warn("Failed to set targetDepth to BackBufferDepth");
 }
 
 auto
@@ -2030,9 +2012,8 @@ RageDisplay_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 			iBit |= D3DCLEAR_ZBUFFER;
 		}*/
 
-		if (FAILED(g_pd3dDevice->Clear(
-			  0, nullptr, iBit, D3DCOLOR_ARGB(0, 0, 0, 0), 1.0F, 0x00000000))) {
-			LOG->Warn("Failed to clear render target");
+		if (FAILED(g_pd3dDevice->Clear(0, nullptr, iBit, D3DCOLOR_ARGB(0, 0, 0, 0), 1.0F, 0x00000000))) {
+			Locator::getLogger()->warn("Failed to clear render target");
 		}
 	}
 }
