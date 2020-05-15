@@ -6,7 +6,6 @@
 #include "NotesLoaderSM.h" // For programming shortcuts.
 #include "NotesLoaderSSC.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -187,10 +186,10 @@ SetSelectable(SSC::SongTagInfo& info)
 	} else if (StringToInt((*info.params)[1]) > 0) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	} else {
-		LOG->UserLog("Song file",
-					 info.path,
-					 "has an unknown #SELECTABLE value, \"%s\"; ignored.",
-					 (*info.params)[1].c_str());
+//		LOG->UserLog("Song file",
+//					 info.path,
+//					 "has an unknown #SELECTABLE value, \"%s\"; ignored.",
+//					 (*info.params)[1].c_str());
 	}
 }
 void
@@ -711,11 +710,11 @@ SSCLoader::ProcessBPMs(TimingData& out,
 		vector<std::string> arrayBPMValues;
 		split(arrayBPMExpression, "=", arrayBPMValues);
 		if (arrayBPMValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #BPMS value \"%s\" (must have exactly "
-						 "one '='), ignored.",
-						 arrayBPMExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #BPMS value \"%s\" (must have exactly "
+//						 "one '='), ignored.",
+//						 arrayBPMExpression.c_str());
 			continue;
 		}
 
@@ -724,7 +723,7 @@ SSCLoader::ProcessBPMs(TimingData& out,
 		if (fBeat >= 0 && fNewBPM > 0) {
 			out.AddSegment(BPMSegment(BeatToNoteRow(fBeat), fNewBPM));
 		} else {
-			LOG->UserLog("Song file",
+//			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid BPM at beat %f, BPM %f.",
 						 fBeat,
@@ -745,11 +744,11 @@ SSCLoader::ProcessStops(TimingData& out,
 		vector<std::string> arrayStopValues;
 		split(arrayStopExpression, "=", arrayStopValues);
 		if (arrayStopValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #STOPS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayStopExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #STOPS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayStopExpression.c_str());
 			continue;
 		}
 
@@ -758,11 +757,11 @@ SSCLoader::ProcessStops(TimingData& out,
 		if (fBeat >= 0 && fNewStop > 0)
 			out.AddSegment(StopSegment(BeatToNoteRow(fBeat), fNewStop));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Stop at beat %f, length %f.",
-						 fBeat,
-						 fNewStop);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Stop at beat %f, length %f.",
+//						 fBeat,
+//						 fNewStop);
 		}
 	}
 }
@@ -780,11 +779,11 @@ SSCLoader::ProcessWarps(TimingData& out,
 		vector<std::string> arrayWarpValues;
 		split(arrayWarpExpression, "=", arrayWarpValues);
 		if (arrayWarpValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #WARPS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayWarpExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #WARPS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayWarpExpression.c_str());
 			continue;
 		}
 
@@ -796,11 +795,11 @@ SSCLoader::ProcessWarps(TimingData& out,
 		} else if (fNewBeat > 0)
 			out.AddSegment(WarpSegment(BeatToNoteRow(fBeat), fNewBeat));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Warp at beat %f, BPM %f.",
-						 fBeat,
-						 fNewBeat);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Warp at beat %f, BPM %f.",
+//						 fBeat,
+//						 fNewBeat);
 		}
 	}
 }
@@ -817,11 +816,11 @@ SSCLoader::ProcessLabels(TimingData& out,
 		vector<std::string> arrayLabelValues;
 		split(arrayLabelExpression, "=", arrayLabelValues);
 		if (arrayLabelValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #LABELS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayLabelExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #LABELS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayLabelExpression.c_str());
 			continue;
 		}
 
@@ -831,11 +830,11 @@ SSCLoader::ProcessLabels(TimingData& out,
 		if (fBeat >= 0.0f)
 			out.AddSegment(LabelSegment(BeatToNoteRow(fBeat), sLabel));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Label at beat %f called %s.",
-						 fBeat,
-						 sLabel.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Label at beat %f called %s.",
+//						 fBeat,
+//						 sLabel.c_str());
 		}
 	}
 }
@@ -861,11 +860,11 @@ SSCLoader::ProcessCombos(TimingData& out,
 		split(arrayComboExpression, "=", arrayComboValues);
 		unsigned size = arrayComboValues.size();
 		if (size < 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #COMBOS value \"%s\" (must have at "
-						 "least one '='), ignored.",
-						 arrayComboExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #COMBOS value \"%s\" (must have at "
+//						 "least one '='), ignored.",
+//						 arrayComboExpression.c_str());
 			continue;
 		}
 		const float fComboBeat = StringToFloat(arrayComboValues[0]);
@@ -890,10 +889,10 @@ SSCLoader::ProcessScrolls(TimingData& out,
 		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an scroll change with %i values.",
-						 static_cast<int>(vs2.size()));
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an scroll change with %i values.",
+//						 static_cast<int>(vs2.size()));
 			continue;
 		}
 
@@ -901,10 +900,10 @@ SSCLoader::ProcessScrolls(TimingData& out,
 		const float fRatio = StringToFloat(vs2[1]);
 
 		if (fBeat < 0) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an scroll change with beat %f.",
-						 fBeat);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an scroll change with beat %f.",
+//						 fBeat);
 			continue;
 		}
 
@@ -915,14 +914,14 @@ SSCLoader::ProcessScrolls(TimingData& out,
 bool
 SSCLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 {
-	LOG->Trace("Loading notes from %s", cachePath.c_str());
+//	LOG->Trace("Loading notes from %s", cachePath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(cachePath, true)) {
-		LOG->UserLog("Unable to load any notes from",
-					 cachePath,
-					 "for this reason: %s",
-					 msd.GetError().c_str());
+//		LOG->UserLog("Unable to load any notes from",
+//					 cachePath,
+//					 "for this reason: %s",
+//					 msd.GetError().c_str());
 		return false;
 	}
 
@@ -1024,8 +1023,8 @@ SSCLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, true)) {
-		LOG->UserLog(
-		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 

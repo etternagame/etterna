@@ -10,7 +10,6 @@
 #include "Etterna/Globals/rngthing.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -91,7 +90,7 @@ SearchForDifficulty(std::string sTag, Steps* pOut)
 		pOut->SetDifficulty(Difficulty_Edit);
 	}
 
-	LOG->Trace("Tag \"%s\" is %s",
+	Locator::getLogger()->trace("Tag \"{}\" is {}",
 			   sTag.c_str(),
 			   DifficultyToString(pOut->GetDifficulty()).c_str());
 }
@@ -435,11 +434,11 @@ struct bmsCommandTree
 
 		if (name == "#if") {
 			if (randomStack.size() < currentNode->branchHeight + 1) {
-				LOG->UserLog("Song file",
-							 path,
-							 "Line %d: Missing #RANDOM. Warning: Branch will "
-							 "be considered false!",
-							 line);
+//				LOG->UserLog("Song file",
+//							 path,
+//							 "Line %d: Missing #RANDOM. Warning: Branch will "
+//							 "be considered false!",
+//							 line);
 
 				while (randomStack.size() < currentNode->branchHeight + 1)
 					randomStack.push_back(0);
@@ -456,15 +455,15 @@ struct bmsCommandTree
 					return;
 				}
 
-				LOG->UserLog("Song file",
-							 path,
-							 "Line %d: #else without matching #if chain.\n",
-							 line);
+//				LOG->UserLog("Song file",
+//							 path,
+//							 "Line %d: #else without matching #if chain.\n",
+//							 line);
 			} else
-				LOG->UserLog("Song file",
-							 path,
-							 "Line %d: #else used at root level.\n",
-							 line);
+//				LOG->UserLog("Song file",
+//							 path,
+//							 "Line %d: #else used at root level.\n",
+//							 line);
 		} else if (name == "#elseif") {
 			if (currentNode->parent != nullptr) // Not the root node.
 			{
@@ -473,16 +472,16 @@ struct bmsCommandTree
 					currentNode = createElseIfNode(currentNode->parent,
 												   atoi(value.c_str()));
 				} else
-					LOG->UserLog(
-					  "Song file",
-					  path,
-					  "Line %d: #elseif without matching #if chain.\n",
-					  line);
+//					LOG->UserLog(
+//					  "Song file",
+//					  path,
+//					  "Line %d: #elseif without matching #if chain.\n",
+//					  line);
 			} else
-				LOG->UserLog("Song file",
-							 path,
-							 "Line %d: #elseif used at root level.\n",
-							 line);
+//				LOG->UserLog("Song file",
+//							 path,
+//							 "Line %d: #elseif used at root level.\n",
+//							 line);
 		} else if (name == "#endif" || name == "#end") {
 			if (currentNode->parent != nullptr) // not the root node
 			{
@@ -490,10 +489,10 @@ struct bmsCommandTree
 			}
 
 			if (currentNode->conditionType != bmsNodeS::CT_CONDITIONALCHAIN) {
-				LOG->UserLog("Song file",
-							 path,
-							 "Line %d: #endif without a matching #if!",
-							 line);
+//				LOG->UserLog("Song file",
+//							 path,
+//							 "Line %d: #endif without a matching #if!",
+//							 line);
 				return;
 			}
 
@@ -542,18 +541,17 @@ BMSChart::Load(const std::string& chartPath)
 
 	RageFile file;
 	if (!file.Open(path)) {
-		LOG->UserLog(
-		  "Song file", path, "couldn't be opened: %s", file.GetError().c_str());
+//		LOG->UserLog("Song file", path, "couldn't be opened: %s", file.GetError().c_str());
 		return false;
 	}
 
 	while (!file.AtEOF()) {
 		std::string line;
 		if (file.GetLine(line) == -1) {
-			LOG->UserLog("Song file",
-						 path,
-						 "had a read error: %s",
-						 file.GetError().c_str());
+//			LOG->UserLog("Song file",
+//						 path,
+//						 "had a read error: %s",
+//						 file.GetError().c_str());
 			return false;
 		}
 
@@ -680,10 +678,10 @@ BMSSong::AllocateKeysound(std::string filename, std::string path)
 
 	if (!IsAFile(dir + normalizedFilename)) {
 		mapKeysoundToIndex[filename] = -1;
-		LOG->UserLog("Song file",
-					 dir,
-					 "references key \"%s\" that can't be found",
-					 normalizedFilename.c_str());
+//		LOG->UserLog("Song file",
+//					 dir,
+//					 "references key \"%s\" that can't be found",
+//					 normalizedFilename.c_str());
 		return -1;
 	}
 
@@ -745,10 +743,10 @@ BMSSong::GetBackground(std::string filename,
 
 	if (!IsAFile(dir + normalizedFilename)) {
 		mapBackground[filename] = "";
-		LOG->UserLog("Song file",
-					 dir,
-					 "references bmp \"%s\" that can't be found",
-					 normalizedFilename.c_str());
+//		LOG->UserLog("Song file",
+//					 dir,
+//					 "references bmp \"%s\" that can't be found",
+//					 normalizedFilename.c_str());
 		return false;
 	}
 
@@ -1035,10 +1033,10 @@ BMSChartReader::DetermineStepsType()
 					return StepsType_beat_double7;
 			}
 		default:
-			LOG->UserLog("Song file",
-						 in->path,
-						 "has an invalid #PLAYER value %d.",
-						 player);
+//			LOG->UserLog("Song file",
+//						 in->path,
+//						 "has an invalid #PLAYER value %d.",
+//						 player);
 			return StepsType_Invalid;
 	}
 }
@@ -1101,7 +1099,7 @@ bool
 BMSChartReader::ReadNoteData()
 {
 	if (out->m_StepsType == StepsType_Invalid) {
-		LOG->UserLog("Song file", in->path, "has an unknown steps type");
+//		LOG->UserLog("Song file", in->path, "has an unknown steps type");
 		return false;
 	}
 
@@ -1359,11 +1357,11 @@ BMSChartReader::ReadNoteData()
 						info.backgroundChanges[row] = bg;
 					}
 				} else {
-					LOG->UserLog(
-					  "Song file",
-					  in->path.c_str(),
-					  "uses key \"%s\" for a bmp change which is undefined.",
-					  obj.value.c_str());
+//					LOG->UserLog(
+//					  "Song file",
+//					  in->path.c_str(),
+//					  "uses key \"%s\" for a bmp change which is undefined.",
+//					  obj.value.c_str());
 				}
 			}
 		} else if (channel == 8) // bpm change (extended)
@@ -1375,10 +1373,10 @@ BMSChartReader::ReadNoteData()
 							   measureAdjust *
 								 (currentBPM = StringToFloat(it->second)));
 			} else {
-				LOG->UserLog("Song file",
-							 in->path.c_str(),
-							 "has tag \"%s\" which cannot be found.",
-							 search.c_str());
+//				LOG->UserLog("Song file",
+//							 in->path.c_str(),
+//							 "has tag \"%s\" which cannot be found.",
+//							 search.c_str());
 			}
 		} else if (channel == 9) // stops
 		{
@@ -1389,10 +1387,10 @@ BMSChartReader::ReadNoteData()
 								(StringToFloat(it->second) / 48.0f) *
 								  (60.0f / currentBPM));
 			} else {
-				LOG->UserLog("Song file",
-							 in->path.c_str(),
-							 "has tag \"%s\" which cannot be found.",
-							 search.c_str());
+//				LOG->UserLog("Song file",
+//							 in->path.c_str(),
+//							 "has tag \"%s\" which cannot be found.",
+//							 search.c_str());
 			}
 		} else if (channel < 30 &&
 				   reverseTransform[channel] != -1) // player notes!
@@ -1549,8 +1547,8 @@ BMSSongLoader::AddToSong()
 		if (commonSubstring.empty()) {
 			// All bets are off; the titles don't match at all.
 			// At this rate we're lucky if we even get the title right.
-			LOG->UserLog(
-			  "Song", dir, "has BMS files with inconsistent titles.");
+//			LOG->UserLog(
+//			  "Song", dir, "has BMS files with inconsistent titles.");
 		}
 	}
 
@@ -1735,7 +1733,7 @@ BMSLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 bool
 BMSLoader::LoadFromDir(const std::string& sDir, Song& out)
 {
-	LOG->Trace("Song::LoadFromBMSDir(%s)", sDir.c_str());
+//	LOG->Trace("Song::LoadFromBMSDir(%s)", sDir.c_str());
 
 	ASSERT(out.m_vsKeysoundFile.empty());
 

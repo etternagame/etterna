@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "RageUtil/Graphics/RageSurfaceUtils_Dither.h"
@@ -162,7 +162,7 @@ ImageCache::OutputStats() const
 		const auto iSize = pImage->pitch * pImage->h;
 		iTotalSize += iSize;
 	}
-	LOG->Info("%i bytes of images loaded", iTotalSize);
+	Locator::getLogger()->info("{} bytes of images loaded", iTotalSize);
 }
 
 void
@@ -208,7 +208,7 @@ ImageCache::ReadFromDisk()
 	if (iCacheVersion == IMAGE_CACHE_VERSION)
 		return;
 
-	LOG->Trace("Cache format is out of date.  Deleting all cache files.");
+	Locator::getLogger()->trace("Cache format is out of date.  Deleting all cache files.");
 	vector<std::string> ImageDir;
 	split(CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir);
 	for (const auto& Image : ImageDir)
@@ -259,7 +259,7 @@ struct ImageTexture : public RageTexture
 		 * are already scaled down, this shouldn't happen often. */
 		if (m_pImage->w > DISPLAY->GetMaxTextureSize() ||
 			m_pImage->h > DISPLAY->GetMaxTextureSize()) {
-			LOG->Warn("Converted %s at runtime", GetID().filename.c_str());
+			Locator::getLogger()->warn("Converted {} at runtime", GetID().filename.c_str());
 			const auto iWidth = min(m_pImage->w, DISPLAY->GetMaxTextureSize());
 			const auto iHeight = min(m_pImage->h, DISPLAY->GetMaxTextureSize());
 			RageSurfaceUtils::Zoom(m_pImage, iWidth, iHeight);
@@ -326,7 +326,7 @@ ImageCache::LoadCachedImage(const std::string& sImageDir,
 	if (g_ImagePathToImage.find(sImagePath) == g_ImagePathToImage.end()) {
 		/* Oops, the image is missing.  Warn and continue. */
 		if (PREFSMAN->m_ImageCache != IMGCACHE_OFF) {
-			LOG->Warn("%s cache for '%s' wasn't loaded",
+			Locator::getLogger()->warn("{} cache for '{}' wasn't loaded",
 					  sImageDir.c_str(),
 					  sImagePath.c_str());
 		}
@@ -343,7 +343,7 @@ ImageCache::LoadCachedImage(const std::string& sImageDir,
 	ImageData.GetValue(sImagePath, "Width", iSourceWidth);
 	ImageData.GetValue(sImagePath, "Height", iSourceHeight);
 	if (iSourceWidth == 0 || iSourceHeight == 0) {
-		LOG->UserLog("Cache file", sImagePath, "couldn't be loaded.");
+        Locator::getLogger()->warn("Cache file {} couldn't be loaded.", sImagePath);
 		return ID;
 	}
 
@@ -425,8 +425,7 @@ ImageCache::CacheImageInternal(const std::string& sImageDir,
 	  sError; // Remove this when Global  std::string to std::string convert.
 	auto pImage = RageSurfaceUtils::LoadFile(otImagePath, otError);
 	if (pImage == nullptr) {
-		LOG->UserLog(
-		  "Cache file", sImagePath, "couldn't be loaded: %s", sError.c_str());
+        Locator::getLogger()->warn("Cache file {} couldn't be loaded: {}", sImagePath, sError.c_str());
 		return;
 	}
 

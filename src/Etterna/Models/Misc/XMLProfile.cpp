@@ -2,7 +2,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Profile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/NoteData/NoteData.h"
@@ -67,7 +67,7 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 	{                                                                          \
 		const XNode* X = xml->GetChild(#X);                                    \
 		if (X == NULL)                                                         \
-			LOG->Warn("Failed to read section " #X);                           \
+			Locator::getLogger()->warn("Failed to read section " #X);                           \
 		else                                                                   \
 			Load##X##FromNode(X);                                              \
 	}
@@ -83,17 +83,17 @@ XMLProfile::LoadEttFromDir(string dir)
 	const std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == nullptr) {
-		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+		Locator::getLogger()->trace("Error opening {}: {}", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Loading %s", fn.c_str());
+		Locator::getLogger()->trace("Loading {}", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Done.");
+		Locator::getLogger()->trace("Done.");
 
 	return LoadEttXmlFromNode(&xml);
 }
@@ -101,7 +101,7 @@ XMLProfile::LoadEttFromDir(string dir)
 bool
 XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 {
-	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
+	Locator::getLogger()->trace("Saving Etterna Profile to: {}", sDir.c_str());
 	const std::unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	auto pDir = sDir + PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml

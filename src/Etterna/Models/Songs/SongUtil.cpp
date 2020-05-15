@@ -7,7 +7,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -293,10 +293,10 @@ SongUtil::DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps)
 				RemoveInitialWhitespace(sSMNoteData2))
 				continue;
 
-			LOG->Trace("Removed %p duplicate steps in song \"%s\" with "
-					   "description \"%s\", step author \"%s\", and meter "
-					   "\"%i\"",
-					   s2,
+			Locator::getLogger()->trace("Removed {} duplicate steps in song \"{}\" with "
+					   "description \"{}\", step author \"{}\", and meter "
+					   "\"{}\"",
+					   (void*)s2,
 					   pSong->GetSongDir().c_str(),
 					   s1->GetDescription().c_str(),
 					   s1->GetCredit().c_str(),

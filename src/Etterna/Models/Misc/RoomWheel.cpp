@@ -2,7 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RoomWheel.h"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -29,7 +29,7 @@ RoomWheel::Load(const std::string& sType)
 	WheelBase::Load(sType);
 
 	m_offset = 0;
-	LOG->Trace("RoomWheel::Load('%s')", sType.c_str());
+	Locator::getLogger()->trace("RoomWheel::Load('{}')", sType.c_str());
 
 	searching = false;
 	currentSearch.title = "";

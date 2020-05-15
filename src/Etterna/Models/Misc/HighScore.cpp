@@ -4,7 +4,7 @@
 #include "HighScore.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "NoteTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -354,7 +354,7 @@ HighScoreImpl::WriteReplayData() -> bool
 	ASSERT(!vNoteRowVector.empty());
 
 	if (!fileStream) {
-		LOG->Warn("Failed to create replay file at %s", path.c_str());
+		Locator::getLogger()->warn("Failed to create replay file at {}", path.c_str());
 		return false;
 	}
 
@@ -380,7 +380,7 @@ HighScoreImpl::WriteReplayData() -> bool
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
-	LOG->Trace("Created replay file at %s", path.c_str());
+	Locator::getLogger()->trace("Created replay file at {}", path.c_str());
 	return true;
 }
 
@@ -397,7 +397,7 @@ HighScore::WriteInputData(const std::vector<float>& oop) -> bool
 	ASSERT(!oop.empty());
 
 	if (!fileStream) {
-		LOG->Warn("Failed to create replay file at %s", path.c_str());
+		Locator::getLogger()->warn("Failed to create replay file at {}", path.c_str());
 		return false;
 	}
 
@@ -408,7 +408,7 @@ HighScore::WriteInputData(const std::vector<float>& oop) -> bool
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
-	LOG->Trace("Created replay file at %s", path.c_str());
+	Locator::getLogger()->trace("Created replay file at {}", path.c_str());
 	return true;
 }
 
@@ -444,7 +444,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 
 	// check file
 	if (!fileStream) {
-		LOG->Trace("Failed to load replay data at %s", path.c_str());
+		Locator::getLogger()->trace("Failed to load replay data at {}", path.c_str());
 		return false;
 	}
 
@@ -459,7 +459,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 			}
 
 			if (tokens.size() > 2) {
-				LOG->Warn(
+				Locator::getLogger()->warn(
 				  "looks like u got v2 replays in the v1 folder, move them "
 				  "into Save/ReplaysV2 folder if you want them to load. If %s "
 				  "is not a v2 replay that you placed into the Save/Replays "
@@ -483,8 +483,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 			tokens.clear();
 		}
 	} catch (std::runtime_error& e) {
-		LOG->Warn(
-		  "Failed to load replay data at %s due to runtime exception: %s",
+		Locator::getLogger()->warn("Failed to load replay data at {} due to runtime exception: {}",
 		  path.c_str(),
 		  e.what());
 		fileStream.close();
@@ -495,7 +494,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 	SetOffsetVector(vOffsetVector);
 
 	m_Impl->ReplayType = 1;
-	LOG->Trace("Loaded replay data type 1 at %s", path.c_str());
+	Locator::getLogger()->trace("Loaded replay data type 1 at {}", path.c_str());
 	return true;
 }
 
@@ -556,8 +555,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 			  tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
 				!(typeid(tmp) == typeid(int))) {
-				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype "
-						  "value is not of type TapNoteSubType\")",
+				Locator::getLogger()->warn("Failed to load replay data at {} (\"Tapnotesubtype value is not of type TapNoteSubType\")",
 						  path.c_str());
 			}
 			hrr.subType = static_cast<TapNoteSubType>(tmp);
@@ -577,14 +575,13 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 		a = buffer == "9" || a;
 		a = buffer == "0" || a;
 		if (!a) {
-			LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
-					  path.c_str());
+			Locator::getLogger()->warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF", path.c_str());
 			return false;
 		}
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
-			LOG->Warn("Failed to load replay data at %s (\"NoteRow value is "
+			Locator::getLogger()->warn("Failed to load replay data at %s (\"NoteRow value is "
 					  "not of type: int\")",
 					  path.c_str());
 		}
@@ -592,7 +589,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 
 		offset = std::stof(tokens[1]);
 		if (!(typeid(offset) == typeid(float))) {
-			LOG->Warn("Failed to load replay data at %s (\"Offset value is not "
+			Locator::getLogger()->warn("Failed to load replay data at {} (\"Offset value is not "
 					  "of type: float\")",
 					  path.c_str());
 		}
@@ -600,7 +597,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 
 		track = std::stoi(tokens[2]);
 		if (!(typeid(track) == typeid(int))) {
-			LOG->Warn("Failed to load replay data at %s (\"Track/Column value "
+			Locator::getLogger()->warn("Failed to load replay data at {} (\"Track/Column value "
 					  "is not of type: int\")",
 					  path.c_str());
 		}
@@ -609,7 +606,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 		tmp = tokens.size() >= 4 ? std::stoi(tokens[3]) : TapNoteType_Tap;
 		if (tmp < 0 || tmp >= TapNoteType_Invalid ||
 			!(typeid(tmp) == typeid(int))) {
-			LOG->Warn("Failed to load replay data at %s (\"Tapnotetype value "
+			Locator::getLogger()->warn("Failed to load replay data at {} (\"Tapnotetype value "
 					  "is not of type TapNoteType\")",
 					  path.c_str());
 		}
@@ -626,7 +623,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
-	LOG->Trace("Loaded replay data type 2 at %s", path.c_str());
+	Locator::getLogger()->trace("Loaded replay data type 2 at {}", path.c_str());
 	return true;
 }
 

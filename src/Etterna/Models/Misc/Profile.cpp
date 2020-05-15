@@ -10,7 +10,7 @@
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -316,7 +316,7 @@ Profile::HandleStatsPrefixChange(std::string dir)
 ProfileLoadResult
 Profile::LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
 {
-	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	Locator::getLogger()->trace("Profile::LoadAllFromDir({})", sDir.c_str());
 	ASSERT(sDir.back() == '/');
 
 	InitAll();
@@ -355,7 +355,7 @@ Profile::LoadTypeFromDir(const std::string& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	LOG->Trace("Calculating stats from scores");
+	Locator::getLogger()->trace("Calculating stats from scores");
 	const auto& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	auto TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
