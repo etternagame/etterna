@@ -1,7 +1,7 @@
 # Release Changelog
 
 
-## [0.69.0] - 2020-00-00 - WifeV3, MSD Changes, and Solo
+## [0.69.0] - 2020-05-15 - WifeV3, MSD Changes, and Solo
 
 ### Added
 - Calculator Debug Graphs added as secret feature to Chart Preview - [76253c8](../../../commit/76253c8ab965ea454f58ba69a518e547b4868edb) [1dd30f9](../../../commit/1dd30f914cb1597eb1731de67dc49e188f780fc4) [210df1c](../../../commit/210df1c75b3b3c1b4946291031d6777c70a3e5e6) [e892b77](../../../commit/e892b77c700f924aca533815425cf58eaef86388) [da47e12](../../../commit/da47e12b6ef493c0de103b439249719f6f7efbf6) [5be97b0](../../../commit/5be97b06e1396d06cedb22587959c422d6481095) [3eb1bfe](../../../commit/3eb1bfe0ac6f8658d1c885cb2634bbf1b96aa9c2) [e2fae36](../../../commit/e2fae3691a2d8d7d0bed4a6c1a179b9bc21016aa) [4381900](../../../commit/438190020a6516be03ff21a780eef13560d34d70) [c4ede5b](../../../commit/c4ede5be6311273fb775ed6495bd53031ca41732) [255ad93](../../../commit/255ad93eb533e901d0a160edde039c28b22bc2f7) [6c5c60b](../../../commit/6c5c60b5edbbef5a056cc04f65de6f229f6cc7b7) [cc5b6be](../../../commit/cc5b6be8a99a354327f1e306f18279719824ac75) [3f88fd9](../../../commit/3f88fd98898908dea0db98488cc7036f1f749b7e) [a3a878e](../../../commit/a3a878e9f9bec249449289a7012d21d0980126e0) [f1750ed](../../../commit/f1750ed9cb317c61330a939a47d04b53f193604e) [2d57f20](../../../commit/2d57f20c968eb1c3a422c244a0ef6e4d3d9d34ba) [af32d42](../../../commit/af32d42cef2e6cc313fe15a51c2bbb2b3c024137) [8784ff0](../../../commit/8784ff034e57fa10b7944c197ceb2e170ffe9b84) [f8655a6](../../../commit/f8655a63b35b3c33ecbfc329df08e7db67679317) [641b9f9](../../../commit/641b9f95e59d00082da09ccb8225c8f93766303f) [26c05d2](../../../commit/26c05d2b85212035b821f0dcd2658b1e330dc7f0) [5450b32](../../../commit/5450b329abd9fc968e15ef365ae53ca2ad06f3e7) [36d641e](../../../commit/36d641efb321e200a14c9b25b2862ea48e14d9a5) [0c7aac5](../../../commit/0c7aac59e68d2190dfdd0b084875fb08eb9ff922) [1af3511](../../../commit/1af3511dfe641636bab95668f6af52e8be1d78bd) [64eecbc](../../../commit/64eecbcf5a39959531b854dfff47d8104e0643cb) [e4804c8](../../../commit/e4804c88f00fa145965ce8c0d643555a34d8df33) [ac34220](../../../commit/ac34220b656c4ee87d12134a4873a99de88b4f31) [f0c9cc5](../../../commit/f0c9cc561dd2375843f56c73c3df6d4302675733) [8a210e4](../../../commit/8a210e418e6a3400d9eb71c36f68fcaf36c46130) [2d2bf42](../../../commit/2d2bf42ef0548370a15081b285b1c1c008bb2398) [49e4a2c](../../../commit/49e4a2c6f41a3f8fe9ec54861459f96437b4819b) [d5b7593](../../../commit/d5b75932e553d2a0c7f39dc0f55cbf8e4cf5d050) [1e1ab6c](../../../commit/1e1ab6cfe94be732a0e2d9a70f12f8effdcda2a4) [21462f5](../../../commit/21462f529fe4e5f5980d526428dfaf8739711d08) [1a5ff0c](../../../commit/1a5ff0c1e36a0badb65fbc152b24012afd799a14) [9752a08](../../../commit/9752a087901f873d80ab0bd9624be92344b3a616) [85294ce](../../../commit/85294cef72def6d37daaed4397c70b8f03f451a7) [0505ee6](../../../commit/0505ee6b52c85158c174cbcf948b043398d1af06)
@@ -24,14 +24,14 @@
 - Crashes when opening files through DownloadManager should give slightly better reasons - [61f61e9](../../../commit/61f61e9f834ab04b787a26acf320b69eef6186b1)
 - CURL updated to 7.69.1 - [#728](../../../pull/728) [cb693da](../../../commit/cb693da5ff4a756fecba0805862ea070878432e5)
 - Exiting Gameplay will unset the CustomizeGameplay Keymode - [aaf910f](../../../commit/aaf910f29bf384e79e8c098145eca8129460d418)
-- Grades have been moved slightly - [ba09e7f](../../../commit/ba09e7f73d638ed18fc26203c02170eee0a22ad7)
+- Grades have been moved slightly - [ba09e7f](../../../commit/ba09e7f73d638ed18fc26203c02170eee0a22ad7) [40f8636](../../../commit/40f8636fd6045ab4230014fc068c4ae4b4dafdb3)
 - Logged In text got moved ever so slightly - [30d6f21](../../../commit/30d6f214793eefdccbab5b73bd509d1e08b39f41)
 - Nonemptynoterowvectors no longer consider fake regions so ratings don't get broken - [9d63b19](../../../commit/9d63b19e6471f7e5116e8b4b59c84f47fad0447e) [73f2386](../../../commit/73f238669b25d9f2bc9dca06619af73446ac06d4) [e6beb68](../../../commit/e6beb68a811cb336bd0fe7414cf74f8c574d4a83)
 - NoteField Filter & CBHighlights moved to the NoteField Board Actor to fix/simplify issues with their shape and position - [a590605](../../../commit/a5906053fbd17d7e3cd3c1aafc20f35fe2275f4b) [c05baa5](../../../commit/c05baa5f03525ce8edf17b509f751bd7d70fbe3c) [08480f2](../../../commit/08480f28cec61a613b81576bb776ea7f20c06510) [3e54cc2](../../../commit/3e54cc2feca29cfdb489a1d63d3ad19b41b37f18) [de78e55](../../../commit/de78e55d0d3160bec75e586b651f3b78aa5336cc)
 - RageUtil Iterator functions inlined - [b3597ec](../../../commit/b3597ec5fc56487361529f13280817ac0195c1a9)
 - Rows Per Beat should be 48 everywhere, optimize here - [efd6822](../../../commit/efd6822df18353b75b853a8403eb53acadd7275b)
 - Score Syncing on startup is slightly changed internally, logicwise but speed wise - [157bc1d](../../../commit/157bc1dabe93e6a899cc1659e7f4025cedbf054a) [28cfd93](../../../commit/28cfd9300bed2c3240b3cb4f4372cd92a9738ae9)
-- SerializedNoteData function replaced by more optimized version - [fe045f4](../../../commit/fe045f419bb3d5207f2c511f9fe94f91942404a6) [ce23440](../../../commit/ce234400d235521ab93c1bd6824ece5ca4f64757)
+- SerializedNoteData function replaced by more optimized version - [fe045f4](../../../commit/fe045f419bb3d5207f2c511f9fe94f91942404a6) [ce23440](../../../commit/ce234400d235521ab93c1bd6824ece5ca4f64757) [f46d4d4](../../../commit/f46d4d44af886ceb12d0d992cd7724e098c458e9)
 - String copies/references in Highscore functions - [e450fd3](../../../commit/e450fd331a30d38dfa6eb4defdcfc34987e14dc0) [8dae205](../../../commit/8dae2050b45dbcc599c95c6e66c19acdefe997e4)
 - Wife2 will be invalidated, so invalid scores show by default on the chart leaderboards - [e8de60c](../../../commit/e8de60cf560195c746997b3539d3c26c23a93c83)
 
@@ -51,6 +51,7 @@
 
 ### Fixed
 - Button mappings for Games other than Dance didn't have EffectUp/EffectDown by default so rates didn't seem to work - [8a0849d](../../../commit/8a0849d0dd3dee2da97026703b54f8ceaa2abf55)
+- Coverity defects - [6b32ed7](../../../commit/6b32ed73ca3a451486fcce55edb2b53656eec60a) [8e95462](../../../commit/8e95462694c12bf4031755017ec9adf38681e5c4) [43ae78d](../../../commit/43ae78d2a3be35b95630251a181ee317af4decd7) [e6459de](../../../commit/e6459de3656690ec74f3d3d41de57d7ed0bdcd43) [1452a19](../../../commit/1452a19e39b85a5b9fc3f4bab09fc63d5155799b)
 - Offline Evaluation Scoreboard broke when between 2 and 5 scores were set - [eccd24b](../../../commit/eccd24beb79a66d10a836ebd3d3698188fac6364)
 - MacOS Catalina didn't work - [#686](../../../pull/686)
 - MMod didn't actually work like the name says it does - [1b04748](../../../commit/1b0474800a008e115ab977e764ee1c9459e2e58b)
