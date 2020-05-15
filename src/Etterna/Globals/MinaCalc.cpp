@@ -403,21 +403,12 @@ Calc::JackStamAdjust(float x, int t, int mode)
 inline float
 hit_the_road(float x, float y, int mode)
 {
-	if (mode == 0)
-		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
-	else if (mode == 1)
-		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
-	else if (mode == 2)
-		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
-	else if (mode == 3)
-		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
-	else
-		return 0.f;
+	return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
 }
 
 // returns a positive number or 0, output should be subtracted
 float
-Calc::JackLoss(float x, int mode, bool stam)
+Calc::JackLoss(float x, int mode, float mpl, bool stam)
 {
 	bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
@@ -436,33 +427,36 @@ Calc::JackLoss(float x, int mode, bool stam)
 	// jumpjack, take the max between the cols on each hand, meaning we have to
 	// loop through tracks in the interval loop
 	for (int i = 0; i < numitv; ++i) {
-		for (auto t : { 0, 1, 2, 3 }) {
-			// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-			auto& seagull = stam ? stam_adj_jacks[t][i] : jacks[mode][t][i];
+		// yes i think this does just have to be this slow
+		for (auto& t : zto3) {
+			// stam is broken atm and also redundant with stuffs
+			// const auto& seagull = stam ? stam_adj_jacks[t][i] :
+			// jacks[mode][t][i];
 			float loss = 0.f;
-			for (auto& j : seagull) {
+			for (auto& j : jacks[mode][t][i]) {
 				if (x >= j)
 					continue;
-				float boat = hit_the_road(x, j, mode);
-				loss += boat;
-
+				loss += hit_the_road(x, j, mode);
+				
 				if (dbg)
 					std::cout << "loss for diff : " << j
-							  << " with pskill: " << x << " : " << boat
+							  << " with pskill: " << x << " : "
+							  << hit_the_road(x, j, mode)
 							  << std::endl;
 			}
 			flurbo[t] = loss;
 		}
-		left_loss[i] = max(flurbo[0], flurbo[1]);
-		right_loss[i] = max(flurbo[2], flurbo[3]);
 
-		total_point_loss += left_loss[i];
-		// slight optimization i guess
-		if (total_point_loss > MaxPoints)
+		if (debugmode) {
+			left_loss[i] = max(flurbo[0], flurbo[1]);
+			right_loss[i] = max(flurbo[2], flurbo[3]);
+			// slight optimization i guess, bail if we can no longer reach score
+			// goal (but only outside of debug)
+		} else if (total_point_loss > mpl)
 			return total_point_loss;
-		total_point_loss += right_loss[i];
-		if (total_point_loss > MaxPoints)
-			return total_point_loss;
+
+		total_point_loss += max(flurbo[0], flurbo[1]);
+		total_point_loss += max(flurbo[2], flurbo[3]);		
 	}
 	if (debugmode) {
 		left_hand.debugValues[2][JackPtLoss] = left_loss;
@@ -523,12 +517,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
 
-	// do all modes in 1 pass now
-	vector<vector<float>> itv_jacks[4];
-	for (auto& v : itv_jacks)
-		v.reserve(numitv);
-	vector<float> mode_jack_diffs[4];
-
 	// doge adventure etc
 	static const float max_diff = 55.f;
 
@@ -553,12 +541,12 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = { 0.75f, 1.4f, 1.2f, 1.45f };
-	for (auto& itv : f) {
-		for (auto& v : mode_jack_diffs)
-			v.clear();
-
+	jacks[mode][track].resize(numitv);
+	for (size_t itv = 0; itv < f.size(); ++itv) {
+		jacks[mode][track][itv].resize(f[itv].size());
 		// taps in interval
-		for (auto& ms : itv) {
+		for (size_t ind = 0; ind < f[itv].size(); ++ind) {
+			float ms = f[itv][ind];
 			time += ms;
 			if (dbg) {
 				std::cout << "time now: " << time / 1000.f << std::endl;
@@ -692,15 +680,13 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			}
 
 			fdiff = CalcClamp(fdiff * mode_scalers[mode], 0.f, max_diff);
-			mode_jack_diffs[mode].push_back(fdiff);
+			jacks[mode][track][itv][ind] = fdiff;
 			if (dbg) {
 				std::cout << "comp mean: " << mean(comp_diff) << std::endl;
 				std::cout << "fdiff: " << fdiff << "\n" << std::endl;
 			}
 		}
-		itv_jacks[mode].push_back(mode_jack_diffs[mode]);
 	}
-	jacks[mode][track] = itv_jacks[mode];
 }
 #pragma endregion
 
@@ -1054,16 +1040,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	}
 
 	// werwerwer
-	for (int i = 0; i < 4; ++i) {
-		SequenceJack(fingers[i], i, 0);
-		// Smooth(jacks[i], 1.f);
-		SequenceJack(fingers[i], i, 1);
-		// Smooth(jacks2[i], 1.f);
-		SequenceJack(fingers[i], i, 2);
-		// Smooth(jacks3[i], 1.f);
-		SequenceJack(fingers[i], i, 3);
+	for (auto m : zto3) {
+		jacks[m]->resize(4);
+		for (auto t : zto3) {
+			SequenceJack(fingers[t], t, m);
+		}
 	}
-
 	return true;
 }
 
@@ -1119,6 +1101,7 @@ Calc::Chisel(float player_skill,
 	float gotpoints = 0.f;
 	int possiblepoints = 0;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
+	float max_points_lost = static_cast<float>(MaxPoints) - reqpoints;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
 			if (player_skill > 100.f)
@@ -1134,13 +1117,17 @@ Calc::Chisel(float player_skill,
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
 			if (ss == Skill_JackSpeed) {
-				gotpoints = MaxPoints - JackLoss(player_skill, 1, false);
+				gotpoints =
+				  MaxPoints - JackLoss(player_skill, 1, max_points_lost, false);
 			} else if (ss == Skill_Chordjack) {
-				gotpoints = MaxPoints - JackLoss(player_skill, 2, false);
+				gotpoints =
+				  MaxPoints - JackLoss(player_skill, 2, max_points_lost, false);
 			} else if (ss == Skill_Technical) {
-				gotpoints = MaxPoints - JackLoss(player_skill, 3, false);
+				gotpoints =
+				  MaxPoints - JackLoss(player_skill, 3, max_points_lost, false);
 			} else if (ss == Skill_Stream) {
-				gotpoints = MaxPoints - JackLoss(player_skill, 0, false);
+				gotpoints =
+				  MaxPoints - JackLoss(player_skill, 0, max_points_lost, false);
 			} else {
 				gotpoints = MaxPoints;
 				// left_hand.CalcInternal(gotpoints, player_skill,

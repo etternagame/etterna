@@ -115,7 +115,7 @@ class Calc
 								float score_goal);
 
 	void JackStamAdjust(float x, int t, int mode);
-	float JackLoss(float x, int mode, bool stam);
+	float JackLoss(float x, int mode, float mpl, bool stam);
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
