@@ -1565,8 +1565,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				(notes > 1 && last_notes == 1)) {
 				if (!twas_jack) {
 					if (dbg_lv2)
-						std::cout
-						  << "good hot js/hs: " << std::endl;
+						std::cout << "good hot js/hs: " << std::endl;
 					seriously_not_js -= 3;
 				}
 			}
@@ -1584,7 +1583,8 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				// high
 				if (seriously_not_js > 3) {
 					if (dbg)
-						std::cout << "exceeding light js/hs tolerance: " << seriously_not_js << std::endl;
+						std::cout << "exceeding light js/hs tolerance: "
+								  << seriously_not_js << std::endl;
 					not_js += seriously_not_js;
 					// give light hs the light js treatment
 					not_hs += seriously_not_js;
@@ -1592,8 +1592,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			} else if (last_notes > 1 && notes > 1) {
 				// suppress jumptrilly garbage a little bit
 				if (dbg)
-					std::cout
-					  << "sequential chords detected: " << std::endl;
+					std::cout << "sequential chords detected: " << std::endl;
 				not_hs += notes;
 				not_js += notes;
 			}
