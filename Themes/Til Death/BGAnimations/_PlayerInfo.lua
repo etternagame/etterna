@@ -14,6 +14,8 @@ local numfaves = 0
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT - 50
 local playerRating = 0
+local uploadbarwidth = 100
+local uploadbarheight = 10
 
 local setnewdisplayname = function(answer)
 	if answer ~= "" then
@@ -163,7 +165,7 @@ t[#t + 1] =
 		{
 			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 26):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 29):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -200,7 +202,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoom(0.5):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 25):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -373,8 +375,51 @@ t[#t + 1] =
 			DFRFinishedMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
+		},
+		-- ok coulda done this as a separate object to avoid copy paste but w.e
+		-- upload progress bar bg
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(uploadbarwidth, uploadbarheight)
+			self:diffuse(color("#111111")):diffusealpha(0):halign(0)
+		end,
+		UploadProgressMessageCommand = function(self, params)
+			self:diffusealpha(1)	
+			if params.percent == 1 then
+				self:diffusealpha(0)
+			end
+		end
+		},
+		-- fill bar
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(0, uploadbarheight)
+			self:diffuse(color("#AAAAAAA")):diffusealpha(0):halign(0)
+		end,
+		UploadProgressMessageCommand = function(self, params)
+			self:diffusealpha(1)
+			self:zoomto(params.percent * uploadbarwidth, uploadbarheight)
+			if params.percent == 1 then
+				self:diffusealpha(0)
+			end
+		end
+		},
+		-- super required explanatory text
+	LoadFont("Common Normal") .. 
+		{
+	    InitCommand = function(self)
+			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 27):halign(0):valign(0)
+			self:diffuse(getMainColor("positive")):diffusealpha(0):zoom(0.35)
+        	self:settext("Uploading Scores...")
+		end,
+		UploadProgressMessageCommand = function(self, params)
+			self:diffusealpha(1)
+			if params.percent == 1 then
+				self:diffusealpha(0)
+			end
+		end
 		}
-}
+	}
 
 local function Update(self)
 	t.InitCommand = function(self)

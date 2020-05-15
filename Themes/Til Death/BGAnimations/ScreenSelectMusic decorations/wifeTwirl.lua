@@ -6,6 +6,7 @@ local score
 local song
 local steps
 local noteField = false
+local infoOnScreen = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
@@ -51,6 +52,17 @@ local function playMusicForPreview(song)
 	hackysack = false
 end
 
+-- to toggle calc info display stuff
+local function toggleCalcInfo(state)
+	infoOnScreen = state
+
+	if infoOnScreen then
+		MESSAGEMAN:Broadcast("CalcInfoOn")
+	else
+		MESSAGEMAN:Broadcast("CalcInfoOff")
+	end
+end
+
 -- to reduce repetitive code for setting preview visibility with booleans
 local function setPreviewPartsState(state)
 	if state == nil then return end
@@ -58,10 +70,13 @@ local function setPreviewPartsState(state)
 	mcbootlarder:GetChild("NoteField"):visible(state)
 	heyiwasusingthat = not state
 	previewVisible = state
+	if state ~= infoOnScreen and not state then
+		toggleCalcInfo(false)
+	end
 end
 
 local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return end
+	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
 	if song and not noteField then -- first time setup
 		noteField = true
 		justChangedStyles = false
@@ -83,7 +98,7 @@ local function toggleNoteField()
 		songChanged = false
 		hackysack = false
 		previewVisible = true
-		return
+		return true
 	end
 
 	if song then
@@ -92,9 +107,11 @@ local function toggleNoteField()
 			mcbootlarder:visible(false)
 			mcbootlarder:GetChild("NoteField"):visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
+			toggleCalcInfo(false)
 			previewVisible = false
 			hackysack = changingSongs
 			changingSongs = false
+			return false
 		else
 			mcbootlarder:visible(true)
 			mcbootlarder:GetChild("NoteField"):visible(true)
@@ -109,16 +126,18 @@ local function toggleNoteField()
 			end
 			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			previewVisible = true
+			return true
 		end
 	end
+	return false
 end
-
 
 local update = false
 local t =
 	Def.ActorFrame {
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		toggleCalcInfo(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
@@ -262,6 +281,11 @@ local t =
 			end
 		end
 	end,
+	MilkyTartsCommand = function(self) -- when entering pack screenselectmusic explicitly turns visibilty on notefield off -mina
+		if noteField and mcbootlarder:IsVisible() then
+			toggleCalcInfo(false)
+		end
+	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
 	end,
@@ -339,7 +363,8 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					if steps:GetStepsType() == "StepsType_Dance_Single" then
+                    local stype = steps:GetStepsType()
+					if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
 						local meter = steps:GetMSD(getCurRateValue(), 1)
 						self:settextf("%05.2f", meter)
 						self:diffuse(byMSD(meter))
@@ -432,7 +457,25 @@ t[#t + 1] =
 				end
 			end
 		},
-	-- Rate for the displayed score & Mirror PB Indicator
+	-- Mirror PB Indicator
+	LoadFont("Common Normal") ..
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 37, frameY + 58):zoom(0.5):halign(1)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				local mirrorStr = ""
+				if score:GetModifiers():lower():find("mirror") then
+					mirrorStr = "(M)"
+				end
+				self:settext(mirrorStr)
+			else
+				self:settext("")
+			end
+		end
+	},
+	-- Rate for the displayed score
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
@@ -447,16 +490,27 @@ t[#t + 1] =
 						rate = rate:sub(0, #rate - 1)
 					end
 					rate = rate .. "x"
-					local mirrorStr = ""
-					if score:GetModifiers():lower():find("mirror") then
-						mirrorStr = " (M)"
-					end
-
 					if notCurRate then
-						self:settext("(" .. rate .. ")" .. mirrorStr)
+						self:settext("(" .. rate .. ")")
 					else
-						self:settext(rate .. mirrorStr)
+						self:settext(rate)
 					end
+				else
+					self:settext("")
+				end
+			end
+		},
+		-- wife 2/3 indicator
+		LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 70, frameY + 58):zoom(0.5):halign(0):maxwidth(140)
+			end,
+			MintyFreshCommand = function(self)
+				if song and score then
+					local wv = score:GetWifeVers()
+					local ws = " W" .. wv
+					self:settext(ws):diffuse(byGrade(score:GetWifeGrade()))
 				else
 					self:settext("")
 				end
@@ -949,6 +1003,7 @@ local function highlightIfOver(self)
 end
 
 t[#t + 1] = Def.ActorFrame {
+	Name = "LittleButtonsOnTheLeft",
 	InitCommand = function(self)
 		self:SetUpdateFunction( function(self)
 			self:queuecommand("Highlight")
@@ -971,6 +1026,17 @@ t[#t + 1] = Def.ActorFrame {
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and (song or noteField) then
 				toggleNoteField()
+			end
+		end,
+		MouseRightClickMessageCommand = function(self)
+			if isOver(self) and (song or noteField) then
+				if mcbootlarder:IsVisible() then
+					toggleCalcInfo(not infoOnScreen)
+				else
+					if toggleNoteField() then
+						toggleCalcInfo(true)
+					end
+				end
 			end
 		end,
 		CurrentStyleChangedMessageCommand = function(self) -- need to regenerate the notefield when changing styles or crashman appears -mina

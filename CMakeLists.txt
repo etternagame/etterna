@@ -12,7 +12,7 @@ option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.68.1
+		VERSION 0.69.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -41,6 +41,10 @@ set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)       # Disable discord clang-form
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
+set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)       # libcurl openssl
+if(WIN32)
+    set(CURL_STATIC_CRT ON CACHE BOOL "" FORCE)     # Have curl link statically - Windows only option
+endif()
 
 ## CMake related variables
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
@@ -56,7 +60,8 @@ add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpa
 set_target_properties(Etterna PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}")
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}")
 
 if(NOT APPLE)
     set_target_properties(Etterna PROPERTIES LINK_WHAT_YOU_USE ON)
@@ -85,7 +90,6 @@ target_link_libraries(Etterna SQLiteCpp)
 target_link_libraries(Etterna tomcrypt)
 target_link_libraries(Etterna libtommath)
 target_link_libraries(Etterna fftw3f)
-target_link_libraries(Etterna MinaCalc)
 target_link_libraries(Etterna glfw)
 target_link_libraries(Etterna ogg)
 target_link_libraries(Etterna vorbis)

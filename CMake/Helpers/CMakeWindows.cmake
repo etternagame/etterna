@@ -32,7 +32,7 @@ set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 target_compile_options(Etterna PRIVATE /W3)
 
 # Linking - Windows Only
-target_link_libraries(Etterna curl)
+target_link_libraries(Etterna libcurl)
 target_link_libraries(Etterna ffmpeg)
 
 find_package(DirectX REQUIRED)
@@ -51,14 +51,12 @@ list(APPEND WIN_DLLS
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avcodec-55.dll"
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avformat-55.dll"
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avutil-52.dll"
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll"
-	"${PROJECT_SOURCE_DIR}/extern/libcurl/windows/${ARCH}/libcurl.dll")
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll")
 
 if(ARCH STREQUAL "32bit")
 	list(APPEND WIN_DLLS "${OPENSSL_ROOT_DIR}/libssl-1_1.dll" "${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll") 			# SSL
 else() # 64bit
 	list(APPEND WIN_DLLS "${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll" "${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll") 	# SSL
-	list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/extern/libcurl/windows/${ARCH}/libcurl.dll") 					# CURL
 endif()
 
 foreach(dll ${WIN_DLLS})

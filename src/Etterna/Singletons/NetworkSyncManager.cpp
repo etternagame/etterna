@@ -212,8 +212,10 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	loggedIn = false;
 	m_startupStatus = 0; // By default, connection not tried.
 	m_ActivePlayers = 0;
-	ld->SetIndeterminate(true);
-	ld->SetText("\nConnecting to multiplayer server");
+	if (ld) {
+		ld->SetIndeterminate(true);
+		ld->SetText("\nConnecting to multiplayer server");
+	}
 	StartUp();
 
 	m_playerLife = 0;
@@ -1813,7 +1815,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 					.GetString()
 					.c_str());
 	writer.Key("rate");
-	writer.Int((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	writer.Int(static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	writer.EndObject();
 	writer.EndObject();
 

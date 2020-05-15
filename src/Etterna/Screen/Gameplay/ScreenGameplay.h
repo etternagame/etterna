@@ -108,7 +108,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void SongFinished();
 	virtual void SaveStats();
 	virtual void StageFinished(bool bBackedOut);
-	void SaveReplay();
 	bool AllAreFailing();
 
 	void RestartGameplay();

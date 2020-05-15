@@ -45,7 +45,7 @@
  * the directory hash) in order to find the cache file.
  */
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 238;
+const unsigned int CACHE_DB_VERSION = 239;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -778,7 +778,7 @@ SongCacheIndex::LoadCache(
 	int count = 0;
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
-		if (ld && count > 0) {
+		if (ld != nullptr && count > 0) {
 			ld->SetIndeterminate(false);
 			ld->SetText("Loading Cache\n");
 			ld->SetProgress(0);
@@ -1107,7 +1107,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 		Steps* pNewNotes = nullptr;
-
+		
 		SQLite::Statement qSteps(
 		  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
 
@@ -1136,8 +1136,10 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			stringstream msds;
 			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string msdsatrate;
-			while (std::getline(msds, msdsatrate, ':'))
-				o.emplace_back(SSC::msdsplit(msdsatrate));
+			while (std::getline(msds, msdsatrate, ':')) {
+				auto m = SSC::msdsplit(msdsatrate);
+				o.push_back({m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+			}
 			pNewNotes->SetAllMSD(o);
 
 			pNewNotes->SetChartKey(

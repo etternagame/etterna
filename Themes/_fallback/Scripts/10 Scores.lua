@@ -448,8 +448,9 @@ function wife2(maxms, ts)
 	return (2 - -8) * (1 - y) + -8
 end
 
+-- For Window-based Scoring
 function getRescoredJudge(offsetVector, judgeScale, judge)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local windows = {22.5, 45.0, 90.0, 135.0, 180.0, 500.0}
 	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
@@ -475,6 +476,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	return judgeCount
 end
 
+-- For Window-based Scoring
 function getRescoredCustomJudge(offsetVector, windows, judge)
 	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
 	local upperBound = windows[judges[judge]]
@@ -498,19 +500,21 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
-function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
-	local tso = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+-- For Millisecond-based Scoring
+function getRescoredWifeJudge(judgeScale, rst)
+	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #offsetVector do
-		p = p + wife2(offsetVector[i], ts)
+	for i = 1, #rst["dvt"] do
+		p = p + wife2(rst["dvt"][i], ts)
 	end
-	p = p + (holdsMissed * -6)
-	p = p + (minesHit * -8)
-	return (p / (totalNotes * 2)) * 100.0
+	p = p + (rst["holdsMissed"] * -6)
+	p = p + (rst["minesHit"] * -8)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
 
-function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
+-- For Window-based Scoring
+function getRescoredCustomPercentage(customWindows, rst)
 	local p = 0.0
 	local weights = customWindows.judgeWeights
 	local windows = customWindows.judgeWindows
@@ -518,10 +522,10 @@ function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, ho
 	for i = 1, 6 do
 		p = p + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
 	end
-	p = p + (holdsHit * weights.holdHit)
-	p = p + (holdsMissed * weights.holdMiss)
-	p = p + (minesHit * weights.mineHit)
-	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	p = p + (holdsHit * rst["holdsHit"])
+	p = p + (holdsMissed * rst["holdsMissed"])
+	p = p + (minesHit * rst["minesHit"])
+	p = p / ((totalNotes * weights.marv) + (rst["totalHolds"] * weights.holdHit))
 	return p * 100.0
 end
 
@@ -593,4 +597,63 @@ function GetDisplayScore()	-- wrapper for above that prioritizes current rate's 
 		score = GetDisplayScoreByFilter(0, false)
 	end
 	return score
+end
+
+-- erf constants
+a1 =  0.254829592
+a2 = -0.284496736
+a3 =  1.421413741
+a4 = -1.453152027
+a5 =  1.061405429
+p  =  0.3275911
+
+
+function erf(x)
+    -- Save the sign of x
+    sign = 1
+    if x < 0 then
+        sign = -1
+    end
+    x = math.abs(x)
+
+    -- A&S formula 7.1.26
+    t = 1.0/(1.0 + p*x)
+    y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*math.exp(-x*x)
+
+    return sign*y
+end
+function wife3(maxms, ts, version)
+
+	local max_points = 2
+	local miss_weight = -5.5
+	local ridic = 5 * ts
+	local max_boo_weight = 180 * ts
+	local ts_pow = 0.75
+	local zero = 65 * (ts^ts_pow)
+	local power = 2.5
+	local dev = 22.7 * (ts^ts_pow)
+
+	-- case handling
+	if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
+		return max_points
+	elseif maxms <= zero then			-- ma/pa region, exponential
+			return max_points * erf((zero - maxms) / dev)
+	elseif maxms <= max_boo_weight then -- cb region, linear
+		return (maxms - zero) * miss_weight / (max_boo_weight - zero)
+	else							-- we can just set miss values manually
+		return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
+	end								-- purpose of the scoring curve, which is to assign point values
+end
+
+-- holy shit this is fugly
+function getRescoredWife3Judge(version, judgeScale, rst)
+	local tso = ms.JudgeScalers
+	local ts = tso[judgeScale]
+	local p = 0.0
+	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
+	end
+	p = p + (rst["holdsMissed"] * -4.5)
+	p = p + (rst["minesHit"] * -7)
+	return (p / (rst["totalTaps"] * 2)) * 100.0
 end

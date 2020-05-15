@@ -123,6 +123,42 @@ local minanyms = {
 	"mr.takesallthecreditdoesnoneofthework",
 	"Inappropriately placed political message that prompts angry responses on the internet",
 	"phalangeography platform for moonlight vigil",
+	"Only positive chirps",
+	"queen it use duk amok",
+	"place mine mode",
+	"G-BR0LEH",
+	"/L.-:]/",
+	"Gumbo",
+	"MinaWurtemBurglar",
+	"MinaBurtemWurglar",
+	"Irreverent irrelevance",
+	"Solipsism is just existential masturbation",
+	"So is simulation theory, only dumber",
+	"5.3.0 Silver Alpha 4.5 – April 4, 2020",
+	"logic riddle 4 u",
+	"You must own all the rights or have the right to use ANY content you upload - quaver upload rules",
+	"Astrasza",
+	"Eacylisce",
+	"farts mcpoopyface",
+	"Laser beef can radio remix",
+	"b151f00c59ed323e188bb676ac1e8cb0162ee59a",
+	"borpndorf",
+	"strings and beans",
+	"really big toenails mcstabyouwithem",
+	"slayers_jukeboxer",
+	"the Feen",
+	"Minanym",
+	"table point hoarder",
+	"yes and no",
+	"unconjoined juxtaposition",
+	"cancerous snake",
+	"1:46 snufkin",
+	"MinaMinaCloneClone",
+	"Rainbow Accept",
+	"for optimizzles",
+	"poodle_in_a_porta_potty",
+	"scoring justice warrior",
+	"_ring.png",
 }
 
 math.random()
@@ -174,7 +210,21 @@ t[#t + 1] =
 					self:y(16):zoom(0.75):maxwidth(SCREEN_WIDTH)
 				end,
 				OnCommand = function(self)
-					self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
+					local scoob = ""
+					if math.random(7777) == 777 then
+						for i = 1, math.random(7) + 3 do
+							local zoinks = math.random(#minanyms % 13)
+							for ii = 1, zoinks do
+								local raggy = minanyms[math.random(#minanyms)]
+								scoob = scoob .. string.sub(raggy, math.random(#raggy), math.random(#raggy))
+							end
+						end
+						
+						self:settext("Concatenated by " .. scoob)
+						self:rainbow(bro):accelerate(7):zoom(7)
+					else
+						self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
+					end
 				end
 			}
 	}

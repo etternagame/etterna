@@ -68,6 +68,8 @@
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
 #endif
 
+bool noWindow;
+
 void
 ShutdownGame();
 bool
@@ -815,44 +817,48 @@ CreateDisplay()
 		RageException::Throw("%s", ERROR_NO_VIDEO_RENDERERS.GetValue().c_str());
 
 	RageDisplay* pRet = NULL;
-	for (unsigned i = 0; i < asRenderers.size(); i++) {
-		RString sRenderer = asRenderers[i];
+	if (noWindow) {
+		return new RageDisplay_Null;
+	} else {
+		for (unsigned i = 0; i < asRenderers.size(); i++) {
+			RString sRenderer = asRenderers[i];
 
-		if (sRenderer.CompareNoCase("opengl") == 0) {
+			if (sRenderer.CompareNoCase("opengl") == 0) {
 #if defined(SUPPORT_OPENGL)
-			pRet = new RageDisplay_Legacy;
+				pRet = new RageDisplay_Legacy;
 #endif
-		} else if (sRenderer.CompareNoCase("gles2") == 0) {
+			} else if (sRenderer.CompareNoCase("gles2") == 0) {
 #if defined(SUPPORT_GLES2)
-			pRet = new RageDisplay_GLES2;
+				pRet = new RageDisplay_GLES2;
 #endif
-		} else if (sRenderer.CompareNoCase("d3d") == 0) {
+			} else if (sRenderer.CompareNoCase("d3d") == 0) {
 // TODO: ANGLE/RageDisplay_Modern
 #if defined(SUPPORT_D3D)
-			pRet = new RageDisplay_D3D;
+				pRet = new RageDisplay_D3D;
 #endif
-		} else if (sRenderer.CompareNoCase("null") == 0) {
-			return new RageDisplay_Null;
-		} else {
-			RageException::Throw(ERROR_UNKNOWN_VIDEO_RENDERER.GetValue(),
-								 sRenderer.c_str());
+			} else if (sRenderer.CompareNoCase("null") == 0) {
+				return new RageDisplay_Null;
+			} else {
+				RageException::Throw(ERROR_UNKNOWN_VIDEO_RENDERER.GetValue(),
+									 sRenderer.c_str());
+			}
+
+			if (pRet == NULL)
+				continue;
+
+			RString sError =
+			  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
+			if (!sError.empty()) {
+				error +=
+				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
+				  "\n" + sError;
+				SAFE_DELETE(pRet);
+				error += "\n\n\n";
+				continue;
+			}
+
+			break; // the display is ready to go
 		}
-
-		if (pRet == NULL)
-			continue;
-
-		RString sError =
-		  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
-		if (!sError.empty()) {
-			error +=
-			  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
-			  "\n" + sError;
-			SAFE_DELETE(pRet);
-			error += "\n\n\n";
-			continue;
-		}
-
-		break; // the display is ready to go
 	}
 
 	if (pRet == NULL)
@@ -1109,11 +1115,19 @@ sm_main(int argc, char* argv[])
 
 	GAMESTATE = new GameState;
 
+	std::vector<std::string> arguments(argv + 1, argv + argc);
+	noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str) {
+		return str == "notedataCache";
+	});
+
 	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
-	LoadingWindow* pLoadingWindow = LoadingWindow::Create();
-	if (pLoadingWindow == NULL)
-		RageException::Throw("%s",
-							 COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
+	LoadingWindow* pLoadingWindow = nullptr;
+	if (!noWindow) {
+		pLoadingWindow = LoadingWindow::Create();
+		if (pLoadingWindow == NULL)
+			RageException::Throw(
+			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
+	}
 
 	/* Do this early, so we have debugging output if anything else fails. LOG
 	 * and Dialog must be set up first. It shouldn't take long, but it might
@@ -1175,7 +1189,7 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-	{
+	if (!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
 		RString sError;
@@ -1219,6 +1233,7 @@ sm_main(int argc, char* argv[])
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
+	SONGMAN->CalcTestStuff();		  // must be after profileman init
 
 	SONGMAN->UpdatePreferredSort();
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
@@ -1234,8 +1249,8 @@ sm_main(int argc, char* argv[])
 		ShutdownGame();
 		return 0;
 	}
-
-	SAFE_DELETE(pLoadingWindow);
+	if (!noWindow)
+		SAFE_DELETE(pLoadingWindow);
 	StartDisplay();
 
 	StoreActualGraphicOptions();

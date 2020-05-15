@@ -41,12 +41,13 @@ NotesWriterSSC::MSDToString(MinaSD x)
 }
 
 RString
-NotesWriterSSC::MSDsAtRateToString(SDiffs x)
+NotesWriterSSC::MSDsAtRateToString(std::vector<float> x)
 {
 	RString o = "";
-	for (size_t ii = 0; ii < x.size(); ii++) {
-		o.append(to_string(x[ii]).substr(0, 5));
-		if (ii != x.size() - 1)
+	auto msds = x;
+	for (size_t ii = 0; ii < msds.size(); ii++) {
+		o.append(to_string(msds[ii]).substr(0, 5));
+		if (ii != msds.size() - 1)
 			o.append(",");
 	}
 	return o;

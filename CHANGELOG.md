@@ -1,7 +1,7 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
-## [0.68.1] - 2020-02-19 - Hotfix
+## [0.68.1] - 2020-02-20 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release.
 - Bugfixes for SSRNorm Preference and Midgrades.

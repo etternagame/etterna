@@ -7,6 +7,25 @@
 
 #include <X11/extensions/dpms.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <string>
+#include <sstream>
+#include <cstdlib>
+
+#include <csignal>
+
+void
+printCallStack()
+{
+	pid_t myPid = getpid();
+	std::string pstackCommand = "pstack ";
+	std::stringstream ss;
+	ss << myPid;
+	pstackCommand += ss.str();
+	system(pstackCommand.c_str());
+}
+
 Display* X11Helper::Dpy = NULL;
 Window X11Helper::Win = None;
 

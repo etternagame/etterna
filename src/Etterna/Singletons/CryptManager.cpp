@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -460,22 +460,6 @@ CryptManager::GetSHA1ForFile(const RString& fn)
 
 	unsigned char digest[20];
 	HashFile(file, digest, iHash);
-
-	return RString((const char*)digest, sizeof(digest));
-}
-
-RString
-CryptManager::GetSHA256ForString(const RString& sData)
-{
-	unsigned char digest[32];
-
-	int iHash = register_hash(&sha256_desc);
-
-	hash_state hash;
-	hash_descriptor[iHash].init(&hash);
-	hash_descriptor[iHash].process(
-	  &hash, (const unsigned char*)sData.data(), sData.size());
-	hash_descriptor[iHash].done(&hash, digest);
 
 	return RString((const char*)digest, sizeof(digest));
 }

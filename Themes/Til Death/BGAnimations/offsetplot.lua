@@ -5,12 +5,6 @@ local tst = ms.JudgeScalers
 local judge = GetTimingDifficulty()
 local tso = tst[judge]
 
-local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
-judge = enabledCustomWindows and 0 or judge
-local customWindowsData = timingWindowConfig:get_data()
-local customWindows = timingWindowConfig:get_data().customWindows
-local customWindow = timingWindowConfig:get_data()[customWindows[1]]
-
 local plotWidth, plotHeight = 400, 120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth / 2, SCREEN_HEIGHT - 56 - plotHeight / 2
 local dotDims, plotMargin = 2, 4
@@ -58,9 +52,16 @@ local function HighlightUpdaterThing(self)
 	self:GetChild("BGQuad"):queuecommand("Highlight")
 end
 
+-- we removed j1-3 so uhhh this stops things lazily
+local function clampJudge()
+	if judge < 4 then judge = 4 end
+	if judge > 9 then judge = 9 end
+end
+clampJudge()
+
 local function scaleToJudge(scale)
 	scale = notShit.round(scale, 2)
-	local scales = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local scales = ms.JudgeScalers
 	local out = 4
 	for k,v in pairs(scales) do
 		if v == scale then
@@ -95,8 +96,9 @@ local o =
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
-			if not enabledCustomWindows and not forcedWindow then
+			if not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				clampJudge()
 				tso = tst[judge]
 			end
 			local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
@@ -140,19 +142,13 @@ local o =
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
 	end,
 	CodeMessageCommand = function(self, params)
-		if enabledCustomWindows then
-			if params.Name == "PrevJudge" then
-				judge = judge < 2 and #customWindows or judge - 1
-				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-			elseif params.Name == "NextJudge" then
-				judge = judge == #customWindows and 1 or judge + 1
-				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-			end
-		elseif params.Name == "PrevJudge" and judge > 1 then
+		if params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
+			clampJudge()
 			tso = tst[judge]
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
+			clampJudge()
 			tso = tst[judge]
 		end
 		if params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
@@ -172,17 +168,19 @@ local o =
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 		if params.Name == "ResetJudge" then
-			judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+			judge = GetTimingDifficulty()
+			clampJudge()
 			tso = tst[GetTimingDifficulty()]
 		end
 		if params.Name ~= "ResetJudge" and params.Name ~= "PrevJudge" and params.Name ~= "NextJudge" and params.Name ~= "ToggleHands" then return end
-		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
+		maxOffset = math.max(180, 180 * tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end,
 	ForceWindowMessageCommand = function(self, params)
 		judge = params.judge
+		clampJudge()
 		tso = tst[judge]
-		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
+		maxOffset = math.max(180, 180 * tso)
 		forcedWindow = true
 	end,
 	UpdateNetEvalStatsMessageCommand = function(self) -- i haven't updated or tested neteval during last round of work -mina
@@ -255,7 +253,7 @@ for i = 1, #fantabars do
 		Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso * fantabars[i]
+			local fit = tso * fantabars[i]
 			self:y(fitY(fit))
 		end
 	}
@@ -263,7 +261,7 @@ for i = 1, #fantabars do
 		Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso * fantabars[i]
+			local fit = tso * fantabars[i]
 			self:y(fitY(-fit))
 		end
 	}
@@ -295,12 +293,10 @@ o[#o + 1] =
 		for i = 1, #dvt do
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183 * tso)
+			local fit = math.max(183, 183 * tso)
 			
 			-- get the color for the tap
-			local cullur =
-				(enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or
-				offsetToJudgeColor(dvt[i], tst[judge])
+			local cullur = offsetToJudgeColor(dvt[i], tst[judge])
 			cullur[4] = 1
 			local cullurFaded = {}
 
@@ -424,11 +420,7 @@ o[#o + 1] =
 			end
 		end,
 		SetCommand = function(self)
-			if enabledCustomWindows then
-				jdgname = customWindow.name
-			else
-				jdgname = "J" .. judge
-			end
+			local jdgname = "J" .. judge
 			self:settextf("%s", jdgname)
 		end,
 		JudgeDisplayChangedMessageCommand = function(self)

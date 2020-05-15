@@ -371,8 +371,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	float fScrollSpeed = curr_options->m_fScrollSpeed;
 	if (curr_options->m_fMaxScrollBPM != 0) {
 		fScrollSpeed = curr_options->m_fMaxScrollBPM /
-					   (pPlayerState->m_fReadBPM *
-						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+					   (pPlayerState->m_fReadBPM);
 	}
 
 	// don't mess with the arrows after they've crossed 0
