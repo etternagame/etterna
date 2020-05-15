@@ -17,6 +17,8 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
+#include "Core/Services/Locator.hpp"
+
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
@@ -93,9 +95,8 @@ ScreenGameplayReplay::Init()
 
 ScreenGameplayReplay::~ScreenGameplayReplay()
 {
-	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
-	}
+	if (PREFSMAN->m_verbose_log > 1)
+		Locator::getLogger()->trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
 
 	if (!GAMESTATE->m_bRestartedGameplay) {
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
@@ -228,7 +229,7 @@ ScreenGameplayReplay::Input(const InputEventPlus& input) -> bool
 				 (input.DeviceI.device != DEVICE_KEYBOARD &&
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F))) {
 				if (PREFSMAN->m_verbose_log > 1) {
-					LOG->Trace("Player %i went back", input.pn + 1);
+					Locator::getLogger()->trace("Player {} went back", input.pn + 1);
 				}
 				BeginBackingOutFromGameplay();
 			} else if (PREFSMAN->m_bDelayedBack &&

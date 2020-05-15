@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMapControllers.h"
 #include "ScreenPrompt.h"
@@ -445,7 +445,7 @@ ScreenMapControllers::Input(const InputEventPlus& input)
 		} else {
 			if (m_DeviceIToMap.IsValid() && !IsAxis(m_DeviceIToMap) &&
 				IsAxis(input.DeviceI)) {
-				LOG->Trace("Ignored input; non-axis event already received");
+				Locator::getLogger()->trace("Ignored input; non-axis event already received");
 				return false; // ignore this press
 			}
 

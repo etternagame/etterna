@@ -6,7 +6,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
@@ -602,7 +602,7 @@ void
 ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 {
 	if (lua_type(L, 1) != LUA_TTABLE) {
-		LOG->Trace("not a table");
+		Locator::getLogger()->trace("not a table");
 		return;
 	}
 
