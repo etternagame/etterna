@@ -17,10 +17,9 @@ public:
 
         // Log Format -> [YYYY-MM-DD HH:MM:SS][Severity]: Message
         plog::util::nostringstream ss;
-        ss << fmt::format("[{:%F %T}]", time); // Time
-        ss << fmt::format("[{:<5}]", plog::severityToString(record.getSeverity())); // Severity
-        ss << fmt::format(": {}\n", record.getMessage()); // Message
-
+        ss << fmt::format("[{:%F %T}]", time).c_str(); // Time
+        ss << fmt::format("[{:<5}]", plog::severityToString(record.getSeverity())).c_str(); // Severity
+		ss << ": " << record.getMessage() << "\n"; // Message
         return ss.str();
     }
 };
@@ -35,10 +34,13 @@ void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view me
 }
 
 plog::Severity PlogLogger::convertSeverity(ILogger::Severity logLevel) {
-    if(logLevel == Severity::TRACE) return plog::Severity::verbose;
-    if(logLevel == Severity::DEBUG) return plog::Severity::debug;
-    if(logLevel == Severity::INFO) return plog::Severity::info;
-    if(logLevel == Severity::WARN) return plog::Severity::warning;
-    if(logLevel == Severity::ERROR) return plog::Severity::error;
-    if(logLevel == Severity::FATAL) return plog::Severity::fatal;
+	switch (logLevel) {
+		case Severity::TRACE:	return plog::Severity::verbose;
+		case Severity::DEBUG:	return plog::Severity::debug;
+		case Severity::INFO:	return plog::Severity::info;
+		case Severity::WARN:	return plog::Severity::warning;
+		case Severity::ERR:		return plog::Severity::error;
+		case Severity::FATAL:	return plog::Severity::fatal;
+		default:				return plog::Severity::info;
+	}
 }

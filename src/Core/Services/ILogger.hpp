@@ -22,7 +22,7 @@ protected:
      * Severity Enum - Middle man between each logging backed
      * and their own severity terminology.
      */
-    enum Severity {TRACE, DEBUG, INFO, WARN, ERROR, FATAL};
+    enum Severity {TRACE, DEBUG, INFO, WARN, ERR, FATAL};
 
     /**
      * Implementations only need to implement this log function to send logs
@@ -42,13 +42,13 @@ public:
         this->log(Severity::DEBUG, fmt::format(log, args...));
     }
     template <typename... Args> void info(const std::string_view log, const Args& ... args) {
-        this->log(Severity::WARN, fmt::format(log, args...));
+        this->log(Severity::INFO, fmt::format(log, args...));
     }
     template <typename... Args> void warn(const std::string_view log, const Args& ... args) {
         this->log(Severity::WARN, fmt::format(log, args...));
     }
     template <typename... Args> void error(const std::string_view log, const Args& ... args){
-        this->log(Severity::ERROR, fmt::format(log, args...));
+        this->log(Severity::ERR, fmt::format(log, args...));
     }
     template <typename... Args> void fatal(const std::string_view log, const Args& ... args) {
         this->log(Severity::FATAL, fmt::format(log, args...));

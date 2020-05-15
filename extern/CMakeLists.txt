@@ -62,7 +62,7 @@ list(APPEND EXT_TARGETS
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl)
+    libcurl fmt)
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 
