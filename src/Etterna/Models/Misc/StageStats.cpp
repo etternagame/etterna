@@ -513,6 +513,7 @@ FillInHighScore(const PlayerStageStats& pss,
 				RString sRankingToFillInMarker,
 				RString sPlayerGuid)
 {
+	CHECKPOINT_M("Filling Highscore");
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
@@ -598,7 +599,8 @@ FillInHighScore(const PlayerStageStats& pss,
 		auto* td = steps->GetTimingData();
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
-		else hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
+		else
+			hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
@@ -622,6 +624,7 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool bSummary)
 {
+	CHECKPOINT_M("Finalizing Score");
 	SCOREMAN->camefromreplay =
 	  false; // if we're viewing an online replay this gets set to true -mina
 	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
@@ -655,6 +658,7 @@ StageStats::FinalizeScores(bool bSummary)
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData) {
+			CHECKPOINT_M("Determined a Replay is loaded");
 			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
@@ -698,8 +702,10 @@ StageStats::FinalizeScores(bool bSummary)
 	if (m_player.m_fWifeScore > 0.f) {
 
 		bool writesuccess = hs.WriteReplayData();
-		if (writesuccess)
+		if (writesuccess) {
+			CHECKPOINT_M("Unloading ReplayData after successful write");
 			hs.UnloadReplayData();
+		}
 	}
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
@@ -707,6 +713,7 @@ StageStats::FinalizeScores(bool bSummary)
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 
+	CHECKPOINT_M("Finished Finalizing Score");
 	LOG->Trace("done saving stats and high scores");
 }
 

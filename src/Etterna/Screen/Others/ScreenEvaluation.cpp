@@ -361,6 +361,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
 	{
+		CHECKPOINT_M("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
@@ -433,6 +434,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
+		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
