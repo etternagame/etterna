@@ -510,7 +510,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// stuff like mines immediately after shortjacks)
 	int window_size = 4;
 	if (mode == 1)
-		window_size = 2;
+		window_size = 4;
 	if (mode == 2)
 		window_size = 5;
 	vector<float> window_taps;
@@ -523,11 +523,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	itv_jacks.reserve(numitv);
 	vector<float> thejacks;
 
-	// cutoff for auto assign of diff 1, 2x miss window
-	static const float cutoff = 180.f;
-
 	// doge adventure etc
-	static const float max_diff = 45.f;
+	static const float max_diff = 145.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -563,9 +560,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 240.f;
+			float hit_window_buffer = 260.f;
 			if (mode == 1)
-				hit_window_buffer = 180.f;
+				hit_window_buffer = 300.f;
 			if (mode == 2)
 				hit_window_buffer = 120.f;
 
@@ -629,15 +626,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// successfully prevents vibro from being overrated to the point
 				// where all vibro files have to be insantly blacklisted But it
 				// will look funny and stupid people will whine about it.
-				if (mode == 2)
+				if (mode <= 2)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
 
 				float eff_ms = comp_time + hit_window_buffer;
 
-				if (mode < 2)
-					hit_window_buffer =
-					  max(0.f, hit_window_buffer - buffer_drain);
+				//if (mode < 2)
+				//	hit_window_buffer =
+				//	  max(0.f, hit_window_buffer - buffer_drain);
 
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
@@ -652,7 +649,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// component (for longjacks)
 				switch (mode) {
 					case 0:
-						comp_diff[i] = eff_bpm;
+						comp_diff[i] = base_bpm;
 						break;
 						// new thing be try use base bpm instead of effective
 						// dunno this might be dum
@@ -661,8 +658,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 						break;
 					// same thing but divide by eff scaler to POPIZZLE?? idk
 					case 2:
-						comp_diff[i] =
-						  base_ms > cutoff ? 1.f : eff_bpm / eff_scaler;
+						comp_diff[i] = eff_bpm / eff_scaler;
 						break;
 				}
 
@@ -691,7 +687,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = mean(comp_diff) * eff_scalers.back() * 1.6f;
+				fdiff = comp_diff.back() * mean(eff_scalers) * 1.35f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
