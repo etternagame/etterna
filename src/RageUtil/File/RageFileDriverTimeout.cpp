@@ -165,9 +165,7 @@ ThreadedFileWorker::ThreadedFileWorker(std::string sPath)
 	/* Grab a reference to the child driver.  We'll operate on it directly. */
 	m_pChildDriver = FILEMAN->GetFileDriver(sPath);
 	if (m_pChildDriver == nullptr)
-		WARN(ssprintf("ThreadedFileWorker: Mountpoint \"%s\" not found",
-					  sPath.c_str())
-			   .c_str());
+		Locator::getLogger()->warn("ThreadedFileWorker: Mountpoint \"{}\" not found", sPath.c_str());
 
 	m_pResultFile = nullptr;
 	m_pRequestFile = nullptr;
@@ -905,10 +903,8 @@ RageFileDriverTimeout::Move(const std::string& sOldPath,
 {
 	int iRet = m_pWorker->Move(sOldPath, sNewPath);
 	if (iRet == -1) {
-		WARN(ssprintf("RageFileDriverTimeout::Move(%s,%s) failed",
-					  sOldPath.c_str(),
-					  sNewPath.c_str())
-			   .c_str());
+		Locator::getLogger()->warn("RageFileDriverTimeout::Move({},{}) failed",
+					  sOldPath.c_str(), sNewPath.c_str());
 		return false;
 	}
 
@@ -920,8 +916,7 @@ RageFileDriverTimeout::Remove(const std::string& sPath)
 {
 	int iRet = m_pWorker->Remove(sPath);
 	if (iRet == -1) {
-		WARN(ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str())
-			   .c_str());
+        Locator::getLogger()->warn("RageFileDriverTimeout::Remove({}) failed", sPath.c_str());
 		return false;
 	}
 
