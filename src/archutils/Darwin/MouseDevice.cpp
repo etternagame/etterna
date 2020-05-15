@@ -89,7 +89,7 @@ MouseDevice::AddElement(int usagePage,
 			if (buttonID <= MOUSE_MIDDLE)
 				m_Mapping[cookie] = buttonID;
 			else
-				LOG->Warn("Button id too large: %d.", int(buttonID));
+				Locator::getLogger()->warn("Button id too large: {}.", int(buttonID));
 			break;
 		} break;
 		default:

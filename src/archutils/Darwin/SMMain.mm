@@ -123,7 +123,7 @@ float MACWindowWidth()
 {
     const char *url = [[[event paramDescriptorForKeyword:keyDirectObject] stringValue] UTF8String];
     
-    LOG->Info("Parsing URL: %s", url);
+    Locator::getLogger()->info("Parsing URL: {}", url);
     
     // I'm not sure this handles everything it needs to. - Colby
     CommandLineActions::CommandLineArgs args;
