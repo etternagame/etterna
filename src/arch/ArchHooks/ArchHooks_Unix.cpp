@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks_Unix.h"
 #include "Etterna/Globals/ProductInfo.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -267,18 +267,18 @@ ArchHooks_Unix::DumpDebugInfo()
 	std::string sys;
 	int vers;
 	GetKernel(sys, vers);
-	LOG->Info("OS: %s ver %06i", sys.c_str(), vers);
+	Locator::getLogger()->info("OS: {} ver {}", sys.c_str(), vers);
 
-	LOG->Info("Crash backtrace component: %s", BACKTRACE_METHOD_TEXT);
-	LOG->Info("Crash lookup component: %s", BACKTRACE_LOOKUP_METHOD_TEXT);
+	Locator::getLogger()->info("Crash backtrace component: {}", BACKTRACE_METHOD_TEXT);
+	Locator::getLogger()->info("Crash lookup component: {}", BACKTRACE_LOOKUP_METHOD_TEXT);
 #if defined(BACKTRACE_DEMANGLE_METHOD_TEXT)
-	LOG->Info("Crash demangle component: %s", BACKTRACE_DEMANGLE_METHOD_TEXT);
+	Locator::getLogger()->info("Crash demangle component: {}", BACKTRACE_DEMANGLE_METHOD_TEXT);
 #endif
 
-	LOG->Info("Runtime library: %s", LibcVersion().c_str());
-	LOG->Info("Threads library: %s", ThreadsVersion().c_str());
+	Locator::getLogger()->info("Runtime library: {}", LibcVersion().c_str());
+	Locator::getLogger()->info("Threads library: {}", ThreadsVersion().c_str());
 #if defined(HAVE_FFMPEG)
-	LOG->Info("libavcodec: %#x (%u)", avcodec_version(), avcodec_version());
+	Locator::getLogger()->info("libavcodec: {:#x} ({})", avcodec_version(), avcodec_version());
 #endif
 }
 
@@ -293,14 +293,14 @@ ArchHooks_Unix::SetTime(tm newtime)
 								newtime.tm_year + 1900,
 								newtime.tm_sec);
 
-	LOG->Trace("executing '%s'", sCommand.c_str());
+	Locator::getLogger()->trace("executing '{}'", sCommand);
 	int ret = system(sCommand.c_str());
 	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
-		LOG->Trace("'%s' failed", sCommand.c_str());
+        Locator::getLogger()->trace("'{}' failed", sCommand);
 
 	ret = system("hwclock --systohc");
 	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
-		LOG->Trace("'hwclock --systohc' failed");
+        Locator::getLogger()->trace("'hwclock --systohc' failed");
 }
 
 std::string
@@ -381,8 +381,7 @@ ArchHooks_Unix::GetClipboard()
 	XFree(paste);
 	return ret;
 #else
-	LOG->Warn("ArchHooks_Unix: GetClipboard(): Compiled without any supported "
-			  "clipboard source!");
+    Locator::getLogger()->warn("ArchHooks_Unix: GetClipboard(): Compiled without any supported clipboard source!");
 	return "";
 #endif
 }

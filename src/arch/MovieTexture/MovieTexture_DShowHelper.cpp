@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "MovieTexture_DShowHelper.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "archutils/Win32/DirectXHelpers.h"
 
 //-----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ HRESULT
 CTextureRenderer::DoRenderSample(IMediaSample* pSample)
 {
 	if (m_pTexture == NULL) {
-		LOG->Warn("DoRenderSample called while m_pTexture was NULL!");
+		Locator::getLogger()->warn("DoRenderSample called while m_pTexture was NULL!");
 		return S_OK;
 	}
 

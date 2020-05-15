@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -72,7 +71,7 @@ ArchHooks::SetHasFocus(bool bHasFocus)
 		return;
 	m_bHasFocus = bHasFocus;
 
-	LOG->Trace("App %s focus", bHasFocus ? "has" : "doesn't have");
+	Locator::getLogger()->trace("App {} focus", bHasFocus ? "has" : "doesn't have");
 	LockMut(g_Mutex);
 	m_bFocusChanged = true;
 }
@@ -102,7 +101,7 @@ ArchHooks::Create()
 std::string
 ArchHooks::GetClipboard()
 {
-	LOG->Warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
+	Locator::getLogger()->warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
 	return "";
 }
 

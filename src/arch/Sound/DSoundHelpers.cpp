@@ -2,7 +2,7 @@
 #include "DSoundHelpers.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/GetFileInformation.h"
 
@@ -37,7 +37,7 @@ DSound::EnumCallback(LPGUID lpGuid,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Info("%s", sLine.c_str());
+		Locator::getLogger()->info(sLine.c_str());
 
 	return TRUE;
 }
@@ -55,7 +55,7 @@ DSound::SetPrimaryBufferMode()
 	IDirectSoundBuffer* pBuffer;
 	HRESULT hr = this->GetDS()->CreateSoundBuffer(&format, &pBuffer, nullptr);
 	if (FAILED(hr)) {
-		LOG->Warn(hr_ssprintf(hr, "Couldn't create primary buffer").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "Couldn't create primary buffer"));
 		return;
 	}
 
@@ -73,15 +73,14 @@ DSound::SetPrimaryBufferMode()
 	// Set the primary buffer's format
 	hr = IDirectSoundBuffer_SetFormat(pBuffer, &waveformat);
 	if (FAILED(hr))
-		LOG->Warn(hr_ssprintf(hr, "SetFormat on primary buffer").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "SetFormat on primary buffer"));
 
 	DWORD got;
 	hr = pBuffer->GetFormat(&waveformat, sizeof(waveformat), &got);
 	if (FAILED(hr))
-		LOG->Warn(hr_ssprintf(hr, "GetFormat on primary buffer").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "GetFormat on primary buffer"));
 	else if (waveformat.nSamplesPerSec != 44100)
-		LOG->Warn("Primary buffer set to %i instead of 44100",
-				  waveformat.nSamplesPerSec);
+		Locator::getLogger()->warn("Primary buffer set to {} instead of 44100", waveformat.nSamplesPerSec);
 
 	/*
 	 * MS docs:
@@ -129,9 +128,9 @@ DSound::Init()
 		Caps.dwSize = sizeof(Caps);
 		HRESULT hr;
 		if (FAILED(hr = m_pDS->GetCaps(&Caps))) {
-			LOG->Warn(hr_ssprintf(hr, "m_pDS->GetCaps failed").c_str());
+			Locator::getLogger()->warn(hr_ssprintf(hr, "m_pDS->GetCaps failed"));
 		} else {
-			LOG->Info("DirectSound sample rates: %i..%i %s",
+			Locator::getLogger()->info("DirectSound sample rates: {}..{} {}",
 					  Caps.dwMinSecondarySampleRate,
 					  Caps.dwMaxSecondarySampleRate,
 					  (Caps.dwFlags & DSCAPS_CONTINUOUSRATE) ? "(continuous)"
@@ -163,7 +162,7 @@ DSound::IsEmulated() const
 	Caps.dwSize = sizeof(Caps);
 	HRESULT hr;
 	if (FAILED(hr = m_pDS->GetCaps(&Caps))) {
-		LOG->Warn(hr_ssprintf(hr, "m_pDS->GetCaps failed").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "m_pDS->GetCaps failed"));
 		/* This is strange, so let's be conservative. */
 		return true;
 	}
@@ -255,7 +254,7 @@ DSoundBuf::Init(DSound& ds,
 	if (FAILED(hr))
 		return hr_ssprintf(hr, "m_pBuffer->GetCaps");
 	if (static_cast<int>(bcaps.dwBufferBytes) != m_iBufferSize) {
-		LOG->Warn("bcaps.dwBufferBytes (%i) != m_iBufferSize(%i); adjusting",
+		Locator::getLogger()->warn("bcaps.dwBufferBytes ({}) != m_iBufferSize({}); adjusting",
 				  bcaps.dwBufferBytes,
 				  m_iBufferSize);
 		m_iBufferSize = bcaps.dwBufferBytes;
@@ -263,16 +262,16 @@ DSoundBuf::Init(DSound& ds,
 	}
 
 	if (!(bcaps.dwFlags & DSBCAPS_CTRLVOLUME))
-		LOG->Warn("Sound channel missing DSBCAPS_CTRLVOLUME");
+		Locator::getLogger()->warn("Sound channel missing DSBCAPS_CTRLVOLUME");
 	if (!(bcaps.dwFlags & DSBCAPS_GETCURRENTPOSITION2))
-		LOG->Warn("Sound channel missing DSBCAPS_GETCURRENTPOSITION2");
+		Locator::getLogger()->warn("Sound channel missing DSBCAPS_GETCURRENTPOSITION2");
 
 	DWORD got;
 	hr = m_pBuffer->GetFormat(&waveformat, sizeof(waveformat), &got);
 	if (FAILED(hr))
-		LOG->Warn(hr_ssprintf(hr, "GetFormat on secondary buffer").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "GetFormat on secondary buffer"));
 	else if (static_cast<int>(waveformat.nSamplesPerSec) != m_iSampleRate)
-		LOG->Warn("Secondary buffer set to %i instead of %i",
+		Locator::getLogger()->warn("Secondary buffer set to {} instead of {}",
 				  waveformat.nSamplesPerSec,
 				  m_iSampleRate);
 
@@ -312,10 +311,8 @@ DSoundBuf::SetVolume(float fVolume)
 	if (FAILED(hr)) {
 		static bool bWarned = false;
 		if (!bWarned)
-			LOG->Warn(hr_ssprintf(hr,
-								  "DirectSoundBuffer::SetVolume(%i) failed",
-								  iNewVolume)
-						.c_str());
+			Locator::getLogger()->warn(hr_ssprintf(
+			  hr, "DirectSoundBuffer::SetVolume(%i) failed", iNewVolume));
 		bWarned = true;
 		return;
 	}
@@ -366,8 +363,8 @@ DSoundBuf::CheckWriteahead(int iCursorStart, int iCursorEnd)
 			return;
 		bLogged = true;
 
-		LOG->Warn("Sound driver is requesting an overly large prefetch: wants "
-				  "%i (cursor at %i..%i), writeahead not adjusted",
+		Locator::getLogger()->warn("Sound driver is requesting an overly large prefetch: wants "
+				  "%i (cursor at {}..{}), writeahead not adjusted",
 				  iPrefetch / bytes_per_frame(),
 				  iCursorStart,
 				  iCursorEnd);
@@ -378,13 +375,10 @@ DSoundBuf::CheckWriteahead(int iCursorStart, int iCursorEnd)
 		return;
 
 	/* We need to increase the writeahead. */
-	LOG->Trace("insufficient writeahead: wants %i (cursor at %i..%i), "
-			   "writeahead adjusted from %i to %i",
-			   iPrefetch / bytes_per_frame(),
-			   iCursorStart,
-			   iCursorEnd,
-			   m_iWriteAhead,
-			   iPrefetch);
+	Locator::getLogger()->trace("insufficient writeahead: wants {} (cursor at {}..{}), "
+			   "writeahead adjusted from {} to {}",
+			   iPrefetch / bytes_per_frame(), iCursorStart,
+			   iCursorEnd, m_iWriteAhead, iPrefetch);
 
 	m_iWriteAhead = iPrefetch;
 }
@@ -452,7 +446,7 @@ DSoundBuf::CheckUnderrun(int iCursorStart, int iCursorEnd)
 	for (auto& m_iLastCursor : m_iLastCursors)
 		s += ssprintf("%i, %i; ", m_iLastCursor[0], m_iLastCursor[1]);
 
-	LOG->Trace("%s", s.c_str());
+	Locator::getLogger()->trace(s);
 }
 
 bool
@@ -474,8 +468,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 		result = m_pBuffer->GetCurrentPosition(&iCursorStart, &iCursorEnd);
 	}
 	if (result != DS_OK) {
-		LOG->Warn(hr_ssprintf(result, "DirectSound::GetCurrentPosition failed")
-					.c_str());
+		Locator::getLogger()->warn(hr_ssprintf(result, "DirectSound::GetCurrentPosition failed"));
 		return false;
 	}
 
@@ -514,9 +507,8 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 		wrap(iPrefetch, m_iBufferSize);
 
 		if (m_iBufferSize - iPrefetch < 1024 * 4) {
-			LOG->Trace("Strange DirectSound cursor ignored: %i..%i",
-					   iCursorStart,
-					   iCursorEnd);
+			Locator::getLogger()->trace("Strange DirectSound cursor ignored: {}..{}",
+					   iCursorStart, iCursorEnd);
 			return false;
 		}
 	}
@@ -544,7 +536,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 			s += "; last: ";
 			for (auto& m_iLastCursor : m_iLastCursors)
 				s += ssprintf("%i, %i; ", m_iLastCursor[0], m_iLastCursor[1]);
-			LOG->Trace("%s", s.c_str());
+			Locator::getLogger()->trace(s);
 			m_iWriteAhead -= used;
 			m_iExtraWriteahead -= used;
 		}
@@ -589,8 +581,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 	}
 
 	if (result != DS_OK) {
-		LOG->Warn(
-		  hr_ssprintf(result, "Couldn't lock the DirectSound buffer.").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(result, "Couldn't lock the DirectSound buffer."));
 		return false;
 	}
 
@@ -630,7 +621,7 @@ DSoundBuf::GetPosition() const
 		hr = m_pBuffer->GetCurrentPosition(&iCursor, &iJunk);
 	}
 	if (hr != DS_OK) {
-		LOG->Warn(hr_ssprintf(hr, "DirectSound::GetPosition failed").c_str());
+		Locator::getLogger()->warn(hr_ssprintf(hr, "DirectSound::GetPosition failed"));
 		iCursor = 0;
 	}
 

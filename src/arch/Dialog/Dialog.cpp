@@ -5,7 +5,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #endif
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 
 #if !defined(SMPACKAGE)
@@ -46,10 +46,7 @@ MakeDialogDriver()
 
 		std::string sError = pRet->Init();
 		if (!sError.empty()) {
-			if (LOG)
-				LOG->Info("Couldn't load driver %s: %s",
-						  asDriversToTry[i].c_str(),
-						  sError.c_str());
+			Locator::getLogger()->info("Couldn't load driver {}: {}}", asDriversToTry[i], sError);
 			SAFE_DELETE(pRet);
 		}
 	}
@@ -106,10 +103,8 @@ Dialog::IgnoreMessage(const std::string& sID)
 // We can't ignore messages before PREFSMAN is around.
 #if !defined(SMPACKAGE)
 	if (PREFSMAN == nullptr) {
-		if (!sID.empty() && LOG)
-			LOG->Warn(
-			  "Dialog: message \"%s\" set ID too early for ignorable messages",
-			  sID.c_str());
+		if (!sID.empty())
+			Locator::getLogger()->warn("Dialog: message \"{}\" set ID too early for ignorable messages", sID);
 		return;
 	}
 
@@ -132,8 +127,7 @@ Dialog::Error(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (!sID.empty() && MessageIsIgnored(sID))
 		return;
@@ -156,8 +150,7 @@ Dialog::OK(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (!sID.empty() && MessageIsIgnored(sID))
 		return;
@@ -178,10 +171,9 @@ Dialog::OKCancel(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
-	if (sID != "" && MessageIsIgnored(sID))
+    if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.OKCancel(sMessage, sID);
 
 	RageThread::SetIsShowingDialog(true);
@@ -203,8 +195,7 @@ Dialog::AbortRetryIgnore(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.AbortRetryIgnore(sMessage, sID);
@@ -228,8 +219,7 @@ Dialog::AbortRetry(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.AbortRetry(sMessage, sID);
@@ -253,8 +243,7 @@ Dialog::YesNo(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-	if (LOG)
-		LOG->Trace("Dialog: \"%s\" [%s]", sMessage.c_str(), sID.c_str());
+    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.YesNo(sMessage, sID);
