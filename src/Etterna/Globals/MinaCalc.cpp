@@ -513,8 +513,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// afterwards is not relevant (usually true in actual gameplay, outside of
 	// stuff like mines immediately after shortjacks)
 
-	const int mode_windows[4] = { 1, 3, 2, 4};
-	
+	const int mode_windows[4] = { 1, 2, 3, 4 };
+
 	int window_size = mode_windows[mode];
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
@@ -549,10 +549,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 120.f, 165.f, 275.f };
+	const float mode_buffers[4] = { 60.f, 165.f, 120.f, 275.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = {0.75f, 1.2f, 1.4f, 1.45f };
+	static const float mode_scalers[4] = { 0.75f, 1.4f, 1.2f, 1.45f };
 	for (auto& itv : f) {
 		for (auto& v : mode_jack_diffs)
 			v.clear();
@@ -572,22 +572,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			
+
 			float hit_window_buffer = mode_buffers[mode];
 			for (size_t i = 0; i < window_taps.size(); ++i) {
-				// minijack pass optimization
-				//if (mode == 0 && i >= 0)
-				//	if (i > 1)
-				//		continue;
-				//	else {
-				//		float mj_ms = window_taps[i];
-				//		float mj_eff_ms =
-				//		  mj_ms + max(0.f, mode_buffers[mode] - mj_ms);
-				//		float mj_diff = ms_to_bpm(mj_eff_ms) *
-				//						jack_global_scaler * mode_scalers[mode];
-				//		mode_jack_diffs[mode].push_back(min(mj_diff, max_diff));
-				//	}
-
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
 				// 0, then we like, do stuff with them, you know, like pogs
@@ -606,13 +593,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				float base_ms = window_taps[i];
 				float buffer_drain = base_ms;
 				comp_time += window_taps[i];
-
-				// this is a mega hack to prevent lots of slow but consistent
-				// longjacks/anchors even from draining the buffer too quickly,
-				// but without impeding the buffer drain bump afforded by large
-				// hits (see below)
-				// if (i > 0 && mode == 0)
-				//	buffer_drain = min(base_ms, 110.f);
 
 				// Some other notes, this general setup can cause desired but
 				// funny looking effects with scaling and rate changing for
@@ -653,6 +633,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 				float eff_ms = comp_time + hit_window_buffer;
 
+				// these could be retuned to eat buffer above but i cba
 				if (mode == 2 || mode == 1)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
@@ -697,22 +678,20 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			}
 
 			float fdiff = 0.f;
-			if (mode == 0)
-			  // medium-longjack pass
-			  fdiff = comp_diff.front() * mode_scalers[mode];
-			else if (mode == 1)
-				fdiff = comp_diff.back() * mode_scalers[mode] * mean(eff_scalers);
-			else if (mode == 2)
-				// more burst oriented jacks, fuzzy math + intuition =
-				// incomprehensible mess
-				fdiff =
-				  comp_diff.back() * mode_scalers[mode] * eff_scalers.back();
-			else if (mode == 3)
-				// medium-longjack pass
-				fdiff =
-				  comp_diff.back() * mode_scalers[mode] * mean(eff_scalers);
+			switch (mode) {
+				case 0: // minijacks
+					fdiff = comp_diff.front();
+					break;
+				case 1: // shorter bursts
+					fdiff = comp_diff.back() * eff_scalers.back();
+					break;
+				case 2: // longer bursts
+				case 3: // medium-longjack pass
+					fdiff = comp_diff.back() * mean(eff_scalers);
+					break;
+			}
 
-			fdiff = CalcClamp(fdiff, 0.f, max_diff);
+			fdiff = CalcClamp(fdiff * mode_scalers[mode], 0.f, max_diff);
 			mode_jack_diffs[mode].push_back(fdiff);
 			if (dbg) {
 				std::cout << "comp mean: " << mean(comp_diff) << std::endl;
@@ -721,7 +700,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		}
 		itv_jacks[mode].push_back(mode_jack_diffs[mode]);
 	}
-		jacks[mode][track] = itv_jacks[mode];
+	jacks[mode][track] = itv_jacks[mode];
 }
 #pragma endregion
 
@@ -828,7 +807,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		bool continue_calc = InitializeHands(
 		  NoteInfo, music_rate, 0.1f * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
 
-		// if we exceed max_nps_for_single_interval during processing
+		// if we exceed max_nps_for_single_interval during
+		// processing
 		if (!continue_calc) {
 			std::cout << "skipping junk file" << std::endl;
 			return gertrude_the_all_max_output;
@@ -842,61 +822,72 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		for (int i = 0; i < NUM_Skillset; ++i)
 			mcbloop[i] = Chisel(0.1f, 10.24f, score_goal, i, false);
 
-		// stam is based on which calc produced the highest output without
-		// it
+		// stam is based on which calc produced the highest
+		// output without it
 		size_t highest_base_skillset = std::distance(
 		  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
 		float base = mcbloop[highest_base_skillset];
 
-		// rerun all with stam on, optimize by starting at the non-stam
-		// adjusted base value for each skillset we can actually set the
-		// stam floor to < 1 to shift the curve a bit
+		// rerun all with stam on, optimize by starting at
+		// the non-stam adjusted base value for each
+		// skillset we can actually set the stam floor to <
+		// 1 to shift the curve a bit
 		for (int i = 0; i < NUM_Skillset; ++i)
 			mcbloop[i] =
 			  Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, false);
 
-		// all relative scaling to specific skillsets should occur before
-		// this point, not after (it ended up this way due to the
-		// normalizers which were dumb and removed) stam is the only
-		// skillset that can/should be normalized to base values without
-		// interfering with anything else (since it's not based on a type of
-		// pattern)
+		// all relative scaling to specific skillsets should
+		// occur before this point, not after (it ended up
+		// this way due to the normalizers which were dumb
+		// and removed) stam is the only skillset that
+		// can/should be normalized to base values without
+		// interfering with anything else (since it's not
+		// based on a type of pattern)
 
-		// stam jams, stamina should push up the base ratings for files so
-		// files that are more difficult by virtue of being twice as long
-		// for more or less the same patterns don't get underrated, however
-		// they shouldn't be pushed up a huge amount either, we want high
-		// stream scores to be equally achieveable on longer or shorter
-		// files, ideally, the stam ratings itself is a separate
-		// consideration and will be scaled to the degree to which the
-		// stamina model affects the base rating, so while stamina should
-		// affect the base skillset ratings slightly we want the degree to
-		// which it makes files harder to be catalogued as the stamina
-		// rating scaling down stuff that has no stamina component will help
-		// preventing pollution of stamina leaderboards with charts that are
-		// just very high rated but take no stamina
+		// stam jams, stamina should push up the base
+		// ratings for files so files that are more
+		// difficult by virtue of being twice as long for
+		// more or less the same patterns don't get
+		// underrated, however they shouldn't be pushed up a
+		// huge amount either, we want high stream scores to
+		// be equally achieveable on longer or shorter
+		// files, ideally, the stam ratings itself is a
+		// separate consideration and will be scaled to the
+		// degree to which the stamina model affects the
+		// base rating, so while stamina should affect the
+		// base skillset ratings slightly we want the degree
+		// to which it makes files harder to be catalogued
+		// as the stamina rating scaling down stuff that has
+		// no stamina component will help preventing
+		// pollution of stamina leaderboards with charts
+		// that are just very high rated but take no stamina
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
-		// the bigger this number the more stamina has to influence a file
-		// before it counts in the stam skillset, i.e. something that only
-		// benefits 2% from the stam modifiers will drop below the 1.0 mark
-		// and move closer to 0 with the pow, resulting in a very low
-		// stamina rating (we want this), something that benefits 5.5% will
-		// have the 0.5% overflow multiplied and begin gaining some stam,
-		// and something that benefits 15% will max out the possible stam
-		// rating, which is (currently) a 1.07 multiplier to the base maybe
-		// using a multiplier and not a difference would be better?
+		// the bigger this number the more stamina has to
+		// influence a file before it counts in the stam
+		// skillset, i.e. something that only benefits 2%
+		// from the stam modifiers will drop below the 1.0
+		// mark and move closer to 0 with the pow, resulting
+		// in a very low stamina rating (we want this),
+		// something that benefits 5.5% will have the 0.5%
+		// overflow multiplied and begin gaining some stam,
+		// and something that benefits 15% will max out the
+		// possible stam rating, which is (currently) a 1.07
+		// multiplier to the base maybe using a multiplier
+		// and not a difference would be better?
 		static const float stam_curve_shift = 0.015f;
 		// ends up being a multiplier between ~0.8 and ~1
 		float mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5f);
 
-		// we wanted to shift the curve down a lot before pow'ing but it was
-		// too much to balance out, so we need to give some back, this is
-		// roughly equivalent of multiplying by 1.05 but also not really
-		// because math we don't want to push up the high end stuff anymore
-		// so just add to let stuff down the curve catch up a little
-		// remember we're operating on a multiplier
+		// we wanted to shift the curve down a lot before
+		// pow'ing but it was too much to balance out, so we
+		// need to give some back, this is roughly
+		// equivalent of multiplying by 1.05 but also not
+		// really because math we don't want to push up the
+		// high end stuff anymore so just add to let stuff
+		// down the curve catch up a little remember we're
+		// operating on a multiplier
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
@@ -906,9 +897,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 										mcbloop[3], mcbloop[4], mcbloop[5],
 										mcbloop[6], mcbloop[7] };
 		vector<float> pumpkin = skillset_vector(difficulty);
-		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
-		// values this is the only time debugoutput arg should be set to
-		// true
+		// sets the 'proper' debug output, doesn't
+		// (shouldn't) affect actual values this is the only
+		// time debugoutput arg should be set to true
 		if (debugmode)
 			Chisel(mcbloop[highest_base_skillset] - 0.16f,
 				   0.32f,
@@ -919,11 +910,12 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		difficulty.overall = highest_difficulty(difficulty);
 
-		// the final push down, cap ssrs (score specific ratings) to stop
-		// vibro garbage and calc abuse from polluting leaderboards too
-		// much, a "true" 38 is still unachieved so a cap of 40 [sic] is
-		// _extremely_ generous do this for SCORES only, not cached file
-		// difficulties
+		// the final push down, cap ssrs (score specific
+		// ratings) to stop vibro garbage and calc abuse
+		// from polluting leaderboards too much, a "true" 38
+		// is still unachieved so a cap of 40 [sic] is
+		// _extremely_ generous do this for SCORES only, not
+		// cached file difficulties
 		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
 		  skillset_vector(difficulty);
 		if (ssr) {
@@ -976,8 +968,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
 										   { right_hand, { 4, 8 } } };
 
-	// loop to help with hand specific stuff, we could do this stuff in the
-	// class but that's more structural work and this is simple
+	// loop to help with hand specific stuff, we could do this stuff
+	// in the class but that's more structural work and this is
+	// simple
 	for (auto& hp : spoopy) {
 		auto& hand = hp.first;
 		const auto& fv = hp.second;
@@ -986,9 +979,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		hand.stam_adj_diff.resize(numitv);
 
 		// initialize base difficulty and point values
-		// ok i know this is messy and the loop doesn't solve anything here and
-		// almost defeats the purpose but whatever, we need to do this before
-		// the pmods
+		// ok i know this is messy and the loop doesn't solve
+		// anything here and almost defeats the purpose but
+		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
 			hand.InitBaseDiff(fingers[0], fingers[1]);
 			hand.InitPoints(fingers[0], fingers[1]);
@@ -1003,8 +996,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	}
 
 	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
-	// these are evaluated on all columns so right and left are the same
-	// these also may be redundant with updated stuff
+	// these are evaluated on all columns so right and left are the
+	// same these also may be redundant with updated stuff
 	SetHSMod(jhc_data, left_hand.doot);
 	SetJumpMod(jhc_data, left_hand.doot);
 	SetCJMod(jhc_data, left_hand.doot);
@@ -1042,8 +1035,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// needs to be done after pattern mods are calculated
 		hand.InitAdjDiff();
 
-		// pattern mods and base msd never change, set degbug output for them
-		// now
+		// pattern mods and base msd never change, set degbug output
+		// for them now
 		if (debugmode) {
 			// 3 = number of different debug types
 			hand.debugValues.resize(3);
@@ -1138,7 +1131,8 @@ Calc::Chisel(float player_skill,
 			gotpoints = 0.f;
 			possiblepoints = 0;
 
-			// jack sequencer point loss for jack speed and (maybe?) cj
+			// jack sequencer point loss for jack speed and (maybe?)
+			// cj
 			if (ss == Skill_JackSpeed) {
 				gotpoints = MaxPoints - JackLoss(player_skill, 1, false);
 			} else if (ss == Skill_Chordjack) {
@@ -1149,9 +1143,9 @@ Calc::Chisel(float player_skill,
 				gotpoints = MaxPoints - JackLoss(player_skill, 0, false);
 			} else {
 				gotpoints = MaxPoints;
-				// left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-				// right_hand.CalcInternal(gotpoints, player_skill, ss,
-				// stamina);
+				// left_hand.CalcInternal(gotpoints, player_skill,
+				// ss, stamina); right_hand.CalcInternal(gotpoints,
+				// player_skill, ss, stamina);
 			}
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
@@ -1174,22 +1168,23 @@ Calc::Chisel(float player_skill,
 void
 Hand::InitAdjDiff()
 {
-	// new plan stop being dumb and doing this over and over again in calc
-	// internal because these values never change
+	// new plan stop being dumb and doing this over and over again
+	// in calc internal because these values never change
 
-	// the new way we wil attempt to diffrentiate skillsets rather than
-	// using normalizers is by detecting whether or not we think a file
-	// is mostly comprised of a given pattern, producing a downscaler
-	// that slightly buffs up those files and produces a downscaler for
-	// files not detected of that type. the major potential failing of
-	// this system is that it ends up such that the rating is tied
-	// directly to whether or not a file can be more or less strongly
-	// determined to be of a pattern type, e.g. splithand trills being
-	// marked as more "js" than actual js, for the moment these
-	// modifiers are still built on proportion of taps in chords / total
-	// taps, but there's a lot more give than their used to be. they
-	// should be re-done as sequential detection for best effect but i
-	// don't know if that will be necessary for basic tuning if we don't
+	// the new way we wil attempt to diffrentiate skillsets rather
+	// than using normalizers is by detecting whether or not we
+	// think a file is mostly comprised of a given pattern,
+	// producing a downscaler that slightly buffs up those files and
+	// produces a downscaler for files not detected of that type.
+	// the major potential failing of this system is that it ends up
+	// such that the rating is tied directly to whether or not a
+	// file can be more or less strongly determined to be of a
+	// pattern type, e.g. splithand trills being marked as more "js"
+	// than actual js, for the moment these modifiers are still
+	// built on proportion of taps in chords / total taps, but
+	// there's a lot more give than their used to be. they should be
+	// re-done as sequential detection for best effect but i don't
+	// know if that will be necessary for basic tuning if we don't
 	// do this files may end up misclassing hard and polluting
 	// leaderboards, and good scores on overrated files will simply
 	// produce high ratings in every category
@@ -1285,17 +1280,20 @@ Hand::InitAdjDiff()
 		};
 
 		// total pattern mods for each skillset, we want this to be
-		// calculated before the main skillset loop because we might want
-		// access to the total js mod while on stream, or something
+		// calculated before the main skillset loop because we might
+		// want access to the total js mod while on stream, or
+		// something
 		for (int ss = 0; ss < NUM_Skillset; ++ss) {
-			// is this even faster than multiplying 1.f by 1.f a billion times?
+			// is this even faster than multiplying 1.f by 1.f a
+			// billion times?
 			if (ss == Skill_Overall || ss == Skill_Stamina)
 				continue;
 			for (auto& pmod : pmods_used[ss])
 				tp_mods[ss] *= doot[pmod][i];
 		}
 
-		// main skillset loop, for each skillset that isn't overall or stam
+		// main skillset loop, for each skillset that isn't overall
+		// or stam
 		for (int ss = 0; ss < NUM_Skillset; ++ss) {
 			if (ss == Skill_Overall || ss == Skill_Stamina)
 				continue;
@@ -1304,8 +1302,9 @@ Hand::InitAdjDiff()
 			auto& adj_diff = base_adj_diff[ss][i];
 			auto& stam_base = base_diff_for_stam_mod[ss][i];
 
-			// might need optimization, or not since this is not outside of a
-			// dumb loop now and is done once instead of a few hundred times
+			// might need optimization, or not since this is not
+			// outside of a dumb loop now and is done once instead
+			// of a few hundred times
 			float funk = soap[BaseNPS][i] * tp_mods[ss] * basescalers[ss];
 			adj_diff = funk;
 			stam_base = funk;
@@ -1313,12 +1312,14 @@ Hand::InitAdjDiff()
 				// do funky special case stuff here
 
 				// test calculating stam for js/hs on max js/hs diff
-				// we want hs to count against js so they are mutually exclusive
+				// we want hs to count against js so they are
+				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /=
 					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
 
-					// maybe we should have 2 loops to avoid doing math twice
+					// maybe we should have 2 loops to avoid doing
+					// math twice
 					stam_base =
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
 					break;
@@ -1347,9 +1348,9 @@ Hand::InitAdjDiff()
 	}
 }
 
-// debug bool here is NOT the one in Calc, it is passed from chisel using the
-// final difficulty as the starting point and should only be executed once per
-// chisel
+// debug bool here is NOT the one in Calc, it is passed from chisel
+// using the final difficulty as the starting point and should only
+// be executed once per chisel
 void
 Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 {
@@ -1362,8 +1363,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 	float powindromemordniwop = 1.9f;
 	if (ss == Skill_Chordjack)
 		powindromemordniwop = 2.f;
-	// i don't like the copypasta either but the boolchecks where they were
-	// were too slow
+	// i don't like the copypasta either but the boolchecks where
+	// they were were too slow
 	if (debug) {
 		debugValues[2][StamMod].resize(v.size());
 		debugValues[2][PtLoss].resize(v.size());
@@ -1404,8 +1405,8 @@ Hand::StamAdjust(float x, int ss, bool debug)
 	// they might be the same, or not
 	const auto& diff = base_adj_diff[ss];
 
-	// i don't like the copypasta either but the boolchecks where they were
-	// were too slow
+	// i don't like the copypasta either but the boolchecks where
+	// they were were too slow
 	if (debug)
 		for (size_t i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
@@ -1501,8 +1502,8 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				++quads;
 			}
 
-			// we want mixed hs/js to register as hs, even at relatively sparse
-			// hand density
+			// we want mixed hs/js to register as hs, even at
+			// relatively sparse hand density
 			if (handtaps > 0)
 				handtaps += jumptaps;
 
@@ -1531,26 +1532,30 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 			}
 			if (twas_jack) {
 				// [Comment moved from SetCJMod]
-				// if we used the normal actual_jack for CJ too we're saying
-				// something like "chordjacks" are harder if they share more
-				// columns from chord to chord" which is not true, it is in fact
-				// either irrelevant or the inverse depending on the scenario,
-				// this is merely to catch stuff like splithand jumptrills
-				// registering as chordjacks when they shouldn't be
+				// if we used the normal actual_jack for CJ too
+				// we're saying something like "chordjacks" are
+				// harder if they share more columns from chord to
+				// chord" which is not true, it is in fact either
+				// irrelevant or the inverse depending on the
+				// scenario, this is merely to catch stuff like
+				// splithand jumptrills registering as chordjacks
+				// when they shouldn't be
 				++actual_jacks_cj;
 			}
 
 			// [Comment moved from SetCJMod]
-			// probably should be refactored/simplified, we want to know if we
-			// have a bunch of stuff like [123]4[123] [12]3[124] which isn't
-			// actually chordjack, its just broken hs/js, and in fact with the
-			// level of leniency that is currently being applied to generic
-			// proportions, lots of heavy js/hs is being counted as cj for their
-			// 2nd rating, and by a close margin too, we can't just look for
-			// [123]4, we need to finish the sequence to be sure
-			// i _think_ we only want to do this for single notes, we could
-			// abstract it to a more generic pattern template, but let's be
-			// restrictive for now
+			// probably should be refactored/simplified, we want to
+			// know if we have a bunch of stuff like [123]4[123]
+			// [12]3[124] which isn't actually chordjack, its just
+			// broken hs/js, and in fact with the level of leniency
+			// that is currently being applied to generic
+			// proportions, lots of heavy js/hs is being counted as
+			// cj for their 2nd rating, and by a close margin too,
+			// we can't just look for [123]4, we need to finish the
+			// sequence to be sure i _think_ we only want to do this
+			// for single notes, we could abstract it to a more
+			// generic pattern template, but let's be restrictive
+			// for now
 
 			if (last_was_definitely_not_jacks_maybe) {
 				// if there is no (mini)jack
@@ -1558,7 +1563,8 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 					++definitely_not_jacks;
 					if (dbg)
 						std::cout << "definitely not jack: " << std::endl;
-					// don't reset last_was_definitely_not_jacks_maybe
+					// don't reset
+					// last_was_definitely_not_jacks_maybe
 				}
 			}
 
@@ -1573,7 +1579,8 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				}
 			}
 
-			// if prev row was chord and now it's a single tap, or vice-versa
+			// if prev row was chord and now it's a single tap, or
+			// vice-versa
 			if ((last_notes > 1 && notes == 1) ||
 				(notes > 1 && last_notes == 1)) {
 				if (!twas_jack) {
@@ -1590,10 +1597,10 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 					std::cout << "consecutive single note: " << seriously_not_js
 							  << std::endl;
 
-				// light js really stops at [12]321[23] kind of density,
-				// anything below that should be picked up by speed, and
-				// this stop rolls between jumps getting floated up too
-				// high
+				// light js really stops at [12]321[23] kind of
+				// density, anything below that should be picked up
+				// by speed, and this stop rolls between jumps
+				// getting floated up too high
 				if (seriously_not_js > 3) {
 					if (dbg)
 						std::cout << "exceeding light js/hs tolerance: "
@@ -1651,8 +1658,8 @@ Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 		}
 		// at least 1 tap but no jumps
 		else if (data.jumptaps[i] == 0) {
-			// use a decay in case this is something like js, stream, js, stream
-			// js
+			// use a decay in case this is something like js,
+			// stream, js, stream js
 			doot[JS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[JSS][i] = 1.f;
 			doot[JSJ][i] = 1.f;
@@ -1673,14 +1680,16 @@ Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			// downscale by jack density rather than upscale like cj
 			// ok we can't be lazy about this or ippon manzone is js
 			// (it's not)
-			// theoretically the ohjump downscaler should handle this but
-			// handling it here gives us more flixbility with the ohjump mod
+			// theoretically the ohjump downscaler should handle
+			// this but handling it here gives us more flixbility
+			// with the ohjump mod
 			float brop =
 			  CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
 								 static_cast<float>(data.taps[i])),
 						0.5f,
 						1.f);
-			// clamp the original prop mod first before applying above
+			// clamp the original prop mod first before applying
+			// above
 			float zoot = CalcClamp(fastsqrt(prop), min_mod, max_mod);
 			doot[JS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[JSS][i] = bromide;
@@ -1711,7 +1720,8 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 		}
 		// look ma no hands
 		else if (data.handtaps[i] == 0) {
-			// use a decay in case this is something like hs, js, hs, js
+			// use a decay in case this is something like hs, js,
+			// hs, js
 			doot[HS][i] = CalcClamp(last_mod - 0.05f, min_mod, max_mod);
 			doot[HSS][i] = 1.f;
 			doot[HSJ][i] = 1.f;
@@ -1726,13 +1736,15 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 								 static_cast<float>(data.taps[i])),
 						0.89f,
 						1.f);
-			// downscale by jack density rather than upscale, like cj
+			// downscale by jack density rather than upscale, like
+			// cj
 			float brop =
 			  CalcClamp(1.35f - (static_cast<float>(data.actual_jacks[i]) /
 								 static_cast<float>(data.taps[i])),
 						0.5f,
 						1.f);
-			// clamp the original prop mod first before applying above
+			// clamp the original prop mod first before applying
+			// above
 			float zoot = CalcClamp(sqrt(prop), min_mod, max_mod);
 			doot[HS][i] = CalcClamp(zoot * bromide * brop, min_mod, max_mod);
 			doot[HSS][i] = bromide;
@@ -1743,7 +1755,8 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 	Smooth(doot[HS], 1.f);
 }
 
-// depress cj rating for non-cj stuff and boost cj rating for cj stuff
+// depress cj rating for non-cj stuff and boost cj rating for cj
+// stuff
 void
 Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
@@ -1768,11 +1781,12 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
 		} else { // we have at least 1 chord
-			// we want to give a little leeway for single taps but not too much
-			// or sections of [12]4[123]   [123]4[23] will be flagged as
-			// chordjack when they're really just broken chordstream, and we
-			// also want to give enough leeway so that hyperdense chordjacks at
-			// lower bpms aren't automatically rated higher than more sparse
+			// we want to give a little leeway for single taps but
+			// not too much or sections of [12]4[123]   [123]4[23]
+			// will be flagged as chordjack when they're really just
+			// broken chordstream, and we also want to give enough
+			// leeway so that hyperdense chordjacks at lower bpms
+			// aren't automatically rated higher than more sparse
 			// jacks at higher bpms
 			float prop = static_cast<float>(data.chordtaps[i] + 1) /
 						 static_cast<float>(data.taps[i] - 1) * 38.f / 7.f;
@@ -1783,8 +1797,8 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 					  static_cast<float>(data.taps[i]));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
 
-			// explicitly detect broken chordstream type stuff so we can give
-			// more leeway to single note jacks
+			// explicitly detect broken chordstream type stuff so we
+			// can give more leeway to single note jacks
 			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(
 			  1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
 					  static_cast<float>(data.taps[i])),
@@ -1824,15 +1838,16 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 	Smooth(doot[CJQuad], 1.f);
 }
 
-// since the calc skillset balance now operates on +- rather than just - and
-// then normalization, we will use this to depress the stream rating for
-// non-stream files. edit: ok technically this should be done in the sequential
-// pass however that's getting so bloated and efficiency has been optimized
-// enough we can just loop through noteinfo sequentially a few times and it's
-// whatever
+// since the calc skillset balance now operates on +- rather than
+// just - and then normalization, we will use this to depress the
+// stream rating for non-stream files. edit: ok technically this
+// should be done in the sequential pass however that's getting so
+// bloated and efficiency has been optimized enough we can just loop
+// through noteinfo sequentially a few times and it's whatever
 
-// the chaos mod is also determined here for the moment, which pushes up polys
-// and stuff... idk how it even works myself tbh its a pretty hackjobjob
+// the chaos mod is also determined here for the moment, which
+// pushes up polys and stuff... idk how it even works myself tbh its
+// a pretty hackjobjob
 void
 Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 				   vector<float> doot[ModCount],
@@ -1862,14 +1877,14 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
 			float giraffeasaurus = curtime - lasttime;
-			// screen out large hits, it should be ok if this is a discrete
-			// cutoff, but i don't like it
-			// if (giraffeasaurus < 0.25f)
+			// screen out large hits, it should be ok if this is a
+			// discrete cutoff, but i don't like it if
+			// (giraffeasaurus < 0.25f)
 			//	whatwhat.emplace(giraffeasaurus);
 
-			// instead of making another new mod, calculate the original and
-			// most basic chaos mod and apply it along with the new one
-			// for (size_t i = 0; i < notes; ++i)
+			// instead of making another new mod, calculate the
+			// original and most basic chaos mod and apply it along
+			// with the new one for (size_t i = 0; i < notes; ++i)
 			//	whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
 		}
@@ -1925,20 +1940,23 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 						}
 					}
 
-					// not exactly correct naming but basically if hi/lo is
-					// close enough to 1 we can consider the two points an
-					// intersection between the respective quantization waves,
-					// the more intersections we pick up and the closer they are
-					// to 1 the more confident we are that what we have are
-					// duplicate quantizations, and the lower the final mod is
+					// not exactly correct naming but basically if
+					// hi/lo is close enough to 1 we can consider
+					// the two points an intersection between the
+					// respective quantization waves, the more
+					// intersections we pick up and the closer they
+					// are to 1 the more confident we are that what
+					// we have are duplicate quantizations, and the
+					// lower the final mod is
 					int under1 = 0;
 					float hair_scrunchy = 0.f;
 					for (auto& lul : biffs) {
 						if (lul < 1.05f) {
 							++under1;
-							// inverting; 1.05 values should produce a lower mod
-							// than 1.0s and since we are using this value as a
-							// divisor we need to flip it around
+							// inverting; 1.05 values should produce
+							// a lower mod than 1.0s and since we
+							// are using this value as a divisor we
+							// need to flip it around
 							hair_scrunchy += 2.f - lul;
 						}
 					}
@@ -1947,7 +1965,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 						awwoo.emplace_back(
 						  1.f / static_cast<float>(hair_scrunchy + 1.f));
 					uniqshare.insert(under1);
-					// std::cout << "shared: " << under1 << std::endl;
+					// std::cout << "shared: " << under1 <<
+					// std::endl;
 				}
 				zop = mean(awwoo);
 				mmbop.push_back(zop);
@@ -1963,7 +1982,8 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
 			stub =
 			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
-			// std::cout << "uniq " << uniqshare.size() << std::endl;
+			// std::cout << "uniq " << uniqshare.size() <<
+			// std::endl;
 		} else {
 			// can't compare if there's only 1 ms value
 			stub = 1.f;
@@ -1977,21 +1997,26 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			doot[StreamMod][i] = 0.8f;
 			// doot[Chaos][i] = stub;
 		} else {
-			// we're going to use this to downscale the stream skillset of
-			// anything that isn't stream, just a simple tap proportion for the
-			// moment but maybe if we need to do fancier sequential stuff we
-			// can, the only real concern are jack files registering as stream
-			// and that shouldn't be an issue because the amount of single taps
-			// required to do that to any effectual level would be unplayable
+			// we're going to use this to downscale the stream
+			// skillset of anything that isn't stream, just a simple
+			// tap proportion for the moment but maybe if we need to
+			// do fancier sequential stuff we can, the only real
+			// concern are jack files registering as stream and that
+			// shouldn't be an issue because the amount of single
+			// taps required to do that to any effectual level would
+			// be unplayable
 
-			// we could also use this to push up stream files if we wanted to
-			// but i don't think that's advisable or necessary
+			// we could also use this to push up stream files if we
+			// wanted to but i don't think that's advisable or
+			// necessary
 
-			// we want very light js to register as stream, something like jumps
-			// on every other 4th, so 17/19 ratio should return full points, but
-			// maybe we should allow for some leeway in bad interval slicing
-			// this maybe doesn't need to be so severe, on the other hand, maybe
-			// it doesn'ting need to be not needing'nt to be so severe
+			// we want very light js to register as stream,
+			// something like jumps on every other 4th, so 17/19
+			// ratio should return full points, but maybe we should
+			// allow for some leeway in bad interval slicing this
+			// maybe doesn't need to be so severe, on the other
+			// hand, maybe it doesn'ting need to be not needing'nt
+			// to be so severe
 			float prop = static_cast<float>(singletaps + 1) /
 						 static_cast<float>(taps - 1) * 10.f / 7.f;
 			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
@@ -2046,12 +2071,13 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Anchor], 1.f);
 }
 
-// downscales full rolls or rolly js, it looks explicitly for consistent
-// cross column timings on both hands; consecutive notes on the same column
-// will reduce the penalty 0.5-1 multiplier also now downscales ohj because
-// we don't want to run this loop too often even if it makes code slightly
-// clearer, i think, new ohj scaler is the same as the last one but gives
-// higher weight to sequences of ohjumps 0.5-1 multipier
+// downscales full rolls or rolly js, it looks explicitly for
+// consistent cross column timings on both hands; consecutive notes
+// on the same column will reduce the penalty 0.5-1 multiplier also
+// now downscales ohj because we don't want to run this loop too
+// often even if it makes code slightly clearer, i think, new ohj
+// scaler is the same as the last one but gives higher weight to
+// sequences of ohjumps 0.5-1 multipier
 void
 Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							   unsigned int t1,
@@ -2070,8 +2096,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// doing so will give the calc some context from the previous
 	// interval but might have strange practical consequences
 	// another major benefit of retaining last col from the previous
-	// interval is we don't have to keep resetting it and i don't like
-	// how that case is handled atm
+	// interval is we don't have to keep resetting it and i don't
+	// like how that case is handled atm
 
 	vector<float> lr;
 	vector<float> rl;
@@ -2082,8 +2108,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	static const float water_it_for_me = 0.05f;
 	for (size_t i = 0; i < nervIntervals.size(); i++) {
 		// roll downscaler stuff
-		// this appears not to be picking up certain patterns in certain
-		// test files, reminder to investigate
+		// this appears not to be picking up certain patterns in
+		// certain test files, reminder to investigate
 		int totaltaps = 0;
 
 		lr.clear();
@@ -2111,11 +2137,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
-			// as variation approaches 0 the effect of variation diminishes,
-			// e.g. given 140, 140, 120 ms and 40, 40, 20 ms the variation in
-			// 40, 40, 20 is meaningless since they're all psuedo jumps anyway,
-			// but it will prevent the roll downscaler from being applied to the
-			// degree it should, so add a flat value to water down the effect
+			// as variation approaches 0 the effect of variation
+			// diminishes, e.g. given 140, 140, 120 ms and 40, 40,
+			// 20 ms the variation in 40, 40, 20 is meaningless
+			// since they're all psuedo jumps anyway, but it will
+			// prevent the roll downscaler from being applied to the
+			// degree it should, so add a flat value to water down
+			// the effect
 			float bloaaap = water_it_for_me + curtime - lasttime;
 
 			// ignore jumps/no tapsals
@@ -2131,16 +2159,19 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				//	std::cout << "jump" << std::endl;
 
 				// add jumptaps when hitting jumps for ohj
-				// turns out in order to catch rolls with periodic [12] jumps we
-				// need to actually count them as taps-inside-rolls rather than
-				// just ignoring them, and we can try kicking back an extra
-				// value into the lr or rl vectors since 1->[12] is technically
-				// a 1->2 and the difference in motion isn't appreciably
-				// different under the circumstances we are interested in
+				// turns out in order to catch rolls with periodic
+				// [12] jumps we need to actually count them as
+				// taps-inside-rolls rather than just ignoring them,
+				// and we can try kicking back an extra value into
+				// the lr or rl vectors since 1->[12] is technically
+				// a 1->2 and the difference in motion isn't
+				// appreciably different under the circumstances we
+				// are interested in
 				if (lcol && rcol) {
 					jumptaps += 2;
 					lastsinglecol = lastcol;
-					// on ohjumps treat the next note as always cross column
+					// on ohjumps treat the next note as always
+					// cross column
 					lastcol = -1;
 				}
 
@@ -2157,23 +2188,23 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// reset cur_jumps_seq on hitting a single note
 			cur_jumps_seq = 0;
 
-			// if lcol is true and we are here we have 1 single tap and if lcol
-			// is true we are on column 0; don't try to be clever, even if lcol
-			// < rcol to convert bools into ints into a bool into an int worked
-			// it was needlessly confusing
+			// if lcol is true and we are here we have 1 single tap
+			// and if lcol is true we are on column 0; don't try to
+			// be clever, even if lcol < rcol to convert bools into
+			// ints into a bool into an int worked it was needlessly
+			// confusing
 			int thiscol = lcol ? 0 : 1;
 
-			// ignore consecutive notes, if we encountered a one hand jump treat
-			// it as always being a column swap
-			// if (debugmode)
-			// std::cout << "lastcol is " << lastcol << std::endl;
-			// if (debugmode)
-			// std::cout << "thiscol is " << thiscol << std::endl;
+			// ignore consecutive notes, if we encountered a one
+			// hand jump treat it as always being a column swap if
+			// (debugmode) std::cout << "lastcol is " << lastcol <<
+			// std::endl; if (debugmode) std::cout << "thiscol is "
+			// << thiscol << std::endl;
 			if (thiscol != lastcol || lastcol == -1) {
-				// treat 1[12]2 as different from 1[12]1, count the latter as an
-				// anchor and the former as a roll with 4 notes
-				// ok actually lets treat them the mostly same for the time
-				// being
+				// treat 1[12]2 as different from 1[12]1, count the
+				// latter as an anchor and the former as a roll with
+				// 4 notes ok actually lets treat them the mostly
+				// same for the time being
 				if (lastcol == -1)
 					if (rcol) {
 						lr.push_back(bloaaap);
@@ -2185,56 +2216,60 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 						++rtaps;
 					}
 
-				// this is the col we END on, so if we end on right, we are left
-				// to right, not right to left
+				// this is the col we END on, so if we end on right,
+				// we are left to right, not right to left
 				if (rcol) {
 					lr.push_back(bloaaap);
 					++ltaps;
 					// if (debugmode)
-					// std::cout << "left right " << curtime - lasttime
+					// std::cout << "left right " << curtime -
+					// lasttime
 					//		  << std::endl;
 				} else if (lcol) {
 					rl.push_back(bloaaap);
 					++rtaps;
 					// if (debugmode)
-					// std::cout << "right to left " << curtime - lasttime
+					// std::cout << "right to left " << curtime -
+					// lasttime
 					//		  << std::endl;
 				} else {
 					// if (debugmode)
-					// std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA" <<
-					// std::endl;
+					// std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA"
+					// << std::endl;
 				}
 				// only log cross column lasttimes on single notes
 				lasttime = curtime;
 			} else {
 				// if (debugmode)
 				// std::cout << "anchor" << std::endl;
-				// consecutive notes should "poison" the current cross
-				// column vector but without shifting the proportional
-				// scaling too much this is to avoid treating 121212212121
-				// too much like 121212121212
+				// consecutive notes should "poison" the current
+				// cross column vector but without shifting the
+				// proportional scaling too much this is to avoid
+				// treating 121212212121 too much like 121212121212
 
-				// if we wanted to be _super explicit_ we could just reset
-				// the lr/rl vectors when hitting a consecutive note (and/or
-				// jump), there are advantages to being hyper explicit but
-				// at the moment this does sort of pick up rolly js quite
-				// well, though it would probably be more responsible
-				// longterm to have an explicit roll detector an explicit
-				// trill detector, and an explicit rolly js detector thing
-				// is debugging all 3 and making sure they work as intended
-				// and in exclusion is just as hard as making a couple of
-				// more generic mods and accepting they will overlap in
-				// certain scenarios though again on the other hand explicit
-				// modifiers are easier to tune you just have to do a lot
-				// more of it
+				// if we wanted to be _super explicit_ we could just
+				// reset the lr/rl vectors when hitting a
+				// consecutive note (and/or jump), there are
+				// advantages to being hyper explicit but at the
+				// moment this does sort of pick up rolly js quite
+				// well, though it would probably be more
+				// responsible longterm to have an explicit roll
+				// detector an explicit trill detector, and an
+				// explicit rolly js detector thing is debugging all
+				// 3 and making sure they work as intended and in
+				// exclusion is just as hard as making a couple of
+				// more generic mods and accepting they will overlap
+				// in certain scenarios though again on the other
+				// hand explicit modifiers are easier to tune you
+				// just have to do a lot more of it
 				if (rcol)
 					lr.push_back(bloaaap);
 				else if (lcol)
 					rl.push_back(bloaaap);
 
-				// we have an anchor and we either have moderately complex
-				// patterning now or we have simply changed direction of the
-				// roll
+				// we have an anchor and we either have moderately
+				// complex patterning now or we have simply changed
+				// direction of the roll
 				++dswap;
 			}
 
@@ -2242,33 +2277,39 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			// we know between the following that the latter is more
 			// difficult [12][12][12]222[12][12][12]
 			// [12][12][12]212[12][12][12]
-			// so we want to penalize not only any break in the ohj sequence
-			// but further penalize breaks which contain cross column taps
-			// this should also reflect the difference between [12]122[12],
-			// [12]121[12] cases like 121[12][12]212[12][12]121 should
-			// probably have some penalty but likely won't with this setup,
-			// but everyone hates that anyway and it would be quite
+			// so we want to penalize not only any break in the ohj
+			// sequence but further penalize breaks which contain
+			// cross column taps this should also reflect the
+			// difference between [12]122[12], [12]121[12] cases
+			// like 121[12][12]212[12][12]121 should probably have
+			// some penalty but likely won't with this setup, but
+			// everyone hates that anyway and it would be quite
 			// difficult to force the current setup to do so without
 			// increasing complexity significantly (probably)
 
-			// edit, breaks in ohj sequences are implicitly penalized by a base
-			// nps loss, we don't need to do it again here as it basically
-			// shreds the modifiers for quadjacks with some hands sprinkled in
+			// edit, breaks in ohj sequences are implicitly
+			// penalized by a base nps loss, we don't need to do it
+			// again here as it basically shreds the modifiers for
+			// quadjacks with some hands sprinkled in
 			//	jumptaps -=
-			//	 1; // we're already on single notes, so just decrement a lil
+			//	 1; // we're already on single notes, so just
+			// decrement
+			// a lil
 
-			// if we have a consecutive single tap, and the column swaps, NOW,
-			// shred the ohjump modifier
+			// if we have a consecutive single tap, and the column
+			// swaps, NOW, shred the ohjump modifier
 			if (thiscol != lastcol && lastcol != -1) {
 				jumptaps -= 1;
 				//		if (debugmode)
-				//			std::cout << "removed jumptap, now: " << jumptaps
+				//			std::cout << "removed jumptap, now: " <<
+				// jumptaps
 				//					  << std::endl;
 				//		if (debugmode)
 				//			std::cout << "last col is: " << lastcol
 				//					  << std::endl;
 				//		if (debugmode)
-				//			std::cout << "this col is: " << thiscol <<
+				//			std::cout << "this col is: " << thiscol
+				//<<
 				// std::endl;
 			}
 			lastcol = thiscol;
@@ -2297,20 +2338,22 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		dswip = (dswip + dswap) / 2.f;
 		int cvtaps = ltaps + rtaps;
 
-		// if this is true we have some combination of single notes and
-		// jumps where the single notes are all on the same column
+		// if this is true we have some combination of single notes
+		// and jumps where the single notes are all on the same
+		// column
 		if (cvtaps == 0) {
 
 			//	if (debugmode)
-			//		std::cout << "cvtaps0: " << max_jumps_seq << std::endl;
+			//		std::cout << "cvtaps0: " << max_jumps_seq <<
+			// std::endl;
 
 			// we don't want to treat 2[12][12][12]2222
 			// 2222[12][12][12]2 differently, so use the
 			// max sequence here exclusively
 			if (max_jumps_seq > 0) {
 
-				// yea i thought we might need to tune ohj downscalers for js
-				// and cj slightly differently
+				// yea i thought we might need to tune ohj
+				// downscalers for js and cj slightly differently
 				doot[OHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
 								  (static_cast<float>(max_jumps_seq) * 2.5f),
@@ -2318,9 +2361,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							0.5f,
 							1.f);
 
-				// ohjumps in cj can be either easier or harder depending on
-				// context.. so we have to pull back a bit so it doesn't swing
-				// too far when it shouldn't
+				// ohjumps in cj can be either easier or harder
+				// depending on context.. so we have to pull back a
+				// bit so it doesn't swing too far when it shouldn't
 				doot[CJOHJump][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
 								  (static_cast<float>(max_jumps_seq) * 2.4f),
@@ -2328,13 +2371,16 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							0.6f,
 							1.f);
 				//	if (debugmode)
-				//		std::cout << "chohj: " << doot[CJOHJump][i] <<
+				//		std::cout << "chohj: " << doot[CJOHJump][i]
+				//<<
 				// std::endl;
 			}
 
 			else { // single note longjacks, do nothing
 				   //	if (debugmode)
-				   //		std::cout << "zemod would be but wasn't: " << zemod
+				   //		std::cout << "zemod would be but wasn't:
+				   //" <<
+				   // zemod
 				   //				  << std::endl;
 				doot[OHJump][i] = 1.f;
 				doot[CJOHJump][i] = 1.f;
@@ -2358,8 +2404,8 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		// if (debugmode)
 		//	std::cout << "cv rl " << cvrl << std::endl;
 
-		// weighted average, but if one is empty we want it to skew high not
-		// low due to * 0
+		// weighted average, but if one is empty we want it to skew
+		// high not low due to * 0
 		float Cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
 				   static_cast<float>(cvtaps + 2);
 
@@ -2371,10 +2417,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		if (true) {
 			if (!lr.empty() && !rl.empty()) {
 
-				// ok this is SUPER jank but we added a flat amount to the ms
-				// values to water down the effects of variation, but that will
-				// negate the differential between the means of the two, so now
-				// we have to again subtract that amount from the ms values in
+				// ok this is SUPER jank but we added a flat amount
+				// to the ms values to water down the effects of
+				// variation, but that will negate the differential
+				// between the means of the two, so now we have to
+				// again subtract that amount from the ms values in
 				// the vectors
 				for (auto& v : lr)
 					v -= water_it_for_me;
@@ -2386,10 +2433,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				float mrl = mean(rl);
 				bool rl_is_higher = mlr < mrl;
 
-				// if the mean of one isn't much higher than the other, it's oh
-				// trills, so leave it alone, if it is, scale down the roll
-				// modifier by the oh trillyness, we don't want to affect that
-				// here
+				// if the mean of one isn't much higher than the
+				// other, it's oh trills, so leave it alone, if it
+				// is, scale down the roll modifier by the oh
+				// trillyness, we don't want to affect that here
 				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
 				div = CalcClamp(div, 1.f, 3.f);
 				// if (debugmode)
@@ -2403,8 +2450,9 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			}
 		}
 
-		// cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv + cvlr)
-		// / 3.f; if (debugmode) 	std::cout << "cv2 " << cv << std::endl;
+		// cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv +
+		// cvlr) / 3.f; if (debugmode) 	std::cout << "cv2 " << cv <<
+		// std::endl;
 		/*
 
 		// then scaled against how many taps we ignored
@@ -2421,10 +2469,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		yes_trills *= barf;
 		*/
 
-		// we just want a minimum amount of variation to escape getting
-		// downscaled cap to 1 (it's not an inherently bad idea to upscale
-		// sets of patterns with high variation but we shouldn't do that
-		// here, probably)
+		// we just want a minimum amount of variation to escape
+		// getting downscaled cap to 1 (it's not an inherently bad
+		// idea to upscale sets of patterns with high variation but
+		// we shouldn't do that here, probably)
 
 		float barf2 =
 		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
@@ -2444,18 +2492,20 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
 		// if (debugmode)
-		//	std::cout << "final mod " << doot[Roll][i] << "\n" << std::endl;
+		//	std::cout << "final mod " << doot[Roll][i] << "\n" <<
+		// std::endl;
 		// ohj stuff, wip
 		if (jumptaps < 1 && max_jumps_seq < 1) {
 			//		if (debugmode)
-			//			std::cout << "down to end but eze: " << max_jumps_seq
+			//			std::cout << "down to end but eze: " <<
+			// max_jumps_seq
 			//					  << std::endl;
 			doot[OHJump][i] = 1.f;
 			doot[CJOHJump][i] = 1.f;
 		} else {
 			// STANDARD OHJ
-			// for js we lean into max sequences more, since they're better
-			// indicators of inflated difficulty
+			// for js we lean into max sequences more, since they're
+			// better indicators of inflated difficulty
 			float max_seq_component =
 			  0.65f * (1.125f - static_cast<float>(max_jumps_seq * 2.5) /
 								  static_cast<float>(totaltaps));
@@ -2472,9 +2522,10 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			doot[OHJump][i] = CalcClamp(0.1f + ohj, 0.5f, 1.f);
 
 			// CH OHJ
-			// we want both the total number of jumps and the max sequence to
-			// count here, with more emphasis on the max sequence, sequence
-			// should be multiplied by 2 (or maybe slightly more?)
+			// we want both the total number of jumps and the max
+			// sequence to count here, with more emphasis on the max
+			// sequence, sequence should be multiplied by 2 (or
+			// maybe slightly more?)
 			max_seq_component =
 			  0.5f * fastsqrt(1.2f - static_cast<float>(max_jumps_seq * 2) /
 									   static_cast<float>(totaltaps));
@@ -2493,19 +2544,23 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			//		std::cout << "jumptaps: "
 			//					  << jumptaps << std::endl;
 			//			if (debugmode)
-			//				std::cout << "maxseq: " << max_jumps_seq <<
-			// std::endl; 		if (debugmode) 			std::cout << "total
-			// taps:
+			//				std::cout << "maxseq: " << max_jumps_seq
+			//<<
+			// std::endl; 		if (debugmode) 			std::cout <<
+			// "total taps:
 			// "
 			// << totaltaps
-			//<< std::endl; 	if (debugmode) 		std::cout << "seq comp: " <<
-			// max_seq_component<< std::endl; if (debugmode) 	std::cout <<
-			// "prop comp: " <<prop_component << std::endl; if (debugmode)
-			// std::cout << "actual prop: " << ohj
+			//<< std::endl; 	if (debugmode) 		std::cout << "seq
+			// comp: " <<
+			// max_seq_component<< std::endl; if (debugmode)
+			// std::cout
+			// << "prop comp: " <<prop_component << std::endl; if
+			// (debugmode) std::cout << "actual prop: " << ohj
 			//					  << std::endl;
 			doot[CJOHJump][i] = CalcClamp(cjohj, 0.5f, 1.f);
 			// if (debugmode)
-			//	std::cout << "final mod: " << doot[OHJump][i] << "\n" <<
+			//	std::cout << "final mod: " << doot[OHJump][i] <<
+			//"\n" <<
 			// std::endl;
 		}
 	}
@@ -2521,12 +2576,13 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	// for (auto& v : doot[OHJump])
 	//	v = fastsqrt(v);
 
-	// this is fugly but basically we want to negate any _bonus_ from chaos if
-	// the polys are arranged in a giant ass roll formation
-	// for (size_t i = 0; i < doot[Chaos].size(); ++i)
+	// this is fugly but basically we want to negate any _bonus_
+	// from chaos if the polys are arranged in a giant ass roll
+	// formation for (size_t i = 0; i < doot[Chaos].size(); ++i)
 	//	doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
 	//							   doot[Chaos][i],
-	//							   max(doot[Chaos][i] * doot[Roll][i], 1.f));
+	//							   max(doot[Chaos][i] *
+	// doot[Roll][i], 1.f));
 
 	// for (size_t i = 0; i < doot[Roll].size(); ++i)
 	//	doot[Roll][i] = CalcClamp(doot[Roll][i] * doot[OHTrill][i],
@@ -2536,11 +2592,12 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	return;
 }
 
-// ok new plan this takes a bunch of the concepts i tried with the old
-// didn't-work-so-well-roll-downscaler and utilizes them across a wide range of
-// intervals, making it more suited to picking up and hammering long stretches
-// of jumptrillable roll patterns, this also apparently thinks every js and hs
-// pattern in existence is mashable too, probably because they are
+// ok new plan this takes a bunch of the concepts i tried with the
+// old didn't-work-so-well-roll-downscaler and utilizes them across
+// a wide range of intervals, making it more suited to picking up
+// and hammering long stretches of jumptrillable roll patterns, this
+// also apparently thinks every js and hs pattern in existence is
+// mashable too, probably because they are
 void
 Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 						  unsigned int t1,
@@ -2570,17 +2627,17 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 	int lastsinglecol = -1;
 	int single_taps = 0;
 
-	// we could implement this like the roll scaler above, however this is to
-	// prevent /0 errors exclusively at the moment (because we are truncating
-	// extremely high bpm 192nd flams can produce 0 as ms), causing potenial
-	// nan's in the sd function
-	// we could look into using this for balance purposes as well but things
-	// look ok for the moment and it would likely be a large time sink without
-	// proper tests setup
+	// we could implement this like the roll scaler above, however
+	// this is to prevent /0 errors exclusively at the moment
+	// (because we are truncating extremely high bpm 192nd flams can
+	// produce 0 as ms), causing potenial nan's in the sd function
+	// we could look into using this for balance purposes as well
+	// but things look ok for the moment and it would likely be a
+	// large time sink without proper tests setup
 	static const int ms_add = 1;
 
-	// miss window seems like a reasonable cutoff, we don't want 1500 ms hits
-	// after long breaks to poison the pool
+	// miss window seems like a reasonable cutoff, we don't want
+	// 1500 ms hits after long breaks to poison the pool
 	static const int max_ms_value = 180;
 	static const float mean_cutoff_factor = 1.7f;
 
@@ -2590,7 +2647,8 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		int rtaps = 0;
 		int single_taps = 0;
 
-		// drop the oldest interval values if we have reached full size
+		// drop the oldest interval values if we have reached full
+		// size
 		if (itv_array.size() == itv_window) {
 			itv_array.pop_front();
 			itv_arrayTWO.pop_front();
@@ -2610,10 +2668,11 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (int row : nervIntervals[i]) {
 			float curtime = NoteInfo[row].rowTime / music_rate;
 
-			// we don't want slight bpm variations to pollute too much stuff,
-			// especially if we are going to use unique values at some point (we
-			// don't currently), if we do and even single digit rounding becomes
-			// an issue we can truncate further up
+			// we don't want slight bpm variations to pollute too
+			// much stuff, especially if we are going to use unique
+			// values at some point (we don't currently), if we do
+			// and even single digit rounding becomes an issue we
+			// can truncate further up
 			int trunc_ms =
 			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
 
@@ -2624,7 +2683,8 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 				++single_taps;
 
 			// if (debugmode)
-			//	std::cout << "truncated ms value: " << trunc_ms << std::endl;
+			//	std::cout << "truncated ms value: " << trunc_ms <<
+			// std::endl;
 
 			// for expurrrmental thing for chaos thing
 			if (trunc_ms < max_ms_value)
@@ -2650,14 +2710,16 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 			int thiscol = lcol ? 0 : 1;
 			if (thiscol != lastcol || lastcol == -1) {
-				// handle ohjumps here, not above, because we only want to
-				// handle the last ohjump before an actual cross column, we
-				// don't want to handle long sequences of ohjumps inside rolls.
-				// technically they would be jumptrillable, but the point is to
+				// handle ohjumps here, not above, because we only
+				// want to handle the last ohjump before an actual
+				// cross column, we don't want to handle long
+				// sequences of ohjumps inside rolls. technically
+				// they would be jumptrillable, but the point is to
 				// pick up _rolls_, we handle ohjumps elsewhere
-				// basically we treat ohjumps as they were either a cross column
-				// left or right, so that the roll detection still picks up
-				// rolls with ohjumps in them
+				// basically we treat ohjumps as they were either a
+				// cross column left or right, so that the roll
+				// detection still picks up rolls with ohjumps in
+				// them
 				if (lastcol == -1) {
 					// dump an extra value, cuz
 					if (rcol)
@@ -2683,11 +2745,12 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 				}
 				lasttime = curtime;
 			} else {
-				// the idea here was to help boost anchored patterns but all it
-				// did was just buff rolls with frequent directional swaps and
-				// anchored patterns are already more or less fine
-				// possibly look into taking this out of the lower level roll
-				// scaler as well
+				// the idea here was to help boost anchored patterns
+				// but all it did was just buff rolls with frequent
+				// directional swaps and anchored patterns are
+				// already more or less fine possibly look into
+				// taking this out of the lower level roll scaler as
+				// well
 
 				//	if (trunc_ms < trunc_ms)
 				//		cur_vals.push_back(trunc_ms);
@@ -2698,9 +2761,10 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		itv_arrayTWO.push_back(cur_vals);
 
-		// k lets try just running the pass with the rolls (lower mean indicates
-		// the rolls are flowing in that direction, for patterns that aren't
-		// rolls this should be functionally insignificant
+		// k lets try just running the pass with the rolls (lower
+		// mean indicates the rolls are flowing in that direction,
+		// for patterns that aren't rolls this should be
+		// functionally insignificant
 		cur_vals = mean(lr) < mean(rl) ? lr : rl;
 		int cv_taps = ltaps + rtaps;
 
@@ -2720,8 +2784,9 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (auto& n : itv_single_taps)
 			window_single_taps += n;
 
-		// push current interval values into deque, there should always be
-		// space since we pop front at the start of the loop if there isn't
+		// push current interval values into deque, there should
+		// always be space since we pop front at the start of the
+		// loop if there isn't
 		itv_array.push_back(cur_vals);
 
 		// clear vectors before using them
@@ -2733,12 +2798,14 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		for (auto& v : itv_array)
 			totalvalues += v.size();
 
-		// the unique val is not really used at the moment, basically we filter
-		// out the vectors for stuff way outside the applicable range, like 500
-		// ms hits that would otherwise throw off the variation estimations
-		// unique val is actually used for optimizing cases where you have
-		// absolute pure roll formation and you know youwant to slamjam it,
-		// there's probably a faster way to do the same thing but w.e for now
+		// the unique val is not really used at the moment,
+		// basically we filter out the vectors for stuff way outside
+		// the applicable range, like 500 ms hits that would
+		// otherwise throw off the variation estimations unique val
+		// is actually used for optimizing cases where you have
+		// absolute pure roll formation and you know youwant to
+		// slamjam it, there's probably a faster way to do the same
+		// thing but w.e for now
 		for (auto& v : itv_array)
 			for (auto& n : v) {
 				if (!unique_vals.count(n)) // 0.5% profiler
@@ -2752,21 +2819,22 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		float f_mean = mean(filtered_vals);
 
-		// bigger the lower the proportion of cross column single taps
-		// i.e. more anchors
-		// this is kinda buggy atm and producing sub 1 values for ??? reasons,
-		// but i don't think it makes too much difference and i don't want to
-		// spend more time on it right now
+		// bigger the lower the proportion of cross column single
+		// taps i.e. more anchors this is kinda buggy atm and
+		// producing sub 1 values for ??? reasons, but i don't think
+		// it makes too much difference and i don't want to spend
+		// more time on it right now
 		float cv_prop = cv_taps == 0 ? 1
 									 : static_cast<float>(window_taps) /
 										 static_cast<float>(window_cv_taps);
 
-		// bigger the lower the proportion of single taps to total taps
-		// i.e. more chords
+		// bigger the lower the proportion of single taps to total
+		// taps i.e. more chords
 		float chord_prop = static_cast<float>(window_taps) /
 						   static_cast<float>(window_single_taps);
 
-		// handle anchors, chord filler, empty sections and single notes
+		// handle anchors, chord filler, empty sections and single
+		// notes
 		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
 			doot[WideRangeRoll][i] = 1.f;
 			doot[Chaos][i] = 1.f;
@@ -2774,19 +2842,22 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		}
 
 		float pmod = min_mod;
-		// these cases are likely a "true roll" and we can optimize by just
-		// direct setting them, if unique_vals == 1 then we only have a single
-		// instance of left->right or right->left ms values across 2seconds,
-		// this usually indicates a straight roll, if filtered vals == 1 the
-		// same thing applies, but we filtered out the occasional direction swap
-		// or a long break before the roll started. The scenario in which this
-		// would not indicate a straight roll is aggressively rolly js or hs,
-		// and while downscaling those is a goal, we shouldn't attempt to do it
-		// here, so we'll upscale the min mod by the anchor/chord proportion
-		// the < is for catching empty stuff that may have reached here
-		// edit: pretty sure this doesn't really effectively push up js/hs but
-		// it's w.e, we don't use this mod on those passes atm and it's more
-		// about the graphs looking pretty ugly than anything else
+		// these cases are likely a "true roll" and we can optimize
+		// by just direct setting them, if unique_vals == 1 then we
+		// only have a single instance of left->right or right->left
+		// ms values across 2seconds, this usually indicates a
+		// straight roll, if filtered vals == 1 the same thing
+		// applies, but we filtered out the occasional direction
+		// swap or a long break before the roll started. The
+		// scenario in which this would not indicate a straight roll
+		// is aggressively rolly js or hs, and while downscaling
+		// those is a goal, we shouldn't attempt to do it here, so
+		// we'll upscale the min mod by the anchor/chord proportion
+		// the < is for catching empty stuff that may have reached
+		// here edit: pretty sure this doesn't really effectively
+		// push up js/hs but it's w.e, we don't use this mod on
+		// those passes atm and it's more about the graphs looking
+		// pretty ugly than anything else
 		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
 			doot[WideRangeRoll][i] =
 			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
@@ -2794,20 +2865,23 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 			continue;
 		}
 
-		// scale base default to cv_prop and chord_prop, we want the base to be
-		// higher for filler sections that are mostly slow anchors/js/whatever,
-		// if there's filler that's in slow roll formation there's not much we
-		// can do about it affecting adjacant hard intervals on the smooth pass,
-		// however since we're running on a moving window the effect is
-		// mitigated both chord_prop and cv_prop are 1.0+ multipliers
-		// it's kind of hard to have a roll if you only have 12 notes in 2
-		// seconds, ideally we would steer away from discrete cutoffs of any
-		// kind but it's kind of hard to resist the temptation as it should be
-		// pretty safe here, even supposing we award a full modifier to
-		// something that we shouldn't have, it should make no practical
-		// difference apart from slightly upping the next hard interval on
-		// smooth, yes this is redundant with the above, but i figured it would
-		// be clearer to split up slightly different cases
+		// scale base default to cv_prop and chord_prop, we want the
+		// base to be higher for filler sections that are mostly
+		// slow anchors/js/whatever, if there's filler that's in
+		// slow roll formation there's not much we can do about it
+		// affecting adjacant hard intervals on the smooth pass,
+		// however since we're running on a moving window the effect
+		// is mitigated both chord_prop and cv_prop are 1.0+
+		// multipliers it's kind of hard to have a roll if you only
+		// have 12 notes in 2 seconds, ideally we would steer away
+		// from discrete cutoffs of any kind but it's kind of hard
+		// to resist the temptation as it should be pretty safe
+		// here, even supposing we award a full modifier to
+		// something that we shouldn't have, it should make no
+		// practical difference apart from slightly upping the next
+		// hard interval on smooth, yes this is redundant with the
+		// above, but i figured it would be clearer to split up
+		// slightly different cases
 		if (window_taps <= 12) {
 			doot[WideRangeRoll][i] = CalcClamp(
 			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
@@ -2815,21 +2889,21 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 			continue;
 		}
 
-		// we've handled basic cases and stuff that could cause /0 errors
-		// (hopefully) do maths now
+		// we've handled basic cases and stuff that could cause /0
+		// errors (hopefully) do maths now
 		float unique_prop = static_cast<float>(unique_vals.size()) /
 							static_cast<float>(window_vals.size());
 		float cv_window = cv(window_vals);
 		float cv_filtered = cv(filtered_vals);
 		float cv_unique = cv(unique_vals);
 
-		// this isn't really robust if theres a really short flam involved
-		// anywhere e.g. a 5ms flam offset for an oh jump when everything else
-		// is 50 ms will make the above way too high, something else must be
-		// used, leaving this here so i don't forget and try to use it again
-		// or some other idiot
-		// float mean_prop =
-		// f_mean / static_cast<float>(*std::min_element(filtered_vals.begin(),
+		// this isn't really robust if theres a really short flam
+		// involved anywhere e.g. a 5ms flam offset for an oh jump
+		// when everything else is 50 ms will make the above way too
+		// high, something else must be used, leaving this here so i
+		// don't forget and try to use it again or some other idiot
+		// float mean_prop = f_mean /
+		// static_cast<float>(*std::min_element(filtered_vals.begin(),
 		//												filtered_vals.end()));
 		// mean_prop = 1.f;
 		/*
@@ -2847,7 +2921,8 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 			std::cout << "cprop: " << cv_prop << std::endl;
 
 		if (debugmode)
-			std::cout << "cv: " << cv_window << cv_filtered << cv_unique
+			std::cout << "cv: " << cv_window << cv_filtered <<
+		cv_unique
 					  << std::endl;
 		if (debugmode)
 			std::cout << "uprop: " << unique_prop << std::endl;
@@ -2859,18 +2934,21 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		// if (debugmode)
 		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
 
-		// basically the idea here is long sets of rolls if you only count
-		// values from specifically left->right or right->left, whichever lower,
-		// will have long sequences of identical values that should become very
-		// exaggerated over the course of 2.5 seconds compared to other files,
-		// since the values will be identical mean/min should be much closer to
-		// 1 compared to legitimate patterns and the number of notes contained
-		// in the roll compared to total notes (basically we don't count anchors
-		// as notes) will also be closer to 1; we want to pretty much only
-		// detect long cheesable sets of notes so multiplying window range cv by
-		// mean/min and totaltaps/cvtaps should put almost everything else over
-		// a 1.0 multiplier. perhaps mean/min should be calculated on the full
-		// window like taps/cvtaps are
+		// basically the idea here is long sets of rolls if you only
+		// count values from specifically left->right or
+		// right->left, whichever lower, will have long sequences of
+		// identical values that should become very exaggerated over
+		// the course of 2.5 seconds compared to other files, since
+		// the values will be identical mean/min should be much
+		// closer to 1 compared to legitimate patterns and the
+		// number of notes contained in the roll compared to total
+		// notes (basically we don't count anchors as notes) will
+		// also be closer to 1; we want to pretty much only detect
+		// long cheesable sets of notes so multiplying window range
+		// cv by mean/min and totaltaps/cvtaps should put almost
+		// everything else over a 1.0 multiplier. perhaps mean/min
+		// should be calculated on the full window like taps/cvtaps
+		// are
 		pmod = cv_filtered * cv_prop * 1.75f;
 		pmod += 0.4f;
 		// both too sensitive and unreliable i think
@@ -2879,7 +2957,8 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		doot[WideRangeRoll][i] = pmod;
 		// if (debugmode)
-		//	std::cout << "final mod " << doot[WideRangeRoll][i] << "\n"
+		//	std::cout << "final mod " << doot[WideRangeRoll][i] <<
+		//"\n"
 		//			  << std::endl;
 
 		// chayoss stuff
@@ -2929,18 +3008,26 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 							butt += flop;
 
 							// if (debugmode)
-							//	std::cout << "flop over: " << flop << " in: " <<
+							//	std::cout << "flop over: " << flop
+							//<< "
+							// in: " <<
 							// in
-							//			  << " the: " << the << " mop: " << mop
+							//			  << " the: " << the << " mop: "
+							//<<
+							// mop
 							//			  << std::endl;
 						} else if (flop < 0.5f) {
 							flop += 1.f;
 							butt += flop;
 
 							// if (debugmode)
-							//	std::cout << "flop under: " << flop << " in: "
+							//	std::cout << "flop under: " << flop
+							//<< "
+							// in: "
 							//<< in
-							//			  << " the: " << the << " mop: " << mop
+							//			  << " the: " << the << " mop: "
+							//<<
+							// mop
 							//			  << std::endl;
 						}
 						++whatwhat;
@@ -2955,15 +3042,17 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
 	}
 
-	// covering a window of 4 intervals does act as a smoother, and a better one
-	// than a double smooth for sure, however we still want to run the smoother
-	// anyway to rough out jagged edges and interval splicing error
+	// covering a window of 4 intervals does act as a smoother, and
+	// a better one than a double smooth for sure, however we still
+	// want to run the smoother anyway to rough out jagged edges and
+	// interval splicing error
 	if (SmoothPatterns)
 		Smooth(doot[WideRangeRoll], 1.f);
 	return;
 }
 
-// hyper explicit mega murder of long chains of 12211221122112211221122112211221
+// hyper explicit mega murder of long chains of
+// 12211221122112211221122112211221
 void
 Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 							   unsigned int t1,
@@ -2991,7 +3080,8 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 		int interval_taps = 0;
 		int ccacc_counter = 0;
 
-		// drop the oldest interval values if we have reached full size
+		// drop the oldest interval values if we have reached full
+		// size
 		if (itv_taps.size() == itv_window) {
 			itv_taps.pop_front();
 			itv_ccacc.pop_front();
@@ -3018,7 +3108,9 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 				if (rcol) {
 					if (anchors_hit == 1 && last_cc_dir == 10) {
 						// if (debugmode)
-						//	std::cout << "ccacc detected ending on " << thiscol
+						//	std::cout << "ccacc detected ending on "
+						//<<
+						// thiscol
 						//			  << std::endl;
 						++ccacc_counter;
 					}
@@ -3028,7 +3120,9 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 				} else if (lcol) {
 					if (anchors_hit == 1 && last_cc_dir == 01) {
 						// if (debugmode)
-						//	std::cout << "ccacc detected ending on " << thiscol
+						//	std::cout << "ccacc detected ending on "
+						//<<
+						// thiscol
 						//			  << std::endl;
 						++ccacc_counter;
 					}
@@ -3056,7 +3150,8 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 			crop_circles = 0;
 
 		// if (debugmode)
-		//	std::cout << "crop circles: " << crop_circles << std::endl;
+		//	std::cout << "crop circles: " << crop_circles <<
+		// std::endl;
 
 		unsigned int window_taps = 0;
 		for (auto& n : itv_taps)
@@ -3067,9 +3162,11 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 			window_ccacc += n;
 
 		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps << std::endl;
+		//	std::cout << "window taps: " << window_taps <<
+		// std::endl;
 		// if (debugmode)
-		//	std::cout << "window ccacc: " << window_ccacc << std::endl;
+		//	std::cout << "window ccacc: " << window_ccacc <<
+		// std::endl;
 
 		float pmod = 1.f;
 
@@ -3080,7 +3177,8 @@ Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 
 		doot[WideRangeJumptrill][i] = CalcClamp(pmod, min_mod, max_mod);
 		// if (debugmode)
-		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" << std::endl;
+		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" <<
+		// std::endl;
 	}
 
 	if (SmoothPatterns)
@@ -3111,8 +3209,8 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 
 		interval_taps += column_count(NoteInfo[row].notes);
 
-		// iterate taps per col.. yes we've done this already in process
-		// finger but w.e just redo it for now
+		// iterate taps per col.. yes we've done this already in
+		// process finger but w.e just redo it for now
 		for (size_t c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
@@ -3127,17 +3225,19 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 		for (size_t c = 0; c < col_ids.size(); c++)
 			window_col_taps[c] += n[c];
 
-	// for this we really want to highlight the differential between the highest
-	// value and the lowest, and for each hand, basically the same concept as
-	// the original anchor mod, but we won't discriminate by hand (yet?)
+	// for this we really want to highlight the differential between
+	// the highest value and the lowest, and for each hand,
+	// basically the same concept as the original anchor mod, but we
+	// won't discriminate by hand (yet?)
 	int window_max_anch = max_val(window_col_taps);
 	int window_2nd_anch = 0;
 
-	// we actually do care here if we have 2 equivalent max values, we want the
-	// next value below that, technically we should only care if the max value
-	// is the same on both hands, since that's significantly harder than them
-	// being on the same hand, probably, actually that's only true if they're
-	// ohjumps, but we don't know that here and this is supposed to be a simple
+	// we actually do care here if we have 2 equivalent max values,
+	// we want the next value below that, technically we should only
+	// care if the max value is the same on both hands, since that's
+	// significantly harder than them being on the same hand,
+	// probably, actually that's only true if they're ohjumps, but
+	// we don't know that here and this is supposed to be a simple
 	// approach for the moment
 	for (auto& n : window_col_taps)
 		if (n > window_2nd_anch && n < window_max_anch)
@@ -3153,16 +3253,16 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 		std::cout << "2nd anchor: " << window_2nd_anch << std::endl;
 	}
 
-	// nothing here or the differential is irrelevant because the number of
-	// notes is too small
+	// nothing here or the differential is irrelevant because the
+	// number of notes is too small
 	if (window_max_anch < 3)
 		return 1.f;
 	// if we don't return max mod
 	if (window_2nd_anch == 0)
 		return 1.f;
 
-	// i don't like subtraction very much but it shouldn't be so volatile over
-	// this large a window
+	// i don't like subtraction very much but it shouldn't be so
+	// volatile over this large a window
 
 	float bort =
 	  static_cast<float>(window_max_anch) - static_cast<float>(window_2nd_anch);
@@ -3199,7 +3299,8 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 			std::cout << "\n" << std::endl;
 		}
 
-		// drop the oldest interval values if we have reached full size
+		// drop the oldest interval values if we have reached full
+		// size
 		if (itv_taps.size() == itv_window) {
 			itv_taps.pop_front();
 			itv_col_taps.pop_front();
@@ -3247,8 +3348,8 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 
 		interval_taps += column_count(NoteInfo[row].notes);
 
-		// iterate taps per col.. yes we've done this already in process
-		// finger but w.e just redo it for now
+		// iterate taps per col.. yes we've done this already in
+		// process finger but w.e just redo it for now
 		for (size_t c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
@@ -3264,15 +3365,16 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 			window_col_taps[c] += n[c];
 
 	int window_max_anch = max_val(window_col_taps);
-	// shouldn't matter if the two highest are even, we just want stuff like
-	// 7/2/2/3 to pop, we could also try using the second highest value but that
-	// might be too volatile
+	// shouldn't matter if the two highest are even, we just want
+	// stuff like 7/2/2/3 to pop, we could also try using the second
+	// highest value but that might be too volatile
 
-	// this mod will go down if you take a runningman pattern and add more notes
-	// to it outside of the anchor, note that this doesn't mean the calc thinks
-	// it's now "easier", this is just one component of evaluation, extra notes
-	// will increase the base difficulty meaning the need to upvalue based on
-	// max anchor length is decreased
+	// this mod will go down if you take a runningman pattern and
+	// add more notes to it outside of the anchor, note that this
+	// doesn't mean the calc thinks it's now "easier", this is just
+	// one component of evaluation, extra notes will increase the
+	// base difficulty meaning the need to upvalue based on max
+	// anchor length is decreased
 	int window_taps_non_anchor = window_taps - window_max_anch;
 
 	if (dbg) {
@@ -3285,8 +3387,8 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 		std::cout << "non anchor taps: " << window_taps_non_anchor << std::endl;
 	}
 
-	// nothing here or the differential is irrelevant because the number of
-	// notes is too small
+	// nothing here or the differential is irrelevant because the
+	// number of notes is too small
 	if (window_max_anch < 3)
 		return 1.f;
 	// send out max mod i guess
@@ -3323,7 +3425,8 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 			std::cout << "\n" << std::endl;
 		}
 
-		// drop the oldest interval values if we have reached full size
+		// drop the oldest interval values if we have reached full
+		// size
 		if (itv_taps.size() == itv_window) {
 			itv_taps.pop_front();
 			itv_col_taps.pop_front();
@@ -3351,12 +3454,13 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 }
 
 // look for a thing
-// a thing is [aa]x[23]x[cc] where aa and cc are either [12] or [34] or hands
-// that contain those jumps and where aa != cc and x's do not form jacks, this
-// pattern is one staple of extremely jumptrillable js and even if you hit it as
-// legit as possible, it's still a joke because of the way the patternage flows.
-// i have tentatively proposed naming this pattern and its variants "the slip"
-// after the worst aram fizz player i ever seened
+// a thing is [aa]x[23]x[cc] where aa and cc are either [12] or [34]
+// or hands that contain those jumps and where aa != cc and x's do
+// not form jacks, this pattern is one staple of extremely
+// jumptrillable js and even if you hit it as legit as possible,
+// it's still a joke because of the way the patternage flows. i have
+// tentatively proposed naming this pattern and its variants "the
+// slip" after the worst aram fizz player i ever seened
 void
 Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 								float music_rate,
@@ -3394,7 +3498,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 		for (int row : nervIntervals[i]) {
 			// if (debugmode && newrow)
 			//	std::cout << "new interval: " << i
-			//			  << " time: " << NoteInfo[row].rowTime / music_rate
+			//			  << " time: " << NoteInfo[row].rowTime /
+			// music_rate
 			//			  << std::endl;
 			newrow = false;
 			int notes = column_count(NoteInfo[row].notes);
@@ -3418,20 +3523,25 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 				//		std::cout << "the slip: " << std::endl;
 				if (the_slip == -1) {
 					//		if (debugmode)
-					//			std::cout << "the slip: " << std::endl;
+					//			std::cout << "the slip: " <<
+					// std::endl;
 					if (is12 || is34) {
 						the_slip = boot;
 						//	if (debugmode)
-						//		std::cout << "the slip is the boot: " <<
+						//		std::cout << "the slip is the boot: "
+						//<<
 						// std::endl;
 					}
 				} else {
 					// if (debugmode)
-					//	std::cout << "two but not the new: " << std::endl;
+					//	std::cout << "two but not the new: " <<
+					// std::endl;
 					if (is23) {
 						if (was23) {
 							//		if (debugmode)
-							//			std::cout << "you knew to new to yew two
+							//			std::cout << "you knew to new to
+							// yew
+							// two
 							// ewes: "
 							//					  << std::endl;
 							malcom = false;
@@ -3440,7 +3550,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 							was23 = false;
 						} else {
 							//		if (debugmode)
-							//			std::cout << "the malcom: " <<
+							//			std::cout << "the malcom: "
+							//<<
 							// std::endl;
 							malcom = true;
 							the_last_warblers_call = false;
@@ -3452,9 +3563,12 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						for (auto& id : col_ids)
 							if (boot & id && lastcols & id) {
 								// if (debugmode)
-								//	std::cout << "wtf boot:" << id << std::endl;
+								//	std::cout << "wtf boot:" << id
+								//<<
+								// std::endl;
 								// if (debugmode)
-								//	std::cout << "wtf id: " << id << std::endl;
+								//	std::cout << "wtf id: " << id <<
+								// std::endl;
 								das_same = true;
 								break;
 							}
@@ -3462,8 +3576,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						if (!das_same) {
 							++the_things_found;
 						}
-						// maybe we want to reset to -1 here and only retain if
-						// thing found?
+						// maybe we want to reset to -1 here and
+						// only retain if thing found?
 						the_slip = boot;
 						malcom = false;
 						the_last_warblers_call = false;
@@ -3472,7 +3586,9 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						if (is12 || is34) {
 							the_slip = boot;
 							//		if (debugmode)
-							//			std::cout << "three four out the door: "
+							//			std::cout << "three four out
+							// the
+							// door: "
 							//<<
 							// std::endl;
 						} else
@@ -3481,44 +3597,53 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						the_last_warblers_call = false;
 						was23 = false;
 						//		if (debugmode)
-						//			std::cout << "buckle my shoe reset: " <<
+						//			std::cout << "buckle my shoe reset:
+						//"
+						//<<
 						// std::endl;
 					}
 				}
 			}
 			if (notes == 1) {
 				// if (debugmode)
-				//		std::cout << "A SINGLE THING O NO: " << std::endl;
+				//		std::cout << "A SINGLE THING O NO: " <<
+				// std::endl;
 				if (the_last_warblers_call) {
 					the_last_warblers_call = false;
 					malcom = false;
 					the_slip = -1;
 					was23 = false;
 					// if (debugmode)
-					//	std::cout << "RESET, 2 singles: " << std::endl;
+					//	std::cout << "RESET, 2 singles: " <<
+					// std::endl;
 				} else {
 					if (the_slip != -1) {
 						bool das_same = false;
 						for (auto& id : col_ids)
 							if (boot & id && lastcols & id) {
 								// if (debugmode)
-								//	std::cout << "wtf boot:" << id << std::endl;
+								//	std::cout << "wtf boot:" << id
+								//<<
+								// std::endl;
 								// if (debugmode)
-								//	std::cout << "wtf id: " << id << std::endl;
+								//	std::cout << "wtf id: " << id <<
+								// std::endl;
 								das_same = true;
 								break;
 							}
 						if (!das_same) {
 							//	if (debugmode)
 							//		std::cout
-							//		  << "SLIP ON SLIP UNTIL UR SLIP COME
+							//		  << "SLIP ON SLIP UNTIL UR SLIP
+							// COME
 							// TRUE:"
 							//		  << std::endl;
 							the_last_warblers_call = true;
 						} else {
 							//	if (debugmode)
 							//		std::cout
-							//		  << "HOL UP DOE (feamale hamtseer):"
+							//		  << "HOL UP DOE (feamale
+							// hamtseer):"
 							//		  << std::endl;
 							the_slip = -1;
 							the_last_warblers_call = false;
@@ -3531,7 +3656,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 						malcom = false;
 						was23 = false;
 						//			if (debugmode)
-						//				std::cout << "CABBAGE: " << std::endl;
+						//				std::cout << "CABBAGE: " <<
+						// std::endl;
 					}
 				}
 			}
@@ -3542,7 +3668,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 				the_slip = -1;
 				was23 = false;
 				//		if (debugmode)
-				//			std::cout << "RESERT, 2 SLIDE 2 FURY: " <<
+				//			std::cout << "RESERT, 2 SLIDE 2 FURY: "
+				//<<
 				// std::endl;
 			}
 			lastcols = boot;
@@ -3560,7 +3687,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 			window_things += n;
 
 		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps << std::endl;
+		//	std::cout << "window taps: " << window_taps <<
+		// std::endl;
 		// if (debugmode)
 		//	std::cout << "things: " << window_things << std::endl;
 
@@ -3571,7 +3699,9 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 
 		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
 		// if (debugmode)
-		//	std::cout << "final mod " << doot[TheThing][i] << "\n" << std::endl;
+		//	std::cout << "final mod " << doot[TheThing][i] << "\n"
+		//<<
+		// std::endl;
 	}
 
 	if (SmoothPatterns) {
@@ -3581,7 +3711,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 	return;
 }
 
-// try to sniff out chords that are built as flams. BADLY NEEDS REFACTOR
+// try to sniff out chords that are built as flams. BADLY NEEDS
+// REFACTOR
 void
 Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 					vector<float> doot[],
@@ -3598,11 +3729,12 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 	int col_id[4] = { 1, 2, 4, 8 };
 	// unused atm but we might want this information, allocate once
 	vector<int> flam_rows(4);
-	// timing points of the elements of the flam chord, allocate once
+	// timing points of the elements of the flam chord, allocate
+	// once
 	vector<float> flamjam(4);
-	// we don't actually need this counter since we can derive it from cols but
-	// it might just be faster to track it locally since we will be recycling
-	// the flamjam vector memory
+	// we don't actually need this counter since we can derive it
+	// from cols but it might just be faster to track it locally
+	// since we will be recycling the flamjam vector memory
 	int flam_row_counter = 0;
 	bool flamjamslamwham = false;
 
@@ -3613,31 +3745,35 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 
 		// row loop to pick up flams within the interval
 		for (int row : nervIntervals[i]) {
-			// perhaps we should start tracking this instead of tracking it over
-			// and over....
+			// perhaps we should start tracking this instead of
+			// tracking it over and over....
 			float scaled_time = NoteInfo[row].rowTime / music_rate * 1000.f;
 
-			// this can be optimized a lot by properly mapping out the notes
-			// value to arrow combinations (as it is constructed from them) and
-			// deterministic
+			// this can be optimized a lot by properly mapping out
+			// the notes value to arrow combinations (as it is
+			// constructed from them) and deterministic
 
 			// we are traversing intervals->rows->columns
 			for (auto& id : col_id) {
 				// check if there's a note here
 				bool isnoteatcol = NoteInfo[row].notes & id;
 				if (isnoteatcol) {
-					// we're past the tolerance range, break if we have grouped
-					// more than 1 note, or if we have filled an entire quad.
-					// with this behavior if we fill a quad of 192nd flams with
-					// order 1234 and there's still another note on 1 within the
-					// tolerance range we'll flag this as a flam chord and
-					// downscale appropriately, not sure if we want this as it
-					// could be the case that there is a second flamchord
-					// immediately after, and it's just vibro, or it could be
-					// the case that there are complex reasonable patterns
-					// following, perhaps a different behavior would be better
+					// we're past the tolerance range, break if we
+					// have grouped more than 1 note, or if we have
+					// filled an entire quad. with this behavior if
+					// we fill a quad of 192nd flams with order 1234
+					// and there's still another note on 1 within
+					// the tolerance range we'll flag this as a flam
+					// chord and downscale appropriately, not sure
+					// if we want this as it could be the case that
+					// there is a second flamchord immediately
+					// after, and it's just vibro, or it could be
+					// the case that there are complex reasonable
+					// patterns following, perhaps a different
+					// behavior would be better
 
-					// we cannot exceed tolerance without at least 1 note
+					// we cannot exceed tolerance without at least 1
+					// note
 					bool tol_exceed =
 					  flam_row_counter > 0 &&
 					  (scaled_time - flamjam[0]) > grouping_tolerance;
@@ -3652,40 +3788,48 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 					}
 					if ((tol_exceed && flam_row_counter > 1) ||
 						flam_row_counter == 4)
-						// at least a flam jump has been detected, flag it
+						// at least a flam jump has been detected,
+						// flag it
 						flamjamslamwham = true;
 
-					// if we have identified a flam chord in some way; handle
-					// and reset, we don't want to skip the notes in this
-					// iteration yes this should be done in the column loop
-					// since a flam can start and end on any columns in any
-					// order
+					// if we have identified a flam chord in some
+					// way; handle and reset, we don't want to skip
+					// the notes in this iteration yes this should
+					// be done in the column loop since a flam can
+					// start and end on any columns in any order
 
-					// conditions to be here are at least 2 different columns
-					// have been logged as part of a flam chord and we have
-					// exceeded the tolerance for flam duration, or we have a
-					// full quad flam detected, though not necessarily exceeding
-					// the tolerance window. we do want to reset if it doesn't,
-					// because we want to pick up vibro flams and nerf them into
-					// oblivion too, i think
+					// conditions to be here are at least 2
+					// different columns have been logged as part of
+					// a flam chord and we have exceeded the
+					// tolerance for flam duration, or we have a
+					// full quad flam detected, though not
+					// necessarily exceeding the tolerance window.
+					// we do want to reset if it doesn't, because we
+					// want to pick up vibro flams and nerf them
+					// into oblivion too, i think
 					if (flamjamslamwham) {
-						// we'll construct the final pattern mod value from the
-						// flammyness and number of detected flam chords
+						// we'll construct the final pattern mod
+						// value from the flammyness and number of
+						// detected flam chords
 						float mod_part = 0.f;
 
-						// lower means more cheesable means nerf harder
+						// lower means more cheesable means nerf
+						// harder
 						float fc_dur =
 						  flamjam[flam_row_counter - 1] - flamjam[0];
 
-						// we don't want to affect explicit chords, but we have
-						// to be sure that the entire flam we've picked up is an
-						// actual chord and only an actual chord, if the first
-						// and last elements detected were on the same row,
-						// ignore it, trying to do fc_dur == 0.f didn't work
-						// because of float precision
+						// we don't want to affect explicit chords,
+						// but we have to be sure that the entire
+						// flam we've picked up is an actual chord
+						// and only an actual chord, if the first
+						// and last elements detected were on the
+						// same row, ignore it, trying to do fc_dur
+						// == 0.f didn't work because of float
+						// precision
 						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
-							// basic linear scale for testing purposes, scaled
-							// to the window length and also flam size
+							// basic linear scale for testing
+							// purposes, scaled to the window length
+							// and also flam size
 							mod_part =
 							  fc_dur / grouping_tolerance / flam_row_counter;
 							temp_mod.push_back(mod_part);
@@ -3697,10 +3841,11 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 						flamjamslamwham = false;
 					}
 
-					// we know chord flams can't contain multiple notes of the
-					// same column (those are just gluts), reset if detected
-					// even within the tolerance range (we can't be outside of
-					// it here by definition)
+					// we know chord flams can't contain multiple
+					// notes of the same column (those are just
+					// gluts), reset if detected even within the
+					// tolerance range (we can't be outside of it
+					// here by definition)
 					if (cols & id) {
 						flamjamslamwham = false;
 
@@ -3709,10 +3854,11 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 						cols = 0;
 					}
 
-					// conditions to reach here are that a note in this column
-					// has not been logged yet and we are still within the
-					// grouping tolerance. we don't need cur/last times here,
-					// the time of the first element will be used to determine
+					// conditions to reach here are that a note in
+					// this column has not been logged yet and we
+					// are still within the grouping tolerance. we
+					// don't need cur/last times here, the time of
+					// the first element will be used to determine
 					// the size of the total group
 
 					// track the time point of this note
@@ -3727,8 +3873,9 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 			}
 		}
 
-		// finishing the row loop leaves us with instances of flamjams
-		// forgive a single instance of a chord flam for now; handle none
+		// finishing the row loop leaves us with instances of
+		// flamjams forgive a single instance of a chord flam for
+		// now; handle none
 		if (temp_mod.size() < 2)
 			doot[FlamJam][i] = 1.f;
 
@@ -3736,18 +3883,19 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 		for (auto& v : temp_mod)
 			wee += v;
 
-		// we can do this for now without worring about /0 since size is at
-		// least 2 to get here
+		// we can do this for now without worring about /0 since
+		// size is at least 2 to get here
 		wee /= static_cast<float>(temp_mod.size() - 1);
 
 		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
 		doot[FlamJam][i] = wee;
 
-		// reset the stuffs, _theoretically_ since we are sequencing we don't
-		// even need at all to clear the flam detection however then we have
-		// to handle cases like a single note in an interval and i don't feel
-		// like doing that, a small number of flams that happen to straddle
-		// the interval splice points shouldn't make a huge difference, but if
+		// reset the stuffs, _theoretically_ since we are sequencing
+		// we don't even need at all to clear the flam detection
+		// however then we have to handle cases like a single note
+		// in an interval and i don't feel like doing that, a small
+		// number of flams that happen to straddle the interval
+		// splice points shouldn't make a huge difference, but if
 		// they do then we should deal with it
 		temp_mod.clear();
 		flam_row_counter = 0;
