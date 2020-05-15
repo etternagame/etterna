@@ -32,6 +32,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const vector<int> col_ids = { 1, 2, 4, 8 };
+static const int zto3[4] = { 0, 1, 2, 3 };
 struct JumpHandChordData
 {
 	vector<int> num_row_variations;
@@ -512,8 +513,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// afterwards is not relevant (usually true in actual gameplay, outside of
 	// stuff like mines immediately after shortjacks)
 
-	const int mode_windows[4] = { 3, 2, 4, 1 };
-	const float mode_buffers[4] = { 120.f, 165.f, 275.f, 60.f };
+	const int mode_windows[4] = { 1, 3, 2, 4};
+	
 	int window_size = mode_windows[mode];
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
@@ -548,6 +549,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
+	const float mode_buffers[4] = { 60.f, 120.f, 165.f, 275.f };
+	static const float jack_global_scaler =
+	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
+	static const float mode_scalers[4] = {0.75f, 1.2f, 1.4f, 1.45f };
 	for (auto& itv : f) {
 		for (auto& v : mode_jack_diffs)
 			v.clear();
@@ -570,6 +575,19 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			
 			float hit_window_buffer = mode_buffers[mode];
 			for (size_t i = 0; i < window_taps.size(); ++i) {
+				// minijack pass optimization
+				//if (mode == 0 && i >= 0)
+				//	if (i > 1)
+				//		continue;
+				//	else {
+				//		float mj_ms = window_taps[i];
+				//		float mj_eff_ms =
+				//		  mj_ms + max(0.f, mode_buffers[mode] - mj_ms);
+				//		float mj_diff = ms_to_bpm(mj_eff_ms) *
+				//						jack_global_scaler * mode_scalers[mode];
+				//		mode_jack_diffs[mode].push_back(min(mj_diff, max_diff));
+				//	}
+
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
 				// 0, then we like, do stuff with them, you know, like pogs
@@ -629,13 +647,13 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// successfully prevents vibro from being overrated to the point
 				// where all vibro files have to be insantly blacklisted But it
 				// will look funny and stupid people will whine about it.
-				if (mode >= 2)
+				if (mode == 0 || mode == 3)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
 
 				float eff_ms = comp_time + hit_window_buffer;
 
-				if (mode < 2)
+				if (mode == 2 || mode == 1)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
 
@@ -650,10 +668,14 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// comment me maybe
 				switch (mode) {
 					case 0:
+						comp_diff[i] = eff_bpm;
+						break;
 					case 1:
 						comp_diff[i] = base_bpm;
 						break;
 					case 2:
+						comp_diff[i] = base_bpm;
+						break;
 					case 3:
 						comp_diff[i] = eff_bpm;
 						break;
@@ -661,8 +683,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 				// convert bpm to nps so we can apply finalscaler and get
 				// roughly comparable values to other skillsets
-				comp_diff[i] *=
-				  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
+				comp_diff[i] *= jack_global_scaler;
 
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
@@ -677,18 +698,19 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 			float fdiff = 0.f;
 			if (mode == 0)
-				fdiff = comp_diff.back() * 1.2f * mean(eff_scalers);
+			  // medium-longjack pass
+			  fdiff = comp_diff.front() * mode_scalers[mode];
 			else if (mode == 1)
+				fdiff = comp_diff.back() * mode_scalers[mode] * mean(eff_scalers);
+			else if (mode == 2)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * 1.4f * eff_scalers.back();
-			else if (mode == 2)
-				// medium-longjack pass
-				fdiff = comp_diff.back() * 1.45f * mean(eff_scalers);
+				fdiff =
+				  comp_diff.back() * mode_scalers[mode] * eff_scalers.back();
 			else if (mode == 3)
-				// minijacks, why does this seem to work so well?? it's
-				// basically just ms + 60 i guess???? optimize later
-				fdiff = comp_diff.front() * 0.75f;
+				// medium-longjack pass
+				fdiff =
+				  comp_diff.back() * mode_scalers[mode] * mean(eff_scalers);
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
 			mode_jack_diffs[mode].push_back(fdiff);
@@ -1118,13 +1140,13 @@ Calc::Chisel(float player_skill,
 
 			// jack sequencer point loss for jack speed and (maybe?) cj
 			if (ss == Skill_JackSpeed) {
-				gotpoints = MaxPoints - JackLoss(player_skill, 0, false);
-			} else if (ss == Skill_Chordjack) {
 				gotpoints = MaxPoints - JackLoss(player_skill, 1, false);
-			} else if (ss == Skill_Technical) {
+			} else if (ss == Skill_Chordjack) {
 				gotpoints = MaxPoints - JackLoss(player_skill, 2, false);
-			} else if (ss == Skill_Stream) {
+			} else if (ss == Skill_Technical) {
 				gotpoints = MaxPoints - JackLoss(player_skill, 3, false);
+			} else if (ss == Skill_Stream) {
+				gotpoints = MaxPoints - JackLoss(player_skill, 0, false);
 			} else {
 				gotpoints = MaxPoints;
 				// left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
@@ -3796,5 +3818,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 310;
+	return 311;
 }
