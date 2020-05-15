@@ -341,8 +341,7 @@ Calc::JackStamAdjust(float x, int t, int mode)
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
 	const float super_stam_ceil = 1.11f;
-	const auto& diff = mode == 0 ? jacks0[t] : mode == 1 ? jacks1[t] : mode == 2 ? jacks2[t] : jacks3[t];
-
+	const auto& diff = jacks[mode][t];
 
 	static const float stam_ceil = 1.035234f; // stamina multiplier max
 	static const float stam_mag = 75.f;		  // multiplier generation scaler
@@ -438,12 +437,7 @@ Calc::JackLoss(float x, int mode, bool stam)
 	for (int i = 0; i < numitv; ++i) {
 		for (auto t : { 0, 1, 2, 3 }) {
 			// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-			auto& seagull =
-			  stam ? stam_adj_jacks[t][i]
-				   : mode == 0
-					   ? jacks0[t][i]
-					   : mode == 1 ? jacks1[t][i]
-								   : mode == 2 ? jacks2[t][i] : jacks3[t][i];
+			auto& seagull = stam ? stam_adj_jacks[t][i] : jacks[mode][t][i];
 			float loss = 0.f;
 			for (auto& j : seagull) {
 				if (x >= j)
@@ -517,22 +511,22 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// dependent on the previous components of the sequence, and what comes
 	// afterwards is not relevant (usually true in actual gameplay, outside of
 	// stuff like mines immediately after shortjacks)
-	int window_size = 3;
-	if (mode == 1)
-		window_size = 2;
-	if (mode == 2)
-		window_size = 4;
-	if (mode == 3)
-		window_size = 1;
+
+	const int mode_windows[4] = { 3, 2, 4, 1 };
+	const float mode_buffers[4] = { 120.f, 165.f, 275.f, 60.f };
+	int window_size = mode_windows[mode];
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
 
 	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
-	vector<vector<float>> itv_jacks;
-	itv_jacks.reserve(numitv);
-	vector<float> thejacks;
+
+	// do all modes in 1 pass now
+	vector<vector<float>> itv_jacks[4];
+	for (auto& v : itv_jacks)
+		v.reserve(numitv);
+	vector<float> mode_jack_diffs[4];
 
 	// doge adventure etc
 	static const float max_diff = 55.f;
@@ -555,7 +549,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
 	for (auto& itv : f) {
-		thejacks.clear();
+		for (auto& v : mode_jack_diffs)
+			v.clear();
+
 		// taps in interval
 		for (auto& ms : itv) {
 			time += ms;
@@ -571,14 +567,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 120.f;
-			if (mode == 1)
-				hit_window_buffer = 165.f;
-			if (mode == 2)
-				hit_window_buffer = 275.f;
-			if (mode == 3)
-				hit_window_buffer = 60.f;
-
+			
+			float hit_window_buffer = mode_buffers[mode];
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
 				// and 4th is 4 - 3, each with their own total time at n -
@@ -603,7 +593,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// longjacks/anchors even from draining the buffer too quickly,
 				// but without impeding the buffer drain bump afforded by large
 				// hits (see below)
-				//if (i > 0 && mode == 0)
+				// if (i > 0 && mode == 0)
 				//	buffer_drain = min(base_ms, 110.f);
 
 				// Some other notes, this general setup can cause desired but
@@ -657,24 +647,16 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				float eff_bpm = ms_to_bpm(eff_ms / (1 + static_cast<float>(i)));
 				float eff_scaler = eff_bpm / base_bpm;
 
-				// the final difficulty for this sequence will be
-				// constructed from the mean of the effective bpms for each
-				// component (for longjacks)
+				// comment me maybe
 				switch (mode) {
 					case 0:
-						comp_diff[i] = base_bpm;
-						break;
-						// new thing be try use base bpm instead of effective
-						// dunno this might be dum
 					case 1:
 						comp_diff[i] = base_bpm;
 						break;
-					// same thing but divide by eff scaler to POPIZZLE?? idk
 					case 2:
-						comp_diff[i] = eff_bpm;
-						break;
 					case 3:
 						comp_diff[i] = eff_bpm;
+						break;
 				}
 
 				// convert bpm to nps so we can apply finalscaler and get
@@ -709,22 +691,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				fdiff = comp_diff.front() * 0.75f;
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
-			thejacks.push_back(fdiff);
+			mode_jack_diffs[mode].push_back(fdiff);
 			if (dbg) {
 				std::cout << "comp mean: " << mean(comp_diff) << std::endl;
 				std::cout << "fdiff: " << fdiff << "\n" << std::endl;
 			}
 		}
-		itv_jacks.push_back(thejacks);
+		itv_jacks[mode].push_back(mode_jack_diffs[mode]);
 	}
-	if (mode == 0)
-		jacks0[track] = itv_jacks;
-	if (mode == 1)
-		jacks1[track] = itv_jacks;
-	if (mode == 2)
-		jacks2[track] = itv_jacks;
-	if (mode == 3)
-		jacks3[track] = itv_jacks;
+		jacks[mode][track] = itv_jacks[mode];
 }
 #pragma endregion
 
