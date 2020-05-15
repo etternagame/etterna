@@ -521,6 +521,12 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	itv_jacks.reserve(numitv);
 	vector<float> thejacks;
 
+	// cutoff for auto assign of diff 1, 2x miss window
+	static const float cutoff = 360.f;
+
+	// doge adventure etc
+	static const float max_diff = 50.f;
+
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
 	// longjack, so we're going to be dumb and hacky and run 3 separate passes
@@ -631,21 +637,31 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// roughly comparable values to other skillsets and use the
 				// the final difficulty for this sequence will be constructed
 				// from the mean of the effective bpms for each component
-				comp_diff[i] = base_ms > 180.f ? 1.f
-											   : eff_bpm / 15.f * finalscaler *
-												   basescalers[Skill_JackSpeed];
+				if (mode == 0)
+					comp_diff[i] =
+					  min(base_ms > cutoff ? 1.f
+										   : eff_bpm / 15.f * finalscaler *
+											   basescalers[Skill_JackSpeed],
+						  max_diff);
 
+				// new thing be try use base bpm instead of effective dunno this
+				// might be dum
 				if (mode == 1)
-					comp_diff[i] = base_ms > 180.f
-									 ? 1.f
-									 : base_bpm / 15.f * finalscaler *
-										 basescalers[Skill_JackSpeed];
+					comp_diff[i] =
+					  min(base_ms > cutoff ? 1.f
+										   : base_bpm / 15.f * finalscaler *
+											   basescalers[Skill_JackSpeed],
+						  max_diff);
+				// i know its the same now but i might want to lever it
+				// differently
 				if (mode == 2)
-					comp_diff[i] = base_ms > 180.f
-									 ? 1.f
-									 : max(base_bpm / 15.f * finalscaler *
-										 basescalers[Skill_JackSpeed] /
-										 eff_scaler, 40.f);
+					comp_diff[i] =
+					  min(base_ms > cutoff
+							? 1.f
+							: max(base_bpm / 15.f * finalscaler *
+									basescalers[Skill_JackSpeed] / eff_scaler,
+								  40.f),
+						  max_diff);
 
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
