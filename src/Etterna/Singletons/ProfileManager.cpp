@@ -4,7 +4,7 @@
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongManager.h"
 #include "DownloadManager.h"
@@ -114,7 +114,7 @@ ProfileManager::FixedProfiles() const
 ProfileLoadResult
 ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 {
-	LOG->Trace("LoadingProfile P%d, %s", pn + 1, sProfileDir.c_str());
+	Locator::getLogger()->trace("LoadingProfile P{}, {}", pn + 1, sProfileDir.c_str());
 
 	ASSERT(!sProfileDir.empty());
 	ASSERT(sProfileDir.back() == '/');
@@ -148,14 +148,14 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 		 * was failed_tampered, then the error should be failed_tampered and not
 		 * failed_no_profile. */
 		if (lr == ProfileLoadResult_FailedNoProfile) {
-			LOG->Trace("Profile was corrupt and LastGood for %s doesn't exist; "
+			Locator::getLogger()->trace("Profile was corrupt and LastGood for {} doesn't exist; "
 					   "error is ProfileLoadResult_FailedTampered",
 					   sProfileDir.c_str());
 			lr = ProfileLoadResult_FailedTampered;
 		}
 	}
 
-	LOG->Trace("Done loading profile - result %d", lr);
+	Locator::getLogger()->trace("Done loading profile - result {}", lr);
 
 	return lr;
 }
