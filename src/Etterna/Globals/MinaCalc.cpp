@@ -562,9 +562,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			float comp_time = 0.f;
 			float hit_window_buffer = 250.f;
 			if (mode == 1)
-				hit_window_buffer = 150.f;
+				hit_window_buffer = 165.f;
 			if (mode == 2)
-				hit_window_buffer = 240.f;
+				hit_window_buffer = 275.f;
 
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
@@ -649,7 +649,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// component (for longjacks)
 				switch (mode) {
 					case 0:
-						comp_diff[i] = base_bpm;
+						comp_diff[i] = eff_bpm;
 						break;
 						// new thing be try use base bpm instead of effective
 						// dunno this might be dum
@@ -687,15 +687,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = comp_diff.back() * eff_scalers.back() * 1.55f;
+				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * 1.25f;
+				fdiff = comp_diff.back() * 1.35f * mean(eff_scalers);
 			else if (mode == 2)
 				// minijacks, why does this seem to work so well?? it's
 				// basically just ms + 60 i guess???? optimize later
-				fdiff = comp_diff.back() * 1.5f * mean(eff_scalers);
+				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
 			thejacks.push_back(fdiff);
@@ -3805,5 +3805,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 305;
+	return 306;
 }
