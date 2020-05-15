@@ -687,7 +687,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = comp_diff.back() * mean(eff_scalers) * 0.95f;
+				fdiff = max_val(comp_diff) * mean(eff_scalers) * 0.95f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
