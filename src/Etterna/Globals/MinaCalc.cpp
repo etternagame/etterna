@@ -508,9 +508,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// dependent on the previous components of the sequence, and what comes
 	// afterwards is not relevant (usually true in actual gameplay, outside of
 	// stuff like mines immediately after shortjacks)
-	int window_size = 4;
+	int window_size = 3;
 	if (mode == 1)
-		window_size = 4;
+		window_size = 2;
 	if (mode == 2)
 		window_size = 5;
 	vector<float> window_taps;
@@ -560,9 +560,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 320.f;
+			float hit_window_buffer = 300.f;
 			if (mode == 1)
-				hit_window_buffer = 300.f;
+				hit_window_buffer = 250.f;
 			if (mode == 2)
 				hit_window_buffer = 60.f;
 
@@ -687,14 +687,14 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = max_val(comp_diff) * mean(eff_scalers) * 0.95f;
+				fdiff = comp_diff.back() * mean(eff_scalers) * 1.55f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * eff_scalers.back() * 0.95f;
+				fdiff = comp_diff.back() * mean(eff_scalers) * 1.95f;
 			else if (mode == 2)
-				// minijacks, we want them to pop on this pass, thankfully,
-				// that's easy to accomplish
+				// minijacks, why does this seem to work so well?? it's
+				// basically just ms + 60 i guess???? optimize later
 				fdiff = comp_diff.front() * 0.75f;
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
