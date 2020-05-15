@@ -404,10 +404,12 @@ inline float
 hit_the_road(float x, float y, int mode)
 {
 	if (mode == 0)
-		return CalcClamp(4.5f - (4.f * fastpow(x / y, 1.9f)), 0.f, 4.5f);
+		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
 	else if (mode == 1)
-		return CalcClamp(4.5f - (4.f * fastpow(x / y, 1.9f)), 0.f, 4.5f);
+		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
 	else if (mode == 2)
+		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
+	else if (mode == 3)
 		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
 	else
 		return 0.f;
@@ -521,7 +523,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (mode == 2)
 		window_size = 4;
 	if (mode == 3)
-		window_size = 5;
+		window_size = 1;
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
@@ -569,9 +571,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 185.f;
+			float hit_window_buffer = 120.f;
 			if (mode == 1)
-				hit_window_buffer = 120.f;
+				hit_window_buffer = 175.f;
 			if (mode == 2)
 				hit_window_buffer = 275.f;
 			if (mode == 3)
@@ -637,15 +639,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// successfully prevents vibro from being overrated to the point
 				// where all vibro files have to be insantly blacklisted But it
 				// will look funny and stupid people will whine about it.
-				if (mode <= 3)
+				if (mode >= 2)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
 
 				float eff_ms = comp_time + hit_window_buffer;
 
-				//if (mode < 2)
-				//	hit_window_buffer =
-				//	  max(0.f, hit_window_buffer - buffer_drain);
+				if (mode < 2)
+					hit_window_buffer =
+					  max(0.f, hit_window_buffer - buffer_drain);
 
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
@@ -700,11 +702,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = mean(comp_diff) * 1.05f * mean(eff_scalers);
+				fdiff = comp_diff.back() * 1.2f * mean(eff_scalers);
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = mean(comp_diff) * 1.05f * mean(eff_scalers);
+				fdiff = comp_diff.back() * 1.3f * eff_scalers.back();
 			else if (mode == 2)
 				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
 			else if (mode == 3)
@@ -3825,5 +3827,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 308;
+	return 309;
 }
