@@ -638,30 +638,27 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// the final difficulty for this sequence will be constructed
 				// from the mean of the effective bpms for each component
 				if (mode == 0)
-					comp_diff[i] =
-					  min(base_ms > cutoff ? 1.f
-										   : eff_bpm / 15.f * finalscaler *
-											   basescalers[Skill_JackSpeed],
-						  max_diff);
+					comp_diff[i] = base_ms > cutoff
+									 ? 1.f
+									 : eff_bpm / 15.f * finalscaler *
+										 basescalers[Skill_JackSpeed];
 
 				// new thing be try use base bpm instead of effective dunno this
 				// might be dum
 				if (mode == 1)
-					comp_diff[i] =
-					  min(base_ms > cutoff ? 1.f
-										   : base_bpm / 15.f * finalscaler *
-											   basescalers[Skill_JackSpeed],
-						  max_diff);
-				// i know its the same now but i might want to lever it
-				// differently
+					comp_diff[i] = base_ms > cutoff
+									 ? 1.f
+									 : eff_bpm / 15.f * finalscaler *
+										 basescalers[Skill_JackSpeed];
+
+				// same thing but divide by eff scaler to POPIZZLE?? idk
 				if (mode == 2)
 					comp_diff[i] =
-					  min(base_ms > cutoff
+					  base_ms > cutoff
 							? 1.f
-							: max(base_bpm / 15.f * finalscaler *
+							: max(eff_bpm / 15.f * finalscaler *
 									basescalers[Skill_JackSpeed] / eff_scaler,
-								  40.f),
-						  max_diff);
+								  40.f);
 
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
@@ -679,15 +676,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// longer jacks, take the mean of the component difficulties (if
 				// it's actually a longjack, it should be much higher), then
 				// multiply by the final effective bpm scaler
-				fdiff = mean(comp_diff) * eff_scalers.back() * 1.75f;
+				fdiff = min(mean(comp_diff) * eff_scalers.back() * 1.75f, max_diff);
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * eff_scalers.back() * 1.45f;
+				fdiff = min(mean(comp_diff) * eff_scalers.back() * 1.5f, max_diff);
 			else if (mode == 2)
 				// minijacks, we want them to pop on this pass, thankfully,
 				// that's easy to accomplish
-				fdiff = mean(comp_diff) / eff_scalers.front() * 0.2f;
+				fdiff = min(mean(comp_diff) / eff_scalers.front() * 0.35f, max_diff);
 
 			thejacks.push_back(fdiff);
 			if (dbg) {
