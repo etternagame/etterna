@@ -524,7 +524,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> thejacks;
 
 	// doge adventure etc
-	static const float max_diff = 145.f;
+	static const float max_diff = 40.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -560,11 +560,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 260.f;
+			float hit_window_buffer = 320.f;
 			if (mode == 1)
 				hit_window_buffer = 300.f;
 			if (mode == 2)
-				hit_window_buffer = 120.f;
+				hit_window_buffer = 60.f;
 
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
@@ -658,7 +658,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 						break;
 					// same thing but divide by eff scaler to POPIZZLE?? idk
 					case 2:
-						comp_diff[i] = eff_bpm / eff_scaler;
+						comp_diff[i] = eff_bpm;
 						break;
 				}
 
@@ -687,15 +687,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = comp_diff.back() * mean(eff_scalers) * 1.35f;
+				fdiff = comp_diff.back() * mean(eff_scalers) * 0.95f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * eff_scalers.back() * 1.05f;
+				fdiff = comp_diff.back() * eff_scalers.back() * 0.95f;
 			else if (mode == 2)
 				// minijacks, we want them to pop on this pass, thankfully,
 				// that's easy to accomplish
-				fdiff = comp_diff.front() / eff_scalers.back() * 0.35f;
+				fdiff = comp_diff.front() * 0.75f;
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
 			thejacks.push_back(fdiff);
@@ -3805,5 +3805,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 302;
+	return 303;
 }
