@@ -324,8 +324,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.89f, 0.8925f, 0.94f, 0.75f, 0.75f, 0.75
-}; // 0.84f, 0.88f };
+	0.f, 0.97f, 0.89f, 0.8925f, 0.94f, 0.75f, 0.84f, 0.88f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -518,7 +517,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> eff_scalers(window_size);
 
 	// doge adventure etc
-	static const float max_diff = 55.f;
+	static const float max_diff = 45.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -537,10 +536,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 165.f, 120.f, 275.f };
+	const float mode_buffers[4] = { 60.f, 170.f, 120.f, 275.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 1.4f, 1.2f, 1.45f };
+	static const float mode_scalers[4] = { 0.75f, 1.45f, 1.2f, 1.45f };
 	jacks[mode][track].resize(numitv);
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
@@ -820,7 +819,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// 1 to shift the curve a bit
 		for (int i = 0; i < NUM_Skillset; ++i)
 			mcbloop[i] =
-			  Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, false);
+			  Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, true);
 
 		// all relative scaling to specific skillsets should
 		// occur before this point, not after (it ended up
@@ -1042,9 +1041,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// werwerwer
 	for (auto m : zto3) {
 		jacks[m]->resize(4);
-		for (auto t : zto3) {
+		for (auto t : zto3)
 			SequenceJack(fingers[t], t, m);
-		}
 	}
 	return true;
 }
@@ -1117,22 +1115,23 @@ Calc::Chisel(float player_skill,
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
 			if (ss == Skill_JackSpeed) {
-				gotpoints =
-				  MaxPoints - JackLoss(player_skill, 1, max_points_lost, false);
-			} else if (ss == Skill_Chordjack) {
-				gotpoints =
-				  MaxPoints - JackLoss(player_skill, 2, max_points_lost, false);
-			} else if (ss == Skill_Technical) {
-				gotpoints =
-				  MaxPoints - JackLoss(player_skill, 3, max_points_lost, false);
-			} else if (ss == Skill_Stream) {
-				gotpoints =
-				  MaxPoints - JackLoss(player_skill, 0, max_points_lost, false);
+				// this is slow but gives the best results, do separate passes
+				// for different jack types and figure out which is the most
+				// prominent of the file. We _don't_ want to do something like
+				// take the highest of a given type at multiple points
+				// throughout a file, that just results in oversaturation and
+				// bad grouping
+				float jloss =
+				  max(JackLoss(player_skill, 1, max_points_lost, false),
+					  max(JackLoss(player_skill, 2, max_points_lost, false),
+						  JackLoss(player_skill, 3, max_points_lost, false)));
+				gotpoints = MaxPoints - jloss;
 			} else {
-				gotpoints = MaxPoints;
-				// left_hand.CalcInternal(gotpoints, player_skill,
-				// ss, stamina); right_hand.CalcInternal(gotpoints,
-				// player_skill, ss, stamina);
+				if (ss == Skill_Technical)
+					gotpoints -=
+					  JackLoss(player_skill, 0, max_points_lost, false);
+				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
@@ -1326,7 +1325,7 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMSD][i] * muzzle * tp_mods[ss] *
+						adj_diff = soap[BaseNPS][i] * muzzle * tp_mods[ss] *
 								   basescalers[ss];
 					}
 					break;
@@ -3891,12 +3890,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 	if (SmoothPatterns)
 		Smooth(doot[FlamJam], 1.f);
 }
-#pragma endregion SOMEONE NEEDS TO REFACTOR THIS SHIZZ FOR ME PLS ALL PATTERN  \
-  MODS SHOULD BE FUNCTION CALLS WITHIN A SINGLE INTERVAL LOOP,                 \
-  ALL THE STUFF THEY NEED SHOULD BE ARGS AND GENERATED IN THE SINGLE LOOP,     \
-  OVERHEAD DEBUG OUTPUT SHOULD SPIT OUT THE EXACT PATTERN IN EACH INTERVAL,    \
-  AND DEBUG FOR EACH PATTERN MOD SHOULD BE A LOCAL TOGGLE INSIDE THE FUNCTION  \
-	OR SOMETHING
+#pragma endregion
 
 static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
 #pragma region thedoots
