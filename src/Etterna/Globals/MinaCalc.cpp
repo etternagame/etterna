@@ -405,7 +405,7 @@ hit_the_road(float x, float y, int mode)
 	else if (mode == 1)
 		return CalcClamp(4.5f - (4.f * fastpow(x / y, 1.9f)), 0.f, 4.5f);
 	else if (mode == 2)
-		return (CalcClamp(3.5f - (3.5f * fastpow(x / y, 2.5f)), 0.f, 3.5f));
+		return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
 	else
 		return 0.f;
 }
@@ -493,7 +493,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// you actually study debug output while tinkering with numbers, trust me
 	// you aren't that smart.
 
-	bool dbg = true && debugmode && mode == 1;
+	bool dbg = true && debugmode && mode == 0;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -510,7 +510,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (mode == 1)
 		window_size = 2;
 	if (mode == 2)
-		window_size = 2;
+		window_size = 5;
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
@@ -521,14 +521,16 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	itv_jacks.reserve(numitv);
 	vector<float> thejacks;
 
-	// yes this is many loops, but we don't want to sacrifice
-	// legitimately difficult minijacks in the name of proper
-	// evaluation of shortjacks and longjack, so we're going to be dumb and
-	// hacky and run 3 separate passes trying to identify the strength of each
-	// minijack type, skillsets within the skillset as it were. An attempt was
-	// made to simply take the highest jack value of any type for each value but
-	// this resulted in the distribution being stretched out too far, we get
-	// better grouping this way
+	// yes this is many loops, but we don't want to sacrifice legitimately
+	// difficult minijacks in the name of proper evaluation of shortjacks and
+	// longjack, so we're going to be dumb and hacky and run 3 separate passes
+	// trying to identify the strength of each minijack type, skillsets within
+	// the skillset as it were. An attempt was made to simply take the highest
+	// jack value of any type for each value but this resulted in the
+	// distribution being stretched out too far, we get better grouping this
+	// way. Think jack speed skillsets. It sounds dumb if you only farmed
+	// overrated files on 263 but really the difference between vibro, longjack
+	// control, burst jacks and minijacks is quite vast
 
 	// intervals, we don't care that we're looping through intervals because the
 	// queue we build is interval agnostic, though it does make debug output
@@ -553,11 +555,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 260.f;
+			float hit_window_buffer = 285.f;
 			if (mode == 1)
-				hit_window_buffer = 160.f;
+				hit_window_buffer = 165.f;
 			if (mode == 2)
-				hit_window_buffer = 90.f;
+				hit_window_buffer = 120.f;
 
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
@@ -575,20 +577,47 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// attempt to emulate this by calculating a real and effective
 				// bpm of each component of a jack sequence and then doing
 				// wizard magic with them for great justice
-				float buffer_drain = 0.f;
 				float base_ms = window_taps[i];
+				float buffer_drain = base_ms;
 				comp_time += window_taps[i];
 
-				//if (mode == 1) {
-				//	buffer_drain = base_ms;
-				//	hit_window_buffer =
-				//	  max(0.f, hit_window_buffer - buffer_drain);
-				//}
+				// For minijacks apply buffer drain before eff_ms is calculated,
+				// this helps them pop more- implicitly downvaluing longer
+				// jacks. We don't want this detection to be redundant with
+				// longer jacks. See below for more detail.
+				if (mode == 2)
+					hit_window_buffer =
+					  max(0.f, hit_window_buffer - buffer_drain);
 
 				float eff_ms = comp_time + hit_window_buffer;
 
-				buffer_drain = base_ms;
-				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
+				// for longjacks or burst jacks apply buffer drain after eff_ms
+				// is calculated. This is a qausi hack to stop sequences
+				// starting on a large break from eating the buffer too quickly
+				// we could also limit the buffer drain to a hardcoded value
+				// with min but i don't like that particularly, there's already
+				// quite a few hardcoded values in this general setup by design
+				// and it does cause both logical and desirable, but funny
+				// looking effects with scaling and rate changing
+				// for example if all other things are equal, and a sequence
+				// doesn't eat the entire buffer by the end note, uprating it
+				// will actually decrease the difficulty because the buffer
+				// drain rate is dependent upon ms. Having the buffer drain at
+				// all can be counter intuitive, but it's the best way i've
+				// found to really highlight the differential between 4/5 note
+				// jacks. Given a components of length n and n+1 inside sequence
+				// j, if we don't drain the buffer then the practical difference
+				// between the two components _decreases_ as n increases, we do
+				// not want this. The aforementioned side effect up of uprating
+				// potentially decreasing the difficulties of jack sequences is
+				// actually fine, and even desirable, if it is tuned in a way
+				// that perhaps unfairly depresses some longer jack files but
+				// successfully prevents vibro from being overrated to the point
+				// where all vibro files have to be insantly blacklisted
+				// But it will look funny and stupid people will whine about it.
+				if (mode < 2)
+					hit_window_buffer =
+					  max(0.f, hit_window_buffer - buffer_drain);
 
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
@@ -611,7 +640,13 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 									 ? 1.f
 									 : base_bpm / 15.f * finalscaler *
 										 basescalers[Skill_JackSpeed];
-				
+				if (mode == 2)
+					comp_diff[i] = base_ms > 180.f
+									 ? 1.f
+									 : max(base_bpm / 15.f * finalscaler *
+										 basescalers[Skill_JackSpeed] /
+										 eff_scaler, 40.f);
+
 				eff_scalers[i] = eff_scaler;
 				if (dbg) {
 					std::cout << "\nseq component: " << i
@@ -628,15 +663,15 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// longer jacks, take the mean of the component difficulties (if
 				// it's actually a longjack, it should be much higher), then
 				// multiply by the final effective bpm scaler
-				fdiff = mean(comp_diff) * eff_scalers.back() * 1.625f;
+				fdiff = mean(comp_diff) * eff_scalers.back() * 1.75f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * mean(eff_scalers) * 1.425f;
+				fdiff = comp_diff.back() * eff_scalers.back() * 1.45f;
 			else if (mode == 2)
 				// minijacks, we want them to pop on this pass, thankfully,
 				// that's easy to accomplish
-				fdiff = comp_diff.back() * eff_scalers.back() * 0.66f;
+				fdiff = mean(comp_diff) / eff_scalers.front() * 0.2f;
 
 			thejacks.push_back(fdiff);
 			if (dbg) {
@@ -749,7 +784,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float qprop = chord_proportion(NoteInfo, 4);
 	float cprop = jprop + hprop + qprop;
 
-	static const int fo_rizzy = ssr ? 5 : 1;
+	static const int fo_rizzy = ssr ? 1 : 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
