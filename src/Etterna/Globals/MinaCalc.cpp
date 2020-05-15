@@ -1080,17 +1080,16 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty = (5.f * left_difficulty + 2.f * right_difficulty) / 7.f;
+			difficulty = (5.f * left_difficulty + 4.f * right_difficulty) / 9.f;
 		else
-			difficulty = (5.f * right_difficulty + 2.f * left_difficulty) / 7.f;
+			difficulty = (5.f * right_difficulty + 4.f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  finalscaler * (2.33333f * difficulty + 6.66666f * nps) / 9.f;
+		  finalscaler * (3.33333f * difficulty + 6.66666f * nps) / 10.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
-	if (SmoothDifficulty)
-		DifficultyMSSmooth(soap[BaseMSD]);
+	DifficultyMSSmooth(soap[BaseMSD]);
 }
 
 // each skillset should just be a separate calc function [todo]
