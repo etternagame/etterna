@@ -341,7 +341,8 @@ Calc::JackStamAdjust(float x, int t, int mode)
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
 	const float super_stam_ceil = 1.11f;
-	const auto& diff = mode == 0 ? jacks[t] : mode == 1 ? jacks2[t] : jacks3[t];
+	const auto& diff = mode == 0 ? jacks0[t] : mode == 1 ? jacks1[t] : mode == 2 ? jacks2[t] : jacks3[t];
+
 
 	static const float stam_ceil = 1.035234f; // stamina multiplier max
 	static const float stam_mag = 75.f;		  // multiplier generation scaler
@@ -435,10 +436,12 @@ Calc::JackLoss(float x, int mode, bool stam)
 	for (int i = 0; i < numitv; ++i) {
 		for (auto t : { 0, 1, 2, 3 }) {
 			// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-			auto& seagull = stam ? stam_adj_jacks[t][i]
-								 : mode == 0
-									 ? jacks[t][i]
-									 : mode == 1 ? jacks2[t][i] : jacks3[t][i];
+			auto& seagull =
+			  stam ? stam_adj_jacks[t][i]
+				   : mode == 0
+					   ? jacks0[t][i]
+					   : mode == 1 ? jacks1[t][i]
+								   : mode == 2 ? jacks2[t][i] : jacks3[t][i];
 			float loss = 0.f;
 			for (auto& j : seagull) {
 				if (x >= j)
@@ -482,6 +485,10 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
+	// Important note: some or all of the comments here are out of date. If it
+	// says something is being done one way, and it isn't, then it means that
+	// thing may or may not be dumb and bad to do. Probably.
+
 	// The way this setup functionally works out is pretty complex and extremely
 	// nuanced. The basic version is we scan over columns with a moving window
 	// of notes. We then construct a difficulty estimate for each window and the
@@ -513,6 +520,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		window_size = 2;
 	if (mode == 2)
 		window_size = 4;
+	if (mode == 3)
+		window_size = 5;
 	vector<float> window_taps;
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
@@ -560,11 +569,13 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 250.f;
+			float hit_window_buffer = 185.f;
 			if (mode == 1)
-				hit_window_buffer = 125.f;
+				hit_window_buffer = 120.f;
 			if (mode == 2)
 				hit_window_buffer = 275.f;
+			if (mode == 3)
+				hit_window_buffer = 60.f;
 
 			for (size_t i = 0; i < window_taps.size(); ++i) {
 				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
@@ -626,7 +637,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// successfully prevents vibro from being overrated to the point
 				// where all vibro files have to be insantly blacklisted But it
 				// will look funny and stupid people will whine about it.
-				if (mode <= 2)
+				if (mode <= 3)
 					hit_window_buffer =
 					  max(0.f, hit_window_buffer - buffer_drain);
 
@@ -649,17 +660,19 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// component (for longjacks)
 				switch (mode) {
 					case 0:
-						comp_diff[i] = eff_bpm;
+						comp_diff[i] = base_bpm;
 						break;
 						// new thing be try use base bpm instead of effective
 						// dunno this might be dum
 					case 1:
-						comp_diff[i] = eff_bpm;
+						comp_diff[i] = base_bpm;
 						break;
 					// same thing but divide by eff scaler to POPIZZLE?? idk
 					case 2:
 						comp_diff[i] = eff_bpm;
 						break;
+					case 3:
+						comp_diff[i] = eff_bpm;
 				}
 
 				// convert bpm to nps so we can apply finalscaler and get
@@ -687,15 +700,17 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
+				fdiff = mean(comp_diff) * 1.05f * mean(eff_scalers);
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = comp_diff.back() * 1.f * eff_scalers.back();
+				fdiff = mean(comp_diff) * 1.05f * mean(eff_scalers);
 			else if (mode == 2)
+				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
+			else if (mode == 3)
 				// minijacks, why does this seem to work so well?? it's
 				// basically just ms + 60 i guess???? optimize later
-				fdiff = comp_diff.back() * 1.4f * mean(eff_scalers);
+				fdiff = comp_diff.front() * 0.75f;
 
 			fdiff = CalcClamp(fdiff, 0.f, max_diff);
 			thejacks.push_back(fdiff);
@@ -707,10 +722,12 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		itv_jacks.push_back(thejacks);
 	}
 	if (mode == 0)
-		jacks[track] = itv_jacks;
+		jacks0[track] = itv_jacks;
 	if (mode == 1)
-		jacks2[track] = itv_jacks;
+		jacks1[track] = itv_jacks;
 	if (mode == 2)
+		jacks2[track] = itv_jacks;
+	if (mode == 3)
 		jacks3[track] = itv_jacks;
 }
 #pragma endregion
@@ -1058,6 +1075,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// Smooth(jacks2[i], 1.f);
 		SequenceJack(fingers[i], i, 2);
 		// Smooth(jacks3[i], 1.f);
+		SequenceJack(fingers[i], i, 3);
 	}
 
 	return true;
@@ -1134,6 +1152,8 @@ Calc::Chisel(float player_skill,
 				gotpoints = MaxPoints - JackLoss(player_skill, 1, false);
 			} else if (ss == Skill_Technical) {
 				gotpoints = MaxPoints - JackLoss(player_skill, 2, false);
+			} else if (ss == Skill_Stream) {
+				gotpoints = MaxPoints - JackLoss(player_skill, 3, false);
 			} else {
 				gotpoints = MaxPoints;
 				// left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
@@ -3805,5 +3825,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 307;
+	return 308;
 }

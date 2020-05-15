@@ -210,7 +210,8 @@ class Calc
 	void WideRangeBalanceScaler(const std::vector<NoteInfo>& NoteInfo,
 								float music_rate,
 								std::vector<float> doot[ModCount]);
-	std::vector<std::vector<float>> jacks[4];
+	std::vector<std::vector<float>> jacks0[4];
+	std::vector<std::vector<float>> jacks1[4];
 	std::vector<std::vector<float>> jacks2[4];
 	std::vector<std::vector<float>> jacks3[4];
 	std::vector<std::vector<float>> stam_adj_jacks[4];
