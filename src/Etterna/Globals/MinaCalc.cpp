@@ -524,7 +524,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> thejacks;
 
 	// doge adventure etc
-	static const float max_diff = 60.f;
+	static const float max_diff = 50.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -560,9 +560,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			window_taps[window_size - 1] = ms;
 
 			float comp_time = 0.f;
-			float hit_window_buffer = 280.f;
+			float hit_window_buffer = 250.f;
 			if (mode == 1)
-				hit_window_buffer = 250.f;
+				hit_window_buffer = 150.f;
 			if (mode == 2)
 				hit_window_buffer = 240.f;
 
@@ -687,11 +687,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// dunno if we should even multiply effective scaler again here,
 				// since it's applied every step of the way in comp_diff and we
 				// are taking the mean of comp_diff
-				fdiff = comp_diff.back() * mean(eff_scalers) * 1.55f;
+				fdiff = comp_diff.back() * eff_scalers.back() * 1.55f;
 			else if (mode == 1)
 				// more burst oriented jacks, fuzzy math + intuition =
 				// incomprehensible mess
-				fdiff = max_val(comp_diff) * mean(eff_scalers) * 1.35f;
+				fdiff = comp_diff.back() * 1.25f;
 			else if (mode == 2)
 				// minijacks, why does this seem to work so well?? it's
 				// basically just ms + 60 i guess???? optimize later
@@ -3805,5 +3805,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 304;
+	return 305;
 }
