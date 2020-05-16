@@ -782,7 +782,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float qprop = chord_proportion(NoteInfo, 4);
 	float cprop = jprop + hprop + qprop;
 
-	static const int fo_rizzy = ssr ? 1 : 1;
+	int fo_rizzy = ssr ? 1 : 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
