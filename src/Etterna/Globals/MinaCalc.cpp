@@ -538,7 +538,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	const float mode_buffers[4] = { 60.f, 170.f, 120.f, 275.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 1.45f, 1.2f, 1.45f };
+	static const float mode_scalers[4] = { 0.75f, 1.825f, 1.2f, 1.45f };
 	jacks[mode][track].resize(numitv);
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
@@ -669,7 +669,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 					fdiff = comp_diff.front();
 					break;
 				case 1: // shorter bursts
-					fdiff = comp_diff.back() * eff_scalers.back();
+					fdiff = comp_diff.back() * mean(eff_scalers);
 					break;
 				case 2: // longer bursts
 				case 3: // medium-longjack pass
