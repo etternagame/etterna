@@ -1136,7 +1136,7 @@ Calc::Chisel(float player_skill,
 			} else {
 				if (ss == Skill_Technical)
 					gotpoints -=
-					  (JackLoss(player_skill, 0, max_points_lost, false));
+					  (JackLoss(player_skill, 0, max_points_lost, false)) / 7.5f;
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				if (gotpoints > reqpoints)
 					right_hand.CalcInternal(
