@@ -115,9 +115,7 @@ CreateDirectories(const std::string& Path)
 		/* I can't reproduce this anymore.  If we get ENOENT, log it but keep
 		 * going. */
 		if (errno == ENOENT) {
-			WARN(ssprintf(
-				   "Couldn't create %s: %s", curpath.c_str(), strerror(errno))
-				   .c_str());
+			Locator::getLogger()->warn("Couldn't create {}: {}", curpath.c_str(), strerror(errno));
 			errno = EEXIST;
 		}
 #endif
