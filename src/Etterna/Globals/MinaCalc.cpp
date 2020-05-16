@@ -311,8 +311,8 @@ static const float finalscaler =
 // so todo on that
 
 // Stamina Model params
-static const float stam_ceil = 1.065234f; // stamina multiplier max
-static const float stam_mag = 273.f;	  // multiplier generation scaler
+static const float stam_ceil = 1.075234f; // stamina multiplier max
+static const float stam_mag = 243.f;	  // multiplier generation scaler
 static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.69424f; // proportion of player difficulty at which stamina tax begins
@@ -323,7 +323,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.8925f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
 												 0.94f, 0.77f, 0.84f, 0.84f };
 
 #pragma region CalcBodyFunctions
@@ -537,10 +537,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 100.f, 190.f, 240.f };
+	const float mode_buffers[4] = { 60.f, 70.f, 140.f, 240.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 0.89f, 1.25f, 1.35f };
+	static const float mode_scalers[4] = { 0.75f, 0.75f, 1.05f, 1.335f };
 	jacks[mode][track].resize(numitv);
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
@@ -628,6 +628,9 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				float eff_bpm = ms_to_bpm(eff_ms / (1 + static_cast<float>(i)));
 				float eff_scaler = eff_bpm / base_bpm;
 
+				if (base_ms > 180)
+					comp_diff[i] = 1.f;
+				else
 				// comment me maybe
 				switch (mode) {
 					case 0:
@@ -1104,7 +1107,7 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = MaxPoints;
 			if (true) {
-//#define DEBUG_JACK_MODELS
+#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
 				if (ss == Skill_Jumpstream) {
 					left_hand.CalcInternal(
@@ -3960,5 +3963,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 314;
+	return 315;
 }
