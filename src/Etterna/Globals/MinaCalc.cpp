@@ -1107,7 +1107,18 @@ Calc::Chisel(float player_skill,
 
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = MaxPoints;
-
+			if (true) {
+//#define DEBUG_JACK_MODELS
+#ifdef DEBUG_JACK_MODELS
+			if (ss == Skill_JackSpeed)
+				gotpoints -= JackLoss(player_skill, 1, max_points_lost, false);
+			else if (ss == Skill_Chordjack)
+				gotpoints -= JackLoss(player_skill, 2, max_points_lost, false);
+			else if (ss == Skill_Technical)
+				gotpoints -= JackLoss(player_skill, 3, max_points_lost, false);
+			else if (ss == Skill_Stream)
+				gotpoints -= JackLoss(player_skill, 0, max_points_lost, false) / 7.5f;
+#else
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
 			if (ss == Skill_JackSpeed) {
@@ -1130,6 +1141,8 @@ Calc::Chisel(float player_skill,
 				if (gotpoints > reqpoints)
 					right_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
+			}
+#endif
 			}
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
