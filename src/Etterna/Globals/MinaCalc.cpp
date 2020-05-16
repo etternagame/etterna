@@ -537,10 +537,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 95.f, 190.f, 240.f };
+	const float mode_buffers[4] = { 60.f, 100.f, 190.f, 240.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 0.76f, 1.25f, 1.35f };
+	static const float mode_scalers[4] = { 0.75f, 0.89f, 1.25f, 1.35f };
 	jacks[mode][track].resize(numitv);
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
@@ -665,7 +665,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 					fdiff = comp_diff.front();
 					break;
 				case 1: // shorter bursts
-					fdiff = mean(comp_diff) * mean(eff_scalers);
+					fdiff = comp_diff.back() * mean(eff_scalers);
 					break;
 				case 2: // longer bursts
 				case 3: // medium-longjack pass
@@ -1104,7 +1104,7 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = MaxPoints;
 			if (true) {
-#define DEBUG_JACK_MODELS
+//#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
 				if (ss == Skill_Jumpstream) {
 					left_hand.CalcInternal(
@@ -1139,7 +1139,7 @@ Calc::Chisel(float player_skill,
 			} else {
 				if (ss == Skill_Technical)
 					gotpoints -=
-					  (JackLoss(player_skill, 0, max_points_lost, false)) / 7.5f;
+					  (JackLoss(player_skill, 0, max_points_lost, false)) / 3.5f;
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 				if (gotpoints > reqpoints)
 					right_hand.CalcInternal(
