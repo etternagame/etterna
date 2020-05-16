@@ -436,7 +436,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 				if (x >= j)
 					continue;
 				loss += hit_the_road(x, j, mode);
-				
+
 				if (dbg)
 					std::cout << "loss for diff : " << j
 							  << " with pskill: " << x << " : "
@@ -454,7 +454,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 			return total_point_loss;
 
 		total_point_loss += max(flurbo[0], flurbo[1]);
-		total_point_loss += max(flurbo[2], flurbo[3]);		
+		total_point_loss += max(flurbo[2], flurbo[3]);
 	}
 	if (debugmode) {
 		left_hand.debugValues[2][JackPtLoss] = left_loss;
@@ -1036,10 +1036,10 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	// werwerwer
-	for (auto m : zto3) {
-		jacks[m]->resize(4);
-		for (auto t : zto3)
+		// werwerwer
+		for (auto m : zto3) {
+			jacks[m]->resize(4);
+			for (auto t : zto3)
 			SequenceJack(fingers[t], t, m);
 	}
 	return true;
@@ -1149,7 +1149,7 @@ Calc::Chisel(float player_skill,
 		resolution /= 2.f;
 	}
 
-	// these are the values for msd/stam adjusted msd/pointloss the
+// these are the values for msd/stam adjusted msd/pointloss the
 // latter two are dependent on player_skill and so should only
 // be recalculated with the final value already determined
 if (debugoutput) {
@@ -1371,7 +1371,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			if (x > v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
 				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
-				gotpoints -= lostpoints;				  
+				gotpoints -= lostpoints;
 				debugValues[2][PtLoss][i] = lostpoints;
 			}
 		}
@@ -3957,5 +3957,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 312;
+	return 313;
 }
