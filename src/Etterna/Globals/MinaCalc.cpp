@@ -1150,16 +1150,14 @@ Calc::Chisel(float player_skill,
 	}
 
 	// these are the values for msd/stam adjusted msd/pointloss the
-	// latter two are dependent on player_skill and so should only
-	// be recalculated with the final value already determined
-	if (debugoutput) {
-		left_hand.CalcInternal(
-		  gotpoints, player_skill, ss, stamina, debugoutput);
-		right_hand.CalcInternal(
-		  gotpoints, player_skill, ss, stamina, debugoutput);
-	}
+// latter two are dependent on player_skill and so should only
+// be recalculated with the final value already determined
+if (debugoutput) {
+	left_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
+	right_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
+}
 
-	return player_skill + 2.f * resolution;
+return player_skill + 2.f * resolution;
 }
 
 void

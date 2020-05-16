@@ -51,7 +51,7 @@ class Hand
 	// values are static. Just calculate them for each skillset after pattern
 	// mods are done. For reasons we want to calculate stam mod on a different
 	// vector than what we apply the stam mod to, so calculate those as well.
-	// Yes this makes sense. 
+	// Yes this makes sense.
 	void InitAdjDiff();
 
 	// Totals up the points available for each interval
@@ -63,7 +63,7 @@ class Hand
 	appropriate value to be around 0.8. The multiplier is scaled to the
 	proportionate difference in player skill. */
 	// just recycle the stam_adj_diff vector directly in this function
-	// sometimes 
+	// sometimes
 	void StamAdjust(float x, int ss, bool debug = false);
 
 	/*	For a given player skill level x, invokes the function used by wife
@@ -80,10 +80,12 @@ class Hand
 
 	std::vector<float> doot[ModCount];
 	std::vector<int> v_itvpoints; // Point allotment for each interval
-	std::vector<float> soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
+	std::vector<float>
+	  soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
 
 	// not necessarily self extraplanetary
-	// apply stam model to these (but output is sent to stam_adj_diff, not modified here)
+	// apply stam model to these (but output is sent to stam_adj_diff, not
+	// modified here)
 	std::vector<float> base_adj_diff[NUM_Skillset];
 	// but use these as the input for model
 	std::vector<float> base_diff_for_stam_mod[NUM_Skillset];
@@ -119,7 +121,7 @@ class Calc
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
-	bool ssr = true;	// set to true for scores, false for cache
+	bool ssr = true; // set to true for scores, false for cache
 	int numitv;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
@@ -145,7 +147,7 @@ class Calc
 						 bool& joke_file_mon);
 
 	// Derivative calc params
-	int MaxPoints = 0; // Total points achievable in the file
+	int MaxPoints = 0;	 // Total points achievable in the file
 	void TotalMaxPoints(); // Counts up the total points and assigns it
 
 	/*	Returns estimate of player skill needed to achieve score goal on chart.
@@ -155,44 +157,48 @@ class Calc
 	float Chisel(float player_skill,
 				 float resolution,
 				 float score_goal,
-				 int ss,	// skillset
+				 int ss, // skillset
 				 bool stamina,
 				 bool debugoutput = false);
 
 	void TheThingLookerFinderThing(const std::vector<NoteInfo>& NoteInfo,
 								   float music_rate,
 								   std::vector<float> doot[]);
-	
-	JumpHandChordData gen_jump_hand_chord_data(const std::vector<NoteInfo>& NoteInfo);
-	
+
+	JumpHandChordData gen_jump_hand_chord_data(
+	  const std::vector<NoteInfo>& NoteInfo);
+
 	// nerf psuedo chords that are flams into oblivion
 	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
 					   std::vector<float> doot[],
 					   float& music_rate);
 
 	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
-					 std::vector<float> doot[ModCount], float music_rate);
+					  std::vector<float> doot[ModCount],
+					  float music_rate);
 
 	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
-									unsigned int t1,
-									unsigned int t2,
-									std::vector<float> doot[ModCount]);
+					  unsigned int t1,
+					  unsigned int t2,
+					  std::vector<float> doot[ModCount]);
 
 	// no longer going to necessarily be downscalers - that they were
 	// was a structural flaw of the old calc
-	void SetHSMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
-	void SetJumpMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
-	void SetCJMod(const JumpHandChordData &data, std::vector<float> doot[ModCount]);
+	void SetHSMod(const JumpHandChordData& data,
+				  std::vector<float> doot[ModCount]);
+	void SetJumpMod(const JumpHandChordData& data,
+					std::vector<float> doot[ModCount]);
+	void SetCJMod(const JumpHandChordData& data,
+				  std::vector<float> doot[ModCount]);
 
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once
 	// ok well we do it once per hand and we can probably solve that but...
-	void SetSequentialDownscalers(
-	  const std::vector<NoteInfo>& NoteInfo,
-	  unsigned int t1,
-	  unsigned int t2,
-	  float music_rate,
-	  std::vector<float> doot[ModCount]);
+	void SetSequentialDownscalers(const std::vector<NoteInfo>& NoteInfo,
+								  unsigned int t1,
+								  unsigned int t2,
+								  float music_rate,
+								  std::vector<float> doot[ModCount]);
 
 	void WideRangeRollScaler(const std::vector<NoteInfo>& NoteInfo,
 							 unsigned int t1,
@@ -231,9 +237,10 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal);
 MINACALC_API MinaSD
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo);
 MINACALC_API void
-MinaSDCalcDebug(const std::vector<NoteInfo>& NoteInfo,
-				float musicrate,
-				float goal,
-				std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
+MinaSDCalcDebug(
+  const std::vector<NoteInfo>& NoteInfo,
+  float musicrate,
+  float goal,
+  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
 MINACALC_API int
 GetCalcVersion();
