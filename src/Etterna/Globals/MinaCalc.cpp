@@ -323,8 +323,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.89f, 0.8925f, 0.94f, 0.77f, 0.84f, 0.84f };
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.8925f,
+												 0.94f, 0.77f, 0.84f, 0.84f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -440,8 +440,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 				if (dbg)
 					std::cout << "loss for diff : " << j
 							  << " with pskill: " << x << " : "
-							  << hit_the_road(x, j, mode)
-							  << std::endl;
+							  << hit_the_road(x, j, mode) << std::endl;
 			}
 			flurbo[t] = loss;
 		}
@@ -450,7 +449,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 			left_loss[i] = max(flurbo[0], flurbo[1]);
 			right_loss[i] = max(flurbo[2], flurbo[3]);
 			// slight optimization i guess, bail if we can no longer reach score
-			// goal (but only outside of debug)
+			// goal (but only outside of debug, and not for minijacks)
 		} else if (total_point_loss > mpl && mode != 0)
 			return total_point_loss;
 
@@ -818,8 +817,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// skillset we can actually set the stam floor to <
 		// 1 to shift the curve a bit
 		for (int i = 0; i < NUM_Skillset; ++i)
-			mcbloop[i] =
-			  Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, true);
+			mcbloop[i] = Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, true);
 
 		// all relative scaling to specific skillsets should
 		// occur before this point, not after (it ended up
@@ -1129,7 +1127,9 @@ Calc::Chisel(float player_skill,
 					gotpoints -=
 					  (JackLoss(player_skill, 0, max_points_lost, false));
 				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+				if (gotpoints > reqpoints)
+					right_hand.CalcInternal(
+					  gotpoints, player_skill, ss, stamina);
 			}
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
