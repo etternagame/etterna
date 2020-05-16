@@ -402,7 +402,9 @@ Calc::JackStamAdjust(float x, int t, int mode)
 inline float
 hit_the_road(float x, float y, int mode)
 {
-	return (CalcClamp(6.5f - (6.f * fastpow(x / y, 2.f)), 0.f, 6.5f));
+	if (mode == 1)
+		return 2.f * (CalcClamp(5.5f - (5.0f * fastpow(x / y, 2.5f)), 0.f, 5.5f));
+	return (CalcClamp(5.5f - (5.0f * fastpow(x / y, 2.5f)), 0.f, 5.5f));
 }
 
 // returns a positive number or 0, output should be subtracted
@@ -516,7 +518,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	vector<float> eff_scalers(window_size);
 
 	// doge adventure etc
-	static const float max_diff = 45.f;
+	static const float max_diff = 95.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -535,10 +537,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 170.f, 120.f, 275.f };
+	const float mode_buffers[4] = { 60.f, 95.f, 190.f, 240.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 1.825f, 1.2f, 1.45f };
+	static const float mode_scalers[4] = { 0.75f, 0.76f, 1.25f, 1.35f };
 	jacks[mode][track].resize(numitv);
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
@@ -613,16 +615,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				// successfully prevents vibro from being overrated to the point
 				// where all vibro files have to be insantly blacklisted But it
 				// will look funny and stupid people will whine about it.
-				if (mode == 0 || mode == 3)
-					hit_window_buffer =
-					  max(0.f, hit_window_buffer - buffer_drain);
+				
+				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
 
 				float eff_ms = comp_time + hit_window_buffer;
-
-				// these could be retuned to eat buffer above but i cba
-				if (mode == 2 || mode == 1)
-					hit_window_buffer =
-					  max(0.f, hit_window_buffer - buffer_drain);
 
 				// compute a simple scaler by taking the effective ms window
 				// (converted to bpm for the moment for familiarity /
@@ -669,7 +665,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 					fdiff = comp_diff.front();
 					break;
 				case 1: // shorter bursts
-					fdiff = comp_diff.back() * mean(eff_scalers);
+					fdiff = mean(comp_diff) * mean(eff_scalers);
 					break;
 				case 2: // longer bursts
 				case 3: // medium-longjack pass
@@ -1108,8 +1104,15 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = MaxPoints;
 			if (true) {
-//#define DEBUG_JACK_MODELS
+#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
+				if (ss == Skill_Jumpstream) {
+					left_hand.CalcInternal(
+					  gotpoints, player_skill, ss, stamina);
+					right_hand.CalcInternal(
+					  gotpoints, player_skill, ss, stamina);
+				}
+				
 			if (ss == Skill_JackSpeed)
 				gotpoints -= JackLoss(player_skill, 1, max_points_lost, false);
 			else if (ss == Skill_Chordjack)
@@ -3957,5 +3960,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 313;
+	return 314;
 }
