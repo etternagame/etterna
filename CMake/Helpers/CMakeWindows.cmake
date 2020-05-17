@@ -5,7 +5,7 @@ set_directory_properties(PROPERTIES VS_STARTUP_PROJECT Etterna)
 set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}/Program>")
 set_target_properties(Etterna PROPERTIES 
 	RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
-	RUNTIME_OUTPUT_NAME_RELEASE "Etterna-release"
+	RUNTIME_OUTPUT_NAME_RELEASE "Etterna" # Without prefix, as this is the binary to be copied when cpack is run.
 	RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
 	RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
 
