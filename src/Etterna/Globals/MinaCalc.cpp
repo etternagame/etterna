@@ -324,7 +324,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
-												 0.94f, 0.77f, 0.84f, 0.84f };
+												 0.94f, 0.79f, 0.84f, 0.84f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -398,13 +398,12 @@ Calc::JackStamAdjust(float x, int t, int mode)
 			}
 		}
 }
-
+static const float magic_num = 7.5f;
 inline float
 hit_the_road(float x, float y, int mode)
 {
-	if (mode == 1)
-		return 2.f * (CalcClamp(5.5f - (5.0f * fastpow(x / y, 2.5f)), 0.f, 5.5f));
-	return (CalcClamp(5.5f - (5.0f * fastpow(x / y, 2.5f)), 0.f, 5.5f));
+	return (CalcClamp(
+	  magic_num - (magic_num * fastpow(x / y, 2.5f)), 0.f, magic_num));
 }
 
 // returns a positive number or 0, output should be subtracted
@@ -476,24 +475,7 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	// Important note: some or all of the comments here are out of date. If it
-	// says something is being done one way, and it isn't, then it means that
-	// thing may or may not be dumb and bad to do. Probably.
-
-	// The way this setup functionally works out is pretty complex and extremely
-	// nuanced. The basic version is we scan over columns with a moving window
-	// of notes. We then construct a difficulty estimate for each window and the
-	// output is assigned to the note the window ends on. The difference between
-	// longjacks and minijacks does not manifest in a single value for a set of
-	// notes but in sequences of values for sequences of notes. Longjacks will
-	// have more but lower values compared to minijacks. If this sounds simple
-	// it's because conceptually it is, but in practice the setup applies
-	// implicit methods by its design that may be redundant with explicit use of
-	// them in loops, or not. It's not something you can understand well unless
-	// you actually study debug output while tinkering with numbers, trust me
-	// you aren't that smart.
-
-	bool dbg = false && debugmode && mode == 0;
+	bool dbg = true && debugmode && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -514,11 +496,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	for (int i = 0; i < window_size; ++i)
 		window_taps.push_back(1250.f);
 
-	vector<float> comp_diff(window_size);
 	vector<float> eff_scalers(window_size);
 
-	// doge adventure etc
-	static const float max_diff = 95.f;
+	// doge adventure etc (maybe don't set this too low yet)
+	static const float max_diff = 55.f;
 
 	// yes this is many loops, but we don't want to sacrifice legitimately
 	// difficult minijacks in the name of proper evaluation of shortjacks and
@@ -537,16 +518,22 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	if (dbg)
 		std::cout << "sequence jack on track: " << track << std::endl;
 	float time = 0.f;
-	const float mode_buffers[4] = { 60.f, 70.f, 140.f, 240.f };
+	float eff_ms = 0.f;
+	float eff_bpm = 0.f;
+	float ms = 0.f; 
+	const float mode_buffers[4] = { 30.f, 30.f, 120.f, 225.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
-	static const float mode_scalers[4] = { 0.75f, 0.75f, 1.05f, 1.335f };
+	static const float mode_scalers[4] = {
+		1.125f, 0.83f * 30.5f / 29.f, 1.28f, 1.5f * 30.5f / 29.5f
+	};
 	jacks[mode][track].resize(numitv);
+	float comp_diff = 0.f;
 	for (size_t itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
 		// taps in interval
 		for (size_t ind = 0; ind < f[itv].size(); ++ind) {
-			float ms = f[itv][ind];
+			ms = f[itv][ind];
 			time += ms;
 			if (dbg) {
 				std::cout << "time now: " << time / 1000.f << std::endl;
@@ -559,129 +546,22 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			// add new value
 			window_taps[window_size - 1] = ms;
 
-			float comp_time = 0.f;
+			// effective bpm based on a hit window buffer
+			eff_ms = sum(window_taps) + mode_buffers[mode];
+			eff_bpm = ms_to_bpm(eff_ms / window_taps.size());
+			comp_diff = eff_bpm * jack_global_scaler;
 
-			float hit_window_buffer = mode_buffers[mode];
-			for (size_t i = 0; i < window_taps.size(); ++i) {
-				// first jack is element 1 - 0, 2nd is 2 - 1, 3rd is 3 - 2,
-				// and 4th is 4 - 3, each with their own total time at n -
-				// 0, then we like, do stuff with them, you know, like pogs
+			jacks[mode][track][itv][ind] =
+			  CalcClamp(comp_diff * mode_scalers[mode], 0.f, max_diff);
 
-				// We know the general rules that govern how hard minijacks,
-				// shortjacks, and longjacks are to hit - an isolated minijack
-				// has an effective window if 180ms + jack ms + 180,
-				// an isolated triplet has an effective window of 180
-				// + jack ms + jack ms + 180, the latter is more difficult
-				// but not by that much, even if the jacks are extremely
-				// fast, since jacks are effectively down translated from x
-				// bpm jacks to y bpm as a function of the miss window, we will
-				// attempt to emulate this by calculating a real and effective
-				// bpm of each component of a jack sequence and then doing
-				// wizard magic with them for great justice
-				float base_ms = window_taps[i];
-				float buffer_drain = base_ms;
-				comp_time += window_taps[i];
-
-				// Some other notes, this general setup can cause desired but
-				// funny looking effects with scaling and rate changing for
-				// example if all other things are equal, and a sequence
-				// doesn't eat the entire buffer by the end note, uprating it
-				// will actually decrease the difficulty because the buffer
-				// drain rate is dependent upon ms. Having the buffer drain at
-				// all can be counter intuitive, but it's the best way i've
-				// found to really highlight the differential between 4/5 note
-				// jacks. We do this because programmatically determining
-				// explicit sequences of jacks invariably creates discrete
-				// cutoffs, it's possible that this may be a moot point given
-				// how other elements of the system work however trying a
-				// different approach is probably too much of a time sink atm.
-				// Since we don't know the final length of any jack sequence we
-				// are evaluating we drain the buffer to emulate movement down
-				// the sequence, however theoretically with a large enough
-				// window and a high enough buffer, not draining it at all might
-				// give better results. But currently we don't and the result is
-				// like this. Given a components of length n and n+1 inside
-				// sequence j, if we don't drain the buffer then the practical
-				// difference between the two components _decreases_ as n
-				// increases to the point where the difference between 4 notes
-				// and 5 is negligible (or maybe whatever version you are
-				// looking that may tune to highlight the difference between 5
-				// and 6 idk). We don't want this- the end goal is to maximize
-				// difference between mediumish and longer jacks. The
-				// aforementioned side effect up of uprating potentially
-				// decreasing th difficulties of jack sequences is actually
-				// fine, and even desirable, if it is tuned in a way that
-				// perhaps unfairl  depresses some longer jack files but
-				// successfully prevents vibro from being overrated to the point
-				// where all vibro files have to be insantly blacklisted But it
-				// will look funny and stupid people will whine about it.
-				
-				hit_window_buffer = max(0.f, hit_window_buffer - buffer_drain);
-
-				float eff_ms = comp_time + hit_window_buffer;
-
-				// compute a simple scaler by taking the effective ms window
-				// (converted to bpm for the moment for familiarity /
-				// clarity) remember to divide time by number of jacks
-				float base_bpm =
-				  ms_to_bpm(comp_time / (1 + static_cast<float>(i)));
-				float eff_bpm = ms_to_bpm(eff_ms / (1 + static_cast<float>(i)));
-				float eff_scaler = eff_bpm / base_bpm;
-
-				if (base_ms > 180)
-					comp_diff[i] = 1.f;
-				else
-				// comment me maybe
-				switch (mode) {
-					case 0:
-						comp_diff[i] = eff_bpm;
-						break;
-					case 1:
-						comp_diff[i] = base_bpm;
-						break;
-					case 2:
-						comp_diff[i] = base_bpm;
-						break;
-					case 3:
-						comp_diff[i] = eff_bpm;
-						break;
-				}
-
-				// convert bpm to nps so we can apply finalscaler and get
-				// roughly comparable values to other skillsets
-				comp_diff[i] *= jack_global_scaler;
-
-				eff_scalers[i] = eff_scaler;
-				if (dbg) {
-					std::cout << "\nseq component: " << i
-							  << " : base ms: " << base_ms
-							  << " : comp diff: " << comp_diff[i] << std::endl;
-					std::cout << "base bpm: " << base_bpm
-							  << " : eff bpm: " << eff_bpm
-							  << " : eff scaler: " << eff_scaler << std::endl;
-				}
-			}
-
-			float fdiff = 0.f;
-			switch (mode) {
-				case 0: // minijacks
-					fdiff = comp_diff.front();
-					break;
-				case 1: // shorter bursts
-					fdiff = comp_diff.back() * mean(eff_scalers);
-					break;
-				case 2: // longer bursts
-				case 3: // medium-longjack pass
-					fdiff = comp_diff.back() * mean(eff_scalers);
-					break;
-			}
-
-			fdiff = CalcClamp(fdiff * mode_scalers[mode], 0.f, max_diff);
-			jacks[mode][track][itv][ind] = fdiff;
 			if (dbg) {
-				std::cout << "comp mean: " << mean(comp_diff) << std::endl;
-				std::cout << "fdiff: " << fdiff << "\n" << std::endl;
+				std::cout << "base bpm: "
+						  << ms_to_bpm(sum(window_taps) / window_taps.size())
+						  << " : eff bpm: " << eff_bpm << std::endl;
+				std::cout << "fdiff: " << jacks[mode][track][itv][ind] << "\n"
+						  << std::endl;
 			}
+			
 		}
 	}
 }
@@ -1035,10 +915,10 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-		// werwerwer
-		for (auto m : zto3) {
-			jacks[m]->resize(4);
-			for (auto t : zto3)
+	// werwerwer
+	for (auto m : zto3) {
+		jacks[m]->resize(4);
+		for (auto t : zto3)
 			SequenceJack(fingers[t], t, m);
 	}
 	return true;
@@ -1107,7 +987,7 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = MaxPoints;
 			if (true) {
-#define DEBUG_JACK_MODELS
+//#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
 				if (ss == Skill_Jumpstream) {
 					left_hand.CalcInternal(
@@ -1115,39 +995,45 @@ Calc::Chisel(float player_skill,
 					right_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 				}
-				
-			if (ss == Skill_JackSpeed)
-				gotpoints -= JackLoss(player_skill, 1, max_points_lost, false);
-			else if (ss == Skill_Chordjack)
-				gotpoints -= JackLoss(player_skill, 2, max_points_lost, false);
-			else if (ss == Skill_Technical)
-				gotpoints -= JackLoss(player_skill, 3, max_points_lost, false);
-			else if (ss == Skill_Stream)
-				gotpoints -= JackLoss(player_skill, 0, max_points_lost, false) / 7.5f;
+
+				if (ss == Skill_JackSpeed)
+					gotpoints -=
+					  JackLoss(player_skill, 1, max_points_lost, false);
+				else if (ss == Skill_Chordjack)
+					gotpoints -=
+					  JackLoss(player_skill, 2, max_points_lost, false);
+				else if (ss == Skill_Technical)
+					gotpoints -=
+					  JackLoss(player_skill, 3, max_points_lost, false);
+				else if (ss == Skill_Stream)
+					gotpoints -=
+					  JackLoss(player_skill, 0, max_points_lost, false) / 7.5f;
 #else
-			// jack sequencer point loss for jack speed and (maybe?)
-			// cj
-			if (ss == Skill_JackSpeed) {
-				// this is slow but gives the best results, do separate passes
-				// for different jack types and figure out which is the most
-				// prominent of the file. We _don't_ want to do something like
-				// take the highest of a given type at multiple points
-				// throughout a file, that just results in oversaturation and
-				// bad grouping
-				float jloss =
-				  max(JackLoss(player_skill, 1, max_points_lost, false),
+				// jack sequencer point loss for jack speed and (maybe?)
+				// cj
+				if (ss == Skill_JackSpeed) {
+					// this is slow but gives the best results, do separate
+					// passes for different jack types and figure out which is
+					// the most prominent of the file. We _don't_ want to do
+					// something like take the highest of a given type at
+					// multiple points throughout a file, that just results in
+					// oversaturation and bad grouping
+					float jloss = max(
+					  JackLoss(player_skill, 1, max_points_lost, false),
 					  max(JackLoss(player_skill, 2, max_points_lost, false),
 						  JackLoss(player_skill, 3, max_points_lost, false)));
-				gotpoints -= jloss;
-			} else {
-				if (ss == Skill_Technical)
-					gotpoints -=
-					  (JackLoss(player_skill, 0, max_points_lost, false)) / 3.5f;
-				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
-				if (gotpoints > reqpoints)
-					right_hand.CalcInternal(
+					gotpoints -= jloss;
+				} else {
+					if (ss == Skill_Technical)
+						gotpoints -=
+						  (JackLoss(player_skill, 0, max_points_lost, false)) /
+						  7.5f;
+					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
-			}
+					if (gotpoints > reqpoints)
+						right_hand.CalcInternal(
+						  gotpoints, player_skill, ss, stamina);
+				}
 #endif
 			}
 		} while (gotpoints < reqpoints);
@@ -1155,15 +1041,17 @@ Calc::Chisel(float player_skill,
 		resolution /= 2.f;
 	}
 
-// these are the values for msd/stam adjusted msd/pointloss the
-// latter two are dependent on player_skill and so should only
-// be recalculated with the final value already determined
-if (debugoutput) {
-	left_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
-	right_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
-}
+	// these are the values for msd/stam adjusted msd/pointloss the
+	// latter two are dependent on player_skill and so should only
+	// be recalculated with the final value already determined
+	if (debugoutput) {
+		left_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, debugoutput);
+		right_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, debugoutput);
+	}
 
-return player_skill + 2.f * resolution;
+	return player_skill + 2.f * resolution;
 }
 
 void
@@ -1378,7 +1266,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 				float pts = static_cast<float>(v_itvpoints[i]);
 				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
 				gotpoints -= lostpoints;
-				debugValues[2][PtLoss][i] = lostpoints;
+				debugValues[2][PtLoss][i] = abs(lostpoints);
 			}
 		}
 	} else
@@ -3963,5 +3851,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 315;
+	return 316;
 }
