@@ -580,7 +580,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				//SONGMAN->testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));
