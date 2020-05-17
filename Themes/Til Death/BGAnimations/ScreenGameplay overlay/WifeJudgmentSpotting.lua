@@ -548,9 +548,11 @@ function smeltErrorBar(index)
 			finishtweening(self) -- note: it really looks like shit without the fade out
 			diffusealpha(self, 1)
 			diffuse(self, jcT[jdgCur])
-			x(self, MovableValues.ErrorBarX + dvCur * wscale)
-			y(self, MovableValues.ErrorBarY)
-			Zoomtoheight(self, MovableValues.ErrorBarHeight)
+			if MovableValues and MovableValues.ErrorBarX then
+				x(self, MovableValues.ErrorBarX + dvCur * wscale)
+				y(self, MovableValues.ErrorBarY)
+				Zoomtoheight(self, MovableValues.ErrorBarHeight)
+			end
 			linear(self, barDuration)
 			diffusealpha(self, 0)
 		end,

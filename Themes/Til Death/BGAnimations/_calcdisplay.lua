@@ -73,7 +73,7 @@ local function convertPercentToIndexForMods(x)
     if output < 0 then output = 0 end
     if output > 1 then output = 1 end
 
-    local ind = notShit.round(output * #graphVecs["Jump"][1])
+    local ind = notShit.round(output * #graphVecs["JS"][1])
     if ind < 1 then ind = 1 end
     return ind
 end
@@ -142,34 +142,54 @@ for k,v in pairs(CalcPatternMod) do
     activeMods[#activeMods+1] = v
 end
 activeMods[#activeMods+1] = "StamMod"
+activeMods[#activeMods+1] = "JackStamMod"
 
 -- specify enum names as tables here
 -- only allowed to have 9
 -- the 0th one is reserved for ssr graph toggle
 local debugGroups = {
     {
-        OHJump = true,
-        Anchor = true
-    },
-    {
-        Roll = true,
-        HS = true
-    },
-    {
-        Jump = true,
-        CJ = true
-    },
-    {
         StreamMod = true,
         OHTrill = true,
+		OHJump = true,
+		StamMod = true
+    },
+	{
+		Roll = true,
+		WideRangeRoll = true,
+		WideRangeJumptrill = true
+	},
+    {
+        JS = true,
+        JSS = true,
+        JSJ = true,
+		StamMod = true
+    },
+	{
+        HS = true,
+        HSS = true,
+        HSJ = true,
+		StamMod = true
+	},
+	{
+		OHJump = true,
+		TheThing = true
+	},
+    {
+        CJ = true,
+        CJS = true,
+        CJJ = true,
+        CJQuad = true,
+        CJOHJump = true,
+		StamMod = true
     },
     {
         Chaos = true,
         FlamJam = true,
-    },
-    {
-        WideRangeRoll = true,
-        StamMod = true
+        TheThing = true,
+        Anchor = true,
+        WideRangeBalance = true,
+        WideRangeAnchor = true,
     },
     {},
     {},
@@ -396,11 +416,23 @@ o[#o + 1] = Def.Quad {
                 modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
                 modNames[#modNames + 1] = "StamMod"..blah
             end
+
+            -- add jackstammod
+            for h = 1, 2 do
+                local blah = "L"
+                    if h == 2 then
+                        blah = "R"
+                    end
+                modsToValues[#modsToValues + 1] = graphVecs["JackStamMod"][h]
+                modNames[#modNames + 1] = "JackStamMod"..blah
+            end
             
             for k, v in pairs(modsToValues) do
                 local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
                 if activeModGroup == -1 or debugGroups[activeModGroup][namenoHand] then
-                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    local name = modNames[k] and modNames[k] or ""
+                    local value = v[index] and v[index] or 0
+                    local txt = string.format(name..": %5.4f\n", value)
                     modText = modText .. txt
                 end
             end
@@ -479,8 +511,20 @@ o[#o + 1] = Def.Quad {
                         modNames[#modNames + 1] = "PtLoss"..blah
                 end
 
+                -- add ptloss
+                for h = 1, 2 do
+                    local blah = "L"
+                        if h == 2 then
+                            blah = "R"
+                        end
+                        modsToValues[#modsToValues + 1] = graphVecs["JackPtLoss"][h]
+                        modNames[#modNames + 1] = "JackPtLoss"..blah
+                end
+
                 for k, v in pairs(modsToValues) do
-                    local txt = string.format(modNames[k]..": %5.4f\n", v[index])
+                    local name = modNames[k] and modNames[k] or ""
+                    local value = v[index] and v[index] or 0
+                    local txt = string.format(name..": %5.4f\n", value)
                     modText = modText .. txt
                 end
                 modText = modText:sub(1, #modText-1) -- remove the end whitespace
@@ -549,10 +593,22 @@ local modnames = {
     "rollr",
     "hsl",
     "hsr",
+    "hssl",
+    "hssr",
+    "hsjl",
+    "hsjr",
     "jsl",
     "jsr",
+    "jssl",
+    "jssr",
+    "jsjl",
+    "jsjr",
     "cjl",
     "cjr",
+    "cjsl",
+    "cjsr",
+    "cjjl",
+    "cjjr",
     "stl",
     "str",
     "ohtl",
@@ -565,38 +621,72 @@ local modnames = {
     "wrrr",
     "wrjtl",
     "wrjtr",
+    "wrbl",
+    "wrbr",
+    "wral",
+    "wrar",
+    "cjohjl",
+    "cjohjr",
+    "cjql",
+    "cjqr",
+    "ttl",
+    "ttr",
     "sl",
     "sr",
     
 }
 
 local modColors = {
-    color("1,0,0"),         -- red          = ohjump left
-    color("0.8,0.2,0.2"),   -- light red         (right)
-    color("0,0,1"),         -- blue         = anchor left
-    color("0.2,0.2,0.8"),   -- light blue        (right)
+    color("1,0.8,0"),       -- gold			= ohjump left
+    color("1,1,0.2"), 		-- yellow        	 (right)
+    color("0.2,0.2,1"),     -- blue         = anchor left
+    color("0.3,0.3,0.9"),   -- light blue        (right)
     color("0,1,0"),         -- green        = roll left
     color("0.3,0.9,0.3"),   -- light green       (right)
     color("1,1,0"),         -- yellow       = handstream left
-    color("0.6,0.6,0"),     -- dark yellow      (right)
-    color("1,0,1"),         -- purple       = jumpstream left
-    color("1,0.3,1"),        -- light purple      (right)
-    color("1.4,1.3,1"),       
-    color("1.4,1.3,0.9"),
-    color(".4,1.3,1"),       
-    color(".4,1.3,0.9"),
-    color(".7,1.3,1"),       
-    color(".7,1.3,0.9"),
-    color(".4,0.9,0.3"),       
-    color(".4,0.9,0.3"),
-    color(".4,0.5,0.59"),       
-    color(".4,0.3,0.49"),
-    color("1,0,0"),
-    color("1,0,0"),
-    color("1,0,0"),
-    color("1,0,0"),
-    color("1,0,0"),
-    color("1,0,0"),
+    color("0.6,0.6,0"),     -- dark yellow       (right)
+	color("0,1,1"),			-- cyan			= handstream stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= handstream jack
+	color("1,0.2,0"),		-- orange			 (right)
+    color("1,0,1"),     	-- purple       = jumpstream left
+    color("1,0.3,1"),   	-- light purple      (right)
+	color("0,1,1"),			-- cyan			= jumpstream stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= jumpstream jack
+	color("1,0.2,0"),		-- orange			 (right)
+    color("1.4,1.3,1"),     -- white 		= chordjack left
+    color("1.4,1.3,0.9"),   -- white			 (right)
+	color("0,1,1"),			-- cyan			= chordjack stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= chordjack jack
+	color("1,0.2,0"),		-- orange			 (right)
+    color(".3,1.3,1"),      -- cyan			= stream left
+    color(".3,1.3,0.9"),	-- cyan				 (right)
+    color(".8,1.3,1"),      -- whiteblue	= oht left
+    color(".8,1.3,0.9"),	-- whiteblue		 (right)
+    color(".4,0.9,0.3"),    -- green		= chaos left
+    color(".4,0.9,0.3"),	-- green			 (right)
+    color(".4,0.5,0.59"),   -- teal			= flamjam left
+    color(".4,0.3,0.49"),   -- dark purple		 (right)
+    color("1,0.2,0"),		-- red			= wrr left
+    color("1,0.2,0"),		-- red				 (right)
+    color("1,0.5,0"),		-- orange		= wrjt left
+    color("1,0.5,0"),		-- orange			 (right)
+    color("1,0.4,0"),		-- orange		= cjohj left
+    color("1,0.4,0"),		-- orange			 (right)
+    color("1,1,0"),			-- yellow		= cjquad left
+    color("1,1,0"),			-- yellow			 (right)
+    color("0,0.8,1"),		-- light blue	= thething left
+    color("0,0.8,1"),		-- light blue		 (right)
+    color("0.7,1,0"),		-- lime			= stam left
+    color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0.2"),		-- leme			= wrbr left
+    color("0.7,1,0.2"),		-- leme				 (right)
+    color("0.7,1,0.1"),		-- leme			= wrar left
+    color("0.7,1,0.1"),		-- leme				 (right)
+    color("0.7,1,0.7"),		-- leme			= wrar left
+    color("0.7,1,0.7"),		-- leme				 (right)
 }
 
 -- top graph average text
@@ -604,11 +694,11 @@ makeskillsetlabeltext = function(i, mod, hand)
     return LoadFont("Common Normal") .. {
         Name = "SSLabel"..i,
         InitCommand = function(self)
-            local xspace = 55   -- this is gonna look like shit on 4:3 no matter what so w.e
+            local xspace = 42   -- this is gonna look like shit on 4:3 no matter what so w.e
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
-            self:maxwidth((plotWidth-10) / 0.5)
+            self:maxwidth(100)
         end,
         UpdateAveragesMessageCommand = function(self)
             if song then
@@ -628,7 +718,7 @@ makeskillsetlabeltext = function(i, mod, hand)
                 else
                     self:diffuse(color(".3,.3,.3"))
                 end
-                self:settextf("%s: %.4f", modnames[i], aves[i])
+                self:settextf("%s: %.3f", modnames[i], aves[i])
             end
         end,
         UpdateActiveModsMessageCommand = function(self)
@@ -657,6 +747,20 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end
 }
 
+-- basemsd
+o[#o + 1] = LoadFont("Common Large") .. {
+    InitCommand = function(self)
+        self:xy(-plotWidth/2 -5, plotHeight/2 - 100):halign(1):valign(0)
+        self:zoom(0.35)
+        self:settext("")
+    end,
+    DoTheThingCommand = function(self)
+        if song and enabled then
+            self:settextf("MSD:\n %.2f", steps:GetSSRs(getCurRateValue(), 0.93)[1] )
+        end
+    end
+}
+
 
 local dotWidth = 0
 local function setOffsetVerts(vt, x, y, c)
@@ -678,8 +782,8 @@ local function topGraphLine(mod, colorToUse, hand)
 
                 -- hack to draw a line at 1.0
                 if mod == "base_line" then
-                    for i = 1, #graphVecs["Jump"][1] do
-                        local x = fitX(i, #graphVecs["Jump"][1])
+                    for i = 1, #graphVecs["JS"][1] do
+                        local x = fitX(i, #graphVecs["JS"][1])
                         local y = fitY1(1)
                         y = y + plotHeight / 2
                         setOffsetVerts(verts, x, y, color("1,1,1"))
@@ -819,6 +923,10 @@ o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
 o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
 o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
+o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "JackStamMod", 1)
+o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "JackStamMod", 2)
 o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
 
 -- MSD mod lines
@@ -831,6 +939,8 @@ for i, mod in pairs(CalcDiffValue) do
 end
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
 o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 1)
+o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 2)
 
 -- SSR skillset lines
 for i = 1,8 do

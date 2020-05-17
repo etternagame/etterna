@@ -106,6 +106,7 @@ PlayerAI::ResetScoreData()
 void
 PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 {
+	CHECKPOINT_M("Setting PlayerAI Score Data");
 	bool successful = false;
 	if (pHighScore != nullptr)
 		successful = pHighScore->LoadReplayData();
@@ -120,6 +121,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		m_ReplaySnapshotMap.clear();
 
 	if (!successful || pHighScore == nullptr) {
+		CHECKPOINT_M("Exiting Score Data setup - missing HS or ReplayData");
 		return;
 	}
 
@@ -188,12 +190,15 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	// Misses don't always show up in Replay Data properly.
 	// We require the NoteData to validate the Judge count.
 	// If we don't have it, don't care.
-	if (pNoteData == nullptr)
+	if (pNoteData == nullptr) {
+		CHECKPOINT_M("Exiting Score Data setup - missing NoteData");
 		return;
+	}
 
 	// Set up a mapping of every noterow to a snapshot of what has happened up
 	// to that point
 	SetUpSnapshotMap(pNoteData, validNoterows);
+	CHECKPOINT_M("Finished Score Data setup");
 }
 
 void
@@ -413,7 +418,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 						tempHNS[HNS_LetGo]++;
 
 						// erase the hold from the mapping of unjudged holds
-						for (size_t i = 0; i < m_unjudgedholds[isDropped].size();
+						for (size_t i = 0;
+							 i < m_unjudgedholds[isDropped].size();
 							 i++) {
 							if (m_unjudgedholds[isDropped][i].track == track) {
 								m_unjudgedholds[isDropped].erase(
@@ -564,8 +570,10 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
 			ReplaySnapshot* rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
-			rs->curwifescore = cws - (rs->judgments[TNS_Miss] * 8.f) -
-							   (rs->hns[HNS_LetGo] * 8.f);
+			rs->curwifescore = cws +
+							   (rs->judgments[TNS_Miss] * wife3_miss_weight) +
+							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) *
+								wife3_hold_drop_weight);
 			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 			snapShotsUnused.erase(snapShotsUnused.begin());
 
@@ -574,14 +582,15 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		auto rs = GetReplaySnapshotForNoterow(r);
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				cws -= 8.f;
+				cws += wife3_mine_hit_weight;
 			} else {
-				cws += wife2(trr.offset, timingScale);
+				cws += wife3(trr.offset, timingScale);
 				mws += 2.f;
 			}
 		}
 		rs->curwifescore =
-		  cws - (rs->judgments[TNS_Miss] * 8.f) - (rs->hns[HNS_LetGo] * 8.f);
+		  cws + (rs->judgments[TNS_Miss] * wife3_miss_weight) +
+		  ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
 		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 
 		snapShotsUnused.erase(snapShotsUnused.begin());
@@ -924,6 +933,7 @@ void
 PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 										RadarValues& possibleRV)
 {
+	CHECKPOINT_M("Calculating Radar Values from ReplayData");
 	// We will do this thoroughly just in case someone decides to use the
 	// other categories we don't currently use
 	int tapsHit = 0;
@@ -996,11 +1006,13 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 	rv[RadarCategory_Lifts] = liftsHit;
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
+	CHECKPOINT_M("Finished Calculating Radar Values from ReplayData");
 }
 
 void
 PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 {
+	CHECKPOINT_M("Entered PSSFromReplayData function");
 	// Radar values.
 	// The possible radar values have already been handled, so we just do
 	// the real values.
@@ -1034,6 +1046,7 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
 	pss->m_ComboList.clear();
 	pss->m_ComboList = GenerateComboListForReplay();
+	CHECKPOINT_M("Finished PSSFromReplayData function");
 }
 
 pair<float, float>
@@ -1048,9 +1061,9 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 		 it++) {
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				out.first -= 8.f;
+				out.first += wife3_mine_hit_weight;
 			} else {
-				out.first += wife2(trr.offset, ts);
+				out.first += wife3(trr.offset, ts);
 				out.second += 2.f;
 			}
 		}
@@ -1058,8 +1071,8 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 
 	// Take into account dropped holds and full misses
 	auto rs = GetReplaySnapshotForNoterow(row);
-	out.first += rs->judgments[TNS_Miss] * -8.f;
-	out.first += rs->hns[HNS_LetGo] * -8.f;
+	out.first += rs->judgments[TNS_Miss] * wife3_miss_weight;
+	out.first += rs->hns[HNS_LetGo] * wife3_hold_drop_weight;
 	out.second += rs->judgments[TNS_Miss] * 2.f;
 
 	return out;
@@ -1068,6 +1081,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 map<float, float>
 PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 {
+	CHECKPOINT_M("Generating LifeRecord from ReplayData");
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
 	if (m_ReplaySnapshotMap.empty())
@@ -1146,12 +1160,14 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
+	CHECKPOINT_M("Finished Generating LifeRecord from ReplayData");
 	return lifeRecord;
 }
 
 vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay(float timingScale)
 {
+	CHECKPOINT_M("Generating ComboList from ReplayData");
 	vector<PlayerStageStats::Combo_t> combos;
 	PlayerStageStats::Combo_t firstCombo;
 	const float rateUsed = pScoreData->GetMusicRate();
@@ -1218,5 +1234,6 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	  (rowOfComboStart->first - allOffset) / rateUsed;
 	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
+	CHECKPOINT_M("Finished Generating ComboList from ReplayData");
 	return combos;
 }

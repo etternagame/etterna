@@ -344,15 +344,12 @@ Steps::Decompress()
 bool
 Steps::IsRecalcValid()
 {
-	if (m_StepsType != StepsType_dance_single)
+	if (m_StepsType != StepsType_dance_single &&
+		m_StepsType != StepsType_dance_solo)
 		return false;
 
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
 		m_CachedRadarValues[RadarCategory_Notes] != 4)
-		return false;
-
-	TimingData* td = GetTimingData();
-	if (td->HasWarps())
 		return false;
 
 	return true;
@@ -384,11 +381,11 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 	vector<float> tmp = diffByRate[idx];
 	vector<pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
-		if (ss != Skill_Overall || includeoverall)
-			mort.emplace_back(ss, tmp[ss]);
+	if (ss != Skill_Overall || includeoverall)
+		mort.emplace_back(ss, tmp[ss]);
 	std::sort(mort.begin(), mort.end(), [](auto& a, auto& b) -> bool {
-			return a.second > b.second;
-		});
+		return a.second > b.second;
+	});
 	return mort;
 }
 
@@ -399,7 +396,10 @@ Steps::CalcEtternaMetadata()
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	diffByRate = MinaSDCalc(cereal);
+	if (m_StepsType == StepsType_dance_solo)
+		diffByRate = SoloCalc(cereal);
+	else
+		diffByRate = MinaSDCalc_OLD(cereal);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -415,26 +415,40 @@ Steps::CalcEtternaMetadata()
 }
 
 float
-Steps::DoATestThing(float ev, Skillset ss)
+Steps::DoATestThing(float ev, Skillset ss, float rate)
 {
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return 0.f;
+	auto& vh =
+	  SONGMAN->testChartList[ss].filemapping.at(ChartKey).version_history;
+	
 	Decompress();
-	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv(GetTimingData());
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, 1.f, 0.93f);
-	auto oldcalc = MinaSDCalc_OLD(cereal, 1.f, 0.93f);
-	LOG->Trace("%+0.2f (%+06.2f%%): %+0.2f %s",
-			   newcalc[0] - ev,
-			   (newcalc[0] - ev) / ev * 100.f,
-			   newcalc[0] - oldcalc[0],
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
+	auto oldcalc = MinaSDCalc_OLD(cereal, rate, 0.93f);
+	float last_msd = newcalc[ss];
+	int prev_vers = GetCalcVersion() - 1;
+	if (vh.count(prev_vers))
+		last_msd = vh.at(prev_vers);
+	LOG->Trace("%0.2f : %0.2fx : %+0.2f : (%+06.2f%%) : %+0.2f : %+0.2f : %s",
+			   newcalc[ss],
+			   rate,
+			   newcalc[ss] - ev,
+			   (newcalc[ss] - ev) / ev * 100.f,
+			   newcalc[ss] - oldcalc[ss],
+			   newcalc[ss] - last_msd,
 			   m_pSong->GetMainTitle().c_str());
-
+	
+	vh.emplace(pair<int, float>(GetCalcVersion(), newcalc[ss]));
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
 	Compress();
-	return newcalc[0] - ev;
+	return newcalc[ss] - ev;
 }
 
 void
@@ -443,10 +457,15 @@ Steps::GetCalcDebugOutput()
 	// makes calc display not update with rate changes
 	// don't feel like making this fancy and it's fast
 	// enough now i guess
-	//if (!calcdebugoutput.empty())
+	// if (!calcdebugoutput.empty())
 	//	return;
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
+
+	// This is 4k only
+	if (m_StepsType != StepsType_dance_single)
+		return;
+
 	Decompress();
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData());
@@ -455,7 +474,7 @@ Steps::GetCalcDebugOutput()
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93f,
 					calcdebugoutput);
-  
+
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
@@ -882,16 +901,20 @@ class LunaSteps : public Luna<Steps>
 		float goal = FArg(2);
 		CLAMP(rate, 0.7f, 3.f);
 		auto nd = p->GetNoteData();
-		auto loot = nd.BuildAndGetNerv();
+		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(loot);
 		auto& ni = nd.SerializeNoteData(etaner);
 		if (ni.size() == 0)
 			return 0;
+		std::vector<float> d;
 
-		std::vector<float> d = MinaSDCalc(ni, rate, goal);
+		if (p->m_StepsType == StepsType_dance_solo)
+			d = SoloCalc(ni, rate, goal);
+		else
+			d = MinaSDCalc(ni, rate, goal);
+
 		auto ssrs = d;
-
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
@@ -899,7 +922,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 0.7f, 2.f);
-		int rank = IArg(2) - 1;	// indexing
+		int rank = IArg(2) - 1; // indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		float relevance_cutoff = 0.9f;
 		float rval = sortedskillsets[rank].second;
@@ -916,7 +939,7 @@ class LunaSteps : public Luna<Steps>
 	{
 		lua_newtable(L);
 		auto nd = p->GetNoteData();
-		auto loot = nd.BuildAndGetNerv();
+		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 
 		LuaHelpers::CreateTableFromArray(
 		  loot, L); // row (we need timestamps technically)
@@ -952,7 +975,7 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty())
 			return 0;
-		vector<int> nerv = nd.BuildAndGetNerv();
+		vector<int> nerv = nd.BuildAndGetNerv(p->GetTimingData());
 		if (nerv.back() != nd.GetLastRow())
 			nerv.emplace_back(nd.GetLastRow());
 		const vector<float>& etaner =
@@ -1000,7 +1023,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcPatternModToString(static_cast<CalcPatternMod>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][0][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][0][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1015,7 +1040,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][1][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][1][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1030,7 +1057,9 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDebugMiscToString(static_cast<CalcDebugMisc>(i)));
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
-				vector<float> poop = p->calcdebugoutput[j][2][i];
+				vector<float> poop;
+				if (!p->calcdebugoutput.empty()) // empty for non 4k
+					poop = p->calcdebugoutput[j][2][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}

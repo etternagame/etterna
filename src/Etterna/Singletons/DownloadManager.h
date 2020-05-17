@@ -284,7 +284,7 @@ class DownloadManager
 	void RefreshRegisterPage();
 	bool currentrateonly = false;
 	bool topscoresonly = true;
-	bool ccoffonly = true;
+	bool ccoffonly = false;
 	void RefreshCountryCodes();
 	void RequestReplayData(const string& scorekey,
 						   int userid,

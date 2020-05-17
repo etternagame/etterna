@@ -561,7 +561,7 @@ Player::Load()
 	curwifescore = 0.f;
 	maxwifescore = 0.f;
 
-	m_NoteData.LogNonEmptyRows();
+	m_NoteData.LogNonEmptyRows(m_Timing);
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	if (m_pPlayerStageStats != nullptr)
@@ -570,7 +570,11 @@ Player::Load()
 	m_NoteData.UnsetSerializedNoteData();
 
 	if (m_pPlayerStageStats != nullptr) {
-		if (m_Timing->HasWarps())
+		// if we can ensure that files that have fakes or warps no longer
+		// inflate file rating, we can actually lift this restriction, look into
+		// it for 0.70 calc release, related: we can look at solo upload stuff
+		// as well
+		if (m_Timing->HasWarps() || m_Timing->HasFakes())
 			m_pPlayerStageStats->filehadnegbpms = true;
 
 		// check before nomines transform
@@ -2992,7 +2996,7 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 
 		// Ms scoring implemenation - Mina
 		if (tns == TNS_HitMine)
-			curwifescore -= 8.f;
+			curwifescore += wife3_mine_hit_weight;
 
 		if (m_pPlayerStageStats != nullptr) {
 			if (maxwifescore == 0.f)
@@ -3074,10 +3078,10 @@ Player::SetJudgment(int iRow,
 
 		if (m_pPlayerStageStats != nullptr) {
 			if (tns == TNS_Miss)
-				curwifescore -= 8;
+				curwifescore += wife3_miss_weight;
 			else
 				curwifescore +=
-				  wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
 			maxwifescore += 2;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
@@ -3187,7 +3191,7 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 			// Ms scoring implemenation - Mina
 			if (tn.HoldResult.hns == HNS_LetGo ||
 				tn.HoldResult.hns == HNS_Missed)
-				curwifescore -= 6.f;
+				curwifescore += wife3_hold_drop_weight;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("CurWifeScore", curwifescore);

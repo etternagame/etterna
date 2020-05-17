@@ -363,7 +363,8 @@ t[#t + 1] =
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					if steps:GetStepsType() == "StepsType_Dance_Single" then
+                    local stype = steps:GetStepsType()
+					if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
 						local meter = steps:GetMSD(getCurRateValue(), 1)
 						self:settextf("%05.2f", meter)
 						self:diffuse(byMSD(meter))
@@ -456,7 +457,25 @@ t[#t + 1] =
 				end
 			end
 		},
-	-- Rate for the displayed score & Mirror PB Indicator
+	-- Mirror PB Indicator
+	LoadFont("Common Normal") ..
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 37, frameY + 58):zoom(0.5):halign(1)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				local mirrorStr = ""
+				if score:GetModifiers():lower():find("mirror") then
+					mirrorStr = "(M)"
+				end
+				self:settext(mirrorStr)
+			else
+				self:settext("")
+			end
+		end
+	},
+	-- Rate for the displayed score
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
@@ -471,16 +490,27 @@ t[#t + 1] =
 						rate = rate:sub(0, #rate - 1)
 					end
 					rate = rate .. "x"
-					local mirrorStr = ""
-					if score:GetModifiers():lower():find("mirror") then
-						mirrorStr = " (M)"
-					end
-
 					if notCurRate then
-						self:settext("(" .. rate .. ")" .. mirrorStr)
+						self:settext("(" .. rate .. ")")
 					else
-						self:settext(rate .. mirrorStr)
+						self:settext(rate)
 					end
+				else
+					self:settext("")
+				end
+			end
+		},
+		-- wife 2/3 indicator
+		LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 70, frameY + 58):zoom(0.5):halign(0):maxwidth(140)
+			end,
+			MintyFreshCommand = function(self)
+				if song and score then
+					local wv = score:GetWifeVers()
+					local ws = " W" .. wv
+					self:settext(ws):diffuse(byGrade(score:GetWifeGrade()))
 				else
 					self:settext("")
 				end

@@ -199,7 +199,8 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 		}
 
 		if (rowNotes != 0) {
-			NoteInfo rowOutput{ static_cast<unsigned int>(rowNotes), etaner[i] };
+			// see note in serialize 2 about zeroing out element 0
+			NoteInfo rowOutput{ static_cast<unsigned int>(rowNotes), etaner[i] - etaner[0]};
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 	}
@@ -223,23 +224,24 @@ NoteData::SerializeNoteData2(TimingData* ts,
 	for (int t = 0; t < tracks; ++t) {
 		const auto& tm = m_TapNotes[t];
 		for (const auto& r : tm)
-			if (r.second.IsNote()) {
-				// initialize in map
-				auto res = lal.emplace(r.first, 1 << t);
-				if (!res.second)
-					// already added, but last column wasn't
-					// actually a tap, start here
-					if (lal.at(r.first) == 128)
-						lal.at(r.first) = 1 << t;
-					else
-						// already added and is a tap, update info
-						lal.at(r.first) |= 1 << t;
-			} else
-				// we need to keep track of more than just taps fo
-				// if we want to use this for key generation
-				// this won't alter tap values if there's something like
-				// 11MM
-				lal.emplace(r.first, 128);
+			if (ts->IsJudgableAtRow(r.first))
+				if (r.second.IsNote()) {
+					// initialize in map
+					auto res = lal.emplace(r.first, 1 << t);
+					if (!res.second)
+						// already added, but last column wasn't
+						// actually a tap, start here
+						if (lal.at(r.first) == 128)
+							lal.at(r.first) = 1 << t;
+						else
+							// already added and is a tap, update info
+							lal.at(r.first) |= 1 << t;
+				} else
+					// we need to keep track of more than just taps fo
+					// if we want to use this for key generation
+					// this won't alter tap values if there's something like
+					// 11MM
+					lal.emplace(r.first, 128);
 	}
 	NonEmptyRowVector.clear();
 	NonEmptyRowVector.reserve(lal.size());
@@ -252,8 +254,13 @@ NoteData::SerializeNoteData2(TimingData* ts,
 	for (auto r : NonEmptyRowVector) {
 		// only send tap data to calc
 		if (lal.at(r) != 128) {
+			// zeroing out the first line makes debug output more annoying to
+			// deal with, since we have to add back the file offset to make the
+			// graphs line up with the cdgraphs, however, if we don't do this
+			// offset will affect msd which is extremely stupid practically and
+			// conceptually
 			NoteInfo rowOutput{ static_cast<unsigned int>(lal.at(r)),
-								etaner[idx] };
+								etaner[idx] - etaner[0] };
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 		++idx;
@@ -266,11 +273,12 @@ NoteData::SerializeNoteData2(TimingData* ts,
 }
 
 void
-NoteData::LogNonEmptyRows()
+NoteData::LogNonEmptyRows(TimingData* ts)
 {
 	NonEmptyRowVector.clear();
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, row)
-	NonEmptyRowVector.emplace_back(row);
+	if (ts->IsJudgableAtRow(row))
+		NonEmptyRowVector.emplace_back(row);
 }
 /*	significantly faster than the above, but use case is more restrictive
 	and it's not that big a deal

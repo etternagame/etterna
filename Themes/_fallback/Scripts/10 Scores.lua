@@ -448,6 +448,7 @@ function wife2(maxms, ts)
 	return (2 - -8) * (1 - y) + -8
 end
 
+-- For Window-based Scoring
 function getRescoredJudge(offsetVector, judgeScale, judge)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
@@ -475,6 +476,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	return judgeCount
 end
 
+-- For Window-based Scoring
 function getRescoredCustomJudge(offsetVector, windows, judge)
 	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
 	local upperBound = windows[judges[judge]]
@@ -498,6 +500,7 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
+-- For Millisecond-based Scoring
 function getRescoredWifeJudge(judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
@@ -510,6 +513,7 @@ function getRescoredWifeJudge(judgeScale, rst)
 	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
 
+-- For Window-based Scoring
 function getRescoredCustomPercentage(customWindows, rst)
 	local p = 0.0
 	local weights = customWindows.judgeWeights
@@ -618,96 +622,27 @@ function erf(x)
 
     return sign*y
 end
+function wife3(maxms, ts, version)
 
--- note lua should always be dealing with MS not S as a unit
-function wife3(maxms, ts, version) -- args are going to be set from in here for now
-	-- hoooooo boy shits about to get reeaaallll messy
-	local max_points = 0
-	local miss_weight = 0
-	local ridic = 0
-	local max_boo_weight = 0
-	local j_pow = 0
-	local poi = 0
-	local dev = 0
-	local magic = 0
-	local log_pow = 0
-	local lower_bound = 0
+	local max_points = 2
+	local miss_weight = -5.5
+	local ridic = 5 * ts
+	local max_boo_weight = 180 * ts
+	local ts_pow = 0.75
+	local zero = 65 * (ts^ts_pow)
+	local power = 2.5
+	local dev = 22.7 * (ts^ts_pow)
 
-	if (version == 1) or (version == 2) or (version == 3) then -- hyperbolic lower bound
-		if (version == 1 or (version == 2)) then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 57 * (ts^j_pow)
-			dev = 22 * (ts^j_pow)
-
-			if maxms > 70 or (maxms < 57 and maxms > 20) then
-				max_points = 2
-				miss_weight = -5.5
-				ridic = 5 * ts
-				max_boo_weight = 180 * ts
-				j_pow = 0.66
-				poi = 56.5 * (ts^j_pow)
-				dev = 20.75 * (ts^j_pow)
-			end
-
-			if version == 1 then
-				miss_weight = -5.641623
-			end
-
-			if version == 1 and maxms >= 75 and maxms <= 180 then
-				return -0.8746 -  (0.0454 * (maxms - 75))
-			end
-		elseif (version == 3) then
-			max_points = 2
-			miss_weight = -5.6
-			ridic = 7.5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 56.765 * (ts^j_pow)
-			dev = 20.89 * (ts^j_pow)
-		end
-		-- shortcut case handling
-		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
-			return max_points
-		end
-		if maxms > max_boo_weight then	-- we can just set miss values manually
-			return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
-		end								-- purpose of the scoring curve, which is to assign point values
-
-		-- lower bound calculation
-		lower_bound = max_points + ((miss_weight - max_points) * math.sqrt(maxms * maxms - ridic * ridic) / (max_boo_weight - ridic));
-	else -- logarithmic lower bound
-		if version == 4 then
-			max_points = 2
-			miss_weight = -5.5
-			ridic = 7.5 * ts
-			max_boo_weight = 180 * ts
-			j_pow = 0.66
-			poi = 55 * (ts^j_pow)	
-			dev = 25 * (ts^j_pow)
-			magic = 39 * ts 
-			log_pow = 8 
-		end
-		-- shortcut case handling
-		if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
-			return max_points
-		end
-		if maxms > max_boo_weight then	-- we can just set miss values manually
-			return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
-		end								-- purpose of the scoring curve, which is to assign point values
-
-		-- WHY is this so complicated surely there is a better way
-		lower_bound = max_points + ((miss_weight - max_points) * (math.log(((maxms - ridic)*magic) + 1)/math.log(((max_boo_weight - ridic)*magic) + 1))^log_pow);
-	end
-	-- calculate the actual value
-	if (version == 3) and (maxms > 60) then
-		return 3.605 - (0.05058 * maxms)
-	end
-	local y_val = (erf((poi - maxms) / dev) + 1) / 2;
-	return (max_points - lower_bound) * y_val + lower_bound;
+	-- case handling
+	if maxms <= ridic then			-- anything below this (judge scaled) threshold is counted as full pts
+		return max_points
+	elseif maxms <= zero then			-- ma/pa region, exponential
+			return max_points * erf((zero - maxms) / dev)
+	elseif maxms <= max_boo_weight then -- cb region, linear
+		return (maxms - zero) * miss_weight / (max_boo_weight - zero)
+	else							-- we can just set miss values manually
+		return miss_weight			-- technically the max boo is always 180 above j4 however this is immaterial to the
+	end								-- purpose of the scoring curve, which is to assign point values
 end
 
 -- holy shit this is fugly

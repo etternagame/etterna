@@ -1471,6 +1471,7 @@ ScreenGameplay::SongFinished()
 void
 ScreenGameplay::StageFinished(bool bBackedOut)
 {
+	CHECKPOINT_M("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -1505,6 +1506,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
+	CHECKPOINT_M("Done Finishing Stage");
 }
 
 void
