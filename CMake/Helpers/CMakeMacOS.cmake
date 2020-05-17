@@ -26,11 +26,9 @@ target_link_libraries(Etterna ${MAC_FRAME_IOKIT})
 target_link_libraries(Etterna ffmpeg)
 
 # System Libraries
-find_package(CURL REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(Iconv REQUIRED)
-target_link_libraries(Etterna ${CURL_LIBRARIES})
 target_link_libraries(Etterna ${OPENGL_LIBRARIES})
 target_link_libraries(Etterna ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna ${ICONV_LIBRARIES})
