@@ -18,6 +18,13 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 add_subdirectory(discord-rpc)
 
+if(WIN32)
+    set(CURL_STATIC_CRT ON CACHE BOOL "" FORCE)         # Have curl link statically
+endif()
+set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)           # libcurl openssl
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)              # Disable curl testing
+add_subdirectory(curl)
+
 # Universally required
 add_subdirectory(rapidjson)
 add_subdirectory(asio-1.12.2)
@@ -30,7 +37,6 @@ add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(stb)
 add_subdirectory(zlib)
-add_subdirectory(curl)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
@@ -46,7 +52,7 @@ list(APPEND ET_EXT_TARGETS
     SQLiteCpp sqlite3
     tomcrypt libtommath
     fftw3f glfw pcre
-    zlib libmad
+    zlib libmad libcurl
     ogg vorbis)
 
 set_property(TARGET ${ET_EXT_TARGETS} PROPERTY FOLDER "External Libraries") # Sort all extern libraries to a IDE folder/filter
