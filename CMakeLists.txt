@@ -33,13 +33,6 @@ if(CMAKE_GENERATOR STREQUAL "Ninja")
     endif()
 endif()
 
-## Extern Library Variables
-set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
-set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
-set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)       # Disable discord clang-format
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
-set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
-
 ## CMake related variables
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 

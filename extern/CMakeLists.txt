@@ -1,22 +1,28 @@
 # Disable all warnings for this directory
 # Here are possible CMAKE_CXX_COMPILER_ID values: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-
-message(STATUS ${CMAKE_CXX_COMPILER_ID})
-if(WIN32 AND ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     add_compile_options(/W0)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL AppleClang)
     set_directory_properties(PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_INHIBIT_ALL_WARNINGS YES)
 else() # All remaining compilers
     add_compile_options(-w)
 endif()
+
+# Extern Specific Variables, and the related add_subdirectory
+set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
+set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp linting
+add_subdirectory(SQLiteCpp)
+
+set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)       # Disable discord clang-format
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
+set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
+add_subdirectory(discord-rpc)
 
 # Universally required
 add_subdirectory(rapidjson)
 add_subdirectory(asio-1.12.2)
 add_subdirectory(websocketpp)
 add_subdirectory(LuaJIT-2.1.0-beta3)
-add_subdirectory(discord-rpc)
-add_subdirectory(SQLiteCpp)
 add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
 add_subdirectory(fftw-3.3.8)
