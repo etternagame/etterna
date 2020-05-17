@@ -22,7 +22,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)                                   # True if compil
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to require minimum C++ version to compile
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile commands for clang-tidy
-set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug")   # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDE's
 
 ## Ninja specific setup (Different compilers required different color force commands)
@@ -51,12 +50,7 @@ add_executable(Etterna)
 add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
 
 ## Setting Target Properties
-### TODO: Temp output directories. Switch to out-of-source
-set_target_properties(Etterna PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}")
+set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 if(NOT APPLE)
     set_target_properties(Etterna PROPERTIES LINK_WHAT_YOU_USE ON)

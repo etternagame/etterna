@@ -2,31 +2,32 @@ set_directory_properties(PROPERTIES VS_STARTUP_PROJECT Etterna)
 
 # Windows prefers the binary to be placed in the Program Directory
 # To be changed when swiched to an out-of-source build
-set_target_properties(Etterna PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/Program"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}/Program"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}/Program"
-	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${PROJECT_SOURCE_DIR}/Program")
+set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}/Program>")
+set_target_properties(Etterna PROPERTIES 
+	RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
+	RUNTIME_OUTPUT_NAME_RELEASE "Etterna-release"
+	RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
+	RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
 
 # Universal Build Options
-set(ETTERNA_COMPILE_FLAGS "/MP8 /INCREMENTAL")
-set(ETTERNA_LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /INCREMENTAL")
+set_target_properties(Etterna PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /INCREMENTAL" COMPILE_FLAGS "/MP8 /INCREMENTAL")
 
-# Build type dependant compile flags
-if (CMAKE_BUILD_TYPE STREQUAL "Release" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja")
-	set_target_properties(SQLiteCpp sqlite3 lua discord-rpc PROPERTIES COMPILE_FLAGS "/MT") # The following libraries are set to be dynamically linked. These compile flags switch them to be statically linked.
-	set(ETTERNA_COMPILE_FLAGS "${ETTERNA_COMPILE_FLAGS} /MT")
-	set(ETTERNA_LINK_FLAGS "${ETTERNA_LINK_FLAGS} /NODEFAULTLIB:\"LIBCMT\"")
-elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	add_compile_options(/bigobj)
-	# TODO: Fix Debug build configuration
-	# At the moment, to build with debug information, use RelWithDebInfo.
-	# This issue with this is with CMake not linking everything properly with the /MTd compile flag
-	# To build with the Debug C Runtime library, everything must be compiled with said CRT.
-	# To build with this build type, give all the target targets the correct link flags.
-endif()
-set_target_properties(Etterna PROPERTIES LINK_FLAGS ${ETTERNA_LINK_FLAGS})
-set_target_properties(Etterna PROPERTIES COMPILE_FLAGS ${ETTERNA_COMPILE_FLAGS})
+# By default MSVC has a 2^16 limit on the number of sections in an object file, and this needs more than that.
+set_source_files_properties(src/Etterna/Singletons/NetworkSyncManager.cpp PROPERTIES COMPILE_FLAGS /bigobj)
+
+# Multiple Build Configuration Setup
+## The "DYNAMIC_LINK" list are targets which by default are set to be built dynamically. 
+## Etterna prefers statically linking as many libraries as possible as few dll files as possible, 
+## except where statically linking a library will be against the library terms or service, or for 
+## technical reasons, cannot be statically linked.
+##
+## The following generator expressions ($<>) change what runtime library we link to, depending on 
+## if we are building release, or debug
+set(DYNAMIC_LINK "Etterna;SQLiteCpp;sqlite3;lua;discord-rpc")
+foreach(item ${DYNAMIC_LINK})
+	target_compile_options(${item} PRIVATE "$<$<CONFIG:Release>:/MT>" "$<$<CONFIG:Debug>:/MTd>")
+endforeach()
+
 
 list(APPEND cdefs CURL_STATICLIB GLEW_STATIC)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
