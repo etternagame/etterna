@@ -169,7 +169,7 @@ HighScoreImpl::GetWifeGrade() const
 		return Grade_Tier05;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998f)
 		return Grade_Tier06;
-	if (prc >= 0.9975f)
+	if (prc >= 0.9965f)
 		return Grade_Tier07;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99f)
 		return Grade_Tier08;
