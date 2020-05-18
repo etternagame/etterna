@@ -123,7 +123,7 @@ SoloCalc(const std::vector<NoteInfo>& notes)
 
 	int rateCount = 21;
 
-	if (!notes.empty()) {
+	if (notes.size() > 1) {
 		for (int i = 7; i < rateCount; i++) {
 			auto tempVal = SoloCalc(notes, i / 10.f, 0.93f);
 			allrates.emplace_back(tempVal);
