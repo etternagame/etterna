@@ -12,7 +12,7 @@
 using namespace ::std;
 
 const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						  1.025; // multiplier to standardize baselines
+						  1.025f; // multiplier to standardize baselines
 
 inline void
 Smooth(vector<float>& input, float neutral)
@@ -158,7 +158,7 @@ SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
 			// why does this OOB calcing certain files if we don't include the
 			// bounds check?
 			while ((scaledtime > static_cast<float>(Interval + 1) * 0.5f) &&
-				   Interval < (AllIntervals[t].size() - 1))
+				   Interval < static_cast<int>(AllIntervals[t].size() - 1))
 				++Interval;
 
 			if (i.notes & column) {
