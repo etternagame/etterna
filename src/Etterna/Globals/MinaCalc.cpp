@@ -521,11 +521,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	float eff_ms = 0.f;
 	float eff_bpm = 0.f;
 	float ms = 0.f; 
-	const float mode_buffers[4] = { 30.f, 90.f, 120.f, 225.f };
+	const float mode_buffers[4] = { 30.f, 250.f, 120.f, 225.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = {
-		1.125f, 0.1f, 1.28f, 1.5f * 30.5f / 29.5f
+		1.125f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
@@ -550,7 +550,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			eff_ms = sum(window_taps) + mode_buffers[mode];
 			eff_bpm = ms_to_bpm(eff_ms / window_taps.size());
 			if (mode == 1)
-				eff_bpm = pow(ms_to_bpm(eff_ms / window_taps.size()), 1.5f);
+				eff_bpm = pow(ms_to_bpm(eff_ms / window_taps.size()), 2.5f);
 			comp_diff = eff_bpm * jack_global_scaler;
 
 			jacks[mode][track][itv][ind] =
