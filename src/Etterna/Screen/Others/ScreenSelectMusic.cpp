@@ -564,6 +564,9 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (c == '`' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
+
+			// don't handle calctest registry for release
+			return true;
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
 			for (auto ss : SONGMAN->testChartList) {
@@ -575,7 +578,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			if (foundSS == Skillset_Invalid)
 				ScreenTextEntry::TextEntry(
 				  SM_BackFromCalcTestStuff,
-				  "FORMAT: MSD SKILLSET RATE   or   MSD SKILLSET\nOnly 1 rate "
+				  "FORMAT: MSD RATE SKILLSET  or   MSD SKILLSET\nOnly 1 rate "
 				  "per chart",
 				  "",
 				  128);

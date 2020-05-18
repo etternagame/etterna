@@ -539,7 +539,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:	 /* timeout */
+		case 0:  /* timeout */
 		default: /* action */
 			curl_multi_perform(mHTTPHandle, &HTTPRunning);
 			break;
@@ -630,7 +630,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:	 /* timeout */
+		case 0:  /* timeout */
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
@@ -921,6 +921,7 @@ DownloadManager::UploadScore(HighScore* hs,
 							 function<void()> callback,
 							 bool load_from_disk)
 {
+	CHECKPOINT_M("Creating UploadScore request");
 	if (!LoggedIn()) {
 		LOG->Trace(
 		  "Attempted to upload score when not logged in (scorekey: \"%s\")",
@@ -969,7 +970,7 @@ DownloadManager::UploadScore(HighScore* hs,
 		replayString =
 		  replayString.substr(0, replayString.size() - 1); // remove ","
 		replayString += "]";
-		if(load_from_disk)
+		if (load_from_disk)
 			hs->UnloadReplayData();
 	} else {
 		// this should never be true unless we are using the manual forceupload
@@ -1091,6 +1092,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
+	CHECKPOINT_M("Finished creating UploadScore request");
 
 	return;
 }
@@ -1209,7 +1211,7 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 				}
 			}
 	}
-			
+
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
@@ -2100,10 +2102,10 @@ DownloadManager::OnLogin()
 }
 
 void
-DownloadManager::StartSession(
-  string user,
-  string pass,
-  function<void(bool loggedIn)> callback = [](bool) { return; })
+DownloadManager::StartSession(string user,
+							  string pass,
+							  function<void(bool loggedIn)> callback =
+								[](bool) { return; })
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user == "") {

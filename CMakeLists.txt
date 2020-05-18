@@ -41,6 +41,7 @@ set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)       # Disable discord clang-form
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
+set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)       # libcurl openssl
 if(WIN32)
     set(CURL_STATIC_CRT ON CACHE BOOL "" FORCE)     # Have curl link statically - Windows only option
 endif()

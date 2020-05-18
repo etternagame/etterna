@@ -2775,15 +2775,17 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 		pTarget = new RenderTarget_FramebufferObject;
 	else
 		pTarget = g_pWind->CreateRenderTarget();
-
-	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
-
-	intptr_t iTexture = pTarget->GetTexture();
-
-	ASSERT(g_mapRenderTargets.find(iTexture) == g_mapRenderTargets.end());
-	if (pTarget)
+	
+	intptr_t iTexture = 0;
+	if (pTarget) {
+		pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
+		
+		iTexture = pTarget->GetTexture();
+		
+		ASSERT(g_mapRenderTargets.find(iTexture) == g_mapRenderTargets.end());
 		g_mapRenderTargets[iTexture] = pTarget;
-
+	}
+	
 	return iTexture;
 }
 

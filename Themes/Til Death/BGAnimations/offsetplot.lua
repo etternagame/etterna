@@ -52,6 +52,13 @@ local function HighlightUpdaterThing(self)
 	self:GetChild("BGQuad"):queuecommand("Highlight")
 end
 
+-- we removed j1-3 so uhhh this stops things lazily
+local function clampJudge()
+	if judge < 4 then judge = 4 end
+	if judge > 9 then judge = 9 end
+end
+clampJudge()
+
 local function scaleToJudge(scale)
 	scale = notShit.round(scale, 2)
 	local scales = ms.JudgeScalers
@@ -91,6 +98,7 @@ local o =
 		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
 			if not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				clampJudge()
 				tso = tst[judge]
 			end
 			local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
@@ -136,9 +144,11 @@ local o =
 	CodeMessageCommand = function(self, params)
 		if params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
+			clampJudge()
 			tso = tst[judge]
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
+			clampJudge()
 			tso = tst[judge]
 		end
 		if params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
@@ -159,6 +169,7 @@ local o =
 		end
 		if params.Name == "ResetJudge" then
 			judge = GetTimingDifficulty()
+			clampJudge()
 			tso = tst[GetTimingDifficulty()]
 		end
 		if params.Name ~= "ResetJudge" and params.Name ~= "PrevJudge" and params.Name ~= "NextJudge" and params.Name ~= "ToggleHands" then return end
@@ -167,6 +178,7 @@ local o =
 	end,
 	ForceWindowMessageCommand = function(self, params)
 		judge = params.judge
+		clampJudge()
 		tso = tst[judge]
 		maxOffset = math.max(180, 180 * tso)
 		forcedWindow = true

@@ -293,6 +293,7 @@ ScreenGameplayReplay::SaveStats()
 void
 ScreenGameplayReplay::StageFinished(bool bBackedOut)
 {
+	CHECKPOINT_M("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -308,6 +309,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
+	CHECKPOINT_M("Done Finishing Stage");
 }
 
 float
