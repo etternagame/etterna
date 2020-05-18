@@ -528,12 +528,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				totalscorenotes += hs->GetTapNoteScore(TNS_W5);
 				totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
-				if (totalstepsnotes - totalscorenotes == 0)
+				if (totalstepsnotes == totalscorenotes)
 					hs->SetChordCohesion(1); // the set function isn't inverted
 											 // but the get function is, this
 											 // sets bnochordcohesion to 1
-				else
-					hs->SetChordCohesion(0);
 			}
 		};
 	auto onUpdate = [ld](int progress) {

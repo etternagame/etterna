@@ -169,7 +169,7 @@ HighScoreImpl::GetWifeGrade() const
 		return Grade_Tier05;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998f)
 		return Grade_Tier06;
-	if (prc >= 0.9975f)
+	if (prc >= 0.997f)
 		return Grade_Tier07;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99f)
 		return Grade_Tier08;
@@ -498,6 +498,17 @@ HighScore::LoadReplayDataBasic()
 			while (ss >> buffer)
 				tokens.emplace_back(buffer);
 
+			if (tokens.size() > 2) {
+				LOG->Warn(
+				  "looks like u got v2 replays in the v1 folder, move them "
+				  "into Save/ReplaysV2 folder if you want them to load. If %s "
+				  "is not a v2 replay that you placed into the Save/Replays "
+				  "folder by accident, then it is probably corrupted and you "
+				  "should delete it or move it out",
+				  GetScoreKey().c_str());
+				ASSERT(tokens.size() < 2);
+			}
+
 			noteRow = std::stoi(tokens[0]);
 			if (!(typeid(noteRow) == typeid(int))) {
 				throw std::runtime_error("NoteRow value is not of type: int");
@@ -597,6 +608,14 @@ HighScore::LoadReplayDataFull()
 		//			  path.c_str());
 		//	return false;
 		//}
+
+		// probably replaydatav1 in the wrong folder, we could throw a trace or
+		// a warn but i feel like nobody will care or do anything about it and
+		// it will just pollute the log, nobody is going to parse the log and
+		// properly split up their replays back into the respective folders
+		// so...
+		if (tokens.size() < 3)
+			return false;
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
