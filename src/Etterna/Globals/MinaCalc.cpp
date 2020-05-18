@@ -475,7 +475,7 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	bool dbg = true && debugmode && mode == 1;
+	bool dbg = false && debugmode && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
