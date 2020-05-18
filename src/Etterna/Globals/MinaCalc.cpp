@@ -987,7 +987,7 @@ Calc::Chisel(float player_skill,
 				return 0.f; // not how we set these values
 
 			// reset tallied score, always deduct rather than accumulate now
-			gotpoints = MaxPoints;
+			gotpoints = static_cast<float>(MaxPoints);
 			if (true) {
 //#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
@@ -3853,5 +3853,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 316;
+	return 317;
 }
