@@ -41,6 +41,10 @@ get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
 target_link_directories(Etterna PUBLIC ${DIRECTX_LIBRARY_DIR})
 target_include_directories(Etterna PRIVATE ${DIRECTX_INCLUDE_DIR})
 
+# Compilation related
+set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS GLEW_STATIC)
+target_compile_options(Etterna PRIVATE /W3)
+
 # DLL - Copy to run directory
 if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja") # If 64bit
 	set(ARCH 64bit)
