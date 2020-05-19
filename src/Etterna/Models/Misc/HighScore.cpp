@@ -577,6 +577,14 @@ HighScore::LoadReplayDataFull(string dir)
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
 
+		// probably replaydatav1 in the wrong folder, we could throw a trace or
+		// a warn but i feel like nobody will care or do anything about it and
+		// it will just pollute the log, nobody is going to parse the log and
+		// properly split up their replays back into the respective folders
+		// so...
+		if (tokens.size() < 3)
+			return LoadReplayDataBasic(dir);
+
 		if (tokens[0] == "H") {
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[1]);
