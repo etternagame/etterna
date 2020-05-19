@@ -462,13 +462,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
-
-				// don't waste time on <= 0%s
-				if (ssrpercent <= 0.f) {
-					hs->ResetSkillsets();
-					continue;
-				}
-
 				// ghasgh we need to decompress to get maxpoints
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
@@ -481,13 +474,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
 
-				if (!steps->IsRecalcValid()) {
+				// don't waste time on <= 0%s
+				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
 					hs->ResetSkillsets();
 					continue;
 				}
 
-				// if this is not a rescore and has already been run on the current calc vers, skip
-				// if it is a rescore, rerun it even if the calc version is the same
+				// if this is not a rescore and has already been run on the
+				// current calc vers, skip if it is a rescore, rerun it even if
+				// the calc version is the same
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
@@ -788,7 +783,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
 		// don't include cc check here, we want cc scores to filter into the
 		// recalc, just not the rescore
-		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
+		bool getremarried =
+		  scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,
 		// however trying to do this might be quite a bit of work (it would
