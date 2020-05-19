@@ -786,6 +786,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// recalculatessrs
 
 		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
+		// don't include cc check here, we want cc scores to filter into the
+		// recalc, just not the rescore
 		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,
