@@ -492,7 +492,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion_OLD())
 					continue;
 
-				steps->GetNoteData(nd);
+				// notedata hasn't been loaded yet if we didn't rescore
+				if (!remarried)
+					steps->GetNoteData(nd);
+
 				const auto& serializednd = nd.SerializeNoteData2(td);
 				vector<float> dakine;
 				if (steps->m_StepsType == StepsType_dance_single)
