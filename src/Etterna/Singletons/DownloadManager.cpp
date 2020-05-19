@@ -1159,16 +1159,26 @@ DownloadManager::UploadScores()
 	auto& newly_rescored = SCOREMAN->rescores;
 	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-				// handle rescores, ignore upload check
-				if (newly_rescored.count(scorePtr))
-					toUpload.push_back(scorePtr);
-				// normal behavior, upload scores that haven't been uploaded and
-				// have replays
-				else if (!scorePtr->IsUploadedToServer(serverURL.Get()) &&
-						 scorePtr->HasReplayData())
-					toUpload.push_back(scorePtr);
-			}
+		for (auto& s : vec) {
+			// probably not worth uploading fails, they get rescored now
+			if (s->GetGrade() != Grade_Failed)
+				continue;
+			// handle rescores, ignore upload check
+			if (newly_rescored.count(s))
+				toUpload.push_back(s);
+			// ok so i think we probably do need an upload flag for wife3
+			// resyncs, and to actively check it, since if people rescore
+			// everything, play 1 song and close their game or whatever,
+			// rescore list won't be built again and scores won't auto
+			// sync
+			else if (s->GetWifeVersion() == 3 &&
+					 !s->IsUploadedToServer(wife3_rescore_upload_flag))
+				toUpload.push_back(s);
+			// normal behavior, upload scores that haven't been uploaded and
+			// have replays
+			else if (!s->IsUploadedToServer(serverURL.Get()) &&
+					 s->HasReplayData())
+				toUpload.push_back(s);
 		}
 	}
 
