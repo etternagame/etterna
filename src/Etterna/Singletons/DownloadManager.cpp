@@ -1160,11 +1160,6 @@ DownloadManager::UploadScores()
 	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
-
-			// rescoring should already have properly set topscore values
-			// if they were to have shuffled due to the rescore
-			if (ts == 1 || ts == 2) {
 				// handle rescores, ignore upload check
 				if (newly_rescored.count(scorePtr))
 					toUpload.push_back(scorePtr);
@@ -1205,12 +1200,10 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
 			if (!s->forceuploadedthissession) {
-				auto ts = s->GetTopScore();
-				if (ts == 1 || ts == 2) {
-					if (s->GetGrade() != Grade_Failed) {
+				if (s->GetGrade() != Grade_Failed &&
+					!s->IsUploadedToServer(wife3_rescore_upload_flag)) {
 						this->ScoreUploadSequentialQueue.push_back(s);
 						this->sequentialScoreUploadTotalWorkload += 1;
-					}
 				}
 			}
 	}
