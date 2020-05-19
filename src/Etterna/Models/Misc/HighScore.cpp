@@ -593,29 +593,21 @@ HighScore::LoadReplayDataFull()
 			tokens.clear();
 			continue;
 		}
-		// bool a = buffer == "1";
-		// a = buffer == "2" || a;
-		// a = buffer == "3" || a;
-		// a = buffer == "4" || a;
-		// a = buffer == "5" || a;
-		// a = buffer == "6" || a;
-		// a = buffer == "7" || a;
-		// a = buffer == "8" || a;
-		// a = buffer == "9" || a;
-		// a = buffer == "0" || a;
-		// if (!a) {
-		//	LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
-		//			  path.c_str());
-		//	return false;
-		//}
-
-		// probably replaydatav1 in the wrong folder, we could throw a trace or
-		// a warn but i feel like nobody will care or do anything about it and
-		// it will just pollute the log, nobody is going to parse the log and
-		// properly split up their replays back into the respective folders
-		// so...
-		if (tokens.size() < 3)
+		bool a = buffer == "1";
+		a = buffer == "2" || a;
+		a = buffer == "3" || a;
+		a = buffer == "4" || a;
+		a = buffer == "5" || a;
+		a = buffer == "6" || a;
+		a = buffer == "7" || a;
+		a = buffer == "8" || a;
+		a = buffer == "9" || a;
+		a = buffer == "0" || a;
+		if (!a) {
+			LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
+					  path.c_str());
 			return false;
+		}
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
