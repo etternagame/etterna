@@ -459,7 +459,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				float ssrpercent = hs->GetWifeScore();
+				float ssrpercent = hs->GetSSRNormPercent();
 				float musicrate = hs->GetMusicRate();
 
 
