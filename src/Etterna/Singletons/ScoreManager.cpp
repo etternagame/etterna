@@ -477,13 +477,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				// ghasgh we need to decompress to get maxpoints
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
-				steps->GetNoteData(nd);
-
-				auto maxpoints = nd.WifeTotalScoreCalc(td);
+				
 				bool remarried = false;
-
-				if (hs->wife_ver != 3)
-					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
+				if (hs->wife_ver != 3) {
+					steps->GetNoteData(nd);
+					auto maxpoints = nd.WifeTotalScoreCalc(td);
+					remarried =
+					  hs->RescoreToWife3(static_cast<float>(maxpoints));
+				}
+					
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				// if it is a rescore, rerun it even if the calc version is the same
