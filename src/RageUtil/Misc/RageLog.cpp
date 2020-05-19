@@ -4,6 +4,8 @@
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include <iostream>
+#include <fstream>
 
 #include <ctime>
 #ifdef _WIN32
@@ -202,8 +204,12 @@ RageLog::SetShowLogOutput(bool show)
 	if (m_bShowLogOutput) {
 		// create a new console window and attach standard handles
 		AllocConsole();
-		freopen("CONOUT$", "wb", stdout);
-		freopen("CONOUT$", "wb", stderr);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+
+		// temp fix to get console popup
+		static std::ofstream conout("CONOUT$", ios::out); 
+		std::cout.rdbuf(conout.rdbuf());
 	} else {
 		FreeConsole();
 	}
