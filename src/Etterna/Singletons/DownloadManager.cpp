@@ -57,7 +57,7 @@ static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const string CLIENT_DATA_KEY =
   "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
-
+static const string wife3_rescore_upload_flag = "rescoredw3";
 size_t
 write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
