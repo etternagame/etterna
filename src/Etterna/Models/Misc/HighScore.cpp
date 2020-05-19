@@ -1420,26 +1420,6 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3(float pmax)
 {
-	// we can do it, but the result won't make sense
-	if (!m_Impl->bNoChordCohesion) {
-		SetSSRNormPercent(GetWifeScore());
-		m_Impl->WifeVersion = 2;
-		return false;
-	}
-
-	// can't do it
-	if (!LoadReplayData())
-		return false;
-
-	// i don't know why this would be possible or what to do if we catch these
-	// cases, but it is somehow (probably exclusive to my profile)
-	/*if (m_Impl->fJudgeScale == 0.f) {
-		LOG->Trace(("somehow there is replaydata but the judgescale is 0 at  " +
-					m_Impl->ScoreKey)
-					 .c_str());
-		return false;
-	}*/
-
 	// SSRNormPercent
 	float p4 = 0.f;
 	// WifeScore for HighScore Judge
