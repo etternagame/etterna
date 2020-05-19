@@ -458,13 +458,13 @@ HighScore::WriteInputData(const vector<float>& oop)
 bool
 HighScore::LoadReplayData()
 { // see dir definition comments at the top -mina
-	if (LoadReplayDataFull())
+	if (LoadReplayDataFull(FULL_REPLAY_DIR))
 		return true;
-	return LoadReplayDataBasic();
+	return LoadReplayDataBasic(BASIC_REPLAY_DIR);
 }
 
 bool
-HighScore::LoadReplayDataBasic()
+HighScore::LoadReplayDataBasic(string dir)
 {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
@@ -473,7 +473,7 @@ HighScore::LoadReplayDataBasic()
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
-	string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	string path = dir + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
@@ -540,7 +540,7 @@ HighScore::LoadReplayDataBasic()
 }
 
 bool
-HighScore::LoadReplayDataFull()
+HighScore::LoadReplayDataFull(string dir)
 {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4 &&
 		m_Impl->vTrackVector.size() > 4) {
@@ -554,7 +554,7 @@ HighScore::LoadReplayDataFull()
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<HoldReplayResult> vHoldReplayDataVector;
-	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	string path = dir + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
