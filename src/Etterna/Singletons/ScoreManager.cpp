@@ -793,8 +793,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// sort of makes sense from a user convenience aspect to allow this, it
 		// definitely does not make sense from a clarity or consistency
 		// perspective 
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
-			&& scores[sk].GetWifeGrade() != Grade_Failed)
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }
