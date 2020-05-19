@@ -459,11 +459,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				if (!steps->IsRecalcValid()) {
-					hs->ResetSkillsets();
-					continue;
-				}
-
 				float ssrpercent = hs->GetWifeScore();
 				float musicrate = hs->GetMusicRate();
 
@@ -485,7 +480,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					remarried =
 					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
-					
+
+				if (!steps->IsRecalcValid()) {
+					hs->ResetSkillsets();
+					continue;
+				}
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				// if it is a rescore, rerun it even if the calc version is the same
