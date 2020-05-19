@@ -464,7 +464,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					continue;
 				}
 
-				float ssrpercent = hs->GetSSRNormPercent();
+				float ssrpercent = hs->GetWifeScore();
 				float musicrate = hs->GetMusicRate();
 
 
