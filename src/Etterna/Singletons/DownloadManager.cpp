@@ -1150,7 +1150,7 @@ DownloadManager::UploadScores()
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate top 2 scores that have not been uploaded and have
+	// First we accumulate scores that have not been uploaded and have
 	// replay data. There is no reason to upload updated calc versions to the
 	// site anymore - the site uses its own calc and afaik ignores the provided
 	// values, we only need to upload scores that have not been uploaded, and
