@@ -1418,6 +1418,10 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3(float pmax)
 {
+	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
+	if (!LoadReplayData())
+		return false;
+
 	// SSRNormPercent
 	float p4 = 0.f;
 	// WifeScore for HighScore Judge
