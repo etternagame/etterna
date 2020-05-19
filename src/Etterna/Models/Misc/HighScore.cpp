@@ -375,9 +375,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 
 	pNode->GetChildValue("wv", WifeVersion);
 
-	// Validate input. Wifegrade is calculated on the fly for themes, we are
-	// only keeping the old dp grades to check for grade_failed during various
-	// parts of load, so don't remove it
+	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
