@@ -1017,6 +1017,8 @@ DownloadManager::UploadScore(HighScore* hs,
 					  });
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
+					if (hs->GetWifeVersion() == 3)
+						hs->AddUploadedServer(wife3_rescore_upload_flag);
 					hs->AddUploadedServer(serverURL.Get());
 					hs->forceuploadedthissession = true;
 				}
@@ -1074,6 +1076,8 @@ DownloadManager::UploadScore(HighScore* hs,
 			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
 				(DLMAN->sessionRatings)[Skill_Overall] +=
 				  diffs["Rating"].GetFloat();
+			if (hs->GetWifeVersion() == 3)
+				hs->AddUploadedServer(wife3_rescore_upload_flag);
 			hs->AddUploadedServer(serverURL.Get());
 			hs->forceuploadedthissession = true;
 			// HTTPRunning = response_code;// TODO: Why were we doing this?
