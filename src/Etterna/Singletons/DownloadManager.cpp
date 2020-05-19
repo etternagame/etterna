@@ -57,7 +57,7 @@ static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const string CLIENT_DATA_KEY =
   "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
-
+static const string wife3_rescore_upload_flag = "rescoredw3";
 size_t
 write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
@@ -1017,6 +1017,8 @@ DownloadManager::UploadScore(HighScore* hs,
 					  });
 					return true;
 				} else if (status == 404 || status == 405 || status == 406) {
+					if (hs->GetWifeVersion() == 3)
+						hs->AddUploadedServer(wife3_rescore_upload_flag);
 					hs->AddUploadedServer(serverURL.Get());
 					hs->forceuploadedthissession = true;
 				}
@@ -1074,6 +1076,8 @@ DownloadManager::UploadScore(HighScore* hs,
 			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
 				(DLMAN->sessionRatings)[Skill_Overall] +=
 				  diffs["Rating"].GetFloat();
+			if (hs->GetWifeVersion() == 3)
+				hs->AddUploadedServer(wife3_rescore_upload_flag);
 			hs->AddUploadedServer(serverURL.Get());
 			hs->forceuploadedthissession = true;
 			// HTTPRunning = response_code;// TODO: Why were we doing this?
@@ -1143,11 +1147,10 @@ uploadSequentially()
 bool
 DownloadManager::UploadScores()
 {
-	return false;
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate top 2 scores that have not been uploaded and have
+	// First we accumulate scores that have not been uploaded and have
 	// replay data. There is no reason to upload updated calc versions to the
 	// site anymore - the site uses its own calc and afaik ignores the provided
 	// values, we only need to upload scores that have not been uploaded, and
@@ -1156,27 +1159,34 @@ DownloadManager::UploadScores()
 	auto& newly_rescored = SCOREMAN->rescores;
 	vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
-		for (auto& scorePtr : vec) {
-			auto ts = scorePtr->GetTopScore();
-
-			// rescoring should already have properly set topscore values
-			// if they were to have shuffled due to the rescore
-			if (ts == 1 || ts == 2) {
-				// handle rescores, ignore upload check
-				if (newly_rescored.count(scorePtr))
-					toUpload.push_back(scorePtr);
-				// normal behavior, upload scores that haven't been uploaded and
-				// have replays
-				else if (!scorePtr->IsUploadedToServer(serverURL.Get()) &&
-						 scorePtr->HasReplayData())
-					toUpload.push_back(scorePtr);
-			}
+		for (auto& s : vec) {
+			// probably not worth uploading fails, they get rescored now
+			if (s->GetGrade() != Grade_Failed)
+				continue;
+			// handle rescores, ignore upload check
+			if (newly_rescored.count(s))
+				toUpload.push_back(s);
+			// ok so i think we probably do need an upload flag for wife3
+			// resyncs, and to actively check it, since if people rescore
+			// everything, play 1 song and close their game or whatever,
+			// rescore list won't be built again and scores won't auto
+			// sync
+			else if (s->GetWifeVersion() == 3 &&
+					 !s->IsUploadedToServer(wife3_rescore_upload_flag))
+				toUpload.push_back(s);
+			// normal behavior, upload scores that haven't been uploaded and
+			// have replays
+			else if (!s->IsUploadedToServer(serverURL.Get()) &&
+					 s->HasReplayData())
+				toUpload.push_back(s);
 		}
 	}
 
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores. (Uploading %d scores)",
 				   toUpload.size());
+	else
+		return false;
 
 	bool was_not_uploading_already = this->ScoreUploadSequentialQueue.empty();
 	if (was_not_uploading_already)
@@ -1202,12 +1212,17 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
 			if (!s->forceuploadedthissession) {
-				auto ts = s->GetTopScore();
-				if (ts == 1 || ts == 2) {
-					if (s->GetGrade() != Grade_Failed) {
-						this->ScoreUploadSequentialQueue.push_back(s);
-						this->sequentialScoreUploadTotalWorkload += 1;
-					}
+				if (s->GetGrade() != Grade_Failed) {
+					// don't add stuff we're already uploading
+					auto res =
+					  std::find(this->ScoreUploadSequentialQueue.begin(),
+								this->ScoreUploadSequentialQueue.end(),
+								s);
+					if (res != this->ScoreUploadSequentialQueue.end())
+						continue;
+
+					this->ScoreUploadSequentialQueue.push_back(s);
+					this->sequentialScoreUploadTotalWorkload += 1;
 				}
 			}
 	}

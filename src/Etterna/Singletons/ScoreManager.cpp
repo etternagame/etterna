@@ -459,12 +459,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				if (!steps->IsRecalcValid()) {
-					hs->ResetSkillsets();
-					continue;
-				}
-
-				float ssrpercent = hs->GetSSRNormPercent();
+				float ssrpercent = hs->GetWifeScore();
 				float musicrate = hs->GetMusicRate();
 
 
@@ -477,18 +472,28 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				// ghasgh we need to decompress to get maxpoints
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
-				steps->GetNoteData(nd);
-
-				auto maxpoints = nd.WifeTotalScoreCalc(td);
+				
 				bool remarried = false;
+				if (hs->wife_ver != 3 && !hs->GetChordCohesion()) {
+					steps->GetNoteData(nd);
+					auto maxpoints = nd.WifeTotalScoreCalc(td);
+					remarried =
+					  hs->RescoreToWife3(static_cast<float>(maxpoints));
+				}
 
-				if (hs->wife_ver != 3)
-					remarried = hs->RescoreToWife3(static_cast<float>(maxpoints));
+				if (!steps->IsRecalcValid()) {
+					hs->ResetSkillsets();
+					continue;
+				}
 
 				// if this is not a rescore and has already been run on the current calc vers, skip
 				// if it is a rescore, rerun it even if the calc version is the same
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
+
+				// notedata hasn't been loaded yet if we didn't rescore
+				if (!remarried)
+					steps->GetNoteData(nd);
 
 				const auto& serializednd = nd.SerializeNoteData2(td);
 				vector<float> dakine;
@@ -780,7 +785,9 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// be taken care of by calcplayerrating which will be called after
 		// recalculatessrs
 
-		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
+		bool oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion_OLD();
+		// don't include cc check here, we want cc scores to filter into the
+		// recalc, just not the rescore
 		bool getremarried = scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
 		// technically we don't need to have charts loaded to rescore to wife3,
@@ -790,8 +797,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// sort of makes sense from a user convenience aspect to allow this, it
 		// definitely does not make sense from a clarity or consistency
 		// perspective 
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)
-			&& scores[sk].GetWifeGrade() != Grade_Failed)
+		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}
 }

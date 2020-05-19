@@ -155,8 +155,8 @@ struct HighScore
 	bool WriteReplayData();
 	bool WriteInputData(const vector<float>& oop);
 	bool LoadReplayData();
-	bool LoadReplayDataBasic();
-	bool LoadReplayDataFull();
+	bool LoadReplayDataBasic(string dir);
+	bool LoadReplayDataFull(string dir);
 	virtual bool HasReplayData();
 	void UnloadReplayData();
 	void ResetSkillsets();
