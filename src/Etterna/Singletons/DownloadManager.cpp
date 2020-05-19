@@ -1212,10 +1212,17 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 		auto& test = cs->GetAllScores();
 		for (auto& s : test)
 			if (!s->forceuploadedthissession) {
-				if (s->GetGrade() != Grade_Failed &&
-					!s->IsUploadedToServer(wife3_rescore_upload_flag)) {
-						this->ScoreUploadSequentialQueue.push_back(s);
-						this->sequentialScoreUploadTotalWorkload += 1;
+				if (s->GetGrade() != Grade_Failed) {
+					// don't add stuff we're already uploading
+					auto res =
+					  std::find(this->ScoreUploadSequentialQueue.begin(),
+								this->ScoreUploadSequentialQueue.end(),
+								s);
+					if (res != this->ScoreUploadSequentialQueue.end())
+						continue;
+
+					this->ScoreUploadSequentialQueue.push_back(s);
+					this->sequentialScoreUploadTotalWorkload += 1;
 				}
 			}
 	}
