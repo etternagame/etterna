@@ -1185,6 +1185,8 @@ DownloadManager::UploadScores()
 	if (!toUpload.empty())
 		LOG->Trace("Updating online scores. (Uploading %d scores)",
 				   toUpload.size());
+	else
+		return false;
 
 	bool was_not_uploading_already = this->ScoreUploadSequentialQueue.empty();
 	if (was_not_uploading_already)
