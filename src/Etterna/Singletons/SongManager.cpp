@@ -1319,60 +1319,58 @@ SongManager::LoadCalcTestNode()
 	std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile == nullptr) {
-		Locator::getLogger()->trace(
-		  "Error opening {}: {}", fn.c_str(), strerror(iError));
+		Locator::getLogger()->trace("Error opening {}: {}", fn.c_str(), strerror(iError));
 		return;
 	}
 
-		XNode xml;
-		if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile)) {
-			return;
-		}
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile)) {
+		return;
+	}
 
-		CHECKPOINT_M("Loading the Calc Test node.");
+	CHECKPOINT_M("Loading the Calc Test node.");
 
-		FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
+	FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
+	{
+		int ssI;
+		chartlist->GetAttrValue("Skillset", ssI);
+		auto ss = static_cast<Skillset>(ssI);
+		CalcTestList tl;
+		tl.skillset = ss;
+		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
 		{
-			int ssI;
-			chartlist->GetAttrValue("Skillset", ssI);
-			auto ss = static_cast<Skillset>(ssI);
-			CalcTestList tl;
-			tl.skillset = ss;
-			FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
+			FOREACH_CONST_Child(uhh, entry) // For Each Chart
 			{
-				FOREACH_CONST_Child(uhh, entry) // For Each Chart
-				{
-					std::string key;
-					float target;
-					float rate;
-					entry->GetAttrValue("aKey", key);
-					entry->GetAttrValue("bRate", rate);
-					entry->GetAttrValue("cTarget", target);
-					CalcTest ct;
-					ct.ck = key;
-					ct.ev = target;
-					ct.rate = rate;
+				std::string key;
+				float target;
+				float rate;
+				entry->GetAttrValue("aKey", key);
+				entry->GetAttrValue("bRate", rate);
+				entry->GetAttrValue("cTarget", target);
+				CalcTest ct;
+				ct.ck = key;
+				ct.ev = target;
+				ct.rate = rate;
 
-					auto vers_hist = entry->GetChild("VersionHistory");
-					if (vers_hist != nullptr) {
-						FOREACH_CONST_Child(vers_hist, thing)
-						{
-							// don't load any values for the current version, it's in flux
-							if (stoi(thing->GetName()) != GetCalcVersion()) {
-								auto mumbo = 0.F;
-								thing->GetTextValue(mumbo);
-								ct.version_history.emplace(
-								  std::pair<int, float>(stoi(thing->GetName()),
-														mumbo));
-							}
+				auto vers_hist = entry->GetChild("VersionHistory");
+				if (vers_hist != nullptr) {
+					FOREACH_CONST_Child(vers_hist, thing)
+					{
+						// don't load any values for the current version, it's
+						// in flux
+						if (stoi(thing->GetName()) != GetCalcVersion()) {
+							auto mumbo = 0.F;
+							thing->GetTextValue(mumbo);
+							ct.version_history.emplace(std::pair<int, float>(
+							  stoi(thing->GetName()), mumbo));
 						}
 					}
-
-					tl.filemapping[key] = ct;
 				}
+
+				tl.filemapping[key] = ct;
 			}
-			SONGMAN->testChartList[ss] = tl;
 		}
+		SONGMAN->testChartList[ss] = tl;
 	}
 }
 
