@@ -260,9 +260,9 @@ Steps::TidyUpData()
 	// new style, editing a simfile with unrecognized Steps won't silently
 	// delete them. -Kyz
 	if (m_StepsType == StepsType_Invalid) {
-        Locator::getLogger()->warn("Detected steps with unknown style '{}' in '{}'",
+        /*Locator::getLogger()->warn("Detected steps with unknown style '{}' in '{}'",
 				  m_StepsTypeStr.c_str(),
-				  m_pSong->m_sSongFileName.c_str());
+				  m_pSong->m_sSongFileName.c_str());*/
 	} else if (m_StepsTypeStr.empty()) {
 		m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(m_StepsType).szName;
 	}
