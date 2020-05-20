@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <deque>
 #include <utility>
+#include <assert.h>
 
 using std::deque;
 using std::max;
@@ -229,7 +230,7 @@ chord_proportion(const vector<NoteInfo>& NoteInfo, const int chord_size)
 		if (notes == chord_size)
 			chords += notes;
 	}
-
+	assert(taps > 0);
 	return static_cast<float>(chords) / static_cast<float>(taps);
 }
 
@@ -410,7 +411,7 @@ hit_the_road(float x, float y, int mode)
 float
 Calc::JackLoss(float x, int mode, float mpl, bool stam)
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
 	// an inline but i cba to mess with that atm
@@ -475,7 +476,7 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	bool dbg = false && debugmode && mode == 1;
+	const bool dbg = false && debugmode && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -663,7 +664,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float qprop = chord_proportion(NoteInfo, 4);
 	float cprop = jprop + hprop + qprop;
 
-	int fo_rizzy = ssr ? 1 : 1;
+	// for multi offset passes- super breaks stuff atm dunno why???
+	//const int fo_rizzy = ssr ? 5 : 1;
+	const int fo_rizzy = 1; 
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
@@ -1332,8 +1335,8 @@ Hand::StamAdjust(float x, int ss, bool debug)
 JumpHandChordData
 Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 {
-	bool dbg = false && debugmode;
-	bool dbg_lv2 = false && debugmode;
+	const bool dbg = false && debugmode;
+	const bool dbg_lv2 = false && debugmode;
 	JumpHandChordData data;
 	// these reserve statements should match the struct fields
 	data.num_row_variations.reserve(nervIntervals.size());
@@ -1533,7 +1536,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 void
 Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[JS].resize(nervIntervals.size());
 	doot[JSS].resize(nervIntervals.size());
 	doot[JSJ].resize(nervIntervals.size());
@@ -1595,7 +1598,7 @@ Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 void
 Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[HS].resize(nervIntervals.size());
 	doot[HSS].resize(nervIntervals.size());
 	doot[HSJ].resize(nervIntervals.size());
@@ -1652,7 +1655,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 void
 Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[CJ].resize(nervIntervals.size());
 	doot[CJS].resize(nervIntervals.size());
 	doot[CJJ].resize(nervIntervals.size());
@@ -2716,14 +2719,16 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		// producing sub 1 values for ??? reasons, but i don't think
 		// it makes too much difference and i don't want to spend
 		// more time on it right now
-		float cv_prop = cv_taps == 0 ? 1
+		float cv_prop = window_cv_taps == 0 ? 1
 									 : static_cast<float>(window_taps) /
 										 static_cast<float>(window_cv_taps);
 
 		// bigger the lower the proportion of single taps to total
 		// taps i.e. more chords
-		float chord_prop = static_cast<float>(window_taps) /
-						   static_cast<float>(window_single_taps);
+		float chord_prop = window_single_taps == 0
+							 ? 1
+							 : static_cast<float>(window_taps) /
+								 static_cast<float>(window_single_taps);
 
 		// handle anchors, chord filler, empty sections and single
 		// notes
@@ -2931,7 +2936,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (whatwhat == 0)
 			whatwhat = 1;
 		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
+		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.97f, 1.03f);
 	}
 
 	// covering a window of 4 intervals does act as a smoother, and
@@ -3173,7 +3178,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 							float music_rate,
 							vector<float> doot[])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[WideRangeAnchor].resize(nervIntervals.size());
 
 	unsigned int itv_window = 3;
@@ -3299,7 +3304,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 							 float music_rate,
 							 vector<float> doot[])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[WideRangeBalance].resize(nervIntervals.size());
 
 	unsigned int itv_window = 2;

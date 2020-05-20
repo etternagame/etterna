@@ -465,11 +465,13 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				// ghasgh we need to decompress to get maxpoints
 				TimingData* td = steps->GetTimingData();
 				NoteData nd;
-				
+
 				bool remarried = false;
 				if (hs->wife_ver != 3 && !hs->GetChordCohesion()) {
 					steps->GetNoteData(nd);
 					auto maxpoints = nd.WifeTotalScoreCalc(td);
+					if (maxpoints <= 0)
+						continue;
 					remarried =
 					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
@@ -490,7 +492,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (!remarried)
 					steps->GetNoteData(nd);
 
-				const auto& serializednd = nd.SerializeNoteData2(td);
+					const auto& serializednd = nd.SerializeNoteData2(td);
 				vector<float> dakine;
 				if (steps->m_StepsType == StepsType_dance_single)
 					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
@@ -792,7 +794,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// at some point it's not worth it just at this moment, and while it
 		// sort of makes sense from a user convenience aspect to allow this, it
 		// definitely does not make sense from a clarity or consistency
-		// perspective 
+		// perspective
 		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck))
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 	}

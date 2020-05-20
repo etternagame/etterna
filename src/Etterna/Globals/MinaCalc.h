@@ -122,7 +122,7 @@ class Calc
 
 	bool debugmode = false;
 	bool ssr = true; // set to true for scores, false for cache
-	int numitv;
+	int numitv = 0;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
 	before passing the results to the hand initialization functions. Also passes
