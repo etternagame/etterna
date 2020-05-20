@@ -7,6 +7,10 @@ cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set"
 cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
 cmake_policy(SET CMP0092 NEW)  # Tell cmake not to include warning paramters by default in CMAKE_<LANG>_FLAGS variables
 
+## Default Policies
+set(CMAKE_POLICY_DEFAULT_CMP0048 NEW) # Tell CMake to use the new policy for CMP0048. (Due to zlib not defining it)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) # Tell CMake to use the new policy for CMP0077. (Due to fftw not defining it)
+
 # Options
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # Tell targets to prefer multi-threaded statically linked runtime
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CMake/Helpers/CompileOptions.cmake")
