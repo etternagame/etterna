@@ -2719,14 +2719,16 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		// producing sub 1 values for ??? reasons, but i don't think
 		// it makes too much difference and i don't want to spend
 		// more time on it right now
-		float cv_prop = cv_taps == 0 ? 1
+		float cv_prop = window_cv_taps == 0 ? 1
 									 : static_cast<float>(window_taps) /
 										 static_cast<float>(window_cv_taps);
 
 		// bigger the lower the proportion of single taps to total
 		// taps i.e. more chords
-		float chord_prop = static_cast<float>(window_taps) /
-						   static_cast<float>(window_single_taps);
+		float chord_prop = window_single_taps == 0
+							 ? 1
+							 : static_cast<float>(window_taps) /
+								 static_cast<float>(window_single_taps);
 
 		// handle anchors, chord filler, empty sections and single
 		// notes
