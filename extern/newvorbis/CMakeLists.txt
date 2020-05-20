@@ -73,8 +73,6 @@ source_group("Header Files" FILES ${VORBIS_HPP})
 
 add_library("vorbis" ${VORBIS_SRC})
 
-set_property(TARGET "vorbis" PROPERTY FOLDER "External Libraries")
-
 # disable_project_warnings("vorbis")
 
 list(APPEND VORBIS_INCLUDE_DIRS "lib" "include")
