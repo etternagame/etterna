@@ -634,10 +634,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			// available, don't use it--it's probably a KSF intro music
 			// file, which we don't (yet) support.
 			if (!music_list.empty()) {
-				LOG->Trace("Song '%s' points to a music file that doesn't "
+				/*LOG->Trace("Song '%s' points to a music file that doesn't "
 						   "exist, found music file '%s'",
 						   m_sSongDir.c_str(),
-						   music_list[0].c_str());
+						   music_list[0].c_str());*/
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
