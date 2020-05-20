@@ -597,10 +597,16 @@ FillInHighScore(const PlayerStageStats& pss,
 		auto steps = GAMESTATE->m_pCurSteps;
 		auto nd = steps->GetNoteData();
 		auto* td = steps->GetTimingData();
+		auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
+
+		// i _think_ an assert is ok here.. if this can happen we probably want
+		// to know about it
+		ASSERT(maxpoints > 0);
+
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
 		else
-			hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
+			hs.RescoreToWife3(maxpoints);
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
