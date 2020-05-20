@@ -723,11 +723,11 @@ SSCLoader::ProcessBPMs(TimingData& out,
 		if (fBeat >= 0 && fNewBPM > 0) {
 			out.AddSegment(BPMSegment(BeatToNoteRow(fBeat), fNewBPM));
 		} else {
-//			LOG->UserLog("Song file",
+			/*LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid BPM at beat %f, BPM %f.",
 						 fBeat,
-						 fNewBPM);
+						 fNewBPM);*/
 		}
 	}
 }
