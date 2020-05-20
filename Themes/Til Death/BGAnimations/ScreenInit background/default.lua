@@ -159,6 +159,7 @@ local minanyms = {
 	"poodle_in_a_porta_potty",
 	"scoring justice warrior",
 	"_ring.png",
+	"cosmically infinite bullshit nova",
 }
 
 math.random()

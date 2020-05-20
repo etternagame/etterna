@@ -383,7 +383,7 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	if (steps->m_StepsType == StepsType_dance_solo)
 		return SoloCalc(serializednd, musicrate, ssrpercent);
 	else
-		return MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
+		return MinaSDCalc(serializednd, musicrate, ssrpercent);
 }
 
 float

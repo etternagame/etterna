@@ -169,7 +169,7 @@ HighScoreImpl::GetWifeGrade() const
 		return Grade_Tier05;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998f)
 		return Grade_Tier06;
-	if (prc >= 0.9965f)
+	if (prc >= 0.997f)
 		return Grade_Tier07;
 	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99f)
 		return Grade_Tier08;
@@ -375,9 +375,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 
 	pNode->GetChildValue("wv", WifeVersion);
 
-	// Validate input. Wifegrade is calculated on the fly for themes, we are
-	// only keeping the old dp grades to check for grade_failed during various
-	// parts of load, so don't remove it
+	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
@@ -458,13 +456,13 @@ HighScore::WriteInputData(const vector<float>& oop)
 bool
 HighScore::LoadReplayData()
 { // see dir definition comments at the top -mina
-	if (LoadReplayDataFull())
+	if (LoadReplayDataFull(FULL_REPLAY_DIR))
 		return true;
-	return LoadReplayDataBasic();
+	return LoadReplayDataBasic(BASIC_REPLAY_DIR);
 }
 
 bool
-HighScore::LoadReplayDataBasic()
+HighScore::LoadReplayDataBasic(string dir)
 {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
@@ -473,7 +471,7 @@ HighScore::LoadReplayDataBasic()
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
-	string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	string path = dir + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
@@ -497,6 +495,17 @@ HighScore::LoadReplayDataBasic()
 			// split line into tokens
 			while (ss >> buffer)
 				tokens.emplace_back(buffer);
+
+			if (tokens.size() > 2) {
+				LOG->Warn(
+				  "looks like u got v2 replays in the v1 folder, move them "
+				  "into Save/ReplaysV2 folder if you want them to load. If %s "
+				  "is not a v2 replay that you placed into the Save/Replays "
+				  "folder by accident, then it is probably corrupted and you "
+				  "should delete it or move it out",
+				  GetScoreKey().c_str());
+				ASSERT(tokens.size() < 2);
+			}
 
 			noteRow = std::stoi(tokens[0]);
 			if (!(typeid(noteRow) == typeid(int))) {
@@ -529,7 +538,7 @@ HighScore::LoadReplayDataBasic()
 }
 
 bool
-HighScore::LoadReplayDataFull()
+HighScore::LoadReplayDataFull(string dir)
 {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4 &&
 		m_Impl->vTrackVector.size() > 4) {
@@ -543,7 +552,7 @@ HighScore::LoadReplayDataFull()
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<HoldReplayResult> vHoldReplayDataVector;
-	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	string path = dir + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
@@ -566,6 +575,14 @@ HighScore::LoadReplayDataFull()
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
 
+		// probably replaydatav1 in the wrong folder, we could throw a trace or
+		// a warn but i feel like nobody will care or do anything about it and
+		// it will just pollute the log, nobody is going to parse the log and
+		// properly split up their replays back into the respective folders
+		// so...
+		if (tokens.size() < 3)
+			return LoadReplayDataBasic(dir);
+
 		if (tokens[0] == "H") {
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[1]);
@@ -582,21 +599,21 @@ HighScore::LoadReplayDataFull()
 			tokens.clear();
 			continue;
 		}
-		// bool a = buffer == "1";
-		// a = buffer == "2" || a;
-		// a = buffer == "3" || a;
-		// a = buffer == "4" || a;
-		// a = buffer == "5" || a;
-		// a = buffer == "6" || a;
-		// a = buffer == "7" || a;
-		// a = buffer == "8" || a;
-		// a = buffer == "9" || a;
-		// a = buffer == "0" || a;
-		// if (!a) {
-		//	LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
-		//			  path.c_str());
-		//	return false;
-		//}
+		bool a = buffer == "1";
+		a = buffer == "2" || a;
+		a = buffer == "3" || a;
+		a = buffer == "4" || a;
+		a = buffer == "5" || a;
+		a = buffer == "6" || a;
+		a = buffer == "7" || a;
+		a = buffer == "8" || a;
+		a = buffer == "9" || a;
+		a = buffer == "0" || a;
+		if (!a) {
+			LOG->Warn("Replay data at %s appears to be HOT BROKEN GARBAGE WTF",
+					  path.c_str());
+			return false;
+		}
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
@@ -1401,23 +1418,9 @@ HighScore::RescoreToWife2Judge(int x)
 bool
 HighScore::RescoreToWife3(float pmax)
 {
-	// can't do it
+	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
 	if (!LoadReplayData())
 		return false;
-	// we can do it, but the result won't make sense
-	if (!m_Impl->bNoChordCohesion) {
-		m_Impl->WifeVersion = 2;
-		return false;
-	}
-
-	// i don't know why this would be possible or what to do if we catch these
-	// cases, but it is somehow (probably exclusive to my profile)
-	/*if (m_Impl->fJudgeScale == 0.f) {
-		LOG->Trace(("somehow there is replaydata but the judgescale is 0 at  " +
-					m_Impl->ScoreKey)
-					 .c_str());
-		return false;
-	}*/
 
 	// SSRNormPercent
 	float p4 = 0.f;

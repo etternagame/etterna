@@ -513,6 +513,7 @@ FillInHighScore(const PlayerStageStats& pss,
 				RString sRankingToFillInMarker,
 				RString sPlayerGuid)
 {
+	CHECKPOINT_M("Filling Highscore");
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
@@ -598,14 +599,15 @@ FillInHighScore(const PlayerStageStats& pss,
 		auto* td = steps->GetTimingData();
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
-		else hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
+		else
+			hs.RescoreToWife3(static_cast<float>(nd.WifeTotalScoreCalc(td)));
 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, dakine[ss]);
 
-			hs.SetSSRCalcVersion(GetCalcVersion_OLD());
+			hs.SetSSRCalcVersion(GetCalcVersion());
 		} else {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, 0.f);
@@ -622,6 +624,7 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool bSummary)
 {
+	CHECKPOINT_M("Finalizing Score");
 	SCOREMAN->camefromreplay =
 	  false; // if we're viewing an online replay this gets set to true -mina
 	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
@@ -655,6 +658,7 @@ StageStats::FinalizeScores(bool bSummary)
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData) {
+			CHECKPOINT_M("Determined a Replay is loaded");
 			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
@@ -692,14 +696,30 @@ StageStats::FinalizeScores(bool bSummary)
 		DLMAN->UploadScoreWithReplayData(&hs);
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
+
+		// mega hack to stop non-pbs from overwriting pbs on eo (it happens rate
+		// specific), we're just going to also upload whatever the pb for the
+		// rate is now, since the site only tracks the best score per rate.
+		// If there's no more replaydata on disk for the old pb this could maybe
+		// be a problem and perhaps the better solution would be to check what
+		// is listed on the site for this rate before uploading the score just
+		// achieved but idk someone else can look into that
+
+		// this _should_ be sound since addscore handles all re-evaluation of
+		// top score flags and the setting of pbptrs
+		DLMAN->UploadScoreWithReplayDataFromDisk(SCOREMAN->GetChartPBAt(
+		  pSteps->GetChartKey(),
+		  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate));
 	}
 	if (NSMAN->loggedIn)
 		NSMAN->ReportHighScore(&hs, m_player);
 	if (m_player.m_fWifeScore > 0.f) {
 
 		bool writesuccess = hs.WriteReplayData();
-		if (writesuccess)
+		if (writesuccess) {
+			CHECKPOINT_M("Unloading ReplayData after successful write");
 			hs.UnloadReplayData();
+		}
 	}
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
@@ -707,6 +727,7 @@ StageStats::FinalizeScores(bool bSummary)
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 
+	CHECKPOINT_M("Finished Finalizing Score");
 	LOG->Trace("done saving stats and high scores");
 }
 

@@ -199,7 +199,8 @@ NoteData::SerializeNoteData(const vector<float>& etaner)
 		}
 
 		if (rowNotes != 0) {
-			NoteInfo rowOutput{ static_cast<unsigned int>(rowNotes), etaner[i] };
+			// see note in serialize 2 about zeroing out element 0
+			NoteInfo rowOutput{ static_cast<unsigned int>(rowNotes), etaner[i] - etaner[0]};
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 	}
@@ -253,8 +254,13 @@ NoteData::SerializeNoteData2(TimingData* ts,
 	for (auto r : NonEmptyRowVector) {
 		// only send tap data to calc
 		if (lal.at(r) != 128) {
+			// zeroing out the first line makes debug output more annoying to
+			// deal with, since we have to add back the file offset to make the
+			// graphs line up with the cdgraphs, however, if we don't do this
+			// offset will affect msd which is extremely stupid practically and
+			// conceptually
 			NoteInfo rowOutput{ static_cast<unsigned int>(lal.at(r)),
-								etaner[idx] };
+								etaner[idx] - etaner[0] };
 			SerializedNoteData.emplace_back(rowOutput);
 		}
 		++idx;
