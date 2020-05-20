@@ -565,8 +565,6 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
 
-			// don't handle calctest registry for release
-			return true;
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
 			for (auto ss : SONGMAN->testChartList) {
