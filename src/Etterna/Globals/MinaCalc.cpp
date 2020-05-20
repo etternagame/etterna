@@ -410,7 +410,7 @@ hit_the_road(float x, float y, int mode)
 float
 Calc::JackLoss(float x, int mode, float mpl, bool stam)
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
 	// an inline but i cba to mess with that atm
@@ -475,7 +475,7 @@ ms_to_bpm(float x)
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	bool dbg = false && debugmode && mode == 1;
+	const bool dbg = false && debugmode && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -1332,8 +1332,8 @@ Hand::StamAdjust(float x, int ss, bool debug)
 JumpHandChordData
 Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 {
-	bool dbg = false && debugmode;
-	bool dbg_lv2 = false && debugmode;
+	const bool dbg = false && debugmode;
+	const bool dbg_lv2 = false && debugmode;
 	JumpHandChordData data;
 	// these reserve statements should match the struct fields
 	data.num_row_variations.reserve(nervIntervals.size());
@@ -1533,7 +1533,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 void
 Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[JS].resize(nervIntervals.size());
 	doot[JSS].resize(nervIntervals.size());
 	doot[JSJ].resize(nervIntervals.size());
@@ -1595,7 +1595,7 @@ Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 void
 Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[HS].resize(nervIntervals.size());
 	doot[HSS].resize(nervIntervals.size());
 	doot[HSJ].resize(nervIntervals.size());
@@ -1652,7 +1652,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 void
 Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[CJ].resize(nervIntervals.size());
 	doot[CJS].resize(nervIntervals.size());
 	doot[CJJ].resize(nervIntervals.size());
@@ -3173,7 +3173,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 							float music_rate,
 							vector<float> doot[])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[WideRangeAnchor].resize(nervIntervals.size());
 
 	unsigned int itv_window = 3;
@@ -3299,7 +3299,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 							 float music_rate,
 							 vector<float> doot[])
 {
-	bool dbg = false && debugmode;
+	const bool dbg = false && debugmode;
 	doot[WideRangeBalance].resize(nervIntervals.size());
 
 	unsigned int itv_window = 2;
