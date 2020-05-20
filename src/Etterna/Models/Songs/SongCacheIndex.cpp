@@ -1317,9 +1317,9 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 	if (song->m_sMainTitle.empty() ||
 		(song->m_sMusicFile.empty() && song->m_vsKeysoundFile.empty())) {
-		Locator::getLogger()->warn("Main title or music file for '{}' came up blank, forced to "
+		/*Locator::getLogger()->warn("Main title or music file for '{}' came up blank, forced to "
 				  "fall back on TidyUpData to fix title and paths.  Do not use "
-				  "# or ; in a song title.", dir.c_str());
+				  "# or ; in a song title.", dir.c_str());*/
 		// Tell TidyUpData that it's not loaded from the cache because it needs
 		// to hit the song folder to find the files that weren't found. -Kyz
 		song->TidyUpData(false, false);
