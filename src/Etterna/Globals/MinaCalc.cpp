@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <deque>
 #include <utility>
+#include <assert.h>
 
 using std::deque;
 using std::max;
@@ -229,7 +230,7 @@ chord_proportion(const vector<NoteInfo>& NoteInfo, const int chord_size)
 		if (notes == chord_size)
 			chords += notes;
 	}
-
+	assert(taps > 0);
 	return static_cast<float>(chords) / static_cast<float>(taps);
 }
 
