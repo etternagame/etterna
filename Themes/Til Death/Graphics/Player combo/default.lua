@@ -119,4 +119,4 @@ if enabledCombo then
 	return t
 end
 
-return {}
+return Def.ActorFrame {}
