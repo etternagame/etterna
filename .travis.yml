@@ -32,7 +32,7 @@ matrix:
         - sudo gem install xcpretty
       script:
         - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 -DOPENSSL_LIBRARIES=/usr/local/opt/openssl@1.1/lib -G "Xcode" ..
+        - cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..
         - set -o pipefail && xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OSX,arch=x86_64' -configuration Release | xcpretty
 
 # This will only run for the linux builds
@@ -40,8 +40,8 @@ matrix:
 script:
   - sh .ci/build.sh
   - mkdir -p ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-  - cmake ..
-  - make
+  - cmake -G "Ninja" ..
+  - ninja
 
 addons:
   coverity_scan:
@@ -81,5 +81,5 @@ addons:
       - libglew-dev
       - libuv-dev
       - clang-format-5.0
+      - ninja-build
     update: true
-

@@ -62,7 +62,10 @@ set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "" FORCE)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 target_link_libraries(Etterna PRIVATE Threads::Threads)
-target_link_libraries(Etterna PRIVATE CRYPT32.LIB OpenSSL::SSL) # CRYPT32.LIB needed for static OpenSSL
+target_link_libraries(Etterna PRIVATE OpenSSL::SSL)
+if(WIN32)
+    target_link_libraries(Etterna PRIVATE CRYPT32.LIB) # CRYPT32.LIB needed for static OpenSSL on windows
+endif()
 
 # Load external libraries
 add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
