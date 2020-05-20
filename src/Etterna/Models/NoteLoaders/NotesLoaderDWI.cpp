@@ -508,8 +508,6 @@ LoadFromDWITokens(std::string sMode,
 				  Steps& out,
 				  const std::string& sPath)
 {
-	CHECKPOINT_M("DWILoader::LoadFromDWITokens()");
-
 	out.m_StepsType = GetTypeFromMode(sMode);
 	if (out.m_StepsType == StepsType_Invalid)
 		return false;
