@@ -172,7 +172,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 						int iHeadRow;
 						if (!out.IsHoldNoteAtRow(iTrack, iIndex, &iHeadRow)) {
 							int n = intptr_t(endLine) - intptr_t(beginLine);
-                            Locator::getLogger()->warn("Unmatched 3 in \"{:<{}}\"", beginLine, n);
 						} else {
 							out.FindTapNote(iTrack, iHeadRow)
 							  ->second.iDuration = iIndex - iHeadRow;
