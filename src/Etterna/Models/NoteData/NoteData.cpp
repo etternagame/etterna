@@ -180,7 +180,7 @@ NoteData::WifeTotalScoreCalc(TimingData* td, int iStartIndex, int iEndIndex)
 			}
 		}
 	}
-	ASSERT(taps > 0);
+
 	return taps * 2;
 }
 
