@@ -494,7 +494,7 @@ NotesWriterETT::Write(std::string& sPath,
 			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
-            Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
+            //Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
 		}
 	}
 	if (f.Flush() == -1)
