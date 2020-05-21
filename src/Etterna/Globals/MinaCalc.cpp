@@ -294,7 +294,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 // global multiplier to standardize baselines
-static const float finalscaler = 3.632f; 
+static const float finalscaler = 3.632f;
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -315,9 +315,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
 												 0.94f, 0.7675f, 0.84f, 1.f };
-
+bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
 // SOMEHOW MAKES JAKES EASIER SO DISABLED FOR NOW (it's also sort of redundant
@@ -645,6 +645,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
 			   float score_goal)
 {
+	// actual cancer
+	debug_lmao = debugmode;
+
 	// in flux
 	float grindscaler =
 	  CalcClamp(
@@ -943,37 +946,88 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 float
 Hand::CalcMSEstimate(vector<float> input)
 {
-	const unsigned int max_ms_vals = 4;
+	static const bool dbg = true;
+	// how many ms values we use from here, if there are fewer than this number
+	// we'll mock up some values to water down intervals with a single extremely
+	// fast minijack, if there are more, we will truncate
+	static const unsigned int num_used = 4;
 	if (input.empty())
 		return 0.f;
 
-	sort(input.begin(), input.end());
-	float m = 0;
+	// single ms value, dunno if we want to do this? technically the tail end of
+	// an insanely hard burst that gets lopped off at the last note is still
+	// hard?
 	if (input.size() < 2)
 		return 1.f;
-	if (input.size() > max_ms_vals)
-		input.resize(max_ms_vals);
-	float cv_yo = min(2.f, cv(input));
+
+	// truncate if we have more values than what we care to sample, we're
+	// looking for a good estimate of the hardest part of this interval
+	if (input.size() > num_used)
+		input.resize(num_used);
+
+	// if above 1 and below used_ms_vals, fill up the stuff with dummies
+	static const float ms_dummy = 250.f;
+	if (input.size() < num_used)
+		for (size_t i = 0; i < num_used - input.size(); ++i)
+			input.push_back(ms_dummy);
+
+	sort(input.begin(), input.end());
+
+	// another method of suppressing minijacks i guess?
+	//input[0] *= 1.1f;
+
+	if (dbg && debug_lmao) {
+		std::string moop = "";
+		for (auto& v : input) {
+			moop.append(std::to_string(v));
+			moop.append(", ");
+		}
+
+		std::cout << "notes: " << moop << std::endl;
+	}
+
+	// mostly try to push down stuff like jumpjacks, not necessarily to push up
+	// "complex" stuff
+	float cv_yo = 1.f + cv(input);
+
+	if (dbg && debug_lmao)
+		std::cout << "cv : " << cv_yo << std::endl;
+
+	// basically doing a jank average, bigger m = lower difficulty
+	float m = 0.f;
 	for (auto& ms : input)
 		m += ms;
-	return 1375.f * input.size() / m * cv_yo;
+
+	if (dbg && debug_lmao)
+		std::cout << "m : " << m << std::endl;
+	if (dbg && debug_lmao)
+		std::cout << "diff : " << 1675.f * (num_used + 1) / m * cv_yo
+				  << std::endl;
+	// add 1 to num_used because some meme about sampling
+	return 650.f * (num_used + 1) / m * cv_yo;
 }
 
 void
 Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
+	static const bool dbg = true;
+
 	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
 
 	for (size_t i = 0; i < f1.size(); i++) {
+
+		if (dbg && debug_lmao)
+			std::cout << "\ninterval : " << i << std::endl;
+
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
 		float left_difficulty = CalcMSEstimate(f1[i]);
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty = (5.f * left_difficulty + 4.f * right_difficulty) / 9.f;
+			difficulty = (6.5f * left_difficulty + 2.5f * right_difficulty) / 9.f;
 		else
-			difficulty = (5.f * right_difficulty + 4.f * left_difficulty) / 9.f;
+			difficulty = (6.5f * right_difficulty + 2.5f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -1175,8 +1229,7 @@ Hand::InitAdjDiff()
 		},
 
 		// tech, duNNO wat im DOIN
-		{
-		},
+		{},
 
 	};
 
