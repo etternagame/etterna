@@ -966,7 +966,7 @@ Hand::CalcMSEstimate(vector<float> input)
 		input.resize(num_used);
 
 	// if above 1 and below used_ms_vals, fill up the stuff with dummies
-	static const float ms_dummy = 360.f;
+	static const float ms_dummy = 180.f;
 	if (input.size() < num_used)
 		for (size_t i = 0; i < num_used - input.size(); ++i)
 			input.push_back(ms_dummy);
@@ -1004,7 +1004,7 @@ Hand::CalcMSEstimate(vector<float> input)
 		std::cout << "diff : " << 1675.f * (num_used + 1) / m * cv_yo
 				  << std::endl;
 	// add 1 to num_used because some meme about sampling
-	return 650.f * (num_used + 1) / m * cv_yo;
+	return 750.f * (num_used + 1) / m * cv_yo;
 }
 
 void
@@ -1314,8 +1314,8 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMS][i] /** muzzle */ * tp_mods[ss] *
-								   basescalers[ss];
+						adj_diff =
+						  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss];
 					}
 					break;
 			}
