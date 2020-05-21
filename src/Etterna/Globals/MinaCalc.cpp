@@ -758,11 +758,19 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
-
+		static const float
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.2f;
 		// yes i know how dumb this looks
-		DifficultyRating difficulty = { mcbloop[0], mcbloop[1], mcbloop[2],
-										mcbloop[3], mcbloop[4], mcbloop[5],
-										mcbloop[6], mcbloop[7] };
+		DifficultyRating difficulty = {
+			mcbloop[0],
+			mcbloop[1],
+			mcbloop[2],
+			mcbloop[3],
+			mcbloop[4],
+			mcbloop[5],
+			mcbloop[6],
+			mcbloop[7] * actual_literal_black_magic_number_random_HAHAHAHA____
+		};
 		vector<float> pumpkin = skillset_vector(difficulty);
 		// sets the 'proper' debug output, doesn't
 		// (shouldn't) affect actual values this is the only
@@ -946,19 +954,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 float
 Hand::CalcMSEstimate(vector<float> input)
 {
+	// this only considers ms values per finger, we could also try something
+	// that includes cross finger values to catch tight stuff like the triplets
+	// in runningmen
+
 	static const bool dbg = true;
+
 	// how many ms values we use from here, if there are fewer than this number
 	// we'll mock up some values to water down intervals with a single extremely
 	// fast minijack, if there are more, we will truncate
-	static const unsigned int num_used = 5;
+	static const unsigned int num_used = 3;
 	if (input.empty())
 		return 0.f;
 
 	// single ms value, dunno if we want to do this? technically the tail end of
 	// an insanely hard burst that gets lopped off at the last note is still
 	// hard?
-	if (input.size() < 2)
-		return 1.f;
+	//if (input.size() < 2)
+		//return 1.f;
 
 	// truncate if we have more values than what we care to sample, we're
 	// looking for a good estimate of the hardest part of this interval
@@ -966,7 +979,7 @@ Hand::CalcMSEstimate(vector<float> input)
 		input.resize(num_used);
 
 	// if above 1 and below used_ms_vals, fill up the stuff with dummies
-	static const float ms_dummy = 180.f;
+	static const float ms_dummy = 360.f;
 	if (input.size() < num_used)
 		for (size_t i = 0; i < num_used - input.size(); ++i)
 			input.push_back(ms_dummy);
@@ -1031,11 +1044,14 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  finalscaler * (6.33333f * difficulty + 3.66666f * nps) / 10.f;
+		  finalscaler * (5.83333f * difficulty + 4.26666f * nps) / 10.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMSD]);
 }
+
+// EPICCCC HACK????
+float jloss = 0.f;
 
 // each skillset should just be a separate calc function [todo]
 float
@@ -1092,16 +1108,31 @@ Calc::Chisel(float player_skill,
 					// something like take the highest of a given type at
 					// multiple points throughout a file, that just results in
 					// oversaturation and bad grouping
-					float jloss = max(
-					  JackLoss(player_skill, 1, max_points_lost, true),
-					  max(JackLoss(player_skill, 2, max_points_lost, true),
-						  JackLoss(player_skill, 3, max_points_lost, true)));
+					jloss = max(
+					  JackLoss(player_skill, 1, max_points_lost, stamina),
+					  max(JackLoss(player_skill, 2, max_points_lost, stamina),
+						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
 					/*if (ss == Skill_Technical)
 						gotpoints -=
 						  (JackLoss(player_skill, 0, max_points_lost, false)) /
 						  7.5f;*/
+					static const float literal_black_magic = 0.875f;
+					if (ss == Skill_Technical)
+						gotpoints +=
+						  max(JackLoss(player_skill * literal_black_magic,
+									   1,
+									   max_points_lost,
+									   stamina),
+							  max(JackLoss(player_skill * literal_black_magic,
+										   2,
+										   max_points_lost,
+										   stamina),
+								  JackLoss(player_skill * literal_black_magic,
+										   3,
+										   max_points_lost,
+										   stamina)));
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 					if (gotpoints > reqpoints)
@@ -1234,8 +1265,9 @@ Hand::InitAdjDiff()
 			Roll,
 			OHJump,
 			Chaos,
-			WideRangeRoll,
 			WideRangeJumptrill,
+			WideRangeBalance,
+			WideRangeRoll,
 		},
 
 	};
@@ -1315,7 +1347,7 @@ Hand::InitAdjDiff()
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
 						adj_diff =
-						  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss];
+						  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] / fastsqrt(doot[WideRangeBalance][i]);
 					}
 					break;
 			}
