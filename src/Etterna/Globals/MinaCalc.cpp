@@ -341,8 +341,6 @@ Calc::JackStamAdjust(float x, int t, int mode)
 	  125.f; // how fast the floor rises (it's lava)
 	static const float stam_prop = 1.5424f;
 
-	// adsafasdf fix later
-	stam_adj_jacks[t] = diff;
 	if (debugmode) {
 		left_hand.debugValues[2][JackStamMod].resize(numitv);
 		right_hand.debugValues[2][JackStamMod].resize(numitv);
@@ -674,7 +672,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		}
 
 		TotalMaxPoints();
-		stam_adj_jacks->resize(4);
 
 		vector<float> mcbloop(NUM_Skillset);
 		// overall and stam will be left as 0.f by this loop
@@ -914,12 +911,23 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// werwerwer
 	for (auto m : zto3) {
 		jacks[m]->resize(4);
-		for (auto t : zto3)
+		for (auto t : zto3) {
 			SequenceJack(fingers[t], t, m);
+
+			// resize stam adjusted jack vecs, technically if we flattened the
+			// vector we
+			// could allocate only once for all rate passes when doing caching,
+			// but for various other reasons it was easier to keep them split by
+			// intervals in a double vector, this should maybe be changed?
+			stam_adj_jacks[t].resize(fingers[t].size());
+			for (size_t i = 0; i < fingers[t].size(); ++i)
+				stam_adj_jacks[t][i].resize(fingers[t][i].size());
+		}
 	}
 	return true;
 }
 
+// DON'T refpass, since we manipulate the vector and this is done before
 float
 Hand::CalcMSEstimate(vector<float> input)
 {
