@@ -2647,13 +2647,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 		itv_arrayTWO.push_back(cur_vals);
 
-		// k lets try just running the pass with the rolls (lower
-		// mean indicates the rolls are flowing in that direction,
-		// for patterns that aren't rolls this should be
-		// functionally insignificant
-		cur_vals = mean(lr) < mean(rl) ? lr : rl;
 		int cv_taps = ltaps + rtaps;
-
 		itv_taps.push_back(interval_taps);
 		itv_cv_taps.push_back(cv_taps);
 		itv_single_taps.push_back(single_taps);
@@ -2673,7 +2667,11 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		// push current interval values into deque, there should
 		// always be space since we pop front at the start of the
 		// loop if there isn't
-		itv_array.push_back(cur_vals);
+		// k lets try just running the pass with the rolls (lower
+		// mean indicates the rolls are flowing in that direction,
+		// for patterns that aren't rolls this should be
+		// functionally insignificant
+		itv_array.push_back(mean(lr) < mean(rl) ? lr : rl);
 
 		// clear vectors before using them
 		window_vals.clear();
