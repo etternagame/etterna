@@ -2145,6 +2145,7 @@ DownloadManager::StartSession(string user,
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			DLMAN->loggingIn = false;
 			return;
 		}
 
