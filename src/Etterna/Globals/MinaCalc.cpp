@@ -323,33 +323,40 @@ static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
 // SOMEHOW MAKES JAKES EASIER SO DISABLED FOR NOW (it's also sort of redundant
 // with the entire system as it is so this may not be needed
 inline void
-Calc::JackStamAdjust(float x, int t, int mode)
+Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 {
-	float stam_floor =
-	  0.95f;		   // stamina multiplier min (increases as chart advances)
-	float mod = 0.95f; // mutliplier
+	const bool dbg = true && debug;
 
+	float stam_ceil = 1.075234f;
+	float stam_mag = 75.f;
+	float stam_fscale = 125.f;
+	float stam_prop = 0.55424f;
+	float stam_floor = 1.f;
+	float mod = 1.f;
+	if (mode == 4)
+		stam_mag *= 4;
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
-	const float super_stam_ceil = 1.11f;
+	const float super_stam_ceil = 1.09f;
 	const auto& diff = jacks[mode][t];
 
-	static const float stam_ceil = 1.035234f; // stamina multiplier max
-	static const float stam_mag = 75.f;		  // multiplier generation scaler
-	static const float stam_fscale =
-	  125.f; // how fast the floor rises (it's lava)
-	static const float stam_prop = 1.5424f;
-
-	if (debugmode) {
+	if (debug) {
 		left_hand.debugValues[2][JackStamMod].resize(numitv);
 		right_hand.debugValues[2][JackStamMod].resize(numitv);
 
+		// each interval
 		for (size_t i = 0; i < diff.size(); ++i) {
 			float mod_sum = 0.f;
+			// each jack in the interval
 			for (size_t j = 0; j < diff[i].size(); ++j) {
 				avs1 = avs2;
 				avs2 = diff[i][j];
+
+				if (dbg)
+					std::cout << "mod was : " << mod
+							  << " at diff : " << diff[i][j] << std::endl;
+
 				mod +=
 				  ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
 				if (mod > 0.95f)
@@ -358,6 +365,10 @@ Calc::JackStamAdjust(float x, int t, int mode)
 
 				mod =
 				  min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+
+				if (dbg)
+					std::cout << "mod now : " << mod << std::endl;
+
 				mod_sum += mod;
 				stam_adj_jacks[t][i][j] = diff[i][j] * mod;
 			}
@@ -398,7 +409,7 @@ hit_the_road(float x, float y, int mode)
 
 // returns a positive number or 0, output should be subtracted
 float
-Calc::JackLoss(float x, int mode, float mpl, bool stam)
+Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug)
 {
 	const bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
@@ -406,7 +417,7 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 	// an inline but i cba to mess with that atm
 	if (stam)
 		for (auto t : { 0, 1, 2, 3 })
-			JackStamAdjust(x, t, mode);
+			JackStamAdjust(x, t, mode, debug);
 
 	float total_point_loss = 0.f;
 	//  we should just store jacks in intervals in the first place
@@ -419,11 +430,10 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam)
 	for (int i = 0; i < numitv; ++i) {
 		// yes i think this does just have to be this slow
 		for (auto& t : zto3) {
-			// stam is broken atm and also redundant with stuffs
-			// const auto& seagull = stam ? stam_adj_jacks[t][i] :
-			// jacks[mode][t][i];
+			const auto& seagull =
+			  stam ? stam_adj_jacks[t][i] : jacks[mode][t][i];
 			float loss = 0.f;
-			for (auto& j : jacks[mode][t][i]) {
+			for (auto& j : seagull) {
 				if (x >= j)
 					continue;
 				loss += hit_the_road(x, j, mode);
@@ -553,7 +563,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 				std::cout << "fdiff: " << jacks[mode][track][itv][ind] << "\n"
 						  << std::endl;
 			}
-			
 		}
 	}
 }
@@ -1023,15 +1032,15 @@ Calc::Chisel(float player_skill,
 					// multiple points throughout a file, that just results in
 					// oversaturation and bad grouping
 					float jloss = max(
-					  JackLoss(player_skill, 1, max_points_lost, false),
-					  max(JackLoss(player_skill, 2, max_points_lost, false),
-						  JackLoss(player_skill, 3, max_points_lost, false)));
+					  JackLoss(player_skill, 1, max_points_lost, true),
+					  max(JackLoss(player_skill, 2, max_points_lost, true),
+						  JackLoss(player_skill, 3, max_points_lost, true)));
 					gotpoints -= jloss;
 				} else {
-					if (ss == Skill_Technical)
+					/*if (ss == Skill_Technical)
 						gotpoints -=
 						  (JackLoss(player_skill, 0, max_points_lost, false)) /
-						  7.5f;
+						  7.5f;*/
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 					if (gotpoints > reqpoints)
@@ -1048,7 +1057,21 @@ Calc::Chisel(float player_skill,
 	// these are the values for msd/stam adjusted msd/pointloss the
 	// latter two are dependent on player_skill and so should only
 	// be recalculated with the final value already determined
+	// getting the jackstam debug output right is lame i know
 	if (debugoutput) {
+		float jl1 =
+		  JackLoss(player_skill, 1, max_points_lost, true, debugoutput);
+		float jl2 =
+		  JackLoss(player_skill, 2, max_points_lost, true, debugoutput);
+		float jl3 =
+		  JackLoss(player_skill, 3, max_points_lost, true, debugoutput);
+		if (jl1 > jl2 && jl1 > jl3)
+			JackLoss(player_skill, 1, max_points_lost, true, debugoutput);
+		else if (jl2 > jl3)
+			JackLoss(player_skill, 2, max_points_lost, true, debugoutput);
+		else
+			JackLoss(player_skill, 3, max_points_lost, true, debugoutput);
+
 		left_hand.CalcInternal(
 		  gotpoints, player_skill, ss, stamina, debugoutput);
 		right_hand.CalcInternal(

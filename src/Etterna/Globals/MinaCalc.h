@@ -116,8 +116,8 @@ class Calc
 								float music_rate,
 								float score_goal);
 
-	void JackStamAdjust(float x, int t, int mode);
-	float JackLoss(float x, int mode, float mpl, bool stam);
+	void JackStamAdjust(float x, int t, int mode, bool debug = false);
+	float JackLoss(float x, int mode, float mpl, bool stam, bool debug = false);
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
