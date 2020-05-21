@@ -958,7 +958,7 @@ Hand::CalcMSEstimate(vector<float> input)
 	// that includes cross finger values to catch tight stuff like the triplets
 	// in runningmen
 
-	static const bool dbg = true;
+	static const bool dbg = false;
 
 	// how many ms values we use from here, if there are fewer than this number
 	// we'll mock up some values to water down intervals with a single extremely
@@ -1023,7 +1023,7 @@ Hand::CalcMSEstimate(vector<float> input)
 void
 Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
-	static const bool dbg = true;
+	static const bool dbg = false;
 
 	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
