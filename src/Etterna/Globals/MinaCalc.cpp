@@ -950,7 +950,7 @@ Hand::CalcMSEstimate(vector<float> input)
 	// how many ms values we use from here, if there are fewer than this number
 	// we'll mock up some values to water down intervals with a single extremely
 	// fast minijack, if there are more, we will truncate
-	static const unsigned int num_used = 4;
+	static const unsigned int num_used = 5;
 	if (input.empty())
 		return 0.f;
 
@@ -966,7 +966,7 @@ Hand::CalcMSEstimate(vector<float> input)
 		input.resize(num_used);
 
 	// if above 1 and below used_ms_vals, fill up the stuff with dummies
-	static const float ms_dummy = 250.f;
+	static const float ms_dummy = 360.f;
 	if (input.size() < num_used)
 		for (size_t i = 0; i < num_used - input.size(); ++i)
 			input.push_back(ms_dummy);
@@ -1229,7 +1229,14 @@ Hand::InitAdjDiff()
 		},
 
 		// tech, duNNO wat im DOIN
-		{},
+		{
+			Anchor,
+			Roll,
+			OHJump,
+			Chaos,
+			WideRangeRoll,
+			WideRangeJumptrill,
+		},
 
 	};
 
@@ -1308,8 +1315,7 @@ Hand::InitAdjDiff()
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
 						adj_diff = soap[BaseMS][i] /** muzzle */ * tp_mods[ss] *
-								   basescalers[ss] / fastsqrt(doot[Anchor][i]) /
-								   fastsqrt(doot[OHTrill][i]);
+								   basescalers[ss];
 					}
 					break;
 			}
