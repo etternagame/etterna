@@ -62,15 +62,6 @@ fastpow(double a, double b)
 	return static_cast<float>(a);
 }
 
-// reasonably accurate taylor approximation for ^ 1.7 (jk not anymore not
-// really)
-inline float
-fast_pw(float x)
-{
-	float xbar = x - 0.5f;
-	return 0.287175f + 1.13383f * xbar + 0.527063f * xbar * xbar;
-}
-
 // not super accurate, good enough for our purposes
 inline float
 fastsqrt(float _in)
