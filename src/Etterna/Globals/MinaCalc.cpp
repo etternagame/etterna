@@ -293,8 +293,8 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 #pragma endregion utils
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-static const float finalscaler =
-  2.564f * 1.05f * 1.1f * 1.10f * 1.115f; // multiplier to standardize baselines
+// global multiplier to standardize baselines
+static const float finalscaler = 3.632f; 
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -316,7 +316,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
-												 0.94f, 0.79f, 0.84f, 0.84f };
+												 0.94f, 0.7675f, 0.84f, 0.84f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -329,16 +329,16 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 
 	float stam_ceil = 1.075234f;
 	float stam_mag = 75.f;
-	float stam_fscale = 125.f;
+	float stam_fscale = 256.f;
 	float stam_prop = 0.55424f;
 	float stam_floor = 1.f;
 	float mod = 1.f;
-	if (mode == 4)
-		stam_mag *= 4;
 	float avs1 = 0.f;
 	float avs2 = 0.f;
 	float local_ceil = stam_ceil;
-	const float super_stam_ceil = 1.09f;
+	float super_stam_ceil = 1.11f;
+	if (mode == 4)
+		super_stam_ceil = 1.09f;
 	const auto& diff = jacks[mode][t];
 
 	if (debug) {
@@ -520,7 +520,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	float time = 0.f;
 	float eff_ms = 0.f;
 	float eff_bpm = 0.f;
-	float ms = 0.f; 
+	float ms = 0.f;
 	const float mode_buffers[4] = { 30.f, 250.f, 120.f, 225.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
@@ -663,8 +663,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	float cprop = jprop + hprop + qprop;
 
 	// for multi offset passes- super breaks stuff atm dunno why???
-	//const int fo_rizzy = ssr ? 5 : 1;
-	const int fo_rizzy = 1; 
+	// const int fo_rizzy = ssr ? 5 : 1;
+	const int fo_rizzy = 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
@@ -820,9 +820,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	bool junk_file_mon = false;
 	ProcessedFingers fingers;
-	for (int i = 0; i < 4; i++) {
+	for (auto t : zto3) {
 		fingers.emplace_back(
-		  ProcessFinger(NoteInfo, i, music_rate, offset, junk_file_mon));
+		  ProcessFinger(NoteInfo, t, music_rate, offset, junk_file_mon));
 
 		// don't bother with this file
 		if (junk_file_mon)
@@ -937,19 +937,26 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 }
 
 // DON'T refpass, since we manipulate the vector and this is done before
+// jackseq, if we shuffle stuff around so this is done after jackseq and we're
+// sure we don't need to use this for anything else we can probably refpass
+// again but cba to test atm
 float
 Hand::CalcMSEstimate(vector<float> input)
 {
+	const unsigned int max_ms_vals = 4;
 	if (input.empty())
 		return 0.f;
 
 	sort(input.begin(), input.end());
 	float m = 0;
-	input[0] *= 1.066f; // This is gross
-	size_t End = min(input.size(), static_cast<size_t>(6));
-	for (size_t i = 0; i < End; i++)
-		m += input[i];
-	return 1375.f * End / m;
+	if (input.size() < 2)
+		return 1.f;
+	if (input.size() > max_ms_vals)
+		input.resize(max_ms_vals);
+	float cv_yo = min(2.f, cv(input));
+	for (auto& ms : input)
+		m += ms;
+	return 1375.f * input.size() / m * cv_yo;
 }
 
 void
@@ -964,9 +971,9 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty = (5.f * left_difficulty + 4.f * right_difficulty) / 9.f;
+			difficulty = (6.f * left_difficulty + 3.f * right_difficulty) / 9.f;
 		else
-			difficulty = (5.f * right_difficulty + 4.f * left_difficulty) / 9.f;
+			difficulty = (6.f * right_difficulty + 3.f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -1175,8 +1182,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  FlamJam,
-		  WideRangeBalance,
-		  WideRangeAnchor,
+		  OHTrill,
 		},
 
 	};
@@ -1255,8 +1261,9 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseNPS][i] * muzzle * tp_mods[ss] *
-								   basescalers[ss] / fastsqrt(doot[Anchor][i]);
+						adj_diff = soap[BaseMS][i] /** muzzle */ * tp_mods[ss] *
+								   basescalers[ss] / fastsqrt(doot[Anchor][i]) /
+								   fastsqrt(doot[OHTrill][i]);
 					}
 					break;
 			}
@@ -2739,9 +2746,10 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		// producing sub 1 values for ??? reasons, but i don't think
 		// it makes too much difference and i don't want to spend
 		// more time on it right now
-		float cv_prop = window_cv_taps == 0 ? 1
-									 : static_cast<float>(window_taps) /
-										 static_cast<float>(window_cv_taps);
+		float cv_prop = window_cv_taps == 0
+						  ? 1
+						  : static_cast<float>(window_taps) /
+							  static_cast<float>(window_cv_taps);
 
 		// bigger the lower the proportion of single taps to total
 		// taps i.e. more chords
@@ -3878,5 +3886,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 318;
+	return 321;
 }
