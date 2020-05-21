@@ -316,7 +316,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 0.84f };
+												 0.94f, 0.7675f, 0.84f, 1.f };
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -325,7 +325,7 @@ static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.89f, 0.89f,
 inline void
 Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 {
-	const bool dbg = true && debug;
+	const bool dbg = false && debug;
 
 	float stam_ceil = 1.075234f;
 	float stam_mag = 75.f;
@@ -971,13 +971,13 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty = (6.f * left_difficulty + 3.f * right_difficulty) / 9.f;
+			difficulty = (5.f * left_difficulty + 4.f * right_difficulty) / 9.f;
 		else
-			difficulty = (6.f * right_difficulty + 3.f * left_difficulty) / 9.f;
+			difficulty = (5.f * right_difficulty + 4.f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  finalscaler * (3.33333f * difficulty + 6.66666f * nps) / 10.f;
+		  finalscaler * (6.33333f * difficulty + 3.66666f * nps) / 10.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMSD]);
@@ -1176,13 +1176,6 @@ Hand::InitAdjDiff()
 
 		// tech, duNNO wat im DOIN
 		{
-		  Anchor,
-		  Chaos,
-		  Roll,
-		  WideRangeJumptrill,
-		  WideRangeRoll,
-		  FlamJam,
-		  OHTrill,
 		},
 
 	};
@@ -3886,5 +3879,5 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
-	return 321;
+	return 322;
 }
