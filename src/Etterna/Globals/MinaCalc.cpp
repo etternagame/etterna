@@ -1346,8 +1346,10 @@ Hand::InitAdjDiff()
 						float muzzle = *std::max_element(
 						  scoring_justice_warrior_agenda.begin(),
 						  scoring_justice_warrior_agenda.end());
-						adj_diff =
-						  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] / fastsqrt(doot[WideRangeBalance][i]);
+						adj_diff = soap[BaseMS][i] * tp_mods[ss] *
+								   basescalers[ss] /
+								   fastsqrt(doot[WideRangeBalance][i]) /
+								   max(doot[CJ][i], 1.f);
 					}
 					break;
 			}
