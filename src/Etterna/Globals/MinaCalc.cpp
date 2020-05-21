@@ -1258,7 +1258,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		debugValues[1][MSD] = stam_adj_diff;
 
 		for (size_t i = 0; i < v.size(); ++i) {
-			if (x > v[i]) {
+			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
 				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
 				gotpoints -= lostpoints;
