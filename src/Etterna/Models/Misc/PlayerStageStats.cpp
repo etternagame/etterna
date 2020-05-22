@@ -195,7 +195,7 @@ GetGradeFromPercent(float fPercent)
 		return Grade_Tier02;
 	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9997f)
 		return Grade_Tier03;
-	if (fPercent >= 0.9997f)
+	if (fPercent >= 0.99955f)
 		return Grade_Tier04;
 	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.999f)
 		return Grade_Tier05;
