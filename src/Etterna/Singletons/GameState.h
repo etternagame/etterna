@@ -212,8 +212,8 @@ class GameState
 
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
-
-	RString GetEtternaVersion() { return "0.69.1"; }
+	
+	RString GetEtternaVersion() { return "0.70.-323"; }
 
 	// is this the best place for this? it's not exactly a pref, and we shouldn't
 	// be copying and pasting these values everywhere as needed j1-j4 are now all 1.f
