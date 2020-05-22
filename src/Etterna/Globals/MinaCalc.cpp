@@ -1001,8 +1001,6 @@ log_cross_columns(const vector<vector<int>>& itv_rows,
 				lastcol = lcol ? t1 : t2;
 
 			lasttime = curtime;
-
-			assert(cc != cc_undefined);
 		}
 		o.push_back(p);
 	}
