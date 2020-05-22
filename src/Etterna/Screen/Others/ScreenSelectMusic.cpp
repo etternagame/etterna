@@ -565,8 +565,6 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
 
-			// don't handle calctest registry for release
-			return true;
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
 			for (auto ss : SONGMAN->testChartList) {
@@ -583,7 +581,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				//SONGMAN->testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));

@@ -385,13 +385,17 @@ SongManager::CalcTestStuff()
 
 	// output calc differences for chartkeys and targets and stuff
 	for (auto p : testChartList) {
+		auto ss = p.first;
+		LOG->Trace(
+			  "\nStarting calc test group %s\n", SkillsetToString(ss).c_str());
 		for (auto chart : p.second.filemapping) {
-			auto ss = p.first;
+			
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
 				  StepsByKey[chart.first]->DoATestThing(chart.second.ev,
 														ss, chart.second.rate));
 		}
+		LOG->Trace("\n\n");
 	}
 
 	FOREACH_ENUM(Skillset, ss)
@@ -403,6 +407,7 @@ SongManager::CalcTestStuff()
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
 	}
+	SaveCalcTestXmlToDir();
 }
 
 void
@@ -1665,8 +1670,6 @@ CalcTestList::CreateNode() const
 void
   SongManager::LoadCalcTestNode() const
 {
-	// disable for release
-	return;
 	string fn = "Save/" + calctest_XML;
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
@@ -1739,8 +1742,6 @@ SongManager::SaveCalcTestCreateNode() const
 void
 SongManager::SaveCalcTestXmlToDir() const
 {
-	// disable for release
-	return;
 	string fn = "Save/" + calctest_XML;
 	  // calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
 	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
