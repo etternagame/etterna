@@ -1161,7 +1161,7 @@ DownloadManager::UploadScores()
 	for (auto& vec : scores) {
 		for (auto& s : vec) {
 			// probably not worth uploading fails, they get rescored now
-			if (s->GetGrade() != Grade_Failed)
+			if (s->GetGrade() == Grade_Failed)
 				continue;
 			// handle rescores, ignore upload check
 			if (newly_rescored.count(s))
