@@ -1313,8 +1313,8 @@ Calc::Chisel(float player_skill,
 						  (JackLoss(player_skill, 0, max_points_lost, false)) /
 						  7.5f;*/
 					static const float literal_black_magic = 0.875f;
-					if (ss == Skill_Technical)
-						gotpoints += 
+					if (ss == Skill_Technical) {
+						float bzz =
 						  max(JackLoss(player_skill * literal_black_magic,
 									   1,
 									   max_points_lost,
@@ -1327,6 +1327,9 @@ Calc::Chisel(float player_skill,
 										   3,
 										   max_points_lost,
 										   stamina)));
+						gotpoints += bzz;
+					}
+
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 					if (gotpoints > reqpoints)
