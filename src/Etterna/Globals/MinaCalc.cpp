@@ -3079,6 +3079,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 
 // hyper explicit mega murder of long chains of
 // 12211221122112211221122112211221
+// look into consistent spacing checks
 void
 Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
 							   unsigned int t1,
@@ -3487,6 +3488,8 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 // it's still a joke because of the way the patternage flows. i have
 // tentatively proposed naming this pattern and its variants "the
 // slip" after the worst aram fizz player i ever seened
+
+// look into consistent spacing checks
 void
 Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 								float music_rate,
