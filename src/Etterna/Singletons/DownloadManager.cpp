@@ -1161,7 +1161,7 @@ DownloadManager::UploadScores()
 	for (auto& vec : scores) {
 		for (auto& s : vec) {
 			// probably not worth uploading fails, they get rescored now
-			if (s->GetGrade() != Grade_Failed)
+			if (s->GetGrade() == Grade_Failed)
 				continue;
 			// handle rescores, ignore upload check
 			if (newly_rescored.count(s))
@@ -1538,10 +1538,13 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				}
 			}
 			auto& lbd = DLMAN->chartLeaderboards[chartkey];
-			auto it = find_if(
-			  lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
-				  return a.userid == userid && a.username == username;
-			  });
+			auto it = find_if(lbd.begin(),
+							  lbd.end(),
+							  [userid, username, scoreid](OnlineScore& a) {
+								  return a.userid == userid &&
+										 a.username == username &&
+										 a.scoreid == scoreid;
+							  });
 			if (it != lbd.end()) {
 				it->hs.SetOnlineReplayTimestampVector(timestamps);
 				it->hs.SetOffsetVector(offsets);
@@ -1558,9 +1561,10 @@ DownloadManager::RequestReplayData(const string& scoreid,
 		}
 
 		auto& lbd = DLMAN->chartLeaderboards[chartkey];
-		auto it =
-		  find_if(lbd.begin(), lbd.end(), [userid, username](OnlineScore& a) {
-			  return a.userid == userid && a.username == username;
+		auto it = find_if(
+		  lbd.begin(), lbd.end(), [userid, username, scoreid](OnlineScore& a) {
+			  return a.userid == userid && a.username == username &&
+					 a.scoreid == scoreid;
 		  });
 		if (it != lbd.end()) {
 			it->hs.SetOnlineReplayTimestampVector(timestamps);
@@ -2145,6 +2149,7 @@ DownloadManager::StartSession(string user,
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			DLMAN->loggingIn = false;
 			return;
 		}
 
