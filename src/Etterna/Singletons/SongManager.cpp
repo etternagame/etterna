@@ -1670,6 +1670,9 @@ CalcTestList::CreateNode() const
 void
   SongManager::LoadCalcTestNode() const
 {
+#ifndef USING_CALCTESTS
+	return;
+#endif
 	string fn = "Save/" + calctest_XML;
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
@@ -1742,6 +1745,9 @@ SongManager::SaveCalcTestCreateNode() const
 void
 SongManager::SaveCalcTestXmlToDir() const
 {
+#ifndef USING_CALCTESTS
+	return;
+#endif
 	string fn = "Save/" + calctest_XML;
 	  // calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
 	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
