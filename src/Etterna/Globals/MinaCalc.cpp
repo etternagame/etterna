@@ -339,7 +339,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 1.f };
+												 0.94f, 0.7675f, 0.84f, 0.9f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -794,7 +794,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.2f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.01f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
@@ -963,6 +963,7 @@ log_cross_columns(const vector<vector<int>>& itv_rows,
 				  int t1,
 				  int t2)
 {
+	cc_type last_cc = cc_was_init;
 	const bool dbg = true && debug_lmao;
 	vector<vector<float>> o;
 	// o.reserve(itv_rows.size());
@@ -992,7 +993,10 @@ log_cross_columns(const vector<vector<int>>& itv_rows,
 			this_ms = ms_from_last(curtime, lasttime);
 
 			if (should_log_cross_columns_for_ms_base(cc))
-				p.push_back(this_ms);
+				if (cc == cc_left_right && last_cc == cc_right_left)
+					p.push_back(this_ms);
+				else if (cc == cc_right_left && last_cc == cc_left_right)
+					p.push_back(this_ms);
 
 			// update last notes/time
 			if (is_jump(cc))
@@ -1001,6 +1005,7 @@ log_cross_columns(const vector<vector<int>>& itv_rows,
 				lastcol = lcol ? t1 : t2;
 
 			lasttime = curtime;
+			last_cc = cc;
 		}
 		o.push_back(p);
 	}
@@ -1142,42 +1147,60 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 // sure we don't need to use this for anything else we can probably refpass
 // again but cba to test atm
 float
-Hand::CalcMSEstimate(vector<float> input)
+Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
 {
-	// this only considers ms values per finger, we could also try something
-	// that includes cross finger values to catch tight stuff like the triplets
-	// in runningmen
-
-	static const bool dbg = false;
+	// now attempting to merge column ms values and cross column ms values
+	static const bool dbg = true;
 
 	// how many ms values we use from here, if there are fewer than this number
 	// we'll mock up some values to water down intervals with a single extremely
 	// fast minijack, if there are more, we will truncate
 	static const unsigned int num_used = 3;
+	static const unsigned int num_cc_used = 3;
+
+
+
 	if (input.empty())
 		return 0.f;
 
+	// avoiding this for now because of smoothing
 	// single ms value, dunno if we want to do this? technically the tail end of
 	// an insanely hard burst that gets lopped off at the last note is still
 	// hard?
 	// if (input.size() < 2)
 	// return 1.f;
 
-	// truncate if we have more values than what we care to sample, we're
-	// looking for a good estimate of the hardest part of this interval
-	if (input.size() > num_used)
-		input.resize(num_used);
-
-	// if above 1 and below used_ms_vals, fill up the stuff with dummies
-	static const float ms_dummy = 360.f;
-	if (input.size() < num_used)
-		for (size_t i = 0; i < num_used - input.size(); ++i)
-			input.push_back(ms_dummy);
-
+	// sort before truncating/filling
+	sort(cc.begin(), cc.end());
 	sort(input.begin(), input.end());
 
-	// another method of suppressing minijacks i guess?
-	// input[0] *= 1.1f;
+	// truncate if we have more values than what we care to sample, we're
+	// looking for a good estimate of the hardest part of this interval
+	// if above 1 and below used_ms_vals, fill up the stuff with dummies
+	static const float ms_dummy = 360.f;
+	truncate_or_fill_to_size(input, num_used, ms_dummy);
+	truncate_or_fill_to_size(cc, num_cc_used, ms_dummy);
+
+	// mostly try to push down stuff like jumpjacks, not necessarily to push up
+	// "complex" stuff
+	float cv_yo = cv(input) + 0.5f;
+	float cc_cv = cv(cc) + 0.5f;
+
+	cc_cv = CalcClamp(cc_cv, 0.5f, 1.25f);
+	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
+
+	static const float very_arbitrary_magic_number_get_mad = 3.5f;
+	//for (auto v : cc)
+	//	input.push_back(v * very_arbitrary_magic_number_get_mad / cc_cv);
+
+
+	sort(input.begin(), input.end());
+	float comb_cc = cv(input) + 1.f;
+	
+	comb_cc = CalcClamp(comb_cc, 0.75f, 1.5f);
+	if (dbg && debug_lmao)
+		std::cout << "cv in: " << cv_yo << " : cv cc: " << cc_cv
+				  << " : cv comb: " << comb_cc << std::endl;
 
 	if (dbg && debug_lmao) {
 		std::string moop = "";
@@ -1189,9 +1212,15 @@ Hand::CalcMSEstimate(vector<float> input)
 		std::cout << "notes: " << moop << std::endl;
 	}
 
-	// mostly try to push down stuff like jumpjacks, not necessarily to push up
-	// "complex" stuff
-	float cv_yo = 1.f + cv(input);
+	if (dbg && debug_lmao) {
+		std::string moop2 = "";
+		for (auto& v : cc) {
+			moop2.append(std::to_string(v));
+			moop2.append(", ");
+		}
+
+		std::cout << "cc: " << moop2 << std::endl;
+	}
 
 	if (dbg && debug_lmao)
 		std::cout << "cv : " << cv_yo << std::endl;
@@ -1203,17 +1232,21 @@ Hand::CalcMSEstimate(vector<float> input)
 
 	if (dbg && debug_lmao)
 		std::cout << "m : " << m << std::endl;
-	if (dbg && debug_lmao)
-		std::cout << "diff : " << 1675.f * (num_used + 1) / m * cv_yo
-				  << std::endl;
+	
 	// add 1 to num_used because some meme about sampling
-	return 750.f * (num_used + 1) / m * cv_yo;
+	// same thing as jack stuff, convert to bpm and then nps
+	float bpm_est = ms_to_bpm(m / (num_used + 1));
+	float nps_est = bpm_est / 15.f ;
+	float fdiff = nps_est * comb_cc;
+	if (dbg && debug_lmao)
+		std::cout << "diff : " << fdiff << std::endl;
+	return fdiff;
 }
 
 void
 Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 {
-	static const bool dbg = false;
+	static const bool dbg = true;
 
 	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
@@ -1229,10 +1262,10 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
 			difficulty =
-			  (6.5f * left_difficulty + 2.5f * right_difficulty) / 9.f;
+			  (6.f * left_difficulty + 3.f * right_difficulty) / 9.f;
 		else
 			difficulty =
-			  (6.5f * right_difficulty + 2.5f * left_difficulty) / 9.f;
+			  (6.f * right_difficulty + 3.f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -1311,7 +1344,7 @@ Calc::Chisel(float player_skill,
 						gotpoints -=
 						  (JackLoss(player_skill, 0, max_points_lost, false)) /
 						  7.5f;*/
-					static const float literal_black_magic = 0.875f;
+					static const float literal_black_magic = 0.85f;
 					if (ss == Skill_Technical) {
 						float bzz =
 						  max(JackLoss(player_skill * literal_black_magic,
@@ -1326,11 +1359,18 @@ Calc::Chisel(float player_skill,
 										   3,
 										   max_points_lost,
 										   stamina)));
-						gotpoints += bzz;
+						bzz = max(bzz,
+								   JackLoss(player_skill * literal_black_magic,
+											0,
+											max_points_lost,
+											stamina));
+						gotpoints += bzz / 2.5f;
 					}
 
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
+
+					// already can't reach goal, move on
 					if (gotpoints > reqpoints)
 						right_hand.CalcInternal(
 						  gotpoints, player_skill, ss, stamina);
@@ -1464,6 +1504,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeBalance,
 		  WideRangeRoll,
+		  FlamJam,
 		},
 
 	};
