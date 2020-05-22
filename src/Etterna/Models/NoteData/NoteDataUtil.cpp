@@ -1752,7 +1752,7 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 		vector<int> doot(inout.GetNumTracks());
 		iota(std::begin(doot), std::end(doot), 0);
 
-		random_shuffle(doot.begin(), doot.end());
+		std::shuffle(doot.begin(), doot.end(), g_RandomNumberGenerator);
 		for (int tdoot = 0; tdoot < inout.GetNumTracks(); tdoot++) {
 			int t1 = doot[tdoot];
 			const TapNote& tn1 = inout.GetTapNote(t1, r);

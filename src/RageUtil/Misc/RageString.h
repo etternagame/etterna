@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_STRING_HPP_
+#ifndef RAGE_STRING_HPP_
 #define RAGE_STRING_HPP_
 
 #include <string>
@@ -276,7 +276,6 @@ struct ci_ascii_char_traits : public std::char_traits<char>
 using ci_ascii_string = std::basic_string<char, ci_ascii_char_traits>;
 
 struct ci_ascii_string_less
-  : std::binary_function<ci_ascii_string, ci_ascii_string, bool>
 {
 	inline bool operator()(ci_ascii_string const& lhs,
 						   ci_ascii_string const& rhs) const
@@ -286,7 +285,6 @@ struct ci_ascii_string_less
 };
 
 struct ci_ascii_string_equal
-  : std::binary_function<ci_ascii_string, ci_ascii_string, bool>
 {
 	inline bool operator()(ci_ascii_string const& lhs,
 						   ci_ascii_string const& rhs) const
@@ -295,7 +293,7 @@ struct ci_ascii_string_equal
 	}
 };
 
-struct std_string_ci_less : std::binary_function<std::string, std::string, bool>
+struct std_string_ci_less
 {
 	inline bool operator()(std::string const& lhs, std::string const& rhs) const
 	{
@@ -305,7 +303,6 @@ struct std_string_ci_less : std::binary_function<std::string, std::string, bool>
 };
 
 struct std_string_ci_equal
-  : std::binary_function<std::string, std::string, bool>
 {
 	inline bool operator()(std::string const& lhs, std::string const& rhs) const
 	{

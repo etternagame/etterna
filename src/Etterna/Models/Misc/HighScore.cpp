@@ -599,6 +599,7 @@ HighScore::LoadReplayDataFull(string dir)
 			tokens.clear();
 			continue;
 		}
+
 		bool a = buffer == "1";
 		a = buffer == "2" || a;
 		a = buffer == "3" || a;
