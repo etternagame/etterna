@@ -294,7 +294,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 // global multiplier to standardize baselines
-static const float finalscaler = 3.632f * 1.01f;
+static const float finalscaler = 3.632f;
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -316,7 +316,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 1.02f };
+												 0.94f, 0.7675f, 0.84f, 1.f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -771,7 +771,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.21f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.2f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
@@ -3069,7 +3069,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 		if (whatwhat == 0)
 			whatwhat = 1;
 		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.97f, 1.03f);
+		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
 	}
 
 	// covering a window of 4 intervals does act as a smoother, and
@@ -3936,7 +3936,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-static const float ssr_goal_cap = 0.955f; // goal cap to prevent insane scaling
+static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
 #pragma region thedoots
 // Function to generate SSR rating
 vector<float>
@@ -3945,7 +3945,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 	if (NoteInfo.size() <= 1)
 		return dimples_the_all_zero_output;
 	return std::make_unique<Calc>()->CalcMain(
-	  NoteInfo, musicrate, min(goal - 0.01f, ssr_goal_cap));
+	  NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -3961,7 +3961,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 		cacheRun->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(cacheRun->CalcMain(
-			  NoteInfo, static_cast<float>(i) / 10.f, 0.92f));
+			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
 		}
 	} else
 		for (int i = lower_rate; i < upper_rate; i++)
@@ -3992,7 +3992,7 @@ int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 323;
+	return 324;
 #else
 	return 263;
 #endif
