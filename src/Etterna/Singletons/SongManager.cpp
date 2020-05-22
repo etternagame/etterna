@@ -380,20 +380,23 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 void
 SongManager::CalcTestStuff()
 {
+#ifndef USING_CALCTESTS
+	return;
+#endif
 
 	vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
 	for (auto p : testChartList) {
 		auto ss = p.first;
-		LOG->Trace(
-			  "\nStarting calc test group %s\n", SkillsetToString(ss).c_str());
+		LOG->Trace("\nStarting calc test group %s\n",
+				   SkillsetToString(ss).c_str());
 		for (auto chart : p.second.filemapping) {
-			
+
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
-				  StepsByKey[chart.first]->DoATestThing(chart.second.ev,
-														ss, chart.second.rate));
+				  StepsByKey[chart.first]->DoATestThing(
+					chart.second.ev, ss, chart.second.rate));
 		}
 		LOG->Trace("\n\n");
 	}
@@ -1668,7 +1671,7 @@ CalcTestList::CreateNode() const
 }
 
 void
-  SongManager::LoadCalcTestNode() const
+SongManager::LoadCalcTestNode() const
 {
 #ifndef USING_CALCTESTS
 	return;
@@ -1723,7 +1726,7 @@ void
 						}
 					}
 				}
-				
+
 				tl.filemapping[key.c_str()] = ct;
 			}
 		}
@@ -1738,7 +1741,7 @@ SongManager::SaveCalcTestCreateNode() const
 
 	XNode* calctestlists = new XNode("CalcTest");
 	FOREACHM_CONST(Skillset, CalcTestList, testChartList, i)
-		calctestlists->AppendChild(i->second.CreateNode());
+	calctestlists->AppendChild(i->second.CreateNode());
 	return calctestlists;
 }
 
@@ -1749,7 +1752,7 @@ SongManager::SaveCalcTestXmlToDir() const
 	return;
 #endif
 	string fn = "Save/" + calctest_XML;
-	  // calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
+	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
 	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
 	string err;
 	RageFile f;
