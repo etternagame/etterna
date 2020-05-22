@@ -83,16 +83,17 @@ ms_from_last(float now, float last)
 inline void
 truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
 {
+	unsigned int old = v.size();
 	// we could do this outside but w.e
-	if (v.size() == n)
+	if (old == n)
 		return;
 
 	// truncate if over
-	if (v.size() > n)
+	if (old > n)
 		v.resize(n);
 	else
 		// fill if under
-		for (size_t i = 0; i < n - v.size(); ++i)
+		for (size_t i = 0; i < n - old; ++i)
 			v.push_back(dummy_value);
 }
 
