@@ -39,7 +39,7 @@ class Hand
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
 	static float CalcMSEstimate(std::vector<float> input,
-								const std::vector<float> itv_cc);
+								const std::vector<float> itv_cc, int burp);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps

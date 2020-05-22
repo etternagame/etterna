@@ -339,7 +339,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 0.9f };
+												 0.94f, 0.7675f, 0.84f, 1.f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -423,13 +423,9 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 		}
 }
 static const float magic_num = 7.5f;
-static const float magic_num2 = 4.5f;
 inline float
 hit_the_road(float x, float y, int mode)
 {
-	if (mode == 0)
-		return (CalcClamp(
-		  magic_num2 - (magic_num2 * fastpow(x / y, 2.5f)), 0.f, magic_num2));
 	return (CalcClamp(
 	  magic_num - (magic_num * fastpow(x / y, 2.5f)), 0.f, magic_num));
 }
@@ -552,7 +548,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = {
-		0.4555f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
+		1.0555f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
@@ -1147,7 +1143,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 // sure we don't need to use this for anything else we can probably refpass
 // again but cba to test atm
 float
-Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
+Hand::CalcMSEstimate(vector<float> input, vector<float> cc, int burp)
 {
 	// now attempting to merge column ms values and cross column ms values
 	static const bool dbg = true;
@@ -1155,7 +1151,7 @@ Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
 	// how many ms values we use from here, if there are fewer than this number
 	// we'll mock up some values to water down intervals with a single extremely
 	// fast minijack, if there are more, we will truncate
-	static const unsigned int num_used = 3;
+	static const unsigned int num_used = burp;
 	static const unsigned int num_cc_used = 3;
 
 	if (input.empty())
@@ -1188,13 +1184,12 @@ Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
 	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
 
 	static const float very_arbitrary_magic_number_get_mad = 3.5f;
-	//for (auto v : cc)
+	// for (auto v : cc)
 	//	input.push_back(v * very_arbitrary_magic_number_get_mad / cc_cv);
-
 
 	sort(input.begin(), input.end());
 	float comb_cc = cv(input) + 1.f;
-	
+
 	comb_cc = CalcClamp(comb_cc, 0.75f, 1.5f);
 	if (dbg && debug_lmao)
 		std::cout << "cv in: " << cv_yo << " : cv cc: " << cc_cv
@@ -1230,11 +1225,11 @@ Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
 
 	if (dbg && debug_lmao)
 		std::cout << "m : " << m << std::endl;
-	
+
 	// add 1 to num_used because some meme about sampling
 	// same thing as jack stuff, convert to bpm and then nps
 	float bpm_est = ms_to_bpm(m / (num_used + 1));
-	float nps_est = bpm_est / 15.f ;
+	float nps_est = bpm_est / 15.f;
 	float fdiff = nps_est * comb_cc;
 	if (dbg && debug_lmao)
 		std::cout << "diff : " << fdiff << std::endl;
@@ -1254,20 +1249,32 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 		if (dbg && debug_lmao)
 			std::cout << "\ninterval : " << i << std::endl;
 
+		// scaler for things with higher things
+		static const float higher_thing_scaler = 1.05f;
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty = CalcMSEstimate(f1[i], itv_cc[i]);
-		float right_difficulty = CalcMSEstimate(f2[i], itv_cc[i]);
+		float left_difficulty =
+		  max(CalcMSEstimate(f1[i], itv_cc[i], 3),
+			  CalcMSEstimate(f1[i], itv_cc[i], 4) * higher_thing_scaler);
+		left_difficulty =
+			max(left_difficulty,
+			  CalcMSEstimate(f1[i], itv_cc[i], 5) *
+				higher_thing_scaler * higher_thing_scaler);
+		float right_difficulty =
+		  max(CalcMSEstimate(f2[i], itv_cc[i], 3),
+			  CalcMSEstimate(f2[i], itv_cc[i], 4) * higher_thing_scaler);
+		right_difficulty =
+		  max(right_difficulty,
+			  CalcMSEstimate(f2[i], itv_cc[i], 5) *
+				higher_thing_scaler * higher_thing_scaler);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty =
-			  (5.5f * left_difficulty + 3.5f * right_difficulty) / 9.f;
+			difficulty = (6.5f * left_difficulty + 2.5f * right_difficulty) / 9.f;
 		else
-			difficulty =
-			  (5.5f * right_difficulty + 3.5f * left_difficulty) / 9.f;
+			difficulty = (6.5f * right_difficulty + 2.5f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  finalscaler * (6.5f * difficulty + 3.5f * nps) / 10.f;
+		  finalscaler * (5.8f * difficulty + 4.2f * nps) / 10.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMSD]);
@@ -1336,10 +1343,6 @@ Calc::Chisel(float player_skill,
 						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
-					/*if (ss == Skill_Technical)
-						gotpoints -=
-						  (JackLoss(player_skill, 0, max_points_lost, false)) /
-						  7.5f;*/
 					static const float literal_black_magic = 0.9f;
 					if (ss == Skill_Technical) {
 						float bzz =
@@ -1356,11 +1359,11 @@ Calc::Chisel(float player_skill,
 										   max_points_lost,
 										   stamina)));
 						bzz = max(bzz,
-								   JackLoss(player_skill * literal_black_magic,
-											0,
-											max_points_lost,
-											stamina));
-						gotpoints += bzz / 2.f;
+								  JackLoss(player_skill * literal_black_magic,
+										   0,
+										   max_points_lost,
+										   stamina));
+						gotpoints += bzz / 2.5f;
 					}
 
 					left_hand.CalcInternal(
