@@ -982,8 +982,8 @@ Hand::CalcMSEstimate(vector<float> input)
 	// single ms value, dunno if we want to do this? technically the tail end of
 	// an insanely hard burst that gets lopped off at the last note is still
 	// hard?
-	//if (input.size() < 2)
-		//return 1.f;
+	// if (input.size() < 2)
+	// return 1.f;
 
 	// truncate if we have more values than what we care to sample, we're
 	// looking for a good estimate of the hardest part of this interval
@@ -999,7 +999,7 @@ Hand::CalcMSEstimate(vector<float> input)
 	sort(input.begin(), input.end());
 
 	// another method of suppressing minijacks i guess?
-	//input[0] *= 1.1f;
+	// input[0] *= 1.1f;
 
 	if (dbg && debug_lmao) {
 		std::string moop = "";
@@ -1050,9 +1050,11 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		float right_difficulty = CalcMSEstimate(f2[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
-			difficulty = (6.5f * left_difficulty + 2.5f * right_difficulty) / 9.f;
+			difficulty =
+			  (6.5f * left_difficulty + 2.5f * right_difficulty) / 9.f;
 		else
-			difficulty = (6.5f * right_difficulty + 2.5f * left_difficulty) / 9.f;
+			difficulty =
+			  (6.5f * right_difficulty + 2.5f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -1278,13 +1280,13 @@ Hand::InitAdjDiff()
 
 		// tech, duNNO wat im DOIN
 		{
-			Anchor,
-			Roll,
-			OHJump,
-			Chaos,
-			WideRangeJumptrill,
-			WideRangeBalance,
-			WideRangeRoll,
+		  Anchor,
+		  Roll,
+		  OHJump,
+		  Chaos,
+		  WideRangeJumptrill,
+		  WideRangeBalance,
+		  WideRangeRoll,
 		},
 
 	};
@@ -1355,14 +1357,14 @@ Hand::InitAdjDiff()
 				case Skill_Technical:
 					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
 					{
-						for (int j = 0; j < NUM_Skillset - 1; ++j)
-							if (j == Skill_Stamina || j == Skill_Overall)
-								scoring_justice_warrior_agenda[j] = 0.f;
-							else
-								scoring_justice_warrior_agenda[j] = tp_mods[j];
-						float muzzle = *std::max_element(
-						  scoring_justice_warrior_agenda.begin(),
-						  scoring_justice_warrior_agenda.end());
+						// for (int j = 0; j < NUM_Skillset - 1; ++j)
+						//	if (j == Skill_Stamina || j == Skill_Overall)
+						//		scoring_justice_warrior_agenda[j] = 0.f;
+						//	else
+						//		scoring_justice_warrior_agenda[j] = tp_mods[j];
+						// float muzzle = *std::max_element(
+						//  scoring_justice_warrior_agenda.begin(),
+						//  scoring_justice_warrior_agenda.end());
 						adj_diff = soap[BaseMS][i] * tp_mods[ss] *
 								   basescalers[ss] /
 								   fastsqrt(doot[WideRangeBalance][i]) /
