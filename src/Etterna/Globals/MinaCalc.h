@@ -38,14 +38,17 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	static float CalcMSEstimate(std::vector<float> input);
+	static float CalcMSEstimate(std::vector<float> input,
+								const std::vector<float> itv_cc);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
 	estimates are underrated by ms estimates, and vice versa. Pattern modifiers
 	are used to adjust for circumstances in which this is not true. The result
 	is output to v_itvNPSdiff and v_itvMSdiff. */
-	void InitBaseDiff(Finger& f1, Finger& f2);
+	void InitBaseDiff(Finger& f1,
+					  Finger& f2,
+					  const std::vector<std::vector<float>>& itv_cc);
 
 	// I don't know why this was ever being done in the internal loop, only the
 	// stam adjusted difficulties were dependent on a player_skill input, these

@@ -839,6 +839,159 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
+#pragma region sequencelogicstuffmaybe
+// cross column behavior between 2 notes
+enum cc_type
+{
+	cc_left_right,
+	cc_right_left,
+	cc_jump_single,
+	cc_single_single,
+	cc_single_jump,
+	cc_jump_jump,
+	cc_empty,
+	cc_was_init,
+	cc_undefined
+};
+
+inline bool
+is_single_tap(bool a, bool b)
+{
+	return a ^ b;
+}
+
+inline bool
+is_single_tap(cc_type cc)
+{
+	return cc == cc_left_right || cc == cc_right_left || cc == cc_jump_single;
+}
+
+inline bool
+is_empty_row(bool a, bool b)
+{
+	return !a && !b;
+}
+// this can be inferred from !empty and !single in most cases
+inline bool
+is_jump(bool a, bool b)
+{
+	return a && b;
+}
+
+inline bool
+is_jump(cc_type cc)
+{
+	return cc == cc_jump_jump || cc == cc_single_jump;
+}
+
+static const int cc_init_id = -2;
+static const int cc_jump_id = -1;
+
+inline cc_type
+determine_cc_type(int last, bool l, bool r, int t1, int t2)
+{
+	if (is_empty_row(l, r))
+		return cc_empty;
+	else if (last == cc_init_id)
+		return cc_was_init;
+
+	bool single_tap = is_single_tap(l, r);
+	bool last_was_jump = last == cc_jump_id;
+	if (last_was_jump) {
+		if (single_tap)
+			return cc_jump_single;
+		else
+			// can't be anything else
+			return cc_jump_jump;
+	} else if (!single_tap)
+		return cc_single_jump;
+	// if we are on left col _now_, we are right to left
+	else if (l && last == t2)
+		return cc_right_left;
+	else if (r && last == t1)
+		return cc_left_right;
+	else
+		return cc_single_single;
+
+	// shouldn't ever happen
+	return cc_undefined;
+}
+
+bool
+should_log_cross_columns_for_ms_base(cc_type cc)
+{
+	switch (cc) {
+		case cc_left_right:
+		case cc_right_left:
+		case cc_jump_single:
+		case cc_single_jump:
+			return true;
+		case cc_single_single:
+		case cc_jump_jump:
+		case cc_empty:
+		case cc_was_init:
+		case cc_undefined:
+		default:
+			return false;
+	}
+}
+#pragma endregion
+// these _could_ be mapped near the start of inithand so we have this info for
+// each note and don't have to keep generating it when we need it (only makes
+// sense if this captures all the use cases we need tho)
+inline vector<vector<float>>
+log_cross_columns(const vector<vector<int>>& itv_rows,
+				  const vector<NoteInfo>& NoteInfo,
+				  float music_rate,
+				  int t1,
+				  int t2)
+{
+	const bool dbg = true && debug_lmao;
+	vector<vector<float>> o;
+	// o.reserve(itv_rows.size());
+	vector<float> p;
+	int lastcol = -2;
+	float lasttime = -5.f;
+	float curtime = 0.f;
+	float this_ms = 5000.f;
+	bool lcol = false;
+	bool rcol = false;
+	bool single_tap = false;
+	int run_len = 0;
+	for (auto& itv : itv_rows) {
+		p.clear();
+		for (auto& row : itv) {
+			lcol = NoteInfo[row].notes & t1;
+			rcol = NoteInfo[row].notes & t2;
+
+			auto cc = determine_cc_type(lastcol, lcol, rcol, t1, t2);
+
+			// don't need to update lasttime
+			if (cc == cc_empty)
+				continue;
+
+			// do need to update lasttime at the end
+			curtime = NoteInfo[row].rowTime / music_rate;
+			this_ms = ms_from_last(curtime, lasttime);
+
+			if (should_log_cross_columns_for_ms_base(cc))
+				p.push_back(this_ms);
+
+			// update last notes/time
+			if (is_jump(cc))
+				lastcol = -1;
+			else
+				lastcol = lcol ? t1 : t2;
+
+			lasttime = curtime;
+
+			assert(cc != cc_undefined);
+		}
+		o.push_back(p);
+	}
+	return o;
+}
+
 bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 					  float music_rate,
@@ -876,10 +1029,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// anything here and almost defeats the purpose but
 		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
-			hand.InitBaseDiff(fingers[0], fingers[1]);
+			auto itv_cc = log_cross_columns(
+			  nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]);
+			hand.InitBaseDiff(fingers[0], fingers[1], itv_cc);
 			hand.InitPoints(fingers[0], fingers[1]);
 		} else {
-			hand.InitBaseDiff(fingers[2], fingers[3]);
+			auto itv_cc = log_cross_columns(
+			  nervIntervals, NoteInfo, music_rate, col_ids[2], col_ids[3]);
+			hand.InitBaseDiff(fingers[2], fingers[3], itv_cc);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
@@ -1039,7 +1196,7 @@ Hand::CalcMSEstimate(vector<float> input)
 }
 
 void
-Hand::InitBaseDiff(Finger& f1, Finger& f2)
+Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 {
 	static const bool dbg = false;
 
@@ -1052,8 +1209,8 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 			std::cout << "\ninterval : " << i << std::endl;
 
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty = CalcMSEstimate(f1[i]);
-		float right_difficulty = CalcMSEstimate(f2[i]);
+		float left_difficulty = CalcMSEstimate(f1[i], itv_cc[i]);
+		float right_difficulty = CalcMSEstimate(f2[i], itv_cc[i]);
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
 			difficulty =
