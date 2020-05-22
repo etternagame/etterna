@@ -38,7 +38,7 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	static float CalcMSEstimate(std::vector<float> input,
+	float CalcMSEstimate(std::vector<float> input,
 								const std::vector<float> itv_cc, int burp);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
