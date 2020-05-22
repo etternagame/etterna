@@ -294,7 +294,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 // global multiplier to standardize baselines
-static const float finalscaler = 3.632f;
+static const float finalscaler = 3.632f * 1.01f;
 
 // ***note*** if we want max control over stamina we need to have one model for
 // affecting the other skillsets to a certain degree, enough to push up longer
@@ -316,7 +316,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 1.f };
+												 0.94f, 0.7675f, 0.84f, 1.02f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -771,7 +771,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.2f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.21f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
@@ -3934,7 +3934,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-static const float ssr_goal_cap = 0.965f; // goal cap to prevent insane scaling
+static const float ssr_goal_cap = 0.955f; // goal cap to prevent insane scaling
 #pragma region thedoots
 // Function to generate SSR rating
 vector<float>
@@ -3943,7 +3943,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
 	if (NoteInfo.size() <= 1)
 		return dimples_the_all_zero_output;
 	return std::make_unique<Calc>()->CalcMain(
-	  NoteInfo, musicrate, min(goal, ssr_goal_cap));
+	  NoteInfo, musicrate, min(goal - 0.01f, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
@@ -3959,7 +3959,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo)
 		cacheRun->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(cacheRun->CalcMain(
-			  NoteInfo, static_cast<float>(i) / 10.f, 0.93f));
+			  NoteInfo, static_cast<float>(i) / 10.f, 0.92f));
 		}
 	} else
 		for (int i = lower_rate; i < upper_rate; i++)
