@@ -434,7 +434,7 @@ hit_the_road(float x, float y, int mode)
 float
 Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug)
 {
-	mpl *= 1.5f;
+	//mpl *= 1.5f;
 	const bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
@@ -549,7 +549,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = {
-		0.9055f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
+		0.6555f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
@@ -791,7 +791,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.2f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.1f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
@@ -1352,7 +1352,7 @@ Calc::Chisel(float player_skill,
 						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
-					static const float literal_black_magic = 0.875f;
+					static const float literal_black_magic = 0.85f;
 					if (ss == Skill_Technical) {
 						float bzz = 0.f;
 						float bz0 =
@@ -1379,8 +1379,8 @@ Calc::Chisel(float player_skill,
 								   stamina) +
 						  bz0;
 
-						bzz = max_val(vector<float>{ bz1, bz2, bz3 });
-						gotpoints += bzz / 1.5f;
+						bzz = mean(vector<float>{ bz1, bz2, bz3 });
+						gotpoints += bzz / 2.5f;
 					}
 
 					left_hand.CalcInternal(
