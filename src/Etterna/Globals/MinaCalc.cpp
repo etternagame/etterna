@@ -80,6 +80,22 @@ ms_from_last(float now, float last)
 	return (now - last) * 1000.f;
 }
 
+inline void
+truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
+{
+	// we could do this outside but w.e
+	if (v.size() == n)
+		return;
+
+	// truncate if over
+	if (v.size() > n)
+		v.resize(n);
+	else
+		// fill if under
+		for (size_t i = 0; i < n - v.size(); ++i)
+			v.push_back(dummy_value);
+}
+
 template<typename T>
 inline T
 CalcClamp(T x, T l, T h)
