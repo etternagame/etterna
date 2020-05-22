@@ -231,7 +231,7 @@ static const char* CalcPatternModNames[] = { "OHJump",
 											 "HS",
 											 "HSS",
 											 "HSJ",
-											 "JS", "JSS", "JSJ",  "CJ",	"CJS", "CJJ", "StreamMod", "OHTrill", "Chaos" , "FlamJam", "WideRangeRoll", "WideRangeJumptrill", "WideRangeBalance", "WideRangeAnchor", "CJOHJump", "CJQuad", "TheThing"};
+											 "JS", "JSS", "JSJ",  "CJ",	"CJS", "CJJ", "StreamMod", "OHTrill", "Chaos" , "FlamJam", "WideRangeRoll", "WideRangeJumptrill", "WideRangeBalance", "WideRangeAnchor", "CJOHJump", "CJQuad", "TheThing", "RanMan"};
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 

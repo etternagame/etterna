@@ -67,6 +67,7 @@ enum CalcPatternMod
 	CJOHJump,
 	CJQuad,
 	TheThing,
+	RanMan,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

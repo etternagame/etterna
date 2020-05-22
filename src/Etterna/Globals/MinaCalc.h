@@ -177,6 +177,12 @@ class Calc
 					   std::vector<float> doot[],
 					   float& music_rate);
 
+	void WideRangeRanMan(const std::vector<NoteInfo>& NoteInfo,
+						 unsigned int t1,
+						 unsigned int t2,
+						 float music_rate,
+						 std::vector<float> doot[]);
+
 	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
 					  std::vector<float> doot[ModCount],
 					  float music_rate);
