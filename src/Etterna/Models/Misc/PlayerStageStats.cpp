@@ -189,19 +189,19 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 Grade
 GetGradeFromPercent(float fPercent)
 {
-	if (fPercent >= 0.99999f)
+	if (fPercent >= 0.99996f)
 		return Grade_Tier01;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9999f)
-		return Grade_Tier02;
 	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
+		return Grade_Tier02;
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9997f)
 		return Grade_Tier03;
 	if (fPercent >= 0.9997f)
 		return Grade_Tier04;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9992f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.999f)
 		return Grade_Tier05;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9985f)
+	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.998f)
 		return Grade_Tier06;
-	if (fPercent >= 0.9975f)
+	if (fPercent >= 0.997f)
 		return Grade_Tier07;
 	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
 		return Grade_Tier08;
