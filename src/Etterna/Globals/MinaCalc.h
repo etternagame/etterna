@@ -11,7 +11,7 @@
 #ifndef MINACALC_API
 #define MINACALC_API
 #endif
-
+//#define USING_NEW_CALC
 typedef std::vector<std::vector<float>> MinaSD;
 typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;

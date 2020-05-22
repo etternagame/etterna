@@ -3989,5 +3989,9 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 int
 GetCalcVersion()
 {
+#if USING_NEW_CALC
 	return 323;
+#else
+	return 263;
+#endif
 }

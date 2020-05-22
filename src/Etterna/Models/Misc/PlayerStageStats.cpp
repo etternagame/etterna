@@ -382,8 +382,13 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (steps->m_StepsType == StepsType_dance_solo)
 		return SoloCalc(serializednd, musicrate, ssrpercent);
-	else
+	else {
+#ifdef USING_NEW_CALC
 		return MinaSDCalc(serializednd, musicrate, ssrpercent);
+#else
+		return MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
+#endif
+	}
 }
 
 float
