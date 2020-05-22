@@ -398,8 +398,14 @@ Steps::CalcEtternaMetadata()
 
 	if (m_StepsType == StepsType_dance_solo)
 		diffByRate = SoloCalc(cereal);
-	else
+	else {
+#ifdef USING_NEW_CALC
+		diffByRate = MinaSDCalc(cereal);
+#else
 		diffByRate = MinaSDCalc_OLD(cereal);
+#endif
+	}
+		
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 

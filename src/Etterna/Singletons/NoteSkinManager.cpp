@@ -78,7 +78,7 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	// clear path cache
 	g_PathCache.clear();
 
-	auto gameName = pGame->m_szName;
+	std::string gameName = pGame->m_szName;
 	// how to make solo use dance skins
 	if (gameName == "solo")
 		gameName = "dance";
@@ -130,7 +130,7 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const RString& sNoteSkinName_,
 	int iDepth = 0;
 	bool bLoadedCommon = false;
 	bool bLoadedBase = false;
-	auto gameName = m_pCurGame->m_szName;
+	std::string gameName = m_pCurGame->m_szName;
 	// how to make solo use dance noteskins
 	if (gameName == "solo")
 		gameName = "dance";
@@ -307,7 +307,7 @@ NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 			AddTo.push_back(iter->second.sName);
 		}
 	} else {
-		auto name = pGame->m_szName;
+		std::string name = pGame->m_szName;
 		if (name == "solo")
 			name = "dance";
 		RString sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + name + "/";
