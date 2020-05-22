@@ -1258,7 +1258,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 			std::cout << "\ninterval : " << i << std::endl;
 
 		// scaler for things with higher things
-		static const float higher_thing_scaler = 1.1f;
+		static const float higher_thing_scaler = 1.15f;
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
 		float left_difficulty =
 		  max(CalcMSEstimate(f1[i], itv_cc[i], 3),
@@ -1274,7 +1274,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 								 higher_thing_scaler * higher_thing_scaler);
 
 		float difficulty = 0.f;
-		float squiggly_line = 6.f;
+		float squiggly_line = 6.5f;
 		if (left_difficulty > right_difficulty)
 			difficulty =
 			  a_thing(left_difficulty, right_difficulty, squiggly_line, 9.f);
@@ -1283,7 +1283,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = a_thing(difficulty, nps, 4.5f, 10.f) * finalscaler;
+		soap[BaseMSD][i] = a_thing(difficulty, nps, 5.5f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	Smooth(soap[BaseMSD], 0.f);
@@ -1380,7 +1380,7 @@ Calc::Chisel(float player_skill,
 						  bz0;
 
 						bzz = max_val(vector<float>{ bz1, bz2, bz3 });
-						gotpoints += bzz / 3.f;
+						gotpoints += bzz / 1.5f;
 					}
 
 					left_hand.CalcInternal(
