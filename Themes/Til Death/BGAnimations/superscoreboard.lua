@@ -604,7 +604,7 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					self:settextf("%05.2f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
+					self:settextf("%05.2f%%", notShit.floor(hs:GetWifeScore() * 100, 2)):diffuse(byGrade(hs:GetWifeGrade()))
 				end
 			},
 			LoadFont("Common normal") ..
@@ -618,7 +618,7 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					self:settextf("%05.4f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
+					self:settextf("%05.4f%%", notShit.floor(hs:GetWifeScore() * 100, 5)):diffuse(byGrade(hs:GetWifeGrade()))
 				end
 			},
 		LoadFont("Common normal") ..
