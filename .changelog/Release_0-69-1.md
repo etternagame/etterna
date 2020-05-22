@@ -5,6 +5,7 @@
 
 ### Changed
 - AAA minimum moved to 99.7 - [e4f8def](../../../commit/e4f8def6dd840225e8eeb73ac01917df7f57afbe) [6d46e26](../../../commit/6d46e260103639af6dc27c4b26bc6f27f0624ec5)
+- Chart Leaderboards will floor Wifepercents - [4b63725](../../../commit/4b637259be7121963537d666cb980fc3dda30dca)
 - Chord Cohesion setting when recalculating SSRs is simplified due to the Wife3 changes - [3cf42c3](../../../commit/3cf42c3260666662f5d695f0400b0c8fe08753c7)
 - Manually uploaded scores doesn't need to check the rescored flags, just try it - [3a8cdf6](../../../commit/3a8cdf64b07af8faf15f7d3bcdbc677dbd43628e)
 - Replays found to be garbage due to data writing issues will be filtered out and appear in logs - [393da39](../../../commit/393da39d09a302c120a491fa2cfdb0dbd9f69f22)
@@ -21,7 +22,10 @@
 
 ### Fixed
 - Coverity complained - [6501e6e](../../../commit/6501e6edc1bdaaeec81973983d1bbe4e8c18ed16)
+- Cursor stopped appearing on Bundle Select - [20e5fae](../../../commit/20e5faef2cfe5f830891b9706acb7c9f352070de)
 - Gameplay threw Lua error when turning off Combo - [c2ffc91](../../../commit/c2ffc91c22c41a0351cc42456041b116de5a7c44)
+- Logging in failures due to parsing errors broke the state of DLMan - [da16186](../../../commit/da161866f6d4169b119f1001230d7e6ebad1b403)
 - Solo files with 1 "interval" crashed when calculating difficulty - [f830e5e](../../../commit/f830e5ec40d317e85a1de5f4bca3ca331f8f094e)
+- Replay Data pretended to not exist if picking 2 scores from the same person on the same leaderboard - [f3a5832](../../../commit/f3a583206413060df3c88e64c4a1eda57a7bcb61)
 - Upload function used to cause issues if there was nothing to upload - [7697634](../../../commit/76976343cd5e5dd426b158d843ed512e4cb5a161)
 - Uploaded scores for non-pbs per rate tended to overwrite site scores - [e9c4e12](../../../commit/e9c4e12fe696210e5b71170dd09019c68afcade0)
