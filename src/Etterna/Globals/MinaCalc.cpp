@@ -477,8 +477,8 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug)
 			left_loss[i] = max(flurbo[0], flurbo[1]);
 			right_loss[i] = max(flurbo[2], flurbo[3]);
 			// slight optimization i guess, bail if we can no longer reach score
-			// goal (but only outside of debug, and not for minijacks)
-		} else if (total_point_loss > mpl && mode != 0)
+			// goal (but only outside of debug, //////and not for minijacks)
+		} else if (total_point_loss > mpl)
 			return total_point_loss;
 
 		total_point_loss += max(flurbo[0], flurbo[1]);
@@ -794,7 +794,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.01f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 0.81f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
@@ -1158,8 +1158,6 @@ Hand::CalcMSEstimate(vector<float> input, vector<float> cc)
 	static const unsigned int num_used = 3;
 	static const unsigned int num_cc_used = 3;
 
-
-
 	if (input.empty())
 		return 0.f;
 
@@ -1262,21 +1260,18 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 		float difficulty = 0.f;
 		if (left_difficulty > right_difficulty)
 			difficulty =
-			  (6.f * left_difficulty + 3.f * right_difficulty) / 9.f;
+			  (5.5f * left_difficulty + 3.5f * right_difficulty) / 9.f;
 		else
 			difficulty =
-			  (6.f * right_difficulty + 3.f * left_difficulty) / 9.f;
+			  (5.5f * right_difficulty + 3.5f * left_difficulty) / 9.f;
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  finalscaler * (5.83333f * difficulty + 4.26666f * nps) / 10.f;
+		  finalscaler * (6.5f * difficulty + 3.5f * nps) / 10.f;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMSD]);
 }
-
-// EPICCCC HACK????
-float jloss = 0.f;
 
 // each skillset should just be a separate calc function [todo]
 float
@@ -1291,6 +1286,7 @@ Calc::Chisel(float player_skill,
 	float gotpoints = 0.f;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
 	float max_points_lost = static_cast<float>(MaxPoints) - reqpoints;
+	float jloss = 0.f;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
 			if (player_skill > 100.f)
@@ -1344,7 +1340,7 @@ Calc::Chisel(float player_skill,
 						gotpoints -=
 						  (JackLoss(player_skill, 0, max_points_lost, false)) /
 						  7.5f;*/
-					static const float literal_black_magic = 0.85f;
+					static const float literal_black_magic = 0.9f;
 					if (ss == Skill_Technical) {
 						float bzz =
 						  max(JackLoss(player_skill * literal_black_magic,
@@ -1364,7 +1360,7 @@ Calc::Chisel(float player_skill,
 											0,
 											max_points_lost,
 											stamina));
-						gotpoints += bzz / 2.5f;
+						gotpoints += bzz / 2.f;
 					}
 
 					left_hand.CalcInternal(
