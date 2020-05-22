@@ -74,6 +74,12 @@ fastsqrt(float _in)
 	return out;
 }
 
+inline float
+ms_from_last(float now, float last)
+{
+	return (now - last) * 1000.f;
+}
+
 template<typename T>
 inline T
 CalcClamp(T x, T l, T h)
