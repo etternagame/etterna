@@ -400,9 +400,13 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 		}
 }
 static const float magic_num = 7.5f;
+static const float magic_num2 = 4.5f;
 inline float
 hit_the_road(float x, float y, int mode)
 {
+	if (mode == 0)
+		return (CalcClamp(
+		  magic_num2 - (magic_num2 * fastpow(x / y, 2.5f)), 0.f, magic_num2));
 	return (CalcClamp(
 	  magic_num - (magic_num * fastpow(x / y, 2.5f)), 0.f, magic_num));
 }
@@ -521,11 +525,11 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	float eff_ms = 0.f;
 	float eff_bpm = 0.f;
 	float ms = 0.f;
-	const float mode_buffers[4] = { 30.f, 250.f, 120.f, 225.f };
+	const float mode_buffers[4] = { 12.5f, 250.f, 120.f, 225.f };
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = {
-		1.125f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
+		0.4555f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
@@ -658,6 +662,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	  CalcClamp(
 		0.9f + (0.1f * ((NoteInfo.back().rowTime / music_rate) - 15.f) / 15.f),
 		0.9f,
+		1.f) *
+	  CalcClamp(
+		0.4f + (0.6f * ((NoteInfo.back().rowTime / music_rate) - 10.f) / 10.f),
+		0.4f,
 		1.f);
 
 	float jprop = chord_proportion(NoteInfo, 2);
@@ -729,6 +737,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// pollution of stamina leaderboards with charts
 		// that are just very high rated but take no stamina
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+
+		// super lazy hack to make jackspeed not give stam
+		if (highest_base_skillset == Skill_JackSpeed)
+			poodle_in_a_porta_potty *= 0.9f;
 
 		// the bigger this number the more stamina has to
 		// influence a file before it counts in the stam
@@ -1088,16 +1100,17 @@ Calc::Chisel(float player_skill,
 
 				if (ss == Skill_JackSpeed)
 					gotpoints -=
-					  JackLoss(player_skill, 1, max_points_lost, false);
+					  JackLoss(player_skill, 1, max_points_lost, stamina);
 				else if (ss == Skill_Chordjack)
 					gotpoints -=
-					  JackLoss(player_skill, 2, max_points_lost, false);
+					  JackLoss(player_skill, 2, max_points_lost, stamina);
 				else if (ss == Skill_Technical)
 					gotpoints -=
-					  JackLoss(player_skill, 3, max_points_lost, false);
+					  JackLoss(player_skill, 3, max_points_lost, stamina);
 				else if (ss == Skill_Stream)
 					gotpoints -=
-					  JackLoss(player_skill, 0, max_points_lost, false) / 7.5f;
+					  JackLoss(player_skill, 0, max_points_lost, stamina) /
+					  7.5f;
 #else
 				// jack sequencer point loss for jack speed and (maybe?)
 				// cj
@@ -1120,7 +1133,7 @@ Calc::Chisel(float player_skill,
 						  7.5f;*/
 					static const float literal_black_magic = 0.875f;
 					if (ss == Skill_Technical)
-						gotpoints +=
+						gotpoints += max(
 						  max(JackLoss(player_skill * literal_black_magic,
 									   1,
 									   max_points_lost,
@@ -1132,7 +1145,11 @@ Calc::Chisel(float player_skill,
 								  JackLoss(player_skill * literal_black_magic,
 										   3,
 										   max_points_lost,
-										   stamina)));
+										   stamina))),
+						  JackLoss(player_skill * literal_black_magic,
+								   0,
+								   max_points_lost,
+								   stamina));
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 					if (gotpoints > reqpoints)
@@ -1152,17 +1169,17 @@ Calc::Chisel(float player_skill,
 	// getting the jackstam debug output right is lame i know
 	if (debugoutput) {
 		float jl1 =
-		  JackLoss(player_skill, 1, max_points_lost, true, debugoutput);
+		  JackLoss(player_skill, 1, max_points_lost, stamina, debugoutput);
 		float jl2 =
-		  JackLoss(player_skill, 2, max_points_lost, true, debugoutput);
+		  JackLoss(player_skill, 2, max_points_lost, stamina, debugoutput);
 		float jl3 =
-		  JackLoss(player_skill, 3, max_points_lost, true, debugoutput);
+		  JackLoss(player_skill, 3, max_points_lost, stamina, debugoutput);
 		if (jl1 > jl2 && jl1 > jl3)
-			JackLoss(player_skill, 1, max_points_lost, true, debugoutput);
+			JackLoss(player_skill, 1, max_points_lost, stamina, debugoutput);
 		else if (jl2 > jl3)
-			JackLoss(player_skill, 2, max_points_lost, true, debugoutput);
+			JackLoss(player_skill, 2, max_points_lost, stamina, debugoutput);
 		else
-			JackLoss(player_skill, 3, max_points_lost, true, debugoutput);
+			JackLoss(player_skill, 3, max_points_lost, stamina, debugoutput);
 
 		left_hand.CalcInternal(
 		  gotpoints, player_skill, ss, stamina, debugoutput);
