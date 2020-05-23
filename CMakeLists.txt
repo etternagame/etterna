@@ -13,7 +13,6 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) # Tell CMake to use the new policy for CMP
 
 # Options
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # Tell targets to prefer multi-threaded statically linked runtime
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CMake/Helpers/CompileOptions.cmake")
 option(OPENSSL_ROOT_DIR "OpenSSL Root Directory" "")
 
 # PROJECT WIDE SETUP
