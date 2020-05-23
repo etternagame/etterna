@@ -7,7 +7,7 @@ set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
 set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
 set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
-# TODO: See if there is a more concise way to do this.
+# Set AppBundle icon
 set(MACOSX_BUNDLE_ICON_FILE etterna.icns)
 set_property(SOURCE CMake/CPack/macOS/etterna.icns PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
 target_sources(Etterna PUBLIC CMake/CPack/macOS/etterna.icns)
@@ -26,11 +26,9 @@ target_link_libraries(Etterna PRIVATE ${MAC_FRAME_IOKIT})
 target_link_libraries(Etterna PRIVATE ffmpeg)
 
 # System Libraries
-find_package(CURL REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(Iconv REQUIRED)
-target_link_libraries(Etterna PRIVATE ${CURL_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${OPENGL_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${ICONV_LIBRARIES})
