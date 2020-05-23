@@ -549,7 +549,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	static const float jack_global_scaler =
 	  finalscaler * basescalers[Skill_JackSpeed] / 15.f;
 	static const float mode_scalers[4] = {
-		0.6555f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
+		0.8055f, 0.003f * 35.12f / 36.f, 1.28f, 1.5f * 30.5f / 29.5f
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
@@ -1190,7 +1190,8 @@ Hand::CalcMSEstimate(vector<float> input, vector<float> cc, int burp)
 
 	sort(input.begin(), input.end());
 	float comb_cc = cv(input) + 1.f;
-	input[0] *= 1.1f;
+	//input[0] *= 1.1f;
+	//input[1] *= 1.15f;
 
 	// comb_cc = CalcClamp(comb_cc, 0.75f, 1.5f);
 	if (dbg && debug_lmao)
@@ -1359,7 +1360,7 @@ Calc::Chisel(float player_skill,
 						  JackLoss((player_skill * literal_black_magic),
 								   0,
 								   max_points_lost,
-								   stamina);
+								   stamina) / 1.5f;
 						float bz1 =
 						  JackLoss((player_skill * literal_black_magic),
 								   1,
@@ -1380,7 +1381,7 @@ Calc::Chisel(float player_skill,
 						  bz0;
 
 						bzz = mean(vector<float>{ bz1, bz2, bz3 });
-						gotpoints += bzz / 2.5f;
+						gotpoints += bzz / 3.f;
 					}
 
 					left_hand.CalcInternal(
