@@ -1259,7 +1259,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2, const vector<vector<float>>& itv_cc)
 			std::cout << "\ninterval : " << i << std::endl;
 
 		// scaler for things with higher things
-		static const float higher_thing_scaler = 1.15f;
+		static const float higher_thing_scaler = 1.18f;
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
 		float left_difficulty =
 		  max(CalcMSEstimate(f1[i], itv_cc[i], 3),
