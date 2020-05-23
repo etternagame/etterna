@@ -83,3 +83,16 @@ addons:
       - clang-format-5.0
       - ninja-build
     update: true
+
+# Deploy to Github Release when tag is pushed
+before_deploy:
+  - cd ${TRAVIS_BUILD_DIR}/build/ && cpack
+deploy:
+  file: ${TRAVIS_BUILD_DIR}/build/*.dmg
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = osx
+  provider: releases
+  draft: true
+  api_key:
+    secure: "OaNlihwLKYCt3pTQYtnz5aKZQAnHbiKT0I2D7Muwzr0QS7c+3JI0+nRk+aytD3pm3qJ2ZbaHGxWBIyvahmWrKw1UynhKCNbXTVSyqhciLNF5JFURdttvo4s5zqzJ8CEJCgZii1Fev/VmvxXSPICnXhE7IvA5Ad2TUGlxuhajlSC/ilHz8kcuBVyzPBAWUHrRNq4atv9O32dSFgnk6Iy1aOO63UzargVVP7G61DP42wX6JBx6i3LxXO6NU8ehJsCY+voBczVLj3FvT+6prfjxVbIZbUO616V/o2KVHJIznNJIHfytozokyAzk96dnS3b/rUPhboA3PTGIrsKjmh6JzPo/3+o6wR90RK5MNLTLrPWmrKN6sndcwtYrEx+Lqv21hsG4mLk828bPXYVJC9qQFRvk47PQHhp9M+VsoGSNFDPfcrIVlOHZh/S5zW36/ZtSjRbBIBcCZ7mnkA+kUXP811fSgvcguCX67a6DhJyzGvjEC3ezvkVr7GoLzg+fXkz01OLG/bvRn6FG6/sY7TPQGeB/BwHloMR6yV+RN+PYVBJtwzMQmXPhN1ft6WUdvpE4SF5HEVS50wx+uAdE+awpCTeIdwdMldyyjnl7r3vk+683KQ+d6mXQjggUDNxOXZ5lxD7xiBCVZrK3dAvtaCooT9RYFYvdiDHC3DvNJiguM9I="
