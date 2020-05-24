@@ -1,0 +1,52 @@
+name: Etterna CI
+on: [push]
+
+jobs:
+  linux-x64:
+    name: Linux x64
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Install apt packages
+        run: sudo apt install nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+      - uses: actions/checkout@v2
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -G Ninja ..
+      - name: Build Project
+        run: cd build && ninja
+
+  macos:
+    name: macOS x64 # Mac only has x64.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install homebrew packages
+        run: brew install cmake nasm ninja
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G Ninja ..
+      - name: Build Project
+        run: cd build && ninja
+
+  windows-x64:
+    name: Windows x64
+    runs-on: windows-2019
+    steps:
+      - name: Checkout Etterna
+        uses: actions/checkout@v2
+      - name: Checkout DirectX SDK
+        uses: actions/checkout@v2
+        with:
+          repository: apitrace/dxsdk
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.0
+      - name: Install chocolatey packages
+        run: choco install ninja directx
+      - name: Print some data
+        run: |
+          ls "C:\\Program Files\\"
+          ls "C:\\Program Files (x86)\\"
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -G Ninja ..
+        env:
+          DXSDK_DIR: "${{env.working-directory}}"
+      - name: Build Project
+        run: echo ${env:PATH}

@@ -67,7 +67,6 @@ addons:
       - libudev-dev
       - gcc-5
       - g++-5
-      - libmad0-dev
       - libgtk2.0-dev
       - binutils-dev
       - libasound-dev
