@@ -75,7 +75,7 @@ fastsqrt(float _in)
 }
 
 inline float
-ms_from_last(float now, float last)
+ms_from(const float& now, const float& last)
 {
 	return (now - last) * 1000.f;
 }
@@ -434,7 +434,7 @@ hit_the_road(float x, float y, int mode)
 float
 Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug)
 {
-	//mpl *= 1.5f;
+	// mpl *= 1.5f;
 	const bool dbg = false && debugmode;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
@@ -675,8 +675,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// in flux
 	float grindscaler =
 	  CalcClamp(
-		0.9f +
-		  (0.1f * ((NoteInfo.back().rowTime / music_rate) - 35.f) / 35.f),
+		0.9f + (0.1f * ((NoteInfo.back().rowTime / music_rate) - 35.f) / 35.f),
 		0.9f,
 		1.f) *
 	  CalcClamp(
@@ -868,50 +867,62 @@ enum cc_type
 	cc_undefined
 };
 
+// for either hand, 4k
+enum col_type
+{
+	col_left,
+	col_right,
+	col_ohjump,
+	col_empty,
+	col_init
+};
+
 inline bool
-is_single_tap(bool a, bool b)
+is_single_tap(const bool& a, const bool& b)
 {
 	return a ^ b;
 }
 
 inline bool
-is_single_tap(cc_type cc)
+is_single_tap(const cc_type& cc)
 {
 	return cc == cc_left_right || cc == cc_right_left || cc == cc_jump_single;
 }
 
 inline bool
-is_empty_row(bool a, bool b)
+is_single_tap(const col_type& col)
+{
+	return col == col_left || col == col_right;
+}
+
+inline bool
+is_empty_row(const bool& a, const bool& b)
 {
 	return !a && !b;
 }
 // this can be inferred from !empty and !single in most cases
 inline bool
-is_jump(bool a, bool b)
+is_jump(const bool& a, const bool& b)
 {
 	return a && b;
 }
 
 inline bool
-is_jump(cc_type cc)
+is_jump(const cc_type& cc)
 {
 	return cc == cc_jump_jump || cc == cc_single_jump;
 }
 
-static const int cc_init_id = -2;
-static const int cc_jump_id = -1;
-
-inline cc_type
-determine_cc_type(int last, bool l, bool r, int t1, int t2)
+cc_type
+determine_cc_type(const col_type& last, const col_type& now)
 {
-	if (is_empty_row(l, r))
+	if (now == col_empty)
 		return cc_empty;
-	else if (last == cc_init_id)
+	else if (last == col_init)
 		return cc_was_init;
 
-	bool single_tap = is_single_tap(l, r);
-	bool last_was_jump = last == cc_jump_id;
-	if (last_was_jump) {
+	bool single_tap = is_single_tap(now);
+	if (now == col_ohjump) {
 		if (single_tap)
 			return cc_jump_single;
 		else
@@ -920,89 +931,192 @@ determine_cc_type(int last, bool l, bool r, int t1, int t2)
 	} else if (!single_tap)
 		return cc_single_jump;
 	// if we are on left col _now_, we are right to left
-	else if (l && last == t2)
+	else if (now == col_left && last == col_right)
 		return cc_right_left;
-	else if (r && last == t1)
+	else if (now == col_right && last == col_left)
 		return cc_left_right;
 	else
+		// anchor/jack
 		return cc_single_single;
 
 	// shouldn't ever happen
 	return cc_undefined;
 }
+static const float s_init = -5.f;
+static const float ms_init = 5000.f;
 
-bool
-should_log_cross_columns_for_ms_base(cc_type cc)
+// pattern info and stuff idk this needed to be done a bazillion years ago
+struct metanoteinfo
 {
-	switch (cc) {
+	int id = 0;
+	float time = ms_init;
+
+	col_type col = col_init;
+
+	// type of cross column hit
+	cc_type cc = cc_was_init;
+
+	// ms from last cross column note
+	float cc_ms_any = ms_init;
+
+	// ms from last cross column note, excluding jumps
+	float cc_ms_no_jumps = ms_init;
+
+	// ms from last note in this column
+	float tc_ms = ms_init;
+};
+
+//	unused but example
+// bool
+// should_log_cross_columns_for_ms_base(cc_type cc)
+//{
+//	switch (cc) {
+//		case cc_left_right:
+//		case cc_right_left:
+//		case cc_jump_single:
+//		case cc_single_jump:
+//			return true;
+//		case cc_single_single:
+//		case cc_jump_jump:
+//		case cc_empty:
+//		case cc_was_init:
+//		case cc_undefined:
+//		default:
+//			return false;
+//	}
+//}
+
+inline col_type
+bool_to_col_type(const bool& lcol, const bool& rcol)
+{
+	if (is_empty_row(lcol, rcol))
+		return col_empty;
+	if (lcol - rcol)
+		return lcol ? col_left : col_right;
+	return col_ohjump;
+};
+
+inline void
+set_col_and_cc_types(metanoteinfo& mni,
+					 const bool& lcol,
+					 const bool& rcol,
+					 const col_type& last_col)
+{
+	mni.col = bool_to_col_type(lcol, rcol);
+	mni.cc = determine_cc_type(last_col, mni.col);
+}
+
+inline void
+update_col_time(const col_type& col, float arr[2], float val)
+{
+	// update both
+	if (col == col_ohjump) {
+		arr[0] = val;
+		arr[1] = val;
+		return;
+	}
+	if (col == col_left)
+		arr[0] = val;
+	else if (col == col_right)
+		arr[1] = val;
+	return;
+};
+
+inline col_type
+invert_col(const col_type& col){
+	return col == col_left ? col_right : col_left; 
+};
+
+ void
+set_metanoteinfo_timings(metanoteinfo& mni,
+				const float cur[2],
+				const float last[2],
+				const col_type& last_col)
+{
+	switch (mni.cc) {
 		case cc_left_right:
 		case cc_right_left:
 		case cc_jump_single:
-		case cc_single_jump:
-			return true;
 		case cc_single_single:
+			// either we know the end col so we know the start col, or the start
+			// col doesn't matter
+			mni.cc_ms_any = ms_from(cur[mni.col], last[invert_col(mni.col)]);
+
+			// technically doesn't matter if we use last_col to index, if it's
+			// single -> single we know it's an anchor so it's more intuitive to
+			// use mni.col twice
+			mni.tc_ms = ms_from(cur[mni.col], last[mni.col]);
+			break;
+		case cc_single_jump:
+			mni.cc_ms_any = ms_from(cur[0], last[last_col]);
 		case cc_jump_jump:
+			// fall through for single_jump, set this col ms by last_col, cur
+			// index is not relevant for either case, except that we can't use
+			// mni.col
+			mni.tc_ms = ms_from(cur[0], last[last_col]);
+			break;
 		case cc_empty:
+			break;
 		case cc_was_init:
+			break;
 		case cc_undefined:
+			break;
 		default:
-			return false;
+			break;
 	}
+	return;
 }
+
 #pragma endregion
-// these _could_ be mapped near the start of inithand so we have this info for
-// each note and don't have to keep generating it when we need it (only makes
-// sense if this captures all the use cases we need tho)
-inline vector<vector<float>>
-log_cross_columns(const vector<vector<int>>& itv_rows,
-				  const vector<NoteInfo>& NoteInfo,
-				  float music_rate,
-				  int t1,
-				  int t2)
+vector<vector<metanoteinfo>>
+gen_metanoteinfo(const vector<vector<int>>& itv_rows,
+				 const vector<NoteInfo>& NoteInfo,
+				 float music_rate,
+				 int t1,
+				 int t2)
 {
-	cc_type last_cc = cc_was_init;
 	const bool dbg = true && debug_lmao;
-	vector<vector<float>> o;
-	// o.reserve(itv_rows.size());
-	vector<float> p;
-	int lastcol = -2;
-	float lasttime = -5.f;
-	float curtime = 0.f;
-	float this_ms = 5000.f;
-	bool lcol = false;
-	bool rcol = false;
-	bool single_tap = false;
-	int run_len = 0;
+	vector<vector<metanoteinfo>> o;
+	vector<metanoteinfo> p;
+
+	float lasttime[2] = { s_init, s_init };
+	float curtime[2] = { 0.f, 0.f };
+	float this_ms = ms_init;
+
+	col_type last_col = col_init;
+	cc_type last_cc = cc_was_init;
 	for (auto& itv : itv_rows) {
 		p.clear();
 		for (auto& row : itv) {
-			lcol = NoteInfo[row].notes & t1;
-			rcol = NoteInfo[row].notes & t2;
+			metanoteinfo mni;
+			set_col_and_cc_types(mni,
+								 NoteInfo[row].notes & t1,
+								 NoteInfo[row].notes & t2,
+								 last_col);
 
-			auto cc = determine_cc_type(lastcol, lcol, rcol, t1, t2);
-
-			// don't need to update lasttime
-			if (cc == cc_empty)
+			// we don't want to set lasttime or lastcol for empty rows
+			if (mni.col == cc_empty)
 				continue;
 
-			// do need to update lasttime at the end
-			curtime = NoteInfo[row].rowTime / music_rate;
-			this_ms = ms_from_last(curtime, lasttime);
+			// every note has at least 2 ms values associated with it, the ms
+			// value from the last cross column note (on the same hand), and the
+			// ms value from the last note on it's/this column both are useful
+			// for different things, and we want to track both. for ohjumps, we
+			// will track the ms from the last non-jump on either finger, there
+			// are situations where we may want to consider jumps as having a
+			// cross column ms value of 0 with itself, not sure if they should
+			// be set to this or left at the init values of 5000 though
 
-			if (should_log_cross_columns_for_ms_base(cc))
-				if (cc == cc_left_right && last_cc == cc_right_left)
-					p.push_back(this_ms);
-				else if (cc == cc_right_left && last_cc == cc_left_right)
-					p.push_back(this_ms);
+			// we will need to update time for one or both cols
+			update_col_time(mni.col, curtime, NoteInfo[row].rowTime);
+
+			set_metanoteinfo_timings(mni, curtime, lasttime, last_col);
 
 			// update last notes/time
-			if (is_jump(cc))
-				lastcol = -1;
-			else
-				lastcol = lcol ? t1 : t2;
-
-			lasttime = curtime;
-			last_cc = cc;
+			last_col = mni.col;
+			last_cc = mni.cc;
+			lasttime[0] = curtime[0];
+			lasttime[1] = curtime[1];
 		}
 		o.push_back(p);
 	}
@@ -1046,13 +1160,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// anything here and almost defeats the purpose but
 		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
-			auto itv_cc = log_cross_columns(
-			  nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]);
+			auto bloop =
+			  gen_metanoteinfo(nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]);
 			hand.InitBaseDiff(fingers[0], fingers[1]);
 			hand.InitPoints(fingers[0], fingers[1]);
 		} else {
-			auto itv_cc = log_cross_columns(
-			  nervIntervals, NoteInfo, music_rate, col_ids[2], col_ids[3]);
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
@@ -1181,7 +1293,8 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	float comb_cc = cv(input) + 1.f;
 
 	if (dbg && debug_lmao)
-		std::cout << "cv in: " << cv_yo << " : cv comb: " << comb_cc << std::endl;
+		std::cout << "cv in: " << cv_yo << " : cv comb: " << comb_cc
+				  << std::endl;
 
 	if (dbg && debug_lmao) {
 		std::string moop = "";
@@ -1240,14 +1353,14 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		  max(CalcMSEstimate(f1[i], 3),
 			  CalcMSEstimate(f1[i], 4) * higher_thing_scaler);
 		left_difficulty = max(left_difficulty,
-							  CalcMSEstimate(f1[i], 5) *
-								higher_thing_scaler * higher_thing_scaler);
+							  CalcMSEstimate(f1[i], 5) * higher_thing_scaler *
+								higher_thing_scaler);
 		float right_difficulty =
 		  max(CalcMSEstimate(f2[i], 3),
 			  CalcMSEstimate(f2[i], 4) * higher_thing_scaler);
 		right_difficulty = max(right_difficulty,
-							   CalcMSEstimate(f2[i], 5) *
-								 higher_thing_scaler * higher_thing_scaler);
+							   CalcMSEstimate(f2[i], 5) * higher_thing_scaler *
+								 higher_thing_scaler);
 
 		float difficulty = 0.f;
 		float squiggly_line = 6.5f;
@@ -1328,36 +1441,36 @@ Calc::Chisel(float player_skill,
 						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
-				/*	static const float literal_black_magic = 0.85f;
-					if (ss == Skill_Technical) {
-						float bzz = 0.f;
-						float bz0 =
-						  JackLoss((player_skill * literal_black_magic ),
-								   0,
-								   max_points_lost,
-								   stamina) * 3.f;
-						float bz1 =
-						  JackLoss((player_skill * literal_black_magic),
-								   1,
-								   max_points_lost,
-								   stamina) +
-						  bz0;
-						float bz2 =
-						  JackLoss((player_skill * literal_black_magic),
-								   2,
-								   max_points_lost,
-								   stamina) +
-						  bz0;
-						float bz3 =
-						  JackLoss((player_skill * literal_black_magic),
-								   3,
-								   max_points_lost,
-								   stamina) +
-						  bz0;
+					/*	static const float literal_black_magic = 0.85f;
+						if (ss == Skill_Technical) {
+							float bzz = 0.f;
+							float bz0 =
+							  JackLoss((player_skill * literal_black_magic ),
+									   0,
+									   max_points_lost,
+									   stamina) * 3.f;
+							float bz1 =
+							  JackLoss((player_skill * literal_black_magic),
+									   1,
+									   max_points_lost,
+									   stamina) +
+							  bz0;
+							float bz2 =
+							  JackLoss((player_skill * literal_black_magic),
+									   2,
+									   max_points_lost,
+									   stamina) +
+							  bz0;
+							float bz3 =
+							  JackLoss((player_skill * literal_black_magic),
+									   3,
+									   max_points_lost,
+									   stamina) +
+							  bz0;
 
-						bzz = mean(vector<float>{ bz1, bz2, bz3 });
-						gotpoints += bzz / 3.f;
-					}*/
+							bzz = mean(vector<float>{ bz1, bz2, bz3 });
+							gotpoints += bzz / 3.f;
+						}*/
 
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
@@ -4342,7 +4455,7 @@ int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 325;
+	return 326;
 #else
 	return 263;
 #endif
