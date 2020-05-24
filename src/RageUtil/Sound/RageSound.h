@@ -190,7 +190,7 @@ class RageSound : public RageSoundBase
 	 * play until it becomes positive. */
 	int64_t m_iStreamFrame;
 
-	void* fftwBuffer{ nullptr };
+	void* fftBuffer{ nullptr };
 	void ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
 									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
