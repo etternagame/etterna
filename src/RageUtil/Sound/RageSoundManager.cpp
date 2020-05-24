@@ -22,6 +22,8 @@
 
 #include "arch/Sound/RageSoundDriver.h"
 
+#include <Tracy.hpp>
+
 /*
  * The lock ordering requirements are:
  * RageSound::Lock before g_SoundManMutex
@@ -49,6 +51,8 @@ static LocalizedString COULDNT_FIND_SOUND_DRIVER(
 void
 RageSoundManager::Init()
 {
+	ZoneScoped;
+
 	m_pDriver = RageSoundDriver::Create(g_sSoundDrivers);
 	if (m_pDriver == NULL)
 		RageException::Throw("%s",
@@ -118,6 +122,8 @@ RageSoundManager::GetPosition(RageTimer* pTimer) const
 void
 RageSoundManager::Update()
 {
+	ZoneScoped;
+
 	/* Scan m_mapPreloadedSounds for sounds that are no longer loaded, and
 	 * delete them. */
 	g_SoundManMutex

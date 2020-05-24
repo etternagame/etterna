@@ -24,6 +24,7 @@
 #include "Etterna/Models/Misc/Grade.h"
 #include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina
 
+#include <Tracy.hpp>
 #include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -362,6 +363,8 @@ EmptyTempDLFileDir()
 }
 DownloadManager::DownloadManager()
 {
+	ZoneScoped;
+
 	EmptyTempDLFileDir();
 	curl_global_init(CURL_GLOBAL_ALL);
 	// Register with Lua.
@@ -500,6 +503,8 @@ DownloadManager::init()
 void
 DownloadManager::Update(float fDeltaSeconds)
 {
+	ZoneScoped;
+
 	if (!initialized)
 		init();
 	if (gameplay)
@@ -511,7 +516,9 @@ DownloadManager::Update(float fDeltaSeconds)
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
-	if (!HTTPRunning && HTTPRequests.size() == 0 || gameplay)
+	ZoneScoped;
+
+	if (!HTTPRunning || HTTPRequests.size() == 0 || gameplay)
 		return;
 	timeval timeout;
 	int rc, maxfd = -1;
@@ -539,7 +546,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mHTTPHandle, &HTTPRunning);
 			break;
@@ -576,6 +583,8 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
+	ZoneScoped;
+
 	timeSinceLastDownload += fDeltaSeconds;
 	if (pendingInstallDownloads.size() > 0 && !gameplay) {
 		// Install all pending packs
@@ -630,7 +639,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
@@ -2121,10 +2130,10 @@ DownloadManager::OnLogin()
 }
 
 void
-DownloadManager::StartSession(string user,
-							  string pass,
-							  function<void(bool loggedIn)> callback =
-								[](bool) { return; })
+DownloadManager::StartSession(
+  string user,
+  string pass,
+  function<void(bool loggedIn)> callback = [](bool) { return; })
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user == "") {

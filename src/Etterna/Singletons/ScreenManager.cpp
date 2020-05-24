@@ -76,6 +76,8 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
+
 ScreenManager* SCREENMAN =
   NULL; // global and accessible from anywhere in our program
 
@@ -247,6 +249,8 @@ RegisterScreenClass::RegisterScreenClass(const RString& sClassName,
 
 ScreenManager::ScreenManager()
 {
+	ZoneScoped;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -289,6 +293,8 @@ ScreenManager::~ScreenManager()
 void
 ScreenManager::ThemeChanged()
 {
+	ZoneScoped;
+
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenManager::ThemeChanged");
 
@@ -446,6 +452,8 @@ ScreenManager::PopTopScreenInternal(bool bSendLoseFocus)
 void
 ScreenManager::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	// Pop the top screen, if PopTopScreen was called.
 	if (m_PopTopScreen != SM_Invalid) {
 		ScreenMessage SM = m_PopTopScreen;
@@ -517,6 +525,8 @@ ScreenManager::Update(float fDeltaTime)
 void
 ScreenManager::Draw()
 {
+	ZoneScoped;
+
 	/* If it hasn't been updated yet, skip the render. We can't call Update(0),
 	 * since that'll confuse the "zero out the next update after loading a
 	 * screen logic. If we don't render, don't call BeginFrame or EndFrame. That

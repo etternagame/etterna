@@ -9,6 +9,8 @@
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
+
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")
 #define FORCE_TIMER THEME->GetMetricB(m_sName, "ForceTimer")
@@ -150,6 +152,8 @@ ScreenWithMenuElements::SetHelpText(const RString& s)
 RString
 ScreenWithMenuElements::HandleLuaMusicFile(RString const& path)
 {
+	ZoneScoped;
+
 	FileType ft = ActorUtil::GetFileType(path);
 	RString ret = path;
 	if (ft == FT_Lua) {
@@ -192,6 +196,8 @@ ScreenWithMenuElements::HandleLuaMusicFile(RString const& path)
 void
 ScreenWithMenuElements::StartPlayingMusic()
 {
+	ZoneScoped;
+
 	/* Some screens should leave the music alone (eg. ScreenPlayerOptions music
 	 * sample left over from ScreenSelectMusic). */
 	if (PLAY_MUSIC) {
@@ -333,6 +339,8 @@ ScreenWithMenuElementsSimple::MenuBack(const InputEventPlus& input)
 void
 ScreenWithMenuElements::UpdateTimedFunctions(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (IsTransitioning())
 		return;
 	Screen::UpdateTimedFunctions(fDeltaTime);

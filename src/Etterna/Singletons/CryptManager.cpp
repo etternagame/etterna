@@ -8,6 +8,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <Tracy.hpp>
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
@@ -97,6 +98,8 @@ static PRNGWrapper* g_pPRNG = NULL;
 
 CryptManager::CryptManager()
 {
+	ZoneScoped;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -112,6 +115,8 @@ CryptManager::CryptManager()
 void
 CryptManager::GenerateGlobalKeys()
 {
+	ZoneScoped;
+
 	//
 	// generate keys if none are available
 	//

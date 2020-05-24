@@ -13,11 +13,13 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/Singletons/FilterManager.h"
+#include "Etterna/Models/Lua/LuaReference.h"
+
+#include <Tracy.hpp>
 #include <typeinfo>
 #include <list>
 #include <tuple>
-#include "Etterna/Singletons/FilterManager.h"
-#include "Etterna/Models/Lua/LuaReference.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -45,6 +47,7 @@ vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
 Actor*
 Actor::Copy() const
 {
+
 	return new Actor(*this);
 }
 
@@ -164,6 +167,7 @@ Actor::Actor()
 
 Actor::~Actor()
 {
+
 	StopTweening();
 	UnsubscribeAll();
 	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
@@ -399,6 +403,8 @@ Actor::IsVisible()
 void
 Actor::Draw()
 {
+	ZoneScoped;
+
 	if (!m_bVisible || this->EarlyAbortDraw()) {
 		return; // early abort
 	}
@@ -864,6 +870,8 @@ Actor::UpdateTweening(float fDeltaTime)
 void
 Actor::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
 	if (!m_WrapperStates.empty())
@@ -1370,6 +1378,8 @@ Actor::AddRotationR(float rot)
 void
 Actor::RunCommands(const LuaReference& cmds, const LuaReference* pParamTable)
 {
+	ZoneScoped;
+
 	if (!cmds.IsSet() || cmds.IsNil()) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "RunCommands: commands for %s are unset or nil",

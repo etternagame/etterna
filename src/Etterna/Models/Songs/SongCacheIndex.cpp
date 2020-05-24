@@ -16,13 +16,13 @@
 #include <algorithm>
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 
+#include <Tracy.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 #include "sqlite3.h"
 #include <mutex>
 #include <atomic>
 #include <thread>
-#include <algorithm>
 #include <numeric>
 
 /*
@@ -775,6 +775,8 @@ SongCacheIndex::LoadCache(
   LoadingWindow* ld,
   vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
 {
+	ZoneScoped;
+
 	int count = 0;
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
@@ -799,6 +801,8 @@ SongCacheIndex::LoadCache(
 		int limit,
 		int offset,
 		vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
+		  ZoneNamedN(PerThread, "LoadCacheThread", true);
+
 		  int counter = 0, lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
@@ -1107,7 +1111,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 		Steps* pNewNotes = nullptr;
-		
+
 		SQLite::Statement qSteps(
 		  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
 
@@ -1138,7 +1142,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			string msdsatrate;
 			while (std::getline(msds, msdsatrate, ':')) {
 				auto m = SSC::msdsplit(msdsatrate);
-				o.push_back({m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+				o.push_back({ m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
 			}
 			pNewNotes->SetAllMSD(o);
 
@@ -1311,6 +1315,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 bool
 SongCacheIndex::LoadSongFromCache(Song* song, string dir)
 {
+	ZoneScoped;
+
 	try {
 		SQLite::Statement query(
 		  *db, "SELECT * FROM songs WHERE DIR=? AND DIRHASH=?");

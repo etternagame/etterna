@@ -9,6 +9,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
+
 const char* CodeNames[] = {
 	"PrevSteps1",
 	"PrevSteps2",
@@ -52,6 +54,8 @@ CodeDetector::EnteredCode(GameController controller, Code code)
 void
 CodeDetector::RefreshCacheItems(RString sClass)
 {
+	ZoneScoped;
+
 	if (sClass == "")
 		sClass = "CodeDetector";
 	FOREACH_ENUM(Code, c)

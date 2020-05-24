@@ -11,8 +11,8 @@
 #include "Etterna/FileTypes/MsdFile.h"
 #include "NoteSkinManager.h"
 #include <algorithm>
-#include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
 #include <mutex>
+#include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
@@ -37,6 +37,8 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
+
+#include <Tracy.hpp>
 #include <numeric>
 
 using std::string;
@@ -110,6 +112,8 @@ SongManager::~SongManager()
 void
 SongManager::InitAll(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	vector<RString> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
 	for (vector<RString>::iterator group = never_cache.begin();
@@ -282,6 +286,8 @@ split(vector<T>& v, size_t elementsPerThread)
 void
 SongManager::FinalizeSong(Song* pNewSong, const RString& dir)
 {
+	ZoneScoped;
+
 	// never load stray songs from the cache -mina
 	if (pNewSong->m_sGroupName == "Songs" ||
 		pNewSong->m_sGroupName == "AdditionalSongs")
@@ -295,10 +301,12 @@ SongManager::FinalizeSong(Song* pNewSong, const RString& dir)
 		  "Banner", SONGMAN->GetSongGroupBannerPath(pNewSong->m_sGroupName));
 }
 
-std::mutex songLoadingSONGMANMutex;
+TracyLockable(mutex, songLoadingSONGMANMutex);
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	RageTimer tm;
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
@@ -322,6 +330,8 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 					 vectorIt<pair<pair<RString, unsigned int>, Song*>*>>
 			 workload,
 		   ThreadData* data) {
+			ZoneNamedN(PerThread, "InitSongsFromDiskThread", true);
+
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
@@ -348,7 +358,8 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 				}
 				pNewSong->FinalizeLoading();
 				{
-					std::lock_guard<std::mutex> lock(songLoadingSONGMANMutex);
+					std::lock_guard<LockableBase(std::mutex)> lock(
+					  songLoadingSONGMANMutex);
 					SONGMAN->FinalizeSong(pNewSong, dir);
 				}
 			}

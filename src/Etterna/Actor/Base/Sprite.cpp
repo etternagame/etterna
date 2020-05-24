@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include <cassert>
 #include <cfloat>
+#include <Tracy.hpp>
 
 #include "ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -524,6 +525,8 @@ TexCoordArrayFromRect(float fImageCoords[8], const RectF& rect)
 void
 Sprite::DrawTexture(const TweenState* state)
 {
+	ZoneScoped;
+
 	Actor::SetGlobalRenderStates(); // set Actor-specified render states
 
 	RectF crop = state->crop;
@@ -592,7 +595,7 @@ Sprite::DrawTexture(const TweenState* state)
 				RageVector2(f[0], f[1]), // top left
 				RageVector2(f[2], f[3]), // bottom left
 				RageVector2(f[4], f[5]), // bottom right
-				RageVector2(f[6], f[7])  // top right
+				RageVector2(f[6], f[7])	 // top right
 			};
 
 			for (auto& i : v) {
@@ -687,6 +690,8 @@ Sprite::EarlyAbortDraw() const
 void
 Sprite::DrawPrimitives()
 {
+	ZoneScoped;
+
 	if (m_pTempState->fade.top > 0 || m_pTempState->fade.bottom > 0 ||
 		m_pTempState->fade.left > 0 || m_pTempState->fade.right > 0) {
 		// We're fading the edges.

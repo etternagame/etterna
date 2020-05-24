@@ -40,6 +40,8 @@
 #include "Etterna/Singletons/DownloadManager.h"
 #include "RageUtil/Misc/RageString.h"
 
+#include <Tracy.hpp>
+
 /** @brief The filename for where one can edit their personal profile
  * information. */
 const RString EDITABLE_INI = "Editable.ini";
@@ -827,6 +829,8 @@ Profile::LoadAllFromDir(const RString& sDir,
 						bool bRequireSignature,
 						LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	if (PREFSMAN->m_verbose_log > 0)
 		LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
 	ASSERT(sDir.Right(1) == "/");

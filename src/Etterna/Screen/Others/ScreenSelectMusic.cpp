@@ -46,6 +46,8 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
+#include <Tracy.hpp>
+
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
 											 "Finalized" };
@@ -357,6 +359,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 void
 ScreenSelectMusic::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (!IsTransitioning()) {
 		if (IDLE_COMMENT_SECONDS > 0 &&
 			m_timerIdleComment.PeekDeltaTime() >= IDLE_COMMENT_SECONDS) {
@@ -584,7 +588,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				//SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				// SONGMAN->testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));

@@ -10,6 +10,7 @@
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
+#include <Tracy.hpp>
 #include <cerrno>
 
 #ifdef _WIN32
@@ -269,7 +270,7 @@ GetDirOfExecutable(RString argv0)
 				break;
 			}
 			if (sPath.empty())
-				sPath = GetCwd();	 // What?
+				sPath = GetCwd();	  // What?
 			else if (sPath[0] != '/') // For example, if . is in $PATH.
 				sPath = GetCwd() + "/" + sPath;
 
@@ -314,6 +315,8 @@ ChangeToDirOfExecutable(const RString& argv0)
 
 RageFileManager::RageFileManager(const RString& argv0)
 {
+	ZoneScoped;
+
 	CHECKPOINT_M(argv0);
 	ChangeToDirOfExecutable(argv0);
 
@@ -342,6 +345,8 @@ RageFileManager::RageFileManager(const RString& argv0)
 void
 RageFileManager::MountInitialFilesystems()
 {
+	ZoneScoped;
+
 	HOOKS->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 

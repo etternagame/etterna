@@ -36,6 +36,8 @@
 using namespace rapidjson;
 #include "asio.hpp"
 
+#include <Tracy.hpp>
+
 NetworkSyncManager* NSMAN;
 
 // Aldo: version_num used by GetCurrentSMVersion()
@@ -206,6 +208,8 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
   "Initializing Client Network...");
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	NSMAN = this;
 	LANserver = NULL; // So we know if it has been created yet
 	useSMserver = false;
@@ -748,6 +752,8 @@ NetworkSyncManager::IsETTP()
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (this->client == nullptr) {
 		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
 		n->isSMOnline = false;
@@ -1828,7 +1834,8 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 					.GetString()
 					.c_str());
 	writer.Key("rate");
-	writer.Int(static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	writer.Int(static_cast<int>(
+	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	writer.EndObject();
 	writer.EndObject();
 

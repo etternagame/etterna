@@ -20,6 +20,8 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Actor/Base/Sprite.h"
 
+#include <Tracy.hpp>
+
 //#include "Banner.h"
 
 static Preference<bool> g_bPalettedImageCache("PalettedImageCache", false);
@@ -174,6 +176,8 @@ ImageCache::UnloadAllImages()
 
 ImageCache::ImageCache()
 {
+	ZoneScoped;
+
 	ReadFromDisk();
 }
 

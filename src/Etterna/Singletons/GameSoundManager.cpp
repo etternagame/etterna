@@ -16,6 +16,9 @@
 #include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
 #include "GameState.h"
+
+#include <Tracy.hpp>
+
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"
@@ -538,6 +541,8 @@ GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 void
 GameSoundManager::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	{
 		g_Mutex->Lock();
 		if (g_Playing->m_bApplyMusicRate) {

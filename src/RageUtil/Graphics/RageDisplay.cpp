@@ -17,6 +17,8 @@
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
+
+#include <Tracy.hpp>
 #include <chrono>
 #include <thread>
 
@@ -88,7 +90,7 @@ RageDisplay::IsPredictiveFrameLimit() const
 
 static const char* RagePixelFormatNames[] = {
 	"RGBA8", "BGRA8", "RGBA4", "RGB5A1", "RGB5",
-	"RGB8",  "PAL",   "BGR8",  "A1BGR5", "X1RGB5",
+	"RGB8",	 "PAL",	  "BGR8",  "A1BGR5", "X1RGB5",
 };
 XToString(RagePixelFormat);
 
@@ -226,6 +228,8 @@ RageDisplay::BeginFrame()
 void
 RageDisplay::EndFrame()
 {
+	ZoneScoped;
+
 	ProcessStatsOnFlip();
 }
 
@@ -691,6 +695,8 @@ RageDisplay::LoadMenuPerspective(float fovDegrees,
 								 float fVanishPointX,
 								 float fVanishPointY)
 {
+	ZoneScoped;
+
 	// fovDegrees == 0 gives ortho projection.
 	if (fovDegrees == 0) {
 		float left = 0, right = fWidth, bottom = fHeight, top = 0;
@@ -733,6 +739,8 @@ RageDisplay::LoadMenuPerspective(float fovDegrees,
 void
 RageDisplay::CameraPushMatrix()
 {
+	ZoneScoped;
+
 	g_ProjectionStack.Push();
 	g_ViewStack.Push();
 }
@@ -740,6 +748,8 @@ RageDisplay::CameraPushMatrix()
 void
 RageDisplay::CameraPopMatrix()
 {
+	ZoneScoped;
+
 	g_ProjectionStack.Pop();
 	g_ViewStack.Pop();
 }
@@ -1132,6 +1142,8 @@ RageDisplay::DrawCircle(const RageSpriteVertex& v, float radius)
 void
 RageDisplay::FrameLimitBeforeVsync()
 {
+	ZoneScoped;
+
 	if (g_fPredictiveFrameLimit.Get()) {
 		auto afterRender = std::chrono::steady_clock::now();
 		auto endTime = afterRender - g_FrameRenderTime;
@@ -1173,6 +1185,8 @@ RageDisplay::FrameLimitBeforeVsync()
 void
 RageDisplay::FrameLimitAfterVsync(int iFPS)
 {
+	ZoneScoped;
+
 	if (!g_fPredictiveFrameLimit.Get()) {
 		g_LastFrameEndedAtRage.Touch();
 		return;

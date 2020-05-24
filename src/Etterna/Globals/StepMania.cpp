@@ -68,6 +68,8 @@
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
 #endif
 
+#include <Tracy.hpp>
+
 bool noWindow;
 
 void
@@ -149,6 +151,8 @@ GetActualGraphicOptionsString()
 static void
 StoreActualGraphicOptions()
 {
+	ZoneScoped;
+
 	/* Store the settings that RageDisplay was actually able to use so that
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
@@ -206,6 +210,8 @@ update_centering()
 static void
 StartDisplay()
 {
+	ZoneScoped;
+
 	if (DISPLAY != NULL)
 		return; // already started
 
@@ -339,6 +345,8 @@ HandleException(const RString& sError)
 void
 StepMania::ResetGame()
 {
+	ZoneScoped;
+
 	GAMESTATE->Reset();
 
 	if (!THEME->DoesThemeExist(THEME->GetCurThemeName())) {
@@ -571,7 +579,7 @@ struct VideoCardDefaults
 	  256,
 	  false),
 	VideoCardDefaults("Mobility M3", // ATI Rage Mobility 128 (AKA "M3")
-					  "d3d,opengl",  // bad movie texture performance in opengl
+					  "d3d,opengl",	 // bad movie texture performance in opengl
 					  640,
 					  480,
 					  16,
@@ -1035,123 +1043,129 @@ static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
 int
 sm_main(int argc, char* argv[])
 {
-	g_RandomNumberGenerator.seed(static_cast<unsigned int>(time(nullptr)));
-	seed_lua_prng();
+	{
+		ZoneScopedN("Startup");
+		g_RandomNumberGenerator.seed(static_cast<unsigned int>(time(nullptr)));
+		seed_lua_prng();
 
-	RageThreadRegister thread("Main thread");
-	RageException::SetCleanupHandler(HandleException);
+		RageThreadRegister thread("Main thread");
+		RageException::SetCleanupHandler(HandleException);
 
-	SetCommandlineArguments(argc, argv);
+		SetCommandlineArguments(argc, argv);
 
-	// Set up arch hooks first.  This may set up crash handling.
-	HOOKS = ArchHooks::Create();
-	HOOKS->Init();
+		// Set up arch hooks first.  This may set up crash handling.
+		HOOKS = ArchHooks::Create();
+		HOOKS->Init();
 
-	LUA = new LuaManager;
-	HOOKS->RegisterWithLua();
+		LUA = new LuaManager;
+		HOOKS->RegisterWithLua();
 
-	MESSAGEMAN = new MessageManager;
+		MESSAGEMAN = new MessageManager;
 
-	// Initialize the file extension type lists so everything can ask ActorUtil
-	// what the type of a file is.
-	ActorUtil::InitFileTypeLists();
+		// Initialize the file extension type lists so everything can ask
+		// ActorUtil what the type of a file is.
+		ActorUtil::InitFileTypeLists();
 
-	// Almost everything uses this to read and write files.  Load this early.
-	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->MountInitialFilesystems();
+		// Almost everything uses this to read and write files.  Load this
+		// early.
+		FILEMAN = new RageFileManager(argv[0]);
+		FILEMAN->MountInitialFilesystems();
 
-	bool bPortable = DoesFileExist("Portable.ini");
-	if (!bPortable)
-		FILEMAN->MountUserFilesystems();
+		bool bPortable = DoesFileExist("Portable.ini");
+		if (!bPortable)
+			FILEMAN->MountUserFilesystems();
 
-	// Set this up next. Do this early, since it's needed for
-	// RageException::Throw.
-	LOG = new RageLog;
+		// Set this up next. Do this early, since it's needed for
+		// RageException::Throw.
+		LOG = new RageLog;
 
-	// Whew--we should be able to crash safely now!
+		// Whew--we should be able to crash safely now!
 
-	// load preferences and mount any alternative trees.
-	PREFSMAN = new PrefsManager;
+		// load preferences and mount any alternative trees.
+		PREFSMAN = new PrefsManager;
 
-	/* Allow HOOKS to check for multiple instances.  We need to do this after
-	 * PREFS is initialized, so ArchHooks can use a preference to turn this off.
-	 * We want to do this before ApplyLogPreferences, so if we exit because of
-	 * another instance, we don't try to clobber its log.  We also want to do
-	 * this before opening the loading window, so if we give focus away, we
-	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() &&
-		HOOKS->CheckForMultipleInstances(argc, argv)) {
-		ShutdownGame();
-		return 0;
-	}
+		/* Allow HOOKS to check for multiple instances.  We need to do this
+		 * after PREFS is initialized, so ArchHooks can use a preference to turn
+		 * this off. We want to do this before ApplyLogPreferences, so if we
+		 * exit because of another instance, we don't try to clobber its log. We
+		 * also want to do this before opening the loading window, so if we give
+		 * focus away, we don't flash the window. */
+		if (!g_bAllowMultipleInstances.Get() &&
+			HOOKS->CheckForMultipleInstances(argc, argv)) {
+			ShutdownGame();
+			return 0;
+		}
 
-	ApplyLogPreferences();
+		ApplyLogPreferences();
 
-	WriteLogHeader();
+		WriteLogHeader();
 
-	// Set up alternative filesystem trees.
-	if (PREFSMAN->m_sAdditionalFolders.Get() != "") {
-		vector<RString> dirs;
-		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
-		for (unsigned i = 0; i < dirs.size(); i++)
-			FILEMAN->Mount("dir", dirs[i], "/");
-	}
-	if (PREFSMAN->m_sAdditionalSongFolders.Get() != "") {
-		vector<RString> dirs;
-		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
-		for (unsigned i = 0; i < dirs.size(); i++)
-			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
-	}
+		// Set up alternative filesystem trees.
+		if (PREFSMAN->m_sAdditionalFolders.Get() != "") {
+			vector<RString> dirs;
+			split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
+			for (unsigned i = 0; i < dirs.size(); i++)
+				FILEMAN->Mount("dir", dirs[i], "/");
+		}
+		if (PREFSMAN->m_sAdditionalSongFolders.Get() != "") {
+			vector<RString> dirs;
+			split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
+			for (unsigned i = 0; i < dirs.size(); i++)
+				FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
+		}
 
-	/* One of the above filesystems might contain files that affect preferences
-	 * (e.g. Data/Static.ini). Re-read preferences. */
-	PREFSMAN->ReadPrefsFromDisk();
-	ApplyLogPreferences();
+		/* One of the above filesystems might contain files that affect
+		 * preferences (e.g. Data/Static.ini). Re-read preferences. */
+		PREFSMAN->ReadPrefsFromDisk();
+		ApplyLogPreferences();
 
-	// This needs PREFSMAN.
-	Dialog::Init();
+		// This needs PREFSMAN.
+		Dialog::Init();
 
-	// Create game objects
+		// Create game objects
 
-	GAMESTATE = new GameState;
+		GAMESTATE = new GameState;
 
-	std::vector<std::string> arguments(argv + 1, argv + argc);
-	noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str) {
-		return str == "notedataCache";
-	});
+		std::vector<std::string> arguments(argv + 1, argv + argc);
+		noWindow =
+		  std::any_of(arguments.begin(), arguments.end(), [](string str) {
+			  return str == "notedataCache";
+		  });
 
-	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
-	LoadingWindow* pLoadingWindow = nullptr;
-	if (!noWindow) {
-		pLoadingWindow = LoadingWindow::Create();
-		if (pLoadingWindow == NULL)
-			RageException::Throw(
-			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
-	}
+		// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
+		LoadingWindow* pLoadingWindow = nullptr;
+		if (!noWindow) {
+			pLoadingWindow = LoadingWindow::Create();
+			if (pLoadingWindow == NULL)
+				RageException::Throw(
+				  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
+		}
 
-	/* Do this early, so we have debugging output if anything else fails. LOG
-	 * and Dialog must be set up first. It shouldn't take long, but it might
-	 * take a little time; do this after the LoadingWindow is shown, since we
-	 * don't want that to appear delayed. */
-	HOOKS->DumpDebugInfo();
+		/* Do this early, so we have debugging output if anything else fails.
+		 * LOG and Dialog must be set up first. It shouldn't take long, but it
+		 * might take a little time; do this after the LoadingWindow is shown,
+		 * since we don't want that to appear delayed. */
+		HOOKS->DumpDebugInfo();
 
 #if defined(HAVE_TLS)
-	LOG->Info("TLS is %savailable", RageThread::GetSupportsTLS() ? "" : "not ");
+		LOG->Info("TLS is %savailable",
+				  RageThread::GetSupportsTLS() ? "" : "not ");
 #endif
 
-	AdjustForChangedSystemCapabilities();
+		AdjustForChangedSystemCapabilities();
 
-	GAMEMAN = new GameManager;
-	THEME = new ThemeManager;
-	ANNOUNCER = new AnnouncerManager;
-	NOTESKIN = new NoteSkinManager;
+		GAMEMAN = new GameManager;
+		THEME = new ThemeManager;
+		ANNOUNCER = new AnnouncerManager;
+		NOTESKIN = new NoteSkinManager;
 
-	// Switch to the last used game type, and set up the theme and announcer.
-	SwitchToLastPlayedGame();
+		// Switch to the last used game type, and set up the theme and
+		// announcer.
+		SwitchToLastPlayedGame();
 
-	CommandLineActions::Handle(pLoadingWindow);
+		CommandLineActions::Handle(pLoadingWindow);
 
-	// Aldo: Check for updates here!
+		// Aldo: Check for updates here!
 #if 0
 	if( /* PREFSMAN->m_bUpdateCheckEnable (do this later) */ 0 )
 	{
@@ -1189,99 +1203,100 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-	if (!noWindow) {
-		/* Now that THEME is loaded, load the icon and splash for the current
-		 * theme into the loading window. */
-		RString sError;
-		RageSurface* pSurface = RageSurfaceUtils::LoadFile(
-		  THEME->GetPathG("Common", "window icon"), sError);
-		if (pSurface != NULL)
-			pLoadingWindow->SetIcon(pSurface);
-		delete pSurface;
-		pSurface = RageSurfaceUtils::LoadFile(
-		  THEME->GetPathG("Common", "splash"), sError);
-		if (pSurface != NULL)
-			pLoadingWindow->SetSplash(pSurface);
-		delete pSurface;
+		if (!noWindow) {
+			/* Now that THEME is loaded, load the icon and splash for the
+			 * current theme into the loading window. */
+			RString sError;
+			RageSurface* pSurface = RageSurfaceUtils::LoadFile(
+			  THEME->GetPathG("Common", "window icon"), sError);
+			if (pSurface != NULL)
+				pLoadingWindow->SetIcon(pSurface);
+			delete pSurface;
+			pSurface = RageSurfaceUtils::LoadFile(
+			  THEME->GetPathG("Common", "splash"), sError);
+			if (pSurface != NULL)
+				pLoadingWindow->SetSplash(pSurface);
+			delete pSurface;
+		}
+
+		if (PREFSMAN->m_iSoundWriteAhead)
+			LOG->Info("Sound writeahead has been overridden to %i",
+					  PREFSMAN->m_iSoundWriteAhead.Get());
+
+		SONGINDEX = new SongCacheIndex;
+		SOUNDMAN = new RageSoundManager;
+		SOUNDMAN->Init();
+		SOUNDMAN->SetMixVolume();
+		SOUND = new GameSoundManager;
+		INPUTFILTER = new InputFilter;
+		INPUTMAPPER = new InputMapper;
+
+		StepMania::InitializeCurrentGame(GAMESTATE->GetCurrentGame());
+
+		INPUTQUEUE = new InputQueue;
+		IMAGECACHE = new ImageCache;
+
+		// depends on SONGINDEX:
+		SONGMAN = new SongManager;
+		SONGINDEX->StartTransaction();
+		SONGMAN->InitAll(pLoadingWindow); // this takes a long time
+		SONGINDEX->FinishTransaction();
+		CRYPTMAN = new CryptManager; // need to do this before ProfileMan
+		if (PREFSMAN->m_bSignProfileData)
+			CRYPTMAN->GenerateGlobalKeys();
+		SCOREMAN = new ScoreManager;
+		PROFILEMAN = new ProfileManager;
+		PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
+		SONGMAN->CalcTestStuff();		  // must be after profileman init
+
+		SONGMAN->UpdatePreferredSort();
+		NSMAN = new NetworkSyncManager(pLoadingWindow);
+		STATSMAN = new StatsManager;
+
+		FILTERMAN = new FilterManager;
+
+		DLMAN = make_shared<DownloadManager>(DownloadManager());
+
+		/* If the user has tried to quit during the loading, do it before
+		 * creating
+		 * the main window. This prevents going to full screen just to quit. */
+		if (ArchHooks::UserQuit()) {
+			ShutdownGame();
+			return 0;
+		}
+		if (!noWindow)
+			SAFE_DELETE(pLoadingWindow);
+		StartDisplay();
+
+		StoreActualGraphicOptions();
+		LOG->Info("%s", GetActualGraphicOptionsString().c_str());
+
+		/* Input handlers can have dependences on the video system so
+		 * INPUTMAN must be initialized after DISPLAY. */
+		INPUTMAN = new RageInput;
+
+		// These things depend on the TextureManager, so do them after!
+		FONT = new FontManager;
+		SCREENMAN = new ScreenManager;
+
+		StepMania::ResetGame();
+
+		/* Now that GAMESTATE is reset, tell SCREENMAN to update the theme (load
+		 * overlay screens and global sounds), and load the initial screen. */
+		SCREENMAN->ThemeChanged();
+		SCREENMAN->SetNewScreen(StepMania::GetInitialScreen());
+
+		// Do this after ThemeChanged so that we can show a system message
+		RString sMessage;
+		if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
+			SCREENMAN->SystemMessage(sMessage);
+
+		CodeDetector::RefreshCacheItems();
+
+		if (GetCommandlineArgument("netip"))
+			NSMAN->DisplayStartupStatus(); // If we're using networking show
+										   // what happened
 	}
-
-	if (PREFSMAN->m_iSoundWriteAhead)
-		LOG->Info("Sound writeahead has been overridden to %i",
-				  PREFSMAN->m_iSoundWriteAhead.Get());
-
-	SONGINDEX = new SongCacheIndex;
-	SOUNDMAN = new RageSoundManager;
-	SOUNDMAN->Init();
-	SOUNDMAN->SetMixVolume();
-	SOUND = new GameSoundManager;
-	INPUTFILTER = new InputFilter;
-	INPUTMAPPER = new InputMapper;
-
-	StepMania::InitializeCurrentGame(GAMESTATE->GetCurrentGame());
-
-	INPUTQUEUE = new InputQueue;
-	IMAGECACHE = new ImageCache;
-
-	// depends on SONGINDEX:
-	SONGMAN = new SongManager;
-	SONGINDEX->StartTransaction();
-	SONGMAN->InitAll(pLoadingWindow); // this takes a long time
-	SONGINDEX->FinishTransaction();
-	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
-	if (PREFSMAN->m_bSignProfileData)
-		CRYPTMAN->GenerateGlobalKeys();
-	SCOREMAN = new ScoreManager;
-	PROFILEMAN = new ProfileManager;
-	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
-	SONGMAN->CalcTestStuff();		  // must be after profileman init
-
-	SONGMAN->UpdatePreferredSort();
-	NSMAN = new NetworkSyncManager(pLoadingWindow);
-	STATSMAN = new StatsManager;
-
-	FILTERMAN = new FilterManager;
-
-	DLMAN = make_shared<DownloadManager>(DownloadManager());
-
-	/* If the user has tried to quit during the loading, do it before creating
-	 * the main window. This prevents going to full screen just to quit. */
-	if (ArchHooks::UserQuit()) {
-		ShutdownGame();
-		return 0;
-	}
-	if (!noWindow)
-		SAFE_DELETE(pLoadingWindow);
-	StartDisplay();
-
-	StoreActualGraphicOptions();
-	LOG->Info("%s", GetActualGraphicOptionsString().c_str());
-
-	/* Input handlers can have dependences on the video system so
-	 * INPUTMAN must be initialized after DISPLAY. */
-	INPUTMAN = new RageInput;
-
-	// These things depend on the TextureManager, so do them after!
-	FONT = new FontManager;
-	SCREENMAN = new ScreenManager;
-
-	StepMania::ResetGame();
-
-	/* Now that GAMESTATE is reset, tell SCREENMAN to update the theme (load
-	 * overlay screens and global sounds), and load the initial screen. */
-	SCREENMAN->ThemeChanged();
-	SCREENMAN->SetNewScreen(StepMania::GetInitialScreen());
-
-	// Do this after ThemeChanged so that we can show a system message
-	RString sMessage;
-	if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
-		SCREENMAN->SystemMessage(sMessage);
-
-	CodeDetector::RefreshCacheItems();
-
-	if (GetCommandlineArgument("netip"))
-		NSMAN->DisplayStartupStatus(); // If we're using networking show what
-									   // happened
-
 	// Run the main loop.
 	GameLoop::RunGameLoop();
 

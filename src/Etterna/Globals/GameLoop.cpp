@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -20,6 +20,8 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include <chrono>
+
+#include <Tracy.hpp>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
 
@@ -45,6 +47,8 @@ GameLoop::SetUpdateRate(float fUpdateRate)
 static void
 CheckGameLoopTimerSkips(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (!PREFSMAN->m_bLogSkips)
 		return;
 
@@ -261,6 +265,7 @@ GameLoop::RunGameLoop()
 		HOOKS->BoostPriority();
 
 	while (!ArchHooks::UserQuit()) {
+		ZoneScopedN("Frame");
 		if (!g_NewGame.empty()) {
 			DoChangeGame();
 		}
@@ -320,6 +325,7 @@ GameLoop::RunGameLoop()
 
 		// Render
 		SCREENMAN->Draw();
+		FrameMark;
 	}
 
 	if (ChangeAppPri())

@@ -10,6 +10,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
+#include <Tracy.hpp>
+
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")
 #define PREPARE_SCREENS THEME->GetMetric(m_sName, "PrepareScreens")
@@ -157,6 +159,8 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 void
 Screen::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	// Do this here so even with 0 time it runs on the next frame
 	UpdateTimedFunctions(fDeltaTime);
 

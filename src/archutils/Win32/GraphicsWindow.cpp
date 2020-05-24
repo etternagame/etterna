@@ -20,6 +20,8 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
 
+#include <Tracy.hpp>
+
 #include <set>
 #include <dbt.h>
 
@@ -542,6 +544,8 @@ GraphicsWindow::GetParams()
 void
 GraphicsWindow::Update()
 {
+	ZoneScoped;
+
 	MSG msg;
 	while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
 		GetMessage(&msg, NULL, 0, 0);

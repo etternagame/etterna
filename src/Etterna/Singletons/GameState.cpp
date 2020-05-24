@@ -31,6 +31,8 @@
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/Misc/Profile.h"
 
+#include <Tracy.hpp>
+
 GameState* GAMESTATE =
   NULL; // global and accessible from anywhere in our program
 
@@ -747,6 +749,8 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 void
 GameState::Update(float fDelta)
 {
+	ZoneScoped;
+
 	m_SongOptions.Update(fDelta);
 
 	m_pPlayerState->Update(fDelta);
