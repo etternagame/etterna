@@ -922,7 +922,7 @@ determine_cc_type(const col_type& last, const col_type& now)
 		return cc_was_init;
 
 	bool single_tap = is_single_tap(now);
-	if (now == col_ohjump) {
+	if (last == col_ohjump) {
 		if (single_tap)
 			return cc_jump_single;
 		else
@@ -1095,7 +1095,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								 last_col);
 
 			// we don't want to set lasttime or lastcol for empty rows
-			if (mni.col == cc_empty)
+			if (mni.col == col_empty)
 				continue;
 
 			// every note has at least 2 ms values associated with it, the ms
