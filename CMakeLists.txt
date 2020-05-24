@@ -40,7 +40,6 @@ endif()
 
 # Project Build Targets
 add_executable(Etterna)
-set_property(TARGET Etterna PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 ## Setting Target Properties
 ## macOS and Linux place binary in root directory
