@@ -42,6 +42,8 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)         # Disable discord examples
 set(USE_STATIC_CRT ON CACHE BOOL "" FORCE)          # Have discord-rpc link statically
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)          # Disable libuv testing
 set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)       # libcurl openssl
+set(ENABLE_TRACY_PROFILER OFF CACHE BOOL "" FORCE)
+
 if(WIN32)
     set(CURL_STATIC_CRT ON CACHE BOOL "" FORCE)     # Have curl link statically - Windows only option
 endif()
@@ -96,6 +98,10 @@ target_link_libraries(Etterna vorbis)
 target_link_libraries(Etterna pcre)
 target_link_libraries(Etterna libmad)
 target_link_libraries(Etterna stb)
+target_link_libraries(Etterna tracy)
+if(ENABLE_TRACY_PROFILER)
+  target_compile_definitions(Etterna PUBLIC TRACY_ENABLE)
+endif()
 
 # OS Specific Initialization
 if(WIN32)

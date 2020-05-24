@@ -28,6 +28,7 @@ add_subdirectory(curl)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
+add_subdirectory(tracy)
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
@@ -41,6 +42,7 @@ list(APPEND ET_EXT_TARGETS
     tomcrypt libtommath
     fftw3f glfw pcre
     zlib libmad
-    ogg vorbis)
+    ogg vorbis
+    tracy)
 
 set_property(TARGET ${ET_EXT_TARGETS} PROPERTY FOLDER "External Libraries") # Sort all extern libraries to a IDE folder/filter
