@@ -1114,8 +1114,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 	// test stuff
 	nemnar rm;
-	unsigned int t3 = t1 == 1 ? col_ids[2] : col_ids[0];
-	unsigned int t4 = t1 == 1 ? col_ids[3] : col_ids[1];
 	for (auto& itv : itv_rows) {
 		p.clear();
 		for (auto& row : itv) {
