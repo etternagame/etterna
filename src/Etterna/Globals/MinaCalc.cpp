@@ -1047,11 +1047,11 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 			// single -> single we know it's an anchor so it's more intuitive to
 			// use mni.col twice
 			mni.tc_ms = ms_from(cur[mni.col], last[mni.col]);
-			mni.time = cur[mni.col];	// mostly setting for debug convenience
+			mni.time = cur[mni.col]; // mostly setting for debug convenience
 			break;
 		case cc_single_jump:
 			// tracking this for now, we want to track from last col to last col
-			// inverted 
+			// inverted
 			mni.cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
 
 			// can't use mni.col twice, use last_col, see below
@@ -1079,6 +1079,20 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 	return;
 }
 
+struct nemnar
+{
+	unsigned int total_taps = 0;
+	unsigned int ran_taps = 0;
+	unsigned int anchor_len = 0;
+	unsigned int oht_len = 0;
+};
+
+void
+find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2, int t3, int t4){
+
+
+};
+
 #pragma endregion
 vector<vector<metanoteinfo>>
 gen_metanoteinfo(const vector<vector<int>>& itv_rows,
@@ -1097,6 +1111,11 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 	col_type last_col = col_init;
 	cc_type last_cc = cc_init;
+
+	// test stuff
+	nemnar rm;
+	unsigned int t3 = t1 == 1 ? col_ids[2] : col_ids[0];
+	unsigned int t4 = t1 == 1 ? col_ids[3] : col_ids[1];
 	for (auto& itv : itv_rows) {
 		p.clear();
 		for (auto& row : itv) {
@@ -1110,14 +1129,22 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 			if (mni.col == col_empty)
 				continue;
 
-			// every note has at least 2 ms values associated with it, the ms
-			// value from the last cross column note (on the same hand), and the
-			// ms value from the last note on it's/this column both are useful
-			// for different things, and we want to track both. for ohjumps, we
-			// will track the ms from the last non-jump on either finger, there
-			// are situations where we may want to consider jumps as having a
-			// cross column ms value of 0 with itself, not sure if they should
-			// be set to this or left at the init values of 5000 though
+			// test stuff
+			{
+
+
+
+			}
+
+			// every note has at least 2 ms values associated with it, the
+			// ms value from the last cross column note (on the same hand),
+			// and the ms value from the last note on it's/this column both
+			// are useful for different things, and we want to track both.
+			// for ohjumps, we will track the ms from the last non-jump on
+			// either finger, there are situations where we may want to
+			// consider jumps as having a cross column ms value of 0 with
+			// itself, not sure if they should be set to this or left at the
+			// init values of 5000 though
 
 			// we will need to update time for one or both cols
 			update_col_time(mni.col, curtime, NoteInfo[row].rowTime);
