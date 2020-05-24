@@ -19,7 +19,7 @@ add_subdirectory(discord-rpc)
 add_subdirectory(SQLiteCpp)
 add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
-add_subdirectory(fftw-3.3.8)
+add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(stb)
@@ -39,7 +39,7 @@ list(APPEND ET_EXT_TARGETS
     discord-rpc
     SQLiteCpp sqlite3
     tomcrypt libtommath
-    fftw3f glfw pcre
+    muFFT glfw pcre
     zlib libmad
     ogg vorbis)
 

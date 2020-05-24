@@ -24,6 +24,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Tell xcodebuild to
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                       # Export compile commands for clang-tidy
 set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo")     # What configurations types do we want to support? (Changes what shows up in Visual Studio)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                # Enable folders/filters within IDE's
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") 
 
 ## Ninja specific setup (Different compilers required different color force commands)
 if(CMAKE_GENERATOR STREQUAL "Ninja")
@@ -89,7 +90,7 @@ target_link_libraries(Etterna sqlite3)
 target_link_libraries(Etterna SQLiteCpp)
 target_link_libraries(Etterna tomcrypt)
 target_link_libraries(Etterna libtommath)
-target_link_libraries(Etterna fftw3f)
+target_link_libraries(Etterna muFFT)
 target_link_libraries(Etterna glfw)
 target_link_libraries(Etterna ogg)
 target_link_libraries(Etterna vorbis)
