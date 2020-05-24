@@ -49,6 +49,8 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 
+#include <Tracy.hpp>
+
 #define SONG_POSITION_METER_WIDTH                                              \
 	THEME->GetMetricF(m_sName, "SongPositionMeterWidth")
 
@@ -82,6 +84,10 @@ static Preference<bool> g_bShowLyrics("ShowLyrics", false);
 
 ScreenGameplay::ScreenGameplay()
 {
+	TracyMessageC(GAMESTATE->m_pCurSong->GetMainTitle().c_str(),
+				  GAMESTATE->m_pCurSong->GetMainTitle().length(),
+				  0xAF0000);
+
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
 	m_delaying_ready_announce = false;
@@ -880,6 +886,8 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 void
 ScreenGameplay::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (GAMESTATE->m_pCurSong == NULL) {
 		/* ScreenDemonstration will move us to the next screen.  We just need to
 		 * survive for one update without crashing.  We need to call

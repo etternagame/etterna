@@ -518,8 +518,9 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
 	ZoneScoped;
 
-	if (!HTTPRunning || HTTPRequests.size() == 0 || gameplay)
+	if (HTTPRequests.size() == 0 || gameplay)
 		return;
+
 	timeval timeout;
 	int rc, maxfd = -1;
 	CURLMcode mc;
@@ -540,41 +541,53 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	if (maxfd == -1) {
 		rc = 0;
 	} else {
+		ZoneNamedN(curl_select, "curl_select", true);
 		rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
 	}
 	switch (rc) {
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:	 /* timeout */
-		default: /* action */
+		case 0: /* timeout */
+		default
+		  : /* action */
+		{
+			ZoneNamedN(multi_perform, "curl_multi_perform", true);
 			curl_multi_perform(mHTTPHandle, &HTTPRunning);
-			break;
+		} break;
 	}
 
-	// Check for finished http requests
-	CURLMsg* msg;
-	int msgs_left;
-	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
-		/* Find out which handle this message is about */
-		for (size_t i = 0; i < HTTPRequests.size(); ++i) {
-			if (msg->easy_handle == HTTPRequests[i]->handle) {
-				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-					LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
-				} else if (msg->msg == CURLMSG_DONE) {
-					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
-				} else
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-				if (HTTPRequests[i]->handle != nullptr)
-					curl_easy_cleanup(HTTPRequests[i]->handle);
-				HTTPRequests[i]->handle = nullptr;
-				if (HTTPRequests[i]->form != nullptr)
-					curl_formfree(HTTPRequests[i]->form);
-				HTTPRequests[i]->form = nullptr;
-				delete HTTPRequests[i];
-				HTTPRequests.erase(HTTPRequests.begin() + i);
-				break;
+	{
+		ZoneNamedN(check_msgs, "CheckMsgs", true);
+		// Check for finished http requests
+		CURLMsg* msg;
+		int msgs_left;
+		while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
+			/* Find out which handle this message is about */
+			int idx_to_delete = -1;
+			for (size_t i = 0; i < HTTPRequests.size(); ++i) {
+				if (msg->easy_handle == HTTPRequests[i]->handle) {
+					if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
+						HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+						LOG->Trace(
+						  "CURL UNSUPPORTED PROTOCOL (Probably https)");
+					} else if (msg->msg == CURLMSG_DONE) {
+						HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
+					} else
+						HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					if (HTTPRequests[i]->handle != nullptr)
+						curl_easy_cleanup(HTTPRequests[i]->handle);
+					HTTPRequests[i]->handle = nullptr;
+					if (HTTPRequests[i]->form != nullptr)
+						curl_formfree(HTTPRequests[i]->form);
+					HTTPRequests[i]->form = nullptr;
+					delete HTTPRequests[i];
+					idx_to_delete = i;
+					break;
+				}
+			}
+			if (idx_to_delete != -1) {
+				HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 			}
 		}
 	}
@@ -818,6 +831,8 @@ DownloadManager::RefreshFavourites()
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			!d.HasMember("data") || !d["data"].IsArray())
@@ -1315,6 +1330,8 @@ DownloadManager::RefreshUserRank()
 	if (!LoggedIn())
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1395,6 +1412,8 @@ DownloadManager::SendRequestToURL(
 	}
 	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
 															  CURLMsg* msg) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1467,6 +1486,8 @@ void
 DownloadManager::RefreshCountryCodes()
 {
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1496,6 +1517,8 @@ DownloadManager::RequestReplayData(const string& scoreid,
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		vector<pair<float, float>> replayData;
 		vector<float> timestamps;
 		vector<float> offsets;
@@ -1622,6 +1645,8 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 										 LuaReference& ref)
 {
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1869,6 +1894,8 @@ void
 DownloadManager::RefreshCoreBundles()
 {
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1931,6 +1958,8 @@ void
 DownloadManager::RefreshLastVersion()
 {
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1957,6 +1986,8 @@ void
 DownloadManager::RefreshRegisterPage()
 {
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -1990,6 +2021,8 @@ DownloadManager::RefreshTop25(Skillset ss)
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			(d.HasMember("errors") && d["errors"].HasMember("status") &&
@@ -2064,6 +2097,8 @@ DownloadManager::RefreshUserData()
 	if (!LoggedIn())
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -2155,6 +2190,8 @@ DownloadManager::StartSession(
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			LOG->Trace(("Malformed request response: " + req.result).c_str());
@@ -2217,6 +2254,8 @@ DownloadManager::RefreshPackList(const string& url)
 	if (url == "")
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
+		ZoneScoped;
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			!(d.IsArray() || (d.HasMember("data") && d["data"].IsArray()))) {

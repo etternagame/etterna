@@ -818,6 +818,8 @@ ScreenManager::LoadDelayedScreen()
 	MESSAGEMAN->Broadcast(Message_ScreenChanged);
 
 	SendMessageToTopScreen(SM);
+
+	TracyMessageC(sScreenName.c_str(), sScreenName.length(), 0x0000AF);
 }
 
 void

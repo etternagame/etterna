@@ -38,6 +38,8 @@
 #include "HoldJudgment.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 
+#include <Tracy.hpp>
+
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						std::string& sNameOut,
@@ -1940,6 +1942,8 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
+	ZoneScoped;
+
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
@@ -2281,8 +2285,8 @@ Player::Step(int col,
 					float fWindowW5 = GetWindowSeconds(TW_W5);
 
 					// figure out overlap.
-					float fLowerBound = 0.0f;	// negative upper limit
-					float fUpperBound = 0.0f;	// positive lower limit
+					float fLowerBound = 0.0f;	 // negative upper limit
+					float fUpperBound = 0.0f;	 // positive lower limit
 					float fCompareWindow = 0.0f; // filled in here:
 					if (score == TNS_W4) {
 						fLowerBound = -fWindowW3;
