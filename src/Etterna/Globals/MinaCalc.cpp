@@ -863,7 +863,7 @@ enum cc_type
 	cc_single_jump,
 	cc_jump_jump,
 	cc_empty,
-	cc_was_init,
+	cc_init,
 	cc_undefined
 };
 
@@ -919,7 +919,7 @@ determine_cc_type(const col_type& last, const col_type& now)
 	if (now == col_empty)
 		return cc_empty;
 	else if (last == col_init)
-		return cc_was_init;
+		return cc_init;
 
 	bool single_tap = is_single_tap(now);
 	if (last == col_ohjump) {
@@ -954,7 +954,7 @@ struct metanoteinfo
 	col_type col = col_init;
 
 	// type of cross column hit
-	cc_type cc = cc_was_init;
+	cc_type cc = cc_init;
 
 	// ms from last cross column note
 	float cc_ms_any = ms_init;
@@ -1023,15 +1023,16 @@ update_col_time(const col_type& col, float arr[2], float val)
 };
 
 inline col_type
-invert_col(const col_type& col){
-	return col == col_left ? col_right : col_left; 
+invert_col(const col_type& col)
+{
+	return col == col_left ? col_right : col_left;
 };
 
- void
+void
 set_metanoteinfo_timings(metanoteinfo& mni,
-				const float cur[2],
-				const float last[2],
-				const col_type& last_col)
+						 const float cur[2],
+						 const float last[2],
+						 const col_type& last_col)
 {
 	switch (mni.cc) {
 		case cc_left_right:
@@ -1048,16 +1049,24 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 			mni.tc_ms = ms_from(cur[mni.col], last[mni.col]);
 			break;
 		case cc_single_jump:
-			mni.cc_ms_any = ms_from(cur[0], last[last_col]);
-		case cc_jump_jump:
-			// fall through for single_jump, set this col ms by last_col, cur
-			// index is not relevant for either case, except that we can't use
-			// mni.col
+			// tracking this for now, we want to track from last col to last col
+			// inverted 
+			mni.cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+
+			// can't use mni.col twice, use last_col, see below
 			mni.tc_ms = ms_from(cur[0], last[last_col]);
+			break;
+		case cc_jump_jump:
+			// not sure if we should set or leave at init value of 5000.f
+			// mni.cc_ms_any = 0.f;
+
+			// indexes don't matter-- except that we can't use mni.col or
+			// last_col (because index 2 is outside array size)
+			mni.tc_ms = ms_from(cur[0], last[0]);
 			break;
 		case cc_empty:
 			break;
-		case cc_was_init:
+		case cc_init:
 			break;
 		case cc_undefined:
 			break;
@@ -1084,7 +1093,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	float this_ms = ms_init;
 
 	col_type last_col = col_init;
-	cc_type last_cc = cc_was_init;
+	cc_type last_cc = cc_init;
 	for (auto& itv : itv_rows) {
 		p.clear();
 		for (auto& row : itv) {
@@ -1109,7 +1118,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 			// we will need to update time for one or both cols
 			update_col_time(mni.col, curtime, NoteInfo[row].rowTime);
-
 			set_metanoteinfo_timings(mni, curtime, lasttime, last_col);
 
 			// update last notes/time
@@ -1117,6 +1125,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 			last_cc = mni.cc;
 			lasttime[0] = curtime[0];
 			lasttime[1] = curtime[1];
+			p.push_back(mni);
 		}
 		o.push_back(p);
 	}
@@ -1145,6 +1154,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
 										   { right_hand, { 4, 8 } } };
 
+	vector<vector<vector<metanoteinfo>>> bruh;
+
 	// loop to help with hand specific stuff, we could do this stuff
 	// in the class but that's more structural work and this is
 	// simple
@@ -1160,11 +1171,13 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// anything here and almost defeats the purpose but
 		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
-			auto bloop =
-			  gen_metanoteinfo(nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]);
+			bruh.emplace_back(gen_metanoteinfo(
+			  nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]));
 			hand.InitBaseDiff(fingers[0], fingers[1]);
 			hand.InitPoints(fingers[0], fingers[1]);
 		} else {
+			bruh.emplace_back(gen_metanoteinfo(
+			  nervIntervals, NoteInfo, music_rate, col_ids[2], col_ids[3]));
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
