@@ -1489,6 +1489,9 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				auto& rm =
 				  rms[0].anchor_len > rms[1].anchor_len ? rms[0] : rms[1];
 
+				if (rm.anchor_len < 4)
+					continue;
+
 				if (rm.ran_taps > 0) {
 					// ranmon of total prop
 					float propa = static_cast<float>(rm.ran_taps) /
@@ -1539,7 +1542,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				}
 			}
 		}
-		
 	}
 	Smooth(doot[RanMan], 1.f);
 	Smooth(doot[RanMan], 1.f);
