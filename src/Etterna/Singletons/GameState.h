@@ -27,6 +27,8 @@ class SongOptions;
 SortOrder
 GetDefaultSort();
 
+extern int mina_calc_version;
+
 /** @brief Holds game data that is not saved between sessions. */
 class GameState
 {
@@ -213,7 +215,10 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 	
-	RString GetEtternaVersion() { return "0.70.-323"; }
+	RString GetEtternaVersion()
+	{
+		return "0.70.-" + to_string(mina_calc_version);
+	}
 
 	// is this the best place for this? it's not exactly a pref, and we shouldn't
 	// be copying and pasting these values everywhere as needed j1-j4 are now all 1.f

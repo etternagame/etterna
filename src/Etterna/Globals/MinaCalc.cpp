@@ -4949,11 +4949,12 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
+int mina_calc_version = 329;
 int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 329;
+	return mina_calc_version;
 #else
 	return 263;
 #endif
