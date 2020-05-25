@@ -1465,8 +1465,10 @@ RunningMen::operator()(RM_Sequencing& rm, vector<float> doot[ModCount], int i)
 	pmod = CalcClamp(
 	  pmod * total_prop * off_tap_prop * off_tap_same_prop, min_mod, max_mod);
 
-	// debug
+	// actual used mod
 	doot[RanMan][i] = pmod;
+
+	// debug
 	doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
 	doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
 	doot[RanAnchLenMod][i] = anchor_len_comp;
