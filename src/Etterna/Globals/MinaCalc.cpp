@@ -348,10 +348,24 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.875f, 0.89f, 0.94f, 0.7675f, 0.84f, 0.7f
-};
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
+												 0.94f, 0.7675f, 0.84f,  0.7f };
 bool debug_lmao = false;
+
+#pragma region patternmodparamstuff
+static const std::string calc_params_xml = "calc params.xml";
+struct PatternMod
+{
+	float min_mod = 0.5;
+	float max_mod = 1.f;
+	float prop_scaler = 1.f;
+
+	void construct_final_mod();
+
+};
+
+#pragma endregion
+
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
 // SOMEHOW MAKES JAKES EASIER SO DISABLED FOR NOW (it's also sort of redundant
