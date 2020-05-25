@@ -1263,7 +1263,7 @@ handle_ranman_off_progression(nemnar& rm, const float& now)
 
 	// offnote, reset jack length & oht length
 	rm.jack_len = 0;
-	//rm.oht_len = 0;
+	// rm.oht_len = 0;
 
 	rm.off_total_ms += ms_from(now, rm.last_anchor_time);
 
@@ -1292,17 +1292,16 @@ handle_ranman_jack_progression(nemnar& rm)
 		reset_ranmens(rm);
 }
 
- bool
+bool
 is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
 {
-	// we are flipping b with invert col so make sure it's left_right or right_left
-	// single note, if either of the other two aren't this will fail anyway and
-	// it's fine
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
 	if (b != cc_left_right && b != cc_right_left)
 		return false;
 
-	bool loot = a ==
-				  invert_cc(b);
+	bool loot = a == invert_cc(b);
 	bool doot = a == c;
 	// this is kind of big brain so if you don't get it that's ok
 	return loot && doot;
@@ -1351,6 +1350,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	bool offhand_tap = false;
 	bool was_last_offhand_tap = false;
 	for (size_t i = 0; i < itv_rows.size(); ++i) {
+		nemnar rm_to_use_for_mods;
 		p.clear();
 		auto& itv = itv_rows[i];
 		for (auto& row : itv) {
@@ -1383,7 +1383,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 						if (rm.oht_len > max_oht_len)
 							reset_ranmens(rm);
 					}
-					
 
 					// if (offhand_tap) {
 					//	// moved to the cc_empty case in the swtich cause i
@@ -1485,10 +1484,17 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					rm.last_last_cc = rm.last_cc;
 					rm.last_cc = mni.cc;
 				}
+
+				// use the biggest anchor that has existed in this interval
+				int test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
+
+				if(rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
+					rm_to_use_for_mods = rms[test];
+
 				ran_last = mni.col;
 				was_last_offhand_tap = offhand_tap;
 			}
-			
+
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
@@ -1526,16 +1532,14 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		doot[RanPropAll][i] = 0.f;
 		doot[RanPropOff][i] = 0.f;
 		doot[RanPropOffS][i] = 0.f;
-		doot[RanPropOHT][i] = 1.f;
+		doot[RanPropOHT][i] = 0.f;
 		doot[RanPropJack][i] = 0.f;
 		{
 			// THROWOUT ROLLS DOES NOT WORK WELL BUT WORKS OK
 			if (true /*abs(static_cast<int>(rms[0].anchor_len) -
 					static_cast<int>(rms[1].anchor_len)) > 2*/) {
 
-				// use the bigger ranmens
-				auto& rm =
-				  rms[0].anchor_len > rms[1].anchor_len ? rms[0] : rms[1];
+				auto& rm = rm_to_use_for_mods;
 
 				if (rm.anchor_len < 4)
 					continue;
@@ -1555,9 +1559,11 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					// same hand off to ranmon prop, if this is 0 we want to
 					// negate the ranmen bonus
 					float propc = 0.f;
-					if (rm.off_taps_same > 0)
+					if (rm.off_taps_same > 0) {
 						propc = static_cast<float>(rm.off_taps_same) /
 								static_cast<float>(rm.anchor_len);
+						propc = CalcClamp(propc + 0.5f, 0.f, 1.25f);
+					}
 
 					// anchor length component
 					float boopie = static_cast<float>(rm.anchor_len) / 2.5f;
@@ -1574,12 +1580,14 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					// we could scale the anchor to speed if we want but meh
 					// that's really complicated/messy/error prone
 					float bazoink = boopie + joujou + efloot + 1.f;
-					bazoink = CalcClamp(bazoink * propb * propa, 0.95f, 1.5f);
+					bazoink =
+					  CalcClamp(bazoink * propb * propa * propc, 0.95f, 1.5f);
 
 					// debug
 					doot[RanMan][i] = bazoink;
 					doot[RanLen][i] = static_cast<float>(rm.total_taps) / 100.f;
-					doot[RanAnchLen][i] = static_cast<float>(rm.anchor_len) / 30.f;
+					doot[RanAnchLen][i] =
+					  static_cast<float>(rm.anchor_len) / 30.f;
 					doot[RanAnchLenMod][i] = boopie / 10.f;
 					doot[RanOHT][i] = rm.oht_taps;
 					doot[RanOffS][i] = rm.off_taps_same;
