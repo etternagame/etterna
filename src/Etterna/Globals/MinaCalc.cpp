@@ -49,7 +49,7 @@ struct JumpHandChordData
 	vector<unsigned int> chordtaps;
 	vector<unsigned int> quads;
 };
-#pragma region utils
+#pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
 inline float
 fastpow(double a, double b)
@@ -277,6 +277,12 @@ inline float
 max_val(vector<float>& v)
 {
 	return *std::max_element(v.begin(), v.end());
+}
+
+inline size_t
+max_index(vector<float>& v)
+{
+	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
 }
 
 inline int
@@ -719,8 +725,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		// stam is based on which calc produced the highest
 		// output without it
-		size_t highest_base_skillset = std::distance(
-		  mcbloop.begin(), std::max_element(mcbloop.begin(), mcbloop.end()));
+		size_t highest_base_skillset = max_index(mcbloop);
 		float base = mcbloop[highest_base_skillset];
 
 		// rerun all with stam on, optimize by starting at
