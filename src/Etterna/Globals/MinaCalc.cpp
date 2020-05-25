@@ -1044,10 +1044,26 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
+// inverting col state for col_left or col_right only
 inline col_type
 invert_col(const col_type& col)
 {
+	// this should crash or something idk.. this is just for flipping
+	// left->right and vice versa to be used in indexing... dangerous if misused
+	// due to unpredictable/undefined behavior
+	if (col != col_left && col != col_right)
+		return col_init;
 	return col == col_left ? col_right : col_left;
+};
+
+// inverting cc state for left_right or right_left only
+inline cc_type
+invert_cc(const cc_type& cc)
+{
+	// this should also crash, but it's not as dangerous as above
+	if (cc != cc_left_right && cc != cc_right_left)
+		return cc_init;
+	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
 
 void
@@ -1114,6 +1130,8 @@ struct nemnar
 	unsigned int total_taps = 0;
 	unsigned int ran_taps = 0;
 	col_type anchor_col = col_init;
+	cc_type last_cc = cc_init;
+	cc_type last_last_cc = cc_init;
 	unsigned int anchor_len = 0;
 	unsigned int off_taps_same = 0;
 	unsigned int oht_taps = 0; // not tracking yet
@@ -1131,7 +1149,7 @@ find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2){
 
 };
 
-static const int max_oht_len = 3;
+static const int max_oht_len = 2;
 static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
 static const int max_jack_len = 1;
@@ -1139,6 +1157,10 @@ static const int max_jack_len = 1;
 inline void
 reset_ranmens(nemnar& rm)
 {
+	// don't reset anchor_col or last_col
+	// we want to preserve the pattern state
+	// reset everything else tho
+
 	rm.trill_bill = false;
 	rm.is_bursting = false;
 	rm.had_burst = false;
@@ -1241,7 +1263,7 @@ handle_ranman_off_progression(nemnar& rm, const float& now)
 
 	// offnote, reset jack length & oht length
 	rm.jack_len = 0;
-	rm.oht_len = 0;
+	//rm.oht_len = 0;
 
 	rm.off_total_ms += ms_from(now, rm.last_anchor_time);
 
@@ -1268,6 +1290,22 @@ handle_ranman_jack_progression(nemnar& rm)
 	// make sure to set the anchor col when resetting if we exceed max jack len
 	if (rm.jack_len > max_jack_len)
 		reset_ranmens(rm);
+}
+
+ bool
+is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or right_left
+	// single note, if either of the other two aren't this will fail anyway and
+	// it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
+
+	bool loot = a ==
+				  invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
 }
 
 #pragma endregion
@@ -1315,8 +1353,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	for (size_t i = 0; i < itv_rows.size(); ++i) {
 		p.clear();
 		auto& itv = itv_rows[i];
-		for (auto& row : itv)
-		{
+		for (auto& row : itv) {
 			metanoteinfo mni;
 			set_col_and_cc_types(mni,
 								 NoteInfo[row].notes & t1,
@@ -1338,6 +1375,15 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				float bort = NoteInfo[row].rowTime;
 				for (auto& rm : rms) {
 					rm.total_taps += column_count(cols);
+
+					// oht
+					if (is_oht(rm.last_last_cc, rm.last_cc, mni.cc)) {
+						++rm.oht_len;
+						++rm.oht_taps;
+						if (rm.oht_len > max_oht_len)
+							reset_ranmens(rm);
+					}
+					
 
 					// if (offhand_tap) {
 					//	// moved to the cc_empty case in the swtich cause i
@@ -1436,11 +1482,13 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 						default:
 							break;
 					}
+					rm.last_last_cc = rm.last_cc;
+					rm.last_cc = mni.cc;
 				}
 				ran_last = mni.col;
 				was_last_offhand_tap = offhand_tap;
 			}
-
+			
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
@@ -1504,7 +1552,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 					propb = CalcClamp(propb, 0.1f, 1.1f);
 
-					// same hand off to ranmon prop
+					// same hand off to ranmon prop, if this is 0 we want to
+					// negate the ranmen bonus
 					float propc = 0.f;
 					if (rm.off_taps_same > 0)
 						propc = static_cast<float>(rm.off_taps_same) /
@@ -1529,9 +1578,10 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 					// debug
 					doot[RanMan][i] = bazoink;
-					doot[RanLen][i] = rm.total_taps;
-					doot[RanAnchLen][i] = rm.anchor_len;
-					doot[RanAnchLenMod][i] = boopie;
+					doot[RanLen][i] = static_cast<float>(rm.total_taps) / 100.f;
+					doot[RanAnchLen][i] = static_cast<float>(rm.anchor_len) / 30.f;
+					doot[RanAnchLenMod][i] = boopie / 10.f;
+					doot[RanOHT][i] = rm.oht_taps;
 					doot[RanOffS][i] = rm.off_taps_same;
 					doot[RanJack][i] = rm.jack_taps;
 					doot[RanPropAll][i] = propa;
@@ -1543,8 +1593,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 			}
 		}
 	}
-	Smooth(doot[RanMan], 1.f);
-	Smooth(doot[RanMan], 1.f);
+	// Smooth(doot[RanMan], 1.f);
+	// Smooth(doot[RanMan], 1.f);
 	return o;
 }
 

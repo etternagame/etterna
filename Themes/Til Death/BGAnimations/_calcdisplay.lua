@@ -196,11 +196,16 @@ local debugGroups = {
         RanLen = true,
         RanAnchLen = true,
         RanAnchLenMod = true,
+        RanOHT = true,
         RanOffS = true,
         RanJack = true,
         RanPropAll = true,
+        RanPropOHT = true,
         RanPropOff = true,
         RanPropOffS = true,
+        RanPropJack = true,
+        
+        
     },
     {},
     [9] = {},
