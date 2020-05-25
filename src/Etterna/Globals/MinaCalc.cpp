@@ -1104,6 +1104,9 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 // ranmen staff
 struct nemnar
 {
+	// try to allow 1 burst?
+	bool is_bursting = false;
+	bool had_burst = false;
 	float last_anchor_time = s_init;
 	float last_off_time = s_init;
 	unsigned int total_taps = 0;
@@ -1126,12 +1129,15 @@ find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2){
 };
 
 static const int max_oht_len = 3;
-static const int max_off_spacing = 3;
+static const int max_off_spacing = 2;
+static const int max_burst_len = 6;
 static const int max_jack_len = 1;
 
 inline void
 reset_ranmens(nemnar& rm)
 {
+	rm.is_bursting = false;
+	rm.had_burst = false;
 	rm.total_taps = 0;
 	rm.ran_taps = 0;
 	rm.anchor_len = 0;
@@ -1143,6 +1149,62 @@ reset_ranmens(nemnar& rm)
 	rm.jack_len = 0;
 	rm.max_ms = ms_init;
 	rm.off_total_ms = 0.f;
+}
+
+inline void
+handle_off_tap_completion(nemnar& rm)
+{
+	// if we end while bursting due to hitting an anchor, complete it
+	if (rm.is_bursting) {
+		rm.is_bursting = false;
+		rm.had_burst = true;
+	}
+	// reset off_len counter		
+	rm.off_len = 0;
+}
+
+// separate function because of burst logic handling
+inline void
+handle_off_tap_progression(nemnar& rm, bool completing)
+{
+	// handle ending off tap progression due to jacks or anchors
+	if (completing) {
+		handle_off_tap_completion(rm);
+		// below is for increasing off tap logic, skip
+		return;
+	}
+
+	// resume off tap progression caused by another consecutive off tap
+	// normal behavior if we have already allowed for 1 burst, reset if the
+	// offtap sequence exceeds the spacing limit; this will also catch bursts
+	// that exceed the max burst length
+	if (rm.had_burst) {
+		if (rm.off_len > max_off_spacing) {
+			reset_ranmens(rm);
+			return;
+		}
+		// don't care about any other behavior here
+		return;
+	}
+
+	// if we are in a burst, allow it to finish and when it does set the
+	// had_burst flag rather than resetting, if the burst continues beyond
+	// the max burst length then it will be reset via other means
+	// (we must be in a burst if off_len == max_burst_len)
+	if (rm.off_len == max_burst_len) {
+		handle_off_tap_completion(rm);
+		return;
+	}
+
+	if (rm.is_bursting) {
+		return;
+	}
+
+	// haven't had or started a burst yet, if we exceed max_off_spacing, set
+	// is_bursting to true and allow it to continue, otherwise, do nothing
+	if (rm.off_len > max_off_spacing)
+		rm.is_bursting = true;
+	return;
 }
 
 void
@@ -1159,8 +1221,8 @@ handle_ranman_anchor_progression(nemnar& rm, const float& now)
 	++rm.ran_taps;
 	++rm.anchor_len;
 
-	// proper anchor, reset off len
-	rm.off_len = 0;
+	// handle completion of off tap progression
+	handle_off_tap_progression(rm, true);
 }
 
 inline void
@@ -1176,15 +1238,13 @@ handle_ranman_off_progression(nemnar& rm, const float& now)
 	rm.jack_len = 0;
 	rm.oht_len = 0;
 
-	// make sure to set the anchor col when resetting if we exceed max off
-	// spacing
-	if (rm.off_len > max_off_spacing)
-		reset_ranmens(rm);
-
 	rm.off_total_ms += ms_from(now, rm.last_anchor_time);
+
+	// handle progression for increasing off_len
+	handle_off_tap_progression(rm, false);
+
 	// rolls
 	if (rm.off_len == max_off_spacing) {
-
 		// ok do nothing for now i might have a better idea
 	}
 }
@@ -1197,8 +1257,8 @@ handle_ranman_jack_progression(nemnar& rm)
 	++rm.jack_len;
 	++rm.jack_taps;
 
-	// reset offnote len on jacks as well
-	rm.off_len = 0;
+	// handle completion of off tap progression
+	handle_off_tap_progression(rm, true);
 
 	// make sure to set the anchor col when resetting if we exceed max jack len
 	if (rm.jack_len > max_jack_len)
