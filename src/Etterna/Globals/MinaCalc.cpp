@@ -1524,6 +1524,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 		// continue test stuff
 		static const float min_mod = 0.95f;
+		static const float max_mod = 1.5f;
 		doot[RanMan][i] = min_mod;
 		doot[RanLen][i] = 0.f;
 		doot[RanAnchLen][i] = 0.f;
@@ -1581,7 +1582,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					// that's really complicated/messy/error prone
 					float bazoink = boopie + joujou + efloot + 1.f;
 					bazoink =
-					  CalcClamp(bazoink * propb * propa * propc, 0.95f, 1.5f);
+					  CalcClamp(bazoink * propb * propa * propc, min_mod, max_mod);
 
 					// debug
 					doot[RanMan][i] = bazoink;
