@@ -1136,7 +1136,27 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 }
 
 // ranmen staff
-struct nemnar
+static const int max_oht_len = 2;
+static const int max_off_spacing = 2;
+static const int max_burst_len = 6;
+static const int max_jack_len = 1;
+
+bool
+is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
+
+	bool loot = a == invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
+}
+
+struct RM_Sequencing
 {
 	// try to allow 1 burst?
 	bool is_bursting = false;
@@ -1158,60 +1178,83 @@ struct nemnar
 	unsigned int jack_len = 0;
 	float max_ms = ms_init;
 	float off_total_ms = 0.f;
+
+	float temp_ms = 0.f;
+
+	void reset();
+	void handle_off_tap(const float& now);
+	void handle_off_tap_completion();
+	void handle_off_tap_progression(const bool& completing);
+	void handle_anchor_progression(const float& now);
+	void handle_jack_progression();
+	void handle_cross_column_branching(const cc_type& cc, const float& now);
 };
-
-void
-find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2){
-
-};
-
-static const int max_oht_len = 2;
-static const int max_off_spacing = 2;
-static const int max_burst_len = 6;
-static const int max_jack_len = 1;
 
 inline void
-reset_ranmens(nemnar& rm)
+RM_Sequencing::reset()
 {
 	// don't reset anchor_col or last_col
 	// we want to preserve the pattern state
 	// reset everything else tho
 
-	rm.is_bursting = false;
-	rm.had_burst = false;
-	rm.total_taps = 0;
-	rm.ran_taps = 0;
-	rm.anchor_len = 0;
-	rm.off_taps_same = 0;
-	rm.oht_taps = 0;
-	rm.oht_len = 0;
-	rm.off_taps = 0;
-	rm.off_len = 0;
-	rm.jack_taps = 0;
-	rm.jack_len = 0;
-	rm.max_ms = ms_init;
-	rm.off_total_ms = 0.f;
+	is_bursting = false;
+	had_burst = false;
+	total_taps = 0;
+	ran_taps = 0;
+	anchor_len = 0;
+	off_taps_same = 0;
+	oht_taps = 0;
+	oht_len = 0;
+	off_taps = 0;
+	off_len = 0;
+	jack_taps = 0;
+	jack_len = 0;
+	max_ms = ms_init;
+	off_total_ms = 0.f;
 }
 
 inline void
-handle_off_tap_completion(nemnar& rm)
+RM_Sequencing::handle_off_tap(const float& now)
+{
+	last_off_time = now;
+
+	++ran_taps;
+	++off_taps;
+	++off_len;
+
+	// offnote, reset jack length & oht length
+	jack_len = 0;
+
+	off_total_ms += ms_from(now, last_anchor_time);
+
+	// handle progression for increasing off_len
+	handle_off_tap_progression(false);
+
+	// rolls
+	if (off_len == max_off_spacing) {
+		// ok do nothing for now i might have a better idea
+	}
+}
+
+inline void
+RM_Sequencing::handle_off_tap_completion()
 {
 	// if we end while bursting due to hitting an anchor, complete it
-	if (rm.is_bursting) {
-		rm.is_bursting = false;
-		rm.had_burst = true;
+	if (is_bursting) {
+		is_bursting = false;
+		had_burst = true;
 	}
 	// reset off_len counter
-	rm.off_len = 0;
+	off_len = 0;
 }
 
 // separate function because of burst logic handling
 inline void
-handle_off_tap_progression(nemnar& rm, bool completing)
+RM_Sequencing::handle_off_tap_progression(const bool& completing)
 {
 	// handle ending off tap progression due to jacks or anchors
 	if (completing) {
-		handle_off_tap_completion(rm);
+		handle_off_tap_completion();
 		// below is for increasing off tap logic, skip
 		return;
 	}
@@ -1220,9 +1263,9 @@ handle_off_tap_progression(nemnar& rm, bool completing)
 	// normal behavior if we have already allowed for 1 burst, reset if the
 	// offtap sequence exceeds the spacing limit; this will also catch bursts
 	// that exceed the max burst length
-	if (rm.had_burst) {
-		if (rm.off_len > max_off_spacing) {
-			reset_ranmens(rm);
+	if (had_burst) {
+		if (off_len > max_off_spacing) {
+			reset();
 			return;
 		}
 		// don't care about any other behavior here
@@ -1233,94 +1276,209 @@ handle_off_tap_progression(nemnar& rm, bool completing)
 	// had_burst flag rather than resetting, if the burst continues beyond
 	// the max burst length then it will be reset via other means
 	// (we must be in a burst if off_len == max_burst_len)
-	if (rm.off_len == max_burst_len) {
-		handle_off_tap_completion(rm);
-		return;
-	}
-
-	if (rm.is_bursting) {
+	if (off_len == max_burst_len) {
+		handle_off_tap_completion();
 		return;
 	}
 
 	// haven't had or started a burst yet, if we exceed max_off_spacing, set
 	// is_bursting to true and allow it to continue, otherwise, do nothing
-	if (rm.off_len > max_off_spacing)
-		rm.is_bursting = true;
+	if (off_len > max_off_spacing)
+		is_bursting = true;
 	return;
 }
 
 void
-handle_ranman_anchor_progression(nemnar& rm, const float& now)
+RM_Sequencing::handle_anchor_progression(const float& now)
 {
-	float ms = ms_from(now, rm.last_anchor_time);
+	temp_ms = ms_from(now, last_anchor_time);
 	// account for float precision error and small bpm flux
-	if (ms > rm.max_ms + 5.f)
-		reset_ranmens(rm);
+	if (temp_ms > max_ms + 5.f)
+		reset();
 	else
-		rm.max_ms = ms;
+		max_ms = temp_ms;
 
-	rm.last_anchor_time = now;
-	++rm.ran_taps;
-	++rm.anchor_len;
+	last_anchor_time = now;
+	++ran_taps;
+	++anchor_len;
 
 	// handle completion of off tap progression
-	handle_off_tap_progression(rm, true);
+	handle_off_tap_progression(true);
 }
 
 inline void
-handle_ranman_off_progression(nemnar& rm, const float& now)
+RM_Sequencing::handle_jack_progression()
 {
-	rm.last_off_time = now;
-
-	++rm.ran_taps;
-	++rm.off_taps;
-	++rm.off_len;
-
-	// offnote, reset jack length & oht length
-	rm.jack_len = 0;
-	// rm.oht_len = 0;
-
-	rm.off_total_ms += ms_from(now, rm.last_anchor_time);
-
-	// handle progression for increasing off_len
-	handle_off_tap_progression(rm, false);
-
-	// rolls
-	if (rm.off_len == max_off_spacing) {
-		// ok do nothing for now i might have a better idea
-	}
-}
-
-inline void
-handle_ranman_jack_progression(nemnar& rm)
-{
-	++rm.ran_taps;
-	++rm.anchor_len; // do this for jacks?
-	++rm.jack_len;
-	++rm.jack_taps;
+	++ran_taps;
+	++anchor_len; // do this for jacks?
+	++jack_len;
+	++jack_taps;
 
 	// handle completion of off tap progression
-	handle_off_tap_progression(rm, true);
+	handle_off_tap_progression(true);
 
 	// make sure to set the anchor col when resetting if we exceed max jack len
-	if (rm.jack_len > max_jack_len)
-		reset_ranmens(rm);
+	if (jack_len > max_jack_len)
+		reset();
 }
 
-bool
-is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+inline void
+RM_Sequencing::handle_cross_column_branching(const cc_type& cc,
+											 const float& now)
 {
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (b != cc_left_right && b != cc_right_left)
-		return false;
+	// we are comparing 2 different enum types here, but this is what we want.
+	// cc_left_right is 0, col_left is 0. if we are cc_left_right then we have
+	// landed on the right column, so if we have cc (0) == anchor_col (0), we
+	// are entering the off column (right) of the anchor (left).
+	// perhaps left_right and right_left should be flipped in the
+	// cc_type enum to make this more intuitive (but probably not)
 
-	bool loot = a == invert_cc(b);
-	bool doot = a == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
-}
+	// NOT an anchor
+	if (anchor_col == cc) {
+		handle_off_tap(now);
+		// same hand offtap
+		++off_taps_same;
+		return;
+	}
+	handle_anchor_progression(now);
+};
+
+struct RunningMen : PatternMod
+{
+	// params
+	float min_mod = 0.95f;
+	float max_mod = 1.5f;
+	float mod_base = 1.f;
+	int min_anchor_len = 5;
+	int min_taps_in_rm = 1;
+	int min_off_taps_same = 1;
+
+	float total_prop_scaler = 1.f;
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+
+	float off_tap_prop_scaler = 1.f;
+	float off_tap_prop_min = 0.f;
+	float off_tap_prop_max = 1.f;
+
+	float off_tap_same_base = 0.5f;
+	float off_tap_same_prop_scaler = 1.f;
+	float off_tap_same_prop_min = 0.f;
+	float off_tap_same_prop_max = 1.25f;
+
+	float anchor_len_divisor = 2.5f;
+
+	int min_jack_taps_for_bonus = 1;
+	float jack_bonus_base = 0.1f;
+
+	int min_oht_taps_for_bonus = 1;
+	float oht_bonus_base = 0.1f;
+
+	// stuff for making mod
+	float total_prop = 0.f;
+	float off_tap_prop = 0.f;
+	float off_tap_same_prop = 0.f;
+	float anchor_len_comp = 0.f;
+	float jack_bonus = 0.f;
+	float oht_bonus = 0.f;
+	float pmod = min_mod;
+	static void resize_own_pmods(vector<float> doot[ModCount], const int& size)
+	{
+		static const vector<int> _pmods{
+			RanMan,		RanLen,		RanAnchLen,  RanAnchLenMod,
+			RanJack,	RanOHT,		RanOffS,	 RanPropAll,
+			RanPropOff, RanPropOHT, RanPropOffS, RanPropJack
+		};
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+	void operator()(RM_Sequencing& rm, vector<float> doot[ModCount],
+					int i);
+};
+
+template<typename T>
+inline float
+pmod_prop(T a,
+		  T b,
+		  const float& s,
+		  const float& min,
+		  const float& max,
+		  const float& base = 0.f)
+{
+	return CalcClamp(
+	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
+};
+
+void
+RunningMen::operator()(RM_Sequencing& rm, vector<float> doot[ModCount], int i)
+{
+	if (rm.anchor_len < min_anchor_len) {
+		doot[RanMan][i] = min_mod;
+		return;
+	} else if (rm.ran_taps < min_taps_in_rm) {
+		doot[RanMan][i] = min_mod;
+		return;
+	} else if (rm.off_taps_same < min_off_taps_same) {
+		doot[RanMan][i] = min_mod;
+		return;
+	}
+
+	// taps in runningman / total taps in interval... i think? can't remember
+	// when i reset total taps tbh.. this might be useless
+	total_prop = pmod_prop(rm.ran_taps,
+						   rm.total_taps,
+						   total_prop_scaler,
+						   total_prop_min,
+						   total_prop_max);
+
+	// number anchor taps / number of non anchor taps
+	off_tap_prop = pmod_prop(rm.anchor_len,
+							 rm.ran_taps,
+							 off_tap_prop_scaler,
+							 off_tap_prop_min,
+							 off_tap_prop_max);
+
+	// number of same hand off anchor taps / anchor taps, basically stuff is
+	// really hard when this is high (a value of 0.5 is a triplet every other
+	// anchor)
+	off_tap_same_prop = pmod_prop(rm.off_taps_same,
+								  rm.anchor_len,
+								  off_tap_same_prop_scaler,
+								  off_tap_same_prop_min,
+								  off_tap_same_prop_max,
+								  off_tap_same_base);
+
+	// anchor length component
+	anchor_len_comp = static_cast<float>(rm.anchor_len) / anchor_len_divisor;
+
+	// jacks in anchor component, give a small bonus i guess
+	jack_bonus =
+	  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
+
+	// ohts in anchor component, give a small bonus i guess
+	// not done
+	oht_bonus = rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
+
+	// we could scale the anchor to speed if we want but meh
+	// that's really complicated/messy/error prone
+	pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
+	pmod = CalcClamp(
+	  pmod * total_prop * off_tap_prop * off_tap_same_prop, min_mod, max_mod);
+
+	// debug
+	doot[RanMan][i] = pmod;
+	doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+	doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+	doot[RanAnchLenMod][i] = anchor_len_comp;
+	doot[RanOHT][i] = rm.oht_taps;
+	doot[RanOffS][i] = rm.off_taps_same;
+	doot[RanJack][i] = rm.jack_taps;
+	doot[RanPropAll][i] = total_prop;
+	doot[RanPropOff][i] = off_tap_prop;
+	doot[RanPropOffS][i] = off_tap_same_prop;
+	doot[RanPropOHT][i] = oht_bonus;
+	doot[RanPropJack][i] = jack_bonus;
+};
 
 #pragma endregion
 vector<vector<metanoteinfo>>
@@ -1331,6 +1489,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 int t2,
 				 vector<float> doot[ModCount])
 {
+	RunningMen::resize_own_pmods(doot, itv_rows.size());
 	doot[RanMan].resize(itv_rows.size());
 	doot[RanLen].resize(itv_rows.size());
 	doot[RanAnchLen].resize(itv_rows.size());
@@ -1355,7 +1514,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	cc_type last_cc = cc_init;
 
 	// test stuff
-	nemnar rms[2];
+	RM_Sequencing rms[2];
 	// maybe the easy way to do this is just run both columns at once
 	rms[0].anchor_col = col_left;
 	rms[1].anchor_col = col_right;
@@ -1365,7 +1524,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	bool offhand_tap = false;
 	bool was_last_offhand_tap = false;
 	for (size_t i = 0; i < itv_rows.size(); ++i) {
-		nemnar rm_to_use_for_mods;
+		RM_Sequencing rm_to_use_for_mods;
 		p.clear();
 		auto& itv = itv_rows[i];
 		for (auto& row : itv) {
@@ -1396,7 +1555,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 						++rm.oht_len;
 						++rm.oht_taps;
 						if (rm.oht_len > max_oht_len)
-							reset_ranmens(rm);
+							rm.reset();
 					}
 
 					// if (offhand_tap) {
@@ -1436,10 +1595,10 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 									 rm.anchor_col == col_left) ||
 									(mni.col == col_right &&
 									 rm.anchor_col == col_right)) {
-									handle_ranman_anchor_progression(rm, bort);
+									rm.handle_anchor_progression(bort);
 								} else {
 									// otherwise we have an off anchor tap
-									handle_ranman_off_progression(rm, bort);
+									rm.handle_off_tap(bort);
 									// same hand offtap
 									++rm.off_taps_same;
 								}
@@ -1447,29 +1606,29 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								// if we are jump -> single and the last
 								// note was not an offhand hand tap, we have
 								// a jack
-								handle_ranman_jack_progression(rm);
+								rm.handle_jack_progression();
 							}
 							break;
 						case cc_single_single:
 							if (was_last_offhand_tap) {
 								// if this wasn't a jack, then it's just
 								// a good ol anchor
-								handle_ranman_anchor_progression(rm, bort);
+								rm.handle_anchor_progression(bort);
 							} else {
 								// a jack, not an anchor, we don't
 								// want too many of these but we
 								// don't want to allow none of them
-								handle_ranman_jack_progression(rm);
+								rm.handle_jack_progression();
 							}
 							break;
 						case cc_single_jump:
 							// if last note was an offhand tap, this is by
 							// definition part of the anchor
 							if (was_last_offhand_tap) {
-								handle_ranman_anchor_progression(rm, bort);
+								rm.handle_anchor_progression(bort);
 							} else {
 								// if not, a jack
-								handle_ranman_jack_progression(rm);
+								rm.handle_jack_progression();
 							}
 							break;
 						case cc_jump_jump:
@@ -1479,14 +1638,14 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 							// will treat this as a jack even though
 							// technically it's an "anchor" when the
 							// last tap was an offhand tap
-							handle_ranman_jack_progression(rm);
+							rm.handle_jack_progression();
 							break;
 						case cc_empty:
 							// simple case to handle, can't be a jack (or
 							// doesn't
 							// really matter) and can't be oht, only reset
 							// if we exceed the spacing limit
-							handle_ranman_off_progression(rm, bort);
+							rm.handle_off_tap(bort);
 							break;
 						case cc_init:
 							// uhh we could do something here but i'm lazy
@@ -1503,7 +1662,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				// use the biggest anchor that has existed in this interval
 				int test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
 
-				if(rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
+				if (rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
 					rm_to_use_for_mods = rms[test];
 
 				ran_last = mni.col;
