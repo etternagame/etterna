@@ -1349,7 +1349,7 @@ struct RunningMen : PatternMod
 	float min_mod = 0.95f;
 	float max_mod = 1.5f;
 	float mod_base = 1.f;
-	int min_anchor_len = 5;
+	int min_anchor_len = 4;
 	int min_taps_in_rm = 1;
 	int min_off_taps_same = 1;
 
@@ -5029,7 +5029,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 329;
+int mina_calc_version = 330;
 int
 GetCalcVersion()
 {
