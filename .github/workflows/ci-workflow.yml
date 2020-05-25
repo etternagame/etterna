@@ -41,8 +41,8 @@ jobs:
           path: dxsdk
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
-#      - name: Install chocolatey packages
-#        run: choco install ninja
+      - name: Install chocolatey packages
+        run: choco install ninja
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -G Ninja ..
         env:
