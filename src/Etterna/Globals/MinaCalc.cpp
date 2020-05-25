@@ -1564,27 +1564,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					//} else {
 					switch (mni.cc) {
 						case cc_left_right:
-							// we know this is right col now, if the anchor
-							// is on right column we are anchoring again,
-							// otherwise we have a same hand off tap and
-							// potentially an oht
-							if (rm.anchor_col == col_right) {
-								handle_ranman_anchor_progression(rm, bort);
-							} else {
-								handle_ranman_off_progression(rm, bort);
-								// same hand offtap
-								++rm.off_taps_same;
-							}
-							break;
 						case cc_right_left:
-							// same thing reversed
-							if (rm.anchor_col == col_left) {
-								handle_ranman_anchor_progression(rm, bort);
-							} else {
-								handle_ranman_off_progression(rm, bort);
-								// same hand offtap
-								++rm.off_taps_same;
-							}
+							rm.handle_cross_column_branching(mni.cc, bort);
 							break;
 						case cc_jump_single:
 							if (was_last_offhand_tap) {
