@@ -1120,8 +1120,6 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 // ranmen staff
 struct nemnar
 {
-	// for picking up actual ohts in ranmen
-	bool trill_bill = false;
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
@@ -1161,7 +1159,6 @@ reset_ranmens(nemnar& rm)
 	// we want to preserve the pattern state
 	// reset everything else tho
 
-	rm.trill_bill = false;
 	rm.is_bursting = false;
 	rm.had_burst = false;
 	rm.total_taps = 0;
