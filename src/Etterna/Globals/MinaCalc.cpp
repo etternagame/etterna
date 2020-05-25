@@ -13,6 +13,10 @@
 #include <deque>
 #include <utility>
 #include <assert.h>
+//#include "Etterna/FileTypes/XmlFile.h"
+//#include "RageUtil/File/RageFile.h"
+//#include "RageUtil/File/RageFileManager.h"
+//#include "RageUtil/Utils/RageUtil.h"
 
 using std::deque;
 using std::max;
