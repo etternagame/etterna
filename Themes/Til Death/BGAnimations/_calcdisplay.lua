@@ -815,7 +815,9 @@ local function topGraphLine(mod, colorToUse, hand)
                 self:diffusealpha(1)
             else
                 -- hide unselected groups
-                self:diffusealpha(0)
+                if mod ~= "base_line" then
+                    self:diffusealpha(0)
+                end
             end
         end
     }
