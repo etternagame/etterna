@@ -191,7 +191,17 @@ local debugGroups = {
         WideRangeBalance = true,
         WideRangeAnchor = true,
     },
-    {},
+    {
+        RanMan = true,
+        RanLen = true,
+        RanAnchLen = true,
+        RanAnchLenMod = true,
+        RanOffS = true,
+        RanJack = true,
+        RanPropAll = true,
+        RanPropOff = true,
+        RanPropOffS = true,
+    },
     {},
     [9] = {},
 }

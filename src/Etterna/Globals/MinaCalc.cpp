@@ -1104,6 +1104,8 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 // ranmen staff
 struct nemnar
 {
+	// for picking up actual ohts in ranmen
+	bool trill_bill = false;
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
@@ -1113,6 +1115,7 @@ struct nemnar
 	unsigned int ran_taps = 0;
 	col_type anchor_col = col_init;
 	unsigned int anchor_len = 0;
+	unsigned int off_taps_same = 0;
 	unsigned int oht_taps = 0; // not tracking yet
 	unsigned int oht_len = 0;  // not tracking yet
 	unsigned int off_taps = 0;
@@ -1136,11 +1139,13 @@ static const int max_jack_len = 1;
 inline void
 reset_ranmens(nemnar& rm)
 {
+	rm.trill_bill = false;
 	rm.is_bursting = false;
 	rm.had_burst = false;
 	rm.total_taps = 0;
 	rm.ran_taps = 0;
 	rm.anchor_len = 0;
+	rm.off_taps_same = 0;
 	rm.oht_taps = 0;
 	rm.oht_len = 0;
 	rm.off_taps = 0;
@@ -1159,7 +1164,7 @@ handle_off_tap_completion(nemnar& rm)
 		rm.is_bursting = false;
 		rm.had_burst = true;
 	}
-	// reset off_len counter		
+	// reset off_len counter
 	rm.off_len = 0;
 }
 
@@ -1274,6 +1279,18 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 int t2,
 				 vector<float> doot[ModCount])
 {
+	doot[RanMan].resize(itv_rows.size());
+	doot[RanLen].resize(itv_rows.size());
+	doot[RanAnchLen].resize(itv_rows.size());
+	doot[RanAnchLenMod].resize(itv_rows.size());
+	doot[RanOffS].resize(itv_rows.size());
+	doot[RanJack].resize(itv_rows.size());
+	doot[RanOHT].resize(itv_rows.size());
+	doot[RanPropAll].resize(itv_rows.size());
+	doot[RanPropOff].resize(itv_rows.size());
+	doot[RanPropOffS].resize(itv_rows.size());
+	doot[RanPropOHT].resize(itv_rows.size());
+	doot[RanPropJack].resize(itv_rows.size());
 	const bool dbg = false && debug_lmao;
 	vector<vector<metanoteinfo>> o;
 	vector<metanoteinfo> p;
@@ -1295,9 +1312,11 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	col_type ran_last = col_init;
 	bool offhand_tap = false;
 	bool was_last_offhand_tap = false;
-	for (auto& itv : itv_rows) {
+	for (size_t i = 0; i < itv_rows.size(); ++i) {
 		p.clear();
-		for (auto& row : itv) {
+		auto& itv = itv_rows[i];
+		for (auto& row : itv)
+		{
 			metanoteinfo mni;
 			set_col_and_cc_types(mni,
 								 NoteInfo[row].notes & t1,
@@ -1334,6 +1353,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								handle_ranman_anchor_progression(rm, bort);
 							} else {
 								handle_ranman_off_progression(rm, bort);
+								// same hand offtap
+								++rm.off_taps_same;
 							}
 							break;
 						case cc_right_left:
@@ -1342,6 +1363,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								handle_ranman_anchor_progression(rm, bort);
 							} else {
 								handle_ranman_off_progression(rm, bort);
+								// same hand offtap
+								++rm.off_taps_same;
 							}
 							break;
 						case cc_jump_single:
@@ -1357,6 +1380,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								} else {
 									// otherwise we have an off anchor tap
 									handle_ranman_off_progression(rm, bort);
+									// same hand offtap
+									++rm.off_taps_same;
 								}
 							} else {
 								// if we are jump -> single and the last
@@ -1444,11 +1469,21 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		o.push_back(p);
 
 		// continue test stuff
-		float bazoink = 0.95f;
+		static const float min_mod = 0.95f;
+		doot[RanMan][i] = min_mod;
+		doot[RanLen][i] = 0.f;
+		doot[RanAnchLen][i] = 0.f;
+		doot[RanOffS][i] = 0.f;
+		doot[RanJack][i] = 0.f;
+		doot[RanPropAll][i] = 0.f;
+		doot[RanPropOff][i] = 0.f;
+		doot[RanPropOffS][i] = 0.f;
+		doot[RanPropOHT][i] = 1.f;
+		doot[RanPropJack][i] = 0.f;
 		{
 			// THROWOUT ROLLS DOES NOT WORK WELL BUT WORKS OK
-			if (abs(static_cast<int>(rms[0].anchor_len) -
-					static_cast<int>(rms[1].anchor_len)) > 2) {
+			if (true /*abs(static_cast<int>(rms[0].anchor_len) -
+					static_cast<int>(rms[1].anchor_len)) > 2*/) {
 
 				// use the bigger ranmens
 				auto& rm =
@@ -1456,15 +1491,21 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 				if (rm.ran_taps > 0) {
 					// ranmon of total prop
-					float propa = static_cast<float>(rm.total_taps) /
-								  static_cast<float>(rm.ran_taps);
+					float propa = static_cast<float>(rm.ran_taps) /
+								  static_cast<float>(rm.total_taps);
 					propa = CalcClamp(propa, 0.1f, 1.f);
 
-					// off to ranmon prope
+					// off to ranmon prop
 					float propb = static_cast<float>(rm.anchor_len) /
 								  static_cast<float>(rm.ran_taps);
 
 					propb = CalcClamp(propb, 0.1f, 1.1f);
+
+					// same hand off to ranmon prop
+					float propc = 0.f;
+					if (rm.off_taps_same > 0)
+						propc = static_cast<float>(rm.off_taps_same) /
+								static_cast<float>(rm.anchor_len);
 
 					// anchor length component
 					float boopie = static_cast<float>(rm.anchor_len) / 2.5f;
@@ -1479,13 +1520,26 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 					floomp efloot = rm.oht_taps > 0 ? 0.1f : 0.f;
 
 					// we could scale the anchor to speed if we want but meh
-					bazoink = boopie + joujou + efloot + 1.f;
+					// that's really complicated/messy/error prone
+					float bazoink = boopie + joujou + efloot + 1.f;
 					bazoink = CalcClamp(bazoink * propb * propa, 0.95f, 1.5f);
+
+					// debug
+					doot[RanMan][i] = bazoink;
+					doot[RanLen][i] = rm.total_taps;
+					doot[RanAnchLen][i] = rm.anchor_len;
+					doot[RanAnchLenMod][i] = boopie;
+					doot[RanOffS][i] = rm.off_taps_same;
+					doot[RanJack][i] = rm.jack_taps;
+					doot[RanPropAll][i] = propa;
+					doot[RanPropOff][i] = propb;
+					doot[RanPropOffS][i] = propc;
+					doot[RanPropOHT][i] = 1.f;
+					doot[RanPropJack][i] = joujou;
 				}
 			}
 		}
-
-		doot[RanMan].push_back(bazoink);
+		
 	}
 	Smooth(doot[RanMan], 1.f);
 	Smooth(doot[RanMan], 1.f);
