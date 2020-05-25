@@ -339,7 +339,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 0.75f };
+												 0.94f, 0.7675f, 0.84f, 0.69f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -1007,7 +1007,7 @@ set_col_and_cc_types(metanoteinfo& mni,
 }
 
 inline void
-update_col_time(const col_type& col, float arr[2], float val)
+update_col_time(const col_type& col, float arr[2], const float& val)
 {
 	// update both
 	if (col == col_ohjump) {
@@ -1079,19 +1079,109 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 	return;
 }
 
+// ranmen staff
 struct nemnar
 {
+	float last_anchor_time = s_init;
+	float last_off_time = s_init;
 	unsigned int total_taps = 0;
 	unsigned int ran_taps = 0;
+	col_type anchor_col = col_init;
 	unsigned int anchor_len = 0;
-	unsigned int oht_len = 0;
+	unsigned int oht_taps = 0; // not tracking yet
+	unsigned int oht_len = 0;  // not tracking yet
+	unsigned int off_taps = 0;
+	unsigned int off_len = 0;
+	unsigned int jack_taps = 0;
+	unsigned int jack_len = 0;
+	float max_ms = ms_init;
+	float off_total_ms = 0.f;
 };
 
 void
-find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2, int t3, int t4){
-
+find_ranmen_tho(const vector<NoteInfo>& NoteInfo, nemnar& z, int t1, int t2){
 
 };
+
+static const int max_oht_len = 3;
+static const int max_off_spacing = 3;
+static const int max_jack_len = 1;
+
+inline void
+reset_ranmens(nemnar& rm)
+{
+	rm.total_taps = 0;
+	rm.ran_taps = 0;
+	rm.anchor_len = 0;
+	rm.oht_taps = 0;
+	rm.oht_len = 0;
+	rm.off_taps = 0;
+	rm.off_len = 0;
+	rm.jack_taps = 0;
+	rm.jack_len = 0;
+	rm.max_ms = ms_init;
+	rm.off_total_ms = 0.f;
+}
+
+void
+handle_ranman_anchor_progression(nemnar& rm, const float& now)
+{
+	float ms = ms_from(now, rm.last_anchor_time);
+	// account for float precision error and small bpm flux
+	if (ms > rm.max_ms + 5.f)
+		reset_ranmens(rm);
+	else
+		rm.max_ms = ms;
+
+	rm.last_anchor_time = now;
+	++rm.ran_taps;
+	++rm.anchor_len;
+
+	// proper anchor, reset off len
+	rm.off_len = 0;
+}
+
+inline void
+handle_ranman_off_progression(nemnar& rm, const float& now)
+{
+	rm.last_off_time = now;
+
+	++rm.ran_taps;
+	++rm.off_taps;
+	++rm.off_len;
+
+	// offnote, reset jack length & oht length
+	rm.jack_len = 0;
+	rm.oht_len = 0;
+
+	// make sure to set the anchor col when resetting if we exceed max off
+	// spacing
+	if (rm.off_len > max_off_spacing)
+		reset_ranmens(rm);
+
+	rm.off_total_ms += ms_from(now, rm.last_anchor_time);
+	// rolls
+	if (rm.off_len == max_off_spacing) {
+
+		// ok do nothing for now i might have a better idea
+	}
+}
+
+inline void
+handle_ranman_jack_progression(nemnar& rm)
+{
+	++rm.ran_taps;
+	++rm.anchor_len; // do this for jacks?
+	++rm.jack_len;
+	++rm.jack_taps;
+
+	// reset offnote len on jacks as well
+	rm.off_len = 0;
+
+	// make sure to set the anchor col when resetting if we exceed max jack len
+	if (rm.jack_len > max_jack_len)
+		reset_ranmens(rm);
+}
 
 #pragma endregion
 vector<vector<metanoteinfo>>
@@ -1099,9 +1189,10 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 const vector<NoteInfo>& NoteInfo,
 				 float music_rate,
 				 int t1,
-				 int t2)
+				 int t2,
+				 vector<float> doot[ModCount])
 {
-	const bool dbg = true && debug_lmao;
+	const bool dbg = false && debug_lmao;
 	vector<vector<metanoteinfo>> o;
 	vector<metanoteinfo> p;
 
@@ -1113,7 +1204,15 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	cc_type last_cc = cc_init;
 
 	// test stuff
-	nemnar rm;
+	nemnar rms[2];
+	// maybe the easy way to do this is just run both columns at once
+	rms[0].anchor_col = col_left;
+	rms[1].anchor_col = col_right;
+	int cols = 0;
+
+	col_type ran_last = col_init;
+	bool offhand_tap = false;
+	bool was_last_offhand_tap = false;
 	for (auto& itv : itv_rows) {
 		p.clear();
 		for (auto& row : itv) {
@@ -1123,16 +1222,121 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 								 NoteInfo[row].notes & t2,
 								 last_col);
 
+			// test stuff
+			// define anchor as spaced jacks, either by 1 note or 2, cancel on 3
+			// allow some tolerance for jacks and pure ohts, something something
+			// cancel if the anchor'd column exceeds a time boundary
+			{
+				// nerv always has at least 1 tap, if this hand has nothing
+				// on it, then we are by definition seeing an offhand tap
+				offhand_tap = false;
+				if (mni.col == col_empty)
+					offhand_tap = true;
+
+				cols = NoteInfo[row].notes;
+				float bort = NoteInfo[row].rowTime;
+				for (auto& rm : rms) {
+					rm.total_taps += column_count(cols);
+
+					// if (offhand_tap) {
+					//	// moved to the cc_empty case in the swtich cause i
+					//	// think these are identical conditions
+					//} else {
+					switch (mni.cc) {
+						case cc_left_right:
+							// we know this is right col now, if the anchor
+							// is on right column we are anchoring again,
+							// otherwise we have a same hand off tap and
+							// potentially an oht
+							if (rm.anchor_col == col_right) {
+								handle_ranman_anchor_progression(rm, bort);
+							} else {
+								handle_ranman_off_progression(rm, bort);
+							}
+							break;
+						case cc_right_left:
+							// same thing reversed
+							if (rm.anchor_col == col_left) {
+								handle_ranman_anchor_progression(rm, bort);
+							} else {
+								handle_ranman_off_progression(rm, bort);
+							}
+							break;
+						case cc_jump_single:
+							if (was_last_offhand_tap) {
+								// if we have a jump -> single, and the last
+								// note was an offhand tap, and the single
+								// is the anchor col, then we have an anchor
+								if ((mni.col == col_left &&
+									 rm.anchor_col == col_left) ||
+									(mni.col == col_right &&
+									 rm.anchor_col == col_right)) {
+									handle_ranman_anchor_progression(rm, bort);
+								} else {
+									// otherwise we have an off anchor tap
+									handle_ranman_off_progression(rm, bort);
+								}
+							} else {
+								// if we are jump -> single and the last
+								// note was not an offhand hand tap, we have
+								// a jack
+								handle_ranman_jack_progression(rm);
+							}
+							break;
+						case cc_single_single:
+							if (was_last_offhand_tap) {
+								// if this wasn't a jack, then it's just
+								// a good ol anchor
+								handle_ranman_anchor_progression(rm, bort);
+							} else {
+								// a jack, not an anchor, we don't
+								// want too many of these but we
+								// don't want to allow none of them
+								handle_ranman_jack_progression(rm);
+							}
+							break;
+						case cc_single_jump:
+							// if last note was an offhand tap, this is by
+							// definition part of the anchor
+							if (was_last_offhand_tap) {
+								handle_ranman_anchor_progression(rm, bort);
+							} else {
+								// if not, a jack
+								handle_ranman_jack_progression(rm);
+							}
+							break;
+						case cc_jump_jump:
+							// this is kind of a grey area, given that
+							// the difficulty of runningmen comes from
+							// the tight turns on the same hand... we
+							// will treat this as a jack even though
+							// technically it's an "anchor" when the
+							// last tap was an offhand tap
+							handle_ranman_jack_progression(rm);
+							break;
+						case cc_empty:
+							// simple case to handle, can't be a jack (or
+							// doesn't
+							// really matter) and can't be oht, only reset
+							// if we exceed the spacing limit
+							handle_ranman_off_progression(rm, bort);
+							break;
+						case cc_init:
+							// uhh we could do something here but i'm lazy
+							break;
+						case cc_undefined:
+							break;
+						default:
+							break;
+					}
+				}
+				ran_last = mni.col;
+				was_last_offhand_tap = offhand_tap;
+			}
+
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
-
-			// test stuff
-			{
-
-
-
-			}
 
 			// every note has at least 2 ms values associated with it, the
 			// ms value from the last cross column note (on the same hand),
@@ -1156,7 +1360,53 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 			p.push_back(mni);
 		}
 		o.push_back(p);
+
+		// continue test stuff
+		float bazoink = 0.5f;
+		{
+			// THROWOUT ROLLS DOES NOT WORK WELL BUT WORKS OK
+			if (abs(static_cast<int>(rms[0].anchor_len) -
+					static_cast<int>(rms[1].anchor_len)) > 3) {
+
+				// use the bigger ranmens
+				auto& rm =
+				  rms[0].anchor_len > rms[1].anchor_len ? rms[0] : rms[1];
+
+				if (rm.ran_taps > 0) {
+					// ranmon of total prop
+					float propa = static_cast<float>(rm.total_taps) /
+								  static_cast<float>(rm.ran_taps);
+					propa = CalcClamp(propa, 0.1f, 1.f);
+
+					// off to ranmon prope
+					float propb = static_cast<float>(rm.anchor_len) /
+								  static_cast<float>(rm.ran_taps);
+
+					propb = CalcClamp(propb, 0.1f, 1.1f);
+
+					// anchor length component
+					float boopie = static_cast<float>(rm.anchor_len) / 2.5f;
+
+					// jacks in anchor component, give a small bonus i guess
+					typedef float floot;
+					floot joujou = rm.jack_taps > 0 ? 0.1f : 0.f;
+
+					// ohts in anchor component, give a small bonus i guess
+					// not done
+					typedef float floomp;
+					floomp efloot = rm.oht_taps > 0 ? 0.1f : 0.f;
+
+					// we could scale the anchor to speed if we want but meh
+					bazoink = boopie + joujou + efloot + 1.f;
+					bazoink = CalcClamp(bazoink * propb * propa, 0.5f, 1.5f);
+				}
+			}
+		}
+
+		doot[RanMan].push_back(bazoink);
 	}
+	Smooth(doot[RanMan], 1.f);
+	Smooth(doot[RanMan], 1.f);
 	return o;
 }
 
@@ -1199,13 +1449,21 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// anything here and almost defeats the purpose but
 		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
-			bruh.emplace_back(gen_metanoteinfo(
-			  nervIntervals, NoteInfo, music_rate, col_ids[0], col_ids[1]));
+			bruh.emplace_back(gen_metanoteinfo(nervIntervals,
+											   NoteInfo,
+											   music_rate,
+											   col_ids[0],
+											   col_ids[1],
+											   hand.doot));
 			hand.InitBaseDiff(fingers[0], fingers[1]);
 			hand.InitPoints(fingers[0], fingers[1]);
 		} else {
-			bruh.emplace_back(gen_metanoteinfo(
-			  nervIntervals, NoteInfo, music_rate, col_ids[2], col_ids[3]));
+			bruh.emplace_back(gen_metanoteinfo(nervIntervals,
+											   NoteInfo,
+											   music_rate,
+											   col_ids[2],
+											   col_ids[3],
+											   hand.doot));
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
@@ -1279,11 +1537,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		for (auto t : zto3) {
 			SequenceJack(fingers[t], t, m);
 
-			// resize stam adjusted jack vecs, technically if we flattened the
-			// vector we
-			// could allocate only once for all rate passes when doing caching,
-			// but for various other reasons it was easier to keep them split by
-			// intervals in a double vector, this should maybe be changed?
+			// resize stam adjusted jack vecs, technically if we flattened
+			// the vector we could allocate only once for all rate passes
+			// when doing caching, but for various other reasons it was
+			// easier to keep them split by intervals in a double vector,
+			// this should maybe be changed?
 			stam_adj_jacks[t].resize(fingers[t].size());
 			for (size_t i = 0; i < fingers[t].size(); ++i)
 				stam_adj_jacks[t][i].resize(fingers[t][i].size());
@@ -1293,28 +1551,26 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 }
 
 // DON'T refpass, since we manipulate the vector and this is done before
-// jackseq, if we shuffle stuff around so this is done after jackseq and we're
-// sure we don't need to use this for anything else we can probably refpass
-// again but cba to test atm
+// jackseq, if we shuffle stuff around so this is done after jackseq and
+// we're sure we don't need to use this for anything else we can probably
+// refpass again but cba to test atm
 float
 Hand::CalcMSEstimate(vector<float> input, int burp)
 {
-	static const bool dbg = true;
+	static const bool dbg = false;
 
-	// how many ms values we use from here, if there are fewer than this number
-	// we'll mock up some values to water down intervals with a single extremely
-	// fast minijack, if there are more, we will truncate
+	// how many ms values we use from here, if there are fewer than this
+	// number we'll mock up some values to water down intervals with a
+	// single extremely fast minijack, if there are more, we will truncate
 	unsigned int num_used = burp;
 
 	if (input.empty())
 		return 0.f;
 
 	// avoiding this for now because of smoothing
-	// single ms value, dunno if we want to do this? technically the tail end of
-	// an insanely hard burst that gets lopped off at the last note is still
-	// hard?
-	// if (input.size() < 2)
-	// return 1.f;
+	// single ms value, dunno if we want to do this? technically the tail
+	// end of an insanely hard burst that gets lopped off at the last note
+	// is still hard? if (input.size() < 2) return 1.f;
 
 	// sort before truncating/filling
 	sort(input.begin(), input.end());
@@ -1325,8 +1581,8 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	static const float ms_dummy = 360.f;
 	truncate_or_fill_to_size(input, num_used, ms_dummy);
 
-	// mostly try to push down stuff like jumpjacks, not necessarily to push up
-	// "complex" stuff
+	// mostly try to push down stuff like jumpjacks, not necessarily to push
+	// up "complex" stuff
 	float cv_yo = cv(input) + 0.5f;
 	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
 
@@ -1377,7 +1633,7 @@ a_thing(float a, float b, float x, float y)
 void
 Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
-	static const bool dbg = true;
+	static const bool dbg = false;
 
 	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
@@ -1471,11 +1727,11 @@ Calc::Chisel(float player_skill,
 				// cj
 				if (ss == Skill_JackSpeed) {
 					// this is slow but gives the best results, do separate
-					// passes for different jack types and figure out which is
-					// the most prominent of the file. We _don't_ want to do
-					// something like take the highest of a given type at
-					// multiple points throughout a file, that just results in
-					// oversaturation and bad grouping
+					// passes for different jack types and figure out which
+					// is the most prominent of the file. We _don't_ want to
+					// do something like take the highest of a given type at
+					// multiple points throughout a file, that just results
+					// in oversaturation and bad grouping
 					jloss = max(
 					  JackLoss(player_skill, 1, max_points_lost, stamina),
 					  max(JackLoss(player_skill, 2, max_points_lost, stamina),
@@ -1486,11 +1742,8 @@ Calc::Chisel(float player_skill,
 						if (ss == Skill_Technical) {
 							float bzz = 0.f;
 							float bz0 =
-							  JackLoss((player_skill * literal_black_magic ),
-									   0,
-									   max_points_lost,
-									   stamina) * 3.f;
-							float bz1 =
+							  JackLoss((player_skill * literal_black_magic
+					   ), 0, max_points_lost, stamina) * 3.f; float bz1 =
 							  JackLoss((player_skill * literal_black_magic),
 									   1,
 									   max_points_lost,
@@ -1725,7 +1978,8 @@ Hand::InitAdjDiff()
 						//	if (j == Skill_Stamina || j == Skill_Overall)
 						//		scoring_justice_warrior_agenda[j] = 0.f;
 						//	else
-						//		scoring_justice_warrior_agenda[j] = tp_mods[j];
+						//		scoring_justice_warrior_agenda[j] =
+						// tp_mods[j];
 						// float muzzle = *std::max_element(
 						//  scoring_justice_warrior_agenda.begin(),
 						//  scoring_justice_warrior_agenda.end());
@@ -4496,7 +4750,7 @@ int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 326;
+	return 327;
 #else
 	return 263;
 #endif
