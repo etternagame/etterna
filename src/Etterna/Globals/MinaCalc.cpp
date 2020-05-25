@@ -1489,19 +1489,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 int t2,
 				 vector<float> doot[ModCount])
 {
+	RunningMen zorp;
 	RunningMen::resize_own_pmods(doot, itv_rows.size());
-	doot[RanMan].resize(itv_rows.size());
-	doot[RanLen].resize(itv_rows.size());
-	doot[RanAnchLen].resize(itv_rows.size());
-	doot[RanAnchLenMod].resize(itv_rows.size());
-	doot[RanOffS].resize(itv_rows.size());
-	doot[RanJack].resize(itv_rows.size());
-	doot[RanOHT].resize(itv_rows.size());
-	doot[RanPropAll].resize(itv_rows.size());
-	doot[RanPropOff].resize(itv_rows.size());
-	doot[RanPropOffS].resize(itv_rows.size());
-	doot[RanPropOHT].resize(itv_rows.size());
-	doot[RanPropJack].resize(itv_rows.size());
 	const bool dbg = false && debug_lmao;
 	vector<vector<metanoteinfo>> o;
 	vector<metanoteinfo> p;
@@ -1690,7 +1679,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		doot[RanPropOffS][i] = 0.f;
 		doot[RanPropOHT][i] = 0.f;
 		doot[RanPropJack][i] = 0.f;
-		RunningMen zorp;
+		
 		zorp(rm_to_use_for_mods, doot, i);
 	}
 	// Smooth(doot[RanMan], 1.f);
