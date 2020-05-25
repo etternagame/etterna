@@ -2039,7 +2039,7 @@ Hand::InitAdjDiff()
 				case Skill_Stream:
 					// jank application of ranman
 					adj_diff *= CalcClamp(doot[RanMan][i], 1.f, 1.1f);
-						break;
+					break;
 
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
@@ -2047,7 +2047,8 @@ Hand::InitAdjDiff()
 				case Skill_Jumpstream:
 					adj_diff /=
 					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
-					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
