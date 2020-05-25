@@ -1690,72 +1690,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		doot[RanPropOffS][i] = 0.f;
 		doot[RanPropOHT][i] = 0.f;
 		doot[RanPropJack][i] = 0.f;
-		{
-			// THROWOUT ROLLS DOES NOT WORK WELL BUT WORKS OK
-			if (true /*abs(static_cast<int>(rms[0].anchor_len) -
-					static_cast<int>(rms[1].anchor_len)) > 2*/) {
-
-				auto& rm = rm_to_use_for_mods;
-
-				if (rm.anchor_len < 4)
-					continue;
-
-				if (rm.ran_taps > 0) {
-					// ranmon of total prop
-					float propa = static_cast<float>(rm.ran_taps) /
-								  static_cast<float>(rm.total_taps);
-					propa = CalcClamp(propa, 0.1f, 1.f);
-
-					// off to ranmon prop
-					float propb = static_cast<float>(rm.anchor_len) /
-								  static_cast<float>(rm.ran_taps);
-
-					propb = CalcClamp(propb, 0.1f, 1.1f);
-
-					// same hand off to ranmon prop, if this is 0 we want to
-					// negate the ranmen bonus
-					float propc = 0.f;
-					if (rm.off_taps_same > 0) {
-						propc = static_cast<float>(rm.off_taps_same) /
-								static_cast<float>(rm.anchor_len);
-						propc = CalcClamp(propc + 0.5f, 0.f, 1.25f);
-					}
-
-					// anchor length component
-					float boopie = static_cast<float>(rm.anchor_len) / 2.5f;
-
-					// jacks in anchor component, give a small bonus i guess
-					typedef float floot;
-					floot joujou = rm.jack_taps > 0 ? 0.1f : 0.f;
-
-					// ohts in anchor component, give a small bonus i guess
-					// not done
-					typedef float floomp;
-					floomp efloot = rm.oht_taps > 0 ? 0.1f : 0.f;
-
-					// we could scale the anchor to speed if we want but meh
-					// that's really complicated/messy/error prone
-					float bazoink = boopie + joujou + efloot + 1.f;
-					bazoink =
-					  CalcClamp(bazoink * propb * propa * propc, min_mod, max_mod);
-
-					// debug
-					doot[RanMan][i] = bazoink;
-					doot[RanLen][i] = static_cast<float>(rm.total_taps) / 100.f;
-					doot[RanAnchLen][i] =
-					  static_cast<float>(rm.anchor_len) / 30.f;
-					doot[RanAnchLenMod][i] = boopie / 10.f;
-					doot[RanOHT][i] = rm.oht_taps;
-					doot[RanOffS][i] = rm.off_taps_same;
-					doot[RanJack][i] = rm.jack_taps;
-					doot[RanPropAll][i] = propa;
-					doot[RanPropOff][i] = propb;
-					doot[RanPropOffS][i] = propc;
-					doot[RanPropOHT][i] = 1.f;
-					doot[RanPropJack][i] = joujou;
-				}
-			}
-		}
+		RunningMen zorp;
+		zorp(rm_to_use_for_mods, doot, i);
 	}
 	// Smooth(doot[RanMan], 1.f);
 	// Smooth(doot[RanMan], 1.f);
