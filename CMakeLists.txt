@@ -29,15 +29,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDE's
 
-## Ninja specific setup (Different compilers required different color force commands)
-if(CMAKE_GENERATOR STREQUAL "Ninja")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        add_compile_options("-fcolor-diagnostics")
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options("-fdiagnostics-color=always")
-    endif()
-endif()
-
 # Project Build Targets
 add_executable(Etterna)
 

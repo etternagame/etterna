@@ -1,25 +1,43 @@
 name: Etterna CI
-on: [push]
+on: [push, pull_request]
 
 jobs:
   linux-x64:
-    name: Linux x64
-    runs-on: ubuntu-18.04
+    name: Linux x64 (${{matrix.cfg.cpp-version}})
+    runs-on: ${{matrix.cfg.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+        - { os: ubuntu-18.04, cpp-version: g++-5 }
+        - { os: ubuntu-18.04, cpp-version: g++-6 }
+        - { os: ubuntu-18.04, cpp-version: g++-7 }
+        - { os: ubuntu-18.04, cpp-version: g++-8 }
+        - { os: ubuntu-18.04, cpp-version: g++-9 }
+        - { os: ubuntu-18.04, cpp-version: clang++-7 }
+        - { os: ubuntu-18.04, cpp-version: clang++-8 }
+        - { os: ubuntu-18.04, cpp-version: clang++-9 }
+
     steps:
       - name: Checkout project
         uses: actions/checkout@v2
 
       - name: Install apt packages
-        run: sudo apt install nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+        run: sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+
+      - name: Print gcc + clang version
+        run: ${{matrix.cfg.cpp-version}} --version
 
       - name: Generate CMake
         run: mkdir build && cd build && cmake -G Ninja ..
+        env:
+          CXX: ${{matrix.cfg.cpp-version}}
 
       - name: Build Project
         run: cd build && ninja
 
   macos:
-    name: macOS x64 # Mac only has x64.
+    name: macOS x64
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -46,7 +64,7 @@ jobs:
       fail-fast: false          # Don't cancel other matrix jobs if one fails
       matrix:
         name: [i386, x64]       # Name suffix to be show in Github UI
-        arch: [Win32, x64]      # Architecture types to be passed into CMake and MSBuild
+        arch: [x64]             # Arch types passed into CMake/MSBuild. Switch to [i386, x64] for 32bit aswell
         exclude:                # Combinations of matrix not to include
           - name: i386
             arch: x64
@@ -66,12 +84,6 @@ jobs:
         with:
           repository: nico-abram/dxsdk
           path: dxsdk
-
-      - name: Install OpenSSL (i386 only)
-        if: matrix.arch == Win32
-        run: |
-          Invoke-WebRequest -Uri "https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe" -OutFile ssl32install.exe
-          .\ssl32install.exe /NORESTART /VERYSILENT
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
