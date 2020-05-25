@@ -32,21 +32,20 @@ jobs:
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v2
+        with:
+          path: main
       - name: Checkout DirectX SDK
         uses: actions/checkout@v2
         with:
           repository: apitrace/dxsdk
+          path: dxsdk
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
-      - name: Install chocolatey packages
-        run: choco install ninja directx
-      - name: Print some data
-        run: |
-          ls "C:\\Program Files\\"
-          ls "C:\\Program Files (x86)\\"
+#      - name: Install chocolatey packages
+#        run: choco install ninja
       - name: Generate CMake
-        run: mkdir build && cd build && cmake -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja ..
         env:
-          DXSDK_DIR: "${{env.working-directory}}"
+          DXSDK_DIR: "${{github.workspace}}\\dxsdk\\"
       - name: Build Project
-        run: echo ${env:PATH}
+        run: cd main/build && ninja
