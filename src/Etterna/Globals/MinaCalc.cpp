@@ -338,8 +338,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.89f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 0.69f };
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
+												 0.94f, 0.7675f, 0.84f, 0.68f };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -1362,11 +1362,11 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		o.push_back(p);
 
 		// continue test stuff
-		float bazoink = 0.5f;
+		float bazoink = 0.95f;
 		{
 			// THROWOUT ROLLS DOES NOT WORK WELL BUT WORKS OK
 			if (abs(static_cast<int>(rms[0].anchor_len) -
-					static_cast<int>(rms[1].anchor_len)) > 3) {
+					static_cast<int>(rms[1].anchor_len)) > 2) {
 
 				// use the bigger ranmens
 				auto& rm =
@@ -1398,7 +1398,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 					// we could scale the anchor to speed if we want but meh
 					bazoink = boopie + joujou + efloot + 1.f;
-					bazoink = CalcClamp(bazoink * propb * propa, 0.5f, 1.5f);
+					bazoink = CalcClamp(bazoink * propb * propa, 0.95f, 1.5f);
 				}
 			}
 		}
@@ -1904,6 +1904,7 @@ Hand::InitAdjDiff()
 		  WideRangeBalance,
 		  WideRangeRoll,
 		  FlamJam,
+		  RanMan,
 		},
 
 	};
@@ -1953,6 +1954,10 @@ Hand::InitAdjDiff()
 			stam_base = funk;
 			switch (ss) {
 				// do funky special case stuff here
+				case Skill_Stream:
+					// jank application of ranman
+					adj_diff *= CalcClamp(doot[RanMan][i], 1.f, 1.1f);
+						break;
 
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
@@ -1960,7 +1965,7 @@ Hand::InitAdjDiff()
 				case Skill_Jumpstream:
 					adj_diff /=
 					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
-
+					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
@@ -4750,7 +4755,7 @@ int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 327;
+	return 328;
 #else
 	return 263;
 #endif
