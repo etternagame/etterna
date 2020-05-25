@@ -6,11 +6,15 @@ jobs:
     name: Linux x64
     runs-on: ubuntu-18.04
     steps:
+      - name: Checkout project
+        uses: actions/checkout@v2
+
       - name: Install apt packages
         run: sudo apt install nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
-      - uses: actions/checkout@v2
+
       - name: Generate CMake
         run: mkdir build && cd build && cmake -G Ninja ..
+
       - name: Build Project
         run: cd build && ninja
 
@@ -21,31 +25,73 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install homebrew packages
         run: brew install cmake nasm ninja
+
       - name: Generate CMake
         run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G Ninja ..
+
       - name: Build Project
         run: cd build && ninja
 
-  windows-x64:
-    name: Windows x64
+      - name: Generate binary
+        run: cd build && cpack
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - macOS x64.dmg"
+          path: '${{github.workspace}}/build/*.dmg'
+
+  windows: # Windows x64 and x86 build matrix
+    strategy:
+      fail-fast: false          # Don't cancel other matrix jobs if one fails
+      matrix:
+        name: [i386, x64]       # Name suffix to be show in Github UI
+        arch: [Win32, x64]      # Architecture types to be passed into CMake and MSBuild
+        exclude:                # Combinations of matrix not to include
+          - name: i386
+            arch: x64
+          - name: x64
+            arch: Win32
+
+    name: "Windows ${{matrix.name}}"
     runs-on: windows-2019
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v2
         with:
           path: main
+
       - name: Checkout DirectX SDK
         uses: actions/checkout@v2
         with:
-          repository: apitrace/dxsdk
+          repository: nico-abram/dxsdk
           path: dxsdk
+
+      - name: Install OpenSSL (i386 only)
+        if: matrix.arch == Win32
+        run: |
+          Invoke-WebRequest -Uri "https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe" -OutFile ssl32install.exe
+          .\ssl32install.exe /NORESTART /VERYSILENT
+
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
+
       - name: Install chocolatey packages
-        run: choco install ninja
+        run: choco install ninja nsis
+
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.arch}}" ..
         env:
-          DXSDK_DIR: "${{github.workspace}}\\dxsdk\\"
+          DXSDK_DIR: "${{github.workspace}}/dxsdk/"
+
       - name: Build Project
-        run: cd main/build && ninja
+        run: cd main/build && MSBuild Etterna.sln /p:Configuration=Release /p:Platform=${{matrix.arch}}
+
+      - name: Generate binary
+        run: cd main/build && cpack
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - Windows ${{matrix.name}}.exe"
+          path: '${{github.workspace}}/main/build/*.exe'
