@@ -1134,8 +1134,8 @@ struct nemnar
 	cc_type last_last_cc = cc_init;
 	unsigned int anchor_len = 0;
 	unsigned int off_taps_same = 0;
-	unsigned int oht_taps = 0; // not tracking yet
-	unsigned int oht_len = 0;  // not tracking yet
+	unsigned int oht_taps = 0;
+	unsigned int oht_len = 0;
 	unsigned int off_taps = 0;
 	unsigned int off_len = 0;
 	unsigned int jack_taps = 0;
