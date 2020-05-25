@@ -345,7 +345,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.875f, 0.89f, 0.94f, 0.7675f, 0.84f, 0.75f
+	0.f, 0.97f, 0.875f, 0.89f, 0.94f, 0.7675f, 0.84f, 0.7f
 };
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
@@ -1866,7 +1866,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = a_thing(difficulty, nps, 5.5f, 10.f) * finalscaler;
+		soap[BaseMSD][i] = a_thing(difficulty, nps, 3.5f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	Smooth(soap[BaseMSD], 0.f);
@@ -4953,7 +4953,7 @@ int
 GetCalcVersion()
 {
 #ifdef USING_NEW_CALC
-	return 328;
+	return 329;
 #else
 	return 263;
 #endif
