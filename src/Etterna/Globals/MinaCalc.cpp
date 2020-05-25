@@ -344,8 +344,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
-												 0.94f, 0.7675f, 0.84f, 0.68f };
+static const float basescalers[NUM_Skillset] = {
+	0.f, 0.97f, 0.875f, 0.89f, 0.94f, 0.7675f, 0.84f, 0.75f
+};
 bool debug_lmao = false;
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -732,8 +733,24 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// the non-stam adjusted base value for each
 		// skillset we can actually set the stam floor to <
 		// 1 to shift the curve a bit
+		// do we actually need to rerun _all_ with stam on?
+		// we gain significant speed from not doing so, however the tradeoff is
+		// files that are close in 2/3 skillsets will have the stam bonus
+		// stripped from the second and third components, devaluing the file as
+		// a whole, we could run it for the 2nd/3rd highest skillsets but i'm
+		// too lazy to implement that right now, the major concern here is the
+		// cost of jack stam, so i think we can just get away with throwing out
+		// jack stam calculations for anything that isn't jackspeed (or tech
+		// since atm they're doubling up a bit)
 		for (int i = 0; i < NUM_Skillset; ++i)
-			mcbloop[i] = Chisel(mcbloop[i] * 0.90f, 0.32f, score_goal, i, true);
+			if (i == Skill_JackSpeed) {
+				if (highest_base_skillset == Skill_JackSpeed ||
+					highest_base_skillset == Skill_Technical)
+					mcbloop[i] =
+					  Chisel(mcbloop[i] * 1.f, 0.32f, score_goal, i, true);
+			} else
+				mcbloop[i] =
+				  Chisel(mcbloop[i] * 0.9f, 0.32f, score_goal, i, true);
 
 		// all relative scaling to specific skillsets should
 		// occur before this point, not after (it ended up
@@ -795,7 +812,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.1f;
+		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.f;
 		// yes i know how dumb this looks
 		DifficultyRating difficulty = {
 			mcbloop[0],
