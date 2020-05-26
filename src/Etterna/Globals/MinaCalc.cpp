@@ -369,7 +369,7 @@ static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
 bool debug_lmao = false;
 
 #pragma region patternmodparamstuff
-static const std::string calc_params_xml = "calc params.xml";
+static const std::string calc_params_xml = "Save/calc params.xml";
 
 #pragma endregion
 
@@ -1625,7 +1625,7 @@ RunningMen::advance_sequencing(const metanoteinfo& mni)
 inline void
 RunningMen::floop()
 {
-	std::string fn = "Save/" + calc_params_xml;
+	std::string fn = calc_params_xml;
 	int iError;
 	std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
@@ -1663,9 +1663,9 @@ SavePatternModParamXmlToDir()
 {
 	RunningMen zoop;
 
-	string fn = "Save/" + calc_params_xml;
-	unique_ptr<XNode> xml(zoop.CreateParamNode());
-	string err;
+	std::string fn = calc_params_xml;
+	std::unique_ptr<XNode> xml(zoop.CreateParamNode());
+	std::string err;
 	RageFile f;
 	if (!f.Open(fn, RageFile::WRITE))
 		return;
@@ -5100,7 +5100,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
-	if(!DoesFileExist("Save/" + calc_params_xml))
+	if(!DoesFileExist(calc_params_xml))
 		SavePatternModParamXmlToDir();
 }
 #pragma endregion
