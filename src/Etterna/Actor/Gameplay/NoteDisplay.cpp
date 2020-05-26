@@ -1905,9 +1905,8 @@ NoteColumnRenderer::DrawPrimitives()
 	// lists to the displays to draw.
 	// The vector in the NUM_PlayerNumber slot should stay empty, not worth
 	// optimizing it out. -Kyz
-	vector<vector<NoteData::TrackMap::const_iterator>> holds(PLAYER_INVALID +
-															 1);
-	vector<vector<NoteData::TrackMap::const_iterator>> taps(PLAYER_INVALID + 1);
+	vector<NoteData::TrackMap::const_iterator> holds;
+	vector<NoteData::TrackMap::const_iterator> taps;
 	NoteData::TrackMap::const_iterator begin, end;
 	m_field_render_args->note_data->GetTapNoteRangeInclusive(
 	  m_column,
@@ -1915,7 +1914,7 @@ NoteColumnRenderer::DrawPrimitives()
 	  m_field_render_args->last_row + 1,
 	  begin,
 	  end);
-	for (; begin != end; ++begin) {
+	for (; begin != end; ++begin) {			
 		const TapNote& tn = begin->second;
 		switch (tn.type) {
 			case TapNoteType_Empty:
@@ -1927,33 +1926,26 @@ NoteColumnRenderer::DrawPrimitives()
 			case TapNoteType_AutoKeysound:
 			case TapNoteType_Fake:
 				if (!tn.result.bHidden) {
-					taps[tn.pn].push_back(begin);
+					taps.push_back(begin);
 				}
 				break;
 			case TapNoteType_HoldHead:
 				if (tn.HoldResult.hns != HNS_Held) {
-					holds[tn.pn].push_back(begin);
+					holds.push_back(begin);
 				}
 				break;
 			default:
 				break;
 		}
 	}
-#define DTS_INNER(pn, tap_set, draw_func, disp)                                \
-	if (!(tap_set)[pn].empty()) {                                              \
-		any_upcoming |= (disp)->draw_func(                                     \
-		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
-	}
-#define DRAW_TAP_SET(tap_set, draw_func)                                       \
-	DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
-	DRAW_TAP_SET(holds, DrawHoldsInRange);
-	DTS_INNER(
-	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);
-	DRAW_TAP_SET(taps, DrawTapsInRange);
-	DTS_INNER(
-	  PLAYER_INVALID, taps, DrawTapsInRange, m_displays[PLAYER_INVALID]);
-#undef DTS_INNER
-#undef DRAW_TAP_SET
+
+	if (!taps.empty())
+		any_upcoming |= m_displays[PLAYER_1]->DrawTapsInRange(
+		  *m_field_render_args, m_column_render_args, taps);
+
+	if (!holds.empty())
+		any_upcoming |= m_displays[PLAYER_1]->DrawHoldsInRange(
+		  *m_field_render_args, m_column_render_args, holds);
 }
 
 void
