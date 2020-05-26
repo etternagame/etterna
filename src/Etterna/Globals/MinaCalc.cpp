@@ -1174,259 +1174,232 @@ struct RM_Sequencing
 
 	float temp_ms = 0.f;
 
-	inline void reset();
-	inline void handle_off_tap(const float& now);
-	inline void handle_off_tap_completion();
-	inline void handle_off_tap_progression();
-	inline void handle_anchor_progression(const float& now);
-	inline void handle_jack_progression();
-	inline void handle_cross_column_branching(const cc_type& cc,
-											  const float& now);
-	inline void handle_oht_progression(const cc_type& cc);
-	inline void operator()(const metanoteinfo& mni);
-};
+	inline void reset()
+	{
+		// don't reset anchor_col or last_col
+		// we want to preserve the pattern state
+		// reset everything else tho
 
-inline void
-RM_Sequencing::reset()
-{
-	// don't reset anchor_col or last_col
-	// we want to preserve the pattern state
-	// reset everything else tho
-
-	is_bursting = false;
-	had_burst = false;
-	// reset?? don't reset????
-	last_anchor_time = last_anchor_time * 1.25f;
-	last_off_time = s_init;
-	total_taps = 0;
-	ran_taps = 0;
-
-	anchor_len = 0;
-	off_taps_same = 0;
-	oht_taps = 0;
-	oht_len = 0;
-	off_taps = 0;
-	off_len = 0;
-	jack_taps = 0;
-	jack_len = 0;
-	max_ms = ms_init;
-	off_total_ms = 0.f;
-}
-
-inline void
-RM_Sequencing::handle_off_tap(const float& now)
-{
-	last_off_time = now;
-
-	++ran_taps;
-	++off_taps;
-	++off_len;
-
-	// offnote, reset jack length & oht length
-	jack_len = 0;
-
-	off_total_ms += ms_from(now, last_anchor_time);
-
-	// handle progression for increasing off_len
-	handle_off_tap_progression();
-
-	// rolls
-	if (off_len == max_off_spacing) {
-		// ok do nothing for now i might have a better idea
-	}
-}
-
-inline void
-RM_Sequencing::handle_off_tap_completion()
-{
-	// if we end while bursting due to hitting an anchor, complete it
-	if (is_bursting) {
 		is_bursting = false;
-		had_burst = true;
-	}
-	// reset off_len counter
-	off_len = 0;
-}
+		had_burst = false;
+		// reset?? don't reset????
+		last_anchor_time = last_anchor_time * 1.25f;
+		last_off_time = s_init;
+		total_taps = 0;
+		ran_taps = 0;
 
-inline void
-RM_Sequencing::handle_off_tap_progression()
-{
-	// resume off tap progression caused by another consecutive off tap
-	// normal behavior if we have already allowed for 1 burst, reset if the
-	// offtap sequence exceeds the spacing limit; this will also catch bursts
-	// that exceed the max burst length
-	if (had_burst) {
-		if (off_len > max_off_spacing) {
-			reset();
+		anchor_len = 0;
+		off_taps_same = 0;
+		oht_taps = 0;
+		oht_len = 0;
+		off_taps = 0;
+		off_len = 0;
+		jack_taps = 0;
+		jack_len = 0;
+		max_ms = ms_init;
+		off_total_ms = 0.f;
+	}
+	inline void handle_off_tap(const float& now)
+	{
+		last_off_time = now;
+
+		++ran_taps;
+		++off_taps;
+		++off_len;
+
+		// offnote, reset jack length & oht length
+		jack_len = 0;
+
+		off_total_ms += ms_from(now, last_anchor_time);
+
+		// handle progression for increasing off_len
+		handle_off_tap_progression();
+
+		// rolls
+		if (off_len == max_off_spacing) {
+			// ok do nothing for now i might have a better idea
+		}
+	}
+	inline void handle_off_tap_completion()
+	{
+		// if we end while bursting due to hitting an anchor, complete it
+		if (is_bursting) {
+			is_bursting = false;
+			had_burst = true;
+		}
+		// reset off_len counter
+		off_len = 0;
+	}
+	inline void handle_off_tap_progression()
+	{
+		// resume off tap progression caused by another consecutive off tap
+		// normal behavior if we have already allowed for 1 burst, reset if the
+		// offtap sequence exceeds the spacing limit; this will also catch
+		// bursts that exceed the max burst length
+		if (had_burst) {
+			if (off_len > max_off_spacing) {
+				reset();
+				return;
+			}
+			// don't care about any other behavior here
 			return;
 		}
-		// don't care about any other behavior here
+
+		// if we are in a burst, allow it to finish and when it does set the
+		// had_burst flag rather than resetting, if the burst continues beyond
+		// the max burst length then it will be reset via other means
+		// (we must be in a burst if off_len == max_burst_len)
+		if (off_len == max_burst_len) {
+			handle_off_tap_completion();
+			return;
+		}
+
+		// haven't had or started a burst yet, if we exceed max_off_spacing, set
+		// is_bursting to true and allow it to continue, otherwise, do nothing
+		if (off_len > max_off_spacing)
+			is_bursting = true;
 		return;
 	}
+	inline void handle_anchor_progression(const float& now)
+	{
+		temp_ms = ms_from(now, last_anchor_time);
+		// account for float precision error and small bpm flux
+		if (temp_ms > max_ms + 5.f)
+			reset();
+		else
+			max_ms = temp_ms;
 
-	// if we are in a burst, allow it to finish and when it does set the
-	// had_burst flag rather than resetting, if the burst continues beyond
-	// the max burst length then it will be reset via other means
-	// (we must be in a burst if off_len == max_burst_len)
-	if (off_len == max_burst_len) {
+		last_anchor_time = now;
+		++ran_taps;
+		++anchor_len;
+
+		// handle completion of off tap progression
 		handle_off_tap_completion();
-		return;
 	}
+	inline void handle_jack_progression()
+	{
+		++ran_taps;
+		//++anchor_len; // do this for jacks?
+		++jack_len;
+		++jack_taps;
 
-	// haven't had or started a burst yet, if we exceed max_off_spacing, set
-	// is_bursting to true and allow it to continue, otherwise, do nothing
-	if (off_len > max_off_spacing)
-		is_bursting = true;
-	return;
-}
+		// handle completion of off tap progression
+		handle_off_tap_completion();
 
-inline void
-RM_Sequencing::handle_anchor_progression(const float& now)
-{
-	temp_ms = ms_from(now, last_anchor_time);
-	// account for float precision error and small bpm flux
-	if (temp_ms > max_ms + 5.f)
-		reset();
-	else
-		max_ms = temp_ms;
-
-	last_anchor_time = now;
-	++ran_taps;
-	++anchor_len;
-
-	// handle completion of off tap progression
-	handle_off_tap_completion();
-}
-
-inline void
-RM_Sequencing::handle_jack_progression()
-{
-	++ran_taps;
-	//++anchor_len; // do this for jacks?
-	++jack_len;
-	++jack_taps;
-
-	// handle completion of off tap progression
-	handle_off_tap_completion();
-
-	// make sure to set the anchor col when resetting if we exceed max jack len
-	if (jack_len > max_jack_len)
-		reset();
-}
-
-inline void
-RM_Sequencing::handle_cross_column_branching(const cc_type& cc,
-											 const float& now)
-{
-	// we are comparing 2 different enum types here, but this is what we want.
-	// cc_left_right is 0, col_left is 0. if we are cc_left_right then we have
-	// landed on the right column, so if we have cc (0) == anchor_col (0), we
-	// are entering the off column (right) of the anchor (left).
-	// perhaps left_right and right_left should be flipped in the
-	// cc_type enum to make this more intuitive (but probably not)
-
-	// NOT an anchor
-	if (anchor_col == cc) {
-		handle_off_tap(now);
-		// same hand offtap
-		++off_taps_same;
-		return;
-	}
-	handle_anchor_progression(now);
-};
-
-inline void
-RM_Sequencing::handle_oht_progression(const cc_type& cc)
-{
-	if (is_oht(last_last_cc, last_cc, cc)) {
-		++oht_len;
-		++oht_taps;
-		if (oht_len > max_oht_len)
+		// make sure to set the anchor col when resetting if we exceed max jack
+		// len
+		if (jack_len > max_jack_len)
 			reset();
 	}
-};
+	inline void handle_cross_column_branching(const cc_type& cc,
+															 const float& now)
+	{
+		// we are comparing 2 different enum types here, but this is what we
+		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
+		// we have landed on the right column, so if we have cc (0) ==
+		// anchor_col (0), we are entering the off column (right) of the anchor
+		// (left). perhaps left_right and right_left should be flipped in the
+		// cc_type enum to make this more intuitive (but probably not)
 
-inline void
-RM_Sequencing::operator()(const metanoteinfo& mni)
-{
-	total_taps += mni.count;
+		// NOT an anchor
+		if (anchor_col == cc) {
+			handle_off_tap(now);
+			// same hand offtap
+			++off_taps_same;
+			return;
+		}
+		handle_anchor_progression(now);
+	};
+	inline void handle_oht_progression(const cc_type& cc)
+	{
+		if (is_oht(last_last_cc, last_cc, cc)) {
+			++oht_len;
+			++oht_taps;
+			if (oht_len > max_oht_len)
+				reset();
+		}
+	};
+	inline void operator()(const metanoteinfo& mni)
+	{
+		total_taps += mni.count;
 
-	switch (mni.cc) {
-		case cc_left_right:
-		case cc_right_left:
-			// these are the only 2 scenarios that can produce ohts
-			handle_oht_progression(mni.cc);
-			handle_cross_column_branching(mni.cc, mni.time);
-			break;
-		case cc_jump_single:
-			if (mni.last_was_offhand_tap) {
-				// if we have a jump -> single, and the last
-				// note was an offhand tap, and the single
-				// is the anchor col, then we have an anchor
-				if ((mni.col == col_left && anchor_col == col_left) ||
-					(mni.col == col_right && anchor_col == col_right)) {
+		switch (mni.cc) {
+			case cc_left_right:
+			case cc_right_left:
+				// these are the only 2 scenarios that can produce ohts
+				handle_oht_progression(mni.cc);
+				handle_cross_column_branching(mni.cc, mni.time);
+				break;
+			case cc_jump_single:
+				if (mni.last_was_offhand_tap) {
+					// if we have a jump -> single, and the last
+					// note was an offhand tap, and the single
+					// is the anchor col, then we have an anchor
+					if ((mni.col == col_left && anchor_col == col_left) ||
+						(mni.col == col_right && anchor_col == col_right)) {
+						handle_anchor_progression(mni.time);
+					} else {
+						// otherwise we have an off anchor tap
+						handle_off_tap(mni.time);
+						// same hand offtap
+						++off_taps_same;
+					}
+				} else {
+					// if we are jump -> single and the last
+					// note was not an offhand hand tap, we have
+					// a jack
+					handle_jack_progression();
+				}
+				break;
+			case cc_single_single:
+				if (mni.last_was_offhand_tap) {
+					// if this wasn't a jack, then it's just
+					// a good ol anchor
 					handle_anchor_progression(mni.time);
 				} else {
-					// otherwise we have an off anchor tap
-					handle_off_tap(mni.time);
-					// same hand offtap
-					++off_taps_same;
+					// a jack, not an anchor, we don't
+					// want too many of these but we
+					// don't want to allow none of them
+					handle_jack_progression();
 				}
-			} else {
-				// if we are jump -> single and the last
-				// note was not an offhand hand tap, we have
-				// a jack
+				break;
+			case cc_single_jump:
+				// if last note was an offhand tap, this is by
+				// definition part of the anchor
+				if (mni.last_was_offhand_tap) {
+					handle_anchor_progression(mni.time);
+				} else {
+					// if not, a jack
+					handle_jack_progression();
+				}
+				break;
+			case cc_jump_jump:
+				// this is kind of a grey area, given that
+				// the difficulty of runningmen comes from
+				// the tight turns on the same hand... we
+				// will treat this as a jack even though
+				// technically it's an "anchor" when the
+				// last tap was an offhand tap
 				handle_jack_progression();
-			}
-			break;
-		case cc_single_single:
-			if (mni.last_was_offhand_tap) {
-				// if this wasn't a jack, then it's just
-				// a good ol anchor
-				handle_anchor_progression(mni.time);
-			} else {
-				// a jack, not an anchor, we don't
-				// want too many of these but we
-				// don't want to allow none of them
-				handle_jack_progression();
-			}
-			break;
-		case cc_single_jump:
-			// if last note was an offhand tap, this is by
-			// definition part of the anchor
-			if (mni.last_was_offhand_tap) {
-				handle_anchor_progression(mni.time);
-			} else {
-				// if not, a jack
-				handle_jack_progression();
-			}
-			break;
-		case cc_jump_jump:
-			// this is kind of a grey area, given that
-			// the difficulty of runningmen comes from
-			// the tight turns on the same hand... we
-			// will treat this as a jack even though
-			// technically it's an "anchor" when the
-			// last tap was an offhand tap
-			handle_jack_progression();
-			break;
-		case cc_empty:
-			// simple case to handle, can't be a jack (or
-			// doesn't
-			// really matter) and can't be oht, only reset
-			// if we exceed the spacing limit
-			handle_off_tap(mni.time);
-			break;
-		case cc_init:
-			// uhh we could do something here but i'm lazy
-			break;
-		case cc_undefined:
-			break;
-		default:
-			break;
-	}
-	last_last_cc = last_cc;
-	last_cc = mni.cc;
+				break;
+			case cc_empty:
+				// simple case to handle, can't be a jack (or
+				// doesn't
+				// really matter) and can't be oht, only reset
+				// if we exceed the spacing limit
+				handle_off_tap(mni.time);
+				break;
+			case cc_init:
+				// uhh we could do something here but i'm lazy
+				break;
+			case cc_undefined:
+				break;
+			default:
+				break;
+		}
+		last_last_cc = last_cc;
+		last_cc = mni.cc;
+	};
 };
 
 struct RunningMen
