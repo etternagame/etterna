@@ -1058,8 +1058,8 @@ struct metanoteinfo
 
 inline void
 metanoteinfo::set_col_and_cc_types(const bool& lcol,
-					 const bool& rcol,
-					 const col_type& last_col)
+								   const bool& rcol,
+								   const col_type& last_col)
 {
 	col = bool_to_col_type(lcol, rcol);
 	cc = determine_cc_type(last_col, col);
@@ -1083,8 +1083,8 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 
 inline void
 metanoteinfo::set_timings(const float cur[2],
-						 const float last[2],
-						 const col_type& last_col)
+						  const float last[2],
+						  const col_type& last_col)
 {
 	switch (cc) {
 		case cc_left_right:
@@ -1444,8 +1444,10 @@ struct RunningMen
 							  RanPropOHT,	RanPropOffS, RanPropJack };
 
 	const std::string name = "RunningMen";
+	RM_Sequencing rms[2];
+	RM_Sequencing interval_highest;
 
-	// params
+#pragma region params
 	float min_mod = 0.95f;
 	float max_mod = 1.5f;
 	float mod_base = 1.f;
@@ -1473,6 +1475,7 @@ struct RunningMen
 
 	float min_oht_taps_for_bonus = 1.f;
 	float oht_bonus_base = 0.1f;
+
 
 	std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
@@ -1503,6 +1506,7 @@ struct RunningMen
 		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
 		{ "oht_bonus_base", &oht_bonus_base }
 	};
+#pragma endregion params and param map
 
 	// stuff for making mod
 	float total_prop = 0.f;
@@ -1512,92 +1516,29 @@ struct RunningMen
 	float jack_bonus = 0.f;
 	float oht_bonus = 0.f;
 	float pmod = min_mod;
-	void resize_own_pmods(vector<float> doot[ModCount], const int& size)
+	int test = 0;
+
+	void setup(vector<float> doot[ModCount], const int& size)
 	{
+		// don't try to figure out which column a prospective anchor is on, just
+		// run two passes with each assuming a different column
+		rms[0].anchor_col = col_left;
+		rms[1].anchor_col = col_right;
 		floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	void operator()(const RM_Sequencing& rm,
-					vector<float> doot[ModCount],
-					const int& i);
-
+	inline void operator()(vector<float> doot[ModCount], const int& i);
+	inline void advance_sequencing(const metanoteinfo& mni);
 	XNode* CreateParamNode() const;
 
-	void floop();
+	inline void floop();
 };
 
-// uhh reminder to self to make this not load values every time thing is done
-// and thing and stuff, probably
-void
-RunningMen::floop()
+inline void
+RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 {
-	std::string fn = "Save/" + calc_params_xml;
-	int iError;
-	std::unique_ptr<RageFileBasic> pFile(
-	  FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-		return;
-
-	XNode xml;
-	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return;
-
-	CHECKPOINT_M("Loading the Param node.");
-
-	// auto* pmod = xml.GetChild(name + "ModParams");
-
-	for (auto& p : param_map) {
-		auto* ch = xml.GetChild(p.first);
-		float boat = 0.f;
-		ch->GetTextValue(boat);
-		*p.second = boat;
-	}
-};
-
-XNode*
-RunningMen::CreateParamNode() const
-{
-	XNode* pmod = new XNode(name + "ModParams");
-	for (auto& p : param_map)
-		pmod->AppendChild(p.first, to_string(*p.second));
-
-	return pmod;
-}
-
-void
-SavePatternModParamXmlToDir()
-{
-	RunningMen zoop;
-
-	string fn = "Save/" + calc_params_xml;
-	unique_ptr<XNode> xml(zoop.CreateParamNode());
-	string err;
-	RageFile f;
-	if (!f.Open(fn, RageFile::WRITE))
-		return;
-	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
-}
-
-//
-// XNode*
-// Calc::SaveParamNode() const
-//{
-//	CHECKPOINT_M("Saving calc param nodes.");
-//
-//	XNode* calctestlists = new XNode("ParamNodes");
-//	FOREACHM_CONST(Skillset, CalcTestList,
-// testChartList, i)
-//	calctestlists->AppendChild(i->second.CreateNode());
-//	return calctestlists;
-//}
-
-// we either want this setup this way or not...
-void
-RunningMen::operator()(const RM_Sequencing& rm,
-					   vector<float> doot[ModCount],
-					   const int& i)
-{
+	const auto& rm = interval_highest;
 	if (rm.anchor_len < min_anchor_len) {
 		doot[RanMan][i] = min_mod;
 		return;
@@ -1668,6 +1609,86 @@ RunningMen::operator()(const RM_Sequencing& rm,
 	doot[RanPropJack][i] = jack_bonus;
 };
 
+inline void
+RunningMen::advance_sequencing(const metanoteinfo& mni)
+{
+	for (auto& rm : rms)
+		rm(mni);
+
+	// use the biggest anchor that has existed in this interval
+	test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
+
+	if (rms[test].anchor_len > interval_highest.anchor_len)
+		interval_highest = rms[test];
+};
+
+// uhh reminder to self to make this not load values every time thing is done
+// and thing and stuff, probably
+inline void
+RunningMen::floop()
+{
+	std::string fn = "Save/" + calc_params_xml;
+	int iError;
+	std::unique_ptr<RageFileBasic> pFile(
+	  FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL)
+		return;
+
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return;
+
+	CHECKPOINT_M("Loading the Param node.");
+
+	// auto* pmod = xml.GetChild(name + "ModParams");
+
+	for (auto& p : param_map) {
+		auto* ch = xml.GetChild(p.first);
+		float boat = 0.f;
+		ch->GetTextValue(boat);
+		*p.second = boat;
+	}
+};
+
+XNode*
+RunningMen::CreateParamNode() const
+{
+	XNode* pmod = new XNode(name + "ModParams");
+	for (auto& p : param_map)
+		pmod->AppendChild(p.first, to_string(*p.second));
+
+	return pmod;
+}
+
+void
+SavePatternModParamXmlToDir()
+{
+	RunningMen zoop;
+
+	string fn = "Save/" + calc_params_xml;
+	unique_ptr<XNode> xml(zoop.CreateParamNode());
+	string err;
+	RageFile f;
+	if (!f.Open(fn, RageFile::WRITE))
+		return;
+	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+}
+
+//
+// XNode*
+// Calc::SaveParamNode() const
+//{
+//	CHECKPOINT_M("Saving calc param nodes.");
+//
+//	XNode* calctestlists = new XNode("ParamNodes");
+//	FOREACHM_CONST(Skillset, CalcTestList,
+// testChartList, i)
+//	calctestlists->AppendChild(i->second.CreateNode());
+//	return calctestlists;
+//}
+
+// we either want this setup this way or not...
+
 #pragma endregion
 vector<vector<metanoteinfo>>
 gen_metanoteinfo(const vector<vector<int>>& itv_rows,
@@ -1678,7 +1699,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 vector<float> doot[ModCount])
 {
 	RunningMen zorp;
-	zorp.resize_own_pmods(doot, itv_rows.size());
+	zorp.setup(doot, itv_rows.size());
 	const bool dbg = false && debug_lmao;
 	vector<vector<metanoteinfo>> o;
 	vector<metanoteinfo> p;
@@ -1690,44 +1711,26 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	col_type last_col = col_init;
 	cc_type last_cc = cc_init;
 
-	// test stuff
-	RM_Sequencing rms[2];
-	// maybe the easy way to do this is just run both columns at once
-	rms[0].anchor_col = col_left;
-	rms[1].anchor_col = col_right;
-	int cols = 0;
-
-	bool offhand_tap = false;
 	bool was_last_offhand_tap = false;
 	for (size_t i = 0; i < itv_rows.size(); ++i) {
-		RM_Sequencing rm_to_use_for_mods;
+		zorp.interval_highest.reset();
 		p.clear();
 		auto& itv = itv_rows[i];
 		for (auto& row : itv) {
 			metanoteinfo mni;
 			mni.last_was_offhand_tap = was_last_offhand_tap;
-			mni.set_col_and_cc_types(NoteInfo[row].notes & t1,
-								 NoteInfo[row].notes & t2,
-								 last_col);
-			offhand_tap = false;
-			if (mni.col == col_empty)
-				offhand_tap = true;
+			mni.set_col_and_cc_types(
+			  NoteInfo[row].notes & t1, NoteInfo[row].notes & t2, last_col);
 
 			mni.count = column_count(NoteInfo[row].notes);
 			mni.time = NoteInfo[row].rowTime;
 
-			{
-				for (auto& rm : rms)
-					rm(mni);
+			zorp.advance_sequencing(mni);
 
-				// use the biggest anchor that has existed in this interval
-				int test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
+			// any row in noteinfo must have at least 1 tap, so if this hand is
+			// empty, we have an offhand tap
+			was_last_offhand_tap = mni.col == col_empty;
 
-				if (rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
-					rm_to_use_for_mods = rms[test];
-				was_last_offhand_tap = offhand_tap;
-			}
-				
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
@@ -1755,24 +1758,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		}
 		o.push_back(p);
 
-		// continue test stuff
-		static const float min_mod = 0.95f;
-		static const float max_mod = 1.5f;
-		doot[RanMan][i] = min_mod;
-		doot[RanLen][i] = 0.f;
-		doot[RanAnchLen][i] = 0.f;
-		doot[RanOffS][i] = 0.f;
-		doot[RanJack][i] = 0.f;
-		doot[RanPropAll][i] = 0.f;
-		doot[RanPropOff][i] = 0.f;
-		doot[RanPropOffS][i] = 0.f;
-		doot[RanPropOHT][i] = 0.f;
-		doot[RanPropJack][i] = 0.f;
-		
-		zorp(rm_to_use_for_mods, doot, i);
+		zorp(doot, i);
 	}
-	// Smooth(doot[RanMan], 1.f);
-	// Smooth(doot[RanMan], 1.f);
 	return o;
 }
 
@@ -5115,7 +5102,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
-	//SavePatternModParamXmlToDir();
+	// SavePatternModParamXmlToDir();
 }
 #pragma endregion
 
