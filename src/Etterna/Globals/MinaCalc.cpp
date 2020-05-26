@@ -1452,14 +1452,15 @@ struct RunningMen
 	float total_prop_min = 0.f;
 	float total_prop_max = 1.f;
 
-	float off_tap_prop_scaler = 1.1f;
+	float off_tap_prop_scaler = 1.3f;
 	float off_tap_prop_min = 0.f;
-	float off_tap_prop_max = 1.f;
+	float off_tap_prop_max = 1.25f;
+	float off_tap_prop_base = 0.05f;
 
-	float off_tap_same_base = 0.25f;
 	float off_tap_same_prop_scaler = 1.f;
 	float off_tap_same_prop_min = 0.f;
 	float off_tap_same_prop_max = 1.25f;
+	float off_tap_same_prop_base = 0.25f;
 
 	float anchor_len_divisor = 2.5f;
 
@@ -1484,11 +1485,12 @@ struct RunningMen
 		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
 		{ "off_tap_prop_min", &off_tap_prop_min },
 		{ "off_tap_prop_max", &off_tap_prop_max },
-		{ "off_tap_same_base", &off_tap_same_base },
+		{ "off_tap_prop_base", &off_tap_prop_base },
 
 		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
 		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
 		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
+		{ "off_tap_same_prop_base", &off_tap_same_prop_base },
 
 		{ "anchor_len_divisor", &anchor_len_divisor },
 
@@ -1551,11 +1553,13 @@ RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 						   total_prop_max);
 
 	// number anchor taps / number of non anchor taps
-	off_tap_prop = pmod_prop(rm.anchor_len,
-							 rm.ran_taps,
-							 off_tap_prop_scaler,
-							 off_tap_prop_min,
-							 off_tap_prop_max);
+	off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
+									 rm.ran_taps,
+									 off_tap_prop_scaler,
+									 off_tap_prop_min,
+									 off_tap_prop_max,
+									 off_tap_prop_base),
+						   2.f);
 
 	// number of same hand off anchor taps / anchor taps, basically stuff is
 	// really hard when this is high (a value of 0.5 is a triplet every other
@@ -1565,7 +1569,7 @@ RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 								  off_tap_same_prop_scaler,
 								  off_tap_same_prop_min,
 								  off_tap_same_prop_max,
-								  off_tap_same_base);
+								  off_tap_same_prop_base);
 
 	// anchor length component
 	anchor_len_comp = static_cast<float>(rm.anchor_len) / anchor_len_divisor;
@@ -1754,6 +1758,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 		zorp(doot, i);
 	}
+	Smooth(doot[RanMan], 1.f);
 	return o;
 }
 
@@ -2302,8 +2307,7 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					// jank application of ranman
-					adj_diff *= CalcClamp(doot[RanMan][i], 1.f, 1.1f);
+					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -5101,7 +5105,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 331;
+int mina_calc_version = 332;
 int
 GetCalcVersion()
 {
