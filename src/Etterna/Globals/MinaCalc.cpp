@@ -1518,28 +1518,66 @@ struct RunningMen
 	float pmod = min_mod;
 	int test = 0;
 
-	void setup(vector<float> doot[ModCount], const int& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
 		rms[0].anchor_col = col_left;
 		rms[1].anchor_col = col_right;
-		floop();
+		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void operator()(vector<float> doot[ModCount], const int& i);
-	inline void advance_sequencing(const metanoteinfo& mni);
-	XNode* CreateParamNode() const;
+	inline void advance_sequencing(const metanoteinfo& mni)
+	{
+		for (auto& rm : rms)
+			rm(mni);
 
-	inline void floop();
-};
+		// use the biggest anchor that has existed in this interval
+		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
 
-inline void
-RunningMen::operator()(vector<float> doot[ModCount], const int& i)
-{
-	const auto& rm = interval_highest;
-	if (rm.anchor_len < min_anchor_len) {
+		if (rms[test].anchor_len > interval_highest.anchor_len)
+			interval_highest = rms[test];
+	};
+	inline XNode* CreateParamNode() const
+	{
+		XNode* pmod = new XNode(name + "ModParams");
+		for (auto& p : param_map)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	// uhh reminder to self to make this not load values every time thing is
+	// done and thing and stuff, probably
+	inline void floop()
+	{
+		std::string fn = calc_params_xml;
+		int iError;
+		std::unique_ptr<RageFileBasic> pFile(
+		  FILEMAN->Open(fn, RageFile::READ, iError));
+		if (pFile.get() == NULL)
+			return;
+
+		XNode xml;
+		if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+			return;
+
+		CHECKPOINT_M("Loading the Param node.");
+
+		// auto* pmod = xml.GetChild(name + "ModParams");
+
+		for (auto& p : param_map) {
+			auto* ch = xml.GetChild(p.first);
+			float boat = 0.f;
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	};
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+		const auto& rm = interval_highest;
+		if (rm.anchor_len < min_anchor_len) {
 		doot[RanMan][i] = min_mod;
 		return;
 	} else if (rm.ran_taps < min_taps_in_rm) {
@@ -1612,60 +1650,10 @@ RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 	doot[RanPropOHT][i] = oht_bonus;
 	doot[RanPropJack][i] = jack_bonus;
 
-	// reset interval highest when we're done
-	interval_highest.reset();
+		// reset interval highest when we're done
+		interval_highest.reset();
+	};
 };
-
-inline void
-RunningMen::advance_sequencing(const metanoteinfo& mni)
-{
-	for (auto& rm : rms)
-		rm(mni);
-
-	// use the biggest anchor that has existed in this interval
-	test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
-
-	if (rms[test].anchor_len > interval_highest.anchor_len)
-		interval_highest = rms[test];
-};
-
-// uhh reminder to self to make this not load values every time thing is done
-// and thing and stuff, probably
-inline void
-RunningMen::floop()
-{
-	std::string fn = calc_params_xml;
-	int iError;
-	std::unique_ptr<RageFileBasic> pFile(
-	  FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-		return;
-
-	XNode xml;
-	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return;
-
-	CHECKPOINT_M("Loading the Param node.");
-
-	// auto* pmod = xml.GetChild(name + "ModParams");
-
-	for (auto& p : param_map) {
-		auto* ch = xml.GetChild(p.first);
-		float boat = 0.f;
-		ch->GetTextValue(boat);
-		*p.second = boat;
-	}
-};
-
-XNode*
-RunningMen::CreateParamNode() const
-{
-	XNode* pmod = new XNode(name + "ModParams");
-	for (auto& p : param_map)
-		pmod->AppendChild(p.first, to_string(*p.second));
-
-	return pmod;
-}
 
 void
 SavePatternModParamXmlToDir()
@@ -1680,22 +1668,6 @@ SavePatternModParamXmlToDir()
 		return;
 	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 }
-
-//
-// XNode*
-// Calc::SaveParamNode() const
-//{
-//	CHECKPOINT_M("Saving calc param nodes.");
-//
-//	XNode* calctestlists = new XNode("ParamNodes");
-//	FOREACHM_CONST(Skillset, CalcTestList,
-// testChartList, i)
-//	calctestlists->AppendChild(i->second.CreateNode());
-//	return calctestlists;
-//}
-
-// we either want this setup this way or not...
-
 #pragma endregion
 
 struct TheGreatBazoinkazoinkInTheSky
