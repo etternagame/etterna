@@ -9,9 +9,6 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-        - { os: ubuntu-18.04, cpp-version: g++-5 }
-        - { os: ubuntu-18.04, cpp-version: g++-6 }
-        - { os: ubuntu-18.04, cpp-version: g++-7 }
         - { os: ubuntu-18.04, cpp-version: g++-8 }
         - { os: ubuntu-18.04, cpp-version: g++-9 }
         - { os: ubuntu-18.04, cpp-version: clang++-7 }
