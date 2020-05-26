@@ -1578,13 +1578,13 @@ struct RunningMen
 	{
 		const auto& rm = interval_highest;
 		if (rm.anchor_len < min_anchor_len) {
-		doot[RanMan][i] = min_mod;
-		return;
-	} else if (rm.ran_taps < min_taps_in_rm) {
-		doot[RanMan][i] = min_mod;
-		return;
-	} else if (rm.off_taps_same < min_off_taps_same) {
-		doot[RanMan][i] = min_mod;
+			doot[RanMan][i] = min_mod;
+			return;
+		} else if (rm.ran_taps < min_taps_in_rm) {
+			doot[RanMan][i] = min_mod;
+			return;
+		} else if (rm.off_taps_same < min_off_taps_same) {
+			doot[RanMan][i] = min_mod;
 		return;
 	}
 
@@ -1593,16 +1593,16 @@ struct RunningMen
 	total_prop = pmod_prop(rm.ran_taps,
 						   rm.total_taps,
 						   total_prop_scaler,
-						   total_prop_min,
-						   total_prop_max);
+							   total_prop_min,
+							   total_prop_max);
 
-	// number anchor taps / number of non anchor taps
-	off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
-									 rm.ran_taps,
-									 off_tap_prop_scaler,
-									 off_tap_prop_min,
-									 off_tap_prop_max,
-									 off_tap_prop_base),
+		// number anchor taps / number of non anchor taps
+		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
+										 rm.ran_taps,
+										 off_tap_prop_scaler,
+										 off_tap_prop_min,
+										 off_tap_prop_max,
+										 off_tap_prop_base),
 						   2.f);
 
 	// number of same hand off anchor taps / anchor taps, basically stuff is
@@ -1611,8 +1611,8 @@ struct RunningMen
 	off_tap_same_prop = pmod_prop(rm.off_taps_same,
 								  rm.anchor_len,
 								  off_tap_same_prop_scaler,
-								  off_tap_same_prop_min,
-								  off_tap_same_prop_max,
+									  off_tap_same_prop_min,
+									  off_tap_same_prop_max,
 								  off_tap_same_prop_base);
 
 	// anchor length component
@@ -1620,7 +1620,7 @@ struct RunningMen
 
 	// jacks in anchor component, give a small bonus i guess
 	jack_bonus =
-	  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
+		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
 
 	// ohts in anchor component, give a small bonus i guess
 	// not done
@@ -1628,27 +1628,27 @@ struct RunningMen
 
 	// we could scale the anchor to speed if we want but meh
 	// that's really complicated/messy/error prone
-	pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
-	pmod = CalcClamp(
-	  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
-	  min_mod,
-	  max_mod);
+		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
+		pmod = CalcClamp(
+		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
+		  min_mod,
+		  max_mod);
 
-	// actual used mod
-	doot[RanMan][i] = pmod;
+		// actual used mod
+		doot[RanMan][i] = pmod;
 
-	// debug
-	doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
-	doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
-	doot[RanAnchLenMod][i] = anchor_len_comp;
-	doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-	doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-	doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-	doot[RanPropAll][i] = total_prop;
-	doot[RanPropOff][i] = off_tap_prop;
-	doot[RanPropOffS][i] = off_tap_same_prop;
-	doot[RanPropOHT][i] = oht_bonus;
-	doot[RanPropJack][i] = jack_bonus;
+		// debug
+		doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+		doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+		doot[RanAnchLenMod][i] = anchor_len_comp;
+		doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+		doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+		doot[RanJack][i] = static_cast<float>(rm.jack_taps);
+		doot[RanPropAll][i] = total_prop;
+		doot[RanPropOff][i] = off_tap_prop;
+		doot[RanPropOffS][i] = off_tap_same_prop;
+		doot[RanPropOHT][i] = oht_bonus;
+		doot[RanPropJack][i] = jack_bonus;
 
 		// reset interval highest when we're done
 		interval_highest.reset();
@@ -1703,17 +1703,40 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void handle_row_loop(const int& row)
 	{
-		// generate current metanoteinfo
+		// generate current metanoteinfo using stuff + last metanoteinfo
 		_mni_now(_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
 
+		// should be self explanatory
 		handle_row_dependent_pattern_advancement();
+
+		set_mni_last();
 	};
 
-	inline void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate,
-						   const unsigned int& t1,
-						   const unsigned int& t2,
-						   vector<float> doot[])
+	inline void gratuitious_inline_for_inner_loop(const int& itv)
+	{
+		for (auto& row : _itv_rows[itv])
+			handle_row_loop(row);
+	};
+
+	inline void call_pattern_mod_functors(const int& itv) {
+		_rm(_doot, itv);
+	};
+
+	inline void even_more_gratuitious_inline_for_outer_loop() {
+		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+			// inner loop
+			gratuitious_inline_for_inner_loop(itv);
+
+			// set the pattern mod values by calling the mod functors
+			call_pattern_mod_functors(itv);
+		}
+	}
+
+	inline void set_members(const vector<vector<int>>& itv_rows,
+						 const float& rate,
+						 const unsigned int& t1,
+						 const unsigned int& t2,
+						 vector<float> doot[])
 	{
 		// change with offset, if we do multi offset passes we want this to
 		// be vars, but we aren't doing it now
@@ -1724,28 +1747,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		// changes with hand
 		_t1 = t1;
 		_t2 = t2;
-
-		// memory initialization n stuff
-		setup();
-
-		// main interval loop, pattern mods values are produced in this outer
-		// loop using the data aggregated/generated in the inner loop
-		// all pattern mod functors should use i as an argument, since it needs
-		// to update the pattern mod holder at the proper index
-		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
-
-			for (auto& row : _itv_rows[itv]) {
-				handle_row_loop(row);
-				set_mni_last();
-			}
-
-			// set the pattern mods by calling the mod functors
-			_rm(_doot, itv);
-		}
-		int boot = 0;
 	};
 
-	inline void setup() {
+	inline void run_pattern_mod_setups()
+	{
 		_rm.setup(_doot, _itv_rows.size());
 	};
 
@@ -1755,6 +1760,25 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// doesn't change with offset or anything
 		_ni = ni;
+	};
+
+	inline void operator()(const vector<vector<int>>& itv_rows,
+						   const float& rate,
+						   const unsigned int& t1,
+						   const unsigned int& t2,
+						   vector<float> doot[])
+	{
+		set_members(itv_rows, rate, t1, t2, doot);
+
+		// run any setup functions for pattern mods, generally memory
+		// initialization and maybe some other stuff
+		run_pattern_mod_setups();
+
+		// main interval loop, pattern mods values are produced in this outer
+		// loop using the data aggregated/generated in the inner loop
+		// all pattern mod functors should use i as an argument, since it needs
+		// to update the pattern mod holder at the proper index
+		even_more_gratuitious_inline_for_outer_loop();
 	};
 };
 
