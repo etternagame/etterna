@@ -1780,6 +1780,15 @@ struct TheGreatBazoinkazoinkInTheSky
 		// to update the pattern mod holder at the proper index
 		even_more_gratuitious_inline_for_outer_loop();
 	};
+
+	// maybe overload for non-hand-specific? 
+	inline void operator()(const vector<vector<int>>& itv_rows,
+						   const float& rate,
+						   vector<float> doot1[],
+						   vector<float> doot2[])
+	{
+
+	};
 };
 
 bool
