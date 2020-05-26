@@ -1599,7 +1599,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 	rms[1].anchor_col = col_right;
 	int cols = 0;
 
-	col_type ran_last = col_init;
 	bool offhand_tap = false;
 	bool was_last_offhand_tap = false;
 	for (size_t i = 0; i < itv_rows.size(); ++i) {
@@ -1725,7 +1724,6 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				if (rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
 					rm_to_use_for_mods = rms[test];
 
-				ran_last = mni.col;
 				was_last_offhand_tap = offhand_tap;
 			}
 
