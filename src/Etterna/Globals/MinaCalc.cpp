@@ -1195,8 +1195,12 @@ RM_Sequencing::reset()
 
 	is_bursting = false;
 	had_burst = false;
+	// reset?? don't reset????
+	last_anchor_time = s_init;
+	last_off_time = s_init;
 	total_taps = 0;
 	ran_taps = 0;
+
 	anchor_len = 0;
 	off_taps_same = 0;
 	oht_taps = 0;
@@ -1352,7 +1356,7 @@ RM_Sequencing::handle_oht_progression(const cc_type& cc)
 inline void
 RM_Sequencing::operator()(const metanoteinfo& mni)
 {
-	total_taps += column_count(mni.count);
+	total_taps += mni.count;
 
 	switch (mni.cc) {
 		case cc_left_right:
@@ -1701,6 +1705,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		auto& itv = itv_rows[i];
 		for (auto& row : itv) {
 			metanoteinfo mni;
+			mni.last_was_offhand_tap = was_last_offhand_tap;
 			mni.set_col_and_cc_types(NoteInfo[row].notes & t1,
 								 NoteInfo[row].notes & t2,
 								 last_col);
@@ -1720,9 +1725,9 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 				if (rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
 					rm_to_use_for_mods = rms[test];
+				was_last_offhand_tap = offhand_tap;
 			}
 				
-			mni.last_was_offhand_tap = offhand_tap;
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
