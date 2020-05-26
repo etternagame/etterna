@@ -1025,45 +1025,9 @@ invert_cc(const cc_type& cc)
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
-// pattern info and stuff idk this needed to be done a bazillion years ago
-struct metanoteinfo
-{
-	int id = 0;
-	float time = ms_init;
-
-	col_type col = col_init;
-
-	// type of cross column hit
-	cc_type cc = cc_init;
-
-	unsigned int count = 0;
-
-	bool last_was_offhand_tap = false;
-
-	// ms from last cross column note
-	float cc_ms_any = ms_init;
-
-	// ms from last cross column note, excluding jumps
-	float cc_ms_no_jumps = ms_init;
-
-	// ms from last note in this column
-	float tc_ms = ms_init;
-	inline void set_timings(const float cur[2],
-							const float last[2],
-							const col_type& last_col);
-	inline void set_col_and_cc_types(const bool& lcol,
-									 const bool& rcol,
-									 const col_type& last_col);
-};
-
-inline void
-metanoteinfo::set_col_and_cc_types(const bool& lcol,
-								   const bool& rcol,
-								   const col_type& last_col)
-{
-	col = bool_to_col_type(lcol, rcol);
-	cc = determine_cc_type(last_col, col);
-}
+// this should contain most everything needed for the generic pattern mods,
+// extremely specific sequencing will take place in separate areas like with
+// rm_seuqencing
 
 inline void
 update_col_time(const col_type& col, float arr[2], const float& val)
@@ -1081,52 +1045,121 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
-inline void
-metanoteinfo::set_timings(const float cur[2],
-						  const float last[2],
-						  const col_type& last_col)
+struct metanoteinfo
 {
-	switch (cc) {
-		case cc_left_right:
-		case cc_right_left:
-		case cc_jump_single:
-		case cc_single_single:
-			// either we know the end col so we know the start col, or the start
-			// col doesn't matter
-			cc_ms_any = ms_from(cur[col], last[invert_col(col)]);
+	int id = 0;
 
-			// technically doesn't matter if we use last_col to index, if it's
-			// single -> single we know it's an anchor so it's more intuitive to
-			// use col twice
-			tc_ms = ms_from(cur[col], last[col]);
-			break;
-		case cc_single_jump:
-			// tracking this for now, we want to track from last col to last col
-			// inverted
-			cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+	// time (s) of the last seen note in each column
+	float row_time = s_init;
+	float col_time[2] = { s_init, s_init };
 
-			// can't use col twice, use last_col, see below
-			tc_ms = ms_from(cur[0], last[last_col]);
-			break;
-		case cc_jump_jump:
-			// not sure if we should set or leave at init value of 5000.f
-			// cc_ms_any = 0.f;
+	col_type col = col_init;
+	// type of cross column hit
+	cc_type cc = cc_init;
 
-			// indexes don't matter-- except that we can't use col or
-			// last_col (because index 2 is outside array size)
-			tc_ms = ms_from(cur[0], last[0]);
-			break;
-		case cc_empty:
-			break;
-		case cc_init:
-			break;
-		case cc_undefined:
-			break;
-		default:
-			break;
+	// number of notes in the row
+	unsigned int count = 0;
+
+	// last col == col_empty
+	bool last_was_offhand_tap = false;
+
+	// ms from last cross column note
+	float cc_ms_any = ms_init;
+
+	// ms from last cross column note, excluding jumps
+	float cc_ms_no_jumps = ms_init;
+
+	// ms from last note in this column
+	float tc_ms = ms_init;
+
+	inline void set_timings(const float cur[2],
+							const float last[2],
+							const col_type& last_col)
+	{
+		switch (cc) {
+			case cc_left_right:
+			case cc_right_left:
+			case cc_jump_single:
+			case cc_single_single:
+				// either we know the end col so we know the start col, or the
+				// start col doesn't matter
+				cc_ms_any = ms_from(cur[col], last[invert_col(col)]);
+
+				// technically doesn't matter if we use last_col to index, if
+				// it's single -> single we know it's an anchor so it's more
+				// intuitive to use col twice
+				tc_ms = ms_from(cur[col], last[col]);
+				break;
+			case cc_single_jump:
+				// tracking this for now, we want to track from last col to last
+				// col inverted
+				cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+
+				// can't use col twice, use last_col, see below
+				tc_ms = ms_from(cur[0], last[last_col]);
+				break;
+			case cc_jump_jump:
+				// not sure if we should set or leave at init value of 5000.f
+				// cc_ms_any = 0.f;
+
+				// indexes don't matter-- except that we can't use col or
+				// last_col (because index 2 is outside array size)
+				tc_ms = ms_from(cur[0], last[0]);
+				break;
+			case cc_empty:
+				break;
+			case cc_init:
+				break;
+			case cc_undefined:
+				break;
+			default:
+				break;
+		}
+		return;
 	}
-	return;
-}
+	inline void set_col_and_cc_types(const bool& lcol,
+									 const bool& rcol,
+									 const col_type& last_col)
+	{
+		col = bool_to_col_type(lcol, rcol);
+		cc = determine_cc_type(last_col, col);
+	}
+
+	inline void operator()(const metanoteinfo& last,
+						   const float& now,
+						   const unsigned int& notes,
+						   const int& t1,
+						   const int& t2,
+						   const int& row)
+	{
+
+		last_was_offhand_tap = last.col == col_empty;
+		set_col_and_cc_types(notes & t1, notes & t2, last.col);
+		count = column_count(notes);
+		row_time = now;
+
+		// any row in noteinfo must have at least 1 tap, so if this hand
+		// is empty, we have an offhand tap
+
+		// we don't want to set lasttime or lastcol for empty rows
+		if (col == col_empty)
+			return;
+
+		// every note has at least 2 ms values associated with it, the
+		// ms value from the last cross column note (on the same hand),
+		// and the ms value from the last note on it's/this column both
+		// are useful for different things, and we want to track both.
+		// for ohjumps, we will track the ms from the last non-jump on
+		// either finger, there are situations where we may want to
+		// consider jumps as having a cross column ms value of 0 with
+		// itself, not sure if they should be set to this or left at the
+		// init values of 5000 though
+
+		// we will need to update time for one or both cols
+		update_col_time(col, col_time, now);
+		set_timings(col_time, last.col_time, last.col);
+	}
+};
 
 // ranmen staff
 static const int max_oht_len = 1;
@@ -1292,7 +1325,7 @@ struct RM_Sequencing
 			reset();
 	}
 	inline void handle_cross_column_branching(const cc_type& cc,
-															 const float& now)
+											  const float& now)
 	{
 		// we are comparing 2 different enum types here, but this is what we
 		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
@@ -1328,7 +1361,7 @@ struct RM_Sequencing
 			case cc_right_left:
 				// these are the only 2 scenarios that can produce ohts
 				handle_oht_progression(mni.cc);
-				handle_cross_column_branching(mni.cc, mni.time);
+				handle_cross_column_branching(mni.cc, mni.row_time);
 				break;
 			case cc_jump_single:
 				if (mni.last_was_offhand_tap) {
@@ -1337,10 +1370,10 @@ struct RM_Sequencing
 					// is the anchor col, then we have an anchor
 					if ((mni.col == col_left && anchor_col == col_left) ||
 						(mni.col == col_right && anchor_col == col_right)) {
-						handle_anchor_progression(mni.time);
+						handle_anchor_progression(mni.row_time);
 					} else {
 						// otherwise we have an off anchor tap
-						handle_off_tap(mni.time);
+						handle_off_tap(mni.row_time);
 						// same hand offtap
 						++off_taps_same;
 					}
@@ -1355,7 +1388,7 @@ struct RM_Sequencing
 				if (mni.last_was_offhand_tap) {
 					// if this wasn't a jack, then it's just
 					// a good ol anchor
-					handle_anchor_progression(mni.time);
+					handle_anchor_progression(mni.row_time);
 				} else {
 					// a jack, not an anchor, we don't
 					// want too many of these but we
@@ -1367,7 +1400,7 @@ struct RM_Sequencing
 				// if last note was an offhand tap, this is by
 				// definition part of the anchor
 				if (mni.last_was_offhand_tap) {
-					handle_anchor_progression(mni.time);
+					handle_anchor_progression(mni.row_time);
 				} else {
 					// if not, a jack
 					handle_jack_progression();
@@ -1387,7 +1420,7 @@ struct RM_Sequencing
 				// doesn't
 				// really matter) and can't be oht, only reset
 				// if we exceed the spacing limit
-				handle_off_tap(mni.time);
+				handle_off_tap(mni.row_time);
 				break;
 			case cc_init:
 				// uhh we could do something here but i'm lazy
@@ -1578,6 +1611,9 @@ RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 	doot[RanPropOffS][i] = off_tap_same_prop;
 	doot[RanPropOHT][i] = oht_bonus;
 	doot[RanPropJack][i] = jack_bonus;
+
+	// reset interval highest when we're done
+	interval_highest.reset();
 };
 
 inline void
@@ -1661,79 +1697,94 @@ SavePatternModParamXmlToDir()
 // we either want this setup this way or not...
 
 #pragma endregion
-vector<vector<metanoteinfo>>
-gen_metanoteinfo(const vector<vector<int>>& itv_rows,
-				 const vector<NoteInfo>& NoteInfo,
-				 float music_rate,
-				 int t1,
-				 int t2,
-				 vector<float> doot[ModCount])
+
+struct TheGreatBazoinkazoinkInTheSky
 {
-	RunningMen zorp;
-	zorp.setup(doot, itv_rows.size());
-	const bool dbg = false && debug_lmao;
-	vector<vector<metanoteinfo>> o;
-	vector<metanoteinfo> p;
+	// don't need for now but have in case of debug need maybe
+	vector<vector<metanoteinfo>> _mni_vec;
 
-	float lasttime[2] = { s_init, s_init };
-	float curtime[2] = { 0.f, 0.f };
-	float this_ms = ms_init;
+	// basic data we need
+	vector<NoteInfo> _ni;
+	vector<vector<int>> _itv_rows;
+	vector<float>* _doot;
+	float _rate = 0.f;
+	unsigned int _t1 = 0;
+	unsigned int _t2 = 0;
 
-	col_type last_col = col_init;
-	cc_type last_cc = cc_init;
+	// to produce these
+	metanoteinfo _mni_last;
+	metanoteinfo _mni_now;
 
-	bool was_last_offhand_tap = false;
-	for (size_t i = 0; i < itv_rows.size(); ++i) {
-		zorp.interval_highest.reset();
-		p.clear();
-		auto& itv = itv_rows[i];
-		for (auto& row : itv) {
-			metanoteinfo mni;
-			mni.last_was_offhand_tap = was_last_offhand_tap;
-			mni.set_col_and_cc_types(
-			  NoteInfo[row].notes & t1, NoteInfo[row].notes & t2, last_col);
+	// so we can make pattern mods
+	RunningMen _rm;
 
-			mni.count = column_count(NoteInfo[row].notes);
-			mni.time = NoteInfo[row].rowTime;
+	// we only care what last is, not what now is, this should work but it
+	// seems almost too clever and probably won't for ?? reasons
+	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
 
-			zorp.advance_sequencing(mni);
+	// some pattern mod detection builds across rows, see rm_sequencing for an
+	// example
+	inline void handle_row_dependent_pattern_advancement()
+	{
+		_rm.advance_sequencing(_mni_now);
+	};
 
-			// any row in noteinfo must have at least 1 tap, so if this hand is
-			// empty, we have an offhand tap
-			was_last_offhand_tap = mni.col == col_empty;
+	inline void handle_row_loop(const int& row)
+	{
+		// generate current metanoteinfo
+		_mni_now(_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
 
-			// we don't want to set lasttime or lastcol for empty rows
-			if (mni.col == col_empty)
-				continue;
+		handle_row_dependent_pattern_advancement();
+	};
 
-			// every note has at least 2 ms values associated with it, the
-			// ms value from the last cross column note (on the same hand),
-			// and the ms value from the last note on it's/this column both
-			// are useful for different things, and we want to track both.
-			// for ohjumps, we will track the ms from the last non-jump on
-			// either finger, there are situations where we may want to
-			// consider jumps as having a cross column ms value of 0 with
-			// itself, not sure if they should be set to this or left at the
-			// init values of 5000 though
+	inline void operator()(const vector<vector<int>>& itv_rows,
+						   const float& rate,
+						   const unsigned int& t1,
+						   const unsigned int& t2,
+						   vector<float> doot[])
+	{
+		// change with offset, if we do multi offset passes we want this to
+		// be vars, but we aren't doing it now
+		_rate = rate;
+		_itv_rows = itv_rows;
+		_doot = doot;
 
-			// we will need to update time for one or both cols
-			update_col_time(mni.col, curtime, NoteInfo[row].rowTime);
-			mni.set_timings(curtime, lasttime, last_col);
+		// changes with hand
+		_t1 = t1;
+		_t2 = t2;
 
-			// update last notes/time
-			last_col = mni.col;
-			last_cc = mni.cc;
-			lasttime[0] = curtime[0];
-			lasttime[1] = curtime[1];
-			p.push_back(mni);
+		// memory initialization n stuff
+		setup();
+
+		// main interval loop, pattern mods values are produced in this outer
+		// loop using the data aggregated/generated in the inner loop
+		// all pattern mod functors should use i as an argument, since it needs
+		// to update the pattern mod holder at the proper index
+		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+
+			for (auto& row : _itv_rows[itv]) {
+				handle_row_loop(row);
+				set_mni_last();
+			}
+
+			// set the pattern mods by calling the mod functors
+			_rm(_doot, itv);
 		}
-		o.push_back(p);
+		int boot = 0;
+	};
 
-		zorp(doot, i);
-	}
-	Smooth(doot[RanMan], 1.f);
-	return o;
-}
+	inline void setup() {
+		_rm.setup(_doot, _itv_rows.size());
+	};
+
+	inline void bazoink(const vector<NoteInfo>& ni)
+	{
+		// probably should load params here or something
+
+		// doesn't change with offset or anything
+		_ni = ni;
+	};
+};
 
 bool
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
@@ -1757,7 +1808,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
 										   { right_hand, { 4, 8 } } };
 
-	vector<vector<vector<metanoteinfo>>> bruh;
+	TheGreatBazoinkazoinkInTheSky ulbo;
+	ulbo.bazoink(NoteInfo);
 
 	// loop to help with hand specific stuff, we could do this stuff
 	// in the class but that's more structural work and this is
@@ -1774,24 +1826,13 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// anything here and almost defeats the purpose but
 		// whatever, we need to do this before the pmods
 		if (fv[0] == 1) {
-			bruh.emplace_back(gen_metanoteinfo(nervIntervals,
-											   NoteInfo,
-											   music_rate,
-											   col_ids[0],
-											   col_ids[1],
-											   hand.doot));
 			hand.InitBaseDiff(fingers[0], fingers[1]);
 			hand.InitPoints(fingers[0], fingers[1]);
 		} else {
-			bruh.emplace_back(gen_metanoteinfo(nervIntervals,
-											   NoteInfo,
-											   music_rate,
-											   col_ids[2],
-											   col_ids[3],
-											   hand.doot));
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
+		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
@@ -1994,7 +2035,8 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = a_thing(difficulty, nps, 7.76445f, 10.f) * finalscaler;
+		soap[BaseMSD][i] =
+		  a_thing(difficulty, nps, 7.76445f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMS]);
@@ -2281,7 +2323,8 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -5074,7 +5117,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
-	if(!DoesFileExist(calc_params_xml))
+	if (!DoesFileExist(calc_params_xml))
 		SavePatternModParamXmlToDir();
 }
 #pragma endregion
