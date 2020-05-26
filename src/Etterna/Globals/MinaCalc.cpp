@@ -1441,12 +1441,15 @@ struct RunningMen
 	void floop();
 };
 
+// uhh reminder to self to make this not load values every time thing is done
+// and thing and stuff, probably
 void
 RunningMen::floop()
 {
 	std::string fn = "Save/" + calc_params_xml;
 	int iError;
-	std::unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	std::unique_ptr<RageFileBasic> pFile(
+	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == NULL)
 		return;
 
@@ -1455,28 +1458,15 @@ RunningMen::floop()
 		return;
 
 	CHECKPOINT_M("Loading the Param node.");
-/*
-	FOREACH_CONST_Child(&xml, pmod)
-	{
-		FOREACH_CONST_Child(pmod, param) 
-		{
-			auto val = param_map[param->GetName()];
-			float boat = 0.f;
-			param->GetTextValue(boat);
-			*val = boat;
-		}
-	}*/
-		
-	auto* pmod = xml.GetChild(name + "ModParams");
+
+	// auto* pmod = xml.GetChild(name + "ModParams");
 
 	for (auto& p : param_map) {
 		auto* ch = xml.GetChild(p.first);
 		float boat = 0.f;
 		ch->GetTextValue(boat);
 		*p.second = boat;
-	
 	}
-	
 };
 
 XNode*
@@ -1516,6 +1506,7 @@ SavePatternModParamXmlToDir()
 //	return calctestlists;
 //}
 
+// we either want this setup this way or not...
 void
 RunningMen::operator()(const RM_Sequencing& rm,
 					   vector<float> doot[ModCount],
