@@ -1114,7 +1114,6 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 			// single -> single we know it's an anchor so it's more intuitive to
 			// use mni.col twice
 			mni.tc_ms = ms_from(cur[mni.col], last[mni.col]);
-			mni.time = cur[mni.col]; // mostly setting for debug convenience
 			break;
 		case cc_single_jump:
 			// tracking this for now, we want to track from last col to last col
@@ -1123,7 +1122,6 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 
 			// can't use mni.col twice, use last_col, see below
 			mni.tc_ms = ms_from(cur[0], last[last_col]);
-			mni.time = cur[0];
 			break;
 		case cc_jump_jump:
 			// not sure if we should set or leave at init value of 5000.f
@@ -1132,7 +1130,6 @@ set_metanoteinfo_timings(metanoteinfo& mni,
 			// indexes don't matter-- except that we can't use mni.col or
 			// last_col (because index 2 is outside array size)
 			mni.tc_ms = ms_from(cur[0], last[0]);
-			mni.time = cur[0];
 			break;
 		case cc_empty:
 			break;
