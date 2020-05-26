@@ -1996,7 +1996,7 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 }
 
 inline float
-a_thing(float a, float b, float x, float y)
+weighted_average(const float& a, const float& b, const float& x, const float& y)
 {
 	return (x * a + ((y - x) * b)) / y;
 }
@@ -2033,15 +2033,15 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		float difficulty = 0.f;
 		float squiggly_line = 5.5f;
 		if (left_difficulty > right_difficulty)
-			difficulty =
-			  a_thing(left_difficulty, right_difficulty, squiggly_line, 9.f);
+			difficulty = weighted_average(
+			  left_difficulty, right_difficulty, squiggly_line, 9.f);
 		else
-			difficulty =
-			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
+			difficulty = weighted_average(
+			  right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
-		  a_thing(difficulty, nps, 7.76445f, 10.f) * finalscaler;
+		  weighted_average(difficulty, nps, 7.76445f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	DifficultyMSSmooth(soap[BaseMS]);
