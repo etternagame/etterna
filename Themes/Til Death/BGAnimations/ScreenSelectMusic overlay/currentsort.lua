@@ -49,14 +49,6 @@ local translated_info = {
 	Sort = THEME:GetString("SortOrder", "SortWord")
 }
 
-t[#t + 1] =
-	Def.Quad {
-	Name = "CurrentSort",
-	InitCommand = function(self)
-		self:xy(frameX, frameY):halign(1):zoomto(frameWidth, frameHeight):diffuse(getMainColor("frames"))
-	end
-}
-
 local group_rand = ""
 t[#t + 1] =
 	LoadFont("Common Large") ..
@@ -106,21 +98,4 @@ t[#t + 1] =
 t[#t + 1] = StandardDecorationFromFileOptional("BPMDisplay", "BPMDisplay")
 t[#t + 1] = StandardDecorationFromFileOptional("BPMLabel", "BPMLabel")
 
---just a simple mouse rollover test.
---[[ 
-local function Update(self)
-	t.InitCommand=function(self)
-		self:SetUpdateFunction(Update)
-	end;
-	if isOver(self:GetChild("CurrentSort")) then
-    	self:GetChild("CurrentSort"):diffusealpha(0.5)
-    else
-    	self:GetChild("CurrentSort"):diffusealpha(1)
-    end;
-end; 
-
-t.InitCommand=function(self)
-	self:SetUpdateFunction(Update)
-end;
---]]
 return t
