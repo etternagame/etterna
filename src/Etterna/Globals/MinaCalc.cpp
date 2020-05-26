@@ -1348,7 +1348,7 @@ struct RunningMen
 	const std::string name = "RunningMen";
 
 	// params
-	float min_mod = 0.95;
+	float min_mod = 0.95f;
 	float max_mod = 1.5f;
 	float mod_base = 1.f;
 	float min_anchor_len = 4.f;
