@@ -521,15 +521,4 @@ class NoteData
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 };
-
-/** @brief Allow a quick way to swap notedata. */
-namespace std {
-template<>
-inline void
-swap<NoteData>(NoteData& nd1, NoteData& nd2) noexcept
-{
-	nd1.swap(nd2);
-}
-}
-
 #endif
