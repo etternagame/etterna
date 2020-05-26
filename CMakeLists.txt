@@ -29,15 +29,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDE's
 
-## Ninja specific setup (Different compilers required different color force commands)
-if(CMAKE_GENERATOR STREQUAL "Ninja")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        add_compile_options("-fcolor-diagnostics")
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options("-fdiagnostics-color=always")
-    endif()
-endif()
-
 # Project Build Targets
 add_executable(Etterna)
 
@@ -61,7 +52,11 @@ find_package(Threads REQUIRED)
 target_link_libraries(Etterna PRIVATE Threads::Threads)
 target_link_libraries(Etterna PRIVATE OpenSSL::SSL)
 if(WIN32)
-    target_link_libraries(Etterna PRIVATE CRYPT32.LIB) # CRYPT32.LIB needed for static OpenSSL on windows
+    target_link_libraries(Etterna PRIVATE CRYPT32.LIB)
+    target_link_libraries(Etterna PRIVATE WS2_32.LIB)
+    target_link_libraries(Etterna PRIVATE GDI32.LIB)
+    target_link_libraries(Etterna PRIVATE ADVAPI32.LIB)
+    target_link_libraries(Etterna PRIVATE USER32.LIB)
 endif()
 
 # Load external libraries

@@ -31,5 +31,5 @@ find_package(BZip2 REQUIRED)
 find_package(Iconv REQUIRED)
 target_link_libraries(Etterna PRIVATE ${OPENGL_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${BZIP2_LIBRARIES})
-target_link_libraries(Etterna PRIVATE ${ICONV_LIBRARIES})
+target_link_libraries(Etterna PUBLIC ${ICONV_LIBRARIES})
 
