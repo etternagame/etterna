@@ -6,14 +6,12 @@ pull_requests:
 
 # Appveyor Build Config
 image:
-  - Visual Studio 2017
+  - Visual Studio 2019
 
 platform:
   - Win32
-  - x64
 
 init:
-  - "echo System Architecture: %PLATFORM%"
   - choco upgrade cmake	nsis                    # Upgrade CMake
   - set path=C:\Program Files\CMake\bin;%path%	# Add it to the path
 
@@ -35,21 +33,8 @@ after_build:
 # 64bit generator and 32bit OpenSSL.
 environment:
   matrix:
-    - GENERATOR: "Visual Studio 15 2017"
-      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
-    - GENERATOR: "Visual Studio 15 2017"
-      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
-
-# Don't generate builds with this specific combination of environment variables
-matrix:
-  exclude:
-    - platform: x64
-      GENERATOR: "Visual Studio 15 2017"
-      OPENSSL_DIR: "C:/OpenSSL-v11-Win32"
-
-    - platform: Win32
-      GENERATOR: "Visual Studio 15 2017"
-      OPENSSL_DIR: "C:/OpenSSL-v11-Win64"
+    - GENERATOR: "Visual Studio 16 2019"
+      OPENSSL_DIR: "C:/OpenSSL-v111-Win32"
 
 # Cache Choclatey packages so they don't need to be downloaded every time.
 cache:
