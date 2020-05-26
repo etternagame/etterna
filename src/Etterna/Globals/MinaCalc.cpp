@@ -1129,7 +1129,7 @@ metanoteinfo::set_timings(const float cur[2],
 }
 
 // ranmen staff
-static const int max_oht_len = 2;
+static const int max_oht_len = 1;
 static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
 static const int max_jack_len = 1;
@@ -1177,7 +1177,7 @@ struct RM_Sequencing
 	inline void reset();
 	inline void handle_off_tap(const float& now);
 	inline void handle_off_tap_completion();
-	inline void handle_off_tap_progression(const bool& completing);
+	inline void handle_off_tap_progression();
 	inline void handle_anchor_progression(const float& now);
 	inline void handle_jack_progression();
 	inline void handle_cross_column_branching(const cc_type& cc,
@@ -1196,7 +1196,7 @@ RM_Sequencing::reset()
 	is_bursting = false;
 	had_burst = false;
 	// reset?? don't reset????
-	last_anchor_time = s_init;
+	last_anchor_time = last_anchor_time * 1.25f;
 	last_off_time = s_init;
 	total_taps = 0;
 	ran_taps = 0;
@@ -1228,7 +1228,7 @@ RM_Sequencing::handle_off_tap(const float& now)
 	off_total_ms += ms_from(now, last_anchor_time);
 
 	// handle progression for increasing off_len
-	handle_off_tap_progression(false);
+	handle_off_tap_progression();
 
 	// rolls
 	if (off_len == max_off_spacing) {
@@ -1249,15 +1249,8 @@ RM_Sequencing::handle_off_tap_completion()
 }
 
 inline void
-RM_Sequencing::handle_off_tap_progression(const bool& completing)
+RM_Sequencing::handle_off_tap_progression()
 {
-	// handle ending off tap progression due to jacks or anchors
-	if (completing) {
-		handle_off_tap_completion();
-		// below is for increasing off tap logic, skip
-		return;
-	}
-
 	// resume off tap progression caused by another consecutive off tap
 	// normal behavior if we have already allowed for 1 burst, reset if the
 	// offtap sequence exceeds the spacing limit; this will also catch bursts
@@ -1302,19 +1295,19 @@ RM_Sequencing::handle_anchor_progression(const float& now)
 	++anchor_len;
 
 	// handle completion of off tap progression
-	handle_off_tap_progression(true);
+	handle_off_tap_completion();
 }
 
 inline void
 RM_Sequencing::handle_jack_progression()
 {
 	++ran_taps;
-	++anchor_len; // do this for jacks?
+	//++anchor_len; // do this for jacks?
 	++jack_len;
 	++jack_taps;
 
 	// handle completion of off tap progression
-	handle_off_tap_progression(true);
+	handle_off_tap_completion();
 
 	// make sure to set the anchor col when resetting if we exceed max jack len
 	if (jack_len > max_jack_len)
@@ -1450,8 +1443,8 @@ struct RunningMen
 #pragma region params
 	float min_mod = 0.95f;
 	float max_mod = 1.5f;
-	float mod_base = 1.f;
-	float min_anchor_len = 4.f;
+	float mod_base = 0.9f;
+	float min_anchor_len = 5.f;
 	float min_taps_in_rm = 1.f;
 	float min_off_taps_same = 1.f;
 
@@ -1459,11 +1452,11 @@ struct RunningMen
 	float total_prop_min = 0.f;
 	float total_prop_max = 1.f;
 
-	float off_tap_prop_scaler = 1.f;
+	float off_tap_prop_scaler = 1.1f;
 	float off_tap_prop_min = 0.f;
 	float off_tap_prop_max = 1.f;
 
-	float off_tap_same_base = 0.5f;
+	float off_tap_same_base = 0.25f;
 	float off_tap_same_prop_scaler = 1.f;
 	float off_tap_same_prop_min = 0.f;
 	float off_tap_same_prop_max = 1.25f;
@@ -1475,7 +1468,6 @@ struct RunningMen
 
 	float min_oht_taps_for_bonus = 1.f;
 	float oht_bonus_base = 0.1f;
-
 
 	std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
@@ -1590,7 +1582,9 @@ RunningMen::operator()(vector<float> doot[ModCount], const int& i)
 	// that's really complicated/messy/error prone
 	pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
 	pmod = CalcClamp(
-	  pmod * total_prop * off_tap_prop * off_tap_same_prop, min_mod, max_mod);
+	  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
+	  min_mod,
+	  max_mod);
 
 	// actual used mod
 	doot[RanMan][i] = pmod;
@@ -2013,7 +2007,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 								 higher_thing_scaler);
 
 		float difficulty = 0.f;
-		float squiggly_line = 6.5f;
+		float squiggly_line = 5.5f;
 		if (left_difficulty > right_difficulty)
 			difficulty =
 			  a_thing(left_difficulty, right_difficulty, squiggly_line, 9.f);
@@ -2022,7 +2016,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = a_thing(difficulty, nps, 3.5f, 10.f) * finalscaler;
+		soap[BaseMSD][i] = a_thing(difficulty, nps, 4.5f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
 	Smooth(soap[BaseMSD], 0.f);
@@ -5102,11 +5096,12 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
-	// SavePatternModParamXmlToDir();
+	if(!DoesFileExist("Save/" + calc_params_xml))
+		SavePatternModParamXmlToDir();
 }
 #pragma endregion
 
-int mina_calc_version = 330;
+int mina_calc_version = 331;
 int
 GetCalcVersion()
 {
