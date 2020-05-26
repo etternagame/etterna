@@ -1338,6 +1338,100 @@ RM_Sequencing::handle_cross_column_branching(const cc_type& cc,
 	handle_anchor_progression(now);
 };
 
+inline void
+RM_Sequencing::handle_oht_progression(const cc_type& cc)
+{
+	if (is_oht(last_last_cc, last_cc, cc)) {
+		++oht_len;
+		++oht_taps;
+		if (oht_len > max_oht_len)
+			reset();
+	}
+};
+
+inline void
+RM_Sequencing::operator()(const metanoteinfo& mni)
+{
+	total_taps += column_count(mni.count);
+
+	switch (mni.cc) {
+		case cc_left_right:
+		case cc_right_left:
+			// these are the only 2 scenarios that can produce ohts
+			handle_oht_progression(mni.cc);
+			handle_cross_column_branching(mni.cc, mni.time);
+			break;
+		case cc_jump_single:
+			if (mni.last_was_offhand_tap) {
+				// if we have a jump -> single, and the last
+				// note was an offhand tap, and the single
+				// is the anchor col, then we have an anchor
+				if ((mni.col == col_left && anchor_col == col_left) ||
+					(mni.col == col_right && anchor_col == col_right)) {
+					handle_anchor_progression(mni.time);
+				} else {
+					// otherwise we have an off anchor tap
+					handle_off_tap(mni.time);
+					// same hand offtap
+					++off_taps_same;
+				}
+			} else {
+				// if we are jump -> single and the last
+				// note was not an offhand hand tap, we have
+				// a jack
+				handle_jack_progression();
+			}
+			break;
+		case cc_single_single:
+			if (mni.last_was_offhand_tap) {
+				// if this wasn't a jack, then it's just
+				// a good ol anchor
+				handle_anchor_progression(mni.time);
+			} else {
+				// a jack, not an anchor, we don't
+				// want too many of these but we
+				// don't want to allow none of them
+				handle_jack_progression();
+			}
+			break;
+		case cc_single_jump:
+			// if last note was an offhand tap, this is by
+			// definition part of the anchor
+			if (mni.last_was_offhand_tap) {
+				handle_anchor_progression(mni.time);
+			} else {
+				// if not, a jack
+				handle_jack_progression();
+			}
+			break;
+		case cc_jump_jump:
+			// this is kind of a grey area, given that
+			// the difficulty of runningmen comes from
+			// the tight turns on the same hand... we
+			// will treat this as a jack even though
+			// technically it's an "anchor" when the
+			// last tap was an offhand tap
+			handle_jack_progression();
+			break;
+		case cc_empty:
+			// simple case to handle, can't be a jack (or
+			// doesn't
+			// really matter) and can't be oht, only reset
+			// if we exceed the spacing limit
+			handle_off_tap(mni.time);
+			break;
+		case cc_init:
+			// uhh we could do something here but i'm lazy
+			break;
+		case cc_undefined:
+			break;
+		default:
+			break;
+	}
+	last_last_cc = last_cc;
+	last_cc = mni.cc;
+};
+
 struct RunningMen
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
@@ -1610,123 +1704,24 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 			mni.set_col_and_cc_types(NoteInfo[row].notes & t1,
 								 NoteInfo[row].notes & t2,
 								 last_col);
-
-			// test stuff
-			// define anchor as spaced jacks, either by 1 note or 2, cancel on 3
-			// allow some tolerance for jacks and pure ohts, something something
-			// cancel if the anchor'd column exceeds a time boundary
-			{
-				// nerv always has at least 1 tap, if this hand has nothing
-				// on it, then we are by definition seeing an offhand tap
-				offhand_tap = false;
-				if (mni.col == col_empty)
-					offhand_tap = true;
+			offhand_tap = false;
+			if (mni.col == col_empty)
+				offhand_tap = true;
 
 			mni.count = column_count(NoteInfo[row].notes);
 			mni.time = NoteInfo[row].rowTime;
-			float bort = mni.time = NoteInfo[row].rowTime;
-				for (auto& rm : rms) {
-					rm.total_taps += mni.count;
 
-					// oht
-					if (is_oht(rm.last_last_cc, rm.last_cc, mni.cc)) {
-						++rm.oht_len;
-						++rm.oht_taps;
-						if (rm.oht_len > max_oht_len)
-							rm.reset();
-					}
-
-					// if (offhand_tap) {
-					//	// moved to the cc_empty case in the swtich cause i
-					//	// think these are identical conditions
-					//} else {
-					switch (mni.cc) {
-						case cc_left_right:
-						case cc_right_left:
-							rm.handle_cross_column_branching(mni.cc, bort);
-							break;
-						case cc_jump_single:
-							if (was_last_offhand_tap) {
-								// if we have a jump -> single, and the last
-								// note was an offhand tap, and the single
-								// is the anchor col, then we have an anchor
-								if ((mni.col == col_left &&
-									 rm.anchor_col == col_left) ||
-									(mni.col == col_right &&
-									 rm.anchor_col == col_right)) {
-									rm.handle_anchor_progression(bort);
-								} else {
-									// otherwise we have an off anchor tap
-									rm.handle_off_tap(bort);
-									// same hand offtap
-									++rm.off_taps_same;
-								}
-							} else {
-								// if we are jump -> single and the last
-								// note was not an offhand hand tap, we have
-								// a jack
-								rm.handle_jack_progression();
-							}
-							break;
-						case cc_single_single:
-							if (was_last_offhand_tap) {
-								// if this wasn't a jack, then it's just
-								// a good ol anchor
-								rm.handle_anchor_progression(bort);
-							} else {
-								// a jack, not an anchor, we don't
-								// want too many of these but we
-								// don't want to allow none of them
-								rm.handle_jack_progression();
-							}
-							break;
-						case cc_single_jump:
-							// if last note was an offhand tap, this is by
-							// definition part of the anchor
-							if (was_last_offhand_tap) {
-								rm.handle_anchor_progression(bort);
-							} else {
-								// if not, a jack
-								rm.handle_jack_progression();
-							}
-							break;
-						case cc_jump_jump:
-							// this is kind of a grey area, given that
-							// the difficulty of runningmen comes from
-							// the tight turns on the same hand... we
-							// will treat this as a jack even though
-							// technically it's an "anchor" when the
-							// last tap was an offhand tap
-							rm.handle_jack_progression();
-							break;
-						case cc_empty:
-							// simple case to handle, can't be a jack (or
-							// doesn't
-							// really matter) and can't be oht, only reset
-							// if we exceed the spacing limit
-							rm.handle_off_tap(bort);
-							break;
-						case cc_init:
-							// uhh we could do something here but i'm lazy
-							break;
-						case cc_undefined:
-							break;
-						default:
-							break;
-					}
-					rm.last_last_cc = rm.last_cc;
-					rm.last_cc = mni.cc;
-				}
+			{
+				for (auto& rm : rms)
+					rm(mni);
 
 				// use the biggest anchor that has existed in this interval
 				int test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
 
 				if (rms[test].anchor_len > rm_to_use_for_mods.anchor_len)
 					rm_to_use_for_mods = rms[test];
-
-				was_last_offhand_tap = offhand_tap;
 			}
-
+				
 			mni.last_was_offhand_tap = offhand_tap;
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
