@@ -1954,8 +1954,6 @@ NoteColumnRenderer::DrawPrimitives()
 	  PLAYER_INVALID, taps, DrawTapsInRange, m_displays[PLAYER_INVALID]);
 #undef DTS_INNER
 #undef DRAW_TAP_SET
-	m_field_render_args->receptor_row->SetNoteUpcoming(
-	  m_column, any_upcoming, begin->first);
 }
 
 void
