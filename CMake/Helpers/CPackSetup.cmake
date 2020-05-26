@@ -44,14 +44,17 @@ elseif(APPLE)
 endif()
 
 # Universal Install Directories
-install(DIRECTORY Announcers            COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Assets                COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundEffects     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundTransitions COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BGAnimations          COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Data                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY NoteSkins             COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Scripts               COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Songs                 COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Themes                COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(FILES portable.ini              COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+## Files Only
+install(FILES portable.ini                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Songs")
+install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Announcers")
+
+## Essential Game Files
+install(DIRECTORY Assets                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BackgroundEffects         COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BackgroundTransitions     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BGAnimations              COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Data                      COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY NoteSkins                 COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Scripts                   COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Themes                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")

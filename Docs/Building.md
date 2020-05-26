@@ -35,19 +35,19 @@ you're going to need to start compiling. Etterna is cross-platform on Linux, mac
 Here are some commands for current developers and contributors to get started. More are listed at [Sample CMake Commands](#Sample-CMake-Commands).
 
 ```bash
-cmake -G "Unix Makefiles" ..                                                        # Linux
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # Windows
+cmake -G "Unix Makefiles" ..                                     # Linux
+cmake  -G "Visual Studio 16 2019" ..                             # Windows
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 ```
 
 ## Universal Dependencies
 
 - [CMake](https://cmake.org/download/) (Minimum version 3.14.0) - It is recommended to get this package from the CMake website as many package managers do not have the latest version. Check your package manager before trying.
-- [OpenSSL](https://www.openssl.org/) (Version 1.1.0)
+- [OpenSSL](https://www.openssl.org/) (Version 1.1.1)
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_0L.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_0L.exe)
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe)
 
 ### Linux Dependencies
 
@@ -88,11 +88,11 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
-To generate project files, run the CMake command below in the build directory with proper `GENERATOR`, `ARCHITECTURE` and `SSL_DIRECTORY` values:
+To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable.
 
 - `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
-- `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator.
-- `SSL_DIRECTORY`: The root directory of your OpenSSL install. This is required on Windows as it doesn't come with developer libraries for OpenSSL installed, and my be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
+- `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator. `x64` will automatically be selected if the variable is left empty.
+- `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 
 ```bash
 cmake -G "GENERATOR" -A "ARCHITECTURE" -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" ..
@@ -106,20 +106,20 @@ We actively support the following CMake generators
 
 For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the openssl root directory is located. Here are possible options
 
-- Windows: `C:/OpenSSL-Win32` or `C:/OpenSSL-Win64` if followed above install instructions for OpenSSL
 - macOS: `/usr/local/opt/openssl` or otherwise depending on your setup (if you're using HomeBrew, MacPorts or installed in from source)
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
+- Windows: CMake writes files to find the version of OpenSSL linked above. If that version is installed, it should not be necessary to specify this variable (unless you have OpenSSL installed in a non-standard location, in which case, you should set OPENSSL_ROOT_DIR to that location)
 
 #### Sample CMake Commands
 
 ```bash
 cmake -G "Ninja" ..                                                                 # Linux Ninja
 cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
+cmake -G "Visual Studio 16 2019" -A Win32 ..                                        # 32bit Windows
+cmake -G "Visual Studio 16 2019" -A x64 ..                                          # 64bit Windows
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win32" -G "Visual Studio 16 2019" -A Win32 ..  # 32bit Windows
-cmake -DOPENSSL_ROOT_DIR="C:/OpenSSL-Win64" -G "Visual Studio 16 2019" -A x64 ..    # 64bit Windows
 ```
 
 ##### macOS Xcode Generation Note
@@ -128,7 +128,7 @@ When generating a project for Xcode, you may see errors stating `No CMAKE_{C,CXX
 
 ### GUI Project Generation
 
-In order to compile properly, you will want to make your CMake-GUI look similar to the above photo. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. The `OPENSSL_ROOT_DIR` was added by clicking the add entry button. It should look similar to the following image.
+In order to compile properly, you will want to make your CMake-GUI look similar to the photo below. The first text field is the location where you cloned Etterna, the second text field is where you want to place the build object files. If necessary,`OPENSSL_ROOT_DIR` can be added by clicking the add entry button. It should look similar to the following image.
 
 ![CMake Generation Window](images/cmake-gui-01.png "CMake Generation Window")
 
@@ -136,13 +136,13 @@ In order to compile properly, you will want to make your CMake-GUI look similar 
 
 ![CMake Add Cache Entry Window](images/cmake-gui-02.png "CMake Add Cache Entry Window")
 
-**Windows Users**: Remember to change the value to correspond to the correct 32bit or 64bit version of the OpenSSL library.
+**Windows Users**: If CMake was unable to find OpenSSL on it's own, remember to change the value correspond to the correct 32bit or 64bit version of the OpenSSL library.
 
-Once `OPENSSL_ROOT_DIR` is added, click the buttons labeled `Configure`. The first time this button is clicked (and a `CMakeCache.txt` does not exit in the build directory), CMake will ask about what generator you would like to use. If a Visual Studio generator is chosen, you should also ensure the `Optional platform for generator` field is not empty. Select `x64` for 64bit and `Win32` for 32bit. Once `Finish` is clicked, the project will begin configuring.
+Click the buttons labeled `Configure`. The first time this button is clicked (and a `CMakeCache.txt` does not exit in the build directory), CMake will ask about what generator you would like to use. If a Visual Studio generator is chosen, the `Optional platform for generator` will assume the 64bit option of `x64` if left empty. If building the 32bit version is required, click the drop down and select `Win32`. Once `Finish` is clicked, the project will begin configuring.
 
 ![CMakeSetup Window](images/cmake-gui-03.png "CMakeSetup Window")
 
-Finally, click `Generate` and you are ready to start coding.
+Finally, click `Generate`. An `Etterna.sln` file should appear in the build folder. Open it , and you are ready to start coding.
 
 ## Compiling
 

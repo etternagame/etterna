@@ -3,7 +3,7 @@
  * @ingroup tests
  * @brief   Test of a SQLiteCpp Database.
  *
- * Copyright (c) 2012-2016 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2020 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdio>
+#include <fstream>
 
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite
@@ -29,14 +30,16 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 }
 #endif
 
-TEST(SQLiteCpp, version) {
+TEST(SQLiteCpp, version)
+{
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::VERSION);
     EXPECT_EQ   (SQLITE_VERSION_NUMBER, SQLite::VERSION_NUMBER);
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::getLibVersion());
     EXPECT_EQ   (SQLITE_VERSION_NUMBER, SQLite::getLibVersionNumber());
 }
 
-TEST(Database, ctorExecCreateDropExist) {
+TEST(Database, ctorExecCreateDropExist)
+{
     remove("test.db3");
     {
         // Try to open a non-existing database
@@ -54,7 +57,7 @@ TEST(Database, ctorExecCreateDropExist) {
         EXPECT_TRUE(db.tableExists("test"));
         EXPECT_TRUE(db.tableExists(std::string("test")));
         EXPECT_EQ(0, db.getLastInsertRowid());
-        
+
         EXPECT_EQ(0, db.exec("DROP TABLE IF EXISTS test"));
         EXPECT_FALSE(db.tableExists("test"));
         EXPECT_FALSE(db.tableExists(std::string("test")));
@@ -63,7 +66,33 @@ TEST(Database, ctorExecCreateDropExist) {
     remove("test.db3");
 }
 
-TEST(Database, createCloseReopen) {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1600)
+
+SQLite::Database DatabaseBuilder(const char* apName)
+{
+    return SQLite::Database(apName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+}
+
+TEST(Database, moveConstructor)
+{
+    remove("test.db3");
+    {
+        // Create a new database, using the move constructor
+        SQLite::Database db = DatabaseBuilder("test.db3");
+        EXPECT_FALSE(db.tableExists("test"));
+        EXPECT_TRUE(db.getHandle() != NULL);
+        SQLite::Database moved = std::move(db);
+        EXPECT_TRUE(db.getHandle() == NULL);
+        EXPECT_TRUE(moved.getHandle() != NULL);
+        EXPECT_FALSE(moved.tableExists("test"));
+    } // Close DB test.db3
+    remove("test.db3");
+}
+
+#endif
+
+TEST(Database, createCloseReopen)
+{
     remove("test.db3");
     {
         // Try to open the non-existing database
@@ -83,7 +112,8 @@ TEST(Database, createCloseReopen) {
     remove("test.db3");
 }
 
-TEST(Database, inMemory) {
+TEST(Database, inMemory)
+{
     {
         // Create a new database
         SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
@@ -101,8 +131,32 @@ TEST(Database, inMemory) {
     } // Close an destroy DB
 }
 
+TEST(Database, backup)
+{
+    // Create a new in-memory database
+    SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
+    EXPECT_FALSE(db.tableExists("test"));
+    db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
+    EXPECT_TRUE(db.tableExists("test"));
+
+    // Export the data into a file
+    remove("backup.db3");
+    EXPECT_NO_THROW(db.backup("backup.db3", SQLite::Database::Save));
+
+    // Trash the table
+    db.exec("DROP TABLE test;");
+    EXPECT_FALSE(db.tableExists("test"));
+
+    // Import the data back from the file
+    EXPECT_NO_THROW(db.backup("backup.db3", SQLite::Database::Load));
+    remove("backup.db3");
+
+    EXPECT_TRUE(db.tableExists("test"));
+}
+
 #if SQLITE_VERSION_NUMBER >= 3007015 // SQLite v3.7.15 is first version with PRAGMA busy_timeout
-TEST(Database, busyTimeout) {
+TEST(Database, busyTimeout)
+{
     {
         // Create a new database with default timeout of 0ms
         SQLite::Database db(":memory:");
@@ -139,7 +193,8 @@ TEST(Database, busyTimeout) {
 }
 #endif // SQLITE_VERSION_NUMBER >= 3007015
 
-TEST(Database, exec) {
+TEST(Database, exec)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
 
@@ -200,7 +255,8 @@ TEST(Database, exec) {
 #endif
 }
 
-TEST(Database, execAndGet) {
+TEST(Database, execAndGet)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
 
@@ -215,10 +271,12 @@ TEST(Database, execAndGet) {
     // Get a single value result with an easy to use shortcut
     EXPECT_STREQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
     EXPECT_STREQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
-    EXPECT_EQ(3,            db.execAndGet("SELECT weight FROM test WHERE value=\"first\"").getInt());
+    const std::string query("SELECT weight FROM test WHERE value=\"first\"");
+    EXPECT_EQ(3,            db.execAndGet(query).getInt());
 }
 
-TEST(Database, execException) {
+TEST(Database, execException)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
     EXPECT_EQ(SQLite::OK, db.getErrorCode());
@@ -256,15 +314,137 @@ TEST(Database, execException) {
     EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
 }
 
-// TODO: test Database::createFunction()
-// TODO: test Database::loadExtension()
+// From https://stackoverflow.com/a/8283265/1163698 How can I create a user-defined function in SQLite?
+static void firstchar(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    if (argc == 1)
+    {
+        const unsigned char *text = sqlite3_value_text(argv[0]);
+        if (text && text[0])
+        {
+            char result[2];
+            result[0] = text[0]; result[1] = '\0';
+            sqlite3_result_text(context, result, -1, SQLITE_TRANSIENT);
+            return;
+        }
+    }
+    sqlite3_result_null(context);
+}
+
+TEST(Database, createFunction)
+{
+    SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
+    db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
+
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\")"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"second\")"));
+
+    // exception with SQL error: "no such function: firstchar"
+    EXPECT_THROW(db.exec("SELECT firstchar(value) FROM test WHERE id=1"), SQLite::Exception);
+
+    db.createFunction("firstchar", 1, true, nullptr, &firstchar, nullptr, nullptr, nullptr);
+    
+    EXPECT_EQ(1, db.exec("SELECT firstchar(value) FROM test WHERE id=1"));
+}
+
+TEST(Database, loadExtension)
+{
+    SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
+
+    // Try to load a non-existing extension (no dynamic library found)
+    EXPECT_THROW(db.loadExtension("non-existing-extension", "entry-point"), SQLite::Exception);
+
+    // TODO: test a proper extension
+}
+
+TEST(Database, getHeaderInfo)
+{
+    remove("test.db3");
+    {
+        // Call without passing a database file name
+        EXPECT_THROW(SQLite::Database::getHeaderInfo(""),SQLite::Exception);
+
+        // Call with a non-existent database
+        EXPECT_THROW(SQLite::Database::getHeaderInfo("test.db3"), SQLite::Exception);
+
+        // Simulate an incomplete header by writing garbage to a file
+        {
+            const unsigned char badData[] = "garbage...";
+            const char* pBadData = reinterpret_cast<const char*>(&badData[0]);
+
+            remove("short.db3");
+            std::ofstream corruptDb;
+            corruptDb.open("short.db3", std::ios::app | std::ios::binary);
+            corruptDb.write(pBadData, sizeof(badData));
+            corruptDb.close();
+
+            EXPECT_THROW(SQLite::Database::getHeaderInfo("short.db3"), SQLite::Exception);
+            remove("short.db3");
+        }
+
+        // Simulate a corrupt header by writing garbage to a file
+        {
+            const unsigned char badData[100] = "garbage...";
+            const char* pBadData = reinterpret_cast<const char*>(&badData[0]);
+
+            remove("corrupt.db3");
+            std::ofstream corruptDb;
+            corruptDb.open("corrupt.db3", std::ios::app | std::ios::binary);
+            corruptDb.write(pBadData, sizeof(badData));
+            corruptDb.close();
+
+            EXPECT_THROW(SQLite::Database::getHeaderInfo("corrupt.db3"), SQLite::Exception);
+            remove("corrupt.db3");
+        }
+
+        // Create a new database
+        SQLite::Database db("test.db3", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
+
+        // Set assorted SQLite header values using associated PRAGMA
+        db.exec("PRAGMA main.user_version = 12345");
+        db.exec("PRAGMA main.application_id = 2468");
+
+        // Parse header fields from test database
+        const SQLite::Header h = db.getHeaderInfo();
+
+        //Test header values explicitly set via PRAGMA statements
+        EXPECT_EQ(h.userVersion, 12345);
+        EXPECT_EQ(h.applicationId, 2468);
+
+        //Test header values with expected default values
+        EXPECT_EQ(h.pageSizeBytes, 4096);
+        EXPECT_EQ(h.fileFormatWriteVersion,1);
+        EXPECT_EQ(h.fileFormatReadVersion,1);
+        EXPECT_EQ(h.reservedSpaceBytes,0);
+        EXPECT_EQ(h.maxEmbeddedPayloadFrac, 64);
+        EXPECT_EQ(h.minEmbeddedPayloadFrac, 32);
+        EXPECT_EQ(h.leafPayloadFrac, 32);
+        EXPECT_EQ(h.fileChangeCounter, 3);
+        EXPECT_EQ(h.databaseSizePages, 2);
+        EXPECT_EQ(h.firstFreelistTrunkPage, 0);
+        EXPECT_EQ(h.totalFreelistPages, 0);
+        EXPECT_EQ(h.schemaCookie, 1);
+        EXPECT_EQ(h.schemaFormatNumber, 4);
+        EXPECT_EQ(h.defaultPageCacheSizeBytes, 0);
+        EXPECT_EQ(h.largestBTreePageNumber, 0);
+        EXPECT_EQ(h.databaseTextEncoding, 1);
+        EXPECT_EQ(h.incrementalVaccumMode, 0);
+        EXPECT_EQ(h.versionValidFor, 3);
+        EXPECT_EQ(h.sqliteVersion, SQLITE_VERSION_NUMBER);
+    }
+    remove("test.db3");
+}
 
 #ifdef SQLITE_HAS_CODEC
-TEST(Database, encryptAndDecrypt) {
+TEST(Database, encryptAndDecrypt)
+{
     remove("test.db3");
     {
         // Try to open the non-existing database
         EXPECT_THROW(SQLite::Database not_found("test.db3"), SQLite::Exception);
+        EXPECT_THROW(SQLite::Database::isUnencrypted("test.db3"), SQLite::Exception);
+        EXPECT_THROW(SQLite::Database::isUnencrypted(""), SQLite::Exception);
 
         // Create a new database
         SQLite::Database db("test.db3", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
@@ -304,11 +484,14 @@ TEST(Database, encryptAndDecrypt) {
     remove("test.db3");
 }
 #else // SQLITE_HAS_CODEC
-TEST(Database, encryptAndDecrypt) {
+TEST(Database, encryptAndDecrypt)
+{
     remove("test.db3");
     {
         // Try to open the non-existing database
         EXPECT_THROW(SQLite::Database not_found("test.db3"), SQLite::Exception);
+        EXPECT_THROW(SQLite::Database::isUnencrypted("test.db3"), SQLite::Exception);
+        EXPECT_THROW(SQLite::Database::isUnencrypted(""), SQLite::Exception);
 
         // Create a new database
         SQLite::Database db("test.db3", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
