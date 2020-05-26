@@ -1003,6 +1003,10 @@ struct metanoteinfo
 	// type of cross column hit
 	cc_type cc = cc_init;
 
+	unsigned int count = 0;
+
+	bool last_was_offhand_tap = false;
+
 	// ms from last cross column note
 	float cc_ms_any = ms_init;
 
@@ -1635,8 +1639,8 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				if (mni.col == col_empty)
 					offhand_tap = true;
 
-				cols = NoteInfo[row].notes;
-				float bort = NoteInfo[row].rowTime;
+			mni.count = NoteInfo[row].notes;
+			mni.time = NoteInfo[row].rowTime;
 				for (auto& rm : rms) {
 					rm.total_taps += column_count(cols);
 
@@ -1740,6 +1744,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				was_last_offhand_tap = offhand_tap;
 			}
 
+			mni.last_was_offhand_tap = offhand_tap;
 			// we don't want to set lasttime or lastcol for empty rows
 			if (mni.col == col_empty)
 				continue;
