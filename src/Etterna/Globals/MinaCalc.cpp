@@ -960,7 +960,7 @@ is_jump(const cc_type& cc)
 	return cc == cc_jump_jump || cc == cc_single_jump;
 }
 
-cc_type
+inline cc_type
 determine_cc_type(const col_type& last, const col_type& now)
 {
 	if (now == col_empty)
@@ -1091,7 +1091,7 @@ invert_cc(const cc_type& cc)
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
 
-void
+inline void
 set_metanoteinfo_timings(metanoteinfo& mni,
 						 const float cur[2],
 						 const float last[2],
@@ -1148,7 +1148,7 @@ static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
 static const int max_jack_len = 1;
 
-bool
+inline bool
 is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
 {
 	// we are flipping b with invert col so make sure it's left_right or
@@ -1255,7 +1255,6 @@ RM_Sequencing::handle_off_tap_completion()
 	off_len = 0;
 }
 
-// separate function because of burst logic handling
 inline void
 RM_Sequencing::handle_off_tap_progression(const bool& completing)
 {
@@ -1295,7 +1294,7 @@ RM_Sequencing::handle_off_tap_progression(const bool& completing)
 	return;
 }
 
-void
+inline void
 RM_Sequencing::handle_anchor_progression(const float& now)
 {
 	temp_ms = ms_from(now, last_anchor_time);
