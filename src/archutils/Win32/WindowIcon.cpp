@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "archutils/Win32/WindowIcon.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"

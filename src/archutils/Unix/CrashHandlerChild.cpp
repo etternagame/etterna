@@ -15,7 +15,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
 #include "Etterna/Globals/ProductInfo.h"
 #include "Core/Services/Locator.hpp"
 
