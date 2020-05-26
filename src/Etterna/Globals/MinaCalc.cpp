@@ -13,10 +13,12 @@
 #include <deque>
 #include <utility>
 #include <assert.h>
-//#include "Etterna/FileTypes/XmlFile.h"
-//#include "RageUtil/File/RageFile.h"
-//#include "RageUtil/File/RageFileManager.h"
-//#include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Globals/global.h"
+#include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
+#include "RageUtil/File/RageFile.h"
+#include "RageUtil/File/RageFileManager.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 using std::deque;
 using std::max;
@@ -107,6 +109,20 @@ CalcClamp(T x, T l, T h)
 {
 	return x > h ? h : (x < l ? l : x);
 }
+
+// template thingy for generating basic proportion scalers for pattern mods
+template<typename T>
+inline float
+pmod_prop(T a,
+		  T b,
+		  const float& s,
+		  const float& min,
+		  const float& max,
+		  const float& base = 0.f)
+{
+	return CalcClamp(
+	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
+};
 
 inline float
 mean(const vector<float>& v)
@@ -354,15 +370,6 @@ bool debug_lmao = false;
 
 #pragma region patternmodparamstuff
 static const std::string calc_params_xml = "calc params.xml";
-struct PatternMod
-{
-	float min_mod = 0.5;
-	float max_mod = 1.f;
-	float prop_scaler = 1.f;
-
-	void construct_final_mod();
-
-};
 
 #pragma endregion
 
@@ -1163,19 +1170,19 @@ struct RM_Sequencing
 	bool had_burst = false;
 	float last_anchor_time = s_init;
 	float last_off_time = s_init;
-	unsigned int total_taps = 0;
-	unsigned int ran_taps = 0;
+	int total_taps = 0;
+	int ran_taps = 0;
 	col_type anchor_col = col_init;
 	cc_type last_cc = cc_init;
 	cc_type last_last_cc = cc_init;
-	unsigned int anchor_len = 0;
-	unsigned int off_taps_same = 0;
-	unsigned int oht_taps = 0;
-	unsigned int oht_len = 0;
-	unsigned int off_taps = 0;
-	unsigned int off_len = 0;
-	unsigned int jack_taps = 0;
-	unsigned int jack_len = 0;
+	int anchor_len = 0;
+	int off_taps_same = 0;
+	int oht_taps = 0;
+	int oht_len = 0;
+	int off_taps = 0;
+	int off_len = 0;
+	int jack_taps = 0;
+	int jack_len = 0;
 	float max_ms = ms_init;
 	float off_total_ms = 0.f;
 
@@ -1343,15 +1350,22 @@ RM_Sequencing::handle_cross_column_branching(const cc_type& cc,
 	handle_anchor_progression(now);
 };
 
-struct RunningMen : PatternMod
+struct RunningMen
 {
+	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
+							  RanAnchLenMod, RanJack,	 RanOHT,
+							  RanOffS,		 RanPropAll,  RanPropOff,
+							  RanPropOHT,	RanPropOffS, RanPropJack };
+
+	const std::string name = "RunningMen";
+
 	// params
-	float min_mod = 0.95f;
+	float min_mod = 0.95;
 	float max_mod = 1.5f;
 	float mod_base = 1.f;
-	int min_anchor_len = 4;
-	int min_taps_in_rm = 1;
-	int min_off_taps_same = 1;
+	float min_anchor_len = 4.f;
+	float min_taps_in_rm = 1.f;
+	float min_off_taps_same = 1.f;
 
 	float total_prop_scaler = 1.f;
 	float total_prop_min = 0.f;
@@ -1368,11 +1382,41 @@ struct RunningMen : PatternMod
 
 	float anchor_len_divisor = 2.5f;
 
-	int min_jack_taps_for_bonus = 1;
+	float min_jack_taps_for_bonus = 1.f;
 	float jack_bonus_base = 0.1f;
 
-	int min_oht_taps_for_bonus = 1;
+	float min_oht_taps_for_bonus = 1.f;
 	float oht_bonus_base = 0.1f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "min_anchor_len", &min_anchor_len },
+		{ "min_taps_in_rm", &min_taps_in_rm },
+		{ "min_off_taps_same", &min_off_taps_same },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
+		{ "off_tap_prop_min", &off_tap_prop_min },
+		{ "off_tap_prop_max", &off_tap_prop_max },
+		{ "off_tap_same_base", &off_tap_same_base },
+
+		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
+		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
+		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
+
+		{ "anchor_len_divisor", &anchor_len_divisor },
+
+		{ "min_jack_taps_for_bonus", &min_jack_taps_for_bonus },
+		{ "jack_bonus_base", &jack_bonus_base },
+
+		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
+		{ "oht_bonus_base", &oht_bonus_base }
+	};
 
 	// stuff for making mod
 	float total_prop = 0.f;
@@ -1382,35 +1426,100 @@ struct RunningMen : PatternMod
 	float jack_bonus = 0.f;
 	float oht_bonus = 0.f;
 	float pmod = min_mod;
-	static void resize_own_pmods(vector<float> doot[ModCount], const int& size)
+	void resize_own_pmods(vector<float> doot[ModCount], const int& size)
 	{
-		static const vector<int> _pmods{
-			RanMan,		RanLen,		RanAnchLen,  RanAnchLenMod,
-			RanJack,	RanOHT,		RanOffS,	 RanPropAll,
-			RanPropOff, RanPropOHT, RanPropOffS, RanPropJack
-		};
+		floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	void operator()(RM_Sequencing& rm, vector<float> doot[ModCount],
-					int i);
-};
+	void operator()(const RM_Sequencing& rm,
+					vector<float> doot[ModCount],
+					const int& i);
 
-template<typename T>
-inline float
-pmod_prop(T a,
-		  T b,
-		  const float& s,
-		  const float& min,
-		  const float& max,
-		  const float& base = 0.f)
-{
-	return CalcClamp(
-	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
+	XNode* CreateParamNode() const;
+
+	void floop();
 };
 
 void
-RunningMen::operator()(RM_Sequencing& rm, vector<float> doot[ModCount], int i)
+RunningMen::floop()
+{
+	std::string fn = "Save/" + calc_params_xml;
+	int iError;
+	std::unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL)
+		return;
+
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return;
+
+	CHECKPOINT_M("Loading the Param node.");
+/*
+	FOREACH_CONST_Child(&xml, pmod)
+	{
+		FOREACH_CONST_Child(pmod, param) 
+		{
+			auto val = param_map[param->GetName()];
+			float boat = 0.f;
+			param->GetTextValue(boat);
+			*val = boat;
+		}
+	}*/
+		
+	auto* pmod = xml.GetChild(name + "ModParams");
+
+	for (auto& p : param_map) {
+		auto* ch = xml.GetChild(p.first);
+		float boat = 0.f;
+		ch->GetTextValue(boat);
+		*p.second = boat;
+	
+	}
+	
+};
+
+XNode*
+RunningMen::CreateParamNode() const
+{
+	XNode* pmod = new XNode(name + "ModParams");
+	for (auto& p : param_map)
+		pmod->AppendChild(p.first, to_string(*p.second));
+
+	return pmod;
+}
+
+void
+SavePatternModParamXmlToDir()
+{
+	RunningMen zoop;
+
+	string fn = "Save/" + calc_params_xml;
+	unique_ptr<XNode> xml(zoop.CreateParamNode());
+	string err;
+	RageFile f;
+	if (!f.Open(fn, RageFile::WRITE))
+		return;
+	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+}
+
+//
+// XNode*
+// Calc::SaveParamNode() const
+//{
+//	CHECKPOINT_M("Saving calc param nodes.");
+//
+//	XNode* calctestlists = new XNode("ParamNodes");
+//	FOREACHM_CONST(Skillset, CalcTestList,
+// testChartList, i)
+//	calctestlists->AppendChild(i->second.CreateNode());
+//	return calctestlists;
+//}
+
+void
+RunningMen::operator()(const RM_Sequencing& rm,
+					   vector<float> doot[ModCount],
+					   const int& i)
 {
 	if (rm.anchor_len < min_anchor_len) {
 		doot[RanMan][i] = min_mod;
@@ -1472,9 +1581,9 @@ RunningMen::operator()(RM_Sequencing& rm, vector<float> doot[ModCount], int i)
 	doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
 	doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
 	doot[RanAnchLenMod][i] = anchor_len_comp;
-	doot[RanOHT][i] = rm.oht_taps;
-	doot[RanOffS][i] = rm.off_taps_same;
-	doot[RanJack][i] = rm.jack_taps;
+	doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+	doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+	doot[RanJack][i] = static_cast<float>(rm.jack_taps);
 	doot[RanPropAll][i] = total_prop;
 	doot[RanPropOff][i] = off_tap_prop;
 	doot[RanPropOffS][i] = off_tap_same_prop;
@@ -1492,7 +1601,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				 vector<float> doot[ModCount])
 {
 	RunningMen zorp;
-	RunningMen::resize_own_pmods(doot, itv_rows.size());
+	zorp.resize_own_pmods(doot, itv_rows.size());
 	const bool dbg = false && debug_lmao;
 	vector<vector<metanoteinfo>> o;
 	vector<metanoteinfo> p;
@@ -5028,6 +5137,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
+	//SavePatternModParamXmlToDir();
 }
 #pragma endregion
 
