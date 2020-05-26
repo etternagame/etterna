@@ -1639,10 +1639,11 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 				if (mni.col == col_empty)
 					offhand_tap = true;
 
-			mni.count = NoteInfo[row].notes;
+			mni.count = column_count(NoteInfo[row].notes);
 			mni.time = NoteInfo[row].rowTime;
+			float bort = mni.time = NoteInfo[row].rowTime;
 				for (auto& rm : rms) {
-					rm.total_taps += column_count(cols);
+					rm.total_taps += mni.count;
 
 					// oht
 					if (is_oht(rm.last_last_cc, rm.last_cc, mni.cc)) {
