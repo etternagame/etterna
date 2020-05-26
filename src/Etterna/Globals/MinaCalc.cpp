@@ -2021,10 +2021,11 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 			  a_thing(right_difficulty, left_difficulty, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] = a_thing(difficulty, nps, 4.5f, 10.f) * finalscaler;
+		soap[BaseMSD][i] = a_thing(difficulty, nps, 7.76445f, 10.f) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.f);
-	Smooth(soap[BaseMSD], 0.f);
+	DifficultyMSSmooth(soap[BaseMS]);
+	DifficultyMSSmooth(soap[BaseMSD]);
 }
 
 // each skillset should just be a separate calc function [todo]
@@ -2340,7 +2341,7 @@ Hand::InitAdjDiff()
 						// float muzzle = *std::max_element(
 						//  scoring_justice_warrior_agenda.begin(),
 						//  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMS][i] * tp_mods[ss] *
+						adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
 								   basescalers[ss] /
 								   fastsqrt(doot[WideRangeBalance][i]) /
 								   max(doot[CJ][i], 1.f);
@@ -5105,7 +5106,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 332;
+int mina_calc_version = 333;
 int
 GetCalcVersion()
 {
