@@ -304,16 +304,12 @@ OsuLoader::LoadNoteDataFromParsedData(
 	});
 
 	int firstTap = 0;
-	int lastTap = 0;
 	if (taps.size() > 0 && holds.size() > 0) {
 		firstTap = min(taps[0].ms, holds[0].msStart);
-		lastTap = max(taps[taps.size()].ms, holds[holds.size()].msEnd);
 	} else if (taps.size() > 0) {
 		firstTap = taps[0].ms;
-		lastTap = taps[taps.size()].ms;
 	} else {
 		firstTap = holds[0].msStart;
-		lastTap = holds[holds.size()].msEnd;
 	}
 
 	for (int i = 0; i < (int)taps.size(); ++i) {
@@ -365,7 +361,7 @@ OsuLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 	auto parsedData = ParseFileString(fileStr.c_str());
 	LoadNoteDataFromParsedData(&out, parsedData);
 
-	return false;
+	return !out.IsNoteDataEmpty();
 }
 
 bool
