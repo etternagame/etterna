@@ -989,6 +989,39 @@ determine_cc_type(const col_type& last, const col_type& now)
 	// shouldn't ever happen
 	return cc_undefined;
 }
+
+inline col_type
+bool_to_col_type(const bool& lcol, const bool& rcol)
+{
+	if (is_empty_row(lcol, rcol))
+		return col_empty;
+	if (lcol - rcol)
+		return lcol ? col_left : col_right;
+	return col_ohjump;
+};
+
+// inverting col state for col_left or col_right only
+inline col_type
+invert_col(const col_type& col)
+{
+	// this should crash or something idk.. this is just for flipping
+	// left->right and vice versa to be used in indexing... dangerous if misused
+	// due to unpredictable/undefined behavior
+	if (col != col_left && col != col_right)
+		return col_init;
+	return col == col_left ? col_right : col_left;
+};
+
+// inverting cc state for left_right or right_left only
+inline cc_type
+invert_cc(const cc_type& cc)
+{
+	// this should also crash, but it's not as dangerous as above
+	if (cc != cc_left_right && cc != cc_right_left)
+		return cc_init;
+	return cc == cc_left_right ? cc_right_left : cc_left_right;
+};
+
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
@@ -1015,46 +1048,21 @@ struct metanoteinfo
 
 	// ms from last note in this column
 	float tc_ms = ms_init;
-};
-
-//	unused but example
-// bool
-// should_log_cross_columns_for_ms_base(cc_type cc)
-//{
-//	switch (cc) {
-//		case cc_left_right:
-//		case cc_right_left:
-//		case cc_jump_single:
-//		case cc_single_jump:
-//			return true;
-//		case cc_single_single:
-//		case cc_jump_jump:
-//		case cc_empty:
-//		case cc_was_init:
-//		case cc_undefined:
-//		default:
-//			return false;
-//	}
-//}
-
-inline col_type
-bool_to_col_type(const bool& lcol, const bool& rcol)
-{
-	if (is_empty_row(lcol, rcol))
-		return col_empty;
-	if (lcol - rcol)
-		return lcol ? col_left : col_right;
-	return col_ohjump;
+	inline void set_timings(const float cur[2],
+							const float last[2],
+							const col_type& last_col);
+	inline void set_col_and_cc_types(const bool& lcol,
+									 const bool& rcol,
+									 const col_type& last_col);
 };
 
 inline void
-set_col_and_cc_types(metanoteinfo& mni,
-					 const bool& lcol,
+metanoteinfo::set_col_and_cc_types(const bool& lcol,
 					 const bool& rcol,
 					 const col_type& last_col)
 {
-	mni.col = bool_to_col_type(lcol, rcol);
-	mni.cc = determine_cc_type(last_col, mni.col);
+	col = bool_to_col_type(lcol, rcol);
+	cc = determine_cc_type(last_col, col);
 }
 
 inline void
@@ -1073,63 +1081,40 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
-// inverting col state for col_left or col_right only
-inline col_type
-invert_col(const col_type& col)
-{
-	// this should crash or something idk.. this is just for flipping
-	// left->right and vice versa to be used in indexing... dangerous if misused
-	// due to unpredictable/undefined behavior
-	if (col != col_left && col != col_right)
-		return col_init;
-	return col == col_left ? col_right : col_left;
-};
-
-// inverting cc state for left_right or right_left only
-inline cc_type
-invert_cc(const cc_type& cc)
-{
-	// this should also crash, but it's not as dangerous as above
-	if (cc != cc_left_right && cc != cc_right_left)
-		return cc_init;
-	return cc == cc_left_right ? cc_right_left : cc_left_right;
-};
-
 inline void
-set_metanoteinfo_timings(metanoteinfo& mni,
-						 const float cur[2],
+metanoteinfo::set_timings(const float cur[2],
 						 const float last[2],
 						 const col_type& last_col)
 {
-	switch (mni.cc) {
+	switch (cc) {
 		case cc_left_right:
 		case cc_right_left:
 		case cc_jump_single:
 		case cc_single_single:
 			// either we know the end col so we know the start col, or the start
 			// col doesn't matter
-			mni.cc_ms_any = ms_from(cur[mni.col], last[invert_col(mni.col)]);
+			cc_ms_any = ms_from(cur[col], last[invert_col(col)]);
 
 			// technically doesn't matter if we use last_col to index, if it's
 			// single -> single we know it's an anchor so it's more intuitive to
-			// use mni.col twice
-			mni.tc_ms = ms_from(cur[mni.col], last[mni.col]);
+			// use col twice
+			tc_ms = ms_from(cur[col], last[col]);
 			break;
 		case cc_single_jump:
 			// tracking this for now, we want to track from last col to last col
 			// inverted
-			mni.cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+			cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
 
-			// can't use mni.col twice, use last_col, see below
-			mni.tc_ms = ms_from(cur[0], last[last_col]);
+			// can't use col twice, use last_col, see below
+			tc_ms = ms_from(cur[0], last[last_col]);
 			break;
 		case cc_jump_jump:
 			// not sure if we should set or leave at init value of 5000.f
-			// mni.cc_ms_any = 0.f;
+			// cc_ms_any = 0.f;
 
-			// indexes don't matter-- except that we can't use mni.col or
+			// indexes don't matter-- except that we can't use col or
 			// last_col (because index 2 is outside array size)
-			mni.tc_ms = ms_from(cur[0], last[0]);
+			tc_ms = ms_from(cur[0], last[0]);
 			break;
 		case cc_empty:
 			break;
@@ -1189,13 +1174,16 @@ struct RM_Sequencing
 
 	float temp_ms = 0.f;
 
-	void reset();
-	void handle_off_tap(const float& now);
-	void handle_off_tap_completion();
-	void handle_off_tap_progression(const bool& completing);
-	void handle_anchor_progression(const float& now);
-	void handle_jack_progression();
-	void handle_cross_column_branching(const cc_type& cc, const float& now);
+	inline void reset();
+	inline void handle_off_tap(const float& now);
+	inline void handle_off_tap_completion();
+	inline void handle_off_tap_progression(const bool& completing);
+	inline void handle_anchor_progression(const float& now);
+	inline void handle_jack_progression();
+	inline void handle_cross_column_branching(const cc_type& cc,
+											  const float& now);
+	inline void handle_oht_progression(const cc_type& cc);
+	inline void operator()(const metanoteinfo& mni);
 };
 
 inline void
@@ -1620,8 +1608,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 		auto& itv = itv_rows[i];
 		for (auto& row : itv) {
 			metanoteinfo mni;
-			set_col_and_cc_types(mni,
-								 NoteInfo[row].notes & t1,
+			mni.set_col_and_cc_types(NoteInfo[row].notes & t1,
 								 NoteInfo[row].notes & t2,
 								 last_col);
 
@@ -1759,7 +1746,7 @@ gen_metanoteinfo(const vector<vector<int>>& itv_rows,
 
 			// we will need to update time for one or both cols
 			update_col_time(mni.col, curtime, NoteInfo[row].rowTime);
-			set_metanoteinfo_timings(mni, curtime, lasttime, last_col);
+			mni.set_timings(curtime, lasttime, last_col);
 
 			// update last notes/time
 			last_col = mni.col;
