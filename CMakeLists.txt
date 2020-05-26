@@ -5,14 +5,17 @@ cmake_minimum_required(VERSION 3.15.0)
 cmake_policy(SET CMP0076 NEW)  # Tell cmake to convert target_sources input from relative path to absolute path
 cmake_policy(SET CMP0077 NEW)  # Tell cmake to allow variables set through "set" and "option" to be compatible with each other
 cmake_policy(SET CMP0048 NEW)  # Tell cmake to use VERSION parameter in project() for all PROJECT_VERSION_* variables
-cmake_policy(SET CMP0092 NEW)  # Tell cmake not to include warning paramters by default in CMAKE_<LANG>_FLAGS variables
+cmake_policy(SET CMP0092 NEW)  # Tell cmake not to include warning parameters by default in CMAKE_<LANG>_FLAGS variables
 
 ## Default Policies
 set(CMAKE_POLICY_DEFAULT_CMP0048 NEW) # Tell CMake to use the new policy for CMP0048. (Due to zlib not defining it)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) # Tell CMake to use the new policy for CMP0077. (Due to fftw not defining it)
 
 # Options
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # Tell targets to prefer multi-threaded statically linked runtime
+## We statically link the CRT by default. If you would like to dynamically
+## link the CRT, you can append "DLL" to the end of the variable below.
+## More Info: https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
@@ -27,7 +30,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to requir
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile commands for clang-tidy
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDE's
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDEs
 
 # Project Build Targets
 add_executable(Etterna)
@@ -52,6 +55,9 @@ find_package(Threads REQUIRED)
 target_link_libraries(Etterna PRIVATE Threads::Threads)
 target_link_libraries(Etterna PRIVATE OpenSSL::SSL)
 if(WIN32)
+    # These libraries are all included as the openssl instructions state they are needed for static linking.
+    # The source code does include some of these through "#pragma comment(lib, LIB)" though to keep it linking
+    # throughout the changes it may receive, we will include it here as-well.
     target_link_libraries(Etterna PRIVATE CRYPT32.LIB)
     target_link_libraries(Etterna PRIVATE WS2_32.LIB)
     target_link_libraries(Etterna PRIVATE GDI32.LIB)
