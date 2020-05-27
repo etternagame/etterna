@@ -2565,7 +2565,7 @@ struct CJMod
 	float total_prop_max = 1.f;
 	float total_prop_scaler = 5.428f; // ~38/7
 
-	float jack_base = -2.f;
+	float jack_base = 2.f;
 	float jack_min = 0.625f;
 	float jack_max = 1.f;
 	float jack_scaler = 1.f;
@@ -2578,19 +2578,19 @@ struct CJMod
 	float quad_pool = 1.5f;
 	float quad_min = 0.88f;
 	float quad_max = 1.f;
-	float quad_scaler = 1.f;
+	float quad_scaler = 4.f;
 
 	float vibro_flag = 0.85f;
 
-	std::map<std::string, float*> param_map{
+	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
 		{ "prop_buffer", &prop_buffer },
 
-		{ "total_prop_scaler", &total_prop_scaler },
 		{ "total_prop_min", &total_prop_min },
 		{ "total_prop_max", &total_prop_max },
+		{ "total_prop_scaler", &total_prop_scaler },
 
 		{ "jack_base", &jack_base },
 		{ "jack_min", &jack_min },
@@ -2610,46 +2610,39 @@ struct CJMod
 		{ "vibro_flag", &vibro_flag },
 	};
 #pragma endregion params and param map
-
 	float total_prop = 0.f;
 	float jack_prop = 0.f;
 	float not_jack_prop = 0.f;
 	float quad_prop = 0.f;
 	float pmod = min_mod;
-
+	float t_taps = 0.f;
+#pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
+	inline void min_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = min_mod;
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
 	};
-
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
+	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = neutral;
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 0.f);
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[CJ], 0.f);
 		Smooth(doot[CJQuad], 0.f);
 	};
-
+#pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
 										  const size_t& i)
@@ -2674,69 +2667,47 @@ struct CJMod
 		if (handle_case_optimizations(mni, doot, i))
 			return;
 
-		// we have at least 1 chord
-		// we want to give a little leeway for single taps but
-		// not too much or sections of [12]4[123]   [123]4[23]
-		// will be flagged as chordjack when they're really just
-		// broken chordstream, and we also want to give enough
-		// leeway so that hyperdense chordjacks at lower bpms
-		// aren't automatically rated higher than more sparse
-		// jacks at higher bpms
-		total_prop = pmod_prop(mni.chord_taps + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
+		t_taps = static_cast<float>(mni.total_taps);
 
-		// check for at least a couple jacks
-		jack_prop = pmod_prop(mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max,
-							  jack_base);
+		// we have at least 1 chord we want to give a little leeway for single
+		// taps but not too much or sections of [12]4[123] [123]4[23] will be
+		// flagged as chordjack when they're really just broken chordstream, and
+		// we also want to give enough leeway so that hyperdense chordjacks at
+		// lower bpms aren't automatically rated higher than more sparse jacks
+		// at higher bpms
+		total_prop = static_cast<float>(mni.chord_taps + prop_buffer) /
+					 (t_taps - prop_buffer) * total_prop_scaler;
+		total_prop =
+		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
-		// too many quads is either pure vibro or slow quadmash
-		quad_prop = pmod_prop(quad_pool,
-							  mni.taps_by_size[quad] * 4,
-							  mni.total_taps,
-							  quad_scaler,
-							  quad_min,
-							  quad_max);
+		// make sure there's at least a couple of jacks
+		jack_prop =
+		  CalcClamp(mni.actual_jacks_cj - jack_base, jack_min, jack_max);
 
-		// explicitly detect broken chordstream type stuff so we
-		// can give more leeway to single note jacks
-		// brop_two_return_of_brop_electric_bropaloo
-		not_jack_prop = pmod_prop(not_jack_pool,
-								  mni.definitely_not_jacks * 2,
-								  mni.total_taps,
-								  not_jack_scaler,
-								  not_jack_min,
-								  not_jack_max);
+		// too many quads is either pure vibro or slow quadmash, downscale a bit
+		quad_prop =
+		  quad_pool -
+		  (static_cast<float>(mni.taps_by_size[quad] * quad_scaler) / t_taps);
+		quad_prop = CalcClamp(quad_prop, quad_min, quad_max);
 
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod = CalcClamp(total_prop /** jack_prop * quad_prop * not_jack_prop*/,
-						 min_mod,
-						 max_mod);
+		// explicitly detect broken chordstream type stuff so we can give more
+		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
+		not_jack_prop = CalcClamp(
+		  not_jack_pool -
+			(static_cast<float>(mni.definitely_not_jacks * not_jack_scaler) /
+			 t_taps),
+		  not_jack_min,
+		  not_jack_max);
 
-		// ITS JUST VIBRO THEN
+		pmod = doot[CJ][i] =
+		  CalcClamp(total_prop * jack_prop * not_jack_prop /* * quad_prop*/,
+					min_mod,
+					max_mod);
+
+		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
+		// this other places ?
 		if (mni.basically_vibro)
-			doot[_primary][i] *= vibro_flag;
-
-		/*if (dbg) {
-			std::cout << "quads: " << data.quads[i] << std::endl;
-			std::cout << "taps: " << data.taps[i] << std::endl;
-			std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
-			std::cout << "actual jacks: " << data.actual_jacks_cj[i]
-					  << std::endl;
-			std::cout << "not jacks: " << data.definitely_not_jacks[i]
-					  << std::endl;
-			std::cout << "prop: " << prop << std::endl;
-			std::cout << "brop: " << brop << std::endl;
-			std::cout << "final mod: " << doot[CJ][i] << "\n" << std::endl;
-			std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo
-					  << std::endl;
-		}*/
+			pmod *= vibro_flag;
 
 		// actual mod
 		doot[_primary][i] = pmod;
