@@ -2047,7 +2047,7 @@ struct WideRangeJumptrillMod
 	float moving_cv_init = 0.5f;
 	float ccacc_cv_cutoff = 0.5f;
 
-	std::map<std::string, float*> param_map{
+	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2060,6 +2060,8 @@ struct WideRangeJumptrillMod
 	int ccacc_counter = 0;
 	int crop_circles = 0;
 	float pmod = min_mod;
+	int window_taps = 0;
+	int window_ccacc = 0;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
@@ -2068,10 +2070,11 @@ struct WideRangeJumptrillMod
 	// non-empty
 	cc_type last_seen_cc;
 	cc_type last_last_seen_cc;
-
+#pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
+
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
@@ -2089,6 +2092,7 @@ struct WideRangeJumptrillMod
 	{
 		Smooth(doot[_primary], 0.f);
 	};
+#pragma endregion
 	inline void reset_sequence()
 	{
 		last_seen_cc = cc_init;
@@ -2220,11 +2224,9 @@ struct WideRangeJumptrillMod
 		if (crop_circles < 0)
 			crop_circles = 0;
 
-		unsigned int window_taps = 0;
 		for (auto& n : itv_taps)
 			window_taps += n;
 
-		unsigned int window_ccacc = 0;
 		for (auto& n : itv_ccacc)
 			window_ccacc += n;
 
