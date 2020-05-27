@@ -1209,7 +1209,6 @@ struct metanoteinfo
 
 	// ok try accumulating the generic aggregate stuff here maybe
 	bool twas_jack = false;
-	bool alt = false;
 	int seriously_not_js = 0;
 	unsigned definitely_not_jacks = 0;
 	unsigned actual_jacks = 0;
@@ -1221,6 +1220,9 @@ struct metanoteinfo
 	unsigned total_taps = 0;
 	unsigned chord_taps = 0;
 	unsigned taps_by_size[4] = { 0, 0, 0, 0 };
+	bool alternating_chordstream = false;
+	bool alternating_chord_single = false;
+	bool gluts_maybe = false;
 
 	unsigned shared_chord_jacks = 0;
 
@@ -1296,14 +1298,14 @@ struct metanoteinfo
 		// for single notes, we could abstract it to a more
 		// generic pattern template, but let's be restrictive
 		// for now
-
-		if (is_alternating_chord_stream(
-			  row_notes, last_row_notes, last.last_row_notes))
+		alternating_chordstream = is_alternating_chord_stream(
+		  row_notes, last_row_notes, last.last_row_notes);
+		if (alternating_chordstream)
 			++definitely_not_jacks;
 
 		// only cares about single vs chord, not jacks
-		alt = is_alternating_chord_single(row_count, last.row_count);
-		if (alt) {
+		alternating_chord_single = is_alternating_chord_single(row_count, last.row_count);
+		if (alternating_chord_single) {
 			if (!twas_jack) {
 				if (dbg_lv2)
 					std::cout << "good hot js/hs: " << std::endl;
@@ -1311,7 +1313,7 @@ struct metanoteinfo
 			}
 		}
 
-		if (!alt) {
+		if (!alternating_chord_single) {
 			seriously_not_js = max(seriously_not_js, 0);
 			++seriously_not_js;
 			if (dbg_lv2)
@@ -1344,6 +1346,8 @@ struct metanoteinfo
 					std::cout << "bruh they aint even jacks: " << std::endl;
 				++not_hs;
 				++not_js;
+			} else {
+				gluts_maybe = true;
 			}
 		}
 	};
