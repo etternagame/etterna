@@ -56,6 +56,14 @@ static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const int zto3[4] = { 0, 1, 2, 3 };
 
 #pragma region stuffs
+
+//const char note_map[16][4]{ { 0, "0000" },  { 1, "0001" },  { 2, "0010" },
+//							{ 3, "0011" },  { 4, "0100" },  { 5, "0101" },
+//							{ 6, "0110" },  { 7, "0111" },  { 8, "1000" },
+//							{ 9, "1001" },  { 10, "1010" }, { 11, "1011" },
+//							{ 12, "1100" }, { 13, "1101" }, { 14, "0000" },
+//							{ 15, "0000" } };
+
 // Relies on endiannes (significantly inaccurate)
 inline float
 fastpow(double a, double b)
@@ -1777,7 +1785,7 @@ struct RunningManMod
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
 							  RanAnchLenMod, RanJack,	 RanOHT,
 							  RanOffS,		 RanPropAll,  RanPropOff,
-								   RanPropOHT,	RanPropOffS, RanPropJack };
+							  RanPropOHT,	RanPropOffS, RanPropJack };
 	const std::string name = "RunningManMod";
 	const int _primary = _pmods.front();
 
@@ -2717,7 +2725,7 @@ struct CJMod
 };
 struct TheGreatBazoinkazoinkInTheSky
 {
-	bool dbg = false;
+	bool dbg = true;
 	// don't need for now but have in case of debug need maybe
 	vector<vector<metanoteinfo>> _mni_vec;
 
@@ -2728,10 +2736,12 @@ struct TheGreatBazoinkazoinkInTheSky
 	float _rate = 0.f;
 	unsigned _t1 = 0;
 	unsigned _t2 = 0;
+	const char* p = "0000";
 
 	// to produce these
 	unique_ptr<metanoteinfo> _mni_last;
 	unique_ptr<metanoteinfo> _mni_now;
+	metanoteinfo _dbg;
 
 	// so we can make pattern mods
 	RunningManMod _rm;
@@ -2779,6 +2789,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
+
+
 		// probably should load params here or something
 		_mni_last = std::make_unique<metanoteinfo>();
 		_mni_now = std::make_unique<metanoteinfo>();
@@ -2812,9 +2824,16 @@ struct TheGreatBazoinkazoinkInTheSky
 		// all pattern mod functors should use i as an argument, since it needs
 		// to update the pattern mod holder at the proper index
 		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+
 			// reset the last mni interval data, since it gets used to
 			// initialize now
 			_mni_last->interval_reset();
+
+					if (dbg) {
+				_mni_vec.resize(_itv_rows.size());
+				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
+					_mni_vec[itv].reserve(_itv_rows[itv].size());
+			}
 
 			// inner loop
 			for (auto& row : _itv_rows[itv]) {
@@ -2824,6 +2843,16 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				// should be self explanatory
 				handle_row_dependent_pattern_advancement();
+
+				if (dbg) {
+					_dbg(*_mni_last,
+						 _ni[row].rowTime,
+						 _ni[row].notes,
+						 _t1,
+						 _t2,
+						 row);
+					_mni_vec[itv].push_back(_dbg);
+				}
 
 				set_mni_last();
 			}
@@ -2896,11 +2925,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// hand.doot);
 	}
 
-	// auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	 auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
 	// SetHSMod(jhc_data, left_hand.doot);
-	// SetJumpMod(jhc_data, left_hand.doot);
+	 SetJumpMod(jhc_data, left_hand.doot);
 	// SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
