@@ -2723,9 +2723,13 @@ struct CJMod
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = true;
-	// tracks everything that was built
+	// debug stuff, tracks everything that was built
 	vector<vector<metanoteinfo>> _mni_dbg_vec1;
 	vector<vector<metanoteinfo>> _mni_dbg_vec2;
+
+	// for generic debugging, constructs a string with the pattern formation for
+	// a given interval
+	vector<std::string> _itv_row_string;
 
 	// basic data we need
 	vector<NoteInfo> _ni;
@@ -2734,7 +2738,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	float _rate = 0.f;
 	unsigned _t1 = 0;
 	unsigned _t2 = 0;
-	const char* p = "0000";
 
 	// to produce these
 	unique_ptr<metanoteinfo> _mni_last;
@@ -2787,7 +2790,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
-
 		// probably should load params here or something
 		_mni_last = std::make_unique<metanoteinfo>();
 		_mni_now = std::make_unique<metanoteinfo>();
@@ -2833,6 +2835,12 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
 			}
 		}
+			
+		// above block is controlled in the struct def, this block is run if we
+		// are called from minacalcdebug, allocate the string thing, we can also
+		// force it
+		if (debug_lmao || dbg)
+			_itv_row_string.resize(_itv_rows.size());
 
 		// main interval loop, pattern mods values are produced in this outer
 		// loop using the data aggregated/generated in the inner loop
@@ -2843,12 +2851,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// up properly into hand dependent/independent loops if it turns out to
 		// be an issue
 		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
-
 			// reset the last mni interval data, since it gets used to
 			// initialize now
 			_mni_last->interval_reset();
-
-
 
 			// inner loop
 			for (auto& row : _itv_rows[itv]) {
@@ -2875,21 +2880,34 @@ struct TheGreatBazoinkazoinkInTheSky
 						_mni_dbg_vec2[itv].push_back(_dbg);
 				}
 
+				// ok we really should be doing separate loops for both
+				// hand/separate hand stuff, and this should be in the former
+				if (_t1 == col_ids[0])
+					if (debug_lmao || dbg) {
+						_itv_row_string[itv].append(note_map[_ni[row].notes]);
+						_itv_row_string[itv].append("\n");
+					}
+				
 				set_mni_last();
 			}
+			// pop the last \n for the interval
+			if (_t1 == col_ids[0])
+				if (!_itv_row_string[itv].empty())
+					if (debug_lmao || dbg)
+						_itv_row_string[itv].pop_back();
 
 			// set the pattern mod values by calling the mod functors
 			call_pattern_mod_functors(itv);
 		}
 	};
 
-	// maybe overload for non-hand-specific?
-	inline void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate,
-						   vector<float> doot1[],
-						   vector<float> doot2[]){
+	//// maybe overload for non-hand-specific?
+	//inline void operator()(const vector<vector<int>>& itv_rows,
+	//					   const float& rate,
+	//					   vector<float> doot1[],
+	//					   vector<float> doot2[]){
 
-	};
+	//};
 };
 
 bool
