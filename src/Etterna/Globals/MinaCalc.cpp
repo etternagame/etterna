@@ -1709,34 +1709,34 @@ struct RM_Sequencing
 
 #pragma endregion
 // help i dont know what im doing
-struct PatternMod
-{
-  public:
-	const vector<int> _pmods;
-	const std::string name = "";
+//struct PatternMod
+//{
+//  public:
+//	const vector<int> _pmods;
+//	const std::string name = "";
+//
+//	float min_mod = 0.6f;
+//	float max_mod = 1.f;
+//
+//	std::map<std::string, float*> param_map;
+//
+//	// everyone needs one
+//	float pmod = min_mod;
+//
+//	inline void operator()(const metanoteinfo& mni,
+//						   vector<float> doot[],
+//						   const size_t& i);
+//};
+//
+//inline void
+//PatternMod::operator()(const metanoteinfo& mni,
+//					   vector<float> doot[],
+//					   const size_t& i)
+//{
+//	return;
+//};
 
-	float min_mod = 0.6f;
-	float max_mod = 1.f;
-
-	std::map<std::string, float*> param_map;
-
-	// everyone needs one
-	float pmod = min_mod;
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i);
-};
-
-inline void
-PatternMod::operator()(const metanoteinfo& mni,
-					   vector<float> doot[],
-					   const size_t& i)
-{
-	return;
-};
-
-struct RunningManMod : PatternMod
+struct RunningManMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
 							  RanAnchLenMod, RanJack,	 RanOHT,
@@ -1993,7 +1993,7 @@ struct RunningManMod : PatternMod
 };
 
 // probably needs better debugoutput
-struct WideRangeJumptrillMod : PatternMod
+struct WideRangeJumptrillMod
 {
 	bool dbg = false;
 	const vector<int> _pmods = { WideRangeJumptrill };
@@ -2024,6 +2024,7 @@ struct WideRangeJumptrillMod : PatternMod
 
 	int ccacc_counter = 0;
 	int crop_circles = 0;
+	float pmod = min_mod;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
@@ -2217,7 +2218,7 @@ struct WideRangeJumptrillMod : PatternMod
 		ccacc_counter = 0;
 	};
 };
-struct JSMod : PatternMod
+struct JSMod
 {
 
 	const vector<int> _pmods = { JS, JSS, JSJ };
@@ -2274,6 +2275,7 @@ struct JSMod : PatternMod
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
+	float pmod = min_mod;
 
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2385,7 +2387,7 @@ struct JSMod : PatternMod
 		last_mod = pmod;
 	};
 };
-struct HSMod : PatternMod
+struct HSMod
 {
 
 	const vector<int> _pmods = { HS, HSS, HSJ };
@@ -2442,6 +2444,7 @@ struct HSMod : PatternMod
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
+	float pmod = min_mod;
 
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2549,7 +2552,7 @@ struct HSMod : PatternMod
 		last_mod = pmod;
 	};
 };
-struct CJMod : PatternMod
+struct CJMod
 {
 	bool dbg = false;
 	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
@@ -2615,6 +2618,7 @@ struct CJMod : PatternMod
 	float jack_prop = 0.f;
 	float not_jack_prop = 0.f;
 	float quad_prop = 0.f;
+	float pmod = min_mod;
 
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2763,7 +2767,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	metanoteinfo _mni_now;
 
 	// so we can make pattern mods
-	vector<PatternMod*> zorp;
 	RunningManMod _rm;
 	WideRangeJumptrillMod _wrjt;
 	JSMod _js;
