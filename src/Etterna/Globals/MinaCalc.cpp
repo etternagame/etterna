@@ -29,21 +29,9 @@ using std::set;
 using std::sqrt;
 using std::unordered_set;
 using std::vector;
-
-// intervals are _half_ second, no pointing time or cpu cycles on 100 nps joke
-// files
-static const int max_nps_for_single_interval = 50;
-static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
-														0.f, 0.f, 0.f, 0.f };
-static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
-														100.f, 100.f, 100.f,
-														100.f, 100.f };
-static const vector<int> col_ids = { 1, 2, 4, 8 };
-static const int zto3[4] = { 0, 1, 2, 3 };
 struct JumpHandChordData
 {
 	vector<int> num_row_variations;
-	// man these names are cryptic
 	vector<int> definitely_not_jacks;
 	vector<int> actual_jacks;
 	vector<int> actual_jacks_cj;
@@ -55,6 +43,18 @@ struct JumpHandChordData
 	vector<unsigned int> chordtaps;
 	vector<unsigned int> quads;
 };
+
+// intervals are _half_ second, no point in wasting time or cpu cycles on 100
+// nps joke files
+static const int max_nps_for_single_interval = 50;
+static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
+														0.f, 0.f, 0.f, 0.f };
+static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
+														100.f, 100.f, 100.f,
+														100.f, 100.f };
+static const vector<int> col_ids = { 1, 2, 4, 8 };
+static const int zto3[4] = { 0, 1, 2, 3 };
+
 #pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
 inline float
@@ -89,7 +89,7 @@ ms_from(const float& now, const float& last)
 inline void
 truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
 {
-	unsigned int old = v.size();
+	size_t old = v.size();
 	// we could do this outside but w.e
 	if (old == n)
 		return;
@@ -1045,9 +1045,67 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
+inline bool
+is_in(const unsigned& id, const unsigned& notes)
+{
+	return notes & id;
+};
+
+inline bool
+is_jack_at_col(const unsigned& id,
+			   const unsigned& row_notes,
+			   const unsigned& last_row_notes)
+{
+	return is_in(id, row_notes) && is_in(id, last_row_notes);
+};
+
+inline bool
+num_jacks(const unsigned& a, const unsigned& b)
+{
+	int n = 0;
+	for (auto& id : col_ids)
+		if (is_jack_at_col(id, a, b))
+			++n;
+	return n;
+};
+
+// doesn't check for jacks
+inline bool
+is_alternating_chord_single(const unsigned& a, const unsigned& b)
+{
+	return (a > 1 && b == 1) || (a == 1 && b > 1);
+};
+
+// uhh probably not fast but simple and robust, find 1[n]1 or n[1]n with no
+// jacks between first and second and second and third elements
+inline bool
+is_alternating_chord_stream(const unsigned& a,
+							const unsigned& b,
+							const unsigned& c)
+{
+	for (auto& id : col_ids) {
+		if (is_jack_at_col(id, a, b))
+			return false;
+		if (is_jack_at_col(id, b, c))
+			return false;
+	}
+	if (c == 0)
+		return false;
+	return true;
+};
+
+enum tap_size
+{
+	single,
+	jump,
+	hand,
+	quad
+};
+
 struct metanoteinfo
 {
-	int id = 0;
+	bool dbg = false && debug_lmao;
+	bool dbg_lv2 = false && debug_lmao;
 
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
@@ -1057,8 +1115,13 @@ struct metanoteinfo
 	// type of cross column hit
 	cc_type cc = cc_init;
 
+	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
+	// contains 2 metanoteinfos? ... yes... we probably do
+	unsigned row_notes = 0;
+	unsigned last_row_notes = 0;
+
 	// number of notes in the row
-	unsigned int count = 0;
+	unsigned row_count = 0;
 
 	// last col == col_empty
 	bool last_was_offhand_tap = false;
@@ -1072,6 +1135,7 @@ struct metanoteinfo
 	// ms from last note in this column
 	float tc_ms = ms_init;
 
+	// functions
 	inline void set_timings(const float cur[2],
 							const float last[2],
 							const col_type& last_col)
@@ -1125,21 +1189,207 @@ struct metanoteinfo
 		cc = determine_cc_type(last_col, col);
 	}
 
-	inline void operator()(const metanoteinfo& last,
+	// ok try accumulating the generic aggregate stuff here maybe
+	bool twas_jack = false;
+	bool alt = false;
+	int seriously_not_js = 0;
+	int definitely_not_jacks = 0;
+	int actual_jacks = 0;
+	int actual_jacks_cj = 0;
+	int not_js = 0;
+	int not_hs = 0;
+	int zwop = 0;
+	set<unsigned> row_variations;
+	unsigned total_taps = 0;
+	unsigned chord_taps = 0;
+	unsigned taps_by_size[4] = { 0, 0, 0, 0 };
+
+	unsigned shared_chord_jacks = 0;
+
+	// resets all the stuff that accumulates across intervals
+	inline void interval_reset()
+	{
+		// isn't reset, preserve behavior
+		// seriously_not_js = 0;
+		definitely_not_jacks = 0;
+		actual_jacks = 0;
+		actual_jacks_cj = 0;
+		not_js = 0;
+		not_hs = 0;
+		zwop = 0;
+
+		total_taps = 0;
+		chord_taps = 0;
+		shared_chord_jacks = 0;
+
+		for (auto& t : taps_by_size)
+			t = 0;
+		row_variations.clear();
+	};
+
+	inline void jack_scan()
+	{
+		for (auto& id : col_ids) {
+			if (dbg_lv2)
+				std::cout << "cur id: " << id << std::endl;
+
+			if (is_jack_at_col(id, row_notes, last_row_notes)) {
+				if (dbg_lv2) {
+					std::cout << "actual jack at: " << id << std::endl;
+					std::cout << "with notes: " << row_notes
+							  << " last notes: " << last_row_notes << std::endl;
+				}
+
+				++actual_jacks;
+				// try to pick up gluts maybe?
+				if (row_count > 1 && column_count(last_row_notes) > 1)
+					++shared_chord_jacks;
+				twas_jack = true;
+			}
+		}
+
+		// if we used the normal actual_jack for CJ too
+		// we're saying something like "chordjacks" are
+		// harder if they share more columns from chord to
+		// chord" which is not true, it is in fact either
+		// irrelevant or the inverse depending on the
+		// scenario, this is merely to catch stuff like
+		// splithand jumptrills registering as chordjacks
+		// when they shouldn't be
+		if (twas_jack)
+			++actual_jacks_cj;
+	};
+
+	// will need last for last.last_row_notes
+	inline void thing(const metanoteinfo& last)
+	{
+		// stupidly slow
+		row_variations.emplace(row_notes);
+
+		// we want to
+		// know if we have a bunch of stuff like [123]4[123]
+		// [12]3[124] which isn't actually chordjack, its just
+		// broken hs/js, and in fact with the level of leniency
+		// that is currently being applied to generic
+		// proportions, lots of heavy js/hs is being counted as
+		// cj for their 2nd rating, and by a close margin too,
+		// we can't just look for [123]4, we need to finish the
+		// sequence to be sure i _think_ we only want to do this
+		// for single notes, we could abstract it to a more
+		// generic pattern template, but let's be restrictive
+		// for now
+
+		if (is_alternating_chord_stream(
+			  row_notes, last_row_notes, last.last_row_notes))
+			++definitely_not_jacks;
+
+		// only cares about single vs chord, not jacks
+		alt = is_alternating_chord_single(row_count, last.row_count);
+		if (alt) {
+			if (!twas_jack) {
+				if (dbg_lv2)
+					std::cout << "good hot js/hs: " << std::endl;
+				seriously_not_js -= 3;
+			}
+		}
+
+		if (!alt) {
+			seriously_not_js = max(seriously_not_js, 0);
+			++seriously_not_js;
+			if (dbg_lv2)
+				std::cout << "consecutive single note: " << seriously_not_js
+						  << std::endl;
+
+			// light js really stops at [12]321[23] kind of
+			// density, anything below that should be picked up
+			// by speed, and this stop rolls between jumps
+			// getting floated up too high
+			if (seriously_not_js > 3) {
+				if (dbg)
+					std::cout
+					  << "exceeding light js/hs tolerance: " << seriously_not_js
+					  << std::endl;
+				not_js += seriously_not_js;
+				// give light hs the light js treatment
+				not_hs += seriously_not_js;
+			}
+		} else if (last.row_count > 1 && row_count > 1) {
+			// suppress jumptrilly garbage a little bit
+			if (dbg)
+				std::cout << "sequential chords detected: " << std::endl;
+			not_hs += row_count;
+			not_js += row_count;
+
+			zwop = num_jacks(row_notes, last_row_notes);
+			if (zwop == 0) {
+				if (dbg)
+					std::cout << "bruh they aint even jacks: " << std::endl;
+				++not_hs;
+			}
+		}
+	};
+
+	inline void adjust_tap_counts()
+	{
+		total_taps += row_count;
+		if (row_count > 1)
+			chord_taps += row_count;
+
+		++taps_by_size[row_count - 1];
+
+		// we want mixed hs/js to register as hs, even at relatively sparse hand
+		// density
+		if (taps_by_size[hand] > 0)
+			// this seems kinda extreme? it'll add the number of jumps in the
+			// whole interval every hand? maybe it needs to be that extreme?
+			taps_by_size[hand] += taps_by_size[jump];
+	};
+
+	inline void set_interval_data_from_last(metanoteinfo& last)
+	{
+		seriously_not_js = last.seriously_not_js;
+		definitely_not_jacks = last.definitely_not_jacks;
+		actual_jacks = last.actual_jacks;
+		actual_jacks_cj = last.actual_jacks_cj;
+		not_js = last.not_js;
+		not_hs = last.not_hs;
+
+		total_taps = last.total_taps;
+		chord_taps = last.chord_taps;
+		shared_chord_jacks = last.shared_chord_jacks;
+
+		for (size_t i = 0; i < 4; ++i)
+			taps_by_size[i] = last.taps_by_size[i];
+		row_variations.swap(last.row_variations);
+	};
+
+	inline void interval_aggregator(metanoteinfo& last)
+	{
+		set_interval_data_from_last(last);
+
+		adjust_tap_counts();
+		jack_scan();
+		thing(last);
+	};
+
+	inline void operator()(metanoteinfo& last,
 						   const float& now,
-						   const unsigned int& notes,
+						   const unsigned& notes,
 						   const int& t1,
 						   const int& t2,
 						   const int& row)
 	{
 
 		last_was_offhand_tap = last.col == col_empty;
-		set_col_and_cc_types(notes & t1, notes & t2, last.col);
-		count = column_count(notes);
+		set_col_and_cc_types(is_in(t1, notes), is_in(t2, notes), last.col);
+		row_count = column_count(notes);
+		row_notes = notes;
 		row_time = now;
+		last_row_notes = last.row_notes;
 
-		// any row in noteinfo must have at least 1 tap, so if this hand
-		// is empty, we have an offhand tap
+		// run the interval aggregation after setting values and before the
+		// empty bail
+		interval_aggregator(last);
 
 		// we don't want to set lasttime or lastcol for empty rows
 		if (col == col_empty)
@@ -1354,7 +1604,7 @@ struct RM_Sequencing
 	};
 	inline void operator()(const metanoteinfo& mni)
 	{
-		total_taps += mni.count;
+		total_taps += mni.row_count;
 
 		switch (mni.cc) {
 			case cc_left_right:
@@ -1585,14 +1835,14 @@ struct RunningMen
 			return;
 		} else if (rm.off_taps_same < min_off_taps_same) {
 			doot[RanMan][i] = min_mod;
-		return;
-	}
+			return;
+		}
 
-	// taps in runningman / total taps in interval... i think? can't remember
-	// when i reset total taps tbh.. this might be useless
-	total_prop = pmod_prop(rm.ran_taps,
-						   rm.total_taps,
-						   total_prop_scaler,
+		// taps in runningman / total taps in interval... i think? can't
+		// remember when i reset total taps tbh.. this might be useless
+		total_prop = pmod_prop(rm.ran_taps,
+							   rm.total_taps,
+							   total_prop_scaler,
 							   total_prop_min,
 							   total_prop_max);
 
@@ -1603,31 +1853,33 @@ struct RunningMen
 										 off_tap_prop_min,
 										 off_tap_prop_max,
 										 off_tap_prop_base),
-						   2.f);
+							   2.f);
 
-	// number of same hand off anchor taps / anchor taps, basically stuff is
-	// really hard when this is high (a value of 0.5 is a triplet every other
-	// anchor)
-	off_tap_same_prop = pmod_prop(rm.off_taps_same,
-								  rm.anchor_len,
-								  off_tap_same_prop_scaler,
+		// number of same hand off anchor taps / anchor taps, basically stuff is
+		// really hard when this is high (a value of 0.5 is a triplet every
+		// other anchor)
+		off_tap_same_prop = pmod_prop(rm.off_taps_same,
+									  rm.anchor_len,
+									  off_tap_same_prop_scaler,
 									  off_tap_same_prop_min,
 									  off_tap_same_prop_max,
-								  off_tap_same_prop_base);
+									  off_tap_same_prop_base);
 
-	// anchor length component
-	anchor_len_comp = static_cast<float>(rm.anchor_len) / anchor_len_divisor;
+		// anchor length component
+		anchor_len_comp =
+		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
 
-	// jacks in anchor component, give a small bonus i guess
-	jack_bonus =
+		// jacks in anchor component, give a small bonus i guess
+		jack_bonus =
 		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
 
-	// ohts in anchor component, give a small bonus i guess
-	// not done
-	oht_bonus = rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
+		// ohts in anchor component, give a small bonus i guess
+		// not done
+		oht_bonus =
+		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
 
-	// we could scale the anchor to speed if we want but meh
-	// that's really complicated/messy/error prone
+		// we could scale the anchor to speed if we want but meh
+		// that's really complicated/messy/error prone
 		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
 		pmod = CalcClamp(
 		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
@@ -1718,12 +1970,15 @@ struct TheGreatBazoinkazoinkInTheSky
 			handle_row_loop(row);
 	};
 
-	inline void call_pattern_mod_functors(const int& itv) {
-		_rm(_doot, itv);
-	};
+	inline void call_pattern_mod_functors(const int& itv) { _rm(_doot, itv); };
 
-	inline void even_more_gratuitious_inline_for_outer_loop() {
+	inline void even_more_gratuitious_inline_for_outer_loop()
+	{
 		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+			// reset the last mni interval data, since it gets used to
+			// initialize now
+			_mni_last.interval_reset();
+
 			// inner loop
 			gratuitious_inline_for_inner_loop(itv);
 
@@ -1733,10 +1988,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 	inline void set_members(const vector<vector<int>>& itv_rows,
-						 const float& rate,
-						 const unsigned int& t1,
-						 const unsigned int& t2,
-						 vector<float> doot[])
+							const float& rate,
+							const unsigned int& t1,
+							const unsigned int& t2,
+							vector<float> doot[])
 	{
 		// change with offset, if we do multi offset passes we want this to
 		// be vars, but we aren't doing it now
@@ -1781,12 +2036,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		even_more_gratuitious_inline_for_outer_loop();
 	};
 
-	// maybe overload for non-hand-specific? 
+	// maybe overload for non-hand-specific?
 	inline void operator()(const vector<vector<int>>& itv_rows,
 						   const float& rate,
 						   vector<float> doot1[],
-						   vector<float> doot2[])
-	{
+						   vector<float> doot2[]){
 
 	};
 };
@@ -2514,10 +2768,6 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				newinterval = false;
 			}
 
-		auto find_ranmen = [&data]() {
-
-		};
-
 		for (int row : nervIntervals[i]) {
 			unsigned int notes = column_count(NoteInfo[row].notes);
 			taps += notes;
@@ -2561,15 +2811,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 				}
 			}
 			if (twas_jack) {
-				// [Comment moved from SetCJMod]
-				// if we used the normal actual_jack for CJ too
-				// we're saying something like "chordjacks" are
-				// harder if they share more columns from chord to
-				// chord" which is not true, it is in fact either
-				// irrelevant or the inverse depending on the
-				// scenario, this is merely to catch stuff like
-				// splithand jumptrills registering as chordjacks
-				// when they shouldn't be
+
 				++actual_jacks_cj;
 			}
 
