@@ -1168,6 +1168,7 @@ struct metanoteinfo
 	// ms from last note in this column
 	float tc_ms = ms_init;
 
+	// per row bool flags, these must be directly set every row
 	bool alternating_chordstream = false;
 	bool alternating_chord_single = false;
 	bool gluts_maybe = false;
@@ -1235,17 +1236,22 @@ struct metanoteinfo
 	unsigned not_js = 0;
 	unsigned not_hs = 0;
 	unsigned zwop = 0;
-	set<unsigned> row_variations;
 	unsigned total_taps = 0;
 	unsigned chord_taps = 0;
 	unsigned taps_by_size[4] = { 0, 0, 0, 0 };
 	unsigned shared_chord_jacks = 0;
 
+	// ok new plan instead of a map, keep an array of 3, run a comparison loop
+	// that sets 0s to a new value if that value doesn't match any non 0 value,
+	// and set a bool flag if we have filled the array with unique values
+	unsigned row_variations[3] = { 0, 0, 0 };
+	bool basically_vibro = true;
+
 	// resets all the stuff that accumulates across intervals
 	inline void interval_reset()
 	{
 		// isn't reset, preserve behavior
-		// seriously_not_js = 0;
+		seriously_not_js = 0;
 		definitely_not_jacks = 0;
 		actual_jacks = 0;
 		actual_jacks_cj = 0;
@@ -1259,9 +1265,11 @@ struct metanoteinfo
 
 		for (auto& t : taps_by_size)
 			t = 0;
-		row_variations.clear();
-	};
+		for (auto& t : row_variations)
+			t = 0;
 
+		basically_vibro = true;
+	};
 	inline void jack_scan()
 	{
 		for (auto& id : col_ids) {
@@ -1294,12 +1302,34 @@ struct metanoteinfo
 		if (twas_jack)
 			++actual_jacks_cj;
 	};
+	inline void update_row_variations_and_set_vibro_flag() {
+		// already determined there's enough variation in this interval
+		if (!basically_vibro)
+			return;
 
+		// trying to fill array with up to 3 unique row_note configurations
+		for (auto& t : row_variations) {
+			// already a stored value here
+			if (t != 0) {
+				// already have one of these
+				if (t == row_notes) {
+					return;
+				}
+			} else if (t == 0) {
+				// nothing stored here and isn't a duplicate, store it
+				t = row_notes;
+			}
+		}
+
+		// we filled the array with unique values. since we start by assuming
+		// anything is basically vibro, set the flag to false
+		if (row_variations[2] != 0)
+			basically_vibro = false;
+	};
 	// will need last for last.last_row_notes
 	inline void thing(const metanoteinfo& last)
 	{
-		// stupidly slow
-		row_variations.emplace(row_notes);
+		update_row_variations_and_set_vibro_flag();
 
 		// we want to
 		// know if we have a bunch of stuff like [123]4[123]
@@ -1319,7 +1349,8 @@ struct metanoteinfo
 			++definitely_not_jacks;
 
 		// only cares about single vs chord, not jacks
-		alternating_chord_single = is_alternating_chord_single(row_count, last.row_count);
+		alternating_chord_single =
+		  is_alternating_chord_single(row_count, last.row_count);
 		if (alternating_chord_single) {
 			if (!twas_jack) {
 				if (dbg_lv2)
@@ -1366,7 +1397,6 @@ struct metanoteinfo
 			}
 		}
 	};
-
 	inline void adjust_tap_counts()
 	{
 		total_taps += row_count;
@@ -1382,7 +1412,6 @@ struct metanoteinfo
 			// whole interval every hand? maybe it needs to be that extreme?
 			taps_by_size[hand] += taps_by_size[jump];
 	};
-
 	inline void set_interval_data_from_last(metanoteinfo& last)
 	{
 		seriously_not_js = last.seriously_not_js;
@@ -1398,9 +1427,10 @@ struct metanoteinfo
 
 		for (size_t i = 0; i < 4; ++i)
 			taps_by_size[i] = last.taps_by_size[i];
-		row_variations.swap(last.row_variations);
+		for (size_t i = 0; i < 3; ++i)
+			row_variations[i] = last.row_variations[i];
+		basically_vibro = last.basically_vibro;
 	};
-
 	inline void interval_aggregator(metanoteinfo& last)
 	{
 		set_interval_data_from_last(last);
@@ -1409,7 +1439,6 @@ struct metanoteinfo
 		jack_scan();
 		thing(last);
 	};
-
 	inline void operator()(metanoteinfo& last,
 						   const float& now,
 						   const unsigned& notes,
@@ -1457,7 +1486,6 @@ static const int max_oht_len = 1;
 static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
 static const int max_jack_len = 1;
-
 
 struct RM_Sequencing
 {
@@ -1714,7 +1742,7 @@ struct RM_Sequencing
 
 #pragma endregion
 // help i dont know what im doing
-//struct PatternMod
+// struct PatternMod
 //{
 //  public:
 //	const vector<int> _pmods;
@@ -1733,8 +1761,8 @@ struct RM_Sequencing
 //						   const size_t& i);
 //};
 //
-//inline void
-//PatternMod::operator()(const metanoteinfo& mni,
+// inline void
+// PatternMod::operator()(const metanoteinfo& mni,
 //					   vector<float> doot[],
 //					   const size_t& i)
 //{
@@ -2726,7 +2754,7 @@ struct CJMod
 		pmod = CalcClamp(total_prop * jack_prop * quad_prop, min_mod, max_mod);
 
 		// ITS JUST VIBRO THEN
-		if (mni.row_variations.size() < 3)
+		if (mni.basically_vibro)
 			doot[_pmods.front()][i] *= vibro_flag;
 
 		/*if (dbg) {
@@ -2780,10 +2808,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// we only care what last is, not what now is, this should work but it
 	// seems almost too clever and probably won't for ?? reasons
-	inline void set_mni_last()
-	{
-		std::swap(_mni_last, _mni_now);
-	}
+	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
 	// HOW LOOP DESE
 	inline void run_pattern_mod_setups()
 	{
@@ -2829,10 +2854,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	};
 
 	void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate,
-						   const unsigned int& t1,
-						   const unsigned int& t2,
-						   vector<float> doot[])
+					const float& rate,
+					const unsigned int& t1,
+					const unsigned int& t2,
+					vector<float> doot[])
 	{
 		// change with offset, if we do multi offset passes we want this to
 		// be vars, but we aren't doing it now
