@@ -57,12 +57,9 @@ static const int zto3[4] = { 0, 1, 2, 3 };
 
 #pragma region stuffs
 
-//const char note_map[16][4]{ { 0, "0000" },  { 1, "0001" },  { 2, "0010" },
-//							{ 3, "0011" },  { 4, "0100" },  { 5, "0101" },
-//							{ 6, "0110" },  { 7, "0111" },  { 8, "1000" },
-//							{ 9, "1001" },  { 10, "1010" }, { 11, "1011" },
-//							{ 12, "1100" }, { 13, "1101" }, { 14, "0000" },
-//							{ 15, "0000" } };
+const char note_map[16][5]{ "0000", "0001", "0010", "0011", "0100", "0101",
+							"0110", "0111", "1000", "1001", "1010", "1011",
+							"1100", "1101", "0000", "0000" };
 
 // Relies on endiannes (significantly inaccurate)
 inline float
@@ -2726,8 +2723,9 @@ struct CJMod
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = true;
-	// don't need for now but have in case of debug need maybe
-	vector<vector<metanoteinfo>> _mni_vec;
+	// tracks everything that was built
+	vector<vector<metanoteinfo>> _mni_dbg_vec1;
+	vector<vector<metanoteinfo>> _mni_dbg_vec2;
 
 	// basic data we need
 	vector<NoteInfo> _ni;
@@ -2790,7 +2788,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
 
-
 		// probably should load params here or something
 		_mni_last = std::make_unique<metanoteinfo>();
 		_mni_now = std::make_unique<metanoteinfo>();
@@ -2819,21 +2816,39 @@ struct TheGreatBazoinkazoinkInTheSky
 		// initialization and maybe some other stuff
 		run_pattern_mod_setups();
 
+		if (dbg) {
+			// asfasdfasjkldf, keep track by hand i guess, since values for
+			// hand dependent mods would have been overwritten without using
+			// a pushback, and pushing back 2 cycles of metanoteinfo into
+			// the same debug vector is kinda like... not good
+			// left hand stuffies
+			if (_t1 == col_ids[0]) {
+				_mni_dbg_vec1.resize(_itv_rows.size());
+				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
+					_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
+			} else {
+				// right hand stuffies
+				_mni_dbg_vec2.resize(_itv_rows.size());
+				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
+					_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
+			}
+		}
+
 		// main interval loop, pattern mods values are produced in this outer
 		// loop using the data aggregated/generated in the inner loop
 		// all pattern mod functors should use i as an argument, since it needs
 		// to update the pattern mod holder at the proper index
+		// we end up running the hand independent pattern mods twice, but i'm
+		// not sure it matters? they tend to be low cost, this should be split
+		// up properly into hand dependent/independent loops if it turns out to
+		// be an issue
 		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
 
 			// reset the last mni interval data, since it gets used to
 			// initialize now
 			_mni_last->interval_reset();
 
-					if (dbg) {
-				_mni_vec.resize(_itv_rows.size());
-				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
-					_mni_vec[itv].reserve(_itv_rows[itv].size());
-			}
+
 
 			// inner loop
 			for (auto& row : _itv_rows[itv]) {
@@ -2851,7 +2866,13 @@ struct TheGreatBazoinkazoinkInTheSky
 						 _t1,
 						 _t2,
 						 row);
-					_mni_vec[itv].push_back(_dbg);
+
+					// left hand stuffies
+					if (_t1 == col_ids[0])
+						_mni_dbg_vec1[itv].push_back(_dbg);
+					else
+						// right hand stuffies
+						_mni_dbg_vec2[itv].push_back(_dbg);
 				}
 
 				set_mni_last();
@@ -2925,11 +2946,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// hand.doot);
 	}
 
-	 auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
 	// SetHSMod(jhc_data, left_hand.doot);
-	 SetJumpMod(jhc_data, left_hand.doot);
+	SetJumpMod(jhc_data, left_hand.doot);
 	// SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
