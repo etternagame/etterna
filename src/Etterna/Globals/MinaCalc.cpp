@@ -2996,7 +2996,7 @@ struct JSMod : PatternMod
 	float mod_base = 0.f;
 	float prop_buffer = 1.f;
 
-	float total_prop_min = 0.85f;
+	float total_prop_min = 0.f;
 	float total_prop_max = 1.f;
 	float total_prop_scaler = 2.714f; // ~19/7
 
@@ -3119,7 +3119,6 @@ struct JSMod : PatternMod
 		last_mod = pmod;
 	};
 };
-
 struct HSMod : PatternMod
 {
 
@@ -3133,7 +3132,7 @@ struct HSMod : PatternMod
 	float mod_base = 0.4f;
 	float prop_buffer = 1.f;
 
-	float total_prop_min = 0.85f;
+	float total_prop_min = 0.f;
 	float total_prop_max = 1.f;
 	float total_prop_scaler = 4.571f; // ~32/7
 
@@ -3252,6 +3251,177 @@ struct HSMod : PatternMod
 		last_mod = pmod;
 	};
 };
+struct CJMod : PatternMod
+{
+	bool dbg = false;
+	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
+	const std::string name = "CJMod";
+
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float mod_base = 0.4f;
+	float prop_buffer = 1.f;
+
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+	float total_prop_scaler = 5.428f; // ~38/7
+
+	float jack_base = -2.f;
+	float jack_min = 0.625f;
+	float jack_max = 1.f;
+	float jack_scaler = 1.f;
+
+	float not_jack_pool = 1.2f;
+	float not_jack_min = 0.4f;
+	float not_jack_max = 1.f;
+	float not_jack_scaler = 1.f;
+
+	float quad_pool = 1.5f;
+	float quad_min = 0.88f;
+	float quad_max = 1.f;
+	float quad_scaler = 1.f;
+
+	float vibro_flag = 0.85f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "jack_base", &jack_base },
+		{ "jack_min", &jack_min },
+		{ "jack_max", &jack_max },
+		{ "jack_scaler", &jack_scaler },
+
+		{ "not_jack_pool", &not_jack_pool},
+		{ "not_jack_min", &not_jack_min },
+		{ "not_jack_max", &not_jack_max },
+		{ "not_jack_scaler", &not_jack_scaler },
+
+		{ "quad_pool", &quad_pool },
+		{ "quad_min", &quad_min },
+		{ "quad_max", &quad_max },
+		{ "quad_scaler", &quad_scaler },
+
+		{ "vibro_flag", &vibro_flag },
+	};
+#pragma endregion params and param map
+
+	float total_prop = 0.f;
+	float jack_prop = 0.f;
+	float not_jack_prop = 0.f;
+	float quad_prop = 0.f;
+
+	inline bool handle_case_optimizations(const metanoteinfo& mni,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		if (mni.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// no chords
+		if (mni.chord_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	};
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		if (handle_case_optimizations(mni, doot, i))
+			return;
+
+		// we have at least 1 chord
+		// we want to give a little leeway for single taps but
+		// not too much or sections of [12]4[123]   [123]4[23]
+		// will be flagged as chordjack when they're really just
+		// broken chordstream, and we also want to give enough
+		// leeway so that hyperdense chordjacks at lower bpms
+		// aren't automatically rated higher than more sparse
+		// jacks at higher bpms
+		total_prop = pmod_prop(mni.chord_taps + prop_buffer,
+							   mni.total_taps - prop_buffer,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// check for at least a couple jacks
+		jack_prop = pmod_prop(mni.actual_jacks,
+							  mni.total_taps,
+							  jack_scaler,
+							  jack_min,
+							  jack_max,
+							  jack_base);
+
+		// too many quads is either pure vibro or slow quadmash
+		quad_prop = pmod_prop(quad_pool,
+							  mni.taps_by_size[quad] * 4,
+							  mni.total_taps,
+							  quad_scaler,
+							  quad_min,
+							  quad_max);
+
+		// explicitly detect broken chordstream type stuff so we
+		// can give more leeway to single note jacks
+		// brop_two_return_of_brop_electric_bropaloo
+		not_jack_prop = pmod_prop(not_jack_pool,
+							  mni.definitely_not_jacks * 2,
+							  mni.total_taps,
+							  not_jack_scaler,
+							  not_jack_min,
+							  not_jack_max);
+
+		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
+		pmod =
+		  CalcClamp(total_prop * jack_prop * quad_prop, min_mod, max_mod);
+
+		// ITS JUST VIBRO THEN
+		if (mni.row_variations.size() < 3)
+			doot[_pmods.front()][i] *= vibro_flag;
+
+		/*if (dbg) {
+			std::cout << "quads: " << data.quads[i] << std::endl;
+			std::cout << "taps: " << data.taps[i] << std::endl;
+			std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
+			std::cout << "actual jacks: " << data.actual_jacks_cj[i]
+					  << std::endl;
+			std::cout << "not jacks: " << data.definitely_not_jacks[i]
+					  << std::endl;
+			std::cout << "prop: " << prop << std::endl;
+			std::cout << "brop: " << brop << std::endl;
+			std::cout << "final mod: " << doot[CJ][i] << "\n" << std::endl;
+			std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo
+					  << std::endl;
+		}*/
+
+		// actual mod
+		doot[_pmods.front()][i] = pmod;
+		// look another actual mod
+		doot[CJQuad][i] = quad_prop;
+
+		// debug
+		doot[CJS][i] = not_jack_prop;
+		doot[CJJ][i] = jack_prop;
+	};
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[CJ], 0.f);
+		Smooth(doot[CJQuad], 0.f);
+	};
+};
+
 
 
 void
@@ -3396,16 +3566,10 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			doot[CJS][i] = 1.f;
 			doot[CJJ][i] = 1.f;
 			doot[CJQuad][i] = 1.f;
-		} else { // we have at least 1 chord
-			// we want to give a little leeway for single taps but
-			// not too much or sections of [12]4[123]   [123]4[23]
-			// will be flagged as chordjack when they're really just
-			// broken chordstream, and we also want to give enough
-			// leeway so that hyperdense chordjacks at lower bpms
-			// aren't automatically rated higher than more sparse
-			// jacks at higher bpms
+		} else {
 			float prop = static_cast<float>(data.chordtaps[i] + 1) /
 						 static_cast<float>(data.taps[i] - 1) * 38.f / 7.f;
+
 			float brop = CalcClamp(data.actual_jacks_cj[i] - 2.f, 0.625f, 1.f);
 
 			float bruh_too_many_quads =
@@ -3413,8 +3577,7 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 					  static_cast<float>(data.taps[i]));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
 
-			// explicitly detect broken chordstream type stuff so we
-			// can give more leeway to single note jacks
+
 			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(
 			  1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
 					  static_cast<float>(data.taps[i])),
