@@ -2362,39 +2362,35 @@ struct JSMod
 			return;
 
 		// creepy banana
-		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
+		total_prop =
+		  static_cast<float>(mni.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(mni.total_taps - prop_buffer) * total_prop_scaler;
+		total_prop =
+		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
-		jumptrill_prop = pmod_prop(split_hand_pool,
-								   mni.not_js,
-								   mni.total_taps,
-								   split_hand_scaler,
-								   split_hand_min,
-								   split_hand_max);
+		jumptrill_prop =
+		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_js) /
+									   static_cast<float>(mni.total_taps)),
+					split_hand_min,
+					split_hand_max);
 
 		// downscale by jack density rather than upscale like cj
 		// theoretically the ohjump downscaler should handle
 		// this but handling it here gives us more flexbility
 		// with the ohjump mod
-		jack_prop = pmod_prop(jack_pool,
-							  mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max);
+		jack_prop =
+		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) /
+								 static_cast<float>(mni.total_taps)),
+					jack_min,
+					jack_max);
 
-		// seems kinda messy but was old behavior
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
 		// actual mod
-		doot[_pmods.front()][i] = pmod;
+		doot[_primary][i] = pmod;
 
 		// debug
 		doot[JSS][i] = jumptrill_prop;
@@ -2408,7 +2404,7 @@ struct JSMod
 };
 struct HSMod
 {
-
+	const vector<int> _pmods = { HS, HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
 	const int _primary = _pmods.front();
