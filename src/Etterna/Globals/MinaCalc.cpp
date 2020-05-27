@@ -1107,6 +1107,21 @@ is_alternating_chord_stream(const unsigned& a,
 	return true;
 };
 
+inline bool
+is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
+
+	bool loot = a == invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
+}
+
 enum tap_size
 {
 	single,
@@ -1443,20 +1458,6 @@ static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
 static const int max_jack_len = 1;
 
-inline bool
-is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
-{
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (b != cc_left_right && b != cc_right_left)
-		return false;
-
-	bool loot = a == invert_cc(b);
-	bool doot = a == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
-}
 
 struct RM_Sequencing
 {
