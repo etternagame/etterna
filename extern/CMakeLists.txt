@@ -1,6 +1,5 @@
 # Disable all warnings for this directory
-# Here are possible CMAKE_CXX_COMPILER_ID values: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-
+# Possible CMAKE_CXX_COMPILER_ID values: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
 if(MSVC)
     add_compile_options(/W0)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
@@ -58,7 +57,7 @@ endif()
 
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
-    SQLiteCpp sqlite3 
+    SQLiteCpp sqlite3
     discord-rpc fftw3f
     tomcrypt libtommath
     zlib libmad pcre
@@ -67,5 +66,6 @@ list(APPEND EXT_TARGETS
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 
-set_property(TARGET ${EXT_TARGETS} PROPERTY FOLDER "External Libraries") # Sort all extern libraries to a IDE folder/filter
+## Sort all extern libraries to a IDE folder/filter
+set_property(TARGET ${EXT_TARGETS} PROPERTY FOLDER "External Libraries")
 set_property(TARGET ${LUA_TARGETS} PROPERTY FOLDER "External Libraries/Lua 5.1")
