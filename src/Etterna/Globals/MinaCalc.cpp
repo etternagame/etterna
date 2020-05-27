@@ -1062,21 +1062,16 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
-inline bool
-is_in(const unsigned& id, const unsigned& notes)
-{
-	return notes & id;
-};
-
-inline bool
+// these all operate on noteinfo.notes
+ inline bool
 is_jack_at_col(const unsigned& id,
 			   const unsigned& row_notes,
 			   const unsigned& last_row_notes)
 {
-	return is_in(id, row_notes) && is_in(id, last_row_notes);
+	return id & row_notes && id & last_row_notes;
 };
 
-inline bool
+ inline bool
 num_jacks(const unsigned& a, const unsigned& b)
 {
 	int n = 0;
@@ -1455,7 +1450,7 @@ struct metanoteinfo
 	{
 
 		last_was_offhand_tap = last.col == col_empty;
-		set_col_and_cc_types(is_in(t1, notes), is_in(t2, notes), last.col);
+		set_col_and_cc_types(t1 & notes, t2 & notes, last.col);
 		row_count = column_count(notes);
 		row_notes = notes;
 		row_time = now;
