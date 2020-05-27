@@ -2036,6 +2036,7 @@ struct WideRangeJumptrillMod
 	bool dbg = false;
 	const vector<int> _pmods = { WideRangeJumptrill };
 	const std::string name = "WideRangeJumptrillMod";
+	const int _primary = _pmods.front();
 
 	deque<int> itv_taps;
 	deque<int> itv_ccacc;
@@ -2238,7 +2239,7 @@ struct WideRangeJumptrillMod
 			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_pmods.front()][i] = pmod;
+		doot[_primary][i] = pmod;
 
 		// we could count these in metanoteinfo but let's do it here for now,
 		// reset every interval when finished
@@ -2409,7 +2410,8 @@ struct HSMod
 {
 
 	const std::string name = "HSMod";
-	unsigned _tap_size = hand;
+	const int _tap_size = hand;
+	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
