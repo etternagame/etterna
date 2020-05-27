@@ -1845,7 +1845,6 @@ struct RunningManMod
 		{ "oht_bonus_base", &oht_bonus_base }
 	};
 #pragma endregion params and param map
-
 	// stuff for making mod
 	float total_prop = 0.f;
 	float off_tap_prop = 0.f;
@@ -2056,7 +2055,6 @@ struct WideRangeJumptrillMod
 		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
 	};
 #pragma endregion params and param map
-
 	int ccacc_counter = 0;
 	int crop_circles = 0;
 	float pmod = min_mod;
@@ -2274,7 +2272,7 @@ struct JSMod
 
 	float decay_factor = 0.05f;
 
-	std::map<std::string, float*> param_map{
+	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2297,14 +2295,13 @@ struct JSMod
 		{ "decay_factor", &decay_factor },
 	};
 #pragma endregion params and param map
-
 	float total_prop = 0.f;
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
 	float pmod = min_mod;
 	float t_taps = 0.f;
-
+#pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
@@ -2316,7 +2313,6 @@ struct JSMod
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
 	};
-
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
@@ -2326,13 +2322,12 @@ struct JSMod
 	{
 		Smooth(doot[_primary], 0.f);
 	};
-
 	inline void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	};
-
+#pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
 										  const size_t& i)
@@ -2352,7 +2347,6 @@ struct JSMod
 		}
 		return false;
 	};
-
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -2431,7 +2425,7 @@ struct HSMod
 
 	float decay_factor = 0.05f;
 
-	std::map<std::string, float*> param_map{
+	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2455,14 +2449,12 @@ struct HSMod
 		{ "decay_factor", &decay_factor },
 	};
 #pragma endregion params and param map
-
 	float total_prop = 0.f;
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
 	float pmod = min_mod;
 	float t_taps = 0.f;
-
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2490,7 +2482,6 @@ struct HSMod
 		last_mod = pmod;
 	};
 #pragma endregion
-
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
 										  const size_t& i)
@@ -2510,7 +2501,6 @@ struct HSMod
 		}
 		return false;
 	};
-
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -2518,33 +2508,32 @@ struct HSMod
 		if (handle_case_optimizations(mni, doot, i))
 			return;
 
+		t_taps = static_cast<float>(mni.total_taps);
+
 		// when bark of dog into canyon scream at you
-		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
+		total_prop =
+		  total_prop_base +
+		  (static_cast<float>(mni.taps_by_size[_tap_size] + prop_buffer) /
+		   (t_taps - prop_buffer) * total_prop_scaler);
+		total_prop =
+		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
-		// same as js
-		jumptrill_prop = pmod_prop(split_hand_pool,
-								   mni.not_hs,
-								   mni.total_taps,
-								   split_hand_scaler,
-								   split_hand_min,
-								   split_hand_max);
+		// downscale jumptrills for hs as well
+		jumptrill_prop =
+		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_hs) / t_taps),
+					split_hand_min,
+					split_hand_max);
 
-		// downscale by jack density rather than upscale, like cj
-		jack_prop = pmod_prop(jack_pool,
-							  mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max);
+		// downscale by jack density rather than upscale, like cj does
+		jack_prop =
+		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) / t_taps),
+					jack_min,
+					jack_max);
+		// clamp the original prop mod first before applying
+		// above
 
-		// seems kinda messy but was old behavior
-		pmod = CalcClamp(sqrt(total_prop), min_mod, max_mod);
-		pmod = CalcClamp(
-		  total_prop /** jumptrill_prop * jack_prop*/, min_mod, max_mod);
+		pmod =
+		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
 		// actual mod
 		doot[_primary][i] = pmod;
