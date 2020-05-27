@@ -1814,7 +1814,7 @@ struct RunningManMod
 	float min_oht_taps_for_bonus = 1.f;
 	float oht_bonus_base = 0.1f;
 
-	std::map<std::string, float*> param_map{
+	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -1855,7 +1855,7 @@ struct RunningManMod
 	float oht_bonus = 0.f;
 	float pmod = min_mod;
 	int test = 0;
-
+#pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// don't try to figure out which column a prospective anchor is on, just
@@ -1867,31 +1867,21 @@ struct RunningManMod
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
+	inline void min_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = min_mod;
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
 	};
-
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
+	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = neutral;
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 0.f);
 	};
+#pragma endregion
 	inline void advance_sequencing(const metanoteinfo& mni)
 	{
 		for (auto& rm : rms)
@@ -1915,14 +1905,18 @@ struct RunningManMod
 										  vector<float> doot[],
 										  const size_t& i)
 	{
+		// we could decay in this but it may conflict/be redundant with how
+		// runningmen sequences are constructed, if decays are used we would
+		// probably generate the mod not from the highest of any interval, but
+		// from whatever sequences are still alive by the end
 		if (rm.anchor_len < min_anchor_len) {
-			min_set(doot, i, true);
+			min_set(doot, i);
 			return true;
 		} else if (rm.ran_taps < min_taps_in_rm) {
-			min_set(doot, i, true);
+			min_set(doot, i);
 			return true;
 		} else if (rm.off_taps_same < min_off_taps_same) {
-			min_set(doot, i, true);
+			neutral_set(doot, i);
 			return true;
 		}
 		return false;
@@ -1960,6 +1954,9 @@ struct RunningManMod
 		const auto& rm = interval_highest;
 		if (handle_case_optimizations(rm, doot, i))
 			return;
+
+		// the pmod template stuff completely broke the js/hs/cj mods.. so..
+		// these might also be broken... investigate later
 
 		// taps in runningman / total taps in interval... i think? can't
 		// remember when i reset total taps tbh.. this might be useless
@@ -2029,7 +2026,6 @@ struct RunningManMod
 		interval_highest.reset();
 	};
 };
-
 // probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
@@ -2305,6 +2301,7 @@ struct JSMod
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
 	float pmod = min_mod;
+	float t_taps = 0.f;
 
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2361,18 +2358,19 @@ struct JSMod
 		if (handle_case_optimizations(mni, doot, i))
 			return;
 
+		t_taps = static_cast<float>(mni.total_taps);
+
 		// creepy banana
 		total_prop =
 		  static_cast<float>(mni.taps_by_size[_tap_size] + prop_buffer) /
-		  static_cast<float>(mni.total_taps - prop_buffer) * total_prop_scaler;
+		  (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
 		jumptrill_prop =
-		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_js) /
-									   static_cast<float>(mni.total_taps)),
+		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_js) / t_taps),
 					split_hand_min,
 					split_hand_max);
 
@@ -2381,8 +2379,7 @@ struct JSMod
 		// this but handling it here gives us more flexbility
 		// with the ohjump mod
 		jack_prop =
-		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) /
-								 static_cast<float>(mni.total_taps)),
+		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) / t_taps),
 					jack_min,
 					jack_max);
 
@@ -2418,6 +2415,7 @@ struct HSMod
 	float total_prop_min = 0.f;
 	float total_prop_max = 1.f;
 	float total_prop_scaler = 4.571f; // ~32/7
+	float total_prop_base = 0.4f;
 
 	float split_hand_pool = 1.45f;
 	float split_hand_min = 0.89f;
@@ -2440,6 +2438,7 @@ struct HSMod
 		{ "total_prop_scaler", &total_prop_scaler },
 		{ "total_prop_min", &total_prop_min },
 		{ "total_prop_max", &total_prop_max },
+		{ "total_prop_base", &total_prop_base },
 
 		{ "split_hand_pool", &split_hand_pool },
 		{ "split_hand_min", &split_hand_min },
@@ -2460,44 +2459,35 @@ struct HSMod
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
 	float pmod = min_mod;
+	float t_taps = 0.f;
 
+#pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
+	inline void min_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = min_mod;
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
 	};
-
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
+	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_primary][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = neutral;
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 0.f);
 	};
-
 	inline void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	};
+#pragma endregion
 
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
