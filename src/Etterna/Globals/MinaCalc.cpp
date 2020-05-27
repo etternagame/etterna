@@ -1168,6 +1168,10 @@ struct metanoteinfo
 	// ms from last note in this column
 	float tc_ms = ms_init;
 
+	bool alternating_chordstream = false;
+	bool alternating_chord_single = false;
+	bool gluts_maybe = false;
+
 	// functions
 	inline void set_timings(const float cur[2],
 							const float last[2],
@@ -1235,10 +1239,6 @@ struct metanoteinfo
 	unsigned total_taps = 0;
 	unsigned chord_taps = 0;
 	unsigned taps_by_size[4] = { 0, 0, 0, 0 };
-	bool alternating_chordstream = false;
-	bool alternating_chord_single = false;
-	bool gluts_maybe = false;
-
 	unsigned shared_chord_jacks = 0;
 
 	// resets all the stuff that accumulates across intervals
