@@ -944,10 +944,13 @@ is_single_tap(const bool& a, const bool& b)
 	return a ^ b;
 }
 
+// is this actually more useful than the col check in any scenario? if not it
+// probably doesn't need to exist
 inline bool
 is_single_tap(const cc_type& cc)
 {
-	return cc == cc_left_right || cc == cc_right_left || cc == cc_jump_single;
+	return cc == cc_left_right || cc == cc_right_left ||
+		   cc == cc_single_single || cc == cc_jump_single;
 }
 
 inline bool
@@ -1125,8 +1128,10 @@ struct metanoteinfo
 	float col_time[2] = { s_init, s_init };
 
 	col_type col = col_init;
+	col_type last_col = col_init;
 	// type of cross column hit
 	cc_type cc = cc_init;
+	cc_type last_cc = cc_init;
 
 	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
 	// contains 2 metanoteinfos? ... yes... we probably do
@@ -1400,6 +1405,8 @@ struct metanoteinfo
 		row_notes = notes;
 		row_time = now;
 		last_row_notes = last.row_notes;
+		last_col = last.col;
+		last_cc = last.cc;
 
 		// run the interval aggregation after setting values and before the
 		// empty bail
@@ -1713,32 +1720,12 @@ struct PatternMod
 
 	std::map<std::string, float*> param_map;
 
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	};
-
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	};
-
 	// everyone needs one
 	float pmod = min_mod;
 
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i);
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_pmods.front()], 0.f);
-	};
 };
 
 inline void
@@ -1749,13 +1736,13 @@ PatternMod::operator()(const metanoteinfo& mni,
 	return;
 };
 
-struct RunningMen : PatternMod
+struct RunningManMod : PatternMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
 							  RanAnchLenMod, RanJack,	 RanOHT,
 							  RanOffS,		 RanPropAll,  RanPropOff,
 							  RanPropOHT,	RanPropOffS, RanPropJack };
-	const std::string name = "RunningMen";
+	const std::string name = "RunningManMod";
 	RM_Sequencing rms[2];
 	RM_Sequencing interval_highest;
 
@@ -1841,6 +1828,31 @@ struct RunningMen : PatternMod
 
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
+	};
+	inline void min_set(vector<float> doot[],
+						const size_t& i,
+						bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[],
+							const size_t& i,
+							bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_pmods.front()], 0.f);
 	};
 	inline void advance_sequencing(const metanoteinfo& mni)
 	{
@@ -2036,11 +2048,37 @@ struct JSMod : PatternMod
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
+
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
+	};
+	inline void min_set(vector<float> doot[],
+						const size_t& i,
+						bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[],
+							const size_t& i,
+							bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_pmods.front()], 0.f);
 	};
 
 	inline void decay_mod()
@@ -2178,11 +2216,37 @@ struct HSMod : PatternMod
 	float jumptrill_prop = 0.f;
 	float jack_prop = 0.f;
 	float last_mod = min_mod;
+
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
+	};
+	inline void min_set(vector<float> doot[],
+						const size_t& i,
+						bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[],
+							const size_t& i,
+							bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_pmods.front()], 0.f);
 	};
 
 	inline void decay_mod()
@@ -2325,11 +2389,38 @@ struct CJMod : PatternMod
 	float jack_prop = 0.f;
 	float not_jack_prop = 0.f;
 	float quad_prop = 0.f;
+
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
+	};
+	inline void min_set(vector<float> doot[],
+						const size_t& i,
+						bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[],
+							const size_t& i,
+							bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[CJ], 0.f);
+		Smooth(doot[CJQuad], 0.f);
 	};
 
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
@@ -2427,12 +2518,6 @@ struct CJMod : PatternMod
 		doot[CJS][i] = not_jack_prop;
 		doot[CJJ][i] = jack_prop;
 	};
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[CJ], 0.f);
-		Smooth(doot[CJQuad], 0.f);
-	};
 };
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -2453,47 +2538,19 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// so we can make pattern mods
 	vector<PatternMod*> zorp;
-	RunningMen _rm;
+	RunningManMod _rm;
+	WideRangeJumptrillMod _wrjt;
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
 
 	// we only care what last is, not what now is, this should work but it
 	// seems almost too clever and probably won't for ?? reasons
-	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
-
-	inline void handle_row_loop(const int& row)
+	inline void set_mni_last()
 	{
-		// generate current metanoteinfo using stuff + last metanoteinfo
-		_mni_now(_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
-
-		// should be self explanatory
-		handle_row_dependent_pattern_advancement();
-
-		set_mni_last();
-	};
-
-	inline void gratuitious_inline_for_inner_loop(const int& itv)
-	{
-		for (auto& row : _itv_rows[itv])
-			handle_row_loop(row);
-	};
-
-	inline void even_more_gratuitious_inline_for_outer_loop()
-	{
-		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
-			// reset the last mni interval data, since it gets used to
-			// initialize now
-			_mni_last.interval_reset();
-
-			// inner loop
-			gratuitious_inline_for_inner_loop(itv);
-
-			// set the pattern mod values by calling the mod functors
-			call_pattern_mod_functors(itv);
-		}
+		// std::swap(_mni_last, _mni_now);
+		_mni_last = _mni_now;
 	}
-
 	inline void set_members(const vector<vector<int>>& itv_rows,
 							const float& rate,
 							const unsigned& t1,
@@ -2510,36 +2567,67 @@ struct TheGreatBazoinkazoinkInTheSky
 		_t1 = t1;
 		_t2 = t2;
 	};
-
+	// HOW LOOP DESE
 	inline void run_pattern_mod_setups()
 	{
 		_rm.setup(_doot, _itv_rows.size());
 		_js.setup(_doot, _itv_rows.size());
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
+		_wrjt.setup(_doot, _itv_rows.size());
 	};
-
 	inline void run_smoothing_pass()
 	{
 		_rm.smooth_finish(_doot);
 		_js.smooth_finish(_doot);
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
+		_wrjt.smooth_finish(_doot);
 	};
-
 	inline void call_pattern_mod_functors(const int& itv)
 	{
 		_rm(_mni_now, _doot, itv);
 		_js(_mni_now, _doot, itv);
 		_hs(_mni_now, _doot, itv);
 		_cj(_mni_now, _doot, itv);
+		_wrjt(_mni_now, _doot, itv);
 	};
+	inline void handle_row_loop(const int& row)
+	{
+		// generate current metanoteinfo using stuff + last metanoteinfo
+		_mni_now(_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
+
+		// should be self explanatory
+		handle_row_dependent_pattern_advancement();
+
+		set_mni_last();
+	};
+	inline void gratuitious_inline_for_inner_loop(const int& itv)
+	{
+		for (auto& row : _itv_rows[itv])
+			handle_row_loop(row);
+	};
+	inline void even_more_gratuitious_inline_for_outer_loop()
+	{
+		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+			// reset the last mni interval data, since it gets used to
+			// initialize now
+			_mni_last.interval_reset();
+
+			// inner loop
+			gratuitious_inline_for_inner_loop(itv);
+
+			// set the pattern mod values by calling the mod functors
+			call_pattern_mod_functors(itv);
+		}
+	}
 
 	// some pattern mod detection builds across rows, see rm_sequencing for an
 	// example
-	inline void handle_row_dependent_pattern_advancement()
+	void handle_row_dependent_pattern_advancement()
 	{
 		_rm.advance_sequencing(_mni_now);
+		_wrjt.advance_sequencing(_mni_now);
 	};
 
 	inline void bazoink(const vector<NoteInfo>& ni)
@@ -2628,15 +2716,16 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		// WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate,
+		// hand.doot);
 	}
 
-	//auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	// auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	//SetHSMod(jhc_data, left_hand.doot);
-	//SetJumpMod(jhc_data, left_hand.doot);
-	//SetCJMod(jhc_data, left_hand.doot);
+	// SetHSMod(jhc_data, left_hand.doot);
+	// SetJumpMod(jhc_data, left_hand.doot);
+	// SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
@@ -3445,7 +3534,7 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 void
 SavePatternModParamXmlToDir()
 {
-	RunningMen zoop;
+	RunningManMod zoop;
 
 	std::string fn = calc_params_xml;
 	std::unique_ptr<XNode> xml(zoop.CreateParamNode());
