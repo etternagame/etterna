@@ -2635,10 +2635,6 @@ struct CJMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 0.f);
-	};
-	inline void smooth_finish(vector<float> doot[])
-	{
 		Smooth(doot[CJ], 0.f);
 		Smooth(doot[CJQuad], 0.f);
 	};
