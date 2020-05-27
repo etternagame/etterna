@@ -2007,14 +2007,14 @@ struct WideRangeJumptrillMod
 	deque<int> itv_ccacc;
 
 #pragma region params
-	float itv_window = 6;
+	float itv_window = 3;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
 	float mod_base = 0.4f;
 
 	float moving_cv_init = 0.5f;
-	float ccacc_cv_cutoff = 0.25f;
+	float ccacc_cv_cutoff = 0.5f;
 
 	std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
