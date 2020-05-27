@@ -1700,6 +1700,8 @@ struct RM_Sequencing
 	};
 };
 
+#pragma endregion
+// help i dont know what im doing 
 struct PatternMod
 {
   public:
@@ -1727,22 +1729,24 @@ struct PatternMod
 			doot[mod][i] = neutral;
 	};
 
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		// floop();
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	};
-
 	// everyone needs one
 	float pmod = min_mod;
 
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i);
-	inline void smooth_finish(vector<float> doot[]){
+	inline void smooth_finish(vector<float> doot[])
+	{
 		Smooth(doot[_pmods.front()], 0.f);
 	};
+};
+
+inline void
+PatternMod::operator()(const metanoteinfo& mni,
+					   vector<float> doot[],
+					   const size_t& i)
+{
+	return;
 };
 
 struct RunningMen : PatternMod
@@ -1871,6 +1875,7 @@ struct RunningMen : PatternMod
 			min_set(doot, i, true);
 			return true;
 		}
+		return false;
 	};
 	// uhh reminder to self to make this not load values every time thing is
 	// done and thing and stuff, probably
@@ -1974,22 +1979,461 @@ struct RunningMen : PatternMod
 		interval_highest.reset();
 	};
 };
-
-void
-SavePatternModParamXmlToDir()
+struct JSMod : PatternMod
 {
-	RunningMen zoop;
 
-	std::string fn = calc_params_xml;
-	std::unique_ptr<XNode> xml(zoop.CreateParamNode());
-	std::string err;
-	RageFile f;
-	if (!f.Open(fn, RageFile::WRITE))
-		return;
-	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
-}
-#pragma endregion
+	const vector<int> _pmods = { JS, JSS, JSJ };
+	const std::string name = "JSMod";
+	unsigned _tap_size = jump;
 
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float mod_base = 0.f;
+	float prop_buffer = 1.f;
+
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+	float total_prop_scaler = 2.714f; // ~19/7
+
+	float split_hand_pool = 1.45f;
+	float split_hand_min = 0.85f;
+	float split_hand_max = 1.f;
+	float split_hand_scaler = 1.f;
+
+	float jack_pool = 1.35f;
+	float jack_min = 0.5f;
+	float jack_max = 1.f;
+	float jack_scaler = 1.f;
+
+	float decay_factor = 0.05f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "split_hand_pool", &split_hand_pool },
+		{ "split_hand_min", &split_hand_min },
+		{ "split_hand_max", &split_hand_max },
+		{ "split_hand_scaler", &split_hand_scaler },
+
+		{ "jack_pool", &jack_pool },
+		{ "jack_min", &jack_min },
+		{ "jack_max", &jack_max },
+		{ "jack_scaler", &jack_scaler },
+
+		{ "decay_factor", &decay_factor },
+	};
+#pragma endregion params and param map
+
+	float total_prop = 0.f;
+	float jumptrill_prop = 0.f;
+	float jack_prop = 0.f;
+	float last_mod = min_mod;
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// floop();
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+
+	inline void decay_mod()
+	{
+		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
+		last_mod = pmod;
+	};
+
+	inline bool handle_case_optimizations(const metanoteinfo& mni,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// empty interval, don't decay js mod or update last_mod
+		if (mni.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// at least 1 tap but no jumps
+		if (mni.taps_by_size[_tap_size] == 0) {
+			decay_mod();
+			neutral_set(doot, i);
+			doot[_pmods.front()][i] = pmod;
+			return true;
+		}
+		return false;
+	};
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		if (handle_case_optimizations(mni, doot, i))
+			return;
+
+		// creepy banana
+		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
+							   mni.total_taps - prop_buffer,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// punish lots splithand jumptrills
+		// uhh this might also catch oh jumptrills can't remember
+		jumptrill_prop = pmod_prop(split_hand_pool,
+								   mni.not_js,
+								   mni.total_taps,
+								   split_hand_scaler,
+								   split_hand_min,
+								   split_hand_max);
+
+		// downscale by jack density rather than upscale like cj
+		// theoretically the ohjump downscaler should handle
+		// this but handling it here gives us more flexbility
+		// with the ohjump mod
+		jack_prop = pmod_prop(jack_pool,
+							  mni.actual_jacks,
+							  mni.total_taps,
+							  jack_scaler,
+							  jack_min,
+							  jack_max);
+
+		// seems kinda messy but was old behavior
+		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
+		pmod =
+		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+
+		// actual mod
+		doot[_pmods.front()][i] = pmod;
+
+		// debug
+		doot[JSS][i] = jumptrill_prop;
+		doot[JSJ][i] = jack_prop;
+
+		// set last mod, we're using it to create a decaying mod that won't
+		// result in extreme spikiness if files alternate between js and
+		// hs/stream
+		last_mod = pmod;
+	};
+};
+struct HSMod : PatternMod
+{
+
+	const vector<int> _pmods = { HS, HSS, HSJ };
+	const std::string name = "HSMod";
+	unsigned _tap_size = hand;
+
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float mod_base = 0.4f;
+	float prop_buffer = 1.f;
+
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+	float total_prop_scaler = 4.571f; // ~32/7
+
+	float split_hand_pool = 1.45f;
+	float split_hand_min = 0.89f;
+	float split_hand_max = 1.f;
+	float split_hand_scaler = 1.f;
+
+	float jack_pool = 1.35f;
+	float jack_min = 0.5f;
+	float jack_max = 1.f;
+	float jack_scaler = 1.f;
+
+	float decay_factor = 0.05f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "split_hand_pool", &split_hand_pool },
+		{ "split_hand_min", &split_hand_min },
+		{ "split_hand_max", &split_hand_max },
+		{ "split_hand_scaler", &split_hand_scaler },
+
+		{ "jack_pool", &jack_pool },
+		{ "jack_min", &jack_min },
+		{ "jack_max", &jack_max },
+		{ "jack_scaler", &jack_scaler },
+
+		{ "decay_factor", &decay_factor },
+	};
+#pragma endregion params and param map
+
+	float total_prop = 0.f;
+	float jumptrill_prop = 0.f;
+	float jack_prop = 0.f;
+	float last_mod = min_mod;
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// floop();
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+
+	inline void decay_mod()
+	{
+		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
+		last_mod = pmod;
+	};
+
+	inline bool handle_case_optimizations(const metanoteinfo& mni,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// empty interval, don't decay mod or update last_mod
+		if (mni.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// look ma no hands
+		if (mni.taps_by_size[_tap_size] == 0) {
+			decay_mod();
+			neutral_set(doot, i);
+			doot[_pmods.front()][i] = pmod;
+			return true;
+		}
+		return false;
+	};
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		if (handle_case_optimizations(mni, doot, i))
+			return;
+
+		// when bark of dog into canyon scream at you
+		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
+							   mni.total_taps - prop_buffer,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// same as js
+		jumptrill_prop = pmod_prop(split_hand_pool,
+								   mni.not_hs,
+								   mni.total_taps,
+								   split_hand_scaler,
+								   split_hand_min,
+								   split_hand_max);
+
+		// downscale by jack density rather than upscale, like cj
+		jack_prop = pmod_prop(jack_pool,
+							  mni.actual_jacks,
+							  mni.total_taps,
+							  jack_scaler,
+							  jack_min,
+							  jack_max);
+
+		// seems kinda messy but was old behavior
+		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
+		pmod =
+		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+
+		// actual mod
+		doot[_pmods.front()][i] = pmod;
+
+		// debug
+		doot[HSS][i] = jumptrill_prop;
+		doot[HSJ][i] = jack_prop;
+
+		// set last mod, we're using it to create a decaying mod that won't
+		// result in extreme spikiness if files alternate between js and
+		// hs/stream
+		last_mod = pmod;
+	};
+};
+struct CJMod : PatternMod
+{
+	bool dbg = false;
+	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
+	const std::string name = "CJMod";
+
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float mod_base = 0.4f;
+	float prop_buffer = 1.f;
+
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+	float total_prop_scaler = 5.428f; // ~38/7
+
+	float jack_base = -2.f;
+	float jack_min = 0.625f;
+	float jack_max = 1.f;
+	float jack_scaler = 1.f;
+
+	float not_jack_pool = 1.2f;
+	float not_jack_min = 0.4f;
+	float not_jack_max = 1.f;
+	float not_jack_scaler = 1.f;
+
+	float quad_pool = 1.5f;
+	float quad_min = 0.88f;
+	float quad_max = 1.f;
+	float quad_scaler = 1.f;
+
+	float vibro_flag = 0.85f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "jack_base", &jack_base },
+		{ "jack_min", &jack_min },
+		{ "jack_max", &jack_max },
+		{ "jack_scaler", &jack_scaler },
+
+		{ "not_jack_pool", &not_jack_pool },
+		{ "not_jack_min", &not_jack_min },
+		{ "not_jack_max", &not_jack_max },
+		{ "not_jack_scaler", &not_jack_scaler },
+
+		{ "quad_pool", &quad_pool },
+		{ "quad_min", &quad_min },
+		{ "quad_max", &quad_max },
+		{ "quad_scaler", &quad_scaler },
+
+		{ "vibro_flag", &vibro_flag },
+	};
+#pragma endregion params and param map
+
+	float total_prop = 0.f;
+	float jack_prop = 0.f;
+	float not_jack_prop = 0.f;
+	float quad_prop = 0.f;
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// floop();
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+
+	inline bool handle_case_optimizations(const metanoteinfo& mni,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		if (mni.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// no chords
+		if (mni.chord_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	};
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		if (handle_case_optimizations(mni, doot, i))
+			return;
+
+		// we have at least 1 chord
+		// we want to give a little leeway for single taps but
+		// not too much or sections of [12]4[123]   [123]4[23]
+		// will be flagged as chordjack when they're really just
+		// broken chordstream, and we also want to give enough
+		// leeway so that hyperdense chordjacks at lower bpms
+		// aren't automatically rated higher than more sparse
+		// jacks at higher bpms
+		total_prop = pmod_prop(mni.chord_taps + prop_buffer,
+							   mni.total_taps - prop_buffer,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// check for at least a couple jacks
+		jack_prop = pmod_prop(mni.actual_jacks,
+							  mni.total_taps,
+							  jack_scaler,
+							  jack_min,
+							  jack_max,
+							  jack_base);
+
+		// too many quads is either pure vibro or slow quadmash
+		quad_prop = pmod_prop(quad_pool,
+							  mni.taps_by_size[quad] * 4,
+							  mni.total_taps,
+							  quad_scaler,
+							  quad_min,
+							  quad_max);
+
+		// explicitly detect broken chordstream type stuff so we
+		// can give more leeway to single note jacks
+		// brop_two_return_of_brop_electric_bropaloo
+		not_jack_prop = pmod_prop(not_jack_pool,
+								  mni.definitely_not_jacks * 2,
+								  mni.total_taps,
+								  not_jack_scaler,
+								  not_jack_min,
+								  not_jack_max);
+
+		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
+		pmod = CalcClamp(total_prop * jack_prop * quad_prop, min_mod, max_mod);
+
+		// ITS JUST VIBRO THEN
+		if (mni.row_variations.size() < 3)
+			doot[_pmods.front()][i] *= vibro_flag;
+
+		/*if (dbg) {
+			std::cout << "quads: " << data.quads[i] << std::endl;
+			std::cout << "taps: " << data.taps[i] << std::endl;
+			std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
+			std::cout << "actual jacks: " << data.actual_jacks_cj[i]
+					  << std::endl;
+			std::cout << "not jacks: " << data.definitely_not_jacks[i]
+					  << std::endl;
+			std::cout << "prop: " << prop << std::endl;
+			std::cout << "brop: " << brop << std::endl;
+			std::cout << "final mod: " << doot[CJ][i] << "\n" << std::endl;
+			std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo
+					  << std::endl;
+		}*/
+
+		// actual mod
+		doot[_pmods.front()][i] = pmod;
+		// look another actual mod
+		doot[CJQuad][i] = quad_prop;
+
+		// debug
+		doot[CJS][i] = not_jack_prop;
+		doot[CJJ][i] = jack_prop;
+	};
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[CJ], 0.f);
+		Smooth(doot[CJQuad], 0.f);
+	};
+};
 struct TheGreatBazoinkazoinkInTheSky
 {
 	// don't need for now but have in case of debug need maybe
@@ -2000,26 +2444,23 @@ struct TheGreatBazoinkazoinkInTheSky
 	vector<vector<int>> _itv_rows;
 	vector<float>* _doot;
 	float _rate = 0.f;
-	unsigned int _t1 = 0;
-	unsigned int _t2 = 0;
+	unsigned _t1 = 0;
+	unsigned _t2 = 0;
 
 	// to produce these
 	metanoteinfo _mni_last;
 	metanoteinfo _mni_now;
 
 	// so we can make pattern mods
+	vector<PatternMod*> zorp;
 	RunningMen _rm;
+	JSMod _js;
+	HSMod _hs;
+	CJMod _cj;
 
 	// we only care what last is, not what now is, this should work but it
 	// seems almost too clever and probably won't for ?? reasons
 	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
-
-	// some pattern mod detection builds across rows, see rm_sequencing for an
-	// example
-	inline void handle_row_dependent_pattern_advancement()
-	{
-		_rm.advance_sequencing(_mni_now);
-	};
 
 	inline void handle_row_loop(const int& row)
 	{
@@ -2036,11 +2477,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		for (auto& row : _itv_rows[itv])
 			handle_row_loop(row);
-	};
-
-	inline void call_pattern_mod_functors(const int& itv)
-	{
-		_rm(_mni_now, _doot, itv);
 	};
 
 	inline void even_more_gratuitious_inline_for_outer_loop()
@@ -2060,8 +2496,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_members(const vector<vector<int>>& itv_rows,
 							const float& rate,
-							const unsigned int& t1,
-							const unsigned int& t2,
+							const unsigned& t1,
+							const unsigned& t2,
 							vector<float> doot[])
 	{
 		// change with offset, if we do multi offset passes we want this to
@@ -2078,9 +2514,33 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void run_pattern_mod_setups()
 	{
 		_rm.setup(_doot, _itv_rows.size());
+		_js.setup(_doot, _itv_rows.size());
+		_hs.setup(_doot, _itv_rows.size());
+		_cj.setup(_doot, _itv_rows.size());
 	};
 
-	inline void run_smoothing_pass() { _rm.smooth_finish(_doot); };
+	inline void run_smoothing_pass()
+	{
+		_rm.smooth_finish(_doot);
+		_js.smooth_finish(_doot);
+		_hs.smooth_finish(_doot);
+		_cj.smooth_finish(_doot);
+	};
+
+	inline void call_pattern_mod_functors(const int& itv)
+	{
+		_rm(_mni_now, _doot, itv);
+		_js(_mni_now, _doot, itv);
+		_hs(_mni_now, _doot, itv);
+		_cj(_mni_now, _doot, itv);
+	};
+
+	// some pattern mod detection builds across rows, see rm_sequencing for an
+	// example
+	inline void handle_row_dependent_pattern_advancement()
+	{
+		_rm.advance_sequencing(_mni_now);
+	};
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
@@ -2171,12 +2631,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 	}
 
-	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	//auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	SetHSMod(jhc_data, left_hand.doot);
-	SetJumpMod(jhc_data, left_hand.doot);
-	SetCJMod(jhc_data, left_hand.doot);
+	//SetHSMod(jhc_data, left_hand.doot);
+	//SetJumpMod(jhc_data, left_hand.doot);
+	//SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
@@ -2982,450 +3442,22 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 
 	return data;
 }
-
-struct JSMod : PatternMod
+void
+SavePatternModParamXmlToDir()
 {
-
-	const vector<int> _pmods = { JS, JSS, JSJ };
-	const std::string name = "JSMod";
-	unsigned _tap_size = jump;
-
-#pragma region params
-	float min_mod = 0.6f;
-	float max_mod = 1.1f;
-	float mod_base = 0.f;
-	float prop_buffer = 1.f;
-
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
-	float total_prop_scaler = 2.714f; // ~19/7
-
-	float split_hand_pool = 1.45f;
-	float split_hand_min = 0.85f;
-	float split_hand_max = 1.f;
-	float split_hand_scaler = 1.f;
-
-	float jack_pool = 1.35f;
-	float jack_min = 0.5f;
-	float jack_max = 1.f;
-	float jack_scaler = 1.f;
-
-	float decay_factor = 0.05f;
-
-	std::map<std::string, float*> param_map{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-		{ "prop_buffer", &prop_buffer },
-
-		{ "total_prop_scaler", &total_prop_scaler },
-		{ "total_prop_min", &total_prop_min },
-		{ "total_prop_max", &total_prop_max },
-
-		{ "split_hand_pool", &split_hand_pool },
-		{ "split_hand_min", &split_hand_min },
-		{ "split_hand_max", &split_hand_max },
-		{ "split_hand_scaler", &split_hand_scaler },
-
-		{ "jack_pool", &jack_pool },
-		{ "jack_min", &jack_min },
-		{ "jack_max", &jack_max },
-		{ "jack_scaler", &jack_scaler },
-
-		{ "decay_factor", &decay_factor },
-	};
-#pragma endregion params and param map
-
-	float total_prop = 0.f;
-	float jumptrill_prop = 0.f;
-	float jack_prop = 0.f;
-	float last_mod = min_mod;
-
-	inline void decay_mod()
-	{
-		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
-		last_mod = pmod;
-	};
-
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
-										  vector<float> doot[],
-										  const size_t& i)
-	{
-		// empty interval, don't decay js mod or update last_mod
-		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-
-		// at least 1 tap but no jumps
-		if (mni.taps_by_size[_tap_size] == 0) {
-			decay_mod();
-			neutral_set(doot, i);
-			doot[_pmods.front()][i] = pmod;
-			return true;
-		}
-		return false;
-	};
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-		if (handle_case_optimizations(mni, doot, i))
-			return;
-
-		// creepy banana
-		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
-
-		// punish lots splithand jumptrills
-		// uhh this might also catch oh jumptrills can't remember
-		jumptrill_prop = pmod_prop(split_hand_pool,
-								   mni.not_js,
-								   mni.total_taps,
-								   split_hand_scaler,
-								   split_hand_min,
-								   split_hand_max);
-
-		// downscale by jack density rather than upscale like cj
-		// theoretically the ohjump downscaler should handle
-		// this but handling it here gives us more flexbility
-		// with the ohjump mod
-		jack_prop = pmod_prop(jack_pool,
-							  mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max);
-
-		// seems kinda messy but was old behavior
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod =
-		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
-
-		// actual mod
-		doot[_pmods.front()][i] = pmod;
-
-		// debug
-		doot[JSS][i] = jumptrill_prop;
-		doot[JSJ][i] = jack_prop;
-
-		// set last mod, we're using it to create a decaying mod that won't
-		// result in extreme spikiness if files alternate between js and
-		// hs/stream
-		last_mod = pmod;
-	};
-};
-struct HSMod : PatternMod
-{
-
-	const vector<int> _pmods = { HS, HSS, HSJ };
-	const std::string name = "HSMod";
-	unsigned _tap_size = hand;
-
-#pragma region params
-	float min_mod = 0.6f;
-	float max_mod = 1.1f;
-	float mod_base = 0.4f;
-	float prop_buffer = 1.f;
-
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
-	float total_prop_scaler = 4.571f; // ~32/7
-
-	float split_hand_pool = 1.45f;
-	float split_hand_min = 0.89f;
-	float split_hand_max = 1.f;
-	float split_hand_scaler = 1.f;
-
-	float jack_pool = 1.35f;
-	float jack_min = 0.5f;
-	float jack_max = 1.f;
-	float jack_scaler = 1.f;
-
-	float decay_factor = 0.05f;
-
-	std::map<std::string, float*> param_map{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-		{ "prop_buffer", &prop_buffer },
-
-		{ "total_prop_scaler", &total_prop_scaler },
-		{ "total_prop_min", &total_prop_min },
-		{ "total_prop_max", &total_prop_max },
-
-		{ "split_hand_pool", &split_hand_pool },
-		{ "split_hand_min", &split_hand_min },
-		{ "split_hand_max", &split_hand_max },
-		{ "split_hand_scaler", &split_hand_scaler },
-
-		{ "jack_pool", &jack_pool },
-		{ "jack_min", &jack_min },
-		{ "jack_max", &jack_max },
-		{ "jack_scaler", &jack_scaler },
-
-		{ "decay_factor", &decay_factor },
-	};
-#pragma endregion params and param map
-
-	float total_prop = 0.f;
-	float jumptrill_prop = 0.f;
-	float jack_prop = 0.f;
-	float last_mod = min_mod;
-
-	inline void decay_mod()
-	{
-		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
-		last_mod = pmod;
-	};
-
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
-										  vector<float> doot[],
-										  const size_t& i)
-	{
-		// empty interval, don't decay mod or update last_mod
-		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-
-		// look ma no hands
-		if (mni.taps_by_size[_tap_size] == 0) {
-			decay_mod();
-			neutral_set(doot, i);
-			doot[_pmods.front()][i] = pmod;
-			return true;
-		}
-		return false;
-	};
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-		if (handle_case_optimizations(mni, doot, i))
-			return;
-
-		// when bark of dog into canyon scream at you
-		total_prop = pmod_prop(mni.taps_by_size[_tap_size] + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
-
-		// same as js
-		jumptrill_prop = pmod_prop(split_hand_pool,
-								   mni.not_hs,
-								   mni.total_taps,
-								   split_hand_scaler,
-								   split_hand_min,
-								   split_hand_max);
-
-		// downscale by jack density rather than upscale, like cj
-		jack_prop = pmod_prop(jack_pool,
-							  mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max);
-
-		// seems kinda messy but was old behavior
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod =
-		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
-
-		// actual mod
-		doot[_pmods.front()][i] = pmod;
-
-		// debug
-		doot[HSS][i] = jumptrill_prop;
-		doot[HSJ][i] = jack_prop;
-
-		// set last mod, we're using it to create a decaying mod that won't
-		// result in extreme spikiness if files alternate between js and
-		// hs/stream
-		last_mod = pmod;
-	};
-};
-struct CJMod : PatternMod
-{
-	bool dbg = false;
-	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
-	const std::string name = "CJMod";
-
-#pragma region params
-	float min_mod = 0.6f;
-	float max_mod = 1.1f;
-	float mod_base = 0.4f;
-	float prop_buffer = 1.f;
-
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
-	float total_prop_scaler = 5.428f; // ~38/7
-
-	float jack_base = -2.f;
-	float jack_min = 0.625f;
-	float jack_max = 1.f;
-	float jack_scaler = 1.f;
-
-	float not_jack_pool = 1.2f;
-	float not_jack_min = 0.4f;
-	float not_jack_max = 1.f;
-	float not_jack_scaler = 1.f;
-
-	float quad_pool = 1.5f;
-	float quad_min = 0.88f;
-	float quad_max = 1.f;
-	float quad_scaler = 1.f;
-
-	float vibro_flag = 0.85f;
-
-	std::map<std::string, float*> param_map{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-		{ "prop_buffer", &prop_buffer },
-
-		{ "total_prop_scaler", &total_prop_scaler },
-		{ "total_prop_min", &total_prop_min },
-		{ "total_prop_max", &total_prop_max },
-
-		{ "jack_base", &jack_base },
-		{ "jack_min", &jack_min },
-		{ "jack_max", &jack_max },
-		{ "jack_scaler", &jack_scaler },
-
-		{ "not_jack_pool", &not_jack_pool},
-		{ "not_jack_min", &not_jack_min },
-		{ "not_jack_max", &not_jack_max },
-		{ "not_jack_scaler", &not_jack_scaler },
-
-		{ "quad_pool", &quad_pool },
-		{ "quad_min", &quad_min },
-		{ "quad_max", &quad_max },
-		{ "quad_scaler", &quad_scaler },
-
-		{ "vibro_flag", &vibro_flag },
-	};
-#pragma endregion params and param map
-
-	float total_prop = 0.f;
-	float jack_prop = 0.f;
-	float not_jack_prop = 0.f;
-	float quad_prop = 0.f;
-
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
-										  vector<float> doot[],
-										  const size_t& i)
-	{
-		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-
-		// no chords
-		if (mni.chord_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-		return false;
-	};
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-		if (handle_case_optimizations(mni, doot, i))
-			return;
-
-		// we have at least 1 chord
-		// we want to give a little leeway for single taps but
-		// not too much or sections of [12]4[123]   [123]4[23]
-		// will be flagged as chordjack when they're really just
-		// broken chordstream, and we also want to give enough
-		// leeway so that hyperdense chordjacks at lower bpms
-		// aren't automatically rated higher than more sparse
-		// jacks at higher bpms
-		total_prop = pmod_prop(mni.chord_taps + prop_buffer,
-							   mni.total_taps - prop_buffer,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
-
-		// check for at least a couple jacks
-		jack_prop = pmod_prop(mni.actual_jacks,
-							  mni.total_taps,
-							  jack_scaler,
-							  jack_min,
-							  jack_max,
-							  jack_base);
-
-		// too many quads is either pure vibro or slow quadmash
-		quad_prop = pmod_prop(quad_pool,
-							  mni.taps_by_size[quad] * 4,
-							  mni.total_taps,
-							  quad_scaler,
-							  quad_min,
-							  quad_max);
-
-		// explicitly detect broken chordstream type stuff so we
-		// can give more leeway to single note jacks
-		// brop_two_return_of_brop_electric_bropaloo
-		not_jack_prop = pmod_prop(not_jack_pool,
-							  mni.definitely_not_jacks * 2,
-							  mni.total_taps,
-							  not_jack_scaler,
-							  not_jack_min,
-							  not_jack_max);
-
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod =
-		  CalcClamp(total_prop * jack_prop * quad_prop, min_mod, max_mod);
-
-		// ITS JUST VIBRO THEN
-		if (mni.row_variations.size() < 3)
-			doot[_pmods.front()][i] *= vibro_flag;
-
-		/*if (dbg) {
-			std::cout << "quads: " << data.quads[i] << std::endl;
-			std::cout << "taps: " << data.taps[i] << std::endl;
-			std::cout << "bruh quads: " << bruh_too_many_quads << std::endl;
-			std::cout << "actual jacks: " << data.actual_jacks_cj[i]
-					  << std::endl;
-			std::cout << "not jacks: " << data.definitely_not_jacks[i]
-					  << std::endl;
-			std::cout << "prop: " << prop << std::endl;
-			std::cout << "brop: " << brop << std::endl;
-			std::cout << "final mod: " << doot[CJ][i] << "\n" << std::endl;
-			std::cout << "brop2: " << brop_two_return_of_brop_electric_bropaloo
-					  << std::endl;
-		}*/
-
-		// actual mod
-		doot[_pmods.front()][i] = pmod;
-		// look another actual mod
-		doot[CJQuad][i] = quad_prop;
-
-		// debug
-		doot[CJS][i] = not_jack_prop;
-		doot[CJJ][i] = jack_prop;
-	};
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[CJ], 0.f);
-		Smooth(doot[CJQuad], 0.f);
-	};
-};
-
-
+	RunningMen zoop;
+
+	std::string fn = calc_params_xml;
+	std::unique_ptr<XNode> xml(zoop.CreateParamNode());
+	std::string err;
+	RageFile f;
+	if (!f.Open(fn, RageFile::WRITE))
+		return;
+	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+}
 
 void
-Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
+Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[])
 {
 	const bool dbg = false && debugmode;
 	doot[JS].resize(nervIntervals.size());
@@ -3487,7 +3519,7 @@ Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 }
 
 void
-Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
+Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[])
 {
 	const bool dbg = false && debugmode;
 	doot[HS].resize(nervIntervals.size());
@@ -3544,7 +3576,7 @@ Calc::SetHSMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 // depress cj rating for non-cj stuff and boost cj rating for cj
 // stuff
 void
-Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
+Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[])
 {
 	const bool dbg = false && debugmode;
 	doot[CJ].resize(nervIntervals.size());
@@ -3576,7 +3608,6 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 			  1.5f - (static_cast<float>(data.quads[i] * 4) /
 					  static_cast<float>(data.taps[i]));
 			bruh_too_many_quads = CalcClamp(bruh_too_many_quads, 0.88f, 1.f);
-
 
 			float brop_two_return_of_brop_electric_bropaloo = CalcClamp(
 			  1.2f - (static_cast<float>(data.definitely_not_jacks[i] * 2) /
@@ -3629,7 +3660,7 @@ Calc::SetCJMod(const JumpHandChordData& data, vector<float> doot[ModCount])
 // a pretty hackjobjob
 void
 Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
-				   vector<float> doot[ModCount],
+				   vector<float> doot[],
 				   float music_rate)
 {
 	doot[StreamMod].resize(nervIntervals.size());
@@ -3819,7 +3850,7 @@ void
 Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 				   unsigned int firstNote,
 				   unsigned int secondNote,
-				   vector<float> doot[ModCount])
+				   vector<float> doot[])
 {
 	doot[Anchor].resize(nervIntervals.size());
 
@@ -3862,7 +3893,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							   unsigned int t1,
 							   unsigned int t2,
 							   float music_rate,
-							   vector<float> doot[ModCount])
+							   vector<float> doot[])
 {
 	doot[Roll].resize(nervIntervals.size());
 	doot[OHJump].resize(nervIntervals.size());
