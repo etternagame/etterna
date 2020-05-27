@@ -1302,7 +1302,8 @@ struct metanoteinfo
 		if (twas_jack)
 			++actual_jacks_cj;
 	};
-	inline void update_row_variations_and_set_vibro_flag() {
+	inline void update_row_variations_and_set_vibro_flag()
+	{
 		// already determined there's enough variation in this interval
 		if (!basically_vibro)
 			return;
@@ -1318,13 +1319,15 @@ struct metanoteinfo
 			} else if (t == 0) {
 				// nothing stored here and isn't a duplicate, store it
 				t = row_notes;
+
+				// check if we filled the array with unique values. since we
+				// start by assuming anything is basically vibro, set the flag
+				// to false if it is
+				if (row_variations[2] != 0)
+					basically_vibro = false;
+				return;
 			}
 		}
-
-		// we filled the array with unique values. since we start by assuming
-		// anything is basically vibro, set the flag to false
-		if (row_variations[2] != 0)
-			basically_vibro = false;
 	};
 	// will need last for last.last_row_notes
 	inline void thing(const metanoteinfo& last)
@@ -1774,8 +1777,10 @@ struct RunningManMod
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
 							  RanAnchLenMod, RanJack,	 RanOHT,
 							  RanOffS,		 RanPropAll,  RanPropOff,
-							  RanPropOHT,	RanPropOffS, RanPropJack };
+								   RanPropOHT,	RanPropOffS, RanPropJack };
 	const std::string name = "RunningManMod";
+	const int _primary = _pmods.front();
+
 	RM_Sequencing rms[2];
 	RM_Sequencing interval_highest;
 
@@ -1867,7 +1872,7 @@ struct RunningManMod
 						bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = min_mod;
@@ -1878,14 +1883,14 @@ struct RunningManMod
 							bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_pmods.front()], 0.f);
+		Smooth(doot[_primary], 0.f);
 	};
 	inline void advance_sequencing(const metanoteinfo& mni)
 	{
@@ -2005,7 +2010,7 @@ struct RunningManMod
 		  max_mod);
 
 		// actual used mod
-		doot[_pmods.front()][i] = pmod;
+		doot[_primary][i] = pmod;
 
 		// debug
 		doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
@@ -2073,30 +2078,19 @@ struct WideRangeJumptrillMod
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
+	inline void min_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_pmods.front()][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = min_mod;
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
 	};
-
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
+	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_pmods.front()][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = neutral;
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_pmods.front()], 0.f);
+		Smooth(doot[_primary], 0.f);
 	};
 	inline void reset_sequence()
 	{
@@ -2220,7 +2214,7 @@ struct WideRangeJumptrillMod
 		}
 
 		itv_taps.push_back(mni.total_taps);
-		itv_ccacc.push_back(max(ccacc_counter - 1, 0));
+		itv_ccacc.push_back(ccacc_counter);
 
 		if (ccacc_counter > 0)
 			++crop_circles;
@@ -2256,7 +2250,8 @@ struct JSMod
 
 	const vector<int> _pmods = { JS, JSS, JSJ };
 	const std::string name = "JSMod";
-	unsigned _tap_size = jump;
+	const int _tap_size = jump;
+	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2316,30 +2311,20 @@ struct JSMod
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
-	inline void min_set(vector<float> doot[],
-						const size_t& i,
-						bool only_main = false)
+	inline void min_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_pmods.front()][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = min_mod;
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
 	};
 
-	inline void neutral_set(vector<float> doot[],
-							const size_t& i,
-							bool only_main = false)
+	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
-		if (only_main)
-			doot[_pmods.front()][i] = neutral;
-		else
-			for (auto& mod : _pmods)
-				doot[mod][i] = neutral;
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_pmods.front()], 0.f);
+		Smooth(doot[_primary], 0.f);
 	};
 
 	inline void decay_mod()
@@ -2362,7 +2347,7 @@ struct JSMod
 		if (mni.taps_by_size[_tap_size] == 0) {
 			decay_mod();
 			neutral_set(doot, i);
-			doot[_pmods.front()][i] = pmod;
+			doot[_primary][i] = pmod;
 			return true;
 		}
 		return false;
@@ -2423,7 +2408,6 @@ struct JSMod
 struct HSMod
 {
 
-	const vector<int> _pmods = { HS, HSS, HSJ };
 	const std::string name = "HSMod";
 	unsigned _tap_size = hand;
 
@@ -2490,7 +2474,7 @@ struct HSMod
 						bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = min_mod;
@@ -2501,14 +2485,14 @@ struct HSMod
 							bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = neutral;
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_pmods.front()], 0.f);
+		Smooth(doot[_primary], 0.f);
 	};
 
 	inline void decay_mod()
@@ -2531,7 +2515,7 @@ struct HSMod
 		if (mni.taps_by_size[_tap_size] == 0) {
 			decay_mod();
 			neutral_set(doot, i);
-			doot[_pmods.front()][i] = pmod;
+			doot[_primary][i] = pmod;
 			return true;
 		}
 		return false;
@@ -2568,12 +2552,12 @@ struct HSMod
 							  jack_max);
 
 		// seems kinda messy but was old behavior
-		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod =
-		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+		pmod = CalcClamp(sqrt(total_prop), min_mod, max_mod);
+		pmod = CalcClamp(
+		  total_prop /** jumptrill_prop * jack_prop*/, min_mod, max_mod);
 
 		// actual mod
-		doot[_pmods.front()][i] = pmod;
+		doot[_primary][i] = pmod;
 
 		// debug
 		doot[HSS][i] = jumptrill_prop;
@@ -2590,6 +2574,7 @@ struct CJMod
 	bool dbg = false;
 	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
 	const std::string name = "CJMod";
+	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2664,7 +2649,7 @@ struct CJMod
 						bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = min_mod;
@@ -2675,7 +2660,7 @@ struct CJMod
 							bool only_main = false)
 	{
 		if (only_main)
-			doot[_pmods.front()][i] = neutral;
+			doot[_primary][i] = neutral;
 		else
 			for (auto& mod : _pmods)
 				doot[mod][i] = neutral;
@@ -2751,11 +2736,13 @@ struct CJMod
 								  not_jack_max);
 
 		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
-		pmod = CalcClamp(total_prop * jack_prop * quad_prop, min_mod, max_mod);
+		pmod = CalcClamp(total_prop /** jack_prop * quad_prop * not_jack_prop*/,
+						 min_mod,
+						 max_mod);
 
 		// ITS JUST VIBRO THEN
 		if (mni.basically_vibro)
-			doot[_pmods.front()][i] *= vibro_flag;
+			doot[_primary][i] *= vibro_flag;
 
 		/*if (dbg) {
 			std::cout << "quads: " << data.quads[i] << std::endl;
@@ -2773,7 +2760,7 @@ struct CJMod
 		}*/
 
 		// actual mod
-		doot[_pmods.front()][i] = pmod;
+		doot[_primary][i] = pmod;
 		// look another actual mod
 		doot[CJQuad][i] = quad_prop;
 
@@ -2784,6 +2771,7 @@ struct CJMod
 };
 struct TheGreatBazoinkazoinkInTheSky
 {
+	bool dbg = false;
 	// don't need for now but have in case of debug need maybe
 	vector<vector<metanoteinfo>> _mni_vec;
 
