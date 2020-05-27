@@ -2763,8 +2763,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	unsigned _t2 = 0;
 
 	// to produce these
-	metanoteinfo _mni_last;
-	metanoteinfo _mni_now;
+	unique_ptr<metanoteinfo> _mni_last;
+	unique_ptr<metanoteinfo> _mni_now;
 
 	// so we can make pattern mods
 	RunningManMod _rm;
@@ -2777,25 +2777,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	// seems almost too clever and probably won't for ?? reasons
 	inline void set_mni_last()
 	{
-		// std::swap(_mni_last, _mni_now);
-		_mni_last = _mni_now;
+		std::swap(_mni_last, _mni_now);
 	}
-	inline void set_members(const vector<vector<int>>& itv_rows,
-							const float& rate,
-							const unsigned& t1,
-							const unsigned& t2,
-							vector<float> doot[])
-	{
-		// change with offset, if we do multi offset passes we want this to
-		// be vars, but we aren't doing it now
-		_rate = rate;
-		_itv_rows = itv_rows;
-		_doot = doot;
-
-		// changes with hand
-		_t1 = t1;
-		_t2 = t2;
-	};
 	// HOW LOOP DESE
 	inline void run_pattern_mod_setups()
 	{
@@ -2815,65 +2798,46 @@ struct TheGreatBazoinkazoinkInTheSky
 	};
 	inline void call_pattern_mod_functors(const int& itv)
 	{
-		_rm(_mni_now, _doot, itv);
-		_js(_mni_now, _doot, itv);
-		_hs(_mni_now, _doot, itv);
-		_cj(_mni_now, _doot, itv);
-		_wrjt(_mni_now, _doot, itv);
+		_rm(*_mni_now, _doot, itv);
+		_js(*_mni_now, _doot, itv);
+		_hs(*_mni_now, _doot, itv);
+		_cj(*_mni_now, _doot, itv);
+		_wrjt(*_mni_now, _doot, itv);
 	};
-	inline void handle_row_loop(const int& row)
-	{
-		// generate current metanoteinfo using stuff + last metanoteinfo
-		_mni_now(_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
-
-		// should be self explanatory
-		handle_row_dependent_pattern_advancement();
-
-		set_mni_last();
-	};
-	inline void gratuitious_inline_for_inner_loop(const int& itv)
-	{
-		for (auto& row : _itv_rows[itv])
-			handle_row_loop(row);
-	};
-	inline void even_more_gratuitious_inline_for_outer_loop()
-	{
-		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
-			// reset the last mni interval data, since it gets used to
-			// initialize now
-			_mni_last.interval_reset();
-
-			// inner loop
-			gratuitious_inline_for_inner_loop(itv);
-
-			// set the pattern mod values by calling the mod functors
-			call_pattern_mod_functors(itv);
-		}
-	}
 
 	// some pattern mod detection builds across rows, see rm_sequencing for an
 	// example
 	void handle_row_dependent_pattern_advancement()
 	{
-		_rm.advance_sequencing(_mni_now);
-		_wrjt.advance_sequencing(_mni_now);
+		_rm.advance_sequencing(*_mni_now);
+		_wrjt.advance_sequencing(*_mni_now);
 	};
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
 		// probably should load params here or something
+		_mni_last = std::make_unique<metanoteinfo>();
+		_mni_now = std::make_unique<metanoteinfo>();
 
 		// doesn't change with offset or anything
 		_ni = ni;
 	};
 
-	inline void operator()(const vector<vector<int>>& itv_rows,
+	void operator()(const vector<vector<int>>& itv_rows,
 						   const float& rate,
 						   const unsigned int& t1,
 						   const unsigned int& t2,
 						   vector<float> doot[])
 	{
-		set_members(itv_rows, rate, t1, t2, doot);
+		// change with offset, if we do multi offset passes we want this to
+		// be vars, but we aren't doing it now
+		_rate = rate;
+		_itv_rows = itv_rows;
+		_doot = doot;
+
+		// changes with hand
+		_t1 = t1;
+		_t2 = t2;
 
 		// run any setup functions for pattern mods, generally memory
 		// initialization and maybe some other stuff
@@ -2883,7 +2847,26 @@ struct TheGreatBazoinkazoinkInTheSky
 		// loop using the data aggregated/generated in the inner loop
 		// all pattern mod functors should use i as an argument, since it needs
 		// to update the pattern mod holder at the proper index
-		even_more_gratuitious_inline_for_outer_loop();
+		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+			// reset the last mni interval data, since it gets used to
+			// initialize now
+			_mni_last->interval_reset();
+
+			// inner loop
+			for (auto& row : _itv_rows[itv]) {
+				// generate current metanoteinfo using stuff + last metanoteinfo
+				(*_mni_now)(
+				  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
+
+				// should be self explanatory
+				handle_row_dependent_pattern_advancement();
+
+				set_mni_last();
+			}
+
+			// set the pattern mod values by calling the mod functors
+			call_pattern_mod_functors(itv);
+		}
 	};
 
 	// maybe overload for non-hand-specific?
