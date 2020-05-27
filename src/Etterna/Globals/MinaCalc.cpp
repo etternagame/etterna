@@ -124,6 +124,20 @@ pmod_prop(T a,
 	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
 };
 
+// template thingy for generating basic proportion scalers for pattern mods
+template<typename T>
+inline float
+pmod_prop(const float& pool,
+		  T a,
+		  T b,
+		  const float& s,
+		  const float& min,
+		  const float& max)
+{
+	return CalcClamp(
+	  pool - (static_cast<float>(a) / static_cast<float>(b) * s), min, max);
+};
+
 inline float
 mean(const vector<float>& v)
 {
@@ -1025,10 +1039,6 @@ invert_cc(const cc_type& cc)
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
-// this should contain most everything needed for the generic pattern mods,
-// extremely specific sequencing will take place in separate areas like with
-// rm_seuqencing
-
 inline void
 update_col_time(const col_type& col, float arr[2], const float& val)
 {
@@ -1102,6 +1112,9 @@ enum tap_size
 	quad
 };
 
+// this should contain most everything needed for the generic pattern mods,
+// extremely specific sequencing will take place in separate areas like with
+// rm_seuqencing
 struct metanoteinfo
 {
 	bool dbg = false && debug_lmao;
@@ -1193,12 +1206,12 @@ struct metanoteinfo
 	bool twas_jack = false;
 	bool alt = false;
 	int seriously_not_js = 0;
-	int definitely_not_jacks = 0;
-	int actual_jacks = 0;
-	int actual_jacks_cj = 0;
-	int not_js = 0;
-	int not_hs = 0;
-	int zwop = 0;
+	unsigned definitely_not_jacks = 0;
+	unsigned actual_jacks = 0;
+	unsigned actual_jacks_cj = 0;
+	unsigned not_js = 0;
+	unsigned not_hs = 0;
+	unsigned zwop = 0;
 	set<unsigned> row_variations;
 	unsigned total_taps = 0;
 	unsigned chord_taps = 0;
@@ -1325,6 +1338,7 @@ struct metanoteinfo
 				if (dbg)
 					std::cout << "bruh they aint even jacks: " << std::endl;
 				++not_hs;
+				++not_js;
 			}
 		}
 	};
@@ -1412,6 +1426,7 @@ struct metanoteinfo
 };
 
 // ranmen staff
+static const float neutral = 1.f;
 static const int max_oht_len = 1;
 static const int max_off_spacing = 2;
 static const int max_burst_len = 6;
@@ -1685,13 +1700,51 @@ struct RM_Sequencing
 	};
 };
 
-struct RunningMen
+struct PatternMod
+{
+  public:
+	const vector<int> _pmods;
+	const std::string name = "";
+
+	float min_mod = 0.6f;
+	float max_mod = 1.f;
+
+	std::map<std::string, float*> param_map;
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	};
+
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// floop();
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+
+	// everyone needs one
+	float pmod = min_mod;
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i);
+	inline void smooth_finish(vector<float> doot[]);
+};
+
+struct RunningMen : PatternMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
 							  RanAnchLenMod, RanJack,	 RanOHT,
 							  RanOffS,		 RanPropAll,  RanPropOff,
 							  RanPropOHT,	RanPropOffS, RanPropJack };
-
 	const std::string name = "RunningMen";
 	RM_Sequencing rms[2];
 	RM_Sequencing interval_highest;
@@ -1768,13 +1821,14 @@ struct RunningMen
 	float pmod = min_mod;
 	int test = 0;
 
-	inline void setup(vector<float> doot[], const int& size)
+	inline void setup(vector<float> doot[], const size_t& size)
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
 		rms[0].anchor_col = col_left;
 		rms[1].anchor_col = col_right;
 		// floop();
+
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	};
@@ -1824,7 +1878,9 @@ struct RunningMen
 			*p.second = boat;
 		}
 	};
-	inline void operator()(vector<float> doot[], const int& i)
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
 	{
 		const auto& rm = interval_highest;
 		if (rm.anchor_len < min_anchor_len) {
@@ -1905,6 +1961,7 @@ struct RunningMen
 		// reset interval highest when we're done
 		interval_highest.reset();
 	};
+	inline void smooth_finish(vector<float> doot[]);
 };
 
 void
@@ -1970,7 +2027,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			handle_row_loop(row);
 	};
 
-	inline void call_pattern_mod_functors(const int& itv) { _rm(_doot, itv); };
+	inline void call_pattern_mod_functors(const int& itv) { _rm(_mni_now, _doot, itv); };
 
 	inline void even_more_gratuitious_inline_for_outer_loop()
 	{
@@ -2008,6 +2065,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_rm.setup(_doot, _itv_rows.size());
 	};
+
+	inline void run_smoothing_pass() { _rm.smooth_finish(_doot); };
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
@@ -2909,6 +2968,142 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 
 	return data;
 }
+
+struct JSMod : PatternMod
+{
+
+	const vector<int> _pmods = { JS, JSS, JSJ };
+	const std::string name = "JSMod";
+
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float mod_base = 0.f;
+	float prop_buffer = 1.f;
+
+	float total_prop_min = 0.85f;
+	float total_prop_max = 1.f;
+	float total_prop_scaler = 2.714f; // ~19/7
+
+	float split_hand_pool = 1.45f;
+	float split_hand_min = 0.85f;
+	float split_hand_max = 1.f;
+	float split_hand_scaler = 1.f;
+
+	float jack_pool = 1.35f;
+	float jack_min = 0.5f;
+	float jack_max = 1.f;
+	float jack_scaler = 1.f;
+
+	float decay_factor = 0.05f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "split_hand_pool", &split_hand_pool },
+		{ "split_hand_min", &split_hand_min },
+		{ "split_hand_max", &split_hand_max },
+		{ "split_hand_scaler", &split_hand_scaler },
+
+		{ "jack_pool", &jack_pool },
+		{ "jack_min", &jack_min },
+		{ "jack_max", &jack_max },
+		{ "jack_scaler", &jack_scaler },
+
+		{ "decay_factor", &decay_factor },
+	};
+#pragma endregion params and param map
+
+	float total_prop = 0.f;
+	float jumptrill_prop = 0.f;
+	float jack_prop = 0.f;
+	float last_mod = min_mod;
+
+	inline void decay_mod()
+	{
+		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
+		last_mod = pmod;
+	};
+
+	inline bool handle_case_optimizations(const metanoteinfo& mni,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// empty interval, don't decay js mod or update last_mod
+		if (mni.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// at least 1 tap but no jumps
+		if (mni.taps_by_size[jump] == 0) {
+			decay_mod();
+			neutral_set(doot, i);
+			doot[JS][i] = pmod;
+			return true;
+		}
+		return false;
+	};
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		if(handle_case_optimizations(mni, doot, i))
+			return;
+
+		// creepy banana
+		total_prop = pmod_prop(mni.taps_by_size[jump] + prop_buffer,
+							   mni.total_taps - prop_buffer,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// punish lots splithand jumptrills
+		// uhh this might also catch oh jumptrills can't remember
+		jumptrill_prop = pmod_prop(split_hand_pool,
+								   mni.not_js,
+								   mni.total_taps,
+								   split_hand_scaler,
+								   split_hand_min,
+								   split_hand_max);
+
+		// downscale by jack density rather than upscale like cj
+		// theoretically the ohjump downscaler should handle
+		// this but handling it here gives us more flexbility
+		// with the ohjump mod
+		jack_prop = pmod_prop(jack_pool,
+							  mni.actual_jacks,
+							  mni.total_taps,
+							  jack_scaler,
+							  jack_min,
+							  jack_max);
+
+		// seems kinda messy but was old behavior
+		pmod = CalcClamp(fastsqrt(total_prop), min_mod, max_mod);
+		pmod =
+		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+
+		// actual mod
+		doot[JS][i] = pmod;
+
+		// debug
+		doot[JSS][i] = jumptrill_prop;
+		doot[JSJ][i] = jack_prop;
+
+		// set last mod, we're using it to create a decaying mod that won't
+		// result in extreme spikiness if files alternate between js and
+		// hs/stream
+		last_mod = pmod;
+	};
+};
 
 void
 Calc::SetJumpMod(const JumpHandChordData& data, vector<float> doot[ModCount])
