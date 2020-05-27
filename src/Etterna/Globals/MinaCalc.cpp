@@ -54,10 +54,10 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const int zto3[4] = { 0, 1, 2, 3 };
-static const char note_map[16][5]{ "0000", "0001", "0010", "0011", "0100", "0101",
-							"0110", "0111", "1000", "1001", "1010", "1011",
-							"1100", "1101", "1110", "1111" };
-
+static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
+								   "0100", "0101", "0110", "0111",
+								   "1000", "1001", "1010", "1011",
+								   "1100", "1101", "1110", "1111" };
 
 #pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
@@ -1062,16 +1062,29 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
-// these all operate on noteinfo.notes
- inline bool
+// these all operate on noteinfo.notes, they must be unsigned ints, and
+// shouldn't be called on enums or row counts or anything like that
+inline bool
+is_single_tap(const unsigned& a)
+{
+	switch (a) {
+		case 1:
+		case 2:
+		case 4:
+		case 8:
+			return true;
+		default:
+			return false;
+	}
+}
+inline bool
 is_jack_at_col(const unsigned& id,
 			   const unsigned& row_notes,
 			   const unsigned& last_row_notes)
 {
 	return id & row_notes && id & last_row_notes;
 };
-
- inline bool
+inline bool
 num_jacks(const unsigned& a, const unsigned& b)
 {
 	int n = 0;
@@ -1080,30 +1093,38 @@ num_jacks(const unsigned& a, const unsigned& b)
 			++n;
 	return n;
 };
-
 // doesn't check for jacks
 inline bool
 is_alternating_chord_single(const unsigned& a, const unsigned& b)
 {
 	return (a > 1 && b == 1) || (a == 1 && b > 1);
 };
-
-// uhh probably not fast but simple and robust, find 1[n]1 or n[1]n with no
-// jacks between first and second and second and third elements
+// ok lets stop being bad, find 1[n]1 or [n]1[n] with no jacks between first and
+// second and second and third elements
 inline bool
 is_alternating_chord_stream(const unsigned& a,
 							const unsigned& b,
 							const unsigned& c)
 {
-	for (auto& id : col_ids) {
-		if (is_jack_at_col(id, a, b))
+	if (is_single_tap(a)) {
+		if (is_single_tap(b)) {
+			// single single, don't care, bail
 			return false;
-		if (is_jack_at_col(id, b, c))
+			if (!is_single_tap(c))
+				// single, chord, chord, bail
+				return false;
+		}
+	} else {
+		if (!is_single_tap(b)) {
+			// chord chord, don't care, bail
 			return false;
+			if (is_single_tap(c))
+				// chord, single, single, bail
+				return false;
+		}
 	}
-	if (c == 0)
-		return false;
-	return true;
+	// we have either 1[n]1 or [n]1[n], check for any jacks
+	return (a & b && b & c) == 0;
 };
 
 inline bool
@@ -1381,21 +1402,34 @@ struct metanoteinfo
 				// give light hs the light js treatment
 				not_hs += seriously_not_js;
 			}
-		} else if (last.row_count > 1 && row_count > 1) {
+		}
+		if (last.row_count > 1 && row_count > 1) {
 			// suppress jumptrilly garbage a little bit
 			if (dbg)
 				std::cout << "sequential chords detected: " << std::endl;
 			not_hs += row_count;
 			not_js += row_count;
 
-			zwop = num_jacks(row_notes, last_row_notes);
-			if (zwop == 0) {
+			if (row_notes & last_row_notes == 0)
+				{
 				if (dbg)
 					std::cout << "bruh they aint even jacks: " << std::endl;
 				++not_hs;
 				++not_js;
 			} else {
 				gluts_maybe = true;
+			}
+
+			if (column_count(last_row_notes) > 1) {
+				if (last.row_notes & last.last_row_notes == 0) {
+					++not_js;
+					++not_hs;
+					if (dbg)
+						std::cout
+						  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
+							 "JUST BAN GRIPWARRIOR ALREADY WTF: "
+						  << std::endl;
+				}
 			}
 		}
 	};
@@ -2385,7 +2419,7 @@ struct JSMod
 		doot[_primary][i] = pmod;
 
 		// debug
-		doot[JSS][i] = jumptrill_prop;
+		doot[JSS][i] = mni.definitely_not_jacks;
 		doot[JSJ][i] = jack_prop;
 
 		// set last mod, we're using it to create a decaying mod that won't
@@ -2829,7 +2863,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
 			}
 		}
-			
+
 		// above block is controlled in the struct def, this block is run if we
 		// are called from minacalcdebug, allocate the string thing, we can also
 		// force it
@@ -2881,7 +2915,7 @@ struct TheGreatBazoinkazoinkInTheSky
 						_itv_row_string[itv].append(note_map[_ni[row].notes]);
 						_itv_row_string[itv].append("\n");
 					}
-				
+
 				set_mni_last();
 			}
 			// pop the last \n for the interval
@@ -2896,7 +2930,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	};
 
 	//// maybe overload for non-hand-specific?
-	//inline void operator()(const vector<vector<int>>& itv_rows,
+	// inline void operator()(const vector<vector<int>>& itv_rows,
 	//					   const float& rate,
 	//					   vector<float> doot1[],
 	//					   vector<float> doot2[]){
@@ -2958,11 +2992,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// hand.doot);
 	}
 
-	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	// auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
 	// SetHSMod(jhc_data, left_hand.doot);
-	SetJumpMod(jhc_data, left_hand.doot);
+	// SetJumpMod(jhc_data, left_hand.doot);
 	// SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
@@ -6102,7 +6136,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 334;
+int mina_calc_version = 335;
 int
 GetCalcVersion()
 {
