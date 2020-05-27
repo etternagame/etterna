@@ -1708,7 +1708,7 @@ struct RM_Sequencing
 };
 
 #pragma endregion
-// help i dont know what im doing 
+// help i dont know what im doing
 struct PatternMod
 {
   public:
@@ -1989,6 +1989,232 @@ struct RunningManMod : PatternMod
 
 		// reset interval highest when we're done
 		interval_highest.reset();
+	};
+};
+
+// probably needs better debugoutput
+struct WideRangeJumptrillMod : PatternMod
+{
+	bool dbg = false;
+	const vector<int> _pmods = { WideRangeJumptrill };
+	const std::string name = "WideRangeJumptrillMod";
+
+	deque<int> itv_taps;
+	deque<int> itv_ccacc;
+
+#pragma region params
+	float itv_window = 6;
+
+	float min_mod = 0.25f;
+	float max_mod = 1.f;
+	float mod_base = 0.4f;
+
+	float moving_cv_init = 0.5f;
+	float ccacc_cv_cutoff = 0.25f;
+
+	std::map<std::string, float*> param_map{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
+	};
+#pragma endregion params and param map
+
+	int ccacc_counter = 0;
+	int crop_circles = 0;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty
+	cc_type last_seen_cc;
+	cc_type last_last_seen_cc;
+
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// floop();
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	};
+	inline void min_set(vector<float> doot[],
+						const size_t& i,
+						bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = min_mod;
+	};
+
+	inline void neutral_set(vector<float> doot[],
+							const size_t& i,
+							bool only_main = false)
+	{
+		if (only_main)
+			doot[_pmods.front()][i] = neutral;
+		else
+			for (auto& mod : _pmods)
+				doot[mod][i] = neutral;
+	};
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_pmods.front()], 0.f);
+	};
+	inline void reset_sequence()
+	{
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	};
+	// should maybe move this into metanoteinfo and do the counting there, if we
+	// could use this anywhere else
+	bool detecc_ccacc(const metanoteinfo& now)
+	{
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, and there are no jumps. this means they are
+		// all either cc_left_right, cc_right_left, or cc_single_single
+
+		// handle cc_single_single first, for now, lets throw it away
+		if (now.cc == cc_single_single)
+			return false;
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyyx, meaning last_last would be the inverion of now
+		if (now.cc == invert_cc(last_last_seen_cc))
+			// this _should_ be bulletproof, but i'm not holding out hope
+			return true;
+
+		return false;
+	};
+	bool handle_ccacc_timing_check()
+	{
+		// we don't want to suppress actual streams that use this pattern, so we
+		// will keep a fairly tight requirement on the ms variance
+
+		// we are currently assuming we have xyyx always, and are not interested
+		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
+		// we can do some pretty neat stuff
+
+		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
+		// right->left, seq_ms 1 will always be an anchor value, so,
+		// right->right for example. our interest is in hard nerfing long chains
+		// of xyyx patterns that won't get picked up by any of the roll scalers
+		// or balance scalers, but are still jumptrillable, for this condition
+		// to be true the anchor ms length has to be within a certain ratio of
+		// the cross column ms lengths, enabling the cross columns to be hit
+		// like jumptrilled flams, the optimal ratio for inflating nps is about
+		// 3:1, this is short enough that the nps boost is still high, but long
+		// enough that it doesn't become endless minijacking on the anchor
+		// given these conditions we can divide seq_ms[1] by 3 and cv check the
+		// array, with 2 identical values cc values, even if the anchor ratio
+		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
+		// is a sensible cutoff that should avoid punishing happenstances of
+		// this pattern in just regular files
+
+		// doing this would be a problem if we were to try to catch
+		// anchor/cc/anchor, since the altered anchor ms value would still exist
+		// in the sequence, but that maybe doesn't seem like a great idea
+		// anyway, so the value we alter will fall out of the array by the time
+		// we get here next
+
+		seq_ms[1] /= 3.f;
+
+		// this may be too fancy even though i'm trying to be not fancy.. update
+		// a basic moving window of the cv values and return true if it's below
+		// some cutoff, this will have the effect of giving a little lag time
+		// before the mod really kicks in
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < ccacc_cv_cutoff;
+	};
+
+	inline void update_seq_ms(const metanoteinfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now
+		// for anchors, track tc_ms
+		if (now.cc == cc_single_single)
+			seq_ms[2] = now.tc_ms;
+		// for cc_left_right or cc_right_left, track cc_ms
+		else
+			seq_ms[2] = now.cc_ms_any;
+	};
+
+	void advance_sequencing(const metanoteinfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// reset if we hit a jump
+		if (now.col == col_ohjump)
+			reset_sequence();
+
+		// update timing stuff before checking/updating the sequence...
+		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
+		// it _actually_ works
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for ccacc
+			if (detecc_ccacc(now))
+				// don't bother adding if the ms values look benign
+				if (handle_ccacc_timing_check())
+					++ccacc_counter;
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	};
+	void operator()(const metanoteinfo& mni,
+					vector<float> doot[],
+					const size_t& i)
+	{
+
+		// drop the oldest interval values if we have reached full
+		// size
+		if (itv_taps.size() == itv_window) {
+			itv_taps.pop_front();
+			itv_ccacc.pop_front();
+		}
+
+		itv_taps.push_back(mni.total_taps);
+		itv_ccacc.push_back(max(ccacc_counter - 1, 0));
+
+		if (ccacc_counter > 0)
+			++crop_circles;
+		else
+			--crop_circles;
+		if (crop_circles < 0)
+			crop_circles = 0;
+
+		unsigned int window_taps = 0;
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		unsigned int window_ccacc = 0;
+		for (auto& n : itv_ccacc)
+			window_ccacc += n;
+
+		pmod = 1.f;
+		if (window_ccacc > 0 && crop_circles > 0)
+			pmod =
+			  static_cast<float>(window_taps) /
+			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmods.front()][i] = pmod;
+
+		// we could count these in metanoteinfo but let's do it here for now,
+		// reset every interval when finished
+		ccacc_counter = 0;
 	};
 };
 struct JSMod : PatternMod
@@ -5864,7 +6090,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 333;
+int mina_calc_version = 334;
 int
 GetCalcVersion()
 {
