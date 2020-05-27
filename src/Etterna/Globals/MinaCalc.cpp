@@ -1878,7 +1878,7 @@ struct RunningManMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 0.f);
+		Smooth(doot[_primary], 1.f);
 	};
 #pragma endregion
 	inline void advance_sequencing(const metanoteinfo& mni)
@@ -2088,7 +2088,7 @@ struct WideRangeJumptrillMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 0.f);
+		Smooth(doot[_primary], 1.f);
 	};
 #pragma endregion
 	inline void reset_sequence()
@@ -2256,8 +2256,8 @@ struct JSMod
 	float mod_base = 0.f;
 	float prop_buffer = 1.f;
 
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
+	float total_prop_min = min_mod;
+	float total_prop_max = max_mod;
 	float total_prop_scaler = 2.714f; // ~19/7
 
 	float split_hand_pool = 1.45f;
@@ -2320,7 +2320,7 @@ struct JSMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 0.f);
+		Smooth(doot[_primary], 1.f);
 	};
 	inline void decay_mod()
 	{
@@ -2408,8 +2408,8 @@ struct HSMod
 	float mod_base = 0.4f;
 	float prop_buffer = 1.f;
 
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
+	float total_prop_min = min_mod;
+	float total_prop_max = max_mod;
 	float total_prop_scaler = 4.571f; // ~32/7
 	float total_prop_base = 0.4f;
 
@@ -2474,7 +2474,7 @@ struct HSMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 0.f);
+		Smooth(doot[_primary], 1.f);
 	};
 	inline void decay_mod()
 	{
@@ -2561,8 +2561,8 @@ struct CJMod
 	float mod_base = 0.4f;
 	float prop_buffer = 1.f;
 
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
+	float total_prop_min = min_mod;
+	float total_prop_max = max_mod;
 	float total_prop_scaler = 5.428f; // ~38/7
 
 	float jack_base = 2.f;
@@ -2635,8 +2635,8 @@ struct CJMod
 	};
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[CJ], 0.f);
-		Smooth(doot[CJQuad], 0.f);
+		Smooth(doot[CJ], 1.f);
+		Smooth(doot[CJQuad], 1.f);
 	};
 #pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
