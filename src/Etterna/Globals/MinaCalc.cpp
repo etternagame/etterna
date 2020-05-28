@@ -2189,8 +2189,7 @@ struct WideRangeJumptrillMod
 		else
 			seq_ms[2] = now.cc_ms_any;
 	};
-
-	void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metanoteinfo& now)
 	{
 		// do nothing for offhand taps
 		if (now.col == col_empty)
@@ -2217,7 +2216,7 @@ struct WideRangeJumptrillMod
 		last_last_seen_cc = last_seen_cc;
 		last_seen_cc = now.cc;
 	};
-	void operator()(const metanoteinfo& mni,
+	inline void operator()(const metanoteinfo& mni,
 					vector<float> doot[],
 					const size_t& i)
 	{
@@ -2810,7 +2809,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_ni = ni;
 	};
 
-	void operator()(const vector<vector<int>>& itv_rows,
+	inline void operator()(const vector<vector<int>>& itv_rows,
 					const float& rate,
 					const unsigned int& t1,
 					const unsigned int& t2,
