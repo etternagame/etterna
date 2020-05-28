@@ -1480,8 +1480,10 @@ struct metanoteinfo
 						   const unsigned& notes,
 						   const int& t1,
 						   const int& t2,
-						   const int& row)
+						   const int& row,
+						   bool silence = false)
 	{
+		dbg = dbg && !silence;
 
 		last_was_offhand_tap = last.col == col_empty;
 		set_col_and_cc_types(t1 & notes, t2 & notes, last.col);
@@ -2419,7 +2421,7 @@ struct JSMod
 		doot[_primary][i] = pmod;
 
 		// debug
-		doot[JSS][i] = mni.definitely_not_jacks;
+		doot[JSS][i] = jumptrill_prop;
 		doot[JSJ][i] = jack_prop;
 
 		// set last mod, we're using it to create a decaying mod that won't
@@ -2750,7 +2752,7 @@ struct CJMod
 };
 struct TheGreatBazoinkazoinkInTheSky
 {
-	bool dbg = true;
+	bool dbg = false;
 	// debug stuff, tracks everything that was built
 	vector<vector<metanoteinfo>> _mni_dbg_vec1;
 	vector<vector<metanoteinfo>> _mni_dbg_vec2;
@@ -2885,6 +2887,16 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// inner loop
 			for (auto& row : _itv_rows[itv]) {
+				// ok we really should be doing separate loops for both
+				// hand/separate hand stuff, and this should be in the former
+				if (_t1 == col_ids[0])
+					if (debug_lmao || dbg) {
+						_itv_row_string[itv].append(note_map[_ni[row].notes]);
+						_itv_row_string[itv].append("\n");
+					}
+				if (debug_lmao)
+					std::cout << "\n" << _itv_row_string[itv] << std::endl;
+
 				// generate current metanoteinfo using stuff + last metanoteinfo
 				(*_mni_now)(
 				  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
@@ -2898,7 +2910,8 @@ struct TheGreatBazoinkazoinkInTheSky
 						 _ni[row].notes,
 						 _t1,
 						 _t2,
-						 row);
+						 row,
+						 true);
 
 					// left hand stuffies
 					if (_t1 == col_ids[0])
@@ -2908,20 +2921,12 @@ struct TheGreatBazoinkazoinkInTheSky
 						_mni_dbg_vec2[itv].push_back(_dbg);
 				}
 
-				// ok we really should be doing separate loops for both
-				// hand/separate hand stuff, and this should be in the former
-				if (_t1 == col_ids[0])
-					if (debug_lmao || dbg) {
-						_itv_row_string[itv].append(note_map[_ni[row].notes]);
-						_itv_row_string[itv].append("\n");
-					}
-
 				set_mni_last();
 			}
 			// pop the last \n for the interval
-			if (_t1 == col_ids[0])
-				if (!_itv_row_string[itv].empty())
-					if (debug_lmao || dbg)
+			if (debug_lmao || dbg)
+				if (_t1 == col_ids[0])
+					if (!_itv_row_string[itv].empty())
 						_itv_row_string[itv].pop_back();
 
 			// set the pattern mod values by calling the mod functors
