@@ -926,7 +926,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
-#pragma region sequencelogicstuffmaybe
+#pragma region sequencing logic
 // cross column behavior between 2 notes
 enum cc_type
 {
@@ -940,7 +940,8 @@ enum cc_type
 	cc_init,
 	cc_undefined
 };
-// for either hand, 4k
+
+// hand specific meaning the left two or right two columns and only for 4k
 enum col_type
 {
 	col_left,
@@ -949,40 +950,20 @@ enum col_type
 	col_empty,
 	col_init
 };
+
 inline bool
-is_single_tap(const bool& a, const bool& b)
-{
-	return a ^ b;
-}
-// is this actually more useful than the col check in any scenario? if not it
-// probably doesn't need to exist
-inline bool
-is_single_tap(const cc_type& cc)
-{
-	return cc == cc_left_right || cc == cc_right_left ||
-		   cc == cc_single_single || cc == cc_jump_single;
-}
-inline bool
-is_single_tap(const col_type& col)
+is_col_type_single_tap(const col_type& col)
 {
 	return col == col_left || col == col_right;
 }
+
+// there are no empty rows, only empty hands
 inline bool
-is_empty_row(const bool& a, const bool& b)
+is_empty_hand(const bool& a, const bool& b)
 {
 	return !a && !b;
 }
-// this can be inferred from !empty and !single in most cases
-inline bool
-is_jump(const bool& a, const bool& b)
-{
-	return a && b;
-}
-inline bool
-is_jump(const cc_type& cc)
-{
-	return cc == cc_jump_jump || cc == cc_single_jump;
-}
+
 inline cc_type
 determine_cc_type(const col_type& last, const col_type& now)
 {
@@ -991,7 +972,7 @@ determine_cc_type(const col_type& last, const col_type& now)
 	else if (last == col_init)
 		return cc_init;
 
-	bool single_tap = is_single_tap(now);
+	bool single_tap = is_col_type_single_tap(now);
 	if (last == col_ohjump) {
 		if (single_tap)
 			return cc_jump_single;
@@ -1012,15 +993,17 @@ determine_cc_type(const col_type& last, const col_type& now)
 	// shouldn't ever happen
 	return cc_undefined;
 }
+
 inline col_type
 bool_to_col_type(const bool& lcol, const bool& rcol)
 {
-	if (is_empty_row(lcol, rcol))
+	if (is_empty_hand(lcol, rcol))
 		return col_empty;
 	if (lcol - rcol)
 		return lcol ? col_left : col_right;
 	return col_ohjump;
 };
+
 // inverting col state for col_left or col_right only
 inline col_type
 invert_col(const col_type& col)
@@ -1032,6 +1015,7 @@ invert_col(const col_type& col)
 		return col_init;
 	return col == col_left ? col_right : col_left;
 };
+
 // inverting cc state for left_right or right_left only
 inline cc_type
 invert_cc(const cc_type& cc)
@@ -1041,6 +1025,7 @@ invert_cc(const cc_type& cc)
 		return cc_init;
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
+
 inline bool
 is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
 {
@@ -1055,8 +1040,6 @@ is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
 	// this is kind of big brain so if you don't get it that's ok
 	return loot && doot;
 }
-static const float s_init = -5.f;
-static const float ms_init = 5000.f;
 
 inline void
 update_col_time(const col_type& col, float arr[2], const float& val)
@@ -1073,7 +1056,9 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 		arr[1] = val;
 	return;
 };
+#pragma endregion
 
+#pragma region noteinfo bitwise operations
 // bitwise operations on noteinfo.notes, they must be unsigned ints, and
 // shouldn't be called on enums or row counts or anything like that
 inline bool
@@ -1081,6 +1066,9 @@ is_single_tap(const unsigned& a)
 {
 	return (a & (a - 1)) == 0;
 }
+
+// between two successive rows usually... but i suppose this could be called
+// outside of that limitation
 inline bool
 is_jack_at_col(const unsigned& id,
 			   const unsigned& row_notes,
@@ -1088,21 +1076,14 @@ is_jack_at_col(const unsigned& id,
 {
 	return id & row_notes && id & last_row_notes;
 };
-inline bool
-num_jacks(const unsigned& a, const unsigned& b)
-{
-	int n = 0;
-	for (auto& id : col_ids)
-		if (is_jack_at_col(id, a, b))
-			++n;
-	return n;
-};
+
 // doesn't check for jacks
 inline bool
 is_alternating_chord_single(const unsigned& a, const unsigned& b)
 {
 	return (a > 1 && b == 1) || (a == 1 && b > 1);
 };
+
 // ok lets stop being bad, find 1[n]1 or [n]1[n] with no jacks between first and
 // second and second and third elements
 inline bool
@@ -1130,18 +1111,21 @@ is_alternating_chord_stream(const unsigned& a,
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
 };
-
-enum tap_size
-{
-	single,
-	jump,
-	hand,
-	quad
-};
+#pragma	endregion
 
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
-// rm_seuqencing
+// rm_seuqencing, and widerange scalers should track their own interval queues
+// metanoteinfo is generated per row, from current noteinfo and the previous
+// metanoteinfo object, each metanoteinfo stores some basic information from the
+// last object, allowing us to look back 3-4 rows into the past without having
+// to explicitly store more than 2 mni objects, and we can recycle the pointers
+// as we generate the info
+// metanoteinfo is generated per _hand_, not per note or column. it contains the
+// relevant information for determining what the column configuation of each
+// hand is for any row, and it contains timestamp arrays for each column, so it
+// is unnecessary to generate information per note, even though in some ways it
+// might be more convenient or clearer
 struct metanoteinfo
 {
 	bool dbg = false && debug_lmao;
