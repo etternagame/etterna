@@ -30,8 +30,12 @@ if(WIN32)
     string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
 
     set(INSTALL_DIR ".")
+
+    # List every DLL etterna needs.
+    list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+    install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)
-    install(DIRECTORY Program   COMPONENT Etterna DESTINATION .)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Docs)
 
 # macOS Specific CPack
