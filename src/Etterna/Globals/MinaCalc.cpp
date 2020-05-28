@@ -2593,7 +2593,7 @@ struct CJMod
 	float quad_pool = 1.5f;
 	float quad_min = 0.88f;
 	float quad_max = 1.f;
-	float quad_scaler = 4.f;
+	float quad_scaler = 1.f;
 
 	float vibro_flag = 0.85f;
 
@@ -6121,7 +6121,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 335;
+int mina_calc_version = 336;
 int
 GetCalcVersion()
 {
