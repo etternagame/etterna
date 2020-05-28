@@ -931,7 +931,6 @@ enum cc_type
 	cc_init,
 	cc_undefined
 };
-
 // for either hand, 4k
 enum col_type
 {
@@ -941,13 +940,11 @@ enum col_type
 	col_empty,
 	col_init
 };
-
 inline bool
 is_single_tap(const bool& a, const bool& b)
 {
 	return a ^ b;
 }
-
 // is this actually more useful than the col check in any scenario? if not it
 // probably doesn't need to exist
 inline bool
@@ -956,13 +953,11 @@ is_single_tap(const cc_type& cc)
 	return cc == cc_left_right || cc == cc_right_left ||
 		   cc == cc_single_single || cc == cc_jump_single;
 }
-
 inline bool
 is_single_tap(const col_type& col)
 {
 	return col == col_left || col == col_right;
 }
-
 inline bool
 is_empty_row(const bool& a, const bool& b)
 {
@@ -974,13 +969,11 @@ is_jump(const bool& a, const bool& b)
 {
 	return a && b;
 }
-
 inline bool
 is_jump(const cc_type& cc)
 {
 	return cc == cc_jump_jump || cc == cc_single_jump;
 }
-
 inline cc_type
 determine_cc_type(const col_type& last, const col_type& now)
 {
@@ -1010,7 +1003,6 @@ determine_cc_type(const col_type& last, const col_type& now)
 	// shouldn't ever happen
 	return cc_undefined;
 }
-
 inline col_type
 bool_to_col_type(const bool& lcol, const bool& rcol)
 {
@@ -1020,7 +1012,6 @@ bool_to_col_type(const bool& lcol, const bool& rcol)
 		return lcol ? col_left : col_right;
 	return col_ohjump;
 };
-
 // inverting col state for col_left or col_right only
 inline col_type
 invert_col(const col_type& col)
@@ -1032,7 +1023,6 @@ invert_col(const col_type& col)
 		return col_init;
 	return col == col_left ? col_right : col_left;
 };
-
 // inverting cc state for left_right or right_left only
 inline cc_type
 invert_cc(const cc_type& cc)
@@ -1042,7 +1032,20 @@ invert_cc(const cc_type& cc)
 		return cc_init;
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
+inline bool
+is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
 
+	bool loot = a == invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
+}
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
@@ -1062,20 +1065,12 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	return;
 };
 
-// these all operate on noteinfo.notes, they must be unsigned ints, and
+// bitwise operations on noteinfo.notes, they must be unsigned ints, and
 // shouldn't be called on enums or row counts or anything like that
 inline bool
 is_single_tap(const unsigned& a)
 {
-	switch (a) {
-		case 1:
-		case 2:
-		case 4:
-		case 8:
-			return true;
-		default:
-			return false;
-	}
+	return (a & (a - 1)) == 0;
 }
 inline bool
 is_jack_at_col(const unsigned& id,
@@ -1126,21 +1121,6 @@ is_alternating_chord_stream(const unsigned& a,
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
 };
-
-inline bool
-is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
-{
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (b != cc_left_right && b != cc_right_left)
-		return false;
-
-	bool loot = a == invert_cc(b);
-	bool doot = a == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
-}
 
 enum tap_size
 {
