@@ -44,6 +44,7 @@ struct JumpHandChordData
 	vector<unsigned int> quads;
 };
 
+static const std::string calc_params_xml = "Save/calc params.xml";
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
 static const int max_nps_for_single_interval = 50;
@@ -70,6 +71,36 @@ static const float ms_init = 5000.f;
 
 // neutral pattern mod value.. as opposed to min
 static const float neutral = 1.f;
+
+
+// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
+// global multiplier to standardize baselines
+static const float finalscaler = 3.632f;
+
+// ***note*** if we want max control over stamina we need to have one model for
+// affecting the other skillsets to a certain degree, enough to push up longer
+// stream ratings into contention with shorter ones, and another for both a more
+// granular and influential modifier to calculate the end stamina rating with
+// so todo on that
+
+// Stamina Model params
+static const float stam_ceil = 1.075234f; // stamina multiplier max
+static const float stam_mag = 243.f;	  // multiplier generation scaler
+static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
+static const float stam_prop =
+  0.69424f; // proportion of player difficulty at which stamina tax begins
+
+// since we are no longer using the normalizer system we need to lower
+// the base difficulty for each skillset and then detect pattern types
+// to push down OR up, rather than just down and normalizing to a differential
+// since chorded patterns have lower enps than streams, streams default to 1
+// and chordstreams start lower
+// stam is a special case and may use normalizers again
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
+												 0.94f, 0.7675f, 0.84f,  0.7f };
+bool debug_lmao = false;
+
+
 
 #pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
@@ -100,6 +131,12 @@ inline float
 ms_from(const float& now, const float& last)
 {
 	return (now - last) * 1000.f;
+}
+
+inline float
+weighted_average(const float& a, const float& b, const float& x, const float& y)
+{
+	return (x * a + ((y - x) * b)) / y;
 }
 
 inline void
@@ -369,39 +406,7 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
 }
-#pragma endregion utils
-
-// DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
-// global multiplier to standardize baselines
-static const float finalscaler = 3.632f;
-
-// ***note*** if we want max control over stamina we need to have one model for
-// affecting the other skillsets to a certain degree, enough to push up longer
-// stream ratings into contention with shorter ones, and another for both a more
-// granular and influential modifier to calculate the end stamina rating with
-// so todo on that
-
-// Stamina Model params
-static const float stam_ceil = 1.075234f; // stamina multiplier max
-static const float stam_mag = 243.f;	  // multiplier generation scaler
-static const float stam_fscale = 500.f; // how fast the floor rises (it's lava)
-static const float stam_prop =
-  0.69424f; // proportion of player difficulty at which stamina tax begins
-
-// since we are no longer using the normalizer system we need to lower
-// the base difficulty for each skillset and then detect pattern types
-// to push down OR up, rather than just down and normalizing to a differential
-// since chorded patterns have lower enps than streams, streams default to 1
-// and chordstreams start lower
-// stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
-												 0.94f, 0.7675f, 0.84f,  0.7f };
-bool debug_lmao = false;
-
-#pragma region patternmodparamstuff
-static const std::string calc_params_xml = "Save/calc params.xml";
-
-#pragma endregion
+#pragma endregion utils are an antipattern
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
@@ -3235,12 +3240,6 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	if (dbg && debug_lmao)
 		std::cout << "diff : " << fdiff << std::endl;
 	return fdiff;
-}
-
-inline float
-weighted_average(const float& a, const float& b, const float& x, const float& y)
-{
-	return (x * a + ((y - x) * b)) / y;
 }
 
 void
