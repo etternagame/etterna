@@ -44,6 +44,7 @@ struct JumpHandChordData
 	vector<unsigned int> quads;
 };
 
+#pragma more stuff
 static const std::string calc_params_xml = "Save/calc params.xml";
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
@@ -66,12 +67,13 @@ enum tap_size
 	hand,
 	quad
 };
+
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
 // neutral pattern mod value.. as opposed to min
 static const float neutral = 1.f;
-
+#pragma endregion
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 // global multiplier to standardize baselines
@@ -99,8 +101,6 @@ static const float stam_prop =
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
 												 0.94f, 0.7675f, 0.84f,  0.7f };
 bool debug_lmao = false;
-
-
 
 #pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
@@ -1122,6 +1122,7 @@ is_alternating_chord_stream(const unsigned& a,
 };
 #pragma endregion
 
+#pragma region new pattern mod structure
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
 // rm_seuqencing, and widerange scalers should track their own interval queues
@@ -1310,7 +1311,7 @@ struct metanoteinfo
 
 		// see def
 		basically_vibro = true;
-	};
+	}
 
 	inline void jack_scan()
 	{
@@ -1342,7 +1343,7 @@ struct metanoteinfo
 		// when they shouldn't be
 		if (twas_jack)
 			++actual_jacks_cj;
-	};
+	}
 
 	inline void update_row_variations_and_set_vibro_flag()
 	{
@@ -1370,12 +1371,12 @@ struct metanoteinfo
 				return;
 			}
 		}
-	};
+	}
 
 	// will need last for last.last_row_notes
 	// i guess the distinction here that i'm starting to notice is that these
 	// are done row by row, whereas the cc sequencing is done hand by hand, so
-	// maybe this stuff should be abstracted similarly 
+	// maybe this stuff should be abstracted similarly
 	inline void basic_pattern_sequencing(const metanoteinfo& last)
 	{
 		// could use this to really blow out jumptrill garbage in js/hs, but
@@ -1450,7 +1451,7 @@ struct metanoteinfo
 			}
 
 			// almost certainly overkill
-			 if (column_count(last_row_notes) > 1) {
+			if (column_count(last_row_notes) > 1) {
 				if ((last.row_notes & last.last_row_notes) == 0) {
 					++not_js;
 					++not_hs;
@@ -1462,7 +1463,7 @@ struct metanoteinfo
 				}
 			}
 		}
-	};
+	}
 
 	inline void update_tap_counts()
 	{
@@ -1481,7 +1482,7 @@ struct metanoteinfo
 			// this seems kinda extreme? it'll add the number of jumps in the
 			// whole interval every hand? maybe it needs to be that extreme?
 			taps_by_size[hand] += taps_by_size[jump];
-	};
+	}
 
 	// this seems messy.. but we want to aggreagte interval info and so we need
 	// to transfer the last values to the current object, then update them
@@ -1504,16 +1505,15 @@ struct metanoteinfo
 		for (size_t i = 0; i < 3; ++i)
 			row_variations[i] = last.row_variations[i];
 		basically_vibro = last.basically_vibro;
-	};
+	}
 
 	inline void update_interval_data(const metanoteinfo& last)
 	{
 		update_tap_counts();
 		jack_scan();
 		basic_pattern_sequencing(last);
-	};
+	}
 #pragma endregion maybe this should be its own struct ?
-
 
 	inline void operator()(metanoteinfo& last,
 						   const float& now,
@@ -1546,7 +1546,8 @@ struct metanoteinfo
 		// the empty bail
 		update_interval_data(last);
 
-		// we don't want to set lasttime or lastcol for empty columns on this hand
+		// we don't want to set lasttime or lastcol for empty columns on this
+		// hand
 		if (col == col_empty)
 			return;
 
@@ -1568,7 +1569,7 @@ struct metanoteinfo
 
 struct RM_Sequencing
 {
-	// params.. loaded by runningman and then set from there 
+	// params.. loaded by runningman and then set from there
 	int max_oht_len = 0;
 	int max_off_spacing = 0;
 	int max_burst_len = 0;
@@ -1896,7 +1897,7 @@ struct RunningManMod
 	float max_burst_len = 6.f;
 	float max_jack_len = 1.f;
 
-	const std::unordered_map<std::string, float*> param_map{
+	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -1930,7 +1931,7 @@ struct RunningManMod
 		// params for rm_sequencing
 		{ "max_oht_len", &max_oht_len },
 		{ "max_off_spacing", &max_off_spacing },
-		{ "max_burst_len", &max_burst_len },		
+		{ "max_burst_len", &max_burst_len },
 		{ "max_jack_len", &max_jack_len },
 	};
 #pragma endregion params and param map
@@ -1958,34 +1959,39 @@ struct RunningManMod
 
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
-	};
+	}
+
 	inline void min_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
-	};
+	}
+
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
-	};
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 1.f);
-	};
+	}
+
 	inline XNode* make_param_node() const
 	{
 		XNode* pmod = new XNode(name);
-		for (auto& p : param_map)
+		for (auto& p : _params)
 			pmod->AppendChild(p.first, to_string(*p.second));
 
 		return pmod;
 	}
+
 	inline void load_params_from_node(const XNode* node)
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
-		for (auto& p : param_map) {
+		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
 				continue;
@@ -1993,7 +1999,7 @@ struct RunningManMod
 			ch->GetTextValue(boat);
 			*p.second = boat;
 		}
-	};
+	}
 #pragma endregion
 
 	inline void advance_sequencing(const metanoteinfo& mni)
@@ -2031,7 +2037,7 @@ struct RunningManMod
 			return true;
 		}
 		return false;
-	};
+	}
 
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
@@ -2137,7 +2143,7 @@ struct WideRangeJumptrillMod
 	float moving_cv_init = 0.5f;
 	float ccacc_cv_cutoff = 0.5f;
 
-	const std::unordered_map<std::string, float*> param_map{
+	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2166,21 +2172,47 @@ struct WideRangeJumptrillMod
 
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
-	};
+	}
+
 	inline void min_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
-	};
+	}
+
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
-	};
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 1.f);
-	};
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
 #pragma endregion
 	inline void reset_sequence()
 	{
@@ -2362,7 +2394,7 @@ struct JSMod
 
 	float decay_factor = 0.05f;
 
-	const std::unordered_map<std::string, float*> param_map{
+	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2394,29 +2426,55 @@ struct JSMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
-	};
+	}
+
 	inline void min_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
-	};
+	}
+
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
-	};
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 1.f);
-	};
+	}
+
 	inline void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
-	};
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
 #pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
@@ -2436,7 +2494,8 @@ struct JSMod
 			return true;
 		}
 		return false;
-	};
+	}
+
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -2515,7 +2574,7 @@ struct HSMod
 
 	float decay_factor = 0.05f;
 
-	const std::unordered_map<std::string, float*> param_map{
+	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2548,29 +2607,55 @@ struct HSMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
-	};
+	}
+
 	inline void min_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
-	};
+	}
+
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
-	};
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 1.f);
-	};
+	}
+
 	inline void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
-	};
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
 #pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
@@ -2590,7 +2675,8 @@ struct HSMod
 			return true;
 		}
 		return false;
-	};
+	}
+
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -2636,7 +2722,7 @@ struct HSMod
 		// result in extreme spikiness if files alternate between js and
 		// hs/stream
 		last_mod = pmod;
-	};
+	}
 };
 struct CJMod
 {
@@ -2672,7 +2758,7 @@ struct CJMod
 
 	float vibro_flag = 0.85f;
 
-	const std::unordered_map<std::string, float*> param_map{
+	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2709,25 +2795,50 @@ struct CJMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		// floop();
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
-	};
+	}
+
 	inline void min_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = min_mod;
-	};
+	}
+
 	inline void neutral_set(vector<float> doot[], const size_t& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
-	};
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[CJ], 1.f);
 		Smooth(doot[CJQuad], 1.f);
-	};
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
 #pragma endregion
 	inline bool handle_case_optimizations(const metanoteinfo& mni,
 										  vector<float> doot[],
@@ -2744,7 +2855,7 @@ struct CJMod
 			return true;
 		}
 		return false;
-	};
+	}
 
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
@@ -2803,8 +2914,9 @@ struct CJMod
 		// debug
 		doot[CJS][i] = not_jack_prop;
 		doot[CJJ][i] = jack_prop;
-	};
+	}
 };
+#pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
@@ -2837,53 +2949,28 @@ struct TheGreatBazoinkazoinkInTheSky
 	CJMod _cj;
 
 	// we only care what last is, not what now is, this should work but it
-	// seems almost too clever and probably won't for ?? reasons
+	// seems almost too clever but seems to work
 	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
-	// HOW LOOP DESE
-	inline void run_pattern_mod_setups()
-	{
-		_rm.setup(_doot, _itv_rows.size());
-		_js.setup(_doot, _itv_rows.size());
-		_hs.setup(_doot, _itv_rows.size());
-		_cj.setup(_doot, _itv_rows.size());
-		_wrjt.setup(_doot, _itv_rows.size());
-	};
-	inline void run_smoothing_pass()
-	{
-		_rm.smooth_finish(_doot);
-		_js.smooth_finish(_doot);
-		_hs.smooth_finish(_doot);
-		_cj.smooth_finish(_doot);
-		_wrjt.smooth_finish(_doot);
-	};
-	inline void call_pattern_mod_functors(const int& itv)
-	{
-		_rm(*_mni_now, _doot, itv);
-		_js(*_mni_now, _doot, itv);
-		_hs(*_mni_now, _doot, itv);
-		_cj(*_mni_now, _doot, itv);
-		_wrjt(*_mni_now, _doot, itv);
-	};
-
-	// some pattern mod detection builds across rows, see rm_sequencing for an
-	// example
-	void handle_row_dependent_pattern_advancement()
-	{
-		_rm.advance_sequencing(*_mni_now);
-		_wrjt.advance_sequencing(*_mni_now);
-	};
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
 		// probably should load params here or something
 		load_params_from_disk();
 
+		// ok so the problem atm is the multithreading of songload, if we want
+		// to update the file on disk with new values and not just overwrite it
+		// we have to write out after loading the values player defined, so the
+		// quick hack solution to do that is to only do it during debug output
+		// generation, which is fine for the time being, though not ideal
+		if (debug_lmao)
+			write_params_to_disk();
+
 		_mni_last = std::make_unique<metanoteinfo>();
 		_mni_now = std::make_unique<metanoteinfo>();
 
 		// doesn't change with offset or anything
 		_ni = ni;
-	};
+	}
 
 	inline void operator()(const vector<vector<int>>& itv_rows,
 						   const float& rate,
@@ -2989,7 +3076,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			// set the pattern mod values by calling the mod functors
 			call_pattern_mod_functors(itv);
 		}
-	};
+	}
 
 	//// maybe overload for non-hand-specific?
 	// inline void operator()(const vector<vector<int>>& itv_rows,
@@ -2999,8 +3086,47 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	//};
 
+#pragma region patternmod "loops"
+	// some pattern mod detection builds across rows, see rm_sequencing for an
+	// example
+	void handle_row_dependent_pattern_advancement()
+	{
+		_rm.advance_sequencing(*_mni_now);
+		_wrjt.advance_sequencing(*_mni_now);
+	}
+
+	inline void run_pattern_mod_setups()
+	{
+		_rm.setup(_doot, _itv_rows.size());
+		_js.setup(_doot, _itv_rows.size());
+		_hs.setup(_doot, _itv_rows.size());
+		_cj.setup(_doot, _itv_rows.size());
+		_wrjt.setup(_doot, _itv_rows.size());
+	}
+
+	inline void run_smoothing_pass()
+	{
+		_rm.smooth_finish(_doot);
+		_js.smooth_finish(_doot);
+		_hs.smooth_finish(_doot);
+		_cj.smooth_finish(_doot);
+		_wrjt.smooth_finish(_doot);
+	}
+
+	inline void call_pattern_mod_functors(const int& itv)
+	{
+		_rm(*_mni_now, _doot, itv);
+		_js(*_mni_now, _doot, itv);
+		_hs(*_mni_now, _doot, itv);
+		_cj(*_mni_now, _doot, itv);
+		_wrjt(*_mni_now, _doot, itv);
+	}
+
 	inline void load_params_from_disk()
 	{
+		if (!DoesFileExist(calc_params_xml))
+			return;
+
 		std::string fn = calc_params_xml;
 		int iError;
 		std::unique_ptr<RageFileBasic> pFile(
@@ -3013,6 +3139,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			return;
 
 		_rm.load_params_from_node(&params);
+		_js.load_params_from_node(&params);
+		_hs.load_params_from_node(&params);
+		_cj.load_params_from_node(&params);
+		_wrjt.load_params_from_node(&params);
 	}
 
 	inline XNode* make_param_node() const
@@ -3020,9 +3150,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		XNode* calcparams = new XNode("CalcParams");
 
 		calcparams->AppendChild(_rm.make_param_node());
+		calcparams->AppendChild(_js.make_param_node());
+		calcparams->AppendChild(_hs.make_param_node());
+		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_wrjt.make_param_node());
 
 		return calcparams;
 	}
+#pragma endregion
 
 	void write_params_to_disk()
 	{
@@ -3094,9 +3229,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	//SetHSMod(jhc_data, left_hand.doot);
-	//SetJumpMod(jhc_data, left_hand.doot);
-	//SetCJMod(jhc_data, left_hand.doot);
+	// SetHSMod(jhc_data, left_hand.doot);
+	// SetJumpMod(jhc_data, left_hand.doot);
+	// SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
@@ -3568,10 +3703,6 @@ Hand::InitAdjDiff()
 			stam_base = funk;
 			switch (ss) {
 				// do funky special case stuff here
-				case Skill_Stream:
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
-					break;
 
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
