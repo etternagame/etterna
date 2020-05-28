@@ -68,6 +68,9 @@ enum tap_size
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
 
+// neutral pattern mod value.. as opposed to min
+static const float neutral = 1.f;
+
 #pragma region stuffs
 // Relies on endiannes (significantly inaccurate)
 inline float
@@ -1557,15 +1560,26 @@ struct metanoteinfo
 	}
 };
 
-// ranmen staff
-static const float neutral = 1.f;
-static const int max_oht_len = 1;
-static const int max_off_spacing = 2;
-static const int max_burst_len = 6;
-static const int max_jack_len = 1;
-
 struct RM_Sequencing
 {
+	// params.. loaded by runningman and then set from there 
+	int max_oht_len = 1;
+	int max_off_spacing = 2;
+	int max_burst_len = 6;
+	int max_jack_len = 1;
+
+	inline void set_params(const int& moht,
+						   const int& moff,
+						   const int& mburst,
+						   const int& mjack)
+	{
+		max_oht_len = moht;
+		max_off_spacing = moff;
+		max_burst_len = mburst;
+		max_jack_len = mjack;
+	}
+
+	// sequencing counters
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
@@ -1589,6 +1603,7 @@ struct RM_Sequencing
 
 	float temp_ms = 0.f;
 
+#pragma region functions
 	inline void reset()
 	{
 		// don't reset anchor_col or last_col
@@ -1823,6 +1838,7 @@ struct RM_Sequencing
 		last_last_cc = last_cc;
 		last_cc = mni.cc;
 	}
+#pragma endregion
 };
 
 #pragma endregion
@@ -1869,10 +1885,18 @@ struct RunningManMod
 	float min_oht_taps_for_bonus = 1.f;
 	float oht_bonus_base = 0.1f;
 
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float max_oht_len = 1.f;
+	float max_off_spacing = 2.f;
+	float max_burst_len = 6.f;
+	float max_jack_len = 1.f;
+
 	const std::map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
+
 		{ "min_anchor_len", &min_anchor_len },
 		{ "min_taps_in_rm", &min_taps_in_rm },
 		{ "min_off_taps_same", &min_off_taps_same },
@@ -1897,9 +1921,16 @@ struct RunningManMod
 		{ "jack_bonus_base", &jack_bonus_base },
 
 		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
-		{ "oht_bonus_base", &oht_bonus_base }
+		{ "oht_bonus_base", &oht_bonus_base },
+
+		// params for rm_sequencing
+		{ "max_oht_len", &max_oht_len },
+		{ "max_off_spacing", &max_off_spacing },
+		{ "max_burst_len", &max_burst_len },		
+		{ "max_jack_len", &max_jack_len },
 	};
 #pragma endregion params and param map
+
 	// stuff for making mod
 	float total_prop = 0.f;
 	float off_tap_prop = 0.f;
