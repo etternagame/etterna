@@ -1271,7 +1271,7 @@ struct metanoteinfo
 	inline void interval_reset()
 	{
 		// isn't reset, preserve behavior
-		seriously_not_js = 0;
+		// seriously_not_js = 0;
 		definitely_not_jacks = 0;
 		actual_jacks = 0;
 		actual_jacks_cj = 0;
@@ -1368,8 +1368,12 @@ struct metanoteinfo
 		// for now
 		alternating_chordstream = is_alternating_chord_stream(
 		  row_notes, last_row_notes, last.last_row_notes);
-		if (alternating_chordstream)
+		if (alternating_chordstream) {
+			if (dbg_lv2)
+				std::cout << "good hot js/hs !!!!: " << std::endl;
 			++definitely_not_jacks;
+			seriously_not_js -= 3;
+		}
 
 		// only cares about single vs chord, not jacks
 		alternating_chord_single =
@@ -1382,7 +1386,7 @@ struct metanoteinfo
 			}
 		}
 
-		if (!alternating_chord_single) {
+		if (last.row_count == 1 && row_count == 1) {
 			seriously_not_js = max(seriously_not_js, 0);
 			++seriously_not_js;
 			if (dbg_lv2)
@@ -1402,35 +1406,33 @@ struct metanoteinfo
 				// give light hs the light js treatment
 				not_hs += seriously_not_js;
 			}
-		}
-		if (last.row_count > 1 && row_count > 1) {
+		} else if (last.row_count > 1 && row_count > 1) {
 			// suppress jumptrilly garbage a little bit
 			if (dbg)
 				std::cout << "sequential chords detected: " << std::endl;
 			not_hs += row_count;
 			not_js += row_count;
 
-			if (row_notes & last_row_notes == 0)
-				{
-				if (dbg)
-					std::cout << "bruh they aint even jacks: " << std::endl;
-				++not_hs;
-				++not_js;
+			if (row_notes & last_row_notes == 0) {
+				// if (dbg)
+				//	std::cout << "bruh they aint even jacks: " << std::endl;
+				//++not_hs;
+				//++not_js;
 			} else {
 				gluts_maybe = true;
 			}
 
-			if (column_count(last_row_notes) > 1) {
-				if (last.row_notes & last.last_row_notes == 0) {
-					++not_js;
-					++not_hs;
-					if (dbg)
-						std::cout
-						  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
-							 "JUST BAN GRIPWARRIOR ALREADY WTF: "
-						  << std::endl;
-				}
-			}
+			// if (column_count(last_row_notes) > 1) {
+			//	if (last.row_notes & last.last_row_notes == 0) {
+			//		++not_js;
+			//		++not_hs;
+			//		if (dbg)
+			//			std::cout
+			//			  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
+			//				 "JUST BAN GRIPWARRIOR ALREADY WTF: "
+			//			  << std::endl;
+			//	}
+			//}
 		}
 	};
 	inline void adjust_tap_counts()
