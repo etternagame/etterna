@@ -139,6 +139,7 @@ weighted_average(const float& a, const float& b, const float& x, const float& y)
 	return (x * a + ((y - x) * b)) / y;
 }
 
+// unreasonably slow, revist
 inline void
 truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
 {
@@ -2954,7 +2955,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
-		// probably should load params here or something
 		load_params_from_disk();
 
 		// ok so the problem atm is the multithreading of songload, if we want
@@ -6351,7 +6351,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 337;
+int mina_calc_version = 338;
 int
 GetCalcVersion()
 {
