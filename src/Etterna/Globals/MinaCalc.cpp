@@ -2357,7 +2357,7 @@ struct JSMod
 		// at least 1 tap but no jumps
 		if (mni.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			neutral_set(doot, i);
+			min_set(doot, i);
 			doot[_primary][i] = pmod;
 			return true;
 		}
@@ -2511,7 +2511,7 @@ struct HSMod
 		// look ma no hands
 		if (mni.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			neutral_set(doot, i);
+			min_set(doot, i);
 			doot[_primary][i] = pmod;
 			return true;
 		}
@@ -2660,13 +2660,13 @@ struct CJMod
 										  const size_t& i)
 	{
 		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
+			min_set(doot, i);
 			return true;
 		}
 
 		// no chords
 		if (mni.chord_taps == 0) {
-			neutral_set(doot, i);
+			min_set(doot, i);
 			return true;
 		}
 		return false;
