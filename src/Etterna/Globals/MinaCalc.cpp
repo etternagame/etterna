@@ -1292,23 +1292,23 @@ struct metanoteinfo
 	};
 	inline void jack_scan()
 	{
-		for (auto& id : col_ids) {
-			if (dbg_lv2)
-				std::cout << "cur id: " << id << std::endl;
-
-			if (is_jack_at_col(id, row_notes, last_row_notes)) {
-				if (dbg_lv2) {
-					std::cout << "actual jack at: " << id << std::endl;
-					std::cout << "with notes: " << row_notes
-							  << " last notes: " << last_row_notes << std::endl;
-				}
-
-				++actual_jacks;
-				// try to pick up gluts maybe?
-				if (row_count > 1 && column_count(last_row_notes) > 1)
-					++shared_chord_jacks;
-				twas_jack = true;
+		twas_jack = false;
+		
+			for (auto& id : col_ids) {
+			if (is_jack_at_col(id, row_notes,last_row_notes)) {
+					if (dbg_lv2) {
+						std::cout
+						  << "actual jack with notes: " << note_map[row_notes]
+						  << " : " << note_map[last_row_notes] << std::endl;
+					}
+					// not scaled to the number of jacks anymore
+					++actual_jacks;
 			}
+				
+			// try to pick up gluts maybe?
+			if (row_count > 1 && column_count(last_row_notes) > 1)
+				++shared_chord_jacks;
+			twas_jack = true;
 		}
 
 		// if we used the normal actual_jack for CJ too
