@@ -66,7 +66,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 								   const RString& sSMNoteData,
 								   int start,
 								   int len,
-								   PlayerNumber pn,
 								   int iNumTracks)
 {
 	/* Don't allocate memory for the entire string, nor per measure. Instead,
@@ -232,7 +231,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 				 * to remove anything in this position.  We know that there's
 				 * nothing there, so avoid the search. */
 				if (tn.type != TapNoteType_Empty && ch != '3') {
-					tn.pn = pn;
 					out.SetTapNote(iTrack, iIndex, tn);
 				}
 
@@ -549,7 +547,7 @@ NoteDataUtil::LoadFromSMNoteDataString(NoteData& out,
 	out.Init();
 	out.SetNumTracks(iNumTracks);
 	LoadFromSMNoteDataStringWithPlayer(
-	  out, sSMNoteData, 0, sSMNoteData.size(), PLAYER_INVALID, iNumTracks);
+	  out, sSMNoteData, 0, sSMNoteData.size(), iNumTracks);
 }
 
 void
@@ -875,7 +873,6 @@ NoteDataUtil::LoadTransformedSlidingWindow(const NoteData& in,
 			int iOldTrack = t;
 			int iNewTrack = (iOldTrack + iCurTrackOffset) % iNewNumTracks;
 			TapNote tn = in.GetTapNote(iOldTrack, r);
-			tn.pn = PLAYER_INVALID;
 			out.SetTapNote(iNewTrack, r, tn);
 		}
 	}
@@ -945,7 +942,6 @@ NoteDataUtil::LoadOverlapped(const NoteData& in,
 			if (tnFrom.type == TapNoteType_Empty ||
 				tnFrom.type == TapNoteType_AutoKeysound)
 				continue;
-			tnFrom.pn = PLAYER_INVALID;
 
 			// If this is a hold note, find the end.
 			int iEndIndex = row;
@@ -1319,22 +1315,6 @@ NoteDataUtil::RemoveAllButOneTap(NoteData& inout, int row)
 		NoteData::iterator iter = inout.FindTapNote(track, row);
 		if (iter != inout.end(track) && iter->second.type == TapNoteType_Tap)
 			inout.RemoveTapNote(track, iter);
-	}
-	inout.RevalidateATIs(vector<int>(), false);
-}
-
-void
-NoteDataUtil::RemoveAllButPlayer(NoteData& inout, PlayerNumber pn)
-{
-	for (int track = 0; track < inout.GetNumTracks(); ++track) {
-		NoteData::iterator i = inout.begin(track);
-
-		while (i != inout.end(track)) {
-			if (i->second.pn != pn && i->second.pn != PLAYER_INVALID)
-				inout.RemoveTapNote(track, i++);
-			else
-				++i;
-		}
 	}
 	inout.RevalidateATIs(vector<int>(), false);
 }
@@ -1752,7 +1732,7 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 		vector<int> doot(inout.GetNumTracks());
 		iota(std::begin(doot), std::end(doot), 0);
 
-		random_shuffle(doot.begin(), doot.end());
+		std::shuffle(doot.begin(), doot.end(), g_RandomNumberGenerator);
 		for (int tdoot = 0; tdoot < inout.GetNumTracks(); tdoot++) {
 			int t1 = doot[tdoot];
 			const TapNote& tn1 = inout.GetTapNote(t1, r);

@@ -206,6 +206,7 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
   "Initializing Client Network...");
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
+	NSMAN = this;
 	LANserver = NULL; // So we know if it has been created yet
 	useSMserver = false;
 	isSMOnline = false;
@@ -402,6 +403,9 @@ ETTProtocol::close()
 ETTProtocol::~ETTProtocol()
 {
 	close();
+	// Wait until the client is closed
+	while (this->client != nullptr)
+		;
 }
 
 void
@@ -513,6 +517,9 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	}
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
+		// Ignore if we're closing the program and already deleted nsman
+		if (NSMAN == nullptr)
+			return;
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
@@ -524,6 +531,8 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	auto openHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		finished_connecting = true;
 		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
 		n->isSMOnline = true;
@@ -531,10 +540,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	auto failHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		finished_connecting = true;
 		n->isSMOnline = false;
 	};
 	auto closeHandler = [this](websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		this->client = nullptr;
 	};
 	if (wss) {

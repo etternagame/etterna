@@ -20,6 +20,10 @@ t[#t + 1] =
 			local title = translated_info["Title"]
 			local ss = SCREENMAN:GetTopScreen():GetStageStats()
 			if not ss:GetLivePlay() then title = translated_info["Replay"] end
+			local gamename = GAMESTATE:GetCurrentGame():GetName():lower()
+			if gamename ~= "dance" then
+				title = gamename:gsub("^%l", string.upper) .. " " .. title
+			end
 			self:settextf("%s:", title)
 		end,
 	}

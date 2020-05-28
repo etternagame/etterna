@@ -11,7 +11,8 @@
 #ifndef MINACALC_API
 #define MINACALC_API
 #endif
-
+#define USING_NEW_CALC
+#define USING_CALCTESTS
 typedef std::vector<std::vector<float>> MinaSD;
 typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;
@@ -37,7 +38,7 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	static float CalcMSEstimate(std::vector<float> input);
+	float CalcMSEstimate(std::vector<float> input, int burp);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
@@ -116,8 +117,8 @@ class Calc
 								float music_rate,
 								float score_goal);
 
-	void JackStamAdjust(float x, int t, int mode);
-	float JackLoss(float x, int mode, float mpl, bool stam);
+	void JackStamAdjust(float x, int t, int mode, bool debug = false);
+	float JackLoss(float x, int mode, float mpl, bool stam, bool debug = false);
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
@@ -172,6 +173,12 @@ class Calc
 	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
 					   std::vector<float> doot[],
 					   float& music_rate);
+
+	void WideRangeRanMan(const std::vector<NoteInfo>& NoteInfo,
+						 unsigned int t1,
+						 unsigned int t2,
+						 float music_rate,
+						 std::vector<float> doot[]);
 
 	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
 					  std::vector<float> doot[ModCount],

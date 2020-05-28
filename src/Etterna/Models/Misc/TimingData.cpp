@@ -418,7 +418,7 @@ TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow) const
 	return INVALID_INDEX;
 }
 
-struct ts_less : binary_function<TimingSegment*, TimingSegment*, bool>
+struct ts_less
 {
 	bool operator()(const TimingSegment* x, const TimingSegment* y) const
 	{
@@ -1488,7 +1488,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 			event_row = bpms[i]->GetRow();
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			float next_event_time = last_time + time_to_next_event;
-			while (nerv[idx] <= event_row && idx < nerv.size()) {
+			while (idx < nerv.size() && nerv[idx] <= event_row) {
 				float perc = (nerv[idx] - lastbpmrow) /
 							 static_cast<float>(event_row - lastbpmrow);
 				ElapsedTimesAtNonEmptyRows.emplace_back(

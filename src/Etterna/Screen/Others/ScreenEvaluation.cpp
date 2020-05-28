@@ -404,6 +404,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
+		CHECKPOINT_M("Getting replay rate");
 		// if we have a replay, give the data
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
@@ -413,32 +414,40 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushnil(L);
 			return 1;
 		}
+		CHECKPOINT_M("Got replay rate");
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
+		CHECKPOINT_M("Getting replay judge");
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetJudgeScale());
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
+		CHECKPOINT_M("Got replay judge");
 		return 1;
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
+		CHECKPOINT_M("Getting replay modifiers");
 		if (PlayerAI::pScoreData != nullptr) {
 			LuaHelpers::Push(L, PlayerAI::pScoreData->GetModifiers());
 		} else {
 			lua_pushnil(L);
 		}
+		CHECKPOINT_M("Got replay modifiers");
 		return 1;
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
 		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		CHECKPOINT_M("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
+		CHECKPOINT_M("Checking modifiers...");
 		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
+		CHECKPOINT_M("Done checking.");
 		return 1;
 	}
 

@@ -191,7 +191,22 @@ local debugGroups = {
         WideRangeBalance = true,
         WideRangeAnchor = true,
     },
-    {},
+    {
+        RanMan = true,
+        RanLen = true,
+        RanAnchLen = true,
+        RanAnchLenMod = true,
+        RanOHT = true,
+        RanOffS = true,
+        RanJack = true,
+        RanPropAll = true,
+        RanPropOHT = true,
+        RanPropOff = true,
+        RanPropOffS = true,
+        RanPropJack = true,
+        
+        
+    },
     {},
     [9] = {},
 }
@@ -815,7 +830,9 @@ local function topGraphLine(mod, colorToUse, hand)
                 self:diffusealpha(1)
             else
                 -- hide unselected groups
-                self:diffusealpha(0)
+                if mod ~= "base_line" then
+                    self:diffusealpha(0)
+                end
             end
         end
     }

@@ -1085,7 +1085,7 @@ RageDisplay::DrawCompiledGeometry(const RageCompiledGeometry* p,
 {
 	this->DrawCompiledGeometryInternal(p, iMeshIndex);
 
-	StatsAddVerts(vMeshes[iMeshIndex].Triangles.size());
+	StatsAddVerts(static_cast<int>(vMeshes[iMeshIndex].Triangles.size()));
 }
 
 void
@@ -1272,10 +1272,10 @@ RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
 		MeshInfo& meshInfo = m_vMeshInfo[i];
 		meshInfo.m_bNeedsTextureMatrixScale = false;
 
-		meshInfo.iVertexStart = totalVerts;
-		meshInfo.iVertexCount = Vertices.size();
-		meshInfo.iTriangleStart = totalTriangles;
-		meshInfo.iTriangleCount = Triangles.size();
+		meshInfo.iVertexStart = static_cast<int>(totalVerts);
+		meshInfo.iVertexCount = static_cast<int>(Vertices.size());
+		meshInfo.iTriangleStart = static_cast<int>(totalTriangles);
+		meshInfo.iTriangleCount = static_cast<int>(Triangles.size());
 
 		totalVerts += Vertices.size();
 		totalTriangles += Triangles.size();

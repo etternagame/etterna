@@ -1,0 +1,107 @@
+name: Etterna CI
+on: [push, pull_request]
+
+jobs:
+  linux-x64:
+    name: Linux x64 (${{matrix.cfg.cpp-version}})
+    runs-on: ${{matrix.cfg.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: ubuntu-18.04, cpp-version: g++-8 }
+          - { os: ubuntu-18.04, cpp-version: g++-9 }
+          - { os: ubuntu-18.04, cpp-version: clang++-7 }
+          - { os: ubuntu-18.04, cpp-version: clang++-8 }
+          - { os: ubuntu-18.04, cpp-version: clang++-9 }
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v2
+
+      - name: Install apt packages
+        run: sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+
+      - name: Print gcc + clang version
+        run: ${{matrix.cfg.cpp-version}} --version
+
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -G Ninja ..
+        env:
+          CXX: ${{matrix.cfg.cpp-version}}
+
+      - name: Build Project
+        run: cd build && ninja
+
+  macos:
+    name: macOS x64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install homebrew packages
+        run: brew install cmake nasm ninja
+
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G Ninja ..
+
+      - name: Build Project
+        run: cd build && ninja
+
+      - name: Generate binary
+        run: cd build && cpack
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - macOS x64.dmg"
+          path: '${{github.workspace}}/build/*.dmg'
+
+  windows: # Windows x64 and x86 build matrix
+    strategy:
+      fail-fast: false # Don't cancel other matrix jobs if one fails
+      matrix:
+        cfg:
+        - { name: i386, arch: Win32, ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        - { name: x64,  arch: x64,   ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
+
+    name: "Windows ${{matrix.cfg.name}}"
+    runs-on: windows-2019
+    steps:
+      - name: Checkout Etterna
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout DirectX SDK
+        uses: actions/checkout@v2
+        with:
+          repository: nico-abram/dxsdk
+          path: dxsdk
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.0
+
+      - name: Install chocolatey packages (i386)
+        if: ${{ matrix.cfg.arch == 'Win32' }}
+        run: choco install ninja nsis openssl -y --x86
+
+      - name: Install chocolatey packages (x64)
+        if: ${{ matrix.cfg.arch == 'x64' }}
+        run: choco install ninja nsis openssl -y
+
+      - name: Generate CMake
+        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
+        env:
+          DXSDK_DIR: "${{github.workspace}}/dxsdk/"
+
+      - name: Build Project
+        run: cd main/build && MSBuild Etterna.sln /p:Configuration=Release /p:Platform=${{matrix.cfg.arch}}
+
+      - name: Generate binary
+        run: cd main/build && cpack
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - Windows ${{matrix.cfg.name}}"
+          path: '${{github.workspace}}/main/build/*.exe'
