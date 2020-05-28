@@ -928,6 +928,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	return yo_momma;
 }
+#pragma endregion
 
 #pragma region sequencing logic definitions
 // cross column behavior between 2 notes
@@ -1445,7 +1446,7 @@ struct metanoteinfo
 
 			// almost certainly overkill
 			 if (column_count(last_row_notes) > 1) {
-				if (last.row_notes & last.last_row_notes == 0) {
+				if ((last.row_notes & last.last_row_notes) == 0) {
 					++not_js;
 					++not_hs;
 					if (dbg)
@@ -1563,20 +1564,20 @@ struct metanoteinfo
 struct RM_Sequencing
 {
 	// params.. loaded by runningman and then set from there 
-	int max_oht_len = 1;
-	int max_off_spacing = 2;
-	int max_burst_len = 6;
-	int max_jack_len = 1;
+	int max_oht_len = 0;
+	int max_off_spacing = 0;
+	int max_burst_len = 0;
+	int max_jack_len = 0;
 
-	inline void set_params(const int& moht,
-						   const int& moff,
-						   const int& mburst,
-						   const int& mjack)
+	inline void set_params(const float& moht,
+						   const float& moff,
+						   const float& mburst,
+						   const float& mjack)
 	{
-		max_oht_len = moht;
-		max_off_spacing = moff;
-		max_burst_len = mburst;
-		max_jack_len = mjack;
+		max_oht_len = static_cast<int>(moht);
+		max_off_spacing = static_cast<int>(moff);
+		max_burst_len = static_cast<int>(mburst);
+		max_jack_len = static_cast<int>(mjack);
 	}
 
 	// sequencing counters
@@ -1841,8 +1842,6 @@ struct RM_Sequencing
 #pragma endregion
 };
 
-#pragma endregion
-
 struct RunningManMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
@@ -1892,7 +1891,7 @@ struct RunningManMod
 	float max_burst_len = 6.f;
 	float max_jack_len = 1.f;
 
-	const std::map<std::string, float*> param_map{
+	const std::unordered_map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -1947,7 +1946,10 @@ struct RunningManMod
 		// run two passes with each assuming a different column
 		rms[0].anchor_col = col_left;
 		rms[1].anchor_col = col_right;
-		// floop();
+		rms[0].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+		rms[1].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
 
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
@@ -1966,7 +1968,29 @@ struct RunningManMod
 	{
 		Smooth(doot[_primary], 1.f);
 	};
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : param_map)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		for (auto& p : param_map) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	};
 #pragma endregion
+
 	inline void advance_sequencing(const metanoteinfo& mni)
 	{
 		for (auto& rm : rms)
@@ -1978,18 +2002,15 @@ struct RunningManMod
 		if (rms[test].anchor_len > interval_highest.anchor_len)
 			interval_highest = rms[test];
 	};
-	inline XNode* CreateParamNode() const
-	{
-		XNode* pmod = new XNode(name + "ModParams");
-		for (auto& p : param_map)
-			pmod->AppendChild(p.first, to_string(*p.second));
 
-		return pmod;
-	}
 	inline bool handle_case_optimizations(const RM_Sequencing& rm,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
+		// we could mni check for empty intervals like the other mods but it
+		// doesn't really matter and this is probably more useful for debug
+		// output
+
 		// we could decay in this but it may conflict/be redundant with how
 		// runningmen sequences are constructed, if decays are used we would
 		// probably generate the mod not from the highest of any interval, but
@@ -2006,32 +2027,7 @@ struct RunningManMod
 		}
 		return false;
 	};
-	// uhh reminder to self to make this not load values every time thing is
-	// done and thing and stuff, probably
-	inline void floop()
-	{
-		std::string fn = calc_params_xml;
-		int iError;
-		std::unique_ptr<RageFileBasic> pFile(
-		  FILEMAN->Open(fn, RageFile::READ, iError));
-		if (pFile.get() == NULL)
-			return;
 
-		XNode xml;
-		if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-			return;
-
-		CHECKPOINT_M("Loading the Param node.");
-
-		// auto* pmod = xml.GetChild(name + "ModParams");
-
-		for (auto& p : param_map) {
-			auto* ch = xml.GetChild(p.first);
-			float boat = 0.f;
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	};
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -2095,17 +2091,21 @@ struct RunningManMod
 		doot[_primary][i] = pmod;
 
 		// debug
-		doot[RanLen][i] = (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
-		doot[RanAnchLen][i] = (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
-		doot[RanAnchLenMod][i] = anchor_len_comp;
-		doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-		doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-		doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-		doot[RanPropAll][i] = total_prop;
-		doot[RanPropOff][i] = off_tap_prop;
-		doot[RanPropOffS][i] = off_tap_same_prop;
-		doot[RanPropOHT][i] = oht_bonus;
-		doot[RanPropJack][i] = jack_bonus;
+		if (debug_lmao) {
+			doot[RanLen][i] =
+			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+			doot[RanAnchLen][i] =
+			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+			doot[RanAnchLenMod][i] = anchor_len_comp;
+			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
+			doot[RanPropAll][i] = total_prop;
+			doot[RanPropOff][i] = off_tap_prop;
+			doot[RanPropOffS][i] = off_tap_same_prop;
+			doot[RanPropOHT][i] = oht_bonus;
+			doot[RanPropJack][i] = jack_bonus;
+		}
 
 		// reset interval highest when we're done
 		interval_highest.reset();
@@ -2132,7 +2132,7 @@ struct WideRangeJumptrillMod
 	float moving_cv_init = 0.5f;
 	float ccacc_cv_cutoff = 0.5f;
 
-	const std::map<std::string, float*> param_map{
+	const std::unordered_map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2357,7 +2357,7 @@ struct JSMod
 
 	float decay_factor = 0.05f;
 
-	const std::map<std::string, float*> param_map{
+	const std::unordered_map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2510,7 +2510,7 @@ struct HSMod
 
 	float decay_factor = 0.05f;
 
-	const std::map<std::string, float*> param_map{
+	const std::unordered_map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2667,7 +2667,7 @@ struct CJMod
 
 	float vibro_flag = 0.85f;
 
-	const std::map<std::string, float*> param_map{
+	const std::unordered_map<std::string, float*> param_map{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2871,6 +2871,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
 		// probably should load params here or something
+		load_params_from_disk();
+
 		_mni_last = std::make_unique<metanoteinfo>();
 		_mni_now = std::make_unique<metanoteinfo>();
 
@@ -2991,6 +2993,43 @@ struct TheGreatBazoinkazoinkInTheSky
 	//					   vector<float> doot2[]){
 
 	//};
+
+	inline void load_params_from_disk()
+	{
+		std::string fn = calc_params_xml;
+		int iError;
+		std::unique_ptr<RageFileBasic> pFile(
+		  FILEMAN->Open(fn, RageFile::READ, iError));
+		if (pFile.get() == NULL)
+			return;
+
+		XNode params;
+		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile.get()))
+			return;
+
+		_rm.load_params_from_node(&params);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* calcparams = new XNode("CalcParams");
+
+		calcparams->AppendChild(_rm.make_param_node());
+
+		return calcparams;
+	}
+
+	void write_params_to_disk()
+	{
+		std::string fn = calc_params_xml;
+		std::unique_ptr<XNode> xml(make_param_node());
+
+		std::string err;
+		RageFile f;
+		if (!f.Open(fn, RageFile::WRITE))
+			return;
+		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+	}
 };
 
 bool
@@ -3050,9 +3089,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	SetHSMod(jhc_data, left_hand.doot);
-	SetJumpMod(jhc_data, left_hand.doot);
-	SetCJMod(jhc_data, left_hand.doot);
+	//SetHSMod(jhc_data, left_hand.doot);
+	//SetJumpMod(jhc_data, left_hand.doot);
+	//SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
@@ -3857,19 +3896,6 @@ Calc::gen_jump_hand_chord_data(const vector<NoteInfo>& NoteInfo)
 	}
 
 	return data;
-}
-void
-SavePatternModParamXmlToDir()
-{
-	RunningManMod zoop;
-
-	std::string fn = calc_params_xml;
-	std::unique_ptr<XNode> xml(zoop.CreateParamNode());
-	std::string err;
-	RageFile f;
-	if (!f.Open(fn, RageFile::WRITE))
-		return;
-	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 }
 
 void
@@ -6186,8 +6212,12 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	handInfo.emplace_back(debugRun->left_hand.debugValues);
 	handInfo.emplace_back(debugRun->right_hand.debugValues);
-	if (!DoesFileExist(calc_params_xml))
-		SavePatternModParamXmlToDir();
+
+	// asdkfhjasdkfhaskdfjhasfd
+	if (!DoesFileExist(calc_params_xml)) {
+		TheGreatBazoinkazoinkInTheSky ublov;
+		ublov.write_params_to_disk();
+	}
 }
 #pragma endregion
 
