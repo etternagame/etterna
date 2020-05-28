@@ -1230,21 +1230,21 @@ struct metanoteinfo
 	// ok try accumulating the generic aggregate stuff here maybe
 	bool twas_jack = false;
 	int seriously_not_js = 0;
-	unsigned definitely_not_jacks = 0;
-	unsigned actual_jacks = 0;
-	unsigned actual_jacks_cj = 0;
-	unsigned not_js = 0;
-	unsigned not_hs = 0;
-	unsigned zwop = 0;
-	unsigned total_taps = 0;
-	unsigned chord_taps = 0;
-	unsigned taps_by_size[4] = { 0, 0, 0, 0 };
-	unsigned shared_chord_jacks = 0;
+	int definitely_not_jacks = 0;
+	int actual_jacks = 0;
+	int actual_jacks_cj = 0;
+	int not_js = 0;
+	int not_hs = 0;
+	int zwop = 0;
+	int total_taps = 0;
+	int chord_taps = 0;
+	int taps_by_size[4] = { 0, 0, 0, 0 };
+	int shared_chord_jacks = 0;
 
 	// ok new plan instead of a map, keep an array of 3, run a comparison loop
 	// that sets 0s to a new value if that value doesn't match any non 0 value,
 	// and set a bool flag if we have filled the array with unique values
-	unsigned row_variations[3] = { 0, 0, 0 };
+	int row_variations[3] = { 0, 0, 0 };
 	bool basically_vibro = true;
 
 	// resets all the stuff that accumulates across intervals
@@ -1270,25 +1270,24 @@ struct metanoteinfo
 
 		basically_vibro = true;
 	};
-	inline void jack_scan()
+	void jack_scan()
 	{
 		twas_jack = false;
-		
-			for (auto& id : col_ids) {
-			if (is_jack_at_col(id, row_notes,last_row_notes)) {
-					if (dbg_lv2) {
-						std::cout
-						  << "actual jack with notes: " << note_map[row_notes]
-						  << " : " << note_map[last_row_notes] << std::endl;
-					}
-					// not scaled to the number of jacks anymore
-					++actual_jacks;
+
+		for (auto& id : col_ids) {
+			if (is_jack_at_col(id, row_notes, last_row_notes)) {
+				if (dbg_lv2) {
+					std::cout
+					  << "actual jack with notes: " << note_map[row_notes]
+					  << " : " << note_map[last_row_notes] << std::endl;
+				}
+				// not scaled to the number of jacks anymore
+				++actual_jacks;
+				twas_jack = true;
+				// try to pick up gluts maybe?
+				if (row_count > 1 && column_count(last_row_notes) > 1)
+					++shared_chord_jacks;
 			}
-				
-			// try to pick up gluts maybe?
-			if (row_count > 1 && column_count(last_row_notes) > 1)
-				++shared_chord_jacks;
-			twas_jack = true;
 		}
 
 		// if we used the normal actual_jack for CJ too
@@ -1393,7 +1392,7 @@ struct metanoteinfo
 			not_hs += row_count;
 			not_js += row_count;
 
-			if (row_notes & last_row_notes == 0) {
+			if ((row_notes & last_row_notes) == 0) {
 				// if (dbg)
 				//	std::cout << "bruh they aint even jacks: " << std::endl;
 				//++not_hs;
@@ -2673,8 +2672,8 @@ struct CJMod
 	};
 
 	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
+					vector<float> doot[],
+					const size_t& i)
 	{
 		if (handle_case_optimizations(mni, doot, i))
 			return;
@@ -2978,12 +2977,12 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// hand.doot);
 	}
 
-	// auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
+	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
 	// SetHSMod(jhc_data, left_hand.doot);
 	// SetJumpMod(jhc_data, left_hand.doot);
-	// SetCJMod(jhc_data, left_hand.doot);
+	SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
