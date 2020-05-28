@@ -926,7 +926,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
-#pragma region sequencing logic
+#pragma region sequencing logic definitions
 // cross column behavior between 2 notes
 enum cc_type
 {
@@ -1111,7 +1111,7 @@ is_alternating_chord_stream(const unsigned& a,
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
 };
-#pragma	endregion
+#pragma endregion
 
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
@@ -1131,10 +1131,12 @@ struct metanoteinfo
 	bool dbg = false && debug_lmao;
 	bool dbg_lv2 = false && debug_lmao;
 
+#pragma region row specific data
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
 	float col_time[2] = { s_init, s_init };
 
+	// col
 	col_type col = col_init;
 	col_type last_col = col_init;
 	// type of cross column hit
@@ -1142,12 +1144,12 @@ struct metanoteinfo
 	cc_type last_cc = cc_init;
 
 	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
-	// contains 2 metanoteinfos? ... yes... we probably do
+	// contains 2 metanoteinfos? ... yes... we probably do.. uhh
 	unsigned row_notes = 0;
 	unsigned last_row_notes = 0;
 
 	// number of notes in the row
-	unsigned row_count = 0;
+	int row_count = 0;
 
 	// last col == col_empty
 	bool last_was_offhand_tap = false;
@@ -1155,7 +1157,8 @@ struct metanoteinfo
 	// ms from last cross column note
 	float cc_ms_any = ms_init;
 
-	// ms from last cross column note, excluding jumps
+	// ms from last cross column note, excluding jumps (unused atm... might need
+	// later)
 	float cc_ms_no_jumps = ms_init;
 
 	// ms from last note in this column
@@ -1164,9 +1167,13 @@ struct metanoteinfo
 	// per row bool flags, these must be directly set every row
 	bool alternating_chordstream = false;
 	bool alternating_chord_single = false;
-	bool gluts_maybe = false;
+	bool gluts_maybe = false; // not really used/tested yet
+#pragma endregion
 
-	// functions
+	// sets time from last note in the same column, and last note in the
+	// opposite column, handling for jumps is not completely fleshed out yet
+	// maybe, i think any case specific handling of their timings can be done
+	// with the information already given
 	inline void set_timings(const float cur[2],
 							const float last[2],
 							const col_type& last_col)
@@ -1212,6 +1219,10 @@ struct metanoteinfo
 		}
 		return;
 	}
+
+	// col_type is hand specific, col_left doesn't mean 1000, it means 10
+	// cc is also hand specific, and is the nature of how the last 2 notes on
+	// this hand interact
 	inline void set_col_and_cc_types(const bool& lcol,
 									 const bool& rcol,
 									 const col_type& last_col)
@@ -1220,6 +1231,7 @@ struct metanoteinfo
 		cc = determine_cc_type(last_col, col);
 	}
 
+#pragma region accumulated interval data stuff
 	// ok try accumulating the generic aggregate stuff here maybe
 	bool twas_jack = false;
 	int seriously_not_js = 0;
@@ -1238,32 +1250,60 @@ struct metanoteinfo
 	// that sets 0s to a new value if that value doesn't match any non 0 value,
 	// and set a bool flag if we have filled the array with unique values
 	int row_variations[3] = { 0, 0, 0 };
+
+	// unique(noteinfos for interval) < 3, or row_variations[2] == 0 by interval
+	// end
 	bool basically_vibro = true;
 
 	// resets all the stuff that accumulates across intervals
 	inline void interval_reset()
 	{
-		// isn't reset, preserve behavior
+		// isn't reset, preserve behavior. this essentially just tracks longer
+		// sequences of single notes, we don't want it to be reset with
+		// intervals, also there's probably a better way to implement this setup
 		// seriously_not_js = 0;
+
+		// alternating chordstream detected (used by cj only atm)
 		definitely_not_jacks = 0;
+
+		// number of shared jacks between to successive rows, used by js/hs to
+		// depress jumpjacks
 		actual_jacks = 0;
+
+		// almost same thing as above (see comment in jack_scan)
 		actual_jacks_cj = 0;
+
+		// increased by detecting either long runs of single notes
+		// (definitely_not_jacks > 3) or by encountering jumptrills, either
+		// splithand or two hand, not_js and not_hs are the same thing, this
+		// entire operation and setup should probably be split up and made more
+		// explicit in each thing it detects and how those things are used
 		not_js = 0;
 		not_hs = 0;
+
+		// recycle var for any int assignments
 		zwop = 0;
 
+		// self explanatory
 		total_taps = 0;
+
+		// number of non-single taps
 		chord_taps = 0;
+
+		// self explanatory and unused
 		shared_chord_jacks = 0;
 
+		// see def
 		for (auto& t : taps_by_size)
 			t = 0;
 		for (auto& t : row_variations)
 			t = 0;
 
+		// see def
 		basically_vibro = true;
 	};
-	void jack_scan()
+
+	inline void jack_scan()
 	{
 		twas_jack = false;
 
@@ -1294,6 +1334,7 @@ struct metanoteinfo
 		if (twas_jack)
 			++actual_jacks_cj;
 	};
+
 	inline void update_row_variations_and_set_vibro_flag()
 	{
 		// already determined there's enough variation in this interval
@@ -1321,13 +1362,18 @@ struct metanoteinfo
 			}
 		}
 	};
+
 	// will need last for last.last_row_notes
-	inline void thing(const metanoteinfo& last)
+	// i guess the distinction here that i'm starting to notice is that these
+	// are done row by row, whereas the cc sequencing is done hand by hand, so
+	// maybe this stuff should be abstracted similarly 
+	inline void basic_pattern_sequencing(const metanoteinfo& last)
 	{
+		// could use this to really blow out jumptrill garbage in js/hs, but
+		// only used by cj atm
 		update_row_variations_and_set_vibro_flag();
 
-		// we want to
-		// know if we have a bunch of stuff like [123]4[123]
+		// check if we have a bunch of stuff like [123]4[123]
 		// [12]3[124] which isn't actually chordjack, its just
 		// broken hs/js, and in fact with the level of leniency
 		// that is currently being applied to generic
@@ -1344,7 +1390,6 @@ struct metanoteinfo
 			if (dbg_lv2)
 				std::cout << "good hot js/hs !!!!: " << std::endl;
 			++definitely_not_jacks;
-			seriously_not_js -= 3;
 		}
 
 		// only cares about single vs chord, not jacks
@@ -1385,34 +1430,40 @@ struct metanoteinfo
 			not_hs += row_count;
 			not_js += row_count;
 
+			// might be overkill
 			if ((row_notes & last_row_notes) == 0) {
-				// if (dbg)
-				//	std::cout << "bruh they aint even jacks: " << std::endl;
-				//++not_hs;
-				//++not_js;
+				if (dbg)
+					std::cout << "bruh they aint even jacks: " << std::endl;
+				++not_hs;
+				++not_js;
 			} else {
 				gluts_maybe = true;
 			}
 
-			// if (column_count(last_row_notes) > 1) {
-			//	if (last.row_notes & last.last_row_notes == 0) {
-			//		++not_js;
-			//		++not_hs;
-			//		if (dbg)
-			//			std::cout
-			//			  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
-			//				 "JUST BAN GRIPWARRIOR ALREADY WTF: "
-			//			  << std::endl;
-			//	}
-			//}
+			// almost certainly overkill
+			 if (column_count(last_row_notes) > 1) {
+				if (last.row_notes & last.last_row_notes == 0) {
+					++not_js;
+					++not_hs;
+					if (dbg)
+						std::cout
+						  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
+							 "JUST BAN GRIPWARRIOR ALREADY WTF: "
+						  << std::endl;
+				}
+			}
 		}
 	};
-	inline void adjust_tap_counts()
+
+	inline void update_tap_counts()
 	{
 		total_taps += row_count;
+
+		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
 		if (row_count > 1)
 			chord_taps += row_count;
 
+		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
 		taps_by_size[row_count - 1] += row_count + 1;
 
 		// we want mixed hs/js to register as hs, even at relatively sparse hand
@@ -1422,6 +1473,10 @@ struct metanoteinfo
 			// whole interval every hand? maybe it needs to be that extreme?
 			taps_by_size[hand] += taps_by_size[jump];
 	};
+
+	// this seems messy.. but we want to aggreagte interval info and so we need
+	// to transfer the last values to the current object, then update them
+	// this should definitely actually be its own struct tbh
 	inline void set_interval_data_from_last(metanoteinfo& last)
 	{
 		seriously_not_js = last.seriously_not_js;
@@ -1441,14 +1496,16 @@ struct metanoteinfo
 			row_variations[i] = last.row_variations[i];
 		basically_vibro = last.basically_vibro;
 	};
-	inline void interval_aggregator(metanoteinfo& last)
-	{
-		set_interval_data_from_last(last);
 
-		adjust_tap_counts();
+	inline void update_interval_data(const metanoteinfo& last)
+	{
+		update_tap_counts();
 		jack_scan();
-		thing(last);
+		basic_pattern_sequencing(last);
 	};
+#pragma endregion maybe this should be its own struct ?
+
+
 	inline void operator()(metanoteinfo& last,
 						   const float& now,
 						   const unsigned& notes,
@@ -1457,8 +1514,11 @@ struct metanoteinfo
 						   const int& row,
 						   bool silence = false)
 	{
+		// if ulbu is in debug mode it will create an extra mni object every row
+		// and spit out the debugoutput twice
 		dbg = dbg && !silence;
 
+		//
 		last_was_offhand_tap = last.col == col_empty;
 		set_col_and_cc_types(t1 & notes, t2 & notes, last.col);
 		row_count = column_count(notes);
@@ -1468,11 +1528,16 @@ struct metanoteinfo
 		last_col = last.col;
 		last_cc = last.cc;
 
-		// run the interval aggregation after setting values and before the
-		// empty bail
-		interval_aggregator(last);
+		// set the interval data from the already accumulated data (we could
+		// optimize by not doing this for the first execution of any interval
+		// but... it's probably not worth it)
+		set_interval_data_from_last(last);
 
-		// we don't want to set lasttime or lastcol for empty rows
+		// run the interval aggregation after setting new/last values and before
+		// the empty bail
+		update_interval_data(last);
+
+		// we don't want to set lasttime or lastcol for empty columns on this hand
 		if (col == col_empty)
 			return;
 
@@ -1549,6 +1614,7 @@ struct RM_Sequencing
 		max_ms = ms_init;
 		off_total_ms = 0.f;
 	}
+
 	inline void handle_off_tap(const float& now)
 	{
 		last_off_time = now;
@@ -1570,6 +1636,7 @@ struct RM_Sequencing
 			// ok do nothing for now i might have a better idea
 		}
 	}
+
 	inline void handle_off_tap_completion()
 	{
 		// if we end while bursting due to hitting an anchor, complete it
@@ -1580,6 +1647,7 @@ struct RM_Sequencing
 		// reset off_len counter
 		off_len = 0;
 	}
+
 	inline void handle_off_tap_progression()
 	{
 		// resume off tap progression caused by another consecutive off tap
@@ -1610,6 +1678,7 @@ struct RM_Sequencing
 			is_bursting = true;
 		return;
 	}
+
 	inline void handle_anchor_progression(const float& now)
 	{
 		temp_ms = ms_from(now, last_anchor_time);
@@ -1626,6 +1695,7 @@ struct RM_Sequencing
 		// handle completion of off tap progression
 		handle_off_tap_completion();
 	}
+
 	inline void handle_jack_progression()
 	{
 		++ran_taps;
@@ -1641,6 +1711,7 @@ struct RM_Sequencing
 		if (jack_len > max_jack_len)
 			reset();
 	}
+
 	inline void handle_cross_column_branching(const cc_type& cc,
 											  const float& now)
 	{
@@ -1659,7 +1730,8 @@ struct RM_Sequencing
 			return;
 		}
 		handle_anchor_progression(now);
-	};
+	}
+
 	inline void handle_oht_progression(const cc_type& cc)
 	{
 		if (is_oht(last_last_cc, last_cc, cc)) {
@@ -1668,7 +1740,8 @@ struct RM_Sequencing
 			if (oht_len > max_oht_len)
 				reset();
 		}
-	};
+	}
+
 	inline void operator()(const metanoteinfo& mni)
 	{
 		total_taps += mni.row_count;
@@ -1749,37 +1822,10 @@ struct RM_Sequencing
 		}
 		last_last_cc = last_cc;
 		last_cc = mni.cc;
-	};
+	}
 };
 
 #pragma endregion
-// help i dont know what im doing
-// struct PatternMod
-//{
-//  public:
-//	const vector<int> _pmods;
-//	const std::string name = "";
-//
-//	float min_mod = 0.6f;
-//	float max_mod = 1.f;
-//
-//	std::map<std::string, float*> param_map;
-//
-//	// everyone needs one
-//	float pmod = min_mod;
-//
-//	inline void operator()(const metanoteinfo& mni,
-//						   vector<float> doot[],
-//						   const size_t& i);
-//};
-//
-// inline void
-// PatternMod::operator()(const metanoteinfo& mni,
-//					   vector<float> doot[],
-//					   const size_t& i)
-//{
-//	return;
-//};
 
 struct RunningManMod
 {
@@ -2209,8 +2255,8 @@ struct WideRangeJumptrillMod
 		last_seen_cc = now.cc;
 	};
 	inline void operator()(const metanoteinfo& mni,
-					vector<float> doot[],
-					const size_t& i)
+						   vector<float> doot[],
+						   const size_t& i)
 	{
 
 		// drop the oldest interval values if we have reached full
@@ -2665,8 +2711,8 @@ struct CJMod
 	};
 
 	inline void operator()(const metanoteinfo& mni,
-					vector<float> doot[],
-					const size_t& i)
+						   vector<float> doot[],
+						   const size_t& i)
 	{
 		if (handle_case_optimizations(mni, doot, i))
 			return;
@@ -2802,10 +2848,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	};
 
 	inline void operator()(const vector<vector<int>>& itv_rows,
-					const float& rate,
-					const unsigned int& t1,
-					const unsigned int& t2,
-					vector<float> doot[])
+						   const float& rate,
+						   const unsigned int& t1,
+						   const unsigned int& t2,
+						   vector<float> doot[])
 	{
 		// change with offset, if we do multi offset passes we want this to
 		// be vars, but we aren't doing it now
@@ -2973,8 +3019,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	auto jhc_data = gen_jump_hand_chord_data(NoteInfo);
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	// SetHSMod(jhc_data, left_hand.doot);
-	// SetJumpMod(jhc_data, left_hand.doot);
+	SetHSMod(jhc_data, left_hand.doot);
+	SetJumpMod(jhc_data, left_hand.doot);
 	SetCJMod(jhc_data, left_hand.doot);
 	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
@@ -6114,7 +6160,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 336;
+int mina_calc_version = 337;
 int
 GetCalcVersion()
 {
