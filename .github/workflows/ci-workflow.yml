@@ -9,11 +9,11 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-        - { os: ubuntu-18.04, cpp-version: g++-8 }
-        - { os: ubuntu-18.04, cpp-version: g++-9 }
-        - { os: ubuntu-18.04, cpp-version: clang++-7 }
-        - { os: ubuntu-18.04, cpp-version: clang++-8 }
-        - { os: ubuntu-18.04, cpp-version: clang++-9 }
+          - { os: ubuntu-18.04, cpp-version: g++-8 }
+          - { os: ubuntu-18.04, cpp-version: g++-9 }
+          - { os: ubuntu-18.04, cpp-version: clang++-7 }
+          - { os: ubuntu-18.04, cpp-version: clang++-8 }
+          - { os: ubuntu-18.04, cpp-version: clang++-9 }
 
     steps:
       - name: Checkout project
@@ -58,17 +58,13 @@ jobs:
 
   windows: # Windows x64 and x86 build matrix
     strategy:
-      fail-fast: false          # Don't cancel other matrix jobs if one fails
+      fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
-        name: [i386, x64]       # Name suffix to be show in Github UI
-        arch: [x64]             # Arch types passed into CMake/MSBuild. Switch to [i386, x64] for 32bit aswell
-        exclude:                # Combinations of matrix not to include
-          - name: i386
-            arch: x64
-          - name: x64
-            arch: Win32
+        cfg:
+        - { name: i386, arch: Win32, ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        - { name: x64,  arch: x64,   ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
-    name: "Windows ${{matrix.name}}"
+    name: "Windows ${{matrix.cfg.name}}"
     runs-on: windows-2019
     steps:
       - name: Checkout Etterna
@@ -85,16 +81,21 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
 
-      - name: Install chocolatey packages
-        run: choco install ninja nsis
+      - name: Install chocolatey packages (i386)
+        if: ${{ matrix.cfg.arch == 'Win32' }}
+        run: choco install ninja nsis openssl -y --x86
+
+      - name: Install chocolatey packages (x64)
+        if: ${{ matrix.cfg.arch == 'x64' }}
+        run: choco install ninja nsis openssl -y
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.arch}}" ..
+        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
       - name: Build Project
-        run: cd main/build && MSBuild Etterna.sln /p:Configuration=Release /p:Platform=${{matrix.arch}}
+        run: cd main/build && MSBuild Etterna.sln /p:Configuration=Release /p:Platform=${{matrix.cfg.arch}}
 
       - name: Generate binary
         run: cd main/build && cpack
@@ -102,5 +103,5 @@ jobs:
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
-          name: "Etterna - Windows ${{matrix.name}}.exe"
+          name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
