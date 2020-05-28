@@ -1439,7 +1439,7 @@ struct metanoteinfo
 		if (row_count > 1)
 			chord_taps += row_count;
 
-		++taps_by_size[row_count - 1];
+		taps_by_size[row_count - 1] += row_count + 1;
 
 		// we want mixed hs/js to register as hs, even at relatively sparse hand
 		// density
