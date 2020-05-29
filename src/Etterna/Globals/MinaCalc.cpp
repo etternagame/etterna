@@ -1974,6 +1974,8 @@ struct RunningManMod
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
 		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
