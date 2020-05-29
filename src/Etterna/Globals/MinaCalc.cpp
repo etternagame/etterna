@@ -2118,8 +2118,6 @@ struct WideRangeJumptrillMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		// floop();
-
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	}
@@ -2191,7 +2189,8 @@ struct WideRangeJumptrillMod
 			return true;
 
 		return false;
-	};
+	}
+
 	bool handle_ccacc_timing_check()
 	{
 		// we don't want to suppress actual streams that use this pattern, so we
@@ -2231,7 +2230,7 @@ struct WideRangeJumptrillMod
 		// before the mod really kicks in
 		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
 		return moving_cv < ccacc_cv_cutoff;
-	};
+	}
 
 	inline void update_seq_ms(const metanoteinfo& now)
 	{
@@ -3177,8 +3176,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		// WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate,
-		// hand.doot);
 	}
 
 	// these are evaluated on all columns so right and left are the
@@ -4984,142 +4981,6 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 	// interval splicing error
 	if (SmoothPatterns)
 		Smooth(doot[WideRangeRoll], 1.f);
-	return;
-}
-
-// hyper explicit mega murder of long chains of
-// 12211221122112211221122112211221
-// look into consistent spacing checks
-void
-Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
-							   unsigned int t1,
-							   unsigned int t2,
-							   float music_rate,
-							   vector<float> doot[])
-{
-	doot[WideRangeJumptrill].resize(nervIntervals.size());
-
-	static const float min_mod = 0.25f;
-	static const float max_mod = 1.f;
-	unsigned int itv_window = 6;
-
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
-
-	int lastcol = -1;
-	int last_cc_dir = -1;
-	int anchors_hit = 0;
-	int crop_circles = 0;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// if (debugmode)
-		//	std::cout << "new interval " << i << std::endl;
-
-		int interval_taps = 0;
-		int ccacc_counter = 0;
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_ccacc.pop_front();
-		}
-
-		for (int row : nervIntervals[i]) {
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-
-			if (!(lcol ^ rcol)) {
-				if (!(lcol || rcol)) {
-					continue;
-				}
-				// not sure yet how oh jumps interact with this
-				if (lcol && rcol) {
-					lastcol = -1;
-				}
-				continue;
-			}
-
-			int thiscol = lcol ? 0 : 1;
-			if (thiscol != lastcol || lastcol == -1) {
-				if (rcol) {
-					if (anchors_hit == 1 && last_cc_dir == 10) {
-						// if (debugmode)
-						//	std::cout << "ccacc detected ending on "
-						//<<
-						// thiscol
-						//			  << std::endl;
-						++ccacc_counter;
-					}
-
-					anchors_hit = 0;
-					last_cc_dir = 01;
-				} else if (lcol) {
-					if (anchors_hit == 1 && last_cc_dir == 01) {
-						// if (debugmode)
-						//	std::cout << "ccacc detected ending on "
-						//<<
-						// thiscol
-						//			  << std::endl;
-						++ccacc_counter;
-					}
-
-					last_cc_dir = 10;
-					anchors_hit = 0;
-				}
-			} else {
-				++anchors_hit;
-				// if (debugmode)
-				//	std::cout << "anchor hit " << std::endl;
-			}
-
-			lastcol = thiscol;
-		}
-
-		itv_taps.push_back(interval_taps);
-		itv_ccacc.push_back(max(ccacc_counter - 1, 0));
-
-		if (ccacc_counter > 0)
-			++crop_circles;
-		else
-			--crop_circles;
-		if (crop_circles < 0)
-			crop_circles = 0;
-
-		// if (debugmode)
-		//	std::cout << "crop circles: " << crop_circles <<
-		// std::endl;
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_ccacc = 0;
-		for (auto& n : itv_ccacc)
-			window_ccacc += n;
-
-		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps <<
-		// std::endl;
-		// if (debugmode)
-		//	std::cout << "window ccacc: " << window_ccacc <<
-		// std::endl;
-
-		float pmod = 1.f;
-
-		if (window_ccacc > 0 && crop_circles > 0)
-			pmod =
-			  static_cast<float>(window_taps) /
-			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
-
-		doot[WideRangeJumptrill][i] = CalcClamp(pmod, min_mod, max_mod);
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" <<
-		// std::endl;
-	}
-
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeJumptrill], 1.f);
 	return;
 }
 
