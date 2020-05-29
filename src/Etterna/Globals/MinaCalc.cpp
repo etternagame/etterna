@@ -2874,6 +2874,741 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 };
+
+
+// if ccacc is cross column, anchor, cross column (1221) and we are looking for
+// (1212) then we are looking for cccccc where the inner cc is the inverse of
+// the outers, so we'll follow the rough model that wrjt setup, conveniently
+// the inner timing ratio to the outer timings should also be 3:1 when looking
+// for proper rolls, it would be 1:1 for ohts. given the much more efficient
+// new setup we can do roll detection and oht detection in separate passes
+// this is for PURE ROLLS ONLY, not rolls with maybe some jumps in it, that can
+// be done in another pass
+// refer to cccccc with an inverted center as "roll" formation, even though
+// technically it can either be roll or oht depending on spacing
+struct WideRangeRollMod
+{
+	bool dbg = true && debug_lmao;
+	const vector<int> _pmods = { WideRangeRoll };
+	const std::string name = "WideRangeRollMod";
+	const int _primary = _pmods.front();
+
+	deque<int> window_itv_taps;
+	deque<vector<int>> window_itv_rolls;
+	// each element is a discrete roll formation with this many taps
+	// (technically it has this many taps + 4 because it requires 1212 or
+	// 2121 to start counting, but that's fine, that's what we want and if
+	// it seems better to add later we can do that
+	vector<int> itv_rolls;
+
+#pragma region params
+	float itv_window = 4;
+
+	float min_mod = 0.5f;
+	float max_mod = 1.035f;
+	float mod_base = 0.4f;
+
+	float moving_cv_init = 0.5f;
+	float roll_cv_cutoff = 0.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "roll_cv_cutoff", &roll_cv_cutoff },
+	};
+#pragma endregion params and param map
+	// unlike ccacc, which has a half baked implementation for chains of
+	// 122112211221, we will actually be responsible and sequence both the
+	// number of rolls and the notes contained therein
+	bool rolling = false;
+	int consecutive_roll_counter = 0;
+	int window_taps = 0;
+	// for now we will be lazy and just add up the number of roll taps in any
+	// roll, if we leave out the initialization taps (the 4 required to identify
+	// the start) we will greatly reduce the effect of short roll bursts, not
+	// sure if this is desired behavior
+	int window_roll_taps = 0;
+	float pmod = min_mod;
+	bool is_transition = false;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], neutral);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	// should rename as it resets or completes a sequence... maybe should go
+	// look at rm_sequencing again and make roll_sequencing.. idk
+	inline void reset_sequence()
+	{
+		// only need to do this if rolling, otherwise values are false/0 anyway
+		if (rolling) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			rolling = false;
+			consecutive_roll_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// copied from wrjt, definitely needs to be tracked in metanoteinfo
+	bool detecc_ccacc(const metanoteinfo& now)
+	{
+		if (now.cc == cc_single_single)
+			return false;
+
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, since
+	// oht will need this as well, or we could be lazy and do it twice just this
+	// once
+	bool detecc_roll(const metanoteinfo& now)
+	{
+		// we allow this through up to here due to transition checks
+		if (now.cc == cc_single_single)
+			return false;
+
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, there are no jumps and no anchors. this
+		// means they are all either cc_left_right, cc_right_left
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyx, meaning last would be the inverion of now
+		if (invert_cc(now.cc) == last_seen_cc)
+			// now make sure that last_last is the same as now
+			if (now.cc == last_last_seen_cc)
+				// we now have 1212 or 2121
+				return true;
+		return false;
+	}
+
+	bool handle_roll_timing_check()
+	{
+		// see ccacc timing check in wrjt for explanations, it's basically the
+		// same but we have to invert the multiplication depending on which
+		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
+		// a roll in an editor to see why)
+		seq_ms[1] /= 3.f;
+
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < roll_cv_cutoff;
+	}
+
+	inline void update_seq_ms(const metanoteinfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now, we have no anchors, so always use cc_ms_any (although we
+		// want to move this to cc_ms_no_jumps when that gets implemented, since
+		// a separate jump inclusive mod should be made to handle those cases
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	void advance_sequencing(const metanoteinfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// reset if we hit a jump
+		if (now.col == col_ohjump) {
+			reset_sequence();
+			return;
+		}
+
+		if (now.last_cc == cc_single_single)
+			return;
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		is_transition = false;
+		// try to catch simple transitions https:i.imgur.com/zhlBio0.png, given
+		// the constraints on ccacc we have to check last_cc for the anchor
+		if (now.last_cc == cc_single_single)
+			if (detecc_ccacc(now))
+				if (rolling) {
+					// don't care about any timing checks for the moment
+					is_transition = true;
+					++consecutive_roll_counter;
+				}
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for rolls (cc -> inverted(cc) -> cc)
+			if (detecc_roll(now))
+				if (rolling) {
+					// these should always be mutually exclusive
+					ASSERT(is_transition == false);
+					++consecutive_roll_counter;
+				} else {
+					// we could increase the roll counter here, but really
+					// all we have now is a minitrill, so lets see if it
+					// extends to at least 5 notes before doing anything
+					rolling = true;
+				}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_taps.size() == itv_window) {
+			window_itv_taps.pop_front();
+			window_itv_rolls.pop_front();
+		}
+
+		window_itv_taps.push_back(mni.total_taps);
+		window_itv_rolls.push_back(itv_rolls);
+
+		for (auto& n : window_itv_taps)
+			window_taps += n;
+
+		// for now just add everything up
+		for (auto& n : window_itv_rolls)
+			for (auto& v : n)
+				window_roll_taps += v;
+
+		pmod = 1.f;
+		if (window_roll_taps > 0)
+			pmod = static_cast<float>(window_taps) /
+				   static_cast<float>(window_roll_taps);
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_primary][i] = pmod;
+
+		//itv_rolls.clear();
+	}
+};
+// ok new plan this takes a bunch of the concepts i tried with the
+// old didn't-work-so-well-roll-downscaler and utilizes them across
+// a wide range of intervals, making it more suited to picking up
+// and hammering long stretches of jumptrillable roll patterns, this
+// also apparently thinks every js and hs pattern in existence is
+// mashable too, probably because they are
+void
+Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
+						  unsigned int t1,
+						  unsigned int t2,
+						  float music_rate,
+						  vector<float> doot[])
+{
+	doot[WideRangeRoll].resize(nervIntervals.size());
+
+	static const float min_mod = 0.5f;
+	static const float max_mod = 1.035f;
+	unsigned int itv_window = 4;
+	deque<vector<int>> itv_array;
+	deque<vector<int>> itv_arrayTWO;
+	deque<int> itv_taps;
+	deque<int> itv_cv_taps;
+	deque<int> itv_single_taps;
+	vector<int> cur_vals;
+	vector<int> window_vals;
+	unordered_set<int> unique_vals;
+	vector<int> filtered_vals;
+	vector<int> lr;
+	vector<int> rl;
+
+	float lasttime = 0.f;
+	int lastcol = -1;
+	int lastsinglecol = -1;
+	int single_taps = 0;
+
+	// we could implement this like the roll scaler above, however
+	// this is to prevent /0 errors exclusively at the moment
+	// (because we are truncating extremely high bpm 192nd flams can
+	// produce 0 as ms), causing potenial nan's in the sd function
+	// we could look into using this for balance purposes as well
+	// but things look ok for the moment and it would likely be a
+	// large time sink without proper tests setup
+	static const int ms_add = 1;
+
+	// miss window seems like a reasonable cutoff, we don't want
+	// 1500 ms hits after long breaks to poison the pool
+	static const int max_ms_value = 180;
+	static const float mean_cutoff_factor = 1.7f;
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int interval_taps = 0;
+		int ltaps = 0;
+		int rtaps = 0;
+		int single_taps = 0;
+
+		// drop the oldest interval values if we have reached full
+		// size
+		if (itv_array.size() == itv_window) {
+			itv_array.pop_front();
+			itv_arrayTWO.pop_front();
+			itv_cv_taps.pop_front();
+			itv_taps.pop_front();
+			itv_single_taps.pop_front();
+		}
+
+		// clear the current interval value vectors
+		cur_vals.clear();
+		lr.clear();
+		rl.clear();
+
+		// if (debugmode)
+		//	std::cout << "new interval: " << i << std::endl;
+
+		for (int row : nervIntervals[i]) {
+			float curtime = NoteInfo[row].rowTime / music_rate;
+
+			// we don't want slight bpm variations to pollute too
+			// much stuff, especially if we are going to use unique
+			// values at some point (we don't currently), if we do
+			// and even single digit rounding becomes an issue we
+			// can truncate further up
+			int trunc_ms =
+			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
+
+			bool lcol = NoteInfo[row].notes & t1;
+			bool rcol = NoteInfo[row].notes & t2;
+			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
+			if (lcol ^ rcol)
+				++single_taps;
+
+			// if (debugmode)
+			//	std::cout << "truncated ms value: " << trunc_ms <<
+			// std::endl;
+
+			// for expurrrmental thing for chaos thing
+			if (trunc_ms < max_ms_value)
+				cur_vals.push_back(trunc_ms - ms_add);
+
+			if (!(lcol ^ rcol)) {
+				if (!(lcol || rcol)) {
+					//	if (debugmode)
+					//		std::cout << "empty row" << std::endl;
+					continue;
+				}
+
+				// if (debugmode)
+				//	std::cout << "jump" << std::endl;
+
+				if (lcol && rcol) {
+					lastsinglecol = lastcol;
+					lastcol = -1;
+				}
+				lasttime = curtime;
+				continue;
+			}
+
+			int thiscol = lcol ? 0 : 1;
+			if (thiscol != lastcol || lastcol == -1) {
+				// handle ohjumps here, not above, because we only
+				// want to handle the last ohjump before an actual
+				// cross column, we don't want to handle long
+				// sequences of ohjumps inside rolls. technically
+				// they would be jumptrillable, but the point is to
+				// pick up _rolls_, we handle ohjumps elsewhere
+				// basically we treat ohjumps as they were either a
+				// cross column left or right, so that the roll
+				// detection still picks up rolls with ohjumps in
+				// them
+				if (lastcol == -1) {
+					// dump an extra value, cuz
+					if (rcol)
+						if (trunc_ms < max_ms_value)
+							lr.push_back(max_ms_value);
+					if (lcol)
+						if (trunc_ms < max_ms_value)
+							rl.push_back(max_ms_value);
+
+					// l vs r shouldn't matter here
+					++ltaps;
+					++rtaps;
+				}
+
+				if (rcol) {
+					if (trunc_ms < max_ms_value)
+						lr.push_back(trunc_ms);
+					++ltaps;
+				} else if (lcol) {
+					++rtaps;
+					if (trunc_ms < max_ms_value)
+						rl.push_back(trunc_ms);
+				}
+				lasttime = curtime;
+			} else {
+				// the idea here was to help boost anchored patterns
+				// but all it did was just buff rolls with frequent
+				// directional swaps and anchored patterns are
+				// already more or less fine possibly look into
+				// taking this out of the lower level roll scaler as
+				// well
+
+				//	if (trunc_ms < trunc_ms)
+				//		cur_vals.push_back(trunc_ms);
+			}
+
+			lastcol = thiscol;
+		}
+
+		itv_arrayTWO.push_back(cur_vals);
+
+		int cv_taps = ltaps + rtaps;
+		itv_taps.push_back(interval_taps);
+		itv_cv_taps.push_back(cv_taps);
+		itv_single_taps.push_back(single_taps);
+
+		unsigned int window_taps = 0;
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		unsigned int window_cv_taps = 0;
+		for (auto& n : itv_cv_taps)
+			window_cv_taps += n;
+
+		unsigned int window_single_taps = 0;
+		for (auto& n : itv_single_taps)
+			window_single_taps += n;
+
+		// push current interval values into deque, there should
+		// always be space since we pop front at the start of the
+		// loop if there isn't
+		// k lets try just running the pass with the rolls (lower
+		// mean indicates the rolls are flowing in that direction,
+		// for patterns that aren't rolls this should be
+		// functionally insignificant
+		itv_array.push_back(mean(lr) < mean(rl) ? lr : rl);
+
+		// clear vectors before using them
+		window_vals.clear();
+		unique_vals.clear();
+		filtered_vals.clear();
+
+		unsigned int totalvalues = 0;
+		for (auto& v : itv_array)
+			totalvalues += v.size();
+
+		// the unique val is not really used at the moment,
+		// basically we filter out the vectors for stuff way outside
+		// the applicable range, like 500 ms hits that would
+		// otherwise throw off the variation estimations unique val
+		// is actually used for optimizing cases where you have
+		// absolute pure roll formation and you know youwant to
+		// slamjam it, there's probably a faster way to do the same
+		// thing but w.e for now
+		for (auto& v : itv_array)
+			for (auto& n : v) {
+				if (!unique_vals.count(n)) // 0.5% profiler
+					unique_vals.insert(n); // 1% profiler
+				window_vals.push_back(n);
+			}
+		float v_mean = mean(window_vals);
+		for (auto& v : window_vals)
+			if (v < mean_cutoff_factor * v_mean)
+				filtered_vals.push_back(v);
+
+		float f_mean = mean(filtered_vals);
+
+		// bigger the lower the proportion of cross column single
+		// taps i.e. more anchors this is kinda buggy atm and
+		// producing sub 1 values for ??? reasons, but i don't think
+		// it makes too much difference and i don't want to spend
+		// more time on it right now
+		float cv_prop = window_cv_taps == 0
+						  ? 1
+						  : static_cast<float>(window_taps) /
+							  static_cast<float>(window_cv_taps);
+
+		// bigger the lower the proportion of single taps to total
+		// taps i.e. more chords
+		float chord_prop = window_single_taps == 0
+							 ? 1
+							 : static_cast<float>(window_taps) /
+								 static_cast<float>(window_single_taps);
+
+		// handle anchors, chord filler, empty sections and single
+		// notes
+		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
+			doot[WideRangeRoll][i] = 1.f;
+			doot[Chaos][i] = 1.f;
+			continue;
+		}
+
+		float pmod = min_mod;
+		// these cases are likely a "true roll" and we can optimize
+		// by just direct setting them, if unique_vals == 1 then we
+		// only have a single instance of left->right or right->left
+		// ms values across 2seconds, this usually indicates a
+		// straight roll, if filtered vals == 1 the same thing
+		// applies, but we filtered out the occasional direction
+		// swap or a long break before the roll started. The
+		// scenario in which this would not indicate a straight roll
+		// is aggressively rolly js or hs, and while downscaling
+		// those is a goal, we shouldn't attempt to do it here, so
+		// we'll upscale the min mod by the anchor/chord proportion
+		// the < is for catching empty stuff that may have reached
+		// here edit: pretty sure this doesn't really effectively
+		// push up js/hs but it's w.e, we don't use this mod on
+		// those passes atm and it's more about the graphs looking
+		// pretty ugly than anything else
+		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
+			doot[WideRangeRoll][i] =
+			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
+			doot[Chaos][i] = 1.f;
+			continue;
+		}
+
+		// scale base default to cv_prop and chord_prop, we want the
+		// base to be higher for filler sections that are mostly
+		// slow anchors/js/whatever, if there's filler that's in
+		// slow roll formation there's not much we can do about it
+		// affecting adjacant hard intervals on the smooth pass,
+		// however since we're running on a moving window the effect
+		// is mitigated both chord_prop and cv_prop are 1.0+
+		// multipliers it's kind of hard to have a roll if you only
+		// have 12 notes in 2 seconds, ideally we would steer away
+		// from discrete cutoffs of any kind but it's kind of hard
+		// to resist the temptation as it should be pretty safe
+		// here, even supposing we award a full modifier to
+		// something that we shouldn't have, it should make no
+		// practical difference apart from slightly upping the next
+		// hard interval on smooth, yes this is redundant with the
+		// above, but i figured it would be clearer to split up
+		// slightly different cases
+		if (window_taps <= 12) {
+			doot[WideRangeRoll][i] = CalcClamp(
+			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
+			doot[Chaos][i] = 1.f;
+			continue;
+		}
+
+		// we've handled basic cases and stuff that could cause /0
+		// errors (hopefully) do maths now
+		float unique_prop = static_cast<float>(unique_vals.size()) /
+							static_cast<float>(window_vals.size());
+		float cv_window = cv(window_vals);
+		float cv_filtered = cv(filtered_vals);
+		float cv_unique = cv(unique_vals);
+
+		// this isn't really robust if theres a really short flam
+		// involved anywhere e.g. a 5ms flam offset for an oh jump
+		// when everything else is 50 ms will make the above way too
+		// high, something else must be used, leaving this here so i
+		// don't forget and try to use it again or some other idiot
+		// float mean_prop = f_mean /
+		// static_cast<float>(*std::min_element(filtered_vals.begin(),
+		//												filtered_vals.end()));
+		// mean_prop = 1.f;
+		/*
+		if (debugmode) {
+			std::string rarp = "window vals: ";
+			for (auto& a : filtered_vals) {
+				rarp.append(std::to_string(a));
+				rarp.append(", ");
+			}
+			std::cout << rarp << std::endl;
+		}
+		*/
+		/*
+		if (debugmode)
+			std::cout << "cprop: " << cv_prop << std::endl;
+
+		if (debugmode)
+			std::cout << "cv: " << cv_window << cv_filtered <<
+		cv_unique
+					  << std::endl;
+		if (debugmode)
+			std::cout << "uprop: " << unique_prop << std::endl;
+
+		if (debugmode)
+			std::cout << "mean/min: " << mean_prop << std::endl;
+			*/
+
+		// if (debugmode)
+		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
+
+		// basically the idea here is long sets of rolls if you only
+		// count values from specifically left->right or
+		// right->left, whichever lower, will have long sequences of
+		// identical values that should become very exaggerated over
+		// the course of 2.5 seconds compared to other files, since
+		// the values will be identical mean/min should be much
+		// closer to 1 compared to legitimate patterns and the
+		// number of notes contained in the roll compared to total
+		// notes (basically we don't count anchors as notes) will
+		// also be closer to 1; we want to pretty much only detect
+		// long cheesable sets of notes so multiplying window range
+		// cv by mean/min and totaltaps/cvtaps should put almost
+		// everything else over a 1.0 multiplier. perhaps mean/min
+		// should be calculated on the full window like taps/cvtaps
+		// are
+		pmod = cv_filtered * cv_prop * 1.75f;
+		pmod += 0.4f;
+		// both too sensitive and unreliable i think
+		// pmod += 1.25f * unique_prop;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[WideRangeRoll][i] = pmod;
+		// if (debugmode)
+		//	std::cout << "final mod " << doot[WideRangeRoll][i] <<
+		//"\n"
+		//			  << std::endl;
+
+		// chayoss stuff
+		window_vals.clear();
+		filtered_vals.clear();
+		for (auto& v : itv_arrayTWO)
+			for (auto& n : v) {
+				window_vals.push_back(n);
+			}
+		v_mean = mean(window_vals);
+		for (auto& v : window_vals)
+			if (v < mean_cutoff_factor * v_mean)
+				filtered_vals.push_back(v);
+		/*
+		if (debugmode) {
+			std::string rarp = "chaos vals: ";
+			for (auto& a : filtered_vals) {
+				rarp.append(std::to_string(a));
+				rarp.append(", ");
+			}
+			std::cout << rarp << std::endl;
+		}
+		*/
+
+		// attempt #437 at some kind of complex pattern picker upper
+		float butt = 0.f;
+		int whatwhat = 0;
+		std::sort(filtered_vals.begin(), filtered_vals.end());
+		if (filtered_vals.size() > 1) {
+			for (auto& in : filtered_vals)
+				for (auto& the : filtered_vals) {
+					if (in == the) {
+						butt += 1.f;
+						++whatwhat;
+						continue;
+					}
+					if (in > the) {
+						float prop = static_cast<float>(in) / the;
+						int mop = static_cast<int>(prop);
+						float flop = prop - static_cast<float>(mop);
+						if (flop == 0.f) {
+							butt += 1.f;
+							++whatwhat;
+							continue;
+						} else if (flop >= 0.5f) {
+							flop = abs(flop - 1.f) + 1.f;
+							butt += flop;
+
+							// if (debugmode)
+							//	std::cout << "flop over: " << flop
+							//<< "
+							// in: " <<
+							// in
+							//			  << " the: " << the << " mop: "
+							//<<
+							// mop
+							//			  << std::endl;
+						} else if (flop < 0.5f) {
+							flop += 1.f;
+							butt += flop;
+
+							// if (debugmode)
+							//	std::cout << "flop under: " << flop
+							//<< "
+							// in: "
+							//<< in
+							//			  << " the: " << the << " mop: "
+							//<<
+							// mop
+							//			  << std::endl;
+						}
+						++whatwhat;
+					}
+				}
+		} else {
+			doot[Chaos][i] = 1.f;
+		}
+		if (whatwhat == 0)
+			whatwhat = 1;
+		doot[Chaos][i] =
+		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
+	}
+
+	// covering a window of 4 intervals does act as a smoother, and
+	// a better one than a double smooth for sure, however we still
+	// want to run the smoother anyway to rough out jagged edges and
+	// interval splicing error
+	if (SmoothPatterns)
+		Smooth(doot[WideRangeRoll], 1.f);
+	return;
+}
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -2900,11 +3635,12 @@ struct TheGreatBazoinkazoinkInTheSky
 	metanoteinfo _dbg;
 
 	// so we can make pattern mods
-	RunningManMod _rm;
-	WideRangeJumptrillMod _wrjt;
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
+	RunningManMod _rm;
+	WideRangeJumptrillMod _wrjt;
+	WideRangeRollMod _wrr;
 
 	// we only care what last is, not what now is, this should work but it
 	// seems almost too clever but seems to work
@@ -3050,14 +3786,16 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_rm.advance_sequencing(*_mni_now);
 		_wrjt.advance_sequencing(*_mni_now);
+		_wrr.advance_sequencing(*_mni_now);
 	}
 
 	inline void run_pattern_mod_setups()
 	{
-		_rm.setup(_doot, _itv_rows.size());
 		_js.setup(_doot, _itv_rows.size());
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
+		_rm.setup(_doot, _itv_rows.size());
+		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
 	}
 
@@ -3067,6 +3805,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.smooth_finish(_doot);
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
+		_wrr.smooth_finish(_doot);
 		_wrjt.smooth_finish(_doot);
 	}
 
@@ -3076,6 +3815,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js(*_mni_now, _doot, itv);
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
+		_wrr(*_mni_now, _doot, itv);
 		_wrjt(*_mni_now, _doot, itv);
 	}
 
@@ -3096,6 +3836,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
+		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
 	}
 
@@ -3107,6 +3848,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
 
 		return calcparams;
@@ -3172,10 +3914,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
-		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
+		
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
+		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
 	}
 
 	// these are evaluated on all columns so right and left are the
@@ -4521,466 +5264,6 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 	//							  0.4f,
 	//							  1.f);
 
-	return;
-}
-
-// ok new plan this takes a bunch of the concepts i tried with the
-// old didn't-work-so-well-roll-downscaler and utilizes them across
-// a wide range of intervals, making it more suited to picking up
-// and hammering long stretches of jumptrillable roll patterns, this
-// also apparently thinks every js and hs pattern in existence is
-// mashable too, probably because they are
-void
-Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
-						  unsigned int t1,
-						  unsigned int t2,
-						  float music_rate,
-						  vector<float> doot[])
-{
-	doot[WideRangeRoll].resize(nervIntervals.size());
-
-	static const float min_mod = 0.5f;
-	static const float max_mod = 1.035f;
-	unsigned int itv_window = 4;
-	deque<vector<int>> itv_array;
-	deque<vector<int>> itv_arrayTWO;
-	deque<int> itv_taps;
-	deque<int> itv_cv_taps;
-	deque<int> itv_single_taps;
-	vector<int> cur_vals;
-	vector<int> window_vals;
-	unordered_set<int> unique_vals;
-	vector<int> filtered_vals;
-	vector<int> lr;
-	vector<int> rl;
-
-	float lasttime = 0.f;
-	int lastcol = -1;
-	int lastsinglecol = -1;
-	int single_taps = 0;
-
-	// we could implement this like the roll scaler above, however
-	// this is to prevent /0 errors exclusively at the moment
-	// (because we are truncating extremely high bpm 192nd flams can
-	// produce 0 as ms), causing potenial nan's in the sd function
-	// we could look into using this for balance purposes as well
-	// but things look ok for the moment and it would likely be a
-	// large time sink without proper tests setup
-	static const int ms_add = 1;
-
-	// miss window seems like a reasonable cutoff, we don't want
-	// 1500 ms hits after long breaks to poison the pool
-	static const int max_ms_value = 180;
-	static const float mean_cutoff_factor = 1.7f;
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int interval_taps = 0;
-		int ltaps = 0;
-		int rtaps = 0;
-		int single_taps = 0;
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_array.size() == itv_window) {
-			itv_array.pop_front();
-			itv_arrayTWO.pop_front();
-			itv_cv_taps.pop_front();
-			itv_taps.pop_front();
-			itv_single_taps.pop_front();
-		}
-
-		// clear the current interval value vectors
-		cur_vals.clear();
-		lr.clear();
-		rl.clear();
-
-		// if (debugmode)
-		//	std::cout << "new interval: " << i << std::endl;
-
-		for (int row : nervIntervals[i]) {
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			// we don't want slight bpm variations to pollute too
-			// much stuff, especially if we are going to use unique
-			// values at some point (we don't currently), if we do
-			// and even single digit rounding becomes an issue we
-			// can truncate further up
-			int trunc_ms =
-			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
-
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			if (lcol ^ rcol)
-				++single_taps;
-
-			// if (debugmode)
-			//	std::cout << "truncated ms value: " << trunc_ms <<
-			// std::endl;
-
-			// for expurrrmental thing for chaos thing
-			if (trunc_ms < max_ms_value)
-				cur_vals.push_back(trunc_ms - ms_add);
-
-			if (!(lcol ^ rcol)) {
-				if (!(lcol || rcol)) {
-					//	if (debugmode)
-					//		std::cout << "empty row" << std::endl;
-					continue;
-				}
-
-				// if (debugmode)
-				//	std::cout << "jump" << std::endl;
-
-				if (lcol && rcol) {
-					lastsinglecol = lastcol;
-					lastcol = -1;
-				}
-				lasttime = curtime;
-				continue;
-			}
-
-			int thiscol = lcol ? 0 : 1;
-			if (thiscol != lastcol || lastcol == -1) {
-				// handle ohjumps here, not above, because we only
-				// want to handle the last ohjump before an actual
-				// cross column, we don't want to handle long
-				// sequences of ohjumps inside rolls. technically
-				// they would be jumptrillable, but the point is to
-				// pick up _rolls_, we handle ohjumps elsewhere
-				// basically we treat ohjumps as they were either a
-				// cross column left or right, so that the roll
-				// detection still picks up rolls with ohjumps in
-				// them
-				if (lastcol == -1) {
-					// dump an extra value, cuz
-					if (rcol)
-						if (trunc_ms < max_ms_value)
-							lr.push_back(max_ms_value);
-					if (lcol)
-						if (trunc_ms < max_ms_value)
-							rl.push_back(max_ms_value);
-
-					// l vs r shouldn't matter here
-					++ltaps;
-					++rtaps;
-				}
-
-				if (rcol) {
-					if (trunc_ms < max_ms_value)
-						lr.push_back(trunc_ms);
-					++ltaps;
-				} else if (lcol) {
-					++rtaps;
-					if (trunc_ms < max_ms_value)
-						rl.push_back(trunc_ms);
-				}
-				lasttime = curtime;
-			} else {
-				// the idea here was to help boost anchored patterns
-				// but all it did was just buff rolls with frequent
-				// directional swaps and anchored patterns are
-				// already more or less fine possibly look into
-				// taking this out of the lower level roll scaler as
-				// well
-
-				//	if (trunc_ms < trunc_ms)
-				//		cur_vals.push_back(trunc_ms);
-			}
-
-			lastcol = thiscol;
-		}
-
-		itv_arrayTWO.push_back(cur_vals);
-
-		int cv_taps = ltaps + rtaps;
-		itv_taps.push_back(interval_taps);
-		itv_cv_taps.push_back(cv_taps);
-		itv_single_taps.push_back(single_taps);
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_cv_taps = 0;
-		for (auto& n : itv_cv_taps)
-			window_cv_taps += n;
-
-		unsigned int window_single_taps = 0;
-		for (auto& n : itv_single_taps)
-			window_single_taps += n;
-
-		// push current interval values into deque, there should
-		// always be space since we pop front at the start of the
-		// loop if there isn't
-		// k lets try just running the pass with the rolls (lower
-		// mean indicates the rolls are flowing in that direction,
-		// for patterns that aren't rolls this should be
-		// functionally insignificant
-		itv_array.push_back(mean(lr) < mean(rl) ? lr : rl);
-
-		// clear vectors before using them
-		window_vals.clear();
-		unique_vals.clear();
-		filtered_vals.clear();
-
-		unsigned int totalvalues = 0;
-		for (auto& v : itv_array)
-			totalvalues += v.size();
-
-		// the unique val is not really used at the moment,
-		// basically we filter out the vectors for stuff way outside
-		// the applicable range, like 500 ms hits that would
-		// otherwise throw off the variation estimations unique val
-		// is actually used for optimizing cases where you have
-		// absolute pure roll formation and you know youwant to
-		// slamjam it, there's probably a faster way to do the same
-		// thing but w.e for now
-		for (auto& v : itv_array)
-			for (auto& n : v) {
-				if (!unique_vals.count(n)) // 0.5% profiler
-					unique_vals.insert(n); // 1% profiler
-				window_vals.push_back(n);
-			}
-		float v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-
-		float f_mean = mean(filtered_vals);
-
-		// bigger the lower the proportion of cross column single
-		// taps i.e. more anchors this is kinda buggy atm and
-		// producing sub 1 values for ??? reasons, but i don't think
-		// it makes too much difference and i don't want to spend
-		// more time on it right now
-		float cv_prop = window_cv_taps == 0
-						  ? 1
-						  : static_cast<float>(window_taps) /
-							  static_cast<float>(window_cv_taps);
-
-		// bigger the lower the proportion of single taps to total
-		// taps i.e. more chords
-		float chord_prop = window_single_taps == 0
-							 ? 1
-							 : static_cast<float>(window_taps) /
-								 static_cast<float>(window_single_taps);
-
-		// handle anchors, chord filler, empty sections and single
-		// notes
-		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
-			doot[WideRangeRoll][i] = 1.f;
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		float pmod = min_mod;
-		// these cases are likely a "true roll" and we can optimize
-		// by just direct setting them, if unique_vals == 1 then we
-		// only have a single instance of left->right or right->left
-		// ms values across 2seconds, this usually indicates a
-		// straight roll, if filtered vals == 1 the same thing
-		// applies, but we filtered out the occasional direction
-		// swap or a long break before the roll started. The
-		// scenario in which this would not indicate a straight roll
-		// is aggressively rolly js or hs, and while downscaling
-		// those is a goal, we shouldn't attempt to do it here, so
-		// we'll upscale the min mod by the anchor/chord proportion
-		// the < is for catching empty stuff that may have reached
-		// here edit: pretty sure this doesn't really effectively
-		// push up js/hs but it's w.e, we don't use this mod on
-		// those passes atm and it's more about the graphs looking
-		// pretty ugly than anything else
-		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
-			doot[WideRangeRoll][i] =
-			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// scale base default to cv_prop and chord_prop, we want the
-		// base to be higher for filler sections that are mostly
-		// slow anchors/js/whatever, if there's filler that's in
-		// slow roll formation there's not much we can do about it
-		// affecting adjacant hard intervals on the smooth pass,
-		// however since we're running on a moving window the effect
-		// is mitigated both chord_prop and cv_prop are 1.0+
-		// multipliers it's kind of hard to have a roll if you only
-		// have 12 notes in 2 seconds, ideally we would steer away
-		// from discrete cutoffs of any kind but it's kind of hard
-		// to resist the temptation as it should be pretty safe
-		// here, even supposing we award a full modifier to
-		// something that we shouldn't have, it should make no
-		// practical difference apart from slightly upping the next
-		// hard interval on smooth, yes this is redundant with the
-		// above, but i figured it would be clearer to split up
-		// slightly different cases
-		if (window_taps <= 12) {
-			doot[WideRangeRoll][i] = CalcClamp(
-			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// we've handled basic cases and stuff that could cause /0
-		// errors (hopefully) do maths now
-		float unique_prop = static_cast<float>(unique_vals.size()) /
-							static_cast<float>(window_vals.size());
-		float cv_window = cv(window_vals);
-		float cv_filtered = cv(filtered_vals);
-		float cv_unique = cv(unique_vals);
-
-		// this isn't really robust if theres a really short flam
-		// involved anywhere e.g. a 5ms flam offset for an oh jump
-		// when everything else is 50 ms will make the above way too
-		// high, something else must be used, leaving this here so i
-		// don't forget and try to use it again or some other idiot
-		// float mean_prop = f_mean /
-		// static_cast<float>(*std::min_element(filtered_vals.begin(),
-		//												filtered_vals.end()));
-		// mean_prop = 1.f;
-		/*
-		if (debugmode) {
-			std::string rarp = "window vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-		/*
-		if (debugmode)
-			std::cout << "cprop: " << cv_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "cv: " << cv_window << cv_filtered <<
-		cv_unique
-					  << std::endl;
-		if (debugmode)
-			std::cout << "uprop: " << unique_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "mean/min: " << mean_prop << std::endl;
-			*/
-
-		// if (debugmode)
-		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
-
-		// basically the idea here is long sets of rolls if you only
-		// count values from specifically left->right or
-		// right->left, whichever lower, will have long sequences of
-		// identical values that should become very exaggerated over
-		// the course of 2.5 seconds compared to other files, since
-		// the values will be identical mean/min should be much
-		// closer to 1 compared to legitimate patterns and the
-		// number of notes contained in the roll compared to total
-		// notes (basically we don't count anchors as notes) will
-		// also be closer to 1; we want to pretty much only detect
-		// long cheesable sets of notes so multiplying window range
-		// cv by mean/min and totaltaps/cvtaps should put almost
-		// everything else over a 1.0 multiplier. perhaps mean/min
-		// should be calculated on the full window like taps/cvtaps
-		// are
-		pmod = cv_filtered * cv_prop * 1.75f;
-		pmod += 0.4f;
-		// both too sensitive and unreliable i think
-		// pmod += 1.25f * unique_prop;
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-
-		doot[WideRangeRoll][i] = pmod;
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[WideRangeRoll][i] <<
-		//"\n"
-		//			  << std::endl;
-
-		// chayoss stuff
-		window_vals.clear();
-		filtered_vals.clear();
-		for (auto& v : itv_arrayTWO)
-			for (auto& n : v) {
-				window_vals.push_back(n);
-			}
-		v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-		/*
-		if (debugmode) {
-			std::string rarp = "chaos vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-
-		// attempt #437 at some kind of complex pattern picker upper
-		float butt = 0.f;
-		int whatwhat = 0;
-		std::sort(filtered_vals.begin(), filtered_vals.end());
-		if (filtered_vals.size() > 1) {
-			for (auto& in : filtered_vals)
-				for (auto& the : filtered_vals) {
-					if (in == the) {
-						butt += 1.f;
-						++whatwhat;
-						continue;
-					}
-					if (in > the) {
-						float prop = static_cast<float>(in) / the;
-						int mop = static_cast<int>(prop);
-						float flop = prop - static_cast<float>(mop);
-						if (flop == 0.f) {
-							butt += 1.f;
-							++whatwhat;
-							continue;
-						} else if (flop >= 0.5f) {
-							flop = abs(flop - 1.f) + 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop over: " << flop
-							//<< "
-							// in: " <<
-							// in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						} else if (flop < 0.5f) {
-							flop += 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop under: " << flop
-							//<< "
-							// in: "
-							//<< in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						}
-						++whatwhat;
-					}
-				}
-		} else {
-			doot[Chaos][i] = 1.f;
-		}
-		if (whatwhat == 0)
-			whatwhat = 1;
-		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
-	}
-
-	// covering a window of 4 intervals does act as a smoother, and
-	// a better one than a double smooth for sure, however we still
-	// want to run the smoother anyway to rough out jagged edges and
-	// interval splicing error
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeRoll], 1.f);
 	return;
 }
 
