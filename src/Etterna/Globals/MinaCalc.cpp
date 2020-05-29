@@ -1091,18 +1091,16 @@ is_alternating_chord_stream(const unsigned& a,
 		if (is_single_tap(b)) {
 			// single single, don't care, bail
 			return false;
-			if (!is_single_tap(c))
+		} else if (!is_single_tap(c))
 				// single, chord, chord, bail
 				return false;
-		}
 	} else {
 		if (!is_single_tap(b)) {
 			// chord chord, don't care, bail
 			return false;
-			if (is_single_tap(c))
-				// chord, single, single, bail
-				return false;
-		}
+		} else if (is_single_tap(c))
+			// chord, single, single, bail
+			return false;
 	}
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
@@ -4587,7 +4585,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 	vector<int> filtered_vals;
 	vector<int> lr;
 	vector<int> rl;
-
+	
 	float lasttime = 0.f;
 	int lastcol = -1;
 	int lastsinglecol = -1;
