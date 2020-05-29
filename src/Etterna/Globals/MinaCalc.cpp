@@ -897,9 +897,7 @@ enum cc_type
 	cc_single_single,
 	cc_single_jump,
 	cc_jump_jump,
-	cc_empty,
 	cc_init,
-	cc_undefined
 };
 
 // hand specific meaning the left two or right two columns and only for 4k
@@ -928,9 +926,7 @@ is_empty_hand(const bool& a, const bool& b)
 inline cc_type
 determine_cc_type(const col_type& last, const col_type& now)
 {
-	if (now == col_empty)
-		return cc_empty;
-	else if (last == col_init)
+	if (last == col_init)
 		return cc_init;
 
 	bool single_tap = is_col_type_single_tap(now);
@@ -947,12 +943,13 @@ determine_cc_type(const col_type& last, const col_type& now)
 		return cc_right_left;
 	else if (now == col_right && last == col_left)
 		return cc_left_right;
-	else
+	else if (now == last)
 		// anchor/jack
 		return cc_single_single;
 
-	// shouldn't ever happen
-	return cc_undefined;
+	// makes no logical sense
+	ASSERT(1 == 0);
+	return cc_init;
 }
 
 inline col_type
@@ -1092,6 +1089,7 @@ struct metanoteinfo
 
 	// col
 	col_type col = col_init;
+	col_type last_non_empty_col = col_init;
 	col_type last_col = col_init;
 	// type of cross column hit
 	cc_type cc = cc_init;
@@ -1166,13 +1164,14 @@ struct metanoteinfo
 				// last_col (because index 2 is outside array size)
 				tc_ms = ms_from(cur[0], last[0]);
 				break;
-			case cc_empty:
-				break;
 			case cc_init:
 				break;
-			case cc_undefined:
-				break;
 			default:
+				// cc_type should never be anything but the above, for any
+				// reason, if we need to ignore an empty hand on a row, we
+				// should be checking col_empty, never the old cc_empty which
+				// now doesn't exist because logically it makes no sense
+				ASSERT(1 == 0);
 				break;
 		}
 		return;
@@ -1181,11 +1180,13 @@ struct metanoteinfo
 	// col_type is hand specific, col_left doesn't mean 1000, it means 10
 	// cc is also hand specific, and is the nature of how the last 2 notes on
 	// this hand interact
-	inline void set_col_and_cc_types(const bool& lcol,
-									 const bool& rcol,
-									 const col_type& last_col)
+	inline void set_col_type(const bool& lcol, const bool& rcol)
 	{
 		col = bool_to_col_type(lcol, rcol);
+	}
+
+	inline void set_cc_type(const col_type& last_col)
+	{
 		cc = determine_cc_type(last_col, col);
 	}
 
@@ -1475,29 +1476,43 @@ struct metanoteinfo
 		// and spit out the debugoutput twice
 		dbg = dbg && !silence;
 
-		//
-		last_was_offhand_tap = last.col == col_empty;
-		set_col_and_cc_types(t1 & notes, t2 & notes, last.col);
+		set_col_type(t1 & notes, t2 & notes);
 		row_count = column_count(notes);
 		row_notes = notes;
 		row_time = now;
+
 		last_row_notes = last.row_notes;
+		last_was_offhand_tap = last.col == col_empty;
 		last_col = last.col;
 		last_cc = last.cc;
 
+		// need this to determine cc types if they are interrupted by offhand
+		// taps
+		if (col != col_empty)
+			last_non_empty_col = col;
+		else
+			last_non_empty_col = last.last_non_empty_col;
+
 		// set the interval data from the already accumulated data (we could
-		// optimize by not doing this for the first execution of any interval
-		// but... it's probably not worth it)
+		// optimize by not doing this for the first execution of any
+		// interval but... it's probably not worth it)
 		set_interval_data_from_last(last);
 
 		// run the interval aggregation after setting new/last values and before
 		// the empty bail
 		update_interval_data(last);
 
-		// we don't want to set lasttime or lastcol for empty columns on this
-		// hand
-		if (col == col_empty)
+		// we don't want to set lasttime, lastcol, or re-evaluate cc_type for
+		// for empty columns on this hand, carry the cc_type value forward and
+		// ignore the timing values, they should never be referenced for col ==
+		// empty, but in case they are accidentally, they should make no sense
+		if (col == col_empty) {
+			cc = last_cc;
 			return;
+		}
+
+		//
+		set_cc_type(last.last_non_empty_col);
 
 		// every note has at least 2 ms values associated with it, the
 		// ms value from the last cross column note (on the same hand),
@@ -1716,6 +1731,11 @@ struct RM_Sequencing
 	{
 		total_taps += mni.row_count;
 
+		// simple case to handle, can't be a jack (or doesn't really matter) and
+		// can't be oht, only reset if we exceed the spacing limit
+		if (mni.col == col_empty)
+			handle_off_tap(mni.row_time);
+
 		switch (mni.cc) {
 			case cc_left_right:
 			case cc_right_left:
@@ -1775,19 +1795,10 @@ struct RM_Sequencing
 				// last tap was an offhand tap
 				handle_jack_progression();
 				break;
-			case cc_empty:
-				// simple case to handle, can't be a jack (or
-				// doesn't
-				// really matter) and can't be oht, only reset
-				// if we exceed the spacing limit
-				handle_off_tap(mni.row_time);
-				break;
 			case cc_init:
-				// uhh we could do something here but i'm lazy
-				break;
-			case cc_undefined:
 				break;
 			default:
+				ASSERT(1 == 0);
 				break;
 		}
 		last_last_cc = last_cc;
@@ -2874,7 +2885,6 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 };
-
 
 // if ccacc is cross column, anchor, cross column (1221) and we are looking for
 // (1212) then we are looking for cccccc where the inner cc is the inverse of
