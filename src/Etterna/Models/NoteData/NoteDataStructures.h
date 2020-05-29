@@ -15,18 +15,6 @@ struct NoteInfo2
 	int rowTime;
 };
 
-struct DifficultyRating
-{
-	float overall;
-	float stream;
-	float jumpstream;
-	float handstream;
-	float stamina;
-	float jack;
-	float chordjack;
-	float technical;
-};
-
 enum Skillset
 {
 	Skill_Overall,

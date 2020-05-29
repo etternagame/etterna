@@ -322,25 +322,6 @@ chord_proportion(const vector<NoteInfo>& NoteInfo, const int chord_size)
 	return static_cast<float>(chords) / static_cast<float>(taps);
 }
 
-vector<float>
-skillset_vector(const DifficultyRating& difficulty)
-{
-	return vector<float>{ difficulty.overall,	difficulty.stream,
-						  difficulty.jumpstream, difficulty.handstream,
-						  difficulty.stamina,	difficulty.jack,
-						  difficulty.chordjack,  difficulty.technical };
-}
-
-inline float
-highest_difficulty(const DifficultyRating& difficulty)
-{
-	auto v = { difficulty.stream,	 difficulty.jumpstream,
-			   difficulty.handstream, difficulty.stamina,
-			   difficulty.jack,		  difficulty.chordjack,
-			   difficulty.technical };
-	return *std::max_element(v.begin(), v.end());
-}
-
 inline int
 max_val(vector<int>& v)
 {
@@ -858,20 +839,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
-		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.f;
-		// yes i know how dumb this looks
-		DifficultyRating difficulty = {
-			mcbloop[0],
-			mcbloop[1],
-			mcbloop[2],
-			mcbloop[3],
-			mcbloop[4],
-			mcbloop[5],
-			mcbloop[6],
-			mcbloop[7] * actual_literal_black_magic_number_random_HAHAHAHA____
-		};
-		vector<float> pumpkin = skillset_vector(difficulty);
+
 		// sets the 'proper' debug output, doesn't
 		// (shouldn't) affect actual values this is the only
 		// time debugoutput arg should be set to true
@@ -883,30 +851,27 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				   true,
 				   true);
 
-		difficulty.overall = highest_difficulty(difficulty);
-
 		// the final push down, cap ssrs (score specific
 		// ratings) to stop vibro garbage and calc abuse
 		// from polluting leaderboards too much, a "true" 38
 		// is still unachieved so a cap of 40 [sic] is
 		// _extremely_ generous do this for SCORES only, not
 		// cached file difficulties
-		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
-		  skillset_vector(difficulty);
 		if (ssr) {
 			static const float ssrcap = 40.f;
-
-			for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
+			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
-		for (size_t bagles = 0;
-			 bagles < bye_vibro_maybe_yes_this_should_be_refactored_lul.size();
-			 ++bagles)
+
+		// finished all modifications to skillset values, set overall
+		mcbloop[Skill_Overall] = max_val(mcbloop);
+
+		for (size_t bagles = 0; bagles < mcbloop.size(); ++bagles)
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(
-			  bye_vibro_maybe_yes_this_should_be_refactored_lul[bagles]);
+			  mcbloop[bagles]);
 	}
 	vector<float> yo_momma(NUM_Skillset);
 	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
@@ -1086,8 +1051,8 @@ is_alternating_chord_stream(const unsigned& a,
 			// single single, don't care, bail
 			return false;
 		} else if (!is_single_tap(c))
-				// single, chord, chord, bail
-				return false;
+			// single, chord, chord, bail
+			return false;
 	} else {
 		if (!is_single_tap(b)) {
 			// chord chord, don't care, bail
@@ -3216,12 +3181,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
-	vector<int> bruh_they_the_same = { StreamMod,
-									   Chaos,
-									   FlamJam,
-									   TheThing,
-									   WideRangeBalance,
-									   WideRangeAnchor };
+	vector<int> bruh_they_the_same = { StreamMod,		 Chaos,
+									   FlamJam,			 TheThing,
+									   WideRangeBalance, WideRangeAnchor };
 	// hand agnostic mods are the same
 	for (auto pmod : bruh_they_the_same)
 		right_hand.doot[pmod] = left_hand.doot[pmod];
@@ -4586,7 +4548,7 @@ Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
 	vector<int> filtered_vals;
 	vector<int> lr;
 	vector<int> rl;
-	
+
 	float lasttime = 0.f;
 	int lastcol = -1;
 	int lastsinglecol = -1;
