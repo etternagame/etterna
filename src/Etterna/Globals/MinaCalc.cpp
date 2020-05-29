@@ -322,25 +322,6 @@ chord_proportion(const vector<NoteInfo>& NoteInfo, const int chord_size)
 	return static_cast<float>(chords) / static_cast<float>(taps);
 }
 
-vector<float>
-skillset_vector(const DifficultyRating& difficulty)
-{
-	return vector<float>{ difficulty.overall,	difficulty.stream,
-						  difficulty.jumpstream, difficulty.handstream,
-						  difficulty.stamina,	difficulty.jack,
-						  difficulty.chordjack,  difficulty.technical };
-}
-
-inline float
-highest_difficulty(const DifficultyRating& difficulty)
-{
-	auto v = { difficulty.stream,	 difficulty.jumpstream,
-			   difficulty.handstream, difficulty.stamina,
-			   difficulty.jack,		  difficulty.chordjack,
-			   difficulty.technical };
-	return *std::max_element(v.begin(), v.end());
-}
-
 inline int
 max_val(vector<int>& v)
 {
@@ -858,20 +839,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8f, 1.08f);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
-		static const float
-		  actual_literal_black_magic_number_random_HAHAHAHA____ = 1.f;
-		// yes i know how dumb this looks
-		DifficultyRating difficulty = {
-			mcbloop[0],
-			mcbloop[1],
-			mcbloop[2],
-			mcbloop[3],
-			mcbloop[4],
-			mcbloop[5],
-			mcbloop[6],
-			mcbloop[7] * actual_literal_black_magic_number_random_HAHAHAHA____
-		};
-		vector<float> pumpkin = skillset_vector(difficulty);
+
 		// sets the 'proper' debug output, doesn't
 		// (shouldn't) affect actual values this is the only
 		// time debugoutput arg should be set to true
@@ -883,30 +851,27 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				   true,
 				   true);
 
-		difficulty.overall = highest_difficulty(difficulty);
-
 		// the final push down, cap ssrs (score specific
 		// ratings) to stop vibro garbage and calc abuse
 		// from polluting leaderboards too much, a "true" 38
 		// is still unachieved so a cap of 40 [sic] is
 		// _extremely_ generous do this for SCORES only, not
 		// cached file difficulties
-		auto bye_vibro_maybe_yes_this_should_be_refactored_lul =
-		  skillset_vector(difficulty);
 		if (ssr) {
 			static const float ssrcap = 40.f;
-
-			for (auto& r : bye_vibro_maybe_yes_this_should_be_refactored_lul) {
+			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
-		for (size_t bagles = 0;
-			 bagles < bye_vibro_maybe_yes_this_should_be_refactored_lul.size();
-			 ++bagles)
+
+		// finished all modifications to skillset values, set overall
+		mcbloop[Skill_Overall] = max_val(mcbloop);
+
+		for (size_t bagles = 0; bagles < mcbloop.size(); ++bagles)
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(
-			  bye_vibro_maybe_yes_this_should_be_refactored_lul[bagles]);
+			  mcbloop[bagles]);
 	}
 	vector<float> yo_momma(NUM_Skillset);
 	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
@@ -1004,11 +969,7 @@ bool_to_col_type(const bool& lcol, const bool& rcol)
 inline col_type
 invert_col(const col_type& col)
 {
-	// this should crash or something idk.. this is just for flipping
-	// left->right and vice versa to be used in indexing... dangerous if misused
-	// due to unpredictable/undefined behavior
-	if (col != col_left && col != col_right)
-		return col_init;
+	ASSERT(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
 };
 
@@ -1016,9 +977,7 @@ invert_col(const col_type& col)
 inline cc_type
 invert_cc(const cc_type& cc)
 {
-	// this should also crash, but it's not as dangerous as above
-	if (cc != cc_left_right && cc != cc_right_left)
-		return cc_init;
+	ASSERT(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
 
@@ -1091,18 +1050,16 @@ is_alternating_chord_stream(const unsigned& a,
 		if (is_single_tap(b)) {
 			// single single, don't care, bail
 			return false;
-			if (!is_single_tap(c))
-				// single, chord, chord, bail
-				return false;
-		}
+		} else if (!is_single_tap(c))
+			// single, chord, chord, bail
+			return false;
 	} else {
 		if (!is_single_tap(b)) {
 			// chord chord, don't care, bail
 			return false;
-			if (is_single_tap(c))
-				// chord, single, single, bail
-				return false;
-		}
+		} else if (is_single_tap(c))
+			// chord, single, single, bail
+			return false;
 	}
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
@@ -1190,12 +1147,16 @@ struct metanoteinfo
 				tc_ms = ms_from(cur[col], last[col]);
 				break;
 			case cc_single_jump:
-				// tracking this for now, we want to track from last col to last
-				// col inverted
-				cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+				// tracking this for now, use the higher value of the array
+				// (lower ms time, i.e. the column closest to this jump)
+				if (last[col_left] > last[col_right])
+					cc_ms_any = ms_from(cur[col_left], last[col_right]);
+				else
+					cc_ms_any = ms_from(cur[col_right], last[col_left]);
 
-				// can't use col twice, use last_col, see below
-				tc_ms = ms_from(cur[0], last[last_col]);
+				// logically the same as cc_ms_any in 1[12] 1 is the anchor
+				// timing with 1 and also the cross column timing with 2
+				tc_ms = cc_ms_any;
 				break;
 			case cc_jump_jump:
 				// not sure if we should set or leave at init value of 5000.f
@@ -1978,6 +1939,8 @@ struct RunningManMod
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
 		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
@@ -2150,8 +2113,8 @@ struct WideRangeJumptrillMod
 	float moving_cv = moving_cv_init;
 
 	// non-empty
-	cc_type last_seen_cc;
-	cc_type last_last_seen_cc;
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2222,8 +2185,7 @@ struct WideRangeJumptrillMod
 
 		// now we know we have cc_left_right or cc_right_left, so, xy, we are
 		// looking for xyyx, meaning last_last would be the inverion of now
-		if (now.cc == invert_cc(last_last_seen_cc))
-			// this _should_ be bulletproof, but i'm not holding out hope
+		if (invert_cc(now.cc) == last_last_seen_cc)
 			return true;
 
 		return false;
@@ -2289,8 +2251,10 @@ struct WideRangeJumptrillMod
 			return;
 
 		// reset if we hit a jump
-		if (now.col == col_ohjump)
+		if (now.col == col_ohjump) {
 			reset_sequence();
+			return;
+		}
 
 		// update timing stuff before checking/updating the sequence...
 		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
@@ -3217,12 +3181,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
-	vector<int> bruh_they_the_same = { StreamMod,
-									   Chaos,
-									   FlamJam,
-									   TheThing,
-									   WideRangeBalance,
-									   WideRangeAnchor };
+	vector<int> bruh_they_the_same = { StreamMod,		 Chaos,
+									   FlamJam,			 TheThing,
+									   WideRangeBalance, WideRangeAnchor };
 	// hand agnostic mods are the same
 	for (auto pmod : bruh_they_the_same)
 		right_hand.doot[pmod] = left_hand.doot[pmod];
@@ -5935,7 +5896,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 339;
+int mina_calc_version = 340;
 int
 GetCalcVersion()
 {
