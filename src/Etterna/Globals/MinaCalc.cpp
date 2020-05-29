@@ -2903,13 +2903,16 @@ struct WideRangeRollMod
 	const std::string name = "WideRangeRollMod";
 	const int _primary = _pmods.front();
 
-	deque<int> window_itv_taps;
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
 	deque<vector<int>> window_itv_rolls;
 	// each element is a discrete roll formation with this many taps
 	// (technically it has this many taps + 4 because it requires 1212 or
 	// 2121 to start counting, but that's fine, that's what we want and if
 	// it seems better to add later we can do that
 	vector<int> itv_rolls;
+	int itv_hand_taps;
 
 #pragma region params
 	float itv_window = 4;
@@ -3059,10 +3062,21 @@ struct WideRangeRollMod
 		// same but we have to invert the multiplication depending on which
 		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
 		// a roll in an editor to see why)
-		seq_ms[1] /= 3.f;
 
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < roll_cv_cutoff;
+		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
+		// doesn't interfere with the next round
+		if (seq_ms[0] > seq_ms[1]) {
+			seq_ms[1] *= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] /= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		} else {
+			// same thing but divide
+			seq_ms[1] /= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] *= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		}
 	}
 
 	inline void update_seq_ms(const metanoteinfo& now)
@@ -3082,14 +3096,19 @@ struct WideRangeRollMod
 		if (now.col == col_empty)
 			return;
 
-		// reset if we hit a jump
-		if (now.col == col_ohjump) {
+		// count this hand's taps here
+		if (now.col == OHJump)
+			itv_hand_taps += 2;
+		else
+			++itv_hand_taps;
+
+		  // only let these cases through, since we use invert_cc, anchors are
+		  // screened out later, reset otherwise
+		  if (now.cc != cc_left_right && now.cc != cc_right_left &&
+			  now.cc != cc_single_single) {
 			reset_sequence();
 			return;
 		}
-
-		if (now.last_cc == cc_single_single)
-			return;
 
 		// update timing stuff
 		update_seq_ms(now);
@@ -3098,17 +3117,18 @@ struct WideRangeRollMod
 		// try to catch simple transitions https:i.imgur.com/zhlBio0.png, given
 		// the constraints on ccacc we have to check last_cc for the anchor
 		if (now.last_cc == cc_single_single)
-			if (detecc_ccacc(now))
+			if (detecc_ccacc(now)) {
 				if (rolling) {
 					// don't care about any timing checks for the moment
 					is_transition = true;
 					++consecutive_roll_counter;
 				}
+			}
 
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for rolls (cc -> inverted(cc) -> cc)
-			if (detecc_roll(now))
+			if (detecc_roll(now) && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
 					ASSERT(is_transition == false);
@@ -3119,6 +3139,10 @@ struct WideRangeRollMod
 					// extends to at least 5 notes before doing anything
 					rolling = true;
 				}
+				// only reset here if this fails and a transition wasn't
+				// detected
+			} else if (!is_transition)
+				reset_sequence();
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
@@ -3132,15 +3156,26 @@ struct WideRangeRollMod
 
 		// drop the oldest interval values if we have reached full
 		// size
-		if (window_itv_taps.size() == itv_window) {
-			window_itv_taps.pop_front();
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
 			window_itv_rolls.pop_front();
 		}
 
-		window_itv_taps.push_back(mni.total_taps);
+		// this is slightly hacky buuut if we have a roll that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the rolling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_roll_counter > 0) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			consecutive_roll_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itv_hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
-		for (auto& n : window_itv_taps)
+		for (auto& n : window_itv_hand_taps)
 			window_taps += n;
 
 		// for now just add everything up
@@ -3150,13 +3185,13 @@ struct WideRangeRollMod
 
 		pmod = 1.f;
 		if (window_roll_taps > 0)
-			pmod = static_cast<float>(window_taps) /
-				   static_cast<float>(window_roll_taps);
+			pmod = static_cast<float>(window_roll_taps) /
+				   static_cast<float>(window_taps);
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
 
-		//itv_rolls.clear();
+		itv_rolls.clear();
 	}
 };
 // ok new plan this takes a bunch of the concepts i tried with the
@@ -3924,7 +3959,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			hand.InitBaseDiff(fingers[2], fingers[3]);
 			hand.InitPoints(fingers[2], fingers[3]);
 		}
-		
+
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
