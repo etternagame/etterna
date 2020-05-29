@@ -181,7 +181,6 @@ struct HighScore
 	int userid = -1;
 	string avatar;
 	string countryCode;
-	int wife_ver = 0;
 	bool forceuploadedthissession = false;
 	int norms = 0;
 	int musics = 0;
