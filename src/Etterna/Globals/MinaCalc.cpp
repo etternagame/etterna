@@ -1004,11 +1004,7 @@ bool_to_col_type(const bool& lcol, const bool& rcol)
 inline col_type
 invert_col(const col_type& col)
 {
-	// this should crash or something idk.. this is just for flipping
-	// left->right and vice versa to be used in indexing... dangerous if misused
-	// due to unpredictable/undefined behavior
-	if (col != col_left && col != col_right)
-		return col_init;
+	ASSERT(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
 };
 
@@ -1016,9 +1012,7 @@ invert_col(const col_type& col)
 inline cc_type
 invert_cc(const cc_type& cc)
 {
-	// this should also crash, but it's not as dangerous as above
-	if (cc != cc_left_right && cc != cc_right_left)
-		return cc_init;
+	ASSERT(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 };
 
@@ -1188,12 +1182,16 @@ struct metanoteinfo
 				tc_ms = ms_from(cur[col], last[col]);
 				break;
 			case cc_single_jump:
-				// tracking this for now, we want to track from last col to last
-				// col inverted
-				cc_ms_any = ms_from(cur[invert_col(last_col)], last[last_col]);
+				// tracking this for now, use the higher value of the array
+				// (lower ms time, i.e. the column closest to this jump)
+				if (last[col_left] > last[col_right])
+					cc_ms_any = ms_from(cur[col_left], last[col_right]);
+				else
+					cc_ms_any = ms_from(cur[col_right], last[col_left]);
 
-				// can't use col twice, use last_col, see below
-				tc_ms = ms_from(cur[0], last[last_col]);
+				// logically the same as cc_ms_any in 1[12] 1 is the anchor
+				// timing with 1 and also the cross column timing with 2
+				tc_ms = cc_ms_any;
 				break;
 			case cc_jump_jump:
 				// not sure if we should set or leave at init value of 5000.f
@@ -2148,8 +2146,8 @@ struct WideRangeJumptrillMod
 	float moving_cv = moving_cv_init;
 
 	// non-empty
-	cc_type last_seen_cc;
-	cc_type last_last_seen_cc;
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
@@ -2220,8 +2218,7 @@ struct WideRangeJumptrillMod
 
 		// now we know we have cc_left_right or cc_right_left, so, xy, we are
 		// looking for xyyx, meaning last_last would be the inverion of now
-		if (now.cc == invert_cc(last_last_seen_cc))
-			// this _should_ be bulletproof, but i'm not holding out hope
+		if (invert_cc(now.cc) == last_last_seen_cc)
 			return true;
 
 		return false;
@@ -2287,8 +2284,10 @@ struct WideRangeJumptrillMod
 			return;
 
 		// reset if we hit a jump
-		if (now.col == col_ohjump)
+		if (now.col == col_ohjump) {
 			reset_sequence();
+			return;
+		}
 
 		// update timing stuff before checking/updating the sequence...
 		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
