@@ -2721,6 +2721,8 @@ struct WideRangeJumptrillMod
 	float ccacc_cv_cutoff = 0.5f;
 
 	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+		
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2972,7 +2974,6 @@ struct WideRangeRollMod
 	// 2121 to start counting, but that's fine, that's what we want and if
 	// it seems better to add later we can do that
 	vector<int> itv_rolls;
-	int itv_hand_taps = 0;
 
 #pragma region params
 	float itv_window = 4;
@@ -2985,6 +2986,8 @@ struct WideRangeRollMod
 	float roll_cv_cutoff = 0.5f;
 
 	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -2998,6 +3001,7 @@ struct WideRangeRollMod
 	// number of rolls and the notes contained therein
 	bool rolling = false;
 	int consecutive_roll_counter = 0;
+	int itv_hand_taps = 0;
 	int window_hand_taps = 0;
 	// for now we will be lazy and just add up the number of roll taps in any
 	// roll, if we leave out the initialization taps (the 4 required to identify
