@@ -32,7 +32,7 @@ enum Skillset
 // we do actually want to register these with lua i guess
 enum CalcPatternMod
 {
-	OHJump, // pattern mod (values between 0-1)
+	OHJumpMod, // pattern mod (values between 0-1)
 	Anchor, // pattern mod (values between 0.9 - ~ 1.1)
 	Roll,   // pattern mod (values between 0-1)
 	HS,		// pattern mod (values between 0-1)
