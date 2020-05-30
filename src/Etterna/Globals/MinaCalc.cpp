@@ -2828,6 +2828,260 @@ struct OHJumpMods
 		interval_reset();
 	}
 };
+// almost identical to wrr, refer to comments there
+struct OHTrillMod
+{
+	bool dbg = true && debug_lmao;
+	const vector<int> _pmods = { OHTrill };
+	const std::string name = "OHTrillMod";
+	const int _primary = _pmods.front();
+
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_trills;
+
+#pragma region params
+	float itv_window = 1;
+
+	float min_mod = 0.25f;
+	float max_mod = 1.05f;
+	float mod_base = 0.4f;
+	float mod_pool = 1.5f;
+	float mod_power = 2.f;
+
+	float moving_cv_init = 0.5f;
+	float trill_cv_cutoff = 0.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "mod_pool", &mod_pool },
+		{ "mod_power", &mod_power },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "trill_cv_cutoff", &trill_cv_cutoff },
+	};
+#pragma endregion params and param map
+	vector<int> itv_trills;
+	int itv_hand_taps = 0;
+
+	bool trilling = false;
+	// dunno if we want this for ohts
+	// bool is_transition = false;
+	int consecutive_trill_counter = 0;
+
+	int window_hand_taps = 0;
+	int window_trill_taps = 0;
+	float pmod = min_mod;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	float moving_cv = moving_cv_init;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], neutral);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void reset_sequence()
+	{
+		// only need to do this if trilling, otherwise values are false/0 anyway
+		if (trilling) {
+			itv_trills.push_back(consecutive_trill_counter);
+			trilling = false;
+			consecutive_trill_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, since
+	// oht will need this as well, or we could be lazy and do it twice just this
+	// once ~~~ keeping this here to remind me im bad and didn't do this
+	inline bool detecc_trill(const metanoteinfo& now)
+	{
+		if (invert_cc(now.cc) == last_seen_cc)
+			if (now.cc == last_last_seen_cc)
+				return true;
+		return false;
+	}
+
+	inline bool handle_trill_timing_check()
+	{
+		// the primary difference from wrr, just check cv on the base ms values,
+		// we are looking for values that are all close together with no
+		// manipulation
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < trill_cv_cutoff;
+	}
+
+	inline void update_seq_ms(const metanoteinfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metanoteinfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// only let these cases through, don't need cc_single_single like wrr
+		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for trills (cc -> inverted(cc) -> cc)
+			if (detecc_trill(now) && handle_trill_timing_check()) {
+				++consecutive_trill_counter;
+				if (!trilling) {
+					// boost slightly because we want to pick up minitrills
+					// maybe
+					++consecutive_trill_counter;
+					trilling = true;
+				}
+			}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	{
+		if (window_hand_taps == 0 || window_trill_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		} else if (window_hand_taps == window_trill_taps) {
+			min_set(doot, i);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i,
+						   const int& hand)
+	{
+		const auto& itv = mni._itv_info;
+		itv_hand_taps = itv.hand_taps[hand];
+
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
+			window_itv_trills.pop_front();
+		}
+
+		// this is slightly hacky buuut if we have a trill that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the trilling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_trill_counter > 0) {
+			itv_trills.push_back(consecutive_trill_counter);
+			consecutive_trill_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itv_hand_taps);
+		window_itv_trills.push_back(itv_trills);
+
+		window_hand_taps = 0;
+		for (auto& n : window_itv_hand_taps)
+			window_hand_taps += n;
+
+		window_trill_taps = 0;
+		// for now just add everything up
+		for (auto& n : window_itv_trills)
+			for (auto& v : n)
+				window_trill_taps += v;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = max_mod;
+		if (window_trill_taps > 0 && window_hand_taps > 0)
+			pmod = mod_pool - fastpow(static_cast<float>(window_trill_taps) /
+							static_cast<float>(window_hand_taps), mod_power);
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_primary][i] = pmod;
+
+		interval_reset();
+	}
+
+	inline void interval_reset()
+	{
+		itv_trills.clear();
+		itv_hand_taps = 0;
+	}
+};
 struct RunningManMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
@@ -3380,7 +3634,7 @@ struct WideRangeRollMod
 
 	float min_mod = 0.25f;
 	float max_mod = 1.035f;
-	float mod_base = 0.4f;
+	float mod_pool = 1.15f;
 
 	float moving_cv_init = 0.5f;
 	float roll_cv_cutoff = 0.5f;
@@ -3390,7 +3644,7 @@ struct WideRangeRollMod
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
+		{ "mod_pool", &mod_pool },
 
 		{ "moving_cv_init", &moving_cv_init },
 		{ "roll_cv_cutoff", &roll_cv_cutoff },
@@ -3622,7 +3876,11 @@ struct WideRangeRollMod
 		if (window_hand_taps == 0 || window_roll_taps == 0) {
 			neutral_set(doot, i);
 			return true;
+		} else if (window_hand_taps == window_roll_taps) {
+			min_set(doot, i);
+			return true;
 		}
+
 		return false;
 	}
 
@@ -3671,7 +3929,7 @@ struct WideRangeRollMod
 			
 		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
-			pmod = 1.15f - (static_cast<float>(window_roll_taps) /
+			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
 							static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
@@ -3691,252 +3949,6 @@ struct WideRangeRollMod
 	inline void interval_reset()
 	{
 		itv_rolls.clear();
-		itv_hand_taps = 0;
-	}
-};
-// almost identical to wrr, refer to comments there
-struct OHTrillMod
-{
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { OHTrill };
-	const std::string name = "OHTrillMod";
-	const int _primary = _pmods.front();
-
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_trills;
-
-#pragma region params
-	float itv_window = 2;
-
-	float min_mod = 0.25f;
-	float max_mod = 1.05f;
-	float mod_base = 0.4f;
-
-	float moving_cv_init = 0.5f;
-	float trill_cv_cutoff = 0.5f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
-
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-
-		{ "moving_cv_init", &moving_cv_init },
-		{ "trill_cv_cutoff", &trill_cv_cutoff },
-	};
-#pragma endregion params and param map
-	vector<int> itv_trills;
-	int itv_hand_taps = 0;
-
-	bool trilling = false;
-	// dunno if we want this for ohts
-	//bool is_transition = false;
-	int consecutive_trill_counter = 0;
-	
-	int window_hand_taps = 0;
-	int window_trill_taps = 0;
-	float pmod = min_mod;
-
-	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	float moving_cv = moving_cv_init;
-
-	// non-empty (cc_type is now always non-empty)
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], neutral);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		if (pmod == NULL)
-			return;
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-
-	inline void reset_sequence()
-	{
-		// only need to do this if trilling, otherwise values are false/0 anyway
-		if (trilling) {
-			itv_trills.push_back(consecutive_trill_counter);
-			trilling = false;
-			consecutive_trill_counter = 0;
-		}
-
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
-	}
-
-	// should maybe move this into metanoteinfo and do the counting there, since
-	// oht will need this as well, or we could be lazy and do it twice just this
-	// once ~~~ keeping this here to remind me im bad and didn't do this
-	inline bool detecc_trill(const metanoteinfo& now)
-	{
-		if (invert_cc(now.cc) == last_seen_cc)
-			if (now.cc == last_last_seen_cc)
-				return true;
-		return false;
-	}
-
-	inline bool handle_trill_timing_check()
-	{
-		// the primary difference from wrr, just check cv on the base ms values,
-		// we are looking for values that are all close together with no
-		// manipulation
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < trill_cv_cutoff;
-	}
-
-	inline void update_seq_ms(const metanoteinfo& now)
-	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-		seq_ms[2] = now.cc_ms_any;
-	}
-
-	inline void advance_sequencing(const metanoteinfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// only let these cases through, don't need cc_single_single like wrr
-		if (now.cc != cc_left_right && now.cc != cc_right_left) {
-			reset_sequence();
-			return;
-		}
-
-		// update timing stuff
-		update_seq_ms(now);
-
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for trills (cc -> inverted(cc) -> cc)
-			if (detecc_trill(now) && handle_trill_timing_check()) {
-				++consecutive_trill_counter;
-				if (!trilling) {
-					// boost slightly because we want to pick up minitrills
-					// maybe
-					++consecutive_trill_counter;
-					trilling = true;
-				}
-			}
-
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
-	}
-
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
-	{
-		if (window_hand_taps == 0 || window_trill_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-		return false;
-	}
-
-
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i, const int& hand)
-	{
-		const auto& itv = mni._itv_info;
-		itv_hand_taps = itv.hand_taps[hand];
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (window_itv_hand_taps.size() == itv_window) {
-			window_itv_hand_taps.pop_front();
-			window_itv_trills.pop_front();
-		}
-
-		// this is slightly hacky buuut if we have a trill that doesn't complete
-		// by the end of the interval, it should count for that interval, but we
-		// don't want the value to double up so we will reset the counter on
-		// interval end but _not_ reset the trilling bool, so it won't interfere
-		// with the detection as the sequencing passes into the next interval,
-		// and won't double up values
-		if (consecutive_trill_counter > 0) {
-			itv_trills.push_back(consecutive_trill_counter);
-			consecutive_trill_counter = 0;
-		}
-
-		window_itv_hand_taps.push_back(itv_hand_taps);
-		window_itv_trills.push_back(itv_trills);
-
-		window_hand_taps = 0;
-		for (auto& n : window_itv_hand_taps)
-			window_hand_taps += n;
-
-		window_trill_taps = 0;
-		// for now just add everything up
-		for (auto& n : window_itv_trills)
-			for (auto& v : n)
-				window_trill_taps += v;
-
-		if (handle_case_optimizations(doot, i)) {
-			interval_reset();
-			return;
-		}
-
-		pmod = max_mod;
-		if (window_trill_taps > 0 && window_hand_taps > 0)
-			pmod = 1.15f - (static_cast<float>(window_trill_taps) /
-							static_cast<float>(window_hand_taps));
-
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
-
-		interval_reset();
-	}
-
-	inline void interval_reset()
-	{
-		itv_trills.clear();
 		itv_hand_taps = 0;
 	}
 };
@@ -3972,6 +3984,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	HSMod _hs;
 	CJMod _cj;
 	OHJumpMods _ohj;
+	OHTrillMod _oht;
 	RunningManMod _rm;
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
@@ -4125,6 +4138,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(*_mni_now);
+		_oht.advance_sequencing(*_mni_now);
 		_rm.advance_sequencing(*_mni_now);
 		_wrjt.advance_sequencing(*_mni_now);
 		_wrr.advance_sequencing(*_mni_now);
@@ -4136,6 +4150,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
 		_ohj.setup(_doot, _itv_rows.size());
+		_oht.setup(_doot, _itv_rows.size());
 		_rm.setup(_doot, _itv_rows.size());
 		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
@@ -4148,6 +4163,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
 		_ohj.smooth_finish(_doot);
+		_oht.smooth_finish(_doot);
 		_wrr.smooth_finish(_doot);
 		_wrjt.smooth_finish(_doot);
 	}
@@ -4159,6 +4175,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
 		_ohj(*_mni_now, _doot, itv, hand);
+		_oht(*_mni_now, _doot, itv, hand);
 		_wrr(*_mni_now, _doot, itv, hand);
 		_wrjt(*_mni_now, _doot, itv);
 	}
@@ -4181,6 +4198,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
 		_ohj.load_params_from_node(&params);
+		_oht.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
 	}
@@ -4194,6 +4212,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
 		calcparams->AppendChild(_ohj.make_param_node());
+		calcparams->AppendChild(_oht.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
 
