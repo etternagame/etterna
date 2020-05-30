@@ -2457,14 +2457,14 @@ struct OHJumpMods
 	float ohj_prop_min = 0.f;
 	float ohj_prop_max = 0.65f; // should be 0.35 but it was this before...
 
-	float cj_ohj_base = 0.3f;
+	float cj_ohj_base = 0.1f;
 	float cj_ohj_min_mod = 0.6f;
 	float cj_ohj_max_mod = 1.f;
 	float cj_ohj_pow = 2.f;
 
 	float cj_ohj_max_seq_pool = 1.2f;
 	float cj_ohj_max_seq_scaler = 0.5f;
-	float cj_ohj_max_seq_jump_scaler = 2.f;
+	float cj_ohj_max_seq_jump_scaler = 1.f;
 	float cj_ohj_max_seq_min = 0.f;
 	float cj_ohj_max_seq_max = 0.5f;
 
@@ -2494,6 +2494,17 @@ struct OHJumpMods
 		{ "cj_ohj_min_mod", &cj_ohj_min_mod },
 		{ "cj_ohj_max_mod", &cj_ohj_max_mod },
 		{ "cj_ohj_pow", &cj_ohj_pow },
+
+		{ "cj_ohj_max_seq_pool", &cj_ohj_max_seq_pool },
+		{ "cj_ohj_max_seq_scaler", &cj_ohj_max_seq_scaler },
+		{ "cj_ohj_max_seq_jump_scaler", &cj_ohj_max_seq_jump_scaler },
+		{ "cj_ohj_max_seq_min", &cj_ohj_max_seq_min },
+		{ "cj_ohj_max_seq_max", &cj_ohj_max_seq_max },
+		   
+		{ "cj_ohj_prop_pool", &cj_ohj_prop_pool },
+		{ "cj_ohj_prop_scaler", &cj_ohj_prop_scaler },
+		{ "cj_ohj_prop_min", &cj_ohj_prop_min },
+		{ "cj_ohj_prop_max", &cj_ohj_prop_max },
 	};
 #pragma endregion params and param map
 	int cur_ohjump_seq = 0;
