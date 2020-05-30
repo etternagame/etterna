@@ -261,17 +261,18 @@ sum_trunc_fill(const vector<float>& input,
 			   const int& num_vals,
 			   const float& ms_dummy)
 {
+	int moop = static_cast<int>(input.size());
 	float smarmy_hamster = 0.f;
 	// use up to num_vals
-	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+	for (size_t i = 0; i < min(moop, num_vals); ++i)
 		smarmy_hamster += input[i];
 
 	// got enough
-	if (input.size() >= num_vals)
+	if (moop >= num_vals)
 		return smarmy_hamster;
 
 	// fill with dummies if input is below desired number of values
-	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+	for (size_t i = 0; i < num_vals - static_cast<int>(moop); ++i)
 		smarmy_hamster += ms_dummy;
 
 	// real piece of work this guy
