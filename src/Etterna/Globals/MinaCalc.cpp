@@ -2665,21 +2665,30 @@ struct OHJumpMods
 
 	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
 	{
-		// asdfasdfasdf????
-		if (base_prop == 0.f) {
-			neutral_set(doot, i);
+		if (floatymcfloatface >= hand_taps) {
+			min_set(doot, i);
+			set_debug_output(doot, i);
 			return true;
 		}
 
 		// nothing here
 		if (hand_taps == 0) {
 			neutral_set(doot, i);
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// nan's
+		if (cj_ohj_max_seq_pool <= base_prop * cj_ohj_max_seq_jump_scaler) {
+			min_set(doot, i);
+			set_debug_output(doot, i);
 			return true;
 		}
 
 		// no ohjumps
 		if (ohjump_taps == 0) {
 			neutral_set(doot, i);
+			set_debug_output(doot, i);
 			return true;
 		}
 
@@ -2694,7 +2703,7 @@ struct OHJumpMods
 			doot[OHJumpMod][i] = pmod;
 
 			cj_ohj_prop_component =
-			  fastsqrt(cj_ohj_prop_pool - (ohjump_taps / hand_taps));
+			  fastsqrt(cj_ohj_prop_pool - (ohjump_taps / hand_taps / 2.f));
 			cj_ohj_prop_component =
 			  CalcClamp(cj_ohj_prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
 
