@@ -2912,12 +2912,12 @@ struct WideRangeRollMod
 	// 2121 to start counting, but that's fine, that's what we want and if
 	// it seems better to add later we can do that
 	vector<int> itv_rolls;
-	int itv_hand_taps;
+	int itv_hand_taps = 0;
 
 #pragma region params
 	float itv_window = 4;
 
-	float min_mod = 0.5f;
+	float min_mod = 0.25f;
 	float max_mod = 1.035f;
 	float mod_base = 0.4f;
 
@@ -2938,7 +2938,7 @@ struct WideRangeRollMod
 	// number of rolls and the notes contained therein
 	bool rolling = false;
 	int consecutive_roll_counter = 0;
-	int window_taps = 0;
+	int window_hand_taps = 0;
 	// for now we will be lazy and just add up the number of roll taps in any
 	// roll, if we leave out the initialization taps (the 4 required to identify
 	// the start) we will greatly reduce the effect of short roll bursts, not
@@ -3003,6 +3003,14 @@ struct WideRangeRollMod
 		}
 	}
 #pragma endregion
+	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	{
+		if (window_hand_taps == 0 || window_roll_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	}
 
 	// should rename as it resets or completes a sequence... maybe should go
 	// look at rm_sequencing again and make roll_sequencing.. idk
@@ -3097,7 +3105,7 @@ struct WideRangeRollMod
 			return;
 
 		// count this hand's taps here
-		if (now.col == OHJump)
+		if (now.col == col_ohjump)
 			itv_hand_taps += 2;
 		else
 			++itv_hand_taps;
@@ -3140,9 +3148,12 @@ struct WideRangeRollMod
 					rolling = true;
 				}
 				// only reset here if this fails and a transition wasn't
-				// detected
-			} else if (!is_transition)
+				// detected, if we reset here we have to assign seq_ms[2] again,
+				// yes this is asofgasfjasofdj messy
+			} else if (!is_transition) {
 				reset_sequence();
+				seq_ms[2] = now.cc_ms_any;
+			}
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
@@ -3175,23 +3186,29 @@ struct WideRangeRollMod
 		window_itv_hand_taps.push_back(itv_hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
+		window_hand_taps = 0;
 		for (auto& n : window_itv_hand_taps)
-			window_taps += n;
+			window_hand_taps += n;
 
+		window_roll_taps = 0;
 		// for now just add everything up
 		for (auto& n : window_itv_rolls)
 			for (auto& v : n)
 				window_roll_taps += v;
 
-		pmod = 1.f;
-		if (window_roll_taps > 0)
-			pmod = static_cast<float>(window_roll_taps) /
-				   static_cast<float>(window_taps);
+		if (handle_case_optimizations(doot, i))
+			return;
+
+		pmod = max_mod;
+		if (window_roll_taps > 0 && window_hand_taps > 0)
+			pmod = 1.15f - (static_cast<float>(window_roll_taps) /
+							static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
 
 		itv_rolls.clear();
+		itv_hand_taps = 0;
 	}
 };
 // ok new plan this takes a bunch of the concepts i tried with the
@@ -6093,7 +6110,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 341;
+int mina_calc_version = 342;
 int
 GetCalcVersion()
 {
