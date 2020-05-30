@@ -422,8 +422,6 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
-// SOMEHOW MAKES JAKES EASIER SO DISABLED FOR NOW (it's also sort of redundant
-// with the entire system as it is so this may not be needed
 inline void
 Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 {
@@ -1109,6 +1107,8 @@ is_alternating_chord_stream(const unsigned& a,
 
 #pragma region new pattern mod structure
 // accumulates info across an interval as it's processed by row
+// this should really be moved out of mni maybe probably, since it's generated
+// twice and doesn't need to be
 struct itv_info
 {
 	bool dbg = false && debug_lmao;
@@ -1121,6 +1121,10 @@ struct itv_info
 	int not_hs = 0;
 	int zwop = 0;
 	int total_taps = 0;
+	// left hand taps
+	int lh_taps = 0;
+	// right hand taps
+	int rh_taps = 0;
 	int chord_taps = 0;
 	int taps_by_size[4] = { 0, 0, 0, 0 };
 	int shared_chord_jacks = 0;
@@ -1165,6 +1169,8 @@ struct itv_info
 
 		// self explanatory
 		total_taps = 0;
+		lh_taps = 0;
+		rh_taps = 0;
 
 		// number of non-single taps
 		chord_taps = 0;
@@ -1248,6 +1254,8 @@ struct itv_info
 		not_hs = last.not_hs;
 
 		total_taps = last.total_taps;
+		lh_taps = last.lh_taps;
+		rh_taps = last.rh_taps;
 		chord_taps = last.chord_taps;
 		shared_chord_jacks = last.shared_chord_jacks;
 
@@ -1267,6 +1275,10 @@ struct itv_info
 		// only used by cj atm
 		update_row_variations_and_set_vibro_flag(row_notes);
 		update_tap_counts(row_count);
+		// hand specific tap counts, multiple different pattern mods need them
+		// so let's track them here (lazy i know)
+		lh_taps += (row_notes & col_ids[0] + row_notes & col_ids[1]);
+		rh_taps += (row_notes & col_ids[2] + row_notes & col_ids[3]);
 	}
 };
 
