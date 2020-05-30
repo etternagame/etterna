@@ -238,6 +238,7 @@ StringToSkillset(const RString& s)
 	"CJJ",
 	"CJQuad",
 	"OHJumpMod",
+	"OHJBaseProp",
 	"OHJPropComp",
 	"OHJSeqComp",
 	"OHJMaxSeq",

@@ -2432,7 +2432,8 @@ struct CJMod
 struct OHJumpMods
 {
 	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { OHJumpMod, OHJPropComp,   OHJSeqComp,
+	const vector<int> _pmods = { OHJumpMod,   OHJBaseProp, OHJPropComp,
+								 OHJSeqComp,
 								 OHJMaxSeq, OHJCCTaps,	 OHJHTaps,
 								 CJOHJump,  CJOHJPropComp, CJOHJSeqComp };
 	const std::string name = "OHJumpMods";
@@ -2497,10 +2498,14 @@ struct OHJumpMods
 	int max_ohjump_seq = 0;
 	int window_roll_taps = 0;
 	int cc_taps = 0;
+	int ohjump_taps = 0.f;
+	// we cast the one in itv_info from int
 	float hand_taps = 0.f;
 	float floatymcfloatface = 0.f;
-	float max_seq_component = 0.f;
-	float prop_component = 0.f;
+	float ohj_max_seq_component = 0.f;
+	float ohj_prop_component = 0.f;
+	float cj_ohj_max_seq_component = 0.f;
+	float cj_ohj_prop_component = 0.f;
 	float base_prop = 0.f;
 	float pmod = ohj_min_mod;
 
@@ -2576,6 +2581,9 @@ struct OHJumpMods
 		if (now.col == col_empty)
 			return;
 
+		if (now.col == col_ohjump)
+			ohjump_taps += 2;
+
 		// we know between the following that the latter is more
 		// difficult [12][12][12]222[12][12][12]
 		// [12][12][12]212[12][12][12]
@@ -2595,8 +2603,10 @@ struct OHJumpMods
 		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
 		switch (now.cc) {
 			case cc_jump_jump:
-				// at least 2 jumps in a row, we are now in a sequence and begin
-				// iterating accordingly
+				// at least 2 jumps in a row
+				// boost if this is the beginning, otherwise just iterate
+				if (cur_ohjump_seq == 0)
+					++cur_ohjump_seq;
 				++cur_ohjump_seq;
 				break;
 			case cc_jump_single:
@@ -2642,32 +2652,45 @@ struct OHJumpMods
 
 	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
 	{
+		// asdfasdfasdf????
+		if (base_prop == 0.f) {
+			neutral_set(doot, i);
+			return true;
+		}
+
 		// nothing here
 		if (hand_taps == 0) {
 			neutral_set(doot, i);
 			return true;
 		}
 
+		// no ohjumps
+		if (ohjump_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
 		// no repeated oh jumps, prop scale only
 		if (max_ohjump_seq == 0) {
-			prop_component = ohj_prop_pool - base_prop;
-			prop_component =
-			  CalcClamp(prop_component, ohj_min_mod, ohj_max_mod);
+			ohj_prop_component = ohj_prop_pool - (ohjump_taps / hand_taps);
+			ohj_prop_component =
+			  CalcClamp(ohj_prop_component, ohj_min_mod, ohj_max_mod);
 
-			pmod = fastsqrt(prop_component);
+			pmod = fastsqrt(ohj_prop_component);
 			pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
 			doot[OHJumpMod][i] = pmod;
-			doot[OHJPropComp][i] = prop_component;
 
-			prop_component = fastsqrt(cj_ohj_prop_pool - base_prop);
-			prop_component =
-			  CalcClamp(prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
+			cj_ohj_prop_component =
+			  fastsqrt(cj_ohj_prop_pool - (ohjump_taps / hand_taps));
+			cj_ohj_prop_component =
+			  CalcClamp(cj_ohj_prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
 
-			pmod = fastsqrt(prop_component);
+			pmod = fastsqrt(cj_ohj_prop_component);
 			pmod =
 			  CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
 			doot[CJOHJump][i] = pmod;
-			doot[CJOHJPropComp][i] = prop_component;
+
+			set_debug_output(doot, i);
 			return true;
 		}
 
@@ -2680,31 +2703,31 @@ struct OHJumpMods
 			if (max_ohjump_seq > 0) {
 				// yea i thought we might need to tune ohj downscalers for js
 				// and cj slightly differently
-				max_seq_component =
+				ohj_max_seq_component =
 				  pow(hand_taps / (floatymcfloatface * ohj_max_seq_jump_scaler),
 					  ohj_pow);
-				pmod = CalcClamp(max_seq_component, ohj_min_mod, ohj_max_mod);
+				ohj_max_seq_component =
+				  CalcClamp(ohj_max_seq_component, ohj_min_mod, ohj_max_mod);
+				pmod = ohj_max_seq_component;
+				  
 				doot[OHJumpMod][i] = pmod;
-				doot[OHJSeqComp][i] = max_seq_component;
 
 				// ohjumps in cj can be either easier or harder
 				// depending on context.. so we have to pull back a
 				// bit so it doesn't swing too far when it shouldn't
-				max_seq_component =
+				cj_ohj_max_seq_component =
 				  pow(hand_taps / (floatymcfloatface *
 								   (cj_ohj_max_seq_jump_scaler + 0.4f)),
 					  cj_ohj_pow);
-
-				pmod =
-				  CalcClamp(max_seq_component, cj_ohj_min_mod, cj_ohj_max_mod);
+				cj_ohj_max_seq_component = CalcClamp(
+				  cj_ohj_max_seq_component, cj_ohj_min_mod, cj_ohj_max_mod);
+				pmod = cj_ohj_max_seq_component;
 				doot[CJOHJump][i] = pmod;
-				doot[CJOHJSeqComp][i] = max_seq_component;
 
-				doot[OHJMaxSeq][i] = floatymcfloatface;
-				doot[OHJCCTaps][i] = cc_taps;
-				doot[OHJHTaps][i] = hand_taps;
+				set_debug_output(doot, i);
 				return true;
 			} else {
+				// single note longjacks, do nothing
 				neutral_set(doot, i);
 				return true;
 			}
@@ -2713,10 +2736,36 @@ struct OHJumpMods
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
+	inline void interval_reset()
+	{
+		// reset any interval stuff here
+		cc_taps = 0;
+		ohjump_taps = 0;
+		max_ohjump_seq = 0;
+		ohj_max_seq_component = neutral;
+		ohj_prop_component = neutral;
+		cj_ohj_max_seq_component = neutral;
+		cj_ohj_prop_component = neutral;
+	}
+
+	inline void set_debug_output(vector<float> doot[], const size_t& i)
+	{
+		doot[OHJSeqComp][i] = ohj_max_seq_component;
+		doot[OHJPropComp][i] = ohj_prop_component;
+
+		doot[CJOHJSeqComp][i] = cj_ohj_max_seq_component;
+		doot[CJOHJPropComp][i] = cj_ohj_prop_component;
+
+		doot[OHJBaseProp][i] = base_prop;
+		doot[OHJMaxSeq][i] = floatymcfloatface;
+		doot[OHJCCTaps][i] = cc_taps;
+		doot[OHJHTaps][i] = hand_taps;
+	}
+
+	void operator()(const metanoteinfo& mni,
+					vector<float> doot[],
+					const size_t& i,
+					const int& hand)
 	{
 		const auto& itv = mni._itv_info;
 
@@ -2728,62 +2777,55 @@ struct OHJumpMods
 		hand_taps = static_cast<float>(itv.hand_taps[hand]);
 		base_prop = floatymcfloatface / hand_taps;
 
-		if (handle_case_optimizations(doot, i))
+		// handle simple cases first, execute this block if nothing easy is
+		// detected, fill out non-component debug info and handle interval
+		// resets at end
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
 			return;
+		}
 
 		// STANDARD OHJ
 		// for js we lean into max sequences more, since they're better
 		// indicators of inflated difficulty
-		max_seq_component =
+		ohj_max_seq_component =
 		  ohj_max_seq_scaler *
 		  (ohj_max_seq_pool - (base_prop * ohj_max_seq_jump_scaler));
-		max_seq_component =
-		  CalcClamp(max_seq_component, ohj_max_seq_min, ohj_max_seq_max);
+		ohj_max_seq_component =
+		  CalcClamp(ohj_max_seq_component, ohj_max_seq_min, ohj_max_seq_max);
 
-		prop_component = ohj_prop_scaler * (ohj_prop_pool - base_prop);
-		prop_component = CalcClamp(prop_component, ohj_prop_min, ohj_prop_max);
+		ohj_prop_component = ohj_prop_scaler * (ohj_prop_pool - base_prop);
+		ohj_prop_component =
+		  CalcClamp(ohj_prop_component, ohj_prop_min, ohj_prop_max);
 
-		pmod = fastsqrt(max_seq_component + prop_component);
+		pmod = fastsqrt(ohj_max_seq_component + ohj_prop_component);
 		pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
 		doot[OHJumpMod][i] = pmod;
-
-		if (debug_lmao) {
-			doot[OHJSeqComp][i] = max_seq_component;
-			doot[OHJPropComp][i] = prop_component;
-		}
 
 		// CH OHJ
 		// we want both the total number of jumps and the max
 		// sequence to count here, with more emphasis on the max
 		// sequence, sequence should be multiplied by 2 (or
 		// maybe slightly more?)
-		max_seq_component = cj_ohj_max_seq_scaler *
-							fastsqrt(cj_ohj_max_seq_pool -
-									 (base_prop * cj_ohj_max_seq_jump_scaler));
-		max_seq_component =
-		  CalcClamp(max_seq_component, cj_ohj_max_seq_min, cj_ohj_max_seq_max);
+		cj_ohj_max_seq_component =
+		  cj_ohj_max_seq_scaler *
+		  fastsqrt(cj_ohj_max_seq_pool -
+				   (base_prop * cj_ohj_max_seq_jump_scaler));
+		cj_ohj_max_seq_component = CalcClamp(
+		  cj_ohj_max_seq_component, cj_ohj_max_seq_min, cj_ohj_max_seq_max);
 
-		prop_component =
+		cj_ohj_prop_component =
 		  cj_ohj_prop_scaler * fastsqrt(cj_ohj_prop_pool - base_prop);
-		prop_component =
-		  CalcClamp(prop_component, cj_ohj_prop_min, cj_ohj_prop_max);
+		cj_ohj_prop_component =
+		  CalcClamp(cj_ohj_prop_component, cj_ohj_prop_min, cj_ohj_prop_max);
 
-		pmod = fastsqrt(max_seq_component + prop_component);
+		pmod = fastsqrt(cj_ohj_max_seq_component + cj_ohj_prop_component);
 		pmod = CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
 		doot[CJOHJump][i] = pmod;
 
-		if (debug_lmao) {
-			doot[CJOHJSeqComp][i] = max_seq_component;
-			doot[CJOHJPropComp][i] = prop_component;
+		set_debug_output(doot, i);
 
-			doot[OHJMaxSeq][i] = floatymcfloatface;
-			doot[OHJCCTaps][i] = cc_taps;
-			doot[OHJHTaps][i] = hand_taps;
-		}
-
-		// reset any interval stuff here
-		cc_taps = 0;
-		max_ohjump_seq = 0;
+		interval_reset();
 	}
 };
 struct RunningManMod
@@ -3430,14 +3472,6 @@ struct WideRangeRollMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
-	{
-		if (window_hand_taps == 0 || window_roll_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-		return false;
-	}
 
 	// should rename as it resets or completes a sequence... maybe should go
 	// look at rm_sequencing again and make roll_sequencing.. idk
@@ -3587,6 +3621,25 @@ struct WideRangeRollMod
 		last_seen_cc = now.cc;
 	}
 
+	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	{
+		if (window_hand_taps == 0 || window_roll_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	}
+
+	// may be unneeded for this function but it's probably good practice to have
+	// this and always reset anything that needs to be on handling case
+	// optimizations, even if the case optimizations don't require us to reset
+	// anything
+	inline void interval_reset()
+	{
+		itv_rolls.clear();
+		itv_hand_taps = 0;
+	}
+
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
 						   const size_t& i)
@@ -3623,8 +3676,11 @@ struct WideRangeRollMod
 			for (auto& v : n)
 				window_roll_taps += v;
 
-		if (handle_case_optimizations(doot, i))
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
 			return;
+		}
+			
 
 		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
@@ -3638,8 +3694,7 @@ struct WideRangeRollMod
 		// keep running old wrr
 		doot[Chaos][i] = neutral;
 
-		itv_rolls.clear();
-		itv_hand_taps = 0;
+		interval_reset();
 	}
 };
 
@@ -4682,7 +4737,6 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 	if (SmoothPatterns)
 		Smooth(doot[Anchor], 1.f);
 }
-
 
 // downscales full rolls or rolly js, it looks explicitly for
 // consistent cross column timings on both hands; consecutive notes
@@ -5986,7 +6040,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 344;
+int mina_calc_version = 345;
 int
 GetCalcVersion()
 {

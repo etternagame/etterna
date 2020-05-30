@@ -44,6 +44,7 @@ enum CalcPatternMod
 	CJJ,		// pattern mod (values between 0-1)
 	CJQuad,
 	OHJumpMod, // pattern mod (values between 0-1)
+	OHJBaseProp,
 	OHJPropComp,
 	OHJSeqComp,
 	OHJMaxSeq,

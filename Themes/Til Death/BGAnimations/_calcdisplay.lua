@@ -173,11 +173,9 @@ local debugGroups = {
 	},
 	{
         OHJumpMod = true,
-        OHJSeqComp = true,
-        OHJMaxSeq = true,
-        OHJCCTaps = true,
-        OHJHTaps = true,
-		TheThing = true
+        --OHJPropComp = true,
+        --OHJSeqComp = true,
+        --OHJBaseProp = true,
 	},
     {
         CJ = true,
@@ -185,11 +183,15 @@ local debugGroups = {
         CJJ = true,
         CJQuad = true,
         CJOHJump = true,
+        CJOHJPropComp = true,
         CJOHJSeqComp = true,
-        CJOHJMaxSeq = true,
+
+		StamMod = true
+    },
+    {
+        OHJMaxSeq = true,
         OHJCCTaps = true,
         OHJHTaps = true,
-		StamMod = true
     },
     {
         Chaos = true,
@@ -198,6 +200,7 @@ local debugGroups = {
         Anchor = true,
         WideRangeBalance = true,
         WideRangeAnchor = true,
+        TheThing = true
     },
     {
         RanMan = true,
@@ -632,6 +635,8 @@ local modnames = {
     "cjqr",
     "ohjl",
     "ohjr",
+    "ohjbpr",
+    "ohjbpl",
     "ohjpcl",
     "ohjpcr",
     "ohjscl",
