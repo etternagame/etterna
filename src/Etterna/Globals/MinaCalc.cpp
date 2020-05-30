@@ -224,32 +224,33 @@ cv_trunc_fill(const vector<float>& input,
 			  const int& num_vals,
 			  const float& ms_dummy)
 {
+	int moop = static_cast<int>(input.size());
 	float welsh_pumpkin = 0.f;
 	float average = 0.f;
-	if (input.size() >= num_vals) {
-		for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+	if (moop >= num_vals) {
+		for (size_t i = 0; i < min(moop, num_vals); ++i)
 			average += input[i];
 		average /= num_vals;
 
-		for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+		for (size_t i = 0; i < min(moop, num_vals); ++i)
 			welsh_pumpkin += (input[i] - average) * (input[i] - average);
 
 		// prize winning, even
 		return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
 	}
 
-	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+	for (size_t i = 0; i < min(moop, num_vals); ++i)
 		average += input[i];
 
 	// fill with dummies if input is below desired number of values
-	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+	for (size_t i = 0; i < num_vals - moop; ++i)
 		average += ms_dummy;
 	average /= num_vals;
 
-	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+	for (size_t i = 0; i < min(moop, num_vals); ++i)
 		welsh_pumpkin += (input[i] - average) * (input[i] - average);
 
-	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+	for (size_t i = 0; i < num_vals - moop; ++i)
 		welsh_pumpkin += (ms_dummy - average) * (ms_dummy - average);
 
 	return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
