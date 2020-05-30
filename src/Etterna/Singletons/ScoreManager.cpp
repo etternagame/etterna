@@ -467,7 +467,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				NoteData nd;
 
 				bool remarried = false;
-				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion()) {
+				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
+					hs->HasReplayData()) {
 					steps->GetNoteData(nd);
 					auto maxpoints = nd.WifeTotalScoreCalc(td);
 					if (maxpoints <= 0)
