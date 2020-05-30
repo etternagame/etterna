@@ -1121,10 +1121,8 @@ struct itv_info
 	int not_hs = 0;
 	int zwop = 0;
 	int total_taps = 0;
-	// left hand taps
-	int lh_taps = 0;
 	// right hand taps
-	int rh_taps = 0;
+	int hand_taps[2] = { 0, 0 };
 	int chord_taps = 0;
 	int taps_by_size[4] = { 0, 0, 0, 0 };
 	int shared_chord_jacks = 0;
@@ -1169,8 +1167,6 @@ struct itv_info
 
 		// self explanatory
 		total_taps = 0;
-		lh_taps = 0;
-		rh_taps = 0;
 
 		// number of non-single taps
 		chord_taps = 0;
@@ -1178,6 +1174,8 @@ struct itv_info
 		// self explanatory and unused
 		shared_chord_jacks = 0;
 
+		for (auto& t : hand_taps)
+			t = 0;
 		// see def
 		for (auto& t : taps_by_size)
 			t = 0;
@@ -1254,15 +1252,16 @@ struct itv_info
 		not_hs = last.not_hs;
 
 		total_taps = last.total_taps;
-		lh_taps = last.lh_taps;
-		rh_taps = last.rh_taps;
 		chord_taps = last.chord_taps;
 		shared_chord_jacks = last.shared_chord_jacks;
 
+		for (size_t i = 0; i < 2; ++i)
+			hand_taps[i] = last.hand_taps[i];
 		for (size_t i = 0; i < 4; ++i)
 			taps_by_size[i] = last.taps_by_size[i];
 		for (size_t i = 0; i < 3; ++i)
 			row_variations[i] = last.row_variations[i];
+
 		basically_vibro = last.basically_vibro;
 	}
 
@@ -1277,8 +1276,8 @@ struct itv_info
 		update_tap_counts(row_count);
 		// hand specific tap counts, multiple different pattern mods need them
 		// so let's track them here (lazy i know)
-		lh_taps += (row_notes & col_ids[0] + row_notes & col_ids[1]);
-		rh_taps += (row_notes & col_ids[2] + row_notes & col_ids[3]);
+		hand_taps[0] += (row_notes & col_ids[0] + row_notes & col_ids[1]);
+		hand_taps[1] += (row_notes & col_ids[2] + row_notes & col_ids[3]);
 	}
 };
 
@@ -3297,6 +3296,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	vector<vector<int>> _itv_rows;
 	vector<float>* _doot;
 	float _rate = 0.f;
+	int hand = 0;
 	unsigned _t1 = 0;
 	unsigned _t2 = 0;
 
@@ -3352,6 +3352,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		_t1 = t1;
 		_t2 = t2;
 
+		// askdfjhaskjhfwe
+		if (_t1 == col_ids[0])
+			hand = 0;
+		else
+			hand = 1;
+
 		// run any setup functions for pattern mods, generally memory
 		// initialization and maybe some other stuff
 		run_pattern_mod_setups();
@@ -3361,8 +3367,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// hand dependent mods would have been overwritten without using
 			// a pushback, and pushing back 2 cycles of metanoteinfo into
 			// the same debug vector is kinda like... not good
-			// left hand stuffies
-			if (_t1 == col_ids[0]) {
+			if (hand == 0) {
+				// left hand stuffies
 				_mni_dbg_vec1.resize(_itv_rows.size());
 				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
 					_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
@@ -3397,7 +3403,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			for (auto& row : _itv_rows[itv]) {
 				// ok we really should be doing separate loops for both
 				// hand/separate hand stuff, and this should be in the former
-				if (_t1 == col_ids[0])
+				if (hand == 0)
 					if (debug_lmao || dbg) {
 						_itv_row_string[itv].append(note_map[_ni[row].notes]);
 						_itv_row_string[itv].append("\n");
@@ -3422,7 +3428,7 @@ struct TheGreatBazoinkazoinkInTheSky
 						 true);
 
 					// left hand stuffies
-					if (_t1 == col_ids[0])
+					if (hand == 0)
 						_mni_dbg_vec1[itv].push_back(_dbg);
 					else
 						// right hand stuffies
@@ -3433,7 +3439,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			}
 			// pop the last \n for the interval
 			if (debug_lmao || dbg)
-				if (_t1 == col_ids[0])
+				if (hand == 0)
 					if (!_itv_row_string[itv].empty())
 						_itv_row_string[itv].pop_back();
 
