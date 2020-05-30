@@ -3658,7 +3658,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 // we're sure we don't need to use this for anything else we can probably
 // refpass again but cba to test atm
 float
-Hand::CalcMSEstimate(vector<float> input, int burp)
+Hand::CalcMSEstimate(vector<float>& input, const int& burp)
 {
 	static const bool dbg = false;
 
