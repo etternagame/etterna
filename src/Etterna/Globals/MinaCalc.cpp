@@ -2862,26 +2862,21 @@ struct OHTrillMod
 	deque<vector<int>> window_itv_trills;
 
 #pragma region params
-	float itv_window = 1;
+	float itv_window = 2;
 
-	float min_mod = 0.25f;
-	float max_mod = 1.05f;
-	float mod_base = 0.4f;
-	float mod_pool = 1.5f;
-	float mod_power = 2.f;
+	float min_mod = 0.5f;
+	float max_mod = 1.f;
+	float mod_pool = 1.25f;
 
 	float moving_cv_init = 0.5f;
-	float trill_cv_cutoff = 0.5f;
+	float trill_cv_cutoff = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "itv_window", &itv_window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-
 		{ "mod_pool", &mod_pool },
-		{ "mod_power", &mod_power },
 
 		{ "moving_cv_init", &moving_cv_init },
 		{ "trill_cv_cutoff", &trill_cv_cutoff },
@@ -3089,8 +3084,8 @@ struct OHTrillMod
 
 		pmod = max_mod;
 		if (window_trill_taps > 0 && window_hand_taps > 0)
-			pmod = mod_pool - fastpow(static_cast<float>(window_trill_taps) /
-							static_cast<float>(window_hand_taps), mod_power);
+			pmod = mod_pool - (static_cast<float>(window_trill_taps - 4) /
+									static_cast<float>(window_hand_taps * 4));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
@@ -4642,6 +4637,7 @@ Hand::InitAdjDiff()
 		// stream
 		{
 		  StreamMod,
+		  OHTrill,
 		  Roll,
 		  Chaos,
 		  WideRangeRoll,
@@ -4699,6 +4695,7 @@ Hand::InitAdjDiff()
 
 		// tech, duNNO wat im DOIN
 		{
+		  OHTrill,
 		  Anchor,
 		  Roll,
 		  OHJumpMod,
@@ -6324,7 +6321,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 345;
+int mina_calc_version = 346;
 int
 GetCalcVersion()
 {
