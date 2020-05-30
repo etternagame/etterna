@@ -1276,8 +1276,14 @@ struct itv_info
 		update_tap_counts(row_count);
 		// hand specific tap counts, multiple different pattern mods need them
 		// so let's track them here (lazy i know)
-		hand_taps[0] += (row_notes & col_ids[0] + row_notes & col_ids[1]);
-		hand_taps[1] += (row_notes & col_ids[2] + row_notes & col_ids[3]);
+		if (row_notes & col_ids[0])
+			++hand_taps[0];
+		if (row_notes & col_ids[1])
+			++hand_taps[0];
+		if (row_notes & col_ids[2])
+			++hand_taps[1];
+		if (row_notes & col_ids[3])
+			++hand_taps[1];
 	}
 };
 
