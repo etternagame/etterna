@@ -185,6 +185,10 @@ local debugGroups = {
         CJJ = true,
         CJQuad = true,
         CJOHJump = true,
+        CJOHJSeqComp = true,
+        CJOHJMaxSeq = true,
+        OHJCCTaps = true,
+        OHJHTaps = true,
 		StamMod = true
     },
     {
