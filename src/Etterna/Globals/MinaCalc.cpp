@@ -3110,10 +3110,10 @@ struct WideRangeRollMod
 		else
 			++itv_hand_taps;
 
-		  // only let these cases through, since we use invert_cc, anchors are
-		  // screened out later, reset otherwise
-		  if (now.cc != cc_left_right && now.cc != cc_right_left &&
-			  now.cc != cc_single_single) {
+		// only let these cases through, since we use invert_cc, anchors are
+		// screened out later, reset otherwise
+		if (now.cc != cc_left_right && now.cc != cc_right_left &&
+			now.cc != cc_single_single) {
 			reset_sequence();
 			return;
 		}
@@ -4333,7 +4333,7 @@ Hand::InitAdjDiff()
 		  WideRangeRoll,
 		  WideRangeJumptrill,
 		  FlamJam,
-		  OHJump,
+		  OHJumpMod,
 		  Anchor,
 		  WideRangeBalance,
 		},
@@ -4342,7 +4342,7 @@ Hand::InitAdjDiff()
 		{
 		  JS,
 		  Chaos,
-		  OHJump,
+		  OHJumpMod,
 		  TheThing,
 		  Anchor,
 		  WideRangeBalance,
@@ -4352,7 +4352,7 @@ Hand::InitAdjDiff()
 		{
 		  HS,
 		  Chaos,
-		  OHJump,
+		  OHJumpMod,
 		  TheThing,
 		  Anchor,
 		  WideRangeBalance,
@@ -4368,7 +4368,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  FlamJam,
-		  OHJump,
+		  OHJumpMod,
 		  CJOHJump,
 		  CJQuad,
 		  WideRangeBalance,
@@ -4387,7 +4387,7 @@ Hand::InitAdjDiff()
 		{
 		  Anchor,
 		  Roll,
-		  OHJump,
+		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
 		  WideRangeBalance,
@@ -4449,7 +4449,7 @@ Hand::InitAdjDiff()
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /=
-					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
+					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJumpMod][i]);
 					adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
@@ -4823,7 +4823,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 							   vector<float> doot[])
 {
 	doot[Roll].resize(nervIntervals.size());
-	doot[OHJump].resize(nervIntervals.size());
+	doot[OHJumpMod].resize(nervIntervals.size());
 	doot[CJOHJump].resize(nervIntervals.size());
 	doot[OHTrill].resize(nervIntervals.size());
 	doot[Chaos].resize(nervIntervals.size());
@@ -5091,7 +5091,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 
 				// yea i thought we might need to tune ohj
 				// downscalers for js and cj slightly differently
-				doot[OHJump][i] =
+				doot[OHJumpMod][i] =
 				  CalcClamp(pow(static_cast<float>(totaltaps) /
 								  (static_cast<float>(max_jumps_seq) * 2.5f),
 								2.f),
@@ -5119,7 +5119,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 				   //" <<
 				   // zemod
 				   //				  << std::endl;
-				doot[OHJump][i] = 1.f;
+				doot[OHJumpMod][i] = 1.f;
 				doot[CJOHJump][i] = 1.f;
 			}
 
@@ -5237,7 +5237,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			//			std::cout << "down to end but eze: " <<
 			// max_jumps_seq
 			//					  << std::endl;
-			doot[OHJump][i] = 1.f;
+			doot[OHJumpMod][i] = 1.f;
 			doot[CJOHJump][i] = 1.f;
 		} else {
 			// STANDARD OHJ
@@ -5256,7 +5256,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 			float base_ohj = max_seq_component + prop_component;
 			float ohj = fastsqrt(base_ohj);
 
-			doot[OHJump][i] = CalcClamp(0.1f + ohj, 0.5f, 1.f);
+			doot[OHJumpMod][i] = CalcClamp(0.1f + ohj, 0.5f, 1.f);
 
 			// CH OHJ
 			// we want both the total number of jumps and the max
@@ -5306,7 +5306,7 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[OHTrill], 1.f);
-		Smooth(doot[OHJump], 1.f);
+		Smooth(doot[OHJumpMod], 1.f);
 		Smooth(doot[CJOHJump], 1.f);
 	}
 	// hack because i was sqrt'ing in calcinternal for js and hs
