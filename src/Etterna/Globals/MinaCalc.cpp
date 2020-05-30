@@ -2605,16 +2605,16 @@ struct OHJumpMods
 				break;
 			case cc_left_right:
 			case cc_right_left:
+				// track actual cc taps in a counter
+				++cc_taps;
+
 				// if we have an actual cross column tap now, and if we just
 				// came from a jump -> single, then we have something like
 				// [12]21, which is much harder than [12]22, so penalize the
 				// sequence slightly before completing
-				if (now.last_cc == cc_jump_single) {
+				if (now.last_cc == cc_jump_single && cur_ohjump_seq > 1) {
 					--cur_ohjump_seq;
 					complete_seq();
-
-					// track actual cc taps in a counter
-					++cc_taps;
 				}
 				break;
 			case cc_single_single:
