@@ -84,8 +84,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
-												 0.94f, 0.7675f, 0.84f,  0.7f };
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f / 1.02f,
+												 0.94f, 0.7675f, 0.84f,  1.f };
 bool debug_lmao = false;
 
 #pragma region stuffs
