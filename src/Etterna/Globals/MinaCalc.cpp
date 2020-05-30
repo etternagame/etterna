@@ -2690,9 +2690,10 @@ struct OHJumpMods
 				// ohjumps in cj can be either easier or harder
 				// depending on context.. so we have to pull back a
 				// bit so it doesn't swing too far when it shouldn't
-				max_seq_component = pow(
-				  hand_taps / (floatymcfloatface * cj_ohj_max_seq_jump_scaler),
-				  cj_ohj_pow);
+				max_seq_component =
+				  pow(hand_taps / (floatymcfloatface *
+								   (cj_ohj_max_seq_jump_scaler + 0.4f)),
+					  cj_ohj_pow);
 
 				pmod =
 				  CalcClamp(max_seq_component, cj_ohj_min_mod, cj_ohj_max_mod);
@@ -2700,6 +2701,8 @@ struct OHJumpMods
 				doot[CJOHJSeqComp][i] = max_seq_component;
 
 				doot[OHJMaxSeq][i] = floatymcfloatface;
+				doot[OHJCCTaps][i] = cc_taps;
+				doot[OHJHTaps][i] = hand_taps;
 				return true;
 			} else {
 				neutral_set(doot, i);
@@ -2780,6 +2783,7 @@ struct OHJumpMods
 
 		// reset any interval stuff here
 		cc_taps = 0;
+		max_ohjump_seq = 0;
 	}
 };
 struct RunningManMod
