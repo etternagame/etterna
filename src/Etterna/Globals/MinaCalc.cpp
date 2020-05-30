@@ -125,24 +125,6 @@ weighted_average(const float& a, const float& b, const float& x, const float& y)
 	return (x * a + ((y - x) * b)) / y;
 }
 
-// unreasonably slow, revist
-inline void
-truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
-{
-	size_t old = v.size();
-	// we could do this outside but w.e
-	if (old == n)
-		return;
-
-	// truncate if over
-	if (old > n)
-		v.resize(n);
-	else
-		// fill if under
-		for (size_t i = 0; i < n - old; ++i)
-			v.push_back(dummy_value);
-}
-
 template<typename T>
 inline T
 CalcClamp(T x, T l, T h)
@@ -151,6 +133,7 @@ CalcClamp(T x, T l, T h)
 }
 
 // template thingy for generating basic proportion scalers for pattern mods
+// potentially super broken
 template<typename T>
 inline float
 pmod_prop(T a,
@@ -162,9 +145,10 @@ pmod_prop(T a,
 {
 	return CalcClamp(
 	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
-};
+}
 
 // template thingy for generating basic proportion scalers for pattern mods
+// potentially super broken
 template<typename T>
 inline float
 pmod_prop(const float& pool,
@@ -176,7 +160,7 @@ pmod_prop(const float& pool,
 {
 	return CalcClamp(
 	  pool - (static_cast<float>(a) / static_cast<float>(b) * s), min, max);
-};
+}
 
 inline float
 mean(const vector<float>& v)
@@ -231,6 +215,66 @@ cv(const unordered_set<int>& input)
 		  (static_cast<float>(i) - average) * (static_cast<float>(i) - average);
 
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
+}
+
+// cv of a vector truncated to a set number of values, or if below, filled with
+// dummy values to reach the desired num_vals
+inline float
+cv_trunc_fill(const vector<float>& input,
+			  const int& num_vals,
+			  const float& ms_dummy)
+{
+	float welsh_pumpkin = 0.f;
+	float average = 0.f;
+	if (input.size() >= num_vals) {
+		for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+			average += input[i];
+		average /= num_vals;
+
+		for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+			welsh_pumpkin += (input[i] - average) * (input[i] - average);
+
+		// prize winning, even
+		return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
+	}
+
+	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+		average += input[i];
+
+	// fill with dummies if input is below desired number of values
+	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+		average += ms_dummy;
+	average /= num_vals;
+
+	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+		welsh_pumpkin += (input[i] - average) * (input[i] - average);
+
+	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+		welsh_pumpkin += (ms_dummy - average) * (ms_dummy - average);
+
+	return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
+}
+
+inline float
+sum_trunc_fill(const vector<float>& input,
+				const int& num_vals,
+				const float& ms_dummy)
+{
+	float smarmy_hamster = 0.f;
+	// use up to num_vals
+	for (size_t i = 0; i < min(input.size(), num_vals); ++i)
+		smarmy_hamster += input[i];
+
+	// got enough
+	if (input.size() >= num_vals)
+		return smarmy_hamster;
+
+	// fill with dummies if input is below desired number of values
+	for (size_t i = 0; i < num_vals - static_cast<int>(input.size()); ++i)
+		smarmy_hamster += ms_dummy;
+
+	// real piece of work this guy
+	return smarmy_hamster;
 }
 
 inline float
@@ -960,7 +1004,7 @@ bool_to_col_type(const bool& lcol, const bool& rcol)
 	if (lcol - rcol)
 		return lcol ? col_left : col_right;
 	return col_ohjump;
-};
+}
 
 // inverting col state for col_left or col_right only
 inline col_type
@@ -968,7 +1012,7 @@ invert_col(const col_type& col)
 {
 	ASSERT(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
-};
+}
 
 // inverting cc state for left_right or right_left only
 inline cc_type
@@ -976,7 +1020,7 @@ invert_cc(const cc_type& cc)
 {
 	ASSERT(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
-};
+}
 
 inline bool
 is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
@@ -1007,7 +1051,7 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	else if (col == col_right)
 		arr[1] = val;
 	return;
-};
+}
 #pragma endregion
 
 #pragma region noteinfo bitwise operations
@@ -1027,14 +1071,14 @@ is_jack_at_col(const unsigned& id,
 			   const unsigned& last_row_notes)
 {
 	return id & row_notes && id & last_row_notes;
-};
+}
 
 // doesn't check for jacks
 inline bool
 is_alternating_chord_single(const unsigned& a, const unsigned& b)
 {
 	return (a > 1 && b == 1) || (a == 1 && b > 1);
-};
+}
 
 // ok lets stop being bad, find 1[n]1 or [n]1[n] with no jacks between first and
 // second and second and third elements
@@ -1060,7 +1104,7 @@ is_alternating_chord_stream(const unsigned& a,
 	}
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
-};
+}
 #pragma endregion
 
 #pragma region new pattern mod structure
@@ -1068,7 +1112,7 @@ is_alternating_chord_stream(const unsigned& a,
 struct itv_info
 {
 	bool dbg = false && debug_lmao;
-	
+
 	int seriously_not_js = 0;
 	int definitely_not_jacks = 0;
 	int actual_jacks = 0;
@@ -1084,7 +1128,7 @@ struct itv_info
 	// ok new plan instead of a map, keep an array of 3, run a comparison loop
 	// that sets 0s to a new value if that value doesn't match any non 0 value,
 	// and set a bool flag if we have filled the array with unique values
-	int row_variations[3] = { 0, 0, 0 };
+	unsigned row_variations[3] = { 0, 0, 0 };
 
 	// unique(noteinfos for interval) < 3, or row_variations[2] == 0 by interval
 	// end
@@ -1215,8 +1259,8 @@ struct itv_info
 	}
 
 	inline void operator()(const itv_info& last,
-									 const int& row_count,
-									 const unsigned& row_notes)
+						   const int& row_count,
+						   const unsigned& row_notes)
 	{
 		set_interval_data_from_last(last);
 		// could use this to really blow out jumptrill garbage in js/hs, but
@@ -1225,7 +1269,6 @@ struct itv_info
 		update_tap_counts(row_count);
 	}
 };
-
 
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
@@ -1355,6 +1398,7 @@ struct metanoteinfo
 	{
 		cc = determine_cc_type(last_col, col);
 	}
+
 	inline void jack_scan()
 	{
 		twas_jack = false;
@@ -1430,8 +1474,7 @@ struct metanoteinfo
 			++_itv_info.seriously_not_js;
 			if (dbg_lv2)
 				std::cout << "consecutive single note: "
-						  << _itv_info.seriously_not_js
-						  << std::endl;
+						  << _itv_info.seriously_not_js << std::endl;
 
 			// light js really stops at [12]321[23] kind of
 			// density, anything below that should be picked up
@@ -1440,8 +1483,7 @@ struct metanoteinfo
 			if (_itv_info.seriously_not_js > 3) {
 				if (dbg)
 					std::cout << "exceeding light js/hs tolerance: "
-							  << _itv_info.seriously_not_js
-					  << std::endl;
+							  << _itv_info.seriously_not_js << std::endl;
 				_itv_info.not_js += _itv_info.seriously_not_js;
 				// give light hs the light js treatment
 				_itv_info.not_hs += _itv_info.seriously_not_js;
@@ -1502,7 +1544,7 @@ struct metanoteinfo
 		// run the basic pattern sequencing pass, it will update basic pattern
 		// counts in _itv_info and also set row specific flags if applicable
 		basic_pattern_sequencing(last);
-		
+
 		// we don't want to set lasttime, lastcol, or re-evaluate cc_type for
 		// for empty columns on this hand, carry the cc_type value forward and
 		// ignore the timing values, they should never be referenced for col ==
@@ -1807,529 +1849,6 @@ struct RM_Sequencing
 #pragma endregion
 };
 
-struct RunningManMod
-{
-	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
-							  RanAnchLenMod, RanJack,	 RanOHT,
-							  RanOffS,		 RanPropAll,  RanPropOff,
-							  RanPropOHT,	RanPropOffS, RanPropJack };
-	const std::string name = "RunningManMod";
-	const int _primary = _pmods.front();
-
-	RM_Sequencing rms[2];
-	RM_Sequencing interval_highest;
-
-#pragma region params
-	float min_mod = 0.95f;
-	float max_mod = 1.5f;
-	float mod_base = 0.9f;
-	float min_anchor_len = 5.f;
-	float min_taps_in_rm = 1.f;
-	float min_off_taps_same = 1.f;
-
-	float total_prop_scaler = 1.f;
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
-
-	float off_tap_prop_scaler = 1.3f;
-	float off_tap_prop_min = 0.f;
-	float off_tap_prop_max = 1.25f;
-	float off_tap_prop_base = 0.05f;
-
-	float off_tap_same_prop_scaler = 1.f;
-	float off_tap_same_prop_min = 0.f;
-	float off_tap_same_prop_max = 1.25f;
-	float off_tap_same_prop_base = 0.25f;
-
-	float anchor_len_divisor = 2.5f;
-
-	float min_jack_taps_for_bonus = 1.f;
-	float jack_bonus_base = 0.1f;
-
-	float min_oht_taps_for_bonus = 1.f;
-	float oht_bonus_base = 0.1f;
-
-	// params for rm_sequencing, these define conditions for resetting
-	// runningmen sequences
-	float max_oht_len = 1.f;
-	float max_off_spacing = 2.f;
-	float max_burst_len = 6.f;
-	float max_jack_len = 1.f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-
-		{ "min_anchor_len", &min_anchor_len },
-		{ "min_taps_in_rm", &min_taps_in_rm },
-		{ "min_off_taps_same", &min_off_taps_same },
-
-		{ "total_prop_scaler", &total_prop_scaler },
-		{ "total_prop_min", &total_prop_min },
-		{ "total_prop_max", &total_prop_max },
-
-		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
-		{ "off_tap_prop_min", &off_tap_prop_min },
-		{ "off_tap_prop_max", &off_tap_prop_max },
-		{ "off_tap_prop_base", &off_tap_prop_base },
-
-		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
-		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
-		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
-		{ "off_tap_same_prop_base", &off_tap_same_prop_base },
-
-		{ "anchor_len_divisor", &anchor_len_divisor },
-
-		{ "min_jack_taps_for_bonus", &min_jack_taps_for_bonus },
-		{ "jack_bonus_base", &jack_bonus_base },
-
-		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
-		{ "oht_bonus_base", &oht_bonus_base },
-
-		// params for rm_sequencing
-		{ "max_oht_len", &max_oht_len },
-		{ "max_off_spacing", &max_off_spacing },
-		{ "max_burst_len", &max_burst_len },
-		{ "max_jack_len", &max_jack_len },
-	};
-#pragma endregion params and param map
-
-	// stuff for making mod
-	float total_prop = 0.f;
-	float off_tap_prop = 0.f;
-	float off_tap_same_prop = 0.f;
-	float anchor_len_comp = 0.f;
-	float jack_bonus = 0.f;
-	float oht_bonus = 0.f;
-	float pmod = min_mod;
-	int test = 0;
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		// don't try to figure out which column a prospective anchor is on, just
-		// run two passes with each assuming a different column
-		rms[0].anchor_col = col_left;
-		rms[1].anchor_col = col_right;
-		rms[0].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-		rms[1].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		if (pmod == NULL)
-			return;
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-
-	inline void advance_sequencing(const metanoteinfo& mni)
-	{
-		for (auto& rm : rms)
-			rm(mni);
-
-		// use the biggest anchor that has existed in this interval
-		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
-
-		if (rms[test].anchor_len > interval_highest.anchor_len)
-			interval_highest = rms[test];
-	}
-
-	inline bool handle_case_optimizations(const RM_Sequencing& rm,
-										  vector<float> doot[],
-										  const size_t& i)
-	{
-		// we could mni check for empty intervals like the other mods but it
-		// doesn't really matter and this is probably more useful for debug
-		// output
-
-		// we could decay in this but it may conflict/be redundant with how
-		// runningmen sequences are constructed, if decays are used we would
-		// probably generate the mod not from the highest of any interval, but
-		// from whatever sequences are still alive by the end
-		if (rm.anchor_len < min_anchor_len) {
-			min_set(doot, i);
-			return true;
-		} else if (rm.ran_taps < min_taps_in_rm) {
-			min_set(doot, i);
-			return true;
-		} else if (rm.off_taps_same < min_off_taps_same) {
-			neutral_set(doot, i);
-			return true;
-		}
-		return false;
-	}
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-		const auto& rm = interval_highest;
-		if (handle_case_optimizations(rm, doot, i))
-			return;
-
-		// the pmod template stuff completely broke the js/hs/cj mods.. so..
-		// these might also be broken... investigate later
-
-		// taps in runningman / total taps in interval... i think? can't
-		// remember when i reset total taps tbh.. this might be useless
-		total_prop = pmod_prop(rm.ran_taps,
-							   rm.total_taps,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
-
-		// number anchor taps / number of non anchor taps
-		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
-										 rm.ran_taps,
-										 off_tap_prop_scaler,
-										 off_tap_prop_min,
-										 off_tap_prop_max,
-										 off_tap_prop_base),
-							   2.f);
-
-		// number of same hand off anchor taps / anchor taps, basically stuff is
-		// really hard when this is high (a value of 0.5 is a triplet every
-		// other anchor)
-		off_tap_same_prop = pmod_prop(rm.off_taps_same,
-									  rm.anchor_len,
-									  off_tap_same_prop_scaler,
-									  off_tap_same_prop_min,
-									  off_tap_same_prop_max,
-									  off_tap_same_prop_base);
-
-		// anchor length component
-		anchor_len_comp =
-		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
-
-		// jacks in anchor component, give a small bonus i guess
-		jack_bonus =
-		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
-
-		// ohts in anchor component, give a small bonus i guess
-		// not done
-		oht_bonus =
-		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
-
-		// we could scale the anchor to speed if we want but meh
-		// that's really complicated/messy/error prone
-		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
-		pmod = CalcClamp(
-		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
-		  min_mod,
-		  max_mod);
-
-		// actual used mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		if (debug_lmao) {
-			doot[RanLen][i] =
-			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
-			doot[RanAnchLen][i] =
-			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
-			doot[RanAnchLenMod][i] = anchor_len_comp;
-			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-			doot[RanPropAll][i] = total_prop;
-			doot[RanPropOff][i] = off_tap_prop;
-			doot[RanPropOffS][i] = off_tap_same_prop;
-			doot[RanPropOHT][i] = oht_bonus;
-			doot[RanPropJack][i] = jack_bonus;
-		}
-
-		// reset interval highest when we're done
-		interval_highest.reset();
-	}
-};
-// probably needs better debugoutput
-struct WideRangeJumptrillMod
-{
-	bool dbg = false;
-	const vector<int> _pmods = { WideRangeJumptrill };
-	const std::string name = "WideRangeJumptrillMod";
-	const int _primary = _pmods.front();
-
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
-
-#pragma region params
-	float itv_window = 3;
-
-	float min_mod = 0.25f;
-	float max_mod = 1.f;
-	float mod_base = 0.4f;
-
-	float moving_cv_init = 0.5f;
-	float ccacc_cv_cutoff = 0.5f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-
-		{ "moving_cv_init", &moving_cv_init },
-		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
-	};
-#pragma endregion params and param map
-	int ccacc_counter = 0;
-	int crop_circles = 0;
-	float pmod = min_mod;
-	int window_taps = 0;
-	int window_ccacc = 0;
-
-	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
-
-	// non-empty
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		if (pmod == NULL)
-			return;
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-	inline void reset_sequence()
-	{
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
-	}
-
-	// should maybe move this into metanoteinfo and do the counting there, if we
-	// could use this anywhere else
-	inline bool detecc_ccacc(const metanoteinfo& now)
-	{
-		// if we're here the following are true, we have a full sequence of 3 cc
-		// taps, they are non-empty, and there are no jumps. this means they are
-		// all either cc_left_right, cc_right_left, or cc_single_single
-
-		// handle cc_single_single first, for now, lets throw it away
-		if (now.cc == cc_single_single)
-			return false;
-
-		// now we know we have cc_left_right or cc_right_left, so, xy, we are
-		// looking for xyyx, meaning last_last would be the inverion of now
-		if (invert_cc(now.cc) == last_last_seen_cc)
-			return true;
-
-		return false;
-	}
-
-	inline bool handle_ccacc_timing_check()
-	{
-		// we don't want to suppress actual streams that use this pattern, so we
-		// will keep a fairly tight requirement on the ms variance
-
-		// we are currently assuming we have xyyx always, and are not interested
-		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
-		// we can do some pretty neat stuff
-
-		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
-		// right->left, seq_ms 1 will always be an anchor value, so,
-		// right->right for example. our interest is in hard nerfing long chains
-		// of xyyx patterns that won't get picked up by any of the roll scalers
-		// or balance scalers, but are still jumptrillable, for this condition
-		// to be true the anchor ms length has to be within a certain ratio of
-		// the cross column ms lengths, enabling the cross columns to be hit
-		// like jumptrilled flams, the optimal ratio for inflating nps is about
-		// 3:1, this is short enough that the nps boost is still high, but long
-		// enough that it doesn't become endless minijacking on the anchor
-		// given these conditions we can divide seq_ms[1] by 3 and cv check the
-		// array, with 2 identical values cc values, even if the anchor ratio
-		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
-		// is a sensible cutoff that should avoid punishing happenstances of
-		// this pattern in just regular files
-
-		// doing this would be a problem if we were to try to catch
-		// anchor/cc/anchor, since the altered anchor ms value would still exist
-		// in the sequence, but that maybe doesn't seem like a great idea
-		// anyway, so the value we alter will fall out of the array by the time
-		// we get here next
-
-		seq_ms[1] /= 3.f;
-
-		// this may be too fancy even though i'm trying to be not fancy.. update
-		// a basic moving window of the cv values and return true if it's below
-		// some cutoff, this will have the effect of giving a little lag time
-		// before the mod really kicks in
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < ccacc_cv_cutoff;
-	}
-
-	inline void update_seq_ms(const metanoteinfo& now)
-	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-
-		// update now
-		// for anchors, track tc_ms
-		if (now.cc == cc_single_single)
-			seq_ms[2] = now.tc_ms;
-		// for cc_left_right or cc_right_left, track cc_ms
-		else
-			seq_ms[2] = now.cc_ms_any;
-	}
-
-	inline void advance_sequencing(const metanoteinfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// reset if we hit a jump
-		if (now.col == col_ohjump) {
-			reset_sequence();
-			return;
-		}
-
-		// update timing stuff before checking/updating the sequence...
-		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
-		// it _actually_ works
-		update_seq_ms(now);
-
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for ccacc
-			if (detecc_ccacc(now))
-				// don't bother adding if the ms values look benign
-				if (handle_ccacc_timing_check())
-					++ccacc_counter;
-
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
-	}
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-		const auto& itv = mni._itv_info;
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_ccacc.pop_front();
-		}
-
-		itv_taps.push_back(itv.total_taps);
-		itv_ccacc.push_back(ccacc_counter);
-
-		if (ccacc_counter > 0)
-			++crop_circles;
-		else
-			--crop_circles;
-		if (crop_circles < 0)
-			crop_circles = 0;
-
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		for (auto& n : itv_ccacc)
-			window_ccacc += n;
-
-		pmod = 1.f;
-		if (window_ccacc > 0 && crop_circles > 0)
-			pmod =
-			  static_cast<float>(window_taps) /
-			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
-
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
-
-		// we could count these in metanoteinfo but let's do it here for now,
-		// reset every interval when finished
-		ccacc_counter = 0;
-	}
-};
 struct JSMod
 {
 
@@ -2892,7 +2411,529 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 };
+struct RunningManMod
+{
+	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
+							  RanAnchLenMod, RanJack,	 RanOHT,
+							  RanOffS,		 RanPropAll,  RanPropOff,
+							  RanPropOHT,	RanPropOffS, RanPropJack };
+	const std::string name = "RunningManMod";
+	const int _primary = _pmods.front();
 
+	RM_Sequencing rms[2];
+	RM_Sequencing interval_highest;
+
+#pragma region params
+	float min_mod = 0.95f;
+	float max_mod = 1.5f;
+	float mod_base = 0.9f;
+	float min_anchor_len = 5.f;
+	float min_taps_in_rm = 1.f;
+	float min_off_taps_same = 1.f;
+
+	float total_prop_scaler = 1.f;
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+
+	float off_tap_prop_scaler = 1.3f;
+	float off_tap_prop_min = 0.f;
+	float off_tap_prop_max = 1.25f;
+	float off_tap_prop_base = 0.05f;
+
+	float off_tap_same_prop_scaler = 1.f;
+	float off_tap_same_prop_min = 0.f;
+	float off_tap_same_prop_max = 1.25f;
+	float off_tap_same_prop_base = 0.25f;
+
+	float anchor_len_divisor = 2.5f;
+
+	float min_jack_taps_for_bonus = 1.f;
+	float jack_bonus_base = 0.1f;
+
+	float min_oht_taps_for_bonus = 1.f;
+	float oht_bonus_base = 0.1f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float max_oht_len = 1.f;
+	float max_off_spacing = 2.f;
+	float max_burst_len = 6.f;
+	float max_jack_len = 1.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "min_anchor_len", &min_anchor_len },
+		{ "min_taps_in_rm", &min_taps_in_rm },
+		{ "min_off_taps_same", &min_off_taps_same },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
+		{ "off_tap_prop_min", &off_tap_prop_min },
+		{ "off_tap_prop_max", &off_tap_prop_max },
+		{ "off_tap_prop_base", &off_tap_prop_base },
+
+		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
+		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
+		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
+		{ "off_tap_same_prop_base", &off_tap_same_prop_base },
+
+		{ "anchor_len_divisor", &anchor_len_divisor },
+
+		{ "min_jack_taps_for_bonus", &min_jack_taps_for_bonus },
+		{ "jack_bonus_base", &jack_bonus_base },
+
+		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
+		{ "oht_bonus_base", &oht_bonus_base },
+
+		// params for rm_sequencing
+		{ "max_oht_len", &max_oht_len },
+		{ "max_off_spacing", &max_off_spacing },
+		{ "max_burst_len", &max_burst_len },
+		{ "max_jack_len", &max_jack_len },
+	};
+#pragma endregion params and param map
+
+	// stuff for making mod
+	float total_prop = 0.f;
+	float off_tap_prop = 0.f;
+	float off_tap_same_prop = 0.f;
+	float anchor_len_comp = 0.f;
+	float jack_bonus = 0.f;
+	float oht_bonus = 0.f;
+	float pmod = min_mod;
+	int test = 0;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		// don't try to figure out which column a prospective anchor is on, just
+		// run two passes with each assuming a different column
+		rms[0].anchor_col = col_left;
+		rms[1].anchor_col = col_right;
+		rms[0].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+		rms[1].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 1.f);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metanoteinfo& mni)
+	{
+		for (auto& rm : rms)
+			rm(mni);
+
+		// use the biggest anchor that has existed in this interval
+		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
+
+		if (rms[test].anchor_len > interval_highest.anchor_len)
+			interval_highest = rms[test];
+	}
+
+	inline bool handle_case_optimizations(const RM_Sequencing& rm,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// we could mni check for empty intervals like the other mods but it
+		// doesn't really matter and this is probably more useful for debug
+		// output
+
+		// we could decay in this but it may conflict/be redundant with how
+		// runningmen sequences are constructed, if decays are used we would
+		// probably generate the mod not from the highest of any interval, but
+		// from whatever sequences are still alive by the end
+		if (rm.anchor_len < min_anchor_len) {
+			min_set(doot, i);
+			return true;
+		} else if (rm.ran_taps < min_taps_in_rm) {
+			min_set(doot, i);
+			return true;
+		} else if (rm.off_taps_same < min_off_taps_same) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		const auto& rm = interval_highest;
+		if (handle_case_optimizations(rm, doot, i))
+			return;
+
+		// the pmod template stuff completely broke the js/hs/cj mods.. so..
+		// these might also be broken... investigate later
+
+		// taps in runningman / total taps in interval... i think? can't
+		// remember when i reset total taps tbh.. this might be useless
+		total_prop = pmod_prop(rm.ran_taps,
+							   rm.total_taps,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// number anchor taps / number of non anchor taps
+		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
+										 rm.ran_taps,
+										 off_tap_prop_scaler,
+										 off_tap_prop_min,
+										 off_tap_prop_max,
+										 off_tap_prop_base),
+							   2.f);
+
+		// number of same hand off anchor taps / anchor taps, basically stuff is
+		// really hard when this is high (a value of 0.5 is a triplet every
+		// other anchor)
+		off_tap_same_prop = pmod_prop(rm.off_taps_same,
+									  rm.anchor_len,
+									  off_tap_same_prop_scaler,
+									  off_tap_same_prop_min,
+									  off_tap_same_prop_max,
+									  off_tap_same_prop_base);
+
+		// anchor length component
+		anchor_len_comp =
+		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
+
+		// jacks in anchor component, give a small bonus i guess
+		jack_bonus =
+		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
+
+		// ohts in anchor component, give a small bonus i guess
+		// not done
+		oht_bonus =
+		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
+
+		// we could scale the anchor to speed if we want but meh
+		// that's really complicated/messy/error prone
+		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
+		pmod = CalcClamp(
+		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
+		  min_mod,
+		  max_mod);
+
+		// actual used mod
+		doot[_primary][i] = pmod;
+
+		// debug
+		if (debug_lmao) {
+			doot[RanLen][i] =
+			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+			doot[RanAnchLen][i] =
+			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+			doot[RanAnchLenMod][i] = anchor_len_comp;
+			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
+			doot[RanPropAll][i] = total_prop;
+			doot[RanPropOff][i] = off_tap_prop;
+			doot[RanPropOffS][i] = off_tap_same_prop;
+			doot[RanPropOHT][i] = oht_bonus;
+			doot[RanPropJack][i] = jack_bonus;
+		}
+
+		// reset interval highest when we're done
+		interval_highest.reset();
+	}
+};
+// probably needs better debugoutput
+struct WideRangeJumptrillMod
+{
+	bool dbg = false;
+	const vector<int> _pmods = { WideRangeJumptrill };
+	const std::string name = "WideRangeJumptrillMod";
+	const int _primary = _pmods.front();
+
+	deque<int> itv_taps;
+	deque<int> itv_ccacc;
+
+#pragma region params
+	float itv_window = 3;
+
+	float min_mod = 0.25f;
+	float max_mod = 1.f;
+	float mod_base = 0.4f;
+
+	float moving_cv_init = 0.5f;
+	float ccacc_cv_cutoff = 0.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
+	};
+#pragma endregion params and param map
+	int ccacc_counter = 0;
+	int crop_circles = 0;
+	float pmod = min_mod;
+	int window_taps = 0;
+	int window_ccacc = 0;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 1.f);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline void reset_sequence()
+	{
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, if we
+	// could use this anywhere else
+	inline bool detecc_ccacc(const metanoteinfo& now)
+	{
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, and there are no jumps. this means they are
+		// all either cc_left_right, cc_right_left, or cc_single_single
+
+		// handle cc_single_single first, for now, lets throw it away
+		if (now.cc == cc_single_single)
+			return false;
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyyx, meaning last_last would be the inverion of now
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	inline bool handle_ccacc_timing_check()
+	{
+		// we don't want to suppress actual streams that use this pattern, so we
+		// will keep a fairly tight requirement on the ms variance
+
+		// we are currently assuming we have xyyx always, and are not interested
+		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
+		// we can do some pretty neat stuff
+
+		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
+		// right->left, seq_ms 1 will always be an anchor value, so,
+		// right->right for example. our interest is in hard nerfing long chains
+		// of xyyx patterns that won't get picked up by any of the roll scalers
+		// or balance scalers, but are still jumptrillable, for this condition
+		// to be true the anchor ms length has to be within a certain ratio of
+		// the cross column ms lengths, enabling the cross columns to be hit
+		// like jumptrilled flams, the optimal ratio for inflating nps is about
+		// 3:1, this is short enough that the nps boost is still high, but long
+		// enough that it doesn't become endless minijacking on the anchor
+		// given these conditions we can divide seq_ms[1] by 3 and cv check the
+		// array, with 2 identical values cc values, even if the anchor ratio
+		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
+		// is a sensible cutoff that should avoid punishing happenstances of
+		// this pattern in just regular files
+
+		// doing this would be a problem if we were to try to catch
+		// anchor/cc/anchor, since the altered anchor ms value would still exist
+		// in the sequence, but that maybe doesn't seem like a great idea
+		// anyway, so the value we alter will fall out of the array by the time
+		// we get here next
+
+		seq_ms[1] /= 3.f;
+
+		// this may be too fancy even though i'm trying to be not fancy.. update
+		// a basic moving window of the cv values and return true if it's below
+		// some cutoff, this will have the effect of giving a little lag time
+		// before the mod really kicks in
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < ccacc_cv_cutoff;
+	}
+
+	inline void update_seq_ms(const metanoteinfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now
+		// for anchors, track tc_ms
+		if (now.cc == cc_single_single)
+			seq_ms[2] = now.tc_ms;
+		// for cc_left_right or cc_right_left, track cc_ms
+		else
+			seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metanoteinfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// reset if we hit a jump
+		if (now.col == col_ohjump) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff before checking/updating the sequence...
+		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
+		// it _actually_ works
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for ccacc
+			if (detecc_ccacc(now))
+				// don't bother adding if the ms values look benign
+				if (handle_ccacc_timing_check())
+					++ccacc_counter;
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		const auto& itv = mni._itv_info;
+		// drop the oldest interval values if we have reached full
+		// size
+		if (itv_taps.size() == itv_window) {
+			itv_taps.pop_front();
+			itv_ccacc.pop_front();
+		}
+
+		itv_taps.push_back(itv.total_taps);
+		itv_ccacc.push_back(ccacc_counter);
+
+		if (ccacc_counter > 0)
+			++crop_circles;
+		else
+			--crop_circles;
+		if (crop_circles < 0)
+			crop_circles = 0;
+
+		for (auto& n : itv_taps)
+			window_taps += n;
+
+		for (auto& n : itv_ccacc)
+			window_ccacc += n;
+
+		pmod = neutral;
+		if (window_ccacc > 0 && crop_circles > 0)
+			pmod =
+			  static_cast<float>(window_taps) /
+			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_primary][i] = pmod;
+
+		// we could count these in metanoteinfo but let's do it here for now,
+		// reset every interval when finished
+		ccacc_counter = 0;
+	}
+};
 // if ccacc is cross column, anchor, cross column (1221) and we are looking for
 // (1212) then we are looking for cccccc where the inner cc is the inverse of
 // the outers, so we'll follow the rough model that wrjt setup, conveniently
@@ -2906,7 +2947,7 @@ struct CJMod
 struct WideRangeRollMod
 {
 	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { WideRangeRoll };
+	const vector<int> _pmods = { WideRangeRoll, Chaos };
 	const std::string name = "WideRangeRollMod";
 	const int _primary = _pmods.front();
 
@@ -2958,7 +2999,7 @@ struct WideRangeRollMod
 	// uhhh lazy way out of tracking all the floats i think
 	float moving_cv = moving_cv_init;
 
-	// non-empty
+	// non-empty (cc_type is now always non-empty)
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
@@ -3037,7 +3078,7 @@ struct WideRangeRollMod
 	}
 
 	// copied from wrjt, definitely needs to be tracked in metanoteinfo
-	bool detecc_ccacc(const metanoteinfo& now)
+	inline bool detecc_ccacc(const metanoteinfo& now)
 	{
 		if (now.cc == cc_single_single)
 			return false;
@@ -3051,7 +3092,7 @@ struct WideRangeRollMod
 	// should maybe move this into metanoteinfo and do the counting there, since
 	// oht will need this as well, or we could be lazy and do it twice just this
 	// once
-	bool detecc_roll(const metanoteinfo& now)
+	inline bool detecc_roll(const metanoteinfo& now)
 	{
 		// we allow this through up to here due to transition checks
 		if (now.cc == cc_single_single)
@@ -3071,7 +3112,7 @@ struct WideRangeRollMod
 		return false;
 	}
 
-	bool handle_roll_timing_check()
+	inline bool handle_roll_timing_check()
 	{
 		// see ccacc timing check in wrjt for explanations, it's basically the
 		// same but we have to invert the multiplication depending on which
@@ -3105,7 +3146,7 @@ struct WideRangeRollMod
 		seq_ms[2] = now.cc_ms_any;
 	}
 
-	void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metanoteinfo& now)
 	{
 		// do nothing for offhand taps
 		if (now.col == col_empty)
@@ -3214,469 +3255,14 @@ struct WideRangeRollMod
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
 
+		// temp hack because i didn't want to port chaos mod but didn't want to
+		// keep running old wrr
+		doot[Chaos][i] = neutral;
+
 		itv_rolls.clear();
 		itv_hand_taps = 0;
 	}
 };
-// ok new plan this takes a bunch of the concepts i tried with the
-// old didn't-work-so-well-roll-downscaler and utilizes them across
-// a wide range of intervals, making it more suited to picking up
-// and hammering long stretches of jumptrillable roll patterns, this
-// also apparently thinks every js and hs pattern in existence is
-// mashable too, probably because they are
-void
-Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
-						  unsigned int t1,
-						  unsigned int t2,
-						  float music_rate,
-						  vector<float> doot[])
-{
-	doot[WideRangeRoll].resize(nervIntervals.size());
-
-	static const float min_mod = 0.5f;
-	static const float max_mod = 1.035f;
-	unsigned int itv_window = 4;
-	deque<vector<int>> itv_array;
-	deque<vector<int>> itv_arrayTWO;
-	deque<int> itv_taps;
-	deque<int> itv_cv_taps;
-	deque<int> itv_single_taps;
-	vector<int> cur_vals;
-	vector<int> window_vals;
-	unordered_set<int> unique_vals;
-	vector<int> filtered_vals;
-	vector<int> lr;
-	vector<int> rl;
-
-	float lasttime = 0.f;
-	int lastcol = -1;
-	int lastsinglecol = -1;
-	int single_taps = 0;
-
-	// we could implement this like the roll scaler above, however
-	// this is to prevent /0 errors exclusively at the moment
-	// (because we are truncating extremely high bpm 192nd flams can
-	// produce 0 as ms), causing potenial nan's in the sd function
-	// we could look into using this for balance purposes as well
-	// but things look ok for the moment and it would likely be a
-	// large time sink without proper tests setup
-	static const int ms_add = 1;
-
-	// miss window seems like a reasonable cutoff, we don't want
-	// 1500 ms hits after long breaks to poison the pool
-	static const int max_ms_value = 180;
-	static const float mean_cutoff_factor = 1.7f;
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int interval_taps = 0;
-		int ltaps = 0;
-		int rtaps = 0;
-		int single_taps = 0;
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_array.size() == itv_window) {
-			itv_array.pop_front();
-			itv_arrayTWO.pop_front();
-			itv_cv_taps.pop_front();
-			itv_taps.pop_front();
-			itv_single_taps.pop_front();
-		}
-
-		// clear the current interval value vectors
-		cur_vals.clear();
-		lr.clear();
-		rl.clear();
-
-		// if (debugmode)
-		//	std::cout << "new interval: " << i << std::endl;
-
-		for (int row : nervIntervals[i]) {
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			// we don't want slight bpm variations to pollute too
-			// much stuff, especially if we are going to use unique
-			// values at some point (we don't currently), if we do
-			// and even single digit rounding becomes an issue we
-			// can truncate further up
-			int trunc_ms =
-			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
-
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			if (lcol ^ rcol)
-				++single_taps;
-
-			// if (debugmode)
-			//	std::cout << "truncated ms value: " << trunc_ms <<
-			// std::endl;
-
-			// for expurrrmental thing for chaos thing
-			if (trunc_ms < max_ms_value)
-				cur_vals.push_back(trunc_ms - ms_add);
-
-			if (!(lcol ^ rcol)) {
-				if (!(lcol || rcol)) {
-					//	if (debugmode)
-					//		std::cout << "empty row" << std::endl;
-					continue;
-				}
-
-				// if (debugmode)
-				//	std::cout << "jump" << std::endl;
-
-				if (lcol && rcol) {
-					lastsinglecol = lastcol;
-					lastcol = -1;
-				}
-				lasttime = curtime;
-				continue;
-			}
-
-			int thiscol = lcol ? 0 : 1;
-			if (thiscol != lastcol || lastcol == -1) {
-				// handle ohjumps here, not above, because we only
-				// want to handle the last ohjump before an actual
-				// cross column, we don't want to handle long
-				// sequences of ohjumps inside rolls. technically
-				// they would be jumptrillable, but the point is to
-				// pick up _rolls_, we handle ohjumps elsewhere
-				// basically we treat ohjumps as they were either a
-				// cross column left or right, so that the roll
-				// detection still picks up rolls with ohjumps in
-				// them
-				if (lastcol == -1) {
-					// dump an extra value, cuz
-					if (rcol)
-						if (trunc_ms < max_ms_value)
-							lr.push_back(max_ms_value);
-					if (lcol)
-						if (trunc_ms < max_ms_value)
-							rl.push_back(max_ms_value);
-
-					// l vs r shouldn't matter here
-					++ltaps;
-					++rtaps;
-				}
-
-				if (rcol) {
-					if (trunc_ms < max_ms_value)
-						lr.push_back(trunc_ms);
-					++ltaps;
-				} else if (lcol) {
-					++rtaps;
-					if (trunc_ms < max_ms_value)
-						rl.push_back(trunc_ms);
-				}
-				lasttime = curtime;
-			} else {
-				// the idea here was to help boost anchored patterns
-				// but all it did was just buff rolls with frequent
-				// directional swaps and anchored patterns are
-				// already more or less fine possibly look into
-				// taking this out of the lower level roll scaler as
-				// well
-
-				//	if (trunc_ms < trunc_ms)
-				//		cur_vals.push_back(trunc_ms);
-			}
-
-			lastcol = thiscol;
-		}
-
-		itv_arrayTWO.push_back(cur_vals);
-
-		int cv_taps = ltaps + rtaps;
-		itv_taps.push_back(interval_taps);
-		itv_cv_taps.push_back(cv_taps);
-		itv_single_taps.push_back(single_taps);
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_cv_taps = 0;
-		for (auto& n : itv_cv_taps)
-			window_cv_taps += n;
-
-		unsigned int window_single_taps = 0;
-		for (auto& n : itv_single_taps)
-			window_single_taps += n;
-
-		// push current interval values into deque, there should
-		// always be space since we pop front at the start of the
-		// loop if there isn't
-		// k lets try just running the pass with the rolls (lower
-		// mean indicates the rolls are flowing in that direction,
-		// for patterns that aren't rolls this should be
-		// functionally insignificant
-		itv_array.push_back(mean(lr) < mean(rl) ? lr : rl);
-
-		// clear vectors before using them
-		window_vals.clear();
-		unique_vals.clear();
-		filtered_vals.clear();
-
-		unsigned int totalvalues = 0;
-		for (auto& v : itv_array)
-			totalvalues += v.size();
-
-		// the unique val is not really used at the moment,
-		// basically we filter out the vectors for stuff way outside
-		// the applicable range, like 500 ms hits that would
-		// otherwise throw off the variation estimations unique val
-		// is actually used for optimizing cases where you have
-		// absolute pure roll formation and you know youwant to
-		// slamjam it, there's probably a faster way to do the same
-		// thing but w.e for now
-		for (auto& v : itv_array)
-			for (auto& n : v) {
-				if (!unique_vals.count(n)) // 0.5% profiler
-					unique_vals.insert(n); // 1% profiler
-				window_vals.push_back(n);
-			}
-		float v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-
-		float f_mean = mean(filtered_vals);
-
-		// bigger the lower the proportion of cross column single
-		// taps i.e. more anchors this is kinda buggy atm and
-		// producing sub 1 values for ??? reasons, but i don't think
-		// it makes too much difference and i don't want to spend
-		// more time on it right now
-		float cv_prop = window_cv_taps == 0
-						  ? 1
-						  : static_cast<float>(window_taps) /
-							  static_cast<float>(window_cv_taps);
-
-		// bigger the lower the proportion of single taps to total
-		// taps i.e. more chords
-		float chord_prop = window_single_taps == 0
-							 ? 1
-							 : static_cast<float>(window_taps) /
-								 static_cast<float>(window_single_taps);
-
-		// handle anchors, chord filler, empty sections and single
-		// notes
-		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
-			doot[WideRangeRoll][i] = 1.f;
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		float pmod = min_mod;
-		// these cases are likely a "true roll" and we can optimize
-		// by just direct setting them, if unique_vals == 1 then we
-		// only have a single instance of left->right or right->left
-		// ms values across 2seconds, this usually indicates a
-		// straight roll, if filtered vals == 1 the same thing
-		// applies, but we filtered out the occasional direction
-		// swap or a long break before the roll started. The
-		// scenario in which this would not indicate a straight roll
-		// is aggressively rolly js or hs, and while downscaling
-		// those is a goal, we shouldn't attempt to do it here, so
-		// we'll upscale the min mod by the anchor/chord proportion
-		// the < is for catching empty stuff that may have reached
-		// here edit: pretty sure this doesn't really effectively
-		// push up js/hs but it's w.e, we don't use this mod on
-		// those passes atm and it's more about the graphs looking
-		// pretty ugly than anything else
-		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
-			doot[WideRangeRoll][i] =
-			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// scale base default to cv_prop and chord_prop, we want the
-		// base to be higher for filler sections that are mostly
-		// slow anchors/js/whatever, if there's filler that's in
-		// slow roll formation there's not much we can do about it
-		// affecting adjacant hard intervals on the smooth pass,
-		// however since we're running on a moving window the effect
-		// is mitigated both chord_prop and cv_prop are 1.0+
-		// multipliers it's kind of hard to have a roll if you only
-		// have 12 notes in 2 seconds, ideally we would steer away
-		// from discrete cutoffs of any kind but it's kind of hard
-		// to resist the temptation as it should be pretty safe
-		// here, even supposing we award a full modifier to
-		// something that we shouldn't have, it should make no
-		// practical difference apart from slightly upping the next
-		// hard interval on smooth, yes this is redundant with the
-		// above, but i figured it would be clearer to split up
-		// slightly different cases
-		if (window_taps <= 12) {
-			doot[WideRangeRoll][i] = CalcClamp(
-			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// we've handled basic cases and stuff that could cause /0
-		// errors (hopefully) do maths now
-		float unique_prop = static_cast<float>(unique_vals.size()) /
-							static_cast<float>(window_vals.size());
-		float cv_window = cv(window_vals);
-		float cv_filtered = cv(filtered_vals);
-		float cv_unique = cv(unique_vals);
-
-		// this isn't really robust if theres a really short flam
-		// involved anywhere e.g. a 5ms flam offset for an oh jump
-		// when everything else is 50 ms will make the above way too
-		// high, something else must be used, leaving this here so i
-		// don't forget and try to use it again or some other idiot
-		// float mean_prop = f_mean /
-		// static_cast<float>(*std::min_element(filtered_vals.begin(),
-		//												filtered_vals.end()));
-		// mean_prop = 1.f;
-		/*
-		if (debugmode) {
-			std::string rarp = "window vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-		/*
-		if (debugmode)
-			std::cout << "cprop: " << cv_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "cv: " << cv_window << cv_filtered <<
-		cv_unique
-					  << std::endl;
-		if (debugmode)
-			std::cout << "uprop: " << unique_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "mean/min: " << mean_prop << std::endl;
-			*/
-
-		// if (debugmode)
-		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
-
-		// basically the idea here is long sets of rolls if you only
-		// count values from specifically left->right or
-		// right->left, whichever lower, will have long sequences of
-		// identical values that should become very exaggerated over
-		// the course of 2.5 seconds compared to other files, since
-		// the values will be identical mean/min should be much
-		// closer to 1 compared to legitimate patterns and the
-		// number of notes contained in the roll compared to total
-		// notes (basically we don't count anchors as notes) will
-		// also be closer to 1; we want to pretty much only detect
-		// long cheesable sets of notes so multiplying window range
-		// cv by mean/min and totaltaps/cvtaps should put almost
-		// everything else over a 1.0 multiplier. perhaps mean/min
-		// should be calculated on the full window like taps/cvtaps
-		// are
-		pmod = cv_filtered * cv_prop * 1.75f;
-		pmod += 0.4f;
-		// both too sensitive and unreliable i think
-		// pmod += 1.25f * unique_prop;
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-
-		doot[WideRangeRoll][i] = pmod;
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[WideRangeRoll][i] <<
-		//"\n"
-		//			  << std::endl;
-
-		// chayoss stuff
-		window_vals.clear();
-		filtered_vals.clear();
-		for (auto& v : itv_arrayTWO)
-			for (auto& n : v) {
-				window_vals.push_back(n);
-			}
-		v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-		/*
-		if (debugmode) {
-			std::string rarp = "chaos vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-
-		// attempt #437 at some kind of complex pattern picker upper
-		float butt = 0.f;
-		int whatwhat = 0;
-		std::sort(filtered_vals.begin(), filtered_vals.end());
-		if (filtered_vals.size() > 1) {
-			for (auto& in : filtered_vals)
-				for (auto& the : filtered_vals) {
-					if (in == the) {
-						butt += 1.f;
-						++whatwhat;
-						continue;
-					}
-					if (in > the) {
-						float prop = static_cast<float>(in) / the;
-						int mop = static_cast<int>(prop);
-						float flop = prop - static_cast<float>(mop);
-						if (flop == 0.f) {
-							butt += 1.f;
-							++whatwhat;
-							continue;
-						} else if (flop >= 0.5f) {
-							flop = abs(flop - 1.f) + 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop over: " << flop
-							//<< "
-							// in: " <<
-							// in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						} else if (flop < 0.5f) {
-							flop += 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop under: " << flop
-							//<< "
-							// in: "
-							//<< in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						}
-						++whatwhat;
-					}
-				}
-		} else {
-			doot[Chaos][i] = 1.f;
-		}
-		if (whatwhat == 0)
-			whatwhat = 1;
-		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
-	}
-
-	// covering a window of 4 intervals does act as a smoother, and
-	// a better one than a double smooth for sure, however we still
-	// want to run the smoother anyway to rough out jagged edges and
-	// interval splicing error
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeRoll], 1.f);
-	return;
-}
 
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
@@ -3956,6 +3542,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			return false;
 	}
 
+	// sequence jack immediately so we can ref pass & sort in calc msestimate
+	// without things going be wackying
+	for (auto m : zto3) {
+		jacks[m]->resize(4);
+		for (auto t : zto3) {
+			SequenceJack(fingers[t], t, m);
+
+			// resize stam adjusted jack vecs, technically if we flattened
+			// the vector we could allocate only once for all rate passes
+			// when doing caching, but for various other reasons it was
+			// easier to keep them split by intervals in a double vector,
+			// this should maybe be changed?
+			stam_adj_jacks[t].resize(fingers[t].size());
+			for (size_t i = 0; i < fingers[t].size(); ++i)
+				stam_adj_jacks[t][i].resize(fingers[t][i].size());
+		}
+	}
+
 	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
 										   { right_hand, { 4, 8 } } };
 
@@ -3972,21 +3576,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// these definitely do change with every chisel test
 		hand.stam_adj_diff.resize(numitv);
 
-		// initialize base difficulty and point values
-		// ok i know this is messy and the loop doesn't solve
-		// anything here and almost defeats the purpose but
-		// whatever, we need to do this before the pmods
-		if (fv[0] == 1) {
-			hand.InitBaseDiff(fingers[0], fingers[1]);
-			hand.InitPoints(fingers[0], fingers[1]);
-		} else {
-			hand.InitBaseDiff(fingers[2], fingers[3]);
-			hand.InitPoints(fingers[2], fingers[3]);
-		}
-
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
 	}
 
@@ -4005,17 +3596,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	for (auto pmod : bruh_they_the_same)
 		right_hand.doot[pmod] = left_hand.doot[pmod];
 
-	// loop to help with hand specific stuff
-	for (auto& hp : spoopy) {
-		auto& hand = hp.first;
-		const auto& fv = hp.second;
+	// do these last since calcmsestimate modifies the interval ms values of
+	// fingers with sort, anything that is derivative of those values that
+	// requires them to be in sequential order should be done before this point
+	left_hand.InitBaseDiff(fingers[0], fingers[1]);
+	left_hand.InitPoints(fingers[0], fingers[1]);
+	left_hand.InitAdjDiff();
+	right_hand.InitBaseDiff(fingers[2], fingers[3]);
+	right_hand.InitPoints(fingers[2], fingers[3]);
+	right_hand.InitAdjDiff();
 
-		// needs to be done after pattern mods are calculated
-		hand.InitAdjDiff();
+	// debug info loop
+	if (debugmode) {
+		for (auto& hp : spoopy) {
+			auto& hand = hp.first;
 
-		// pattern mods and base msd never change, set degbug output
-		// for them now
-		if (debugmode) {
+			// pattern mods and base msd never change, set degbug output
+			// for them now
+
 			// 3 = number of different debug types
 			hand.debugValues.resize(3);
 			hand.debugValues[0].resize(ModCount);
@@ -4028,23 +3626,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			// set everything but final adjusted output here
 			for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
 				hand.debugValues[1][i] = hand.soap[i];
-		}
-	}
-
-	// werwerwer
-	for (auto m : zto3) {
-		jacks[m]->resize(4);
-		for (auto t : zto3) {
-			SequenceJack(fingers[t], t, m);
-
-			// resize stam adjusted jack vecs, technically if we flattened
-			// the vector we could allocate only once for all rate passes
-			// when doing caching, but for various other reasons it was
-			// easier to keep them split by intervals in a double vector,
-			// this should maybe be changed?
-			stam_adj_jacks[t].resize(fingers[t].size());
-			for (size_t i = 0; i < fingers[t].size(); ++i)
-				stam_adj_jacks[t][i].resize(fingers[t][i].size());
 		}
 	}
 	return true;
@@ -4078,20 +3659,15 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	// truncate if we have more values than what we care to sample, we're
 	// looking for a good estimate of the hardest part of this interval
 	// if above 1 and below used_ms_vals, fill up the stuff with dummies
+	// my god i was literally an idiot for doing what i was doing before
 	static const float ms_dummy = 360.f;
-	truncate_or_fill_to_size(input, num_used, ms_dummy);
 
 	// mostly try to push down stuff like jumpjacks, not necessarily to push
-	// up "complex" stuff
-	float cv_yo = cv(input) + 0.5f;
+	// up "complex" stuff (this will push up intervals with few fast ms values
+	// kinda hard but it shouldn't matter as their base ms diff should be
+	// extremely low
+	float cv_yo = cv_trunc_fill(input, burp, ms_dummy) + 0.5f;
 	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
-
-	sort(input.begin(), input.end());
-	float comb_cc = cv(input) + 1.f;
-
-	if (dbg && debug_lmao)
-		std::cout << "cv in: " << cv_yo << " : cv comb: " << comb_cc
-				  << std::endl;
 
 	if (dbg && debug_lmao) {
 		std::string moop = "";
@@ -4107,9 +3683,7 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 		std::cout << "cv : " << cv_yo << std::endl;
 
 	// basically doing a jank average, bigger m = lower difficulty
-	float m = 0.f;
-	for (auto& ms : input)
-		m += ms;
+	float m = sum_trunc_fill(input, burp, ms_dummy);
 
 	if (dbg && debug_lmao)
 		std::cout << "m : " << m << std::endl;
@@ -4118,7 +3692,7 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	// same thing as jack stuff, convert to bpm and then nps
 	float bpm_est = ms_to_bpm(m / (num_used + 1));
 	float nps_est = bpm_est / 15.f;
-	float fdiff = nps_est * comb_cc;
+	float fdiff = nps_est * cv_yo;
 	if (dbg && debug_lmao)
 		std::cout << "diff : " << fdiff << std::endl;
 	return fdiff;
@@ -4140,27 +3714,28 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		// scaler for things with higher things
 		static const float higher_thing_scaler = 1.175f;
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty =
-		  max(CalcMSEstimate(f1[i], 3),
-			  CalcMSEstimate(f1[i], 4) * higher_thing_scaler);
-		left_difficulty = max(left_difficulty,
-							  CalcMSEstimate(f1[i], 5) * higher_thing_scaler *
-								higher_thing_scaler);
-		float right_difficulty =
-		  max(CalcMSEstimate(f2[i], 3),
-			  CalcMSEstimate(f2[i], 4) * higher_thing_scaler);
-		right_difficulty = max(right_difficulty,
-							   CalcMSEstimate(f2[i], 5) * higher_thing_scaler *
-								 higher_thing_scaler);
+
+		auto do_diff_thingy = [this](vector<float>& input,
+									 const float& scaler) {
+			float mwerp = CalcMSEstimate(input, 3);
+			if (input.size() > 3)
+				mwerp = max(mwerp, CalcMSEstimate(input, 4) * scaler);
+			if (input.size() > 4)
+				mwerp = max(mwerp, CalcMSEstimate(input, 5) * scaler * scaler);
+			return mwerp;
+		};
+
+		float left_diff = do_diff_thingy(f1[i], higher_thing_scaler);
+		float right_diff = do_diff_thingy(f1[i], higher_thing_scaler);
 
 		float difficulty = 0.f;
 		float squiggly_line = 5.5f;
-		if (left_difficulty > right_difficulty)
-			difficulty = weighted_average(
-			  left_difficulty, right_difficulty, squiggly_line, 9.f);
+		if (left_diff > right_diff)
+			difficulty =
+			  weighted_average(left_diff, right_diff, squiggly_line, 9.f);
 		else
-			difficulty = weighted_average(
-			  right_difficulty, left_difficulty, squiggly_line, 9.f);
+			difficulty =
+			  weighted_average(right_diff, left_diff, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -4631,106 +4206,6 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 			// with the new one for (size_t i = 0; i < notes; ++i)
 			//	whatwhat2.push_back(giraffeasaurus);
 			lasttime = curtime;
-		}
-
-		auto HE = [](float x) {
-			static const int HE = 9;
-			int this_is_a_counter = 0;
-			vector<float> o(2 * (HE - 2) + 1);
-			for (int i = 2; i < HE; ++i) {
-				o[this_is_a_counter] = (1000.f / i * static_cast<float>(x));
-				++this_is_a_counter;
-			}
-			o[this_is_a_counter] = 1000.f * static_cast<float>(x);
-			++this_is_a_counter;
-			for (int i = 2; i < HE; ++i) {
-				o[this_is_a_counter] = (1000.f * i * static_cast<float>(x));
-				++this_is_a_counter;
-			}
-			return o;
-		};
-		vector<vector<float>> hmmk;
-		// for (auto& e : whatwhat)
-		//	hmmk.emplace_back(HE(e));
-
-		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
-		float stub = 0.f;
-		// using something else for chaos for now
-		// compare each expanded sequence with every other
-		if (false) {
-			vector<float> mmbop;
-			set<int> uniqshare;
-			vector<float> biffs;
-			vector<float> awwoo;
-			for (size_t i = 0; i < hmmk.size() - 1; ++i) {
-				float zop = 0.f;
-				auto& a = hmmk[i];
-				// compare element i against all others
-				for (size_t j = i + 1; j < hmmk.size(); ++j) {
-					auto& b = hmmk[j]; // i + 1 - last
-					biffs.clear();
-					for (size_t pP = 0; pP < a.size(); ++pP) {
-						for (size_t vi = 0; vi < a.size(); ++vi) {
-							float hi = 0.f;
-							float lo = 0.f;
-							if (a[pP] > b[vi]) {
-								hi = a[pP];
-								lo = b[vi];
-							} else {
-								lo = a[pP];
-								hi = b[vi];
-							}
-							biffs.emplace_back(fastsqrt(hi / lo));
-						}
-					}
-
-					// not exactly correct naming but basically if
-					// hi/lo is close enough to 1 we can consider
-					// the two points an intersection between the
-					// respective quantization waves, the more
-					// intersections we pick up and the closer they
-					// are to 1 the more confident we are that what
-					// we have are duplicate quantizations, and the
-					// lower the final mod is
-					int under1 = 0;
-					float hair_scrunchy = 0.f;
-					for (auto& lul : biffs) {
-						if (lul < 1.05f) {
-							++under1;
-							// inverting; 1.05 values should produce
-							// a lower mod than 1.0s and since we
-							// are using this value as a divisor we
-							// need to flip it around
-							hair_scrunchy += 2.f - lul;
-						}
-					}
-					awwoo.clear();
-					for (auto& lul : biffs)
-						awwoo.emplace_back(
-						  1.f / static_cast<float>(hair_scrunchy + 1.f));
-					uniqshare.insert(under1);
-					// std::cout << "shared: " << under1 <<
-					// std::endl;
-				}
-				zop = mean(awwoo);
-				mmbop.push_back(zop);
-				// std::cout << "zope: " << zop << std::endl;
-			}
-			stub = mean(mmbop);
-			stub *= fastsqrt(static_cast<float>(uniqshare.size()));
-			// std::cout << "mmbop: " << stub << std::endl;
-
-			stub += 0.9f;
-			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
-			test_chaos_merge_stuff =
-			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
-			stub =
-			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
-			// std::cout << "uniq " << uniqshare.size() <<
-			// std::endl;
-		} else {
-			// can't compare if there's only 1 ms value
-			stub = 1.f;
 		}
 
 		// 1 tap is by definition a single tap
@@ -6117,7 +5592,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 342;
+int mina_calc_version = 343;
 int
 GetCalcVersion()
 {

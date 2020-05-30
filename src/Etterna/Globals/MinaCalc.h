@@ -189,11 +189,6 @@ class Calc
 								  float music_rate,
 								  std::vector<float> doot[ModCount]);
 
-	void WideRangeRollScaler(const std::vector<NoteInfo>& NoteInfo,
-							 unsigned int t1,
-							 unsigned int t2,
-							 float music_rate,
-							 std::vector<float> doot[ModCount]);
 	void WideRangeAnchorScaler(const std::vector<NoteInfo>& NoteInfo,
 							   float music_rate,
 							   std::vector<float> doot[ModCount]);
