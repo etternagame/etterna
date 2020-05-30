@@ -3374,11 +3374,6 @@ struct WideRangeRollMod
 	// determining whether this hand is a roll
 	deque<int> window_itv_hand_taps;
 	deque<vector<int>> window_itv_rolls;
-	// each element is a discrete roll formation with this many taps
-	// (technically it has this many taps + 4 because it requires 1212 or
-	// 2121 to start counting, but that's fine, that's what we want and if
-	// it seems better to add later we can do that
-	vector<int> itv_rolls;
 
 #pragma region params
 	float itv_window = 4;
@@ -3401,12 +3396,20 @@ struct WideRangeRollMod
 		{ "roll_cv_cutoff", &roll_cv_cutoff },
 	};
 #pragma endregion params and param map
+	// each element is a discrete roll formation with this many taps
+	// (technically it has this many taps + 4 because it requires 1212 or
+	// 2121 to start counting, but that's fine, that's what we want and if
+	// it seems better to add later we can do that
+	vector<int> itv_rolls;
+	int itv_hand_taps = 0;
+
 	// unlike ccacc, which has a half baked implementation for chains of
 	// 122112211221, we will actually be responsible and sequence both the
 	// number of rolls and the notes contained therein
 	bool rolling = false;
+	bool is_transition = false;
 	int consecutive_roll_counter = 0;
-	int itv_hand_taps = 0;
+	
 	int window_hand_taps = 0;
 	// for now we will be lazy and just add up the number of roll taps in any
 	// roll, if we leave out the initialization taps (the 4 required to identify
@@ -3414,7 +3417,6 @@ struct WideRangeRollMod
 	// sure if this is desired behavior
 	int window_roll_taps = 0;
 	float pmod = min_mod;
-	bool is_transition = false;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
@@ -3565,12 +3567,6 @@ struct WideRangeRollMod
 		if (now.col == col_empty)
 			return;
 
-		// count this hand's taps here
-		if (now.col == col_ohjump)
-			itv_hand_taps += 2;
-		else
-			++itv_hand_taps;
-
 		// only let these cases through, since we use invert_cc, anchors are
 		// screened out later, reset otherwise
 		if (now.cc != cc_left_right && now.cc != cc_right_left &&
@@ -3630,20 +3626,12 @@ struct WideRangeRollMod
 		return false;
 	}
 
-	// may be unneeded for this function but it's probably good practice to have
-	// this and always reset anything that needs to be on handling case
-	// optimizations, even if the case optimizations don't require us to reset
-	// anything
-	inline void interval_reset()
-	{
-		itv_rolls.clear();
-		itv_hand_taps = 0;
-	}
-
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
-						   const size_t& i)
+						   const size_t& i, const int& hand)
 	{
+		const auto& itv = mni._itv_info;
+		itv_hand_taps = itv.hand_taps[hand];
 
 		// drop the oldest interval values if we have reached full
 		// size
@@ -3681,7 +3669,6 @@ struct WideRangeRollMod
 			return;
 		}
 			
-
 		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
 			pmod = 1.15f - (static_cast<float>(window_roll_taps) /
@@ -3916,7 +3903,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
 		_ohj(*_mni_now, _doot, itv, hand);
-		_wrr(*_mni_now, _doot, itv);
+		_wrr(*_mni_now, _doot, itv, hand);
 		_wrjt(*_mni_now, _doot, itv);
 	}
 
