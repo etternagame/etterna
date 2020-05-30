@@ -2422,6 +2422,360 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 };
+
+struct OHJumpMods
+{
+	bool dbg = true && debug_lmao;
+	const vector<int> _pmods = { OHJumpMod, OHJPropComp,   OHJSeqComp,
+								 OHJMaxSeq, OHJCCTaps,	 OHJHTaps,
+								 CJOHJump,  CJOHJPropComp, CJOHJSeqComp };
+	const std::string name = "OHJumpMods";
+
+#pragma region params
+	float ohj_base = 0.1f;
+	float ohj_min_mod = 0.5f;
+	float ohj_max_mod = 1.f;
+	float ohj_pow = 2.f;
+
+	float ohj_max_seq_pool = 1.125f;
+	float ohj_max_seq_scaler = 0.65f;
+	float ohj_max_seq_jump_scaler = 2.5f;
+	float ohj_max_seq_min = 0.f;
+	float ohj_max_seq_max = 0.65f;
+
+	float ohj_prop_pool = 1.2f;
+	float ohj_prop_scaler = 0.35f;
+	float ohj_prop_min = 0.f;
+	float ohj_prop_max = 0.65f; // should be 0.35 but it was this before...
+
+	float cj_ohj_base = 0.3f;
+	float cj_ohj_min_mod = 0.6f;
+	float cj_ohj_max_mod = 1.f;
+	float cj_ohj_pow = 2.f;
+
+	float cj_ohj_max_seq_pool = 1.2f;
+	float cj_ohj_max_seq_scaler = 0.5f;
+	float cj_ohj_max_seq_jump_scaler = 2.f;
+	float cj_ohj_max_seq_min = 0.f;
+	float cj_ohj_max_seq_max = 0.5f;
+
+	float cj_ohj_prop_pool = 1.2f;
+	float cj_ohj_prop_scaler = 0.5f;
+	float cj_ohj_prop_min = 0.f;
+	float cj_ohj_prop_max = 0.65f; // should be 0.35 but it was this before...
+
+	const vector<pair<std::string, float*>> _params{
+		{ "ohj_base", &ohj_base },
+		{ "ohj_min_mod", &ohj_min_mod },
+		{ "ohj_max_mod", &ohj_max_mod },
+		{ "ohj_pow", &ohj_pow },
+
+		{ "ohj_max_seq_pool", &ohj_max_seq_pool },
+		{ "ohj_max_seq_scaler", &ohj_max_seq_scaler },
+		{ "ohj_max_seq_jump_scaler", &ohj_max_seq_jump_scaler },
+		{ "ohj_max_seq_min", &ohj_max_seq_min },
+		{ "ohj_max_seq_max", &ohj_max_seq_max },
+
+		{ "ohj_prop_pool", &ohj_prop_pool },
+		{ "ohj_prop_scaler", &ohj_prop_scaler },
+		{ "ohj_prop_min", &ohj_prop_min },
+		{ "ohj_prop_max", &ohj_prop_max },
+
+		{ "cj_ohj_base", &cj_ohj_base },
+		{ "cj_ohj_min_mod", &cj_ohj_min_mod },
+		{ "cj_ohj_max_mod", &cj_ohj_max_mod },
+		{ "cj_ohj_pow", &cj_ohj_pow },
+	};
+#pragma endregion params and param map
+	int cur_ohjump_seq = 0;
+	int max_ohjump_seq = 0;
+	int window_roll_taps = 0;
+	int cc_taps = 0;
+	float hand_taps = 0.f;
+	float floatymcfloatface = 0.f;
+	float max_seq_component = 0.f;
+	float prop_component = 0.f;
+	float base_prop = 0.f;
+	float pmod = ohj_min_mod;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		doot[OHJumpMod][i] = ohj_min_mod;
+		doot[CJOHJump][i] = cj_ohj_min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[OHJumpMod], neutral);
+		Smooth(doot[CJOHJump], neutral);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void complete_seq()
+	{
+		// negative values should not be possible
+		ASSERT(cur_ohjump_seq >= 0);
+
+		// set the largest ohj sequence
+		max_ohjump_seq =
+		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
+		// reset
+		cur_ohjump_seq = 0;
+	}
+
+	inline void advance_sequencing(const metanoteinfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// we know between the following that the latter is more
+		// difficult [12][12][12]222[12][12][12]
+		// [12][12][12]212[12][12][12]
+		// so we want to penalize not only any break in the ohj
+		// sequence but further penalize breaks which contain
+		// cross column taps this should also reflect the
+		// difference between [12]122[12], [12]121[12] cases
+		// like 121[12][12]212[12][12]121 should probably have
+		// some penalty but likely won't with this setup, but
+		// everyone hates that anyway and it would be quite
+		// difficult to force the current setup to do so without
+		// increasing complexity significantly (probably)
+
+		// don't reset immediately on a single note, wait to see
+		// what comes next, if now.last_cc == cc_jump_single, we have just
+		// broken a sequence (technically this can be simply something like
+		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
+		switch (now.cc) {
+			case cc_jump_jump:
+				// at least 2 jumps in a row, we are now in a sequence and begin
+				// iterating accordingly
+				++cur_ohjump_seq;
+				break;
+			case cc_jump_single:
+				// just came out of a jump seq, do nothing... wait to see what
+				// happens
+				break;
+			case cc_left_right:
+			case cc_right_left:
+				// if we have an actual cross column tap now, and if we just
+				// came from a jump -> single, then we have something like
+				// [12]21, which is much harder than [12]22, so penalize the
+				// sequence slightly before completing
+				if (now.last_cc == cc_jump_single) {
+					--cur_ohjump_seq;
+					complete_seq();
+
+					// track actual cc taps in a counter
+					++cc_taps;
+				}
+				break;
+			case cc_single_single:
+				// we have something like [12]22, complete the sequence
+				// without the penalty that the cross column incurs
+				if (now.last_cc == cc_jump_single)
+					complete_seq();
+				break;
+			case cc_single_jump:
+				// [12]1[12]... we broke a sequence and went right back into
+				// one.. reset sequence for now but come back to revsit this, we
+				// might want to have different behavior, but we'd need to track
+				// the columns of the single notes in the chain
+				if (now.last_cc == cc_jump_single)
+					complete_seq();
+				else
+					complete_seq();
+				break;
+			case cc_init:
+				break;
+			default:
+				break;
+		}
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	{
+		// nothing here
+		if (hand_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// no repeated oh jumps, prop scale only
+		if (max_ohjump_seq == 0) {
+			prop_component = ohj_prop_pool - base_prop;
+			prop_component =
+			  CalcClamp(prop_component, ohj_min_mod, ohj_max_mod);
+
+			pmod = fastsqrt(prop_component);
+			pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
+			doot[OHJumpMod][i] = pmod;
+			doot[OHJPropComp][i] = prop_component;
+
+			prop_component = fastsqrt(cj_ohj_prop_pool - base_prop);
+			prop_component =
+			  CalcClamp(prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
+
+			pmod = fastsqrt(prop_component);
+			pmod =
+			  CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
+			doot[CJOHJump][i] = pmod;
+			doot[CJOHJPropComp][i] = prop_component;
+			return true;
+		}
+
+		// if this is true we have some combination of single notes
+		// and jumps where the single notes are all on the same
+		// column
+		if (cc_taps == 0) {
+			// we don't want to treat 2[12][12][12]2222 2222[12][12][12]2
+			// differently, so use the max sequence here exclusively
+			if (max_ohjump_seq > 0) {
+				// yea i thought we might need to tune ohj downscalers for js
+				// and cj slightly differently
+				max_seq_component =
+				  pow(hand_taps / (floatymcfloatface * ohj_max_seq_jump_scaler),
+					  ohj_pow);
+				pmod = CalcClamp(max_seq_component, ohj_min_mod, ohj_max_mod);
+				doot[OHJumpMod][i] = pmod;
+				doot[OHJSeqComp][i] = max_seq_component;
+
+				// ohjumps in cj can be either easier or harder
+				// depending on context.. so we have to pull back a
+				// bit so it doesn't swing too far when it shouldn't
+				max_seq_component = pow(
+				  hand_taps / (floatymcfloatface * cj_ohj_max_seq_jump_scaler),
+				  cj_ohj_pow);
+
+				pmod =
+				  CalcClamp(max_seq_component, cj_ohj_min_mod, cj_ohj_max_mod);
+				doot[CJOHJump][i] = pmod;
+				doot[CJOHJSeqComp][i] = max_seq_component;
+
+				doot[OHJMaxSeq][i] = floatymcfloatface;
+				return true;
+			} else {
+				neutral_set(doot, i);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i,
+						   const int& hand)
+	{
+		const auto& itv = mni._itv_info;
+
+		// if cur_seq > max when we ended the interval, set it, but don't reset
+		max_ohjump_seq =
+		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
+
+		floatymcfloatface = static_cast<float>(max_ohjump_seq);
+		hand_taps = static_cast<float>(itv.hand_taps[hand]);
+		base_prop = floatymcfloatface / hand_taps;
+
+		if (handle_case_optimizations(doot, i))
+			return;
+
+		// STANDARD OHJ
+		// for js we lean into max sequences more, since they're better
+		// indicators of inflated difficulty
+		max_seq_component =
+		  ohj_max_seq_scaler *
+		  (ohj_max_seq_pool - (base_prop * ohj_max_seq_jump_scaler));
+		max_seq_component =
+		  CalcClamp(max_seq_component, ohj_max_seq_min, ohj_max_seq_max);
+
+		prop_component = ohj_prop_scaler * (ohj_prop_pool - base_prop);
+		prop_component = CalcClamp(prop_component, ohj_prop_min, ohj_prop_max);
+
+		pmod = fastsqrt(max_seq_component + prop_component);
+		pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
+		doot[OHJumpMod][i] = pmod;
+
+		if (debug_lmao) {
+			doot[OHJSeqComp][i] = max_seq_component;
+			doot[OHJPropComp][i] = prop_component;
+		}
+
+		// CH OHJ
+		// we want both the total number of jumps and the max
+		// sequence to count here, with more emphasis on the max
+		// sequence, sequence should be multiplied by 2 (or
+		// maybe slightly more?)
+		max_seq_component = cj_ohj_max_seq_scaler *
+							fastsqrt(cj_ohj_max_seq_pool -
+									 (base_prop * cj_ohj_max_seq_jump_scaler));
+		max_seq_component =
+		  CalcClamp(max_seq_component, cj_ohj_max_seq_min, cj_ohj_max_seq_max);
+
+		prop_component =
+		  cj_ohj_prop_scaler * fastsqrt(cj_ohj_prop_pool - base_prop);
+		prop_component =
+		  CalcClamp(prop_component, cj_ohj_prop_min, cj_ohj_prop_max);
+
+		pmod = fastsqrt(max_seq_component + prop_component);
+		pmod = CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
+		doot[CJOHJump][i] = pmod;
+
+		if (debug_lmao) {
+			doot[CJOHJSeqComp][i] = max_seq_component;
+			doot[CJOHJPropComp][i] = prop_component;
+
+			doot[OHJMaxSeq][i] = floatymcfloatface;
+			doot[OHJCCTaps][i] = cc_taps;
+			doot[OHJHTaps][i] = hand_taps;
+		}
+
+		// reset any interval stuff here
+		cc_taps = 0;
+	}
+};
 struct RunningManMod
 {
 	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
@@ -3309,6 +3663,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
+	OHJumpMods _ohj;
 	RunningManMod _rm;
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
@@ -3461,6 +3816,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// example
 	void handle_row_dependent_pattern_advancement()
 	{
+		_ohj.advance_sequencing(*_mni_now);
 		_rm.advance_sequencing(*_mni_now);
 		_wrjt.advance_sequencing(*_mni_now);
 		_wrr.advance_sequencing(*_mni_now);
@@ -3471,6 +3827,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.setup(_doot, _itv_rows.size());
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
+		_ohj.setup(_doot, _itv_rows.size());
 		_rm.setup(_doot, _itv_rows.size());
 		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
@@ -3482,6 +3839,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.smooth_finish(_doot);
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
+		_ohj.smooth_finish(_doot);
 		_wrr.smooth_finish(_doot);
 		_wrjt.smooth_finish(_doot);
 	}
@@ -3492,6 +3850,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js(*_mni_now, _doot, itv);
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
+		_ohj(*_mni_now, _doot, itv, hand);
 		_wrr(*_mni_now, _doot, itv);
 		_wrjt(*_mni_now, _doot, itv);
 	}
@@ -3513,6 +3872,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
+		_ohj.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
 	}
@@ -3525,6 +3885,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_ohj.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
 
@@ -4312,240 +4673,6 @@ Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
 		Smooth(doot[Anchor], 1.f);
 }
 
-struct OHJumpMods
-{
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { OHJumpMod, CJOHJump };
-	const std::string name = "OHJumpMods";
-	const int _primary = _pmods.front();
-
-#pragma region params
-	float ohj_min_mod = 0.5f;
-	float ohj_max_mod = 1.f;
-	float ohj_scaler = 2.5f;
-	float ohj_pow = 2.f;
-
-	float cj_ohj_min_mod = 0.6f;
-	float cj_ohj_max_mod = 1.f;
-	float cj_ohj_scaler = 2.4f;
-	float cj_ohj_pow = 2.f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "ohj_min_mod", &ohj_min_mod },
-		{ "ohj_max_mod", &ohj_max_mod },
-		{ "ohj_scaler", &ohj_scaler },
-		{ "ohj_pow", &ohj_pow },
-
-		{ "cj_ohj_min_mod", &cj_ohj_min_mod },
-		{ "cj_ohj_max_mod", &cj_ohj_max_mod },
-		{ "cj_ohj_scaler", &cj_ohj_scaler },
-		{ "cj_ohj_pow", &cj_ohj_pow },
-	};
-#pragma endregion params and param map
-	int cur_ohjump_seq = 0;
-	int max_ohjump_seq = 0;
-	int window_roll_taps = 0;
-	int cc_taps = 0;
-	float hand_taps = 0.f;
-	float floatymcfloatface = 0.f;
-	float pmod = ohj_min_mod;
-
-	// non-empty (cc_type is now always non-empty)
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], neutral);
-		Smooth(doot[CJOHJump], neutral);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		if (pmod == NULL)
-			return;
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-
-	inline void complete_seq()
-	{
-		// negative values should not be possible
-		ASSERT(cur_ohjump_seq >= 0);
-
-		// set the largest ohj sequence
-		max_ohjump_seq =
-		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
-		// reset
-		cur_ohjump_seq = 0;
-	}
-
-	inline void advance_sequencing(const metanoteinfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// we know between the following that the latter is more
-		// difficult [12][12][12]222[12][12][12]
-		// [12][12][12]212[12][12][12]
-		// so we want to penalize not only any break in the ohj
-		// sequence but further penalize breaks which contain
-		// cross column taps this should also reflect the
-		// difference between [12]122[12], [12]121[12] cases
-		// like 121[12][12]212[12][12]121 should probably have
-		// some penalty but likely won't with this setup, but
-		// everyone hates that anyway and it would be quite
-		// difficult to force the current setup to do so without
-		// increasing complexity significantly (probably)
-
-		// don't reset immediately on a single note, wait to see
-		// what comes next, if now.last_cc == cc_jump_single, we have just
-		// broken a sequence (technically this can be simply something like
-		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
-		switch (now.cc) {
-			case cc_jump_jump:
-				// at least 2 jumps in a row, we are now in a sequence and begin
-				// iterating accordingly
-				++cur_ohjump_seq;
-				break;
-			case cc_jump_single:
-				// just came out of a jump seq, do nothing... wait to see what
-				// happens
-				break;
-			case cc_left_right:
-			case cc_right_left:
-				// if we have an actual cross column tap now, and if we just
-				// came from a jump -> single, then we have something like
-				// [12]21, which is much harder than [12]22, so penalize the
-				// sequence slightly before completing
-				if (now.last_cc == cc_jump_single) {
-					--cur_ohjump_seq;
-					complete_seq();
-
-					// track actual cc taps in a counter
-					++cc_taps;
-				}
-				break;
-			case cc_single_single:
-				// we have something like [12]22, complete the sequence
-				// without the penalty that the cross column incurs
-				if (now.last_cc == cc_jump_single)
-					complete_seq();
-				break;
-			case cc_single_jump:
-				// [12]1[12]... we broke a sequence and went right back into
-				// one.. reset sequence for now but come back to revsit this, we
-				// might want to have different behavior, but we'd need to track
-				// the columns of the single notes in the chain
-				if (now.last_cc == cc_jump_single)
-					complete_seq();
-				else
-					complete_seq();
-				break;
-			case cc_init:
-				break;
-			default:
-				break;
-		}
-	}
-
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
-	{
-		// if this is true we have some combination of single notes
-		// and jumps where the single notes are all on the same
-		// column
-		if (cc_taps == 0) {
-			// we don't want to treat 2[12][12][12]2222 2222[12][12][12]2
-			// differently, so use the max sequence here exclusively
-			if (max_ohjump_seq > 0) {
-				// yea i thought we might need to tune ohj downscalers for js
-				// and cj slightly differently
-				doot[_primary][i] = CalcClamp(
-				  pow(hand_taps / (floatymcfloatface * ohj_scaler), ohj_pow),
-				  ohj_min_mod,
-				  ohj_max_mod);
-
-				// ohjumps in cj can be either easier or harder
-				// depending on context.. so we have to pull back a
-				// bit so it doesn't swing too far when it shouldn't
-				doot[CJOHJump][i] =
-				  CalcClamp(pow(hand_taps / (floatymcfloatface * cj_ohj_scaler) * cj_ohj_scaler),
-								cj_ohj_pow),
-							cj_ohj_min_mod,
-							cj_ohj_max_mod);
-			} else
-				neutral_set(doot, i);
-		}
-
-		return false;
-	}
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
-	{
-		const auto& itv = mni._itv_info;
-
-		// if cur_seq > max when we ended the interval, set it, but don't reset
-		max_ohjump_seq =
-		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
-
-		floatymcfloatface = static_cast<float>(max_ohjump_seq);
-		hand_taps = itv.hand_taps[hand];
-
-		if (handle_case_optimizations(doot, i))
-			return;
-
-		pmod = max_mod;
-		if (window_roll_taps > 0 && window_hand_taps > 0)
-			pmod = 1.15f - (static_cast<float>(window_roll_taps) /
-							static_cast<float>(window_hand_taps));
-
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
-
-		// reset any interval stuff here
-		cc_taps = 0;
-	}
-};
 
 // downscales full rolls or rolly js, it looks explicitly for
 // consistent cross column timings on both hands; consecutive notes
@@ -5849,7 +5976,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 343;
+int mina_calc_version = 344;
 int
 GetCalcVersion()
 {
