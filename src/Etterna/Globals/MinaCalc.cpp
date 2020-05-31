@@ -2074,21 +2074,6 @@ struct StreamMod
 		doot[_pmod].resize(i);
 	}
 
-	inline void min_set(vector<float> doot[], const int& i)
-	{
-		doot[_pmod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const int& i)
-	{
-		doot[_pmod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_pmod], 1.f);
-	}
-
 	inline XNode* make_param_node() const
 	{
 		XNode* pmod = new XNode(name);
@@ -2120,12 +2105,12 @@ struct StreamMod
 	{
 		// 1 tap is by definition a single tap
 		if (itvi.total_taps < 2) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		if (itvi.taps_by_size[_tap_size] == 0) {
-			min_set(doot, i);
+			min_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -2162,11 +2147,10 @@ struct StreamMod
 };
 struct JSMod
 {
-
-	const vector<int> _pmods = { JS, JSS, JSJ };
+	const CalcPatternMod _pmod = JS;
+	const vector<CalcPatternMod> _dbg = { JSS, JSJ };
 	const std::string name = "JSMod";
 	const int _tap_size = jump;
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2220,27 +2204,13 @@ struct JSMod
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline void decay_mod()
@@ -2274,33 +2244,42 @@ struct JSMod
 		}
 	}
 #pragma endregion
+	
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[JSS][i] = jumptrill_prop;
+			doot[JSJ][i] = jack_prop;
+		}
+	}
+
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
-
 		// empty interval, don't decay js mod or update last_mod
 		if (itvi.total_taps == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
 
 		// at least 1 tap but no jumps
 		if (itvi.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			min_set(doot, i);
-			doot[_primary][i] = pmod;
+			doot[_pmod][i] = pmod;
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
+
 		return false;
 	}
 
 	inline void operator()(const metaItvInfo& mitvi,
-						   vector<float> doot[],
-						   const size_t& i)
+						   vector<float> doot[])
 	{
 		const auto& itvi = mitvi._itv_info;
-		if (handle_case_optimizations(itvi, doot, i))
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
 		t_taps = static_cast<float>(itvi.total_taps);
@@ -2314,10 +2293,10 @@ struct JSMod
 
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
-		jumptrill_prop = CalcClamp(split_hand_pool -
-									 (static_cast<float>(mitvi.not_js) / t_taps),
-								   split_hand_min,
-								   split_hand_max);
+		jumptrill_prop = CalcClamp(
+		  split_hand_pool - (static_cast<float>(mitvi.not_js) / t_taps),
+		  split_hand_min,
+		  split_hand_max);
 
 		// downscale by jack density rather than upscale like cj
 		// theoretically the ohjump downscaler should handle
@@ -2331,12 +2310,8 @@ struct JSMod
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
-		// actual mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		doot[JSS][i] = jumptrill_prop;
-		doot[JSJ][i] = jack_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
 
 		// set last mod, we're using it to create a decaying mod that won't
 		// result in extreme spikiness if files alternate between js and
@@ -2346,10 +2321,10 @@ struct JSMod
 };
 struct HSMod
 {
-	const vector<int> _pmods = { HS, HSS, HSJ };
+	const CalcPatternMod _pmod = HS;
+	const vector<CalcPatternMod> _dbg = { HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2405,27 +2380,13 @@ struct HSMod
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline void decay_mod()
@@ -2459,32 +2420,42 @@ struct HSMod
 		}
 	}
 #pragma endregion
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[HSS][i] = jumptrill_prop;
+			doot[HSJ][i] = jack_prop;
+		}
+	}
+
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// empty interval, don't decay mod or update last_mod
 		if (itvi.total_taps == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
 
 		// look ma no hands
 		if (itvi.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			min_set(doot, i);
-			doot[_primary][i] = pmod;
+			doot[_pmod][i] = pmod;
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
+
 		return false;
 	}
 
 	inline void operator()(const metaItvInfo& mitvi,
-						   vector<float> doot[],
-						   const size_t& i)
+						   vector<float> doot[])
 	{
 		const auto& itvi = mitvi._itv_info;
-		if (handle_case_optimizations(itvi, doot, i))
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
 		t_taps = static_cast<float>(itvi.total_taps);
@@ -2498,10 +2469,10 @@ struct HSMod
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// downscale jumptrills for hs as well
-		jumptrill_prop = CalcClamp(split_hand_pool -
-									 (static_cast<float>(mitvi.not_hs) / t_taps),
-								   split_hand_min,
-								   split_hand_max);
+		jumptrill_prop = CalcClamp(
+		  split_hand_pool - (static_cast<float>(mitvi.not_hs) / t_taps),
+		  split_hand_min,
+		  split_hand_max);
 
 		// downscale by jack density rather than upscale, like cj does
 		jack_prop = CalcClamp(
@@ -2514,12 +2485,8 @@ struct HSMod
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
-		// actual mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		doot[HSS][i] = jumptrill_prop;
-		doot[HSJ][i] = jack_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
 
 		// set last mod, we're using it to create a decaying mod that won't
 		// result in extreme spikiness if files alternate between js and
