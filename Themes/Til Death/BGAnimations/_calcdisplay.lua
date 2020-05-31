@@ -149,7 +149,7 @@ activeMods[#activeMods+1] = "JackStamMod"
 -- the 0th one is reserved for ssr graph toggle
 local debugGroups = {
     {
-        StreamMod = true,
+        Stream = true,
         OHTrill = true,
 		OHJump = true,
 		StamMod = true
