@@ -1022,21 +1022,6 @@ invert_cc(const cc_type& cc)
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 }
 
-inline bool
-is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
-{
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (b != cc_left_right && b != cc_right_left)
-		return false;
-
-	bool loot = a == invert_cc(b);
-	bool doot = a == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
-}
-
 inline void
 update_col_time(const col_type& col, float arr[2], const float& val)
 {
@@ -1289,6 +1274,56 @@ struct itv_info
 	}
 };
 
+// big brain stuff
+inline bool
+detecc_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
+
+	bool loot = a == invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
+}
+
+inline bool
+detecc_ccacc(const cc_type& a, const cc_type& b)
+{
+	if (a != cc_left_right && a != cc_right_left)
+		return false;
+
+	// now we know we have cc_left_right or cc_right_left, so, xy, we are
+	// looking for xyyx, meaning last_last would be the inverion of now
+	if (invert_cc(a) == b)
+		return true;
+
+	return false;
+}
+
+inline bool
+detecc_acca(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// 1122, 2211, etc
+	if (a == cc_single_single && (b == cc_left_right || b == cc_right_left) &&
+		c == cc_single_single)
+		return true;
+
+	return false;
+}
+
+enum meta_type
+{
+	meta_oht,
+	meta_ccacc,
+	meta_acca,
+	meta_init,
+	meta_enigma
+};
+
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
 // rm_seuqencing, and widerange scalers should track their own interval queues
@@ -1319,6 +1354,9 @@ struct metanoteinfo
 	// type of cross column hit
 	cc_type cc = cc_init;
 	cc_type last_cc = cc_init;
+
+	meta_type mt = meta_init;
+	meta_type last_mt = meta_init;
 
 	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
 	// contains 2 metanoteinfos? ... yes... we probably do.. uhh
@@ -1526,6 +1564,17 @@ struct metanoteinfo
 		}
 	}
 
+	inline meta_type big_brain_sequencing(const metanoteinfo& last)
+	{
+		if (detecc_oht(cc, last_cc, last.last_cc))
+			return meta_oht;
+		if (detecc_ccacc(cc, last.last_cc))
+			return meta_ccacc;
+		if (detecc_acca(cc, last_cc, last.last_cc))
+			return meta_acca;
+		return meta_enigma;
+	}
+
 	inline void operator()(metanoteinfo& last,
 						   const float& now,
 						   const unsigned& notes,
@@ -1547,6 +1596,8 @@ struct metanoteinfo
 		last_was_offhand_tap = last.col == col_empty;
 		last_col = last.col;
 		last_cc = last.cc;
+
+		last_mt = last.mt;
 
 		// need this to determine cc types if they are interrupted by offhand
 		// taps
@@ -1573,7 +1624,12 @@ struct metanoteinfo
 			return;
 		}
 
+		// set updated cc type only for non-empty columns on this hand
 		set_cc_type(last.last_non_empty_col);
+
+		// now that we have determined cc_type, we can look for more complex
+		// patterns
+		mt = big_brain_sequencing(last);
 
 		// every note has at least 2 ms values associated with it, the
 		// ms value from the last cross column note (on the same hand),
@@ -1611,6 +1667,8 @@ struct RM_Sequencing
 	}
 
 	// sequencing counters
+	// only allow this rm's anchor col to start sequences
+	bool in_the_nineties = false;
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
@@ -1632,19 +1690,23 @@ struct RM_Sequencing
 	float max_ms = ms_init;
 	float off_total_ms = 0.f;
 
+	col_type now_col = col_init;
+	float now = 0.f;
 	float temp_ms = 0.f;
 
 #pragma region functions
 	inline void reset()
 	{
-		// don't reset anchor_col or last_col
-		// we want to preserve the pattern state
-		// reset everything else tho
+		// don't reset anchor_col or last_col, we want to preserve the pattern
+		// state reset everything else tho
 
+		// now_col and now don't need to be reset either
+
+		in_the_nineties = false;
 		is_bursting = false;
 		had_burst = false;
 		// reset?? don't reset????
-		last_anchor_time = last_anchor_time * 1.25f;
+		last_anchor_time = ms_init;
 		last_off_time = s_init;
 		total_taps = 0;
 		ran_taps = 0;
@@ -1659,10 +1721,16 @@ struct RM_Sequencing
 		jack_len = 0;
 		max_ms = ms_init;
 		off_total_ms = 0.f;
+
+		// if we are resetting and this column is the anchor col, restart again
+		if (anchor_col == now_col)
+			handle_anchor_progression();
 	}
 
-	inline void handle_off_tap(const float& now)
+	inline void handle_off_tap()
 	{
+		if (!in_the_nineties)
+			return;
 		last_off_time = now;
 
 		++ran_taps;
@@ -1672,7 +1740,7 @@ struct RM_Sequencing
 		// offnote, reset jack length & oht length
 		jack_len = 0;
 
-		off_total_ms += ms_from(now, last_anchor_time);
+		// off_total_ms += ms_from(now, last_anchor_time);
 
 		// handle progression for increasing off_len
 		handle_off_tap_progression();
@@ -1725,14 +1793,24 @@ struct RM_Sequencing
 		return;
 	}
 
-	inline void handle_anchor_progression(const float& now)
+	inline void handle_anchor_progression()
 	{
-		temp_ms = ms_from(now, last_anchor_time);
-		// account for float precision error and small bpm flux
-		if (temp_ms > max_ms + 5.f)
-			reset();
-		else
-			max_ms = temp_ms;
+		// start a sequence whenever we hit this rm's anchor col, if we aren't
+		// already in one
+		if (in_the_nineties) {
+			// break the anchor if the next note is too much slower than the
+			// lowest one, but only after we've already set the initial anchor
+			temp_ms = ms_from(now, last_anchor_time);
+			// account for float precision error and small bpm flux
+			if (temp_ms > max_ms + 5.f)
+				reset();
+			else
+				max_ms = temp_ms;
+		} else {
+			// set first anchor val
+			max_ms = 5000.f;
+			in_the_nineties = true;
+		}
 
 		last_anchor_time = now;
 		++ran_taps;
@@ -1758,8 +1836,7 @@ struct RM_Sequencing
 			reset();
 	}
 
-	inline void handle_cross_column_branching(const cc_type& cc,
-											  const float& now)
+	inline void handle_cross_column_branching()
 	{
 		// we are comparing 2 different enum types here, but this is what we
 		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
@@ -1769,18 +1846,19 @@ struct RM_Sequencing
 		// cc_type enum to make this more intuitive (but probably not)
 
 		// NOT an anchor
-		if (anchor_col == cc) {
-			handle_off_tap(now);
+		if (anchor_col != now_col && in_the_nineties) {
+			handle_off_tap();
 			// same hand offtap
 			++off_taps_same;
 			return;
 		}
-		handle_anchor_progression(now);
+		handle_anchor_progression();
 	}
 
-	inline void handle_oht_progression(const cc_type& cc)
+	inline void handle_oht_progression()
 	{
-		if (is_oht(last_last_cc, last_cc, cc)) {
+		// we only care about ohts that end off-anchor
+		if (now_col != anchor_col) {
 			++oht_len;
 			++oht_taps;
 			if (oht_len > max_oht_len)
@@ -1792,17 +1870,27 @@ struct RM_Sequencing
 	{
 		total_taps += mni.row_count;
 
+		now_col = mni.col;
+		now = mni.row_time;
+
 		// simple case to handle, can't be a jack (or doesn't really matter) and
-		// can't be oht, only reset if we exceed the spacing limit
-		if (mni.col == col_empty)
-			handle_off_tap(mni.row_time);
+		// can't be oht, only reset if we exceed the spacing limit, don't do
+		// anything else
+		if (mni.col == col_empty) {
+			// reset oht len if we hit this (not really robust buuuut)
+			oht_len = 0;
+			handle_off_tap();
+			return;
+		}
+
+		// cosmic brain
+		if (mni.mt == meta_oht)
+			handle_oht_progression();
 
 		switch (mni.cc) {
 			case cc_left_right:
 			case cc_right_left:
-				// these are the only 2 scenarios that can produce ohts
-				handle_oht_progression(mni.cc);
-				handle_cross_column_branching(mni.cc, mni.row_time);
+				handle_cross_column_branching();
 				break;
 			case cc_jump_single:
 				if (mni.last_was_offhand_tap) {
@@ -1811,10 +1899,10 @@ struct RM_Sequencing
 					// is the anchor col, then we have an anchor
 					if ((mni.col == col_left && anchor_col == col_left) ||
 						(mni.col == col_right && anchor_col == col_right)) {
-						handle_anchor_progression(mni.row_time);
+						handle_anchor_progression();
 					} else {
 						// otherwise we have an off anchor tap
-						handle_off_tap(mni.row_time);
+						handle_off_tap();
 						// same hand offtap
 						++off_taps_same;
 					}
@@ -1829,7 +1917,7 @@ struct RM_Sequencing
 				if (mni.last_was_offhand_tap) {
 					// if this wasn't a jack, then it's just
 					// a good ol anchor
-					handle_anchor_progression(mni.row_time);
+					handle_anchor_progression();
 				} else {
 					// a jack, not an anchor, we don't
 					// want too many of these but we
@@ -1841,14 +1929,14 @@ struct RM_Sequencing
 				// if last note was an offhand tap, this is by
 				// definition part of the anchor
 				if (mni.last_was_offhand_tap) {
-					handle_anchor_progression(mni.row_time);
+					handle_anchor_progression();
 				} else {
 					// if not, a jack
 					handle_jack_progression();
 				}
 				break;
 			case cc_jump_jump:
-				// this is kind of a grey area, given that
+				// this is kind of a gray area, given that
 				// the difficulty of runningmen comes from
 				// the tight turns on the same hand... we
 				// will treat this as a jack even though
@@ -1857,6 +1945,8 @@ struct RM_Sequencing
 				handle_jack_progression();
 				break;
 			case cc_init:
+				if (now_col == anchor_col)
+					handle_anchor_progression();
 				break;
 			default:
 				ASSERT(1 == 0);
@@ -3143,7 +3233,7 @@ struct RunningManMod
 
 	// params for rm_sequencing, these define conditions for resetting
 	// runningmen sequences
-	float max_oht_len = 1.f;
+	float max_oht_len = 2.f;
 	float max_off_spacing = 2.f;
 	float max_burst_len = 6.f;
 	float max_jack_len = 1.f;
