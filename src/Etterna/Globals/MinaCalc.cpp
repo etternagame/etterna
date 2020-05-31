@@ -2668,7 +2668,127 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 };
+struct AnchorMod
+{
 
+	const vector<int> _pmods = { Anchor };
+	const std::string name = "AnchorMod";
+	const int _primary = _pmods.front();
+
+#pragma region params
+	float min_mod = 0.9f;
+	float max_mod = 1.1f;
+	float mod_base = 0.3f;
+	float buffer = 1.f;
+	float scaler = 1.f;
+	float other_scaler = 4.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "mod_base", &mod_base }, { "buffer", &buffer },
+		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+	};
+#pragma endregion params and param map
+	float l_taps = 0.f;
+	float r_taps = 0.f;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 1.f);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline bool handle_case_optimizations(const itv_info& itv,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// nothing here
+		if (itv.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// jack
+		if (l_taps == 0.f || r_taps == 0.f) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i,
+						   const int& hand)
+	{
+		const auto& itv = mni._itv_info;
+
+		// left
+		if (hand == 0) {
+			l_taps = static_cast<float>(itv.col_taps[0]);
+			r_taps = static_cast<float>(itv.col_taps[1]);
+		} else {
+			l_taps = static_cast<float>(itv.col_taps[2]);
+			r_taps = static_cast<float>(itv.col_taps[3]);
+		}
+
+		if (handle_case_optimizations(itv, doot, i))
+			return;
+
+		pmod = static_cast<float>(min(l_taps, r_taps)) /
+			   static_cast<float>(max(l_taps, r_taps));
+		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		// actual mod
+		doot[_primary][i] = pmod;
+	}
+};
 struct OHJumpMods
 {
 	bool dbg = true && debug_lmao;
@@ -4198,127 +4318,6 @@ struct WideRangeRollMod
 	}
 };
 
-struct AnchorMod
-{
-
-	const vector<int> _pmods = { Anchor };
-	const std::string name = "AnchorMod";
-	const int _primary = _pmods.front();
-
-#pragma region params
-	float min_mod = 0.9f;
-	float max_mod = 1.1f;
-	float mod_base = 0.3f;
-	float buffer = 1.f;
-	float scaler = 1.f;
-	float other_scaler = 4.f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
-		{ "mod_base", &mod_base }, { "buffer", &buffer },
-		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
-	};
-#pragma endregion params and param map
-	float l_taps = 0.f;
-	float r_taps = 0.f;
-	float pmod = min_mod;
-	
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		if (pmod == NULL)
-			return;
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-	inline bool handle_case_optimizations(const itv_info& itv,
-										  vector<float> doot[],
-										  const size_t& i)
-	{
-		// nothing here
-		if (itv.total_taps == 0) {
-			neutral_set(doot, i);
-			return true;
-		}
-
-		// jack
-		if (l_taps == 0.f || r_taps == 0.f) {
-			neutral_set(doot, i);
-			return true;
-		}
-		return false;
-	}
-
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
-	{
-		const auto& itv = mni._itv_info;
-
-		// left
-		if (hand == 0) {
-			l_taps = static_cast<float>(itv.col_taps[0]);
-			r_taps = static_cast<float>(itv.col_taps[1]);
-		} else {
-			l_taps = static_cast<float>(itv.col_taps[2]);
-			r_taps = static_cast<float>(itv.col_taps[3]);
-		}
-
-		if (handle_case_optimizations(itv, doot, i))
-			return;
-
-		pmod = static_cast<float>(min(l_taps, r_taps)) /
-			   static_cast<float>(max(l_taps, r_taps));
-		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
-
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-
-		// actual mod
-		doot[_primary][i] = pmod;
-	}
-};
 
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
