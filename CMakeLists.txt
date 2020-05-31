@@ -45,7 +45,6 @@ endif()
 target_include_directories(Etterna PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)   # Add gen files include search dirs
 target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)          # Add src/ to include search dirs
 
-set(ENABLE_TRACY_PROFILER OFF CACHE BOOL "")
 ## Package Includes
 ### OpenSSL is not used directly by our program, but we have to use OpenSSL first
 ### in order to statically link. Once find_package is run once, it's results are cached
