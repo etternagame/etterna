@@ -1448,8 +1448,7 @@ struct metaRowInfo
 	bool dbg = false && debug_lmao;
 	bool dbg_lv2 = false && debug_lmao;
 
-	metaItvInfo* _mitv_info;
-	metaRowInfo* _thetestlast;
+	metaItvInfo _mitv_info;
 
 	float time = 0.f;
 	int count = 0;
@@ -1477,11 +1476,11 @@ struct metaRowInfo
 							  << " : " << note_map[last_notes] << std::endl;
 				}
 				// not scaled to the number of jacks anymore
-				++_mitv_info->actual_jacks;
+				++_mitv_info.actual_jacks;
 				twas_jack = true;
 				// try to pick up gluts maybe?
 				if (count > 1 && column_count(last_notes) > 1)
-					++_mitv_info->shared_chord_jacks;
+					++_mitv_info.shared_chord_jacks;
 			}
 		}
 
@@ -1491,7 +1490,7 @@ struct metaRowInfo
 		// inverse depending on the scenario, this is merely to catch stuff like
 		// splithand jumptrills registering as chordjacks when they shouldn't be
 		if (twas_jack)
-			++_mitv_info->actual_jacks_cj;
+			++_mitv_info.actual_jacks_cj;
 	}
 
 	inline void basic_row_sequencing(const metaRowInfo& last)
@@ -1511,7 +1510,11 @@ struct metaRowInfo
 		if (alternating_chordstream) {
 			if (dbg_lv2)
 				std::cout << "good hot js/hs !!!!: " << std::endl;
-			++_mitv_info->definitely_not_jacks;
+			++_mitv_info.definitely_not_jacks;
+		}
+
+		if (alternating_chordstream) {
+			// put mixed density stuff here later
 		}
 
 		// only cares about single vs chord, not jacks
@@ -1521,42 +1524,42 @@ struct metaRowInfo
 			if (!twas_jack) {
 				if (dbg_lv2)
 					std::cout << "good hot js/hs: " << std::endl;
-				_mitv_info->seriously_not_js -= 3;
+				_mitv_info.seriously_not_js -= 3;
 			}
 		}
 
 		if (last.count == 1 && count == 1) {
-			_mitv_info->seriously_not_js = max(_mitv_info->seriously_not_js, 0);
-			++_mitv_info->seriously_not_js;
+			_mitv_info.seriously_not_js = max(_mitv_info.seriously_not_js, 0);
+			++_mitv_info.seriously_not_js;
 			if (dbg_lv2)
 				std::cout << "consecutive single note: "
-						  << _mitv_info->seriously_not_js << std::endl;
+						  << _mitv_info.seriously_not_js << std::endl;
 
 			// light js really stops at [12]321[23] kind of
 			// density, anything below that should be picked up
 			// by speed, and this stop rolls between jumps
 			// getting floated up too high
-			if (_mitv_info->seriously_not_js > 3) {
+			if (_mitv_info.seriously_not_js > 3) {
 				if (dbg)
 					std::cout << "exceeding light js/hs tolerance: "
-							  << _mitv_info->seriously_not_js << std::endl;
-				_mitv_info->not_js += _mitv_info->seriously_not_js;
+							  << _mitv_info.seriously_not_js << std::endl;
+				_mitv_info.not_js += _mitv_info.seriously_not_js;
 				// give light hs the light js treatment
-				_mitv_info->not_hs += _mitv_info->seriously_not_js;
+				_mitv_info.not_hs += _mitv_info.seriously_not_js;
 			}
 		} else if (last.count > 1 && count > 1) {
 			// suppress jumptrilly garbage a little bit
 			if (dbg)
 				std::cout << "sequential chords detected: " << std::endl;
-			_mitv_info->not_hs += count;
-			_mitv_info->not_js += count;
+			_mitv_info.not_hs += count;
+			_mitv_info.not_js += count;
 
 			// might be overkill
 			if ((notes & last_notes) == 0) {
 				if (dbg)
 					std::cout << "bruh they aint even jacks: " << std::endl;
-				++_mitv_info->not_hs;
-				++_mitv_info->not_js;
+				++_mitv_info.not_hs;
+				++_mitv_info.not_js;
 			} else {
 				gluts_maybe = true;
 			}
@@ -1575,7 +1578,6 @@ struct metaRowInfo
 		last_count = last.notes;
 		notes = row_notes;
 
-		jack_scan();
 		basic_row_sequencing(last);
 	}
 };
@@ -1585,7 +1587,7 @@ struct metaItvInfo
 {
 	bool dbg = false && debug_lmao;
 	bool dbg_lv2 = false && debug_lmao;
-	ItvInfo* _itv_info;
+	ItvInfo _itv_info;
 
 	float start = 0.f;
 	// meta info for this interval extracted from the base noterow progression
@@ -1597,6 +1599,10 @@ struct metaItvInfo
 	int not_hs = 0;
 	int zwop = 0;
 	int shared_chord_jacks = 0;
+
+	// we want mixed hs/js to register as hs, even at relatively sparse hand
+	// density
+	int mixed_hs_density_tap_bonus = 0;
 
 	// ok new plan instead of a map, keep an array of 3, run a comparison loop
 	// that sets 0s to a new value if that value doesn't match any non 0 value,
@@ -2073,28 +2079,28 @@ struct StreamMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvInfo* itv,
+	inline bool handle_case_optimizations(const ItvInfo& itv,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 		// 1 tap is by definition a single tap
-		if (itv->total_taps < 2) {
+		if (itv.total_taps < 2) {
 			neutral_set(doot, i);
 			return true;
 		}
 
-		if (itv->taps_by_size[single] == 0) {
+		if (itv.taps_by_size[single] == 0) {
 			min_set(doot, i);
 			return true;
 		}
 		return false;
 	}
 
-	inline void operator()(const metaItvInfo* mitv,
+	inline void operator()(const metaItvInfo& mitv,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto* itv = mitv->_itv_info;
+		const auto& itv = mitv._itv_info;
 		if (handle_case_optimizations(itv, doot, i))
 			return;
 
@@ -2107,12 +2113,12 @@ struct StreamMod
 		// to be so severe
 
 		prop_component =
-		  static_cast<float>(itv->taps_by_size[_tap_size] + prop_buffer) /
-		  static_cast<float>(itv->total_taps - prop_buffer) * prop_scaler;
+		  static_cast<float>(itv.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itv.total_taps - prop_buffer) * prop_scaler;
 
 		// allow for a mini/triple jack in streams.. but not more than that
 		jack_component = CalcClamp(
-		  jack_pool - mitv->actual_jacks, jack_comp_min, jack_comp_max);
+		  jack_pool - mitv.actual_jacks, jack_comp_min, jack_comp_max);
 		pmod = fastsqrt(prop_component * jack_component);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
@@ -2234,19 +2240,19 @@ struct JSMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvInfo* itv,
+	inline bool handle_case_optimizations(const ItvInfo& itv,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 
 		// empty interval, don't decay js mod or update last_mod
-		if (itv->total_taps == 0) {
+		if (itv.total_taps == 0) {
 			neutral_set(doot, i);
 			return true;
 		}
 
 		// at least 1 tap but no jumps
-		if (itv->taps_by_size[_tap_size] == 0) {
+		if (itv.taps_by_size[_tap_size] == 0) {
 			decay_mod();
 			min_set(doot, i);
 			doot[_primary][i] = pmod;
@@ -2255,19 +2261,19 @@ struct JSMod
 		return false;
 	}
 
-	inline void operator()(const metaItvInfo* mitv,
+	inline void operator()(const metaItvInfo& mitv,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto& itv = mitv->_itv_info;
+		const auto& itv = mitv._itv_info;
 		if (handle_case_optimizations(itv, doot, i))
 			return;
 
-		t_taps = static_cast<float>(itv->total_taps);
+		t_taps = static_cast<float>(itv.total_taps);
 
 		// creepy banana
 		total_prop =
-		  static_cast<float>(itv->taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itv.taps_by_size[_tap_size] + prop_buffer) /
 		  (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
@@ -2275,7 +2281,7 @@ struct JSMod
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
 		jumptrill_prop = CalcClamp(
-		  split_hand_pool - (static_cast<float>(mitv->not_js) / t_taps),
+		  split_hand_pool - (static_cast<float>(mitv.not_js) / t_taps),
 		  split_hand_min,
 		  split_hand_max);
 
@@ -2284,7 +2290,7 @@ struct JSMod
 		// this but handling it here gives us more flexbility
 		// with the ohjump mod
 		jack_prop = CalcClamp(
-		  jack_pool - (static_cast<float>(mitv->actual_jacks) / t_taps),
+		  jack_pool - (static_cast<float>(mitv.actual_jacks) / t_taps),
 		  jack_min,
 		  jack_max);
 
@@ -2419,18 +2425,18 @@ struct HSMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvInfo* itv,
+	inline bool handle_case_optimizations(const ItvInfo& itv,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 		// empty interval, don't decay mod or update last_mod
-		if (itv->total_taps == 0) {
+		if (itv.total_taps == 0) {
 			neutral_set(doot, i);
 			return true;
 		}
 
 		// look ma no hands
-		if (itv->taps_by_size[_tap_size] == 0) {
+		if (itv.taps_by_size[_tap_size] == 0) {
 			decay_mod();
 			min_set(doot, i);
 			doot[_primary][i] = pmod;
@@ -2439,33 +2445,33 @@ struct HSMod
 		return false;
 	}
 
-	inline void operator()(const metaItvInfo* mitv,
+	inline void operator()(const metaItvInfo& mitv,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto* itv = mitv->_itv_info;
+		const auto& itv = mitv._itv_info;
 		if (handle_case_optimizations(itv, doot, i))
 			return;
 
-		t_taps = static_cast<float>(itv->total_taps);
+		t_taps = static_cast<float>(itv.total_taps);
 
 		// when bark of dog into canyon scream at you
 		total_prop =
 		  total_prop_base +
-		  (static_cast<float>(itv->taps_by_size[_tap_size] + prop_buffer) /
+		  (static_cast<float>(itv.taps_by_size[_tap_size] + prop_buffer) /
 		   (t_taps - prop_buffer) * total_prop_scaler);
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// downscale jumptrills for hs as well
 		jumptrill_prop = CalcClamp(
-		  split_hand_pool - (static_cast<float>(mitv->not_hs) / t_taps),
+		  split_hand_pool - (static_cast<float>(mitv.not_hs) / t_taps),
 		  split_hand_min,
 		  split_hand_max);
 
 		// downscale by jack density rather than upscale, like cj does
 		jack_prop = CalcClamp(
-		  jack_pool - (static_cast<float>(mitv->actual_jacks) / t_taps),
+		  jack_pool - (static_cast<float>(mitv.actual_jacks) / t_taps),
 		  jack_min,
 		  jack_max);
 		// clamp the original prop mod first before applying
@@ -2605,32 +2611,32 @@ struct CJMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvInfo* itv,
+	inline bool handle_case_optimizations(const ItvInfo& itv,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
-		if (itv->total_taps == 0) {
+		if (itv.total_taps == 0) {
 			min_set(doot, i);
 			return true;
 		}
 
 		// no chords
-		if (itv->chord_taps == 0) {
+		if (itv.chord_taps == 0) {
 			min_set(doot, i);
 			return true;
 		}
 		return false;
 	}
 
-	inline void operator()(const metaItvInfo* mitv,
+	inline void operator()(const metaItvInfo& mitv,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto* itv = mitv->_itv_info;
+		const auto& itv = mitv._itv_info;
 		if (handle_case_optimizations(itv, doot, i))
 			return;
 
-		t_taps = static_cast<float>(itv->total_taps);
+		t_taps = static_cast<float>(itv.total_taps);
 
 		// we have at least 1 chord we want to give a little leeway for single
 		// taps but not too much or sections of [12]4[123] [123]4[23] will be
@@ -2638,26 +2644,26 @@ struct CJMod
 		// we also want to give enough leeway so that hyperdense chordjacks at
 		// lower bpms aren't automatically rated higher than more sparse jacks
 		// at higher bpms
-		total_prop = static_cast<float>(itv->chord_taps + prop_buffer) /
+		total_prop = static_cast<float>(itv.chord_taps + prop_buffer) /
 					 (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// make sure there's at least a couple of jacks
 		jack_prop =
-		  CalcClamp(mitv->actual_jacks_cj - jack_base, jack_min, jack_max);
+		  CalcClamp(mitv.actual_jacks_cj - jack_base, jack_min, jack_max);
 
 		// too many quads is either pure vibro or slow quadmash, downscale a bit
 		quad_prop =
 		  quad_pool -
-		  (static_cast<float>(itv->taps_by_size[quad] * quad_scaler) / t_taps);
+		  (static_cast<float>(itv.taps_by_size[quad] * quad_scaler) / t_taps);
 		quad_prop = CalcClamp(quad_prop, quad_min, quad_max);
 
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
 		not_jack_prop = CalcClamp(
 		  not_jack_pool -
-			(static_cast<float>(mitv->definitely_not_jacks * not_jack_scaler) /
+			(static_cast<float>(mitv.definitely_not_jacks * not_jack_scaler) /
 			 t_taps),
 		  not_jack_min,
 		  not_jack_max);
@@ -2669,16 +2675,16 @@ struct CJMod
 
 		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
 		// this other places ?
-		if (mitv->basically_vibro) {
+		if (mitv.basically_vibro) {
 			// we shouldn't be hitting empty intervals here
-			ASSERT(mitv->num_var > 0);
-			if (mitv->num_var == 1)
+			ASSERT(mitv.num_var > 0);
+			if (mitv.num_var == 1)
 				pmod *= 0.85f;
-			else if (mitv->num_var == 2)
+			else if (mitv.num_var == 2)
 				pmod *= 0.9f;
-			else if (mitv->num_var == 3)
+			else if (mitv.num_var == 3)
 				pmod *= 0.9f;
-			assert(mitv->num_var < 4);
+			assert(mitv.num_var < 4);
 		}
 
 		// actual mod
