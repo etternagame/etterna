@@ -4314,7 +4314,7 @@ struct WideRangeRollMod
 	float itv_window = 4;
 
 	float min_mod = 0.25f;
-	float max_mod = 1.035f;
+	float max_mod = 1.f;
 	float mod_pool = 1.15f;
 
 	float moving_cv_init = 0.5f;
