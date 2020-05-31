@@ -42,6 +42,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const int zto3[4] = { 0, 1, 2, 3 };
+									// THESE ARE ACTUALLY MIRROR'D 
 static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
 								   "0100", "0101", "0110", "0111",
 								   "1000", "1001", "1010", "1011",
@@ -2153,7 +2154,7 @@ struct JSMod
 		// result in extreme spikiness if files alternate between js and
 		// hs/stream
 		last_mod = pmod;
-	};
+	}
 };
 struct HSMod
 {
