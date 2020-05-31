@@ -151,14 +151,10 @@ local debugGroups = {
     {
         Stream = true,
         OHTrill = true,
-		OHJump = true,
+		OHJumpMod = true,
+		Roll = true,
 		StamMod = true
     },
-	{
-		Roll = true,
-		WideRangeRoll = true,
-		WideRangeJumptrill = true
-	},
     {
         JS = true,
         JSS = true,
@@ -171,38 +167,32 @@ local debugGroups = {
         HSJ = true,
 		StamMod = true
 	},
-	{
-        OHJumpMod = true,
-        --OHJPropComp = true,
-        --OHJSeqComp = true,
-        --OHJBaseProp = true,
-	},
     {
         CJ = true,
         CJS = true,
         CJJ = true,
         CJQuad = true,
         CJOHJump = true,
-        CJOHJPropComp = true,
-        CJOHJSeqComp = true,
-
+        --CJOHJPropComp = true,
+        --CJOHJSeqComp = true,
 		StamMod = true
     },
-    {
-        OHJMaxSeq = true,
-        OHJCCTaps = true,
-        OHJHTaps = true,
-    },
-    {
+	{
+		Roll = true,
+		WideRangeRoll = true,
+		WideRangeJumptrill = true
+	},
+	{
         Chaos = true,
         FlamJam = true,
         TheThing = true,
         Anchor = true,
         WideRangeBalance = true,
         WideRangeAnchor = true,
+		RanMan = true,
         TheThing = true
     },
-    {
+	{
         RanMan = true,
         RanLen = true,
         RanAnchLen = true,
@@ -215,8 +205,17 @@ local debugGroups = {
         RanPropOff = true,
         RanPropOffS = true,
         RanPropJack = true,
-        
-        
+    },
+	{
+        OHJumpMod = true,
+        --OHJPropComp = true,
+        --OHJSeqComp = true,
+        --OHJBaseProp = true,
+	},
+    {
+        OHJMaxSeq = true,
+        OHJCCTaps = true,
+        OHJHTaps = true,
     },
     {},
     [9] = {},
@@ -703,23 +702,19 @@ local modnames = {
 }
 
 local modColors = {
-    color("1,0.8,0"),       -- gold			= ohjump left
-    color("1,1,0.2"), 		-- yellow        	 (right)
-    color("0.2,0.2,1"),     -- blue         = anchor left
-    color("0.3,0.3,0.9"),   -- light blue        (right)
-    color("0,1,0"),         -- green        = roll left
-    color("0.3,0.9,0.3"),   -- light green       (right)
+    color(".3,1.3,1"),      -- cyan			= stream left
+    color(".3,1.3,0.9"),	-- cyan				 (right)
+	color("1,0,1"),     	-- purple       = jumpstream left
+    color("1,0.3,1"),   	-- light purple      (right)
+	color("0,1,1"),			-- cyan			= jumpstream stream
+	color("0,0.8,1"),		-- light blue		 (right)
+	color("1,0,0"),			-- red			= jumpstream jack
+	color("1,0.2,0"),		-- orange			 (right)
     color("1,1,0"),         -- yellow       = handstream left
     color("0.6,0.6,0"),     -- dark yellow       (right)
 	color("0,1,1"),			-- cyan			= handstream stream
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= handstream jack
-	color("1,0.2,0"),		-- orange			 (right)
-    color("1,0,1"),     	-- purple       = jumpstream left
-    color("1,0.3,1"),   	-- light purple      (right)
-	color("0,1,1"),			-- cyan			= jumpstream stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= jumpstream jack
 	color("1,0.2,0"),		-- orange			 (right)
     color("1.4,1.3,1"),     -- white 		= chordjack left
     color("1.4,1.3,0.9"),   -- white			 (right)
@@ -727,8 +722,32 @@ local modColors = {
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= chordjack jack
 	color("1,0.2,0"),		-- orange			 (right)
-    color(".3,1.3,1"),      -- cyan			= stream left
-    color(".3,1.3,0.9"),	-- cyan				 (right)
+	color("1,1,0"),			-- yellow		= cjquad left
+    color("1,1,0"),			-- yellow			 (right)
+    color("1,0.8,0"),       -- gold			= ohjump left
+    color("1,1,0.2"), 		-- yellow        	 (right)
+	color("1,1,1"),			-- ohjbp
+	color("1,1,1"),
+	color("1,1,1"),			-- ohjpc
+	color("1,1,1"),
+	color("1,1,1"),			-- ohjsc
+	color("1,1,1"),
+	color("1,1,1"),			-- ohjms
+	color("1,1,1"),
+	color("1,1,1"),			-- ohjcct
+	color("1,1,1"),
+	color("1,1,1"),			-- ohjht
+	color("1,1,1"),
+    color("1,0.4,0"),		-- orange		= cjohj left
+    color("1,0.4,0"),		-- orange			 (right)
+	color("1,1,1"),			-- cjohjpc
+	color("1,1,1"),
+	color("1,1,1"),			-- cjohjsc
+	color("1,1,1"),
+    color("0.2,0.2,1"),     -- blue         = anchor left
+    color("0.3,0.3,0.9"),   -- light blue        (right)
+    color("0,1,0"),         -- green        = roll left
+    color("0.3,0.9,0.3"),   -- light green       (right)
     color(".8,1.3,1"),      -- whiteblue	= oht left
     color(".8,1.3,0.9"),	-- whiteblue		 (right)
     color(".4,0.9,0.3"),    -- green		= chaos left
@@ -739,20 +758,38 @@ local modColors = {
     color("1,0.2,0"),		-- red				 (right)
     color("1,0.5,0"),		-- orange		= wrjt left
     color("1,0.5,0"),		-- orange			 (right)
-    color("1,0.4,0"),		-- orange		= cjohj left
-    color("1,0.4,0"),		-- orange			 (right)
-    color("1,1,0"),			-- yellow		= cjquad left
-    color("1,1,0"),			-- yellow			 (right)
+    color("0.7,1,0.2"),		-- leme			= wrb left
+    color("0.7,1,0.2"),		-- leme				 (right)
+    color("0.7,1,0.1"),		-- leme			= wra left
+    color("0.7,1,0.1"),		-- leme				 (right)
     color("0,0.8,1"),		-- light blue	= thething left
     color("0,0.8,1"),		-- light blue		 (right)
+	color("0.2,1,1"),		-- light blue	= ranman left
+	color("0.2,1,1"),		-- light blue		 (right)
+	color("1,1,1"),			-- rl
+	color("1,1,1"),
+	color("1,1,1"),			-- ral
+	color("1,1,1"),
+	color("1,1,1"),			-- ralm
+	color("1,1,1"),
+	color("1,1,1"),			-- rj
+	color("1,1,1"),
+	color("1,1,1"),			-- roht
+	color("1,1,1"),
+	color("1,1,1"),			-- ros
+	color("1,1,1"),
+	color("1,1,1"),			-- rpa
+	color("1,1,1"),
+	color("1,1,1"),			-- rpo
+	color("1,1,1"),
+	color("1,1,1"),			-- rpoht
+	color("1,1,1"),
+	color("1,1,1"),			-- rpos
+	color("1,1,1"),
+	color("1,1,1"),			-- rpj
+	color("1,1,1"),
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
-    color("0.7,1,0.2"),		-- leme			= wrbr left
-    color("0.7,1,0.2"),		-- leme				 (right)
-    color("0.7,1,0.1"),		-- leme			= wrar left
-    color("0.7,1,0.1"),		-- leme				 (right)
-    color("0.7,1,0.7"),		-- leme			= wrar left
-    color("0.7,1,0.7"),		-- leme				 (right)
 }
 
 -- top graph average text
