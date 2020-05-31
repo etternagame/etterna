@@ -1096,7 +1096,7 @@ is_alternating_chord_stream(const unsigned& a,
 #pragma region new pattern mod structure
 // accumulates info across an interval as it's processed by row
 // this should really be moved out of mni maybe probably, since it's generated
-// twice and doesn't need to be
+// twice and doesn't need to be (this definitely totally needs to happen)
 struct itv_info
 {
 	bool dbg = false && debug_lmao;
@@ -1109,7 +1109,7 @@ struct itv_info
 	int not_hs = 0;
 	int zwop = 0;
 	int total_taps = 0;
-	// right hand taps
+	int col_taps[4] = { 0, 0, 0, 0};
 	int hand_taps[2] = { 0, 0 };
 	int chord_taps = 0;
 	int taps_by_size[4] = { 0, 0, 0, 0 };
@@ -1162,6 +1162,8 @@ struct itv_info
 		// self explanatory and unused
 		shared_chord_jacks = 0;
 
+		for (auto& t : col_taps)
+			t = 0;
 		for (auto& t : hand_taps)
 			t = 0;
 		// see def
@@ -1243,6 +1245,8 @@ struct itv_info
 		chord_taps = last.chord_taps;
 		shared_chord_jacks = last.shared_chord_jacks;
 
+		for (size_t i = 0; i < 4; ++i)
+			col_taps[i] = last.col_taps[i];
 		for (size_t i = 0; i < 2; ++i)
 			hand_taps[i] = last.hand_taps[i];
 		for (size_t i = 0; i < 4; ++i)
@@ -1264,14 +1268,22 @@ struct itv_info
 		update_tap_counts(row_count);
 		// hand specific tap counts, multiple different pattern mods need them
 		// so let's track them here (lazy i know)
-		if (row_notes & col_ids[0])
+		if (row_notes & col_ids[0]) {
+			++col_taps[0];
 			++hand_taps[0];
-		if (row_notes & col_ids[1])
+		}
+		if (row_notes & col_ids[1]) {
+			++col_taps[1];
 			++hand_taps[0];
-		if (row_notes & col_ids[2])
+		}
+		if (row_notes & col_ids[2]) {
+			++col_taps[2];
 			++hand_taps[1];
-		if (row_notes & col_ids[3])
+		}
+		if (row_notes & col_ids[3]) {
+			++col_taps[3];
 			++hand_taps[1];
+		}
 	}
 };
 
@@ -4093,7 +4105,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
-		load_params_from_disk();
+		//load_params_from_disk();
 
 		// ok so the problem atm is the multithreading of songload, if we want
 		// to update the file on disk with new values and not just overwrite it
@@ -4439,10 +4451,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	return true;
 }
 
-// DON'T refpass, since we manipulate the vector and this is done before
-// jackseq, if we shuffle stuff around so this is done after jackseq and
-// we're sure we don't need to use this for anything else we can probably
-// refpass again but cba to test atm
 float
 Hand::CalcMSEstimate(vector<float>& input, const int& burp)
 {
@@ -6405,7 +6413,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 348;
+int mina_calc_version = 349;
 int
 GetCalcVersion()
 {
