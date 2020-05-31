@@ -4681,8 +4681,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
-		load_params_from_disk();
-
+#if not RELWITHDEBINFO
+		load_calc_params_from_disk();
+#endif
 		// ok so the problem atm is the multithreading of songload, if we want
 		// to update the file on disk with new values and not just overwrite it
 		// we have to write out after loading the values player defined, so the
@@ -4877,7 +4878,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjt(*_mni_now, _doot, itv);
 	}
 
-	inline void load_params_from_disk()
+	inline void load_calc_params_from_disk()
 	{
 		std::string fn = calc_params_xml;
 		int iError;
