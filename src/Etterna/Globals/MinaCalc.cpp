@@ -4064,6 +4064,169 @@ struct WideRangeRollMod
 	}
 };
 
+struct AnchorMod
+{
+
+	const vector<int> _pmods = { Anchor };
+	const std::string name = "Anchor";
+	const int _primary = _pmods.front();
+
+#pragma region params
+	float min_mod = 0.9f;
+	float max_mod = 1.1f;
+	float mod_base = 0.3f;
+	float buffer = 1.f;
+	float scaler = 1.f;
+	float other_scaler = 4.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "mod_base", &mod_base }, { "buffer", &buffer },
+		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+	};
+#pragma endregion params and param map
+	float l_taps = 0.f;
+	float r_taps = 0.f;
+	float pmod = min_mod;
+	
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 1.f);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline bool handle_case_optimizations(const itv_info& itv,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// nothing here
+		if (itv.total_taps == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// jack
+		if (l_taps == 0.f || r_taps == 0.f) {
+			neutral_set(doot, i);
+			return true;
+		}
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i,
+						   const int& hand)
+	{
+		const auto& itv = mni._itv_info;
+
+		// left
+		if (hand == 0) {
+			l_taps = static_cast<float>(itv.col_taps[0]);
+			r_taps = static_cast<float>(itv.col_taps[1]);
+		} else {
+			l_taps = static_cast<float>(itv.col_taps[2]);
+			r_taps = static_cast<float>(itv.col_taps[3]);
+		}
+
+		//if (handle_case_optimizations(itv, doot, i))
+		//	return;
+
+		pmod = static_cast<float>(min(l_taps, r_taps)) /
+			   static_cast<float>(max(l_taps, r_taps));
+		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		bool anyzero = l_taps == 0 || r_taps == 0;
+		float bort = static_cast<float>(min(l_taps, r_taps)) /
+					 static_cast<float>(max(l_taps, r_taps));
+		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
+
+		//
+		bort = CalcClamp(bort, 0.9f, 1.1f);
+
+		doot[Anchor][i] = anyzero ? 1.f : bort;
+
+		// actual mod
+		doot[_primary][i] = pmod;
+		doot[Anchor][i] = anyzero ? 1.f : bort;
+	}
+};
+void
+Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
+				   unsigned int firstNote,
+				   unsigned int secondNote,
+				   vector<float> doot[])
+{
+	doot[Anchor].resize(nervIntervals.size());
+
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int lcol = 0;
+		int rcol = 0;
+		for (int row : nervIntervals[i]) {
+			if (NoteInfo[row].notes & firstNote)
+				++lcol;
+			if (NoteInfo[row].notes & secondNote)
+				++rcol;
+		}
+		bool anyzero = lcol == 0 || rcol == 0;
+		float bort = static_cast<float>(min(lcol, rcol)) /
+					 static_cast<float>(max(lcol, rcol));
+		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
+
+		//
+		bort = CalcClamp(bort, 0.9f, 1.1f);
+
+		doot[Anchor][i] = anyzero ? 1.f : bort;
+	}
+
+		Smooth(doot[Anchor], 1.f);
+}
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -4094,6 +4257,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
+	AnchorMod _anch;
 	OHJumpMods _ohj;
 	OHTrillMod _oht;
 	RunningManMod _rm;
@@ -4261,6 +4425,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.setup(_doot, _itv_rows.size());
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
+		_anch.setup(_doot, _itv_rows.size());
 		_ohj.setup(_doot, _itv_rows.size());
 		_oht.setup(_doot, _itv_rows.size());
 		_rm.setup(_doot, _itv_rows.size());
@@ -4274,6 +4439,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.smooth_finish(_doot);
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
+		_anch.smooth_finish(_doot);
 		_ohj.smooth_finish(_doot);
 		_oht.smooth_finish(_doot);
 		_wrr.smooth_finish(_doot);
@@ -4286,6 +4452,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js(*_mni_now, _doot, itv);
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
+		_anch(*_mni_now, _doot, itv, hand);
 		_ohj(*_mni_now, _doot, itv, hand);
 		_oht(*_mni_now, _doot, itv, hand);
 		_wrr(*_mni_now, _doot, itv, hand);
@@ -4309,6 +4476,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
+		_anch.load_params_from_node(&params);
 		_ohj.load_params_from_node(&params);
 		_oht.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
@@ -4323,6 +4491,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_anch.make_param_node());
 		calcparams->AppendChild(_ohj.make_param_node());
 		calcparams->AppendChild(_oht.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
@@ -4398,6 +4567,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		// these definitely do change with every chisel test
 		hand.stam_adj_diff.resize(numitv);
 
+		
 		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
