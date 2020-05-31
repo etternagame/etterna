@@ -44,7 +44,7 @@ class SongCacheIndex
 	bool delay_save_cache;
 
 	int64_t InsertStepsTimingData(const TimingData& timing);
-	int64_t InsertSteps(const Steps* pSteps, int64_t songID);
+	int64_t InsertSteps(Steps* pSteps, int64_t songID);
 	bool LoadSongFromCache(Song* song, string dir);
 	bool CacheSong(Song& song, string dir);
 	void StartTransaction();
