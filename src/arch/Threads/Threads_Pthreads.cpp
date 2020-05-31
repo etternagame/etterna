@@ -350,23 +350,18 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		// The RageTimer clock is different than the wait clock; convert it.
 		timeval tv;
 		gettimeofday(&tv, NULL);
-
+		
 		RageTimer timeofday(tv.tv_sec, tv.tv_usec);
-
 		float fSecondsInFuture = -pTimeout->Ago();
 		timeofday += fSecondsInFuture;
-        
+
 		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(timeofday.c_dur);
 		auto sec = std::chrono::duration_cast<std::chrono::seconds>(timeofday.c_dur);
 		nsec -= sec;
 		abstime.tv_sec = sec.count();
 		abstime.tv_nsec = nsec.count();
 	}
-	/* Note, this should be pthread_cond_timedwait(&m_Cond, &m_pParent->mutex, &abstime);
-	 * However, pTimeout's garbage value makes this always times out.
-	 * The true fix would be to look upstream at what is generating the timeout values.
-	 * This is only a stopgap until then. */
-	int iRet = pthread_cond_wait(&m_Cond, &m_pParent->mutex);
+	int iRet = pthread_cond_timedwait(&m_Cond, &m_pParent->mutex, &abstime);
 	return iRet != ETIMEDOUT;
 }
 
