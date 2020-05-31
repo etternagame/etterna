@@ -1,7 +1,7 @@
 
-if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # If 64bit
     file(GLOB LIBS 64bit/*.lib)
-elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) # If 32bit
     file(GLOB LIBS lib/*.lib)
 endif()
 

@@ -40,7 +40,6 @@ t[#t + 1] =
 		end
 	}
 t[#t + 1] = LoadActor("../_cursor")
-t[#t + 1] = LoadActor("../_mouseselect")
 t[#t + 1] = LoadActor("../_mousewheelscroll")
 t[#t + 1] = LoadActor("currenttime")
 t[#t + 1] = LoadActor("../_halppls")

@@ -340,7 +340,7 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		/* If we support condattr_setclock, we'll set the condition to use
 		 * the same clock as RageTimer and can use it directly. If the
 		 * clock is CLOCK_REALTIME, that's the default anyway. */
-        
+
 		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(pTimeout->c_dur);
 		auto sec = std::chrono::duration_cast<std::chrono::seconds>(pTimeout->c_dur);
 		nsec -= sec;

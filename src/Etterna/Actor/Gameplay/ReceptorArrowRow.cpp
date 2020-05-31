@@ -130,13 +130,3 @@ ReceptorArrowRow::SetPressed(int iCol)
 	ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
 	m_ReceptorArrow[iCol]->SetPressed();
 }
-
-void
-ReceptorArrowRow::SetNoteUpcoming(int iCol, bool b, int iRow)
-{
-	if (NoteUpcoming[iCol][iRow] == NULL) {
-		ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
-		m_ReceptorArrow[iCol]->SetNoteUpcoming(iCol, iRow, b);
-		NoteUpcoming[iCol][iRow] = true;
-	}
-}

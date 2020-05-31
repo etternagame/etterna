@@ -11,8 +11,8 @@
 #ifndef MINACALC_API
 #define MINACALC_API
 #endif
-//#define USING_NEW_CALC
-//#define USING_CALCTESTS
+#define USING_NEW_CALC
+#define USING_CALCTESTS
 typedef std::vector<std::vector<float>> MinaSD;
 typedef std::vector<std::vector<float>> Finger;
 typedef std::vector<Finger> ProcessedFingers;
@@ -38,7 +38,7 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	static float CalcMSEstimate(std::vector<float> input);
+	float CalcMSEstimate(std::vector<float> input, int burp);
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
@@ -166,9 +166,6 @@ class Calc
 								   float music_rate,
 								   std::vector<float> doot[]);
 
-	JumpHandChordData gen_jump_hand_chord_data(
-	  const std::vector<NoteInfo>& NoteInfo);
-
 	// nerf psuedo chords that are flams into oblivion
 	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
 					   std::vector<float> doot[],
@@ -182,15 +179,6 @@ class Calc
 					  unsigned int t1,
 					  unsigned int t2,
 					  std::vector<float> doot[ModCount]);
-
-	// no longer going to necessarily be downscalers - that they were
-	// was a structural flaw of the old calc
-	void SetHSMod(const JumpHandChordData& data,
-				  std::vector<float> doot[ModCount]);
-	void SetJumpMod(const JumpHandChordData& data,
-					std::vector<float> doot[ModCount]);
-	void SetCJMod(const JumpHandChordData& data,
-				  std::vector<float> doot[ModCount]);
 
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once

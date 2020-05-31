@@ -508,34 +508,6 @@ class NoteData
 	int GetNumLifts(int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW) const;
 	int GetNumFakes(int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW) const;
 
-	// the couple/routine style variants of the above.
-	pair<int, int> GetNumTapNotesTwoPlayer(int startRow = 0,
-										   int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumJumpsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumHandsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumQuadsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumHoldNotesTwoPlayer(int startRow = 0,
-											int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumMinesTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumRollsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumLiftsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumFakesTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
 	int GetNumTracksLCD() const;
 
 	// Transformations
@@ -549,15 +521,4 @@ class NoteData
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 };
-
-/** @brief Allow a quick way to swap notedata. */
-namespace std {
-template<>
-inline void
-swap<NoteData>(NoteData& nd1, NoteData& nd2) noexcept
-{
-	nd1.swap(nd2);
-}
-}
-
 #endif

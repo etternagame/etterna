@@ -85,13 +85,3 @@ ReceptorArrow::Step(TapNoteScore score)
 	msg.SetParam("Color", NOTESKIN->GetLastSeenColor());
 	m_pReceptor->HandleMessage(msg);
 }
-
-void
-ReceptorArrow::SetNoteUpcoming(int iCol, int iRow, bool b)
-{
-	m_pReceptor->PlayCommand(b ? "ShowNoteUpcoming" : "HideNoteUpcoming");
-	Message msg("ReceptorUpcoming");
-	msg.SetParam("Column", iCol);
-	msg.SetParam("Row", iRow);
-	m_pReceptor->HandleMessage(msg);
-}

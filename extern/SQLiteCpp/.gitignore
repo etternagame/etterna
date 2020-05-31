@@ -4,6 +4,7 @@ build
 example1
 *.a
 
+.vscode/
 /SQLiteCpp.sln
 *.ncb
 *.suo
@@ -18,7 +19,6 @@ core
 
 CMakeCache.txt
 CMakeFiles
-*.cmake
 *.dir
 Testing
 Win32
