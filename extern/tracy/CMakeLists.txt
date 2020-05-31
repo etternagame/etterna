@@ -33,6 +33,7 @@ endif()
 
 if(ENABLE_TRACY_PROFILER)
   target_compile_definitions("tracy" PUBLIC TRACY_ENABLE)
+  target_compile_definitions(Etterna PUBLIC TRACY_ENABLE)
 endif()
 
 set_property(TARGET "tracy" PROPERTY FOLDER "External Libraries")

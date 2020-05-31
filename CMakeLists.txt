@@ -86,9 +86,6 @@ target_link_libraries(Etterna PRIVATE libmad)
 target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE tracy)
-if(ENABLE_TRACY_PROFILER)
-  target_compile_definitions(Etterna PUBLIC TRACY_ENABLE)
-endif()
 
 # OS Specific Initialization
 if(WIN32)
