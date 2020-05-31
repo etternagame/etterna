@@ -226,7 +226,7 @@ StringToSkillset(const RString& s)
 }
 
   static const char* CalcPatternModNames[] = {
-	"StreamMod",
+	"Stream",
 	"JS",
 	"JSS",
 	"JSJ",

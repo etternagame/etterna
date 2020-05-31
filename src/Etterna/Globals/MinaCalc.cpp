@@ -1972,6 +1972,224 @@ struct RM_Sequencing
 #pragma endregion
 };
 
+// since the calc skillset balance now operates on +- rather than
+// just - and then normalization, we will use this to depress the
+// stream rating for non-stream files.
+struct StreamMod
+{
+
+	const vector<int> _pmods = { Stream };
+	const std::string name = "StreamMod";
+	const int _tap_size = single;
+	const int _primary = _pmods.front();
+
+#pragma region params
+	float min_mod = 0.6f;
+	float max_mod = 1.1f;
+	float prop_buffer = 1.f;
+	float prop_scaler = 1.428; // ~10/7
+
+	float jack_pool = 4.f;
+	float jack_comp_min = 0.5f;
+	float jack_comp_max = 1.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "prop_buffer", &prop_buffer },
+		{ "prop_scaler", &prop_scaler },
+
+		{ "jack_pool", &jack_pool },
+		{ "jack_comp_min", &jack_comp_min },
+		{ "jack_comp_max", &jack_comp_max },
+	};
+#pragma endregion params and param map
+	float prop_component = 0.f;
+	float jack_component = 0.f;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const size_t& size)
+	{
+		for (auto& mod : _pmods)
+			doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = neutral;
+	}
+
+	inline void smooth_finish(vector<float> doot[])
+	{
+		Smooth(doot[_primary], 1.f);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline bool handle_case_optimizations(const itv_info& itv,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		// 1 tap is by definition a single tap
+		if (itv.total_taps < 2) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		if (itv.taps_by_size[single] == 0)
+		{
+			min_set(doot, i);
+			return true;
+		}
+		return false;
+	}
+
+	inline void operator()(const metanoteinfo& mni,
+						   vector<float> doot[],
+						   const size_t& i)
+	{
+		const auto& itv = mni._itv_info;
+
+		if (handle_case_optimizations(itv, doot, i))
+			return;
+
+		// we want very light js to register as stream,
+		// something like jumps on every other 4th, so 17/19
+		// ratio should return full points, but maybe we should
+		// allow for some leeway in bad interval slicing this
+		// maybe doesn't need to be so severe, on the other
+		// hand, maybe it doesn'ting need to be not needing'nt
+		// to be so severe
+
+		prop_component =
+		  static_cast<float>(itv.taps_by_size[_tap_size] + prop_buffer) /
+					 static_cast<float>(itv.total_taps - prop_buffer) * prop_scaler;
+
+		// allow for a mini/triple jack in streams.. but not more than that
+		jack_component =
+		  CalcClamp(jack_pool - itv.actual_jacks, jack_comp_min, jack_comp_max);
+		pmod = fastsqrt(prop_component * jack_component);
+		pmod = CalcClamp(pmod, max_mod, min_mod);
+
+		// actual mod
+		doot[_primary][i] = pmod;
+	}
+};
+void
+Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
+				   vector<float> doot[],
+				   float music_rate)
+{
+	doot[Stream].resize(nervIntervals.size());
+	int last_col = -1;
+
+	float lasttime = -1.f;
+	for (size_t i = 0; i < nervIntervals.size(); i++) {
+		int actual_jacks = 0;
+		unsigned int taps = 0;
+		unsigned int singletaps = 0;
+		set<float> whatwhat;
+		vector<float> whatwhat2;
+		for (int row : nervIntervals[i]) {
+			unsigned int notes = column_count(NoteInfo[row].notes);
+			taps += notes;
+
+			if (notes == 1 && NoteInfo[row].notes == last_col)
+				++actual_jacks;
+			if (notes == 1) {
+				++singletaps;
+				last_col = NoteInfo[row].notes;
+			}
+
+			float curtime = NoteInfo[row].rowTime / music_rate;
+
+			float giraffeasaurus = curtime - lasttime;
+			// screen out large hits, it should be ok if this is a
+			// discrete cutoff, but i don't like it if
+			// (giraffeasaurus < 0.25f)
+			//	whatwhat.emplace(giraffeasaurus);
+
+			// instead of making another new mod, calculate the
+			// original and most basic chaos mod and apply it along
+			// with the new one for (size_t i = 0; i < notes; ++i)
+			//	whatwhat2.push_back(giraffeasaurus);
+			lasttime = curtime;
+		}
+
+		// 1 tap is by definition a single tap
+		if (taps < 2) {
+			doot[Stream][i] = 1.f;
+			// doot[Chaos][i] = stub;
+		} else if (singletaps == 0) {
+			doot[Stream][i] = 0.8f;
+			// doot[Chaos][i] = stub;
+		} else {
+			// we're going to use this to downscale the stream
+			// skillset of anything that isn't stream, just a simple
+			// tap proportion for the moment but maybe if we need to
+			// do fancier sequential stuff we can, the only real
+			// concern are jack files registering as stream and that
+			// shouldn't be an issue because the amount of single
+			// taps required to do that to any effectual level would
+			// be unplayable
+
+			// we could also use this to push up stream files if we
+			// wanted to but i don't think that's advisable or
+			// necessary
+
+			// we want very light js to register as stream,
+			// something like jumps on every other 4th, so 17/19
+			// ratio should return full points, but maybe we should
+			// allow for some leeway in bad interval slicing this
+			// maybe doesn't need to be so severe, on the other
+			// hand, maybe it doesn'ting need to be not needing'nt
+			// to be so severe
+			float prop = static_cast<float>(singletaps + 1) /
+						 static_cast<float>(taps - 1) * 10.f / 7.f;
+			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
+			doot[Stream][i] =
+			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
+			// doot[Chaos][i] = stub;
+		}
+	}
+	for (auto& v : doot[Chaos])
+		if (debugmode) {
+			// std::cout << "butts: final " << v << std::endl;
+		}
+	Smooth(doot[Stream], 1.f);
+}
+
 struct JSMod
 {
 
@@ -4213,6 +4431,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	metanoteinfo _dbg;
 
 	// so we can make pattern mods
+	StreamMod _s;
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
@@ -4381,6 +4600,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void run_pattern_mod_setups()
 	{
+		_s.setup(_doot, _itv_rows.size());
 		_js.setup(_doot, _itv_rows.size());
 		_hs.setup(_doot, _itv_rows.size());
 		_cj.setup(_doot, _itv_rows.size());
@@ -4394,26 +4614,28 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void run_smoothing_pass()
 	{
-		_rm.smooth_finish(_doot);
+		_s.smooth_finish(_doot);
 		_js.smooth_finish(_doot);
 		_hs.smooth_finish(_doot);
 		_cj.smooth_finish(_doot);
 		_anch.smooth_finish(_doot);
 		_ohj.smooth_finish(_doot);
 		_oht.smooth_finish(_doot);
+		_rm.smooth_finish(_doot);
 		_wrr.smooth_finish(_doot);
 		_wrjt.smooth_finish(_doot);
 	}
 
 	inline void call_pattern_mod_functors(const int& itv)
 	{
-		_rm(*_mni_now, _doot, itv);
+		_s(*_mni_now, _doot, itv);
 		_js(*_mni_now, _doot, itv);
 		_hs(*_mni_now, _doot, itv);
 		_cj(*_mni_now, _doot, itv);
 		_anch(*_mni_now, _doot, itv, hand);
 		_ohj(*_mni_now, _doot, itv, hand);
 		_oht(*_mni_now, _doot, itv, hand);
+		_rm(*_mni_now, _doot, itv);
 		_wrr(*_mni_now, _doot, itv, hand);
 		_wrjt(*_mni_now, _doot, itv);
 	}
@@ -4431,13 +4653,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile.get()))
 			return;
 
-		_rm.load_params_from_node(&params);
+		_s.load_params_from_node(&params);
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
 		_anch.load_params_from_node(&params);
 		_ohj.load_params_from_node(&params);
 		_oht.load_params_from_node(&params);
+		_rm.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
 	}
@@ -4446,13 +4669,14 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		XNode* calcparams = new XNode("CalcParams");
 
-		calcparams->AppendChild(_rm.make_param_node());
+		calcparams->AppendChild(_s.make_param_node());
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
 		calcparams->AppendChild(_anch.make_param_node());
 		calcparams->AppendChild(_ohj.make_param_node());
 		calcparams->AppendChild(_oht.make_param_node());
+		calcparams->AppendChild(_rm.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
 
@@ -4525,20 +4749,20 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 		// these definitely do change with every chisel test
 		hand.stam_adj_diff.resize(numitv);
-		
+		SetStreamMod(NoteInfo, left_hand.doot, music_rate);	
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
 	}
 
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
+	
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
-	vector<int> bruh_they_the_same = { StreamMod,		 Chaos,
+	vector<int> bruh_they_the_same = { Stream,		 Chaos,
 									   FlamJam,			 TheThing,
 									   WideRangeBalance, WideRangeAnchor };
 	// hand agnostic mods are the same
@@ -4854,7 +5078,7 @@ Hand::InitAdjDiff()
 
 		// stream
 		{
-		  StreamMod,
+		  Stream,
 		  OHTrill,
 		  Roll,
 		  Chaos,
@@ -5107,99 +5331,6 @@ Hand::StamAdjust(float x, int ss, bool debug)
 
 #pragma region PatternMods
 
-// since the calc skillset balance now operates on +- rather than
-// just - and then normalization, we will use this to depress the
-// stream rating for non-stream files. edit: ok technically this
-// should be done in the sequential pass however that's getting so
-// bloated and efficiency has been optimized enough we can just loop
-// through noteinfo sequentially a few times and it's whatever
-
-// the chaos mod is also determined here for the moment, which
-// pushes up polys and stuff... idk how it even works myself tbh its
-// a pretty hackjobjob
-void
-Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
-				   vector<float> doot[],
-				   float music_rate)
-{
-	doot[StreamMod].resize(nervIntervals.size());
-	int last_col = -1;
-
-	float lasttime = -1.f;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int actual_jacks = 0;
-		unsigned int taps = 0;
-		unsigned int singletaps = 0;
-		set<float> whatwhat;
-		vector<float> whatwhat2;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-
-			if (notes == 1 && NoteInfo[row].notes == last_col)
-				++actual_jacks;
-			if (notes == 1) {
-				++singletaps;
-				last_col = NoteInfo[row].notes;
-			}
-
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			float giraffeasaurus = curtime - lasttime;
-			// screen out large hits, it should be ok if this is a
-			// discrete cutoff, but i don't like it if
-			// (giraffeasaurus < 0.25f)
-			//	whatwhat.emplace(giraffeasaurus);
-
-			// instead of making another new mod, calculate the
-			// original and most basic chaos mod and apply it along
-			// with the new one for (size_t i = 0; i < notes; ++i)
-			//	whatwhat2.push_back(giraffeasaurus);
-			lasttime = curtime;
-		}
-
-		// 1 tap is by definition a single tap
-		if (taps < 2) {
-			doot[StreamMod][i] = 1.f;
-			// doot[Chaos][i] = stub;
-		} else if (singletaps == 0) {
-			doot[StreamMod][i] = 0.8f;
-			// doot[Chaos][i] = stub;
-		} else {
-			// we're going to use this to downscale the stream
-			// skillset of anything that isn't stream, just a simple
-			// tap proportion for the moment but maybe if we need to
-			// do fancier sequential stuff we can, the only real
-			// concern are jack files registering as stream and that
-			// shouldn't be an issue because the amount of single
-			// taps required to do that to any effectual level would
-			// be unplayable
-
-			// we could also use this to push up stream files if we
-			// wanted to but i don't think that's advisable or
-			// necessary
-
-			// we want very light js to register as stream,
-			// something like jumps on every other 4th, so 17/19
-			// ratio should return full points, but maybe we should
-			// allow for some leeway in bad interval slicing this
-			// maybe doesn't need to be so severe, on the other
-			// hand, maybe it doesn'ting need to be not needing'nt
-			// to be so severe
-			float prop = static_cast<float>(singletaps + 1) /
-						 static_cast<float>(taps - 1) * 10.f / 7.f;
-			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
-			doot[StreamMod][i] =
-			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
-			// doot[Chaos][i] = stub;
-		}
-	}
-	for (auto& v : doot[Chaos])
-		if (debugmode) {
-			// std::cout << "butts: final " << v << std::endl;
-		}
-		Smooth(doot[StreamMod], 1.f);
-}
 
 
 

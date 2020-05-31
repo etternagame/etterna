@@ -32,7 +32,7 @@ enum Skillset
 // we do actually want to register these with lua i guess
 enum CalcPatternMod
 {
-	StreamMod,
+	Stream,
 	JS,   // pattern mod (values between 0-1)
 	JSS,		// pattern mod (values between 0-1)
 	JSJ,		// pattern mod (values between 0-1)
