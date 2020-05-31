@@ -42,7 +42,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const int zto3[4] = { 0, 1, 2, 3 };
-									// THESE ARE ACTUALLY MIRROR'D 
+// THESE ARE ACTUALLY MIRROR'D
 static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
 								   "0100", "0101", "0110", "0111",
 								   "1000", "1001", "1010", "1011",
@@ -2093,7 +2093,7 @@ struct StreamMod
 
 		prop_component =
 		  static_cast<float>(itv.taps_by_size[_tap_size] + prop_buffer) /
-					 static_cast<float>(itv.total_taps - prop_buffer) * prop_scaler;
+		  static_cast<float>(itv.total_taps - prop_buffer) * prop_scaler;
 
 		// allow for a mini/triple jack in streams.. but not more than that
 		jack_component =
@@ -3440,7 +3440,7 @@ struct RollMod
 				// only reset here if this fails and a transition wasn't
 				// detected, if we reset here we have to assign seq_ms[2] again,
 				// yes this is asofgasfjasofdj messy
-			} 
+			}
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
@@ -4890,6 +4890,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile.get()))
 			return;
 
+		// ignore params from older versions
+		std::string vers = "";
+		params.GetAttrValue("vers", vers);
+		if (vers == "" || stoi(vers) != GetCalcVersion())
+			return;
+
 		_s.load_params_from_node(&params);
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
@@ -4906,6 +4912,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline XNode* make_param_node() const
 	{
 		XNode* calcparams = new XNode("CalcParams");
+		calcparams->AppendAttr("vers", GetCalcVersion());
 
 		calcparams->AppendChild(_s.make_param_node());
 		calcparams->AppendChild(_js.make_param_node());
@@ -4993,7 +5000,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	
+
 	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
@@ -5703,7 +5710,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-		Smooth(doot[WideRangeAnchor], 1.f);
+	Smooth(doot[WideRangeAnchor], 1.f);
 	return;
 }
 
@@ -5829,7 +5836,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-		Smooth(doot[WideRangeBalance], 1.f);
+	Smooth(doot[WideRangeBalance], 1.f);
 	return;
 }
 
@@ -6086,8 +6093,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 		// std::endl;
 	}
 
-		Smooth(doot[TheThing], 1.f);
-		Smooth(doot[TheThing], 1.f);
+	Smooth(doot[TheThing], 1.f);
+	Smooth(doot[TheThing], 1.f);
 	return;
 }
 
@@ -6281,7 +6288,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 		flam_row_counter = 0;
 		cols = 0;
 	}
-		Smooth(doot[FlamJam], 1.f);
+	Smooth(doot[FlamJam], 1.f);
 }
 
 #pragma endregion
