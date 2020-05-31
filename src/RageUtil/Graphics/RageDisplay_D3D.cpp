@@ -16,7 +16,6 @@
 
 #include <D3dx9tex.h>
 #include <d3d9.h>
-#include <dxerr.h>
 
 #include <Tracy.hpp>
 
@@ -27,7 +26,6 @@
 #if defined(_MSC_VER)
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
-#pragma comment(lib, "DxErr.lib")
 #endif
 
 #include <list>
@@ -35,7 +33,7 @@
 RString
 GetErrorString(HRESULT hr)
 {
-	return DXGetErrorString(hr);
+	return "";//DXGetErrorString(hr);
 }
 
 // Globals

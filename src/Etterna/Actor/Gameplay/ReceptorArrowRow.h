@@ -1,4 +1,4 @@
-﻿#ifndef RECEPTOR_ARROW_ROW_H
+#ifndef RECEPTOR_ARROW_ROW_H
 #define RECEPTOR_ARROW_ROW_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -22,7 +22,6 @@ class ReceptorArrowRow : public ActorFrame
 
 	void Step(int iCol, TapNoteScore score);
 	void SetPressed(int iCol);
-	void SetNoteUpcoming(int iCol, bool b, int iRow);
 
 	void SetFadeToFailPercent(float fFadeToFailPercent)
 	{

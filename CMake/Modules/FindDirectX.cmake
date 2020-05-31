@@ -9,7 +9,7 @@
 if(NOT WIN32)
   return()
 endif()
-if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64" OR "${CMAKE_GENERATOR}" STREQUAL "Ninja")
+if(WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set (DirectX_ARCHITECTURE x64)
 	else ()
@@ -68,7 +68,7 @@ find_library(DIRECTX_LIBRARIES
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(DIRECTX DEFAULT_MSG DIRECTX_INCLUDE_DIR DIRECTX_LIBRARIES)
+find_package_handle_standard_args(DirectX DEFAULT_MSG DIRECTX_INCLUDE_DIR DIRECTX_LIBRARIES)
 
 if(DIRECTX_FOUND)
   mark_as_advanced(DIRECTX_INCLUDE_DIR DIRECTX_LIBRARIES)

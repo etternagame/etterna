@@ -157,9 +157,6 @@ struct TapNote
 	TapNoteSource source{ TapNoteSource_Original };
 	/** @brief The result of hitting or missing the TapNote. */
 	TapNoteResult result;
-	/** @brief The Player that is supposed to hit this note. This is mainly for
-	 * Routine Mode. */
-	PlayerNumber pn;
 
 	// Index into Song's vector of keysound files if nonnegative:
 	int iKeysoundIndex{ -1 };
@@ -183,7 +180,6 @@ struct TapNote
 
 	TapNote()
 	  : result()
-	  , pn(PLAYER_INVALID)
 	  , HoldResult()
 	{
 	}
@@ -192,7 +188,6 @@ struct TapNote
 		type = TapNoteType_Empty;
 		subType = TapNoteSubType_Invalid;
 		source = TapNoteSource_Original;
-		pn = PLAYER_INVALID, iKeysoundIndex = -1;
 		iDuration = 0;
 	}
 	TapNote(TapNoteType type_,
@@ -203,7 +198,6 @@ struct TapNote
 	  , subType(subType_)
 	  , source(source_)
 	  , result()
-	  , pn(PLAYER_INVALID)
 	  , iKeysoundIndex(iKeysoundIndex_)
 	  , HoldResult()
 	{
@@ -229,7 +223,6 @@ struct TapNote
 		COMPARE(source);
 		COMPARE(iKeysoundIndex);
 		COMPARE(iDuration);
-		COMPARE(pn);
 #undef COMPARE
 		return true;
 	}

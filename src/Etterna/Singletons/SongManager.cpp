@@ -426,6 +426,17 @@ SongManager::CalcTestStuff()
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
 	}
+
+	// bzzzzzzzzzzzz this won't work for what i want unless we also make dummy
+	// entries in testlist for stuff and don't set an ev
+	//int counter = 0;
+	//for (auto& ohno : StepsByKey){
+	//	ohno.second->DoATestThing(40.f, Skill_Overall, 1.f);
+	//	++counter;
+	//	if (counter > 500)
+	//		break;
+	//}
+
 	SaveCalcTestXmlToDir();
 }
 

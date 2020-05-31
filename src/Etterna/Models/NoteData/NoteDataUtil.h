@@ -139,8 +139,7 @@ RemoveStretch(NoteData& inout,
 			  int iEndIndex = MAX_NOTE_ROW);
 void
 RemoveAllButOneTap(NoteData& inout, int row);
-void
-RemoveAllButPlayer(NoteData& inout, PlayerNumber pn);
+
 /** @brief The types of transformations available for the NoteData. */
 enum TrackMapping
 {
