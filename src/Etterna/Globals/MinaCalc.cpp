@@ -4233,6 +4233,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			// set the pattern mod values by calling the mod functors
 			call_pattern_mod_functors(itv);
 		}
+		run_smoothing_pass();
 	}
 
 	//// maybe overload for non-hand-specific?
