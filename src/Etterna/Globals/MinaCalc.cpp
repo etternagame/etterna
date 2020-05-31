@@ -1994,12 +1994,52 @@ struct RM_Sequencing
 #pragma endregion
 };
 
+inline void
+min_set(const CalcPatternMod& pmod,
+		vector<float> doot[],
+		const int& i,
+		const float& min_mod)
+{
+	doot[pmod][i] = min_mod;
+}
+
+inline void
+max_set(const CalcPatternMod& pmod,
+		vector<float> doot[],
+		const int& i,
+		const float& max_mod)
+{
+	doot[pmod][i] = max_mod;
+}
+
+inline void
+neutral_set(const CalcPatternMod& pmod, vector<float> doot[], const int& i)
+{
+	doot[pmod][i] = neutral;
+}
+
+inline void
+dbg_neutral_set(const vector<CalcPatternMod>& dbg,
+				vector<float> doot[],
+				const int& i)
+{
+	if (debug_lmao)
+		for (auto& pmod : dbg)
+			doot[pmod][i] = neutral;
+}
+
+inline void
+smooth_pmod(const CalcPatternMod& pmod, vector<float> doot[])
+{
+	Smooth(doot[pmod], neutral);
+}
+
 // since the calc skillset balance now operates on +- rather than
 // just - and then normalization, we will use this to depress the
 // stream rating for non-stream files.
 struct StreamMod
 {
-	const int _pmod = Stream;
+	const CalcPatternMod _pmod = Stream;
 	const std::string name = "StreamMod";
 	const int _tap_size = single;
 
