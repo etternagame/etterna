@@ -2504,7 +2504,7 @@ struct CJMod
 	float quad_max = 1.f;
 	float quad_scaler = 1.f;
 
-	float vibro_flag = 0.85f;
+	float vibro_flag = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
