@@ -1220,7 +1220,7 @@ struct itv_info
 			chord_taps += row_count;
 
 		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
-		taps_by_size[row_count - 1] += row_count + 1;
+		taps_by_size[row_count - 1] += row_count;
 
 		// we want mixed hs/js to register as hs, even at relatively sparse hand
 		// density
