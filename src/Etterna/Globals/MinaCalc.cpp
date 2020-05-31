@@ -4211,7 +4211,8 @@ struct WideRangeRollMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for rolls (cc -> inverted(cc) -> cc)
-			if (now.mt == meta_oht && handle_roll_timing_check()) {
+			// now.mt == meta_oht (works in trill idk wtf)
+			if (detecc_roll(now) && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
 					ASSERT(is_transition == false);
