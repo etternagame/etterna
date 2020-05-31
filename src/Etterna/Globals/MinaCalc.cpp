@@ -4196,36 +4196,6 @@ struct AnchorMod
 		doot[Anchor][i] = anyzero ? 1.f : bort;
 	}
 };
-void
-Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
-				   unsigned int firstNote,
-				   unsigned int secondNote,
-				   vector<float> doot[])
-{
-	doot[Anchor].resize(nervIntervals.size());
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int lcol = 0;
-		int rcol = 0;
-		for (int row : nervIntervals[i]) {
-			if (NoteInfo[row].notes & firstNote)
-				++lcol;
-			if (NoteInfo[row].notes & secondNote)
-				++rcol;
-		}
-		bool anyzero = lcol == 0 || rcol == 0;
-		float bort = static_cast<float>(min(lcol, rcol)) /
-					 static_cast<float>(max(lcol, rcol));
-		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
-
-		//
-		bort = CalcClamp(bort, 0.9f, 1.1f);
-
-		doot[Anchor][i] = anyzero ? 1.f : bort;
-	}
-
-		Smooth(doot[Anchor], 1.f);
-}
 
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
@@ -4566,9 +4536,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 		// these definitely do change with every chisel test
 		hand.stam_adj_diff.resize(numitv);
-
 		
-		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
 		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
 		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
 	}

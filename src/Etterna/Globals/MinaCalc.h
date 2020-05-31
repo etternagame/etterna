@@ -175,11 +175,6 @@ class Calc
 					  std::vector<float> doot[ModCount],
 					  float music_rate);
 
-	void SetAnchorMod(const std::vector<NoteInfo>& NoteInfo,
-					  unsigned int t1,
-					  unsigned int t2,
-					  std::vector<float> doot[ModCount]);
-
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once
 	// ok well we do it once per hand and we can probably solve that but...
