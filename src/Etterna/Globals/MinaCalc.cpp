@@ -4068,7 +4068,7 @@ struct AnchorMod
 {
 
 	const vector<int> _pmods = { Anchor };
-	const std::string name = "Anchor";
+	const std::string name = "AnchorMod";
 	const int _primary = _pmods.front();
 
 #pragma region params
