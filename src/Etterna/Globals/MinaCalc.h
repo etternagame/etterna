@@ -171,15 +171,6 @@ class Calc
 					   std::vector<float> doot[],
 					   float& music_rate);
 
-	// run pattern mods that require specific sequencing at the same time to
-	// avoid iterating through all rows of the noteinfo more than once
-	// ok well we do it once per hand and we can probably solve that but...
-	void SetSequentialDownscalers(const std::vector<NoteInfo>& NoteInfo,
-								  unsigned int t1,
-								  unsigned int t2,
-								  float music_rate,
-								  std::vector<float> doot[ModCount]);
-
 	void WideRangeAnchorScaler(const std::vector<NoteInfo>& NoteInfo,
 							   float music_rate,
 							   std::vector<float> doot[ModCount]);
