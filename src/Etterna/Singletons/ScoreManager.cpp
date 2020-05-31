@@ -488,11 +488,17 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
-				// notedata hasn't been loaded yet if we didn't rescore
-				if (!remarried)
-					steps->GetNoteData(nd);
-
-				const auto& serializednd = nd.SerializeNoteData2(td);
+				const vector<NoteInfo>* serializednd_ptr = nullptr;
+				if (steps->serializenotedatacache.size() != 0) {
+					serializednd_ptr = &(steps->serializenotedatacache);
+				} else {
+					// notedata hasn't been loaded yet if we didn't rescore
+					if (!remarried)
+						steps->GetNoteData(nd);
+					const auto& serializednd = nd.SerializeNoteData2(td);
+					serializednd_ptr = &serializednd;
+				}
+				const vector<NoteInfo>& serializednd = *serializednd_ptr;
 				vector<float> dakine;
 				if (steps->m_StepsType == StepsType_dance_single) {
 #ifdef USING_NEW_CALC
@@ -502,7 +508,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					  MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
 #endif
 				}
-					
+
 				else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
