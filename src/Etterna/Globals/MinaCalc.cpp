@@ -84,8 +84,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f / 1.02f,
-												 0.94f, 0.7675f, 0.84f,  1.f };
+static const float basescalers[NUM_Skillset] = { 0.f,			0.97f, 0.875f,
+												 0.89f / 1.02f, 0.94f, 0.7675f,
+												 0.84f,			1.f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -2525,9 +2526,9 @@ struct OHJumpMods
 {
 	bool dbg = true && debug_lmao;
 	const vector<int> _pmods = { OHJumpMod,   OHJBaseProp, OHJPropComp,
-								 OHJSeqComp,
-								 OHJMaxSeq, OHJCCTaps,	 OHJHTaps,
-								 CJOHJump,  CJOHJPropComp, CJOHJSeqComp };
+								 OHJSeqComp,  OHJMaxSeq,   OHJCCTaps,
+								 OHJHTaps,	CJOHJump,	CJOHJPropComp,
+								 CJOHJSeqComp };
 	const std::string name = "OHJumpMods";
 
 #pragma region params
@@ -2590,7 +2591,7 @@ struct OHJumpMods
 		{ "cj_ohj_max_seq_jump_scaler", &cj_ohj_max_seq_jump_scaler },
 		{ "cj_ohj_max_seq_min", &cj_ohj_max_seq_min },
 		{ "cj_ohj_max_seq_max", &cj_ohj_max_seq_max },
-		   
+
 		{ "cj_ohj_prop_pool", &cj_ohj_prop_pool },
 		{ "cj_ohj_prop_scaler", &cj_ohj_prop_scaler },
 		{ "cj_ohj_prop_min", &cj_ohj_prop_min },
@@ -2821,7 +2822,7 @@ struct OHJumpMods
 				ohj_max_seq_component =
 				  CalcClamp(ohj_max_seq_component, ohj_min_mod, ohj_max_mod);
 				pmod = ohj_max_seq_component;
-				  
+
 				doot[OHJumpMod][i] = pmod;
 
 				// ohjumps in cj can be either easier or harder
@@ -3175,7 +3176,7 @@ struct OHTrillMod
 		pmod = max_mod;
 		if (window_trill_taps > 0 && window_hand_taps > 0)
 			pmod = mod_pool - (static_cast<float>(window_trill_taps - 4) /
-									static_cast<float>(window_hand_taps * 4));
+							   static_cast<float>(window_hand_taps * 4));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
@@ -3770,7 +3771,7 @@ struct WideRangeRollMod
 	bool rolling = false;
 	bool is_transition = false;
 	int consecutive_roll_counter = 0;
-	
+
 	int window_hand_taps = 0;
 	// for now we will be lazy and just add up the number of roll taps in any
 	// roll, if we leave out the initialization taps (the 4 required to identify
@@ -3993,7 +3994,8 @@ struct WideRangeRollMod
 
 	inline void operator()(const metanoteinfo& mni,
 						   vector<float> doot[],
-						   const size_t& i, const int& hand)
+						   const size_t& i,
+						   const int& hand)
 	{
 		const auto& itv = mni._itv_info;
 		itv_hand_taps = itv.hand_taps[hand];
@@ -4033,11 +4035,11 @@ struct WideRangeRollMod
 			interval_reset();
 			return;
 		}
-			
+
 		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
 			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
-							static_cast<float>(window_hand_taps));
+							   static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
