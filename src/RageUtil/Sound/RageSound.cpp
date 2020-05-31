@@ -40,7 +40,12 @@
 #include "RageSoundReader_Preload.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_ThreadedBuffer.h"
-#include "fftw3.h"
+#include "fft.h"
+struct cfloat
+{
+	float real;
+	float imag;
+};
 
 #define samplerate() m_pSource->GetSampleRate()
 
@@ -349,14 +354,12 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				fftwf_complex* out = static_cast<fftwf_complex*>(fftwBuffer);
+				cfloat* out = static_cast<cfloat*>(fftBuffer);
 				auto n = recentPCMSamplesBufferSize;
-				auto plan = fftwf_plan_dft_r2c_1d(recentPCMSamplesBufferSize,
-												  recentPCMSamples.data(),
-												  out,
-												  FFTW_ESTIMATE);
-				fftwf_execute(plan);
-				fftwf_destroy_plan(plan);
+				auto plan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize,
+													 MUFFT_FLAG_CPU_ANY);
+				mufft_execute_plan_1d(plan, out, recentPCMSamples.data());
+				mufft_free_plan_1d(plan);
 				copy(pBuffer, until, back_inserter(recentPCMSamples));
 				recentPCMSamples.clear();
 				pendingPlayBackCall = true;
@@ -372,14 +375,14 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
-	fftwf_complex* out = static_cast<fftwf_complex*>(fftwBuffer);
+	cfloat* out = static_cast<cfloat*>(fftBuffer);
 	string error;
 	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
 	for (int i = 0; i < nOut; ++i) {
-		auto r = out[i][0];
-		auto im = out[i][1];
+		auto r = out[i].real;
+		auto im = out[i].imag;
 		lua_pushnumber(L,
 					   (r * r + im * im) / (0.01f + SOUNDMAN->GetMixVolume()) /
 						 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
@@ -771,10 +774,10 @@ RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
-	if (fftwBuffer != nullptr)
-		fftwf_free(fftwBuffer);
+	if (fftBuffer != nullptr)
+		mufft_free(fftBuffer);
 	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
-	fftwBuffer = fftwf_malloc(sizeof(fftwf_complex) * nOut);
+	fftBuffer = mufft_alloc(sizeof(cfloat) * nOut);
 }
 
 void

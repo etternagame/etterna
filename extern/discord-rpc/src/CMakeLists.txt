@@ -19,28 +19,12 @@ set(BASE_RPC_SRC
     msg_queue.h
 )
 
-if (${BUILD_SHARED_LIBS})
-    if(WIN32)
-        set(BASE_RPC_SRC ${BASE_RPC_SRC} dllmain.cpp)
-    endif(WIN32)
-endif(${BUILD_SHARED_LIBS})
 
 if(WIN32)
     add_definitions(-DDISCORD_WINDOWS)
     set(BASE_RPC_SRC ${BASE_RPC_SRC} connection_win.cpp discord_register_win.cpp)
-    add_library(discord-rpc ${BASE_RPC_SRC})
+    add_library(discord-rpc STATIC ${BASE_RPC_SRC})
     if (MSVC)
-        if(USE_STATIC_CRT)
-            foreach(CompilerFlag
-                    CMAKE_CXX_FLAGS
-                    CMAKE_CXX_FLAGS_DEBUG
-                    CMAKE_CXX_FLAGS_RELEASE
-                    CMAKE_C_FLAGS
-                    CMAKE_C_FLAGS_DEBUG
-                    CMAKE_C_FLAGS_RELEASE)
-                string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-            endforeach()
-        endif(USE_STATIC_CRT)
         target_compile_options(discord-rpc PRIVATE /EHsc
             /Wall
             /wd4100 # unreferenced formal parameter
@@ -116,33 +100,3 @@ if (NOT ${ENABLE_IO_THREAD})
     target_compile_definitions(discord-rpc PUBLIC -DDISCORD_DISABLE_IO_THREAD)
 endif (NOT ${ENABLE_IO_THREAD})
 
-if (${BUILD_SHARED_LIBS})
-    target_compile_definitions(discord-rpc PUBLIC -DDISCORD_DYNAMIC_LIB)
-    target_compile_definitions(discord-rpc PRIVATE -DDISCORD_BUILDING_SDK)
-endif(${BUILD_SHARED_LIBS})
-
-if (CLANG_FORMAT_CMD)
-    add_dependencies(discord-rpc clangformat)
-endif(CLANG_FORMAT_CMD)
-
-# install
-
-install(
-    TARGETS discord-rpc
-    EXPORT "discord-rpc"
-    RUNTIME
-        DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    INCLUDES
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-install(
-    FILES
-        "../include/discord_rpc.h"
-		"../include/discord_register.h"
-    DESTINATION "include"
-)
