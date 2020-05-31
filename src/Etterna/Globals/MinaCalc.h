@@ -171,10 +171,6 @@ class Calc
 					   std::vector<float> doot[],
 					   float& music_rate);
 
-	void SetStreamMod(const std::vector<NoteInfo>& NoteInfo,
-					  std::vector<float> doot[ModCount],
-					  float music_rate);
-
 	// run pattern mods that require specific sequencing at the same time to
 	// avoid iterating through all rows of the noteinfo more than once
 	// ok well we do it once per hand and we can probably solve that but...
