@@ -4172,8 +4172,8 @@ struct AnchorMod
 			r_taps = static_cast<float>(itv.col_taps[3]);
 		}
 
-		//if (handle_case_optimizations(itv, doot, i))
-		//	return;
+		if (handle_case_optimizations(itv, doot, i))
+			return;
 
 		pmod = static_cast<float>(min(l_taps, r_taps)) /
 			   static_cast<float>(max(l_taps, r_taps));
@@ -4181,19 +4181,8 @@ struct AnchorMod
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
-		bool anyzero = l_taps == 0 || r_taps == 0;
-		float bort = static_cast<float>(min(l_taps, r_taps)) /
-					 static_cast<float>(max(l_taps, r_taps));
-		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
-
-		//
-		bort = CalcClamp(bort, 0.9f, 1.1f);
-
-		doot[Anchor][i] = anyzero ? 1.f : bort;
-
 		// actual mod
 		doot[_primary][i] = pmod;
-		doot[Anchor][i] = anyzero ? 1.f : bort;
 	}
 };
 
