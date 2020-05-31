@@ -4681,7 +4681,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void bazoink(const vector<NoteInfo>& ni)
 	{
-		//load_params_from_disk();
+		load_params_from_disk();
 
 		// ok so the problem atm is the multithreading of songload, if we want
 		// to update the file on disk with new values and not just overwrite it
