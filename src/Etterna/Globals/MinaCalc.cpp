@@ -4318,7 +4318,7 @@ struct WideRangeRollMod
 	float mod_pool = 1.15f;
 
 	float moving_cv_init = 0.5f;
-	float roll_cv_cutoff = 0.5f;
+	float roll_cv_cutoff = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "itv_window", &itv_window },
