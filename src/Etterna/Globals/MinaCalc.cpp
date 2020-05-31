@@ -1110,7 +1110,7 @@ struct itv_info
 	int not_hs = 0;
 	int zwop = 0;
 	int total_taps = 0;
-	int col_taps[4] = { 0, 0, 0, 0};
+	int col_taps[4] = { 0, 0, 0, 0 };
 	int hand_taps[2] = { 0, 0 };
 	int chord_taps = 0;
 	int taps_by_size[4] = { 0, 0, 0, 0 };
@@ -2067,8 +2067,7 @@ struct StreamMod
 			return true;
 		}
 
-		if (itv.taps_by_size[single] == 0)
-		{
+		if (itv.taps_by_size[single] == 0) {
 			min_set(doot, i);
 			return true;
 		}
@@ -4637,7 +4636,6 @@ struct WideRangeRollMod
 	}
 };
 
-
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -5001,7 +4999,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
-	vector<int> bruh_they_the_same = { Stream,		 Chaos,
+	vector<int> bruh_they_the_same = { Stream,			 Chaos,
 									   FlamJam,			 TheThing,
 									   WideRangeBalance, WideRangeAnchor };
 	// hand agnostic mods are the same
@@ -5436,7 +5434,8 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.075f);
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.075f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
