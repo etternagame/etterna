@@ -32,8 +32,8 @@ if(WIN32)
 endif()
 
 if(ENABLE_TRACY_PROFILER)
-  target_compile_definitions("tracy" PUBLIC TRACY_ENABLE)
-  target_compile_definitions(Etterna PUBLIC TRACY_ENABLE)
+  target_compile_definitions("tracy" PUBLIC TRACY_ENABLE TRACY_ON_DEMAND)
+  target_compile_definitions(Etterna PUBLIC TRACY_ENABLE TRACY_ON_DEMAND)
 endif()
 
 set_property(TARGET "tracy" PROPERTY FOLDER "External Libraries")
