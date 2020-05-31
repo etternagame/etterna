@@ -203,12 +203,7 @@ class Calc
   private:
 	std::vector<std::vector<int>> nervIntervals;
 
-	// Const calc params
-	const bool SmoothPatterns =
-	  true; // Do we moving average the pattern modifier intervals?
 	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
-	const bool logpatterns = false;
-	float fingerbias = 1.f;
 };
 
 MINACALC_API std::vector<float>

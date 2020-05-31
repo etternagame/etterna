@@ -5070,47 +5070,10 @@ Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
 		if (debugmode) {
 			// std::cout << "butts: final " << v << std::endl;
 		}
-	if (SmoothPatterns) {
 		Smooth(doot[StreamMod], 1.f);
-		// Smooth(doot[Chaos], 1.f);
-		// Smooth(doot[Chaos], 1.f);
-	}
 }
 
-void
-Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
-				   unsigned int firstNote,
-				   unsigned int secondNote,
-				   vector<float> doot[])
-{
-	doot[Anchor].resize(nervIntervals.size());
 
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int lcol = 0;
-		int rcol = 0;
-		for (int row : nervIntervals[i]) {
-			if (NoteInfo[row].notes & firstNote)
-				++lcol;
-			if (NoteInfo[row].notes & secondNote)
-				++rcol;
-		}
-		bool anyzero = lcol == 0 || rcol == 0;
-		float bort = static_cast<float>(min(lcol, rcol)) /
-					 static_cast<float>(max(lcol, rcol));
-		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
-
-		//
-		bort = CalcClamp(bort, 0.9f, 1.1f);
-
-		doot[Anchor][i] = anyzero ? 1.f : bort;
-
-		fingerbias += (static_cast<float>(max(lcol, rcol)) + 2.f) /
-					  (static_cast<float>(min(lcol, rcol)) + 1.f);
-	}
-
-	if (SmoothPatterns)
-		Smooth(doot[Anchor], 1.f);
-}
 
 // downscales full rolls or rolly js, it looks explicitly for
 // consistent cross column timings on both hands; consecutive notes
@@ -5606,13 +5569,11 @@ Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	if (SmoothPatterns) {
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[Roll], 1.f);
 		Smooth(doot[OHTrill], 1.f);
 		Smooth(doot[OHJumpMod], 1.f);
 		Smooth(doot[CJOHJump], 1.f);
-	}
 	// hack because i was sqrt'ing in calcinternal for js and hs
 	// for (auto& v : doot[OHJump])
 	//	v = fastsqrt(v);
@@ -5768,7 +5729,6 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-	if (SmoothPatterns)
 		Smooth(doot[WideRangeAnchor], 1.f);
 	return;
 }
@@ -5895,7 +5855,6 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-	if (SmoothPatterns)
 		Smooth(doot[WideRangeBalance], 1.f);
 	return;
 }
@@ -6153,10 +6112,8 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 		// std::endl;
 	}
 
-	if (SmoothPatterns) {
 		Smooth(doot[TheThing], 1.f);
 		Smooth(doot[TheThing], 1.f);
-	}
 	return;
 }
 
@@ -6350,7 +6307,6 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 		flam_row_counter = 0;
 		cols = 0;
 	}
-	if (SmoothPatterns)
 		Smooth(doot[FlamJam], 1.f);
 }
 
@@ -6414,7 +6370,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 349;
+int mina_calc_version = 350;
 int
 GetCalcVersion()
 {
