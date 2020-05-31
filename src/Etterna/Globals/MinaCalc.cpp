@@ -2693,7 +2693,8 @@ struct CJMod
 };
 
 // i don't like this.. perhaps ohj/cjohj should be split up even though they're
-// 95% the same...
+// 95% the same... and some of the other stuff.... man.... ohjump sequencing
+// should be its own entity like rm sequencing is
 struct OHJumpMods
 {
 	bool dbg = true && debug_lmao;
@@ -2874,7 +2875,7 @@ struct OHJumpMods
 		// increasing complexity significantly (probably)
 
 		// don't reset immediately on a single note, wait to see
-		// what comes next, if now.last_cc == cc_jump_single, we have just
+		// what comes next, if now->last_cc == cc_jump_single, we have just
 		// broken a sequence (technically this can be simply something like
 		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
 		switch (now->cc) {
@@ -3154,6 +3155,12 @@ struct AnchorMod
 			doot[mod][i] = neutral;
 	}
 
+	inline void max_set(vector<float> doot[], const size_t& i)
+	{
+		for (auto& mod : _pmods)
+			doot[mod][i] = min_mod;
+	}
+
 	inline void smooth_finish(vector<float> doot[])
 	{
 		Smooth(doot[_primary], 1.f);
@@ -3184,47 +3191,46 @@ struct AnchorMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const itv_info& itv,
+	inline bool handle_case_optimizations(const ItvHandInfo* itvh,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 		// nothing here
-		if (itv.total_taps == 0) {
+		if (itvh->hand_taps == 0) {
 			neutral_set(doot, i);
 			return true;
 		}
 
-		// jack
-		if (l_taps == 0.f || r_taps == 0.f) {
-			neutral_set(doot, i);
+		assert(col_taps[col_left] > 0 && col_taps[col_right] > 0);
+
+		// same number of taps on each column
+		if (itvh->col_taps[col_left] == itvh->col_taps[col_right]) {
+			min_set(doot, i);
 			return true;
 		}
+
+		// jack, dunno if this is worth bothering about? it would only matter
+		// for tech and it may matter too much there? idk
+		if (itvh->col_taps[col_left] == 0 || itvh->col_taps[col_right] == 0) {
+			max_set(doot, i);
+			return true;
+		}
+
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline void operator()(const ItvHandInfo* itvh,
 						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
+						   const size_t& i)
 	{
-		const auto& itv = mni._itv_info;
+		l_taps = static_cast<float>(itvh->col_taps[col_left]);
+		r_taps = static_cast<float>(itvh->col_taps[col_right]);
 
-		// left
-		if (hand == 0) {
-			l_taps = static_cast<float>(itv.col_taps[0]);
-			r_taps = static_cast<float>(itv.col_taps[1]);
-		} else {
-			l_taps = static_cast<float>(itv.col_taps[2]);
-			r_taps = static_cast<float>(itv.col_taps[3]);
-		}
-
-		if (handle_case_optimizations(itv, doot, i))
+		if (handle_case_optimizations(itvh, doot, i))
 			return;
 
-		pmod = static_cast<float>(min(l_taps, r_taps)) /
-			   static_cast<float>(max(l_taps, r_taps));
+		pmod = l_taps > r_taps ? l_taps / r_taps : r_taps / l_taps;
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
-
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		// actual mod
@@ -3271,7 +3277,6 @@ struct RollMod
 	// 2121 to start counting, but that's fine, that's what we want and if
 	// it seems better to add later we can do that
 	vector<int> itv_rolls;
-	int itv_hand_taps = 0;
 
 	// unlike ccacc, which has a half baked implementation for chains of
 	// 122112211221, we will actually be responsible and sequence both the
@@ -3363,12 +3368,12 @@ struct RollMod
 	}
 
 	// copied from wrjt, definitely needs to be tracked in metanoteinfo
-	inline bool detecc_ccacc(const metanoteinfo& now)
+	inline bool detecc_ccacc(const metaHandInfo* now)
 	{
-		if (now.cc == cc_single_single)
+		if (now->cc == cc_single_single)
 			return false;
 
-		if (invert_cc(now.cc) == last_last_seen_cc)
+		if (invert_cc(now->cc) == last_last_seen_cc)
 			return true;
 
 		return false;
@@ -3377,10 +3382,10 @@ struct RollMod
 	// should maybe move this into metanoteinfo and do the counting there, since
 	// oht will need this as well, or we could be lazy and do it twice just this
 	// once
-	inline bool detecc_roll(const metanoteinfo& now)
+	inline bool detecc_roll(const metaHandInfo* now)
 	{
 		// we allow this through up to here due to transition checks
-		if (now.cc == cc_single_single)
+		if (now->cc == cc_single_single)
 			return false;
 
 		// if we're here the following are true, we have a full sequence of 3 cc
@@ -3389,9 +3394,9 @@ struct RollMod
 
 		// now we know we have cc_left_right or cc_right_left, so, xy, we are
 		// looking for xyx, meaning last would be the inverion of now
-		if (invert_cc(now.cc) == last_seen_cc)
+		if (invert_cc(now->cc) == last_seen_cc)
 			// now make sure that last_last is the same as now
-			if (now.cc == last_last_seen_cc)
+			if (now->cc == last_last_seen_cc)
 				// we now have 1212 or 2121
 				return true;
 		return false;
@@ -3420,7 +3425,7 @@ struct RollMod
 		}
 	}
 
-	inline void update_seq_ms(const metanoteinfo& now)
+	inline void update_seq_ms(const metaHandInfo* now)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
@@ -3428,18 +3433,18 @@ struct RollMod
 		// update now, we have no anchors, so always use cc_ms_any (although we
 		// want to move this to cc_ms_no_jumps when that gets implemented, since
 		// a separate jump inclusive mod should be made to handle those cases
-		seq_ms[2] = now.cc_ms_any;
+		seq_ms[2] = now->cc_ms_any;
 	}
 
-	inline void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metaHandInfo* now)
 	{
 		// do nothing for offhand taps
-		if (now.col == col_empty)
+		if (now->col == col_empty)
 			return;
 
 		// only let these cases through, since we use invert_cc, anchors are
 		// screened out later, reset otherwise
-		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+		if (now->cc != cc_left_right && now->cc != cc_right_left) {
 			reset_sequence();
 			return;
 		}
@@ -3450,7 +3455,8 @@ struct RollMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for rolls (cc -> inverted(cc) -> cc)
-			// now.mt == meta_oht (works in trill idk wtf)
+			// now->mt == meta_oht (works in trill idk wtf, but it isn't working
+			// here?)
 			if (detecc_roll(now) && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
@@ -3468,15 +3474,19 @@ struct RollMod
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		last_seen_cc = now->cc;
 	}
 
 	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
 	{
+		// no taps, no rolls
 		if (window_hand_taps == 0 || window_roll_taps == 0) {
 			neutral_set(doot, i);
 			return true;
-		} else if (window_hand_taps == window_roll_taps) {
+		}
+
+		// full roll
+		if (window_hand_taps == window_roll_taps) {
 			min_set(doot, i);
 			return true;
 		}
@@ -3484,14 +3494,10 @@ struct RollMod
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline void operator()(const ItvHandInfo* itvh,
 						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
+						   const size_t& i)
 	{
-		const auto& itv = mni._itv_info;
-		itv_hand_taps = itv.hand_taps[hand];
-
 		// drop the oldest interval values if we have reached full
 		// size
 		if (window_itv_hand_taps.size() == itv_window) {
@@ -3510,7 +3516,7 @@ struct RollMod
 			consecutive_roll_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itv_hand_taps);
+		window_itv_hand_taps.push_back(itvh->hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
 		window_hand_taps = 0;
@@ -3543,11 +3549,7 @@ struct RollMod
 	// this and always reset anything that needs to be on handling case
 	// optimizations, even if the case optimizations don't require us to reset
 	// anything
-	inline void interval_reset()
-	{
-		itv_rolls.clear();
-		itv_hand_taps = 0;
-	}
+	inline void interval_reset() { itv_rolls.clear(); }
 };
 // almost identical to wrr, refer to comments there
 struct OHTrillMod
@@ -3582,7 +3584,6 @@ struct OHTrillMod
 	};
 #pragma endregion params and param map
 	vector<int> itv_trills;
-	int itv_hand_taps = 0;
 
 	bool trilling = false;
 	// dunno if we want this for ohts
@@ -3673,21 +3674,21 @@ struct OHTrillMod
 		return moving_cv < trill_cv_cutoff;
 	}
 
-	inline void update_seq_ms(const metanoteinfo& now)
+	inline void update_seq_ms(const metaHandInfo* now)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
-		seq_ms[2] = now.cc_ms_any;
+		seq_ms[2] = now->cc_ms_any;
 	}
 
-	inline void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metaHandInfo* now)
 	{
 		// do nothing for offhand taps
-		if (now.col == col_empty)
+		if (now->col == col_empty)
 			return;
 
 		// only let these cases through, don't need cc_single_single like wrr
-		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+		if (now->cc != cc_left_right && now->cc != cc_right_left) {
 			reset_sequence();
 			return;
 		}
@@ -3698,7 +3699,7 @@ struct OHTrillMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for trills (cc -> inverted(cc) -> cc)
-			if (now.mt == meta_oht && handle_trill_timing_check()) {
+			if (now->mt == meta_oht && handle_trill_timing_check()) {
 				++consecutive_trill_counter;
 				if (!trilling) {
 					// boost slightly because we want to pick up minitrills
@@ -3710,15 +3711,19 @@ struct OHTrillMod
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		last_seen_cc = now->cc;
 	}
 
 	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
 	{
+		// no taps, no trills
 		if (window_hand_taps == 0 || window_trill_taps == 0) {
 			neutral_set(doot, i);
 			return true;
-		} else if (window_hand_taps == window_trill_taps) {
+		}
+
+		// full roll
+		if (window_hand_taps == window_trill_taps) {
 			min_set(doot, i);
 			return true;
 		}
@@ -3726,14 +3731,10 @@ struct OHTrillMod
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline void operator()(const ItvHandInfo* itvh,
 						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
+						   const size_t& i)
 	{
-		const auto& itv = mni._itv_info;
-		itv_hand_taps = itv.hand_taps[hand];
-
 		// drop the oldest interval values if we have reached full
 		// size
 		if (window_itv_hand_taps.size() == itv_window) {
@@ -3752,7 +3753,7 @@ struct OHTrillMod
 			consecutive_trill_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itv_hand_taps);
+		window_itv_hand_taps.push_back(itvh->hand_taps);
 		window_itv_trills.push_back(itv_trills);
 
 		window_hand_taps = 0;
@@ -3784,7 +3785,6 @@ struct OHTrillMod
 	inline void interval_reset()
 	{
 		itv_trills.clear();
-		itv_hand_taps = 0;
 	}
 };
 struct RunningManMod
@@ -3943,10 +3943,11 @@ struct RunningManMod
 	}
 #pragma endregion
 
-	inline void advance_sequencing(const metanoteinfo& mni)
+	inline void advance_sequencing(const metaHandInfo* now)
 	{
+		// sequencing objects should be moved int mhi itself
 		for (auto& rm : rms)
-			rm(mni);
+			rm(now);
 
 		// use the biggest anchor that has existed in this interval
 		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
@@ -3980,7 +3981,7 @@ struct RunningManMod
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline void operator()(const metaHandInfo* mhi,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
@@ -4098,7 +4099,7 @@ struct WideRangeJumptrillMod
 	int ccacc_counter = 0;
 	int crop_circles = 0;
 	float pmod = min_mod;
-	int window_taps = 0;
+	int window_hand_taps = 0;
 	int window_ccacc = 0;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
@@ -4167,19 +4168,19 @@ struct WideRangeJumptrillMod
 
 	// should maybe move this into metanoteinfo and do the counting there, if we
 	// could use this anywhere else
-	inline bool detecc_ccacc(const metanoteinfo& now)
+	inline bool detecc_ccacc(const metaHandInfo* now)
 	{
 		// if we're here the following are true, we have a full sequence of 3 cc
 		// taps, they are non-empty, and there are no jumps. this means they are
 		// all either cc_left_right, cc_right_left, or cc_single_single
 
 		// handle cc_single_single first, for now, lets throw it away
-		if (now.cc == cc_single_single)
+		if (now->cc == cc_single_single)
 			return false;
 
 		// now we know we have cc_left_right or cc_right_left, so, xy, we are
 		// looking for xyyx, meaning last_last would be the inverion of now
-		if (invert_cc(now.cc) == last_last_seen_cc)
+		if (invert_cc(now->cc) == last_last_seen_cc)
 			return true;
 
 		return false;
@@ -4226,28 +4227,28 @@ struct WideRangeJumptrillMod
 		return moving_cv < ccacc_cv_cutoff;
 	}
 
-	inline void update_seq_ms(const metanoteinfo& now)
+	inline void update_seq_ms(const metaHandInfo* now)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
 
 		// update now
 		// for anchors, track tc_ms
-		if (now.cc == cc_single_single)
-			seq_ms[2] = now.tc_ms;
+		if (now->cc == cc_single_single)
+			seq_ms[2] = now->tc_ms;
 		// for cc_left_right or cc_right_left, track cc_ms
 		else
-			seq_ms[2] = now.cc_ms_any;
+			seq_ms[2] = now->cc_ms_any;
 	}
 
-	inline void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metaHandInfo* now)
 	{
 		// do nothing for offhand taps
-		if (now.col == col_empty)
+		if (now->col == col_empty)
 			return;
 
 		// reset if we hit a jump
-		if (now.col == col_ohjump) {
+		if (now->col == col_ohjump) {
 			reset_sequence();
 			return;
 		}
@@ -4267,22 +4268,37 @@ struct WideRangeJumptrillMod
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		last_seen_cc = now->cc;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	{
+		// no taps, no ccacc
+		if (window_hand_taps == 0 || window_ccacc == 0) {
+			neutral_set(doot, i);
+			return true;
+		}
+
+		// cant happen with current logic but w.e
+		if (window_hand_taps == window_ccacc) {
+			min_set(doot, i);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo* itvh,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto& itv = mni._itv_info;
-		// drop the oldest interval values if we have reached full
-		// size
+		// drop the oldest interval values if we have reached full size
 		if (itv_taps.size() == itv_window) {
 			itv_taps.pop_front();
 			itv_ccacc.pop_front();
 		}
 
-		itv_taps.push_back(itv.total_taps);
+		itv_taps.push_back(itvh->hand_taps);
 		itv_ccacc.push_back(ccacc_counter);
 
 		if (ccacc_counter > 0)
@@ -4293,20 +4309,27 @@ struct WideRangeJumptrillMod
 			crop_circles = 0;
 
 		for (auto& n : itv_taps)
-			window_taps += n;
+			window_hand_taps += n;
 
 		for (auto& n : itv_ccacc)
 			window_ccacc += n;
 
-		pmod = neutral;
-		if (window_ccacc > 0 && crop_circles > 0)
-			pmod =
-			  static_cast<float>(window_taps) /
-			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = static_cast<float>(window_hand_taps) /
+			   static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
 
+		interval_reset();
+	}
+
+	inline void interval_reset()
+	{
 		// we could count these in metanoteinfo but let's do it here for now,
 		// reset every interval when finished
 		ccacc_counter = 0;
@@ -4360,7 +4383,6 @@ struct WideRangeRollMod
 	// 2121 to start counting, but that's fine, that's what we want and if
 	// it seems better to add later we can do that
 	vector<int> itv_rolls;
-	int itv_hand_taps = 0;
 
 	// unlike ccacc, which has a half baked implementation for chains of
 	// 122112211221, we will actually be responsible and sequence both the
@@ -4452,12 +4474,12 @@ struct WideRangeRollMod
 	}
 
 	// copied from wrjt, definitely needs to be tracked in metanoteinfo
-	inline bool detecc_ccacc(const metanoteinfo& now)
+	inline bool detecc_ccacc(const metaHandInfo* now)
 	{
-		if (now.cc == cc_single_single)
+		if (now->cc == cc_single_single)
 			return false;
 
-		if (invert_cc(now.cc) == last_last_seen_cc)
+		if (invert_cc(now->cc) == last_last_seen_cc)
 			return true;
 
 		return false;
@@ -4466,10 +4488,10 @@ struct WideRangeRollMod
 	// should maybe move this into metanoteinfo and do the counting there, since
 	// oht will need this as well, or we could be lazy and do it twice just this
 	// once
-	inline bool detecc_roll(const metanoteinfo& now)
+	inline bool detecc_roll(const metaHandInfo* now)
 	{
 		// we allow this through up to here due to transition checks
-		if (now.cc == cc_single_single)
+		if (now->cc == cc_single_single)
 			return false;
 
 		// if we're here the following are true, we have a full sequence of 3 cc
@@ -4478,9 +4500,9 @@ struct WideRangeRollMod
 
 		// now we know we have cc_left_right or cc_right_left, so, xy, we are
 		// looking for xyx, meaning last would be the inverion of now
-		if (invert_cc(now.cc) == last_seen_cc)
+		if (invert_cc(now->cc) == last_seen_cc)
 			// now make sure that last_last is the same as now
-			if (now.cc == last_last_seen_cc)
+			if (now->cc == last_last_seen_cc)
 				// we now have 1212 or 2121
 				return true;
 		return false;
@@ -4509,7 +4531,7 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void update_seq_ms(const metanoteinfo& now)
+	inline void update_seq_ms(const metaHandInfo* now)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
@@ -4517,19 +4539,19 @@ struct WideRangeRollMod
 		// update now, we have no anchors, so always use cc_ms_any (although we
 		// want to move this to cc_ms_no_jumps when that gets implemented, since
 		// a separate jump inclusive mod should be made to handle those cases
-		seq_ms[2] = now.cc_ms_any;
+		seq_ms[2] = now->cc_ms_any;
 	}
 
-	inline void advance_sequencing(const metanoteinfo& now)
+	inline void advance_sequencing(const metaHandInfo* now)
 	{
 		// do nothing for offhand taps
-		if (now.col == col_empty)
+		if (now->col == col_empty)
 			return;
 
 		// only let these cases through, since we use invert_cc, anchors are
 		// screened out later, reset otherwise
-		if (now.cc != cc_left_right && now.cc != cc_right_left &&
-			now.cc != cc_single_single) {
+		if (now->cc != cc_left_right && now->cc != cc_right_left &&
+			now->cc != cc_single_single) {
 			reset_sequence();
 			return;
 		}
@@ -4540,7 +4562,7 @@ struct WideRangeRollMod
 		is_transition = false;
 		// try to catch simple transitions https:i.imgur.com/zhlBio0.png, given
 		// the constraints on ccacc we have to check last_cc for the anchor
-		if (now.last_cc == cc_single_single)
+		if (now->last_cc == cc_single_single)
 			if (detecc_ccacc(now)) {
 				if (rolling) {
 					// don't care about any timing checks for the moment
@@ -4552,7 +4574,7 @@ struct WideRangeRollMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for rolls (cc -> inverted(cc) -> cc)
-			// now.mt == meta_oht (works in trill idk wtf)
+			// now->mt == meta_oht (works in trill idk wtf)
 			if (detecc_roll(now) && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
@@ -4569,12 +4591,12 @@ struct WideRangeRollMod
 				// yes this is asofgasfjasofdj messy
 			} else if (!is_transition) {
 				reset_sequence();
-				seq_ms[2] = now.cc_ms_any;
+				seq_ms[2] = now->cc_ms_any;
 			}
 
 		// update sequence
 		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		last_seen_cc = now->cc;
 	}
 
 	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
@@ -4590,13 +4612,14 @@ struct WideRangeRollMod
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
+	inline void operator()(const ItvHandInfo* itvh,
 						   vector<float> doot[],
 						   const size_t& i,
 						   const int& hand)
 	{
-		const auto& itv = mni._itv_info;
-		itv_hand_taps = itv.hand_taps[hand];
+		// temp hack because i didn't want to port chaos mod but didn't want to
+		// keep running old wrr
+		doot[Chaos][i] = neutral;
 
 		// drop the oldest interval values if we have reached full
 		// size
@@ -4616,7 +4639,7 @@ struct WideRangeRollMod
 			consecutive_roll_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itv_hand_taps);
+		window_itv_hand_taps.push_back(itvh->hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
 		window_hand_taps = 0;
@@ -4634,17 +4657,12 @@ struct WideRangeRollMod
 			return;
 		}
 
-		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
 			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
 							   static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_primary][i] = pmod;
-
-		// temp hack because i didn't want to port chaos mod but didn't want to
-		// keep running old wrr
-		doot[Chaos][i] = neutral;
 
 		interval_reset();
 	}
@@ -4656,7 +4674,6 @@ struct WideRangeRollMod
 	inline void interval_reset()
 	{
 		itv_rolls.clear();
-		itv_hand_taps = 0;
 	}
 };
 
