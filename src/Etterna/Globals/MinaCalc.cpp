@@ -86,7 +86,7 @@ static const float stam_prop =
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,			0.97f, 0.875f,
 												 0.89f / 1.02f, 0.94f, 0.7675f,
-												 0.84f,			1.f };
+												 0.84f,			1.075f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -2532,7 +2532,7 @@ struct OHJumpMods
 	const std::string name = "OHJumpMods";
 
 #pragma region params
-	float ohj_base = 0.1f;
+	float ohj_base = 0.15f;
 	float ohj_min_mod = 0.5f;
 	float ohj_max_mod = 1.f;
 	float ohj_pow = 2.f;
@@ -3056,17 +3056,6 @@ struct OHTrillMod
 			v = 0.f;
 	}
 
-	// should maybe move this into metanoteinfo and do the counting there, since
-	// oht will need this as well, or we could be lazy and do it twice just this
-	// once ~~~ keeping this here to remind me im bad and didn't do this
-	inline bool detecc_trill(const metanoteinfo& now)
-	{
-		if (invert_cc(now.cc) == last_seen_cc)
-			if (now.cc == last_last_seen_cc)
-				return true;
-		return false;
-	}
-
 	inline bool handle_trill_timing_check()
 	{
 		// the primary difference from wrr, just check cv on the base ms values,
@@ -3101,7 +3090,7 @@ struct OHTrillMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for trills (cc -> inverted(cc) -> cc)
-			if (detecc_trill(now) && handle_trill_timing_check()) {
+			if (now.mt == meta_oht && handle_trill_timing_check()) {
 				++consecutive_trill_counter;
 				if (!trilling) {
 					// boost slightly because we want to pick up minitrills
@@ -3204,8 +3193,8 @@ struct RunningManMod
 
 #pragma region params
 	float min_mod = 0.95f;
-	float max_mod = 1.5f;
-	float mod_base = 0.9f;
+	float max_mod = 1.35f;
+	float mod_base = 0.8f;
 	float min_anchor_len = 5.f;
 	float min_taps_in_rm = 1.f;
 	float min_off_taps_same = 1.f;
@@ -3377,7 +3366,7 @@ struct RunningManMod
 			min_set(doot, i);
 			return true;
 		} else if (rm.off_taps_same < min_off_taps_same) {
-			neutral_set(doot, i);
+			min_set(doot, i);
 			return true;
 		}
 		return false;
@@ -3955,7 +3944,7 @@ struct WideRangeRollMod
 		// check for a complete sequence
 		if (last_last_seen_cc != cc_init)
 			// check for rolls (cc -> inverted(cc) -> cc)
-			if (detecc_roll(now) && handle_roll_timing_check()) {
+			if (now.mt == meta_oht && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
 					ASSERT(is_transition == false);
@@ -4846,6 +4835,9 @@ Hand::InitAdjDiff()
 			stam_base = funk;
 			switch (ss) {
 				// do funky special case stuff here
+				case Skill_Stream:
+					adj_diff *= CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.075f);
+					break;
 
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
@@ -6413,7 +6405,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 347;
+int mina_calc_version = 348;
 int
 GetCalcVersion()
 {
