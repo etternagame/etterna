@@ -1999,11 +1999,9 @@ struct RM_Sequencing
 // stream rating for non-stream files.
 struct StreamMod
 {
-
-	const vector<int> _pmods = { Stream };
+	const int _pmod = Stream;
 	const std::string name = "StreamMod";
 	const int _tap_size = single;
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2031,27 +2029,24 @@ struct StreamMod
 	float pmod = min_mod;
 
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
+		doot[_pmod].resize(i);
 	}
 
-	inline void min_set(vector<float> doot[], const size_t& i)
+	inline void min_set(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
+		doot[_pmod][i] = min_mod;
 	}
 
-	inline void neutral_set(vector<float> doot[], const size_t& i)
+	inline void neutral_set(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
+		doot[_pmod][i] = neutral;
 	}
 
 	inline void smooth_finish(vector<float> doot[])
 	{
-		Smooth(doot[_primary], 1.f);
+		Smooth(doot[_pmod], 1.f);
 	}
 
 	inline XNode* make_param_node() const
@@ -2081,7 +2076,7 @@ struct StreamMod
 #pragma endregion
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// 1 tap is by definition a single tap
 		if (itvi.total_taps < 2) {
@@ -2089,19 +2084,18 @@ struct StreamMod
 			return true;
 		}
 
-		if (itvi.taps_by_size[single] == 0) {
+		if (itvi.taps_by_size[_tap_size] == 0) {
 			min_set(doot, i);
 			return true;
 		}
+
 		return false;
 	}
 
-	inline void operator()(const metaItvInfo& mitvi,
-						   vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
 		const auto& itvi = mitvi._itv_info;
-		if (handle_case_optimizations(itvi, doot, i))
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
 		// we want very light js to register as stream,
@@ -2123,7 +2117,7 @@ struct StreamMod
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		// actual mod
-		doot[_primary][i] = pmod;
+		doot[_pmod][mitvi._idx] = pmod;
 	}
 };
 struct JSMod
