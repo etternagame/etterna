@@ -1395,7 +1395,7 @@ struct metaRowInfo
 		count = row_count;
 
 		last_last_notes = last_notes;
-		last_count = last.notes;
+		last_notes = last.notes;
 		notes = row_notes;
 
 		basic_row_sequencing(last);
