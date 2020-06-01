@@ -1051,7 +1051,9 @@ do -- scoping
         i = i + 1
     end
 end
-o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
+
+-- upper graph 1.0 baseline
+o[#o+1] = topGraphLine("base_line", color("1,1,1,1"))
 
 -- lower mod lines and stuff
 do -- scoping
