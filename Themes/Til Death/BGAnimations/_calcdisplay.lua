@@ -36,7 +36,7 @@ end
 
 -- scale values to vertical positions within the top graph
 local function fitY1(y) -- scale for upper graph
-    if y < upperGraphMin then y = upperGraphMin+0.05 end
+    if y < upperGraphMin then y = upperGraphMin + 0.005 end
     local num = scale(y, upperGraphMin, upperGraphMax, 0, 1)
     local out = -1 * num * plotHeight
     return out
