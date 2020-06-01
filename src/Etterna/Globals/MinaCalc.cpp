@@ -30,7 +30,6 @@ using std::sqrt;
 using std::unordered_set;
 using std::vector;
 
-#pragma more stuff
 static const std::string calc_params_xml = "Save/calc params.xml";
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
@@ -43,7 +42,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 static const int num_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const int zto3[4] = { 0, 1, 2, 3 };
-// THESE ARE ACTUALLY MIRROR'D
+// THESE ARE ACTUALLY MIRROR'D NEED TO FIX LATER
 static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
 								   "0100", "0101", "0110", "0111",
 								   "1000", "1001", "1010", "1011",
@@ -2129,6 +2128,8 @@ struct StreamMod
 		// hand, maybe it doesn'ting need to be not needing'nt
 		// to be so severe
 
+		// we could make better use of sequencing here since now it's easy
+
 		prop_component =
 		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
 		  static_cast<float>(itvi.total_taps - prop_buffer) * prop_scaler;
@@ -2475,8 +2476,6 @@ struct HSMod
 		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
 		  jack_min,
 		  jack_max);
-		// clamp the original prop mod first before applying
-		// above
 
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
