@@ -6258,24 +6258,12 @@ Hand::InitAdjDiff()
 					  (soap[BaseMSD][i] + soap[BaseMSD][i] + soap[BaseNPS][i]) /
 					  3.f * tp_mods[ss] * basescalers[ss];
 					break;
-				case Skill_Technical:
-					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
-					{
-						// for (int j = 0; j < NUM_Skillset - 1; ++j)
-						//	if (j == Skill_Stamina || j == Skill_Overall)
-						//		scoring_justice_warrior_agenda[j] = 0.f;
-						//	else
-						//		scoring_justice_warrior_agenda[j] =
-						// tp_mods[j];
-						// float muzzle = *std::max_element(
-						//  scoring_justice_warrior_agenda.begin(),
-						//  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
-								   basescalers[ss] /
-								   fastsqrt(doot[WideRangeBalance][i]) /
-								   max(doot[CJ][i], 1.f);
-					}
-					break;
+				case Skill_Technical: {
+					adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
+							   basescalers[ss] /
+							   fastsqrt(doot[WideRangeBalance][i]) /
+							   max(doot[CJ][i], 1.f);
+				} break;
 			}
 		}
 	}
