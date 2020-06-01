@@ -5290,7 +5290,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// metaRowInfo _mri_dbg;
 
 	// basic interval tracking data for hand dependent stuff, like itvinfo
-	unique_ptr<ItvHandInfo> _itvhi;
+	ItvHandInfo _itvhi;
 
 	// meta hand info is the same as meta row info, however it tracks
 	// pattern progression on individual hands rather than on generic rows
@@ -5333,8 +5333,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
-
-		_itvhi = std::make_unique<ItvHandInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
 
@@ -5590,14 +5588,14 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
-		_ohj(*_itvhi, doot, itv);
-		_anch(*_itvhi, doot, itv);
-		_roll(*_itvhi, doot, itv);
-		_oht(*_itvhi, doot, itv);
-		_ch(*_itvhi, doot, itv);
+		_ohj(_itvhi, doot, itv);
+		_anch(_itvhi, doot, itv);
+		_roll(_itvhi, doot, itv);
+		_oht(_itvhi, doot, itv);
+		_ch(_itvhi, doot, itv);
 		_rm(doot, itv);
-		_wrr(*_itvhi, doot, itv);
-		_wrjt(*_itvhi, doot, itv);
+		_wrr(_itvhi, doot, itv);
+		_wrjt(_itvhi, doot, itv);
 	}
 
 	inline void run_dependent_smoothing_pass(vector<float> doot[])
@@ -5638,7 +5636,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				// reset any accumulated interval info and set cur index
 				// number
-				_itvhi->reset(itv);
+				_itvhi.reset(itv);
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -5649,7 +5647,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					col[col_left] = row_notes & ids[col_left];
 					col[col_right] = row_notes & ids[col_right];
 
-					_itvhi->update_tap_counts(col[col_left], col[col_right]);
+					_itvhi.update_tap_counts(col[col_left], col[col_right]);
 					(*_mhi)(
 					  *_last_mhi, row_time, col[col_left], col[col_right]);
 
@@ -5658,7 +5656,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					std::swap(_last_mhi, _mhi);
 				}
 				// just add up col taps to get hand taps i guess
-				_itvhi->set_hand_taps();
+				_itvhi.set_hand_taps();
 
 				// run pattern mod generation for hand dependent mods
 				set_dependent_pmods(_doots[hand], itv);
