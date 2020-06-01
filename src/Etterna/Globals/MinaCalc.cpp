@@ -2491,9 +2491,9 @@ struct HSMod
 };
 struct CJMod
 {
-	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
+	const CalcPatternMod _pmod = CJ;
+	const vector<CalcPatternMod> _dbg = { CJS, CJJ };
 	const std::string name = "CJMod";
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2553,32 +2553,16 @@ struct CJMod
 	float total_prop = 0.f;
 	float jack_prop = 0.f;
 	float not_jack_prop = 0.f;
-	float quad_prop = 0.f;
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[CJ], 1.f);
-		Smooth(doot[CJQuad], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline XNode* make_param_node() const
@@ -2606,18 +2590,27 @@ struct CJMod
 		}
 	}
 #pragma endregion
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[CJS][i] = not_jack_prop;
+			doot[CJJ][i] = jack_prop;
+		}
+	}
+
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 		if (itvi.total_taps == 0) {
-			min_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// no chords
 		if (itvi.chord_taps == 0) {
-			min_set(doot, i);
+			min_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 		return false;
@@ -2646,12 +2639,6 @@ struct CJMod
 		jack_prop =
 		  CalcClamp(mitvi.actual_jacks_cj - jack_base, jack_min, jack_max);
 
-		// too many quads is either pure vibro or slow quadmash, downscale a bit
-		quad_prop =
-		  quad_pool -
-		  (static_cast<float>(itvi.taps_by_size[quad] * quad_scaler) / t_taps);
-		quad_prop = CalcClamp(quad_prop, quad_min, quad_max);
-
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
 		not_jack_prop = CalcClamp(
@@ -2661,10 +2648,8 @@ struct CJMod
 		  not_jack_min,
 		  not_jack_max);
 
-		pmod = doot[CJ][mitvi._idx] =
-		  CalcClamp(total_prop * jack_prop * not_jack_prop /* * quad_prop*/,
-					min_mod,
-					max_mod);
+		pmod =
+		  CalcClamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
 
 		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
 		// this other places ?
@@ -2680,14 +2665,112 @@ struct CJMod
 			ASSERT(mitvi.num_var < 4);
 		}
 
-		// actual mod
-		doot[_primary][mitvi._idx] = pmod;
-		// look another actual mod
-		doot[CJQuad][mitvi._idx] = quad_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
+	}
+};
 
-		// debug
-		doot[CJS][mitvi._idx] = not_jack_prop;
-		doot[CJJ][mitvi._idx] = jack_prop;
+// i actually have no idea why i made this a separate mod instead of a prop
+// scaler like everything else but there's like a 20% chance there was a good
+// reason so i'll leave it
+struct CJQuadMod
+{
+	const CalcPatternMod _pmod = CJQuad;
+	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	const std::string name = "CJQuadMod";
+	const int _tap_size = quad;
+
+#pragma region params
+	float mod_pool = 1.5f;
+	float min_mod = 0.88f;
+	float max_mod = 1.f;
+	float prop_scaler = 1.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "mod_pool ", &mod_pool },
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "prop_scaler ", &prop_scaler },
+	};
+#pragma endregion params and param map
+	float quad_prop = 0.f;
+	float pmod = min_mod;
+	float t_taps = 0.f;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& i)
+	{
+		doot[_pmod].resize(i);
+
+		//		if (debug_lmao)
+		//			for (auto& mod : _dbg)
+		//				doot[mod].resize(i);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
+										  vector<float> doot[],
+										  const size_t& i)
+	{
+		if (itvi.total_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// no quads
+		if (itvi.chord_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// all quads
+		if (itvi.taps_by_size[_tap_size] == itvi.total_taps)
+		{
+			min_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
+	{
+		const auto& itvi = **mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
+			return;
+
+		// too many quads is either pure vibro or slow quadmash, downscale a bit
+		pmod = mod_pool -
+			   (static_cast<float>(itvi.taps_by_size[_tap_size] * prop_scaler) /
+				static_cast<float>(itvi.total_taps));
+		pmod = CalcClamp(quad_prop, min_mod, max_mod);
+
+		doot[_pmod][mitvi._idx] = pmod;
+		//set_dbg(doot, mitvi._idx);
 	}
 };
 
@@ -4723,6 +4806,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
+	CJQuadMod _cjq;
 	OHJumpMods _ohj;
 	RollMod _roll;
 	AnchorMod _anch;
@@ -4914,6 +4998,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			_js.setup(a, _itv_rows.size());
 			_hs.setup(a, _itv_rows.size());
 			_cj.setup(a, _itv_rows.size());
+			_cjq.setup(a, _itv_rows.size());
 		}
 	}
 
@@ -4927,6 +5012,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js(*_mitvi, _doot);
 		_hs(*_mitvi, _doot);
 		_cj(*_mitvi, _doot);
+		_cjq(*_mitvi, _doot);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -4991,7 +5077,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(_doots[lh][_s._pmod], neutral);
 		Smooth(_doots[lh][_js._pmod], neutral);
 		Smooth(_doots[lh][_hs._pmod], neutral);
-		_cj.smooth_finish(_doot);
+		Smooth(_doots[lh][_cj._pmod], neutral);
+		Smooth(_doots[lh][_cjq._pmod], neutral);
 		_ohj.smooth_finish(_doot);
 		_anch.smooth_finish(_doot);
 		_roll.smooth_finish(_doot);
