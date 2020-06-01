@@ -1237,7 +1237,9 @@ struct metaRowInfo
 
 	unique_ptr<metaItvInfo>* _bizzop;
 
-	float time = 0.f;
+	float time = s_init;
+	// time from last row (ms)
+	float ms_now = ms_init;
 	int count = 0;
 	int last_count = 0;
 	int last_last_count = 0;
@@ -1390,13 +1392,15 @@ struct metaRowInfo
 						   const unsigned& row_notes)
 	{
 		time = row_time;
-		last_last_count = last_count;
+		last_last_count = last.last_count;
 		last_count = last.count;
 		count = row_count;
 
-		last_last_notes = last_notes;
+		last_last_notes = last.last_notes;
 		last_notes = last.notes;
 		notes = row_notes;
+
+		ms_now = ms_from(time, last.time);
 
 		basic_row_sequencing(last);
 	}
@@ -2988,7 +2992,9 @@ struct OHJumpMods
 		}
 	}
 
-	inline bool handle_case_optimizations(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+										  vector<float> doot[],
+										  const int& i)
 	{
 		if (floatymcfloatface >= hand_taps) {
 			min_set(doot, i);
@@ -4909,13 +4915,353 @@ struct WideRangeRollMod
 	inline void interval_reset() { itv_rolls.clear(); }
 };
 
+struct flam
+{
+	// cols seen
+	unsigned unsigned_unseen = 0;
+
+	// size in ROWS, not columns, if flam size == 1 we do not yet have a flam
+	// and we have no current relevant values in ms[], any that are set will be
+	// leftovers from the last sequence, this is to optimize out setting
+	// rowtimes or calculating ms times
+	int size = 1;
+
+	// size > 1, is this actually more efficient than calling a bool check func?
+	bool flammin = false;
+
+	// ms values, 3 ms values = 4 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[3] = {
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// is this row exclusively additive with the current flam sequence?
+	inline bool comma_comma_coolmeleon(const unsigned& notes)
+	{
+		return unsigned_unseen & notes == 0;
+	}
+
+	// to avoid keeping another float ??? idk
+	inline float get_dur()
+	{
+		// cba to loop
+		switch (size) {
+			case 1:
+				// can't have 1 row flams
+				ASSERT(1 == 0);
+			case 2:
+				return ms[0];
+				break;
+			case 3:
+				return ms[0] + ms[1];
+				break;
+			case 4:
+				return ms[0] + ms[1] + ms[2];
+				break;
+			default:
+				ASSERT(1 == 0);
+				break;
+		}
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		flammin = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		unsigned_unseen |= notes;
+
+		ASSERT(size < 5);
+
+		ms[size - 1] = ms_now;
+
+		// adjust size after setting ms, size starts at 1
+		++size;
+	}
+
+	inline void reset()
+	{
+		flammin = false;
+		size = 1;
+	}
+};
+
+// lots of potential for optimization
+struct FJ_Sequencing
+{
+	flam flim;
+
+	// scan for flam chords in this window
+	float group_tol = 0.f;
+	// tolerance for each column step
+	float step_tol = 0.f;
+	float mod_scaler = 0.f;
+
+	  // number of flams
+	  int flam_counter = 0;
+
+	// track up to 4 flams per interval, if the number of flams exceeds this
+	// number we'll just min_set (OR we could keep a moving array of flams, and
+	// not flams, which would make consecutive flams much more debilitating and
+	// interval proof the sequencing.. however.. it's probably not necessary to
+	// get that fancy
+
+	float mod_parts[4] = { 1.f, 1.f, 1.f, 1.f };
+
+	// there's too many flams already, don't bother with new sequencing and
+	// shortcut into a minset in flamjammod
+	// technically this means we won't start constructing sequences again until
+	// the next interval.. not sure if this is desired behavior
+	bool the_fifth_flammament = false;
+
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		group_tol = gt;
+		step_tol = st;
+		mod_scaler = ms;
+	}
+
+	inline void complete_seq()
+	{
+		ASSERT(flim.size > 1);
+		mod_parts[flam_counter] = construct_mod_part();
+		++flam_counter;
+
+		// bro its just flams
+		if (flam_counter > 4)
+			the_fifth_flammament = true;
+
+		flim.reset();
+	}
+
+	inline bool flammin_col_check(const unsigned& notes)
+	{
+		// this function should never be used to start a flam
+		ASSERT(flim.flammin);
+
+		// note : in order to prevent the last row of a quad flam from being
+		// elibible to start a new flam (logically it makes no sense), instead
+		// of catching full quads and resetting when we get them, we'll let them
+		// pass throgh into the next note row, no matter what the row is it will
+		// fail the xor check and be reset then, making only the row _after_ the
+		// full flam eligible for a new start
+
+		// valid continuation of flam
+		if (flim.comma_comma_coolmeleon(notes))
+			return true;
+		return false;
+	}
+
+	// check for anything that would break the sequence
+	inline bool flammin_tol_check(const float& now)
+	{
+		// check if ms from last row is greater than the group tolerance
+		if (now > group_tol)
+			return false;
+
+		// check if the new flam duration would exceed the group tolerance with
+		// the current row added
+		if (flim.get_dur() + now > group_tol)
+			return false;
+
+		// we may be able to continue the sequence, run the col check
+		return true;
+	}
+
+	inline void operator()(const float& now, const unsigned& notes)
+	{
+		// if we already have the max number of flams
+		// (maybe should remove this shortcut optimization)
+		// seems like we never even hit it so...
+		if (the_fifth_flammament)
+			return;
+
+		// haven't started, if we're under the step tolerance, start
+		if (!flim.flammin) {
+			// 99.99% of cases
+			if (now > step_tol)
+				return;
+			else
+				flim.start(now, notes);
+		} else {
+			// passed the tolerance checks, run the col checks
+			if (flammin_tol_check(now)) {
+
+				// passed col check, advance flam
+				if (flammin_col_check(notes))
+					flim.grow(now, notes);
+				else {
+					// we failed the col check, but we've passed the tol checks,
+					// which means this row is eligible to begin a new flam
+					// sequence, complete the one that exists and start again
+					complete_seq();
+					flim.start(now, notes);
+				}
+			} else {
+				// reset if we exceed tolerance checks
+				complete_seq();
+			}
+		}
+	}
+
+	inline void reset()
+	{
+		// we probably don't want to do this, just let it build potential
+		// sequences across intervals
+		// flam.reset();
+
+		the_fifth_flammament = false;
+		flam_counter = 0;
+
+		// reset everything to 1, as we build flams we will replace 1 with < 1
+		// values, the more there are, the lower (stronger) the pattern mod
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part()
+	{
+		// total duration of flam
+		float dur = flim.get_dur();
+
+		// scale to size of flam, we want jumpflams to punish less than quad
+		// flams (while still downscaling jumptrill flams)
+		// flams that register as 95% of the size adjusted window will be
+		// punished less than those that register at 2%
+		float dur_prop = dur / group_tol;
+		dur_prop /= (static_cast<float>(flim.size) / mod_scaler);
+		dur_prop = CalcClamp(dur_prop, 0.f, 1.f);
+
+		return fastsqrt(dur_prop);
+	}
+};
+
+struct FlamJamMod
+{
+	const CalcPatternMod _pmod = FlamJam;
+	const std::string name = "FlamJamMod";
+
+#pragma region params
+	float min_mod = 0.5f;
+	float max_mod = 1.f;
+	float mod_scaler = 2.75f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float group_tol = 35.f;
+	float step_tol = 17.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_scaler", &mod_scaler },
+
+		// params for fj_sequencing
+		{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },
+	};
+#pragma endregion params and param map
+
+	// sequencer
+	FJ_Sequencing fj;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		fj.set_params(group_tol, step_tol, mod_scaler);
+
+		doot[_pmod].resize(size);
+		/*if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);*/
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaRowInfo& now)
+	{
+		fj(now.ms_now, now.notes);
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		//
+	}
+
+	inline bool handle_case_optimizations(const FJ_Sequencing& fj,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// no flams
+		if (fj.mod_parts[0] == 1.f)
+			neutral_set(_pmod, doot, i);
+
+		if (fj.the_fifth_flammament)
+			mod_set(_pmod, doot, i, min_mod);
+
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+		if (handle_case_optimizations(fj, doot, i)) {
+			// set_dbg(doot, i);
+			fj.reset();
+			return;
+		}
+
+		// water down single flams
+		pmod = 1.f;
+		for (auto& mp : fj.mod_parts)
+			pmod += mp;
+		pmod /= 5.f;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][i] = pmod;
+		// set_dbg(doot, i);
+
+		// reset flags n stuff
+		fj.reset();
+	}
+};
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 	// debug stuff, tracks everything that was built
-	//vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
-	//vector<vector<metaHandInfo>> _mri_dbg_vec;
+	// vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
+	// vector<vector<metaHandInfo>> _mri_dbg_vec;
 
 	// for generic debugging, constructs a string with the pattern formation
 	// for a given interval
@@ -4931,8 +5277,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// to generate these
 
-	// most basic interval info used for the more generic pattern mods (mostly
-	// for skillset detection)
+	// most basic interval info used for the more generic pattern mods
+	// (mostly for skillset detection)
 	unique_ptr<ItvInfo> _itvi;
 
 	// keeps track of occurrences of basic row based sequencing, also used
@@ -4947,7 +5293,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// as an arg
 	unique_ptr<metaRowInfo> _last_mri;
 	unique_ptr<metaRowInfo> _mri;
-	//metaRowInfo _mri_dbg;
+	// metaRowInfo _mri_dbg;
 
 	// basic interval tracking data for hand dependent stuff, like itvinfo
 	unique_ptr<ItvHandInfo> _itvhi;
@@ -4956,7 +5302,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// pattern progression on individual hands rather than on generic rows
 	unique_ptr<metaHandInfo> _last_mhi;
 	unique_ptr<metaHandInfo> _mhi;
-	//metaHandInfo _mhi_dbg;
+	// metaHandInfo _mhi_dbg;
 
 	// so we can make pattern mods
 	StreamMod _s;
@@ -4972,6 +5318,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	RunningManMod _rm;
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
+	FlamJamMod _fj;
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -5016,7 +5363,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// multi-passes at some point
 		_ni = ni;
 	}
-
+	/*
 	// inline void operator()(const vector<vector<int>>& itv_rows,
 	//					   const float& rate,
 	//					   const unsigned int& t1,
@@ -5061,19 +5408,26 @@ struct TheGreatBazoinkazoinkInTheSky
 	//		}
 	//	}
 
-	//	// above block is controlled in the struct def, this block is run if we
-	//	// are called from minacalcdebug, allocate the string thing, we can also
+	//	// above block is controlled in the struct def, this block is run if
+	// we
+	//	// are called from minacalcdebug, allocate the string thing, we can
+	// also
 	//	// force it
 	//	if (debug_lmao || dbg)
 	//		_itv_row_string.resize(_itv_rows.size());
 
-	//	// main interval loop, pattern mods values are produced in this outer
+	//	// main interval loop, pattern mods values are produced in this
+	// outer
 	//	// loop using the data aggregated/generated in the inner loop
-	//	// all pattern mod functors should use i as an argument, since it needs
+	//	// all pattern mod functors should use i as an argument, since it
+	// needs
 	//	// to update the pattern mod holder at the proper index
-	//	// we end up running the hand independent pattern mods twice, but i'm
-	//	// not sure it matters? they tend to be low cost, this should be split
-	//	// up properly into hand dependent/independent loops if it turns out to
+	//	// we end up running the hand independent pattern mods twice, but
+	// i'm
+	//	// not sure it matters? they tend to be low cost, this should be
+	// split
+	//	// up properly into hand dependent/independent loops if it turns out
+	// to
 	//	// be an issue
 	//	for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 	//		// reset the last mni interval data, since it gets used to
@@ -5083,18 +5437,19 @@ struct TheGreatBazoinkazoinkInTheSky
 	//		// inner loop
 	//		for (auto& row : _itv_rows[itv]) {
 	//			// ok we really should be doing separate loops for both
-	//			// hand/separate hand stuff, and this should be in the former
-	//			if (hand == 0)
-	//				if (debug_lmao || dbg) {
+	//			// hand/separate hand stuff, and this should be in the
+	// former 			if (hand == 0) 				if (debug_lmao || dbg) {
 	//					_itv_row_string[itv].append(note_map[_ni[row].notes]);
 	//					_itv_row_string[itv].append("\n");
 	//				}
 	//			if (debug_lmao)
 	//				std::cout << "\n" << _itv_row_string[itv] << std::endl;
 
-	//			// generate current metanoteinfo using stuff + last metanoteinfo
+	//			// generate current metanoteinfo using stuff + last
+	// metanoteinfo
 	//			(*_mhi)(
-	//			  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
+	//			  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2,
+	// row);
 
 	//			// should be self explanatory
 	//			handle_row_dependent_pattern_advancement();
@@ -5129,6 +5484,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	//	}
 	//	run_smoothing_pass();
 	//}
+	*/
 
 	vector<float>* _doots[num_hands];
 	inline void operator()(const vector<vector<int>>& itv_rows,
@@ -5147,6 +5503,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 #pragma region hand agnostic pmod loop
+	inline void advance_agnostic_sequencing() { _fj.advance_sequencing(*_mri); }
 	inline void setup_agnostic_pmods()
 	{
 		// these pattern mods operate on all columns, only need basic meta
@@ -5158,10 +5515,11 @@ struct TheGreatBazoinkazoinkInTheSky
 			_hs.setup(a, _itv_rows.size());
 			_cj.setup(a, _itv_rows.size());
 			_cjq.setup(a, _itv_rows.size());
+			_fj.setup(a, _itv_rows.size());
 		}
 	}
 
-	void set_agnostic_pmods(vector<float> doot[])
+	inline void set_agnostic_pmods(vector<float> doot[], const int& itv)
 	{
 		// these pattern mods operate on all columns, only need basic meta
 		// interval data, and do not need any more advanced pattern
@@ -5172,6 +5530,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_hs(*_mitvi, doot);
 		_cj(*_mitvi, doot);
 		_cjq(*_mitvi, doot);
+		_fj(doot, itv);
 	}
 
 	inline void run_agnostic_smoothing_pass(vector<float> doot[])
@@ -5181,6 +5540,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_hs._pmod], neutral);
 		Smooth(doot[_cj._pmod], neutral);
 		Smooth(doot[_cjq._pmod], neutral);
+		Smooth(doot[_fj._pmod], neutral);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -5208,6 +5568,8 @@ struct TheGreatBazoinkazoinkInTheSky
 				_itvi->update_tap_counts(row_count);
 				(*_mri)(*_last_mri, row_time, row_count, row_notes);
 
+				advance_agnostic_sequencing();
+
 				// we only need to look back 1 metanoterow object, so we can
 				// swap the one we just built into last and recycle the two
 				// pointers instead of keeping track of everything
@@ -5215,7 +5577,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			}
 
 			// run pattern mod generation for hand agnostic mods
-			set_agnostic_pmods(_doots[lh]);
+			set_agnostic_pmods(_doots[lh], itv);
 		}
 		run_agnostic_smoothing_pass(_doots[lh]);
 	}
@@ -5226,7 +5588,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	void handle_row_dependent_pattern_advancement()
+	inline void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(*_mhi);
 		_roll.advance_sequencing(*_mhi);
@@ -5364,6 +5726,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
+		_fj.load_params_from_node(&params);
 	}
 
 	inline XNode* make_param_node() const
@@ -5384,12 +5747,13 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_rm.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
+		calcparams->AppendChild(_fj.make_param_node());
 
 		return calcparams;
 	}
 #pragma endregion
 
-	void write_params_to_disk()
+	inline void write_params_to_disk()
 	{
 		std::string fn = calc_params_xml;
 		std::unique_ptr<XNode> xml(make_param_node());
@@ -5421,8 +5785,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			return false;
 	}
 
-	// sequence jack immediately so we can ref pass & sort in calc msestimate
-	// without things going be wackying
+	// sequence jack immediately so we can ref pass & sort in calc
+	// msestimate without things going be wackying
 	for (auto m : zto3) {
 		jacks[m]->resize(4);
 		for (auto t : zto3) {
@@ -5462,7 +5826,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
 
-	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
+	// SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
 	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
@@ -5477,7 +5841,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// do these last since calcmsestimate modifies the interval ms values of
 	// fingers with sort, anything that is derivative of those values that
-	// requires them to be in sequential order should be done before this point
+	// requires them to be in sequential order should be done before this
+	// point
 	left_hand.InitBaseDiff(fingers[0], fingers[1]);
 	left_hand.InitPoints(fingers[0], fingers[1]);
 	left_hand.InitAdjDiff();
@@ -5538,9 +5903,9 @@ Hand::CalcMSEstimate(vector<float>& input, const int& burp)
 	static const float ms_dummy = 360.f;
 
 	// mostly try to push down stuff like jumpjacks, not necessarily to push
-	// up "complex" stuff (this will push up intervals with few fast ms values
-	// kinda hard but it shouldn't matter as their base ms diff should be
-	// extremely low
+	// up "complex" stuff (this will push up intervals with few fast ms
+	// values kinda hard but it shouldn't matter as their base ms diff
+	// should be extremely low
 	float cv_yo = cv_trunc_fill(input, burp, ms_dummy) + 0.5f;
 	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
 
@@ -6561,199 +6926,6 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 	Smooth(doot[TheThing], 1.f);
 	Smooth(doot[TheThing], 1.f);
 	return;
-}
-
-// try to sniff out chords that are built as flams. BADLY NEEDS
-// REFACTOR
-void
-Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
-					vector<float> doot[],
-					float& music_rate)
-{
-	doot[FlamJam].resize(nervIntervals.size());
-	// scan for flam chords in this window
-	float grouping_tolerance = 11.f;
-	// tracks which columns were seen in the current flam chord
-	// this is essentially the same as if NoteInfo[row].notes
-	// was tracked over multiple rows
-	int cols = 0;
-	// all permutations of these values are unique identifiers
-	int col_id[4] = { 1, 2, 4, 8 };
-	// unused atm but we might want this information, allocate once
-	vector<int> flam_rows(4);
-	// timing points of the elements of the flam chord, allocate
-	// once
-	vector<float> flamjam(4);
-	// we don't actually need this counter since we can derive it
-	// from cols but it might just be faster to track it locally
-	// since we will be recycling the flamjam vector memory
-	int flam_row_counter = 0;
-	bool flamjamslamwham = false;
-
-	// in each interval
-	for (int i = 0; i < nervIntervals.size(); i++) {
-		// build up flam detection for this interval
-		vector<float> temp_mod;
-
-		// row loop to pick up flams within the interval
-		for (int row : nervIntervals[i]) {
-			// perhaps we should start tracking this instead of
-			// tracking it over and over....
-			float scaled_time = NoteInfo[row].rowTime / music_rate * 1000.f;
-
-			// this can be optimized a lot by properly mapping out
-			// the notes value to arrow combinations (as it is
-			// constructed from them) and deterministic
-
-			// we are traversing intervals->rows->columns
-			for (auto& id : col_id) {
-				// check if there's a note here
-				bool isnoteatcol = NoteInfo[row].notes & id;
-				if (isnoteatcol) {
-					// we're past the tolerance range, break if we
-					// have grouped more than 1 note, or if we have
-					// filled an entire quad. with this behavior if
-					// we fill a quad of 192nd flams with order 1234
-					// and there's still another note on 1 within
-					// the tolerance range we'll flag this as a flam
-					// chord and downscale appropriately, not sure
-					// if we want this as it could be the case that
-					// there is a second flamchord immediately
-					// after, and it's just vibro, or it could be
-					// the case that there are complex reasonable
-					// patterns following, perhaps a different
-					// behavior would be better
-
-					// we cannot exceed tolerance without at least 1
-					// note
-					bool tol_exceed =
-					  flam_row_counter > 0 &&
-					  (scaled_time - flamjam[0]) > grouping_tolerance;
-
-					if (tol_exceed && flam_row_counter == 1) {
-						// single note, don't flag a detect
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-					if ((tol_exceed && flam_row_counter > 1) ||
-						flam_row_counter == 4)
-						// at least a flam jump has been detected,
-						// flag it
-						flamjamslamwham = true;
-
-					// if we have identified a flam chord in some
-					// way; handle and reset, we don't want to skip
-					// the notes in this iteration yes this should
-					// be done in the column loop since a flam can
-					// start and end on any columns in any order
-
-					// conditions to be here are at least 2
-					// different columns have been logged as part of
-					// a flam chord and we have exceeded the
-					// tolerance for flam duration, or we have a
-					// full quad flam detected, though not
-					// necessarily exceeding the tolerance window.
-					// we do want to reset if it doesn't, because we
-					// want to pick up vibro flams and nerf them
-					// into oblivion too, i think
-					if (flamjamslamwham) {
-						// we'll construct the final pattern mod
-						// value from the flammyness and number of
-						// detected flam chords
-						float mod_part = 0.f;
-
-						// lower means more cheesable means nerf
-						// harder
-						float fc_dur =
-						  flamjam[flam_row_counter - 1] - flamjam[0];
-
-						// we don't want to affect explicit chords,
-						// but we have to be sure that the entire
-						// flam we've picked up is an actual chord
-						// and only an actual chord, if the first
-						// and last elements detected were on the
-						// same row, ignore it, trying to do fc_dur
-						// == 0.f didn't work because of float
-						// precision
-						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
-							// basic linear scale for testing
-							// purposes, scaled to the window length
-							// and also flam size
-							mod_part =
-							  fc_dur / grouping_tolerance / flam_row_counter;
-							temp_mod.push_back(mod_part);
-						}
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-						flamjamslamwham = false;
-					}
-
-					// we know chord flams can't contain multiple
-					// notes of the same column (those are just
-					// gluts), reset if detected even within the
-					// tolerance range (we can't be outside of it
-					// here by definition)
-					if (cols & id) {
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-
-					// conditions to reach here are that a note in
-					// this column has not been logged yet and we
-					// are still within the grouping tolerance. we
-					// don't need cur/last times here, the time of
-					// the first element will be used to determine
-					// the size of the total group
-
-					// track the time point of this note
-					flamjam[flam_row_counter] = scaled_time;
-					// track which row its on
-					flam_rows[flam_row_counter] = row;
-
-					// update unique column identifier
-					cols += id;
-					++flam_row_counter;
-				}
-			}
-		}
-
-		// finishing the row loop leaves us with instances of
-		// flamjams forgive a single instance of a chord flam for
-		// now; handle none
-		if (temp_mod.size() < 2)
-			doot[FlamJam][i] = 1.f;
-
-		float wee = 0.f;
-		for (auto& v : temp_mod)
-			wee += v;
-
-		// we can do this for now without worring about /0 since
-		// size is at least 2 to get here
-		wee /= static_cast<float>(temp_mod.size() - 1);
-
-		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
-		doot[FlamJam][i] = wee;
-
-		// reset the stuffs, _theoretically_ since we are sequencing
-		// we don't even need at all to clear the flam detection
-		// however then we have to handle cases like a single note
-		// in an interval and i don't feel like doing that, a small
-		// number of flams that happen to straddle the interval
-		// splice points shouldn't make a huge difference, but if
-		// they do then we should deal with it
-		temp_mod.clear();
-		flam_row_counter = 0;
-		cols = 0;
-	}
-	Smooth(doot[FlamJam], 1.f);
 }
 
 #pragma endregion
