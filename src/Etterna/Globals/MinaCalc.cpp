@@ -2043,7 +2043,7 @@ struct StreamMod
 	float min_mod = 0.6f;
 	float max_mod = 1.0f;
 	float prop_buffer = 1.f;
-	float prop_scaler = 1.428; // ~10/7
+	float prop_scaler = 1.428f; // ~10/7
 
 	float jack_pool = 4.f;
 	float jack_comp_min = 0.5f;
@@ -2854,7 +2854,7 @@ struct OHJumpMods
 	int max_ohjump_seq = 0;
 	int window_roll_taps = 0;
 	int cc_taps = 0;
-	int ohjump_taps = 0.f;
+	int ohjump_taps = 0;
 	// we cast the one in itv_info from int
 	float hand_taps = 0.f;
 	float floatymcfloatface = 0.f;
@@ -3122,14 +3122,12 @@ struct OHJumpMods
 
 			doot[OHJBaseProp][i] = base_prop;
 			doot[OHJMaxSeq][i] = floatymcfloatface;
-			doot[OHJCCTaps][i] = cc_taps;
+			doot[OHJCCTaps][i] = static_cast<float>(cc_taps);
 			doot[OHJHTaps][i] = hand_taps;
 		}
 	}
 
-	void operator()(const ItvHandInfo& itvh,
-					vector<float> doot[],
-					const int& i)
+	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
 	{
 		// if cur_seq > max when we ended the interval, set it, but don't reset
 		max_ohjump_seq =
