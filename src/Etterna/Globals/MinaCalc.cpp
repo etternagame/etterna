@@ -1511,9 +1511,6 @@ enum meta_type
 // might be more convenient or clearer
 struct metaHandInfo
 {
-	bool dbg = false && debug_lmao;
-	bool dbg_lv2 = false && debug_lmao;
-
 #pragma region row specific data
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
@@ -1638,13 +1635,8 @@ struct metaHandInfo
 	inline void operator()(const metaHandInfo& last,
 						   const float& now,
 						   const bool& lcol,
-						   const bool& rcol,
-						   bool silence = false)
+						   const bool& rcol)
 	{
-		// if ulbu is in debug mode it will create an extra mni object every
-		// row and spit out the debugoutput twice
-		dbg = dbg && !silence;
-
 		set_col_type(lcol, rcol);
 		row_time = now;
 		last_row_notes = last.row_notes;
