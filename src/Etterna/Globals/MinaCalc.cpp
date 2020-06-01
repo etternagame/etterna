@@ -2765,7 +2765,7 @@ struct CJQuadMod
 		pmod = mod_pool -
 			   (static_cast<float>(itvi.taps_by_size[_tap_size] * prop_scaler) /
 				static_cast<float>(itvi.total_taps));
-		pmod = CalcClamp(quad_prop, min_mod, max_mod);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[_pmod][mitvi._idx] = pmod;
 		// set_dbg(doot, mitvi._idx);
