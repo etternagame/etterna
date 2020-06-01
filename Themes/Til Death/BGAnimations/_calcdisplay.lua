@@ -15,6 +15,7 @@ local steps
 local finalSecond = 0 -- only used if its references below are uncommented
 local graphVecs = {}
 local ssrs = {}
+local activeModGroup = 1
 
 -- bg actors for mouse hover stuff
 local topgraph = nil
@@ -146,24 +147,36 @@ local miscToLowerMods = {
     JackPtLoss = true,
 }
 
--- active mods on top graph
-local activeMods = {}
-for k,v in pairs(CalcPatternMod) do
-    activeMods[#activeMods+1] = shortenEnum("CalcPatternMod", v)
+-- this list is used for functional purposes to keep the order of the lists generated in a certain order
+-- particularly, it's the order determined by the enums on the c++ side
+-- you have to see it to believe it, but it really does work
+local orderedExtraUpperMods = {}
+for i, mod in pairs(CalcDebugMisc) do
+    local mod = shortenEnum("CalcDebugMisc", mod)
+    if miscToUpperMods[mod] then
+        orderedExtraUpperMods[#orderedExtraUpperMods+1] = mod
+    end
 end
-for _,v in pairs(miscToUpperMods) do
-    activeMods[#activeMods+1] = v
+
+-- same as immediately above
+local orderedExtraLowerMods = {}
+for i, mod in pairs(CalcDebugMisc) do
+    local mod = shortenEnum("CalcDebugMisc", mod)
+    if miscToLowerMods[mod] then
+        orderedExtraLowerMods[#orderedExtraLowerMods+1] = mod
+    end
 end
 
 -- specify enum names as tables here
 -- any number allowed
+-- there is no order to anything in the groups, only the groups themselves
 local debugGroups = {
     {   -- Group 1
         Stream = true,
         OHTrill = true,
 		OHJumpMod = true,
 		Roll = true,
-		StamMod = true
+        StamMod = true
     },
     {   -- Group 2
         JS = true,
@@ -238,6 +251,22 @@ local debugGroups = {
     },
 }
 
+-- get a list of the mods that are active
+-- indexes pointing to enum strings
+local function getActiveDebugMods()
+    local output = {}
+
+    if activeModGroup > #debugGroups or activeModGroup < 1 then return output end
+
+    -- once for each hand, add it to the list
+    for mod,_ in pairs(debugGroups[activeModGroup]) do
+        output[#output+1] = mod
+        output[#output+1] = mod
+    end
+
+    return output
+end
+
 -- responsible for updating all relevant values and then triggering the display message(s)
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
@@ -284,7 +313,9 @@ local function updateCoolStuff()
     else
         graphVecs = {}
     end
-    MESSAGEMAN:Broadcast("UpdateAverages")
+
+    local mods = getActiveDebugMods()
+    MESSAGEMAN:Broadcast("UpdateAverages", {mods = mods})
 end
 
 --[[
@@ -293,8 +324,6 @@ end
     (in any event, though, an invalid activeModGroup value will result in all modgroups appearing)
     ((-1 is meant to be the all group value but isn't really designed to work))
 ]]
-local activeModGroup = 1
-
 -- switch the active mod group directly to a number (no cap)
 local function switchToGroup(num)
     if num == activeModGroup then
@@ -302,7 +331,8 @@ local function switchToGroup(num)
     else
         activeModGroup = num
     end
-    MESSAGEMAN:Broadcast("UpdateActiveMods")
+    local mods = getActiveDebugMods()
+    MESSAGEMAN:Broadcast("UpdateActiveMods", {mods = mods})
 end
 
 -- move the active mod group value in a direction (looping)
@@ -605,7 +635,9 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end
 }
 
---[[ enum mapping for downscaler things: ]]
+--[[ enum mapping for downscaler things:
+    this list has order and should match the enums used
+]]
 local modnames = {
     "stl",
     "str",
@@ -695,9 +727,12 @@ local modnames = {
     "rpjr",
     "sl",
     "sr",
-    
+    "jksl",
+    "jksr",
 }
 
+-- this list has order
+-- try to keep it exactly in the order of the enums used :)
 local modColors = {
     color(".3,1.3,1"),      -- cyan			= stream left
     color(".3,1.3,0.9"),	-- cyan				 (right)
@@ -787,10 +822,34 @@ local modColors = {
 	color("1,1,1"),
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0"),		-- lime			= jackstam left
+    color("0.7,1,0"),		-- lime				 (right)
 }
 
+-- a remapping of modnames to colors
+local modToColor = {}
+-- a remapping of modnames to shortnames
+local modToShortname = {}
+for i, mod in pairs(CalcPatternMod) do
+    local mod = shortenEnum("CalcPatternMod", mod)
+    modToColor[mod.."L"] = modColors[i*2 - 1]
+    modToColor[mod.."R"] = modColors[i*2]
+    modToShortname[mod.."L"] = modnames[i*2 - 1]
+    modToShortname[mod.."R"] = modnames[i*2]
+end
+do -- scope hahaha
+    local i = 1
+    for _, mod in pairs(orderedExtraUpperMods) do
+        modToColor[mod.."L"] = modColors[#CalcPatternMod*2 + i*2 - 1]
+        modToColor[mod.."R"] = modColors[#CalcPatternMod*2 + i*2]
+        modToShortname[mod.."L"] = modnames[#CalcPatternMod*2 + i*2 - 1]
+        modToShortname[mod.."R"] = modnames[#CalcPatternMod*2 + i*2]
+        i = i + 1
+    end
+end
+
 -- top graph average text
-local function makeskillsetlabeltext(i, mod, hand)
+local function makeskillsetlabeltext(i)
     return LoadFont("Common Normal") .. {
         Name = "SSLabel"..i,
         InitCommand = function(self)
@@ -800,38 +859,54 @@ local function makeskillsetlabeltext(i, mod, hand)
             self:settext("")
             self:maxwidth(100)
         end,
-        UpdateAveragesMessageCommand = function(self)
+        UpdateAveragesMessageCommand = function(self, params)
             if song then
-                local aves = {}
+                local mod = nil
+                local hand = (i+1) % 2 + 1
+
+                -- update and show only if needed
+                if params.mods[i] then
+                    mod = params.mods[i]
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(0)
+                    return
+                end
+
+                local modhand = mod .. (hand == 1 and "L" or "R")
+                local shortname = modToShortname[modhand]
+                local modcolor = modToColor[modhand]
+
+                local ave
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then 
                     self:settext("")
                     return
                 end
-                for i = 1, #values do
-                    if values[i] and #values > 0 then
-                        aves[i] = table.average(values)
-                    end
+                if values[i] and #values > 0 then
+                    ave = table.average(values)
                 end
                 if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
-                    self:diffuse(modColors[i])
+                    self:diffuse(modcolor)
                 else
                     self:diffuse(color(".3,.3,.3"))
                 end
-                if aves[i] then
-                    self:settextf("%s: %.3f", modnames[i], aves[i])
+                if ave then
+                    self:settextf("%s: %.3f", shortname, ave)
                 else
-                    self:settextf("%s: err", modnames[i])
+                    self:settextf("%s: err", shortname)
                 end
             end
         end,
-        UpdateActiveModsMessageCommand = function(self)
+        UpdateActiveModsMessageCommand = function(self, params)
+            local mod = params.mods[i]
             -- if this group is selected and we want to show it off
             if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
-                self:playcommand("UpdateAverages")
+                self:playcommand("UpdateAverages", {mods = params.mods})
             else
                 -- grey out unselected groups
-                self:diffuse(color(".3,.3,.3"))
+                self:diffusealpha(0)
+                --self:diffuse(color(".3,.3,.3"))
             end
         end
     }
@@ -1038,7 +1113,7 @@ do -- scoping
         for h = 1,2 do
             local modname = shortenEnum("CalcPatternMod", mod)
             o[#o+1] = topGraphLine(modname, modColors[(i * 2) - (h % 2)], h)
-            o[#o+1] = makeskillsetlabeltext((i * 2) - (h % 2), modname, h)
+            --o[#o+1] = makeskillsetlabeltext((i * 2) - (h % 2), modname, h)
         end
     end
     i = 1
@@ -1046,10 +1121,16 @@ do -- scoping
         for h = 1,2 do
             -- dont have to shorten enum here because i did something dumb
             o[#o+1] = topGraphLine(mod, modColors[(#CalcPatternMod * 2) + i], h)
-            o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + i, mod, h)
+            --o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + i, mod, h)
         end
         i = i + 1
     end
+end
+
+-- create 40 slots for text on top
+-- there is room for about 44 at the time of writing
+for i = 1,40 do
+    o[#o+1] = makeskillsetlabeltext(i)
 end
 
 -- upper graph 1.0 baseline
