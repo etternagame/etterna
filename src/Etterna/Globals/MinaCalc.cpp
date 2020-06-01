@@ -2514,11 +2514,6 @@ struct CJMod
 	float not_jack_max = 1.f;
 	float not_jack_scaler = 1.f;
 
-	float quad_pool = 1.5f;
-	float quad_min = 0.88f;
-	float quad_max = 1.f;
-	float quad_scaler = 1.f;
-
 	float vibro_flag = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
@@ -2540,11 +2535,6 @@ struct CJMod
 		{ "not_jack_min", &not_jack_min },
 		{ "not_jack_max", &not_jack_max },
 		{ "not_jack_scaler", &not_jack_scaler },
-
-		{ "quad_pool", &quad_pool },
-		{ "quad_min", &quad_min },
-		{ "quad_max", &quad_max },
-		{ "quad_scaler", &quad_scaler },
 
 		{ "vibro_flag", &vibro_flag },
 	};
@@ -2656,11 +2646,11 @@ struct CJMod
 			// we shouldn't be hitting empty intervals here
 			ASSERT(mitvi.num_var > 0);
 			if (mitvi.num_var == 1)
-				pmod *= 0.85f;
+				pmod *= 0.85f * vibro_flag;
 			else if (mitvi.num_var == 2)
-				pmod *= 0.9f;
+				pmod *= 0.925f * vibro_flag;
 			else if (mitvi.num_var == 3)
-				pmod *= 0.9f;
+				pmod *= 0.975f * vibro_flag;
 			ASSERT(mitvi.num_var < 4);
 		}
 
@@ -2692,9 +2682,7 @@ struct CJQuadMod
 		{ "prop_scaler ", &prop_scaler },
 	};
 #pragma endregion params and param map
-	float quad_prop = 0.f;
 	float pmod = min_mod;
-	float t_taps = 0.f;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& i)
 	{
@@ -2741,7 +2729,7 @@ struct CJQuadMod
 		}
 
 		// no quads
-		if (itvi.chord_taps == 0) {
+		if (itvi.taps_by_size[_tap_size] == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
