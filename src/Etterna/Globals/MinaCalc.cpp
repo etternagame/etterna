@@ -5901,8 +5901,8 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.075f), 1.f, 1.075f);
+					adj_diff *= CalcClamp(
+					  fastsqrt(doot[RanMan][i] - 0.075f), 1.f, 1.075f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -5926,8 +5926,7 @@ Hand::InitAdjDiff()
 				case Skill_Chordjack:
 					adj_diff =
 					  (soap[BaseMSD][i] + soap[BaseMSD][i] + soap[BaseNPS][i]) /
-					  3.f *
-							   tp_mods[ss] * basescalers[ss] ;
+					  3.f * tp_mods[ss] * basescalers[ss];
 					break;
 				case Skill_Technical:
 					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
