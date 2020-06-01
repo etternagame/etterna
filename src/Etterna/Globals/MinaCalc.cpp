@@ -41,6 +41,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f };
 static const int num_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
+static const vector<int> hand_col_ids[2] = { { 1, 2 }, { 4, 8 } };
 static const int zto3[4] = { 0, 1, 2, 3 };
 // THESE ARE ACTUALLY MIRROR'D NEED TO FIX LATER
 static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
@@ -1406,19 +1407,20 @@ struct ItvHandInfo
 {
 	bool dbg = false && debug_lmao;
 
-	float start = 0.f;
+	int _idx = 0;
 	int hand_taps = 0;
-	int oh_jumps = 0;
+	int oh_jump_taps = 0;
 	int col_taps[2] = { 0, 0 };
 
 	// resets all the stuff that accumulates across intervals
-	inline void reset(const float& now)
+	inline void reset(const int& idx)
 	{
-		start = now;
+		_idx = idx;
+
 		// taps for this hand
 		hand_taps = 0;
 		// oh jumps on this hand for this interval
-		oh_jumps = 0;
+		oh_jump_taps = 0;
 
 		// taps per col on this hand
 		for (auto& t : col_taps)
@@ -1428,10 +1430,17 @@ struct ItvHandInfo
 	inline void update_tap_counts(const bool& l, const bool& r)
 	{
 		if (l)
-			++col_taps[0];
+			++col_taps[col_left];
 		if (r)
-			++col_taps[0];
-		hand_taps += l + r;
+			++col_taps[col_right];
+		if (l && r)
+			// ALWAYS COUNT TAPS IN CHORDS
+			oh_jump_taps += 2;
+	}
+
+	inline void set_hand_taps()
+	{
+		hand_taps = col_taps[col_left] + col_taps[col_right];
 	}
 };
 
@@ -1611,59 +1620,58 @@ struct metaHandInfo
 		cc = determine_cc_type(last_col, col);
 	}
 
-	inline meta_type big_brain_sequencing(const metaHandInfo* last)
+	inline meta_type big_brain_sequencing(const metaHandInfo& last)
 	{
-		if (detecc_oht(cc, last_cc, last->last_cc))
+		if (detecc_oht(cc, last_cc, last.last_cc))
 			return meta_oht;
-		if (detecc_ccacc(cc, last->last_cc))
+		if (detecc_ccacc(cc, last.last_cc))
 			return meta_ccacc;
-		if (detecc_acca(cc, last_cc, last->last_cc))
+		if (detecc_acca(cc, last_cc, last.last_cc))
 			return meta_acca;
 		return meta_enigma;
 	}
 
-	inline void operator()(const metaHandInfo* last,
+	// TECHNICALLY WE CAN CALL THIS ONLY IF AT LEAST ONE COL HAS A NOTE, AND
+	// WE PROBABLY SHOULD, BECAUSE IT MAKES THINGS A LOT MORE OBVIOUS AND
+	// ALSO BETTER, BUT IM TIRED RN
+	inline void operator()(const metaHandInfo& last,
 						   const float& now,
-						   const unsigned& notes,
-						   const int& t1,
-						   const int& t2,
-						   const int& row,
+						   const bool& lcol,
+						   const bool& rcol,
 						   bool silence = false)
 	{
-		// if ulbu is in debug mode it will create an extra mni object every row
-		// and spit out the debugoutput twice
+		// if ulbu is in debug mode it will create an extra mni object every
+		// row and spit out the debugoutput twice
 		dbg = dbg && !silence;
 
-		set_col_type(t1 & notes, t2 & notes);
-		row_count = column_count(notes);
-		row_notes = notes;
+		set_col_type(lcol, rcol);
 		row_time = now;
+		last_row_notes = last.row_notes;
+		last_was_offhand_tap = last.col == col_empty;
+		last_col = last.col;
+		last_cc = last.cc;
 
-		last_row_notes = last->row_notes;
-		last_was_offhand_tap = last->col == col_empty;
-		last_col = last->col;
-		last_cc = last->cc;
+		last_mt = last.mt;
 
-		last_mt = last->mt;
-
-		// need this to determine cc types if they are interrupted by offhand
-		// taps
+		// need this to determine cc types if they are interrupted by
+		// offhand taps
 		if (col != col_empty)
 			last_non_empty_col = col;
 		else
-			last_non_empty_col = last->last_non_empty_col;
+			last_non_empty_col = last.last_non_empty_col;
 
-		// we don't want to set lasttime, lastcol, or re-evaluate cc_type for
-		// for empty columns on this hand, carry the cc_type value forward and
-		// ignore the timing values, they should never be referenced for col ==
-		// empty, but in case they are accidentally, they should make no sense
+		// we don't want to set lasttime, lastcol, or re-evaluate cc_type
+		// for for empty columns on this hand, carry the cc_type value
+		// forward and ignore the timing values, they should never be
+		// referenced for col == empty, but in case they are accidentally,
+		// they should make no sense
 		if (col == col_empty) {
 			cc = last_cc;
 			return;
 		}
 
 		// set updated cc type only for non-empty columns on this hand
-		set_cc_type(last->last_non_empty_col);
+		set_cc_type(last.last_non_empty_col);
 
 		// now that we have determined cc_type, we can look for more complex
 		// patterns
@@ -1681,7 +1689,7 @@ struct metaHandInfo
 
 		// we will need to update time for one or both cols
 		update_col_time(col, col_time, now);
-		set_timings(col_time, last->col_time, last->col);
+		set_timings(col_time, last.col_time, last.col);
 	}
 };
 
@@ -2764,16 +2772,15 @@ struct CJQuadMod
 	}
 };
 
-// i don't like this.. perhaps ohj/cjohj should be split up even though they're
-// 95% the same... and some of the other stuff.... man.... ohjump sequencing
-// should be its own entity like rm sequencing is
+// i don't like this.. perhaps ohj/cjohj should be split up even though
+// they're 95% the same... and some of the other stuff.... man.... ohjump
+// sequencing should be its own entity like rm sequencing is
 struct OHJumpMods
 {
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { OHJumpMod,   OHJBaseProp, OHJPropComp,
-								 OHJSeqComp,  OHJMaxSeq,   OHJCCTaps,
-								 OHJHTaps,	CJOHJump,	CJOHJPropComp,
-								 CJOHJSeqComp };
+	const vector<CalcPatternMod> _dbg = {
+		OHJBaseProp, OHJPropComp, OHJSeqComp,	OHJMaxSeq,   OHJCCTaps,
+		OHJHTaps,	CJOHJump,	CJOHJPropComp, CJOHJSeqComp
+	};
 	const std::string name = "OHJumpMods";
 
 #pragma region params
@@ -2864,8 +2871,12 @@ struct OHJumpMods
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
+
+		doot[OHJumpMod].resize(size);
+		doot[CJOHJump].resize(size);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);
 	}
 
 	inline void min_set(vector<float> doot[], const int& i)
@@ -2876,8 +2887,8 @@ struct OHJumpMods
 
 	inline void neutral_set(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
+		doot[OHJumpMod][i] = ohj_min_mod;
+		doot[CJOHJump][i] = cj_ohj_min_mod;
 	}
 
 	inline void smooth_finish(vector<float> doot[])
@@ -3250,7 +3261,7 @@ struct AnchorMod
 			return true;
 		}
 
-		ASSERT(itvh.col_taps[col_left] > 0 && itvh.col_taps[col_right] > 0);
+		ASSERT(itvh.col_taps[col_left] + itvh.col_taps[col_right] > 0);
 
 		// same number of taps on each column
 		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
@@ -4628,17 +4639,16 @@ struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 	// debug stuff, tracks everything that was built
-	vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
-	vector<vector<metaHandInfo>> _mri_dbg_vec;
+	//vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
+	//vector<vector<metaHandInfo>> _mri_dbg_vec;
 
-	// for generic debugging, constructs a string with the pattern formation for
-	// a given interval
+	// for generic debugging, constructs a string with the pattern formation
+	// for a given interval
 	vector<std::string> _itv_row_string;
 
 	// basic data we need
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
-	vector<float>* _doot;
 	float _rate = 0.f;
 	int hand = 0;
 	unsigned _t1 = 0;
@@ -4656,21 +4666,22 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// meta row info keeps track of basic pattern sequencing as we scan down
 	// the notedata rows, we'll only generate and store objects for each row
-	// when dbg is flagged, otherwise we will recyle two pointers (we want each
-	// row to be able to "look back" at the meta info generated at the last row
-	// so the mhi generation requires the last generated mhi object as an arg
+	// when dbg is flagged, otherwise we will recyle two pointers (we want
+	// each row to be able to "look back" at the meta info generated at the
+	// last row so the mhi generation requires the last generated mhi object
+	// as an arg
 	unique_ptr<metaRowInfo> _last_mri;
 	unique_ptr<metaRowInfo> _mri;
-	metaRowInfo _mri_dbg;
+	//metaRowInfo _mri_dbg;
 
 	// basic interval tracking data for hand dependent stuff, like itvinfo
 	unique_ptr<ItvHandInfo> _itvhi;
 
-	// meta hand info is the same as meta row info, however it tracks pattern 
-	// progression on individual hands rather than on generic rows
+	// meta hand info is the same as meta row info, however it tracks
+	// pattern progression on individual hands rather than on generic rows
 	unique_ptr<metaHandInfo> _last_mhi;
 	unique_ptr<metaHandInfo> _mhi;
-	metaHandInfo _mhi_dbg;
+	//metaHandInfo _mhi_dbg;
 
 	// so we can make pattern mods
 	StreamMod _s;
@@ -4686,19 +4697,17 @@ struct TheGreatBazoinkazoinkInTheSky
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
 
-	inline void set_mhi_last() { std::swap(_last_mhi, _mhi); }
-	inline void set_mri_last() { std::swap(_last_mri, _mri); }
-
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
 #if not RELWITHDEBINFO
 		load_calc_params_from_disk();
 #endif
-		// ok so the problem atm is the multithreading of songload, if we want
-		// to update the file on disk with new values and not just overwrite it
-		// we have to write out after loading the values player defined, so the
-		// quick hack solution to do that is to only do it during debug output
-		// generation, which is fine for the time being, though not ideal
+		// ok so the problem atm is the multithreading of songload, if we
+		// want to update the file on disk with new values and not just
+		// overwrite it we have to write out after loading the values player
+		// defined, so the quick hack solution to do that is to only do it
+		// during debug output generation, which is fine for the time being,
+		// though not ideal
 		if (debug_lmao)
 			write_params_to_disk();
 
@@ -4707,24 +4716,26 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mitvi = std::make_unique<metaItvInfo>();
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
+
+		_itvhi = std::make_unique<ItvHandInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
 
-		// meta interval info contains the raw interval info for convenience,
-		// calling reset on this will also reset the raw interval info- bestow
-		// upon it the glorious charity of your being
+		// meta interval info contains the raw interval info for
+		// convenience, calling reset on this will also reset the raw
+		// interval info- bestow upon it the glorious charity of your being
 		_mitvi->_itvi = &_itvi;
 
 		// at the moment metarowinfo operates as a row based constructor for
 		// meta interval info, and doesn't really contain any useful data on
 		// its own, give both of them a ptr to _mitvi, which also gives them
-		// access to interval info as we construct it, not that we particularly
-		// need to do so (yet???)
+		// access to interval info as we construct it, not that we
+		// particularly need to do so (yet???)
 		_mri->_bizzop = &_mitvi;
 		_last_mri->_bizzop = &_mitvi;
 
-		// doesn't change with offset or anything, and we may do multi-passes at
-		// some point
+		// doesn't change with offset or anything, and we may do
+		// multi-passes at some point
 		_ni = ni;
 	}
 
@@ -4853,17 +4864,16 @@ struct TheGreatBazoinkazoinkInTheSky
 		_itv_rows = itv_rows;
 		_rate = rate;
 
-		run_pattern_mod_setups(ldoot);
-		run_pattern_mod_setups(rdoot);
-
 		run_agnostic_pmod_loop();
+		run_dependent_pmod_loop();
 	}
 
 #pragma region hand agnostic pmod loop
 	inline void setup_agnostic_pmods()
 	{
 		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern sequencing
+		// interval data, and do not need any more advanced pattern
+		// sequencing
 		for (auto& a : _doots) {
 			_s.setup(a, _itv_rows.size());
 			_js.setup(a, _itv_rows.size());
@@ -4873,17 +4883,26 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 
-	void set_agnostic_pmods(vector<float> _doot[])
+	void set_agnostic_pmods(vector<float> doot[])
 	{
 		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern sequencing
-		// just set only one hand's values and we'll copy them over (or figure
-		// out how not to need to) later
-		_s(*_mitvi, _doot);
-		_js(*_mitvi, _doot);
-		_hs(*_mitvi, _doot);
-		_cj(*_mitvi, _doot);
-		_cjq(*_mitvi, _doot);
+		// interval data, and do not need any more advanced pattern
+		// sequencing just set only one hand's values and we'll copy them
+		// over (or figure out how not to need to) later
+		_s(*_mitvi, doot);
+		_js(*_mitvi, doot);
+		_hs(*_mitvi, doot);
+		_cj(*_mitvi, doot);
+		_cjq(*_mitvi, doot);
+	}
+
+	inline void run_agnostic_smoothing_pass(vector<float> doot[])
+	{
+		Smooth(doot[_s._pmod], neutral);
+		Smooth(doot[_js._pmod], neutral);
+		Smooth(doot[_hs._pmod], neutral);
+		Smooth(doot[_cj._pmod], neutral);
+		Smooth(doot[_cjq._pmod], neutral);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -4910,18 +4929,25 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				_itvi->update_tap_counts(row_count);
 				(*_mri)(*_last_mri, row_time, row_count, row_notes);
-				set_mri_last();
+
+				// we only need to look back 1 metanoterow object, so we can
+				// swap the one we just built into last and recycle the two
+				// pointers instead of keeping track of everything
+				swap(_mri, _last_mri);
 			}
 
 			// run pattern mod generation for hand agnostic mods
 			set_agnostic_pmods(_doots[lh]);
 		}
+		run_agnostic_smoothing_pass(_doots[lh]);
 	}
 #pragma endregion
 
 #pragma region hand dependent pmod loop
-	// some pattern mod detection builds across rows, see rm_sequencing for an
-	// example
+	// some pattern mod detection builds across rows, see rm_sequencing for
+	// an example, actually all sequencing should be done in objects
+	// following rm_sequencing's template and be stored in mhi, and then
+	// passed to whichever mods need them, but that's for later
 	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(*_mhi);
@@ -4932,7 +4958,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrr.advance_sequencing(*_mhi);
 	}
 
-	inline void run_pattern_mod_setups(vector<float> _doot[])
+	inline void setup_dependent_mods(vector<float> _doot[])
 	{
 		_ohj.setup(_doot, _itv_rows.size());
 		_anch.setup(_doot, _itv_rows.size());
@@ -4943,32 +4969,87 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjt.setup(_doot, _itv_rows.size());
 	}
 
-	inline void run_smoothing_pass()
+	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
-		Smooth(_doots[lh][_s._pmod], neutral);
-		Smooth(_doots[lh][_js._pmod], neutral);
-		Smooth(_doots[lh][_hs._pmod], neutral);
-		Smooth(_doots[lh][_cj._pmod], neutral);
-		Smooth(_doots[lh][_cjq._pmod], neutral);
-		_ohj.smooth_finish(_doot);
-		_anch.smooth_finish(_doot);
-		_roll.smooth_finish(_doot);
-		_oht.smooth_finish(_doot);
-		_rm.smooth_finish(_doot);
-		_wrr.smooth_finish(_doot);
-		_wrjt.smooth_finish(_doot);
+		_ohj(*_itvhi, doot, itv);
+		_anch(*_itvhi, doot, itv);
+		_roll(*_itvhi, doot, itv);
+		_oht(*_itvhi, doot, itv);
+		_rm(doot, itv);
+		_wrr(*_itvhi, doot, itv);
+		_wrjt(*_itvhi, doot, itv);
 	}
 
-	// inline void call_pattern_mod_functors(const int& itv)
-	//{
-	//	_ohj(*_mhi, _doot, itv, hand);
-	//	_anch(*_mhi, _doot, itv, hand);
-	//	_roll(*_mhi, _doot, itv, hand);
-	//	_oht(*_mhi, _doot, itv, hand);
-	//	_rm(*_mhi, _doot, itv);
-	//	_wrr(*_mhi, _doot, itv, hand);
-	//	_wrjt(*_mhi, _doot, itv);
-	//}
+	inline void run_dependent_smoothing_pass(vector<float> doot[])
+	{
+		// need to split upohj and cjohj into 2 pmod objects
+		Smooth(doot[OHJumpMod], neutral);
+		Smooth(doot[CJOHJump], neutral);
+		Smooth(doot[_anch._pmod], neutral);
+		Smooth(doot[_roll._pmod], neutral);
+		Smooth(doot[_oht._pmod], neutral);
+		Smooth(doot[_rm._pmod], neutral);
+		Smooth(doot[_wrr._pmod], neutral);
+		Smooth(doot[_wrjt._pmod], neutral);
+	}
+
+	inline void run_dependent_pmod_loop()
+	{
+		float row_time = 0.f;
+		int row_count = 0;
+		unsigned row_notes = 0;
+		bool col[2] = { false, false };
+
+		for (auto& ids : hand_col_ids) {
+			setup_dependent_mods(_doots[hand]);
+
+			// so we are technically doing this again (twice) and don't to
+			// be doing it, but it makes debugging much less of a pita if we
+			// aren't doing something like looping over intervals, running
+			// agnostic pattern mods, then looping over hands for dependent
+			// mods in the same interval, we may still want to do that or at
+			// least have an optional set for that in case a situation
+			// arises where something might need both types of info (we'd
+			// also need to have 2 itvhandinfo objects, or just for general
+			// performance (though the redundancy on this pass vs agnostic
+			// the pass is limited to like... a couple floats and 2 ints)
+
+			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+				// reset any accumulated interval info and set cur index
+				// number
+				_itvhi->reset(itv);
+
+				// run the row by row construction for interval info
+				for (auto& row : _itv_rows[itv]) {
+					row_time = _ni[row].rowTime / _rate;
+					row_notes = _ni[row].notes;
+					row_count = column_count(row_notes);
+
+					col[col_left] = row_notes & ids[col_left];
+					col[col_right] = row_notes & ids[col_right];
+
+					_itvhi->update_tap_counts(col[col_left], col[col_right]);
+					(*_mhi)(
+					  *_last_mhi, row_time, col[col_left], col[col_right]);
+
+					handle_row_dependent_pattern_advancement();
+
+					std::swap(_last_mhi, _mhi);
+				}
+				// just add up col taps to get hand taps i guess
+				_itvhi->set_hand_taps();
+
+				// run pattern mod generation for hand agnostic mods
+				set_dependent_pmods(_doots[hand], itv);
+			}
+			run_dependent_smoothing_pass(_doots[hand]);
+
+			// ok this is pretty jank LOL, just increment the hand index
+			// when we finish left hand
+			++hand;
+		}
+	}
+#pragma endregion
 
 	inline void load_calc_params_from_disk()
 	{
@@ -4993,6 +5074,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
+		_cjq.load_params_from_node(&params);
 		_ohj.load_params_from_node(&params);
 		_anch.load_params_from_node(&params);
 		_roll.load_params_from_node(&params);
@@ -5011,6 +5093,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_cjq.make_param_node());
 		calcparams->AppendChild(_ohj.make_param_node());
 		calcparams->AppendChild(_anch.make_param_node());
 		calcparams->AppendChild(_roll.make_param_node());
