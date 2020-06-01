@@ -238,29 +238,29 @@ cv_trunc_fill(const vector<float>& input,
 	float welsh_pumpkin = 0.f;
 	float average = 0.f;
 	if (moop >= num_vals) {
-		for (size_t i = 0; i < min(moop, num_vals); ++i)
+		for (int i = 0; i < min(moop, num_vals); ++i)
 			average += input[i];
 		average /= num_vals;
 
-		for (size_t i = 0; i < min(moop, num_vals); ++i)
+		for (int i = 0; i < min(moop, num_vals); ++i)
 			welsh_pumpkin += (input[i] - average) * (input[i] - average);
 
 		// prize winning, even
 		return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
 	}
 
-	for (size_t i = 0; i < min(moop, num_vals); ++i)
+	for (int i = 0; i < min(moop, num_vals); ++i)
 		average += input[i];
 
 	// fill with dummies if input is below desired number of values
-	for (size_t i = 0; i < num_vals - moop; ++i)
+	for (int i = 0; i < num_vals - moop; ++i)
 		average += ms_dummy;
 	average /= num_vals;
 
-	for (size_t i = 0; i < min(moop, num_vals); ++i)
+	for (int i = 0; i < min(moop, num_vals); ++i)
 		welsh_pumpkin += (input[i] - average) * (input[i] - average);
 
-	for (size_t i = 0; i < num_vals - moop; ++i)
+	for (int i = 0; i < num_vals - moop; ++i)
 		welsh_pumpkin += (ms_dummy - average) * (ms_dummy - average);
 
 	return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
@@ -274,7 +274,7 @@ sum_trunc_fill(const vector<float>& input,
 	int moop = static_cast<int>(input.size());
 	float smarmy_hamster = 0.f;
 	// use up to num_vals
-	for (size_t i = 0; i < min(moop, num_vals); ++i)
+	for (int i = 0; i < min(moop, num_vals); ++i)
 		smarmy_hamster += input[i];
 
 	// got enough
@@ -282,7 +282,7 @@ sum_trunc_fill(const vector<float>& input,
 		return smarmy_hamster;
 
 	// fill with dummies if input is below desired number of values
-	for (size_t i = 0; i < num_vals - static_cast<int>(moop); ++i)
+	for (int i = 0; i < num_vals - static_cast<int>(moop); ++i)
 		smarmy_hamster += ms_dummy;
 
 	// real piece of work this guy
@@ -390,7 +390,7 @@ max_val(vector<float>& v)
 	return *std::max_element(v.begin(), v.end());
 }
 
-inline size_t
+inline int
 max_index(vector<float>& v)
 {
 	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
@@ -418,7 +418,7 @@ void
 Calc::TotalMaxPoints()
 {
 	MaxPoints = 0;
-	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
+	for (int i = 0; i < left_hand.v_itvpoints.size(); i++)
 		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
 }
 
@@ -426,7 +426,7 @@ void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
 	v_itvpoints.clear();
-	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
+	for (int ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
 }
@@ -458,10 +458,10 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 		right_hand.debugValues[2][JackStamMod].resize(numitv);
 
 		// each interval
-		for (size_t i = 0; i < diff.size(); ++i) {
+		for (int i = 0; i < diff.size(); ++i) {
 			float mod_sum = 0.f;
 			// each jack in the interval
-			for (size_t j = 0; j < diff[i].size(); ++j) {
+			for (int j = 0; j < diff[i].size(); ++j) {
 				avs1 = avs2;
 				avs2 = diff[i][j];
 
@@ -495,8 +495,8 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 				right_hand.debugValues[2][JackStamMod][i] = itv_avg;
 		}
 	} else
-		for (size_t i = 0; i < diff.size(); ++i) {
-			for (size_t j = 0; j < diff[i].size(); ++j) {
+		for (int i = 0; i < diff.size(); ++i) {
+			for (int j = 0; j < diff[i].size(); ++j) {
 				avs1 = avs2;
 				avs2 = diff[i][j];
 				mod +=
@@ -642,10 +642,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
-	for (size_t itv = 0; itv < f.size(); ++itv) {
+	for (int itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
 		// taps in interval
-		for (size_t ind = 0; ind < f[itv].size(); ++ind) {
+		for (int ind = 0; ind < f[itv].size(); ++ind) {
 			ms = f[itv][ind];
 			time += ms;
 			if (dbg) {
@@ -654,7 +654,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			}
 
 			// shift older values back
-			for (size_t i = 1; i < window_taps.size(); ++i)
+			for (int i = 1; i < window_taps.size(); ++i)
 				window_taps[i - 1] = window_taps[i];
 			// add new value
 			window_taps[window_size - 1] = ms;
@@ -701,7 +701,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 		nervIntervals = vector<vector<int>>(numitv, vector<int>());
 	unsigned int column = 1u << t;
 
-	for (size_t i = 0; i < NoteInfo.size(); i++) {
+	for (int i = 0; i < NoteInfo.size(); i++) {
 		// we have hardcoded mem allocation for up to 100 nps, bail out on the
 		// entire file calc if we exceed that
 		if (row_counter >= max_nps_for_single_interval ||
@@ -808,7 +808,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		// stam is based on which calc produced the highest
 		// output without it
-		size_t highest_base_skillset = max_index(mcbloop);
+		int highest_base_skillset = max_index(mcbloop);
 		float base = mcbloop[highest_base_skillset];
 
 		// rerun all with stam on, optimize by starting at
@@ -923,14 +923,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// finished all modifications to skillset values, set overall
 		mcbloop[Skill_Overall] = max_val(mcbloop);
 
-		for (size_t bagles = 0; bagles < mcbloop.size(); ++bagles)
+		for (int bagles = 0; bagles < mcbloop.size(); ++bagles)
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(
 			  mcbloop[bagles]);
 	}
 	vector<float> yo_momma(NUM_Skillset);
-	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
+	for (int farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
-		for (size_t nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
+		for (int nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
 			girls.push_back(the_hizzle_dizzles[nibble][farts]);
 		}
 		yo_momma[farts] = mean(girls) * grindscaler;
@@ -2592,7 +2592,7 @@ struct CJMod
 
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		if (itvi.total_taps == 0) {
 			neutral_set(_pmod, doot, i);
@@ -2725,7 +2725,7 @@ struct CJQuadMod
 
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		if (itvi.total_taps == 0) {
 			neutral_set(_pmod, doot, i);
@@ -2862,19 +2862,19 @@ struct OHJumpMods
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		for (auto& mod : _pmods)
 			doot[mod].resize(size);
 	}
 
-	inline void min_set(vector<float> doot[], const size_t& i)
+	inline void min_set(vector<float> doot[], const int& i)
 	{
 		doot[OHJumpMod][i] = ohj_min_mod;
 		doot[CJOHJump][i] = cj_ohj_min_mod;
 	}
 
-	inline void neutral_set(vector<float> doot[], const size_t& i)
+	inline void neutral_set(vector<float> doot[], const int& i)
 	{
 		for (auto& mod : _pmods)
 			doot[mod][i] = neutral;
@@ -2999,7 +2999,7 @@ struct OHJumpMods
 		}
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		if (floatymcfloatface >= hand_taps) {
 			min_set(doot, i);
@@ -3106,7 +3106,7 @@ struct OHJumpMods
 		cj_ohj_prop_component = neutral;
 	}
 
-	inline void set_debug_output(vector<float> doot[], const size_t& i)
+	inline void set_debug_output(vector<float> doot[], const int& i)
 	{
 		if (debug_lmao) {
 			doot[OHJSeqComp][i] = ohj_max_seq_component;
@@ -3124,7 +3124,7 @@ struct OHJumpMods
 
 	void operator()(const ItvHandInfo& itvh,
 					vector<float> doot[],
-					const size_t& i)
+					const int& i)
 	{
 		// if cur_seq > max when we ended the interval, set it, but don't reset
 		max_ohjump_seq =
@@ -3210,7 +3210,7 @@ struct AnchorMod
 	float pmod = min_mod;
 
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 	}
@@ -3242,7 +3242,7 @@ struct AnchorMod
 #pragma endregion
 	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// nothing here
 		if (itvh.hand_taps == 0) {
@@ -3270,7 +3270,7 @@ struct AnchorMod
 
 	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
-						   const size_t& i)
+						   const int& i)
 	{
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
@@ -3349,7 +3349,7 @@ struct RollMod
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 	}
@@ -3507,7 +3507,7 @@ struct RollMod
 		last_seen_cc = now.cc;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		// no taps, no rolls
 		if (window_hand_taps == 0 || window_roll_taps == 0) {
@@ -3526,7 +3526,7 @@ struct RollMod
 
 	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
-						   const size_t& i)
+						   const int& i)
 	{
 		// drop the oldest interval values if we have reached full
 		// size
@@ -3629,7 +3629,7 @@ struct OHTrillMod
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 	}
@@ -3724,7 +3724,7 @@ struct OHTrillMod
 		last_seen_cc = now.cc;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		// no taps, no trills
 		if (window_hand_taps == 0 || window_trill_taps == 0) {
@@ -3743,7 +3743,7 @@ struct OHTrillMod
 
 	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
-						   const size_t& i)
+						   const int& i)
 	{
 		// drop the oldest interval values if we have reached full
 		// size
@@ -3892,7 +3892,7 @@ struct RunningManMod
 	float pmod = min_mod;
 	int test = 0;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
@@ -3969,7 +3969,7 @@ struct RunningManMod
 
 	inline bool handle_case_optimizations(const RM_Sequencing& rm,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// we could mni check for empty intervals like the other mods but it
 		// doesn't really matter and this is probably more useful for debug
@@ -3992,8 +3992,7 @@ struct RunningManMod
 		return false;
 	}
 
-	inline void operator()(vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(vector<float> doot[], const int& i)
 	{
 		if (handle_case_optimizations(rm, doot, i)) {
 			set_dbg(doot, i);
@@ -4103,7 +4102,7 @@ struct WideRangeJumptrillMod
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 	}
@@ -4246,7 +4245,7 @@ struct WideRangeJumptrillMod
 		last_seen_cc = now.cc;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		// no taps, no ccacc
 		if (window_hand_taps == 0 || window_ccacc == 0) {
@@ -4265,7 +4264,7 @@ struct WideRangeJumptrillMod
 
 	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
-						   const size_t& i)
+						   const int& i)
 	{
 		// drop the oldest interval values if we have reached full size
 		if (itv_taps.size() == itv_window) {
@@ -4380,7 +4379,7 @@ struct WideRangeRollMod
 	cc_type last_seen_cc = cc_init;
 	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 	}
@@ -4763,12 +4762,12 @@ struct TheGreatBazoinkazoinkInTheSky
 	//		if (hand == 0) {
 	//			// left hand stuffies
 	//			_mni_dbg_vec1.resize(_itv_rows.size());
-	//			for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
+	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
 	//				_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
 	//		} else {
 	//			// right hand stuffies
 	//			_mni_dbg_vec2.resize(_itv_rows.size());
-	//			for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
+	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
 	//				_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
 	//		}
 	//	}
@@ -4787,7 +4786,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	//	// not sure it matters? they tend to be low cost, this should be split
 	//	// up properly into hand dependent/independent loops if it turns out to
 	//	// be an issue
-	//	for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+	//	for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 	//		// reset the last mni interval data, since it gets used to
 	//		// initialize now
 	//		_mni_last->_itv_info.reset();
@@ -4899,7 +4898,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		unsigned row_notes = 0;
 
 		// boop
-		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
+		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 			// reset any accumulated interval info and set cur index number
 			_mitvi->reset(itv);
 
@@ -5069,7 +5068,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			// easier to keep them split by intervals in a double vector,
 			// this should maybe be changed?
 			stam_adj_jacks[t].resize(fingers[t].size());
-			for (size_t i = 0; i < fingers[t].size(); ++i)
+			for (int i = 0; i < fingers[t].size(); ++i)
 				stam_adj_jacks[t][i].resize(fingers[t][i].size());
 		}
 	}
@@ -5134,11 +5133,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			hand.debugValues[1].resize(NUM_CalcDiffValue);
 			hand.debugValues[2].resize(NUM_CalcDebugMisc);
 
-			for (size_t i = 0; i < ModCount; ++i)
+			for (int i = 0; i < ModCount; ++i)
 				hand.debugValues[0][i] = hand.doot[i];
 
 			// set everything but final adjusted output here
-			for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+			for (int i = 0; i < NUM_CalcDiffValue - 1; ++i)
 				hand.debugValues[1][i] = hand.soap[i];
 		}
 	}
@@ -5213,10 +5212,10 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
 	static const bool dbg = false;
 
-	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+	for (int i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
 
-	for (size_t i = 0; i < f1.size(); i++) {
+	for (int i = 0; i < f1.size(); i++) {
 
 		if (dbg && debug_lmao)
 			std::cout << "\ninterval : " << i << std::endl;
@@ -5501,7 +5500,7 @@ Hand::InitAdjDiff()
 	}
 
 	// ok this loop is pretty wack i know, for each interval
-	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
+	for (int i = 0; i < soap[BaseNPS].size(); ++i) {
 		float tp_mods[NUM_Skillset] = {
 			1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f
 		};
@@ -5607,7 +5606,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		StamAdjust(x, ss, true);
 		debugValues[1][MSD] = stam_adj_diff;
 
-		for (size_t i = 0; i < v.size(); ++i) {
+		for (int i = 0; i < v.size(); ++i) {
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
 				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
@@ -5616,7 +5615,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 			}
 		}
 	} else
-		for (size_t i = 0; i < v.size(); ++i)
+		for (int i = 0; i < v.size(); ++i)
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
 				gotpoints -= (pts - (pts * fastpow(x / v[i], 1.7f)));
@@ -5644,7 +5643,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug)
-		for (size_t i = 0; i < base_diff.size(); i++) {
+		for (int i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
@@ -5657,7 +5656,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			debugValues[2][StamMod][i] = mod;
 		}
 	else
-		for (size_t i = 0; i < base_diff.size(); i++) {
+		for (int i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
@@ -5697,7 +5696,7 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 
 		// iterate taps per col.. yes we've done this already in
 		// process finger but w.e just redo it for now
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
 	}
@@ -5708,7 +5707,7 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 	int window_taps = sum(itv_taps);
 	vector<int> window_col_taps(4);
 	for (auto& n : itv_col_taps)
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			window_col_taps[c] += n[c];
 
 	// for this we really want to highlight the differential between
@@ -5777,7 +5776,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 	// updated every interval but recycle the memory
 	vector<int> col_taps(col_ids.size());
 
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 
 		if (dbg) {
 			for (auto row : nervIntervals[i])
@@ -5835,7 +5834,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 
 		// iterate taps per col.. yes we've done this already in
 		// process finger but w.e just redo it for now
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
 	}
@@ -5846,7 +5845,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 	int window_taps = sum(itv_taps);
 	vector<int> window_col_taps(4);
 	for (auto& n : itv_col_taps)
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			window_col_taps[c] += n[c];
 
 	int window_max_anch = max_val(window_col_taps);
@@ -5902,7 +5901,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 	// updated every interval but recycle the memory
 	vector<int> col_taps(col_ids.size());
 
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 
 		if (dbg) {
 			for (auto row : nervIntervals[i])
@@ -5968,7 +5967,7 @@ Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
 	int last_notes = 0;
 	bool the_last_warblers_call = false;
 	bool was23 = false;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 		//	if (debugmode)
 		//		std::cout << "new interval " << i << std::endl;
 
@@ -6223,7 +6222,7 @@ Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
 	bool flamjamslamwham = false;
 
 	// in each interval
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 		// build up flam detection for this interval
 		vector<float> temp_mod;
 
