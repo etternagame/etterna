@@ -94,9 +94,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,			0.97f, 0.875f,
-												 0.89f / 1.02f, 0.94f, 0.7675f,
-												 0.84f,			1.075f };
+static const float basescalers[NUM_Skillset] = {
+	0.f, 0.97f, 0.875f, 0.83f, 0.94f, 0.7675f, 0.9f, 1.075f
+};
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -906,6 +906,39 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				   true,
 				   true);
 
+		// ZZZZZZZZZZZZZZZZZz
+		pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
+											   { right_hand, { 4, 8 } } };
+		if (debugmode) {
+			for (auto& hp : spoopy) {
+				auto& h = hp.first;
+
+				if (highest_base_skillset = Skill_Technical) {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									h.soap[BaseMSD][i];
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				} else if (highest_base_skillset = Skill_Chordjack) {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									(h.soap[BaseMSD][i] + h.soap[BaseNPS][i]) /
+									2.f;
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				} else {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									h.soap[BaseNPS][i];
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				}
+			}
+		}
+		
 		// the final push down, cap ssrs (score specific
 		// ratings) to stop vibro garbage and calc abuse
 		// from polluting leaderboards too much, a "true" 38
@@ -2639,7 +2672,7 @@ struct CJMod
 			// we shouldn't be hitting empty intervals here
 			ASSERT(mitvi.num_var > 0);
 			if (mitvi.num_var == 1)
-				pmod *= 0.8f * vibro_flag;
+				pmod *= 0.5f * vibro_flag;
 			else if (mitvi.num_var == 2)
 				pmod *= 0.9f * vibro_flag;
 			else if (mitvi.num_var == 3)
@@ -4929,7 +4962,7 @@ struct flam
 	// is this row exclusively additive with the current flam sequence?
 	inline bool comma_comma_coolmeleon(const unsigned& notes)
 	{
-		return unsigned_unseen & notes == 0;
+		return (unsigned_unseen & notes) == 0;
 	}
 
 	// to avoid keeping another float ??? idk
@@ -4991,8 +5024,8 @@ struct FJ_Sequencing
 	float step_tol = 0.f;
 	float mod_scaler = 0.f;
 
-	  // number of flams
-	  int flam_counter = 0;
+	// number of flams
+	int flam_counter = 0;
 
 	// track up to 4 flams per interval, if the number of flams exceeds this
 	// number we'll just min_set (OR we could keep a moving array of flams, and
@@ -6167,6 +6200,7 @@ Hand::InitAdjDiff()
 		  CJ,
 		  Anchor,
 		  WideRangeBalance,
+		  WideRangeAnchor,
 		},
 
 		// tech, duNNO wat im DOIN
@@ -6231,8 +6265,8 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					adj_diff *= CalcClamp(
-					  fastsqrt(doot[RanMan][i] - 0.075f), 1.f, 1.075f);
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -6254,16 +6288,16 @@ Hand::InitAdjDiff()
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
 				case Skill_Chordjack:
-					adj_diff =
-					  (soap[BaseMSD][i] + soap[BaseMSD][i] + soap[BaseNPS][i]) /
-					  3.f * tp_mods[ss] * basescalers[ss];
+					adj_diff = (soap[BaseMSD][i] + soap[BaseNPS][i]) / 2.f *
+							   tp_mods[ss] * basescalers[ss] *
+							   fastsqrt(doot[CJQuad][i]);
 					break;
-				case Skill_Technical: {
+				case Skill_Technical:
 					adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
 							   basescalers[ss] /
 							   fastsqrt(doot[WideRangeBalance][i]) /
-							   max(doot[CJ][i], 1.f);
-				} break;
+							   max(fastpow(doot[CJ][i], 2.f), 1.f);
+					break;
 			}
 		}
 	}
@@ -6941,7 +6975,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 354;
+int mina_calc_version = 355;
 int
 GetCalcVersion()
 {

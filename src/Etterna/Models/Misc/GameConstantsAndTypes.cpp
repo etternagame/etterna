@@ -268,7 +268,9 @@ StringToSkillset(const RString& s)
 	"RanPropOff",
 	"RanPropOHT",
 	"RanPropOffS",
-	"RanPropJack", };
+	"RanPropJack",
+	"TotalPatternMod",
+};
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 

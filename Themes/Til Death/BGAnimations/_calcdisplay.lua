@@ -202,12 +202,14 @@ local debugGroups = {
         --CJOHJSeqComp = true,
 		StamMod = true,
     },
-	{   -- Group 5
+    {   -- Group 5
+    TotalPatternMod = true,
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
 	},
-	{   -- Group 6
+    {   -- Group 6
+    TotalPatternMod = true,
         Chaos = true,
         FlamJam = true,
         TheThing = true,
@@ -245,6 +247,7 @@ local debugGroups = {
     {   -- Group 10
 
     },
+    TotalPatternMod = true,
     {   -- Group 11
 
     },
@@ -311,7 +314,7 @@ local function updateCoolStuff()
         end
 
         upperGraphMin = 0.3
-        upperGraphMax = 1.2
+        upperGraphMax = 1.25
     else
         graphVecs = {}
     end

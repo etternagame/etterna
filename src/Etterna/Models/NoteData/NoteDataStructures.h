@@ -75,6 +75,7 @@ enum CalcPatternMod
 	RanPropOHT,
 	RanPropOffS,
 	RanPropJack,
+	TotalPatternMod,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
