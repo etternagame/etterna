@@ -1,32 +1,24 @@
--- for cdgraph fitting
---[[
-local plotWidth, plotHeight = capWideScale(280, 300), 40
-local plotX, plotY = plotWidth/2, 0
-]]
--- for standard fitting
 local oldWidth = capWideScale(280, 300)
 local plotWidth, plotHeight = capWideScale(300,450), 160
 local plotX, plotY = oldWidth+3 + plotWidth/2, -20 + plotHeight/2
-local dotDims, plotMargin = 2, 4
 local highest = 0
 local lowest = 0
 local lowerGraphMax = 0
 local upperGraphMax = 0
 local lowerGraphMin = 0
 local upperGraphMin = 0
-local baralpha = 0.2
 local bgalpha = 0.9
-local textzoom = 0.35
 local enabled = false
-local modvaluescaler = 150
+local ssrGraphActive = false
 local song
 local steps
-local finalSecond
+local finalSecond = 0 -- only used if its references below are uncommented
 local graphVecs = {}
 local ssrs = {}
 
-local topgraph
-local bottomgraph
+-- bg actors for mouse hover stuff
+local topgraph = nil
+local bottomgraph = nil
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
@@ -35,22 +27,21 @@ local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	return x / lastX * plotWidth - plotWidth / 2
 end
 
-local function fitY(y) -- Scale diff values to fit within plot height
-	return -plotHeight * y + ((1 - y) * modvaluescaler) + 10
-end
-
-local function scale(x, lower, upper, scaledMin, scaledMax) -- uhh
+-- a scaling function which outputs a percentage based on a given scale
+local function scale(x, lower, upper, scaledMin, scaledMax)
     local perc = (x - lower) / (upper - lower)
     return perc * (scaledMax - scaledMin) + scaledMin
 end
 
+-- scale values to vertical positions within the top graph
 local function fitY1(y) -- scale for upper graph
     local num = scale(y, upperGraphMin, upperGraphMax, 0, 1)
     local out = -1 * num * plotHeight
     return out
 end
 
-local function fitY2(y, lb, ub) -- scale for lower graph
+-- scale values to vertical positions within the lower graph
+local function fitY2(y, lb, ub)
     if lb == nil then lb = lowest end
     if ub == nil then ub = highest end
     local num = scale(y, lb, ub, 0, 1)
@@ -58,29 +49,25 @@ local function fitY2(y, lb, ub) -- scale for lower graph
     return out
 end
 
+-- convert a percentage (distance horizontally across the graph) to an index 
+local function _internalConvPercToInd(x, vec)
+    local output = x
+    if output < 0 then output = 0 end
+    if output > 1 then output = 1 end
+
+    local ind = notShit.round(output * #vec[1])
+    if ind < 1 then ind = 1 end
+    return ind
+end
+
+-- upper graph percentage to index
 local function convertPercentToIndex(x)
-    local output = x
-    if output < 0 then output = 0 end
-    if output > 1 then output = 1 end
-
-    local ind = notShit.round(output * #ssrs[1])
-    if ind < 1 then ind = 1 end
-    return ind
+    return _internalConvPercToInd(x, ssrs)
 end
 
+-- lower graph percentage to index
 local function convertPercentToIndexForMods(x)
-    local output = x
-    if output < 0 then output = 0 end
-    if output > 1 then output = 1 end
-
-    local ind = notShit.round(output * #graphVecs["JS"][1])
-    if ind < 1 then ind = 1 end
-    return ind
-end
-
-local function HighlightUpdaterThing(self)
-    if not enabled then return end
-    --self:GetChild("G2BG"):queuecommand("Highlight")
+    return _internalConvPercToInd(x, graphVecs["JS"])
 end
 
 -- transforms the position of the mouse from the cd graph to the calc info graph
@@ -89,7 +76,6 @@ local function transformPosition(pos, w, px)
     out = distanceAcrossOriginal * plotWidth - plotWidth/2
     return out
 end
-
 
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
@@ -128,46 +114,69 @@ local function getGraphForSteps(steps)
     return output
 end
 
--- :thinking:
+--[[
+    Calc Debug Enums have really long names and saying things like CalcPatternMod_.... over and over is boring
+    So instead what we can do is confuse the reader and programmer by messing with the enum string representation
+    Turning "CalcPatternMod_JS" into just "JS" is both very clean and very confusing
+    But it's for the better, I promise
+]]
+local function shortenEnum(prefix, e)
+    return e:gsub(prefix.."_", "")
+end
+
+-- this is a huge nested table of all the calc debug enums
 local CalcDebugTypes = {
     CalcPatternMod = CalcPatternMod,
     CalcDiffValue = CalcDiffValue,
     CalcDebugMisc = CalcDebugMisc,
 }
 
+-- list of all additional enums to include in the upper graph
+-- it is assumed these are members of CalcDebugMisc
+local miscToUpperMods = {
+    StamMod = true,
+    JackStamMod = true,
+}
+
+-- list of all additional enums to include in the lower graph
+-- it is assumed these are members of CalcDebugMisc
+local miscToLowerMods = {
+    PtLoss = true,
+    JackPtLoss = true,
+}
+
 -- active mods on top graph
 local activeMods = {}
 for k,v in pairs(CalcPatternMod) do
-    v = v:gsub("CalcPatternMod_", "")
+    activeMods[#activeMods+1] = shortenEnum("CalcPatternMod", v)
+end
+for _,v in pairs(miscToUpperMods) do
     activeMods[#activeMods+1] = v
 end
-activeMods[#activeMods+1] = "StamMod"
-activeMods[#activeMods+1] = "JackStamMod"
 
 -- specify enum names as tables here
--- only allowed to have 9
--- the 0th one is reserved for ssr graph toggle
+-- any number allowed
 local debugGroups = {
-    {
+    {   -- Group 1
         Stream = true,
         OHTrill = true,
 		OHJumpMod = true,
 		Roll = true,
 		StamMod = true
     },
-    {
+    {   -- Group 2
         JS = true,
         JSS = true,
         JSJ = true,
 		StamMod = true
     },
-	{
+	{   -- Group 3
         HS = true,
         HSS = true,
         HSJ = true,
 		StamMod = true
 	},
-    {
+    {   -- Group 4
         CJ = true,
         CJS = true,
         CJJ = true,
@@ -177,12 +186,12 @@ local debugGroups = {
         --CJOHJSeqComp = true,
 		StamMod = true
     },
-	{
+	{   -- Group 5
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true
 	},
-	{
+	{   -- Group 6
         Chaos = true,
         FlamJam = true,
         TheThing = true,
@@ -192,7 +201,7 @@ local debugGroups = {
 		RanMan = true,
         TheThing = true
     },
-	{
+	{   -- Group 7
         RanMan = true,
         RanLen = true,
         RanAnchLen = true,
@@ -206,22 +215,29 @@ local debugGroups = {
         RanPropOffS = true,
         RanPropJack = true,
     },
-	{
+	{   -- Group 8
         OHJumpMod = true,
         --OHJPropComp = true,
         --OHJSeqComp = true,
         --OHJBaseProp = true,
 	},
-    {
+    {   -- Group 9
         OHJMaxSeq = true,
         OHJCCTaps = true,
         OHJHTaps = true,
     },
-    {},
-    [9] = {},
+    {   -- Group 10
+
+    },
+    {   -- Group 11
+
+    },
+    [12] = { -- Group 12
+
+    },
 }
 
-local ssrGraphActive = false
+-- responsible for updating all relevant values and then triggering the display message(s)
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -229,22 +245,30 @@ local function updateCoolStuff()
         finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
     end
     if steps then
+        -- Only load SSRs if currently displaying them; this is a major slowdown
         if ssrGraphActive then
-            ssrs = getGraphForSteps(steps) -- maybe add back the new wrapper
+            ssrs = getGraphForSteps(steps)
         else
             ssrs = {}
         end
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
 
-        -- loop through types of debug output
-        for k, v in pairs(CalcDebugTypes) do
-            for i = 1, #v do        -- loop through specific mods
-                local modname = v[i]:gsub(k.."_", "")
+        -- for each debug output type and its corresponding list of values
+        for debugtype, sublist in pairs(CalcDebugTypes) do
+            -- for each value in that list
+            for i = 1, #sublist do
+
+                -- translate the output list to our "cleaner" format
+                local modname = shortenEnum(debugtype, sublist[i])
                 graphVecs[modname] = {}
-                for h = 1, 2 do     -- left/right hand loop
-                    graphVecs[modname][h] = bap[k][modname][h]
-                    if k == "CalcDiffValue" then
+
+                -- for each hand
+                for h = 1, 2 do
+                    graphVecs[modname][h] = bap[debugtype][modname][h]
+
+                    -- we set the bound of the lower graph to the max value of all debug output for it
+                    if debugtype == "CalcDiffValue" then
                         for j = 1, #graphVecs[modname][h] do
                             local val = graphVecs[modname][h][j]
                             if val > lowerGraphMax then lowerGraphMax = val end
@@ -262,32 +286,43 @@ local function updateCoolStuff()
     MESSAGEMAN:Broadcast("UpdateAverages")
 end
 
-local activeModGroup = -1
--- just switches the active group of lines
--- all others are invis/grey
+--[[
+    Active modgroups are groups of Calc Debug Mods that selectively show
+    We shouldn't ever show all of them unless otherwise noted because that's a lot of info and it's laggy
+    (in any event, though, an invalid activeModGroup value will result in all modgroups appearing)
+    ((-1 is meant to be the all group value but isn't really designed to work))
+]]
+local activeModGroup = 1
+
+-- switch the active mod group directly to a number (no cap)
 local function switchToGroup(num)
     if num == activeModGroup then
-        activeModGroup = -1
+        -- activeModGroup = -1
     else
         activeModGroup = num
     end
     MESSAGEMAN:Broadcast("UpdateActiveMods")
 end
 
+-- move the active mod group value in a direction (looping)
 local function addToModGroup(direction)
     if activeModGroup == -1 then
         if direction < 0 then
-            switchToGroup(9)
+            switchToGroup(#debugGroups)
         elseif direction > 0 then
             switchToGroup(1)
         end
     else
-        local newg = (((activeModGroup) + direction) % 10)
-        if newg == 0 then newg = -1 end
+        local newg = (((activeModGroup) + direction) % (#debugGroups + 1))
+        if newg == 0 then
+            newg = direction > 0 and 1 or #debugGroups
+        end
         switchToGroup(newg)
     end
 end
 
+-- toggle between SSR graph and CalcDiffValue graph
+-- should only update the SSRs once unless changing songs (it resets in that case)
 local function switchSSRGraph()
     ssrGraphActive = not ssrGraphActive
     if ssrGraphActive and #ssrs == 0 then
@@ -297,6 +332,51 @@ local function switchSSRGraph()
     MESSAGEMAN:Broadcast("UpdateActiveLowerGraph")
 end
 
+-- this will gather all the mod names and values for a specific given index
+-- it produces a single string for the purpose of hover information
+local function getDebugModsForIndex(modgroup, modgroupname, extramodgroup, index, isUpper)
+    local modsToValues = {}
+    local modText = ""
+    local modNames = {}
+
+    -- gather all mods and names and values and stuff to put them in the hover text
+    for i, mod in pairs(modgroup) do
+        local mod = shortenEnum(modgroupname, mod)
+        for h = 1, 2 do
+            local hand = h == 2 and "R" or "L"
+            modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+            modNames[#modNames + 1] = mod..hand
+        end
+    end
+
+    -- for each hand add the enum-less mods (handle them last)
+    for mod, _ in pairs(extramodgroup) do
+        local mod = shortenEnum("CalcDebugMisc", mod)
+        for h = 1,2 do
+            local hand = h == 2 and "R" or "L"
+            modsToValues[#modsToValues + 1] = graphVecs[mod][h]
+            modNames[#modNames + 1] = mod..hand
+        end
+    end
+    
+    -- carry out the final string production
+    for k, v in pairs(modsToValues) do
+        local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
+        if (isUpper and activeModGroup == -1 or debugGroups[activeModGroup][namenoHand]) or not isUpper then
+            local name = modNames[k] and modNames[k] or ""
+            local value = v[index] and v[index] or 0
+            local txt = string.format(name..": %5.4f\n", value)
+            modText = modText .. txt
+        end
+    end
+
+    modText = modText:sub(1, #modText-1) -- remove the end whitespace
+
+    return modText
+end
+
+-- input handler
+-- note: returning true in a handler stops input from being sent anywhere else
 local function yetAnotherInputCallback(event)
     if event.type == "InputEventType_FirstPress" then
         if event.DeviceInput.button == "DeviceButton_mousewheel up" then
@@ -322,9 +402,7 @@ local function yetAnotherInputCallback(event)
             local num = tonumber(event.char)
             if num == 0 then
                 switchSSRGraph()
-            else
-                switchToGroup(num)
-            end 
+            end
         end
 	end
 	return false
@@ -333,9 +411,6 @@ end
 local o =
 	Def.ActorFrame {
     Name = "notChordDensityGraph", -- it's not the chord density graph
-    InitCommand = function(self)
-        self:SetUpdateFunction(HighlightUpdaterThing)
-    end,
 	OnCommand = function(self)
         self:xy(plotX, plotY)
     end,
@@ -416,53 +491,9 @@ o[#o + 1] = Def.Quad {
             bg:zoomto(txt:GetZoomedWidth() + 6, txt:GetZoomedHeight() + 6)
             bg:x(goodXPos)
             bg:y(ypos)
+
             local index = convertPercentToIndexForMods(perc)
-
-            local modsToValues = {}
-            local modText = ""
-            local modNames = {}
-            for i, mod in pairs(CalcPatternMod) do
-                local mod = mod:gsub("CalcPatternMod_", "")
-                for h = 1, 2 do
-                    local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                    modsToValues[#modsToValues + 1] = graphVecs[mod][h]
-                    modNames[#modNames + 1] = mod..blah
-                end
-            end
-            -- add stammod
-            for h = 1, 2 do
-                local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                modsToValues[#modsToValues + 1] = graphVecs["StamMod"][h]
-                modNames[#modNames + 1] = "StamMod"..blah
-            end
-
-            -- add jackstammod
-            for h = 1, 2 do
-                local blah = "L"
-                    if h == 2 then
-                        blah = "R"
-                    end
-                modsToValues[#modsToValues + 1] = graphVecs["JackStamMod"][h]
-                modNames[#modNames + 1] = "JackStamMod"..blah
-            end
-            
-            for k, v in pairs(modsToValues) do
-                local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
-                if activeModGroup == -1 or debugGroups[activeModGroup][namenoHand] then
-                    local name = modNames[k] and modNames[k] or ""
-                    local value = v[index] and v[index] or 0
-                    local txt = string.format(name..": %5.4f\n", value)
-                    modText = modText .. txt
-                end
-            end
-
-            modText = modText:sub(1, #modText-1) -- remove the end whitespace
+            local modText = getDebugModsForIndex(CalcPatternMod, "CalcPatternMod", miscToUpperMods, index, true)
             txt:settext(modText)
 		else
 			bar:visible(false)
@@ -470,6 +501,20 @@ o[#o + 1] = Def.Quad {
             bg:visible(false)
 		end
 	end
+}
+
+-- mod group indicators appears top left of top graph bg
+o[#o+1] = LoadFont("Common Normal") .. {
+    Name = "G1Group",
+    InitCommand = function(self)
+        self:xy(-plotWidth/2,-plotHeight/2)
+        self:halign(0):valign(0)
+        self:zoom(0.25)
+        self:settextf("Group %d", activeModGroup)
+    end,
+    UpdateActiveModsMessageCommand = function(self)
+        self:settextf("Group %d", activeModGroup)
+    end
 }
 
 -- second bg
@@ -511,48 +556,7 @@ o[#o + 1] = Def.Quad {
             
             if not ssrGraphActive then
                 local index = convertPercentToIndexForMods(perc)
-                local modsToValues = {}
-                local modText = ""
-                local modNames = {}
-                for i, mod in pairs(CalcDiffValue) do
-                    local mod = mod:gsub("CalcDiffValue_", "")
-                    for h = 1, 2 do
-                        local blah = "L"
-                        if h == 2 then
-                            blah = "R"
-                        end
-                        modsToValues[#modsToValues + 1] = graphVecs[mod][h]
-                        modNames[#modNames + 1] = mod..blah
-                    end
-                end
-                
-                -- add ptloss
-                for h = 1, 2 do
-                    local blah = "L"
-                        if h == 2 then
-                            blah = "R"
-                        end
-                        modsToValues[#modsToValues + 1] = graphVecs["PtLoss"][h]
-                        modNames[#modNames + 1] = "PtLoss"..blah
-                end
-
-                -- add ptloss
-                for h = 1, 2 do
-                    local blah = "L"
-                        if h == 2 then
-                            blah = "R"
-                        end
-                        modsToValues[#modsToValues + 1] = graphVecs["JackPtLoss"][h]
-                        modNames[#modNames + 1] = "JackPtLoss"..blah
-                end
-
-                for k, v in pairs(modsToValues) do
-                    local name = modNames[k] and modNames[k] or ""
-                    local value = v[index] and v[index] or 0
-                    local txt = string.format(name..": %5.4f\n", value)
-                    modText = modText .. txt
-                end
-                modText = modText:sub(1, #modText-1) -- remove the end whitespace
+                local modText = getDebugModsForIndex(CalcDiffValue, "CalcDiffValue", miscToLowerMods, index, false)
                 txt:settext(modText)
             else
                 local ssrindex = convertPercentToIndex(perc)
@@ -600,15 +604,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     end
 }
 
---[[ enum mapping for downscaler things:
-    put these as the argument for DootSpooks
-    1 = One hand jump downscaler
-    2 = Anchor downscaler
-    3 = Roll downscaler
-    4 = Handstream downscaler
-    5 = Jumpstream downscaler
-    anything else = no output
-]]
+--[[ enum mapping for downscaler things: ]]
 local modnames = {
     "stl",
     "str",
@@ -793,7 +789,7 @@ local modColors = {
 }
 
 -- top graph average text
-makeskillsetlabeltext = function(i, mod, hand)
+local function makeskillsetlabeltext(i, mod, hand)
     return LoadFont("Common Normal") .. {
         Name = "SSLabel"..i,
         InitCommand = function(self)
@@ -821,7 +817,11 @@ makeskillsetlabeltext = function(i, mod, hand)
                 else
                     self:diffuse(color(".3,.3,.3"))
                 end
-                self:settextf("%s: %.3f", modnames[i], aves[i])
+                if aves[i] then
+                    self:settextf("%s: %.3f", modnames[i], aves[i])
+                else
+                    self:settextf("%s: err", modnames[i])
+                end
             end
         end,
         UpdateActiveModsMessageCommand = function(self)
@@ -908,6 +908,15 @@ local function topGraphLine(mod, colorToUse, hand)
 
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+
+                if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
+                    self:diffusealpha(1)
+                else
+                    -- hide unselected groups
+                    if mod ~= "base_line" then
+                        self:diffusealpha(0)
+                    end
+                end
             else
                 self:visible(false)
             end
@@ -1010,42 +1019,58 @@ local skillsetColors = {
     color("#6c969d"),   -- jack
     color("#a5f8d3"),   -- chordjack
     color("#b0cec2"),    -- tech
-    color("#b0cec2"),    -- tech
-    color("1,0,0"),   
-    color("1,0,0"),
+    color("#b0cec2"),    -- tech 2 (used for something else dont worry)
 }
 
--- pattern mod lines
-for i, mod in pairs(CalcPatternMod) do
-    local modname = mod:gsub("CalcPatternMod_", "") -- by design
-    o[#o+1] = topGraphLine(modname, modColors[(i * 2) - 1], 1)
-    o[#o+1] = topGraphLine(modname, modColors[i * 2], 2)
-    o[#o+1] = makeskillsetlabeltext((i * 2) - 1, modname, 1)
-    o[#o+1] = makeskillsetlabeltext((i * 2), modname, 2)
-end
--- add stam since it's not technically a pattern mod
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
-o[#o+1] = topGraphLine("StamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
-o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "StamMod", 1)
-o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "StamMod", 2)
-o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 1], 1)
-o[#o+1] = topGraphLine("JackStamMod", modColors[(#CalcPatternMod * 2) + 2], 2)
-o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 1, "JackStamMod", 1)
-o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + 2, "JackStamMod", 2)
-o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
+local miscColors = {
+    color("1,0,0"),     -- ptloss
+    color("1,0,0"),     
+    color("1,0.4,0"),   -- jackptloss
+    color("1,0.4,0"),
+}
 
--- MSD mod lines
-for i, mod in pairs(CalcDiffValue) do
-    local modname = mod:gsub("CalcDiffValue_", "") -- by design
-    if i == 2 or i == 4 then   -- these are the most interesting ones atm
-        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - 1], 1)
-        o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[i * 2], 2)
+-- upper mod lines and text
+-- we do the hand loop inner so the text lines up with hands next to each other
+do -- scoping
+    local i
+    for i, mod in pairs(CalcPatternMod) do
+        for h = 1,2 do
+            local modname = shortenEnum("CalcPatternMod", mod)
+            o[#o+1] = topGraphLine(modname, modColors[(i * 2) - (h % 2)], h)
+            o[#o+1] = makeskillsetlabeltext((i * 2) - (h % 2), modname, h)
+        end
+    end
+    i = 1
+    for mod, _ in pairs(miscToUpperMods) do
+        for h = 1,2 do
+            -- dont have to shorten enum here because i did something dumb
+            o[#o+1] = topGraphLine(mod, modColors[(#CalcPatternMod * 2) + i], h)
+            o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + i, mod, h)
+        end
+        i = i + 1
     end
 end
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 1], 1)
-o[#o+1] = bottomGraphLineMSD("PtLoss", skillsetColors[(#CalcDiffValue * 2) + 2], 2)
-o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 1)
-o[#o+1] = bottomGraphLineMSD("JackPtLoss", color("1,0.4,0"), 2)
+o[#o+1] = topGraphLine("base_line", modColors[14])    -- super hack to make 1.0 value indicator line
+
+-- lower mod lines and stuff
+do -- scoping
+    local i
+    for i, mod in pairs(CalcDiffValue) do
+        local modname = shortenEnum("CalcDiffValue", mod)
+        for h = 1,2 do
+            if i == 2 or i == 4 then -- only these for now
+                o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
+            end
+        end
+    end
+    i = 1
+    for mod, _ in pairs(miscToLowerMods) do
+        for h = 1,2 do
+            o[#o+1] = bottomGraphLineMSD(mod, miscColors[(i-1)*2 + h], h)
+        end
+        i = i + 1
+    end
+end
 
 -- SSR skillset lines
 for i = 1,8 do
