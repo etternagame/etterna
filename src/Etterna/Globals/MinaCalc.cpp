@@ -5335,7 +5335,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				// just add up col taps to get hand taps i guess
 				_itvhi->set_hand_taps();
 
-				// run pattern mod generation for hand agnostic mods
+				// run pattern mod generation for hand dependent mods
 				set_dependent_pmods(_doots[hand], itv);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
