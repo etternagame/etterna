@@ -2854,7 +2854,6 @@ struct OHJumpMods
 	int max_ohjump_seq = 0;
 	int window_roll_taps = 0;
 	int cc_taps = 0;
-	int ohjump_taps = 0;
 	// we cast the one in itv_info from int
 	float hand_taps = 0.f;
 	float floatymcfloatface = 0.f;
@@ -2935,9 +2934,6 @@ struct OHJumpMods
 		if (now.col == col_empty)
 			return;
 
-		if (now.col == col_ohjump)
-			ohjump_taps += 2;
-
 		// we know between the following that the latter is more
 		// difficult [12][12][12]222[12][12][12]
 		// [12][12][12]212[12][12][12]
@@ -3004,7 +3000,7 @@ struct OHJumpMods
 		}
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
 	{
 		if (floatymcfloatface >= hand_taps) {
 			min_set(doot, i);
@@ -3027,7 +3023,7 @@ struct OHJumpMods
 		}
 
 		// no ohjumps
-		if (ohjump_taps == 0) {
+		if (itvh.oh_jump_taps) {
 			neutral_set(doot, i);
 			set_debug_output(doot, i);
 			return true;
@@ -3035,7 +3031,8 @@ struct OHJumpMods
 
 		// no repeated oh jumps, prop scale only
 		if (max_ohjump_seq == 0) {
-			ohj_prop_component = ohj_prop_pool - (ohjump_taps / hand_taps);
+			ohj_prop_component =
+			  ohj_prop_pool - (itvh.oh_jump_taps / hand_taps);
 			ohj_prop_component =
 			  CalcClamp(ohj_prop_component, ohj_min_mod, ohj_max_mod);
 
@@ -3043,8 +3040,8 @@ struct OHJumpMods
 			pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
 			doot[OHJumpMod][i] = pmod;
 
-			cj_ohj_prop_component =
-			  fastsqrt(cj_ohj_prop_pool - (ohjump_taps / hand_taps / 2.f));
+			cj_ohj_prop_component = fastsqrt(
+			  cj_ohj_prop_pool - (itvh.oh_jump_taps / hand_taps / 2.f));
 			cj_ohj_prop_component =
 			  CalcClamp(cj_ohj_prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
 
@@ -3103,7 +3100,6 @@ struct OHJumpMods
 	{
 		// reset any interval stuff here
 		cc_taps = 0;
-		ohjump_taps = 0;
 		max_ohjump_seq = 0;
 		ohj_max_seq_component = neutral;
 		ohj_prop_component = neutral;
@@ -3140,7 +3136,7 @@ struct OHJumpMods
 		// handle simple cases first, execute this block if nothing easy is
 		// detected, fill out non-component debug info and handle interval
 		// resets at end
-		if (handle_case_optimizations(doot, i)) {
+		if (handle_case_optimizations(itvh, doot, i)) {
 			interval_reset();
 			return;
 		}
