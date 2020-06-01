@@ -1159,9 +1159,7 @@ struct ItvInfo
 // meta info for intervals
 struct metaItvInfo
 {
-	bool dbg = false && debug_lmao;
-	bool dbg_lv2 = false && debug_lmao;
-	unique_ptr<ItvInfo>* _itvi;
+	ItvInfo _itvi;
 
 	int _idx = 0;
 	// meta info for this interval extracted from the base noterow progression
@@ -1227,15 +1225,13 @@ struct metaItvInfo
 		basically_vibro = true;
 
 		// reset our interval info ref
-		(**_itvi).reset();
+		_itvi.reset();
 	}
 };
 struct metaRowInfo
 {
-	bool dbg = false && debug_lmao;
-	bool dbg_lv2 = false && debug_lmao;
-
-	unique_ptr<metaItvInfo>* _bizzop;
+	static const bool dbg = false && debug_lmao;
+	static const bool dbg_lv2 = false && debug_lmao;
 
 	float time = s_init;
 	// time from last row (ms)
@@ -1253,14 +1249,14 @@ struct metaRowInfo
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
 
-	inline void set_row_variations()
+	inline void set_row_variations(metaItvInfo& mitvi)
 	{
 		// already determined there's enough variation in this interval
-		if (!(**_bizzop).basically_vibro)
+		if (!mitvi.basically_vibro)
 			return;
 
 		// trying to fill array with up to 3 unique row_note configurations
-		for (auto& t : (**_bizzop).row_variations) {
+		for (auto& t : mitvi.row_variations) {
 			// already a stored value here
 			if (t != 0) {
 				// already have one of these
@@ -1271,20 +1267,20 @@ struct metaRowInfo
 				// nothing stored here and isn't a duplicate, store it and
 				// iterate num_var
 				t = notes;
-				++(**_bizzop).num_var;
+				++mitvi.num_var;
 
 				// check if we filled the array with unique values. since we
 				// start by assuming anything is basically vibro, set the flag
 				// to false if it is
-				if ((**_bizzop).row_variations[2] != 0)
-					(**_bizzop).basically_vibro = false;
+				if (mitvi.row_variations[2] != 0)
+					mitvi.basically_vibro = false;
 				return;
 			}
 		}
 	}
 
 	// scan for jacks and jack counts between this row and the last
-	inline void jack_scan()
+	inline void jack_scan(metaItvInfo& mitvi)
 	{
 		twas_jack = false;
 
@@ -1295,11 +1291,11 @@ struct metaRowInfo
 							  << " : " << note_map[last_notes] << std::endl;
 				}
 				// not scaled to the number of jacks anymore
-				++(**_bizzop).actual_jacks;
+				++mitvi.actual_jacks;
 				twas_jack = true;
 				// try to pick up gluts maybe?
 				if (count > 1 && column_count(last_notes) > 1)
-					++(**_bizzop).shared_chord_jacks;
+					++mitvi.shared_chord_jacks;
 			}
 		}
 
@@ -1309,13 +1305,14 @@ struct metaRowInfo
 		// inverse depending on the scenario, this is merely to catch stuff like
 		// splithand jumptrills registering as chordjacks when they shouldn't be
 		if (twas_jack)
-			++(**_bizzop).actual_jacks_cj;
+			++mitvi.actual_jacks_cj;
 	}
 
-	inline void basic_row_sequencing(const metaRowInfo& last)
+	inline void basic_row_sequencing(const metaRowInfo& last,
+									 metaItvInfo& mitvi)
 	{
-		jack_scan();
-		set_row_variations();
+		jack_scan(mitvi);
+		set_row_variations(mitvi);
 
 		// check if we have a bunch of stuff like [123]4[123] [12]3[124] which
 		// isn't actually chordjack, its just broken hs/js, and in fact with the
@@ -1330,7 +1327,7 @@ struct metaRowInfo
 		if (alternating_chordstream) {
 			if (dbg_lv2)
 				std::cout << "good hot js/hs !!!!: " << std::endl;
-			++(**_bizzop).definitely_not_jacks;
+			++mitvi.definitely_not_jacks;
 		}
 
 		if (alternating_chordstream) {
@@ -1344,42 +1341,42 @@ struct metaRowInfo
 			if (!twas_jack) {
 				if (dbg_lv2)
 					std::cout << "good hot js/hs: " << std::endl;
-				(**_bizzop).seriously_not_js -= 3;
+				mitvi.seriously_not_js -= 3;
 			}
 		}
 
 		if (last.count == 1 && count == 1) {
-			(**_bizzop).seriously_not_js = max((**_bizzop).seriously_not_js, 0);
-			++(**_bizzop).seriously_not_js;
+			mitvi.seriously_not_js = max(mitvi.seriously_not_js, 0);
+			++mitvi.seriously_not_js;
 			if (dbg_lv2)
 				std::cout << "consecutive single note: "
-						  << (**_bizzop).seriously_not_js << std::endl;
+						  << mitvi.seriously_not_js << std::endl;
 
 			// light js really stops at [12]321[23] kind of
 			// density, anything below that should be picked up
 			// by speed, and this stop rolls between jumps
 			// getting floated up too high
-			if ((**_bizzop).seriously_not_js > 3) {
+			if (mitvi.seriously_not_js > 3) {
 				if (dbg)
 					std::cout << "exceeding light js/hs tolerance: "
-							  << (**_bizzop).seriously_not_js << std::endl;
-				(**_bizzop).not_js += (**_bizzop).seriously_not_js;
+							  << mitvi.seriously_not_js << std::endl;
+				mitvi.not_js += mitvi.seriously_not_js;
 				// give light hs the light js treatment
-				(**_bizzop).not_hs += (**_bizzop).seriously_not_js;
+				mitvi.not_hs += mitvi.seriously_not_js;
 			}
 		} else if (last.count > 1 && count > 1) {
 			// suppress jumptrilly garbage a little bit
 			if (dbg)
 				std::cout << "sequential chords detected: " << std::endl;
-			(**_bizzop).not_hs += count;
-			(**_bizzop).not_js += count;
+			mitvi.not_hs += count;
+			mitvi.not_js += count;
 
 			// might be overkill
 			if ((notes & last_notes) == 0) {
 				if (dbg)
 					std::cout << "bruh they aint even jacks: " << std::endl;
-				++(**_bizzop).not_hs;
-				++(**_bizzop).not_js;
+				++mitvi.not_hs;
+				++mitvi.not_js;
 			} else {
 				gluts_maybe = true;
 			}
@@ -1387,6 +1384,7 @@ struct metaRowInfo
 	}
 
 	inline void operator()(const metaRowInfo& last,
+						   metaItvInfo& mitvi,
 						   const float& row_time,
 						   const int& row_count,
 						   const unsigned& row_notes)
@@ -1402,15 +1400,14 @@ struct metaRowInfo
 
 		ms_now = ms_from(time, last.time);
 
-		basic_row_sequencing(last);
+		mitvi._itvi.update_tap_counts(count);
+		basic_row_sequencing(last, mitvi);
 	}
 };
 // accumulates hand specific info across an interval as it's processed by row
 // no meta version of this (yet?)
 struct ItvHandInfo
 {
-	bool dbg = false && debug_lmao;
-
 	int _idx = 0;
 	int hand_taps = 0;
 	int oh_jump_taps = 0;
@@ -2119,7 +2116,7 @@ struct StreamMod
 
 	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& itvi = **mitvi._itvi;
+		const auto& itvi = mitvi._itvi;
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
@@ -2279,7 +2276,7 @@ struct JSMod
 
 	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& itvi = **mitvi._itvi;
+		const auto& itvi = mitvi._itvi;
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
@@ -2454,7 +2451,7 @@ struct HSMod
 
 	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& itvi = **mitvi._itvi;
+		const auto& itvi = mitvi._itvi;
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
@@ -2611,7 +2608,7 @@ struct CJMod
 
 	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& itvi = **mitvi._itvi;
+		const auto& itvi = mitvi._itvi;
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
@@ -2749,7 +2746,7 @@ struct CJQuadMod
 
 	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& itvi = **mitvi._itvi;
+		const auto& itvi = mitvi._itvi;
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
@@ -5277,13 +5274,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// to generate these
 
-	// most basic interval info used for the more generic pattern mods
-	// (mostly for skillset detection)
-	unique_ptr<ItvInfo> _itvi;
-
-	// keeps track of occurrences of basic row based sequencing, also used
-	// mostly for skilset detection
-	unique_ptr<metaItvInfo> _mitvi;
+	// keeps track of occurrences of basic row based sequencing, mostly for
+	// skilset detection, contains itvinfo as well, the very basic metrics used
+	// for detection
+	metaItvInfo _mitvi;
 
 	// meta row info keeps track of basic pattern sequencing as we scan down
 	// the notedata rows, we'll only generate and store objects for each row
@@ -5337,27 +5331,12 @@ struct TheGreatBazoinkazoinkInTheSky
 			write_params_to_disk();
 
 		// setup our data pointers
-		_itvi = std::make_unique<ItvInfo>();
-		_mitvi = std::make_unique<metaItvInfo>();
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
 
 		_itvhi = std::make_unique<ItvHandInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
-
-		// meta interval info contains the raw interval info for
-		// convenience, calling reset on this will also reset the raw
-		// interval info- bestow upon it the glorious charity of your being
-		_mitvi->_itvi = &_itvi;
-
-		// at the moment metarowinfo operates as a row based constructor for
-		// meta interval info, and doesn't really contain any useful data on
-		// its own, give both of them a ptr to _mitvi, which also gives them
-		// access to interval info as we construct it, not that we
-		// particularly need to do so (yet???)
-		_mri->_bizzop = &_mitvi;
-		_last_mri->_bizzop = &_mitvi;
 
 		// doesn't change with offset or anything, and we may do
 		// multi-passes at some point
@@ -5525,11 +5504,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		// interval data, and do not need any more advanced pattern
 		// sequencing just set only one hand's values and we'll copy them
 		// over (or figure out how not to need to) later
-		_s(*_mitvi, doot);
-		_js(*_mitvi, doot);
-		_hs(*_mitvi, doot);
-		_cj(*_mitvi, doot);
-		_cjq(*_mitvi, doot);
+		_s(_mitvi, doot);
+		_js(_mitvi, doot);
+		_hs(_mitvi, doot);
+		_cj(_mitvi, doot);
+		_cjq(_mitvi, doot);
 		_fj(doot, itv);
 	}
 
@@ -5557,7 +5536,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// boop
 		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 			// reset any accumulated interval info and set cur index number
-			_mitvi->reset(itv);
+			_mitvi.reset(itv);
 
 			// run the row by row construction for interval info
 			for (auto& row : _itv_rows[itv]) {
@@ -5565,8 +5544,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				row_notes = _ni[row].notes;
 				row_count = column_count(row_notes);
 
-				_itvi->update_tap_counts(row_count);
-				(*_mri)(*_last_mri, row_time, row_count, row_notes);
+				(*_mri)(*_last_mri, _mitvi, row_time, row_count, row_notes);
 
 				advance_agnostic_sequencing();
 
