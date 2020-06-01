@@ -5257,12 +5257,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	vector<std::string> _itv_row_string;
 
 	// basic data we need
+	vector<float>* _doots[num_hands];
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
 	float _rate = 0.f;
 	int hand = 0;
-	unsigned _t1 = 0;
-	unsigned _t2 = 0;
 
 	// to generate these
 
@@ -5454,8 +5453,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	//	run_smoothing_pass();
 	//}
 	*/
-
-	vector<float>* _doots[num_hands];
 	inline void operator()(const vector<vector<int>>& itv_rows,
 						   const float& rate,
 						   vector<float> ldoot[],
