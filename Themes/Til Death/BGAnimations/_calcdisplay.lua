@@ -176,19 +176,21 @@ local debugGroups = {
         OHTrill = true,
 		OHJumpMod = true,
 		Roll = true,
-        StamMod = true
+        StamMod = true,
     },
     {   -- Group 2
         JS = true,
         JSS = true,
         JSJ = true,
-		StamMod = true
+        StamMod = true,
+        OHJumpMod = true,
     },
 	{   -- Group 3
         HS = true,
         HSS = true,
         HSJ = true,
-		StamMod = true
+        StamMod = true,
+        OHJumpMod = true,
 	},
     {   -- Group 4
         CJ = true,
@@ -198,12 +200,12 @@ local debugGroups = {
         CJOHJump = true,
         --CJOHJPropComp = true,
         --CJOHJSeqComp = true,
-		StamMod = true
+		StamMod = true,
     },
 	{   -- Group 5
 		Roll = true,
 		WideRangeRoll = true,
-		WideRangeJumptrill = true
+		WideRangeJumptrill = true,
 	},
 	{   -- Group 6
         Chaos = true,
@@ -213,7 +215,7 @@ local debugGroups = {
         WideRangeBalance = true,
         WideRangeAnchor = true,
 		RanMan = true,
-        TheThing = true
+        TheThing = true,
     },
 	{   -- Group 7
         RanMan = true,
@@ -741,23 +743,23 @@ local modColors = {
 	color("0,1,1"),			-- cyan			= jumpstream stream
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= jumpstream jack
-	color("1,0.2,0"),		-- orange			 (right)
-    color("1,1,0"),         -- yellow       = handstream left
+	color("1,0.2,0"),		-- orange1			 (right)
+    color("0.6,0.6,0"),     -- dark yellow  = handstream left
     color("0.6,0.6,0"),     -- dark yellow       (right)
 	color("0,1,1"),			-- cyan			= handstream stream
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= handstream jack
-	color("1,0.2,0"),		-- orange			 (right)
+	color("1,0.2,0"),		-- orange1			 (right)
     color("1.4,1.3,1"),     -- white 		= chordjack left
     color("1.4,1.3,0.9"),   -- white			 (right)
 	color("0,1,1"),			-- cyan			= chordjack stream
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= chordjack jack
-	color("1,0.2,0"),		-- orange			 (right)
+	color("1,0.2,0"),		-- orange1			 (right)
 	color("1,1,0"),			-- yellow		= cjquad left
     color("1,1,0"),			-- yellow			 (right)
-    color("1,0.8,0"),       -- gold			= ohjump left
-    color("1,1,0.2"), 		-- yellow        	 (right)
+    color("1,0.4,0"),       -- orange2		= ohjump left
+    color("1,0.4,0"), 		-- orange2        	 (right)
 	color("1,1,1"),			-- ohjbp
 	color("1,1,1"),
 	color("1,1,1"),			-- ohjpc
@@ -770,8 +772,8 @@ local modColors = {
 	color("1,1,1"),
 	color("1,1,1"),			-- ohjht
 	color("1,1,1"),
-    color("1,0.4,0"),		-- orange		= cjohj left
-    color("1,0.4,0"),		-- orange			 (right)
+    color("1,0.4,0"),		-- orange2		= cjohj left
+    color("1,0.4,0"),		-- orange2			 (right)
 	color("1,1,1"),			-- cjohjpc
 	color("1,1,1"),
 	color("1,1,1"),			-- cjohjsc
