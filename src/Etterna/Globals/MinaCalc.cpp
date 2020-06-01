@@ -2646,11 +2646,11 @@ struct CJMod
 			// we shouldn't be hitting empty intervals here
 			ASSERT(mitvi.num_var > 0);
 			if (mitvi.num_var == 1)
-				pmod *= 0.85f * vibro_flag;
+				pmod *= 0.8f * vibro_flag;
 			else if (mitvi.num_var == 2)
-				pmod *= 0.925f * vibro_flag;
+				pmod *= 0.9f * vibro_flag;
 			else if (mitvi.num_var == 3)
-				pmod *= 0.975f * vibro_flag;
+				pmod *= 0.95f * vibro_flag;
 			ASSERT(mitvi.num_var < 4);
 		}
 
@@ -5904,7 +5904,7 @@ Hand::InitAdjDiff()
 				// do funky special case stuff here
 				case Skill_Stream:
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.075f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.075f), 1.f, 1.075f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -5914,7 +5914,7 @@ Hand::InitAdjDiff()
 					adj_diff /=
 					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJumpMod][i]);
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
