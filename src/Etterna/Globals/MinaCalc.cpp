@@ -1998,21 +1998,12 @@ struct RM_Sequencing
 
 // pmod stuff that was being mega coopy poostered
 inline void
-min_set(const CalcPatternMod& pmod,
+mod_set(const CalcPatternMod& pmod,
 		vector<float> doot[],
 		const int& i,
-		const float& min_mod)
+		const float& mod)
 {
-	doot[pmod][i] = min_mod;
-}
-
-inline void
-max_set(const CalcPatternMod& pmod,
-		vector<float> doot[],
-		const int& i,
-		const float& max_mod)
-{
-	doot[pmod][i] = max_mod;
+	doot[pmod][i] = mod;
 }
 
 inline void
@@ -2107,7 +2098,7 @@ struct StreamMod
 		}
 
 		if (itvi.taps_by_size[_tap_size] == 0) {
-			min_set(_pmod, doot, i, min_mod);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -2610,7 +2601,7 @@ struct CJMod
 
 		// no chords
 		if (itvi.chord_taps == 0) {
-			min_set(_pmod, doot, i, min_mod);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 		return false;
@@ -2748,9 +2739,8 @@ struct CJQuadMod
 		}
 
 		// all quads
-		if (itvi.taps_by_size[_tap_size] == itvi.total_taps)
-		{
-			min_set(_pmod, doot, i, min_mod);
+		if (itvi.taps_by_size[_tap_size] == itvi.total_taps) {
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -2770,7 +2760,7 @@ struct CJQuadMod
 		pmod = CalcClamp(quad_prop, min_mod, max_mod);
 
 		doot[_pmod][mitvi._idx] = pmod;
-		//set_dbg(doot, mitvi._idx);
+		// set_dbg(doot, mitvi._idx);
 	}
 };
 
@@ -3132,7 +3122,7 @@ struct OHJumpMods
 		}
 	}
 
-	void operator()(const ItvHandInfo* itvh,
+	void operator()(const ItvHandInfo& itvh,
 					vector<float> doot[],
 					const size_t& i)
 	{
@@ -3141,7 +3131,7 @@ struct OHJumpMods
 		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
 
 		floatymcfloatface = static_cast<float>(max_ohjump_seq);
-		hand_taps = static_cast<float>(itvh->hand_taps);
+		hand_taps = static_cast<float>(itvh.hand_taps);
 		base_prop = floatymcfloatface / hand_taps;
 
 		// handle simple cases first, execute this block if nothing easy is
@@ -3198,9 +3188,8 @@ struct OHJumpMods
 struct AnchorMod
 {
 
-	const vector<int> _pmods = { Anchor };
+	const CalcPatternMod _pmod = Anchor;
 	const std::string name = "AnchorMod";
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.9f;
@@ -3223,31 +3212,7 @@ struct AnchorMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void max_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		doot[_pmod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -3275,65 +3240,57 @@ struct AnchorMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvHandInfo* itvh,
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
 										  vector<float> doot[],
 										  const size_t& i)
 	{
 		// nothing here
-		if (itvh->hand_taps == 0) {
-			neutral_set(doot, i);
+		if (itvh.hand_taps == 0) {
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
-		assert(itvh->col_taps[col_left] > 0 && itvh->col_taps[col_right] > 0);
+		ASSERT(itvh.col_taps[col_left] > 0 && itvh.col_taps[col_right] > 0);
 
 		// same number of taps on each column
-		if (itvh->col_taps[col_left] == itvh->col_taps[col_right]) {
-			min_set(doot, i);
+		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvh->col_taps[col_left] == 0 || itvh->col_taps[col_right] == 0) {
-			max_set(doot, i);
+		if (itvh.col_taps[col_left] == 0 || itvh.col_taps[col_right] == 0) {
+			mod_set(_pmod, doot, i, max_mod);
 			return true;
 		}
 
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo* itvh,
+	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
-		l_taps = static_cast<float>(itvh->col_taps[col_left]);
-		r_taps = static_cast<float>(itvh->col_taps[col_right]);
-
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
+
+		l_taps = static_cast<float>(itvh.col_taps[col_left]);
+		r_taps = static_cast<float>(itvh.col_taps[col_right]);
 
 		pmod = l_taps > r_taps ? l_taps / r_taps : r_taps / l_taps;
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
-		// actual mod
-		doot[_primary][i] = pmod;
+		doot[_pmod][i] = pmod;
 	}
 };
 // this will actually be different from wrr apart from the window, probably,
 // maybe
 struct RollMod
 {
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { Roll };
+	const CalcPatternMod _pmod = Roll;
 	const std::string name = "RollMod";
-	const int _primary = _pmods.front();
-
-	// taps for this hand only, we don't want to include offhand taps in
-	// determining whether this hand is a roll
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_rolls;
 
 #pragma region params
 	float itv_window = 1;
@@ -3356,6 +3313,13 @@ struct RollMod
 		{ "roll_cv_cutoff", &roll_cv_cutoff },
 	};
 #pragma endregion params and param map
+
+	// window is currently 1 for local mod
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_rolls;
+
 	// each element is a discrete roll formation with this many taps
 	// (technically it has this many taps + 4 because it requires 1212 or
 	// 2121 to start counting, but that's fine, that's what we want and if
@@ -3387,25 +3351,7 @@ struct RollMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], neutral);
+		doot[_pmod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -3565,20 +3511,20 @@ struct RollMod
 	{
 		// no taps, no rolls
 		if (window_hand_taps == 0 || window_roll_taps == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// full roll
 		if (window_hand_taps == window_roll_taps) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo* itvh,
+	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
@@ -3600,7 +3546,7 @@ struct RollMod
 			consecutive_roll_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itvh->hand_taps);
+		window_itv_hand_taps.push_back(itvh.hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
 		window_hand_taps = 0;
@@ -3624,7 +3570,7 @@ struct RollMod
 							   static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
+		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
@@ -3638,13 +3584,8 @@ struct RollMod
 // almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { OHTrill };
+	const CalcPatternMod _pmod = OHTrill;
 	const std::string name = "OHTrillMod";
-	const int _primary = _pmods.front();
-
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_trills;
 
 #pragma region params
 	float itv_window = 2;
@@ -3667,6 +3608,9 @@ struct OHTrillMod
 		{ "trill_cv_cutoff", &trill_cv_cutoff },
 	};
 #pragma endregion params and param map
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_trills;
+
 	vector<int> itv_trills;
 
 	bool trilling = false;
@@ -3687,25 +3631,7 @@ struct OHTrillMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], neutral);
+		doot[_pmod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -3802,20 +3728,20 @@ struct OHTrillMod
 	{
 		// no taps, no trills
 		if (window_hand_taps == 0 || window_trill_taps == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
-		// full roll
+		// full oht
 		if (window_hand_taps == window_trill_taps) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo* itvh,
+	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
@@ -3837,7 +3763,7 @@ struct OHTrillMod
 			consecutive_trill_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itvh->hand_taps);
+		window_itv_hand_taps.push_back(itvh.hand_taps);
 		window_itv_trills.push_back(itv_trills);
 
 		window_hand_taps = 0;
@@ -3861,7 +3787,7 @@ struct OHTrillMod
 							   static_cast<float>(window_hand_taps * 4));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
+		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
@@ -3870,15 +3796,12 @@ struct OHTrillMod
 };
 struct RunningManMod
 {
-	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
-							  RanAnchLenMod, RanJack,	 RanOHT,
-							  RanOffS,		 RanPropAll,  RanPropOff,
-							  RanPropOHT,	RanPropOffS, RanPropJack };
+	const CalcPatternMod _pmod = RanMan;
+	const vector<CalcPatternMod> _dbg{ RanLen,		RanAnchLen, RanAnchLenMod,
+									   RanJack,		RanOHT,		RanOffS,
+									   RanPropAll,  RanPropOff, RanPropOHT,
+									   RanPropOffS, RanPropJack };
 	const std::string name = "RunningManMod";
-	const int _primary = _pmods.front();
-
-	RM_Sequencing rms[2];
-	RM_Sequencing interval_highest;
 
 #pragma region params
 	float min_mod = 0.95f;
@@ -3957,6 +3880,9 @@ struct RunningManMod
 #pragma endregion params and param map
 
 	// stuff for making mod
+	RM_Sequencing rms[2];
+	// longest sequence for this interval
+	RM_Sequencing rm;
 	float total_prop = 0.f;
 	float off_tap_prop = 0.f;
 	float off_tap_same_prop = 0.f;
@@ -3977,25 +3903,10 @@ struct RunningManMod
 		rms[1].set_params(
 		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
 
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		doot[_pmod].resize(size);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -4033,8 +3944,27 @@ struct RunningManMod
 		// use the biggest anchor that has existed in this interval
 		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
 
-		if (rms[test].anchor_len > interval_highest.anchor_len)
-			interval_highest = rms[test];
+		if (rms[test].anchor_len > rm.anchor_len)
+			rm = rms[test];
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[RanLen][i] =
+			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+			doot[RanAnchLen][i] =
+			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+			doot[RanAnchLenMod][i] = anchor_len_comp;
+			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
+			doot[RanPropAll][i] = total_prop;
+			doot[RanPropOff][i] = off_tap_prop;
+			doot[RanPropOffS][i] = off_tap_same_prop;
+			doot[RanPropOHT][i] = oht_bonus;
+			doot[RanPropJack][i] = jack_bonus;
+		}
 	}
 
 	inline bool handle_case_optimizations(const RM_Sequencing& rm,
@@ -4050,25 +3980,26 @@ struct RunningManMod
 		// probably generate the mod not from the highest of any interval, but
 		// from whatever sequences are still alive by the end
 		if (rm.anchor_len < min_anchor_len) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		} else if (rm.ran_taps < min_taps_in_rm) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		} else if (rm.off_taps_same < min_off_taps_same) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 		return false;
 	}
 
-	inline void operator()(const metaHandInfo* mhi,
-						   vector<float> doot[],
+	inline void operator()(vector<float> doot[],
 						   const size_t& i)
 	{
-		const auto& rm = interval_highest;
-		if (handle_case_optimizations(rm, doot, i))
+		if (handle_case_optimizations(rm, doot, i)) {
+			set_dbg(doot, i);
+			rm.reset();
 			return;
+		}
 
 		// the pmod template stuff completely broke the js/hs/cj mods.. so..
 		// these might also be broken... investigate later
@@ -4121,40 +4052,18 @@ struct RunningManMod
 		  min_mod,
 		  max_mod);
 
-		// actual used mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		if (debug_lmao) {
-			doot[RanLen][i] =
-			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
-			doot[RanAnchLen][i] =
-			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
-			doot[RanAnchLenMod][i] = anchor_len_comp;
-			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-			doot[RanPropAll][i] = total_prop;
-			doot[RanPropOff][i] = off_tap_prop;
-			doot[RanPropOffS][i] = off_tap_same_prop;
-			doot[RanPropOHT][i] = oht_bonus;
-			doot[RanPropJack][i] = jack_bonus;
-		}
+		doot[_pmod][i] = pmod;
+		set_dbg(doot, i);
 
 		// reset interval highest when we're done
-		interval_highest.reset();
+		rm.reset();
 	}
 };
 // probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
-	bool dbg = false;
-	const vector<int> _pmods = { WideRangeJumptrill };
+	const CalcPatternMod _pmod = { WideRangeJumptrill };
 	const std::string name = "WideRangeJumptrillMod";
-	const int _primary = _pmods.front();
-
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
 
 #pragma region params
 	float itv_window = 3;
@@ -4177,6 +4086,9 @@ struct WideRangeJumptrillMod
 		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
 	};
 #pragma endregion params and param map
+	deque<int> itv_taps;
+	deque<int> itv_ccacc;
+
 	int ccacc_counter = 0;
 	int crop_circles = 0;
 	float pmod = min_mod;
@@ -4193,25 +4105,7 @@ struct WideRangeJumptrillMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		doot[_pmod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -4356,20 +4250,20 @@ struct WideRangeJumptrillMod
 	{
 		// no taps, no ccacc
 		if (window_hand_taps == 0 || window_ccacc == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// cant happen with current logic but w.e
 		if (window_hand_taps == window_ccacc) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo* itvh,
+	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
 						   const size_t& i)
 	{
@@ -4379,7 +4273,7 @@ struct WideRangeJumptrillMod
 			itv_ccacc.pop_front();
 		}
 
-		itv_taps.push_back(itvh->hand_taps);
+		itv_taps.push_back(itvh.hand_taps);
 		itv_ccacc.push_back(ccacc_counter);
 
 		if (ccacc_counter > 0)
@@ -4404,7 +4298,7 @@ struct WideRangeJumptrillMod
 			   static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
+		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
@@ -4428,15 +4322,8 @@ struct WideRangeJumptrillMod
 // technically it can either be roll or oht depending on spacing
 struct WideRangeRollMod
 {
-	bool dbg = true && debug_lmao;
-	const vector<int> _pmods = { WideRangeRoll, Chaos };
+	const CalcPatternMod _pmod = WideRangeRoll;
 	const std::string name = "WideRangeRollMod";
-	const int _primary = _pmods.front();
-
-	// taps for this hand only, we don't want to include offhand taps in
-	// determining whether this hand is a roll
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_rolls;
 
 #pragma region params
 	float itv_window = 4;
@@ -4459,6 +4346,11 @@ struct WideRangeRollMod
 		{ "roll_cv_cutoff", &roll_cv_cutoff },
 	};
 #pragma endregion params and param map
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_rolls;
+
 	// each element is a discrete roll formation with this many taps
 	// (technically it has this many taps + 4 because it requires 1212 or
 	// 2121 to start counting, but that's fine, that's what we want and if
@@ -4490,25 +4382,7 @@ struct WideRangeRollMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const size_t& size)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], neutral);
+		doot[_pmod].resize(size);
 	}
 
 	inline XNode* make_param_node() const
@@ -4680,28 +4554,23 @@ struct WideRangeRollMod
 		last_seen_cc = now.cc;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const size_t& i)
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		if (window_hand_taps == 0 || window_roll_taps == 0) {
-			neutral_set(doot, i);
+			neutral_set(_pmod, doot, i);
 			return true;
 		} else if (window_hand_taps == window_roll_taps) {
-			min_set(doot, i);
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo* itvh,
+	inline void operator()(const ItvHandInfo& itvh,
 						   vector<float> doot[],
-						   const size_t& i,
-						   const int& hand)
+						   const int& i)
 	{
-		// temp hack because i didn't want to port chaos mod but didn't want to
-		// keep running old wrr
-		doot[Chaos][i] = neutral;
-
 		// drop the oldest interval values if we have reached full
 		// size
 		if (window_itv_hand_taps.size() == itv_window) {
@@ -4720,7 +4589,7 @@ struct WideRangeRollMod
 			consecutive_roll_counter = 0;
 		}
 
-		window_itv_hand_taps.push_back(itvh->hand_taps);
+		window_itv_hand_taps.push_back(itvh.hand_taps);
 		window_itv_rolls.push_back(itv_rolls);
 
 		window_hand_taps = 0;
@@ -4743,7 +4612,7 @@ struct WideRangeRollMod
 							   static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
+		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
@@ -4795,8 +4664,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	unique_ptr<metaRowInfo> _mri;
 	metaRowInfo _mri_dbg;
 
-	// meta hand info is the same thing, however it tracks pattern progression
-	// on individual hands rather than on generic rows
+	// basic interval tracking data for hand dependent stuff, like itvinfo
+	unique_ptr<ItvHandInfo> _itvhi;
+
+	// meta hand info is the same as meta row info, however it tracks pattern 
+	// progression on individual hands rather than on generic rows
 	unique_ptr<metaHandInfo> _last_mhi;
 	unique_ptr<metaHandInfo> _mhi;
 	metaHandInfo _mhi_dbg;
