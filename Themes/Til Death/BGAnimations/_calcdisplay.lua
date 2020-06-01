@@ -36,7 +36,7 @@ end
 
 -- scale values to vertical positions within the top graph
 local function fitY1(y) -- scale for upper graph
-    if y < upperGraphMin then y = upperGraphMin end
+    if y < upperGraphMin then y = upperGraphMin+0.05 end
     local num = scale(y, upperGraphMin, upperGraphMax, 0, 1)
     local out = -1 * num * plotHeight
     return out
@@ -857,7 +857,7 @@ local function makeskillsetlabeltext(i)
             self:xy(-plotWidth/2 + 5 + math.floor((i-1)/4) * xspace, plotHeight/3.3 + ((i-1)%4)*8.5):halign(0)
             self:zoom(0.3)
             self:settext("")
-            self:maxwidth(100)
+            self:maxwidth(120)
         end,
         UpdateAveragesMessageCommand = function(self, params)
             if song then
@@ -1126,6 +1126,15 @@ do -- scoping
         i = i + 1
     end
 end
+
+-- backing to the text
+o[#o+1] = Def.Quad {
+    InitCommand = function(self)
+        self:zoomto(plotWidth, plotHeight/4)
+        self:y(plotHeight/2 - plotHeight/8)
+        self:diffuse(color(".1,.1,.1,.8"))
+    end
+}
 
 -- create 40 slots for text on top
 -- there is room for about 44 at the time of writing
