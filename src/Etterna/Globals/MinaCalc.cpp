@@ -1251,7 +1251,7 @@ struct metaRowInfo
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
 
-	inline void set_row_variations(metaItvInfo& mitvi)
+	inline void set_row_variations()
 	{
 		// already determined there's enough variation in this interval
 		if (!(**_bizzop).basically_vibro)
@@ -1282,7 +1282,7 @@ struct metaRowInfo
 	}
 
 	// scan for jacks and jack counts between this row and the last
-	inline void jack_scan(metaItvInfo& mitvi)
+	inline void jack_scan()
 	{
 		twas_jack = false;
 
@@ -1312,8 +1312,8 @@ struct metaRowInfo
 
 	inline void basic_row_sequencing(const metaRowInfo& last)
 	{
-		jack_scan((**_bizzop));
-		set_row_variations((**_bizzop));
+		jack_scan();
+		set_row_variations();
 
 		// check if we have a bunch of stuff like [123]4[123] [12]3[124] which
 		// isn't actually chordjack, its just broken hs/js, and in fact with the
@@ -2887,14 +2887,8 @@ struct OHJumpMods
 
 	inline void neutral_set(vector<float> doot[], const int& i)
 	{
-		doot[OHJumpMod][i] = ohj_min_mod;
-		doot[CJOHJump][i] = cj_ohj_min_mod;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[OHJumpMod], neutral);
-		Smooth(doot[CJOHJump], neutral);
+		doot[OHJumpMod][i] = neutral;
+		doot[CJOHJump][i] = neutral;
 	}
 
 	inline XNode* make_param_node() const
