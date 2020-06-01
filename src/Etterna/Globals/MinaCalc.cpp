@@ -5835,8 +5835,6 @@ Hand::InitAdjDiff()
 		// chordjack
 		{
 		  CJ,
-		  CJQuad,
-		  CJOHJump,
 		  Anchor,
 		  WideRangeBalance,
 		},
@@ -5924,6 +5922,12 @@ Hand::InitAdjDiff()
 					// adj_diff /= fastsqrt(doot[OHJump][i]);
 					stam_base =
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
+					break;
+				case Skill_Chordjack:
+					adj_diff =
+					  (soap[BaseMSD][i] + soap[BaseMSD][i] + soap[BaseNPS][i]) /
+					  3.f *
+							   tp_mods[ss] * basescalers[ss] ;
 					break;
 				case Skill_Technical:
 					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
