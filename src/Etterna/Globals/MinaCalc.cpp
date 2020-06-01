@@ -4992,8 +4992,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
-#if not RELWITHDEBINFO
+#ifndef RELWITHDEBINFO
+#if NDEBUG
 		load_calc_params_from_disk();
+#endif
 #endif
 		// ok so the problem atm is the multithreading of songload, if we
 		// want to update the file on disk with new values and not just
