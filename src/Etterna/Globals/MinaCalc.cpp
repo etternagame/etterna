@@ -3188,6 +3188,7 @@ struct OHJumpMods
 		interval_reset();
 	}
 };
+// not very robust and should maybe be replaced soontm
 struct AnchorMod
 {
 
@@ -3281,7 +3282,7 @@ struct AnchorMod
 		l_taps = static_cast<float>(itvh.col_taps[col_left]);
 		r_taps = static_cast<float>(itvh.col_taps[col_right]);
 
-		pmod = l_taps > r_taps ? l_taps / r_taps : r_taps / l_taps;
+		pmod = l_taps < r_taps ? l_taps / r_taps : r_taps / l_taps;
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
