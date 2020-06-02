@@ -1443,27 +1443,29 @@ struct metaRowInfo
 // accumulates hand specific info across an interval as it's processed by row
 struct ItvHandInfo
 {
-	int col_types[3] = { 0, 0, 0 };
+	int col_taps[3] = { 0, 0, 0 };
 	float hand_taps = 0.f;
 
 	// resets all the stuff that accumulates across intervals
 	inline void reset(const int& idx)
 	{
 		// taps per col on this hand
-		for (auto& t : col_types)
+		for (auto& t : col_taps)
 			t = 0;
 	}
 
 	inline void update_tap_counts(const col_type& col)
 	{
-		// this could be more efficient but at least it's clear
+		// this could be more efficient but at least it's clear (ish)?
 		switch (col) {
 			case col_left:
 			case col_right:
-				++col_types[col];
+				++col_taps[col];
 				break;
 			case col_ohjump:
-				col_types[col] += 2;
+				++col_taps[col_left];
+				++col_taps[col_right];
+				col_taps[col] += 2;
 				break;
 			default:
 				ASSERT(0);
@@ -1472,17 +1474,17 @@ struct ItvHandInfo
 	}
 
 	// returns basic tap col type counts
-	inline float operator[](const col_type& col)
+	inline float operator[](const col_type& col) const
 	{
 		ASSERT(col < col_num_types);
 		// we're almost always dividing these values, so cast to float
-		return static_cast<float>(col_types[col]);
+		return static_cast<float>(col_taps[col]);
 	}
 
 	inline void set_hand_taps()
 	{
-		hand_taps = static_cast<float>(col_types[col_left] +
-									   col_types[col_right] + col_types[col_ohjump]);
+		hand_taps = static_cast<float>(
+		  col_taps[col_left] + col_taps[col_right] + col_taps[col_ohjump]);
 	}
 
 	// meta stuff here for now
@@ -3323,14 +3325,14 @@ struct BalanceMod
 		}
 
 		// same number of taps on each column
-		if (itvh.col_types[col_left] == itvh.col_types[col_right]) {
+		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvh.col_types[col_left] == 0 || itvh.col_types[col_right] == 0) {
+		if (itvh.col_taps[col_left] == 0 || itvh.col_taps[col_right] == 0) {
 			mod_set(_pmod, doot, i, max_mod);
 			return true;
 		}
@@ -3345,8 +3347,8 @@ struct BalanceMod
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
 
-		l_taps = static_cast<float>(itvh.col_types[col_left]);
-		r_taps = static_cast<float>(itvh.col_types[col_right]);
+		l_taps = static_cast<float>(itvh.col_taps[col_left]);
+		r_taps = static_cast<float>(itvh.col_taps[col_right]);
 
 		pmod = l_taps < r_taps ? l_taps / r_taps : r_taps / l_taps;
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
@@ -5649,7 +5651,7 @@ struct WideRangeBalanceMod
 	{
 		// update current window values
 		for (auto& c : hand_cols)
-			_mw(c, itvh.col_types[c]);
+			_mw(c, itvh.col_taps[c]);
 
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
@@ -6181,7 +6183,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					ct = bool_to_col_type(col[col_left], col[col_right]);
 
-					
 					(*_mhi)(
 					  *_last_mhi, row_time, col[col_left], col[col_right]);
 
@@ -6190,7 +6191,6 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_itvhi.cc_types[_mhi->cc];
 						++_itvhi.cc_types[_mhi->mt];
 					}
-						
 
 					handle_row_dependent_pattern_advancement();
 
