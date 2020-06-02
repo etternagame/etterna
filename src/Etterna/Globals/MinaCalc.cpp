@@ -5280,6 +5280,17 @@ struct FlamJamMod
 // find [xx]a[yy]b[zz]
 struct the_slip
 {
+	enum to_slide_or_not_to_slide
+	{
+		slip_unbeginninged,
+		needs_single,
+		needs_23_jump,
+		needs_opposing_single,
+		needs_opposing_ohjump,
+		slip_complete,
+
+	};
+
 	// what caused us to slip
 	unsigned slip = 0;
 	// are we slipping
@@ -5302,7 +5313,7 @@ struct the_slip
 		switch (slide) {
 			// just started, need single note with no jack between our starting
 			// point and [23]
-			case 1:
+			case needs_single:
 				// 1100 requires 0001
 				if (slip == 3 || slip == 7) {
 					if (notes == 8)
@@ -5313,12 +5324,12 @@ struct the_slip
 				  if (notes == 1)
 					return true;
 				break;
-			case 2:
+			case needs_23_jump:
 				// has to be [23]
 				if (notes == 6)
 					return true;
 				break;
-			case 3:
+			case needs_opposing_single:
 				// same as 1 but reversed
 
 				// 1100
@@ -5334,7 +5345,7 @@ struct the_slip
 				  if (notes == 8)
 					return true;
 				break;
-			case 4:
+			case needs_opposing_ohjump:
 				if (slip == 3 || slip == 7) {
 					// if we started on 1100, we end on 0011
 					if (notes == 12 || notes == 14)
@@ -5345,7 +5356,7 @@ struct the_slip
 					return true;
 				break;
 			default:
-				ASSERT(1 == 0);
+				assert(0);
 				break;
 		}
 		return false;
