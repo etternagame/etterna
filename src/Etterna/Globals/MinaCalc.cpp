@@ -39,6 +39,8 @@ static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
 static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
+static const int cols_per_hand = 2;
+static const bool hand_cols[cols_per_hand] = { 0, 1 };
 static const int num_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const vector<int> hand_col_ids[2] = { { 1, 2 }, { 4, 8 } };
@@ -5456,6 +5458,64 @@ struct TT_Sequencing
 
 	inline float construct_mod_part() { return 0.f; }
 };
+
+#pragma region moving window array helpers
+
+static const int max_moving_window_size = 6;
+
+// probably should template this
+struct moving_window_interval_columns_int
+{
+	// vals per interval per column over a window (max_window being 6, but we
+	// allow stuff to be done on a dynamic window below that)
+	int _itv_vals[cols_per_hand][max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
+	int _win_vals[cols_per_hand] = { 0, 0 };
+	int _size = 0;
+
+	inline void operator()(const bool& col, const int& new_val)
+	{
+		// moving window of 1 is not actually a moving window
+		if (_size == 1) {
+			_win_vals[col] = new_val;
+			return;
+		}
+
+		// if window size is 4, we must shift intervals 4 -> 3, 3 -> 2, 2 ->
+		// 1, then set interval 4 to the new value.
+
+		// this means indexing pairs 3,2; 2,1; 1,0; then setting index 3 =
+		// new_val so we will start at index 1 and index by i, i-1 and stop
+		// at i < size (in this case at, the 3 -> 2 shift)
+
+		// update the window
+		for (int i = 1; i < _size; ++i)
+			_itv_vals[col][i - 1] = _itv_vals[col][i];
+
+		// set new value at size - 1
+		_itv_vals[col][_size - 1] = new_val;
+
+		// update the running totals by subtracting the oldest value and adding
+		// the newest
+		_win_vals[col] -= _itv_vals[col][0];
+		_win_vals[col] += new_val;
+	}
+
+	// returns window totals
+	inline float operator[](const bool& col)
+	{
+		ASSERT(col < num_cols);
+		// we're almost always dividing these values, so cast to float
+		return static_cast<float>(_win_vals[col]);
+	}
+
+	inline bool is_equal()
+	{
+		return _win_vals[col_left] == _win_vals[col_right];
+	}
+};
+
+#pragma endregion
+
 
 // the a things, they are there, we must find them...
 struct TheThingLookerFinderThing
