@@ -6046,34 +6046,6 @@ Calc::Chisel(float player_skill,
 						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
-					/*	static const float literal_black_magic = 0.85f;
-						if (ss == Skill_Technical) {
-							float bzz = 0.f;
-							float bz0 =
-							  JackLoss((player_skill * literal_black_magic
-					   ), 0, max_points_lost, stamina) * 3.f; float bz1 =
-							  JackLoss((player_skill * literal_black_magic),
-									   1,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-							float bz2 =
-							  JackLoss((player_skill * literal_black_magic),
-									   2,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-							float bz3 =
-							  JackLoss((player_skill * literal_black_magic),
-									   3,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-
-							bzz = mean(vector<float>{ bz1, bz2, bz3 });
-							gotpoints += bzz / 3.f;
-						}*/
-
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 
@@ -6218,9 +6190,6 @@ Hand::InitAdjDiff()
 
 	};
 
-	vector<float> scoring_justice_warrior_agenda(NUM_Skillset - 1);
-
-	// why can't i do this in the function that calls this?
 	for (int i = 0; i < NUM_Skillset; ++i) {
 		base_adj_diff[i].resize(soap[BaseNPS].size());
 		base_diff_for_stam_mod[i].resize(soap[BaseNPS].size());
