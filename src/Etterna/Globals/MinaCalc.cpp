@@ -5372,14 +5372,11 @@ struct the_slip
 
 	inline void grow(const float& ms_now, const unsigned& notes)
 	{
-		//ms[slide] = ms_now;
+		// ms[slide] = ms_now;
 		++slide;
 	}
 
-	inline void reset()
-	{
-		slippin_till_ya_slips_come_true = false;
-	}
+	inline void reset() { slippin_till_ya_slips_come_true = false; }
 };
 
 // sort of the same concept as fj, slightly different implementation
@@ -5558,7 +5555,8 @@ struct TheThingLookerFinderThing
 			return;
 		}
 
-		pmod = tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
+		pmod =
+		  tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
 		pmod /= 4.f;
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
