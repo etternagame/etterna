@@ -15,7 +15,9 @@ class RageTimer
 	}
 	RageTimer(unsigned secs, unsigned microseconds)
 	{
-		this->c_dur = std::chrono::microseconds(secs * 1000000 + microseconds);
+		auto seconds = std::chrono::seconds(secs);
+		auto microsecs = std::chrono::microseconds(microseconds);
+		this->c_dur = seconds+microsecs;
 	}
 
 	/* Time ago this RageTimer represents. */
