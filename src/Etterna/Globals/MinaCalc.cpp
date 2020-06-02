@@ -937,7 +937,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				}
 			}
 		}
-		
+
 		// the final push down, cap ssrs (score specific
 		// ratings) to stop vibro garbage and calc abuse
 		// from polluting leaderboards too much, a "true" 38
@@ -5277,6 +5277,285 @@ struct FlamJamMod
 	}
 };
 
+// find [xx]a[yy]b[zz]
+struct the_slip
+{
+	// what caused us to slip
+	unsigned slip = 0;
+	// are we slipping
+	bool slippin_till_ya_dreams_come_true = false;
+	// how far those whomst'd've been slippinging
+	int slide = 0;
+
+	// ms values, 4 ms values = 5 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[4] = {
+		0.f,
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// couldn't figure out how to make slip & slide work smh
+	inline bool the_slip_is_the_boot(const unsigned& notes)
+	{
+		switch (slide) {
+			// just started, need single note with no jack between our starting
+			// point and [23]
+			case 1:
+				// 1100 requires 0001
+				if (slip == 3 || slip == 7) {
+					if (notes == 8)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 1000
+				  if (notes == 1)
+					return true;
+				break;
+			case 2:
+				// has to be [23]
+				if (notes == 6)
+					return true;
+				break;
+			case 3:
+				// same as 1 but reversed
+
+				// 1100
+				// 0001
+				// 0110
+				// requires 1000
+				if (slip == 3 || slip == 7) {
+					if (notes == 1)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 0001
+				  if (notes == 8)
+					return true;
+				break;
+			case 4:
+				if (slip == 3 || slip == 7) {
+					// if we started on 1100, we end on 0011
+					if (notes == 12 || notes == 14)
+						return true;
+				} else
+				  // starting on 0011 ends on 1100
+				  if (notes == 3 || notes == 7 || notes == 4)
+					return true;
+				break;
+			default:
+				ASSERT(1 == 0);
+				break;
+		}
+		return false;
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		slip = notes;
+		slide = 0;
+		slippin_till_ya_dreams_come_true = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		//ms[slide] = ms_now;
+		++slide;
+	}
+
+	inline void reset()
+	{
+		slippin_till_ya_dreams_come_true = false;
+	}
+};
+
+// sort of the same concept as fj, slightly different implementation
+struct TT_Sequencing
+{
+	the_slip fizz;
+	int slip_counter = 0;
+	float mod_parts[4] = { 1.f, 1.f, 1.f, 1.f };
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		/*group_tol = gt;
+		step_tol = st;
+		mod_scaler = ms;*/
+	}
+
+	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	{
+		if (slip_counter < 5)
+			mod_parts[slip_counter] = construct_mod_part();
+		++slip_counter;
+
+		// any time we complete a slip we can start another slip, so just
+		// start again
+		fizz.start(ms_now, notes);
+	}
+
+	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
+	// singles
+	inline bool start_test(const unsigned& notes)
+	{
+		// either left hand jump or a hand containing left hand jump
+		// or right hand jump or a hand containing right hand jump
+		if (notes == 3 || notes == 7 || notes == 12 || notes == 14)
+			return true;
+		return false;
+	}
+
+	inline void operator()(const float& ms_now, const unsigned& notes)
+	{
+		// ignore quads
+		if (notes == 15) {
+			// reset if we are in a sequence
+			if (fizz.slippin_till_ya_dreams_come_true)
+				fizz.reset();
+			return;
+		}
+
+		// haven't started
+		if (!fizz.slippin_till_ya_dreams_come_true) {
+			// col check to start
+			if (start_test(notes))
+				fizz.start(ms_now, notes);
+			return;
+		} else {
+			// run the col checks for continuation
+			if (fizz.the_slip_is_the_boot(notes)) {
+				fizz.grow(ms_now, notes);
+				// we found... the thing
+				if (fizz.slide == 5)
+					complete_slip(ms_now, notes);
+			} else
+				// reset if we fail col check
+				fizz.reset();
+			return;
+		}
+		ASSERT(1 == 0);
+	}
+
+	inline void reset()
+	{
+		slip_counter = 0;
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part() { return 0.f; }
+};
+
+// the a things, they are there, we must find them...
+struct TheThingLookerFinderThing
+{
+	static const CalcPatternMod _pmod = TheThing;
+	const std::string name = "TheThingMod";
+
+#pragma region params
+	float min_mod = 0.15f;
+	float max_mod = 1.f;
+	float mod_scaler = 2.75f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float group_tol = 35.f;
+	float step_tol = 17.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_scaler", &mod_scaler },
+
+		// params for fj_sequencing
+		{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },
+	};
+#pragma endregion params and param map
+
+	// sequencer
+	TT_Sequencing tt;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		tt.set_params(group_tol, step_tol, mod_scaler);
+
+		doot[_pmod].resize(size);
+		/*if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);*/
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaRowInfo& now)
+	{
+		tt(now.ms_now, now.notes);
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		//
+	}
+
+	inline bool handle_case_optimizations(const TT_Sequencing& fj,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// nothing
+		// if (fj.mod_parts[0] == 1.f)
+		//	neutral_set(_pmod, doot, i);
+
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+
+		if (handle_case_optimizations(tt, doot, i)) {
+			// set_dbg(doot, i);
+			tt.reset();
+			return;
+		}
+
+		pmod = tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
+		pmod /= 4.f;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+		// set_dbg(doot, i);
+
+		// reset flags n stuff
+		tt.reset();
+	}
+};
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -5337,6 +5616,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
 	FlamJamMod _fj;
+	TheThingLookerFinderThing _tt;
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -5502,7 +5782,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 #pragma region hand agnostic pmod loop
-	inline void advance_agnostic_sequencing() { _fj.advance_sequencing(*_mri); }
+	inline void advance_agnostic_sequencing()
+	{
+		_fj.advance_sequencing(*_mri);
+		_tt.advance_sequencing(*_mri);
+	}
 	inline void setup_agnostic_pmods()
 	{
 		// these pattern mods operate on all columns, only need basic meta
@@ -5515,6 +5799,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			_cj.setup(a, _itv_rows.size());
 			_cjq.setup(a, _itv_rows.size());
 			_fj.setup(a, _itv_rows.size());
+			_tt.setup(a, _itv_rows.size());
 		}
 	}
 
@@ -5530,6 +5815,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_cj(_mitvi, doot);
 		_cjq(_mitvi, doot);
 		_fj(doot, itv);
+		_tt(doot, itv);
 	}
 
 	inline void run_agnostic_smoothing_pass(vector<float> doot[])
@@ -5540,6 +5826,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_cj._pmod], neutral);
 		Smooth(doot[_cjq._pmod], neutral);
 		Smooth(doot[_fj._pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -5825,7 +6113,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// same these also may be redundant with updated stuff
 
 	// SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
-	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
+	// TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
@@ -6286,7 +6574,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 	const vector<float>& v = stam ? stam_adj_diff : base_adj_diff[ss];
 	float powindromemordniwop = 1.7f;
 	if (ss == Skill_Chordjack)
-		powindromemordniwop = 35.f;
+		powindromemordniwop = 1.2f;
 
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
@@ -6626,264 +6914,6 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 	}
 
 	Smooth(doot[WideRangeBalance], 1.f);
-	return;
-}
-
-// look for a thing
-// a thing is [aa]x[23]x[cc] where aa and cc are either [12] or [34]
-// or hands that contain those jumps and where aa != cc and x's do
-// not form jacks, this pattern is one staple of extremely
-// jumptrillable js and even if you hit it as legit as possible,
-// it's still a joke because of the way the patternage flows. i have
-// tentatively proposed naming this pattern and its variants "the
-// slip" after the worst aram fizz player i ever seened
-
-// look into consistent spacing checks
-void
-Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
-								float music_rate,
-								vector<float> doot[])
-{
-	doot[TheThing].resize(nervIntervals.size());
-
-	static const float min_mod = 0.85513412f;
-	static const float max_mod = 1.f;
-	unsigned int itv_window = 3;
-
-	deque<int> itv_taps;
-	deque<int> itv_THINGS;
-
-	int lastcols = -1;
-	int col_ids[4] = { 1, 2, 4, 8 };
-	int the_slip = -1;
-	bool malcom = false;
-	int last_notes = 0;
-	bool the_last_warblers_call = false;
-	bool was23 = false;
-	for (int i = 0; i < nervIntervals.size(); i++) {
-		//	if (debugmode)
-		//		std::cout << "new interval " << i << std::endl;
-
-		int interval_taps = 0;
-		int the_things_found = 0;
-
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_THINGS.pop_front();
-		}
-
-		bool newrow = true;
-		for (int row : nervIntervals[i]) {
-			// if (debugmode && newrow)
-			//	std::cout << "new interval: " << i
-			//			  << " time: " << NoteInfo[row].rowTime /
-			// music_rate
-			//			  << std::endl;
-			newrow = false;
-			int notes = column_count(NoteInfo[row].notes);
-			int boot = NoteInfo[row].notes;
-			interval_taps += notes;
-
-			/*if (debugmode) {
-				std::string moop = "";
-				for (int i = 0; i < 4; ++i)
-					if (boot & col_ids[i])
-						moop.append(std::to_string(i + 1));
-				std::cout << "notes: " << moop << std::endl;
-			}*/
-			// try allowing hand formations... should be ok
-			if (notes == 2 || notes == 3) {
-				bool is12 = boot & col_ids[0] && boot & col_ids[1];
-				bool is23 = boot & col_ids[1] && boot & col_ids[2];
-				bool is34 = boot & col_ids[2] && boot & col_ids[3];
-
-				//	if (debugmode)
-				//		std::cout << "the slip: " << std::endl;
-				if (the_slip == -1) {
-					//		if (debugmode)
-					//			std::cout << "the slip: " <<
-					// std::endl;
-					if (is12 || is34) {
-						the_slip = boot;
-						//	if (debugmode)
-						//		std::cout << "the slip is the boot: "
-						//<<
-						// std::endl;
-					}
-				} else {
-					// if (debugmode)
-					//	std::cout << "two but not the new: " <<
-					// std::endl;
-					if (is23) {
-						if (was23) {
-							//		if (debugmode)
-							//			std::cout << "you knew to new to
-							// yew
-							// two
-							// ewes: "
-							//					  << std::endl;
-							malcom = false;
-							the_slip = -1;
-							the_last_warblers_call = false;
-							was23 = false;
-						} else {
-							//		if (debugmode)
-							//			std::cout << "the malcom: "
-							//<<
-							// std::endl;
-							malcom = true;
-							the_last_warblers_call = false;
-							was23 = true;
-						}
-					} else if (the_slip != boot && malcom &&
-							   the_last_warblers_call && (is12 || is34)) {
-						bool das_same = false;
-						for (auto& id : col_ids)
-							if (boot & id && lastcols & id) {
-								// if (debugmode)
-								//	std::cout << "wtf boot:" << id
-								//<<
-								// std::endl;
-								// if (debugmode)
-								//	std::cout << "wtf id: " << id <<
-								// std::endl;
-								das_same = true;
-								break;
-							}
-
-						if (!das_same) {
-							++the_things_found;
-						}
-						// maybe we want to reset to -1 here and
-						// only retain if thing found?
-						the_slip = boot;
-						malcom = false;
-						the_last_warblers_call = false;
-						was23 = false;
-					} else {
-						if (is12 || is34) {
-							the_slip = boot;
-							//		if (debugmode)
-							//			std::cout << "three four out
-							// the
-							// door: "
-							//<<
-							// std::endl;
-						} else
-							the_slip = -1;
-						malcom = false;
-						the_last_warblers_call = false;
-						was23 = false;
-						//		if (debugmode)
-						//			std::cout << "buckle my shoe reset:
-						//"
-						//<<
-						// std::endl;
-					}
-				}
-			}
-			if (notes == 1) {
-				// if (debugmode)
-				//		std::cout << "A SINGLE THING O NO: " <<
-				// std::endl;
-				if (the_last_warblers_call) {
-					the_last_warblers_call = false;
-					malcom = false;
-					the_slip = -1;
-					was23 = false;
-					// if (debugmode)
-					//	std::cout << "RESET, 2 singles: " <<
-					// std::endl;
-				} else {
-					if (the_slip != -1) {
-						bool das_same = false;
-						for (auto& id : col_ids)
-							if (boot & id && lastcols & id) {
-								// if (debugmode)
-								//	std::cout << "wtf boot:" << id
-								//<<
-								// std::endl;
-								// if (debugmode)
-								//	std::cout << "wtf id: " << id <<
-								// std::endl;
-								das_same = true;
-								break;
-							}
-						if (!das_same) {
-							//	if (debugmode)
-							//		std::cout
-							//		  << "SLIP ON SLIP UNTIL UR SLIP
-							// COME
-							// TRUE:"
-							//		  << std::endl;
-							the_last_warblers_call = true;
-						} else {
-							//	if (debugmode)
-							//		std::cout
-							//		  << "HOL UP DOE (feamale
-							// hamtseer):"
-							//		  << std::endl;
-							the_slip = -1;
-							the_last_warblers_call = false;
-							was23 = false;
-							malcom = false;
-						}
-
-					} else {
-						the_last_warblers_call = false;
-						malcom = false;
-						was23 = false;
-						//			if (debugmode)
-						//				std::cout << "CABBAGE: " <<
-						// std::endl;
-					}
-				}
-			}
-
-			if (notes == 4) {
-				the_last_warblers_call = false;
-				malcom = false;
-				the_slip = -1;
-				was23 = false;
-				//		if (debugmode)
-				//			std::cout << "RESERT, 2 SLIDE 2 FURY: "
-				//<<
-				// std::endl;
-			}
-			lastcols = boot;
-		}
-
-		itv_taps.push_back(interval_taps);
-		itv_THINGS.push_back(max(the_things_found, 0));
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_things = 0;
-		for (auto& n : itv_THINGS)
-			window_things += n;
-
-		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps <<
-		// std::endl;
-		// if (debugmode)
-		//	std::cout << "things: " << window_things << std::endl;
-
-		float pmod = 1.f;
-		if (window_things > 0)
-			pmod = static_cast<float>(window_taps) /
-				   static_cast<float>(window_things * 55);
-
-		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[TheThing][i] << "\n"
-		//<<
-		// std::endl;
-	}
-
-	Smooth(doot[TheThing], 1.f);
-	Smooth(doot[TheThing], 1.f);
 	return;
 }
 
