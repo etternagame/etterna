@@ -5012,7 +5012,8 @@ struct flam
 	}
 };
 
-// lots of potential for optimization
+// jk this is actually pretty optimized and even if it isn't it's like 0.03% of
+// samples
 struct FJ_Sequencing
 {
 	flam flim;
