@@ -1278,10 +1278,10 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			  serialized_notedata_blob.getBytes() / sizeof(NoteInfo);
 			// sqlite gives us null when the length is 0
 			if (serialized_notedata_data != nullptr)
-				pNewNotes->serializenotedatacache = std::vector(
+				pNewNotes->serializenotedatacache.assign(
 				  serialized_notedata_data,
-							  (const NoteInfo*)serialized_notedata_data +
-								serialized_notedata_size);
+				  (const NoteInfo*)(serialized_notedata_data +
+									serialized_notedata_size));
 			song->AddSteps(pNewNotes);
 		}
 
