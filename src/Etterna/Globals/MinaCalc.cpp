@@ -912,14 +912,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			for (auto& hp : spoopy) {
 				auto& h = hp.first;
 
-				if (highest_base_skillset = Skill_Technical) {
+				if (highest_base_skillset == Skill_Technical) {
 					h.debugValues[0][TotalPatternMod].resize(numitv);
 					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
 						float val = h.base_adj_diff[highest_base_skillset][i] /
 									h.soap[BaseMSD][i];
 						h.debugValues[0][TotalPatternMod][i] = val;
 					}
-				} else if (highest_base_skillset = Skill_Chordjack) {
+				} else if (highest_base_skillset == Skill_Chordjack) {
 					h.debugValues[0][TotalPatternMod].resize(numitv);
 					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
 						float val = h.base_adj_diff[highest_base_skillset][i] /
