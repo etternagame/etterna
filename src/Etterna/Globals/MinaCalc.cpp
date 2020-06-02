@@ -986,6 +986,7 @@ enum cc_type
 	cc_single_single,
 	cc_single_jump,
 	cc_jump_jump,
+	cc_num_types,
 	cc_init,
 };
 
@@ -995,6 +996,7 @@ enum col_type
 	col_left,
 	col_right,
 	col_ohjump,
+	col_num_types,
 	col_empty,
 	col_init
 };
@@ -1439,45 +1441,93 @@ struct metaRowInfo
 	}
 };
 // accumulates hand specific info across an interval as it's processed by row
-// no meta version of this (yet?)
 struct ItvHandInfo
 {
-	int _idx = 0;
-	int hand_taps = 0;
-	int oh_jump_taps = 0;
-	int col_taps[2] = { 0, 0 };
+	int col_types[3] = { 0, 0, 0 };
+	float hand_taps = 0.f;
 
 	// resets all the stuff that accumulates across intervals
 	inline void reset(const int& idx)
 	{
-		_idx = idx;
-
-		// taps for this hand
-		hand_taps = 0;
-		// oh jumps on this hand for this interval
-		oh_jump_taps = 0;
-
 		// taps per col on this hand
-		for (auto& t : col_taps)
+		for (auto& t : col_types)
 			t = 0;
 	}
 
-	inline void update_tap_counts(const bool& l, const bool& r)
+	inline void update_tap_counts(const col_type& col)
 	{
-		if (l)
-			++col_taps[col_left];
-		if (r)
-			++col_taps[col_right];
-		if (l && r)
-			// ALWAYS COUNT TAPS IN CHORDS
-			oh_jump_taps += 2;
+		// this could be more efficient but at least it's clear
+		switch (col) {
+			case col_left:
+			case col_right:
+				++col_types[col];
+				break;
+			case col_ohjump:
+				col_types[col] += 2;
+				break;
+			default:
+				ASSERT(0);
+				break;
+		}
+	}
+
+	// returns basic tap col type counts
+	inline float operator[](const col_type& col)
+	{
+		ASSERT(col < col_num_types);
+		// we're almost always dividing these values, so cast to float
+		return static_cast<float>(col_types[col]);
 	}
 
 	inline void set_hand_taps()
 	{
-		hand_taps = col_taps[col_left] + col_taps[col_right];
+		hand_taps = static_cast<float>(col_types[col_left] +
+									   col_types[col_right] + col_types[col_ohjump]);
 	}
+
+	// meta stuff here for now
+	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
+	int meta_types[3] = { 0, 0, 0 };
 };
+//
+// struct metaItvHandInfo
+//{
+//	int _idx = 0;
+//	int hand_taps = 0;
+//	int oh_jump_taps = 0;
+//	int col_taps[2] = { 0, 0 };
+//
+//	// resets all the stuff that accumulates across intervals
+//	inline void reset(const int& idx)
+//	{
+//		_idx = idx;
+//
+//		// taps for this hand
+//		hand_taps = 0;
+//		// oh jumps on this hand for this interval
+//		oh_jump_taps = 0;
+//
+//		// taps per col on this hand
+//		for (auto& t : col_taps)
+//			t = 0;
+//	}
+//
+//	inline void update_tap_counts(const bool& l, const bool& r)
+//	{
+//		if (l)
+//			++col_taps[col_left];
+//		if (r)
+//			++col_taps[col_right];
+//		if (l && r)
+//			// ALWAYS COUNT TAPS IN CHORDS
+//			oh_jump_taps += 2;
+//	}
+//
+//	inline void set_hand_taps()
+//	{
+//		hand_taps = col_taps[col_left] + col_taps[col_right];
+//	}
+//};
 
 // big brain stuff
 inline bool
@@ -1525,6 +1575,7 @@ enum meta_type
 	meta_oht,
 	meta_ccacc,
 	meta_acca,
+	meta_num_types,
 	meta_init,
 	meta_enigma
 };
@@ -2865,6 +2916,7 @@ struct OHJumpMods
 		{ "cj_ohj_prop_max", &cj_ohj_prop_max },
 	};
 #pragma endregion params and param map
+	// COUNT TAPS IN JUMPS
 	int cur_ohjump_seq = 0;
 	int max_ohjump_seq = 0;
 	int window_roll_taps = 0;
@@ -3038,9 +3090,10 @@ struct OHJumpMods
 			set_debug_output(doot, i);
 			return true;
 		}
-
+		itvh.col_types[col_ohjump];
 		// no ohjumps
-		if (itvh.oh_jump_taps) {
+		if (itvh.col_types[col_ohjump])
+		{
 			neutral_set(doot, i);
 			set_debug_output(doot, i);
 			return true;
@@ -3048,8 +3101,7 @@ struct OHJumpMods
 
 		// no repeated oh jumps, prop scale only
 		if (max_ohjump_seq == 0) {
-			ohj_prop_component =
-			  ohj_prop_pool - (itvh.oh_jump_taps / hand_taps);
+			ohj_prop_component = ohj_prop_pool - (itvh.col_types[col_ohjump] / hand_taps);
 			ohj_prop_component =
 			  CalcClamp(ohj_prop_component, ohj_min_mod, ohj_max_mod);
 
@@ -3057,8 +3109,8 @@ struct OHJumpMods
 			pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
 			doot[OHJumpMod][i] = pmod;
 
-			cj_ohj_prop_component = fastsqrt(
-			  cj_ohj_prop_pool - (itvh.oh_jump_taps / hand_taps / 2.f));
+			cj_ohj_prop_component =
+			  fastsqrt(cj_ohj_prop_pool - (itvh.col_types[col_ohjump] / hand_taps / 2.f));
 			cj_ohj_prop_component =
 			  CalcClamp(cj_ohj_prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
 
@@ -3142,12 +3194,15 @@ struct OHJumpMods
 
 	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
 	{
+		cc_taps =
+		  itvh.cc_types[cc_left_right] + itvh.cc_types[cc_right_left];
+
 		// if cur_seq > max when we ended the interval, set it, but don't reset
 		max_ohjump_seq =
 		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
 
 		floatymcfloatface = static_cast<float>(max_ohjump_seq);
-		hand_taps = static_cast<float>(itvh.hand_taps);
+		hand_taps = itvh.hand_taps;
 		base_prop = floatymcfloatface / hand_taps;
 
 		// handle simple cases first, execute this block if nothing easy is
@@ -3267,17 +3322,17 @@ struct BalanceMod
 			return true;
 		}
 
-		ASSERT(itvh.col_taps[col_left] + itvh.col_taps[col_right] > 0);
+		ASSERT(itvh.col_types[col_left] + itvh.col_types[col_right] > 0);
 
 		// same number of taps on each column
-		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
+		if (itvh.col_types[col_left] == itvh.col_types[col_right]) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvh.col_taps[col_left] == 0 || itvh.col_taps[col_right] == 0) {
+		if (itvh.col_types[col_left] == 0 || itvh.col_types[col_right] == 0) {
 			mod_set(_pmod, doot, i, max_mod);
 			return true;
 		}
@@ -3292,8 +3347,8 @@ struct BalanceMod
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
 
-		l_taps = static_cast<float>(itvh.col_taps[col_left]);
-		r_taps = static_cast<float>(itvh.col_taps[col_right]);
+		l_taps = static_cast<float>(itvh.col_types[col_left]);
+		r_taps = static_cast<float>(itvh.col_types[col_right]);
 
 		pmod = l_taps < r_taps ? l_taps / r_taps : r_taps / l_taps;
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
@@ -5596,7 +5651,7 @@ struct WideRangeBalanceMod
 	{
 		// update current window values
 		for (auto& c : hand_cols)
-			_mw(c, itvh.col_taps[c]);
+			_mw(c, itvh.col_types[c]);
 
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
@@ -6047,7 +6102,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
 		_wrjt.advance_sequencing(*_mhi);
-		
 	}
 
 	inline void setup_dependent_mods(vector<float> _doot[])
@@ -6097,6 +6151,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		int row_count = 0;
 		unsigned row_notes = 0;
 		bool col[2] = { false, false };
+		col_type ct = col_init;
 
 		for (auto& ids : hand_col_ids) {
 			setup_dependent_mods(_doots[hand]);
@@ -6126,9 +6181,18 @@ struct TheGreatBazoinkazoinkInTheSky
 					col[col_left] = row_notes & ids[col_left];
 					col[col_right] = row_notes & ids[col_right];
 
-					_itvhi.update_tap_counts(col[col_left], col[col_right]);
+					ct = bool_to_col_type(col[col_left], col[col_right]);
+
+					
 					(*_mhi)(
 					  *_last_mhi, row_time, col[col_left], col[col_right]);
+
+					if (ct != col_empty && ct != col_init) {
+						_itvhi.update_tap_counts(ct);
+						++_itvhi.cc_types[_mhi->cc];
+						++_itvhi.cc_types[_mhi->mt];
+					}
+						
 
 					handle_row_dependent_pattern_advancement();
 
