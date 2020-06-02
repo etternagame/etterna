@@ -3322,8 +3322,6 @@ struct BalanceMod
 			return true;
 		}
 
-		ASSERT(itvh.col_types[col_left] + itvh.col_types[col_right] > 0);
-
 		// same number of taps on each column
 		if (itvh.col_types[col_left] == itvh.col_types[col_right]) {
 			mod_set(_pmod, doot, i, min_mod);
