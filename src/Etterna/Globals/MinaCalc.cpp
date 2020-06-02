@@ -5579,9 +5579,9 @@ struct WideRangeBalanceMod
 	int window = 3;
 	moving_window_interval_columns_int _mw;
 
-	float min_mod = 0.55f;
-	float max_mod = 1.55f;
-	float mod_base = 0.3f;
+	float min_mod = 0.95f;
+	float max_mod = 1.05f;
+	float mod_base = 0.4f;
 	float buffer = 1.f;
 	float scaler = 1.f;
 	float other_scaler = 4.f;
