@@ -213,7 +213,7 @@ local debugGroups = {
         Chaos = true,
         FlamJam = true,
         TheThing = true,
-        Anchor = true,
+        Balance = true,
         WideRangeBalance = true,
         WideRangeAnchor = true,
 		RanMan = true,
@@ -781,7 +781,7 @@ local modColors = {
 	color("1,1,1"),
 	color("1,1,1"),			-- cjohjsc
 	color("1,1,1"),
-    color("0.2,0.2,1"),     -- blue         = anchor left
+    color("0.2,0.2,1"),     -- blue         = balance left
     color("0.3,0.3,0.9"),   -- light blue        (right)
     color("0,1,0"),         -- green        = roll left
     color("0.3,0.9,0.3"),   -- light green       (right)

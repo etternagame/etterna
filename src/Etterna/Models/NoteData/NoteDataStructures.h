@@ -53,7 +53,7 @@ enum CalcPatternMod
 	CJOHJump,
 	CJOHJPropComp,
 	CJOHJSeqComp,
-	Anchor, // pattern mod (values between 0.9 - ~ 1.1)
+	Balance, // pattern mod (values between 0.9 - ~ 1.1)
 	Roll,   // pattern mod (values between 0-1)
 	OHTrill,
 	Chaos,
