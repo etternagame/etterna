@@ -3199,12 +3199,12 @@ struct OHJumpMods
 		interval_reset();
 	}
 };
-// not very robust and should maybe be replaced soontm
-struct AnchorMod
+
+struct BalanceMod
 {
 
-	const CalcPatternMod _pmod = Anchor;
-	const std::string name = "AnchorMod";
+	const CalcPatternMod _pmod = Balance;
+	const std::string name = "BalanceMod";
 
 #pragma region params
 	float min_mod = 0.9f;
@@ -5609,7 +5609,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	CJQuadMod _cjq;
 	OHJumpMods _ohj;
 	RollMod _roll;
-	AnchorMod _anch;
+	BalanceMod _bal;
 	OHTrillMod _oht;
 	ChaosMod _ch;
 	RunningManMod _rm;
@@ -5887,7 +5887,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void setup_dependent_mods(vector<float> _doot[])
 	{
 		_ohj.setup(_doot, _itv_rows.size());
-		_anch.setup(_doot, _itv_rows.size());
+		_bal.setup(_doot, _itv_rows.size());
 		_roll.setup(_doot, _itv_rows.size());
 		_oht.setup(_doot, _itv_rows.size());
 		_ch.setup(_doot, _itv_rows.size());
@@ -5899,7 +5899,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
 		_ohj(_itvhi, doot, itv);
-		_anch(_itvhi, doot, itv);
+		_bal(_itvhi, doot, itv);
 		_roll(_itvhi, doot, itv);
 		_oht(_itvhi, doot, itv);
 		_ch(_itvhi, doot, itv);
@@ -5913,7 +5913,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// need to split upohj and cjohj into 2 pmod objects
 		Smooth(doot[OHJumpMod], neutral);
 		Smooth(doot[CJOHJump], neutral);
-		Smooth(doot[_anch._pmod], neutral);
+		Smooth(doot[_bal._pmod], neutral);
 		Smooth(doot[_roll._pmod], neutral);
 		Smooth(doot[_oht._pmod], neutral);
 		Smooth(doot[_ch._pmod], neutral);
@@ -6005,7 +6005,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_cj.load_params_from_node(&params);
 		_cjq.load_params_from_node(&params);
 		_ohj.load_params_from_node(&params);
-		_anch.load_params_from_node(&params);
+		_bal.load_params_from_node(&params);
 		_roll.load_params_from_node(&params);
 		_oht.load_params_from_node(&params);
 		_ch.load_params_from_node(&params);
@@ -6026,7 +6026,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_cj.make_param_node());
 		calcparams->AppendChild(_cjq.make_param_node());
 		calcparams->AppendChild(_ohj.make_param_node());
-		calcparams->AppendChild(_anch.make_param_node());
+		calcparams->AppendChild(_bal.make_param_node());
 		calcparams->AppendChild(_roll.make_param_node());
 		calcparams->AppendChild(_oht.make_param_node());
 		calcparams->AppendChild(_ch.make_param_node());
@@ -6412,7 +6412,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  FlamJam,
 		  OHJumpMod,
-		  Anchor,
+		  Balance,
 		  WideRangeBalance,
 		},
 
@@ -6422,7 +6422,7 @@ Hand::InitAdjDiff()
 		  Chaos,
 		  OHJumpMod,
 		  TheThing,
-		  Anchor,
+		  Balance,
 		  WideRangeBalance,
 		},
 
@@ -6432,7 +6432,7 @@ Hand::InitAdjDiff()
 		  Chaos,
 		  OHJumpMod,
 		  TheThing,
-		  Anchor,
+		  Balance,
 		  WideRangeBalance,
 		},
 
@@ -6455,7 +6455,7 @@ Hand::InitAdjDiff()
 		// chordjack
 		{
 		  CJ,
-		  Anchor,
+		  Balance,
 		  WideRangeBalance,
 		  WideRangeAnchor,
 		},
@@ -6463,7 +6463,7 @@ Hand::InitAdjDiff()
 		// tech, duNNO wat im DOIN
 		{
 		  OHTrill,
-		  Anchor,
+		  Balance,
 		  Roll,
 		  OHJumpMod,
 		  Chaos,
@@ -6690,7 +6690,7 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 
 	// for this we really want to highlight the differential between
 	// the highest value and the lowest, and for each hand,
-	// basically the same concept as the original anchor mod, but we
+	// basically the same concept as the original Balance mod, but we
 	// won't discriminate by hand (yet?)
 	int window_max_anch = max_val(window_col_taps);
 	int window_2nd_anch = 0;

@@ -247,7 +247,7 @@ StringToSkillset(const RString& s)
 	"CJOHJump",
 	"CJOHJPropComp",
 	"CJOHJSeqComp",
-	"Anchor",
+	"Balance",
 	"Roll",
 	"OHTrill",
 	"Chaos",
