@@ -5388,7 +5388,7 @@ struct TT_Sequencing
 	int slip_counter = 0;
 	static const int max_slips = 4;
 	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
-	
+
 	inline void set_params(const float& gt, const float& st, const float& ms)
 	{
 		/*group_tol = gt;
@@ -5516,6 +5516,99 @@ struct moving_window_interval_columns_int
 
 #pragma endregion
 
+struct WideRangeBalanceMod
+{
+	const CalcPatternMod _pmod = WideRangeBalance;
+	const std::string name = "WideRangeBalanceMod";
+
+#pragma region params
+
+	int window = 3;
+	moving_window_interval_columns_int _mw;
+
+	float min_mod = 0.55f;
+	float max_mod = 1.55f;
+	float mod_base = 0.3f;
+	float buffer = 1.f;
+	float scaler = 1.f;
+	float other_scaler = 4.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "mod_base", &mod_base }, { "buffer", &buffer },
+		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+	};
+#pragma endregion params and param map
+
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		// setup should be run after loading params from disk
+		window = CalcClamp(window, 1, max_moving_window_size);
+		_mw._size = window;
+
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// same number of taps on each column for this window
+		if (_mw.is_equal()) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		// update current window values
+		for (auto& c : hand_cols)
+			_mw(c, itvh.col_taps[c]);
+
+		if (handle_case_optimizations(itvh, doot, i))
+			return;
+
+		pmod = _mw[col_left] < _mw[col_right] ? _mw[col_left] / _mw[col_right]
+											  : _mw[col_right] / _mw[col_left];
+		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][i] = pmod;
+	}
+};
 
 // the a things, they are there, we must find them...
 struct TheThingLookerFinderThing
@@ -5686,6 +5779,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	RunningManMod _rm;
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
+	WideRangeBalanceMod _wrb;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
 
@@ -5951,8 +6045,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		_roll.advance_sequencing(*_mhi);
 		_oht.advance_sequencing(*_mhi);
 		_rm.advance_sequencing(*_mhi);
-		_wrjt.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
+		_wrjt.advance_sequencing(*_mhi);
+		
 	}
 
 	inline void setup_dependent_mods(vector<float> _doot[])
@@ -5965,6 +6060,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.setup(_doot, _itv_rows.size());
 		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
+		_wrb.setup(_doot, _itv_rows.size());
 	}
 
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
@@ -5977,6 +6073,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm(doot, itv);
 		_wrr(_itvhi, doot, itv);
 		_wrjt(_itvhi, doot, itv);
+		_wrb(_itvhi, doot, itv);
 	}
 
 	inline void run_dependent_smoothing_pass(vector<float> doot[])
@@ -5990,6 +6087,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_ch._pmod], neutral);
 		Smooth(doot[_rm._pmod], neutral);
 		Smooth(doot[_wrr._pmod], neutral);
+		Smooth(doot[_wrb._pmod], neutral);
 		Smooth(doot[_wrjt._pmod], neutral);
 	}
 
@@ -6083,6 +6181,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.load_params_from_node(&params);
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
+		_wrb.load_params_from_node(&params);
 		_fj.load_params_from_node(&params);
 	}
 
@@ -6104,6 +6203,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_rm.make_param_node());
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
+		calcparams->AppendChild(_wrb.make_param_node());
 		calcparams->AppendChild(_fj.make_param_node());
 
 		return calcparams;
@@ -6182,7 +6282,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
+	// WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
 	vector<int> bruh_they_the_same = {
