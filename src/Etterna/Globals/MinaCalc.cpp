@@ -5283,7 +5283,7 @@ struct the_slip
 	// what caused us to slip
 	unsigned slip = 0;
 	// are we slipping
-	bool slippin_till_ya_dreams_come_true = false;
+	bool slippin_till_ya_slips_come_true = false;
 	// how far those whomst'd've been slippinging
 	int slide = 0;
 
@@ -5355,7 +5355,7 @@ struct the_slip
 	{
 		slip = notes;
 		slide = 0;
-		slippin_till_ya_dreams_come_true = true;
+		slippin_till_ya_slips_come_true = true;
 		grow(ms_now, notes);
 	}
 
@@ -5367,7 +5367,7 @@ struct the_slip
 
 	inline void reset()
 	{
-		slippin_till_ya_dreams_come_true = false;
+		slippin_till_ya_slips_come_true = false;
 	}
 };
 
@@ -5411,13 +5411,13 @@ struct TT_Sequencing
 		// ignore quads
 		if (notes == 15) {
 			// reset if we are in a sequence
-			if (fizz.slippin_till_ya_dreams_come_true)
+			if (fizz.slippin_till_ya_slips_come_true)
 				fizz.reset();
 			return;
 		}
 
 		// haven't started
-		if (!fizz.slippin_till_ya_dreams_come_true) {
+		if (!fizz.slippin_till_ya_slips_come_true) {
 			// col check to start
 			if (start_test(notes))
 				fizz.start(ms_now, notes);
