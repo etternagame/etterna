@@ -98,13 +98,7 @@ class Hand
 	// but that might just be too confusing idk
 	std::vector<float> stam_adj_diff;
 	std::vector<std::vector<std::vector<float>>> debugValues;
-
-  private:
-	const bool SmoothDifficulty =
-	  true; // Do we moving average the difficulty intervals?
 };
-
-struct JumpHandChordData;
 
 class Calc
 {
@@ -161,15 +155,6 @@ class Calc
 				 int ss, // skillset
 				 bool stamina,
 				 bool debugoutput = false);
-
-	void TheThingLookerFinderThing(const std::vector<NoteInfo>& NoteInfo,
-								   float music_rate,
-								   std::vector<float> doot[]);
-
-	// nerf psuedo chords that are flams into oblivion
-	void SetFlamJamMod(const std::vector<NoteInfo>& NoteInfo,
-					   std::vector<float> doot[],
-					   float& music_rate);
 
 	void WideRangeAnchorScaler(const std::vector<NoteInfo>& NoteInfo,
 							   float music_rate,

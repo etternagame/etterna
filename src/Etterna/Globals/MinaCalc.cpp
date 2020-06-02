@@ -6111,9 +6111,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// these are evaluated on all columns so right and left are the
 	// same these also may be redundant with updated stuff
-
-	// SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
-	// TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
 	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
