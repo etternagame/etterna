@@ -5376,7 +5376,9 @@ struct TT_Sequencing
 {
 	the_slip fizz;
 	int slip_counter = 0;
-	float mod_parts[4] = { 1.f, 1.f, 1.f, 1.f };
+	static const int max_slips = 4;
+	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
+	
 	inline void set_params(const float& gt, const float& st, const float& ms)
 	{
 		/*group_tol = gt;
@@ -5386,7 +5388,7 @@ struct TT_Sequencing
 
 	inline void complete_slip(const float& ms_now, const unsigned& notes)
 	{
-		if (slip_counter < 5)
+		if (slip_counter < max_slips)
 			mod_parts[slip_counter] = construct_mod_part();
 		++slip_counter;
 
