@@ -6283,9 +6283,10 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 
 	// final difficulty values to use
 	const vector<float>& v = stam ? stam_adj_diff : base_adj_diff[ss];
-	float powindromemordniwop = 1.9f;
+	float powindromemordniwop = 1.7f;
 	if (ss == Skill_Chordjack)
-		powindromemordniwop = 2.f;
+		powindromemordniwop = 35.f;
+
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
@@ -6298,7 +6299,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		for (int i = 0; i < v.size(); ++i) {
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
-				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
+				float lostpoints =
+				  (pts - (pts * fastpow(x / v[i], powindromemordniwop)));
 				gotpoints -= lostpoints;
 				debugValues[2][PtLoss][i] = abs(lostpoints);
 			}
@@ -6307,7 +6309,8 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		for (int i = 0; i < v.size(); ++i)
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
-				gotpoints -= (pts - (pts * fastpow(x / v[i], 1.7f)));
+				gotpoints -=
+				  (pts - (pts * fastpow(x / v[i], powindromemordniwop)));
 			}
 }
 
