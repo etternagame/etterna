@@ -32,19 +32,29 @@ enum Skillset
 // we do actually want to register these with lua i guess
 enum CalcPatternMod
 {
-	OHJump, // pattern mod (values between 0-1)
-	Anchor, // pattern mod (values between 0.9 - ~ 1.1)
-	Roll,   // pattern mod (values between 0-1)
-	HS,		// pattern mod (values between 0-1)
-	HSS,		// pattern mod (values between 0-1)
-	HSJ,		// pattern mod (values between 0-1)
+	Stream,
 	JS,   // pattern mod (values between 0-1)
 	JSS,		// pattern mod (values between 0-1)
 	JSJ,		// pattern mod (values between 0-1)
+	HS,  // pattern mod (values between 0-1)
+	HSS, // pattern mod (values between 0-1)
+	HSJ, // pattern mod (values between 0-1)
 	CJ,		// pattern mod (values between 0-1)
 	CJS,		// pattern mod (values between 0-1)
 	CJJ,		// pattern mod (values between 0-1)
-	StreamMod,
+	CJQuad,
+	OHJumpMod, // pattern mod (values between 0-1)
+	OHJBaseProp,
+	OHJPropComp,
+	OHJSeqComp,
+	OHJMaxSeq,
+	OHJCCTaps,
+	OHJHTaps,
+	CJOHJump,
+	CJOHJPropComp,
+	CJOHJSeqComp,
+	Anchor, // pattern mod (values between 0.9 - ~ 1.1)
+	Roll,   // pattern mod (values between 0-1)
 	OHTrill,
 	Chaos,
 	FlamJam,
@@ -52,8 +62,6 @@ enum CalcPatternMod
 	WideRangeJumptrill,
 	WideRangeBalance,
 	WideRangeAnchor,
-	CJOHJump,
-	CJQuad,
 	TheThing,
 	RanMan,
 	RanLen,
@@ -67,6 +75,7 @@ enum CalcPatternMod
 	RanPropOHT,
 	RanPropOffS,
 	RanPropJack,
+	TotalPatternMod,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

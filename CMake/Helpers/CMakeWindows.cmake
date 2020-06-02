@@ -42,5 +42,11 @@ list(APPEND WIN_DLLS
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll")
 
 foreach(dll ${WIN_DLLS})
+	# We remove the dlls if they exist already in /Program/ in case we run a different ARCH target before
+	# Since we get a cryptic runtime error message otherwise when windows tries to load the wrong dll
+	get_filename_component(dll_filename_without_path ${dll} NAME)
+	file(REMOVE "${PROJECT_SOURCE_DIR}/Program/${dll_filename_without_path}")
 	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
 endforeach()
+
+target_compile_definitions(Etterna PRIVATE $<$<CONFIG:RelWithDebInfo>:RELWITHDEBINFO>)

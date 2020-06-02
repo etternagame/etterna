@@ -30,7 +30,6 @@ using std::sqrt;
 using std::unordered_set;
 using std::vector;
 
-#pragma more stuff
 static const std::string calc_params_xml = "Save/calc params.xml";
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
@@ -40,18 +39,28 @@ static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
 static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
+static const int num_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
+static const vector<int> hand_col_ids[2] = { { 1, 2 }, { 4, 8 } };
 static const int zto3[4] = { 0, 1, 2, 3 };
-static const char note_map[16][5]{ "0000", "0001", "0010", "0011",
-								   "0100", "0101", "0110", "0111",
-								   "1000", "1001", "1010", "1011",
-								   "1100", "1101", "1110", "1111" };
+static const char note_map[16][5]{ "----", "1---", "-1--", "11--",
+								   "--1-", "1-1-", "-11-", "111-",
+								   "---1", "1--1", "-1-1", "11-1",
+								   "--11", "1-11", "-111", "1111" };
 enum tap_size
 {
 	single,
 	jump,
 	hand,
-	quad
+	quad,
+	num_tap_size
+};
+
+enum hands
+{
+	lh,
+	rh,
+	num_hands,
 };
 
 static const float s_init = -5.f;
@@ -84,8 +93,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.875f, 0.89f,
-												 0.94f, 0.7675f, 0.84f,  0.7f };
+static const float basescalers[NUM_Skillset] = {
+	0.f, 0.97f, 0.875f, 0.83f, 0.94f, 0.7675f, 0.9f, 1.075f
+};
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -125,24 +135,6 @@ weighted_average(const float& a, const float& b, const float& x, const float& y)
 	return (x * a + ((y - x) * b)) / y;
 }
 
-// unreasonably slow, revist
-inline void
-truncate_or_fill_to_size(vector<float>& v, unsigned int n, float dummy_value)
-{
-	size_t old = v.size();
-	// we could do this outside but w.e
-	if (old == n)
-		return;
-
-	// truncate if over
-	if (old > n)
-		v.resize(n);
-	else
-		// fill if under
-		for (size_t i = 0; i < n - old; ++i)
-			v.push_back(dummy_value);
-}
-
 template<typename T>
 inline T
 CalcClamp(T x, T l, T h)
@@ -151,6 +143,7 @@ CalcClamp(T x, T l, T h)
 }
 
 // template thingy for generating basic proportion scalers for pattern mods
+// potentially super broken
 template<typename T>
 inline float
 pmod_prop(T a,
@@ -162,9 +155,10 @@ pmod_prop(T a,
 {
 	return CalcClamp(
 	  (static_cast<float>(a) / static_cast<float>(b) * s) + base, min, max);
-};
+}
 
 // template thingy for generating basic proportion scalers for pattern mods
+// potentially super broken
 template<typename T>
 inline float
 pmod_prop(const float& pool,
@@ -176,7 +170,7 @@ pmod_prop(const float& pool,
 {
 	return CalcClamp(
 	  pool - (static_cast<float>(a) / static_cast<float>(b) * s), min, max);
-};
+}
 
 inline float
 mean(const vector<float>& v)
@@ -231,6 +225,68 @@ cv(const unordered_set<int>& input)
 		  (static_cast<float>(i) - average) * (static_cast<float>(i) - average);
 
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
+}
+
+// cv of a vector truncated to a set number of values, or if below, filled with
+// dummy values to reach the desired num_vals
+inline float
+cv_trunc_fill(const vector<float>& input,
+			  const int& num_vals,
+			  const float& ms_dummy)
+{
+	int moop = static_cast<int>(input.size());
+	float welsh_pumpkin = 0.f;
+	float average = 0.f;
+	if (moop >= num_vals) {
+		for (int i = 0; i < min(moop, num_vals); ++i)
+			average += input[i];
+		average /= num_vals;
+
+		for (int i = 0; i < min(moop, num_vals); ++i)
+			welsh_pumpkin += (input[i] - average) * (input[i] - average);
+
+		// prize winning, even
+		return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
+	}
+
+	for (int i = 0; i < min(moop, num_vals); ++i)
+		average += input[i];
+
+	// fill with dummies if input is below desired number of values
+	for (int i = 0; i < num_vals - moop; ++i)
+		average += ms_dummy;
+	average /= num_vals;
+
+	for (int i = 0; i < min(moop, num_vals); ++i)
+		welsh_pumpkin += (input[i] - average) * (input[i] - average);
+
+	for (int i = 0; i < num_vals - moop; ++i)
+		welsh_pumpkin += (ms_dummy - average) * (ms_dummy - average);
+
+	return fastsqrt(welsh_pumpkin / static_cast<float>(num_vals)) / average;
+}
+
+inline float
+sum_trunc_fill(const vector<float>& input,
+			   const int& num_vals,
+			   const float& ms_dummy)
+{
+	int moop = static_cast<int>(input.size());
+	float smarmy_hamster = 0.f;
+	// use up to num_vals
+	for (int i = 0; i < min(moop, num_vals); ++i)
+		smarmy_hamster += input[i];
+
+	// got enough
+	if (moop >= num_vals)
+		return smarmy_hamster;
+
+	// fill with dummies if input is below desired number of values
+	for (int i = 0; i < num_vals - static_cast<int>(moop); ++i)
+		smarmy_hamster += ms_dummy;
+
+	// real piece of work this guy
+	return smarmy_hamster;
 }
 
 inline float
@@ -334,7 +390,7 @@ max_val(vector<float>& v)
 	return *std::max_element(v.begin(), v.end());
 }
 
-inline size_t
+inline int
 max_index(vector<float>& v)
 {
 	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
@@ -362,7 +418,7 @@ void
 Calc::TotalMaxPoints()
 {
 	MaxPoints = 0;
-	for (size_t i = 0; i < left_hand.v_itvpoints.size(); i++)
+	for (int i = 0; i < left_hand.v_itvpoints.size(); i++)
 		MaxPoints += left_hand.v_itvpoints[i] + right_hand.v_itvpoints[i];
 }
 
@@ -370,7 +426,7 @@ void
 Hand::InitPoints(const Finger& f1, const Finger& f2)
 {
 	v_itvpoints.clear();
-	for (size_t ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
+	for (int ki_is_rising = 0; ki_is_rising < f1.size(); ++ki_is_rising)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
 }
@@ -378,8 +434,6 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 
 #pragma region CalcBodyFunctions
 #pragma region JackModelFunctions
-// SOMEHOW MAKES JAKES EASIER SO DISABLED FOR NOW (it's also sort of redundant
-// with the entire system as it is so this may not be needed
 inline void
 Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 {
@@ -404,10 +458,10 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 		right_hand.debugValues[2][JackStamMod].resize(numitv);
 
 		// each interval
-		for (size_t i = 0; i < diff.size(); ++i) {
+		for (int i = 0; i < diff.size(); ++i) {
 			float mod_sum = 0.f;
 			// each jack in the interval
-			for (size_t j = 0; j < diff[i].size(); ++j) {
+			for (int j = 0; j < diff[i].size(); ++j) {
 				avs1 = avs2;
 				avs2 = diff[i][j];
 
@@ -441,8 +495,8 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 				right_hand.debugValues[2][JackStamMod][i] = itv_avg;
 		}
 	} else
-		for (size_t i = 0; i < diff.size(); ++i) {
-			for (size_t j = 0; j < diff[i].size(); ++j) {
+		for (int i = 0; i < diff.size(); ++i) {
+			for (int j = 0; j < diff[i].size(); ++j) {
 				avs1 = avs2;
 				avs2 = diff[i][j];
 				mod +=
@@ -588,10 +642,10 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	};
 	jacks[mode][track].resize(numitv);
 	float comp_diff = 0.f;
-	for (size_t itv = 0; itv < f.size(); ++itv) {
+	for (int itv = 0; itv < f.size(); ++itv) {
 		jacks[mode][track][itv].resize(f[itv].size());
 		// taps in interval
-		for (size_t ind = 0; ind < f[itv].size(); ++ind) {
+		for (int ind = 0; ind < f[itv].size(); ++ind) {
 			ms = f[itv][ind];
 			time += ms;
 			if (dbg) {
@@ -600,7 +654,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 			}
 
 			// shift older values back
-			for (size_t i = 1; i < window_taps.size(); ++i)
+			for (int i = 1; i < window_taps.size(); ++i)
 				window_taps[i - 1] = window_taps[i];
 			// add new value
 			window_taps[window_size - 1] = ms;
@@ -647,7 +701,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 		nervIntervals = vector<vector<int>>(numitv, vector<int>());
 	unsigned int column = 1u << t;
 
-	for (size_t i = 0; i < NoteInfo.size(); i++) {
+	for (int i = 0; i < NoteInfo.size(); i++) {
 		// we have hardcoded mem allocation for up to 100 nps, bail out on the
 		// entire file calc if we exceed that
 		if (row_counter >= max_nps_for_single_interval ||
@@ -754,7 +808,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		// stam is based on which calc produced the highest
 		// output without it
-		size_t highest_base_skillset = max_index(mcbloop);
+		int highest_base_skillset = max_index(mcbloop);
 		float base = mcbloop[highest_base_skillset];
 
 		// rerun all with stam on, optimize by starting at
@@ -851,6 +905,39 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				   true,
 				   true);
 
+		// ZZZZZZZZZZZZZZZZZz
+		pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
+											   { right_hand, { 4, 8 } } };
+		if (debugmode) {
+			for (auto& hp : spoopy) {
+				auto& h = hp.first;
+
+				if (highest_base_skillset = Skill_Technical) {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									h.soap[BaseMSD][i];
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				} else if (highest_base_skillset = Skill_Chordjack) {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									(h.soap[BaseMSD][i] + h.soap[BaseNPS][i]) /
+									2.f;
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				} else {
+					h.debugValues[0][TotalPatternMod].resize(numitv);
+					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+						float val = h.base_adj_diff[highest_base_skillset][i] /
+									h.soap[BaseNPS][i];
+						h.debugValues[0][TotalPatternMod][i] = val;
+					}
+				}
+			}
+		}
+
 		// the final push down, cap ssrs (score specific
 		// ratings) to stop vibro garbage and calc abuse
 		// from polluting leaderboards too much, a "true" 38
@@ -869,14 +956,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// finished all modifications to skillset values, set overall
 		mcbloop[Skill_Overall] = max_val(mcbloop);
 
-		for (size_t bagles = 0; bagles < mcbloop.size(); ++bagles)
+		for (int bagles = 0; bagles < mcbloop.size(); ++bagles)
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(
 			  mcbloop[bagles]);
 	}
 	vector<float> yo_momma(NUM_Skillset);
-	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
+	for (int farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
-		for (size_t nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
+		for (int nibble = 0; nibble < the_hizzle_dizzles.size(); ++nibble) {
 			girls.push_back(the_hizzle_dizzles[nibble][farts]);
 		}
 		yo_momma[farts] = mean(girls) * grindscaler;
@@ -897,9 +984,7 @@ enum cc_type
 	cc_single_single,
 	cc_single_jump,
 	cc_jump_jump,
-	cc_empty,
 	cc_init,
-	cc_undefined
 };
 
 // hand specific meaning the left two or right two columns and only for 4k
@@ -928,9 +1013,7 @@ is_empty_hand(const bool& a, const bool& b)
 inline cc_type
 determine_cc_type(const col_type& last, const col_type& now)
 {
-	if (now == col_empty)
-		return cc_empty;
-	else if (last == col_init)
+	if (last == col_init)
 		return cc_init;
 
 	bool single_tap = is_col_type_single_tap(now);
@@ -947,12 +1030,13 @@ determine_cc_type(const col_type& last, const col_type& now)
 		return cc_right_left;
 	else if (now == col_right && last == col_left)
 		return cc_left_right;
-	else
+	else if (now == last)
 		// anchor/jack
 		return cc_single_single;
 
-	// shouldn't ever happen
-	return cc_undefined;
+	// makes no logical sense
+	ASSERT(1 == 0);
+	return cc_init;
 }
 
 inline col_type
@@ -963,7 +1047,7 @@ bool_to_col_type(const bool& lcol, const bool& rcol)
 	if (lcol - rcol)
 		return lcol ? col_left : col_right;
 	return col_ohjump;
-};
+}
 
 // inverting col state for col_left or col_right only
 inline col_type
@@ -971,7 +1055,7 @@ invert_col(const col_type& col)
 {
 	ASSERT(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
-};
+}
 
 // inverting cc state for left_right or right_left only
 inline cc_type
@@ -979,21 +1063,6 @@ invert_cc(const cc_type& cc)
 {
 	ASSERT(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
-};
-
-inline bool
-is_oht(const cc_type& a, const cc_type& b, const cc_type& c)
-{
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (b != cc_left_right && b != cc_right_left)
-		return false;
-
-	bool loot = a == invert_cc(b);
-	bool doot = a == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
 }
 
 inline void
@@ -1010,7 +1079,7 @@ update_col_time(const col_type& col, float arr[2], const float& val)
 	else if (col == col_right)
 		arr[1] = val;
 	return;
-};
+}
 #pragma endregion
 
 #pragma region noteinfo bitwise operations
@@ -1030,14 +1099,14 @@ is_jack_at_col(const unsigned& id,
 			   const unsigned& last_row_notes)
 {
 	return id & row_notes && id & last_row_notes;
-};
+}
 
 // doesn't check for jacks
 inline bool
 is_alternating_chord_single(const unsigned& a, const unsigned& b)
 {
 	return (a > 1 && b == 1) || (a == 1 && b > 1);
-};
+}
 
 // ok lets stop being bad, find 1[n]1 or [n]1[n] with no jacks between first and
 // second and second and third elements
@@ -1063,10 +1132,402 @@ is_alternating_chord_stream(const unsigned& a,
 	}
 	// we have either 1[n]1 or [n]1[n], check for any jacks
 	return (a & b && b & c) == 0;
-};
+}
 #pragma endregion
 
 #pragma region new pattern mod structure
+// meta info is information that is derived from two or more consecutive
+// noteinfos, the first level of pattern abstraction is generated from noteinfo
+// , the second level of abstraction is generated from the meta info produced by
+// the first level of abstraction, and so on and so forth. meta info is
+// constructed on the fly per row and not preserved in memory unless ulbu is in
+// debug and each row's meta info is able to look back 3-4 rows into the past
+// for relevant pattern information, in that sense meta info contains
+// information that persists beyond the explicit bounds of its generation point,
+// and that information may carry forward into the next generation point,
+// functionally speaking this has the effect of carrying pattern sequence
+// detection through intervals, reducing the error caused by interval splicing
+
+// accumulates raw note info across an interval as it's processed by row
+struct ItvInfo
+{
+	int total_taps = 0;
+	int chord_taps = 0;
+	int taps_by_size[num_tap_size] = { 0, 0, 0, 0 };
+
+	// resets all the stuff that accumulates across intervals
+	inline void reset()
+	{
+		// self explanatory
+		total_taps = 0;
+
+		// number of non-single taps
+		chord_taps = 0;
+
+		for (auto& t : taps_by_size)
+			t = 0;
+	}
+
+	inline void update_tap_counts(const int& row_count)
+	{
+		total_taps += row_count;
+
+		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
+		if (row_count > 1)
+			chord_taps += row_count;
+
+		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
+		taps_by_size[row_count - 1] += row_count;
+
+		// maybe move this to metaitvinfo?
+		// we want mixed hs/js to register as hs, even at relatively sparse hand
+		// density
+		if (taps_by_size[hand] > 0)
+			// this seems kinda extreme? it'll add the number of jumps in the
+			// whole interval every hand? maybe it needs to be that extreme?
+			taps_by_size[hand] += taps_by_size[jump];
+	}
+};
+// meta info for intervals
+struct metaItvInfo
+{
+	ItvInfo _itvi;
+
+	int _idx = 0;
+	// meta info for this interval extracted from the base noterow progression
+	int seriously_not_js = 0;
+	int definitely_not_jacks = 0;
+	int actual_jacks = 0;
+	int actual_jacks_cj = 0;
+	int not_js = 0;
+	int not_hs = 0;
+	int zwop = 0;
+	int shared_chord_jacks = 0;
+
+	// we want mixed hs/js to register as hs, even at relatively sparse hand
+	// density
+	int mixed_hs_density_tap_bonus = 0;
+
+	// ok new plan instead of a map, keep an array of 3, run a comparison loop
+	// that sets 0s to a new value if that value doesn't match any non 0 value,
+	// and set a bool flag if we have filled the array with unique values
+	unsigned row_variations[3] = { 0, 0, 0 };
+	int num_var = 0;
+	// unique(noteinfos for interval) < 3, or row_variations[2] == 0 by interval
+	// end
+	bool basically_vibro = true;
+
+	inline void reset(const int& idx)
+	{
+		_idx = idx;
+		// isn't reset, preserve behavior. this essentially just tracks longer
+		// sequences of single notes, we don't want it to be reset with
+		// intervals, also there's probably a better way to implement this setup
+		// seriously_not_js = 0;
+
+		// alternating chordstream detected (used by cj only atm)
+		definitely_not_jacks = 0;
+
+		// number of shared jacks between to successive rows, used by js/hs to
+		// depress jumpjacks
+		actual_jacks = 0;
+
+		// almost same thing as above (see comment in jack_scan)
+		actual_jacks_cj = 0;
+
+		// increased by detecting either long runs of single notes
+		// (definitely_not_jacks > 3) or by encountering jumptrills, either
+		// splithand or two hand, not_js and not_hs are the same thing, this
+		// entire operation and setup should probably be split up and made more
+		// explicit in each thing it detects and how those things are used
+		not_js = 0;
+		not_hs = 0;
+
+		// recycle var for any int assignments
+		zwop = 0;
+
+		// self explanatory and unused atm
+		shared_chord_jacks = 0;
+
+		for (auto& t : row_variations)
+			t = 0;
+		num_var = 0;
+
+		// see def
+		basically_vibro = true;
+
+		// reset our interval info ref
+		_itvi.reset();
+	}
+};
+struct metaRowInfo
+{
+	static const bool dbg = false && debug_lmao;
+	static const bool dbg_lv2 = false && debug_lmao;
+
+	float time = s_init;
+	// time from last row (ms)
+	float ms_now = ms_init;
+	int count = 0;
+	int last_count = 0;
+	int last_last_count = 0;
+	unsigned notes = 0;
+	unsigned last_notes = 0;
+	unsigned last_last_notes = 0;
+
+	// per row bool flags, these must be directly set every row
+	bool alternating_chordstream = false;
+	bool alternating_chord_single = false;
+	bool gluts_maybe = false; // not really used/tested yet
+	bool twas_jack = false;
+
+	inline void set_row_variations(metaItvInfo& mitvi)
+	{
+		// already determined there's enough variation in this interval
+		if (!mitvi.basically_vibro)
+			return;
+
+		// trying to fill array with up to 3 unique row_note configurations
+		for (auto& t : mitvi.row_variations) {
+			// already a stored value here
+			if (t != 0) {
+				// already have one of these
+				if (t == notes) {
+					return;
+				}
+			} else if (t == 0) {
+				// nothing stored here and isn't a duplicate, store it and
+				// iterate num_var
+				t = notes;
+				++mitvi.num_var;
+
+				// check if we filled the array with unique values. since we
+				// start by assuming anything is basically vibro, set the flag
+				// to false if it is
+				if (mitvi.row_variations[2] != 0)
+					mitvi.basically_vibro = false;
+				return;
+			}
+		}
+	}
+
+	// scan for jacks and jack counts between this row and the last
+	inline void jack_scan(metaItvInfo& mitvi)
+	{
+		twas_jack = false;
+
+		for (auto& id : col_ids) {
+			if (is_jack_at_col(id, notes, last_notes)) {
+				if (dbg_lv2) {
+					std::cout << "actual jack with notes: " << note_map[notes]
+							  << " : " << note_map[last_notes] << std::endl;
+				}
+				// not scaled to the number of jacks anymore
+				++mitvi.actual_jacks;
+				twas_jack = true;
+				// try to pick up gluts maybe?
+				if (count > 1 && column_count(last_notes) > 1)
+					++mitvi.shared_chord_jacks;
+			}
+		}
+
+		// if we used the normal actual_jack for CJ too we're saying something
+		// like "chordjacks" are harder if they share more columns from chord to
+		// chord" which is not true, it is in fact either irrelevant or the
+		// inverse depending on the scenario, this is merely to catch stuff like
+		// splithand jumptrills registering as chordjacks when they shouldn't be
+		if (twas_jack)
+			++mitvi.actual_jacks_cj;
+	}
+
+	inline void basic_row_sequencing(const metaRowInfo& last,
+									 metaItvInfo& mitvi)
+	{
+		jack_scan(mitvi);
+		set_row_variations(mitvi);
+
+		// check if we have a bunch of stuff like [123]4[123] [12]3[124] which
+		// isn't actually chordjack, its just broken hs/js, and in fact with the
+		// level of leniency that is currently being applied to generic
+		// proportions, lots of heavy js/hs is being counted as cj for their 2nd
+		// rating, and by a close margin too, we can't just look for [123]4, we
+		// need to finish the sequence to be sure i _think_ we only want to do
+		// this for single notes, we could abstract it to a more generic pattern
+		// template, but let's be restrictive for now
+		alternating_chordstream =
+		  is_alternating_chord_stream(notes, last_notes, last.last_notes);
+		if (alternating_chordstream) {
+			if (dbg_lv2)
+				std::cout << "good hot js/hs !!!!: " << std::endl;
+			++mitvi.definitely_not_jacks;
+		}
+
+		if (alternating_chordstream) {
+			// put mixed density stuff here later
+		}
+
+		// only cares about single vs chord, not jacks
+		alternating_chord_single =
+		  is_alternating_chord_single(count, last.count);
+		if (alternating_chord_single) {
+			if (!twas_jack) {
+				if (dbg_lv2)
+					std::cout << "good hot js/hs: " << std::endl;
+				mitvi.seriously_not_js -= 3;
+			}
+		}
+
+		if (last.count == 1 && count == 1) {
+			mitvi.seriously_not_js = max(mitvi.seriously_not_js, 0);
+			++mitvi.seriously_not_js;
+			if (dbg_lv2)
+				std::cout << "consecutive single note: "
+						  << mitvi.seriously_not_js << std::endl;
+
+			// light js really stops at [12]321[23] kind of
+			// density, anything below that should be picked up
+			// by speed, and this stop rolls between jumps
+			// getting floated up too high
+			if (mitvi.seriously_not_js > 3) {
+				if (dbg)
+					std::cout << "exceeding light js/hs tolerance: "
+							  << mitvi.seriously_not_js << std::endl;
+				mitvi.not_js += mitvi.seriously_not_js;
+				// give light hs the light js treatment
+				mitvi.not_hs += mitvi.seriously_not_js;
+			}
+		} else if (last.count > 1 && count > 1) {
+			// suppress jumptrilly garbage a little bit
+			if (dbg)
+				std::cout << "sequential chords detected: " << std::endl;
+			mitvi.not_hs += count;
+			mitvi.not_js += count;
+
+			// might be overkill
+			if ((notes & last_notes) == 0) {
+				if (dbg)
+					std::cout << "bruh they aint even jacks: " << std::endl;
+				++mitvi.not_hs;
+				++mitvi.not_js;
+			} else {
+				gluts_maybe = true;
+			}
+		}
+	}
+
+	inline void operator()(const metaRowInfo& last,
+						   metaItvInfo& mitvi,
+						   const float& row_time,
+						   const int& row_count,
+						   const unsigned& row_notes)
+	{
+		time = row_time;
+		last_last_count = last.last_count;
+		last_count = last.count;
+		count = row_count;
+
+		last_last_notes = last.last_notes;
+		last_notes = last.notes;
+		notes = row_notes;
+
+		ms_now = ms_from(time, last.time);
+
+		mitvi._itvi.update_tap_counts(count);
+		basic_row_sequencing(last, mitvi);
+	}
+};
+// accumulates hand specific info across an interval as it's processed by row
+// no meta version of this (yet?)
+struct ItvHandInfo
+{
+	int _idx = 0;
+	int hand_taps = 0;
+	int oh_jump_taps = 0;
+	int col_taps[2] = { 0, 0 };
+
+	// resets all the stuff that accumulates across intervals
+	inline void reset(const int& idx)
+	{
+		_idx = idx;
+
+		// taps for this hand
+		hand_taps = 0;
+		// oh jumps on this hand for this interval
+		oh_jump_taps = 0;
+
+		// taps per col on this hand
+		for (auto& t : col_taps)
+			t = 0;
+	}
+
+	inline void update_tap_counts(const bool& l, const bool& r)
+	{
+		if (l)
+			++col_taps[col_left];
+		if (r)
+			++col_taps[col_right];
+		if (l && r)
+			// ALWAYS COUNT TAPS IN CHORDS
+			oh_jump_taps += 2;
+	}
+
+	inline void set_hand_taps()
+	{
+		hand_taps = col_taps[col_left] + col_taps[col_right];
+	}
+};
+
+// big brain stuff
+inline bool
+detecc_oht(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// we are flipping b with invert col so make sure it's left_right or
+	// right_left single note, if either of the other two aren't this will fail
+	// anyway and it's fine
+	if (b != cc_left_right && b != cc_right_left)
+		return false;
+
+	bool loot = a == invert_cc(b);
+	bool doot = a == c;
+	// this is kind of big brain so if you don't get it that's ok
+	return loot && doot;
+}
+
+inline bool
+detecc_ccacc(const cc_type& a, const cc_type& b)
+{
+	if (a != cc_left_right && a != cc_right_left)
+		return false;
+
+	// now we know we have cc_left_right or cc_right_left, so, xy, we are
+	// looking for xyyx, meaning last_last would be the inverion of now
+	if (invert_cc(a) == b)
+		return true;
+
+	return false;
+}
+
+inline bool
+detecc_acca(const cc_type& a, const cc_type& b, const cc_type& c)
+{
+	// 1122, 2211, etc
+	if (a == cc_single_single && (b == cc_left_right || b == cc_right_left) &&
+		c == cc_single_single)
+		return true;
+
+	return false;
+}
+
+enum meta_type
+{
+	meta_oht,
+	meta_ccacc,
+	meta_acca,
+	meta_init,
+	meta_enigma
+};
+
+// this comment is out of date and may remain so
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
 // rm_seuqencing, and widerange scalers should track their own interval queues
@@ -1080,11 +1541,8 @@ is_alternating_chord_stream(const unsigned& a,
 // hand is for any row, and it contains timestamp arrays for each column, so it
 // is unnecessary to generate information per note, even though in some ways it
 // might be more convenient or clearer
-struct metanoteinfo
+struct metaHandInfo
 {
-	bool dbg = false && debug_lmao;
-	bool dbg_lv2 = false && debug_lmao;
-
 #pragma region row specific data
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
@@ -1092,10 +1550,14 @@ struct metanoteinfo
 
 	// col
 	col_type col = col_init;
+	col_type last_non_empty_col = col_init;
 	col_type last_col = col_init;
 	// type of cross column hit
 	cc_type cc = cc_init;
 	cc_type last_cc = cc_init;
+
+	meta_type mt = meta_init;
+	meta_type last_mt = meta_init;
 
 	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
 	// contains 2 metanoteinfos? ... yes... we probably do.. uhh
@@ -1118,10 +1580,6 @@ struct metanoteinfo
 	// ms from last note in this column
 	float tc_ms = ms_init;
 
-	// per row bool flags, these must be directly set every row
-	bool alternating_chordstream = false;
-	bool alternating_chord_single = false;
-	bool gluts_maybe = false; // not really used/tested yet
 #pragma endregion
 
 	// sets time from last note in the same column, and last note in the
@@ -1166,13 +1624,14 @@ struct metanoteinfo
 				// last_col (because index 2 is outside array size)
 				tc_ms = ms_from(cur[0], last[0]);
 				break;
-			case cc_empty:
-				break;
 			case cc_init:
 				break;
-			case cc_undefined:
-				break;
 			default:
+				// cc_type should never be anything but the above, for any
+				// reason, if we need to ignore an empty hand on a row, we
+				// should be checking col_empty, never the old cc_empty which
+				// now doesn't exist because logically it makes no sense
+				ASSERT(1 == 0);
 				break;
 		}
 		return;
@@ -1181,323 +1640,67 @@ struct metanoteinfo
 	// col_type is hand specific, col_left doesn't mean 1000, it means 10
 	// cc is also hand specific, and is the nature of how the last 2 notes on
 	// this hand interact
-	inline void set_col_and_cc_types(const bool& lcol,
-									 const bool& rcol,
-									 const col_type& last_col)
+	inline void set_col_type(const bool& lcol, const bool& rcol)
 	{
 		col = bool_to_col_type(lcol, rcol);
+	}
+
+	inline void set_cc_type(const col_type& last_col)
+	{
 		cc = determine_cc_type(last_col, col);
 	}
 
-#pragma region accumulated interval data stuff
-	// ok try accumulating the generic aggregate stuff here maybe
-	bool twas_jack = false;
-	int seriously_not_js = 0;
-	int definitely_not_jacks = 0;
-	int actual_jacks = 0;
-	int actual_jacks_cj = 0;
-	int not_js = 0;
-	int not_hs = 0;
-	int zwop = 0;
-	int total_taps = 0;
-	int chord_taps = 0;
-	int taps_by_size[4] = { 0, 0, 0, 0 };
-	int shared_chord_jacks = 0;
-
-	// ok new plan instead of a map, keep an array of 3, run a comparison loop
-	// that sets 0s to a new value if that value doesn't match any non 0 value,
-	// and set a bool flag if we have filled the array with unique values
-	int row_variations[3] = { 0, 0, 0 };
-
-	// unique(noteinfos for interval) < 3, or row_variations[2] == 0 by interval
-	// end
-	bool basically_vibro = true;
-
-	// resets all the stuff that accumulates across intervals
-	inline void interval_reset()
+	inline meta_type big_brain_sequencing(const metaHandInfo& last)
 	{
-		// isn't reset, preserve behavior. this essentially just tracks longer
-		// sequences of single notes, we don't want it to be reset with
-		// intervals, also there's probably a better way to implement this setup
-		// seriously_not_js = 0;
-
-		// alternating chordstream detected (used by cj only atm)
-		definitely_not_jacks = 0;
-
-		// number of shared jacks between to successive rows, used by js/hs to
-		// depress jumpjacks
-		actual_jacks = 0;
-
-		// almost same thing as above (see comment in jack_scan)
-		actual_jacks_cj = 0;
-
-		// increased by detecting either long runs of single notes
-		// (definitely_not_jacks > 3) or by encountering jumptrills, either
-		// splithand or two hand, not_js and not_hs are the same thing, this
-		// entire operation and setup should probably be split up and made more
-		// explicit in each thing it detects and how those things are used
-		not_js = 0;
-		not_hs = 0;
-
-		// recycle var for any int assignments
-		zwop = 0;
-
-		// self explanatory
-		total_taps = 0;
-
-		// number of non-single taps
-		chord_taps = 0;
-
-		// self explanatory and unused
-		shared_chord_jacks = 0;
-
-		// see def
-		for (auto& t : taps_by_size)
-			t = 0;
-		for (auto& t : row_variations)
-			t = 0;
-
-		// see def
-		basically_vibro = true;
+		if (detecc_oht(cc, last_cc, last.last_cc))
+			return meta_oht;
+		if (detecc_ccacc(cc, last.last_cc))
+			return meta_ccacc;
+		if (detecc_acca(cc, last_cc, last.last_cc))
+			return meta_acca;
+		return meta_enigma;
 	}
 
-	inline void jack_scan()
-	{
-		twas_jack = false;
-
-		for (auto& id : col_ids) {
-			if (is_jack_at_col(id, row_notes, last_row_notes)) {
-				if (dbg_lv2) {
-					std::cout
-					  << "actual jack with notes: " << note_map[row_notes]
-					  << " : " << note_map[last_row_notes] << std::endl;
-				}
-				// not scaled to the number of jacks anymore
-				++actual_jacks;
-				twas_jack = true;
-				// try to pick up gluts maybe?
-				if (row_count > 1 && column_count(last_row_notes) > 1)
-					++shared_chord_jacks;
-			}
-		}
-
-		// if we used the normal actual_jack for CJ too
-		// we're saying something like "chordjacks" are
-		// harder if they share more columns from chord to
-		// chord" which is not true, it is in fact either
-		// irrelevant or the inverse depending on the
-		// scenario, this is merely to catch stuff like
-		// splithand jumptrills registering as chordjacks
-		// when they shouldn't be
-		if (twas_jack)
-			++actual_jacks_cj;
-	}
-
-	inline void update_row_variations_and_set_vibro_flag()
-	{
-		// already determined there's enough variation in this interval
-		if (!basically_vibro)
-			return;
-
-		// trying to fill array with up to 3 unique row_note configurations
-		for (auto& t : row_variations) {
-			// already a stored value here
-			if (t != 0) {
-				// already have one of these
-				if (t == row_notes) {
-					return;
-				}
-			} else if (t == 0) {
-				// nothing stored here and isn't a duplicate, store it
-				t = row_notes;
-
-				// check if we filled the array with unique values. since we
-				// start by assuming anything is basically vibro, set the flag
-				// to false if it is
-				if (row_variations[2] != 0)
-					basically_vibro = false;
-				return;
-			}
-		}
-	}
-
-	// will need last for last.last_row_notes
-	// i guess the distinction here that i'm starting to notice is that these
-	// are done row by row, whereas the cc sequencing is done hand by hand, so
-	// maybe this stuff should be abstracted similarly
-	inline void basic_pattern_sequencing(const metanoteinfo& last)
-	{
-		// could use this to really blow out jumptrill garbage in js/hs, but
-		// only used by cj atm
-		update_row_variations_and_set_vibro_flag();
-
-		// check if we have a bunch of stuff like [123]4[123]
-		// [12]3[124] which isn't actually chordjack, its just
-		// broken hs/js, and in fact with the level of leniency
-		// that is currently being applied to generic
-		// proportions, lots of heavy js/hs is being counted as
-		// cj for their 2nd rating, and by a close margin too,
-		// we can't just look for [123]4, we need to finish the
-		// sequence to be sure i _think_ we only want to do this
-		// for single notes, we could abstract it to a more
-		// generic pattern template, but let's be restrictive
-		// for now
-		alternating_chordstream = is_alternating_chord_stream(
-		  row_notes, last_row_notes, last.last_row_notes);
-		if (alternating_chordstream) {
-			if (dbg_lv2)
-				std::cout << "good hot js/hs !!!!: " << std::endl;
-			++definitely_not_jacks;
-		}
-
-		// only cares about single vs chord, not jacks
-		alternating_chord_single =
-		  is_alternating_chord_single(row_count, last.row_count);
-		if (alternating_chord_single) {
-			if (!twas_jack) {
-				if (dbg_lv2)
-					std::cout << "good hot js/hs: " << std::endl;
-				seriously_not_js -= 3;
-			}
-		}
-
-		if (last.row_count == 1 && row_count == 1) {
-			seriously_not_js = max(seriously_not_js, 0);
-			++seriously_not_js;
-			if (dbg_lv2)
-				std::cout << "consecutive single note: " << seriously_not_js
-						  << std::endl;
-
-			// light js really stops at [12]321[23] kind of
-			// density, anything below that should be picked up
-			// by speed, and this stop rolls between jumps
-			// getting floated up too high
-			if (seriously_not_js > 3) {
-				if (dbg)
-					std::cout
-					  << "exceeding light js/hs tolerance: " << seriously_not_js
-					  << std::endl;
-				not_js += seriously_not_js;
-				// give light hs the light js treatment
-				not_hs += seriously_not_js;
-			}
-		} else if (last.row_count > 1 && row_count > 1) {
-			// suppress jumptrilly garbage a little bit
-			if (dbg)
-				std::cout << "sequential chords detected: " << std::endl;
-			not_hs += row_count;
-			not_js += row_count;
-
-			// might be overkill
-			if ((row_notes & last_row_notes) == 0) {
-				if (dbg)
-					std::cout << "bruh they aint even jacks: " << std::endl;
-				++not_hs;
-				++not_js;
-			} else {
-				gluts_maybe = true;
-			}
-
-			// almost certainly overkill
-			if (column_count(last_row_notes) > 1) {
-				if ((last.row_notes & last.last_row_notes) == 0) {
-					++not_js;
-					++not_hs;
-					if (dbg)
-						std::cout
-						  << "bro FOR REAL DIS LIKE A JUMPTRILL OR SUMFIN "
-							 "JUST BAN GRIPWARRIOR ALREADY WTF: "
-						  << std::endl;
-				}
-			}
-		}
-	}
-
-	inline void update_tap_counts()
-	{
-		total_taps += row_count;
-
-		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
-		if (row_count > 1)
-			chord_taps += row_count;
-
-		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
-		taps_by_size[row_count - 1] += row_count + 1;
-
-		// we want mixed hs/js to register as hs, even at relatively sparse hand
-		// density
-		if (taps_by_size[hand] > 0)
-			// this seems kinda extreme? it'll add the number of jumps in the
-			// whole interval every hand? maybe it needs to be that extreme?
-			taps_by_size[hand] += taps_by_size[jump];
-	}
-
-	// this seems messy.. but we want to aggreagte interval info and so we need
-	// to transfer the last values to the current object, then update them
-	// this should definitely actually be its own struct tbh
-	inline void set_interval_data_from_last(metanoteinfo& last)
-	{
-		seriously_not_js = last.seriously_not_js;
-		definitely_not_jacks = last.definitely_not_jacks;
-		actual_jacks = last.actual_jacks;
-		actual_jacks_cj = last.actual_jacks_cj;
-		not_js = last.not_js;
-		not_hs = last.not_hs;
-
-		total_taps = last.total_taps;
-		chord_taps = last.chord_taps;
-		shared_chord_jacks = last.shared_chord_jacks;
-
-		for (size_t i = 0; i < 4; ++i)
-			taps_by_size[i] = last.taps_by_size[i];
-		for (size_t i = 0; i < 3; ++i)
-			row_variations[i] = last.row_variations[i];
-		basically_vibro = last.basically_vibro;
-	}
-
-	inline void update_interval_data(const metanoteinfo& last)
-	{
-		update_tap_counts();
-		jack_scan();
-		basic_pattern_sequencing(last);
-	}
-#pragma endregion maybe this should be its own struct ?
-
-	inline void operator()(metanoteinfo& last,
+	// TECHNICALLY WE CAN CALL THIS ONLY IF AT LEAST ONE COL HAS A NOTE, AND
+	// WE PROBABLY SHOULD, BECAUSE IT MAKES THINGS A LOT MORE OBVIOUS AND
+	// ALSO BETTER, BUT IM TIRED RN
+	inline void operator()(const metaHandInfo& last,
 						   const float& now,
-						   const unsigned& notes,
-						   const int& t1,
-						   const int& t2,
-						   const int& row,
-						   bool silence = false)
+						   const bool& lcol,
+						   const bool& rcol)
 	{
-		// if ulbu is in debug mode it will create an extra mni object every row
-		// and spit out the debugoutput twice
-		dbg = dbg && !silence;
-
-		//
-		last_was_offhand_tap = last.col == col_empty;
-		set_col_and_cc_types(t1 & notes, t2 & notes, last.col);
-		row_count = column_count(notes);
-		row_notes = notes;
+		set_col_type(lcol, rcol);
 		row_time = now;
 		last_row_notes = last.row_notes;
+		last_was_offhand_tap = last.col == col_empty;
 		last_col = last.col;
 		last_cc = last.cc;
 
-		// set the interval data from the already accumulated data (we could
-		// optimize by not doing this for the first execution of any interval
-		// but... it's probably not worth it)
-		set_interval_data_from_last(last);
+		last_mt = last.mt;
 
-		// run the interval aggregation after setting new/last values and before
-		// the empty bail
-		update_interval_data(last);
+		// need this to determine cc types if they are interrupted by
+		// offhand taps
+		if (col != col_empty)
+			last_non_empty_col = col;
+		else
+			last_non_empty_col = last.last_non_empty_col;
 
-		// we don't want to set lasttime or lastcol for empty columns on this
-		// hand
-		if (col == col_empty)
+		// we don't want to set lasttime, lastcol, or re-evaluate cc_type
+		// for for empty columns on this hand, carry the cc_type value
+		// forward and ignore the timing values, they should never be
+		// referenced for col == empty, but in case they are accidentally,
+		// they should make no sense
+		if (col == col_empty) {
+			cc = last_cc;
 			return;
+		}
+
+		// set updated cc type only for non-empty columns on this hand
+		set_cc_type(last.last_non_empty_col);
+
+		// now that we have determined cc_type, we can look for more complex
+		// patterns
+		mt = big_brain_sequencing(last);
 
 		// every note has at least 2 ms values associated with it, the
 		// ms value from the last cross column note (on the same hand),
@@ -1535,6 +1738,8 @@ struct RM_Sequencing
 	}
 
 	// sequencing counters
+	// only allow this rm's anchor col to start sequences
+	bool in_the_nineties = false;
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
@@ -1556,19 +1761,23 @@ struct RM_Sequencing
 	float max_ms = ms_init;
 	float off_total_ms = 0.f;
 
+	col_type now_col = col_init;
+	float now = 0.f;
 	float temp_ms = 0.f;
 
 #pragma region functions
 	inline void reset()
 	{
-		// don't reset anchor_col or last_col
-		// we want to preserve the pattern state
-		// reset everything else tho
+		// don't reset anchor_col or last_col, we want to preserve the pattern
+		// state reset everything else tho
 
+		// now_col and now don't need to be reset either
+
+		in_the_nineties = false;
 		is_bursting = false;
 		had_burst = false;
 		// reset?? don't reset????
-		last_anchor_time = last_anchor_time * 1.25f;
+		last_anchor_time = ms_init;
 		last_off_time = s_init;
 		total_taps = 0;
 		ran_taps = 0;
@@ -1583,10 +1792,16 @@ struct RM_Sequencing
 		jack_len = 0;
 		max_ms = ms_init;
 		off_total_ms = 0.f;
+
+		// if we are resetting and this column is the anchor col, restart again
+		if (anchor_col == now_col)
+			handle_anchor_progression();
 	}
 
-	inline void handle_off_tap(const float& now)
+	inline void handle_off_tap()
 	{
+		if (!in_the_nineties)
+			return;
 		last_off_time = now;
 
 		++ran_taps;
@@ -1596,7 +1811,7 @@ struct RM_Sequencing
 		// offnote, reset jack length & oht length
 		jack_len = 0;
 
-		off_total_ms += ms_from(now, last_anchor_time);
+		// off_total_ms += ms_from(now, last_anchor_time);
 
 		// handle progression for increasing off_len
 		handle_off_tap_progression();
@@ -1649,14 +1864,24 @@ struct RM_Sequencing
 		return;
 	}
 
-	inline void handle_anchor_progression(const float& now)
+	inline void handle_anchor_progression()
 	{
-		temp_ms = ms_from(now, last_anchor_time);
-		// account for float precision error and small bpm flux
-		if (temp_ms > max_ms + 5.f)
-			reset();
-		else
-			max_ms = temp_ms;
+		// start a sequence whenever we hit this rm's anchor col, if we aren't
+		// already in one
+		if (in_the_nineties) {
+			// break the anchor if the next note is too much slower than the
+			// lowest one, but only after we've already set the initial anchor
+			temp_ms = ms_from(now, last_anchor_time);
+			// account for float precision error and small bpm flux
+			if (temp_ms > max_ms + 5.f)
+				reset();
+			else
+				max_ms = temp_ms;
+		} else {
+			// set first anchor val
+			max_ms = 5000.f;
+			in_the_nineties = true;
+		}
 
 		last_anchor_time = now;
 		++ran_taps;
@@ -1682,8 +1907,7 @@ struct RM_Sequencing
 			reset();
 	}
 
-	inline void handle_cross_column_branching(const cc_type& cc,
-											  const float& now)
+	inline void handle_cross_column_branching()
 	{
 		// we are comparing 2 different enum types here, but this is what we
 		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
@@ -1693,18 +1917,19 @@ struct RM_Sequencing
 		// cc_type enum to make this more intuitive (but probably not)
 
 		// NOT an anchor
-		if (anchor_col == cc) {
-			handle_off_tap(now);
+		if (anchor_col != now_col && in_the_nineties) {
+			handle_off_tap();
 			// same hand offtap
 			++off_taps_same;
 			return;
 		}
-		handle_anchor_progression(now);
+		handle_anchor_progression();
 	}
 
-	inline void handle_oht_progression(const cc_type& cc)
+	inline void handle_oht_progression()
 	{
-		if (is_oht(last_last_cc, last_cc, cc)) {
+		// we only care about ohts that end off-anchor
+		if (now_col != anchor_col) {
 			++oht_len;
 			++oht_taps;
 			if (oht_len > max_oht_len)
@@ -1712,28 +1937,43 @@ struct RM_Sequencing
 		}
 	}
 
-	inline void operator()(const metanoteinfo& mni)
+	inline void operator()(const metaHandInfo& mhi)
 	{
-		total_taps += mni.row_count;
+		total_taps += mhi.row_count;
 
-		switch (mni.cc) {
+		now_col = mhi.col;
+		now = mhi.row_time;
+
+		// simple case to handle, can't be a jack (or doesn't really matter) and
+		// can't be oht, only reset if we exceed the spacing limit, don't do
+		// anything else
+		if (mhi.col == col_empty) {
+			// reset oht len if we hit this (not really robust buuuut)
+			oht_len = 0;
+			handle_off_tap();
+			return;
+		}
+
+		// cosmic brain
+		if (mhi.mt == meta_oht)
+			handle_oht_progression();
+
+		switch (mhi.cc) {
 			case cc_left_right:
 			case cc_right_left:
-				// these are the only 2 scenarios that can produce ohts
-				handle_oht_progression(mni.cc);
-				handle_cross_column_branching(mni.cc, mni.row_time);
+				handle_cross_column_branching();
 				break;
 			case cc_jump_single:
-				if (mni.last_was_offhand_tap) {
+				if (mhi.last_was_offhand_tap) {
 					// if we have a jump -> single, and the last
 					// note was an offhand tap, and the single
 					// is the anchor col, then we have an anchor
-					if ((mni.col == col_left && anchor_col == col_left) ||
-						(mni.col == col_right && anchor_col == col_right)) {
-						handle_anchor_progression(mni.row_time);
+					if ((mhi.col == col_left && anchor_col == col_left) ||
+						(mhi.col == col_right && anchor_col == col_right)) {
+						handle_anchor_progression();
 					} else {
 						// otherwise we have an off anchor tap
-						handle_off_tap(mni.row_time);
+						handle_off_tap();
 						// same hand offtap
 						++off_taps_same;
 					}
@@ -1745,10 +1985,10 @@ struct RM_Sequencing
 				}
 				break;
 			case cc_single_single:
-				if (mni.last_was_offhand_tap) {
+				if (mhi.last_was_offhand_tap) {
 					// if this wasn't a jack, then it's just
 					// a good ol anchor
-					handle_anchor_progression(mni.row_time);
+					handle_anchor_progression();
 				} else {
 					// a jack, not an anchor, we don't
 					// want too many of these but we
@@ -1759,15 +1999,15 @@ struct RM_Sequencing
 			case cc_single_jump:
 				// if last note was an offhand tap, this is by
 				// definition part of the anchor
-				if (mni.last_was_offhand_tap) {
-					handle_anchor_progression(mni.row_time);
+				if (mhi.last_was_offhand_tap) {
+					handle_anchor_progression();
 				} else {
 					// if not, a jack
 					handle_jack_progression();
 				}
 				break;
 			case cc_jump_jump:
-				// this is kind of a grey area, given that
+				// this is kind of a gray area, given that
 				// the difficulty of runningmen comes from
 				// the tight turns on the same hand... we
 				// will treat this as a jack even though
@@ -1775,155 +2015,84 @@ struct RM_Sequencing
 				// last tap was an offhand tap
 				handle_jack_progression();
 				break;
-			case cc_empty:
-				// simple case to handle, can't be a jack (or
-				// doesn't
-				// really matter) and can't be oht, only reset
-				// if we exceed the spacing limit
-				handle_off_tap(mni.row_time);
-				break;
 			case cc_init:
-				// uhh we could do something here but i'm lazy
-				break;
-			case cc_undefined:
+				if (now_col == anchor_col)
+					handle_anchor_progression();
 				break;
 			default:
+				ASSERT(1 == 0);
 				break;
 		}
 		last_last_cc = last_cc;
-		last_cc = mni.cc;
+		last_cc = mhi.cc;
 	}
 #pragma endregion
 };
 
-struct RunningManMod
+// pmod stuff that was being mega coopy poostered
+inline void
+mod_set(const CalcPatternMod& pmod,
+		vector<float> doot[],
+		const int& i,
+		const float& mod)
 {
-	const vector<int> _pmods{ RanMan,		 RanLen,	  RanAnchLen,
-							  RanAnchLenMod, RanJack,	 RanOHT,
-							  RanOffS,		 RanPropAll,  RanPropOff,
-							  RanPropOHT,	RanPropOffS, RanPropJack };
-	const std::string name = "RunningManMod";
-	const int _primary = _pmods.front();
+	doot[pmod][i] = mod;
+}
 
-	RM_Sequencing rms[2];
-	RM_Sequencing interval_highest;
+inline void
+neutral_set(const CalcPatternMod& pmod, vector<float> doot[], const int& i)
+{
+	doot[pmod][i] = neutral;
+}
+
+inline void
+dbg_neutral_set(const vector<CalcPatternMod>& dbg,
+				vector<float> doot[],
+				const int& i)
+{
+	if (debug_lmao)
+		for (auto& pmod : dbg)
+			doot[pmod][i] = neutral;
+}
+
+// since the calc skillset balance now operates on +- rather than
+// just - and then normalization, we will use this to depress the
+// stream rating for non-stream files.
+struct StreamMod
+{
+	const CalcPatternMod _pmod = Stream;
+	const std::string name = "StreamMod";
+	const int _tap_size = single;
 
 #pragma region params
-	float min_mod = 0.95f;
-	float max_mod = 1.5f;
-	float mod_base = 0.9f;
-	float min_anchor_len = 5.f;
-	float min_taps_in_rm = 1.f;
-	float min_off_taps_same = 1.f;
+	float min_mod = 0.6f;
+	float max_mod = 1.0f;
+	float prop_buffer = 1.f;
+	float prop_scaler = 1.428f; // ~10/7
 
-	float total_prop_scaler = 1.f;
-	float total_prop_min = 0.f;
-	float total_prop_max = 1.f;
-
-	float off_tap_prop_scaler = 1.3f;
-	float off_tap_prop_min = 0.f;
-	float off_tap_prop_max = 1.25f;
-	float off_tap_prop_base = 0.05f;
-
-	float off_tap_same_prop_scaler = 1.f;
-	float off_tap_same_prop_min = 0.f;
-	float off_tap_same_prop_max = 1.25f;
-	float off_tap_same_prop_base = 0.25f;
-
-	float anchor_len_divisor = 2.5f;
-
-	float min_jack_taps_for_bonus = 1.f;
-	float jack_bonus_base = 0.1f;
-
-	float min_oht_taps_for_bonus = 1.f;
-	float oht_bonus_base = 0.1f;
-
-	// params for rm_sequencing, these define conditions for resetting
-	// runningmen sequences
-	float max_oht_len = 1.f;
-	float max_off_spacing = 2.f;
-	float max_burst_len = 6.f;
-	float max_jack_len = 1.f;
+	float jack_pool = 4.f;
+	float jack_comp_min = 0.5f;
+	float jack_comp_max = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
+		{ "prop_buffer", &prop_buffer },
+		{ "prop_scaler", &prop_scaler },
 
-		{ "min_anchor_len", &min_anchor_len },
-		{ "min_taps_in_rm", &min_taps_in_rm },
-		{ "min_off_taps_same", &min_off_taps_same },
-
-		{ "total_prop_scaler", &total_prop_scaler },
-		{ "total_prop_min", &total_prop_min },
-		{ "total_prop_max", &total_prop_max },
-
-		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
-		{ "off_tap_prop_min", &off_tap_prop_min },
-		{ "off_tap_prop_max", &off_tap_prop_max },
-		{ "off_tap_prop_base", &off_tap_prop_base },
-
-		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
-		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
-		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
-		{ "off_tap_same_prop_base", &off_tap_same_prop_base },
-
-		{ "anchor_len_divisor", &anchor_len_divisor },
-
-		{ "min_jack_taps_for_bonus", &min_jack_taps_for_bonus },
-		{ "jack_bonus_base", &jack_bonus_base },
-
-		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
-		{ "oht_bonus_base", &oht_bonus_base },
-
-		// params for rm_sequencing
-		{ "max_oht_len", &max_oht_len },
-		{ "max_off_spacing", &max_off_spacing },
-		{ "max_burst_len", &max_burst_len },
-		{ "max_jack_len", &max_jack_len },
+		{ "jack_pool", &jack_pool },
+		{ "jack_comp_min", &jack_comp_min },
+		{ "jack_comp_max", &jack_comp_max },
 	};
 #pragma endregion params and param map
-
-	// stuff for making mod
-	float total_prop = 0.f;
-	float off_tap_prop = 0.f;
-	float off_tap_same_prop = 0.f;
-	float anchor_len_comp = 0.f;
-	float jack_bonus = 0.f;
-	float oht_bonus = 0.f;
+	float prop_component = 0.f;
+	float jack_component = 0.f;
 	float pmod = min_mod;
-	int test = 0;
+
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		// don't try to figure out which column a prospective anchor is on, just
-		// run two passes with each assuming a different column
-		rms[0].anchor_col = col_left;
-		rms[1].anchor_col = col_right;
-		rms[0].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-		rms[1].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		doot[_pmod].resize(i);
 	}
 
 	inline XNode* make_param_node() const
@@ -1951,377 +2120,60 @@ struct RunningManMod
 		}
 	}
 #pragma endregion
-
-	inline void advance_sequencing(const metanoteinfo& mni)
-	{
-		for (auto& rm : rms)
-			rm(mni);
-
-		// use the biggest anchor that has existed in this interval
-		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
-
-		if (rms[test].anchor_len > interval_highest.anchor_len)
-			interval_highest = rms[test];
-	};
-
-	inline bool handle_case_optimizations(const RM_Sequencing& rm,
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
-		// we could mni check for empty intervals like the other mods but it
-		// doesn't really matter and this is probably more useful for debug
-		// output
-
-		// we could decay in this but it may conflict/be redundant with how
-		// runningmen sequences are constructed, if decays are used we would
-		// probably generate the mod not from the highest of any interval, but
-		// from whatever sequences are still alive by the end
-		if (rm.anchor_len < min_anchor_len) {
-			min_set(doot, i);
-			return true;
-		} else if (rm.ran_taps < min_taps_in_rm) {
-			min_set(doot, i);
-			return true;
-		} else if (rm.off_taps_same < min_off_taps_same) {
-			neutral_set(doot, i);
+		// 1 tap is by definition a single tap
+		if (itvi.total_taps < 2) {
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
+
+		if (itvi.taps_by_size[_tap_size] == 0) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		const auto& rm = interval_highest;
-		if (handle_case_optimizations(rm, doot, i))
+		const auto& itvi = mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
-		// the pmod template stuff completely broke the js/hs/cj mods.. so..
-		// these might also be broken... investigate later
+		// we want very light js to register as stream,
+		// something like jumps on every other 4th, so 17/19
+		// ratio should return full points, but maybe we should
+		// allow for some leeway in bad interval slicing this
+		// maybe doesn't need to be so severe, on the other
+		// hand, maybe it doesn'ting need to be not needing'nt
+		// to be so severe
 
-		// taps in runningman / total taps in interval... i think? can't
-		// remember when i reset total taps tbh.. this might be useless
-		total_prop = pmod_prop(rm.ran_taps,
-							   rm.total_taps,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
+		// we could make better use of sequencing here since now it's easy
 
-		// number anchor taps / number of non anchor taps
-		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
-										 rm.ran_taps,
-										 off_tap_prop_scaler,
-										 off_tap_prop_min,
-										 off_tap_prop_max,
-										 off_tap_prop_base),
-							   2.f);
+		prop_component =
+		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itvi.total_taps - prop_buffer) * prop_scaler;
 
-		// number of same hand off anchor taps / anchor taps, basically stuff is
-		// really hard when this is high (a value of 0.5 is a triplet every
-		// other anchor)
-		off_tap_same_prop = pmod_prop(rm.off_taps_same,
-									  rm.anchor_len,
-									  off_tap_same_prop_scaler,
-									  off_tap_same_prop_min,
-									  off_tap_same_prop_max,
-									  off_tap_same_prop_base);
-
-		// anchor length component
-		anchor_len_comp =
-		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
-
-		// jacks in anchor component, give a small bonus i guess
-		jack_bonus =
-		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
-
-		// ohts in anchor component, give a small bonus i guess
-		// not done
-		oht_bonus =
-		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
-
-		// we could scale the anchor to speed if we want but meh
-		// that's really complicated/messy/error prone
-		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
-		pmod = CalcClamp(
-		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
-		  min_mod,
-		  max_mod);
-
-		// actual used mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		if (debug_lmao) {
-			doot[RanLen][i] =
-			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
-			doot[RanAnchLen][i] =
-			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
-			doot[RanAnchLenMod][i] = anchor_len_comp;
-			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-			doot[RanPropAll][i] = total_prop;
-			doot[RanPropOff][i] = off_tap_prop;
-			doot[RanPropOffS][i] = off_tap_same_prop;
-			doot[RanPropOHT][i] = oht_bonus;
-			doot[RanPropJack][i] = jack_bonus;
-		}
-
-		// reset interval highest when we're done
-		interval_highest.reset();
-	};
-};
-// probably needs better debugoutput
-struct WideRangeJumptrillMod
-{
-	bool dbg = false;
-	const vector<int> _pmods = { WideRangeJumptrill };
-	const std::string name = "WideRangeJumptrillMod";
-	const int _primary = _pmods.front();
-
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
-
-#pragma region params
-	float itv_window = 3;
-
-	float min_mod = 0.25f;
-	float max_mod = 1.f;
-	float mod_base = 0.4f;
-
-	float moving_cv_init = 0.5f;
-	float ccacc_cv_cutoff = 0.5f;
-
-	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
-
-		{ "moving_cv_init", &moving_cv_init },
-		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
-	};
-#pragma endregion params and param map
-	int ccacc_counter = 0;
-	int crop_circles = 0;
-	float pmod = min_mod;
-	int window_taps = 0;
-	int window_ccacc = 0;
-
-	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
-
-	// non-empty
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
-#pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
-	{
-		// floop();
-
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
-
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
-	}
-
-	inline XNode* make_param_node() const
-	{
-		XNode* pmod = new XNode(name);
-		for (auto& p : _params)
-			pmod->AppendChild(p.first, to_string(*p.second));
-
-		return pmod;
-	}
-
-	inline void load_params_from_node(const XNode* node)
-	{
-		float boat = 0.f;
-		auto* pmod = node->GetChild(name);
-		for (auto& p : _params) {
-			auto* ch = pmod->GetChild(p.first);
-			if (ch == NULL)
-				continue;
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-#pragma endregion
-	inline void reset_sequence()
-	{
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
-	};
-	// should maybe move this into metanoteinfo and do the counting there, if we
-	// could use this anywhere else
-	bool detecc_ccacc(const metanoteinfo& now)
-	{
-		// if we're here the following are true, we have a full sequence of 3 cc
-		// taps, they are non-empty, and there are no jumps. this means they are
-		// all either cc_left_right, cc_right_left, or cc_single_single
-
-		// handle cc_single_single first, for now, lets throw it away
-		if (now.cc == cc_single_single)
-			return false;
-
-		// now we know we have cc_left_right or cc_right_left, so, xy, we are
-		// looking for xyyx, meaning last_last would be the inverion of now
-		if (invert_cc(now.cc) == last_last_seen_cc)
-			return true;
-
-		return false;
-	};
-	bool handle_ccacc_timing_check()
-	{
-		// we don't want to suppress actual streams that use this pattern, so we
-		// will keep a fairly tight requirement on the ms variance
-
-		// we are currently assuming we have xyyx always, and are not interested
-		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
-		// we can do some pretty neat stuff
-
-		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
-		// right->left, seq_ms 1 will always be an anchor value, so,
-		// right->right for example. our interest is in hard nerfing long chains
-		// of xyyx patterns that won't get picked up by any of the roll scalers
-		// or balance scalers, but are still jumptrillable, for this condition
-		// to be true the anchor ms length has to be within a certain ratio of
-		// the cross column ms lengths, enabling the cross columns to be hit
-		// like jumptrilled flams, the optimal ratio for inflating nps is about
-		// 3:1, this is short enough that the nps boost is still high, but long
-		// enough that it doesn't become endless minijacking on the anchor
-		// given these conditions we can divide seq_ms[1] by 3 and cv check the
-		// array, with 2 identical values cc values, even if the anchor ratio
-		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
-		// is a sensible cutoff that should avoid punishing happenstances of
-		// this pattern in just regular files
-
-		// doing this would be a problem if we were to try to catch
-		// anchor/cc/anchor, since the altered anchor ms value would still exist
-		// in the sequence, but that maybe doesn't seem like a great idea
-		// anyway, so the value we alter will fall out of the array by the time
-		// we get here next
-
-		seq_ms[1] /= 3.f;
-
-		// this may be too fancy even though i'm trying to be not fancy.. update
-		// a basic moving window of the cv values and return true if it's below
-		// some cutoff, this will have the effect of giving a little lag time
-		// before the mod really kicks in
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < ccacc_cv_cutoff;
-	};
-
-	inline void update_seq_ms(const metanoteinfo& now)
-	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-
-		// update now
-		// for anchors, track tc_ms
-		if (now.cc == cc_single_single)
-			seq_ms[2] = now.tc_ms;
-		// for cc_left_right or cc_right_left, track cc_ms
-		else
-			seq_ms[2] = now.cc_ms_any;
-	};
-	inline void advance_sequencing(const metanoteinfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// reset if we hit a jump
-		if (now.col == col_ohjump) {
-			reset_sequence();
-			return;
-		}
-
-		// update timing stuff before checking/updating the sequence...
-		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
-		// it _actually_ works
-		update_seq_ms(now);
-
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for ccacc
-			if (detecc_ccacc(now))
-				// don't bother adding if the ms values look benign
-				if (handle_ccacc_timing_check())
-					++ccacc_counter;
-
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
-	};
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
-	{
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_ccacc.pop_front();
-		}
-
-		itv_taps.push_back(mni.total_taps);
-		itv_ccacc.push_back(ccacc_counter);
-
-		if (ccacc_counter > 0)
-			++crop_circles;
-		else
-			--crop_circles;
-		if (crop_circles < 0)
-			crop_circles = 0;
-
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		for (auto& n : itv_ccacc)
-			window_ccacc += n;
-
-		pmod = 1.f;
-		if (window_ccacc > 0 && crop_circles > 0)
-			pmod =
-			  static_cast<float>(window_taps) /
-			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
-
+		// allow for a mini/triple jack in streams.. but not more than that
+		jack_component = CalcClamp(
+		  jack_pool - mitvi.actual_jacks, jack_comp_min, jack_comp_max);
+		pmod = fastsqrt(prop_component * jack_component);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_primary][i] = pmod;
 
-		// we could count these in metanoteinfo but let's do it here for now,
-		// reset every interval when finished
-		ccacc_counter = 0;
-	};
+		// actual mod
+		doot[_pmod][mitvi._idx] = pmod;
+	}
 };
 struct JSMod
 {
-
-	const vector<int> _pmods = { JS, JSS, JSJ };
+	const CalcPatternMod _pmod = JS;
+	const vector<CalcPatternMod> _dbg = { JSS, JSJ };
 	const std::string name = "JSMod";
 	const int _tap_size = jump;
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2375,27 +2227,13 @@ struct JSMod
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline void decay_mod()
@@ -2417,6 +2255,8 @@ struct JSMod
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
 		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
@@ -2427,80 +2267,86 @@ struct JSMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[JSS][i] = jumptrill_prop;
+			doot[JSJ][i] = jack_prop;
+		}
+	}
+
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// empty interval, don't decay js mod or update last_mod
-		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
+		if (itvi.total_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
 
 		// at least 1 tap but no jumps
-		if (mni.taps_by_size[_tap_size] == 0) {
+		if (itvi.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			min_set(doot, i);
-			doot[_primary][i] = pmod;
+			doot[_pmod][i] = pmod;
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
+
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		if (handle_case_optimizations(mni, doot, i))
+		const auto& itvi = mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
-		t_taps = static_cast<float>(mni.total_taps);
+		t_taps = static_cast<float>(itvi.total_taps);
 
 		// creepy banana
 		total_prop =
-		  static_cast<float>(mni.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
 		  (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
-		jumptrill_prop =
-		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_js) / t_taps),
-					split_hand_min,
-					split_hand_max);
+		jumptrill_prop = CalcClamp(
+		  split_hand_pool - (static_cast<float>(mitvi.not_js) / t_taps),
+		  split_hand_min,
+		  split_hand_max);
 
 		// downscale by jack density rather than upscale like cj
 		// theoretically the ohjump downscaler should handle
 		// this but handling it here gives us more flexbility
 		// with the ohjump mod
-		jack_prop =
-		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) / t_taps),
-					jack_min,
-					jack_max);
+		jack_prop = CalcClamp(
+		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
+		  jack_min,
+		  jack_max);
 
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
-		// actual mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		doot[JSS][i] = jumptrill_prop;
-		doot[JSJ][i] = jack_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
 
 		// set last mod, we're using it to create a decaying mod that won't
 		// result in extreme spikiness if files alternate between js and
 		// hs/stream
 		last_mod = pmod;
-	};
+	}
 };
 struct HSMod
 {
-	const vector<int> _pmods = { HS, HSS, HSJ };
+	const CalcPatternMod _pmod = HS;
+	const vector<CalcPatternMod> _dbg = { HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2556,27 +2402,13 @@ struct HSMod
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[_primary], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline void decay_mod()
@@ -2598,6 +2430,8 @@ struct HSMod
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
 		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
@@ -2608,66 +2442,70 @@ struct HSMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[HSS][i] = jumptrill_prop;
+			doot[HSJ][i] = jack_prop;
+		}
+	}
+
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
 										  vector<float> doot[],
-										  const size_t& i)
+										  const int& i)
 	{
 		// empty interval, don't decay mod or update last_mod
-		if (mni.total_taps == 0) {
-			neutral_set(doot, i);
+		if (itvi.total_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
 
 		// look ma no hands
-		if (mni.taps_by_size[_tap_size] == 0) {
+		if (itvi.taps_by_size[_tap_size] == 0) {
 			decay_mod();
-			min_set(doot, i);
-			doot[_primary][i] = pmod;
+			doot[_pmod][i] = pmod;
+			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
+
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		if (handle_case_optimizations(mni, doot, i))
+		const auto& itvi = mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
-		t_taps = static_cast<float>(mni.total_taps);
+		t_taps = static_cast<float>(itvi.total_taps);
 
 		// when bark of dog into canyon scream at you
 		total_prop =
 		  total_prop_base +
-		  (static_cast<float>(mni.taps_by_size[_tap_size] + prop_buffer) /
+		  (static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
 		   (t_taps - prop_buffer) * total_prop_scaler);
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// downscale jumptrills for hs as well
-		jumptrill_prop =
-		  CalcClamp(split_hand_pool - (static_cast<float>(mni.not_hs) / t_taps),
-					split_hand_min,
-					split_hand_max);
+		jumptrill_prop = CalcClamp(
+		  split_hand_pool - (static_cast<float>(mitvi.not_hs) / t_taps),
+		  split_hand_min,
+		  split_hand_max);
 
 		// downscale by jack density rather than upscale, like cj does
-		jack_prop =
-		  CalcClamp(jack_pool - (static_cast<float>(mni.actual_jacks) / t_taps),
-					jack_min,
-					jack_max);
-		// clamp the original prop mod first before applying
-		// above
+		jack_prop = CalcClamp(
+		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
+		  jack_min,
+		  jack_max);
 
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
-		// actual mod
-		doot[_primary][i] = pmod;
-
-		// debug
-		doot[HSS][i] = jumptrill_prop;
-		doot[HSJ][i] = jack_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
 
 		// set last mod, we're using it to create a decaying mod that won't
 		// result in extreme spikiness if files alternate between js and
@@ -2677,10 +2515,9 @@ struct HSMod
 };
 struct CJMod
 {
-	bool dbg = false;
-	const vector<int> _pmods = { CJ, CJS, CJJ, CJQuad };
+	const CalcPatternMod _pmod = CJ;
+	const vector<CalcPatternMod> _dbg = { CJS, CJJ };
 	const std::string name = "CJMod";
-	const int _primary = _pmods.front();
 
 #pragma region params
 	float min_mod = 0.6f;
@@ -2702,12 +2539,7 @@ struct CJMod
 	float not_jack_max = 1.f;
 	float not_jack_scaler = 1.f;
 
-	float quad_pool = 1.5f;
-	float quad_min = 0.88f;
-	float quad_max = 1.f;
-	float quad_scaler = 1.f;
-
-	float vibro_flag = 0.85f;
+	float vibro_flag = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -2729,43 +2561,22 @@ struct CJMod
 		{ "not_jack_max", &not_jack_max },
 		{ "not_jack_scaler", &not_jack_scaler },
 
-		{ "quad_pool", &quad_pool },
-		{ "quad_min", &quad_min },
-		{ "quad_max", &quad_max },
-		{ "quad_scaler", &quad_scaler },
-
 		{ "vibro_flag", &vibro_flag },
 	};
 #pragma endregion params and param map
 	float total_prop = 0.f;
 	float jack_prop = 0.f;
 	float not_jack_prop = 0.f;
-	float quad_prop = 0.f;
 	float pmod = min_mod;
 	float t_taps = 0.f;
 #pragma region generic functions
-	inline void setup(vector<float> doot[], const size_t& size)
+	inline void setup(vector<float> doot[], const int& i)
 	{
-		for (auto& mod : _pmods)
-			doot[mod].resize(size);
-	}
+		doot[_pmod].resize(i);
 
-	inline void min_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = min_mod;
-	}
-
-	inline void neutral_set(vector<float> doot[], const size_t& i)
-	{
-		for (auto& mod : _pmods)
-			doot[mod][i] = neutral;
-	}
-
-	inline void smooth_finish(vector<float> doot[])
-	{
-		Smooth(doot[CJ], 1.f);
-		Smooth(doot[CJQuad], 1.f);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(i);
 	}
 
 	inline XNode* make_param_node() const
@@ -2781,6 +2592,8 @@ struct CJMod
 	{
 		float boat = 0.f;
 		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
 		for (auto& p : _params) {
 			auto* ch = pmod->GetChild(p.first);
 			if (ch == NULL)
@@ -2791,31 +2604,39 @@ struct CJMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const metanoteinfo& mni,
-										  vector<float> doot[],
-										  const size_t& i)
+
+	inline void set_dbg(vector<float> doot[], const int& i)
 	{
-		if (mni.total_taps == 0) {
-			min_set(doot, i);
+		if (debug_lmao) {
+			doot[CJS][i] = not_jack_prop;
+			doot[CJJ][i] = jack_prop;
+		}
+	}
+
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		if (itvi.total_taps == 0) {
+			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// no chords
-		if (mni.chord_taps == 0) {
-			min_set(doot, i);
+		if (itvi.chord_taps == 0) {
+			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 		return false;
 	}
 
-	inline void operator()(const metanoteinfo& mni,
-						   vector<float> doot[],
-						   const size_t& i)
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
 	{
-		if (handle_case_optimizations(mni, doot, i))
+		const auto& itvi = mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
-		t_taps = static_cast<float>(mni.total_taps);
+		t_taps = static_cast<float>(itvi.total_taps);
 
 		// we have at least 1 chord we want to give a little leeway for single
 		// taps but not too much or sections of [12]4[123] [123]4[23] will be
@@ -2823,256 +2644,3343 @@ struct CJMod
 		// we also want to give enough leeway so that hyperdense chordjacks at
 		// lower bpms aren't automatically rated higher than more sparse jacks
 		// at higher bpms
-		total_prop = static_cast<float>(mni.chord_taps + prop_buffer) /
+		total_prop = static_cast<float>(itvi.chord_taps + prop_buffer) /
 					 (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// make sure there's at least a couple of jacks
 		jack_prop =
-		  CalcClamp(mni.actual_jacks_cj - jack_base, jack_min, jack_max);
-
-		// too many quads is either pure vibro or slow quadmash, downscale a bit
-		quad_prop =
-		  quad_pool -
-		  (static_cast<float>(mni.taps_by_size[quad] * quad_scaler) / t_taps);
-		quad_prop = CalcClamp(quad_prop, quad_min, quad_max);
+		  CalcClamp(mitvi.actual_jacks_cj - jack_base, jack_min, jack_max);
 
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
 		not_jack_prop = CalcClamp(
 		  not_jack_pool -
-			(static_cast<float>(mni.definitely_not_jacks * not_jack_scaler) /
+			(static_cast<float>(mitvi.definitely_not_jacks * not_jack_scaler) /
 			 t_taps),
 		  not_jack_min,
 		  not_jack_max);
 
-		pmod = doot[CJ][i] =
-		  CalcClamp(total_prop * jack_prop * not_jack_prop /* * quad_prop*/,
-					min_mod,
-					max_mod);
+		pmod =
+		  CalcClamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
 
 		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
 		// this other places ?
-		if (mni.basically_vibro)
-			pmod *= vibro_flag;
+		if (mitvi.basically_vibro) {
+			// we shouldn't be hitting empty intervals here
+			ASSERT(mitvi.num_var > 0);
+			if (mitvi.num_var == 1)
+				pmod *= 0.5f * vibro_flag;
+			else if (mitvi.num_var == 2)
+				pmod *= 0.9f * vibro_flag;
+			else if (mitvi.num_var == 3)
+				pmod *= 0.95f * vibro_flag;
+			ASSERT(mitvi.num_var < 4);
+		}
 
-		// actual mod
-		doot[_primary][i] = pmod;
-		// look another actual mod
-		doot[CJQuad][i] = quad_prop;
-
-		// debug
-		doot[CJS][i] = not_jack_prop;
-		doot[CJJ][i] = jack_prop;
+		doot[_pmod][mitvi._idx] = pmod;
+		set_dbg(doot, mitvi._idx);
 	}
 };
+
+// i actually have no idea why i made this a separate mod instead of a prop
+// scaler like everything else but there's like a 20% chance there was a good
+// reason so i'll leave it
+struct CJQuadMod
+{
+	const CalcPatternMod _pmod = CJQuad;
+	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	const std::string name = "CJQuadMod";
+	const int _tap_size = quad;
+
+#pragma region params
+	float mod_pool = 1.5f;
+	float min_mod = 0.88f;
+	float max_mod = 1.f;
+	float prop_scaler = 1.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "mod_pool ", &mod_pool },
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "prop_scaler ", &prop_scaler },
+	};
+#pragma endregion params and param map
+	float pmod = min_mod;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& i)
+	{
+		doot[_pmod].resize(i);
+
+		//		if (debug_lmao)
+		//			for (auto& mod : _dbg)
+		//				doot[mod].resize(i);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		if (itvi.total_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// no quads
+		if (itvi.taps_by_size[_tap_size] == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// all quads
+		if (itvi.taps_by_size[_tap_size] == itvi.total_taps) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const metaItvInfo& mitvi, vector<float> doot[])
+	{
+		const auto& itvi = mitvi._itvi;
+		if (handle_case_optimizations(itvi, doot, mitvi._idx))
+			return;
+
+		// too many quads is either pure vibro or slow quadmash, downscale a bit
+		pmod = mod_pool -
+			   (static_cast<float>(itvi.taps_by_size[_tap_size] * prop_scaler) /
+				static_cast<float>(itvi.total_taps));
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][mitvi._idx] = pmod;
+		// set_dbg(doot, mitvi._idx);
+	}
+};
+
+// i don't like this.. perhaps ohj/cjohj should be split up even though
+// they're 95% the same... and some of the other stuff.... man.... ohjump
+// sequencing should be its own entity like rm sequencing is
+struct OHJumpMods
+{
+	const vector<CalcPatternMod> _dbg = {
+		OHJBaseProp, OHJPropComp, OHJSeqComp,	OHJMaxSeq,   OHJCCTaps,
+		OHJHTaps,	CJOHJump,	CJOHJPropComp, CJOHJSeqComp
+	};
+	const std::string name = "OHJumpMods";
+
+#pragma region params
+	float ohj_base = 0.15f;
+	float ohj_min_mod = 0.5f;
+	float ohj_max_mod = 1.f;
+	float ohj_pow = 2.f;
+
+	float ohj_max_seq_pool = 1.125f;
+	float ohj_max_seq_scaler = 0.65f;
+	float ohj_max_seq_jump_scaler = 2.5f;
+	float ohj_max_seq_min = 0.f;
+	float ohj_max_seq_max = 0.65f;
+
+	float ohj_prop_pool = 1.2f;
+	float ohj_prop_scaler = 0.35f;
+	float ohj_prop_min = 0.f;
+	float ohj_prop_max = 0.65f; // should be 0.35 but it was this before...
+
+	float cj_ohj_base = 0.1f;
+	float cj_ohj_min_mod = 0.6f;
+	float cj_ohj_max_mod = 1.f;
+	float cj_ohj_pow = 2.f;
+
+	float cj_ohj_max_seq_pool = 1.2f;
+	float cj_ohj_max_seq_scaler = 0.5f;
+	float cj_ohj_max_seq_jump_scaler = 1.f;
+	float cj_ohj_max_seq_min = 0.f;
+	float cj_ohj_max_seq_max = 0.5f;
+
+	float cj_ohj_prop_pool = 1.2f;
+	float cj_ohj_prop_scaler = 0.5f;
+	float cj_ohj_prop_min = 0.f;
+	float cj_ohj_prop_max = 0.65f; // should be 0.35 but it was this before...
+
+	const vector<pair<std::string, float*>> _params{
+		{ "ohj_base", &ohj_base },
+		{ "ohj_min_mod", &ohj_min_mod },
+		{ "ohj_max_mod", &ohj_max_mod },
+		{ "ohj_pow", &ohj_pow },
+
+		{ "ohj_max_seq_pool", &ohj_max_seq_pool },
+		{ "ohj_max_seq_scaler", &ohj_max_seq_scaler },
+		{ "ohj_max_seq_jump_scaler", &ohj_max_seq_jump_scaler },
+		{ "ohj_max_seq_min", &ohj_max_seq_min },
+		{ "ohj_max_seq_max", &ohj_max_seq_max },
+
+		{ "ohj_prop_pool", &ohj_prop_pool },
+		{ "ohj_prop_scaler", &ohj_prop_scaler },
+		{ "ohj_prop_min", &ohj_prop_min },
+		{ "ohj_prop_max", &ohj_prop_max },
+
+		{ "cj_ohj_base", &cj_ohj_base },
+		{ "cj_ohj_min_mod", &cj_ohj_min_mod },
+		{ "cj_ohj_max_mod", &cj_ohj_max_mod },
+		{ "cj_ohj_pow", &cj_ohj_pow },
+
+		{ "cj_ohj_max_seq_pool", &cj_ohj_max_seq_pool },
+		{ "cj_ohj_max_seq_scaler", &cj_ohj_max_seq_scaler },
+		{ "cj_ohj_max_seq_jump_scaler", &cj_ohj_max_seq_jump_scaler },
+		{ "cj_ohj_max_seq_min", &cj_ohj_max_seq_min },
+		{ "cj_ohj_max_seq_max", &cj_ohj_max_seq_max },
+
+		{ "cj_ohj_prop_pool", &cj_ohj_prop_pool },
+		{ "cj_ohj_prop_scaler", &cj_ohj_prop_scaler },
+		{ "cj_ohj_prop_min", &cj_ohj_prop_min },
+		{ "cj_ohj_prop_max", &cj_ohj_prop_max },
+	};
+#pragma endregion params and param map
+	int cur_ohjump_seq = 0;
+	int max_ohjump_seq = 0;
+	int window_roll_taps = 0;
+	int cc_taps = 0;
+	// we cast the one in itv_info from int
+	float hand_taps = 0.f;
+	float floatymcfloatface = 0.f;
+	float ohj_max_seq_component = 0.f;
+	float ohj_prop_component = 0.f;
+	float cj_ohj_max_seq_component = 0.f;
+	float cj_ohj_prop_component = 0.f;
+	float base_prop = 0.f;
+	float pmod = ohj_min_mod;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+
+		doot[OHJumpMod].resize(size);
+		doot[CJOHJump].resize(size);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);
+	}
+
+	inline void min_set(vector<float> doot[], const int& i)
+	{
+		doot[OHJumpMod][i] = ohj_min_mod;
+		doot[CJOHJump][i] = cj_ohj_min_mod;
+	}
+
+	inline void neutral_set(vector<float> doot[], const int& i)
+	{
+		doot[OHJumpMod][i] = neutral;
+		doot[CJOHJump][i] = neutral;
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void complete_seq()
+	{
+		// negative values should not be possible
+		ASSERT(cur_ohjump_seq >= 0);
+
+		// set the largest ohj sequence
+		max_ohjump_seq =
+		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
+		// reset
+		cur_ohjump_seq = 0;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// we know between the following that the latter is more
+		// difficult [12][12][12]222[12][12][12]
+		// [12][12][12]212[12][12][12]
+		// so we want to penalize not only any break in the ohj
+		// sequence but further penalize breaks which contain
+		// cross column taps this should also reflect the
+		// difference between [12]122[12], [12]121[12] cases
+		// like 121[12][12]212[12][12]121 should probably have
+		// some penalty but likely won't with this setup, but
+		// everyone hates that anyway and it would be quite
+		// difficult to force the current setup to do so without
+		// increasing complexity significantly (probably)
+
+		// don't reset immediately on a single note, wait to see
+		// what comes next, if now.last_cc == cc_jump_single, we have just
+		// broken a sequence (technically this can be simply something like
+		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
+		switch (now.cc) {
+			case cc_jump_jump:
+				// at least 2 jumps in a row
+				// boost if this is the beginning, otherwise just iterate
+				if (cur_ohjump_seq == 0)
+					++cur_ohjump_seq;
+				++cur_ohjump_seq;
+				break;
+			case cc_jump_single:
+				// just came out of a jump seq, do nothing... wait to see what
+				// happens
+				break;
+			case cc_left_right:
+			case cc_right_left:
+				// track actual cc taps in a counter
+				++cc_taps;
+
+				// if we have an actual cross column tap now, and if we just
+				// came from a jump -> single, then we have something like
+				// [12]21, which is much harder than [12]22, so penalize the
+				// sequence slightly before completing
+				if (now.last_cc == cc_jump_single && cur_ohjump_seq > 1) {
+					--cur_ohjump_seq;
+					complete_seq();
+				}
+				break;
+			case cc_single_single:
+				// we have something like [12]22, complete the sequence
+				// without the penalty that the cross column incurs
+				if (now.last_cc == cc_jump_single)
+					complete_seq();
+				break;
+			case cc_single_jump:
+				// [12]1[12]... we broke a sequence and went right back into
+				// one.. reset sequence for now but come back to revsit this, we
+				// might want to have different behavior, but we'd need to track
+				// the columns of the single notes in the chain
+				if (now.last_cc == cc_jump_single)
+					complete_seq();
+				else
+					complete_seq();
+				break;
+			case cc_init:
+				break;
+			default:
+				break;
+		}
+	}
+
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		if (floatymcfloatface >= hand_taps) {
+			min_set(doot, i);
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// nothing here
+		if (hand_taps == 0) {
+			neutral_set(doot, i);
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// nan's
+		if (cj_ohj_max_seq_pool <= base_prop * cj_ohj_max_seq_jump_scaler) {
+			min_set(doot, i);
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// no ohjumps
+		if (itvh.oh_jump_taps) {
+			neutral_set(doot, i);
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// no repeated oh jumps, prop scale only
+		if (max_ohjump_seq == 0) {
+			ohj_prop_component =
+			  ohj_prop_pool - (itvh.oh_jump_taps / hand_taps);
+			ohj_prop_component =
+			  CalcClamp(ohj_prop_component, ohj_min_mod, ohj_max_mod);
+
+			pmod = fastsqrt(ohj_prop_component);
+			pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
+			doot[OHJumpMod][i] = pmod;
+
+			cj_ohj_prop_component = fastsqrt(
+			  cj_ohj_prop_pool - (itvh.oh_jump_taps / hand_taps / 2.f));
+			cj_ohj_prop_component =
+			  CalcClamp(cj_ohj_prop_component, cj_ohj_min_mod, cj_ohj_max_mod);
+
+			pmod = fastsqrt(cj_ohj_prop_component);
+			pmod =
+			  CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
+			doot[CJOHJump][i] = pmod;
+
+			set_debug_output(doot, i);
+			return true;
+		}
+
+		// if this is true we have some combination of single notes
+		// and jumps where the single notes are all on the same
+		// column
+		if (cc_taps == 0) {
+			// we don't want to treat 2[12][12][12]2222 2222[12][12][12]2
+			// differently, so use the max sequence here exclusively
+			if (max_ohjump_seq > 0) {
+				// yea i thought we might need to tune ohj downscalers for js
+				// and cj slightly differently
+				ohj_max_seq_component =
+				  pow(hand_taps / (floatymcfloatface * ohj_max_seq_jump_scaler),
+					  ohj_pow);
+				ohj_max_seq_component =
+				  CalcClamp(ohj_max_seq_component, ohj_min_mod, ohj_max_mod);
+				pmod = ohj_max_seq_component;
+
+				doot[OHJumpMod][i] = pmod;
+
+				// ohjumps in cj can be either easier or harder
+				// depending on context.. so we have to pull back a
+				// bit so it doesn't swing too far when it shouldn't
+				cj_ohj_max_seq_component =
+				  pow(hand_taps / (floatymcfloatface *
+								   (cj_ohj_max_seq_jump_scaler + 0.4f)),
+					  cj_ohj_pow);
+				cj_ohj_max_seq_component = CalcClamp(
+				  cj_ohj_max_seq_component, cj_ohj_min_mod, cj_ohj_max_mod);
+				pmod = cj_ohj_max_seq_component;
+				doot[CJOHJump][i] = pmod;
+
+				set_debug_output(doot, i);
+				return true;
+			} else {
+				// single note longjacks, do nothing
+				neutral_set(doot, i);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	inline void interval_reset()
+	{
+		// reset any interval stuff here
+		cc_taps = 0;
+		max_ohjump_seq = 0;
+		ohj_max_seq_component = neutral;
+		ohj_prop_component = neutral;
+		cj_ohj_max_seq_component = neutral;
+		cj_ohj_prop_component = neutral;
+	}
+
+	inline void set_debug_output(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[OHJSeqComp][i] = ohj_max_seq_component;
+			doot[OHJPropComp][i] = ohj_prop_component;
+
+			doot[CJOHJSeqComp][i] = cj_ohj_max_seq_component;
+			doot[CJOHJPropComp][i] = cj_ohj_prop_component;
+
+			doot[OHJBaseProp][i] = base_prop;
+			doot[OHJMaxSeq][i] = floatymcfloatface;
+			doot[OHJCCTaps][i] = static_cast<float>(cc_taps);
+			doot[OHJHTaps][i] = hand_taps;
+		}
+	}
+
+	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
+	{
+		// if cur_seq > max when we ended the interval, set it, but don't reset
+		max_ohjump_seq =
+		  cur_ohjump_seq > max_ohjump_seq ? cur_ohjump_seq : max_ohjump_seq;
+
+		floatymcfloatface = static_cast<float>(max_ohjump_seq);
+		hand_taps = static_cast<float>(itvh.hand_taps);
+		base_prop = floatymcfloatface / hand_taps;
+
+		// handle simple cases first, execute this block if nothing easy is
+		// detected, fill out non-component debug info and handle interval
+		// resets at end
+		if (handle_case_optimizations(itvh, doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		// STANDARD OHJ
+		// for js we lean into max sequences more, since they're better
+		// indicators of inflated difficulty
+		ohj_max_seq_component =
+		  ohj_max_seq_scaler *
+		  (ohj_max_seq_pool - (base_prop * ohj_max_seq_jump_scaler));
+		ohj_max_seq_component =
+		  CalcClamp(ohj_max_seq_component, ohj_max_seq_min, ohj_max_seq_max);
+
+		ohj_prop_component = ohj_prop_scaler * (ohj_prop_pool - base_prop);
+		ohj_prop_component =
+		  CalcClamp(ohj_prop_component, ohj_prop_min, ohj_prop_max);
+
+		pmod = fastsqrt(ohj_max_seq_component + ohj_prop_component);
+		pmod = CalcClamp(ohj_base + pmod, ohj_min_mod, ohj_max_mod);
+		doot[OHJumpMod][i] = pmod;
+
+		// CH OHJ
+		// we want both the total number of jumps and the max
+		// sequence to count here, with more emphasis on the max
+		// sequence, sequence should be multiplied by 2 (or
+		// maybe slightly more?)
+		cj_ohj_max_seq_component =
+		  cj_ohj_max_seq_scaler *
+		  fastsqrt(cj_ohj_max_seq_pool -
+				   (base_prop * cj_ohj_max_seq_jump_scaler));
+		cj_ohj_max_seq_component = CalcClamp(
+		  cj_ohj_max_seq_component, cj_ohj_max_seq_min, cj_ohj_max_seq_max);
+
+		cj_ohj_prop_component =
+		  cj_ohj_prop_scaler * fastsqrt(cj_ohj_prop_pool - base_prop);
+		cj_ohj_prop_component =
+		  CalcClamp(cj_ohj_prop_component, cj_ohj_prop_min, cj_ohj_prop_max);
+
+		pmod = fastsqrt(cj_ohj_max_seq_component + cj_ohj_prop_component);
+		pmod = CalcClamp(cj_ohj_base + pmod, cj_ohj_min_mod, cj_ohj_max_mod);
+		doot[CJOHJump][i] = pmod;
+
+		set_debug_output(doot, i);
+
+		interval_reset();
+	}
+};
+// not very robust and should maybe be replaced soontm
+struct AnchorMod
+{
+
+	const CalcPatternMod _pmod = Anchor;
+	const std::string name = "AnchorMod";
+
+#pragma region params
+	float min_mod = 0.9f;
+	float max_mod = 1.1f;
+	float mod_base = 0.3f;
+	float buffer = 1.f;
+	float scaler = 1.f;
+	float other_scaler = 4.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "mod_base", &mod_base }, { "buffer", &buffer },
+		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+	};
+#pragma endregion params and param map
+	float l_taps = 0.f;
+	float r_taps = 0.f;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// nothing here
+		if (itvh.hand_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		ASSERT(itvh.col_taps[col_left] + itvh.col_taps[col_right] > 0);
+
+		// same number of taps on each column
+		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		// jack, dunno if this is worth bothering about? it would only matter
+		// for tech and it may matter too much there? idk
+		if (itvh.col_taps[col_left] == 0 || itvh.col_taps[col_right] == 0) {
+			mod_set(_pmod, doot, i, max_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		if (handle_case_optimizations(itvh, doot, i))
+			return;
+
+		l_taps = static_cast<float>(itvh.col_taps[col_left]);
+		r_taps = static_cast<float>(itvh.col_taps[col_right]);
+
+		pmod = l_taps < r_taps ? l_taps / r_taps : r_taps / l_taps;
+		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][i] = pmod;
+	}
+};
+// this will actually be different from wrr apart from the window, probably,
+// maybe
+struct RollMod
+{
+	const CalcPatternMod _pmod = Roll;
+	const std::string name = "RollMod";
+
+#pragma region params
+	float itv_window = 1;
+
+	float min_mod = 0.5f;
+	float max_mod = 1.0f;
+	float mod_pool = 1.25f;
+
+	float moving_cv_init = 0.5f;
+	float roll_cv_cutoff = 0.4f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_pool", &mod_pool },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "roll_cv_cutoff", &roll_cv_cutoff },
+	};
+#pragma endregion params and param map
+
+	// window is currently 1 for local mod
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_rolls;
+
+	// each element is a discrete roll formation with this many taps
+	// (technically it has this many taps + 4 because it requires 1212 or
+	// 2121 to start counting, but that's fine, that's what we want and if
+	// it seems better to add later we can do that
+	vector<int> itv_rolls;
+
+	// unlike ccacc, which has a half baked implementation for chains of
+	// 122112211221, we will actually be responsible and sequence both the
+	// number of rolls and the notes contained therein
+	bool rolling = false;
+	bool is_transition = false;
+	int consecutive_roll_counter = 0;
+
+	int window_hand_taps = 0;
+	// for now we will be lazy and just add up the number of roll taps in any
+	// roll, if we leave out the initialization taps (the 4 required to identify
+	// the start) we will greatly reduce the effect of short roll bursts, not
+	// sure if this is desired behavior
+	int window_roll_taps = 0;
+	float pmod = min_mod;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	// should rename as it resets or completes a sequence... maybe should go
+	// look at rm_sequencing again and make roll_sequencing.. idk
+	inline void reset_sequence()
+	{
+		// only need to do this if rolling, otherwise values are false/0 anyway
+		if (rolling) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			rolling = false;
+			consecutive_roll_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// copied from wrjt, definitely needs to be tracked in metanoteinfo
+	inline bool detecc_ccacc(const metaHandInfo& now)
+	{
+		if (now.cc == cc_single_single)
+			return false;
+
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, since
+	// oht will need this as well, or we could be lazy and do it twice just this
+	// once
+	inline bool detecc_roll(const metaHandInfo& now)
+	{
+		// we allow this through up to here due to transition checks
+		if (now.cc == cc_single_single)
+			return false;
+
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, there are no jumps and no anchors. this
+		// means they are all either cc_left_right, cc_right_left
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyx, meaning last would be the inverion of now
+		if (invert_cc(now.cc) == last_seen_cc)
+			// now make sure that last_last is the same as now
+			if (now.cc == last_last_seen_cc)
+				// we now have 1212 or 2121
+				return true;
+		return false;
+	}
+
+	inline bool handle_roll_timing_check()
+	{
+		// see ccacc timing check in wrjt for explanations, it's basically the
+		// same but we have to invert the multiplication depending on which
+		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
+		// a roll in an editor to see why)
+
+		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
+		// doesn't interfere with the next round
+		if (seq_ms[0] > seq_ms[1]) {
+			seq_ms[1] *= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] /= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		} else {
+			// same thing but divide
+			seq_ms[1] /= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] *= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		}
+	}
+
+	inline void update_seq_ms(const metaHandInfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now, we have no anchors, so always use cc_ms_any (although we
+		// want to move this to cc_ms_no_jumps when that gets implemented, since
+		// a separate jump inclusive mod should be made to handle those cases
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// only let these cases through, since we use invert_cc, anchors are
+		// screened out later, reset otherwise
+		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for rolls (cc -> inverted(cc) -> cc)
+			// now.mt == meta_oht (works in trill idk wtf, but it isn't working
+			// here?)
+			if (detecc_roll(now) && handle_roll_timing_check()) {
+				if (rolling) {
+					// these should always be mutually exclusive
+					++consecutive_roll_counter;
+				} else {
+					// we could increase the roll counter here, but really
+					// all we have now is a minitrill, so lets see if it
+					// extends to at least 5 notes before doing anything
+					rolling = true;
+				}
+				// only reset here if this fails and a transition wasn't
+				// detected, if we reset here we have to assign seq_ms[2] again,
+				// yes this is asofgasfjasofdj messy
+			}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	{
+		// no taps, no rolls
+		if (window_hand_taps == 0 || window_roll_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// full roll
+		if (window_hand_taps == window_roll_taps) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
+			window_itv_rolls.pop_front();
+		}
+
+		// this is slightly hacky buuut if we have a roll that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the rolling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_roll_counter > 0) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			consecutive_roll_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itvh.hand_taps);
+		window_itv_rolls.push_back(itv_rolls);
+
+		window_hand_taps = 0;
+		for (auto& n : window_itv_hand_taps)
+			window_hand_taps += n;
+
+		window_roll_taps = 0;
+		// for now just add everything up
+		for (auto& n : window_itv_rolls)
+			for (auto& v : n)
+				window_roll_taps += v;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = max_mod;
+		if (window_roll_taps > 0 && window_hand_taps > 0)
+			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
+							   static_cast<float>(window_hand_taps));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+
+		interval_reset();
+	}
+
+	// may be unneeded for this function but it's probably good practice to have
+	// this and always reset anything that needs to be on handling case
+	// optimizations, even if the case optimizations don't require us to reset
+	// anything
+	inline void interval_reset() { itv_rolls.clear(); }
+};
+// almost identical to wrr, refer to comments there
+struct OHTrillMod
+{
+	const CalcPatternMod _pmod = OHTrill;
+	const std::string name = "OHTrillMod";
+
+#pragma region params
+	float itv_window = 2;
+
+	float min_mod = 0.5f;
+	float max_mod = 1.f;
+	float mod_pool = 1.25f;
+
+	float moving_cv_init = 0.5f;
+	float trill_cv_cutoff = 0.25f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_pool", &mod_pool },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "trill_cv_cutoff", &trill_cv_cutoff },
+	};
+#pragma endregion params and param map
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_trills;
+
+	vector<int> itv_trills;
+
+	bool trilling = false;
+	// dunno if we want this for ohts
+	// bool is_transition = false;
+	int consecutive_trill_counter = 0;
+
+	int window_hand_taps = 0;
+	int window_trill_taps = 0;
+	float pmod = min_mod;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	float moving_cv = moving_cv_init;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void reset_sequence()
+	{
+		// only need to do this if trilling, otherwise values are false/0 anyway
+		if (trilling) {
+			itv_trills.push_back(consecutive_trill_counter);
+			trilling = false;
+			consecutive_trill_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	inline bool handle_trill_timing_check()
+	{
+		// the primary difference from wrr, just check cv on the base ms values,
+		// we are looking for values that are all close together with no
+		// manipulation
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < trill_cv_cutoff;
+	}
+
+	inline void update_seq_ms(const metaHandInfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// only let these cases through, don't need cc_single_single like wrr
+		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for trills (cc -> inverted(cc) -> cc)
+			if (now.mt == meta_oht && handle_trill_timing_check()) {
+				++consecutive_trill_counter;
+				if (!trilling) {
+					// boost slightly because we want to pick up minitrills
+					// maybe
+					++consecutive_trill_counter;
+					trilling = true;
+				}
+			}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	{
+		// no taps, no trills
+		if (window_hand_taps == 0 || window_trill_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// full oht
+		if (window_hand_taps == window_trill_taps) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
+			window_itv_trills.pop_front();
+		}
+
+		// this is slightly hacky buuut if we have a trill that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the trilling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_trill_counter > 0) {
+			itv_trills.push_back(consecutive_trill_counter);
+			consecutive_trill_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itvh.hand_taps);
+		window_itv_trills.push_back(itv_trills);
+
+		window_hand_taps = 0;
+		for (auto& n : window_itv_hand_taps)
+			window_hand_taps += n;
+
+		window_trill_taps = 0;
+		// for now just add everything up
+		for (auto& n : window_itv_trills)
+			for (auto& v : n)
+				window_trill_taps += v;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = max_mod;
+		if (window_trill_taps > 0 && window_hand_taps > 0)
+			pmod = mod_pool - (static_cast<float>(window_trill_taps - 4) /
+							   static_cast<float>(window_hand_taps * 4));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+
+		interval_reset();
+	}
+
+	inline void interval_reset() { itv_trills.clear(); }
+};
+// placeholder
+struct ChaosMod
+{
+	const CalcPatternMod _pmod = Chaos;
+	const std::string name = "ChaosMod";
+
+#pragma region params
+	float itv_window = 1;
+
+	float min_mod = 0.5f;
+	float max_mod = 1.0f;
+	float mod_pool = 1.25f;
+
+	float moving_cv_init = 0.5f;
+	float roll_cv_cutoff = 0.4f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_pool", &mod_pool },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "roll_cv_cutoff", &roll_cv_cutoff },
+	};
+#pragma endregion params and param map
+
+	// window is currently 1 for local mod
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_rolls;
+
+	// each element is a discrete roll formation with this many taps
+	// (technically it has this many taps + 4 because it requires 1212 or
+	// 2121 to start counting, but that's fine, that's what we want and if
+	// it seems better to add later we can do that
+	vector<int> itv_rolls;
+
+	// unlike ccacc, which has a half baked implementation for chains of
+	// 122112211221, we will actually be responsible and sequence both the
+	// number of rolls and the notes contained therein
+	bool rolling = false;
+	bool is_transition = false;
+	int consecutive_roll_counter = 0;
+
+	int window_hand_taps = 0;
+	// for now we will be lazy and just add up the number of roll taps in any
+	// roll, if we leave out the initialization taps (the 4 required to identify
+	// the start) we will greatly reduce the effect of short roll bursts, not
+	// sure if this is desired behavior
+	int window_roll_taps = 0;
+	float pmod = min_mod;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	// should rename as it resets or completes a sequence... maybe should go
+	// look at rm_sequencing again and make roll_sequencing.. idk
+	inline void reset_sequence()
+	{
+		// only need to do this if rolling, otherwise values are false/0 anyway
+		if (rolling) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			rolling = false;
+			consecutive_roll_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// copied from wrjt, definitely needs to be tracked in metanoteinfo
+	inline bool detecc_ccacc(const metaHandInfo& now)
+	{
+		if (now.cc == cc_single_single)
+			return false;
+
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, since
+	// oht will need this as well, or we could be lazy and do it twice just this
+	// once
+	inline bool detecc_roll(const metaHandInfo& now)
+	{
+		// we allow this through up to here due to transition checks
+		if (now.cc == cc_single_single)
+			return false;
+
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, there are no jumps and no anchors. this
+		// means they are all either cc_left_right, cc_right_left
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyx, meaning last would be the inverion of now
+		if (invert_cc(now.cc) == last_seen_cc)
+			// now make sure that last_last is the same as now
+			if (now.cc == last_last_seen_cc)
+				// we now have 1212 or 2121
+				return true;
+		return false;
+	}
+
+	inline bool handle_roll_timing_check()
+	{
+		// see ccacc timing check in wrjt for explanations, it's basically the
+		// same but we have to invert the multiplication depending on which
+		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
+		// a roll in an editor to see why)
+
+		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
+		// doesn't interfere with the next round
+		if (seq_ms[0] > seq_ms[1]) {
+			seq_ms[1] *= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] /= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		} else {
+			// same thing but divide
+			seq_ms[1] /= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] *= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		}
+	}
+
+	inline void update_seq_ms(const metaHandInfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now, we have no anchors, so always use cc_ms_any (although we
+		// want to move this to cc_ms_no_jumps when that gets implemented, since
+		// a separate jump inclusive mod should be made to handle those cases
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// only let these cases through, since we use invert_cc, anchors are
+		// screened out later, reset otherwise
+		if (now.cc != cc_left_right && now.cc != cc_right_left) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for rolls (cc -> inverted(cc) -> cc)
+			// now.mt == meta_oht (works in trill idk wtf, but it isn't working
+			// here?)
+			if (detecc_roll(now) && handle_roll_timing_check()) {
+				if (rolling) {
+					// these should always be mutually exclusive
+					++consecutive_roll_counter;
+				} else {
+					// we could increase the roll counter here, but really
+					// all we have now is a minitrill, so lets see if it
+					// extends to at least 5 notes before doing anything
+					rolling = true;
+				}
+				// only reset here if this fails and a transition wasn't
+				// detected, if we reset here we have to assign seq_ms[2] again,
+				// yes this is asofgasfjasofdj messy
+			}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	{
+		// no taps, no rolls
+		if (window_hand_taps == 0 || window_roll_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// full roll
+		if (window_hand_taps == window_roll_taps) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		neutral_set(_pmod, doot, i);
+		return;
+
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
+			window_itv_rolls.pop_front();
+		}
+
+		// this is slightly hacky buuut if we have a roll that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the rolling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_roll_counter > 0) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			consecutive_roll_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itvh.hand_taps);
+		window_itv_rolls.push_back(itv_rolls);
+
+		window_hand_taps = 0;
+		for (auto& n : window_itv_hand_taps)
+			window_hand_taps += n;
+
+		window_roll_taps = 0;
+		// for now just add everything up
+		for (auto& n : window_itv_rolls)
+			for (auto& v : n)
+				window_roll_taps += v;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = max_mod;
+		if (window_roll_taps > 0 && window_hand_taps > 0)
+			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
+							   static_cast<float>(window_hand_taps));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+
+		interval_reset();
+	}
+
+	// may be unneeded for this function but it's probably good practice to have
+	// this and always reset anything that needs to be on handling case
+	// optimizations, even if the case optimizations don't require us to reset
+	// anything
+	inline void interval_reset() { itv_rolls.clear(); }
+};
+struct RunningManMod
+{
+	const CalcPatternMod _pmod = RanMan;
+	const vector<CalcPatternMod> _dbg{ RanLen,		RanAnchLen, RanAnchLenMod,
+									   RanJack,		RanOHT,		RanOffS,
+									   RanPropAll,  RanPropOff, RanPropOHT,
+									   RanPropOffS, RanPropJack };
+	const std::string name = "RunningManMod";
+
+#pragma region params
+	float min_mod = 0.95f;
+	float max_mod = 1.35f;
+	float mod_base = 0.8f;
+	float min_anchor_len = 5.f;
+	float min_taps_in_rm = 1.f;
+	float min_off_taps_same = 1.f;
+
+	float total_prop_scaler = 1.f;
+	float total_prop_min = 0.f;
+	float total_prop_max = 1.f;
+
+	float off_tap_prop_scaler = 1.3f;
+	float off_tap_prop_min = 0.f;
+	float off_tap_prop_max = 1.25f;
+	float off_tap_prop_base = 0.05f;
+
+	float off_tap_same_prop_scaler = 1.f;
+	float off_tap_same_prop_min = 0.f;
+	float off_tap_same_prop_max = 1.25f;
+	float off_tap_same_prop_base = 0.25f;
+
+	float anchor_len_divisor = 2.5f;
+
+	float min_jack_taps_for_bonus = 1.f;
+	float jack_bonus_base = 0.1f;
+
+	float min_oht_taps_for_bonus = 1.f;
+	float oht_bonus_base = 0.1f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float max_oht_len = 2.f;
+	float max_off_spacing = 2.f;
+	float max_burst_len = 6.f;
+	float max_jack_len = 1.f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "min_anchor_len", &min_anchor_len },
+		{ "min_taps_in_rm", &min_taps_in_rm },
+		{ "min_off_taps_same", &min_off_taps_same },
+
+		{ "total_prop_scaler", &total_prop_scaler },
+		{ "total_prop_min", &total_prop_min },
+		{ "total_prop_max", &total_prop_max },
+
+		{ "off_tap_prop_scaler", &off_tap_prop_scaler },
+		{ "off_tap_prop_min", &off_tap_prop_min },
+		{ "off_tap_prop_max", &off_tap_prop_max },
+		{ "off_tap_prop_base", &off_tap_prop_base },
+
+		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
+		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
+		{ "off_tap_same_prop_max", &off_tap_same_prop_max },
+		{ "off_tap_same_prop_base", &off_tap_same_prop_base },
+
+		{ "anchor_len_divisor", &anchor_len_divisor },
+
+		{ "min_jack_taps_for_bonus", &min_jack_taps_for_bonus },
+		{ "jack_bonus_base", &jack_bonus_base },
+
+		{ "min_oht_taps_for_bonus", &min_oht_taps_for_bonus },
+		{ "oht_bonus_base", &oht_bonus_base },
+
+		// params for rm_sequencing
+		{ "max_oht_len", &max_oht_len },
+		{ "max_off_spacing", &max_off_spacing },
+		{ "max_burst_len", &max_burst_len },
+		{ "max_jack_len", &max_jack_len },
+	};
+#pragma endregion params and param map
+
+	// stuff for making mod
+	RM_Sequencing rms[2];
+	// longest sequence for this interval
+	RM_Sequencing rm;
+	float total_prop = 0.f;
+	float off_tap_prop = 0.f;
+	float off_tap_same_prop = 0.f;
+	float anchor_len_comp = 0.f;
+	float jack_bonus = 0.f;
+	float oht_bonus = 0.f;
+	float pmod = min_mod;
+	int test = 0;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		// don't try to figure out which column a prospective anchor is on, just
+		// run two passes with each assuming a different column
+		rms[0].anchor_col = col_left;
+		rms[1].anchor_col = col_right;
+		rms[0].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+		rms[1].set_params(
+		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+
+		doot[_pmod].resize(size);
+		if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// sequencing objects should be moved int mhi itself
+		for (auto& rm : rms)
+			rm(now);
+
+		// use the biggest anchor that has existed in this interval
+		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
+
+		if (rms[test].anchor_len > rm.anchor_len)
+			rm = rms[test];
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		if (debug_lmao) {
+			doot[RanLen][i] =
+			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+			doot[RanAnchLen][i] =
+			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
+			doot[RanAnchLenMod][i] = anchor_len_comp;
+			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
+			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
+			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
+			doot[RanPropAll][i] = total_prop;
+			doot[RanPropOff][i] = off_tap_prop;
+			doot[RanPropOffS][i] = off_tap_same_prop;
+			doot[RanPropOHT][i] = oht_bonus;
+			doot[RanPropJack][i] = jack_bonus;
+		}
+	}
+
+	inline bool handle_case_optimizations(const RM_Sequencing& rm,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// we could mni check for empty intervals like the other mods but it
+		// doesn't really matter and this is probably more useful for debug
+		// output
+
+		// we could decay in this but it may conflict/be redundant with how
+		// runningmen sequences are constructed, if decays are used we would
+		// probably generate the mod not from the highest of any interval, but
+		// from whatever sequences are still alive by the end
+		if (rm.anchor_len < min_anchor_len) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		} else if (rm.ran_taps < min_taps_in_rm) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		} else if (rm.off_taps_same < min_off_taps_same) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+		if (handle_case_optimizations(rm, doot, i)) {
+			set_dbg(doot, i);
+			rm.reset();
+			return;
+		}
+
+		// the pmod template stuff completely broke the js/hs/cj mods.. so..
+		// these might also be broken... investigate later
+
+		// taps in runningman / total taps in interval... i think? can't
+		// remember when i reset total taps tbh.. this might be useless
+		total_prop = pmod_prop(rm.ran_taps,
+							   rm.total_taps,
+							   total_prop_scaler,
+							   total_prop_min,
+							   total_prop_max);
+
+		// number anchor taps / number of non anchor taps
+		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
+										 rm.ran_taps,
+										 off_tap_prop_scaler,
+										 off_tap_prop_min,
+										 off_tap_prop_max,
+										 off_tap_prop_base),
+							   2.f);
+
+		// number of same hand off anchor taps / anchor taps, basically stuff is
+		// really hard when this is high (a value of 0.5 is a triplet every
+		// other anchor)
+		off_tap_same_prop = pmod_prop(rm.off_taps_same,
+									  rm.anchor_len,
+									  off_tap_same_prop_scaler,
+									  off_tap_same_prop_min,
+									  off_tap_same_prop_max,
+									  off_tap_same_prop_base);
+
+		// anchor length component
+		anchor_len_comp =
+		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
+
+		// jacks in anchor component, give a small bonus i guess
+		jack_bonus =
+		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.f;
+
+		// ohts in anchor component, give a small bonus i guess
+		// not done
+		oht_bonus =
+		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.f;
+
+		// we could scale the anchor to speed if we want but meh
+		// that's really complicated/messy/error prone
+		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
+		pmod = CalcClamp(
+		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
+		  min_mod,
+		  max_mod);
+
+		doot[_pmod][i] = pmod;
+		set_dbg(doot, i);
+
+		// reset interval highest when we're done
+		rm.reset();
+	}
+};
+// probably needs better debugoutput
+struct WideRangeJumptrillMod
+{
+	const CalcPatternMod _pmod = { WideRangeJumptrill };
+	const std::string name = "WideRangeJumptrillMod";
+
+#pragma region params
+	float itv_window = 3;
+
+	float min_mod = 0.25f;
+	float max_mod = 1.f;
+	float mod_base = 0.4f;
+
+	float moving_cv_init = 0.5f;
+	float ccacc_cv_cutoff = 0.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
+	};
+#pragma endregion params and param map
+	deque<int> itv_taps;
+	deque<int> itv_ccacc;
+
+	int ccacc_counter = 0;
+	int crop_circles = 0;
+	float pmod = min_mod;
+	int window_hand_taps = 0;
+	int window_ccacc = 0;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+	inline void reset_sequence()
+	{
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, if we
+	// could use this anywhere else
+	inline bool detecc_ccacc(const metaHandInfo& now)
+	{
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, and there are no jumps. this means they are
+		// all either cc_left_right, cc_right_left, or cc_single_single
+
+		// handle cc_single_single first, for now, lets throw it away
+		if (now.cc == cc_single_single)
+			return false;
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyyx, meaning last_last would be the inverion of now
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	inline bool handle_ccacc_timing_check()
+	{
+		// we don't want to suppress actual streams that use this pattern, so we
+		// will keep a fairly tight requirement on the ms variance
+
+		// we are currently assuming we have xyyx always, and are not interested
+		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
+		// we can do some pretty neat stuff
+
+		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
+		// right->left, seq_ms 1 will always be an anchor value, so,
+		// right->right for example. our interest is in hard nerfing long chains
+		// of xyyx patterns that won't get picked up by any of the roll scalers
+		// or balance scalers, but are still jumptrillable, for this condition
+		// to be true the anchor ms length has to be within a certain ratio of
+		// the cross column ms lengths, enabling the cross columns to be hit
+		// like jumptrilled flams, the optimal ratio for inflating nps is about
+		// 3:1, this is short enough that the nps boost is still high, but long
+		// enough that it doesn't become endless minijacking on the anchor
+		// given these conditions we can divide seq_ms[1] by 3 and cv check the
+		// array, with 2 identical values cc values, even if the anchor ratio
+		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
+		// is a sensible cutoff that should avoid punishing happenstances of
+		// this pattern in just regular files
+
+		// doing this would be a problem if we were to try to catch
+		// anchor/cc/anchor, since the altered anchor ms value would still exist
+		// in the sequence, but that maybe doesn't seem like a great idea
+		// anyway, so the value we alter will fall out of the array by the time
+		// we get here next
+
+		seq_ms[1] /= 3.f;
+
+		// this may be too fancy even though i'm trying to be not fancy.. update
+		// a basic moving window of the cv values and return true if it's below
+		// some cutoff, this will have the effect of giving a little lag time
+		// before the mod really kicks in
+		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+		return moving_cv < ccacc_cv_cutoff;
+	}
+
+	inline void update_seq_ms(const metaHandInfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now
+		// for anchors, track tc_ms
+		if (now.cc == cc_single_single)
+			seq_ms[2] = now.tc_ms;
+		// for cc_left_right or cc_right_left, track cc_ms
+		else
+			seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// reset if we hit a jump
+		if (now.col == col_ohjump) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff before checking/updating the sequence...
+		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
+		// it _actually_ works
+		update_seq_ms(now);
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for ccacc
+			if (detecc_ccacc(now))
+				// don't bother adding if the ms values look benign
+				if (handle_ccacc_timing_check())
+					++ccacc_counter;
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	{
+		// no taps, no ccacc
+		if (window_hand_taps == 0 || window_ccacc == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// cant happen with current logic but w.e
+		if (window_hand_taps == window_ccacc) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		// drop the oldest interval values if we have reached full size
+		if (itv_taps.size() == itv_window) {
+			itv_taps.pop_front();
+			itv_ccacc.pop_front();
+		}
+
+		itv_taps.push_back(itvh.hand_taps);
+		itv_ccacc.push_back(ccacc_counter);
+
+		if (ccacc_counter > 0)
+			++crop_circles;
+		else
+			--crop_circles;
+		if (crop_circles < 0)
+			crop_circles = 0;
+
+		for (auto& n : itv_taps)
+			window_hand_taps += n;
+
+		for (auto& n : itv_ccacc)
+			window_ccacc += n;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		pmod = static_cast<float>(window_hand_taps) /
+			   static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+
+		interval_reset();
+	}
+
+	inline void interval_reset()
+	{
+		// we could count these in metanoteinfo but let's do it here for now,
+		// reset every interval when finished
+		ccacc_counter = 0;
+	}
+};
+// if ccacc is cross column, anchor, cross column (1221) and we are looking for
+// (1212) then we are looking for cccccc where the inner cc is the inverse of
+// the outers, so we'll follow the rough model that wrjt setup, conveniently
+// the inner timing ratio to the outer timings should also be 3:1 when looking
+// for proper rolls, it would be 1:1 for ohts. given the much more efficient
+// new setup we can do roll detection and oht detection in separate passes
+// this is for PURE ROLLS ONLY, not rolls with maybe some jumps in it, that can
+// be done in another pass
+// refer to cccccc with an inverted center as "roll" formation, even though
+// technically it can either be roll or oht depending on spacing
+struct WideRangeRollMod
+{
+	const CalcPatternMod _pmod = WideRangeRoll;
+	const std::string name = "WideRangeRollMod";
+
+#pragma region params
+	float itv_window = 4;
+
+	float min_mod = 0.25f;
+	float max_mod = 1.f;
+	float mod_pool = 1.15f;
+
+	float moving_cv_init = 0.5f;
+	float roll_cv_cutoff = 0.25f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "itv_window", &itv_window },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_pool", &mod_pool },
+
+		{ "moving_cv_init", &moving_cv_init },
+		{ "roll_cv_cutoff", &roll_cv_cutoff },
+	};
+#pragma endregion params and param map
+	// taps for this hand only, we don't want to include offhand taps in
+	// determining whether this hand is a roll
+	deque<int> window_itv_hand_taps;
+	deque<vector<int>> window_itv_rolls;
+
+	// each element is a discrete roll formation with this many taps
+	// (technically it has this many taps + 4 because it requires 1212 or
+	// 2121 to start counting, but that's fine, that's what we want and if
+	// it seems better to add later we can do that
+	vector<int> itv_rolls;
+
+	// unlike ccacc, which has a half baked implementation for chains of
+	// 122112211221, we will actually be responsible and sequence both the
+	// number of rolls and the notes contained therein
+	bool rolling = false;
+	bool is_transition = false;
+	int consecutive_roll_counter = 0;
+
+	int window_hand_taps = 0;
+	// for now we will be lazy and just add up the number of roll taps in any
+	// roll, if we leave out the initialization taps (the 4 required to identify
+	// the start) we will greatly reduce the effect of short roll bursts, not
+	// sure if this is desired behavior
+	int window_roll_taps = 0;
+	float pmod = min_mod;
+
+	vector<float> seq_ms = { 0.f, 0.f, 0.f };
+	// uhhh lazy way out of tracking all the floats i think
+	float moving_cv = moving_cv_init;
+
+	// non-empty (cc_type is now always non-empty)
+	cc_type last_seen_cc = cc_init;
+	cc_type last_last_seen_cc = cc_init;
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		doot[_pmod].resize(size);
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	// should rename as it resets or completes a sequence... maybe should go
+	// look at rm_sequencing again and make roll_sequencing.. idk
+	inline void reset_sequence()
+	{
+		// only need to do this if rolling, otherwise values are false/0 anyway
+		if (rolling) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			rolling = false;
+			consecutive_roll_counter = 0;
+		}
+
+		last_seen_cc = cc_init;
+		last_last_seen_cc = cc_init;
+		for (auto& v : seq_ms)
+			v = 0.f;
+	}
+
+	// copied from wrjt, definitely needs to be tracked in metanoteinfo
+	inline bool detecc_ccacc(const metaHandInfo& now)
+	{
+		if (now.cc == cc_single_single)
+			return false;
+
+		if (invert_cc(now.cc) == last_last_seen_cc)
+			return true;
+
+		return false;
+	}
+
+	// should maybe move this into metanoteinfo and do the counting there, since
+	// oht will need this as well, or we could be lazy and do it twice just this
+	// once
+	inline bool detecc_roll(const metaHandInfo& now)
+	{
+		// we allow this through up to here due to transition checks
+		if (now.cc == cc_single_single)
+			return false;
+
+		// if we're here the following are true, we have a full sequence of 3 cc
+		// taps, they are non-empty, there are no jumps and no anchors. this
+		// means they are all either cc_left_right, cc_right_left
+
+		// now we know we have cc_left_right or cc_right_left, so, xy, we are
+		// looking for xyx, meaning last would be the inverion of now
+		if (invert_cc(now.cc) == last_seen_cc)
+			// now make sure that last_last is the same as now
+			if (now.cc == last_last_seen_cc)
+				// we now have 1212 or 2121
+				return true;
+		return false;
+	}
+
+	inline bool handle_roll_timing_check()
+	{
+		// see ccacc timing check in wrjt for explanations, it's basically the
+		// same but we have to invert the multiplication depending on which
+		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
+		// a roll in an editor to see why)
+
+		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
+		// doesn't interfere with the next round
+		if (seq_ms[0] > seq_ms[1]) {
+			seq_ms[1] *= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] /= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		} else {
+			// same thing but divide
+			seq_ms[1] /= 3.f;
+			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			seq_ms[1] *= 3.f;
+			return moving_cv < roll_cv_cutoff;
+		}
+	}
+
+	inline void update_seq_ms(const metaHandInfo& now)
+	{
+		seq_ms[0] = seq_ms[1]; // last_last
+		seq_ms[1] = seq_ms[2]; // last
+
+		// update now, we have no anchors, so always use cc_ms_any (although we
+		// want to move this to cc_ms_no_jumps when that gets implemented, since
+		// a separate jump inclusive mod should be made to handle those cases
+		seq_ms[2] = now.cc_ms_any;
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// do nothing for offhand taps
+		if (now.col == col_empty)
+			return;
+
+		// only let these cases through, since we use invert_cc, anchors are
+		// screened out later, reset otherwise
+		if (now.cc != cc_left_right && now.cc != cc_right_left &&
+			now.cc != cc_single_single) {
+			reset_sequence();
+			return;
+		}
+
+		// update timing stuff
+		update_seq_ms(now);
+
+		is_transition = false;
+		// try to catch simple transitions https:i.imgur.com/zhlBio0.png, given
+		// the constraints on ccacc we have to check last_cc for the anchor
+		if (now.last_cc == cc_single_single)
+			if (detecc_ccacc(now)) {
+				if (rolling) {
+					// don't care about any timing checks for the moment
+					is_transition = true;
+					++consecutive_roll_counter;
+				}
+			}
+
+		// check for a complete sequence
+		if (last_last_seen_cc != cc_init)
+			// check for rolls (cc -> inverted(cc) -> cc)
+			// now.mt == meta_oht (works in trill idk wtf)
+			if (detecc_roll(now) && handle_roll_timing_check()) {
+				if (rolling) {
+					// these should always be mutually exclusive
+					ASSERT(is_transition == false);
+					++consecutive_roll_counter;
+				} else {
+					// we could increase the roll counter here, but really
+					// all we have now is a minitrill, so lets see if it
+					// extends to at least 5 notes before doing anything
+					rolling = true;
+				}
+				// only reset here if this fails and a transition wasn't
+				// detected, if we reset here we have to assign seq_ms[2] again,
+				// yes this is asofgasfjasofdj messy
+			} else if (!is_transition) {
+				reset_sequence();
+				seq_ms[2] = now.cc_ms_any;
+			}
+
+		// update sequence
+		last_last_seen_cc = last_seen_cc;
+		last_seen_cc = now.cc;
+	}
+
+	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	{
+		if (window_hand_taps == 0 || window_roll_taps == 0) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		} else if (window_hand_taps == window_roll_taps) {
+			mod_set(_pmod, doot, i, min_mod);
+			return true;
+		}
+
+		return false;
+	}
+
+	inline void operator()(const ItvHandInfo& itvh,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		// drop the oldest interval values if we have reached full
+		// size
+		if (window_itv_hand_taps.size() == itv_window) {
+			window_itv_hand_taps.pop_front();
+			window_itv_rolls.pop_front();
+		}
+
+		// this is slightly hacky buuut if we have a roll that doesn't complete
+		// by the end of the interval, it should count for that interval, but we
+		// don't want the value to double up so we will reset the counter on
+		// interval end but _not_ reset the rolling bool, so it won't interfere
+		// with the detection as the sequencing passes into the next interval,
+		// and won't double up values
+		if (consecutive_roll_counter > 0) {
+			itv_rolls.push_back(consecutive_roll_counter);
+			consecutive_roll_counter = 0;
+		}
+
+		window_itv_hand_taps.push_back(itvh.hand_taps);
+		window_itv_rolls.push_back(itv_rolls);
+
+		window_hand_taps = 0;
+		for (auto& n : window_itv_hand_taps)
+			window_hand_taps += n;
+
+		window_roll_taps = 0;
+		// for now just add everything up
+		for (auto& n : window_itv_rolls)
+			for (auto& v : n)
+				window_roll_taps += v;
+
+		if (handle_case_optimizations(doot, i)) {
+			interval_reset();
+			return;
+		}
+
+		if (window_roll_taps > 0 && window_hand_taps > 0)
+			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
+							   static_cast<float>(window_hand_taps));
+
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+
+		interval_reset();
+	}
+
+	// may be unneeded for this function but it's probably good practice to have
+	// this and always reset anything that needs to be on handling case
+	// optimizations, even if the case optimizations don't require us to reset
+	// anything
+	inline void interval_reset() { itv_rolls.clear(); }
+};
+
+struct flam
+{
+	// cols seen
+	unsigned unsigned_unseen = 0;
+
+	// size in ROWS, not columns, if flam size == 1 we do not yet have a flam
+	// and we have no current relevant values in ms[], any that are set will be
+	// leftovers from the last sequence, this is to optimize out setting
+	// rowtimes or calculating ms times
+	int size = 1;
+
+	// size > 1, is this actually more efficient than calling a bool check func?
+	bool flammin = false;
+
+	// ms values, 3 ms values = 4 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[3] = {
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// is this row exclusively additive with the current flam sequence?
+	inline bool comma_comma_coolmeleon(const unsigned& notes)
+	{
+		return (unsigned_unseen & notes) == 0;
+	}
+
+	// to avoid keeping another float ??? idk
+	inline float get_dur()
+	{
+		// cba to loop
+		switch (size) {
+			case 1:
+				// can't have 1 row flams
+				ASSERT(1 == 0);
+			case 2:
+				return ms[0];
+				break;
+			case 3:
+				return ms[0] + ms[1];
+				break;
+			case 4:
+				return ms[0] + ms[1] + ms[2];
+				break;
+			default:
+				ASSERT(1 == 0);
+				break;
+		}
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		flammin = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		unsigned_unseen |= notes;
+
+		ASSERT(size < 5);
+
+		ms[size - 1] = ms_now;
+
+		// adjust size after setting ms, size starts at 1
+		++size;
+	}
+
+	inline void reset()
+	{
+		flammin = false;
+		size = 1;
+	}
+};
+
+// jk this is actually pretty optimized and even if it isn't it's like 0.03% of
+// samples
+struct FJ_Sequencing
+{
+	flam flim;
+
+	// scan for flam chords in this window
+	float group_tol = 0.f;
+	// tolerance for each column step
+	float step_tol = 0.f;
+	float mod_scaler = 0.f;
+
+	// number of flams
+	int flam_counter = 0;
+
+	// track up to 4 flams per interval, if the number of flams exceeds this
+	// number we'll just min_set (OR we could keep a moving array of flams, and
+	// not flams, which would make consecutive flams much more debilitating and
+	// interval proof the sequencing.. however.. it's probably not necessary to
+	// get that fancy
+
+	float mod_parts[4] = { 1.f, 1.f, 1.f, 1.f };
+
+	// there's too many flams already, don't bother with new sequencing and
+	// shortcut into a minset in flamjammod
+	// technically this means we won't start constructing sequences again until
+	// the next interval.. not sure if this is desired behavior
+	bool the_fifth_flammament = false;
+
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		group_tol = gt;
+		step_tol = st;
+		mod_scaler = ms;
+	}
+
+	inline void complete_seq()
+	{
+		ASSERT(flim.size > 1);
+		mod_parts[flam_counter] = construct_mod_part();
+		++flam_counter;
+
+		// bro its just flams
+		if (flam_counter > 4)
+			the_fifth_flammament = true;
+
+		flim.reset();
+	}
+
+	inline bool flammin_col_check(const unsigned& notes)
+	{
+		// this function should never be used to start a flam
+		ASSERT(flim.flammin);
+
+		// note : in order to prevent the last row of a quad flam from being
+		// elibible to start a new flam (logically it makes no sense), instead
+		// of catching full quads and resetting when we get them, we'll let them
+		// pass throgh into the next note row, no matter what the row is it will
+		// fail the xor check and be reset then, making only the row _after_ the
+		// full flam eligible for a new start
+
+		// valid continuation of flam
+		if (flim.comma_comma_coolmeleon(notes))
+			return true;
+		return false;
+	}
+
+	// check for anything that would break the sequence
+	inline bool flammin_tol_check(const float& ms_now)
+	{
+		// check if ms from last row is greater than the group tolerance
+		if (ms_now > group_tol)
+			return false;
+
+		// check if the new flam duration would exceed the group tolerance with
+		// the current row added
+		if (flim.get_dur() + ms_now > group_tol)
+			return false;
+
+		// we may be able to continue the sequence, run the col check
+		return true;
+	}
+
+	inline void operator()(const float& ms_now, const unsigned& notes)
+	{
+		// if we already have the max number of flams
+		// (maybe should remove this shortcut optimization)
+		// seems like we never even hit it so...
+		if (the_fifth_flammament)
+			return;
+
+		// haven't started, if we're under the step tolerance, start
+		if (!flim.flammin) {
+			// 99.99% of cases
+			if (ms_now > step_tol)
+				return;
+			else
+				flim.start(ms_now, notes);
+		} else {
+			// passed the tolerance checks, run the col checks
+			if (flammin_tol_check(ms_now)) {
+
+				// passed col check, advance flam
+				if (flammin_col_check(notes))
+					flim.grow(ms_now, notes);
+				else {
+					// we failed the col check, but we've passed the tol checks,
+					// which means this row is eligible to begin a new flam
+					// sequence, complete the one that exists and start again
+					complete_seq();
+					flim.start(ms_now, notes);
+				}
+			} else {
+				// reset if we exceed tolerance checks
+				complete_seq();
+			}
+		}
+	}
+
+	inline void reset()
+	{
+		// we probably don't want to do this, just let it build potential
+		// sequences across intervals
+		// flam.reset();
+
+		the_fifth_flammament = false;
+		flam_counter = 0;
+
+		// reset everything to 1, as we build flams we will replace 1 with < 1
+		// values, the more there are, the lower (stronger) the pattern mod
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part()
+	{
+		// total duration of flam
+		float dur = flim.get_dur();
+
+		// scale to size of flam, we want jumpflams to punish less than quad
+		// flams (while still downscaling jumptrill flams)
+		// flams that register as 95% of the size adjusted window will be
+		// punished less than those that register at 2%
+		float dur_prop = dur / group_tol;
+		dur_prop /= (static_cast<float>(flim.size) / mod_scaler);
+		dur_prop = CalcClamp(dur_prop, 0.f, 1.f);
+
+		return fastsqrt(dur_prop);
+	}
+};
+
+struct FlamJamMod
+{
+	const CalcPatternMod _pmod = FlamJam;
+	const std::string name = "FlamJamMod";
+
+#pragma region params
+	float min_mod = 0.5f;
+	float max_mod = 1.f;
+	float mod_scaler = 2.75f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float group_tol = 35.f;
+	float step_tol = 17.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_scaler", &mod_scaler },
+
+		// params for fj_sequencing
+		{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },
+	};
+#pragma endregion params and param map
+
+	// sequencer
+	FJ_Sequencing fj;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		fj.set_params(group_tol, step_tol, mod_scaler);
+
+		doot[_pmod].resize(size);
+		/*if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);*/
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaRowInfo& now)
+	{
+		fj(now.ms_now, now.notes);
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		//
+	}
+
+	inline bool handle_case_optimizations(const FJ_Sequencing& fj,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// no flams
+		if (fj.mod_parts[0] == 1.f)
+			neutral_set(_pmod, doot, i);
+
+		if (fj.the_fifth_flammament)
+			mod_set(_pmod, doot, i, min_mod);
+
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+		if (handle_case_optimizations(fj, doot, i)) {
+			// set_dbg(doot, i);
+			fj.reset();
+			return;
+		}
+
+		// water down single flams
+		pmod = 1.f;
+		for (auto& mp : fj.mod_parts)
+			pmod += mp;
+		pmod /= 5.f;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][i] = pmod;
+		// set_dbg(doot, i);
+
+		// reset flags n stuff
+		fj.reset();
+	}
+};
+
+// find [xx]a[yy]b[zz]
+struct the_slip
+{
+	// what caused us to slip
+	unsigned slip = 0;
+	// are we slipping
+	bool slippin_till_ya_slips_come_true = false;
+	// how far those whomst'd've been slippinging
+	int slide = 0;
+
+	// ms values, 4 ms values = 5 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[4] = {
+		0.f,
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// couldn't figure out how to make slip & slide work smh
+	inline bool the_slip_is_the_boot(const unsigned& notes)
+	{
+		switch (slide) {
+			// just started, need single note with no jack between our starting
+			// point and [23]
+			case 1:
+				// 1100 requires 0001
+				if (slip == 3 || slip == 7) {
+					if (notes == 8)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 1000
+				  if (notes == 1)
+					return true;
+				break;
+			case 2:
+				// has to be [23]
+				if (notes == 6)
+					return true;
+				break;
+			case 3:
+				// same as 1 but reversed
+
+				// 1100
+				// 0001
+				// 0110
+				// requires 1000
+				if (slip == 3 || slip == 7) {
+					if (notes == 1)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 0001
+				  if (notes == 8)
+					return true;
+				break;
+			case 4:
+				if (slip == 3 || slip == 7) {
+					// if we started on 1100, we end on 0011
+					if (notes == 12 || notes == 14)
+						return true;
+				} else
+				  // starting on 0011 ends on 1100
+				  if (notes == 3 || notes == 7 || notes == 4)
+					return true;
+				break;
+			default:
+				ASSERT(1 == 0);
+				break;
+		}
+		return false;
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		slip = notes;
+		slide = 0;
+		slippin_till_ya_slips_come_true = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		//ms[slide] = ms_now;
+		++slide;
+	}
+
+	inline void reset()
+	{
+		slippin_till_ya_slips_come_true = false;
+	}
+};
+
+// sort of the same concept as fj, slightly different implementation
+struct TT_Sequencing
+{
+	the_slip fizz;
+	int slip_counter = 0;
+	float mod_parts[4] = { 1.f, 1.f, 1.f, 1.f };
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		/*group_tol = gt;
+		step_tol = st;
+		mod_scaler = ms;*/
+	}
+
+	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	{
+		if (slip_counter < 5)
+			mod_parts[slip_counter] = construct_mod_part();
+		++slip_counter;
+
+		// any time we complete a slip we can start another slip, so just
+		// start again
+		fizz.start(ms_now, notes);
+	}
+
+	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
+	// singles
+	inline bool start_test(const unsigned& notes)
+	{
+		// either left hand jump or a hand containing left hand jump
+		// or right hand jump or a hand containing right hand jump
+		if (notes == 3 || notes == 7 || notes == 12 || notes == 14)
+			return true;
+		return false;
+	}
+
+	inline void operator()(const float& ms_now, const unsigned& notes)
+	{
+		// ignore quads
+		if (notes == 15) {
+			// reset if we are in a sequence
+			if (fizz.slippin_till_ya_slips_come_true)
+				fizz.reset();
+			return;
+		}
+
+		// haven't started
+		if (!fizz.slippin_till_ya_slips_come_true) {
+			// col check to start
+			if (start_test(notes))
+				fizz.start(ms_now, notes);
+			return;
+		} else {
+			// run the col checks for continuation
+			if (fizz.the_slip_is_the_boot(notes)) {
+				fizz.grow(ms_now, notes);
+				// we found... the thing
+				if (fizz.slide == 5)
+					complete_slip(ms_now, notes);
+			} else
+				// reset if we fail col check
+				fizz.reset();
+			return;
+		}
+		ASSERT(1 == 0);
+	}
+
+	inline void reset()
+	{
+		slip_counter = 0;
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part() { return 0.f; }
+};
+
+// the a things, they are there, we must find them...
+struct TheThingLookerFinderThing
+{
+	static const CalcPatternMod _pmod = TheThing;
+	const std::string name = "TheThingMod";
+
+#pragma region params
+	float min_mod = 0.15f;
+	float max_mod = 1.f;
+	float mod_scaler = 2.75f;
+
+	// params for rm_sequencing, these define conditions for resetting
+	// runningmen sequences
+	float group_tol = 35.f;
+	float step_tol = 17.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "mod_scaler", &mod_scaler },
+
+		// params for fj_sequencing
+		{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },
+	};
+#pragma endregion params and param map
+
+	// sequencer
+	TT_Sequencing tt;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		tt.set_params(group_tol, step_tol, mod_scaler);
+
+		doot[_pmod].resize(size);
+		/*if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);*/
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaRowInfo& now)
+	{
+		tt(now.ms_now, now.notes);
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		//
+	}
+
+	inline bool handle_case_optimizations(const TT_Sequencing& fj,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// nothing
+		// if (fj.mod_parts[0] == 1.f)
+		//	neutral_set(_pmod, doot, i);
+
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+
+		if (handle_case_optimizations(tt, doot, i)) {
+			// set_dbg(doot, i);
+			tt.reset();
+			return;
+		}
+
+		pmod = tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
+		pmod /= 4.f;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+		// set_dbg(doot, i);
+
+		// reset flags n stuff
+		tt.reset();
+	}
+};
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 	// debug stuff, tracks everything that was built
-	vector<vector<metanoteinfo>> _mni_dbg_vec1;
-	vector<vector<metanoteinfo>> _mni_dbg_vec2;
+	// vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
+	// vector<vector<metaHandInfo>> _mri_dbg_vec;
 
-	// for generic debugging, constructs a string with the pattern formation for
-	// a given interval
+	// for generic debugging, constructs a string with the pattern formation
+	// for a given interval
 	vector<std::string> _itv_row_string;
 
 	// basic data we need
+	vector<float>* _doots[num_hands];
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
-	vector<float>* _doot;
 	float _rate = 0.f;
-	unsigned _t1 = 0;
-	unsigned _t2 = 0;
+	int hand = 0;
 
-	// to produce these
-	unique_ptr<metanoteinfo> _mni_last;
-	unique_ptr<metanoteinfo> _mni_now;
-	metanoteinfo _dbg;
+	// to generate these
+
+	// keeps track of occurrences of basic row based sequencing, mostly for
+	// skilset detection, contains itvinfo as well, the very basic metrics used
+	// for detection
+	metaItvInfo _mitvi;
+
+	// meta row info keeps track of basic pattern sequencing as we scan down
+	// the notedata rows, we'll only generate and store objects for each row
+	// when dbg is flagged, otherwise we will recyle two pointers (we want
+	// each row to be able to "look back" at the meta info generated at the
+	// last row so the mhi generation requires the last generated mhi object
+	// as an arg
+	unique_ptr<metaRowInfo> _last_mri;
+	unique_ptr<metaRowInfo> _mri;
+	// metaRowInfo _mri_dbg;
+
+	// basic interval tracking data for hand dependent stuff, like itvinfo
+	ItvHandInfo _itvhi;
+
+	// meta hand info is the same as meta row info, however it tracks
+	// pattern progression on individual hands rather than on generic rows
+	unique_ptr<metaHandInfo> _last_mhi;
+	unique_ptr<metaHandInfo> _mhi;
+	// metaHandInfo _mhi_dbg;
 
 	// so we can make pattern mods
-	RunningManMod _rm;
-	WideRangeJumptrillMod _wrjt;
+	StreamMod _s;
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
+	CJQuadMod _cjq;
+	OHJumpMods _ohj;
+	RollMod _roll;
+	AnchorMod _anch;
+	OHTrillMod _oht;
+	ChaosMod _ch;
+	RunningManMod _rm;
+	WideRangeJumptrillMod _wrjt;
+	WideRangeRollMod _wrr;
+	FlamJamMod _fj;
+	TheThingLookerFinderThing _tt;
 
-	// we only care what last is, not what now is, this should work but it
-	// seems almost too clever but seems to work
-	inline void set_mni_last() { std::swap(_mni_last, _mni_now); }
-
-	inline void bazoink(const vector<NoteInfo>& ni)
+	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
-		load_params_from_disk();
-
-		// ok so the problem atm is the multithreading of songload, if we want
-		// to update the file on disk with new values and not just overwrite it
-		// we have to write out after loading the values player defined, so the
-		// quick hack solution to do that is to only do it during debug output
-		// generation, which is fine for the time being, though not ideal
+#ifndef RELWITHDEBINFO
+#if NDEBUG
+		load_calc_params_from_disk();
+#endif
+#endif
+		// ok so the problem atm is the multithreading of songload, if we
+		// want to update the file on disk with new values and not just
+		// overwrite it we have to write out after loading the values player
+		// defined, so the quick hack solution to do that is to only do it
+		// during debug output generation, which is fine for the time being,
+		// though not ideal
 		if (debug_lmao)
 			write_params_to_disk();
 
-		_mni_last = std::make_unique<metanoteinfo>();
-		_mni_now = std::make_unique<metanoteinfo>();
+		// setup our data pointers
+		_last_mri = std::make_unique<metaRowInfo>();
+		_mri = std::make_unique<metaRowInfo>();
+		_last_mhi = std::make_unique<metaHandInfo>();
+		_mhi = std::make_unique<metaHandInfo>();
 
-		// doesn't change with offset or anything
+		// doesn't change with offset or anything, and we may do
+		// multi-passes at some point
 		_ni = ni;
 	}
-
-	inline void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate,
-						   const unsigned int& t1,
-						   const unsigned int& t2,
-						   vector<float> doot[])
-	{
-		// change with offset, if we do multi offset passes we want this to
-		// be vars, but we aren't doing it now
-		_rate = rate;
-		_itv_rows = itv_rows;
-		_doot = doot;
-
-		// changes with hand
-		_t1 = t1;
-		_t2 = t2;
-
-		// run any setup functions for pattern mods, generally memory
-		// initialization and maybe some other stuff
-		run_pattern_mod_setups();
-
-		if (dbg) {
-			// asfasdfasjkldf, keep track by hand i guess, since values for
-			// hand dependent mods would have been overwritten without using
-			// a pushback, and pushing back 2 cycles of metanoteinfo into
-			// the same debug vector is kinda like... not good
-			// left hand stuffies
-			if (_t1 == col_ids[0]) {
-				_mni_dbg_vec1.resize(_itv_rows.size());
-				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
-					_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
-			} else {
-				// right hand stuffies
-				_mni_dbg_vec2.resize(_itv_rows.size());
-				for (size_t itv = 0; itv < _itv_rows.size(); ++itv)
-					_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
-			}
-		}
-
-		// above block is controlled in the struct def, this block is run if we
-		// are called from minacalcdebug, allocate the string thing, we can also
-		// force it
-		if (debug_lmao || dbg)
-			_itv_row_string.resize(_itv_rows.size());
-
-		// main interval loop, pattern mods values are produced in this outer
-		// loop using the data aggregated/generated in the inner loop
-		// all pattern mod functors should use i as an argument, since it needs
-		// to update the pattern mod holder at the proper index
-		// we end up running the hand independent pattern mods twice, but i'm
-		// not sure it matters? they tend to be low cost, this should be split
-		// up properly into hand dependent/independent loops if it turns out to
-		// be an issue
-		for (size_t itv = 0; itv < _itv_rows.size(); ++itv) {
-			// reset the last mni interval data, since it gets used to
-			// initialize now
-			_mni_last->interval_reset();
-
-			// inner loop
-			for (auto& row : _itv_rows[itv]) {
-				// ok we really should be doing separate loops for both
-				// hand/separate hand stuff, and this should be in the former
-				if (_t1 == col_ids[0])
-					if (debug_lmao || dbg) {
-						_itv_row_string[itv].append(note_map[_ni[row].notes]);
-						_itv_row_string[itv].append("\n");
-					}
-				if (debug_lmao)
-					std::cout << "\n" << _itv_row_string[itv] << std::endl;
-
-				// generate current metanoteinfo using stuff + last metanoteinfo
-				(*_mni_now)(
-				  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2, row);
-
-				// should be self explanatory
-				handle_row_dependent_pattern_advancement();
-
-				if (dbg) {
-					_dbg(*_mni_last,
-						 _ni[row].rowTime,
-						 _ni[row].notes,
-						 _t1,
-						 _t2,
-						 row,
-						 true);
-
-					// left hand stuffies
-					if (_t1 == col_ids[0])
-						_mni_dbg_vec1[itv].push_back(_dbg);
-					else
-						// right hand stuffies
-						_mni_dbg_vec2[itv].push_back(_dbg);
-				}
-
-				set_mni_last();
-			}
-			// pop the last \n for the interval
-			if (debug_lmao || dbg)
-				if (_t1 == col_ids[0])
-					if (!_itv_row_string[itv].empty())
-						_itv_row_string[itv].pop_back();
-
-			// set the pattern mod values by calling the mod functors
-			call_pattern_mod_functors(itv);
-		}
-	}
-
-	//// maybe overload for non-hand-specific?
+	/*
 	// inline void operator()(const vector<vector<int>>& itv_rows,
 	//					   const float& rate,
-	//					   vector<float> doot1[],
-	//					   vector<float> doot2[]){
+	//					   const unsigned int& t1,
+	//					   const unsigned int& t2,
+	//					   vector<float> doot[])
+	//{
+	//	// change with offset, if we do multi offset passes we want this to
+	//	// be vars, but we aren't doing it now
+	//	_rate = rate;
+	//	_itv_rows = itv_rows;
+	//	_doot = doot;
 
-	//};
+	//	// changes with hand
+	//	_t1 = t1;
+	//	_t2 = t2;
 
-#pragma region patternmod "loops"
-	// some pattern mod detection builds across rows, see rm_sequencing for an
-	// example
-	void handle_row_dependent_pattern_advancement()
+	//	// askdfjhaskjhfwe
+	//	if (_t1 == col_ids[0])
+	//		hand = 0;
+	//	else
+	//		hand = 1;
+
+	//	// run any setup functions for pattern mods, generally memory
+	//	// initialization and maybe some other stuff
+	//	run_pattern_mod_setups();
+
+	//	if (dbg) {
+	//		// asfasdfasjkldf, keep track by hand i guess, since values for
+	//		// hand dependent mods would have been overwritten without using
+	//		// a pushback, and pushing back 2 cycles of metanoteinfo into
+	//		// the same debug vector is kinda like... not good
+	//		if (hand == 0) {
+	//			// left hand stuffies
+	//			_mni_dbg_vec1.resize(_itv_rows.size());
+	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
+	//				_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
+	//		} else {
+	//			// right hand stuffies
+	//			_mni_dbg_vec2.resize(_itv_rows.size());
+	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
+	//				_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
+	//		}
+	//	}
+
+	//	// above block is controlled in the struct def, this block is run if
+	// we
+	//	// are called from minacalcdebug, allocate the string thing, we can
+	// also
+	//	// force it
+	//	if (debug_lmao || dbg)
+	//		_itv_row_string.resize(_itv_rows.size());
+
+	//	// main interval loop, pattern mods values are produced in this
+	// outer
+	//	// loop using the data aggregated/generated in the inner loop
+	//	// all pattern mod functors should use i as an argument, since it
+	// needs
+	//	// to update the pattern mod holder at the proper index
+	//	// we end up running the hand independent pattern mods twice, but
+	// i'm
+	//	// not sure it matters? they tend to be low cost, this should be
+	// split
+	//	// up properly into hand dependent/independent loops if it turns out
+	// to
+	//	// be an issue
+	//	for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+	//		// reset the last mni interval data, since it gets used to
+	//		// initialize now
+	//		_mni_last->_itv_info.reset();
+
+	//		// inner loop
+	//		for (auto& row : _itv_rows[itv]) {
+	//			// ok we really should be doing separate loops for both
+	//			// hand/separate hand stuff, and this should be in the
+	// former 			if (hand == 0) 				if (debug_lmao || dbg) {
+	//					_itv_row_string[itv].append(note_map[_ni[row].notes]);
+	//					_itv_row_string[itv].append("\n");
+	//				}
+	//			if (debug_lmao)
+	//				std::cout << "\n" << _itv_row_string[itv] << std::endl;
+
+	//			// generate current metanoteinfo using stuff + last
+	// metanoteinfo
+	//			(*_mhi)(
+	//			  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2,
+	// row);
+
+	//			// should be self explanatory
+	//			handle_row_dependent_pattern_advancement();
+
+	//			if (dbg) {
+	//				_dbg(*_mni_last,
+	//					 _ni[row].rowTime,
+	//					 _ni[row].notes,
+	//					 _t1,
+	//					 _t2,
+	//					 row,
+	//					 true);
+
+	//				// left hand stuffies
+	//				if (hand == 0)
+	//					_mni_dbg_vec1[itv].push_back(_dbg);
+	//				else
+	//					// right hand stuffies
+	//					_mni_dbg_vec2[itv].push_back(_dbg);
+	//			}
+
+	//			set_mni_last();
+	//		}
+	//		// pop the last \n for the interval
+	//		if (debug_lmao || dbg)
+	//			if (hand == 0)
+	//				if (!_itv_row_string[itv].empty())
+	//					_itv_row_string[itv].pop_back();
+
+	//		// set the pattern mod values by calling the mod functors
+	//		call_pattern_mod_functors(itv);
+	//	}
+	//	run_smoothing_pass();
+	//}
+	*/
+	inline void operator()(const vector<vector<int>>& itv_rows,
+						   const float& rate,
+						   vector<float> ldoot[],
+						   vector<float> rdoot[])
 	{
-		_rm.advance_sequencing(*_mni_now);
-		_wrjt.advance_sequencing(*_mni_now);
+		// set interval/offset pass specific stuff
+		_doots[lh] = ldoot;
+		_doots[rh] = rdoot;
+		_itv_rows = itv_rows;
+		_rate = rate;
+
+		run_agnostic_pmod_loop();
+		run_dependent_pmod_loop();
 	}
 
-	inline void run_pattern_mod_setups()
+#pragma region hand agnostic pmod loop
+	inline void advance_agnostic_sequencing()
 	{
+		_fj.advance_sequencing(*_mri);
+		_tt.advance_sequencing(*_mri);
+	}
+	inline void setup_agnostic_pmods()
+	{
+		// these pattern mods operate on all columns, only need basic meta
+		// interval data, and do not need any more advanced pattern
+		// sequencing
+		for (auto& a : _doots) {
+			_s.setup(a, _itv_rows.size());
+			_js.setup(a, _itv_rows.size());
+			_hs.setup(a, _itv_rows.size());
+			_cj.setup(a, _itv_rows.size());
+			_cjq.setup(a, _itv_rows.size());
+			_fj.setup(a, _itv_rows.size());
+			_tt.setup(a, _itv_rows.size());
+		}
+	}
+
+	inline void set_agnostic_pmods(vector<float> doot[], const int& itv)
+	{
+		// these pattern mods operate on all columns, only need basic meta
+		// interval data, and do not need any more advanced pattern
+		// sequencing just set only one hand's values and we'll copy them
+		// over (or figure out how not to need to) later
+		_s(_mitvi, doot);
+		_js(_mitvi, doot);
+		_hs(_mitvi, doot);
+		_cj(_mitvi, doot);
+		_cjq(_mitvi, doot);
+		_fj(doot, itv);
+		_tt(doot, itv);
+	}
+
+	inline void run_agnostic_smoothing_pass(vector<float> doot[])
+	{
+		Smooth(doot[_s._pmod], neutral);
+		Smooth(doot[_js._pmod], neutral);
+		Smooth(doot[_hs._pmod], neutral);
+		Smooth(doot[_cj._pmod], neutral);
+		Smooth(doot[_cjq._pmod], neutral);
+		Smooth(doot[_fj._pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
+	}
+
+	inline void run_agnostic_pmod_loop()
+	{
+		setup_agnostic_pmods();
+
+		// don't use s_init here, we know the first row is always 0.f and
+		// therefore the first interval starts at 0.f (unless we do offset
+		// passes but that's for later)
+		float row_time = 0.f;
+		int row_count = 0;
+		unsigned row_notes = 0;
+
+		// boop
+		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+			// reset any accumulated interval info and set cur index number
+			_mitvi.reset(itv);
+
+			// run the row by row construction for interval info
+			for (auto& row : _itv_rows[itv]) {
+				row_time = _ni[row].rowTime / _rate;
+				row_notes = _ni[row].notes;
+				row_count = column_count(row_notes);
+
+				(*_mri)(*_last_mri, _mitvi, row_time, row_count, row_notes);
+
+				advance_agnostic_sequencing();
+
+				// we only need to look back 1 metanoterow object, so we can
+				// swap the one we just built into last and recycle the two
+				// pointers instead of keeping track of everything
+				swap(_mri, _last_mri);
+			}
+
+			// run pattern mod generation for hand agnostic mods
+			set_agnostic_pmods(_doots[lh], itv);
+		}
+		run_agnostic_smoothing_pass(_doots[lh]);
+	}
+#pragma endregion
+
+#pragma region hand dependent pmod loop
+	// some pattern mod detection builds across rows, see rm_sequencing for
+	// an example, actually all sequencing should be done in objects
+	// following rm_sequencing's template and be stored in mhi, and then
+	// passed to whichever mods need them, but that's for later
+	inline void handle_row_dependent_pattern_advancement()
+	{
+		_ohj.advance_sequencing(*_mhi);
+		_roll.advance_sequencing(*_mhi);
+		_oht.advance_sequencing(*_mhi);
+		_rm.advance_sequencing(*_mhi);
+		_wrjt.advance_sequencing(*_mhi);
+		_wrr.advance_sequencing(*_mhi);
+	}
+
+	inline void setup_dependent_mods(vector<float> _doot[])
+	{
+		_ohj.setup(_doot, _itv_rows.size());
+		_anch.setup(_doot, _itv_rows.size());
+		_roll.setup(_doot, _itv_rows.size());
+		_oht.setup(_doot, _itv_rows.size());
+		_ch.setup(_doot, _itv_rows.size());
 		_rm.setup(_doot, _itv_rows.size());
-		_js.setup(_doot, _itv_rows.size());
-		_hs.setup(_doot, _itv_rows.size());
-		_cj.setup(_doot, _itv_rows.size());
+		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
 	}
 
-	inline void run_smoothing_pass()
+	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
-		_rm.smooth_finish(_doot);
-		_js.smooth_finish(_doot);
-		_hs.smooth_finish(_doot);
-		_cj.smooth_finish(_doot);
-		_wrjt.smooth_finish(_doot);
+		_ohj(_itvhi, doot, itv);
+		_anch(_itvhi, doot, itv);
+		_roll(_itvhi, doot, itv);
+		_oht(_itvhi, doot, itv);
+		_ch(_itvhi, doot, itv);
+		_rm(doot, itv);
+		_wrr(_itvhi, doot, itv);
+		_wrjt(_itvhi, doot, itv);
 	}
 
-	inline void call_pattern_mod_functors(const int& itv)
+	inline void run_dependent_smoothing_pass(vector<float> doot[])
 	{
-		_rm(*_mni_now, _doot, itv);
-		_js(*_mni_now, _doot, itv);
-		_hs(*_mni_now, _doot, itv);
-		_cj(*_mni_now, _doot, itv);
-		_wrjt(*_mni_now, _doot, itv);
+		// need to split upohj and cjohj into 2 pmod objects
+		Smooth(doot[OHJumpMod], neutral);
+		Smooth(doot[CJOHJump], neutral);
+		Smooth(doot[_anch._pmod], neutral);
+		Smooth(doot[_roll._pmod], neutral);
+		Smooth(doot[_oht._pmod], neutral);
+		Smooth(doot[_ch._pmod], neutral);
+		Smooth(doot[_rm._pmod], neutral);
+		Smooth(doot[_wrr._pmod], neutral);
+		Smooth(doot[_wrjt._pmod], neutral);
 	}
 
-	inline void load_params_from_disk()
+	inline void run_dependent_pmod_loop()
+	{
+		float row_time = 0.f;
+		int row_count = 0;
+		unsigned row_notes = 0;
+		bool col[2] = { false, false };
+
+		for (auto& ids : hand_col_ids) {
+			setup_dependent_mods(_doots[hand]);
+
+			// so we are technically doing this again (twice) and don't to
+			// be doing it, but it makes debugging much less of a pita if we
+			// aren't doing something like looping over intervals, running
+			// agnostic pattern mods, then looping over hands for dependent
+			// mods in the same interval, we may still want to do that or at
+			// least have an optional set for that in case a situation
+			// arises where something might need both types of info (we'd
+			// also need to have 2 itvhandinfo objects, or just for general
+			// performance (though the redundancy on this pass vs agnostic
+			// the pass is limited to like... a couple floats and 2 ints)
+
+			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+				// reset any accumulated interval info and set cur index
+				// number
+				_itvhi.reset(itv);
+
+				// run the row by row construction for interval info
+				for (auto& row : _itv_rows[itv]) {
+					row_time = _ni[row].rowTime / _rate;
+					row_notes = _ni[row].notes;
+					row_count = column_count(row_notes);
+
+					col[col_left] = row_notes & ids[col_left];
+					col[col_right] = row_notes & ids[col_right];
+
+					_itvhi.update_tap_counts(col[col_left], col[col_right]);
+					(*_mhi)(
+					  *_last_mhi, row_time, col[col_left], col[col_right]);
+
+					handle_row_dependent_pattern_advancement();
+
+					std::swap(_last_mhi, _mhi);
+				}
+				// just add up col taps to get hand taps i guess
+				_itvhi.set_hand_taps();
+
+				// run pattern mod generation for hand dependent mods
+				set_dependent_pmods(_doots[hand], itv);
+			}
+			run_dependent_smoothing_pass(_doots[hand]);
+
+			// ok this is pretty jank LOL, just increment the hand index
+			// when we finish left hand
+			++hand;
+		}
+	}
+#pragma endregion
+
+	inline void load_calc_params_from_disk()
 	{
 		std::string fn = calc_params_xml;
 		int iError;
@@ -3085,28 +5993,53 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile.get()))
 			return;
 
-		_rm.load_params_from_node(&params);
+		// ignore params from older versions
+		std::string vers = "";
+		params.GetAttrValue("vers", vers);
+		if (vers == "" || stoi(vers) != GetCalcVersion())
+			return;
+
+		_s.load_params_from_node(&params);
 		_js.load_params_from_node(&params);
 		_hs.load_params_from_node(&params);
 		_cj.load_params_from_node(&params);
+		_cjq.load_params_from_node(&params);
+		_ohj.load_params_from_node(&params);
+		_anch.load_params_from_node(&params);
+		_roll.load_params_from_node(&params);
+		_oht.load_params_from_node(&params);
+		_ch.load_params_from_node(&params);
+		_rm.load_params_from_node(&params);
+		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
+		_fj.load_params_from_node(&params);
 	}
 
 	inline XNode* make_param_node() const
 	{
 		XNode* calcparams = new XNode("CalcParams");
+		calcparams->AppendAttr("vers", GetCalcVersion());
 
-		calcparams->AppendChild(_rm.make_param_node());
+		calcparams->AppendChild(_s.make_param_node());
 		calcparams->AppendChild(_js.make_param_node());
 		calcparams->AppendChild(_hs.make_param_node());
 		calcparams->AppendChild(_cj.make_param_node());
+		calcparams->AppendChild(_cjq.make_param_node());
+		calcparams->AppendChild(_ohj.make_param_node());
+		calcparams->AppendChild(_anch.make_param_node());
+		calcparams->AppendChild(_roll.make_param_node());
+		calcparams->AppendChild(_oht.make_param_node());
+		calcparams->AppendChild(_ch.make_param_node());
+		calcparams->AppendChild(_rm.make_param_node());
+		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
+		calcparams->AppendChild(_fj.make_param_node());
 
 		return calcparams;
 	}
 #pragma endregion
 
-	void write_params_to_disk()
+	inline void write_params_to_disk()
 	{
 		std::string fn = calc_params_xml;
 		std::unique_ptr<XNode> xml(make_param_node());
@@ -3138,83 +6071,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			return false;
 	}
 
-	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
-										   { right_hand, { 4, 8 } } };
-
-	TheGreatBazoinkazoinkInTheSky ulbo;
-	ulbo.bazoink(NoteInfo);
-
-	// loop to help with hand specific stuff, we could do this stuff
-	// in the class but that's more structural work and this is
-	// simple
-	for (auto& hp : spoopy) {
-		auto& hand = hp.first;
-		const auto& fv = hp.second;
-
-		// these definitely do change with every chisel test
-		hand.stam_adj_diff.resize(numitv);
-
-		// initialize base difficulty and point values
-		// ok i know this is messy and the loop doesn't solve
-		// anything here and almost defeats the purpose but
-		// whatever, we need to do this before the pmods
-		if (fv[0] == 1) {
-			hand.InitBaseDiff(fingers[0], fingers[1]);
-			hand.InitPoints(fingers[0], fingers[1]);
-		} else {
-			hand.InitBaseDiff(fingers[2], fingers[3]);
-			hand.InitPoints(fingers[2], fingers[3]);
-		}
-		ulbo(nervIntervals, music_rate, fv[0], fv[1], hand.doot);
-		SetAnchorMod(NoteInfo, fv[0], fv[1], hand.doot);
-		SetSequentialDownscalers(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		WideRangeRollScaler(NoteInfo, fv[0], fv[1], music_rate, hand.doot);
-		// WideRangeJumptrillScaler(NoteInfo, fv[0], fv[1], music_rate,
-		// hand.doot);
-	}
-
-	// these are evaluated on all columns so right and left are the
-	// same these also may be redundant with updated stuff
-	SetStreamMod(NoteInfo, left_hand.doot, music_rate);
-	SetFlamJamMod(NoteInfo, left_hand.doot, music_rate);
-	TheThingLookerFinderThing(NoteInfo, music_rate, left_hand.doot);
-	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
-	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
-
-	vector<int> bruh_they_the_same = { StreamMod,		 Chaos,
-									   FlamJam,			 TheThing,
-									   WideRangeBalance, WideRangeAnchor };
-	// hand agnostic mods are the same
-	for (auto pmod : bruh_they_the_same)
-		right_hand.doot[pmod] = left_hand.doot[pmod];
-
-	// loop to help with hand specific stuff
-	for (auto& hp : spoopy) {
-		auto& hand = hp.first;
-		const auto& fv = hp.second;
-
-		// needs to be done after pattern mods are calculated
-		hand.InitAdjDiff();
-
-		// pattern mods and base msd never change, set degbug output
-		// for them now
-		if (debugmode) {
-			// 3 = number of different debug types
-			hand.debugValues.resize(3);
-			hand.debugValues[0].resize(ModCount);
-			hand.debugValues[1].resize(NUM_CalcDiffValue);
-			hand.debugValues[2].resize(NUM_CalcDebugMisc);
-
-			for (size_t i = 0; i < ModCount; ++i)
-				hand.debugValues[0][i] = hand.doot[i];
-
-			// set everything but final adjusted output here
-			for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
-				hand.debugValues[1][i] = hand.soap[i];
-		}
-	}
-
-	// werwerwer
+	// sequence jack immediately so we can ref pass & sort in calc
+	// msestimate without things going be wackying
 	for (auto m : zto3) {
 		jacks[m]->resize(4);
 		for (auto t : zto3) {
@@ -3226,19 +6084,82 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			// easier to keep them split by intervals in a double vector,
 			// this should maybe be changed?
 			stam_adj_jacks[t].resize(fingers[t].size());
-			for (size_t i = 0; i < fingers[t].size(); ++i)
+			for (int i = 0; i < fingers[t].size(); ++i)
 				stam_adj_jacks[t][i].resize(fingers[t][i].size());
+		}
+	}
+
+	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
+										   { right_hand, { 4, 8 } } };
+
+	TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all;
+	ulbu_that_which_consumes_all.recieve_sacrifice(NoteInfo);
+
+	// loop to help with hand specific stuff, we could do this stuff
+	// in the class but that's more structural work and this is
+	// simple
+	for (auto& hp : spoopy) {
+		auto& hand = hp.first;
+		const auto& fv = hp.second;
+
+		// these definitely do change with every chisel test
+		hand.stam_adj_diff.resize(numitv);
+	}
+
+	ulbu_that_which_consumes_all(
+	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
+
+	// these are evaluated on all columns so right and left are the
+	// same these also may be redundant with updated stuff
+	WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
+	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
+
+	vector<int> bruh_they_the_same = {
+		Stream,			JS, HS, CJ, CJQuad, FlamJam, TheThing, WideRangeBalance,
+		WideRangeAnchor
+	};
+	// hand agnostic mods are the same
+	for (auto pmod : bruh_they_the_same)
+		right_hand.doot[pmod] = left_hand.doot[pmod];
+
+	// do these last since calcmsestimate modifies the interval ms values of
+	// fingers with sort, anything that is derivative of those values that
+	// requires them to be in sequential order should be done before this
+	// point
+	left_hand.InitBaseDiff(fingers[0], fingers[1]);
+	left_hand.InitPoints(fingers[0], fingers[1]);
+	left_hand.InitAdjDiff();
+	right_hand.InitBaseDiff(fingers[2], fingers[3]);
+	right_hand.InitPoints(fingers[2], fingers[3]);
+	right_hand.InitAdjDiff();
+
+	// debug info loop
+	if (debugmode) {
+		for (auto& hp : spoopy) {
+			auto& hand = hp.first;
+
+			// pattern mods and base msd never change, set degbug output
+			// for them now
+
+			// 3 = number of different debug types
+			hand.debugValues.resize(3);
+			hand.debugValues[0].resize(ModCount);
+			hand.debugValues[1].resize(NUM_CalcDiffValue);
+			hand.debugValues[2].resize(NUM_CalcDebugMisc);
+
+			for (int i = 0; i < ModCount; ++i)
+				hand.debugValues[0][i] = hand.doot[i];
+
+			// set everything but final adjusted output here
+			for (int i = 0; i < NUM_CalcDiffValue - 1; ++i)
+				hand.debugValues[1][i] = hand.soap[i];
 		}
 	}
 	return true;
 }
 
-// DON'T refpass, since we manipulate the vector and this is done before
-// jackseq, if we shuffle stuff around so this is done after jackseq and
-// we're sure we don't need to use this for anything else we can probably
-// refpass again but cba to test atm
 float
-Hand::CalcMSEstimate(vector<float> input, int burp)
+Hand::CalcMSEstimate(vector<float>& input, const int& burp)
 {
 	static const bool dbg = false;
 
@@ -3261,20 +6182,15 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	// truncate if we have more values than what we care to sample, we're
 	// looking for a good estimate of the hardest part of this interval
 	// if above 1 and below used_ms_vals, fill up the stuff with dummies
+	// my god i was literally an idiot for doing what i was doing before
 	static const float ms_dummy = 360.f;
-	truncate_or_fill_to_size(input, num_used, ms_dummy);
 
 	// mostly try to push down stuff like jumpjacks, not necessarily to push
-	// up "complex" stuff
-	float cv_yo = cv(input) + 0.5f;
+	// up "complex" stuff (this will push up intervals with few fast ms
+	// values kinda hard but it shouldn't matter as their base ms diff
+	// should be extremely low
+	float cv_yo = cv_trunc_fill(input, burp, ms_dummy) + 0.5f;
 	cv_yo = CalcClamp(cv_yo, 0.5f, 1.25f);
-
-	sort(input.begin(), input.end());
-	float comb_cc = cv(input) + 1.f;
-
-	if (dbg && debug_lmao)
-		std::cout << "cv in: " << cv_yo << " : cv comb: " << comb_cc
-				  << std::endl;
 
 	if (dbg && debug_lmao) {
 		std::string moop = "";
@@ -3290,9 +6206,7 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 		std::cout << "cv : " << cv_yo << std::endl;
 
 	// basically doing a jank average, bigger m = lower difficulty
-	float m = 0.f;
-	for (auto& ms : input)
-		m += ms;
+	float m = sum_trunc_fill(input, burp, ms_dummy);
 
 	if (dbg && debug_lmao)
 		std::cout << "m : " << m << std::endl;
@@ -3301,7 +6215,7 @@ Hand::CalcMSEstimate(vector<float> input, int burp)
 	// same thing as jack stuff, convert to bpm and then nps
 	float bpm_est = ms_to_bpm(m / (num_used + 1));
 	float nps_est = bpm_est / 15.f;
-	float fdiff = nps_est * comb_cc;
+	float fdiff = nps_est * cv_yo;
 	if (dbg && debug_lmao)
 		std::cout << "diff : " << fdiff << std::endl;
 	return fdiff;
@@ -3312,10 +6226,10 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
 	static const bool dbg = false;
 
-	for (size_t i = 0; i < NUM_CalcDiffValue - 1; ++i)
+	for (int i = 0; i < NUM_CalcDiffValue - 1; ++i)
 		soap[i].resize(f1.size());
 
-	for (size_t i = 0; i < f1.size(); i++) {
+	for (int i = 0; i < f1.size(); i++) {
 
 		if (dbg && debug_lmao)
 			std::cout << "\ninterval : " << i << std::endl;
@@ -3323,27 +6237,28 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		// scaler for things with higher things
 		static const float higher_thing_scaler = 1.175f;
 		float nps = 1.6f * static_cast<float>(f1[i].size() + f2[i].size());
-		float left_difficulty =
-		  max(CalcMSEstimate(f1[i], 3),
-			  CalcMSEstimate(f1[i], 4) * higher_thing_scaler);
-		left_difficulty = max(left_difficulty,
-							  CalcMSEstimate(f1[i], 5) * higher_thing_scaler *
-								higher_thing_scaler);
-		float right_difficulty =
-		  max(CalcMSEstimate(f2[i], 3),
-			  CalcMSEstimate(f2[i], 4) * higher_thing_scaler);
-		right_difficulty = max(right_difficulty,
-							   CalcMSEstimate(f2[i], 5) * higher_thing_scaler *
-								 higher_thing_scaler);
+
+		auto do_diff_thingy = [this](vector<float>& input,
+									 const float& scaler) {
+			float mwerp = CalcMSEstimate(input, 3);
+			if (input.size() > 3)
+				mwerp = max(mwerp, CalcMSEstimate(input, 4) * scaler);
+			if (input.size() > 4)
+				mwerp = max(mwerp, CalcMSEstimate(input, 5) * scaler * scaler);
+			return mwerp;
+		};
+
+		float left_diff = do_diff_thingy(f1[i], higher_thing_scaler);
+		float right_diff = do_diff_thingy(f1[i], higher_thing_scaler);
 
 		float difficulty = 0.f;
 		float squiggly_line = 5.5f;
-		if (left_difficulty > right_difficulty)
-			difficulty = weighted_average(
-			  left_difficulty, right_difficulty, squiggly_line, 9.f);
+		if (left_diff > right_diff)
+			difficulty =
+			  weighted_average(left_diff, right_diff, squiggly_line, 9.f);
 		else
-			difficulty = weighted_average(
-			  right_difficulty, left_difficulty, squiggly_line, 9.f);
+			difficulty =
+			  weighted_average(right_diff, left_diff, squiggly_line, 9.f);
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
 		soap[BaseMSD][i] =
@@ -3417,34 +6332,6 @@ Calc::Chisel(float player_skill,
 						  JackLoss(player_skill, 3, max_points_lost, stamina)));
 					gotpoints -= jloss;
 				} else {
-					/*	static const float literal_black_magic = 0.85f;
-						if (ss == Skill_Technical) {
-							float bzz = 0.f;
-							float bz0 =
-							  JackLoss((player_skill * literal_black_magic
-					   ), 0, max_points_lost, stamina) * 3.f; float bz1 =
-							  JackLoss((player_skill * literal_black_magic),
-									   1,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-							float bz2 =
-							  JackLoss((player_skill * literal_black_magic),
-									   2,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-							float bz3 =
-							  JackLoss((player_skill * literal_black_magic),
-									   3,
-									   max_points_lost,
-									   stamina) +
-							  bz0;
-
-							bzz = mean(vector<float>{ bz1, bz2, bz3 });
-							gotpoints += bzz / 3.f;
-						}*/
-
 					left_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
 
@@ -3517,13 +6404,14 @@ Hand::InitAdjDiff()
 
 		// stream
 		{
-		  StreamMod,
+		  Stream,
+		  OHTrill,
 		  Roll,
 		  Chaos,
 		  WideRangeRoll,
 		  WideRangeJumptrill,
 		  FlamJam,
-		  OHJump,
+		  OHJumpMod,
 		  Anchor,
 		  WideRangeBalance,
 		},
@@ -3532,7 +6420,7 @@ Hand::InitAdjDiff()
 		{
 		  JS,
 		  Chaos,
-		  OHJump,
+		  OHJumpMod,
 		  TheThing,
 		  Anchor,
 		  WideRangeBalance,
@@ -3542,7 +6430,7 @@ Hand::InitAdjDiff()
 		{
 		  HS,
 		  Chaos,
-		  OHJump,
+		  OHJumpMod,
 		  TheThing,
 		  Anchor,
 		  WideRangeBalance,
@@ -3558,7 +6446,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  FlamJam,
-		  OHJump,
+		  OHJumpMod,
 		  CJOHJump,
 		  CJQuad,
 		  WideRangeBalance,
@@ -3567,17 +6455,17 @@ Hand::InitAdjDiff()
 		// chordjack
 		{
 		  CJ,
-		  CJQuad,
-		  CJOHJump,
 		  Anchor,
 		  WideRangeBalance,
+		  WideRangeAnchor,
 		},
 
 		// tech, duNNO wat im DOIN
 		{
+		  OHTrill,
 		  Anchor,
 		  Roll,
-		  OHJump,
+		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
 		  WideRangeBalance,
@@ -3588,16 +6476,13 @@ Hand::InitAdjDiff()
 
 	};
 
-	vector<float> scoring_justice_warrior_agenda(NUM_Skillset - 1);
-
-	// why can't i do this in the function that calls this?
 	for (int i = 0; i < NUM_Skillset; ++i) {
 		base_adj_diff[i].resize(soap[BaseNPS].size());
 		base_diff_for_stam_mod[i].resize(soap[BaseNPS].size());
 	}
 
 	// ok this loop is pretty wack i know, for each interval
-	for (size_t i = 0; i < soap[BaseNPS].size(); ++i) {
+	for (int i = 0; i < soap[BaseNPS].size(); ++i) {
 		float tp_mods[NUM_Skillset] = {
 			1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f
 		};
@@ -3633,15 +6518,19 @@ Hand::InitAdjDiff()
 			stam_base = funk;
 			switch (ss) {
 				// do funky special case stuff here
+				case Skill_Stream:
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
+					break;
 
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /=
-					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJump][i]);
+					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJumpMod][i]);
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i]), 1.f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
@@ -3652,23 +6541,16 @@ Hand::InitAdjDiff()
 					stam_base =
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
+				case Skill_Chordjack:
+					adj_diff = (soap[BaseMSD][i] + soap[BaseNPS][i]) / 2.f *
+							   tp_mods[ss] * basescalers[ss] *
+							   fastsqrt(doot[CJQuad][i]);
+					break;
 				case Skill_Technical:
-					// AHAHAHHAAH DRUNK WITH POWER AHAHAHAHAHAAHAHAH
-					{
-						// for (int j = 0; j < NUM_Skillset - 1; ++j)
-						//	if (j == Skill_Stamina || j == Skill_Overall)
-						//		scoring_justice_warrior_agenda[j] = 0.f;
-						//	else
-						//		scoring_justice_warrior_agenda[j] =
-						// tp_mods[j];
-						// float muzzle = *std::max_element(
-						//  scoring_justice_warrior_agenda.begin(),
-						//  scoring_justice_warrior_agenda.end());
-						adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
-								   basescalers[ss] /
-								   fastsqrt(doot[WideRangeBalance][i]) /
-								   max(doot[CJ][i], 1.f);
-					}
+					adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
+							   basescalers[ss] /
+							   fastsqrt(doot[WideRangeBalance][i]) /
+							   max(fastpow(doot[CJ][i], 2.f), 1.f);
 					break;
 			}
 		}
@@ -3687,9 +6569,10 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 
 	// final difficulty values to use
 	const vector<float>& v = stam ? stam_adj_diff : base_adj_diff[ss];
-	float powindromemordniwop = 1.9f;
+	float powindromemordniwop = 1.7f;
 	if (ss == Skill_Chordjack)
-		powindromemordniwop = 2.f;
+		powindromemordniwop = 1.2f;
+
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
@@ -3699,19 +6582,21 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 		StamAdjust(x, ss, true);
 		debugValues[1][MSD] = stam_adj_diff;
 
-		for (size_t i = 0; i < v.size(); ++i) {
+		for (int i = 0; i < v.size(); ++i) {
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
-				float lostpoints = (pts - (pts * fastpow(x / v[i], 1.7f)));
+				float lostpoints =
+				  (pts - (pts * fastpow(x / v[i], powindromemordniwop)));
 				gotpoints -= lostpoints;
 				debugValues[2][PtLoss][i] = abs(lostpoints);
 			}
 		}
 	} else
-		for (size_t i = 0; i < v.size(); ++i)
+		for (int i = 0; i < v.size(); ++i)
 			if (x < v[i]) {
 				float pts = static_cast<float>(v_itvpoints[i]);
-				gotpoints -= (pts - (pts * fastpow(x / v[i], 1.7f)));
+				gotpoints -=
+				  (pts - (pts * fastpow(x / v[i], powindromemordniwop)));
 			}
 }
 
@@ -3736,7 +6621,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug)
-		for (size_t i = 0; i < base_diff.size(); i++) {
+		for (int i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
@@ -3749,7 +6634,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			debugValues[2][StamMod][i] = mod;
 		}
 	else
-		for (size_t i = 0; i < base_diff.size(); i++) {
+		for (int i = 0; i < base_diff.size(); i++) {
 			avs1 = avs2;
 			avs2 = base_diff[i];
 			mod += ((((avs1 + avs2) / 2.f) / (stam_prop * x)) - 1.f) / stam_mag;
@@ -3764,1357 +6649,6 @@ Hand::StamAdjust(float x, int ss, bool debug)
 #pragma endregion
 
 #pragma region PatternMods
-
-// since the calc skillset balance now operates on +- rather than
-// just - and then normalization, we will use this to depress the
-// stream rating for non-stream files. edit: ok technically this
-// should be done in the sequential pass however that's getting so
-// bloated and efficiency has been optimized enough we can just loop
-// through noteinfo sequentially a few times and it's whatever
-
-// the chaos mod is also determined here for the moment, which
-// pushes up polys and stuff... idk how it even works myself tbh its
-// a pretty hackjobjob
-void
-Calc::SetStreamMod(const vector<NoteInfo>& NoteInfo,
-				   vector<float> doot[],
-				   float music_rate)
-{
-	doot[StreamMod].resize(nervIntervals.size());
-	int last_col = -1;
-
-	float lasttime = -1.f;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int actual_jacks = 0;
-		unsigned int taps = 0;
-		unsigned int singletaps = 0;
-		set<float> whatwhat;
-		vector<float> whatwhat2;
-		for (int row : nervIntervals[i]) {
-			unsigned int notes = column_count(NoteInfo[row].notes);
-			taps += notes;
-
-			if (notes == 1 && NoteInfo[row].notes == last_col)
-				++actual_jacks;
-			if (notes == 1) {
-				++singletaps;
-				last_col = NoteInfo[row].notes;
-			}
-
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			float giraffeasaurus = curtime - lasttime;
-			// screen out large hits, it should be ok if this is a
-			// discrete cutoff, but i don't like it if
-			// (giraffeasaurus < 0.25f)
-			//	whatwhat.emplace(giraffeasaurus);
-
-			// instead of making another new mod, calculate the
-			// original and most basic chaos mod and apply it along
-			// with the new one for (size_t i = 0; i < notes; ++i)
-			//	whatwhat2.push_back(giraffeasaurus);
-			lasttime = curtime;
-		}
-
-		auto HE = [](float x) {
-			static const int HE = 9;
-			int this_is_a_counter = 0;
-			vector<float> o(2 * (HE - 2) + 1);
-			for (int i = 2; i < HE; ++i) {
-				o[this_is_a_counter] = (1000.f / i * static_cast<float>(x));
-				++this_is_a_counter;
-			}
-			o[this_is_a_counter] = 1000.f * static_cast<float>(x);
-			++this_is_a_counter;
-			for (int i = 2; i < HE; ++i) {
-				o[this_is_a_counter] = (1000.f * i * static_cast<float>(x));
-				++this_is_a_counter;
-			}
-			return o;
-		};
-		vector<vector<float>> hmmk;
-		// for (auto& e : whatwhat)
-		//	hmmk.emplace_back(HE(e));
-
-		// I'M SURE THERE'S AN EASIER/FASTER WAY TO DO THIS
-		float stub = 0.f;
-		// using something else for chaos for now
-		// compare each expanded sequence with every other
-		if (false) {
-			vector<float> mmbop;
-			set<int> uniqshare;
-			vector<float> biffs;
-			vector<float> awwoo;
-			for (size_t i = 0; i < hmmk.size() - 1; ++i) {
-				float zop = 0.f;
-				auto& a = hmmk[i];
-				// compare element i against all others
-				for (size_t j = i + 1; j < hmmk.size(); ++j) {
-					auto& b = hmmk[j]; // i + 1 - last
-					biffs.clear();
-					for (size_t pP = 0; pP < a.size(); ++pP) {
-						for (size_t vi = 0; vi < a.size(); ++vi) {
-							float hi = 0.f;
-							float lo = 0.f;
-							if (a[pP] > b[vi]) {
-								hi = a[pP];
-								lo = b[vi];
-							} else {
-								lo = a[pP];
-								hi = b[vi];
-							}
-							biffs.emplace_back(fastsqrt(hi / lo));
-						}
-					}
-
-					// not exactly correct naming but basically if
-					// hi/lo is close enough to 1 we can consider
-					// the two points an intersection between the
-					// respective quantization waves, the more
-					// intersections we pick up and the closer they
-					// are to 1 the more confident we are that what
-					// we have are duplicate quantizations, and the
-					// lower the final mod is
-					int under1 = 0;
-					float hair_scrunchy = 0.f;
-					for (auto& lul : biffs) {
-						if (lul < 1.05f) {
-							++under1;
-							// inverting; 1.05 values should produce
-							// a lower mod than 1.0s and since we
-							// are using this value as a divisor we
-							// need to flip it around
-							hair_scrunchy += 2.f - lul;
-						}
-					}
-					awwoo.clear();
-					for (auto& lul : biffs)
-						awwoo.emplace_back(
-						  1.f / static_cast<float>(hair_scrunchy + 1.f));
-					uniqshare.insert(under1);
-					// std::cout << "shared: " << under1 <<
-					// std::endl;
-				}
-				zop = mean(awwoo);
-				mmbop.push_back(zop);
-				// std::cout << "zope: " << zop << std::endl;
-			}
-			stub = mean(mmbop);
-			stub *= fastsqrt(static_cast<float>(uniqshare.size()));
-			// std::cout << "mmbop: " << stub << std::endl;
-
-			stub += 0.9f;
-			float test_chaos_merge_stuff = sqrt(0.9f + cv(whatwhat2));
-			test_chaos_merge_stuff =
-			  CalcClamp(test_chaos_merge_stuff, 0.975f, 1.025f);
-			stub =
-			  CalcClamp(fastsqrt(stub) * test_chaos_merge_stuff, 0.955f, 1.04f);
-			// std::cout << "uniq " << uniqshare.size() <<
-			// std::endl;
-		} else {
-			// can't compare if there's only 1 ms value
-			stub = 1.f;
-		}
-
-		// 1 tap is by definition a single tap
-		if (taps < 2) {
-			doot[StreamMod][i] = 1.f;
-			// doot[Chaos][i] = stub;
-		} else if (singletaps == 0) {
-			doot[StreamMod][i] = 0.8f;
-			// doot[Chaos][i] = stub;
-		} else {
-			// we're going to use this to downscale the stream
-			// skillset of anything that isn't stream, just a simple
-			// tap proportion for the moment but maybe if we need to
-			// do fancier sequential stuff we can, the only real
-			// concern are jack files registering as stream and that
-			// shouldn't be an issue because the amount of single
-			// taps required to do that to any effectual level would
-			// be unplayable
-
-			// we could also use this to push up stream files if we
-			// wanted to but i don't think that's advisable or
-			// necessary
-
-			// we want very light js to register as stream,
-			// something like jumps on every other 4th, so 17/19
-			// ratio should return full points, but maybe we should
-			// allow for some leeway in bad interval slicing this
-			// maybe doesn't need to be so severe, on the other
-			// hand, maybe it doesn'ting need to be not needing'nt
-			// to be so severe
-			float prop = static_cast<float>(singletaps + 1) /
-						 static_cast<float>(taps - 1) * 10.f / 7.f;
-			float creepy_pasta = CalcClamp(3.f - actual_jacks, 0.5f, 1.f);
-			doot[StreamMod][i] =
-			  CalcClamp(fastsqrt(prop * creepy_pasta), 0.8f, 1.0f);
-			// doot[Chaos][i] = stub;
-		}
-	}
-	for (auto& v : doot[Chaos])
-		if (debugmode) {
-			// std::cout << "butts: final " << v << std::endl;
-		}
-	if (SmoothPatterns) {
-		Smooth(doot[StreamMod], 1.f);
-		// Smooth(doot[Chaos], 1.f);
-		// Smooth(doot[Chaos], 1.f);
-	}
-}
-
-void
-Calc::SetAnchorMod(const vector<NoteInfo>& NoteInfo,
-				   unsigned int firstNote,
-				   unsigned int secondNote,
-				   vector<float> doot[])
-{
-	doot[Anchor].resize(nervIntervals.size());
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int lcol = 0;
-		int rcol = 0;
-		for (int row : nervIntervals[i]) {
-			if (NoteInfo[row].notes & firstNote)
-				++lcol;
-			if (NoteInfo[row].notes & secondNote)
-				++rcol;
-		}
-		bool anyzero = lcol == 0 || rcol == 0;
-		float bort = static_cast<float>(min(lcol, rcol)) /
-					 static_cast<float>(max(lcol, rcol));
-		bort = (0.3f + (1.f + (1.f / bort)) / 4.f);
-
-		//
-		bort = CalcClamp(bort, 0.9f, 1.1f);
-
-		doot[Anchor][i] = anyzero ? 1.f : bort;
-
-		fingerbias += (static_cast<float>(max(lcol, rcol)) + 2.f) /
-					  (static_cast<float>(min(lcol, rcol)) + 1.f);
-	}
-
-	if (SmoothPatterns)
-		Smooth(doot[Anchor], 1.f);
-}
-
-// downscales full rolls or rolly js, it looks explicitly for
-// consistent cross column timings on both hands; consecutive notes
-// on the same column will reduce the penalty 0.5-1 multiplier also
-// now downscales ohj because we don't want to run this loop too
-// often even if it makes code slightly clearer, i think, new ohj
-// scaler is the same as the last one but gives higher weight to
-// sequences of ohjumps 0.5-1 multipier
-void
-Calc::SetSequentialDownscalers(const vector<NoteInfo>& NoteInfo,
-							   unsigned int t1,
-							   unsigned int t2,
-							   float music_rate,
-							   vector<float> doot[])
-{
-	doot[Roll].resize(nervIntervals.size());
-	doot[OHJump].resize(nervIntervals.size());
-	doot[CJOHJump].resize(nervIntervals.size());
-	doot[OHTrill].resize(nervIntervals.size());
-	doot[Chaos].resize(nervIntervals.size());
-
-	// not sure if these should persist between intervals or not
-	// not doing so makes the pattern detection slightly more strict
-	// doing so will give the calc some context from the previous
-	// interval but might have strange practical consequences
-	// another major benefit of retaining last col from the previous
-	// interval is we don't have to keep resetting it and i don't
-	// like how that case is handled atm
-
-	vector<float> lr;
-	vector<float> rl;
-	float lasttime = 0.f;
-	float dswip = 0.f;
-	int lastcol = -1;
-	int lastsinglecol = -1;
-	static const float water_it_for_me = 0.05f;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// roll downscaler stuff
-		// this appears not to be picking up certain patterns in
-		// certain test files, reminder to investigate
-		int totaltaps = 0;
-
-		lr.clear();
-		rl.clear();
-
-		int ltaps = 0;
-		int rtaps = 0;
-		int dswap = 0;
-
-		// ohj downscaler stuff
-		int jumptaps = 0;	  // more intuitive to count taps in jumps
-		int max_jumps_seq = 0; // basically the biggest sequence of ohj
-		int cur_jumps_seq = 0;
-		bool newrow = true;
-		for (int row : nervIntervals[i]) {
-			//	if (debugmode && newrow)
-			//		std::cout << "new interval: " << i << " time: "
-			//				  << NoteInfo[row].rowTime / music_rate
-			//				  << " hand: " << t1 << std::endl;
-			newrow = false;
-			// if (debugmode)
-			//	std::cout << "new row" << std::endl;
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			totaltaps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			// as variation approaches 0 the effect of variation
-			// diminishes, e.g. given 140, 140, 120 ms and 40, 40,
-			// 20 ms the variation in 40, 40, 20 is meaningless
-			// since they're all psuedo jumps anyway, but it will
-			// prevent the roll downscaler from being applied to the
-			// degree it should, so add a flat value to water down
-			// the effect
-			float bloaaap = water_it_for_me + curtime - lasttime;
-
-			// ignore jumps/no tapsals
-			if (!(lcol ^ rcol)) {
-				// fully skip empty rows, set nothing
-				if (!(lcol || rcol)) {
-					// if (debugmode)
-					//	std::cout << "empty row" << std::endl;
-					continue;
-				}
-
-				// if (debugmode)
-				//	std::cout << "jump" << std::endl;
-
-				// add jumptaps when hitting jumps for ohj
-				// turns out in order to catch rolls with periodic
-				// [12] jumps we need to actually count them as
-				// taps-inside-rolls rather than just ignoring them,
-				// and we can try kicking back an extra value into
-				// the lr or rl vectors since 1->[12] is technically
-				// a 1->2 and the difference in motion isn't
-				// appreciably different under the circumstances we
-				// are interested in
-				if (lcol && rcol) {
-					jumptaps += 2;
-					lastsinglecol = lastcol;
-					// on ohjumps treat the next note as always
-					// cross column
-					lastcol = -1;
-				}
-
-				// yes we want to set this for jumps
-				lasttime = curtime;
-
-				// iterate recent jumpsequence
-				++cur_jumps_seq;
-				// set the largest ohj sequence
-				max_jumps_seq =
-				  cur_jumps_seq > max_jumps_seq ? cur_jumps_seq : max_jumps_seq;
-				continue;
-			}
-			// reset cur_jumps_seq on hitting a single note
-			cur_jumps_seq = 0;
-
-			// if lcol is true and we are here we have 1 single tap
-			// and if lcol is true we are on column 0; don't try to
-			// be clever, even if lcol < rcol to convert bools into
-			// ints into a bool into an int worked it was needlessly
-			// confusing
-			int thiscol = lcol ? 0 : 1;
-
-			// ignore consecutive notes, if we encountered a one
-			// hand jump treat it as always being a column swap if
-			// (debugmode) std::cout << "lastcol is " << lastcol <<
-			// std::endl; if (debugmode) std::cout << "thiscol is "
-			// << thiscol << std::endl;
-			if (thiscol != lastcol || lastcol == -1) {
-				// treat 1[12]2 as different from 1[12]1, count the
-				// latter as an anchor and the former as a roll with
-				// 4 notes ok actually lets treat them the mostly
-				// same for the time being
-				if (lastcol == -1)
-					if (rcol) {
-						lr.push_back(bloaaap);
-						++ltaps;
-						++rtaps;
-					} else if (lcol) {
-						rl.push_back(bloaaap);
-						++ltaps;
-						++rtaps;
-					}
-
-				// this is the col we END on, so if we end on right,
-				// we are left to right, not right to left
-				if (rcol) {
-					lr.push_back(bloaaap);
-					++ltaps;
-					// if (debugmode)
-					// std::cout << "left right " << curtime -
-					// lasttime
-					//		  << std::endl;
-				} else if (lcol) {
-					rl.push_back(bloaaap);
-					++rtaps;
-					// if (debugmode)
-					// std::cout << "right to left " << curtime -
-					// lasttime
-					//		  << std::endl;
-				} else {
-					// if (debugmode)
-					// std::cout << "THIS CANT HAPPEN AAAAAAAAAAAAA"
-					// << std::endl;
-				}
-				// only log cross column lasttimes on single notes
-				lasttime = curtime;
-			} else {
-				// if (debugmode)
-				// std::cout << "anchor" << std::endl;
-				// consecutive notes should "poison" the current
-				// cross column vector but without shifting the
-				// proportional scaling too much this is to avoid
-				// treating 121212212121 too much like 121212121212
-
-				// if we wanted to be _super explicit_ we could just
-				// reset the lr/rl vectors when hitting a
-				// consecutive note (and/or jump), there are
-				// advantages to being hyper explicit but at the
-				// moment this does sort of pick up rolly js quite
-				// well, though it would probably be more
-				// responsible longterm to have an explicit roll
-				// detector an explicit trill detector, and an
-				// explicit rolly js detector thing is debugging all
-				// 3 and making sure they work as intended and in
-				// exclusion is just as hard as making a couple of
-				// more generic mods and accepting they will overlap
-				// in certain scenarios though again on the other
-				// hand explicit modifiers are easier to tune you
-				// just have to do a lot more of it
-				if (rcol)
-					lr.push_back(bloaaap);
-				else if (lcol)
-					rl.push_back(bloaaap);
-
-				// we have an anchor and we either have moderately
-				// complex patterning now or we have simply changed
-				// direction of the roll
-				++dswap;
-			}
-
-			// ohj downscaler stuff
-			// we know between the following that the latter is more
-			// difficult [12][12][12]222[12][12][12]
-			// [12][12][12]212[12][12][12]
-			// so we want to penalize not only any break in the ohj
-			// sequence but further penalize breaks which contain
-			// cross column taps this should also reflect the
-			// difference between [12]122[12], [12]121[12] cases
-			// like 121[12][12]212[12][12]121 should probably have
-			// some penalty but likely won't with this setup, but
-			// everyone hates that anyway and it would be quite
-			// difficult to force the current setup to do so without
-			// increasing complexity significantly (probably)
-
-			// edit, breaks in ohj sequences are implicitly
-			// penalized by a base nps loss, we don't need to do it
-			// again here as it basically shreds the modifiers for
-			// quadjacks with some hands sprinkled in
-			//	jumptaps -=
-			//	 1; // we're already on single notes, so just
-			// decrement
-			// a lil
-
-			// if we have a consecutive single tap, and the column
-			// swaps, NOW, shred the ohjump modifier
-			if (thiscol != lastcol && lastcol != -1) {
-				jumptaps -= 1;
-				//		if (debugmode)
-				//			std::cout << "removed jumptap, now: " <<
-				// jumptaps
-				//					  << std::endl;
-				//		if (debugmode)
-				//			std::cout << "last col is: " << lastcol
-				//					  << std::endl;
-				//		if (debugmode)
-				//			std::cout << "this col is: " << thiscol
-				//<<
-				// std::endl;
-			}
-			lastcol = thiscol;
-		}
-
-		/*
-		if (debugmode) {
-			std::string rarp = "left to right: ";
-
-			for (auto& a : lr) {
-				rarp.append(std::to_string(a - water_it_for_me));
-				rarp.append(", ");
-			}
-			rarp.append("\nright to left: ");
-
-			for (auto& b : rl) {
-				rarp.append(std::to_string(b - water_it_for_me));
-				rarp.append(", ");
-			}
-
-			std::cout << "" << rarp << std::endl;
-		}
-		*/
-
-		// I DONT KNOW OK
-		dswip = (dswip + dswap) / 2.f;
-		int cvtaps = ltaps + rtaps;
-
-		// if this is true we have some combination of single notes
-		// and jumps where the single notes are all on the same
-		// column
-		if (cvtaps == 0) {
-
-			//	if (debugmode)
-			//		std::cout << "cvtaps0: " << max_jumps_seq <<
-			// std::endl;
-
-			// we don't want to treat 2[12][12][12]2222
-			// 2222[12][12][12]2 differently, so use the
-			// max sequence here exclusively
-			if (max_jumps_seq > 0) {
-
-				// yea i thought we might need to tune ohj
-				// downscalers for js and cj slightly differently
-				doot[OHJump][i] =
-				  CalcClamp(pow(static_cast<float>(totaltaps) /
-								  (static_cast<float>(max_jumps_seq) * 2.5f),
-								2.f),
-							0.5f,
-							1.f);
-
-				// ohjumps in cj can be either easier or harder
-				// depending on context.. so we have to pull back a
-				// bit so it doesn't swing too far when it shouldn't
-				doot[CJOHJump][i] =
-				  CalcClamp(pow(static_cast<float>(totaltaps) /
-								  (static_cast<float>(max_jumps_seq) * 2.4f),
-								2.f),
-							0.6f,
-							1.f);
-				//	if (debugmode)
-				//		std::cout << "chohj: " << doot[CJOHJump][i]
-				//<<
-				// std::endl;
-			}
-
-			else { // single note longjacks, do nothing
-				   //	if (debugmode)
-				   //		std::cout << "zemod would be but wasn't:
-				   //" <<
-				   // zemod
-				   //				  << std::endl;
-				doot[OHJump][i] = 1.f;
-				doot[CJOHJump][i] = 1.f;
-			}
-
-			// no rolls here by definition
-			doot[Roll][i] = 0.9f;
-			doot[OHTrill][i] = 1.f;
-			continue;
-		}
-
-		float cvlr = 0.2f;
-		float cvrl = 0.2f;
-		if (lr.size() > 1)
-			cvlr = cv(lr);
-		if (rl.size() > 1)
-			cvrl = cv(rl);
-
-		// if (debugmode)
-		//	std::cout << "cv lr " << cvlr << std::endl;
-		// if (debugmode)
-		//	std::cout << "cv rl " << cvrl << std::endl;
-
-		// weighted average, but if one is empty we want it to skew
-		// high not low due to * 0
-		float Cv = ((cvlr * (ltaps + 1)) + (cvrl * (rtaps + 1))) /
-				   static_cast<float>(cvtaps + 2);
-
-		// if (debugmode)
-		//	std::cout << "cv " << Cv << std::endl;
-		float yes_trills = 1.f;
-
-		// check for oh trills
-		if (true) {
-			if (!lr.empty() && !rl.empty()) {
-
-				// ok this is SUPER jank but we added a flat amount
-				// to the ms values to water down the effects of
-				// variation, but that will negate the differential
-				// between the means of the two, so now we have to
-				// again subtract that amount from the ms values in
-				// the vectors
-				for (auto& v : lr)
-					v -= water_it_for_me;
-				for (auto& v : rl)
-					v -= water_it_for_me;
-
-				float no_trills = 1.f;
-				float mlr = mean(lr);
-				float mrl = mean(rl);
-				bool rl_is_higher = mlr < mrl;
-
-				// if the mean of one isn't much higher than the
-				// other, it's oh trills, so leave it alone, if it
-				// is, scale down the roll modifier by the oh
-				// trillyness, we don't want to affect that here
-				float div = rl_is_higher ? mrl / mlr : mlr / mrl;
-				div = CalcClamp(div, 1.f, 3.f);
-				// if (debugmode)
-				//	std::cout << "div " << div << std::endl;
-				no_trills = CalcClamp(1.75f - div, 0.f, 1.f);
-
-				// store high oh trill detection in case
-				// we want to do stuff with it later
-				yes_trills = CalcClamp(1.1f - div, 0.f, 1.f);
-				Cv += no_trills * 1.f; // just straight up add to cv
-			}
-		}
-
-		// cv = rl_is_higher ? (2.f * cv + cvrl) / 3.f : (2.f * cv +
-		// cvlr) / 3.f; if (debugmode) 	std::cout << "cv2 " << cv <<
-		// std::endl;
-		/*
-
-		// then scaled against how many taps we ignored
-
-		float barf = (-0.1f + (dswap * 0.1f));
-		barf += (barf2 - 1.f);
-		if (debugmode)
-			std::cout << "barf " << barf << std::endl;
-		cv += barf;
-		cv *= barf2;
-		cv = CalcClamp(cv, 0.f, 1.f);
-		if (debugmode)
-			std::cout << "cv3 " << cv << std::endl;
-		yes_trills *= barf;
-		*/
-
-		// we just want a minimum amount of variation to escape
-		// getting downscaled cap to 1 (it's not an inherently bad
-		// idea to upscale sets of patterns with high variation but
-		// we shouldn't do that here, probably)
-
-		float barf2 =
-		  static_cast<float>(totaltaps) / static_cast<float>(cvtaps);
-		float barf =
-		  0.25f +
-		  0.4f * (static_cast<float>(totaltaps) / static_cast<float>(cvtaps)) +
-		  dswip * 0.25f;
-
-		// some weird anchor problems can cause sqrt(-f) here so...
-		if (Cv > 0.000000000000000000000000000000001f) {
-			Cv = fastsqrt(Cv) - 0.1f;
-			Cv += barf;
-			Cv *= barf2;
-			doot[Roll][i] = CalcClamp(Cv, 0.5f, 1.f);
-		} else
-			doot[Roll][i] = 1.f;
-
-		doot[OHTrill][i] = CalcClamp(0.5f + fastsqrt(yes_trills), 0.8f, 1.f);
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[Roll][i] << "\n" <<
-		// std::endl;
-		// ohj stuff, wip
-		if (jumptaps < 1 && max_jumps_seq < 1) {
-			//		if (debugmode)
-			//			std::cout << "down to end but eze: " <<
-			// max_jumps_seq
-			//					  << std::endl;
-			doot[OHJump][i] = 1.f;
-			doot[CJOHJump][i] = 1.f;
-		} else {
-			// STANDARD OHJ
-			// for js we lean into max sequences more, since they're
-			// better indicators of inflated difficulty
-			float max_seq_component =
-			  0.65f * (1.125f - static_cast<float>(max_jumps_seq * 2.5) /
-								  static_cast<float>(totaltaps));
-			max_seq_component = CalcClamp(max_seq_component, 0.f, 0.65f);
-
-			float prop_component =
-			  0.35f * (1.2f - static_cast<float>(jumptaps) /
-								static_cast<float>(totaltaps));
-			prop_component = CalcClamp(prop_component, 0.f, 0.65f);
-
-			float base_ohj = max_seq_component + prop_component;
-			float ohj = fastsqrt(base_ohj);
-
-			doot[OHJump][i] = CalcClamp(0.1f + ohj, 0.5f, 1.f);
-
-			// CH OHJ
-			// we want both the total number of jumps and the max
-			// sequence to count here, with more emphasis on the max
-			// sequence, sequence should be multiplied by 2 (or
-			// maybe slightly more?)
-			max_seq_component =
-			  0.5f * fastsqrt(1.2f - static_cast<float>(max_jumps_seq * 2) /
-									   static_cast<float>(totaltaps));
-			max_seq_component =
-			  max_seq_component > 0.5f ? 0.5f : max_seq_component;
-
-			prop_component =
-			  0.5f * fastsqrt(1.2f - static_cast<float>(jumptaps) /
-									   static_cast<float>(totaltaps));
-			prop_component = prop_component > 0.5f ? 0.5f : prop_component;
-
-			float base_cjohj = 0.3f + max_seq_component + prop_component;
-			float cjohj = fastsqrt(base_cjohj);
-
-			//	if (debugmode)
-			//		std::cout << "jumptaps: "
-			//					  << jumptaps << std::endl;
-			//			if (debugmode)
-			//				std::cout << "maxseq: " << max_jumps_seq
-			//<<
-			// std::endl; 		if (debugmode) 			std::cout <<
-			// "total taps:
-			// "
-			// << totaltaps
-			//<< std::endl; 	if (debugmode) 		std::cout << "seq
-			// comp: " <<
-			// max_seq_component<< std::endl; if (debugmode)
-			// std::cout
-			// << "prop comp: " <<prop_component << std::endl; if
-			// (debugmode) std::cout << "actual prop: " << ohj
-			//					  << std::endl;
-			doot[CJOHJump][i] = CalcClamp(cjohj, 0.5f, 1.f);
-			// if (debugmode)
-			//	std::cout << "final mod: " << doot[OHJump][i] <<
-			//"\n" <<
-			// std::endl;
-		}
-	}
-
-	if (SmoothPatterns) {
-		Smooth(doot[Roll], 1.f);
-		Smooth(doot[Roll], 1.f);
-		Smooth(doot[OHTrill], 1.f);
-		Smooth(doot[OHJump], 1.f);
-		Smooth(doot[CJOHJump], 1.f);
-	}
-	// hack because i was sqrt'ing in calcinternal for js and hs
-	// for (auto& v : doot[OHJump])
-	//	v = fastsqrt(v);
-
-	// this is fugly but basically we want to negate any _bonus_
-	// from chaos if the polys are arranged in a giant ass roll
-	// formation for (size_t i = 0; i < doot[Chaos].size(); ++i)
-	//	doot[Chaos][i] = CalcClamp(doot[Chaos][i] * doot[Roll][i],
-	//							   doot[Chaos][i],
-	//							   max(doot[Chaos][i] *
-	// doot[Roll][i], 1.f));
-
-	// for (size_t i = 0; i < doot[Roll].size(); ++i)
-	//	doot[Roll][i] = CalcClamp(doot[Roll][i] * doot[OHTrill][i],
-	//							  0.4f,
-	//							  1.f);
-
-	return;
-}
-
-// ok new plan this takes a bunch of the concepts i tried with the
-// old didn't-work-so-well-roll-downscaler and utilizes them across
-// a wide range of intervals, making it more suited to picking up
-// and hammering long stretches of jumptrillable roll patterns, this
-// also apparently thinks every js and hs pattern in existence is
-// mashable too, probably because they are
-void
-Calc::WideRangeRollScaler(const vector<NoteInfo>& NoteInfo,
-						  unsigned int t1,
-						  unsigned int t2,
-						  float music_rate,
-						  vector<float> doot[])
-{
-	doot[WideRangeRoll].resize(nervIntervals.size());
-
-	static const float min_mod = 0.5f;
-	static const float max_mod = 1.035f;
-	unsigned int itv_window = 4;
-	deque<vector<int>> itv_array;
-	deque<vector<int>> itv_arrayTWO;
-	deque<int> itv_taps;
-	deque<int> itv_cv_taps;
-	deque<int> itv_single_taps;
-	vector<int> cur_vals;
-	vector<int> window_vals;
-	unordered_set<int> unique_vals;
-	vector<int> filtered_vals;
-	vector<int> lr;
-	vector<int> rl;
-
-	float lasttime = 0.f;
-	int lastcol = -1;
-	int lastsinglecol = -1;
-	int single_taps = 0;
-
-	// we could implement this like the roll scaler above, however
-	// this is to prevent /0 errors exclusively at the moment
-	// (because we are truncating extremely high bpm 192nd flams can
-	// produce 0 as ms), causing potenial nan's in the sd function
-	// we could look into using this for balance purposes as well
-	// but things look ok for the moment and it would likely be a
-	// large time sink without proper tests setup
-	static const int ms_add = 1;
-
-	// miss window seems like a reasonable cutoff, we don't want
-	// 1500 ms hits after long breaks to poison the pool
-	static const int max_ms_value = 180;
-	static const float mean_cutoff_factor = 1.7f;
-
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		int interval_taps = 0;
-		int ltaps = 0;
-		int rtaps = 0;
-		int single_taps = 0;
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_array.size() == itv_window) {
-			itv_array.pop_front();
-			itv_arrayTWO.pop_front();
-			itv_cv_taps.pop_front();
-			itv_taps.pop_front();
-			itv_single_taps.pop_front();
-		}
-
-		// clear the current interval value vectors
-		cur_vals.clear();
-		lr.clear();
-		rl.clear();
-
-		// if (debugmode)
-		//	std::cout << "new interval: " << i << std::endl;
-
-		for (int row : nervIntervals[i]) {
-			float curtime = NoteInfo[row].rowTime / music_rate;
-
-			// we don't want slight bpm variations to pollute too
-			// much stuff, especially if we are going to use unique
-			// values at some point (we don't currently), if we do
-			// and even single digit rounding becomes an issue we
-			// can truncate further up
-			int trunc_ms =
-			  static_cast<int>((curtime - lasttime) * 1000.f) + ms_add;
-
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-			if (lcol ^ rcol)
-				++single_taps;
-
-			// if (debugmode)
-			//	std::cout << "truncated ms value: " << trunc_ms <<
-			// std::endl;
-
-			// for expurrrmental thing for chaos thing
-			if (trunc_ms < max_ms_value)
-				cur_vals.push_back(trunc_ms - ms_add);
-
-			if (!(lcol ^ rcol)) {
-				if (!(lcol || rcol)) {
-					//	if (debugmode)
-					//		std::cout << "empty row" << std::endl;
-					continue;
-				}
-
-				// if (debugmode)
-				//	std::cout << "jump" << std::endl;
-
-				if (lcol && rcol) {
-					lastsinglecol = lastcol;
-					lastcol = -1;
-				}
-				lasttime = curtime;
-				continue;
-			}
-
-			int thiscol = lcol ? 0 : 1;
-			if (thiscol != lastcol || lastcol == -1) {
-				// handle ohjumps here, not above, because we only
-				// want to handle the last ohjump before an actual
-				// cross column, we don't want to handle long
-				// sequences of ohjumps inside rolls. technically
-				// they would be jumptrillable, but the point is to
-				// pick up _rolls_, we handle ohjumps elsewhere
-				// basically we treat ohjumps as they were either a
-				// cross column left or right, so that the roll
-				// detection still picks up rolls with ohjumps in
-				// them
-				if (lastcol == -1) {
-					// dump an extra value, cuz
-					if (rcol)
-						if (trunc_ms < max_ms_value)
-							lr.push_back(max_ms_value);
-					if (lcol)
-						if (trunc_ms < max_ms_value)
-							rl.push_back(max_ms_value);
-
-					// l vs r shouldn't matter here
-					++ltaps;
-					++rtaps;
-				}
-
-				if (rcol) {
-					if (trunc_ms < max_ms_value)
-						lr.push_back(trunc_ms);
-					++ltaps;
-				} else if (lcol) {
-					++rtaps;
-					if (trunc_ms < max_ms_value)
-						rl.push_back(trunc_ms);
-				}
-				lasttime = curtime;
-			} else {
-				// the idea here was to help boost anchored patterns
-				// but all it did was just buff rolls with frequent
-				// directional swaps and anchored patterns are
-				// already more or less fine possibly look into
-				// taking this out of the lower level roll scaler as
-				// well
-
-				//	if (trunc_ms < trunc_ms)
-				//		cur_vals.push_back(trunc_ms);
-			}
-
-			lastcol = thiscol;
-		}
-
-		itv_arrayTWO.push_back(cur_vals);
-
-		int cv_taps = ltaps + rtaps;
-		itv_taps.push_back(interval_taps);
-		itv_cv_taps.push_back(cv_taps);
-		itv_single_taps.push_back(single_taps);
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_cv_taps = 0;
-		for (auto& n : itv_cv_taps)
-			window_cv_taps += n;
-
-		unsigned int window_single_taps = 0;
-		for (auto& n : itv_single_taps)
-			window_single_taps += n;
-
-		// push current interval values into deque, there should
-		// always be space since we pop front at the start of the
-		// loop if there isn't
-		// k lets try just running the pass with the rolls (lower
-		// mean indicates the rolls are flowing in that direction,
-		// for patterns that aren't rolls this should be
-		// functionally insignificant
-		itv_array.push_back(mean(lr) < mean(rl) ? lr : rl);
-
-		// clear vectors before using them
-		window_vals.clear();
-		unique_vals.clear();
-		filtered_vals.clear();
-
-		unsigned int totalvalues = 0;
-		for (auto& v : itv_array)
-			totalvalues += v.size();
-
-		// the unique val is not really used at the moment,
-		// basically we filter out the vectors for stuff way outside
-		// the applicable range, like 500 ms hits that would
-		// otherwise throw off the variation estimations unique val
-		// is actually used for optimizing cases where you have
-		// absolute pure roll formation and you know youwant to
-		// slamjam it, there's probably a faster way to do the same
-		// thing but w.e for now
-		for (auto& v : itv_array)
-			for (auto& n : v) {
-				if (!unique_vals.count(n)) // 0.5% profiler
-					unique_vals.insert(n); // 1% profiler
-				window_vals.push_back(n);
-			}
-		float v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-
-		float f_mean = mean(filtered_vals);
-
-		// bigger the lower the proportion of cross column single
-		// taps i.e. more anchors this is kinda buggy atm and
-		// producing sub 1 values for ??? reasons, but i don't think
-		// it makes too much difference and i don't want to spend
-		// more time on it right now
-		float cv_prop = window_cv_taps == 0
-						  ? 1
-						  : static_cast<float>(window_taps) /
-							  static_cast<float>(window_cv_taps);
-
-		// bigger the lower the proportion of single taps to total
-		// taps i.e. more chords
-		float chord_prop = window_single_taps == 0
-							 ? 1
-							 : static_cast<float>(window_taps) /
-								 static_cast<float>(window_single_taps);
-
-		// handle anchors, chord filler, empty sections and single
-		// notes
-		if (cv_taps == 0 || single_taps == 0 || totalvalues < 1) {
-			doot[WideRangeRoll][i] = 1.f;
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		float pmod = min_mod;
-		// these cases are likely a "true roll" and we can optimize
-		// by just direct setting them, if unique_vals == 1 then we
-		// only have a single instance of left->right or right->left
-		// ms values across 2seconds, this usually indicates a
-		// straight roll, if filtered vals == 1 the same thing
-		// applies, but we filtered out the occasional direction
-		// swap or a long break before the roll started. The
-		// scenario in which this would not indicate a straight roll
-		// is aggressively rolly js or hs, and while downscaling
-		// those is a goal, we shouldn't attempt to do it here, so
-		// we'll upscale the min mod by the anchor/chord proportion
-		// the < is for catching empty stuff that may have reached
-		// here edit: pretty sure this doesn't really effectively
-		// push up js/hs but it's w.e, we don't use this mod on
-		// those passes atm and it's more about the graphs looking
-		// pretty ugly than anything else
-		if (filtered_vals.size() <= 1 || unique_vals.size() <= 1) {
-			doot[WideRangeRoll][i] =
-			  CalcClamp(min_mod * chord_prop * cv_prop, min_mod, max_mod);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// scale base default to cv_prop and chord_prop, we want the
-		// base to be higher for filler sections that are mostly
-		// slow anchors/js/whatever, if there's filler that's in
-		// slow roll formation there's not much we can do about it
-		// affecting adjacant hard intervals on the smooth pass,
-		// however since we're running on a moving window the effect
-		// is mitigated both chord_prop and cv_prop are 1.0+
-		// multipliers it's kind of hard to have a roll if you only
-		// have 12 notes in 2 seconds, ideally we would steer away
-		// from discrete cutoffs of any kind but it's kind of hard
-		// to resist the temptation as it should be pretty safe
-		// here, even supposing we award a full modifier to
-		// something that we shouldn't have, it should make no
-		// practical difference apart from slightly upping the next
-		// hard interval on smooth, yes this is redundant with the
-		// above, but i figured it would be clearer to split up
-		// slightly different cases
-		if (window_taps <= 12) {
-			doot[WideRangeRoll][i] = CalcClamp(
-			  min_mod + (1.5f * chord_prop) + (0.5f * cv_prop), min_mod, 1.f);
-			doot[Chaos][i] = 1.f;
-			continue;
-		}
-
-		// we've handled basic cases and stuff that could cause /0
-		// errors (hopefully) do maths now
-		float unique_prop = static_cast<float>(unique_vals.size()) /
-							static_cast<float>(window_vals.size());
-		float cv_window = cv(window_vals);
-		float cv_filtered = cv(filtered_vals);
-		float cv_unique = cv(unique_vals);
-
-		// this isn't really robust if theres a really short flam
-		// involved anywhere e.g. a 5ms flam offset for an oh jump
-		// when everything else is 50 ms will make the above way too
-		// high, something else must be used, leaving this here so i
-		// don't forget and try to use it again or some other idiot
-		// float mean_prop = f_mean /
-		// static_cast<float>(*std::min_element(filtered_vals.begin(),
-		//												filtered_vals.end()));
-		// mean_prop = 1.f;
-		/*
-		if (debugmode) {
-			std::string rarp = "window vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-		/*
-		if (debugmode)
-			std::cout << "cprop: " << cv_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "cv: " << cv_window << cv_filtered <<
-		cv_unique
-					  << std::endl;
-		if (debugmode)
-			std::cout << "uprop: " << unique_prop << std::endl;
-
-		if (debugmode)
-			std::cout << "mean/min: " << mean_prop << std::endl;
-			*/
-
-		// if (debugmode)
-		//	std::cout << "cv prop " << cv_prop << "\n" << std::endl;
-
-		// basically the idea here is long sets of rolls if you only
-		// count values from specifically left->right or
-		// right->left, whichever lower, will have long sequences of
-		// identical values that should become very exaggerated over
-		// the course of 2.5 seconds compared to other files, since
-		// the values will be identical mean/min should be much
-		// closer to 1 compared to legitimate patterns and the
-		// number of notes contained in the roll compared to total
-		// notes (basically we don't count anchors as notes) will
-		// also be closer to 1; we want to pretty much only detect
-		// long cheesable sets of notes so multiplying window range
-		// cv by mean/min and totaltaps/cvtaps should put almost
-		// everything else over a 1.0 multiplier. perhaps mean/min
-		// should be calculated on the full window like taps/cvtaps
-		// are
-		pmod = cv_filtered * cv_prop * 1.75f;
-		pmod += 0.4f;
-		// both too sensitive and unreliable i think
-		// pmod += 1.25f * unique_prop;
-		pmod = CalcClamp(pmod, min_mod, max_mod);
-
-		doot[WideRangeRoll][i] = pmod;
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[WideRangeRoll][i] <<
-		//"\n"
-		//			  << std::endl;
-
-		// chayoss stuff
-		window_vals.clear();
-		filtered_vals.clear();
-		for (auto& v : itv_arrayTWO)
-			for (auto& n : v) {
-				window_vals.push_back(n);
-			}
-		v_mean = mean(window_vals);
-		for (auto& v : window_vals)
-			if (v < mean_cutoff_factor * v_mean)
-				filtered_vals.push_back(v);
-		/*
-		if (debugmode) {
-			std::string rarp = "chaos vals: ";
-			for (auto& a : filtered_vals) {
-				rarp.append(std::to_string(a));
-				rarp.append(", ");
-			}
-			std::cout << rarp << std::endl;
-		}
-		*/
-
-		// attempt #437 at some kind of complex pattern picker upper
-		float butt = 0.f;
-		int whatwhat = 0;
-		std::sort(filtered_vals.begin(), filtered_vals.end());
-		if (filtered_vals.size() > 1) {
-			for (auto& in : filtered_vals)
-				for (auto& the : filtered_vals) {
-					if (in == the) {
-						butt += 1.f;
-						++whatwhat;
-						continue;
-					}
-					if (in > the) {
-						float prop = static_cast<float>(in) / the;
-						int mop = static_cast<int>(prop);
-						float flop = prop - static_cast<float>(mop);
-						if (flop == 0.f) {
-							butt += 1.f;
-							++whatwhat;
-							continue;
-						} else if (flop >= 0.5f) {
-							flop = abs(flop - 1.f) + 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop over: " << flop
-							//<< "
-							// in: " <<
-							// in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						} else if (flop < 0.5f) {
-							flop += 1.f;
-							butt += flop;
-
-							// if (debugmode)
-							//	std::cout << "flop under: " << flop
-							//<< "
-							// in: "
-							//<< in
-							//			  << " the: " << the << " mop: "
-							//<<
-							// mop
-							//			  << std::endl;
-						}
-						++whatwhat;
-					}
-				}
-		} else {
-			doot[Chaos][i] = 1.f;
-		}
-		if (whatwhat == 0)
-			whatwhat = 1;
-		doot[Chaos][i] =
-		  CalcClamp(butt / static_cast<float>(whatwhat) - 0.075f, 0.98f, 1.04f);
-	}
-
-	// covering a window of 4 intervals does act as a smoother, and
-	// a better one than a double smooth for sure, however we still
-	// want to run the smoother anyway to rough out jagged edges and
-	// interval splicing error
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeRoll], 1.f);
-	return;
-}
-
-// hyper explicit mega murder of long chains of
-// 12211221122112211221122112211221
-// look into consistent spacing checks
-void
-Calc::WideRangeJumptrillScaler(const vector<NoteInfo>& NoteInfo,
-							   unsigned int t1,
-							   unsigned int t2,
-							   float music_rate,
-							   vector<float> doot[])
-{
-	doot[WideRangeJumptrill].resize(nervIntervals.size());
-
-	static const float min_mod = 0.25f;
-	static const float max_mod = 1.f;
-	unsigned int itv_window = 6;
-
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
-
-	int lastcol = -1;
-	int last_cc_dir = -1;
-	int anchors_hit = 0;
-	int crop_circles = 0;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// if (debugmode)
-		//	std::cout << "new interval " << i << std::endl;
-
-		int interval_taps = 0;
-		int ccacc_counter = 0;
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_ccacc.pop_front();
-		}
-
-		for (int row : nervIntervals[i]) {
-			bool lcol = NoteInfo[row].notes & t1;
-			bool rcol = NoteInfo[row].notes & t2;
-			interval_taps += (static_cast<int>(lcol) + static_cast<int>(rcol));
-
-			if (!(lcol ^ rcol)) {
-				if (!(lcol || rcol)) {
-					continue;
-				}
-				// not sure yet how oh jumps interact with this
-				if (lcol && rcol) {
-					lastcol = -1;
-				}
-				continue;
-			}
-
-			int thiscol = lcol ? 0 : 1;
-			if (thiscol != lastcol || lastcol == -1) {
-				if (rcol) {
-					if (anchors_hit == 1 && last_cc_dir == 10) {
-						// if (debugmode)
-						//	std::cout << "ccacc detected ending on "
-						//<<
-						// thiscol
-						//			  << std::endl;
-						++ccacc_counter;
-					}
-
-					anchors_hit = 0;
-					last_cc_dir = 01;
-				} else if (lcol) {
-					if (anchors_hit == 1 && last_cc_dir == 01) {
-						// if (debugmode)
-						//	std::cout << "ccacc detected ending on "
-						//<<
-						// thiscol
-						//			  << std::endl;
-						++ccacc_counter;
-					}
-
-					last_cc_dir = 10;
-					anchors_hit = 0;
-				}
-			} else {
-				++anchors_hit;
-				// if (debugmode)
-				//	std::cout << "anchor hit " << std::endl;
-			}
-
-			lastcol = thiscol;
-		}
-
-		itv_taps.push_back(interval_taps);
-		itv_ccacc.push_back(max(ccacc_counter - 1, 0));
-
-		if (ccacc_counter > 0)
-			++crop_circles;
-		else
-			--crop_circles;
-		if (crop_circles < 0)
-			crop_circles = 0;
-
-		// if (debugmode)
-		//	std::cout << "crop circles: " << crop_circles <<
-		// std::endl;
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_ccacc = 0;
-		for (auto& n : itv_ccacc)
-			window_ccacc += n;
-
-		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps <<
-		// std::endl;
-		// if (debugmode)
-		//	std::cout << "window ccacc: " << window_ccacc <<
-		// std::endl;
-
-		float pmod = 1.f;
-
-		if (window_ccacc > 0 && crop_circles > 0)
-			pmod =
-			  static_cast<float>(window_taps) /
-			  static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
-
-		doot[WideRangeJumptrill][i] = CalcClamp(pmod, min_mod, max_mod);
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[OHTrill][i] << "\n" <<
-		// std::endl;
-	}
-
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeJumptrill], 1.f);
-	return;
-}
-
 // this should probably almost assuredly be hand specific???
 inline float
 wras_internal(const vector<NoteInfo>& NoteInfo,
@@ -5140,7 +6674,7 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 
 		// iterate taps per col.. yes we've done this already in
 		// process finger but w.e just redo it for now
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
 	}
@@ -5151,7 +6685,7 @@ wras_internal(const vector<NoteInfo>& NoteInfo,
 	int window_taps = sum(itv_taps);
 	vector<int> window_col_taps(4);
 	for (auto& n : itv_col_taps)
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			window_col_taps[c] += n[c];
 
 	// for this we really want to highlight the differential between
@@ -5220,7 +6754,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 	// updated every interval but recycle the memory
 	vector<int> col_taps(col_ids.size());
 
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 
 		if (dbg) {
 			for (auto row : nervIntervals[i])
@@ -5250,8 +6784,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeAnchor], 1.f);
+	Smooth(doot[WideRangeAnchor], 1.f);
 	return;
 }
 
@@ -5279,7 +6812,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 
 		// iterate taps per col.. yes we've done this already in
 		// process finger but w.e just redo it for now
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			if (NoteInfo[row].notes & col_ids[c])
 				++col_taps[c];
 	}
@@ -5290,7 +6823,7 @@ wrbs_internal(const vector<NoteInfo>& NoteInfo,
 	int window_taps = sum(itv_taps);
 	vector<int> window_col_taps(4);
 	for (auto& n : itv_col_taps)
-		for (size_t c = 0; c < col_ids.size(); c++)
+		for (int c = 0; c < col_ids.size(); c++)
 			window_col_taps[c] += n[c];
 
 	int window_max_anch = max_val(window_col_taps);
@@ -5346,7 +6879,7 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 	// updated every interval but recycle the memory
 	vector<int> col_taps(col_ids.size());
 
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
+	for (int i = 0; i < nervIntervals.size(); i++) {
 
 		if (dbg) {
 			for (auto row : nervIntervals[i])
@@ -5377,463 +6910,8 @@ Calc::WideRangeBalanceScaler(const vector<NoteInfo>& NoteInfo,
 					  << std::endl;
 	}
 
-	if (SmoothPatterns)
-		Smooth(doot[WideRangeBalance], 1.f);
+	Smooth(doot[WideRangeBalance], 1.f);
 	return;
-}
-
-// look for a thing
-// a thing is [aa]x[23]x[cc] where aa and cc are either [12] or [34]
-// or hands that contain those jumps and where aa != cc and x's do
-// not form jacks, this pattern is one staple of extremely
-// jumptrillable js and even if you hit it as legit as possible,
-// it's still a joke because of the way the patternage flows. i have
-// tentatively proposed naming this pattern and its variants "the
-// slip" after the worst aram fizz player i ever seened
-
-// look into consistent spacing checks
-void
-Calc::TheThingLookerFinderThing(const vector<NoteInfo>& NoteInfo,
-								float music_rate,
-								vector<float> doot[])
-{
-	doot[TheThing].resize(nervIntervals.size());
-
-	static const float min_mod = 0.85513412f;
-	static const float max_mod = 1.f;
-	unsigned int itv_window = 3;
-
-	deque<int> itv_taps;
-	deque<int> itv_THINGS;
-
-	int lastcols = -1;
-	int col_ids[4] = { 1, 2, 4, 8 };
-	int the_slip = -1;
-	bool malcom = false;
-	int last_notes = 0;
-	bool the_last_warblers_call = false;
-	bool was23 = false;
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		//	if (debugmode)
-		//		std::cout << "new interval " << i << std::endl;
-
-		int interval_taps = 0;
-		int the_things_found = 0;
-
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_THINGS.pop_front();
-		}
-
-		bool newrow = true;
-		for (int row : nervIntervals[i]) {
-			// if (debugmode && newrow)
-			//	std::cout << "new interval: " << i
-			//			  << " time: " << NoteInfo[row].rowTime /
-			// music_rate
-			//			  << std::endl;
-			newrow = false;
-			int notes = column_count(NoteInfo[row].notes);
-			int boot = NoteInfo[row].notes;
-			interval_taps += notes;
-
-			/*if (debugmode) {
-				std::string moop = "";
-				for (int i = 0; i < 4; ++i)
-					if (boot & col_ids[i])
-						moop.append(std::to_string(i + 1));
-				std::cout << "notes: " << moop << std::endl;
-			}*/
-			// try allowing hand formations... should be ok
-			if (notes == 2 || notes == 3) {
-				bool is12 = boot & col_ids[0] && boot & col_ids[1];
-				bool is23 = boot & col_ids[1] && boot & col_ids[2];
-				bool is34 = boot & col_ids[2] && boot & col_ids[3];
-
-				//	if (debugmode)
-				//		std::cout << "the slip: " << std::endl;
-				if (the_slip == -1) {
-					//		if (debugmode)
-					//			std::cout << "the slip: " <<
-					// std::endl;
-					if (is12 || is34) {
-						the_slip = boot;
-						//	if (debugmode)
-						//		std::cout << "the slip is the boot: "
-						//<<
-						// std::endl;
-					}
-				} else {
-					// if (debugmode)
-					//	std::cout << "two but not the new: " <<
-					// std::endl;
-					if (is23) {
-						if (was23) {
-							//		if (debugmode)
-							//			std::cout << "you knew to new to
-							// yew
-							// two
-							// ewes: "
-							//					  << std::endl;
-							malcom = false;
-							the_slip = -1;
-							the_last_warblers_call = false;
-							was23 = false;
-						} else {
-							//		if (debugmode)
-							//			std::cout << "the malcom: "
-							//<<
-							// std::endl;
-							malcom = true;
-							the_last_warblers_call = false;
-							was23 = true;
-						}
-					} else if (the_slip != boot && malcom &&
-							   the_last_warblers_call && (is12 || is34)) {
-						bool das_same = false;
-						for (auto& id : col_ids)
-							if (boot & id && lastcols & id) {
-								// if (debugmode)
-								//	std::cout << "wtf boot:" << id
-								//<<
-								// std::endl;
-								// if (debugmode)
-								//	std::cout << "wtf id: " << id <<
-								// std::endl;
-								das_same = true;
-								break;
-							}
-
-						if (!das_same) {
-							++the_things_found;
-						}
-						// maybe we want to reset to -1 here and
-						// only retain if thing found?
-						the_slip = boot;
-						malcom = false;
-						the_last_warblers_call = false;
-						was23 = false;
-					} else {
-						if (is12 || is34) {
-							the_slip = boot;
-							//		if (debugmode)
-							//			std::cout << "three four out
-							// the
-							// door: "
-							//<<
-							// std::endl;
-						} else
-							the_slip = -1;
-						malcom = false;
-						the_last_warblers_call = false;
-						was23 = false;
-						//		if (debugmode)
-						//			std::cout << "buckle my shoe reset:
-						//"
-						//<<
-						// std::endl;
-					}
-				}
-			}
-			if (notes == 1) {
-				// if (debugmode)
-				//		std::cout << "A SINGLE THING O NO: " <<
-				// std::endl;
-				if (the_last_warblers_call) {
-					the_last_warblers_call = false;
-					malcom = false;
-					the_slip = -1;
-					was23 = false;
-					// if (debugmode)
-					//	std::cout << "RESET, 2 singles: " <<
-					// std::endl;
-				} else {
-					if (the_slip != -1) {
-						bool das_same = false;
-						for (auto& id : col_ids)
-							if (boot & id && lastcols & id) {
-								// if (debugmode)
-								//	std::cout << "wtf boot:" << id
-								//<<
-								// std::endl;
-								// if (debugmode)
-								//	std::cout << "wtf id: " << id <<
-								// std::endl;
-								das_same = true;
-								break;
-							}
-						if (!das_same) {
-							//	if (debugmode)
-							//		std::cout
-							//		  << "SLIP ON SLIP UNTIL UR SLIP
-							// COME
-							// TRUE:"
-							//		  << std::endl;
-							the_last_warblers_call = true;
-						} else {
-							//	if (debugmode)
-							//		std::cout
-							//		  << "HOL UP DOE (feamale
-							// hamtseer):"
-							//		  << std::endl;
-							the_slip = -1;
-							the_last_warblers_call = false;
-							was23 = false;
-							malcom = false;
-						}
-
-					} else {
-						the_last_warblers_call = false;
-						malcom = false;
-						was23 = false;
-						//			if (debugmode)
-						//				std::cout << "CABBAGE: " <<
-						// std::endl;
-					}
-				}
-			}
-
-			if (notes == 4) {
-				the_last_warblers_call = false;
-				malcom = false;
-				the_slip = -1;
-				was23 = false;
-				//		if (debugmode)
-				//			std::cout << "RESERT, 2 SLIDE 2 FURY: "
-				//<<
-				// std::endl;
-			}
-			lastcols = boot;
-		}
-
-		itv_taps.push_back(interval_taps);
-		itv_THINGS.push_back(max(the_things_found, 0));
-
-		unsigned int window_taps = 0;
-		for (auto& n : itv_taps)
-			window_taps += n;
-
-		unsigned int window_things = 0;
-		for (auto& n : itv_THINGS)
-			window_things += n;
-
-		// if (debugmode)
-		//	std::cout << "window taps: " << window_taps <<
-		// std::endl;
-		// if (debugmode)
-		//	std::cout << "things: " << window_things << std::endl;
-
-		float pmod = 1.f;
-		if (window_things > 0)
-			pmod = static_cast<float>(window_taps) /
-				   static_cast<float>(window_things * 55);
-
-		doot[TheThing][i] = CalcClamp((pmod), min_mod, max_mod);
-		// if (debugmode)
-		//	std::cout << "final mod " << doot[TheThing][i] << "\n"
-		//<<
-		// std::endl;
-	}
-
-	if (SmoothPatterns) {
-		Smooth(doot[TheThing], 1.f);
-		Smooth(doot[TheThing], 1.f);
-	}
-	return;
-}
-
-// try to sniff out chords that are built as flams. BADLY NEEDS
-// REFACTOR
-void
-Calc::SetFlamJamMod(const vector<NoteInfo>& NoteInfo,
-					vector<float> doot[],
-					float& music_rate)
-{
-	doot[FlamJam].resize(nervIntervals.size());
-	// scan for flam chords in this window
-	float grouping_tolerance = 11.f;
-	// tracks which columns were seen in the current flam chord
-	// this is essentially the same as if NoteInfo[row].notes
-	// was tracked over multiple rows
-	int cols = 0;
-	// all permutations of these values are unique identifiers
-	int col_id[4] = { 1, 2, 4, 8 };
-	// unused atm but we might want this information, allocate once
-	vector<int> flam_rows(4);
-	// timing points of the elements of the flam chord, allocate
-	// once
-	vector<float> flamjam(4);
-	// we don't actually need this counter since we can derive it
-	// from cols but it might just be faster to track it locally
-	// since we will be recycling the flamjam vector memory
-	int flam_row_counter = 0;
-	bool flamjamslamwham = false;
-
-	// in each interval
-	for (size_t i = 0; i < nervIntervals.size(); i++) {
-		// build up flam detection for this interval
-		vector<float> temp_mod;
-
-		// row loop to pick up flams within the interval
-		for (int row : nervIntervals[i]) {
-			// perhaps we should start tracking this instead of
-			// tracking it over and over....
-			float scaled_time = NoteInfo[row].rowTime / music_rate * 1000.f;
-
-			// this can be optimized a lot by properly mapping out
-			// the notes value to arrow combinations (as it is
-			// constructed from them) and deterministic
-
-			// we are traversing intervals->rows->columns
-			for (auto& id : col_id) {
-				// check if there's a note here
-				bool isnoteatcol = NoteInfo[row].notes & id;
-				if (isnoteatcol) {
-					// we're past the tolerance range, break if we
-					// have grouped more than 1 note, or if we have
-					// filled an entire quad. with this behavior if
-					// we fill a quad of 192nd flams with order 1234
-					// and there's still another note on 1 within
-					// the tolerance range we'll flag this as a flam
-					// chord and downscale appropriately, not sure
-					// if we want this as it could be the case that
-					// there is a second flamchord immediately
-					// after, and it's just vibro, or it could be
-					// the case that there are complex reasonable
-					// patterns following, perhaps a different
-					// behavior would be better
-
-					// we cannot exceed tolerance without at least 1
-					// note
-					bool tol_exceed =
-					  flam_row_counter > 0 &&
-					  (scaled_time - flamjam[0]) > grouping_tolerance;
-
-					if (tol_exceed && flam_row_counter == 1) {
-						// single note, don't flag a detect
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-					if ((tol_exceed && flam_row_counter > 1) ||
-						flam_row_counter == 4)
-						// at least a flam jump has been detected,
-						// flag it
-						flamjamslamwham = true;
-
-					// if we have identified a flam chord in some
-					// way; handle and reset, we don't want to skip
-					// the notes in this iteration yes this should
-					// be done in the column loop since a flam can
-					// start and end on any columns in any order
-
-					// conditions to be here are at least 2
-					// different columns have been logged as part of
-					// a flam chord and we have exceeded the
-					// tolerance for flam duration, or we have a
-					// full quad flam detected, though not
-					// necessarily exceeding the tolerance window.
-					// we do want to reset if it doesn't, because we
-					// want to pick up vibro flams and nerf them
-					// into oblivion too, i think
-					if (flamjamslamwham) {
-						// we'll construct the final pattern mod
-						// value from the flammyness and number of
-						// detected flam chords
-						float mod_part = 0.f;
-
-						// lower means more cheesable means nerf
-						// harder
-						float fc_dur =
-						  flamjam[flam_row_counter - 1] - flamjam[0];
-
-						// we don't want to affect explicit chords,
-						// but we have to be sure that the entire
-						// flam we've picked up is an actual chord
-						// and only an actual chord, if the first
-						// and last elements detected were on the
-						// same row, ignore it, trying to do fc_dur
-						// == 0.f didn't work because of float
-						// precision
-						if (flam_rows[0] != flam_rows[flam_row_counter - 1]) {
-							// basic linear scale for testing
-							// purposes, scaled to the window length
-							// and also flam size
-							mod_part =
-							  fc_dur / grouping_tolerance / flam_row_counter;
-							temp_mod.push_back(mod_part);
-						}
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-						flamjamslamwham = false;
-					}
-
-					// we know chord flams can't contain multiple
-					// notes of the same column (those are just
-					// gluts), reset if detected even within the
-					// tolerance range (we can't be outside of it
-					// here by definition)
-					if (cols & id) {
-						flamjamslamwham = false;
-
-						// reset
-						flam_row_counter = 0;
-						cols = 0;
-					}
-
-					// conditions to reach here are that a note in
-					// this column has not been logged yet and we
-					// are still within the grouping tolerance. we
-					// don't need cur/last times here, the time of
-					// the first element will be used to determine
-					// the size of the total group
-
-					// track the time point of this note
-					flamjam[flam_row_counter] = scaled_time;
-					// track which row its on
-					flam_rows[flam_row_counter] = row;
-
-					// update unique column identifier
-					cols += id;
-					++flam_row_counter;
-				}
-			}
-		}
-
-		// finishing the row loop leaves us with instances of
-		// flamjams forgive a single instance of a chord flam for
-		// now; handle none
-		if (temp_mod.size() < 2)
-			doot[FlamJam][i] = 1.f;
-
-		float wee = 0.f;
-		for (auto& v : temp_mod)
-			wee += v;
-
-		// we can do this for now without worring about /0 since
-		// size is at least 2 to get here
-		wee /= static_cast<float>(temp_mod.size() - 1);
-
-		wee = CalcClamp(1.f - wee, 0.5f, 1.f);
-		doot[FlamJam][i] = wee;
-
-		// reset the stuffs, _theoretically_ since we are sequencing
-		// we don't even need at all to clear the flam detection
-		// however then we have to handle cases like a single note
-		// in an interval and i don't feel like doing that, a small
-		// number of flams that happen to straddle the interval
-		// splice points shouldn't make a huge difference, but if
-		// they do then we should deal with it
-		temp_mod.clear();
-		flam_row_counter = 0;
-		cols = 0;
-	}
-	if (SmoothPatterns)
-		Smooth(doot[FlamJam], 1.f);
 }
 
 #pragma endregion
@@ -5896,7 +6974,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 340;
+int mina_calc_version = 356;
 int
 GetCalcVersion()
 {
