@@ -5080,22 +5080,22 @@ struct FJ_Sequencing
 	}
 
 	// check for anything that would break the sequence
-	inline bool flammin_tol_check(const float& now)
+	inline bool flammin_tol_check(const float& ms_now)
 	{
 		// check if ms from last row is greater than the group tolerance
-		if (now > group_tol)
+		if (ms_now > group_tol)
 			return false;
 
 		// check if the new flam duration would exceed the group tolerance with
 		// the current row added
-		if (flim.get_dur() + now > group_tol)
+		if (flim.get_dur() + ms_now > group_tol)
 			return false;
 
 		// we may be able to continue the sequence, run the col check
 		return true;
 	}
 
-	inline void operator()(const float& now, const unsigned& notes)
+	inline void operator()(const float& ms_now, const unsigned& notes)
 	{
 		// if we already have the max number of flams
 		// (maybe should remove this shortcut optimization)
@@ -5106,23 +5106,23 @@ struct FJ_Sequencing
 		// haven't started, if we're under the step tolerance, start
 		if (!flim.flammin) {
 			// 99.99% of cases
-			if (now > step_tol)
+			if (ms_now > step_tol)
 				return;
 			else
-				flim.start(now, notes);
+				flim.start(ms_now, notes);
 		} else {
 			// passed the tolerance checks, run the col checks
-			if (flammin_tol_check(now)) {
+			if (flammin_tol_check(ms_now)) {
 
 				// passed col check, advance flam
 				if (flammin_col_check(notes))
-					flim.grow(now, notes);
+					flim.grow(ms_now, notes);
 				else {
 					// we failed the col check, but we've passed the tol checks,
 					// which means this row is eligible to begin a new flam
 					// sequence, complete the one that exists and start again
 					complete_seq();
-					flim.start(now, notes);
+					flim.start(ms_now, notes);
 				}
 			} else {
 				// reset if we exceed tolerance checks
