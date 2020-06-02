@@ -1280,7 +1280,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			if (serialized_notedata_data != nullptr)
 				pNewNotes->serializenotedatacache = std::vector(
 				  serialized_notedata_data,
-				  serialized_notedata_data + serialized_notedata_size);
+							  (const NoteInfo*)serialized_notedata_data +
+								serialized_notedata_size);
 			song->AddSteps(pNewNotes);
 		}
 
