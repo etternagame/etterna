@@ -247,7 +247,6 @@ local debugGroups = {
     {   -- Group 10
 
     },
-    TotalPatternMod = true,
     {   -- Group 11
 
     },
