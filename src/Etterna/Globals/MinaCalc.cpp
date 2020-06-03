@@ -1558,45 +1558,6 @@ struct ItvHandInfo
 	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
 	int meta_types[meta_num_types] = { 0, 0, 0, 0, 0, 0 };
 };
-//
-// struct metaItvHandInfo
-//{
-//	int _idx = 0;
-//	int hand_taps = 0;
-//	int oh_jump_taps = 0;
-//	int col_taps[2] = { 0, 0 };
-//
-//	// resets all the stuff that accumulates across intervals
-//	inline void reset(const int& idx)
-//	{
-//		_idx = idx;
-//
-//		// taps for this hand
-//		hand_taps = 0;
-//		// oh jumps on this hand for this interval
-//		oh_jump_taps = 0;
-//
-//		// taps per col on this hand
-//		for (auto& t : col_taps)
-//			t = 0;
-//	}
-//
-//	inline void update_tap_counts(const bool& l, const bool& r)
-//	{
-//		if (l)
-//			++col_taps[col_left];
-//		if (r)
-//			++col_taps[col_right];
-//		if (l && r)
-//			// ALWAYS COUNT TAPS IN CHORDS
-//			oh_jump_taps += 2;
-//	}
-//
-//	inline void set_hand_taps()
-//	{
-//		hand_taps = col_taps[col_left] + col_taps[col_right];
-//	}
-//};
 
 // big brain stuff
 inline bool
@@ -1648,6 +1609,103 @@ detecc_ccsjjs(const cc_type& a, const cc_type& b, const cc_type& c)
 	return b == cc_single_jump && a == cc_jump_single;
 }
 
+// bpm flux float precision etc
+static const float anchor_buffer_ms = 10.f;
+struct Anchor_Sequencing
+{
+	col_type _col = col_init;
+
+	// logically speaking we either shouldn't need this, or metahandinfo should
+	// be deriving its tc_ms values from here... because tc_ms logic in
+	// metanoteinfo at first glance seems not usable for this, which is like,
+	// bad, because it should be
+	float _ms = ms_init;
+	float _last_ms = ms_init;
+
+	// row_time of last note on this col
+	float _last = s_init;
+
+	int _len = 0;
+
+	inline bool timing_check() { return _last_ms > _ms + anchor_buffer_ms; }
+
+	inline bool col_check(const col_type col)
+	{
+		return col == _col || col == col_ohjump;
+	}
+
+	inline void operator()(const col_type col, const float& now)
+	{
+		if (col_check(col)) {
+			_ms = ms_from(now, _last);
+			if (timing_check())
+				++_len;
+			else
+				_len = 1;
+		}
+	}
+};
+
+struct AnchorSequencer
+{
+	Anchor_Sequencing anch[2];
+	int max_seen[2] = { 0, 0 };
+
+	// track windows of highest anchor per col seen during an interval
+	moving_window_interval_columns_int _mw;
+
+	AnchorSequencer()
+	{
+		anch[col_left]._col = col_left;
+		anch[col_right]._col = col_right;
+	}
+
+	// aaaaa we should be able to pass it tcms from mhi but maybe mhi is doing
+	// it wrong and it should use what this stores as tcms???
+	inline void operator()(const col_type col, const float& row_time)
+	{
+		// update the one
+		if (col == col_left || col == col_right)
+			anch[col](col, row_time);
+		else if (col == col_ohjump) {
+
+			// update both
+			anch[col_left](col, row_time);
+			anch[col_right](col, row_time);
+		}
+
+		// set any max lengths seen, they'll be reset on interval end
+		for (auto& c : { col_left, col_right })
+			max_seen[c] =
+			  anch[c]._len > max_seen[c] ? anch[c]._len : max_seen[c];
+	}
+
+	// returns max anchor length seen for the requested window
+	inline int get_max_for_window_and_col(const col_type& col,
+											const int& window) const
+	{
+		int toilet_paper = 0;
+		// if window is 4, we check values 6/5/4/3, since this window is always
+		// 6
+		int pineapple = max_moving_window_size;
+		while (pineapple > max_moving_window_size - window) {
+			--pineapple;
+			toilet_paper = _mw._itv_vals[col][pineapple] > toilet_paper
+							 ? _mw._itv_vals[col][pineapple]
+							 : toilet_paper;
+		}
+	}
+
+	inline void handle_interval_end()
+	{
+		// this is a tracker for highest seen values, not an actual moving
+		// average, so the overhead on the cumulation is kind of not needed, but
+		// whatever
+		for (auto& c : { col_left, col_right })
+			_mw(c, max_seen[c]);
+	}
+};
+
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
 // rm_seuqencing, and widerange scalers should track their own interval queues
@@ -1670,6 +1728,8 @@ struct metaHandInfo
 
 	float col_time[cols_per_hand] = { s_init, s_init };
 	float col_time_no_jumps[cols_per_hand] = { s_init, s_init };
+
+	AnchorSequencer _as;
 
 	// col
 	col_type col = col_init;
@@ -1856,6 +1916,14 @@ struct metaHandInfo
 		// we will need to update time for one or both cols
 		update_col_times(now);
 		set_timings(last.col_time, last.col_time_no_jumps);
+	}
+
+	// ok this is a row by row sequencer but it also contains other row by row
+	// sequencers which may want to store stuff like highest anchor seen during
+	// an interval
+	inline void handle_interval_end()
+	{
+		_as.handle_interval_end();
 	}
 };
 
@@ -5428,6 +5496,7 @@ struct TT_Sequencing
 	inline float construct_mod_part() { return 0.f; }
 };
 
+// this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {
 	const CalcPatternMod _pmod = WideRangeBalance;
@@ -5662,6 +5731,7 @@ Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
 }
 
 // the a things, they are there, we must find them...
+// probably add a timing check to this as well
 struct TheThingLookerFinderThing
 {
 	static const CalcPatternMod _pmod = TheThing;
@@ -5672,8 +5742,7 @@ struct TheThingLookerFinderThing
 	float max_mod = 1.f;
 	float mod_scaler = 2.75f;
 
-	// params for rm_sequencing, these define conditions for resetting
-	// runningmen sequences
+	// params for tt_sequencing
 	float group_tol = 35.f;
 	float step_tol = 17.5f;
 
@@ -6096,6 +6165,9 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 				// just add up col taps to get hand taps i guess
 				_itvhi.set_hand_taps();
+
+				// run interval end sequencing behavior for mhi
+				_mhi->handle_interval_end();
 
 				// run pattern mod generation for hand dependent mods
 				set_dependent_pmods(_doots[hand], itv);
@@ -6650,8 +6722,7 @@ Hand::InitAdjDiff()
 				// we want hs to count against js so they are
 				// mutually exclusive
 				case Skill_Jumpstream:
-					adj_diff /=
-					  max(doot[HS][i], 1.f);
+					adj_diff /= max(doot[HS][i], 1.f);
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
