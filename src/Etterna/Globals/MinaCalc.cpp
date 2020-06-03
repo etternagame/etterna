@@ -1483,8 +1483,8 @@ struct ItvHandInfo
 
 	inline void set_hand_taps()
 	{
-		hand_taps = static_cast<float>(
-		  col_taps[col_left] + col_taps[col_right]);
+		hand_taps =
+		  static_cast<float>(col_taps[col_left] + col_taps[col_right]);
 	}
 
 	// meta stuff here for now
@@ -2917,7 +2917,7 @@ struct OHJ_Sequencing
 				if (cur_seq_taps == 2)
 					cur_seq_taps -= 1;
 				else
-					cur_seq_taps -=3;
+					cur_seq_taps -= 3;
 				complete_seq();
 				break;
 			case cc_single_single:
@@ -2957,36 +2957,26 @@ struct OHJumpModGuyThing
 	const std::string name = "OHJumpMod";
 
 #pragma region params
-	float base = 0.15f;
-	float min_mod = 0.5f;
+	float min_mod = 0.75f;
 	float max_mod = 1.f;
 
-	float max_seq_pool = 1.125f;
-	float max_seq_scaler = 0.65f;
-	float max_seq_jump_scaler = 1.f;
-	float max_seq_min = 0.f;
-	float max_seq_max = 0.65f;
+	float max_seq_weight = 0.65f;
+	float max_seq_pool = 1.35f;
+	float max_seq_scaler = 1.f;
 
 	float prop_pool = 1.4f;
-	float prop_scaler = 0.35f;
-	float prop_min = 0.f;
-	float prop_max = 0.35f;
+	float prop_scaler = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "base", &base },
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 
+		{ "max_seq_weight", &max_seq_weight },
 		{ "max_seq_pool", &max_seq_pool },
 		{ "max_seq_scaler", &max_seq_scaler },
-		{ "max_seq_jump_scaler", &max_seq_jump_scaler },
-		{ "max_seq_min", &max_seq_min },
-		{ "max_seq_max", &max_seq_max },
 
 		{ "prop_pool", &prop_pool },
 		{ "prop_scaler", &prop_scaler },
-		{ "prop_min", &prop_min },
-		{ "prop_max", &prop_max },
 	};
 #pragma endregion params and param map
 	OHJ_Sequencing ohj;
@@ -3040,6 +3030,22 @@ struct OHJumpModGuyThing
 
 	inline void advance_sequencing(const metaHandInfo& now) { ohj(now); }
 
+	// build component based on max sequence relative to hand taps
+	inline void set_max_seq_comp()
+	{
+		max_seq_component = max_seq_pool - (base_seq_prop * max_seq_scaler);
+		max_seq_component = max_seq_component < 0.1f ? 0.1f : max_seq_component;
+		max_seq_component = fastsqrt(max_seq_component);
+	}
+
+	// build component based on number of jumps relative to hand taps
+	inline void set_prop_comp()
+	{
+		prop_component = prop_pool - (base_jump_prop * prop_scaler);
+		prop_component = prop_component < 0.1f ? 0.1f : prop_component;
+		prop_component = fastsqrt(prop_component);
+	}
+
 	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
 										  vector<float> doot[],
 										  const int& i)
@@ -3075,10 +3081,9 @@ struct OHJumpModGuyThing
 
 			// need to set now
 			base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
+			set_prop_comp();
 
-			prop_component = prop_pool - base_jump_prop;
-			pmod = fastsqrt(prop_component);
-			pmod = CalcClamp(base + pmod, min_mod, max_mod);
+			pmod = CalcClamp(prop_component, min_mod, max_mod);
 			doot[OHJumpMod][i] = pmod;
 			set_debug_output(doot, i);
 			return true;
@@ -3095,13 +3100,9 @@ struct OHJumpModGuyThing
 			// build now
 			floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
 			base_seq_prop = floatymcfloatface / itvh.hand_taps;
+			set_max_seq_comp();
 
-			// build seq component based on max sequence taps in hand taps
-			max_seq_component =
-			  max_seq_pool - (base_seq_prop * max_seq_jump_scaler);
-			pmod = max_seq_component;
-			pmod = fastsqrt(max_seq_component);
-			pmod = CalcClamp(base + pmod, min_mod, max_mod);
+			pmod = CalcClamp(max_seq_component, min_mod, max_mod);
 
 			doot[OHJumpMod][i] = pmod;
 			set_debug_output(doot, i);
@@ -3124,10 +3125,16 @@ struct OHJumpModGuyThing
 
 	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
 	{
-		max_seq_component = neutral;
-		prop_component = neutral;
-		
+		// normally we only set these if we use them, bring them to 1 to avoid
+		// confusion
+		if (debug_lmao) {
+			max_seq_component = neutral;
+			prop_component = neutral;
+		}
+
 		cc_taps = itvh.cc_types[cc_left_right] + itvh.cc_types[cc_right_left];
+
+		ASSERT(cc_taps >= 0);
 
 		// if cur_seq > max when we ended the interval, grab it
 		max_ohjump_seq_taps = ohj.cur_seq_taps > ohj.max_seq_taps
@@ -3142,31 +3149,22 @@ struct OHJumpModGuyThing
 			return;
 		}
 
-		// set either after case optimizations or in case optimizations, after
-		// the simple checks, for optimization
-		floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-		base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
-		base_seq_prop = floatymcfloatface / itvh.hand_taps;
-
 		// for js we lean into max sequences more, since they're better
 		// indicators of inflated difficulty
 
-		// build component based on max sequence relative to hand taps
-		max_seq_component =
-		  max_seq_pool - (base_seq_prop * max_seq_jump_scaler);
-		max_seq_component *= max_seq_scaler;
-		max_seq_component =
-		  CalcClamp(max_seq_component, max_seq_min, max_seq_max);
+		// set either after case optimizations or in case optimizations, after
+		// the simple checks, for optimization
+		floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
+		base_seq_prop = floatymcfloatface / itvh.hand_taps;
+		set_max_seq_comp();
+		max_seq_component = CalcClamp(max_seq_component, 0.1f, max_mod);
 
-		// do we want base seq prop here??? or jump prop??? idk
-		prop_component = prop_pool - base_jump_prop;
-		prop_component *= prop_scaler;
-		prop_component = CalcClamp(prop_component, prop_min, prop_max);
+		base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
+		set_prop_comp();
+		prop_component = CalcClamp(prop_component, 0.1f, max_mod);
 
-		ASSERT(max_seq_component + prop_component < 1.05f);
-
-		pmod = fastsqrt(max_seq_component + prop_component);
-		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		pmod = weighted_average(max_seq_component, prop_component, max_seq_weight, 1.f);
+		pmod = CalcClamp(fastsqrt(pmod), min_mod, max_mod);
 
 		doot[OHJumpMod][i] = pmod;
 		set_debug_output(doot, i);
@@ -3190,9 +3188,9 @@ struct BalanceMod
 	const std::string name = "BalanceMod";
 
 #pragma region params
-	float min_mod = 0.9f;
-	float max_mod = 1.1f;
-	float mod_base = 0.3f;
+	float min_mod = 0.95f;
+	float max_mod = 1.05f;
+	float mod_base = 0.325f;
 	float buffer = 1.f;
 	float scaler = 1.f;
 	float other_scaler = 4.f;
@@ -6272,8 +6270,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
 	vector<int> bruh_they_the_same = {
-		Stream,			JS, HS, CJ, CJQuad, FlamJam, TheThing, WideRangeBalance,
-		WideRangeAnchor
+		Stream, JS, HS, CJ, CJQuad, FlamJam, TheThing, WideRangeAnchor
 	};
 	// hand agnostic mods are the same
 	for (auto pmod : bruh_they_the_same)
@@ -6686,7 +6683,7 @@ Hand::InitAdjDiff()
 					adj_diff /=
 					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJumpMod][i]);
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.1f), 1.f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
@@ -7130,7 +7127,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 358;
+int mina_calc_version = 359;
 int
 GetCalcVersion()
 {
