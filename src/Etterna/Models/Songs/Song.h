@@ -302,7 +302,10 @@ class Song
 	// Get the highest value for a specific skillset across all the steps
 	// objects for the song at a given rate
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
-	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
+	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
+	/** @brief This functions returns whether it has any chart of the given type with the given rate.
+		@details If no type is given, or the type given is StepsType_Invalid, it checks all types.*/
+	bool MatchesFilter(const float rate,const StepsType type=StepsType_Invalid) const;
 
 	bool HasChartByHash(const string& hash);
 
