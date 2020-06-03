@@ -3315,6 +3315,7 @@ struct RollMod
 							   static_cast<float>(window_hand_taps));
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = fastsqrt(pmod);
 		doot[_pmod][i] = pmod;
 
 		interval_reset();
