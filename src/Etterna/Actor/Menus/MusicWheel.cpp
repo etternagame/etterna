@@ -21,7 +21,7 @@
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
-
+#include <iostream> //Remove me!
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
 #define WHEEL_TEXT(s)                                                          \
 	THEME->GetString("MusicWheel", ssprintf("%sText", s.c_str()));
@@ -721,26 +721,32 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 	vector<Song*> tmp;
 	
 	for (auto song : inv) {
-		/* The default behaviour of an exclusive filter is to accept
-		 * by default, (i.e. addsong=true) and reject if any filters fail.
-		 * The default behaviour of a non-exclusive filter is the exact opposite:
-		 * reject by default (i.e. addsong=false), and accept if any filters match.
-		 */
-		bool addsong = FILTERMAN->ExclusiveFilter;
-		for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-			float lb = FILTERMAN->SSFilterLowerBounds[ss];
-			float ub = FILTERMAN->SSFilterUpperBounds[ss];
-			//If either bound is active, continue to evaluation
-			if (lb > 0.f || ub > 0.f) {
-				for(float currate = FILTERMAN->MaxFilterRate;
-					currate < FILTERMAN->m_pPlayerState->wtFFF; currate -= 0.1f) {
+		bool addsong=false;
+		for(float currate = FILTERMAN->MaxFilterRate;
+			currate > FILTERMAN->m_pPlayerState->wtFFF - .01f; currate -= 0.1f
+		) { /* Iterate over all possible rates.
+			 * The .01f delta is because floating points don't like exact equivalency*/
+			
+			bool addsong_this_rate = FILTERMAN->ExclusiveFilter;
+			/* The default behaviour of an exclusive filter is to accept
+			* by default, (i.e. addsong_this_rate=true) and reject if any filters fail.
+			* The default behaviour of a non-exclusive filter is the exact opposite:
+			* reject by default (i.e. addsong_this_rate=false), and accept if any filters match.
+			*/
+			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+				float lb = FILTERMAN->SSFilterLowerBounds[ss];
+				float ub = FILTERMAN->SSFilterUpperBounds[ss];
+				
+				if (lb > 0.f || ub > 0.f) { //If either bound is active, continue
+					
 					if (!FILTERMAN->ExclusiveFilter) { //Non-Exclusive filter
 						if (FILTERMAN->HighestSkillsetsOnly)
 							if (!song->IsSkillsetHighestOfAnySteps(
 								  static_cast<Skillset>(ss), currate) &&
 								  ss < NUM_Skillset
 								) //The current skill is not in highest in the chart
-									continue; //Reject it as a candidate
+									continue;
+							
 					}
 					float val;
 					if (ss < NUM_Skillset)
@@ -758,7 +764,8 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 						if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
 							/* If we're below the lower bound and it's set,
 							 * or above the upper bound and it's set*/
-							addsong=false;
+							addsong_this_rate=false;
+							break;
 						}
 					}else{ //Non-Exclusive Filter
 						/* Our behaviour is to reject by default,
@@ -766,15 +773,18 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 						if ((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))) {
 							/* If we're above the lower bound or it's not set and also
 							 * below the upper bound or it isn't set*/
-							addsong=true;
+							addsong_this_rate=true;
+							break;
 						}
 					}
 				}
 			}
+			if(addsong_this_rate){
+				addsong=true;
+				break; // We don't need to keep checking through this song's rates
+			}
 		}
-		// only add the song if it's cleared the gauntlet
-		if (addsong)
-			tmp.emplace_back(song);
+		if (addsong) tmp.emplace_back(song);
 	}
 	inv.swap(tmp);
 }
