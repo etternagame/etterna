@@ -1125,7 +1125,7 @@ struct moving_window_interval_columns_int
 	// allow stuff to be done on a dynamic window below that)
 	int _itv_vals[cols_per_hand][max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
 	int _win_vals[cols_per_hand] = { 0, 0 };
-	int _size = 0;
+	int _size = max_moving_window_size;
 
 	inline void operator()(const bool& col, const int& new_val)
 	{
@@ -1511,6 +1511,7 @@ struct metaRowInfo
 struct ItvHandInfo
 {
 	int col_taps[3] = { 0, 0, 0 };
+	int offhand_taps = 0;
 	float hand_taps = 0.f;
 
 	// resets all the stuff that accumulates across intervals
@@ -1519,6 +1520,8 @@ struct ItvHandInfo
 		// taps per col on this hand
 		for (auto& t : col_taps)
 			t = 0;
+
+		offhand_taps = 0;
 	}
 
 	inline void update_tap_counts(const col_type& col)
@@ -1619,15 +1622,13 @@ struct Anchor_Sequencing
 	// be deriving its tc_ms values from here... because tc_ms logic in
 	// metanoteinfo at first glance seems not usable for this, which is like,
 	// bad, because it should be
-	float _ms = ms_init;
-	float _last_ms = ms_init;
+	float _temp_ms = 0.f;
+	float _max_ms = ms_init;
 
 	// row_time of last note on this col
 	float _last = s_init;
 
 	int _len = 0;
-
-	inline bool timing_check() { return _last_ms > _ms + anchor_buffer_ms; }
 
 	inline bool col_check(const col_type col)
 	{
@@ -1637,12 +1638,20 @@ struct Anchor_Sequencing
 	inline void operator()(const col_type col, const float& now)
 	{
 		if (col_check(col)) {
-			_ms = ms_from(now, _last);
-			if (timing_check())
-				++_len;
-			else
+			_temp_ms = ms_from(now, _last);
+
+			// break the anchor if the next note is too much slower than the
+			// lowest one in the sequence
+			if (_temp_ms > _max_ms + anchor_buffer_ms) {
 				_len = 1;
+				_max_ms = ms_init;
+			} else {
+				// increase anchor length and set new cutoff point
+				++_len;
+				_max_ms = _temp_ms;
+			}
 		}
+		_last = now;
 	}
 };
 
@@ -1665,24 +1674,26 @@ struct AnchorSequencer
 	inline void operator()(const col_type col, const float& row_time)
 	{
 		// update the one
-		if (col == col_left || col == col_right)
+		if (col == col_left || col == col_right) {
 			anch[col](col, row_time);
-		else if (col == col_ohjump) {
+
+			// set max seen for this col
+			max_seen[col] =
+			  anch[col]._len > max_seen[col] ? anch[col]._len : max_seen[col];
+		} else if (col == col_ohjump) {
 
 			// update both
-			anch[col_left](col, row_time);
-			anch[col_right](col, row_time);
+			for (auto& c : { col_left, col_right }) {
+				anch[c](col, row_time);
+				max_seen[c] =
+				  anch[c]._len > max_seen[c] ? anch[c]._len : max_seen[c];
+			}
 		}
-
-		// set any max lengths seen, they'll be reset on interval end
-		for (auto& c : { col_left, col_right })
-			max_seen[c] =
-			  anch[c]._len > max_seen[c] ? anch[c]._len : max_seen[c];
 	}
 
 	// returns max anchor length seen for the requested window
-	inline int get_max_for_window_and_col(const col_type& col,
-											const int& window) const
+	inline float get_avg_max_for_window_and_col(const col_type& col,
+												const int& window) const
 	{
 		int toilet_paper = 0;
 		// if window is 4, we check values 6/5/4/3, since this window is always
@@ -1694,6 +1705,7 @@ struct AnchorSequencer
 							 ? _mw._itv_vals[col][pineapple]
 							 : toilet_paper;
 		}
+		return toilet_paper;
 	}
 
 	inline void handle_interval_end()
@@ -1701,8 +1713,10 @@ struct AnchorSequencer
 		// this is a tracker for highest seen values, not an actual moving
 		// average, so the overhead on the cumulation is kind of not needed, but
 		// whatever
-		for (auto& c : { col_left, col_right })
+		for (auto& c : { col_left, col_right }) {
 			_mw(c, max_seen[c]);
+			max_seen[c] = 0;
+		}
 	}
 };
 
@@ -1728,8 +1742,6 @@ struct metaHandInfo
 
 	float col_time[cols_per_hand] = { s_init, s_init };
 	float col_time_no_jumps[cols_per_hand] = { s_init, s_init };
-
-	AnchorSequencer _as;
 
 	// col
 	col_type col = col_init;
@@ -1916,14 +1928,6 @@ struct metaHandInfo
 		// we will need to update time for one or both cols
 		update_col_times(now);
 		set_timings(last.col_time, last.col_time_no_jumps);
-	}
-
-	// ok this is a row by row sequencer but it also contains other row by row
-	// sequencers which may want to store stuff like highest anchor seen during
-	// an interval
-	inline void handle_interval_end()
-	{
-		_as.handle_interval_end();
 	}
 };
 
@@ -5591,144 +5595,94 @@ struct WideRangeBalanceMod
 	}
 };
 
-// this should probably almost assuredly be hand specific???
-inline float
-wras_internal(const vector<NoteInfo>& NoteInfo,
-			  float music_rate,
-			  const vector<int>& rows,
-			  deque<int>& itv_taps,
-			  deque<vector<int>>& itv_col_taps,
-			  vector<int>& col_taps,
-			  bool dbg)
+// cj tailored anchor mod maybe thing possibly
+struct WideRangeAnchorMod
 {
-	static const float min_mod = 1.0f;
-	static const float max_mod = 1.1f;
-	int interval_taps = 0;
+	const CalcPatternMod _pmod = WideRangeAnchor;
+	const std::string name = "WideRangeAnchorMod";
 
-	bool newint1 = true;
-	for (int row : rows) {
-		if (dbg && newint1)
-			std::cout << "interval start time: "
-					  << NoteInfo[row].rowTime / music_rate << std::endl;
-		newint1 = false;
+#pragma region params
+	int window = 4;
 
-		interval_taps += column_count(NoteInfo[row].notes);
+	moving_window_interval_int _mw_taps;
 
-		// iterate taps per col.. yes we've done this already in
-		// process finger but w.e just redo it for now
-		for (int c = 0; c < col_ids.size(); c++)
-			if (NoteInfo[row].notes & col_ids[c])
-				++col_taps[c];
+	float min_mod = 0.5f;
+	float max_mod = 2.5f;
+	float base = 0.65f;
+	float scaler = 0.1f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "base", &base },
+		{ "scaler", &scaler },
+	};
+#pragma endregion params and param map
+
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		// setup should be run after loading params from disk
+		window = CalcClamp(window, 1, max_moving_window_size);
+		_mw_taps._size = window;
+
+		doot[_pmod].resize(size);
 	}
 
-	itv_taps.push_back(interval_taps);
-	itv_col_taps.push_back(col_taps);
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
 
-	int window_taps = sum(itv_taps);
-	vector<int> window_col_taps(4);
-	for (auto& n : itv_col_taps)
-		for (int c = 0; c < col_ids.size(); c++)
-			window_col_taps[c] += n[c];
-
-	// for this we really want to highlight the differential between
-	// the highest value and the lowest, and for each hand,
-	// basically the same concept as the original Balance mod, but we
-	// won't discriminate by hand (yet?)
-	int window_max_anch = max_val(window_col_taps);
-	int window_2nd_anch = 0;
-
-	// we actually do care here if we have 2 equivalent max values,
-	// we want the next value below that, technically we should only
-	// care if the max value is the same on both hands, since that's
-	// significantly harder than them being on the same hand,
-	// probably, actually that's only true if they're ohjumps, but
-	// we don't know that here and this is supposed to be a simple
-	// approach for the moment
-	for (auto& n : window_col_taps)
-		if (n > window_2nd_anch && n < window_max_anch)
-			window_2nd_anch = n;
-
-	if (dbg) {
-		std::cout << "window taps: " << window_taps << std::endl;
-		std::cout << "window col 1: " << window_col_taps[0] << std::endl;
-		std::cout << "window col 2: " << window_col_taps[1] << std::endl;
-		std::cout << "window col 3: " << window_col_taps[2] << std::endl;
-		std::cout << "window col 4: " << window_col_taps[3] << std::endl;
-		std::cout << "max anchor: " << window_max_anch << std::endl;
-		std::cout << "2nd anchor: " << window_2nd_anch << std::endl;
+		return pmod;
 	}
 
-	// nothing here or the differential is irrelevant because the
-	// number of notes is too small
-	if (window_max_anch < 3)
-		return 1.f;
-	// if we don't return max mod
-	if (window_2nd_anch == 0)
-		return 1.f;
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
 
-	// i don't like subtraction very much but it shouldn't be so
-	// volatile over this large a window
-
-	float bort =
-	  static_cast<float>(window_max_anch) - static_cast<float>(window_2nd_anch);
-	bort /= 10.f;
-	float pmod = bort + 0.65f;
-
-	if (dbg) {
-		std::cout << "bort: " << bort << std::endl;
-	}
-	return CalcClamp(pmod, min_mod, max_mod);
-}
-
-// track anchors over a wide range
-void
-Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
-							float music_rate,
-							vector<float> doot[])
-{
-	const bool dbg = false && debugmode;
-	doot[WideRangeAnchor].resize(nervIntervals.size());
-
-	unsigned int itv_window = 3;
-	deque<int> itv_taps;
-	deque<vector<int>> itv_col_taps;
-
-	// updated every interval but recycle the memory
-	vector<int> col_taps(col_ids.size());
-
-	for (int i = 0; i < nervIntervals.size(); i++) {
-
-		if (dbg) {
-			for (auto row : nervIntervals[i])
-				std::cout << NoteInfo[row].notes << std::endl;
-			std::cout << "\n" << std::endl;
+			ch->GetTextValue(boat);
+			*p.second = boat;
 		}
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_col_taps.pop_front();
-		}
-
-		doot[WideRangeAnchor][i] = wras_internal(NoteInfo,
-												 music_rate,
-												 nervIntervals[i],
-												 itv_taps,
-												 itv_col_taps,
-												 col_taps,
-												 dbg);
-		// reset col taps for this interval
-		for (auto& zz : col_taps)
-			zz = 0;
-		if (dbg)
-			std::cout << "final wra mod " << doot[WideRangeAnchor][i] << "\n"
-					  << std::endl;
 	}
+#pragma endregion
 
-	Smooth(doot[WideRangeAnchor], 1.f);
-	return;
-}
+	inline void operator()(const ItvHandInfo& itvh,
+						   const AnchorSequencer& as,
+						   vector<float> doot[],
+						   const int& i)
+	{
+		_mw_taps(itvh.hand_taps + itvh.offhand_taps);
+
+		float high = as.get_avg_max_for_window_and_col(col_left, window);
+		float low = as.get_avg_max_for_window_and_col(col_right, window);
+
+		if (low > high)
+			std::swap(low, high);
+
+		float bort = 0.f;
+		
+		bort = high - low;
+
+		bort *= scaler;
+		float bailer = high / _mw_taps[true];
+		bort *= bailer;
+		pmod = bort + base;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		doot[_pmod][i] = pmod;
+	}
+};
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
@@ -5900,8 +5854,12 @@ struct TheGreatBazoinkazoinkInTheSky
 	WideRangeJumptrillMod _wrjt;
 	WideRangeRollMod _wrr;
 	WideRangeBalanceMod _wrb;
+	WideRangeAnchorMod _wra;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
+
+	// maybe it makes sense to move generic sequencers here
+	AnchorSequencer _as;
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -6071,6 +6029,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrr.setup(_doot, _itv_rows.size());
 		_wrjt.setup(_doot, _itv_rows.size());
 		_wrb.setup(_doot, _itv_rows.size());
+		_wra.setup(_doot, _itv_rows.size());
 	}
 
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
@@ -6084,13 +6043,13 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrr(_itvhi, doot, itv);
 		_wrjt(_itvhi, doot, itv);
 		_wrb(_itvhi, doot, itv);
+		_wra(_itvhi, _as, doot, itv);
 	}
 
 	inline void run_dependent_smoothing_pass(vector<float> doot[])
 	{
 		// need to split upohj and cjohj into 2 pmod objects
-		Smooth(doot[OHJumpMod], neutral);
-		Smooth(doot[CJOHJump], neutral);
+		Smooth(doot[_ohj._pmod], neutral);
 		Smooth(doot[_bal._pmod], neutral);
 		Smooth(doot[_roll._pmod], neutral);
 		Smooth(doot[_oht._pmod], neutral);
@@ -6137,19 +6096,29 @@ struct TheGreatBazoinkazoinkInTheSky
 					// log offhand tap info (could be more performance and
 					// information efficient)
 					if (ct == col_empty) {
+
+						// think itvhi wants this as well as mhi
+						++_itvhi.offhand_taps;
 						++_mhi->offhand_taps;
+
 						if (column_count(row_notes) == 2) {
 							++_mhi->offhand_ohjumps;
 							++_mhi->offhand_taps;
+
+							++_itvhi.offhand_taps;
 						}
 					}
 
 					// only do anything else for rows with actual stuff on this
 					// hand, especially the swap
-					if (ct != col_empty) {
-						(*_mhi)(*_last_mhi, row_time, ct, row_notes);
+					if (ct == col_empty)
+						continue;
 
-						_itvhi.update_tap_counts(ct);
+					_as(ct, row_time);
+
+					(*_mhi)(*_last_mhi, row_time, ct, row_notes);
+
+					_itvhi.update_tap_counts(ct);
 
 						if (ct != col_init) {
 							++_itvhi.cc_types[_mhi->cc];
@@ -6159,15 +6128,14 @@ struct TheGreatBazoinkazoinkInTheSky
 						handle_row_dependent_pattern_advancement();
 
 						std::swap(_last_mhi, _mhi);
-						_mhi->offhand_ohjumps = 0;
-						_mhi->offhand_taps = 0;
-					}
+					_mhi->offhand_ohjumps = 0;
+					_mhi->offhand_taps = 0;
 				}
 				// just add up col taps to get hand taps i guess
 				_itvhi.set_hand_taps();
 
-				// run interval end sequencing behavior for mhi
-				_mhi->handle_interval_end();
+				// test putting generic sequencers here
+				_as.handle_interval_end();
 
 				// run pattern mod generation for hand dependent mods
 				set_dependent_pmods(_doots[hand], itv);
@@ -6311,16 +6279,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	ulbu_that_which_consumes_all(
 	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
-
-	// these are evaluated on all columns so right and left are the
-	// same these also may be redundant with updated stuff
-	// WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
-	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
-
-	vector<int> bruh_they_the_same = { WideRangeAnchor };
-	// hand agnostic mods are the same
-	for (auto pmod : bruh_they_the_same)
-		right_hand.doot[pmod] = left_hand.doot[pmod];
 
 	// do these last since calcmsestimate modifies the interval ms values of
 	// fingers with sort, anything that is derivative of those values that
@@ -6839,147 +6797,6 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			stam_adj_diff[i] = diff[i] * mod;
 		}
-}
-#pragma endregion
-
-#pragma region PatternMods
-// this should probably almost assuredly be hand specific???
-inline float
-wras_internal(const vector<NoteInfo>& NoteInfo,
-			  float music_rate,
-			  const vector<int>& rows,
-			  deque<int>& itv_taps,
-			  deque<vector<int>>& itv_col_taps,
-			  vector<int>& col_taps,
-			  bool dbg)
-{
-	static const float min_mod = 1.0f;
-	static const float max_mod = 1.1f;
-	int interval_taps = 0;
-
-	bool newint1 = true;
-	for (int row : rows) {
-		if (dbg && newint1)
-			std::cout << "interval start time: "
-					  << NoteInfo[row].rowTime / music_rate << std::endl;
-		newint1 = false;
-
-		interval_taps += column_count(NoteInfo[row].notes);
-
-		// iterate taps per col.. yes we've done this already in
-		// process finger but w.e just redo it for now
-		for (int c = 0; c < col_ids.size(); c++)
-			if (NoteInfo[row].notes & col_ids[c])
-				++col_taps[c];
-	}
-
-	itv_taps.push_back(interval_taps);
-	itv_col_taps.push_back(col_taps);
-
-	int window_taps = sum(itv_taps);
-	vector<int> window_col_taps(4);
-	for (auto& n : itv_col_taps)
-		for (int c = 0; c < col_ids.size(); c++)
-			window_col_taps[c] += n[c];
-
-	// for this we really want to highlight the differential between
-	// the highest value and the lowest, and for each hand,
-	// basically the same concept as the original Balance mod, but we
-	// won't discriminate by hand (yet?)
-	int window_max_anch = max_val(window_col_taps);
-	int window_2nd_anch = 0;
-
-	// we actually do care here if we have 2 equivalent max values,
-	// we want the next value below that, technically we should only
-	// care if the max value is the same on both hands, since that's
-	// significantly harder than them being on the same hand,
-	// probably, actually that's only true if they're ohjumps, but
-	// we don't know that here and this is supposed to be a simple
-	// approach for the moment
-	for (auto& n : window_col_taps)
-		if (n > window_2nd_anch && n < window_max_anch)
-			window_2nd_anch = n;
-
-	if (dbg) {
-		std::cout << "window taps: " << window_taps << std::endl;
-		std::cout << "window col 1: " << window_col_taps[0] << std::endl;
-		std::cout << "window col 2: " << window_col_taps[1] << std::endl;
-		std::cout << "window col 3: " << window_col_taps[2] << std::endl;
-		std::cout << "window col 4: " << window_col_taps[3] << std::endl;
-		std::cout << "max anchor: " << window_max_anch << std::endl;
-		std::cout << "2nd anchor: " << window_2nd_anch << std::endl;
-	}
-
-	// nothing here or the differential is irrelevant because the
-	// number of notes is too small
-	if (window_max_anch < 3)
-		return 1.f;
-	// if we don't return max mod
-	if (window_2nd_anch == 0)
-		return 1.f;
-
-	// i don't like subtraction very much but it shouldn't be so
-	// volatile over this large a window
-
-	float bort =
-	  static_cast<float>(window_max_anch) - static_cast<float>(window_2nd_anch);
-	bort /= 10.f;
-	float pmod = bort + 0.65f;
-
-	if (dbg) {
-		std::cout << "bort: " << bort << std::endl;
-	}
-	return CalcClamp(pmod, min_mod, max_mod);
-}
-
-// track anchors over a wide range
-void
-Calc::WideRangeAnchorScaler(const vector<NoteInfo>& NoteInfo,
-							float music_rate,
-							vector<float> doot[])
-{
-	const bool dbg = false && debugmode;
-	doot[WideRangeAnchor].resize(nervIntervals.size());
-
-	unsigned int itv_window = 3;
-	deque<int> itv_taps;
-	deque<vector<int>> itv_col_taps;
-
-	// updated every interval but recycle the memory
-	vector<int> col_taps(col_ids.size());
-
-	for (int i = 0; i < nervIntervals.size(); i++) {
-
-		if (dbg) {
-			for (auto row : nervIntervals[i])
-				std::cout << NoteInfo[row].notes << std::endl;
-			std::cout << "\n" << std::endl;
-		}
-
-		// drop the oldest interval values if we have reached full
-		// size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_col_taps.pop_front();
-		}
-
-		doot[WideRangeAnchor][i] = wras_internal(NoteInfo,
-												 music_rate,
-												 nervIntervals[i],
-												 itv_taps,
-												 itv_col_taps,
-												 col_taps,
-												 dbg);
-		// reset col taps for this interval
-		for (auto& zz : col_taps)
-			zz = 0;
-		if (dbg)
-			std::cout << "final wra mod " << doot[WideRangeAnchor][i] << "\n"
-					  << std::endl;
-	}
-
-	Smooth(doot[WideRangeAnchor], 1.f);
-	return;
 }
 #pragma endregion
 
