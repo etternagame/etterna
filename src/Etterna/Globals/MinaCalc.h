@@ -159,9 +159,6 @@ class Calc
 	void WideRangeAnchorScaler(const std::vector<NoteInfo>& NoteInfo,
 							   float music_rate,
 							   std::vector<float> doot[ModCount]);
-	void WideRangeBalanceScaler(const std::vector<NoteInfo>& NoteInfo,
-								float music_rate,
-								std::vector<float> doot[ModCount]);
 	std::vector<std::vector<float>> jacks[4][4];
 	std::vector<std::vector<float>> stam_adj_jacks[4];
 	Hand left_hand;
