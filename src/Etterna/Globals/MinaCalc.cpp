@@ -96,7 +96,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = {
-	0.f, 0.97f, 0.875f, 0.83f, 0.94f, 0.7675f, 0.9f, 1.075f
+	0.f, 0.97f, 0.8f, 0.83f, 0.94f, 0.7675f, 0.9f, 1.075f
 };
 bool debug_lmao = false;
 
@@ -6408,11 +6408,7 @@ Hand::InitAdjDiff()
 		// js
 		{
 		  JS,
-		  Chaos,
 		  OHJumpMod,
-		  TheThing,
-		  Balance,
-		  WideRangeBalance,
 		},
 
 		// hs
@@ -6516,9 +6512,9 @@ Hand::InitAdjDiff()
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /=
-					  max(doot[HS][i], 1.f) * fastsqrt(doot[OHJumpMod][i]);
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);
+					  max(doot[HS][i], 1.f);
+					/*adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
