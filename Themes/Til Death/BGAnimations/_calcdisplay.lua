@@ -203,13 +203,13 @@ local debugGroups = {
 		StamMod = true,
     },
     {   -- Group 5
-    TotalPatternMod = true,
+        TotalPatternMod = true,
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
 	},
     {   -- Group 6
-    TotalPatternMod = true,
+        TotalPatternMod = true,
         Chaos = true,
         FlamJam = true,
         TheThing = true,
@@ -245,7 +245,7 @@ local debugGroups = {
         OHJHTaps = true,
     },
     {   -- Group 10
-
+        TotalPatternMod = true,
     },
     {   -- Group 11
 
@@ -643,6 +643,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     this list has order and should match the enums used
 ]]
 local modnames = {
+    -- CalcPatternMod shortnames
     "stl",
     "str",
     "jsl",
@@ -729,6 +730,12 @@ local modnames = {
     "rposr",
     "rpjl",
     "rpjr",
+    "totpml",
+    "totpmr",
+
+
+    -- CalcPatternMods above this line
+    -- CalcDebugMisc mods
     "sl",
     "sr",
     "jksl",
@@ -738,6 +745,7 @@ local modnames = {
 -- this list has order
 -- try to keep it exactly in the order of the enums used :)
 local modColors = {
+    -- CalcDebugPattern Colors
     color(".3,1.3,1"),      -- cyan			= stream left
     color(".3,1.3,0.9"),	-- cyan				 (right)
 	color("1,0,1"),     	-- purple       = jumpstream left
@@ -823,7 +831,13 @@ local modColors = {
 	color("1,1,1"),			-- rpos
 	color("1,1,1"),
 	color("1,1,1"),			-- rpj
-	color("1,1,1"),
+    color("1,1,1"),
+    color("0.7,1,0"),		-- lime			= totalpatternmod left
+    color("0.7,1,0"),		-- lime				 (right)
+
+
+    -- place CalcPatternMod Colors above this line
+    -- MISC MODS START HERE
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
     color("0.7,1,0"),		-- lime			= jackstam left
