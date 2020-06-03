@@ -1103,6 +1103,97 @@ is_alternating_chord_stream(const unsigned& a,
 }
 #pragma endregion
 
+#pragma region moving window array helpers
+static const int max_moving_window_size = 6;
+
+// probably should template these
+struct moving_window_interval_columns_int
+{
+	// vals per interval per column over a window (max_window being 6, but we
+	// allow stuff to be done on a dynamic window below that)
+	int _itv_vals[cols_per_hand][max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
+	int _win_vals[cols_per_hand] = { 0, 0 };
+	int _size = 0;
+
+	inline void operator()(const bool& col, const int& new_val)
+	{
+		// moving window of 1 is not actually a moving window
+		if (_size == 1) {
+			_win_vals[col] = new_val;
+			return;
+		}
+
+		// if window size is 4, we must shift intervals 4 -> 3, 3 -> 2, 2 ->
+		// 1, then set interval 4 to the new value.
+
+		// this means indexing pairs 3,2; 2,1; 1,0; then setting index 3 =
+		// new_val so we will start at index 1 and index by i, i-1 and stop
+		// at i < size (in this case at, the 3 -> 2 shift)
+
+		// update the window
+		for (int i = 1; i < _size; ++i)
+			_itv_vals[col][i - 1] = _itv_vals[col][i];
+
+		// set new value at size - 1
+		_itv_vals[col][_size - 1] = new_val;
+
+		// update the running totals by subtracting the oldest value and adding
+		// the newest
+		_win_vals[col] -= _itv_vals[col][0];
+		_win_vals[col] += new_val;
+	}
+
+	// returns window totals
+	inline float operator[](const bool& col)
+	{
+		ASSERT(col < num_cols);
+		// we're almost always dividing these values, so cast to float
+		return static_cast<float>(_win_vals[col]);
+	}
+
+	inline bool is_equal()
+	{
+		return _win_vals[col_left] == _win_vals[col_right];
+	}
+};
+
+struct moving_window_interval_int
+{
+	// vals per interval over a window 
+	int _itv_vals[max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
+	int _win_val = 0;
+	int _size = 0;
+
+	inline void operator()(const int& new_val)
+	{
+		// moving window of 1 is not actually a moving window
+		if (_size == 1) {
+			_win_val = new_val;
+			return;
+		}
+
+		// update the window
+		for (int i = 1; i < _size; ++i)
+			_itv_vals[i - 1] = _itv_vals[i];
+
+		// set new value at size - 1
+		_itv_vals[_size - 1] = new_val;
+
+		// update the running totals by subtracting the oldest value and adding
+		// the newest
+		_win_val -= _itv_vals[0];
+		_win_val += new_val;
+	}
+
+	// returns window totals
+	inline float operator[](const bool& bro_ur_gettin_a_float_ok)
+	{
+		// we're almost always dividing these values, so cast to float
+		return static_cast<float>(_win_val);
+	}
+};
+#pragma endregion
+
 #pragma region new pattern mod structure
 // meta info is information that is derived from two or more consecutive
 // noteinfos, the first level of pattern abstraction is generated from noteinfo
@@ -4303,46 +4394,44 @@ struct WideRangeJumptrillMod
 	const std::string name = "WideRangeJumptrillMod";
 
 #pragma region params
-	float itv_window = 3;
+	float window = 3;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
 	float mod_base = 0.4f;
 
 	float moving_cv_init = 0.5f;
-	float ccacc_cv_cutoff = 0.5f;
+	float cv_cutoff = 0.15f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
+		{ "window", &window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
 
 		{ "moving_cv_init", &moving_cv_init },
-		{ "ccacc_cv_cutoff", &ccacc_cv_cutoff },
+		{ "cv_cutoff", &cv_cutoff },
 	};
 #pragma endregion params and param map
-	deque<int> itv_taps;
-	deque<int> itv_ccacc;
-
-	int ccacc_counter = 0;
-	int crop_circles = 0;
+	moving_window_interval_int _mw_taps;
+	moving_window_interval_int _mw_ccacc;
+	int jt_counter = 0;
+	float cv_res = 0.f;
+	bool bro_is_this_file_for_real = false;
+	bool last_passed_check = false;
 	float pmod = min_mod;
-	int window_hand_taps = 0;
-	int window_ccacc = 0;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
+	// float moving_cv = moving_cv_init;
 
-	// non-empty
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
+		_mw_taps._size = window;
+		_mw_ccacc._size = window;
 	}
 
 	inline XNode* make_param_node() const
@@ -4370,33 +4459,6 @@ struct WideRangeJumptrillMod
 		}
 	}
 #pragma endregion
-	inline void reset_sequence()
-	{
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
-	}
-
-	// should maybe move this into metanoteinfo and do the counting there, if we
-	// could use this anywhere else
-	inline bool detecc_ccacc(const metaHandInfo& now)
-	{
-		// if we're here the following are true, we have a full sequence of 3 cc
-		// taps, they are non-empty, and there are no jumps. this means they are
-		// all either cc_left_right, cc_right_left, or cc_single_single
-
-		// handle cc_single_single first, for now, lets throw it away
-		if (now.cc == cc_single_single)
-			return false;
-
-		// now we know we have cc_left_right or cc_right_left, so, xy, we are
-		// looking for xyyx, meaning last_last would be the inverion of now
-		if (invert_cc(now.cc) == last_last_seen_cc)
-			return true;
-
-		return false;
-	}
 
 	inline bool handle_ccacc_timing_check()
 	{
@@ -4423,20 +4485,43 @@ struct WideRangeJumptrillMod
 		// is a sensible cutoff that should avoid punishing happenstances of
 		// this pattern in just regular files
 
-		// doing this would be a problem if we were to try to catch
-		// anchor/cc/anchor, since the altered anchor ms value would still exist
-		// in the sequence, but that maybe doesn't seem like a great idea
-		// anyway, so the value we alter will fall out of the array by the time
-		// we get here next
+		seq_ms[1] /= 3.f;
+		last_passed_check = cv(seq_ms) < cv_cutoff;
+		seq_ms[1] *= 3.f;
+		
+		return last_passed_check;
+	}
 
+	inline bool handle_acca_timing_check()
+	{
+		seq_ms[1] *= 3.f;
+		last_passed_check = cv(seq_ms) < cv_cutoff;
 		seq_ms[1] /= 3.f;
 
-		// this may be too fancy even though i'm trying to be not fancy.. update
-		// a basic moving window of the cv values and return true if it's below
-		// some cutoff, this will have the effect of giving a little lag time
-		// before the mod really kicks in
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < ccacc_cv_cutoff;
+		return last_passed_check;
+	}
+
+	inline bool handle_roll_timing_check()
+	{
+		// see ccacc timing check in wrjt for explanations, it's basically the
+		// same but we have to invert the multiplication depending on which
+		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
+		// a roll in an editor to see why)
+
+		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
+		// doesn't interfere with the next round
+		if (seq_ms[0] > seq_ms[1]) {
+			seq_ms[1] *= 3.f;
+			last_passed_check = cv(seq_ms) < cv_cutoff;
+			seq_ms[1] /= 3.f;
+			return last_passed_check;
+		} else {
+			// same thing but divide
+			seq_ms[1] /= 3.f;
+			last_passed_check = cv(seq_ms) < cv_cutoff;
+			seq_ms[1] *= 3.f;
+			return last_passed_check;
+		}
 	}
 
 	inline void update_seq_ms(const metaHandInfo& now)
@@ -4453,46 +4538,65 @@ struct WideRangeJumptrillMod
 			seq_ms[2] = now.cc_ms_any;
 	}
 
+	inline bool check_last_mt(const meta_type& mt)
+	{
+		if (mt == meta_acca || mt == meta_ccacc || mt == meta_oht)
+			if (last_passed_check)
+				return true;
+		return false;
+	}
+
+	inline void bibblybop(const meta_type& mt) {
+		++jt_counter;
+		if (bro_is_this_file_for_real)
+			++jt_counter;
+		if (check_last_mt(mt)) {
+			++jt_counter;
+			bro_is_this_file_for_real = true;
+		}
+	}
+
 	inline void advance_sequencing(const metaHandInfo& now)
 	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
+		// ignore if we hit a jump
+		if (now.col == col_ohjump)
 			return;
 
-		// reset if we hit a jump
-		if (now.col == col_ohjump) {
-			reset_sequence();
-			return;
-		}
-
-		// update timing stuff before checking/updating the sequence...
-		// because.. idk why.. jank i guess, this _seems_ to work, don't know if
-		// it _actually_ works
 		update_seq_ms(now);
 
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for ccacc
-			if (detecc_ccacc(now))
-				// don't bother adding if the ms values look benign
-				if (handle_ccacc_timing_check())
-					++ccacc_counter;
+		// look for stuff thats jumptrillyable.. if that stuff... then leads
+		// into more stuff.. that is jumptrillyable... then .... badonk it
+		if (now.mt == meta_ccacc) {
+			if (handle_ccacc_timing_check()) {
+				bibblybop(now.last_mt);
+				return;
+			}
+				
+		} else if (now.mt == meta_acca) {
+			// don't bother adding if the ms values look benign
+			if (handle_acca_timing_check()) {
+				bibblybop(now.last_mt);
+				return;
+			}
 
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		} else if (now.mt == meta_oht) {
+			if (handle_roll_timing_check()) {
+				bibblybop(now.last_mt);
+				return;
+			}
+		}
+		bro_is_this_file_for_real = false;
 	}
 
 	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		// no taps, no ccacc
-		if (window_hand_taps == 0 || window_ccacc == 0) {
+		if (_mw_taps._win_val == 0 || _mw_ccacc._win_val == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
-		// cant happen with current logic but w.e
-		if (window_hand_taps == window_ccacc) {
+		if (_mw_taps._win_val == _mw_ccacc._win_val) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
@@ -4504,35 +4608,15 @@ struct WideRangeJumptrillMod
 						   vector<float> doot[],
 						   const int& i)
 	{
-		// drop the oldest interval values if we have reached full size
-		if (itv_taps.size() == itv_window) {
-			itv_taps.pop_front();
-			itv_ccacc.pop_front();
-		}
-
-		itv_taps.push_back(itvh.hand_taps);
-		itv_ccacc.push_back(ccacc_counter);
-
-		if (ccacc_counter > 0)
-			++crop_circles;
-		else
-			--crop_circles;
-		if (crop_circles < 0)
-			crop_circles = 0;
-
-		for (auto& n : itv_taps)
-			window_hand_taps += n;
-
-		for (auto& n : itv_ccacc)
-			window_ccacc += n;
+		_mw_taps(itvh[col_left] + itvh[col_right]);
+		_mw_ccacc(jt_counter);
 
 		if (handle_case_optimizations(doot, i)) {
 			interval_reset();
 			return;
 		}
 
-		pmod = static_cast<float>(window_hand_taps) /
-			   static_cast<float>(window_ccacc * (1 + max(crop_circles, 5)));
+		pmod = _mw_taps[true] / _mw_ccacc[true];
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
@@ -4544,7 +4628,7 @@ struct WideRangeJumptrillMod
 	{
 		// we could count these in metanoteinfo but let's do it here for now,
 		// reset every interval when finished
-		ccacc_counter = 0;
+		jt_counter = 0;
 	}
 };
 // if ccacc is cross column, anchor, cross column (1221) and we are looking for
@@ -5381,63 +5465,6 @@ struct TT_Sequencing
 
 	inline float construct_mod_part() { return 0.f; }
 };
-
-#pragma region moving window array helpers
-
-static const int max_moving_window_size = 6;
-
-// probably should template this
-struct moving_window_interval_columns_int
-{
-	// vals per interval per column over a window (max_window being 6, but we
-	// allow stuff to be done on a dynamic window below that)
-	int _itv_vals[cols_per_hand][max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
-	int _win_vals[cols_per_hand] = { 0, 0 };
-	int _size = 0;
-
-	inline void operator()(const bool& col, const int& new_val)
-	{
-		// moving window of 1 is not actually a moving window
-		if (_size == 1) {
-			_win_vals[col] = new_val;
-			return;
-		}
-
-		// if window size is 4, we must shift intervals 4 -> 3, 3 -> 2, 2 ->
-		// 1, then set interval 4 to the new value.
-
-		// this means indexing pairs 3,2; 2,1; 1,0; then setting index 3 =
-		// new_val so we will start at index 1 and index by i, i-1 and stop
-		// at i < size (in this case at, the 3 -> 2 shift)
-
-		// update the window
-		for (int i = 1; i < _size; ++i)
-			_itv_vals[col][i - 1] = _itv_vals[col][i];
-
-		// set new value at size - 1
-		_itv_vals[col][_size - 1] = new_val;
-
-		// update the running totals by subtracting the oldest value and adding
-		// the newest
-		_win_vals[col] -= _itv_vals[col][0];
-		_win_vals[col] += new_val;
-	}
-
-	// returns window totals
-	inline float operator[](const bool& col)
-	{
-		ASSERT(col < num_cols);
-		// we're almost always dividing these values, so cast to float
-		return static_cast<float>(_win_vals[col]);
-	}
-
-	inline bool is_equal()
-	{
-		return _win_vals[col_left] == _win_vals[col_right];
-	}
-};
-
-#pragma endregion
 
 struct WideRangeBalanceMod
 {
