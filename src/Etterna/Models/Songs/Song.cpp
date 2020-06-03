@@ -1702,7 +1702,7 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
 	vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps)
 	{
-		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
+		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, false);
 		if (sortedstuffs[0].first == ss)
 			return true;
 	}
