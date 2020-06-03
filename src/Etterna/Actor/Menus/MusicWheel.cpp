@@ -719,72 +719,76 @@ void
 MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
-	
+
 	for (auto song : inv) {
-		bool addsong=false;
-		for(float currate = FILTERMAN->MaxFilterRate;
-			currate > FILTERMAN->m_pPlayerState->wtFFF - .01f; currate -= 0.1f
-		) { /* Iterate over all possible rates.
-			 * The .01f delta is because floating points don't like exact equivalency*/
-			
+		bool addsong = false;
+		for (float currate = FILTERMAN->MaxFilterRate;
+			 currate > FILTERMAN->m_pPlayerState->wtFFF - .01f;
+			 currate -= 0.1f) { /* Iterate over all possible rates.
+								 * The .01f delta is because floating points
+								 * don't like exact equivalency*/
+
 			bool addsong_this_rate = FILTERMAN->ExclusiveFilter;
 			/* The default behaviour of an exclusive filter is to accept
-			* by default, (i.e. addsong_this_rate=true) and reject if any filters fail.
-			* The default behaviour of a non-exclusive filter is the exact opposite:
-			* reject by default (i.e. addsong_this_rate=false), and accept if any filters match.
-			*/
+			 * by default, (i.e. addsong_this_rate=true) and reject if any
+			 * filters fail. The default behaviour of a non-exclusive filter is
+			 * the exact opposite: reject by default (i.e.
+			 * addsong_this_rate=false), and accept if any filters match.
+			 */
 			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 				float lb = FILTERMAN->SSFilterLowerBounds[ss];
 				float ub = FILTERMAN->SSFilterUpperBounds[ss];
-				
-				if (lb > 0.f || ub > 0.f) { //If either bound is active, continue
-					
-					if (!FILTERMAN->ExclusiveFilter) { //Non-Exclusive filter
+
+				if (lb > 0.f ||
+					ub > 0.f) { // If either bound is active, continue
+
+					if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
 						if (FILTERMAN->HighestSkillsetsOnly)
 							if (!song->IsSkillsetHighestOfAnySteps(
 								  static_cast<Skillset>(ss), currate) &&
-								  ss < NUM_Skillset
-								) //The current skill is not in highest in the chart
-									continue;
-							
+								ss < NUM_Skillset) // The current skill is not
+												   // in highest in the chart
+								continue;
 					}
 					float val;
 					if (ss < NUM_Skillset)
 						val = song->GetHighestOfSkillsetAllSteps(ss, currate);
 					else {
-						TimingData* td = song->GetAllSteps()[0]->GetTimingData();
-						val = (td->GetElapsedTimeFromBeat(
-								 song->GetLastBeat()) -
-							   td->GetElapsedTimeFromBeat(
-								 song->GetFirstBeat()));
+						TimingData* td =
+						  song->GetAllSteps()[0]->GetTimingData();
+						val =
+						  (td->GetElapsedTimeFromBeat(song->GetLastBeat()) -
+						   td->GetElapsedTimeFromBeat(song->GetFirstBeat()));
 					}
-					if(FILTERMAN->ExclusiveFilter){
+					if (FILTERMAN->ExclusiveFilter) {
 						/* Our behaviour is to accept by default,
 						 * but reject if any filters don't match.*/
 						if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
 							/* If we're below the lower bound and it's set,
 							 * or above the upper bound and it's set*/
-							addsong_this_rate=false;
+							addsong_this_rate = false;
 							break;
 						}
-					}else{ //Non-Exclusive Filter
+					} else { // Non-Exclusive Filter
 						/* Our behaviour is to reject by default,
 						 * but accept if any filters match.*/
-						if ((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))) {
-							/* If we're above the lower bound or it's not set and also
-							 * below the upper bound or it isn't set*/
-							addsong_this_rate=true;
+						if ((val > lb || !(lb > 0.f)) &&
+							(val < ub || !(ub > 0.f))) {
+							/* If we're above the lower bound or it's not set
+							 * and also below the upper bound or it isn't set*/
+							addsong_this_rate = true;
 							break;
 						}
 					}
 				}
 			}
-			if(addsong_this_rate){
-				addsong=true;
-				break; // We don't need to keep checking through this song's rates
+			if (addsong_this_rate) {
+				addsong = true;
+				break; // We don't need to keep checking rates
 			}
 		}
-		if (addsong) tmp.emplace_back(song);
+		if (addsong)
+			tmp.emplace_back(song);
 	}
 	inv.swap(tmp);
 }
