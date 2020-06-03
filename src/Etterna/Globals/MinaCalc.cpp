@@ -1029,9 +1029,9 @@ determine_col_type(const unsigned& notes, const unsigned& hand_id)
 	if (hand_id == 3) {
 		if (shirt == 3)
 			return col_ohjump;
-		if (shirt == 2)
+		if (shirt == 1)
 			return col_left;
-		else if (shirt == 1)
+		else if (shirt == 2)
 			return col_right;
 	} else if (hand_id == 12) {
 		if (shirt == 12)
